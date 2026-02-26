@@ -1,0 +1,379 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ═══ Google Fonts ═══ */
+@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700&display=swap');
+
+/* ═══════════════════════════════════════════
+   FROST-PRISMATIC DESIGN SYSTEM v2.1
+   Dark-mode only · Blue-dominant 60/40
+   ═══════════════════════════════════════════ */
+
+:root {
+  /* ── Neon Accent Variables ── */
+  --neon-blue: #00BBFF;
+  --neon-green: #00FF88;
+  --neon-purple: #AA66FF;
+  --neon-orange: #FF6644;
+  --neon-amber: #FFAA44;
+
+  /* ── Surface Variables ── */
+  --surface-base: #0A0E16;
+  --surface-card: #111118;
+  --surface-elevated: #1A1822;
+  --surface-border: rgba(255, 255, 255, 0.06);
+
+  /* ── Text Variables ── */
+  --text-primary: #F0F0F4;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-muted: rgba(255, 255, 255, 0.3);
+  --text-dim: rgba(255, 255, 255, 0.15);
+
+  /* ── Chrome Bezel Variables ── */
+  --chrome-edge: rgba(255, 255, 255, 0.06);
+  --chrome-highlight: rgba(255, 255, 255, 0.12);
+  --chrome-specular: rgba(255, 255, 255, 0.18);
+
+  /* ── Dynamic Lab Color (set by JS per-lab) ── */
+  --lab-color: #00BBFF;
+  --lab-glow: rgba(0, 187, 255, 0.2);
+}
+
+/* ═══ Skip To Content (v2 accessibility) ═══
+   Hidden by default, appears on Tab focus.
+   Lets keyboard users bypass navigation. */
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  padding: 12px 24px;
+  background: var(--neon-blue);
+  color: #000;
+  font-family: 'Sora', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  border-radius: 0 0 12px 12px;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-to-content:focus {
+  top: 0;
+  outline: 3px solid white;
+  outline-offset: 2px;
+}
+
+/* ═══ Chrome Frame — Metallic Bezel ═══
+   A three-layer container: outer chrome bezel → LED rim → inner screen.
+   Used around lab tiles, game panels, and featured cards. */
+.chrome-frame {
+  position: relative;
+  padding: 3px;
+  border-radius: 16px;
+  background: linear-gradient(
+    180deg,
+    var(--chrome-specular) 0%,
+    var(--chrome-edge) 40%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  box-shadow:
+    0 1px 0 var(--chrome-edge),
+    inset 0 1px 0 var(--chrome-highlight);
+}
+
+.chrome-highlight {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+}
+
+.led-rim {
+  padding: 2px;
+  border-radius: 13px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--lab-color) 50%,
+    transparent 100%
+  );
+  opacity: 0.5;
+}
+
+.screen-inner {
+  border-radius: 11px;
+  background: var(--surface-card);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+/* ═══ Glass Card — Glassmorphism (ENHANCED v2) ═══
+   Semi-transparent card with backdrop blur and subtle borders.
+   v2: Added inner edge highlight for depth perception. */
+.glass-card {
+  background: rgba(17, 17, 24, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* ═══ Frost Blur (v2 NEW) ═══
+   Heavier blur for elevated surfaces like modals and dropdowns. */
+.frost-blur {
+  background: rgba(17, 17, 24, 0.85);
+  backdrop-filter: blur(32px) saturate(1.2);
+  -webkit-backdrop-filter: blur(32px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ═══ Control Panel Button ═══
+   Hover effect for lab tiles and interactive buttons.
+   Lifts and glows with lab-specific color. */
+.control-panel-btn {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+}
+
+.control-panel-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px var(--lab-glow);
+}
+
+.control-panel-btn:active {
+  transform: translateY(0);
+}
+
+/* ═══ Interactive Hover (v2 NEW) ═══
+   GPU-accelerated lift + glow. More dramatic than control-panel-btn.
+   Use on feature cards, game tiles, lab cards. */
+.interactive-hover {
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: transform, box-shadow;
+}
+
+.interactive-hover:hover {
+  transform: translateY(-6px) scale(1.01);
+  box-shadow:
+    0 12px 40px rgba(0, 0, 0, 0.3),
+    0 0 20px var(--lab-glow, rgba(0, 187, 255, 0.15));
+}
+
+.interactive-hover:active {
+  transform: translateY(-2px) scale(1.0);
+  transition-duration: 0.1s;
+}
+
+/* ═══ Neon Text Glow ═══ */
+.neon-text {
+  text-shadow:
+    0 0 7px var(--lab-color),
+    0 0 10px var(--lab-color),
+    0 0 21px var(--lab-color);
+}
+
+/* ═══ Gradient Text Effects ═══ */
+.gradient-text-frost {
+  background: linear-gradient(135deg, #00BBFF, #AA66FF, #FF66AA);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-lab {
+  background: linear-gradient(135deg, var(--lab-color), color-mix(in srgb, var(--lab-color), white 30%));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══ Skeleton Shimmer (v2 NEW) ═══
+   Lightweight CSS-only loading shimmer. Use on skeleton UI
+   elements instead of heavier JS-based animation. */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 100%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.8s linear infinite;
+  border-radius: 8px;
+}
+
+/* ═══ Glow Border (v2 NEW) ═══
+   Animated gradient border. Apply to featured/premium cards.
+   Uses background-clip trick for transparent inner. */
+.glow-border {
+  position: relative;
+  z-index: 0;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  z-index: -1;
+  border-radius: inherit;
+  background: linear-gradient(
+    90deg,
+    var(--neon-blue),
+    var(--neon-purple),
+    var(--neon-amber),
+    var(--neon-blue)
+  );
+  background-size: 300% 100%;
+  animation: glow-border-rotate 4s ease infinite;
+  opacity: 0.6;
+}
+
+.glow-border:hover::before {
+  opacity: 1;
+}
+
+/* ═══ Page Transitions (v2 NEW) ═══
+   Base classes for route transition animations.
+   Used by PageTransitionProvider (Stage 3). */
+.page-enter {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.page-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.page-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-exit-active {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+/* ═══ View Transitions (v2 NEW — future API) ═══
+   Prep for the View Transitions API when widely supported.
+   Currently a progressive enhancement — ignored by unsupporting browsers. */
+@supports (view-transition-name: none) {
+  ::view-transition-old(root) {
+    animation: page-fade-out 0.2s ease forwards;
+  }
+
+  ::view-transition-new(root) {
+    animation: page-fade-in 0.3s ease forwards;
+  }
+
+  @keyframes page-fade-out {
+    to { opacity: 0; transform: translateY(-4px); }
+  }
+
+  @keyframes page-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+  }
+}
+
+/* ═══ Floating Particle Dots ═══ */
+.particle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--lab-color);
+  opacity: 0.4;
+  animation: float 6s ease-in-out infinite;
+}
+
+/* ═══ Cosmic Background — Starfield Effect ═══ */
+.bg-cosmic-dark {
+  position: relative;
+  background: radial-gradient(ellipse at 20% 50%, rgba(0, 187, 255, 0.03), transparent 60%),
+              radial-gradient(ellipse at 80% 20%, rgba(170, 102, 255, 0.02), transparent 50%),
+              var(--surface-base);
+}
+
+/* ═══ Custom Scrollbar ═══ */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 187, 255, 0.2);
+  border-radius: 999px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 187, 255, 0.4); }
+
+/* ═══ Focus Visible (Accessibility) ═══
+   Only shows focus outlines for keyboard navigation,
+   not mouse clicks. Uses lab color for theming. */
+*:focus-visible {
+  outline: 3px solid var(--lab-color, #00BBFF);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ═══ Reduced Motion (Accessibility) ═══
+   Disables all animations for users who prefer less motion.
+   This is the CSS layer — Framer Motion also respects this
+   via the useReducedMotion hook in our animation library. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .bg-cosmic-dark::before { animation: none; opacity: 0.3; }
+  .skeleton-shimmer { animation: none; background: rgba(255, 255, 255, 0.05); }
+  .glow-border::before { animation: none; }
+}
+
+/* ═══ Dyslexia Font Toggle ═══
+   Applied via className on <html> element.
+   Switches all text to a dyslexia-friendly font. */
+.dyslexia-font * {
+  font-family: 'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif !important;
+}
+
+/* ═══ High Contrast Mode ═══
+   Applied via className on <html> element.
+   Increases contrast for visually impaired users. */
+.high-contrast {
+  --surface-base: #000000;
+  --surface-card: #1a1a1a;
+  --surface-elevated: #2a2a2a;
+  --text-primary: #FFFFFF;
+  --text-secondary: #E0E0E0;
+  --text-muted: #BBBBBB;
+}
+
+.high-contrast .glass-card {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--lab-color);
+  backdrop-filter: none;
+}
+
+.high-contrast .chrome-frame {
+  border: 2px solid var(--lab-color);
+}
+
+/* ═══ Font Size Presets ═══
+   Applied via className on <html> element. */
+.font-size-large { font-size: 112.5%; } /* 18px base */
+.font-size-xl { font-size: 125%; } /* 20px base */
