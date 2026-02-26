@@ -2,24 +2,20 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'SparkForge — AI Learning Lab',
-  description: 'Interactive AI learning platform for young explorers',
+  title: 'SparkForge — Where Curiosity Meets AI',
+  description: 'The gamified AI learning platform for kids ages 7-16. 10 labs, 28 games, endless discovery.',
+  openGraph: {
+    title: 'SparkForge — Where Curiosity Meets AI',
+    description: 'The gamified AI learning platform for kids ages 7-16.',
+    type: 'website',
+  },
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
-      <body className="font-body bg-surface-deep text-[var(--text-primary)] antialiased">
-        <a href="#main-content" className="skip-to-content">
-          Skip to content
-        </a>
-        <main id="main-content">
-          {children}
-        </main>
+    <html lang="en" className="dark">
+      <body className="font-body antialiased bg-surface-base text-white min-h-screen">
+        {children}
       </body>
     </html>
   );
