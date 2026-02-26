@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import QueryProvider from '@/components/providers/QueryProvider';
 
 export const metadata: Metadata = {
   title: 'SparkForge — Where Curiosity Meets AI',
@@ -15,7 +16,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="font-body antialiased bg-surface-base text-white min-h-screen">
-        {children}
+        <QueryProvider>
+          {children}
+        </QueryProvider>
       </body>
     </html>
   );
