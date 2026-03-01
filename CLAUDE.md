@@ -349,7 +349,7 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 
 **7F — 3 Band A games (Mixed):**
 - v3-FINAL: My First AI App (3D) (STAGE7F_v3FINAL_A/B)
-- v2: Emoji Decoder, AI or Not? (STAGE7F_Part2)
+- v3-FINAL: Emoji Decoder, AI or Not? (STAGE7F_v3FINAL_B)
 
 **7 Shared — Systems (Mixed):**
 - v3-FINAL: GenericGameParticles for 23 standard games (STAGE7_Shared_v3FINAL_A)
