@@ -2,14 +2,14 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.0 | **Date:** March 1, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v4 (March 1, 2026) — this version is purpose-built for Claude Code autonomous development.
+**Version:** 5.1 | **Date:** March 1, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.0 (March 1, 2026) — corrects game count from 31 to 35.
 
 ---
 
 ## 1. PROJECT IDENTITY
 
-SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **31 interactive games** across **10 themed Labs**. The platform uses a dark-mode-only aesthetic called **Frost-Prismatic** with chrome bezels, neon accents, and glassmorphism. The v3 vision transforms the platform into a **Laboratory Control Station** — a futuristic command console with persistent chrome frames, crystal shatter arrivals, lab reconfiguration transitions, and themed 3D game elements.
+SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **35 interactive games** across **10 themed Labs**. The platform uses a dark-mode-only aesthetic called **Frost-Prismatic** with chrome bezels, neon accents, and glassmorphism. The v3 vision transforms the platform into a **Laboratory Control Station** — a futuristic command console with persistent chrome frames, crystal shatter arrivals, lab reconfiguration transitions, and themed 3D game elements.
 
 ### Tech Stack
 
@@ -34,7 +34,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 - **Documentation:** COMPLETE — 78 active project files
 - **v3-FINAL patches:** 14 documents (34 part files), 48 locked decisions
-- **Games:** 31 total — 5 flagship (full 3D), 1 full 3D, 7 FL-Lite (enhanced 3D), 2 enhanced standard, 16 standard
+- **Games:** 35 total — 5 flagship (full 3D), 1 full 3D, 7 FL-Lite (enhanced 3D), 2 enhanced standard, 20 standard
 - **Code written:** 0% — ready to build
 
 ---
@@ -132,7 +132,7 @@ Follow this EXACT order. Never skip ahead.
 | 12 | Stage 6D | STAGE6D_v3FINAL_A/B | YES | — |
 | 13 | Stage 6E | STAGE6E_v3FINAL_A/B/C | YES | — |
 | 14 | Stage 6F | STAGE6F_v3FINAL_A/B/C | YES | — |
-| 15 | Stage 7A (8 games) | STAGE7A_Batch + Parts 2-4 | No | — |
+| 15 | Stage 7A (9 games) | STAGE7A_Batch + Parts 2-4 | No | — |
 | 16 | Stage 7B (4 games) | STAGE7B_v3FINAL_A/B/C | YES | — |
 | 17 | Stage 7C (4 games v2) | STAGE7C_Part1 + Part2 | No | — |
 | 18 | Stage 7C (2 games v3) | STAGE7C_v3FINAL_A/B/C | YES | — |
@@ -189,7 +189,7 @@ Reply 'approved' to continue to Stage [N+1], or describe issues.
 | 4 | Dashboard home, Labs map, Profile page. Lab reconfiguration transitions work. |
 | 5 | XP popup, streak fire, badge displays, trophy room. 3D particle effects on desktop. |
 | 6 | All 5 flagship games playable: full phase cycle (welcome→learn→play→complete). 3D visible on desktop. |
-| 7 | All 26 remaining games playable. Game registry shows 31 entries. Arcade page lists all. |
+| 7 | All 30 remaining games playable. Game registry shows 35 entries. Arcade page lists all. |
 | 8 | Parent dashboard, subscription flow, pricing page with scroll journey. Stripe test checkout works. |
 | 9 | Content agent produces content via admin trigger. Admin review dashboard shows items. |
 | 10 | Accessibility toolbar, PWA install, Lighthouse audit. All routes resolve. Production build clean. |
@@ -328,12 +328,12 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 
 ---
 
-### Stage 7: All Remaining Games (26 games — Mixed)
+### Stage 7: All Remaining Games (30 games — Mixed)
 
 **Prerequisites:** Stages 1-6 complete
 **Implement in order:** 7A → 7B → 7C → 7D → 7E → 7F → Shared
 
-**7A — 8 Tap/Quiz games (v2):** AI Spy, Time Machine, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Prediction Market. Source: 4 v2 docs.
+**7A — 9 Tap/Quiz games (v2):** AI Spy, Time Machine, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Prediction Market. Source: 4 v2 docs.
 
 **7B — 4 Drag/Drop games (v3-FINAL):** Sort Toy Box (Full 3D), Human vs Machine, Code Blocks (Enhanced 3D), Career Explorer. Source: STAGE7B_v3FINAL_A/B/C.
 
@@ -349,14 +349,14 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 
 **7F — 3 Band A games (Mixed):**
 - v3-FINAL: My First AI App (3D) (STAGE7F_v3FINAL_A/B)
-- v3-FINAL: Emoji Decoder, AI or Not? (STAGE7F_v3FINAL_B)
+- v2: Emoji Decoder, AI or Not? (STAGE7F_Part2)
 
 **7 Shared — Systems (Mixed):**
-- v3-FINAL: GenericGameParticles for 23 standard games (STAGE7_Shared_v3FINAL_A)
+- v3-FINAL: GenericGameParticles for 29 standard/FL-Lite games (STAGE7_Shared_v3FINAL_A)
 - v2: XPPopupProvider, GameCompleteCelebration, StreakFire (STAGE7_Shared_XP_Celebration)
 
-**After all 7 sub-stages:** Update `gameRegistry.ts` with all 31 entries.
-**Tag:** `git tag -a v0.7.0 -m "Stage 7 complete: 26 games + shared systems (31 total)"`
+**After all 7 sub-stages:** Update `gameRegistry.ts` with all 35 entries.
+**Tag:** `git tag -a v0.7.0 -m "Stage 7 complete: 30 games + shared systems (35 total)"`
 
 ---
 
@@ -399,7 +399,7 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 **Hard Stops:** HS-4 (Vercel), HS-5 (final visual)
 
 **Part 1:** A11yProvider, AccessibilityToolbar, accessibilityStore (6th store), SEO meta, CSP headers, PWA manifest
-**Part 2:** Game router (31 games), production next.config.js (REPLACES Stage 1 version), deployment guide
+**Part 2:** Game router (35 games), production next.config.js (REPLACES Stage 1 version), deployment guide
 
 **BUG-10F (CRITICAL):** Root layout MUST use Exo 2/Sora/Orbitron — NOT Fredoka/Nunito Sans.
 **BUG-10D:** CSP connect-src must include Vercel analytics domains.
@@ -453,7 +453,7 @@ const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
 game.completeGame();
 ```
 
-### Required Features (ALL 31 games)
+### Required Features (ALL 35 games)
 
 - Chrome bezel + LED rim wrapper
 - 12-15 particles (lab-colored) — CSS for standard, R3F for flagship
@@ -639,7 +639,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-## 13. QUICK REFERENCE — ALL 31 GAMES
+## 13. QUICK REFERENCE — ALL 35 GAMES
 
 | # | Game | Lab | Slug | Tier | 3D | Bands | Stage |
 |---|------|-----|------|------|-----|-------|-------|
@@ -694,5 +694,5 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-*End of CLAUDE.md v5.0 — SparkForge Autonomous Development Playbook*
-*78 files | 31 games | 48 decisions | 14 v3-FINAL documents | March 1, 2026*
+*End of CLAUDE.md v5.1 — SparkForge Autonomous Development Playbook*
+*78 files | 35 games | 48 decisions | 14 v3-FINAL documents | March 1, 2026*
