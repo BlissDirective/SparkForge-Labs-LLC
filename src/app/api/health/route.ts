@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 
-export async function GET(req: NextRequest) {
+export async function GET(_req: NextRequest) {
   const start = Date.now();
 
   let dbStatus = 'ok';

@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
   const parsed = await parseBody(req, SignupSchema);
   if (!parsed.success) return parsed.response;
 
-  const { email, password, fullName, coppaConsent, timezone } = parsed.data;
+  const { email, password, fullName, coppaConsent: _coppaConsent, timezone: _timezone } = parsed.data;
 
   const supabase = createAdminClient();
 
@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     return apiError('Failed to create account. Please try again.', 500, 'DB_ERROR');
   }
 
-  await supabase.auth.admin.generateLink({ type: 'signup', email });
+  await supabase.auth.admin.generateLink({ type: 'signup', email, password });
 
   return apiSuccess({ userId: authData.user.id, emailSent: true }, 201);
 }

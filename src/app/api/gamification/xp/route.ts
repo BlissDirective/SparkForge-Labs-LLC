@@ -51,7 +51,7 @@ export async function POST(req: NextRequest) {
   const parsed = await parseBody(req, AwardXPSchema);
   if (!parsed.success) return parsed.response;
 
-  const { childId, amount, source } = parsed.data;
+  const { childId, amount, source: _source } = parsed.data;
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 

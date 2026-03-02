@@ -83,7 +83,7 @@ export interface AuthenticatedUser {
 }
 
 export async function requireAuth(
-  req: NextRequest
+  _req: NextRequest
 ): Promise<{ success: true; user: AuthenticatedUser } | { success: false; response: NextResponse }> {
   const supabase = createServerSupabase();
   const { data: { user }, error } = await supabase.auth.getUser();
@@ -134,7 +134,7 @@ export function applyRateLimit(
   req: NextRequest,
   prefix: string,
   userId?: string,
-  config = RATE_LIMITS.general
+  config: { maxRequests: number; windowMs: number } = RATE_LIMITS.general
 ): NextResponse | null {
   const ip = getClientIP(req);
   const identifier = userId || ip;

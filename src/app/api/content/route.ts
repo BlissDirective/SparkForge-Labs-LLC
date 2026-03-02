@@ -3,7 +3,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { ContentQuerySchema } from '@/lib/validations';
-import { apiSuccess, apiError, parseQuery, requireAuth } from '@/lib/api-helpers';
+import { apiError, parseQuery, requireAuth } from '@/lib/api-helpers';
 import { isLabAccessible } from '@/lib/tier-config';
 
 export async function GET(req: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const parsed = parseQuery(req, ContentQuerySchema);
   if (!parsed.success) return parsed.response;
 
-  const { world, ageBand, type, limit, offset } = parsed.data;
+  const { world, ageBand, type, limit = 20, offset = 0 } = parsed.data;
 
   if (world) {
     const access = isLabAccessible(auth.user.tier, world);

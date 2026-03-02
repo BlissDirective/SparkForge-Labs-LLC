@@ -79,6 +79,7 @@ export async function POST(req: NextRequest) {
   const uniqueGamesPlayed = new Set<string>();
 
   for (const p of progress || []) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const c = p.content as any;
     if (!c) continue;
     worldsVisited.add(c.world);
@@ -155,6 +156,7 @@ export async function POST(req: NextRequest) {
       }
       case 'sandboxes_completed': {
         const sandboxCount = (progress || []).filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           p => (p.content as any)?.type === 'sandbox'
         ).length;
         met = sandboxCount >= badge.criteria_value;
@@ -162,6 +164,7 @@ export async function POST(req: NextRequest) {
       }
       case 'spark_facts_read': {
         const factCount = (progress || []).filter(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           p => (p.content as any)?.type === 'spark_fact'
         ).length;
         met = factCount >= badge.criteria_value;

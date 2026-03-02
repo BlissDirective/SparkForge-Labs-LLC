@@ -6,7 +6,7 @@ import { CheckoutSchema } from '@/lib/validations';
 import { apiSuccess, apiError, parseBody, requireAuth } from '@/lib/api-helpers';
 import { STRIPE_PRICES } from '@/lib/tier-config';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-12-18.acacia' });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
 
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
@@ -16,7 +16,10 @@ export async function POST(req: NextRequest) {
   if (!parsed.success) return parsed.response;
 
   const { tier, interval } = parsed.data;
-  const priceId = STRIPE_PRICES[tier][interval];
+  if (!tier || !interval) return apiError('Missing tier or interval', 400);
+  const prices = STRIPE_PRICES[tier as keyof typeof STRIPE_PRICES];
+  if (!prices) return apiError('Invalid tier', 400);
+  const priceId = prices[interval as keyof typeof prices];
 
   if (!priceId) return apiError('Invalid price configuration', 500);
 

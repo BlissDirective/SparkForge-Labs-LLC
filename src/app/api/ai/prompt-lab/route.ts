@@ -64,6 +64,7 @@ export async function POST(req: NextRequest) {
 
     const reply = message.content
       .filter(block => block.type === 'text')
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       .map(block => (block as any).text)
       .join('');
 
@@ -77,6 +78,7 @@ export async function POST(req: NextRequest) {
     }).eq('id', childId);
 
     return apiSuccess({ reply, promptsRemaining: dailyLimit - usedToday - 1 });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } catch (error: any) {
     if (error?.status === 429) return apiError('Sparky is taking a quick break. Try again in a moment!', 429);
     return apiError('Sparky had a hiccup. Please try again!', 500);

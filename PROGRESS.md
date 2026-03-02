@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: 0 — Pre-Build Setup
-## Status: NOT STARTED
-## Last Updated: —
+## Current Phase: 1 — Stage 1 Part 1 (Config & Structure)
+## Status: COMPLETE
+## Last Updated: 2026-03-02
 
 ---
 
@@ -10,7 +10,7 @@
 
 | Phase | Stage | Status | Commit | Tag | Visual Approved |
 |-------|-------|--------|--------|-----|-----------------|
-| 1 | Stage 1 Part 1 — Config & Structure | ⬜ | — | — | — |
+| 1 | Stage 1 Part 1 — Config & Structure | ✅ | Stage 1 Part 1 | — | — |
 | 2 | Stage 1 Part 2 — Source Files | ⬜ | — | — | — |
 | — | **Stage 1 Visual Checkpoint** | ⬜ | — | v0.1.0 | ⬜ |
 | 3 | Stage 2 Parts 1-4 — Database & API | ⬜ | — | — | — |
@@ -61,7 +61,13 @@
 
 | Phase | Issue | Auto-Fix Applied | Result |
 |-------|-------|-----------------|--------|
-| — | — | — | — |
+| 1 | Missing @tanstack/react-query-devtools (later-stage file) | npm install @tanstack/react-query-devtools | PASS |
+| 1 | Zod v4 breaking changes (later-stage files use v3 API) | Downgraded to zod@3 | PASS |
+| 1 | Stripe API version mismatch (2024-12-18.acacia → 2026-02-25.clover) | Updated apiVersion in 3 stripe route files | PASS |
+| 1 | applyRateLimit type inference from `as const` RATE_LIMITS | Added explicit type annotation to config param | PASS |
+| 1 | Supabase generateLink missing password param | Added password to generateLink call | PASS |
+| 1 | content/route.ts offset/limit possibly undefined | Added defaults (offset=0, limit=20) | PASS |
+| 1 | ESLint no-unused-vars for API route params | Updated .eslintrc.json with underscore pattern + prefixed unused params | PASS |
 
 ---
 
@@ -69,7 +75,8 @@
 
 | Phase | Document | Expected | Actual | Resolution |
 |-------|----------|----------|--------|-----------|
-| — | — | — | — | — |
+| 1 | Stage 1 Part 1 | Fresh project | Pre-existing files from prior session | Verified all Part 1 configs match spec exactly, fixed build errors in later-stage files |
+| 1 | Stage 1 Part 1 | zod (unversioned) | zod@4.3.6 installed | Downgraded to zod@3 for compatibility with stage document code patterns |
 
 ---
 
@@ -77,4 +84,4 @@
 
 | Stage | Build Time | TS Errors Fixed | Console Warnings |
 |-------|-----------|-----------------|-----------------|
-| — | — | — | — |
+| S1P1 | ~10s | 7 (all in later-stage files) | 1 (webpack cache serialization) |
