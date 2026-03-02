@@ -64,7 +64,7 @@ Commit: `git commit -m "Stage 1: Foundation"`
 
 | Part | Source | Content |
 |------|--------|---------|
-| Part 1 | STAGE2_Database_API_v2_PART1 | DB schema (9 tables), indexes (14), RLS, badge seed (78), starter content |
+| Part 1 | STAGE2_Database_API_v2_PART1 | DB schema (9 tables), indexes (14), RLS, badge seed (68), starter content |
 | Part 2 | STAGE2_Database_API_v2_PART2 | Zod schemas, tier-config.ts, rate limiting, API helpers |
 | Part 3 | STAGE2_Database_API_v2_PART3 | API routes: auth, children CRUD, content |
 | Part 4 | STAGE2_Database_API_v2_PART4 | API routes: progress, gamification (xp, streak, badges) |

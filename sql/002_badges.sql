@@ -1,5 +1,5 @@
 -- ════════════════════════════════════════════════════
--- SPARKFORGE BADGE DEFINITIONS (78 badges)
+-- SPARKFORGE BADGE DEFINITIONS (68 badges)
 -- Run after 001_schema.sql
 -- ════════════════════════════════════════════════════
 

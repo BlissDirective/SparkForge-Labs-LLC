@@ -311,7 +311,7 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 
 **BEFORE STARTING:** Trigger HS-1. Wait for `.env.local` with Supabase URL + anon key + service role key.
 
-**Part 1:** DB schema (9 tables), indexes (14), RLS policies, badge seed (78), starter content → **Trigger HS-7**: provide SQL blocks for human to execute in Supabase SQL Editor.
+**Part 1:** DB schema (9 tables), indexes (14), RLS policies, badge seed (68), starter content → **Trigger HS-7**: provide SQL blocks for human to execute in Supabase SQL Editor.
 **Part 2:** Zod schemas, tier-config.ts, rate limiting, API helpers
 **Part 3:** API routes: auth, children CRUD, content
 **Part 4:** API routes: progress, gamification (xp, streak, badges)

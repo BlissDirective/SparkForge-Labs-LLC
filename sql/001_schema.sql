@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS progress (
 );
 
 -- ════════════════════════════════════════════════════
--- TABLE: badges (78 total across 9 categories)
+-- TABLE: badges (68 total across 9 categories)
 -- category 'world' in DB = "Lab Master" badges in UI
 -- ════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS badges (

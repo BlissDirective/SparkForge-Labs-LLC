@@ -8,7 +8,7 @@
 
 | Filename | Phase | Content |
 |----------|-------|---------|
-| `STAGE2_Database_API_v2_PART1.pdf` | 2.1 | DB schema (9 tables), indexes (14), RLS, badge seed (78), starter content |
+| `STAGE2_Database_API_v2_PART1.pdf` | 2.1 | DB schema (9 tables), indexes (14), RLS, badge seed (68), starter content |
 | `STAGE2_Database_API_v2_PART2.pdf` | 2.2 | Zod schemas, tier-config.ts, rate limiting, API helpers |
 | `STAGE2_Database_API_v2_PART3.pdf` | 2.3 | API routes: auth, children CRUD, content |
 | `STAGE2_Database_API_v2_PART4.pdf` | 2.4 | API routes: progress, gamification (xp, streak, badges) |

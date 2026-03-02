@@ -18,7 +18,7 @@
 - Indexes (14 performance indexes)
 - Row Level Security policies
 - Database functions & triggers
-- Badge seed data (78 badges)
+- Badge seed data (68 badges)
 - Starter content seed data
 - Cron job setup
 
@@ -184,7 +184,7 @@ CREATE TABLE IF NOT EXISTS progress (
 );
 
 -- ════════════════════════════════════════════════════
--- TABLE: badges (78 total across 9 categories)
+-- TABLE: badges (68 total across 9 categories)
 -- category 'world' in DB = "Lab Master" badges in UI
 -- ════════════════════════════════════════════════════
 CREATE TABLE IF NOT EXISTS badges (
@@ -472,9 +472,9 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ---
 
-## STEP 6: SEED BADGE DEFINITIONS (78 badges)
+## STEP 6: SEED BADGE DEFINITIONS (68 badges)
 
-**WHAT THIS DOES:** Creates all 78 achievement badges across 9 categories. Badge descriptions use "Lab" terminology (UI-facing text).
+**WHAT THIS DOES:** Creates all 68 achievement badges across 9 categories. Badge descriptions use "Lab" terminology (UI-facing text).
 
 **WHERE:** Supabase SQL Editor → New Query → paste and Run:
 
@@ -482,7 +482,7 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 ```sql
 -- ════════════════════════════════════════════════════
--- BADGE SEED DATA (78 badges)
+-- BADGE SEED DATA (68 badges)
 -- ════════════════════════════════════════════════════
 
 -- PROGRESS BADGES (7)
@@ -727,7 +727,7 @@ Run these queries to confirm everything:
 SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public' ORDER BY table_name;
 
--- Should return 78 badges (7+7+10+10+10+5+5+8+6)
+-- Should return 68 badges (7+7+10+10+10+5+5+8+6)
 SELECT category, COUNT(*) FROM badges GROUP BY category ORDER BY category;
 
 -- Should return 6 starter content items
@@ -747,7 +747,7 @@ WHERE table_name = 'parents' AND column_name = 'onboarding_complete';
 ### EXPECTED RESULTS
 
 - **9 tables:** badges, child_badges, children, content, content_queue, parents, progress, prompt_history, sessions
-- **78 badges** across 9 categories
+- **68 badges** across 9 categories
 - **6 starter content** items
 - All tables with `rowsecurity = true`
 - `onboarding_complete` column exists with default `false`
@@ -763,7 +763,7 @@ After completing Part 1, your Supabase database has:
 - Full RLS on every table
 - 3 auto-update triggers + daily/weekly reset functions
 - Lab progress calculation function
-- 78 badge definitions (Lab terminology)
+- 68 badge definitions (Lab terminology)
 - 6 starter content items (Labs 1-3)
 - COPPA-compliant prompt history cleanup
 - **v2:** `parents.onboarding_complete` column

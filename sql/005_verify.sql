@@ -7,7 +7,7 @@
 SELECT table_name FROM information_schema.tables
 WHERE table_schema = 'public' ORDER BY table_name;
 
--- Should return 78 badges (7+7+10+10+10+5+5+8+6)
+-- Should return 68 badges (7+7+10+10+10+5+5+8+6)
 SELECT category, COUNT(*) FROM badges GROUP BY category ORDER BY category;
 
 -- Should return 6 starter content items
