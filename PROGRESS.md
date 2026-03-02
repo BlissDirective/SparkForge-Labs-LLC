@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 1 — Stage 1 Part 1 (Config & Structure)
+## Current Phase: 2 — Stage 1 Part 2 (Source Files)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-02
 
@@ -11,7 +11,7 @@
 | Phase | Stage | Status | Commit | Tag | Visual Approved |
 |-------|-------|--------|--------|-----|-----------------|
 | 1 | Stage 1 Part 1 — Config & Structure | ✅ | Stage 1 Part 1 | — | — |
-| 2 | Stage 1 Part 2 — Source Files | ⬜ | — | — | — |
+| 2 | Stage 1 Part 2 — Source Files | ✅ | Stage 1 Part 2 | — | — |
 | — | **Stage 1 Visual Checkpoint** | ⬜ | — | v0.1.0 | ⬜ |
 | 3 | Stage 2 Parts 1-4 — Database & API | ⬜ | — | — | — |
 | — | **Stage 2 Visual Checkpoint** | ⬜ | — | v0.2.0 | ⬜ |
@@ -68,6 +68,7 @@
 | 1 | Supabase generateLink missing password param | Added password to generateLink call | PASS |
 | 1 | content/route.ts offset/limit possibly undefined | Added defaults (offset=0, limit=20) | PASS |
 | 1 | ESLint no-unused-vars for API route params | Updated .eslintrc.json with underscore pattern + prefixed unused params | PASS |
+| 2 | ESLint no-page-custom-font warning in layout.tsx | Disabled rule in .eslintrc.json (App Router doesn't use _document.js) | PASS |
 
 ---
 
@@ -77,6 +78,11 @@
 |-------|----------|----------|--------|-----------|
 | 1 | Stage 1 Part 1 | Fresh project | Pre-existing files from prior session | Verified all Part 1 configs match spec exactly, fixed build errors in later-stage files |
 | 1 | Stage 1 Part 1 | zod (unversioned) | zod@4.3.6 installed | Downgraded to zod@3 for compatibility with stage document code patterns |
+| 2 | Stage 1 Part 2 | Create all files fresh | Some files already existed from prior session | Compared each existing file against spec; updated where needed, created 8 new files |
+| 2 | Stage 1 Part 2 | types/index.ts per spec | Existing version more complete (DB-accurate fields, all 35 games) | Kept richer version, added missing CelebrationType export and getLabById() |
+| 2 | Stage 1 Part 2 | childStore.ts per spec | Existing version has updateLevel(level,title) + clearChild() | Kept richer version, added missing updateAvatarConfig method |
+| 2 | Stage 1 Part 2 | middleware.ts per spec | Existing uses getUser (more secure than getSession) | Kept existing — functionally equivalent, more secure approach |
+| 2 | Stage 1 Part 2 | supabase/server.ts per spec (uses any) | Existing uses CookieOptions type | Kept existing — cleaner typing, functionally identical |
 
 ---
 
@@ -85,3 +91,33 @@
 | Stage | Build Time | TS Errors Fixed | Console Warnings |
 |-------|-----------|-----------------|-----------------|
 | S1P1 | ~10s | 7 (all in later-stage files) | 1 (webpack cache serialization) |
+| S1P2 | ~10s | 0 | 0 |
+
+---
+
+### Stage 1 Part 2 — Files Created/Updated
+
+**New files created (8):**
+- `src/hooks/useMediaQuery.ts` — SSR-safe media query hook
+- `src/hooks/useDebounce.ts` — Debounce hook for rapidly-changing values
+- `src/hooks/useSystemPreferences.ts` — OS accessibility detection
+- `src/hooks/useLocalStorage.ts` — SSR-safe localStorage with JSON serialization
+- `src/lib/feature-flags.ts` — Feature flag system (NEXT_PUBLIC_FF_*)
+- `src/components/shared/FeatureGate.tsx` — Conditional rendering by feature flag
+- `src/stores/toastStore.ts` — Toast notification Zustand store
+- `src/components/shared/ToastContainer.tsx` — Animated toast UI component
+
+**Updated files (5):**
+- `src/lib/animations.ts` — Full v2 replacement with 45+ animation variants + safeVariant() wrapper
+- `src/app/layout.tsx` — Added Viewport export, skip-to-content, Google Fonts, sr-announcements, keywords
+- `src/types/index.ts` — Added CelebrationType export and getLabById() function
+- `src/stores/uiStore.ts` — Imports CelebrationType from types (includes 'streak')
+- `src/stores/childStore.ts` — Added updateAvatarConfig method + AvatarConfig import
+
+**Kept as-is (6):**
+- `src/lib/utils.ts` — Already matches spec
+- `src/lib/supabase/client.ts` — Already matches spec
+- `src/lib/supabase/server.ts` — Better typing than spec (CookieOptions vs any)
+- `src/stores/authStore.ts` — Already matches spec
+- `src/stores/gameStore.ts` — Already matches spec
+- `src/middleware.ts` — Functionally equivalent, uses more secure getUser

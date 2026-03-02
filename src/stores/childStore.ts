@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Child, ChildBadge, Progress } from '@/types';
+import type { Child, ChildBadge, Progress, AvatarConfig } from '@/types';
 
 interface ChildState {
   activeChild: Child | null;
@@ -15,6 +15,7 @@ interface ChildState {
   updateLevel: (level: number, title: string) => void;
   updateStreak: (count: number) => void;
   updateCoins: (coins: number) => void;
+  updateAvatarConfig: (config: Partial<AvatarConfig>) => void;
   clearChild: () => void;
 }
 
@@ -48,6 +49,11 @@ export const useChildStore = create<ChildState>()(
         const child = get().activeChild;
         if (!child) return;
         set({ activeChild: { ...child, spark_coins: child.spark_coins + coinsToAdd } });
+      },
+      updateAvatarConfig: (config) => {
+        const child = get().activeChild;
+        if (!child) return;
+        set({ activeChild: { ...child, avatar_config: { ...child.avatar_config, ...config } } });
       },
       clearChild: () => set({ activeChild: null, children: [], badges: [], progress: [] }),
     }),

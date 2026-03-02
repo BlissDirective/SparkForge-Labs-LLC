@@ -5,6 +5,7 @@ export type ContentStatus = 'published' | 'pending_review' | 'needs_human_review
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 export type BadgeCategory = 'progress' | 'streak' | 'lab' | 'game_master' | 'knowledge' | 'explorer' | 'creator' | 'secret' | 'prestige';
 export type BadgeRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
+export type CelebrationType = 'xp' | 'badge' | 'level' | 'streak' | 'confetti';
 
 export interface Parent {
   id: string;
@@ -264,6 +265,10 @@ export const WORLDS = LABS;
 
 export function getAllGames(): (GameMeta & { labId: number; labColor: string; labTint: string; labTitle: string })[] {
   return LABS.flatMap(l => l.games.map(g => ({ ...g, labId: l.id, labColor: l.color, labTint: l.tint, labTitle: l.title })));
+}
+
+export function getLabById(id: number): LabMeta | undefined {
+  return LABS.find(l => l.id === id);
 }
 
 export function getGameBySlug(slug: string) {

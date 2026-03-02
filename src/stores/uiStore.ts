@@ -1,6 +1,5 @@
 import { create } from 'zustand';
-
-type CelebrationType = 'xp' | 'badge' | 'level' | 'confetti';
+import type { CelebrationType } from '@/types';
 
 interface UIState {
   sidebarOpen: boolean;
