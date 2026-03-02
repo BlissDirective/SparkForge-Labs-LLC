@@ -2,8 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.1 | **Date:** March 1, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.0 (March 1, 2026) — corrects game count from 31 to 35.
+**Version:** 5.2 | **Date:** March 2, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.1 (March 1, 2026) — adds stage document modification policy and code review role.
 
 ---
 
@@ -51,6 +51,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 - Run git commits per the commit strategy (Section 4)
 - Proceed to next part/stage after successful validation
 - Create PROGRESS.md and update it after each part completion
+- **Update stage document `.md` files** with minor-to-moderate code fixes (see Section 3.1 — Stage Document Modification Policy)
 
 ### SOFT STOPS — Pause, Assess, Auto-Fix, Continue If Resolved
 
@@ -103,10 +104,73 @@ Claude Code should reference these documents in this priority order:
 | 5 | **Master Implementation Guide v3.0** | `docs/00-reference/` | Stage overviews + file lists |
 | 6 | **Decision Lock Checkpoints 1-3** | `docs/01-decisions/` | 48 locked decisions |
 | 7 | **Visual Enhancement Concept v2** | `docs/00-reference/` | Lab Control Station design spec |
+| 8 | **Known Compat Notes** | `docs/00-reference/` | Version-sensitive package flags |
 
 ### Build Strategy: Single-Pass with v3-FINAL Priority
 
 **Where a v3-FINAL document exists, use it as the ONLY source.** It contains all v2 content plus v3 enhancements. Do NOT build v2 first then patch. Where no v3-FINAL exists, use the v2 document directly.
+
+### 3.1 Stage Document Modification Policy
+
+Stage documents in `docs/` are **living documents** — they should always contain the most current, buildable code. Claude Code acts as the **primary code reviewer** during development and is responsible for keeping stage docs accurate.
+
+#### AUTO-FIX (No Approval Needed)
+
+Claude Code **MUST** update stage `.md` files without asking when any of the following are encountered during a build:
+
+| Category | Examples | Action |
+|----------|----------|--------|
+| **Package API changes** | Zod v3→v4 method renames, Stripe apiVersion string, Supabase auth param changes | Update code snippets in the stage doc to match installed package version |
+| **TypeScript type fixes** | Missing type annotations, `as const` inference issues, undefined narrowing | Fix the code in the stage doc so it compiles clean |
+| **Import path corrections** | Wrong relative path, missing named export, package rename | Correct the import in the stage doc |
+| **ESLint / linter fixes** | Unused vars, missing eslint-disable, formatting | Update code to pass linting |
+| **Missing dependencies** | Package used in code but not listed in install step | Add to the install command in the stage doc |
+| **Deprecated API usage** | React, Next.js, or library API deprecations | Update to current API |
+
+**When auto-fixing a stage doc, Claude Code MUST:**
+1. Make the fix in the stage `.md` file
+2. Log the change in `PROGRESS.md` under "Discrepancies Log" with: stage doc name, what changed, why
+3. Note the original code vs. the updated code for traceability
+
+#### REQUIRES HUMAN APPROVAL (Hard Stop)
+
+The following changes to stage documents require explicit approval before modifying:
+
+| Category | Examples | Why |
+|----------|----------|-----|
+| **App structure changes** | New routes, new components, new directories not in original doc | Affects architecture |
+| **Feature additions/removals** | Adding capabilities, removing game features, changing game mechanics | Affects product scope |
+| **Visual/UX changes** | Different layout, changed animations, new color values, font changes | Affects design intent |
+| **Database schema changes** | New columns, changed types, altered RLS policies | Affects data model |
+| **State management changes** | New stores, changed store shape, new context providers | Affects app architecture |
+| **3D/shader changes** | New 3D components, changed triangle budgets, different materials | Affects performance + design |
+| **Business logic changes** | Tier limits, pricing, age-band content, game scoring | Affects product behavior |
+
+**When proposing a structural change:**
+```
+STAGE DOC CHANGE REQUEST — [doc name]
+Category: [structural / visual / feature / schema]
+Current: [what the doc says now]
+Proposed: [what it should say]
+Reason: [why the change is needed]
+Impact: [what else this affects]
+Please reply 'approved' or describe concerns.
+```
+
+#### Code Review Role
+
+Claude Code serves as the **primary code reviewer** during development:
+- **During builds:** Flag code quality issues, potential bugs, security concerns, and performance problems found in stage document code
+- **After builds:** Note any patterns that should be improved in future stages
+- **Cross-stage consistency:** Ensure shared interfaces, type definitions, and utility usage stay consistent across stage docs
+- **Review log:** Append review notes to PROGRESS.md under a "Code Review Notes" section when non-trivial observations arise
+
+Review feedback should be practical and actionable — not stylistic nitpicking. Focus on:
+- Bugs that would cause runtime failures
+- Security issues (injection, auth bypass, data exposure)
+- Type safety gaps that bypass TypeScript's protections
+- Performance issues (N+1 queries, unnecessary re-renders, bundle size)
+- Inconsistencies between stages that would cause integration failures
 
 ---
 
