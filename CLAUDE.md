@@ -105,6 +105,7 @@ Claude Code should reference these documents in this priority order:
 | 6 | **Decision Lock Checkpoints 1-3** | `docs/01-decisions/` | 48 locked decisions |
 | 7 | **Visual Enhancement Concept v2** | `docs/00-reference/` | Lab Control Station design spec |
 | 8 | **Known Compat Notes** | `docs/00-reference/` | Version-sensitive package flags |
+| 9 | **Testing Guide** | `TESTING.md` (repo root) | Testing pyramid, API/component/E2E tests, pre-deploy checklist |
 
 ### Build Strategy: Single-Pass with v3-FINAL Priority
 
