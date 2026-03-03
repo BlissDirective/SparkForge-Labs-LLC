@@ -16,6 +16,7 @@ export interface Parent {
   subscription_status: string;
   subscription_period_end?: string;
   is_admin: boolean;
+  onboarding_complete: boolean;
   coppa_consent_at: string;
   created_at: string;
 }
