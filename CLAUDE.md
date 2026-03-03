@@ -108,6 +108,7 @@ Claude Code should reference these documents in this priority order:
 | 9 | **Testing Guide** | `TESTING.md` (repo root) | Testing pyramid, API/component/E2E tests, pre-deploy checklist |
 | 10 | **Feature Workflow Guide** | `Feature-Workflow-Test.md` (repo root) | Build-test-integrate cycle, feature sizing, version control per feature |
 | 11 | **Database Patterns Guide** | `database-patterns.md` (repo root) | Supabase/RLS patterns, schema design, validation, seeding, performance |
+| 12 | **SparkForge Agent Playbook** | `SparkForge-agent.md` (repo root) | Autonomous evaluation sweeps, admin approval workflow, apply-test-report cycle |
 
 ### Build Strategy: Single-Pass with v3-FINAL Priority
 
