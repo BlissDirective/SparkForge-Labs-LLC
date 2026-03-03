@@ -8,7 +8,7 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { useStationMode } from '@/hooks/useStationMode';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Suspense, lazy } from 'react';
+import dynamic from 'next/dynamic';
 
 // Dashboard Layout — Laboratory Control Station Shell
 // v3 Decision 2.1: StationFrame canvas mounted on ALL dashboard pages
@@ -16,11 +16,11 @@ import { Suspense, lazy } from 'react';
 // v2 BUG-4: useMediaQuery instead of window.innerWidth (SSR-safe)
 // v2 NEW-2A: useSessionTracker auto-tracks play sessions
 
-// v3: Lazy-load StationFrame (heavy R3F component) — delivered in Part 3B
-const StationFrame = lazy(() =>
-  import('@/components/3d/StationFrame').then((m) => ({
-    default: m.StationFrame,
-  }))
+// v3: Dynamic import StationFrame with ssr: false (R3F requires DOM)
+const StationFrame = dynamic(
+  () =>
+    import('@/components/3d/StationFrame').then((m) => m.StationFrame),
+  { ssr: false }
 );
 
 export default function DashboardLayout({
@@ -38,16 +38,14 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-surface-deep relative overflow-hidden">
       {/* v3 [Decision 2.1]: Station Frame — persistent 3D canvas layer */}
-      <Suspense fallback={null}>
-        <StationFrame
-          mode={stationMode.mode}
-          ledColor={stationMode.ledColor}
-          bgIntensity={stationMode.bgIntensity}
-          particleCount={stationMode.particleCount}
-          frameGlow={stationMode.frameGlow}
-          frameDimmed={stationMode.frameDimmed}
-        />
-      </Suspense>
+      <StationFrame
+        mode={stationMode.mode}
+        ledColor={stationMode.ledColor}
+        bgIntensity={stationMode.bgIntensity}
+        particleCount={stationMode.particleCount}
+        frameGlow={stationMode.frameGlow}
+        frameDimmed={stationMode.frameDimmed}
+      />
 
       {/* v3: Scanline overlay (Decision 2.3 — toggleable via accessibility) */}
       <div className="scanline-overlay" aria-hidden="true" />
