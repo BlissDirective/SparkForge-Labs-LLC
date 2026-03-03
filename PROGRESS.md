@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 6 — Stage 4 Part 3 (Core Pages — Content Viewer + Quiz)
+## Current Phase: 7 — Stage 4 Part 2A (Lab Pattern Shaders — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-03
 
@@ -20,7 +20,8 @@
 | — | **Stage 3 Visual Checkpoint** | ⬜ | — | v0.3.0 | ⬜ |
 | 6 | Stage 4 Part 1 — Core Pages Hooks (v2) | ✅ | Stage 4 Part 1 | — | — |
 | 6 | Stage 4 Part 3 — Content Viewer + Quiz (v2) | ✅ | Stage 4 Part 3 | — | — |
-| 7 | Stage 4 Part 2A/B — Lab Reconfig (v3) | ⬜ | — | — | — |
+| 7 | Stage 4 Part 2A — Lab Pattern Shaders (v3) | ✅ | Stage 4 Part 2A | — | — |
+| 7 | Stage 4 Part 2B — Lab Reconfig + Transitions (v3) | ⬜ | — | — | — |
 | — | **Stage 4 Visual Checkpoint** | ⬜ | — | v0.4.0 | ⬜ |
 | 8 | Stage 5 Part 1 — Gamification (v2) | ⬜ | — | — | — |
 | 9 | Stage 5 Parts 2-3 A/B/C — Visual FX (v3) | ⬜ | — | — | — |
@@ -88,6 +89,15 @@
 | 6 | LabConnectionMap.tsx: className truncated at `bord` | Completed className string | PASS |
 | 6 | CompletionIndicator.tsx: pathLength animation on div (invalid) | Changed to opacity animation | PASS |
 | 6 | LessonViewer description: "Fredoka/Nunito Sans" (banned BUG-10F) | Code uses correct font-display/font-body; fixed doc description only | PASS |
+| 7 | visionLab.glsl: alpha calc + gl_FragColor outside main() | Moved inside main() before closing brace | PASS |
+| 7 | labPatterns/index.ts: noiseGLSL used but never imported | Added `import { noiseGLSL } from '@/shaders/index'` | PASS |
+| 7 | labPatterns/index.ts: executable code at top level (labId undefined) | Removed — converted to comment-only usage example | PASS |
+| 7 | LabPatternBackground.tsx: unused imports useState/useEffect | Removed unused imports | PASS |
+| 7 | LabPatternBackground.tsx: LAB_COLORS inside component (recreated per render) | Moved to module scope | PASS |
+| 7 | labPatterns/index.ts: 'use client' on pure data module | Removed — unnecessary for string exports | PASS |
+| 7 | frontierLab.glsl: normalize division by zero risk | Added `+ vec2(0.001)` safety offset | PASS |
+| 7 | visionLab in index.ts: same main() brace issue as .glsl | Fixed in both .glsl and index.ts string | PASS |
+| 7 | ethicsLab in index.ts: pendulum lines missing vs .glsl | Added for parity with standalone shader | PASS |
 
 ---
 
@@ -113,6 +123,7 @@
 | S1P2 | ~10s | 0 | 0 |
 | S4P1 | ~10s | 7 (all in provided code, fixed pre-build) | 0 |
 | S4P3 | ~10s | 12 (all in provided code, fixed pre-build) | 0 |
+| S4P2A | ~10s | 10 (3 critical, 3 high, 2 medium, 2 low) | 0 |
 
 ---
 
@@ -211,3 +222,44 @@
 | MEDIUM | QuizEngine.tsx: no ARIA on quiz options | Added radiogroup/radio/aria-checked/aria-label |
 | MEDIUM | LabConnectionMap.tsx: no ARIA attributes | Added role="img" and per-node aria-label |
 | LOW | CompletionIndicator.tsx: pathLength on div | Changed to opacity animation |
+
+---
+
+### Stage 4 Part 2A v3-FINAL — Files Created
+
+**New files created (12):**
+- `src/shaders/labPatterns/codeLab.glsl` — Lab 1: Binary rain columns (#3B82F6 blue)
+- `src/shaders/labPatterns/dataLab.glsl` — Lab 2: Data sorting waves (#8B5CF6 purple)
+- `src/shaders/labPatterns/neuralLab.glsl` — Lab 3: Neural pulse ripples (#EC4899 pink)
+- `src/shaders/labPatterns/createLab.glsl` — Lab 4: Generative flow field (#F59E0B amber, needs noise.glsl)
+- `src/shaders/labPatterns/agentLab.glsl` — Lab 5: Agent path traces (#10B981 emerald)
+- `src/shaders/labPatterns/ethicsLab.glsl` — Lab 6: Balance oscillation (#EF4444 red)
+- `src/shaders/labPatterns/visionLab.glsl` — Lab 7: Scan-line grid (#06B6D4 cyan)
+- `src/shaders/labPatterns/languageLab.glsl` — Lab 8: Text stream flow (#8B5CF6 violet)
+- `src/shaders/labPatterns/buildLab.glsl` — Lab 9: Code compilation (#10B981 green)
+- `src/shaders/labPatterns/frontierLab.glsl` — Lab 10: Starfield warp (#F59E0B gold)
+- `src/shaders/labPatterns/index.ts` — TypeScript shader exports + getLabPatternShader()
+- `src/components/3d/LabPatternBackground.tsx` — R3F crossfade renderer
+
+**New directories (2):**
+- `src/shaders/labPatterns/`
+- `src/components/transitions/` (empty, for Part B)
+
+**Stage document created:**
+- `docs/stage4-core-pages/STAGE4_Part2A_v3FINAL.md`
+
+**Code review fixes applied (10):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | visionLab.glsl: code outside main() | Moved inside main() |
+| CRITICAL | index.ts: noiseGLSL never imported | Added import from @/shaders/index |
+| CRITICAL | index.ts: executable code at top level | Converted to comment |
+| HIGH | LabPatternBackground: unused useState/useEffect | Removed |
+| HIGH | LabPatternBackground: LAB_COLORS per-render | Moved to module scope |
+| HIGH | index.ts: unnecessary 'use client' | Removed |
+| MEDIUM | frontierLab.glsl: normalize div-by-zero | Added vec2(0.001) offset |
+| MEDIUM | visionLab in index.ts: same brace issue | Fixed in both locations |
+| LOW | ethicsLab index.ts: missing pendulum lines | Added for parity |
+| LOW | Misleading noise comments on non-noise shaders | Cleaned up |
+
+**Decisions implemented:** 3.2, 4.1
