@@ -377,3 +377,168 @@
    Applied via className on <html> element. */
 .font-size-large { font-size: 112.5%; } /* 18px base */
 .font-size-xl { font-size: 125%; } /* 20px base */
+
+/* ═══════════════════════════════════════════════
+   v3 ADDITIONS — Laboratory Control Station Visual Layer
+   Decision 2.3: Scanline overlay (toggleable)
+   Decision 7.4: Selective emissive glow
+   Station depth: Vignette overlay
+   ═══════════════════════════════════════════════ */
+
+/* Emissive Glow — v3 Decision 7.4
+   Apply .emissive-glow to any element. Set --glow-color via inline style.
+   Multi-layered box-shadow for soft emissive feel. */
+.emissive-glow {
+  --glow-color: #00BBFF;
+  box-shadow:
+    0 0 8px color-mix(in srgb, var(--glow-color) 30%, transparent),
+    0 0 20px color-mix(in srgb, var(--glow-color) 15%, transparent),
+    0 0 40px color-mix(in srgb, var(--glow-color) 8%, transparent);
+  transition: box-shadow 0.3s ease;
+}
+
+.emissive-glow:hover {
+  box-shadow:
+    0 0 12px color-mix(in srgb, var(--glow-color) 50%, transparent),
+    0 0 30px color-mix(in srgb, var(--glow-color) 25%, transparent),
+    0 0 60px color-mix(in srgb, var(--glow-color) 12%, transparent);
+}
+
+/* Pulsing variant for active indicators */
+.emissive-glow-pulse {
+  --glow-color: #00BBFF;
+  animation: emissivePulse 3s ease-in-out infinite;
+}
+
+@keyframes emissivePulse {
+  0%, 100% {
+    box-shadow:
+      0 0 8px color-mix(in srgb, var(--glow-color) 30%, transparent),
+      0 0 20px color-mix(in srgb, var(--glow-color) 15%, transparent);
+  }
+  50% {
+    box-shadow:
+      0 0 15px color-mix(in srgb, var(--glow-color) 50%, transparent),
+      0 0 35px color-mix(in srgb, var(--glow-color) 25%, transparent),
+      0 0 60px color-mix(in srgb, var(--glow-color) 10%, transparent);
+  }
+}
+
+/* Scanline Overlay — v3 Decision 2.3
+   Subtle CRT screen texture. Very low opacity (0.03).
+   Toggleable: add class "scanlines-disabled" to body to remove. */
+.scanline-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 187, 255, 0.03) 2px,
+    rgba(0, 187, 255, 0.03) 4px
+  );
+  mix-blend-mode: overlay;
+}
+
+body.scanlines-disabled .scanline-overlay,
+body[data-scanlines="off"] .scanline-overlay {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scanline-overlay {
+    display: none;
+  }
+  .emissive-glow-pulse {
+    animation: none;
+  }
+}
+
+/* Vignette Overlay — Station Display Depth
+   Subtle blue vignette at corners for "screen" depth. */
+.vignette-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 60%,
+    rgba(0, 20, 40, 0.3) 100%
+  );
+}
+
+/* Station Frame CSS Fallback (Mobile)
+   Decision 2.4: Mobile gets CSS-only frame when 3D is not available. */
+.station-frame-css {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+}
+
+.station-frame-css::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--glow-color, #00BBFF) 30%,
+    var(--glow-color, #00BBFF) 70%,
+    transparent 100%
+  );
+  opacity: 0.5;
+  animation: ledRimPulse 3s ease-in-out infinite;
+}
+
+@keyframes ledRimPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Station Chrome Bezel CSS Class
+   Used by game shells and card panels for consistent chrome frame. */
+.chrome-bezel {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    rgba(255, 255, 255, 0.01) 100%
+  );
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 4px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* LED Rim CSS Component
+   Standalone LED rim for elements outside the R3F canvas. */
+.led-rim {
+  position: relative;
+}
+
+.led-rim::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--glow-color, #00BBFF),
+    transparent
+  );
+  opacity: 0.6;
+  border-radius: 1px;
+}
