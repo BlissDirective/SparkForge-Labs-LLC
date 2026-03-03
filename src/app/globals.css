@@ -542,3 +542,19 @@ body[data-scanlines="off"] .scanline-overlay {
   opacity: 0.6;
   border-radius: 1px;
 }
+
+/* ================================================================ */
+/* v3 Stage 4 P2: Lab Reconfiguration particle animation            */
+/* ================================================================ */
+@keyframes particle-inward {
+  0% {
+    opacity: 0.6;
+    transform: scale(1);
+  }
+  100% {
+    left: 50%;
+    top: 50%;
+    opacity: 0;
+    transform: scale(0);
+  }
+}

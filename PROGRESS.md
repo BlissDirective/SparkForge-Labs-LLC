@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 7 — Stage 4 Part 2A (Lab Pattern Shaders — v3-FINAL)
+## Current Phase: 7 — Stage 4 Part 2B (Lab Transitions — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-03
 
@@ -21,7 +21,7 @@
 | 6 | Stage 4 Part 1 — Core Pages Hooks (v2) | ✅ | Stage 4 Part 1 | — | — |
 | 6 | Stage 4 Part 3 — Content Viewer + Quiz (v2) | ✅ | Stage 4 Part 3 | — | — |
 | 7 | Stage 4 Part 2A — Lab Pattern Shaders (v3) | ✅ | Stage 4 Part 2A | — | — |
-| 7 | Stage 4 Part 2B — Lab Reconfig + Transitions (v3) | ⬜ | — | — | — |
+| 7 | Stage 4 Part 2B — Lab Reconfig + Transitions (v3) | ✅ | Stage 4 Part 2B | — | — |
 | — | **Stage 4 Visual Checkpoint** | ⬜ | — | v0.4.0 | ⬜ |
 | 8 | Stage 5 Part 1 — Gamification (v2) | ⬜ | — | — | — |
 | 9 | Stage 5 Parts 2-3 A/B/C — Visual FX (v3) | ⬜ | — | — | — |
@@ -124,6 +124,7 @@
 | S4P1 | ~10s | 7 (all in provided code, fixed pre-build) | 0 |
 | S4P3 | ~10s | 12 (all in provided code, fixed pre-build) | 0 |
 | S4P2A | ~10s | 10 (3 critical, 3 high, 2 medium, 2 low) | 0 |
+| S4P2B | ~10s | 8 (1 critical, 3 high, 2 medium, 2 low) | 0 |
 
 ---
 
@@ -263,3 +264,38 @@
 | LOW | Misleading noise comments on non-noise shaders | Cleaned up |
 
 **Decisions implemented:** 3.2, 4.1
+
+---
+
+### Stage 4 Part 2B v3-FINAL — Files Created/Modified
+
+**New files created (2):**
+- `src/components/transitions/LabReconfiguration.tsx` — Panel morph transition orchestrator (339 lines)
+  - `useLabReconfiguration()` hook with 4-phase GSAP timeline (enterLab 1.0s, exitLab 0.8s)
+  - `TransitionOverlay` component (glow sweep, title plate, 50-particle burst)
+  - `getLockedLabVisuals()` for Decision 5.4 dim/trickle
+- `src/components/transitions/GameFocusSequence.tsx` — Crystal tunnel game entry (212 lines)
+  - R3F `InstancedMesh` with 18 hex crystal rings, z-velocity animation
+  - Bloom postprocessing for glow trails
+  - Transient overlay — unmounts after 0.8s completion
+
+**Modified files (2):**
+- `src/hooks/useStationMode.ts` — APPENDED `useLabTransitionProgress()` + `useGameFocusState()` hooks (+64 lines)
+- `src/app/globals.css` — APPENDED `@keyframes particle-inward` animation (+15 lines)
+
+**Stage document created:**
+- `docs/stage4-core-pages/STAGE4_Part2B_v3FINAL.md`
+
+**Code review fixes applied (8):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | GameFocusSequence.tsx: `className` inside `style={{}}` — invalid JSX | Separated into distinct attributes |
+| HIGH | LabReconfiguration.tsx: `React.RefObject` but React not imported | Used `type RefObject` from 'react'; `RefObject<HTMLDivElement>` (React 18 compat) |
+| HIGH | LabReconfiguration.tsx: `stationMode` object in useCallback deps | Destructured `{ activeLabId, setLabId }`, used individual deps |
+| HIGH | GameFocusSequence.tsx: unused `useThree`/`viewport` import | Removed |
+| MEDIUM | LabReconfiguration.tsx: `z-25` invalid Tailwind class | Changed to `z-[25]` |
+| MEDIUM | useStationMode.ts: missing `useCallback` import | Added to existing import |
+| LOW | GameFocusSequence.tsx: EffectComposer inside `<group>` | Moved to fragment siblings |
+| LOW | useStationMode.ts: `useEffect` suggested but unused | Omitted unnecessary import |
+
+**Decisions implemented:** 3.1, 3.3, 3.4, 3.5, 5.4

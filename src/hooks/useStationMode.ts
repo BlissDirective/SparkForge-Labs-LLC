@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 
 // useStationMode — Laboratory Control Station Mode Manager
@@ -215,5 +215,69 @@ export function useStationMode(): StationModeState & {
     setGameActive,
     setCelebration,
     setLabId,
+  };
+}
+
+// ================================================================
+// v3 Stage 4 P2 Additions — Lab Transition Integration
+// ================================================================
+// APPENDED by Stage 4 Part 2B v3-FINAL
+// DO NOT modify existing code above.
+
+// Lab pattern transition progress (0.0 - 1.0)
+// Consumed by LabPatternBackground for crossfade
+export function useLabTransitionProgress() {
+  const [progress, setProgress] = useState(1.0);
+  const [previousLabId, setPreviousLabId] = useState<number | null>(null);
+
+  const startTransition = useCallback(
+    (fromLabId: number | null, _toLabId: number) => {
+      setPreviousLabId(fromLabId);
+      setProgress(0);
+
+      // Animate progress 0 -> 1 over 0.4s (the crossfade portion)
+      const start = performance.now();
+      const duration = 400; // ms
+      const animate = (now: number) => {
+        const elapsed = now - start;
+        const p = Math.min(elapsed / duration, 1.0);
+        // Ease out cubic
+        const eased = 1 - Math.pow(1 - p, 3);
+        setProgress(eased);
+        if (p < 1.0) requestAnimationFrame(animate);
+      };
+      requestAnimationFrame(animate);
+    },
+    []
+  );
+
+  return { progress, previousLabId, startTransition };
+}
+
+// Game focus state — tracks when crystal tunnel is active
+// Used by StationFrame to dim frame during game entry
+export function useGameFocusState() {
+  const [isFocusing, setIsFocusing] = useState(false);
+  const [isGameActive, setIsGameActive] = useState(false);
+
+  const startFocus = useCallback(() => {
+    setIsFocusing(true);
+  }, []);
+
+  const completeFocus = useCallback(() => {
+    setIsFocusing(false);
+    setIsGameActive(true);
+  }, []);
+
+  const exitGame = useCallback(() => {
+    setIsGameActive(false);
+  }, []);
+
+  return {
+    isFocusing, // Crystal tunnel playing
+    isGameActive, // Game loaded and active
+    startFocus,
+    completeFocus,
+    exitGame,
   };
 }
