@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 6 — Stage 4 Part 1 (Core Pages — Hooks)
+## Current Phase: 6 — Stage 4 Part 3 (Core Pages — Content Viewer + Quiz)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-03
 
@@ -19,6 +19,7 @@
 | 5 | Stage 3 Part 3A/B — Station Frame (v3) | ⬜ | — | — | — |
 | — | **Stage 3 Visual Checkpoint** | ⬜ | — | v0.3.0 | ⬜ |
 | 6 | Stage 4 Part 1 — Core Pages Hooks (v2) | ✅ | Stage 4 Part 1 | — | — |
+| 6 | Stage 4 Part 3 — Content Viewer + Quiz (v2) | ✅ | Stage 4 Part 3 | — | — |
 | 7 | Stage 4 Part 2A/B — Lab Reconfig (v3) | ⬜ | — | — | — |
 | — | **Stage 4 Visual Checkpoint** | ⬜ | — | v0.4.0 | ⬜ |
 | 8 | Stage 5 Part 1 — Gamification (v2) | ⬜ | — | — | — |
@@ -76,6 +77,17 @@
 | 6 | useGamification.ts toastStore.addToast wrong signature (object vs flat args) | Changed to `addToast(type, message, duration)` flat signature | PASS |
 | 6 | useGamification.ts uses dynamic require() for toastStore | Changed to static import at top of file | PASS |
 | 6 | useContent.ts select callbacks use `any` type | Added `Content` type import and `as Content[]` cast | PASS |
+| 6 | LessonViewer.tsx multiple truncated JSX (5+ lines broken mid-expression) | Reconstructed all JSX with correct structure | PASS |
+| 6 | QuizEngine.tsx progressPercent calculation truncated | Completed arithmetic expression | PASS |
+| 6 | QuizEngine.tsx summary button JSX split across lines | Fixed button content into single element | PASS |
+| 6 | QuizEngine.tsx feedback `<p>` tag outside correct `<motion.div>` scope | Fixed JSX nesting | PASS |
+| 6 | SparkFactViewer.tsx button text split across lines | Fixed button JSX | PASS |
+| 6 | All 3 content viewers: redundant local ContentData interface | Replaced with `import type { Content } from '@/types'` | PASS |
+| 6 | LessonViewer.tsx: `(p: any)` in progress check | Changed to `(p: Progress)` with import | PASS |
+| 6 | QuizEngine.tsx: local QuizQuestion interface duplicated | Replaced with `import type { QuizQuestion } from '@/types'` | PASS |
+| 6 | LabConnectionMap.tsx: className truncated at `bord` | Completed className string | PASS |
+| 6 | CompletionIndicator.tsx: pathLength animation on div (invalid) | Changed to opacity animation | PASS |
+| 6 | LessonViewer description: "Fredoka/Nunito Sans" (banned BUG-10F) | Code uses correct font-display/font-body; fixed doc description only | PASS |
 
 ---
 
@@ -100,6 +112,7 @@
 | S1P1 | ~10s | 7 (all in later-stage files) | 1 (webpack cache serialization) |
 | S1P2 | ~10s | 0 | 0 |
 | S4P1 | ~10s | 7 (all in provided code, fixed pre-build) | 0 |
+| S4P3 | ~10s | 12 (all in provided code, fixed pre-build) | 0 |
 
 ---
 
@@ -165,3 +178,36 @@
 **Known bugs resolved:**
 - BUG-1: useApi.ts stubs replaced by proper React Query hooks
 - BUG-3: Uses single `/api/progress/all-labs` endpoint instead of 10 parallel calls
+
+---
+
+### Stage 4 Part 3 — Files Created/Updated
+
+**New files created (6):**
+- `src/app/(dashboard)/content/[slug]/page.tsx` — Content router (dispatches to lesson/quiz/spark_fact viewers)
+- `src/components/content/LessonViewer.tsx` — Markdown lesson viewer with inline formatting, complete button, progress check
+- `src/components/content/QuizEngine.tsx` — Interactive quiz: one-per-screen, encouragements, hints, 70% pass, score ring
+- `src/components/content/SparkFactViewer.tsx` — Quick fact card with XP collection
+- `src/components/content/CompletionIndicator.tsx` — Animated check/score/trophy indicators (NEW v2 [NEW-4C])
+- `src/components/labs/LabConnectionMap.tsx` — SVG connected node progression map (NEW v2 [NEW-4B])
+
+**Stage document created:**
+- `docs/stage4-core-pages/STAGE4_Core_Pages_v2_PART3.md` — Full stage doc with corrected code and code review fixes table
+
+**Code review fixes applied (14):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | LessonViewer.tsx: 5+ truncated JSX expressions | Reconstructed all JSX |
+| CRITICAL | QuizEngine.tsx: truncated progressPercent | Completed arithmetic |
+| CRITICAL | QuizEngine.tsx: broken button JSX in summary | Fixed into single element |
+| CRITICAL | QuizEngine.tsx: feedback `<p>` outside scope | Fixed JSX nesting |
+| CRITICAL | SparkFactViewer.tsx: button text split | Fixed button JSX |
+| HIGH | 3 files: redundant local ContentData interface | Replaced with `Content` from `@/types` |
+| HIGH | LessonViewer.tsx: `(p: any)` in progress check | Changed to `(p: Progress)` |
+| HIGH | QuizEngine.tsx: local QuizQuestion duplicated | Imported from `@/types` |
+| HIGH | LessonViewer description: "Fredoka/Nunito Sans" | Fixed doc to say Exo 2/Sora |
+| MEDIUM | ContentPage: EmptyState icon was space | Changed to search emoji |
+| MEDIUM | LabConnectionMap.tsx: className truncated | Completed full className |
+| MEDIUM | QuizEngine.tsx: no ARIA on quiz options | Added radiogroup/radio/aria-checked/aria-label |
+| MEDIUM | LabConnectionMap.tsx: no ARIA attributes | Added role="img" and per-node aria-label |
+| LOW | CompletionIndicator.tsx: pathLength on div | Changed to opacity animation |
