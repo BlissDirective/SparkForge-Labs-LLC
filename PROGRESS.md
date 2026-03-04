@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 9B — Stage 5 Parts 2-3B (R3F Reward Components — v3-FINAL)
+## Current Phase: 9C — Stage 5 Parts 2-3C (Celebrations, Particles & Controls — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-04
 
@@ -26,7 +26,7 @@
 | 8 | Stage 5 Part 1 — Gamification (v2) | ✅ | Stage 5 Part 1 | — | — |
 | 9A | Stage 5 Parts 2-3A — Reward Shaders (v3) | ✅ | Stage 5 P2-3A | — | — |
 | 9B | Stage 5 Parts 2-3B — R3F Components (v3) | ✅ | Stage 5 P2-3B | — | — |
-| 9C | Stage 5 Parts 2-3C — Particles + Ceremonies (v3) | ⬜ | — | — | — |
+| 9C | Stage 5 Parts 2-3C — Particles + Ceremonies (v3) | ✅ | Stage 5 P2-3C | — | — |
 | — | **Stage 5 Visual Checkpoint** | ⬜ | — | v0.5.0 | ⬜ |
 | 10 | Stage 6B — Pet Trainer (v3) | ⬜ | — | — | — |
 | 11 | Stage 6C — Neural Builder (v3) | ⬜ | — | — | — |
@@ -118,6 +118,12 @@
 | 9B | BadgeLevitate3D.tsx: unused `useThree` import | Removed | PASS |
 | 9B | SparkCard3D.tsx: Font file missing (`public/fonts/Exo2-Bold.woff`) | Created directory; Text falls back gracefully | PASS |
 | 9B | XPVortex.tsx: `Math.random()` in useFrame (non-deterministic) | Pre-computed deterministic data in useMemo | PASS |
+| 9C | StreakFlame3D.tsx: JSX `>` closes `<div` before attributes (PDF corruption) | Restructured JSX with all attributes inside tag | PASS |
+| 9C | ParticleIntensitySlider.tsx: Raw TypeScript code leaked outside function | Removed leaked code; applied as actual uiStore modifications | PASS |
+| 9C | uiStore.ts: Missing `particleIntensity` state + `setParticleIntensity` action | Added to UIState interface, default 'medium', with setter | PASS |
+| 9C | GameParticles3D.tsx + ParticleIntensitySlider.tsx: Unsafe `as Record` casts | Replaced with properly typed `s.particleIntensity` selectors | PASS |
+| 9C | LevelUpExplosion.tsx: Interface props formatting + misplaced comment | Reformatted with JSDoc; added default export | PASS |
+| 9C | LevelUpExplosion.tsx + StreakFlame3D.tsx: Named exports only | Added `export default` alias for dynamic import compatibility | PASS |
 
 ---
 
@@ -148,6 +154,7 @@
 | S5P1 | ~10s | 13 (4 critical, 6 high, 2 medium, 1 low) | 0 |
 | S5P23A | ~10s | 7 (1 critical, 2 high, 2 medium, 2 low) | 0 |
 | S5P23B | ~10s | 6 (2 critical, 2 high, 2 medium) | 0 |
+| S5P23C | ~10s | 6 (2 critical, 2 high, 2 medium) | 0 |
 
 ---
 
@@ -429,3 +436,50 @@
 | BadgePedestal3D | ~0.2ms/pedestal | Trophy Room only |
 | BadgeLevitate3D | ~0.3ms/badge | Trophy Room only |
 | SparkCard3D | ~0.1ms | Profile / Shop only |
+
+---
+
+### Stage 5 Parts 2-3C v3-FINAL — Files Created/Modified
+
+**New files created (4):**
+- `src/components/3d/LevelUpExplosion.tsx` — 200-particle R3F burst + Bloom for level-up ceremonies (replaces v2 CSS confetti on desktop)
+- `src/components/3d/StreakFlame3D.tsx` — Diamond tier (100+ day) fireNoise shader flame, 3 intersecting billboard planes
+- `src/components/3d/GameParticles3D.tsx` — Per-game particle config registry + GameParticleEmitter (Decision 5.3: 5 flagship custom + 23 generic)
+- `src/components/ui/ParticleIntensitySlider.tsx` — Child preference control: Off/Low/Medium/High (Decision 5.5)
+
+**Modified files (1):**
+- `src/stores/uiStore.ts` — Added `particleIntensity: 'off' | 'low' | 'medium' | 'high'` state (default 'medium') + `setParticleIntensity()` action
+
+**Stage document created:**
+- `docs/stage5-gamification/STAGE5_Parts23C_v3FINAL.md`
+
+**Code review fixes applied (6):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | StreakFlame3D.tsx: JSX `>` closes `<div` before attributes (PDF corruption) | Restructured JSX with all attributes inside tag |
+| CRITICAL | ParticleIntensitySlider.tsx: Raw TypeScript code leaked outside function | Removed; applied as actual uiStore modifications |
+| HIGH | uiStore.ts: Missing `particleIntensity` state + `setParticleIntensity` action | Added to UIState interface, default 'medium', with setter |
+| HIGH | GameParticles3D + ParticleIntensitySlider: Unsafe `as Record` casts for store | Replaced with properly typed `s.particleIntensity` selectors |
+| MEDIUM | LevelUpExplosion.tsx: Interface formatting + misplaced comment | Reformatted with JSDoc; added default export for dynamic import |
+| MEDIUM | LevelUpExplosion + StreakFlame3D: Named exports only | Added `export default` alias for `dynamic(() => import(...), { ssr: false })` |
+
+**Decisions implemented:** 5.3, 5.5
+
+**GPU budget verification:**
+| Component | Cost | Active Page | Duration |
+|-----------|------|-------------|----------|
+| LevelUpExplosion | ~0.3ms | Level-up event | 2.0s (auto-unmounts) |
+| StreakFlame3D | ~0.2ms | Profile page, 100+ day | Persistent while visible |
+| GameParticles3D | ~0.1ms/game | Game play screen | While game is active |
+| ParticleIntensitySlider | 0ms (CSS only) | Settings section | N/A |
+
+---
+
+### Stage 5 v3-FINAL Complete — Combined Parts A+B+C Summary
+
+| Part | Files | Decisions |
+|------|-------|-----------|
+| A (Shaders) | 4 GLSL + index.ts modify | 4.2, 4.3, 4.5 |
+| B (R3F Rewards) | 4 components | 4.2, 4.3, 5.2, 7.2 |
+| C (Celebrations) | 4 components + uiStore modify | 5.3, 5.5 |
+| **Total** | **12 new + 2 modified** | **8 decisions** |

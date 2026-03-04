@@ -10,6 +10,7 @@ interface UIState {
   labTint: string;
   soundEnabled: boolean;
   dailyChallengeCompleted: boolean;
+  particleIntensity: 'off' | 'low' | 'medium' | 'high';
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   triggerCelebration: (type: CelebrationType, data?: Record<string, unknown>) => void;
@@ -18,6 +19,7 @@ interface UIState {
   toggleSound: () => void;
   markDailyChallengeComplete: () => void;
   resetDailyChallenge: () => void;
+  setParticleIntensity: (level: 'off' | 'low' | 'medium' | 'high') => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -29,6 +31,7 @@ export const useUIStore = create<UIState>((set) => ({
   labTint: '#00BBFF',
   soundEnabled: true,
   dailyChallengeCompleted: false,
+  particleIntensity: 'medium',
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   triggerCelebration: (type, data = {}) => set({ showCelebration: true, celebrationType: type, celebrationData: data }),
@@ -43,4 +46,5 @@ export const useUIStore = create<UIState>((set) => ({
   toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
   markDailyChallengeComplete: () => set({ dailyChallengeCompleted: true }),
   resetDailyChallenge: () => set({ dailyChallengeCompleted: false }),
+  setParticleIntensity: (particleIntensity) => set({ particleIntensity }),
 }));
