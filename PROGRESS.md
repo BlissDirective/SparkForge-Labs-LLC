@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 9A — Stage 5 Parts 2-3A (Reward Shaders — v3-FINAL)
+## Current Phase: 9B — Stage 5 Parts 2-3B (R3F Reward Components — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-04
 
@@ -25,7 +25,7 @@
 | — | **Stage 4 Visual Checkpoint** | ⬜ | — | v0.4.0 | ⬜ |
 | 8 | Stage 5 Part 1 — Gamification (v2) | ✅ | Stage 5 Part 1 | — | — |
 | 9A | Stage 5 Parts 2-3A — Reward Shaders (v3) | ✅ | Stage 5 P2-3A | — | — |
-| 9B | Stage 5 Parts 2-3B — R3F Components (v3) | ⬜ | — | — | — |
+| 9B | Stage 5 Parts 2-3B — R3F Components (v3) | ✅ | Stage 5 P2-3B | — | — |
 | 9C | Stage 5 Parts 2-3C — Particles + Ceremonies (v3) | ⬜ | — | — | — |
 | — | **Stage 5 Visual Checkpoint** | ⬜ | — | v0.5.0 | ⬜ |
 | 10 | Stage 6B — Pet Trainer (v3) | ⬜ | — | — | — |
@@ -112,6 +112,12 @@
 | 8 | avatar.ts: emoji fields corrupted | Used Unicode escape sequences | PASS |
 | 9A | holographic.glsl: `gl_FragColor` outside `main()` (PDF corruption) | Moved inside main() before closing brace | PASS |
 | 9A | energyField.glsl fragment: 3 uniforms crammed on single line | Split to separate lines with inline comments | PASS |
+| 9B | BadgeLevitate3D.tsx: `side: THREE.DoubleSide` outside ShaderMaterial constructor | Moved inside constructor object | PASS |
+| 9B | SparkCard3D.tsx: `transparent: true, side: THREE.FrontSide` outside constructor | Moved inside constructor object | PASS |
+| 9B | XPVortex.tsx: Hooks ordering — early return between hooks | All hooks called unconditionally before early return | PASS |
+| 9B | BadgeLevitate3D.tsx: unused `useThree` import | Removed | PASS |
+| 9B | SparkCard3D.tsx: Font file missing (`public/fonts/Exo2-Bold.woff`) | Created directory; Text falls back gracefully | PASS |
+| 9B | XPVortex.tsx: `Math.random()` in useFrame (non-deterministic) | Pre-computed deterministic data in useMemo | PASS |
 
 ---
 
@@ -141,6 +147,7 @@
 | S4P2B | ~10s | 8 (1 critical, 3 high, 2 medium, 2 low) | 0 |
 | S5P1 | ~10s | 13 (4 critical, 6 high, 2 medium, 1 low) | 0 |
 | S5P23A | ~10s | 7 (1 critical, 2 high, 2 medium, 2 low) | 0 |
+| S5P23B | ~10s | 6 (2 critical, 2 high, 2 medium) | 0 |
 
 ---
 
@@ -386,3 +393,39 @@
 | holographic | ~0.1ms | Profile / Shop only |
 | energyField | ~0.2ms | Profile page only |
 | fireNoise | ~0.2ms | Profile page only |
+
+---
+
+### Stage 5 Parts 2-3B v3-FINAL — Files Created
+
+**New files created (4):**
+- `src/components/3d/XPVortex.tsx` — 100-particle instanced spiral overlay for 20+ XP gains (Decision 5.2)
+- `src/components/3d/BadgePedestal3D.tsx` — 5-tier PBR pedestals with Float + Sparkles (Decision 7.2)
+- `src/components/3d/BadgeLevitate3D.tsx` — LiquidMetal shader badge display for Epic/Legendary (Decision 4.2)
+- `src/components/3d/SparkCard3D.tsx` — Holographic daily card with interactive tilt (Decision 4.3)
+
+**New directories (1):**
+- `public/fonts/` — For Exo 2 font file (soft dependency, Text component has fallback)
+
+**Stage document created:**
+- `docs/stage5-gamification/STAGE5_Parts23B_v3FINAL.md`
+
+**Code review fixes applied (6):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | BadgeLevitate3D.tsx: `side: THREE.DoubleSide` outside ShaderMaterial constructor (PDF corruption) | Moved inside constructor object |
+| CRITICAL | SparkCard3D.tsx: `transparent: true, side: THREE.FrontSide` outside constructor (PDF corruption) | Moved inside constructor object |
+| HIGH | XPVortex.tsx: early return `xpAmount < 20` between hooks violates React rules | All hooks called unconditionally before early return |
+| HIGH | BadgeLevitate3D.tsx: `useThree` imported but never used | Removed unused import |
+| MEDIUM | SparkCard3D.tsx: font file missing (`public/fonts/Exo2-Bold.woff`) | Created directory; Text component falls back to default font |
+| MEDIUM | XPVortex.tsx: `Math.random()` in useFrame creates non-deterministic renders | Replaced with pre-computed deterministic data in useMemo |
+
+**Decisions implemented:** 4.2, 4.3, 5.2, 7.2
+
+**GPU budget verification:**
+| Component | Cost | Active Page |
+|-----------|------|-------------|
+| XPVortex | ~0.2ms | XP popup (2s lifespan) |
+| BadgePedestal3D | ~0.2ms/pedestal | Trophy Room only |
+| BadgeLevitate3D | ~0.3ms/badge | Trophy Room only |
+| SparkCard3D | ~0.1ms | Profile / Shop only |
