@@ -138,7 +138,7 @@
 | 10B | PetTrainerGame.tsx: `<>` fragments with keys (invalid React) | Changed to `<Fragment key={...}>` | PASS |
 | 10B | PetTrainerGame.tsx: chrome bezel boxShadow truncated | Completed full CSS value | PASS |
 | 10B | PetTrainerGame.tsx: GameShell component missing | Created `src/components/game/GameShell.tsx` | PASS |
-| 10B | PetTrainerGame.tsx: spark-green/spark-orange classes (may not exist) | Replaced with standard Tailwind green/orange classes | PASS |
+| 10B | PetTrainerGame.tsx: spark-green/spark-orange classes confirmed valid (IMP-4) | Restored original spark-* classes per v2 cross-reference | PASS |
 | 10B | PetTrainerGame.tsx: unused imports (useCallback, useEffect, Star, Trophy, TrendingUp) | Removed | PASS |
 
 ---

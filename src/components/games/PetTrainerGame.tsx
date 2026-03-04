@@ -761,8 +761,8 @@ export function PetTrainerGame() {
                         <motion.div initial={{ opacity: 0, y: 10, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
                           className={`p-3 rounded-xl text-sm font-display font-bold ${
                             showFeedback.correct
-                              ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                              : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                              ? 'bg-spark-green/10 text-spark-green border border-spark-green/20'
+                              : 'bg-spark-orange/10 text-spark-orange border border-spark-orange/20'
                           }`}>
                           <span className="mr-2">{pet.emoji}</span>
                           {showFeedback.message}
@@ -900,8 +900,8 @@ export function PetTrainerGame() {
                           <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}
                             className={`inline-flex items-center gap-2 px-5 py-3 rounded-xl font-display font-bold text-sm ${
                               testResults[testIndex].correct
-                                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
-                                : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'
+                                ? 'bg-spark-green/10 text-spark-green border border-spark-green/20'
+                                : 'bg-spark-orange/10 text-spark-orange border border-spark-orange/20'
                             }`}>
                             {testResults[testIndex].correct
                               ? <><CheckCircle2 className="w-5 h-5" /> {petName} got it!</>
@@ -923,7 +923,7 @@ export function PetTrainerGame() {
                       {categorySet.test.map((_, i) => (
                         <div key={i} className={`w-3 h-3 rounded-full transition-all ${
                           i < testResults.length
-                            ? testResults[i].correct ? 'bg-green-400 scale-110' : 'bg-red-500 scale-110'
+                            ? testResults[i].correct ? 'bg-spark-green scale-110' : 'bg-red-500 scale-110'
                             : i === testIndex ? 'bg-purple-400 animate-pulse' : 'bg-white/10'
                         }`} />
                       ))}
@@ -991,7 +991,7 @@ export function PetTrainerGame() {
                                 return (
                                   <div key={`${actual.id}-${predicted.id}`}
                                     className={`text-center py-1 rounded font-data text-xs font-bold ${
-                                      isCorrect ? 'bg-green-500/10 text-green-400' : count > 0 ? 'bg-red-500/10 text-red-400' : 'bg-white/[0.02] text-white/15'
+                                      isCorrect ? 'bg-spark-green/10 text-spark-green' : count > 0 ? 'bg-red-500/10 text-red-400' : 'bg-white/[0.02] text-white/15'
                                     }`}>
                                     {count}
                                   </div>

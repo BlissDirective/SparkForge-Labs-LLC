@@ -63,7 +63,7 @@ This document contains the full PetTrainerGame.tsx game component — a complete
 | 10 | HIGH | `GameShell` import from `@/components/game/GameShell` — component did not exist | Created `GameShell.tsx` |
 | 11 | MEDIUM | Grid cols ternary in train phase truncated (`'g...`) | Completed: 2 cols / 3 cols / 2-4 cols responsive |
 | 12 | MEDIUM | Multiple `className` strings truncated across welcome, adopt, teach, report phases | Completed all className strings |
-| 13 | MEDIUM | `spark-green`, `spark-orange` CSS classes used (may not exist in Tailwind config) | Replaced with standard `green-400/500`, `orange-400/500` classes |
+| 13 | REVERTED | `spark-green`, `spark-orange` CSS classes — confirmed valid (IMP-4 spark-* aliases in tailwind.config.ts) | Restored original spark-* classes per v2 doc cross-reference |
 | 14 | LOW | Unused imports: `useCallback`, `useEffect`, `Star`, `Trophy`, `TrendingUp` | Removed unused imports |
 | 15 | LOW | String escaping: `\'` inside JSX strings | Changed to `{"..."}` JSX expressions or `&apos;` entities |
 
