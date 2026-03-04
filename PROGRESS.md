@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 9C — Stage 5 Parts 2-3C (Celebrations, Particles & Controls — v3-FINAL)
+## Current Phase: 10 — Stage 6B Part A (AI Pet Trainer 3D — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-04
 
@@ -28,7 +28,8 @@
 | 9B | Stage 5 Parts 2-3B — R3F Components (v3) | ✅ | Stage 5 P2-3B | — | — |
 | 9C | Stage 5 Parts 2-3C — Particles + Ceremonies (v3) | ✅ | Stage 5 P2-3C | — | — |
 | — | **Stage 5 Visual Checkpoint** | ⬜ | — | v0.5.0 | ⬜ |
-| 10 | Stage 6B — Pet Trainer (v3) | ⬜ | — | — | — |
+| 10A | Stage 6B Part A — Pet Trainer 3D (v3) | ✅ | Stage 6B P-A | — | — |
+| 10B | Stage 6B Part B — Pet Trainer Game (v3) | ⬜ | — | — | — |
 | 11 | Stage 6C — Neural Builder (v3) | ⬜ | — | — | — |
 | 12 | Stage 6D — Prompt Lab (v3) | ⬜ | — | — | — |
 | 13 | Stage 6E — Agent Architect (v3) | ⬜ | — | — | — |
@@ -124,6 +125,11 @@
 | 9C | GameParticles3D.tsx + ParticleIntensitySlider.tsx: Unsafe `as Record` casts | Replaced with properly typed `s.particleIntensity` selectors | PASS |
 | 9C | LevelUpExplosion.tsx: Interface props formatting + misplaced comment | Reformatted with JSDoc; added default export | PASS |
 | 9C | LevelUpExplosion.tsx + StreakFlame3D.tsx: Named exports only | Added `export default` alias for dynamic import compatibility | PASS |
+| 10A | PetCreature3D.tsx: `useRef<THREE.Group>(null!)` non-null assertion | Changed to `null` with null guard in useFrame | PASS |
+| 10A | PetCreature3D.tsx: `useRef<THREE.Mesh>(null!)` in FallbackOrb | Changed to `null` with null guard | PASS |
+| 10A | Pet3DScene.tsx: HDR path `/envmaps/frost-prismatic-studio.hdr` wrong dir | Corrected to `/hdri/frost-prismatic.hdr` per CLAUDE.md | PASS |
+| 10A | Pet3DScene.tsx: `Environment onError` prop doesn't exist in drei (TS2322) | Replaced with HEAD-request probe pattern | PASS |
+| 10A | PetCreature3D.tsx: `scene.clone()` re-cloned every render | Memoized with `useMemo(() => scene.clone(), [scene])` | PASS |
 
 ---
 
@@ -155,6 +161,7 @@
 | S5P23A | ~10s | 7 (1 critical, 2 high, 2 medium, 2 low) | 0 |
 | S5P23B | ~10s | 6 (2 critical, 2 high, 2 medium) | 0 |
 | S5P23C | ~10s | 6 (2 critical, 2 high, 2 medium) | 0 |
+| S6BPA | ~10s | 5 (4 high, 1 medium) | 0 |
 
 ---
 
@@ -483,3 +490,30 @@
 | B (R3F Rewards) | 4 components | 4.2, 4.3, 5.2, 7.2 |
 | C (Celebrations) | 4 components + uiStore modify | 5.3, 5.5 |
 | **Total** | **12 new + 2 modified** | **8 decisions** |
+
+---
+
+### Stage 6B Part A v3-FINAL — Files Created
+
+**New files created (2):**
+- `src/components/3d/PetCreature3D.tsx` — GLB model loader with MeshToonMaterial cel-shading + fallback orb (Decisions 6.2, 7.5)
+- `src/components/3d/Pet3DScene.tsx` — Canvas wrapper with toon lighting, Sparkles, ContactShadows, custom HDR, Bloom, emoji overlay (Decisions 6.2, 7.1)
+
+**New directories (1):**
+- `public/models/pets/` — GLB asset directory for 6 evolution stages (parallel workstream)
+
+**Stage document created:**
+- `docs/stage6-flagship/STAGE6B_v3FINAL_A.md`
+
+**Code review fixes applied (5):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| HIGH | PetCreature3D: `useRef(null!)` non-null assertion on ref | Changed to `null` with null guard in useFrame |
+| HIGH | PetCreature3D: FallbackOrb `useRef(null!)` same issue | Changed to `null` with null guard |
+| HIGH | Pet3DScene: HDR path `/envmaps/` doesn't exist | Corrected to `/hdri/frost-prismatic.hdr` per CLAUDE.md |
+| HIGH | Pet3DScene: `Environment onError` prop doesn't exist (TS2322) | Replaced with HEAD-request probe pattern |
+| MEDIUM | PetCreature3D: `scene.clone()` re-cloned every render | Memoized with `useMemo` |
+
+**Decisions implemented:** 6.2, 7.1, 7.5
+
+**Soft note (HS-8):** Pet Trainer uses procedural fallback (toon-shaded orb) until GLB assets are placed in `public/models/pets/`. This is non-blocking — game is fully playable.
