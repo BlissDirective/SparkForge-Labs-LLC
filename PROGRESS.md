@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 8 — Stage 5 Part 1 (Gamification Engine — v2)
+## Current Phase: 9A — Stage 5 Parts 2-3A (Reward Shaders — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-04
 
@@ -24,7 +24,9 @@
 | 7 | Stage 4 Part 2B — Lab Reconfig + Transitions (v3) | ✅ | Stage 4 Part 2B | — | — |
 | — | **Stage 4 Visual Checkpoint** | ⬜ | — | v0.4.0 | ⬜ |
 | 8 | Stage 5 Part 1 — Gamification (v2) | ✅ | Stage 5 Part 1 | — | — |
-| 9 | Stage 5 Parts 2-3 A/B/C — Visual FX (v3) | ⬜ | — | — | — |
+| 9A | Stage 5 Parts 2-3A — Reward Shaders (v3) | ✅ | Stage 5 P2-3A | — | — |
+| 9B | Stage 5 Parts 2-3B — R3F Components (v3) | ⬜ | — | — | — |
+| 9C | Stage 5 Parts 2-3C — Particles + Ceremonies (v3) | ⬜ | — | — | — |
 | — | **Stage 5 Visual Checkpoint** | ⬜ | — | v0.5.0 | ⬜ |
 | 10 | Stage 6B — Pet Trainer (v3) | ⬜ | — | — | — |
 | 11 | Stage 6C — Neural Builder (v3) | ⬜ | — | — | — |
@@ -108,6 +110,8 @@
 | 8 | dailyChallenge.ts: imports nonexistent LAB_NAMES from @/types | Derived from LABS array via Object.fromEntries | PASS |
 | 8 | dailyChallenge.ts: challenge template icons corrupted | Used Unicode escape sequences | PASS |
 | 8 | avatar.ts: emoji fields corrupted | Used Unicode escape sequences | PASS |
+| 9A | holographic.glsl: `gl_FragColor` outside `main()` (PDF corruption) | Moved inside main() before closing brace | PASS |
+| 9A | energyField.glsl fragment: 3 uniforms crammed on single line | Split to separate lines with inline comments | PASS |
 
 ---
 
@@ -136,6 +140,7 @@
 | S4P2A | ~10s | 10 (3 critical, 3 high, 2 medium, 2 low) | 0 |
 | S4P2B | ~10s | 8 (1 critical, 3 high, 2 medium, 2 low) | 0 |
 | S5P1 | ~10s | 13 (4 critical, 6 high, 2 medium, 1 low) | 0 |
+| S5P23A | ~10s | 7 (1 critical, 2 high, 2 medium, 2 low) | 0 |
 
 ---
 
@@ -344,3 +349,40 @@
 | MEDIUM | useSoundEffect.ts: `useUIStore.getState() as any` cast | Removed; proper typing after store update |
 | MEDIUM | dailyChallenge.ts: `const` in switch without block scope | Used object spread instead |
 | LOW | gamification.ts: `Infinity` tier always returns level 51 | Documented as intentional ceiling
+
+---
+
+### Stage 5 Parts 2-3A v3-FINAL — Files Created/Modified
+
+**New files created (4):**
+- `src/shaders/liquidMetal.glsl` — Vertex+Fragment: flowing mercury for Epic(0.5x) + Legendary(1.0x + mouse ripple) badges (Decision 4.2)
+- `src/shaders/holographic.glsl` — Fragment only: rainbow diffraction for collectible cards (Decision 4.3)
+- `src/shaders/energyField.glsl` — Vertex+Fragment: hex dome with shatter + energy crawl for streak shield (Decision 4.5)
+- `src/shaders/fireNoise.glsl` — Vertex+Fragment: prismatic procedural flame for Diamond tier 100+ day streaks
+
+**Modified files (1):**
+- `src/shaders/index.ts` — APPENDED 8 new shader exports (4 vertex + 4 fragment) at lines 220-591
+
+**Stage document created:**
+- `docs/stage5-gamification/STAGE5_Parts23A_v3FINAL.md`
+
+**Code review fixes applied (7):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | holographic.glsl: `gl_FragColor` outside `main()` closing brace (PDF corruption) | Moved inside `main()` before closing brace |
+| HIGH | energyField.glsl fragment: 3 uniform declarations crammed on single line | Split to separate lines with inline comments |
+| HIGH | energyField.glsl fragment: `cameraPosition` used without declaration | Added comment documenting Three.js built-in uniform |
+| MEDIUM | holographic.glsl index.ts: verified `gl_FragColor` placement | Confirmed correct in index.ts; fix applied to standalone .glsl only |
+| MEDIUM | fireNoise vertex: prepends noiseGLSL unnecessarily | Documented as harmless/intentional for consistency |
+| LOW | All .glsl files: missing reference documentation note | Added note to each header clarifying index.ts is the actual import source |
+| LOW | liquidMetal.glsl: single file contains both vertex+fragment | Documented split pattern: standalone is reference; index.ts splits into exports |
+
+**Decisions implemented:** 4.2, 4.3, 4.5
+
+**GPU budget verification:**
+| Shader | Cost | Active Page |
+|--------|------|-------------|
+| liquidMetal | ~0.3ms/badge | Trophy Room only |
+| holographic | ~0.1ms | Profile / Shop only |
+| energyField | ~0.2ms | Profile page only |
+| fireNoise | ~0.2ms | Profile page only |
