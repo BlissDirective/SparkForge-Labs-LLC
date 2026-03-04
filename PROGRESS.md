@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 11A — Stage 6C Part A (Neural Network 3D + Audio — v3-FINAL)
+## Current Phase: 11B — Stage 6C Part B (Neural Builder Game — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-04
 
@@ -31,7 +31,7 @@
 | 10A | Stage 6B Part A — Pet Trainer 3D (v3) | ✅ | Stage 6B P-A | — | — |
 | 10B | Stage 6B Part B — Pet Trainer Game (v3) | ✅ | Stage 6B P-B | — | — |
 | 11A | Stage 6C Part A — Neural Network 3D + Audio (v3) | ✅ | Stage 6C P-A | — | — |
-| 11B | Stage 6C Part B — Neural Builder Game (v3) | ⬜ | — | — | — |
+| 11B | Stage 6C Part B — Neural Builder Game (v3) | ✅ | Stage 6C P-B | — | — |
 | 12 | Stage 6D — Prompt Lab (v3) | ⬜ | — | — | — |
 | 13 | Stage 6E — Agent Architect (v3) | ⬜ | — | — | — |
 | 14 | Stage 6F — Bias Detective (v3) | ⬜ | — | — | — |
@@ -149,6 +149,20 @@
 | 11A | NeuralNetwork3D.tsx: `useThree` imported but never used | Removed from imports | PASS |
 | 11A | NeuralNetwork3D.tsx: `useState`, `useCallback` imported but never used | Removed from imports | PASS |
 | 11A | useNetworkAudio.ts: Empty `catch {}` blocks without comments | Added `// Silent fallback` comments | PASS |
+| 11B | NeuralBuilderGame.tsx: ~35 emoji corrupted to `■` (PDF encoding) | Reconstructed all as Unicode escape sequences | PASS |
+| 11B | NeuralBuilderGame.tsx: `game.addScore()` does not exist on gameStore | Changed to `game.updateScore()` | PASS |
+| 11B | NeuralBuilderGame.tsx: GameShell props `labColor`/`labName` don't exist | Changed to `worldNumber={3} worldColor="#EC4899" totalRounds={1}` | PASS |
+| 11B | NeuralBuilderGame.tsx: `className` inside `style={{}}` (chrome bezel + LED rim) | Separated into distinct attributes | PASS |
+| 11B | NeuralBuilderGame.tsx: `handleWeightChange` return c inside if block (dead code) | Moved `return c` after if closing brace | PASS |
+| 11B | NeuralBuilderGame.tsx: digits `descriptionC` truncated at "curv" | Completed: "...curves, strokes). Adjust architecture..." | PASS |
+| 11B | NeuralBuilderGame.tsx: Train button className truncated (`disable`) | Completed to `disabled:opacity-50` | PASS |
+| 11B | NeuralBuilderGame.tsx: Train button inner JSX content broken across lines | Restructured as two `<span>` elements | PASS |
+| 11B | NeuralBuilderGame.tsx: Node inspection panel closing tags reversed | Reconstructed proper nesting | PASS |
+| 11B | NeuralBuilderGame.tsx: Learning rate slider JSX tags reversed | Reconstructed proper structure | PASS |
+| 11B | NeuralBuilderGame.tsx: `bg-spark-pink/5` not in Tailwind config | Changed to `bg-pink-500/5` | PASS |
+| 11B | NeuralBuilderGame.tsx: 6 unused lucide-react imports (Star, Trophy, Eye, Layers, Network, BookOpen) | Removed | PASS |
+| 11B | NeuralBuilderGame.tsx: `prediction` state declared but never read in render | Removed state and all references | PASS |
+| 11B | NeuralBuilderGame.tsx: `toggleSound` not wrapped in useCallback | Wrapped with `[soundEnabled, audio]` deps | PASS |
 
 ---
 
@@ -183,6 +197,7 @@
 | S6BPA | ~10s | 5 (4 high, 1 medium) | 0 |
 | S6BPB | ~10s | 15 (4 critical, 6 high, 3 medium, 2 low) | 0 |
 | S6CPA | ~10s | 8 (3 critical, 2 high, 1 medium, 2 low) | 0 |
+| S6CPB | ~10s | 15 (5 critical, 5 high, 3 medium, 2 low) | 0 |
 
 ---
 
@@ -611,6 +626,42 @@
 | NeuralNetwork3D (desktop) | ~20K max | ~0.5ms | Neural Builder game only |
 | NeuralNetwork3D (mobile) | ~8K max | ~0.3ms | Neural Builder game only |
 | Bloom postprocessing | N/A | ~0.2ms | Desktop only |
+
+**Build validation:**
+- `npx tsc --noEmit`: PASS (0 errors)
+- `npm run lint`: PASS (0 warnings)
+- `npm run build`: PASS
+
+---
+
+### Stage 6C Part B v3-FINAL — Files Created
+
+**New file created (1):**
+- `src/components/games/NeuralBuilderGame.tsx` — Complete Neural Network Builder game (~780 lines). 6-phase flow (welcome → learn → build → train → test → report), 3 challenge tasks (Digit Reader, Color Classifier, Shape Sorter), 4 architecture challenges (Minimalist, Shallow Master, Deep Thinker, Efficiency Expert), NeuralNetwork3D dynamic import replacing SVG visualization, Tone.js audio integration, heartbeat idle animation, chrome bezel + LED rim, 22 CSS particles, age-band differentiation (B: guided, C: learning rate + loss curve), drawing canvas for digits, comprehensive ARIA labels.
+
+**Stage document created:**
+- `docs/stage6-flagship/STAGE6C_v3FINAL_B.md`
+
+**Code review fixes applied (15):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | ~35 emoji corrupted to `■` (PDF encoding) | Reconstructed all as Unicode escape sequences |
+| CRITICAL | `game.addScore()` does not exist on gameStore | Changed to `game.updateScore()` |
+| CRITICAL | GameShell props `labColor`/`labName` don't exist | Changed to `worldNumber={3} worldColor="#EC4899" totalRounds={1}` |
+| CRITICAL | `className` inside `style={{}}` on chrome bezel + LED rim divs | Separated into distinct attributes |
+| CRITICAL | `handleWeightChange` — `return c;` dead code inside if block | Moved after if's closing brace |
+| HIGH | digits `descriptionC` truncated at "curv" | Completed sentence |
+| HIGH | Train button className truncated (`disable`) | Completed to `disabled:opacity-50` |
+| HIGH | Train button inner JSX broken across lines | Restructured as two `<span>` elements |
+| HIGH | Node inspection panel closing tags reversed | Reconstructed proper nesting |
+| HIGH | Learning rate slider JSX tags reversed | Reconstructed proper structure |
+| MEDIUM | `bg-spark-pink/5` not in Tailwind config | Changed to `bg-pink-500/5` |
+| MEDIUM | 6 unused lucide-react imports | Removed Star, Trophy, Eye, Layers, Network, BookOpen |
+| MEDIUM | `prediction` state declared but never read | Removed state and all references |
+| LOW | `toggleSound` not wrapped in useCallback | Wrapped with proper deps |
+| LOW | String apostrophes in JSX | Changed to Unicode escape `\u2019` |
+
+**Decision implemented:** 6.1 (NeuralNetwork3D dynamic import replaces SVG network visualization)
 
 **Build validation:**
 - `npx tsc --noEmit`: PASS (0 errors)
