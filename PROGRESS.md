@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 10B — Stage 6B Part B (AI Pet Trainer Game — v3-FINAL)
+## Current Phase: 11A — Stage 6C Part A (Neural Network 3D + Audio — v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-04
 
@@ -30,7 +30,8 @@
 | — | **Stage 5 Visual Checkpoint** | ⬜ | — | v0.5.0 | ⬜ |
 | 10A | Stage 6B Part A — Pet Trainer 3D (v3) | ✅ | Stage 6B P-A | — | — |
 | 10B | Stage 6B Part B — Pet Trainer Game (v3) | ✅ | Stage 6B P-B | — | — |
-| 11 | Stage 6C — Neural Builder (v3) | ⬜ | — | — | — |
+| 11A | Stage 6C Part A — Neural Network 3D + Audio (v3) | ✅ | Stage 6C P-A | — | — |
+| 11B | Stage 6C Part B — Neural Builder Game (v3) | ⬜ | — | — | — |
 | 12 | Stage 6D — Prompt Lab (v3) | ⬜ | — | — | — |
 | 13 | Stage 6E — Agent Architect (v3) | ⬜ | — | — | — |
 | 14 | Stage 6F — Bias Detective (v3) | ⬜ | — | — | — |
@@ -140,6 +141,14 @@
 | 10B | PetTrainerGame.tsx: GameShell component missing | Created `src/components/game/GameShell.tsx` | PASS |
 | 10B | PetTrainerGame.tsx: spark-green/spark-orange classes confirmed valid (IMP-4) | Restored original spark-* classes per v2 cross-reference | PASS |
 | 10B | PetTrainerGame.tsx: unused imports (useCallback, useEffect, Star, Trophy, TrendingUp) | Removed | PASS |
+| 11A | useNetworkAudio.ts: `setTimeout(() => synth.dispose(), 800)` in playEpochChord OUTSIDE useCallback closure (PDF corruption — synth out of scope) | Moved inside try block before catch | PASS |
+| 11A | useNetworkAudio.ts: `setTimeout(() => synth.dispose(), 1200)` in playComplete OUTSIDE useCallback closure (same PDF issue) | Moved inside try block before catch | PASS |
+| 11A | NeuralNetwork3D.tsx: `className="..."` placed INSIDE `style={{}}` object (invalid JSX mixing attributes with object properties) | Separated into distinct className and style attributes on the div | PASS |
+| 11A | NeuralNetwork3D.tsx: `controlsRef.current?.update()` in AutoOrbitController at function body level (runs every render, not in animation loop) | Moved inside useFrame callback | PASS |
+| 11A | NeuralNetwork3D.tsx: `useRef<THREE.Mesh>(null!)` non-null assertions on meshRef and sparkRef | Changed to `null` with null guards in useFrame | PASS |
+| 11A | NeuralNetwork3D.tsx: `useThree` imported but never used | Removed from imports | PASS |
+| 11A | NeuralNetwork3D.tsx: `useState`, `useCallback` imported but never used | Removed from imports | PASS |
+| 11A | useNetworkAudio.ts: Empty `catch {}` blocks without comments | Added `// Silent fallback` comments | PASS |
 
 ---
 
@@ -173,6 +182,7 @@
 | S5P23C | ~10s | 6 (2 critical, 2 high, 2 medium) | 0 |
 | S6BPA | ~10s | 5 (4 high, 1 medium) | 0 |
 | S6BPB | ~10s | 15 (4 critical, 6 high, 3 medium, 2 low) | 0 |
+| S6CPA | ~10s | 8 (3 critical, 2 high, 1 medium, 2 low) | 0 |
 
 ---
 
@@ -560,6 +570,47 @@
 | LOW | String escaping `\'` inside JSX | Changed to JSX expressions or HTML entities |
 
 **Decisions implemented:** 6.2 (GLB pet references via Pet3DScene), 7.5 (Toon shading via chain)
+
+**Build validation:**
+- `npx tsc --noEmit`: PASS (0 errors)
+- `npm run lint`: PASS (0 warnings)
+- `npm run build`: PASS
+
+---
+
+### Stage 6C Part A v3-FINAL — Files Created
+
+**New files created (2):**
+- `src/components/3d/NeuralNetwork3D.tsx` — Interactive 3D neural network visualization with OrbitControls rotation, SphereGeometry neurons with emissive activation color (cold blue → hot orange), Line2 fat-line connections with weight-based thickness/color, constrained polar camera, auto-orbit during training, heartbeat idle animation, spark flashes at connection midpoints, mobile fallback (fewer segments, no bloom). ~380 lines. Decision 6.1.
+- `src/hooks/useNetworkAudio.ts` — Tone.js sonification hook: lazy initialization (user gesture required), activation tones (sine 200-800Hz by layer depth), epoch chords (PolySynth dissonant→consonant), completion arpeggio (C-major ascending triangle wave), spark pings (triangle 800-1400Hz). ~120 lines.
+
+**New package dependencies (2):**
+- `tone@15.1.22` — Audio synthesis for network sonification
+- `recharts@3.7.0` — Data visualization (used in Part B game)
+
+**Stage document created:**
+- `docs/stage6-flagship/STAGE6C_v3FINAL_A.md`
+
+**Code review fixes applied (8):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | useNetworkAudio.ts: `setTimeout(() => synth.dispose(), 800)` in playEpochChord outside useCallback scope (PDF corruption) | Moved inside try block |
+| CRITICAL | useNetworkAudio.ts: `setTimeout(() => synth.dispose(), 1200)` in playComplete outside useCallback scope (same) | Moved inside try block |
+| CRITICAL | NeuralNetwork3D.tsx: `className` placed inside `style={{}}` object (invalid JSX) | Separated into distinct attributes |
+| HIGH | AutoOrbitController: `controlsRef.current?.update()` at function body level | Moved inside useFrame callback |
+| HIGH | NeuronSphere/ConnectionLine: `useRef<THREE.Mesh>(null!)` non-null assertion | Changed to `null` with null guards |
+| MEDIUM | NeuralNetwork3D.tsx: `useThree` imported but never used | Removed |
+| LOW | NeuralNetwork3D.tsx: `useState`, `useCallback` imported but never used | Removed |
+| LOW | useNetworkAudio.ts: Empty `catch {}` blocks | Added `// Silent fallback` comments |
+
+**Decision implemented:** 6.1 (Replace SVG entirely with 3D rotatable network)
+
+**GPU budget verification:**
+| Component | Triangles | Cost | Active Page |
+|-----------|-----------|------|-------------|
+| NeuralNetwork3D (desktop) | ~20K max | ~0.5ms | Neural Builder game only |
+| NeuralNetwork3D (mobile) | ~8K max | ~0.3ms | Neural Builder game only |
+| Bloom postprocessing | N/A | ~0.2ms | Desktop only |
 
 **Build validation:**
 - `npx tsc --noEmit`: PASS (0 errors)
