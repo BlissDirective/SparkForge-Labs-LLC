@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: 7 — Stage 4 Part 2B (Lab Transitions — v3-FINAL)
+## Current Phase: 8 — Stage 5 Part 1 (Gamification Engine — v2)
 ## Status: COMPLETE
-## Last Updated: 2026-03-03
+## Last Updated: 2026-03-04
 
 ---
 
@@ -23,7 +23,7 @@
 | 7 | Stage 4 Part 2A — Lab Pattern Shaders (v3) | ✅ | Stage 4 Part 2A | — | — |
 | 7 | Stage 4 Part 2B — Lab Reconfig + Transitions (v3) | ✅ | Stage 4 Part 2B | — | — |
 | — | **Stage 4 Visual Checkpoint** | ⬜ | — | v0.4.0 | ⬜ |
-| 8 | Stage 5 Part 1 — Gamification (v2) | ⬜ | — | — | — |
+| 8 | Stage 5 Part 1 — Gamification (v2) | ✅ | Stage 5 Part 1 | — | — |
 | 9 | Stage 5 Parts 2-3 A/B/C — Visual FX (v3) | ⬜ | — | — | — |
 | — | **Stage 5 Visual Checkpoint** | ⬜ | — | v0.5.0 | ⬜ |
 | 10 | Stage 6B — Pet Trainer (v3) | ⬜ | — | — | — |
@@ -98,6 +98,16 @@
 | 7 | frontierLab.glsl: normalize division by zero risk | Added `+ vec2(0.001)` safety offset | PASS |
 | 7 | visionLab in index.ts: same main() brace issue as .glsl | Fixed in both .glsl and index.ts string | PASS |
 | 7 | ethicsLab in index.ts: pendulum lines missing vs .glsl | Added for parity with standalone shader | PASS |
+| 8 | gamification.ts: all emoji strings corrupted by PDF encoding | Used Unicode escape sequences throughout | PASS |
+| 8 | gamification.ts: getStreakMessage signature broken across lines | Reconstructed with proper params and braces | PASS |
+| 8 | gamification.ts: FlameTier union missing 'diamond' | Completed 7-tier union type | PASS |
+| 8 | cosmetics.ts: all 30 items corrupted by PDF | Fully reconstructed with correct prices/rarities/emojis | PASS |
+| 8 | cosmetics.ts: getItemById nested inside getItemsByCategory | Made standalone exported functions | PASS |
+| 8 | cosmetics.ts: CosmeticItem.preview not optional | Made optional: `preview?: string` | PASS |
+| 8 | cosmetics.ts: getCollectionProgress return type truncated | Completed full return type | PASS |
+| 8 | dailyChallenge.ts: imports nonexistent LAB_NAMES from @/types | Derived from LABS array via Object.fromEntries | PASS |
+| 8 | dailyChallenge.ts: challenge template icons corrupted | Used Unicode escape sequences | PASS |
+| 8 | avatar.ts: emoji fields corrupted | Used Unicode escape sequences | PASS |
 
 ---
 
@@ -125,6 +135,7 @@
 | S4P3 | ~10s | 12 (all in provided code, fixed pre-build) | 0 |
 | S4P2A | ~10s | 10 (3 critical, 3 high, 2 medium, 2 low) | 0 |
 | S4P2B | ~10s | 8 (1 critical, 3 high, 2 medium, 2 low) | 0 |
+| S5P1 | ~10s | 13 (4 critical, 6 high, 2 medium, 1 low) | 0 |
 
 ---
 
@@ -299,3 +310,37 @@
 | LOW | useStationMode.ts: `useEffect` suggested but unused | Omitted unnecessary import |
 
 **Decisions implemented:** 3.1, 3.3, 3.4, 3.5, 5.4
+
+---
+
+### Stage 5 Part 1 — Files Created/Modified
+
+**New files created (5):**
+- `src/lib/gamification.ts` — Gamification engine (274 lines): calculateLevel, streak helpers, 7 flame tiers, rarity system, welcome badge
+- `src/lib/cosmetics.ts` — Cosmetic shop data (136 lines): 30 items (6 categories), 7 collections, utility functions
+- `src/lib/avatar.ts` — Avatar configuration (97 lines): 8 skin tones, 6 face shapes, 12 hair styles, 8 hair colors, 6 eye colors, 6 outfits
+- `src/hooks/useSoundEffect.ts` — Sound effect hook (173 lines): Web Audio API synthesis for 10 events, respects mute/reduced-motion
+- `src/lib/dailyChallenge.ts` — Daily challenge system (258 lines): 18 templates, deterministic date-seeded selection, time helpers
+
+**Modified files (1):**
+- `src/stores/uiStore.ts` — Added `soundEnabled`, `dailyChallengeCompleted` state + `toggleSound()`, `markDailyChallengeComplete()`, `resetDailyChallenge()` actions
+
+**Stage document created:**
+- `docs/stage5-gamification/STAGE5_Gamification_Profile_PART1.md`
+
+**Code review fixes applied (13):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| CRITICAL | dailyChallenge.ts: imports nonexistent `LAB_NAMES` from `@/types` | Derived from `LABS` array via `Object.fromEntries()` |
+| CRITICAL | cosmetics.ts: all 30 items corrupted by PDF encoding | Fully reconstructed with correct prices, rarities, Unicode-escaped emojis |
+| CRITICAL | gamification.ts: `getStreakMessage` broken signature | Reconstructed with proper parameter list and return type |
+| CRITICAL | gamification.ts: `FlameTier` union type missing 'diamond' | Completed: 7 tiers spark→candle→campfire→bonfire→inferno→bluecore→diamond |
+| HIGH | gamification.ts: all emoji strings corrupted | Used Unicode escape sequences throughout |
+| HIGH | cosmetics.ts: `getItemById` nested inside `getItemsByCategory` | Made standalone exported functions |
+| HIGH | cosmetics.ts: `getCollectionProgress` return type truncated | Completed with full `{ collection, owned, total, complete }[]` |
+| HIGH | cosmetics.ts: `CosmeticItem.preview` not optional | Made `preview?: string` |
+| HIGH | avatar.ts: emoji fields corrupted | Used Unicode escape sequences |
+| HIGH | dailyChallenge.ts: challenge template icons corrupted | Used Unicode escape sequences |
+| MEDIUM | useSoundEffect.ts: `useUIStore.getState() as any` cast | Removed; proper typing after store update |
+| MEDIUM | dailyChallenge.ts: `const` in switch without block scope | Used object spread instead |
+| LOW | gamification.ts: `Infinity` tier always returns level 51 | Documented as intentional ceiling

@@ -8,11 +8,16 @@ interface UIState {
   celebrationData: Record<string, unknown> | null;
   labColor: string;
   labTint: string;
+  soundEnabled: boolean;
+  dailyChallengeCompleted: boolean;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   triggerCelebration: (type: CelebrationType, data?: Record<string, unknown>) => void;
   dismissCelebration: () => void;
   setLabColor: (color: string, tint?: string) => void;
+  toggleSound: () => void;
+  markDailyChallengeComplete: () => void;
+  resetDailyChallenge: () => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -22,6 +27,8 @@ export const useUIStore = create<UIState>((set) => ({
   celebrationData: null,
   labColor: '#00BBFF',
   labTint: '#00BBFF',
+  soundEnabled: true,
+  dailyChallengeCompleted: false,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   triggerCelebration: (type, data = {}) => set({ showCelebration: true, celebrationType: type, celebrationData: data }),
@@ -33,4 +40,7 @@ export const useUIStore = create<UIState>((set) => ({
       document.documentElement.style.setProperty('--lab-glow', labColor + '40');
     }
   },
+  toggleSound: () => set((s) => ({ soundEnabled: !s.soundEnabled })),
+  markDailyChallengeComplete: () => set({ dailyChallengeCompleted: true }),
+  resetDailyChallenge: () => set({ dailyChallengeCompleted: false }),
 }));
