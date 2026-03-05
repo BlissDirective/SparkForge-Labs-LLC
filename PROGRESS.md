@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 12-Enh — Stage 6D v2 Enhancements (Prompt Lab — 5 premium features)
+## Current Phase: 12A — Stage 6D Part A — PromptBubble3D (v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-05
 
@@ -34,7 +34,7 @@
 | 11B | Stage 6C Part B — Neural Builder Game (v3) | ✅ | Stage 6C P-B | — | — |
 | 12 | Stage 6D v2 — Prompt Lab Game (base) | ✅ | Stage 6D v2 | — | — |
 | 12-Enh | Stage 6D v2 Enhancements — X-Ray, Explainer, Patterns, ThinkingViz, SystemPrompt | ✅ | Stage 6D v2 Enh | — | — |
-| 12A | Stage 6D Part A — PromptBubble3D (v3) | ⬜ | — | — | — |
+| 12A | Stage 6D Part A — PromptBubble3D (v3) | ✅ | Stage 6D P-A | — | — |
 | 12B | Stage 6D Part B — Prompt Lab Game (v3) | ⬜ | — | — | — |
 | 12 | Stage 6D — Prompt Lab (v3) | ⬜ | — | — | — |
 | 13 | Stage 6E — Agent Architect (v3) | ⬜ | — | — | — |
@@ -195,6 +195,10 @@
 | 12-Enh | PromptLabGame.tsx Enhancements: sendMessage deps missing systemPrompt, ageBand | Added to useCallback deps array | PASS |
 | 12-Enh | PromptLabGame.tsx Enhancements: Math.random() in SVG animations | Replaced with deterministic formula from indices | PASS |
 | 12-Enh | PromptLabGame.tsx Enhancements: String apostrophes in System Prompt | Used `{'\u2019'}` JSX expression | PASS |
+| 12A | PromptBubble3D.tsx: `useRef<any>` for textRef bypasses TypeScript | Changed to `useRef<THREE.Group>(null)` | PASS |
+| 12A | PromptBubble3D.tsx: Pop useEffect stale closure on `bubbles.length` | Replaced with `hadBubblesRef` tracking pattern | PASS |
+| 12A | PromptBubble3D.tsx: Physics spread mutates Vector3 React state | Added `.clone()` for position and velocity | PASS |
+| 12A | PromptBubble3D.tsx: Material useMemo missing opacity dep | Added `bubble.opacity` to deps array | PASS |
 
 ---
 
@@ -232,6 +236,7 @@
 | S6CPB | ~10s | 15 (5 critical, 5 high, 3 medium, 2 low) | 0 |
 | S6Dv2 | ~10s | 19 (7 critical, 6 high, 4 medium, 2 low) | 0 |
 | S6Dv2Enh | ~10s | 15 (8 critical, 4 high, 3 medium) | 0 |
+| S6DPA | ~10s | 4 (3 high, 1 medium) | 0 |
 
 ---
 
@@ -721,6 +726,37 @@
 | LOW | 2 | String apostrophes, filter destructuring |
 
 **Note:** v3-FINAL Parts A + B pending — will add PromptBubble3D and enhanced game with 3D integration.
+
+**Build validation:**
+- `npx tsc --noEmit`: PASS (0 errors)
+- `npm run lint`: PASS (0 warnings)
+- `npm run build`: PASS
+
+---
+
+### Stage 6D Part A v3-FINAL — Files Created
+
+**New file created (1):**
+- `src/components/3d/PromptBubble3D.tsx` — 3D thought bubble system for Prompt Lab (~369 lines). Keywords from child prompts materialize as glass spheres with MeshPhysicalMaterial clearcoat (transmission 0.7, ior 1.5). Spring physics (attract center, repel overlapping), temperature-reactive wobble, pop animation when AI responds. Max 12 bubbles FIFO, drei Text billboard labels, Environment "night" preset. Desktop only. Decision 6.2.3.
+
+**Stage document created:**
+- `docs/stage6-flagship/STAGE6D_v3FINAL_PartA.md`
+
+**Code review fixes applied (4):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| HIGH | `useRef<any>` for textRef bypasses TypeScript | Changed to `useRef<THREE.Group>(null)` with proper typing |
+| HIGH | Pop effect `useEffect` checks `bubbles.length` in body but `bubbles` not in deps — stale closure | Replaced with `hadBubblesRef` pattern tracking thinking-to-not-thinking transition |
+| HIGH | Physics `{ ...bubble }` spread doesn't deep-copy Vector3 objects — mutates React state | Added explicit `.clone()` for position and velocity in spread |
+| MEDIUM | `useMemo` for material only depends on `bubble.color` — opacity changes ignored | Added `bubble.opacity` to deps array |
+
+**Decision implemented:** 6.2.3 (SphereGeometry + MeshPhysicalMaterial clearcoat, max 12 bubbles, spring physics)
+
+**GPU budget verification:**
+| Component | Triangles | Cost | Active Page |
+|-----------|-----------|------|-------------|
+| PromptBubble3D (12 bubbles) | ~2K | ~0.3ms | Prompt Lab sandbox phase only |
+| Glow sprites (12) | N/A | ~0.1ms | Prompt Lab sandbox phase only |
 
 **Build validation:**
 - `npx tsc --noEmit`: PASS (0 errors)
