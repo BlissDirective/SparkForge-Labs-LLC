@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 12B — Stage 6D Part B — Prompt Lab 3D Integration (v3-FINAL)
+## Current Phase: 13A — Stage 6E Part A — Agent Pipeline 3D (v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-05
 
@@ -37,7 +37,8 @@
 | 12A | Stage 6D Part A — PromptBubble3D (v3) | ✅ | Stage 6D P-A | — | — |
 | 12B | Stage 6D Part B — Prompt Lab Game (v3) | ✅ | Stage 6D P-B | — | — |
 | 12 | Stage 6D — Prompt Lab (v3) | ✅ | — | — | — |
-| 13 | Stage 6E — Agent Architect (v3) | ⬜ | — | — | — |
+| 13A | Stage 6E Part A — AgentPipeline3D (v3) | ✅ | Stage 6E P-A | — | — |
+| 13B | Stage 6E Part B — Agent Architect Game (v3) | ⬜ | — | — | — |
 | 14 | Stage 6F — Bias Detective (v3) | ⬜ | — | — | — |
 | — | **Stage 6 Visual Checkpoint** | ⬜ | — | v0.6.0 | ⬜ |
 | 15 | Stage 7A — 8 Tap/Quiz games | ⬜ | — | — | — |
@@ -204,6 +205,9 @@
 | 12B | PromptLabGame.tsx: Sandbox container missing `relative` for absolute overlay | Added `relative` to className | PASS |
 | 12B | PromptLabGame.tsx: `isMobile` missing from sendMessage useCallback deps | Added to deps array | PASS |
 | 12B | PromptLabGame.tsx: Mobile fallback `exit` prop without AnimatePresence | Removed exit prop; animate keyframes handle lifecycle | PASS |
+| 13A | AgentPipeline3D.tsx: `bufferAttribute` used count/array/itemSize instead of `args` | Changed to `args={[positions, 3]}` per project pattern (AmbientParticles.tsx) | PASS |
+| 13A | AgentPipeline3D.tsx: useMemo deps use scalar from/to coords (lint warning) | Added eslint-disable-next-line for intentional scalar deps on mutable Vector3 | PASS |
+| 13A | Stage doc: HTML entities (&gt; &lt; &amp;), merged BLOCK_GEOMETRIES entries, DataPackets syntax error, posAttr.needsUpdate outside useFrame | Fixed all during transcription from stage doc to source | PASS |
 
 ---
 
@@ -243,6 +247,7 @@
 | S6Dv2Enh | ~10s | 15 (8 critical, 4 high, 3 medium) | 0 |
 | S6DPA | ~10s | 4 (3 high, 1 medium) | 0 |
 | S6DPB | ~10s | 5 (2 high, 2 medium, 1 low) | 0 |
+| S6EPA | ~10s | 1 (bufferAttribute args pattern) | 0 |
 
 ---
 
