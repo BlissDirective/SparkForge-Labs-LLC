@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 12 — Stage 6D v2 (Prompt Lab Game — base)
+## Current Phase: 12-Enh — Stage 6D v2 Enhancements (Prompt Lab — 5 premium features)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-05
 
@@ -33,6 +33,7 @@
 | 11A | Stage 6C Part A — Neural Network 3D + Audio (v3) | ✅ | Stage 6C P-A | — | — |
 | 11B | Stage 6C Part B — Neural Builder Game (v3) | ✅ | Stage 6C P-B | — | — |
 | 12 | Stage 6D v2 — Prompt Lab Game (base) | ✅ | Stage 6D v2 | — | — |
+| 12-Enh | Stage 6D v2 Enhancements — X-Ray, Explainer, Patterns, ThinkingViz, SystemPrompt | ✅ | Stage 6D v2 Enh | — | — |
 | 12A | Stage 6D Part A — PromptBubble3D (v3) | ⬜ | — | — | — |
 | 12B | Stage 6D Part B — Prompt Lab Game (v3) | ⬜ | — | — | — |
 | 12 | Stage 6D — Prompt Lab (v3) | ⬜ | — | — | — |
@@ -181,6 +182,19 @@
 | 12 | PromptLabGame.tsx: `parent` destructured but unused | Removed to pass lint | PASS |
 | 12 | PromptLabGame.tsx: 6 unused lucide imports (Zap, Brain, RotateCcw, Sparkles, Eye, Sliders) | Removed | PASS |
 | 12 | PromptLabGame.tsx: glass-card CSS class may not exist | Replaced with inline styles | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: ~30 emoji corrupted to blank/space | Reconstructed all as Unicode escape sequences | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: `analyzeResponse` stray `becaus` fragment | Removed dangling text | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: 4 PATTERNS entries truncated to `{ }` | Reconstructed step-by-step, few-shot, chain-thought, constrained | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: Multiple slot examples truncated mid-string | Completed all truncated example strings | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: glass-card in Patterns drawer | Replaced with inline styles per convention | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: Sparkles, Eye, Brain, RotateCcw imports needed | Re-added to lucide-react imports (previously removed in v2 base) | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: showXRay boolean toggles ALL messages | Changed to `number \| null` for per-message toggle | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: X-Ray highlight reconstruction no-op | Simplified to plain prompt display with signal count | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: Motion exit props corrupted | Reconstructed `exit={{ opacity: 0, y: 20 }}` | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: AIThinkingViz label truncated after "Sp" | Completed: "Sparky is thinking..." | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: sendMessage deps missing systemPrompt, ageBand | Added to useCallback deps array | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: Math.random() in SVG animations | Replaced with deterministic formula from indices | PASS |
+| 12-Enh | PromptLabGame.tsx Enhancements: String apostrophes in System Prompt | Used `{'\u2019'}` JSX expression | PASS |
 
 ---
 
@@ -217,6 +231,7 @@
 | S6CPA | ~10s | 8 (3 critical, 2 high, 1 medium, 2 low) | 0 |
 | S6CPB | ~10s | 15 (5 critical, 5 high, 3 medium, 2 low) | 0 |
 | S6Dv2 | ~10s | 19 (7 critical, 6 high, 4 medium, 2 low) | 0 |
+| S6Dv2Enh | ~10s | 15 (8 critical, 4 high, 3 medium) | 0 |
 
 ---
 

@@ -19,7 +19,8 @@ import {
   Send, BookOpen, Star, AlertTriangle,
   ChevronRight, Lightbulb, GraduationCap,
   MessageSquare, Target, Copy, Check,
-  Thermometer, ArrowRight,
+  Thermometer, ArrowRight, Eye, Brain,
+  RotateCcw, Sparkles,
 } from 'lucide-react';
 
 // ================================================================
@@ -213,6 +214,287 @@ const TECHNIQUES: PromptTechnique[] = [
     bandMin: 'C',
   },
 ];
+
+// ================================================================
+// PROMPT X-RAY — Keyword-to-response mapping
+// ================================================================
+
+interface XRayHighlight {
+  keyword: string;
+  color: string;
+  promptIndices: [number, number];
+  responseEffect: string;
+}
+
+const XRAY_PATTERNS: { regex: RegExp; color: string; effectLabel: string }[] = [
+  { regex: /\b(explain|describe|what is|how does|tell me about)\b/gi, color: '#3B82F6', effectLabel: 'Triggered an explanation' },
+  { regex: /\b(step.by.step|steps|first.*then|numbered)\b/gi, color: '#10B981', effectLabel: 'Structured the response in steps' },
+  { regex: /\b(for kids|for a \d+-year-old|simple|easy|beginner)\b/gi, color: '#F59E0B', effectLabel: 'Adjusted complexity level' },
+  { regex: /\b(in \d+ (words|sentences|paragraphs)|short|brief|concise)\b/gi, color: '#EC4899', effectLabel: 'Controlled response length' },
+  { regex: /\b(you are|act as|pretend|imagine you|role)\b/gi, color: '#8B5CF6', effectLabel: 'Activated a persona' },
+  { regex: /\b(list|bullet|format|table|json|markdown)\b/gi, color: '#06B6D4', effectLabel: 'Changed output format' },
+  { regex: /\b(example|for instance|such as|like this|e\.g\.)\b/gi, color: '#F97316', effectLabel: 'Prompted example generation' },
+  { regex: /\b(don't|without|avoid|never|do not|exclude)\b/gi, color: '#EF4444', effectLabel: 'Set a negative constraint' },
+  { regex: /\b(creative|fun|surprising|unique|unusual|imaginative)\b/gi, color: '#A855F7', effectLabel: 'Boosted creative output' },
+  { regex: /\b(compare|difference|versus|vs|similarities)\b/gi, color: '#14B8A6', effectLabel: 'Triggered comparison analysis' },
+];
+
+function analyzePromptXRay(prompt: string): XRayHighlight[] {
+  const highlights: XRayHighlight[] = [];
+  for (const pattern of XRAY_PATTERNS) {
+    const re = new RegExp(pattern.regex.source, pattern.regex.flags);
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(prompt)) !== null) {
+      highlights.push({
+        keyword: match[0],
+        color: pattern.color,
+        promptIndices: [match.index, match.index + match[0].length],
+        responseEffect: pattern.effectLabel,
+      });
+    }
+  }
+  return highlights;
+}
+
+// ================================================================
+// "WHY DID THE AI SAY THAT?" — Response analysis
+// ================================================================
+
+interface ResponseInsight {
+  emoji: string;
+  observation: string;
+  because: string;
+}
+
+function analyzeResponse(prompt: string, response: string): ResponseInsight[] {
+  const insights: ResponseInsight[] = [];
+
+  // Length analysis
+  const wordCount = response.split(/\s+/).length;
+  if (wordCount < 80) {
+    if (/\b(short|brief|concise|in \d+)\b/i.test(prompt)) {
+      insights.push({ emoji: '\u{1F4CF}', observation: `Short response (${wordCount} words)`, because: 'You asked for something brief or concise.' });
+    }
+  } else if (wordCount > 150) {
+    if (/\b(detail|thorough|comprehensive|explain)\b/i.test(prompt)) {
+      insights.push({ emoji: '\u{1F4D6}', observation: `Detailed response (${wordCount} words)`, because: 'You asked for a detailed explanation.' });
+    }
+  }
+
+  // Structure analysis
+  if (/\d\.\s|\d\)\s|step \d/i.test(response)) {
+    if (/\b(step|list|number|order)\b/i.test(prompt)) {
+      insights.push({ emoji: '\u{1F522}', observation: 'Used numbered steps', because: 'You asked for a structured, step-by-step response.' });
+    } else {
+      insights.push({ emoji: '\u{1F522}', observation: 'Used numbered steps', because: 'The AI chose to organize a complex answer into steps.' });
+    }
+  }
+
+  // Tone analysis
+  if (/!|\u{1F60A}|fun|cool|awesome/iu.test(response)) {
+    if (/\b(fun|kid|child|exciting|cool)\b/i.test(prompt)) {
+      insights.push({ emoji: '\u{1F389}', observation: 'Used an enthusiastic, kid-friendly tone', because: 'You set a fun or youthful tone in your prompt.' });
+    }
+  }
+
+  // Analogy detection
+  if (/\b(like|imagine|think of it as|similar to|just as)\b/i.test(response)) {
+    if (/\b(analogy|like|compare|imagine|pretend)\b/i.test(prompt)) {
+      insights.push({ emoji: '\u{1F4A1}', observation: 'Used an analogy or comparison', because: 'You asked for a comparison or analogy.' });
+    } else {
+      insights.push({ emoji: '\u{1F4A1}', observation: 'Used an analogy or comparison', because: 'The AI chose an analogy to make the concept clearer.' });
+    }
+  }
+
+  // Persona detection
+  if (/\b(you are|act as|pretend|I am)\b/i.test(prompt)) {
+    insights.push({ emoji: '\u{1F3AD}', observation: 'Adopted a specific persona', because: 'You assigned the AI a role or character to play.' });
+  }
+
+  // Question at end
+  if (response.trim().endsWith('?')) {
+    insights.push({ emoji: '\u2753', observation: 'Ended with a follow-up question', because: 'The AI is inviting you to continue the conversation.' });
+  }
+
+  // Code detection
+  if (/```|`[^`]+`/g.test(response)) {
+    insights.push({ emoji: '\u{1F4BB}', observation: 'Included code or technical formatting', because: 'The topic involved programming or technical content.' });
+  }
+
+  // Default if no insights found
+  if (insights.length === 0) {
+    insights.push({ emoji: '\u{1F916}', observation: 'Standard conversational response', because: 'Your prompt was open-ended \u2014 try adding more signals for a more targeted response.' });
+  }
+
+  return insights.slice(0, 4);
+}
+
+// ================================================================
+// PROMPT PATTERN LIBRARY — Reusable structures
+// ================================================================
+
+interface PromptPattern {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string;
+  template: string;
+  slots: { key: string; label: string; examples: string[] }[];
+  bandMin: 'A' | 'B' | 'C';
+}
+
+const PATTERNS: PromptPattern[] = [
+  {
+    id: 'explain-for', name: 'Explain For...', emoji: '\u{1F4D6}', bandMin: 'A',
+    description: 'Ask the AI to explain something for a specific audience.',
+    template: 'Explain {topic} for {audience} using {style}.',
+    slots: [
+      { key: 'topic', label: 'Topic', examples: ['how Wi-Fi works', 'what DNA is', 'how AI learns'] },
+      { key: 'audience', label: 'Audience', examples: ['a 10-year-old', 'a curious teenager', 'my grandma'] },
+      { key: 'style', label: 'Style', examples: ['a food analogy', 'a story', 'simple words only'] },
+    ],
+  },
+  {
+    id: 'step-by-step', name: 'Step by Step', emoji: '\u{1F522}', bandMin: 'A',
+    description: 'Break down a complex topic into numbered steps.',
+    template: 'Explain {topic} step by step. Use {count} steps. {extra}.',
+    slots: [
+      { key: 'topic', label: 'Topic', examples: ['how a computer boots up', 'how AI recognizes faces', 'how the internet works'] },
+      { key: 'count', label: 'Number of steps', examples: ['3', '5', '7'] },
+      { key: 'extra', label: 'Extra instruction', examples: ['Keep each step under 2 sentences', 'Add an emoji per step', 'Use simple language'] },
+    ],
+  },
+  {
+    id: 'persona-task', name: 'Persona + Task', emoji: '\u{1F3AD}', bandMin: 'A',
+    description: 'Give the AI a character, then assign it a task.',
+    template: 'You are {persona}. {task}. {constraint}.',
+    slots: [
+      { key: 'persona', label: 'Who the AI is', examples: ['a friendly scientist', 'a pirate captain', 'a time traveler from 2100'] },
+      { key: 'task', label: 'What to do', examples: ['Explain gravity', 'Tell me about the ocean', 'Teach me about AI'] },
+      { key: 'constraint', label: 'Extra rule', examples: ['Keep it under 100 words', 'Use only simple words', 'Include a joke'] },
+    ],
+  },
+  {
+    id: 'few-shot', name: 'Learn by Example', emoji: '\u{1F4DD}', bandMin: 'B',
+    description: 'Show the AI examples, then ask it to follow the pattern.',
+    template: '{taskDescription}\n\nExamples:\n{example1}\n{example2}\n\nNow: {newInput}',
+    slots: [
+      { key: 'taskDescription', label: 'What pattern to follow', examples: ['Translate words to emoji', 'Simplify these sentences', 'Convert to haiku'] },
+      { key: 'example1', label: 'Example 1', examples: ['"happy" \u2192 \u{1F60A}', '"The cat sat on the mat" \u2192 "Cat on mat"', '"sun" \u2192 5-7-5 haiku'] },
+      { key: 'example2', label: 'Example 2', examples: ['"rain" \u2192 \u{1F327}\uFE0F', '"The dog ran fast" \u2192 "Fast dog"', '"moon" \u2192 5-7-5 haiku'] },
+      { key: 'newInput', label: 'Your input', examples: ['"music", "sleep", "fast"', '"AI is transforming industries"', '"stars", "ocean", "wind"'] },
+    ],
+  },
+  {
+    id: 'chain-thought', name: 'Think Step by Step', emoji: '\u{1F517}', bandMin: 'B',
+    description: 'Ask the AI to show its reasoning process.',
+    template: '{question}\n\nThink through this step by step. {format}',
+    slots: [
+      { key: 'question', label: 'Your question', examples: ['How would you design a robot that cleans a room?', 'Why does ice float on water?', 'How does encryption keep data safe?'] },
+      { key: 'format', label: 'Output format', examples: ['Number each step.', 'Use "First... Then... Finally..."', 'Show your reasoning in bullet points.'] },
+    ],
+  },
+  {
+    id: 'constrained', name: 'The Constraint Stack', emoji: '\u{1F4CF}', bandMin: 'B',
+    description: 'Layer multiple rules to precisely control the output.',
+    template: '{task}\n\nRules:\n- {rule1}\n- {rule2}\n- {rule3}',
+    slots: [
+      { key: 'task', label: 'Main task', examples: ['Write about AI in schools', 'Explain machine learning', 'Describe a futuristic city'] },
+      { key: 'rule1', label: 'Rule 1', examples: ['Maximum 100 words', 'Use exactly 3 paragraphs', 'Write as a poem'] },
+      { key: 'rule2', label: 'Rule 2', examples: ['Include a real-world example', 'No jargon', 'Use at least 2 analogies'] },
+      { key: 'rule3', label: 'Rule 3', examples: ['Suitable for a 12-year-old', 'Include one surprising fact', 'End with a question'] },
+    ],
+  },
+  {
+    id: 'system-user', name: 'System + User Split', emoji: '\u2699\uFE0F', bandMin: 'C',
+    description: 'Separate persistent instructions (system) from the actual question (user).',
+    template: '[System]: {systemPrompt}\n\n[User]: {userMessage}',
+    slots: [
+      { key: 'systemPrompt', label: 'System instructions', examples: ['You are a code reviewer. Be concise.', 'You are a friendly teacher for kids.', 'Always respond in bullet points.'] },
+      { key: 'userMessage', label: 'Your message', examples: ['Review this Python function...', 'Explain what recursion is.', 'What is the difference between AI and ML?'] },
+    ],
+  },
+  {
+    id: 'iterative', name: 'The Refiner', emoji: '\u{1F504}', bandMin: 'C',
+    description: 'Start broad, then ask the AI to improve its own response.',
+    template: '{initialRequest}\n\nAfter your first answer, {refinement}',
+    slots: [
+      { key: 'initialRequest', label: 'Initial request', examples: ['Write a paragraph about quantum computing', 'Explain blockchain in simple terms', 'Summarize the history of AI'] },
+      { key: 'refinement', label: 'Refinement instruction', examples: ['make it more concise and add an analogy', 'rewrite it for a 10-year-old audience', 'add 3 specific examples and a conclusion'] },
+    ],
+  },
+];
+
+// ================================================================
+// AI THINKING ANIMATION — Mini neural network SVG
+// ================================================================
+
+function AIThinkingViz({ temperature }: { temperature: number }) {
+  const layers = [3, 4, 3];
+  const width = 120;
+  const height = 48;
+  const layerGap = width / (layers.length + 1);
+
+  function nodePos(layer: number, idx: number) {
+    const count = layers[layer];
+    const gap = height / (count + 1);
+    return { x: layerGap * (layer + 1), y: gap * (idx + 1) };
+  }
+
+  const nodeColor = temperature < 0.3 ? '#3B82F6' : temperature < 0.7 ? '#F59E0B' : '#EF4444';
+  const pulseSpeed = 0.8 + temperature * 1.2;
+
+  return (
+    <div className="px-4 py-3 rounded-2xl rounded-bl-md border border-white/5"
+      style={{ background: 'rgba(139,92,246,0.06)' }}>
+      <span className="text-[10px] font-display font-bold text-purple-400 block mb-1.5">
+        {'\u{1F916}'} Sparky is thinking...
+      </span>
+      <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="mx-auto block">
+        {/* Connections with flowing dots */}
+        {layers.map((_, li) => {
+          if (li === 0) return null;
+          return Array.from({ length: layers[li - 1] }).map((_, fromIdx) =>
+            Array.from({ length: layers[li] }).map((_, toIdx) => {
+              const from = nodePos(li - 1, fromIdx);
+              const to = nodePos(li, toIdx);
+              const key = `c-${li}-${fromIdx}-${toIdx}`;
+              const animDur = pulseSpeed + (fromIdx * 0.17 + toIdx * 0.13);
+              const animBegin = (fromIdx * 0.2 + toIdx * 0.15);
+              return (
+                <g key={key}>
+                  <line x1={from.x} y1={from.y} x2={to.x} y2={to.y}
+                    stroke={nodeColor} strokeWidth={0.4} opacity={0.15} />
+                  <circle r={1.2} fill={nodeColor} opacity={0.7}>
+                    <animateMotion
+                      dur={`${animDur}s`}
+                      repeatCount="indefinite"
+                      begin={`${animBegin}s`}
+                      path={`M${from.x},${from.y} L${to.x},${to.y}`} />
+                  </circle>
+                </g>
+              );
+            })
+          );
+        })}
+        {/* Nodes */}
+        {layers.map((count, li) =>
+          Array.from({ length: count }).map((_, ni) => {
+            const p = nodePos(li, ni);
+            return (
+              <g key={`n-${li}-${ni}`}>
+                <circle cx={p.x} cy={p.y} r={3.5} fill={`${nodeColor}20`} stroke={nodeColor} strokeWidth={0.6}>
+                  <animate attributeName="r" values="3;4.5;3" dur={`${pulseSpeed}s`}
+                    begin={`${li * 0.2}s`} repeatCount="indefinite" />
+                </circle>
+              </g>
+            );
+          })
+        )}
+      </svg>
+    </div>
+  );
+}
 
 // ================================================================
 // TEMPLATE LIBRARY — 8 categories, 40 prompts
@@ -436,6 +718,17 @@ export function PromptLabGame() {
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [challengeResults, setChallengeResults] = useState<Record<string, { passed: boolean; feedback: string }>>({});
 
+  // --- X-Ray & Explainer ---
+  const [showXRay, setShowXRay] = useState<number | null>(null);
+  const [showExplainer, setShowExplainer] = useState<number | null>(null);
+  const [showPatterns, setShowPatterns] = useState(false);
+  const [patternSlots, setPatternSlots] = useState<Record<string, string>>({});
+  const [activePatternId, setActivePatternId] = useState<string | null>(null);
+
+  // --- System prompt sandbox (Band C) ---
+  const [systemPrompt, setSystemPrompt] = useState('');
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+
   // --- Refs ---
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -465,6 +758,10 @@ export function PromptLabGame() {
       Object.entries(TEMPLATES).filter(
         ([, t]) => BAND_ORDER[t.bandMin] <= BAND_ORDER[ageBand]
       ),
+    [ageBand]
+  );
+  const availablePatterns = useMemo(
+    () => PATTERNS.filter((p) => BAND_ORDER[p.bandMin] <= BAND_ORDER[ageBand]),
     [ageBand]
   );
   const availableTechniques = useMemo(
@@ -513,7 +810,9 @@ export function PromptLabGame() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           childId: activeChild.id,
-          prompt: userMessage.content,
+          prompt: systemPrompt && ageBand === 'C'
+            ? `[System Context: ${systemPrompt}]\n\n${userMessage.content}`
+            : userMessage.content,
           temperature,
           ageBand: activeChild.age_band,
           conversationHistory: updatedMessages
@@ -553,7 +852,7 @@ export function PromptLabGame() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, activeChild, messages, temperature, game, activeChallenge]);
+  }, [input, loading, activeChild, messages, temperature, game, activeChallenge, systemPrompt, ageBand]);
 
   function handleTemplateSelect(text: string) {
     setInput(text);
@@ -866,6 +1165,13 @@ export function PromptLabGame() {
                             <Lightbulb className="w-3 h-3" /> Tips
                           </button>
                           <button
+                            onClick={() => setShowPatterns(true)}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 text-xs font-display"
+                            aria-label="Open prompt patterns"
+                          >
+                            <Sparkles className="w-3 h-3" /> Patterns
+                          </button>
+                          <button
                             onClick={() => setPhase('challenge')}
                             className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500/10 text-amber-300 text-xs font-display"
                             aria-label="Open challenges"
@@ -877,71 +1183,174 @@ export function PromptLabGame() {
                     )}
 
                     {messages.map((msg, i) => (
-                      <motion.div
-                        key={i}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                      >
-                        <div
-                          className={`max-w-[82%] relative group ${
-                            msg.role === 'user'
-                              ? 'rounded-2xl rounded-br-md px-4 py-3 border'
-                              : 'rounded-2xl rounded-bl-md px-4 py-3 border'
-                          }`}
-                          style={
-                            msg.role === 'user'
-                              ? {
-                                  background: 'rgba(245,158,11,0.08)',
-                                  borderColor: 'rgba(245,158,11,0.2)',
-                                }
-                              : {
-                                  background:
-                                    'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(168,85,247,0.04))',
-                                  borderColor: 'rgba(139,92,246,0.15)',
-                                }
-                          }
+                      <div key={i}>
+                        <motion.div
+                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
                         >
-                          {msg.role === 'assistant' && (
-                            <span className="text-[10px] font-display font-bold text-purple-400/60 block mb-1">
-                              {'\u{1F916}'} Sparky
-                            </span>
-                          )}
-                          <p className="font-body text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
-                            {msg.content}
-                          </p>
-                          {/* Copy button */}
-                          <button
-                            onClick={() => copyMessage(i)}
-                            className="absolute -top-2 -right-2 p-1 rounded-md bg-white/5 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                            aria-label="Copy message"
+                          <div
+                            className={`max-w-[82%] relative group ${
+                              msg.role === 'user'
+                                ? 'rounded-2xl rounded-br-md px-4 py-3 border'
+                                : 'rounded-2xl rounded-bl-md px-4 py-3 border'
+                            }`}
+                            style={
+                              msg.role === 'user'
+                                ? {
+                                    background: 'rgba(245,158,11,0.08)',
+                                    borderColor: 'rgba(245,158,11,0.2)',
+                                  }
+                                : {
+                                    background:
+                                      'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(168,85,247,0.04))',
+                                    borderColor: 'rgba(139,92,246,0.15)',
+                                  }
+                            }
                           >
-                            {copiedIdx === i ? (
-                              <Check className="w-3 h-3 text-spark-green" />
-                            ) : (
-                              <Copy className="w-3 h-3 text-white/30" />
-                            )}
-                          </button>
-                          {/* User prompt score (inline) */}
-                          {msg.role === 'user' && msg.score && (
-                            <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-white/5">
-                              {Array.from({ length: 5 }).map((_, s) => (
-                                <Star
-                                  key={s}
-                                  className={`w-2.5 h-2.5 ${
-                                    s < Math.round(msg.score!.total / 5)
-                                      ? 'text-amber-400 fill-amber-400'
-                                      : 'text-white/10'
-                                  }`}
-                                />
-                              ))}
-                              <span className="font-mono text-[9px] text-white/20 ml-1">
-                                {msg.score.total}/25
+                            {msg.role === 'assistant' && (
+                              <span className="text-[10px] font-display font-bold text-purple-400/60 block mb-1">
+                                {'\u{1F916}'} Sparky
                               </span>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
+                            )}
+                            <p className="font-body text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+                              {msg.content}
+                            </p>
+                            {/* Copy button */}
+                            <button
+                              onClick={() => copyMessage(i)}
+                              className="absolute -top-2 -right-2 p-1 rounded-md bg-white/5 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                              aria-label="Copy message"
+                            >
+                              {copiedIdx === i ? (
+                                <Check className="w-3 h-3 text-spark-green" />
+                              ) : (
+                                <Copy className="w-3 h-3 text-white/30" />
+                              )}
+                            </button>
+                            {/* User prompt score (inline) */}
+                            {msg.role === 'user' && msg.score && (
+                              <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-white/5">
+                                {Array.from({ length: 5 }).map((_, s) => (
+                                  <Star
+                                    key={s}
+                                    className={`w-2.5 h-2.5 ${
+                                      s < Math.round(msg.score!.total / 5)
+                                        ? 'text-amber-400 fill-amber-400'
+                                        : 'text-white/10'
+                                    }`}
+                                  />
+                                ))}
+                                <span className="font-mono text-[9px] text-white/20 ml-1">
+                                  {msg.score.total}/25
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+
+                        {/* Prompt X-Ray toggle (user messages only) */}
+                        {msg.role === 'user' && i < messages.length - 1 && (
+                          <div className="flex justify-end mt-1">
+                            <button
+                              onClick={() => setShowXRay(showXRay === i ? null : i)}
+                              className="flex items-center gap-1 font-body text-[9px] text-amber-400/40 hover:text-amber-400/70 transition-colors"
+                              aria-label="Toggle prompt X-ray"
+                            >
+                              <Eye className="w-3 h-3" /> X-Ray
+                            </button>
+                          </div>
+                        )}
+
+                        {/* X-Ray analysis panel */}
+                        {msg.role === 'user' && showXRay === i && i < messages.length - 1 && (() => {
+                          const highlights = analyzePromptXRay(msg.content);
+                          if (highlights.length === 0) return null;
+                          return (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mx-4 my-1 rounded-lg p-2.5 border border-amber-500/15"
+                              style={{ background: 'rgba(245,158,11,0.03)' }}
+                            >
+                              <p className="font-data text-[9px] text-amber-400 uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                                <Eye className="w-3 h-3" /> Prompt X-Ray
+                              </p>
+                              <div className="space-y-1">
+                                {highlights.map((h, hi) => (
+                                  <div key={hi} className="flex items-center gap-2">
+                                    <span
+                                      className="px-1.5 py-0.5 rounded font-mono text-[10px]"
+                                      style={{ backgroundColor: `${h.color}15`, color: h.color, border: `1px solid ${h.color}30` }}
+                                    >
+                                      {'\u201C'}{h.keyword}{'\u201D'}
+                                    </span>
+                                    <ArrowRight className="w-3 h-3 text-white/15 flex-shrink-0" />
+                                    <span className="font-body text-[10px] text-white/40">{h.responseEffect}</span>
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="mt-2 p-2 rounded bg-white/[0.02] border border-white/5">
+                                <p className="font-body text-[9px] text-white/20 mb-1">Your prompt signals:</p>
+                                <p className="font-body text-xs text-white/50 leading-relaxed">
+                                  {msg.content}
+                                </p>
+                                <p className="font-body text-[9px] text-white/15 mt-1 italic">
+                                  {highlights.length} prompt signal{highlights.length !== 1 ? 's' : ''} detected
+                                </p>
+                              </div>
+                            </motion.div>
+                          );
+                        })()}
+
+                        {/* "Why did the AI say that?" toggle */}
+                        {msg.role === 'assistant' && i > 0 && (
+                          <div className="flex justify-start mt-1">
+                            <button
+                              onClick={() => setShowExplainer(showExplainer === i ? null : i)}
+                              className="flex items-center gap-1 font-body text-[9px] text-purple-400/40 hover:text-purple-400/70 transition-colors"
+                              aria-label="Explain this response"
+                            >
+                              <Lightbulb className="w-3 h-3" /> Why did the AI say that?
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Response explainer panel */}
+                        {msg.role === 'assistant' && showExplainer === i && i > 0 && (() => {
+                          const userMsg = messages[i - 1];
+                          if (!userMsg) return null;
+                          const insights = analyzeResponse(userMsg.content, msg.content);
+                          return (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: 'auto' }}
+                              exit={{ opacity: 0, height: 0 }}
+                              className="mx-4 my-1 rounded-lg p-2.5 border border-purple-500/15"
+                              style={{ background: 'rgba(139,92,246,0.03)' }}
+                            >
+                              <p className="font-data text-[9px] text-purple-400 uppercase tracking-wider flex items-center gap-1 mb-1.5">
+                                <Lightbulb className="w-3 h-3" /> Response Analysis
+                              </p>
+                              <div className="space-y-1.5">
+                                {insights.map((ins, ii) => (
+                                  <div key={ii} className="flex items-start gap-2">
+                                    <span className="text-sm flex-shrink-0">{ins.emoji}</span>
+                                    <div>
+                                      <p className="font-body text-[11px] text-white/60">{ins.observation}</p>
+                                      <p className="font-body text-[10px] text-white/30">{'\u21B3'} Because: {ins.because}</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                              <p className="font-body text-[9px] text-purple-400/40 mt-2 italic">
+                                Tip: The more specific signals your prompt has, the more predictable the response.
+                              </p>
+                            </motion.div>
+                          );
+                        })()}
+                      </div>
                     ))}
 
                     {/* Challenge result feedback */}
@@ -978,20 +1387,7 @@ export function PromptLabGame() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                       >
-                        <div
-                          className="px-4 py-3 rounded-2xl rounded-bl-md border border-white/5"
-                          style={{ background: 'rgba(139,92,246,0.06)' }}
-                        >
-                          <span className="font-body text-sm text-white/40">
-                            Sparky is thinking
-                            <motion.span
-                              animate={{ opacity: [0, 1, 0] }}
-                              transition={{ duration: 1.5, repeat: Infinity }}
-                            >
-                              ...
-                            </motion.span>
-                          </span>
-                        </div>
+                        <AIThinkingViz temperature={temperature} />
                       </motion.div>
                     )}
 
@@ -1111,9 +1507,72 @@ export function PromptLabGame() {
                     </div>
                   )}
 
+                  {/* System Prompt Sandbox (Band C) */}
+                  <AnimatePresence>
+                    {showSystemPrompt && ageBand === 'C' && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="px-4 overflow-hidden"
+                      >
+                        <div
+                          className="rounded-xl p-3 border border-purple-500/20 mb-2"
+                          style={{ background: 'rgba(139,92,246,0.04)' }}
+                        >
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="flex items-center gap-1.5">
+                              <Brain className="w-3 h-3 text-purple-400" />
+                              <span className="font-display text-[11px] font-bold text-purple-300">
+                                System Prompt
+                              </span>
+                            </div>
+                            <span className="font-mono text-[9px] text-white/15">
+                              {systemPrompt.length}/200
+                            </span>
+                          </div>
+                          <textarea
+                            value={systemPrompt}
+                            onChange={(e) => setSystemPrompt(e.target.value.slice(0, 200))}
+                            placeholder="Set persistent instructions... e.g. 'You are a code reviewer. Be concise.'"
+                            rows={2}
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/70 font-body text-xs resize-none focus:outline-none focus:border-purple-500/30 placeholder:text-white/15"
+                            aria-label="System prompt \u2014 persistent instructions for the AI"
+                          />
+                          <p className="font-body text-[9px] text-white/15 mt-1">
+                            This shapes ALL responses. It{'\u2019'}s like giving the AI a job description.
+                          </p>
+                          {systemPrompt && (
+                            <button
+                              onClick={() => setSystemPrompt('')}
+                              className="mt-1 font-body text-[9px] text-purple-400/40 hover:text-purple-400/70"
+                            >
+                              <RotateCcw className="w-3 h-3 inline mr-0.5" /> Clear system prompt
+                            </button>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
                   {/* Input area */}
                   <div className="px-4 pb-4 pt-2">
                     <div className="flex gap-2">
+                      {/* System Prompt toggle (Band C only) */}
+                      {ageBand === 'C' && (
+                        <motion.button
+                          onClick={() => setShowSystemPrompt(!showSystemPrompt)}
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
+                            showSystemPrompt || systemPrompt
+                              ? 'bg-purple-500/20 text-purple-400'
+                              : 'bg-white/5 text-white/30'
+                          }`}
+                          whileTap={{ scale: 0.9 }}
+                          aria-label="System prompt editor"
+                        >
+                          <Brain className="w-4 h-4" />
+                        </motion.button>
+                      )}
                       <motion.button
                         onClick={() => setShowTemplates(!showTemplates)}
                         className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
@@ -1323,6 +1782,125 @@ export function PromptLabGame() {
                             </div>
                           </div>
                         ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Prompt Pattern Library (overlay) */}
+                  <AnimatePresence>
+                    {showPatterns && (
+                      <motion.div
+                        className="absolute bottom-24 left-3 right-3 rounded-xl border border-white/10 p-4 max-h-[50%] overflow-y-auto z-30"
+                        style={{
+                          background: 'rgba(17,17,24,0.95)',
+                          backdropFilter: 'blur(12px)',
+                        }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 20 }}
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <p className="font-display text-sm font-bold text-amber-400">
+                            {'\u2728'} Prompt Patterns
+                          </p>
+                          <button
+                            onClick={() => { setShowPatterns(false); setActivePatternId(null); }}
+                            className="text-white/20 hover:text-white/40 text-xs"
+                          >
+                            {'\u2715'}
+                          </button>
+                        </div>
+
+                        {!activePatternId ? (
+                          <div className="space-y-2">
+                            <p className="font-body text-[10px] text-white/30">
+                              Patterns are reusable structures you can fill in. Learn the shape of a great prompt!
+                            </p>
+                            {availablePatterns.map((p) => (
+                              <motion.button
+                                key={p.id}
+                                onClick={() => { setActivePatternId(p.id); setPatternSlots({}); }}
+                                className="w-full p-2.5 rounded-lg border border-white/5 bg-white/[0.02] hover:border-amber-500/15 text-left transition-all"
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span className="text-lg">{p.emoji}</span>
+                                  <div>
+                                    <p className="font-display text-xs font-bold text-white">{p.name}</p>
+                                    <p className="font-body text-[10px] text-white/30">{p.description}</p>
+                                  </div>
+                                </div>
+                                <p className="font-mono text-[9px] text-amber-400/40 mt-1">{p.template}</p>
+                              </motion.button>
+                            ))}
+                          </div>
+                        ) : (() => {
+                          const pattern = availablePatterns.find((p) => p.id === activePatternId);
+                          if (!pattern) return null;
+                          return (
+                            <div className="space-y-3">
+                              <button
+                                onClick={() => setActivePatternId(null)}
+                                className="font-body text-[10px] text-white/30 hover:text-white/50"
+                              >
+                                {'\u2190'} Back to patterns
+                              </button>
+                              <div className="flex items-center gap-2">
+                                <span className="text-xl">{pattern.emoji}</span>
+                                <h4 className="font-display text-sm font-bold text-white">{pattern.name}</h4>
+                              </div>
+                              {/* Template preview */}
+                              <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
+                                <p className="font-data text-[9px] text-white/20 uppercase tracking-wider mb-1">Template</p>
+                                <p className="font-mono text-xs text-amber-400/60">{pattern.template}</p>
+                              </div>
+                              {/* Slot inputs */}
+                              {pattern.slots.map((slot) => (
+                                <div key={slot.key}>
+                                  <label className="font-body text-[10px] text-white/40 block mb-1">
+                                    {slot.label}
+                                  </label>
+                                  <input
+                                    type="text"
+                                    value={patternSlots[slot.key] || ''}
+                                    onChange={(e) => setPatternSlots((prev) => ({ ...prev, [slot.key]: e.target.value }))}
+                                    placeholder={slot.examples[0]}
+                                    className="w-full px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white/70 font-body text-xs focus:outline-none focus:border-amber-500/30 placeholder:text-white/15"
+                                  />
+                                  <div className="flex gap-1 mt-1 overflow-x-auto scrollbar-hide">
+                                    {slot.examples.map((ex, ei) => (
+                                      <button
+                                        key={ei}
+                                        onClick={() => setPatternSlots((prev) => ({ ...prev, [slot.key]: ex }))}
+                                        className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/5 text-[9px] text-white/30 hover:text-white/50 whitespace-nowrap"
+                                      >
+                                        {ex}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ))}
+                              {/* Generate button */}
+                              <motion.button
+                                onClick={() => {
+                                  let filled = pattern.template;
+                                  for (const slot of pattern.slots) {
+                                    filled = filled.replace(`{${slot.key}}`, patternSlots[slot.key] || slot.examples[0]);
+                                  }
+                                  setInput(filled);
+                                  setShowPatterns(false);
+                                  setActivePatternId(null);
+                                }}
+                                className="w-full py-2.5 rounded-xl font-display font-bold text-sm text-white shadow-lg shadow-amber-500/20"
+                                style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.98 }}
+                              >
+                                Use This Prompt
+                              </motion.button>
+                            </div>
+                          );
+                        })()}
                       </motion.div>
                     )}
                   </AnimatePresence>
