@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 12A — Stage 6D Part A — PromptBubble3D (v3-FINAL)
+## Current Phase: 12B — Stage 6D Part B — Prompt Lab 3D Integration (v3-FINAL)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-05
 
@@ -35,8 +35,8 @@
 | 12 | Stage 6D v2 — Prompt Lab Game (base) | ✅ | Stage 6D v2 | — | — |
 | 12-Enh | Stage 6D v2 Enhancements — X-Ray, Explainer, Patterns, ThinkingViz, SystemPrompt | ✅ | Stage 6D v2 Enh | — | — |
 | 12A | Stage 6D Part A — PromptBubble3D (v3) | ✅ | Stage 6D P-A | — | — |
-| 12B | Stage 6D Part B — Prompt Lab Game (v3) | ⬜ | — | — | — |
-| 12 | Stage 6D — Prompt Lab (v3) | ⬜ | — | — | — |
+| 12B | Stage 6D Part B — Prompt Lab Game (v3) | ✅ | Stage 6D P-B | — | — |
+| 12 | Stage 6D — Prompt Lab (v3) | ✅ | — | — | — |
 | 13 | Stage 6E — Agent Architect (v3) | ⬜ | — | — | — |
 | 14 | Stage 6F — Bias Detective (v3) | ⬜ | — | — | — |
 | — | **Stage 6 Visual Checkpoint** | ⬜ | — | v0.6.0 | ⬜ |
@@ -199,6 +199,11 @@
 | 12A | PromptBubble3D.tsx: Pop useEffect stale closure on `bubbles.length` | Replaced with `hadBubblesRef` tracking pattern | PASS |
 | 12A | PromptBubble3D.tsx: Physics spread mutates Vector3 React state | Added `.clone()` for position and velocity | PASS |
 | 12A | PromptBubble3D.tsx: Material useMemo missing opacity dep | Added `bubble.opacity` to deps array | PASS |
+| 12B | PromptLabGame.tsx: Direct Canvas import causes SSR/hydration errors | Created SSR-safe PromptBubble3DScene.tsx wrapper with dynamic import | PASS |
+| 12B | PromptLabGame.tsx: `frameloop="demand"` freezes physics animation | Changed to `frameloop="always"` for continuous spring physics | PASS |
+| 12B | PromptLabGame.tsx: Sandbox container missing `relative` for absolute overlay | Added `relative` to className | PASS |
+| 12B | PromptLabGame.tsx: `isMobile` missing from sendMessage useCallback deps | Added to deps array | PASS |
+| 12B | PromptLabGame.tsx: Mobile fallback `exit` prop without AnimatePresence | Removed exit prop; animate keyframes handle lifecycle | PASS |
 
 ---
 
@@ -237,6 +242,7 @@
 | S6Dv2 | ~10s | 19 (7 critical, 6 high, 4 medium, 2 low) | 0 |
 | S6Dv2Enh | ~10s | 15 (8 critical, 4 high, 3 medium) | 0 |
 | S6DPA | ~10s | 4 (3 high, 1 medium) | 0 |
+| S6DPB | ~10s | 5 (2 high, 2 medium, 1 low) | 0 |
 
 ---
 
@@ -757,6 +763,48 @@
 |-----------|-----------|------|-------------|
 | PromptBubble3D (12 bubbles) | ~2K | ~0.3ms | Prompt Lab sandbox phase only |
 | Glow sprites (12) | N/A | ~0.1ms | Prompt Lab sandbox phase only |
+
+**Build validation:**
+- `npx tsc --noEmit`: PASS (0 errors)
+- `npm run lint`: PASS (0 warnings)
+- `npm run build`: PASS
+
+---
+
+### Stage 6D Part B v3-FINAL — Files Modified/Created
+
+**New file created (1):**
+- `src/components/3d/PromptBubble3DScene.tsx` — SSR-safe Canvas wrapper for PromptBubble3D (36 lines). Loaded via `next/dynamic({ ssr: false })`. Canvas config: camera [0,0,2.5] FOV 50, frameloop always, DPR [1,1.5], alpha transparent.
+
+**Modified file (1):**
+- `src/components/games/PromptLabGame.tsx` — 6 v3 modifications applied (+85 lines, 1919 -> 2004):
+  - Mod 1: Dynamic import of PromptBubble3DScene + extractKeywords + useIsMobile hook
+  - Mod 2: bubbleKeywords/showBubbles/isMobile state variables
+  - Mod 3: Keyword extraction on message send (desktop only, max 12)
+  - Mod 4: Bubble cleanup 1s after AI response (pop animation delay)
+  - Mod 5: 3D bubble scene (desktop) + CSS keyword pills (mobile) in sandbox phase
+  - Mod 6: SSR-safe wrapper pattern instead of direct Canvas import
+
+**Stage document created:**
+- `docs/stage6-flagship/STAGE6D_v3FINAL_PartB.md`
+
+**Code review fixes applied (5):**
+| Severity | Issue | Fix |
+|----------|-------|-----|
+| HIGH | Direct Canvas import causes SSR/hydration errors | Created SSR-safe PromptBubble3DScene.tsx wrapper with dynamic import |
+| HIGH | `frameloop="demand"` freezes continuous physics animation | Changed to `frameloop="always"` |
+| MEDIUM | Sandbox container missing `relative` for absolute overlay | Added `relative` to className |
+| MEDIUM | `isMobile` missing from sendMessage useCallback deps | Added to deps array |
+| LOW | Mobile fallback `exit` prop without AnimatePresence wrapper | Removed exit prop; animate keyframes handle lifecycle |
+
+**Decision implemented:** 6.2.3 (3D bubble integration in PromptLabGame.tsx)
+
+**Stage 6D v3-FINAL Complete (Parts A + B combined):**
+| Part | Files | Lines |
+|------|-------|-------|
+| A (3D Component) | PromptBubble3D.tsx (new) | 369 |
+| B (Integration) | PromptBubble3DScene.tsx (new) + PromptLabGame.tsx (mod) | 36 + 85 |
+| **Total** | **2 new + 1 modified** | **490 lines added** |
 
 **Build validation:**
 - `npx tsc --noEmit`: PASS (0 errors)

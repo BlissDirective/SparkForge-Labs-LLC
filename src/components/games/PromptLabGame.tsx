@@ -22,6 +22,26 @@ import {
   Thermometer, ArrowRight, Eye, Brain,
   RotateCcw, Sparkles,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+import { extractKeywords } from '@/components/3d/PromptBubble3D';
+
+// [v3] SSR-safe dynamic import for 3D thought bubble scene
+const PromptBubble3DScene = dynamic(
+  () => import('@/components/3d/PromptBubble3DScene'),
+  { ssr: false }
+);
+
+// [v3] Mobile detection hook for 3D/CSS fallback
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
+}
 
 // ================================================================
 // TYPES
@@ -729,6 +749,11 @@ export function PromptLabGame() {
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
 
+  // [v3] 3D thought bubble state
+  const [bubbleKeywords, setBubbleKeywords] = useState<string[]>([]);
+  const [showBubbles, setShowBubbles] = useState(false);
+  const isMobile = useIsMobile();
+
   // --- Refs ---
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -801,6 +826,16 @@ export function PromptLabGame() {
     setLoading(true);
     setError(null);
 
+    // [v3] Extract keywords for 3D bubbles
+    const newKeywords = extractKeywords(input.trim());
+    if (newKeywords.length > 0 && !isMobile) {
+      setBubbleKeywords(prev => {
+        const combined = [...prev, ...newKeywords];
+        return combined.slice(-12); // Keep last 12
+      });
+      setShowBubbles(true);
+    }
+
     // Award points for prompt quality
     game.updateScore(Math.max(1, Math.floor(score.total / 5)));
 
@@ -847,12 +882,18 @@ export function PromptLabGame() {
         setChallengeResults((prev) => ({ ...prev, [activeChallenge.id]: result }));
         if (result.passed) game.updateScore(15);
       }
+
+      // [v3] Clear bubble keywords after pop animation
+      setTimeout(() => {
+        setBubbleKeywords([]);
+        setShowBubbles(false);
+      }, 1000);
     } catch {
       setError('Could not reach Sparky. Check your connection.');
     } finally {
       setLoading(false);
     }
-  }, [input, loading, activeChild, messages, temperature, game, activeChallenge, systemPrompt, ageBand]);
+  }, [input, loading, activeChild, messages, temperature, game, activeChallenge, systemPrompt, ageBand, isMobile]);
 
   function handleTemplateSelect(text: string) {
     setInput(text);
@@ -1099,8 +1140,52 @@ export function PromptLabGame() {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col min-h-0"
+                  className="flex-1 flex flex-col min-h-0 relative"
                 >
+                  {/* [v3] 3D Thought Bubbles -- desktop only */}
+                  {showBubbles && !isMobile && (phase === 'sandbox' || phase === 'challenge') && (
+                    <div
+                      className="absolute inset-0 pointer-events-none z-0"
+                      style={{ opacity: 0.7 }}
+                      aria-hidden="true"
+                    >
+                      <PromptBubble3DScene
+                        keywords={bubbleKeywords}
+                        isThinking={loading}
+                        temperature={temperature}
+                      />
+                    </div>
+                  )}
+
+                  {/* [v3] Mobile CSS fallback -- floating keyword pills */}
+                  {showBubbles && isMobile && (phase === 'sandbox' || phase === 'challenge') && (
+                    <div
+                      className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
+                      aria-hidden="true"
+                    >
+                      {bubbleKeywords.slice(-6).map((kw, i) => (
+                        <motion.div
+                          key={`${kw}-${i}`}
+                          className="absolute px-2 py-0.5 rounded-full text-[9px] font-display text-amber-200/60 border border-amber-500/10 bg-amber-500/5 backdrop-blur-sm"
+                          initial={{ opacity: 0, scale: 0, y: 20 }}
+                          animate={{
+                            opacity: [0, 0.6, 0.4],
+                            scale: [0, 1, 0.9],
+                            y: [20, -10 - i * 15, -20 - i * 15],
+                            x: [0, (i % 2 ? 1 : -1) * (10 + i * 8), (i % 2 ? 1 : -1) * (5 + i * 5)],
+                          }}
+                          transition={{ duration: 2, delay: i * 0.15 }}
+                          style={{
+                            left: `${20 + (i * 13) % 60}%`,
+                            top: `${30 + (i * 11) % 40}%`,
+                          }}
+                        >
+                          {kw}
+                        </motion.div>
+                      ))}
+                    </div>
+                  )}
+
                   {/* Active challenge banner */}
                   {activeChallenge && (
                     <div className="px-4 py-2 bg-amber-500/5 border-b border-amber-500/15 flex items-center gap-2">
