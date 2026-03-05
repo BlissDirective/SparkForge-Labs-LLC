@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: 11B — Stage 6C Part B (Neural Builder Game — v3-FINAL)
+## Current Phase: 12 — Stage 6D v2 (Prompt Lab Game — base)
 ## Status: COMPLETE
-## Last Updated: 2026-03-04
+## Last Updated: 2026-03-05
 
 ---
 
@@ -32,6 +32,9 @@
 | 10B | Stage 6B Part B — Pet Trainer Game (v3) | ✅ | Stage 6B P-B | — | — |
 | 11A | Stage 6C Part A — Neural Network 3D + Audio (v3) | ✅ | Stage 6C P-A | — | — |
 | 11B | Stage 6C Part B — Neural Builder Game (v3) | ✅ | Stage 6C P-B | — | — |
+| 12 | Stage 6D v2 — Prompt Lab Game (base) | ✅ | Stage 6D v2 | — | — |
+| 12A | Stage 6D Part A — PromptBubble3D (v3) | ⬜ | — | — | — |
+| 12B | Stage 6D Part B — Prompt Lab Game (v3) | ⬜ | — | — | — |
 | 12 | Stage 6D — Prompt Lab (v3) | ⬜ | — | — | — |
 | 13 | Stage 6E — Agent Architect (v3) | ⬜ | — | — | — |
 | 14 | Stage 6F — Bias Detective (v3) | ⬜ | — | — | — |
@@ -163,6 +166,21 @@
 | 11B | NeuralBuilderGame.tsx: 6 unused lucide-react imports (Star, Trophy, Eye, Layers, Network, BookOpen) | Removed | PASS |
 | 11B | NeuralBuilderGame.tsx: `prediction` state declared but never read in render | Removed state and all references | PASS |
 | 11B | NeuralBuilderGame.tsx: `toggleSound` not wrapped in useCallback | Wrapped with `[soundEnabled, audio]` deps | PASS |
+| 12 | PromptLabGame.tsx: ~50 emoji corrupted to spaces (PDF encoding) | Reconstructed all as Unicode escape sequences | PASS |
+| 12 | PromptLabGame.tsx: `game.addScore()` does not exist (2 calls) | Changed to `game.updateScore()` | PASS |
+| 12 | PromptLabGame.tsx: `game.nextRound()` does not exist | Changed to `game.advanceRound()` | PASS |
+| 12 | PromptLabGame.tsx: ~40 template prompts truncated | Completed all 40 texts and technique arrays | PASS |
+| 12 | PromptLabGame.tsx: 6 technique descriptions truncated | Completed all description/descriptionC/before/after | PASS |
+| 12 | PromptLabGame.tsx: scorePrompt function 5+ lines truncated | Reconstructed all regex/increment logic | PASS |
+| 12 | PromptLabGame.tsx: CREATIVITY_STOPS entries merged on broken lines | Reconstructed proper object array | PASS |
+| 12 | PromptLabGame.tsx: 5 challenge checkFn feedbacks truncated | Completed all ternary strings | PASS |
+| 12 | PromptLabGame.tsx: Template type annotation truncated | Created TemplateCategory/TemplatePrompt interfaces | PASS |
+| 12 | PromptLabGame.tsx: challengeResults state type truncated | Completed Record type | PASS |
+| 12 | PromptLabGame.tsx: Chrome bezel boxShadow truncated | Completed 3-value shadow | PASS |
+| 12 | PromptLabGame.tsx: Multiple className strings truncated | Completed all | PASS |
+| 12 | PromptLabGame.tsx: `parent` destructured but unused | Removed to pass lint | PASS |
+| 12 | PromptLabGame.tsx: 6 unused lucide imports (Zap, Brain, RotateCcw, Sparkles, Eye, Sliders) | Removed | PASS |
+| 12 | PromptLabGame.tsx: glass-card CSS class may not exist | Replaced with inline styles | PASS |
 
 ---
 
@@ -198,6 +216,7 @@
 | S6BPB | ~10s | 15 (4 critical, 6 high, 3 medium, 2 low) | 0 |
 | S6CPA | ~10s | 8 (3 critical, 2 high, 1 medium, 2 low) | 0 |
 | S6CPB | ~10s | 15 (5 critical, 5 high, 3 medium, 2 low) | 0 |
+| S6Dv2 | ~10s | 19 (7 critical, 6 high, 4 medium, 2 low) | 0 |
 
 ---
 
@@ -662,6 +681,31 @@
 | LOW | String apostrophes in JSX | Changed to Unicode escape `\u2019` |
 
 **Decision implemented:** 6.1 (NeuralNetwork3D dynamic import replaces SVG network visualization)
+
+**Build validation:**
+- `npx tsc --noEmit`: PASS (0 errors)
+- `npm run lint`: PASS (0 warnings)
+- `npm run build`: PASS
+
+---
+
+### Stage 6D v2 — Files Created
+
+**New file created (1):**
+- `src/components/games/PromptLabGame.tsx` — Complete Prompt Lab game (~830 lines). 5-phase flow (welcome → learn → sandbox → challenge → report), 8-category template library (40 prompts), multi-dimensional prompt scoring (5 axes), 6 prompt engineering techniques with before/after, 5 guided challenges with auto-evaluation, creativity dial (5 stops), holographic chat UI with chrome bezel + amber LED rim, age-band differentiation (A/B/C filtering), Claude API integration via `/api/ai/prompt-lab`.
+
+**Stage document created:**
+- `docs/stage6-flagship/STAGE6D_v2_PromptLab.md`
+
+**Code review fixes applied (19):**
+| Severity | Count | Key Issues |
+|----------|-------|------------|
+| CRITICAL | 7 | ~50 emoji reconstructed, game.addScore/nextRound → updateScore/advanceRound, ~40 templates + 6 techniques + scorePrompt all truncated and reconstructed |
+| HIGH | 6 | CREATIVITY_STOPS, challenge feedbacks, type annotations, boxShadow, classNames all truncated |
+| MEDIUM | 4 | Unused parent/imports, glass-card CSS, exit props |
+| LOW | 2 | String apostrophes, filter destructuring |
+
+**Note:** v3-FINAL Parts A + B pending — will add PromptBubble3D and enhanced game with 3D integration.
 
 **Build validation:**
 - `npx tsc --noEmit`: PASS (0 errors)
