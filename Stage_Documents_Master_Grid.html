@@ -121,6 +121,7 @@
   .badge-mixed { background: #fff3cd; color: #856404; }
   .badge-hs { background: #fce4ec; color: #c62828; font-size: 6pt; }
   .badge-bug { background: #fff9c4; color: #f57f17; font-size: 6pt; }
+  .badge-bonus { background: #e0f2f1; color: #00695c; font-size: 6pt; }
 
   /* SUMMARY BOX */
   .summary-grid {
@@ -184,7 +185,7 @@
 <div class="header">
   <h1><span>SPARK</span>FORGE — Stage Documents Master Grid</h1>
   <div class="meta">
-    Generated: <strong>March 3, 2026</strong><br>
+    Generated: <strong>March 6, 2026</strong><br>
     Branch: claude/sparkforge-stage1-foundation-LBQEo<br>
     CLAUDE.md: v5.2 | 26 Phases | 35 Games | 10 Stages
   </div>
@@ -193,11 +194,11 @@
 <!-- ============ SUMMARY ============ -->
 <div class="summary-grid">
   <div class="stat-box"><div class="num num-blue">78</div><div class="label">Total Documents Expected</div></div>
-  <div class="stat-box"><div class="num num-green">19</div><div class="label">Documents Present</div></div>
-  <div class="stat-box"><div class="num num-red">59</div><div class="label">Documents Missing</div></div>
-  <div class="stat-box"><div class="num num-green">8</div><div class="label">Docs Built Into Code</div></div>
-  <div class="stat-box"><div class="num num-amber">6</div><div class="label">Hard Stops Ahead</div></div>
-  <div class="stat-box"><div class="num num-blue">24%</div><div class="label">Doc Completion</div></div>
+  <div class="stat-box"><div class="num num-green">39</div><div class="label">Documents Present</div></div>
+  <div class="stat-box"><div class="num num-red">39</div><div class="label">Documents Missing</div></div>
+  <div class="stat-box"><div class="num num-green">30</div><div class="label">Phases Built Into Code</div></div>
+  <div class="stat-box"><div class="num num-amber">4</div><div class="label">Hard Stops Remaining</div></div>
+  <div class="stat-box"><div class="num num-blue">50%</div><div class="label">Doc Completion</div></div>
 </div>
 
 <!-- ============ SCORECARD TABLE ============ -->
@@ -213,17 +214,17 @@
     <tr><td>Stage 1 — Foundation</td><td>2</td><td>0*</td><td>2</td><td>0%*</td><td>Yes (S1P1+P2)</td><td><span class="badge badge-built">BUILT (no doc)</span></td></tr>
     <tr><td>Stage 2 — Database &amp; API</td><td>4</td><td>4</td><td>0</td><td>100%</td><td>Yes (S2P1-P4)</td><td><span class="badge badge-present">COMPLETE</span></td></tr>
     <tr><td>Stage 3 — Auth, Layout, Station Frame</td><td>4</td><td>4</td><td>0</td><td>100%</td><td>Yes (S3P1-P3B)</td><td><span class="badge badge-present">COMPLETE</span></td></tr>
-    <tr><td>Stage 4 — Core Pages</td><td>4</td><td>0</td><td>4</td><td>0%</td><td>No</td><td><span class="badge badge-missing">MISSING</span></td></tr>
-    <tr><td>Stage 5 — Gamification</td><td>4</td><td>0</td><td>4</td><td>0%</td><td>No</td><td><span class="badge badge-missing">MISSING</span></td></tr>
-    <tr><td>Stage 6 — Flagship Games (5)</td><td>12</td><td>0</td><td>12</td><td>0%</td><td>No</td><td><span class="badge badge-missing">MISSING</span></td></tr>
+    <tr><td>Stage 4 — Core Pages</td><td>4</td><td>4</td><td>0</td><td>100%</td><td>Yes (S4P1-P2B)</td><td><span class="badge badge-present">COMPLETE</span></td></tr>
+    <tr><td>Stage 5 — Gamification</td><td>4</td><td>4</td><td>0</td><td>100%</td><td>Yes (S5P1-P23C)</td><td><span class="badge badge-present">COMPLETE</span></td></tr>
+    <tr><td>Stage 6 — Flagship Games (5)</td><td>12</td><td>12 (+3)</td><td>0</td><td>100%</td><td>Yes (S6B-S6F)</td><td><span class="badge badge-present">COMPLETE</span></td></tr>
     <tr><td>Stage 7 — Remaining Games (30)</td><td>23</td><td>0</td><td>23</td><td>0%</td><td>No</td><td><span class="badge badge-missing">MISSING</span></td></tr>
     <tr><td>Stage 8 — Parent Dashboard</td><td>5</td><td>0</td><td>5</td><td>0%</td><td>No</td><td><span class="badge badge-missing">MISSING</span></td></tr>
     <tr><td>Stage 9 — Content Agent</td><td>3</td><td>0</td><td>3</td><td>0%</td><td>No</td><td><span class="badge badge-missing">MISSING</span></td></tr>
     <tr><td>Stage 10 — Polish &amp; Deploy</td><td>2</td><td>0</td><td>2</td><td>0%</td><td>No</td><td><span class="badge badge-missing">MISSING</span></td></tr>
-    <tr style="font-weight:700; background:#f0f0f0;"><td>TOTAL</td><td>78</td><td>19</td><td>59</td><td>24%</td><td>—</td><td>—</td></tr>
+    <tr style="font-weight:700; background:#f0f0f0;"><td>TOTAL</td><td>78</td><td>39 (+3)</td><td>39</td><td>50%</td><td>30 phases</td><td>—</td></tr>
   </tbody>
 </table>
-<div class="note">*Stage 1 docs were consumed as PDFs during initial build and not committed as .md to repo. All Stage 1 code is built and committed.</div>
+<div class="note">*Stage 1 docs were consumed as PDFs during initial build and not committed as .md to repo. All Stage 1 code is built and committed. Stage 6 has 3 bonus docs (2 v2 base + 1 debug fixes reference) beyond the 78 expected.</div>
 
 <!-- ============ ROOT GUIDES ============ -->
 <h2 class="stage-complete">Root-Level Guides (7 files)</h2>
@@ -233,7 +234,7 @@
   </thead>
   <tbody>
     <tr><td>1</td><td>CLAUDE.md</td><td>36 KB</td><td>Master playbook, autonomy rules, 26-phase build plan</td><td>P1</td><td><span class="badge badge-present">PRESENT</span></td></tr>
-    <tr><td>2</td><td>PROGRESS.md</td><td>7 KB</td><td>Build progress tracker, soft/hard stop log</td><td>Updated per-part</td><td><span class="badge badge-present">PRESENT</span></td></tr>
+    <tr><td>2</td><td>PROGRESS.md</td><td>57 KB</td><td>Build progress tracker, soft/hard stop log, discrepancy log</td><td>Updated per-part</td><td><span class="badge badge-present">PRESENT</span></td></tr>
     <tr><td>3</td><td>TESTING.md</td><td>10 KB</td><td>Testing pyramid, API/component/E2E examples</td><td>P9</td><td><span class="badge badge-present">PRESENT</span></td></tr>
     <tr><td>4</td><td>Feature-Workflow-Test.md</td><td>17 KB</td><td>Build-test-integrate cycle, feature sizing</td><td>P10</td><td><span class="badge badge-present">PRESENT</span></td></tr>
     <tr><td>5</td><td>database-patterns.md</td><td>27 KB</td><td>Supabase/RLS patterns, Zod, schema design</td><td>P11</td><td><span class="badge badge-present">PRESENT</span></td></tr>
@@ -259,14 +260,14 @@
     <tr><td>docs/01-decisions/</td><td>Decision_Lock_Checkpoint_3.pdf</td><td>Decisions 7.1–8.5</td><td><span class="badge badge-missing">MISSING</span></td></tr>
   </tbody>
 </table>
-<div class="note"><strong>Note:</strong> Decision content may be embedded in v3-FINAL stage docs. Missing PDFs may not be strictly blocking if decisions are referenced inline.</div>
+<div class="note"><strong>Note:</strong> Decision content is embedded in v3-FINAL stage docs. Missing PDFs are not blocking since all decisions are referenced inline in their respective stage documents.</div>
 
 <!-- ============ PAGE 2: STAGE GRID ============ -->
 <div class="page-break"></div>
 
 <div class="header">
   <h1><span>SPARK</span>FORGE — Stage Document Grid (Stages 1–3)</h1>
-  <div class="meta">Verified: March 3, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
+  <div class="meta">Verified: March 6, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
 </div>
 
 <!-- STAGE 1 -->
@@ -354,105 +355,117 @@
 </table>
 <div class="note">Tag v0.3.0 pending visual checkpoint (HS-5). 3D components: StationFrame, CrystalShatter, AuroraBackground, AmbientParticles, LEDRimLight.</div>
 
-<!-- ============ PAGE 3: STAGES 4-6 ============ -->
+<!-- ============ PAGE 3: STAGES 4-5 ============ -->
 <div class="page-break"></div>
 
 <div class="header">
-  <h1><span>SPARK</span>FORGE — Stage Document Grid (Stages 4–6)</h1>
-  <div class="meta">Verified: March 3, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
+  <h1><span>SPARK</span>FORGE — Stage Document Grid (Stages 4–5)</h1>
+  <div class="meta">Verified: March 6, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
 </div>
 
 <!-- STAGE 4 -->
-<h2 class="stage-missing">Stage 4: Core Pages &amp; Lab Reconfiguration (Phases 6–7) — 0 of 4 Docs</h2>
+<h2 class="stage-complete">Stage 4: Core Pages &amp; Lab Reconfiguration (Phases 6–7) — 4 of 4 Docs, Code Built</h2>
 <table>
   <thead>
-    <tr><th>Phase</th><th>Document Name</th><th>Version</th><th>Content</th><th>Doc?</th><th>Built?</th><th>Flags</th></tr>
+    <tr><th>Phase</th><th>Document Name</th><th>Version</th><th>Size</th><th>Content</th><th>Doc?</th><th>Built?</th><th>Commit</th><th>Flags</th></tr>
   </thead>
   <tbody>
     <tr>
-      <td>6a</td><td>STAGE4_Core_Pages_v2_PART1</td><td><span class="badge badge-v2">v2</span></td>
+      <td>6a</td><td>STAGE4_Core_Pages_v2_PART1</td><td><span class="badge badge-v2">v2</span></td><td>18 KB</td>
       <td>Dashboard home, useChildren, useContent, useProgress, useGamification hooks</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>3754c22</td>
       <td><span class="badge badge-bug">BUG-1</span> <span class="badge badge-bug">BUG-3</span> <span class="badge badge-bug">BUG-5</span></td>
     </tr>
     <tr>
-      <td>6b</td><td>STAGE4_Core_Pages_v2_PART3</td><td><span class="badge badge-v2">v2</span></td>
-      <td>Profile page, quiz engine, settings page</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td><td>—</td>
+      <td>7a</td><td>STAGE4_Part2A_v3FINAL</td><td><span class="badge badge-v3">v3-FINAL</span></td><td>21 KB</td>
+      <td>10 lab pattern GLSL shaders + R3F shader renderer</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>bee6461</td><td>—</td>
     </tr>
     <tr>
-      <td>7a</td><td>STAGE4_Part2_v3FINAL_A</td><td><span class="badge badge-v3">v3-FINAL</span></td>
-      <td>10 lab pattern GLSL shaders + shader index</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td><td>—</td>
+      <td>7b</td><td>STAGE4_Part2B_v3FINAL</td><td><span class="badge badge-v3">v3-FINAL</span></td><td>29 KB</td>
+      <td>LabReconfiguration, GameFocusSequence, useStationMode, transitions</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>643aea4</td><td>—</td>
     </tr>
     <tr>
-      <td>7b</td><td>STAGE4_Part2_v3FINAL_B</td><td><span class="badge badge-v3">v3-FINAL</span></td>
-      <td>LabReconfiguration, GameFocusSequence, useStationMode</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td><td>—</td>
+      <td>6b</td><td>STAGE4_Core_Pages_v2_PART3</td><td><span class="badge badge-v2">v2</span></td><td>41 KB</td>
+      <td>Content viewer, lesson viewer, quiz engine, spark fact viewer, settings</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>5d1aa2e</td><td>—</td>
     </tr>
   </tbody>
 </table>
-<div class="note"><strong>BUG-1:</strong> Part 1 REPLACES useApi.ts entirely. <strong>BUG-3:</strong> Uses single /api/progress/all-labs. <strong>BUG-5:</strong> Lab map completion fix.</div>
+<div class="note"><strong>BUG-1:</strong> Part 1 REPLACES useApi.ts entirely. <strong>BUG-3:</strong> Uses single /api/progress/all-labs. <strong>BUG-5:</strong> Lab map completion fix. Tag v0.4.0 pending visual checkpoint (HS-5).</div>
 
 <!-- STAGE 5 -->
-<h2 class="stage-missing">Stage 5: Gamification &amp; Visual FX (Phases 8–9) — 0 of 4 Docs</h2>
+<h2 class="stage-complete">Stage 5: Gamification &amp; Visual FX (Phases 8–9) — 4 of 4 Docs, Code Built</h2>
 <table>
   <thead>
-    <tr><th>Phase</th><th>Document Name</th><th>Version</th><th>Content</th><th>Doc?</th><th>Built?</th><th>Flags</th></tr>
+    <tr><th>Phase</th><th>Document Name</th><th>Version</th><th>Size</th><th>Content</th><th>Doc?</th><th>Built?</th><th>Commit</th><th>Flags</th></tr>
   </thead>
   <tbody>
     <tr>
-      <td>8</td><td>STAGE5_Gamification_Profile_PART1</td><td><span class="badge badge-v2">v2</span></td>
+      <td>8</td><td>STAGE5_Gamification_Profile_PART1</td><td><span class="badge badge-v2">v2</span></td><td>40 KB</td>
       <td>XP engine, cosmetics, avatar builder, sound (Tone.js), daily challenge</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td><td>—</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>0214ce2</td><td>—</td>
     </tr>
     <tr>
-      <td>9a</td><td>STAGE5_Parts23_v3FINAL_A</td><td><span class="badge badge-v3">v3-FINAL</span></td>
-      <td>LiquidMetal, Holographic, EnergyField shaders</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td><td>—</td>
+      <td>9a</td><td>STAGE5_Parts23A_v3FINAL</td><td><span class="badge badge-v3">v3-FINAL</span></td><td>21 KB</td>
+      <td>LiquidMetal, Holographic, EnergyField, FireNoise reward shaders</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>4730240</td><td>—</td>
     </tr>
     <tr>
-      <td>9b</td><td>STAGE5_Parts23_v3FINAL_B</td><td><span class="badge badge-v3">v3-FINAL</span></td>
-      <td>XPVortex, BadgePedestals, particle slider</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td><td>—</td>
+      <td>9b</td><td>STAGE5_Parts23B_v3FINAL</td><td><span class="badge badge-v3">v3-FINAL</span></td><td>24 KB</td>
+      <td>XPVortex, BadgePedestal3D, BadgeLevitate3D, SparkCard3D</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>93d78ce</td><td>—</td>
     </tr>
     <tr>
-      <td>9c</td><td>STAGE5_Parts23_v3FINAL_C</td><td><span class="badge badge-v3">v3-FINAL</span></td>
-      <td>GameParticles3D (R3F for flagships), ceremonies, verification</td>
-      <td><span class="badge badge-missing">MISSING</span></td><td>—</td><td>—</td>
+      <td>9c</td><td>STAGE5_Parts23C_v3FINAL</td><td><span class="badge badge-v3">v3-FINAL</span></td><td>31 KB</td>
+      <td>LevelUpExplosion, StreakFlame3D, GameParticles3D, ParticleIntensitySlider</td>
+      <td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>c9a8c3c</td><td>—</td>
     </tr>
   </tbody>
 </table>
+<div class="note">Tag v0.5.0 pending visual checkpoint (HS-5). 3D R3F components for 5 flagship game particle systems.</div>
+
+<!-- ============ PAGE 4: STAGE 6 ============ -->
+<div class="page-break"></div>
+
+<div class="header">
+  <h1><span>SPARK</span>FORGE — Stage Document Grid (Stage 6: 5 Flagship Games)</h1>
+  <div class="meta">Verified: March 6, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
+</div>
 
 <!-- STAGE 6 -->
-<h2 class="stage-missing">Stage 6: Flagship Games — 5 Games, ALL v3-FINAL (Phases 10–14) — 0 of 12 Docs</h2>
+<h2 class="stage-complete">Stage 6: Flagship Games — 5 Games, ALL v3-FINAL (Phases 10–14) — 12 of 12 Docs (+3 Bonus)</h2>
 <table>
   <thead>
-    <tr><th>Phase</th><th>Document</th><th>Game</th><th>Lab</th><th>3D Component</th><th>Doc?</th><th>Flags</th></tr>
+    <tr><th>Phase</th><th>Document</th><th>Game</th><th>Lab</th><th>Size</th><th>3D Component</th><th>Doc?</th><th>Built?</th><th>Commit</th><th>Flags</th></tr>
   </thead>
   <tbody>
-    <tr><td>10a</td><td>STAGE6B_v3FINAL_A</td><td>AI Pet Trainer</td><td>2</td><td>Pet3DScene + PetCreature3D</td><td><span class="badge badge-missing">MISSING</span></td><td><span class="badge badge-hs">HS-8 soft</span></td></tr>
-    <tr><td>10b</td><td>STAGE6B_v3FINAL_B</td><td>AI Pet Trainer (full game)</td><td>2</td><td>—</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>11a</td><td>STAGE6C_v3FINAL_A</td><td>Neural Builder</td><td>3</td><td>NeuralNetwork3D</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>11b</td><td>STAGE6C_v3FINAL_B</td><td>Neural Builder (full game)</td><td>3</td><td>—</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>12a</td><td>STAGE6D_v3FINAL_A</td><td>Prompt Lab</td><td>4</td><td>PromptBubble3D</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>12b</td><td>STAGE6D_v3FINAL_B</td><td>Prompt Lab (full game)</td><td>4</td><td>—</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>13a</td><td>STAGE6E_v3FINAL_A</td><td>Agent Architect</td><td>5</td><td>AgentPipeline3D</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>13b</td><td>STAGE6E_v3FINAL_B</td><td>Agent Architect (full game)</td><td>5</td><td>—</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>13c</td><td>STAGE6E_v3FINAL_C</td><td>Agent Architect (verification)</td><td>5</td><td>—</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>14a</td><td>STAGE6F_v3FINAL_A</td><td>Bias Detective</td><td>6</td><td>BiasScales3D</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>14b</td><td>STAGE6F_v3FINAL_B</td><td>Bias Detective (full game)</td><td>6</td><td>—</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
-    <tr><td>14c</td><td>STAGE6F_v3FINAL_C</td><td>Bias Detective (verification)</td><td>6</td><td>—</td><td><span class="badge badge-missing">MISSING</span></td><td>—</td></tr>
+    <tr><td>10a</td><td>STAGE6B_v3FINAL_A</td><td>AI Pet Trainer</td><td>2</td><td>22 KB</td><td>Pet3DScene + PetCreature3D</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>80b9746</td><td><span class="badge badge-hs">HS-8 soft</span></td></tr>
+    <tr><td>10b</td><td>STAGE6B_v3FINAL_B</td><td>AI Pet Trainer (full game)</td><td>2</td><td>8 KB</td><td>—</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>7a457eb</td><td>—</td></tr>
+    <tr><td>11a</td><td>STAGE6C_v3FINAL_A</td><td>Neural Builder</td><td>3</td><td>8 KB</td><td>NeuralNetwork3D + useAudioFeedback</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>670c4ce</td><td>—</td></tr>
+    <tr><td>11b</td><td>STAGE6C_v3FINAL_B</td><td>Neural Builder (full game)</td><td>3</td><td>9 KB</td><td>—</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>78d2b0a</td><td>—</td></tr>
+    <tr><td>—</td><td>STAGE6D_v2_PromptLab</td><td>Prompt Lab (v2 base)</td><td>4</td><td>7 KB</td><td>—</td><td><span class="badge badge-bonus">BONUS</span></td><td><span class="badge badge-built">BUILT</span></td><td>cc9a760</td><td>—</td></tr>
+    <tr><td>—</td><td>STAGE6D_v2_Enhancements</td><td>Prompt Lab (v2 enhancements)</td><td>4</td><td>11 KB</td><td>—</td><td><span class="badge badge-bonus">BONUS</span></td><td><span class="badge badge-built">BUILT</span></td><td>c498ea9</td><td>—</td></tr>
+    <tr><td>12a</td><td>STAGE6D_v3FINAL_PartA</td><td>Prompt Lab</td><td>4</td><td>7 KB</td><td>PromptBubble3D</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>430b5e6</td><td>—</td></tr>
+    <tr><td>12b</td><td>STAGE6D_v3FINAL_PartB</td><td>Prompt Lab (3D integration)</td><td>4</td><td>7 KB</td><td>—</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>35b5b35</td><td>—</td></tr>
+    <tr><td>13a</td><td>STAGE6E_v3FINAL_A</td><td>Agent Architect</td><td>5</td><td>7 KB</td><td>AgentPipeline3D</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>cf1b627</td><td>—</td></tr>
+    <tr><td>13b</td><td>STAGE6E_v3FINAL_B</td><td>Agent Architect (game logic)</td><td>5</td><td>31 KB</td><td>—</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>13675fc</td><td>—</td></tr>
+    <tr><td>13c</td><td>STAGE6E_v3FINAL_C</td><td>Agent Architect (JSX + verify)</td><td>5</td><td>49 KB</td><td>—</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>261df8a</td><td>—</td></tr>
+    <tr><td>14a</td><td>STAGE6F_v3FINAL_A</td><td>Bias Detective</td><td>6</td><td>26 KB</td><td>BiasScales3D</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>572d8f0</td><td>—</td></tr>
+    <tr><td>14b</td><td>STAGE6F_v3FINAL_B</td><td>Bias Detective (game logic)</td><td>6</td><td>47 KB</td><td>—</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>c461503</td><td>—</td></tr>
+    <tr><td>14c</td><td>STAGE6F_v3FINAL_C</td><td>Bias Detective (JSX + verify)</td><td>6</td><td>44 KB</td><td>—</td><td><span class="badge badge-present">YES</span></td><td><span class="badge badge-built">BUILT</span></td><td>c461503</td><td>—</td></tr>
+    <tr><td>—</td><td>STAGE6F_DebugFixes</td><td>Bias Detective debug reference</td><td>6</td><td>5 KB</td><td>—</td><td><span class="badge badge-bonus">BONUS</span></td><td>N/A</td><td>c461503</td><td>15 auto-fixes</td></tr>
   </tbody>
 </table>
-<div class="note"><strong>HS-8:</strong> Pet Trainer uses procedural fallback (orb) until GLB assets placed in public/models/pets/. Non-blocking.</div>
+<div class="note"><strong>HS-8:</strong> Pet Trainer uses procedural fallback (orb) until GLB assets placed in public/models/pets/. Non-blocking. <strong>Bonus docs:</strong> Stage 6D includes v2 base docs split from PDF source. Stage 6F includes debug fixes reference cataloging 15 auto-fixes per CLAUDE.md §3.1. Tag v0.6.0 pending visual checkpoint (HS-5). All docs in <strong>docs/stage6-flagship/</strong>.</div>
 
-<!-- ============ PAGE 4: STAGE 7 ============ -->
+<!-- ============ PAGE 5: STAGE 7 ============ -->
 <div class="page-break"></div>
 
 <div class="header">
   <h1><span>SPARK</span>FORGE — Stage Document Grid (Stage 7: 30 Games)</h1>
-  <div class="meta">Verified: March 3, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
+  <div class="meta">Verified: March 6, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
 </div>
 
 <!-- 7A -->
@@ -548,12 +561,12 @@
   </tbody>
 </table>
 
-<!-- ============ PAGE 5: STAGES 8-10 + HARD STOPS ============ -->
+<!-- ============ PAGE 6: STAGES 8-10 + REFERENCE ============ -->
 <div class="page-break"></div>
 
 <div class="header">
   <h1><span>SPARK</span>FORGE — Stage Document Grid (Stages 8–10) + Quick Reference</h1>
-  <div class="meta">Verified: March 3, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
+  <div class="meta">Verified: March 6, 2026<br>Source: CLAUDE.md v5.2 Section 4</div>
 </div>
 
 <!-- STAGE 8 -->
@@ -603,17 +616,17 @@
 <h2>Hard Stops Reference</h2>
 <table>
   <thead>
-    <tr><th>ID</th><th>Stage</th><th>Trigger</th><th>What You Need to Provide</th><th>Blocking?</th></tr>
+    <tr><th>ID</th><th>Stage</th><th>Trigger</th><th>What You Need to Provide</th><th>Status</th></tr>
   </thead>
   <tbody>
-    <tr><td><span class="badge badge-hs">HS-1</span></td><td>Stage 2</td><td>Supabase project setup</td><td>Supabase URL + anon key + service role key in .env.local</td><td>Yes — before Stage 2 Part 1</td></tr>
-    <tr><td><span class="badge badge-hs">HS-7</span></td><td>Stage 2</td><td>SQL execution</td><td>Run SQL blocks in Supabase SQL Editor, reply "done"</td><td>Yes — Stage 2 Part 1</td></tr>
-    <tr><td><span class="badge badge-hs">HS-5</span></td><td>All stages</td><td>Visual checkpoint</td><td>Run npm run dev, verify in browser, reply "approved"</td><td>Yes — after each stage</td></tr>
-    <tr><td><span class="badge badge-hs">HS-8</span></td><td>Stage 6B</td><td>GLB/3D assets</td><td>Place GLB files in public/models/pets/ (non-blocking — uses fallback)</td><td>Soft — game playable without</td></tr>
-    <tr><td><span class="badge badge-hs">HS-2</span></td><td>Stage 8</td><td>Stripe setup</td><td>Test API keys + 4 price IDs (Plus/Forge monthly/yearly) in .env.local</td><td>Yes — before Stage 8 Part 1</td></tr>
-    <tr><td><span class="badge badge-hs">HS-3</span></td><td>Stage 9</td><td>Anthropic key</td><td>ANTHROPIC_API_KEY in .env.local</td><td>Yes — before Stage 9 Part 1</td></tr>
-    <tr><td><span class="badge badge-hs">HS-4</span></td><td>Stage 10</td><td>Vercel deployment</td><td>Create Vercel account, connect repo, set env vars</td><td>Yes — before Stage 10 deploy</td></tr>
-    <tr><td><span class="badge badge-hs">HS-6</span></td><td>Any</td><td>Build failure (2 attempts)</td><td>Error details + attempted fixes shown — advise next step</td><td>Yes — until resolved</td></tr>
+    <tr><td><span class="badge badge-hs">HS-1</span></td><td>Stage 2</td><td>Supabase project setup</td><td>Supabase URL + anon key + service role key in .env.local</td><td><span class="badge badge-present">DONE</span></td></tr>
+    <tr><td><span class="badge badge-hs">HS-7</span></td><td>Stage 2</td><td>SQL execution</td><td>Run SQL blocks in Supabase SQL Editor, reply "done"</td><td><span class="badge badge-present">DONE</span></td></tr>
+    <tr><td><span class="badge badge-hs">HS-5</span></td><td>All stages</td><td>Visual checkpoint</td><td>Run npm run dev, verify in browser, reply "approved"</td><td><span class="badge badge-built">PENDING S1-S6</span></td></tr>
+    <tr><td><span class="badge badge-hs">HS-8</span></td><td>Stage 6B</td><td>GLB/3D assets</td><td>Place GLB files in public/models/pets/ (non-blocking — uses fallback)</td><td><span class="badge badge-built">SOFT — game playable</span></td></tr>
+    <tr><td><span class="badge badge-hs">HS-2</span></td><td>Stage 8</td><td>Stripe setup</td><td>Test API keys + 4 price IDs (Plus/Forge monthly/yearly) in .env.local</td><td><span class="badge badge-missing">AHEAD</span></td></tr>
+    <tr><td><span class="badge badge-hs">HS-3</span></td><td>Stage 9</td><td>Anthropic key</td><td>ANTHROPIC_API_KEY in .env.local</td><td><span class="badge badge-missing">AHEAD</span></td></tr>
+    <tr><td><span class="badge badge-hs">HS-4</span></td><td>Stage 10</td><td>Vercel deployment</td><td>Create Vercel account, connect repo, set env vars</td><td><span class="badge badge-missing">AHEAD</span></td></tr>
+    <tr><td><span class="badge badge-hs">HS-6</span></td><td>Any</td><td>Build failure (2 attempts)</td><td>Error details + attempted fixes shown — advise next step</td><td><span class="badge badge-built">CONDITIONAL</span></td></tr>
   </tbody>
 </table>
 
@@ -638,18 +651,19 @@
 </table>
 
 <!-- ============ VERSION DISTRIBUTION ============ -->
-<h2>Version Distribution of All 59 Missing Documents</h2>
+<h2>Version Distribution of All 39 Missing Documents</h2>
 <table>
   <thead>
     <tr><th>Version</th><th>Count</th><th>Stages</th></tr>
   </thead>
   <tbody>
-    <tr><td><span class="badge badge-v2">v2</span></td><td>24</td><td>Stages 1, 4P1+P3, 5P1, 7A (all 4), 7C (2), 7D (1), 7E (all 2), 7F P2, 7-Shared (1), 8 P1+P2, 9 (all 3), 10 (all 2)</td></tr>
-    <tr><td><span class="badge badge-v3">v3-FINAL</span></td><td>31</td><td>Stages 4P2 (2), 5P23 (3), 6B-6F (all 12), 7B (3), 7C v3 (3), 7D v3 (3), 7F v3 (2), 7-Shared v3 (1), 8P3 (3)</td></tr>
+    <tr><td><span class="badge badge-v2">v2</span></td><td>16</td><td>Stages 1 (2), 7A (all 4), 7C (2), 7D (1), 7E (all 2), 7F P2, 7-Shared (1), 8 P1+P2, 9 (all 3), 10 (all 2)</td></tr>
+    <tr><td><span class="badge badge-v3">v3-FINAL</span></td><td>19</td><td>Stages 7B (3), 7C v3 (3), 7D v3 (3), 7F v3 (2), 7-Shared v3 (1), 8P3 (3)</td></tr>
     <tr><td>PDF (reference/decisions)</td><td>4</td><td>docs/00-reference (1), docs/01-decisions (3)</td></tr>
-    <tr style="font-weight:700"><td>TOTAL MISSING</td><td>59</td><td>—</td></tr>
+    <tr style="font-weight:700"><td>TOTAL MISSING</td><td>39</td><td>—</td></tr>
   </tbody>
 </table>
+<div class="note"><strong>Progress since last update (March 3):</strong> +20 documents added (Stage 4: 4, Stage 5: 4, Stage 6: 12), +22 phases built into code (Stage 4: 4, Stage 5: 4, Stage 6: 14 including bonus docs). Completion doubled from 24% to 50%.</div>
 
 <!-- ============ TAGS ============ -->
 <h2>Git Tag Plan</h2>
@@ -658,21 +672,21 @@
     <tr><th>Tag</th><th>After Stage</th><th>Milestone</th><th>Status</th></tr>
   </thead>
   <tbody>
-    <tr><td>v0.1.0</td><td>Stage 1</td><td>Foundation</td><td>Pending HS-5</td></tr>
-    <tr><td>v0.2.0</td><td>Stage 2</td><td>Database + API</td><td>Pending HS-5</td></tr>
-    <tr><td>v0.3.0</td><td>Stage 3</td><td>Auth + Layout + Station Frame</td><td>Pending HS-5</td></tr>
-    <tr><td>v0.4.0</td><td>Stage 4</td><td>Core Pages + Lab Reconfiguration</td><td>Not started</td></tr>
-    <tr><td>v0.5.0</td><td>Stage 5</td><td>Gamification + Visual FX</td><td>Not started</td></tr>
-    <tr><td>v0.6.0</td><td>Stage 6</td><td>5 Flagship Games with 3D</td><td>Not started</td></tr>
-    <tr><td>v0.7.0</td><td>Stage 7</td><td>30 Games + Shared Systems (35 total)</td><td>Not started</td></tr>
-    <tr><td>v0.8.0</td><td>Stage 8</td><td>Parent Dashboard + Monetization</td><td>Not started</td></tr>
-    <tr><td>v0.9.0</td><td>Stage 9</td><td>Content Agent</td><td>Not started</td></tr>
-    <tr><td>v0.10.0</td><td>Stage 10</td><td>Polish + Deploy — SparkForge v1.0</td><td>Not started</td></tr>
+    <tr><td>v0.1.0</td><td>Stage 1</td><td>Foundation</td><td>Docs built, code built — pending HS-5</td></tr>
+    <tr><td>v0.2.0</td><td>Stage 2</td><td>Database + API</td><td>Docs complete, code built — pending HS-5</td></tr>
+    <tr><td>v0.3.0</td><td>Stage 3</td><td>Auth + Layout + Station Frame</td><td>Docs complete, code built — pending HS-5</td></tr>
+    <tr><td>v0.4.0</td><td>Stage 4</td><td>Core Pages + Lab Reconfiguration</td><td>Docs complete, code built — pending HS-5</td></tr>
+    <tr><td>v0.5.0</td><td>Stage 5</td><td>Gamification + Visual FX</td><td>Docs complete, code built — pending HS-5</td></tr>
+    <tr><td>v0.6.0</td><td>Stage 6</td><td>5 Flagship Games with 3D</td><td>Docs complete, code built — pending HS-5</td></tr>
+    <tr><td>v0.7.0</td><td>Stage 7</td><td>30 Games + Shared Systems (35 total)</td><td>Not started — 0 of 23 docs</td></tr>
+    <tr><td>v0.8.0</td><td>Stage 8</td><td>Parent Dashboard + Monetization</td><td>Not started — 0 of 5 docs, HS-2 ahead</td></tr>
+    <tr><td>v0.9.0</td><td>Stage 9</td><td>Content Agent</td><td>Not started — 0 of 3 docs, HS-3 ahead</td></tr>
+    <tr><td>v0.10.0</td><td>Stage 10</td><td>Polish + Deploy — SparkForge v1.0</td><td>Not started — 0 of 2 docs, HS-4 ahead</td></tr>
   </tbody>
 </table>
 
 <div class="footer-info">
-  SparkForge Stage Documents Master Grid | Generated March 3, 2026 | Verified against CLAUDE.md v5.2, PROGRESS.md, git log (24 commits), docs/ filesystem
+  SparkForge Stage Documents Master Grid | Generated March 6, 2026 | Verified against CLAUDE.md v5.2, PROGRESS.md, git log (63 commits), docs/ filesystem (42 .md files across 15 directories)
 </div>
 
 </body>
