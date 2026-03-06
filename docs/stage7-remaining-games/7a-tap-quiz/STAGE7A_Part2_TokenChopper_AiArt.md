@@ -116,7 +116,7 @@ export function TokenChopperGame() {
   }
 
   return (
-    <GameShell gameId="token-chopper" title="Token Chopper" worldNumber={4} worldColor="#F59E0B">
+    <GameShell gameId="token-chopper" title="Token Chopper" worldNumber={4} worldColor="#FFAA44">
       <div className="h-full flex flex-col relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -128,7 +128,7 @@ export function TokenChopperGame() {
                 top: `${p.y}%`,
                 width: p.size,
                 height: p.size,
-                background: `radial-gradient(circle, rgba(245,158,11,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
+                background: `radial-gradient(circle, rgba(255,170,68,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
@@ -140,11 +140,11 @@ export function TokenChopperGame() {
           <div
             className="flex-1 flex flex-col rounded-xl overflow-hidden"
             style={{
-              border: '1px solid rgba(245,158,11,0.15)',
+              border: '1px solid rgba(255,170,68,0.15)',
               boxShadow: '0 2px 40px rgba(0,0,0,0.2)',
             }}
           >
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" />
             <div className="flex-1 flex flex-col overflow-auto p-4">
               <AnimatePresence mode="wait">
                 {phase === 'welcome' && (
@@ -166,7 +166,7 @@ export function TokenChopperGame() {
                       {['Tokenization', 'Subwords', 'API Cost'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-[10px]"
                         >
                           {t}
                         </span>
@@ -175,7 +175,7 @@ export function TokenChopperGame() {
                     <motion.button
                       onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                      style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -192,8 +192,8 @@ export function TokenChopperGame() {
                     className="flex-1 flex flex-col"
                   >
                     {/* Challenge bar */}
-                    <div className="rounded-xl p-3 mb-3 border border-amber-500/20 bg-amber-500/5">
-                      <p className="font-display text-sm font-bold text-amber-400">
+                    <div className="rounded-xl p-3 mb-3 border border-orange-400/20 bg-orange-400/5">
+                      <p className="font-display text-sm font-bold text-orange-400">
                         🎯 {CHALLENGES[challengeIdx].text}
                       </p>
                       {showHint && (
@@ -217,7 +217,7 @@ export function TokenChopperGame() {
                       onChange={e => setText(e.target.value)}
                       placeholder="Type anything here to see tokens..."
                       aria-label="Text input for tokenization"
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm mb-3 resize-none h-20 focus:outline-none focus:border-amber-500/50"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm mb-3 resize-none h-20 focus:outline-none focus:border-orange-400/50"
                     />
 
                     {/* Stats bar */}
@@ -267,7 +267,7 @@ export function TokenChopperGame() {
                     <motion.button
                       onClick={checkChallenge}
                       className="mt-3 w-full py-3 rounded-xl text-white font-display font-bold text-sm"
-                      style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                      style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileTap={{ scale: 0.98 }}
                     >
                       Check Challenge ✨
@@ -276,7 +276,7 @@ export function TokenChopperGame() {
                 )}
               </AnimatePresence>
             </div>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" />
           </div>
         </div>
       </div>
@@ -461,8 +461,11 @@ export function AiArtDetectiveGame() {
   const [showResult, setShowResult] = useState<'correct' | 'wrong' | null>(null);
   const [streak, setStreak] = useState(0);
   const [tipIdx, setTipIdx] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
 
   const round = ROUNDS[roundIdx];
+  const confidencePct = roundIdx > 0 ? Math.round((correctCount / roundIdx) * 100) : 0;
+  const confidenceColor = confidencePct >= 70 ? '#00FF88' : confidencePct >= 40 ? '#FFAA44' : '#FF6644';
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -479,6 +482,7 @@ export function AiArtDetectiveGame() {
     setShowResult(correct ? 'correct' : 'wrong');
     if (correct) {
       setStreak(s => s + 1);
+      setCorrectCount(c => c + 1);
       game.addScore(12 + streak * 2);
     } else {
       setStreak(0);
@@ -496,7 +500,7 @@ export function AiArtDetectiveGame() {
   }
 
   return (
-    <GameShell gameId="ai-art-detective" title="AI Art Detective" worldNumber={4} worldColor="#F59E0B">
+    <GameShell gameId="ai-art-detective" title="AI Art Detective" worldNumber={4} worldColor="#FFAA44">
       <div className="h-full flex flex-col relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -508,7 +512,7 @@ export function AiArtDetectiveGame() {
                 top: `${p.y}%`,
                 width: p.size,
                 height: p.size,
-                background: `radial-gradient(circle, rgba(245,158,11,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
+                background: `radial-gradient(circle, rgba(255,170,68,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
@@ -520,11 +524,11 @@ export function AiArtDetectiveGame() {
           <div
             className="flex-1 flex flex-col rounded-xl overflow-hidden"
             style={{
-              border: '1px solid rgba(245,158,11,0.15)',
+              border: '1px solid rgba(255,170,68,0.15)',
               boxShadow: '0 2px 40px rgba(0,0,0,0.2)',
             }}
           >
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" />
             <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center">
               <AnimatePresence mode="wait">
                 {phase === 'welcome' && (
@@ -544,7 +548,7 @@ export function AiArtDetectiveGame() {
                       {['Generative AI', 'Art Analysis', 'Pattern Recognition'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-[10px]"
                         >
                           {t}
                         </span>
@@ -553,7 +557,7 @@ export function AiArtDetectiveGame() {
                     <motion.button
                       onClick={() => setPhase('tips')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                      style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -570,7 +574,7 @@ export function AiArtDetectiveGame() {
                     exit={{ opacity: 0, y: -20 }}
                     className="text-center space-y-4 max-w-sm"
                   >
-                    <Palette className="w-6 h-6 text-amber-400 mx-auto" />
+                    <Palette className="w-6 h-6 text-orange-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Detection Tips</h3>
                     <p className="font-body text-xs text-white/40">
                       {tipIdx + 1} of {DETECTION_TIPS.length}
@@ -581,10 +585,10 @@ export function AiArtDetectiveGame() {
                         initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -30 }}
-                        className="rounded-xl p-4 border border-amber-500/20 bg-amber-500/5"
+                        className="rounded-xl p-4 border border-orange-400/20 bg-orange-400/5"
                       >
                         <span className="text-3xl">{DETECTION_TIPS[tipIdx].emoji}</span>
-                        <h4 className="font-display text-sm font-bold text-amber-300 mt-2">
+                        <h4 className="font-display text-sm font-bold text-orange-300 mt-2">
                           {DETECTION_TIPS[tipIdx].title}
                         </h4>
                         <p className="font-body text-xs text-white/50 mt-1">
@@ -598,7 +602,7 @@ export function AiArtDetectiveGame() {
                         else setPhase('play');
                       }}
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                      style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -620,8 +624,21 @@ export function AiArtDetectiveGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-lg mx-auto"
                   >
+                    {/* Confidence meter */}
+                    {roundIdx > 0 && (
+                      <div className="mb-3 max-w-xs mx-auto">
+                        <div className="flex justify-between mb-1">
+                          <span className="font-body text-[10px] text-white/30">🎯 Detection Confidence</span>
+                          <span className="font-data text-[10px] font-bold" style={{ color: confidenceColor }}>{confidencePct}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                          <motion.div className="h-full rounded-full" style={{ backgroundColor: confidenceColor }}
+                            animate={{ width: `${confidencePct}%` }} transition={{ type: 'spring', stiffness: 100 }} />
+                        </div>
+                      </div>
+                    )}
                     {streak >= 3 && (
-                      <p className="font-display text-xs text-amber-400 mb-2">
+                      <p className="font-display text-xs text-orange-400 mb-2">
                         🔥 {streak} streak! Score multiplier active!
                       </p>
                     )}
@@ -641,7 +658,7 @@ export function AiArtDetectiveGame() {
                               ? 'border-green-500'
                               : showResult
                                 ? 'border-white/10'
-                                : 'border-white/20 hover:border-amber-500/50'
+                                : 'border-white/20 hover:border-orange-400/50'
                           }`}
                           whileHover={!showResult ? { scale: 1.03 } : {}}
                           whileTap={!showResult ? { scale: 0.97 } : {}}
@@ -713,7 +730,7 @@ export function AiArtDetectiveGame() {
                 )}
               </AnimatePresence>
             </div>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" />
           </div>
         </div>
       </div>

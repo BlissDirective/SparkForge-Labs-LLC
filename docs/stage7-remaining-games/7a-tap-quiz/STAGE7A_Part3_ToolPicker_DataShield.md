@@ -22,7 +22,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
-import { Wrench, Zap, Timer } from 'lucide-react';
+import { Wrench } from 'lucide-react';
 
 type Phase = 'welcome' | 'play';
 
@@ -97,20 +97,25 @@ export function ToolPickerGame() {
   useEffect(() => {
     if (phase !== 'play' || feedback) return;
     setTimer(6);
+    const currentTask = tasks[roundIdx];
     timerRef.current = setInterval(() => {
       setTimer(t => {
-        if (t <= 1) { clearInterval(timerRef.current); handleTimeout(); return 0; }
+        if (t <= 1) {
+          clearInterval(timerRef.current);
+          setFeedback({ correct: false, why: 'Time\'s up! The correct tool was ' + TOOLS.find(tl => tl.id === currentTask.correctTool)?.label + '.' });
+          setStreak(0);
+          setTimeout(() => {
+            setFeedback(null);
+            if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
+            else game.completeGame();
+          }, 2000);
+          return 0;
+        }
         return t - 1;
       });
     }, 1000);
     return () => clearInterval(timerRef.current);
-  }, [roundIdx, feedback, phase]);
-
-  function handleTimeout() {
-    setFeedback({ correct: false, why: 'Time\'s up! The correct tool was ' + TOOLS.find(t => t.id === task.correctTool)?.label + '.' });
-    setStreak(0);
-    advance();
-  }
+  }, [roundIdx, feedback, phase, tasks, game]);
 
   function handlePick(toolId: string) {
     if (feedback || phase !== 'play') return;
@@ -121,10 +126,6 @@ export function ToolPickerGame() {
       : `The best tool was ${TOOLS.find(t => t.id === task.correctTool)?.label}. ${task.why}`;
     setFeedback({ correct, why });
     if (correct) { setStreak(s => s + 1); game.addScore(10 * multiplier); } else { setStreak(0); }
-    advance();
-  }
-
-  function advance() {
     setTimeout(() => {
       setFeedback(null);
       if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
@@ -133,14 +134,14 @@ export function ToolPickerGame() {
   }
 
   return (
-    <GameShell gameId="tool-picker" title="Tool Picker" worldNumber={5} worldColor="#10B981">
+    <GameShell gameId="tool-picker" title="Tool Picker" worldNumber={5} worldColor="#00FF88">
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
-                background: `radial-gradient(circle, rgba(16,185,129,${0.15 + p.size * 0.06}), transparent)` }}
+                background: `radial-gradient(circle, rgba(0,255,136,${0.15 + p.size * 0.06}), transparent)` }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
@@ -148,8 +149,8 @@ export function ToolPickerGame() {
 
         <div className="relative z-10 flex-1 flex flex-col p-3 md:p-5">
           <div className="flex-1 flex flex-col rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(16,185,129,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+            style={{ border: '1px solid rgba(0,255,136,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-green-400/50 to-transparent" />
 
             <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center">
               <AnimatePresence mode="wait">
@@ -160,11 +161,11 @@ export function ToolPickerGame() {
                     <h2 className="font-display text-2xl font-bold text-white">Tool Picker</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">Quick-fire challenge! Pick the right AI tool for each task. Be fast — you only have 6 seconds!</p>
                     <div className="flex flex-wrap gap-2 justify-center">
-                      {TOOLS.map(t => <span key={t.id} className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-xs font-body text-emerald-400">{t.emoji} {t.label}</span>)}
+                      {TOOLS.map(t => <span key={t.id} className="px-2 py-1 rounded-lg bg-green-400/10 border border-green-400/20 text-xs font-body text-green-400">{t.emoji} {t.label}</span>)}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #10B981, #059669)' }}
+                      style={{ background: 'linear-gradient(135deg, #00FF88, #00CC66)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       Start Picking! <Wrench className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -175,18 +176,18 @@ export function ToolPickerGame() {
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-md space-y-2">
                     {/* Timer + Streak */}
                     <div className="flex items-center justify-center gap-4 mb-4">
-                      <motion.div className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm ${timer <= 2 ? 'bg-red-500/20 text-red-400' : 'bg-emerald-500/10 text-emerald-400'}`}
+                      <motion.div className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm ${timer <= 2 ? 'bg-red-500/20 text-orange-400' : 'bg-green-400/10 text-green-400'}`}
                         animate={timer <= 2 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 0.5, repeat: Infinity }}>
                         {timer}
                       </motion.div>
                       {streak >= 2 && (
-                        <span className="px-2 py-1 rounded-lg bg-emerald-500/10 font-display text-xs text-emerald-400">🔥 ×{multiplier} streak!</span>
+                        <span className="px-2 py-1 rounded-lg bg-green-400/10 font-display text-xs text-green-400">🔥 ×{multiplier} streak!</span>
                       )}
                     </div>
 
                     {/* Task */}
                     <motion.div key={roundIdx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl p-4 mb-4 border border-emerald-500/20 bg-emerald-500/5 text-center">
+                      className="rounded-xl p-4 mb-4 border border-green-400/20 bg-green-400/5 text-center">
                       <p className="font-display text-base font-bold text-white">{task.text}</p>
                     </motion.div>
 
@@ -195,9 +196,9 @@ export function ToolPickerGame() {
                       {TOOLS.map(tool => (
                         <motion.button key={tool.id} onClick={() => handlePick(tool.id)} disabled={!!feedback}
                           className={`p-3 rounded-xl border text-center transition-all ${
-                            feedback && tool.id === task.correctTool ? 'border-emerald-500/50 bg-emerald-500/10'
+                            feedback && tool.id === task.correctTool ? 'border-green-400/50 bg-green-400/10'
                             : feedback ? 'border-white/5 opacity-30'
-                            : 'border-white/10 bg-white/[0.02] hover:border-emerald-500/20'
+                            : 'border-white/10 bg-white/[0.02] hover:border-green-400/20'
                           }`} whileTap={!feedback ? { scale: 0.95 } : {}} aria-label={`Pick ${tool.label}`}>
                           <span className="text-2xl">{tool.emoji}</span>
                           <p className="font-display text-[10px] font-bold text-white mt-1">{tool.label}</p>
@@ -209,8 +210,8 @@ export function ToolPickerGame() {
                     <AnimatePresence>
                       {feedback && (
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                          className={`rounded-xl p-3 ${feedback.correct ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
-                          <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#10B981' : '#EF4444' }}>
+                          className={`rounded-xl p-3 ${feedback.correct ? 'bg-green-400/10 border border-green-400/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
+                          <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#00FF88' : '#EF4444' }}>
                             {feedback.correct ? '✅ Perfect pick!' : '❌ Not quite!'}
                           </p>
                           <p className="font-body text-[10px] text-white/40 mt-1">{feedback.why}</p>
@@ -222,7 +223,7 @@ export function ToolPickerGame() {
               </AnimatePresence>
             </div>
 
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-green-400/50 to-transparent" />
           </div>
         </div>
       </div>
@@ -365,14 +366,14 @@ export function DataShieldGame() {
   }
 
   return (
-    <GameShell gameId="data-shield" title="Data Shield" worldNumber={6} worldColor="#EF4444">
+    <GameShell gameId="data-shield" title="Data Shield" worldNumber={6} worldColor="#FF6644">
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
-                background: `radial-gradient(circle, rgba(239,68,68,${0.15 + p.size * 0.06}), transparent)` }}
+                background: `radial-gradient(circle, rgba(255,102,68,${0.15 + p.size * 0.06}), transparent)` }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
@@ -380,8 +381,8 @@ export function DataShieldGame() {
 
         <div className="relative z-10 flex-1 flex flex-col p-3 md:p-5">
           <div className="flex-1 flex flex-col rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(239,68,68,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+            style={{ border: '1px solid rgba(255,102,68,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
 
             <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center">
               <AnimatePresence mode="wait">
@@ -393,12 +394,12 @@ export function DataShieldGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">Apps and websites want your data. Can you tell what&apos;s safe to share and what to protect?</p>
                     <div className="flex gap-2 justify-center">
                       {['Privacy', 'PII', 'Data Safety'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/20 text-xs font-body text-red-400">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs font-body text-orange-400">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
-                      style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
+                      style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       Activate Shield! <Shield className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -430,7 +431,7 @@ export function DataShieldGame() {
                     <motion.div key={`${scenarioIdx}-${pointIdx}`} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                       className="rounded-xl p-5 mb-4 border border-white/10 bg-white/[0.02] text-center">
                       <div className="flex items-center justify-center gap-2 mb-3">
-                        {point.severity === 'danger' && <AlertTriangle className="w-4 h-4 text-red-400" />}
+                        {point.severity === 'danger' && <AlertTriangle className="w-4 h-4 text-orange-400" />}
                         {point.severity === 'warning' && <AlertTriangle className="w-4 h-4 text-amber-400" />}
                         <p className="font-display text-base font-bold text-white">&quot;{point.label}&quot;</p>
                       </div>
@@ -441,7 +442,7 @@ export function DataShieldGame() {
                           <Shield className="w-4 h-4" /> SHIELD
                         </motion.button>
                         <motion.button onClick={() => handleChoice(false)} disabled={!!feedback}
-                          className="flex-1 py-3 rounded-xl bg-emerald-500/15 border border-emerald-500/20 font-display text-xs font-bold text-emerald-400 flex items-center justify-center gap-2"
+                          className="flex-1 py-3 rounded-xl bg-emerald-500/15 border border-green-400/20 font-display text-xs font-bold text-green-400 flex items-center justify-center gap-2"
                           whileTap={{ scale: 0.95 }} aria-label="Share this data">
                           <Eye className="w-4 h-4" /> SHARE
                         </motion.button>
@@ -452,8 +453,8 @@ export function DataShieldGame() {
                     <AnimatePresence>
                       {feedback && (
                         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                          className={`rounded-xl p-3 text-center ${feedback.correct ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
-                          <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#10B981' : '#EF4444' }}>
+                          className={`rounded-xl p-3 text-center ${feedback.correct ? 'bg-green-400/10 border border-green-400/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
+                          <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#00FF88' : '#EF4444' }}>
                             {feedback.correct ? '✅ Smart choice!' : '⚠️ Be careful!'}
                           </p>
                           <p className="font-body text-[10px] text-white/40 mt-1">{feedback.reason}</p>
@@ -465,7 +466,7 @@ export function DataShieldGame() {
               </AnimatePresence>
             </div>
 
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-red-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
           </div>
         </div>
       </div>

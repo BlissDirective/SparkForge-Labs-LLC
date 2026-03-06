@@ -116,7 +116,13 @@ export function TimeMachineGame() {
 
     if (correct) {
       setPlaced(prev => new Map(prev).set(card.id, slotYear));
-      setTrayCards(prev => prev.filter(c => c.id !== card.id));
+      setTrayCards(prev => {
+        const remaining = prev.filter(c => c.id !== card.id);
+        if (remaining.length === 0) {
+          setTimeout(() => game.completeGame(), 2000);
+        }
+        return remaining;
+      });
       game.addScore(12);
       game.nextRound();
     }
@@ -124,12 +130,11 @@ export function TimeMachineGame() {
 
     setTimeout(() => {
       setFeedback(null);
-      if (correct && trayCards.length <= 1) game.completeGame();
     }, 2000);
   }
 
   return (
-    <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#3B82F6">
+    <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#00BBFF">
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -142,7 +147,7 @@ export function TimeMachineGame() {
                 top: `${p.y}%`,
                 width: p.size,
                 height: p.size,
-                background: `radial-gradient(circle, rgba(59,130,246,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
+                background: `radial-gradient(circle, rgba(0,187,255,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
@@ -154,11 +159,11 @@ export function TimeMachineGame() {
           <div
             className="flex-1 flex flex-col rounded-xl overflow-hidden"
             style={{
-              border: '1px solid rgba(59,130,246,0.15)',
+              border: '1px solid rgba(0,187,255,0.15)',
               boxShadow: '0 2px 40px rgba(0,0,0,0.2)',
             }}
           >
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
             <div className="flex-1 flex flex-col overflow-auto p-4">
               <AnimatePresence mode="wait">
                 {phase === 'welcome' && (
@@ -178,7 +183,7 @@ export function TimeMachineGame() {
                       {['AI History', 'Timeline', 'Milestones'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-sky-400/10 border border-sky-400/20 text-sky-400 font-body text-[10px]"
                         >
                           {t}
                         </span>
@@ -187,7 +192,7 @@ export function TimeMachineGame() {
                     <motion.button
                       onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}
+                      style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -219,9 +224,9 @@ export function TimeMachineGame() {
                               onClick={() => handleSlotClick(year)}
                               className={`flex flex-col items-center px-2 py-2 rounded-lg min-w-[64px] transition-all ${
                                 placedMilestone
-                                  ? 'bg-blue-500/15 border border-blue-500/30'
+                                  ? 'bg-sky-400/15 border border-sky-400/30'
                                   : selectedCard
-                                    ? 'bg-white/5 border border-white/15 hover:border-blue-500/40'
+                                    ? 'bg-white/5 border border-white/15 hover:border-sky-400/40'
                                     : 'bg-white/[0.02] border border-white/5'
                               } ${isFeedbackTarget && feedback?.correct ? 'ring-2 ring-green-500/50' : ''}`}
                               whileTap={selectedCard && !placedMilestone ? { scale: 0.95 } : {}}
@@ -234,7 +239,7 @@ export function TimeMachineGame() {
                                   animate={{ scale: 1 }}
                                   className="mt-1"
                                 >
-                                  <p className="font-display text-[9px] font-bold text-blue-400">
+                                  <p className="font-display text-[9px] font-bold text-sky-400">
                                     {placedMilestone.label}
                                   </p>
                                 </motion.div>
@@ -289,7 +294,7 @@ export function TimeMachineGame() {
                             onClick={() => setSelectedCard(selectedCard === card.id ? null : card.id)}
                             className={`px-3 py-2 rounded-lg border text-left transition-all ${
                               selectedCard === card.id
-                                ? 'border-blue-500/50 bg-blue-500/10 ring-1 ring-blue-500/30'
+                                ? 'border-sky-400/50 bg-sky-400/10 ring-1 ring-blue-500/30'
                                 : 'border-white/10 bg-white/[0.02] hover:border-white/20'
                             }`}
                             whileTap={{ scale: 0.97 }}
@@ -307,7 +312,7 @@ export function TimeMachineGame() {
                 )}
               </AnimatePresence>
             </div>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-400/50 to-transparent" />
           </div>
         </div>
       </div>
@@ -528,7 +533,7 @@ export function WordPredictorGame() {
   }
 
   return (
-    <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#F59E0B">
+    <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#FFAA44">
       <div className="h-full flex flex-col relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -540,7 +545,7 @@ export function WordPredictorGame() {
                 top: `${p.y}%`,
                 width: p.size,
                 height: p.size,
-                background: `radial-gradient(circle, rgba(245,158,11,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
+                background: `radial-gradient(circle, rgba(255,170,68,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
@@ -552,11 +557,11 @@ export function WordPredictorGame() {
           <div
             className="flex-1 flex flex-col rounded-xl overflow-hidden"
             style={{
-              border: '1px solid rgba(245,158,11,0.15)',
+              border: '1px solid rgba(255,170,68,0.15)',
               boxShadow: '0 2px 40px rgba(0,0,0,0.2)',
             }}
           >
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" />
             <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center">
               <AnimatePresence mode="wait">
                 {phase === 'welcome' && (
@@ -576,7 +581,7 @@ export function WordPredictorGame() {
                       {['Next Token', 'Probability', 'Language Model'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-[10px]"
                         >
                           {t}
                         </span>
@@ -585,7 +590,7 @@ export function WordPredictorGame() {
                     <motion.button
                       onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                      style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
@@ -602,14 +607,14 @@ export function WordPredictorGame() {
                     className="w-full max-w-md mx-auto space-y-4"
                   >
                     {streak >= 3 && (
-                      <p className="font-display text-xs text-amber-400 mb-2">
+                      <p className="font-display text-xs text-orange-400 mb-2">
                         🔥 {streak} streak!
                       </p>
                     )}
                     <p className="font-body text-white/40 text-xs mb-4">What word comes next?</p>
                     <p className="font-display text-xl font-bold text-white mb-6">
                       {round.sentence.replace('___', '')}
-                      <span className="inline-block w-20 border-b-2 border-amber-500/40 mx-1" />
+                      <span className="inline-block w-20 border-b-2 border-orange-400/40 mx-1" />
                     </p>
 
                     {!showResult ? (
@@ -622,13 +627,13 @@ export function WordPredictorGame() {
                           placeholder="Your guess..."
                           autoFocus
                           aria-label="Word prediction guess"
-                          className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm focus:outline-none focus:border-amber-500/50"
+                          className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm focus:outline-none focus:border-orange-400/50"
                         />
                         <motion.button
                           onClick={submitGuess}
                           disabled={!guess.trim()}
                           className="px-5 py-3 rounded-xl text-white font-display font-bold text-sm disabled:opacity-30"
-                          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                          style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                           whileTap={{ scale: 0.95 }}
                         >
                           <Zap className="w-4 h-4" />
@@ -640,7 +645,7 @@ export function WordPredictorGame() {
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-3"
                       >
-                        <p className="font-display text-sm font-bold text-amber-400 mb-1">
+                        <p className="font-display text-sm font-bold text-orange-400 mb-1">
                           You guessed: "{guess}"
                         </p>
                         <p className="font-body text-sm text-white/60 mb-4">
@@ -655,7 +660,7 @@ export function WordPredictorGame() {
                               <span
                                 className={`font-body text-xs w-16 text-right ${
                                   p.word.toLowerCase() === guess.trim().toLowerCase()
-                                    ? 'text-amber-400 font-bold'
+                                    ? 'text-orange-400 font-bold'
                                     : 'text-white/40'
                                 }`}
                               >
@@ -663,7 +668,7 @@ export function WordPredictorGame() {
                               </span>
                               <div className="flex-1 h-5 bg-white/5 rounded overflow-hidden">
                                 <motion.div
-                                  className="h-full rounded bg-amber-500/60"
+                                  className="h-full rounded bg-orange-400/60"
                                   initial={{ width: 0 }}
                                   animate={{ width: `${p.confidence}%` }}
                                   transition={{ duration: 0.8, delay: 0.2 }}
@@ -684,7 +689,7 @@ export function WordPredictorGame() {
                 )}
               </AnimatePresence>
             </div>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-400/50 to-transparent" />
           </div>
         </div>
       </div>
