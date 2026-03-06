@@ -673,6 +673,11 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | ENH-8A | Stripe graceful fallback | 503 + setup URL if keys missing | 8 |
 | ENH-9A | Anthropic graceful fallback | 503 if `ANTHROPIC_API_KEY` missing | 9 |
 | IMP-4 | spark-* vs neon-* tokens | Both defined as aliases in `tailwind.config.ts` | 1 |
+| MISSING-7A | AI Spy game has no implementation | Will be developed via Game Code Agent (see below) | 7A |
+
+### Game Code Agent (Planned)
+
+A specialized game-modified web application development code agent will be created to develop any games or features with missing code implementations. This includes **AI Spy** (Lab 1, Game #1) which has a spec in `STAGE7A_BatchA_TapQuiz_8Games.md` but no full implementation across any Stage 7A part file. The Game Code Agent will be used to generate complete, pattern-compliant game code for AI Spy and any other games identified as missing during audits.
 
 ---
 
