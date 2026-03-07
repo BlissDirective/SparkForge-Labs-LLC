@@ -463,20 +463,20 @@ export default CareerExplorerGame;
 #### `npm run dev`
 
 **Sort Toy Box** (`/arcade/sort-toy-box`):
-- [ ] Chrome bezel (purple), welcome → sort → reveal
+- [ ] Chrome bezel (Lab 2 `#AA66FF` purple), welcome → sort → reveal
 - [ ] Desktop: 3D throwable primitives with parabolic arcs
 - [ ] Mobile: 2D CSS shapes fallback
 - [ ] AI criterion reveal with age-band depth
 - [ ] Score: +2 per assignment, +20 on reveal
 
 **Human vs Machine** (`/arcade/human-vs-machine`):
-- [ ] Chrome bezel (blue), welcome → side-by-side play
+- [ ] Chrome bezel (Lab 1 `#00BBFF` sky-blue), welcome → side-by-side play
 - [ ] Human input left, AI answer right with timed reveal
 - [ ] Advantage cards per round, age-band descriptions
 - [ ] Score: +10 per submission
 
 **Code Blocks** (`/arcade/code-blocks`):
-- [ ] Chrome bezel (orange), welcome → learn 4 concepts → play
+- [ ] Chrome bezel (Lab 9 `#F97316` orange), welcome → learn 4 concepts → play
 - [ ] Robot actor with 20 poses, spring animation
 - [ ] Magnetic block snapping with interlocking notch visuals
 - [ ] Execution tracer: glowing line through placed blocks

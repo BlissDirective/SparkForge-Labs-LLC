@@ -402,7 +402,7 @@ function Scene({
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
-      <pointLight position={[-3, 5, -3]} intensity={0.3} color="#8B5CF6" />
+      <pointLight position={[-3, 5, -3]} intensity={0.3} color="#AA66FF" />
 
       <TableSurface />
 
@@ -673,7 +673,7 @@ export function SortToyBoxGame() {
       Array.from({ length: groupCount }, (_, g) => ({
         id: g,
         position: [((g - (groupCount - 1) / 2) * 2), 0, 2] as [number, number, number],
-        color: ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B'][g] || '#8B5CF6',
+        color: ['#AA66FF', '#3B82F6', '#10B981', '#F59E0B'][g] || '#AA66FF',
         label: `Group ${g + 1}`,
       })),
     [groupCount]
@@ -720,7 +720,7 @@ export function SortToyBoxGame() {
       gameId="sort-toy-box"
       title="Sort the Toy Box"
       worldNumber={2}
-      worldColor="#8B5CF6"
+      worldColor="#AA66FF"
     >
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particle background */}
@@ -734,7 +734,7 @@ export function SortToyBoxGame() {
                 top: `${p.y}%`,
                 width: p.size,
                 height: p.size,
-                background: `radial-gradient(circle, rgba(139,92,246,${
+                background: `radial-gradient(circle, rgba(170,102,255,${
                   0.15 + p.size * 0.06
                 }), transparent)`,
               }}
@@ -752,8 +752,8 @@ export function SortToyBoxGame() {
           <div
             className="flex-1 flex flex-col rounded-xl overflow-hidden"
             style={{
-              border: '1px solid rgba(139,92,246,0.15)',
-              boxShadow: '0 2px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(139,92,246,0.1)',
+              border: '1px solid rgba(170,102,255,0.15)',
+              boxShadow: '0 2px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(170,102,255,0.1)',
             }}
           >
             <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
@@ -794,7 +794,7 @@ export function SortToyBoxGame() {
                       onClick={() => setPhase('sort')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{
-                        background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+                        background: 'linear-gradient(135deg, #AA66FF, #8B5CF6)',
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -931,7 +931,7 @@ export function SortToyBoxGame() {
                           animate={{ opacity: 1, y: 0 }}
                           className="flex-1 py-3 rounded-xl font-display font-bold text-sm text-white"
                           style={{
-                            background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)',
+                            background: 'linear-gradient(135deg, #AA66FF, #8B5CF6)',
                           }}
                           whileTap={{ scale: 0.95 }}
                         >
@@ -1192,7 +1192,7 @@ export function HumanVsMachineGame() {
       gameId="human-vs-machine"
       title="Human vs Machine"
       worldNumber={1}
-      worldColor="#3B82F6"
+      worldColor="#00BBFF"
     >
       <div className="h-full flex flex-col relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
@@ -1205,7 +1205,7 @@ export function HumanVsMachineGame() {
                 top: `${p.y}%`,
                 width: p.size,
                 height: p.size,
-                background: `radial-gradient(circle, rgba(59,130,246,${
+                background: `radial-gradient(circle, rgba(0,187,255,${
                   0.15 + p.size * 0.06
                 }), transparent)`,
               }}
@@ -1223,11 +1223,11 @@ export function HumanVsMachineGame() {
           <div
             className="flex-1 flex flex-col rounded-xl overflow-hidden"
             style={{
-              border: '1px solid rgba(59,130,246,0.15)',
-              boxShadow: '0 2px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(59,130,246,0.1)',
+              border: '1px solid rgba(0,187,255,0.15)',
+              boxShadow: '0 2px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(0,187,255,0.1)',
             }}
           >
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
 
             <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center">
               <AnimatePresence mode="wait">
@@ -1252,7 +1252,7 @@ export function HumanVsMachineGame() {
                         (t) => (
                           <span
                             key={t}
-                            className="px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 font-body text-[10px] text-blue-300"
+                            className="px-2 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 font-body text-[10px] text-sky-300"
                           >
                             {t}
                           </span>
@@ -1263,7 +1263,7 @@ export function HumanVsMachineGame() {
                       onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{
-                        background: 'linear-gradient(135deg, #3B82F6, #2563EB)',
+                        background: 'linear-gradient(135deg, #00BBFF, #0099DD)',
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -1293,9 +1293,9 @@ export function HumanVsMachineGame() {
 
                     <div className="flex gap-3 mb-4">
                       {/* Human side */}
-                      <div className="flex-1 rounded-xl p-3 border border-blue-500/20 bg-blue-500/5">
+                      <div className="flex-1 rounded-xl p-3 border border-sky-500/20 bg-sky-500/5">
                         <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4 text-blue-400" />
+                          <User className="w-4 h-4 text-sky-400" />
                           <span className="font-display text-xs font-bold text-white">You</span>
                         </div>
                         {!submitted ? (
@@ -1307,7 +1307,7 @@ export function HumanVsMachineGame() {
                             placeholder="Your answer..."
                             autoFocus
                             aria-label="Your answer"
-                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/20 focus:outline-none focus:border-blue-500/50"
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/20 focus:outline-none focus:border-sky-500/50"
                           />
                         ) : (
                           <p className="font-body text-sm text-white/80">{humanAnswer}</p>
@@ -1344,7 +1344,7 @@ export function HumanVsMachineGame() {
                         disabled={!humanAnswer.trim()}
                         className="w-full py-3 rounded-xl font-display font-bold text-sm text-white disabled:opacity-30"
                         style={{
-                          background: 'linear-gradient(135deg, #3B82F6, #2563EB)',
+                          background: 'linear-gradient(135deg, #00BBFF, #0099DD)',
                         }}
                         whileTap={{ scale: 0.95 }}
                       >
@@ -1359,8 +1359,8 @@ export function HumanVsMachineGame() {
                         className="space-y-3"
                       >
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-lg p-2 bg-blue-500/5 border border-blue-500/10">
-                            <p className="font-body text-[9px] text-blue-400 uppercase">Human Advantage</p>
+                          <div className="rounded-lg p-2 bg-sky-500/5 border border-sky-500/10">
+                            <p className="font-body text-[9px] text-sky-400 uppercase">Human Advantage</p>
                             <p className="font-body text-[10px] text-white/50 mt-0.5">
                               {ageBand === 'C' ? challenge.humanAdvantageC : challenge.humanAdvantage}
                             </p>

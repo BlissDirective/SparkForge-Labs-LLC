@@ -26,7 +26,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
-import { Play, RotateCcw, Code2, BookOpen, Bug, ChevronRight, GraduationCap } from 'lucide-react';
+import { Play, RotateCcw, Code2, Bug, ChevronRight, GraduationCap } from 'lucide-react';
 
 type Phase = 'welcome' | 'learn' | 'play';
 type BlockType = 'event' | 'action' | 'logic' | 'loop' | 'function';
@@ -687,9 +687,9 @@ export function CareerExplorerGame() {
 
 ### `npm run dev` — All 4 Games
 
-- **Sort Toy Box** (`/arcade/sort-toy-box`): Chrome bezel (purple), welcome → sort shapes → reveal AI criterion
-- **Human vs Machine** (`/arcade/human-vs-machine`): Chrome bezel (blue), welcome → side-by-side → advantages comparison
-- **Code Blocks** (`/arcade/code-blocks`): Chrome bezel (orange), welcome → learn 4 concepts → 8 challenges with pseudocode panel
+- **Sort Toy Box** (`/arcade/sort-toy-box`): Chrome bezel (Lab 2 `#AA66FF`), welcome → sort shapes → reveal AI criterion
+- **Human vs Machine** (`/arcade/human-vs-machine`): Chrome bezel (Lab 1 `#00BBFF`), welcome → side-by-side → advantages comparison
+- **Code Blocks** (`/arcade/code-blocks`): Chrome bezel (Lab 9 `#F97316` orange), welcome → learn 4 concepts → 8 challenges with pseudocode panel
 - **Career Explorer** (`/arcade/career-explorer`): Chrome bezel (fuchsia), welcome → swipe cards → summary favorites
 
 ### Code Blocks — Flagship-Lite Extras

@@ -119,14 +119,14 @@ export function SortToyBoxGame() {
   }
 
   return (
-    <GameShell gameId="sort-toy-box" title="Sort the Toy Box" worldNumber={2} worldColor="#8B5CF6">
+    <GameShell gameId="sort-toy-box" title="Sort the Toy Box" worldNumber={2} worldColor="#AA66FF">
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
-                background: `radial-gradient(circle, rgba(139,92,246,${0.15 + p.size * 0.06}), rgba(0,0,0,0))` }}
+                background: `radial-gradient(circle, rgba(170,102,255,${0.15 + p.size * 0.06}), rgba(0,0,0,0))` }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
@@ -135,7 +135,7 @@ export function SortToyBoxGame() {
         <div className="relative z-10 flex-1 flex flex-col p-3 md:p-5">
           {/* Chrome bezel */}
           <div className="flex-1 flex flex-col rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(139,92,246,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
+            style={{ border: '1px solid rgba(170,102,255,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
             <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-purple-500/50 to-transparent" />
 
             <div className="flex-1 flex flex-col overflow-auto p-4">
@@ -157,7 +157,7 @@ export function SortToyBoxGame() {
                     </div>
                     <motion.button onClick={() => setPhase('sort')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)' }}
+                      style={{ background: 'linear-gradient(135deg, #AA66FF, #8B5CF6)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       Open the Toy Box! <Boxes className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -208,7 +208,7 @@ export function SortToyBoxGame() {
                     {allGrouped && (
                       <motion.button onClick={revealAI} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                         className="mt-3 w-full py-3 rounded-xl font-display font-bold text-sm text-white"
-                        style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)' }}
+                        style={{ background: 'linear-gradient(135deg, #AA66FF, #8B5CF6)' }}
                         whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         See How AI Sorts! <Brain className="inline w-4 h-4 ml-1" />
                       </motion.button>
@@ -345,14 +345,14 @@ export function HumanVsMachineGame() {
   }
 
   return (
-    <GameShell gameId="human-vs-machine" title="Human vs Machine" worldNumber={1} worldColor="#3B82F6">
+    <GameShell gameId="human-vs-machine" title="Human vs Machine" worldNumber={1} worldColor="#00BBFF">
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
-                background: `radial-gradient(circle, rgba(59,130,246,${0.15 + p.size * 0.06}), rgba(0,0,0,0))` }}
+                background: `radial-gradient(circle, rgba(0,187,255,${0.15 + p.size * 0.06}), rgba(0,0,0,0))` }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
@@ -361,8 +361,8 @@ export function HumanVsMachineGame() {
         <div className="relative z-10 flex-1 flex flex-col p-3 md:p-5">
           {/* Chrome bezel */}
           <div className="flex-1 flex flex-col rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(59,130,246,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
-            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-blue-500/50 to-transparent" />
+            style={{ border: '1px solid rgba(0,187,255,0.15)', boxShadow: '0 2px 40px rgba(0,0,0,0.3)' }}>
+            <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-sky-500/50 to-transparent" />
 
             <div className="flex-1 flex flex-col overflow-auto p-4 items-center justify-center">
               <AnimatePresence mode="wait">
@@ -375,12 +375,12 @@ export function HumanVsMachineGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">Go head-to-head with an AI! See where humans and machines each have advantages.</p>
                     <div className="flex gap-2 justify-center">
                       {['Comparison', 'Strengths', 'Limitations'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-blue-500/10 border border-blue-500/20 font-body text-[10px] text-blue-300">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 font-body text-[10px] text-sky-300">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}
+                      style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       Challenge the AI! <Swords className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -398,16 +398,16 @@ export function HumanVsMachineGame() {
 
                     <div className="flex gap-3 mb-4">
                       {/* Human */}
-                      <div className="flex-1 rounded-xl p-3 border border-blue-500/20 bg-blue-500/5">
+                      <div className="flex-1 rounded-xl p-3 border border-sky-500/20 bg-sky-500/5">
                         <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4 text-blue-400" />
+                          <User className="w-4 h-4 text-sky-400" />
                           <span className="font-display text-xs font-bold text-white">You</span>
                         </div>
                         {!submitted ? (
                           <input type="text" value={humanAnswer} onChange={e => setHumanAnswer(e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleSubmit()}
                             placeholder="Your answer..." autoFocus aria-label="Your answer"
-                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body focus:outline-none focus:border-blue-500/50" />
+                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body focus:outline-none focus:border-sky-500/50" />
                         ) : <p className="font-body text-sm text-white/80">{humanAnswer}</p>}
                       </div>
 
@@ -428,7 +428,7 @@ export function HumanVsMachineGame() {
                     {!submitted && (
                       <motion.button onClick={handleSubmit} disabled={!humanAnswer.trim()}
                         className="w-full py-3 rounded-xl font-display font-bold text-sm text-white disabled:opacity-30"
-                        style={{ background: 'linear-gradient(135deg, #3B82F6, #2563EB)' }}
+                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                         whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                         Submit!
                       </motion.button>
@@ -437,8 +437,8 @@ export function HumanVsMachineGame() {
                     {aiRevealed && (
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-lg p-2 bg-blue-500/5 border border-blue-500/10">
-                            <p className="font-body text-[9px] text-blue-400 uppercase">Human Advantage</p>
+                          <div className="rounded-lg p-2 bg-sky-500/5 border border-sky-500/10">
+                            <p className="font-body text-[9px] text-sky-400 uppercase">Human Advantage</p>
                             <p className="font-body text-[10px] text-white/50 mt-0.5">{ageBand === 'C' ? challenge.humanAdvantageC : challenge.humanAdvantage}</p>
                           </div>
                           <div className="rounded-lg p-2 bg-amber-500/5 border border-amber-500/10">

@@ -178,7 +178,7 @@ function Block3D({
 function TracerLine({
   tracerY,
   totalBlocks,
-  color = '#F59E0B',
+  color = '#F97316',
 }: {
   tracerY: number;
   totalBlocks: number;
@@ -214,7 +214,7 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
     <>
       <ambientLight intensity={0.6} />
       <directionalLight position={[3, 5, 3]} intensity={0.7} castShadow />
-      <pointLight position={[-2, 3, -1]} intensity={0.3} color="#F59E0B" />
+      <pointLight position={[-2, 3, -1]} intensity={0.3} color="#F97316" />
 
       {/* Workspace platform */}
       <mesh
@@ -711,14 +711,14 @@ export function CodeBlocksGame() {
 ```tsx
   // --- JSX ---
   return (
-    <GameShell gameId="code-blocks" title="Code Blocks" worldNumber={9} worldColor="#F59E0B">
+    <GameShell gameId="code-blocks" title="Code Blocks" worldNumber={9} worldColor="#F97316">
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
-                background: `radial-gradient(circle, rgba(245,158,11,${0.15 + p.size * 0.06}), transparent)` }}
+                background: `radial-gradient(circle, rgba(249,115,22,${0.15 + p.size * 0.06}), transparent)` }}
               animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
               transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
@@ -726,8 +726,8 @@ export function CodeBlocksGame() {
 
         <div className="relative z-10 flex-1 flex flex-col p-3 md:p-5">
           <div className="flex-1 flex flex-col rounded-xl overflow-hidden"
-            style={{ border: '1px solid rgba(245,158,11,0.15)',
-              boxShadow: '0 2px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(245,158,11,0.1)' }}>
+            style={{ border: '1px solid rgba(249,115,22,0.15)',
+              boxShadow: '0 2px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(249,115,22,0.1)' }}>
             <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
 
             <div className="flex-1 flex flex-col overflow-auto p-4">
@@ -751,7 +751,7 @@ export function CodeBlocksGame() {
                     </div>
                     <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                      style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       Start Coding! <Code2 className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -786,7 +786,7 @@ export function CodeBlocksGame() {
                     <motion.button
                       onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx((i) => i + 1) : setPhase('play')}
                       className="w-full max-w-xs py-2.5 rounded-xl font-display font-bold text-sm text-white"
-                      style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                      style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
                       whileTap={{ scale: 0.95 }}>
                       {learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Challenges!'}
                       <ChevronRight className="inline w-4 h-4 ml-1" />
@@ -892,7 +892,8 @@ export function CodeBlocksGame() {
                                 background: runIdx === i ? `${block.color}15` : `${block.color}08`,
                                 marginLeft: (block.type === 'action' && i > 0 && ['logic', 'loop'].includes(placed[i-1]?.type)) ? 16 : 0,
                               }}
-                              onClick={() => removeBlock(i)}>
+                              onClick={() => removeBlock(i)}
+                              aria-label={`Remove ${block.label}`}>
                               <span className="font-mono text-[8px] text-white/20">{BLOCK_SHAPES[block.type]}</span>
                               <span className="font-body text-[10px] text-white/60 flex-1">{block.label}</span>
                               {!running && <span className="text-white/10 text-[8px]">✕</span>}
@@ -901,11 +902,11 @@ export function CodeBlocksGame() {
                         </div>
 
                         {/* Run button */}
-                        <motion.button onClick={runCode} disabled={placed.length === 0 || running}
+                        <motion.button onClick={runCode} disabled={placed.length === 0 || running || result === 'correct'}
                           className="mt-2 w-full py-2.5 rounded-xl font-display font-bold text-sm text-white disabled:opacity-30 flex items-center justify-center gap-1"
-                          style={{ background: 'linear-gradient(135deg, #F59E0B, #D97706)' }}
+                          style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
                           whileTap={{ scale: 0.95 }}>
-                          {running ? 'Running...' : result === 'correct' ? 'Next Challenge' : 'Run Code'}
+                          {running ? 'Running...' : 'Run Code'}
                           <Play className="w-4 h-4" />
                         </motion.button>
 
@@ -942,7 +943,7 @@ export function CodeBlocksGame() {
                         </div>
 
                         {/* Terminal */}
-                        <div ref={terminalRef}
+                        <div ref={terminalRef} role="log" aria-live="polite"
                           className="flex-1 rounded-xl bg-black/40 border border-white/10 p-2 overflow-auto max-h-[200px]">
                           <div className="flex gap-1 mb-1">
                             <button onClick={() => setShowPseudo(false)}
