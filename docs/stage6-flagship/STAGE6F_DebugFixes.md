@@ -1,6 +1,10 @@
 # STAGE 6F v3-FINAL — Code Review Debug Fixes Reference
 
-**Date:** March 6, 2026 | **Reviewer:** Claude Code (Code Review Role per CLAUDE.md §3.1)
+## REFERENCE ONLY — NOT A BUILD SOURCE
+
+> **This file is a review log, not a buildable stage document.** It documents fixes that have already been applied to the v3-FINAL Part A/B/C files. Do not copy code from this file — use the v3-FINAL documents directly.
+
+**Date:** March 6, 2026 | **Reviewer:** Claude Code (Code Review Role per CLAUDE.md Section 3.1)
 
 This document catalogs all code fixes applied during the Stage 6F v3-FINAL audit. Each fix is categorized per the Stage Document Modification Policy (AUTO-FIX category).
 

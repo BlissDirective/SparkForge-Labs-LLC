@@ -176,6 +176,65 @@ Review feedback should be practical and actionable — not stylistic nitpicking.
 - Performance issues (N+1 queries, unnecessary re-renders, bundle size)
 - Inconsistencies between stages that would cause integration failures
 
+### 3.2 Superseded Document Policy
+
+When a v3-FINAL document fully replaces a v2 document (or an earlier v3 draft), the outdated file **must be archived** to prevent accidental use of incorrect code. This is a **mandatory step** during every post-.md-creation stage audit.
+
+#### Archive Structure
+
+```
+docs/stageN-name/
+├── _SUPERSEDED/
+│   ├── SUPERSEDED_BY.md        ← Manifest: what replaced what + why
+│   ├── old_file_v2.md          ← Archived (preserved, never used for build)
+│   └── old_draft_v3.md         ← Archived (preserved, never used for build)
+├── ACTIVE_v3FINAL_PartA.md     ← Build source
+├── ACTIVE_v3FINAL_PartB.md     ← Build source
+└── README.md
+```
+
+#### Rules
+
+| Rule | Description |
+|------|-------------|
+| **`_SUPERSEDED/` folder** | Create in any stage directory that contains superseded files. The `_` prefix sorts it first for visibility. |
+| **`git mv` only** | Always use `git mv` to move files — preserves git history. Never copy-delete. |
+| **`SUPERSEDED_BY.md` manifest** | Required in every `_SUPERSEDED/` folder. Must document: superseded file, replacement file, reason, and date. |
+| **DO NOT USE warning** | Manifest must include a prominent warning listing the specific bugs/issues in the superseded code. |
+| **Active documents list** | Manifest must list the correct build-order documents with their game coverage. |
+| **REFERENCE ONLY files** | Debug fix logs, review notes, and other non-buildable documents stay in the main folder but get a `## REFERENCE ONLY — NOT A BUILD SOURCE` header. |
+
+#### When to Archive
+
+Archiving is triggered during these events:
+
+| Trigger | Action |
+|---------|--------|
+| **v3-FINAL submitted that explicitly supersedes v2** | Move v2 to `_SUPERSEDED/`, create manifest |
+| **v3-FINAL split (A/B/C) replaces earlier monolithic v3 draft** | Move draft to `_SUPERSEDED/`, update manifest |
+| **Post-.md-creation audit** (every stage) | Scan for any files whose code is fully covered by newer documents. Archive if confirmed. |
+| **Store API or pattern audit reveals unfixed files** | If a superseded file contains known bugs (e.g., `game.addScore`) and will never be fixed, archive it |
+
+#### Verification Before Archiving
+
+Before moving any file to `_SUPERSEDED/`, verify:
+
+1. **Every game file** created by the old document is also created (or replaced) by the new document
+2. **All game features** (phases, age bands, ARIA labels, particles, chrome bezel) are present in the replacement
+3. **The new document uses correct store API** (`updateScore`, `advanceRound`, `startGame`, `completeGame`)
+4. **No unique code exists** in the old file that isn't covered by the new one
+
+If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), the v2 is **NOT superseded** — it remains a prerequisite. Example: Stage 6D v3-FINAL adds 3D to the v2 base game, so both are required.
+
+#### Current Archive Status
+
+| Stage | Archived Files | Active Files |
+|-------|---------------|-------------|
+| 7B | 3 files → `_SUPERSEDED/` | `v3FINAL_PartA`, `v3FINAL_PartB`, `v3FINAL_PartC` |
+| 7C | 3 files → `_SUPERSEDED/` | `Part1` (v2), `Part2` (v2), `v3FINAL_PartA`, `v3FINAL_PartB`, `v3FINAL_PartC` |
+| 6F | 0 (DebugFixes marked REFERENCE ONLY) | `v3FINAL_A`, `v3FINAL_B`, `v3FINAL_C`, `DebugFixes` (ref) |
+| 6D | 0 (v2 is prerequisite, not superseded) | `v2_PromptLab`, `v2_Enhancements`, `v3FINAL_PartA`, `v3FINAL_PartB` |
+
 ---
 
 ## 4. BUILD EXECUTION PLAN
