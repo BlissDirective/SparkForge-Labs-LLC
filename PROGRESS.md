@@ -228,6 +228,11 @@
 | 20A | STAGE7E Part 1 | `BookOpen` import in EthicsCourtroomGame | Imported but never used | Removed unused import |
 | 20A | STAGE7E Part 1 | `showVerdict` state in EthicsCourtroomGame | State set but never read (verdict controlled by `trialStep`) | Removed redundant state entirely |
 | 20A | STAGE7E Part 1 | Source doc heavily truncated/corrupted | Many strings, objects, JSX cut mid-line | Reconstructed complete code from context and patterns |
+| 20B | STAGE7E Part 2 | `game.addScore()` | Method doesn't exist — correct API is `game.updateScore()` | Replaced in ApiExplorerGame |
+| 20B | STAGE7E Part 2 | `game.nextRound()` | Method doesn't exist — correct API is `game.advanceRound()` | Replaced in ApiExplorerGame |
+| 20B | STAGE7E Part 2 | `BookOpen` import in ApiExplorerGame | Imported but never used | Removed unused import |
+| 20B | STAGE7E Part 2 | `ChevronRight` import in source | Imported but never used in source | Not included in reconstructed code |
+| 20B | STAGE7E Part 2 | Source doc heavily truncated/corrupted | JSX, objects, strings cut mid-line | Reconstructed complete code from context and patterns |
 
 ---
 
