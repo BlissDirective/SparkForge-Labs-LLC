@@ -42,18 +42,21 @@ Two complete standalone game file replacements with v3 3D integration:
 ## v3 Integration Pattern (consistent across all game files)
 
 ```typescript
-// 1. Dynamic import
+// 1. Dynamic import with loading fallback [ENH-1]
 import dynamic from 'next/dynamic';
-const Component3D = dynamic(() => import('@/components/3d/...'), { ssr: false });
+const Component3D = dynamic(() => import('@/components/3d/...'), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-32 rounded-xl bg-[labColor]/5 animate-pulse
+      flex items-center justify-center">
+      <span className="text-[labColor]/30 text-xs font-body">Loading 3D…</span>
+    </div>
+  ),
+});
 
-// 2. Mobile detection
-const [isMobile, setIsMobile] = useState(false);
-useEffect(() => {
-  const check = () => setIsMobile(window.innerWidth < 768);
-  check();
-  window.addEventListener('resize', check);
-  return () => window.removeEventListener('resize', check);
-}, []);
+// 2. Mobile detection — shared hook [ENH-2]
+import { useIsMobile } from '@/hooks/useIsMobile';
+const isMobile = useIsMobile();
 
 // 3. Render above game UI in play phase
 {!isMobile && <Component3D ...props isMobile={isMobile} />}
@@ -84,20 +87,28 @@ useEffect(() => {
 // 9. [v3] 3D isometric room on desktop (RobotVacuum3D)
 // ================================================================
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import {
   Play, Plus, Trash2, RotateCcw, BookOpen, Zap, Award,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// [v3] Dynamic import — SSR disabled for R3F
+// [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
 const RobotVacuum3D = dynamic(
   () => import('@/components/3d/RobotVacuum3D'),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-32 rounded-xl bg-emerald-500/5 animate-pulse flex items-center justify-center">
+        <span className="text-emerald-400/30 text-xs font-body">Loading 3D…</span>
+      </div>
+    ),
+  }
 );
 
 type Phase = 'welcome' | 'learn' | 'play';
@@ -248,14 +259,8 @@ export function RobotVacuumGame() {
   const [showResults, setShowResults] = useState(false);
   const [trail, setTrail] = useState<string[]>([]);
 
-  // [v3] Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
+  // [v3] Mobile detection — shared hook [ENH-2]
+  const isMobile = useIsMobile();
 
   const room = ROOMS[roomIdx];
 
@@ -832,6 +837,20 @@ export function RobotVacuumGame() {
                               steps.
                             </p>
                           )}
+                          {/* [ENH-3] Edit Rules — reset simulation, keep rules for iterative learning */}
+                          <button
+                            onClick={() => {
+                              setCleaned(new Set());
+                              setTrail([]);
+                              setStepCount(0);
+                              setShowResults(false);
+                              setVacPos(room.charger);
+                              setVacDir(0);
+                            }}
+                            className="mt-2 w-full py-1.5 rounded-lg border border-emerald-500/20 text-emerald-400/60 font-body text-[10px] hover:bg-emerald-500/5 hover:text-emerald-400 transition-colors flex items-center justify-center gap-1"
+                          >
+                            <RotateCcw className="w-2.5 h-2.5" /> Edit Rules &amp; Retry
+                          </button>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -912,20 +931,28 @@ export function RobotVacuumGame() {
 // 8. [v3] 3D polaroid cards + confidence gauge on desktop
 // ================================================================
 
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import {
   Camera, Check, X, BookOpen, Eye, Lock, Star, Sparkles,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// [v3] Dynamic import — SSR disabled for R3F
+// [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
 const CameraQuest3D = dynamic(
   () => import('@/components/3d/CameraQuest3D'),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-32 rounded-xl bg-cyan-500/5 animate-pulse flex items-center justify-center">
+        <span className="text-cyan-400/30 text-xs font-body">Loading 3D…</span>
+      </div>
+    ),
+  }
 );
 
 type Phase = 'welcome' | 'learn' | 'hunt';
@@ -1084,14 +1111,8 @@ export function CameraQuestGame() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // [v3] Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
+  // [v3] Mobile detection — shared hook [ENH-2]
+  const isMobile = useIsMobile();
 
   // Filter items by age band
   const items = useMemo(() => {

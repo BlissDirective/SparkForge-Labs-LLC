@@ -96,20 +96,28 @@
 // [v3] 3D blueprint table + skill orbs + holographic patent on desktop
 // ================================================================
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useIsMobile } from '@/hooks/useIsMobile';
 import {
   BookOpen, Lightbulb, Rocket, Star, Award, Sparkles,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
-// [v3] Dynamic import — SSR disabled for R3F
+// [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
 const FutureForge3D = dynamic(
   () => import('@/components/3d/FutureForge3D'),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-32 rounded-xl bg-fuchsia-500/5 animate-pulse flex items-center justify-center">
+        <span className="text-fuchsia-400/30 text-xs font-body">Loading 3D…</span>
+      </div>
+    ),
+  }
 );
 
 type Phase = 'welcome' | 'learn' | 'build';
@@ -237,14 +245,8 @@ export function FutureForgeGame() {
   const [desc, setDesc] = useState('');
   const [skills, setSkills] = useState<Set<string>>(new Set());
 
-  // [v3] Mobile detection
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
+  // [v3] Mobile detection — shared hook [ENH-2]
+  const isMobile = useIsMobile();
 
   const innovation = useMemo(() => {
     const ns = Math.min(20, name.length * 2);
@@ -516,6 +518,7 @@ export function FutureForgeGame() {
                               </div>
                             ))}
                           </div>
+                          {/* [ENH-4] Problem grid with descA/descC descriptions */}
                           <div className="grid grid-cols-2 gap-2">
                             {PROBLEMS.map((p) => (
                               <motion.button
@@ -525,7 +528,7 @@ export function FutureForgeGame() {
                                   setProblemEmoji(p.emoji);
                                   setStep(1);
                                 }}
-                                className="py-3 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-fuchsia-500/5 hover:border-fuchsia-500/20 transition-colors"
+                                className="py-3 px-2 rounded-xl border border-white/10 bg-white/[0.02] hover:bg-fuchsia-500/5 hover:border-fuchsia-500/20 transition-colors"
                                 whileTap={{ scale: 0.95 }}
                               >
                                 <span className="text-2xl block">
@@ -533,6 +536,9 @@ export function FutureForgeGame() {
                                 </span>
                                 <p className="font-display text-xs font-bold text-white mt-1">
                                   {p.label}
+                                </p>
+                                <p className="font-body text-[8px] text-white/25 mt-0.5 leading-tight">
+                                  {ageBand === 'C' ? p.descC : p.descA}
                                 </p>
                               </motion.button>
                             ))}

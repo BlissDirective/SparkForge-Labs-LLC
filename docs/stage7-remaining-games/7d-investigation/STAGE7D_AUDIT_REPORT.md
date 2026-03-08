@@ -238,60 +238,29 @@ The 5 Stage 7D game files do not yet exist — they will be created during the b
 
 ---
 
-## 7. ENHANCEMENT PROPOSALS (For User Consideration)
+## 7. ENHANCEMENT PROPOSALS — APPROVED & IMPLEMENTED
 
-These are potential improvements identified during the audit. Per CLAUDE.md §3.1, structural changes require approval.
+All 4 enhancements approved by user on March 8, 2026. Full implementation details in `STAGE7D_ENHANCEMENTS.md`.
 
-### 7.1 Loading Fallback for FL-Lite 3D Components
+### 7.1 ENH-1: Loading Fallback for FL-Lite 3D Components — IMPLEMENTED ✓
 
-**Current:** FL-Lite games use bare `{ ssr: false }` for dynamic imports.
-**Proposal:** Add loading placeholders matching each game's theme:
-```tsx
-const RobotVacuum3D = dynamic(
-  () => import('@/components/3d/RobotVacuum3D'),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-[220px] rounded-xl bg-emerald-500/5 animate-pulse" />
-    ),
-  }
-);
-```
-**Impact:** Prevents brief layout shift during 3D load. ~3 lines per game.
-**Severity:** Low — nice to have.
+Added themed shimmer placeholders to all 3 FL-Lite dynamic imports (emerald/cyan/fuchsia).
+**Applied to:** Part B (RobotVacuum, CameraQuest), Part C (FutureForge)
 
-### 7.2 Shared `useIsMobile` Hook
+### 7.2 ENH-2: Shared `useIsMobile` Hook — IMPLEMENTED ✓
 
-**Current:** Each FL-Lite game duplicates 7 lines for mobile detection.
-**Proposal:** Extract to `src/hooks/useIsMobile.ts` (already referenced in CLAUDE.md §7):
-```tsx
-export function useIsMobile(breakpoint = 768) {
-  const [m, setM] = useState(false);
-  useEffect(() => {
-    const check = () => setM(window.innerWidth < breakpoint);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, [breakpoint]);
-  return m;
-}
-```
-**Impact:** Reduces duplication across 19+ game files (all FL-Lite and flagship games).
-**Severity:** Low — pattern works fine duplicated, but a shared hook would be cleaner.
+Created `src/hooks/useIsMobile.ts` wrapping existing `useMediaQuery` hook. Replaced inline 7-line mobile detection in all 3 FL-Lite games.
+**Applied to:** Part B (RobotVacuum, CameraQuest), Part C (FutureForge) + new hook file
 
-### 7.3 Robot Vacuum: Back Button for Rules
+### 7.3 ENH-3: Robot Vacuum "Edit Rules & Retry" Button — IMPLEMENTED ✓
 
-**Current:** Players can't go back to edit rules after simulation runs. They must "Reset" (which clears results but keeps rules) or proceed.
-**Proposal:** Add a "Edit Rules" button in the results panel that resets the simulation but keeps rules, giving players the ability to iterate and improve their rule set before moving to the next room.
-**Impact:** Better learning loop — iterative design is a key AI concept.
-**Severity:** Low — game functions fine without it.
+Added button inside results panel that resets simulation state (cleaned, trail, steps, position) while preserving rules for iterative learning.
+**Applied to:** Part B (RobotVacuum)
 
-### 7.4 Future Forge: Age-Band A Problem Descriptions
+### 7.4 ENH-4: Future Forge Problem Descriptions — IMPLEMENTED ✓
 
-**Current:** Problem buttons show `descA`/`descC` in the PROBLEMS array, but the problem selection grid only shows the label — it doesn't use `descA`/`descC` anywhere.
-**Proposal:** Show `ageBand === 'C' ? p.descC : p.descA` below each problem label in the grid.
-**Impact:** Utilizes existing data, provides age-appropriate context.
-**Severity:** Low — minor UX improvement.
+Added `descA`/`descC` text below each problem label in the selection grid, using existing data from PROBLEMS array.
+**Applied to:** Part C (FutureForge)
 
 ---
 
@@ -301,10 +270,13 @@ export function useIsMobile(breakpoint = 768) {
 |---|----------|------|--------|
 | 1 | Part 1 | `STAGE7D_Part1_PixelInvestigator_FoolTheAI.md` | ✓ Complete, code-reviewed |
 | 2 | Part A | `STAGE7D_v3FINAL_PartA_3D_Components.md` | ✓ Complete, code-reviewed |
-| 3 | Part B | `STAGE7D_v3FINAL_PartB_RobotVacuum_CameraQuest.md` | ✓ Complete, code-reviewed |
-| 4 | Part C | `STAGE7D_v3FINAL_PartC_FutureForge_Registry_Verification.md` | ✓ Complete, code-reviewed |
+| 3 | Part B | `STAGE7D_v3FINAL_PartB_RobotVacuum_CameraQuest.md` | ✓ Complete, code-reviewed + ENH-1,2,3 |
+| 4 | Part C | `STAGE7D_v3FINAL_PartC_FutureForge_Registry_Verification.md` | ✓ Complete, code-reviewed + ENH-1,2,4 |
+| 5 | Audit | `STAGE7D_AUDIT_REPORT.md` | ✓ Complete |
+| 6 | Enhancements | `STAGE7D_ENHANCEMENTS.md` | ✓ Complete (4 enhancements implemented) |
 
 **Total auto-fixes applied across all 4 documents: 29**
+**Total enhancements implemented: 4 (see STAGE7D_ENHANCEMENTS.md)**
 **Total lines of game code documented: ~2,660**
 **Total lines of 3D component code documented: ~900**
 
