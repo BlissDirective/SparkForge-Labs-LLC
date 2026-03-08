@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: 13A — Stage 6E Part A — Agent Pipeline 3D (v3-FINAL)
-## Status: COMPLETE
-## Last Updated: 2026-03-05
+## Current Phase: 20A — Stage 7E Part 1 — Ethics Courtroom + Build a Classifier
+## Status: IN PROGRESS (awaiting remaining 7E documents)
+## Last Updated: 2026-03-08
 
 ---
 
@@ -46,7 +46,8 @@
 | 17 | Stage 7C — 4 Simulation games (v2) | ⬜ | — | — | — |
 | 18 | Stage 7C — 2 Simulation games (v3) | ⬜ | — | — | — |
 | 19 | Stage 7D — 5 Investigation games | ⬜ | — | — | — |
-| 20 | Stage 7E — 3 Ethics/API games | ⬜ | — | — | — |
+| 20A | Stage 7E Part 1 — Ethics Courtroom + Build a Classifier | ✅ | Stage 7E P1 | — | — |
+| 20B | Stage 7E Part 2+ — Remaining 7E games (awaiting docs) | ⬜ | — | — | — |
 | 21 | Stage 7F — 3 Band A games | ⬜ | — | — | — |
 | 22 | Stage 7 Shared — Particles + XP | ⬜ | — | — | — |
 | — | **Stage 7 Visual Checkpoint** | ⬜ | — | v0.7.0 | ⬜ |
@@ -222,6 +223,11 @@
 | 2 | Stage 1 Part 2 | childStore.ts per spec | Existing version has updateLevel(level,title) + clearChild() | Kept richer version, added missing updateAvatarConfig method |
 | 2 | Stage 1 Part 2 | middleware.ts per spec | Existing uses getUser (more secure than getSession) | Kept existing — functionally equivalent, more secure approach |
 | 2 | Stage 1 Part 2 | supabase/server.ts per spec (uses any) | Existing uses CookieOptions type | Kept existing — cleaner typing, functionally identical |
+| 20A | STAGE7E Part 1 | `game.addScore()` | Method doesn't exist — correct API is `game.updateScore()` | Replaced all instances in both games |
+| 20A | STAGE7E Part 1 | `game.nextRound()` | Method doesn't exist — correct API is `game.advanceRound()` | Replaced all instances in both games |
+| 20A | STAGE7E Part 1 | `BookOpen` import in EthicsCourtroomGame | Imported but never used | Removed unused import |
+| 20A | STAGE7E Part 1 | `showVerdict` state in EthicsCourtroomGame | State set but never read (verdict controlled by `trialStep`) | Removed redundant state entirely |
+| 20A | STAGE7E Part 1 | Source doc heavily truncated/corrupted | Many strings, objects, JSX cut mid-line | Reconstructed complete code from context and patterns |
 
 ---
 
