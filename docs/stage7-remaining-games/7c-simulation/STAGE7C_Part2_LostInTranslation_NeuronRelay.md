@@ -17,7 +17,7 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -106,6 +106,10 @@ export function LostInTranslationGame() {
   const [step, setStep] = useState(-1);
 
   const rounds = useMemo(() => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]), [ageBand]);
+
+  // Initialize game store
+  useEffect(() => { game.startGame("lost-in-translation", rounds.length); }, [rounds.length]);
+
   const round = rounds[idx];
   const allRevealed = step >= round?.steps.length;
 
@@ -116,8 +120,8 @@ export function LostInTranslationGame() {
 
   function reveal() {
     if (allRevealed) {
-      game.addScore(10);
-      if (idx < rounds.length - 1) { setIdx(i => i + 1); setStep(-1); game.nextRound(); }
+      game.updateScore(10);
+      if (idx < rounds.length - 1) { setIdx(i => i + 1); setStep(-1); game.advanceRound(); }
       else game.completeGame();
     } else { setStep(s => s + 1); }
   }
@@ -201,6 +205,7 @@ export function LostInTranslationGame() {
                     )}
 
                     <motion.button onClick={reveal}
+                      aria-label={allRevealed ? (idx < rounds.length - 1 ? 'Next phrase' : 'Finish game') : 'Reveal next translation step'}
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -235,7 +240,7 @@ export function LostInTranslationGame() {
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -262,6 +267,9 @@ export function NeuronRelayGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
+  // Initialize game store
+  useEffect(() => { game.startGame("neuron-relay", PUZZLES.length); }, []);
+
   const [phase, setPhase] = useState<Phase>('welcome');
   const [pi, setPi] = useState(0);
   const p = PUZZLES[pi];
@@ -283,14 +291,14 @@ export function NeuronRelayGame() {
   function test() {
     setResult(inRange ? 'pass' : 'fail');
     if (inRange) {
-      game.addScore(10);
+      game.updateScore(10);
       setTimeout(() => {
         if (pi < PUZZLES.length - 1) {
           const next = pi + 1;
           setPi(next);
           setNeurons(Array.from({ length: PUZZLES[next].n }, (_, i) => ({ id: i, on: false, vol: 50 })));
           setResult('none'); setShowHint(false);
-          game.nextRound();
+          game.advanceRound();
         } else game.completeGame();
       }, 1500);
     }
@@ -395,9 +403,9 @@ export function NeuronRelayGame() {
                     {showHint && (
                       <p className="font-body text-[10px] text-pink-300/50 text-center mb-2">💡 {p.hint}</p>
                     )}
-                    {!showHint && <button onClick={() => setShowHint(true)} className="block mx-auto font-body text-[10px] text-white/20 hover:text-white/40 mb-2">Need a hint?</button>}
+                    {!showHint && <button onClick={() => setShowHint(true)} aria-label="Show hint for this puzzle" className="block mx-auto font-body text-[10px] text-white/20 hover:text-white/40 mb-2">Need a hint?</button>}
 
-                    <motion.button onClick={test}
+                    <motion.button onClick={test} aria-label="Test neural signal output"
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white flex items-center justify-center gap-2"
                       style={{ background: 'linear-gradient(135deg, #EC4899, #DB2777)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>

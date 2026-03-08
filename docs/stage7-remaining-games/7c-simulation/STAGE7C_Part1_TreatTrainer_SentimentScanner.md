@@ -18,7 +18,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -31,6 +31,7 @@ const SIZE = 7;
 const WALLS: [number, number][] = [[1,1],[1,2],[2,4],[3,1],[3,3],[4,5],[5,2],[5,3]];
 const START: [number, number] = [0, 0];
 const GOAL: [number, number] = [6, 6];
+const TOTAL_EPISODES = 10;
 
 const isWall = (r: number, c: number) => WALLS.some(([wr, wc]) => wr === r && wc === c);
 
@@ -38,6 +39,9 @@ export function TreatTrainerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+
+  // Initialize game store
+  useEffect(() => { game.startGame("treat-trainer", TOTAL_EPISODES); }, []);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [rewards, setRewards] = useState({ toward: 3, away: -2, wall: -5, goal: 10 });
@@ -92,8 +96,8 @@ export function TreatTrainerGame() {
 
     setHistory(prev => [...prev, steps]);
     setEpisode(e => e + 1);
-    game.addScore(5);
-    game.nextRound();
+    game.updateScore(5);
+    game.advanceRound();
     setRunning(false);
     if (episode >= 9) game.completeGame();
   }, [rewards, episode, game]);
@@ -243,7 +247,7 @@ export function TreatTrainerGame() {
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -281,6 +285,9 @@ export function SentimentScannerGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
+  // Initialize game store
+  useEffect(() => { game.startGame("sentiment-scanner", CHALLENGES.length); }, []);
+
   const [phase, setPhase] = useState<Phase>('welcome');
   const [text, setText] = useState('');
   const [ci, setCi] = useState(0);
@@ -301,8 +308,8 @@ export function SentimentScannerGame() {
     const ok = c.check(score, wordCount, hl);
     if (ok && !done.has(ci)) {
       setDone(p => new Set(p).add(ci));
-      game.addScore(15);
-      game.nextRound();
+      game.updateScore(15);
+      game.advanceRound();
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);

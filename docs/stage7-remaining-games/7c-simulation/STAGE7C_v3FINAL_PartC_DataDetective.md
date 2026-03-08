@@ -91,9 +91,10 @@ import { GameShell } from "@/components/game/GameShell";
 import { useGameStore } from "@/stores/gameStore";
 import { useChildStore } from "@/stores/childStore";
 import {
-  Trash2, Wrench, Search, BarChart3, BookOpen, AlertTriangle,
-  CheckCircle2, Eye, Shield, Award, FileText,
+  Trash2, Wrench, Search, BarChart3, BookOpen,
+  CheckCircle2, Eye, Award, FileText,
 } from "lucide-react";
+import { Canvas3DErrorBoundary } from "@/components/3d/Canvas3DErrorBoundary";
 
 // [v3] Dynamic import for 3D investigation desk (no SSR)
 const DataDetective3D = dynamic(
@@ -178,7 +179,9 @@ const DATASETS: Dataset[] = [
       { id: 7, cells: { name: "Eve", age: "10", score: "" }, issue: "missing", issueCol: "score", fixedValue: "75",
         issueDesc: "Score is empty! AI can't learn patterns without the answer data.",
         issueDescC: "Missing target variable (score). This row is unusable for supervised learning." },
-      { id: 8, cells: { name: "Frank", age: "11", score: "78" } },
+      { id: 8, cells: { name: "Farnk", age: "11", score: "78" }, issue: "typo", issueCol: "name", fixedValue: "Frank",
+        issueDesc: "\"Farnk\" looks like a typo! Did they mean \"Frank\"?",
+        issueDescC: "Typographical error in text field. Fuzzy matching suggests 'Frank' (edit distance: 1)." },
       { id: 9, cells: { name: "Grace", age: "-5", score: "92" }, issue: "outlier", issueCol: "age", fixedValue: "12",
         issueDesc: "Negative age?! Ages can't be below zero.",
         issueDescC: "Domain constraint violation: age ∈ ℕ⁺. Negative value indicates sign error." },
@@ -216,7 +219,9 @@ const DATASETS: Dataset[] = [
       { id: 107, cells: { name: "Mittens", age: "200", species: "Cat" }, issue: "outlier", issueCol: "age", fixedValue: "2",
         issueDesc: "A 200-year-old cat?! Cats live about 15-20 years max.",
         issueDescC: "Biologically implausible: cat lifespan < 30 years." },
-      { id: 108, cells: { name: "Rocky", age: "7", species: "Dog" } },
+      { id: 108, cells: { name: "Rocky", age: "7", species: "Dgo" }, issue: "typo", issueCol: "species", fixedValue: "Dog",
+        issueDesc: "\"Dgo\" isn't a real species! It should be \"Dog\".",
+        issueDescC: "Typographical error in categorical field. Causes cardinality inflation in category encoding." },
       { id: 109, cells: { name: "Bella", age: "2", species: "Rabbit" } },
     ],
   },
@@ -245,7 +250,9 @@ const DATASETS: Dataset[] = [
       { id: 207, cells: { date: "Sat", temp: "19", humidity: "-20" }, issue: "outlier", issueCol: "humidity", fixedValue: "48",
         issueDesc: "Negative humidity?! That's physically impossible.",
         issueDescC: "Physical constraint violation: humidity ∈ [0,100]%." },
-      { id: 208, cells: { date: "Sun", temp: "23", humidity: "50" } },
+      { id: 208, cells: { date: "Snu", temp: "23", humidity: "50" }, issue: "typo", issueCol: "date", fixedValue: "Sun",
+        issueDesc: "\"Snu\" isn't a day! It should be \"Sun\" for Sunday.",
+        issueDescC: "Typographical error in temporal field. Prevents correct chronological ordering." },
     ],
   },
 ];
@@ -336,7 +343,7 @@ function MiniHistogram({ values, highlightValue, label, issueType }: {
 }
 
 // --- Accuracy Gauge ---
-function AccuracyGauge({ accuracy, worldColor }: { accuracy: number; worldColor: string }) {
+function AccuracyGauge({ accuracy }: { accuracy: number }) {
   const angle = (accuracy / 100) * 180 - 90;
   const gaugeColor = accuracy >= 85 ? "#10B981" : accuracy >= 70 ? "#F59E0B" : "#EF4444";
 
@@ -381,6 +388,9 @@ export function DataDetectiveGame() {
   const [caseOpening, setCaseOpening] = useState(false);
   const [lastFixedRow, setLastFixedRow] = useState<number | null>(null); // [v3]
 
+  // Initialize game store
+  useEffect(() => { game.startGame("data-detective", DATASETS.length); }, []);
+
   const dataset = DATASETS[datasetIdx];
   const totalIssues = rows.filter((d) => d.issue).length;
   const fixedCount = rows.filter((d) => d.fixed || d.del).length;
@@ -408,16 +418,16 @@ export function DataDetectiveGame() {
         }
         return updated;
       }));
-      game.addScore(8);
+      game.updateScore(8);
     }, 600);
   }, [game]);
 
   const del = useCallback((id: number) => {
     setRows((p) => p.map((d) => (d.id === id ? { ...d, del: true } : d)));
-    game.addScore(5);
+    game.updateScore(5);
   }, [game]);
 
-  function compare() { setShowResults(true); game.addScore(15); }
+  function compare() { setShowResults(true); game.updateScore(15); }
 
   function nextDataset() {
     if (datasetIdx >= DATASETS.length - 1) { game.completeGame(); return; }
@@ -428,7 +438,7 @@ export function DataDetectiveGame() {
       setRows(DATASETS[next].rows.map((d) => ({ ...d })));
       setShowResults(false); setSelectedRow(null); setMicroscopeCol(null);
       setCaseOpening(false); setLastFixedRow(null); // [v3]
-      game.nextRound();
+      game.advanceRound();
     }, 800);
   }
 
@@ -540,15 +550,16 @@ export function DataDetectiveGame() {
 
                     {/* [v3] 3D Investigation Desk (desktop only) */}
                     {!isMobile && (
-                      <DataDetective3D
-                        selectedRow={selectedRow}
-                        totalRows={rows.length}
-                        fixedRows={fixedRows}
-                        deletedRows={deletedRows}
-                        lastFixedRow={lastFixedRow}
-                        worldColor="#8B5CF6"
-                        isMobile={isMobile}
-                      />
+                      <Canvas3DErrorBoundary>
+                        <DataDetective3D
+                          selectedRow={selectedRow}
+                          totalRows={rows.length}
+                          fixedRows={fixedRows}
+                          deletedRows={deletedRows}
+                          lastFixedRow={lastFixedRow}
+                          worldColor="#8B5CF6"
+                        />
+                      </Canvas3DErrorBoundary>
                     )}
 
                     {/* Data table */}
@@ -680,7 +691,7 @@ export function DataDetectiveGame() {
                       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                         className="rounded-xl p-4 border border-purple-500/15 bg-purple-500/[0.03]">
                         <p className="font-display text-sm font-bold text-white text-center mb-2">Accuracy Analysis</p>
-                        <AccuracyGauge accuracy={accuracy} worldColor="#8B5CF6" />
+                        <AccuracyGauge accuracy={accuracy} />
                         <div className="flex gap-4 mt-3 mb-2">
                           {[{ label: "Before", pct: 62, color: "#EF4444" }, { label: "After", pct: accuracy, color: "#10B981" }].map((b) => (
                             <div key={b.label} className="flex-1 text-center">

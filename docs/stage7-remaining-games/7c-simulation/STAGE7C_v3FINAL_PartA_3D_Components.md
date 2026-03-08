@@ -35,6 +35,7 @@
 |--------|------|-------|
 | NEW | `src/components/3d/ChatbotNodes3D.tsx` | ~300 |
 | NEW | `src/components/3d/DataDetective3D.tsx` | ~300 |
+| NEW | `src/components/3d/Canvas3DErrorBoundary.tsx` | ~35 |
 
 **PREREQUISITES:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure) must be complete.
 **SUPERSEDES:** No prior 3D components exist for these games (v2 was CSS/SVG only).
@@ -135,10 +136,13 @@ This component renders a 3D representation of the chatbot conversation tree. It 
 // ================================================================
 
 import { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, invalidate } from "@react-three/fiber";
 import { Text, Environment } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
+
+// Scratch vector to avoid per-frame allocations (BUG-M1 fix)
+const _scratchVec3 = new THREE.Vector3();
 
 // ■■■ Types ■■■
 
@@ -256,10 +260,9 @@ function NodeSphere({
       delta * 4
     );
     const targetScale = isHovered ? 1.15 : 1.0;
-    meshRef.current.scale.lerp(
-      new THREE.Vector3(targetScale, targetScale, targetScale),
-      delta * 6
-    );
+    _scratchVec3.set(targetScale, targetScale, targetScale);
+    meshRef.current.scale.lerp(_scratchVec3, delta * 6);
+    invalidate(); // Request next frame (frameloop="demand")
   });
 
   return (
@@ -280,7 +283,7 @@ function NodeSphere({
       <Text
         position={[0, -0.42, 0]}
         fontSize={0.12}
-        color="rgba(255,255,255,0.4)"
+        color="#666666"
         anchorX="center"
         anchorY="top"
         outlineWidth={0.005}
@@ -347,12 +350,18 @@ function ConnectionTube({
     return new THREE.TubeGeometry(curve, 12, 0.02, 6, false);
   }, [curve]);
 
+  // Dispose geometry on unmount to prevent GPU memory leaks (BUG-M3 fix)
+  useEffect(() => {
+    return () => { geometry.dispose(); };
+  }, [geometry]);
+
   useFrame((_, delta) => {
     if (!tubeRef.current) return;
     const mat = tubeRef.current.material as THREE.MeshStandardMaterial;
     const targetOpacity = isActive ? 0.9 : 0.3;
     mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOpacity, delta * 4);
     mat.emissiveIntensity = isActive ? 0.6 : 0.1;
+    invalidate();
   });
 
   return (
@@ -399,6 +408,7 @@ function MessagePulse({
       from[1] + (to[1] - from[1]) * t,
       from[2] + (to[2] - from[2]) * t + Math.sin(t * Math.PI) * 0.2
     );
+    invalidate();
   });
 
   return (
@@ -567,7 +577,7 @@ This component renders a 3D investigation desk scene for the Data Detective game
 // ================================================================
 
 import { useRef, useMemo, useState, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas, useFrame, invalidate } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
@@ -596,7 +606,7 @@ function MagnifyingGlass({
   const groupRef = useRef<THREE.Group>(null);
   const currentY = useRef(0);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
     currentY.current = THREE.MathUtils.lerp(
       currentY.current,
@@ -604,11 +614,11 @@ function MagnifyingGlass({
       delta * 3
     );
     groupRef.current.position.y = currentY.current;
-    // Gentle bob animation
-    groupRef.current.position.x =
-      Math.sin(Date.now() * 0.001) * 0.05;
-    groupRef.current.rotation.z =
-      Math.sin(Date.now() * 0.0008) * 0.03;
+    // Gentle bob animation (uses R3F clock instead of Date.now — LOW-1 fix)
+    const t = clock.getElapsedTime();
+    groupRef.current.position.x = Math.sin(t) * 0.05;
+    groupRef.current.rotation.z = Math.sin(t * 0.8) * 0.03;
+    invalidate();
   });
 
   return (
@@ -738,7 +748,11 @@ function FixParticles({
       .array as Float32Array;
     let anyAlive = false;
     for (let i = 0; i < 20; i++) {
-      if (lifetimes.current[i] <= 0) continue;
+      if (lifetimes.current[i] <= 0) {
+        // Move dead particles offscreen (BUG-M4 fix)
+        posArr[i * 3 + 1] = -100;
+        continue;
+      }
       anyAlive = true;
       lifetimes.current[i] -= delta * 1.5;
       posArr[i * 3] += velocities.current[i * 3] * delta;
@@ -747,7 +761,11 @@ function FixParticles({
       // Gravity
       velocities.current[i * 3 + 1] -= delta * 2;
     }
-    pointsRef.current.geometry.attributes.position.needsUpdate = true;
+    // Only flag needsUpdate when particles are alive (LOW-2 fix)
+    if (anyAlive) {
+      pointsRef.current.geometry.attributes.position.needsUpdate = true;
+      invalidate();
+    }
     const mat = pointsRef.current.material as THREE.PointsMaterial;
     mat.opacity = anyAlive ? 0.8 : 0;
   });
@@ -814,6 +832,7 @@ function EvidenceCard({
     mat.opacity = isDeleted
       ? THREE.MathUtils.lerp(mat.opacity, 0.2, delta * 3)
       : THREE.MathUtils.lerp(mat.opacity, 0.7, delta * 3);
+    invalidate();
   });
 
   const cardColor = isFixed
@@ -951,11 +970,72 @@ export default function DataDetective3D(props: DataDetective3DProps) {
 
 ---
 
+## FILE 3: `src/components/3d/Canvas3DErrorBoundary.tsx` (NEW — Enhancement D — ~35 lines)
+
+Reusable error boundary for all 3D Canvas components. If WebGL context fails or Three.js throws, gracefully hides the 3D scene instead of crashing the entire game.
+
+```tsx
+"use client";
+
+// ================================================================
+// CANVAS 3D ERROR BOUNDARY — Enhancement D
+// Catches WebGL/Three.js errors and gracefully hides 3D content.
+// Wrap around any dynamic-imported 3D component.
+// ================================================================
+
+import { Component, type ReactNode } from "react";
+
+interface Props {
+  children: ReactNode;
+  fallback?: ReactNode;
+}
+
+interface State {
+  hasError: boolean;
+}
+
+export class Canvas3DErrorBoundary extends Component<Props, State> {
+  constructor(props: Props) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): State {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error) {
+    // Log but don't crash — 3D is non-essential
+    console.warn("[SparkForge 3D] WebGL/Three.js error caught:", error.message);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback ?? null;
+    }
+    return this.props.children;
+  }
+}
+```
+
+Usage in game components (ChatbotBuilderGame.tsx and DataDetectiveGame.tsx):
+```tsx
+import { Canvas3DErrorBoundary } from "@/components/3d/Canvas3DErrorBoundary";
+
+// Wrap the 3D component:
+<Canvas3DErrorBoundary>
+  <ChatbotNodes3D {...props} />
+</Canvas3DErrorBoundary>
+```
+
+---
+
 ## PART A VALIDATION
 
 ### File Existence
 - [ ] `ChatbotNodes3D.tsx` exists at `src/components/3d/ChatbotNodes3D.tsx`
 - [ ] `DataDetective3D.tsx` exists at `src/components/3d/DataDetective3D.tsx`
+- [ ] `Canvas3DErrorBoundary.tsx` exists at `src/components/3d/Canvas3DErrorBoundary.tsx`
 - [ ] No TypeScript errors: `npx tsc --noEmit`
 
 ### ChatbotNodes3D Verification

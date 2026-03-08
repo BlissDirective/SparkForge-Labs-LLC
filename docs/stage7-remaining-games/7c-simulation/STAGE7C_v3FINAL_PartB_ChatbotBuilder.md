@@ -80,16 +80,17 @@ Copy-paste the entire code block below to replace the existing file.
 // SUPERSEDES: STAGE7_ChatbotBuilder_V3_FullTreatment.pdf
 // ================================================================
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
 import { useGameStore } from "@/stores/gameStore";
 import { useChildStore } from "@/stores/childStore";
 import {
-  Plus, MessageCircle, Play, RotateCcw, Bot, Settings2,
-  BookOpen, Sparkles, Smartphone,
+  Plus, RotateCcw, Bot, Settings2,
+  BookOpen, Smartphone,
 } from "lucide-react";
+import { Canvas3DErrorBoundary } from "@/components/3d/Canvas3DErrorBoundary";
 
 // [v3] Dynamic import for 3D conversation tree (no SSR)
 const ChatbotNodes3D = dynamic(
@@ -410,27 +411,48 @@ export function ChatbotBuilderGame() {
       ? { ...n, responses: n.responses.filter((_, i) => i !== idx) } : n));
   }
 
+  // Enhancement A: Edit response labels inline
+  function updateResponseLabel(nodeId: string, idx: number, label: string) {
+    setNodes((prev) => prev.map((n) => n.id === nodeId
+      ? { ...n, responses: n.responses.map((r, i) => i === idx ? { ...r, label } : r) } : n));
+  }
+
   function enterTestMode() {
     setViewMode("test"); setTestPath(["root"]);
-    if (!hasScored) { game.addScore(20); setHasScored(true); }
+    if (!hasScored) { game.updateScore(20); setHasScored(true); }
   }
 
-  function checkChallenges() {
-    CHALLENGES.forEach((ch) => {
-      if (!completedChallenges.has(ch.id) && ch.check(nodes)) {
-        setCompletedChallenges((prev) => new Set(prev).add(ch.id));
-        game.addScore(ch.reward);
-      }
+  // Enhancement C: Initialize game in store
+  useEffect(() => {
+    game.startGame("chatbot-builder", 1);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fixed stale closure: use functional state update to read latest completedChallenges (BUG-AUDIT-4)
+  const checkChallenges = useCallback(() => {
+    setCompletedChallenges((prev) => {
+      const next = new Set(prev);
+      let added = false;
+      CHALLENGES.forEach((ch) => {
+        if (!next.has(ch.id) && ch.check(nodes)) {
+          next.add(ch.id);
+          game.updateScore(ch.reward);
+          added = true;
+        }
+      });
+      return added ? next : prev;
     });
-  }
+  }, [nodes, game]);
 
-  useEffect(() => { if (phase === "build") checkChallenges(); }, [nodes, phase]);
+  useEffect(() => { if (phase === "build") checkChallenges(); }, [nodes, phase, checkChallenges]);
 
+  const deployTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   function deployBot() {
     setShowDeploy(true);
-    game.addScore(30);
-    setTimeout(() => game.completeGame(), 3000);
+    game.updateScore(30);
+    deployTimerRef.current = setTimeout(() => game.completeGame(), 3000);
   }
+  // Cleanup deploy timer on unmount (LOW-4 fix)
+  useEffect(() => () => { if (deployTimerRef.current) clearTimeout(deployTimerRef.current); }, []);
 
   return (
     <GameShell gameId="chatbot-builder" title="Chatbot Builder" worldNumber={8} worldColor="#6366F1">
@@ -539,14 +561,15 @@ export function ChatbotBuilderGame() {
 
                     {/* [v3] 3D Visualization (desktop only, graph or test view) */}
                     {(viewMode === "graph" || viewMode === "test") && !isMobile && (
-                      <ChatbotNodes3D
-                        nodes={nodes}
-                        personalityColors={pers.colors}
-                        hoveredNode={viewMode === "graph" ? hoveredNode : null}
-                        testPath={testPath}
-                        isTestMode={viewMode === "test"}
-                        isMobile={isMobile}
-                      />
+                      <Canvas3DErrorBoundary>
+                        <ChatbotNodes3D
+                          nodes={nodes}
+                          personalityColors={pers.colors}
+                          hoveredNode={viewMode === "graph" ? hoveredNode : null}
+                          testPath={testPath}
+                          isTestMode={viewMode === "test"}
+                        />
+                      </Canvas3DErrorBoundary>
                     )}
 
                     {/* -- TREE VIEW -- */}
@@ -586,7 +609,12 @@ export function ChatbotBuilderGame() {
                                 {node.responses.map((r, i) => (
                                   <span key={i} className="px-2 py-0.5 rounded-lg font-body text-[10px] flex items-center gap-1"
                                     style={{ backgroundColor: pers.colors.bg, border: `1px solid ${pers.colors.border}`, color: pers.colors.primary }}>
-                                    {r.label} &rarr; {r.nextId || "?"}
+                                    {/* Enhancement A: Editable response labels */}
+                                    <input value={r.label} onChange={(e) => updateResponseLabel(node.id, i, e.target.value)}
+                                      className="bg-transparent border-none outline-none w-16 font-body text-[10px]"
+                                      style={{ color: pers.colors.primary }}
+                                      aria-label={`Response label ${i + 1}`} />
+                                    &rarr; {r.nextId || "?"}
                                     <button onClick={() => removeResponse(node.id, i)} className="ml-1 text-white/20 hover:text-red-400"
                                       aria-label={`Remove response ${r.label}`}>x</button>
                                   </span>
