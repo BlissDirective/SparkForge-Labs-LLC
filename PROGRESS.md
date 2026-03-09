@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: 20A — Stage 7E Part 1 — Ethics Courtroom + Build a Classifier
-## Status: IN PROGRESS (awaiting remaining 7E documents)
-## Last Updated: 2026-03-08
+## Current Phase: 20 — Stage 7E Complete (3 games + audit enhancements)
+## Status: COMPLETE
+## Last Updated: 2026-03-09
 
 ---
 
@@ -47,7 +47,8 @@
 | 18 | Stage 7C — 2 Simulation games (v3) | ⬜ | — | — | — |
 | 19 | Stage 7D — 5 Investigation games | ⬜ | — | — | — |
 | 20A | Stage 7E Part 1 — Ethics Courtroom + Build a Classifier | ✅ | Stage 7E P1 | — | — |
-| 20B | Stage 7E Part 2+ — Remaining 7E games (awaiting docs) | ⬜ | — | — | — |
+| 20B | Stage 7E Part 2 — API Explorer + Registry | ✅ | Stage 7E P2 | — | — |
+| 20C | Stage 7E Audit — 4 enhancements across 3 games | ✅ | Stage 7E Audit | — | — |
 | 21 | Stage 7F — 3 Band A games | ⬜ | — | — | — |
 | 22 | Stage 7 Shared — Particles + XP | ⬜ | — | — | — |
 | — | **Stage 7 Visual Checkpoint** | ⬜ | — | v0.7.0 | ⬜ |
@@ -233,6 +234,10 @@
 | 20B | STAGE7E Part 2 | `BookOpen` import in ApiExplorerGame | Imported but never used | Removed unused import |
 | 20B | STAGE7E Part 2 | `ChevronRight` import in source | Imported but never used in source | Not included in reconstructed code |
 | 20B | STAGE7E Part 2 | Source doc heavily truncated/corrupted | JSX, objects, strings cut mid-line | Reconstructed complete code from context and patterns |
+| 20C | ApiExplorerGame | Completion triggers at 4/5 endpoints (off-by-one) | `endpointsUsed.size` checked before Set state update | Account for pending add: `isNew ? size + 1 : size` |
+| 20C | EthicsCourtroomGame | No complete phase — jumps to `completeGame()` directly | Missing reflection screen after final case | Added 'complete' phase with summary, score, philosophy |
+| 20C | ApiExplorerGame | 429/500 status codes defined but never triggered | `exampleResponse` only returns 200/400 | Added rate-limit (3 rapid reqs) and 5% random 500 |
+| 20C | BuildClassifierGame | No shortcut to skip remaining pool after sufficient labeling | Must label all 18 or skip to end one-by-one | Added "Ready to Train" button when ≥9 labeled |
 
 ---
 
