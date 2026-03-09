@@ -305,14 +305,14 @@ export function ChatbotBuilderGame() {
 
   function enterTestMode() {
     setViewMode('test'); setTestPath(['root']);
-    if (!hasScored) { game.addScore(20); setHasScored(true); }
+    if (!hasScored) { game.updateScore(20); setHasScored(true); }
   }
 
   function checkChallenges() {
     CHALLENGES.forEach(ch => {
       if (!completedChallenges.has(ch.id) && ch.check(nodes)) {
         setCompletedChallenges(prev => new Set(prev).add(ch.id));
-        game.addScore(ch.reward);
+        game.updateScore(ch.reward);
       }
     });
   }
@@ -322,7 +322,7 @@ export function ChatbotBuilderGame() {
 
   function deployBot() {
     setShowDeploy(true);
-    game.addScore(30);
+    game.updateScore(30);
     setTimeout(() => game.completeGame(), 3000);
   }
 

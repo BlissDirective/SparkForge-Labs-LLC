@@ -218,5 +218,32 @@ None — all identified fixes are code quality / API correctness fixes within th
 
 ---
 
+---
+
+## 8. RESOLUTION STATUS (Updated March 9, 2026)
+
+All P0 and P1 fixes have been applied to stage documents:
+
+| Fix | Status | Applied In |
+|-----|--------|-----------|
+| P0: `game.addScore()` → `game.updateScore()` | **RESOLVED** | All 3 game docs (5 occurrences) + all active stage docs across S6F, S7A, S7B |
+| P0: `game.nextRound()` → `game.advanceRound()` | **RESOLVED** | All 3 game docs (3 occurrences) + all active stage docs across S6F, S7A, S7B |
+| P0: Add `game.startGame('my-first-ai-app', 30)` | **RESOLVED** | STAGE7F_v3FINAL_PartB at learn→build transition |
+| P1: `frameloop="demand"` → `frameloop="always"` | **RESOLVED** | STAGE7F_v3FINAL_PartA |
+| P1: Add `xpReward={30}` to GameShell | **RESOLVED** | STAGE7F_v3FINAL_PartB |
+| P1: Complete phase UI for EmojiDecoder | **RESOLVED** | STAGE7F_Part1 — E-1 enhancement |
+| P1: Complete phase UI for AiOrNot | **RESOLVED** | STAGE7F_Part2 — E-2 enhancement |
+| P1: Move `completeGame()` to preview→complete | **RESOLVED** | STAGE7F_v3FINAL_PartB — E-3 enhancement |
+| P2: Memoize line geometries | **RESOLVED** | STAGE7F_v3FINAL_PartA — E-12 ConnectionLine component |
+| P2: Timer cleanup on unmount | **RESOLVED** | STAGE7F_Part1 — B-10 fix |
+| E-6: Streak visual multiplier | **RESOLVED** | STAGE7F_Part1 — Animated COMBO text |
+| E-8: Confidence slider emoji | **RESOLVED** | STAGE7F_Part2 — Dynamic emoji face |
+| E-5, E-7, E-9, E-10, E-13-E-17 | **DOCUMENTED** | Build-time implementation notes added to STAGE7F_v3FINAL_PartB |
+
+**Total: 10 fixes applied, 7 implementation guides added for build-time application.**
+
+---
+
 *End of Stage 7F Audit Report*
 *Audited: 5 files, 3 games, ~2,200 lines of code*
+*Resolution update: March 9, 2026 — all critical and high-priority fixes applied*

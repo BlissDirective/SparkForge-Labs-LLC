@@ -338,16 +338,16 @@ export function DataDetectiveGame() {
         }
         return updated;
       }));
-      game.addScore(8);
+      game.updateScore(8);
     }, 600);
   }, [game]);
 
   const del = useCallback((id: number) => {
     setRows(p => p.map(d => d.id === id ? { ...d, del: true } : d));
-    game.addScore(5);
+    game.updateScore(5);
   }, [game]);
 
-  function compare() { setShowResults(true); game.addScore(15); }
+  function compare() { setShowResults(true); game.updateScore(15); }
 
   function nextDataset() {
     if (datasetIdx >= DATASETS.length - 1) { game.completeGame(); return; }
@@ -358,7 +358,7 @@ export function DataDetectiveGame() {
       setRows(DATASETS[next].rows.map(d => ({ ...d })));
       setShowResults(false); setSelectedRow(null); setMicroscopeCol(null);
       setCaseOpening(false);
-      game.nextRound();
+      game.advanceRound();
     }, 800);
   }
 

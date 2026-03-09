@@ -263,7 +263,7 @@ export function CodeBlocksGame() {
         setOutputLines(prev => [...prev, steps[i]]);
         await new Promise(r => setTimeout(r, 500));
       }
-      game.addScore(20);
+      game.updateScore(20);
     }
 
     setResult(correct ? 'correct' : 'wrong');
@@ -272,7 +272,7 @@ export function CodeBlocksGame() {
 
   function nextChallenge() {
     setPlaced([]); setResult(null); setOutputLines([]); setShowPseudo(false); setShowHint(false);
-    if (challengeIdx < challenges.length - 1) { setChallengeIdx(i => i + 1); game.nextRound(); }
+    if (challengeIdx < challenges.length - 1) { setChallengeIdx(i => i + 1); game.advanceRound(); }
     else game.completeGame();
   }
 
@@ -544,10 +544,10 @@ export function CareerExplorerGame() {
   function swipe(interested: boolean) {
     if (interested) setFavorites(prev => [...prev, career]);
     setExitDir(interested ? 1 : -1);
-    game.addScore(5);
+    game.updateScore(5);
     setTimeout(() => {
       setExitDir(0);
-      if (idx < CAREERS.length - 1) { setIdx(i => i + 1); game.nextRound(); }
+      if (idx < CAREERS.length - 1) { setIdx(i => i + 1); game.advanceRound(); }
       else { setPhase('summary'); game.completeGame(); }
     }, 300);
   }

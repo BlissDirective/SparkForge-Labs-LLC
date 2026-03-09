@@ -644,14 +644,14 @@ export function BiasDetectiveGame() {
   function collectEvidence(id: string) {
     if (collectedEvidence.includes(id)) return;
     setCollectedEvidence(prev => [...prev, id]);
-    game.addScore(3);
+    game.updateScore(3);
   }
 
   function runCustomTest() {
     if (!customInput.trim() || !activeCase) return;
     setTestResults(prev => [...prev, activeCase.customTestHandler(customInput.trim())]);
     setCustomInput('');
-    game.addScore(5);
+    game.updateScore(5);
   }
 
   function toggleFix(id: string) {
@@ -665,11 +665,11 @@ export function BiasDetectiveGame() {
     const correctFixes = activeCase.fixOptions.filter(f => f.correct).map(f => f.id);
     const score = selectedFixes.filter(id => correctFixes.includes(id)).length * 10
       - selectedFixes.filter(id => !correctFixes.includes(id)).length * 5;
-    game.addScore(Math.max(0, score) + relevantEvidenceCount * 2);
+    game.updateScore(Math.max(0, score) + relevantEvidenceCount * 2);
     if (!completedCases.includes(activeCase.id)) {
       setCompletedCases(prev => [...prev, activeCase.id]);
     }
-    game.nextRound();
+    game.advanceRound();
     setPhase('report');
   }
 

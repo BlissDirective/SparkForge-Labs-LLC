@@ -101,8 +101,8 @@ export function TokenChopperGame() {
 
     if (passed && !completed.has(challengeIdx)) {
       setCompleted(prev => new Set(prev).add(challengeIdx));
-      game.addScore(15);
-      game.nextRound();
+      game.updateScore(15);
+      game.advanceRound();
       setShowHint(false);
       if (challengeIdx < CHALLENGES.length - 1) {
         setTimeout(() => {
@@ -483,16 +483,16 @@ export function AiArtDetectiveGame() {
     if (correct) {
       setStreak(s => s + 1);
       setCorrectCount(c => c + 1);
-      game.addScore(12 + streak * 2);
+      game.updateScore(12 + streak * 2);
     } else {
       setStreak(0);
-      game.addScore(3);
+      game.updateScore(3);
     }
     setTimeout(() => {
       setShowResult(null);
       if (roundIdx < ROUNDS.length - 1) {
         setRoundIdx(i => i + 1);
-        game.nextRound();
+        game.advanceRound();
       } else {
         game.completeGame();
       }

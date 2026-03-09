@@ -123,8 +123,8 @@ export function TimeMachineGame() {
         }
         return remaining;
       });
-      game.addScore(12);
-      game.nextRound();
+      game.updateScore(12);
+      game.advanceRound();
     }
     setSelectedCard(null);
 
@@ -515,17 +515,17 @@ export function WordPredictorGame() {
     setShowResult(true);
     if (matched) {
       setStreak(s => s + 1);
-      game.addScore(15);
+      game.updateScore(15);
     } else {
       setStreak(0);
-      game.addScore(5);
+      game.updateScore(5);
     }
     setTimeout(() => {
       setShowResult(false);
       setGuess('');
       if (roundIdx < rounds.length - 1) {
         setRoundIdx(i => i + 1);
-        game.nextRound();
+        game.advanceRound();
       } else {
         game.completeGame();
       }

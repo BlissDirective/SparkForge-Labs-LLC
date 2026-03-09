@@ -678,7 +678,7 @@ export function CodeBlocksGame() {
       setRobotPose('correct');
       const starCount = !showHint && attempts === 0 ? 3 : !showHint ? 2 : 1;
       setStars((prev) => [...prev, starCount]);
-      game.addScore(starCount * 10);
+      game.updateScore(starCount * 10);
     } else {
       setRobotPose('wrong');
     }
@@ -699,7 +699,7 @@ export function CodeBlocksGame() {
     setRobotPose('idle');
     if (challengeIdx < challenges.length - 1) {
       setChallengeIdx((i) => i + 1);
-      game.nextRound();
+      game.advanceRound();
     } else {
       game.completeGame();
     }

@@ -99,7 +99,7 @@ export function SortToyBoxGame() {
     if (!selectedShape) return;
     setShapes(prev => prev.map(s => s.id === selectedShape ? { ...s, group: g } : s));
     setSelectedShape(null);
-    game.addScore(2);
+    game.updateScore(2);
   }
 
   function revealAI() {
@@ -113,7 +113,7 @@ export function SortToyBoxGame() {
       return { ...s, group: g };
     });
     setShapes(sorted);
-    game.addScore(20);
+    game.updateScore(20);
     setPhase('reveal');
     setTimeout(() => game.completeGame(), 4000);
   }
@@ -334,13 +334,13 @@ export function HumanVsMachineGame() {
     if (!humanAnswer.trim()) return;
     setSubmitted(true);
     setAiThinking(true);
-    game.addScore(10);
+    game.updateScore(10);
     setTimeout(() => { setAiThinking(false); setAiRevealed(true); }, challenge.aiTime);
   }, [humanAnswer, challenge, game]);
 
   function nextRound() {
     setHumanAnswer(''); setSubmitted(false); setAiRevealed(false);
-    if (roundIdx < challenges.length - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
+    if (roundIdx < challenges.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
     else game.completeGame();
   }
 

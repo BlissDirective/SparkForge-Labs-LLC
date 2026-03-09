@@ -87,11 +87,11 @@ export function RealOrFakeGame() {
     if (feedback) return;
     const correct = guessedFake === round.isFake;
     setScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
-    if (correct) game.addScore(12);
+    if (correct) game.updateScore(12);
     setFeedback({ correct, clue: ageBand === 'C' ? round.clueC : round.clue });
     setTimeout(() => {
       setFeedback(null);
-      if (roundIdx < rounds.length - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
+      if (roundIdx < rounds.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
       else game.completeGame();
     }, 3500);
   }
@@ -329,12 +329,12 @@ export function PredictionMarketGame() {
   function handleVote(vote: string) {
     setMyVote(vote);
     setVoted(true);
-    game.addScore(10);
+    game.updateScore(10);
   }
 
   function nextPrediction() {
     setVoted(false); setMyVote(null); setShowAnalysis(false);
-    if (predIdx < predictions.length - 1) { setPredIdx(i => i + 1); game.nextRound(); }
+    if (predIdx < predictions.length - 1) { setPredIdx(i => i + 1); game.advanceRound(); }
     else game.completeGame();
   }
 

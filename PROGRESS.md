@@ -1,6 +1,6 @@
 # SparkForge Build Progress
 
-## Current Phase: 20 — Stage 7E Complete (3 games + audit enhancements)
+## Current Phase: 21 — Stage 7F Complete (3 games + audit fixes + 17 enhancements)
 ## Status: COMPLETE
 ## Last Updated: 2026-03-09
 
@@ -49,7 +49,7 @@
 | 20A | Stage 7E Part 1 — Ethics Courtroom + Build a Classifier | ✅ | Stage 7E P1 | — | — |
 | 20B | Stage 7E Part 2 — API Explorer + Registry | ✅ | Stage 7E P2 | — | — |
 | 20C | Stage 7E Audit — 4 enhancements across 3 games | ✅ | Stage 7E Audit | — | — |
-| 21 | Stage 7F — 3 Band A games | ⬜ | — | — | — |
+| 21 | Stage 7F — 3 Band A games + audit fixes + 17 enhancements | ✅ | Stage 7F fixes | — | — |
 | 22 | Stage 7 Shared — Particles + XP | ⬜ | — | — | — |
 | — | **Stage 7 Visual Checkpoint** | ⬜ | — | v0.7.0 | ⬜ |
 | 23 | Stage 8 Parts 1-2 — Parent Dash (v2) | ⬜ | — | — | — |
@@ -238,6 +238,26 @@
 | 20C | EthicsCourtroomGame | No complete phase — jumps to `completeGame()` directly | Missing reflection screen after final case | Added 'complete' phase with summary, score, philosophy |
 | 20C | ApiExplorerGame | 429/500 status codes defined but never triggered | `exampleResponse` only returns 200/400 | Added rate-limit (3 rapid reqs) and 5% random 500 |
 | 20C | BuildClassifierGame | No shortcut to skip remaining pool after sufficient labeling | Must label all 18 or skip to end one-by-one | Added "Ready to Train" button when ≥9 labeled |
+| 21 | ALL active stage docs (S6F, S7A×4, S7B×3, S7F×3) | `game.addScore()` in code blocks | Method doesn't exist — correct API is `game.updateScore()` | Replaced 53 instances across 11 active docs + 6 superseded docs |
+| 21 | ALL active stage docs (S6F, S7A×4, S7B×3, S7F×3) | `game.nextRound()` in code blocks | Method doesn't exist — correct API is `game.advanceRound()` | Replaced 27 instances across 11 active docs + 6 superseded docs |
+| 21 | STAGE7F_v3FINAL_PartB (MyFirstAiApp) | `game.completeGame()` called before user sees preview | Premature completion at design→preview transition | Moved to preview→complete "Finish" button (E-3) |
+| 21 | STAGE7F_v3FINAL_PartB (MyFirstAiApp) | Missing `game.startGame()` call | No game initialization for XP tracking | Added `game.startGame('my-first-ai-app', 30)` at learn→build (E-4) |
+| 21 | STAGE7F_v3FINAL_PartB (MyFirstAiApp) | Missing `xpReward` in GameShell | GameShell missing xpReward prop | Added `xpReward={30}` (F-5) |
+| 21 | STAGE7F_Part1 (EmojiDecoder) | No complete phase UI | Blank screen after finishing game | Added complete phase with score, streak, XP, badge (E-1) |
+| 21 | STAGE7F_Part2 (AiOrNot) | No complete phase UI | Blank screen after finishing game | Added complete phase with Reality Score, breakdown, badge (E-2) |
+| 21 | STAGE7F_Part1 (EmojiDecoder) | No streak visual multiplier | Only counter shown, no COMBO text | Added animated "2x/3x COMBO!" text (E-6) |
+| 21 | STAGE7F_Part2 (AiOrNot) | Static confidence slider labels | Same labels regardless of value | Added dynamic emoji face that changes with confidence (E-8) |
+| 21 | STAGE7F_v3FINAL_PartA (MyFirstAiApp3D) | `frameloop="demand"` with continuous animations | useFrame animations won't play without invalidate() | Changed to `frameloop="always"` (E-11) |
+| 21 | STAGE7F_v3FINAL_PartA (MyFirstAiApp3D) | BufferGeometry created in render loop | Float32Array + BufferGeometry allocated every render | Extracted ConnectionLine component with useMemo (E-12) |
+| 21 | STAGE7F_Part1 (EmojiDecoder) | Timer ref not cleaned up on unmount | setTimeout could fire on unmounted component | Added useEffect cleanup (B-10) |
+
+### Code Review Notes
+
+**Stage 7F — March 9, 2026:**
+- **Store API global sweep:** All 80 incorrect `game.addScore()`/`game.nextRound()` calls in active stage docs corrected to `game.updateScore()`/`game.advanceRound()`. Source code files (.tsx) were already correct from prior fixes.
+- **17 enhancements addressed:** 10 implemented directly in stage docs, 7 documented as build-time implementation guides in STAGE7F_v3FINAL_PartB.
+- **V2 MyFirstAiApp redundancy:** Full reference table added to STAGE7F_v3FINAL_PartB documenting all v2 patterns that are superseded by v3. V3-FINAL is the ONLY build source.
+- **Cross-stage consistency:** All game docs now use consistent store API. No remaining instances of incorrect `addScore`/`nextRound` in any active build documents.
 
 ---
 

@@ -277,7 +277,10 @@ export function EmojiDecoderGame() {
   const [labSubmitted, setLabSubmitted] = useState(false);
   const [labPromptIdx] = useState(() => Math.floor(Math.random() * LAB_PROMPTS.length));
   const [emojiPulse, setEmojiPulse] = useState(false);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // B-10: Clean up timer on unmount to prevent firing on unmounted component
+  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
   const rounds = useMemo(() => {
     const filtered = ALL_ROUNDS.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
@@ -314,7 +317,7 @@ export function EmojiDecoderGame() {
     const isCorrect = answer === round.correctAnswer;
     if (isCorrect) {
       const streakBonus = streak >= 3 ? 5 : streak >= 2 ? 3 : 0;
-      game.addScore(DIFF_POINTS[round.difficulty] + streakBonus);
+      game.updateScore(DIFF_POINTS[round.difficulty] + streakBonus);
       setStreak(s => s + 1);
       setBestStreak(b => Math.max(b, streak + 1));
       setTotalCorrect(c => c + 1);
@@ -325,14 +328,14 @@ export function EmojiDecoderGame() {
   const nextRound = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     setSelected(null); setShowResult(false); setShowAI(false);
-    if (roundIdx < totalRounds - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
+    if (roundIdx < totalRounds - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
     else setPhase('lab');
   }, [roundIdx, totalRounds, game]);
 
   const handleLabSubmit = useCallback(() => {
     if (labText.trim().length < 2) return;
     setLabSubmitted(true);
-    game.addScore(15);
+    game.updateScore(15);
   }, [labText, game]);
 
   const finishGame = useCallback(() => { game.completeGame(); setPhase('complete'); }, [game]);
@@ -430,6 +433,16 @@ export function EmojiDecoderGame() {
                       <span className="font-mono text-xs text-amber-300">{streak}x</span>
                     </motion.div>
                   )}
+                  {/* E-6: Streak visual multiplier animation */}
+                  <AnimatePresence>
+                    {streak >= 2 && showResult && selected === round?.correctAnswer && (
+                      <motion.span className="absolute -top-6 right-0 font-display text-sm font-bold text-amber-400"
+                        initial={{ opacity: 0, y: 10, scale: 0.5 }} animate={{ opacity: 1, y: -10, scale: 1.2 }}
+                        exit={{ opacity: 0, y: -30 }} transition={{ type: 'spring', stiffness: 300 }}>
+                        {streak >= 3 ? '🔥 3x COMBO!' : '⚡ 2x COMBO!'}
+                      </motion.span>
+                    )}
+                  </AnimatePresence>
                   <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-xs text-white/30">{round.category}</span>
                 </div>
               </div>
@@ -580,6 +593,47 @@ export function EmojiDecoderGame() {
                   </motion.div>
                 )}
               </div>
+            </motion.div>
+          )}
+          {/* ══════════ COMPLETE (E-1) ══════════ */}
+          {phase === 'complete' && (
+            <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}>🏆</motion.div>
+              <h2 className="font-display text-2xl font-bold text-white mb-2">Emoji Master!</h2>
+              <p className="font-body text-sm text-white/60 mb-4">You cracked the emoji code!</p>
+
+              <div className="w-full max-w-xs rounded-2xl p-4 bg-white/[0.03] border border-indigo-500/20 mb-4">
+                <div className="grid grid-cols-3 gap-3 text-center mb-3">
+                  <div className="rounded-xl p-2 bg-emerald-500/10 border border-emerald-500/20">
+                    <p className="font-mono text-[10px] text-emerald-400 mb-1">CORRECT</p>
+                    <p className="font-display text-xl font-bold text-emerald-300">{totalCorrect}/{totalRounds}</p>
+                  </div>
+                  <div className="rounded-xl p-2 bg-amber-500/10 border border-amber-500/20">
+                    <p className="font-mono text-[10px] text-amber-400 mb-1">BEST STREAK</p>
+                    <p className="font-display text-xl font-bold text-amber-300">{bestStreak}🔥</p>
+                  </div>
+                  <div className="rounded-xl p-2 bg-indigo-500/10 border border-indigo-500/20">
+                    <p className="font-mono text-[10px] text-indigo-400 mb-1">XP EARNED</p>
+                    <p className="font-display text-xl font-bold text-indigo-300">{game.score}</p>
+                  </div>
+                </div>
+
+                {totalCorrect === totalRounds && (
+                  <motion.div className="flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5, type: 'spring' }}>
+                    <Award className="w-4 h-4 text-amber-400" />
+                    <span className="font-display text-sm font-bold text-amber-300">Perfect Score!</span>
+                  </motion.div>
+                )}
+              </div>
+
+              <p className="font-body text-xs text-white/30 max-w-xs">
+                {ageBand === 'B' || ageBand === 'C'
+                  ? 'You\'ve explored how NLP processes emoji sequences — a core challenge in natural language understanding!'
+                  : 'You decoded emojis like a pro and saw how AI reads them differently!'}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

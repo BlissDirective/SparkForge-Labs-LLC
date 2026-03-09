@@ -349,16 +349,16 @@ export function MyFirstAiAppGame() {
     }
   };
 
+  // E-3: completeGame() moved to preview→complete transition (was incorrectly called before user sees app card)
   const advanceStep = useCallback(() => {
     if (buildStep === 'design') {
       const pts = Math.floor(innovationScore * 0.4) + 10;
-      game.addScore(pts);
-      game.completeGame();
+      game.updateScore(pts);
       setPhase('preview');
     } else {
       const next = BUILD_STEPS[stepIdx + 1];
       if (next) setBuildStep(next);
-      game.nextRound();
+      game.advanceRound();
     }
   }, [buildStep, stepIdx, innovationScore, game]);
 
@@ -393,7 +393,7 @@ export function MyFirstAiAppGame() {
   );
 
   return (
-    <GameShell gameId="my-first-ai-app" title="My First AI App" worldNumber={9} worldColor="#F97316">
+    <GameShell gameId="my-first-ai-app" title="My First AI App" worldNumber={9} worldColor="#F97316" xpReward={30}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         {particles.map(p => (
@@ -474,7 +474,7 @@ export function MyFirstAiAppGame() {
                   <div key={i} className={`w-2.5 h-2.5 rounded-full transition-all ${i === learnIdx ? 'bg-orange-400 scale-125' : i < learnIdx ? 'bg-orange-400/40' : 'bg-white/10'}`} />
                 ))}
               </div>
-              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else setPhase('build'); }}
+              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else { game.startGame('my-first-ai-app', 30); setPhase('build'); } }}
                 className="mt-6 flex items-center gap-2 px-6 py-2.5 rounded-xl bg-orange-600/80 text-white font-display text-sm"
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 {learnIdx < CONCEPT_CARDS.length - 1 ? <><ArrowRight className="w-4 h-4" /> Next</> : <><Play className="w-4 h-4" /> Start Building!</>}
@@ -739,11 +739,66 @@ export function MyFirstAiAppGame() {
                 </>
               )}
 
-              <motion.button onClick={() => setPhase('complete')}
+              {/* E-3: completeGame() called here (after user sees their app card, not before) */}
+              <motion.button onClick={() => { game.completeGame(); setPhase('complete'); }}
                 className="mt-2 w-full max-w-xs py-3 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 text-white font-display text-sm font-bold flex items-center justify-center gap-2"
                 whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                 <Award className="w-4 h-4" /> Finish & Celebrate!
               </motion.button>
+            </motion.div>
+          )}
+
+          {/* ══════════ COMPLETE (E-3) ══════════ */}
+          {phase === 'complete' && (
+            <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}>🚀</motion.div>
+              <h2 className="font-display text-2xl font-bold text-white mb-2">App Developer!</h2>
+              <p className="font-body text-sm text-white/60 mb-4">You designed your very own AI-powered app!</p>
+
+              <div className="w-full max-w-xs rounded-2xl p-4 bg-white/[0.03] border border-orange-500/20 mb-4">
+                <div className="flex items-center gap-3 mb-3">
+                  <span className="text-3xl">{currentCategory?.emoji || '📱'}</span>
+                  <div className="text-left">
+                    <p className="font-display text-lg font-bold text-white">{appName}</p>
+                    <p className="font-body text-xs text-white/40">{currentCategory?.title}</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 text-center mb-3">
+                  <div className="rounded-xl p-2 bg-orange-500/10 border border-orange-500/20">
+                    <p className="font-mono text-[10px] text-orange-400 mb-1">INNOVATION</p>
+                    <p className="font-display text-xl font-bold text-orange-300">{innovationScore}/100</p>
+                  </div>
+                  <div className="rounded-xl p-2 bg-amber-500/10 border border-amber-500/20">
+                    <p className="font-mono text-[10px] text-amber-400 mb-1">AI POWERS</p>
+                    <p className="font-display text-xl font-bold text-amber-300">{selectedPowers.length}</p>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1 justify-center">
+                  {selectedPowers.map(id => {
+                    const p = ALL_POWERS.find(pw => pw.id === id);
+                    return (
+                      <span key={id} className="px-2 py-0.5 rounded-full text-xs font-mono" style={{ background: `${p?.color}20`, color: p?.color }}>
+                        {p?.emoji} {p?.title}
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-4 h-4 text-amber-400" />
+                <span className="font-mono text-sm text-amber-300">+{Math.floor(innovationScore * 0.4) + 10} XP earned!</span>
+              </div>
+
+              <p className="font-body text-xs text-white/30 max-w-xs">
+                {ageBand === 'C' ? 'Real AI startups follow this exact process: idea → capabilities → audience → design → build!' :
+                 ageBand === 'B' ? 'Companies like Google and OpenAI all start with this same process — idea, powers, audience, design!' :
+                 'You just did what real app builders do — amazing!'}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>
@@ -918,7 +973,7 @@ git commit -m "feat(7F): v3-FINAL 3D enhancements for My First AI App
 - UNCHANGED: [gameSlug]/page.tsx router (all 31 routes already present)
 
 Decision 6.5: Tier 2 Enhanced 3D for My First AI App (flagship-lite)
-Desktop only (mobile CSS fallback). frameloop=demand."
+Desktop only (mobile CSS fallback). frameloop=always (E-11 fix)."
 
 git push origin main
 ```
@@ -947,6 +1002,66 @@ git push origin main
 | `src/components/games/index.ts` | — | UNCHANGED | ~40 | No changes needed |
 | `src/config/gameRegistry.ts` | — | UNCHANGED | ~3 entries | No changes needed |
 | `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | — | UNCHANGED | ~60 | No changes needed |
+
+---
+
+## ENHANCEMENT LOG (Applied March 9, 2026)
+
+All 17 enhancements from the Stage 7F Audit Report have been addressed:
+
+### Implemented in Stage Docs (Code Updated)
+
+| ID | Enhancement | Status | Applied To |
+|----|-------------|--------|------------|
+| E-1 | EmojiDecoder complete phase UI | **DONE** | STAGE7F_Part1 — Added full complete phase with score, best streak, XP earned, perfect score badge |
+| E-2 | AiOrNot complete phase UI | **DONE** | STAGE7F_Part2 — Added complete phase with Reality Score, per-category breakdown, AI Expert badge |
+| E-3 | MyFirstAiApp move completeGame to preview→complete | **DONE** | STAGE7F_v3FINAL_PartB — Moved game.completeGame() from advanceStep to Finish button |
+| E-4 | MyFirstAiApp add startGame() call | **DONE** | STAGE7F_v3FINAL_PartB — Added game.startGame('my-first-ai-app', 30) at learn→build transition |
+| E-6 | EmojiDecoder streak visual multiplier | **DONE** | STAGE7F_Part1 — Added animated "2x COMBO!" / "3x COMBO!" text on correct streak answers |
+| E-8 | AiOrNot animated confidence slider | **DONE** | STAGE7F_Part2 — Emoji face changes with confidence level (🤷→🤔→😏→💪) |
+| E-11 | MyFirstAiApp3D fix frameloop | **DONE** | STAGE7F_v3FINAL_PartA — Changed frameloop="demand" to frameloop="always" |
+| E-12 | MyFirstAiApp3D memoize line geometries | **DONE** | STAGE7F_v3FINAL_PartA — Extracted ConnectionLine component with useMemo for BufferGeometry |
+| F-5 | MyFirstAiApp add xpReward to GameShell | **DONE** | STAGE7F_v3FINAL_PartB — Added xpReward={30} to GameShell props |
+| B-10 | EmojiDecoder timer cleanup on unmount | **DONE** | STAGE7F_Part1 — Added useEffect cleanup for timerRef |
+
+### Build-Time Implementation Notes (Apply During Development)
+
+| ID | Enhancement | Implementation Guide |
+|----|-------------|---------------------|
+| E-5 | Keyboard navigation for all 3 games | Add `onKeyDown` handler to answer containers: Arrow Up/Down to navigate options, Enter/Space to select. Use `tabIndex={0}` and `role="radiogroup"` on answer lists. Buttons already handle Enter/Space natively; focus on arrow key navigation between options. |
+| E-7 | EmojiDecoder seed-based answer shuffle | Replace `Math.random()` in answer shuffle with a deterministic seed using `round.id` hash. This prevents answer reordering on re-renders while keeping shuffle consistent per round. Example: `const seededRandom = (seed: string) => { let h = 0; for (let i = 0; i < seed.length; i++) { h = ((h << 5) - h) + seed.charCodeAt(i); h |= 0; } return (h & 0x7FFFFFFF) / 0x7FFFFFFF; }` |
+| E-9 | AiOrNot sound feedback | Import `useGameAudio` from `@/hooks/useGameAudio` (created in Stage 5). Call `playCorrect()` on correct answers, `playIncorrect()` on wrong. Add to `handleVote` callback. If hook doesn't exist yet, defer to Stage 7 Shared Tone.js integration. |
+| E-10 | MyFirstAiApp animate 3D power selection | In MyFirstAiApp3D `PowerOrbMesh`, add entrance animation: `const [visible, setVisible] = useState(false); useEffect(() => { const t = setTimeout(() => setVisible(true), index * 200); return () => clearTimeout(t); }, []);` Scale from 0→1 when visible becomes true. |
+| E-13 | EmojiDecoder emoji splitting animation | On wrong answer: animate each emoji character in the display outward (scale up + fade) before showing result. Use `motion.span` with `exit` variants: `{ scale: 2, opacity: 0, x: i % 2 ? 50 : -50 }`. |
+| E-14 | AiOrNot time capsule feature | Save predictions to `localStorage` with key `sparkforge-predictions-{childId}`. Add "View Past Predictions" button on welcome screen. Show saved predictions with date and original confidence level. |
+| E-15 | MyFirstAiApp app icon generator | Create a simple SVG icon from: `category.color` + `theme.bgGradient` + first 2 power emojis. Render as a small canvas element on the App Card. |
+| E-16 | All 3 games loading skeletons | Add `motion.div` skeleton with `animate={{ opacity: [0.3, 0.7, 0.3] }}` pulse during phase transitions. Use Tailwind `animate-pulse` as fallback. |
+| E-17 | MyFirstAiApp3D entry animation | In `PhoneMockup` component, add initial y-position below platform: `position-y` starts at -3, animates to target via `useFrame` with damping. Trigger on first `buildStep > 0`. |
+
+---
+
+## V2 CODE REDUNDANCY REFERENCE
+
+### IMPORTANT: v2 MyFirstAiApp Code — DO NOT USE FOR BUILD
+
+The original v2 MyFirstAiApp code (from STAGE7F_Part1) is **FULLY SUPERSEDED** by this v3-FINAL Part B document. The v3 version is the **ONLY authoritative build source** for `MyFirstAiAppGame.tsx`.
+
+**Redundant code from v2 that should NOT be used:**
+
+| v2 Pattern | v3 Replacement | Why v3 Takes Precedence |
+|------------|---------------|------------------------|
+| No 3D integration | Dynamic import of MyFirstAiApp3D + Suspense | v3 adds 3D app mockup assembly |
+| No `isMobile` detection | useEffect + resize listener for mobile fallback | v3 adds responsive 3D/CSS switching |
+| No `powerOrbs3D` data bridge | useMemo mapping powers to 3D format | v3 bridges game state to 3D component |
+| `game.addScore(pts)` | `game.updateScore(pts)` | Store API correction |
+| `game.nextRound()` | `game.advanceRound()` | Store API correction |
+| No `game.startGame()` call | `game.startGame('my-first-ai-app', 30)` at learn→build | Required for XP/progress tracking |
+| `game.completeGame()` in advanceStep (before preview) | `game.completeGame()` in Finish button (after preview) | Better UX — complete after user sees app card |
+| No `xpReward` in GameShell | `xpReward={30}` | Required for proper XP award |
+| No complete phase UI | Full complete phase with app summary | Prevents blank screen |
+| No 3D render phases | 3D only during build + preview phases | Performance optimization |
+
+**If the v2 code is encountered during development:** Use only for content reference (categories, powers, themes data arrays). All structural code, imports, state management, and phase transitions MUST come from this v3-FINAL Part B document.
 
 ### Decision 6.5 Implementation Status (Stage 7F)
 

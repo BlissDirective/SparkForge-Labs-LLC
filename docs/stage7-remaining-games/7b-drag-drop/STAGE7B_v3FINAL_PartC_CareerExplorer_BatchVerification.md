@@ -181,12 +181,12 @@ export function CareerExplorerGame() {
   function swipe(interested: boolean) {
     if (interested) setFavorites((prev) => [...prev, career]);
     setExitDir(interested ? 1 : -1);
-    game.addScore(5);
+    game.updateScore(5);
     setTimeout(() => {
       setExitDir(0);
       if (idx < CAREERS.length - 1) {
         setIdx((i) => i + 1);
-        game.nextRound();
+        game.advanceRound();
       } else {
         setPhase('summary');
         game.completeGame();

@@ -217,19 +217,19 @@ export function AiOrNotGame() {
     setGuess(vote); setShowResult(true);
     const correct = vote === round.answer;
     const confBonus = correct && confidence >= 80 ? 5 : 0;
-    if (correct) { game.addScore(12 + confBonus); setTotalCorrect(c => c + 1); }
+    if (correct) { game.updateScore(12 + confBonus); setTotalCorrect(c => c + 1); }
     setHistory(h => [...h, { scenario: round, guess: vote, correct }]);
   }, [showResult, round, confidence, game]);
 
   const nextRound = useCallback(() => {
     setGuess(null); setShowResult(false); setConfidence(50);
-    if (roundIdx < totalRounds - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
+    if (roundIdx < totalRounds - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
     else setPhase('predict');
   }, [roundIdx, totalRounds, game]);
 
   const handlePrediction = useCallback(() => {
     if (predictionText.trim().length < 5) return;
-    setPredictionSubmitted(true); game.addScore(15);
+    setPredictionSubmitted(true); game.updateScore(15);
   }, [predictionText, game]);
 
   const finishGame = useCallback(() => { game.completeGame(); setPhase('complete'); }, [game]);
@@ -331,13 +331,12 @@ export function AiOrNotGame() {
                 </p>
               </motion.div>
 
-              {/* Confidence slider (before voting) */}
+              {/* Confidence slider (before voting) — E-8: animated emoji face */}
               {!showResult && (
                 <div className="w-full max-w-md mx-auto mb-3">
                   <div className="flex items-center justify-between text-xs font-mono text-white/30 mb-1">
-                    <span>Guessing 🤷</span>
+                    <span>{confidence < 30 ? '🤷' : confidence < 60 ? '🤔' : confidence < 85 ? '😏' : '💪'} {confidence < 30 ? 'Guessing' : confidence < 60 ? 'Thinking...' : confidence < 85 ? 'Pretty sure' : 'Confident!'}</span>
                     <span>Confidence: {confidence}%</span>
-                    <span>Sure! 💪</span>
                   </div>
                   <input type="range" min={10} max={100} value={confidence}
                     onChange={e => setConfidence(Number(e.target.value))}
@@ -525,6 +524,66 @@ export function AiOrNotGame() {
                   </motion.div>
                 )}
               </div>
+            </motion.div>
+          )}
+          {/* ══════════ COMPLETE (E-2) ══════════ */}
+          {phase === 'complete' && (
+            <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
+              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}>🔮</motion.div>
+              <h2 className="font-display text-2xl font-bold text-white mb-2">AI Future Expert!</h2>
+              <p className="font-body text-sm text-white/60 mb-4">You sorted AI's past, present, and future!</p>
+
+              <div className="w-full max-w-xs rounded-2xl p-4 bg-white/[0.03] border border-fuchsia-500/20 mb-4">
+                {/* Reality Score */}
+                <div className="rounded-xl p-3 bg-fuchsia-500/10 border border-fuchsia-500/20 mb-3">
+                  <p className="font-mono text-[10px] text-fuchsia-400 mb-1">REALITY SCORE</p>
+                  <p className="font-display text-3xl font-bold text-fuchsia-300">{realityScore}%</p>
+                </div>
+
+                {/* Per-category breakdown */}
+                <div className="grid grid-cols-3 gap-2 text-center mb-3">
+                  {(['now', 'soon', 'scifi'] as TimeCategory[]).map(cat => {
+                    const count = history.filter(h => h.scenario.answer === cat && h.correct).length;
+                    const total = history.filter(h => h.scenario.answer === cat).length;
+                    const cfg = CATEGORY_CONFIG[cat];
+                    return (
+                      <div key={cat} className="rounded-xl p-2 bg-white/[0.03] border border-white/10">
+                        <span className="text-xl block">{cfg.emoji}</span>
+                        <p className="font-mono text-xs mt-1" style={{ color: cfg.color }}>{count}/{total}</p>
+                        <p className="font-mono text-[9px] text-white/30">{cat === 'now' ? 'NOW' : cat === 'soon' ? 'SOON' : 'SCI-FI'}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Overall stats */}
+                <div className="grid grid-cols-2 gap-2 text-center">
+                  <div className="rounded-xl p-2 bg-emerald-500/10 border border-emerald-500/20">
+                    <p className="font-mono text-[10px] text-emerald-400 mb-1">CORRECT</p>
+                    <p className="font-display text-lg font-bold text-emerald-300">{totalCorrect}/{history.length}</p>
+                  </div>
+                  <div className="rounded-xl p-2 bg-amber-500/10 border border-amber-500/20">
+                    <p className="font-mono text-[10px] text-amber-400 mb-1">XP EARNED</p>
+                    <p className="font-display text-lg font-bold text-amber-300">{game.score}</p>
+                  </div>
+                </div>
+
+                {realityScore >= 80 && (
+                  <motion.div className="mt-3 flex items-center justify-center gap-2 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: 0.5, type: 'spring' }}>
+                    <CheckCircle className="w-4 h-4 text-amber-400" />
+                    <span className="font-display text-sm font-bold text-amber-300">AI Expert Badge!</span>
+                  </motion.div>
+                )}
+              </div>
+
+              <p className="font-body text-xs text-white/30 max-w-xs">
+                {ageBand === 'B' || ageBand === 'C'
+                  ? 'Critical evaluation of AI capabilities is essential for informed decisions about technology\'s role in society.'
+                  : 'You know what AI can really do — and what\'s still science fiction!'}
+              </p>
             </motion.div>
           )}
         </AnimatePresence>

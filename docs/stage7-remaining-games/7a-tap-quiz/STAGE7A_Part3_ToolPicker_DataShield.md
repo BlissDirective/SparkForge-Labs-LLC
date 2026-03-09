@@ -106,7 +106,7 @@ export function ToolPickerGame() {
           setStreak(0);
           setTimeout(() => {
             setFeedback(null);
-            if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
+            if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
             else game.completeGame();
           }, 2000);
           return 0;
@@ -125,10 +125,10 @@ export function ToolPickerGame() {
       ? (ageBand === 'C' ? task.whyC : task.why)
       : `The best tool was ${TOOLS.find(t => t.id === task.correctTool)?.label}. ${task.why}`;
     setFeedback({ correct, why });
-    if (correct) { setStreak(s => s + 1); game.addScore(10 * multiplier); } else { setStreak(0); }
+    if (correct) { setStreak(s => s + 1); game.updateScore(10 * multiplier); } else { setStreak(0); }
     setTimeout(() => {
       setFeedback(null);
-      if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.nextRound(); }
+      if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
       else game.completeGame();
     }, 2000);
   }
@@ -351,7 +351,7 @@ export function DataShieldGame() {
     if (!point || feedback) return;
     const correct = protect === point.shouldProtect;
     if (!correct) setPrivacyScore(s => Math.max(0, s - 12));
-    if (correct) game.addScore(10);
+    if (correct) game.updateScore(10);
     setFeedback({ correct, reason: ageBand === 'C' ? point.reasonC : point.reason });
     setTimeout(() => {
       setFeedback(null);
@@ -359,7 +359,7 @@ export function DataShieldGame() {
       if (next < scenario.dataPoints.length) { setPointIdx(next); }
       else {
         const nextS = scenarioIdx + 1;
-        if (nextS < SCENARIOS.length) { setScenarioIdx(nextS); setPointIdx(0); game.nextRound(); }
+        if (nextS < SCENARIOS.length) { setScenarioIdx(nextS); setPointIdx(0); game.advanceRound(); }
         else game.completeGame();
       }
     }, 2500);

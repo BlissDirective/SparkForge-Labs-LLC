@@ -147,7 +147,7 @@ export function ChatbotBuilderGame() {
 
   function enterTestMode() {
     setTestMode(true); setTestPath(['root']);
-    if (!hasCompleted) { game.addScore(25); game.completeGame(); setHasCompleted(true); }
+    if (!hasCompleted) { game.updateScore(25); game.completeGame(); setHasCompleted(true); }
   }
 
   return (
@@ -462,11 +462,11 @@ export function DataDetectiveGame() {
     delay: Math.random() * 4, dur: Math.random() * 6 + 4,
   })), []);
 
-  function fix(id: number) { setRows(p => p.map(d => d.id === id ? { ...d, fixed: true } : d)); game.addScore(8); }
-  function del(id: number) { setRows(p => p.map(d => d.id === id ? { ...d, del: true } : d)); game.addScore(5); }
+  function fix(id: number) { setRows(p => p.map(d => d.id === id ? { ...d, fixed: true } : d)); game.updateScore(8); }
+  function del(id: number) { setRows(p => p.map(d => d.id === id ? { ...d, del: true } : d)); game.updateScore(5); }
 
   function compare() {
-    setShowResults(true); game.addScore(15);
+    setShowResults(true); game.updateScore(15);
     if (datasetIdx < DATASETS.length - 1) {
       // More datasets available
     } else {
@@ -480,7 +480,7 @@ export function DataDetectiveGame() {
     setRows(DATASETS[next].rows.map(d => ({ ...d })));
     setShowResults(false);
     setSelectedRow(null);
-    game.nextRound();
+    game.advanceRound();
   }
 
   return (

@@ -61,7 +61,7 @@
 | App Preview | CSS gradient card with flip entrance | CSS card preserved + 3D holographic floating card with slow rotation (desktop) |
 | Innovation Score | Framer Motion animated bar + counter | Bar preserved + 3D score bar on holographic card (desktop) |
 | Triangle Budget | N/A (CSS/Framer Motion) | ~2K triangles (phone + orbs + platform + holographic card) |
-| Performance | CSS + Framer Motion | ~2K tri. frameloop=demand. Desktop only (mobile = CSS game UI). |
+| Performance | CSS + Framer Motion | ~2K tri. frameloop=always (required for continuous useFrame animations). Desktop only (mobile = CSS game UI). |
 
 ---
 
@@ -319,6 +319,26 @@ function PowerOrbMesh({
   );
 }
 
+// ---- Connection Line (memoized geometry — E-12) ----
+
+function ConnectionLine({ start, color }: { start: [number, number, number]; color: string }) {
+  const geometry = useMemo(() => {
+    const pts = new Float32Array([
+      start[0], start[1], start[2],
+      0, 0, 0.1,
+    ]);
+    const geom = new THREE.BufferGeometry();
+    geom.setAttribute("position", new THREE.BufferAttribute(pts, 3));
+    return geom;
+  }, [start]);
+
+  return (
+    <line geometry={geometry}>
+      <lineBasicMaterial color={color} transparent opacity={0.2} />
+    </line>
+  );
+}
+
 // ---- Power Orbs Ring ----
 
 function PowerOrbsRing({
@@ -352,33 +372,12 @@ function PowerOrbsRing({
         />
       ))}
 
-      {/* Connection lines from orbs to phone */}
+      {/* Connection lines from orbs to phone (memoized geometries — E-12) */}
       {powers.map((pow, i) => {
         const start = positions[i];
         if (!start) return null;
-        const pts = new Float32Array([
-          start[0], start[1], start[2],
-          0, 0, 0.1,
-        ]);
-        const geom = new THREE.BufferGeometry();
-        geom.setAttribute("position", new THREE.BufferAttribute(pts, 3));
-
         return (
-          <line key={`line-${pow.id}`}>
-            <bufferGeometry attach="geometry">
-              <bufferAttribute
-                attach="attributes-position"
-                array={pts}
-                count={2}
-                itemSize={3}
-              />
-            </bufferGeometry>
-            <lineBasicMaterial
-              color={pow.color}
-              transparent
-              opacity={0.2}
-            />
-          </line>
+          <ConnectionLine key={`line-${pow.id}`} start={start} color={pow.color} />
         );
       })}
     </group>
@@ -602,7 +601,7 @@ export default function MyFirstAiApp3D(props: MyFirstAiApp3DProps) {
           far: 50,
         }}
         dpr={[1, 1.5]}
-        frameloop="demand"
+        frameloop="always"
         gl={{
           antialias: true,
           alpha: true,
