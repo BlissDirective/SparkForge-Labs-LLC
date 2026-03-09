@@ -538,7 +538,7 @@ function YourGameComponent() {
     setStreak(newStreak);
     const bonus = newStreak >= 5 ? 3 : newStreak >= 3 ? 2 : 1;
     const xp = 10 * bonus;
-    game.addScore(xp);
+    game.updateScore(xp);
 
     // Show floating XP popup with combo
     showXP(xp, { combo: newStreak, color: '#10B981' });

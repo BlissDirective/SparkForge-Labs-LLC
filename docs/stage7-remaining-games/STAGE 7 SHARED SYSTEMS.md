@@ -5,9 +5,9 @@
 ## v3-FINAL — GameParticles3D System (Doc #13)
 
 **Date:** March 1, 2026
-**GCUD:** V9
-**Decision IDs:** 5.3 (5 flagship custom + 23 generic lab-colored particles)
-**Scope:** Shared particle systems used by ALL 28 curriculum games
+**GCUD:** V10
+**Decision IDs:** 5.3 (5 flagship custom + 30 generic lab-colored particles)
+**Scope:** Shared particle systems used by ALL 35 curriculum games (5 flagship + 30 non-flagship)
 **Supersedes:** STAGE7_Shared_XP_Celebration (v2) — extends with particle system
 
 -----
@@ -15,22 +15,22 @@
 ### DECISIONS IMPLEMENTED IN THIS DOCUMENT:
 
 - [ ] Decision 5.3 — 5 flagship games: custom themed particles (in GameParticles3D.tsx)
-- [ ] Decision 5.3 — 23 standard games: generic lab-colored ambient drift (in GenericGameParticles.tsx)
+- [ ] Decision 5.3 — 30 non-flagship games: generic lab-colored ambient drift (in GenericGameParticles.tsx)
 - [ ] Decision 5.5 — Particle intensity slider integration (respected by both components)
 
 -----
 
 ## PARTICLE SYSTEM ARCHITECTURE
 
-Decision 5.3 defines two particle layers for the 28 curriculum games. The system splits into two components based on rendering technology: a Three.js/R3F component for flagship games (which already have a Canvas context), and a CSS/Framer Motion component for standard games (which use 2D interfaces only). Both respect the particle intensity slider from Decision 5.5.
+Decision 5.3 defines two particle layers for all 35 curriculum games. The system splits into two components based on rendering technology: a Three.js/R3F component for flagship games (which already have a Canvas context), and a CSS/Framer Motion component for the remaining 30 non-flagship games (which use 2D interfaces only). Both respect the particle intensity slider from Decision 5.5.
 
 |Component                                                  |Technology                                        |Games                                                                                |Rendering                                                                          |Delivered In                                 |
 |-----------------------------------------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------|
 |GameParticles3D.tsx (config registry + GameParticleEmitter)|Three.js / R3F (drei Sparkles)                    |5 flagships: Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective|Renders inside R3F Canvas. Requires Canvas parent. Custom per-flagship configs.    |Stage 5 Parts 2-3 v3-FINAL Part C (UNCHANGED)|
-|GenericGameParticles.tsx (+ LabParticles wrapper)          |CSS / Framer Motion (motion.div + radial-gradient)|23 standard games: All Tier 3 games + FL-Lite games’ 2D layer                        |Pure CSS positioned divs. No Canvas / Three.js required. Lab-colored ambient drift.|This document (NEW)                          |
+|GenericGameParticles.tsx (+ LabParticles wrapper)          |CSS / Framer Motion (motion.div + radial-gradient)|30 non-flagship games: All Tier 3 games + FL-Lite games’ 2D layer                    |Pure CSS positioned divs. No Canvas / Three.js required. Lab-colored ambient drift.|This document (NEW)                          |
 
 **Why Two Separate Components:**
-Standard games (Tier 3) do not have R3F Canvas elements — they use CSS/Framer Motion exclusively. The GameParticleEmitter from GameParticles3D.tsx requires a Canvas parent (it renders drei Sparkles), so it cannot be used inside 2D game UIs. GenericGameParticles.tsx provides an equivalent ambient drift using pure CSS, eliminating the duplicated particle code pattern across 23+ game files.
+Non-flagship games (standard + FL-Lite + enhanced standard) do not have R3F Canvas elements — they use CSS/Framer Motion exclusively. The GameParticleEmitter from GameParticles3D.tsx requires a Canvas parent (it renders drei Sparkles), so it cannot be used inside 2D game UIs. GenericGameParticles.tsx provides an equivalent ambient drift using pure CSS, eliminating the duplicated particle code pattern across 30 game files.
 
 -----
 
@@ -47,7 +47,7 @@ Standard games (Tier 3) do not have R3F Canvas elements — they use CSS/Framer 
 
 |Aspect                 |V2 (Current)                                                                                                                        |v3-FINAL (This Document)                                                                                                |
 |-----------------------|------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------|
-|Standard game particles|Each game file contains duplicated particle generation code: `const particles = useMemo(...)` `{particles.map(p => <motion.div />)}`|Extracted into GenericGameParticles.tsx. Games can import: `<GenericGameParticles>` or `<LabParticles>`                 |
+|Standard game particles|Each game file contains duplicated particle generation code: `const particles = useMemo(...)` `{particles.map(p => <motion.div />)}`|Extracted into GenericGameParticles.tsx. 30 non-flagship games can import: `<GenericGameParticles>` or `<LabParticles>` |
 |Flagship game particles|No 3D particles (CSS only)                                                                                                          |UNCHANGED: GameParticles3D.tsx already delivered in Stage 5 v3-FINAL. 5 custom configs + GameParticleEmitter.           |
 |Intensity control      |No intensity control                                                                                                                |Both components respect Decision 5.5 intensity levels: off/low/medium/high. GenericGameParticles accepts intensity prop.|
 |Lab color registry     |Hardcoded per game file                                                                                                             |Shared LAB_COLORS export in both files. LabParticles wrapper auto-resolves color.                                       |
@@ -83,7 +83,7 @@ const particles = useMemo(() =>
 // Option A: Direct color
 import { GenericGameParticles } from '@/components/3d/GenericGameParticles';
 
-<GenericGameParticles color="#6366F1" />
+<GenericGameParticles color="#818CF8" />
 
 // Option B: Lab ID lookup
 import { LabParticles } from '@/components/3d/GenericGameParticles';
@@ -101,52 +101,52 @@ const intensity = useUIStore(s => s.particleIntensity || 'medium');
 
 -----
 
-## COMPLETE GAME PARTICLE ASSIGNMENTS (28 games)
+## COMPLETE GAME PARTICLE ASSIGNMENTS (35 games)
 
 ### Flagship Custom Particles (5 games — GameParticles3D.tsx):
 
 |Game           |Lab|Particle Theme                 |Shape   |Count|Color  |
 |---------------|---|-------------------------------|--------|-----|-------|
-|Pet Trainer    |2  |Warm rising sparkles (paw-like)|rising  |30   |#F59E0B|
-|Neural Builder |3  |Fast synapse sparks            |sparkles|50   |#EC4899|
-|Prompt Lab     |4  |Falling word fragments         |falling |25   |#F59E0B|
-|Agent Architect|5  |Orbiting data packets          |orbiting|40   |#10B981|
-|Bias Detective |7  |Balanced scale sparkles        |sparkles|20   |#EF4444|
+|Pet Trainer    |2  |Warm rising sparkles (paw-like)|rising  |30   |#AA66FF|
+|Neural Builder |3  |Fast synapse sparks            |sparkles|50   |#FF66AA|
+|Prompt Lab     |4  |Falling word fragments         |falling |25   |#FFAA44|
+|Agent Architect|5  |Orbiting data packets          |orbiting|40   |#00FF88|
+|Bias Detective |6  |Balanced scale sparkles        |sparkles|20   |#FF6644|
 
-### Generic Lab-Colored Particles (23 games — GenericGameParticles.tsx):
+### Generic Lab-Colored Particles (30 non-flagship games — GenericGameParticles.tsx):
 
-|Game               |Lab|Color            |Stage|Type       |
-|-------------------|---|-----------------|-----|-----------|
-|AI Spy             |1  |#3B82F6 (blue)   |7A   |Standard   |
-|Time Machine       |1  |#3B82F6 (blue)   |7A   |Standard   |
-|Human vs Machine   |1  |#3B82F6 (blue)   |7B   |Standard   |
-|Treat Trainer      |2  |#8B5CF6 (purple) |7C   |Standard   |
-|Neuron Relay       |3  |#EC4899 (pink)   |7C   |Standard   |
-|Pixel Investigator |3  |#EC4899 (pink)   |7D   |Standard   |
-|Word Predictor     |4  |#F59E0B (amber)  |7A   |Standard   |
-|Token Chopper      |4  |#F59E0B (amber)  |7A   |Standard   |
-|AI Art Detective   |4  |#F59E0B (amber)  |7A   |Standard   |
-|Tool Picker        |5  |#10B981 (emerald)|7A   |Standard   |
-|Data Shield        |6  |#EF4444 (red)    |7A   |Standard   |
-|Real or Fake       |6  |#EF4444 (red)    |7A   |Standard   |
-|Fool the AI        |7  |#06B6D4 (cyan)   |7D   |Standard   |
-|Sort Toy Box       |7  |#06B6D4 (cyan)   |7B   |FL: Full 3D|
-|Ethics Courtroom   |7  |#06B6D4 (cyan)   |7E   |Standard   |
-|Sentiment Scanner  |8  |#6366F1 (indigo) |7C   |Standard   |
-|Lost in Translation|8  |#6366F1 (indigo) |7C   |Standard   |
-|Emoji Decoder      |8  |#6366F1 (indigo) |7F   |Enh. Std.  |
-|Code Blocks        |9  |#F97316 (orange) |7B   |FL-Lite    |
-|Build a Classifier |9  |#F97316 (orange) |7E   |Standard   |
-|API Explorer       |9  |#F97316 (orange) |7E   |Standard   |
-|My First AI App    |9  |#F97316 (orange) |7F   |FL-Lite    |
-|Chatbot Builder    |2  |#8B5CF6 (purple) |7C   |FL-Lite    |
-|Data Detective     |6  |#EF4444 (red)    |7C   |FL-Lite    |
-|Robot Vacuum       |5  |#10B981 (emerald)|7D   |FL-Lite    |
-|Camera Quest       |3  |#EC4899 (pink)   |7D   |FL-Lite    |
-|Future Forge       |10 |#D946EF (fuchsia)|7D   |FL-Lite    |
-|Prediction Market  |10 |#D946EF (fuchsia)|7A   |Standard   |
-|AI or Not?         |10 |#D946EF (fuchsia)|7F   |Enh. Std.  |
-|Career Explorer    |10 |#D946EF (fuchsia)|7B   |Standard   |
+|Game               |Lab|Color             |Stage|Type       |
+|-------------------|---|------------------|-----|-----------|
+|AI Spy             |1  |#00BBFF (blue)    |7A   |Standard   |
+|Time Machine       |1  |#00BBFF (blue)    |7A   |Standard   |
+|Human vs Machine   |1  |#00BBFF (blue)    |7B   |Standard   |
+|Treat Trainer      |2  |#AA66FF (purple)  |7C   |Standard   |
+|Sort Toy Box       |2  |#AA66FF (purple)  |7B   |Full 3D    |
+|Data Detective     |2  |#AA66FF (purple)  |7C   |FL-Lite    |
+|Neuron Relay       |3  |#FF66AA (pink)    |7C   |Standard   |
+|Pixel Investigator |3  |#FF66AA (pink)    |7D   |Standard   |
+|Camera Quest       |7  |#06B6D4 (cyan)    |7D   |FL-Lite    |
+|Word Predictor     |4  |#FFAA44 (amber)   |7A   |Standard   |
+|Token Chopper      |4  |#FFAA44 (amber)   |7A   |Standard   |
+|AI Art Detective   |4  |#FFAA44 (amber)   |7A   |Standard   |
+|Robot Vacuum       |5  |#00FF88 (green)   |7D   |FL-Lite    |
+|Tool Picker        |6  |#FF6644 (red)     |7A   |Standard   |
+|Data Shield        |6  |#FF6644 (red)     |7A   |Standard   |
+|Real or Fake       |6  |#FF6644 (red)     |7A   |Standard   |
+|Ethics Courtroom   |6  |#FF6644 (red)     |7E   |Standard   |
+|Fool the AI        |7  |#06B6D4 (cyan)    |7D   |Standard   |
+|Prediction Market  |7  |#06B6D4 (cyan)    |7A   |Standard   |
+|Sentiment Scanner  |8  |#818CF8 (indigo)  |7C   |Standard   |
+|Chatbot Builder    |8  |#818CF8 (indigo)  |7C   |FL-Lite    |
+|Lost in Translation|8  |#818CF8 (indigo)  |7C   |Standard   |
+|Emoji Decoder      |8  |#818CF8 (indigo)  |7F   |Enh. Std.  |
+|Code Blocks        |9  |#F97316 (orange)  |7B   |FL-Lite    |
+|Career Explorer    |9  |#F97316 (orange)  |7B   |Standard   |
+|Build a Classifier |9  |#F97316 (orange)  |7E   |Standard   |
+|API Explorer       |9  |#F97316 (orange)  |7E   |Standard   |
+|My First AI App    |9  |#F97316 (orange)  |7F   |FL-Lite    |
+|Future Forge       |10 |#D946EF (fuchsia) |7D   |FL-Lite    |
+|AI or Not?         |10 |#D946EF (fuchsia) |7F   |Enh. Std.  |
 
 
 > **Note:** FL-Lite games have BOTH 3D components (via GameParticles3D on desktop) AND the 2D CSS particles (via GenericGameParticles as mobile fallback). The 2D particles are the baseline present in all games.
@@ -167,14 +167,14 @@ New-Item -ItemType File -Path "src/components/3d/GenericGameParticles.tsx" -Forc
 // ================================================================
 // GENERIC GAME PARTICLES — CSS/Framer Motion Ambient Drift
 // ================================================================
-// Decision 5.3: 23 standard games share a generic lab-colored
+// Decision 5.3: 30 non-flagship games share a generic lab-colored
 // ambient particle drift background. This component extracts the
 // duplicated particle pattern from individual game files into a
 // single reusable component.
 //
 // Usage:
-//   <GenericGameParticles color="#3B82F6" />
-//   <GenericGameParticles color="#3B82F6" count={20} intensity="high" />
+//   <GenericGameParticles color="#00BBFF" />
+//   <GenericGameParticles color="#00BBFF" count={20} intensity="high" />
 //
 // Props:
 //   color     - Lab accent color (hex). Used for radial gradient.
@@ -253,7 +253,7 @@ function hexToRgba(hex: string, alpha: number): string {
 
 // ---- Props ----
 export interface GenericGameParticlesProps {
-  /** Lab accent color in hex format (e.g., '#3B82F6') */
+  /** Lab accent color in hex format (e.g., '#00BBFF') */
   color: string;
   /** Base particle count before intensity scaling (default: 14) */
   count?: number;
@@ -319,14 +319,14 @@ export function GenericGameParticles({
 // Convenience export for games that need to look up lab colors.
 // Matches LAB_COLORS in GameParticles3D.tsx (Stage 5 Part C).
 export const LAB_COLORS: Record<number, string> = {
-  1: '#3B82F6',  // Code Lab - blue
-  2: '#8B5CF6',  // Data Lab - purple
-  3: '#EC4899',  // Neural Lab - pink
-  4: '#F59E0B',  // Create Lab - amber
-  5: '#10B981',  // Agent Lab - emerald
-  6: '#EF4444',  // Ethics Lab - red
+  1: '#00BBFF',  // Code Lab - blue
+  2: '#AA66FF',  // Data Lab - purple
+  3: '#FF66AA',  // Neural Lab - pink
+  4: '#FFAA44',  // Create Lab - amber
+  5: '#00FF88',  // Agent Lab - green
+  6: '#FF6644',  // Ethics Lab - red
   7: '#06B6D4',  // Vision Lab - cyan
-  8: '#6366F1',  // Language Lab - indigo
+  8: '#818CF8',  // Language Lab - indigo
   9: '#F97316',  // Build Lab - orange
   10: '#D946EF', // Frontier Lab - fuchsia
 };
@@ -344,7 +344,7 @@ export function LabParticles({
   intensity?: 'off' | 'low' | 'medium' | 'high';
   className?: string;
 }) {
-  const color = LAB_COLORS[labId] || '#3B82F6';
+  const color = LAB_COLORS[labId] || '#00BBFF';
   return (
     <GenericGameParticles
       color={color}
@@ -431,12 +431,12 @@ git add src/components/3d/GenericGameParticles.tsx
 git commit -m "feat(7-shared): v3-FINAL GenericGameParticles CSS ambient drift
 
 - NEW: GenericGameParticles.tsx (CSS/Framer Motion particle component)
-- Extracts duplicated particle pattern from 23 standard game files
+- Extracts duplicated particle pattern from 30 non-flagship game files
 - Exports: GenericGameParticles, LabParticles, LAB_COLORS
 - Supports intensity levels: off/low/medium/high (Decision 5.5)
 - No Three.js dependency (pure CSS positioned divs)
 - UNCHANGED: GameParticles3D.tsx (Stage 5 v3-FINAL remains authoritative)
-Decision 5.3: 5 flagship custom + 23 generic lab-colored particles"
+Decision 5.3: 5 flagship custom + 30 generic lab-colored particles"
 
 git push origin main
 ```
@@ -464,6 +464,6 @@ git push origin main
 |Particle Layer       |Component               |Games Served            |Status             |
 |---------------------|------------------------|------------------------|-------------------|
 |Flagship Custom (3D) |GameParticles3D.tsx     |5 flagships             |COMPLETE (Stage 5) |
-|Generic Ambient (CSS)|GenericGameParticles.tsx|23 standard + all mobile|COMPLETE (this doc)|
+|Generic Ambient (CSS)|GenericGameParticles.tsx|30 non-flagship + all mobile|COMPLETE (this doc)|
 
 **Doc #13: Stage 7 Shared v3-FINAL COMPLETE**
