@@ -5,7 +5,7 @@
 ### v3-FINAL (PART A)
 
 **Date:** February 28, 2026
-**GCUD:** V9
+**GCUD:** V10
 **Vision:** Laboratory Control Station
 **Design Direction:** Frost-Prismatic v3 (blue-dominant 60/40, chrome bezel, hex-radial, R3F station frame)
 **Age Bands:** A (7-10), B (11-13), C (14-16)
@@ -121,7 +121,7 @@ New-Item -ItemType File -Path "src/components/3d/MyFirstAiApp3D.tsx" -Force
 // [v3] Decision 6.5 — Tier 2 Enhanced 3D (~2K triangles)
 // ================================================================
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
@@ -320,23 +320,28 @@ function PowerOrbMesh({
 }
 
 // ---- Connection Line (memoized geometry — E-12) ----
+// Uses <primitive> instead of <line> to avoid JSX intrinsic SVG type conflict
 
 function ConnectionLine({ start, color }: { start: [number, number, number]; color: string }) {
-  const geometry = useMemo(() => {
+  const lineObj = useMemo(() => {
     const pts = new Float32Array([
       start[0], start[1], start[2],
       0, 0, 0.1,
     ]);
     const geom = new THREE.BufferGeometry();
     geom.setAttribute("position", new THREE.BufferAttribute(pts, 3));
-    return geom;
-  }, [start]);
+    const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.2 });
+    return new THREE.Line(geom, mat);
+  }, [start, color]);
 
-  return (
-    <line geometry={geometry}>
-      <lineBasicMaterial color={color} transparent opacity={0.2} />
-    </line>
-  );
+  useEffect(() => {
+    return () => {
+      lineObj.geometry.dispose();
+      (lineObj.material as THREE.LineBasicMaterial).dispose();
+    };
+  }, [lineObj]);
+
+  return <primitive object={lineObj} />;
 }
 
 // ---- Power Orbs Ring ----
@@ -393,21 +398,21 @@ function HolographicPreview({
   themeColor: string;
   innovationScore: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
-    if (!meshRef.current) return;
-    meshRef.current.rotation.y = state.clock.elapsedTime * 0.3;
-    meshRef.current.position.y =
+    if (!groupRef.current) return;
+    groupRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+    groupRef.current.position.y =
       1.8 + Math.sin(state.clock.elapsedTime * 0.6) * 0.05;
   });
 
   const barWidth = (innovationScore / 100) * 1.5;
 
   return (
-    <group>
+    <group ref={groupRef} position={[0, 1.8, 0]}>
       {/* Floating holographic card */}
-      <mesh ref={meshRef} position={[0, 1.8, 0]}>
+      <mesh>
         <planeGeometry args={[2.0, 1.2]} />
         <meshPhysicalMaterial
           color={themeColor}
@@ -423,7 +428,7 @@ function HolographicPreview({
       </mesh>
 
       {/* Innovation score bar */}
-      <mesh position={[(-1.5 + barWidth) / 2, 1.0, 0]}>
+      <mesh position={[-0.75 + barWidth / 2, -0.8, 0.01]}>
         <boxGeometry args={[barWidth, 0.08, 0.02]} />
         <meshStandardMaterial
           color={themeColor}
@@ -433,7 +438,7 @@ function HolographicPreview({
       </mesh>
 
       {/* Score bar background */}
-      <mesh position={[0, 1.0, -0.01]}>
+      <mesh position={[0, -0.8, -0.01]}>
         <boxGeometry args={[1.5, 0.08, 0.01]} />
         <meshStandardMaterial
           color="#ffffff"
@@ -518,7 +523,7 @@ function Scene(props: MyFirstAiApp3DProps) {
     isPreview,
   } = props;
 
-  const buildProgress = (buildStep + 1) / totalSteps;
+  const buildProgress = buildStep / totalSteps;
 
   return (
     <>
