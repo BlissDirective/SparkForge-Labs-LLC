@@ -446,12 +446,27 @@ export function BuildClassifierGame() {
                       ))}
                     </div>
 
-                    <button
-                      onClick={skipImage}
-                      className="font-body text-[10px] text-white/20 hover:text-white/40"
-                    >
-                      Skip →
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={skipImage}
+                        className="font-body text-[10px] text-white/20 hover:text-white/40"
+                      >
+                        Skip →
+                      </button>
+                      {labeledData.length >= 9 && (
+                        <motion.button
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          onClick={() => setPhase('train')}
+                          className="px-3 py-1.5 rounded-lg font-display text-[10px] font-bold text-cyan-300 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20"
+                          whileTap={{ scale: 0.95 }}
+                          aria-label="Skip to training with current data"
+                        >
+                          <Cpu className="inline w-3 h-3 mr-1" />
+                          Ready to Train ({labeledData.length} labeled)
+                        </motion.button>
+                      )}
+                    </div>
                   </motion.div>
                 )}
 

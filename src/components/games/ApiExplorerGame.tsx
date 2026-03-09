@@ -325,6 +325,7 @@ export function ApiExplorerGame() {
   const [history, setHistory] = useState<RequestLog[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [endpointsUsed, setEndpointsUsed] = useState<Set<number>>(new Set());
+  const [recentRequests, setRecentRequests] = useState<number[]>([]);
 
   const endpoint = ENDPOINTS[selectedEndpoint];
 
@@ -351,7 +352,31 @@ export function ApiExplorerGame() {
 
     await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
 
-    const result = endpoint.exampleResponse(params);
+    // Check for rate limiting: 3+ requests to the same endpoint in rapid succession
+    const now = Date.now();
+    const recentSame = recentRequests.filter((t) => now - t < 5000);
+    setRecentRequests([...recentSame, now]);
+
+    let result: { status: number; body: object; latency: number };
+
+    if (recentSame.length >= 2) {
+      // Rate limited
+      result = {
+        status: 429,
+        latency: 15 + Math.floor(Math.random() * 10),
+        body: { error: 'Rate limit exceeded. Please wait before sending more requests.', code: 'RATE_LIMITED', retry_after_ms: 5000 },
+      };
+    } else if (Math.random() < 0.05) {
+      // Random server error (~5% chance)
+      result = {
+        status: 500,
+        latency: 2000 + Math.floor(Math.random() * 500),
+        body: { error: 'Internal server error. The model encountered an unexpected condition.', code: 'INTERNAL_ERROR', request_id: `req_${Math.random().toString(36).slice(2, 10)}` },
+      };
+    } else {
+      result = endpoint.exampleResponse(params);
+    }
+
     setResponse(result);
     setSending(false);
 
@@ -368,7 +393,8 @@ export function ApiExplorerGame() {
       ].slice(0, 10)
     );
 
-    if (!endpointsUsed.has(selectedEndpoint)) {
+    const isNew = !endpointsUsed.has(selectedEndpoint);
+    if (isNew) {
       setEndpointsUsed((prev) => new Set(prev).add(selectedEndpoint));
       game.updateScore(10);
       game.advanceRound();
@@ -376,7 +402,8 @@ export function ApiExplorerGame() {
       game.updateScore(3);
     }
 
-    if (endpointsUsed.size >= ENDPOINTS.length - 1) {
+    const totalUsed = isNew ? endpointsUsed.size + 1 : endpointsUsed.size;
+    if (totalUsed >= ENDPOINTS.length) {
       setTimeout(() => game.completeGame(), 2000);
     }
   }

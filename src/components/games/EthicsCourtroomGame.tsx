@@ -24,7 +24,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { Scale, Users, MessageSquare, Award } from 'lucide-react';
 
-type Phase = 'welcome' | 'learn' | 'trial';
+type Phase = 'welcome' | 'learn' | 'trial' | 'complete';
 type TrialStep = 'case' | 'perspective' | 'argue' | 'verdict';
 
 interface Argument {
@@ -448,6 +448,7 @@ export function EthicsCourtroomGame() {
   const [trialStep, setTrialStep] = useState<TrialStep>('case');
   const [chosenPerspective, setChosenPerspective] = useState<number | null>(null);
   const [selectedArgs, setSelectedArgs] = useState<Set<number>>(new Set());
+  const [casesDebated, setCasesDebated] = useState<string[]>([]);
 
   const currentCase = CASES[caseIdx];
 
@@ -491,6 +492,7 @@ export function EthicsCourtroomGame() {
   }
 
   function nextCase() {
+    setCasesDebated((prev) => [...prev, currentCase.title]);
     setChosenPerspective(null);
     setSelectedArgs(new Set());
     setTrialStep('case');
@@ -498,7 +500,7 @@ export function EthicsCourtroomGame() {
       setCaseIdx((i) => i + 1);
       game.advanceRound();
     } else {
-      game.completeGame();
+      setPhase('complete');
     }
   }
 
@@ -859,6 +861,61 @@ export function EthicsCourtroomGame() {
                         </motion.button>
                       </motion.div>
                     )}
+                  </motion.div>
+                )}
+                {/* COMPLETE */}
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto"
+                  >
+                    <motion.span
+                      className="text-6xl"
+                      animate={{ scale: [1, 1.15, 1] }}
+                      transition={{ duration: 2, repeat: Infinity }}
+                    >
+                      🏛️
+                    </motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">
+                      Court Adjourned!
+                    </h2>
+                    <p className="font-body text-sm text-white/50">
+                      You debated {casesDebated.length} real-world AI ethics dilemmas.
+                    </p>
+
+                    <div className="w-full rounded-xl p-3 border border-red-500/15 bg-red-500/5 text-left space-y-1">
+                      {casesDebated.map((title, i) => (
+                        <div key={i} className="flex items-center gap-2">
+                          <span className="text-sm">{CASES[i]?.emoji}</span>
+                          <p className="font-body text-xs text-white/50">{title}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="rounded-xl p-3 border border-amber-500/15 bg-amber-500/5">
+                      <Award className="w-5 h-5 text-amber-400 mx-auto mb-1" />
+                      <p className="font-body text-xs text-white/50 leading-relaxed">
+                        {ageBand === 'C'
+                          ? 'Ethics in AI involves navigating tensions between consequentialism, deontology, and virtue ethics. There are no universal algorithms for moral reasoning — but understanding these frameworks makes you a better technologist.'
+                          : "Remember: there's no single right answer in ethics. The important thing is to think carefully, consider all perspectives, and keep asking questions!"}
+                      </p>
+                    </div>
+
+                    <p className="font-data text-lg text-red-400">
+                      Score: {game.score}
+                    </p>
+
+                    <motion.button
+                      onClick={() => game.completeGame()}
+                      className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
+                      style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
+                      whileTap={{ scale: 0.98 }}
+                      aria-label="Finish game"
+                    >
+                      Finish! <Award className="inline w-4 h-4 ml-1" />
+                    </motion.button>
                   </motion.div>
                 )}
               </AnimatePresence>
