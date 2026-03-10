@@ -641,7 +641,6 @@ export default function PricingPage() {
             </div>
 
             {/* Feature rows */}
-            {/* Feature rows */}
             {COMPARISON.map((row, i) => (
               <div
                 key={row.label}
