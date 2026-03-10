@@ -18,9 +18,7 @@ import { useChildStore } from '@/stores/childStore';
 import {
   Play, Trash2, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
-  Settings2, Code2,
-  CheckCircle2,
-  Cpu,
+  Settings2, Code2, CheckCircle2, Cpu,
 } from 'lucide-react';
 
 // [v3] Dynamic import for 3D pipeline (no SSR)
