@@ -120,3 +120,78 @@ export function canPlayGame(tier: SubscriptionTier, gamesPlayedThisWeek: number)
 export function hasFeature(tier: SubscriptionTier, feature: keyof TierLimits['features']): boolean {
   return TIER_CONFIG[tier].features[feature];
 }
+
+// ═══════════════════════════════════════════════════════
+// STAGE 8 ADDITIONS — Pricing display & plan metadata
+// Appended to existing tier-config.ts to avoid duplicate
+// type conflicts (v2 BUG-8A fix)
+// ═══════════════════════════════════════════════════════
+
+export interface TierDisplayConfig {
+  slug: SubscriptionTier;
+  name: string;
+  tagline: string;
+  monthlyPrice: number;
+  yearlyPrice: number;
+  features: string[];
+  highlight?: boolean;
+}
+
+export const TIER_DISPLAY: Record<SubscriptionTier, TierDisplayConfig> = {
+  free: {
+    slug: 'free',
+    name: 'Spark Free',
+    tagline: 'Start your AI adventure',
+    monthlyPrice: 0,
+    yearlyPrice: 0,
+    features: [
+      'Labs 1–3 fully unlocked',
+      'Labs 4–10 first lesson free',
+      '3 games per week',
+      '5 Prompt Lab tries per day',
+      '1 child profile',
+    ],
+  },
+  plus: {
+    slug: 'plus',
+    name: 'Spark Plus',
+    tagline: 'Unlock the full adventure',
+    monthlyPrice: 7.99,
+    yearlyPrice: 79.99,
+    highlight: true,
+    features: [
+      'All 10 Labs fully unlocked',
+      'Unlimited games',
+      '50 Prompt Lab tries per day',
+      '3 child profiles',
+      'Parent progress reports',
+      'Offline content access',
+    ],
+  },
+  forge: {
+    slug: 'forge',
+    name: 'Spark Forge',
+    tagline: 'The ultimate learning experience',
+    monthlyPrice: 14.99,
+    yearlyPrice: 149.99,
+    features: [
+      'Everything in Plus',
+      '200 Prompt Lab tries per day',
+      '5 child profiles',
+      'Early access to new content',
+      'Priority support',
+      'Exclusive avatar items',
+    ],
+  },
+};
+
+export function getTierDisplayName(tier: SubscriptionTier): string {
+  return TIER_DISPLAY[tier]?.name ?? 'Spark Free';
+}
+
+export function getYearlySavingsPercent(tier: SubscriptionTier): number {
+  const display = TIER_DISPLAY[tier];
+  if (!display || display.monthlyPrice === 0) return 0;
+  const monthlyTotal = display.monthlyPrice * 12;
+  return Math.round(((monthlyTotal - display.yearlyPrice) / monthlyTotal) * 100);
+}
