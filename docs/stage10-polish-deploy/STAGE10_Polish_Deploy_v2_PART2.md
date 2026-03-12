@@ -1275,5 +1275,80 @@ Reply 'approved' to tag v0.10.0, or describe issues.
 
 ---
 
+## CRITICAL REFERENCE: Next.js 16 Upgrade Path
+
+> **Added:** March 12, 2026 — Analysis performed during Stage 9 build. Reference this section when building Stage 10.
+
+### Current Stack
+- **Next.js:** 14.2.35 → **Target:** 16.1.6+
+- **React:** 18.x → **Target:** 19.2+
+- **ESLint:** 8.x → **Target:** 9.x (flat config)
+- **eslint-config-next:** 14.2.35 → **Target:** removed (Next.js 16 drops `next lint`)
+
+### Breaking Changes Impacting SparkForge
+
+| Change | Impact | SparkForge Scope | Risk |
+|--------|--------|-----------------|------|
+| **Turbopack is default bundler** | Custom webpack config in `next.config.js` (Three.js server externals) will NOT run under Turbopack | 1 config file — must pass `--webpack` flag to `next dev`/`next build` OR migrate externals to `serverExternalPackages` | **HIGH** |
+| **Async Request APIs enforced** | `cookies()`, `headers()`, `params`, `searchParams` must be `await`ed | `src/middleware.ts` uses `cookies()` from next/headers; ~2 dynamic route files use `params` | MEDIUM |
+| **`middleware.ts` → `proxy.ts` rename** | Middleware file renamed | 1 file rename (`src/middleware.ts` → `src/proxy.ts`) | MEDIUM |
+| **`next lint` removed** | `next lint` CLI command no longer exists | `package.json` lint script uses `next lint`; replace with direct `eslint .` | LOW |
+| **ESLint flat config required** | `.eslintrc.json` → `eslint.config.mjs` | 1 config file migration | LOW |
+| **React 19 compatibility** | New JSX transform, `ref` as prop, `use()` hook, `forwardRef` deprecated | 121 `'use client'` components to test; 22 `dynamic()` imports with `ssr: false` | MEDIUM |
+
+### Package Upgrade Matrix
+
+```bash
+# Core framework
+npm install next@latest react@latest react-dom@latest
+
+# Types
+npm install -D @types/react@latest @types/react-dom@latest
+
+# Linting (replaces eslint-config-next)
+npm uninstall eslint-config-next
+npm install -D eslint@latest @next/eslint-plugin-next@latest
+
+# Migration codemod (handles async APIs + most breaking changes)
+npx @next/codemod@canary upgrade latest
+```
+
+### Webpack Externals Strategy
+
+The `next.config.js` currently externalizes Three.js packages from server bundles:
+```js
+// Current (webpack callback)
+webpack: (config, { isServer }) => {
+  if (isServer) {
+    config.externals.push('three', '@react-three/fiber', '@react-three/drei');
+  }
+  return config;
+}
+```
+
+**Option A (Quick):** Keep webpack — pass `--webpack` flag to build commands. Works immediately.
+**Option B (Clean):** Migrate to `serverExternalPackages` in next.config:
+```js
+// Next.js 16 native approach
+const nextConfig = {
+  serverExternalPackages: ['three', '@react-three/fiber', '@react-three/drei'],
+};
+```
+**Recommendation:** Use Option B during Stage 10 build — cleaner and future-proof.
+
+### npm Audit Note
+
+4 high vulnerabilities exist in Next.js 14.2.35 (glob CLI injection, Image Optimizer DoS, RSC deserialization DoS). All are resolved by upgrading to Next.js 16. Low real-world risk in current version but upgrade eliminates them entirely.
+
+### Recommended Timing
+
+Perform the upgrade **at the start of Stage 10** before writing the production `next.config.js` (which this document already replaces). This avoids writing a Next.js 14 config only to immediately rewrite it for 16. The codemod handles most mechanical changes; manual attention needed for:
+1. Webpack externals → `serverExternalPackages`
+2. `middleware.ts` → `proxy.ts` rename
+3. ESLint flat config migration
+4. Smoke-test all 35 game routes after React 19 upgrade
+
+---
+
 *End of Stage 10 Part 2 — STAGE10_Polish_Deploy_v2_PART2.md*
 *8 files | 35 games | 31 code review fixes | 11 enhancements | March 12, 2026*
