@@ -1,48 +1,130 @@
+// ════════════════════════════════════════════════════
+// ROOT LAYOUT — SEO, a11y, error boundary, PWA
+// Stage 10 Part 2 — REPLACES Stage 1 layout
+// BUG-10F: Exo 2/Sora/Orbitron — NEVER Fredoka/Nunito
+// ════════════════════════════════════════════════════
+
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import './globals-a11y.css';
 import QueryProvider from '@/components/providers/QueryProvider';
+import { A11yProvider } from '@/components/accessibility/A11yProvider';
+import { OfflineBanner } from '@/components/ui/OfflineBanner';
+import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+
+// ── SEO Metadata ──────────────────────────────────
+
+export const metadata: Metadata = {
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_URL || 'https://sparkforge.app'
+  ),
+  title: {
+    default: 'SparkForge — Where Curiosity Meets AI',
+    template: '%s | SparkForge',
+  },
+  description:
+    'The gamified AI learning platform for kids ages 7-16. Explore 10 Labs, play 35 games, and discover the AI-powered world.',
+  keywords: [
+    'AI education',
+    'kids learning',
+    'artificial intelligence for children',
+    'STEM games',
+    'coding for kids',
+    'machine learning education',
+    'SparkForge',
+    'gamified learning',
+  ],
+  authors: [{ name: 'BlissDirective' }],
+  creator: 'BlissDirective',
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: process.env.NEXT_PUBLIC_URL || 'https://sparkforge.app',
+    siteName: 'SparkForge',
+    title: 'SparkForge — Where Curiosity Meets AI',
+    description:
+      'The gamified AI learning platform for kids ages 7-16. 10 Labs, 35 games, endless discovery.',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'SparkForge — Where Curiosity Meets AI',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SparkForge — Where Curiosity Meets AI',
+    description: 'The gamified AI learning platform for kids ages 7-16.',
+    images: ['/og-image.png'],
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
+};
+
+// ── Viewport ──────────────────────────────────────
 
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0A0E16',
+  maximumScale: 5,
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0A0E16' },
+    { media: '(prefers-color-scheme: light)', color: '#F0F4F8' },
+  ],
 };
 
-export const metadata: Metadata = {
-  title: 'SparkForge — Where Curiosity Meets AI',
-  description: 'The gamified AI learning platform for kids ages 7-16. 10 labs, 35 games, endless discovery.',
-  keywords: ['AI', 'kids', 'learning', 'games', 'STEM', 'machine learning', 'education', 'gamified'],
-  openGraph: {
-    title: 'SparkForge — Where Curiosity Meets AI',
-    description: 'The gamified AI learning platform for kids ages 7-16.',
-    type: 'website',
-  },
-};
+// ── Root Layout ───────────────────────────────────
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        {/* Google Fonts — Exo 2, Sora, JetBrains Mono, Orbitron */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
         <link
           href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700&display=swap"
           rel="stylesheet"
         />
+        {/* PWA Manifest */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
       </head>
       <body className="font-body antialiased bg-surface-base text-white min-h-screen">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[9999] focus:bg-neon-blue focus:text-white focus:px-4 focus:py-2 focus:rounded-lg"
-        >
+        {/* Skip link — uses existing .skip-to-content from globals.css */}
+        <a href="#main-content" className="skip-to-content">
           Skip to main content
         </a>
-        <QueryProvider>
-          <div id="main-content">
-            {children}
-          </div>
-        </QueryProvider>
-        <div aria-live="polite" aria-atomic="true" className="sr-only" id="sr-announcements" />
+
+        <A11yProvider>
+          <ErrorBoundary>
+            <QueryProvider>
+              <OfflineBanner />
+              <main id="main-content">{children}</main>
+            </QueryProvider>
+          </ErrorBoundary>
+        </A11yProvider>
+
+        {/* Screen reader live region */}
+        <div
+          aria-live="polite"
+          aria-atomic="true"
+          className="sr-only"
+          id="sr-announcements"
+        />
       </body>
     </html>
   );
