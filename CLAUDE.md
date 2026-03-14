@@ -643,7 +643,7 @@ function useIsMobile() {
 - `next.config.js` externalizes Three.js from server builds
 - Mobile fallback: `useIsMobile()` → component returns `null` on mobile
 - CSS 2D fallback remains fully functional when 3D is hidden
-- Triangle budgets: Flagship 2K–20K, FL-Lite 2–5K, Standard 0 (CSS only)
+- Triangle budgets: Flagship 50K–100K, FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
 - Environment: `frost-prismatic.hdr` in `public/hdri/`
 - 7 PBR presets in `lib/3d/materials.ts`

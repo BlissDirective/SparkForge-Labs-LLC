@@ -134,7 +134,7 @@ const DEFAULT_COCKPIT: CockpitConfig = {
 - All panels share `StationChrome` PBR material with chrome reflection shader
 - Panel edges get chamfered bevels via `ExtrudeGeometry` with bevel settings
 
-**Triangle budget:** ~800-1200 tris total for cockpit shell (well within the 2K frame budget)
+**Triangle budget:** ~800-1200 tris total for cockpit shell (well within the station frame budget). Note: game-level triangle budgets have been upgraded to 10K–100K — see GAME_ENHANCEMENT_AUDIT.md for per-tier details.
 
 **StationMode integration:**
 - `useStationMode` gains a new `panelCurvature` field (default per mode)

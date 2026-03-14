@@ -131,13 +131,15 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 
 ### Tier Breakdown Detail
 
-| Tier | Count | Games |
-|------|-------|-------|
-| Flagship (Full 3D) | 5 | Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective |
-| Full 3D (non-flagship) | 1 | Sort Toy Box |
-| FL-Lite (Enhanced 3D) | 7 | Data Detective, Robot Vacuum, Camera Quest, Chatbot Builder, Code Blocks, My First AI App, Future Forge |
-| Enhanced Standard | 2 | Emoji Decoder, AI or Not? |
-| Standard | 20 | AI Spy, Time Machine, Human vs Machine, Treat Trainer, Neuron Relay, Pixel Investigator, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Ethics Courtroom, Fool the AI, Build Classifier, Prediction Market, Sentiment Scanner, Lost in Translation, Career Explorer, API Explorer |
+| Tier | Count | Triangle Budget | Games |
+|------|-------|----------------|-------|
+| Flagship (Full 3D) | 5 | 50K–100K | Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective |
+| Full 3D (non-flagship) | 1 | 10K–50K | Sort Toy Box |
+| FL-Lite (Enhanced 3D) | 7 | 10K–50K | Data Detective, Robot Vacuum, Camera Quest, Chatbot Builder, Code Blocks, My First AI App, Future Forge |
+| Enhanced Standard | 2 | 10K–25K | Emoji Decoder, AI or Not? |
+| Standard (now with 3D) | 20 | 10K–25K | AI Spy, Time Machine, Human vs Machine, Treat Trainer, Neuron Relay, Pixel Investigator, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Ethics Courtroom, Fool the AI, Build Classifier, Prediction Market, Sentiment Scanner, Lost in Translation, Career Explorer, API Explorer |
+
+> **Note:** All games now receive full 3D scenes (minimum 10K triangles). The "CSS-only" tier has been eliminated. See GAME_ENHANCEMENT_AUDIT.md for per-game 3D scene proposals.
 
 ### Games Per Stage
 

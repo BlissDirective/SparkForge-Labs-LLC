@@ -35,13 +35,13 @@
 | Content Agent Pipeline | 4-stage (Research → Generate → Screen → Insert) |
 | Build Status | PASS (0 errors, 2 lint warnings) |
 
-### New Triangle Budgets (Per User Request)
+### New Triangle Budgets (Per User Request — Updated March 14, 2026)
 
 | Tier | Old Budget | New Budget | Headroom Action |
 |------|-----------|------------|-----------------|
-| **Flagship** | 2K–20K | **10K–50K** | Massive upgrade opportunity — add geometry detail, LOD, environment meshes |
-| **FL-Lite** | 2K–5K | **2K–20K** | 4× headroom — add scene props, particle meshes, detail geometry |
-| **Standard** | 0 (CSS only) | **2K–10K** | NEW — standard games can now have lightweight 3D elements |
+| **Flagship** | 2K–20K | **50K–100K** | Massive upgrade — full scene environments, LOD chains, detailed meshes, environment props |
+| **FL-Lite** | 2K–5K | **10K–50K** | 10× upgrade — rich scene composition, multiple interactive meshes, environment detail |
+| **Standard** | 0 (CSS only) | **10K–25K** | NEW — all games now receive meaningful 3D scenes, not just lightweight elements |
 
 ### Audit Verdict
 
@@ -59,26 +59,29 @@
 
 #### Pet Trainer (Pet3DScene + PetCreature3D)
 - **Current triangles:** ~600–900 (fallback orb) / 8K–15K (GLB)
-- **New budget:** 10K–50K
-- **Headroom:** 35K+ triangles available
+- **New budget:** 50K–100K
+- **Headroom:** 85K+ triangles available
 
 **Enhancement Opportunities:**
 1. Add vertex color support to GLB loader for richer gradient transitions
 2. Implement fur/feather shader for evolution stages 3+ (tufted appearance)
 3. Add eye blink animation when mood changes
 4. Decal projection for evolution stage markings (spots, stripes)
-5. Add environment props: food bowl, training toys, habitat background meshes
-6. Particle trail effects following pet movement
+5. **Full habitat environment:** food bowl (~2K), training toys (~3K), habitat background with trees/terrain (~15K), sky dome (~1K)
+6. Particle trail effects following pet movement with mesh-based particles (~5K)
 7. Add idle animation variety (scratching, stretching, playing)
+8. **Detailed pet mesh evolution:** low-poly → medium → high-detail (5K → 15K → 30K per stage)
+9. **Interactive training equipment:** obstacle course meshes, agility ramp, tunnel (~10K)
+10. **Volumetric mood aura:** shell mesh around pet that shifts color/shape with emotion (~3K)
 
 #### Neural Builder (NeuralNetwork3D)
 - **Current triangles:** ~12K–18K (OVERBUDGET at 20×20 sphere segments)
-- **New budget:** 10K–50K
-- **Action:** Fix sphere segments FIRST, then add detail
+- **New budget:** 50K–100K
+- **Action:** Fix sphere segments FIRST, then massively expand scene
 
 **Critical Fix:**
 - `sphereGeometry(radius, 20, 20)` → `sphereGeometry(radius, 12, 12)` — reduces from 40K to 6K–8K base
-- After fix, 42K+ triangles available for enhancements
+- After fix, 92K+ triangles available for enhancements
 
 **Enhancement Opportunities:**
 1. **URGENT:** Reduce sphere segments to 12×12 (128 tris/node vs 800)
@@ -87,26 +90,32 @@
 4. Add spark trails — animated line from neuron to neuron showing data path
 5. Add weight visualization — thicker tubes for stronger connections
 6. Add layer label 3D text meshes
-7. Add training progress environment (background network grows with training)
+7. **Full training environment:** server rack backdrop (~10K), circuit board ground plane (~5K), data center walls (~8K)
+8. **Data flow particles:** mesh-based data packets flowing through connections (~5K instanced)
+9. **Activation function visualizer:** 3D graph surface showing activation curves (~3K)
+10. **Layer-type distinct meshes:** convolutional filters as grid cubes, pooling as funnels, dense as spheres (~15K total)
 
 #### Prompt Lab (PromptBubble3D + PromptBubble3DScene)
 - **Current triangles:** ~2.3K–2.9K
-- **New budget:** 10K–50K
-- **Headroom:** 47K+ triangles available
+- **New budget:** 50K–100K
+- **Headroom:** 97K+ triangles available
 
 **Enhancement Opportunities:**
-1. Reduce sphere segments from 24 to 16 (optimization)
+1. Reduce sphere segments from 24 to 16 (optimization, frees budget for scene)
 2. Use InstancedMesh for bubble pool (performance + allows more bubbles)
 3. Add bubble merging — close bubbles combine into larger thought
 4. Add keyword highlighting — keywords glow before AI response pop
 5. Add response bubble — AI creates opposing "answer" bubble
-6. Add environment: floating book/document meshes in background
-7. Add token counter 3D visualization (filling meter)
+6. **Full prompt workshop environment:** floating book/document meshes (~8K), desk/workspace surface (~5K), holographic displays (~6K)
+7. **Token counter 3D visualization:** filling cylinder meter with glowing segments (~3K)
+8. **AI brain mesh:** central brain/processor mesh that activates during prompt evaluation (~10K)
+9. **Prompt chain visualization:** connected bubble chains showing prompt engineering flow (~5K)
+10. **Context window visualizer:** 3D scrolling text wall showing token usage (~8K)
 
 #### Agent Architect (AgentPipeline3D)
 - **Current triangles:** ~5.5K
-- **New budget:** 10K–50K
-- **Headroom:** 44K+ triangles available
+- **New budget:** 50K–100K
+- **Headroom:** 94K+ triangles available
 
 **Enhancement Opportunities:**
 1. Add block highlight outlines — glow around selected block
@@ -115,54 +124,73 @@
 4. Add error state visualization — block turns red with particle burst on failure
 5. Add connection animation — tubes light up along path (animated opacity wave)
 6. Add block description tooltips (canvas texture on hover)
-7. Add environment: server rack / circuit board background meshes
+7. **Full server room environment:** server rack backdrop (~12K), cable management meshes (~5K), cooling fans (~3K)
+8. **Pipeline conveyor belt:** animated conveyor system connecting blocks (~8K)
+9. **Tool/API shelves:** 3D shelves with tool icons that drag onto pipeline (~10K)
+10. **Execution debugger:** step-through visualization with call stack tower (~8K)
+11. **Output console mesh:** terminal screen showing pipeline output (~5K)
 
 #### Bias Detective (BiasScales3D)
 - **Current triangles:** ~750
-- **New budget:** 10K–50K
-- **Headroom:** 49K+ triangles available
+- **New budget:** 50K–100K
+- **Headroom:** 99K+ triangles available
 
 **Enhancement Opportunities:**
-1. Reduce chain torus segments (8→6) for optimization
+1. Reduce chain torus segments (8→6) for optimization (frees budget for scene)
 2. Add weight accumulation visualization — evidence "falls" onto scale
 3. Add evidence card flip animation — cards flutter from edge toward scale
-4. Add legal gavel mesh with strike animation when balanced
+4. Add legal gavel mesh with strike animation when balanced (~3K)
 5. Add balance meter HUD readout (bias% vs fair%)
 6. Add particle trails from center to platform when evidence collected
-7. Add evidence bucket meshes above platforms (block stacking visualization)
-8. Add courtroom environment props (pillars, books, desk)
+7. Add evidence bucket meshes above platforms (block stacking visualization) (~5K)
+8. **Full courtroom environment:** marble pillars (~8K), judge's bench (~6K), law books (~4K), gallery seating (~10K)
+9. **Witness stand mesh:** with animated testimony cards floating above (~5K)
+10. **Bias spectrum visualizer:** 3D gradient bar showing fair↔biased continuum (~3K)
+11. **Case file dossier:** 3D folder that opens with case details (~4K)
+12. **Jury panel meshes:** abstract jury figures that react to evidence (~10K)
 
 ### 2.2 FL-Lite Games — Current vs New Budget
 
 | Component | Current Tris | New Budget | Headroom | Top Enhancement |
 |-----------|-------------|------------|----------|-----------------|
-| **SortScene3D** | 2K–2.5K | 2K–20K | 17K+ | Add item collection particles, throw velocity trails |
-| **CodeBlocks3D** | 1.3K–1.7K | 2K–20K | 18K+ | Add block connection chains, error shake animation |
-| **ChatbotNodes3D** | 1.5K–2.3K | 2K–20K | 17K+ | Add path highlighting, chat bubble meshes above nodes |
-| **DataDetective3D** | ~400 | 2K–20K | 19K+ | Add lens distortion shader, card flip-to-checkmark, evidence highlight |
-| **RobotVacuum3D** | ~250 | 2K–20K | 19K+ | Add suction particles, dust clouds, battery indicator, bump animation |
-| **CameraQuest3D** | 1.3K–1.6K | 2K–20K | 18K+ | Add camera flash effect, shutter animation, confidence particle burst |
-| **FutureForge3D** | 1.3K–1.6K | 2K–20K | 18K+ | Add skill connection bezier lines, innovation meter 3D chart |
-| **MyFirstAiApp3D** | 1.2K–1.4K | 2K–20K | 18K+ | Add app icon on screen, feature bubbles orbiting phone, power flow particles |
+| **SortScene3D** | 2K–2.5K | 10K–50K | 47K+ | Full playroom environment, animated conveyor belt, item detail meshes |
+| **CodeBlocks3D** | 1.3K–1.7K | 10K–50K | 48K+ | IDE environment, syntax tree visualization, breakpoint indicators |
+| **ChatbotNodes3D** | 1.5K–2.3K | 10K–50K | 47K+ | Chat room environment, avatar meshes, message bubble detail |
+| **DataDetective3D** | ~400 | 10K–50K | 49K+ | Full crime lab, evidence board, magnifying glass with lens shader |
+| **RobotVacuum3D** | ~250 | 10K–50K | 49K+ | Full room environment, furniture obstacles, dust particle systems |
+| **CameraQuest3D** | 1.3K–1.6K | 10K–50K | 48K+ | Photo studio environment, polaroid gallery wall, viewfinder overlay |
+| **FutureForge3D** | 1.3K–1.6K | 10K–50K | 48K+ | Blueprint workshop, holographic projection table, innovation meter |
+| **MyFirstAiApp3D** | 1.2K–1.4K | 10K–50K | 48K+ | App store environment, device mockups, feature constellation orbit |
 
-### 2.3 Standard Games — NEW 3D Capability
+### 2.3 Standard Games — NEW Full 3D Capability
 
-With the new 2K–10K triangle budget, standard games can now receive lightweight 3D elements. Currently all 21 standard games use CSS-only particles via `GenericGameParticles.tsx`.
+With the new 10K–25K triangle budget, **ALL standard games now receive meaningful 3D scenes** — not lightweight elements, but full thematic environments. This eliminates the "CSS-only" tier entirely. All 21 standard games currently use CSS-only particles via `GenericGameParticles.tsx` and will be upgraded to R3F scenes.
 
-**Recommended 3D additions for highest-impact standard games:**
+**Recommended 3D scenes for all standard games:**
 
-| Game | Proposed 3D Element | Est. Triangles | Impact |
-|------|---------------------|---------------|--------|
-| **Real or Fake** | Magnifying glass + document stack 3D | ~3K | Forensic detective immersion |
-| **Fool the AI** | Confidence gauge 3D + adversarial shield | ~2K | Adversarial hacker aesthetic |
-| **Build Classifier** | Mini neural network visualization | ~4K | ML pipeline feel |
-| **Ethics Courtroom** | Gavel + scales + witness stand | ~5K | Courtroom drama immersion |
-| **Token Chopper** | Token blocks falling/splitting 3D | ~3K | Tokenization visualization |
-| **Pixel Investigator** | Image reveal lens 3D (blur layers) | ~2K | CSI investigation feel |
-| **Sentiment Scanner** | Emotion meter gauge 3D | ~2K | NLP analysis aesthetic |
-| **Data Shield** | Shield mesh + data stream particles | ~4K | Cybersecurity visual |
-| **Treat Trainer** | Mini maze/grid 3D environment | ~5K | RL training immersion |
-| **Word Predictor** | Probability bar chart 3D | ~2K | Statistical visualization |
+| Game | Proposed 3D Scene | Est. Triangles | Impact |
+|------|-------------------|---------------|--------|
+| **Real or Fake** | Detective office: magnifying glass (~2K), document desk (~4K), evidence board (~5K), filing cabinet (~3K) | ~14K | Forensic detective immersion |
+| **Fool the AI** | Hacker terminal: dual monitors (~4K), adversarial shield dome (~3K), code rain particles (~3K), server rack (~5K) | ~15K | Adversarial hacker aesthetic |
+| **Build Classifier** | ML workstation: neural network viz (~6K), data pipeline tubes (~4K), confusion matrix 3D grid (~3K), training dashboard (~3K) | ~16K | Full ML pipeline feel |
+| **Ethics Courtroom** | Full courtroom: judge's bench (~4K), gavel (~1K), scales of justice (~3K), witness stand (~3K), gallery (~5K) | ~16K | Courtroom drama immersion |
+| **Token Chopper** | Token factory: conveyor belt (~4K), splitting blades (~2K), token blocks (~5K instanced), collection bins (~3K) | ~14K | Tokenization factory aesthetic |
+| **Pixel Investigator** | CSI lab: image lightbox (~3K), microscope (~4K), evidence trays (~3K), enhancement screen (~3K) | ~13K | CSI investigation feel |
+| **Sentiment Scanner** | NLP control room: emotion spectrum gauge (~3K), waveform display (~4K), sentiment thermometer (~2K), text scanner beam (~3K) | ~12K | NLP analysis dashboard |
+| **Data Shield** | Cyber defense: shield dome (~4K), data stream tunnels (~5K), firewall walls (~4K), threat indicator orbs (~3K) | ~16K | Cybersecurity command center |
+| **Treat Trainer** | RL training ground: maze/grid environment (~6K), reward dispenser (~3K), agent avatar (~3K), score display (~2K) | ~14K | RL training arena |
+| **Word Predictor** | Probability lab: 3D bar chart (~4K), word cloud sphere (~5K), autocomplete beam (~2K), keyboard mesh (~4K) | ~15K | Statistical prediction station |
+| **AI Spy** | Spy headquarters: surveillance wall (~5K), binoculars (~3K), field map (~4K), dossier files (~3K) | ~15K | Espionage HQ aesthetic |
+| **Time Machine** | Time portal: clock mechanism (~5K), timeline spiral (~4K), era preview portals (~4K), chrono controls (~3K) | ~16K | Time travel cockpit |
+| **Human vs Machine** | Arena: split stage (~5K), human figure (~3K), robot figure (~4K), scoreboard (~2K) | ~14K | Competition arena |
+| **Neuron Relay** | Brain slice: neuron mesh network (~6K), synapse bridges (~4K), signal pulse paths (~3K), brain hemisphere (~5K) | ~18K | Neuroscience lab |
+| **AI Art Detective** | Art gallery: picture frames (~4K), gallery walls (~4K), spotlight cones (~2K), magnifying lens (~2K) | ~12K | Museum gallery |
+| **Tool Picker** | Tool workshop: toolbox shelves (~5K), workbench (~3K), blueprint surface (~3K), mechanical arm (~4K) | ~15K | Engineer's workshop |
+| **Data Shield** | Cyber fortress: shield generator (~4K), data tunnels (~5K), firewall mesh (~4K), alert orbs (~3K) | ~16K | Security operations center |
+| **Prediction Market** | Trading floor: ticker board (~4K), probability charts (~4K), trading desk (~3K), news feed screen (~3K) | ~14K | Financial trading floor |
+| **Lost in Translation** | Translation desk: Rosetta stone (~4K), language globes (~5K), dictionary stack (~3K), babel tower (~4K) | ~16K | Linguistics laboratory |
+| **Career Explorer** | Career fair: booth displays (~5K), job board (~3K), skill meter (~3K), career path map (~4K) | ~15K | Career expo hall |
+| **API Explorer** | API testing lab: endpoint terminal (~4K), request/response tubes (~4K), status code lights (~2K), documentation shelves (~3K) | ~13K | Developer workstation |
 
 ### 2.4 Cross-Cutting 3D Enhancements
 
@@ -409,15 +437,15 @@ With the new 2K–10K triangle budget, standard games can now receive lightweigh
 | 2.3 | Add inline edit mode to admin dashboard | Admin | 1.5 hours | Reduces content rejection rate |
 | 2.4 | Enhance Neuron Relay with puzzle variety | Games | 2 hours | Fix weakest standard game |
 | 2.5 | Add queue size check before agent auto-run | Agent | 30 min | Cost control |
-| 2.6 | Implement 3D elements for top standard games | 3D | 4-6 hours | Visual uplift across portfolio |
+| 2.6 | Implement full 3D scenes for all 21 standard games (10K–25K each) | 3D | 15-25 hours | Eliminates CSS-only tier, universal 3D |
 | 2.7 | Add jailbreak detection to Prompt Lab | Security | 1 hour | Prompt injection prevention |
 
 ### Tier 3 — Visual & Depth Polish (Phase 2)
 
 | # | Action | Area | Effort | Impact |
 |---|--------|------|--------|--------|
-| 3.1 | Increase flagship 3D detail to utilize new 50K budget | 3D | 8-12 hours | Major visual upgrade |
-| 3.2 | Increase FL-Lite 3D detail to utilize new 20K budget | 3D | 6-8 hours | Visual upgrade |
+| 3.1 | Increase flagship 3D detail to utilize new 100K budget | 3D | 12-20 hours | Major visual upgrade |
+| 3.2 | Increase FL-Lite 3D detail to utilize new 50K budget | 3D | 10-15 hours | Significant visual upgrade |
 | 3.3 | Generate frost-prismatic.hdr environment map | 3D | 90 min | PBR lighting quality |
 | 3.4 | Add normal maps to material presets | 3D | 2-4 hours | Material depth |
 | 3.5 | Deepen Career Explorer, Prediction Market, API Explorer | Games | 3-4 hours | Fix moderate-quality games |
@@ -447,47 +475,56 @@ With the new 2K–10K triangle budget, standard games can now receive lightweigh
 
 | Component | Current Tris | New Budget | Utilization | Status |
 |-----------|-------------|------------|-------------|--------|
-| **FLAGSHIP** | | **10K–50K** | | |
-| Pet3DScene (fallback orb) | ~800 | 50K | 1.6% | Massive headroom |
-| Pet3DScene (GLB) | ~8K–15K | 50K | 30% | Good headroom |
-| NeuralNetwork3D | ~40K (bug) | 50K | 80% (fix→16%) | FIX NEEDED |
-| PromptBubble3D | ~2.5K | 50K | 5% | Massive headroom |
-| AgentPipeline3D | ~5.5K | 50K | 11% | Large headroom |
-| BiasScales3D | ~750 | 50K | 1.5% | Massive headroom |
-| **FL-LITE** | | **2K–20K** | | |
-| SortScene3D | ~2.2K | 20K | 11% | Large headroom |
-| CodeBlocks3D | ~1.5K | 20K | 7.5% | Large headroom |
-| ChatbotNodes3D | ~1.9K | 20K | 9.5% | Large headroom |
-| DataDetective3D | ~400 | 20K | 2% | Massive headroom |
-| RobotVacuum3D | ~250 | 20K | 1.3% | Massive headroom |
-| CameraQuest3D | ~1.5K | 20K | 7.5% | Large headroom |
-| FutureForge3D | ~1.5K | 20K | 7.5% | Large headroom |
-| MyFirstAiApp3D | ~1.3K | 20K | 6.5% | Large headroom |
-| **STANDARD** | | **2K–10K** | | |
-| All 21 standard games | 0 (CSS) | 10K | 0% | NEW capability |
+| **FLAGSHIP** | | **50K–100K** | | |
+| Pet3DScene (fallback orb) | ~800 | 100K | 0.8% | Massive headroom |
+| Pet3DScene (GLB) | ~8K–15K | 100K | 15% | Massive headroom |
+| NeuralNetwork3D | ~40K (bug) | 100K | 40% (fix→8%) | FIX NEEDED then massive headroom |
+| PromptBubble3D | ~2.5K | 100K | 2.5% | Massive headroom |
+| AgentPipeline3D | ~5.5K | 100K | 5.5% | Massive headroom |
+| BiasScales3D | ~750 | 100K | 0.75% | Massive headroom |
+| **FL-LITE** | | **10K–50K** | | |
+| SortScene3D | ~2.2K | 50K | 4.4% | Massive headroom |
+| CodeBlocks3D | ~1.5K | 50K | 3% | Massive headroom |
+| ChatbotNodes3D | ~1.9K | 50K | 3.8% | Massive headroom |
+| DataDetective3D | ~400 | 50K | 0.8% | Massive headroom |
+| RobotVacuum3D | ~250 | 50K | 0.5% | Massive headroom |
+| CameraQuest3D | ~1.5K | 50K | 3% | Massive headroom |
+| FutureForge3D | ~1.5K | 50K | 3% | Massive headroom |
+| MyFirstAiApp3D | ~1.3K | 50K | 2.6% | Massive headroom |
+| **STANDARD** | | **10K–25K** | | |
+| All 21 standard games | 0 (CSS) | 25K | 0% | NEW — full 3D scenes required |
 | **SYSTEM** | | | | |
 | StationFrame (total) | ~2,250 | 3,000 | 75% | Moderate headroom |
 | GameParticles3D | Config-based | — | — | Well-optimized |
 | GenericGameParticles | CSS-based | — | — | SSR-safe |
 
-### GPU Performance Budget
+### GPU Performance Budget (Updated for 10K–100K budgets)
 
-| Layer | Estimated Cost | Budget |
-|-------|---------------|--------|
-| Station Frame (all components) | ~1.5–2.0ms | 16ms (60fps) |
-| Flagship 3D (one game) | ~1.0–2.0ms | 16ms |
-| FL-Lite 3D (one game) | ~0.5–1.0ms | 16ms |
-| Bloom post-processing | ~0.5ms | Included |
-| **Total per frame (game mode)** | **~3.0–4.5ms** | **<8ms target (50% headroom)** |
+| Layer | Estimated Cost | Budget | Notes |
+|-------|---------------|--------|-------|
+| Station Frame (all components) | ~1.5–2.0ms | 16ms (60fps) | Unchanged |
+| Flagship 3D (one game, up to 100K) | ~2.0–4.0ms | 16ms | LOD system required above 60K |
+| FL-Lite 3D (one game, up to 50K) | ~1.5–3.0ms | 16ms | LOD recommended above 30K |
+| Standard 3D (one game, up to 25K) | ~1.0–2.0ms | 16ms | NEW — replaces CSS-only |
+| Bloom post-processing | ~0.5ms | Included | |
+| **Total per frame (game mode)** | **~5.0–8.0ms** | **<10ms target (37% headroom)** | LOD + frustum culling essential |
+
+**Performance mitigation strategies for higher budgets:**
+- **LOD chains:** 3-level LOD (full → medium → billboard) at 50K+ scenes
+- **Frustum culling:** Only render visible geometry (automatic in R3F)
+- **Instanced meshes:** For repeated elements (particles, blocks, audience)
+- **Occlusion culling:** For complex environments (courtroom, server room)
+- **Texture atlasing:** Reduce draw calls by combining textures
+- **Mobile:** All 3D still returns `null` via `useIsMobile()` — CSS 2D fallback unchanged
 
 ---
 
 ## Summary
 
-SparkForge is a **well-architected, production-ready platform** with strong 3D foundations and solid game implementations. The new triangle budgets unlock massive visual enhancement opportunities — most components currently use <15% of the new limits. The content agent is functional but needs quiz coverage expansion and admin UX improvements. The 3D infrastructure achieves the Laboratory Control Station vision at 8.2/10 quality with clear paths to 9+.
+SparkForge is a **well-architected, production-ready platform** with strong 3D foundations and solid game implementations. The upgraded triangle budgets (10K–100K across all tiers) unlock **transformative visual enhancement opportunities** — every game in the portfolio can now feature rich, immersive 3D environments rather than CSS-only particle backdrops. Most components currently use <5% of the new limits. The content agent is functional but needs quiz coverage expansion and admin UX improvements. The 3D infrastructure achieves the Laboratory Control Station vision at 8.2/10 quality with clear paths to 9.5+.
 
-**Estimated total enhancement effort:** 40-60 hours across all tiers
-**Highest ROI actions:** Fix NeuralNetwork3D spheres, add admin filters, generate multi-band quizzes, add 3D to top standard games
+**Estimated total enhancement effort:** 60-90 hours across all tiers (increased due to full 3D for all 35 games)
+**Highest ROI actions:** Fix NeuralNetwork3D spheres, implement LOD system for 50K+ scenes, build full 3D scenes for all standard games, add admin filters, generate multi-band quizzes
 
 ---
 

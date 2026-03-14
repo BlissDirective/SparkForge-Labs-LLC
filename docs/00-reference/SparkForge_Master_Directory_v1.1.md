@@ -268,6 +268,8 @@ Total build steps: 24 ordered implementation phases across 10 stages.
 
 **Tiers:** 5 Flagship + 1 Full 3D + 7 FL-Lite + 2 Enhanced + 20 Standard = **35 games**
 
+> **Triangle Budget Update (March 14, 2026):** Flagship: 50K–100K, FL-Lite: 10K–50K, Standard: 10K–25K. All games now have full 3D scenes. See GAME_ENHANCEMENT_AUDIT.md.
+
 ### Games Per Lab
 
 | Lab | Title | Games | Count |

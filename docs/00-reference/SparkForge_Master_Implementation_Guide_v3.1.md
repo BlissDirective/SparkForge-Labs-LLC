@@ -310,6 +310,8 @@ Commit: `git commit -m "Stage 10: Polish + Deploy"`
 
 **Tiers:** 5 Flagship Full 3D + 1 Full 3D (Sort) + 7 FL-Lite Enhanced + 2 Enhanced Std + 20 Standard = **35 games**.
 
+> **Triangle Budget Update (March 14, 2026):** All games now have 3D capability. Flagship: 50K–100K, FL-Lite: 10K–50K, Standard: 10K–25K. The CSS-only tier has been eliminated. See GAME_ENHANCEMENT_AUDIT.md for details.
+
 ---
 
 *End of Master Implementation Guide v3.1 | SparkForge | Lab Control Station | 35 games | 78 files | 48 decisions | March 1, 2026*
