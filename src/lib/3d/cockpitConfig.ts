@@ -113,13 +113,20 @@ export const STATUS_BAR_PRESETS = {
 
 // ■■ Triangle Budget (CPA-11) ■■
 export const TRIANGLE_BUDGET = {
-  cockpitPanels: 1000,
-  hexSubPanels: 200,
-  holographicHUD: 500,
-  sidePanels: 100,
-  statusBar: 250,
-  ledRim: 150,
-  total: 3000,        // Max station frame budget
+  cockpitPanels: 8000,
+  hexSubPanels: 2000,
+  holographicHUD: 4000,
+  sidePanels: 3000,
+  statusBar: 2500,
+  ledRim: 1500,
+  spatialMap: 25000,
+  labStructures: 25000,    // 10 × 2500
+  consoles: 6000,          // 4 × 1500
+  npcs: 4000,              // 8 × 500
+  dynamicParticles: 15000,
+  ambientParticles: 5000,
+  contactShadows: 2000,
+  total: 103000,
 } as const;
 
 // ■■ Type exports for consumers ■■

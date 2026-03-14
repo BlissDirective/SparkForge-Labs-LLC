@@ -37,6 +37,18 @@ interface LODConfig {
 }
 
 const LOD_CONFIGS: Record<LODLevel, LODConfig> = {
+  ultra: {
+    segments: 32,
+    tubularSegments: 64,
+    subdivisions: 4,
+    particleMultiplier: 1.5,
+    enableEffects: true,
+    enableShadows: true,
+    enableReflections: true,
+    enableAnimations: true,
+    textureDetail: 'full',
+    maxInstances: 2000,
+  },
   high: {
     segments: 16,
     tubularSegments: 32,
@@ -89,10 +101,10 @@ const LOD_CONFIGS: Record<LODLevel, LODConfig> = {
 
 // ■■ Triangle scaling factors per tier ■■
 const TIER_SCALE: Record<string, Record<LODLevel, number>> = {
-  flagship: { high: 1.0, medium: 0.5, low: 0.25, billboard: 0.05 },
-  flLite:   { high: 1.0, medium: 0.5, low: 0.25, billboard: 0.05 },
-  standard: { high: 1.0, medium: 0.5, low: 0.25, billboard: 0.05 },
-  system:   { high: 1.0, medium: 0.7, low: 0.4, billboard: 0.1 },
+  flagship: { ultra: 1.5, high: 1.0, medium: 0.5, low: 0.25, billboard: 0.05 },
+  flLite:   { ultra: 1.5, high: 1.0, medium: 0.5, low: 0.25, billboard: 0.05 },
+  standard: { ultra: 1.5, high: 1.0, medium: 0.5, low: 0.25, billboard: 0.05 },
+  system:   { ultra: 1.5, high: 1.0, medium: 0.7, low: 0.4, billboard: 0.1 },
 };
 
 // ■■ Hook Options ■■
@@ -125,17 +137,17 @@ function resolveLODLevel(
   thresholds: [number, number, number] = DEFAULT_THRESHOLDS
 ): LODLevel {
   // Start with device bias
-  const levels: LODLevel[] = ['high', 'medium', 'low', 'billboard'];
+  const levels: LODLevel[] = ['ultra', 'high', 'medium', 'low', 'billboard'];
   let levelIndex = levels.indexOf(deviceBias);
 
   // If camera distance provided, potentially downgrade further
   if (cameraDistance !== undefined) {
     if (cameraDistance > thresholds[2]) {
-      levelIndex = Math.max(levelIndex, 3); // billboard
+      levelIndex = Math.max(levelIndex, 4); // billboard
     } else if (cameraDistance > thresholds[1]) {
-      levelIndex = Math.max(levelIndex, 2); // low
+      levelIndex = Math.max(levelIndex, 3); // low
     } else if (cameraDistance > thresholds[0]) {
-      levelIndex = Math.max(levelIndex, 1); // medium
+      levelIndex = Math.max(levelIndex, 2); // medium
     }
   }
 
@@ -221,7 +233,7 @@ export function useAdaptiveLOD(options: UseLODOptions): LODState & {
   // Auto-downgrade LOD if throttled
   const adaptedLevel = useMemo(() => {
     if (!isThrottled) return baseLOD.level;
-    const levels: LODLevel[] = ['high', 'medium', 'low', 'billboard'];
+    const levels: LODLevel[] = ['ultra', 'high', 'medium', 'low', 'billboard'];
     const currentIdx = levels.indexOf(baseLOD.level);
     return levels[Math.min(currentIdx + 1, levels.length - 1)];
   }, [isThrottled, baseLOD.level]);

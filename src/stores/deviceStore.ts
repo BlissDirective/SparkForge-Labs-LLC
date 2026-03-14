@@ -15,7 +15,7 @@ export type DeviceType = 'desktop' | 'tablet' | 'mobile';
 
 // ■■ LOD Level ■■
 // Used by useLOD hook and all 3D components
-export type LODLevel = 'high' | 'medium' | 'low' | 'billboard';
+export type LODLevel = 'ultra' | 'high' | 'medium' | 'low' | 'billboard';
 
 // ■■ Performance Profile ■■
 // Pre-calculated values derived from device type
@@ -39,37 +39,37 @@ export interface PerformanceProfile {
 const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
   desktop: {
     targetFPS: 60,
-    maxTriangles: 100_000,
-    lodBias: 'high',
+    maxTriangles: 500_000,
+    lodBias: 'ultra',
     particleMultiplier: 1.0,
     bloomEnabled: true,
     postProcessingEnabled: true,
     shadowsEnabled: true,
-    maxLights: 8,
+    maxLights: 12,
     textureResolution: 'full',
-    instancedMeshLimit: 500,
-    sphereSegments: 16,
+    instancedMeshLimit: 2000,
+    sphereSegments: 32,
     antialias: true,
-    pixelRatio: 2,
+    pixelRatio: 2.5,
   },
   tablet: {
     targetFPS: 45,
-    maxTriangles: 50_000,
-    lodBias: 'medium',
+    maxTriangles: 150_000,
+    lodBias: 'high',
     particleMultiplier: 0.6,
     bloomEnabled: true,
     postProcessingEnabled: true,
     shadowsEnabled: false,
     maxLights: 4,
     textureResolution: 'half',
-    instancedMeshLimit: 200,
-    sphereSegments: 12,
+    instancedMeshLimit: 500,
+    sphereSegments: 16,
     antialias: true,
     pixelRatio: 1.5,
   },
   mobile: {
     targetFPS: 30,
-    maxTriangles: 25_000,
+    maxTriangles: 50_000,
     lodBias: 'low',
     particleMultiplier: 0.3,
     bloomEnabled: false,
@@ -86,9 +86,9 @@ const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
 
 // ■■ Triangle budgets per game tier, scaled by device ■■
 export const TRIANGLE_BUDGETS: Record<DeviceType, { flagship: number; flLite: number; standard: number }> = {
-  desktop:  { flagship: 100_000, flLite: 50_000, standard: 25_000 },
-  tablet:   { flagship: 50_000,  flLite: 25_000, standard: 12_000 },
-  mobile:   { flagship: 25_000,  flLite: 10_000, standard: 5_000 },
+  desktop:  { flagship: 200_000, flLite: 100_000, standard: 50_000 },
+  tablet:   { flagship: 100_000, flLite: 50_000,  standard: 25_000 },
+  mobile:   { flagship: 50_000,  flLite: 25_000,  standard: 10_000 },
 };
 
 // ■■ Store Interface ■■
