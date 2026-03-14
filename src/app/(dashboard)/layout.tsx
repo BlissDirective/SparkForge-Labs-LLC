@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { CelebrationOverlay } from '@/components/shared/CelebrationOverlay';
 import { ContinueBanner } from '@/components/shared/ContinueBanner';
@@ -7,12 +8,14 @@ import { useUIStore } from '@/stores/uiStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { useStationMode } from '@/hooks/useStationMode';
+import { useCockpitAudio } from '@/hooks/useCockpitAudio';
 import { motion, AnimatePresence } from 'framer-motion';
 import dynamic from 'next/dynamic';
 
 // Dashboard Layout — Laboratory Control Station Shell
 // v3 Decision 2.1: StationFrame canvas mounted on ALL dashboard pages
 // v3 Decision 2.5: Edge-to-edge, frame as border overlay
+// CPA v1.0: Cockpit Panoramic Architecture — curved panels, HUD, side panels
 // v2 BUG-4: useMediaQuery instead of window.innerWidth (SSR-safe)
 // v2 NEW-2A: useSessionTracker auto-tracks play sessions
 
@@ -31,13 +34,23 @@ export default function DashboardLayout({
   const { sidebarOpen } = useUIStore();
   const isDesktop = useMediaQuery('(min-width: 768px)'); // v2 BUG-4 fix
   const stationMode = useStationMode();
+  const { onModeChange } = useCockpitAudio();
+  const prevModeRef = useRef(stationMode.mode);
 
   // v2 [NEW-2A]: Auto-track play sessions
   useSessionTracker();
 
+  // CPA v1.0: Trigger cockpit audio on mode transitions
+  useEffect(() => {
+    if (stationMode.mode !== prevModeRef.current) {
+      onModeChange(stationMode.mode);
+      prevModeRef.current = stationMode.mode;
+    }
+  }, [stationMode.mode, onModeChange]);
+
   return (
     <div className="min-h-screen bg-surface-deep relative overflow-hidden">
-      {/* v3 [Decision 2.1]: Station Frame — persistent 3D canvas layer */}
+      {/* v3 [Decision 2.1] + CPA v1.0: Station Frame — cockpit panoramic canvas */}
       <StationFrame
         mode={stationMode.mode}
         ledColor={stationMode.ledColor}
@@ -45,6 +58,23 @@ export default function DashboardLayout({
         particleCount={stationMode.particleCount}
         frameGlow={stationMode.frameGlow}
         frameDimmed={stationMode.frameDimmed}
+        // CPA v1.0 props
+        bloomIntensity={stationMode.bloomIntensity}
+        bloomThreshold={stationMode.bloomThreshold}
+        bloomSmoothing={stationMode.bloomSmoothing}
+        vignetteDarkness={stationMode.vignetteDarkness}
+        vignetteOffset={stationMode.vignetteOffset}
+        cameraFov={stationMode.cameraFov}
+        barrelDistortion={stationMode.barrelDistortion}
+        hudOpacity={stationMode.hudOpacity}
+        hudRotationSpeed={stationMode.hudRotationSpeed}
+        hudPulseIntensity={stationMode.hudPulseIntensity}
+        sidePanelOpacity={stationMode.sidePanelOpacity}
+        sidePanelLeftContent={stationMode.sidePanelLeftContent}
+        sidePanelRightContent={stationMode.sidePanelRightContent}
+        statusBarOpacity={stationMode.statusBarOpacity}
+        panelCurvature={stationMode.panelCurvature}
+        panelOpacity={stationMode.panelOpacity}
       />
 
       {/* v3: Scanline overlay (Decision 2.3 — toggleable via accessibility) */}

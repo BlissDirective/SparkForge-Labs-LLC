@@ -1,8 +1,12 @@
 # STAGE 3: AUTH, LAYOUT & STATION FRAME — v3-FINAL (PART 3B)
 
+**Updated:** March 14, 2026 — CPA v1.0 (Cockpit Panoramic Architecture) integration
+
 ## Overview
 
-Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laboratory Control Station vision. This replaces the Part 3A CSS-only StationFrame placeholder with a persistent R3F Canvas containing aurora background shaders, GPU-instanced ambient particles with connection lines, an emissive LED rim strip, Bloom post-processing, and WebGL detection with CSS fallbacks. It also adds the ~7-second cinematic CrystalShatter entry sequence, a landing page CrystalHero with mouse parallax, an OnboardingCrystal that forms as onboarding steps progress, GLSL shader infrastructure (noise library, aurora, scanline, chrome), 7 PBR material presets, and a GSAP ScrollTrigger wrapper hook.
+Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laboratory Control Station vision. This replaces the Part 3A CSS-only StationFrame placeholder with a persistent R3F Canvas containing aurora background shaders, GPU-instanced ambient particles with connection lines, an emissive LED rim strip, Bloom post-processing, and WebGL detection with CSS fallbacks. It also adds the ~7-second cinematic CrystalShatter entry sequence, a landing page CrystalHero with mouse parallax, an OnboardingCrystal that forms as onboarding steps progress, GLSL shader infrastructure (noise library, aurora, scanline, chrome), 7+4 PBR material presets, and a GSAP ScrollTrigger wrapper hook.
+
+**CPA v1.0 additions:** StationFrame rewritten as cockpit orchestrator with curved CylinderGeometry panoramic panels, hexagonal sub-panels, HolographicHUD (concentric rings overlay), SidePanels (radar + data stream shaders), StatusBar3D (3D gauge strip), mode-dependent Bloom/Vignette/FOV/BarrelDistortion postprocessing, LEDRim adapted to curved arc path. 4 new material presets (PanelFace, WornChrome, IndicatorGlass, ConsoleBase). 3 new GLSL shaders (radarSweep, dataStream, holographicRing). Total triangle budget: 2800/3000.
 
 ### v3 Decisions Implemented
 
@@ -24,6 +28,18 @@ Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laborator
 - **7.3**: PBR desktop, CSS mobile
 - **7.4**: Selective emissive glow (LED rim, active indicators)
 - **8.1**: CrystalHero — shared crystal DNA, different execution (parallax + sparkles, not cinematic)
+- **CPA-1**: CylinderGeometry panoramic wrap (140° arc, r=4.0)
+- **CPA-2**: Hex sub-panel count (2 clusters x 3 = 6 total)
+- **CPA-3**: IndicatorGlass transmission (0.6, ior=1.2, thickness=0.5)
+- **CPA-4**: HUD normal-use opacity (10-15%)
+- **CPA-5**: HUD geometry (3 rings + 12 radial lines + core sphere)
+- **CPA-6**: Side panels (left=radar/labNav, right=terminal/stats)
+- **CPA-7**: Bloom mode table (dashboard=0.4 to gameComplete=1.0)
+- **CPA-8**: R3F Vignette replaces CSS (darkness=0.5, offset=0.3)
+- **CPA-9**: Dashboard FOV (56°, was 50°)
+- **CPA-10**: Barrel distortion (0.02 strength, 0.0 in games)
+- **CPA-11**: Total station frame tri budget (3000 max)
+- **CPA-12**: Mobile cockpit (CSS-only indicators, zero WebGL)
 
 ### Files Created/Modified
 
@@ -32,18 +48,24 @@ Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laborator
 | 1 | `src/shaders/noise.glsl` | Created |
 | 2 | `src/shaders/aurora.glsl` | Created |
 | 3 | `src/shaders/scanline.glsl` | Created |
-| 4 | `src/shaders/index.ts` | Created |
-| 5 | `src/lib/3d/materials.ts` | Created |
+| 4 | `src/shaders/index.ts` | Created (**CPA: +3 shader exports: radarSweep, dataStream, holographicRing**) |
+| 5 | `src/lib/3d/materials.ts` | Created (**CPA: +4 presets, +transmission fields, +createPhysicalMaterial update**) |
 | 6 | `src/components/3d/AuroraBackground.tsx` | Created |
 | 7 | `src/components/3d/AmbientParticles.tsx` | Created |
-| 8 | `src/components/3d/LEDRim.tsx` | Created |
-| 9 | `src/components/3d/StationFrame.tsx` | Replaced (was Part 3A CSS placeholder) |
+| 8 | `src/components/3d/LEDRim.tsx` | Created (**CPA: curved arc via TubeGeometry + CatmullRomCurve3**) |
+| 9 | `src/components/3d/StationFrame.tsx` | Replaced (**CPA: major rewrite as cockpit orchestrator**) |
 | 10 | `src/components/3d/CrystalShatter.tsx` | Created |
 | 11 | `src/components/3d/CrystalHero.tsx` | Created |
 | 12 | `src/components/3d/OnboardingCrystal.tsx` | Created |
 | 13 | `src/hooks/useGSAPScroll.ts` | Created |
 | 14 | `public/hdri/README-frost-prismatic.md` | Created |
-| 15 | `src/app/(dashboard)/layout.tsx` | Modified |
+| 15 | `src/app/(dashboard)/layout.tsx` | Modified (**CPA: passes all CPA props**) |
+| 16 | `src/components/3d/CockpitPanels.tsx` | **CPA: Created** — Curved panels + hex sub-panels |
+| 17 | `src/components/3d/HolographicHUD.tsx` | **CPA: Created** — Concentric rings overlay |
+| 18 | `src/components/3d/SidePanels.tsx` | **CPA: Created** — Left radar + right terminal |
+| 19 | `src/components/3d/StatusBar3D.tsx` | **CPA: Created** — 3D gauge-style bottom strip |
+| 20 | `src/components/3d/BarrelDistortion.tsx` | **CPA: Created** — Custom postprocessing effect |
+| 21 | `src/lib/3d/cockpitConfig.ts` | **CPA: Created** — Central cockpit config |
 
 ### Packages Installed
 

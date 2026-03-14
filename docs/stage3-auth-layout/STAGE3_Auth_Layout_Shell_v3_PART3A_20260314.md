@@ -1,8 +1,12 @@
 # STAGE 3: AUTH, LAYOUT & STATION FRAME — v3-FINAL (PART 3A)
 
+**Updated:** March 14, 2026 — CPA v1.0 (Cockpit Panoramic Architecture) integration
+
 ## Overview
 
 Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 dashboard framework that wraps all authenticated pages. This includes the station mode system, instrument-panel sidebar, celebration overlays, page transitions, session tracking, onboarding wizard, marketing/landing pages, and v3 CSS visual layer additions (emissive glow, scanline overlay, vignette, chrome bezel, LED rim).
+
+**CPA v1.0 additions:** `useStationMode` extended with bloom, vignette, FOV, HUD, cockpit panel, side panel, and status bar fields. `globals.css` updated with mobile cockpit CSS fallbacks. Dashboard layout passes all CPA props to StationFrame. New `useCockpitAudio` hook for cockpit sound events.
 
 ### v3 Decisions Implemented
 - **2.1**: StationFrame canvas on ALL dashboard pages
@@ -14,22 +18,27 @@ Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 
 - **3.4**: Frame dimmed during games
 - **7.4**: Selective emissive glow
 - **8.1**: CrystalHero placeholder on landing
+- **CPA-7**: Mode-dependent bloom presets (via useStationMode)
+- **CPA-8**: R3F Vignette presets (via useStationMode)
+- **CPA-9**: Wider FOV camera presets (via useStationMode)
+- **CPA-10**: Barrel distortion presets (via useStationMode)
+- **CPA-12**: Mobile cockpit CSS fallbacks (globals.css)
 
 ### Files Created/Modified
 
 | # | File | Action |
 |---|------|--------|
-| 1 | `src/hooks/useStationMode.ts` | Created |
+| 1 | `src/hooks/useStationMode.ts` | Created (**CPA: extended with 16 new fields**) |
 | 2 | `src/components/layout/Sidebar.tsx` | Created |
 | 3 | `src/components/shared/CelebrationOverlay.tsx` | Created |
 | 4 | `src/components/shared/ContinueBanner.tsx` | Created |
-| 5 | `src/app/(dashboard)/layout.tsx` | Created |
+| 5 | `src/app/(dashboard)/layout.tsx` | Created (**CPA: passes all CPA props + cockpit audio**) |
 | 6 | `src/components/providers/PageTransitionProvider.tsx` | Created |
 | 7 | `src/hooks/useSessionTracker.ts` | Created |
 | 8 | `src/app/(dashboard)/onboarding/page.tsx` | Created |
 | 9 | `src/app/(marketing)/layout.tsx` | Created |
 | 10 | `src/app/(marketing)/page.tsx` | Created |
-| 11 | `src/app/globals.css` | Modified (appended v3 CSS) |
+| 11 | `src/app/globals.css` | Modified (appended v3 CSS **+ CPA mobile cockpit CSS**) |
 | 12 | `src/app/(dashboard)/home/page.tsx` | Created |
 | 13 | `src/app/(dashboard)/labs/page.tsx` | Created |
 | 14 | `src/app/(dashboard)/arcade/page.tsx` | Created |
@@ -37,6 +46,8 @@ Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 
 | 16 | `src/app/(dashboard)/parent/page.tsx` | Created |
 | 17 | `src/components/3d/StationFrame.tsx` | Created (CSS placeholder) |
 | 18 | `src/app/page.tsx` | Deleted (replaced by marketing route) |
+| 19 | `src/hooks/useCockpitAudio.ts` | **CPA: Created** — Cockpit sound hooks |
+| 20 | `src/lib/3d/cockpitConfig.ts` | **CPA: Created** — Central cockpit config |
 
 ### Discrepancies & Adaptations
 

@@ -588,3 +588,203 @@ void main() {
 
 export const fireNoiseVertexShader = noiseGLSL + '\n' + fireNoiseVertexRaw;
 export const fireNoiseFragmentShader = noiseGLSL + '\n' + fireNoiseFragmentRaw;
+
+// ================================================================
+// CPA v1.0 — Cockpit Panoramic Architecture Shaders
+// ================================================================
+
+// ■■ Radar Sweep Shader (Left Side Panel) ■■
+// Rotating sweep line with concentric range rings, lab dot indicators
+
+const radarSweepFragmentRaw = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform float uTime;
+uniform vec3 uColor;
+uniform float uIntensity;
+uniform float uSweepSpeed;
+
+varying vec2 vUv;
+
+void main() {
+  vec2 centered = vUv * 2.0 - 1.0;
+  float dist = length(centered);
+  float angle = atan(centered.y, centered.x);
+
+  // Concentric range rings (4 rings)
+  float rings = 0.0;
+  for (int i = 1; i <= 4; i++) {
+    float r = float(i) * 0.22;
+    float ring = smoothstep(0.008, 0.0, abs(dist - r));
+    rings += ring * 0.4;
+  }
+
+  // Rotating sweep line
+  float sweepAngle = mod(uTime * uSweepSpeed, 6.2832);
+  float angleDiff = mod(angle - sweepAngle + 6.2832, 6.2832);
+  float sweep = smoothstep(0.5, 0.0, angleDiff) * smoothstep(0.0, 0.02, angleDiff);
+  sweep *= step(dist, 0.9);
+
+  // Sweep trail (fading arc behind sweep)
+  float trail = smoothstep(1.2, 0.0, angleDiff) * 0.3;
+  trail *= step(dist, 0.9);
+
+  // Center dot
+  float centerDot = smoothstep(0.04, 0.02, dist);
+
+  // Outer boundary circle
+  float boundary = smoothstep(0.008, 0.0, abs(dist - 0.9));
+
+  // Cross hairs
+  float crossH = smoothstep(0.003, 0.0, abs(centered.y)) * step(dist, 0.9) * 0.2;
+  float crossV = smoothstep(0.003, 0.0, abs(centered.x)) * step(dist, 0.9) * 0.2;
+
+  float total = (rings + sweep + trail + centerDot + boundary + crossH + crossV) * uIntensity;
+  vec3 color = uColor * total;
+
+  gl_FragColor = vec4(color, total * 0.8);
+}
+`;
+
+export const radarSweepFragmentShader = radarSweepFragmentRaw;
+
+export const radarSweepVertexShader = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+// ■■ Data Stream Shader (Right Side Panel) ■■
+// Scrolling data characters, bar graphs, on-brand digital rain
+
+const dataStreamFragmentRaw = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform float uTime;
+uniform vec3 uColor;
+uniform float uIntensity;
+uniform float uScrollSpeed;
+
+varying vec2 vUv;
+
+float hash(vec2 p) {
+  return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+}
+
+float digitGrid(vec2 uv, float time) {
+  vec2 grid = floor(uv * vec2(8.0, 20.0));
+  float h = hash(grid + floor(vec2(0.0, time * 0.5)));
+  float show = step(0.4, h);
+  // Brightness varies per cell
+  float brightness = hash(grid * 1.7 + 0.5) * 0.6 + 0.4;
+  return show * brightness;
+}
+
+void main() {
+  vec2 uv = vUv;
+
+  // Scrolling effect
+  float scroll = uTime * uScrollSpeed;
+  vec2 scrollUv = vec2(uv.x, uv.y + scroll);
+
+  // Data grid
+  float data = digitGrid(scrollUv, uTime);
+
+  // Horizontal bar graphs (bottom section)
+  float barSection = smoothstep(0.0, 0.25, uv.y) * (1.0 - step(0.25, uv.y));
+  float barIndex = floor(uv.y * 16.0);
+  float barWidth = hash(vec2(barIndex, floor(uTime * 0.3))) * 0.7 + 0.2;
+  float bar = step(uv.x, barWidth) * barSection * 0.8;
+
+  // Fade edges
+  float edgeFade = smoothstep(0.0, 0.05, uv.x) * smoothstep(1.0, 0.95, uv.x);
+  edgeFade *= smoothstep(0.0, 0.05, uv.y) * smoothstep(1.0, 0.95, uv.y);
+
+  // Scanline effect within panel
+  float scanline = sin(uv.y * 80.0) * 0.1 + 0.9;
+
+  float total = (data * (1.0 - barSection) + bar) * edgeFade * scanline * uIntensity;
+  vec3 color = uColor * total;
+
+  gl_FragColor = vec4(color, total * 0.7);
+}
+`;
+
+export const dataStreamFragmentShader = dataStreamFragmentRaw;
+
+export const dataStreamVertexShader = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;
+
+// ■■ Holographic Ring Shader (HUD concentric rings) ■■
+// Concentric ring glow with scan line animation
+
+const holographicRingFragmentRaw = `
+#ifdef GL_ES
+precision mediump float;
+#endif
+
+uniform float uTime;
+uniform vec3 uColor;
+uniform float uIntensity;
+uniform float uPulse;
+
+varying vec2 vUv;
+
+void main() {
+  vec2 centered = vUv * 2.0 - 1.0;
+  float dist = length(centered);
+  float angle = atan(centered.y, centered.x);
+
+  // 3 concentric rings with glow falloff
+  float ring1 = smoothstep(0.02, 0.0, abs(dist - 0.9)) * 0.8;
+  float ring2 = smoothstep(0.02, 0.0, abs(dist - 0.6)) * 0.6;
+  float ring3 = smoothstep(0.015, 0.0, abs(dist - 0.35)) * 0.5;
+
+  // Ring glow halos
+  float glow1 = smoothstep(0.08, 0.0, abs(dist - 0.9)) * 0.3;
+  float glow2 = smoothstep(0.06, 0.0, abs(dist - 0.6)) * 0.2;
+
+  // Radial tick marks (12 segments)
+  float tickAngle = mod(angle + 3.14159, 0.5236); // PI/6 = 30 degrees
+  float tick = smoothstep(0.02, 0.0, tickAngle) * step(0.3, dist) * step(dist, 0.92) * 0.4;
+
+  // Active scan line (one radial line sweeps)
+  float scanAngle = mod(uTime * 1.5, 6.2832);
+  float scanDiff = mod(angle - scanAngle + 6.2832, 6.2832);
+  float scan = smoothstep(0.08, 0.0, scanDiff) * step(0.3, dist) * step(dist, 0.92) * 0.8;
+
+  // Center core pulse
+  float corePulse = sin(uTime * 4.189) * 0.15 + 0.85; // 4.189 ≈ 2PI/1.5
+  float core = smoothstep(0.15, 0.0, dist) * corePulse * uPulse;
+
+  float total = (ring1 + ring2 + ring3 + glow1 + glow2 + tick + scan + core) * uIntensity;
+  vec3 color = uColor * total;
+
+  // Subtle color shift on outer ring
+  vec3 shiftColor = mix(uColor, uColor * vec3(0.8, 1.2, 1.0), sin(angle * 3.0 + uTime) * 0.3 + 0.5);
+  color = mix(color, shiftColor * total, ring1 + glow1);
+
+  gl_FragColor = vec4(color, total * 0.9);
+}
+`;
+
+export const holographicRingFragmentShader = holographicRingFragmentRaw;
+
+export const holographicRingVertexShader = `
+varying vec2 vUv;
+void main() {
+  vUv = uv;
+  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+}
+`;

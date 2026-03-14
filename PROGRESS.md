@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: 21 — Stage 7F Complete (3 games + audit fixes + 17 enhancements)
+## Current Phase: 21 — Stage 7F Complete + CPA v1.0 Implementation
 ## Status: COMPLETE
-## Last Updated: 2026-03-09
+## Last Updated: 2026-03-14
 
 ---
 
@@ -243,6 +243,13 @@
 | 21 | STAGE7F_v3FINAL_PartB (MyFirstAiApp) | `game.completeGame()` called before user sees preview | Premature completion at design→preview transition | Moved to preview→complete "Finish" button (E-3) |
 | 21 | STAGE7F_v3FINAL_PartB (MyFirstAiApp) | Missing `game.startGame()` call | No game initialization for XP tracking | Added `game.startGame('my-first-ai-app', 30)` at learn→build (E-4) |
 | 21 | STAGE7F_v3FINAL_PartB (MyFirstAiApp) | Missing `xpReward` in GameShell | GameShell missing xpReward prop | Added `xpReward={30}` (F-5) |
+| CPA | Stage 3 Part 3A | `useStationMode` had 10 fields | CPA requires 26 fields (16 new) | Extended with bloom, vignette, FOV, HUD, panel, status bar fields from cockpitConfig presets |
+| CPA | Stage 3 Part 3B | `materials.ts` had 7 presets | CPA requires 11 presets (4 new) | Added PanelFace, WornChrome, IndicatorGlass, ConsoleBase; extended interface with transmission/ior/thickness |
+| CPA | Stage 3 Part 3B | `shaders/index.ts` had 4 shader pairs | CPA requires 7 shader pairs (3 new) | Added radarSweep, dataStream, holographicRing shaders |
+| CPA | Stage 3 Part 3B | `StationFrame.tsx` was flat CSS + simple R3F | CPA requires cockpit orchestrator | Major rewrite: curved panels, HUD, side panels, status bar, mode-dependent postprocessing |
+| CPA | Stage 3 Part 3B | `LEDRim.tsx` used flat PlaneGeometry | CPA requires curved arc path | Added TubeGeometry + CatmullRomCurve3 for curved arc following cockpit top edge |
+| CPA | Stage 3 Part 3A | Dashboard layout passed 6 props | CPA requires 22 props | Extended to pass all CPA mode fields + cockpit audio integration |
+| CPA | Stage 3 Part 3A/3B docs | Static docs | CPA changes need doc traceability | Renamed with _20260314 date suffix, updated file tables and decision lists |
 | 21 | STAGE7F_Part1 (EmojiDecoder) | No complete phase UI | Blank screen after finishing game | Added complete phase with score, streak, XP, badge (E-1) |
 | 21 | STAGE7F_Part2 (AiOrNot) | No complete phase UI | Blank screen after finishing game | Added complete phase with Reality Score, breakdown, badge (E-2) |
 | 21 | STAGE7F_Part1 (EmojiDecoder) | No streak visual multiplier | Only counter shown, no COMBO text | Added animated "2x/3x COMBO!" text (E-6) |

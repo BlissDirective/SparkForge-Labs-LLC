@@ -3,7 +3,7 @@
 **Build Phase:** 4–5 of 24
 **v3-FINAL:** Mixed (Parts 1–2 v2, Parts 3A–3B v3-FINAL)
 **Hard Stops:** HS-5 (visual verification after all parts)
-**Decision IDs:** 1.1–1.7, 2.1–2.5, 7.1, 7.3–4, 8.1
+**Decision IDs:** 1.1–1.7, 2.1–2.5, 7.1, 7.3–4, 8.1, CPA-1–CPA-12
 
 ## Files to Place Here (4 PDFs)
 

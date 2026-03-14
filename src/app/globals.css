@@ -543,6 +543,51 @@ body[data-scanlines="off"] .scanline-overlay {
   border-radius: 1px;
 }
 
+/* ═══════════════════════════════════════════════
+   CPA v1.0 — Cockpit Panoramic Architecture CSS Fallbacks
+   Decision CPA-12: Mobile cockpit — CSS-only indicators, zero WebGL
+   ═══════════════════════════════════════════════ */
+
+/* Side indicator strips — vertical glow bars on screen edges (mobile cockpit hint) */
+.cockpit-side-indicator {
+  position: fixed;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 40%;
+  background: linear-gradient(180deg, transparent, var(--glow-color, #00BBFF), transparent);
+  opacity: 0.15;
+  pointer-events: none;
+  z-index: 2;
+}
+.cockpit-side-indicator.left { left: 0; }
+.cockpit-side-indicator.right { right: 0; }
+
+/* Mobile status bar strip — bottom glow line */
+.status-bar-mobile {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 10%, var(--glow-color, #00BBFF) 30%, var(--glow-color, #00BBFF) 70%, transparent 90%);
+  opacity: 0.3;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* When R3F vignette is active, hide CSS vignette to avoid double-darkening */
+.r3f-vignette-active .vignette-overlay {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cockpit-side-indicator,
+  .status-bar-mobile {
+    animation: none;
+  }
+}
+
 /* ================================================================ */
 /* v3 Stage 4 P2: Lab Reconfiguration particle animation            */
 /* ================================================================ */

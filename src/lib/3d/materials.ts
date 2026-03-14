@@ -27,6 +27,10 @@ export interface MaterialPreset {
   color?: string;
   emissive?: string;
   emissiveIntensity?: number;
+  // CPA v1.0 — transmission properties for IndicatorGlass
+  transmission?: number;
+  ior?: number;
+  thickness?: number;
   special?: string;
 }
 
@@ -90,6 +94,49 @@ export const MATERIAL_PRESETS: Record<string, MaterialPreset> = {
     emissiveIntensity: 2.0,
     special: 'LED rim + active indicators',
   },
+
+  // ■■ CPA v1.0 — Cockpit Panoramic Architecture Presets ■■
+
+  PanelFace: {
+    name: 'PanelFace',
+    metalness: 0.85,
+    roughness: 0.35,
+    envMapIntensity: 1.2,
+    color: '#1a1e2e',
+    special: 'Main cockpit panel surface — dark metallic with subtle env reflection',
+  },
+
+  WornChrome: {
+    name: 'WornChrome',
+    metalness: 0.95,
+    roughness: 0.45,
+    envMapIntensity: 0.8,
+    color: '#8a9098',
+    special: 'Hexagonal sub-panels, console desk edges — weathered industrial chrome',
+  },
+
+  IndicatorGlass: {
+    name: 'IndicatorGlass',
+    metalness: 0.1,
+    roughness: 0.05,
+    envMapIntensity: 1.5,
+    color: '#e0f0ff',
+    emissive: '#00BBFF',
+    emissiveIntensity: 0.3,
+    transmission: 0.6,
+    ior: 1.2,
+    thickness: 0.5,
+    special: 'HUD overlays, concentric rings, holographic glass — transmission + refraction',
+  },
+
+  ConsoleBase: {
+    name: 'ConsoleBase',
+    metalness: 0.7,
+    roughness: 0.6,
+    envMapIntensity: 0.5,
+    color: '#0e1118',
+    special: 'Console desk and status bar base — very dark, matte-metallic',
+  },
 };
 
 // ■■ Helper: Create MeshPhysicalMaterial from preset ■■
@@ -108,6 +155,12 @@ export function createPhysicalMaterial(
     envMapIntensity: preset.envMapIntensity,
     emissive: preset.emissive ? new THREE.Color(preset.emissive) : undefined,
     emissiveIntensity: preset.emissiveIntensity || 0,
+    // CPA v1.0: Transmission support (IndicatorGlass)
+    ...(preset.transmission !== undefined && {
+      transmission: preset.transmission,
+      ior: preset.ior ?? 1.5,
+      thickness: preset.thickness ?? 0.5,
+    }),
   });
 }
 

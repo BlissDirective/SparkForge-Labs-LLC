@@ -2,10 +2,23 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
+import {
+  BLOOM_PRESETS,
+  CAMERA_PRESETS,
+  VIGNETTE_PRESETS,
+  HUD_PRESETS,
+  SIDE_PANEL_PRESETS,
+  PANEL_CURVATURE_PRESETS,
+  PANEL_OPACITY_PRESETS,
+  STATUS_BAR_PRESETS,
+} from '@/lib/3d/cockpitConfig';
+import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
 
 // useStationMode — Laboratory Control Station Mode Manager
 // Decisions: 2.1 (all pages), 3.4 (dimmed during games)
-// Drives: LED rim color, aurora bg, particle behavior, frame glow
+// CPA v1.0: Extended with bloom, vignette, FOV, HUD, cockpit fields
+// Drives: LED rim color, aurora bg, particle behavior, frame glow,
+//         cockpit panels, HUD, side panels, status bar, bloom, camera
 
 export type StationMode =
   | 'dashboard'
@@ -27,6 +40,24 @@ export interface StationModeState {
   activeLabId: number | null;
   activeLabColor: string;
   activeLabName: string;
+
+  // CPA v1.0 — Cockpit Panoramic Architecture fields
+  bloomIntensity: number;
+  bloomThreshold: number;
+  bloomSmoothing: number;
+  vignetteDarkness: number;
+  vignetteOffset: number;
+  cameraFov: number;
+  barrelDistortion: number;
+  hudOpacity: number;
+  hudRotationSpeed: number;
+  hudPulseIntensity: number;
+  sidePanelOpacity: number;
+  sidePanelLeftContent: SidePanelContent;
+  sidePanelRightContent: SidePanelContent;
+  statusBarOpacity: number;
+  panelCurvature: number;
+  panelOpacity: number;
 }
 
 // Lab accent colors from the 10-lab palette
@@ -99,8 +130,41 @@ export function useStationMode(): StationModeState & {
     ? LAB_NAMES[activeLabId] || ''
     : '';
 
+  // Helper: build CPA fields from presets for a given mode key
+  const buildCPAFields = useCallback((modeKey: StationMode) => {
+    const bloom = BLOOM_PRESETS[modeKey] || BLOOM_PRESETS.dashboard;
+    const camera = CAMERA_PRESETS[modeKey] || CAMERA_PRESETS.dashboard;
+    const vignette = VIGNETTE_PRESETS[modeKey] || VIGNETTE_PRESETS.dashboard;
+    const hud = HUD_PRESETS[modeKey] || HUD_PRESETS.dashboard;
+    const sidePanel = SIDE_PANEL_PRESETS[modeKey] || SIDE_PANEL_PRESETS.dashboard;
+    const statusBar = STATUS_BAR_PRESETS[modeKey] || STATUS_BAR_PRESETS.dashboard;
+    const panelCurvature = PANEL_CURVATURE_PRESETS[modeKey] ?? PANEL_CURVATURE_PRESETS.dashboard;
+    const panelOpacity = PANEL_OPACITY_PRESETS[modeKey] ?? PANEL_OPACITY_PRESETS.dashboard;
+
+    return {
+      bloomIntensity: bloom.intensity,
+      bloomThreshold: bloom.threshold,
+      bloomSmoothing: bloom.smoothing,
+      vignetteDarkness: vignette.darkness,
+      vignetteOffset: vignette.offset,
+      cameraFov: camera.fov,
+      barrelDistortion: camera.distortion,
+      hudOpacity: hud.opacity,
+      hudRotationSpeed: hud.rotationSpeed,
+      hudPulseIntensity: hud.pulseIntensity,
+      sidePanelOpacity: sidePanel.opacity,
+      sidePanelLeftContent: sidePanel.leftContent as SidePanelContent,
+      sidePanelRightContent: sidePanel.rightContent as SidePanelContent,
+      statusBarOpacity: statusBar.opacity,
+      panelCurvature,
+      panelOpacity,
+    };
+  }, []);
+
   // Build the full state
   const state = useMemo((): StationModeState => {
+    const cpa = buildCPAFields(derivedMode);
+
     switch (derivedMode) {
       case 'dashboard':
         return {
@@ -114,6 +178,7 @@ export function useStationMode(): StationModeState & {
           activeLabId: null,
           activeLabColor: DEFAULT_LED_COLOR,
           activeLabName: '',
+          ...cpa,
         };
       case 'labmap':
         return {
@@ -127,6 +192,7 @@ export function useStationMode(): StationModeState & {
           activeLabId: null,
           activeLabColor: DEFAULT_LED_COLOR,
           activeLabName: '',
+          ...cpa,
         };
       case 'lab':
         return {
@@ -140,6 +206,7 @@ export function useStationMode(): StationModeState & {
           activeLabId,
           activeLabColor,
           activeLabName,
+          ...cpa,
         };
       case 'game':
         // Decision 3.4: Frame dimmed during games
@@ -154,6 +221,7 @@ export function useStationMode(): StationModeState & {
           activeLabId,
           activeLabColor,
           activeLabName,
+          ...cpa,
         };
       case 'profile':
         return {
@@ -167,6 +235,7 @@ export function useStationMode(): StationModeState & {
           activeLabId: null,
           activeLabColor: '#AA66FF',
           activeLabName: '',
+          ...cpa,
         };
       case 'celebration':
         return {
@@ -180,6 +249,7 @@ export function useStationMode(): StationModeState & {
           activeLabId,
           activeLabColor: '#FFD700',
           activeLabName: '',
+          ...cpa,
         };
       case 'onboarding':
         return {
@@ -193,6 +263,7 @@ export function useStationMode(): StationModeState & {
           activeLabId: null,
           activeLabColor: DEFAULT_LED_COLOR,
           activeLabName: '',
+          ...cpa,
         };
       default:
         return {
@@ -206,9 +277,10 @@ export function useStationMode(): StationModeState & {
           activeLabId: null,
           activeLabColor: DEFAULT_LED_COLOR,
           activeLabName: '',
+          ...cpa,
         };
     }
-  }, [derivedMode, activeLabId, activeLabColor, activeLabName]);
+  }, [derivedMode, activeLabId, activeLabColor, activeLabName, buildCPAFields]);
 
   return {
     ...state,
