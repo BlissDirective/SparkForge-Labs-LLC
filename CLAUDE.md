@@ -644,9 +644,11 @@ function useIsMobile() {
 - Mobile fallback: `useIsMobile()` → component returns `null` on mobile
 - CSS 2D fallback remains fully functional when 3D is hidden
 - Triangle budgets: Flagship 50K–100K, FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
+- **LOD is MANDATORY** — every 3D component must use `useLOD()` hook or `<LODWrapper>` (see Section 9.1)
+- **Device-adaptive FPS** — `deviceStore` drives FPS targets (desktop 60, tablet 45, mobile 30)
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
 - Environment: `frost-prismatic.hdr` in `public/hdri/`
-- 7 PBR presets in `lib/3d/materials.ts`
+- 11 PBR presets in `lib/3d/materials.ts`
 - 10 GLSL lab pattern shaders in `src/shaders/`
 
 ### 3D Component Registry
@@ -672,6 +674,81 @@ function useIsMobile() {
 | CameraQuest3D.tsx | 7D v3 | Camera Quest (polaroid) |
 | FutureForge3D.tsx | 7D v3 | Future Forge (blueprint) |
 | MyFirstAiApp3D.tsx | 7F v3 | My First AI App (mockup) |
+| LODWrapper.tsx | — | Mandatory LOD container for all 3D scenes |
+
+### 9.1 Mandatory LOD Architecture
+
+**Every 3D component MUST implement Level of Detail (LOD).** This is not optional — it ensures consistent performance across all device types.
+
+#### Device Performance System
+
+Users select their device type at first launch via `DeviceSelectionModal`:
+
+| Device | Target FPS | Max Triangles | LOD Bias | Bloom | Shadows | Pixel Ratio |
+|--------|-----------|---------------|----------|-------|---------|-------------|
+| Desktop (Computer) | 60 | 100K | high | Yes | Yes | 2x |
+| Tablet | 45 | 50K | medium | Yes | No | 1.5x |
+| Mobile (Phone) | 30 | 25K | low | No | No | 1x |
+
+**Store:** `src/stores/deviceStore.ts` — persisted via localStorage (`sparkforge-device`)
+**Modal:** `src/components/ui/DeviceSelectionModal.tsx` — shown once on first visit
+**Settings:** User can change device type anytime in Settings page
+
+#### LOD Levels
+
+| Level | Segments | Effects | Shadows | Reflections | Use Case |
+|-------|----------|---------|---------|-------------|----------|
+| `high` | 16 | All | Yes | Yes | Desktop, close camera |
+| `medium` | 12 | Most | No | Yes | Tablet, mid-range |
+| `low` | 8 | None | No | No | Mobile, far camera |
+| `billboard` | 4 | None | No | No | Extreme distance / perf |
+
+#### Usage Pattern (Required)
+
+```typescript
+// In 3D component:
+import { useLOD, lodSphere } from '@/hooks/useLOD';
+
+function MyScene3D() {
+  const lod = useLOD({ tier: 'flagship' }); // or 'flLite', 'standard', 'system'
+  return (
+    <mesh>
+      <sphereGeometry args={lodSphere(lod, 1.0)} />
+      {lod.enableEffects && <Sparkles />}
+      {lod.enableShadows && <ContactShadows />}
+    </mesh>
+  );
+}
+
+// Or via wrapper:
+import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
+
+<LODWrapper tier="flagship" adaptive>
+  <MyScene3D />
+</LODWrapper>
+```
+
+#### Adaptive FPS Monitor
+
+`useAdaptiveLOD()` monitors real-time FPS and auto-downgrades LOD when performance drops below 80% of target. Use `adaptive` prop on `<LODWrapper>` for automatic degradation.
+
+#### Triangle Budgets by Device
+
+| Tier | Desktop | Tablet | Mobile |
+|------|---------|--------|--------|
+| Flagship | 100K | 50K | 25K |
+| FL-Lite | 50K | 25K | 10K |
+| Standard | 25K | 12K | 5K |
+
+### 9.2 Game Tier Definitions (3 tiers)
+
+**Note:** Enhanced Standard tier has been **merged into FL-Lite**. There are now 3 game tiers:
+
+| Tier | Description | 3D | Triangle Budget | Games |
+|------|-------------|-----|----------------|-------|
+| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 50K–100K | 5 |
+| **FL-Lite** | Enhanced 3D with themed environments | Enhanced R3F | 10K–50K | 10 |
+| **Standard** | Meaningful 3D scenes (replaces CSS-only) | Themed R3F | 10K–25K | 20 |
 
 ---
 
@@ -803,17 +880,17 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | 26 | Sentiment Scanner | 8 | sentiment-scanner | Std | — | A,B,C | 7C |
 | 27 | Chatbot Builder | 8 | chatbot-builder | FL-L | Enh | B,C | 7C |
 | 28 | Lost in Translation | 8 | lost-in-translation | Std | — | A,B,C | 7C |
-| 29 | Emoji Decoder | 8 | emoji-decoder | Enh | — | A,B | 7F |
+| 29 | Emoji Decoder | 8 | emoji-decoder | FL-L | Enh | A,B | 7F |
 | 30 | Code Blocks | 9 | code-blocks | FL-L | Enh | A,B,C | 7B |
 | 31 | Career Explorer | 9 | career-explorer | Std | — | B,C | 7B |
 | 32 | API Explorer | 9 | api-explorer | Std | — | C | 7E |
 | 33 | My First AI App | 9 | my-first-ai-app | FL-L | Enh | A,B,C | 7F |
 | 34 | Future Forge | 10 | future-forge | FL-L | Enh | A,B,C | 7D |
-| 35 | AI or Not? | 10 | ai-or-not | Enh | — | A,B | 7F |
+| 35 | AI or Not? | 10 | ai-or-not | FL-L | Enh | A,B | 7F |
 
 ---
 
-## 14. STORES (6 total)
+## 14. STORES (8 total)
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
@@ -821,8 +898,10 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
 | gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
 | toastStore | 1 | toasts[], addToast/removeToast |
+| uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound |
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
+| **deviceStore** | — | deviceType, hasSelected, profile (FPS, LOD, triangles, effects) |
 
 ---
 

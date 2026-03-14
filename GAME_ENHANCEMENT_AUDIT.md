@@ -1,9 +1,26 @@
 # SparkForge — Full Game Enhancement Audit
 
-**Date:** March 14, 2026
+**Date:** March 14, 2026 (Updated March 14, 2026)
 **Scope:** 3D Visual Enhancement, Game Playability & Depth, Content Agent & Admin Dashboard
-**Codebase State:** 205 source files, 34/35 games implemented, clean build (0 TS errors)
+**Codebase State:** 205+ source files, 34/35 games implemented, clean build (0 TS errors)
 **Audited By:** Claude Code — 6 parallel deep-analysis agents across all source files
+
+### Approved Decisions (March 14, 2026)
+
+| # | Decision | Status |
+|---|----------|--------|
+| D-1 | Triangle budget ranges confirmed: Flagship 50K–100K, FL-Lite 10K–50K, Standard 10K–25K | **APPROVED** |
+| D-2 | Enhanced Standard tier merged into FL-Lite (Emoji Decoder, AI or Not? → FL-Lite) | **APPROVED** |
+| D-3 | Full creative control for 3D scene development with age-appropriate band content | **APPROVED** |
+| D-4 | Device-type FPS optimization via startup selection prompt (desktop 60fps, tablet 45fps, mobile 30fps) | **APPROVED & IMPLEMENTED** |
+| D-5 | LOD (Level of Detail) as mandatory architecture for all 3D components | **APPROVED & IMPLEMENTED** |
+
+**Implementation files created:**
+- `src/stores/deviceStore.ts` — Device performance profiles + persisted selection
+- `src/hooks/useLOD.ts` — Mandatory LOD hook with adaptive FPS monitoring
+- `src/components/3d/LODWrapper.tsx` — LOD context wrapper for 3D scenes
+- `src/components/ui/DeviceSelectionModal.tsx` — First-launch device type prompt
+- Root layout updated with DeviceSelectionModal
 
 ---
 
@@ -28,8 +45,8 @@
 | Total Games | 34/35 (AI Spy missing) |
 | 3D Components | 38 files in `src/components/3d/` |
 | Flagship Games (Full 3D) | 5 |
-| FL-Lite Games (Enhanced 3D) | 8 |
-| Standard Games (CSS particles) | 21 |
+| FL-Lite Games (Enhanced 3D) | 10 (merged Enhanced Standard) |
+| Standard Games (3D scenes) | 20 |
 | GLSL Shaders | 19 files |
 | PBR Material Presets | 11 |
 | Content Agent Pipeline | 4-stage (Research → Generate → Screen → Insert) |
@@ -230,7 +247,9 @@ With the new 10K–25K triangle budget, **ALL standard games now receive meaning
 | **Agent Architect** | 4/5 | 7 phases, drag-drop blocks, pipeline simulation, step-through | Medium — add execution trace |
 | **Bias Detective** | 5/5 | 7 phases, 6 real-world cases, evidence collection, spring physics scales | Low — exemplary |
 
-#### FL-Lite Games (8) — Score: 4.1/5.0
+#### FL-Lite Games (10) — Score: 4.1/5.0
+
+> Includes 2 games merged from former Enhanced Standard tier (Decision D-2)
 
 | Game | Score | Strengths | Enhancement Priority |
 |------|-------|-----------|---------------------|
@@ -242,15 +261,12 @@ With the new 10K–25K triangle budget, **ALL standard games now receive meaning
 | **Camera Quest** | 4/5 | 12 scavenger items, confidence meter, privacy-first design | Add more items, randomization |
 | **Future Forge** | 4/5 | 6 AI capabilities, 5 scenarios, combinatorics | Strong as-is |
 | **My First AI App** | 4/5 | 7 categories × 9 powers × 7 themes, shareable output | Strong as-is |
-
-#### Enhanced Standard (2) — Score: 4.0/5.0
-
-| Game | Score | Strengths | Enhancement Priority |
-|------|-------|-----------|---------------------|
-| **Emoji Decoder** | 4/5 | 15+ sequences, streak bonuses, creative lab phase | Strong as-is |
-| **AI or Not?** | 4/5 | 8+ scenarios, 3-way prediction, expert analysis | Add more scenarios |
+| **Emoji Decoder** | 4/5 | 15+ sequences, streak bonuses, creative lab phase | Strong as-is *(merged from Enhanced Standard)* |
+| **AI or Not?** | 4/5 | 8+ scenarios, 3-way prediction, expert analysis | Add more scenarios *(merged from Enhanced Standard)* |
 
 #### Standard Games (20) — Score: 3.6/5.0
+
+> **Note:** Enhanced Standard tier (Emoji Decoder, AI or Not?) has been **merged into FL-Lite** per Decision D-2. See FL-Lite section above for those games.
 
 **Top Performers (need minimal enhancement):**
 - Real or Fake (5/5) — 12+ rounds, 4 content types, detection tips

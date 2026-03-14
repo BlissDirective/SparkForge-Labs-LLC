@@ -11,6 +11,7 @@ import QueryProvider from '@/components/providers/QueryProvider';
 import { A11yProvider } from '@/components/accessibility/A11yProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { DeviceSelectionModal } from '@/components/ui/DeviceSelectionModal';
 
 // ── SEO Metadata ──────────────────────────────────
 
@@ -112,6 +113,7 @@ export default function RootLayout({
         <A11yProvider>
           <ErrorBoundary>
             <QueryProvider>
+              <DeviceSelectionModal />
               <OfflineBanner />
               <main id="main-content">{children}</main>
             </QueryProvider>

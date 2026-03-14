@@ -1,8 +1,25 @@
 # SparkForge Build Progress
 
-## Current Phase: 21 — Stage 7F Complete + CPA v1.0 Implementation
+## Current Phase: 21 — Stage 7F Complete + Device/LOD Architecture
 ## Status: COMPLETE
 ## Last Updated: 2026-03-14
+
+### Architecture Updates (March 14, 2026)
+
+**Device Performance System + Mandatory LOD Architecture:**
+- Created `src/stores/deviceStore.ts` — 8th Zustand store, persisted device type selection with FPS profiles (desktop 60fps, tablet 45fps, mobile 30fps)
+- Created `src/hooks/useLOD.ts` — Mandatory LOD hook with 4 levels (high/medium/low/billboard), adaptive FPS monitoring, geometry helpers
+- Created `src/components/3d/LODWrapper.tsx` — LOD context wrapper with debug overlay
+- Created `src/components/ui/DeviceSelectionModal.tsx` — First-launch device selection prompt with Frost-Prismatic styling
+- Updated root layout to include DeviceSelectionModal
+
+**Tier Consolidation:**
+- Merged Enhanced Standard tier (Emoji Decoder, AI or Not?) into FL-Lite tier
+- 3 tiers remaining: Flagship (5 games), FL-Lite (10 games), Standard (20 games)
+- Updated CLAUDE.md game table, stores section, 3D architecture rules
+- Updated GAME_ENHANCEMENT_AUDIT.md with approved decisions D-1 through D-5
+
+---
 
 ---
 
