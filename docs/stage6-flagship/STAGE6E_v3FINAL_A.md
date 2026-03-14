@@ -51,6 +51,23 @@ This document creates the 3D pipeline visualization for the Agent Architect flag
 
 **Supersedes:** No prior 3D file existed for Agent Architect. The v2 used CSS-only isometric effects.
 
+### Triangle Budget Breakdown
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| AgentPipeline3D (blocks) | ~15K | ~15K | ~6K |
+| Connectors (TubeGeometry) | ~8K | ~8K | ~3K |
+| Particles (InstancedMesh) | ~5K | ~5K | ~2K |
+| **Total** | **~28K** | **~28K** | **~11K** |
+
+**Scene total range:** ~28K-50K depending on pipeline complexity (block count + connections).
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 100,000 | 60 | ultra/high |
+| Tablet | 50,000 | 45 | medium |
+| Mobile | 25,000 | 30 | low |
+
 ---
 
 ## What Changed from v2 to v3-FINAL

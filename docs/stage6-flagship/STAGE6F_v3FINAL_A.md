@@ -70,6 +70,23 @@ This v3-FINAL document (Parts A + B + C combined) supersedes `STAGE6F_Flagship_B
 
 **PREREQUISITES:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure) must be complete.
 
+### Triangle Budget Breakdown
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| BiasScales3D (scales geometry) | ~10K | ~10K | ~4K |
+| Data spheres | ~6K | ~6K | ~2K |
+| Particles | ~4K | ~4K | ~1K |
+| **Total** | **~20K** | **~20K** | **~7K** |
+
+**Scene total range:** ~20K-35K depending on evidence items and active particles.
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 100,000 | 60 | ultra/high |
+| Tablet | 50,000 | 45 | medium |
+| Mobile | 25,000 | 30 | low |
+
 ---
 
 ### CODE REVIEW FIXES APPLIED (Part A):

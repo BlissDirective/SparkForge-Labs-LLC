@@ -597,6 +597,22 @@ export function AiOrNotGame() {
 
 ---
 
+## TRIANGLE BUDGET — AI or Not?
+
+**Tier:** FL-Lite (Enhanced 3D)
+
+> **Note:** AI or Not? is classified as FL-Lite tier with enhanced 3D per GCUD V10 (game #35). When a 3D component is added, it must respect the following device budgets:
+
+| Device | Max Triangles | Target FPS |
+|--------|---------------|------------|
+| Desktop | 50,000 | 60 |
+| Tablet | 25,000 | 45 |
+| Mobile | 10,000 | 30 |
+
+Current implementation is CSS/Framer Motion only. The FL-Lite 3D component (if added in a future enhancement) must use `dynamic(() => import(...), { ssr: false })`, implement LOD via `useLOD({ tier: 'flLite' })`, and return `null` on mobile with CSS fallback.
+
+---
+
 ## REGISTRY & INTEGRATION
 
 ### Game Registry Additions

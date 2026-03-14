@@ -71,6 +71,38 @@
 
 ---
 
+### Triangle Budget Breakdown — ChatbotNodes3D (FL-Lite)
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| ChatbotNodes3D (nodes) | ~12K | ~12K | ~5K |
+| Connection lines | ~6K | ~6K | ~2K |
+| Message bubbles | ~4K | ~4K | ~1K |
+| **Total** | **~22K** | **~22K** | **~8K** |
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 50,000 | 60 | ultra/high |
+| Tablet | 25,000 | 45 | medium |
+| Mobile | 10,000 | 30 | low |
+
+### Triangle Budget Breakdown — DataDetective3D (FL-Lite)
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| DataDetective3D (lens) | ~10K | ~10K | ~4K |
+| Data points | ~5K | ~5K | ~2K |
+| Particles | ~3K | ~3K | ~1K |
+| **Total** | **~18K** | **~18K** | **~7K** |
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 50,000 | 60 | ultra/high |
+| Tablet | 25,000 | 45 | medium |
+| Mobile | 10,000 | 30 | low |
+
+---
+
 ## 3D COMPONENT SPECIFICATIONS (Decision 6.5)
 
 Decision 6.5 specifies Tier 2 Enhanced 3D treatment for 7 flagship-lite games. These are themed 3D elements that augment (not replace) the existing 2D game layout. The 3D scenes render in a contained Canvas above or alongside the game UI, with mobile CSS fallback. Triangle budgets: 2–5K per game.

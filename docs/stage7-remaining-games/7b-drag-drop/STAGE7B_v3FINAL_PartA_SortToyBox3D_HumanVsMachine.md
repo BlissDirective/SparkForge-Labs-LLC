@@ -37,6 +37,23 @@
 
 ---
 
+### Triangle Budget Breakdown — Sort Toy Box (Full 3D)
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| SortScene3D (objects) | ~18K | ~18K | ~7K |
+| Conveyor / table | ~8K | ~8K | ~3K |
+| Particles | ~5K | ~5K | ~2K |
+| **Total** | **~31K** | **~31K** | **~12K** |
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 100,000 | 60 | ultra/high |
+| Tablet | 50,000 | 45 | medium |
+| Mobile | 25,000 | 30 | low |
+
+---
+
 ## NEW FILE: `src/components/3d/SortScene3D.tsx`
 
 > 3D throwable objects scene for Sort Toy Box — Decision 6.3

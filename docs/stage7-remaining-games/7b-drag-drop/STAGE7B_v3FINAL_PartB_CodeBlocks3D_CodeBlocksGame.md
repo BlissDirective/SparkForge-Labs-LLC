@@ -28,6 +28,23 @@
 
 ---
 
+### Triangle Budget Breakdown — Code Blocks (FL-Lite)
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| CodeBlocks3D (blocks) | ~8K | ~8K | ~3K |
+| Connectors | ~4K | ~4K | ~2K |
+| Particles | ~3K | ~3K | ~1K |
+| **Total** | **~15K** | **~15K** | **~6K** |
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 50,000 | 60 | ultra/high |
+| Tablet | 25,000 | 45 | medium |
+| Mobile | 10,000 | 30 | low |
+
+---
+
 ## NEW FILE: `src/components/3d/CodeBlocks3D.tsx`
 
 > Enhanced 3D snap-together coding blocks — Decision 6.5, Tier 2 (~2-5K triangles)

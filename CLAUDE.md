@@ -817,11 +817,11 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | ENH-8A | Stripe graceful fallback | 503 + setup URL if keys missing | 8 |
 | ENH-9A | Anthropic graceful fallback | 503 if `ANTHROPIC_API_KEY` missing | 9 |
 | IMP-4 | spark-* vs neon-* tokens | Both defined as aliases in `tailwind.config.ts` | 1 |
-| MISSING-7A | AI Spy game has no implementation | Will be developed via Game Code Agent (see below) | 7A |
+| MISSING-7A | AI Spy game has no implementation | **RESOLVED** — `AiSpyGame.tsx` created March 14, 2026 (420 lines, full game) | 7A |
 
-### Game Code Agent (Planned)
+### Game Code Agent — COMPLETED
 
-A specialized game-modified web application development code agent will be created to develop any games or features with missing code implementations. This includes **AI Spy** (Lab 1, Game #1) which has a spec in `STAGE7A_BatchA_TapQuiz_8Games.md` but no full implementation across any Stage 7A part file. The Game Code Agent will be used to generate complete, pattern-compliant game code for AI Spy and any other games identified as missing during audits.
+The AI Spy game (Lab 1, Game #1) has been implemented via autonomous agent on March 14, 2026. The game is now fully functional at `src/components/games/AiSpyGame.tsx` with all required features (chrome bezel, age bands A/B/C, welcome→play→reveal→complete phases, 12+ scenes, ARIA labels). No remaining games have missing implementations — all 35 games are code-complete.
 
 ---
 

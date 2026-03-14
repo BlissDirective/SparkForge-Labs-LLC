@@ -153,6 +153,35 @@ const intensity = useUIStore(s => s.particleIntensity || 'medium');
 
 -----
 
+## TRIANGLE BUDGETS — Particle Systems
+
+### GenericGameParticles (CSS — Standard Tier)
+
+Standard tier particle system used by 20 standard games. Renders lab-colored CSS gradient dots with Framer Motion animation. No GPU triangles on any device.
+
+| Metric | Value |
+|--------|-------|
+| Triangles per game instance | 500–2,000 (equivalent visual weight; actual GPU tris = 0, pure CSS) |
+| Games served | 20 standard games |
+| Color source | Lab-colored via LAB_COLORS registry |
+| Mobile behavior | CSS fallback (0 GPU tris) — renders on all devices |
+| Intensity scaling | off (0), low (50%), medium (100%), high (180%) particle count |
+
+### GameParticles3D (R3F — Flagship Tier)
+
+R3F instanced particle system for the 5 flagship games. Renders inside existing Canvas context using drei Sparkles.
+
+| Metric | Value |
+|--------|-------|
+| Triangles per flagship game | 2,000–5,000 |
+| Games served | 5 flagship games (Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective) |
+| Instance counts (LOD-adaptive) | Desktop: 200, Tablet: 100, Mobile: 50 |
+| Rendering | R3F drei Sparkles inside Canvas parent |
+| Intensity scaling | Controlled via uiStore.particleIntensity (Decision 5.5) |
+| Mobile fallback | Falls back to GenericGameParticles CSS layer |
+
+---
+
 ## FILE 1: `src/components/3d/GenericGameParticles.tsx` (NEW — ~190 lines)
 
 Reusable CSS/Framer Motion ambient particle drift component. Extracts the duplicated particle pattern from standard game files into a single, configurable component. Supports lab color lookup, intensity scaling (Decision 5.5), and count customization. No Three.js dependency.

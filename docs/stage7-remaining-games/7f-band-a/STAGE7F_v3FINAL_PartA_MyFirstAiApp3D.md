@@ -623,6 +623,31 @@ export default function MyFirstAiApp3D(props: MyFirstAiApp3DProps) {
 
 ---
 
+## TRIANGLE BUDGET — MyFirstAiApp3D
+
+**Tier:** FL-Lite (Tier 2 Enhanced 3D)
+
+### Device Budgets
+
+| Device | Max Triangles | Target FPS |
+|--------|---------------|------------|
+| Desktop | 50,000 | 60 |
+| Tablet | 25,000 | 45 |
+| Mobile | 10,000 | 30 |
+
+### Component Breakdown
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| App Mockup | 10,000 | 12,000 | 4,000 |
+| Interface Elements | 6,000 | 8,000 | 2,500 |
+| Floating Particles | 4,000 | 4,000 | 1,500 |
+| **Total** | **20,000** | **24,000** | **8,000** |
+
+> **Note:** Current implementation uses ~2K triangles (well within budget). The budget above represents the maximum allowable for future enhancements. Mobile falls back to CSS-only (0 GPU triangles).
+
+---
+
 ## PART A SUMMARY
 
 | File | Type | Lines | Triangles | Mobile Fallback |

@@ -56,6 +56,23 @@ All 5 v2 enhancement features remain intact (X-Ray, Explainer, Patterns, Thinkin
 |---|-------|----------|------|
 | 6 | `/fonts/Exo2-Bold.woff` not present in `public/fonts/` | drei `Text` font prop | Non-blocking: drei Text falls back to default font gracefully. Font file will be added in Stage 10 (Polish). Consistent with Stage 6C NeuralNetwork3D behavior. |
 
+### Triangle Budget Breakdown
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| PromptBubble3D (bubbles) | ~6K | ~6K | ~3K |
+| Text particles | ~4K | ~4K | ~2K |
+| Connecting lines | ~3K | ~3K | ~1K |
+| **Total** | **~13K** | **~13K** | **~6K** |
+
+**Scene total range:** ~13K-25K depending on active bubble count (max 12).
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 100,000 | 60 | ultra/high |
+| Tablet | 50,000 | 45 | medium |
+| Mobile | 25,000 | 30 | low |
+
 ### PERFORMANCE NOTE
 
 The physics simulation calls `setBubbles()` inside `useFrame`, which triggers React re-renders at animation rate. With max 12 bubbles and desktop-only rendering, this is acceptable. For future optimization, physics state could be moved entirely to refs with only structural changes (spawn/pop) triggering React re-renders.

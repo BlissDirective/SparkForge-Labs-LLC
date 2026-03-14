@@ -3,6 +3,7 @@
 // Stage 10 Part 2
 // v2 [BUG-10E] + [ENH-10D]: Complete 35-game map
 // Code review fix: Named exports use .then() wrapper
+// MISSING-7A resolved: AI Spy game now included
 // ════════════════════════════════════════════════════
 
 'use client';
@@ -53,12 +54,10 @@ const GAME_MAP: Record<string, ReturnType<typeof dynamic>> = {
   ),
 
   // ── Stage 7A: Tap/Quiz Games (9) ──
-  // NOTE: ai-spy component pending (MISSING-7A in CLAUDE.md)
-  // Uncomment when AiSpyGame.tsx is created by Game Code Agent:
-  // 'ai-spy': dynamic(
-  //   () => import('@/components/games/AiSpyGame').then(mod => ({ default: mod.AiSpyGame })),
-  //   { loading: GameLoader }
-  // ),
+  'ai-spy': dynamic(
+    () => import('@/components/games/AiSpyGame').then(mod => ({ default: mod.AiSpyGame })),
+    { loading: GameLoader }
+  ),
   'time-machine': dynamic(
     () => import('@/components/games/TimeMachineGame').then(mod => ({ default: mod.TimeMachineGame })),
     { loading: GameLoader }

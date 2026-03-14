@@ -1,9 +1,9 @@
-# SPARKFORGE — STAGE 7A: BATCH A — TAP & QUIZ GAMES (8 games, Enhanced)
+# SPARKFORGE — STAGE 7A: BATCH A — TAP & QUIZ GAMES (9 games, Enhanced)
 
-**Date:** February 19, 2026 | **GCUD Version:** V7
+**Date:** February 19, 2026 | **Updated:** March 14, 2026 | **GCUD Version:** V10
 **Depends on:** Stage 6A (GameShell, gameStore) complete
-**Produces:** Enhanced rewrites of 8 tap/quiz games
-**Enhancement Level:** Standard Polish (~300-400 lines each)
+**Produces:** Enhanced rewrites of 9 tap/quiz games (AI Spy added — resolves MISSING-7A)
+**Enhancement Level:** Standard Polish (~300-450 lines each)
 
 ---
 
@@ -779,14 +779,42 @@ Run `npm run dev` and test each game at `http://localhost:3000/arcade/[slug]`:
 - [ ] **Real or Fake** (`/arcade/real-or-fake`): Content card → Real/Fake → clue reveals
 - [ ] **Prediction Market** (`/arcade/prediction-market`): Question → vote → bar chart results
 
+---
+
+## Game 9: `src/components/games/AiSpyGame.tsx` (MISSING-7A — RESOLVED)
+
+**Added:** March 14, 2026 | **Resolves:** MISSING-7A from Bug Registry
+
+**Game Concept:** "I spy with my AI eye!" — Players examine everyday scenes and identify which items use AI. Tap items you think are AI-powered, then learn how AI is actually being used in each scenario.
+
+**Mechanics:**
+- Scene-based rounds with 5-6 items per scene
+- Player taps items they believe use AI
+- Reveal phase shows correct answers with educational explanations
+- Band A: obvious AI (voice assistants, recommendations)
+- Band B: subtle AI (spam filters, auto-correct, photo sorting)
+- Band C: technical AI (collaborative filtering, content moderation ML, compression algorithms)
+
+**Features:**
+- 12+ scenes across all age bands
+- Chrome bezel + LED rim (Lab 1 blue #00BBFF)
+- 12 CSS particles in lab color
+- Welcome → play → reveal → complete phases
+- Educational feedback explaining each AI application
+- Score tracking with partial credit
+- ARIA labels on all interactive elements
+- ~420 lines
+
+**Triangle Budget:** Standard tier (no 3D) — CSS particles only (~0 GPU tris)
+
 ### Commit
 
 ```bash
 git add .
-git commit -m "Stage 7A: 8 enhanced tap/quiz games with chrome bezels and age bands"
+git commit -m "Stage 7A: 9 enhanced tap/quiz games with chrome bezels and age bands (AI Spy added)"
 git push origin main
 ```
 
 ---
 
-**Stage 7A complete.** 8 tap & quiz games enhanced with chrome bezel frames, particle backgrounds, welcome phases, age-band content differentiation, improved data sets, and accessibility labels. Games 1-2 provided as full implementations; Games 3-8 follow the identical pattern with game-specific content expansions noted.
+**Stage 7A complete.** 9 tap & quiz games enhanced with chrome bezel frames, particle backgrounds, welcome phases, age-band content differentiation, improved data sets, and accessibility labels. Games 1-2 provided as full implementations; Game 9 (AI Spy) added March 14, 2026, resolving MISSING-7A. Games 3-8 follow the identical pattern with game-specific content expansions noted.

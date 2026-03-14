@@ -49,6 +49,23 @@ This document creates the 3D neural network visualization and audio sonification
 
 Installed with `npm install tone recharts --legacy-peer-deps` (peer dep conflict with existing packages).
 
+### Triangle Budget Breakdown
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| NeuralNetwork3D (nodes) | ~12K | ~12K | ~5K |
+| Connections | ~8K | ~8K | ~3K |
+| Particles | ~5K | ~5K | ~2K |
+| **Total** | **~25K** | **~25K** | **~10K** |
+
+**Scene total range:** ~25K-45K depending on network size (node/layer count).
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 100,000 | 60 | ultra/high |
+| Tablet | 50,000 | 45 | medium |
+| Mobile | 25,000 | 30 | low |
+
 ### GPU Performance Budget
 
 | Component | Triangles | Cost | When Active |

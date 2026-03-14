@@ -35,6 +35,51 @@ Three new 3D components implementing Decision 6.5 — Tier 2 Enhanced 3D for FL-
 | 7 | **Unused param** | RobotVacuum3D | `gridSize` param in FurnitureBlock unused | Removed from interface | Dead code cleanup. |
 | 8 | **Missing 'use client'** | All 3 files | Had `"use client"` (double quotes) | Changed to `'use client'` (single quotes) | Consistency with all existing project components which use single quotes. |
 
+### Triangle Budget Breakdown — RobotVacuum3D (FL-Lite)
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| RobotVacuum3D (robot) | ~12K | ~12K | ~5K |
+| Room geometry | ~8K | ~8K | ~3K |
+| Trail particles | ~5K | ~5K | ~2K |
+| **Total** | **~25K** | **~25K** | **~10K** |
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 50,000 | 60 | ultra/high |
+| Tablet | 25,000 | 45 | medium |
+| Mobile | 10,000 | 30 | low |
+
+### Triangle Budget Breakdown — CameraQuest3D (FL-Lite)
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| CameraQuest3D (camera) | ~8K | ~8K | ~3K |
+| Polaroid cards | ~6K | ~6K | ~2K |
+| Particles | ~4K | ~4K | ~1K |
+| **Total** | **~18K** | **~18K** | **~6K** |
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 50,000 | 60 | ultra/high |
+| Tablet | 25,000 | 45 | medium |
+| Mobile | 10,000 | 30 | low |
+
+### Triangle Budget Breakdown — FutureForge3D (FL-Lite)
+
+| Component | Base Tris | With Effects | LOD Low |
+|-----------|-----------|-------------|---------|
+| FutureForge3D (blueprint) | ~10K | ~10K | ~4K |
+| Hologram | ~6K | ~6K | ~2K |
+| Particles | ~4K | ~4K | ~1K |
+| **Total** | **~20K** | **~20K** | **~7K** |
+
+| Device | Max Budget | Target FPS | LOD Level |
+|--------|-----------|------------|-----------|
+| Desktop | 50,000 | 60 | ultra/high |
+| Tablet | 25,000 | 45 | medium |
+| Mobile | 10,000 | 30 | low |
+
 ---
 
 ## Decisions Implemented
