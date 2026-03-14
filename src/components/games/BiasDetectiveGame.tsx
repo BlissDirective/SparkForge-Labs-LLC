@@ -631,6 +631,7 @@ export function BiasDetectiveGame() {
       setCompletedCases(prev => [...prev, activeCase.id]);
     }
     game.advanceRound();
+    game.completeGame();
     setPhase('report');
   }
 

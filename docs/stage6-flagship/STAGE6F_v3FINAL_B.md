@@ -670,6 +670,7 @@ export function BiasDetectiveGame() {
       setCompletedCases(prev => [...prev, activeCase.id]);
     }
     game.advanceRound();
+    game.completeGame(); // BUG FIX: was missing — game completion never triggered
     setPhase('report');
   }
 
