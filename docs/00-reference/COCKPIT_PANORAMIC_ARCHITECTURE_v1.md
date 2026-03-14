@@ -690,7 +690,7 @@ useFrame(() => {
 
 ## 8. FILE CHANGE REGISTRY
 
-### New Files
+### New Files (CPA v1.0 — Stage 3)
 
 | # | File Path | Stage | Description |
 |---|-----------|-------|-------------|
@@ -704,7 +704,17 @@ useFrame(() => {
 | 8 | `src/shaders/holographicRing.glsl` | 3 Part 3B | HUD ring glow + scan line shader |
 | 9 | `src/lib/3d/cockpitConfig.ts` | 3 Part 3B | Cockpit geometry, bloom, camera, vignette configs |
 
-### Modified Files
+### New Files (Enhancement 1.1 — Spatial Dashboard) — IMPLEMENTED
+
+| # | File Path | Enhancement | Description | Tris |
+|---|-----------|-------------|-------------|------|
+| 10 | `src/stores/cockpitStore.ts` | 1.1 | 9th Zustand store — spatial nav, camera targets, cockpit skins, NPC toggle | — |
+| 11 | `src/hooks/useSpatialNavigation.ts` | 1.1 | Keyboard nav (←→/Enter/Esc), route bridge, lab focus/enter | — |
+| 12 | `src/components/3d/SpatialDashboard.tsx` | 1.1 | R3F Canvas orchestrator — camera, map, env, consoles, NPCs, postprocessing | — |
+| 13 | `src/components/3d/CinematicCamera.tsx` | 1.1 | Spring-damped position/lookAt/FOV interpolation + idle drift | — |
+| 14 | `src/components/dashboard/SpatialOverlay.tsx` | 1.1 | Glassmorphic HTML overlay — lab info, nav hints, console indicators | — |
+
+### Modified Files (CPA v1.0 — Stage 3)
 
 | # | File Path | Stage | Changes |
 |---|-----------|-------|---------|
@@ -715,6 +725,19 @@ useFrame(() => {
 | 5 | `src/hooks/useStationMode.ts` | 3 Part 3A | Add bloomPreset, vignetteSettings, fovPreset, hudOpacity, sidePanelOpacity fields |
 | 6 | `src/app/globals.css` | 3 Part 3A | Add hex-panel CSS fallback, conditional vignette toggle |
 | 7 | `src/app/(dashboard)/layout.tsx` | 3 Part 3A | Pass new mode fields to StationFrame |
+
+### Modified Files (Enhancement 1.1 — Spatial Dashboard) — IMPLEMENTED
+
+| # | File Path | Enhancement | Changes | Tris |
+|---|-----------|-------------|---------|------|
+| 8 | `src/components/3d/HolographicLabMap.tsx` | 1.1 | 5 orbital rings, 12 data points, energy corona, GLSL shader grid, connection beams | ~28K |
+| 9 | `src/components/3d/LabStructure3D.tsx` | 1.1 | 10 unique multi-part lab models (~2.5K each) | ~25K |
+| 10 | `src/components/3d/InteractiveConsole3D.tsx` | 1.1 | 4 multi-layer holographic consoles (XP, badges, streak, progress) | ~6K |
+| 11 | `src/components/3d/AmbientNPCs.tsx` | 1.1 | 5 personality bot types, Perlin patrol, articulated limbs | ~4K |
+| 12 | `src/components/3d/DynamicEnvironment.tsx` | 1.1 | 60-120 particles with trails, lab physics, spatial grid, multi-light | ~15K |
+| 13 | `src/lib/3d/cockpitConfig.ts` | 1.1 | TRIANGLE_BUDGET expanded to 103K cockpit | — |
+| 14 | `src/stores/deviceStore.ts` | 1.1 | Ultra LOD: 500K desktop, 32 segments, 2000 instances | — |
+| 15 | `src/hooks/useLOD.ts` | 1.1 | Ultra level: 32 seg, 64 tubular, 1.5x particles | — |
 
 ---
 

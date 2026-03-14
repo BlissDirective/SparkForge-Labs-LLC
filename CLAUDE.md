@@ -675,6 +675,13 @@ function useIsMobile() {
 | FutureForge3D.tsx | 7D v3 | Future Forge (blueprint) |
 | MyFirstAiApp3D.tsx | 7F v3 | My First AI App (mockup) |
 | LODWrapper.tsx | — | Mandatory LOD container for all 3D scenes |
+| SpatialDashboard.tsx | Enh 1.1 | R3F Canvas orchestrator (camera, map, env, consoles, NPCs) |
+| CinematicCamera.tsx | Enh 1.1 | Spring-damped position/lookAt/FOV interpolation |
+| HolographicLabMap.tsx | Enh 1.1 | Central holographic core + 10 lab ring + connection beams |
+| LabStructure3D.tsx | Enh 1.1 | 10 unique multi-part lab models (~2.5K tris each) |
+| InteractiveConsole3D.tsx | Enh 1.1 | 4 holographic consoles (XP, badges, streak, progress) |
+| AmbientNPCs.tsx | Enh 1.1 | 5 personality bot types with Perlin patrol |
+| DynamicEnvironment.tsx | Enh 1.1 | Lab-reactive particles + spatial grid + multi-light |
 
 ### 9.1 Mandatory LOD Architecture
 
@@ -686,9 +693,9 @@ Users select their device type at first launch via `DeviceSelectionModal`:
 
 | Device | Target FPS | Max Triangles | LOD Bias | Bloom | Shadows | Pixel Ratio |
 |--------|-----------|---------------|----------|-------|---------|-------------|
-| Desktop (Computer) | 60 | 100K | high | Yes | Yes | 2x |
-| Tablet | 45 | 50K | medium | Yes | No | 1.5x |
-| Mobile (Phone) | 30 | 25K | low | No | No | 1x |
+| Desktop (Computer) | 60 | 500K | ultra | Yes | Yes | 2.5x |
+| Tablet | 45 | 150K | high | Yes | No | 1.5x |
+| Mobile (Phone) | 30 | 50K | low | No | No | 1x |
 
 **Store:** `src/stores/deviceStore.ts` — persisted via localStorage (`sparkforge-device`)
 **Modal:** `src/components/ui/DeviceSelectionModal.tsx` — shown once on first visit
@@ -698,7 +705,8 @@ Users select their device type at first launch via `DeviceSelectionModal`:
 
 | Level | Segments | Effects | Shadows | Reflections | Use Case |
 |-------|----------|---------|---------|-------------|----------|
-| `high` | 16 | All | Yes | Yes | Desktop, close camera |
+| `ultra` | 32 | All + trails | Yes | Yes | Desktop, max quality |
+| `high` | 16 | All | Yes | Yes | Desktop/Tablet, close camera |
 | `medium` | 12 | Most | No | Yes | Tablet, mid-range |
 | `low` | 8 | None | No | No | Mobile, far camera |
 | `billboard` | 4 | None | No | No | Extreme distance / perf |
@@ -890,7 +898,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-## 14. STORES (8 total)
+## 14. STORES (9 total)
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
@@ -902,8 +910,9 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
 | **deviceStore** | — | deviceType, hasSelected, profile (FPS, LOD, triangles, effects) |
+| **cockpitStore** | Enh 1.1 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole |
 
 ---
 
-*End of CLAUDE.md v5.1 — SparkForge Autonomous Development Playbook*
-*78 files | 35 games | 48 decisions | 14 v3-FINAL documents | March 1, 2026*
+*End of CLAUDE.md v5.2 — SparkForge Autonomous Development Playbook*
+*92+ files | 35 games | 48 decisions | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED | March 14, 2026*

@@ -1,8 +1,44 @@
 # SparkForge Build Progress
 
-## Current Phase: 21 — Stage 7F Complete + Device/LOD Architecture
+## Current Phase: 21+ — Enhancement Blueprint 1.1 Spatial Dashboard COMPLETE
 ## Status: COMPLETE
 ## Last Updated: 2026-03-14
+
+### Enhancement 1.1: Spatial Dashboard — Immersive 3D Command Bridge (March 14, 2026)
+
+**Status:** IMPLEMENTED | **Commits:** `81b9b9c`, `c0ed082`, `851ef74`
+**Triangle Budget:** 103K cockpit + up to 500K desktop scene (ultra LOD)
+**Build:** PASS (0 TypeScript errors, 0 ESLint errors)
+
+**New Files Created (6):**
+- `src/stores/cockpitStore.ts` — 9th Zustand store: spatial nav, camera targets, cockpit skins, NPC toggle
+- `src/hooks/useSpatialNavigation.ts` — Keyboard nav (arrows/enter/esc), route bridge, lab focus/enter
+- `src/components/3d/SpatialDashboard.tsx` — R3F Canvas orchestrator (camera, map, env, consoles, NPCs)
+- `src/components/3d/CinematicCamera.tsx` — Spring-damped position/lookAt/FOV interpolation + idle drift
+- `src/components/dashboard/SpatialOverlay.tsx` — Glassmorphic HTML overlay (lab info, nav hints, console indicators)
+- `src/lib/3d/cockpitConfig.ts` — TRIANGLE_BUDGET expanded to 103K
+
+**Enhanced Files (5):**
+- `src/components/3d/HolographicLabMap.tsx` — 5 orbital rings, 12 data points, energy corona, GLSL shader grid floor, connection beams (~28K tris)
+- `src/components/3d/LabStructure3D.tsx` — 10 unique multi-part lab models (~2.5K each = 25K total)
+- `src/components/3d/InteractiveConsole3D.tsx` — 4 multi-layer holographic consoles (XP gauge, badges, streak, progress) (~6K tris)
+- `src/components/3d/AmbientNPCs.tsx` — 5 personality types, Perlin patrol, articulated bots (~4K tris)
+- `src/components/3d/DynamicEnvironment.tsx` — 60-120 particles with trails, lab-specific physics, spatial grid O(1) (~15K tris)
+
+**Modified Infrastructure (3):**
+- `src/stores/deviceStore.ts` — Ultra LOD: 500K desktop, 32 segments, 2000 instances, 2.5x pixel ratio
+- `src/hooks/useLOD.ts` — Ultra level: 32 seg, 64 tubular, 4 subdivisions, 1.5x particles
+- `src/lib/3d/cockpitConfig.ts` — 103K cockpit triangle budget breakdown
+
+**Discrepancies Log:**
+- Blueprint specified Theatre.js for camera rails → Replaced with custom spring-interpolated camera (no external dependency needed, smoother results)
+- Blueprint specified @react-three/rapier for physics → Replaced with custom spatial grid + lab-specific force functions (simpler, lower overhead)
+- Blueprint specified leva for debugging → Deferred to when needed (not critical for production code)
+- ESLint fix: `useEffect` unused import in DynamicEnvironment.tsx → removed
+- ESLint fix: `focusedLabId` unused in HolographicCore → prefixed with `_`
+- ESLint fix: `counterRef` unused in InteractiveConsole3D → prefixed with `_`
+
+---
 
 ### Architecture Updates (March 14, 2026)
 

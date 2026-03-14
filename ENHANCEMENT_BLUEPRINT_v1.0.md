@@ -43,25 +43,48 @@ SparkForge v1.0 is a strong foundation: 35 games, 10 labs, Frost-Prismatic desig
 
 Transform the dashboard from a flat layout with chrome accents into a **fully immersive 3D command bridge** that children physically navigate.
 
-### 1.1 Spatial Dashboard (Replace Flat Grid)
+### 1.1 Spatial Dashboard (Replace Flat Grid) — IMPLEMENTED
 
-**Current:** 2D dashboard with cards, sidebar, and chrome bezel frame.
-**Proposed:** Full 3D spatial environment where labs are **physical locations** on a curved holographic map.
+**Status:** IMPLEMENTED | **Date:** March 14, 2026 | **Commits:** `81b9b9c`, `c0ed082`, `851ef74`
+
+**Original:** 2D dashboard with cards, sidebar, and chrome bezel frame.
+**Implemented:** Full 3D spatial environment where labs are **physical locations** on a curved holographic map with 200K-500K triangle budget (ultra LOD).
 
 ```
-TECH STACK ADDITION:
-- @react-three/rapier (physics for spatial interactions)
-- @react-three/xr (WebXR foundation — feeds into Section 5)
-- leva (3D scene debugging during development)
-- Theatre.js (cinematic camera animation sequencing)
+TECH STACK USED:
+- React Three Fiber + drei + postprocessing (already installed)
+- Custom spring-interpolated camera system (replaced Theatre.js — no external dependency needed)
+- Custom 2D Perlin noise for NPC patrol paths (no external noise library needed)
+- Spatial grid optimization for O(1) particle neighbor lookups
 ```
 
-**Key features:**
-- **Holographic Lab Map:** A floating 3D hologram of all 10 labs arranged in a circular space station layout. Children rotate/zoom to explore. Each lab is a distinct 3D structure (neural network tower, ethics courthouse, data vault, etc.)
-- **Cinematic Camera Rails:** Smooth camera paths when transitioning between labs. Theatre.js sequences for "flying" between sections of the station
-- **Dynamic Environment:** The cockpit environment shifts based on active lab — Lab 3 (Neural Networks) fills the cockpit with floating neuron meshes, Lab 6 (Ethics) projects justice scale holograms
-- **Ambient Life:** Background NPCs (robot assistants) move around the station. Particle weather systems react to player mood/progress
-- **Interactive Consoles:** Physical 3D consoles for XP stats, badge gallery, streak tracker — not flat UI cards, but holographic displays the child interacts with spatially
+**Files created/modified (14 total):**
+
+| File | Type | Purpose | Tris |
+|------|------|---------|------|
+| `src/stores/cockpitStore.ts` | NEW | 9th Zustand store — spatial nav, camera targets, skin, NPC toggle | — |
+| `src/hooks/useSpatialNavigation.ts` | NEW | Bridges cockpitStore ↔ Next.js router, keyboard nav (←→/Enter/Esc) | — |
+| `src/components/3d/SpatialDashboard.tsx` | NEW | R3F Canvas orchestrator — camera, map, environment, consoles, NPCs | — |
+| `src/components/3d/CinematicCamera.tsx` | NEW | Spring-damped position/lookAt/FOV interpolation + idle drift | — |
+| `src/components/3d/HolographicLabMap.tsx` | ENHANCED | Central holographic core (icosahedron+5 rings+12 data points+corona+shader grid floor) + 10 lab ring + connection beams | ~28K |
+| `src/components/3d/LabStructure3D.tsx` | ENHANCED | 10 unique multi-part lab models (neuron networks, torus knots, gears, crystals, rockets) | ~25K |
+| `src/components/3d/InteractiveConsole3D.tsx` | ENHANCED | 4 consoles: XP gauge, badge pedestals, streak flames, progress grid — multi-layer holographic frames (chrome+glass+backplate+brackets) | ~6K |
+| `src/components/3d/AmbientNPCs.tsx` | ENHANCED | 5 personality bot types (~500 tris each) with Perlin patrol, arm bob, head tracking, visor blinks | ~4K |
+| `src/components/3d/DynamicEnvironment.tsx` | ENHANCED | 60-120 particles with trails, lab-specific physics (attract/repel/spiral/cluster), spatial grid, multi-light, volumetric fog | ~15K |
+| `src/components/dashboard/SpatialOverlay.tsx` | NEW | Glassmorphic HTML overlay — lab info panel, nav hints, console indicators | — |
+| `src/lib/3d/cockpitConfig.ts` | MODIFIED | TRIANGLE_BUDGET expanded to 103K cockpit total | — |
+| `src/stores/deviceStore.ts` | MODIFIED | Added ultra LOD (500K desktop, 32 segments, 2000 instances) | — |
+| `src/hooks/useLOD.ts` | MODIFIED | Added ultra level (32 seg, 64 tubular, 1.5x particles, 2000 max instances) | — |
+
+**Implemented features:**
+- **Holographic Lab Map:** Floating 3D hologram of 10 labs in circular ring (radius 3.8). Wireframe icosahedron(1,2) core + solid inner sphere + 5 orbital rings + 12 orbiting data points + pulsing energy corona + custom GLSL shader grid floor with radial scan pulse + connection beams (CatmullRom tubes) between adjacent labs
+- **Cinematic Camera:** Spring-damped position/lookAt/FOV interpolation (damping 0.04). Idle orbit drift in overview mode. Reduced-motion support (0.15 damping). No Theatre.js dependency needed — custom spring system is smoother.
+- **Dynamic Environment:** Lab-reactive particle physics — Lab 3 attract/repel neurons, Lab 6 balanced clusters, Lab 4 outward spirals, others Perlin noise drift. 3-point CylinderGeometry trail segments per particle. Dual themed spot lights + hemisphere ambient + volumetric fog hint (BackSide sphere).
+- **Ambient Life:** 5 NPC personality types (scout/engineer/medic/guardian/scholar) with custom Perlin noise 2D patrol, articulated arm bob, head tracking toward focused lab, visor blinks (3-8s random), hover pad glow. Desktop 8 / Tablet 4 / Mobile 0.
+- **Interactive Consoles:** 4 holographic consoles (XP speedometer gauge, badge rotating pedestals, streak layered flames, progress 10-lab grid). Multi-layer frames: chrome RoundedBox + glass panel (MeshPhysicalMaterial transmission 0.4) + holographic backplate + corner brackets + scan line. ContactShadows (LOD-gated).
+- **Spatial Navigation:** Arrow keys cycle labs, Enter opens, Escape returns to overview. Single-click focus (250ms debounce), double-click enter. Route push with 600ms camera flythrough delay.
+- **HTML Overlay:** Glassmorphic lab info panel (right, spring transition), nav hints (bottom), console quick-access indicators (left). Framer Motion animations.
+- **Performance:** Ultra LOD (32 segments, 2000 instances), spatial grid O(1) neighbor lookups, device-adaptive scaling (desktop 500K tris / tablet 150K / mobile 50K)
 
 ### 1.2 Cockpit Personalization Engine
 
