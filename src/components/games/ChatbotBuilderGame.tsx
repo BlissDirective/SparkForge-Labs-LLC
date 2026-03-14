@@ -398,7 +398,11 @@ export function ChatbotBuilderGame() {
 
   return (
     <GameShell gameId="chatbot-builder" title="Chatbot Builder" worldNumber={8} worldColor="#6366F1" totalRounds={CHALLENGES.length}>
-      <div className="h-full flex flex-col relative overflow-hidden">
+      {/* Chrome bezel */}
+      <div className="h-full flex flex-col relative overflow-hidden rounded-2xl border border-white/[0.06]"
+        style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)' }}>
+        {/* LED rim top */}
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#818CF8]/40 to-transparent shrink-0" />
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (
@@ -752,6 +756,8 @@ export function ChatbotBuilderGame() {
             </motion.div>
           )}
         </AnimatePresence>
+        {/* LED rim bottom */}
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#818CF8]/40 to-transparent shrink-0" />
       </div>
     </GameShell>
   );

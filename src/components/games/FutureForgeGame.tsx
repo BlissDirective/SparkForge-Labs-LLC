@@ -195,8 +195,33 @@ export default function FutureForgeGame() {
   const isCorrectPick = useCallback((id: string) => scenario.correctCapabilities.includes(id), [scenario]);
   const isBonusPick = useCallback((id: string) => scenario.bonusCapability === id, [scenario]);
 
+  // ── Particles (Lab 10: #D946EF) ──
+  const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
+    id: i,
+    left: `${Math.random() * 100}%`,
+    top: `${Math.random() * 100}%`,
+    size: 2 + Math.random() * 3,
+    delay: Math.random() * 4,
+    duration: 3 + Math.random() * 3,
+  })), []);
+
   return (
     <GameShell gameId="future-forge" title="Future Forge" worldNumber={10} worldColor="#D946EF" totalRounds={totalRounds}>
+      {/* Chrome bezel */}
+      <div className="relative rounded-2xl border border-white/[0.06] bg-[#0A0E16] overflow-hidden"
+        style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)' }}>
+        {/* LED rim top */}
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#D946EF]/40 to-transparent" />
+
+        {/* Particles */}
+        {particles.map(p => (
+          <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
+            style={{ left: p.left, top: p.top, width: p.size, height: p.size, backgroundColor: '#D946EF' }}
+            animate={{ opacity: [0.15, 0.5, 0.15], y: [0, -15, 0] }}
+            transition={{ repeat: Infinity, duration: p.duration, delay: p.delay, ease: 'easeInOut' }}
+          />
+        ))}
+
       <AnimatePresence mode="wait">
         {phase === 'welcome' && (
           <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
@@ -357,6 +382,10 @@ export default function FutureForgeGame() {
           </motion.div>
         )}
       </AnimatePresence>
+
+        {/* LED rim bottom */}
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#D946EF]/40 to-transparent" />
+      </div>
     </GameShell>
   );
 }
