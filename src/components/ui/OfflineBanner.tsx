@@ -7,7 +7,7 @@
 
 import { useState, useEffect } from 'react';
 import { WifiOff } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 
 export function OfflineBanner() {
   const [isOffline, setIsOffline] = useState(false);

@@ -1,8 +1,61 @@
 # SparkForge Build Progress
 
-## Current Phase: 25 — Stage 9 Content Agent (AUDIT VERIFIED)
-## Status: ALL CODE COMPLETE — Audit issues 9.1-9.19 resolved
-## Last Updated: 2026-03-15 (Stage 9 Audit Session)
+## Current Phase: 26 — Stage 10 Polish & Deploy (AUDIT VERIFIED)
+## Status: ALL CODE COMPLETE — Audit issues 10.1-10.10 resolved
+## Last Updated: 2026-03-15 (Stage 10 Audit Session)
+
+### Stage 10 — Polish & Deploy (March 15, 2026)
+
+**Status:** CODE COMPLETE | **Build:** Verification in progress
+
+**Parts Completed:**
+- [x] Part 1 (10A): Accessibility system, error handling, a11y CSS
+- [x] Part 2 (10B): SEO, security, game router, PWA, deployment guide
+
+**Files Created/Verified (16 total — 8 per part):**
+
+| # | File | Lines | Status |
+|---|------|-------|--------|
+| 1 | `src/stores/accessibilityStore.ts` | 45 | Verified — persist middleware correct (10.6) |
+| 2 | `src/components/accessibility/A11yProvider.tsx` | 68 | Verified — mounted guard present (10.7) |
+| 3 | `src/components/accessibility/AccessibilityToolbar.tsx` | 144 | Fixed — motion/react import |
+| 4 | `src/app/globals-a11y.css` | 294 | Verified — no Fredoka/Nunito (10.9) |
+| 5 | `src/components/ui/ErrorBoundary.tsx` | 86 | Fixed — motion/react import |
+| 6 | `src/app/not-found.tsx` | 42 | Verified — complete |
+| 7 | `src/components/ui/OfflineBanner.tsx` | 51 | Fixed — motion/react import, cleanup correct (10.8) |
+| 8 | `src/components/ui/LoadingSkeleton.tsx` | 75 | Verified — complete with CardSkeleton/PageSkeleton |
+| 9 | `src/app/layout.tsx` | 133 | Verified — Exo 2/Sora/Orbitron fonts (10.2), no Fredoka |
+| 10 | `src/app/robots.ts` | 20 | Verified — complete |
+| 11 | `src/app/sitemap.ts` | 56 | Verified — complete with 10 lab pages |
+| 12 | `public/manifest.json` | 26 | Verified — theme_color #0A0E16 |
+| 13 | `next.config.js` | 116 | Verified — CSP includes Vercel analytics (10.4) |
+| 14 | `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | 222 | Verified — all 35 games (10.1, 10.5) |
+| 15 | `.env.example` | 46 | Verified — complete with Sentry + feature flags |
+| 16 | `DEPLOYMENT.md` | 140 | Verified — correct SQL filenames, 68 badges |
+
+**Audit Issues Resolved (from CODE_AUDIT_SUMMARY_MATRIX):**
+
+| Issue | Severity | Description | Resolution |
+|-------|----------|-------------|------------|
+| 10.1 | CRIT | Game router may have only 31/35 games + phantom entry | RESOLVED — All 35 slugs present, no vibe-coder, ai-spy included |
+| 10.2 | CRIT | Root layout font stack BUG-10F | RESOLVED — Exo 2/Sora/JetBrains Mono/Orbitron via Google Fonts |
+| 10.3 | HIGH | Accessibility system 8 files | RESOLVED — All 8 files present and complete |
+| 10.4 | HIGH | CSP connect-src missing Vercel analytics | RESOLVED — vitals.vercel-insights.com, *.vercel-analytics.com, *.vercel.app |
+| 10.5 | HIGH | Game router imports match CLAUDE.md slugs | RESOLVED — All 35 slugs match Section 13 exactly |
+| 10.6 | MED | accessibilityStore persist() config | RESOLVED — Uses persist({ name: 'sparkforge-a11y' }) |
+| 10.7 | MED | A11yProvider mounted guard (BUG-10A) | RESOLVED — useState(false) + useEffect mount pattern |
+| 10.8 | MED | OfflineBanner useEffect cleanup (BUG-10B) | RESOLVED — removeEventListener in return cleanup |
+| 10.9 | MED | No Fredoka/Nunito in a11y CSS | RESOLVED — CSS has no font-family references to wrong fonts |
+| 10.10 | MED | All 8 Part 2 files present | RESOLVED — 6 new + 2 replaced, all verified |
+
+**Bug Fixes Applied:** BUG-10A (mounted guard), BUG-10B (event cleanup), BUG-10C (Go Home link), BUG-10D (CSP), BUG-10E (35 games), BUG-10F (font stack)
+**Enhancements Applied:** ENH-10A (skip link), ENH-10B (focus rings), ENH-10C (light mode), ENH-10D (complete game map), ENH-10E (system color scheme detection)
+
+**Discrepancies Log:**
+- `next.config.js` vs `next.config.ts`: Stage doc specifies `.ts` but project uses `.js` (CommonJS). Content is identical. Kept as `.js` to avoid breaking existing build.
+- `framer-motion` imports: 3 Stage 10 files used `framer-motion` instead of `motion/react`. Fixed to match stage doc and `motion` v12+ package.
+
+---
 
 ### Stage 9 — Content Agent (March 15, 2026)
 

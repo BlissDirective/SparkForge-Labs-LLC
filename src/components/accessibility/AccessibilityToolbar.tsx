@@ -5,7 +5,7 @@
 
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useA11yStore } from '@/stores/accessibilityStore';
 import { Sun, Moon, Type, Eye, Zap } from 'lucide-react';
 
