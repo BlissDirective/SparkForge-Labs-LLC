@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useParentDashboard } from '@/hooks/useParentDashboard';
 import { TIER_DISPLAY, getTierLimits } from '@/lib/tier-config';
 import { staggerContainer, staggerItem } from '@/lib/animations';

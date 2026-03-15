@@ -1,28 +1,52 @@
-// POST /api/stripe/portal — Customer portal for subscription management
-import { NextRequest } from 'next/server';
+// ════════════════════════════════════════════════════
+// STRIPE PORTAL — Customer portal for subscription management
+// v2: Graceful fallback if STRIPE_SECRET_KEY missing (ENH-8A)
+// v2: Uses createServerSupabase (BUG-8C fix)
+// ════════════════════════════════════════════════════
+import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { apiSuccess, apiError, requireAuth } from '@/lib/api-helpers';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2026-02-25.clover' });
+export const runtime = 'nodejs';
+
+function getStripe(): Stripe | null {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) return null;
+  return new Stripe(key, { apiVersion: '2026-02-25.clover' });
+}
 
 export async function POST(req: NextRequest) {
+  const stripe = getStripe();
+  if (!stripe) {
+    return NextResponse.json(
+      {
+        error: 'Stripe is not configured. Add STRIPE_SECRET_KEY to your .env.local file.',
+        setup_url: 'https://dashboard.stripe.com/apikeys',
+      },
+      { status: 503 }
+    );
+  }
+
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
   const supabase = await createServerSupabase();
-
   const { data: parent } = await supabase
     .from('parents')
     .select('stripe_customer_id')
     .eq('id', auth.user.id)
     .single();
 
-  if (!parent?.stripe_customer_id) return apiError('No subscription found', 404);
+  if (!parent?.stripe_customer_id) {
+    return apiError('No subscription found. Subscribe first to manage billing.', 404);
+  }
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   const session = await stripe.billingPortal.sessions.create({
     customer: parent.stripe_customer_id,
-    return_url: `${req.nextUrl.origin}/parent/subscription`,
+    return_url: `${appUrl}/parent/subscription`,
   });
 
   return apiSuccess({ url: session.url });

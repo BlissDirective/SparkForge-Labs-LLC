@@ -6,7 +6,7 @@
 // ════════════════════════════════════════════════════
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Rocket, Lock, X } from 'lucide-react';
 import Link from 'next/link';
 import { TIER_DISPLAY, type SubscriptionTier } from '@/lib/tier-config';

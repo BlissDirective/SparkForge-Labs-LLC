@@ -29,7 +29,7 @@
 'use client';
 
 import { useRef, useEffect, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Rocket, Sparkles, ArrowDown } from 'lucide-react';

@@ -1059,3 +1059,37 @@
 - `npx tsc --noEmit`: PASS (0 errors)
 - `npm run lint`: PASS (0 warnings)
 - `npm run build`: PASS
+
+---
+
+## Stage 8 — Parent Dashboard & Monetization (Audit Fixes)
+
+**Date:** March 15, 2026
+**Source:** CODE_AUDIT_SUMMARY_MATRIX_20260315.md — Stage 8 section
+
+### Files Created (4 missing from prior build)
+
+| File | Lines | Purpose |
+|------|-------|---------|
+| `src/middleware/tierCheck.ts` | 107 | Server-side tier limit enforcement (prompt, game, child, time) |
+| `src/components/parent/UpgradePrompt.tsx` | 82 | Parent/child upgrade prompt variants (ENH-8E) |
+| `src/components/parent/ParentLoadingSkeleton.tsx` | 114 | Reusable shimmer skeleton for parent dashboard |
+| `sql/schema-stage8.sql` | 65 | Subscription columns, events table, RLS policies |
+
+### Files Updated (audit fixes)
+
+| File | Fix | Audit Issue |
+|------|-----|-------------|
+| `src/app/api/stripe/checkout/route.ts` | ENH-8A: Lazy Stripe init, 503 graceful fallback | 8.1 |
+| `src/app/api/stripe/portal/route.ts` | ENH-8A: Lazy Stripe init, 503 graceful fallback | 8.1 |
+| `src/app/api/stripe/webhook/route.ts` | ENH-8A: Graceful fallback + event logging + upsert | 8.1 |
+| 7 Stage 8 files | Changed `framer-motion` → `motion/react` imports | Consistency |
+
+### Discrepancies Log
+
+| Item | Original | Fixed | Reason |
+|------|----------|-------|--------|
+| Stripe routes module-level init | `const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, ...)` | Lazy `getStripe()` with null check | Crashes at startup if key missing (ENH-8A) |
+| Motion imports | `from 'framer-motion'` | `from 'motion/react'` | Stage docs specify `motion/react`; aligns with CLAUDE.md tech stack |
+| StationPreview game count | Already "35+" | Verified correct | Audit issue 8.12 resolved |
+| useSessionTimer truncation | Already complete | Verified correct | Audit issue 8.1 resolved |

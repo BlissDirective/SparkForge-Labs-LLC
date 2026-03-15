@@ -4,7 +4,7 @@
 // ════════════════════════════════════════════════════
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { useSessionTimer } from '@/hooks/useSessionTimer';
 

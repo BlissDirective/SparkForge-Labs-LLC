@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, Suspense } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useParentStore } from '@/stores/parentStore';
 import {
   TIER_DISPLAY, getYearlySavingsPercent,
