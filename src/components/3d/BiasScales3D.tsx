@@ -24,7 +24,7 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import * as THREE from 'three';
 
 // -- Types --

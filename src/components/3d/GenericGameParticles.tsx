@@ -77,6 +77,9 @@ function generateParticles(count: number): ParticleData[] {
 // ---- Hex to RGBA Helper ----
 function hexToRgba(hex: string, alpha: number): string {
   const clean = hex.replace('#', '');
+  if (clean.length < 6 || !/^[0-9a-fA-F]{6}$/.test(clean)) {
+    return `rgba(0,187,255,${alpha})`; // fallback to primary blue
+  }
   const r = parseInt(clean.substring(0, 2), 16);
   const g = parseInt(clean.substring(2, 4), 16);
   const b = parseInt(clean.substring(4, 6), 16);
