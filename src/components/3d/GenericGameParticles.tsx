@@ -26,7 +26,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 // ---- Intensity Multipliers (mirrors Decision 5.5) ----
 const INTENSITY_MULTIPLIERS: Record<string, number> = {

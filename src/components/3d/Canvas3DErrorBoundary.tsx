@@ -23,7 +23,7 @@ export class Canvas3DErrorBoundary extends Component<Props, State> {
     this.state = { hasError: false };
   }
 
-  static getDerivedStateFromError(): State {
+  static getDerivedStateFromError(_error: Error): State {
     return { hasError: true };
   }
 

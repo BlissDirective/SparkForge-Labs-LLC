@@ -8,13 +8,13 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { Clock } from 'lucide-react';
 
-type Phase = 'welcome' | 'play' | 'done';
+type Phase = 'welcome' | 'play';
 
 interface Milestone {
   id: string;

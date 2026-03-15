@@ -7,8 +7,8 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -28,6 +28,9 @@ export function TreatTrainerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+
+  // Initialize game store
+  useEffect(() => { game.startGame("treat-trainer", TOTAL_EPISODES); }, []);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [rewards, setRewards] = useState({ toward: 3, away: -2, wall: -5, goal: 10 });

@@ -18,7 +18,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -158,6 +158,9 @@ export function SortToyBoxGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+
+  // Initialize game store
+  useEffect(() => { game.startGame("sort-toy-box", 1); }, []);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [shapes, setShapes] = useState<Shape[]>(() => generateShapes());
