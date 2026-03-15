@@ -1252,6 +1252,79 @@ npm run build
 
 ---
 
+## Enhancement 8.3 — Edge-First Architecture for AI Content Generation
+
+> **Source:** ENHANCEMENT_BLUEPRINT_v1.0 Section 8.3
+> **Impact:** Lower latency for AI content generation by moving workloads to Supabase Edge Functions.
+
+### Edge Functions for Content Pipeline
+
+The Content Agent pipeline (Research → Generate → Screen → Insert) currently runs in Vercel
+serverless functions via Next.js API routes. Enhancement 8.3 adds **Supabase Edge Functions**
+as an alternative execution path for lower latency and longer execution timeouts.
+
+**Migration strategy:**
+
+| Pipeline Stage | Current | Enhanced | Benefit |
+|---------------|---------|----------|---------|
+| Research | Vercel serverless (10s timeout) | Supabase Edge Function (150s timeout) | Longer research with multiple API calls |
+| Generate | Vercel serverless | Supabase Edge Function | Claude API calls closer to edge |
+| Screen | Vercel serverless | Vercel serverless (keep) | Low latency, simple logic |
+| Insert | Vercel serverless | Vercel serverless (keep) | Direct Supabase client, fast |
+
+**Supabase Edge Function file:** `supabase/functions/content-agent/index.ts`
+
+```typescript
+// Supabase Edge Function for content generation
+// Deployed to Deno Deploy (Supabase Edge runtime)
+// Triggered by: cron schedule OR manual admin API call
+
+import { serve } from 'https://deno.land/std@0.177.0/http/server.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import Anthropic from 'npm:@anthropic-ai/sdk';
+
+serve(async (req: Request) => {
+  // Verify authorization (cron secret or admin JWT)
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  }
+
+  const supabase = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+  );
+
+  const anthropic = new Anthropic({
+    apiKey: Deno.env.get('ANTHROPIC_API_KEY'),
+  });
+
+  // Run Research + Generate stages with 150s timeout
+  // ... (pipeline.ts logic adapted for Deno runtime)
+
+  return new Response(JSON.stringify({ success: true, generated: count }), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+});
+```
+
+**Directory addition to Stage 1 Part 1 Step 10:**
+```bash
+mkdir -p supabase/functions/content-agent
+```
+
+**Cron trigger update in `vercel.json`:**
+The existing Vercel cron at `/api/agent/schedule` becomes the **fallback**. The primary
+trigger is a Supabase cron that invokes the Edge Function directly. If the Edge Function is
+not deployed, the Vercel cron continues to work as before (zero regression).
+
+### Edge Caching for Game Assets (Also in Stage 10 Part 2)
+
+Game assets (3D models, shader files, audio samples) are cached at CDN edge via Vercel Edge
+Network. Cache headers configured in Stage 10 Part 2's production `next.config.ts`.
+
+---
+
 ## STEP 12: GIT COMMIT
 
 ```bash

@@ -17,9 +17,13 @@ Stage 1 Part 2 creates all foundational source files that every subsequent stage
 - **Middleware** — route protection with Supabase auth
 - **Animations** — 45+ Framer Motion variants + spring presets
 - **Stores** — 4 Zustand stores (auth, child, game, toast) + uiStore + deviceStore + cockpitStore
+- **Jotai Atoms** — Fine-grained 3D state atoms for shader uniforms, particles, camera, LOD (Enhancement 8.1)
 - **Hooks** — 4 utility hooks (useDebounce, useLocalStorage, useMediaQuery, useIsMobile) + useAdaptiveCockpit
 - **Cockpit Config** — `src/lib/3d/cockpitConfig.ts` (CPA v2.0 geometry, bloom, camera, HUD, LOD presets)
 - **Audio Engine** — `src/lib/audio/cockpitAudio.ts` (CockpitAudioEngine class for spatial cockpit audio)
+- **Sentry** — Error tracking + performance monitoring config files (Enhancement 8.1)
+- **WebGPU Detection** — Auto-detect WebGPU with WebGL2 fallback + TSL migration tracking (Enhancement 8.2)
+- **Vitest Config** — Unit + integration test configuration with happy-dom (Enhancement 8.5)
 - **Feature Flags** — environment-based feature gating
 - **System Preferences** — OS-level accessibility detection
 - **QueryProvider** — React Query wrapper with devtools
@@ -570,7 +574,8 @@ Contains 45+ Framer Motion variants organized by category:
 - **Safe variant wrapper:** `safeVariant()` — respects reduced-motion preference
 
 ```typescript
-import { type Variants, type Transition } from 'framer-motion';
+// Enhancement 8.1: 'framer-motion' rebranded to 'motion' — import from 'motion/react'
+import { type Variants, type Transition } from 'motion/react';
 
 // ═══ SPRING PRESETS ═══
 export const springs = {
@@ -1721,6 +1726,320 @@ export function useAdaptiveCockpit(): AdaptiveCockpitParams {
 
   return params;
 }
+```
+
+---
+
+## Step 20f: Jotai Atoms for 3D State (Enhancement 8.1)
+
+**File:** `src/stores/cockpitAtoms.ts`
+
+> **Enhancement 8.1:** Jotai atoms for fine-grained 3D state that updates at high frequency
+> (shader uniforms, particle counts, HUD values). Using atoms instead of Zustand for these
+> values avoids full-store re-renders on every frame tick. Zustand remains the primary store
+> for coarse app state — Jotai complements it for performance-sensitive 3D values.
+
+```typescript
+import { atom } from 'jotai';
+
+// ═══ Shader Uniforms (updated per-frame or on interaction) ═══
+export const bloomIntensityAtom = atom(0.4);
+export const vignettedarknessAtom = atom(0.5);
+export const barrelDistortionAtom = atom(0.02);
+export const hudOpacityAtom = atom(0.15);
+export const hudRotationSpeedAtom = atom(0.1);
+export const hudPulseIntensityAtom = atom(0.3);
+
+// ═══ Particle System (updated on mode change / FPS degradation) ═══
+export const particleCountAtom = atom(50);
+export const particleSpeedAtom = atom(1.0);
+
+// ═══ Camera Interpolation (updated per-frame during transitions) ═══
+export const cameraPositionAtom = atom<[number, number, number]>([0, 6.5, 7]);
+export const cameraLookAtAtom = atom<[number, number, number]>([0, -0.5, 0]);
+export const cameraFovAtom = atom(58);
+
+// ═══ LOD State (updated on FPS degradation) ═══
+export const currentLODLevelAtom = atom<'ultra' | 'high' | 'medium' | 'low' | 'billboard'>('high');
+export const triangleBudgetUsedAtom = atom(0);
+export const fpsRatioAtom = atom(1.0); // actual FPS / target FPS
+
+// ═══ WebGPU State (Enhancement 8.2) ═══
+export const rendererTypeAtom = atom<'webgpu' | 'webgl2' | 'webgl'>('webgl2');
+export const gpuTierAtom = atom<'high' | 'medium' | 'low'>('medium');
+```
+
+---
+
+## Step 20g: Sentry Configuration (Enhancement 8.1)
+
+> **Enhancement 8.1:** Sentry provides error tracking, performance monitoring, and session replay.
+> Three config files are needed for Next.js: client, server, and edge runtime.
+
+**File:** `sentry.client.config.ts` (project root)
+
+```typescript
+import * as Sentry from '@sentry/nextjs';
+
+Sentry.init({
+  dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+
+  // Performance monitoring — sample 10% of transactions in production
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+
+  // Session replay — capture 1% of sessions, 100% on error
+  replaysSessionSampleRate: 0.01,
+  replaysOnErrorSampleRate: 1.0,
+
+  integrations: [
+    Sentry.replayIntegration({
+      maskAllText: true,       // COPPA: mask all text for child privacy
+      blockAllMedia: true,     // COPPA: block media capture
+    }),
+    Sentry.browserTracingIntegration(),
+  ],
+
+  // Filter out noisy errors
+  ignoreErrors: [
+    'ResizeObserver loop',
+    'Non-Error promise rejection',
+    /Loading chunk \d+ failed/,
+  ],
+
+  environment: process.env.NODE_ENV,
+  enabled: process.env.NODE_ENV === 'production',
+});
+```
+
+**File:** `sentry.server.config.ts` (project root)
+
+```typescript
+import * as Sentry from '@sentry/nextjs';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  environment: process.env.NODE_ENV,
+  enabled: process.env.NODE_ENV === 'production',
+});
+```
+
+**File:** `sentry.edge.config.ts` (project root)
+
+```typescript
+import * as Sentry from '@sentry/nextjs';
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  environment: process.env.NODE_ENV,
+  enabled: process.env.NODE_ENV === 'production',
+});
+```
+
+**File:** `src/app/global-error.tsx`
+
+```typescript
+'use client';
+
+import * as Sentry from '@sentry/nextjs';
+import { useEffect } from 'react';
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+
+  return (
+    <html lang="en" className="dark">
+      <body className="font-body antialiased bg-surface-deep text-white min-h-screen flex items-center justify-center">
+        <div className="text-center p-8">
+          <h2 className="font-display text-2xl mb-4">Something went wrong!</h2>
+          <p className="text-white/60 mb-6">Our team has been notified.</p>
+          <button
+            onClick={reset}
+            className="px-6 py-3 bg-neon-blue/20 border border-neon-blue/40 rounded-lg
+                       hover:bg-neon-blue/30 transition-colors font-body"
+          >
+            Try Again
+          </button>
+        </div>
+      </body>
+    </html>
+  );
+}
+```
+
+---
+
+## Step 20h: WebGPU Renderer Utilities (Enhancement 8.2)
+
+**File:** `src/lib/3d/webgpuDetect.ts`
+
+> **Enhancement 8.2:** WebGPU auto-detection with WebGL2 fallback. The renderer type is stored
+> in a Jotai atom so all 3D components can adapt their shader strategy (TSL vs GLSL).
+
+```typescript
+import { rendererTypeAtom, gpuTierAtom } from '@/stores/cockpitAtoms';
+
+/**
+ * Detect WebGPU support and GPU capability tier.
+ * Called once during CockpitCanvas initialization (Stage 3 Part 3).
+ * Results stored in Jotai atoms for global access.
+ */
+export async function detectRendererCapability(): Promise<{
+  renderer: 'webgpu' | 'webgl2' | 'webgl';
+  gpuTier: 'high' | 'medium' | 'low';
+}> {
+  // Check WebGPU support
+  if ('gpu' in navigator) {
+    try {
+      const adapter = await (navigator as Navigator & { gpu: GPU }).gpu.requestAdapter();
+      if (adapter) {
+        const info = await adapter.requestAdapterInfo();
+        // Determine GPU tier from adapter limits
+        const maxTexSize = adapter.limits.maxTextureDimension2D;
+        const gpuTier = maxTexSize >= 16384 ? 'high' : maxTexSize >= 8192 ? 'medium' : 'low';
+        return { renderer: 'webgpu', gpuTier };
+      }
+    } catch {
+      // WebGPU failed, fall through to WebGL2
+    }
+  }
+
+  // Check WebGL2 support
+  const canvas = document.createElement('canvas');
+  const gl2 = canvas.getContext('webgl2');
+  if (gl2) {
+    const debugInfo = gl2.getExtension('WEBGL_debug_renderer_info');
+    const renderer = debugInfo ? gl2.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL) : '';
+    const isHighEnd = /RTX|RX 6|RX 7|M[1-3] (Pro|Max|Ultra)|Apple GPU/i.test(renderer);
+    return { renderer: 'webgl2', gpuTier: isHighEnd ? 'high' : 'medium' };
+  }
+
+  // Fallback to basic WebGL
+  return { renderer: 'webgl', gpuTier: 'low' };
+}
+
+/**
+ * TSL Shader Migration Status (Enhancement 8.2)
+ *
+ * Three.js r170+ includes TSL (Three.js Shading Language) as a JavaScript-based
+ * alternative to GLSL. TSL shaders are portable across WebGPU and WebGL renderers.
+ *
+ * Migration strategy: GRADUAL — both GLSL and TSL work simultaneously.
+ * - New shaders written in TSL
+ * - Existing 19 GLSL shaders migrated one-at-a-time as labs are updated
+ * - GLSL shaders continue to work on WebGL2 renderer
+ * - TSL shaders automatically compile to WGSL (WebGPU) or GLSL (WebGL) as needed
+ *
+ * Shaders to migrate (19 total):
+ * 1-10: labPattern1.glsl through labPattern10.glsl (lab backgrounds)
+ * 11: liquidMetal.glsl (Stage 5 — badge shader)
+ * 12: holographic.glsl (Stage 5 — holographic badge)
+ * 13: energyField.glsl (Stage 5 — energy field effect)
+ * 14: dissolveTransition.glsl (CPA v2.0 — skin transitions)
+ * 15: wormholeEffect.glsl (CPA v2.0 — lab entry)
+ * 16: hexCluster.glsl (CPA v2.0 — data hex display)
+ * 17: scanline.glsl (Stage 3 — CRT overlay)
+ * 18: aurora.glsl (Stage 3 — background)
+ * 19: barrelDistortion.glsl (CPA v2.0 — lens effect)
+ */
+export const TSL_MIGRATION_STATUS: Record<string, 'glsl' | 'tsl' | 'both'> = {
+  // All start as GLSL, migrated to TSL during Enhancement implementation
+  labPattern1: 'glsl', labPattern2: 'glsl', labPattern3: 'glsl',
+  labPattern4: 'glsl', labPattern5: 'glsl', labPattern6: 'glsl',
+  labPattern7: 'glsl', labPattern8: 'glsl', labPattern9: 'glsl',
+  labPattern10: 'glsl',
+  liquidMetal: 'glsl', holographic: 'glsl', energyField: 'glsl',
+  dissolveTransition: 'glsl', wormholeEffect: 'glsl', hexCluster: 'glsl',
+  scanline: 'glsl', aurora: 'glsl', barrelDistortion: 'glsl',
+};
+```
+
+---
+
+## Step 20i: Vitest Configuration (Enhancement 8.5)
+
+**File:** `vitest.config.ts` (project root)
+
+> **Enhancement 8.5:** Vitest configuration for unit and integration testing.
+> Playwright configuration for E2E tests is added in Stage 10 Part 1.
+
+```typescript
+import { defineConfig } from 'vitest/config';
+import path from 'path';
+
+export default defineConfig({
+  test: {
+    globals: true,
+    environment: 'happy-dom',
+    setupFiles: ['./tests/setup.ts'],
+    include: ['tests/unit/**/*.test.ts', 'tests/integration/**/*.test.ts'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.d.ts',
+        'src/types/**',
+        'src/app/**/layout.tsx',
+        'src/app/**/loading.tsx',
+        'src/shaders/**',
+      ],
+    },
+  },
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src'),
+    },
+  },
+});
+```
+
+**File:** `tests/setup.ts`
+
+```typescript
+import '@testing-library/jest-dom/vitest';
+
+// Mock window.matchMedia for component tests
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
+});
+
+// Mock ResizeObserver
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
+// Mock IntersectionObserver
+global.IntersectionObserver = class IntersectionObserver {
+  readonly root = null;
+  readonly rootMargin = '';
+  readonly thresholds = [];
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+  takeRecords() { return []; }
+} as unknown as typeof IntersectionObserver;
 ```
 
 ---

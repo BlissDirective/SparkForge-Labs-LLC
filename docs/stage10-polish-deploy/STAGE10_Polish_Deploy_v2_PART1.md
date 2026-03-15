@@ -1333,9 +1333,310 @@ Cockpit events that affect user context should announce via live regions:
 
 ---
 
+## Enhancement 8.5 — Testing Infrastructure (Added March 15, 2026)
+
+> **Source:** ENHANCEMENT_BLUEPRINT_v1.0 Section 8.5
+> **Packages:** Already installed in Stage 1 Part 1 Step 2j (vitest, playwright, msw, happy-dom)
+> **Config:** Vitest config already created in Stage 1 Part 2 Step 20i
+
+### Playwright E2E Configuration
+
+**File:** `playwright.config.ts` (project root)
+
+```typescript
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  fullyParallel: true,
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 2 : 0,
+  workers: process.env.CI ? 1 : undefined,
+  reporter: [
+    ['html', { open: 'never' }],
+    ['json', { outputFile: 'test-results/results.json' }],
+  ],
+
+  use: {
+    baseURL: 'http://localhost:3000',
+    trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
+  },
+
+  projects: [
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+    // Visual regression for cockpit UI
+    {
+      name: 'visual-regression',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 },
+      },
+      testMatch: /.*visual\.spec\.ts/,
+    },
+    // Mobile viewport
+    {
+      name: 'mobile-chrome',
+      use: { ...devices['Pixel 5'] },
+    },
+    {
+      name: 'tablet',
+      use: { ...devices['iPad (gen 7)'] },
+    },
+  ],
+
+  webServer: {
+    command: 'npm run dev',
+    url: 'http://localhost:3000',
+    reuseExistingServer: !process.env.CI,
+  },
+});
+```
+
+### MSW (Mock Service Worker) Setup
+
+**File:** `tests/mocks/handlers.ts`
+
+```typescript
+import { http, HttpResponse } from 'msw';
+
+// Mock API handlers for testing (Supabase, Stripe, Anthropic)
+export const handlers = [
+  // Health check
+  http.get('/api/health', () => {
+    return HttpResponse.json({ status: 'ok', timestamp: new Date().toISOString() });
+  }),
+
+  // Mock Supabase auth
+  http.post('*/auth/v1/token*', () => {
+    return HttpResponse.json({
+      access_token: 'mock-access-token',
+      token_type: 'bearer',
+      expires_in: 3600,
+      refresh_token: 'mock-refresh-token',
+      user: {
+        id: 'mock-user-id',
+        email: 'test@sparkforge.test',
+        role: 'authenticated',
+      },
+    });
+  }),
+
+  // Mock children API
+  http.get('/api/children', () => {
+    return HttpResponse.json([
+      {
+        id: 'child-1',
+        display_name: 'TestKid',
+        age_band: 'B',
+        xp: 500,
+        level: 3,
+        streak_current: 5,
+      },
+    ]);
+  }),
+
+  // Mock gamification APIs
+  http.post('/api/gamification/xp', async ({ request }) => {
+    const body = await request.json() as { amount: number };
+    return HttpResponse.json({
+      success: true,
+      xp_earned: body.amount,
+      new_total: 550,
+      level_up: false,
+    });
+  }),
+
+  // Mock Stripe checkout
+  http.post('/api/stripe/checkout', () => {
+    return HttpResponse.json({ url: 'https://checkout.stripe.com/mock-session' });
+  }),
+
+  // Mock Anthropic (Content Agent)
+  http.post('https://api.anthropic.com/v1/messages', () => {
+    return HttpResponse.json({
+      content: [{ type: 'text', text: 'Mock AI response for testing' }],
+      model: 'claude-sonnet-4-20250514',
+      stop_reason: 'end_turn',
+    });
+  }),
+];
+```
+
+**File:** `tests/mocks/server.ts`
+
+```typescript
+import { setupServer } from 'msw/node';
+import { handlers } from './handlers';
+
+// MSW server for Vitest (node environment)
+export const server = setupServer(...handlers);
+```
+
+**Update `tests/setup.ts`** — add MSW server lifecycle:
+
+```typescript
+// Add to existing tests/setup.ts (created in Stage 1 Part 2 Step 20i):
+import { server } from './mocks/server';
+
+beforeAll(() => server.listen({ onUnhandledRequest: 'warn' }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
+```
+
+### Example Test Files
+
+**File:** `tests/unit/stores/gameStore.test.ts`
+
+```typescript
+import { describe, it, expect, beforeEach } from 'vitest';
+import { useGameStore } from '@/stores/gameStore';
+
+describe('gameStore', () => {
+  beforeEach(() => {
+    useGameStore.setState(useGameStore.getInitialState());
+  });
+
+  it('starts a game with correct initial state', () => {
+    const { startGame } = useGameStore.getState();
+    startGame('neural-builder', 3);
+
+    const state = useGameStore.getState();
+    expect(state.currentGameSlug).toBe('neural-builder');
+    expect(state.currentLabId).toBe(3);
+    expect(state.phase).toBe('welcome');
+    expect(state.score).toBe(0);
+  });
+
+  it('completes a game and records final score', () => {
+    const { startGame, completeGame } = useGameStore.getState();
+    startGame('ai-spy', 1);
+    completeGame(85);
+
+    const state = useGameStore.getState();
+    expect(state.phase).toBe('complete');
+    expect(state.score).toBe(85);
+  });
+});
+```
+
+**File:** `tests/e2e/auth.spec.ts`
+
+```typescript
+import { test, expect } from '@playwright/test';
+
+test.describe('Authentication Flow', () => {
+  test('signup page renders with required fields', async ({ page }) => {
+    await page.goto('/signup');
+    await expect(page.getByRole('heading', { name: /sign up/i })).toBeVisible();
+    await expect(page.getByLabel(/email/i)).toBeVisible();
+    await expect(page.getByLabel(/password/i)).toBeVisible();
+  });
+
+  test('login redirects to dashboard on success', async ({ page }) => {
+    // This test requires MSW browser setup or test Supabase instance
+    await page.goto('/login');
+    await page.getByLabel(/email/i).fill('test@sparkforge.test');
+    await page.getByLabel(/password/i).fill('TestPassword123!');
+    await page.getByRole('button', { name: /sign in/i }).click();
+    // Verify redirect
+    await expect(page).toHaveURL(/.*home/);
+  });
+});
+```
+
+### npm Scripts Addition
+
+Add to `package.json` scripts:
+
+```json
+{
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:visual": "playwright test --project=visual-regression"
+  }
+}
+```
+
+### Sentry Monitoring Integration
+
+Sentry (initialized in Stage 1 Part 2 Step 20g) is now wired into the production build:
+
+- **Error tracking:** All unhandled exceptions captured automatically
+- **Performance monitoring:** Page load times, API route durations, 3D frame rates
+- **Session replay:** 1% of sessions recorded (100% on error), with COPPA-compliant text/media masking
+- **Custom events:** Game completions, XP awards, ceremony triggers tracked as breadcrumbs
+
+**File:** `src/lib/sentryUtils.ts`
+
+```typescript
+import * as Sentry from '@sentry/nextjs';
+
+/**
+ * Track game completion as a Sentry breadcrumb for debugging.
+ * COPPA-safe: no PII, only game metadata.
+ */
+export function trackGameComplete(gameSlug: string, labId: number, score: number) {
+  Sentry.addBreadcrumb({
+    category: 'game',
+    message: `Game completed: ${gameSlug} (Lab ${labId})`,
+    data: { gameSlug, labId, score },
+    level: 'info',
+  });
+}
+
+/**
+ * Track 3D performance metrics as a Sentry custom measurement.
+ */
+export function trackFrameRate(fps: number, triangleCount: number, rendererType: string) {
+  Sentry.setMeasurement('fps', fps, 'none');
+  Sentry.setMeasurement('triangles', triangleCount, 'none');
+  Sentry.setTag('renderer', rendererType);
+}
+
+/**
+ * Track content agent pipeline errors with full context.
+ */
+export function trackAgentError(stage: string, error: Error, runId?: string) {
+  Sentry.withScope((scope) => {
+    scope.setTag('agent_stage', stage);
+    if (runId) scope.setTag('agent_run_id', runId);
+    Sentry.captureException(error);
+  });
+}
+```
+
+### Files Created in This Section
+
+| # | File | Purpose |
+|---|------|---------|
+| 1 | `playwright.config.ts` | E2E test configuration (6 projects: 3 browsers + visual + mobile + tablet) |
+| 2 | `tests/mocks/handlers.ts` | MSW mock API handlers (Supabase, Stripe, Anthropic) |
+| 3 | `tests/mocks/server.ts` | MSW server for Vitest node environment |
+| 4 | `tests/unit/stores/gameStore.test.ts` | Example unit test for game store |
+| 5 | `tests/e2e/auth.spec.ts` | Example E2E test for auth flow |
+| 6 | `src/lib/sentryUtils.ts` | COPPA-safe Sentry tracking utilities |
+
+---
+
 ### NEXT: Part 2 (10B) — SEO metadata, robots/sitemap, next.config.js, dynamic game imports (35 games), PWA manifest, root layout update, DEPLOYMENT.md, .env.example, post-deploy checklist
 
 ---
 
 *End of Stage 10 Part 1 — STAGE10_Polish_Deploy_v2_PART1.md*
-*8 files | 7th store | 20 code review fixes | 12 enhancements | CPA v2.0 accessibility | March 15, 2026*
+*14 files | 7th store | 20 code review fixes | 12 enhancements | CPA v2.0 accessibility | Enhancement 8.5 testing | March 15, 2026*

@@ -11,9 +11,9 @@
 
 Stage 1 Part 1 establishes the SparkForge project skeleton:
 
-1. Create Next.js 14 project with TypeScript
-2. Install all npm dependencies (40+ packages across 8 install commands)
-3. Configure TypeScript, Tailwind CSS, PostCSS, Next.js, environment variables
+1. Create Next.js 15 project with TypeScript (React 19)
+2. Install all npm dependencies (50+ packages across 10 install commands)
+3. Configure TypeScript, Tailwind CSS 4, PostCSS, Next.js 15, environment variables
 4. Create globals.css with Frost-Prismatic design system
 5. Create 30+ directories for the full project structure
 
@@ -23,21 +23,34 @@ After completing Part 1, the project compiles and the dev server starts — but 
 
 ## Step 1: Create Next.js Project
 
+> **Enhancement 8.1:** Upgraded from Next.js 14 → 15 (React 19, Turbopack stable,
+> Server Actions stable, improved caching). See ENHANCEMENT_BLUEPRINT_v1.0 Section 8.1.
+
 ```bash
-npx create-next-app@14 sparkforge \
+npx create-next-app@15 sparkforge \
   --typescript \
   --tailwind \
   --eslint \
   --app \
   --src-dir \
-  --import-alias "@/*"
+  --import-alias "@/*" \
+  --turbopack
 ```
 
 After creation, `cd sparkforge`.
 
 ---
 
-## Step 2: Install Dependencies (8 Commands)
+## Step 2: Install Dependencies (10 Commands)
+
+> **Enhancement 8.1 Upgrades Applied:**
+> - `framer-motion` → `motion` (rebranded, lighter — same API, import from `motion/react`)
+> - `recharts` → `@nivo/core @nivo/line @nivo/bar` (better viz, animations, SSR support)
+> - Added `jotai` for fine-grained 3D state (fewer re-renders alongside Zustand)
+> - Added `@sentry/nextjs` for error tracking + performance monitoring
+> - Three.js r170+ (WebGPU renderer, TSL shading language, batched rendering)
+> - Added `msw` + `playwright` + `@playwright/test` for comprehensive testing
+> - See ENHANCEMENT_BLUEPRINT_v1.0 Section 8.1 for full rationale.
 
 ### 2a — Supabase + Auth
 
@@ -48,29 +61,44 @@ npm install @supabase/supabase-js @supabase/ssr
 ### 2b — State Management + Data Fetching
 
 ```bash
-npm install zustand @tanstack/react-query @tanstack/react-query-devtools
+npm install zustand jotai @tanstack/react-query @tanstack/react-query-devtools
 ```
+
+> **Enhancement 8.1:** Added `jotai` for atomic fine-grained 3D state (cockpit panel values,
+> shader uniforms, particle counts) — avoids full-store re-renders that Zustand can cause
+> with frequent 3D updates. Zustand remains for coarse app state (auth, child, game, ui).
 
 ### 2c — UI Libraries
 
 ```bash
-npm install framer-motion gsap lucide-react clsx tailwind-merge class-variance-authority tailwindcss-animate
+npm install motion gsap lucide-react clsx tailwind-merge class-variance-authority tailwindcss-animate
 npm install @radix-ui/react-dialog @radix-ui/react-dropdown-menu @radix-ui/react-tabs \
   @radix-ui/react-tooltip @radix-ui/react-switch @radix-ui/react-slider \
   @radix-ui/react-progress @radix-ui/react-select @radix-ui/react-avatar
 ```
 
+> **Enhancement 8.1:** `framer-motion` replaced with `motion` (same library, rebranded and lighter).
+> Import path changes: `from 'framer-motion'` → `from 'motion/react'`.
+> GSAP is kept alongside for complex timeline animations (game sequences, ceremony FX).
+
 ### 2d — 3D Rendering
 
 ```bash
-npm install three @react-three/fiber @react-three/drei @react-three/postprocessing leva
+npm install three@latest @react-three/fiber @react-three/drei @react-three/postprocessing leva
 ```
+
+> **Enhancement 8.1/8.2:** Three.js r170+ includes WebGPU renderer and TSL (Three.js Shading
+> Language). WebGPU auto-detection with WebGL2 fallback configured in Stage 1 Part 2.
 
 ### 2e — Charts + Audio
 
 ```bash
-npm install recharts tone
+npm install @nivo/core @nivo/line @nivo/bar @nivo/radar tone
 ```
+
+> **Enhancement 8.1:** `recharts` replaced with `@nivo/core` + chart type packages.
+> Nivo provides better animation, SSR support, and sophisticated visualization for
+> parent dashboard analytics and learning progress charts.
 
 ### 2f — Payments
 
@@ -90,11 +118,37 @@ npm install zod
 npm install @anthropic-ai/sdk @dnd-kit/core @dnd-kit/sortable @dnd-kit/utilities
 ```
 
-### 2i — Dev Dependencies
+### 2i — Error Tracking + Monitoring
 
 ```bash
-npm install -D vitest @testing-library/react @testing-library/jest-dom
+npm install @sentry/nextjs
 ```
+
+> **Enhancement 8.1:** Sentry provides error tracking, performance monitoring, and session
+> replay. Initialization configured in Stage 1 Part 2 (sentry.client.config.ts,
+> sentry.server.config.ts, sentry.edge.config.ts). Dashboard at sentry.io.
+
+### 2j — Dev Dependencies (Testing Infrastructure)
+
+```bash
+npm install -D vitest @vitest/coverage-v8 @testing-library/react @testing-library/jest-dom \
+  playwright @playwright/test msw happy-dom
+```
+
+> **Enhancement 8.5 — Testing Infrastructure:**
+> - `vitest` + `@vitest/coverage-v8`: Unit + integration tests (Vite-native, fast)
+> - `@testing-library/react` + `@testing-library/jest-dom`: Component testing
+> - `playwright` + `@playwright/test`: E2E tests, cross-browser, visual regression screenshots
+> - `msw`: Mock Service Worker for API mocking (Supabase, Stripe, Anthropic)
+> - `happy-dom`: Fast DOM implementation for Vitest
+>
+> **Testing pyramid (configured in Stage 10 Part 1):**
+> - Unit tests: Store logic, utility functions, game scoring, XP calculations
+> - Component tests: Game rendering, phase transitions, accessibility compliance
+> - Integration tests: API routes, Supabase queries, Stripe webhook handling
+> - E2E tests: Full user journeys (signup → play game → earn badge → parent views progress)
+> - Visual regression: Playwright screenshots for cockpit/game UI consistency
+> - Performance tests: Lighthouse CI in GitHub Actions, triangle budget enforcement
 
 ---
 
@@ -131,6 +185,11 @@ npm install -D vitest @testing-library/react @testing-library/jest-dom
 ---
 
 ## Step 4: Tailwind CSS Configuration
+
+> **Enhancement 8.1:** Tailwind CSS 4 uses the Oxide engine (10x faster builds) and supports
+> CSS-first configuration. However, the JS config file (`tailwind.config.ts`) is still supported
+> for complex configurations. Tailwind 4 also adds native container queries and `@starting-style`
+> for entry animations. The config below remains compatible with both Tailwind 3 and 4.
 
 **File:** `tailwind.config.ts`
 
@@ -307,14 +366,20 @@ module.exports = {
 
 ## Step 6: Next.js Configuration
 
-**File:** `next.config.js`
+**File:** `next.config.ts`
 
 > **Note:** This is the Stage 1 starter config. Stage 10 Part 2 REPLACES this with
 > production security headers, CSP, and caching. See STAGE10_Polish_Deploy_v2_PART2.
+>
+> **Enhancement 8.1:** Updated for Next.js 15 — uses `next.config.ts` (TypeScript native),
+> Turbopack as default dev bundler, and `serverExternalPackages` (replaces experimental
+> `serverComponentsExternalPackages`). Sentry integration via `withSentryConfig` wrapper.
 
-```javascript
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+```typescript
+import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
+
+const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
     remotePatterns: [
@@ -325,28 +390,48 @@ const nextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
-    if (isServer) {
-      config.externals = config.externals || [];
-      config.externals.push({
-        three: 'three',
-        '@react-three/fiber': '@react-three/fiber',
-        '@react-three/drei': '@react-three/drei',
-      });
-    }
-    return config;
-  },
+  // Next.js 15: serverExternalPackages replaces experimental.serverComponentsExternalPackages
+  serverExternalPackages: ['three', '@react-three/fiber', '@react-three/drei'],
   experimental: {
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-dialog',
       '@radix-ui/react-dropdown-menu',
       '@radix-ui/react-tabs',
+      '@nivo/core',
+      '@nivo/line',
+      '@nivo/bar',
     ],
+    // Next.js 15: Turbopack is stable and used by default in dev
+    turbo: {
+      rules: {
+        // Handle GLSL shader imports via Turbopack
+        '*.glsl': { loaders: ['raw-loader'], as: '*.js' },
+        '*.vert': { loaders: ['raw-loader'], as: '*.js' },
+        '*.frag': { loaders: ['raw-loader'], as: '*.js' },
+      },
+    },
+  },
+  webpack: (config, { isServer }) => {
+    // GLSL shader loader for production builds (Webpack)
+    config.module.rules.push({
+      test: /\.(glsl|vert|frag)$/,
+      type: 'asset/source',
+    });
+    return config;
   },
 };
 
-module.exports = nextConfig;
+// Sentry wraps the Next.js config for source maps + error tracking
+export default withSentryConfig(nextConfig, {
+  // Sentry build options
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  silent: !process.env.CI, // Suppress logs in local dev
+  widenClientFileUpload: true,
+  tunnelRoute: '/monitoring', // Proxy Sentry requests to avoid ad-blockers
+  disableLogger: true,
+});
 ```
 
 ---
@@ -390,6 +475,12 @@ NEXT_PUBLIC_FF_LEVEL_CEREMONY=false
 NEXT_PUBLIC_FF_PARENT_DASHBOARD=false
 NEXT_PUBLIC_FF_CONTENT_AGENT=false
 NEXT_PUBLIC_FF_OFFLINE_MODE=false
+
+# ═══ Sentry (Enhancement 8.1 — Error Tracking + Monitoring) ═══
+SENTRY_DSN=https://your-dsn@o123456.ingest.sentry.io/1234567
+SENTRY_ORG=your-sentry-org
+SENTRY_PROJECT=sparkforge
+SENTRY_AUTH_TOKEN=sntrys_your-auth-token
 
 # ═══ Deployment (set in Vercel Dashboard) ═══
 ENABLE_CONTENT_AGENT=true
@@ -473,8 +564,14 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Testing
+# Testing (Enhancement 8.5)
 coverage/
+test-results/
+playwright-report/
+blob-report/
+
+# Sentry (Enhancement 8.1)
+.sentryclirc
 ```
 
 ---
@@ -560,6 +657,12 @@ mkdir -p public/sounds/cockpit
 mkdir -p public/fonts
 mkdir -p public/models/pets
 mkdir -p public/hdri
+
+# Testing (Enhancement 8.5)
+mkdir -p tests/unit
+mkdir -p tests/integration
+mkdir -p tests/e2e
+mkdir -p tests/mocks
 ```
 
 ---

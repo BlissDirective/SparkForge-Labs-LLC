@@ -276,6 +276,78 @@ Clicking a console opens a glassmorphic HTML overlay:
 
 ---
 
+## Enhancement 8.2 — WebGPU Rendering Pipeline Integration
+
+> **Source:** ENHANCEMENT_BLUEPRINT_v1.0 Section 8.2
+> **Impact:** 2-5x rendering performance improvement on supported browsers.
+
+### WebGPU Auto-Detection in CockpitCanvas
+
+The `CockpitCanvas` component (defined above) must integrate WebGPU auto-detection at initialization. The detection utility from Stage 1 Part 2 Step 20h (`src/lib/3d/webgpuDetect.ts`) is called once on mount. Results are stored in Jotai atoms (`rendererTypeAtom`, `gpuTierAtom`) for global access.
+
+```typescript
+// In CockpitCanvas.tsx initialization:
+import { detectRendererCapability } from '@/lib/3d/webgpuDetect';
+import { useSetAtom } from 'jotai';
+import { rendererTypeAtom, gpuTierAtom } from '@/stores/cockpitAtoms';
+
+// On mount (inside useEffect):
+const setRendererType = useSetAtom(rendererTypeAtom);
+const setGpuTier = useSetAtom(gpuTierAtom);
+
+useEffect(() => {
+  detectRendererCapability().then(({ renderer, gpuTier }) => {
+    setRendererType(renderer);
+    setGpuTier(gpuTier);
+    console.log(`[SparkForge] Renderer: ${renderer}, GPU Tier: ${gpuTier}`);
+  });
+}, []);
+```
+
+### R3F Canvas Renderer Selection
+
+```typescript
+// CockpitCanvas uses R3F's gl prop to configure the renderer:
+<Canvas
+  gl={(canvas) => {
+    // Three.js r170+ WebGPURenderer is available but requires explicit opt-in
+    // For now, use default WebGLRenderer — WebGPU migration happens per-shader
+    // When all shaders are TSL, switch to WebGPURenderer here
+    return new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
+  }}
+  // ... other props
+>
+```
+
+### TSL Shader Migration Path
+
+All 19 GLSL shaders (listed in Stage 1 Part 2 Step 20h) are migrated **gradually** to TSL:
+
+| Phase | Shaders | Priority | Notes |
+|-------|---------|----------|-------|
+| Phase 1 | Lab patterns 1-10 | Medium | Background shaders — most visual impact |
+| Phase 2 | aurora, scanline, barrelDistortion | Medium | Cockpit shell effects |
+| Phase 3 | liquidMetal, holographic, energyField | Low | Badge/gamification shaders |
+| Phase 4 | dissolveTransition, wormholeEffect, hexCluster | Low | CPA v2.0 transition shaders |
+
+**Key rule:** Both GLSL and TSL shaders work simultaneously. No big-bang migration needed. The `TSL_MIGRATION_STATUS` record in `webgpuDetect.ts` tracks which shaders have been migrated.
+
+### Compute Shaders for Particles (Enhancement 8.2)
+
+When WebGPU is available, particle systems (AmbientParticles, GameParticles3D, CeremonyFX) can use **compute shaders** for GPU-accelerated particle updates:
+
+- **10K+ particles** without CPU overhead (vs current 50-200 CPU-updated particles)
+- **GPU-accelerated physics** for Sort Toy Box drag interactions and Robot Vacuum pathfinding
+- Compute shaders are TSL-native and only available on WebGPU renderer
+- Fallback: CPU-based particle updates continue on WebGL2 (current behavior, no regression)
+
+---
+
 ## Discrepancies & Build Fixes
 
 | # | Issue | Fix Applied | Category |

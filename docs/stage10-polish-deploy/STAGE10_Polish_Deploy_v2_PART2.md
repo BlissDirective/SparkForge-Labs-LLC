@@ -1205,6 +1205,259 @@ git commit -m "Stage 10 Part 2: SEO, security, game router, PWA, deployment guid
 
 ---
 
+## Enhancement 8.3/8.4 — Edge-First Architecture & Bundle Optimization (Added March 15, 2026)
+
+> **Source:** ENHANCEMENT_BLUEPRINT_v1.0 Sections 8.3 and 8.4
+> **Impact:** Initial load <200KB JS, per-game chunk <100KB, total app <3MB
+
+### Bundle Optimization Targets
+
+| Metric | Target | Strategy |
+|--------|--------|----------|
+| Initial JS load | <200KB | Route-based code splitting, tree shaking, dynamic imports |
+| Per-game chunk | <100KB | Each game loaded on-demand via `dynamic()` (already in game router) |
+| Total app size | <3MB | Shader chunking, 3D progressive loading, image optimization |
+| First Contentful Paint | <1.5s | Streaming SSR, critical CSS inlining, font preloading |
+| Largest Contentful Paint | <2.5s | Progressive 3D hydration, ISR for static content |
+| Time to Interactive | <3.5s | Deferred 3D loading, priority-based hydration |
+
+### Shader Chunking Strategy
+
+GLSL/TSL shaders are currently bundled in `src/shaders/index.ts` as string constants. Enhancement 8.4 splits them into **on-demand chunks per lab**:
+
+```typescript
+// Before (all shaders bundled together):
+import { labPattern1, labPattern2, ... } from '@/shaders';
+
+// After (on-demand per lab):
+const getLabShader = async (labId: number) => {
+  switch (labId) {
+    case 1: return (await import('@/shaders/labPatterns/labPattern1.glsl')).default;
+    case 2: return (await import('@/shaders/labPatterns/labPattern2.glsl')).default;
+    // ... 3-10
+    default: return null;
+  }
+};
+```
+
+Each shader is ~2-5KB. Loading only the active lab's shader saves ~20-40KB from the initial bundle.
+
+### 3D Progressive Loading
+
+3D models and textures use a **progressive loading** strategy:
+
+1. **Immediate:** Show CSS fallback frame (zero 3D, instant)
+2. **Priority 1 (0-1s):** Load cockpit shell geometry (CockpitPanels, LEDRim — ~10KB)
+3. **Priority 2 (1-2s):** Load HolographicHUD, StatusBar3D (~15KB)
+4. **Priority 3 (2-4s):** Load HolographicLabMap, InteractiveConsoles (~30KB)
+5. **Priority 4 (4s+):** Load AmbientNPCs, DynamicEnvironment (~20KB)
+6. **On demand:** Load game-specific 3D components when game is launched
+
+```typescript
+// Progressive 3D loader in CockpitCanvas:
+const [loadPhase, setLoadPhase] = useState(0);
+
+useEffect(() => {
+  // Phase 1: immediate
+  setLoadPhase(1);
+  // Phase 2: after shell renders
+  requestIdleCallback(() => setLoadPhase(2));
+  // Phase 3: after 2s
+  const t1 = setTimeout(() => setLoadPhase(3), 2000);
+  // Phase 4: after 4s
+  const t2 = setTimeout(() => setLoadPhase(4), 4000);
+  return () => { clearTimeout(t1); clearTimeout(t2); };
+}, []);
+
+return (
+  <Canvas>
+    {loadPhase >= 1 && <CockpitPanels />}
+    {loadPhase >= 1 && <LEDRim />}
+    {loadPhase >= 2 && <HolographicHUD />}
+    {loadPhase >= 2 && <StatusBar3D />}
+    {loadPhase >= 3 && <HolographicLabMap />}
+    {loadPhase >= 3 && <InteractiveConsole3D />}
+    {loadPhase >= 4 && <AmbientNPCs />}
+    {loadPhase >= 4 && <DynamicEnvironment />}
+  </Canvas>
+);
+```
+
+### Streaming SSR with Progressive 3D Hydration (Enhancement 8.3)
+
+Next.js 15 supports **streaming SSR** — HTML is streamed to the browser as it's generated,
+with `<Suspense>` boundaries marking progressive hydration points:
+
+```typescript
+// src/app/(dashboard)/home/page.tsx
+import { Suspense } from 'react';
+import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
+
+export default function DashboardHome() {
+  return (
+    <>
+      {/* Critical: renders immediately via SSR stream */}
+      <DashboardHeader />
+
+      {/* Deferred: hydrates after initial paint */}
+      <Suspense fallback={<LoadingSkeleton variant="labmap" />}>
+        <LabMapSection />
+      </Suspense>
+
+      {/* Low priority: hydrates last */}
+      <Suspense fallback={<LoadingSkeleton variant="stats" />}>
+        <StatsSection />
+      </Suspense>
+    </>
+  );
+}
+```
+
+### ISR for Static Content (Enhancement 8.3)
+
+Lessons, quizzes, lab descriptions, and spark facts use **Incremental Static Regeneration**
+— pages are pre-rendered at build time and revalidated periodically:
+
+```typescript
+// src/app/(dashboard)/content/[slug]/page.tsx
+export const revalidate = 3600; // Revalidate every hour
+
+// Or for lab descriptions that change rarely:
+export const revalidate = 86400; // Revalidate daily
+```
+
+### Edge Caching Headers in Production next.config.ts
+
+The production `next.config.ts` (Step 5 of this Part) should include these cache headers
+for game assets served via Vercel Edge Network:
+
+```typescript
+// Add to securityHeaders array in next.config.ts:
+{
+  source: '/models/:path*',
+  headers: [
+    { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+  ],
+},
+{
+  source: '/sounds/:path*',
+  headers: [
+    { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+  ],
+},
+{
+  source: '/hdri/:path*',
+  headers: [
+    { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+  ],
+},
+```
+
+### PWA Service Worker Enhancement
+
+The existing PWA manifest (`public/manifest.json`) is enhanced with a service worker
+that pre-caches game assets for offline play:
+
+```typescript
+// public/sw.js (service worker — registered in root layout)
+const GAME_CACHE = 'sparkforge-games-v1';
+const STATIC_CACHE = 'sparkforge-static-v1';
+
+// Pre-cache critical assets on install
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(STATIC_CACHE).then((cache) =>
+      cache.addAll([
+        '/',
+        '/home',
+        '/labs',
+        '/manifest.json',
+        // Fonts are critical for Frost-Prismatic design
+      ])
+    )
+  );
+});
+
+// Cache game chunks on first play
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+
+  // Cache game chunks for offline replay
+  if (url.pathname.startsWith('/arcade/')) {
+    event.respondWith(
+      caches.match(event.request).then((cached) =>
+        cached || fetch(event.request).then((response) => {
+          const clone = response.clone();
+          caches.open(GAME_CACHE).then((cache) => cache.put(event.request, clone));
+          return response;
+        })
+      )
+    );
+    return;
+  }
+
+  // Network-first for API calls, cache-first for static assets
+  if (url.pathname.startsWith('/api/')) {
+    event.respondWith(fetch(event.request));
+  } else {
+    event.respondWith(
+      caches.match(event.request).then((cached) => cached || fetch(event.request))
+    );
+  }
+});
+```
+
+### Lighthouse CI Integration
+
+Add to GitHub Actions workflow for automated performance checks:
+
+```yaml
+# .github/workflows/lighthouse.yml
+name: Lighthouse CI
+on: [push, pull_request]
+jobs:
+  lighthouse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci
+      - run: npm run build
+      - name: Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          configPath: .lighthouserc.json
+          uploadArtifacts: true
+```
+
+**File:** `.lighthouserc.json`
+
+```json
+{
+  "ci": {
+    "collect": {
+      "startServerCommand": "npm run start",
+      "url": ["http://localhost:3000", "http://localhost:3000/labs"],
+      "numberOfRuns": 3
+    },
+    "assert": {
+      "assertions": {
+        "categories:performance": ["error", { "minScore": 0.8 }],
+        "categories:accessibility": ["error", { "minScore": 0.9 }],
+        "categories:best-practices": ["warn", { "minScore": 0.9 }],
+        "first-contentful-paint": ["warn", { "maxNumericValue": 1500 }],
+        "interactive": ["warn", { "maxNumericValue": 3500 }],
+        "total-byte-weight": ["warn", { "maxNumericValue": 3145728 }]
+      }
+    }
+  }
+}
+```
+
+---
+
 ## ═══ STAGE 10 v2 COMPLETE — ALL 2 PARTS ═══
 
 ### Total Files Across Parts 1-2
