@@ -1,8 +1,49 @@
 # SparkForge Build Progress
 
-## Current Phase: 22+ — Full Build Completion + Game Registry + AI Spy + Stage Doc Updates
-## Status: IN PROGRESS
-## Last Updated: 2026-03-14 22:45 UTC
+## Current Phase: 3 — Stage 2 Database & API (COMPLETE)
+## Status: AWAITING USER SQL EXECUTION (HS-7)
+## Last Updated: 2026-03-15 (Stage 2 Build Session)
+
+### Stage 2 — Database & API (March 15, 2026)
+
+**Status:** CODE COMPLETE | **Build:** PASS (0 TypeScript errors, 0 ESLint errors)
+**Awaiting:** HS-7 — User must run 6 SQL blocks in Supabase SQL Editor
+
+**Files Verified (existing from prior session):**
+- `src/lib/validations.ts` — 20 Zod schemas + type exports (211 lines)
+- `src/lib/tier-config.ts` — Free/Plus/Forge config + 6 helpers (197 lines)
+- `src/lib/rate-limit.ts` — In-memory limiter, 4 presets (81 lines)
+- `src/lib/api-helpers.ts` — Auth middleware, response helpers, dedup (248 lines)
+- `src/lib/api.ts` — Fetch wrapper with ApiError class (64 lines)
+- `src/components/providers/QueryProvider.tsx` — React Query provider + devtools
+
+**API Routes (22 files verified complete):**
+- Auth: signup (rate limited), login (rate limited), logout, me
+- Children: list/create, get/update/delete (ownership verified)
+- Content: filtered list (cached 5min), single by slug
+- Progress: list/create, lab progress, all-labs bulk (BUG-3 fix)
+- Gamification: XP (with dedup), streak, badges (14 criteria types, BUG-6 fix)
+- AI: Prompt Lab (moderated, rate-limited, age-appropriate)
+- Stripe: checkout, portal, webhook (4 event types)
+- Sessions: start/end
+- Health: status check
+
+**New File Created:**
+- `src/hooks/useApi.ts` — Placeholder React Query hooks (BUG-1 warning: Stage 4 replaces)
+
+**v2 Features Verified:**
+- [BUG-1] useApi.ts WARNING added — Stage 4 replaces
+- [BUG-3] /api/progress/all-labs: 10 labs in 1 API call
+- [BUG-6] Badge checker: 14 criteria types
+- [BUG-7] subscription_status default clarified
+- [CONN-2] UpdateChildSchema flexible avatarConfig
+- [IMP-3] Rate limiting on auth/signup + auth/login
+- [NEW-2B] Request deduplication middleware
+- [NEW-2C] /api/health endpoint
+
+---
+
+## Previous Sessions
 
 ### Full Build Completion — March 14, 2026 (Evening Session)
 
