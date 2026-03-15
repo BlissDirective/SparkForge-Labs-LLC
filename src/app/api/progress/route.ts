@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { data, error } = await supabase
     .from('progress')
     .select('*, content:content_id(title, type, world, xp_reward)')
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const { data, error } = await supabase
     .from('progress')

@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
 
     const { data, error } = await supabase
       .from('sessions')
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     const { sessionId } = result.data;
 
-    const supabase = createServerSupabase();
+    const supabase = await createServerSupabase();
 
     const { data: session } = await supabase
       .from('sessions').select('*').eq('id', sessionId).single();

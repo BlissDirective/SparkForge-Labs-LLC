@@ -9,7 +9,7 @@
 // Decisions: CPA-1 through CPA-12, CPA2-1 through CPA2-12
 
 // ■■ Cockpit Geometry Constants (v2.0 — adaptive curvature) ■■
-export const COCKPIT_GEOMETRY_V2 = {
+export const COCKPIT_GEOMETRY = {
   // Base values (adapted by useAdaptiveCockpit)
   panelCurvature: 0.85,
   totalWrapArc: 140,            // degrees, overridden by adaptive
@@ -72,7 +72,7 @@ export const VIGNETTE_PRESETS = {
 } as const;
 
 // ■■ HUD Presets v2 — Data-Driven Holographic HUD (CPA2-3) ■■
-export const HUD_PRESETS_V2 = {
+export const HUD_PRESETS = {
   dashboard:     { opacity: 0.15, rotationSpeed: 0.1,  pulseIntensity: 0.3, dataMode: 'minimap' as const },
   labmap:        { opacity: 0.18, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' as const },
   lab:           { opacity: 0.20, rotationSpeed: 0.2,  pulseIntensity: 0.5, dataMode: 'labfocus' as const },

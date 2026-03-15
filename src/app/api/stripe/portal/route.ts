@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const { data: parent } = await supabase
     .from('parents')

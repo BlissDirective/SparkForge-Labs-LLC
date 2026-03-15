@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
     }
   }
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   let query = supabase
     .from('content')
     .select('*', { count: 'exact' })

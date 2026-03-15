@@ -27,6 +27,7 @@ const config: Config = {
         },
         // ═══ Surface Colors (dark mode) ═══
         surface: {
+          base: '#0A0E16',
           deep: '#0A0E16',
           card: '#111118',
           elevated: '#1A1822',

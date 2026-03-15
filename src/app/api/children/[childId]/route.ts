@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: Params) {
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { data } = await supabase.from('children').select('*').eq('id', childId).single();
   if (!data) return apiError('Child not found', 404);
 
@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   const parsed = await parseBody(req, UpdateChildSchema);
   if (!parsed.success) return parsed.response;
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const updateData: Record<string, unknown> = {};
   if (parsed.data.displayName) updateData.display_name = parsed.data.displayName;
@@ -54,7 +54,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { error } = await supabase.from('children').delete().eq('id', childId);
 
   if (error) return apiError('Failed to delete child profile', 500);

@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const parsed = await parseBody(req, LoginSchema);
   if (!parsed.success) return parsed.response;
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const { data, error } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,

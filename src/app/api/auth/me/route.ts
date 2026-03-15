@@ -4,7 +4,7 @@ import { createServerSupabase } from '@/lib/supabase/server';
 import { apiSuccess, apiError } from '@/lib/api-helpers';
 
 export async function GET(_req: NextRequest) {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error || !user) {

@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const { data: child } = await supabase
     .from('children').select('age_band').eq('id', childId).single();

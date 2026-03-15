@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   if (!priceId) return apiError('Invalid price configuration', 500);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const { data: parent } = await supabase
     .from('parents')

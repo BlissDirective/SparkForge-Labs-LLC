@@ -85,7 +85,7 @@ export interface AuthenticatedUser {
 export async function requireAuth(
   _req: NextRequest
 ): Promise<{ success: true; user: AuthenticatedUser } | { success: false; response: NextResponse }> {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error || !user) {
@@ -169,7 +169,7 @@ export async function verifyChildOwnership(
   parentId: string,
   childId: string
 ): Promise<boolean> {
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { data } = await supabase
     .from('children')
     .select('id')

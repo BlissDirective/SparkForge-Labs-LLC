@@ -70,7 +70,7 @@ export function ToolPickerGame() {
   const [timer, setTimer] = useState(6);
   const [streak, setStreak] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; why: string } | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const tasks = useMemo(
     () => ALL_TASKS.filter(t => BAND_ORDER[t.band] <= BAND_ORDER[ageBand]),

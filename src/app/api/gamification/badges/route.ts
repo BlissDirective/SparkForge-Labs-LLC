@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const [{ data: badges }, { data: earned }] = await Promise.all([
     supabase.from('badges').select('*').order('category').order('criteria_value'),
@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
 
   if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const { data: child } = await supabase
     .from('children').select('xp, level, streak_count, age_band')

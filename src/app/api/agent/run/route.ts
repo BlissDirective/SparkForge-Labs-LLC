@@ -21,7 +21,7 @@ export async function POST(_req: NextRequest) {
   }
 
   // Admin auth check
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();

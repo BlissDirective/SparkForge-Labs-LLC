@@ -11,7 +11,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { data, error } = await supabase
     .from('content')
     .select('*')

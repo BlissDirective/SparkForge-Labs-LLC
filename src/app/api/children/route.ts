@@ -10,7 +10,7 @@ export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
   const { data: children, error } = await supabase
     .from('children')
     .select('*')
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
   const parsed = await parseBody(req, CreateChildSchema);
   if (!parsed.success) return parsed.response;
 
-  const supabase = createServerSupabase();
+  const supabase = await createServerSupabase();
 
   const { count } = await supabase
     .from('children')
