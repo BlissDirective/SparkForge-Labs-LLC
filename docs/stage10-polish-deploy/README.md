@@ -9,7 +9,7 @@
 | Filename | Phase | Content |
 |----------|-------|---------|
 | `STAGE10_Polish_Deploy_v2_PART1.pdf` | 10.1 | A11yProvider, AccessibilityToolbar, accessibilityStore (6th store), SEO meta, CSP headers, PWA manifest |
-| `STAGE10_Polish_Deploy_v2_PART2.pdf` | 10.2 | Game router (35 games), production next.config.js (REPLACES Stage 1 version), deployment guide |
+| `STAGE10_Polish_Deploy_v2_PART2.pdf` | 10.2 | Game router (35 games), production next.config.ts (REPLACES Stage 1 version), deployment guide |
 
 ## Before Deploying
 

@@ -63,7 +63,7 @@ This document provides complete, copy-paste code for two **Standard polish** gam
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -362,7 +362,7 @@ export function PixelInvestigatorGame() {
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -648,7 +648,7 @@ export function FoolTheAiGame() {
 | Chrome bezel | None | Cyan (Lab 7) with LED rim |
 | Particles | None | 14 cyan floating particles |
 | Welcome phase | None | Concept intro (C: softmax, adversarial) |
-| Confidence bar | Static div | Animated Framer Motion with color coding |
+| Confidence bar | Static div | Animated Motion with color coding |
 | Explanations | Single | Dual: kid-friendly + technical (C: softmax scores) |
 | Score system | Flat 8 pts | 10 pts base + 4 bonus for consecutive hits |
 | Accessibility | None | ARIA labels with item details |

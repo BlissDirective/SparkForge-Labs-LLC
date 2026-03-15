@@ -22,15 +22,15 @@
 
 ## PARTICLE SYSTEM ARCHITECTURE
 
-Decision 5.3 defines two particle layers for all 35 curriculum games. The system splits into two components based on rendering technology: a Three.js/R3F component for flagship games (which already have a Canvas context), and a CSS/Framer Motion component for the remaining 30 non-flagship games (which use 2D interfaces only). Both respect the particle intensity slider from Decision 5.5.
+Decision 5.3 defines two particle layers for all 35 curriculum games. The system splits into two components based on rendering technology: a Three.js/R3F component for flagship games (which already have a Canvas context), and a CSS/Motion component for the remaining 30 non-flagship games (which use 2D interfaces only). Both respect the particle intensity slider from Decision 5.5.
 
 |Component                                                  |Technology                                        |Games                                                                                |Rendering                                                                          |Delivered In                                 |
 |-----------------------------------------------------------|--------------------------------------------------|-------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|---------------------------------------------|
 |GameParticles3D.tsx (config registry + GameParticleEmitter)|Three.js / R3F (drei Sparkles)                    |5 flagships: Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective|Renders inside R3F Canvas. Requires Canvas parent. Custom per-flagship configs.    |Stage 5 Parts 2-3 v3-FINAL Part C (UNCHANGED)|
-|GenericGameParticles.tsx (+ LabParticles wrapper)          |CSS / Framer Motion (motion.div + radial-gradient)|30 non-flagship games: All Tier 3 games + FL-Lite games’ 2D layer                    |Pure CSS positioned divs. No Canvas / Three.js required. Lab-colored ambient drift.|This document (NEW)                          |
+|GenericGameParticles.tsx (+ LabParticles wrapper)          |CSS / Motion (motion.div + radial-gradient)|30 non-flagship games: All Tier 3 games + FL-Lite games’ 2D layer                    |Pure CSS positioned divs. No Canvas / Three.js required. Lab-colored ambient drift.|This document (NEW)                          |
 
 **Why Two Separate Components:**
-Non-flagship games (standard + FL-Lite + enhanced standard) do not have R3F Canvas elements — they use CSS/Framer Motion exclusively. The GameParticleEmitter from GameParticles3D.tsx requires a Canvas parent (it renders drei Sparkles), so it cannot be used inside 2D game UIs. GenericGameParticles.tsx provides an equivalent ambient drift using pure CSS, eliminating the duplicated particle code pattern across 30 game files.
+Non-flagship games (standard + FL-Lite + enhanced standard) do not have R3F Canvas elements — they use CSS/Motion exclusively. The GameParticleEmitter from GameParticles3D.tsx requires a Canvas parent (it renders drei Sparkles), so it cannot be used inside 2D game UIs. GenericGameParticles.tsx provides an equivalent ambient drift using pure CSS, eliminating the duplicated particle code pattern across 30 game files.
 
 -----
 
@@ -39,7 +39,7 @@ Non-flagship games (standard + FL-Lite + enhanced standard) do not have R3F Canv
 |File                                      |Type     |Lines|Technology         |Status                            |
 |------------------------------------------|---------|-----|-------------------|----------------------------------|
 |src/components/3d/GameParticles3D.tsx     |UNCHANGED|~170 |R3F / drei Sparkles|Delivered in Stage 5 P2-3 v3-FINAL|
-|src/components/3d/GenericGameParticles.tsx|NEW      |~190 |CSS / Framer Motion|In this document                  |
+|src/components/3d/GenericGameParticles.tsx|NEW      |~190 |CSS / Motion|In this document                  |
 
 -----
 
@@ -157,7 +157,7 @@ const intensity = useUIStore(s => s.particleIntensity || 'medium');
 
 ### GenericGameParticles (CSS — Standard Tier)
 
-Standard tier particle system used by 20 standard games. Renders lab-colored CSS gradient dots with Framer Motion animation. No GPU triangles on any device.
+Standard tier particle system used by 20 standard games. Renders lab-colored CSS gradient dots with Motion animation. No GPU triangles on any device.
 
 | Metric | Value |
 |--------|-------|
@@ -184,7 +184,7 @@ R3F instanced particle system for the 5 flagship games. Renders inside existing 
 
 ## FILE 1: `src/components/3d/GenericGameParticles.tsx` (NEW — ~190 lines)
 
-Reusable CSS/Framer Motion ambient particle drift component. Extracts the duplicated particle pattern from standard game files into a single, configurable component. Supports lab color lookup, intensity scaling (Decision 5.5), and count customization. No Three.js dependency.
+Reusable CSS/Motion ambient particle drift component. Extracts the duplicated particle pattern from standard game files into a single, configurable component. Supports lab color lookup, intensity scaling (Decision 5.5), and count customization. No Three.js dependency.
 
 **PowerShell command to create the file:**
 
@@ -194,7 +194,7 @@ New-Item -ItemType File -Path "src/components/3d/GenericGameParticles.tsx" -Forc
 
 ```tsx
 // ================================================================
-// GENERIC GAME PARTICLES — CSS/Framer Motion Ambient Drift
+// GENERIC GAME PARTICLES — CSS/Motion Ambient Drift
 // ================================================================
 // Decision 5.3: 30 non-flagship games share a generic lab-colored
 // ambient particle drift background. This component extracts the
@@ -228,7 +228,7 @@ New-Item -ItemType File -Path "src/components/3d/GenericGameParticles.tsx" -Forc
 'use client';
 
 import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 // ---- Intensity Multipliers (mirrors Decision 5.5) ----
 const INTENSITY_MULTIPLIERS: Record<string, number> = {
@@ -459,7 +459,7 @@ git add src/components/3d/GenericGameParticles.tsx
 
 git commit -m "feat(7-shared): v3-FINAL GenericGameParticles CSS ambient drift
 
-- NEW: GenericGameParticles.tsx (CSS/Framer Motion particle component)
+- NEW: GenericGameParticles.tsx (CSS/Motion particle component)
 - Extracts duplicated particle pattern from 30 non-flagship game files
 - Exports: GenericGameParticles, LabParticles, LAB_COLORS
 - Supports intensity levels: off/low/medium/high (Decision 5.5)
@@ -485,7 +485,7 @@ git push origin main
 
 |File                                      |Type     |Lines|Technology         |Status            |
 |------------------------------------------|---------|-----|-------------------|------------------|
-|src/components/3d/GenericGameParticles.tsx|NEW      |~190 |CSS / Framer Motion|COMPLETE          |
+|src/components/3d/GenericGameParticles.tsx|NEW      |~190 |CSS / Motion|COMPLETE          |
 |src/components/3d/GameParticles3D.tsx     |UNCHANGED|~170 |R3F / drei Sparkles|COMPLETE (Stage 5)|
 
 ### Decision 5.3 Implementation Status:

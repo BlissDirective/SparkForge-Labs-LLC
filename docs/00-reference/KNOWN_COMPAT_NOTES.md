@@ -2,7 +2,7 @@
 
 **Purpose:** Flags version-sensitive packages and API surfaces that may require adjustment depending on install date. Stage documents contain code patterns targeting specific library APIs — this file tracks where those patterns are fragile.
 
-**Last Updated:** 2026-03-02
+**Last Updated:** 2026-03-15
 
 ---
 
@@ -62,9 +62,75 @@
 
 ---
 
+### 5. Motion (formerly Framer Motion)
+
+| Item | Detail |
+|------|--------|
+| **Stage docs assume** | `motion` package with `from 'motion/react'` imports |
+| **Risk** | Old `framer-motion` package also exists — do NOT install `framer-motion` |
+| **Breaking changes** | Import path changed: `from 'framer-motion'` → `from 'motion/react'`. Package name: `framer-motion` → `motion`. API is identical. |
+| **Fix** | Install `motion` (not `framer-motion`): `npm install motion` |
+| **Files affected** | All components using `motion`, `AnimatePresence`, `useAnimation`, `useMotionValue` |
+| **Stages affected** | All stages (3+) that use animation |
+
+### 6. @nivo (Charts — replaces recharts)
+
+| Item | Detail |
+|------|--------|
+| **Stage docs assume** | `@nivo/core`, `@nivo/line`, `@nivo/bar`, `@nivo/radar` |
+| **Risk** | Old stage docs may reference `recharts` — these have been updated |
+| **Data format** | Nivo uses `{ id, data: [{ x, y }] }` format vs recharts' flat array |
+| **Fix** | Install all required nivo packages: `npm install @nivo/core @nivo/line @nivo/bar @nivo/radar` |
+| **Files affected** | Parent dashboard charts, progress visualizations |
+| **Stages affected** | 8 (parent dashboard) |
+
+### 7. Next.js 15 (Framework)
+
+| Item | Detail |
+|------|--------|
+| **Stage docs assume** | Next.js 15 with React 19, Turbopack stable, `next.config.ts` (TypeScript) |
+| **Key changes from 14** | `serverExternalPackages` replaces `experimental.serverComponentsExternalPackages`; `next.config.ts` replaces `.js`; Turbopack is default dev bundler; `useSearchParams()` requires Suspense boundary |
+| **Fix** | Use `npx create-next-app@15` and `next.config.ts` format |
+| **Files affected** | `next.config.ts`, all API routes, layouts |
+| **Stages affected** | 1 (foundation), 10 (production config) |
+
+### 8. Tailwind CSS 4
+
+| Item | Detail |
+|------|--------|
+| **Stage docs assume** | Tailwind CSS 4 with Oxide engine |
+| **Key changes from 3** | 10x faster builds, CSS-first config supported (JS config still works), native container queries, `@starting-style` for entry animations |
+| **Fix** | `npm install tailwindcss@4` — JS `tailwind.config.ts` remains compatible |
+| **Files affected** | `tailwind.config.ts`, `postcss.config.js`, `globals.css` |
+| **Stages affected** | 1 (foundation) |
+
+### 9. Sentry (@sentry/nextjs)
+
+| Item | Detail |
+|------|--------|
+| **Stage docs assume** | `@sentry/nextjs` wrapping `next.config.ts` via `withSentryConfig` |
+| **Risk** | Build will fail if Sentry env vars are missing in production |
+| **Fix** | Set `SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` in `.env.local` |
+| **Files affected** | `next.config.ts`, `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts` |
+| **Stages affected** | 1 Part 2 (config created), all stages (error tracking active) |
+
+### 10. Jotai (Fine-grained 3D state)
+
+| Item | Detail |
+|------|--------|
+| **Stage docs assume** | Jotai atoms for 3D shader uniforms, particle counts, camera state, LOD |
+| **Note** | Jotai is used alongside Zustand — Zustand for coarse app state, Jotai for fine-grained 3D state that updates at high frequency |
+| **Fix** | `npm install jotai` |
+| **Files affected** | `src/stores/atoms.ts`, 3D components |
+| **Stages affected** | 1 Part 2 (atoms created), 3+ (3D components consume atoms) |
+
+---
+
 ## General Guidance
 
 1. **When installing fresh:** Run `npm install` then immediately check `npx tsc --noEmit` before writing any code. Fix version mismatches early.
 2. **When a stage doc's code doesn't compile:** Check this file first — the fix may already be documented.
 3. **Pin versions in `package.json`** after a successful Stage 1 build to avoid drift on reinstall.
 4. **After any `npm update`:** Re-run `npm run build` to catch API surface changes.
+5. **Motion imports:** All animation imports use `from 'motion/react'` — NOT `from 'framer-motion'`.
+6. **Chart library:** All visualization uses `@nivo/*` packages — NOT `recharts`.

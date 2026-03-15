@@ -334,7 +334,7 @@ The following project knowledge files contain sections superseded by this docume
 
 | Project File | Superseded Section(s) | Still Authoritative For |
 |-------------|----------------------|------------------------|
-| `STAGE3_Part3A_v3FINAL` | Step 11: Landing Page (`src/app/(marketing)/page.tsx`) | Steps 1-10 (shaders, onboarding crystal, framer-motion setup, marketing layout, dashboard page stubs) |
+| `STAGE3_Part3A_v3FINAL` | Step 11: Landing Page (`src/app/(marketing)/page.tsx`) | Steps 1-10 (shaders, onboarding crystal, motion setup, marketing layout, dashboard page stubs) |
 | `STAGE8_Parent_Dashboard_v2_PART3` | Step 2: Public Pricing Page | Step 3: `.env.local` variables, Step 4: Stripe setup guide, Step 5: Validation checklist (parent dashboard sections) |
 | `SparkForge_Decision_Lock_Checkpoint3` | Nothing superseded (reference document only) | All Section 8 decisions (8.1-8.5) remain locked. This doc **IMPLEMENTS** those decisions. |
 

@@ -19,7 +19,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -233,7 +233,7 @@ export function RealOrFakeGame() {
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -468,7 +468,7 @@ export function PredictionMarketGame() {
 | ARIA labels | ✅ on real/fake buttons | ✅ on vote buttons |
 | GameShell integration | ✅ worldNumber=6 | ✅ worldNumber=10 |
 | Store usage | ✅ addScore, nextRound, completeGame | ✅ addScore, nextRound, completeGame |
-| Framer Motion | ✅ AnimatePresence, rotateY flip | ✅ AnimatePresence, bar animations |
+| Motion | ✅ AnimatePresence, rotateY flip | ✅ AnimatePresence, bar animations |
 | Unique mechanic | ✅ 12 rounds, 4 content types, score tracker | ✅ 3-way voting, mock results bars, expert analysis toggle |
 | Content depth | ✅ 12 rounds (text/headline/review/social) | ✅ 8 predictions with time horizons |
 

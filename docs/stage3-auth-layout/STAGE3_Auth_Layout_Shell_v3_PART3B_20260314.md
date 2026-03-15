@@ -1749,7 +1749,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { useStationMode } from '@/hooks/useStationMode';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 
 // Dashboard Layout — Laboratory Control Station Shell

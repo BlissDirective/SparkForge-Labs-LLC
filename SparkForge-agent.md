@@ -226,7 +226,7 @@ The admin can trigger an evaluation at any time by saying:
 | Rate limiting | Cross-reference `lib/rate-limit.ts` usage | Sensitive endpoints (auth, payment) have rate limiting |
 | Error responses | Pattern scan | Consistent error format, no stack traces in production |
 | Input validation | Every route | All user input validated with Zod before use |
-| CORS/CSP | Config scan | Security headers configured in `next.config.js` |
+| CORS/CSP | Config scan | Security headers configured in `next.config.ts` |
 | Env var safety | Full scan | No hardcoded secrets, no env vars in client-side code without `NEXT_PUBLIC_` prefix |
 
 ### Category 8: Content Completeness

@@ -41,7 +41,7 @@ This document is your roadmap. The actual code lives in the stage PDF documents.
 | Visual Enhancement Concept v2 | Lab Control Station 8-section design spec |
 | Setup Prerequisites | Software install, Supabase/Stripe/Vercel account setup |
 
-**Runtime & Complete Package List:** Node.js 20+ LTS. Next.js 14, TypeScript strict, Tailwind CSS, Supabase, Stripe, Framer Motion, GSAP, React Three Fiber, Three.js, @react-three/drei, @react-three/postprocessing, recharts, Tone.js, Zod, Zustand, @tanstack/react-query, @dnd-kit/*, @radix-ui/*, class-variance-authority, clsx, tailwind-merge, lucide-react. Full list in Stage 1 Part 1.
+**Runtime & Complete Package List:** Node.js 20+ LTS. Next.js 15 (React 19, Turbopack), TypeScript strict, Tailwind CSS 4, Supabase, Stripe, Motion (formerly Framer Motion), GSAP, React Three Fiber, Three.js r170+, @react-three/drei, @react-three/postprocessing, @nivo/core + @nivo/line + @nivo/bar + @nivo/radar, Tone.js, Zod, Zustand + Jotai, @tanstack/react-query, @dnd-kit/*, @radix-ui/*, @sentry/nextjs, Vitest + Playwright + MSW, class-variance-authority, clsx, tailwind-merge, lucide-react. Full list in Stage 1 Part 1.
 
 ---
 
@@ -51,7 +51,7 @@ This document is your roadmap. The actual code lives in the stage PDF documents.
 
 | Part | Source | Content |
 |------|--------|---------|
-| Part 1 | STAGE1_Foundation_v2_PART1 | Next.js project, 40+ npm packages, config files, 30+ directories |
+| Part 1 | STAGE1_Foundation_v2_PART1 | Next.js 15 project, 50+ npm packages, config files, 30+ directories |
 | Part 2 | STAGE1_Foundation_v2_PART2 | Types, stores, hooks, utils, root layout |
 
 Commit: `git commit -m "Stage 1: Foundation"`
@@ -260,7 +260,7 @@ Commit: `git commit -m "Stage 9: Content Agent"`
 | Part | Source | Content |
 |------|--------|---------|
 | Part 1 | STAGE10_Polish_Deploy_v2_PART1 | A11yProvider, AccessibilityToolbar, SEO, CSP, PWA |
-| Part 2 | STAGE10_Polish_Deploy_v2_PART2 | Game router (35 games), production next.config.js, deployment guide |
+| Part 2 | STAGE10_Polish_Deploy_v2_PART2 | Game router (35 games), production next.config.ts, deployment guide |
 
 Hard Stops: HS-4 (Vercel)
 

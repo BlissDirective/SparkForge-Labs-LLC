@@ -45,7 +45,7 @@ Welcome → Learn (4 cards) → Play (8-10 rounds) → Predict (bonus) → Compl
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -609,7 +609,7 @@ export function AiOrNotGame() {
 | Tablet | 25,000 | 45 |
 | Mobile | 10,000 | 30 |
 
-Current implementation is CSS/Framer Motion only. The FL-Lite 3D component (if added in a future enhancement) must use `dynamic(() => import(...), { ssr: false })`, implement LOD via `useLOD({ tier: 'flLite' })`, and return `null` on mobile with CSS fallback.
+Current implementation is CSS/Motion only. The FL-Lite 3D component (if added in a future enhancement) must use `dynamic(() => import(...), { ssr: false })`, implement LOD via `useLOD({ tier: 'flLite' })`, and return `null` on mobile with CSS fallback.
 
 ---
 

@@ -78,7 +78,7 @@ npm install @radix-ui/react-dialog @radix-ui/react-dropdown-menu @radix-ui/react
 ```
 
 > **Enhancement 8.1:** `framer-motion` replaced with `motion` (same library, rebranded and lighter).
-> Import path changes: `from 'framer-motion'` → `from 'motion/react'`.
+> Import path changes: `from 'motion/react'` → `from 'motion/react'`.
 > GSAP is kept alongside for complex timeline animations (game sequences, ceremony FX).
 
 ### 2d — 3D Rendering

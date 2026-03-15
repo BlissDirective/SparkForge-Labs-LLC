@@ -45,9 +45,9 @@ This document creates the 3D neural network visualization and audio sonification
 | Package | Version | Purpose |
 |---------|---------|---------|
 | `tone` | 15.1.22 | Audio synthesis for network sonification |
-| `recharts` | 3.7.0 | Data visualization (used in Part B game) |
+| `@nivo/line` | latest | Data visualization — loss curve chart (used in Part B game) |
 
-Installed with `npm install tone recharts --legacy-peer-deps` (peer dep conflict with existing packages).
+Installed with `npm install tone @nivo/line --legacy-peer-deps` (peer dep conflict with existing packages).
 
 ### Triangle Budget Breakdown
 

@@ -12,7 +12,7 @@
 
 ## Overview
 
-This document creates the 5-act GSAP scroll-driven landing experience for SparkForge. It replaces the existing simple Framer Motion landing page (`src/app/(marketing)/page.tsx`) with a cinematic, parallax scroll journey featuring a crystal hero, lab discovery ring, holographic feature cards, station preview mockup, and final CTA.
+This document creates the 5-act GSAP scroll-driven landing experience for SparkForge. It replaces the existing simple Motion landing page (`src/app/(marketing)/page.tsx`) with a cinematic, parallax scroll journey featuring a crystal hero, lab discovery ring, holographic feature cards, station preview mockup, and final CTA.
 
 **Part A scope:** 4 new component files. Part B will create the `/pricing` route. Part C will integrate the ScrollJourney into the marketing page and provide full verification.
 
@@ -62,7 +62,7 @@ This document creates the 5-act GSAP scroll-driven landing experience for SparkF
 | Feature section | 2-column simple cards | CSS holographic cards with conic-gradient shimmer |
 | Station preview | None | CSS mockup with chrome bezel, LED pulse, stat counters |
 | Parallax | None | 3-layer parallax (aurora 0.3x, hex 0.6x, content 1.0x) |
-| Animation library | Framer Motion only | GSAP ScrollTrigger + Framer Motion (hero fallback) |
+| Animation library | Motion only | GSAP ScrollTrigger + Motion (hero fallback) |
 
 ### Code Review Fixes Applied (vs. Original Source Document)
 
@@ -134,7 +134,7 @@ mkdir -p src/components/landing
 'use client';
 
 import { useRef, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { Rocket, Sparkles, ArrowDown } from 'lucide-react';

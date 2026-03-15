@@ -67,7 +67,7 @@ Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 
 | Child type | `age`, `current_world_id`, `has_seen_welcome` | `age_band` only (no age/world/welcome fields) | Adapted onboarding to use `age_band` |
 | childStore method | `fetchChildren()` | Method does not exist | Removed call from dashboard layout |
 | globals.css path | `src/styles/globals.css` | `src/app/globals.css` | Used actual path |
-| Framer Motion types | `ease: 'easeOut'`, `type: 'spring'` | Strict string literal types | Added `as const` assertions |
+| Motion types | `ease: 'easeOut'`, `type: 'spring'` | Strict string literal types | Added `as const` assertions |
 | celebrationData types | Direct property access | `Record<string, unknown>` | Added `typeof` narrowing checks |
 | Root page.tsx | Not addressed | Stage 1 placeholder at `/` | Deleted to avoid conflict with marketing route group |
 
@@ -315,7 +315,7 @@ Laboratory Control Station instrument panel sidebar with Lucide icons, animated 
 'use client';
 
 import { useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
@@ -618,7 +618,7 @@ Physics-based confetti engine, badge flip modal, level-up modal, and XP toast. U
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useUIStore } from '@/stores/uiStore';
 
 // CelebrationOverlay — Confetti, Badge Flips, Level-Up Modals
@@ -923,7 +923,7 @@ export function CelebrationOverlay() {
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { ChevronRight, X } from 'lucide-react';
 import { useChildStore } from '@/stores/childStore';
@@ -1006,7 +1006,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { useStationMode } from '@/hooks/useStationMode';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Suspense, lazy } from 'react';
 
 // Dashboard Layout — Laboratory Control Station Shell
@@ -1091,12 +1091,12 @@ export default function DashboardLayout({
 
 ## File 6: `src/components/providers/PageTransitionProvider.tsx`
 
-Route transition animations using Framer Motion AnimatePresence. Available for explicit wrapping; dashboard layout handles inline transitions in v3.
+Route transition animations using Motion AnimatePresence. Available for explicit wrapping; dashboard layout handles inline transitions in v3.
 
 ```typescript
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { usePathname } from 'next/navigation';
 
 // PageTransitionProvider — Route transition animations
@@ -1223,7 +1223,7 @@ export function useSessionTracker() {
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import {
   Sparkles,
   ChevronRight,
@@ -1558,7 +1558,7 @@ Landing page with hero section (CrystalHero placeholder), lab grid showing all 1
 ```typescript
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import Link from 'next/link';
 import { Brain, Shield, BarChart3, Rocket, Sparkles } from 'lucide-react';
 import { WORLDS } from '@/types';

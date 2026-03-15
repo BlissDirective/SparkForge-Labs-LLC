@@ -974,7 +974,7 @@ Shown when limits are hit. NEVER shown to children — only in parent-facing con
 // ════════════════════════════════════════════════════
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Rocket, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 

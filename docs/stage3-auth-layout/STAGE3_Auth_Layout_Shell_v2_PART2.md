@@ -87,7 +87,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, Check, Shield, User, Sparkles } from 'lucide-react';
@@ -606,7 +606,7 @@ export default function SignupPage() {
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
@@ -766,7 +766,7 @@ export default function LoginPage() {
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import Link from 'next/link';
 import { Mail } from 'lucide-react';
 import { ErrorBanner } from '@/components/shared/ErrorBanner';
@@ -905,7 +905,7 @@ v2 [IMP-1]: Catches unhandled errors at the app root level. Shows a friendly err
 'use client';
 
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 export default function GlobalError({
   error,
@@ -956,7 +956,7 @@ v2 [IMP-1]: Dashboard-specific error boundary.
 'use client';
 
 import { useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import Link from 'next/link';
 
 export default function DashboardError({

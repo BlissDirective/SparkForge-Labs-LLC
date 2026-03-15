@@ -88,7 +88,7 @@ The stage document specified 6 modifications to the existing PromptLabGame.tsx. 
 
 ### Mod 5: 3D Scene JSX (inside sandbox phase, before challenge banner)
 - Desktop: `PromptBubble3DScene` with absolute positioning, opacity 0.7, pointer-events-none
-- Mobile: Floating keyword pills with Framer Motion keyframe animations
+- Mobile: Floating keyword pills with Motion keyframe animations
 - Both have `aria-hidden="true"` for accessibility
 
 ### Mod 6: SSR-Safe Wrapper (new file)

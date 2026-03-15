@@ -2,8 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.2 | **Date:** March 2, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.1 (March 1, 2026) — adds stage document modification policy and code review role.
+**Version:** 5.3 | **Date:** March 15, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.2 (March 2, 2026) — tech stack upgrade to Next.js 15/React 19/Tailwind 4/Motion/Nivo/Sentry/Vitest.
 
 ---
 
@@ -15,19 +15,21 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 | Layer | Technology | Purpose |
 |-------|-----------|---------|
-| Framework | Next.js 14 (App Router) | Full-stack React |
+| Framework | Next.js 15 (App Router, Turbopack) | Full-stack React 19 |
 | Language | TypeScript (strict mode) | Type safety |
-| Styling | Tailwind CSS | Utility-first CSS |
+| Styling | Tailwind CSS 4 (Oxide engine) | Utility-first CSS |
 | Database | Supabase (PostgreSQL + Auth + Storage) | All persistent data |
-| State | Zustand (6 stores) | Client state |
+| State | Zustand (9 stores) + Jotai (3D atoms) | Client state |
 | Data Fetching | React Query (@tanstack/react-query) | Server state + caching |
 | Validation | Zod | Schema validation |
 | Payments | Stripe | Subscriptions (Free/Plus/Forge) |
 | AI | Anthropic Claude API | Prompt Lab game + Content Agent |
-| 2D Motion | Framer Motion + GSAP | Transitions, scroll |
-| 3D Rendering | React Three Fiber + drei + postprocessing | 3D scenes, shaders |
-| Charts | recharts | Data visualization |
+| 2D Motion | Motion (ex Framer Motion) + GSAP | Transitions, scroll |
+| 3D Rendering | React Three Fiber + drei + postprocessing | 3D scenes, shaders (Three.js r170+) |
+| Charts | @nivo/core + @nivo/line + @nivo/bar + @nivo/radar | Data visualization |
 | Audio | Tone.js | Game audio feedback |
+| Monitoring | Sentry (@sentry/nextjs) | Error tracking + performance |
+| Testing | Vitest + Playwright + MSW | Unit, integration, E2E tests |
 | Deployment | Vercel | Production hosting |
 
 ### Current State
@@ -348,15 +350,16 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 **Parts:** 2
 
 **Part 1 — Config & Structure (10 steps):**
-- Create Next.js project: `npx create-next-app@14 sparkforge`
-- Install 40+ npm packages (8 install commands)
-- Config files: tsconfig, tailwind, postcss, next.config, .env.example, .gitignore
+- Create Next.js 15 project: `npx create-next-app@15 sparkforge --turbopack`
+- Install 50+ npm packages (10 install commands)
+- Config files: tsconfig, tailwind, postcss, next.config.ts, .env.example, .gitignore
 - globals.css with 7 utility classes
-- Create 30+ directories
+- Create 30+ directories (including tests/)
 
 **Part 2 — Source Files (Steps 11-26):**
 - types/index.ts, utils.ts, supabase clients, middleware
-- animations.ts (45+ Framer variants), 4 Zustand stores
+- animations.ts (45+ Motion variants), 7 Zustand stores + Jotai atoms
+- Sentry config, Vitest config, WebGPU detection
 - root layout.tsx, 4 new hooks, feature flags, toast system
 
 **Validation:** `npm run build` passes. Dev server starts.
@@ -525,8 +528,8 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 **Prerequisites:** Stages 1-9 complete
 **Hard Stops:** HS-4 (Vercel), HS-5 (final visual)
 
-**Part 1:** A11yProvider, AccessibilityToolbar, accessibilityStore (6th store), SEO meta, CSP headers, PWA manifest
-**Part 2:** Game router (35 games), production next.config.js (REPLACES Stage 1 version), deployment guide
+**Part 1:** A11yProvider, AccessibilityToolbar, accessibilityStore (9th store), SEO meta, CSP headers, PWA manifest
+**Part 2:** Game router (35 games), production next.config.ts (REPLACES Stage 1 version), deployment guide
 
 **BUG-10F (CRITICAL):** Root layout MUST use Exo 2/Sora/Orbitron — NOT Fredoka/Nunito Sans.
 **BUG-10D:** CSP connect-src must include Vercel analytics domains.
@@ -640,7 +643,7 @@ function useIsMobile() {
 
 - **ALL** R3F/Three.js components go in `src/components/3d/`
 - **ALL** must use `dynamic(() => import(...), { ssr: false })`
-- `next.config.js` externalizes Three.js from server builds
+- `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
 - Mobile fallback: `useIsMobile()` → component returns `null` on mobile
 - CSS 2D fallback remains fully functional when 3D is hidden
 - Triangle budgets: Flagship 50K–100K, FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
@@ -914,5 +917,5 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-*End of CLAUDE.md v5.2 — SparkForge Autonomous Development Playbook*
-*92+ files | 35 games | 48 decisions | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED | March 14, 2026*
+*End of CLAUDE.md v5.3 — SparkForge Autonomous Development Playbook*
+*92+ files | 35 games | 48 decisions | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED | Tech Stack 8.1 APPLIED | March 15, 2026*

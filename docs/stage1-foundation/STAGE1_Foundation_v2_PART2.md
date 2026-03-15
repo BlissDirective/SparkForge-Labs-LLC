@@ -15,7 +15,7 @@ Stage 1 Part 2 creates all foundational source files that every subsequent stage
 - **Utility Functions** — `src/lib/utils.ts` (cn, formatNumber, ageBand helpers)
 - **Supabase Clients** — browser client, server client, admin client
 - **Middleware** — route protection with Supabase auth
-- **Animations** — 45+ Framer Motion variants + spring presets
+- **Animations** — 45+ Motion variants + spring presets
 - **Stores** — 4 Zustand stores (auth, child, game, toast) + uiStore + deviceStore + cockpitStore
 - **Jotai Atoms** — Fine-grained 3D state atoms for shader uniforms, particles, camera, LOD (Enhancement 8.1)
 - **Hooks** — 4 utility hooks (useDebounce, useLocalStorage, useMediaQuery, useIsMobile) + useAdaptiveCockpit
@@ -553,7 +553,7 @@ export const config = {
 
 **File:** `src/lib/animations.ts`
 
-Contains 45+ Framer Motion variants organized by category:
+Contains 45+ Motion variants organized by category:
 
 - **Spring presets:** `gentle`, `bouncy`, `snappy`, `wobbly`, `panel`
 - **Fade variants:** `fadeIn`, `fadeSlideUp`, `fadeSlideDown`
@@ -2393,7 +2393,7 @@ git tag -a v0.1.0 -m "Stage 1 complete: Foundation"
 | `tsconfig.json` | 3 | TypeScript configuration |
 | `tailwind.config.ts` | 4 | Tailwind CSS + Frost-Prismatic theme |
 | `postcss.config.js` | 5 | PostCSS plugins |
-| `next.config.js` | 6 | Next.js configuration |
+| `next.config.ts` | 6 | Next.js configuration |
 | `.env.example` | 7 | Environment variable template |
 | `src/app/globals.css` | 8 | Global CSS + design system |
 | `.gitignore` | 9 | Git ignore rules |
@@ -2402,7 +2402,7 @@ git tag -a v0.1.0 -m "Stage 1 complete: Foundation"
 | `src/lib/supabase/client.ts` | 13 | Browser Supabase client |
 | `src/lib/supabase/server.ts` | 13 | Server + Admin Supabase clients |
 | `src/middleware.ts` | 14 | Auth route protection |
-| `src/lib/animations.ts` | 15 | 45+ Framer Motion variants |
+| `src/lib/animations.ts` | 15 | 45+ Motion variants |
 | `src/stores/authStore.ts` | 16 | Auth state (Zustand) |
 | `src/stores/childStore.ts` | 17 | Child state with persistence |
 | `src/stores/gameStore.ts` | 18 | Game state machine |

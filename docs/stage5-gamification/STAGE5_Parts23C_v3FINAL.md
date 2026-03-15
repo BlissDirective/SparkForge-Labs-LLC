@@ -706,7 +706,7 @@ export function GameParticleEmitter({
 
 ## Step 5: Create `src/components/ui/ParticleIntensitySlider.tsx`
 
-Decision 5.5: 4-level particle intensity control (Off/Low/Medium/High). Default: Medium. Persists to uiStore. Rendered in Profile page settings section. Uses Framer Motion for animated active indicator and lucide-react icons.
+Decision 5.5: 4-level particle intensity control (Off/Low/Medium/High). Default: Medium. Persists to uiStore. Rendered in Profile page settings section. Uses Motion for animated active indicator and lucide-react icons.
 
 **CRITICAL FIX:** Raw TypeScript code leaked outside the component function — uiStore modification instructions appeared as executable code instead of comments. Removed entirely; instructions applied as actual store modifications (Step 1).
 
@@ -730,7 +730,7 @@ Decision 5.5: 4-level particle intensity control (Off/Low/Medium/High). Default:
 // typed uiStore selectors after store update.
 
 import { useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Sparkles, Flame, Wind, X } from 'lucide-react';
 import { useUIStore } from '@/stores/uiStore';
 

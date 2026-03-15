@@ -135,5 +135,5 @@ Connect your GitHub repo in Vercel Dashboard:
 | 3D components crash on server | Ensure all R3F imports use `dynamic(() => import(...), { ssr: false })` |
 | Content Agent returns 503 | Check `ANTHROPIC_API_KEY` is set in Vercel env vars |
 | Stripe checkout fails | Verify all 4 price IDs match Stripe Dashboard products |
-| Build fails with Three.js errors | `next.config.js` must externalize `three`, `@react-three/fiber`, `@react-three/drei` |
+| Build fails with Three.js errors | `next.config.ts` must externalize `three`, `@react-three/fiber`, `@react-three/drei` via `serverExternalPackages` |
 | Hydration mismatch | Check that `<html>` has `suppressHydrationWarning` and A11yProvider uses mounted guard |

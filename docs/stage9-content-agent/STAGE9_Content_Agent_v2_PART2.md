@@ -331,7 +331,7 @@ Two-tab layout: "Review Queue" and "Run History". Review Queue includes filter t
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { useToastStore } from '@/stores/toastStore';
 import {

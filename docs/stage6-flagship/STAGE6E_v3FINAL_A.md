@@ -79,7 +79,7 @@ This document creates the 3D pipeline visualization for the Agent Architect flag
 | Connections | SVG line with dashed stroke and CSS particle animation | TubeGeometry along CatmullRomCurve3 paths with emissive pulse material |
 | Execution Animation | CSS radial-gradient spotlight + SVG animateMotion particles | InstancedMesh data cubes travel along tubes + SpotLight follows active block + PointLight glow |
 | Camera | N/A (2D fixed view) | Fixed 45-deg overhead angle. Position: [0, 8, 6]. Smooth pan to active block in run. |
-| Interaction | Framer Motion drag on 2D positioned divs | Raycasting for block click. Block palette adds to 3D grid. Framer drag preserved in 2D fallback (mobile). |
+| Interaction | Motion drag on 2D positioned divs | Raycasting for block click. Block palette adds to 3D grid. Framer drag preserved in 2D fallback (mobile). |
 | Triangle Budget | N/A (CSS/SVG) | ~5K max (10 blocks x 200 tri + 15 tubes x 100 tri + platform + particles) |
 | Mobile Fallback | Same 2D at all sizes | 2D CSS workspace preserved as fallback. Auto-detect via window.innerWidth < 768. |
 | 3D Component | None | AgentPipeline3D.tsx (NEW) Dynamic import, ssr: false |

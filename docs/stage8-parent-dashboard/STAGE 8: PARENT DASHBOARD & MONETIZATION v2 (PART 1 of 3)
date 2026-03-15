@@ -742,7 +742,7 @@ above.
 // v2: Frost-Prismatic styling (ENH-8E)
 // ════════════════════════════════════════════════════
 'use client';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Rocket, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 interface UpgradePromptProps {

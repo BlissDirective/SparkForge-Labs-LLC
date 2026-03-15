@@ -59,7 +59,7 @@ The following issues were found during code review and corrected before writing 
 | # | Severity | File | Issue | Fix |
 |---|----------|------|-------|-----|
 | 1 | CRITICAL | GameFocusSequence.tsx | `className` placed inside `style={{}}` object — invalid JSX, would crash at runtime | Separated `className` and `style` into distinct attributes |
-| 2 | HIGH | LabReconfiguration.tsx | `React.RefObject` used in `TransitionOverlayProps` but `React` namespace never imported | Imported `type RefObject` from `'react'`; used `RefObject<HTMLDivElement>` (without `| null` to match React 18 ref prop typing) |
+| 2 | HIGH | LabReconfiguration.tsx | `React.RefObject` used in `TransitionOverlayProps` but `React` namespace never imported | Imported `type RefObject` from `'react'`; used `RefObject<HTMLDivElement>` (without `| null` to match React 19 ref prop typing) |
 | 3 | HIGH | LabReconfiguration.tsx | `useCallback` deps included `stationMode` object (new reference every render — defeated memoization) | Destructured `{ activeLabId, setLabId }` from `useStationMode()`, used individual primitives/stable setters as deps |
 | 4 | HIGH | GameFocusSequence.tsx | `useThree` imported and `viewport` destructured but never used in `TunnelScene` | Removed unused `useThree` import and destructuring |
 | 5 | MEDIUM | LabReconfiguration.tsx | `z-25` not a standard Tailwind z-index class | Changed to `z-[25]` (arbitrary value syntax) |

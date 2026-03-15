@@ -71,7 +71,7 @@ This part creates the parent-facing dashboard pages and supporting components. A
 | 5 | **Design** | Add gradient border animation on "Most Popular" subscription card | Draws eye to recommended tier with animated border |
 | 6 | **Functionality** | Add `aria-live="polite"` region for math gate error messages | Screen readers announce wrong-answer feedback |
 | 7 | **Functionality** | PaywallModal child variant could show progress ring of remaining free uses | Motivates continued engagement and natural upgrade path |
-| 8 | **Performance** | Subscription page `useSearchParams` should be wrapped in `Suspense` boundary | Next.js 14 best practice for client-side search params |
+| 8 | **Performance** | Subscription page `useSearchParams` should be wrapped in `Suspense` boundary | Next.js 15 best practice for client-side search params |
 
 ---
 
@@ -104,7 +104,7 @@ mkdir -p src/components/parent
 'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useParentDashboard } from '@/hooks/useParentDashboard';
 import { TIER_DISPLAY, getTierLimits } from '@/lib/tier-config';
 import { staggerContainer, staggerItem } from '@/lib/animations';
@@ -483,7 +483,7 @@ export default function ParentDashboardPage() {
 **v2 [ACC]:** ARIA labels on tier cards and toggle buttons.
 Handles `success`/`canceled` URL params from Stripe redirect.
 
-> **Note:** `useSearchParams()` requires a `Suspense` boundary in Next.js 14. The parent layout should wrap this page in `<Suspense>`, or this page can use a wrapper pattern. For simplicity, this implementation uses the direct hook — ensure the dashboard layout provides a Suspense boundary.
+> **Note:** `useSearchParams()` requires a `Suspense` boundary in Next.js 15. The parent layout should wrap this page in `<Suspense>`, or this page can use a wrapper pattern. For simplicity, this implementation uses the direct hook — ensure the dashboard layout provides a Suspense boundary.
 
 **File:** `src/app/(dashboard)/parent/subscription/page.tsx` — **CREATE**
 
@@ -495,7 +495,7 @@ Handles `success`/`canceled` URL params from Stripe redirect.
 'use client';
 
 import { useState, Suspense } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useParentStore } from '@/stores/parentStore';
 import {
   TIER_DISPLAY, STRIPE_PRICES, getYearlySavingsPercent,
@@ -778,7 +778,7 @@ export default function SubscriptionPage() {
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
@@ -999,7 +999,7 @@ Context-aware paywall shown when limits are hit. Two modes: `parent` (full upgra
 // ════════════════════════════════════════════════════
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Rocket, Lock, X } from 'lucide-react';
 import Link from 'next/link';
 import { TIER_DISPLAY, type SubscriptionTier } from '@/lib/tier-config';
@@ -1204,7 +1204,7 @@ Shows at the top of the dashboard when daily time limit is approaching (5 min) o
 // ════════════════════════════════════════════════════
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Clock, AlertTriangle } from 'lucide-react';
 import { useSessionTimer } from '@/hooks/useSessionTimer';
 
@@ -1370,7 +1370,7 @@ git commit -m "Stage 8 Part 2: Parent dashboard, subscription page, add child, p
 ### Code Review Notes
 
 1. **`supabaseBrowser` → `createClient`:** Same critical fix as Part 1. The original source doc used a non-existent `supabaseBrowser()` helper throughout. All instances corrected to `createClient()` from `@/lib/supabase/client`.
-2. **Subscription page Suspense:** Wrapped `useSearchParams()` usage in a `Suspense` boundary per Next.js 14 best practices. Without this, the page would trigger a build warning or error.
+2. **Subscription page Suspense:** Wrapped `useSearchParams()` usage in a `Suspense` boundary per Next.js 15 best practices. Without this, the page would trigger a build warning or error.
 3. **Error handling:** Changed `catch (err: any)` to `catch (err: unknown)` with proper type narrowing in Add Child page — TypeScript strict mode compliance.
 4. **Empty state icon:** Replaced raw emoji text node with `<Users>` Lucide icon for consistency with the rest of the design system.
 5. **PaywallModal early return removed:** The original had `if (!isOpen) return null` before the `AnimatePresence` — this prevents exit animations. Moved the conditional inside `AnimatePresence`.

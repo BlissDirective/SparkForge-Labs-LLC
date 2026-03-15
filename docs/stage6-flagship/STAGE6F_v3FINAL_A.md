@@ -51,7 +51,7 @@ This v3-FINAL document (Parts A + B + C combined) supersedes `STAGE6F_Flagship_B
 | Aspect | V2 (Current) | V3-FINAL (This Document) |
 |--------|--------------|--------------------------|
 | Scales Visual | None (text-only bias explanation) | 3D R3F justice scales with spring physics. Brushed brass, golden glow, red particles. |
-| 3D Integration | None (2D Framer Motion only) | R3F Canvas with BiasScales3D. Dynamic import, ssr: false. Mobile CSS fallback. |
+| 3D Integration | None (2D Motion only) | R3F Canvas with BiasScales3D. Dynamic import, ssr: false. Mobile CSS fallback. |
 | Evidence Feedback | Red gradient "string" on collected evidence | Red string preserved + 3D scales tilt in response to evidence collection. |
 | Triangle Budget | N/A (CSS/SVG) | ~620 triangles (beam + chains + platforms). Lightest flagship 3D. |
 | Performance | CSS animations only | ~620 triangles. frameloop="always". Desktop only (mobile = CSS fallback). |
@@ -139,7 +139,7 @@ This v3-FINAL document (Parts A + B + C combined) supersedes `STAGE6F_Flagship_B
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import * as THREE from 'three';
 
 // -- Types --
@@ -472,7 +472,7 @@ export function calculateScaleWeights(
 
 ## STEP 2: MOBILE CSS FALLBACK — BiasScalesFallback
 
-**WHAT THIS DOES:** Provides a 2D CSS-animated fallback for mobile devices (under 768px width). Instead of the R3F 3D scales, mobile users see a tilting CSS balance scale with the same spring-like animation via Framer Motion. This is included at the bottom of `BiasScales3D.tsx`.
+**WHAT THIS DOES:** Provides a 2D CSS-animated fallback for mobile devices (under 768px width). Instead of the R3F 3D scales, mobile users see a tilting CSS balance scale with the same spring-like animation via Motion. This is included at the bottom of `BiasScales3D.tsx`.
 
 **WHERE:** Append to the same file: `src/components/3d/BiasScales3D.tsx`
 
@@ -483,7 +483,7 @@ export function calculateScaleWeights(
 // CSS Fallback for Mobile (appended to BiasScales3D.tsx)
 // ================================================================
 // On mobile (< 768px), the R3F canvas is not rendered.
-// Instead, this Framer Motion component provides a visual
+// Instead, this Motion component provides a visual
 // balance scale using CSS transforms.
 // [CR-6F-A3] motion import is at top of file — no duplicate needed
 

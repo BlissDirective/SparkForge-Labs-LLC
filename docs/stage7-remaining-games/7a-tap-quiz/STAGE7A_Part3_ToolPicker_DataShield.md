@@ -18,7 +18,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -247,7 +247,7 @@ export function ToolPickerGame() {
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -488,6 +488,6 @@ export function DataShieldGame() {
 | ARIA labels | ✅ on tool buttons | ✅ on shield/share buttons |
 | GameShell integration | ✅ worldNumber=5 | ✅ worldNumber=6 |
 | Store usage | ✅ addScore, nextRound, completeGame | ✅ addScore, nextRound, completeGame |
-| Framer Motion | ✅ AnimatePresence, motion.button | ✅ AnimatePresence, motion.button |
+| Motion | ✅ AnimatePresence, motion.button | ✅ AnimatePresence, motion.button |
 | Unique mechanic | ✅ 6s timer + streak multiplier | ✅ Privacy score meter (100→0) |
 | Content depth | ✅ 6 tools, 15 tasks | ✅ 6 scenarios, 24 data points |

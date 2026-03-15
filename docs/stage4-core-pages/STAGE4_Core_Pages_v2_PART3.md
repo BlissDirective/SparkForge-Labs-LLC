@@ -131,7 +131,7 @@ Renders markdown content with Exo 2 headings, Sora body text, inline bold and co
 ```tsx
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Check, ChevronRight, Gamepad2, Zap } from 'lucide-react';
@@ -428,7 +428,7 @@ Interactive quiz: one question per screen, 4 options, large touch targets, encou
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RotateCcw, ChevronRight, Lightbulb, Zap } from 'lucide-react';
@@ -818,7 +818,7 @@ Quick bite-sized fact card with complete button.
 ```tsx
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Zap } from 'lucide-react';
@@ -924,7 +924,7 @@ v2 **[NEW-4C]**: Reusable component for animated completion states â€” draw-on c
 ```tsx
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Check, Trophy } from 'lucide-react';
 
 interface CompletionIndicatorProps {
@@ -1031,7 +1031,7 @@ v2 **[NEW-4B]**: SVG connected node path showing lab progression. Desktop only â
 ```tsx
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { WORLDS } from '@/types';
 
 interface LabConnectionMapProps {
@@ -1149,5 +1149,5 @@ All imports verified against existing codebase:
 | `EmptyState` | `@/components/shared/EmptyState` | Stage 3 Part 2 |
 | `Content`, `Progress`, `QuizQuestion` | `@/types` | Stage 1 Part 2 |
 | `WORLDS` | `@/types` | Stage 1 Part 2 |
-| `framer-motion` | npm | Stage 1 Part 1 |
+| `motion` | npm | Stage 1 Part 1 |
 | `lucide-react` | npm | Stage 1 Part 1 |

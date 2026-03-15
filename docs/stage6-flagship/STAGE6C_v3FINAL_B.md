@@ -83,7 +83,7 @@
 - **Drawing canvas:** 200×200 pointer-based canvas for digit challenge
 - **Chrome bezel + LED rim:** Pink-themed with gradient background
 - **22 CSS particles:** Pink ambient background
-- **Loss curve (Band C):** recharts LineChart showing loss + accuracy over epochs
+- **Loss curve (Band C):** @nivo/line ResponsiveLine showing loss + accuracy over epochs
 - **Learning rate slider (Band C):** Adjustable 0.001–0.1
 - **Weight slider:** Click connection in 3D → adjust weight manually
 - **Node inspection:** Hover/click neuron in 3D → activation, inputs, outputs panel

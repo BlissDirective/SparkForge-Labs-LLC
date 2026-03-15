@@ -45,7 +45,7 @@
 
 **PREREQUISITES:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure) must be complete.
 
-**SUPERSEDES:** No prior 3D component exists for this game (v2 was CSS/Framer Motion only).
+**SUPERSEDES:** No prior 3D component exists for this game (v2 was CSS/Motion only).
 
 **FILES IN PART B:** MyFirstAiAppGame.tsx (full standalone replacement with 3D integration) + Unchanged files + Verification + Git
 
@@ -55,13 +55,13 @@
 
 | Aspect | V2 (Current) | v3-FINAL (This Document) |
 |--------|-------------|--------------------------|
-| Build Wizard | CSS step indicator + Framer Motion transitions | CSS preserved + 3D phone mockup assembles as child builds (desktop only) |
+| Build Wizard | CSS step indicator + Motion transitions | CSS preserved + 3D phone mockup assembles as child builds (desktop only) |
 | 3D Component | None | MyFirstAiApp3D.tsx (NEW). Dynamic import, ssr: false. Mobile CSS fallback. |
 | Power Selection | CSS grid with glow border + pulse animation | CSS preserved + 3D floating orbs ring around phone with connection lines (desktop) |
 | App Preview | CSS gradient card with flip entrance | CSS card preserved + 3D holographic floating card with slow rotation (desktop) |
-| Innovation Score | Framer Motion animated bar + counter | Bar preserved + 3D score bar on holographic card (desktop) |
-| Triangle Budget | N/A (CSS/Framer Motion) | ~2K triangles (phone + orbs + platform + holographic card) |
-| Performance | CSS + Framer Motion | ~2K tri. frameloop=always (required for continuous useFrame animations). Desktop only (mobile = CSS game UI). |
+| Innovation Score | Motion animated bar + counter | Bar preserved + 3D score bar on holographic card (desktop) |
+| Triangle Budget | N/A (CSS/Motion) | ~2K triangles (phone + orbs + platform + holographic card) |
+| Performance | CSS + Motion | ~2K tri. frameloop=always (required for continuous useFrame animations). Desktop only (mobile = CSS game UI). |
 
 ---
 
@@ -97,7 +97,7 @@ npm install three @react-three/fiber @react-three/drei @react-three/postprocessi
 | **Camera** | Fixed position [0, 1.5, 5], FOV 40. No OrbitControls (consistent framing). |
 | **Lighting** | AmbientLight 0.3 + DirectionalLight 0.5 + 2x PointLight (theme color + orange accent). Environment preset "night". |
 | **Triangle Budget** | ~2K max. Phone ~24 tri. Screen 2 tri. Orbs ~96 tri each x 9 max = 864. Rings ~32 tri each x 9 = 288. Platform ~200 tri. Holographic card 2 tri. Lines (no tri). |
-| **Mobile Fallback** | Component returns null when isMobile=true. Game falls back to CSS/Framer Motion UI only. Auto-detect via window.innerWidth < 768 in parent game component. |
+| **Mobile Fallback** | Component returns null when isMobile=true. Game falls back to CSS/Motion UI only. Auto-detect via window.innerWidth < 768 in parent game component. |
 
 ---
 

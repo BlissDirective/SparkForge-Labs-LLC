@@ -106,7 +106,7 @@ Three new 3D components implementing Decision 6.5 — Tier 2 Enhanced 3D for FL-
 |--------|----------|----------|
 | Hunt Cards | CSS buttons with emoji | 3D polaroid card meshes that flip on find |
 | Collection | CSS grid of item states | 3D card stack growing as items found |
-| Confidence | Framer Motion bar | 3D semicircle gauge with rotating needle |
+| Confidence | Motion bar | 3D semicircle gauge with rotating needle |
 
 ### Future Forge
 | Aspect | V2 (CSS) | v3-FINAL |

@@ -28,7 +28,7 @@
 
 | Feature | V2 | v3-FINAL |
 |---------|-----|----------|
-| 3D Visualization | None (CSS/Framer Motion only) | MyFirstAiApp3D: 3D phone mockup, power orbs, holographic preview (desktop) |
+| 3D Visualization | None (CSS/Motion only) | MyFirstAiApp3D: 3D phone mockup, power orbs, holographic preview (desktop) |
 | Import Strategy | Direct component | Dynamic import with next/dynamic, ssr: false, Suspense wrapper |
 | Mobile Detection | None | useEffect + resize listener, isMobile state, auto-fallback to CSS |
 | 3D Data Bridge | N/A | powerOrbs3D memo maps selected powers to 3D-friendly format |
@@ -73,7 +73,7 @@ New-Item -ItemType File -Path "src/components/games/MyFirstAiAppGame.tsx" -Force
 
 import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';

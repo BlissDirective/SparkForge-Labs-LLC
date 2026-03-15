@@ -545,7 +545,7 @@
 | Severity | Issue | Fix |
 |----------|-------|-----|
 | CRITICAL | GameFocusSequence.tsx: `className` inside `style={{}}` — invalid JSX | Separated into distinct attributes |
-| HIGH | LabReconfiguration.tsx: `React.RefObject` but React not imported | Used `type RefObject` from 'react'; `RefObject<HTMLDivElement>` (React 18 compat) |
+| HIGH | LabReconfiguration.tsx: `React.RefObject` but React not imported | Used `type RefObject` from 'react'; `RefObject<HTMLDivElement>` (React 19 compat) |
 | HIGH | LabReconfiguration.tsx: `stationMode` object in useCallback deps | Destructured `{ activeLabId, setLabId }`, used individual deps |
 | HIGH | GameFocusSequence.tsx: unused `useThree`/`viewport` import | Removed |
 | MEDIUM | LabReconfiguration.tsx: `z-25` invalid Tailwind class | Changed to `z-[25]` |
@@ -783,7 +783,7 @@
 
 **New package dependencies (2):**
 - `tone@15.1.22` — Audio synthesis for network sonification
-- `recharts@3.7.0` — Data visualization (used in Part B game)
+- `@nivo/line` — Data visualization (used in Part B game, replaces recharts)
 
 **Stage document created:**
 - `docs/stage6-flagship/STAGE6C_v3FINAL_A.md`

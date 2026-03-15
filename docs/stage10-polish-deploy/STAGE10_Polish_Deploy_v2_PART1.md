@@ -80,7 +80,7 @@ This part creates the accessibility system (Zustand store, CSS provider, toolbar
 |---|----------|-------------|-----------|
 | 1 | **Visual** | AccessibilityToolbar toggle switches use Frost-Prismatic `spark-blue` glow when active | Matches design system; original used plain color |
 | 2 | **Visual** | ErrorBoundary and 404 page use `surface-deep` background class instead of bare div | Consistent with existing `error.tsx` pattern |
-| 3 | **Visual** | 404 page adds subtle Framer Motion entrance animation matching `error.tsx` | Seamless visual consistency with existing error page |
+| 3 | **Visual** | 404 page adds subtle Motion entrance animation matching `error.tsx` | Seamless visual consistency with existing error page |
 | 4 | **Interactivity** | ErrorBoundary "Try Again" button uses `motion.button` with hover/tap feedback | Matches existing button patterns across SparkForge |
 | 5 | **Interactivity** | OfflineBanner uses `spark-orange` with backdrop blur matching app aesthetic | Consistent with toast system warning style |
 | 6 | **Accessibility** | Focus ring uses `var(--neon-blue)` from design system instead of hardcoded hex | Responds to theme changes; matches lab-color pattern |
@@ -271,7 +271,7 @@ Settings panel with toggles for dark mode, font size, dyslexia font, reduce moti
 
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { useA11yStore } from '@/stores/accessibilityStore';
 import { Sun, Moon, Type, Eye, Zap } from 'lucide-react';
 
@@ -740,7 +740,7 @@ React class component that catches runtime errors in its subtree and shows a fri
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 interface Props {
   children: React.ReactNode;
@@ -893,7 +893,7 @@ Thin banner at top of viewport when user loses internet. v2 [BUG-10B]: Proper us
 
 import { useState, useEffect } from 'react';
 import { WifiOff } from 'lucide-react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion } from 'motion/react';
 
 export function OfflineBanner() {
   const [isOffline, setIsOffline] = useState(false);
@@ -1043,8 +1043,8 @@ npx tsc --noEmit
 - [ ] No TypeScript errors in new files
 - [ ] `accessibilityStore.ts` compiles (zustand persist)
 - [ ] `A11yProvider.tsx` compiles (client component)
-- [ ] `AccessibilityToolbar.tsx` compiles (framer-motion + lucide-react)
-- [ ] `ErrorBoundary.tsx` compiles (class component with framer-motion)
+- [ ] `AccessibilityToolbar.tsx` compiles (motion + lucide-react)
+- [ ] `ErrorBoundary.tsx` compiles (class component with motion)
 - [ ] `not-found.tsx` compiles (server component)
 - [ ] `OfflineBanner.tsx` compiles (client component)
 - [ ] `LoadingSkeleton.tsx` compiles (server-compatible)
@@ -1634,7 +1634,7 @@ export function trackAgentError(stage: string, error: Error, runId?: string) {
 
 ---
 
-### NEXT: Part 2 (10B) — SEO metadata, robots/sitemap, next.config.js, dynamic game imports (35 games), PWA manifest, root layout update, DEPLOYMENT.md, .env.example, post-deploy checklist
+### NEXT: Part 2 (10B) — SEO metadata, robots/sitemap, next.config.ts, dynamic game imports (35 games), PWA manifest, root layout update, DEPLOYMENT.md, .env.example, post-deploy checklist
 
 ---
 

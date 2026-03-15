@@ -86,7 +86,7 @@ This document contains **Section 1** of the complete standalone `AgentArchitectG
 'use client';
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -716,7 +716,7 @@ export function AgentArchitectGame() {
 ## END OF PART B
 
 **Contents summary:**
-- Imports (React, Framer Motion, lucide-react, GameShell, stores, dynamic 3D import)
+- Imports (React, Motion, lucide-react, GameShell, stores, dynamic 3D import)
 - Types: Phase, BlockType, BlockConfig, PlacedBlock, Arrow, Mission, RunStep
 - Data: 10 block types, 6 tool options, 4 search targets, 8 missions, 4 learn cards
 - Pseudocode generator (Band C feature)

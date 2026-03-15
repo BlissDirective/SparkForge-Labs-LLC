@@ -55,21 +55,24 @@ Think of testing like a pyramid:
 
 ## 3. Setting Up Testing Tools
 
-### For Next.js / React Projects
+### For Next.js / React Projects (SparkForge Stack)
+
+> **Note:** SparkForge uses Vitest (not Jest) per Enhancement 8.5. Vitest is Vite-native,
+> faster, and has Jest-compatible APIs. All testing packages are installed in Stage 1 Part 1.
 
 ```bash
-# Install testing dependencies
-npm install -D jest @testing-library/react @testing-library/jest-dom
-npm install -D @testing-library/user-event
-npm install -D playwright    # for E2E tests
+# Install testing dependencies (already done in Stage 1 Part 1, step 2j)
+npm install -D vitest @vitest/coverage-v8 @testing-library/react @testing-library/jest-dom
+npm install -D playwright @playwright/test msw happy-dom
 ```
 
 Add to `package.json`:
 ```json
 {
   "scripts": {
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "test:e2e": "playwright test"
   }
 }

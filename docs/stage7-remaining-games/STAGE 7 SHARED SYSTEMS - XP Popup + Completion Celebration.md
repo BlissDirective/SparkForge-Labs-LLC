@@ -20,7 +20,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, createContext, useContext, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface XPEvent {
   id: string;
@@ -156,7 +156,7 @@ export function XPPopupProvider({ children }: { children: React.ReactNode }) {
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, Star, Clock, Zap, ArrowRight } from 'lucide-react';
 
 interface CelebrationProps {
@@ -420,7 +420,7 @@ export function GameCompleteCelebration({
 // ════════════════════════════════════════════════════
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface StreakFireProps {
   streak: number;

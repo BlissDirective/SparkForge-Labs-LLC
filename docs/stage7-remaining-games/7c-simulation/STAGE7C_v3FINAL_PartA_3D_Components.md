@@ -55,7 +55,7 @@
 | 3D Component | None | ChatbotNodes3D.tsx (NEW). Dynamic import, ssr: false. Mobile CSS fallback. |
 | Message Routing | Static SVG edges | SVG edges + 3D animated message pulse along paths (desktop only) |
 | Triangle Budget | N/A (SVG only) | ~3K triangles (max 20 node spheres + 40 connections) |
-| Performance | SVG + Framer Motion | ~3K tri. frameloop=demand. Desktop only (mobile = SVG). |
+| Performance | SVG + Motion | ~3K tri. frameloop=demand. Desktop only (mobile = SVG). |
 | Node Hover | SVG glow circle | SVG glow + 3D emissive pulse on hovered sphere |
 
 ### Data Detective
@@ -66,7 +66,7 @@
 | 3D Component | None | DataDetective3D.tsx (NEW). Dynamic import, ssr: false. Mobile CSS fallback. |
 | Card Depth | Flat table rows with severity glow | Table preserved + 3D evidence cards with flip animation on select (desktop only) |
 | Triangle Budget | N/A (CSS/SVG) | ~2K triangles (magnifying glass + card planes + lamp) |
-| Performance | CSS + Framer Motion | ~2K tri. frameloop=demand. Desktop only (mobile = CSS). |
+| Performance | CSS + Motion | ~2K tri. frameloop=demand. Desktop only (mobile = CSS). |
 | Fix Animation | Sparkle + cross-fade | Preserved + 3D particle burst from magnifying glass |
 
 ---
@@ -133,7 +133,7 @@ Decision 6.5 specifies Tier 2 Enhanced 3D treatment for 7 flagship-lite games. T
 | Camera | Fixed position [0, 0.5, 3.5], FOV 45. Looking down at desk angle. No OrbitControls (fixed investigation view). |
 | Lighting | AmbientLight 0.3 + desk lamp SpotLight. PointLight for purple ambient glow. |
 | Triangle Budget | ~2K max. Magnifying glass ~200 tri. Cards ~100 tri each (max 10). Lamp ~150 tri. |
-| Mobile Fallback | CSS spotlight + Framer Motion only. No R3F Canvas on mobile. |
+| Mobile Fallback | CSS spotlight + Motion only. No R3F Canvas on mobile. |
 
 ---
 

@@ -78,7 +78,7 @@ All 7 enhancement suggestions have been implemented in the source code. The code
 
 | # | Category | Enhancement | Implementation |
 |---|----------|-------------|----------------|
-| 1 | **UI/UX** | `prefers-reduced-motion` support | Framer Motion `useReducedMotion()` hook disables `whileHover`, stagger animations, FAQ expand/collapse motion, and form submission `whileTap`. CSS `@media (prefers-reduced-motion: reduce)` disables badge pulse and scanline animation. WCAG 2.1 Level AA compliant. |
+| 1 | **UI/UX** | `prefers-reduced-motion` support | Motion `useReducedMotion()` hook disables `whileHover`, stagger animations, FAQ expand/collapse motion, and form submission `whileTap`. CSS `@media (prefers-reduced-motion: reduce)` disables badge pulse and scanline animation. WCAG 2.1 Level AA compliant. |
 | 2 | **Visual** | "Most Popular" badge pulse | CSS `@keyframes badge-pulse` with `box-shadow` glow (2s ease-in-out infinite). Blue glow matches Frost-Prismatic primary `#3B82F6`. Auto-disabled for reduced motion users. |
 | 3 | **Interactivity** | Smooth scroll anchor | "Compare Plans" heading is a clickable `<a>` that scrolls to `#tier-cards` anchor on the tier cards grid. Uses `scrollIntoView({ behavior: 'smooth' })` (or `'auto'` for reduced motion). `scroll-mt-8` ensures proper offset. |
 | 4 | **Performance** | Memoized `renderFeatureValue` | `useCallback` with empty dependency array prevents re-creation on billing toggle or FAQ state changes. Optimizes 30 table cell renders. |
@@ -147,7 +147,7 @@ Full standalone replacement of the v2 public pricing page. All v2 features prese
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import {
   TIER_DISPLAY,
   getYearlySavingsPercent,

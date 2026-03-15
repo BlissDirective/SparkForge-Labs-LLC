@@ -442,10 +442,13 @@ TECH STACK ADDITION:
 
 **Budget: $30K-$50K | Priority: HIGH**
 
-### 8.1 Tech Stack Upgrades
+### 8.1 Tech Stack Upgrades — APPLIED
+
+**Status:** APPLIED | **Date:** March 15, 2026
+All upgrades below have been integrated into stage documents and CLAUDE.md v5.3.
 
 ```
-UPGRADE RECOMMENDATIONS:
+UPGRADES APPLIED:
 ┌─────────────────────┬────────────────────────┬────────────────────────────────┐
 │ Current              │ Upgrade To             │ Why                            │
 ├─────────────────────┼────────────────────────┼────────────────────────────────┤
@@ -488,12 +491,16 @@ UPGRADE RECOMMENDATIONS:
 └─────────────────────┴────────────────────────┴────────────────────────────────┘
 ```
 
-### 8.2 WebGPU Rendering Pipeline
+### 8.2 WebGPU Rendering Pipeline — APPLIED (Detection Only)
+
+**Status:** PARTIALLY APPLIED | **Date:** March 15, 2026
+WebGPU auto-detection with WebGL2 fallback configured in Stage 1 Part 2. Three.js r170+
+installed. TSL shader migration is incremental (GLSL still works alongside TSL).
 
 ```
-TECH STACK ADDITION:
-- Three.js WebGPURenderer (available in r160+)
-- TSL (Three.js Shading Language) — replaces GLSL with JavaScript-based shaders
+TECH STACK ADDITION (APPLIED):
+- Three.js r170+ WebGPURenderer (auto-detect with WebGL2 fallback)
+- TSL (Three.js Shading Language) — available for new shaders, GLSL remains for existing
 ```
 
 **Impact:** 2-5x rendering performance improvement on supported browsers.
@@ -519,14 +526,19 @@ TECH STACK ADDITION:
 - **Service Worker caching:** PWA service worker pre-caches game assets for offline play
 - **Target budgets:** Initial load <200KB JS, per-game chunk <100KB, total app <3MB
 
-### 8.5 Testing Infrastructure
+### 8.5 Testing Infrastructure — APPLIED
+
+**Status:** APPLIED | **Date:** March 15, 2026
+All testing packages installed in Stage 1 Part 1 (step 2j). Vitest config created in
+Stage 1 Part 2. Test directories created (tests/unit, tests/integration, tests/e2e, tests/mocks).
 
 ```
-TECH STACK ADDITION:
-- Vitest (unit + integration tests, Vite-native, fast)
-- @testing-library/react (component testing)
-- Playwright (E2E tests, cross-browser)
-- MSW (Mock Service Worker for API mocking)
+TECH STACK ADDITION (APPLIED):
+- Vitest + @vitest/coverage-v8 (unit + integration tests, Vite-native, fast)
+- @testing-library/react + @testing-library/jest-dom (component testing)
+- Playwright + @playwright/test (E2E tests, cross-browser, visual regression)
+- MSW (Mock Service Worker for API mocking — Supabase, Stripe, Anthropic)
+- happy-dom (fast DOM implementation for Vitest)
 ```
 
 **Testing pyramid:**

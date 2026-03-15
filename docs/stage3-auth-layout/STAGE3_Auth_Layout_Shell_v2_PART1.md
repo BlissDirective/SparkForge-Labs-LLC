@@ -179,7 +179,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 ```typescript
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 interface LoadingScreenProps {
   message?: string;
@@ -333,7 +333,7 @@ export function SidebarSkeleton() {
 ```typescript
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { AlertTriangle, X } from 'lucide-react';
 import { useState } from 'react';
 
@@ -386,7 +386,7 @@ export function ErrorBanner({ message, dismissible = true, className }: ErrorBan
 ```typescript
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 
 interface EmptyStateProps {
   icon?: string;
@@ -431,7 +431,7 @@ Multi-step progress indicator for signup and onboarding flows.
 ```typescript
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Check } from 'lucide-react';
 
 interface StepIndicatorProps {

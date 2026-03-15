@@ -17,7 +17,7 @@ This part wires the Part 1 accessibility system into the root layout, adds SEO i
 - Root layout update: wires A11yProvider, ErrorBoundary, OfflineBanner, SEO metadata, PWA link
 - `robots.ts` and `sitemap.ts` for search engines
 - `manifest.json` for PWA "Add to Home Screen"
-- `next.config.js` replacement: security headers, CSP, caching, Three.js externals
+- `next.config.ts` replacement: security headers, CSP, caching, Three.js externals
 - Game router: dynamic imports for all 35 games (34 with components + 1 placeholder)
 - `DEPLOYMENT.md`: complete operational guide
 - `.env.example` update: all variables documented
@@ -41,7 +41,7 @@ This part wires the Part 1 accessibility system into the root layout, adds SEO i
 | 2 | `src/app/robots.ts` | CREATE | Search engine crawling rules |
 | 3 | `src/app/sitemap.ts` | CREATE | Dynamic XML sitemap for SEO |
 | 4 | `public/manifest.json` | CREATE | PWA manifest for "Add to Home Screen" |
-| 5 | `next.config.js` | REPLACE | Security headers, CSP, caching, Three.js externals |
+| 5 | `next.config.ts` | REPLACE | Security headers, CSP, caching, Three.js externals |
 | 6 | `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | CREATE | Dynamic imports for 35 games |
 | 7 | `.env.example` | REPLACE | All 15+ variables documented |
 | 8 | `DEPLOYMENT.md` | CREATE | Complete operational guide |
@@ -58,11 +58,11 @@ This part wires the Part 1 accessibility system into the root layout, adds SEO i
 | 6 | **CRITICAL** | Game router "Game Not Found" JSX completely broken: `</p>`, `</div>`, `</div>` closing tags appear before any opening tags | Fully reconstructed with proper JSX structure |
 | 7 | **CRITICAL** | Game router `GameLoader` emoji span is empty whitespace | Replaced with styled loading spinner using existing `animate-pulse` |
 | 8 | **CRITICAL** | Game router "Game Not Found" emoji span is empty whitespace | Replaced with styled "?" text element |
-| 9 | **CRITICAL** | `next.config.js` CSP `connect-src` truncated at `https://api.st` — Stripe, Vercel analytics domains missing | Completed with full Stripe, Vercel analytics, and Vercel monitoring domains |
-| 10 | **CRITICAL** | `next.config.js` `Permissions-Policy` header structure broken — closing brace `}` placed before `key:` property | Restructured into correct `{ key, value }` header object |
-| 11 | **CRITICAL** | `next.config.js` drops existing Three.js server externals (`three`, `@react-three/fiber`, `@react-three/drei`) — would crash all 3D components on server | Merged existing webpack externals with new client-side alias |
-| 12 | **CRITICAL** | `next.config.js` drops existing `experimental.optimizePackageImports` for `lucide-react`, Radix UI — increases bundle size | Preserved existing experimental options alongside new ones |
-| 13 | **CRITICAL** | `next.config.js` drops existing `experimental.serverActions.bodySizeLimit: '2mb'` — breaks file uploads | Preserved existing server actions config |
+| 9 | **CRITICAL** | `next.config.ts` CSP `connect-src` truncated at `https://api.st` — Stripe, Vercel analytics domains missing | Completed with full Stripe, Vercel analytics, and Vercel monitoring domains |
+| 10 | **CRITICAL** | `next.config.ts` `Permissions-Policy` header structure broken — closing brace `}` placed before `key:` property | Restructured into correct `{ key, value }` header object |
+| 11 | **CRITICAL** | `next.config.ts` drops existing Three.js server externals (`three`, `@react-three/fiber`, `@react-three/drei`) — would crash all 3D components on server | Merged existing webpack externals with new client-side alias |
+| 12 | **CRITICAL** | `next.config.ts` drops existing `experimental.optimizePackageImports` for `lucide-react`, Radix UI — increases bundle size | Preserved existing experimental options alongside new ones |
+| 13 | **CRITICAL** | `next.config.ts` drops existing `experimental.serverActions.bodySizeLimit: '2mb'` — breaks file uploads | Preserved existing server actions config |
 | 14 | **HIGH** | `sitemap.ts` — pricing and signup entries truncated at `priority` | Completed with full `priority` values |
 | 15 | **HIGH** | Game router claims 31 games but CLAUDE.md specifies 35 total | Updated to 35 games (34 with existing components + 1 placeholder for `ai-spy` per MISSING-7A) |
 | 16 | **HIGH** | Game router includes `vibe-coder` which is NOT in the 35-game registry (CLAUDE.md Section 13) | Removed phantom game; replaced with correct `api-explorer` |
@@ -78,7 +78,7 @@ This part wires the Part 1 accessibility system into the root layout, adds SEO i
 | 26 | **MEDIUM** | `manifest.json` `theme_color` uses `#2563EB` (generic blue-600) instead of Frost-Prismatic `#0A0E16` | Changed to `#0A0E16` matching design system |
 | 27 | **MEDIUM** | `manifest.json` `background_color` uses `#0F172A` instead of `#0A0E16` | Changed to `#0A0E16` |
 | 28 | **MEDIUM** | `.env.example` in source is less complete than existing `.env.example` (missing feature flags) | Merged: kept existing feature flags, added new deployment-specific vars |
-| 29 | **MEDIUM** | `next.config.js` `images.remotePatterns` drops existing `pathname` filter (`/storage/v1/object/public/**`) | Restored specific pathname for security |
+| 29 | **MEDIUM** | `next.config.ts` `images.remotePatterns` drops existing `pathname` filter (`/storage/v1/object/public/**`) | Restored specific pathname for security |
 | 30 | **LOW** | Source doc says "31 games" throughout all checklists and summaries | Corrected to "35 games" per CLAUDE.md |
 | 31 | **LOW** | Source doc Step 11 says `git push origin main` — should use feature branch | Corrected to use current development branch |
 
@@ -103,7 +103,7 @@ This part wires the Part 1 accessibility system into the root layout, adds SEO i
 | Existing File | Current State | Stage 10 Part 2 Action |
 |--------------|---------------|----------------------|
 | `src/app/layout.tsx` | Has QueryProvider, skip link, Google Fonts preconnect, SR div | REPLACE: adds A11yProvider, ErrorBoundary, OfflineBanner, globals-a11y.css import, PWA link, enhanced SEO. **Preserves** QueryProvider, preconnect, SR div. |
-| `next.config.js` | Has Three.js externals, optimizePackageImports, serverActions | REPLACE: adds security headers, CSP, image optimization, caching. **Preserves** Three.js externals, optimize imports, server actions. |
+| `next.config.ts` | Has Three.js externals, optimizePackageImports, serverActions | REPLACE: adds security headers, CSP, image optimization, caching. **Preserves** Three.js externals, optimize imports, server actions. |
 | `arcade/page.tsx` | Placeholder "Coming in Stage 6" | Unchanged — game router is at `[gameSlug]/page.tsx` (new route) |
 | `.env.example` | Has Supabase, Anthropic, Stripe, feature flags | REPLACE: adds deployment vars (ENABLE_CONTENT_AGENT, ENABLE_CAMERA_GAMES). Preserves existing structure. |
 
@@ -411,11 +411,11 @@ Production-ready config with security headers, CSP, image optimization, and cach
 
 v2 [BUG-10D]: CSP `connect-src` includes Vercel analytics domains.
 
-### File 5: `next.config.js`
+### File 5: `next.config.ts`
 
-**WHERE:** REPLACE `next.config.js` (project root)
+**WHERE:** REPLACE `next.config.ts` (project root)
 
-```javascript
+```typescript
 // ════════════════════════════════════════════════════
 // NEXT.JS CONFIG — Production security + performance
 // Stage 10 Part 2 — REPLACES Stage 1 config
@@ -423,8 +423,9 @@ v2 [BUG-10D]: CSP `connect-src` includes Vercel analytics domains.
 // Preserves: Three.js externals, optimizePackageImports
 // ════════════════════════════════════════════════════
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
+import type { NextConfig } from 'next';
+
+const nextConfig: NextConfig = {
   reactStrictMode: true,
 
   // ── Image optimization ──
@@ -531,7 +532,7 @@ const nextConfig = {
   },
 };
 
-module.exports = nextConfig;
+export default nextConfig;
 ```
 
 ---
@@ -978,7 +979,7 @@ Connect your GitHub repo in Vercel Dashboard:
 | 3D components crash on server | Ensure all R3F imports use `dynamic(() => import(...), { ssr: false })` |
 | Content Agent returns 503 | Check `ANTHROPIC_API_KEY` is set in Vercel env vars |
 | Stripe checkout fails | Verify all 4 price IDs match Stripe Dashboard products |
-| Build fails with Three.js errors | `next.config.js` must externalize `three`, `@react-three/fiber`, `@react-three/drei` |
+| Build fails with Three.js errors | `next.config.ts` must externalize `three`, `@react-three/fiber`, `@react-three/drei` |
 | Hydration mismatch | Check that `<html>` has `suppressHydrationWarning` and A11yProvider uses mounted guard |
 ```
 
@@ -1131,7 +1132,7 @@ git add src/app/layout.tsx \
   src/app/robots.ts \
   src/app/sitemap.ts \
   public/manifest.json \
-  next.config.js \
+  next.config.ts \
   src/app/\(dashboard\)/arcade/\[gameSlug\]/page.tsx \
   .env.example \
   DEPLOYMENT.md
@@ -1151,7 +1152,7 @@ git commit -m "Stage 10 Part 2: SEO, security, game router, PWA, deployment guid
 | 2 | `src/app/robots.ts` | CREATE | ~0.5KB |
 | 3 | `src/app/sitemap.ts` | CREATE | ~1.2KB |
 | 4 | `public/manifest.json` | CREATE | ~0.6KB |
-| 5 | `next.config.js` | REPLACE | ~3.5KB |
+| 5 | `next.config.ts` | REPLACE | ~3.5KB |
 | 6 | `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | CREATE | ~5.5KB |
 | 7 | `.env.example` | REPLACE | ~1.8KB |
 | 8 | `DEPLOYMENT.md` | CREATE | ~4.5KB |
@@ -1477,7 +1478,7 @@ jobs:
 - `src/app/robots.ts` — Search engine rules
 - `src/app/sitemap.ts` — XML sitemap
 - `public/manifest.json` — PWA manifest
-- `next.config.js` — REPLACE: security headers, CSP, caching
+- `next.config.ts` — REPLACE: security headers, CSP, caching
 - `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` — 35-game dynamic router
 - `.env.example` — REPLACE: all variables documented
 - `DEPLOYMENT.md` — Complete ops guide
@@ -1542,7 +1543,7 @@ Reply 'approved' to tag v0.10.0, or describe issues.
 
 | Change | Impact | SparkForge Scope | Risk |
 |--------|--------|-----------------|------|
-| **Turbopack is default bundler** | Custom webpack config in `next.config.js` (Three.js server externals) will NOT run under Turbopack | 1 config file — must pass `--webpack` flag to `next dev`/`next build` OR migrate externals to `serverExternalPackages` | **HIGH** |
+| **Turbopack is default bundler** | Custom webpack config in `next.config.ts` (Three.js server externals) will NOT run under Turbopack | 1 config file — must pass `--webpack` flag to `next dev`/`next build` OR migrate externals to `serverExternalPackages` | **HIGH** |
 | **Async Request APIs enforced** | `cookies()`, `headers()`, `params`, `searchParams` must be `await`ed | `src/middleware.ts` uses `cookies()` from next/headers; ~2 dynamic route files use `params` | MEDIUM |
 | **`middleware.ts` → `proxy.ts` rename** | Middleware file renamed | 1 file rename (`src/middleware.ts` → `src/proxy.ts`) | MEDIUM |
 | **`next lint` removed** | `next lint` CLI command no longer exists | `package.json` lint script uses `next lint`; replace with direct `eslint .` | LOW |
@@ -1568,7 +1569,7 @@ npx @next/codemod@canary upgrade latest
 
 ### Webpack Externals Strategy
 
-The `next.config.js` currently externalizes Three.js packages from server bundles:
+The `next.config.ts` currently externalizes Three.js packages from server bundles:
 ```js
 // Current (webpack callback)
 webpack: (config, { isServer }) => {
@@ -1595,7 +1596,7 @@ const nextConfig = {
 
 ### Recommended Timing
 
-Perform the upgrade **at the start of Stage 10** before writing the production `next.config.js` (which this document already replaces). This avoids writing a Next.js 14 config only to immediately rewrite it for 16. The codemod handles most mechanical changes; manual attention needed for:
+Perform the upgrade **at the start of Stage 10** before writing the production `next.config.ts` (which this document already replaces). This avoids writing a Next.js 15 config only to immediately rewrite it for 16. The codemod handles most mechanical changes; manual attention needed for:
 1. Webpack externals → `serverExternalPackages`
 2. `middleware.ts` → `proxy.ts` rename
 3. ESLint flat config migration
