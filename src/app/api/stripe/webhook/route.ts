@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     {
       stripe_event_id: event.id,
       event_type: event.type,
-      data: event.data.object as Record<string, unknown>,
+      data: event.data.object as unknown as Record<string, unknown>,
       parent_id: null, // filled below if identifiable
     },
     { onConflict: 'stripe_event_id', ignoreDuplicates: true }
