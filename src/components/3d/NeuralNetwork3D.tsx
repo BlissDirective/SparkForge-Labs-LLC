@@ -471,11 +471,35 @@ export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
     isMobile = false,
   } = props;
 
+  // Mobile fallback: render a simplified static placeholder instead of the
+  // full R3F Canvas. This avoids the performance cost of WebGL on low-end
+  // devices while still showing the network structure via the 2D overlay
+  // in the parent NeuralBuilderGame component.
+  if (isMobile) {
+    return (
+      <div
+        className="w-full rounded-lg overflow-hidden flex items-center justify-center"
+        style={{
+          height: 280,
+          background: 'radial-gradient(ellipse at center, rgba(236,72,153,0.08) 0%, transparent 70%)',
+        }}
+        role="img"
+        aria-label={`Neural network with ${props.layerSizes.length} layers and ${props.network.nodes.length} neurons`}
+      >
+        <div className="text-center text-white/40 text-sm font-body">
+          <p className="text-3xl mb-2">{'\u{1F9E0}'}</p>
+          <p>{props.layerSizes.length} layers &middot; {props.network.nodes.length} neurons</p>
+          <p className="text-xs mt-1">Rotate device for 3D view</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className="w-full rounded-lg overflow-hidden"
       style={{
-        height: isMobile ? 280 : 400,
+        height: 400,
         background: 'radial-gradient(ellipse at center, rgba(236,72,153,0.08) 0%, transparent 70%)',
       }}
       role="img"

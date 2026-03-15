@@ -41,6 +41,11 @@ export interface PetCreatureProps {
 }
 
 // === Mood → Visual mapping ===
+// Integration: mood drives emissive color (glow tint), intensity (brightness),
+// floatSpeed (hover animation), and rotationSpeed (idle spin). These values
+// are applied to MeshToonMaterial.emissive and MeshToonMaterial.emissiveIntensity
+// in both the GLB model path and the fallback orb, ensuring consistent mood
+// feedback regardless of whether the GLB asset is available.
 
 const MOOD_CONFIG = {
   sleeping: {

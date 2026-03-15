@@ -122,13 +122,15 @@ interface BiasCase {
 // DETECTIVE RANKS (text labels for PDF reliability)
 // ================================================================
 
+// 6 ranks to cover 0-6 completed cases (one per case milestone + starter rank)
 const RANKS = [
   { title: 'Rookie Detective', label: '[ROOKIE]', minCases: 0, color: '#6B7280' },
   { title: 'Bias Spotter', label: '[SPOTTER]', minCases: 1, color: '#3B82F6' },
   { title: 'Ethics Expert', label: '[EXPERT]', minCases: 3, color: '#8B5CF6' },
-  { title: 'Chief Investigator', label: '[CHIEF]', minCases: 5, color: '#F59E0B' },
-  { title: 'AI Guardian', label: '[GUARDIAN]', minCases: 6, color: '#10B981' },
-]; // [CR-6F-B2] Fixed: closing bracket was missing in source
+  { title: 'Chief Investigator', label: '[CHIEF]', minCases: 4, color: '#F59E0B' },
+  { title: 'AI Guardian', label: '[GUARDIAN]', minCases: 5, color: '#10B981' },
+  { title: 'Fairness Champion', label: '[CHAMPION]', minCases: 6, color: '#FFD700' },
+];
 
 function getRank(casesCompleted: number) {
   return [...RANKS].reverse().find(r => casesCompleted >= r.minCases) || RANKS[0];

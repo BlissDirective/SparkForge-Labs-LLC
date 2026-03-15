@@ -18,6 +18,10 @@ interface Props {
 }
 
 export default function PromptBubble3DScene({ keywords, isThinking, temperature }: Props) {
+  // frameloop="always" is required here because PromptBubble3D uses continuous
+  // spring physics simulation (bubble positions, velocities, and damping are
+  // computed every frame via useFrame). Using "demand" would freeze bubble
+  // motion since there is no invalidate() call in the physics loop.
   return (
     <Canvas
       camera={{ position: [0, 0, 2.5], fov: 50 }}

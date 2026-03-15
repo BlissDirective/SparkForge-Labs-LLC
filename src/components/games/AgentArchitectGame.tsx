@@ -238,7 +238,10 @@ const LEARN_CARDS = [
     bodyC: 'Branching (if/else) and iteration (loops) enable agents to handle non-deterministic outcomes. Error recovery loops (retry with backoff), conditional escalation (human-in-the-loop), and parallel execution (Promise.all) are patterns used in production agent systems.' },
 ];
 
-// Type-safe band ordering for age-band comparisons
+// Type-safe band ordering for age-band comparisons.
+// Used to filter content by difficulty: items with bandMin <= child's band are shown.
+// A=0 (ages 7-9), B=1 (ages 10-12), C=2 (ages 13-16).
+// Example: a mission with bandMin='B' is shown to bands B and C but not A.
 const BAND_ORDER: Record<'A' | 'B' | 'C', number> = { A: 0, B: 1, C: 2 };
 
 // Module-level counter for unique block IDs (client-only, safe with 'use client')
@@ -276,6 +279,10 @@ function generatePseudocode(blocks: PlacedBlock[], arrows: Arrow[]): string {
     const outgoing = arrows.filter(a => a.fromId === blockId);
 
     switch (block.type.id) {
+      case 'goal':
+        // Goal blocks encountered during traversal (e.g. sub-goals)
+        lines.push(`${pad}setGoal("${block.config.text || 'Sub-objective'}");`);
+        break;
       case 'search':
         lines.push(`${pad}const results = search("${block.config.searchTarget || 'web'}");`);
         break;
