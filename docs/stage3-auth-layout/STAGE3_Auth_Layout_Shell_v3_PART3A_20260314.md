@@ -1,12 +1,13 @@
 # STAGE 3: AUTH, LAYOUT & STATION FRAME — v3-FINAL (PART 3A)
 
-**Updated:** March 14, 2026 — CPA v1.0 (Cockpit Panoramic Architecture) integration
+**Updated:** March 15, 2026 — CPA v2.0 (3D Panoramic Cockpit Enhancement) integration
+**Previous:** March 14, 2026 — CPA v1.0
 
 ## Overview
 
 Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 dashboard framework that wraps all authenticated pages. This includes the station mode system, instrument-panel sidebar, celebration overlays, page transitions, session tracking, onboarding wizard, marketing/landing pages, and v3 CSS visual layer additions (emissive glow, scanline overlay, vignette, chrome bezel, LED rim).
 
-**CPA v1.0 additions:** `useStationMode` extended with bloom, vignette, FOV, HUD, cockpit panel, side panel, and status bar fields. `globals.css` updated with mobile cockpit CSS fallbacks. Dashboard layout passes all CPA props to StationFrame. New `useCockpitAudio` hook for cockpit sound events.
+**CPA v2.0 additions:** `useStationMode` extended with bloom, vignette, FOV, HUD v2 (data-driven rings + mini-map), cockpit panel (adaptive curvature), side panel, and status bar fields. `globals.css` updated with mobile cockpit CSS fallbacks. Dashboard layout uses unified `CockpitCanvas` (Decision CPA2-1) instead of separate StationFrame + SpatialDashboard canvases. `useCockpitAudio` hook upgraded with spatial audio zones (CPA2-8) and skin-specific soundscapes. Transition cinematics (WormholeTransition, GameLaunchZoom, CeremonyFX) hooked into mode changes.
 
 ### v3 Decisions Implemented
 - **2.1**: StationFrame canvas on ALL dashboard pages
@@ -23,6 +24,14 @@ Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 
 - **CPA-9**: Wider FOV camera presets (via useStationMode)
 - **CPA-10**: Barrel distortion presets (via useStationMode)
 - **CPA-12**: Mobile cockpit CSS fallbacks (globals.css)
+- **CPA2-1**: Single R3F Canvas for all cockpit + spatial content (CockpitCanvas)
+- **CPA2-2**: Viewport-adaptive curvature (120-155° based on width)
+- **CPA2-6**: Lab entry wormhole cinematic (2.5s)
+- **CPA2-7**: NPC dialogue bubbles as HTML overlays
+- **CPA2-8**: Spatial audio via Web Audio API / Tone.js Panner3D
+- **CPA2-9**: Mobile gets zero R3F (pure CSS fallback)
+- **CPA2-10**: Ceremony FX intensity scales by event type
+- **CPA2-12**: Adaptive FPS monitoring can fall back to CSS at <40% target
 
 ### Files Created/Modified
 
@@ -32,7 +41,7 @@ Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 
 | 2 | `src/components/layout/Sidebar.tsx` | Created |
 | 3 | `src/components/shared/CelebrationOverlay.tsx` | Created |
 | 4 | `src/components/shared/ContinueBanner.tsx` | Created |
-| 5 | `src/app/(dashboard)/layout.tsx` | Created (**CPA: passes all CPA props + cockpit audio**) |
+| 5 | `src/app/(dashboard)/layout.tsx` | Created (**CPA v2.0: imports CockpitCanvas unified orchestrator, passes mode + lab data**) |
 | 6 | `src/components/providers/PageTransitionProvider.tsx` | Created |
 | 7 | `src/hooks/useSessionTracker.ts` | Created |
 | 8 | `src/app/(dashboard)/onboarding/page.tsx` | Created |
@@ -44,10 +53,10 @@ Part 3A delivers the **Laboratory Control Station shell** — the persistent v3 
 | 14 | `src/app/(dashboard)/arcade/page.tsx` | Created |
 | 15 | `src/app/(dashboard)/profile/page.tsx` | Created |
 | 16 | `src/app/(dashboard)/parent/page.tsx` | Created |
-| 17 | `src/components/3d/StationFrame.tsx` | Created (CSS placeholder) |
+| 17 | `src/components/3d/StationFrame.tsx` | Created (CSS placeholder — **CPA v2.0: refactored to scene group in Part 3B**) |
 | 18 | `src/app/page.tsx` | Deleted (replaced by marketing route) |
-| 19 | `src/hooks/useCockpitAudio.ts` | **CPA: Created** — Cockpit sound hooks |
-| 20 | `src/lib/3d/cockpitConfig.ts` | **CPA: Created** — Central cockpit config |
+| 19 | `src/hooks/useCockpitAudio.ts` | **CPA v2.0: Created** — Spatial cockpit audio hooks with skin soundscapes |
+| 20 | `src/lib/3d/cockpitConfig.ts` | **Already created in Stage 1 Part 2 Step 20c** (CPA v2.0 config) |
 
 ### Discrepancies & Adaptations
 

@@ -546,6 +546,7 @@ mkdir -p src/components/content
 # Core
 mkdir -p src/lib/supabase
 mkdir -p src/lib/3d
+mkdir -p src/lib/audio
 mkdir -p src/lib/agent
 mkdir -p src/stores
 mkdir -p src/hooks
@@ -555,7 +556,7 @@ mkdir -p src/shaders/labPatterns
 
 # Public assets
 mkdir -p public/images
-mkdir -p public/sounds
+mkdir -p public/sounds/cockpit
 mkdir -p public/fonts
 mkdir -p public/models/pets
 mkdir -p public/hdri

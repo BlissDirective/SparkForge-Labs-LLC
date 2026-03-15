@@ -16,8 +16,10 @@ Stage 1 Part 2 creates all foundational source files that every subsequent stage
 - **Supabase Clients** — browser client, server client, admin client
 - **Middleware** — route protection with Supabase auth
 - **Animations** — 45+ Framer Motion variants + spring presets
-- **Stores** — 4 Zustand stores (auth, child, game, toast) + uiStore
-- **Hooks** — 4 utility hooks (useDebounce, useLocalStorage, useMediaQuery, useIsMobile)
+- **Stores** — 4 Zustand stores (auth, child, game, toast) + uiStore + deviceStore + cockpitStore
+- **Hooks** — 4 utility hooks (useDebounce, useLocalStorage, useMediaQuery, useIsMobile) + useAdaptiveCockpit
+- **Cockpit Config** — `src/lib/3d/cockpitConfig.ts` (CPA v2.0 geometry, bloom, camera, HUD, LOD presets)
+- **Audio Engine** — `src/lib/audio/cockpitAudio.ts` (CockpitAudioEngine class for spatial cockpit audio)
 - **Feature Flags** — environment-based feature gating
 - **System Preferences** — OS-level accessibility detection
 - **QueryProvider** — React Query wrapper with devtools
@@ -45,6 +47,35 @@ export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 export type BadgeCategory = 'progress' | 'streak' | 'lab' | 'game_master' | 'knowledge' | 'explorer' | 'creator' | 'secret' | 'prestige';
 export type BadgeRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type CelebrationType = 'xp' | 'badge' | 'level' | 'streak' | 'confetti';
+
+// ═══ CPA v2.0 — Cockpit Panoramic Architecture Types ═══
+export type CockpitSkin = 'default' | 'cyberpunk' | 'space' | 'underwater' | 'crystal';
+export type SpatialView = 'overview' | 'lab-focus' | 'console' | 'orbit';
+export type ConsoleType = 'xp' | 'badges' | 'streak' | 'progress';
+export type CeremonyType = 'xp' | 'badge' | 'levelUp' | 'gameComplete' | 'streakMilestone';
+export type HUDDataMode = 'minimap' | 'labfocus' | 'hidden' | 'burst' | 'stats' | 'tutorial';
+
+export interface CameraTarget {
+  position: [number, number, number];
+  lookAt: [number, number, number];
+  fov: number;
+}
+
+export interface HexClusterData {
+  left: {
+    activeLabId: number;
+    activeLabColor: string;
+    labCompletion: number;        // 0-1
+    recommendedLabId: number;
+    recommendedLabColor: string;
+  };
+  right: {
+    xpRate: number;               // XP earned per minute (rolling 5min window)
+    streakHeat: number;           // 0-1 (0 = cold, 1 = on fire)
+    alertCount: number;           // pending notifications
+    alertType: 'badge' | 'challenge' | 'social' | null;
+  };
+}
 
 export interface Parent {
   id: string;
@@ -879,6 +910,821 @@ export const useUIStore = create<UIState>((set) => ({
 
 ---
 
+## Step 20a: Device Store
+
+**File:** `src/stores/deviceStore.ts`
+
+> CPA v2.0: Users select their device type at first launch. Drives LOD, FPS targets, and triangle budgets for all 3D components.
+
+```typescript
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+export type DeviceType = 'desktop' | 'tablet' | 'mobile';
+
+export interface DeviceProfile {
+  targetFPS: number;
+  maxTriangles: number;
+  lodBias: 'ultra' | 'high' | 'medium' | 'low';
+  bloom: boolean;
+  shadows: boolean;
+  pixelRatio: number;
+  antialias: boolean;
+}
+
+const DEVICE_PROFILES: Record<DeviceType, DeviceProfile> = {
+  desktop: {
+    targetFPS: 60,
+    maxTriangles: 500_000,
+    lodBias: 'ultra',
+    bloom: true,
+    shadows: true,
+    pixelRatio: 2.5,
+    antialias: true,
+  },
+  tablet: {
+    targetFPS: 45,
+    maxTriangles: 150_000,
+    lodBias: 'high',
+    bloom: true,
+    shadows: false,
+    pixelRatio: 1.5,
+    antialias: true,
+  },
+  mobile: {
+    targetFPS: 30,
+    maxTriangles: 50_000,
+    lodBias: 'low',
+    bloom: false,
+    shadows: false,
+    pixelRatio: 1,
+    antialias: false,
+  },
+};
+
+interface DeviceState {
+  deviceType: DeviceType;
+  hasSelected: boolean;
+  profile: DeviceProfile;
+  setDeviceType: (type: DeviceType) => void;
+}
+
+export const useDeviceStore = create<DeviceState>()(
+  persist(
+    (set) => ({
+      deviceType: 'desktop',
+      hasSelected: false,
+      profile: DEVICE_PROFILES.desktop,
+      setDeviceType: (deviceType) =>
+        set({
+          deviceType,
+          hasSelected: true,
+          profile: DEVICE_PROFILES[deviceType],
+        }),
+    }),
+    {
+      name: 'sparkforge-device',
+      partialize: (state) => ({
+        deviceType: state.deviceType,
+        hasSelected: state.hasSelected,
+      }),
+      onRehydrate: () => (state) => {
+        if (state) {
+          state.profile = DEVICE_PROFILES[state.deviceType];
+        }
+      },
+    }
+  )
+);
+```
+
+---
+
+## Step 20b: Cockpit Store (CPA v2.0)
+
+**File:** `src/stores/cockpitStore.ts`
+
+> CPA v2.0: Manages spatial dashboard navigation, camera targets, cockpit skin, NPC state, ceremony queue, and audio preferences. Persists skin selection, focused lab, and NPC visibility.
+
+```typescript
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType, CameraTarget } from '@/types';
+
+// Pre-calculated lab positions in a circular ring
+const LAB_ANGLE_STEP = (2 * Math.PI) / 10;
+const LAB_RING_RADIUS = 3.8;
+
+export const LAB_POSITIONS: Record<number, [number, number, number]> = {};
+for (let i = 1; i <= 10; i++) {
+  const angle = (i - 1) * LAB_ANGLE_STEP - Math.PI / 2; // Start from top
+  LAB_POSITIONS[i] = [
+    Math.cos(angle) * LAB_RING_RADIUS,
+    0,
+    Math.sin(angle) * LAB_RING_RADIUS,
+  ];
+}
+
+// Camera presets for spatial views
+export const SPATIAL_CAMERA_PRESETS: Record<SpatialView, CameraTarget> = {
+  overview: {
+    position: [0, 6.5, 7],
+    lookAt: [0, -0.5, 0],
+    fov: 58,
+  },
+  'lab-focus': {
+    position: [0, 2.5, 2],
+    lookAt: [0, 0, 0],
+    fov: 50,
+  },
+  console: {
+    position: [0, 1.8, 3.5],
+    lookAt: [0, 0.5, 0],
+    fov: 52,
+  },
+  orbit: {
+    position: [0, 4, 5],
+    lookAt: [0, 0, 0],
+    fov: 55,
+  },
+};
+
+// ═══ CPA v2.0 — Skin unlock requirements ═══
+export const SKIN_UNLOCK_CONDITIONS: Record<CockpitSkin, { description: string; badge: string | null }> = {
+  default:    { description: 'Always available', badge: null },
+  cyberpunk:  { description: 'Complete all Lab 9 games', badge: 'Digital Pioneer' },
+  space:      { description: 'Earn 10,000 total XP', badge: 'Star Navigator' },
+  underwater: { description: 'Maintain a 30-day streak', badge: 'Deep Diver' },
+  crystal:    { description: 'Complete ALL 35 games at least once', badge: 'Crystal Commander' },
+};
+
+interface CeremonyQueueItem {
+  type: CeremonyType;
+  intensity: number;
+  labColor: string;
+}
+
+interface CockpitState {
+  // Spatial navigation
+  spatialView: SpatialView;
+  focusedLabId: number | null;
+  hoveredLabId: number | null;
+  activeConsole: ConsoleType | null;
+  isTransitioning: boolean;
+  orbitSpeed: number;
+
+  // Camera
+  cameraTarget: CameraTarget;
+
+  // Customization (CPA v2.0: skin unlock via achievements)
+  cockpitSkin: CockpitSkin;
+  unlockedSkins: CockpitSkin[];
+  skinPreviewActive: boolean;
+
+  // NPC state
+  npcsVisible: boolean;
+
+  // CPA v2.0 — Ceremony queue
+  ceremonyQueue: CeremonyQueueItem[];
+
+  // CPA v2.0 — Audio preferences
+  cockpitAudioEnabled: boolean;
+  ambientVolume: number;
+
+  // CPA v2.0 — Mini-map
+  miniMapVisible: boolean;
+
+  // Actions
+  setSpatialView: (view: SpatialView) => void;
+  focusLab: (labId: number | null) => void;
+  setHoveredLab: (labId: number | null) => void;
+  openConsole: (type: ConsoleType) => void;
+  closeConsole: () => void;
+  setCockpitSkin: (skin: CockpitSkin) => void;
+  unlockSkin: (skin: CockpitSkin) => void;
+  setSkinPreview: (active: boolean) => void;
+  setTransitioning: (transitioning: boolean) => void;
+  setOrbitSpeed: (speed: number) => void;
+  toggleNPCs: () => void;
+  returnToOverview: () => void;
+  enqueueCeremony: (item: CeremonyQueueItem) => void;
+  dequeueCeremony: () => void;
+  setCockpitAudio: (enabled: boolean) => void;
+  setAmbientVolume: (volume: number) => void;
+  toggleMiniMap: () => void;
+}
+
+export const useCockpitStore = create<CockpitState>()(
+  persist(
+    (set, get) => ({
+      spatialView: 'overview',
+      focusedLabId: null,
+      hoveredLabId: null,
+      activeConsole: null,
+      isTransitioning: false,
+      orbitSpeed: 0.15,
+      cameraTarget: SPATIAL_CAMERA_PRESETS.overview,
+      cockpitSkin: 'default',
+      unlockedSkins: ['default'],
+      skinPreviewActive: false,
+      npcsVisible: true,
+      ceremonyQueue: [],
+      cockpitAudioEnabled: true,
+      ambientVolume: 0.15,
+      miniMapVisible: true,
+
+      setSpatialView: (spatialView) => {
+        set({
+          spatialView,
+          cameraTarget: SPATIAL_CAMERA_PRESETS[spatialView],
+          isTransitioning: true,
+        });
+        setTimeout(() => set({ isTransitioning: false }), 800);
+      },
+
+      focusLab: (labId) => {
+        if (labId === null) {
+          get().returnToOverview();
+          return;
+        }
+        const pos = LAB_POSITIONS[labId];
+        if (!pos) return;
+
+        const angle = Math.atan2(pos[2], pos[0]);
+        const camDist = 2.2;
+        set({
+          focusedLabId: labId,
+          spatialView: 'lab-focus',
+          isTransitioning: true,
+          cameraTarget: {
+            position: [
+              pos[0] + Math.cos(angle) * camDist,
+              2.0,
+              pos[2] + Math.sin(angle) * camDist,
+            ],
+            lookAt: [pos[0], 0.3, pos[2]],
+            fov: 50,
+          },
+        });
+        setTimeout(() => set({ isTransitioning: false }), 800);
+      },
+
+      setHoveredLab: (hoveredLabId) => set({ hoveredLabId }),
+
+      openConsole: (activeConsole) => {
+        set({
+          activeConsole,
+          spatialView: 'console',
+          isTransitioning: true,
+        });
+        setTimeout(() => set({ isTransitioning: false }), 600);
+      },
+
+      closeConsole: () => {
+        set({ activeConsole: null });
+        get().returnToOverview();
+      },
+
+      setCockpitSkin: (cockpitSkin) => {
+        const { unlockedSkins } = get();
+        if (unlockedSkins.includes(cockpitSkin)) {
+          set({ cockpitSkin });
+        }
+      },
+
+      unlockSkin: (skin) => {
+        set((s) => ({
+          unlockedSkins: s.unlockedSkins.includes(skin)
+            ? s.unlockedSkins
+            : [...s.unlockedSkins, skin],
+        }));
+      },
+
+      setSkinPreview: (skinPreviewActive) => set({ skinPreviewActive }),
+
+      setTransitioning: (isTransitioning) => set({ isTransitioning }),
+
+      setOrbitSpeed: (orbitSpeed) => set({ orbitSpeed }),
+
+      toggleNPCs: () => set((s) => ({ npcsVisible: !s.npcsVisible })),
+
+      returnToOverview: () => {
+        set({
+          spatialView: 'overview',
+          focusedLabId: null,
+          activeConsole: null,
+          isTransitioning: true,
+          cameraTarget: SPATIAL_CAMERA_PRESETS.overview,
+        });
+        setTimeout(() => set({ isTransitioning: false }), 800);
+      },
+
+      enqueueCeremony: (item) =>
+        set((s) => ({ ceremonyQueue: [...s.ceremonyQueue, item] })),
+
+      dequeueCeremony: () =>
+        set((s) => ({ ceremonyQueue: s.ceremonyQueue.slice(1) })),
+
+      setCockpitAudio: (cockpitAudioEnabled) => set({ cockpitAudioEnabled }),
+
+      setAmbientVolume: (ambientVolume) => set({ ambientVolume }),
+
+      toggleMiniMap: () => set((s) => ({ miniMapVisible: !s.miniMapVisible })),
+    }),
+    {
+      name: 'sparkforge-cockpit',
+      partialize: (state) => ({
+        cockpitSkin: state.cockpitSkin,
+        unlockedSkins: state.unlockedSkins,
+        focusedLabId: state.focusedLabId,
+        npcsVisible: state.npcsVisible,
+        cockpitAudioEnabled: state.cockpitAudioEnabled,
+        ambientVolume: state.ambientVolume,
+        miniMapVisible: state.miniMapVisible,
+      }),
+    }
+  )
+);
+```
+
+---
+
+## Step 20c: Cockpit Config (CPA v2.0)
+
+**File:** `src/lib/3d/cockpitConfig.ts`
+
+> CPA v2.0: Central configuration for all cockpit geometry, bloom, camera, vignette, HUD, panel, and LOD presets. Single source of truth consumed by CockpitCanvas, CockpitPanels, HolographicHUD, SidePanels, StatusBar3D, BarrelDistortion, and all cockpit 3D components.
+
+```typescript
+// ================================================================
+// Cockpit Panoramic Architecture — Central Config (CPA v2.0)
+// ================================================================
+// Consolidates: CPA v1.0 + Enhancement 1.1 + Enhancement 1.2
+// Decisions: CPA-1 through CPA-12, CPA2-1 through CPA2-12
+
+// ■■ Cockpit Geometry Constants (v2.0 — adaptive curvature) ■■
+export const COCKPIT_GEOMETRY_V2 = {
+  // Base values (adapted by useAdaptiveCockpit)
+  panelCurvature: 0.85,
+  totalWrapArc: 140,            // degrees, overridden by adaptive
+  panelRadius: 4.0,             // overridden by adaptive
+  centralViewportWidth: 0.56,
+  sidesPanelWidth: 0.12,
+  topBarHeight: 0.10,
+  consoleDeskHeight: 0.15,
+  statusBarHeight: 0.05,
+  hexRadius: 0.35,
+  hexDepth: 0.02,
+
+  // NEW in v2
+  hexDataTextureSize: 64,       // px, for lab number / indicator textures
+  panelEdgeBevel: 0.005,        // subtle edge chamfer
+  topBarSegments: 48,           // increased from 32 for smoother curve
+  sideSegments: 24,             // increased from 16
+} as const;
+
+// ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■
+export const ADAPTIVE_CURVATURE = {
+  ultraWide: { minWidth: 1920, arc: 155, radius: 4.2 },
+  desktop:   { minWidth: 1440, arc: 140, radius: 4.0 },
+  tablet:    { minWidth: 1024, arc: 120, radius: 3.6 },
+  cssFallback: { minWidth: 0, arc: 0, radius: 0 },
+} as const;
+
+// ■■ Bloom Presets — Mode-Dependent (CPA-7) ■■
+export const BLOOM_PRESETS = {
+  dashboard:     { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
+  labmap:        { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
+  lab:           { intensity: 0.5, threshold: 0.5, smoothing: 0.85 },
+  game:          { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
+  celebration:   { intensity: 0.8, threshold: 0.3, smoothing: 0.7 },
+  gameComplete:  { intensity: 1.0, threshold: 0.2, smoothing: 0.6 },
+  profile:       { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
+  onboarding:    { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
+} as const;
+
+// ■■ Camera Presets — FOV + Barrel Distortion (CPA-9, CPA-10) ■■
+export const CAMERA_PRESETS = {
+  dashboard:   { fov: 56, distortion: 0.02 },
+  labmap:      { fov: 58, distortion: 0.02 },
+  lab:         { fov: 55, distortion: 0.015 },
+  game:        { fov: 52, distortion: 0.0 },
+  celebration: { fov: 58, distortion: 0.025 },
+  profile:     { fov: 54, distortion: 0.01 },
+  onboarding:  { fov: 52, distortion: 0.01 },
+} as const;
+
+// ■■ Vignette Presets — R3F Postprocessing (CPA-8) ■■
+export const VIGNETTE_PRESETS = {
+  dashboard:   { darkness: 0.5, offset: 0.3 },
+  labmap:      { darkness: 0.4, offset: 0.3 },
+  lab:         { darkness: 0.5, offset: 0.3 },
+  game:        { darkness: 0.6, offset: 0.25 },
+  celebration: { darkness: 0.3, offset: 0.4 },
+  profile:     { darkness: 0.5, offset: 0.3 },
+  onboarding:  { darkness: 0.4, offset: 0.35 },
+} as const;
+
+// ■■ HUD Presets v2 — Data-Driven Holographic HUD (CPA2-3) ■■
+export const HUD_PRESETS_V2 = {
+  dashboard:     { opacity: 0.15, rotationSpeed: 0.1,  pulseIntensity: 0.3, dataMode: 'minimap' as const },
+  labmap:        { opacity: 0.18, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' as const },
+  lab:           { opacity: 0.20, rotationSpeed: 0.2,  pulseIntensity: 0.5, dataMode: 'labfocus' as const },
+  game:          { opacity: 0.0,  rotationSpeed: 0,    pulseIntensity: 0,   dataMode: 'hidden' as const },
+  celebration:   { opacity: 0.85, rotationSpeed: 0.4,  pulseIntensity: 1.0, dataMode: 'burst' as const },
+  gameComplete:  { opacity: 1.0,  rotationSpeed: 0.5,  pulseIntensity: 1.0, dataMode: 'burst' as const },
+  profile:       { opacity: 0.12, rotationSpeed: 0.08, pulseIntensity: 0.2, dataMode: 'stats' as const },
+  onboarding:    { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'tutorial' as const },
+} as const;
+
+// ■■ Side Panel Presets (CPA-6) ■■
+export const SIDE_PANEL_PRESETS = {
+  dashboard:   { opacity: 0.6, leftContent: 'radar' as const, rightContent: 'stats' as const },
+  labmap:      { opacity: 0.7, leftContent: 'labNav' as const, rightContent: 'stats' as const },
+  lab:         { opacity: 0.5, leftContent: 'labNav' as const, rightContent: 'stats' as const },
+  game:        { opacity: 0.0, leftContent: 'radar' as const, rightContent: 'stats' as const },
+  celebration: { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'terminal' as const },
+  profile:     { opacity: 0.4, leftContent: 'radar' as const, rightContent: 'stats' as const },
+  onboarding:  { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'stats' as const },
+} as const;
+
+// ■■ Panel Curvature per Mode ■■
+export const PANEL_CURVATURE_PRESETS = {
+  dashboard:   0.85,
+  labmap:      0.85,
+  lab:         0.85,
+  game:        0.3,     // Retracted during games (Decision 3.4)
+  celebration: 0.85,
+  profile:     0.85,
+  onboarding:  0.7,
+} as const;
+
+// ■■ Panel Opacity per Mode ■■
+export const PANEL_OPACITY_PRESETS = {
+  dashboard:   1.0,
+  labmap:      1.0,
+  lab:         1.0,
+  game:        0.2,     // Dimmed during games
+  celebration: 1.0,
+  profile:     1.0,
+  onboarding:  0.8,
+} as const;
+
+// ■■ Status Bar Opacity per Mode ■■
+export const STATUS_BAR_PRESETS = {
+  dashboard:   { opacity: 1.0 },
+  labmap:      { opacity: 1.0 },
+  lab:         { opacity: 1.0 },
+  game:        { opacity: 0.15 },  // Minimal, non-distracting
+  celebration: { opacity: 1.0 },
+  profile:     { opacity: 1.0 },
+  onboarding:  { opacity: 0.6 },
+} as const;
+
+// ■■ Skin-Reactive Panel Materials (CPA2-5) ■■
+export const SKIN_PANEL_TINTS: Record<string, {
+  panelTint: string;
+  hexGlow: string;
+  chromeReflection: string;
+}> = {
+  default:    { panelTint: '#1a1e2e', hexGlow: 'lab',     chromeReflection: 'frost-prismatic' },
+  cyberpunk:  { panelTint: '#2a0030', hexGlow: '#FF00FF', chromeReflection: 'neon-grid' },
+  space:      { panelTint: '#0a0a1e', hexGlow: '#4444FF', chromeReflection: 'starfield' },
+  underwater: { panelTint: '#0a1a2e', hexGlow: '#00BBFF', chromeReflection: 'caustic' },
+  crystal:    { panelTint: '#1a0828', hexGlow: '#AA66FF', chromeReflection: 'prismatic' },
+};
+
+// ■■ Console Frame Styles per Skin (CPA2-11) ■■
+export const CONSOLE_FRAME_STYLES: Record<string, {
+  material: string;
+  edgeGlow: boolean;
+  transmission: number;
+  bracketStyle: string;
+}> = {
+  default:    { material: 'chrome',     edgeGlow: true,  transmission: 0.4, bracketStyle: 'angular' },
+  cyberpunk:  { material: 'darkChrome', edgeGlow: true,  transmission: 0.3, bracketStyle: 'neon' },
+  space:      { material: 'titanium',   edgeGlow: false, transmission: 0.5, bracketStyle: 'minimal' },
+  underwater: { material: 'copper',     edgeGlow: true,  transmission: 0.6, bracketStyle: 'organic' },
+  crystal:    { material: 'glass',      edgeGlow: true,  transmission: 0.8, bracketStyle: 'faceted' },
+};
+
+// ■■ Mode Transition Durations (CPA2-6) ■■
+export const MODE_TRANSITIONS = {
+  'dashboard→lab':        { duration: 800, easing: 'spring(300, 25)' },
+  'lab→game':             { duration: 600, easing: 'easeInOut' },
+  'game→lab':             { duration: 400, easing: 'easeOut' },
+  'lab→dashboard':        { duration: 800, easing: 'spring(300, 25)' },
+  'any→celebration':      { duration: 200, easing: 'easeIn' },
+  'celebration→previous': { duration: 1200, easing: 'easeOut' },
+} as const;
+
+// ■■ Ceremony FX Intensity per Type (CPA2-10) ■■
+export const CEREMONY_INTENSITY = {
+  xp:              { bloomPeak: 0.6, particleCount: 50,  hudExpansion: 1.1, duration: 1500 },
+  badge:           { bloomPeak: 0.8, particleCount: 100, hudExpansion: 1.3, duration: 2000 },
+  levelUp:         { bloomPeak: 1.0, particleCount: 200, hudExpansion: 1.5, duration: 3000 },
+  gameComplete:    { bloomPeak: 0.9, particleCount: 150, hudExpansion: 1.4, duration: 2500 },
+  streakMilestone: { bloomPeak: 0.7, particleCount: 80,  hudExpansion: 1.2, duration: 2000 },
+} as const;
+
+// ■■ Cockpit LOD Levels (CPA2-12) ■■
+export const COCKPIT_LOD = {
+  ultra: {
+    panelSegments: 48,
+    sideSegments: 24,
+    hexDetail: true,
+    hudRingSegments: 64,
+    scanLines: 12,
+    barrelDistortion: true,
+    reflections: true,
+  },
+  high: {
+    panelSegments: 32,
+    sideSegments: 16,
+    hexDetail: true,
+    hudRingSegments: 48,
+    scanLines: 12,
+    barrelDistortion: true,
+    reflections: true,
+  },
+  medium: {
+    panelSegments: 24,
+    sideSegments: 12,
+    hexDetail: false,
+    hudRingSegments: 32,
+    scanLines: 8,
+    barrelDistortion: false,
+    reflections: false,
+  },
+  low: {
+    panelSegments: 16,
+    sideSegments: 8,
+    hexDetail: false,
+    hudRingSegments: 16,
+    scanLines: 6,
+    barrelDistortion: false,
+    reflections: false,
+  },
+} as const;
+
+// ■■ Triangle Budget Breakdown (CPA v2.0) ■■
+export const TRIANGLE_BUDGET_V2 = {
+  cockpitShell: {
+    cockpitPanels: { desktop: 1500, tablet: 800, mobile: 0 },
+    hexClusters:   { desktop: 300,  tablet: 200, mobile: 0 },
+    holographicHUD:{ desktop: 600,  tablet: 400, mobile: 0 },
+    sidePanels:    { desktop: 200,  tablet: 100, mobile: 0 },
+    statusBar3D:   { desktop: 300,  tablet: 200, mobile: 0 },
+    ledRim:        { desktop: 1500, tablet: 800, mobile: 0 },
+  },
+  spatialContent: {
+    holographicLabMap:   { desktop: 28000, tablet: 12000, mobile: 0 },
+    labStructures:       { desktop: 25000, tablet: 10000, mobile: 0 },
+    interactiveConsoles: { desktop: 6000,  tablet: 3000,  mobile: 0 },
+    ambientNPCs:         { desktop: 4000,  tablet: 2000,  mobile: 0 },
+    petCompanion:        { desktop: 1500,  tablet: 800,   mobile: 0 },
+    dynamicEnvironment:  { desktop: 15000, tablet: 5000,  mobile: 0 },
+    ambientParticles:    { desktop: 5000,  tablet: 2000,  mobile: 0 },
+  },
+  transitionPeak: {
+    wormhole:  { desktop: 2500, tablet: 1500, mobile: 0 },
+    ceremony:  { desktop: 3000, tablet: 1000, mobile: 0 },
+  },
+} as const;
+
+// ■■ Adaptive FPS Degradation Thresholds ■■
+export const FPS_DEGRADATION = {
+  full:           { min: 0.9,  action: 'Full quality' },
+  reduceParticle: { min: 0.8,  action: 'Reduce particle counts by 30%' },
+  dropLOD:        { min: 0.6,  action: 'Drop to next LOD level, disable BarrelDistortion' },
+  disableHUD:     { min: 0.4,  action: 'Disable HolographicHUD, reduce NPC count by half' },
+  cssFallback:    { min: 0.0,  action: 'Disable all cockpit 3D, fall back to CSS frame' },
+} as const;
+
+// ■■ Progressive Enhancement Thresholds (CPA2-9) ■■
+export const COCKPIT_FEATURE_THRESHOLDS = {
+  fullCockpit3D:    { minWidth: 1024, minGPU: 'medium' as const },
+  reducedCockpit3D: { minWidth: 768,  minGPU: 'low' as const },
+  cssOnly:          { minWidth: 0,    minGPU: 'any' as const },
+} as const;
+
+// ■■ Type exports for consumers ■■
+export type StationModeKey = keyof typeof BLOOM_PRESETS;
+export type SidePanelContent = 'radar' | 'labNav' | 'terminal' | 'stats';
+```
+
+---
+
+## Step 20d: Cockpit Audio Engine (CPA v2.0)
+
+**File:** `src/lib/audio/cockpitAudio.ts`
+
+> CPA v2.0: Spatial audio engine for cockpit — skin-specific soundscapes, positional audio zones, and celebration SFX. Built on Web Audio API (upgradeable to Tone.js Panner3D for spatial positioning).
+
+```typescript
+// ================================================================
+// CPA v2.0 — Cockpit Audio Engine
+// ================================================================
+// Manages: spatial audio zones, skin-specific ambient, transition SFX,
+// celebration sounds, listener position tracking.
+// Respects: uiStore.soundEnabled + accessibilityStore.reduceMotion
+
+import type { CockpitSkin } from '@/types';
+
+// Skin-specific ambient frequencies
+const SKIN_AMBIENT: Record<CockpitSkin, { note: number; type: OscillatorType }> = {
+  default:    { note: 65.41, type: 'sine' },        // C2
+  cyberpunk:  { note: 87.31, type: 'sawtooth' },    // F2 (filtered)
+  space:      { note: 65.41, type: 'sine' },         // Cm drone
+  underwater: { note: 73.42, type: 'sine' },         // D2 (bandpass)
+  crystal:    { note: 110.0, type: 'sine' },         // A2 (glass harmonica)
+};
+
+export class CockpitAudioEngine {
+  private context: AudioContext | null = null;
+  private ambientOsc: OscillatorNode | null = null;
+  private ambientGain: GainNode | null = null;
+  private masterGain: GainNode | null = null;
+  private currentSkin: CockpitSkin = 'default';
+  private disposed = false;
+
+  async initialize(skin: CockpitSkin): Promise<void> {
+    if (typeof window === 'undefined') return;
+    try {
+      this.context = new AudioContext();
+      this.masterGain = this.context.createGain();
+      this.masterGain.gain.setValueAtTime(0.15, this.context.currentTime);
+      this.masterGain.connect(this.context.destination);
+      this.currentSkin = skin;
+    } catch {
+      // Audio not available
+    }
+  }
+
+  updateListenerPosition(_position: [number, number, number]): void {
+    // Spatial positioning — implemented with Tone.js Panner3D in full build
+    // Web Audio API listener position update placeholder
+  }
+
+  async transitionToSkin(newSkin: CockpitSkin, duration: number): Promise<void> {
+    if (!this.context || !this.masterGain) return;
+    // Fade out current ambient
+    if (this.ambientGain) {
+      this.ambientGain.gain.exponentialRampToValueAtTime(
+        0.001, this.context.currentTime + duration * 0.4
+      );
+    }
+    // After fade out, start new ambient
+    setTimeout(() => {
+      if (this.disposed) return;
+      this.stopAmbient();
+      this.startAmbient(newSkin);
+      this.currentSkin = newSkin;
+    }, duration * 400);
+  }
+
+  startAmbient(skin?: CockpitSkin): void {
+    if (!this.context || !this.masterGain) return;
+    const s = skin || this.currentSkin;
+    const config = SKIN_AMBIENT[s];
+    this.ambientOsc = this.context.createOscillator();
+    this.ambientGain = this.context.createGain();
+    this.ambientOsc.type = config.type;
+    this.ambientOsc.frequency.setValueAtTime(config.note, this.context.currentTime);
+    this.ambientGain.gain.setValueAtTime(0.02, this.context.currentTime);
+    this.ambientOsc.connect(this.ambientGain);
+    this.ambientGain.connect(this.masterGain);
+    this.ambientOsc.start();
+  }
+
+  private stopAmbient(): void {
+    if (this.ambientOsc) {
+      try { this.ambientOsc.stop(); } catch { /* already stopped */ }
+      this.ambientOsc = null;
+    }
+    if (this.ambientGain) {
+      this.ambientGain.disconnect();
+      this.ambientGain = null;
+    }
+  }
+
+  playSpatial(soundId: string, _position: [number, number, number]): void {
+    if (!this.context || !this.masterGain) return;
+    // Short click/tone for UI feedback — full spatial impl in Tone.js upgrade
+    const osc = this.context.createOscillator();
+    const gain = this.context.createGain();
+    const freq = soundId === 'hex-click' ? 3000 : soundId === 'console-open' ? 800 : 1200;
+    osc.frequency.setValueAtTime(freq, this.context.currentTime);
+    gain.gain.setValueAtTime(0.08, this.context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, this.context.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(this.masterGain);
+    osc.start();
+    osc.stop(this.context.currentTime + 0.1);
+  }
+
+  setVolume(volume: number): void {
+    if (this.masterGain && this.context) {
+      this.masterGain.gain.setValueAtTime(volume, this.context.currentTime);
+    }
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    this.stopAmbient();
+    if (this.context) {
+      this.context.close();
+      this.context = null;
+    }
+  }
+}
+```
+
+---
+
+## Step 20e: useAdaptiveCockpit Hook (CPA v2.0)
+
+**File:** `src/hooks/useAdaptiveCockpit.ts`
+
+> CPA v2.0 Decision CPA2-2: Viewport-adaptive curvature. Returns arc degrees, panel radius, and curvature based on window width with debounced resize listener.
+
+```typescript
+'use client';
+
+import { useState, useEffect } from 'react';
+import { ADAPTIVE_CURVATURE, COCKPIT_GEOMETRY_V2 } from '@/lib/3d/cockpitConfig';
+
+interface AdaptiveCockpitParams {
+  arcDegrees: number;
+  panelRadius: number;
+  curvature: number;
+  isCSSFallback: boolean;
+}
+
+export function useAdaptiveCockpit(): AdaptiveCockpitParams {
+  const [params, setParams] = useState<AdaptiveCockpitParams>({
+    arcDegrees: COCKPIT_GEOMETRY_V2.totalWrapArc,
+    panelRadius: COCKPIT_GEOMETRY_V2.panelRadius,
+    curvature: COCKPIT_GEOMETRY_V2.panelCurvature,
+    isCSSFallback: false,
+  });
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    function calculate() {
+      const w = window.innerWidth;
+      if (w >= ADAPTIVE_CURVATURE.ultraWide.minWidth) {
+        setParams({
+          arcDegrees: ADAPTIVE_CURVATURE.ultraWide.arc,
+          panelRadius: ADAPTIVE_CURVATURE.ultraWide.radius,
+          curvature: COCKPIT_GEOMETRY_V2.panelCurvature,
+          isCSSFallback: false,
+        });
+      } else if (w >= ADAPTIVE_CURVATURE.desktop.minWidth) {
+        setParams({
+          arcDegrees: ADAPTIVE_CURVATURE.desktop.arc,
+          panelRadius: ADAPTIVE_CURVATURE.desktop.radius,
+          curvature: COCKPIT_GEOMETRY_V2.panelCurvature,
+          isCSSFallback: false,
+        });
+      } else if (w >= ADAPTIVE_CURVATURE.tablet.minWidth) {
+        setParams({
+          arcDegrees: ADAPTIVE_CURVATURE.tablet.arc,
+          panelRadius: ADAPTIVE_CURVATURE.tablet.radius,
+          curvature: COCKPIT_GEOMETRY_V2.panelCurvature * 0.8,
+          isCSSFallback: false,
+        });
+      } else {
+        setParams({
+          arcDegrees: 0,
+          panelRadius: 0,
+          curvature: 0,
+          isCSSFallback: true,
+        });
+      }
+    }
+
+    calculate();
+
+    function handleResize() {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(calculate, 150);
+    }
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  return params;
+}
+```
+
+---
+
 ## Step 21: Hooks
 
 ### useDebounce
@@ -1243,6 +2089,11 @@ git tag -a v0.1.0 -m "Stage 1 complete: Foundation"
 | `src/stores/gameStore.ts` | 18 | Game state machine |
 | `src/stores/toastStore.ts` | 19 | Toast notifications |
 | `src/stores/uiStore.ts` | 20 | UI state (sidebar, celebrations) |
+| `src/stores/deviceStore.ts` | 20a | Device type + LOD profile (CPA v2.0) |
+| `src/stores/cockpitStore.ts` | 20b | Cockpit spatial nav + skin + ceremony queue (CPA v2.0) |
+| `src/lib/3d/cockpitConfig.ts` | 20c | Cockpit geometry, bloom, HUD, LOD presets (CPA v2.0) |
+| `src/lib/audio/cockpitAudio.ts` | 20d | CockpitAudioEngine spatial audio class (CPA v2.0) |
+| `src/hooks/useAdaptiveCockpit.ts` | 20e | Viewport-adaptive curvature hook (CPA v2.0) |
 | `src/hooks/useDebounce.ts` | 21 | Value debouncing |
 | `src/hooks/useLocalStorage.ts` | 21 | SSR-safe localStorage |
 | `src/hooks/useMediaQuery.ts` | 21 | SSR-safe media queries |
@@ -1252,7 +2103,7 @@ git tag -a v0.1.0 -m "Stage 1 complete: Foundation"
 | `src/components/providers/QueryProvider.tsx` | 24 | React Query wrapper |
 | `src/app/layout.tsx` | 25 | Root layout (initial) |
 
-**Total files created in Stage 1:** 26 source files + 30+ directories
+**Total files created in Stage 1:** 31 source files + 30+ directories (includes 5 new CPA v2.0 files)
 
 ---
 

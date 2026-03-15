@@ -927,4 +927,55 @@ export default ParticleIntensitySlider;
 | A (Shaders) | 4 GLSL + index.ts modify | 4.2, 4.3, 4.5 |
 | B (R3F Rewards) | 4 components | 4.2, 4.3, 5.2, 7.2 |
 | C (Celebrations) | 4 components + uiStore modify | 5.3, 5.5 |
+
+---
+
+## CPA v2.0 INTEGRATION NOTES
+
+> **Updated March 15, 2026** — 3D Panoramic Cockpit Enhancement v2.0 integration points.
+
+### CeremonyFX Replaces / Augments LevelUpExplosion
+
+The `CeremonyFX.tsx` component (created in Stage 3 Part 3B as part of the CPA v2.0 unified CockpitCanvas) provides a **cockpit-wide** celebration system that augments the existing `LevelUpExplosion.tsx` and `CelebrationOverlay`:
+
+| Event | v2 Component | CPA v2.0 Augmentation |
+|-------|-------------|----------------------|
+| Level-up | LevelUpExplosion.tsx (self-contained Canvas) | CeremonyFX type `'levelUp'` — HUD rings expand 1.5x, bloom spikes to 1.0, 200 particles from cockpit center, cockpit panels flash lab color |
+| XP gain | CelebrationOverlay CSS animation | CeremonyFX type `'xp'` — HUD rings expand 1.1x, bloom to 0.6, 50 particles, subtle panel pulse |
+| Badge earned | CelebrationOverlay CSS animation | CeremonyFX type `'badge'` — HUD rings expand 1.3x, bloom to 0.8, 100 particles, hex clusters flash in sequence |
+| Game complete | CelebrationOverlay CSS animation | CeremonyFX type `'gameComplete'` — HUD rings expand 1.4x, bloom to 0.9, 150 particles |
+| Streak milestone | CSS StreakFire animation | CeremonyFX type `'streakMilestone'` — HUD rings expand 1.2x, bloom to 0.7, 80 fire-colored particles |
+
+**Coexistence strategy:** Both systems run simultaneously:
+- **LevelUpExplosion** renders in its own self-contained Canvas overlay (z-index 50) — remains as-is for mobile fallback and guaranteed visibility
+- **CeremonyFX** renders within the CockpitCanvas (z-index 0) — adds cockpit-wide environmental celebration
+- On mobile (no CockpitCanvas), only LevelUpExplosion + CSS CelebrationOverlay trigger
+- On desktop, both fire for maximum impact
+
+### Triggering CeremonyFX from Game Completion
+
+When a game calls `gameStore.completeGame()`, the celebration pipeline should:
+
+```typescript
+// In useGameFocusState or game completion handler:
+import { useCockpitStore } from '@/stores/cockpitStore';
+
+// After game.completeGame():
+const labColor = useUIStore.getState().labColor;
+useCockpitStore.getState().enqueueCeremony({
+  type: 'gameComplete',
+  intensity: 0.9,
+  labColor,
+});
+```
+
+### Particle Intensity Integration
+
+The `ParticleIntensitySlider` and `uiStore.particleIntensity` setting affects CeremonyFX particles:
+- `'off'` → CeremonyFX particle count = 0 (bloom/HUD effects still play)
+- `'low'` → particle count × 0.3
+- `'medium'` → particle count × 1.0 (default from `CEREMONY_INTENSITY`)
+- `'high'` → particle count × 1.5
+
+This is consumed by CeremonyFX via `useUIStore(s => s.particleIntensity)` — consistent with GameParticles3D pattern.
 | **Total** | **12 new + 2 modified** | **8 decisions** |

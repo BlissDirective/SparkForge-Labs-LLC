@@ -1,12 +1,13 @@
 # STAGE 3: AUTH, LAYOUT & STATION FRAME — v3-FINAL (PART 3B)
 
-**Updated:** March 14, 2026 — CPA v1.0 (Cockpit Panoramic Architecture) integration
+**Updated:** March 15, 2026 — CPA v2.0 (3D Panoramic Cockpit Enhancement) integration
+**Previous:** March 14, 2026 — CPA v1.0
 
 ## Overview
 
 Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laboratory Control Station vision. This replaces the Part 3A CSS-only StationFrame placeholder with a persistent R3F Canvas containing aurora background shaders, GPU-instanced ambient particles with connection lines, an emissive LED rim strip, Bloom post-processing, and WebGL detection with CSS fallbacks. It also adds the ~7-second cinematic CrystalShatter entry sequence, a landing page CrystalHero with mouse parallax, an OnboardingCrystal that forms as onboarding steps progress, GLSL shader infrastructure (noise library, aurora, scanline, chrome), 7+4 PBR material presets, and a GSAP ScrollTrigger wrapper hook.
 
-**CPA v1.0 additions:** StationFrame rewritten as cockpit orchestrator with curved CylinderGeometry panoramic panels, hexagonal sub-panels, HolographicHUD (concentric rings overlay), SidePanels (radar + data stream shaders), StatusBar3D (3D gauge strip), mode-dependent Bloom/Vignette/FOV/BarrelDistortion postprocessing, LEDRim adapted to curved arc path. 4 new material presets (PanelFace, WornChrome, IndicatorGlass, ConsoleBase). 3 new GLSL shaders (radarSweep, dataStream, holographicRing). Total triangle budget: 2800/3000.
+**CPA v2.0 additions:** StationFrame refactored from a standalone Canvas into a scene group within the unified `CockpitCanvas` orchestrator (Decision CPA2-1). Single R3F Canvas contains ALL cockpit + spatial dashboard elements. CockpitPanels upgraded with viewport-adaptive curvature (CPA2-2) and functional hex clusters with real data binding (CPA2-3). HolographicHUD v2 with data-driven rings (session time, lab progress, XP-to-level), mini-map integration, and threat/achievement radar. SidePanels with skin-reactive shader uniforms. StatusBar3D with real-time store subscriptions. Skin-reactive panel materials per cockpit skin (CPA2-5). NEW: WormholeTransition for lab entry cinematics (CPA2-6), CeremonyFX for achievement celebrations (CPA2-10), ConsoleDetailPanel for expandable console info, MiniMapOverlay for persistent navigation, NPCDialogueBubble for contextual NPC speech. 4 material presets (PanelFace, WornChrome, IndicatorGlass, ConsoleBase). 5 GLSL shaders (radarSweep, dataStream, holographicRing, dissolve, wormhole). Triangle budget: 104,400 (desktop ultra) with LOD degradation.
 
 ### v3 Decisions Implemented
 
@@ -38,8 +39,20 @@ Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laborator
 - **CPA-8**: R3F Vignette replaces CSS (darkness=0.5, offset=0.3)
 - **CPA-9**: Dashboard FOV (56°, was 50°)
 - **CPA-10**: Barrel distortion (0.02 strength, 0.0 in games)
-- **CPA-11**: Total station frame tri budget (3000 max)
+- **CPA-11**: Total station frame tri budget — upgraded to 104,400 (desktop ultra) with LOD degradation
 - **CPA-12**: Mobile cockpit (CSS-only indicators, zero WebGL)
+- **CPA2-1**: Single R3F Canvas for all cockpit + spatial content (replaces dual canvas)
+- **CPA2-2**: Viewport-adaptive curvature (120-155° arc based on window width)
+- **CPA2-3**: Hex clusters display real data — left: lab nav, right: XP/streak/alerts
+- **CPA2-4**: Skin unlock via achievements (not free selection)
+- **CPA2-5**: Skin transition uses dissolve shader (not crossfade)
+- **CPA2-6**: Lab entry uses wormhole cinematic (2.5s)
+- **CPA2-7**: NPC dialogue bubbles are HTML overlays (not 3D text)
+- **CPA2-8**: Spatial audio via Tone.js Panner3D
+- **CPA2-9**: Mobile gets zero R3F (pure CSS fallback)
+- **CPA2-10**: Ceremony FX intensity scales by event type
+- **CPA2-11**: Console detail panels are glassmorphic HTML overlays
+- **CPA2-12**: Adaptive FPS monitoring can fall back to CSS at <40% target
 
 ### Files Created/Modified
 
@@ -53,19 +66,26 @@ Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laborator
 | 6 | `src/components/3d/AuroraBackground.tsx` | Created |
 | 7 | `src/components/3d/AmbientParticles.tsx` | Created |
 | 8 | `src/components/3d/LEDRim.tsx` | Created (**CPA: curved arc via TubeGeometry + CatmullRomCurve3**) |
-| 9 | `src/components/3d/StationFrame.tsx` | Replaced (**CPA: major rewrite as cockpit orchestrator**) |
+| 9 | `src/components/3d/StationFrame.tsx` | Replaced (**CPA v2.0: refactored to scene group — delegates to CockpitCanvas**) |
 | 10 | `src/components/3d/CrystalShatter.tsx` | Created |
 | 11 | `src/components/3d/CrystalHero.tsx` | Created |
 | 12 | `src/components/3d/OnboardingCrystal.tsx` | Created |
 | 13 | `src/hooks/useGSAPScroll.ts` | Created |
 | 14 | `public/hdri/README-frost-prismatic.md` | Created |
-| 15 | `src/app/(dashboard)/layout.tsx` | Modified (**CPA: passes all CPA props**) |
-| 16 | `src/components/3d/CockpitPanels.tsx` | **CPA: Created** — Curved panels + hex sub-panels |
-| 17 | `src/components/3d/HolographicHUD.tsx` | **CPA: Created** — Concentric rings overlay |
-| 18 | `src/components/3d/SidePanels.tsx` | **CPA: Created** — Left radar + right terminal |
-| 19 | `src/components/3d/StatusBar3D.tsx` | **CPA: Created** — 3D gauge-style bottom strip |
+| 15 | `src/app/(dashboard)/layout.tsx` | Modified (**CPA v2.0: imports CockpitCanvas, single Canvas orchestrator**) |
+| 16 | `src/components/3d/CockpitPanels.tsx` | **CPA v2.0: Created** — Adaptive curved panels + functional hex clusters with data binding |
+| 17 | `src/components/3d/HolographicHUD.tsx` | **CPA v2.0: Created** — Data-driven rings (session/lab/XP) + mini-map + event radar |
+| 18 | `src/components/3d/SidePanels.tsx` | **CPA v2.0: Created** — Left radar + right terminal with skin-reactive shaders |
+| 19 | `src/components/3d/StatusBar3D.tsx` | **CPA v2.0: Created** — 3D gauge strip with real-time store subscriptions |
 | 20 | `src/components/3d/BarrelDistortion.tsx` | **CPA: Created** — Custom postprocessing effect |
-| 21 | `src/lib/3d/cockpitConfig.ts` | **CPA: Created** — Central cockpit config |
+| 21 | `src/components/3d/CockpitCanvas.tsx` | **CPA v2.0: Created** — Unified R3F Canvas orchestrator (Decision CPA2-1) |
+| 22 | `src/components/3d/WormholeTransition.tsx` | **CPA v2.0: Created** — Lab entry/exit cinematic (Decision CPA2-6) |
+| 23 | `src/components/3d/CeremonyFX.tsx` | **CPA v2.0: Created** — Achievement/level-up ceremony FX (Decision CPA2-10) |
+| 24 | `src/components/dashboard/ConsoleDetailPanel.tsx` | **CPA v2.0: Created** — Expandable console info overlays (Decision CPA2-11) |
+| 25 | `src/components/dashboard/MiniMapOverlay.tsx` | **CPA v2.0: Created** — Persistent mini-map (top-right) |
+| 26 | `src/components/dashboard/NPCDialogueBubble.tsx` | **CPA v2.0: Created** — Contextual NPC speech bubbles (Decision CPA2-7) |
+| 27 | `src/shaders/dissolve.glsl` | **CPA v2.0: Created** — Skin transition dissolve shader (Decision CPA2-5) |
+| 28 | `src/shaders/wormhole.glsl` | **CPA v2.0: Created** — Lab entry tunnel energy shader |
 
 ### Packages Installed
 
@@ -74,6 +94,185 @@ npm install three @react-three/fiber @react-three/drei @react-three/postprocessi
 ```
 
 > `--legacy-peer-deps` required due to peer dependency conflicts between R3F ecosystem packages.
+
+---
+
+## CPA v2.0 — Unified Scene Graph Architecture
+
+> **Decision CPA2-1:** v1 had separate R3F Canvas instances for StationFrame and SpatialDashboard. v2.0 merges them into a **single R3F Canvas** at `z-index: 0` with all cockpit elements as siblings in one scene graph.
+
+### Single Canvas Composition (CockpitCanvas.tsx)
+
+```
+R3F Canvas (fixed, full viewport, z-index: 0)
+├── CinematicCamera (spring-damped, mode-aware)
+├── AdaptiveDpr
+├── Environment (HDR or preset fallback)
+│
+├── /* LAYER 1: Background */
+├── CockpitSkinManager (skin-specific bg: stars/nebula/caustics/crystals/grid)
+├── AuroraBackground (default skin only, fades for other skins)
+│
+├── /* LAYER 2: Spatial Content */
+├── HolographicLabMap (10 labs in ring, core hologram)
+├── InteractiveConsole3D ×4 (XP, badges, streak, progress)
+├── AmbientNPCs (5 personality types + pet companion)
+├── DynamicEnvironment (lab-reactive particles, multi-light)
+│
+├── /* LAYER 3: Cockpit Shell */
+├── CockpitPanels (curved panoramic wrap + hex clusters — adaptive curvature)
+├── LEDRim (curved arc, lab-colored)
+├── SidePanels (left: radar/labNav, right: terminal/stats — skin-reactive)
+├── StatusBar3D (bottom gauge strip — real-time data)
+├── HolographicHUD (data-driven rings, mini-map, event radar)
+│
+├── /* LAYER 4: Postprocessing */
+├── EffectComposer
+│   ├── Bloom (mode-dependent: CPA-7)
+│   ├── Vignette (mode-dependent: CPA-8)
+│   └── BarrelDistortion (mode-dependent: CPA-10)
+│
+└── /* LAYER 5: Transition FX (when active) */
+    ├── WormholeTransition (lab entry/exit — 2.5s)
+    ├── GameLaunchZoom (game focus sequence — 1.5s)
+    └── CeremonyFX (achievement/level-up — scales by type)
+```
+
+### Z-Index Stack (Full)
+
+| z-index | Layer | Content |
+|---------|-------|---------|
+| 0 | R3F Canvas | All 3D content (single canvas) |
+| 1 | CSS station-frame-css | Mobile fallback frame |
+| 2 | CSS cockpit-indicators | Mobile side indicators + status bar |
+| 5 | CSS scanline-overlay | CRT scanline effect |
+| 10 | HTML SpatialOverlay | Lab info panel, nav hints, console quick-access |
+| 15 | HTML MiniMapOverlay | Persistent mini-map (top-right) |
+| 20 | HTML Dashboard Content | Actual page content (cards, grids, forms) |
+| 50 | HTML Modal Layer | Modals, toasts, celebrations |
+
+### CockpitCanvas Component Interface
+
+```typescript
+// src/components/3d/CockpitCanvas.tsx
+interface CockpitCanvasProps {
+  mode: StationModeKey;
+  labCompletions?: Record<number, number>;
+  onLabEnter?: (labId: number) => void;
+  children?: React.ReactNode;     // Game-specific 3D content injected here
+}
+
+export function CockpitCanvas({ mode, labCompletions, onLabEnter, children }: CockpitCanvasProps) {
+  const profile = useDeviceStore(s => s.profile);
+  const isMobile = useIsMobile();
+
+  if (isMobile) return null; // CSS fallback handles mobile
+
+  return (
+    <div className="fixed inset-0 z-0" aria-label="3D Cockpit Environment" role="application">
+      <Canvas
+        frameloop="always"
+        dpr={[1, profile.pixelRatio]}
+        camera={{ position: [0, 6.5, 7], fov: 58, near: 0.1, far: 100 }}
+        gl={{ antialias: profile.antialias, alpha: true, powerPreference: 'high-performance' }}
+      >
+        <Suspense fallback={null}>
+          <CockpitScene mode={mode} labCompletions={labCompletions} onLabEnter={onLabEnter}>
+            {children}
+          </CockpitScene>
+        </Suspense>
+      </Canvas>
+    </div>
+  );
+}
+```
+
+### HolographicHUD v2 — Data-Driven Rings
+
+Each HUD ring maps to real data (Decision CPA2-3):
+
+| Ring | Radius | Data | Visual |
+|------|--------|------|--------|
+| Outer (r=3.2-3.5) | Session time | Ring fills clockwise over session duration (60min = full) |
+| Mid (r=2.2-2.5) | Lab progress | 10 segments, each lit = lab completed |
+| Inner (r=1.2-1.5) | XP to next level | Fill ring, pulsing at >90% |
+| Core sphere | Current level | Size scales with level (1-50) |
+
+The 12 radial scan lines become an **event radar** — lines glow gold (near badge), green (new content), or orange (pending challenge) when sweeping past relevant labs.
+
+### Hex Cluster Data Binding (CPA2-3)
+
+**Left Hex Cluster (Lab Navigation):**
+- Hex 1: Active lab indicator (pulsing lab color, lab number texture)
+- Hex 2: Lab completion ring (fill = completion %)
+- Hex 3: Next recommended lab (mission marker pulse)
+
+**Right Hex Cluster (Status Indicators):**
+- Hex 1: XP rate indicator (sparkle speed = recent XP/min)
+- Hex 2: Streak status (flame opacity = streak heat)
+- Hex 3: Alert indicator (badge earned, challenge waiting)
+
+### WormholeTransition (Lab Entry — CPA2-6)
+
+2.5s sequence when child enters a lab:
+1. Camera acceleration (0-0.8s) — flies toward focused lab
+2. Wormhole open (0.8-1.2s) — torus geometry expands with lab-colored energy shader
+3. Tunnel transit (1.2-2.0s) — procedural tunnel (CylinderGeometry, BackSide, animated UV)
+4. Emerge (2.0-2.5s) — tunnel dissolves, lab page content fades in
+
+### CeremonyFX (Achievement Celebrations — CPA2-10)
+
+Intensity scales by event type:
+
+| Type | Bloom Peak | Particle Count | HUD Expansion | Duration |
+|------|-----------|---------------|---------------|----------|
+| xp | 0.6 | 50 | 1.1x | 1.5s |
+| badge | 0.8 | 100 | 1.3x | 2.0s |
+| levelUp | 1.0 | 200 | 1.5x | 3.0s |
+| gameComplete | 0.9 | 150 | 1.4x | 2.5s |
+| streakMilestone | 0.7 | 80 | 1.2x | 2.0s |
+
+### Skin-Reactive Panel Materials (CPA2-5)
+
+Panel materials respond to active cockpit skin:
+
+| Skin | PanelFace Tint | Hex Edge Glow | Chrome Reflection |
+|------|---------------|---------------|-------------------|
+| Default | `#1a1e2e` | Lab color | Frost-Prismatic HDR |
+| Cyberpunk | `#2a0030` | `#FF00FF` / `#00FFFF` | Neon grid reflection |
+| Space | `#0a0a1e` | `#4444FF` | Starfield reflection |
+| Underwater | `#0a1a2e` | `#00BBFF` | Caustic light pattern |
+| Crystal | `#1a0828` | `#AA66FF` | Prismatic refraction |
+
+### Skin Transition Effects (CPA2-5)
+
+When switching skins, a 2-second dissolve sequence plays:
+1. Dissolve out (0-0.5s) — dithered dissolve shader (`src/shaders/dissolve.glsl`)
+2. Flash (0.5-0.7s) — bloom spike to 2.0
+3. Dissolve in (0.7-2.0s) — new skin materializes with particle burst
+4. Settle (2.0-2.5s) — all elements reach steady state
+
+### Console Detail Panels (CPA2-11)
+
+Clicking a console opens a glassmorphic HTML overlay:
+
+| Console | Detail Panel Content |
+|---------|---------------------|
+| XP | Level progress bar, XP history graph (last 7 days), next level requirements |
+| Badges | Badge grid (earned + locked), recent badge highlight with description |
+| Streak | Streak calendar (last 30 days), longest streak record, daily goal status |
+| Progress | Per-lab completion grid, game completion counts, recommended next games |
+
+### Mode Transition Orchestration
+
+| Transition | Duration | Easing | Elements Affected |
+|-----------|----------|--------|-------------------|
+| dashboard → lab | 800ms | spring(300, 25) | Camera flies to lab, panels stay, HUD shifts to labfocus |
+| lab → game | 600ms | easeInOut | Camera zooms into game, panels retract (curvature 0.3), HUD hides |
+| game → lab | 400ms | easeOut | Camera pulls back, panels expand, HUD fades in |
+| lab → dashboard | 800ms | spring(300, 25) | Camera returns to overview, all elements restore |
+| any → celebration | 200ms | easeIn | Bloom spikes, HUD flares, panels pulse lab color |
+| celebration → previous | 1200ms | easeOut | Gradual return to pre-celebration state |
 
 ---
 

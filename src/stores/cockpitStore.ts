@@ -1,9 +1,10 @@
 // ════════════════════════════════════════════════════
-// COCKPIT STORE — Spatial Dashboard Navigation State
+// COCKPIT STORE — Spatial Dashboard Navigation State (CPA v2.0)
 // ════════════════════════════════════════════════════
-// Enhancement 1.1: Immersive Cockpit 2.0 — Spatial Dashboard
-// Manages: focused lab, camera target, spatial mode, console state
-// Persisted: cockpit skin selection + last focused lab
+// Enhancement 1.1 + 1.2 + CPA v2.0: 3D Panoramic Cockpit Enhancement
+// Manages: focused lab, camera target, spatial mode, console state,
+//          cockpit skin (unlock-gated), ceremony queue, audio prefs, mini-map
+// Persisted: cockpit skin + unlocked skins + last focused lab + NPC vis + audio + mini-map
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -11,6 +12,7 @@ import { persist } from 'zustand/middleware';
 export type CockpitSkin = 'default' | 'cyberpunk' | 'space' | 'underwater' | 'crystal';
 export type SpatialView = 'overview' | 'lab-focus' | 'console' | 'orbit';
 export type ConsoleType = 'xp' | 'badges' | 'streak' | 'progress' | null;
+export type CeremonyType = 'xp' | 'badge' | 'levelUp' | 'gameComplete' | 'streakMilestone';
 
 export interface CameraTarget {
   position: [number, number, number];
@@ -56,6 +58,21 @@ export const SPATIAL_CAMERA_PRESETS: Record<SpatialView, CameraTarget> = {
   },
 };
 
+// ═══ CPA v2.0 — Skin unlock requirements (Decision CPA2-4) ═══
+export const SKIN_UNLOCK_CONDITIONS: Record<CockpitSkin, { description: string; badge: string | null }> = {
+  default:    { description: 'Always available', badge: null },
+  cyberpunk:  { description: 'Complete all Lab 9 games', badge: 'Digital Pioneer' },
+  space:      { description: 'Earn 10,000 total XP', badge: 'Star Navigator' },
+  underwater: { description: 'Maintain a 30-day streak', badge: 'Deep Diver' },
+  crystal:    { description: 'Complete ALL 35 games at least once', badge: 'Crystal Commander' },
+};
+
+interface CeremonyQueueItem {
+  type: CeremonyType;
+  intensity: number;
+  labColor: string;
+}
+
 interface CockpitState {
   // Spatial navigation
   spatialView: SpatialView;
@@ -68,11 +85,23 @@ interface CockpitState {
   // Camera
   cameraTarget: CameraTarget;
 
-  // Customization
+  // Customization (CPA v2.0: skin unlock via achievements — Decision CPA2-4)
   cockpitSkin: CockpitSkin;
+  unlockedSkins: CockpitSkin[];
+  skinPreviewActive: boolean;
 
   // NPC state
   npcsVisible: boolean;
+
+  // CPA v2.0 — Ceremony queue (Decision CPA2-10)
+  ceremonyQueue: CeremonyQueueItem[];
+
+  // CPA v2.0 — Audio preferences (Decision CPA2-8)
+  cockpitAudioEnabled: boolean;
+  ambientVolume: number;
+
+  // CPA v2.0 — Mini-map
+  miniMapVisible: boolean;
 
   // Actions
   setSpatialView: (view: SpatialView) => void;
@@ -81,10 +110,17 @@ interface CockpitState {
   openConsole: (type: ConsoleType) => void;
   closeConsole: () => void;
   setCockpitSkin: (skin: CockpitSkin) => void;
+  unlockSkin: (skin: CockpitSkin) => void;
+  setSkinPreview: (active: boolean) => void;
   setTransitioning: (transitioning: boolean) => void;
   setOrbitSpeed: (speed: number) => void;
   toggleNPCs: () => void;
   returnToOverview: () => void;
+  enqueueCeremony: (item: CeremonyQueueItem) => void;
+  dequeueCeremony: () => void;
+  setCockpitAudio: (enabled: boolean) => void;
+  setAmbientVolume: (volume: number) => void;
+  toggleMiniMap: () => void;
 }
 
 export const useCockpitStore = create<CockpitState>()(
@@ -98,7 +134,13 @@ export const useCockpitStore = create<CockpitState>()(
       orbitSpeed: 0.15,
       cameraTarget: SPATIAL_CAMERA_PRESETS.overview,
       cockpitSkin: 'default',
+      unlockedSkins: ['default'] as CockpitSkin[],
+      skinPreviewActive: false,
       npcsVisible: true,
+      ceremonyQueue: [] as CeremonyQueueItem[],
+      cockpitAudioEnabled: true,
+      ambientVolume: 0.15,
+      miniMapVisible: true,
 
       setSpatialView: (spatialView) => {
         set({
@@ -154,7 +196,22 @@ export const useCockpitStore = create<CockpitState>()(
         get().returnToOverview();
       },
 
-      setCockpitSkin: (cockpitSkin) => set({ cockpitSkin }),
+      setCockpitSkin: (cockpitSkin) => {
+        const { unlockedSkins } = get();
+        if (unlockedSkins.includes(cockpitSkin)) {
+          set({ cockpitSkin });
+        }
+      },
+
+      unlockSkin: (skin) => {
+        set((s) => ({
+          unlockedSkins: s.unlockedSkins.includes(skin)
+            ? s.unlockedSkins
+            : [...s.unlockedSkins, skin],
+        }));
+      },
+
+      setSkinPreview: (skinPreviewActive) => set({ skinPreviewActive }),
 
       setTransitioning: (isTransitioning) => set({ isTransitioning }),
 
@@ -172,13 +229,29 @@ export const useCockpitStore = create<CockpitState>()(
         });
         setTimeout(() => set({ isTransitioning: false }), 800);
       },
+
+      enqueueCeremony: (item) =>
+        set((s) => ({ ceremonyQueue: [...s.ceremonyQueue, item] })),
+
+      dequeueCeremony: () =>
+        set((s) => ({ ceremonyQueue: s.ceremonyQueue.slice(1) })),
+
+      setCockpitAudio: (cockpitAudioEnabled) => set({ cockpitAudioEnabled }),
+
+      setAmbientVolume: (ambientVolume) => set({ ambientVolume }),
+
+      toggleMiniMap: () => set((s) => ({ miniMapVisible: !s.miniMapVisible })),
     }),
     {
       name: 'sparkforge-cockpit',
       partialize: (state) => ({
         cockpitSkin: state.cockpitSkin,
+        unlockedSkins: state.unlockedSkins,
         focusedLabId: state.focusedLabId,
         npcsVisible: state.npcsVisible,
+        cockpitAudioEnabled: state.cockpitAudioEnabled,
+        ambientVolume: state.ambientVolume,
+        miniMapVisible: state.miniMapVisible,
       }),
     }
   )

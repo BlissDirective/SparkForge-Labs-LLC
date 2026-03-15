@@ -1169,9 +1169,173 @@ git commit -m "Stage 10 Part 1: Accessibility system, error handling, a11y CSS"
 
 ---
 
+---
+
+## CPA v2.0 INTEGRATION — Cockpit Accessibility (Added March 15, 2026)
+
+> The 3D Panoramic Cockpit Enhancement v2.0 introduces extensive 3D elements that require dedicated accessibility support. This section documents the accessibility requirements for all cockpit components.
+
+### Cockpit Keyboard Navigation
+
+All cockpit elements are navigable via keyboard. The following bindings must be implemented in the dashboard layout and spatial overlay:
+
+| Key | Context | Action |
+|-----|---------|--------|
+| Arrow Left/Right | Overview | Cycle through labs (1-10) |
+| Arrow Up/Down | Lab focus | Cycle through games in focused lab |
+| Enter | Lab focused | Enter lab (triggers WormholeTransition) |
+| Enter | Game focused | Launch game (triggers GameFocusSequence) |
+| Escape | Any depth | Go back one level (game → lab → overview) |
+| Tab | Any | Cycle through console quick-access buttons |
+| Space | Console focused | Toggle console detail panel |
+| 1-0 | Overview | Jump to Lab 1-10 directly |
+| M | Any | Toggle mini-map visibility |
+| N | Any | Toggle NPC visibility |
+
+**Implementation:** Add `useEffect` keydown listener in `SpatialOverlay.tsx` that dispatches to `cockpitStore` actions:
+
+```typescript
+// In SpatialOverlay.tsx or a dedicated useCockpitKeyboard hook:
+useEffect(() => {
+  function handleKeyDown(e: KeyboardEvent) {
+    const { spatialView, focusedLabId } = useCockpitStore.getState();
+
+    if (e.key === 'Escape') {
+      useCockpitStore.getState().returnToOverview();
+    } else if (e.key === 'ArrowRight' && spatialView === 'overview') {
+      const next = ((focusedLabId ?? 0) % 10) + 1;
+      useCockpitStore.getState().focusLab(next);
+    } else if (e.key === 'ArrowLeft' && spatialView === 'overview') {
+      const prev = ((focusedLabId ?? 2) - 2 + 10) % 10 + 1;
+      useCockpitStore.getState().focusLab(prev);
+    } else if (e.key >= '1' && e.key <= '9') {
+      useCockpitStore.getState().focusLab(parseInt(e.key));
+    } else if (e.key === '0') {
+      useCockpitStore.getState().focusLab(10);
+    } else if (e.key === 'm' || e.key === 'M') {
+      useCockpitStore.getState().toggleMiniMap();
+    } else if (e.key === 'n' || e.key === 'N') {
+      useCockpitStore.getState().toggleNPCs();
+    }
+  }
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+}, []);
+```
+
+### Cockpit ARIA Structure
+
+The cockpit 3D Canvas and its HTML overlays must have proper ARIA labels:
+
+```html
+<!-- ARIA structure for the cockpit environment -->
+<div role="application" aria-label="SparkForge Command Bridge">
+  <!-- R3F Canvas (decorative for screen readers) -->
+  <div aria-hidden="true" class="fixed inset-0 z-0">
+    <!-- Canvas renders here -->
+  </div>
+
+  <!-- SpatialOverlay (accessible) -->
+  <div role="navigation" aria-label="Lab Navigation">
+    <div role="list" aria-label="10 Science Labs">
+      <div role="listitem" aria-label="Lab 1: AI Foundations — 45% complete">...</div>
+      <!-- ... 10 lab items -->
+    </div>
+  </div>
+
+  <!-- Console Quick Access (accessible) -->
+  <div role="complementary" aria-label="Status Consoles">
+    <div role="status" aria-label="XP: 2,450 of 5,000 — Level 12">...</div>
+    <div role="status" aria-label="Streak: 7 days">...</div>
+    <div role="status" aria-label="Badges: 15 earned">...</div>
+    <div role="status" aria-label="Progress: 4 of 10 labs completed">...</div>
+  </div>
+
+  <!-- MiniMapOverlay (accessible) -->
+  <div role="navigation" aria-label="Mini-map — current position and lab overview">
+    <!-- Mini-map content -->
+  </div>
+
+  <!-- NPC Dialogue Bubbles (live region) -->
+  <div aria-live="polite" aria-label="NPC Messages">
+    <!-- Dynamically injected dialogue text -->
+  </div>
+</div>
+```
+
+### Cockpit Reduced Motion Support
+
+When `prefers-reduced-motion: reduce` is active OR `accessibilityStore.reduceMotion === true`, the following cockpit behaviors MUST be disabled or simplified:
+
+| Element | Normal | Reduced Motion |
+|---------|--------|---------------|
+| HUD ring rotation | Continuous rotation | Static (no rotation) |
+| HUD scan line sweep | 360° sweep per 4s | Static highlight only |
+| NPC patrol movement | Perlin noise patrol paths | Stationary (NPCs stay in place) |
+| Particle drift/orbit | Animated positions | Static points (no movement) |
+| BarrelDistortion | Subtle lens distortion | Disabled (0.0 strength) |
+| Bloom intensity | Mode-dependent (0.3-1.0) | Capped at 0.2 |
+| Camera transitions | Spring interpolation (800ms) | Instant cut (0ms) |
+| WormholeTransition | 2.5s cinematic tunnel | Instant page navigation (fade) |
+| CeremonyFX | Full 3D celebration (1.5-3s) | Static overlay with icon only |
+| Skin transition dissolve | 2s dissolve shader | Instant swap |
+| Lab reconfiguration | 1.0s panel morph | Instant content swap |
+| Hex cluster pulse | 4s emissive cycle | Static glow at midpoint |
+
+**Implementation in `globals-a11y.css` APPEND:**
+
+```css
+/* ═══ CPA v2.0 — Cockpit Reduced Motion ═══ */
+.reduce-motion [data-cockpit-animated] {
+  animation: none !important;
+  transition-duration: 0ms !important;
+}
+
+.reduce-motion .cockpit-particle {
+  animation-play-state: paused !important;
+}
+
+.reduce-motion .hud-ring {
+  animation: none !important;
+}
+
+.reduce-motion .npc-patrol {
+  animation-play-state: paused !important;
+}
+```
+
+**Implementation in R3F components:** All cockpit 3D components should check `useA11yStore(s => s.reduceMotion)` and conditionally disable animations in `useFrame` callbacks:
+
+```typescript
+// Pattern for all cockpit 3D components:
+const reduceMotion = useA11yStore(s => s.reduceMotion);
+
+useFrame((_, delta) => {
+  if (reduceMotion) return; // Skip all frame-based animations
+  // ... normal animation logic
+});
+```
+
+### Screen Reader Live Regions for Cockpit Events
+
+Cockpit events that affect user context should announce via live regions:
+
+| Event | aria-live | Announcement |
+|-------|-----------|-------------|
+| Lab focus | `polite` | "Focused on Lab 3: Machine Learning" |
+| Lab enter | `assertive` | "Entering Lab 3: Machine Learning" |
+| Game launch | `assertive` | "Starting Neural Builder game" |
+| XP earned | `polite` | "Earned 50 XP! Total: 2,500" |
+| Badge earned | `polite` | "Badge unlocked: Data Detective" |
+| Level up | `assertive` | "Level up! Now level 13" |
+| Skin unlocked | `polite` | "New cockpit skin unlocked: Cyberpunk" |
+| NPC dialogue | `polite` | NPC speech text content |
+
+---
+
 ### NEXT: Part 2 (10B) — SEO metadata, robots/sitemap, next.config.js, dynamic game imports (35 games), PWA manifest, root layout update, DEPLOYMENT.md, .env.example, post-deploy checklist
 
 ---
 
 *End of Stage 10 Part 1 — STAGE10_Polish_Deploy_v2_PART1.md*
-*8 files | 7th store | 20 code review fixes | 12 enhancements | March 12, 2026*
+*8 files | 7th store | 20 code review fixes | 12 enhancements | CPA v2.0 accessibility | March 15, 2026*

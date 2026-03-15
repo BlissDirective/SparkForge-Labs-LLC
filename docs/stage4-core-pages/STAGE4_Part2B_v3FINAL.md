@@ -1,6 +1,6 @@
 # SPARKFORGE — STAGE 4: CORE PAGES v3-FINAL (PART 2B)
 
-**Date:** February 27, 2026 | **GCUD:** V9 | **Vision:** Laboratory Control Station
+**Date:** February 27, 2026 | **Updated:** March 15, 2026 — CPA v2.0 integration
 **Design Direction:** Frost-Prismatic v3 (blue-dominant 60/40, chrome bezel, hex-radial, R3F station frame)
 **Build Status:** VERIFIED — `npm run build` PASS, `npx tsc --noEmit` PASS, `npm run lint` PASS
 
@@ -13,6 +13,8 @@
 - [x] Decision 3.4 — Frame dimmed during games — in `useStationMode.ts` (`useGameFocusState`)
 - [x] Decision 3.5 — 1.0s transitions for all — in `LabReconfiguration.tsx` (`enterLab`)
 - [x] Decision 5.4 — Dim trickle locked labs — in `LabReconfiguration.tsx` (`getLockedLabVisuals`)
+- [x] **CPA2-6** — Lab entry uses WormholeTransition cinematic (2.5s) — `GameFocusSequence` updated to trigger wormhole when entering lab from spatial dashboard
+- [x] **CPA2-10** — Ceremony FX triggers via `cockpitStore.enqueueCeremony()` on game complete — `useGameFocusState` updated to integrate CeremonyFX
 
 ## BUG FIXES PRESERVED
 
@@ -35,6 +37,18 @@
 ## SUPERSEDES
 
 Nothing in Part B — transition files are NEW additions. The `useStationMode.ts` and `globals.css` modifications are APPENDS only.
+
+## CPA v2.0 INTEGRATION NOTES
+
+**WormholeTransition integration:** The `GameFocusSequence.tsx` crystal tunnel (0.8s) serves as the in-game-chrome-bezel entry. For lab-level navigation from the Spatial Dashboard, the `WormholeTransition.tsx` (created in Stage 3 Part 3B) provides a 2.5s cinematic sequence. Both can coexist — WormholeTransition handles `overview → lab` transitions, while GameFocusSequence handles `lab → game` transitions.
+
+**CeremonyFX integration:** When `useGameFocusState` detects game completion, it should enqueue a ceremony via `cockpitStore.enqueueCeremony()` with the appropriate type and intensity. The CeremonyFX component (Stage 3 Part 3B) consumes the queue and plays the 3D celebration within the unified CockpitCanvas.
+
+**Mode transition orchestration (CPA v2.0):**
+- `enterLab()` → triggers cockpitStore `focusLab()` + WormholeTransition → mode changes to `lab`
+- `GameFocusSequence` → triggers `useGameFocusState` → mode changes to `game`, panels retract (curvature 0.3)
+- Game complete → `enqueueCeremony()` → CeremonyFX plays → mode returns to `lab`
+- All transitions respect mode transition durations in `MODE_TRANSITIONS` from `cockpitConfig.ts`
 
 ---
 

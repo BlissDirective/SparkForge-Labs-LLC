@@ -2,9 +2,12 @@
 
 ## Architectural Change Document: JSON Image Review Integration
 
-**Version:** 1.0 | **Date:** March 14, 2026 | **Status:** IMPLEMENTED
+**Version:** 1.0 | **Date:** March 14, 2026 | **Status:** SUPERSEDED BY v2.0
+**Superseded By:** `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` (March 15, 2026)
 **Scope:** Cross-cutting 3D, visual, audio, and UI changes across Stages 1, 3, 4, 5, 6, 7, 8, 10
 **Trigger:** Post-JSON image review — 5 update points with 10 sub-changes
+
+> **⚠️ REFERENCE ONLY — NOT THE ACTIVE SPEC.** CPA v2.0 consolidates v1.0 + Enhancement 1.1 (Spatial Dashboard) + Enhancement 1.2 (Personalization Engine) into a single unified architecture. All stage documents have been updated to reference v2.0. See `docs/00-reference/3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` for the active specification.
 
 ---
 
