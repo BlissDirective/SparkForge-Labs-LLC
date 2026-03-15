@@ -31,7 +31,7 @@
 | Stage | Doc Count | Total Issues | CRIT | HIGH | MED | LOW | Pre-Fixed |
 |-------|-----------|-------------|------|------|-----|-----|-----------|
 | 1 | 2 | 4 | 0 | 0 | 3 | 1 | 0 |
-| 2 | 4 | 0* | 0 | 0 | 0 | 0 | 0 |
+| 2 | 4 | 2 | 0 | 0 | 1 | 1 | 0 |
 | 3 | 4 | 2 | 0 | 0 | 2 | 0 | 0 |
 | 4 | 4 | 4 | 0 | 1 | 2 | 1 | 0 |
 | 5 | 4 | 4 | 1 | 1 | 1 | 1 | 13 |
@@ -41,9 +41,9 @@
 | 8 | 5 | 12 | 4 | 4 | 4 | 0 | 0 |
 | 9 | 3 | 19 | 8 | 5 | 6 | 0 | 0 |
 | 10 | 2 | 10 | 2 | 3 | 5 | 0 | 0 |
-| **TOTAL** | **66** | **95** | **21** | **25** | **35** | **14** | **120+** |
+| **TOTAL** | **66** | **97** | **21** | **25** | **36** | **15** | **120+** |
 
-> \* Stage 2 audit was partial (agent interrupted). No issues found in reviewed portions. Full re-audit recommended.
+> Stage 2 audit complete. Mostly clean — 2 minor issues found.
 
 ---
 
@@ -62,7 +62,8 @@
 
 | # | File | Type | Sev | Location | Description |
 |---|------|------|-----|----------|-------------|
-| — | ALL 4 PARTS | — | — | — | Partial audit completed. No truncation or errors found in reviewed portions (PART1 SQL schema, PART2 Zod schemas, PART3 API routes grep scan, PART4 QueryProvider). **Full re-audit recommended.** |
+| 2.1 | PART3 | M | MED | Badge criteria handler (/api/gamification/badges) | 14 `criteria_type` values referenced but full switch/case chain not fully visible. Verify all types handled: `reach_xp`, `maintain_streak`, `complete_world`, `world_games_complete`, `world_quizzes_90`, `worlds_visited`, `unique_games_played`, `prompts_used`, `sandboxes_completed`, `spark_facts_read`, `worlds_mastered`, `reach_level`, `total_badges`, `special`. |
+| 2.2 | PART3 | X | LOW | Part 3 header/conclusion | File count documentation claims "16 files" but actually lists 20 route files (Auth 4 + Children 2 + Content 2 + Progress 3 + Gamification 3 + AI 1 + Stripe 3 + Sessions 1 + Health 1). |
 
 ---
 
@@ -303,4 +304,4 @@ Over **120 issues** were caught and fixed by prior code review passes embedded i
 ---
 
 *End of Code Audit Summary Matrix — 2026-03-15*
-*95 open issues | 21 critical | 120+ pre-fixed | 10 oversized docs | 3 spec-only docs*
+*97 open issues | 21 critical | 120+ pre-fixed | 10 oversized docs | 3 spec-only docs*
