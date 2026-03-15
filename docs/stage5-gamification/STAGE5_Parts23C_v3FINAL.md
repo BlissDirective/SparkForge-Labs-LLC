@@ -52,6 +52,19 @@ This document ADDS 4 new components (3 R3F + 1 UI) and MODIFIES `uiStore.ts` to 
 
 ---
 
+## Audit Verification — 2026-03-15
+
+All 4 audit issues from CODE_AUDIT_SUMMARY_MATRIX verified resolved:
+
+| Issue | Sev | Status | Resolution |
+|-------|-----|--------|------------|
+| 5.1 | CRIT | RESOLVED | `particleIntensity` is a NEW additive property in UIState. Type: `'off'\|'low'\|'medium'\|'high'`, default: `'medium'`, setter: `setParticleIntensity`. 3 consumers verified: GameParticles3D, StationFrame, ParticleIntensitySlider. No breaking changes to existing store consumers. |
+| 5.2 | HIGH | N/A | LEARN_CARDS do not exist in Parts23C files — they appear in game files (Stage 6/7). No apostrophe encoding issues found in any Parts23C source files. Audit entry appears misattributed. |
+| 5.3 | MED | RESOLVED | BadgeLevitate3D null guard at line 81 (`if (shaderMaterial)`) correctly handles null case when `useLiquidMetal` is false. Code is the corrected version with `side: THREE.DoubleSide` inside ShaderMaterial constructor. |
+| 5.4 | LOW | RESOLVED | `labColor` prop format is consistently hex string (e.g., `'#00BBFF'`, `'#3B82F6'`) across all consumers: uiStore, LAB_COLORS records, LabPatternBackground, StationFrame. |
+
+---
+
 ## Code Review Fixes Applied
 
 | # | Severity | File | Issue | Fix |

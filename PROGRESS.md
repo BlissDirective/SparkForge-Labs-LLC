@@ -1,8 +1,37 @@
 # SparkForge Build Progress
 
-## Current Phase: 7 — Stage 4 Core Pages & Lab Reconfiguration (AUDIT VERIFIED)
-## Status: ALL CODE COMPLETE — Audit issues 4.1-4.4 resolved
-## Last Updated: 2026-03-15 (Stage 4 Audit Session)
+## Current Phase: 9 — Stage 5 Gamification & Visual FX (AUDIT VERIFIED)
+## Status: ALL CODE COMPLETE — Audit issues 5.1-5.4 resolved
+## Last Updated: 2026-03-15 (Stage 5 Audit Session)
+
+### Stage 5 — Gamification & Visual FX (March 15, 2026)
+
+**Status:** CODE COMPLETE | **Build:** PASS (0 TypeScript errors, 0 ESLint errors)
+
+**Audit Issues Resolved (from CODE_AUDIT_SUMMARY_MATRIX):**
+
+| Issue | Severity | Description | Resolution |
+|-------|----------|-------------|------------|
+| 5.1 | CRIT | UIState particleIntensity unclear NEW vs REPLACE | RESOLVED — NEW additive property, default 'medium', 3 consumers verified, no breaking changes |
+| 5.2 | HIGH | LEARN_CARDS apostrophe encoding | N/A — LEARN_CARDS not in Parts23C files; no apostrophe issues in source; audit misattribution |
+| 5.3 | MED | BadgeLevitate3D null guard ambiguity | RESOLVED — `if (shaderMaterial)` guard correct, side property inside constructor |
+| 5.4 | LOW | labColor prop format undocumented | RESOLVED — consistently hex string format across all consumers |
+
+**Stage Doc Updated:**
+- `STAGE5_Parts23C_v3FINAL.md` — Added audit verification section with resolution status for all 4 issues
+
+**Files Verified (all exist and build correctly):**
+- `src/stores/uiStore.ts` — particleIntensity with proper type, default, setter (50 lines)
+- `src/components/3d/LevelUpExplosion.tsx` — R3F burst (186 lines)
+- `src/components/3d/StreakFlame3D.tsx` — Diamond tier fire (105 lines)
+- `src/components/3d/GameParticles3D.tsx` — Per-game particle registry (155 lines)
+- `src/components/3d/BadgeLevitate3D.tsx` — LiquidMetal with null guard (127 lines)
+- `src/components/3d/BadgePedestal3D.tsx` — 3D badge display (141 lines)
+- `src/components/3d/SparkCard3D.tsx` — Holographic card (145 lines)
+- `src/components/3d/XPVortex.tsx` — XP vortex effect (103 lines)
+- `src/components/ui/ParticleIntensitySlider.tsx` — 4-level preference control (177 lines)
+
+---
 
 ### Stage 4 — Core Pages & Lab Reconfiguration (March 15, 2026)
 
