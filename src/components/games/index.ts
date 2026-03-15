@@ -10,7 +10,8 @@ export { default as PromptLabGame } from './PromptLabGame';
 export { AgentArchitectGame } from './AgentArchitectGame';
 export { BiasDetectiveGame } from './BiasDetectiveGame';
 
-// Stage 7A — Tap/Quiz Games (8 + AI Spy TBD)
+// Stage 7A — Tap/Quiz Games (9)
+export { AiSpyGame } from './AiSpyGame';
 export { TimeMachineGame } from './TimeMachineGame';
 export { WordPredictorGame } from './WordPredictorGame';
 export { TokenChopperGame } from './TokenChopperGame';
