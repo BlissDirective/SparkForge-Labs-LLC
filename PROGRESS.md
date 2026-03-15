@@ -1,8 +1,62 @@
 # SparkForge Build Progress
 
-## Current Phase: 9 — Stage 5 Gamification & Visual FX (AUDIT VERIFIED)
-## Status: ALL CODE COMPLETE — Audit issues 5.1-5.4 resolved
-## Last Updated: 2026-03-15 (Stage 5 Audit Session)
+## Current Phase: 25 — Stage 9 Content Agent (AUDIT VERIFIED)
+## Status: ALL CODE COMPLETE — Audit issues 9.1-9.19 resolved
+## Last Updated: 2026-03-15 (Stage 9 Audit Session)
+
+### Stage 9 — Content Agent (March 15, 2026)
+
+**Status:** CODE COMPLETE | **Build:** Verification in progress
+
+**Parts Completed:**
+- [x] Part 1 (9A): Agent pipeline, prompts, API routes, schema, cron config
+- [x] Part 2 (9B): Admin review dashboard, run history, bulk actions, content preview
+- [x] Part 3 (9C): Seed content — 150 lessons, 90 quizzes, 60 spark facts (300 items)
+
+**Files Created (11 unique files):**
+
+| # | File | Lines | Purpose |
+|---|------|-------|---------|
+| 1 | `src/lib/agent/prompts.ts` | 110 | System prompts, MODELS config, WORLD_TOPICS, SEARCH_QUERIES |
+| 2 | `src/lib/agent/readability.ts` | 78 | Flesch-Kincaid readability scoring + age band validation |
+| 3 | `src/lib/agent/pipeline.ts` | 564 | 4-stage orchestrator, approveContent, rejectContent, retry logic |
+| 4 | `src/lib/agent/seed.ts` | 87 | TypeScript seed utility (validates connection + displays stats) |
+| 5 | `src/app/api/agent/run/route.ts` | 55 | Manual trigger (admin-only, POST) |
+| 6 | `src/app/api/agent/schedule/route.ts` | 48 | Vercel cron trigger (GET, CRON_SECRET protected) |
+| 7 | `src/app/api/agent/review/route.ts` | 190 | GET (fetch queue+stats) + POST (approve/reject with bulk) |
+| 8 | `src/app/(dashboard)/admin/content/page.tsx` | 1089 | Admin review dashboard: two tabs, bulk actions, preview modal |
+| 9 | `sql/schema-stage9.sql` | 57 | agent_runs table, indexes, RLS |
+| 10 | `sql/stage9-seed-content.sql` | 9265 | 300 INSERT statements for content table |
+| 11 | `vercel.json` | 8 | Daily cron at 6 AM UTC |
+
+**Audit Issues Resolved (from CODE_AUDIT_SUMMARY_MATRIX):**
+
+| Issue | Severity | Description | Resolution |
+|-------|----------|-------------|------------|
+| 9.1 | CRIT | WORLD_TOPICS truncated | RESOLVED — All 10 topic strings fully written in prompts.ts |
+| 9.2 | CRIT | RESEARCH_SYSTEM_PROMPT truncated | RESOLVED — Complete prompt with all rules and output format |
+| 9.3 | CRIT | GENERATION_SYSTEM_PROMPT truncated | RESOLVED — Complete with voice rules, 6 analogies, JSON schema |
+| 9.4 | CRIT | SAFETY_SCREENING_PROMPT truncated | RESOLVED — All 11 rules fully written |
+| 9.5 | CRIT | Review route inverted try/catch | RESOLVED — JSON parsing in try block, error in catch |
+| 9.6 | CRIT | Manual trigger malformed JSON | RESOLVED — Proper apiError() with separate fields |
+| 9.7 | HIGH | Admin check SQL hint truncated | RESOLVED — Full SQL hint with proper escaping |
+| 9.8 | HIGH | Pipeline fallback summary truncated | RESOLVED — Full fallback finding text |
+| 9.9 | HIGH | Raw `any` types for Anthropic SDK | RESOLVED — AnthropicResponse + ContentBlock interfaces |
+| 9.10 | HIGH | No retry logic for API calls | RESOLVED — withRetry() with exponential backoff + jitter |
+| 9.11 | HIGH | No deduplication check | RESOLVED — Title/world/band dedup before queue insert |
+| 9.12 | MED | GET /api/agent/review incomplete | RESOLVED — Full handler with queue, stats, and run history |
+| 9.13 | MED | Admin dashboard two tabs | RESOLVED — Review Queue + Run History tabs implemented |
+| 9.14 | MED | Bulk select/approve/reject logic | RESOLVED — Select-all + bulk actions with reject reason dialog |
+| 9.15 | CRIT | Seed SQL INSERTs truncated | RESOLVED — All 300 complete INSERT statements (9,265 lines) |
+| 9.16 | CRIT | Lab 3 content truncated/merged | RESOLVED — Each INSERT is complete, independent statement |
+| 9.17 | HIGH | Missing estimated_minutes column | RESOLVED — All 300 items have estimated_minutes set |
+| 9.18 | MED | Invalid ON CONFLICT syntax | RESOLVED — Single-row INSERTs with proper BEGIN/COMMIT |
+| 9.19 | MED | sort_order all set to 10 | RESOLVED — Lessons 1-5, quizzes 6-8, facts 9-10 per band |
+
+**Bug Fixes Applied:** BUG-9A (lazy Anthropic init), BUG-9B (centralized MODELS), BUG-9C (proper content unpacker)
+**Enhancements Applied:** ENH-9A through ENH-9J (graceful 503, retry, readability, dedup, duration tracking, etc.)
+
+---
 
 ### Stage 5 — Gamification & Visual FX (March 15, 2026)
 
