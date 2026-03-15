@@ -1216,3 +1216,27 @@ export function StationPreview() {
 ---
 
 **NEXT:** Part B — Pricing page replacement (`src/app/(marketing)/pricing/page.tsx`) with v3 station aesthetics
+
+---
+
+## SOURCE CODE VERIFICATION — 2026-03-15
+
+**Audit Scope:** Line-by-line verification of all source code files produced by this document.
+**Result:** ALL FILES COMPLETE AND CORRECT
+
+| File | Lines | Status |
+|------|-------|--------|
+| `src/components/landing/ScrollJourney.tsx` | 598 | ✓ COMPLETE — All 5 acts, parallax layers, GSAP init, IO fallback |
+| `src/components/landing/FeatureShowcase.tsx` | 238 | ✓ COMPLETE — 4 feature cards, mini animations, holographic CSS |
+| `src/components/landing/StationPreview.tsx` | 232 | ✓ COMPLETE — LED pulse, scanline overlay, stats counters |
+| `src/components/landing/LabDiscoveryRing.tsx` | 225 | ✓ COMPLETE — 10 lab tiles with patterns, colors, descriptions |
+| `src/hooks/useGSAPScroll.ts` | 171 | ✓ COMPLETE — ScrollTrigger, parallax, stagger utilities |
+| `src/components/3d/CrystalHero.tsx` | 166 | ✓ COMPLETE — R3F crystal, sparkles, bloom, mouse parallax |
+
+**Compliance Checks:**
+- ✓ Game count: "35+" in StationPreview (line 23) and all metadata — issue 8.12 RESOLVED
+- ✓ GSAP dynamic import with try-catch error handling (ScrollJourney lines 207-211, 374-378) — issue 8.9 RESOLVED
+- ✓ CrystalHero: `ssr: false` dynamic import — correct
+- ✓ No Fredoka/Nunito Sans font references
+- ✓ TypeScript strict mode passes
+- ✓ Build passes with 0 errors

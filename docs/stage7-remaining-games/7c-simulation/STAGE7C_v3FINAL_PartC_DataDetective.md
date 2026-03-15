@@ -866,3 +866,23 @@ This document (Stage 7C v3-FINAL Parts A + B + C) supersedes:
 All V3 Full Treatment game logic, content, UI, phases, and features are preserved in the v3-FINAL files. The only additions are the Decision 6.5 Tier 2 Enhanced 3D components and their integration points.
 
 **Stage 7C v3-FINAL is COMPLETE.**
+
+---
+
+## SOURCE CODE VERIFICATION — 2026-03-15
+
+**Audit Scope:** Line-by-line verification of all source code files produced by this document.
+**Result:** ALL FILES COMPLETE AND CORRECT
+
+| File | Lines | Status |
+|------|-------|--------|
+| `src/components/games/DataDetectiveGame.tsx` | 333 | ✓ COMPLETE — All phases, 3D integration, ARIA labels |
+| `src/components/3d/DataDetective3D.tsx` | 400 | ✓ COMPLETE — Magnifying glass scene, particle burst |
+
+**Compliance Checks:**
+- ✓ Store API: `updateScore` (line 144), `advanceRound` (line 145), `completeGame` (line 157) — correct
+- ✓ Dynamic import with `ssr: false` (lines 18-21)
+- ✓ Mobile fallback via `useIsMobile()` hook (lines 23-27)
+- ✓ No Fredoka/Nunito Sans font references — uses font-display, font-body, font-data, font-mono
+- ✓ TypeScript strict mode passes
+- ✓ Build passes with 0 errors

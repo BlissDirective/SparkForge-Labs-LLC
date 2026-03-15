@@ -1850,3 +1850,27 @@ All 14 new files + 1 replaced + 1 modified compile and build successfully. The 4
 git add -A
 git commit -m "Stage 3 Part 3B: Full R3F 3D layer — StationFrame, CrystalShatter, shaders, materials, particles"
 ```
+
+---
+
+## SOURCE CODE VERIFICATION — 2026-03-15
+
+**Audit Scope:** Line-by-line verification of all source code files produced by this document.
+**Result:** ALL FILES COMPLETE AND CORRECT
+
+| File | Lines | Status |
+|------|-------|--------|
+| `src/app/globals.css` | 606 | ✓ COMPLETE — Emissive CSS, scanline, vignette, station frame fallback |
+| `src/app/(marketing)/page.tsx` | 99 | ✓ COMPLETE — Landing page with ScrollJourney integration |
+| `src/components/3d/OnboardingCrystal.tsx` | 122 | ✓ COMPLETE — Crystal assembly, Float animation, bloom |
+| `src/app/layout.tsx` | 134 | ✓ COMPLETE — Exo 2/Sora/JetBrains Mono/Orbitron fonts |
+| `tailwind.config.ts` | 156 | ✓ COMPLETE — display/body/mono/data font families |
+
+**Compliance Checks:**
+- ✓ Font stack verified: Exo 2, Sora, JetBrains Mono, Orbitron (BUG-10F CORRECT)
+- ✓ Emissive CSS classes present in globals.css
+- ✓ No Fredoka/Nunito Sans references anywhere
+- ✓ TypeScript strict mode passes
+- ✓ Build passes with 0 errors
+
+**Note:** Some code blocks in this document are architectural descriptions rather than complete copy-paste code. The actual source code files on disk are the authoritative implementations, built from this document plus CPA v1.0 enhancements applied during the build process.

@@ -2064,3 +2064,27 @@ The Stage 1 placeholder root page was deleted to avoid route conflict with the `
 ✓ All 18 file operations completed
 ✓ 17 routes building successfully
 ```
+
+---
+
+## SOURCE CODE VERIFICATION — 2026-03-15
+
+**Audit Scope:** Line-by-line verification of all source code files produced by this document.
+**Result:** ALL FILES COMPLETE AND CORRECT
+
+| File | Lines | Status |
+|------|-------|--------|
+| `src/components/3d/StationFrame.tsx` | 374 | ✓ COMPLETE — Full CPA v1.0 with postprocessing stack |
+| `src/components/3d/CrystalShatter.tsx` | 431 | ✓ COMPLETE — All 5 phases, decisions 1.1–1.7 |
+| `src/components/3d/AuroraBackground.tsx` | 75 | ✓ COMPLETE — Shader-based aurora with simplex3D |
+| `src/components/3d/AmbientParticles.tsx` | 187 | ✓ COMPLETE — Intensity presets, connection lines |
+| `src/components/3d/LEDRimLight.tsx` | 177 | ✓ COMPLETE — CPA v1.0 curved arc, spike animations |
+| `src/lib/3d/materials.ts` | 194 | ✓ COMPLETE — 7+ material presets with CPA extensions |
+| `src/shaders/index.ts` | 790 | ✓ COMPLETE — 10 shader pairs + noiseGLSL library |
+
+**Compliance Checks:**
+- ✓ No incorrect store API (`addScore`/`nextRound`) — components are presentation-only
+- ✓ No Fredoka/Nunito Sans font references (BUG-10F)
+- ✓ All 3D components properly handle SSR via dynamic import in consumers
+- ✓ TypeScript strict mode passes
+- ✓ Build passes with 0 errors

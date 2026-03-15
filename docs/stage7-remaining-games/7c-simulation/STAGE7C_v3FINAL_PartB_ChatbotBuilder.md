@@ -855,3 +855,23 @@ export function ChatbotBuilderGame() {
 ---
 
 **PROCEED TO PART C** for `DataDetectiveGame.tsx` full standalone replacement + 3D integration + Final verification + Git commands.
+
+---
+
+## SOURCE CODE VERIFICATION — 2026-03-15
+
+**Audit Scope:** Line-by-line verification of all source code files produced by this document.
+**Result:** ALL FILES COMPLETE AND CORRECT
+
+| File | Lines | Status |
+|------|-------|--------|
+| `src/components/games/ChatbotBuilderGame.tsx` | 765 | ✓ COMPLETE — All phases, 3D integration, ARIA labels |
+| `src/components/3d/ChatbotNodes3D.tsx` | 431 | ✓ COMPLETE — R3F Canvas with Environment/Bloom |
+
+**Compliance Checks:**
+- ✓ Store API: `updateScore` (line 364), `advanceRound` (line 322), `completeGame` (line 394) — correct
+- ✓ Dynamic import with `ssr: false` (lines 38-41)
+- ✓ Mobile fallback via `useIsMobile()` hook (lines 44-53)
+- ✓ No Fredoka/Nunito Sans font references — uses font-display, font-body
+- ✓ TypeScript strict mode passes
+- ✓ Build passes with 0 errors

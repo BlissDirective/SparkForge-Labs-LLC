@@ -1554,3 +1554,27 @@ export function CameraQuestGame() {
 - Unused imports `Award` (RobotVacuum) and `Sparkles`/`BookOpen` (CameraQuest) are kept for potential use in future enhancements but can be removed during build if ESLint flags them.
 
 **NEXT:** Part C — FutureForgeGame.tsx + Pixel Investigator (UNCHANGED) + Fool the AI (UNCHANGED) + Registry + Verification + Git
+
+---
+
+## SOURCE CODE VERIFICATION — 2026-03-15
+
+**Audit Scope:** Line-by-line verification of all source code files produced by this document.
+**Result:** ALL FILES COMPLETE AND CORRECT
+
+| File | Lines | Status |
+|------|-------|--------|
+| `src/components/games/RobotVacuumGame.tsx` | 840 | ✓ COMPLETE — All phases, 3D integration, ARIA labels |
+| `src/components/3d/RobotVacuum3D.tsx` | 365 | ✓ COMPLETE — Isometric room scene with furniture |
+| `src/components/games/CameraQuestGame.tsx` | 627 | ✓ COMPLETE — All phases, 3D integration, ARIA labels |
+| `src/components/3d/CameraQuest3D.tsx` | 283 | ✓ COMPLETE — PolaroidCard with flip, ConfidenceGauge |
+
+**Compliance Checks:**
+- ✓ Store API: `updateScore`, `advanceRound`, `completeGame` — correct (no `addScore`/`nextRound`)
+- ✓ Dynamic imports with `ssr: false` and loading fallbacks
+- ✓ Mobile fallback via `useIsMobile` hook
+- ✓ No Fredoka/Nunito Sans font references
+- ✓ TypeScript strict mode passes
+- ✓ Build passes with 0 errors
+
+**Note:** Document audit flagged missing imports (useEffect in CameraQuest) — verified PRESENT in source code at line 1. Source code is authoritative.
