@@ -5,7 +5,7 @@
 
 ## Overview
 
-Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laboratory Control Station vision. This replaces the Part 3A CSS-only StationFrame placeholder with a persistent R3F Canvas containing aurora background shaders, GPU-instanced ambient particles with connection lines, an emissive LED rim strip, Bloom post-processing, and WebGL detection with CSS fallbacks. It also adds the ~7-second cinematic CrystalShatter entry sequence, a landing page CrystalHero with mouse parallax, an OnboardingCrystal that forms as onboarding steps progress, GLSL shader infrastructure (noise library, aurora, scanline, chrome), 7+4 PBR material presets, and a GSAP ScrollTrigger wrapper hook.
+Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laboratory Control Station vision. This replaces the Part 3A CSS-only StationFrame placeholder with a persistent R3F Canvas containing aurora background shaders, GPU-instanced ambient particles with connection lines, an emissive LED rim strip, Bloom post-processing, and WebGL detection with CSS fallbacks. It also adds the cinematic entry sequence (originally CrystalShatter ~7s, now **superseded by HeroAnimation.tsx** — 8-phase, 19s), a landing page CrystalHero with mouse parallax, an OnboardingCrystal that forms as onboarding steps progress, GLSL shader infrastructure (noise library, aurora, scanline, chrome), 7+4 PBR material presets, and a GSAP ScrollTrigger wrapper hook.
 
 **CPA v2.0 additions:** StationFrame refactored from a standalone Canvas into a scene group within the unified `CockpitCanvas` orchestrator (Decision CPA2-1). Single R3F Canvas contains ALL cockpit + spatial dashboard elements. CockpitPanels upgraded with viewport-adaptive curvature (CPA2-2) and functional hex clusters with real data binding (CPA2-3). HolographicHUD v2 with data-driven rings (session time, lab progress, XP-to-level), mini-map integration, and threat/achievement radar. SidePanels with skin-reactive shader uniforms. StatusBar3D with real-time store subscriptions. Skin-reactive panel materials per cockpit skin (CPA2-5). NEW: WormholeTransition for lab entry cinematics (CPA2-6), CeremonyFX for achievement celebrations (CPA2-10), ConsoleDetailPanel for expandable console info, MiniMapOverlay for persistent navigation, NPCDialogueBubble for contextual NPC speech. 4 material presets (PanelFace, WornChrome, IndicatorGlass, ConsoleBase). 5 GLSL shaders (radarSweep, dataStream, holographicRing, dissolve, wormhole). Triangle budget: 104,400 (desktop ultra) with LOD degradation.
 
@@ -67,8 +67,9 @@ Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laborator
 | 7 | `src/components/3d/AmbientParticles.tsx` | Created |
 | 8 | `src/components/3d/LEDRim.tsx` | Created (**CPA: curved arc via TubeGeometry + CatmullRomCurve3**) |
 | 9 | `src/components/3d/StationFrame.tsx` | Replaced (**CPA v2.0: refactored to scene group — delegates to CockpitCanvas**) |
-| 10 | `src/components/3d/CrystalShatter.tsx` | Created |
-| 11 | `src/components/3d/CrystalHero.tsx` | Created |
+| 10 | `src/components/3d/CrystalShatter.tsx` | Created — **SUPERSEDED** by `HeroAnimation.tsx` (archived to `_SUPERSEDED/`) |
+| 10b | `src/components/3d/HeroAnimation.tsx` | Created — **REPLACEMENT** for CrystalShatter (Hero Animation v2.0) |
+| 11 | `src/components/3d/CrystalHero.tsx` | Created — **RETAINED** (separate component, Decision 8.1) |
 | 12 | `src/components/3d/OnboardingCrystal.tsx` | Created |
 | 13 | `src/hooks/useGSAPScroll.ts` | Created |
 | 14 | `public/hdri/README-frost-prismatic.md` | Created |
@@ -1221,9 +1222,18 @@ export function StationFrame({
 
 ---
 
-## Step 10 — `src/components/3d/CrystalShatter.tsx`
+## Step 10 — `src/components/3d/CrystalShatter.tsx` — **SUPERSEDED**
 
-**~7s cinematic entry sequence** with 5 phases. Masks initial data loading. Unmounts completely after Phase 5 — zero ongoing GPU cost.
+> **⚠️ SUPERSEDED by HeroAnimation.tsx (Hero Animation v2.0, March 16 2026)**
+> This 5-phase, ~7s animation has been fully replaced by `HeroAnimation.tsx` — an 8-phase,
+> 19-second cinematic sequence with WebGPU TSL particles, Voronoi fracture, spline migration,
+> and Tone.js spatial audio. `CrystalShatter.tsx` is archived to `src/components/3d/_SUPERSEDED/`
+> per CLAUDE.md Section 3.2. All 17 codebase imports must be redirected to `HeroAnimation`.
+> See `Implementation_Plan_Hero_Page_Animation_v2.0.md` for the replacement.
+>
+> **CrystalHero.tsx (Step 11) is NOT affected** — it is a separate component (Decision 8.1).
+
+**Original description (preserved for reference):** ~7s cinematic entry sequence with 5 phases. Masks initial data loading. Unmounts completely after Phase 5 — zero ongoing GPU cost.
 
 ```typescript
 'use client';
@@ -1848,7 +1858,7 @@ All 14 new files + 1 replaced + 1 modified compile and build successfully. The 4
 
 ```bash
 git add -A
-git commit -m "Stage 3 Part 3B: Full R3F 3D layer — StationFrame, CrystalShatter, shaders, materials, particles"
+git commit -m "Stage 3 Part 3B: Full R3F 3D layer — StationFrame, HeroAnimation (replaces CrystalShatter), shaders, materials, particles"
 ```
 
 ---

@@ -333,6 +333,26 @@ export function CockpitCanvas({ mode, labCompletions, onLabEnter, children }: Co
 }
 ```
 
+> **R3F v9 WebGPU Integration (per Hero Animation v2.0, March 16 2026):**
+>
+> When upgrading CockpitCanvas to use `WebGPURenderer`, use R3F v9's async `gl` prop:
+> ```typescript
+> const createWebGPURenderer = async (canvas: HTMLCanvasElement) => {
+>   const renderer = new THREE.WebGPURenderer({ canvas, antialias: true, alpha: true });
+>   await renderer.init();
+>   return renderer;
+> };
+>
+> <Canvas gl={createWebGPURenderer} />
+> ```
+> `WebGPURenderer` auto-falls back to WebGL2 if WebGPU is unavailable.
+> TSL shaders auto-compile to GLSL in WebGL2 mode. R3F v9 also requires
+> `extend(THREE)` to register WebGPU elements in the R3F reconciler.
+>
+> The hero animation (`HeroAnimation.tsx`) renders INSIDE this same canvas architecture —
+> the canvas is shared between the hero sequence and the persistent cockpit.
+> See `Implementation_Plan_Hero_Page_Animation_v2.0.md` and `SparkForge_Hero_Page_Animation_v2.0.md`.
+
 ### 5.2 Scene Composition Order
 
 Within `<CockpitScene>`, elements render in this order (painter's algorithm):

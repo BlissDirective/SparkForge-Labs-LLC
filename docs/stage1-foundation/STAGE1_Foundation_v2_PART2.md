@@ -874,6 +874,10 @@ interface UIState {
   soundEnabled: boolean;
   dailyChallengeCompleted: boolean;
   particleIntensity: 'off' | 'low' | 'medium' | 'high';
+  /** Per-child setting: skip the hero intro animation on page load.
+   *  Default: false. Toggled in Settings page (Stage 4 Part 3).
+   *  When true, HeroAnimation renders Phase 8 final state immediately. */
+  skipIntroAnimation: boolean;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   triggerCelebration: (type: CelebrationType, data?: Record<string, unknown>) => void;
@@ -883,6 +887,7 @@ interface UIState {
   markDailyChallengeComplete: () => void;
   resetDailyChallenge: () => void;
   setParticleIntensity: (level: 'off' | 'low' | 'medium' | 'high') => void;
+  setSkipIntroAnimation: (skip: boolean) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -895,6 +900,7 @@ export const useUIStore = create<UIState>((set) => ({
   soundEnabled: true,
   dailyChallengeCompleted: false,
   particleIntensity: 'medium',
+  skipIntroAnimation: false,
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   triggerCelebration: (type, data = {}) => set({ showCelebration: true, celebrationType: type, celebrationData: data }),
@@ -910,6 +916,7 @@ export const useUIStore = create<UIState>((set) => ({
   markDailyChallengeComplete: () => set({ dailyChallengeCompleted: true }),
   resetDailyChallenge: () => set({ dailyChallengeCompleted: false }),
   setParticleIntensity: (particleIntensity) => set({ particleIntensity }),
+  setSkipIntroAnimation: (skipIntroAnimation) => set({ skipIntroAnimation }),
 }));
 ```
 
@@ -926,6 +933,11 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type DeviceType = 'desktop' | 'tablet' | 'mobile';
+
+// ■■ GPU Rendering Tier (Hero Animation v2.0) ■■
+// Detected at runtime by webgpuDetection.ts
+// Determines particle budget and rendering pipeline for hero animation
+export type GPUTier = 'webgpu-high' | 'webgpu-mid' | 'webgpu-low' | 'webgl2' | 'css';
 
 export interface DeviceProfile {
   targetFPS: number;
@@ -971,7 +983,15 @@ interface DeviceState {
   deviceType: DeviceType;
   hasSelected: boolean;
   profile: DeviceProfile;
+  /** GPU rendering tier detected at runtime by webgpuDetection.ts.
+   *  Determines particle budget and rendering pipeline for hero animation.
+   *  Cached in localStorage alongside existing device preferences. */
+  gpuTier: GPUTier;
+  /** Number of striped particle buffers (1-4) based on GPU VRAM capability.
+   *  Each stripe holds 2.5M particles at 48 bytes each. */
+  stripeCount: number;
   setDeviceType: (type: DeviceType) => void;
+  setGpuTier: (tier: GPUTier, stripes?: number) => void;
 }
 
 export const useDeviceStore = create<DeviceState>()(
@@ -980,18 +1000,23 @@ export const useDeviceStore = create<DeviceState>()(
       deviceType: 'desktop',
       hasSelected: false,
       profile: DEVICE_PROFILES.desktop,
+      gpuTier: 'webgl2' as GPUTier,  // safe default until detection runs
+      stripeCount: 0,                 // 0 = no WebGPU stripes (WebGL2/CSS mode)
       setDeviceType: (deviceType) =>
         set({
           deviceType,
           hasSelected: true,
           profile: DEVICE_PROFILES[deviceType],
         }),
+      setGpuTier: (gpuTier, stripes = 0) => set({ gpuTier, stripeCount: stripes }),
     }),
     {
       name: 'sparkforge-device',
       partialize: (state) => ({
         deviceType: state.deviceType,
         hasSelected: state.hasSelected,
+        gpuTier: state.gpuTier,
+        stripeCount: state.stripeCount,
       }),
       onRehydrate: () => (state) => {
         if (state) {
@@ -2407,8 +2432,8 @@ git tag -a v0.1.0 -m "Stage 1 complete: Foundation"
 | `src/stores/childStore.ts` | 17 | Child state with persistence |
 | `src/stores/gameStore.ts` | 18 | Game state machine |
 | `src/stores/toastStore.ts` | 19 | Toast notifications |
-| `src/stores/uiStore.ts` | 20 | UI state (sidebar, celebrations) |
-| `src/stores/deviceStore.ts` | 20a | Device type + LOD profile (CPA v2.0) |
+| `src/stores/uiStore.ts` | 20 | UI state (sidebar, celebrations, skipIntroAnimation) |
+| `src/stores/deviceStore.ts` | 20a | Device type + LOD profile + GPUTier (CPA v2.0 + Hero v2.0) |
 | `src/stores/cockpitStore.ts` | 20b | Cockpit spatial nav + skin + ceremony queue (CPA v2.0) |
 | `src/lib/3d/cockpitConfig.ts` | 20c | Cockpit geometry, bloom, HUD, LOD presets (CPA v2.0) |
 | `src/lib/audio/cockpitAudio.ts` | 20d | CockpitAudioEngine spatial audio class (CPA v2.0) |
@@ -2422,7 +2447,15 @@ git tag -a v0.1.0 -m "Stage 1 complete: Foundation"
 | `src/components/providers/QueryProvider.tsx` | 24 | React Query wrapper |
 | `src/app/layout.tsx` | 25 | Root layout (initial) |
 
-**Total files created in Stage 1:** 31 source files + 30+ directories (includes 5 new CPA v2.0 files)
+| `src/lib/webgpuDetection.ts` | — | GPU tier detection for hero animation (Hero v2.0) |
+
+**Total files created in Stage 1:** 32 source files + 30+ directories (includes 5 CPA v2.0 + 1 Hero v2.0 files)
+
+> **Hero Animation v2.0 — Additional source files** created in Stage 3 Part 3A:
+> `src/lib/3d/heroParticleCompute.ts`, `src/lib/3d/heroParticleRender.ts`,
+> `src/lib/3d/voronoiFracture.ts`, `src/lib/3d/heroSplines.ts`,
+> `src/lib/audio/heroAudio.ts`, `src/hooks/useHeroAnimation.ts`,
+> `src/components/3d/HeroAnimation.tsx`. See Implementation Plan Hero Animation v2.0.
 
 ---
 

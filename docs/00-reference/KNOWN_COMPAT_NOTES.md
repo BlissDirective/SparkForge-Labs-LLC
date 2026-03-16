@@ -124,6 +124,18 @@
 | **Files affected** | `src/stores/atoms.ts`, 3D components |
 | **Stages affected** | 1 Part 2 (atoms created), 3+ (3D components consume atoms) |
 
+### 11. Hero Animation v2.0 — TSL & WebGPU Notes (March 2026)
+
+| Item | Detail |
+|------|--------|
+| **Three.js r171+ / TSL Migration** | Three.js r171+ introduces `import * as THREE from 'three/webgpu'` for zero-config WebGPU. TSL (Three Shader Language) imports from `'three/tsl'` — replaces raw WGSL/GLSL shader authoring. |
+| **ShaderMaterial deprecation** | `ShaderMaterial`, `RawShaderMaterial`, and `onBeforeCompile()` are NOT supported in `WebGPURenderer`. All custom materials must use TSL node materials (e.g., `MeshStandardNodeMaterial`). Standard materials (`MeshStandardMaterial`, `MeshPhysicalMaterial`) work unchanged. |
+| **R3F v9 async GL prop** | R3F v9's `Canvas` accepts an async `gl` prop (required for `WebGPURenderer.init()`). Usage: `gl={async (canvas) => { const r = new WebGPURenderer({canvas}); await r.init(); return r; }}`. R3F v9 also requires `extend(THREE)` to register WebGPU elements. |
+| **WebGPU browser coverage** | Chrome 113+, Edge 113+, Safari 26+: ~90% stable. Firefox: behind flag (Nightly), ~5% — auto-falls back to WebGL2 via TSL. Legacy: ~5% — CSS fallback (12-15 DOM particles). |
+| **New packages** | `three-bvh-csg` (Voronoi fracture mesh operations), `three-mesh-bvh` (BVH acceleration for shard collision), `troika-three-text` (high-quality SDF-based 3D text geometry) |
+| **Files affected** | `src/components/3d/HeroAnimation.tsx`, `src/lib/3d/heroParticleCompute.ts`, `src/lib/3d/heroParticleRender.ts`, `src/lib/webgpuDetection.ts`, `src/stores/deviceStore.ts` (GPUTier) |
+| **Stages affected** | 1 Part 2 (deviceStore, webgpuDetection), 3 Part 3A/B (HeroAnimation) |
+
 ---
 
 ## General Guidance

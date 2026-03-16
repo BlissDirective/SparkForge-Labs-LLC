@@ -521,6 +521,14 @@ export default StreakFlame3D;
 
 Decision 5.3: Per-game particle configuration registry. 5 flagship games get custom configs; 23 non-flagship games get generic lab-colored sparkles. `GameParticleEmitter` renders particles based on the registry, respecting the intensity slider (Decision 5.5) via uiStore.
 
+> **Hero Animation v2.0 — Shared TSL Compute Particle API (March 16, 2026):**
+> The `heroParticleCompute.ts` TSL compute kernel (created for the 8-phase hero animation)
+> exposes a reusable `createParticleSystem()` API. `GameParticles3D.tsx` can optionally adopt
+> the same TSL pipeline for consistent particle behavior across the platform. For now,
+> `GameParticles3D` continues to use its existing instanced approach (drei `Sparkles`);
+> TSL migration is a future enhancement that would unify all particle rendering under one
+> compute-driven pipeline. See `Implementation_Plan_Hero_Page_Animation_v2.0.md` Phase B.
+
 **FIX APPLIED:** Replaced unsafe `as Record<string, string>` cast with properly typed `s.particleIntensity` selector.
 
 ```tsx

@@ -2075,7 +2075,7 @@ The Stage 1 placeholder root page was deleted to avoid route conflict with the `
 | File | Lines | Status |
 |------|-------|--------|
 | `src/components/3d/StationFrame.tsx` | 374 | ✓ COMPLETE — Full CPA v1.0 with postprocessing stack |
-| `src/components/3d/CrystalShatter.tsx` | 431 | ✓ COMPLETE — All 5 phases, decisions 1.1–1.7 |
+| `src/components/3d/CrystalShatter.tsx` | 431 | ✓ COMPLETE — All 5 phases, decisions 1.1–1.7. **SUPERSEDED** by `HeroAnimation.tsx` (8-phase, 19s). Archived to `src/components/3d/_SUPERSEDED/`. |
 | `src/components/3d/AuroraBackground.tsx` | 75 | ✓ COMPLETE — Shader-based aurora with simplex3D |
 | `src/components/3d/AmbientParticles.tsx` | 187 | ✓ COMPLETE — Intensity presets, connection lines |
 | `src/components/3d/LEDRimLight.tsx` | 177 | ✓ COMPLETE — CPA v1.0 curved arc, spike animations |
@@ -2088,3 +2088,42 @@ The Stage 1 placeholder root page was deleted to avoid route conflict with the `
 - ✓ All 3D components properly handle SSR via dynamic import in consumers
 - ✓ TypeScript strict mode passes
 - ✓ Build passes with 0 errors
+
+---
+
+## Hero Animation v2.0 — Additional Files (March 16, 2026)
+
+**CrystalShatter.tsx has been fully replaced by HeroAnimation.tsx** — an 8-phase, 19-second cinematic hero sequence with WebGPU TSL particles, Voronoi fracture shatter, spline-based cockpit migration, and Tone.js spatial audio. CrystalShatter.tsx is archived to `src/components/3d/_SUPERSEDED/` per CLAUDE.md Section 3.2. **CrystalHero.tsx is retained** as a separate component (Decision 8.1 — landing page parallax variant).
+
+### Hero Animation File Registry (11 new files)
+
+| # | File | Lines | Purpose |
+|---|------|-------|---------|
+| 1 | `src/components/3d/HeroAnimation.tsx` | ~650 | Master 8-phase GSAP timeline orchestrator (replaces CrystalShatter) |
+| 2 | `src/hooks/useHeroAnimation.ts` | ~100 | Animation lifecycle hook — skip logic, fast-forward, phase tracking |
+| 3 | `src/lib/webgpuDetection.ts` | ~120 | Runtime GPU tier detection with VRAM probing |
+| 4 | `src/lib/3d/heroParticleCompute.ts` | ~300 | TSL compute kernel for 1B+ particle throughput |
+| 5 | `src/lib/3d/heroParticleRender.ts` | ~150 | TSL render material for instanced billboard quads |
+| 6 | `src/lib/3d/voronoiFracture.ts` | ~200 | CPU-side Voronoi tessellation (Bowyer-Watson) |
+| 7 | `src/lib/3d/heroSplines.ts` | ~150 | Spline path definitions for Phase 6 shard migration |
+| 8 | `src/lib/audio/heroAudio.ts` | ~200 | Tone.js audio timeline for all 8 phases |
+| 9 | `src/shaders/crystallineLogo.vert` | ~40 | Vertex shader for extruded 3D logo text |
+| 10 | `src/shaders/crystallineLogo.frag` | ~120 | Fragment shader — SSS, IOR refraction, clearcoat |
+| 11 | `src/shaders/electricVeins.frag` | ~100 | Animated energy vein propagation (Phase 4) |
+| 12 | `src/shaders/voronoiShatter.comp` | ~150 | GPU compute shader for Voronoi fracture cells |
+
+### Open Design Decisions Implemented
+
+| Decision | Description | Component |
+|----------|-------------|-----------|
+| OD-1 | Sound ON by default, respects per-child `soundEnabled` | heroAudio.ts |
+| OD-2 | Fast-forward at 4x with pitch compensation | HeroAnimation.tsx, useHeroAnimation.ts |
+| OD-3 | Skip intro toggle in Settings, first visit always plays | useHeroAnimation.ts, uiStore.ts |
+| OD-4 | WebGPU compute shaders with tiered GPU detection | webgpuDetection.ts, heroParticleCompute.ts |
+
+### Import Redirection (17 references)
+
+All codebase references importing `CrystalShatter` must be redirected to `HeroAnimation`:
+- Dynamic imports: `import('@/components/3d/CrystalShatter')` → `import('@/components/3d/HeroAnimation')`
+- Component usage: `<CrystalShatter onComplete={...} />` → `<HeroAnimation onComplete={...} />`
+- **Note:** `CrystalHero.tsx` imports are NOT affected — it is a separate component (Decision 8.1)

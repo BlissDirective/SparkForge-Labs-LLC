@@ -1151,3 +1151,34 @@ All imports verified against existing codebase:
 | `WORLDS` | `@/types` | Stage 1 Part 2 |
 | `motion` | npm | Stage 1 Part 1 |
 | `lucide-react` | npm | Stage 1 Part 1 |
+
+---
+
+## HERO ANIMATION v2.0 — Settings Integration (OD-3)
+
+> **Added March 16, 2026 — Hero Animation v2.0 Phase F update**
+
+When implementing the Settings page (or adding a "Visual Preferences" section to the Profile page), include the following **Skip Intro Animation** toggle:
+
+```tsx
+{/* OD-3: Skip Intro Animation toggle — Hero Animation v2.0 */}
+<div className="flex items-center justify-between">
+  <div>
+    <p className="font-body text-sm text-white/90">Skip Intro Animation</p>
+    <p className="font-body text-xs text-white/50">
+      Skip the hero animation on future visits
+    </p>
+  </div>
+  <Switch
+    checked={skipIntroAnimation}
+    onCheckedChange={(checked) => setSkipIntroAnimation(checked)}
+  />
+</div>
+```
+
+**Import update** — Add `skipIntroAnimation` and `setSkipIntroAnimation` to the uiStore destructure:
+```tsx
+const { skipIntroAnimation, setSkipIntroAnimation } = useUIStore();
+```
+
+**Behavior:** When `skipIntroAnimation` is `true`, the `useHeroAnimation` hook skips directly to Phase 8 final state (cockpit visible, no cinematic). First visit always plays the full 19s animation regardless of this setting.

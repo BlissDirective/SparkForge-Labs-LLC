@@ -90,6 +90,18 @@ npm install three@latest @react-three/fiber @react-three/drei @react-three/postp
 > **Enhancement 8.1/8.2:** Three.js r170+ includes WebGPU renderer and TSL (Three.js Shading
 > Language). WebGPU auto-detection with WebGL2 fallback configured in Stage 1 Part 2.
 
+### 2k — Hero Animation v2.0 Dependencies
+
+```bash
+npm install three-bvh-csg three-mesh-bvh troika-three-text
+```
+
+> **Hero Animation v2.0:** These packages support the 8-phase cinematic hero sequence:
+> - `three-bvh-csg` — Voronoi fracture mesh operations (Phase 5 shatter)
+> - `three-mesh-bvh` — BVH acceleration for shard collision detection
+> - `troika-three-text` — High-quality SDF-based 3D text geometry ("SparkForge" logo)
+> Note: Three.js (r183+), R3F (v9+), drei (v10+) already installed in 2d.
+
 ### 2e — Charts + Audio
 
 ```bash
@@ -651,6 +663,10 @@ mkdir -p src/types
 mkdir -p src/config
 mkdir -p src/shaders/labPatterns
 
+# Hero Animation v2.0 audio
+mkdir -p src/lib/audio
+mkdir -p public/audio
+
 # Public assets
 mkdir -p public/images
 mkdir -p public/sounds/cockpit
@@ -664,6 +680,14 @@ mkdir -p tests/integration
 mkdir -p tests/e2e
 mkdir -p tests/mocks
 ```
+
+> **Hero Animation v2.0 — Additional Shader Files:**
+> The following shader files are created in Stage 3 Part 3A (alongside the hero animation):
+> - `src/shaders/crystallineLogo.vert` — Vertex shader for extruded 3D logo text
+> - `src/shaders/crystallineLogo.frag` — Fragment shader with subsurface scattering, IOR, clearcoat
+> - `src/shaders/electricVeins.frag` — Animated energy vein propagation (Phase 4)
+> - `src/shaders/voronoiShatter.comp` — Compute shader for Voronoi fracture cell generation (Phase 5)
+> These are handled by the Turbopack/Webpack GLSL loader configured in Step 6 (`next.config.ts`).
 
 ---
 

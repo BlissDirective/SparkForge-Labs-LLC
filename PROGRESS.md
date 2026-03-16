@@ -1,10 +1,34 @@
 # SparkForge Build Progress
 
-## Current Phase: 26 — Stage 10 Polish & Deploy (AUDIT VERIFIED)
-## Status: ALL CODE COMPLETE — All audit issues resolved including oversized doc verification
-## Last Updated: 2026-03-15 (Oversized Document Verification Session)
+## Current Phase: Hero Animation v2.0 — Phase F (Stage Document Updates)
+## Status: PHASE F COMPLETE — 8 stage documents updated
+## Last Updated: 2026-03-16 (Hero Animation v2.0 Phase F)
 
-### Oversized Document Verification — March 15, 2026
+### Hero Page Animation v2.0 — Phase F: Stage Document Updates (March 16, 2026)
+
+**Status:** COMPLETE | **Build:** PENDING VERIFICATION
+**Reference:** docs/00-reference/SparkForge_Hero_Page_Animation_v2.0.md
+**Implementation Plan:** docs/00-reference/Implementation_Plan_Hero_Page_Animation_v2.0.md
+
+**Stage Documents Updated (8):**
+- [x] F1: STAGE1_Foundation_v2_PART1.md — Added `three-bvh-csg`, `three-mesh-bvh`, `troika-three-text` to Step 2 install (new 2k section). Added `src/lib/audio/` + `public/audio/` directories to Step 10. Added shader file notes (crystallineLogo.vert/frag, electricVeins.frag, voronoiShatter.comp).
+- [x] F2: STAGE1_Foundation_v2_PART2.md — Updated uiStore.ts with `skipIntroAnimation` field + setter (OD-3). Updated deviceStore.ts with `GPUTier` type, `gpuTier`/`stripeCount` fields, `setGpuTier` action, updated `partialize`. Added `webgpuDetection.ts` to file registry.
+- [x] F3: STAGE3_Part3A — CrystalShatter.tsx marked SUPERSEDED in verification table. Added Hero Animation File Registry (12 new files) + OD-1 through OD-4 cross-references + import redirection notes (17 refs). CrystalHero.tsx explicitly retained.
+- [x] F4: STAGE3_Part3B — CrystalShatter Step 10 marked SUPERSEDED with detailed archival note. Overview updated. Files table updated (CrystalShatter superseded, HeroAnimation replacement, CrystalHero retained). Commit message updated.
+- [x] F5: STAGE4_Part3 — Added "Skip Intro Animation" toggle section (OD-3) with Switch component code, uiStore import instructions, and behavior description.
+- [x] F6: STAGE5_Parts23C — Added shared TSL compute particle API note to GameParticles3D Step 4 section. Documents reusable `createParticleSystem()` API from heroParticleCompute.ts.
+- [x] F7: KNOWN_COMPAT_NOTES.md — Added Section 11 "Hero Animation v2.0 — TSL & WebGPU Notes" covering TSL migration, ShaderMaterial deprecation, R3F v9 async gl prop, WebGPU browser coverage, new packages, affected files/stages.
+- [x] F8: 3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md — Added R3F v9 WebGPU renderer documentation after CockpitCanvas code block (Section 5.1). Added cross-reference to Hero Animation specs. Documents shared canvas architecture.
+
+**Discrepancies Log:**
+- F1: Three.js v0.183.2, R3F v9.5.0, drei v10.7.7 already exceed spec requirements — no version upgrade in install commands, new 2k section added for hero-specific packages
+- F2: deviceStore `partialize` updated to persist `gpuTier` + `stripeCount` alongside existing `deviceType` + `hasSelected`
+- F5: No existing "Visual Preferences" section found in Stage 4 Part 3 — added as standalone section at end of document with self-contained code + instructions
+- F4: CrystalShatter Step 10 code preserved in document for reference but marked superseded; original description relabeled
+
+---
+
+### Previous: Oversized Document Verification — March 15, 2026
 
 **Status:** COMPLETE | **Build:** PASS (0 TypeScript errors) | **Result:** ALL 37 FILES VERIFIED
 
