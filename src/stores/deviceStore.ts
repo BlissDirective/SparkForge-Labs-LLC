@@ -17,6 +17,11 @@ export type DeviceType = 'desktop' | 'tablet' | 'mobile';
 // Used by useLOD hook and all 3D components
 export type LODLevel = 'ultra' | 'high' | 'medium' | 'low' | 'billboard';
 
+// ■■ GPU Rendering Tier ■■
+// Detected at runtime by webgpuDetection.ts
+// Determines particle budget and rendering pipeline for hero animation
+export type GPUTier = 'webgpu-high' | 'webgpu-mid' | 'webgpu-low' | 'webgl2' | 'css';
+
 // ■■ Performance Profile ■■
 // Pre-calculated values derived from device type
 export interface PerformanceProfile {
@@ -96,7 +101,15 @@ interface DeviceState {
   deviceType: DeviceType | null;       // null = not yet selected
   hasSelected: boolean;                // true after user makes a choice
   profile: PerformanceProfile;
+  /** GPU rendering tier detected at runtime by webgpuDetection.ts.
+   *  Determines particle budget and rendering pipeline for hero animation.
+   *  Cached in localStorage alongside existing device preferences. */
+  gpuTier: GPUTier;
+  /** Number of striped particle buffers (1-4) based on GPU VRAM capability.
+   *  Each stripe holds 2.5M particles at 48 bytes each. */
+  stripeCount: number;
   setDeviceType: (type: DeviceType) => void;
+  setGpuTier: (tier: GPUTier, stripes?: number) => void;
   getTriangleBudget: (tier: 'flagship' | 'flLite' | 'standard') => number;
   getParticleCount: (baseCount: number) => number;
   getSphereDetail: (preferredSegments?: number) => number;
@@ -108,6 +121,8 @@ export const useDeviceStore = create<DeviceState>()(
       deviceType: null,
       hasSelected: false,
       profile: PERFORMANCE_PROFILES.desktop, // Default until selected
+      gpuTier: 'webgl2' as GPUTier,  // safe default until detection runs
+      stripeCount: 0,                 // 0 = no WebGPU stripes (WebGL2/CSS mode)
 
       setDeviceType: (type: DeviceType) =>
         set({
@@ -115,6 +130,8 @@ export const useDeviceStore = create<DeviceState>()(
           hasSelected: true,
           profile: PERFORMANCE_PROFILES[type],
         }),
+
+      setGpuTier: (gpuTier, stripes = 0) => set({ gpuTier, stripeCount: stripes }),
 
       getTriangleBudget: (tier) => {
         const device = get().deviceType || 'desktop';
@@ -138,6 +155,8 @@ export const useDeviceStore = create<DeviceState>()(
       partialize: (state) => ({
         deviceType: state.deviceType,
         hasSelected: state.hasSelected,
+        gpuTier: state.gpuTier,
+        stripeCount: state.stripeCount,
       }),
       // Rehydrate profile from persisted deviceType
       onRehydrateStorage: () => (state) => {
@@ -153,3 +172,5 @@ export const useDeviceStore = create<DeviceState>()(
 export const selectProfile = (s: DeviceState) => s.profile;
 export const selectDeviceType = (s: DeviceState) => s.deviceType;
 export const selectHasSelected = (s: DeviceState) => s.hasSelected;
+export const selectGpuTier = (s: DeviceState) => s.gpuTier;
+export const selectStripeCount = (s: DeviceState) => s.stripeCount;

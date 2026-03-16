@@ -11,6 +11,11 @@ interface UIState {
   soundEnabled: boolean;
   dailyChallengeCompleted: boolean;
   particleIntensity: 'off' | 'low' | 'medium' | 'high';
+  /** Per-child setting: skip the hero intro animation on page load.
+   *  Default: false. Toggled in Settings page (Stage 4 Part 3).
+   *  When true, HeroAnimation renders Phase 8 final state immediately. */
+  skipIntroAnimation: boolean;
+  setSkipIntroAnimation: (skip: boolean) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   triggerCelebration: (type: CelebrationType, data?: Record<string, unknown>) => void;
@@ -32,6 +37,8 @@ export const useUIStore = create<UIState>((set) => ({
   soundEnabled: true,
   dailyChallengeCompleted: false,
   particleIntensity: 'medium',
+  skipIntroAnimation: false,
+  setSkipIntroAnimation: (skipIntroAnimation) => set({ skipIntroAnimation }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   triggerCelebration: (type, data = {}) => set({ showCelebration: true, celebrationType: type, celebrationData: data }),
