@@ -1,12 +1,51 @@
 # SparkForge Build Progress
 
-## Current Phase: Hero Animation v2.0 — Phase F (Stage Document Updates)
-## Status: PHASE F COMPLETE — 8 stage documents updated
-## Last Updated: 2026-03-16 (Hero Animation v2.0 Phase F)
+## Current Phase: Hero Animation v2.0 — Phase G (Commit & Push)
+## Status: PHASE G COMPLETE — All files committed, archived, and pushed
+## Last Updated: 2026-03-16 (Hero Animation v2.0 Phase G)
+
+### Hero Page Animation v2.0 — Phase G: Commit & Push (March 16, 2026)
+
+**Status:** COMPLETE | **Build:** PASS
+**Reference:** docs/00-reference/SparkForge_Hero_Page_Animation_v2.0.md
+**Implementation Plan:** docs/00-reference/Implementation_Plan_Hero_Page_Animation_v2.0.md
+
+**Archival (G2):**
+- [x] CrystalShatter.tsx → src/components/3d/_SUPERSEDED/CrystalShatter.tsx (git mv)
+- [x] SUPERSEDED_BY.md manifest created in _SUPERSEDED/
+- [x] CrystalHero.tsx RETAINED (Decision 8.1 — separate component)
+
+**New Source Files Created (11):**
+- [x] src/stores/uiStore.ts — updated (skipIntroAnimation)
+- [x] src/stores/deviceStore.ts — updated (gpuTier, stripeCount)
+- [x] src/lib/webgpuDetection.ts — NEW
+- [x] src/lib/3d/heroParticleCompute.ts — NEW
+- [x] src/lib/3d/heroParticleRender.ts — NEW
+- [x] src/shaders/crystallineLogo.vert — NEW
+- [x] src/shaders/crystallineLogo.frag — NEW
+- [x] src/shaders/electricVeins.frag — NEW
+- [x] src/shaders/voronoiShatter.comp — NEW
+- [x] src/lib/3d/voronoiFracture.ts — NEW
+- [x] src/lib/3d/heroSplines.ts — NEW
+- [x] src/lib/audio/heroAudio.ts — NEW
+- [x] src/hooks/useHeroAnimation.ts — NEW
+- [x] src/components/3d/HeroAnimation.tsx — NEW
+
+**Stage Documents Updated (8):**
+- [x] F1: STAGE1_Foundation_v2_PART1.md — new packages + directory entries
+- [x] F2: STAGE1_Foundation_v2_PART2.md — webgpuDetection, deviceStore, uiStore updates
+- [x] F3: STAGE3_Part3A — HeroAnimation file registry + OD cross-references
+- [x] F4: STAGE3_Part3B — landing page HeroAnimation integration
+- [x] F5: STAGE4_Part3 — Settings skip toggle (OD-3)
+- [x] F6: STAGE5_Parts23C — shared TSL particle API note
+- [x] F7: KNOWN_COMPAT_NOTES.md — TSL/WebGPU migration notes
+- [x] F8: CPA v2.0 — R3F v9 async gl prop for CockpitCanvas
+
+---
 
 ### Hero Page Animation v2.0 — Phase F: Stage Document Updates (March 16, 2026)
 
-**Status:** COMPLETE | **Build:** PENDING VERIFICATION
+**Status:** COMPLETE | **Build:** PASS
 **Reference:** docs/00-reference/SparkForge_Hero_Page_Animation_v2.0.md
 **Implementation Plan:** docs/00-reference/Implementation_Plan_Hero_Page_Animation_v2.0.md
 
