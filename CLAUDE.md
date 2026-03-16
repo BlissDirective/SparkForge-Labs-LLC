@@ -2,14 +2,14 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.3 | **Date:** March 15, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.2 (March 2, 2026) — tech stack upgrade to Next.js 15/React 19/Tailwind 4/Motion/Nivo/Sentry/Vitest.
+**Version:** 5.4 | **Date:** March 16, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.3 (March 15, 2026) — CrystalShatter replaced by HeroAnimation, Phase F doc updates.
 
 ---
 
 ## 1. PROJECT IDENTITY
 
-SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **35 interactive games** across **10 themed Labs**. The platform uses a dark-mode-only aesthetic called **Frost-Prismatic** with chrome bezels, neon accents, and glassmorphism. The v3 vision transforms the platform into a **Laboratory Control Station** — a futuristic command console with persistent chrome frames, crystal shatter arrivals, lab reconfiguration transitions, and themed 3D game elements.
+SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **35 interactive games** across **10 themed Labs**. The platform uses a dark-mode-only aesthetic called **Frost-Prismatic** with chrome bezels, neon accents, and glassmorphism. The v3 vision transforms the platform into a **Laboratory Control Station** — a futuristic command console with persistent chrome frames, hero animation arrivals (8-phase cinematic sequence), lab reconfiguration transitions, and themed 3D game elements.
 
 ### Tech Stack
 
@@ -236,6 +236,7 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 | 7C | 3 files → `_SUPERSEDED/` | `Part1` (v2), `Part2` (v2), `v3FINAL_PartA`, `v3FINAL_PartB`, `v3FINAL_PartC` |
 | 6F | 0 (DebugFixes marked REFERENCE ONLY) | `v3FINAL_A`, `v3FINAL_B`, `v3FINAL_C`, `DebugFixes` (ref) |
 | 6D | 0 (v2 is prerequisite, not superseded) | `v2_PromptLab`, `v2_Enhancements`, `v3FINAL_PartA`, `v3FINAL_PartB` |
+| 3 (src) | `CrystalShatter.tsx` → `src/components/3d/_SUPERSEDED/` | `HeroAnimation.tsx` (full 8-phase replacement), `CrystalHero.tsx` (retained, Decision 8.1) |
 
 ---
 
@@ -397,10 +398,10 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 
 **Part 1 (v2):** AuthProvider, signup, login, reset-password
 **Part 2 (v2):** Dashboard layout, Sidebar, TopBar, ChildSelector, onboarding
-**Part 3A (v3-FINAL):** StationFrame, CrystalShatter, Aurora, Particles, LEDRim, HDR, materials.ts — Decisions 1.1-1.7, 2.1-2.5, 7.1, 7.3-4, 8.1
+**Part 3A (v3-FINAL):** StationFrame, HeroAnimation (replaces CrystalShatter — archived to `_SUPERSEDED/`), Aurora, Particles, LEDRim, HDR, materials.ts — Decisions 1.1-1.7, 2.1-2.5, 7.1, 7.3-4, 8.1
 **Part 3B (v3-FINAL):** Emissive CSS, onboarding crystal, landing page, scanline
 
-**3D files created:** StationFrame.tsx, CrystalShatter.tsx, AuroraBackground.tsx, AmbientParticles.tsx, LEDRimLight.tsx
+**3D files created:** StationFrame.tsx, HeroAnimation.tsx (CrystalShatter.tsx archived to `_SUPERSEDED/`), AuroraBackground.tsx, AmbientParticles.tsx, LEDRimLight.tsx
 **Tag:** `git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"`
 
 ---
@@ -659,7 +660,7 @@ function useIsMobile() {
 | Component | Stage | Game/System |
 |-----------|-------|------------|
 | StationFrame.tsx | 3 v3 | Dashboard chrome frame |
-| CrystalShatter.tsx | 3 v3 | Landing hero sequence |
+| HeroAnimation.tsx | 3 v3 | Landing + dashboard hero sequence (replaces CrystalShatter, archived to `_SUPERSEDED/`) |
 | AuroraBackground.tsx | 3 v3 | Dashboard ambient |
 | AmbientParticles.tsx | 3 v3 | Dashboard floating particles |
 | GameParticles3D.tsx | 5 v3 | R3F particles (5 flagships) |

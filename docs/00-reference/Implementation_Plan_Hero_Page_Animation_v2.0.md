@@ -8,7 +8,7 @@
 
 ## OVERVIEW
 
-This document is the step-by-step execution plan for implementing the 8-phase cinematic hero animation specified in `SparkForge_Hero_Page_Animation_v2.0.md`. It covers **11 new source files** (~1,800 lines), **2 store updates**, **8 stage document updates**, and **1 progress log update**.
+This document is the step-by-step execution plan for implementing the 8-phase cinematic hero animation specified in `SparkForge_Hero_Page_Animation_v2.0.md`. It covers **11 new source files** (~1,800 lines), **2 store updates**, **8 stage document updates**, **1 archival** (`CrystalShatter.tsx` → `_SUPERSEDED/`), **17 import redirections** (CrystalShatter → HeroAnimation), and **1 progress log update**.
 
 ### Current State (Pre-Implementation)
 
@@ -19,7 +19,7 @@ This document is the step-by-step execution plan for implementing the 8-phase ci
 | @react-three/drei | v10.7.7 installed (exceeds v9.120.0 requirement) |
 | GSAP | v3.14.2 installed |
 | Tone.js | v15.1.22 installed |
-| `CrystalShatter.tsx` | Exists — 5-phase, ~7s animation (to be extended/replaced) |
+| `CrystalShatter.tsx` | Exists — 5-phase, ~7s animation (**to be archived** to `_SUPERSEDED/` and fully replaced by HeroAnimation) |
 | `HeroAnimation.tsx` | Does NOT exist (to be created) |
 | `src/lib/audio/` | Directory does NOT exist (to be created) |
 | `webgpuDetection.ts` | Does NOT exist (to be created) |
@@ -930,7 +930,7 @@ src/shaders/voronoiShatter.comp     ← NEW
 **File:** `docs/stage3-auth-layout/STAGE3_Auth_Layout_Shell_v3_PART3A_20260314.md`
 **Changes:**
 
-1. **CrystalShatter.tsx section** — Add a note that `CrystalShatter.tsx` is now **extended** by `HeroAnimation.tsx`. The original `CrystalShatter.tsx` remains as the base implementation (5-phase, 7s). `HeroAnimation.tsx` wraps and replaces its landing page usage with the full 8-phase, 19s sequence.
+1. **CrystalShatter.tsx section** — Add a note that `CrystalShatter.tsx` is now **fully replaced** by `HeroAnimation.tsx` for both landing and dashboard entry sequences. `CrystalShatter.tsx` must be **archived** to `src/components/3d/_SUPERSEDED/CrystalShatter.tsx` per CLAUDE.md Section 3.2, with a `SUPERSEDED_BY.md` manifest. All 17 codebase references importing `CrystalShatter` must be redirected to `HeroAnimation`. **Note:** `CrystalHero.tsx` (landing page parallax variant, Decision 8.1) is a **separate component** — it shares "crystal DNA" styling but is NOT CrystalShatter, and is **retained** as-is.
 
 2. **New File Registry** — Add entries for all 11 new hero animation files:
    - `src/components/3d/HeroAnimation.tsx` — Master 8-phase orchestrator
@@ -948,7 +948,7 @@ src/shaders/voronoiShatter.comp     ← NEW
 3. **Decision Cross-References** — Add references to OD-1 through OD-4 (audio default, fast-forward, skip toggle, WebGPU compute).
 
 **Log in PROGRESS.md:**
-> F3: STAGE3_Auth_Layout_Shell_v3_PART3A — Added HeroAnimation.tsx as extension of CrystalShatter. Added file registry for 11 new hero animation files. Added OD-1 through OD-4 cross-references.
+> F3: STAGE3_Auth_Layout_Shell_v3_PART3A — CrystalShatter.tsx fully replaced by HeroAnimation.tsx. CrystalShatter archived to _SUPERSEDED/ per Section 3.2. All 17 imports redirected to HeroAnimation. CrystalHero.tsx retained (separate component, Decision 8.1). Added file registry for 11 new hero animation files. Added OD-1 through OD-4 cross-references.
 
 ---
 
@@ -957,12 +957,14 @@ src/shaders/voronoiShatter.comp     ← NEW
 **File:** `docs/stage3-auth-layout/STAGE3_Auth_Layout_Shell_v3_PART3B_20260314.md`
 **Changes:**
 
-1. **Landing page integration** — Update the section describing the landing page to note that `<HeroAnimation>` is now used instead of `<CrystalShatter>` directly for the hero entry sequence. The landing page (`src/app/(marketing)/page.tsx`) continues to delegate to `ScrollJourney.tsx`, which internally uses `HeroAnimation` for the cinematic intro instead of the standalone `CrystalHero` R3F component.
+1. **Landing page integration** — Update the section describing the landing page to note that `<HeroAnimation>` is now used instead of `<CrystalShatter>` for **both** the landing hero entry sequence AND dashboard entry sequence. The landing page (`src/app/(marketing)/page.tsx`) continues to delegate to `ScrollJourney.tsx`, which internally uses `HeroAnimation` for the cinematic intro. **Note:** `CrystalHero.tsx` (parallax variant, Decision 8.1) is separate and **retained** — it shares crystal DNA styling but is not CrystalShatter.
 
-2. **Note on CrystalShatter preservation** — `CrystalShatter.tsx` is NOT deleted. It remains available for the dashboard entry sequence (Decision 1.2). The landing page path now uses the extended `HeroAnimation.tsx` orchestrator.
+2. **CrystalShatter archival** — `CrystalShatter.tsx` is **archived** (not deleted) to `src/components/3d/_SUPERSEDED/CrystalShatter.tsx` per CLAUDE.md Section 3.2. A `SUPERSEDED_BY.md` manifest is created in `_SUPERSEDED/` documenting: superseded file, replacement (HeroAnimation.tsx), reason (full 8-phase replacement), and date. All 17 codebase references importing CrystalShatter must be redirected to HeroAnimation.
+
+3. **Dashboard entry update** — Decision 1.2 (crystal shatter on dashboard entry) is now fulfilled by `HeroAnimation.tsx` instead of the standalone `CrystalShatter.tsx`. HeroAnimation supports both landing and dashboard contexts via its `onComplete` callback.
 
 **Log in PROGRESS.md:**
-> F4: STAGE3_Auth_Layout_Shell_v3_PART3B — Updated landing page section to reference HeroAnimation instead of CrystalShatter for hero entry. CrystalShatter preserved for dashboard entry (Decision 1.2).
+> F4: STAGE3_Auth_Layout_Shell_v3_PART3B — Updated landing page + dashboard entry to reference HeroAnimation instead of CrystalShatter. CrystalShatter archived to _SUPERSEDED/ per Section 3.2 (not deleted). CrystalHero.tsx retained (Decision 8.1). All 17 imports redirected. Decision 1.2 now fulfilled by HeroAnimation.
 
 ---
 
@@ -1128,7 +1130,14 @@ Add new section at top (after header):
 ### G2. Commit
 
 ```bash
-git add src/stores/uiStore.ts \
+# Archive CrystalShatter.tsx per CLAUDE.md Section 3.2
+mkdir -p src/components/3d/_SUPERSEDED
+git mv src/components/3d/CrystalShatter.tsx src/components/3d/_SUPERSEDED/CrystalShatter.tsx
+# Create SUPERSEDED_BY.md manifest (see Section 3.2 rules)
+
+git add src/components/3d/_SUPERSEDED/CrystalShatter.tsx \
+        src/components/3d/_SUPERSEDED/SUPERSEDED_BY.md \
+        src/stores/uiStore.ts \
         src/stores/deviceStore.ts \
         src/lib/webgpuDetection.ts \
         src/lib/3d/heroParticleCompute.ts \
@@ -1162,6 +1171,9 @@ Implements the 19-second hero animation (OD-1 through OD-4):
 - TSL compute kernel for 1B+ lifetime particle throughput
 - 8-phase GSAP timeline with skip/fast-forward support
 - Tone.js spatial audio synchronized to animation progress
+- CrystalShatter.tsx archived to _SUPERSEDED/ (replaced by HeroAnimation)
+- All 17 CrystalShatter imports redirected to HeroAnimation
+- CrystalHero.tsx retained (separate component, Decision 8.1)
 - 8 stage documents updated with implementation details"
 ```
 
@@ -1212,5 +1224,5 @@ After all phases complete, verify:
 ---
 
 *End of Implementation Plan — Hero Page Animation v2.0*
-*7 phases | 11 new files | 8 stage doc updates | ~1,800 new lines of source code*
+*7 phases | 11 new files | 1 archival (CrystalShatter→_SUPERSEDED/) | 17 import redirections | 8 stage doc updates | ~1,800 new lines of source code*
 *March 16, 2026*
