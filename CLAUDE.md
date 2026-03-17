@@ -2,8 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.4 | **Date:** March 16, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.3 (March 15, 2026) — CrystalShatter replaced by HeroAnimation, Phase F doc updates.
+**Version:** 5.5 | **Date:** March 17, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.4 (March 16, 2026) — Cockpit architecture expanded, Hero Animation detailed, reference doc versions updated.
 
 ---
 
@@ -25,7 +25,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 | Payments | Stripe | Subscriptions (Free/Plus/Forge) |
 | AI | Anthropic Claude API | Prompt Lab game + Content Agent |
 | 2D Motion | Motion (ex Framer Motion) + GSAP | Transitions, scroll |
-| 3D Rendering | React Three Fiber + drei + postprocessing | 3D scenes, shaders (Three.js r170+) |
+| 3D Rendering | React Three Fiber v9 + drei + postprocessing | 3D scenes, shaders (Three.js r171+, TSL, WebGPU/WebGL2) |
 | Charts | @nivo/core + @nivo/line + @nivo/bar + @nivo/radar | Data visualization |
 | Audio | Tone.js | Game audio feedback |
 | Monitoring | Sentry (@sentry/nextjs) | Error tracking + performance |
@@ -34,8 +34,8 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 ### Current State
 
-- **Documentation:** COMPLETE — 78 active project files
-- **v3-FINAL patches:** 14 documents (34 part files), 48 locked decisions
+- **Documentation:** COMPLETE — 90 active project files
+- **v3-FINAL patches:** 14 documents (34 part files), 64 locked decisions (48 core + 4 OD + 12 CPA2)
 - **Games:** 35 total — 5 flagship (full 3D), 1 full 3D, 7 FL-Lite (enhanced 3D), 2 enhanced standard, 20 standard
 - **Code written:** 0% — ready to build
 
@@ -101,16 +101,21 @@ Claude Code should reference these documents in this priority order:
 |----------|----------|----------|---------|
 | 1 | **This file (CLAUDE.md)** | Repo root | Architecture, rules, autonomy boundaries |
 | 2 | **Stage document (v3-FINAL or v2)** | `docs/` folder | Complete copy-paste code for current stage |
-| 3 | **Master Directory v1.0** | `docs/00-reference/` | 24-phase flow map, file registry |
-| 4 | **GCUD V10** | `docs/00-reference/` | Source of truth for game content + status |
-| 5 | **Master Implementation Guide v3.0** | `docs/00-reference/` | Stage overviews + file lists |
-| 6 | **Decision Lock Checkpoints 1-3** | `docs/01-decisions/` | 48 locked decisions |
+| 3 | **Master Directory v1.1** | `docs/00-reference/` | 24-phase flow map, file registry |
+| 4 | **GCUD V10.1** | `docs/00-reference/` | Source of truth for game content + status |
+| 5 | **Master Implementation Guide v3.1** | `docs/00-reference/` | Stage overviews + file lists |
+| 6 | **Decision Lock Checkpoints 1-3** | `docs/01-decisions/` | 64 locked decisions (48 core + 4 OD + 12 CPA2) |
 | 7 | **Visual Enhancement Concept v2** | `docs/00-reference/` | Lab Control Station design spec |
 | 8 | **Known Compat Notes** | `docs/00-reference/` | Version-sensitive package flags |
 | 9 | **Testing Guide** | `TESTING.md` (repo root) | Testing pyramid, API/component/E2E tests, pre-deploy checklist |
 | 10 | **Feature Workflow Guide** | `Feature-Workflow-Test.md` (repo root) | Build-test-integrate cycle, feature sizing, version control per feature |
 | 11 | **Database Patterns Guide** | `database-patterns.md` (repo root) | Supabase/RLS patterns, schema design, validation, seeding, performance |
 | 12 | **SparkForge Agent Playbook** | `SparkForge-agent.md` (repo root) | Autonomous evaluation sweeps, admin approval workflow, apply-test-report cycle |
+| 13 | **CPA v2.0 (Cockpit Architecture)** | `docs/00-reference/` | 3D Panoramic Cockpit full spec, CPA2 decisions, triangle budgets |
+| 14 | **Hero Animation v2.0** | `docs/00-reference/` | 8-phase cinematic spec + implementation plan |
+| 15 | **Error Handling & Auto-Fix Guide** | `docs/00-reference/` | Build/TS/import error patterns and auto-fix strategies |
+| 16 | **Quick Reference: 35 Games** | `docs/00-reference/` | Full game table (extracted from CLAUDE.md, canonical in GCUD V10.1) |
+| 17 | **Enhancement Blueprint v1.0** | Repo root | 12-section visionary upgrade plan (Enh 1.0–1.2+) |
 
 ### Build Strategy: Single-Pass with v3-FINAL Priority
 
@@ -660,7 +665,7 @@ function useIsMobile() {
 | Component | Stage | Game/System |
 |-----------|-------|------------|
 | StationFrame.tsx | 3 v3 | Dashboard chrome frame |
-| HeroAnimation.tsx | 3 v3 | Landing + dashboard hero sequence (replaces CrystalShatter, archived to `_SUPERSEDED/`) |
+| HeroAnimation.tsx | 3 v3 | 8-phase 19s cinematic hero sequence (1B+ particles, WebGPU TSL compute, Voronoi shatter → cockpit materialization). Replaces CrystalShatter (archived to `_SUPERSEDED/`). See `Implementation_Plan_Hero_Page_Animation_v2.0.md`. |
 | AuroraBackground.tsx | 3 v3 | Dashboard ambient |
 | AmbientParticles.tsx | 3 v3 | Dashboard floating particles |
 | GameParticles3D.tsx | 5 v3 | R3F particles (5 flagships) |
@@ -679,13 +684,25 @@ function useIsMobile() {
 | FutureForge3D.tsx | 7D v3 | Future Forge (blueprint) |
 | MyFirstAiApp3D.tsx | 7F v3 | My First AI App (mockup) |
 | LODWrapper.tsx | — | Mandatory LOD container for all 3D scenes |
-| SpatialDashboard.tsx | Enh 1.1 | R3F Canvas orchestrator (camera, map, env, consoles, NPCs) |
+| SpatialDashboard.tsx | Enh 1.1 | Scene group: lab map, consoles, NPCs, environment (within CockpitCanvas) |
 | CinematicCamera.tsx | Enh 1.1 | Spring-damped position/lookAt/FOV interpolation |
 | HolographicLabMap.tsx | Enh 1.1 | Central holographic core + 10 lab ring + connection beams |
 | LabStructure3D.tsx | Enh 1.1 | 10 unique multi-part lab models (~2.5K tris each) |
 | InteractiveConsole3D.tsx | Enh 1.1 | 4 holographic consoles (XP, badges, streak, progress) |
 | AmbientNPCs.tsx | Enh 1.1 | 5 personality bot types with Perlin patrol |
 | DynamicEnvironment.tsx | Enh 1.1 | Lab-reactive particles + spatial grid + multi-light |
+| CockpitCanvas.tsx | CPA 2.0 | Persistent R3F Canvas wrapping entire app (WebGPU primary, WebGL2 fallback) |
+| CockpitPanel.tsx | CPA 2.0 | Top/bottom chrome bezels with hex sub-panels |
+| SidePanel.tsx | CPA 2.0 | Left radar + right terminal panels |
+| HolographicHUD.tsx | CPA 2.0 | Center rotating holographic rings |
+| StatusBar3D.tsx | CPA 2.0 | Bottom gauge strip with animated meters |
+| CockpitLighting.tsx | CPA 2.0 | Multi-point light rig + environment map |
+| SpatialOverlay.tsx | Enh 1.1 | Glassmorphic HTML overlay — lab info, nav hints, console indicators |
+| useHeroAnimation.ts | Hero v2 | Animation lifecycle hook — skip logic, fast-forward, phase callbacks |
+| heroParticleCompute.ts | Hero v2 | TSL compute kernel for 1B+ particle throughput (lib/3d/) |
+| voronoiFracture.ts | Hero v2 | CPU-side Voronoi tessellation for Phase 5 shatter (lib/3d/) |
+| heroSplines.ts | Hero v2 | Spline path definitions for Phase 6 shard→cockpit migration (lib/3d/) |
+| heroAudio.ts | Hero v2 | Tone.js audio timeline for all 8 phases (lib/audio/) |
 
 ### 9.1 Mandatory LOD Architecture
 
@@ -762,46 +779,84 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 | **FL-Lite** | Enhanced 3D with themed environments | Enhanced R3F | 10K–50K | 10 |
 | **Standard** | Meaningful 3D scenes (replaces CSS-only) | Themed R3F | 10K–25K | 20 |
 
+### 9.3 3D Panoramic Cockpit Suite (Enhancements 1.0 / 1.1 / 1.2)
+
+The Cockpit Suite transforms SparkForge from a flat dashboard into a **fully immersive 3D command bridge**. It spans three enhancement phases, all documented in dedicated reference docs.
+
+#### Architecture: CPA v2.0 (Single Persistent Canvas)
+
+The **Cockpit Panoramic Architecture v2.0** (`docs/00-reference/3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`) defines the core pattern:
+
+- **Single `<CockpitCanvas>`** wraps the entire app — R3F Canvas persists across all routes (no remount, no canvas swap)
+- **WebGPU primary** renderer via `WebGPURenderer` (async init), **WebGL2 fallback** automatic via TSL compilation
+- **Hero Animation** seamlessly transitions INTO the live cockpit — final animation frame IS the first interactive frame
+- **Dashboard HTML** renders as z-index overlay on top of the live cockpit scene
+- **All cockpit geometry** materializes from shattered logo shards (Phase 6 migration → Phase 7 crystallization)
+
+#### Enhancement Phases
+
+| Phase | Name | Status | Source Document | Scope |
+|-------|------|--------|-----------------|-------|
+| **Enh 1.0** | Cockpit Panoramic Architecture v1 | Superseded by v2 | `COCKPIT_PANORAMIC_ARCHITECTURE_v1.md` | Initial cockpit shell concept |
+| **Enh 1.1** | Spatial Dashboard (CPA v2.0) | IMPLEMENTED | `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` | Full spatial environment — holographic lab map, 4 consoles, NPCs, dynamic environment |
+| **Enh 1.2** | Cockpit Personalization | PLANNED | `ENHANCEMENT_BLUEPRINT_v1.0.md` §1 | Cockpit skins, custom NPC configurations, user-driven theming |
+
+#### CPA2 Decision Locks (12 decisions)
+
+Decisions CPA2-1 through CPA2-12 govern cockpit architecture. Key decisions:
+
+| ID | Decision | Summary |
+|----|----------|---------|
+| CPA2-1 | Single Canvas | One persistent R3F Canvas for entire app lifecycle |
+| CPA2-2 | WebGPU Primary | WebGPURenderer with WebGL2 auto-fallback via TSL |
+| CPA2-3 | Seamless Handoff | Hero animation → cockpit with zero DOM transitions |
+| CPA2-4 | Scene Groups | SpatialDashboard as `<group>` within CockpitCanvas, not separate Canvas |
+
+Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
+
+#### Cockpit Triangle Budgets
+
+| Component | Triangles | Notes |
+|-----------|-----------|-------|
+| HolographicLabMap | ~28K | Core + 10 lab ring + beams |
+| LabStructure3D (10 labs) | ~25K | ~2.5K per lab model |
+| DynamicEnvironment | ~15K | Particles + spatial grid |
+| InteractiveConsole3D (4) | ~6K | XP, badges, streak, progress |
+| AmbientNPCs (5 types) | ~4K | ~500 tris each with Perlin patrol |
+| CockpitPanels + StatusBar | ~22K | Chrome bezels, HUD rings, gauges |
+| LEDRim | ~4K | Arc geometry with lab-color glow |
+| **Cockpit Total** | **~104K** | Within 150K tablet budget |
+
+#### Mobile CSS Fallback Strategy
+
+On mobile (`useIsMobile()` returns `true`), the full cockpit is hidden and replaced with:
+
+- **2D glassmorphic dashboard** — standard HTML/CSS layout with `backdrop-filter: blur()`
+- **CSS particle backgrounds** — `GenericGameParticles.tsx` provides lightweight DOM-animated `<div>` particles
+- **Chrome bezel** rendered as CSS borders/gradients (no R3F)
+- **Lab map** as a flat grid/carousel instead of 3D hologram
+- All interactive functionality preserved — only visual presentation differs
+
+#### TSL / WebGPU Notes
+
+Since Three.js r171+, custom `ShaderMaterial` and `RawShaderMaterial` are **not supported** in `WebGPURenderer`. All shaders must use **TSL (Three Shader Language)**, which auto-compiles to:
+- **WGSL** for WebGPU path
+- **GLSL** for WebGL2 fallback path
+
+The 10 GLSL lab pattern shaders in `src/shaders/` work under WebGL2 but need TSL equivalents for WebGPU compatibility. Hero Animation particle system already uses full TSL compute pipeline.
+
 ---
 
 ## 10. ERROR HANDLING & AUTO-FIX GUIDE
 
-When a build or typecheck fails, use these categories to attempt auto-fix before escalating.
+**Full guide:** `docs/00-reference/ERROR_HANDLING_AUTOFIX_GUIDE.md`
 
-### TypeScript Errors
-
-| Pattern | Likely Cause | Auto-Fix |
-|---------|-------------|----------|
-| `Cannot find module '@/...'` | Missing file from earlier stage | Check if file exists. If not, check stage doc. Create if missing. |
-| `Type 'X' is not assignable to 'Y'` | Interface mismatch | Check `types/index.ts`. Match the interface definition. |
-| `Property 'X' does not exist on type 'Y'` | Store or type incomplete | Check if store/type was updated in a later part of same stage. |
-| `Module has no exported member 'X'` | Named export missing | Check the source file. Add missing export. |
-
-### Import Errors
-
-| Pattern | Likely Cause | Auto-Fix |
-|---------|-------------|----------|
-| `Module not found: Can't resolve 'X'` | Package not installed | Run `npm install X`. Check stage doc for exact package. |
-| `Can't resolve '@/components/...'` | File not yet created | Check if it's in a later part of current stage. Create placeholder if blocking. |
-| `Dynamic import error (ssr: false)` | 3D component not in correct path | Ensure file is in `src/components/3d/` and uses correct export. |
-
-### Build Errors
-
-| Pattern | Likely Cause | Auto-Fix |
-|---------|-------------|----------|
-| `next build` fails with "page" errors | Missing `export default` | Ensure every page.tsx has a default export. |
-| `next build` fails with CSS errors | Tailwind class not defined | Check `tailwind.config.ts` for custom class definitions. |
-| ESLint errors blocking build | Strict rules | Fix or add `// eslint-disable-next-line` with specific rule. |
-
-### Runtime Errors (Non-Blocking)
-
-| Pattern | Action |
-|---------|--------|
-| Hydration mismatch | Check for `useEffect`-only state. Add `suppressHydrationWarning` if needed. |
-| 3D component crash on server | Ensure `ssr: false` in dynamic import. |
-| Supabase connection error | Check `.env.local` values. |
-
-**After 2 failed auto-fix attempts → Escalate to HARD STOP (HS-6).**
+**Quick rules:**
+- TypeScript errors → check `types/index.ts`, verify imports, check stage doc for missing files
+- Import errors → `npm install` missing packages, check file paths per Section 8 conventions
+- Build errors → ensure `export default` on pages, check `tailwind.config.ts` for custom classes
+- Runtime errors → ensure `ssr: false` for 3D, check `.env.local` for Supabase/Stripe/Anthropic keys
+- **After 2 failed auto-fix attempts → Escalate to HARD STOP (HS-6)**
 
 ---
 
@@ -862,43 +917,9 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ## 13. QUICK REFERENCE — ALL 35 GAMES
 
-| # | Game | Lab | Slug | Tier | 3D | Bands | Stage |
-|---|------|-----|------|------|-----|-------|-------|
-| 1 | AI Spy | 1 | ai-spy | Std | — | A,B,C | 7A |
-| 2 | Time Machine | 1 | time-machine | Std | — | A,B,C | 7A |
-| 3 | Human vs Machine | 1 | human-vs-machine | Std | — | A,B,C | 7B |
-| 4 | AI Pet Trainer | 2 | pet-trainer | Flag | Full | A,B,C | 6B |
-| 5 | Sort Toy Box | 2 | sort-toy-box | Full3D | Full | A,B,C | 7B |
-| 6 | Treat Trainer | 2 | treat-trainer | Std | — | A,B,C | 7C |
-| 7 | Data Detective | 2 | data-detective | FL-L | Enh | A,B,C | 7C |
-| 8 | Neural Builder | 3 | neural-builder | Flag | Full | A,B,C | 6C |
-| 9 | Neuron Relay | 3 | neuron-relay | Std | — | A,B,C | 7C |
-| 10 | Pixel Investigator | 3 | pixel-investigator | Std | — | B,C | 7D |
-| 11 | Prompt Lab | 4 | prompt-lab | Flag | Full | A,B,C | 6D |
-| 12 | Word Predictor | 4 | word-predictor | Std | — | A,B,C | 7A |
-| 13 | Token Chopper | 4 | token-chopper | Std | — | B,C | 7A |
-| 14 | AI Art Detective | 4 | ai-art-detective | Std | — | A,B,C | 7A |
-| 15 | Agent Architect | 5 | agent-architect | Flag | Full | A,B,C | 6E |
-| 16 | Robot Vacuum | 5 | robot-vacuum | FL-L | Enh | A,B,C | 7D |
-| 17 | Tool Picker | 6 | tool-picker | Std | — | A,B,C | 7A |
-| 18 | Bias Detective | 6 | bias-detective | Flag | Full | B,C | 6F |
-| 19 | Data Shield | 6 | data-shield | Std | — | A,B,C | 7A |
-| 20 | Real or Fake | 6 | real-or-fake | Std | — | A,B,C | 7A |
-| 21 | Ethics Courtroom | 6 | ethics-courtroom | Std | — | B,C | 7E |
-| 22 | Camera Quest | 7 | camera-quest | FL-L | Enh | A,B,C | 7D |
-| 23 | Fool the AI | 7 | fool-the-ai | Std | — | B,C | 7D |
-| 24 | Build Classifier | 7 | build-classifier | Std | — | B,C | 7E |
-| 25 | Prediction Market | 7 | prediction-market | Std | — | B,C | 7A |
-| 26 | Sentiment Scanner | 8 | sentiment-scanner | Std | — | A,B,C | 7C |
-| 27 | Chatbot Builder | 8 | chatbot-builder | FL-L | Enh | B,C | 7C |
-| 28 | Lost in Translation | 8 | lost-in-translation | Std | — | A,B,C | 7C |
-| 29 | Emoji Decoder | 8 | emoji-decoder | FL-L | Enh | A,B | 7F |
-| 30 | Code Blocks | 9 | code-blocks | FL-L | Enh | A,B,C | 7B |
-| 31 | Career Explorer | 9 | career-explorer | Std | — | B,C | 7B |
-| 32 | API Explorer | 9 | api-explorer | Std | — | C | 7E |
-| 33 | My First AI App | 9 | my-first-ai-app | FL-L | Enh | A,B,C | 7F |
-| 34 | Future Forge | 10 | future-forge | FL-L | Enh | A,B,C | 7D |
-| 35 | AI or Not? | 10 | ai-or-not | FL-L | Enh | A,B | 7F |
+**Full table:** `docs/00-reference/QUICK_REFERENCE_35_GAMES.md` (also in GCUD V10.1)
+
+**Summary:** 5 Flagship (full 3D) + 1 Full 3D + 10 FL-Lite (enhanced 3D) + 20 Standard (themed 3D) = **35 games** across 10 Labs. All games support age bands A/B/C (some B/C or C only). Built across Stages 6B–7F.
 
 ---
 
@@ -910,13 +931,13 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
 | gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
 | toastStore | 1 | toasts[], addToast/removeToast |
-| uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound |
+| uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation |
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
-| **deviceStore** | — | deviceType, hasSelected, profile (FPS, LOD, triangles, effects) |
-| **cockpitStore** | Enh 1.1 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole |
+| **deviceStore** | — | deviceType, hasSelected, profile (FPS, LOD, triangles, effects), gpuTier, stripeCount |
+| **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, heroPhase, cockpitReady. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
 
 ---
 
-*End of CLAUDE.md v5.3 — SparkForge Autonomous Development Playbook*
-*92+ files | 35 games | 48 decisions | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED | Tech Stack 8.1 APPLIED | March 15, 2026*
+*End of CLAUDE.md v5.5 — SparkForge Autonomous Development Playbook*
+*90 active files | 35 games | 64 decisions (48 core + 4 OD + 12 CPA2) | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED | Enhancement 1.2 PLANNED | CPA v2.0 DOCUMENTED | Tech Stack 8.1 APPLIED | March 17, 2026*
