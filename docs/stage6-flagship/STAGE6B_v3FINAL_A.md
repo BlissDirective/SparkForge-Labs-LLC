@@ -3,6 +3,8 @@
 **Version:** v3-FINAL (corrected)
 **Build Phase:** 10 (Stage 6B — Pet Trainer, Part A: 3D components)
 **Prerequisites:** Stage 5 complete (all parts), Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure)
+
+> **Canvas Coexistence Note (FIX-DUAL-CANVAS):** The StationFrame component creates a full-viewport R3F `<Canvas>` on all dashboard pages. When `useStationMode` returns `mode: 'game'`, StationFrame unmounts its 3D Canvas entirely (early return with CSS-only frame) to avoid dual WebGL contexts. Pet3DScene creates its own `<Canvas>` for 3D pet rendering — it gets full GPU ownership during gameplay. The CSS fallback frame (chrome bezel + indicators) remains visible for visual continuity. Long-term, CPA v2.0 (Enhancement 1.1+) will unify all Canvas instances into a single persistent `<CockpitCanvas>`.
 **Validation:** `npm run build` PASS, `npx tsc --noEmit` PASS, `npm run lint` PASS
 **Lab:** 2 — Teaching Machines | **Color:** #8B5CF6 (Purple)
 **Age Bands:** A (7-10), B (11-13), C (14-16)
