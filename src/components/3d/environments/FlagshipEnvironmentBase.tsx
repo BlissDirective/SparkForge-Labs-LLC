@@ -1,19 +1,20 @@
 'use client';
 
 // ════════════════════════════════════════════════════
-// FlagshipEnvironmentBase — Shared 5M-budget foundation
+// FlagshipEnvironmentBase — Shared 10M-budget foundation
 // ════════════════════════════════════════════════════
 // Provides LOD-aware lighting, fog, ground plane, sky dome,
 // and instanced mesh helpers for all 5 flagship environments.
 // Each flagship environment composes this base with game-specific
-// meshes, props, and effects to fill their 5M triangle budget.
+// meshes, props, and effects to fill their 10M triangle budget.
 //
 // Triangle Budget Allocation (Desktop Ultra):
-//   Ground terrain:     ~200K (displacement-mapped plane)
-//   Sky dome:           ~50K  (hemisphere with gradient)
-//   Environment props:  ~500K–2M (game-specific instanced meshes)
-//   Core 3D scene:      ~50K–500K (existing game 3D component)
-//   Particle systems:   ~100K (instanced mesh particles)
+//   Ground terrain:     ~400K (512x512 displacement-mapped plane)
+//   Sky dome:           ~80K  (hemisphere with gradient)
+//   Volumetric fog:     ~200K (instanced mesh particles)
+//   Environment props:  ~2M–6M (game-specific instanced meshes)
+//   Core 3D scene:      ~500K–2M (existing game 3D component)
+//   Particle systems:   ~300K (instanced mesh particles)
 //   Reserve:            ~2M+  (future enhancements)
 
 import React, { useRef, useMemo, type ReactNode } from 'react';
@@ -40,9 +41,9 @@ export function useFlagshipLOD(): FlagshipLOD {
   return useMemo(() => {
     const levelConfigs: Record<string, Partial<FlagshipLOD>> = {
       ultra: {
-        terrainSegments: 256,
-        skySegments: 64,
-        instanceCount: 500,
+        terrainSegments: 512,
+        skySegments: 96,
+        instanceCount: 1000,
         enableFog: true,
         enableContactShadows: true,
         enableParticles: true,
@@ -50,9 +51,9 @@ export function useFlagshipLOD(): FlagshipLOD {
         enableVolumetrics: true,
       },
       high: {
-        terrainSegments: 128,
-        skySegments: 48,
-        instanceCount: 300,
+        terrainSegments: 256,
+        skySegments: 64,
+        instanceCount: 500,
         enableFog: true,
         enableContactShadows: true,
         enableParticles: true,
@@ -60,9 +61,9 @@ export function useFlagshipLOD(): FlagshipLOD {
         enableVolumetrics: false,
       },
       medium: {
-        terrainSegments: 64,
-        skySegments: 32,
-        instanceCount: 150,
+        terrainSegments: 128,
+        skySegments: 48,
+        instanceCount: 250,
         enableFog: true,
         enableContactShadows: false,
         enableParticles: true,
@@ -70,9 +71,9 @@ export function useFlagshipLOD(): FlagshipLOD {
         enableVolumetrics: false,
       },
       low: {
-        terrainSegments: 32,
-        skySegments: 16,
-        instanceCount: 50,
+        terrainSegments: 64,
+        skySegments: 24,
+        instanceCount: 80,
         enableFog: false,
         enableContactShadows: false,
         enableParticles: false,
@@ -80,9 +81,9 @@ export function useFlagshipLOD(): FlagshipLOD {
         enableVolumetrics: false,
       },
       billboard: {
-        terrainSegments: 16,
-        skySegments: 8,
-        instanceCount: 10,
+        terrainSegments: 32,
+        skySegments: 12,
+        instanceCount: 20,
         enableFog: false,
         enableContactShadows: false,
         enableParticles: false,

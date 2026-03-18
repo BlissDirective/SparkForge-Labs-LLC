@@ -652,7 +652,7 @@ function useIsMobile() {
 - `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
 - Mobile fallback: `useIsMobile()` → component returns `null` on mobile
 - CSS 2D fallback remains fully functional when 3D is hidden
-- Triangle budgets: Flagship 5M+ (5,000,000), FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
+- Triangle budgets: Flagship 10M+ (10,000,000), FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
 - **LOD is MANDATORY** — every 3D component must use `useLOD()` hook or `<LODWrapper>` (see Section 9.1)
 - **Device-adaptive FPS** — `deviceStore` drives FPS targets (desktop 60, tablet 45, mobile 30)
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
@@ -703,12 +703,12 @@ function useIsMobile() {
 | voronoiFracture.ts | Hero v2 | CPU-side Voronoi tessellation for Phase 5 shatter (lib/3d/) |
 | heroSplines.ts | Hero v2 | Spline path definitions for Phase 6 shard→cockpit migration (lib/3d/) |
 | heroAudio.ts | Hero v2 | Tone.js audio timeline for all 8 phases (lib/audio/) |
-| FlagshipEnvironmentBase.tsx | 6 v3 5M | Shared LOD-aware foundation: terrain, sky dome, fog particles, lighting rig, instanced scatter |
-| PetTrainerEnvironment.tsx | 6B v3 5M | Pet habitat: training arena, obstacle course, trees, water pond, butterflies (~1.3M tris) |
-| NeuralBuilderEnvironment.tsx | 6C v3 5M | Data center: server racks with LED status, circuit traces, holo panels, cooling fans (~1.1M tris) |
-| PromptLabEnvironment.tsx | 6D v3 5M | AI workshop: floating books, token counter, AI brain mesh, writing desk, idea motes (~910K tris) |
-| AgentArchitectEnvironment.tsx | 6E v3 5M | Server command center: server corridor, conveyor belt, tool shelves, debug tower (~1.0M tris) |
-| BiasDetectiveEnvironment.tsx | 6F v3 5M | Justice courtroom: marble pillars, judge's bench, gallery pews, law books, stained glass (~1.14M tris) |
+| FlagshipEnvironmentBase.tsx | 6 v3 10M | Shared LOD-aware foundation: 512-seg terrain, sky dome, fog particles, lighting rig, instanced scatter |
+| PetTrainerEnvironment.tsx | 6B v3 10M | Enchanted pet habitat: training arena, obstacle course, playground, enchanted forest, creek, fireflies, garden beds, lantern posts, butterflies (~3.96M tris) |
+| NeuralBuilderEnvironment.tsx | 6C v3 10M | Quantum data center: server racks, quantum core processor, data pipelines, monitor array, matrix rain, robotic arms, security grid (~3.68M tris) |
+| PromptLabEnvironment.tsx | 6D v3 10M | Enchanted AI workshop: library tower, floating books, word cloud, typewriter, ink rivers, AI brain, inspiration crystals, dictionary columns (~3.39M tris) |
+| AgentArchitectEnvironment.tsx | 6E v3 10M | Mission control center: server corridor, mission control wall, drone fleet, blueprint table, assembly line, communication array, cargo containers (~3.27M tris) |
+| BiasDetectiveEnvironment.tsx | 6F v3 10M | Grand justice courtroom: marble pillars, chandelier, witness stand, jury box, evidence wall, scales of justice, courthouse arches (~3.44M tris) |
 
 ### 9.1 Mandatory LOD Architecture
 
@@ -771,7 +771,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 
 | Tier | Desktop | Tablet | Mobile |
 |------|---------|--------|--------|
-| Flagship | 5M | 2.5M | 1.25M |
+| Flagship | 10M | 5M | 2.5M |
 | FL-Lite | 50K | 25K | 10K |
 | Standard | 25K | 12K | 5K |
 
@@ -781,7 +781,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 
 | Tier | Description | 3D | Triangle Budget | Games |
 |------|-------------|-----|----------------|-------|
-| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 5M+ (5,000,000) | 5 |
+| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 10M+ (10,000,000) | 5 |
 | **FL-Lite** | Enhanced 3D with themed environments | Enhanced R3F | 10K–50K | 10 |
 | **Standard** | Meaningful 3D scenes (replaces CSS-only) | Themed R3F | 10K–25K | 20 |
 
@@ -831,7 +831,7 @@ Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
 | AmbientNPCs (5 types) | ~4K | ~500 tris each with Perlin patrol |
 | CockpitPanels + StatusBar | ~22K | Chrome bezels, HUD rings, gauges |
 | LEDRim | ~4K | Arc geometry with lab-color glow |
-| **Cockpit Total** | **~104K** | Within 5M tablet budget |
+| **Cockpit Total** | **~104K** | Within 5M tablet budget (10M desktop) |
 
 #### Mobile CSS Fallback Strategy
 

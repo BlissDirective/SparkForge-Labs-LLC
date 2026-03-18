@@ -90,10 +90,11 @@ const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
 };
 
 // ■■ Triangle budgets per game tier, scaled by device ■■
+// Flagship upgraded to 10M (March 18, 2026) — fully immersive environments
 export const TRIANGLE_BUDGETS: Record<DeviceType, { flagship: number; flLite: number; standard: number }> = {
-  desktop:  { flagship: 5_000_000, flLite: 100_000, standard: 50_000 },
-  tablet:   { flagship: 2_500_000, flLite: 50_000,  standard: 25_000 },
-  mobile:   { flagship: 1_250_000, flLite: 25_000,  standard: 10_000 },
+  desktop:  { flagship: 10_000_000, flLite: 100_000, standard: 50_000 },
+  tablet:   { flagship: 5_000_000,  flLite: 50_000,  standard: 25_000 },
+  mobile:   { flagship: 2_500_000,  flLite: 25_000,  standard: 10_000 },
 };
 
 // ■■ Store Interface ■■

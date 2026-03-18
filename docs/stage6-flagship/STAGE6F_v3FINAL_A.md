@@ -70,22 +70,22 @@ This v3-FINAL document (Parts A + B + C combined) supersedes `STAGE6F_Flagship_B
 
 **PREREQUISITES:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure) must be complete.
 
-### Triangle Budget Breakdown (5M Enhancement — March 18, 2026)
+### Triangle Budget Breakdown (10M Enhancement — March 18, 2026)
 
 | Component | Desktop Ultra | LOD Low |
 |-----------|-------------|---------|
 | BiasScales3D (scales + spheres + particles) | ~20K | ~7K |
-| BiasDetectiveEnvironment (marble pillars) | ~300K | ~10K |
-| BiasDetectiveEnvironment (judge's bench + gavel) | ~80K | ~5K |
-| BiasDetectiveEnvironment (gallery seating) | ~200K | ~10K |
-| BiasDetectiveEnvironment (law books + glass windows) | ~190K | ~0 |
-| BiasDetectiveEnvironment (medallion + dust + terrain + sky) | ~350K | ~10K |
-| **Total** | **~1.14M** | **~42K** |
+| BiasDetectiveEnvironment (marble pillars) | ~900K | ~10K |
+| BiasDetectiveEnvironment (judge's bench + gavel) | ~300K | ~5K |
+| BiasDetectiveEnvironment (gallery seating) | ~600K | ~10K |
+| BiasDetectiveEnvironment (law books + glass windows) | ~570K | ~0 |
+| BiasDetectiveEnvironment (medallion + dust + terrain + sky) | ~1.05M | ~10K |
+| **Total** | **~3.44M** | **~42K** |
 
-**Scene total:** ~1.14M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+**Scene total:** ~3.44M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
 Immersive courtroom: marble pillars with capitals, judge's bench with gavel, gallery pews, law book shelves, stained glass windows with colored light, justice floor medallion, atmospheric dust motes.
 
-### New Files (5M Enhancement)
+### New Files (10M Enhancement)
 
 | # | File | Purpose |
 |---|------|---------|
@@ -93,9 +93,9 @@ Immersive courtroom: marble pillars with capitals, judge's bench with gavel, gal
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 5,000,000 | 60 | ultra/high |
-| Tablet | 2,500,000 | 45 | medium |
-| Mobile | 1,250,000 | 30 | low |
+| Desktop | 10,000,000 | 60 | ultra/high |
+| Tablet | 5,000,000 | 45 | medium |
+| Mobile | 2,500,000 | 30 | low |
 
 ---
 

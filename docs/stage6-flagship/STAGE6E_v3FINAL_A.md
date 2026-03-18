@@ -51,22 +51,22 @@ This document creates the 3D pipeline visualization for the Agent Architect flag
 
 **Supersedes:** No prior 3D file existed for Agent Architect. The v2 used CSS-only isometric effects.
 
-### Triangle Budget Breakdown (5M Enhancement — March 18, 2026)
+### Triangle Budget Breakdown (10M Enhancement — March 18, 2026)
 
 | Component | Desktop Ultra | LOD Low |
 |-----------|-------------|---------|
 | AgentPipeline3D (blocks + tubes + packets) | ~28K | ~11K |
-| AgentArchitectEnvironment (server corridor) | ~350K | ~15K |
-| AgentArchitectEnvironment (conveyor system) | ~100K | ~5K |
-| AgentArchitectEnvironment (tool shelves) | ~80K | ~0 |
-| AgentArchitectEnvironment (debug tower + cables) | ~130K | ~0 |
-| AgentArchitectEnvironment (data pulse + terrain + sky) | ~290K | ~10K |
-| **Total** | **~1.0M** | **~41K** |
+| AgentArchitectEnvironment (server corridor) | ~1.1M | ~15K |
+| AgentArchitectEnvironment (conveyor system) | ~400K | ~5K |
+| AgentArchitectEnvironment (tool shelves) | ~320K | ~0 |
+| AgentArchitectEnvironment (debug tower + cables) | ~520K | ~0 |
+| AgentArchitectEnvironment (data pulse + terrain + sky) | ~900K | ~10K |
+| **Total** | **~3.27M** | **~41K** |
 
-**Scene total:** ~1.0M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+**Scene total:** ~3.27M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
 Immersive server command center: server corridor with LED status lights, conveyor belt system, tool shelves, debug call-stack tower, cable conduits, emerald data pulse floor rings.
 
-### New Files (5M Enhancement)
+### New Files (10M Enhancement)
 
 | # | File | Purpose |
 |---|------|---------|
@@ -74,9 +74,9 @@ Immersive server command center: server corridor with LED status lights, conveyo
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 5,000,000 | 60 | ultra/high |
-| Tablet | 2,500,000 | 45 | medium |
-| Mobile | 1,250,000 | 30 | low |
+| Desktop | 10,000,000 | 60 | ultra/high |
+| Tablet | 5,000,000 | 45 | medium |
+| Mobile | 2,500,000 | 30 | low |
 
 ---
 

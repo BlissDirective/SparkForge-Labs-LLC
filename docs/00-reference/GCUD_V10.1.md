@@ -133,7 +133,7 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 
 | Tier | Count | Triangle Budget | Games |
 |------|-------|----------------|-------|
-| Flagship (Full 3D) | 5 | 5M+ (5,000,000) | Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective |
+| Flagship (Full 3D) | 5 | 10M+ (10,000,000) | Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective |
 | Full 3D (non-flagship) | 1 | 10K–50K | Sort Toy Box |
 | FL-Lite (Enhanced 3D) | 7 | 10K–50K | Data Detective, Robot Vacuum, Camera Quest, Chatbot Builder, Code Blocks, My First AI App, Future Forge |
 | Enhanced Standard | 2 | 10K–25K | Emoji Decoder, AI or Not? |

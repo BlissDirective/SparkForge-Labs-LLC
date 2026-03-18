@@ -31,22 +31,22 @@ This document creates the 3D pet rendering system for the AI Pet Trainer flagshi
 | 2 | `src/components/3d/Pet3DScene.tsx` | CREATE | Canvas wrapper with lighting, sparkles, HDR, emoji overlay |
 | 3 | `public/models/pets/` | CREATE (dir) | GLB asset directory for 6 evolution stages |
 
-### Triangle Budget Breakdown (5M Enhancement — March 18, 2026)
+### Triangle Budget Breakdown (10M Enhancement — March 18, 2026)
 
 | Component | Desktop Ultra | LOD Low |
 |-----------|-------------|---------|
 | PetCreature3D (GLB/fallback) | ~8K–15K | ~4K |
-| PetTrainerEnvironment (terrain + sky) | ~250K | ~10K |
-| PetTrainerEnvironment (vegetation) | ~600K | ~20K |
-| PetTrainerEnvironment (arena + obstacles) | ~250K | ~10K |
-| PetTrainerEnvironment (props/toys/water) | ~160K | ~5K |
-| PetTrainerEnvironment (fog + wildlife) | ~70K | ~0 |
-| **Total** | **~1.3M** | **~49K** |
+| PetTrainerEnvironment (terrain + sky) | ~750K | ~10K |
+| PetTrainerEnvironment (vegetation) | ~1.6M | ~20K |
+| PetTrainerEnvironment (arena + obstacles) | ~800K | ~10K |
+| PetTrainerEnvironment (props/toys/water) | ~500K | ~5K |
+| PetTrainerEnvironment (fog + wildlife) | ~300K | ~0 |
+| **Total** | **~3.96M** | **~49K** |
 
-**Scene total:** ~1.3M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+**Scene total:** ~3.96M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
 Immersive pet habitat: training arena, obstacle course, vegetation, water pond, butterflies.
 
-### New Files (5M Enhancement)
+### New Files (10M Enhancement)
 
 | # | File | Purpose |
 |---|------|---------|
@@ -55,9 +55,9 @@ Immersive pet habitat: training arena, obstacle course, vegetation, water pond, 
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 5,000,000 | 60 | ultra/high |
-| Tablet | 2,500,000 | 45 | medium |
-| Mobile | 1,250,000 | 30 | low |
+| Desktop | 10,000,000 | 60 | ultra/high |
+| Tablet | 5,000,000 | 45 | medium |
+| Mobile | 2,500,000 | 30 | low |
 
 ### GPU Performance Budget
 

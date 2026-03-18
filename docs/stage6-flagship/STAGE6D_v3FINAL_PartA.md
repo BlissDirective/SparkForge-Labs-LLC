@@ -56,22 +56,22 @@ All 5 v2 enhancement features remain intact (X-Ray, Explainer, Patterns, Thinkin
 |---|-------|----------|------|
 | 6 | `/fonts/Exo2-Bold.woff` not present in `public/fonts/` | drei `Text` font prop | Non-blocking: drei Text falls back to default font gracefully. Font file will be added in Stage 10 (Polish). Consistent with Stage 6C NeuralNetwork3D behavior. |
 
-### Triangle Budget Breakdown (5M Enhancement — March 18, 2026)
+### Triangle Budget Breakdown (10M Enhancement — March 18, 2026)
 
 | Component | Desktop Ultra | LOD Low |
 |-----------|-------------|---------|
 | PromptBubble3D (bubbles + text) | ~15K | ~6K |
-| PromptLabEnvironment (floating books) | ~300K | ~10K |
-| PromptLabEnvironment (token counter + AI brain) | ~150K | ~5K |
-| PromptLabEnvironment (writing desk + holo screens) | ~110K | ~0 |
-| PromptLabEnvironment (idea motes) | ~40K | ~0 |
-| PromptLabEnvironment (terrain + sky + fog) | ~250K | ~10K |
-| **Total** | **~910K** | **~31K** |
+| PromptLabEnvironment (floating books) | ~1.0M | ~10K |
+| PromptLabEnvironment (token counter + AI brain) | ~600K | ~5K |
+| PromptLabEnvironment (writing desk + holo screens) | ~475K | ~0 |
+| PromptLabEnvironment (idea motes) | ~150K | ~0 |
+| PromptLabEnvironment (terrain + sky + fog) | ~1.15M | ~10K |
+| **Total** | **~3.39M** | **~31K** |
 
-**Scene total:** ~910K tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+**Scene total:** ~3.39M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
 Immersive AI workshop: floating book library, token counter cylinder, central AI brain mesh, writing desk, holographic displays, ambient idea motes.
 
-### New Files (5M Enhancement)
+### New Files (10M Enhancement)
 
 | # | File | Purpose |
 |---|------|---------|
@@ -79,9 +79,9 @@ Immersive AI workshop: floating book library, token counter cylinder, central AI
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 5,000,000 | 60 | ultra/high |
-| Tablet | 2,500,000 | 45 | medium |
-| Mobile | 1,250,000 | 30 | low |
+| Desktop | 10,000,000 | 60 | ultra/high |
+| Tablet | 5,000,000 | 45 | medium |
+| Mobile | 2,500,000 | 30 | low |
 
 ### PERFORMANCE NOTE
 
