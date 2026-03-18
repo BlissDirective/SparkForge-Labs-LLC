@@ -9,7 +9,8 @@
 // Decision 2.1: ALL dashboard pages
 // Decision 2.4: Simplified 3D on mobile (all CPA components return null)
 // Decision 2.5: Edge-to-edge, frame as border overlay
-// Decision 3.4: Game mode dims/hides cockpit elements
+// Decision 3.4: Game mode UNMOUNTS R3F Canvas (games have their own Canvas)
+// FIX-DUAL-CANVAS: Prevents dual WebGL contexts when flagship games render 3D
 // Decision 7.3: PBR desktop, CSS mobile
 // CPA-1: CylinderGeometry panoramic wrap
 // CPA-7: Mode-dependent bloom
@@ -183,6 +184,14 @@ export function StationFrame({
   const [isMobile, setIsMobile] = useState(false);
   const [isWebGLAvailable, setWebGLAvailable] = useState(true);
 
+  // FIX-DUAL-CANVAS: When in game mode, unmount the full R3F Canvas entirely.
+  // Games create their own Canvas for 3D content — running two simultaneous
+  // WebGL contexts doubles GPU draw calls, shader compilations, and VRAM usage.
+  // The CSS-only frame preserves visual continuity (chrome bezel + indicators)
+  // while giving games full GPU ownership.
+  // See: Decision 3.4, CPA v2.0 spec (long-term: unified Canvas in Enh 1.1+)
+  const isGameMode = _mode === 'game';
+
   // Detect mobile and WebGL support
   useEffect(() => {
     const checkMobile = () => {
@@ -222,6 +231,47 @@ export function StationFrame({
         <div className="cockpit-side-indicator right" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
         <div className="status-bar-mobile" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
       </>
+    );
+  }
+
+  // FIX-DUAL-CANVAS: Game mode — unmount R3F Canvas, keep CSS-only frame.
+  // Games (Stage 6 flagships, Stage 7 FL-Lite/Standard) each create their own
+  // <Canvas> for 3D content. Running StationFrame's Canvas simultaneously would
+  // cause dual WebGL contexts with doubled GPU overhead (draw calls, shaders,
+  // postprocessing, HDR environment loaded twice). CSS frame + indicators provide
+  // visual continuity while games get full GPU budget.
+  if (isGameMode) {
+    return (
+      <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
+        {/* CSS scanline overlay (Decision 2.3: toggleable) */}
+        {scanlineEnabled && (
+          <div
+            className="scanline-overlay"
+            style={{ opacity: 0.03 }}
+            aria-hidden="true"
+          />
+        )}
+
+        {/* CSS vignette corners */}
+        <div className="vignette-overlay" aria-hidden="true" />
+
+        {/* CSS chrome bezel border — visible at reduced opacity for game mode */}
+        <div
+          className="station-frame-css"
+          style={
+            {
+              '--glow-color': ledColor,
+              opacity: 0.3,
+            } as React.CSSProperties
+          }
+          aria-hidden="true"
+        />
+
+        {/* CSS cockpit indicators (always shown in game mode for continuity) */}
+        <div className="cockpit-side-indicator left" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
+        <div className="cockpit-side-indicator right" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
+        <div className="status-bar-mobile" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
+      </div>
     );
   }
 

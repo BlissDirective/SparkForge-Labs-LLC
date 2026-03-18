@@ -3,6 +3,8 @@
 **Version:** v3-FINAL (corrected)
 **Build Phase:** 11 (Stage 6C — Neural Builder, Part A: 3D component + audio hook)
 **Prerequisites:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure), Stage 5 complete
+
+> **Canvas Coexistence Note (FIX-DUAL-CANVAS):** The StationFrame component creates a full-viewport R3F `<Canvas>` on all dashboard pages. When `useStationMode` returns `mode: 'game'`, StationFrame unmounts its 3D Canvas entirely (early return with CSS-only frame) to avoid dual WebGL contexts. NeuralNetwork3D creates its own `<Canvas>` for 3D network visualization — it gets full GPU ownership during gameplay. The CSS fallback frame (chrome bezel + indicators) remains visible for visual continuity. Long-term, CPA v2.0 (Enhancement 1.1+) will unify all Canvas instances into a single persistent `<CockpitCanvas>`.
 **Validation:** `npm run build` PASS, `npx tsc --noEmit` PASS, `npm run lint` PASS
 **Lab:** 3 — The Brain Inside | **Color:** #EC4899 (Pink)
 **Age Bands:** B (11-13), C (14-16) — Band A content to be created

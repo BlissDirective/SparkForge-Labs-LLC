@@ -460,6 +460,8 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 
 **Every flagship requires:** Chrome bezel + LED rim, particle bg, welcome/learn/play/complete phases, age-band A/B/C, ARIA labels, Tone.js audio, useIsMobile() fallback.
 
+**FIX-DUAL-CANVAS (March 18, 2026):** StationFrame unmounts its R3F Canvas entirely when `mode === 'game'` — each flagship game creates its own Canvas for 3D content. CSS-only frame (bezel + indicators) provides visual continuity. This prevents dual WebGL contexts and gives games full GPU budget. See each Part A doc for Canvas Coexistence Note.
+
 **Tag:** `git tag -a v0.6.0 -m "Stage 6 complete: 5 flagship games with 3D"`
 
 ---
@@ -916,6 +918,7 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | ENH-9A | Anthropic graceful fallback | 503 if `ANTHROPIC_API_KEY` missing | 9 |
 | IMP-4 | spark-* vs neon-* tokens | Both defined as aliases in `tailwind.config.ts` | 1 |
 | MISSING-7A | AI Spy game has no implementation | **RESOLVED** — `AiSpyGame.tsx` created March 14, 2026 (420 lines, full game) | 7A |
+| FIX-DUAL-CANVAS | Dual WebGL contexts: StationFrame Canvas + game Canvas run simultaneously during gameplay, doubling GPU overhead | **RESOLVED** — StationFrame.tsx now unmounts R3F Canvas when `mode === 'game'`, returns CSS-only frame (bezel + indicators). Games get full GPU ownership. Long-term: CPA v2.0 unified Canvas in Enh 1.1+. Stage 6 Part A docs updated with Canvas Coexistence Note. | 6/7 |
 
 ### Game Code Agent — COMPLETED
 

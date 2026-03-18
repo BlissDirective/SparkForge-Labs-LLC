@@ -31,6 +31,8 @@ All 5 v2 enhancement features remain intact (X-Ray, Explainer, Patterns, Thinkin
 - Stage 3 Part 3 v3-FINAL (StationFrame + R3F infrastructure)
 - Stage 6D v2 + v2 Enhancements (PromptLabGame.tsx with all features)
 
+> **Canvas Coexistence Note (FIX-DUAL-CANVAS):** The StationFrame component creates a full-viewport R3F `<Canvas>` on all dashboard pages. When `useStationMode` returns `mode: 'game'`, StationFrame unmounts its 3D Canvas entirely (early return with CSS-only frame) to avoid dual WebGL contexts. PromptBubble3DScene creates its own `<Canvas>` for 3D thought bubble rendering — it gets full GPU ownership during gameplay. The CSS fallback frame (chrome bezel + indicators) remains visible for visual continuity. Long-term, CPA v2.0 (Enhancement 1.1+) will unify all Canvas instances into a single persistent `<CockpitCanvas>`.
+
 ---
 
 ## CODE REVIEW FINDINGS & FIXES APPLIED
