@@ -652,7 +652,7 @@ function useIsMobile() {
 - `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
 - Mobile fallback: `useIsMobile()` → component returns `null` on mobile
 - CSS 2D fallback remains fully functional when 3D is hidden
-- Triangle budgets: Flagship 10M+ (10,000,000), FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
+- Triangle budgets: Flagship 10M+ (10,000,000), FL-Lite 2M+ (2,000,000), Standard 10K–25K (all games now have 3D)
 - **LOD is MANDATORY** — every 3D component must use `useLOD()` hook or `<LODWrapper>` (see Section 9.1)
 - **Device-adaptive FPS** — `deviceStore` drives FPS targets (desktop 60, tablet 45, mobile 30)
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
@@ -709,6 +709,18 @@ function useIsMobile() {
 | PromptLabEnvironment.tsx | 6D v3 10M | Enchanted AI workshop: library tower, floating books, word cloud, typewriter, ink rivers, AI brain, inspiration crystals, dictionary columns (~3.39M tris) |
 | AgentArchitectEnvironment.tsx | 6E v3 10M | Mission control center: server corridor, mission control wall, drone fleet, blueprint table, assembly line, communication array, cargo containers (~3.27M tris) |
 | BiasDetectiveEnvironment.tsx | 6F v3 10M | Grand justice courtroom: marble pillars, chandelier, witness stand, jury box, evidence wall, scales of justice, courthouse arches (~3.44M tris) |
+| FLLiteEnvironmentBase.tsx | 7 v3 2M | Shared FL-Lite foundation: 256-seg terrain, sky dome, fog particles, lighting rig |
+| DataDetectiveEnvironment.tsx | 7C v3 2M | Investigation laboratory: desks, evidence boards, filing cabinets, magnifying hologram, data streams (~1.3M tris) |
+| RobotVacuumEnvironment.tsx | 7D v3 2M | Smart home interior: furniture, IoT sensors, control panels, charging dock, floor plan overlay (~1.2M tris) |
+| CameraQuestEnvironment.tsx | 7D v3 2M | Photography studio: lighting rigs, camera stations, photo gallery wall, film strips, neural net viz (~1.3M tris) |
+| ChatbotBuilderEnvironment.tsx | 7C v3 2M | Communication hub: chat bubbles, server towers, antenna array, message streams, consoles (~1.2M tris) |
+| EmojiDecoderEnvironment.tsx | 7F v3 2M | Translation workshop: emoji sculptures, translation machine, rosetta pillars, cultural displays (~1.3M tris) |
+| CodeBlocksEnvironment.tsx | 7B v3 2M | Code laboratory: terminal screens, circuit board floor, LED strips, binary rain, robot assistants (~1.4M tris) |
+| MyFirstAiAppEnvironment.tsx | 7F v3 2M | App dev studio: device mockups, component shelves, wireframe displays, launch pad (~1.2M tris) |
+| FutureForgeEnvironment.tsx | 7D v3 2M | Future city: skyline towers, holographic billboards, flying vehicles, innovation dome (~1.4M tris) |
+| AiOrNotEnvironment.tsx | 7F v3 2M | AI art gallery: exhibition pedestals, picture frames, voting booths, spotlight rigs (~1.3M tris) |
+| EmojiDecoder3D.tsx | 7F v3 2M | Emoji Decoder game 3D component: translation machine, emoji display, decoded output |
+| AiOrNot3D.tsx | 7F v3 2M | AI or Not? game 3D component: display pedestal, voting buttons, verdict ring, score display |
 
 ### 9.1 Mandatory LOD Architecture
 
@@ -772,7 +784,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 | Tier | Desktop | Tablet | Mobile |
 |------|---------|--------|--------|
 | Flagship | 10M | 5M | 2.5M |
-| FL-Lite | 50K | 25K | 10K |
+| FL-Lite | 2M | 1M | 500K |
 | Standard | 25K | 12K | 5K |
 
 ### 9.2 Game Tier Definitions (3 tiers)
@@ -782,7 +794,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 | Tier | Description | 3D | Triangle Budget | Games |
 |------|-------------|-----|----------------|-------|
 | **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 10M+ (10,000,000) | 5 |
-| **FL-Lite** | Enhanced 3D with themed environments | Enhanced R3F | 10K–50K | 10 |
+| **FL-Lite** | Immersive 3D with themed environments | Full R3F | 2M+ (2,000,000) | 9 |
 | **Standard** | Meaningful 3D scenes (replaces CSS-only) | Themed R3F | 10K–25K | 20 |
 
 ### 9.3 3D Panoramic Cockpit Suite (Enhancements 1.0 / 1.1 / 1.2)
@@ -925,7 +937,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 **Full table:** `docs/00-reference/QUICK_REFERENCE_35_GAMES.md` (also in GCUD V10.1)
 
-**Summary:** 5 Flagship (full 3D) + 1 Full 3D + 10 FL-Lite (enhanced 3D) + 20 Standard (themed 3D) = **35 games** across 10 Labs. All games support age bands A/B/C (some B/C or C only). Built across Stages 6B–7F.
+**Summary:** 6 Flagship (full 3D, 10M budget) + 9 FL-Lite (immersive 3D, 2M budget) + 20 Standard (themed 3D) = **35 games** across 10 Labs. All games support age bands A/B/C (some B/C or C only). Built across Stages 6B–7F.
 
 ---
 

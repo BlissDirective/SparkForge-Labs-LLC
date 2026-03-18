@@ -34,8 +34,8 @@ const LAB_NAMES: Record<number, string> = {
 };
 
 const TRIANGLE_BUDGETS = {
-  flagship: { desktop: 5_000_000, tablet: 2_500_000, mobile: 1_250_000 },
-  'fl-lite': { desktop: 50_000, tablet: 25_000, mobile: 10_000 },
+  flagship: { desktop: 10_000_000, tablet: 5_000_000, mobile: 2_500_000 },
+  'fl-lite': { desktop: 2_000_000, tablet: 1_000_000, mobile: 500_000 },
   standard3D: { desktop: 25_000, tablet: 12_000, mobile: 5_000 },
 } as const;
 
@@ -474,13 +474,13 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     lab: 8,
     labName: LAB_NAMES[8],
     tier: 'fl-lite',
-    has3D: false,
-    component3D: null,
+    has3D: true,
+    component3D: 'EmojiDecoder3D',
     ageBands: ['A', 'B'],
     stage: '7F',
     description: 'Decode emoji sequences into sentences to explore how AI interprets visual symbols as language.',
     icon: '\uD83D\uDD23',
-    triangleBudget: null,
+    triangleBudget: budget('fl-lite', true),
   },
   {
     id: 30,
@@ -564,13 +564,13 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     lab: 10,
     labName: LAB_NAMES[10],
     tier: 'fl-lite',
-    has3D: false,
-    component3D: null,
+    has3D: true,
+    component3D: 'AiOrNot3D',
     ageBands: ['A', 'B'],
     stage: '7F',
     description: 'Judge whether creative works were made by humans or AI to sharpen your detection skills.',
     icon: '\u2753',
-    triangleBudget: null,
+    triangleBudget: budget('fl-lite', true),
   },
 ] as const;
 
