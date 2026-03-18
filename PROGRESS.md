@@ -1,8 +1,43 @@
 # SparkForge Build Progress
 
-## Current Phase: Hero Animation v2.0 — Phase G3 (Push + Validation)
-## Status: PHASE G3 COMPLETE — Pushed, build verified, TypeScript clean
-## Last Updated: 2026-03-16 (Hero Animation v2.0 Phase G3)
+## Current Phase: Stage 7 Review — Dual-Canvas + LOD + Mobile Particle Fixes
+## Status: IN PROGRESS — Code fixes applied, docs updated, awaiting build validation
+## Last Updated: 2026-03-18 (Stage 7 Conflict Resolution)
+
+### Stage 7 Review — Conflict Analysis & Fixes (March 18, 2026)
+
+**Status:** IN PROGRESS | **Branch:** claude/review-stage-7-conflicts-018FV
+
+**Fixes Applied:**
+
+1. **FIX-DUAL-CANVAS v2 (CRITICAL):** `gameActive` state moved from local `useState` in `useStationMode` to Zustand `uiStore` (global shared state). GameShell now calls `setGameActive(true/false)` on mount/unmount. StationFrame properly unmounts its R3F Canvas during gameplay for all 35 games.
+   - `src/stores/uiStore.ts` — Added `gameActive` + `setGameActive`
+   - `src/hooks/useStationMode.ts` — Reads from `uiStore` instead of local state
+   - `src/components/game/GameShell.tsx` — Calls `setGameActive()` lifecycle
+
+2. **LODWrapper Integration:** GameShell wraps children with `<LODWrapper tier={lodTier} adaptive>`. Tier auto-resolved from `gameRegistry`. All 35 games now have LOD context for 3D children.
+   - `src/components/game/GameShell.tsx` — Added LODWrapper + gameRegistry lookup
+
+3. **Mobile CSS Particle Fallback:** GameShell renders `<GenericGameParticles color={worldColor} />` on mobile when 3D Canvas is hidden.
+   - `src/components/game/GameShell.tsx` — Added mobile detection + GenericGameParticles
+
+**Docs Updated:**
+- `CLAUDE.md` — Bug registry: FIX-DUAL-CANVAS v2, FIX-LOD-MISSING, FIX-MOBILE-PARTICLES
+- `docs/stage7-remaining-games/STAGE 7 SHARED SYSTEMS.md` — GameShell integration addendum
+- `docs/00-reference/GCUD_V10.1.md` — Changelog entry V10.1+
+- `PROGRESS.md` — This entry
+
+### Discrepancies Log (March 18, 2026)
+- **useStationMode local state bug:** `gameActive` was `useState(false)` — each hook instance had separate state. Dashboard layout and game components never shared the flag. Fixed by migrating to Zustand `uiStore`.
+- **setGameActive never called:** No game component or GameShell called `setGameActive()`. The FIX-DUAL-CANVAS code path in StationFrame was dead code. Fixed by adding lifecycle calls to GameShell.
+- **LODWrapper unused:** Mandated by CLAUDE.md Section 9.1 but never integrated into any game. Fixed via GameShell wrapper.
+- **GenericGameParticles not used as mobile fallback:** Component existed but was never imported by games with 3D environments. Fixed via GameShell mobile detection.
+
+---
+
+## Previous Phase: Hero Animation v2.0 — Phase G3 (Push + Validation)
+## Previous Status: PHASE G3 COMPLETE — Pushed, build verified, TypeScript clean
+## Previous Updated: 2026-03-16 (Hero Animation v2.0 Phase G3)
 
 ### Hero Page Animation v2.0 — Phase G3: Push & Validation (March 16, 2026)
 

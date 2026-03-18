@@ -15,6 +15,11 @@ interface UIState {
    *  Default: false. Toggled in Settings page (Stage 4 Part 3).
    *  When true, HeroAnimation renders Phase 8 final state immediately. */
   skipIntroAnimation: boolean;
+  /** FIX-DUAL-CANVAS: Global game-active flag consumed by useStationMode.
+   *  When true, StationFrame unmounts its R3F Canvas so games get full GPU.
+   *  Set by GameShell on mount/unmount. */
+  gameActive: boolean;
+  setGameActive: (active: boolean) => void;
   setSkipIntroAnimation: (skip: boolean) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -38,6 +43,8 @@ export const useUIStore = create<UIState>((set) => ({
   dailyChallengeCompleted: false,
   particleIntensity: 'medium',
   skipIntroAnimation: false,
+  gameActive: false,
+  setGameActive: (gameActive) => set({ gameActive }),
   setSkipIntroAnimation: (skipIntroAnimation) => set({ skipIntroAnimation }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),

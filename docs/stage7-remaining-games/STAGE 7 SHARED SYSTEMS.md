@@ -496,3 +496,64 @@ git push origin main
 |Generic Ambient (CSS)|GenericGameParticles.tsx|30 non-flagship + all mobile|COMPLETE (this doc)|
 
 **Doc #13: Stage 7 Shared v3-FINAL COMPLETE**
+
+-----
+
+## ADDENDUM — GAMESHELL INTEGRATION FIXES (March 18, 2026)
+
+Three critical fixes applied to GameShell (`src/components/game/GameShell.tsx`) that affect all 35 games:
+
+### Fix 1: FIX-DUAL-CANVAS v2 — Global Game-Active State
+
+**Problem:** `useStationMode().setGameActive()` was never called by any game, AND used local `useState` (not shared global state). StationFrame's R3F Canvas remained mounted alongside game Canvases, causing dual WebGL contexts.
+
+**Solution:**
+1. Added `gameActive: boolean` + `setGameActive()` to `uiStore` (Zustand global state)
+2. Updated `useStationMode` to read `gameActive` from `uiStore` instead of local `useState`
+3. GameShell calls `setGameActive(true)` on mount and `setGameActive(false)` on unmount
+
+**Files modified:** `src/stores/uiStore.ts`, `src/hooks/useStationMode.ts`, `src/components/game/GameShell.tsx`
+
+### Fix 2: LODWrapper Integration
+
+**Problem:** CLAUDE.md Section 9.1 mandates LOD for every 3D component, but no game wrapped its content with `<LODWrapper>`. The adaptive performance system was non-functional.
+
+**Solution:** GameShell wraps all children with `<LODWrapper tier={lodTier} adaptive>`. Tier is auto-resolved from `gameRegistry` using the game's slug. Mapping: `'fl-lite'` → `'flLite'`.
+
+**Files modified:** `src/components/game/GameShell.tsx`
+
+### Fix 3: Mobile CSS Particle Fallback
+
+**Problem:** When `useIsMobile()` hides the 3D `<Canvas>`, mobile users see a blank background. `GenericGameParticles` exists for this purpose but was not integrated.
+
+**Solution:** GameShell renders `<GenericGameParticles color={worldColor} />` on mobile devices. All 35 games automatically get lab-colored ambient particles on mobile.
+
+**Files modified:** `src/components/game/GameShell.tsx`
+
+### Updated GameShell Architecture
+
+```tsx
+// src/components/game/GameShell.tsx — Post-fix architecture
+export function GameShell({ gameId, title, worldNumber, worldColor, ... }) {
+  // 1. Game state initialization
+  startGame(gameId, totalRounds, hints);
+
+  // 2. FIX-DUAL-CANVAS: Signal StationFrame to unmount Canvas
+  setGameActive(true);  // → uiStore → useStationMode → StationFrame
+
+  // 3. LOD context for all 3D children
+  const lodTier = resolveFromGameRegistry(gameId);  // 'flagship' | 'flLite' | 'standard'
+
+  return (
+    <div>
+      {/* 4. Mobile CSS particle fallback */}
+      {isMobile && <GenericGameParticles color={worldColor} />}
+
+      {/* 5. LOD wrapper for 3D content */}
+      <LODWrapper tier={lodTier} adaptive>
+        {children}  {/* Game content + 3D Canvas */}
+      </LODWrapper>
+    </div>
+  );
+}
+```
