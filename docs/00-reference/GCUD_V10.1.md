@@ -233,6 +233,7 @@ All unchanged from V9 except CC10 (No 3D) now RESOLVED. 13 issues total, 10 reso
 | 2026-03-01 | — | Master Directory v1.0 produced |
 | 2026-03-01 | V10 | Triple-column tracking, v3-FINAL inventory, 7 files removed, CC10/Gap12 resolved, CLAUDE.md v4, Master Directory alignment |
 | 2026-03-01 | V10.1 | **CORRECTION: Game count 31 → 35. Tier breakdown: 20 Standard (not 16). Stage 7A: 9 games (not 8). Stage 7 total: 30 games (not 26). GenericGameParticles serves 29 games (not 23). Added per-tier and per-stage breakdowns for verification.** |
+| 2026-03-18 | V10.1+ | **BUGFIX: FIX-DUAL-CANVAS v2** — `gameActive` state moved to Zustand `uiStore` (was broken local `useState` in `useStationMode`). GameShell now calls `setGameActive(true/false)` on mount/unmount. **LODWrapper** integrated into GameShell for all 35 games (auto-resolves tier from `gameRegistry`). **Mobile particle fallback** added to GameShell via `GenericGameParticles`. Files: `uiStore.ts`, `useStationMode.ts`, `GameShell.tsx`. Docs: `CLAUDE.md` bug registry, `STAGE 7 SHARED SYSTEMS.md` addendum. |
 
 ### NEXT STEPS
 

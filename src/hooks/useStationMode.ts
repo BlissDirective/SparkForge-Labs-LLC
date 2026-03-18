@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
+import { useUIStore } from '@/stores/uiStore';
 import {
   BLOOM_PRESETS,
   CAMERA_PRESETS,
@@ -96,7 +97,10 @@ export function useStationMode(): StationModeState & {
 } {
   const pathname = usePathname();
 
-  const [gameActive, setGameActive] = useState(false);
+  // FIX-DUAL-CANVAS: gameActive lives in Zustand uiStore (global shared state)
+  // so dashboard layout and game components share the SAME flag.
+  const gameActive = useUIStore((s) => s.gameActive);
+  const setGameActive = useUIStore((s) => s.setGameActive);
   const [celebrationActive, setCelebration] = useState(false);
   const [manualLabId, setLabId] = useState<number | null>(null);
 
