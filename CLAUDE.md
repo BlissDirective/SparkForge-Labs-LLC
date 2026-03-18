@@ -703,6 +703,12 @@ function useIsMobile() {
 | voronoiFracture.ts | Hero v2 | CPU-side Voronoi tessellation for Phase 5 shatter (lib/3d/) |
 | heroSplines.ts | Hero v2 | Spline path definitions for Phase 6 shard→cockpit migration (lib/3d/) |
 | heroAudio.ts | Hero v2 | Tone.js audio timeline for all 8 phases (lib/audio/) |
+| FlagshipEnvironmentBase.tsx | 6 v3 5M | Shared LOD-aware foundation: terrain, sky dome, fog particles, lighting rig, instanced scatter |
+| PetTrainerEnvironment.tsx | 6B v3 5M | Pet habitat: training arena, obstacle course, trees, water pond, butterflies (~1.3M tris) |
+| NeuralBuilderEnvironment.tsx | 6C v3 5M | Data center: server racks with LED status, circuit traces, holo panels, cooling fans (~1.1M tris) |
+| PromptLabEnvironment.tsx | 6D v3 5M | AI workshop: floating books, token counter, AI brain mesh, writing desk, idea motes (~910K tris) |
+| AgentArchitectEnvironment.tsx | 6E v3 5M | Server command center: server corridor, conveyor belt, tool shelves, debug tower (~1.0M tris) |
+| BiasDetectiveEnvironment.tsx | 6F v3 5M | Justice courtroom: marble pillars, judge's bench, gallery pews, law books, stained glass (~1.14M tris) |
 
 ### 9.1 Mandatory LOD Architecture
 

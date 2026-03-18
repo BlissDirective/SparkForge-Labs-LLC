@@ -49,16 +49,26 @@ This document creates the 3D neural network visualization and audio sonification
 
 Installed with `npm install tone @nivo/line --legacy-peer-deps` (peer dep conflict with existing packages).
 
-### Triangle Budget Breakdown
+### Triangle Budget Breakdown (5M Enhancement — March 18, 2026)
 
-| Component | Base Tris | With Effects | LOD Low |
-|-----------|-----------|-------------|---------|
-| NeuralNetwork3D (nodes) | ~12K | ~12K | ~5K |
-| Connections | ~8K | ~8K | ~3K |
-| Particles | ~5K | ~5K | ~2K |
-| **Total** | **~25K** | **~25K** | **~10K** |
+| Component | Desktop Ultra | LOD Low |
+|-----------|-------------|---------|
+| NeuralNetwork3D (nodes + connections) | ~20K | ~8K |
+| NeuralBuilderEnvironment (server racks) | ~400K | ~20K |
+| NeuralBuilderEnvironment (circuit traces) | ~50K | ~5K |
+| NeuralBuilderEnvironment (holo panels + fans) | ~140K | ~0 |
+| NeuralBuilderEnvironment (ceiling paths + data streams) | ~160K | ~0 |
+| NeuralBuilderEnvironment (terrain + sky + fog) | ~250K | ~10K |
+| **Total** | **~1.1M** | **~43K** |
 
-**Scene total range:** ~25K-45K depending on network size (node/layer count).
+**Scene total:** ~1.1M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+Immersive data center: server racks with LED status lights, circuit board floor, holographic panels, cooling fans, neural pathway ceiling lights, data stream particles.
+
+### New Files (5M Enhancement)
+
+| # | File | Purpose |
+|---|------|---------|
+| 3 | `src/components/3d/environments/NeuralBuilderEnvironment.tsx` | Immersive data center lab |
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|

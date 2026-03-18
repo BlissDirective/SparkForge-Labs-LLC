@@ -22,11 +22,13 @@
 //
 // Dynamic import with ssr: false required.
 
-import { useMemo, useState, useEffect, Suspense } from 'react';
+import { useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { Sparkles, Environment, ContactShadows } from '@react-three/drei';
+import { Sparkles } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import PetCreature3D from './PetCreature3D';
+import PetTrainerEnvironment from './environments/PetTrainerEnvironment';
+import { LODWrapper } from './LODWrapper';
 
 // === Types ===
 
@@ -56,38 +58,6 @@ const SPARKLE_COUNTS: Record<PetSceneProps['mood'], number> = {
   celebrating: 120,
 };
 
-// === Custom HDR path (Decision 7.1) ===
-// FIX: CLAUDE.md specifies public/hdri/ (not /envmaps/)
-const CUSTOM_HDR_PATH = '/hdri/frost-prismatic.hdr';
-
-function SceneEnvironment() {
-  const [hdrAvailable, setHdrAvailable] = useState(false);
-
-  // Probe whether custom HDR file exists
-  useEffect(() => {
-    let cancelled = false;
-    fetch(CUSTOM_HDR_PATH, { method: 'HEAD' })
-      .then((res) => {
-        if (!cancelled) setHdrAvailable(res.ok);
-      })
-      .catch(() => {
-        if (!cancelled) setHdrAvailable(false);
-      });
-    return () => { cancelled = true; };
-  }, []);
-
-  // Use custom HDR if available, otherwise drei preset
-  if (!hdrAvailable) {
-    return <Environment preset="night" />;
-  }
-
-  return (
-    <Suspense fallback={<Environment preset="night" />}>
-      <Environment files={CUSTOM_HDR_PATH} />
-    </Suspense>
-  );
-}
-
 // === Exported Scene Component ===
 
 export default function Pet3DScene({
@@ -110,50 +80,37 @@ export default function Pet3DScene({
   return (
     <div className={`relative ${sizeMap[size]}`}>
       <Canvas
-        camera={{ position: [0, 0, 4.5], fov: 45 }}
+        camera={{ position: [0, 1, 8], fov: 50 }}
         dpr={[1, 2]}
         gl={{ antialias: true, alpha: true }}
+        shadows
         style={{ background: 'transparent' }}
       >
-        {/* Lighting optimized for MeshToonMaterial */}
-        <ambientLight intensity={0.4} />
-        <directionalLight
-          position={[5, 8, 5]}
-          intensity={1.2}
-          color={labColor}
-          castShadow
-        />
-        <pointLight position={[-4, -3, 3]} intensity={0.3} color="#6366F1" />
-
-        {/* [v3] PetCreature3D replaces procedural orb */}
-        <PetCreature3D
-          mood={mood}
-          evolutionStage={evolutionStage}
-          labColor={labColor}
-        />
-
-        {/* Sparkles (mood-reactive, preserved from v2) */}
-        {showSparkles && sparkleCount > 0 && (
-          <Sparkles
-            count={sparkleCount}
-            scale={3}
-            size={2}
-            speed={0.4}
-            color={labColor}
+        <LODWrapper tier="flagship" adaptive>
+          {/* [5M] Immersive Pet Habitat Environment */}
+          <PetTrainerEnvironment
+            evolutionStage={evolutionStage}
+            mood={mood}
           />
-        )}
 
-        {/* Contact shadow beneath pet */}
-        <ContactShadows
-          position={[0, -1.5, 0]}
-          opacity={0.3}
-          scale={4}
-          blur={2}
-          color={labColor}
-        />
+          {/* [v3] PetCreature3D replaces procedural orb */}
+          <PetCreature3D
+            mood={mood}
+            evolutionStage={evolutionStage}
+            labColor={labColor}
+          />
 
-        {/* [v3] Custom HDR environment with fallback */}
-        <SceneEnvironment />
+          {/* Sparkles (mood-reactive, preserved from v2) */}
+          {showSparkles && sparkleCount > 0 && (
+            <Sparkles
+              count={sparkleCount}
+              scale={3}
+              size={2}
+              speed={0.4}
+              color={labColor}
+            />
+          )}
+        </LODWrapper>
 
         {/* Bloom postprocessing */}
         <EffectComposer>

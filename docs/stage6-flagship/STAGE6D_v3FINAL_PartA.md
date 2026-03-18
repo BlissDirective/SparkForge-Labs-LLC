@@ -56,16 +56,26 @@ All 5 v2 enhancement features remain intact (X-Ray, Explainer, Patterns, Thinkin
 |---|-------|----------|------|
 | 6 | `/fonts/Exo2-Bold.woff` not present in `public/fonts/` | drei `Text` font prop | Non-blocking: drei Text falls back to default font gracefully. Font file will be added in Stage 10 (Polish). Consistent with Stage 6C NeuralNetwork3D behavior. |
 
-### Triangle Budget Breakdown
+### Triangle Budget Breakdown (5M Enhancement — March 18, 2026)
 
-| Component | Base Tris | With Effects | LOD Low |
-|-----------|-----------|-------------|---------|
-| PromptBubble3D (bubbles) | ~6K | ~6K | ~3K |
-| Text particles | ~4K | ~4K | ~2K |
-| Connecting lines | ~3K | ~3K | ~1K |
-| **Total** | **~13K** | **~13K** | **~6K** |
+| Component | Desktop Ultra | LOD Low |
+|-----------|-------------|---------|
+| PromptBubble3D (bubbles + text) | ~15K | ~6K |
+| PromptLabEnvironment (floating books) | ~300K | ~10K |
+| PromptLabEnvironment (token counter + AI brain) | ~150K | ~5K |
+| PromptLabEnvironment (writing desk + holo screens) | ~110K | ~0 |
+| PromptLabEnvironment (idea motes) | ~40K | ~0 |
+| PromptLabEnvironment (terrain + sky + fog) | ~250K | ~10K |
+| **Total** | **~910K** | **~31K** |
 
-**Scene total range:** ~13K-25K depending on active bubble count (max 12).
+**Scene total:** ~910K tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+Immersive AI workshop: floating book library, token counter cylinder, central AI brain mesh, writing desk, holographic displays, ambient idea motes.
+
+### New Files (5M Enhancement)
+
+| # | File | Purpose |
+|---|------|---------|
+| 2 | `src/components/3d/environments/PromptLabEnvironment.tsx` | Immersive AI workshop studio |
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|

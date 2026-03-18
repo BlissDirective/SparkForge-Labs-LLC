@@ -31,16 +31,27 @@ This document creates the 3D pet rendering system for the AI Pet Trainer flagshi
 | 2 | `src/components/3d/Pet3DScene.tsx` | CREATE | Canvas wrapper with lighting, sparkles, HDR, emoji overlay |
 | 3 | `public/models/pets/` | CREATE (dir) | GLB asset directory for 6 evolution stages |
 
-### Triangle Budget Breakdown
+### Triangle Budget Breakdown (5M Enhancement — March 18, 2026)
 
-| Component | Base Tris | With Effects | LOD Low |
-|-----------|-----------|-------------|---------|
-| PetCreature3D | ~8K | ~15K (with accessories) | ~4K |
-| Pet3DScene (environment) | ~5K | ~5K | ~2K |
-| Food particles | ~3K | ~3K | ~1K |
-| **Total** | **~16K** | **~23K** | **~7K** |
+| Component | Desktop Ultra | LOD Low |
+|-----------|-------------|---------|
+| PetCreature3D (GLB/fallback) | ~8K–15K | ~4K |
+| PetTrainerEnvironment (terrain + sky) | ~250K | ~10K |
+| PetTrainerEnvironment (vegetation) | ~600K | ~20K |
+| PetTrainerEnvironment (arena + obstacles) | ~250K | ~10K |
+| PetTrainerEnvironment (props/toys/water) | ~160K | ~5K |
+| PetTrainerEnvironment (fog + wildlife) | ~70K | ~0 |
+| **Total** | **~1.3M** | **~49K** |
 
-**Scene total range:** ~26K-35K depending on pet evolution stage.
+**Scene total:** ~1.3M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+Immersive pet habitat: training arena, obstacle course, vegetation, water pond, butterflies.
+
+### New Files (5M Enhancement)
+
+| # | File | Purpose |
+|---|------|---------|
+| 4 | `src/components/3d/environments/FlagshipEnvironmentBase.tsx` | Shared LOD-aware foundation |
+| 5 | `src/components/3d/environments/PetTrainerEnvironment.tsx` | Immersive pet habitat |
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|

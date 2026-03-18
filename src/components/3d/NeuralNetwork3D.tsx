@@ -26,6 +26,8 @@ import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
+import NeuralBuilderEnvironment from './environments/NeuralBuilderEnvironment';
+import { LODWrapper } from './LODWrapper';
 
 // ================================================================
 // TYPES
@@ -506,23 +508,32 @@ export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
       aria-label={`3D neural network visualization with ${props.layerSizes.length} layers and ${props.network.nodes.length} neurons`}
     >
       <Canvas
-        camera={{ position: [0, 1, 7], fov: 50 }}
+        camera={{ position: [0, 2, 10], fov: 50 }}
         dpr={isMobile ? [1, 1.5] : [1, 2]}
         gl={{ antialias: !isMobile, alpha: true }}
+        shadows
         style={{ background: 'transparent' }}
       >
-        <NetworkScene
-          layerSizes={props.layerSizes}
-          network={props.network}
-          isTraining={props.isTraining}
-          heartbeatPhase={props.heartbeatPhase}
-          dataFlowActive={props.dataFlowActive}
-          selectedConnection={props.selectedConnection}
-          inspectedNode={props.inspectedNode}
-          onSelectConnection={props.onSelectConnection}
-          onInspectNode={props.onInspectNode}
-          isMobile={isMobile}
-        />
+        <LODWrapper tier="flagship" adaptive>
+          {/* [5M] Immersive Data Center Environment */}
+          <NeuralBuilderEnvironment
+            isTraining={props.isTraining}
+            accuracy={props.accuracy}
+          />
+
+          <NetworkScene
+            layerSizes={props.layerSizes}
+            network={props.network}
+            isTraining={props.isTraining}
+            heartbeatPhase={props.heartbeatPhase}
+            dataFlowActive={props.dataFlowActive}
+            selectedConnection={props.selectedConnection}
+            inspectedNode={props.inspectedNode}
+            onSelectConnection={props.onSelectConnection}
+            onInspectNode={props.onInspectNode}
+            isMobile={isMobile}
+          />
+        </LODWrapper>
       </Canvas>
     </div>
   );
