@@ -7,12 +7,34 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { Fingerprint, CheckCircle2, XCircle, BookOpen } from 'lucide-react';
+
+// 3D Environment (no SSR)
+const Canvas = dynamic(
+  () => import('@react-three/fiber').then(mod => mod.Canvas),
+  { ssr: false }
+);
+const RealOrFakeEnvironment = dynamic(
+  () => import('@/components/3d/environments/RealOrFakeEnvironment'),
+  { ssr: false }
+);
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
+}
 
 type Phase = 'welcome' | 'tips' | 'play';
 
@@ -54,6 +76,7 @@ export function RealOrFakeGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const isMobile = useIsMobile();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -92,6 +115,18 @@ export function RealOrFakeGame() {
   return (
     <GameShell gameId="real-or-fake" title="Real or Fake?" worldNumber={6} worldColor="#FF6644" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
+        {/* 3D Environment Background */}
+        {!isMobile && (
+          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+            <Canvas
+              camera={{ position: [0, 2, 8], fov: 50 }}
+              style={{ background: 'transparent' }}
+              gl={{ alpha: true, antialias: true }}
+            >
+              <RealOrFakeEnvironment verified={score.correct} isChecking={!!feedback} />
+            </Canvas>
+          </div>
+        )}
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

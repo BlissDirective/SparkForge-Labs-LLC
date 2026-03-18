@@ -19,7 +19,7 @@
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -32,6 +32,28 @@ import {
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react';
+import dynamic from 'next/dynamic';
+
+// 3D Environment (no SSR)
+const Canvas = dynamic(
+  () => import('@react-three/fiber').then(mod => mod.Canvas),
+  { ssr: false }
+);
+const ApiExplorerEnvironment = dynamic(
+  () => import('@/components/3d/environments/ApiExplorerEnvironment'),
+  { ssr: false }
+);
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
+}
 
 type Phase = 'welcome' | 'learn' | 'explore';
 
@@ -316,6 +338,8 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
 export function ApiExplorerGame() {
   const game = useGameStore();
 
+  const isMobile = useIsMobile();
+
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [selectedEndpoint, setSelectedEndpoint] = useState(0);
@@ -425,6 +449,19 @@ export function ApiExplorerGame() {
       totalRounds={ENDPOINTS.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
+        {/* 3D Environment Background */}
+        {!isMobile && (
+          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+            <Canvas
+              camera={{ position: [0, 2, 8], fov: 50 }}
+              style={{ background: 'transparent' }}
+              gl={{ alpha: true, antialias: true }}
+            >
+              <ApiExplorerEnvironment requestsSent={history.length} currentMethod={endpoint.method} />
+            </Canvas>
+          </div>
+        )}
+
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (

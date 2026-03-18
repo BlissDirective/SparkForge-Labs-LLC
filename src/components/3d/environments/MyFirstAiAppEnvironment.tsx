@@ -33,10 +33,10 @@ import * as THREE from 'three';
 import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#F97316';
-const ORANGE = new THREE.Color(LAB_COLOR);
+const _ORANGE = new THREE.Color(LAB_COLOR);
 
 // ■■ Device Mockup Stands (Instanced) ■■
-function DeviceMockups({ lod, buildStep }: { lod: ReturnType<typeof useFLLiteLOD>; buildStep: number }) {
+function DeviceMockups({ lod: _lod, buildStep }: { lod: ReturnType<typeof useFLLiteLOD>; buildStep: number }) {
   const frameCount = 4;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);

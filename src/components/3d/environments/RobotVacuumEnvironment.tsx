@@ -28,7 +28,7 @@ import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase'
 
 // ■■ Living Room Furniture ■■
 function LivingRoomFurniture({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const sofaSegs = lod.level === 'ultra' ? 16 : 8;
+  const _sofaSegs = lod.level === 'ultra' ? 16 : 8;
 
   return (
     <group position={[3, -0.6, 0]}>

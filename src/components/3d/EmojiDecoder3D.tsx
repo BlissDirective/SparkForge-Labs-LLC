@@ -12,7 +12,7 @@
 // Triangle Budget (Desktop Ultra): ~2K (game component)
 // Full environment budget handled by EmojiDecoderEnvironment
 
-import React, { useRef, useMemo } from 'react';
+import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Text } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';

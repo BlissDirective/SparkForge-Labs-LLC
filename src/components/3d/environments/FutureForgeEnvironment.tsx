@@ -33,7 +33,7 @@ import * as THREE from 'three';
 import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#D946EF';
-const FUCHSIA = new THREE.Color(LAB_COLOR);
+const _FUCHSIA = new THREE.Color(LAB_COLOR);
 
 // ■■ City Skyline (Instanced Buildings) ■■
 function CitySkyline({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {

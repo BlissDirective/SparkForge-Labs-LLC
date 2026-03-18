@@ -135,9 +135,9 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 |------|-------|----------------|-------|
 | Flagship (Full 3D) | 6 | 10M+ (10,000,000) | Pet Trainer, Sort Toy Box, Neural Builder, Prompt Lab, Agent Architect, Bias Detective |
 | FL-Lite (Immersive 3D) | 9 | 2M+ (2,000,000) | Data Detective, Robot Vacuum, Camera Quest, Chatbot Builder, Emoji Decoder, Code Blocks, My First AI App, Future Forge, AI or Not? |
-| Standard (now with 3D) | 20 | 10K–25K | AI Spy, Time Machine, Human vs Machine, Treat Trainer, Neuron Relay, Pixel Investigator, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Ethics Courtroom, Fool the AI, Build Classifier, Prediction Market, Sentiment Scanner, Lost in Translation, Career Explorer, API Explorer |
+| Standard (Immersive 3D) | 20 | 500K+ (500,000) | AI Spy, Time Machine, Human vs Machine, Treat Trainer, Neuron Relay, Pixel Investigator, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Ethics Courtroom, Fool the AI, Build Classifier, Prediction Market, Sentiment Scanner, Lost in Translation, Career Explorer, API Explorer |
 
-> **Note:** All games now receive full 3D scenes (minimum 10K triangles). FL-Lite upgraded to 2M budget (March 18, 2026) with dedicated environment files. The "CSS-only" and "Enhanced Standard" tiers have been eliminated — both merged into FL-Lite.
+> **Note:** All 35 games now have dedicated 3D environments with full R3F scenes. Standard tier upgraded from 10K–25K to 500K budget (March 18, 2026) with 20 individual environment files and StandardEnvironmentBase. FL-Lite upgraded to 2M budget (March 18, 2026). The "CSS-only" and "Enhanced Standard" tiers have been eliminated.
 
 ### Games Per Stage
 

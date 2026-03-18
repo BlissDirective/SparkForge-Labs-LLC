@@ -187,7 +187,7 @@ function BinaryRainColumns({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     ref.current.instanceMatrix.needsUpdate = true;
   }, [columnCount, particlesPerColumn, configs]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock: _clock }) => {
     if (!ref.current) return;
     const temp = new THREE.Matrix4();
     const pos = new THREE.Vector3();

@@ -652,7 +652,7 @@ function useIsMobile() {
 - `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
 - Mobile fallback: `useIsMobile()` → component returns `null` on mobile
 - CSS 2D fallback remains fully functional when 3D is hidden
-- Triangle budgets: Flagship 10M+ (10,000,000), FL-Lite 2M+ (2,000,000), Standard 10K–25K (all games now have 3D)
+- Triangle budgets: Flagship 10M+ (10,000,000), FL-Lite 2M+ (2,000,000), Standard 500K+ (500,000) (all games now have full 3D environments)
 - **LOD is MANDATORY** — every 3D component must use `useLOD()` hook or `<LODWrapper>` (see Section 9.1)
 - **Device-adaptive FPS** — `deviceStore` drives FPS targets (desktop 60, tablet 45, mobile 30)
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
@@ -721,6 +721,27 @@ function useIsMobile() {
 | AiOrNotEnvironment.tsx | 7F v3 2M | AI art gallery: exhibition pedestals, picture frames, voting booths, spotlight rigs (~1.3M tris) |
 | EmojiDecoder3D.tsx | 7F v3 2M | Emoji Decoder game 3D component: translation machine, emoji display, decoded output |
 | AiOrNot3D.tsx | 7F v3 2M | AI or Not? game 3D component: display pedestal, voting buttons, verdict ring, score display |
+| StandardEnvironmentBase.tsx | 7 Standard 500K | Shared LOD-aware foundation: 128-seg terrain, sky dome, fog particles, lighting rig |
+| AiSpyEnvironment.tsx | 7A Standard 500K | Futuristic detective office: holographic screens, magnifier, evidence pinboard, scanner beam (~500K tris) |
+| TimeMachineEnvironment.tsx | 7A Standard 500K | Time vortex portal chamber: spinning rings, timeline helix, era panels, clock mechanisms (~500K tris) |
+| HumanVsMachineEnvironment.tsx | 7B Standard 500K | Split arena: human workshop vs machine factory, judge podium, comparison cards (~500K tris) |
+| TreatTrainerEnvironment.tsx | 7C Standard 500K | AI training playground: obstacle course, treat dispensers, reward stations, behavior scoreboard (~500K tris) |
+| NeuronRelayEnvironment.tsx | 7C Standard 500K | Neural relay station: giant neuron models, axon pathways, synapse junctions, signal pulses (~500K tris) |
+| PixelInvestigatorEnvironment.tsx | 7D Standard 500K | Digital forensics lab: pixel grid table, magnification station, RGB analyzer, binary waterfall (~500K tris) |
+| WordPredictorEnvironment.tsx | 7A Standard 500K | Language prediction library: word bubbles, probability tree, autocomplete screens, dictionary towers (~500K tris) |
+| TokenChopperEnvironment.tsx | 7A Standard 500K | Tokenization factory: conveyor belts, chopper mechanism, token bins, BPE visualizer (~500K tris) |
+| AiArtDetectiveEnvironment.tsx | 7A Standard 500K | Art analysis museum: floating artworks, style panels, technique analyzer, palette station (~500K tris) |
+| ToolPickerEnvironment.tsx | 7A Standard 500K | AI tool workshop: labeled racks, task board, comparison table, effectiveness gauges (~500K tris) |
+| DataShieldEnvironment.tsx | 7A Standard 500K | Cybersecurity command center: shield generator, data tunnels, firewall walls, privacy vault (~500K tris) |
+| RealOrFakeEnvironment.tsx | 7A Standard 500K | Media verification studio: dual screens, fact-checker, deepfake chamber, truth meter (~500K tris) |
+| EthicsCourtroomEnvironment.tsx | 7E Standard 500K | AI ethics courtroom: judge bench, witness stand, jury box, scales of justice, gavel (~500K tris) |
+| FoolTheAiEnvironment.tsx | 7D Standard 500K | Adversarial testing lab: AI brain dome, disguise station, perturbation generator, defense shield (~500K tris) |
+| BuildClassifierEnvironment.tsx | 7E Standard 500K | Classification yard: sorting conveyors, category bins, decision tree, accuracy dashboard (~500K tris) |
+| PredictionMarketEnvironment.tsx | 7A Standard 500K | Prediction trading floor: ticker displays, wager console, probability charts, crystal ball (~500K tris) |
+| SentimentScannerEnvironment.tsx | 7C Standard 500K | Emotion analysis lab: mood meter, sentiment oscilloscope, emoji bubbles, polarity dashboard (~500K tris) |
+| LostInTranslationEnvironment.tsx | 7C Standard 500K | Universal translation hub: Babel tower, translation bridge, language globe, dictionary ceiling (~500K tris) |
+| CareerExplorerEnvironment.tsx | 7B Standard 500K | AI career expo: exhibition booths, holographic previews, skill tree, career flowchart (~500K tris) |
+| ApiExplorerEnvironment.tsx | 7E Standard 500K | API command center: gateway hub, pipeline tubes, endpoint tower, auth station, webhook array (~500K tris) |
 
 ### 9.1 Mandatory LOD Architecture
 
@@ -785,7 +806,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 |------|---------|--------|--------|
 | Flagship | 10M | 5M | 2.5M |
 | FL-Lite | 2M | 1M | 500K |
-| Standard | 25K | 12K | 5K |
+| Standard | 500K | 250K | 125K |
 
 ### 9.2 Game Tier Definitions (3 tiers)
 
@@ -795,7 +816,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 |------|-------------|-----|----------------|-------|
 | **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 10M+ (10,000,000) | 5 |
 | **FL-Lite** | Immersive 3D with themed environments | Full R3F | 2M+ (2,000,000) | 9 |
-| **Standard** | Meaningful 3D scenes (replaces CSS-only) | Themed R3F | 10K–25K | 20 |
+| **Standard** | Immersive 3D environments with themed scenes | Full R3F | 500K+ (500,000) | 20 |
 
 ### 9.3 3D Panoramic Cockpit Suite (Enhancements 1.0 / 1.1 / 1.2)
 

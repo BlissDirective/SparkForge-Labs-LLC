@@ -107,9 +107,9 @@ function ServerTowers({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
   useFrame(({ clock }) => {
     if (!ledsRef.current) return;
     const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const _pos = new THREE.Vector3();
+    const _quat = new THREE.Quaternion();
+    const _scl = new THREE.Vector3();
     for (let i = 0; i < count; i++) {
       ledsRef.current.getMatrixAt(i, temp);
       ledsRef.current.setColorAt(i, new THREE.Color(
@@ -159,7 +159,7 @@ function ConversationTree({ lod, activeNodeCount }: { lod: ReturnType<typeof use
     const points: THREE.Vector3[] = [];
     let idx = 0;
     const layers = [1, 2, 3, 4, 5, 5];
-    let layerStarts: number[] = [];
+    const layerStarts: number[] = [];
     for (let l = 0; l < layers.length; l++) {
       layerStarts.push(idx);
       idx += Math.min(layers[l], maxNodes - idx);
