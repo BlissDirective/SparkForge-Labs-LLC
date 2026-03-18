@@ -652,7 +652,7 @@ function useIsMobile() {
 - `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
 - Mobile fallback: `useIsMobile()` → component returns `null` on mobile
 - CSS 2D fallback remains fully functional when 3D is hidden
-- Triangle budgets: Flagship 50K–100K, FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
+- Triangle budgets: Flagship 5M+ (5,000,000), FL-Lite 10K–50K, Standard 10K–25K (all games now have 3D)
 - **LOD is MANDATORY** — every 3D component must use `useLOD()` hook or `<LODWrapper>` (see Section 9.1)
 - **Device-adaptive FPS** — `deviceStore` drives FPS targets (desktop 60, tablet 45, mobile 30)
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
@@ -714,9 +714,9 @@ Users select their device type at first launch via `DeviceSelectionModal`:
 
 | Device | Target FPS | Max Triangles | LOD Bias | Bloom | Shadows | Pixel Ratio |
 |--------|-----------|---------------|----------|-------|---------|-------------|
-| Desktop (Computer) | 60 | 500K | ultra | Yes | Yes | 2.5x |
-| Tablet | 45 | 150K | high | Yes | No | 1.5x |
-| Mobile (Phone) | 30 | 50K | low | No | No | 1x |
+| Desktop (Computer) | 60 | 10M | ultra | Yes | Yes | 2.5x |
+| Tablet | 45 | 5M | high | Yes | No | 1.5x |
+| Mobile (Phone) | 30 | 2.5M | low | No | No | 1x |
 
 **Store:** `src/stores/deviceStore.ts` — persisted via localStorage (`sparkforge-device`)
 **Modal:** `src/components/ui/DeviceSelectionModal.tsx` — shown once on first visit
@@ -765,7 +765,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 
 | Tier | Desktop | Tablet | Mobile |
 |------|---------|--------|--------|
-| Flagship | 100K | 50K | 25K |
+| Flagship | 5M | 2.5M | 1.25M |
 | FL-Lite | 50K | 25K | 10K |
 | Standard | 25K | 12K | 5K |
 
@@ -775,7 +775,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 
 | Tier | Description | 3D | Triangle Budget | Games |
 |------|-------------|-----|----------------|-------|
-| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 50K–100K | 5 |
+| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 5M+ (5,000,000) | 5 |
 | **FL-Lite** | Enhanced 3D with themed environments | Enhanced R3F | 10K–50K | 10 |
 | **Standard** | Meaningful 3D scenes (replaces CSS-only) | Themed R3F | 10K–25K | 20 |
 
@@ -825,7 +825,7 @@ Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
 | AmbientNPCs (5 types) | ~4K | ~500 tris each with Perlin patrol |
 | CockpitPanels + StatusBar | ~22K | Chrome bezels, HUD rings, gauges |
 | LEDRim | ~4K | Arc geometry with lab-color glow |
-| **Cockpit Total** | **~104K** | Within 150K tablet budget |
+| **Cockpit Total** | **~104K** | Within 5M tablet budget |
 
 #### Mobile CSS Fallback Strategy
 

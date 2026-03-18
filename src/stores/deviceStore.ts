@@ -44,7 +44,7 @@ export interface PerformanceProfile {
 const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
   desktop: {
     targetFPS: 60,
-    maxTriangles: 500_000,
+    maxTriangles: 10_000_000,
     lodBias: 'ultra',
     particleMultiplier: 1.0,
     bloomEnabled: true,
@@ -59,7 +59,7 @@ const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
   },
   tablet: {
     targetFPS: 45,
-    maxTriangles: 150_000,
+    maxTriangles: 5_000_000,
     lodBias: 'high',
     particleMultiplier: 0.6,
     bloomEnabled: true,
@@ -74,7 +74,7 @@ const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
   },
   mobile: {
     targetFPS: 30,
-    maxTriangles: 50_000,
+    maxTriangles: 2_500_000,
     lodBias: 'low',
     particleMultiplier: 0.3,
     bloomEnabled: false,
@@ -91,9 +91,9 @@ const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
 
 // ■■ Triangle budgets per game tier, scaled by device ■■
 export const TRIANGLE_BUDGETS: Record<DeviceType, { flagship: number; flLite: number; standard: number }> = {
-  desktop:  { flagship: 200_000, flLite: 100_000, standard: 50_000 },
-  tablet:   { flagship: 100_000, flLite: 50_000,  standard: 25_000 },
-  mobile:   { flagship: 50_000,  flLite: 25_000,  standard: 10_000 },
+  desktop:  { flagship: 5_000_000, flLite: 100_000, standard: 50_000 },
+  tablet:   { flagship: 2_500_000, flLite: 50_000,  standard: 25_000 },
+  mobile:   { flagship: 1_250_000, flLite: 25_000,  standard: 10_000 },
 };
 
 // ■■ Store Interface ■■

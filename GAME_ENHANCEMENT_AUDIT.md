@@ -9,7 +9,7 @@
 
 | # | Decision | Status |
 |---|----------|--------|
-| D-1 | Triangle budget ranges confirmed: Flagship 50K–100K, FL-Lite 10K–50K, Standard 10K–25K | **APPROVED** |
+| D-1 | Triangle budget ranges confirmed: Flagship 5M+ (5,000,000), FL-Lite 10K–50K, Standard 10K–25K | **APPROVED** |
 | D-2 | Enhanced Standard tier merged into FL-Lite (Emoji Decoder, AI or Not? → FL-Lite) | **APPROVED** |
 | D-3 | Full creative control for 3D scene development with age-appropriate band content | **APPROVED** |
 | D-4 | Device-type FPS optimization via startup selection prompt (desktop 60fps, tablet 45fps, mobile 30fps) | **APPROVED & IMPLEMENTED** |
@@ -56,7 +56,7 @@
 
 | Tier | Old Budget | New Budget | Headroom Action |
 |------|-----------|------------|-----------------|
-| **Flagship** | 2K–20K | **50K–100K** | Massive upgrade — full scene environments, LOD chains, detailed meshes, environment props |
+| **Flagship** | 2K–20K | **5M+ (5,000,000)** | Ultra-massive upgrade — cinematic scene environments, LOD chains, highly detailed meshes, full environment props, volumetric effects |
 | **FL-Lite** | 2K–5K | **10K–50K** | 10× upgrade — rich scene composition, multiple interactive meshes, environment detail |
 | **Standard** | 0 (CSS only) | **10K–25K** | NEW — all games now receive meaningful 3D scenes, not just lightweight elements |
 
@@ -76,8 +76,8 @@
 
 #### Pet Trainer (Pet3DScene + PetCreature3D)
 - **Current triangles:** ~600–900 (fallback orb) / 8K–15K (GLB)
-- **New budget:** 50K–100K
-- **Headroom:** 85K+ triangles available
+- **New budget:** 5M+ (5,000,000)
+- **Headroom:** 4.99M+ triangles available
 
 **Enhancement Opportunities:**
 1. Add vertex color support to GLB loader for richer gradient transitions
@@ -93,7 +93,7 @@
 
 #### Neural Builder (NeuralNetwork3D)
 - **Current triangles:** ~12K–18K (OVERBUDGET at 20×20 sphere segments)
-- **New budget:** 50K–100K
+- **New budget:** 5M+ (5,000,000)
 - **Action:** Fix sphere segments FIRST, then massively expand scene
 
 **Critical Fix:**
@@ -114,8 +114,8 @@
 
 #### Prompt Lab (PromptBubble3D + PromptBubble3DScene)
 - **Current triangles:** ~2.3K–2.9K
-- **New budget:** 50K–100K
-- **Headroom:** 97K+ triangles available
+- **New budget:** 5M+ (5,000,000)
+- **Headroom:** 4.99M+ triangles available
 
 **Enhancement Opportunities:**
 1. Reduce sphere segments from 24 to 16 (optimization, frees budget for scene)
@@ -131,8 +131,8 @@
 
 #### Agent Architect (AgentPipeline3D)
 - **Current triangles:** ~5.5K
-- **New budget:** 50K–100K
-- **Headroom:** 94K+ triangles available
+- **New budget:** 5M+ (5,000,000)
+- **Headroom:** 4.99M+ triangles available
 
 **Enhancement Opportunities:**
 1. Add block highlight outlines — glow around selected block
@@ -149,8 +149,8 @@
 
 #### Bias Detective (BiasScales3D)
 - **Current triangles:** ~750
-- **New budget:** 50K–100K
-- **Headroom:** 99K+ triangles available
+- **New budget:** 5M+ (5,000,000)
+- **Headroom:** 4.99M+ triangles available
 
 **Enhancement Opportunities:**
 1. Reduce chain torus segments (8→6) for optimization (frees budget for scene)
@@ -491,13 +491,13 @@ With the new 10K–25K triangle budget, **ALL standard games now receive meaning
 
 | Component | Current Tris | New Budget | Utilization | Status |
 |-----------|-------------|------------|-------------|--------|
-| **FLAGSHIP** | | **50K–100K** | | |
-| Pet3DScene (fallback orb) | ~800 | 100K | 0.8% | Massive headroom |
-| Pet3DScene (GLB) | ~8K–15K | 100K | 15% | Massive headroom |
-| NeuralNetwork3D | ~40K (bug) | 100K | 40% (fix→8%) | FIX NEEDED then massive headroom |
-| PromptBubble3D | ~2.5K | 100K | 2.5% | Massive headroom |
-| AgentPipeline3D | ~5.5K | 100K | 5.5% | Massive headroom |
-| BiasScales3D | ~750 | 100K | 0.75% | Massive headroom |
+| **FLAGSHIP** | | **5M+ (5,000,000)** | | |
+| Pet3DScene (fallback orb) | ~800 | 5M | 0.016% | Massive headroom |
+| Pet3DScene (GLB) | ~8K–15K | 5M | 0.3% | Massive headroom |
+| NeuralNetwork3D | ~40K (bug) | 5M | 0.8% (fix→0.16%) | FIX NEEDED then massive headroom |
+| PromptBubble3D | ~2.5K | 5M | 0.05% | Massive headroom |
+| AgentPipeline3D | ~5.5K | 5M | 0.11% | Massive headroom |
+| BiasScales3D | ~750 | 5M | 0.015% | Massive headroom |
 | **FL-LITE** | | **10K–50K** | | |
 | SortScene3D | ~2.2K | 50K | 4.4% | Massive headroom |
 | CodeBlocks3D | ~1.5K | 50K | 3% | Massive headroom |

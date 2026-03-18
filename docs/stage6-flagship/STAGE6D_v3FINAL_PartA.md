@@ -69,9 +69,9 @@ All 5 v2 enhancement features remain intact (X-Ray, Explainer, Patterns, Thinkin
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 100,000 | 60 | ultra/high |
-| Tablet | 50,000 | 45 | medium |
-| Mobile | 25,000 | 30 | low |
+| Desktop | 5,000,000 | 60 | ultra/high |
+| Tablet | 2,500,000 | 45 | medium |
+| Mobile | 1,250,000 | 30 | low |
 
 ### PERFORMANCE NOTE
 

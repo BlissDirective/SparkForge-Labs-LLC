@@ -62,9 +62,9 @@ Installed with `npm install tone @nivo/line --legacy-peer-deps` (peer dep confli
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 100,000 | 60 | ultra/high |
-| Tablet | 50,000 | 45 | medium |
-| Mobile | 25,000 | 30 | low |
+| Desktop | 5,000,000 | 60 | ultra/high |
+| Tablet | 2,500,000 | 45 | medium |
+| Mobile | 1,250,000 | 30 | low |
 
 ### GPU Performance Budget
 

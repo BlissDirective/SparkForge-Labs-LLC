@@ -34,7 +34,7 @@ const LAB_NAMES: Record<number, string> = {
 };
 
 const TRIANGLE_BUDGETS = {
-  flagship: { desktop: 100_000, tablet: 50_000, mobile: 25_000 },
+  flagship: { desktop: 5_000_000, tablet: 2_500_000, mobile: 1_250_000 },
   'fl-lite': { desktop: 50_000, tablet: 25_000, mobile: 10_000 },
   standard3D: { desktop: 25_000, tablet: 12_000, mobile: 5_000 },
 } as const;
