@@ -26,6 +26,7 @@ import { useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import { motion } from 'motion/react';
 import * as THREE from 'three';
+import BiasDetectiveEnvironment from './environments/BiasDetectiveEnvironment';
 
 // -- Types --
 interface BiasScales3DProps {
@@ -224,10 +225,11 @@ export default function BiasScales3D({
 
   return (
     <group ref={groupRef} position={[0, 0, 0]}>
-      {/* Ambient light for the scene */}
-      <ambientLight intensity={0.4} />
-      <directionalLight position={[3, 5, 2]} intensity={0.8} />
-      <pointLight position={[0, 2, 1]} intensity={0.3} color={caseColor} />
+      {/* [5M] Immersive Courtroom Environment */}
+      <BiasDetectiveEnvironment
+        isBalanced={isBalanced}
+        caseColor={caseColor}
+      />
 
       {/* Fulcrum / base pillar */}
       <mesh position={[0, -0.2, 0]} material={brassMat}>

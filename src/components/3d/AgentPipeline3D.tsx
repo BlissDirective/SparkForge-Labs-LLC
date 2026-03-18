@@ -23,6 +23,8 @@ import { useRef, useMemo, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
 import * as THREE from 'three';
+import AgentArchitectEnvironment from './environments/AgentArchitectEnvironment';
+import { LODWrapper } from './LODWrapper';
 
 // ================================================================
 // TYPES (mirrored from game component)
@@ -620,7 +622,7 @@ function PipelineScene({
 export default function AgentPipeline3D(props: PipelineProps) {
   return (
     <Canvas
-      camera={{ position: [0, 8, 6], fov: 50 }}
+      camera={{ position: [0, 10, 10], fov: 50 }}
       shadows
       dpr={[1, 1.5]}
       frameloop={props.isRunning ? 'always' : 'demand'}
@@ -633,7 +635,15 @@ export default function AgentPipeline3D(props: PipelineProps) {
       }}
       gl={{ antialias: true, alpha: false }}
     >
-      <PipelineScene {...props} />
+      <LODWrapper tier="flagship" adaptive>
+        {/* [5M] Immersive Server Command Center Environment */}
+        <AgentArchitectEnvironment
+          isRunning={props.isRunning}
+          activeBlockId={props.activeBlockId}
+        />
+
+        <PipelineScene {...props} />
+      </LODWrapper>
     </Canvas>
   );
 }

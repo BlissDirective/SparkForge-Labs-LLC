@@ -7,12 +7,34 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { Palette, Eye } from 'lucide-react';
+
+// 3D Environment (no SSR)
+const Canvas = dynamic(
+  () => import('@react-three/fiber').then(mod => mod.Canvas),
+  { ssr: false }
+);
+const AiArtDetectiveEnvironment = dynamic(
+  () => import('@/components/3d/environments/AiArtDetectiveEnvironment'),
+  { ssr: false }
+);
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
+}
 
 type Phase = 'welcome' | 'tips' | 'play';
 
@@ -163,6 +185,7 @@ export function AiArtDetectiveGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const isMobile = useIsMobile();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -209,7 +232,19 @@ export function AiArtDetectiveGame() {
 
   return (
     <GameShell gameId="ai-art-detective" title="AI Art Detective" worldNumber={4} worldColor="#FFAA44" totalRounds={ROUNDS.length}>
-      <div className="h-full flex flex-col relative overflow-hidden">
+      {/* 3D Environment Background */}
+      {!isMobile && (
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <AiArtDetectiveEnvironment artworksAnalyzed={roundIdx} isDetecting={phase === 'play' && !showResult} />
+          </Canvas>
+        </div>
+      )}
+      <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
             <motion.div

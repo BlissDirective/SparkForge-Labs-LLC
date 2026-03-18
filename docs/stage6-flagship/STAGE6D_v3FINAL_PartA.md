@@ -56,22 +56,32 @@ All 5 v2 enhancement features remain intact (X-Ray, Explainer, Patterns, Thinkin
 |---|-------|----------|------|
 | 6 | `/fonts/Exo2-Bold.woff` not present in `public/fonts/` | drei `Text` font prop | Non-blocking: drei Text falls back to default font gracefully. Font file will be added in Stage 10 (Polish). Consistent with Stage 6C NeuralNetwork3D behavior. |
 
-### Triangle Budget Breakdown
+### Triangle Budget Breakdown (10M Enhancement — March 18, 2026)
 
-| Component | Base Tris | With Effects | LOD Low |
-|-----------|-----------|-------------|---------|
-| PromptBubble3D (bubbles) | ~6K | ~6K | ~3K |
-| Text particles | ~4K | ~4K | ~2K |
-| Connecting lines | ~3K | ~3K | ~1K |
-| **Total** | **~13K** | **~13K** | **~6K** |
+| Component | Desktop Ultra | LOD Low |
+|-----------|-------------|---------|
+| PromptBubble3D (bubbles + text) | ~15K | ~6K |
+| PromptLabEnvironment (floating books) | ~1.0M | ~10K |
+| PromptLabEnvironment (token counter + AI brain) | ~600K | ~5K |
+| PromptLabEnvironment (writing desk + holo screens) | ~475K | ~0 |
+| PromptLabEnvironment (idea motes) | ~150K | ~0 |
+| PromptLabEnvironment (terrain + sky + fog) | ~1.15M | ~10K |
+| **Total** | **~3.39M** | **~31K** |
 
-**Scene total range:** ~13K-25K depending on active bubble count (max 12).
+**Scene total:** ~3.39M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+Immersive AI workshop: floating book library, token counter cylinder, central AI brain mesh, writing desk, holographic displays, ambient idea motes.
+
+### New Files (10M Enhancement)
+
+| # | File | Purpose |
+|---|------|---------|
+| 2 | `src/components/3d/environments/PromptLabEnvironment.tsx` | Immersive AI workshop studio |
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 100,000 | 60 | ultra/high |
-| Tablet | 50,000 | 45 | medium |
-| Mobile | 25,000 | 30 | low |
+| Desktop | 10,000,000 | 60 | ultra/high |
+| Tablet | 5,000,000 | 45 | medium |
+| Mobile | 2,500,000 | 30 | low |
 
 ### PERFORMANCE NOTE
 

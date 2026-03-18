@@ -10,6 +10,8 @@
 
 import { Canvas } from '@react-three/fiber';
 import PromptBubble3D from './PromptBubble3D';
+import PromptLabEnvironment from './environments/PromptLabEnvironment';
+import { LODWrapper } from './LODWrapper';
 
 interface Props {
   keywords: string[];
@@ -24,17 +26,26 @@ export default function PromptBubble3DScene({ keywords, isThinking, temperature 
   // motion since there is no invalidate() call in the physics loop.
   return (
     <Canvas
-      camera={{ position: [0, 0, 2.5], fov: 50 }}
+      camera={{ position: [0, 1, 6], fov: 50 }}
       frameloop="always"
       dpr={[1, 1.5]}
       gl={{ antialias: true, alpha: true }}
+      shadows
       style={{ background: 'transparent' }}
     >
-      <PromptBubble3D
-        keywords={keywords}
-        isThinking={isThinking}
-        temperature={temperature}
-      />
+      <LODWrapper tier="flagship" adaptive>
+        {/* [5M] Immersive AI Workshop Environment */}
+        <PromptLabEnvironment
+          isThinking={isThinking}
+          tokenUsage={keywords.length / 12}
+        />
+
+        <PromptBubble3D
+          keywords={keywords}
+          isThinking={isThinking}
+          temperature={temperature}
+        />
+      </LODWrapper>
     </Canvas>
   );
 }

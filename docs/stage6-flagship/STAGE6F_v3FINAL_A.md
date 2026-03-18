@@ -70,22 +70,32 @@ This v3-FINAL document (Parts A + B + C combined) supersedes `STAGE6F_Flagship_B
 
 **PREREQUISITES:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure) must be complete.
 
-### Triangle Budget Breakdown
+### Triangle Budget Breakdown (10M Enhancement — March 18, 2026)
 
-| Component | Base Tris | With Effects | LOD Low |
-|-----------|-----------|-------------|---------|
-| BiasScales3D (scales geometry) | ~10K | ~10K | ~4K |
-| Data spheres | ~6K | ~6K | ~2K |
-| Particles | ~4K | ~4K | ~1K |
-| **Total** | **~20K** | **~20K** | **~7K** |
+| Component | Desktop Ultra | LOD Low |
+|-----------|-------------|---------|
+| BiasScales3D (scales + spheres + particles) | ~20K | ~7K |
+| BiasDetectiveEnvironment (marble pillars) | ~900K | ~10K |
+| BiasDetectiveEnvironment (judge's bench + gavel) | ~300K | ~5K |
+| BiasDetectiveEnvironment (gallery seating) | ~600K | ~10K |
+| BiasDetectiveEnvironment (law books + glass windows) | ~570K | ~0 |
+| BiasDetectiveEnvironment (medallion + dust + terrain + sky) | ~1.05M | ~10K |
+| **Total** | **~3.44M** | **~42K** |
 
-**Scene total range:** ~20K-35K depending on evidence items and active particles.
+**Scene total:** ~3.44M tris (desktop ultra) with LODWrapper adaptive FPS monitoring.
+Immersive courtroom: marble pillars with capitals, judge's bench with gavel, gallery pews, law book shelves, stained glass windows with colored light, justice floor medallion, atmospheric dust motes.
+
+### New Files (10M Enhancement)
+
+| # | File | Purpose |
+|---|------|---------|
+| 2 | `src/components/3d/environments/BiasDetectiveEnvironment.tsx` | Immersive justice courtroom |
 
 | Device | Max Budget | Target FPS | LOD Level |
 |--------|-----------|------------|-----------|
-| Desktop | 100,000 | 60 | ultra/high |
-| Tablet | 50,000 | 45 | medium |
-| Mobile | 25,000 | 30 | low |
+| Desktop | 10,000,000 | 60 | ultra/high |
+| Tablet | 5,000,000 | 45 | medium |
+| Mobile | 2,500,000 | 30 | low |
 
 ---
 
