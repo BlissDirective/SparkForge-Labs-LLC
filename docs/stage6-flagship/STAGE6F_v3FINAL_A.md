@@ -70,8 +70,6 @@ This v3-FINAL document (Parts A + B + C combined) supersedes `STAGE6F_Flagship_B
 
 **PREREQUISITES:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure) must be complete.
 
-> **Canvas Coexistence Note (FIX-DUAL-CANVAS):** The StationFrame component creates a full-viewport R3F `<Canvas>` on all dashboard pages. When `useStationMode` returns `mode: 'game'`, StationFrame unmounts its 3D Canvas entirely (early return with CSS-only frame) to avoid dual WebGL contexts. BiasScales3D is rendered inside its own `<Canvas>` within BiasDetectiveGame — it gets full GPU ownership during gameplay. The CSS fallback frame (chrome bezel + indicators) remains visible for visual continuity. Long-term, CPA v2.0 (Enhancement 1.1+) will unify all Canvas instances into a single persistent `<CockpitCanvas>`.
-
 ### Triangle Budget Breakdown (10M Enhancement — March 18, 2026)
 
 | Component | Desktop Ultra | LOD Low |
