@@ -1,8 +1,8 @@
 # SparkForge — Quick Reference: All 35 Games
 
-**Extracted from:** CLAUDE.md v5.5 Section 13
-**Date:** March 18, 2026
-**Canonical source:** GCUD V10.1
+**Extracted from:** CLAUDE.md v5.6 Section 13
+**Date:** March 19, 2026
+**Canonical source:** GCUD V10.2
 
 | # | Game | Lab | Slug | Tier | 3D | Bands | Stage |
 |---|------|-----|------|------|-----|-------|-------|

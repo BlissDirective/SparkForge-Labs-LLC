@@ -1,9 +1,9 @@
 # SPARKFORGE — GAME CONTENT UPDATE DOCUMENT (GCUD)
 
-**Living Reference — Version 10.1 | March 1, 2026**
-**Supersedes:** GCUD V10.0 (March 1, 2026) — corrects game count from 31 to 35.
+**Living Reference — Version 10.2 | March 19, 2026**
+**Supersedes:** GCUD V10.1 (March 1, 2026) — updated code status column (Stages 1-7 code-complete), fixed tier breakdown (3-tier: 6+9+20=35), updated file count (92 active), aligned version references with CLAUDE.md v5.6 / Master Directory v1.2 / Master Implementation Guide v3.2.
 
-**PURPOSE:** Single source of truth for game content, stage document status, v3-FINAL patch tracking, file registry, gap resolution, and implementation readiness. V10.1 corrects the game count arithmetic error present in all prior versions (tier breakdown incorrectly summed to 31; actual count is 35 based on 20 Standard games, not 16).
+**PURPOSE:** Single source of truth for game content, stage document status, v3-FINAL patch tracking, file registry, gap resolution, and implementation readiness.
 
 ---
 
@@ -29,36 +29,37 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 
 | Stage | v2 Docs | v3-FINAL | Code | Parts | Build Source |
 |-------|---------|----------|------|-------|-------------|
-| 1 Foundation | COMPLETE | N/A | Not Started | 2 | v2 PART1-2 |
-| 2 Database/API | COMPLETE | N/A | Not Started | 4 | v2 PART1-4 |
-| 3 Auth/Layout | COMPLETE | Part 3 DONE | Not Started | 2v2+2v3 | v2 P1-2, v3 P3A/B |
-| 4 Core Pages | COMPLETE | Part 2 DONE | Not Started | 2v2+2v3 | v2 P1+3, v3 P2A/B |
-| 5 Gamification | COMPLETE | Parts 2-3 DONE | Not Started | 1v2+3v3 | v2 P1, v3 A/B/C |
-| 6B Pet Trainer | SUPERSEDED | COMPLETE | Not Started | 2v3 | v3-FINAL A/B |
-| 6C Neural Builder | SUPERSEDED | COMPLETE | Not Started | 2v3 | v3-FINAL A/B |
-| 6D Prompt Lab | SUPERSEDED | COMPLETE | Not Started | 2v3 | v3-FINAL A/B |
-| 6E Agent Architect | SUPERSEDED | COMPLETE | Not Started | 3v3 | v3-FINAL A/B/C |
-| 6F Bias Detective | SUPERSEDED | COMPLETE | Not Started | 3v3 | v3-FINAL A/B/C |
-| 7A Tap/Quiz | COMPLETE | N/A | Not Started | 4 | v2 (4 docs) |
-| 7B Drag/Drop | SUPERSEDED | COMPLETE | Not Started | 3v3 | v3-FINAL A/B/C |
-| 7C (TT+SS+LiT+NR) | COMPLETE | N/A | Not Started | 2 | v2 Part1+2 |
-| 7C (CB+DD) | SUPERSEDED | COMPLETE | Not Started | 3v3 | v3-FINAL A/B/C |
-| 7D Investigation | SUPERSEDED | COMPLETE | Not Started | 3v3 | v3-FINAL A/B/C |
-| 7E Ethics/API | COMPLETE | N/A | Not Started | 2 | v2 Part1+2 |
-| 7F (My First AI App) | SUPERSEDED | COMPLETE | Not Started | 2v3 | v3-FINAL A/B |
-| 7F (AI or Not?) | COMPLETE | N/A | Not Started | 1 | v2 Part2 |
-| 7 Shared | COMPLETE | Particles DONE | Not Started | 1v2+1v3 | v2 XP + v3 Particles |
+| 1 Foundation | COMPLETE | N/A | Code-Complete | 2 | v2 PART1-2 |
+| 2 Database/API | COMPLETE | N/A | Code-Complete | 4 | v2 PART1-4 |
+| 3 Auth/Layout | COMPLETE | Part 3 DONE | Code-Complete | 2v2+2v3 | v2 P1-2, v3 P3A/B |
+| 4 Core Pages | COMPLETE | Part 2 DONE | Code-Complete | 2v2+2v3 | v2 P1+3, v3 P2A/B |
+| 5 Gamification | COMPLETE | Parts 2-3 DONE | Code-Complete | 1v2+3v3 | v2 P1, v3 A/B/C |
+| 6B Pet Trainer | SUPERSEDED | COMPLETE | Code-Complete | 2v3 | v3-FINAL A/B |
+| 6C Neural Builder | SUPERSEDED | COMPLETE | Code-Complete | 2v3 | v3-FINAL A/B |
+| 6D Prompt Lab | SUPERSEDED | COMPLETE | Code-Complete | 2v3 | v3-FINAL A/B |
+| 6E Agent Architect | SUPERSEDED | COMPLETE | Code-Complete | 3v3 | v3-FINAL A/B/C |
+| 6F Bias Detective | SUPERSEDED | COMPLETE | Code-Complete | 3v3 | v3-FINAL A/B/C |
+| 7A Tap/Quiz | COMPLETE | N/A | Code-Complete | 4 | v2 (4 docs) |
+| 7B Drag/Drop | SUPERSEDED | COMPLETE | Code-Complete | 3v3 | v3-FINAL A/B/C |
+| 7C (TT+SS+LiT+NR) | COMPLETE | N/A | Code-Complete | 2 | v2 Part1+2 |
+| 7C (CB+DD) | SUPERSEDED | COMPLETE | Code-Complete | 3v3 | v3-FINAL A/B/C |
+| 7D Investigation | SUPERSEDED | COMPLETE | Code-Complete | 3v3 | v3-FINAL A/B/C |
+| 7E Ethics/API | COMPLETE | N/A | Code-Complete | 2 | v2 Part1+2 |
+| 7F (My First AI App) | SUPERSEDED | COMPLETE | Code-Complete | 2v3 | v3-FINAL A/B |
+| 7F (Emoji Decoder) | COMPLETE | N/A | Code-Complete | 1 | v2 Part1 |
+| 7F (AI or Not?) | COMPLETE | N/A | Code-Complete | 1 | v2 Part2 |
+| 7 Shared | COMPLETE | Particles DONE | Code-Complete | 1v2+1v3 | v2 XP + v3 Particles |
 | 8 Parent Dashboard | COMPLETE | Part 3 DONE | Not Started | 2v2+3v3 | v2 P1-2, v3 A/B/C |
 | 9 Content Agent | COMPLETE | N/A | Not Started | 3 | v2 PART1-3 |
 | 10 Polish/Deploy | COMPLETE | N/A | Not Started | 2 | v2 PART1-2 |
 
-**Summary:** All 10 stages documented. 14 v3-FINAL patches cover Stages 3-8. Zero code written. 24 ordered phases per Master Directory v1.0.
+**Summary:** All 10 stages documented. 14 v3-FINAL patches cover Stages 3-8. Stages 1-7 code-complete (~70%). 26 ordered phases per Master Directory v1.2.
 
 ---
 
-## 2. PROJECT FILE REGISTRY (Post-Cleanup — 78 Active Files)
+## 2. PROJECT FILE REGISTRY (Post-Cleanup — 92 Active Files)
 
-*Unchanged from V10. See V10 Section 2 for complete file listing.*
+*Updated from 78 (V10) to 92. New files include Per-Stage-Playbooks.md, 3D-Component-Registry.md, 35+ 3D environment components, audit reports, and enhancement documents added March 14-19, 2026.*
 
 ---
 
@@ -83,7 +84,7 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 | 13 | Stage 7 Shared | A | 5.3 | GenericGameParticles (29 standard/FL-Lite games) |
 | 14 | Stage 8 Part 3 | A+B+C | 8.1-8.5 | Scroll journey, /pricing, FeatureShowcase |
 
-**Total:** 14 documents, 34 parts, ~60 new files, ~23 modified, 48 decisions.
+**Total:** 14 documents, 34 parts, ~60 new files, ~23 modified, 64 decisions (48 core + 4 OD + 12 CPA2).
 
 ---
 
@@ -168,7 +169,7 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 
 ## 6. BUILD STRATEGY REFERENCE
 
-**Single-Pass Build:** v3-FINAL where available, v2 where not. 24 phases across 10 stages. See Master Directory v1.0 Section 4 for the complete flow map.
+**Single-Pass Build:** v3-FINAL where available, v2 where not. 26 phases across 10 stages. See Master Directory v1.2 Section 4 for the complete flow map.
 
 **Implementation Order:** 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10
 
@@ -237,14 +238,25 @@ All unchanged from V9 except CC10 (No 3D) now RESOLVED. 13 issues total, 10 reso
 
 ### NEXT STEPS
 
-1. Upload GCUD V10.1 + CLAUDE.md v5.1 + Master Implementation Guide v3.1 + Master Directory v1.1 to project knowledge
-2. Remove GCUD V10 and prior stale files
-3. Create GitHub repo with /docs structure per Master Directory Section 7
-4. Begin Stage 1 via Claude Code
-5. Follow single-pass 24-phase build per Master Directory Section 4
-6. Three-layer validation after each stage
-7. Update GCUD Code Status column after each stage
+1. Continue Stage 8 build (Stages 1-7 code-complete)
+2. Follow single-pass 26-phase build per Master Directory v1.2 Section 4
+3. Three-layer validation after each stage
+4. Update GCUD Code Status column after each stage
 
 ---
 
-*End of GCUD V10.1 | 78 files | 35 games | 48 decisions | 14 v3-FINAL docs | March 1, 2026*
+### V10.2 CHANGE SUMMARY (March 19, 2026)
+
+| Change | From (V10.1) | To (V10.2) |
+|--------|-------------|-----------|
+| Code status (Stages 1-7) | Not Started | Code-Complete |
+| Active file count | 78 | 92 |
+| Decision count | 48 | 64 (48 core + 4 OD + 12 CPA2) |
+| Phase count | 24 | 26 |
+| Version references | CLAUDE.md v5.1, MD v1.0, MIG v3.1 | CLAUDE.md v5.6, MD v1.2, MIG v3.2 |
+| 7F Emoji Decoder | Grouped with AI or Not? | Separate row (Part1 v2) |
+| New reference docs | — | Per-Stage-Playbooks.md, 3D-Component-Registry.md |
+
+---
+
+*End of GCUD V10.2 | 92 files | 35 games (6+9+20) | 64 decisions | 14 v3-FINAL docs | March 19, 2026*
