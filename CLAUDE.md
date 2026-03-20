@@ -2,8 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.6 | **Date:** March 19, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.5 (March 17, 2026) — Docs audit: extracted Per-Stage-Playbooks + 3D-Component-Registry, fixed tier counts (3-tier: 6+9+20=35), fixed phase count (26), updated all reference doc versions, corrected stale references.
+**Version:** 5.7 | **Date:** March 20, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.6 (March 19, 2026) — 20M cockpit upgrade: unified CockpitCanvas (CPA2-1/CPA2-3 implemented), 13 components upgraded + 8 new components + audio system, deviceStore 20M/10M budgets, system LOD tier uncapped, cockpitStore heroPhase added.
 
 ---
 
@@ -489,7 +489,7 @@ function useIsMobile() {
 | Flagship (games + envs) | 12 | Pet3DScene, NeuralNetwork3D, PromptBubble3D, AgentPipeline3D, BiasScales3D, SortScene3D + 6 environments |
 | FL-Lite (games + envs) | 19 | CodeBlocks3D, ChatbotNodes3D, DataDetective3D, RobotVacuum3D, CameraQuest3D, FutureForge3D, MyFirstAiApp3D, EmojiDecoder3D, AiOrNot3D + 10 environments |
 | Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
-| Cockpit/Enhancement | 14 | CockpitCanvas, SpatialDashboard, HolographicLabMap, CockpitPanel, SidePanel |
+| Cockpit/Enhancement | 24 | CockpitCanvas, CameraSystem, SpatialDashboard, HolographicLabMap, CockpitPanels, SidePanels, StatusBar3D, HolographicHUD, LEDRim, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitSkinManager, CockpitAudioEngine |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
 
 ### 9.1 Mandatory LOD Architecture
@@ -502,8 +502,8 @@ Users select their device type at first launch via `DeviceSelectionModal`:
 
 | Device | Target FPS | Max Triangles | LOD Bias | Bloom | Shadows | Pixel Ratio |
 |--------|-----------|---------------|----------|-------|---------|-------------|
-| Desktop (Computer) | 60 | 10M | ultra | Yes | Yes | 2.5x |
-| Tablet | 45 | 5M | high | Yes | No | 1.5x |
+| Desktop (Computer) | 60 | 20M | ultra | Yes | Yes | 2.5x |
+| Tablet | 45 | 10M | high | Yes | No | 1.5x |
 | Mobile (Phone) | 30 | 2.5M | low | No | No | 1x |
 
 **Store:** `src/stores/deviceStore.ts` — persisted via localStorage (`sparkforge-device`)
@@ -514,7 +514,7 @@ Users select their device type at first launch via `DeviceSelectionModal`:
 
 | Level | Segments | Effects | Shadows | Reflections | Use Case |
 |-------|----------|---------|---------|-------------|----------|
-| `ultra` | 32 | All + trails | Yes | Yes | Desktop, max quality |
+| `ultra` | 64 | All + trails | Yes | Yes | Desktop, max quality |
 | `high` | 16 | All | Yes | Yes | Desktop/Tablet, close camera |
 | `medium` | 12 | Most | No | Yes | Tablet, mid-range |
 | `low` | 8 | None | No | No | Mobile, far camera |
@@ -556,6 +556,7 @@ import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
 | Flagship | 10M | 5M | 2.5M |
 | FL-Lite | 2M | 1M | 500K |
 | Standard | 500K | 250K | 125K |
+| System (Cockpit) | 20M | 10M | 0 (CSS) |
 
 ### 9.2 Game Tier Definitions (3 tiers)
 
@@ -604,18 +605,29 @@ Decisions CPA2-1 through CPA2-12 govern cockpit architecture. Key decisions:
 
 Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
 
-#### Cockpit Triangle Budgets
+#### Cockpit Triangle Budgets (20M Upgrade — March 20, 2026)
 
 | Component | Triangles | Notes |
 |-----------|-----------|-------|
-| HolographicLabMap | ~28K | Core + 10 lab ring + beams |
-| LabStructure3D (10 labs) | ~25K | ~2.5K per lab model |
-| DynamicEnvironment | ~15K | Particles + spatial grid |
-| InteractiveConsole3D (4) | ~6K | XP, badges, streak, progress |
-| AmbientNPCs (5 types) | ~4K | ~500 tris each with Perlin patrol |
-| CockpitPanels + StatusBar | ~22K | Chrome bezels, HUD rings, gauges |
-| LEDRim | ~4K | Arc geometry with lab-color glow |
-| **Cockpit Total** | **~104K** | Within 5M tablet budget (10M desktop) |
+| CockpitPanels | 2,000,000 | 256-seg curved hull, multi-layer, rivets, animated sub-panels |
+| SidePanels | 1,500,000 | 3D box panels, physical radar dish, 3D data columns, chrome bezels |
+| HolographicLabMap | 1,000,000 | Multi-layer geodesic shells, data highways, projector pedestal |
+| LabStructure3D (10 labs) | 3,000,000 | 300K/lab: subdivision surfaces, interior mechanisms, dioramas |
+| InteractiveConsole3D (4) | 2,000,000 | 500K/console: multi-part housing, projector base, instrument cluster |
+| AmbientNPCs (8 bots) | 1,500,000 | 187K/bot: articulated body, facial animation, finger grippers |
+| DynamicEnvironment | 3,000,000 | Volumetric fog, environmental props, weather effects |
+| HolographicHUD | 500,000 | 8 concentric rings, data arcs, reticle, volumetric scan beams |
+| StatusBar3D | 500,000 | XP speedometer, streak flame sculpture, 10 lab indicators |
+| LEDRim | 200,000 | 1000+ LED capsules, data viz mode, secondary accent rims |
+| CockpitStructuralDetail | 1,500,000 | Cable bundles, conduit pipes, vents, ribs, LED indicator strips |
+| VolumetricFog3D | 500,000 | Fog volumes, god ray cones, density layers with FBM noise |
+| CockpitFloor3D | 500,000 | Grated floor, sub-floor piping, energy conduits, LED channels |
+| CeremonyFX | 500,000 | Instanced confetti, fireworks, 3D trophies, HUD ring expansion |
+| WormholeTransition | 300,000 | Tunnel interior, swirling energy walls, speed lines, portal rings |
+| MiniMapOverlay3D | 250,000 | Miniature lab ring, player indicator, completion color-coding |
+| AuroraBackground | 50,000 | Volumetric aurora layers, 3 ribbon TubeGeometry paths |
+| AmbientParticles | 200,000 | Instanced icosahedron particles with trails and halos |
+| **Cockpit Total** | **~19,000,000** | Desktop 20M budget (with 1M dynamic headroom) |
 
 #### Mobile CSS Fallback Strategy
 
@@ -670,6 +682,9 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | FIX-DUAL-CANVAS | Dual WebGL contexts: StationFrame Canvas + game Canvas run simultaneously during gameplay, doubling GPU overhead | **RESOLVED (v2 — March 18, 2026)** — StationFrame.tsx unmounts R3F Canvas when `mode === 'game'`. **Original fix was incomplete:** `setGameActive()` was never called and `useStationMode` used local `useState` instead of global Zustand. **v2 fix:** (1) Added `gameActive`/`setGameActive` to `uiStore` (Zustand global), (2) `useStationMode` reads from `uiStore` instead of local state, (3) `GameShell` calls `setGameActive(true/false)` on mount/unmount. All 35 games now properly trigger Canvas unmount. | 6/7 |
 | FIX-LOD-MISSING | LODWrapper not integrated into any game despite CLAUDE.md Section 9.1 mandate | **RESOLVED (March 18, 2026)** — GameShell now wraps children with `<LODWrapper tier={lodTier} adaptive>`. Tier auto-resolved from `gameRegistry` via `gameId` slug. Mapping: `'fl-lite'` → `'flLite'`. All 35 games now have LOD context available to 3D children via `useLODContext()`. | 7 |
 | FIX-MOBILE-PARTICLES | Mobile devices see blank background when 3D Canvas hidden by `useIsMobile()` | **RESOLVED (March 18, 2026)** — GameShell renders `<GenericGameParticles color={worldColor} />` on mobile as CSS particle fallback. All 35 games automatically get lab-colored ambient particles on mobile. | 7 |
+| FIX-TRIPLE-CANVAS | HeroAnimation, StationFrame, and SpatialDashboard each created separate R3F Canvas instances, violating CPA2-1 (Single Canvas) and preventing CPA2-3 (Seamless Handoff) | **RESOLVED (March 20, 2026)** — Created unified `CockpitCanvas.tsx` with single persistent Canvas. `StationFrame`, `SpatialDashboard`, and `HeroAnimation` rewritten as thin `<group>` wrappers. `CameraSystem.tsx` manages all camera transitions. Hero-to-cockpit handoff is now seamless crossfade within single Canvas. | Enh 1.1 |
+| FIX-SYSTEM-LOD-CAP | `useLOD` hardcoded system tier to 3,000 triangles, preventing cockpit from using full device budget | **RESOLVED (March 20, 2026)** — Removed hardcoded cap; system tier now reads from `deviceStore` triangle budgets (desktop 20M, tablet 10M). Ultra LOD segments increased from 32 to 64. | Enh 1.1 |
+| UPGRADE-20M-COCKPIT | Cockpit used only ~104K of available triangle budget | **RESOLVED (March 20, 2026)** — Full 20M triangle upgrade across 13 upgraded components + 8 new components (CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitCanvas, CameraSystem) + audio system (CockpitAudioEngine). See `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md`. | Enh 1.1 |
 
 ### Game Code Agent — COMPLETED
 
@@ -727,10 +742,10 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation |
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
-| **deviceStore** | — | deviceType, hasSelected, profile (FPS, LOD, triangles, effects), gpuTier, stripeCount |
-| **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, heroPhase, cockpitReady. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
+| **deviceStore** | — | deviceType, hasSelected, profile (FPS, LOD, triangles, effects), gpuTier, stripeCount. **20M upgrade:** desktop maxTriangles=20M, tablet=10M, system tier added to TRIANGLE_BUDGETS, instancedMeshLimit desktop=5000/tablet=1500. |
+| **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
 
 ---
 
-*End of CLAUDE.md v5.6 — SparkForge Autonomous Development Playbook*
-*92 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 64 decisions (48 core + 4 OD + 12 CPA2) | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED | Enhancement 1.2 PLANNED | CPA v2.0 DOCUMENTED | Tech Stack 8.1 APPLIED | March 19, 2026*
+*End of CLAUDE.md v5.7 — SparkForge Autonomous Development Playbook*
+*92 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 64 decisions (48 core + 4 OD + 12 CPA2) | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Tech Stack 8.1 APPLIED | March 20, 2026*

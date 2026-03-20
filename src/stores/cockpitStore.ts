@@ -14,6 +14,9 @@ export type SpatialView = 'overview' | 'lab-focus' | 'console' | 'orbit';
 export type ConsoleType = 'xp' | 'badges' | 'streak' | 'progress' | null;
 export type CeremonyType = 'xp' | 'badge' | 'levelUp' | 'gameComplete' | 'streakMilestone';
 
+// Hero animation phase for seamless handoff (CPA2-3)
+export type HeroPhase = 'idle' | 'animating' | 'materializing' | 'complete';
+
 export interface CameraTarget {
   position: [number, number, number];
   lookAt: [number, number, number];
@@ -103,6 +106,10 @@ interface CockpitState {
   // CPA v2.0 — Mini-map
   miniMapVisible: boolean;
 
+  // Hero-to-cockpit seamless handoff (CPA2-3, 20M upgrade)
+  heroPhase: HeroPhase;
+  cockpitReady: boolean;        // true once cockpit geometry is fully materialized
+
   // Actions
   setSpatialView: (view: SpatialView) => void;
   focusLab: (labId: number | null) => void;
@@ -121,6 +128,8 @@ interface CockpitState {
   setCockpitAudio: (enabled: boolean) => void;
   setAmbientVolume: (volume: number) => void;
   toggleMiniMap: () => void;
+  setHeroPhase: (phase: HeroPhase) => void;
+  setCockpitReady: (ready: boolean) => void;
 }
 
 export const useCockpitStore = create<CockpitState>()(
@@ -141,6 +150,8 @@ export const useCockpitStore = create<CockpitState>()(
       cockpitAudioEnabled: true,
       ambientVolume: 0.15,
       miniMapVisible: true,
+      heroPhase: 'idle' as HeroPhase,
+      cockpitReady: false,
 
       setSpatialView: (spatialView) => {
         set({
@@ -241,6 +252,9 @@ export const useCockpitStore = create<CockpitState>()(
       setAmbientVolume: (ambientVolume) => set({ ambientVolume }),
 
       toggleMiniMap: () => set((s) => ({ miniMapVisible: !s.miniMapVisible })),
+
+      setHeroPhase: (heroPhase) => set({ heroPhase }),
+      setCockpitReady: (cockpitReady) => set({ cockpitReady }),
     }),
     {
       name: 'sparkforge-cockpit',

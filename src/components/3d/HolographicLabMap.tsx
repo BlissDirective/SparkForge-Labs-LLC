@@ -3,12 +3,14 @@
 // ════════════════════════════════════════════════════
 // HolographicLabMap — 3D Holographic Map of All 10 Labs
 // ════════════════════════════════════════════════════
-// Enhancement 2.0: High-budget holographic core (3,000 tri budget).
-// - Icosahedron(1,2) wireframe + solid inner sphere
-// - 5 orbital rings with 12 orbiting data points
-// - Pulsing energy corona
-// - Custom shader grid floor with edge fade
-// - Connection beams between focused lab and adjacent labs
+// Enhancement 3.0: 20M cockpit upgrade (1,000,000 triangle budget).
+// - 4 concentric geodesic shells (icosahedron detail 0/1/2/3)
+// - Data highway spline tubes connecting all adjacent labs
+// - 3D grid floor with raised intersection boxes (InstancedMesh)
+// - Holographic projector pedestal with lens assembly
+// - 8 orbital rings with 24 orbiting data points
+// - Pulsing energy corona (double-layer)
+// - LOD-aware via useLOD({ tier: 'system' })
 //
 // All existing interfaces and interactions preserved.
 
@@ -19,6 +21,7 @@ import * as THREE from 'three';
 import { LabStructure3D } from './LabStructure3D';
 import { LAB_POSITIONS } from '@/stores/cockpitStore';
 import { LABS } from '@/types';
+import { useLOD } from '@/hooks/useLOD';
 
 // Lab accent colors (same as useStationMode)
 const LAB_COLORS: Record<number, string> = {
@@ -125,41 +128,332 @@ function ConnectionBeam({
   return <mesh ref={meshRef} geometry={geometry} material={material} />;
 }
 
-// ─── Central holographic core — enhanced ────────────────────
+// ─── Data Highway Spline Tubes ──────────────────────────────
+// High-segment tube geometry connecting adjacent labs with glowing data conduits
+
+function DataHighways({
+  color,
+  tubularSegments,
+}: {
+  color: string;
+  tubularSegments: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const timeRef = useRef(0);
+
+  const highways = useMemo(() => {
+    const results: { id: string; geometry: THREE.TubeGeometry; material: THREE.MeshStandardMaterial }[] = [];
+    const visited = new Set<string>();
+
+    for (const [labIdStr, neighbors] of Object.entries(LAB_ADJACENCY)) {
+      const labId = Number(labIdStr);
+      const posA = LAB_POSITIONS[labId];
+      if (!posA) continue;
+
+      for (const neighborId of neighbors) {
+        const key = [Math.min(labId, neighborId), Math.max(labId, neighborId)].join('-');
+        if (visited.has(key)) continue;
+        visited.add(key);
+
+        const posB = LAB_POSITIONS[neighborId];
+        if (!posB) continue;
+
+        const startV = new THREE.Vector3(posA[0], posA[1] - 0.3, posA[2]);
+        const endV = new THREE.Vector3(posB[0], posB[1] - 0.3, posB[2]);
+        const mid = startV.clone().lerp(endV, 0.5);
+        mid.y -= 0.5; // Sag below the lab ring for visual depth
+
+        const curve = new THREE.CatmullRomCurve3([startV, mid, endV]);
+        const geo = new THREE.TubeGeometry(curve, tubularSegments, 0.02, 8, false);
+        const mat = new THREE.MeshStandardMaterial({
+          color: new THREE.Color(color).multiplyScalar(0.4),
+          emissive: new THREE.Color(color),
+          emissiveIntensity: 0.3,
+          transparent: true,
+          opacity: 0.2,
+          depthWrite: false,
+          roughness: 0.5,
+          metalness: 0.8,
+        });
+        results.push({ id: key, geometry: geo, material: mat });
+      }
+    }
+    return results;
+  }, [color, tubularSegments]);
+
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    for (const hw of highways) {
+      hw.material.emissiveIntensity = 0.2 + Math.sin(timeRef.current * 2 + highways.indexOf(hw)) * 0.1;
+    }
+  });
+
+  return (
+    <group ref={groupRef}>
+      {highways.map((hw) => (
+        <mesh key={hw.id} geometry={hw.geometry} material={hw.material} />
+      ))}
+    </group>
+  );
+}
+
+// ─── Grid Floor Intersection Boxes (InstancedMesh) ──────────
+// Raised intersection boxes at grid crossings for 3D depth
+
+function GridIntersectionBoxes({
+  color,
+  gridSize,
+  gridDivisions,
+  maxInstances,
+}: {
+  color: string;
+  gridSize: number;
+  gridDivisions: number;
+  maxInstances: number;
+}) {
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+
+  const { geometry, material, count } = useMemo(() => {
+    const boxGeo = new THREE.BoxGeometry(0.06, 0.04, 0.06);
+    const boxMat = new THREE.MeshStandardMaterial({
+      color: new THREE.Color(color),
+      emissive: new THREE.Color(color),
+      emissiveIntensity: 0.3,
+      transparent: true,
+      opacity: 0.15,
+      metalness: 0.9,
+      roughness: 0.3,
+    });
+
+    const half = gridSize / 2;
+    const step = gridSize / gridDivisions;
+    const dummy = new THREE.Object3D();
+    const positions: THREE.Matrix4[] = [];
+
+    for (let x = -half; x <= half; x += step) {
+      for (let z = -half; z <= half; z += step) {
+        const dist = Math.sqrt(x * x + z * z);
+        // Fade out boxes beyond radius 5.5 for soft edge
+        if (dist > 5.5) continue;
+        if (positions.length >= maxInstances) break;
+
+        dummy.position.set(x, -0.78, z);
+        // Scale boxes smaller at edges
+        const edgeScale = Math.max(0.3, 1.0 - dist / 6.0);
+        dummy.scale.set(edgeScale, edgeScale * 0.5, edgeScale);
+        dummy.updateMatrix();
+        positions.push(dummy.matrix.clone());
+      }
+      if (positions.length >= maxInstances) break;
+    }
+
+    return { geometry: boxGeo, material: boxMat, count: positions.length, positions };
+  }, [color, gridSize, gridDivisions, maxInstances]);
+
+  // Set instance matrices on mount
+  useMemo(() => {
+    // We use a deferred approach — set matrices after ref is available
+  }, []);
+
+  useFrame(() => {
+    if (meshRef.current && !meshRef.current.userData.initialized) {
+      const half = gridSize / 2;
+      const step = gridSize / gridDivisions;
+      const dummy = new THREE.Object3D();
+      let idx = 0;
+
+      for (let x = -half; x <= half; x += step) {
+        for (let z = -half; z <= half; z += step) {
+          const dist = Math.sqrt(x * x + z * z);
+          if (dist > 5.5) continue;
+          if (idx >= count) break;
+
+          dummy.position.set(x, -0.78, z);
+          const edgeScale = Math.max(0.3, 1.0 - dist / 6.0);
+          dummy.scale.set(edgeScale, edgeScale * 0.5, edgeScale);
+          dummy.updateMatrix();
+          meshRef.current.setMatrixAt(idx, dummy.matrix);
+          idx++;
+        }
+        if (idx >= count) break;
+      }
+      meshRef.current.instanceMatrix.needsUpdate = true;
+      meshRef.current.userData.initialized = true;
+    }
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[geometry, material, count]} />
+  );
+}
+
+// ─── Holographic Projector Pedestal ─────────────────────────
+// Cylinder base + stacked rings + lens sphere below the core
+
+function ProjectorPedestal({
+  color,
+  segments,
+}: {
+  color: string;
+  segments: number;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const lensRef = useRef<THREE.Mesh>(null);
+  const timeRef = useRef(0);
+
+  // Stacked ring definitions: [y, radius, thickness]
+  const pedestalRings = useMemo(() => [
+    { y: -0.80, radius: 0.9, height: 0.04 },
+    { y: -0.72, radius: 0.7, height: 0.03 },
+    { y: -0.66, radius: 0.5, height: 0.03 },
+    { y: -0.60, radius: 0.35, height: 0.02 },
+    { y: -0.55, radius: 0.25, height: 0.02 },
+  ], []);
+
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+    // Lens pulse
+    if (lensRef.current) {
+      const mat = lensRef.current.material as THREE.MeshStandardMaterial;
+      mat.emissiveIntensity = 0.5 + Math.sin(timeRef.current * 3) * 0.3;
+      lensRef.current.rotation.y += delta * 0.5;
+    }
+  });
+
+  const chromeMat = useMemo(
+    () => ({
+      color: '#1A1822',
+      metalness: 0.95,
+      roughness: 0.15,
+      envMapIntensity: 1.2,
+    }),
+    []
+  );
+
+  return (
+    <group ref={groupRef}>
+      {/* Main cylinder base */}
+      <mesh position={[0, -0.88, 0]}>
+        <cylinderGeometry args={[1.1, 1.3, 0.12, segments]} />
+        <meshStandardMaterial {...chromeMat} />
+      </mesh>
+
+      {/* Stacked accent rings */}
+      {pedestalRings.map((ring, i) => (
+        <mesh key={i} position={[0, ring.y, 0]}>
+          <cylinderGeometry args={[ring.radius, ring.radius * 1.05, ring.height, segments]} />
+          <meshStandardMaterial
+            color={i % 2 === 0 ? color : '#1A1822'}
+            emissive={i % 2 === 0 ? color : '#000000'}
+            emissiveIntensity={0.4}
+            metalness={0.9}
+            roughness={0.2}
+            transparent
+            opacity={0.8}
+          />
+        </mesh>
+      ))}
+
+      {/* Inner column connecting base to core */}
+      <mesh position={[0, -0.5, 0]}>
+        <cylinderGeometry args={[0.08, 0.15, 0.7, segments]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.3}
+          transparent
+          opacity={0.5}
+          metalness={0.8}
+          roughness={0.3}
+        />
+      </mesh>
+
+      {/* Lens sphere — sits at top of pedestal, below core */}
+      <mesh ref={lensRef} position={[0, -0.42, 0]}>
+        <sphereGeometry args={[0.12, segments, segments]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.5}
+          transparent
+          opacity={0.7}
+          roughness={0.1}
+          metalness={0.6}
+        />
+      </mesh>
+
+      {/* Outer decorative torus at base */}
+      <mesh position={[0, -0.84, 0]} rotation-x={Math.PI / 2}>
+        <torusGeometry args={[1.2, 0.015, 8, segments]} />
+        <meshStandardMaterial
+          color={color}
+          emissive={color}
+          emissiveIntensity={0.3}
+          transparent
+          opacity={0.4}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+// ─── Central holographic core — 20M upgrade ─────────────────
 
 function HolographicCore({
   color,
   pulse,
   focusedLabId: _focusedLabId,
+  segments,
+  enableEffects,
+  tubularSegments,
+  maxInstances,
 }: {
   color: string;
   pulse: number;
   focusedLabId: number | null;
+  segments: number;
+  enableEffects: boolean;
+  tubularSegments: number;
+  maxInstances: number;
 }) {
-  const coreRef = useRef<THREE.Mesh>(null);
+  const shellGroupRef = useRef<THREE.Group>(null);
   const innerRef = useRef<THREE.Mesh>(null);
   const ringsRef = useRef<THREE.Group>(null);
   const dataPointsRef = useRef<THREE.InstancedMesh>(null);
-  const coronaRef = useRef<THREE.Mesh>(null);
+  const coronaOuterRef = useRef<THREE.Mesh>(null);
+  const coronaInnerRef = useRef<THREE.Mesh>(null);
   const gridMatRef = useRef<THREE.ShaderMaterial>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const timeRef = useRef(0);
 
-  // 5 orbital ring definitions: [radius, thickness, segments, rotX, rotY]
+  // 4 concentric geodesic shell definitions: [detail level, scale, opacity, wireframe?]
+  const shellDefs = useMemo(() => [
+    { detail: 0, scale: 0.2, opacity: 0.9, wireframe: false },  // Solid inner icosahedron
+    { detail: 1, scale: 0.35, opacity: 0.4, wireframe: true },  // First wireframe shell
+    { detail: 2, scale: 0.55, opacity: 0.25, wireframe: true }, // Second wireframe shell
+    { detail: 3, scale: 0.8, opacity: 0.12, wireframe: true },  // Outer wireframe shell
+  ], []);
+
+  // 8 orbital ring definitions
   const ringDefs = useMemo(() => [
     { radius: 1.3, thickness: 0.008, rx: Math.PI / 2, ry: 0 },
     { radius: 1.1, thickness: 0.006, rx: Math.PI / 3, ry: 0 },
     { radius: 0.9, thickness: 0.006, rx: Math.PI / 6, ry: Math.PI / 4 },
     { radius: 1.5, thickness: 0.005, rx: Math.PI / 2.5, ry: Math.PI / 3 },
     { radius: 0.7, thickness: 0.005, rx: Math.PI / 1.5, ry: Math.PI / 6 },
+    { radius: 1.7, thickness: 0.004, rx: Math.PI / 4, ry: Math.PI / 5 },
+    { radius: 0.55, thickness: 0.004, rx: Math.PI / 1.2, ry: Math.PI / 2 },
+    { radius: 1.9, thickness: 0.003, rx: Math.PI / 3.5, ry: Math.PI / 7 },
   ], []);
 
-  // 12 data points orbit parameters
+  // 24 data points orbit parameters
+  const DATA_POINT_COUNT = 24;
   const dataPointParams = useMemo(() =>
-    Array.from({ length: 12 }, (_, i) => ({
-      ringIdx: i % 5,
-      angleOffset: (i / 12) * Math.PI * 2 + (i % 5) * 0.7,
-      speed: 0.3 + (i % 3) * 0.15,
+    Array.from({ length: DATA_POINT_COUNT }, (_, i) => ({
+      ringIdx: i % 8,
+      angleOffset: (i / DATA_POINT_COUNT) * Math.PI * 2 + (i % 8) * 0.5,
+      speed: 0.25 + (i % 4) * 0.12,
+      size: 0.025 + (i % 3) * 0.01,
     })),
     []
   );
@@ -174,39 +468,53 @@ function HolographicCore({
     timeRef.current += delta;
     const t = timeRef.current;
 
-    // Rotate outer wireframe core
-    if (coreRef.current) {
-      coreRef.current.rotation.y += delta * 0.5;
-      coreRef.current.rotation.x += delta * 0.15;
-      const s = 0.3 + pulse * 0.05;
-      coreRef.current.scale.setScalar(s);
+    // Rotate shell group
+    if (shellGroupRef.current) {
+      shellGroupRef.current.rotation.y += delta * 0.4;
+      shellGroupRef.current.rotation.x += delta * 0.12;
+      // Each child shell counter-rotates slightly for depth
+      shellGroupRef.current.children.forEach((child, i) => {
+        child.rotation.y += delta * (0.1 * (i % 2 === 0 ? 1 : -1));
+        child.rotation.z += delta * (0.05 * (i % 2 === 0 ? -1 : 1));
+        // Pulse scale per shell
+        const s = shellDefs[i]
+          ? shellDefs[i].scale + pulse * 0.03 * (1 + i * 0.2)
+          : 1;
+        child.scale.setScalar(s);
+      });
     }
 
     // Pulse inner sphere
     if (innerRef.current) {
-      const innerS = 0.3 + pulse * 0.03;
+      const innerS = 0.15 + pulse * 0.02;
       innerRef.current.scale.setScalar(innerS);
       (innerRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
-        0.6 + Math.sin(t * 2) * 0.3;
+        0.8 + Math.sin(t * 2) * 0.4;
     }
 
     // Rotate ring group
     if (ringsRef.current) {
       ringsRef.current.rotation.y += delta * 0.2;
-      ringsRef.current.rotation.x += delta * 0.1;
+      ringsRef.current.rotation.x += delta * 0.08;
     }
 
-    // Pulse corona
-    if (coronaRef.current) {
-      const cs = 1.8 + Math.sin(t * 1.5) * 0.1;
-      coronaRef.current.scale.setScalar(cs);
-      (coronaRef.current.material as THREE.MeshBasicMaterial).opacity =
-        0.03 + Math.sin(t * 2) * 0.01;
+    // Pulse double corona
+    if (coronaOuterRef.current) {
+      const cs = 2.2 + Math.sin(t * 1.2) * 0.15;
+      coronaOuterRef.current.scale.setScalar(cs);
+      (coronaOuterRef.current.material as THREE.MeshBasicMaterial).opacity =
+        0.025 + Math.sin(t * 1.8) * 0.01;
+    }
+    if (coronaInnerRef.current) {
+      const cs2 = 1.6 + Math.sin(t * 1.8 + 1) * 0.1;
+      coronaInnerRef.current.scale.setScalar(cs2);
+      (coronaInnerRef.current.material as THREE.MeshBasicMaterial).opacity =
+        0.04 + Math.sin(t * 2.5) * 0.015;
     }
 
     // Animate data points along ring paths
     if (dataPointsRef.current) {
-      for (let i = 0; i < 12; i++) {
+      for (let i = 0; i < DATA_POINT_COUNT; i++) {
         const dp = dataPointParams[i];
         const ring = ringDefs[dp.ringIdx];
         const angle = t * dp.speed + dp.angleOffset;
@@ -226,7 +534,7 @@ function HolographicCore({
         const z2 = x * sinRy + z1 * cosRy;
 
         dummy.position.set(x2, y1, z2);
-        const dpScale = 0.03 + Math.sin(t * 3 + i) * 0.01;
+        const dpScale = dp.size + Math.sin(t * 3 + i) * 0.008;
         dummy.scale.setScalar(dpScale);
         dummy.updateMatrix();
         dataPointsRef.current.setMatrixAt(i, dummy.matrix);
@@ -243,36 +551,41 @@ function HolographicCore({
 
   return (
     <group>
-      {/* Central wireframe orb — icosahedron(1, 2) for more detail */}
+      {/* 4 concentric geodesic shells */}
       <Float speed={2} rotationIntensity={0.2} floatIntensity={0.4}>
-        <mesh ref={coreRef}>
-          <icosahedronGeometry args={[1, 2]} />
-          <meshStandardMaterial
-            color={color}
-            emissive={color}
-            emissiveIntensity={0.8}
-            transparent
-            opacity={0.6}
-            wireframe
-          />
-        </mesh>
+        <group ref={shellGroupRef}>
+          {shellDefs.map((shell, idx) => (
+            <mesh key={idx}>
+              <icosahedronGeometry args={[1, shell.detail]} />
+              <meshStandardMaterial
+                color={color}
+                emissive={color}
+                emissiveIntensity={shell.wireframe ? 0.6 : 1.0}
+                transparent
+                opacity={shell.opacity}
+                wireframe={shell.wireframe}
+                depthWrite={!shell.wireframe}
+              />
+            </mesh>
+          ))}
+        </group>
       </Float>
 
-      {/* Solid inner sphere */}
+      {/* Solid inner energy sphere */}
       <mesh ref={innerRef}>
-        <sphereGeometry args={[0.25, 32, 32]} />
+        <sphereGeometry args={[0.25, segments, segments]} />
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.6}
+          emissiveIntensity={0.8}
           transparent
-          opacity={0.8}
-          roughness={0.2}
-          metalness={0.5}
+          opacity={0.85}
+          roughness={0.1}
+          metalness={0.6}
         />
       </mesh>
 
-      {/* 5 Orbital rings */}
+      {/* 8 Orbital rings */}
       <group ref={ringsRef}>
         {ringDefs.map((ring, idx) => (
           <mesh
@@ -280,18 +593,18 @@ function HolographicCore({
             rotation-x={ring.rx}
             rotation-y={ring.ry}
           >
-            <torusGeometry args={[ring.radius, ring.thickness, 8, 96]} />
+            <torusGeometry args={[ring.radius, ring.thickness, 8, segments * 2]} />
             <meshBasicMaterial
-              color={idx % 2 === 0 ? color : '#ffffff'}
+              color={idx % 3 === 0 ? color : idx % 3 === 1 ? '#ffffff' : color}
               transparent
-              opacity={idx === 0 ? 0.25 : 0.12}
+              opacity={idx < 5 ? (idx === 0 ? 0.25 : 0.12) : 0.08}
             />
           </mesh>
         ))}
       </group>
 
-      {/* 12 orbiting data points */}
-      <instancedMesh ref={dataPointsRef} args={[undefined, undefined, 12]}>
+      {/* 24 orbiting data points */}
+      <instancedMesh ref={dataPointsRef} args={[undefined, undefined, DATA_POINT_COUNT]}>
         <sphereGeometry args={[1, 8, 8]} />
         <meshStandardMaterial
           color={color}
@@ -302,19 +615,31 @@ function HolographicCore({
         />
       </instancedMesh>
 
-      {/* Pulsing energy corona */}
-      <mesh ref={coronaRef}>
-        <sphereGeometry args={[1.8, 16, 16]} />
+      {/* Double-layer pulsing energy corona */}
+      <mesh ref={coronaOuterRef}>
+        <sphereGeometry args={[2.2, segments, segments]} />
         <meshBasicMaterial
           color={color}
           transparent
-          opacity={0.03}
+          opacity={0.025}
           side={THREE.BackSide}
           depthWrite={false}
         />
       </mesh>
+      {enableEffects && (
+        <mesh ref={coronaInnerRef}>
+          <sphereGeometry args={[1.6, Math.floor(segments * 0.75), Math.floor(segments * 0.75)]} />
+          <meshBasicMaterial
+            color={'#ffffff'}
+            transparent
+            opacity={0.04}
+            side={THREE.BackSide}
+            depthWrite={false}
+          />
+        </mesh>
+      )}
 
-      {/* Custom shader grid floor replacing gridHelper */}
+      {/* Custom shader grid floor */}
       <mesh rotation-x={-Math.PI / 2} position-y={-0.8}>
         <planeGeometry args={[14, 14, 1, 1]} />
         <shaderMaterial
@@ -327,6 +652,20 @@ function HolographicCore({
           side={THREE.DoubleSide}
         />
       </mesh>
+
+      {/* Raised intersection boxes on grid floor */}
+      <GridIntersectionBoxes
+        color={color}
+        gridSize={12}
+        gridDivisions={24}
+        maxInstances={maxInstances}
+      />
+
+      {/* Holographic projector pedestal */}
+      <ProjectorPedestal color={color} segments={segments} />
+
+      {/* Data highway spline tubes connecting labs */}
+      <DataHighways color={color} tubularSegments={tubularSegments} />
     </group>
   );
 }
@@ -345,6 +684,9 @@ export function HolographicLabMap({
   const groupRef = useRef<THREE.Group>(null);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timeRef = useRef(0);
+
+  // LOD-aware rendering — system tier for cockpit components
+  const lod = useLOD({ tier: 'system' });
 
   // Gentle auto-rotation when no lab is focused
   useFrame((_, delta) => {
@@ -407,11 +749,15 @@ export function HolographicLabMap({
 
   return (
     <group ref={groupRef}>
-      {/* Central holographic core */}
+      {/* Central holographic core — 20M upgrade */}
       <HolographicCore
         color={coreColor}
         pulse={pulse}
         focusedLabId={focusedLabId}
+        segments={lod.segments}
+        enableEffects={lod.enableEffects}
+        tubularSegments={lod.tubularSegments}
+        maxInstances={lod.maxInstances}
       />
 
       {/* Connection beams between focused lab and adjacent labs */}

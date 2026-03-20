@@ -44,31 +44,31 @@ export interface PerformanceProfile {
 const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
   desktop: {
     targetFPS: 60,
-    maxTriangles: 10_000_000,
+    maxTriangles: 20_000_000,     // 20M cockpit upgrade (was 10M)
     lodBias: 'ultra',
     particleMultiplier: 1.0,
     bloomEnabled: true,
     postProcessingEnabled: true,
     shadowsEnabled: true,
-    maxLights: 12,
+    maxLights: 16,                // increased from 12 for cockpit lighting
     textureResolution: 'full',
-    instancedMeshLimit: 2000,
-    sphereSegments: 32,
+    instancedMeshLimit: 5000,     // increased from 2000 for structural detail
+    sphereSegments: 64,           // increased from 32 for ultra-quality curves
     antialias: true,
     pixelRatio: 2.5,
   },
   tablet: {
     targetFPS: 45,
-    maxTriangles: 5_000_000,
+    maxTriangles: 10_000_000,     // 10M cockpit upgrade (was 5M)
     lodBias: 'high',
     particleMultiplier: 0.6,
     bloomEnabled: true,
     postProcessingEnabled: true,
     shadowsEnabled: false,
-    maxLights: 4,
+    maxLights: 8,                 // increased from 4 for cockpit lighting
     textureResolution: 'half',
-    instancedMeshLimit: 500,
-    sphereSegments: 16,
+    instancedMeshLimit: 1500,     // increased from 500 for structural detail
+    sphereSegments: 32,           // increased from 16 for smoother curves
     antialias: true,
     pixelRatio: 1.5,
   },
@@ -89,13 +89,15 @@ const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
   },
 };
 
-// ■■ Triangle budgets per game tier, scaled by device ■■
+// ■■ Triangle budgets per game/system tier, scaled by device ■■
 // Flagship upgraded to 10M (March 18, 2026) — fully immersive environments
 // FL-Lite upgraded to 2M (March 18, 2026) — immersive themed environments
-export const TRIANGLE_BUDGETS: Record<DeviceType, { flagship: number; flLite: number; standard: number }> = {
-  desktop:  { flagship: 10_000_000, flLite: 2_000_000, standard: 50_000 },
-  tablet:   { flagship: 5_000_000,  flLite: 1_000_000, standard: 25_000 },
-  mobile:   { flagship: 2_500_000,  flLite: 500_000,   standard: 10_000 },
+// System tier: 20M cockpit upgrade (March 20, 2026) — full 3D panoramic cockpit
+export type TriangleBudgetTier = 'flagship' | 'flLite' | 'standard' | 'system';
+export const TRIANGLE_BUDGETS: Record<DeviceType, Record<TriangleBudgetTier, number>> = {
+  desktop:  { flagship: 10_000_000, flLite: 2_000_000, standard: 50_000,  system: 20_000_000 },
+  tablet:   { flagship: 5_000_000,  flLite: 1_000_000, standard: 25_000,  system: 10_000_000 },
+  mobile:   { flagship: 2_500_000,  flLite: 500_000,   standard: 10_000,  system: 0 },
 };
 
 // ■■ Store Interface ■■
@@ -112,7 +114,7 @@ interface DeviceState {
   stripeCount: number;
   setDeviceType: (type: DeviceType) => void;
   setGpuTier: (tier: GPUTier, stripes?: number) => void;
-  getTriangleBudget: (tier: 'flagship' | 'flLite' | 'standard') => number;
+  getTriangleBudget: (tier: TriangleBudgetTier) => number;
   getParticleCount: (baseCount: number) => number;
   getSphereDetail: (preferredSegments?: number) => number;
 }

@@ -1,22 +1,26 @@
 'use client';
 
 // ================================================================
-// CPA v1.0 — Cockpit Panoramic Architecture Audio Hooks
+// CPA v2.0 — Cockpit Audio Hook (20M Upgrade)
 // ================================================================
-// Tone.js-powered sound design for cockpit events:
-// - Mode transitions (servo hum + pitch shift)
-// - HUD activation (rising digital chime)
-// - Hex panel pulse (subtle click/tick)
-// - Status bar XP fill (ascending progress tone)
-// - Barrel distortion engage (lens whoosh)
-// - Side panel ambient (quiet digital chatter)
+// React hook bridging CockpitAudioEngine with component lifecycle.
 //
-// All sounds respect child.settings.soundEnabled (Decision 1.3)
-// and reducedMotion preference (50% volume / off for motion sounds).
+// Features:
+//   - Auto-init on first user interaction
+//   - Ambient drone management (start/stop/crossfade)
+//   - Event sound dispatching
+//   - Skin-reactive soundscape transitions
+//   - Lab-specific ambient shifts
+//   - Volume respects uiStore.soundEnabled + reducedMotion
+//   - Backwards-compatible with v1.0 play() + onModeChange() API
 
 import { useCallback, useRef, useEffect, useState } from 'react';
 import { useUIStore } from '@/stores/uiStore';
+import { useCockpitStore, type CockpitSkin } from '@/stores/cockpitStore';
+import { cockpitAudioEngine, type CockpitAudioEvent } from '@/lib/audio/cockpitAudio';
 import type { StationMode } from './useStationMode';
+
+// ── Legacy event types (preserved for backward compat) ─────────
 
 export type CockpitSoundEvent =
   | 'mode-transition'
@@ -28,7 +32,7 @@ export type CockpitSoundEvent =
   | 'panel-ambient-start'
   | 'panel-ambient-stop';
 
-// Frequency maps for mode transitions (from → pitch shift target)
+// Frequency maps for mode transitions
 const MODE_FREQUENCIES: Record<StationMode, number> = {
   dashboard: 80,
   labmap: 100,
@@ -38,6 +42,8 @@ const MODE_FREQUENCIES: Record<StationMode, number> = {
   celebration: 150,
   onboarding: 70,
 };
+
+// ── Helper: legacy Web Audio synthesis (kept for v1 compat) ────
 
 function playTone(
   ctx: AudioContext,
@@ -94,18 +100,14 @@ function playNoiseBurst(
   for (let i = 0; i < bufferSize; i++) {
     data[i] = Math.random() * 2 - 1;
   }
-
   const source = ctx.createBufferSource();
   source.buffer = buffer;
-
   const filter = ctx.createBiquadFilter();
   filter.type = 'bandpass';
   filter.frequency.setValueAtTime(filterFreq, ctx.currentTime + delay);
-
   const gain = ctx.createGain();
   gain.gain.setValueAtTime(volume, ctx.currentTime + delay);
   gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + duration);
-
   source.connect(filter);
   filter.connect(gain);
   gain.connect(ctx.destination);
@@ -123,58 +125,39 @@ function synthesizeCockpit(
 
   switch (event) {
     case 'mode-transition': {
-      // Low hum pitch shift + mechanical servo
       const fromFreq = MODE_FREQUENCIES[options?.fromMode || 'dashboard'];
       const toFreq = MODE_FREQUENCIES[options?.toMode || 'dashboard'];
       playFrequencySweep(ctx, fromFreq, toFreq, 0.3, 'sine', v(0.12));
-      // Servo mechanical click
       playNoiseBurst(ctx, 0.02, v(0.08), 4000);
       playNoiseBurst(ctx, 0.02, v(0.06), 3000, 0.15);
       break;
     }
-
-    case 'hud-activate': {
-      // Rising digital chime + ring tone (MetalSynth-like)
+    case 'hud-activate':
       playTone(ctx, 1200, 0.15, 'sine', v(0.12));
       playTone(ctx, 1800, 0.15, 'sine', v(0.12), 0.08);
       playTone(ctx, 2400, 0.2, 'sine', v(0.10), 0.16);
-      // Ring resonance
       playTone(ctx, 3200, 0.3, 'sine', v(0.06), 0.2);
       break;
-    }
-
-    case 'hud-deactivate': {
-      // Descending fade
+    case 'hud-deactivate':
       playTone(ctx, 2400, 0.1, 'sine', v(0.08));
       playTone(ctx, 1200, 0.15, 'sine', v(0.06), 0.05);
       break;
-    }
-
-    case 'hex-pulse': {
-      // Subtle click/tick — very short noise burst
+    case 'hex-pulse':
       playNoiseBurst(ctx, 0.02, v(0.05), 5000);
       break;
-    }
-
     case 'xp-fill': {
-      // Progress ascending tone — frequency ramp proportional to fill %
       const fill = options?.fillPercent ?? 0.5;
       const startFreq = 200 + fill * 400;
       const endFreq = startFreq + 200;
       playFrequencySweep(ctx, startFreq, endFreq, 0.4, 'sine', v(0.1));
-      // Sparkle at end
       playTone(ctx, endFreq * 2, 0.1, 'sine', v(0.05), 0.35);
       break;
     }
-
     case 'distortion-engage': {
-      // Subtle lens whoosh — bandpass noise sweep
       const bufferSize = ctx.sampleRate * 0.3;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = Math.random() * 2 - 1;
-      }
+      for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
       const source = ctx.createBufferSource();
       source.buffer = buffer;
       const filter = ctx.createBiquadFilter();
@@ -192,23 +175,24 @@ function synthesizeCockpit(
       source.stop(ctx.currentTime + 0.3);
       break;
     }
-
-    case 'panel-ambient-start': {
-      // Ambient digital chatter — continuous quiet noise (handled externally via loop)
+    case 'panel-ambient-start':
       playNoiseBurst(ctx, 0.5, v(0.02), 1500);
       break;
-    }
-
-    case 'panel-ambient-stop': {
-      // Fade out handled externally
+    case 'panel-ambient-stop':
       break;
-    }
   }
 }
+
+// ── Main Hook ──────────────────────────────────────────────────
 
 export function useCockpitAudio() {
   const audioCtxRef = useRef<AudioContext | null>(null);
   const [previousMode, setPreviousMode] = useState<StationMode>('dashboard');
+  const engineInitRef = useRef(false);
+
+  // Store reads
+  const cockpitSkin = useCockpitStore((s) => s.cockpitSkin);
+  const prevSkinRef = useRef<CockpitSkin>(cockpitSkin);
 
   const getContext = useCallback((): AudioContext | null => {
     if (typeof window === 'undefined') return null;
@@ -225,29 +209,58 @@ export function useCockpitAudio() {
     return audioCtxRef.current;
   }, []);
 
+  // Initialize engine on first interaction
+  const ensureEngine = useCallback(() => {
+    if (engineInitRef.current) return;
+    const ok = cockpitAudioEngine.init();
+    if (ok) {
+      cockpitAudioEngine.resume();
+      engineInitRef.current = true;
+    }
+  }, []);
+
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (audioCtxRef.current) {
         audioCtxRef.current.close();
         audioCtxRef.current = null;
       }
+      cockpitAudioEngine.stopAmbient();
     };
   }, []);
 
+  // React to skin changes
+  useEffect(() => {
+    if (prevSkinRef.current !== cockpitSkin && engineInitRef.current) {
+      cockpitAudioEngine.crossfadeSkin(cockpitSkin);
+      prevSkinRef.current = cockpitSkin;
+    }
+  }, [cockpitSkin]);
+
+  // React to sound toggle
+  const soundEnabled = useUIStore((s) => s.soundEnabled);
+  useEffect(() => {
+    if (soundEnabled) {
+      cockpitAudioEngine.unmute();
+    } else {
+      cockpitAudioEngine.mute();
+    }
+  }, [soundEnabled]);
+
+  // Legacy play function (v1 compat)
   const play = useCallback(
     (
       event: CockpitSoundEvent,
       options?: { fromMode?: StationMode; toMode?: StationMode; fillPercent?: number }
     ) => {
-      const { soundEnabled } = useUIStore.getState();
-      if (!soundEnabled) return;
+      const { soundEnabled: snd } = useUIStore.getState();
+      if (!snd) return;
 
-      // Volume scaling based on reduced motion preference
       let volumeScale = 1.0;
       if (typeof window !== 'undefined') {
         const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         if (prefersReduced) {
-          // Motion sounds are off, non-motion sounds at 50%
           const motionSounds: CockpitSoundEvent[] = ['distortion-engage', 'panel-ambient-start'];
           if (motionSounds.includes(event)) return;
           volumeScale = 0.5;
@@ -256,25 +269,59 @@ export function useCockpitAudio() {
 
       const ctx = getContext();
       if (!ctx) return;
-
       synthesizeCockpit(ctx, event, volumeScale, options);
     },
     [getContext]
   );
 
-  // Convenience: call on mode change with auto from/to tracking
+  // v2 event play (delegates to engine)
+  const playEvent = useCallback(
+    (event: CockpitAudioEvent) => {
+      const { soundEnabled: snd } = useUIStore.getState();
+      if (!snd) return;
+      ensureEngine();
+      cockpitAudioEngine.playEvent(event);
+    },
+    [ensureEngine]
+  );
+
+  // Start ambient drone
+  const startAmbient = useCallback(
+    (skin?: CockpitSkin) => {
+      const { soundEnabled: snd } = useUIStore.getState();
+      if (!snd) return;
+      ensureEngine();
+      cockpitAudioEngine.startAmbient(skin || cockpitSkin);
+    },
+    [ensureEngine, cockpitSkin]
+  );
+
+  // Stop ambient drone
+  const stopAmbient = useCallback(() => {
+    cockpitAudioEngine.stopAmbient();
+  }, []);
+
+  // Set active lab for ambient shift
+  const setActiveLab = useCallback(
+    (labId: number | null) => {
+      if (engineInitRef.current) {
+        cockpitAudioEngine.setActiveLab(labId);
+      }
+    },
+    []
+  );
+
+  // Legacy mode change handler
   const onModeChange = useCallback(
     (newMode: StationMode) => {
       if (newMode !== previousMode) {
         play('mode-transition', { fromMode: previousMode, toMode: newMode });
 
-        // HUD activation/deactivation
         const hadHud = previousMode !== 'game';
         const hasHud = newMode !== 'game';
         if (!hadHud && hasHud) play('hud-activate');
         if (hadHud && !hasHud) play('hud-deactivate');
 
-        // Barrel distortion engage/disengage
         if (previousMode === 'game' && newMode !== 'game') {
           play('distortion-engage');
         }
@@ -285,5 +332,14 @@ export function useCockpitAudio() {
     [previousMode, play]
   );
 
-  return { play, onModeChange };
+  return {
+    // v1 legacy API
+    play,
+    onModeChange,
+    // v2 enhanced API
+    playEvent,
+    startAmbient,
+    stopAmbient,
+    setActiveLab,
+  };
 }

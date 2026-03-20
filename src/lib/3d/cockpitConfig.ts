@@ -25,8 +25,14 @@ export const COCKPIT_GEOMETRY = {
   // NEW in v2
   hexDataTextureSize: 64,       // px, for lab number / indicator textures
   panelEdgeBevel: 0.005,        // subtle edge chamfer
-  topBarSegments: 48,           // increased from 32 for smoother curve
-  sideSegments: 24,             // increased from 16
+  topBarSegments: 256,          // 20M upgrade: ultra-smooth curves (was 48)
+  sideSegments: 128,            // 20M upgrade: high-poly side panels (was 24)
+
+  // 20M Cockpit Upgrade — structural detail constants
+  rivetSpacing: 0.15,           // spacing between instanced rivets
+  cableBundleCount: 50,         // TubeGeometry cable splines
+  ventPanelCount: 12,           // ventilation grate panels
+  floorGrateResolution: 64,     // grid resolution for floor panels
 } as const;
 
 // ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■
@@ -173,69 +179,107 @@ export const CEREMONY_INTENSITY = {
   streakMilestone: { bloomPeak: 0.7, particleCount: 80,  hudExpansion: 1.2, duration: 2000 },
 } as const;
 
-// ■■ Cockpit LOD Levels (CPA2-12) ■■
+// ■■ Cockpit LOD Levels (CPA2-12 — upgraded for 20M budget) ■■
 export const COCKPIT_LOD = {
   ultra: {
-    panelSegments: 48,
-    sideSegments: 24,
+    panelSegments: 256,        // increased from 48 for glass-smooth curves
+    sideSegments: 128,         // increased from 24 for high-poly side panels
     hexDetail: true,
-    hudRingSegments: 64,
-    scanLines: 12,
+    hexSubPanels: true,        // NEW: recessed instrument clusters inside hexes
+    hudRingSegments: 128,      // increased from 64 for seamless ring geometry
+    hudRingCount: 8,           // NEW: 8 concentric rings (was 3)
+    scanLines: 24,             // increased from 12 for volumetric beams
     barrelDistortion: true,
     reflections: true,
+    structuralDetail: true,    // NEW: cables, conduits, vents
+    volumetricFog: true,       // NEW: fog volumes + god rays
+    floorDetail: true,         // NEW: grated floor panels
+    npcFingers: true,          // NEW: articulated finger geometry
+    npcFacialAnim: true,       // NEW: visor expression geometry
   },
   high: {
-    panelSegments: 32,
-    sideSegments: 16,
+    panelSegments: 128,        // increased from 32
+    sideSegments: 64,          // increased from 16
     hexDetail: true,
-    hudRingSegments: 48,
-    scanLines: 12,
+    hexSubPanels: true,
+    hudRingSegments: 64,       // increased from 48
+    hudRingCount: 6,           // reduced from 8
+    scanLines: 16,             // increased from 12
     barrelDistortion: true,
     reflections: true,
+    structuralDetail: true,
+    volumetricFog: true,
+    floorDetail: true,
+    npcFingers: false,
+    npcFacialAnim: true,
   },
   medium: {
-    panelSegments: 24,
-    sideSegments: 12,
-    hexDetail: false,       // Hex clusters simplified to circles
+    panelSegments: 64,         // increased from 24
+    sideSegments: 32,          // increased from 12
+    hexDetail: false,          // Hex clusters simplified to circles
+    hexSubPanels: false,
     hudRingSegments: 32,
+    hudRingCount: 4,
     scanLines: 8,
     barrelDistortion: false,
     reflections: false,
+    structuralDetail: false,
+    volumetricFog: false,
+    floorDetail: false,
+    npcFingers: false,
+    npcFacialAnim: false,
   },
   low: {
-    panelSegments: 16,
-    sideSegments: 8,
+    panelSegments: 32,         // increased from 16
+    sideSegments: 16,          // increased from 8
     hexDetail: false,
+    hexSubPanels: false,
     hudRingSegments: 16,
+    hudRingCount: 3,
     scanLines: 6,
     barrelDistortion: false,
     reflections: false,
+    structuralDetail: false,
+    volumetricFog: false,
+    floorDetail: false,
+    npcFingers: false,
+    npcFacialAnim: false,
   },
 } as const;
 
-// ■■ Triangle Budget Breakdown (CPA v2.0) ■■
+// ■■ Triangle Budget Breakdown (20M Cockpit Upgrade — March 20, 2026) ■■
+// Total: 20M desktop / 10M tablet / 0 mobile (CSS fallback)
 export const TRIANGLE_BUDGET_V2 = {
   cockpitShell: {
-    cockpitPanels: { desktop: 1500, tablet: 800, mobile: 0 },
-    hexClusters:   { desktop: 300,  tablet: 200, mobile: 0 },
-    holographicHUD:{ desktop: 600,  tablet: 400, mobile: 0 },
-    sidePanels:    { desktop: 200,  tablet: 100, mobile: 0 },
-    statusBar3D:   { desktop: 300,  tablet: 200, mobile: 0 },
-    ledRim:        { desktop: 1500, tablet: 800, mobile: 0 },
+    cockpitPanels:      { desktop: 2_000_000,  tablet: 1_000_000, mobile: 0 },
+    ledRim:             { desktop: 200_000,    tablet: 100_000,   mobile: 0 },
+    sidePanels:         { desktop: 1_500_000,  tablet: 750_000,   mobile: 0 },
+    holographicHUD:     { desktop: 500_000,    tablet: 250_000,   mobile: 0 },
+    statusBar3D:        { desktop: 500_000,    tablet: 250_000,   mobile: 0 },
+    auroraBackground:   { desktop: 50_000,     tablet: 25_000,    mobile: 0 },
+    ambientParticles:   { desktop: 200_000,    tablet: 100_000,   mobile: 0 },
+    // Shell subtotal: 4,950,000 desktop / 2,475,000 tablet
   },
   spatialContent: {
-    holographicLabMap:   { desktop: 28000, tablet: 12000, mobile: 0 },
-    labStructures:       { desktop: 25000, tablet: 10000, mobile: 0 },
-    interactiveConsoles: { desktop: 6000,  tablet: 3000,  mobile: 0 },
-    ambientNPCs:         { desktop: 4000,  tablet: 2000,  mobile: 0 },
-    petCompanion:        { desktop: 1500,  tablet: 800,   mobile: 0 },
-    dynamicEnvironment:  { desktop: 15000, tablet: 5000,  mobile: 0 },
-    ambientParticles:    { desktop: 5000,  tablet: 2000,  mobile: 0 },
+    holographicLabMap:   { desktop: 1_000_000, tablet: 500_000,   mobile: 0 },
+    labStructures:       { desktop: 3_000_000, tablet: 1_500_000, mobile: 0 },
+    interactiveConsoles: { desktop: 2_000_000, tablet: 1_000_000, mobile: 0 },
+    ambientNPCs:         { desktop: 1_500_000, tablet: 750_000,   mobile: 0 },
+    dynamicEnvironment:  { desktop: 3_000_000, tablet: 1_500_000, mobile: 0 },
+    starsSkybox:         { desktop: 500_000,   tablet: 250_000,   mobile: 0 },
+    // Spatial subtotal: 11,000,000 desktop / 5,500,000 tablet
   },
-  transitionPeak: {
-    wormhole:  { desktop: 2500, tablet: 1500, mobile: 0 },
-    ceremony:  { desktop: 3000, tablet: 1000, mobile: 0 },
+  newComponents: {
+    cockpitStructuralDetail: { desktop: 1_500_000, tablet: 750_000,  mobile: 0 },
+    volumetricFog:           { desktop: 500_000,   tablet: 250_000,  mobile: 0 },
+    cockpitFloor:            { desktop: 500_000,   tablet: 250_000,  mobile: 0 },
+    ceremonyFX:              { desktop: 500_000,   tablet: 250_000,  mobile: 0 },
+    wormholeTransition:      { desktop: 300_000,   tablet: 150_000,  mobile: 0 },
+    miniMapOverlay:          { desktop: 250_000,   tablet: 125_000,  mobile: 0 },
+    // New subtotal: 3,550,000 desktop / 1,775,000 tablet
   },
+  dynamicHeadroom: { desktop: 500_000, tablet: 250_000, mobile: 0 },
+  // Grand total: 20,000,000 desktop / 10,000,000 tablet
 } as const;
 
 // ■■ Adaptive FPS Degradation Thresholds ■■

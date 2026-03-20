@@ -20,7 +20,7 @@
 //   <sphereGeometry args={[radius, lod.segments, lod.segments]} />
 
 import { useState, useEffect, useMemo } from 'react';
-import { useDeviceStore, type LODLevel, type DeviceType } from '@/stores/deviceStore';
+import { useDeviceStore, type LODLevel, type DeviceType, type TriangleBudgetTier } from '@/stores/deviceStore';
 
 // ■■ LOD Configuration per Level ■■
 interface LODConfig {
@@ -38,16 +38,16 @@ interface LODConfig {
 
 const LOD_CONFIGS: Record<LODLevel, LODConfig> = {
   ultra: {
-    segments: 32,
-    tubularSegments: 64,
-    subdivisions: 4,
+    segments: 64,              // increased from 32 for 20M cockpit budget
+    tubularSegments: 128,      // increased from 64 for ultra-smooth curves
+    subdivisions: 5,           // increased from 4 for higher poly detail
     particleMultiplier: 1.5,
     enableEffects: true,
     enableShadows: true,
     enableReflections: true,
     enableAnimations: true,
     textureDetail: 'full',
-    maxInstances: 2000,
+    maxInstances: 5000,        // increased from 2000 for structural detail
   },
   high: {
     segments: 16,
@@ -109,8 +109,8 @@ const TIER_SCALE: Record<string, Record<LODLevel, number>> = {
 
 // ■■ Hook Options ■■
 interface UseLODOptions {
-  /** Game tier — determines triangle budget */
-  tier: 'flagship' | 'flLite' | 'standard' | 'system';
+  /** Game/system tier — determines triangle budget */
+  tier: TriangleBudgetTier;
   /** Override device-based LOD level */
   forcedLevel?: LODLevel;
   /** Distance from camera for distance-based LOD (optional) */
@@ -169,7 +169,7 @@ export function useLOD(options: UseLODOptions): LODState {
 
   // Get triangle budget and scale it
   const triangleBudget = useMemo(
-    () => tier === 'system' ? 3000 : getTriangleBudget(tier),
+    () => getTriangleBudget(tier),  // system tier now uses full 20M deviceStore budget
     [tier, getTriangleBudget]
   );
 

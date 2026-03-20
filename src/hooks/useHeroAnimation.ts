@@ -17,6 +17,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useUIStore } from '@/stores/uiStore';
 import { useDeviceStore, selectGpuTier, selectStripeCount } from '@/stores/deviceStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 import type { GPUTier } from '@/stores/deviceStore';
 
 // ── Local Storage Key ────────────────────────────────────────────
@@ -91,6 +92,8 @@ export function useHeroAnimation(
   const skipIntroAnimation = useUIStore((s) => s.skipIntroAnimation);
   const gpuTier = useDeviceStore(selectGpuTier);
   const stripeCount = useDeviceStore(selectStripeCount);
+  const setHeroPhase = useCockpitStore((s) => s.setHeroPhase);
+  const setCockpitReady = useCockpitStore((s) => s.setCockpitReady);
 
   // ── Local state ──
   const [currentPhase, setCurrentPhase] = useState(0);
@@ -140,8 +143,10 @@ export function useHeroAnimation(
     setProgressState(1.0);
     setIsComplete(true);
     markHeroSeen();
+    setHeroPhase('complete');
+    setCockpitReady(true);
     onComplete?.();
-  }, [onComplete]);
+  }, [onComplete, setHeroPhase, setCockpitReady]);
 
   const setPhase = useCallback((phase: number) => {
     setCurrentPhase(phase);
@@ -154,8 +159,10 @@ export function useHeroAnimation(
   const setComplete = useCallback(() => {
     setIsComplete(true);
     markHeroSeen();
+    setHeroPhase('complete');
+    setCockpitReady(true);
     onComplete?.();
-  }, [onComplete]);
+  }, [onComplete, setHeroPhase, setCockpitReady]);
 
   // ── Assemble return ──
   const state: HeroAnimationState = {
