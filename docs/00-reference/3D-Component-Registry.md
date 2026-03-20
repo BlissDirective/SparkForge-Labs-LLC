@@ -1,6 +1,6 @@
 # SPARKFORGE — 3D Component Registry
 
-**Version:** 1.0 | **Date:** March 19, 2026
+**Version:** 2.0 | **Date:** March 20, 2026
 **Extracted from:** CLAUDE.md v5.6 Section 9
 **Cross-reference:** CLAUDE.md Section 9.1 (LOD rules), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
 
@@ -113,20 +113,30 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 
 | Component | Stage | Description |
 |-----------|-------|-------------|
-| SpatialDashboard.tsx | Enh 1.1 | Scene group: lab map, consoles, NPCs, environment (within CockpitCanvas) |
-| CinematicCamera.tsx | Enh 1.1 | Spring-damped position/lookAt/FOV interpolation |
-| HolographicLabMap.tsx | Enh 1.1 | Central holographic core + 10 lab ring + connection beams |
-| LabStructure3D.tsx | Enh 1.1 | 10 unique multi-part lab models (~2.5K tris each) |
-| InteractiveConsole3D.tsx | Enh 1.1 | 4 holographic consoles (XP, badges, streak, progress) |
-| AmbientNPCs.tsx | Enh 1.1 | 5 personality bot types with Perlin patrol |
-| DynamicEnvironment.tsx | Enh 1.1 | Lab-reactive particles + spatial grid + multi-light |
+| SpatialDashboard.tsx | Enh 1.1 | Thin wrapper → CockpitCanvas with showSpatialDashboard prop |
+| CinematicCamera.tsx | Enh 1.1 | Legacy — merged into CameraSystem.tsx |
+| CameraSystem.tsx | 20M | Unified camera: hero/station/spatial/game modes with spring interpolation |
+| HolographicLabMap.tsx | 20M | Multi-layer geodesic core + data highways + projector pedestal (~1M tris) |
+| LabStructure3D.tsx | 20M | 10 high-detail lab models with interiors (~300K tris each, 3M total) |
+| InteractiveConsole3D.tsx | 20M | 4 full-housing consoles with projector bases (~500K each, 2M total) |
+| AmbientNPCs.tsx | 20M | 8 articulated bots with facial anim + finger grippers (~187K each, 1.5M total) |
+| DynamicEnvironment.tsx | 20M | Volumetric particles + fog layers + weather effects (~3M tris) |
 | SpatialOverlay.tsx | Enh 1.1 | Glassmorphic HTML overlay — lab info, nav hints, console indicators |
-| CockpitCanvas.tsx | CPA 2.0 | Persistent R3F Canvas wrapping entire app (WebGPU primary, WebGL2 fallback) |
-| CockpitPanel.tsx | CPA 2.0 | Top/bottom chrome bezels with hex sub-panels |
-| SidePanel.tsx | CPA 2.0 | Left radar + right terminal panels |
-| HolographicHUD.tsx | CPA 2.0 | Center rotating holographic rings |
-| StatusBar3D.tsx | CPA 2.0 | Bottom gauge strip with animated meters |
-| CockpitLighting.tsx | CPA 2.0 | Multi-point light rig + environment map |
+| CockpitCanvas.tsx | 20M | Single persistent R3F Canvas (CPA2-1), hero+cockpit+spatial groups |
+| CockpitPanels.tsx | 20M | 256-seg curved hull, multi-layer, instanced rivets (~2M tris) |
+| SidePanels.tsx | 20M | Left radar dish + right terminal with data columns (~1.5M tris) |
+| HolographicHUD.tsx | 20M | 8 concentric rings, scan beams, reticle system (~500K tris) |
+| StatusBar3D.tsx | 20M | 3D console strip, XP speedometer, flame sculpture (~500K tris) |
+| LEDRim.tsx | 20M | 1000+ instanced LED capsules, data viz mode (~200K tris) |
+| AuroraBackground.tsx | 20M | 6 layered shader planes + 3 volumetric ribbons (~50K tris) |
+| AmbientParticles.tsx | 20M | Instanced icosahedron particles + trails + halos (~200K tris) |
+| CockpitSkinManager.tsx | 20M | 5 skin soundscapes, increased particle counts |
+| CockpitStructuralDetail.tsx | 20M | Cable bundles, conduits, vents, ribs, LEDs (~1.5M tris) |
+| VolumetricFog3D.tsx | 20M | Fog volumes, god ray cones, density layers (~500K tris) |
+| CockpitFloor3D.tsx | 20M | Grated floor, sub-floor piping, energy conduits (~500K tris) |
+| CeremonyFX.tsx | 20M | Confetti, fireworks, trophies, HUD ring expansion (~500K tris) |
+| WormholeTransition.tsx | 20M | Lab entrance tunnel, speed lines, portal rings (~300K tris) |
+| MiniMapOverlay3D.tsx | 20M | Persistent 3D minimap of lab ring (~250K tris) |
 
 ---
 

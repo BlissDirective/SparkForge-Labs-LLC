@@ -9,7 +9,8 @@
 //
 // 5 skins: default (Frost-Prismatic), cyberpunk, space, underwater, crystal
 // Smooth color lerping over 1 second when switching skins.
-// ~5,000 triangle budget for skin elements.
+// 20M UPGRADE: Increased particle counts, higher-detail geometry,
+// leverages system-tier triangle budget for skin-reactive elements.
 
 import { useRef, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -62,8 +63,8 @@ const SKIN_DEFINITIONS: Record<CockpitSkin, SkinDefinition> = {
     fog: { enabled: false, color: '#0A0E16', density: 0 },
     particles: {
       colors: ['#00BBFF'],
-      count: 120,
-      size: 0.03,
+      count: 300,
+      size: 0.035,
       speed: 0.15,
       behavior: 'drift',
     },
@@ -78,8 +79,8 @@ const SKIN_DEFINITIONS: Record<CockpitSkin, SkinDefinition> = {
     fog: { enabled: true, color: '#1A0020', density: 0.015 },
     particles: {
       colors: ['#FF00FF', '#00FFFF'],
-      count: 150,
-      size: 0.035,
+      count: 400,
+      size: 0.04,
       speed: 0.2,
       behavior: 'drift',
     },
@@ -94,8 +95,8 @@ const SKIN_DEFINITIONS: Record<CockpitSkin, SkinDefinition> = {
     fog: { enabled: false, color: '#000008', density: 0 },
     particles: {
       colors: ['#FFFFFF', '#AACCFF'],
-      count: 100,
-      size: 0.025,
+      count: 250,
+      size: 0.03,
       speed: 0.08,
       behavior: 'sparkle',
     },
@@ -110,8 +111,8 @@ const SKIN_DEFINITIONS: Record<CockpitSkin, SkinDefinition> = {
     fog: { enabled: true, color: '#001A2E', density: 0.03 },
     particles: {
       colors: ['#66DDFF'],
-      count: 80,
-      size: 0.06,
+      count: 200,
+      size: 0.07,
       speed: 0.1,
       behavior: 'rise',
     },
@@ -126,8 +127,8 @@ const SKIN_DEFINITIONS: Record<CockpitSkin, SkinDefinition> = {
     fog: { enabled: true, color: '#100818', density: 0.01 },
     particles: {
       colors: ['#00BBFF', '#00FF88', '#AA66FF', '#FF6644', '#FFAA44', '#D946EF'],
-      count: 140,
-      size: 0.04,
+      count: 350,
+      size: 0.045,
       speed: 0.25,
       behavior: 'sparkle',
     },
@@ -503,13 +504,13 @@ function SpaceBackground({ intensity, segments }: SpaceBackgroundProps) {
 
   return (
     <group>
-      {/* Dense star field */}
+      {/* Dense star field — 20M upgrade: higher count */}
       <Stars
         radius={50}
         depth={40}
-        count={5000}
-        factor={2}
-        saturation={0.2}
+        count={12000}
+        factor={2.5}
+        saturation={0.3}
         fade
         speed={0.3}
       />
@@ -776,8 +777,8 @@ function DefaultBackground({ intensity }: DefaultBackgroundProps) {
     <Stars
       radius={30}
       depth={30}
-      count={2000}
-      factor={2.5}
+      count={6000}
+      factor={3}
       saturation={0.5}
       fade
       speed={0.5 * intensity}
