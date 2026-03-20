@@ -8,7 +8,7 @@ SparkForge is a gamified AI learning platform for children ages 7-16 with a dark
 
 ---
 
-## Three Avatar Concepts
+## Five Avatar Concepts
 
 ### Concept A: "Orb Sentinel" — Holographic Energy Sphere
 
@@ -82,6 +82,68 @@ SparkForge is a gamified AI learning platform for children ages 7-16 with a dark
 | **Total** | **~4,000** | **~1,300** |
 
 **Mobile CSS Fallback:** SVG drone face (visor + antenna silhouette) in glassmorphic circle. CSS: visor blink, antenna pulse, hover bob.
+
+---
+
+### Concept D: "Spark" — Crystalline Companion Bot
+
+**Visual:** A small (30-40cm) floating crystalline robot with a translucent glassmorphic body. The torso is built from faceted crystal panels that refract light, trimmed with chrome bezel edges matching the Frost-Prismatic design language. A visible internal energy core pulses with the current lab's neon accent color, casting colored caustic light through the crystal panels. The face is a smooth faceplate with two expressive LED "eyes" that morph between emotional states — happy arcs, curious circles, thinking dots, surprised wide ovals. Two hovering hands (no arms) float beside the body, gesturing expressively during conversation — pointing when explaining, open-palmed when encouraging, clasped when thinking.
+
+**Audio-Reactive:** Energy core pulse rate syncs with speech amplitude. Crystal panels shimmer with increased refraction during speaking. Hovering hands gesture more actively during animated speech, settling to gentle idle drift when quiet. A 50-100 micro-particle trail in the current lab color streams from the core, with intensity scaling proportionally with emotional state (celebrating = maximum particles, idle = minimal trail).
+
+**Personality:** Curious, encouraging, slightly playful. Naturally uses crystal and sparkle metaphors — "Let's crack this puzzle open!" / "That idea really shines!" / "I can see the gears turning!" The crystalline form bridges the gap between the abstract (Orb) and the figurative (Fox/Drone) — it's recognizably a "companion" without being an animal or human. The glassmorphic body directly echoes the platform's UI language, making Spark feel native to SparkForge.
+
+**Triangle Budget:**
+| Component | Ultra LOD | Low LOD |
+|-----------|----------|---------|
+| Crystal torso (faceted panels, 12 faces) | ~120,000 | ~15,000 |
+| Faceplate + LED eyes (emissive morph targets) | ~8,000 | ~2,000 |
+| Internal energy core (nested spheres + glow) | ~24,000 | ~4,000 |
+| Chrome bezel trim (edge geometry) | ~16,000 | ~4,000 |
+| Hovering hand L (5-finger crystal) | ~40,000 | ~5,000 |
+| Hovering hand R (5-finger crystal) | ~40,000 | ~5,000 |
+| Particle trail system (instanced) | ~100,000 | ~10,000 |
+| Refraction caustic planes | ~12,000 | 0 (hidden) |
+| Hover-disc base glow | ~8,000 | ~2,000 |
+| Body detail (shoulder joints, chest plate) | ~32,000 | ~8,000 |
+| **Base total** | **~400,000** | **~55,000** |
+| **Ultra LOD total (with max detail)** | **~800,000** | — |
+
+**Mobile CSS Fallback:** Glassmorphic rounded-rectangle `<div>` with `backdrop-filter: blur(16px)`, crystal-facet SVG overlay, pulsing inner glow in lab color. Two CSS LED dots for eyes with morph animation between emotional states. Micro-particle CSS trail (8-12 `<div>` particles) animated via `@keyframes drift`.
+
+---
+
+### Concept E: "Nova" — Holographic Cockpit AI
+
+**Visual:** A semi-transparent holographic humanoid (50-60cm), upper-body only, projecting upward from a circular holographic disc base. The form is rendered in blue-white holographic tones with visible scan lines sweeping vertically and horizontal data streams flowing through the body like a living data visualization. The face features stylized friendly features — large expressive eyes and a simple mouth — rendered on a holographic projection plane with a subtle flicker effect. Inside the body, a "data skeleton" is visible: flowing code patterns, circuit traces, and neural network node visualizations that pulse with activity. The silhouette wears a lab coat outline with glowing trim that shifts to the current lab's accent color.
+
+**Audio-Reactive:** Scan line sweep speed increases during speech. Data streams accelerate and brighten with audio amplitude. Mouth animates with simple open/close synced to speech. The holographic disc base emits concentric ripple rings during active conversation. Data skeleton patterns pulse rhythmically with speech cadence. On achievements, the entire hologram brightens and emits a radial burst of data particles.
+
+**Personality:** Confident, warm, mentor-like — a science communicator style. Uses mission and exploration metaphors — "Let's investigate this together!" / "Your data analysis is spot-on!" / "Mission objective: unlocked!" Nova feels like a natural extension of the cockpit itself — not a visitor but the station's built-in intelligence. This concept appeals especially to older age bands (13-16) who appreciate the sci-fi command bridge aesthetic.
+
+**Transitions:** When moving between areas, Nova dissolves into a stream of data particles, flows along a light beam trajectory, and reassembles at the destination with a brief holographic boot-up flicker. This transition takes ~0.8s and uses the same spring-damped animation system as other concepts.
+
+**Triangle Budget:**
+| Component | Ultra LOD | Low LOD |
+|-----------|----------|---------|
+| Holographic torso (upper body mesh) | ~80,000 | ~12,000 |
+| Head + face projection plane | ~30,000 | ~6,000 |
+| Data skeleton (internal wire mesh) | ~60,000 | ~8,000 |
+| Lab coat silhouette + trim | ~40,000 | ~6,000 |
+| Holographic disc base | ~16,000 | ~4,000 |
+| Scan line planes (2 vertical sweeps) | ~4,000 | ~1,000 |
+| Data stream particles (instanced) | ~120,000 | ~15,000 |
+| Concentric ripple rings (base) | ~8,000 | ~2,000 |
+| Arms + hand gestures | ~60,000 | ~10,000 |
+| Dissolve/reassemble particle system | ~80,000 | ~10,000 |
+| Holographic flicker overlay | ~2,000 | ~1,000 |
+| Neural network node viz (data skeleton) | ~40,000 | ~5,000 |
+| Eye emissive + mouth morph | ~6,000 | ~2,000 |
+| Lab-color trim glow | ~4,000 | ~1,000 |
+| **Base total** | **~550,000** | **~83,000** |
+| **Ultra LOD total (with max detail)** | **~1,200,000** | — |
+
+**Mobile CSS Fallback:** Holographic-styled `<div>` with semi-transparent blue-white gradient, animated `background: repeating-linear-gradient(...)` for scan lines, `mix-blend-mode: screen` for hologram effect. SVG face (eyes + mouth) with flicker animation. CSS data-stream particles (6-8 vertical `<div>` strips) with `@keyframes dataFlow`. Circular base ring with `@keyframes ripple`.
 
 ---
 
@@ -185,7 +247,7 @@ Guide response text → SpeechSynthesis API
 - Age Band B (10-12): Medium pitch, normal rate
 - Age Band C (13-16): Natural pitch, normal-fast rate
 
-**Audio-Reactive Visuals:** `useVoiceOutput` dispatches `guideStore.setAudioLevel()` on each word boundary event. In 3D, `audioLevel` drives shader uniforms (orb lattice distortion / fox jaw rotation / drone waveform panel).
+**Audio-Reactive Visuals:** `useVoiceOutput` dispatches `guideStore.setAudioLevel()` on each word boundary event. In 3D, `audioLevel` drives shader uniforms (orb lattice distortion / fox jaw rotation / drone waveform panel / spark core pulse + hand gestures / nova scan lines + data streams).
 
 **V2 (Future, Forge Tier):** Server-side premium TTS via ElevenLabs/Google Cloud TTS at `/api/ai/guide/tts`. Returns audio stream played via `AudioContext` + `AnalyserNode` for real audio amplitude driving avatar reactivity.
 
@@ -227,14 +289,14 @@ Extends existing Tone.js infrastructure:
 | Voice Input (STT) | No | Yes | Yes |
 | Voice Output (TTS) | Basic (Web Speech) | Basic (Web Speech) | Premium TTS (future V2) |
 | Context History Depth | Last 5 messages | Last 20 messages | Full + summaries |
-| Avatar Choice | Orb only | All 3 concepts | All 3 + custom accent colors |
+| Avatar Choice | Orb only | All 5 concepts | All 5 + custom accent colors |
 | Game Hints via Guide | 1/game | 3/game | Unlimited |
 
 Additions to `/src/lib/tier-config.ts`:
 ```typescript
 guideTurnsPerDay: number;
 guideVoiceInput: boolean;
-guideAvatarOptions: ('orb' | 'fox' | 'drone')[];
+guideAvatarOptions: ('orb' | 'fox' | 'drone' | 'spark' | 'nova')[];
 guideContextDepth: number;
 // In features:
 guideVoice: boolean;
@@ -274,7 +336,7 @@ interface GuideState {
 
   // User Preferences (persisted)
   preferredName: string;
-  avatarConcept: 'orb' | 'fox' | 'drone';
+  avatarConcept: 'orb' | 'fox' | 'drone' | 'spark' | 'nova';
   voiceSpeed: 'slow' | 'normal' | 'fast';
   autoGreet: boolean;
 
@@ -310,7 +372,7 @@ CREATE TABLE guide_conversations (
 ```sql
 CREATE TABLE guide_preferences (
   child_id UUID PRIMARY KEY REFERENCES children(id) ON DELETE CASCADE,
-  avatar_concept TEXT NOT NULL DEFAULT 'orb',
+  avatar_concept TEXT NOT NULL DEFAULT 'orb' CHECK (avatar_concept IN ('orb','fox','drone','spark','nova')),
   preferred_name TEXT,
   voice_enabled BOOLEAN NOT NULL DEFAULT false,
   voice_speed TEXT NOT NULL DEFAULT 'normal',
@@ -331,7 +393,7 @@ RLS policies: Children can only access their own conversations/preferences (via 
 | File | Purpose |
 |------|---------|
 | `src/stores/guideStore.ts` | 10th Zustand store — guide state |
-| `src/components/3d/GuideAvatar3D.tsx` | R3F avatar component (all 3 concepts) |
+| `src/components/3d/GuideAvatar3D.tsx` | R3F avatar component (all 5 concepts) |
 | `src/components/ui/GuideChatPanel.tsx` | HTML glassmorphic chat overlay |
 | `src/components/ui/GuideMobileAvatar.tsx` | CSS 2D avatar fallback |
 | `src/app/api/ai/guide/route.ts` | SSE streaming conversation endpoint |
@@ -364,4 +426,4 @@ RLS policies: Children can only access their own conversations/preferences (via 
 4. **E2E Test:** Full flow — open guide → send message → receive streaming response → verify conversation persisted in DB
 5. **3D Visual Test:** Avatar renders in cockpit, transitions on lab focus, disappears in game mode, CSS fallback appears
 6. **Voice Test:** STT captures input (Chrome), TTS speaks response, audioLevel drives avatar animation
-7. **Performance:** Verify avatar adds < 15K tris to cockpit scene, no FPS regression on tablet profile
+7. **Performance:** Verify avatar stays within triangle budget (Orb/Fox/Drone < 15K; Spark < 800K; Nova < 1.2M), no FPS regression on tablet profile. Spark and Nova use aggressive LOD scaling to hit tablet/mobile budgets.
