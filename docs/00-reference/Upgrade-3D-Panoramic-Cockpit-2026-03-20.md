@@ -1,5 +1,27 @@
 # SparkForge 3D Panoramic Cockpit Upgrade — 20M Triangle Budget
 
+## Implementation Status (as of March 20, 2026)
+
+> This document is the **change record** for the 20M triangle upgrade and FIX-TRIPLE-CANVAS fix.
+> The **active architectural spec** is `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
+> `COCKPIT_PANORAMIC_ARCHITECTURE_v1.md` has been archived to `_SUPERSEDED/`.
+
+| Section | Description | Status |
+|---------|-------------|--------|
+| **Section A** | Unified CockpitCanvas — FIX-TRIPLE-CANVAS: single Canvas, StationFrame/SpatialDashboard/HeroAnimation rewritten as `<group>` wrappers, CameraSystem.tsx created, seamless hero-to-cockpit handoff | ✅ COMPLETE |
+| **Section B** | 20M triangle budget — 13 components upgraded + 8 new components created | ✅ COMPLETE |
+| **Section C** | Store & hook updates — deviceStore 20M profiles + system tier, cockpitStore heroPhase, useLOD system cap removed, cockpitConfig.ts TRIANGLE_BUDGET_V2 | ✅ COMPLETE |
+| **Section D** | Audio system — `cockpitAudio.ts` (CockpitAudioEngine singleton), `useCockpitAudio.ts` | ✅ COMPLETE |
+| **Section E** | File changes — 23 modified + 10 created (see lists below) | ✅ COMPLETE |
+| **Section F** | Verification — build check, TypeScript check, single Canvas confirm, hero handoff, triangle count, LOD degradation, game mode, adaptive FPS, mobile fallback | 🔲 PENDING — awaiting Stage visual checkpoint (HS-5) |
+
+**Documentation updates from Section E (Docs to UPDATE):**
+- `CLAUDE.md` — ✅ Updated (Sections 9, 9.1, 9.3, 11, 14 reflect 20M upgrade)
+- `3D-Component-Registry.md` — 🔲 PENDING
+- `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` — ✅ Updated (March 20, 2026: budgets, file registry, CPA2 decisions, store values)
+
+---
+
 ## Context
 
 The SparkForge cockpit currently uses ~68K–104K triangles across all components — a fraction of the desktop GPU budget. This upgrade increases the cockpit total to **20,000,000 triangles** (desktop), enabling dramatically higher visual fidelity: high-poly panels, volumetric effects, detailed NPCs, structural set dressing, and new transition/ceremony systems.

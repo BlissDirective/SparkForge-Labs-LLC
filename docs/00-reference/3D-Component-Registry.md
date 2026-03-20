@@ -1,8 +1,9 @@
 # SPARKFORGE — 3D Component Registry
 
-**Version:** 2.0 | **Date:** March 20, 2026
-**Extracted from:** CLAUDE.md v5.6 Section 9
+**Version:** 2.1 | **Date:** March 20, 2026
+**Extracted from:** CLAUDE.md v5.7 Section 9
 **Cross-reference:** CLAUDE.md Section 9.1 (LOD rules), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
+**Last updated:** 20M Triangle Budget upgrade — 8 new cockpit components added (CockpitCanvas, CameraSystem, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D)
 
 ---
 
@@ -154,16 +155,18 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 
 ## Component Count Summary
 
-| Category | Count |
-|----------|-------|
-| System / Dashboard | 7 |
-| Flagship (games + environments) | 12 |
-| FL-Lite (games + environments) | 19 |
-| Standard (environments) | 21 |
-| Cockpit / Enhancement | 14 |
-| Hero Animation | 5 |
-| **Total** | **78** |
+| Category | Count | Notes |
+|----------|-------|-------|
+| System / Dashboard | 7 | StationFrame, HeroAnimation, AuroraBackground, AmbientParticles, GameParticles3D, GenericGameParticles, LODWrapper |
+| Flagship (games + environments) | 12 | 6 game components + 6 environment components |
+| FL-Lite (games + environments) | 19 | 9 game components + 10 environment components |
+| Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
+| Cockpit / Enhancement | 24 | Includes 8 new components from 20M upgrade (March 20, 2026) |
+| Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
+| **Total rows** | **88** | |
+
+> **Note:** `AuroraBackground.tsx` and `AmbientParticles.tsx` appear in both System/Dashboard and Cockpit/Enhancement sections — they serve dual roles (standalone dashboard use + integrated cockpit use). Unique file count: **86**.
 
 ---
 
-*End of 3D Component Registry v1.0 | Extracted from CLAUDE.md v5.6 | March 19, 2026*
+*End of 3D Component Registry v2.1 | Extracted from CLAUDE.md v5.7 | Updated March 20, 2026 — 20M cockpit upgrade*
