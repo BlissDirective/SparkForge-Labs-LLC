@@ -1,9 +1,9 @@
 # SPARKFORGE — MASTER IMPLEMENTATION GUIDE
 
-**Version:** 3.1 | **Date:** March 1, 2026 | **For:** Claude Code
-**Supersedes:** Master Implementation Guide v3.0 (March 1, 2026) — corrects game count from 31 to 35.
+**Version:** 3.2 | **Date:** March 19, 2026 | **For:** Claude Code
+**Supersedes:** Master Implementation Guide v3.1 (March 1, 2026) — updated version references (CLAUDE.md v5.6, Master Directory v1.2, GCUD V10.2), fixed game tier breakdown (3-tier: 6+9+20=35), corrected Three.js version (r171+), cross-platform environment, added Per-Stage-Playbooks + 3D-Component-Registry references.
 
-**Purpose:** Single entry point for building SparkForge from stage documents. Updated for single-pass v3-FINAL build strategy, 14 v3-FINAL documents, and alignment with Master Directory v1.0 and GCUD V10.
+**Purpose:** Single entry point for building SparkForge from stage documents. Updated for single-pass v3-FINAL build strategy, 14 v3-FINAL documents, and alignment with Master Directory v1.2 and GCUD V10.2.
 
 ---
 
@@ -26,22 +26,24 @@ This document is your roadmap. The actual code lives in the stage PDF documents.
 - Each stage depends on ALL previous stages being complete
 - Never skip ahead. Never implement partial files.
 - Every code block is COMPLETE — copy entire file contents
-- All PowerShell commands are single-line (no backtick continuations)
+- All shell commands are single-line
 
-**ENVIRONMENT:** Windows 11 + PowerShell 7+ | VS Code | Node.js 20+ LTS
+**ENVIRONMENT:** Cross-platform (Linux/macOS/Windows) | VS Code | Node.js 20+ LTS
 
 ### Key Reference Documents
 
 | Document | Purpose |
 |----------|---------|
-| Master Directory v1.0 | 24-phase flow map, file registry, GitHub structure — READ FIRST |
-| GCUD V10 | Source of truth for game content, gap status, file registry |
-| CLAUDE.md v5.1 | Architecture, conventions, game template, 3D rules |
-| Decision Lock Checkpoints 1-3 | 48 locked decisions implemented by v3-FINAL |
-| Visual Enhancement Concept v2 | Lab Control Station 8-section design spec |
+| Master Directory v1.2 | 26-phase flow map, file registry, GitHub structure — READ FIRST |
+| GCUD V10.2 | Source of truth for game content, gap status, file registry |
+| CLAUDE.md v5.6 | Architecture, conventions, game template, 3D rules |
+| Decision Lock Checkpoints 1-3 | 64 locked decisions (48 core + 4 OD + 12 CPA2) |
+| CPA v2.0 | 3D Panoramic Cockpit full spec (absorbs Visual Enhancement Concept v2) |
+| Per-Stage-Playbooks.md | Full build playbooks for all 10 stages |
+| 3D-Component-Registry.md | 78-component 3D registry with tiers/budgets |
 | Setup Prerequisites | Software install, Supabase/Stripe/Vercel account setup |
 
-**Runtime & Complete Package List:** Node.js 20+ LTS. Next.js 15 (React 19, Turbopack), TypeScript strict, Tailwind CSS 4, Supabase, Stripe, Motion (formerly Framer Motion), GSAP, React Three Fiber, Three.js r170+, @react-three/drei, @react-three/postprocessing, @nivo/core + @nivo/line + @nivo/bar + @nivo/radar, Tone.js, Zod, Zustand + Jotai, @tanstack/react-query, @dnd-kit/*, @radix-ui/*, @sentry/nextjs, Vitest + Playwright + MSW, class-variance-authority, clsx, tailwind-merge, lucide-react. Full list in Stage 1 Part 1.
+**Runtime & Complete Package List:** Node.js 20+ LTS. Next.js 15 (React 19, Turbopack), TypeScript strict, Tailwind CSS 4, Supabase, Stripe, Motion (formerly Framer Motion), GSAP, React Three Fiber, Three.js r171+, @react-three/drei, @react-three/postprocessing, @nivo/core + @nivo/line + @nivo/bar + @nivo/radar, Tone.js, Zod, Zustand + Jotai, @tanstack/react-query, @dnd-kit/*, @radix-ui/*, @sentry/nextjs, Vitest + Playwright + MSW, class-variance-authority, clsx, tailwind-merge, lucide-react. Full list in Stage 1 Part 1.
 
 ---
 
@@ -308,12 +310,12 @@ Commit: `git commit -m "Stage 10: Polish + Deploy"`
 | 34 | Future Forge | 10 | 7D | future-forge | FL-L | Enh | A,B,C |
 | 35 | AI or Not? | 10 | 7F | ai-or-not | Enh | — | A,B |
 
-**Tiers:** 5 Flagship Full 3D + 1 Full 3D (Sort) + 7 FL-Lite Enhanced + 2 Enhanced Std + 20 Standard = **35 games**.
+**Tiers:** 6 Flagship (10M+) + 9 FL-Lite (2M+) + 20 Standard (500K+) = **35 games**.
 
-> **Triangle Budget Update (March 18, 2026):** All games now have 3D capability. Flagship: 10M+ (10,000,000), FL-Lite: 10K–50K, Standard: 10K–25K. The CSS-only tier has been eliminated. See GAME_ENHANCEMENT_AUDIT.md for details.
+> **Triangle Budget Update (March 18, 2026):** All 35 games now have full 3D environments with dedicated R3F scenes. Flagship: 10M+ (10,000,000), FL-Lite: 2M+ (2,000,000), Standard: 500K+ (500,000). The CSS-only and Enhanced Standard tiers have been eliminated — merged into FL-Lite. See GAME_ENHANCEMENT_AUDIT.md and 3D-Component-Registry.md for details.
 
 ---
 
-*End of Master Implementation Guide v3.1 | SparkForge | Lab Control Station | 35 games | 78 files | 48 decisions | March 1, 2026*
+*End of Master Implementation Guide v3.2 | SparkForge | Lab Control Station | 35 games (6+9+20) | 92 files | 64 decisions (48 core + 4 OD + 12 CPA2) | March 19, 2026*
 
-*This is a living document. Updated after each delivery session. GCUD V10 is the canonical source for game content tracking. Master Directory v1.0 is the canonical source for file registry and build flow.*
+*This is a living document. Updated after each delivery session. GCUD V10.2 is the canonical source for game content tracking. Master Directory v1.2 is the canonical source for file registry and build flow.*

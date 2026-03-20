@@ -1,17 +1,17 @@
 # SPARKFORGE — Master Directory & Development Flow Map
 
-**Version:** 1.1 | **Date:** March 1, 2026 | **BlissDirective**
+**Version:** 1.2 | **Date:** March 19, 2026 | **BlissDirective**
 **Laboratory Control Station Vision | Frost-Prismatic v3**
-**Supersedes:** Master Directory v1.0 (March 1, 2026) — corrects game count from 31 to 35.
+**Supersedes:** Master Directory v1.1 (March 1, 2026) — updated code status (~70%), fixed tier breakdown (3-tier: 6+9+20=35), updated decision count (64), aligned with CLAUDE.md v5.6 / GCUD V10.2 / MIG v3.2.
 
 | Metric | Value |
 |--------|-------|
-| Total Project Files | 85 files (141 MB) |
+| Total Project Files | 92 active files |
 | Stage Documents | 10 stages, all copy-paste ready |
 | v3-FINAL Patches | 14 documents across 34 part files |
-| Games | **35 games** (5 flagship, 1 full 3D, 7 FL-Lite, 2 enhanced, 20 standard) |
-| Locked Decisions | 48 decisions across 3 checkpoints |
-| Code Written | 0% — all documentation, ready to build |
+| Games | **35 games** — 6 Flagship (10M+), 9 FL-Lite (2M+), 20 Standard (500K+) |
+| Locked Decisions | 64 decisions (48 core + 4 OD + 12 CPA2) |
+| Code Written | ~70% — Stages 1-7 code-complete, audited |
 
 **PURPOSE:** This document serves as the single authoritative guide for transferring SparkForge project knowledge to GitHub and executing full development. It maps every file, defines the build order, flags redundancies for cleanup, and provides the recommended repository structure.
 
@@ -67,13 +67,13 @@
 | 23 | Stage 9: Content Agent | STAGE9_Content_Agent_v2 P1-3 | No | 3 |
 | 24 | Stage 10: Polish/Deploy | STAGE10_Polish_Deploy_v2 P1-2 | No | 2 |
 
-Total build steps: 24 ordered implementation phases across 10 stages.
+Total build steps: 24 ordered implementation phases across 10 stages (CLAUDE.md v5.6 expands to 26 phases with finer Stage 7F/8 granularity).
 
 ---
 
-## 2. MASTER FILE REGISTRY — ALL 85 PROJECT FILES
+## 2. MASTER FILE REGISTRY — 92 ACTIVE PROJECT FILES
 
-*Unchanged from v1.0. See Master Directory v1.0 Section 2 for the complete 85-file registry with sizes, dates, and categories.*
+*Updated from 85 (v1.0) to 92. New files added March 14-19, 2026: Per-Stage-Playbooks.md, 3D-Component-Registry.md, 35+ 3D environment components, audit reports, enhancement documents. See v1.0 Section 2 for the base registry.*
 
 ---
 
@@ -266,9 +266,9 @@ Total build steps: 24 ordered implementation phases across 10 stages.
 | 34 | Future Forge | 10 | future-forge | FL-Lite+3D | A,B,C | 7D |
 | 35 | AI or Not? | 10 | ai-or-not | Enhanced | A,B | 7F |
 
-**Tiers:** 5 Flagship + 1 Full 3D + 7 FL-Lite + 2 Enhanced + 20 Standard = **35 games**
+**Tiers:** 6 Flagship (10M+) + 9 FL-Lite (2M+) + 20 Standard (500K+) = **35 games**
 
-> **Triangle Budget Update (March 18, 2026):** Flagship: 10M+ (10,000,000), FL-Lite: 10K–50K, Standard: 10K–25K. All games now have full 3D scenes. See GAME_ENHANCEMENT_AUDIT.md.
+> **Triangle Budget Update (March 18, 2026):** All 35 games now have full 3D environments with dedicated R3F scenes. Flagship: 10M+ (10,000,000), FL-Lite: 2M+ (2,000,000), Standard: 500K+ (500,000). The CSS-only and Enhanced Standard tiers have been eliminated — merged into FL-Lite. See GAME_ENHANCEMENT_AUDIT.md and 3D-Component-Registry.md.
 
 ### Games Per Lab
 
@@ -300,8 +300,18 @@ Total build steps: 24 ordered implementation phases across 10 stages.
 | Section 10 title | "All 31 Games" | "All 35 Games" |
 | Stage 10 game router | 31 games | **35 games** |
 
-The tier arithmetic error (5+1+7+2+16=31) has been corrected to (5+1+7+2+20=35). All game tables in v1.0 already listed 35 entries numbered 1-35; only the summary counts were incorrect.
+### V1.2 CHANGE SUMMARY (March 19, 2026)
+
+| Change | From (v1.1) | To (v1.2) |
+|--------|-------------|-----------|
+| Code Written | 0% | **~70% (Stages 1-7 code-complete)** |
+| Total Project Files | 85 | **92** |
+| Locked Decisions | 48 | **64 (48 core + 4 OD + 12 CPA2)** |
+| Game tier breakdown | 5+1+7+2+20 (5 tiers) | **6+9+20 (3 tiers: Flagship/FL-Lite/Standard)** |
+| Triangle budgets | FL-Lite 10K–50K, Standard 10K–25K | **FL-Lite 2M+, Standard 500K+** |
+| Version references | CLAUDE.md v5.1, GCUD V10, MIG v3.1 | **CLAUDE.md v5.6, GCUD V10.2, MIG v3.2** |
+| New reference docs | — | **Per-Stage-Playbooks.md, 3D-Component-Registry.md** |
 
 ---
 
-*End of Master Directory v1.1 | SparkForge | 85 files | 35 games | 48 decisions | 14 v3-FINAL documents | March 1, 2026*
+*End of Master Directory v1.2 | SparkForge | 92 files | 35 games (6+9+20) | 64 decisions | 14 v3-FINAL documents | March 19, 2026*
