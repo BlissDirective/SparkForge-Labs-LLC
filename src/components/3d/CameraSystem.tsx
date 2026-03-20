@@ -16,10 +16,10 @@
 // CPA2-3: Seamless handoff — hero Phase 7 camera target matches
 //         SPATIAL_CAMERA_PRESETS.overview exactly ([0, 6.5, 7] fov 58)
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useCockpitStore, SPATIAL_CAMERA_PRESETS, type CameraTarget, type HeroPhase } from '@/stores/cockpitStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 
 export type CameraMode = 'hero' | 'station' | 'spatial' | 'game';
 
@@ -44,7 +44,7 @@ export function CameraSystem({
   reducedMotion = false,
 }: CameraSystemProps) {
   const { camera } = useThree();
-  const heroPhase = useCockpitStore((s) => s.heroPhase);
+  const _heroPhase = useCockpitStore((s) => s.heroPhase);
   const cameraTarget = useCockpitStore((s) => s.cameraTarget);
 
   // Interpolation state refs

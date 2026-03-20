@@ -26,8 +26,6 @@ import { Suspense, useEffect, useState, useRef, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-import * as THREE from 'three';
-
 // 3D Components — Station Shell
 import { AuroraBackground } from './AuroraBackground';
 import { AmbientParticles } from './AmbientParticles';
@@ -51,7 +49,7 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 // Stores
 import { useUIStore } from '@/stores/uiStore';
 import { useDeviceStore } from '@/stores/deviceStore';
-import { useCockpitStore, LAB_POSITIONS, type HeroPhase, type ConsoleType } from '@/stores/cockpitStore';
+import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
 import { HDR_FALLBACK_PRESET } from '@/lib/3d/materials';
 import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
@@ -131,7 +129,7 @@ function PostprocessingStack({
       />
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <Vignette darkness={vignetteDarkness} offset={vignetteOffset} eskil={false} {...({} as any)} />
-      {barrelDist > 0 && <BarrelDistortion ref={barrelRef} strength={barrelDist} />}
+      <BarrelDistortion ref={barrelRef} strength={barrelDist} />
     </EffectComposer>
   );
 }

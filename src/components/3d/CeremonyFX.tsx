@@ -12,7 +12,7 @@
 //   labComplete     — confetti + fireworks + HUD rings
 //   streakMilestone — particle shower + HUD rings
 
-import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useLOD } from '@/hooks/useLOD';
@@ -304,7 +304,7 @@ function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) 
 
   const materials = useMemo(
     () =>
-      Array.from({ length: ringCount }, (_, i) =>
+      Array.from({ length: ringCount }, (_, _i) =>
         new THREE.MeshStandardMaterial({
           color: labColor,
           emissive: labColor,

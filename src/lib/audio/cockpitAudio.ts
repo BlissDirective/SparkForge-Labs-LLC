@@ -274,7 +274,7 @@ class CockpitAudioEngine {
   // Play a one-shot event sound
   playEvent(event: CockpitAudioEvent): void {
     if (!this.ctx || !this.masterGain || this._muted) return;
-    const t = this.ctx.currentTime;
+    const _t = this.ctx.currentTime;
     const v = this.volumeScale;
 
     switch (event) {

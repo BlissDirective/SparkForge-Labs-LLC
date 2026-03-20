@@ -21,7 +21,7 @@
 //
 // LOD-aware via useLOD hook (tier: 'system'). Responds to hover/focus states.
 
-import { useRef, useMemo, useState, useCallback } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
 import * as THREE from 'three';
@@ -868,7 +868,7 @@ function Lab9Structure({
   const circuitRef = useRef<THREE.Group>(null);
   const ledsRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const _seg = lod.segments;
   const tubSeg = lod.tubularSegments;
 
   // 6 circuit paths

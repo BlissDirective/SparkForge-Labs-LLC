@@ -17,7 +17,7 @@
 // Color = current lab accent (default #00BBFF on dashboard)
 // Pulses gently, spikes on events (XP gain, badge earn, level up)
 
-import { useRef, useState, useEffect, useMemo, useCallback } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';

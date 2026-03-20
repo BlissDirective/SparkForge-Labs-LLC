@@ -67,7 +67,7 @@ const COCKPIT_Y_MAX = COCKPIT_Y_MIN + COCKPIT_HEIGHT;
 
 // Chrome surface color
 const CHROME_COLOR = 0x1a1822;
-const CHROME_DARK = 0x111118;
+const _CHROME_DARK = 0x111118;
 
 // ■■ Seeded RNG for deterministic placement ■■
 
@@ -134,7 +134,6 @@ function CableBundles({
 
   const { geometry, totalInstances } = useMemo(() => {
     const curves = generateCablePaths(count);
-    const tempMatrix = new THREE.Matrix4();
     const matrices: THREE.Matrix4[] = [];
 
     // We create a single representative tube geometry and instance it.
@@ -154,7 +153,6 @@ function CableBundles({
         const len = dir.length();
 
         const mat = new THREE.Matrix4();
-        const up = new THREE.Vector3(0, 1, 0);
         const quat = new THREE.Quaternion();
         quat.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir.normalize());
         mat.compose(mid, quat, new THREE.Vector3(1, 1, len));
@@ -214,8 +212,6 @@ function ConduitPipes({
   segments: number;
   chromeMaterial: THREE.MeshStandardMaterial;
 }) {
-  const rng = useMemo(() => seededRandom(137), []);
-
   const pipes = useMemo(() => {
     const gen = seededRandom(137);
     const result: { position: THREE.Vector3; angle: number; length: number }[] = [];
@@ -545,7 +541,6 @@ function LEDIndicatorStrips({
 
     const mat4 = new THREE.Matrix4();
     const quat = new THREE.Quaternion();
-    const pos = new THREE.Vector3();
     const scale = new THREE.Vector3();
 
     for (let i = 0; i < ledPositions.length; i++) {
