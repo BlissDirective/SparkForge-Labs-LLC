@@ -2,10 +2,28 @@
 
 ## Comprehensive Cockpit Architecture Upgrade Document
 
-**Version:** 2.0 | **Date:** March 15, 2026 | **Status:** SPECIFICATION
-**Supersedes:** COCKPIT_PANORAMIC_ARCHITECTURE_v1.md (March 14, 2026)
+**Version:** 2.1 | **Original Date:** March 15, 2026 | **Last Updated:** March 20, 2026 | **Status:** SPECIFICATION + PARTIALLY IMPLEMENTED
+**Supersedes:** COCKPIT_PANORAMIC_ARCHITECTURE_v1.md (archived → `docs/00-reference/_SUPERSEDED/`)
 **Scope:** Full cockpit pipeline — geometry, materials, spatial dashboard, personalization, transitions, audio, navigation
-**Prerequisites:** Enhancement 1.1 (Spatial Dashboard) + Enhancement 1.2 (Cockpit Personalization Engine) — both IMPLEMENTED
+**Change Log:** See `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md` for the 20M triangle upgrade + FIX-TRIPLE-CANVAS details
+
+---
+
+## IMPLEMENTATION STATUS (as of March 20, 2026)
+
+> This document is the **active architectural spec**. Use it alongside `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md` (the change record).
+
+| Phase | Description | Status |
+|-------|-------------|--------|
+| **Phase 1** — Canvas Unification | `CockpitCanvas.tsx` created; `StationFrame`, `SpatialDashboard`, `HeroAnimation` rewritten as `<group>` wrappers; `CameraSystem.tsx` created | ✅ COMPLETE |
+| **Phase 2** — Component Upgrades | 13 existing components upgraded to 20M budget (CockpitPanels 2M, LEDRim 200K, SidePanels 1.5M, HolographicHUD 500K, StatusBar3D 500K, HolographicLabMap 1M, LabStructure3D 3M, InteractiveConsole3D 2M, AmbientNPCs 1.5M, DynamicEnvironment 3M, AuroraBackground 50K, AmbientParticles 200K, CockpitSkinManager) | ✅ COMPLETE |
+| **Phase 3** — New Visual Components | `CockpitStructuralDetail.tsx` (1.5M), `VolumetricFog3D.tsx` (500K), `CockpitFloor3D.tsx` (500K), `CeremonyFX.tsx` (500K), `WormholeTransition.tsx` (300K), `MiniMapOverlay3D.tsx` (250K) | ✅ COMPLETE |
+| **Phase 4** — Audio System | `cockpitAudio.ts` (CockpitAudioEngine + spatial zones), `useCockpitAudio.ts` | ✅ COMPLETE |
+| **Phase 5** — Store & Hook Updates | `deviceStore` 20M profiles + system tier; `cockpitStore` heroPhase; `useLOD` system cap removed; `cockpitConfig.ts` TRIANGLE_BUDGET_V2 | ✅ COMPLETE |
+| **Phase 6** — Polish & Optimize | Adaptive curvature hook, skin unlock progression, performance tuning, cross-browser testing | 🔲 PENDING |
+
+**Triangle budget:** ~68K–104K (v2.0 original) → **20,000,000 triangles** (desktop, March 20 upgrade)
+**Canvas instances:** 3 (v1 bug) → **1** (single persistent `CockpitCanvas`)
 
 ---
 
@@ -713,46 +731,75 @@ export class CockpitAudioEngine {
 
 ## 11. PERFORMANCE BUDGETS & LOD
 
-### 11.1 Triangle Budget Breakdown (v2.0)
+### 11.1 Triangle Budget Breakdown (20M Upgrade — March 20, 2026)
 
-| Component | Desktop (Ultra) | Desktop (High) | Tablet | Mobile |
-|-----------|----------------|----------------|--------|--------|
-| CockpitPanels | 1,500 | 1,200 | 800 | 0 (CSS) |
-| HexClusters | 300 | 300 | 200 | 0 |
-| HolographicHUD | 600 | 500 | 400 | 0 |
-| SidePanels | 200 | 200 | 100 | 0 |
-| StatusBar3D | 300 | 250 | 200 | 0 |
-| LEDRim | 1,500 | 1,200 | 800 | 0 |
-| **Cockpit Shell Total** | **4,400** | **3,650** | **2,500** | **0** |
-| | | | | |
-| HolographicLabMap | 28,000 | 20,000 | 12,000 | 0 |
-| LabStructure3D (×10) | 25,000 | 18,000 | 10,000 | 0 |
-| InteractiveConsole3D (×4) | 6,000 | 4,500 | 3,000 | 0 |
-| AmbientNPCs | 4,000 | 3,000 | 2,000 | 0 |
-| PetCompanion3D | 1,500 | 1,000 | 800 | 0 |
-| DynamicEnvironment | 15,000 | 10,000 | 5,000 | 0 |
-| AmbientParticles | 5,000 | 3,000 | 2,000 | 0 |
-| **Spatial Content Total** | **84,500** | **59,500** | **34,800** | **0** |
-| | | | | |
-| CockpitSkinManager (bg) | 8,000 | 5,000 | 3,000 | 0 |
-| AuroraBackground | 2,000 | 1,500 | 1,000 | 0 |
-| **Background Total** | **10,000** | **6,500** | **4,000** | **0** |
-| | | | | |
-| TransitionFX (peak) | 2,500 | 2,000 | 1,500 | 0 |
-| CeremonyFX (peak) | 3,000 | 2,000 | 1,000 | 0 |
-| **Transition Peak** | **5,500** | **4,000** | **2,500** | **0** |
-| | | | | |
-| **GRAND TOTAL** | **104,400** | **73,650** | **43,800** | **0** |
-| Device Budget | 500,000 | 200,000 | 150,000 | 50,000 |
-| Headroom for Games | 395,600 | 126,350 | 106,200 | 50,000 |
+> ⚠️ **Updated from original v2.0 spec (104K)** — Full 20M desktop budget activated per `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md`. See that document for the complete per-component diff.
+
+#### Device Maximums
+
+| Device | maxTriangles | Notes |
+|--------|-------------|-------|
+| **Desktop** | **20,000,000** | Full cockpit + 1M dynamic headroom |
+| **Tablet** | **10,000,000** | 50% of desktop |
+| **Mobile** | 0 (CSS fallback) | No R3F — CSS-only frame |
+
+#### Cockpit Shell Components
+
+| Component | Desktop Budget | Tablet Budget | What Changed from v2.0 original |
+|-----------|---------------|--------------|----------------------------------|
+| **CockpitPanels** | 2,000,000 | 1,000,000 | 256-seg curved hull, multi-layer, instanced rivets, animated sub-panels, hex gauge clusters |
+| **LEDRim** | 200,000 | 100,000 | 1,000+ individual LED capsules, data visualization mode, audio-reactive pulse waves |
+| **SidePanels** | 1,500,000 | 750,000 | Physical radar dish, 3D data columns, holographic text, chrome bezels, articulated mounting arms |
+| **HolographicHUD** | 500,000 | 250,000 | 8 concentric rings (was 3), data-display arcs, reticle, volumetric scan beams |
+| **StatusBar3D** | 500,000 | 250,000 | Full circular XP speedometer, volumetric flame sculpture, 10 miniature lab indicators |
+| **AuroraBackground** | 50,000 | 25,000 | Volumetric layers with 3D depth geometry |
+| **AmbientParticles** | 200,000 | 100,000 | Higher-fidelity shapes, enhanced trails |
+| **Shell Subtotal** | **4,950,000** | **2,475,000** | |
+
+#### Spatial Dashboard Components
+
+| Component | Desktop Budget | Tablet Budget | What Changed |
+|-----------|---------------|--------------|--------------|
+| **HolographicLabMap** | 1,000,000 | 500,000 | Multi-layer geodesic shells, data highway splines, holographic projector pedestal |
+| **LabStructure3D** (×10 labs) | 3,000,000 | 1,500,000 | 300K/lab: subdivision surfaces, interior mechanisms, diorama scenes |
+| **InteractiveConsole3D** (×4) | 2,000,000 | 1,000,000 | 500K/console: multi-part housing, projector base, instrument cluster |
+| **AmbientNPCs** (8 bots) | 1,500,000 | 750,000 | 187K/bot: facial animation geometry, 3-finger grippers, personality accessories |
+| **DynamicEnvironment** | 3,000,000 | 1,500,000 | Volumetric fog, floating data fragments, dynamic weather effects |
+| **Stars/Skybox** | 500,000 | 250,000 | Enhanced starfield with nebula geometry |
+| **Spatial Subtotal** | **11,000,000** | **5,500,000** | |
+
+#### NEW Components (enabled by 20M upgrade)
+
+| Component | Desktop Budget | Tablet Budget | Description |
+|-----------|---------------|--------------|-------------|
+| **CockpitStructuralDetail** | 1,500,000 | 750,000 | Cable bundles, conduit pipes, ventilation panels, structural ribs, LED strips |
+| **VolumetricFog3D** | 500,000 | 250,000 | Fog volumes, god ray cones, lab-reactive coloring |
+| **CockpitFloor3D** | 500,000 | 250,000 | Grated panels, sub-floor piping, maintenance hatches, embedded LED channels |
+| **CeremonyFX** | 500,000 | 250,000 | Instanced confetti, firework bursts, 3D trophy models, HUD ring expansion |
+| **WormholeTransition** | 300,000 | 150,000 | Animated tunnel, swirling energy walls, portal rings, instanced speed lines |
+| **MiniMapOverlay3D** | 250,000 | 125,000 | Miniature lab ring, player indicator, completion color-coding |
+| **New Subtotal** | **3,550,000** | **1,775,000** | |
+
+#### Budget Summary
+
+| Category | Desktop | Tablet |
+|----------|---------|--------|
+| Cockpit Shell | 4,950,000 | 2,475,000 |
+| Spatial Dashboard | 11,000,000 | 5,500,000 |
+| New Components | 3,550,000 | 1,775,000 |
+| Dynamic Headroom | 500,000 | 250,000 |
+| **TOTAL** | **20,000,000** | **10,000,000** |
 
 ### 11.2 LOD Levels for Cockpit Components
 
 ```typescript
 // Cockpit-specific LOD overrides
+// NOTE (March 20, 2026): ultra panelSegments updated 48→64 per Upgrade doc Section C.
+// useLOD system tier cap (hardcoded 3,000 tris) removed — now reads from deviceStore
+// TRIANGLE_BUDGETS.system (desktop: 20M, tablet: 10M, mobile: 0). See FIX-SYSTEM-LOD-CAP.
 export const COCKPIT_LOD = {
   ultra: {
-    panelSegments: 48,
+    panelSegments: 64,    // Updated from 48 — March 20, 2026
     sideSegments: 24,
     hexDetail: true,
     hudRingSegments: 64,
@@ -801,6 +848,62 @@ The existing `useAdaptiveLOD()` hook monitors FPS and auto-downgrades. v2.0 adds
 | 60-80% | Drop to next LOD level, disable BarrelDistortion |
 | 40-60% | Disable HolographicHUD, reduce NPC count by half |
 | < 40% | Disable all cockpit 3D, fall back to CSS frame |
+
+---
+
+## 11.4 Store & Hook Changes (20M Upgrade — March 20, 2026)
+
+> Exact values required by the Upgrade doc. Applied to all stores as of March 20, 2026.
+
+### `deviceStore.ts` — Updated PERFORMANCE_PROFILES
+
+```typescript
+desktop: {
+  maxTriangles: 20_000_000,    // was 10_000_000
+  maxLights: 16,               // was 12
+  instancedMeshLimit: 5000,    // was 2000
+  sphereSegments: 64,          // was 32
+}
+tablet: {
+  maxTriangles: 10_000_000,    // was 5_000_000
+  maxLights: 8,                // was 4
+  instancedMeshLimit: 1500,    // was 500
+  sphereSegments: 32,          // was 16
+}
+// mobile: UNCHANGED
+
+// TRIANGLE_BUDGETS — added 'system' tier:
+type TriangleBudgets = { flagship: number; flLite: number; standard: number; system: number }
+desktop:  { flagship: 10_000_000, flLite: 2_000_000, standard: 500_000, system: 20_000_000 }
+tablet:   { flagship: 5_000_000,  flLite: 1_000_000, standard: 250_000, system: 10_000_000 }
+mobile:   { flagship: 2_500_000,  flLite: 500_000,   standard: 125_000, system: 0 }
+```
+
+### `cockpitStore.ts` — Added Hero Phase
+
+```typescript
+// Added to cockpitStore state:
+heroPhase: 'idle' | 'animating' | 'materializing' | 'complete'
+setHeroPhase: (phase: HeroPhase) => void
+
+// Usage:
+// - HeroAnimation sets 'animating' when it starts
+// - Upgrade doc handoff sets 'materializing' at t=14s
+// - CockpitCanvas sets 'complete' at t=19s
+// - CockpitCanvas gates cockpit group visibility on heroPhase !== 'idle'
+```
+
+### `useLOD.ts` — System Cap Removed
+
+```typescript
+// BEFORE (FIX-SYSTEM-LOD-CAP bug):
+() => tier === 'system' ? 3000 : getTriangleBudget(tier)
+
+// AFTER:
+() => getTriangleBudget(tier)   // system tier now reads from deviceStore TRIANGLE_BUDGETS.system
+
+// Also: TIER_SCALE.system and LOD_CONFIGS ultra segments updated from 32 to 64
+```
 
 ---
 
@@ -902,59 +1005,77 @@ When `prefers-reduced-motion: reduce` is active OR `accessibilityStore.reducedMo
 
 ## 14. FILE REGISTRY
 
-### 14.1 New Files in v2.0
+### 14.1 New Files
 
-| File | Type | Purpose | Stage |
-|------|------|---------|-------|
-| `src/components/3d/CockpitCanvas.tsx` | NEW | Unified R3F Canvas orchestrator | Post-build |
-| `src/components/3d/WormholeTransition.tsx` | NEW | Lab entry/exit cinematic | Post-build |
-| `src/components/3d/CeremonyFX.tsx` | NEW | Achievement/level-up ceremony FX | Post-build |
-| `src/components/dashboard/ConsoleDetailPanel.tsx` | NEW | Expandable console info overlays | Post-build |
-| `src/components/dashboard/MiniMapOverlay.tsx` | NEW | Persistent mini-map (top-right) | Post-build |
-| `src/components/dashboard/NPCDialogueBubble.tsx` | NEW | Contextual NPC speech bubbles | Post-build |
-| `src/hooks/useAdaptiveCockpit.ts` | NEW | Viewport-adaptive curvature/radius | Post-build |
-| `src/hooks/useCockpitAudio.ts` | NEW | Spatial audio integration hook | Post-build |
-| `src/lib/audio/cockpitAudio.ts` | NEW | CockpitAudioEngine class | Post-build |
-| `src/lib/3d/cockpitConfig.ts` | MODIFIED | v2 geometry constants, LOD presets | Post-build |
-| `src/shaders/dissolve.glsl` | NEW | Skin transition dissolve shader | Post-build |
-| `src/shaders/wormhole.glsl` | NEW | Lab entry tunnel energy shader | Post-build |
+| File | Type | Purpose | Status |
+|------|------|---------|--------|
+| `src/components/3d/CockpitCanvas.tsx` | NEW | Unified R3F Canvas orchestrator — single persistent Canvas for entire app | ✅ IMPLEMENTED |
+| `src/components/3d/CameraSystem.tsx` | NEW | Unified camera management (hero + dashboard + transitions) | ✅ IMPLEMENTED |
+| `src/components/3d/CockpitStructuralDetail.tsx` | NEW | Cable bundles, conduit pipes, ventilation panels, structural ribs, LED strips (1.5M tris) | ✅ IMPLEMENTED |
+| `src/components/3d/VolumetricFog3D.tsx` | NEW | Fog volumes, god ray cones, lab-reactive coloring (500K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/CockpitFloor3D.tsx` | NEW | Grated floor panels, sub-floor piping, embedded LED channels (500K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/CeremonyFX.tsx` | NEW | Achievement/level-up ceremony FX — confetti, fireworks, 3D trophies (500K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/WormholeTransition.tsx` | NEW | Lab entry/exit cinematic tunnel (300K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/MiniMapOverlay3D.tsx` | NEW | Persistent 3D minimap — lab ring, position indicator, completion coding (250K tris) | ✅ IMPLEMENTED |
+| `src/lib/audio/cockpitAudio.ts` | NEW | CockpitAudioEngine singleton — spatial zones, skin-specific soundscapes | ✅ IMPLEMENTED |
+| `src/hooks/useCockpitAudio.ts` | NEW | React hook for component-level audio integration | ✅ IMPLEMENTED |
+| `src/components/dashboard/ConsoleDetailPanel.tsx` | NEW | Expandable console info overlays (glassmorphic HTML) | 🔲 PENDING |
+| `src/components/dashboard/NPCDialogueBubble.tsx` | NEW | Contextual NPC speech bubbles (HTML overlay, CPA2-10) | 🔲 PENDING (deferred) |
+| `src/hooks/useAdaptiveCockpit.ts` | NEW | Viewport-adaptive curvature/radius (Phase 6) | 🔲 PENDING |
+| `src/lib/3d/cockpitConfig.ts` | MODIFIED | v2 geometry constants, LOD presets, TRIANGLE_BUDGET_V2 | ✅ IMPLEMENTED |
+| `src/shaders/dissolve.glsl` | NEW | Skin transition dissolve shader | 🔲 PENDING |
+| `src/shaders/wormhole.glsl` | NEW | Lab entry tunnel energy shader | 🔲 PENDING |
 
-### 14.2 Modified Files from v1
+### 14.2 Modified Files
 
-| File | Modification |
-|------|-------------|
-| `src/components/3d/StationFrame.tsx` | Delegates to CockpitCanvas, removes own Canvas |
-| `src/components/3d/SpatialDashboard.tsx` | Becomes a scene-level group, not a Canvas wrapper |
-| `src/components/3d/CockpitPanels.tsx` | Adds hex data binding, skin material reactivity |
-| `src/components/3d/HolographicHUD.tsx` | Adds data-driven rings, mini-map mode |
-| `src/components/3d/SidePanels.tsx` | Skin-reactive shader uniforms |
-| `src/components/3d/StatusBar3D.tsx` | Real-time store subscriptions |
-| `src/components/3d/InteractiveConsole3D.tsx` | Skin frame styles, detail panel trigger |
-| `src/components/3d/AmbientNPCs.tsx` | Dialogue bubble integration, pet companion slot |
-| `src/components/3d/CockpitSkinManager.tsx` | Extended element reactivity, dissolve transitions |
-| `src/components/3d/CinematicCamera.tsx` | Transition cinematic sequences |
-| `src/components/dashboard/SpatialOverlay.tsx` | Console detail panel integration |
-| `src/stores/cockpitStore.ts` | Skin unlock state, audio preferences, ceremony queue |
-| `src/lib/3d/cockpitConfig.ts` | v2 geometry, LOD presets, frame styles |
+| File | Modification | Status |
+|------|-------------|--------|
+| `src/components/3d/HeroAnimation.tsx` | **REWRITE** — Remove own Canvas; export HeroScene as `<group>` within CockpitCanvas; add materialization crossfade into cockpit (CPA2-3 Seamless Handoff) | ✅ IMPLEMENTED |
+| `src/components/3d/StationFrame.tsx` | **REWRITE** — Remove own Canvas; export as scene group within CockpitCanvas | ✅ IMPLEMENTED |
+| `src/components/3d/SpatialDashboard.tsx` | **REWRITE** — Remove own Canvas; becomes a scene-level `<group>`, not a Canvas wrapper | ✅ IMPLEMENTED |
+| `src/components/3d/CockpitPanels.tsx` | **MAJOR** — 256-seg curved hull, hex gauge data binding, skin material reactivity, animated sub-panels (2M tris) | ✅ IMPLEMENTED |
+| `src/components/3d/HolographicHUD.tsx` | **MAJOR** — 8 data-driven rings, data-display arcs, reticle, volumetric scan beams (500K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/LEDRim.tsx` | **MAJOR** — 1,000+ individual LED capsules, data viz mode, audio-reactive pulse waves (200K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/SidePanels.tsx` | **MAJOR** — Physical radar dish, 3D data columns, skin-reactive shader uniforms (1.5M tris) | ✅ IMPLEMENTED |
+| `src/components/3d/StatusBar3D.tsx` | **MAJOR** — XP speedometer, volumetric flame sculpture, real-time store subscriptions (500K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/HolographicLabMap.tsx` | **MAJOR** — Multi-layer geodesic shells, data highway splines, projector pedestal (1M tris) | ✅ IMPLEMENTED |
+| `src/components/3d/LabStructure3D.tsx` | **MAJOR** — 300K/lab: subdivision surfaces, interior mechanisms, diorama scenes (3M tris total) | ✅ IMPLEMENTED |
+| `src/components/3d/InteractiveConsole3D.tsx` | **MAJOR** — 500K/console: multi-part housing, projector base, skin frame styles (2M tris total) | ✅ IMPLEMENTED |
+| `src/components/3d/AmbientNPCs.tsx` | **MAJOR** — 187K/bot: facial animation, 3-finger grippers, dialogue bubble integration (1.5M tris) | ✅ IMPLEMENTED |
+| `src/components/3d/DynamicEnvironment.tsx` | **MAJOR** — Volumetric fog, environmental props, dynamic weather (3M tris) | ✅ IMPLEMENTED |
+| `src/components/3d/AuroraBackground.tsx` | **MINOR** — Volumetric layers for ultra LOD (50K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/AmbientParticles.tsx` | **MINOR** — Higher-fidelity shapes, enhanced trails (200K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/CockpitSkinManager.tsx` | Extended element reactivity, dissolve transitions, updated budgets | ✅ IMPLEMENTED |
+| `src/components/3d/CinematicCamera.tsx` | Transition cinematic sequences — superseded by `CameraSystem.tsx` | ✅ IMPLEMENTED |
+| `src/stores/cockpitStore.ts` | Added `heroPhase` state + `setHeroPhase` action; skin unlock, audio preferences, ceremony queue | ✅ IMPLEMENTED |
+| `src/stores/deviceStore.ts` | **20M profiles**: `desktop.maxTriangles: 20M`, `tablet.maxTriangles: 10M`, added `system` tier to `TRIANGLE_BUDGETS`, `instancedMeshLimit desktop=5000/tablet=1500`, `sphereSegments desktop=64` | ✅ IMPLEMENTED |
+| `src/hooks/useLOD.ts` | Removed hardcoded 3,000 tri system cap; ultra segments updated to 64; system tier now reads from `deviceStore.TRIANGLE_BUDGETS.system` | ✅ IMPLEMENTED |
+| `src/stores/uiStore.ts` | Verified `gameActive`/`setGameActive` present for unified Canvas game mode strategy | ✅ IMPLEMENTED |
+| `src/components/dashboard/SpatialOverlay.tsx` | Console detail panel integration | 🔲 PENDING |
 
 ---
 
 ## 15. DECISION LOCK ADDITIONS
 
-| ID | Decision | Rationale |
-|----|----------|-----------|
-| CPA2-1 | Single R3F Canvas for all cockpit + spatial content | Eliminates double-canvas performance overhead, enables shared postprocessing | **IMPLEMENTED (March 20, 2026)** — `CockpitCanvas.tsx` created, `StationFrame`/`SpatialDashboard`/`HeroAnimation` rewritten as `<group>` wrappers |
-| CPA2-2 | Viewport-adaptive curvature (120-155° based on width) | Ultra-wide monitors benefit from wider wrap; narrow viewports need less peripheral |
-| CPA2-3 | Hex clusters display real data (not decorative) | Every visual element should serve a functional purpose | **IMPLEMENTED (March 20, 2026)** — CockpitPanels hex clusters now display gauge data, animated needles bound to real metrics |
-| CPA2-4 | Skin unlock via achievements (not free selection) | Drives engagement, rewards exploration, makes skins feel earned |
-| CPA2-5 | Skin transition uses dissolve shader (not crossfade) | More dramatic, feels like a physical transformation |
-| CPA2-6 | Lab entry uses wormhole cinematic (2.5s) | Creates spatial continuity — child feels like they're traveling, not page-navigating |
-| CPA2-7 | NPC dialogue bubbles are HTML overlays (not 3D text) | Better readability, easier localization, consistent font rendering |
-| CPA2-8 | Spatial audio via Tone.js Panner3D | Already installed, no new dependency needed |
-| CPA2-9 | Mobile gets zero R3F (pure CSS fallback) | Battery life, performance, touch UX all better with CSS approach |
-| CPA2-10 | Ceremony FX intensity scales by event type | Level-up should feel bigger than a routine XP gain |
-| CPA2-11 | Console detail panels are glassmorphic HTML overlays | Readable text, interactive (links, graphs), consistent with SpatialOverlay |
-| CPA2-12 | Adaptive FPS monitoring can fall back to CSS at <40% target | Graceful degradation is better than stuttering 3D |
+> **Numbering note (March 20, 2026):** CPA2-2, CPA2-3, CPA2-4 were added to CLAUDE.md to reflect the Upgrade doc architecture. The original v2.0 decisions CPA2-2 through CPA2-12 have been renumbered CPA2-5 through CPA2-15 to align with CLAUDE.md authority. Total: 15 CPA2 decisions (CLAUDE.md will be updated from "12" to "15" at next review).
+
+| ID | Decision | Rationale | Status |
+|----|----------|-----------|--------|
+| CPA2-1 | Single R3F Canvas for all cockpit + spatial content | Eliminates double-canvas performance overhead; enables shared postprocessing pipeline | ✅ IMPLEMENTED (March 20, 2026) — `CockpitCanvas.tsx` created; `StationFrame`/`SpatialDashboard`/`HeroAnimation` rewritten as `<group>` wrappers |
+| CPA2-2 | WebGPU primary renderer with WebGL2 auto-fallback | `WebGPURenderer` via R3F v9 async `gl` prop; TSL shaders compile to WGSL (WebGPU) or GLSL (WebGL2) automatically | ✅ IMPLEMENTED (March 20, 2026) — `CockpitCanvas` uses `WebGPURenderer` async init pattern |
+| CPA2-3 | Seamless hero-to-cockpit handoff with zero DOM transitions | Hero Phase 7 camera `[0, 6.5, 7]` fov 58 aligns exactly with cockpit starting camera. Groups crossfade within single Canvas — no Canvas swap, no context loss | ✅ IMPLEMENTED (March 20, 2026) — Hero group fades out while cockpit groups materialize (t=14-19s overlap) |
+| CPA2-4 | SpatialDashboard and HeroAnimation as `<group>` within CockpitCanvas, not separate Canvas instances | Preserves CPA2-1 (single Canvas). Each scene is a visibility-toggled `<group>` — HeroGroup visible t=0-17s, CockpitGroup visible t=14s+ | ✅ IMPLEMENTED (March 20, 2026) — All three former Canvas owners now export as `<group>` wrappers |
+| CPA2-5 | Viewport-adaptive curvature (120-155° based on width) | Ultra-wide monitors benefit from wider wrap; narrow viewports need less peripheral | 🔲 PENDING (Phase 6) |
+| CPA2-6 | Hex clusters display real data (not decorative) | Every visual element should serve a functional purpose | ✅ IMPLEMENTED (March 20, 2026) — CockpitPanels hex clusters display gauge data, animated needles bound to real metrics |
+| CPA2-7 | Skin unlock via achievements (not free selection) | Drives engagement, rewards exploration, makes skins feel earned | 🔲 PENDING (Phase 6) |
+| CPA2-8 | Skin transition uses dissolve shader (not crossfade) | More dramatic, feels like a physical transformation | 🔲 PENDING (Phase 6) |
+| CPA2-9 | Lab entry uses wormhole cinematic (2.5s) | Creates spatial continuity — child feels like they're traveling, not page-navigating | ✅ IMPLEMENTED — `WormholeTransition.tsx` created (300K tris) |
+| CPA2-10 | NPC dialogue bubbles are HTML overlays (not 3D text) | Better readability, easier localization, consistent font rendering | 🔲 PENDING — `NPCDialogueBubble.tsx` deferred |
+| CPA2-11 | Spatial audio via Tone.js Panner3D | Already installed (Tone.js), no new dependency needed | ✅ IMPLEMENTED — `cockpitAudio.ts` + `useCockpitAudio.ts` created |
+| CPA2-12 | Mobile gets zero R3F (pure CSS fallback) | Battery life, performance, and touch UX all better with CSS approach on mobile | ✅ IMPLEMENTED — `useIsMobile()` returns `null` from CockpitCanvas on mobile |
+| CPA2-13 | Ceremony FX intensity scales by event type | Level-up should feel bigger than a routine XP gain | ✅ IMPLEMENTED — `CeremonyFX.tsx` uses event type intensity map |
+| CPA2-14 | Console detail panels are glassmorphic HTML overlays | Readable text, interactive content (links, graphs), consistent with SpatialOverlay pattern | 🔲 PENDING — `ConsoleDetailPanel.tsx` |
+| CPA2-15 | Adaptive FPS monitoring can fall back to CSS at <40% of FPS target | Graceful degradation is better than stuttering 3D | ✅ IMPLEMENTED — `useAdaptiveLOD()` handles FPS-gated degradation; cockpit-specific thresholds in Section 11.3 |
 
 ---
 
