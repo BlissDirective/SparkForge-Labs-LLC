@@ -166,7 +166,7 @@ export function HolographicHUD({
   const activeScanRef = useRef(0);
 
   const hudColor = useMemo(() => new THREE.Color(color), [color]);
-  const _hudColorDim = useMemo(() => new THREE.Color(color).multiplyScalar(0.5), [color]);
+  const hudColorDim = useMemo(() => new THREE.Color(color).multiplyScalar(0.5), [color]);
 
   // Ring geometries (LOD-driven segments)
   const ringGeometries = useMemo(() => {

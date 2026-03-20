@@ -28,7 +28,7 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
+import { useLOD, lodTorus } from '@/hooks/useLOD';
 
 // ■■ Lab colors for 10 indicators ■■
 const LAB_COLORS = [
@@ -44,6 +44,39 @@ interface StatusBarProps {
   labProgress: { done: number; total: number };
   labColor: string;
   opacity: number;
+}
+
+// ■■ Chrome material factory ■■
+function useChromeMaterial(opacity: number) {
+  return useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: '#2a2a3a',
+        metalness: 0.92,
+        roughness: 0.15,
+        envMapIntensity: 1.2,
+        transparent: true,
+        opacity: opacity * 0.85,
+      }),
+    [opacity]
+  );
+}
+
+// ■■ Emissive material factory ■■
+function useEmissiveMaterial(color: string, intensity: number, opacity: number) {
+  return useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color: '#000000',
+        emissive: new THREE.Color(color),
+        emissiveIntensity: intensity,
+        transparent: true,
+        opacity,
+        toneMapped: false,
+        depthWrite: false,
+      }),
+    [color, intensity, opacity]
+  );
 }
 
 // ════════════════════════════════════════════════════
@@ -143,7 +176,7 @@ function XPSpeedometer({
     [segments, arcStart, arcTotal, xpRatio]
   );
 
-  useFrame(() => {
+  useFrame((_state, delta) => {
     currentRatio.current = THREE.MathUtils.lerp(currentRatio.current, xpRatio, 0.04);
 
     // Rotate needle to match XP ratio
@@ -256,7 +289,7 @@ function XPSpeedometer({
 
       {/* Chrome bezel ring around speedometer */}
       <mesh position={[0, 0, 0.01]}>
-        <torusGeometry args={[0.98, 0.035, segments, segments * 2]} />
+        <torusGeometry args={lodTorus({ segments, tubularSegments: segments * 2 } as any, 0.98, 0.035)} />
         <meshStandardMaterial
           color="#3a3a4a"
           metalness={0.95}
@@ -659,7 +692,7 @@ export function StatusBar3D({
   xp,
   xpMax,
   streak,
-  sessionTime: _sessionTime,
+  sessionTime,
   labProgress,
   labColor,
   opacity,

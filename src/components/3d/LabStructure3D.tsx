@@ -868,7 +868,7 @@ function Lab9Structure({
   const circuitRef = useRef<THREE.Group>(null);
   const ledsRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const _seg = lod.segments;
+  const seg = lod.segments;
   const tubSeg = lod.tubularSegments;
 
   // 6 circuit paths

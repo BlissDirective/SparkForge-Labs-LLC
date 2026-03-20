@@ -19,7 +19,7 @@
 
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-// postprocessing removed — handled by CockpitCanvas PostprocessingStack
+import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import gsap from 'gsap';
 
