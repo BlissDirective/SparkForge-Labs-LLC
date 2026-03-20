@@ -21,7 +21,7 @@
 //
 // LOD-aware via useLOD hook (tier: 'system'). Responds to hover/focus states.
 
-import { useRef, useMemo, useState, useCallback } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
 import * as THREE from 'three';
