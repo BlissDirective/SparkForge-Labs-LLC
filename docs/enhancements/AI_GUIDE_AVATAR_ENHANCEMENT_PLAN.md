@@ -4,7 +4,7 @@
 
 SparkForge is a gamified AI learning platform for children ages 7-16 with a dark-mode "Frost-Prismatic" aesthetic and a 3D Laboratory Control Station / Panoramic Cockpit architecture. This enhancement introduces **"Spark"** — a persistent, Claude API-powered AI Guide Avatar that lives throughout the entire platform as a teacher, positive reinforcement figure, and creative collaborator. The guide is visible and interactive across all areas: the 3D panoramic cockpit home screen, individual lab environments, and game spaces. It includes full voice capabilities (speech-to-text input + text-to-speech output).
 
-**Triangle Budget:** 500,000 – 2,000,000 (well within existing cockpit budget headroom of ~104K used out of 5M tablet / 10M desktop).
+**Triangle Budget:** 200,000 – 400,000 per avatar (standardized range across all 5 concepts). Well within existing cockpit budget headroom of ~104K used out of 5M tablet / 10M desktop.
 
 ---
 
@@ -12,138 +12,161 @@ SparkForge is a gamified AI learning platform for children ages 7-16 with a dark
 
 ### Concept A: "Orb Sentinel" — Holographic Energy Sphere
 
-**Visual:** A luminous energy orb (~0.5 scene units) with a crystalline internal lattice visible through a semi-transparent outer shell. The shell uses a custom TSL Fresnel glow shader that rotates slowly in the active lab's accent color. Two thin orbital rings orbit the sphere at different inclinations — accelerating during conversation, drifting gently when idle. A holographic "face" (two simple eye dots + subtle mouth curve) projects onto the front hemisphere via emissive texture, giving warmth without uncanny-valley realism.
+**Visual:** A luminous energy orb (~0.8 scene units) with a multi-layered internal structure visible through a semi-transparent outer shell. The outer shell is a high-polygon sphere with real-time TSL Fresnel glow shader producing dynamic iridescent refraction in the active lab's accent color — surface detail includes etched circuit-trace patterns that glow faintly, visible seam lines where shell "plates" meet (suggesting it could open), and micro-scratches that catch light for realism. Inside, a dense crystalline lattice of interlocking icosahedral frames rotates on three independent axes, each layer at a different speed. At the absolute center, a bright energy core (nested emissive spheres with volumetric god-ray spokes) pulses with a heartbeat rhythm. Four orbital rings (two major torus rings at opposing inclinations, two minor accent rings perpendicular) orbit the sphere with independent rotation speeds — accelerating during conversation, drifting to gentle precession when idle. A holographic "face" projects onto the front hemisphere via an emissive morph-target system: two expressive eye shapes (happy arcs, curious circles, thinking dots, surprised wide) and a subtle mouth curve, all rendered as glowing projected geometry rather than flat textures. Below, a hovering platform disc with concentric energy rings radiates lab-colored light downward. A persistent particle corona (200-300 instanced particles) orbits the shell in a toroidal field, intensifying with emotional state. The entire assembly casts soft caustic light patterns onto nearby surfaces via a projected caustic texture plane.
 
-**Audio-Reactive:** When speaking, the lattice pulses with waveform distortion. Orbital rings speed up during active conversation.
+**Audio-Reactive:** Energy core pulse rate and god-ray intensity sync directly with speech amplitude. Crystalline lattice layers oscillate with waveform displacement — inner layer responds to bass, outer to treble. Orbital rings accelerate proportionally with speaking speed. Particle corona density doubles during speech, with particles aligning into wave patterns that follow audio frequency. Shell circuit-trace etch lines pulse brighter on each spoken word boundary. Face eye-shapes squint slightly on emphasis, widen on questions.
 
 **Personality:** Wise, calm, encouraging. "Interesting thought!" / "Let me show you something cool." The orb form is pedagogically honest — it looks like AI, not pretending to be human, which aligns with the platform's mission of teaching AI concepts.
 
 **Triangle Budget:**
 | Component | Ultra LOD | Low LOD |
 |-----------|----------|---------|
-| Outer sphere shell (32-seg) | ~2,048 | ~128 |
-| Inner crystalline lattice | ~4,000 | 0 (hidden) |
-| Orbital ring A (64-seg torus) | ~2,048 | ~256 |
-| Orbital ring B (48-seg torus) | ~1,536 | 0 (hidden) |
-| Face projection quad | 2 | 2 |
-| Audio-reactive particle halo | ~500 | 0 |
-| Hover-pad glow disc | ~32 | ~16 |
-| **Total** | **~10,166** | **~402** |
+| Outer sphere shell (128-seg, etched detail) | ~65,000 | ~8,000 |
+| Inner crystalline lattice (3 icosahedral layers) | ~36,000 | ~6,000 |
+| Energy core (nested spheres + god-ray spokes) | ~18,000 | ~3,000 |
+| Orbital ring A (128-seg major torus) | ~16,000 | ~2,000 |
+| Orbital ring B (128-seg major torus) | ~16,000 | ~2,000 |
+| Orbital rings C+D (64-seg minor tori) | ~12,000 | ~2,000 |
+| Face projection (morph-target eye/mouth geo) | ~8,000 | ~2,000 |
+| Particle corona (300 instanced quads) | ~40,000 | ~5,000 |
+| Hovering platform disc (concentric rings) | ~12,000 | ~2,000 |
+| Caustic projection plane | ~4,000 | 0 (hidden) |
+| Shell circuit-trace etch overlay | ~24,000 | ~4,000 |
+| Shell plate seam geometry | ~8,000 | ~2,000 |
+| Volumetric glow planes (inner atmosphere) | ~6,000 | ~1,000 |
+| **Total** | **~265,000** | **~39,000** |
 
-**Mobile CSS Fallback:** Circular `<div>` with `backdrop-filter: blur(12px)`, `border: 2px solid var(--lab-color)`, animated `box-shadow` glow pulse. Two CSS dots for eyes with blink animation. `@keyframes float` for gentle vertical bob.
+**Mobile CSS Fallback:** Circular `<div>` with `backdrop-filter: blur(16px)`, `border: 2px solid var(--lab-color)`, multi-layered animated `box-shadow` glow pulse (inner + outer rings). Two CSS dots for eyes with morph animation between emotional states. Concentric ring animation via `@keyframes orbit`. Particle corona simulated with 12-16 CSS `<div>` particles on `@keyframes toroidal-orbit`. `@keyframes float` for gentle vertical bob.
 
 ---
 
 ### Concept B: "Prism Fox" — Geometric Animal Companion
 
-**Visual:** A low-poly fox-like creature built from sharp geometric facets — triangular faces with visible edge highlights giving a crystalline/origami appearance. Body color is dark chrome (`#1A1822`) with neon edge-lines in the active lab color. Ears are translucent prisms with inner glow. Tail is a segmented chain of decreasing prisms that sway with Perlin noise. Eyes are two bright LED-like emissive circles. When speaking, the jaw articulates (simple rotation of lower-face group) and ear prisms pulse brighter. When idle, it sits on a hovering platform and occasionally flicks its tail or tilts its head.
+**Visual:** A medium-poly crystalline fox creature (~40cm tall when sitting) built from hundreds of sharp geometric facets with visible edge highlights, giving a high-fidelity crystalline/origami appearance with far more surface detail than a simple low-poly model. Body color is dark chrome (`#1A1822`) with bright neon edge-lines in the active lab color rendered via a dedicated wireframe overlay mesh. The body surface features subtle etched circuit patterns (similar to Frost-Prismatic chrome bezel detailing) that glow faintly, and individual facets have slightly varied normals creating a gem-like light-catching effect. Ears are multi-layered translucent prisms (3 nested layers per ear) with independent inner glow and subtle prismatic rainbow refraction at edges. The tail is a 16-segment articulated chain of decreasing prisms, each segment with independent Perlin-noise sway, trailing 50-80 instanced micro-particles in the lab color that fade over distance. Eyes are expressive emissive LED circles with morph-target iris shapes (happy crescents, curious wide circles, thinking half-lidded, surprised full-open) and a faint projected glow cone in front of each eye. A visible chest core (similar to Spark's energy core concept) pulses behind a transparent chest plate, casting lab-colored light through the faceted body panels. Four articulated legs with two joints each (hip + knee) enable idle animations: weight-shifting, paw-flexing, standing/sitting transitions. The hover platform beneath has lab-colored energy runes etched into its surface and emits a soft downdraft particle effect (falling sparkles). When idle, the fox shifts weight between paws, flicks its tail, perks/rotates ears independently, and occasionally tilts its head with a curious ear-cock. A faint prismatic aura (instanced billboard sprites) surrounds the fox, intensifying with mood.
 
-**Audio-Reactive:** Jaw articulation during speech, ear prisms pulse with audio amplitude, chest emissive glow follows waveform.
+**Audio-Reactive:** Jaw articulates with full bone-driven animation (open/close + slight lateral shift for emphasis). Ear prisms pulse brighter and rotate toward the "sound source" (camera direction) during speech. Chest core pulse rate syncs with speech amplitude. Tail sway amplitude increases during animated speech, with tail-tip particles accelerating. Edge-line wireframe overlay brightness pulses on word boundaries. Prismatic aura sprites multiply and intensify during excited speech. Individual body facets shimmer (randomized emissive flicker) in sync with audio frequency bands.
 
 **Personality:** Playful, curious, adventurous. "Ooh, what if we tried THIS?" / "Follow me — I found something!" Appeals strongly to younger age bands (7-10) while remaining engaging for older users through witty observations. The fox metaphor (clever, adaptive) maps well to AI concepts.
 
 **Triangle Budget:**
 | Component | Ultra LOD | Low LOD |
 |-----------|----------|---------|
-| Fox body (faceted low-poly) | ~3,200 | ~800 |
-| Head with articulated jaw | ~1,800 | ~400 |
-| Ears (2 translucent prisms) | ~400 | ~100 |
-| Tail (8 chain segments) | ~1,600 | 0 (static) |
-| Legs (4 simple cylinders) | ~1,200 | ~400 |
-| Hover platform | ~200 | ~100 |
-| Edge-line wireframe overlay | ~2,000 | 0 (hidden) |
-| Emissive eye pair | ~64 | ~64 |
-| Audio-reactive chest glow | ~200 | 0 |
-| **Total** | **~10,664** | **~1,864** |
+| Fox body (medium-poly faceted, 200+ faces) | ~48,000 | ~6,000 |
+| Head with bone-driven jaw + muzzle | ~28,000 | ~4,000 |
+| Ears (2x 3-layer translucent prisms) | ~12,000 | ~2,000 |
+| Tail (16 articulated chain segments) | ~24,000 | ~3,000 |
+| Legs (4 legs, 2 joints each, paw detail) | ~32,000 | ~5,000 |
+| Chest core (transparent plate + inner glow) | ~10,000 | ~2,000 |
+| Edge-line wireframe overlay mesh | ~28,000 | ~4,000 |
+| Circuit-etch body detail overlay | ~16,000 | 0 (hidden) |
+| Emissive eye pair (morph-target iris shapes) | ~6,000 | ~1,000 |
+| Hover platform (energy runes + rings) | ~10,000 | ~2,000 |
+| Tail micro-particles (80 instanced quads) | ~12,000 | ~2,000 |
+| Prismatic aura sprites (40 billboards) | ~8,000 | ~1,000 |
+| Downdraft particle effect (platform) | ~6,000 | 0 (hidden) |
+| Eye glow cones (2 projected volumes) | ~4,000 | ~1,000 |
+| **Total** | **~244,000** | **~33,000** |
 
-**Mobile CSS Fallback:** SVG fox face (pre-rendered, ~2KB) inside glassmorphic circle. CSS animations: ear-wiggle, eye-blink, glow-pulse on active lab color.
+**Mobile CSS Fallback:** SVG fox face (detailed, ~4KB — faceted muzzle, layered ears, glowing eyes, chest core dot) inside glassmorphic circle. CSS animations: ear-wiggle (independent L/R), eye-blink with iris morph, chest-core pulse on lab color, tail-sway hint (partial body SVG), prismatic `box-shadow` shimmer. `@keyframes breathe` for idle body motion.
 
 ---
 
 ### Concept C: "Beacon Drone" — Miniature Station Bot
 
-**Visual:** A miniature version of the existing `ArticulatedBot` from `AmbientNPCs.tsx` but distinctly larger (2x scale), more detailed, and with unique visual markers. Same dark chrome body (`#1A1822` with neon accents) but adds: a holographic projector "eye" (replacing the visor — a small cone of volumetric light), a backpack antenna array (3 antennae instead of 1), and a glowing chest panel that displays a waveform when speaking. Color is always `#00BBFF` (primary blue) rather than personality-mapped, reinforcing its identity as THE guide rather than one of many NPCs.
+**Visual:** A highly-detailed miniature station bot (~45cm tall) that dramatically extends the `ArticulatedBot` design from `AmbientNPCs.tsx` into a premium, hero-quality companion. The body is a fully-modeled chrome chassis with visible panel lines, hex-bolt rivets, ventilation grilles, and Frost-Prismatic chrome bezel trim on every edge — far beyond the ~500-tri ambient NPC quality. The head features a holographic projector "eye" — a multi-ring iris mechanism (concentric rings that dilate/contract for expressions) projecting a visible cone of volumetric light particles that illuminate whatever the drone is "looking at." A backpack module houses a 5-antenna array (3 main + 2 smaller auxiliary) with LED-tipped ends that independently track and sway. The chest features a large transparent display panel showing a real-time audio waveform visualizer (16-bar frequency spectrum built from instanced box geometry). Two fully-articulated arms (shoulder + elbow + wrist joints, 3 independent fingers each) with interchangeable tool appendages: pointer finger for explanations, open palm for encouragement, thumbs-up for celebrations. The lower body sits on a detailed hover platform with 4 thruster pods (each with spinning turbine geometry and exhaust particle trails), connected by visible energy conduits with flowing light. A holographic name badge ("BEACON") floats beside the right shoulder, rendered as semi-transparent geometry with scan-line effect. The entire chassis has subtle panel-line emission — faint lab-colored light bleeds through every seam, intensifying with mood. A rotating radar dish on the backpack sweeps continuously, with a visible scan-line cone. Color is always `#00BBFF` (primary blue) accents on `#1A1822` chrome, reinforcing its identity as THE guide.
 
-**Audio-Reactive:** Antenna tips glow with audio amplitude, chest waveform panel animates in real-time, holographic projector eye brightens during speech.
+**Audio-Reactive:** Iris mechanism dilates wider on emphasis and contracts during quiet moments. Antenna tips glow with staggered audio amplitude (each antenna responds to a different frequency band, creating a wave effect). Chest waveform display animates as a real-time 16-bar frequency spectrum — bars rise/fall with actual speech audio frequencies. Arm gestures become more emphatic during animated speech (wider arcs, faster movements). Thruster exhaust particles intensify during excited speech. Panel-line emission brightens on word boundaries. Radar dish sweep speed increases during active conversation. Holographic name badge flickers more actively during speech.
 
 **Personality:** Knowledgeable, supportive, slightly formal but warm — like a favorite science teacher. "Great question! Here's what I know about that..." / "You're making excellent progress." The bot form factor is consistent with the existing NPC ecosystem, making it feel like the "lead bot" of the station.
 
 **Triangle Budget:**
 | Component | Ultra LOD | Low LOD |
 |-----------|----------|---------|
-| Body (extended ArticulatedBot, 2x) | ~1,200 | ~500 |
-| Holographic projector eye | ~600 | ~200 |
-| Antenna array (3 antennae) | ~300 | ~100 |
-| Chest waveform panel | ~400 | ~100 |
-| Arms with tool appendages | ~800 | ~300 |
-| Hover pads (larger + particle ring) | ~400 | ~100 |
-| Holographic name badge | ~100 | 0 |
-| Audio-reactive elements | ~200 | 0 |
-| **Total** | **~4,000** | **~1,300** |
+| Body chassis (detailed panels, rivets, grilles) | ~45,000 | ~6,000 |
+| Chrome bezel trim (all edges) | ~12,000 | ~2,000 |
+| Head + iris projector eye (concentric rings) | ~18,000 | ~3,000 |
+| Holographic eye cone (volumetric particles) | ~10,000 | ~1,500 |
+| Antenna array (5 antennae + LED tips) | ~8,000 | ~1,500 |
+| Radar dish (rotating + scan cone) | ~6,000 | ~1,000 |
+| Chest waveform display (16 instanced bars) | ~8,000 | ~2,000 |
+| Arms L+R (3 joints each, 3 fingers each) | ~32,000 | ~5,000 |
+| Tool appendages (pointer/palm/thumbs-up) | ~8,000 | ~1,500 |
+| Hover platform (4 thruster pods + conduits) | ~18,000 | ~3,000 |
+| Thruster turbine geometry (4 spinning) | ~12,000 | ~2,000 |
+| Thruster exhaust particles (instanced) | ~16,000 | ~2,000 |
+| Energy conduit flow (platform) | ~6,000 | ~1,000 |
+| Holographic name badge | ~4,000 | 0 (hidden) |
+| Panel-line emission geometry | ~14,000 | ~2,000 |
+| Backpack module detail | ~10,000 | ~2,000 |
+| Ventilation grille internals | ~6,000 | 0 (hidden) |
+| **Total** | **~233,000** | **~35,500** |
 
-**Mobile CSS Fallback:** SVG drone face (visor + antenna silhouette) in glassmorphic circle. CSS: visor blink, antenna pulse, hover bob.
+**Mobile CSS Fallback:** Detailed SVG drone portrait (~5KB — iris eye, antenna array, chest display, chrome body outline) in glassmorphic circle. CSS: iris dilate/contract animation, antenna LED pulse (staggered timing per antenna), chest waveform bars (8 CSS `<div>` bars with `@keyframes spectrum`), hover-bob with thruster glow pulse. `@keyframes radar-sweep` for rotating scan indicator.
 
 ---
 
 ### Concept D: "Spark" — Crystalline Companion Bot
 
-**Visual:** A small (30-40cm) floating crystalline robot with a translucent glassmorphic body. The torso is built from faceted crystal panels that refract light, trimmed with chrome bezel edges matching the Frost-Prismatic design language. A visible internal energy core pulses with the current lab's neon accent color, casting colored caustic light through the crystal panels. The face is a smooth faceplate with two expressive LED "eyes" that morph between emotional states — happy arcs, curious circles, thinking dots, surprised wide ovals. Two hovering hands (no arms) float beside the body, gesturing expressively during conversation — pointing when explaining, open-palmed when encouraging, clasped when thinking.
+**Visual:** A small (30-40cm) floating crystalline robot with a translucent glassmorphic body. The torso is built from 24 faceted crystal panels (upgraded from 12) that refract light with per-panel PBR variation — each panel has a slightly different roughness and IOR, creating a rich gem-like sparkle as the viewing angle changes. Chrome bezel edges matching the Frost-Prismatic design language trim every panel junction with visible micro-rivets. A visible internal energy core built from 3 nested counter-rotating emissive spheres pulses with the current lab's neon accent color, casting colored caustic light through the crystal panels via a projected caustic texture plane beneath. The core has visible energy tendrils (thin emissive tubes) that extend outward and connect to the inside surfaces of body panels, creating a "living circuit" effect. The face is a smooth faceplate with two expressive LED "eyes" that morph between 6 emotional states via morph targets — happy arcs, curious circles, thinking dots, surprised wide ovals, proud crescents, and neutral rounds — plus a subtle mouth indicator that curves up/down. Two hovering hands (no arms) float beside the body, each with 5 articulated crystal fingers (3 joints per finger) enabling rich gesture animation: pointing when explaining, open-palmed when encouraging, clasped when thinking, finger-counting when listing, thumbs-up for celebrations. Shoulder joint sockets emit small energy tethers (particle streams) that visually connect to the hovering hands without solid arms. A 100-150 micro-particle trail in the current lab color streams from vents on the back and core seams, with intensity and pattern (spiral vs. dispersed vs. focused beam) scaling with emotional state. A hovering disc base with etched energy runes and concentric pulse rings grounds the avatar visually.
 
-**Audio-Reactive:** Energy core pulse rate syncs with speech amplitude. Crystal panels shimmer with increased refraction during speaking. Hovering hands gesture more actively during animated speech, settling to gentle idle drift when quiet. A 50-100 micro-particle trail in the current lab color streams from the core, with intensity scaling proportionally with emotional state (celebrating = maximum particles, idle = minimal trail).
+**Audio-Reactive:** Energy core pulse rate and inner tendril brightness sync directly with speech amplitude. Crystal panels shimmer with increased refraction intensity during speaking — panels nearest the faceplate react first, creating a ripple-outward effect. Hovering hands gesture more actively during animated speech (wider arcs, faster finger articulation), settling to gentle idle drift when quiet. Particle trail shifts from gentle spiral (idle) to focused forward beam (explaining) to celebratory burst (achievements). Shoulder energy tethers brighten and thicken during speech. Faceplate eye-shapes shift emphasis on stressed words (slight squint) and widen on questions. Base rune patterns pulse in sync with word boundaries.
 
 **Personality:** Curious, encouraging, slightly playful. Naturally uses crystal and sparkle metaphors — "Let's crack this puzzle open!" / "That idea really shines!" / "I can see the gears turning!" The crystalline form bridges the gap between the abstract (Orb) and the figurative (Fox/Drone) — it's recognizably a "companion" without being an animal or human. The glassmorphic body directly echoes the platform's UI language, making Spark feel native to SparkForge.
 
 **Triangle Budget:**
 | Component | Ultra LOD | Low LOD |
 |-----------|----------|---------|
-| Crystal torso (faceted panels, 12 faces) | ~120,000 | ~15,000 |
-| Faceplate + LED eyes (emissive morph targets) | ~8,000 | ~2,000 |
-| Internal energy core (nested spheres + glow) | ~24,000 | ~4,000 |
-| Chrome bezel trim (edge geometry) | ~16,000 | ~4,000 |
-| Hovering hand L (5-finger crystal) | ~40,000 | ~5,000 |
-| Hovering hand R (5-finger crystal) | ~40,000 | ~5,000 |
-| Particle trail system (instanced) | ~100,000 | ~10,000 |
-| Refraction caustic planes | ~12,000 | 0 (hidden) |
-| Hover-disc base glow | ~8,000 | ~2,000 |
-| Body detail (shoulder joints, chest plate) | ~32,000 | ~8,000 |
-| **Base total** | **~400,000** | **~55,000** |
-| **Ultra LOD total (with max detail)** | **~800,000** | — |
+| Crystal torso (24 faceted panels, PBR varied) | ~72,000 | ~10,000 |
+| Faceplate + LED eyes (6 morph targets + mouth) | ~12,000 | ~2,000 |
+| Internal energy core (3 nested spheres + tendrils) | ~22,000 | ~4,000 |
+| Chrome bezel trim + micro-rivets | ~14,000 | ~3,000 |
+| Hovering hand L (5 fingers, 3 joints each) | ~28,000 | ~4,000 |
+| Hovering hand R (5 fingers, 3 joints each) | ~28,000 | ~4,000 |
+| Shoulder energy tethers (particle streams) | ~8,000 | ~1,000 |
+| Particle trail system (150 instanced quads) | ~24,000 | ~4,000 |
+| Refraction caustic projection plane | ~6,000 | 0 (hidden) |
+| Hover-disc base (runes + concentric rings) | ~10,000 | ~2,000 |
+| Body detail (shoulder sockets, chest plate, vents) | ~28,000 | ~5,000 |
+| Energy tendril circuit (core → panels) | ~8,000 | ~1,500 |
+| Per-panel micro-detail (etch + roughness geo) | ~16,000 | 0 (hidden) |
+| **Total** | **~276,000** | **~40,500** |
 
-**Mobile CSS Fallback:** Glassmorphic rounded-rectangle `<div>` with `backdrop-filter: blur(16px)`, crystal-facet SVG overlay, pulsing inner glow in lab color. Two CSS LED dots for eyes with morph animation between emotional states. Micro-particle CSS trail (8-12 `<div>` particles) animated via `@keyframes drift`.
+**Mobile CSS Fallback:** Glassmorphic rounded-rectangle `<div>` with `backdrop-filter: blur(16px)`, crystal-facet SVG overlay (24-panel pattern), pulsing inner glow in lab color with tendril SVG lines. Two CSS LED dots for eyes with morph animation between 6 emotional states. Hovering hand hint (two small floating circles beside body). Micro-particle CSS trail (10-14 `<div>` particles) animated via `@keyframes drift` with mood-driven pattern switching.
 
 ---
 
 ### Concept E: "Nova" — Holographic Cockpit AI
 
-**Visual:** A semi-transparent holographic humanoid (50-60cm), upper-body only, projecting upward from a circular holographic disc base. The form is rendered in blue-white holographic tones with visible scan lines sweeping vertically and horizontal data streams flowing through the body like a living data visualization. The face features stylized friendly features — large expressive eyes and a simple mouth — rendered on a holographic projection plane with a subtle flicker effect. Inside the body, a "data skeleton" is visible: flowing code patterns, circuit traces, and neural network node visualizations that pulse with activity. The silhouette wears a lab coat outline with glowing trim that shifts to the current lab's accent color.
+**Visual:** A semi-transparent holographic humanoid (50-60cm), upper-body only, projecting upward from a circular holographic disc base. The form is rendered in blue-white holographic tones with a TSL custom shader producing realistic holographic interference patterns — banding, chromatic edge fringing, and depth-dependent opacity. Two vertical scan line planes sweep through the body at different speeds, creating the classic hologram flicker. Horizontal data streams (instanced tube geometry with scrolling emissive UV) flow through the torso and arms like a living data visualization. The face features stylized friendly features — large expressive eyes (morph-target: happy, curious, thinking, proud) and a simple mouth (open/close + smile/neutral morph) — rendered on a holographic projection plane with a subtle periodic flicker/glitch effect. Inside the body, a "data skeleton" is visible: a simplified wire-frame bone structure with flowing code-character particles streaming along the bones, circuit-trace patterns branching from the spine, and 8-12 neural network nodes at joint positions connected by pulsing edges. The silhouette wears a lab coat outline with glowing trim that shifts to the current lab's accent color, with subtle lapel and pocket detail suggesting a friendly scientist. Two semi-transparent arms with articulated hands (4 fingers each, 2 joints per finger) gesture during conversation — the hands trail data-particle wisps when moving. The holographic disc base features a rotating outer ring with tick marks (like a compass), an inner glowing surface with projected lab logo, and concentric ripple rings that emanate during speech.
 
-**Audio-Reactive:** Scan line sweep speed increases during speech. Data streams accelerate and brighten with audio amplitude. Mouth animates with simple open/close synced to speech. The holographic disc base emits concentric ripple rings during active conversation. Data skeleton patterns pulse rhythmically with speech cadence. On achievements, the entire hologram brightens and emits a radial burst of data particles.
+**Audio-Reactive:** Scan line sweep speed increases proportionally with speech amplitude. Data streams accelerate and brighten — stream density doubles during animated explanations. Mouth animates with full open/close + smile morph synced to speech emphasis. Holographic disc base ripple rings emit on each word boundary, propagating outward and fading. Data skeleton node positions pulse brighter on speech beats, with edge connections thickening during emphasized words. Holographic interference pattern frequency shifts (tighter banding = more excited, relaxed banding = calm). Hand trail wisps intensify during gestures. On achievements, the entire hologram brightens 50%, scan lines pause momentarily, then a radial burst of data particles explodes outward from the chest.
 
 **Personality:** Confident, warm, mentor-like — a science communicator style. Uses mission and exploration metaphors — "Let's investigate this together!" / "Your data analysis is spot-on!" / "Mission objective: unlocked!" Nova feels like a natural extension of the cockpit itself — not a visitor but the station's built-in intelligence. This concept appeals especially to older age bands (13-16) who appreciate the sci-fi command bridge aesthetic.
 
-**Transitions:** When moving between areas, Nova dissolves into a stream of data particles, flows along a light beam trajectory, and reassembles at the destination with a brief holographic boot-up flicker. This transition takes ~0.8s and uses the same spring-damped animation system as other concepts.
+**Transitions:** When moving between areas, Nova dissolves into a stream of data particles (body fragments into ~200 instanced quads that stream along a spline trajectory), flows along a light beam, and reassembles at the destination with a brief holographic boot-up flicker (fast scan-line build from bottom to top). This transition takes ~0.8s and uses the same spring-damped animation system as other concepts.
 
 **Triangle Budget:**
 | Component | Ultra LOD | Low LOD |
 |-----------|----------|---------|
-| Holographic torso (upper body mesh) | ~80,000 | ~12,000 |
-| Head + face projection plane | ~30,000 | ~6,000 |
-| Data skeleton (internal wire mesh) | ~60,000 | ~8,000 |
-| Lab coat silhouette + trim | ~40,000 | ~6,000 |
-| Holographic disc base | ~16,000 | ~4,000 |
+| Holographic torso (upper body mesh) | ~48,000 | ~8,000 |
+| Head + face (morph-target eyes + mouth) | ~18,000 | ~3,000 |
+| Data skeleton (wire bones + circuit traces) | ~20,000 | ~3,000 |
+| Neural network nodes (12 nodes + edges) | ~8,000 | ~1,500 |
+| Lab coat silhouette + trim detail | ~22,000 | ~4,000 |
+| Arms + hands (4 fingers each, 2 joints) | ~32,000 | ~5,000 |
+| Holographic disc base (rings + tick marks) | ~12,000 | ~2,000 |
 | Scan line planes (2 vertical sweeps) | ~4,000 | ~1,000 |
-| Data stream particles (instanced) | ~120,000 | ~15,000 |
-| Concentric ripple rings (base) | ~8,000 | ~2,000 |
-| Arms + hand gestures | ~60,000 | ~10,000 |
-| Dissolve/reassemble particle system | ~80,000 | ~10,000 |
-| Holographic flicker overlay | ~2,000 | ~1,000 |
-| Neural network node viz (data skeleton) | ~40,000 | ~5,000 |
-| Eye emissive + mouth morph | ~6,000 | ~2,000 |
-| Lab-color trim glow | ~4,000 | ~1,000 |
-| **Base total** | **~550,000** | **~83,000** |
-| **Ultra LOD total (with max detail)** | **~1,200,000** | — |
+| Data stream tubes (instanced, scrolling UV) | ~28,000 | ~4,000 |
+| Concentric ripple rings (base, animated) | ~6,000 | ~1,000 |
+| Hand trail wisp particles (instanced) | ~10,000 | ~1,500 |
+| Dissolve/reassemble particles (200 quads) | ~16,000 | ~2,000 |
+| Holographic interference overlay planes | ~4,000 | ~1,000 |
+| Code-character particles (skeleton flow) | ~12,000 | ~2,000 |
+| Lab-color trim glow emission | ~4,000 | ~1,000 |
+| Base lab logo projection | ~2,000 | ~500 |
+| **Total** | **~246,000** | **~40,500** |
 
-**Mobile CSS Fallback:** Holographic-styled `<div>` with semi-transparent blue-white gradient, animated `background: repeating-linear-gradient(...)` for scan lines, `mix-blend-mode: screen` for hologram effect. SVG face (eyes + mouth) with flicker animation. CSS data-stream particles (6-8 vertical `<div>` strips) with `@keyframes dataFlow`. Circular base ring with `@keyframes ripple`.
+**Mobile CSS Fallback:** Holographic-styled `<div>` with semi-transparent blue-white gradient, animated `background: repeating-linear-gradient(...)` for scan lines, `mix-blend-mode: screen` for hologram effect. SVG face (expressive eyes + mouth) with periodic glitch/flicker animation (`@keyframes holo-glitch`). CSS data-stream particles (8-10 vertical `<div>` strips with `@keyframes dataFlow`). Circular base ring with rotating tick marks (`@keyframes compass-rotate`) and `@keyframes ripple` on speech. Holographic chromatic edge fringe via layered `box-shadow` in cyan/magenta.
 
 ---
 
@@ -426,4 +449,4 @@ RLS policies: Children can only access their own conversations/preferences (via 
 4. **E2E Test:** Full flow — open guide → send message → receive streaming response → verify conversation persisted in DB
 5. **3D Visual Test:** Avatar renders in cockpit, transitions on lab focus, disappears in game mode, CSS fallback appears
 6. **Voice Test:** STT captures input (Chrome), TTS speaks response, audioLevel drives avatar animation
-7. **Performance:** Verify avatar stays within triangle budget (Orb/Fox/Drone < 15K; Spark < 800K; Nova < 1.2M), no FPS regression on tablet profile. Spark and Nova use aggressive LOD scaling to hit tablet/mobile budgets.
+7. **Performance:** Verify each avatar stays within its 200K-400K ultra LOD triangle budget (Orb ~265K, Fox ~244K, Drone ~233K, Spark ~276K, Nova ~246K). Verify low LOD scales to ~33K-40K for tablet/mobile. No FPS regression on tablet profile. All concepts use mandatory `useLOD({ tier: 'system' })` with adaptive degradation.
