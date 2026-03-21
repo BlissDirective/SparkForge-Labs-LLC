@@ -53,6 +53,8 @@ export const BLOOM_PRESETS = {
   gameComplete:  { intensity: 1.0, threshold: 0.2, smoothing: 0.6 },
   profile:       { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
   onboarding:    { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
+  parent:        { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
+  admin:         { intensity: 0.25, threshold: 0.75, smoothing: 0.95 },
 } as const;
 
 // ■■ Camera Presets — FOV + Barrel Distortion (CPA-9, CPA-10) ■■
@@ -64,6 +66,8 @@ export const CAMERA_PRESETS = {
   celebration: { fov: 58, distortion: 0.025 },
   profile:     { fov: 54, distortion: 0.01 },
   onboarding:  { fov: 52, distortion: 0.01 },
+  parent:      { fov: 54, distortion: 0.01 },
+  admin:       { fov: 52, distortion: 0.0 },
 } as const;
 
 // ■■ Vignette Presets — R3F Postprocessing (CPA-8) ■■
@@ -75,6 +79,8 @@ export const VIGNETTE_PRESETS = {
   celebration: { darkness: 0.3, offset: 0.4 },
   profile:     { darkness: 0.5, offset: 0.3 },
   onboarding:  { darkness: 0.4, offset: 0.35 },
+  parent:      { darkness: 0.45, offset: 0.3 },
+  admin:       { darkness: 0.4, offset: 0.3 },
 } as const;
 
 // ■■ HUD Presets v2 — Data-Driven Holographic HUD (CPA2-3) ■■
@@ -87,6 +93,8 @@ export const HUD_PRESETS = {
   gameComplete:  { opacity: 1.0,  rotationSpeed: 0.5,  pulseIntensity: 1.0, dataMode: 'burst' as const },
   profile:       { opacity: 0.12, rotationSpeed: 0.08, pulseIntensity: 0.2, dataMode: 'stats' as const },
   onboarding:    { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'tutorial' as const },
+  parent:        { opacity: 0.08, rotationSpeed: 0.05, pulseIntensity: 0.1,  dataMode: 'stats' as const },
+  admin:         { opacity: 0.06, rotationSpeed: 0.03, pulseIntensity: 0.05, dataMode: 'stats' as const },
 } as const;
 
 // ■■ Side Panel Presets (CPA-6) ■■
@@ -98,6 +106,8 @@ export const SIDE_PANEL_PRESETS = {
   celebration: { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'terminal' as const },
   profile:     { opacity: 0.4, leftContent: 'radar' as const, rightContent: 'stats' as const },
   onboarding:  { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'stats' as const },
+  parent:      { opacity: 0.3, leftContent: 'stats' as const, rightContent: 'stats' as const },
+  admin:       { opacity: 0.2, leftContent: 'terminal' as const, rightContent: 'stats' as const },
 } as const;
 
 // ■■ Panel Curvature per Mode ■■
@@ -109,6 +119,8 @@ export const PANEL_CURVATURE_PRESETS = {
   celebration: 0.85,
   profile:     0.85,
   onboarding:  0.7,
+  parent:      0.6,
+  admin:       0.5,
 } as const;
 
 // ■■ Panel Opacity per Mode ■■
@@ -120,6 +132,8 @@ export const PANEL_OPACITY_PRESETS = {
   celebration: 1.0,
   profile:     1.0,
   onboarding:  0.8,
+  parent:      0.7,
+  admin:       0.6,
 } as const;
 
 // ■■ Status Bar Opacity per Mode ■■
@@ -131,6 +145,8 @@ export const STATUS_BAR_PRESETS = {
   celebration: { opacity: 1.0 },
   profile:     { opacity: 1.0 },
   onboarding:  { opacity: 0.6 },
+  parent:      { opacity: 0.7 },
+  admin:       { opacity: 0.5 },
 } as const;
 
 // ■■ Skin-Reactive Panel Materials (CPA2-5) ■■

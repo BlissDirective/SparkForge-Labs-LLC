@@ -28,7 +28,9 @@ export type StationMode =
   | 'game'
   | 'profile'
   | 'celebration'
-  | 'onboarding';
+  | 'onboarding'
+  | 'parent'
+  | 'admin';
 
 export interface StationModeState {
   mode: StationMode;
@@ -110,6 +112,8 @@ export function useStationMode(): StationModeState & {
     if (gameActive) return 'game';
     if (!pathname) return 'dashboard';
     if (pathname.startsWith('/onboarding')) return 'onboarding';
+    if (pathname.startsWith('/admin')) return 'admin';
+    if (pathname.startsWith('/parent')) return 'parent';
     if (pathname.startsWith('/profile')) return 'profile';
     if (pathname === '/labs') return 'labmap';
     if (pathname.startsWith('/labs/')) return 'lab';
@@ -266,6 +270,36 @@ export function useStationMode(): StationModeState & {
           frameDimmed: false,
           activeLabId: null,
           activeLabColor: DEFAULT_LED_COLOR,
+          activeLabName: '',
+          ...cpa,
+        };
+      case 'parent':
+        // Stage 8: Parent dashboard — subtle cockpit, focus on HTML content
+        return {
+          mode: 'parent',
+          ledColor: '#FFAA44', // Amber accent for parent context
+          bgIntensity: 0.12,
+          particleCount: 150,
+          particleSpeed: 0.25,
+          frameGlow: 0.35,
+          frameDimmed: false,
+          activeLabId: null,
+          activeLabColor: '#FFAA44',
+          activeLabName: '',
+          ...cpa,
+        };
+      case 'admin':
+        // Stage 9: Admin content review — minimal cockpit, terminal aesthetic
+        return {
+          mode: 'admin',
+          ledColor: '#00FF88', // Green accent for admin/ops context
+          bgIntensity: 0.08,
+          particleCount: 100,
+          particleSpeed: 0.2,
+          frameGlow: 0.25,
+          frameDimmed: false,
+          activeLabId: null,
+          activeLabColor: '#00FF88',
           activeLabName: '',
           ...cpa,
         };
