@@ -467,7 +467,7 @@ export function PredictionMarketGame() {
 | Age-band content | ✅ BAND_ORDER filter + clueC | ✅ BAND_ORDER filter + analysisC |
 | ARIA labels | ✅ on real/fake buttons | ✅ on vote buttons |
 | GameShell integration | ✅ worldNumber=6 | ✅ worldNumber=10 |
-| Store usage | ✅ addScore, nextRound, completeGame | ✅ addScore, nextRound, completeGame |
+| Store usage | ✅ updateScore, advanceRound, completeGame | ✅ updateScore, advanceRound, completeGame |
 | Motion | ✅ AnimatePresence, rotateY flip | ✅ AnimatePresence, bar animations |
 | Unique mechanic | ✅ 12 rounds, 4 content types, score tracker | ✅ 3-way voting, mock results bars, expert analysis toggle |
 | Content depth | ✅ 12 rounds (text/headline/review/social) | ✅ 8 predictions with time horizons |
