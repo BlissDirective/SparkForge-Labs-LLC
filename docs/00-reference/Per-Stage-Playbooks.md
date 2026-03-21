@@ -69,6 +69,56 @@
 
 ---
 
+## Stage 3-Hero: Hero Animation (8-Phase Cinematic)
+
+**Source:** `HERO_ANIMATION_v3FINAL_PartA.md` + `PartB.md` (in `docs/stage3-auth-layout/`)
+**Reference:** `SparkForge_Hero_Page_Animation_v2.0.md` + `Implementation_Plan_Hero_Page_Animation_v2.0.md` (in `docs/00-reference/`)
+**Prerequisites:** Stage 3 complete (StationFrame shell + CrystalShatter exist)
+**Hard Stops:** HS-5 (visual verification after Part B)
+**Parts:** 2
+**Decisions:** OD-1 (Audio Default), OD-2 (Fast-Forward Scrub), OD-3 (Skip Intro Toggle), OD-4 (WebGPU Compute Shaders)
+
+**Part A (Infrastructure):** Store updates (uiStore +skipIntroAnimation, deviceStore +gpuTier/stripeCount), webgpuDetection.ts, 4 shader files (crystallineLogo.vert/.frag, electricVeins.frag, voronoiShatter.comp), voronoiFracture.ts, heroSplines.ts. Packages: `three-bvh-csg`, `three-mesh-bvh`, `troika-three-text`.
+
+**Part B (Visual + Audio):** heroParticleCompute.ts (TSL compute kernel, 1B+ lifetime particles), heroParticleRender.ts (SDF billboard quads), heroAudio.ts (Tone.js 8-phase audio timeline), useHeroAnimation.ts (lifecycle hook), HeroAnimation.tsx (master GSAP orchestrator, 549 lines). CrystalShatter.tsx archived to `_SUPERSEDED/`.
+
+**Key Architecture:**
+- 8-phase GSAP timeline: void → assembly → showcase → surge → shatter → regroup → materialize → online (19s total)
+- WebGPU compute particles (10M simultaneous, 1B+ lifetime) with WebGL2/CSS fallback
+- Seamless handoff: animation's final frame IS the cockpit's first interactive frame (CPA2-3)
+- Skip: First visit always plays full. Settings toggle available. `prefers-reduced-motion` respected.
+
+**3D files created/modified:** HeroAnimation.tsx, heroParticleCompute.ts, heroParticleRender.ts, voronoiFracture.ts, heroSplines.ts, heroAudio.ts, useHeroAnimation.ts, webgpuDetection.ts, 4 shader files
+**Tag:** `git tag -a v0.3.1 -m "Stage 3-Hero complete: 8-phase cinematic hero animation"`
+
+---
+
+## Stage 3-Cockpit: 3D Panoramic Cockpit Architecture (CPA v2.0, 20M Upgrade)
+
+**Source:** `COCKPIT_CPA2_v3FINAL_PartA.md` + `PartB.md` (in `docs/stage3-auth-layout/`)
+**Reference:** `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` + `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md` (in `docs/00-reference/`)
+**Prerequisites:** Stage 3-Hero complete (HeroAnimation + CockpitCanvas foundation)
+**Hard Stops:** HS-5, HS-9 (hero-to-cockpit handoff verification)
+**Parts:** 2
+**Decisions:** CPA2-1 through CPA2-12
+
+**Part A (Canvas + Shell):** CockpitCanvas.tsx (single persistent R3F Canvas, CPA2-1), CameraSystem.tsx (unified camera), CockpitPanels.tsx (2M tris), SidePanels.tsx (1.5M), LEDRim.tsx (200K), HolographicHUD.tsx (500K), StatusBar3D.tsx (500K), CockpitStructuralDetail.tsx (1.5M), CockpitFloor3D.tsx (500K). StationFrame.tsx + SpatialDashboard.tsx refactored to thin wrappers. cockpitStore.ts created.
+
+**Part B (Spatial + Audio):** HolographicLabMap.tsx (1M), LabStructure3D (3M, 300K×10 labs), InteractiveConsole3D (2M, 500K×4), AmbientNPCs (1.5M, 187K×8), DynamicEnvironment (3M), VolumetricFog3D (500K), CeremonyFX (500K), WormholeTransition (300K), MiniMapOverlay3D (250K), CockpitSkinManager, AuroraBackground (50K), AmbientParticles (200K), cockpitAudio.ts + useCockpitAudio.ts.
+
+**Key Architecture:**
+- Single persistent R3F Canvas at z-index: 0 (CPA2-1) — wraps entire app
+- WebGPU primary renderer with WebGL2 auto-fallback (CPA2-2)
+- 20M triangle budget (desktop), 10M (tablet), 0 (mobile — CSS fallback)
+- Hero → cockpit seamless handoff (CPA2-3): final animation frame IS first cockpit frame
+- 5 cockpit skins (default, nebula, ocean, crystal, grid) — unlock-gated
+- Spatial audio zones with Tone.js Panner3D (CPA2-8)
+
+**Total cockpit triangles:** ~19,000,000 (1M headroom on 20M budget)
+**Tag:** `git tag -a v0.3.2 -m "Stage 3-Cockpit complete: 20M 3D Panoramic Cockpit"`
+
+---
+
 ## Stage 4: Core Pages & Lab Reconfiguration
 
 **Source:** PART1+3 (v2) + Part2A/B (v3-FINAL)

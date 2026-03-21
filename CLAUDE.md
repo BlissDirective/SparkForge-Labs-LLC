@@ -2,8 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.7 | **Date:** March 20, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.6 (March 19, 2026) — 20M cockpit upgrade: unified CockpitCanvas (CPA2-1/CPA2-3 implemented), 13 components upgraded + 8 new components + audio system, deviceStore 20M/10M budgets, system LOD tier uncapped, cockpitStore heroPhase added.
+**Version:** 5.8 | **Date:** March 20, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.7 (March 20, 2026) — Added Hero Animation (Phases 5A–5B) and Cockpit CPA2 (Phases 5C–5D) to BUILD EXECUTION PLAN. Created 4 new stage docs (HERO_ANIMATION_v3FINAL_PartA/B, COCKPIT_CPA2_v3FINAL_PartA/B). Updated phase count from 26 to 30. Added HS-9 (hero-cockpit handoff verification). Updated Per-Stage-Playbooks, Document Hierarchy, and visual checklists.
 
 ---
 
@@ -83,6 +83,7 @@ A hard stop means: **STOP ALL WORK. Output a clear status message. Wait for the 
 | HS-6 | Build failure after 2 auto-fix attempts | Any time | "HARD STOP: Build is failing and I've exhausted auto-fix attempts. Here's the error: [error]. Here's what I've tried: [attempts]. Please advise." |
 | HS-7 | Supabase SQL execution | Stage 2 Part 1 (DB schema) | "HARD STOP: Please run the following SQL blocks in your Supabase SQL Editor in order. Reply 'done' when complete." |
 | HS-8 | GLB/3D asset creation | Stage 6B (Pet Trainer) | "SOFT NOTE: Pet Trainer will use procedural fallback (orb) until GLB assets are placed in `public/models/pets/`. This is non-blocking — game is fully playable." |
+| HS-9 | Hero-to-Cockpit handoff verification | After Phase 5D (Cockpit Architecture Part 2) | "HARD STOP: Hero Animation + Cockpit Architecture complete. Please verify: (1) 8-phase hero animation plays on first visit, (2) Fast-forward (click/Enter/Space) accelerates to 4x, (3) Skip toggle works in Settings, (4) Hero→cockpit handoff is seamless (no canvas swap, no flash), (5) Cockpit spatial dashboard renders with holographic lab map, (6) Lab entry wormhole transition works, (7) Mobile shows CSS fallback (no R3F). Reply 'approved' to continue to Stage 4." |
 
 ### Escalation Rules
 
@@ -106,8 +107,10 @@ Claude Code should reference these documents in this priority order:
 | 5 | **Master Implementation Guide v3.2** | `docs/00-reference/` | Stage overviews + file lists |
 | 6 | **Decision Lock Checkpoints 1-3** | `docs/01-decisions/` | 64 locked decisions (48 core + 4 OD + 12 CPA2) — decisions embedded in stage docs |
 | 7 | **CPA v2.0 (Cockpit Architecture)** | `docs/00-reference/` | 3D Panoramic Cockpit full spec, CPA2 decisions, triangle budgets (absorbs Visual Enhancement Concept v2) |
+| 7a | **Cockpit CPA2 Stage Docs** | `docs/stage3-auth-layout/` | `COCKPIT_CPA2_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5C–5D |
 | 8 | **Hero Animation v2.0** | `docs/00-reference/` | 8-phase cinematic spec + implementation plan |
-| 9 | **Per-Stage Playbooks** | `docs/00-reference/` | Full build playbooks for all 10 stages (extracted from CLAUDE.md Section 5) |
+| 8a | **Hero Animation Stage Docs** | `docs/stage3-auth-layout/` | `HERO_ANIMATION_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5A–5B |
+| 9 | **Per-Stage Playbooks** | `docs/00-reference/` | Full build playbooks for all stages including Hero + Cockpit (extracted from CLAUDE.md Section 5) |
 | 10 | **3D Component Registry** | `docs/00-reference/` | 60+ component registry with tiers/budgets (extracted from CLAUDE.md Section 9) |
 | 11 | **Known Compat Notes** | `docs/00-reference/` | Version-sensitive package flags |
 | 12 | **Testing Guide** | `TESTING.md` (repo root) | Testing pyramid, API/component/E2E tests, pre-deploy checklist |
@@ -248,7 +251,7 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 
 ## 4. BUILD EXECUTION PLAN
 
-### Implementation Order (26 Phases)
+### Implementation Order (30 Phases)
 
 Follow this EXACT order. Never skip ahead.
 
@@ -259,6 +262,10 @@ Follow this EXACT order. Never skip ahead.
 | 3 | Stage 2 Parts 1-4 | STAGE2_Database_API_v2_PART1-4 | No | HS-1, HS-7 |
 | 4 | Stage 3 Parts 1-2 | STAGE3_Auth_Layout_Shell_v2_PART1-2 | No | — |
 | 5 | Stage 3 Part 3 | STAGE3_Part3A/B_v3FINAL | YES | — |
+| **5A** | **Hero Animation Part 1** | **HERO_ANIMATION_v3FINAL_PartA** (stores, infrastructure, shaders) | **YES** | — |
+| **5B** | **Hero Animation Part 2** | **HERO_ANIMATION_v3FINAL_PartB** (particle system, audio, orchestrator) | **YES** | HS-5 |
+| **5C** | **Cockpit Architecture Part 1** | **COCKPIT_CPA2_v3FINAL_PartA** (CockpitCanvas, CameraSystem, panel geometry) | **YES** | — |
+| **5D** | **Cockpit Architecture Part 2** | **COCKPIT_CPA2_v3FINAL_PartB** (spatial dashboard, HUD, transitions, audio, polish) | **YES** | HS-5, HS-9 |
 | 6 | Stage 4 Parts 1+3 | STAGE4_Core_Pages_v2_PART1+3 | No | — |
 | 7 | Stage 4 Part 2 | STAGE4_Part2_v3FINAL_A/B | YES | — |
 | 8 | Stage 5 Part 1 | STAGE5_Gamification_Profile_PART1 | No | — |
@@ -280,6 +287,44 @@ Follow this EXACT order. Never skip ahead.
 | 24 | Stage 8 Part 3 | STAGE8_P3_v3FINAL_A/B/C | YES | — |
 | 25 | Stage 9 Parts 1-3 | STAGE9_Content_Agent_v2_PART1-3 | No | HS-3 |
 | 26 | Stage 10 Parts 1-2 | STAGE10_Polish_Deploy_v2_PART1-2 | No | HS-4 |
+
+#### Phase 5A–5B: Hero Animation (after Stage 3 Part 3)
+
+The Hero Animation replaces `CrystalShatter.tsx` with an 8-phase cinematic sequence. It must be built **immediately after Stage 3 Part 3** because:
+1. Stage 3 Part 3 creates the StationFrame shell and CrystalShatter — Hero Animation replaces CrystalShatter
+2. The unified `CockpitCanvas` (CPA2-1) is established here, which ALL subsequent stages render inside
+3. Stage 4+ pages depend on the cockpit wrapper being in place
+
+**Phase 5A — Hero Animation Part 1: Stores, Infrastructure & Shaders**
+- **Source:** `HERO_ANIMATION_v3FINAL_PartA.md` + `Implementation_Plan_Hero_Page_Animation_v2.0.md` (Phases A–C)
+- **Files created:** `webgpuDetection.ts`, `crystallineLogo.vert`, `crystallineLogo.frag`, `electricVeins.frag`, `voronoiShatter.comp`, `voronoiFracture.ts`, `heroSplines.ts`
+- **Files modified:** `uiStore.ts` (+skipIntroAnimation), `deviceStore.ts` (+gpuTier, +stripeCount)
+- **Packages:** `three-bvh-csg`, `three-mesh-bvh`, `troika-three-text`
+
+**Phase 5B — Hero Animation Part 2: Particles, Audio & Orchestrator**
+- **Source:** `HERO_ANIMATION_v3FINAL_PartB.md` + `Implementation_Plan_Hero_Page_Animation_v2.0.md` (Phases B, D–E)
+- **Files created:** `heroParticleCompute.ts`, `heroParticleRender.ts`, `heroAudio.ts`, `useHeroAnimation.ts`, `HeroAnimation.tsx`
+- **Archives:** `CrystalShatter.tsx` → `src/components/3d/_SUPERSEDED/` (Decision 8.1: CrystalHero.tsx retained)
+- **Hard Stop:** HS-5 — Visual verification of 8-phase hero animation sequence
+
+#### Phase 5C–5D: 3D Panoramic Cockpit Architecture (CPA v2.0)
+
+The Cockpit Architecture transforms the StationFrame shell into a full 3D command bridge. It must follow Hero Animation because:
+1. CPA2-3 (Seamless Handoff) requires hero animation's final frame to transition into the live cockpit
+2. `CockpitCanvas.tsx` (created in 5A/5B) is the single persistent canvas that cockpit geometry renders into
+3. The 20M triangle budget cockpit components need the canvas + camera system in place
+
+**Phase 5C — Cockpit Architecture Part 1: Canvas, Camera & Shell Geometry**
+- **Source:** `COCKPIT_CPA2_v3FINAL_PartA.md` + `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` (Sections 2–4)
+- **Files created/upgraded:** `CockpitCanvas.tsx`, `CameraSystem.tsx`, `CockpitPanels.tsx` (2M tris), `SidePanels.tsx` (1.5M), `LEDRim.tsx` (200K), `HolographicHUD.tsx` (500K), `StatusBar3D.tsx` (500K), `CockpitStructuralDetail.tsx` (1.5M), `CockpitFloor3D.tsx` (500K)
+- **Files modified:** `StationFrame.tsx` (→ thin wrapper), `SpatialDashboard.tsx` (→ thin wrapper)
+- **Store updates:** `cockpitStore.ts` (spatial nav, skins, heroPhase), `cockpitConfig.ts` (TRIANGLE_BUDGET_V2)
+
+**Phase 5D — Cockpit Architecture Part 2: Spatial Content, Transitions & Audio**
+- **Source:** `COCKPIT_CPA2_v3FINAL_PartB.md` + `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` (Sections 5–17)
+- **Files created/upgraded:** `HolographicLabMap.tsx` (1M), `InteractiveConsole3D.tsx` (2M), `AmbientNPCs.tsx` (1.5M), `DynamicEnvironment.tsx` (3M), `VolumetricFog3D.tsx` (500K), `CeremonyFX.tsx` (500K), `WormholeTransition.tsx` (300K), `MiniMapOverlay3D.tsx` (250K), `CockpitSkinManager.tsx`, `CockpitAudioEngine.ts`, `useCockpitAudio.ts`
+- **Hard Stop:** HS-9 — Visual verification of full cockpit (hero → cockpit handoff, spatial dashboard, lab transitions)
+- **Hard Stop:** HS-5 — Stage-level visual checkpoint
 
 ### Per-Part Workflow
 
@@ -322,6 +367,8 @@ Reply 'approved' to continue to Stage [N+1], or describe issues.
 | 1 | Dev server starts, no errors in console |
 | 2 | API routes respond (test /api/health), Supabase connected |
 | 3 | Signup → Login → Dashboard loads with sidebar. Station frame visible (Part 3). |
+| 3-Hero | 8-phase hero animation plays (19s). Fast-forward works (4x). Skip toggle in Settings. WebGPU/WebGL2/CSS fallback chain. Audio plays (mutable). `prefers-reduced-motion` skips to cockpit. |
+| 3-Cockpit | Cockpit renders at 20M tris (desktop). Hero→cockpit seamless handoff (CPA2-3). Spatial dashboard with holographic lab map. 4 consoles, NPCs, dynamic environment. Wormhole transitions. Mobile CSS fallback. |
 | 4 | Dashboard home, Labs map, Profile page. Lab reconfiguration transitions work. |
 | 5 | XP popup, streak fire, badge displays, trophy room. 3D particle effects on desktop. |
 | 6 | All 5 flagship games playable: full phase cycle (welcome→learn→play→complete). 3D visible on desktop. |
@@ -356,6 +403,8 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 | 1 Foundation | v2 PART1-2 | 2 | — | v0.1.0 |
 | 2 Database/API | v2 PART1-4 | 4 | HS-1, HS-7 | v0.2.0 |
 | 3 Auth/Layout/Frame | v2 P1-2 + v3 P3A/B | 4 | HS-5 | v0.3.0 |
+| **3-Hero** Hero Animation | HERO_ANIMATION_v3FINAL_A/B | 2 | HS-5 | v0.3.1 |
+| **3-Cockpit** Cockpit CPA2 | COCKPIT_CPA2_v3FINAL_A/B | 2 | HS-5, HS-9 | v0.3.2 |
 | 4 Core Pages/Labs | v2 P1+3 + v3 P2A/B | 4 | HS-5 | v0.4.0 |
 | 5 Gamification/FX | v2 P1 + v3 A/B/C | 4 | — | v0.5.0 |
 | 6 Flagship (5 games) | All v3-FINAL | 12 | HS-8, HS-5 | v0.6.0 |
@@ -747,5 +796,5 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-*End of CLAUDE.md v5.7 — SparkForge Autonomous Development Playbook*
-*92 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 64 decisions (48 core + 4 OD + 12 CPA2) | 14 v3-FINAL documents | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Tech Stack 8.1 APPLIED | March 20, 2026*
+*End of CLAUDE.md v5.8 — SparkForge Autonomous Development Playbook*
+*96 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 64 decisions (48 core + 4 OD + 12 CPA2) | 18 v3-FINAL documents (14 original + 4 Hero/Cockpit) | 30 build phases | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Tech Stack 8.1 APPLIED | March 20, 2026*
