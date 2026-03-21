@@ -284,25 +284,24 @@ Clicking a console opens a glassmorphic HTML overlay:
 
 ### WebGPU Auto-Detection in CockpitCanvas
 
-The `CockpitCanvas` component (defined above) must integrate WebGPU auto-detection at initialization. The detection utility from Stage 1 Part 2 Step 20h (`src/lib/3d/webgpuDetect.ts`) is called once on mount. Results are stored in Jotai atoms (`rendererTypeAtom`, `gpuTierAtom`) for global access.
+The `CockpitCanvas` component (defined above) must integrate WebGPU auto-detection at initialization. The detection utility from Hero Animation Part A (`src/lib/webgpuDetection.ts`) is called once on mount. Results are stored in the `deviceStore` (Zustand) for global access.
+
+> **FIX (March 21, 2026):** Replaced Jotai atom references (`cockpitAtoms.ts`) with `deviceStore` (Zustand). The `cockpitAtoms.ts` file was never created in any stage document. `deviceStore` already provides `gpuTier` and `setGpuTier`. Also fixed function name (`detectRendererCapability` → `detectGPUTier`) and path (`@/lib/3d/webgpuDetect` → `@/lib/webgpuDetection`) to match Hero Animation Part A.
 
 ```typescript
 // In CockpitCanvas.tsx initialization:
-import { detectRendererCapability } from '@/lib/3d/webgpuDetect';
-import { useSetAtom } from 'jotai';
-import { rendererTypeAtom, gpuTierAtom } from '@/stores/cockpitAtoms';
+import { detectGPUTier } from '@/lib/webgpuDetection';
+import { useDeviceStore } from '@/stores/deviceStore';
 
 // On mount (inside useEffect):
-const setRendererType = useSetAtom(rendererTypeAtom);
-const setGpuTier = useSetAtom(gpuTierAtom);
+const setGpuTier = useDeviceStore(s => s.setGpuTier);
 
 useEffect(() => {
-  detectRendererCapability().then(({ renderer, gpuTier }) => {
-    setRendererType(renderer);
+  detectGPUTier().then((gpuTier) => {
     setGpuTier(gpuTier);
-    console.log(`[SparkForge] Renderer: ${renderer}, GPU Tier: ${gpuTier}`);
+    console.log(`[SparkForge] GPU Tier: ${gpuTier}`);
   });
-}, []);
+}, [setGpuTier]);
 ```
 
 ### R3F Canvas Renderer Selection
@@ -336,7 +335,7 @@ All 19 GLSL shaders (listed in Stage 1 Part 2 Step 20h) are migrated **gradually
 | Phase 3 | liquidMetal, holographic, energyField | Low | Badge/gamification shaders |
 | Phase 4 | dissolveTransition, wormholeEffect, hexCluster | Low | CPA v2.0 transition shaders |
 
-**Key rule:** Both GLSL and TSL shaders work simultaneously. No big-bang migration needed. The `TSL_MIGRATION_STATUS` record in `webgpuDetect.ts` tracks which shaders have been migrated.
+**Key rule:** Both GLSL and TSL shaders work simultaneously. No big-bang migration needed. The `TSL_MIGRATION_STATUS` record in `webgpuDetection.ts` tracks which shaders have been migrated.
 
 ### Compute Shaders for Particles (Enhancement 8.2)
 

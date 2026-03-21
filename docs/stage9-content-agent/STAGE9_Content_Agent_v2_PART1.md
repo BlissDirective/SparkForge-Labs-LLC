@@ -1371,6 +1371,27 @@ git commit -m "Stage 9 Part 1: Content agent pipeline, prompts, API routes, sche
 | **ENH-9I** | Proper TypeScript interfaces for Anthropic response (no `any` types) |
 | **ENH-9J** | Consistent use of `apiSuccess`/`apiError` helpers + `createAdminClient()` |
 
+### Cockpit Integration (CPA v2.0)
+
+The admin content review page (`/admin/content`) lives under the `(dashboard)` layout and renders inside the persistent CockpitCanvas. The cockpit uses **`admin` mode** presets — a minimal cockpit treatment with a terminal/ops aesthetic:
+
+| Preset | Value | Rationale |
+|--------|-------|-----------|
+| LED color | `#00FF88` (green) | Terminal/ops accent for admin context |
+| Panel curvature | 0.5 | Further retracted — content review needs screen space |
+| Panel opacity | 0.6 | Subdued — admin UI is the focus |
+| HUD opacity | 0.06 | Near-invisible — admin doesn't need lab HUD |
+| Side panel content | `terminal` / `stats` | Terminal output left, pipeline stats right |
+| Bloom intensity | 0.25 | Minimal bloom — clean reading environment |
+| Status bar opacity | 0.5 | Low profile — shows system status, not child progress |
+| Particles | 100 @ 0.2 speed | Minimal particles — avoid distraction during review |
+
+**No action needed by developers** — `useStationMode` auto-detects `/admin/*` pathnames and applies `admin` mode presets from `cockpitConfig.ts`. The content review dashboard, approval workflow, and run history all render as HTML at z-index 10 above the cockpit.
+
+**API routes** (`/api/agent/*`) are server-side only and have no interaction with CockpitCanvas.
+
+---
+
 ### NEXT: Part 2 (9B)
 
 Admin review dashboard with content preview, bulk actions, run history tab, Frost-Prismatic styling.

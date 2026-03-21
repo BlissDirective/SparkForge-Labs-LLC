@@ -1638,5 +1638,28 @@ export function trackAgentError(stage: string, error: Error, runId?: string) {
 
 ---
 
+### Cockpit Integration (CPA v2.0)
+
+Stage 10 components interact with the CockpitCanvas in three ways:
+
+**1. Components inside `(dashboard)` layout** — AccessibilityToolbar, LoadingSkeleton
+- These render as HTML at z-index 10 above the cockpit. No special cockpit handling needed.
+- AccessibilityToolbar opens a settings panel that overlays the cockpit scene via standard z-index stacking.
+- `prefers-reduced-motion` in A11yProvider also triggers `useLOD` to return `billboard` level for all 3D, effectively disabling cockpit animations.
+
+**2. Error pages outside `(dashboard)` layout** — ErrorBoundary, not-found.tsx, OfflineBanner
+- `not-found.tsx` and `error.tsx` render at the app root level, **outside** the dashboard layout. They do NOT have CockpitCanvas.
+- ErrorBoundary wraps specific component subtrees within the dashboard and catches errors without disrupting the persistent CockpitCanvas.
+- OfflineBanner is a thin fixed-position bar at z-index 50 — renders above everything including cockpit.
+
+**3. Accessibility CSS** — globals-a11y.css
+- High contrast mode overrides surface colors but does NOT affect CockpitCanvas WebGL rendering. 3D cockpit elements retain their own materials/colors.
+- Light mode CSS overrides HTML layers only. The cockpit remains dark-mode (Frost-Prismatic) regardless of light mode CSS toggle, since R3F materials are not affected by CSS custom properties.
+- `prefers-reduced-motion: reduce` hides CSS particles and disables CSS animations. For 3D, the LOD system auto-downgrades to `billboard` tier which disables R3F animations.
+
+**No cockpit code changes needed in Stage 10.** All accessibility and error handling operates in the HTML layer above the persistent CockpitCanvas.
+
+---
+
 *End of Stage 10 Part 1 — STAGE10_Polish_Deploy_v2_PART1.md*
 *14 files | 7th store | 20 code review fixes | 12 enhancements | CPA v2.0 accessibility | Enhancement 8.5 testing | March 15, 2026*

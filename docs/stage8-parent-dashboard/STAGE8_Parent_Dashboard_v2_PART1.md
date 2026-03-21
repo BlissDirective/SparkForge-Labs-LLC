@@ -1216,4 +1216,25 @@ git commit -m "Stage 8 Part 1: Tier config, parent store, Stripe routes with gra
 
 ---
 
+### Cockpit Integration (CPA v2.0)
+
+All parent dashboard pages (`/parent`, `/parent/add-child`, `/parent/subscription`) live under the `(dashboard)` layout and render inside the persistent CockpitCanvas. The cockpit uses **`parent` mode** presets — a subtler cockpit treatment that keeps the 3D ambiance while focusing attention on the HTML content layer:
+
+| Preset | Value | Rationale |
+|--------|-------|-----------|
+| LED color | `#FFAA44` (amber) | Differentiates parent context from child blue |
+| Panel curvature | 0.6 | Slightly retracted vs dashboard's 0.85 |
+| Panel opacity | 0.7 | Visible but not prominent |
+| HUD opacity | 0.08 | Barely visible — parents don't need lab HUD |
+| Side panel content | `stats` / `stats` | Child progress stats on both panels |
+| Bloom intensity | 0.3 | Low bloom — professional feel |
+| Status bar opacity | 0.7 | Shows XP/streak for context, not dominant |
+| Particles | 150 @ 0.25 speed | Gentle ambient particles |
+
+**No action needed by developers** — `useStationMode` auto-detects `/parent/*` pathnames and applies `parent` mode presets from `cockpitConfig.ts`. The UpgradePrompt component, parent dashboard pages, and subscription flow all render as HTML at z-index 10 above the cockpit.
+
+**Mobile:** On mobile (`useIsMobile()` = true), the CockpitCanvas is not rendered. Parent pages use the standard CSS glassmorphic fallback with amber-tinted particle background.
+
+---
+
 **NEXT:** Part 2 (8B) — Parent Dashboard pages (math gate, child overview, stats, time limits, add child), Subscription page, PaywallModal

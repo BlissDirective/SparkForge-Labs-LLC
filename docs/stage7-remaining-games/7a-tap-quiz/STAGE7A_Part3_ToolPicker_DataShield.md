@@ -487,7 +487,7 @@ export function DataShieldGame() {
 | Age-band content | ✅ BAND_ORDER filter + whyC | ✅ reasonC for Band C |
 | ARIA labels | ✅ on tool buttons | ✅ on shield/share buttons |
 | GameShell integration | ✅ worldNumber=5 | ✅ worldNumber=6 |
-| Store usage | ✅ addScore, nextRound, completeGame | ✅ addScore, nextRound, completeGame |
+| Store usage | ✅ updateScore, advanceRound, completeGame | ✅ updateScore, advanceRound, completeGame |
 | Motion | ✅ AnimatePresence, motion.button | ✅ AnimatePresence, motion.button |
 | Unique mechanic | ✅ 6s timer + streak multiplier | ✅ Privacy score meter (100→0) |
 | Content depth | ✅ 6 tools, 15 tasks | ✅ 6 scenarios, 24 data points |
