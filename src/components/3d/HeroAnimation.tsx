@@ -19,7 +19,7 @@
 
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { EffectComposer, Bloom, ChromaticAberration } from '@react-three/postprocessing';
+// EffectComposer, Bloom, ChromaticAberration reserved for future post-processing passes
 import * as THREE from 'three';
 import gsap from 'gsap';
 

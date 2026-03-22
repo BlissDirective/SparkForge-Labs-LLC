@@ -1,4 +1,5 @@
-import { type Variants, type Transition } from 'framer-motion';
+// Enhancement 8.1: 'framer-motion' rebranded to 'motion' — import from 'motion/react'
+import { type Variants, type Transition } from 'motion/react';
 
 // ═══ SPRING PRESETS ═══
 export const springs = {

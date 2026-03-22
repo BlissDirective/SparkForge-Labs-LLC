@@ -1,6 +1,5 @@
 -- ════════════════════════════════════════════════════
--- SPARKFORGE INDEXES
--- Run after 001_schema.sql
+-- SPARKFORGE INDEXES (14)
 -- ════════════════════════════════════════════════════
 
 CREATE INDEX IF NOT EXISTS idx_children_parent ON children(parent_id);

@@ -181,7 +181,7 @@ function MountingArm({
   lod: LODState;
 }) {
   const sx = side === 'left' ? 1 : -1; // arm extends inward
-  const jointSegs = lod.segments;
+  const _jointSegs = lod.segments;
 
   return (
     <group>
@@ -319,7 +319,7 @@ function RadarPanel({
   const ringGroupRef = useRef<THREE.Group>(null);
 
   // Radar sweep geometry (line from center outward)
-  const sweepGeom = useMemo(() => {
+  const _sweepGeom = useMemo(() => {
     const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.95, 0, 0)];
     return new THREE.BufferGeometry().setFromPoints(points);
   }, []);

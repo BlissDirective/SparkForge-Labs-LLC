@@ -30,8 +30,11 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Testing
+# Testing (Enhancement 8.5)
 coverage/
+test-results/
+playwright-report/
+blob-report/
 
 # Vercel
 .vercel
@@ -39,3 +42,6 @@ coverage/
 # TypeScript
 *.tsbuildinfo
 next-env.d.ts
+
+# Sentry (Enhancement 8.1)
+.sentryclirc

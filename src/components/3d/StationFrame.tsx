@@ -18,7 +18,7 @@
 //   v3: Thin wrapper → CockpitCanvas (20M upgrade, CPA2-1)
 
 import { CockpitCanvas } from './CockpitCanvas';
-import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
+import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
 
 interface StationFrameProps {
   mode?: string;
@@ -61,7 +61,7 @@ export function StationFrame(props: StationFrameProps) {
   // Pass through all props to the unified CockpitCanvas
   return (
     <CockpitCanvas
-      mode={props.mode as any}
+      mode={props.mode as StationModeKey}
       ledColor={props.ledColor}
       bgIntensity={props.bgIntensity}
       activeLabColor={props.activeLabColor}

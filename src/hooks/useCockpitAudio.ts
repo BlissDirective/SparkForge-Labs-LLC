@@ -41,6 +41,8 @@ const MODE_FREQUENCIES: Record<StationMode, number> = {
   profile: 90,
   celebration: 150,
   onboarding: 70,
+  parent: 85,
+  admin: 95,
 };
 
 // ── Helper: legacy Web Audio synthesis (kept for v1 compat) ────

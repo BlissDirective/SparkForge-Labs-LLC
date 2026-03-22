@@ -7,6 +7,35 @@ export type BadgeCategory = 'progress' | 'streak' | 'lab' | 'game_master' | 'kno
 export type BadgeRarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 export type CelebrationType = 'xp' | 'badge' | 'level' | 'streak' | 'confetti';
 
+// ═══ CPA v2.0 — Cockpit Panoramic Architecture Types ═══
+export type CockpitSkin = 'default' | 'cyberpunk' | 'space' | 'underwater' | 'crystal';
+export type SpatialView = 'overview' | 'lab-focus' | 'console' | 'orbit';
+export type ConsoleType = 'xp' | 'badges' | 'streak' | 'progress';
+export type CeremonyType = 'xp' | 'badge' | 'levelUp' | 'gameComplete' | 'streakMilestone';
+export type HUDDataMode = 'minimap' | 'labfocus' | 'hidden' | 'burst' | 'stats' | 'tutorial';
+
+export interface CameraTarget {
+  position: [number, number, number];
+  lookAt: [number, number, number];
+  fov: number;
+}
+
+export interface HexClusterData {
+  left: {
+    activeLabId: number;
+    activeLabColor: string;
+    labCompletion: number;        // 0-1
+    recommendedLabId: number;
+    recommendedLabColor: string;
+  };
+  right: {
+    xpRate: number;               // XP earned per minute (rolling 5min window)
+    streakHeat: number;           // 0-1 (0 = cold, 1 = on fire)
+    alertCount: number;           // pending notifications
+    alertType: 'badge' | 'challenge' | 'social' | null;
+  };
+}
+
 export interface Parent {
   id: string;
   email: string;

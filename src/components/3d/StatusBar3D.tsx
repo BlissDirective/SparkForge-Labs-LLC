@@ -28,7 +28,7 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD, lodTorus } from '@/hooks/useLOD';
+import { useLOD, lodTorus, type LODState } from '@/hooks/useLOD';
 
 // ■■ Lab colors for 10 indicators ■■
 const LAB_COLORS = [
@@ -47,6 +47,7 @@ interface StatusBarProps {
 }
 
 // ■■ Chrome material factory ■■
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useChromeMaterial(opacity: number) {
   return useMemo(
     () =>
@@ -63,6 +64,7 @@ function useChromeMaterial(opacity: number) {
 }
 
 // ■■ Emissive material factory ■■
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useEmissiveMaterial(color: string, intensity: number, opacity: number) {
   return useMemo(
     () =>
@@ -176,7 +178,7 @@ function XPSpeedometer({
     [segments, arcStart, arcTotal, xpRatio]
   );
 
-  useFrame((_state, delta) => {
+  useFrame((_state, _delta) => {
     currentRatio.current = THREE.MathUtils.lerp(currentRatio.current, xpRatio, 0.04);
 
     // Rotate needle to match XP ratio
@@ -289,7 +291,7 @@ function XPSpeedometer({
 
       {/* Chrome bezel ring around speedometer */}
       <mesh position={[0, 0, 0.01]}>
-        <torusGeometry args={lodTorus({ segments, tubularSegments: segments * 2 } as any, 0.98, 0.035)} />
+        <torusGeometry args={lodTorus({ segments, tubularSegments: segments * 2 } as unknown as LODState, 0.98, 0.035)} />
         <meshStandardMaterial
           color="#3a3a4a"
           metalness={0.95}
@@ -692,7 +694,7 @@ export function StatusBar3D({
   xp,
   xpMax,
   streak,
-  sessionTime,
+  sessionTime: _sessionTime,
   labProgress,
   labColor,
   opacity,
