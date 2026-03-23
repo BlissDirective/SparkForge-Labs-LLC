@@ -2,7 +2,7 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-22 (Stage 1 Complete)
+## Last Updated: 2026-03-23 (D3D Overhaul Plan Complete)
 
 ---
 
@@ -77,6 +77,41 @@ _(none)_
 - `src/types/index.ts`: Added missing CPA v2.0 types (CockpitSkin, SpatialView, ConsoleType, CeremonyType, HUDDataMode, CameraTarget, HexClusterData).
 - `src/lib/animations.ts`: Fixed import from `framer-motion` to `motion/react` per Enhancement 8.1.
 - Created 5 missing files: `src/stores/cockpitAtoms.ts`, `src/lib/3d/webgpuDetect.ts`, `src/hooks/useAdaptiveCockpit.ts`, `vitest.config.ts`, `tests/setup.ts`.
+
+### Desktop-First 3D Overhaul (D3D) — March 23, 2026
+
+**Status:** PLAN COMPLETE (4 parts, 20 decision locks, 13 files)
+**Branch:** `claude/3d-immersive-overhaul-plan-JyUZL`
+
+| Part | Commit | Files | Decision Locks | Status |
+|------|--------|-------|----------------|--------|
+| A — Foundation Cleanup | `db18293` | 1 doc | D3D-1 through D3D-9 (9) | COMMITTED |
+| B — Single Canvas & Iris | `93cd13e` | 4 src + 1 doc | D3D-B1 through D3D-B6 (6) | COMMITTED |
+| C — Post-FX & Audio | `d923968` | 4 src + 1 doc | D3D-C1 through D3D-C5 (5) | COMMITTED |
+| D — Doc Updates & Roadmap | — | 1 doc | 0 | IN PROGRESS |
+
+**Source files created (8):**
+- `src/stores/sceneStore.ts` — Centralized scene management
+- `src/components/3d/SceneRouter.tsx` — Scene group visibility controller
+- `src/components/3d/MechanicalIris.tsx` — Signature iris transition (530 lines)
+- `src/hooks/useIrisTransition.ts` — Transition orchestration hook
+- `src/components/3d/PostProcessingStack.tsx` — 7 always-on effects
+- `src/lib/audio/irisAudio.ts` — Iris procedural audio
+- `src/hooks/useParallaxMouse.ts` — Mouse parallax tracking
+- `src/hooks/useInteractiveSurface.ts` — Hover-reactive surfaces
+
+**Modified files (3):**
+- `src/components/3d/CockpitCanvas.tsx` — Persistent canvas, SceneRouter, removed CSS fallbacks
+- `src/components/game/GameShell.tsx` — sceneStore integration
+- `src/components/3d/CameraSystem.tsx` — Game camera mode
+
+**Key architecture changes:**
+- Single persistent R3F Canvas (never unmounts, even during gameplay)
+- Mechanical iris transition replaces canvas unmount pattern
+- sceneStore centralizes visibility (replaces fragmented uiStore.gameActive + cockpitStore.heroPhase)
+- 7 post-processing effects always-on with scene-reactive multipliers
+- Procedural iris audio (Web Audio API)
+- Mouse parallax + interactive surface hooks
 
 ### Code Review Notes
 _(none yet)_
