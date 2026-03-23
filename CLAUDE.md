@@ -2,8 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.8 | **Date:** March 20, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.7 (March 20, 2026) — Added Hero Animation (Phases 5A–5B) and Cockpit CPA2 (Phases 5C–5D) to BUILD EXECUTION PLAN. Created 4 new stage docs (HERO_ANIMATION_v3FINAL_PartA/B, COCKPIT_CPA2_v3FINAL_PartA/B). Updated phase count from 26 to 30. Added HS-9 (hero-cockpit handoff verification). Updated Per-Stage-Playbooks, Document Hierarchy, and visual checklists.
+**Version:** 5.9 | **Date:** March 23, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.8 (March 20, 2026) — Added Login 3D Enhancement (Phases 5E–5F) to BUILD EXECUTION PLAN. Created 2 new stage docs (LOGIN_3D_v3FINAL_PartA/B). Added Demo Login feature (1-hour timed session). Updated phase count from 30 to 32. Added HS-10 (login 3D visual verification). Updated Per-Stage-Playbooks, Document Hierarchy, and visual checklists.
 
 ---
 
@@ -34,8 +34,8 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 ### Current State
 
-- **Documentation:** COMPLETE — 92 active project files
-- **v3-FINAL patches:** 14 documents (34 part files), 64 locked decisions (48 core + 4 OD + 12 CPA2)
+- **Documentation:** COMPLETE — 94 active project files
+- **v3-FINAL patches:** 16 documents (38 part files), 64 locked decisions (48 core + 4 OD + 12 CPA2)
 - **Games:** 35 total — 6 Flagship (full 3D, 10M tris), 9 FL-Lite (immersive 3D, 2M tris), 20 Standard (themed 3D, 500K tris)
 - **Code written:** ~70% — Stages 1-7 code-complete, audited
 
@@ -84,6 +84,7 @@ A hard stop means: **STOP ALL WORK. Output a clear status message. Wait for the 
 | HS-7 | Supabase SQL execution | Stage 2 Part 1 (DB schema) | "HARD STOP: Please run the following SQL blocks in your Supabase SQL Editor in order. Reply 'done' when complete." |
 | HS-8 | GLB/3D asset creation | Stage 6B (Pet Trainer) | "SOFT NOTE: Pet Trainer will use procedural fallback (orb) until GLB assets are placed in `public/models/pets/`. This is non-blocking — game is fully playable." |
 | HS-9 | Hero-to-Cockpit handoff verification | After Phase 5D (Cockpit Architecture Part 2) | "HARD STOP: Hero Animation + Cockpit Architecture complete. Please verify: (1) 8-phase hero animation plays on first visit, (2) Fast-forward (click/Enter/Space) accelerates to 4x, (3) Skip toggle works in Settings, (4) Hero→cockpit handoff is seamless (no canvas swap, no flash), (5) Cockpit spatial dashboard renders with holographic lab map, (6) Lab entry wormhole transition works, (7) Mobile shows CSS fallback (no R3F). Reply 'approved' to continue to Stage 4." |
+| HS-10 | Login 3D + Demo Login verification | After Phase 5F (Login Enhancement Part B) | "HARD STOP: Login 3D Enhancement complete. Please verify: (1) 3D crystal portal renders behind login card on desktop, (2) Chrome bezel glow pulses on login card, (3) Demo Login button visible with confirmation flow, (4) Demo starts and redirects to /home with hero animation, (5) Demo banner shows countdown timer at top of dashboard, (6) Banner turns red/urgent when <5 min remain, (7) Expired modal appears when timer hits 0:00, (8) Mobile shows CSS particle fallback (no 3D canvas), (9) ?demo=expired shows amber notification on login page. Reply 'approved' to continue to Stage 4." |
 
 ### Escalation Rules
 
@@ -110,7 +111,8 @@ Claude Code should reference these documents in this priority order:
 | 7a | **Cockpit CPA2 Stage Docs** | `docs/stage3-auth-layout/` | `COCKPIT_CPA2_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5C–5D |
 | 8 | **Hero Animation v2.0** | `docs/00-reference/` | 8-phase cinematic spec + implementation plan |
 | 8a | **Hero Animation Stage Docs** | `docs/stage3-auth-layout/` | `HERO_ANIMATION_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5A–5B |
-| 9 | **Per-Stage Playbooks** | `docs/00-reference/` | Full build playbooks for all stages including Hero + Cockpit (extracted from CLAUDE.md Section 5) |
+| 8b | **Login 3D Enhancement Stage Docs** | `docs/stage3-auth-layout/` | `LOGIN_3D_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5E–5F (3D login portal, Demo Login feature) |
+| 9 | **Per-Stage Playbooks** | `docs/00-reference/` | Full build playbooks for all stages including Hero + Cockpit + Login 3D (extracted from CLAUDE.md Section 5) |
 | 10 | **3D Component Registry** | `docs/00-reference/` | 60+ component registry with tiers/budgets (extracted from CLAUDE.md Section 9) |
 | 11 | **Known Compat Notes** | `docs/00-reference/` | Version-sensitive package flags |
 | 12 | **Testing Guide** | `TESTING.md` (repo root) | Testing pyramid, API/component/E2E tests, pre-deploy checklist |
@@ -251,7 +253,7 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 
 ## 4. BUILD EXECUTION PLAN
 
-### Implementation Order (30 Phases)
+### Implementation Order (32 Phases)
 
 Follow this EXACT order. Never skip ahead.
 
@@ -266,6 +268,8 @@ Follow this EXACT order. Never skip ahead.
 | **5B** | **Hero Animation Part 2** | **HERO_ANIMATION_v3FINAL_PartB** (particle system, audio, orchestrator) | **YES** | HS-5 |
 | **5C** | **Cockpit Architecture Part 1** | **COCKPIT_CPA2_v3FINAL_PartA** (CockpitCanvas, CameraSystem, panel geometry) | **YES** | — |
 | **5D** | **Cockpit Architecture Part 2** | **COCKPIT_CPA2_v3FINAL_PartB** (spatial dashboard, HUD, transitions, audio, polish) | **YES** | HS-5, HS-9 |
+| **5E** | **Login 3D Enhancement Part 1** | **LOGIN_3D_v3FINAL_PartA** (3D portal scene, particles, demo session infra, auth store, auth layout) | **YES** | — |
+| **5F** | **Login 3D Enhancement Part 2** | **LOGIN_3D_v3FINAL_PartB** (enhanced login page, demo guard, demo banner, AuthProvider integration) | **YES** | HS-5, HS-10 |
 | 6 | Stage 4 Parts 1+3 | STAGE4_Core_Pages_v2_PART1+3 | No | — |
 | 7 | Stage 4 Part 2 | STAGE4_Part2_v3FINAL_A/B | YES | — |
 | 8 | Stage 5 Part 1 | STAGE5_Gamification_Profile_PART1 | No | — |
@@ -326,6 +330,25 @@ The Cockpit Architecture transforms the StationFrame shell into a full 3D comman
 - **Hard Stop:** HS-9 — Visual verification of full cockpit (hero → cockpit handoff, spatial dashboard, lab transitions)
 - **Hard Stop:** HS-5 — Stage-level visual checkpoint
 
+#### Phase 5E–5F: Login 3D Enhancement + Demo Login (after Cockpit Architecture)
+
+The Login 3D Enhancement transforms the flat login/signup pages into an immersive 3D laboratory entrance with a crystal portal, animated particles, and chrome-bezel UI. It also adds a **Demo Login** feature allowing users to explore the full platform for 1 hour without creating an account. It must follow Cockpit Architecture because:
+1. Demo users are redirected to `/home` which triggers the Hero Animation and Cockpit — these must be in place
+2. The `DemoGuard` component wraps the dashboard layout which depends on `StationFrame` and `CockpitCanvas`
+3. The Demo Login banner sits above the cockpit z-index layer
+
+**Phase 5E — Login 3D Enhancement Part 1: 3D Scene, Demo Infrastructure & Auth Layout**
+- **Source:** `LOGIN_3D_v3FINAL_PartA.md`
+- **Files created:** `src/lib/demo-session.ts`, `src/components/3d/LoginPortal3D.tsx`, `src/components/3d/LoginParticles3D.tsx`, `src/components/auth/DemoLoginButton.tsx`, `src/components/auth/DemoSessionBanner.tsx`, `src/app/api/auth/demo/route.ts`
+- **Files modified:** `src/stores/authStore.ts` (+isDemoMode, +demoSession, +startDemoSession, +endDemoSession, +checkDemoStatus), `src/app/(auth)/layout.tsx` (REPLACE — add 3D canvas layer)
+
+**Phase 5F — Login 3D Enhancement Part 2: Enhanced Login, Demo Guards & Integration**
+- **Source:** `LOGIN_3D_v3FINAL_PartB.md`
+- **Files created:** `src/hooks/useDemoSession.ts`, `src/components/auth/DemoGuard.tsx`, `src/components/auth/LoginFormCard.tsx`
+- **Files modified:** `src/app/(auth)/login/page.tsx` (REPLACE — enhanced with Demo Login button), `src/components/providers/AuthProvider.tsx` (MODIFY — demo session hydration), `src/app/(dashboard)/layout.tsx` (MODIFY — add DemoGuard + DemoSessionBanner)
+- **Hard Stop:** HS-10 — Visual verification of 3D login, demo session flow, expiry modal
+- **Hard Stop:** HS-5 — Stage-level visual checkpoint
+
 ### Per-Part Workflow
 
 For EACH part listed above:
@@ -369,6 +392,7 @@ Reply 'approved' to continue to Stage [N+1], or describe issues.
 | 3 | Signup → Login → Dashboard loads with sidebar. Station frame visible (Part 3). |
 | 3-Hero | 8-phase hero animation plays (19s). Fast-forward works (4x). Skip toggle in Settings. WebGPU/WebGL2/CSS fallback chain. Audio plays (mutable). `prefers-reduced-motion` skips to cockpit. |
 | 3-Cockpit | Cockpit renders at 20M tris (desktop). Hero→cockpit seamless handoff (CPA2-3). Spatial dashboard with holographic lab map. 4 consoles, NPCs, dynamic environment. Wormhole transitions. Mobile CSS fallback. |
+| 3-Login3D | 3D crystal portal behind login card (desktop). Chrome bezel glow pulses. Demo Login button with confirmation. Demo → /home with hero animation. Timer banner at dashboard top. Urgent mode at <5min. Expiry modal at 0:00. Mobile CSS particles. ?demo=expired amber notice. |
 | 4 | Dashboard home, Labs map, Profile page. Lab reconfiguration transitions work. |
 | 5 | XP popup, streak fire, badge displays, trophy room. 3D particle effects on desktop. |
 | 6 | All 5 flagship games playable: full phase cycle (welcome→learn→play→complete). 3D visible on desktop. |
@@ -405,6 +429,7 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 | 3 Auth/Layout/Frame | v2 P1-2 + v3 P3A/B | 4 | HS-5 | v0.3.0 |
 | **3-Hero** Hero Animation | HERO_ANIMATION_v3FINAL_A/B | 2 | HS-5 | v0.3.1 |
 | **3-Cockpit** Cockpit CPA2 | COCKPIT_CPA2_v3FINAL_A/B | 2 | HS-5, HS-9 | v0.3.2 |
+| **3-Login3D** Login 3D + Demo | LOGIN_3D_v3FINAL_A/B | 2 | HS-5, HS-10 | v0.3.3 |
 | 4 Core Pages/Labs | v2 P1+3 + v3 P2A/B | 4 | HS-5 | v0.4.0 |
 | 5 Gamification/FX | v2 P1 + v3 A/B/C | 4 | — | v0.5.0 |
 | 6 Flagship (5 games) | All v3-FINAL | 12 | HS-8, HS-5 | v0.6.0 |
@@ -796,5 +821,5 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-*End of CLAUDE.md v5.8 — SparkForge Autonomous Development Playbook*
-*96 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 64 decisions (48 core + 4 OD + 12 CPA2) | 18 v3-FINAL documents (14 original + 4 Hero/Cockpit) | 30 build phases | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Tech Stack 8.1 APPLIED | March 20, 2026*
+*End of CLAUDE.md v5.9 — SparkForge Autonomous Development Playbook*
+*98 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 64 decisions (48 core + 4 OD + 12 CPA2) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | Tech Stack 8.1 APPLIED | March 23, 2026*
