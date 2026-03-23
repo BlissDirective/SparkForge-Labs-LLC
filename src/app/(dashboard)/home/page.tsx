@@ -1,7 +1,7 @@
 'use client';
 
 import { useChildStore } from '@/stores/childStore';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 
 // Home Dashboard — Placeholder (replaced in Stage 4)

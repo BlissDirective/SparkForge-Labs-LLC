@@ -7,7 +7,7 @@
 'use client';
 
 import { useState, useCallback, createContext, useContext, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface XPEvent {
   id: string;

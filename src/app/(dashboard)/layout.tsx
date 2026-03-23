@@ -9,8 +9,10 @@ import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { useStationMode } from '@/hooks/useStationMode';
 import { useCockpitAudio } from '@/hooks/useCockpitAudio';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
+import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
+import { DemoGuard } from '@/components/auth/DemoGuard';
 
 // Dashboard Layout — Laboratory Control Station Shell
 // v3 Decision 2.1: StationFrame canvas mounted on ALL dashboard pages
@@ -49,6 +51,8 @@ export default function DashboardLayout({
   }, [stationMode.mode, onModeChange]);
 
   return (
+    <DemoGuard>
+    <DemoSessionBanner />
     <div className="min-h-screen bg-surface-deep relative overflow-hidden">
       {/* v3 [Decision 2.1] + CPA v1.0: Station Frame — cockpit panoramic canvas */}
       <StationFrame
@@ -112,5 +116,6 @@ export default function DashboardLayout({
         </div>
       </motion.main>
     </div>
+    </DemoGuard>
   );
 }

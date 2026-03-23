@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useUIStore } from '@/stores/uiStore';
 
 // CelebrationOverlay — Confetti, Badge Flips, Level-Up Modals

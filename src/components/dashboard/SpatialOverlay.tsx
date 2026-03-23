@@ -8,7 +8,7 @@
 // Transparent + pointer-events-none except for interactive elements.
 
 import { useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { LABS } from '@/types';
