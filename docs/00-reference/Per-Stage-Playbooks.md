@@ -1,8 +1,8 @@
 # SPARKFORGE — Per-Stage Playbooks
 
-**Version:** 1.0 | **Date:** March 19, 2026
-**Extracted from:** CLAUDE.md v5.6 Section 5
-**Cross-reference:** CLAUDE.md (autonomy rules, hard stops), Master Implementation Guide v3.2 (stage overviews)
+**Version:** 1.1 | **Date:** March 23, 2026
+**Extracted from:** CLAUDE.md v5.9 Section 5
+**Cross-reference:** CLAUDE.md (autonomy rules, hard stops), Master Implementation Guide v3.3 (stage overviews)
 
 ---
 
@@ -116,6 +116,30 @@
 
 **Total cockpit triangles:** ~19,000,000 (1M headroom on 20M budget)
 **Tag:** `git tag -a v0.3.2 -m "Stage 3-Cockpit complete: 20M 3D Panoramic Cockpit"`
+
+---
+
+## Stage 3-Login3D: Login 3D Enhancement + Demo Login
+
+**Source:** `LOGIN_3D_v3FINAL_PartA.md` + `PartB.md` (in `docs/stage3-auth-layout/`)
+**Prerequisites:** Stage 3-Cockpit complete (Hero Animation + Cockpit Architecture in place)
+**Hard Stops:** HS-10 (Login 3D visual verification), HS-5 (stage-level visual)
+**Parts:** 2
+
+**Part A (3D Scene + Demo Infrastructure):** `demo-session.ts` (timer utilities, localStorage), `authStore.ts` update (+isDemoMode, +demoSession, +startDemoSession, +endDemoSession, +checkDemoStatus), `/api/auth/demo/route.ts` (rate-limited demo endpoint), `LoginPortal3D.tsx` (crystal portal with distortion material, rotating rings, sparkles), `LoginParticles3D.tsx` (150 instanced ambient particles), `auth/layout.tsx` REPLACE (R3F canvas on desktop, CSS particles on mobile), `DemoLoginButton.tsx` (confirmation flow), `DemoSessionBanner.tsx` (persistent timer banner + expiry modal).
+
+**Part B (Enhanced Login + Integration):** `useDemoSession.ts` (reactive timer hook), `DemoGuard.tsx` (dashboard route guard, auto-redirect on expiry), `LoginFormCard.tsx` (animated form with chrome bezel glow, staggered field entrances), `login/page.tsx` REPLACE (Demo Login button + "or" divider), `AuthProvider.tsx` MODIFY (demo session hydration — check localStorage before Supabase), `(dashboard)/layout.tsx` MODIFY (wrap with DemoGuard + DemoSessionBanner).
+
+**Key Feature — Demo Login:**
+- 1-hour timed access without account creation
+- Full platform access: Hero Animation, 3D Cockpit, Labs, Games
+- Countdown banner (green → red at <5 min → expiry modal at 0:00)
+- Default demo child profile (age band B, "Explorer", XP visible but not persisted)
+- Rate-limited demo creation (3/hour/IP)
+
+**3D files created:** LoginPortal3D.tsx, LoginParticles3D.tsx
+**Auth files created/modified:** demo-session.ts, DemoLoginButton.tsx, DemoSessionBanner.tsx, DemoGuard.tsx, LoginFormCard.tsx, useDemoSession.ts, authStore.ts, auth/layout.tsx, login/page.tsx, AuthProvider.tsx, dashboard/layout.tsx
+**Tag:** `git tag -a v0.3.3 -m "Stage 3-Login3D complete: 3D Login Portal + Demo Login"`
 
 ---
 
@@ -257,4 +281,4 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 
 ---
 
-*End of Per-Stage Playbooks v1.0 | Extracted from CLAUDE.md v5.6 | March 19, 2026*
+*End of Per-Stage Playbooks v1.1 | Extracted from CLAUDE.md v5.9 | March 23, 2026 | Includes Login 3D Enhancement (Phases 5E–5F)*

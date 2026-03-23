@@ -1,14 +1,14 @@
 # SPARKFORGE — Master Directory & Development Flow Map
 
-**Version:** 1.2 | **Date:** March 19, 2026 | **BlissDirective**
+**Version:** 1.3 | **Date:** March 23, 2026 | **BlissDirective**
 **Laboratory Control Station Vision | Frost-Prismatic v3**
-**Supersedes:** Master Directory v1.1 (March 1, 2026) — updated code status (~70%), fixed tier breakdown (3-tier: 6+9+20=35), updated decision count (64), aligned with CLAUDE.md v5.6 / GCUD V10.2 / MIG v3.2.
+**Supersedes:** Master Directory v1.2 (March 19, 2026) — Added Login 3D Enhancement (LOGIN_3D_v3FINAL_PartA/B) to Stage 3 section. Added Demo Login feature. Updated v3-FINAL count from 14 to 16 (38 part files). Updated phase count to 32. Aligned with CLAUDE.md v5.9 / MIG v3.3.
 
 | Metric | Value |
 |--------|-------|
-| Total Project Files | 92 active files |
+| Total Project Files | 94 active files |
 | Stage Documents | 10 stages, all copy-paste ready |
-| v3-FINAL Patches | 14 documents across 34 part files |
+| v3-FINAL Patches | 16 documents across 38 part files |
 | Games | **35 games** — 6 Flagship (10M+), 9 FL-Lite (2M+), 20 Standard (500K+) |
 | Locked Decisions | 64 decisions (48 core + 4 OD + 12 CPA2) |
 | Code Written | ~70% — Stages 1-7 code-complete, audited |
@@ -46,6 +46,9 @@
 | 2 | Stage 2: Database/API | STAGE2_Database_API_v2 PART1-4 | No | 4 |
 | 3 | Stage 3: Auth/Layout Parts 1-2 | STAGE3_Auth_Layout_Shell_v2 PART1-2 | No | 2 |
 | 4 | Stage 3: Part 3 (Station) | STAGE3_Part3A/B_v3FINAL | YES | 2 |
+| 4a | Stage 3-Hero: Hero Animation | HERO_ANIMATION_v3FINAL_PartA/B | YES | 2 |
+| 4b | Stage 3-Cockpit: CPA v2.0 | COCKPIT_CPA2_v3FINAL_PartA/B | YES | 2 |
+| 4c | Stage 3-Login3D: Login 3D + Demo | LOGIN_3D_v3FINAL_PartA/B | YES | 2 |
 | 5 | Stage 4: Core Pages Part 1+3 | STAGE4_Core_Pages_v2 PART1+3 | No | 2 |
 | 6 | Stage 4: Part 2 (Labs) | STAGE4_Part2_v3FINAL_A/B | YES | 2 |
 | 7 | Stage 5: Gamification Part 1 | STAGE5_Gamification_Profile PART1 | No | 1 |
@@ -67,7 +70,7 @@
 | 23 | Stage 9: Content Agent | STAGE9_Content_Agent_v2 P1-3 | No | 3 |
 | 24 | Stage 10: Polish/Deploy | STAGE10_Polish_Deploy_v2 P1-2 | No | 2 |
 
-Total build steps: 24 ordered implementation phases across 10 stages (CLAUDE.md v5.6 expands to 26 phases with finer Stage 7F/8 granularity).
+Total build steps: 27 ordered implementation phases across 10 stages (CLAUDE.md v5.9 expands to 32 phases with Hero Animation, Cockpit CPA2, Login 3D, and finer Stage 7F/8 granularity).
 
 ---
 
@@ -105,6 +108,15 @@ Total build steps: 24 ordered implementation phases across 10 stages (CLAUDE.md 
 | 3.4 | [v3] Station: Emissive CSS, onboarding crystal | STAGE3_Part3B_v3FINAL |
 | 3.V | VALIDATE: Login → Dashboard with station frame | — |
 | 3.G | git commit + tag v0.3.0 | — |
+| 3.5 | [v3] Hero Animation Part A: stores, infra, shaders | HERO_ANIMATION_v3FINAL_PartA |
+| 3.6 | [v3] Hero Animation Part B: particles, audio, orchestrator | HERO_ANIMATION_v3FINAL_PartB |
+| 3.H | VALIDATE: 8-phase hero animation + tag v0.3.1 | — |
+| 3.7 | [v3] Cockpit CPA2 Part A: canvas, camera, shell geometry | COCKPIT_CPA2_v3FINAL_PartA |
+| 3.8 | [v3] Cockpit CPA2 Part B: spatial content, transitions, audio | COCKPIT_CPA2_v3FINAL_PartB |
+| 3.C | VALIDATE: 20M cockpit + hero handoff + tag v0.3.2 | — |
+| 3.9 | [v3] Login 3D Part A: portal scene, demo infra, auth layout | LOGIN_3D_v3FINAL_PartA |
+| 3.10 | [v3] Login 3D Part B: enhanced login, demo guard, integration | LOGIN_3D_v3FINAL_PartB |
+| 3.L | VALIDATE: 3D login + demo session flow + tag v0.3.3 | — |
 | 4.1 | [v2] Pages: dashboard home, hooks | STAGE4_Core_Pages_v2_PART1 |
 | 4.2 | [v3] Lab: 10 GLSL shaders | STAGE4_Part2_v3FINAL_A |
 | 4.3 | [v3] Lab: LabReconfiguration, GameFocusSequence | STAGE4_Part2_v3FINAL_B |
@@ -312,6 +324,18 @@ Total build steps: 24 ordered implementation phases across 10 stages (CLAUDE.md 
 | Version references | CLAUDE.md v5.1, GCUD V10, MIG v3.1 | **CLAUDE.md v5.6, GCUD V10.2, MIG v3.2** |
 | New reference docs | — | **Per-Stage-Playbooks.md, 3D-Component-Registry.md** |
 
+### V1.3 CHANGE SUMMARY (March 23, 2026)
+
+| Change | From (v1.2) | To (v1.3) |
+|--------|-------------|-----------|
+| Total Project Files | 92 | **94** |
+| v3-FINAL Patches | 14 documents (34 part files) | **16 documents (38 part files)** |
+| Build phases (CLAUDE.md) | 30 | **32** |
+| Version references | CLAUDE.md v5.8, MIG v3.2 | **CLAUDE.md v5.9, MIG v3.3** |
+| New stage docs | — | **LOGIN_3D_v3FINAL_PartA.md, LOGIN_3D_v3FINAL_PartB.md** |
+| New feature | — | **Demo Login (1-hour timed session, no account required)** |
+| Flow Map Stage 3 | 4 steps (3.1-3.4) | **12 steps (3.1-3.10 + Hero/Cockpit/Login3D validation)** |
+
 ---
 
-*End of Master Directory v1.2 | SparkForge | 92 files | 35 games (6+9+20) | 64 decisions | 14 v3-FINAL documents | March 19, 2026*
+*End of Master Directory v1.3 | SparkForge | 94 files | 35 games (6+9+20) | 64 decisions | 16 v3-FINAL documents (38 part files) | 32 build phases | March 23, 2026*

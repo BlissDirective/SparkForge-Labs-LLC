@@ -1,9 +1,9 @@
 # SPARKFORGE — MASTER IMPLEMENTATION GUIDE
 
-**Version:** 3.2 | **Date:** March 19, 2026 | **For:** Claude Code
-**Supersedes:** Master Implementation Guide v3.1 (March 1, 2026) — updated version references (CLAUDE.md v5.6, Master Directory v1.2, GCUD V10.2), fixed game tier breakdown (3-tier: 6+9+20=35), corrected Three.js version (r171+), cross-platform environment, added Per-Stage-Playbooks + 3D-Component-Registry references.
+**Version:** 3.3 | **Date:** March 23, 2026 | **For:** Claude Code
+**Supersedes:** Master Implementation Guide v3.2 (March 19, 2026) — Added Login 3D Enhancement (Phases 5E–5F) after Cockpit Architecture. Added LOGIN_3D_v3FINAL_PartA/B to Stage 3 section. Added Demo Login feature (1-hour timed session). Updated phase count from 30 to 32. Updated v3-FINAL count from 14 to 16. Aligned with CLAUDE.md v5.9.
 
-**Purpose:** Single entry point for building SparkForge from stage documents. Updated for single-pass v3-FINAL build strategy, 14 v3-FINAL documents, and alignment with Master Directory v1.2 and GCUD V10.2.
+**Purpose:** Single entry point for building SparkForge from stage documents. Updated for single-pass v3-FINAL build strategy, 16 v3-FINAL documents (14 original + 2 Login 3D), and alignment with Master Directory v1.2 and GCUD V10.2.
 
 ---
 
@@ -36,7 +36,7 @@ This document is your roadmap. The actual code lives in the stage PDF documents.
 |----------|---------|
 | Master Directory v1.2 | 26-phase flow map, file registry, GitHub structure — READ FIRST |
 | GCUD V10.2 | Source of truth for game content, gap status, file registry |
-| CLAUDE.md v5.6 | Architecture, conventions, game template, 3D rules |
+| CLAUDE.md v5.9 | Architecture, conventions, game template, 3D rules |
 | Decision Lock Checkpoints 1-3 | 64 locked decisions (48 core + 4 OD + 12 CPA2) |
 | CPA v2.0 | 3D Panoramic Cockpit full spec (absorbs Visual Enhancement Concept v2) |
 | Per-Stage-Playbooks.md | Full build playbooks for all 10 stages |
@@ -91,6 +91,33 @@ Commit: `git commit -m "Stage 2: Database + API"`
 Decision IDs: 1.1-1.7, 2.1-2.5, 7.1, 7.3-4, 8.1
 
 Commit: `git commit -m "Stage 3: Auth + Layout + Station Frame"`
+
+---
+
+## STAGE 3-LOGIN3D: LOGIN 3D ENHANCEMENT + DEMO LOGIN
+
+**Source Documents [v3-FINAL]:**
+
+| Part | Source | Type | Content |
+|------|--------|------|---------|
+| Part A | LOGIN_3D_v3FINAL_PartA | v3-FINAL | 3D crystal portal scene, login particles, demo session utilities, auth store update (+demo state), demo API endpoint, enhanced auth layout with R3F canvas, DemoLoginButton, DemoSessionBanner |
+| Part B | LOGIN_3D_v3FINAL_PartB | v3-FINAL | LoginFormCard (animated), DemoGuard (expiry redirect), useDemoSession hook, enhanced login page with Demo button, AuthProvider integration (demo hydration), dashboard layout update (banner + guard) |
+
+**Key Feature — Demo Login (1-Hour Timed Session):**
+- Users can bypass account creation to explore the full platform for 1 hour
+- Demo session stored in localStorage with expiry timestamp
+- Persistent countdown banner at dashboard top (turns red/urgent at <5 min)
+- Expiry modal offers "Create Free Account" or "Return to Login"
+- Demo users get default child profile (age band B, "Explorer" name)
+- No data persisted — XP/badges visible but not saved
+
+**Files created:** `demo-session.ts`, `LoginPortal3D.tsx`, `LoginParticles3D.tsx`, `DemoLoginButton.tsx`, `DemoSessionBanner.tsx`, `DemoGuard.tsx`, `LoginFormCard.tsx`, `useDemoSession.ts`, `/api/auth/demo/route.ts`
+**Files modified:** `authStore.ts`, `auth/layout.tsx` (REPLACE), `login/page.tsx` (REPLACE), `AuthProvider.tsx`, `(dashboard)/layout.tsx`
+
+Hard Stops: HS-10 (Login 3D visual verification), HS-5 (stage visual checkpoint)
+
+Commit: `git commit -m "Stage 3 Login 3D: 3D portal + Demo Login feature"`
+Tag: `git tag -a v0.3.3 -m "Stage 3-Login3D complete: 3D Login Portal + Demo Login"`
 
 ---
 
@@ -316,6 +343,6 @@ Commit: `git commit -m "Stage 10: Polish + Deploy"`
 
 ---
 
-*End of Master Implementation Guide v3.2 | SparkForge | Lab Control Station | 35 games (6+9+20) | 92 files | 64 decisions (48 core + 4 OD + 12 CPA2) | March 19, 2026*
+*End of Master Implementation Guide v3.3 | SparkForge | Lab Control Station | 35 games (6+9+20) | 94 files | 64 decisions (48 core + 4 OD + 12 CPA2) | 16 v3-FINAL docs (14 original + 2 Login 3D) | 32 build phases | March 23, 2026*
 
 *This is a living document. Updated after each delivery session. GCUD V10.2 is the canonical source for game content tracking. Master Directory v1.2 is the canonical source for file registry and build flow.*
