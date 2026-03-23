@@ -15,7 +15,7 @@
 // typed uiStore selectors after store update.
 
 import { useCallback } from 'react';
-import { motion } from 'framer-motion';
+import { motion } from 'motion/react';
 import { Sparkles, Flame, Wind, X } from 'lucide-react';
 import { useUIStore } from '@/stores/uiStore';
 

@@ -5,6 +5,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
+import { getDemoSession } from '@/lib/demo-session';
 import { LoadingScreen } from '@/components/shared/LoadingScreen';
 
 const supabase = createClient();
@@ -22,6 +23,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     async function initializeAuth() {
       try {
         setAuthLoading(true);
+
+        // Check for existing demo session first
+        const demoSession = getDemoSession();
+        if (demoSession) {
+          if (!useAuthStore.getState().isDemoMode) {
+            useAuthStore.setState({
+              isDemoMode: true,
+              demoSession,
+            });
+          }
+          // Demo users skip Supabase session check — no real auth
+          setAuthLoading(false);
+          if (mounted) setIsInitialized(true);
+          return; // Exit early — demo mode doesn't use Supabase auth
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
 
         if (session?.user && mounted) {

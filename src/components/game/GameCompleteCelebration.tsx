@@ -6,7 +6,7 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, Star, Zap, ArrowRight } from 'lucide-react';
 
 interface CelebrationProps {

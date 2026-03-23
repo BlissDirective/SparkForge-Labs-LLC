@@ -9,7 +9,7 @@
 // Can be changed later in Settings.
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useDeviceStore, type DeviceType } from '@/stores/deviceStore';
 
 const DEVICE_OPTIONS: {

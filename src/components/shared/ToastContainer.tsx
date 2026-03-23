@@ -1,6 +1,6 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useToastStore, type ToastType } from '@/stores/toastStore';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
