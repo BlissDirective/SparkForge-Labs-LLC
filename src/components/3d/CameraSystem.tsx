@@ -23,6 +23,13 @@ import { useCockpitStore } from '@/stores/cockpitStore';
 
 export type CameraMode = 'hero' | 'station' | 'spatial' | 'game';
 
+// D3D-B3: Game camera preset — forward-looking, close to scene
+const GAME_CAMERA_PRESET = {
+  position: new THREE.Vector3(0, 2, 5),
+  lookAt: new THREE.Vector3(0, 0, 0),
+  fov: 45,
+};
+
 interface CameraSystemProps {
   /** Current camera mode — driven by app state */
   mode: CameraMode;
@@ -67,8 +74,20 @@ export function CameraSystem({
       return;
     }
 
-    // ── Game mode: camera is irrelevant (cockpit hidden) ──
+    // ── Game mode: smooth transition to forward-looking game camera (D3D-B3) ──
     if (mode === 'game') {
+      const gamePos = GAME_CAMERA_PRESET.position;
+      const gameLookAt = GAME_CAMERA_PRESET.lookAt;
+      const gameFov = GAME_CAMERA_PRESET.fov;
+      const lf = 1 - Math.pow(1 - 0.04, delta * 60);
+
+      cam.position.lerp(gamePos, lf * 0.5);
+      currentLookAt.current.lerp(gameLookAt, lf * 0.5);
+      cam.lookAt(currentLookAt.current);
+      if (Math.abs(cam.fov - gameFov) > 0.01) {
+        cam.fov = THREE.MathUtils.lerp(cam.fov, gameFov, lf);
+        cam.updateProjectionMatrix();
+      }
       return;
     }
 

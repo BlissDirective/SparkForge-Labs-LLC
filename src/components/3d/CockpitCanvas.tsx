@@ -1,32 +1,31 @@
 'use client';
 
 // ================================================================
-// CockpitCanvas — Unified Single R3F Canvas (CPA2-1)
+// CockpitCanvas — Unified Persistent R3F Canvas (CPA2-1 + D3D-B1)
 // ================================================================
-// CRITICAL ARCHITECTURE FIX: Replaces triple-Canvas anti-pattern.
+// SINGLE persistent R3F Canvas for the entire app lifecycle.
+// NEVER unmounts — scene visibility is controlled by SceneRouter.
 //
-// Previously, StationFrame, SpatialDashboard, and HeroAnimation
-// each created their own <Canvas>, causing 2-3 simultaneous WebGL
-// contexts with doubled GPU overhead.
+// D3D Part B refactor:
+//   - Removed mobile/WebGL detection (D3D-1)
+//   - Removed CSS fallback branches (D3D-1)
+//   - Removed game-mode Canvas unmount (D3D-B1)
+//   - Added SceneRouter for centralized visibility management
+//   - Added MechanicalIris integration (D3D-B2)
+//   - Postprocessing always-on (D3D-5)
+//   - logarithmicDepthBuffer for deep scene support
 //
-// This component provides a SINGLE persistent R3F Canvas for the
-// entire app lifecycle. Scene groups toggle visibility based on
-// application state:
-//
-//   Hero Scene Group    — visible during 8-phase hero animation
-//   Station Shell Group — visible post-hero (cockpit panels, HUD, etc.)
+// Scene groups (managed by SceneRouter):
+//   Hero Scene Group     — visible during 8-phase hero animation
+//   Cockpit Shell Group  — visible post-hero, fades to 20% during game (D3D-B6)
 //   Spatial Content Group — visible on dashboard routes
-//
-// CPA2-1: Single Canvas decision lock
-// CPA2-3: Seamless hero-to-cockpit handoff (zero Canvas swap)
-// FIX-DUAL-CANVAS v3: Games keep their own Canvas; CockpitCanvas
-//   unmounts R3F when gameActive=true (existing pattern preserved)
+//   Game Scene Group     — visible during gameplay
+//   Iris Overlay Group   — visible during transitions
 
-import { Suspense, useEffect, useState, useRef, useMemo } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
-// three is used by child 3D components, not directly here
 
 // 3D Components — Station Shell
 import { AuroraBackground } from './AuroraBackground';
@@ -45,11 +44,13 @@ import { DynamicEnvironment } from './DynamicEnvironment';
 import { InteractiveConsole3D, CONSOLE_POSITIONS } from './InteractiveConsole3D';
 import { AmbientNPCs } from './AmbientNPCs';
 
-// Camera System
+// Scene Management (D3D-B5)
+import { SceneRouter } from './SceneRouter';
+import { MechanicalIris } from './MechanicalIris';
 import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Stores
-import { useUIStore } from '@/stores/uiStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
@@ -59,7 +60,6 @@ import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
 // ── Props ────────────────────────────────────────────────────────
 
 interface CockpitCanvasProps {
-  /** Station mode controls bloom, vignette, camera, panels */
   mode?: StationModeKey;
   ledColor?: string;
   bgIntensity?: number;
@@ -101,9 +101,12 @@ interface CockpitCanvasProps {
 
   // Hero animation
   heroSceneContent?: React.ReactNode;
+
+  // Game scene (D3D-B3)
+  gameSceneContent?: React.ReactNode;
 }
 
-// ── Postprocessing Stack ─────────────────────────────────────────
+// ── Postprocessing Stack (D3D-5: always-on) ─────────────────────
 
 function PostprocessingStack({
   bloomIntensity,
@@ -120,7 +123,6 @@ function PostprocessingStack({
   vignetteOffset: number;
   barrelDistortion: number;
 }) {
-  const barrelRef = useRef(null);
   if (barrelDist > 0) {
     return (
       <EffectComposer>
@@ -132,7 +134,7 @@ function PostprocessingStack({
         />
         {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
         <Vignette darkness={vignetteDarkness} offset={vignetteOffset} eskil={false} {...({} as any)} />
-        <BarrelDistortion ref={barrelRef} strength={barrelDist} />
+        <BarrelDistortion strength={barrelDist} />
       </EffectComposer>
     );
   }
@@ -174,7 +176,6 @@ function SpatialDashboardContent({
 
   const child = useChildStore((s) => s.activeChild);
   const badges = useChildStore((s) => s.badges);
-  const profile = useDeviceStore((s) => s.profile);
 
   const consoleData = useMemo(
     () => ({
@@ -203,28 +204,16 @@ function SpatialDashboardContent({
 
   return (
     <>
-      {/* Cinematic camera for spatial navigation */}
       <CinematicCamera
         target={cameraTarget}
         damping={0.04}
         enableOrbitDrift={focusedLabId === null}
       />
 
-      {/* Starfield */}
-      <Stars
-        radius={50}
-        depth={30}
-        count={profile.lodBias === 'high' || profile.lodBias === 'ultra' ? 2000 : 800}
-        factor={3}
-        saturation={0.2}
-        fade
-        speed={0.5}
-      />
+      <Stars radius={50} depth={30} count={2000} factor={3} saturation={0.2} fade speed={0.5} />
 
-      {/* Dynamic environment */}
       <DynamicEnvironment activeLabId={focusedLabId} intensity={0.6} />
 
-      {/* Holographic Lab Map */}
       <HolographicLabMap
         focusedLabId={focusedLabId}
         hoveredLabId={hoveredLabId}
@@ -235,7 +224,6 @@ function SpatialDashboardContent({
         onLabDoubleClick={(labId) => onLabEnter?.(labId)}
       />
 
-      {/* Interactive consoles */}
       {(['xp', 'badges', 'streak', 'progress'] as const).map((variant) => {
         const config = CONSOLE_POSITIONS[variant];
         return (
@@ -251,18 +239,16 @@ function SpatialDashboardContent({
         );
       })}
 
-      {/* Ambient NPCs */}
       <AmbientNPCs visible={npcsVisible} focusedLabPosition={focusedLabPos} />
     </>
   );
 }
 
 // ════════════════════════════════════════════════════════════════
-// CockpitCanvas — Main Export
+// CockpitCanvas — Main Export (D3D-B1: Persistent, never unmounts)
 // ════════════════════════════════════════════════════════════════
 
 export function CockpitCanvas({
-  mode: _mode = 'dashboard',
   ledColor = '#00BBFF',
   bgIntensity = 0.15,
   activeLabColor = '#00BBFF',
@@ -295,100 +281,47 @@ export function CockpitCanvas({
   onLabEnter,
   showSpatialDashboard = false,
   heroSceneContent,
+  gameSceneContent,
 }: CockpitCanvasProps) {
-  const [isMobile, setIsMobile] = useState(false);
-  const [isWebGLAvailable, setWebGLAvailable] = useState(true);
+  // Scene state from centralized store (D3D-B5)
+  const activeScene = useSceneStore((s) => s.activeScene);
+  const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
 
-  const profile = useDeviceStore((s) => s.profile);
-  const gameActive = useUIStore((s) => s.gameActive);
-  const heroPhase = useCockpitStore((s) => s.heroPhase);
+  // Determine camera mode from active scene
+  const cameraMode: CameraMode = activeScene === 'hero'
+    ? 'hero'
+    : activeScene === 'game'
+      ? 'game'
+      : activeScene === 'spatial' || showSpatialDashboard
+        ? 'spatial'
+        : 'station';
 
-  const isGameMode = _mode === 'game' || gameActive;
-  const isHeroActive = heroPhase === 'animating' || heroPhase === 'materializing';
-  const heroComplete = heroPhase === 'complete' || heroPhase === 'idle';
+  // Effective lab color (game lab color during gameplay)
+  const effectiveLabColor = activeScene === 'game' ? activeGameLabColor : activeLabColor;
 
-  // Determine camera mode
-  const cameraMode: CameraMode = isHeroActive ? 'hero'
-    : isGameMode ? 'game'
-    : showSpatialDashboard ? 'spatial'
-    : 'station';
-
-  // Detect mobile and WebGL
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-
-    try {
-      const canvas = document.createElement('canvas');
-      const gl = canvas.getContext('webgl2') || canvas.getContext('webgl');
-      if (!gl) setWebGLAvailable(false);
-    } catch {
-      setWebGLAvailable(false);
-    }
-
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  // ── CSS-only fallbacks ──
-
-  if (!isWebGLAvailable || isMobile) {
-    return (
-      <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <div
-          className="station-frame-css"
-          style={{ '--glow-color': ledColor, opacity: frameDimmed ? 0.3 : 1 } as React.CSSProperties}
-          aria-hidden="true"
-        />
-        <div className="cockpit-side-indicator left" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
-        <div className="cockpit-side-indicator right" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
-        <div className="status-bar-mobile" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
-        {scanlineEnabled && <div className="scanline-overlay" style={{ opacity: 0.03 }} aria-hidden="true" />}
-        <div className="vignette-overlay" aria-hidden="true" />
-      </div>
-    );
-  }
-
-  // ── Game mode: unmount R3F Canvas, keep CSS frame (FIX-DUAL-CANVAS) ──
-  if (isGameMode && !isHeroActive) {
-    return (
-      <div className="fixed inset-0 z-0 pointer-events-none" aria-hidden="true">
-        {scanlineEnabled && <div className="scanline-overlay" style={{ opacity: 0.03 }} aria-hidden="true" />}
-        <div className="vignette-overlay" aria-hidden="true" />
-        <div
-          className="station-frame-css"
-          style={{ '--glow-color': ledColor, opacity: 0.3 } as React.CSSProperties}
-          aria-hidden="true"
-        />
-        <div className="cockpit-side-indicator left" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
-        <div className="cockpit-side-indicator right" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
-        <div className="status-bar-mobile" style={{ '--glow-color': ledColor } as React.CSSProperties} aria-hidden="true" />
-      </div>
-    );
-  }
-
-  // ── Single Persistent R3F Canvas (CPA2-1) ──
+  // ── Single Persistent R3F Canvas (D3D-B1: NEVER unmounts) ──
   return (
     <div
-      className={`fixed inset-0 z-0 pointer-events-none ${isWebGLAvailable ? 'r3f-vignette-active' : ''}`}
+      className="fixed inset-0 z-0 pointer-events-none r3f-vignette-active"
       style={{ opacity: frameDimmed ? 0.4 : 1 }}
       aria-hidden="true"
     >
       <Canvas
         frameloop="always"
-        dpr={[1, profile.pixelRatio]}
+        dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 2, 3)]}
         camera={{
           position: [0, 6.5, 7],
           fov: 58,
           near: 0.1,
-          far: 100,
+          far: 200,
         }}
         gl={{
-          antialias: profile.antialias,
+          antialias: true,
           alpha: true,
           powerPreference: 'high-performance',
           stencil: false,
           depth: true,
+          logarithmicDepthBuffer: true,
         }}
         style={{ background: 'transparent' }}
       >
@@ -407,108 +340,90 @@ export function CockpitCanvas({
           {/* HDR Environment */}
           <Environment preset={HDR_FALLBACK_PRESET} />
 
-          {/* ═══ Hero Scene Group (CPA2-3) ═══ */}
-          {isHeroActive && heroSceneContent && (
-            <group>
-              {heroSceneContent}
-            </group>
-          )}
+          {/* ═══ SceneRouter — Centralized Visibility (D3D-B5) ═══ */}
+          <SceneRouter
+            heroContent={heroSceneContent}
+            cockpitContent={
+              <>
+                <AuroraBackground
+                  intensity={bgIntensity}
+                  speed={1.0}
+                  color1={effectiveLabColor}
+                  color2="#8B5CF6"
+                  color3="#06B6D4"
+                />
 
-          {/* ═══ Station Shell Group ═══ */}
-          {/* Visible when hero is complete and not in full spatial mode */}
-          <group visible={heroComplete && !showSpatialDashboard}>
-            {/* Aurora background */}
-            <AuroraBackground
-              intensity={bgIntensity}
-              speed={1.0}
-              color1={activeLabColor}
-              color2="#8B5CF6"
-              color3="#06B6D4"
-            />
+                <AmbientParticles
+                  intensity={particleIntensity}
+                  color={effectiveLabColor}
+                />
 
-            {/* Ambient particles */}
-            <AmbientParticles
-              intensity={particleIntensity}
-              color={activeLabColor}
-              isMobile={false}
-            />
+                <CockpitPanels
+                  curvature={panelCurvature}
+                  opacity={panelOpacity}
+                  labColor={effectiveLabColor}
+                  frameDimmed={frameDimmed}
+                />
 
-            {/* Cockpit Panels */}
-            <CockpitPanels
-              curvature={panelCurvature}
-              opacity={panelOpacity}
-              labColor={activeLabColor}
-              frameDimmed={frameDimmed}
-            />
+                <LEDRim
+                  color={ledColor}
+                  intensity={0.5}
+                  spikeActive={spikeEvent}
+                  curved
+                />
 
-            {/* LED Rim */}
-            <LEDRim
-              color={ledColor}
-              intensity={0.5}
-              spikeActive={spikeEvent}
-              curved
-            />
+                <SidePanels
+                  leftContent={sidePanelLeftContent}
+                  rightContent={sidePanelRightContent}
+                  opacity={sidePanelOpacity}
+                  labColor={effectiveLabColor}
+                  dimmed={frameDimmed}
+                />
 
-            {/* Side Panels */}
-            <SidePanels
-              leftContent={sidePanelLeftContent}
-              rightContent={sidePanelRightContent}
-              opacity={sidePanelOpacity}
-              labColor={activeLabColor}
-              dimmed={frameDimmed}
-            />
+                <HolographicHUD
+                  opacity={hudOpacity}
+                  color={effectiveLabColor}
+                  rotationSpeed={hudRotationSpeed}
+                  pulseIntensity={hudPulseIntensity}
+                  active={hudOpacity > 0}
+                />
 
-            {/* Holographic HUD */}
-            <HolographicHUD
-              opacity={hudOpacity}
-              color={activeLabColor}
-              rotationSpeed={hudRotationSpeed}
-              pulseIntensity={hudPulseIntensity}
-              active={hudOpacity > 0}
-            />
+                <StatusBar3D
+                  xp={xp}
+                  xpMax={xpMax}
+                  streak={streak}
+                  sessionTime={sessionTime}
+                  labProgress={labProgress}
+                  labColor={effectiveLabColor}
+                  opacity={statusBarOpacity}
+                />
+              </>
+            }
+            spatialContent={
+              <SpatialDashboardContent
+                labCompletions={labCompletions}
+                onLabEnter={onLabEnter}
+              />
+            }
+            gameContent={gameSceneContent}
+            irisContent={<MechanicalIris labColor={effectiveLabColor} />}
+          />
 
-            {/* Status Bar */}
-            <StatusBar3D
-              xp={xp}
-              xpMax={xpMax}
-              streak={streak}
-              sessionTime={sessionTime}
-              labProgress={labProgress}
-              labColor={activeLabColor}
-              opacity={statusBarOpacity}
-            />
-          </group>
-
-          {/* ═══ Spatial Dashboard Group ═══ */}
-          {heroComplete && showSpatialDashboard && (
-            <SpatialDashboardContent
-              labCompletions={labCompletions}
-              onLabEnter={onLabEnter}
-            />
-          )}
-
-          {/* ═══ Postprocessing (single stack) ═══ */}
-          {profile.bloomEnabled && (
-            <PostprocessingStack
-              bloomIntensity={bloomIntensity}
-              bloomThreshold={bloomThreshold}
-              bloomSmoothing={bloomSmoothing}
-              vignetteDarkness={vignetteDarkness}
-              vignetteOffset={vignetteOffset}
-              barrelDistortion={barrelDist}
-            />
-          )}
+          {/* ═══ Postprocessing (D3D-5: always-on) ═══ */}
+          <PostprocessingStack
+            bloomIntensity={bloomIntensity}
+            bloomThreshold={bloomThreshold}
+            bloomSmoothing={bloomSmoothing}
+            vignetteDarkness={vignetteDarkness}
+            vignetteOffset={vignetteOffset}
+            barrelDistortion={barrelDist}
+          />
         </Suspense>
       </Canvas>
 
       {/* CSS overlays */}
       {scanlineEnabled && <div className="scanline-overlay" style={{ opacity: 0.03 }} aria-hidden="true" />}
       <div className="vignette-overlay" aria-hidden="true" />
-      <div
-        className="station-frame-css"
-        style={{ '--glow-color': ledColor, opacity: 0.3 } as React.CSSProperties}
-        aria-hidden="true"
-      />
     </div>
   );
 }
