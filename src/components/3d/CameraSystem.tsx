@@ -30,6 +30,14 @@ const GAME_CAMERA_PRESET = {
   fov: 45,
 };
 
+/** Parallax values from useParallaxMouse hook */
+interface ParallaxValues {
+  x: number;
+  y: number;
+  smoothX: number;
+  smoothY: number;
+}
+
 interface CameraSystemProps {
   /** Current camera mode — driven by app state */
   mode: CameraMode;
@@ -41,6 +49,8 @@ interface CameraSystemProps {
   enableOrbitDrift?: boolean;
   /** Reduced motion preference */
   reducedMotion?: boolean;
+  /** Mouse parallax ref for subtle depth movement (D3D-C4) */
+  parallaxRef?: React.RefObject<ParallaxValues>;
 }
 
 export function CameraSystem({
@@ -49,6 +59,7 @@ export function CameraSystem({
   spatialDamping = 0.04,
   enableOrbitDrift = true,
   reducedMotion = false,
+  parallaxRef,
 }: CameraSystemProps) {
   const { camera } = useThree();
   const _heroPhase = useCockpitStore((s) => s.heroPhase);
@@ -88,42 +99,48 @@ export function CameraSystem({
         cam.fov = THREE.MathUtils.lerp(cam.fov, gameFov, lf);
         cam.updateProjectionMatrix();
       }
-      return;
     }
 
     // ── Station mode: FOV-only smooth interpolation ──
-    if (mode === 'station') {
+    else if (mode === 'station') {
       if (Math.abs(cam.fov - stationFov) > 0.01) {
         cam.fov = THREE.MathUtils.lerp(cam.fov, stationFov, 0.05);
         cam.updateProjectionMatrix();
       }
-      return;
     }
 
     // ── Spatial mode: full spring-interpolated camera ──
-    const effectiveDamping = reducedMotion ? 0.15 : spatialDamping;
-    const lerpFactor = 1 - Math.pow(1 - effectiveDamping, delta * 60);
+    else {
+      const effectiveDamping = reducedMotion ? 0.15 : spatialDamping;
+      const lerpFactor = 1 - Math.pow(1 - effectiveDamping, delta * 60);
 
-    // Interpolate position
-    cam.position.lerp(positionTarget.current, lerpFactor);
+      // Interpolate position
+      cam.position.lerp(positionTarget.current, lerpFactor);
 
-    // Interpolate lookAt
-    currentLookAt.current.lerp(lookAtTarget.current, lerpFactor);
-    cam.lookAt(currentLookAt.current);
+      // Interpolate lookAt
+      currentLookAt.current.lerp(lookAtTarget.current, lerpFactor);
+      cam.lookAt(currentLookAt.current);
 
-    // Interpolate FOV
-    if (Math.abs(cam.fov - cameraTarget.fov) > 0.01) {
-      cam.fov = THREE.MathUtils.lerp(cam.fov, cameraTarget.fov, lerpFactor);
-      cam.updateProjectionMatrix();
+      // Interpolate FOV
+      if (Math.abs(cam.fov - cameraTarget.fov) > 0.01) {
+        cam.fov = THREE.MathUtils.lerp(cam.fov, cameraTarget.fov, lerpFactor);
+        cam.updateProjectionMatrix();
+      }
+
+      // Subtle idle drift when in overview
+      if (enableOrbitDrift && !reducedMotion) {
+        driftAngle.current += delta * 0.05;
+        const driftX = Math.sin(driftAngle.current) * 0.02;
+        const driftY = Math.cos(driftAngle.current * 0.7) * 0.01;
+        cam.position.x += driftX * delta;
+        cam.position.y += driftY * delta;
+      }
     }
 
-    // Subtle idle drift when in overview
-    if (enableOrbitDrift && !reducedMotion) {
-      driftAngle.current += delta * 0.05;
-      const driftX = Math.sin(driftAngle.current) * 0.02;
-      const driftY = Math.cos(driftAngle.current * 0.7) * 0.01;
-      cam.position.x += driftX * delta;
-      cam.position.y += driftY * delta;
+    // Mouse parallax offset (D3D-C4) — applied to all non-hero modes
+    if (parallaxRef?.current) {
+      cam.position.x += parallaxRef.current.smoothX * 0.3;
+      cam.position.y += parallaxRef.current.smoothY * 0.15;
     }
   });
 

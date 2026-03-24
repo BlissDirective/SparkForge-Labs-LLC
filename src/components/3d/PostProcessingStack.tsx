@@ -146,8 +146,8 @@ export function PostProcessingStack({
         eskil={false}
       />
 
-      {/* 7. Barrel Distortion — Lens effect (conditional on strength) */}
-      {barrelDist > 0 ? <BarrelDistortion strength={barrelDist} /> : null}
+      {/* 7. Barrel Distortion — Lens effect */}
+      <BarrelDistortion strength={barrelDist} />
     </EffectComposer>
   );
 }
