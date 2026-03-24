@@ -20,7 +20,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import {
   Camera, Check, X, Eye, Lock, Star,
 } from 'lucide-react';

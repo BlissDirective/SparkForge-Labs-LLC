@@ -36,7 +36,6 @@ interface RobotVacuum3DProps {
   trail: string[];
   gridSize: number;
   running: boolean;
-  isMobile?: boolean;
 }
 
 // ---- Floor Grid ----
@@ -285,7 +284,7 @@ function RoomScene({
   trail,
   gridSize,
   running,
-}: Omit<RobotVacuum3DProps, 'isMobile'>) {
+}: RobotVacuum3DProps) {
   return (
     <>
       {/* Lighting */}
@@ -341,8 +340,6 @@ function RoomScene({
 // ---- Main Export ----
 
 export default function RobotVacuum3D(props: RobotVacuum3DProps) {
-  if (props.isMobile) return null;
-
   return (
     <div
       style={{ width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' }}

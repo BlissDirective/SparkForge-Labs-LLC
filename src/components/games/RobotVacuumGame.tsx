@@ -21,7 +21,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import {
   Play, Plus, Trash2, RotateCcw, BookOpen, Zap,
 } from 'lucide-react';
@@ -187,9 +186,6 @@ export function RobotVacuumGame() {
   const [stepCount, setStepCount] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [trail, setTrail] = useState<string[]>([]);
-
-  // [v3] Mobile detection — shared hook [ENH-2]
-  const isMobile = useIsMobile();
 
   const room = ROOMS[roomIdx];
 
@@ -536,8 +532,8 @@ export function RobotVacuumGame() {
                       </span>
                     </div>
 
-                    {/* [v3] 3D Scene — desktop only */}
-                    {!isMobile && phase === 'play' && (
+                    {/* [v3] 3D Scene */}
+                    {phase === 'play' && (
                       <RobotVacuum3D
                         room={room}
                         vacPos={vacPos}
@@ -546,7 +542,6 @@ export function RobotVacuumGame() {
                         trail={trail}
                         gridSize={GRID}
                         running={running}
-                        isMobile={isMobile}
                       />
                     )}
 

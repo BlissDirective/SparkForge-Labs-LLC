@@ -20,7 +20,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
@@ -37,17 +37,6 @@ const FoolTheAiEnvironment = dynamic(
   () => import('@/components/3d/environments/FoolTheAiEnvironment'),
   { ssr: false }
 );
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
 
 type Phase = 'welcome' | 'play';
 
@@ -132,8 +121,6 @@ export function FoolTheAiGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile();
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
@@ -183,17 +170,15 @@ export function FoolTheAiGame() {
     <GameShell gameId="fool-the-ai" title="Fool the AI" worldNumber={7} worldColor="#06B6D4" xpReward={20} totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <FoolTheAiEnvironment foolAttempts={found.size} isTesting={!!feedback} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <FoolTheAiEnvironment foolAttempts={found.size} isTesting={!!feedback} />
+          </Canvas>
+        </div>
 
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

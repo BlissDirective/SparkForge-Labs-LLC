@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -24,17 +24,6 @@ const LostInTranslationEnvironment = dynamic(
   () => import('@/components/3d/environments/LostInTranslationEnvironment'),
   { ssr: false }
 );
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
 
 type Phase = 'welcome' | 'play';
 
@@ -113,8 +102,6 @@ export function LostInTranslationGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
-  const isMobile = useIsMobile();
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(-1);
@@ -141,17 +128,15 @@ export function LostInTranslationGame() {
     <GameShell gameId="lost-in-translation" title="Lost in Translation" worldNumber={8} worldColor="#818CF8" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <LostInTranslationEnvironment languagePair={round?.original ?? ''} translationsCompleted={idx} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <LostInTranslationEnvironment languagePair={round?.original ?? ''} translationsCompleted={idx} />
+          </Canvas>
+        </div>
 
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

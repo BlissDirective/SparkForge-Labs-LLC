@@ -25,17 +25,6 @@ const DataShieldEnvironment = dynamic(
   { ssr: false }
 );
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
-
 type Phase = 'welcome' | 'play';
 
 interface DataPoint {
@@ -114,8 +103,6 @@ export function DataShieldGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile();
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [scenarioIdx, setScenarioIdx] = useState(0);
   const [pointIdx, setPointIdx] = useState(0);
@@ -157,17 +144,15 @@ export function DataShieldGame() {
     <GameShell gameId="data-shield" title="Data Shield" worldNumber={6} worldColor="#FF6644" totalRounds={SCENARIOS.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <DataShieldEnvironment shieldStrength={privacyScore} threatsBlocked={scenarioIdx} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <DataShieldEnvironment shieldStrength={privacyScore} threatsBlocked={scenarioIdx} />
+          </Canvas>
+        </div>
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

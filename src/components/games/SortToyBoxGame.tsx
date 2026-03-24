@@ -142,18 +142,6 @@ function ShapeIcon({
   );
 }
 
-// ■■■ Hook: detect desktop for 3D ■■■
-function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(false);
-  useEffect(() => {
-    const check = () => setIsDesktop(window.innerWidth >= 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isDesktop;
-}
-
 export function SortToyBoxGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -168,7 +156,6 @@ export function SortToyBoxGame() {
   const [selectedShape, setSelectedShape] = useState<string | null>(null);
   const [aiCriterion, setAiCriterion] = useState<(typeof AI_CRITERIA)[0] | null>(null);
 
-  const isDesktop = useIsDesktop();
   const allGrouped = shapes.every((s) => s.group !== null);
 
   const particles = useMemo(
@@ -350,13 +337,11 @@ export function SortToyBoxGame() {
                     className="flex-1 flex flex-col"
                   >
                     <p className="font-body text-xs text-white/30 mb-3 text-center">
-                      {isDesktop
-                        ? 'Click a shape, then click a bin to throw it!'
-                        : 'Tap a shape, then tap a group to sort it.'}
+                      Click a shape, then click a bin to throw it!
                     </p>
 
-                    {/* ■■■ 3D VIEW (Desktop) ■■■ */}
-                    {isDesktop && phase === 'sort' ? (
+                    {/* ■■■ 3D VIEW ■■■ */}
+                    {phase === 'sort' && (
                       <div className="flex-1 rounded-xl overflow-hidden border border-purple-500/10 min-h-[300px]">
                         <SortScene3D
                           items={items3D}
@@ -367,92 +352,11 @@ export function SortToyBoxGame() {
                           onSelectItem={setSelectedShape}
                         />
                       </div>
-                    ) : (
-                      <>
-                        {/* ■■■ 2D FALLBACK (Mobile) ■■■ */}
-                        {/* Ungrouped */}
-                        <div className="flex flex-wrap gap-2 justify-center mb-4 p-3 rounded-xl bg-white/[0.02] border border-white/5">
-                          {shapes
-                            .filter((s) => s.group === null)
-                            .map((s) => (
-                              <motion.button
-                                key={s.id}
-                                onClick={() =>
-                                  setSelectedShape(
-                                    selectedShape === s.id ? null : s.id
-                                  )
-                                }
-                                className={`p-2 rounded-lg transition-all ${
-                                  selectedShape === s.id
-                                    ? 'ring-2 ring-purple-500 bg-purple-500/10'
-                                    : 'bg-white/5'
-                                }`}
-                                whileTap={{ scale: 0.9 }}
-                                layout
-                                aria-label={`${s.size} ${s.colorName} ${s.shape}`}
-                              >
-                                <ShapeIcon
-                                  shape={s.shape}
-                                  color={s.color}
-                                  size={s.size}
-                                />
-                              </motion.button>
-                            ))}
-                          {shapes.filter((s) => s.group === null).length === 0 && (
-                            <p className="font-body text-xs text-white/20">
-                              All sorted!
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Groups */}
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
-                          {Array.from({ length: groupCount }).map((_, g) => (
-                            <motion.button
-                              key={g}
-                              onClick={() => assignGroup(g)}
-                              className={`rounded-xl border-2 border-dashed p-2 min-h-[80px] flex flex-wrap gap-1 content-start items-start ${
-                                selectedShape
-                                  ? 'border-purple-500/40 bg-purple-500/5 cursor-pointer'
-                                  : 'border-white/10 bg-white/[0.02]'
-                              }`}
-                              whileHover={selectedShape ? { scale: 1.02 } : {}}
-                            >
-                              <span className="font-display text-[10px] text-white/20 w-full">
-                                Group {g + 1}
-                              </span>
-                              {shapes
-                                .filter((s) => s.group === g)
-                                .map((s) => (
-                                  <motion.div
-                                    key={s.id}
-                                    layout
-                                    className="p-0.5"
-                                  >
-                                    <ShapeIcon
-                                      shape={s.shape}
-                                      color={s.color}
-                                      size={s.size}
-                                    />
-                                  </motion.div>
-                                ))}
-                            </motion.button>
-                          ))}
-                          {groupCount < 4 && (
-                            <button
-                              onClick={() => setGroupCount((c) => c + 1)}
-                              className="rounded-xl border-2 border-dashed border-white/5 flex items-center justify-center text-white/10 hover:text-white/30 hover:border-white/10"
-                            >
-                              <Plus className="w-5 h-5" />
-                            </button>
-                          )}
-                        </div>
-                      </>
                     )}
 
                     {/* Add Group / Reveal buttons */}
                     <div className="mt-3 flex gap-2">
-                      {isDesktop && groupCount < 4 && (
+                      {groupCount < 4 && (
                         <button
                           onClick={() => setGroupCount((c) => c + 1)}
                           className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 font-display text-xs text-white/40 hover:text-white/60"

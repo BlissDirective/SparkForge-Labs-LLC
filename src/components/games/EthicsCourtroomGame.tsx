@@ -35,17 +35,6 @@ const EthicsCourtroomEnvironment = dynamic(
   { ssr: false }
 );
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
-
 type Phase = 'welcome' | 'learn' | 'trial' | 'complete';
 type TrialStep = 'case' | 'perspective' | 'argue' | 'verdict';
 
@@ -463,8 +452,6 @@ export function EthicsCourtroomGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile();
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [caseIdx, setCaseIdx] = useState(0);
@@ -537,17 +524,15 @@ export function EthicsCourtroomGame() {
     >
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <EthicsCourtroomEnvironment caseIndex={caseIdx} verdictReached={trialStep === 'verdict'} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <EthicsCourtroomEnvironment caseIndex={caseIdx} verdictReached={trialStep === 'verdict'} />
+          </Canvas>
+        </div>
 
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">

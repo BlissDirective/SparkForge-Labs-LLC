@@ -11,7 +11,7 @@
 // glow halos around bright particles.
 //
 // Triangle budget: ~200,000 (was ~500)
-// Mobile: 100 particles, no connections, no trails
+// D3D Desktop-First: all particles, connections, and trails always active
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -32,14 +32,12 @@ interface AmbientParticlesProps {
   intensity?: IntensityLevel;
   color?: string;
   baseCount?: number;
-  isMobile?: boolean;
 }
 
 export function AmbientParticles({
   intensity = 'medium',
   color = '#00BBFF',
   baseCount,
-  isMobile = false,
 }: AmbientParticlesProps) {
   const instancedRef = useRef<THREE.InstancedMesh>(null);
   const trailRef = useRef<THREE.InstancedMesh>(null);
@@ -49,12 +47,10 @@ export function AmbientParticles({
 
   const lod = useLOD({ tier: 'system' });
   const preset = INTENSITY_PRESETS[intensity];
-  const count = isMobile
-    ? Math.min(preset.count, 100)
-    : baseCount || preset.count;
-  const showConnections = preset.connections && !isMobile;
-  const showTrails = lod.enableEffects && !isMobile;
-  const showHalos = lod.enableEffects && !isMobile && intensity === 'high';
+  const count = baseCount || preset.count;
+  const showConnections = preset.connections;
+  const showTrails = lod.enableEffects;
+  const showHalos = lod.enableEffects && intensity === 'high';
 
   // Particle geometry: icosahedron for higher fidelity
   const particleGeo = useMemo(() => {

@@ -43,17 +43,6 @@ const BuildClassifierEnvironment = dynamic(
   { ssr: false }
 );
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
-
 type Phase = 'welcome' | 'learn' | 'collect' | 'train' | 'test' | 'results';
 
 interface TrainingImage {
@@ -143,8 +132,6 @@ export function BuildClassifierGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile();
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
 
@@ -264,17 +251,15 @@ export function BuildClassifierGame() {
     >
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <BuildClassifierEnvironment accuracy={accuracy} itemsSorted={testResults.length} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <BuildClassifierEnvironment accuracy={accuracy} itemsSorted={testResults.length} />
+          </Canvas>
+        </div>
 
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">

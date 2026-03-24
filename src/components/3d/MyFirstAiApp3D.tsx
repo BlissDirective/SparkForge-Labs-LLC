@@ -34,7 +34,6 @@ interface MyFirstAiApp3DProps {
   appName: string;
   innovationScore: number;  // 0-100
   isPreview: boolean;       // true when app card is shown
-  isMobile?: boolean;
 }
 
 // ---- Phone Frame ----
@@ -482,8 +481,6 @@ function Scene(props: MyFirstAiApp3DProps) {
 // ---- Export ----
 
 export default function MyFirstAiApp3D(props: MyFirstAiApp3DProps) {
-  if (props.isMobile) return null;
-
   return (
     <div
       className="w-full h-48 md:h-56 rounded-xl overflow-hidden"

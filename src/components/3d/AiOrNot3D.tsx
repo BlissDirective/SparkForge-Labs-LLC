@@ -24,7 +24,6 @@ interface AiOrNot3DProps {
   isCorrect: boolean | null;
   score: number;
   total: number;
-  isMobile?: boolean;
 }
 
 // ■■ Display Pedestal ■■
@@ -185,7 +184,7 @@ function ScoreDisplay({ score, total }: { score: number; total: number }) {
 }
 
 // ■■ Scene ■■
-function Scene({ currentItem, verdict, isCorrect, score, total }: Omit<AiOrNot3DProps, 'isMobile'>) {
+function Scene({ currentItem, verdict, isCorrect, score, total }: AiOrNot3DProps) {
   return (
     <>
       <ambientLight intensity={0.25} />
@@ -212,10 +211,7 @@ export default function AiOrNot3D({
   isCorrect,
   score,
   total,
-  isMobile = false,
 }: AiOrNot3DProps) {
-  if (isMobile) return null;
-
   return (
     <div className="w-full h-48 md:h-56 relative">
       <Canvas camera={{ position: [0, 0.5, 4], fov: 50 }} dpr={[1, 1.5]} gl={{ antialias: true }}>

@@ -23,7 +23,6 @@ interface EmojiDecoder3DProps {
   decodedText: string;
   isDecoding: boolean;
   progress: number; // 0-1
-  isMobile?: boolean;
 }
 
 // ■■ Translation Machine ■■
@@ -153,7 +152,7 @@ function DecodedOutput({ text, progress }: { text: string; progress: number }) {
 }
 
 // ■■ Scene ■■
-function Scene({ inputEmojis, decodedText, isDecoding, progress }: Omit<EmojiDecoder3DProps, 'isMobile'>) {
+function Scene({ inputEmojis, decodedText, isDecoding, progress }: EmojiDecoder3DProps) {
   return (
     <>
       <ambientLight intensity={0.3} />
@@ -178,10 +177,7 @@ export default function EmojiDecoder3D({
   decodedText,
   isDecoding,
   progress,
-  isMobile = false,
 }: EmojiDecoder3DProps) {
-  if (isMobile) return null;
-
   return (
     <div className="w-full h-48 md:h-56 relative">
       <Canvas camera={{ position: [0, 1, 4], fov: 50 }} dpr={[1, 1.5]} gl={{ antialias: true }}>

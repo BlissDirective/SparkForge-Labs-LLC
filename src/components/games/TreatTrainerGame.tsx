@@ -25,17 +25,6 @@ const TreatTrainerEnvironment = dynamic(
   { ssr: false }
 );
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
-
 type Phase = 'welcome' | 'play';
 
 const SIZE = 7;
@@ -47,7 +36,6 @@ const TOTAL_EPISODES = 10;
 const isWall = (r: number, c: number) => WALLS.some(([wr, wc]) => wr === r && wc === c);
 
 export function TreatTrainerGame() {
-  const isMobile = useIsMobile();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -118,17 +106,15 @@ export function TreatTrainerGame() {
     <GameShell gameId="treat-trainer" title="Treat Trainer" worldNumber={2} worldColor="#8B5CF6" totalRounds={TOTAL_EPISODES}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <TreatTrainerEnvironment treatCount={episode} isTraining={phase === 'play'} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <TreatTrainerEnvironment treatCount={episode} isTraining={phase === 'play'} />
+          </Canvas>
+        </div>
 
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

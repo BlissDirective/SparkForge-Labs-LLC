@@ -29,7 +29,6 @@ interface CameraQuest3DProps {
   found: Set<number>;
   showConfidence: boolean;
   captured: boolean;
-  isMobile?: boolean;
 }
 
 // ---- Polaroid Card ----
@@ -212,7 +211,7 @@ function QuestScene({
   found,
   showConfidence,
   captured,
-}: Omit<CameraQuest3DProps, 'isMobile'>) {
+}: CameraQuest3DProps) {
   let stackCount = 0;
 
   return (
@@ -261,8 +260,6 @@ function QuestScene({
 // ---- Main Export ----
 
 export default function CameraQuest3D(props: CameraQuest3DProps) {
-  if (props.isMobile) return null;
-
   return (
     <div
       style={{ width: '100%', height: 200, borderRadius: 12, overflow: 'hidden' }}

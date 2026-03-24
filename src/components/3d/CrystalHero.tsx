@@ -6,9 +6,9 @@
 // Decision 8.1: Shared DNA, different execution
 // Landing: Interactive crystal with parallax + sparkles
 // NOT the cinematic shatter — user scrolls past freely
-// Mobile: CSS gradient fallback (Decision 8.5)
+// D3D Desktop-First: always renders full 3D
 
-import { useRef, useMemo, Suspense, useState, useEffect } from 'react';
+import { useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
@@ -103,44 +103,6 @@ function CrystalText() {
 
 // ■■ Main Component ■■
 export function CrystalHero() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(window.innerWidth < 768);
-    const handler = () => setIsMobile(window.innerWidth < 768);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
-
-  // Mobile: CSS gradient fallback (Decision 8.5)
-  if (isMobile) {
-    return (
-      <div className="relative w-full h-[50vh] flex items-center justify-center overflow-hidden">
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at 50% 50%, #3B82F620 0%, #8B5CF615 40%, #0a0a1f 80%)',
-          }}
-        />
-        <div className="relative z-10 text-center">
-          <h1
-            className="text-4xl font-bold tracking-wider"
-            style={{
-              fontFamily: 'var(--font-display)',
-              background:
-                'linear-gradient(135deg, #3B82F6, #8B5CF6, #06B6D4)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            SPARKFORGE
-          </h1>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="relative w-full h-[60vh]">
       <Canvas

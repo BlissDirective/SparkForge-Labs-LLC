@@ -40,18 +40,6 @@ const ChatbotNodes3D = dynamic(
   { ssr: false }
 );
 
-// [v3] Mobile detection for 3D fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
-}
-
 // --- Types ---
 type Phase = "welcome" | "learn" | "build";
 type ViewMode = "tree" | "graph" | "test";
@@ -301,8 +289,6 @@ export function ChatbotBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";
-  const isMobile = useIsMobile(); // [v3]
-
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
   const [learnIdx, setLearnIdx] = useState(0);

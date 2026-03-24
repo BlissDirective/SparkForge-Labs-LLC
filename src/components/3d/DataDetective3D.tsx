@@ -24,7 +24,6 @@ interface DataDetective3DProps {
   deletedRows: Set<number>;
   lastFixedRow: number | null;
   worldColor: string;
-  isMobile?: boolean;
 }
 
 // ■■■ Magnifying Glass Component ■■■
@@ -297,7 +296,7 @@ function DetectiveScene({
   deletedRows,
   lastFixedRow,
   worldColor,
-}: Omit<DataDetective3DProps, "isMobile">) {
+}: DataDetective3DProps) {
   const magY = selectedRow !== null
     ? 0.8 - (selectedRow % totalRows) * 0.28
     : 0.4;
@@ -363,11 +362,6 @@ function DetectiveScene({
 // ■■■ Exported Component ■■■
 
 export default function DataDetective3D(props: DataDetective3DProps) {
-  const { isMobile = false } = props;
-
-  // Mobile: no 3D, parent uses CSS spotlight only
-  if (isMobile) return null;
-
   return (
     <div
       className="w-full rounded-lg overflow-hidden"
