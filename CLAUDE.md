@@ -2,8 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 5.9 | **Date:** March 23, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v5.8 (March 20, 2026) — Added Login 3D Enhancement (Phases 5E–5F) to BUILD EXECUTION PLAN. Created 2 new stage docs (LOGIN_3D_v3FINAL_PartA/B). Added Demo Login feature (1-hour timed session). Updated phase count from 30 to 32. Added HS-10 (login 3D visual verification). Updated Per-Stage-Playbooks, Document Hierarchy, and visual checklists.
+**Version:** 6.0 | **Date:** March 24, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v5.9 (March 23, 2026) — D3D Desktop-First Overhaul: Removed mobile/LOD/CSS fallback architecture (D3D-1/2). Added desktop-ultra rendering (50M triangle budget). Added sceneStore, SceneRouter, MechanicalIris, PostProcessingStack. Updated Sections 7, 9, 9.1, 9.2, 9.3, 11, 14. Added 20 D3D decision locks (D3D-1–9, D3D-B1–6, D3D-C1–5). Version footer updated.
 
 ---
 
@@ -485,7 +485,7 @@ game.completeGame();
 ### Required Features (ALL 35 games)
 
 - Chrome bezel + LED rim wrapper
-- 12-15 particles (lab-colored) — CSS for standard, R3F for flagship
+- 12-15 particles (lab-colored) — R3F for all tiers (D3D-1: desktop-only)
 - Welcome phase with animated entrance
 - Age-band differentiated content (A/B/C)
 - ARIA labels on all interactive elements
@@ -499,14 +499,8 @@ const Component3D = dynamic(
   { ssr: false }
 );
 
-function useIsMobile() {
-  const [m, setM] = useState(false);
-  useEffect(() => { setM(window.innerWidth < 768); }, []);
-  return m;
-}
-
-// In render: hidden on mobile, CSS fallback active
-{!isMobile && <Component3D {...props} />}
+// 3D always renders — desktop-only (D3D-1)
+<Component3D {...props} />
 ```
 
 ---
@@ -543,11 +537,12 @@ function useIsMobile() {
 - **ALL** R3F/Three.js components go in `src/components/3d/`
 - **ALL** must use `dynamic(() => import(...), { ssr: false })`
 - `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
-- Mobile fallback: `useIsMobile()` → component returns `null` on mobile
-- CSS 2D fallback remains fully functional when 3D is hidden
-- Triangle budgets: Flagship 10M+ (10,000,000), FL-Lite 2M+ (2,000,000), Standard 500K+ (500,000) (all games now have full 3D environments)
-- **LOD is MANDATORY** — every 3D component must use `useLOD()` hook or `<LODWrapper>` (see Section 9.1)
-- **Device-adaptive FPS** — `deviceStore` drives FPS targets (desktop 60, tablet 45, mobile 30)
+- **Desktop-only rendering (D3D-1)** — no mobile/tablet code paths
+- **All effects always-on (D3D-5)** — no conditional postprocessing
+- **Single persistent Canvas (D3D-B1)** — CockpitCanvas never unmounts
+- **Scene management via sceneStore (D3D-B5)** — centralized visibility control
+- **Mechanical iris transitions (D3D-B2)** — cockpit-to-game via MechanicalIris
+- **Triangle budgets: Flagship 20M, FL-Lite 10M, Standard 5M, System 30M (D3D-3)**
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
 - Environment: `frost-prismatic.hdr` in `public/hdri/`
 - 11 PBR presets in `lib/3d/materials.ts`
@@ -555,94 +550,50 @@ function useIsMobile() {
 
 ### 3D Component Registry
 
-**Full registry (78 components):** `docs/00-reference/3D-Component-Registry.md`
+**Full registry (82 components):** `docs/00-reference/3D-Component-Registry.md`
 
 | Category | Count | Key Components |
 |----------|-------|----------------|
-| System/Dashboard | 7 | StationFrame, HeroAnimation, AuroraBackground, LODWrapper |
+| System/Dashboard | 9 | StationFrame, HeroAnimation, AuroraBackground, SceneRouter, MechanicalIris, PostProcessingStack |
 | Flagship (games + envs) | 12 | Pet3DScene, NeuralNetwork3D, PromptBubble3D, AgentPipeline3D, BiasScales3D, SortScene3D + 6 environments |
 | FL-Lite (games + envs) | 19 | CodeBlocks3D, ChatbotNodes3D, DataDetective3D, RobotVacuum3D, CameraQuest3D, FutureForge3D, MyFirstAiApp3D, EmojiDecoder3D, AiOrNot3D + 10 environments |
 | Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
 | Cockpit/Enhancement | 24 | CockpitCanvas, CameraSystem, SpatialDashboard, HolographicLabMap, CockpitPanels, SidePanels, StatusBar3D, HolographicHUD, LEDRim, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitSkinManager, CockpitAudioEngine |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
+| Hooks (D3D) | 2 | useParallaxMouse, useInteractiveSurface |
+| Audio (D3D) | 1 | irisAudioEngine |
+| Stores (D3D) | 1 | sceneStore |
 
-### 9.1 Mandatory LOD Architecture
+### 9.1 Desktop-Ultra Rendering (D3D-1, D3D-2)
 
-**Every 3D component MUST implement Level of Detail (LOD).** This is not optional — it ensures consistent performance across all device types.
+LOD system has been removed (D3D-2). All geometry renders at maximum quality always. No DeviceSelectionModal, no tiered budgets, no useLOD hook. `deviceStore` hardcodes desktop-ultra profile with 50M total triangle budget.
 
-#### Device Performance System
+Future mobile support will use R3F-native LOD (Three.js LOD object), not CSS fallbacks.
 
-Users select their device type at first launch via `DeviceSelectionModal`:
+#### Desktop-Ultra Profile
 
-| Device | Target FPS | Max Triangles | LOD Bias | Bloom | Shadows | Pixel Ratio |
-|--------|-----------|---------------|----------|-------|---------|-------------|
-| Desktop (Computer) | 60 | 20M | ultra | Yes | Yes | 2.5x |
-| Tablet | 45 | 10M | high | Yes | No | 1.5x |
-| Mobile (Phone) | 30 | 2.5M | low | No | No | 1x |
-
-**Store:** `src/stores/deviceStore.ts` — persisted via localStorage (`sparkforge-device`)
-**Modal:** `src/components/ui/DeviceSelectionModal.tsx` — shown once on first visit
-**Settings:** User can change device type anytime in Settings page
-
-#### LOD Levels
-
-| Level | Segments | Effects | Shadows | Reflections | Use Case |
-|-------|----------|---------|---------|-------------|----------|
-| `ultra` | 64 | All + trails | Yes | Yes | Desktop, max quality |
-| `high` | 16 | All | Yes | Yes | Desktop/Tablet, close camera |
-| `medium` | 12 | Most | No | Yes | Tablet, mid-range |
-| `low` | 8 | None | No | No | Mobile, far camera |
-| `billboard` | 4 | None | No | No | Extreme distance / perf |
-
-#### Usage Pattern (Required)
-
-```typescript
-// In 3D component:
-import { useLOD, lodSphere } from '@/hooks/useLOD';
-
-function MyScene3D() {
-  const lod = useLOD({ tier: 'flagship' }); // or 'flLite', 'standard', 'system'
-  return (
-    <mesh>
-      <sphereGeometry args={lodSphere(lod, 1.0)} />
-      {lod.enableEffects && <Sparkles />}
-      {lod.enableShadows && <ContactShadows />}
-    </mesh>
-  );
-}
-
-// Or via wrapper:
-import { LODWrapper, useLODContext } from '@/components/3d/LODWrapper';
-
-<LODWrapper tier="flagship" adaptive>
-  <MyScene3D />
-</LODWrapper>
-```
-
-#### Adaptive FPS Monitor
-
-`useAdaptiveLOD()` monitors real-time FPS and auto-downgrades LOD when performance drops below 80% of target. Use `adaptive` prop on `<LODWrapper>` for automatic degradation.
-
-#### Triangle Budgets by Device
-
-| Tier | Desktop | Tablet | Mobile |
-|------|---------|--------|--------|
-| Flagship | 10M | 5M | 2.5M |
-| FL-Lite | 2M | 1M | 500K |
-| Standard | 500K | 250K | 125K |
-| System (Cockpit) | 20M | 10M | 0 (CSS) |
+| Property | Value |
+|----------|-------|
+| Target FPS | 60 |
+| Max Triangles | 50,000,000 (30M cockpit + 20M game) |
+| Bloom | Always on |
+| Shadows | Always on |
+| Pixel Ratio | Native (`window.devicePixelRatio`) |
+| SSAO | Always on |
+| Chromatic Aberration | Always on |
+| Depth of Field | Always on |
 
 ### 9.2 Game Tier Definitions (3 tiers)
 
 **Note:** Enhanced Standard tier has been **merged into FL-Lite**. There are now 3 game tiers:
 
-| Tier | Description | 3D | Triangle Budget | Games |
-|------|-------------|-----|----------------|-------|
-| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 10M+ (10,000,000) | 6 |
-| **FL-Lite** | Immersive 3D with themed environments | Full R3F | 2M+ (2,000,000) | 9 |
-| **Standard** | Immersive 3D environments with themed scenes | Full R3F | 500K+ (500,000) | 20 |
+| Tier | Description | 3D | Triangle Budget (D3D-3) | Games |
+|------|-------------|-----|------------------------|-------|
+| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 20M (20,000,000) | 6 |
+| **FL-Lite** | Immersive 3D with themed environments | Full R3F | 10M (10,000,000) | 9 |
+| **Standard** | Immersive 3D environments with themed scenes | Full R3F | 5M (5,000,000) | 20 |
 
-**Total: 6 + 9 + 20 = 35 games.** Flagship includes Sort Toy Box (Full 3D).
+**Total: 6 + 9 + 20 = 35 games.** Flagship includes Sort Toy Box (Full 3D). System (Cockpit) budget: 30M.
 
 ### 9.3 3D Panoramic Cockpit Suite (Enhancements 1.0 / 1.1 / 1.2)
 
@@ -679,6 +630,19 @@ Decisions CPA2-1 through CPA2-12 govern cockpit architecture. Key decisions:
 
 Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
 
+#### D3D-B Decision Locks (Desktop-First Overhaul)
+
+| ID | Decision | Summary |
+|----|----------|---------|
+| D3D-B1 | Persistent Canvas | CockpitCanvas never unmounts — uses SceneRouter for visibility |
+| D3D-B2 | Mechanical Iris | MechanicalIris replaces WormholeTransition for cockpit-to-game transitions |
+| D3D-B3 | Game Scene Groups | Game scenes render as `<group>` inside CockpitCanvas |
+| D3D-B4 | SceneRouter | SceneRouter manages visibility of cockpit/game/hero/spatial scenes |
+| D3D-B5 | sceneStore | Centralized scene state replaces fragmented state management |
+| D3D-B6 | Cockpit Fade | Cockpit fades to 20% opacity during game scenes |
+
+Note: WormholeTransition is retained for lab-to-lab transitions within the spatial dashboard.
+
 #### Cockpit Triangle Budgets (20M Upgrade — March 20, 2026)
 
 | Component | Triangles | Notes |
@@ -701,17 +665,11 @@ Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
 | MiniMapOverlay3D | 250,000 | Miniature lab ring, player indicator, completion color-coding |
 | AuroraBackground | 50,000 | Volumetric aurora layers, 3 ribbon TubeGeometry paths |
 | AmbientParticles | 200,000 | Instanced icosahedron particles with trails and halos |
-| **Cockpit Total** | **~19,000,000** | Desktop 20M budget (with 1M dynamic headroom) |
+| **Cockpit Total** | **~19,000,000** | System 30M budget (D3D-3) with ~11M dynamic headroom |
 
-#### Mobile CSS Fallback Strategy
+#### Desktop-Only Rendering (D3D-1)
 
-On mobile (`useIsMobile()` returns `true`), the full cockpit is hidden and replaced with:
-
-- **2D glassmorphic dashboard** — standard HTML/CSS layout with `backdrop-filter: blur()`
-- **CSS particle backgrounds** — `GenericGameParticles.tsx` provides lightweight DOM-animated `<div>` particles
-- **Chrome bezel** rendered as CSS borders/gradients (no R3F)
-- **Lab map** as a flat grid/carousel instead of 3D hologram
-- All interactive functionality preserved — only visual presentation differs
+Mobile/tablet code paths have been removed (D3D-1). The cockpit always renders at full quality. No CSS fallbacks, no `useIsMobile()`, no `GenericGameParticles`. Future mobile support will use R3F-native LOD (Three.js LOD object) rather than CSS substitution.
 
 #### TSL / WebGPU Notes
 
@@ -759,6 +717,10 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | FIX-TRIPLE-CANVAS | HeroAnimation, StationFrame, and SpatialDashboard each created separate R3F Canvas instances, violating CPA2-1 (Single Canvas) and preventing CPA2-3 (Seamless Handoff) | **RESOLVED (March 20, 2026)** — Created unified `CockpitCanvas.tsx` with single persistent Canvas. `StationFrame`, `SpatialDashboard`, and `HeroAnimation` rewritten as thin `<group>` wrappers. `CameraSystem.tsx` manages all camera transitions. Hero-to-cockpit handoff is now seamless crossfade within single Canvas. | Enh 1.1 |
 | FIX-SYSTEM-LOD-CAP | `useLOD` hardcoded system tier to 3,000 triangles, preventing cockpit from using full device budget | **RESOLVED (March 20, 2026)** — Removed hardcoded cap; system tier now reads from `deviceStore` triangle budgets (desktop 20M, tablet 10M). Ultra LOD segments increased from 32 to 64. | Enh 1.1 |
 | UPGRADE-20M-COCKPIT | Cockpit used only ~104K of available triangle budget | **RESOLVED (March 20, 2026)** — Full 20M triangle upgrade across 13 upgraded components + 8 new components (CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitCanvas, CameraSystem) + audio system (CockpitAudioEngine). See `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md`. | Enh 1.1 |
+| D3D-CANVAS-PERSIST | CockpitCanvas unmounted during gameplay (FIX-DUAL-CANVAS) | **SUPERSEDED** by D3D-B1: Canvas now persists. GameShell uses `sceneStore.enterGame`/`exitGame` instead of `setGameActive`. | D3D Part B |
+| D3D-LOD-REMOVED | LOD system (`useLOD`, `LODWrapper`) removed | **RESOLVED** by D3D-2: All geometry at max quality. `deviceStore` hardcoded to desktop-ultra. | D3D Part A |
+| D3D-MOBILE-REMOVED | Mobile detection and CSS fallbacks removed | **RESOLVED** by D3D-1: 401 `isMobile` occurrences removed. Desktop-only rendering. | D3D Part A |
+| D3D-POSTFX-UPGRADE | Only 3 post-processing effects (Bloom, Vignette, BarrelDistortion) | **RESOLVED** by D3D-5/C1: 7 effects always-on with scene-reactive multipliers. | D3D Part C |
 
 ### Game Code Agent — COMPLETED
 
@@ -805,7 +767,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-## 14. STORES (9 total)
+## 14. STORES (10 total)
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
@@ -813,13 +775,14 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
 | gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
 | toastStore | 1 | toasts[], addToast/removeToast |
-| uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation |
+| uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation. Note: `gameActive` flag deprecated (D3D-B1) — use `sceneStore.enterGame`/`exitGame` instead. |
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
-| **deviceStore** | — | deviceType, hasSelected, profile (FPS, LOD, triangles, effects), gpuTier, stripeCount. **20M upgrade:** desktop maxTriangles=20M, tablet=10M, system tier added to TRIANGLE_BUDGETS, instancedMeshLimit desktop=5000/tablet=1500. |
+| **deviceStore** | — | D3D-1/3: Hardcoded desktop-ultra. 50M total budget. No device selection. gpuTier, stripeCount. |
 | **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
+| **sceneStore** | D3D Part B | `activeScene`, `activeGameId`, `activeGameLabColor`, `transition`, `isTransitioning`, `cockpitOpacityTarget`. Actions: `enterGame`/`exitGame`/`enterSpatial`/`exitSpatial`/`setHeroActive`/`completeHero`/`updateTransitionProgress`/`completeTransition`. |
 
 ---
 
-*End of CLAUDE.md v5.9 — SparkForge Autonomous Development Playbook*
-*98 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 64 decisions (48 core + 4 OD + 12 CPA2) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | Tech Stack 8.1 APPLIED | March 23, 2026*
+*End of CLAUDE.md v6.0 — SparkForge Autonomous Development Playbook*
+*98 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 84 decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | Tech Stack 8.1 APPLIED | March 24, 2026*
