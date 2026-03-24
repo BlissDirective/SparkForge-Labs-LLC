@@ -16,15 +16,17 @@
 // CPA2-3: Seamless handoff — hero Phase 7 camera target matches
 //         SPATIAL_CAMERA_PRESETS.overview exactly ([0, 6.5, 7] fov 58)
 
-import { useRef } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCockpitStore } from '@/stores/cockpitStore';
+import { getShakeOffset } from '@/lib/3d/cameraShake';
+import type { GameCameraPreset } from '@/config/gameRegistry';
 
 export type CameraMode = 'hero' | 'station' | 'spatial' | 'game';
 
-// D3D-B3: Game camera preset — forward-looking, close to scene
-const GAME_CAMERA_PRESET = {
+// D3D-B3: Default game camera preset — forward-looking, close to scene
+const GAME_CAMERA_DEFAULT = {
   position: new THREE.Vector3(0, 2, 5),
   lookAt: new THREE.Vector3(0, 0, 0),
   fov: 45,
@@ -51,6 +53,8 @@ interface CameraSystemProps {
   reducedMotion?: boolean;
   /** Mouse parallax ref for subtle depth movement (D3D-C4) */
   parallaxRef?: React.RefObject<ParallaxValues>;
+  /** Per-game camera preset override (Section 4.1-B) */
+  gameCameraPreset?: GameCameraPreset | null;
 }
 
 export function CameraSystem({
@@ -60,6 +64,7 @@ export function CameraSystem({
   enableOrbitDrift = true,
   reducedMotion = false,
   parallaxRef,
+  gameCameraPreset,
 }: CameraSystemProps) {
   const { camera } = useThree();
   const _heroPhase = useCockpitStore((s) => s.heroPhase);
@@ -85,11 +90,14 @@ export function CameraSystem({
       return;
     }
 
-    // ── Game mode: smooth transition to forward-looking game camera (D3D-B3) ──
+    // ── Game mode: smooth transition to per-game camera preset (D3D-B3 + Section 4.1-B) ──
     if (mode === 'game') {
-      const gamePos = GAME_CAMERA_PRESET.position;
-      const gameLookAt = GAME_CAMERA_PRESET.lookAt;
-      const gameFov = GAME_CAMERA_PRESET.fov;
+      const preset = gameCameraPreset
+        ? { position: new THREE.Vector3(...gameCameraPreset.position), lookAt: new THREE.Vector3(...gameCameraPreset.lookAt), fov: gameCameraPreset.fov }
+        : GAME_CAMERA_DEFAULT;
+      const gamePos = preset.position;
+      const gameLookAt = preset.lookAt;
+      const gameFov = preset.fov;
       const lf = 1 - Math.pow(1 - 0.04, delta * 60);
 
       cam.position.lerp(gamePos, lf * 0.5);
@@ -135,6 +143,14 @@ export function CameraSystem({
         cam.position.x += driftX * delta;
         cam.position.y += driftY * delta;
       }
+    }
+
+    // Camera shake offset (Section 4.1-G)
+    const shake = getShakeOffset(delta);
+    if (shake.x !== 0 || shake.y !== 0 || shake.z !== 0) {
+      cam.position.x += shake.x;
+      cam.position.y += shake.y;
+      cam.position.z += shake.z;
     }
 
     // Mouse parallax offset (D3D-C4) — applied to all non-hero modes

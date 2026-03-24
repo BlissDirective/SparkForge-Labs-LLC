@@ -564,8 +564,10 @@ const Component3D = dynamic(
 | Cockpit/Enhancement | 24 | CockpitCanvas, CameraSystem, SpatialDashboard, HolographicLabMap, CockpitPanels, SidePanels, StatusBar3D, HolographicHUD, LEDRim, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitSkinManager, CockpitAudioEngine |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
 | Hooks (D3D) | 2 | useParallaxMouse, useInteractiveSurface |
-| Audio (D3D) | 1 | irisAudioEngine |
+| Audio (D3D) | 1 | irisAudioEngine (+ LAB_COLOR_AUDIO_PROFILES for per-lab sound variations) |
 | Stores (D3D) | 1 | sceneStore |
+| TSL Shaders (Section 4.1-A) | 12 | 10 lab pattern TSL ports + shared.ts + index.ts (WebGPU-compatible) |
+| Camera Utilities (Section 4.1) | 2 | cameraShake (triggerCameraShake + SHAKE_PRESETS), interactiveSurfaceConfig (8 cockpit presets) |
 
 ### 9.1 Desktop-Ultra Rendering (D3D-1, D3D-2)
 
@@ -680,7 +682,7 @@ Since Three.js r171+, custom `ShaderMaterial` and `RawShaderMaterial` are **not 
 - **WGSL** for WebGPU path
 - **GLSL** for WebGL2 fallback path
 
-The 10 GLSL lab pattern shaders in `src/shaders/` work under WebGL2 but need TSL equivalents for WebGPU compatibility. Hero Animation particle system already uses full TSL compute pipeline.
+The 10 GLSL lab pattern shaders in `src/shaders/labPatterns/` work under WebGL2. **TSL equivalents are now available** in `src/shaders/labPatterns/tsl/` (Section 4.1-A). Use `getLabPatternTSL(labNumber)` to get the TSL pattern + uniforms for any lab. Hero Animation particle system already uses full TSL compute pipeline.
 
 ---
 

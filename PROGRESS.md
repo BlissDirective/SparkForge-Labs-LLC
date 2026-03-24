@@ -204,5 +204,46 @@ These patterns still function but are superseded by D3D architecture:
 - Q2: 10 lab theme profiles approved (digital-detection through quantum-frontier)
 - Q3: Game tier only (Option A) — triangle budget scales by Standard/FL-Lite/Flagship
 
+### Section 4.1 — Near-Term Enhancements (March 24, 2026)
+
+**Status:** COMPLETE
+**Branch:** `claude/build-section-4.1-CQSdv`
+**Source:** `docs/enhancements/DESKTOP_FIRST_3D_OVERHAUL_PartD.md` Section 4.1
+
+All 7 near-term enhancements from the D3D roadmap have been implemented:
+
+| Enhancement | ID | Effort | Status | Commit |
+|------------|-----|--------|--------|--------|
+| WebGPU Shader Ports | A | Medium | COMPLETE | `f5f3519` |
+| Per-Game Camera Presets | B | Low | COMPLETE | `378b91c` |
+| Iris Audio Integration | C | Low | COMPLETE | `710714b` |
+| CockpitCanvas Parallax | D | Low | PRE-EXISTING | (already wired in D3D Part C) |
+| Interactive Surface Deployment | E | Medium | COMPLETE (stubs) | `80f1d2f` |
+| Transition Sound Variations | F | Low | COMPLETE | `710714b` |
+| Camera Shake on Events | G | Low | COMPLETE | `710714b` |
+
+**Files created (14):**
+- `src/shaders/labPatterns/tsl/shared.ts` — TSL shared utilities (rand2D, simplex2D)
+- `src/shaders/labPatterns/tsl/codeLab.ts` — Lab 1 TSL pattern
+- `src/shaders/labPatterns/tsl/dataLab.ts` — Lab 2 TSL pattern
+- `src/shaders/labPatterns/tsl/neuralLab.ts` — Lab 3 TSL pattern
+- `src/shaders/labPatterns/tsl/createLab.ts` — Lab 4 TSL pattern
+- `src/shaders/labPatterns/tsl/agentLab.ts` — Lab 5 TSL pattern
+- `src/shaders/labPatterns/tsl/ethicsLab.ts` — Lab 6 TSL pattern
+- `src/shaders/labPatterns/tsl/visionLab.ts` — Lab 7 TSL pattern
+- `src/shaders/labPatterns/tsl/languageLab.ts` — Lab 8 TSL pattern
+- `src/shaders/labPatterns/tsl/buildLab.ts` — Lab 9 TSL pattern
+- `src/shaders/labPatterns/tsl/frontierLab.ts` — Lab 10 TSL pattern
+- `src/shaders/labPatterns/tsl/index.ts` — Barrel export with lookup helpers
+- `src/lib/3d/cameraShake.ts` — Camera shake controller with event presets
+- `src/lib/3d/interactiveSurfaceConfig.ts` — Cockpit interactive surface presets
+
+**Files modified (5):**
+- `src/lib/audio/irisAudio.ts` — Lab color audio profiles (10 colors → frequency/filter variations)
+- `src/hooks/useIrisTransition.ts` — Integrated iris audio lifecycle (was in CockpitCanvas)
+- `src/components/3d/CameraSystem.tsx` — Per-game camera presets + shake offset
+- `src/components/3d/CockpitCanvas.tsx` — Game preset lookup, removed redundant audio code
+- `src/config/gameRegistry.ts` — Added cameraPreset field to all 35 games
+
 ### Code Review Notes
 _(none yet)_

@@ -22,7 +22,7 @@
 //   Game Scene Group     — visible during gameplay
 //   Iris Overlay Group   — visible during transitions
 
-import { Suspense, useMemo, useEffect, useRef } from 'react';
+import { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
 
@@ -48,11 +48,12 @@ import { SceneRouter } from './SceneRouter';
 import { MechanicalIris } from './MechanicalIris';
 import { CameraSystem, type CameraMode } from './CameraSystem';
 
-// Audio (D3D-C3)
-import { irisAudioEngine } from '@/lib/audio/irisAudio';
-
 // Hooks (D3D-C4)
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
+// Note: Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
+
+// Game registry (Section 4.1-B: per-game camera presets)
+import { getGameBySlug } from '@/config/gameRegistry';
 
 // Stores
 import { useSceneStore } from '@/stores/sceneStore';
@@ -245,9 +246,17 @@ export function CockpitCanvas({
 }: CockpitCanvasProps) {
   // Scene state from centralized store (D3D-B5)
   const activeScene = useSceneStore((s) => s.activeScene);
+  const activeGameId = useSceneStore((s) => s.activeGameId);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const transition = useSceneStore((s) => s.transition);
+
+  // Per-game camera preset lookup (Section 4.1-B)
+  const gameCameraPreset = useMemo(() => {
+    if (!activeGameId) return null;
+    const game = getGameBySlug(activeGameId);
+    return game?.cameraPreset ?? null;
+  }, [activeGameId]);
 
   // Determine camera mode from active scene
   const cameraMode: CameraMode = activeScene === 'hero'
@@ -263,35 +272,7 @@ export function CockpitCanvas({
 
   // Mouse parallax for subtle depth movement (D3D-C4)
   const parallaxRef = useParallaxMouse({ smoothing: 0.05, intensity: 1.0 });
-
-  // Iris audio integration (D3D-C3)
-  const irisAudioInitialized = useRef(false);
-  const wasTransitioning = useRef(false);
-
-  useEffect(() => {
-    if (isTransitioning && !wasTransitioning.current) {
-      // Transition started
-      if (!irisAudioInitialized.current) {
-        irisAudioEngine.init();
-        irisAudioInitialized.current = true;
-      }
-      const dir = transition?.type === 'iris-close' ? 'close' : 'open';
-      irisAudioEngine.startTransition(dir);
-      wasTransitioning.current = true;
-    } else if (!isTransitioning && wasTransitioning.current) {
-      // Transition ended
-      irisAudioEngine.stopTransition();
-      wasTransitioning.current = false;
-    }
-  }, [isTransitioning]);
-
-  // Sync iris audio progress each render
-  useEffect(() => {
-    if (isTransitioning && transition) {
-      const direction = transition.type === 'iris-close' ? 'close' : 'open';
-      irisAudioEngine.syncProgress(transition.progress, direction);
-    }
-  }, [isTransitioning, transition]);
+  // Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
   // ── Single Persistent R3F Canvas (D3D-B1: NEVER unmounts) ──
   return (
@@ -323,13 +304,14 @@ export function CockpitCanvas({
           {/* Adaptive DPR */}
           <AdaptiveDpr pixelated />
 
-          {/* Unified Camera System (D3D-C4: parallax offset) */}
+          {/* Unified Camera System (D3D-C4: parallax, Section 4.1-B: per-game presets) */}
           <CameraSystem
             mode={cameraMode}
             stationFov={cameraFov}
             spatialDamping={0.04}
             enableOrbitDrift
             parallaxRef={parallaxRef}
+            gameCameraPreset={gameCameraPreset}
           />
 
           {/* HDR Environment */}
