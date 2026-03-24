@@ -13,7 +13,7 @@
 // - Interaction: Raycasting for hover (inspect) and click (weight)
 // - Heartbeat: Idle pulse wave (v2 enhancement preserved)
 // - Sparks: Flash at connection midpoints during training
-// - Mobile: Simplified segments, no bloom, touch rotate
+// - D3D Desktop-First: all effects always active
 //
 // Dynamic import with ssr: false required.
 // Budget: ~20K triangles max.
@@ -27,7 +27,6 @@ import { OrbitControls, Text, Line, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import NeuralBuilderEnvironment from './environments/NeuralBuilderEnvironment';
-import { LODWrapper } from './LODWrapper';
 
 // ================================================================
 // TYPES
@@ -68,7 +67,6 @@ interface NeuralNetwork3DProps {
   onSelectConnection: (id: string | null) => void;
   onInspectNode: (id: string | null) => void;
   labColor?: string;
-  isMobile?: boolean;
 }
 
 // ================================================================
@@ -123,7 +121,6 @@ function NeuronSphere({
   isTraining,
   heartbeatPhase,
   layerSizes,
-  isMobile,
   onHover,
   onClick,
 }: {
@@ -133,12 +130,11 @@ function NeuronSphere({
   isTraining: boolean;
   heartbeatPhase: number;
   layerSizes: number[];
-  isMobile: boolean;
   onHover: (id: string | null) => void;
   onClick: (id: string) => void;
 }) {
   const meshRef = useRef<THREE.Mesh>(null);
-  const segments = isMobile ? 12 : 20;
+  const segments = 20;
   const radius = 0.15;
 
   // Compute activation with heartbeat
@@ -209,7 +205,6 @@ function ConnectionLine({
   to,
   connection,
   isSelected,
-  isMobile,
   onSelect,
 }: {
   from: [number, number, number];
@@ -217,7 +212,6 @@ function ConnectionLine({
   connection: NetworkConnection;
   isSelected: boolean;
   dataFlowActive: boolean;
-  isMobile: boolean;
   onSelect: (id: string) => void;
 }) {
   const lineWidth = Math.max(0.5, Math.abs(connection.weight) * 3);
@@ -259,12 +253,10 @@ function ConnectionLine({
         }}
       />
       {/* Spark flash mesh */}
-      {!isMobile && (
-        <mesh ref={sparkRef} position={midpoint} visible={false}>
-          <sphereGeometry args={[0.08, 8, 8]} />
-          <meshBasicMaterial color={SPARK_COLOR} transparent opacity={0.8} />
-        </mesh>
-      )}
+      <mesh ref={sparkRef} position={midpoint} visible={false}>
+        <sphereGeometry args={[0.08, 8, 8]} />
+        <meshBasicMaterial color={SPARK_COLOR} transparent opacity={0.8} />
+      </mesh>
     </group>
   );
 }
@@ -312,17 +304,15 @@ function LayerLabel({
 
 function AutoOrbitController({
   isTraining,
-  isMobile,
 }: {
   isTraining: boolean;
-  isMobile: boolean;
 }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
 
   useFrame(() => {
     if (!controlsRef.current) return;
-    if (isTraining && !isMobile) {
+    if (isTraining) {
       controlsRef.current.autoRotate = true;
       controlsRef.current.autoRotateSpeed = 1.5;
     } else {
@@ -360,7 +350,6 @@ function NetworkScene({
   inspectedNode,
   onSelectConnection,
   onInspectNode,
-  isMobile,
 }: Omit<NeuralNetwork3DProps, 'trainEpoch' | 'accuracy' | 'complexity' | 'trainingProgress' | 'labColor'>) {
   const totalLayers = layerSizes.length;
 
@@ -405,7 +394,6 @@ function NetworkScene({
             isTraining={isTraining}
             heartbeatPhase={heartbeatPhase}
             layerSizes={layerSizes}
-            isMobile={isMobile || false}
             onHover={onInspectNode}
             onClick={onInspectNode}
           />
@@ -426,7 +414,6 @@ function NetworkScene({
             connection={conn}
             isSelected={selectedConnection === connId}
             dataFlowActive={dataFlowActive}
-            isMobile={isMobile || false}
             onSelect={onSelectConnection}
           />
         );
@@ -444,22 +431,20 @@ function NetworkScene({
       ))}
 
       {/* Camera Controls */}
-      <AutoOrbitController isTraining={isTraining} isMobile={isMobile || false} />
+      <AutoOrbitController isTraining={isTraining} />
 
       {/* Environment */}
       <Environment preset="night" />
 
-      {/* Bloom (desktop only) */}
-      {!isMobile && (
-        <EffectComposer>
-          <Bloom
-            intensity={0.6}
-            luminanceThreshold={0.4}
-            luminanceSmoothing={0.9}
-            mipmapBlur
-          />
-        </EffectComposer>
-      )}
+      {/* Bloom */}
+      <EffectComposer>
+        <Bloom
+          intensity={0.6}
+          luminanceThreshold={0.4}
+          luminanceSmoothing={0.9}
+          mipmapBlur
+        />
+      </EffectComposer>
     </>
   );
 }
@@ -469,34 +454,6 @@ function NetworkScene({
 // ================================================================
 
 export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
-  const {
-    isMobile = false,
-  } = props;
-
-  // Mobile fallback: render a simplified static placeholder instead of the
-  // full R3F Canvas. This avoids the performance cost of WebGL on low-end
-  // devices while still showing the network structure via the 2D overlay
-  // in the parent NeuralBuilderGame component.
-  if (isMobile) {
-    return (
-      <div
-        className="w-full rounded-lg overflow-hidden flex items-center justify-center"
-        style={{
-          height: 280,
-          background: 'radial-gradient(ellipse at center, rgba(236,72,153,0.08) 0%, transparent 70%)',
-        }}
-        role="img"
-        aria-label={`Neural network with ${props.layerSizes.length} layers and ${props.network.nodes.length} neurons`}
-      >
-        <div className="text-center text-white/40 text-sm font-body">
-          <p className="text-3xl mb-2">{'\u{1F9E0}'}</p>
-          <p>{props.layerSizes.length} layers &middot; {props.network.nodes.length} neurons</p>
-          <p className="text-xs mt-1">Rotate device for 3D view</p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div
       className="w-full rounded-lg overflow-hidden"
@@ -509,12 +466,11 @@ export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
     >
       <Canvas
         camera={{ position: [0, 2, 10], fov: 50 }}
-        dpr={isMobile ? [1, 1.5] : [1, 2]}
-        gl={{ antialias: !isMobile, alpha: true }}
+        dpr={[1, 2]}
+        gl={{ antialias: true, alpha: true }}
         shadows
         style={{ background: 'transparent' }}
       >
-        <LODWrapper tier="flagship" adaptive>
           {/* [5M] Immersive Data Center Environment */}
           <NeuralBuilderEnvironment
             isTraining={props.isTraining}
@@ -531,9 +487,7 @@ export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
             inspectedNode={props.inspectedNode}
             onSelectConnection={props.onSelectConnection}
             onInspectNode={props.onInspectNode}
-            isMobile={isMobile}
           />
-        </LODWrapper>
       </Canvas>
     </div>
   );

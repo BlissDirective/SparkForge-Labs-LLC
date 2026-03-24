@@ -19,13 +19,12 @@
 // Lab 9:  Code cube + circuit lines (TubeGeometry)
 // Lab 10: Rocket (cone + cylinder body + 3 fins) + exhaust particles
 //
-// LOD-aware via useLOD hook (tier: 'system'). Responds to hover/focus states.
+
 
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD, lodSphere, type LODState } from '@/hooks/useLOD';
 
 // ■■ Props Interface (unchanged) ■■
 interface LabStructureProps {
@@ -125,12 +124,10 @@ function ContactShadow({
 // ■■ Lab 1: What IS AI? — Multi-layer geodesic + satellite spheres + data rings ■■
 function Lab1Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -140,7 +137,7 @@ function Lab1Structure({
   const wireRef = useRef<THREE.Mesh>(null);
   const satellitesRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const seg = 64;
   const detail = Math.min(Math.floor(seg / 8), 4);
 
   // 8 satellite positions on sphere surface
@@ -221,7 +218,7 @@ function Lab1Structure({
         ))}
       </group>
       {/* Data hexagon ring at base */}
-      {lod.enableEffects && (
+      {(
         <mesh position-y={-0.3} rotation-x={-Math.PI / 2}>
           <torusGeometry args={[0.45, 0.035, 6, 6]} />
           <meshStandardMaterial color="#1A1822" emissive={color} emissiveIntensity={0.3} metalness={0.9} roughness={0.15} />
@@ -234,12 +231,10 @@ function Lab1Structure({
 // ■■ Lab 2: Teaching Machines — High-detail torus knot + conveyor rings + data flow ■■
 function Lab2Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -248,8 +243,8 @@ function Lab2Structure({
   const ring3Ref = useRef<THREE.Mesh>(null);
   const conveyorRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
-  const tubSeg = lod.tubularSegments;
+  const seg = 64;
+  const tubSeg = 64;
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -310,19 +305,17 @@ function Lab2Structure({
 // ■■ Lab 3: Neural Networks — 20 neuron spheres + synapse connections + pulsing signals ■■
 function Lab3Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
   const neuronsRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
-  const neuronCount = lod.enableEffects ? 20 : 12;
+  const seg = 64;
+  const neuronCount = 20;
 
   // Neuron positions in 3 layers (input, hidden, output)
   const neuronPositions = useMemo(() => {
@@ -435,19 +428,17 @@ function Lab3Structure({
 // ■■ Lab 4: Generative AI — Multi-facet crystal cluster + palette shards + refraction ■■
 function Lab4Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
   const paletteRef = useRef<THREE.Group>(null);
   const shardsRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const seg = 64;
   const paletteColors = useMemo(() => ['#FF6644', '#FFAA44', '#00FF88', '#00BBFF', '#AA66FF', '#FF66AA', '#FF66AA', '#06B6D4', '#D946EF', '#818CF8'], []);
 
   useFrame((state) => {
@@ -496,7 +487,7 @@ function Lab4Structure({
       </group>
       {/* Floating shards */}
       <group ref={shardsRef}>
-        {lod.enableEffects && Array.from({ length: 5 }, (_, i) => {
+        {Array.from({ length: 5 }, (_, i) => {
           const a = (i / 5) * Math.PI * 2;
           return (
             <mesh key={i} position={[Math.cos(a) * 0.35, 0.3 + i * 0.06, Math.sin(a) * 0.35]} rotation={[i * 0.5, i * 0.3, 0]}>
@@ -513,18 +504,16 @@ function Lab4Structure({
 // ■■ Lab 5: AI Helpers — 5-gear mechanism + drive shafts + housing frame ■■
 function Lab5Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
   const gearsRef = useRef<(THREE.Group | null)[]>([]);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const seg = 64;
 
   // 5 gears: position, radius, teethCount, speed, direction
   const gearDefs = useMemo(() => [
@@ -579,7 +568,7 @@ function Lab5Structure({
         <meshStandardMaterial color="#222230" metalness={0.95} roughness={0.1} />
       </mesh>
       {/* Housing frame corners */}
-      {lod.enableEffects && [[-0.45, 0.35, 0], [0.45, 0.35, 0], [-0.45, -0.45, 0], [0.45, -0.45, 0]].map((p, i) => (
+      {[[-0.45, 0.35, 0], [0.45, 0.35, 0], [-0.45, -0.45, 0], [0.45, -0.45, 0]].map((p, i) => (
         <mesh key={i} position={p as [number,number,number]}>
           <boxGeometry args={[0.04, 0.04, 0.12]} />
           <meshStandardMaterial color="#1A1822" metalness={0.9} roughness={0.15} />
@@ -592,18 +581,16 @@ function Lab5Structure({
 // ■■ Lab 6: Ethics — Full justice scales with ornate base + chains + weights ■■
 function Lab6Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
   const beamRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const seg = 64;
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -683,19 +670,17 @@ function Lab6Structure({
 // ■■ Lab 7: Computer Vision — Detailed camera body + lens elements + aperture ■■
 function Lab7Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
   const lensRef = useRef<THREE.Group>(null);
   const apertureRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const seg = 64;
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -766,19 +751,17 @@ function Lab7Structure({
 // ■■ Lab 8: Language — Holographic text projector + sound wave rings + word cloud ■■
 function Lab8Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
   const particlesRef = useRef<THREE.Group>(null);
   const wavesRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const seg = 64;
 
   const tailGeometry = useMemo(() => {
     const shape = new THREE.Shape();
@@ -856,20 +839,18 @@ function Lab8Structure({
 // ■■ Lab 9: Build with AI — Server rack + circuit boards + LED arrays + data cables ■■
 function Lab9Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
   const circuitRef = useRef<THREE.Group>(null);
   const ledsRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const _seg = lod.segments;
-  const tubSeg = lod.tubularSegments;
+  const _seg = 64;
+  const tubSeg = 64;
 
   // 6 circuit paths
   const tubeGeometries = useMemo(() => {
@@ -946,7 +927,7 @@ function Lab9Structure({
         ))}
       </group>
       {/* Ventilation grille at top */}
-      {lod.enableEffects && (
+      {(
         <mesh position={[0, 0.3, 0]} rotation={[Math.PI / 2, 0, 0]}>
           <planeGeometry args={[0.36, 0.3]} />
           <meshStandardMaterial color="#0A0E16" metalness={0.8} roughness={0.3} transparent opacity={0.4} />
@@ -959,12 +940,10 @@ function Lab9Structure({
 // ■■ Lab 10: AI Futures — Detailed spacecraft + engine nozzles + solar panels + antenna ■■
 function Lab10Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -972,7 +951,7 @@ function Lab10Structure({
   const exhaustRef = useRef<THREE.Group>(null);
   const solarsRef = useRef<THREE.Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
-  const seg = lod.segments;
+  const seg = 64;
 
   const exhaustParticles = useMemo(() => {
     const particles: { offset: [number, number, number]; speed: number }[] = [];
@@ -1093,17 +1072,15 @@ function Lab10Structure({
 function LabModel({
   labId,
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   labId: number;
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const props = { color, lod, isFocused, isHovered };
+  const props = { color, isFocused, isHovered };
   switch (labId) {
     case 1: return <Lab1Structure {...props} />;
     case 2: return <Lab2Structure {...props} />;
@@ -1117,7 +1094,7 @@ function LabModel({
     case 10: return <Lab10Structure {...props} />;
     default: return (
       <mesh>
-        <sphereGeometry args={lodSphere(lod, 0.35)} />
+        <sphereGeometry args={[0.35, 64, 64]} />
         <meshStandardMaterial
           color={color}
           emissive={new THREE.Color(color)}
@@ -1150,7 +1127,6 @@ export function LabStructure3D({
   const glowRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const [hoverScale] = useState({ current: 1 });
-  const lod = useLOD({ tier: 'system' });
 
   const threeColor = useMemo(() => new THREE.Color(color), [color]);
 
@@ -1230,7 +1206,6 @@ export function LabStructure3D({
         <LabModel
           labId={labId}
           color={color}
-          lod={lod}
           isFocused={isFocused}
           isHovered={isHovered}
         />
@@ -1238,18 +1213,18 @@ export function LabStructure3D({
 
       {/* Floating base platform — multi-layer */}
       <mesh position-y={-0.45} rotation-x={-Math.PI / 2}>
-        <cylinderGeometry args={[0.52, 0.52, 0.05, Math.max(lod.segments * 2, 32)]} />
+        <cylinderGeometry args={[0.52, 0.52, 0.05, Math.max(64 * 2, 32)]} />
         <meshStandardMaterial color="#111118" emissive={color} emissiveIntensity={0.1} metalness={0.9} roughness={0.2} />
       </mesh>
       {/* Platform edge ring */}
       <mesh position-y={-0.43}>
-        <torusGeometry args={[0.52, 0.015, 8, Math.max(lod.segments * 2, 32)]} />
+        <torusGeometry args={[0.52, 0.015, 8, Math.max(64 * 2, 32)]} />
         <meshStandardMaterial color={color} emissive={color} emissiveIntensity={0.3} metalness={0.85} roughness={0.15} />
       </mesh>
       {/* Platform grated detail */}
-      {lod.enableEffects && (
+      {(
         <mesh position-y={-0.42} rotation-x={-Math.PI / 2}>
-          <ringGeometry args={[0.2, 0.48, Math.max(lod.segments * 2, 32)]} />
+          <ringGeometry args={[0.2, 0.48, Math.max(64 * 2, 32)]} />
           <meshStandardMaterial color="#0A0E16" metalness={0.85} roughness={0.2} transparent opacity={0.5} />
         </mesh>
       )}

@@ -30,18 +30,18 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#00BBFF';
 const HUMAN_COLOR = '#FF8844';
 const MACHINE_COLOR = '#44AAFF';
 
 // ■■ Judge's Podium with Verdict Scales ■■
-function JudgePodium({ lod, isRevealing }: { lod: ReturnType<typeof useStandardLOD>; isRevealing: boolean }) {
+function JudgePodium({ isRevealing }: { isRevealing: boolean }) {
   const scaleRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 16 : 10;
+  const segments = 16;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -83,7 +83,7 @@ function JudgePodium({ lod, isRevealing }: { lod: ReturnType<typeof useStandardL
           <meshStandardMaterial color={MACHINE_COLOR} emissive={MACHINE_COLOR} emissiveIntensity={0.2} />
         </mesh>
         {/* Chains (simplified) */}
-        {lod.enableDetailProps && (
+        {(
           <>
             <mesh position={[-0.9, -0.15, 0]}>
               <cylinderGeometry args={[0.01, 0.01, 0.3, 4]} />
@@ -106,8 +106,8 @@ function JudgePodium({ lod, isRevealing }: { lod: ReturnType<typeof useStandardL
 }
 
 // ■■ Human Side Props (Instanced — Warm/Wooden) ■■
-function HumanSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 14 : lod.level === 'high' ? 9 : 5;
+function HumanSideProps() {
+  const count = 14;
   const propsRef = useRef<THREE.InstancedMesh>(null);
   const accentsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -169,8 +169,8 @@ function HumanSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Machine Side Props (Instanced — Chrome/Cold) ■■
-function MachineSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 14 : lod.level === 'high' ? 9 : 5;
+function MachineSideProps() {
+  const count = 14;
   const propsRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -246,7 +246,7 @@ function MachineSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Energy Barrier Divider ■■
-function EnergyBarrier({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function EnergyBarrier() {
   const barrierRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -275,7 +275,7 @@ function EnergyBarrier({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         />
       </mesh>
       {/* Barrier edge glow lines */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[0, 2, 0]} rotation={[0, Math.PI / 2, 0]}>
             <planeGeometry args={[8, 0.02]} />
@@ -292,8 +292,8 @@ function EnergyBarrier({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Floating Comparison Cards (Instanced) ■■
-function ComparisonCards({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+function ComparisonCards() {
+  const count = 12;
   const cardsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -331,8 +331,6 @@ function ComparisonCards({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     if (cardsRef.current.instanceColor) cardsRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={cardsRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -342,7 +340,7 @@ function ComparisonCards({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Score Displays ■■
-function ScoreDisplays({ lod: _lod, humanScore, machineScore }: { lod: ReturnType<typeof useStandardLOD>; humanScore: number; machineScore: number }) {
+function ScoreDisplays({ humanScore, machineScore }: { humanScore: number; machineScore: number }) {
   const humanRef = useRef<THREE.Mesh>(null);
   const machineRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -385,8 +383,8 @@ function ScoreDisplays({ lod: _lod, humanScore, machineScore }: { lod: ReturnTyp
 }
 
 // ■■ Arena Seating (Instanced Bleachers) ■■
-function ArenaSeating({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 12 : 6;
+function ArenaSeating() {
+  const count = 20;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -406,8 +404,6 @@ function ArenaSeating({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     }
     seatsRef.current.instanceMatrix.needsUpdate = true;
   }, [count]);
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <instancedMesh ref={seatsRef} args={[undefined, undefined, count]}>
@@ -429,7 +425,6 @@ export default function HumanVsMachineEnvironment({
   machineScore = 0,
   isRevealing = false,
 }: HumanVsMachineEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -439,13 +434,13 @@ export default function HumanVsMachineEnvironment({
       skyHorizonColor="#0A1628"
       fogColor="#00BBFF"
     >
-      <JudgePodium lod={lod} isRevealing={isRevealing} />
-      <HumanSideProps lod={lod} />
-      <MachineSideProps lod={lod} />
-      <EnergyBarrier lod={lod} />
-      <ComparisonCards lod={lod} />
-      <ScoreDisplays lod={lod} humanScore={humanScore} machineScore={machineScore} />
-      <ArenaSeating lod={lod} />
+      <JudgePodium isRevealing={isRevealing} />
+      <HumanSideProps />
+      <MachineSideProps />
+      <EnergyBarrier />
+      <ComparisonCards />
+      <ScoreDisplays humanScore={humanScore} machineScore={machineScore} />
+      <ArenaSeating />
       {/* Reveal spotlight */}
       {isRevealing && (
         <pointLight position={[0, 4, 0]} intensity={2.0} color="#FFFFFF" distance={10} />

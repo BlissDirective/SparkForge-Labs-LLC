@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════
 // FlagshipEnvironmentBase — Shared 10M-budget foundation
 // ════════════════════════════════════════════════════
-// Provides LOD-aware lighting, fog, ground plane, sky dome,
+
 // and instanced mesh helpers for all 5 flagship environments.
 // Each flagship environment composes this base with game-specific
 // meshes, props, and effects to fill their 10M triangle budget.
@@ -21,81 +21,11 @@ import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD, type LODState } from '@/hooks/useLOD';
 
-// ■■ Shared LOD Config for Flagship Environments ■■
-export interface FlagshipLOD extends LODState {
-  terrainSegments: number;
-  skySegments: number;
-  instanceCount: number;
-  enableFog: boolean;
-  enableContactShadows: boolean;
-  enableParticles: boolean;
-  enableDetailProps: boolean;
-  enableVolumetrics: boolean;
-}
-
-export function useFlagshipLOD(): FlagshipLOD {
-  const lod = useLOD({ tier: 'flagship' });
-
-  return useMemo(() => {
-    const levelConfigs: Record<string, Partial<FlagshipLOD>> = {
-      ultra: {
-        terrainSegments: 512,
-        skySegments: 96,
-        instanceCount: 1000,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-        enableVolumetrics: true,
-      },
-      high: {
-        terrainSegments: 256,
-        skySegments: 64,
-        instanceCount: 500,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-        enableVolumetrics: false,
-      },
-      medium: {
-        terrainSegments: 128,
-        skySegments: 48,
-        instanceCount: 250,
-        enableFog: true,
-        enableContactShadows: false,
-        enableParticles: true,
-        enableDetailProps: false,
-        enableVolumetrics: false,
-      },
-      low: {
-        terrainSegments: 64,
-        skySegments: 24,
-        instanceCount: 80,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-        enableVolumetrics: false,
-      },
-      billboard: {
-        terrainSegments: 32,
-        skySegments: 12,
-        instanceCount: 20,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-        enableVolumetrics: false,
-      },
-    };
-
-    const config = levelConfigs[lod.level] || levelConfigs.high;
-    return { ...lod, ...config } as FlagshipLOD;
-  }, [lod]);
-}
+// ■■ Flagship Environment Constants (Ultra quality) ■■
+const _FLAGSHIP_TERRAIN_SEGMENTS = 512;
+const _FLAGSHIP_SKY_SEGMENTS = 96;
+const _FLAGSHIP_INSTANCE_COUNT = 1000;
 
 // ■■ Terrain Ground Plane ■■
 // Displacement-mapped ground with procedural height variation
@@ -105,7 +35,6 @@ interface TerrainProps {
   color?: string;
   secondaryColor?: string;
   heightScale?: number;
-  lod: FlagshipLOD;
 }
 
 export function Terrain({
@@ -113,12 +42,11 @@ export function Terrain({
   color = '#0A0E16',
   secondaryColor: _secondaryColor = '#111118',
   heightScale = 0.3,
-  lod,
 }: TerrainProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
   const geometry = useMemo(() => {
-    const segs = lod.terrainSegments;
+    const segs = 512;
     const geo = new THREE.PlaneGeometry(size, size, segs, segs);
     const pos = geo.attributes.position;
 
@@ -139,7 +67,7 @@ export function Terrain({
 
     geo.computeVertexNormals();
     return geo;
-  }, [size, heightScale, lod.terrainSegments]);
+  }, [size, heightScale, 512]);
 
   const material = useMemo(() => {
     return new THREE.MeshStandardMaterial({
@@ -168,14 +96,12 @@ interface SkyDomeProps {
   topColor?: string;
   horizonColor?: string;
   radius?: number;
-  lod: FlagshipLOD;
 }
 
 export function SkyDome({
   topColor = '#050810',
   horizonColor = '#0A1628',
   radius = 50,
-  lod,
 }: SkyDomeProps) {
   const material = useMemo(() => {
     const mat = new THREE.ShaderMaterial({
@@ -208,7 +134,7 @@ export function SkyDome({
 
   return (
     <mesh material={material}>
-      <sphereGeometry args={[radius, lod.skySegments, lod.skySegments]} />
+      <sphereGeometry args={[radius, 96, 96]} />
     </mesh>
   );
 }
@@ -219,17 +145,15 @@ interface FogParticlesProps {
   count?: number;
   color?: string;
   spread?: number;
-  lod: FlagshipLOD;
 }
 
 export function FogParticles({
   count: baseCount = 200,
   color = '#00BBFF',
   spread = 15,
-  lod,
 }: FogParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const count = Math.min(baseCount, lod.instanceCount);
+  const count = Math.min(baseCount, 1000);
 
   const { matrices, speeds } = useMemo(() => {
     const m: THREE.Matrix4[] = [];
@@ -362,13 +286,11 @@ export function InstancedScatter({
 // Multi-point light setup for immersive environments
 interface LightingRigProps {
   labColor: string;
-  lod: FlagshipLOD;
   ambientIntensity?: number;
 }
 
 export function FlagshipLightingRig({
   labColor,
-  lod,
   ambientIntensity = 0.35,
 }: LightingRigProps) {
   return (
@@ -378,9 +300,9 @@ export function FlagshipLightingRig({
         position={[8, 12, 5]}
         intensity={1.0}
         color="#ffffff"
-        castShadow={lod.enableShadows}
-        shadow-mapSize-width={lod.enableShadows ? 2048 : 512}
-        shadow-mapSize-height={lod.enableShadows ? 2048 : 512}
+        castShadow={true}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-far={50}
         shadow-camera-left={-20}
         shadow-camera-right={20}
@@ -399,7 +321,7 @@ export function FlagshipLightingRig({
         color="#AA66FF"
         distance={15}
       />
-      {lod.enableDetailProps && (
+      {(
         <pointLight
           position={[0, 8, 0]}
           intensity={0.2}
@@ -407,7 +329,7 @@ export function FlagshipLightingRig({
           distance={25}
         />
       )}
-      {lod.enableContactShadows && (
+      {(
         <ContactShadows
           position={[0, -0.99, 0]}
           opacity={0.4}
@@ -445,28 +367,25 @@ export function FlagshipEnvironmentWrapper({
   heightScale = 0.3,
   terrainSize = 40,
 }: FlagshipEnvironmentBaseProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <group>
       {/* Shared Foundation */}
-      <FlagshipLightingRig labColor={labColor} lod={lod} />
+      <FlagshipLightingRig labColor={labColor} />
       <Terrain
         size={terrainSize}
         color={terrainColor}
         secondaryColor={terrainSecondaryColor}
         heightScale={heightScale}
-        lod={lod}
       />
       <SkyDome
         topColor={skyTopColor}
         horizonColor={skyHorizonColor}
-        lod={lod}
       />
 
       {/* Fog wisps */}
-      {lod.enableParticles && (
-        <FogParticles color={fogColor || labColor} lod={lod} />
+      {(
+        <FogParticles color={fogColor || labColor} />
       )}
 
       {/* HDR Environment */}

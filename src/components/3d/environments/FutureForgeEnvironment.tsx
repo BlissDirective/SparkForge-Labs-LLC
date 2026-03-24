@@ -30,14 +30,14 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#D946EF';
 const _FUCHSIA = new THREE.Color(LAB_COLOR);
 
 // ■■ City Skyline (Instanced Buildings) ■■
-function CitySkyline({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 50 : lod.level === 'high' ? 30 : 15;
+function CitySkyline() {
+  const count = 50;
   const buildingsRef = useRef<THREE.InstancedMesh>(null);
   const windowsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -94,8 +94,8 @@ function CitySkyline({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Holographic Billboards (Instanced) ■■
-function HolographicBillboards({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+function HolographicBillboards() {
+  const count = 12;
   const billboardsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -136,8 +136,6 @@ function HolographicBillboards({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }
     billboardsRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={billboardsRef} args={[undefined, undefined, count]}>
       <planeGeometry args={[1.2, 0.7]} />
@@ -154,8 +152,8 @@ function HolographicBillboards({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }
 }
 
 // ■■ Flying Vehicles on Curved Tracks ■■
-function FlyingVehicles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const vehicleCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+function FlyingVehicles() {
+  const vehicleCount = 8;
   const vehiclesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -191,8 +189,6 @@ function FlyingVehicles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     vehiclesRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={vehiclesRef} args={[undefined, undefined, vehicleCount]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -202,7 +198,7 @@ function FlyingVehicles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Innovation Hub Dome ■■
-function InnovationDome({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function InnovationDome() {
   const domeRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -214,7 +210,7 @@ function InnovationDome({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     }
   });
 
-  const segs = lod.level === 'ultra' ? 48 : lod.level === 'high' ? 32 : 16;
+  const segs = 48;
 
   return (
     <group position={[0, -0.5, 0]}>
@@ -247,7 +243,7 @@ function InnovationDome({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ AI Brain Monument ■■
-function AIBrainMonument({ lod, innovationScore }: { lod: ReturnType<typeof useFLLiteLOD>; innovationScore: number }) {
+function AIBrainMonument({ innovationScore }: { innovationScore: number }) {
   const brainRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -264,7 +260,7 @@ function AIBrainMonument({ lod, innovationScore }: { lod: ReturnType<typeof useF
     }
   });
 
-  const detail = lod.level === 'ultra' ? 4 : lod.level === 'high' ? 3 : 2;
+  const detail = 4;
   const intensity = Math.min(0.3 + innovationScore * 0.05, 1.0);
 
   return (
@@ -296,8 +292,8 @@ function AIBrainMonument({ lod, innovationScore }: { lod: ReturnType<typeof useF
 }
 
 // ■■ Energy Beam Pillars ■■
-function EnergyBeams({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const beamCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+function EnergyBeams() {
+  const beamCount = 8;
   const beamsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -322,8 +318,6 @@ function EnergyBeams({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     beamsRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableEffects) return null;
-
   return (
     <instancedMesh ref={beamsRef} args={[undefined, undefined, beamCount]}>
       <cylinderGeometry args={[1, 1, 1, 6]} />
@@ -333,7 +327,7 @@ function EnergyBeams({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Progress Meter Tower ■■
-function ProgressTower({ lod, innovationScore, step }: { lod: ReturnType<typeof useFLLiteLOD>; innovationScore: number; step: number }) {
+function ProgressTower({ innovationScore, step }: { innovationScore: number; step: number }) {
   const fillRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -346,7 +340,7 @@ function ProgressTower({ lod, innovationScore, step }: { lod: ReturnType<typeof 
   });
 
   const fillHeight = Math.min(innovationScore / 10, 1.0) * 4.0;
-  const segs = lod.level === 'ultra' ? 16 : 8;
+  const segs = 16;
 
   return (
     <group position={[-8, -1, -4]}>
@@ -386,7 +380,6 @@ export default function FutureForgeEnvironment({
   innovationScore = 0,
   step = 0,
 }: FutureForgeEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -396,13 +389,13 @@ export default function FutureForgeEnvironment({
       skyHorizonColor="#1A0E2A"
       fogColor="#D946EF"
     >
-      <CitySkyline lod={lod} />
-      <HolographicBillboards lod={lod} />
-      <FlyingVehicles lod={lod} />
-      <InnovationDome lod={lod} />
-      <AIBrainMonument lod={lod} innovationScore={innovationScore} />
-      <EnergyBeams lod={lod} />
-      <ProgressTower lod={lod} innovationScore={innovationScore} step={step} />
+      <CitySkyline />
+      <HolographicBillboards />
+      <FlyingVehicles />
+      <InnovationDome />
+      <AIBrainMonument innovationScore={innovationScore} />
+      <EnergyBeams />
+      <ProgressTower innovationScore={innovationScore} step={step} />
     </FLLiteEnvironmentWrapper>
   );
 }

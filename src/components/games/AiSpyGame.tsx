@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
@@ -25,17 +25,6 @@ const AiSpyEnvironment = dynamic(
   () => import('@/components/3d/environments/AiSpyEnvironment'),
   { ssr: false }
 );
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
 
 type Phase = 'welcome' | 'play' | 'reveal' | 'complete';
 
@@ -197,7 +186,6 @@ const ALL_SCENES: Scene[] = [
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
 export function AiSpyGame() {
-  const isMobile = useIsMobile();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -274,17 +262,15 @@ export function AiSpyGame() {
     <GameShell gameId="ai-spy" title="AI Spy" worldNumber={1} worldColor="#00BBFF" totalRounds={scenes.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <AiSpyEnvironment sceneIndex={sceneIdx} isScanning={!revealed} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <AiSpyEnvironment sceneIndex={sceneIdx} isScanning={!revealed} />
+          </Canvas>
+        </div>
 
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

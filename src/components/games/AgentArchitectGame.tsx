@@ -10,13 +10,13 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import {
-  Play, Trash2, RotateCcw, Zap,
+  Play, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
   Settings2, Code2, CheckCircle2, Cpu,
 } from 'lucide-react';
@@ -30,18 +30,6 @@ const AgentPipeline3D = dynamic(
 );
 
 import { toPipelineBlocks } from '@/components/3d/AgentPipeline3D';
-
-// [v3] Mobile detection for 3D/2D fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
 
 // ================================================================
 // TYPES
@@ -376,8 +364,6 @@ export function AgentArchitectGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile(); // [v3]
-
   // Core state
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -397,7 +383,7 @@ export function AgentArchitectGame() {
   const [activeRunBlock, setActiveRunBlock] = useState<string | null>(null);
   const [runPath, setRunPath] = useState<string[]>([]);
   const [validationMsg, setValidationMsg] = useState<string | null>(null);
-  const [spotlightPos, setSpotlightPos] = useState<{ x: number; y: number } | null>(null);
+  const [_spotlightPos, setSpotlightPos] = useState<{ x: number; y: number } | null>(null);
 
   // Report state
   const [reportData, setReportData] = useState<{
@@ -470,7 +456,7 @@ export function AgentArchitectGame() {
     game.updateScore(1);
   }
 
-  function removeBlock(id: string) {
+  function _removeBlock(id: string) {
     setBlocks(prev => prev.filter(b => b.id !== id));
     setArrows(prev => prev.filter(a => a.fromId !== id && a.toId !== id));
     if (selectedBlock === id) setSelectedBlock(null);
@@ -482,7 +468,7 @@ export function AgentArchitectGame() {
     ));
   }
 
-  function handleOutputClick(blockId: string, outputIdx: number, e: React.MouseEvent) {
+  function _handleOutputClick(blockId: string, outputIdx: number, e: React.MouseEvent) {
     e.stopPropagation();
     if (isRunning) return;
     setConnecting({ id: blockId, idx: outputIdx });
@@ -903,8 +889,7 @@ export function AgentArchitectGame() {
                     {/* Main workspace */}
                     <div className="flex-1 flex min-h-0">
 
-                      {/* [v3] 3D Pipeline (desktop) OR 2D Fallback (mobile) */}
-                      {!isMobile ? (
+                      {/* 3D Pipeline */}
                         <div className="flex-1 relative mx-3 my-2 rounded-xl overflow-hidden"
                           style={{ minHeight: '300px' }}>
                           <AgentPipeline3D
@@ -927,169 +912,6 @@ export function AgentArchitectGame() {
                             </div>
                           )}
                         </div>
-                      ) : (
-                        /* 2D FALLBACK WORKSPACE (mobile + Band A) */
-                        <div className="flex-1 relative overflow-auto mx-3 my-2 rounded-xl border border-white/5"
-                          style={{
-                            background: 'linear-gradient(180deg, rgba(16,185,129,0.02) 0%, rgba(0,0,0,0.3) 100%)',
-                            backgroundImage: 'linear-gradient(rgba(16,185,129,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.04) 1px, transparent 1px)',
-                            backgroundSize: '40px 40px',
-                          }}
-                          onClick={() => { setConnecting(null); setSelectedBlock(null); }}>
-
-                          {/* Cinema spotlight overlay */}
-                          {isRunning && spotlightPos && (
-                            <div className="absolute inset-0 z-10 pointer-events-none"
-                              style={{
-                                background: `radial-gradient(circle 120px at ${spotlightPos.x}px ${spotlightPos.y}px, transparent 0%, rgba(0,0,0,0.7) 100%)`,
-                              }}
-                            />
-                          )}
-
-                          {/* SVG arrows */}
-                          <svg className="absolute inset-0 w-full h-full pointer-events-none z-[5]">
-                            <defs>
-                              <marker id="ah-d" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-                                <polygon points="0 0, 8 3, 0 6" fill="rgba(255,255,255,0.2)" />
-                              </marker>
-                              <marker id="ah-a" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
-                                <polygon points="0 0, 8 3, 0 6" fill="#10B981" />
-                              </marker>
-                            </defs>
-
-                            {arrows.map((arrow, i) => {
-                              const from = getBlockCenter(arrow.fromId);
-                              const to = getBlockCenter(arrow.toId);
-                              const active = runPath.includes(arrow.fromId) && runPath.includes(arrow.toId);
-                              const fb = blocks.find(b => b.id === arrow.fromId);
-                              const label = fb?.type.outputs === 2
-                                ? (arrow.outputIndex === 0 ? 'YES' : 'NO')
-                                : null;
-                              const mx = (from.x + to.x) / 2;
-                              const my = (from.y + 30 + to.y - 30) / 2;
-
-                              return (
-                                <g key={i}>
-                                  <line
-                                    x1={from.x} y1={from.y + 30}
-                                    x2={to.x} y2={to.y - 30}
-                                    stroke={active ? '#10B981' : 'rgba(255,255,255,0.1)'}
-                                    strokeWidth={active ? 2.5 : 1.2}
-                                    strokeDasharray={active ? '' : '6 3'}
-                                    markerEnd={active ? 'url(#ah-a)' : 'url(#ah-d)'}
-                                  />
-                                  {active && (
-                                    <circle r={2.5} fill="#10B981" opacity={0.8}>
-                                      <animateMotion dur="1s" repeatCount="indefinite"
-                                        path={`M${from.x},${from.y + 30} L${to.x},${to.y - 30}`} />
-                                    </circle>
-                                  )}
-                                  {label && (
-                                    <text x={mx + 10} y={my}
-                                      fill={arrow.outputIndex === 0 ? '#22C55E' : '#EF4444'}
-                                      fontSize={9} fontFamily="system-ui" fontWeight="bold">
-                                      {label}
-                                    </text>
-                                  )}
-                                </g>
-                              );
-                            })}
-                          </svg>
-
-                          {/* 2D Blocks */}
-                          {blocks.map(block => {
-                            const isActive = activeRunBlock === block.id;
-                            const _inPath = runPath.includes(block.id);
-                            const isSel = selectedBlock === block.id;
-                            return (
-                              <motion.div key={block.id}
-                                className={`absolute z-20 cursor-pointer select-none ${
-                                  connecting ? 'ring-2 ring-blue-500/30 rounded-xl' : ''
-                                }`}
-                                style={{ left: block.x, top: block.y }}
-                                onClick={e => { e.stopPropagation(); handleBlockClick(block.id); }}
-                                drag={!isRunning && !connecting}
-                                dragMomentum={false}
-                                onDrag={(_, info) => {
-                                  setBlocks(prev => prev.map(b =>
-                                    b.id === block.id
-                                      ? { ...b, x: Math.max(0, b.x + info.delta.x), y: Math.max(0, b.y + info.delta.y) }
-                                      : b
-                                  ));
-                                }}
-                                animate={isActive ? { scale: [1, 1.06, 1] } : {}}
-                                transition={isActive ? { duration: 0.6, repeat: Infinity } : {}}>
-
-                                {/* Block shadow */}
-                                <div className="absolute inset-0 rounded-xl translate-x-1 translate-y-1"
-                                  style={{ backgroundColor: `${block.type.color}10`, filter: 'blur(4px)' }} />
-
-                                {/* Block card */}
-                                <div className={`relative w-[130px] rounded-xl border-2 p-3 text-center transition-all ${
-                                  isActive ? 'shadow-[0_0_25px_rgba(16,185,129,0.4)]'
-                                  : isSel ? 'shadow-[0_0_15px_rgba(255,255,255,0.1)]' : ''
-                                }`}
-                                  style={{
-                                    backgroundColor: `${block.type.color}12`,
-                                    borderColor: isActive ? '#10B981'
-                                      : isSel ? `${block.type.color}50`
-                                      : `${block.type.color}20`,
-                                    boxShadow: isActive ? undefined
-                                      : '0 4px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)',
-                                  }}>
-                                  <span className="text-xl">{block.type.emoji}</span>
-                                  <p className="font-display text-[11px] font-bold text-white mt-1">
-                                    {block.type.label}
-                                  </p>
-                                  {block.config.text && (
-                                    <p className="font-body text-[9px] text-white/30 mt-0.5 truncate">
-                                      {block.config.text}
-                                    </p>
-                                  )}
-
-                                  {/* Delete button */}
-                                  {!isRunning && (
-                                    <button
-                                      onClick={e => { e.stopPropagation(); removeBlock(block.id); }}
-                                      className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500/20 hover:bg-red-500/40 text-red-400 flex items-center justify-center"
-                                      aria-label={`Delete ${block.type.label} block`}>
-                                      <Trash2 className="w-3 h-3" />
-                                    </button>
-                                  )}
-                                </div>
-
-                                {/* Output ports */}
-                                {block.type.outputs >= 1 && (
-                                  <div className="flex justify-center gap-4 mt-1.5">
-                                    <button onClick={e => handleOutputClick(block.id, 0, e)}
-                                      className="w-4 h-4 rounded-full bg-white/15 hover:bg-emerald-500/40 border border-white/20"
-                                      title={block.type.outputs === 2 ? 'YES' : 'Connect'}
-                                      aria-label="Output port" />
-                                    {block.type.outputs === 2 && (
-                                      <button onClick={e => handleOutputClick(block.id, 1, e)}
-                                        className="w-4 h-4 rounded-full bg-white/15 hover:bg-red-500/40 border border-white/20"
-                                        title="NO"
-                                        aria-label="NO output port" />
-                                    )}
-                                  </div>
-                                )}
-                              </motion.div>
-                            );
-                          })}
-
-                          {/* Empty state */}
-                          {blocks.length === 0 && (
-                            <div className="absolute inset-0 flex items-center justify-center">
-                              <div className="text-center">
-                                <span className="text-4xl block mb-2">{'\ud83d\udce6'}</span>
-                                <p className="font-body text-sm text-white/25">
-                                  Click blocks from the palette to build your agent
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
 
                       {/* Code Panel (Band C) */}
                       {showCode && ageBand === 'C' && (

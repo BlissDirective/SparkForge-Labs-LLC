@@ -41,13 +41,12 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Spiral Library Tower ■■
-function LibraryTower({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const shelfCount = lod.level === 'ultra' ? 8 : 5;
-  const booksPerShelf = lod.level === 'ultra' ? 20 : 12;
+function LibraryTower() {
+  const shelfCount = 8;
+  const booksPerShelf = 20;
   const booksRef = useRef<THREE.InstancedMesh>(null);
   const shelvesRef = useRef<THREE.InstancedMesh>(null);
   const bookTotal = shelfCount * booksPerShelf;
@@ -89,13 +88,11 @@ function LibraryTower({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     booksRef.current.instanceMatrix.needsUpdate = true;
   }, [shelfCount, booksPerShelf, bookTotal]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       {/* Central column */}
       <mesh position={[12, 3, 0]} castShadow>
-        <cylinderGeometry args={[0.3, 0.35, 10, lod.segments]} />
+        <cylinderGeometry args={[0.3, 0.35, 10, 64]} />
         <meshStandardMaterial color="#5D3A1A" roughness={0.7} metalness={0.1} />
       </mesh>
       {/* Shelf planks */}
@@ -113,8 +110,8 @@ function LibraryTower({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Floating Book Library ■■
-function FloatingBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 150 : lod.level === 'high' ? 80 : 30;
+function FloatingBooks() {
+  const count = 150;
   const booksRef = useRef<THREE.InstancedMesh>(null);
 
   const bookData = useMemo(() =>
@@ -158,8 +155,8 @@ function FloatingBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Word Cloud Constellation ■■
-function WordCloud({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 200 : lod.level === 'high' ? 100 : 40;
+function WordCloud() {
+  const count = 200;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const words = useMemo(() =>
@@ -195,8 +192,6 @@ function WordCloud({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <dodecahedronGeometry args={[1, 0]} />
@@ -206,7 +201,7 @@ function WordCloud({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Giant Typewriter Machine ■■
-function TypewriterMachine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function TypewriterMachine() {
   const carriageRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -214,8 +209,6 @@ function TypewriterMachine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
     // Carriage sweeps back and forth
     carriageRef.current.position.x = Math.sin(state.clock.elapsedTime * 0.3) * 1.5;
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[0, -0.3, 6]}>
@@ -242,7 +235,7 @@ function TypewriterMachine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
       ))}
       {/* Platen roller */}
       <mesh position={[0, 1.8, -0.8]} rotation={[0, 0, Math.PI / 2]}>
-        <cylinderGeometry args={[0.15, 0.15, 5, lod.segments]} />
+        <cylinderGeometry args={[0.15, 0.15, 5, 64]} />
         <meshStandardMaterial color="#1C1917" roughness={0.9} />
       </mesh>
       {/* Carriage */}
@@ -255,8 +248,8 @@ function TypewriterMachine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
 }
 
 // ■■ Ink Rivers (floor) ■■
-function InkRivers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const riverCount = lod.level === 'ultra' ? 6 : 3;
+function InkRivers() {
+  const riverCount = 6;
   const riversRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -267,8 +260,6 @@ function InkRivers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
       mat.opacity = 0.08 + Math.sin(t * 0.5 + i * 1.5) * 0.04;
     });
   });
-
-  if (!lod.enableEffects) return null;
 
   return (
     <group ref={riversRef}>
@@ -288,7 +279,7 @@ function InkRivers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Token Counter Cylinder ■■
-function TokenCounter({ lod, fillLevel = 0.5 }: { lod: ReturnType<typeof useFlagshipLOD>; fillLevel: number }) {
+function TokenCounter({ fillLevel = 0.5 }: { fillLevel: number }) {
   const glowRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -300,23 +291,23 @@ function TokenCounter({ lod, fillLevel = 0.5 }: { lod: ReturnType<typeof useFlag
   return (
     <group position={[8, -1, 0]}>
       <mesh>
-        <cylinderGeometry args={[0.6, 0.6, 3.5, lod.segments, 1, true]} />
+        <cylinderGeometry args={[0.6, 0.6, 3.5, 64, 1, true]} />
         <meshStandardMaterial color="#F59E0B" transparent opacity={0.08} side={THREE.DoubleSide} metalness={0.3} roughness={0.1} />
       </mesh>
       <mesh position={[0, -1.75 + fillLevel * 1.75, 0]}>
-        <cylinderGeometry args={[0.55, 0.55, fillLevel * 3.5, lod.segments]} />
+        <cylinderGeometry args={[0.55, 0.55, fillLevel * 3.5, 64]} />
         <meshStandardMaterial color="#F59E0B" emissive="#F59E0B" emissiveIntensity={0.4} transparent opacity={0.5} />
       </mesh>
       <mesh position={[0, 1.75, 0]}>
-        <cylinderGeometry args={[0.65, 0.65, 0.12, lod.segments]} />
+        <cylinderGeometry args={[0.65, 0.65, 0.12, 64]} />
         <meshStandardMaterial color="#92400E" metalness={0.6} roughness={0.3} />
       </mesh>
       <mesh position={[0, -1.75, 0]}>
-        <cylinderGeometry args={[0.65, 0.65, 0.12, lod.segments]} />
+        <cylinderGeometry args={[0.65, 0.65, 0.12, 64]} />
         <meshStandardMaterial color="#92400E" metalness={0.6} roughness={0.3} />
       </mesh>
       <mesh ref={glowRef} position={[0, -1.75 + fillLevel * 3.5, 0]}>
-        <torusGeometry args={[0.6, 0.04, 4, lod.segments]} />
+        <torusGeometry args={[0.6, 0.04, 4, 64]} />
         <meshBasicMaterial color="#FBBF24" transparent opacity={0.3} />
       </mesh>
     </group>
@@ -324,12 +315,12 @@ function TokenCounter({ lod, fillLevel = 0.5 }: { lod: ReturnType<typeof useFlag
 }
 
 // ■■ Central AI Brain Mesh (enhanced) ■■
-function AIBrain({ lod, isThinking }: { lod: ReturnType<typeof useFlagshipLOD>; isThinking: boolean }) {
+function AIBrain({ isThinking }: { isThinking: boolean }) {
   const brainRef = useRef<THREE.Mesh>(null);
   const shell1Ref = useRef<THREE.Mesh>(null);
   const shell2Ref = useRef<THREE.Mesh>(null);
 
-  const detail = lod.level === 'ultra' ? 4 : lod.level === 'high' ? 3 : 2;
+  const detail = 4;
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -369,9 +360,9 @@ function AIBrain({ lod, isThinking }: { lod: ReturnType<typeof useFlagshipLOD>; 
 }
 
 // ■■ Inspiration Crystals ■■
-function InspirationCrystals({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const clusterCount = lod.level === 'ultra' ? 6 : 3;
-  const crystalsPerCluster = lod.level === 'ultra' ? 8 : 5;
+function InspirationCrystals() {
+  const clusterCount = 6;
+  const crystalsPerCluster = 8;
   const crystalsRef = useRef<THREE.InstancedMesh>(null);
   const totalCrystals = clusterCount * crystalsPerCluster;
 
@@ -408,8 +399,6 @@ function InspirationCrystals({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }
     if (crystalsRef.current.instanceColor) crystalsRef.current.instanceColor.needsUpdate = true;
   }, [clusterCount, crystalsPerCluster, totalCrystals]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={crystalsRef} args={[undefined, undefined, totalCrystals]} castShadow>
       <octahedronGeometry args={[1, 0]} />
@@ -419,9 +408,9 @@ function InspirationCrystals({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }
 }
 
 // ■■ Dictionary Column Pillars ■■
-function DictionaryColumns({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const columnCount = lod.level === 'ultra' ? 6 : 4;
-  const blocksPerColumn = lod.level === 'ultra' ? 12 : 8;
+function DictionaryColumns() {
+  const columnCount = 6;
+  const blocksPerColumn = 12;
   const blocksRef = useRef<THREE.InstancedMesh>(null);
   const totalBlocks = columnCount * blocksPerColumn;
 
@@ -450,8 +439,6 @@ function DictionaryColumns({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
     if (blocksRef.current.instanceColor) blocksRef.current.instanceColor.needsUpdate = true;
   }, [columnCount, blocksPerColumn, totalBlocks]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={blocksRef} args={[undefined, undefined, totalBlocks]} castShadow>
       <boxGeometry args={[1, 1, 1]} />
@@ -461,7 +448,7 @@ function DictionaryColumns({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
 }
 
 // ■■ Writing Desk Surface ■■
-function WritingDesk({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function WritingDesk() {
   return (
     <group position={[0, -0.5, 0]}>
       <mesh receiveShadow castShadow>
@@ -474,9 +461,9 @@ function WritingDesk({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
           <meshStandardMaterial color="#92400E" metalness={0.6} roughness={0.3} />
         </mesh>
       ))}
-      {lod.enableDetailProps && (
+      {(
         <mesh position={[1.8, 0.12, -1]}>
-          <cylinderGeometry args={[0.1, 0.12, 0.14, lod.segments]} />
+          <cylinderGeometry args={[0.1, 0.12, 0.14, 64]} />
           <meshStandardMaterial color="#F59E0B" emissive="#F59E0B" emissiveIntensity={0.5} />
         </mesh>
       )}
@@ -485,7 +472,7 @@ function WritingDesk({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Holographic Screens ■■
-function HoloScreens({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function HoloScreens() {
   const screenRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -495,8 +482,6 @@ function HoloScreens({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
       child.position.y = 3 + Math.sin(t * 0.3 + i * 2) * 0.2;
     });
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group ref={screenRef}>
@@ -517,8 +502,8 @@ function HoloScreens({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Ambient Idea Motes (expanded) ■■
-function IdeaMotes({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 150 : 60;
+function IdeaMotes() {
+  const count = 150;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const moteData = useMemo(() =>
@@ -548,8 +533,6 @@ function IdeaMotes({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 6, 4]} />
@@ -565,7 +548,6 @@ export interface PromptLabEnvironmentProps {
 }
 
 export default function PromptLabEnvironment({ isThinking, tokenUsage }: PromptLabEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <FlagshipEnvironmentWrapper
@@ -577,18 +559,18 @@ export default function PromptLabEnvironment({ isThinking, tokenUsage }: PromptL
       heightScale={0.1}
       terrainSize={50}
     >
-      <LibraryTower lod={lod} />
-      <FloatingBooks lod={lod} />
-      <WordCloud lod={lod} />
-      <TypewriterMachine lod={lod} />
-      <InkRivers lod={lod} />
-      <TokenCounter lod={lod} fillLevel={tokenUsage} />
-      <AIBrain lod={lod} isThinking={isThinking} />
-      <InspirationCrystals lod={lod} />
-      <DictionaryColumns lod={lod} />
-      <WritingDesk lod={lod} />
-      <HoloScreens lod={lod} />
-      <IdeaMotes lod={lod} />
+      <LibraryTower />
+      <FloatingBooks />
+      <WordCloud />
+      <TypewriterMachine />
+      <InkRivers />
+      <TokenCounter fillLevel={tokenUsage} />
+      <AIBrain isThinking={isThinking} />
+      <InspirationCrystals />
+      <DictionaryColumns />
+      <WritingDesk />
+      <HoloScreens />
+      <IdeaMotes />
     </FlagshipEnvironmentWrapper>
   );
 }

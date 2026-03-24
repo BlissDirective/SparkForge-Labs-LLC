@@ -12,14 +12,12 @@
 //              holographic Text displays (drei), miniature graph geometry,
 //              chrome bezel frame, articulated mounting arm.
 //
-// Triangle budget: ~1,500,000 tris (LOD-scaled via useLOD system tier)
+
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD, lodSphere, lodTorus, lodCylinder } from '@/hooks/useLOD';
-import type { LODState } from '@/hooks/useLOD';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
 
 // ════════════════════════════════════════════════════════════════
@@ -71,17 +69,15 @@ function ChromeBezelFrame({
   height,
   depth,
   opacity,
-  lod,
 }: {
   width: number;
   height: number;
   depth: number;
   opacity: number;
-  lod: LODState;
 }) {
   const bezel = BEZEL_THICKNESS;
   const cornerSize = bezel * 2.5;
-  const seg = Math.max(2, Math.floor(lod.segments / 4));
+  const seg = Math.max(2, Math.floor(64 / 4));
 
   return (
     <group>
@@ -174,14 +170,12 @@ function ChromeBezelFrame({
 function MountingArm({
   side,
   opacity,
-  lod,
 }: {
   side: 'left' | 'right';
   opacity: number;
-  lod: LODState;
 }) {
   const sx = side === 'left' ? 1 : -1; // arm extends inward
-  const _jointSegs = lod.segments;
+  const _jointSegs = 64;
 
   return (
     <group>
@@ -199,7 +193,7 @@ function MountingArm({
 
       {/* Joint 1 (wall end) — sphere */}
       <mesh position={[sx * (ARM_LENGTH / 2 + 0.02), 0, 0]}>
-        <sphereGeometry args={lodSphere(lod, JOINT_RADIUS)} />
+        <sphereGeometry args={[JOINT_RADIUS, 64, 64]} />
         <meshStandardMaterial
           color="#4a5070"
           metalness={0.9}
@@ -223,7 +217,7 @@ function MountingArm({
 
       {/* Joint 2 (elbow) — sphere */}
       <mesh position={[0, 0, 0]}>
-        <sphereGeometry args={lodSphere(lod, JOINT_RADIUS * 1.1)} />
+        <sphereGeometry args={[JOINT_RADIUS * 1.1, 64, 64]} />
         <meshStandardMaterial
           color="#5a6080"
           metalness={0.88}
@@ -249,7 +243,7 @@ function MountingArm({
 
       {/* Joint 3 (panel attachment) — sphere */}
       <mesh position={[sx * (-ARM_LENGTH / 2 - 0.02), -0.08, 0]}>
-        <sphereGeometry args={lodSphere(lod, JOINT_RADIUS)} />
+        <sphereGeometry args={[JOINT_RADIUS, 64, 64]} />
         <meshStandardMaterial
           color="#4a5070"
           metalness={0.9}
@@ -260,14 +254,14 @@ function MountingArm({
       </mesh>
 
       {/* Hydraulic detail cylinders along arm */}
-      {lod.enableEffects && (
+      {(
         <>
           <mesh
             position={[sx * (ARM_LENGTH / 4), ARM_WIDTH / 2 + 0.015, 0]}
             rotation={[0, 0, Math.PI / 2]}
           >
             <cylinderGeometry
-              args={lodCylinder(lod, 0.012, 0.012, ARM_LENGTH * 0.4)}
+              args={[0.012, 0.012, ARM_LENGTH * 0.4, 64]}
             />
             <meshStandardMaterial
               color="#6a7090"
@@ -282,7 +276,7 @@ function MountingArm({
             rotation={[0, 0, Math.PI / 2]}
           >
             <cylinderGeometry
-              args={lodCylinder(lod, 0.01, 0.01, ARM_LENGTH * 0.35)}
+              args={[0.01, 0.01, ARM_LENGTH * 0.35, 64]}
             />
             <meshStandardMaterial
               color="#6a7090"
@@ -306,12 +300,10 @@ function RadarPanel({
   opacity,
   labColor,
   dimmed,
-  lod,
 }: {
   opacity: number;
   labColor: THREE.Color;
   dimmed: boolean;
-  lod: LODState;
 }) {
   const dishRef = useRef<THREE.Group>(null);
   const sweepRef = useRef<THREE.Mesh>(null);
@@ -328,7 +320,7 @@ function RadarPanel({
   const rangeRingRadii = useMemo(() => [0.25, 0.5, 0.75, 0.95], []);
 
   // Grid lines for radar background
-  const gridLineCount = Math.floor(lod.segments / 2);
+  const gridLineCount = Math.floor(64 / 2);
 
   // Intensity factor
   const intensity = dimmed ? 0.15 : 1.0;
@@ -375,7 +367,7 @@ function RadarPanel({
           {/* Cylinder base (pedestal) */}
           <mesh position={[0, 0, 0.02]}>
             <cylinderGeometry
-              args={lodCylinder(lod, 0.15, 0.2, 0.06)}
+              args={[0.15, 0.2, 0.06, 64]}
             />
             <meshStandardMaterial
               color="#2a3040"
@@ -388,7 +380,7 @@ function RadarPanel({
 
           {/* Torus dish (main radar dish ring) */}
           <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={lodTorus(lod, 0.95, 0.025)} />
+            <torusGeometry args={[0.95, 0.025, 16, 64]} />
             <meshStandardMaterial
               color={`#${labColor.getHexString()}`}
               metalness={0.7}
@@ -402,7 +394,7 @@ function RadarPanel({
 
           {/* Inner dish ring */}
           <mesh position={[0, 0, 0.05]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={lodTorus(lod, 0.5, 0.015)} />
+            <torusGeometry args={[0.5, 0.015, 16, 64]} />
             <meshStandardMaterial
               color={`#${labColor.getHexString()}`}
               metalness={0.7}
@@ -416,7 +408,7 @@ function RadarPanel({
 
           {/* Sweep arm (rotating line) */}
           <mesh ref={sweepRef} position={[0, 0, 0.06]}>
-            <cylinderGeometry args={lodCylinder(lod, 0.008, 0.003, 0.95)} />
+            <cylinderGeometry args={[0.008, 0.003, 0.95, 64]} />
             <meshStandardMaterial
               color={`#${labColor.getHexString()}`}
               emissive={labColor}
@@ -428,7 +420,7 @@ function RadarPanel({
 
           {/* Center dot */}
           <mesh position={[0, 0, 0.06]}>
-            <sphereGeometry args={lodSphere(lod, 0.04)} />
+            <sphereGeometry args={[0.04, 64, 64]} />
             <meshStandardMaterial
               color={`#${labColor.getHexString()}`}
               emissive={labColor}
@@ -443,7 +435,7 @@ function RadarPanel({
         <group ref={ringGroupRef}>
           {rangeRingRadii.map((r, i) => (
             <mesh key={`ring-${i}`} position={[0, 0, 0.04]} rotation={[Math.PI / 2, 0, 0]}>
-              <torusGeometry args={lodTorus(lod, r, 0.004)} />
+              <torusGeometry args={[r, 0.004, 16, 64]} />
               <meshStandardMaterial
                 color={`#${labColor.getHexString()}`}
                 transparent
@@ -468,7 +460,7 @@ function RadarPanel({
               }}
               position={[x, y, 0.07]}
             >
-              <sphereGeometry args={lodSphere(lod, 0.025)} />
+              <sphereGeometry args={[0.025, 64, 64]} />
               <meshStandardMaterial
                 color={`#${labColor.getHexString()}`}
                 emissive={labColor}
@@ -481,8 +473,7 @@ function RadarPanel({
         })}
 
         {/* Crosshair grid lines */}
-        {lod.enableEffects &&
-          Array.from({ length: gridLineCount }, (_, i) => {
+        {Array.from({ length: gridLineCount }, (_, i) => {
             const angle = (i / gridLineCount) * Math.PI;
             return (
               <mesh
@@ -546,7 +537,6 @@ function RadarPanel({
           height={PANEL_HEIGHT}
           depth={PANEL_DEPTH}
           opacity={opacity}
-          lod={lod}
         />
       </group>
     </group>
@@ -564,12 +554,10 @@ function TerminalPanel({
   opacity,
   labColor,
   dimmed,
-  lod,
 }: {
   opacity: number;
   labColor: THREE.Color;
   dimmed: boolean;
-  lod: LODState;
 }) {
   const barsRef = useRef<THREE.InstancedMesh>(null);
   const graphBarsRef = useRef<THREE.InstancedMesh>(null);
@@ -578,8 +566,8 @@ function TerminalPanel({
 
   // Instanced bar count scaled by LOD
   const barCount = useMemo(() => {
-    return Math.min(TOTAL_BARS, lod.maxInstances);
-  }, [lod.maxInstances]);
+    return Math.min(TOTAL_BARS, 5000);
+  }, [5000]);
 
   const graphBarCount = 48;
 
@@ -781,7 +769,6 @@ function TerminalPanel({
           height={PANEL_HEIGHT}
           depth={PANEL_DEPTH}
           opacity={opacity}
-          lod={lod}
         />
       </group>
     </group>
@@ -796,12 +783,10 @@ function PanelAssembly({
   side,
   children,
   opacity,
-  lod,
 }: {
   side: 'left' | 'right';
   children: React.ReactNode;
   opacity: number;
-  lod: LODState;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const sx = side === 'left' ? -1 : 1;
@@ -821,12 +806,12 @@ function PanelAssembly({
     <group position={[sx * 5.5, 0, -2]}>
       {/* Mounting arm — connects wall to panel */}
       <group position={[sx * (PANEL_WIDTH / 2 + ARM_LENGTH / 2 + 0.1), 0.5, 0]}>
-        <MountingArm side={side} opacity={opacity} lod={lod} />
+        <MountingArm side={side} opacity={opacity} />
       </group>
 
       {/* Second mounting arm (lower) */}
       <group position={[sx * (PANEL_WIDTH / 2 + ARM_LENGTH / 2 + 0.1), -0.8, 0]}>
-        <MountingArm side={side} opacity={opacity} lod={lod} />
+        <MountingArm side={side} opacity={opacity} />
       </group>
 
       {/* Panel group (tilts) */}
@@ -848,7 +833,6 @@ export function SidePanels({
   labColor,
   dimmed,
 }: SidePanelsProps) {
-  const lod = useLOD({ tier: 'system' });
 
   const labColorVec = useMemo(() => new THREE.Color(labColor), [labColor]);
 
@@ -857,22 +841,20 @@ export function SidePanels({
   return (
     <group>
       {/* Left panel assembly — Radar */}
-      <PanelAssembly side="left" opacity={opacity} lod={lod}>
+      <PanelAssembly side="left" opacity={opacity}>
         <RadarPanel
           opacity={opacity}
           labColor={labColorVec}
           dimmed={dimmed}
-          lod={lod}
         />
       </PanelAssembly>
 
       {/* Right panel assembly — Terminal */}
-      <PanelAssembly side="right" opacity={opacity} lod={lod}>
+      <PanelAssembly side="right" opacity={opacity}>
         <TerminalPanel
           opacity={opacity}
           labColor={labColorVec}
           dimmed={dimmed}
-          lod={lod}
         />
       </PanelAssembly>
     </group>

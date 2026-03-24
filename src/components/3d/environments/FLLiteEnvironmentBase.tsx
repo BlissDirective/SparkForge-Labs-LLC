@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════
 // FLLiteEnvironmentBase — Shared 2M-budget foundation
 // ════════════════════════════════════════════════════
-// Provides LOD-aware lighting, terrain, sky, and fog for
+
 // all 9 FL-Lite game environments. Lighter than Flagship
 // base but still fully immersive at 2M triangle budget.
 //
@@ -19,92 +19,26 @@ import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD, type LODState } from '@/hooks/useLOD';
 
-// ■■ Shared LOD Config for FL-Lite Environments ■■
-export interface FLLiteLOD extends LODState {
-  terrainSegments: number;
-  skySegments: number;
-  instanceCount: number;
-  enableFog: boolean;
-  enableContactShadows: boolean;
-  enableParticles: boolean;
-  enableDetailProps: boolean;
-}
-
-export function useFLLiteLOD(): FLLiteLOD {
-  const lod = useLOD({ tier: 'flLite' });
-
-  return useMemo(() => {
-    const levelConfigs: Record<string, Partial<FLLiteLOD>> = {
-      ultra: {
-        terrainSegments: 256,
-        skySegments: 64,
-        instanceCount: 500,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-      },
-      high: {
-        terrainSegments: 128,
-        skySegments: 48,
-        instanceCount: 300,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-      },
-      medium: {
-        terrainSegments: 64,
-        skySegments: 32,
-        instanceCount: 150,
-        enableFog: true,
-        enableContactShadows: false,
-        enableParticles: true,
-        enableDetailProps: false,
-      },
-      low: {
-        terrainSegments: 32,
-        skySegments: 16,
-        instanceCount: 50,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-      },
-      billboard: {
-        terrainSegments: 16,
-        skySegments: 8,
-        instanceCount: 10,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-      },
-    };
-
-    const config = levelConfigs[lod.level] || levelConfigs.high;
-    return { ...lod, ...config } as FLLiteLOD;
-  }, [lod]);
-}
+// ■■ FL-Lite Environment Constants (Ultra quality) ■■
+const _FLLITE_TERRAIN_SEGMENTS = 256;
+const _FLLITE_SKY_SEGMENTS = 64;
+const _FLLITE_INSTANCE_COUNT = 500;
 
 // ■■ FL-Lite Terrain ■■
 interface TerrainProps {
   size?: number;
   color?: string;
   heightScale?: number;
-  lod: FLLiteLOD;
 }
 
 export function FLLiteTerrain({
   size = 30,
   color = '#0A0E16',
   heightScale = 0.15,
-  lod,
 }: TerrainProps) {
   const geometry = useMemo(() => {
-    const segs = lod.terrainSegments;
+    const segs = 512;
     const geo = new THREE.PlaneGeometry(size, size, segs, segs);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -118,7 +52,7 @@ export function FLLiteTerrain({
     }
     geo.computeVertexNormals();
     return geo;
-  }, [size, heightScale, lod.terrainSegments]);
+  }, [size, heightScale, 512]);
 
   const material = useMemo(() =>
     new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.85, metalness: 0.1, envMapIntensity: 0.3 }),
@@ -134,14 +68,12 @@ interface SkyDomeProps {
   topColor?: string;
   horizonColor?: string;
   radius?: number;
-  lod: FLLiteLOD;
 }
 
 export function FLLiteSkyDome({
   topColor = '#050810',
   horizonColor = '#0A1628',
   radius = 40,
-  lod,
 }: SkyDomeProps) {
   const material = useMemo(() =>
     new THREE.ShaderMaterial({
@@ -173,7 +105,7 @@ export function FLLiteSkyDome({
 
   return (
     <mesh material={material}>
-      <sphereGeometry args={[radius, lod.skySegments, lod.skySegments]} />
+      <sphereGeometry args={[radius, 96, 96]} />
     </mesh>
   );
 }
@@ -183,17 +115,15 @@ interface FogParticlesProps {
   count?: number;
   color?: string;
   spread?: number;
-  lod: FLLiteLOD;
 }
 
 export function FLLiteFogParticles({
   count: baseCount = 100,
   color = '#00BBFF',
   spread = 10,
-  lod,
 }: FogParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const count = Math.min(baseCount, lod.instanceCount);
+  const count = Math.min(baseCount, 1000);
 
   const { matrices, speeds } = useMemo(() => {
     const m: THREE.Matrix4[] = [];
@@ -251,11 +181,10 @@ export function FLLiteFogParticles({
 // ■■ FL-Lite Lighting Rig ■■
 interface LightingRigProps {
   labColor: string;
-  lod: FLLiteLOD;
   ambientIntensity?: number;
 }
 
-export function FLLiteLightingRig({ labColor, lod, ambientIntensity = 0.35 }: LightingRigProps) {
+export function FLLiteLightingRig({ labColor, ambientIntensity = 0.35 }: LightingRigProps) {
   return (
     <>
       <ambientLight intensity={ambientIntensity} />
@@ -263,9 +192,9 @@ export function FLLiteLightingRig({ labColor, lod, ambientIntensity = 0.35 }: Li
         position={[6, 10, 4]}
         intensity={0.9}
         color="#ffffff"
-        castShadow={lod.enableShadows}
-        shadow-mapSize-width={lod.enableShadows ? 1024 : 512}
-        shadow-mapSize-height={lod.enableShadows ? 1024 : 512}
+        castShadow={true}
+        shadow-mapSize-width={1024}
+        shadow-mapSize-height={1024}
         shadow-camera-far={40}
         shadow-camera-left={-15}
         shadow-camera-right={15}
@@ -274,7 +203,7 @@ export function FLLiteLightingRig({ labColor, lod, ambientIntensity = 0.35 }: Li
       />
       <pointLight position={[-4, 3, -3]} intensity={0.4} color={labColor} distance={15} />
       <pointLight position={[4, 2, 4]} intensity={0.25} color="#AA66FF" distance={12} />
-      {lod.enableContactShadows && (
+      {(
         <ContactShadows position={[0, -0.99, 0]} opacity={0.35} scale={20} blur={2} far={3} />
       )}
     </>
@@ -303,14 +232,13 @@ export function FLLiteEnvironmentWrapper({
   heightScale = 0.15,
   terrainSize = 30,
 }: FLLiteEnvironmentBaseProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <group>
-      <FLLiteLightingRig labColor={labColor} lod={lod} />
-      <FLLiteTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} lod={lod} />
-      <FLLiteSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} lod={lod} />
-      {lod.enableParticles && <FLLiteFogParticles color={fogColor || labColor} lod={lod} />}
+      <FLLiteLightingRig labColor={labColor} />
+      <FLLiteTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} />
+      <FLLiteSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} />
+      {<FLLiteFogParticles color={fogColor || labColor} />}
       <Environment preset="night" />
       {children}
     </group>

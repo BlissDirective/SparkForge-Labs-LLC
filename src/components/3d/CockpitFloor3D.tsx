@@ -13,13 +13,12 @@
 //   - Embedded LED channels: 50+ small emissive boxes along grate edges
 //   - Under-glow: Large plane with low-opacity lab-colored emissive
 //
-// LOD-aware via useLOD({ tier: 'system' })
+
 // Floor positioned at y = -3.5, extends ~10 wide x ~8 deep
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 // ■■ Props ■■
 
@@ -120,7 +119,6 @@ function buildHatchFrame(cx: number, cz: number, size: number): THREE.BufferGeom
 // ■■ Component ■■
 
 export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
-  const lod = useLOD({ tier: 'system' });
 
   // Refs for animated elements
   const ledInstanceRef = useRef<THREE.InstancedMesh>(null);
@@ -131,7 +129,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   const labColorObj = useMemo(() => new THREE.Color(labColor), [labColor]);
 
   // ── Grate slats (InstancedMesh) ──
-  const slatCounts = SLAT_COUNTS[lod.level] || SLAT_COUNTS.medium;
+  const slatCounts = SLAT_COUNTS['ultra'] || SLAT_COUNTS.medium;
 
   const slatGeo = useMemo(
     () => new THREE.BoxGeometry(SLAT_WIDTH, SLAT_HEIGHT, FLOOR_DEPTH),
@@ -186,7 +184,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   );
 
   // ── Sub-floor piping ──
-  const pipeSegments = PIPE_SEGMENTS[lod.level] || 10;
+  const pipeSegments = PIPE_SEGMENTS['ultra'] || 10;
   const pipeMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -213,8 +211,8 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     []
   );
 
-  const conduitTubeSegments = lod.tubularSegments;
-  const conduitRadialSegments = Math.max(4, Math.floor(lod.segments / 4));
+  const conduitTubeSegments = 64;
+  const conduitRadialSegments = Math.max(4, Math.floor(64 / 4));
 
   const conduitGeos = useMemo(
     () =>
@@ -262,7 +260,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   );
 
   // ── LED channels (InstancedMesh along grate edges) ──
-  const ledCount = LED_COUNTS[lod.level] || 30;
+  const ledCount = LED_COUNTS['ultra'] || 30;
   const ledGeo = useMemo(
     () => new THREE.BoxGeometry(0.06, 0.015, 0.025),
     []

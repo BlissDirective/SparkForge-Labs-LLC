@@ -31,12 +31,12 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF6644';
 
 // ■■ News Desk with Dual Screens ■■
-function NewsDesk({ lod: _lod, isChecking }: { lod: ReturnType<typeof useStandardLOD>; isChecking: boolean }) {
+function NewsDesk({ isChecking }: { isChecking: boolean }) {
   const realScreenRef = useRef<THREE.Mesh>(null);
   const fakeScreenRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -93,7 +93,7 @@ function NewsDesk({ lod: _lod, isChecking }: { lod: ReturnType<typeof useStandar
 }
 
 // ■■ Fact-Checking Magnifier Station ■■
-function MagnifierStation({ lod, isChecking }: { lod: ReturnType<typeof useStandardLOD>; isChecking: boolean }) {
+function MagnifierStation({ isChecking }: { isChecking: boolean }) {
   const lensRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -106,7 +106,7 @@ function MagnifierStation({ lod, isChecking }: { lod: ReturnType<typeof useStand
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[3.5, 0, 0]}>
@@ -142,8 +142,8 @@ function MagnifierStation({ lod, isChecking }: { lod: ReturnType<typeof useStand
 }
 
 // ■■ Source Verification Pipeline ■■
-function VerificationPipeline({ lod, verified }: { lod: ReturnType<typeof useStandardLOD>; verified: number }) {
-  const stampCount = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 6 : 3;
+function VerificationPipeline({ verified }: { verified: number }) {
+  const stampCount = 10;
   const stampsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -193,7 +193,7 @@ function VerificationPipeline({ lod, verified }: { lod: ReturnType<typeof useSta
 }
 
 // ■■ Deepfake Analysis Chamber ■■
-function DeepfakeChamber({ lod: _lod, isChecking }: { lod: ReturnType<typeof useStandardLOD>; isChecking: boolean }) {
+function DeepfakeChamber({ isChecking }: { isChecking: boolean }) {
   const scanLineRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -246,7 +246,7 @@ function DeepfakeChamber({ lod: _lod, isChecking }: { lod: ReturnType<typeof use
 }
 
 // ■■ Truth Meter (Giant Gauge) ■■
-function TruthMeter({ lod, verified }: { lod: ReturnType<typeof useStandardLOD>; verified: number }) {
+function TruthMeter({ verified }: { verified: number }) {
   const needleRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -259,7 +259,7 @@ function TruthMeter({ lod, verified }: { lod: ReturnType<typeof useStandardLOD>;
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[0, 2.8, -4.5]}>
@@ -298,8 +298,8 @@ function TruthMeter({ lod, verified }: { lod: ReturnType<typeof useStandardLOD>;
 }
 
 // ■■ Media Library Shelves (Instanced) ■■
-function MediaLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const shelfCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 5;
+function MediaLibrary() {
+  const shelfCount = 16;
   const shelvesRef = useRef<THREE.InstancedMesh>(null);
   const booksRef = useRef<THREE.InstancedMesh>(null);
 
@@ -329,8 +329,6 @@ function MediaLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     if (booksRef.current.instanceColor) booksRef.current.instanceColor.needsUpdate = true;
   }, [shelfCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={shelvesRef} args={[undefined, undefined, shelfCount]} castShadow>
@@ -346,8 +344,8 @@ function MediaLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Evidence Comparison Lightbox (Instanced) ■■
-function LightboxPanels({ lod, isChecking }: { lod: ReturnType<typeof useStandardLOD>; isChecking: boolean }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+function LightboxPanels({ isChecking }: { isChecking: boolean }) {
+  const count = 8;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -396,7 +394,6 @@ export default function RealOrFakeEnvironment({
   verified = 0,
   isChecking = false,
 }: RealOrFakeEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -406,13 +403,13 @@ export default function RealOrFakeEnvironment({
       skyHorizonColor="#1A0E12"
       fogColor="#FF6644"
     >
-      <NewsDesk lod={lod} isChecking={isChecking} />
-      <MagnifierStation lod={lod} isChecking={isChecking} />
-      <VerificationPipeline lod={lod} verified={verified} />
-      <DeepfakeChamber lod={lod} isChecking={isChecking} />
-      <TruthMeter lod={lod} verified={verified} />
-      <MediaLibrary lod={lod} />
-      <LightboxPanels lod={lod} isChecking={isChecking} />
+      <NewsDesk isChecking={isChecking} />
+      <MagnifierStation isChecking={isChecking} />
+      <VerificationPipeline verified={verified} />
+      <DeepfakeChamber isChecking={isChecking} />
+      <TruthMeter verified={verified} />
+      <MediaLibrary />
+      <LightboxPanels isChecking={isChecking} />
       {/* Extra analysis spotlight when checking */}
       {isChecking && (
         <pointLight position={[0, 3, -3]} intensity={1.0} color="#FFAA44" distance={10} />

@@ -43,12 +43,11 @@ import * as THREE from 'three';
 
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Server Corridor Walls (expanded) ■■
-function ServerCorridor({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const rackCount = lod.level === 'ultra' ? 50 : lod.level === 'high' ? 30 : 14;
+function ServerCorridor() {
+  const rackCount = 50;
   const racksRef = useRef<THREE.InstancedMesh>(null);
   const ledRef = useRef<THREE.InstancedMesh>(null);
   const ledCount = rackCount * 8;
@@ -109,7 +108,7 @@ function ServerCorridor({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Mission Control Display Wall ■■
-function MissionControlWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function MissionControlWall() {
   const screensRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -122,8 +121,6 @@ function MissionControlWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> })
       }
     });
   });
-
-  if (!lod.enableDetailProps) return null;
 
   const screens = [
     { x: 0, y: 2, w: 7, h: 3.5, ry: 0 },
@@ -155,8 +152,8 @@ function MissionControlWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> })
 }
 
 // ■■ Autonomous Drone Fleet ■■
-function DroneFleet({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const droneCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 6 : 3;
+function DroneFleet() {
+  const droneCount = 12;
   const dronesRef = useRef<THREE.InstancedMesh>(null);
   const propRef = useRef<THREE.InstancedMesh>(null);
 
@@ -203,8 +200,6 @@ function DroneFleet({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     propRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableEffects) return null;
-
   return (
     <>
       <instancedMesh ref={dronesRef} args={[undefined, undefined, droneCount]} castShadow>
@@ -220,7 +215,7 @@ function DroneFleet({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Holographic Blueprint Table ■■
-function BlueprintTable({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function BlueprintTable() {
   const holoRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -230,13 +225,11 @@ function BlueprintTable({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     holoRef.current.scale.setScalar(s);
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group position={[0, -1, 5]}>
       {/* Table surface */}
       <mesh receiveShadow>
-        <cylinderGeometry args={[2, 2.2, 0.15, lod.segments]} />
+        <cylinderGeometry args={[2, 2.2, 0.15, 64]} />
         <meshStandardMaterial color="#111827" metalness={0.6} roughness={0.3} />
       </mesh>
       {/* Table leg */}
@@ -251,11 +244,11 @@ function BlueprintTable({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
       </mesh>
       {/* Projection rings */}
       <mesh position={[0, 0.3, 0]}>
-        <torusGeometry args={[1.5, 0.02, 4, lod.segments]} />
+        <torusGeometry args={[1.5, 0.02, 4, 64]} />
         <meshBasicMaterial color="#10B981" transparent opacity={0.15} />
       </mesh>
       <mesh position={[0, 0.6, 0]}>
-        <torusGeometry args={[1.2, 0.015, 4, lod.segments]} />
+        <torusGeometry args={[1.2, 0.015, 4, 64]} />
         <meshBasicMaterial color="#10B981" transparent opacity={0.1} />
       </mesh>
       <pointLight position={[0, 1, 0]} intensity={0.8} color="#10B981" distance={5} />
@@ -264,7 +257,7 @@ function BlueprintTable({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Robotic Assembly Line ■■
-function AssemblyLine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function AssemblyLine() {
   const armCount = 6;
   const armsRef = useRef<THREE.Group>(null);
 
@@ -278,14 +271,12 @@ function AssemblyLine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     });
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group ref={armsRef}>
       {Array.from({ length: armCount }).map((_, i) => (
         <group key={i} position={[7, -1, -8 + i * 3]}>
           <mesh castShadow>
-            <cylinderGeometry args={[0.25, 0.3, 0.15, lod.segments]} />
+            <cylinderGeometry args={[0.25, 0.3, 0.15, 64]} />
             <meshStandardMaterial color="#374151" metalness={0.8} roughness={0.2} />
           </mesh>
           <mesh position={[0, 0.6, 0]} castShadow>
@@ -309,15 +300,13 @@ function AssemblyLine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Communication Array ■■
-function CommunicationArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CommunicationArray() {
   const dishRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
     if (!dishRef.current) return;
     dishRef.current.rotation.y = state.clock.elapsedTime * 0.15;
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[-8, -1, 8]}>
@@ -336,7 +325,7 @@ function CommunicationArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> })
       {/* Satellite dish */}
       <group ref={dishRef} position={[0, 4.5, 0]}>
         <mesh rotation={[0.5, 0, 0]}>
-          <sphereGeometry args={[0.8, lod.segments, lod.segments, 0, Math.PI * 2, 0, Math.PI / 3]} />
+          <sphereGeometry args={[0.8, 64, 64, 0, Math.PI * 2, 0, Math.PI / 3]} />
           <meshStandardMaterial color="#6B7280" metalness={0.8} roughness={0.2} side={THREE.DoubleSide} />
         </mesh>
         <mesh position={[0, 0, 0.3]}>
@@ -351,8 +340,8 @@ function CommunicationArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> })
 }
 
 // ■■ Cargo Containers ■■
-function CargoContainers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const containerCount = lod.level === 'ultra' ? 12 : 6;
+function CargoContainers() {
+  const containerCount = 12;
   const containersRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -379,8 +368,6 @@ function CargoContainers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (containersRef.current.instanceColor) containersRef.current.instanceColor.needsUpdate = true;
   }, [containerCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={containersRef} args={[undefined, undefined, containerCount]} castShadow>
       <boxGeometry args={[2, 1.2, 1]} />
@@ -390,9 +377,9 @@ function CargoContainers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Conveyor Belt System ■■
-function ConveyorBelt({ lod, isRunning }: { lod: ReturnType<typeof useFlagshipLOD>; isRunning: boolean }) {
+function ConveyorBelt({ isRunning }: { isRunning: boolean }) {
   const rollersRef = useRef<THREE.InstancedMesh>(null);
-  const rollerCount = lod.level === 'ultra' ? 24 : 12;
+  const rollerCount = 24;
 
   React.useEffect(() => {
     if (!rollersRef.current) return;
@@ -445,8 +432,7 @@ function ConveyorBelt({ lod, isRunning }: { lod: ReturnType<typeof useFlagshipLO
 }
 
 // ■■ Tool Shelf Wall ■■
-function ToolShelves({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  if (!lod.enableDetailProps) return null;
+function ToolShelves() {
 
   return (
     <group position={[0, 0, -8]}>
@@ -480,7 +466,7 @@ function ToolShelves({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Debug Tower (expanded) ■■
-function DebugTower({ lod, activeBlockId }: { lod: ReturnType<typeof useFlagshipLOD>; activeBlockId: string | null }) {
+function DebugTower({ activeBlockId }: { activeBlockId: string | null }) {
   const frameCount = 8;
   const towerRef = useRef<THREE.Group>(null);
 
@@ -495,8 +481,6 @@ function DebugTower({ lod, activeBlockId }: { lod: ReturnType<typeof useFlagship
     });
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group ref={towerRef} position={[9, -1, 5]}>
       {Array.from({ length: frameCount }).map((_, i) => (
@@ -510,8 +494,8 @@ function DebugTower({ lod, activeBlockId }: { lod: ReturnType<typeof useFlagship
 }
 
 // ■■ Cable Conduits (Ceiling, expanded) ■■
-function CableConduits({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const cableCount = lod.level === 'ultra' ? 25 : 12;
+function CableConduits() {
+  const cableCount = 25;
   const cablesRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -529,8 +513,6 @@ function CableConduits({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     cablesRef.current.instanceMatrix.needsUpdate = true;
   }, [cableCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={cablesRef} args={[undefined, undefined, cableCount]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -540,7 +522,7 @@ function CableConduits({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Data Pulse Floor Rings ■■
-function DataPulseFloor({ lod, isRunning }: { lod: ReturnType<typeof useFlagshipLOD>; isRunning: boolean }) {
+function DataPulseFloor({ isRunning }: { isRunning: boolean }) {
   const ringsRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -553,13 +535,13 @@ function DataPulseFloor({ lod, isRunning }: { lod: ReturnType<typeof useFlagship
     });
   });
 
-  if (!lod.enableEffects || !isRunning) return null;
+  if (!true || !isRunning) return null;
 
   return (
     <group ref={ringsRef} position={[0, -0.96, 0]} rotation={[-Math.PI / 2, 0, 0]}>
       {[0, 1, 2, 3].map((i) => (
         <mesh key={i}>
-          <ringGeometry args={[0.5, 0.55, lod.segments]} />
+          <ringGeometry args={[0.5, 0.55, 64]} />
           <meshBasicMaterial color="#10B981" transparent opacity={0.12} depthWrite={false} />
         </mesh>
       ))}
@@ -574,7 +556,6 @@ export interface AgentArchitectEnvironmentProps {
 }
 
 export default function AgentArchitectEnvironment({ isRunning, activeBlockId }: AgentArchitectEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <FlagshipEnvironmentWrapper
@@ -586,18 +567,18 @@ export default function AgentArchitectEnvironment({ isRunning, activeBlockId }: 
       heightScale={0.05}
       terrainSize={40}
     >
-      <ServerCorridor lod={lod} />
-      <MissionControlWall lod={lod} />
-      <DroneFleet lod={lod} />
-      <BlueprintTable lod={lod} />
-      <AssemblyLine lod={lod} />
-      <CommunicationArray lod={lod} />
-      <ConveyorBelt lod={lod} isRunning={isRunning} />
-      <ToolShelves lod={lod} />
-      <DebugTower lod={lod} activeBlockId={activeBlockId} />
-      <CableConduits lod={lod} />
-      <CargoContainers lod={lod} />
-      <DataPulseFloor lod={lod} isRunning={isRunning} />
+      <ServerCorridor />
+      <MissionControlWall />
+      <DroneFleet />
+      <BlueprintTable />
+      <AssemblyLine />
+      <CommunicationArray />
+      <ConveyorBelt isRunning={isRunning} />
+      <ToolShelves />
+      <DebugTower activeBlockId={activeBlockId} />
+      <CableConduits />
+      <CargoContainers />
+      <DataPulseFloor isRunning={isRunning} />
 
       {/* Ceiling */}
       <mesh position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]}>

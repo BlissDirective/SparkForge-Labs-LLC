@@ -17,13 +17,13 @@
 // 8. Welcome phase, learn phase with 4 concept cards
 // 9. Chrome bezel (orange, Lab 9), particles, ARIA, keyboard nav
 // [v3] 10. 3D app mockup assembly via MyFirstAiApp3D (desktop only)
-// [v3] 11. Dynamic import with Suspense + isMobile detection
+// [v3] 11. Dynamic import with Suspense
 // [v3] Decision 6.5 — Tier 2 Enhanced 3D (~2K triangles)
 // ■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
+import { useState, useMemo, useCallback, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
@@ -237,15 +237,6 @@ export function MyFirstAiAppGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
 
-  // [v3] Mobile detection for 3D fallback
-  const [isMobile, setIsMobile] = useState(true);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [buildStep, setBuildStep] = useState<BuildStep>('category');
@@ -359,8 +350,8 @@ export function MyFirstAiAppGame() {
         <div className="absolute top-0 left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
         <div className="absolute bottom-0 left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
 
-        {/* [v3] 3D App Mockup — renders during build + preview phases on desktop */}
-        {(phase === 'build' || phase === 'preview') && !isMobile && (
+        {/* [v3] 3D App Mockup — renders during build + preview phases */}
+        {(phase === 'build' || phase === 'preview') && (
           <Suspense fallback={null}>
             <MyFirstAiApp3D
               buildStep={stepIdx}
@@ -372,7 +363,6 @@ export function MyFirstAiAppGame() {
               appName={appName}
               innovationScore={innovationScore}
               isPreview={phase === 'preview'}
-              isMobile={isMobile}
             />
           </Suspense>
         )}

@@ -22,10 +22,9 @@
 //   Game Scene Group     — visible during gameplay
 //   Iris Overlay Group   — visible during transitions
 
-import { Suspense, useMemo } from 'react';
+import { Suspense, useMemo, useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 
 // 3D Components — Station Shell
 import { AuroraBackground } from './AuroraBackground';
@@ -35,7 +34,7 @@ import { LEDRim } from './LEDRim';
 import { SidePanels } from './SidePanels';
 import { HolographicHUD } from './HolographicHUD';
 import { StatusBar3D } from './StatusBar3D';
-import { BarrelDistortion } from './BarrelDistortion';
+import { PostProcessingStack } from './PostProcessingStack';
 
 // 3D Components — Spatial Dashboard
 import { HolographicLabMap } from './HolographicLabMap';
@@ -49,9 +48,16 @@ import { SceneRouter } from './SceneRouter';
 import { MechanicalIris } from './MechanicalIris';
 import { CameraSystem, type CameraMode } from './CameraSystem';
 
+// Audio (D3D-C3)
+import { irisAudioEngine } from '@/lib/audio/irisAudio';
+
+// Hooks (D3D-C4)
+import { useParallaxMouse } from '@/hooks/useParallaxMouse';
+
 // Stores
 import { useSceneStore } from '@/stores/sceneStore';
-import { useDeviceStore } from '@/stores/deviceStore';
+// useDeviceStore available for future per-device tuning
+// import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
 import { HDR_FALLBACK_PRESET } from '@/lib/3d/materials';
@@ -104,52 +110,6 @@ interface CockpitCanvasProps {
 
   // Game scene (D3D-B3)
   gameSceneContent?: React.ReactNode;
-}
-
-// ── Postprocessing Stack (D3D-5: always-on) ─────────────────────
-
-function PostprocessingStack({
-  bloomIntensity,
-  bloomThreshold,
-  bloomSmoothing,
-  vignetteDarkness,
-  vignetteOffset,
-  barrelDistortion: barrelDist,
-}: {
-  bloomIntensity: number;
-  bloomThreshold: number;
-  bloomSmoothing: number;
-  vignetteDarkness: number;
-  vignetteOffset: number;
-  barrelDistortion: number;
-}) {
-  if (barrelDist > 0) {
-    return (
-      <EffectComposer>
-        <Bloom
-          intensity={bloomIntensity}
-          luminanceThreshold={bloomThreshold}
-          luminanceSmoothing={bloomSmoothing}
-          mipmapBlur
-        />
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        <Vignette darkness={vignetteDarkness} offset={vignetteOffset} eskil={false} {...({} as any)} />
-        <BarrelDistortion strength={barrelDist} />
-      </EffectComposer>
-    );
-  }
-  return (
-    <EffectComposer>
-      <Bloom
-        intensity={bloomIntensity}
-        luminanceThreshold={bloomThreshold}
-        luminanceSmoothing={bloomSmoothing}
-        mipmapBlur
-      />
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <Vignette darkness={vignetteDarkness} offset={vignetteOffset} eskil={false} {...({} as any)} />
-    </EffectComposer>
-  );
 }
 
 // ── Spatial Dashboard Scene Content ──────────────────────────────
@@ -286,6 +246,8 @@ export function CockpitCanvas({
   // Scene state from centralized store (D3D-B5)
   const activeScene = useSceneStore((s) => s.activeScene);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
+  const isTransitioning = useSceneStore((s) => s.isTransitioning);
+  const transition = useSceneStore((s) => s.transition);
 
   // Determine camera mode from active scene
   const cameraMode: CameraMode = activeScene === 'hero'
@@ -298,6 +260,38 @@ export function CockpitCanvas({
 
   // Effective lab color (game lab color during gameplay)
   const effectiveLabColor = activeScene === 'game' ? activeGameLabColor : activeLabColor;
+
+  // Mouse parallax for subtle depth movement (D3D-C4)
+  const parallaxRef = useParallaxMouse({ smoothing: 0.05, intensity: 1.0 });
+
+  // Iris audio integration (D3D-C3)
+  const irisAudioInitialized = useRef(false);
+  const wasTransitioning = useRef(false);
+
+  useEffect(() => {
+    if (isTransitioning && !wasTransitioning.current) {
+      // Transition started
+      if (!irisAudioInitialized.current) {
+        irisAudioEngine.init();
+        irisAudioInitialized.current = true;
+      }
+      const dir = transition?.type === 'iris-close' ? 'close' : 'open';
+      irisAudioEngine.startTransition(dir);
+      wasTransitioning.current = true;
+    } else if (!isTransitioning && wasTransitioning.current) {
+      // Transition ended
+      irisAudioEngine.stopTransition();
+      wasTransitioning.current = false;
+    }
+  }, [isTransitioning]);
+
+  // Sync iris audio progress each render
+  useEffect(() => {
+    if (isTransitioning && transition) {
+      const direction = transition.type === 'iris-close' ? 'close' : 'open';
+      irisAudioEngine.syncProgress(transition.progress, direction);
+    }
+  }, [isTransitioning, transition]);
 
   // ── Single Persistent R3F Canvas (D3D-B1: NEVER unmounts) ──
   return (
@@ -329,12 +323,13 @@ export function CockpitCanvas({
           {/* Adaptive DPR */}
           <AdaptiveDpr pixelated />
 
-          {/* Unified Camera System */}
+          {/* Unified Camera System (D3D-C4: parallax offset) */}
           <CameraSystem
             mode={cameraMode}
             stationFov={cameraFov}
             spatialDamping={0.04}
             enableOrbitDrift
+            parallaxRef={parallaxRef}
           />
 
           {/* HDR Environment */}
@@ -409,8 +404,8 @@ export function CockpitCanvas({
             irisContent={<MechanicalIris labColor={effectiveLabColor} />}
           />
 
-          {/* ═══ Postprocessing (D3D-5: always-on) ═══ */}
-          <PostprocessingStack
+          {/* ═══ Postprocessing (D3D-C1: 7 always-on effects) ═══ */}
+          <PostProcessingStack
             bloomIntensity={bloomIntensity}
             bloomThreshold={bloomThreshold}
             bloomSmoothing={bloomSmoothing}

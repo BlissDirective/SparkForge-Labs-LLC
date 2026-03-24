@@ -25,11 +25,11 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Chat Bubble Landscape ■■
-function ChatBubbles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 18 : lod.level === 'high' ? 12 : 6;
+function ChatBubbles() {
+  const count = 18;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   const configs = useMemo(() => Array.from({ length: count }, (_, i) => ({
@@ -80,8 +80,8 @@ function ChatBubbles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Server Tower Racks ■■
-function ServerTowers({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 5;
+function ServerTowers() {
+  const count = 16;
   const towersRef = useRef<THREE.InstancedMesh>(null);
   const ledsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -134,8 +134,8 @@ function ServerTowers({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Holographic Conversation Tree ■■
-function ConversationTree({ lod, activeNodeCount }: { lod: ReturnType<typeof useFLLiteLOD>; activeNodeCount: number }) {
-  const maxNodes = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 14 : 8;
+function ConversationTree({ activeNodeCount }: { activeNodeCount: number }) {
+  const maxNodes = 20;
   const visibleNodes = Math.min(activeNodeCount, maxNodes);
   const groupRef = useRef<THREE.Group>(null);
 
@@ -202,8 +202,7 @@ function ConversationTree({ lod, activeNodeCount }: { lod: ReturnType<typeof use
 }
 
 // ■■ Antenna Array ■■
-function AntennaArray({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  if (!lod.enableDetailProps) return null;
+function AntennaArray() {
   const antennaCount = 5;
 
   return (
@@ -229,8 +228,8 @@ function AntennaArray({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Message Stream Particles ■■
-function MessageParticles({ lod, isTestMode }: { lod: ReturnType<typeof useFLLiteLOD>; isTestMode: boolean }) {
-  const count = lod.level === 'ultra' ? 200 : lod.level === 'high' ? 120 : 50;
+function MessageParticles({ isTestMode }: { isTestMode: boolean }) {
+  const count = 200;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   const speeds = useMemo(() => Array.from({ length: count }, () => ({
@@ -320,7 +319,6 @@ interface ChatbotBuilderEnvironmentProps {
 }
 
 export default function ChatbotBuilderEnvironment({ isTestMode, activeNodeCount }: ChatbotBuilderEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -330,11 +328,11 @@ export default function ChatbotBuilderEnvironment({ isTestMode, activeNodeCount 
       skyHorizonColor="#0E0E30"
       fogColor="#818CF8"
     >
-      <ChatBubbles lod={lod} />
-      <ServerTowers lod={lod} />
-      <ConversationTree lod={lod} activeNodeCount={activeNodeCount} />
-      <AntennaArray lod={lod} />
-      {lod.enableParticles && <MessageParticles lod={lod} isTestMode={isTestMode} />}
+      <ChatBubbles />
+      <ServerTowers />
+      <ConversationTree activeNodeCount={activeNodeCount} />
+      <AntennaArray />
+      {<MessageParticles isTestMode={isTestMode} />}
       <SignalWaveRings />
     </FLLiteEnvironmentWrapper>
   );

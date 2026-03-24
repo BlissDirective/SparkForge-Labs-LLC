@@ -31,12 +31,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF6644';
 
 // ■■ Hexagonal Shield Generator (Center) ■■
-function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useStandardLOD>; shieldStrength: number }) {
+function ShieldGenerator({ shieldStrength }: { shieldStrength: number }) {
   const outerRef = useRef<THREE.Mesh>(null);
   const innerRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
@@ -62,7 +62,7 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
     }
   });
 
-  const segments = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 6 : 4;
+  const segments = 6;
 
   return (
     <group position={[0, 1.5, 0]}>
@@ -81,7 +81,7 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
       </mesh>
       {/* Inner shield sphere */}
       <mesh ref={innerRef}>
-        <icosahedronGeometry args={[0.5, lod.level === 'ultra' ? 2 : 1]} />
+        <icosahedronGeometry args={[0.5, 2]} />
         <meshStandardMaterial
           color="#00FF88"
           emissive="#00FF88"
@@ -93,7 +93,7 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
       </mesh>
       {/* Orbiting ring */}
       <mesh ref={ringRef}>
-        <torusGeometry args={[1.2, 0.04, 8, lod.level === 'ultra' ? 32 : 16]} />
+        <torusGeometry args={[1.2, 0.04, 8, 32]} />
         <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.5} metalness={0.9} roughness={0.1} />
       </mesh>
       {/* Base pedestal */}
@@ -106,8 +106,8 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
 }
 
 // ■■ Data Stream Tunnels with Packets (Instanced) ■■
-function DataStreamTunnels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const packetCount = lod.level === 'ultra' ? 40 : lod.level === 'high' ? 25 : 12;
+function DataStreamTunnels() {
+  const packetCount = 40;
   const packetsRef = useRef<THREE.InstancedMesh>(null);
   const tubeRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -180,7 +180,7 @@ function DataStreamTunnels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 }
 
 // ■■ Firewall Barrier Walls ■■
-function FirewallBarriers({ lod: _lod, shieldStrength }: { lod: ReturnType<typeof useStandardLOD>; shieldStrength: number }) {
+function FirewallBarriers({ shieldStrength }: { shieldStrength: number }) {
   const wallsRef = useRef<THREE.Group>(null);
   const timeRef = useRef(0);
 
@@ -224,7 +224,7 @@ function FirewallBarriers({ lod: _lod, shieldStrength }: { lod: ReturnType<typeo
 }
 
 // ■■ Privacy Vault ■■
-function PrivacyVault({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function PrivacyVault() {
   const lockRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -237,7 +237,7 @@ function PrivacyVault({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     }
   });
 
-  const segments = lod.level === 'ultra' ? 16 : 8;
+  const segments = 16;
 
   return (
     <group position={[-3.5, 0, -3]}>
@@ -266,7 +266,7 @@ function PrivacyVault({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Threat Detection Radar ■■
-function ThreatRadar({ lod, threatsBlocked }: { lod: ReturnType<typeof useStandardLOD>; threatsBlocked: number }) {
+function ThreatRadar({ threatsBlocked }: { threatsBlocked: number }) {
   const sweepRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -277,7 +277,7 @@ function ThreatRadar({ lod, threatsBlocked }: { lod: ReturnType<typeof useStanda
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[3.5, 0, -3]}>
@@ -327,7 +327,7 @@ function ThreatRadar({ lod, threatsBlocked }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Encryption Cipher Wheels ■■
-function CipherWheels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function CipherWheels() {
   const ring1Ref = useRef<THREE.Mesh>(null);
   const ring2Ref = useRef<THREE.Mesh>(null);
   const ring3Ref = useRef<THREE.Mesh>(null);
@@ -340,9 +340,7 @@ function CipherWheels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     if (ring3Ref.current) ring3Ref.current.rotation.z += delta * 0.7;
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
-
-  if (!lod.enableDetailProps) return null;
+  const segments = 32;
 
   return (
     <group position={[3.5, 1.8, 3]}>
@@ -368,8 +366,8 @@ function CipherWheels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Personal Data Lockers (Instanced) ■■
-function DataLockers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+function DataLockers() {
+  const count = 12;
   const lockersRef = useRef<THREE.InstancedMesh>(null);
   const shieldIconsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -433,8 +431,8 @@ function DataLockers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Intrusion Alert Beacons (Instanced) ■■
-function AlertBeacons({ lod, threatsBlocked }: { lod: ReturnType<typeof useStandardLOD>; threatsBlocked: number }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+function AlertBeacons({ threatsBlocked }: { threatsBlocked: number }) {
+  const count = 8;
   const beaconsRef = useRef<THREE.InstancedMesh>(null);
   const lightRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -471,8 +469,6 @@ function AlertBeacons({ lod, threatsBlocked }: { lod: ReturnType<typeof useStand
       : 0.2 + Math.sin(timeRef.current * 2) * 0.1;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={beaconsRef} args={[undefined, undefined, count]} castShadow>
@@ -501,7 +497,6 @@ export default function DataShieldEnvironment({
   shieldStrength = 50,
   threatsBlocked = 0,
 }: DataShieldEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -511,14 +506,14 @@ export default function DataShieldEnvironment({
       skyHorizonColor="#1A0E12"
       fogColor="#FF6644"
     >
-      <ShieldGenerator lod={lod} shieldStrength={shieldStrength} />
-      <DataStreamTunnels lod={lod} />
-      <FirewallBarriers lod={lod} shieldStrength={shieldStrength} />
-      <PrivacyVault lod={lod} />
-      <ThreatRadar lod={lod} threatsBlocked={threatsBlocked} />
-      <CipherWheels lod={lod} />
-      <DataLockers lod={lod} />
-      <AlertBeacons lod={lod} threatsBlocked={threatsBlocked} />
+      <ShieldGenerator shieldStrength={shieldStrength} />
+      <DataStreamTunnels />
+      <FirewallBarriers shieldStrength={shieldStrength} />
+      <PrivacyVault />
+      <ThreatRadar threatsBlocked={threatsBlocked} />
+      <CipherWheels />
+      <DataLockers />
+      <AlertBeacons threatsBlocked={threatsBlocked} />
       {/* Alert lighting when under heavy attack */}
       {threatsBlocked > 5 && (
         <pointLight position={[0, 3, 0]} intensity={1.2} color="#FF4444" distance={12} />

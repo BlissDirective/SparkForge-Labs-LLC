@@ -37,7 +37,6 @@ interface ChatbotNodes3DProps {
   hoveredNode: string | null;
   testPath: string[];
   isTestMode: boolean;
-  isMobile?: boolean;
 }
 
 // ■■■ Layout Helpers ■■■
@@ -299,7 +298,7 @@ function ChatbotScene({
   hoveredNode,
   testPath,
   isTestMode,
-}: Omit<ChatbotNodes3DProps, "isMobile">) {
+}: ChatbotNodes3DProps) {
   const positions = useMemo(
     () => computeNodePositions3D(nodes),
     [nodes]
@@ -395,11 +394,6 @@ function ChatbotScene({
 // ■■■ Exported Component ■■■
 
 export default function ChatbotNodes3D(props: ChatbotNodes3DProps) {
-  const { isMobile = false } = props;
-
-  // Mobile: no 3D, parent renders SVG only
-  if (isMobile) return null;
-
   return (
     <div
       className="w-full rounded-lg overflow-hidden"

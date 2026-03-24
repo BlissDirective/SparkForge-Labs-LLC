@@ -7,13 +7,12 @@
 // via overlapping fog volumes, animated god ray cones, and
 // noise-driven density layers. Triangle budget: 500K.
 //
-// LOD-aware: reduces geometry at lower tiers, disables
+
 // god rays and density layers at 'low' and 'billboard'.
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 // ■■ Props ■■
 interface VolumetricFog3DProps {
@@ -136,7 +135,6 @@ export function VolumetricFog3D({
   opacity = 1,
   godRaysEnabled = true,
 }: VolumetricFog3DProps) {
-  const lod = useLOD({ tier: 'system' });
 
   // Refs for animated elements
   const fogGroupRef = useRef<THREE.Group>(null);
@@ -148,29 +146,14 @@ export function VolumetricFog3D({
   const currentColorRef = useRef(new THREE.Color(labColor));
   const targetColor = useMemo(() => new THREE.Color(labColor), [labColor]);
 
-  // LOD-driven segments for sphere/cone geometry
-  const sphereSegments = useMemo(() => {
-    switch (lod.level) {
-      case 'ultra': return 24;
-      case 'high': return 16;
-      case 'medium': return 10;
-      default: return 6;
-    }
-  }, [lod.level]);
-
-  const coneSegments = useMemo(() => {
-    switch (lod.level) {
-      case 'ultra': return 16;
-      case 'high': return 12;
-      case 'medium': return 8;
-      default: return 4;
-    }
-  }, [lod.level]);
+  // D3D-1: Desktop-ultra hardcoded segments
+  const sphereSegments = 24;
+  const coneSegments = 16;
 
   // Disable god rays at low LOD or when explicitly off
-  const showGodRays = godRaysEnabled && lod.enableEffects;
+  const showGodRays = godRaysEnabled && true;
   // Disable density layers at low/billboard
-  const showDensityLayers = lod.level !== 'low' && lod.level !== 'billboard';
+  const showDensityLayers = true;
 
   // Density layer shader uniforms
   const densityUniforms = useMemo(() =>
@@ -263,7 +246,6 @@ export function VolumetricFog3D({
   });
 
   // At billboard LOD, render nothing
-  if (lod.level === 'billboard') return null;
 
   return (
     <group ref={fogGroupRef}>

@@ -40,13 +40,12 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Training Arena — Circular fenced area ■■
-function TrainingArena({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const segs = lod.level === 'ultra' ? 64 : lod.level === 'high' ? 48 : 24;
-  const postCount = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 10;
+function TrainingArena() {
+  const segs = 64;
+  const postCount = 32;
   const postsRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -84,9 +83,8 @@ function TrainingArena({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Obstacle Course Equipment ■■
-function ObstacleCourse({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  if (!lod.enableDetailProps) return null;
-  const segs = lod.segments;
+function ObstacleCourse() {
+  const segs = 64;
 
   return (
     <group position={[0, -1, 0]}>
@@ -133,9 +131,8 @@ function ObstacleCourse({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Pet Playground Equipment ■■
-function PetPlayground({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  if (!lod.enableDetailProps) return null;
-  const segs = lod.segments;
+function PetPlayground() {
+  const segs = 64;
 
   return (
     <group position={[10, -1, -3]}>
@@ -199,8 +196,8 @@ function PetPlayground({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Food Bowl & Toys (expanded) ■■
-function PropsAndToys({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const segs = lod.segments;
+function PropsAndToys() {
+  const segs = 64;
   const bowlRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -258,10 +255,10 @@ function PropsAndToys({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Enchanted Forest (mushrooms, ferns, grass tufts) ■■
-function EnchantedForest({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const mushroomCount = lod.level === 'ultra' ? 60 : lod.level === 'high' ? 35 : 15;
-  const fernCount = lod.level === 'ultra' ? 120 : lod.level === 'high' ? 60 : 25;
-  const grassCount = lod.level === 'ultra' ? 300 : lod.level === 'high' ? 150 : 50;
+function EnchantedForest() {
+  const mushroomCount = 60;
+  const fernCount = 120;
+  const grassCount = 300;
 
   const mushroomRef = useRef<THREE.InstancedMesh>(null);
   const mushroomCapRef = useRef<THREE.InstancedMesh>(null);
@@ -355,9 +352,9 @@ function EnchantedForest({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Babbling Creek with Stepping Stones ■■
-function CreekAndStones({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CreekAndStones() {
   const waterRef = useRef<THREE.Mesh>(null);
-  const stoneCount = lod.level === 'ultra' ? 12 : 8;
+  const stoneCount = 12;
   const stonesRef = useRef<THREE.InstancedMesh>(null);
 
   useFrame((state) => {
@@ -386,8 +383,6 @@ function CreekAndStones({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     stonesRef.current.instanceMatrix.needsUpdate = true;
   }, [stoneCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       {/* Creek water surface */}
@@ -405,8 +400,8 @@ function CreekAndStones({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Firefly Swarm ■■
-function FireflySwarm({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 250 : lod.level === 'high' ? 120 : 50;
+function FireflySwarm() {
+  const count = 250;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const fireflies = useMemo(() =>
@@ -446,8 +441,6 @@ function FireflySwarm({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 4, 4]} />
@@ -457,8 +450,8 @@ function FireflySwarm({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Garden Flower Beds ■■
-function GardenBeds({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const flowerCount = lod.level === 'ultra' ? 200 : lod.level === 'high' ? 100 : 40;
+function GardenBeds() {
+  const flowerCount = 200;
   const flowersRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -489,8 +482,6 @@ function GardenBeds({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (flowersRef.current.instanceColor) flowersRef.current.instanceColor.needsUpdate = true;
   }, [flowerCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={flowersRef} args={[undefined, undefined, flowerCount]} castShadow>
       <dodecahedronGeometry args={[1, 0]} />
@@ -500,8 +491,8 @@ function GardenBeds({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Magical Lantern Posts ■■
-function LanternPosts({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const lanternCount = lod.level === 'ultra' ? 10 : 6;
+function LanternPosts() {
+  const lanternCount = 10;
   const postsRef = useRef<THREE.InstancedMesh>(null);
   const globeRef = useRef<THREE.InstancedMesh>(null);
 
@@ -525,8 +516,6 @@ function LanternPosts({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     globeRef.current.instanceMatrix.needsUpdate = true;
   }, [lanternCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <>
       <instancedMesh ref={postsRef} args={[undefined, undefined, lanternCount]} castShadow>
@@ -542,8 +531,8 @@ function LanternPosts({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Ambient Butterflies (Instanced) ■■
-function Butterflies({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 100 : lod.level === 'high' ? 50 : 20;
+function Butterflies() {
+  const count = 100;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const offsets = useMemo(() =>
@@ -589,8 +578,8 @@ function Butterflies({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Instanced Trees (expanded) ■■
-function Trees({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const treeCount = lod.level === 'ultra' ? 150 : lod.level === 'high' ? 80 : 30;
+function Trees() {
+  const treeCount = 150;
   const trunkRef = useRef<THREE.InstancedMesh>(null);
   const canopyRef = useRef<THREE.InstancedMesh>(null);
 
@@ -631,10 +620,10 @@ function Trees({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Water Pond with Lily Pads ■■
-function WaterPond({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function WaterPond() {
   const waterRef = useRef<THREE.Mesh>(null);
-  const segs = lod.level === 'ultra' ? 64 : 32;
-  const lilyCount = lod.level === 'ultra' ? 8 : 4;
+  const segs = 64;
+  const lilyCount = 8;
   const liliesRef = useRef<THREE.InstancedMesh>(null);
 
   useFrame((state) => {
@@ -663,7 +652,7 @@ function WaterPond({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
         <meshStandardMaterial color="#1E1B4B" metalness={0.3} roughness={0.1} transparent opacity={0.7} envMapIntensity={0.8} />
       </mesh>
       {/* Lily pads */}
-      {lod.enableDetailProps && (
+      {(
         <instancedMesh ref={liliesRef} args={[undefined, undefined, lilyCount]}>
           <circleGeometry args={[1, 8]} />
           <meshStandardMaterial color="#2D5A27" roughness={0.8} side={THREE.DoubleSide} />
@@ -683,7 +672,6 @@ export default function PetTrainerEnvironment({
   evolutionStage,
   mood,
 }: PetTrainerEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   const moodIntensity = useMemo(() => {
     const intensities: Record<string, number> = {
@@ -703,18 +691,18 @@ export default function PetTrainerEnvironment({
       heightScale={0.25}
       terrainSize={50}
     >
-      <TrainingArena lod={lod} />
-      <ObstacleCourse lod={lod} />
-      <PetPlayground lod={lod} />
-      <PropsAndToys lod={lod} />
-      <EnchantedForest lod={lod} />
-      <Trees lod={lod} />
-      <CreekAndStones lod={lod} />
-      <FireflySwarm lod={lod} />
-      <GardenBeds lod={lod} />
-      <LanternPosts lod={lod} />
-      <WaterPond lod={lod} />
-      <Butterflies lod={lod} />
+      <TrainingArena />
+      <ObstacleCourse />
+      <PetPlayground />
+      <PropsAndToys />
+      <EnchantedForest />
+      <Trees />
+      <CreekAndStones />
+      <FireflySwarm />
+      <GardenBeds />
+      <LanternPosts />
+      <WaterPond />
+      <Butterflies />
 
       {/* Mood-reactive accent light */}
       <pointLight position={[0, 2, 0]} intensity={moodIntensity} color="#DDD6FE" distance={12} />
@@ -722,7 +710,7 @@ export default function PetTrainerEnvironment({
       {/* Evolution-stage glow ring on arena floor */}
       {evolutionStage > 2 && (
         <mesh position={[0, -0.98, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[6.5, 7, lod.segments]} />
+          <ringGeometry args={[6.5, 7, 64]} />
           <meshBasicMaterial color="#8B5CF6" transparent opacity={0.1 + evolutionStage * 0.05} />
         </mesh>
       )}
@@ -730,7 +718,7 @@ export default function PetTrainerEnvironment({
       {/* Evolution stage secondary ring */}
       {evolutionStage > 4 && (
         <mesh position={[0, -0.97, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[8, 8.3, lod.segments]} />
+          <ringGeometry args={[8, 8.3, 64]} />
           <meshBasicMaterial color="#FBBF24" transparent opacity={0.08 + (evolutionStage - 4) * 0.04} />
         </mesh>
       )}

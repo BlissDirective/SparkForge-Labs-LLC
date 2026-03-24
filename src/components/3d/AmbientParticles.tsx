@@ -11,12 +11,11 @@
 // glow halos around bright particles.
 //
 // Triangle budget: ~200,000 (was ~500)
-// Mobile: 100 particles, no connections, no trails
+// D3D Desktop-First: all particles, connections, and trails always active
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 // Intensity presets from Decision 5.5
 const INTENSITY_PRESETS = {
@@ -32,35 +31,29 @@ interface AmbientParticlesProps {
   intensity?: IntensityLevel;
   color?: string;
   baseCount?: number;
-  isMobile?: boolean;
 }
 
 export function AmbientParticles({
   intensity = 'medium',
   color = '#00BBFF',
   baseCount,
-  isMobile = false,
 }: AmbientParticlesProps) {
   const instancedRef = useRef<THREE.InstancedMesh>(null);
   const trailRef = useRef<THREE.InstancedMesh>(null);
   const haloRef = useRef<THREE.InstancedMesh>(null);
   const linesRef = useRef<THREE.LineSegments>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-
-  const lod = useLOD({ tier: 'system' });
   const preset = INTENSITY_PRESETS[intensity];
-  const count = isMobile
-    ? Math.min(preset.count, 100)
-    : baseCount || preset.count;
-  const showConnections = preset.connections && !isMobile;
-  const showTrails = lod.enableEffects && !isMobile;
-  const showHalos = lod.enableEffects && !isMobile && intensity === 'high';
+  const count = baseCount || preset.count;
+  const showConnections = preset.connections;
+  const showTrails = true;
+  const showHalos = intensity === 'high';
 
   // Particle geometry: icosahedron for higher fidelity
   const particleGeo = useMemo(() => {
-    const segments = Math.max(lod.segments >= 32 ? 1 : 0, 0);
+    const segments = Math.max(64 >= 32 ? 1 : 0, 0);
     return new THREE.IcosahedronGeometry(1, segments);
-  }, [lod.segments]);
+  }, [64]);
 
   // Trail segment geometry: elongated low-poly capsule
   const trailGeo = useMemo(() => {

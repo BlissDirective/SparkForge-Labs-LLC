@@ -24,11 +24,11 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Giant Terminal Screens ■■
-function TerminalScreens({ lod, isRunning }: { lod: ReturnType<typeof useFLLiteLOD>; isRunning: boolean }) {
-  const screenCount = lod.enableDetailProps ? 5 : 3;
+function TerminalScreens({ isRunning }: { isRunning: boolean }) {
+  const screenCount = 5;
   const scanLineRef = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
@@ -82,8 +82,8 @@ function TerminalScreens({ lod, isRunning }: { lod: ReturnType<typeof useFLLiteL
 }
 
 // ■■ Circuit Board Floor Detail ■■
-function CircuitBoardFloor({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const traceCount = lod.level === 'ultra' ? 120 : lod.level === 'high' ? 70 : 30;
+function CircuitBoardFloor() {
+  const traceCount = 120;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -116,8 +116,8 @@ function CircuitBoardFloor({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ LED Strip Lighting ■■
-function LEDStrips({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 14 : 6;
+function LEDStrips() {
+  const count = 24;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -159,9 +159,9 @@ function LEDStrips({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Binary Rain Columns ■■
-function BinaryRainColumns({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const columnCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
-  const particlesPerColumn = lod.level === 'ultra' ? 30 : 15;
+function BinaryRainColumns() {
+  const columnCount = 8;
+  const particlesPerColumn = 30;
   const totalCount = columnCount * particlesPerColumn;
   const ref = useRef<THREE.InstancedMesh>(null);
 
@@ -217,8 +217,8 @@ function BinaryRainColumns({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Robot Assistant Figures ■■
-function RobotAssistants({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 4 : 2;
+function RobotAssistants() {
+  const count = 6;
   const bodyRef = useRef<THREE.InstancedMesh>(null);
   const headRef = useRef<THREE.InstancedMesh>(null);
 
@@ -273,8 +273,8 @@ function RobotAssistants({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Execution Pipeline Conveyor ■■
-function ExecutionPipeline({ lod, isRunning, blockCount }: { lod: ReturnType<typeof useFLLiteLOD>; isRunning: boolean; blockCount: number }) {
-  const stageCount = lod.enableDetailProps ? 6 : 4;
+function ExecutionPipeline({ isRunning, blockCount }: { isRunning: boolean; blockCount: number }) {
+  const stageCount = 6;
   const stageRefs = useRef<(THREE.Mesh | null)[]>([]);
 
   useFrame(({ clock }) => {
@@ -325,7 +325,6 @@ interface CodeBlocksEnvironmentProps {
 }
 
 export default function CodeBlocksEnvironment({ isRunning, blockCount }: CodeBlocksEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -335,12 +334,12 @@ export default function CodeBlocksEnvironment({ isRunning, blockCount }: CodeBlo
       skyHorizonColor="#281A0E"
       fogColor="#F97316"
     >
-      <TerminalScreens lod={lod} isRunning={isRunning} />
-      <CircuitBoardFloor lod={lod} />
-      <LEDStrips lod={lod} />
-      {lod.enableParticles && <BinaryRainColumns lod={lod} />}
-      <RobotAssistants lod={lod} />
-      <ExecutionPipeline lod={lod} isRunning={isRunning} blockCount={blockCount} />
+      <TerminalScreens isRunning={isRunning} />
+      <CircuitBoardFloor />
+      <LEDStrips />
+      {<BinaryRainColumns />}
+      <RobotAssistants />
+      <ExecutionPipeline isRunning={isRunning} blockCount={blockCount} />
     </FLLiteEnvironmentWrapper>
   );
 }

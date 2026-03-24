@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -19,12 +19,6 @@ const DataDetective3D = dynamic(
   () => import('@/components/3d/DataDetective3D'),
   { ssr: false }
 );
-
-function useIsMobile() {
-  const [m, setM] = useState(false);
-  useEffect(() => { setM(window.innerWidth < 768); }, []);
-  return m;
-}
 
 type Phase = 'welcome' | 'play' | 'complete';
 
@@ -120,8 +114,6 @@ export function DataDetectiveGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile();
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -217,18 +209,16 @@ export function DataDetectiveGame() {
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-lg">
                     {/* 3D Scene */}
-                    {!isMobile && (
-                      <div className="h-32 mb-3 rounded-xl overflow-hidden">
-                        <DataDetective3D
-                          selectedRow={selected}
-                          totalRows={currentCase.data.length}
-                          fixedRows={new Set()}
-                          deletedRows={new Set()}
-                          lastFixedRow={showResult && selected === currentCase.correctIndex ? selected : null}
-                          worldColor="#AA66FF"
-                        />
-                      </div>
-                    )}
+                    <div className="h-32 mb-3 rounded-xl overflow-hidden">
+                      <DataDetective3D
+                        selectedRow={selected}
+                        totalRows={currentCase.data.length}
+                        fixedRows={new Set()}
+                        deletedRows={new Set()}
+                        lastFixedRow={showResult && selected === currentCase.correctIndex ? selected : null}
+                        worldColor="#AA66FF"
+                      />
+                    </div>
 
                     {/* Case header */}
                     <div className="rounded-xl p-3 mb-3 border border-purple-500/20 bg-purple-500/5 text-center">

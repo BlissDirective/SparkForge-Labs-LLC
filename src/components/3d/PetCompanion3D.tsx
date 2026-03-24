@@ -27,7 +27,6 @@
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ================================================================
@@ -480,7 +479,6 @@ export function PetCompanion3D({
   petColor = DEFAULT_PET_COLOR,
   visible,
 }: PetCompanion3DProps) {
-  const lod = useLOD({ tier: 'system' });
   const _particleMultiplier = useDeviceStore((s) => s.profile.particleMultiplier);
 
   const groupRef = useRef<THREE.Group>(null);
@@ -508,7 +506,7 @@ export function PetCompanion3D({
   // Derived values
   const stage = getEvolutionStage(level);
   const color = useMemo(() => new THREE.Color(petColor), [petColor]);
-  const segments = lod.segments;
+  const segments = 64;
 
   // Track activity changes
   useEffect(() => {
@@ -641,7 +639,7 @@ export function PetCompanion3D({
         )}
 
         {/* Celebration particle burst */}
-        {lod.enableEffects && (
+        {(
           <CelebrationParticles
             active={isCelebrating}
             color={petColor}

@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -24,17 +24,6 @@ const SentimentScannerEnvironment = dynamic(
   () => import('@/components/3d/environments/SentimentScannerEnvironment'),
   { ssr: false }
 );
-
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
 
 type Phase = 'welcome' | 'play';
 
@@ -66,8 +55,6 @@ export function SentimentScannerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-
-  const isMobile = useIsMobile();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [text, setText] = useState('');
@@ -104,17 +91,15 @@ export function SentimentScannerGame() {
     <GameShell gameId="sentiment-scanner" title="Sentiment Scanner" worldNumber={8} worldColor="#818CF8" totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment Background */}
-        {!isMobile && (
-          <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-            <Canvas
-              camera={{ position: [0, 2, 8], fov: 50 }}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <SentimentScannerEnvironment sentiment={score} textsAnalyzed={ci} />
-            </Canvas>
-          </div>
-        )}
+        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
+          <Canvas
+            camera={{ position: [0, 2, 8], fov: 50 }}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <SentimentScannerEnvironment sentiment={score} textsAnalyzed={ci} />
+          </Canvas>
+        </div>
 
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

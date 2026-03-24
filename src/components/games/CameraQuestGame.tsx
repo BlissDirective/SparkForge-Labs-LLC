@@ -20,7 +20,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
-import { useIsMobile } from '@/hooks/useIsMobile';
 import {
   Camera, Check, X, Eye, Lock, Star,
 } from 'lucide-react';
@@ -194,9 +193,6 @@ export function CameraQuestGame() {
   const [streak, setStreak] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
-
-  // [v3] Mobile detection — shared hook [ENH-2]
-  const isMobile = useIsMobile();
 
   // Filter items by age band
   const items = useMemo(() => {
@@ -423,17 +419,14 @@ export function CameraQuestGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col items-center justify-center"
                   >
-                    {/* [v3] 3D Scene — desktop only */}
-                    {!isMobile && (
-                      <CameraQuest3D
-                        items={items}
-                        currentIndex={ci}
-                        found={found}
-                        showConfidence={showConfidence}
-                        captured={captured}
-                        isMobile={isMobile}
-                      />
-                    )}
+                    {/* [v3] 3D Scene */}
+                    <CameraQuest3D
+                      items={items}
+                      currentIndex={ci}
+                      found={found}
+                      showConfidence={showConfidence}
+                      captured={captured}
+                    />
 
                     {/* Collection progress */}
                     <div className="flex gap-1 mb-3 flex-wrap justify-center">

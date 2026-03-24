@@ -48,7 +48,6 @@ const PARTICLE_BUDGETS: Record<GPUTier, { stripes: number; perStripe: number }> 
   'webgpu-mid':  { stripes: 2, perStripe: PARTICLES_PER_STRIPE },
   'webgpu-low':  { stripes: 1, perStripe: PARTICLES_PER_STRIPE },
   'webgl2':      { stripes: 1, perStripe: 500_000 },
-  'css':         { stripes: 0, perStripe: 0 },
 };
 
 // ■■ Stripe Buffer Types ■■

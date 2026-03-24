@@ -140,16 +140,14 @@ export function PostProcessingStack({
       />
 
       {/* 6. Vignette — Edge darkening */}
-      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
       <Vignette
         darkness={vignetteDarkness}
         offset={vignetteOffset}
         eskil={false}
-        {...({} as any)}
       />
 
-      {/* 7. Barrel Distortion — Lens effect (conditional on strength) */}
-      {barrelDist > 0 && <BarrelDistortion strength={barrelDist} />}
+      {/* 7. Barrel Distortion — Lens effect */}
+      <BarrelDistortion strength={barrelDist} />
     </EffectComposer>
   );
 }

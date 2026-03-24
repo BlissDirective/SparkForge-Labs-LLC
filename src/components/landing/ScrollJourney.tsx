@@ -5,7 +5,7 @@
 // Decision 8.1-8.5: Scroll-driven station reveal
 //
 // 5 Acts:
-//   Act 1 (0-20%):  Crystal Hero — R3F crystal (desktop) / CSS gradient (mobile)
+//   Act 1 (0-20%):  Crystal Hero — R3F crystal scene
 //   Act 2 (20-50%): Lab Discovery Ring — 10 hex tiles stagger in
 //   Act 3 (50-70%): Feature Showcase — 4 holographic CSS cards
 //   Act 4 (70-85%): Station Preview — static image + CSS glow + counters
@@ -13,10 +13,9 @@
 //
 // Parallax depth layers (Decision 8.3 from VEC v2):
 //   Background aurora: 0.3x scroll speed
-//   Mid-layer hex shapes: 0.6x scroll speed (desktop only)
+//   Mid-layer hex shapes: 0.6x scroll speed
 //   Content: 1.0x (normal)
 //
-// Mobile (Decision 8.5): CSS gradient hero, 2 parallax layers
 // GSAP: GPU-composited transforms throughout
 //
 // ENHANCEMENTS APPLIED:
@@ -50,7 +49,7 @@ const StationPreview = dynamic(
   { ssr: true, loading: () => <div className="min-h-[400px]" /> }
 );
 
-// [v3] Dynamic import for CrystalHero — desktop only, SSR disabled
+// [v3] Dynamic import for CrystalHero — SSR disabled
 const CrystalHero = dynamic(
   () => import('@/components/3d/CrystalHero').then(mod => ({ default: mod.CrystalHero })),
   { ssr: false, loading: () => (
@@ -96,17 +95,8 @@ export function ScrollJourney() {
   const containerRef = useRef<HTMLDivElement>(null);
   const auroraRef = useRef<HTMLDivElement>(null);
   const hexLayerRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(true);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
   const gsapLoadedRef = useRef(false);
-
-  // Mobile detection
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
 
   // [Enhancement #1] Detect prefers-reduced-motion
   useEffect(() => {
@@ -228,8 +218,8 @@ export function ScrollJourney() {
             });
           }
 
-          // ---- Parallax: Mid-layer hex shapes (0.6x speed, desktop only) ----
-          if (hexLayerRef.current && !isMobile) {
+          // ---- Parallax: Mid-layer hex shapes (0.6x speed) ----
+          if (hexLayerRef.current) {
             gsap.to(hexLayerRef.current, {
               yPercent: -15,
               ease: 'none',
@@ -383,7 +373,7 @@ export function ScrollJourney() {
     return () => {
       ctx?.revert();
     };
-  }, [isMobile, prefersReducedMotion, applyIOFallback]);
+  }, [prefersReducedMotion, applyIOFallback]);
 
   return (
     <div ref={containerRef} className="relative">
@@ -399,31 +389,29 @@ export function ScrollJourney() {
         <div className="absolute bottom-[10%] left-[40%] w-[400px] h-[400px] rounded-full bg-[#06B6D4]/[0.03] blur-[80px]" />
       </div>
 
-      {/* ---- PARALLAX LAYER 2: Mid-layer Hex Shapes (0.6x, desktop only) ---- */}
-      {!isMobile && (
-        <div
-          ref={hexLayerRef}
-          className="fixed inset-0 -z-10 pointer-events-none"
-          aria-hidden="true"
-        >
-          {HEX_SHAPES.map((hex, i) => (
-            <div
-              key={i}
-              className="absolute"
-              style={{
-                left: hex.x,
-                top: hex.y,
-                width: hex.size,
-                height: hex.size,
-                opacity: hex.opacity,
-                clipPath:
-                  'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
-                background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
-              }}
-            />
-          ))}
-        </div>
-      )}
+      {/* ---- PARALLAX LAYER 2: Mid-layer Hex Shapes (0.6x) ---- */}
+      <div
+        ref={hexLayerRef}
+        className="fixed inset-0 -z-10 pointer-events-none"
+        aria-hidden="true"
+      >
+        {HEX_SHAPES.map((hex, i) => (
+          <div
+            key={i}
+            className="absolute"
+            style={{
+              left: hex.x,
+              top: hex.y,
+              width: hex.size,
+              height: hex.size,
+              opacity: hex.opacity,
+              clipPath:
+                'polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)',
+              background: 'linear-gradient(135deg, #3B82F6, #8B5CF6)',
+            }}
+          />
+        ))}
+      </div>
 
       {/* [Enhancement #7] Particle trails between acts */}
       {!prefersReducedMotion && (
@@ -453,43 +441,10 @@ export function ScrollJourney() {
         className="min-h-screen flex flex-col items-center justify-center relative px-6"
         aria-label="SparkForge hero"
       >
-        {/* Crystal — desktop: R3F, mobile: CSS gradient */}
-        {!isMobile ? (
-          <div className="absolute inset-0 -z-10">
-            <CrystalHero />
-          </div>
-        ) : (
-          /* Decision 8.5: Mobile CSS gradient hero */
-          <div className="absolute inset-0 -z-10" aria-hidden="true">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72">
-              <motion.div
-                className="w-full h-full rounded-full bg-gradient-to-br from-[#3B82F6]/30 via-[#8B5CF6]/20 to-[#06B6D4]/30 blur-3xl"
-                animate={prefersReducedMotion ? undefined : {
-                  scale: [1, 1.15, 1],
-                  opacity: [0.4, 0.7, 0.4],
-                }}
-                transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-              />
-            </div>
-            {/* Sparkle dots */}
-            {!prefersReducedMotion && [15, 30, 45, 55, 65, 75, 35, 50].map((seed, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 rounded-full bg-white/40"
-                style={{
-                  left: `${20 + (seed * 1.1) % 60}%`,
-                  top: `${20 + (seed * 0.9) % 60}%`,
-                }}
-                animate={{ opacity: [0, 0.6, 0], scale: [0.5, 1.2, 0.5] }}
-                transition={{
-                  duration: 2 + (i % 3),
-                  delay: (i * 0.4) % 3,
-                  repeat: Infinity,
-                }}
-              />
-            ))}
-          </div>
-        )}
+        {/* Crystal Hero — always R3F (D3D-1: desktop-only platform) */}
+        <div className="absolute inset-0 -z-10">
+          <CrystalHero />
+        </div>
 
         {/* Hero Text */}
         <div className="text-center relative z-10 max-w-2xl">

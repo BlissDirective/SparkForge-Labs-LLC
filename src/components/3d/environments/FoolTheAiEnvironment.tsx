@@ -31,12 +31,12 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#06B6D4';
 
 // ■■ AI Brain in Glass Dome ■■
-function AiBrainDome({ lod, isTesting }: { lod: ReturnType<typeof useStandardLOD>; isTesting: boolean }) {
+function AiBrainDome({ isTesting }: { isTesting: boolean }) {
   const brainRef = useRef<THREE.Mesh>(null);
   const domeRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -55,7 +55,7 @@ function AiBrainDome({ lod, isTesting }: { lod: ReturnType<typeof useStandardLOD
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 12;
+  const segments = 32;
 
   return (
     <group position={[0, 0, 0]}>
@@ -78,7 +78,7 @@ function AiBrainDome({ lod, isTesting }: { lod: ReturnType<typeof useStandardLOD
       </mesh>
       {/* Brain mesh (icosahedron as brain proxy) */}
       <mesh ref={brainRef} position={[0, 0.8, 0]} castShadow>
-        <icosahedronGeometry args={[0.5, lod.level === 'ultra' ? 3 : 2]} />
+        <icosahedronGeometry args={[0.5, 3]} />
         <meshStandardMaterial
           color={LAB_COLOR}
           emissive={LAB_COLOR}
@@ -104,7 +104,7 @@ function AiBrainDome({ lod, isTesting }: { lod: ReturnType<typeof useStandardLOD
 }
 
 // ■■ Disguise/Camouflage Station ■■
-function DisguiseStation({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function DisguiseStation() {
   return (
     <group position={[-3.5, 0, -1.5]}>
       {/* Workbench */}
@@ -125,7 +125,7 @@ function DisguiseStation({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#12101E" metalness={0.5} roughness={0.4} />
       </mesh>
       {/* Hanging tools */}
-      {lod.enableDetailProps && (
+      {(
         <>
           {[-0.5, 0, 0.5].map((x, i) => (
             <mesh key={i} position={[x, 0.75, -0.42]}>
@@ -152,7 +152,7 @@ function DisguiseStation({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Perturbation Generator (Noise Machine) ■■
-function PerturbationGenerator({ lod, isTesting }: { lod: ReturnType<typeof useStandardLOD>; isTesting: boolean }) {
+function PerturbationGenerator({ isTesting }: { isTesting: boolean }) {
   const dialRefs = useRef<THREE.Mesh[]>([]);
   const displayRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -171,7 +171,7 @@ function PerturbationGenerator({ lod, isTesting }: { lod: ReturnType<typeof useS
     }
   });
 
-  const segments = lod.level === 'ultra' ? 24 : 12;
+  const segments = 24;
 
   return (
     <group position={[3.5, 0, -1.5]}>
@@ -214,7 +214,7 @@ function PerturbationGenerator({ lod, isTesting }: { lod: ReturnType<typeof useS
 }
 
 // ■■ Confidence Meter Display ■■
-function ConfidenceMeter({ lod: _lod, foolAttempts }: { lod: ReturnType<typeof useStandardLOD>; foolAttempts: number }) {
+function ConfidenceMeter({ foolAttempts }: { foolAttempts: number }) {
   const barRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -254,8 +254,8 @@ function ConfidenceMeter({ lod: _lod, foolAttempts }: { lod: ReturnType<typeof u
 }
 
 // ■■ Attack Vector Selector Panel ■■
-function AttackVectorPanel({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const buttonCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+function AttackVectorPanel() {
+  const buttonCount = 12;
   const buttonsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -302,7 +302,7 @@ function AttackVectorPanel({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 }
 
 // ■■ Defense Shield (Energy Barrier) ■■
-function DefenseShield({ lod, foolAttempts }: { lod: ReturnType<typeof useStandardLOD>; foolAttempts: number }) {
+function DefenseShield({ foolAttempts }: { foolAttempts: number }) {
   const shieldRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -321,7 +321,7 @@ function DefenseShield({ lod, foolAttempts }: { lod: ReturnType<typeof useStanda
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[0, 0.8, 0]}>
@@ -348,8 +348,8 @@ function DefenseShield({ lod, foolAttempts }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Success/Fail Indicator Lights (Instanced) ■■
-function IndicatorLights({ lod, foolAttempts }: { lod: ReturnType<typeof useStandardLOD>; foolAttempts: number }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+function IndicatorLights({ foolAttempts }: { foolAttempts: number }) {
+  const count = 16;
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -380,8 +380,6 @@ function IndicatorLights({ lod, foolAttempts }: { lod: ReturnType<typeof useStan
     if (lightsRef.current.instanceColor) lightsRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={lightsRef} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 8, 6]} />
@@ -391,8 +389,8 @@ function IndicatorLights({ lod, foolAttempts }: { lod: ReturnType<typeof useStan
 }
 
 // ■■ Adversarial Examples Gallery (Instanced) ■■
-function AdversarialGallery({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 6 : 3;
+function AdversarialGallery() {
+  const count = 10;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const imagesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -421,8 +419,6 @@ function AdversarialGallery({ lod }: { lod: ReturnType<typeof useStandardLOD> })
     if (imagesRef.current.instanceColor) imagesRef.current.instanceColor.needsUpdate = true;
   }, [count]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={framesRef} args={[undefined, undefined, count]} castShadow>
@@ -447,7 +443,6 @@ export default function FoolTheAiEnvironment({
   foolAttempts = 0,
   isTesting = false,
 }: FoolTheAiEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -457,14 +452,14 @@ export default function FoolTheAiEnvironment({
       skyHorizonColor="#0E1A28"
       fogColor="#06B6D4"
     >
-      <AiBrainDome lod={lod} isTesting={isTesting} />
-      <DisguiseStation lod={lod} />
-      <PerturbationGenerator lod={lod} isTesting={isTesting} />
-      <ConfidenceMeter lod={lod} foolAttempts={foolAttempts} />
-      <AttackVectorPanel lod={lod} />
-      <DefenseShield lod={lod} foolAttempts={foolAttempts} />
-      <IndicatorLights lod={lod} foolAttempts={foolAttempts} />
-      <AdversarialGallery lod={lod} />
+      <AiBrainDome isTesting={isTesting} />
+      <DisguiseStation />
+      <PerturbationGenerator isTesting={isTesting} />
+      <ConfidenceMeter foolAttempts={foolAttempts} />
+      <AttackVectorPanel />
+      <DefenseShield foolAttempts={foolAttempts} />
+      <IndicatorLights foolAttempts={foolAttempts} />
+      <AdversarialGallery />
       {/* Testing active spotlight */}
       {isTesting && (
         <pointLight position={[0, 3, 0]} intensity={1.2} color="#FF4444" distance={10} />

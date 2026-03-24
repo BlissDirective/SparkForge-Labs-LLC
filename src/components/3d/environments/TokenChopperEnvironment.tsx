@@ -31,13 +31,13 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FFAA44';
 
 // ■■ Conveyor Belts with Rollers ■■
-function ConveyorBelts({ lod, isChopping }: { lod: ReturnType<typeof useStandardLOD>; isChopping: boolean }) {
-  const rollerCount = lod.level === 'ultra' ? 30 : lod.level === 'high' ? 20 : 10;
+function ConveyorBelts({ isChopping }: { isChopping: boolean }) {
+  const rollerCount = 30;
   const rollersRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -118,11 +118,11 @@ function ConveyorBelts({ lod, isChopping }: { lod: ReturnType<typeof useStandard
 }
 
 // ■■ Giant Chopper Mechanism ■■
-function ChopperMechanism({ lod, isChopping }: { lod: ReturnType<typeof useStandardLOD>; isChopping: boolean }) {
+function ChopperMechanism({ isChopping }: { isChopping: boolean }) {
   const bladeRef = useRef<THREE.Mesh>(null);
   const gearRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -172,8 +172,8 @@ function ChopperMechanism({ lod, isChopping }: { lod: ReturnType<typeof useStand
 }
 
 // ■■ Token Bins (Instanced) ■■
-function TokenBins({ lod, tokensChopped }: { lod: ReturnType<typeof useStandardLOD>; tokensChopped: number }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+function TokenBins({ tokensChopped }: { tokensChopped: number }) {
+  const count = 12;
   const binsRef = useRef<THREE.InstancedMesh>(null);
   const labelsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -234,15 +234,15 @@ function TokenBins({ lod, tokensChopped }: { lod: ReturnType<typeof useStandardL
 }
 
 // ■■ Vocabulary Lookup Towers ■■
-function VocabTowers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 12 : 6;
+function VocabTowers() {
+  const count = 20;
   const blocksRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!blocksRef.current) return;
     const tmp = new THREE.Matrix4();
     const color = new THREE.Color();
-    const towers = lod.level === 'ultra' ? 4 : lod.level === 'high' ? 3 : 2;
+    const towers = 4;
     let idx = 0;
     for (let t = 0; t < towers; t++) {
       const bx = -5.5 + t * 2.5;
@@ -258,7 +258,7 @@ function VocabTowers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     }
     blocksRef.current.instanceMatrix.needsUpdate = true;
     if (blocksRef.current.instanceColor) blocksRef.current.instanceColor.needsUpdate = true;
-  }, [count, lod.level]);
+  }, [count, 'ultra']);
 
   return (
     <instancedMesh ref={blocksRef} args={[undefined, undefined, count]} castShadow>
@@ -269,7 +269,7 @@ function VocabTowers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Subword Assembly Station ■■
-function SubwordStation({ lod, isChopping }: { lod: ReturnType<typeof useStandardLOD>; isChopping: boolean }) {
+function SubwordStation({ isChopping }: { isChopping: boolean }) {
   const timeRef = useRef(0);
   const glowRef = useRef<THREE.Mesh>(null);
 
@@ -280,8 +280,6 @@ function SubwordStation({ lod, isChopping }: { lod: ReturnType<typeof useStandar
         isChopping ? 0.4 + Math.sin(timeRef.current * 3) * 0.2 : 0.1;
     }
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[4, 0, -3]}>
@@ -316,8 +314,8 @@ function SubwordStation({ lod, isChopping }: { lod: ReturnType<typeof useStandar
 }
 
 // ■■ Pipeline Tubes (Instanced) ■■
-function PipelineTubes({ lod, isChopping }: { lod: ReturnType<typeof useStandardLOD>; isChopping: boolean }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+function PipelineTubes({ isChopping }: { isChopping: boolean }) {
+  const count = 8;
   const tubesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -348,11 +346,9 @@ function PipelineTubes({ lod, isChopping }: { lod: ReturnType<typeof useStandard
     mat.opacity = 0.3 + (isChopping ? Math.sin(timeRef.current * 2) * 0.1 : 0);
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={tubesRef} args={[undefined, undefined, count]}>
-      <cylinderGeometry args={[1, 1, 1, lod.level === 'ultra' ? 12 : 8]} />
+      <cylinderGeometry args={[1, 1, 1, 12]} />
       <meshStandardMaterial
         color={LAB_COLOR}
         emissive={LAB_COLOR}
@@ -366,7 +362,7 @@ function PipelineTubes({ lod, isChopping }: { lod: ReturnType<typeof useStandard
 }
 
 // ■■ Token Counter Display ■■
-function TokenCounterDisplay({ lod, tokensChopped }: { lod: ReturnType<typeof useStandardLOD>; tokensChopped: number }) {
+function TokenCounterDisplay({ tokensChopped }: { tokensChopped: number }) {
   const digitRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -377,8 +373,6 @@ function TokenCounterDisplay({ lod, tokensChopped }: { lod: ReturnType<typeof us
         0.4 + Math.sin(timeRef.current * 2) * 0.1;
     }
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[0, 3.5, 5]}>
@@ -422,7 +416,6 @@ export default function TokenChopperEnvironment({
   tokensChopped = 0,
   isChopping = false,
 }: TokenChopperEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -432,13 +425,13 @@ export default function TokenChopperEnvironment({
       skyHorizonColor="#1A1208"
       fogColor="#FFAA44"
     >
-      <ConveyorBelts lod={lod} isChopping={isChopping} />
-      <ChopperMechanism lod={lod} isChopping={isChopping} />
-      <TokenBins lod={lod} tokensChopped={tokensChopped} />
-      <VocabTowers lod={lod} />
-      <SubwordStation lod={lod} isChopping={isChopping} />
-      <PipelineTubes lod={lod} isChopping={isChopping} />
-      <TokenCounterDisplay lod={lod} tokensChopped={tokensChopped} />
+      <ConveyorBelts isChopping={isChopping} />
+      <ChopperMechanism isChopping={isChopping} />
+      <TokenBins tokensChopped={tokensChopped} />
+      <VocabTowers />
+      <SubwordStation isChopping={isChopping} />
+      <PipelineTubes isChopping={isChopping} />
+      <TokenCounterDisplay tokensChopped={tokensChopped} />
       {/* Active chopping light */}
       {isChopping && (
         <pointLight position={[0, 2.5, 0]} intensity={1.2} color={LAB_COLOR} distance={8} />

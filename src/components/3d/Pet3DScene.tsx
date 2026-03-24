@@ -28,7 +28,6 @@ import { Sparkles } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import PetCreature3D from './PetCreature3D';
 import PetTrainerEnvironment from './environments/PetTrainerEnvironment';
-import { LODWrapper } from './LODWrapper';
 
 // === Types ===
 
@@ -86,7 +85,6 @@ export default function Pet3DScene({
         shadows
         style={{ background: 'transparent' }}
       >
-        <LODWrapper tier="flagship" adaptive>
           {/* [5M] Immersive Pet Habitat Environment */}
           <PetTrainerEnvironment
             evolutionStage={evolutionStage}
@@ -110,7 +108,6 @@ export default function Pet3DScene({
               color={labColor}
             />
           )}
-        </LODWrapper>
 
         {/* Bloom postprocessing */}
         <EffectComposer>

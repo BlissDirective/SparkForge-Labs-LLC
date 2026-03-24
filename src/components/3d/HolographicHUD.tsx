@@ -25,7 +25,6 @@ import { useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
-import { useLOD } from '@/hooks/useLOD';
 import { COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
 
 // ■■ Ring configuration ■■
@@ -142,13 +141,12 @@ export function HolographicHUD({
   pulseIntensity,
   active,
 }: HolographicHUDProps) {
-  const lod = useLOD({ tier: 'system' });
 
   // Resolve cockpit LOD tier
   const cockpitLod = useMemo(() => {
-    const level = lod.level as keyof typeof COCKPIT_LOD;
+    const level = 'ultra' as keyof typeof COCKPIT_LOD;
     return COCKPIT_LOD[level] ?? COCKPIT_LOD.low;
-  }, [lod.level]);
+  }, ['ultra']);
 
   const ringCount = cockpitLod.hudRingCount;
   const ringSegments = cockpitLod.hudRingSegments;
@@ -209,14 +207,14 @@ export function HolographicHUD({
   // Volumetric scan beam geometries (TubeGeometry)
   const scanBeamGeometries = useMemo(() => {
     const beams: THREE.TubeGeometry[] = [];
-    const tubularSegs = Math.max(6, Math.floor(lod.tubularSegments / 4));
+    const tubularSegs = Math.max(6, Math.floor(64 / 4));
     for (let i = 0; i < scanLineCount; i++) {
       const angle = (i / scanLineCount) * Math.PI * 2;
       const curve = createScanBeamCurve(angle, 0.9, 5.2);
       beams.push(new THREE.TubeGeometry(curve, tubularSegs, 0.015, 6, false));
     }
     return beams;
-  }, [scanLineCount, lod.tubularSegments]);
+  }, [scanLineCount, 64]);
 
   // Reticle crosshair geometries (4 line meshes)
   const reticleGeo = useMemo(() => {
@@ -273,16 +271,16 @@ export function HolographicHUD({
 
   // Core sphere geometries (multi-layered)
   const coreOuterGeo = useMemo(
-    () => new THREE.SphereGeometry(0.4, lod.segments, lod.segments),
-    [lod.segments],
+    () => new THREE.SphereGeometry(0.4, 64, 64),
+    [64],
   );
   const coreInnerGeo = useMemo(
-    () => new THREE.SphereGeometry(0.25, lod.segments, lod.segments),
-    [lod.segments],
+    () => new THREE.SphereGeometry(0.25, 64, 64),
+    [64],
   );
   const coreCenterGeo = useMemo(
-    () => new THREE.SphereGeometry(0.12, Math.max(8, Math.floor(lod.segments / 2)), Math.max(8, Math.floor(lod.segments / 2))),
-    [lod.segments],
+    () => new THREE.SphereGeometry(0.12, Math.max(8, Math.floor(64 / 2)), Math.max(8, Math.floor(64 / 2))),
+    [64],
   );
 
   // ■■ Animation loop ■■

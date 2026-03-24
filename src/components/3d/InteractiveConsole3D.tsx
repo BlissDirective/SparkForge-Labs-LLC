@@ -13,7 +13,6 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox, Float, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 type ConsoleVariant = 'xp' | 'badges' | 'streak' | 'progress';
 
@@ -440,14 +439,13 @@ function ProgressGrid({ labsCompleted, totalLabs, color }: { labsCompleted: numb
 
 // ── Console Content Router ─────────────────────────
 
-function ConsoleContent({ variant, data, color, lod }: {
+function ConsoleContent({ variant, data, color }: {
   variant: ConsoleVariant; data: ConsoleData; color: string;
-  lod: { segments: number; enableEffects: boolean; enableAnimations: boolean };
 }) {
   switch (variant) {
-    case 'xp':       return <XPGauge xp={data.xp ?? 0} xpMax={data.xpMax ?? 500} color={color} segments={lod.segments} />;
-    case 'badges':   return <BadgePedestal badgeCount={data.badgeCount ?? 0} recentBadge={data.recentBadge} color={color} segments={lod.segments} enableEffects={lod.enableEffects} />;
-    case 'streak':   return <StreakFlame streak={data.streak ?? 0} color={color} segments={lod.segments} enableAnimations={lod.enableAnimations} />;
+    case 'xp':       return <XPGauge xp={data.xp ?? 0} xpMax={data.xpMax ?? 500} color={color} segments={64} />;
+    case 'badges':   return <BadgePedestal badgeCount={data.badgeCount ?? 0} recentBadge={data.recentBadge} color={color} segments={64} enableEffects={true} />;
+    case 'streak':   return <StreakFlame streak={data.streak ?? 0} color={color} segments={64} enableAnimations={true} />;
     case 'progress': return <ProgressGrid labsCompleted={data.labsCompleted ?? 0} totalLabs={data.totalLabs ?? 10} color={color} />;
   }
 }
@@ -493,8 +491,7 @@ export function InteractiveConsole3D({
   const statusRef = useRef<THREE.Mesh>(null);
   const color  = CONSOLE_COLORS[variant];
   const label  = CONSOLE_LABELS[variant];
-  const lod    = useLOD({ tier: 'system' });
-  const seg    = lod.segments;
+  const seg    = 64;
 
   // Console dimensions
   const W = 0.7, H = 0.5;
@@ -521,7 +518,7 @@ export function InteractiveConsole3D({
         <RoundedBox
           args={[W, H, 0.06]}
           radius={0.022}
-          smoothness={lod.segments >= 12 ? 6 : 3}
+          smoothness={64 >= 12 ? 6 : 3}
           onClick={(e) => { e.stopPropagation(); onClick(); }}
           onPointerEnter={() => { document.body.style.cursor = 'pointer'; }}
           onPointerLeave={() => { document.body.style.cursor = 'default'; }}
@@ -566,7 +563,7 @@ export function InteractiveConsole3D({
         <InstrumentCluster color={color} seg={seg} data={data} />
 
         {/* ── Cable Bundles ── */}
-        {lod.enableEffects && <CableBundles color={color} seg={seg} />}
+        {<CableBundles color={color} seg={seg} />}
 
         {/* ── Structural Ribs (vertical back bars) ── */}
         {[-W/3, 0, W/3].map((x, i) => (
@@ -583,7 +580,7 @@ export function InteractiveConsole3D({
         </mesh>
 
         {/* ── Scan Line ── */}
-        {lod.enableAnimations && <ScanLine width={W} height={H} color={color} />}
+        {<ScanLine width={W} height={H} color={color} />}
 
         {/* ── Rising Antenna (active state) ── */}
         <RisingAntenna color={color} seg={seg} isActive={isActive} />
@@ -595,7 +592,7 @@ export function InteractiveConsole3D({
         </Text>
 
         {/* ── Console Content ── */}
-        <ConsoleContent variant={variant} data={data} color={color} lod={lod} />
+        <ConsoleContent variant={variant} data={data} color={color} />
 
         {/* ── XP Level label ── */}
         {variant === 'xp' && (
@@ -607,7 +604,7 @@ export function InteractiveConsole3D({
       </Float>
 
       {/* ── Contact Shadow ── */}
-      {lod.enableShadows && (
+      {(
         <ContactShadows position={[0, -0.3, 0]} opacity={0.4} scale={1.2} blur={2} far={0.8} color={color} />
       )}
     </group>

@@ -21,7 +21,6 @@ import { useRef, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
-import { useLOD } from '@/hooks/useLOD';
 
 // ■■ Props Interface (preserved from original) ■■
 interface LEDRimProps {
@@ -418,7 +417,6 @@ export function LEDRim({
   dataVizMode = false,
 }: LEDRimProps) {
   const { viewport } = useThree();
-  const lod = useLOD({ tier: 'system' });
 
   // Shared mutable refs for pulse/spike (avoids setState in useFrame)
   const pulseRef = useRef(0.85);
@@ -444,7 +442,7 @@ export function LEDRim({
   });
 
   // Resolve LED count from LOD
-  const ledCount = LED_COUNTS[lod.level] ?? 48;
+  const ledCount = LED_COUNTS['ultra'] ?? 48;
 
   // ■■ Geometry parameters scaled by LOD ■■
   const coreRadius = 0.035;
@@ -453,18 +451,18 @@ export function LEDRim({
   const ledSize: [number, number, number] = [0.012, 0.012, 0.005];
   const bracketSize: [number, number, number] = [0.025, 0.06, 0.015];
 
-  const coreTubularSegs = lod.level === 'ultra' ? 128 : lod.level === 'high' ? 64 : lod.level === 'medium' ? 32 : 16;
-  const coreRadialSegs = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 6;
+  const coreTubularSegs = 128;
+  const coreRadialSegs = 12;
   const diffuserTubularSegs = Math.round(coreTubularSegs * 0.75);
   const diffuserRadialSegs = Math.max(coreRadialSegs - 2, 4);
   const glowTubularSegs = Math.round(coreTubularSegs * 0.5);
 
   const bracketCount = Math.max(4, Math.floor(ledCount / BRACKET_INTERVAL));
 
-  const enableEffects = lod.enableEffects;
-  const enableAccentRims = lod.level === 'ultra' || lod.level === 'high' || lod.level === 'medium';
-  const enableDiffuser = lod.level !== 'billboard';
-  const enableGlow = lod.level === 'ultra' || lod.level === 'high';
+  const enableEffects = true;
+  const enableAccentRims = true; // D3D-1: Always enabled (desktop-ultra)
+  const enableDiffuser = true;
+  const enableGlow = true; // D3D-1: Always enabled (desktop-ultra)
 
   // ■■ Build curves ■■
   const { totalWrapArc, panelRadius } = COCKPIT_GEOMETRY;

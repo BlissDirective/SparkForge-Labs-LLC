@@ -41,12 +41,11 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Server Racks (Instanced — expanded) ■■
-function ServerRacks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const rackCount = lod.level === 'ultra' ? 60 : lod.level === 'high' ? 36 : 16;
+function ServerRacks() {
+  const rackCount = 60;
   const racksRef = useRef<THREE.InstancedMesh>(null);
   const ledsRef = useRef<THREE.InstancedMesh>(null);
   const ledCount = rackCount * 10;
@@ -110,7 +109,7 @@ function ServerRacks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Quantum Core Processor ■■
-function QuantumCore({ lod, isTraining }: { lod: ReturnType<typeof useFlagshipLOD>; isTraining: boolean }) {
+function QuantumCore({ isTraining }: { isTraining: boolean }) {
   const coreRef = useRef<THREE.Mesh>(null);
   const ring1Ref = useRef<THREE.Mesh>(null);
   const ring2Ref = useRef<THREE.Mesh>(null);
@@ -134,9 +133,7 @@ function QuantumCore({ lod, isTraining }: { lod: ReturnType<typeof useFlagshipLO
     }
   });
 
-  if (!lod.enableDetailProps) return null;
-
-  const detail = lod.level === 'ultra' ? 4 : lod.level === 'high' ? 3 : 2;
+  const detail = 4;
 
   return (
     <group position={[0, 2, 0]}>
@@ -147,17 +144,17 @@ function QuantumCore({ lod, isTraining }: { lod: ReturnType<typeof useFlagshipLO
       </mesh>
       {/* Orbital ring 1 */}
       <mesh ref={ring1Ref}>
-        <torusGeometry args={[1.5, 0.03, 4, lod.segments]} />
+        <torusGeometry args={[1.5, 0.03, 4, 64]} />
         <meshStandardMaterial color="#F9A8D4" emissive="#EC4899" emissiveIntensity={0.5} transparent opacity={0.6} />
       </mesh>
       {/* Orbital ring 2 */}
       <mesh ref={ring2Ref}>
-        <torusGeometry args={[2, 0.025, 4, lod.segments]} />
+        <torusGeometry args={[2, 0.025, 4, 64]} />
         <meshStandardMaterial color="#F472B6" emissive="#EC4899" emissiveIntensity={0.3} transparent opacity={0.5} />
       </mesh>
       {/* Orbital ring 3 */}
       <mesh ref={ring3Ref}>
-        <torusGeometry args={[2.5, 0.02, 4, lod.segments]} />
+        <torusGeometry args={[2.5, 0.02, 4, 64]} />
         <meshStandardMaterial color="#BE185D" emissive="#EC4899" emissiveIntensity={0.2} transparent opacity={0.4} />
       </mesh>
       {/* Outer wireframe shell */}
@@ -171,9 +168,9 @@ function QuantumCore({ lod, isTraining }: { lod: ReturnType<typeof useFlagshipLO
 }
 
 // ■■ Data Pipeline Tubes ■■
-function DataPipelines({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const tubeCount = lod.level === 'ultra' ? 8 : 4;
-  const particleCount = lod.level === 'ultra' ? 200 : 100;
+function DataPipelines() {
+  const tubeCount = 8;
+  const particleCount = 200;
   const particlesRef = useRef<THREE.InstancedMesh>(null);
 
   const particles = useMemo(() =>
@@ -212,14 +209,12 @@ function DataPipelines({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (particlesRef.current.instanceColor) particlesRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableEffects) return null;
-
   return (
     <group>
       {/* Transparent tube shells */}
       {tubePositions.map((pos, i) => (
         <mesh key={i} position={[pos.x, 2, pos.z]}>
-          <cylinderGeometry args={[0.15, 0.15, 5, lod.segments, 1, true]} />
+          <cylinderGeometry args={[0.15, 0.15, 5, 64, 1, true]} />
           <meshStandardMaterial color="#EC4899" transparent opacity={0.06} side={THREE.DoubleSide} metalness={0.3} roughness={0.1} />
         </mesh>
       ))}
@@ -233,7 +228,7 @@ function DataPipelines({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Monitoring Dashboard Array ■■
-function MonitorArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function MonitorArray() {
   const screenRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -243,8 +238,6 @@ function MonitorArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
       child.position.y = 1.5 + Math.sin(t * 0.3 + i * 0.5) * 0.1;
     });
   });
-
-  if (!lod.enableDetailProps) return null;
 
   const screens = [
     { x: 0, z: -12, w: 6, h: 3, ry: 0 },
@@ -276,8 +269,8 @@ function MonitorArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Matrix Rain Particles ■■
-function MatrixRain({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 400 : lod.level === 'high' ? 200 : 80;
+function MatrixRain() {
+  const count = 400;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const drops = useMemo(() =>
@@ -309,8 +302,6 @@ function MatrixRain({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -320,8 +311,8 @@ function MatrixRain({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Circuit Board Ground Details ■■
-function CircuitTraces({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const traceCount = lod.level === 'ultra' ? 100 : lod.level === 'high' ? 50 : 20;
+function CircuitTraces() {
+  const traceCount = 100;
   const tracesRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -353,8 +344,8 @@ function CircuitTraces({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Security Laser Grid ■■
-function SecurityGrid({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const beamCount = lod.level === 'ultra' ? 20 : 10;
+function SecurityGrid() {
+  const beamCount = 20;
   const beamsRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -376,8 +367,6 @@ function SecurityGrid({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     beamsRef.current.instanceMatrix.needsUpdate = true;
   }, [beamCount]);
 
-  if (!lod.enableEffects) return null;
-
   return (
     <instancedMesh ref={beamsRef} args={[undefined, undefined, beamCount]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -387,7 +376,7 @@ function SecurityGrid({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Robotic Sorting Arms ■■
-function RoboticArms({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function RoboticArms() {
   const armCount = 4;
   const armsRef = useRef<THREE.Group>(null);
 
@@ -401,8 +390,6 @@ function RoboticArms({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     });
   });
 
-  if (!lod.enableDetailProps) return null;
-
   const positions: [number, number, number][] = [[-5, -1, 5], [5, -1, 5], [-5, -1, -5], [5, -1, -5]];
 
   return (
@@ -411,7 +398,7 @@ function RoboticArms({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
         <group key={i} position={pos}>
           {/* Base */}
           <mesh castShadow>
-            <cylinderGeometry args={[0.3, 0.35, 0.2, lod.segments]} />
+            <cylinderGeometry args={[0.3, 0.35, 0.2, 64]} />
             <meshStandardMaterial color="#374151" metalness={0.8} roughness={0.2} />
           </mesh>
           {/* Upper arm */}
@@ -438,7 +425,7 @@ function RoboticArms({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Holographic Display Panels ■■
-function HolographicPanels({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function HolographicPanels() {
   const panelCount = 8;
   const panelsRef = useRef<THREE.Group>(null);
 
@@ -449,8 +436,6 @@ function HolographicPanels({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
       child.rotation.y = state.clock.elapsedTime * 0.1 + i * (Math.PI / 4);
     });
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group ref={panelsRef}>
@@ -468,15 +453,13 @@ function HolographicPanels({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
 }
 
 // ■■ Cooling Fan Assemblies ■■
-function CoolingFans({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CoolingFans() {
   const fansRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
     if (!fansRef.current) return;
     fansRef.current.children.forEach((fan) => { fan.rotation.z += delta * 8; });
   });
-
-  if (!lod.enableDetailProps) return null;
 
   const fanPositions: [number, number, number][] = [
     [-11, 2.2, -6], [-11, 2.2, -2], [-11, 2.2, 2], [-11, 2.2, 6],
@@ -487,7 +470,7 @@ function CoolingFans({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     <group ref={fansRef}>
       {fanPositions.map((pos, i) => (
         <mesh key={i} position={pos}>
-          <torusGeometry args={[0.4, 0.05, 4, lod.segments]} />
+          <torusGeometry args={[0.4, 0.05, 4, 64]} />
           <meshStandardMaterial color="#374151" metalness={0.7} roughness={0.3} />
         </mesh>
       ))}
@@ -496,8 +479,8 @@ function CoolingFans({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Ceiling Neural Pathway Lights ■■
-function CeilingPaths({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const pathCount = lod.level === 'ultra' ? 30 : 15;
+function CeilingPaths() {
+  const pathCount = 30;
   const pathsRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -515,8 +498,6 @@ function CeilingPaths({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     pathsRef.current.instanceMatrix.needsUpdate = true;
   }, [pathCount]);
 
-  if (!lod.enableEffects) return null;
-
   return (
     <instancedMesh ref={pathsRef} args={[undefined, undefined, pathCount]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -526,8 +507,8 @@ function CeilingPaths({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Data Stream Particles ■■
-function DataStreams({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 300 : 150;
+function DataStreams() {
+  const count = 300;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const offsets = useMemo(() =>
@@ -553,8 +534,6 @@ function DataStreams({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -573,7 +552,6 @@ export default function NeuralBuilderEnvironment({
   isTraining,
   accuracy,
 }: NeuralBuilderEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <FlagshipEnvironmentWrapper
@@ -585,18 +563,18 @@ export default function NeuralBuilderEnvironment({
       heightScale={0.05}
       terrainSize={35}
     >
-      <ServerRacks lod={lod} />
-      <QuantumCore lod={lod} isTraining={isTraining} />
-      <DataPipelines lod={lod} />
-      <MonitorArray lod={lod} />
-      <MatrixRain lod={lod} />
-      <CircuitTraces lod={lod} />
-      <SecurityGrid lod={lod} />
-      <RoboticArms lod={lod} />
-      <HolographicPanels lod={lod} />
-      <CoolingFans lod={lod} />
-      <CeilingPaths lod={lod} />
-      <DataStreams lod={lod} />
+      <ServerRacks />
+      <QuantumCore isTraining={isTraining} />
+      <DataPipelines />
+      <MonitorArray />
+      <MatrixRain />
+      <CircuitTraces />
+      <SecurityGrid />
+      <RoboticArms />
+      <HolographicPanels />
+      <CoolingFans />
+      <CeilingPaths />
+      <DataStreams />
 
       {/* Training-reactive accent light */}
       <pointLight position={[0, 3, 0]} intensity={isTraining ? 2 : 0.3} color={isTraining ? '#F472B6' : '#EC4899'} distance={15} />
@@ -604,7 +582,7 @@ export default function NeuralBuilderEnvironment({
       {/* Accuracy-driven floor glow */}
       {accuracy > 0.5 && (
         <mesh position={[0, -0.97, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-          <circleGeometry args={[10, lod.segments]} />
+          <circleGeometry args={[10, 64]} />
           <meshBasicMaterial color="#EC4899" transparent opacity={accuracy * 0.12} depthWrite={false} />
         </mesh>
       )}

@@ -30,13 +30,13 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#D946EF';
 
 // ■■ Display Pedestals (Instanced) ■■
-function DisplayPedestals({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+function DisplayPedestals() {
+  const count = 16;
   const pedestalsRef = useRef<THREE.InstancedMesh>(null);
   const topPlateRef = useRef<THREE.InstancedMesh>(null);
 
@@ -64,11 +64,11 @@ function DisplayPedestals({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
   return (
     <group>
       <instancedMesh ref={pedestalsRef} args={[undefined, undefined, count]} castShadow>
-        <cylinderGeometry args={[0.3, 0.4, 1.0, lod.level === 'ultra' ? 16 : 8]} />
+        <cylinderGeometry args={[0.3, 0.4, 1.0, 16]} />
         <meshStandardMaterial color="#1E1828" metalness={0.5} roughness={0.4} />
       </instancedMesh>
       <instancedMesh ref={topPlateRef} args={[undefined, undefined, count]}>
-        <cylinderGeometry args={[1, 1, 1, lod.level === 'ultra' ? 16 : 8]} />
+        <cylinderGeometry args={[1, 1, 1, 16]} />
         <meshStandardMaterial color="#2A2238" metalness={0.7} roughness={0.2} />
       </instancedMesh>
     </group>
@@ -76,8 +76,8 @@ function DisplayPedestals({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Picture Frames on Walls (Instanced) ■■
-function PictureFrames({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 12 : 6;
+function PictureFrames() {
+  const count = 20;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const canvasRef = useRef<THREE.InstancedMesh>(null);
 
@@ -129,8 +129,8 @@ function PictureFrames({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Voting Booth Stations (Instanced) ■■
-function VotingBooths({ lod, isJudging }: { lod: ReturnType<typeof useFLLiteLOD>; isJudging: boolean }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+function VotingBooths({ isJudging }: { isJudging: boolean }) {
+  const count = 8;
   const boothsRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -183,7 +183,7 @@ function VotingBooths({ lod, isJudging }: { lod: ReturnType<typeof useFLLiteLOD>
 }
 
 // ■■ Holographic Label Projections ■■
-function LabelProjections({ lod, isJudging }: { lod: ReturnType<typeof useFLLiteLOD>; isJudging: boolean }) {
+function LabelProjections({ isJudging }: { isJudging: boolean }) {
   const humanRef = useRef<THREE.Mesh>(null);
   const aiRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -200,8 +200,6 @@ function LabelProjections({ lod, isJudging }: { lod: ReturnType<typeof useFLLite
       aiRef.current.position.y = 3.5 + Math.sin(timeRef.current * 0.8 + Math.PI) * 0.1;
     }
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group>
@@ -220,8 +218,8 @@ function LabelProjections({ lod, isJudging }: { lod: ReturnType<typeof useFLLite
 }
 
 // ■■ Spotlight Rigs (Instanced) ■■
-function SpotlightRigs({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 5;
+function SpotlightRigs() {
+  const count = 16;
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const armRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -259,8 +257,6 @@ function SpotlightRigs({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     mat.emissiveIntensity = 0.5 + Math.sin(timeRef.current * 1.2) * 0.15;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={lightsRef} args={[undefined, undefined, count]}>
@@ -276,8 +272,8 @@ function SpotlightRigs({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Gallery Visitor Silhouettes (Instanced) ■■
-function VisitorSilhouettes({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 7 : 4;
+function VisitorSilhouettes() {
+  const count = 12;
   const bodiesRef = useRef<THREE.InstancedMesh>(null);
   const headsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -313,8 +309,6 @@ function VisitorSilhouettes({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     headsRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={bodiesRef} args={[undefined, undefined, count]}>
@@ -330,8 +324,8 @@ function VisitorSilhouettes({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Verdict Particles (Green/Red Floating) ■■
-function VerdictParticles({ lod, correctCount }: { lod: ReturnType<typeof useFLLiteLOD>; correctCount: number }) {
-  const count = lod.level === 'ultra' ? 50 : lod.level === 'high' ? 30 : 15;
+function VerdictParticles({ correctCount }: { correctCount: number }) {
+  const count = 50;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -369,8 +363,6 @@ function VerdictParticles({ lod, correctCount }: { lod: ReturnType<typeof useFLL
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <octahedronGeometry args={[1, 0]} />
@@ -380,7 +372,7 @@ function VerdictParticles({ lod, correctCount }: { lod: ReturnType<typeof useFLL
 }
 
 // ■■ Grand Entrance Archway ■■
-function GrandEntrance({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function GrandEntrance() {
   const neonRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -392,7 +384,7 @@ function GrandEntrance({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     }
   });
 
-  const archSegs = lod.level === 'ultra' ? 32 : 16;
+  const archSegs = 32;
 
   return (
     <group position={[0, 0, -9]}>
@@ -422,7 +414,7 @@ function GrandEntrance({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
         <meshStandardMaterial color="#2A1030" metalness={0.3} roughness={0.6} />
       </mesh>
       {/* Velvet ropes */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[-1.2, 0.5, 2]}>
             <cylinderGeometry args={[0.02, 0.02, 1.0, 6]} />
@@ -443,7 +435,7 @@ function GrandEntrance({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Gallery Walls ■■
-function GalleryWalls({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function GalleryWalls() {
   return (
     <group>
       {/* Left wall */}
@@ -462,7 +454,7 @@ function GalleryWalls({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
         <meshStandardMaterial color="#16102A" metalness={0.3} roughness={0.7} />
       </mesh>
       {/* Crown molding */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[-10, 4.3, 0]}>
             <boxGeometry args={[0.2, 0.1, 18]} />
@@ -493,7 +485,6 @@ export default function AiOrNotEnvironment({
   isJudging = false,
   correctCount = 0,
 }: AiOrNotEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -503,15 +494,15 @@ export default function AiOrNotEnvironment({
       skyHorizonColor="#1A0E2A"
       fogColor="#D946EF"
     >
-      <GalleryWalls lod={lod} />
-      <DisplayPedestals lod={lod} />
-      <PictureFrames lod={lod} />
-      <VotingBooths lod={lod} isJudging={isJudging} />
-      <LabelProjections lod={lod} isJudging={isJudging} />
-      <SpotlightRigs lod={lod} />
-      <VisitorSilhouettes lod={lod} />
-      <VerdictParticles lod={lod} correctCount={correctCount} />
-      <GrandEntrance lod={lod} />
+      <GalleryWalls />
+      <DisplayPedestals />
+      <PictureFrames />
+      <VotingBooths isJudging={isJudging} />
+      <LabelProjections isJudging={isJudging} />
+      <SpotlightRigs />
+      <VisitorSilhouettes />
+      <VerdictParticles correctCount={correctCount} />
+      <GrandEntrance />
       {/* Judging spotlight */}
       {isJudging && (
         <pointLight position={[0, 3, 0]} intensity={1.5} color={LAB_COLOR} distance={10} />

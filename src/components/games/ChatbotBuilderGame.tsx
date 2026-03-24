@@ -15,7 +15,7 @@
 //
 // v3-FINAL Additions (Decision 6.5):
 //   - [v3] Dynamic import of ChatbotNodes3D for 3D node visualization
-//   - [v3] useIsMobile hook for 3D/SVG fallback
+//   - [v3] 3D node visualization
 //   - [v3] personalityColors passed to 3D scene
 //   - [v3] 3D renders above SVG graph on desktop, hidden on mobile
 //
@@ -39,18 +39,6 @@ const ChatbotNodes3D = dynamic(
   () => import("@/components/3d/ChatbotNodes3D"),
   { ssr: false }
 );
-
-// [v3] Mobile detection for 3D fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  return isMobile;
-}
 
 // --- Types ---
 type Phase = "welcome" | "learn" | "build";
@@ -301,8 +289,6 @@ export function ChatbotBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";
-  const isMobile = useIsMobile(); // [v3]
-
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
   const [learnIdx, setLearnIdx] = useState(0);
@@ -505,8 +491,8 @@ export function ChatbotBuilderGame() {
                       ))}
                     </div>
 
-                    {/* [v3] 3D Visualization (desktop only, graph or test view) */}
-                    {(viewMode === "graph" || viewMode === "test") && !isMobile && (
+                    {/* [v3] 3D Visualization (graph or test view) */}
+                    {(viewMode === "graph" || viewMode === "test") && (
                       <Canvas3DErrorBoundary>
                         <ChatbotNodes3D
                           nodes={nodes}

@@ -5,7 +5,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { CelebrationOverlay } from '@/components/shared/CelebrationOverlay';
 import { ContinueBanner } from '@/components/shared/ContinueBanner';
 import { useUIStore } from '@/stores/uiStore';
-import { useMediaQuery } from '@/hooks/useMediaQuery';
+// REMOVED (D3D-1): useMediaQuery — desktop-only platform
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { useStationMode } from '@/hooks/useStationMode';
 import { useCockpitAudio } from '@/hooks/useCockpitAudio';
@@ -34,7 +34,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { sidebarOpen } = useUIStore();
-  const isDesktop = useMediaQuery('(min-width: 768px)'); // v2 BUG-4 fix
+  const isDesktop = true; // D3D-1: Desktop-only platform — always desktop
   const stationMode = useStationMode();
   const { onModeChange } = useCockpitAudio();
   const prevModeRef = useRef(stationMode.mode);

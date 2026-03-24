@@ -15,7 +15,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -37,7 +37,6 @@ const BiasScales3DComponent = dynamic(
 
 import {
   calculateScaleWeights,
-  BiasScalesFallback,
 } from '@/components/3d/BiasScales3D';
 
 // [v3] R3F Canvas for 3D rendering
@@ -46,17 +45,6 @@ const Canvas = dynamic(
   { ssr: false }
 );
 
-// [v3] Mobile detection for 3D/2D fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
 
 // ================================================================
 // TYPES
@@ -544,8 +532,6 @@ export function BiasDetectiveGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile(); // [v3]
-
   // Phase state
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -1013,14 +999,7 @@ export function BiasDetectiveGame() {
                       overflow-hidden"
                       style={{ background: 'rgba(0,0,0,0.2)' }}
                       aria-hidden="true">
-                      {isMobile ? (
-                        <BiasScalesFallback
-                          biasWeight={scaleWeights.biasWeight}
-                          fairWeight={scaleWeights.fairWeight}
-                          isBalanced={scaleWeights.isBalanced}
-                        />
-                      ) : (
-                        <Canvas
+                      <Canvas
                           camera={{ position: [0, 1.5, 3.5], fov: 45 }}
                           style={{ background: 'transparent' }}
                           gl={{ alpha: true, antialias: true }}
@@ -1033,7 +1012,6 @@ export function BiasDetectiveGame() {
                             caseColor="#EF4444"
                           />
                         </Canvas>
-                      )}
                     </div>
 
                     {/* Data Visualizations */}

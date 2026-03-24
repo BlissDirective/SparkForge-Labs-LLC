@@ -33,13 +33,13 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#06B6D4';
 
 // ■■ Sorting Conveyor Belts with Items (Instanced) ■■
-function ConveyorBelts({ lod, itemsSorted }: { lod: ReturnType<typeof useStandardLOD>; itemsSorted: number }) {
-  const itemCount = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 12 : 6;
+function ConveyorBelts({ itemsSorted }: { itemsSorted: number }) {
+  const itemCount = 20;
   const itemsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -109,8 +109,8 @@ function ConveyorBelts({ lod, itemsSorted }: { lod: ReturnType<typeof useStandar
 }
 
 // ■■ Category Bins (Instanced) ■■
-function CategoryBins({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 4 : 3;
+function CategoryBins() {
+  const count = 6;
   const binsRef = useRef<THREE.InstancedMesh>(null);
   const labelsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -154,10 +154,10 @@ function CategoryBins({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Decision Tree (Growing from Center) ■■
-function DecisionTree({ lod, accuracy }: { lod: ReturnType<typeof useStandardLOD>; accuracy: number }) {
+function DecisionTree({ accuracy }: { accuracy: number }) {
   const leavesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
-  const leafCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 5;
+  const leafCount = 16;
 
   const leafPositions = useMemo(() => {
     const pts: THREE.Vector3[] = [];
@@ -216,7 +216,7 @@ function DecisionTree({ lod, accuracy }: { lod: ReturnType<typeof useStandardLOD
         <meshStandardMaterial color="#2A3040" metalness={0.5} roughness={0.4} />
       </mesh>
       {/* Major branches */}
-      {lod.enableDetailProps && (
+      {(
         <>
           {[[-0.3, 1.3, 0, -0.4], [0.3, 1.3, 0, 0.4], [0, 1.3, -0.3, 0], [0, 1.3, 0.3, 0]].map(([x, y, z, rot], i) => (
             <mesh key={i} position={[x, y, z]} rotation={[0, 0, rot]}>
@@ -236,7 +236,7 @@ function DecisionTree({ lod, accuracy }: { lod: ReturnType<typeof useStandardLOD
 }
 
 // ■■ Feature Extraction Scanner ■■
-function FeatureScanner({ lod: _lod, itemsSorted }: { lod: ReturnType<typeof useStandardLOD>; itemsSorted: number }) {
+function FeatureScanner({ itemsSorted }: { itemsSorted: number }) {
   const laserRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -285,8 +285,8 @@ function FeatureScanner({ lod: _lod, itemsSorted }: { lod: ReturnType<typeof use
 }
 
 // ■■ Training Data Warehouse ■■
-function TrainingWarehouse({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const crateCount = lod.level === 'ultra' ? 15 : lod.level === 'high' ? 9 : 5;
+function TrainingWarehouse() {
+  const crateCount = 15;
   const cratesRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -314,7 +314,7 @@ function TrainingWarehouse({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
         <meshStandardMaterial color="#1A1828" metalness={0.5} roughness={0.4} />
       </mesh>
       {/* Shelf dividers */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[-3.5, 0.4, -3.3]}>
             <boxGeometry args={[2.4, 0.02, 0.3]} />
@@ -336,7 +336,7 @@ function TrainingWarehouse({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 }
 
 // ■■ Accuracy Dashboard ■■
-function AccuracyDashboard({ lod, accuracy }: { lod: ReturnType<typeof useStandardLOD>; accuracy: number }) {
+function AccuracyDashboard({ accuracy }: { accuracy: number }) {
   const needleRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -349,7 +349,7 @@ function AccuracyDashboard({ lod, accuracy }: { lod: ReturnType<typeof useStanda
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[3.5, 0, 0]}>
@@ -387,8 +387,8 @@ function AccuracyDashboard({ lod, accuracy }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Confusion Matrix Display Board ■■
-function ConfusionMatrix({ lod, accuracy }: { lod: ReturnType<typeof useStandardLOD>; accuracy: number }) {
-  const cellCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 9 : 4;
+function ConfusionMatrix({ accuracy }: { accuracy: number }) {
+  const cellCount = 16;
   const cellsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -423,8 +423,6 @@ function ConfusionMatrix({ lod, accuracy }: { lod: ReturnType<typeof useStandard
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.1;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       {/* Board backing */}
@@ -441,7 +439,7 @@ function ConfusionMatrix({ lod, accuracy }: { lod: ReturnType<typeof useStandard
 }
 
 // ■■ Validation Checkpoint Gate ■■
-function ValidationGate({ lod, accuracy }: { lod: ReturnType<typeof useStandardLOD>; accuracy: number }) {
+function ValidationGate({ accuracy }: { accuracy: number }) {
   const barrierRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -484,7 +482,7 @@ function ValidationGate({ lod, accuracy }: { lod: ReturnType<typeof useStandardL
         />
       </mesh>
       {/* Checkpoint indicator lights */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[-1.5, 2.2, 0.12]}>
             <sphereGeometry args={[0.06, 8, 6]} />
@@ -518,7 +516,6 @@ export default function BuildClassifierEnvironment({
   accuracy = 0,
   itemsSorted = 0,
 }: BuildClassifierEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -528,14 +525,14 @@ export default function BuildClassifierEnvironment({
       skyHorizonColor="#0E1A28"
       fogColor="#06B6D4"
     >
-      <ConveyorBelts lod={lod} itemsSorted={itemsSorted} />
-      <CategoryBins lod={lod} />
-      <DecisionTree lod={lod} accuracy={accuracy} />
-      <FeatureScanner lod={lod} itemsSorted={itemsSorted} />
-      <TrainingWarehouse lod={lod} />
-      <AccuracyDashboard lod={lod} accuracy={accuracy} />
-      <ConfusionMatrix lod={lod} accuracy={accuracy} />
-      <ValidationGate lod={lod} accuracy={accuracy} />
+      <ConveyorBelts itemsSorted={itemsSorted} />
+      <CategoryBins />
+      <DecisionTree accuracy={accuracy} />
+      <FeatureScanner itemsSorted={itemsSorted} />
+      <TrainingWarehouse />
+      <AccuracyDashboard accuracy={accuracy} />
+      <ConfusionMatrix accuracy={accuracy} />
+      <ValidationGate accuracy={accuracy} />
       {/* Highlight light when accuracy is high */}
       {accuracy > 80 && (
         <pointLight position={[0, 3, 0]} intensity={1.0} color="#00FF88" distance={10} />

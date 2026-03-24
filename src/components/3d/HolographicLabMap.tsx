@@ -10,7 +10,7 @@
 // - Holographic projector pedestal with lens assembly
 // - 8 orbital rings with 24 orbiting data points
 // - Pulsing energy corona (double-layer)
-// - LOD-aware via useLOD({ tier: 'system' })
+
 //
 // All existing interfaces and interactions preserved.
 
@@ -21,7 +21,6 @@ import * as THREE from 'three';
 import { LabStructure3D } from './LabStructure3D';
 import { LAB_POSITIONS } from '@/stores/cockpitStore';
 import { LABS } from '@/types';
-import { useLOD } from '@/hooks/useLOD';
 
 // Lab accent colors (same as useStationMode)
 const LAB_COLORS: Record<number, string> = {
@@ -685,8 +684,7 @@ export function HolographicLabMap({
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timeRef = useRef(0);
 
-  // LOD-aware rendering — system tier for cockpit components
-  const lod = useLOD({ tier: 'system' });
+  
 
   // Gentle auto-rotation when no lab is focused
   useFrame((_, delta) => {
@@ -754,10 +752,10 @@ export function HolographicLabMap({
         color={coreColor}
         pulse={pulse}
         focusedLabId={focusedLabId}
-        segments={lod.segments}
-        enableEffects={lod.enableEffects}
-        tubularSegments={lod.tubularSegments}
-        maxInstances={lod.maxInstances}
+        segments={64}
+        enableEffects={true}
+        tubularSegments={64}
+        maxInstances={5000}
       />
 
       {/* Connection beams between focused lab and adjacent labs */}

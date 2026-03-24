@@ -29,7 +29,6 @@ interface FutureForge3DProps {
   problemEmoji: string;
   inventionName: string;
   innovationScore: number;
-  isMobile?: boolean;
 }
 
 // ---- Blueprint Table ----
@@ -268,7 +267,7 @@ function ForgeScene({
   problemEmoji,
   inventionName,
   innovationScore,
-}: Omit<FutureForge3DProps, 'isMobile'>) {
+}: FutureForge3DProps) {
   return (
     <>
       <ambientLight intensity={0.3} />
@@ -316,8 +315,6 @@ function ForgeScene({
 // ---- Main Export ----
 
 export default function FutureForge3D(props: FutureForge3DProps) {
-  if (props.isMobile) return null;
-
   return (
     <div
       style={{ width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' }}

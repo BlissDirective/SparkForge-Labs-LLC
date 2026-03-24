@@ -1,118 +1,69 @@
 // ════════════════════════════════════════════════════
-// DEVICE PERFORMANCE STORE — Persisted device profile
-// Drives FPS targets, LOD levels, particle counts,
-// bloom quality, and 3D complexity across the platform.
-//
-// User selects device type at first launch via
-// DeviceSelectionModal. Choice persists in localStorage.
+// DEVICE STORE — Desktop-Ultra Hardcoded (D3D-1)
 // ════════════════════════════════════════════════════
+// Desktop-First Immersive 3D Overhaul: All rendering
+// locked to maximum quality. No device selection,
+// no tiered budgets, no LOD levels.
+//
+// <!-- FUTURE: When mobile 3D support is added, this store
+//      will be expanded with R3F-native LOD tiers (Three.js
+//      LOD object). No CSS fallbacks will ever be used.
+//      Mobile will render full 3D at reduced triangle counts
+//      using native Three.js LOD, not component-level checks. -->
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// ■■ Device Types ■■
-export type DeviceType = 'desktop' | 'tablet' | 'mobile';
-
-// ■■ LOD Level ■■
-// Used by useLOD hook and all 3D components
-export type LODLevel = 'ultra' | 'high' | 'medium' | 'low' | 'billboard';
-
 // ■■ GPU Rendering Tier ■■
 // Detected at runtime by webgpuDetection.ts
-// Determines particle budget and rendering pipeline for hero animation
-export type GPUTier = 'webgpu-high' | 'webgpu-mid' | 'webgpu-low' | 'webgl2' | 'css';
+export type GPUTier = 'webgpu-high' | 'webgpu-mid' | 'webgpu-low' | 'webgl2';
 
-// ■■ Performance Profile ■■
-// Pre-calculated values derived from device type
+// ■■ Performance Profile — Desktop Ultra (Always) ■■
 export interface PerformanceProfile {
   targetFPS: number;
-  maxTriangles: number;           // Per-scene hard cap
-  lodBias: LODLevel;              // Default LOD level
-  particleMultiplier: number;     // Scale factor for particle counts
+  maxTriangles: number;
+  particleMultiplier: number;
   bloomEnabled: boolean;
   postProcessingEnabled: boolean;
   shadowsEnabled: boolean;
   maxLights: number;
-  textureResolution: 'full' | 'half' | 'quarter';
-  instancedMeshLimit: number;     // Max instanced copies
-  sphereSegments: number;         // Default sphere detail
+  textureResolution: 'full';
+  instancedMeshLimit: number;
+  sphereSegments: number;
   antialias: boolean;
-  pixelRatio: number;             // Device pixel ratio cap
+  pixelRatio: number;
 }
 
-// ■■ Performance Profiles per Device Type ■■
-const PERFORMANCE_PROFILES: Record<DeviceType, PerformanceProfile> = {
-  desktop: {
-    targetFPS: 60,
-    maxTriangles: 20_000_000,     // 20M cockpit upgrade (was 10M)
-    lodBias: 'ultra',
-    particleMultiplier: 1.0,
-    bloomEnabled: true,
-    postProcessingEnabled: true,
-    shadowsEnabled: true,
-    maxLights: 16,                // increased from 12 for cockpit lighting
-    textureResolution: 'full',
-    instancedMeshLimit: 5000,     // increased from 2000 for structural detail
-    sphereSegments: 64,           // increased from 32 for ultra-quality curves
-    antialias: true,
-    pixelRatio: 2.5,
-  },
-  tablet: {
-    targetFPS: 45,
-    maxTriangles: 10_000_000,     // 10M cockpit upgrade (was 5M)
-    lodBias: 'high',
-    particleMultiplier: 0.6,
-    bloomEnabled: true,
-    postProcessingEnabled: true,
-    shadowsEnabled: false,
-    maxLights: 8,                 // increased from 4 for cockpit lighting
-    textureResolution: 'half',
-    instancedMeshLimit: 1500,     // increased from 500 for structural detail
-    sphereSegments: 32,           // increased from 16 for smoother curves
-    antialias: true,
-    pixelRatio: 1.5,
-  },
-  mobile: {
-    targetFPS: 30,
-    maxTriangles: 2_500_000,
-    lodBias: 'low',
-    particleMultiplier: 0.3,
-    bloomEnabled: false,
-    postProcessingEnabled: false,
-    shadowsEnabled: false,
-    maxLights: 2,
-    textureResolution: 'quarter',
-    instancedMeshLimit: 50,
-    sphereSegments: 8,
-    antialias: false,
-    pixelRatio: 1,
-  },
+// ■■ Single Profile — Desktop Ultra ■■
+const DESKTOP_ULTRA_PROFILE: PerformanceProfile = {
+  targetFPS: 60,
+  maxTriangles: 50_000_000,       // D3D-3: 50M total (30M cockpit + 20M game)
+  particleMultiplier: 1.5,        // Max particles always
+  bloomEnabled: true,
+  postProcessingEnabled: true,
+  shadowsEnabled: true,
+  maxLights: 24,                  // Increased for full cockpit + game lighting
+  textureResolution: 'full',
+  instancedMeshLimit: 10_000,     // Doubled for dense cockpit geometry
+  sphereSegments: 64,             // Ultra-quality curves
+  antialias: true,
+  pixelRatio: 3.0,                // D3D-4: Native DPR, generous cap
 };
 
-// ■■ Triangle budgets per game/system tier, scaled by device ■■
-// Flagship upgraded to 10M (March 18, 2026) — fully immersive environments
-// FL-Lite upgraded to 2M (March 18, 2026) — immersive themed environments
-// System tier: 20M cockpit upgrade (March 20, 2026) — full 3D panoramic cockpit
+// ■■ Triangle Budgets — Desktop-Only (D3D-3) ■■
 export type TriangleBudgetTier = 'flagship' | 'flLite' | 'standard' | 'system';
-export const TRIANGLE_BUDGETS: Record<DeviceType, Record<TriangleBudgetTier, number>> = {
-  desktop:  { flagship: 10_000_000, flLite: 2_000_000, standard: 50_000,  system: 20_000_000 },
-  tablet:   { flagship: 5_000_000,  flLite: 1_000_000, standard: 25_000,  system: 10_000_000 },
-  mobile:   { flagship: 2_500_000,  flLite: 500_000,   standard: 10_000,  system: 0 },
+export const TRIANGLE_BUDGETS: Record<TriangleBudgetTier, number> = {
+  flagship:  20_000_000,    // 20M — full immersive game environment
+  flLite:    10_000_000,    // 10M — rich themed environment (up from 2M)
+  standard:   5_000_000,    //  5M — full 3D lab environment (up from 500K)
+  system:    30_000_000,    // 30M — cockpit shell (up from 20M)
 };
 
 // ■■ Store Interface ■■
 interface DeviceState {
-  deviceType: DeviceType | null;       // null = not yet selected
-  hasSelected: boolean;                // true after user makes a choice
   profile: PerformanceProfile;
-  /** GPU rendering tier detected at runtime by webgpuDetection.ts.
-   *  Determines particle budget and rendering pipeline for hero animation.
-   *  Cached in localStorage alongside existing device preferences. */
   gpuTier: GPUTier;
-  /** Number of striped particle buffers (1-4) based on GPU VRAM capability.
-   *  Each stripe holds 2.5M particles at 48 bytes each. */
   stripeCount: number;
-  setDeviceType: (type: DeviceType) => void;
   setGpuTier: (tier: GPUTier, stripes?: number) => void;
   getTriangleBudget: (tier: TriangleBudgetTier) => number;
   getParticleCount: (baseCount: number) => number;
@@ -122,25 +73,13 @@ interface DeviceState {
 export const useDeviceStore = create<DeviceState>()(
   persist(
     (set, get) => ({
-      deviceType: null,
-      hasSelected: false,
-      profile: PERFORMANCE_PROFILES.desktop, // Default until selected
-      gpuTier: 'webgl2' as GPUTier,  // safe default until detection runs
-      stripeCount: 0,                 // 0 = no WebGPU stripes (WebGL2/CSS mode)
-
-      setDeviceType: (type: DeviceType) =>
-        set({
-          deviceType: type,
-          hasSelected: true,
-          profile: PERFORMANCE_PROFILES[type],
-        }),
+      profile: DESKTOP_ULTRA_PROFILE,
+      gpuTier: 'webgl2' as GPUTier,
+      stripeCount: 0,
 
       setGpuTier: (gpuTier, stripes = 0) => set({ gpuTier, stripeCount: stripes }),
 
-      getTriangleBudget: (tier) => {
-        const device = get().deviceType || 'desktop';
-        return TRIANGLE_BUDGETS[device][tier];
-      },
+      getTriangleBudget: (tier) => TRIANGLE_BUDGETS[tier],
 
       getParticleCount: (baseCount) => {
         const { particleMultiplier } = get().profile;
@@ -157,24 +96,35 @@ export const useDeviceStore = create<DeviceState>()(
     {
       name: 'sparkforge-device',
       partialize: (state) => ({
-        deviceType: state.deviceType,
-        hasSelected: state.hasSelected,
         gpuTier: state.gpuTier,
         stripeCount: state.stripeCount,
       }),
-      // Rehydrate profile from persisted deviceType
-      onRehydrateStorage: () => (state) => {
-        if (state?.deviceType) {
-          state.profile = PERFORMANCE_PROFILES[state.deviceType];
-        }
-      },
     }
   )
 );
 
-// ■■ Selector Helpers (for use in components) ■■
+// ■■ Selector Helpers ■■
 export const selectProfile = (s: DeviceState) => s.profile;
-export const selectDeviceType = (s: DeviceState) => s.deviceType;
-export const selectHasSelected = (s: DeviceState) => s.hasSelected;
 export const selectGpuTier = (s: DeviceState) => s.gpuTier;
 export const selectStripeCount = (s: DeviceState) => s.stripeCount;
+
+// REMOVED (D3D-1): DeviceType, LODLevel, selectDeviceType, selectHasSelected,
+// PERFORMANCE_PROFILES (multi-device), TRIANGLE_BUDGETS (multi-device)
+// REMOVED (D3D-2): LODLevel type export (was used by useLOD.ts — now deleted)
+
+// <!-- FUTURE: MOBILE 3D LOD REINTEGRATION POINT
+//
+// When mobile support is added, it will use:
+//   1. Three.js native LOD object (THREE.LOD) with distance-based geometry swapping
+//   2. R3F-native <Detailed> component from @react-three/drei
+//   3. Per-component LOD meshes baked at export time (not runtime switching)
+//   4. GPU-adaptive quality via renderer.info.render.triangles monitoring
+//
+// What will NEVER be used:
+//   - CSS fallback components (no GenericGameParticles, no CSS borders)
+//   - Component-level useIsMobile() checks
+//   - Wrapper-based LOD (no LODWrapper context)
+//   - Canvas unmounting based on device type
+//
+// Mobile will render the SAME 3D scene at reduced complexity,
+// not a different 2D scene. The 3D experience is the product. -->

@@ -30,13 +30,13 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#00BBFF';
 
 // ■■ Holographic Display Screens (Instanced) ■■
-function HolographicScreens({ lod, sceneIndex }: { lod: ReturnType<typeof useStandardLOD>; sceneIndex: number }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+function HolographicScreens({ sceneIndex }: { sceneIndex: number }) {
+  const count = 12;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -96,11 +96,11 @@ function HolographicScreens({ lod, sceneIndex }: { lod: ReturnType<typeof useSta
 }
 
 // ■■ Magnifying Glass Centerpiece ■■
-function MagnifyingGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function MagnifyingGlass() {
   const glassRef = useRef<THREE.Group>(null);
   const lensRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 12;
+  const segments = 32;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -148,8 +148,8 @@ function MagnifyingGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Evidence Pinboard with Threads ■■
-function EvidencePinboard({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const pinCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+function EvidencePinboard() {
+  const pinCount = 16;
   const pinsRef = useRef<THREE.InstancedMesh>(null);
   const cardsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -201,7 +201,7 @@ function EvidencePinboard({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial roughness={0.8} metalness={0.1} />
       </instancedMesh>
       {/* Thread connections */}
-      {lod.enableDetailProps && (
+      {(
         <group>
           {Array.from({ length: 5 }).map((_, i) => {
             const x1 = -3.5 + (i % 4) * 0.7;
@@ -222,8 +222,8 @@ function EvidencePinboard({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Surveillance Monitors (Instanced) ■■
-function SurveillanceMonitors({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+function SurveillanceMonitors() {
+  const count = 16;
   const monitorsRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -273,11 +273,11 @@ function SurveillanceMonitors({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 }
 
 // ■■ Scanner Beam ■■
-function ScannerBeam({ lod, isScanning }: { lod: ReturnType<typeof useStandardLOD>; isScanning: boolean }) {
+function ScannerBeam({ isScanning }: { isScanning: boolean }) {
   const beamRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : 12;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -323,8 +323,8 @@ function ScannerBeam({ lod, isScanning }: { lod: ReturnType<typeof useStandardLO
 }
 
 // ■■ Floating Data Fragments (Instanced) ■■
-function DataFragments({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 40 : lod.level === 'high' ? 25 : 12;
+function DataFragments() {
+  const count = 40;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -363,8 +363,6 @@ function DataFragments({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -381,7 +379,7 @@ function DataFragments({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Detective Desk with Gadgets ■■
-function DetectiveDesk({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function DetectiveDesk() {
   return (
     <group position={[0, 0, 3]}>
       {/* Desk surface */}
@@ -397,7 +395,7 @@ function DetectiveDesk({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         </mesh>
       ))}
       {/* Gadgets on desk */}
-      {lod.enableDetailProps && (
+      {(
         <>
           {/* Tablet device */}
           <mesh position={[-0.5, 0.78, 0.1]}>
@@ -435,7 +433,7 @@ function DetectiveDesk({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Room Enclosure with Neon Grid ■■
-function RoomEnclosure({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function RoomEnclosure() {
   return (
     <group>
       {/* Back wall */}
@@ -453,7 +451,7 @@ function RoomEnclosure({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#0C0E18" metalness={0.3} roughness={0.7} />
       </mesh>
       {/* Neon floor grid lines */}
-      {lod.enableDetailProps && (
+      {(
         <group position={[0, -0.97, 0]}>
           {Array.from({ length: 7 }).map((_, i) => (
             <mesh key={`h-${i}`} position={[0, 0, -4 + i * 1.2]} rotation={[-Math.PI / 2, 0, 0]}>
@@ -488,7 +486,6 @@ export default function AiSpyEnvironment({
   sceneIndex = 0,
   isScanning = false,
 }: AiSpyEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -498,14 +495,14 @@ export default function AiSpyEnvironment({
       skyHorizonColor="#0A1628"
       fogColor="#00BBFF"
     >
-      <RoomEnclosure lod={lod} />
-      <HolographicScreens lod={lod} sceneIndex={sceneIndex} />
-      <MagnifyingGlass lod={lod} />
-      <EvidencePinboard lod={lod} />
-      <SurveillanceMonitors lod={lod} />
-      <ScannerBeam lod={lod} isScanning={isScanning} />
-      <DataFragments lod={lod} />
-      <DetectiveDesk lod={lod} />
+      <RoomEnclosure />
+      <HolographicScreens sceneIndex={sceneIndex} />
+      <MagnifyingGlass />
+      <EvidencePinboard />
+      <SurveillanceMonitors />
+      <ScannerBeam isScanning={isScanning} />
+      <DataFragments />
+      <DetectiveDesk />
       {/* Active scanning spotlight */}
       {isScanning && (
         <pointLight position={[0, 3.5, 0]} intensity={1.2} color={LAB_COLOR} distance={8} />

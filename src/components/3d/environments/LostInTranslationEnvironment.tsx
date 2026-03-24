@@ -30,16 +30,16 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#818CF8';
 
 // ■■ Babel Tower Centerpiece ■■
-function BabelTower({ lod, translationsCompleted }: { lod: ReturnType<typeof useStandardLOD>; translationsCompleted: number }) {
+function BabelTower({ translationsCompleted }: { translationsCompleted: number }) {
   const ringRefs = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 28 : lod.level === 'high' ? 18 : 10;
-  const towerLevels = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 4 : 3;
+  const segments = 28;
+  const towerLevels = 6;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -107,10 +107,10 @@ function BabelTower({ lod, translationsCompleted }: { lod: ReturnType<typeof use
 }
 
 // ■■ Translation Bridge ■■
-function TranslationBridge({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function TranslationBridge() {
   const beamRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -154,7 +154,7 @@ function TranslationBridge({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
         />
       </mesh>
       {/* Side rails */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[0, 0.25, 0.33]}>
             <boxGeometry args={[5.8, 0.03, 0.03]} />
@@ -171,12 +171,12 @@ function TranslationBridge({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 }
 
 // ■■ Language Selector Globe ■■
-function LanguageGlobe({ lod, languagePair: _languagePair }: { lod: ReturnType<typeof useStandardLOD>; languagePair: string }) {
+function LanguageGlobe({ languagePair: _languagePair }: { languagePair: string }) {
   const globeRef = useRef<THREE.Mesh>(null);
   const axisRef1 = useRef<THREE.Mesh>(null);
   const axisRef2 = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 10;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -231,8 +231,8 @@ function LanguageGlobe({ lod, languagePair: _languagePair }: { lod: ReturnType<t
 }
 
 // ■■ Mistranslation Museum Cases (Instanced) ■■
-function MistranslationMuseum({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 6 : 3;
+function MistranslationMuseum() {
+  const count = 10;
   const casesRef = useRef<THREE.InstancedMesh>(null);
   const lidsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -286,11 +286,11 @@ function MistranslationMuseum({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 }
 
 // ■■ Phonetic Decoder Rings ■■
-function PhoneticDecoderRings({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const ringCount = lod.enableDetailProps ? 5 : 3;
+function PhoneticDecoderRings() {
+  const ringCount = 5;
   const ringRefs = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 10;
+  const segments = 32;
 
   const ringColors = useMemo(() => ['#818CF8', '#AA66FF', '#06B6D4', '#00FF88', '#FFAA44'], []);
 
@@ -328,8 +328,8 @@ function PhoneticDecoderRings({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 }
 
 // ■■ Dictionary Constellation Ceiling (Instanced) ■■
-function DictionaryConstellation({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 80 : lod.level === 'high' ? 50 : 20;
+function DictionaryConstellation() {
+  const count = 80;
   const starsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -363,8 +363,6 @@ function DictionaryConstellation({ lod }: { lod: ReturnType<typeof useStandardLO
     if (starsRef.current.instanceColor) starsRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={starsRef} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 4, 3]} />
@@ -374,8 +372,8 @@ function DictionaryConstellation({ lod }: { lod: ReturnType<typeof useStandardLO
 }
 
 // ■■ Cultural Display Cases (Instanced) ■■
-function CulturalDisplayCases({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+function CulturalDisplayCases() {
+  const count = 8;
   const casesRef = useRef<THREE.InstancedMesh>(null);
   const glassRef = useRef<THREE.InstancedMesh>(null);
 
@@ -396,8 +394,6 @@ function CulturalDisplayCases({ lod }: { lod: ReturnType<typeof useStandardLOD> 
     casesRef.current.instanceMatrix.needsUpdate = true;
     glassRef.current.instanceMatrix.needsUpdate = true;
   }, [count]);
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group>
@@ -430,7 +426,6 @@ export default function LostInTranslationEnvironment({
   languagePair = 'EN-ES',
   translationsCompleted = 0,
 }: LostInTranslationEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -440,13 +435,13 @@ export default function LostInTranslationEnvironment({
       skyHorizonColor="#0E0826"
       fogColor="#818CF8"
     >
-      <BabelTower lod={lod} translationsCompleted={translationsCompleted} />
-      <TranslationBridge lod={lod} />
-      <LanguageGlobe lod={lod} languagePair={languagePair} />
-      <MistranslationMuseum lod={lod} />
-      <PhoneticDecoderRings lod={lod} />
-      <DictionaryConstellation lod={lod} />
-      <CulturalDisplayCases lod={lod} />
+      <BabelTower translationsCompleted={translationsCompleted} />
+      <TranslationBridge />
+      <LanguageGlobe languagePair={languagePair} />
+      <MistranslationMuseum />
+      <PhoneticDecoderRings />
+      <DictionaryConstellation />
+      <CulturalDisplayCases />
       {/* Tower beacon light */}
       <pointLight position={[0, 5, 0]} intensity={0.5} color={LAB_COLOR} distance={12} />
     </StandardEnvironmentWrapper>

@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -22,12 +22,6 @@ const FutureForge3D = dynamic(
   () => import('@/components/3d/FutureForge3D'),
   { ssr: false }
 );
-
-function useIsMobile() {
-  const [m, setM] = useState(false);
-  useEffect(() => { setM(window.innerWidth < 768); }, []);
-  return m;
-}
 
 type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
@@ -137,8 +131,6 @@ const SCENARIOS: Scenario[] = [
 export default function FutureForgeGame() {
   const game = useGameStore();
   const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
-  const isMobile = useIsMobile();
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [round, setRound] = useState(1);
   const totalRounds = 8;
@@ -278,18 +270,16 @@ export default function FutureForgeGame() {
 
             <div className="flex flex-col lg:flex-row gap-4">
               {/* 3D Scene */}
-              {!isMobile && (
-                <div className="hidden lg:block w-44 h-44 flex-shrink-0">
-                  <FutureForge3D
-                      step={round}
-                      selectedSkills={new Set(selected)}
-                      allSkills={CAPABILITIES.map(c => ({ name: c.name, emoji: '⚡' }))}
-                      problemEmoji="🔧"
-                      inventionName={scenario.title}
-                      innovationScore={roundScore}
-                    />
-                </div>
-              )}
+              <div className="hidden lg:block w-44 h-44 flex-shrink-0">
+                <FutureForge3D
+                    step={round}
+                    selectedSkills={new Set(selected)}
+                    allSkills={CAPABILITIES.map(c => ({ name: c.name, emoji: '⚡' }))}
+                    problemEmoji="🔧"
+                    inventionName={scenario.title}
+                    innovationScore={roundScore}
+                  />
+              </div>
 
               {/* Scenario Card */}
               <div className="flex-1">

@@ -15,7 +15,6 @@
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 // ■■ Props ■■
 export interface CeremonyFXProps {
@@ -444,7 +443,6 @@ export function CeremonyFX({
   labColor = '#00BBFF',
   onComplete,
 }: CeremonyFXProps) {
-  const lod = useLOD({ tier: 'system' });
   const [elapsed, setElapsed] = useState(0);
   const [completed, setCompleted] = useState(false);
   const startTimeRef = useRef<number | null>(null);
@@ -483,7 +481,7 @@ export function CeremonyFX({
   const config = CEREMONY_CONFIG[type];
 
   // Scale particle counts based on LOD
-  const pMul = lod.particleMultiplier;
+  const pMul = 1.0;
   const confettiCount = Math.round(250 * pMul);
   const fireworkPerBurst = Math.round(60 * pMul);
   const showerCount = Math.round(120 * pMul);
