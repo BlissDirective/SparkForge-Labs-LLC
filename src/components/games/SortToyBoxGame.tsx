@@ -102,7 +102,7 @@ function generateShapes(): Shape[] {
 }
 
 // ■■■ 2D Shape Icon (mobile fallback) ■■■
-function ShapeIcon({
+function _ShapeIcon({
   shape,
   color,
   size,
@@ -201,7 +201,7 @@ export function SortToyBoxGame() {
     [groupCount]
   );
 
-  function assignGroup(g: number) {
+  function _assignGroup(g: number) {
     if (!selectedShape) return;
     setShapes((prev) =>
       prev.map((s) =>

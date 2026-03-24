@@ -244,7 +244,7 @@ function EndpointTower() {
 }
 
 // ■■ Authentication Keycard Station ■■
-function AuthKeycardStation({ }: {}) {
+function AuthKeycardStation(_props: Record<string, never>) {
   const cardRef = useRef<THREE.Mesh>(null);
   const scanRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);

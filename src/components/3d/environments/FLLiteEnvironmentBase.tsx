@@ -21,9 +21,9 @@ import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ■■ FL-Lite Environment Constants (Ultra quality) ■■
-const FLLITE_TERRAIN_SEGMENTS = 256;
-const FLLITE_SKY_SEGMENTS = 64;
-const FLLITE_INSTANCE_COUNT = 500;
+const _FLLITE_TERRAIN_SEGMENTS = 256;
+const _FLLITE_SKY_SEGMENTS = 64;
+const _FLLITE_INSTANCE_COUNT = 500;
 
 // ■■ FL-Lite Terrain ■■
 interface TerrainProps {

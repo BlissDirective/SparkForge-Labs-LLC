@@ -190,7 +190,7 @@ function TaskBoard({ currentTask }: { currentTask: string }) {
 }
 
 // ■■ Tool Comparison Table ■■
-function ComparisonTable({ }: {}) {
+function ComparisonTable(_props: Record<string, never>) {
   const panelRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 

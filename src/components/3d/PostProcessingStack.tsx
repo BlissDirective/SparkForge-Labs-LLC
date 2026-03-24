@@ -1,4 +1,3 @@
-// @ts-nocheck — @react-three/postprocessing EffectComposer children types are overly strict
 'use client';
 
 // ════════════════════════════════════════════════════

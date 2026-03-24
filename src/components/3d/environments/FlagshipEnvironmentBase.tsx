@@ -23,9 +23,9 @@ import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ■■ Flagship Environment Constants (Ultra quality) ■■
-const FLAGSHIP_TERRAIN_SEGMENTS = 512;
-const FLAGSHIP_SKY_SEGMENTS = 96;
-const FLAGSHIP_INSTANCE_COUNT = 1000;
+const _FLAGSHIP_TERRAIN_SEGMENTS = 512;
+const _FLAGSHIP_SKY_SEGMENTS = 96;
+const _FLAGSHIP_INSTANCE_COUNT = 1000;
 
 // ■■ Terrain Ground Plane ■■
 // Displacement-mapped ground with procedural height variation

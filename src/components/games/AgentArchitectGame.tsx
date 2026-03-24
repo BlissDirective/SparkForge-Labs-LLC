@@ -10,13 +10,13 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import {
-  Play, Trash2, RotateCcw, Zap,
+  Play, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
   Settings2, Code2, CheckCircle2, Cpu,
 } from 'lucide-react';
@@ -383,7 +383,7 @@ export function AgentArchitectGame() {
   const [activeRunBlock, setActiveRunBlock] = useState<string | null>(null);
   const [runPath, setRunPath] = useState<string[]>([]);
   const [validationMsg, setValidationMsg] = useState<string | null>(null);
-  const [spotlightPos, setSpotlightPos] = useState<{ x: number; y: number } | null>(null);
+  const [_spotlightPos, setSpotlightPos] = useState<{ x: number; y: number } | null>(null);
 
   // Report state
   const [reportData, setReportData] = useState<{
@@ -456,7 +456,7 @@ export function AgentArchitectGame() {
     game.updateScore(1);
   }
 
-  function removeBlock(id: string) {
+  function _removeBlock(id: string) {
     setBlocks(prev => prev.filter(b => b.id !== id));
     setArrows(prev => prev.filter(a => a.fromId !== id && a.toId !== id));
     if (selectedBlock === id) setSelectedBlock(null);
@@ -468,7 +468,7 @@ export function AgentArchitectGame() {
     ));
   }
 
-  function handleOutputClick(blockId: string, outputIdx: number, e: React.MouseEvent) {
+  function _handleOutputClick(blockId: string, outputIdx: number, e: React.MouseEvent) {
     e.stopPropagation();
     if (isRunning) return;
     setConnecting({ id: blockId, idx: outputIdx });

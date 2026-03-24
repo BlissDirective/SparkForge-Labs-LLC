@@ -51,7 +51,8 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Stores
 import { useSceneStore } from '@/stores/sceneStore';
-import { useDeviceStore } from '@/stores/deviceStore';
+// useDeviceStore available for future per-device tuning
+// import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
 import { HDR_FALLBACK_PRESET } from '@/lib/3d/materials';

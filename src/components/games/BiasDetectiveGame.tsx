@@ -15,7 +15,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -37,7 +37,6 @@ const BiasScales3DComponent = dynamic(
 
 import {
   calculateScaleWeights,
-  BiasScalesFallback,
 } from '@/components/3d/BiasScales3D';
 
 // [v3] R3F Canvas for 3D rendering

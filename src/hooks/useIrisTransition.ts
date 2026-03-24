@@ -35,6 +35,7 @@ export function useIrisTransition() {
 
     rafId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(rafId);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [transition?.startedAt, transition?.duration, updateProgress, completeTransition]);
 
   const startGameTransition = useCallback(

@@ -634,7 +634,7 @@ function ArticulatedBot({
 export function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
   const botsRef = useRef<THREE.Group>(null);
   const [currentTime, setCurrentTime] = useState(0);
-  const profile = useDeviceStore((s) => s.profile);
+  const _profile = useDeviceStore((s) => s.profile);
 
   const botCount = 8; // D3D-1: Always max bots (desktop-ultra)
 

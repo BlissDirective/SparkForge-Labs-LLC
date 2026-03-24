@@ -21,9 +21,9 @@ import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
 // ■■ Standard Environment Constants (Ultra quality) ■■
-const STANDARD_TERRAIN_SEGMENTS = 128;
-const STANDARD_SKY_SEGMENTS = 48;
-const STANDARD_INSTANCE_COUNT = 250;
+const _STANDARD_TERRAIN_SEGMENTS = 128;
+const _STANDARD_SKY_SEGMENTS = 48;
+const _STANDARD_INSTANCE_COUNT = 250;
 
 // ■■ Standard Terrain ■■
 interface TerrainProps {
