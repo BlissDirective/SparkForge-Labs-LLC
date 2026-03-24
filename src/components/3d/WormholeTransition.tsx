@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════
 // 20M cockpit upgrade component. Triangle budget: 300,000.
 // Renders an animated wormhole tunnel when transitioning
-// between labs. Fully LOD-aware via useLOD({ tier: 'system' }).
+
 //
 // Animation phases (2s total):
 //   0.0–0.5s  Entry portal ring grows, tunnel fades in
@@ -18,7 +18,6 @@
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 // ■■ Props ■■
 interface WormholeTransitionProps {
@@ -74,11 +73,10 @@ export function WormholeTransition({
   onComplete,
 }: WormholeTransitionProps) {
   // LOD
-  const lod = useLOD({ tier: 'system' });
 
   // Derived LOD values
-  const segments = lod.segments;
-  const speedLineCount = Math.round(120 * lod.particleMultiplier);
+  const segments = 64;
+  const speedLineCount = Math.round(120 * 1.0);
 
   // Refs
   const groupRef = useRef<THREE.Group>(null);
@@ -207,7 +205,7 @@ export function WormholeTransition({
   // ■■ Bail if inactive ■■
   if (!active) return null;
 
-  // ■■ Geometry args (LOD-aware) ■■
+  
   const cylSegments = Math.max(segments, 12);
   const torusSegments = Math.max(Math.round(segments * 0.75), 8);
   const torusTube = Math.max(Math.round(segments * 0.5), 6);

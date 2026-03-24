@@ -105,7 +105,7 @@ function DeviceMockups({ lod: _lod, buildStep }: { lod: ReturnType<typeof useFLL
 
 // ■■ Component Library Shelves (Instanced) ■■
 function ComponentShelves({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const shelfCount = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const shelfCount = 24;
   const blocksRef = useRef<THREE.InstancedMesh>(null);
   const shelfRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -185,7 +185,7 @@ function AppStorePortal({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     }
   });
 
-  const archSegs = lod.level === 'ultra' ? 32 : 16;
+  const archSegs = 32;
 
   return (
     <group position={[6, 0, 0]}>
@@ -222,7 +222,7 @@ function AppStorePortal({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 function LaunchPad({ lod, isPreview }: { lod: ReturnType<typeof useFLLiteLOD>; isPreview: boolean }) {
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
-  const lightCount = lod.level === 'ultra' ? 16 : 10;
+  const lightCount = 16;
 
   React.useEffect(() => {
     if (!lightsRef.current) return;
@@ -256,7 +256,7 @@ function LaunchPad({ lod, isPreview }: { lod: ReturnType<typeof useFLLiteLOD>; i
     <group position={[-5, -0.9, 3]}>
       {/* Platform base */}
       <mesh receiveShadow>
-        <cylinderGeometry args={[2.5, 2.8, 0.2, lod.level === 'ultra' ? 32 : 16]} />
+        <cylinderGeometry args={[2.5, 2.8, 0.2, 32} />
         <meshStandardMaterial color="#181420" metalness={0.7} roughness={0.3} />
       </mesh>
       {/* Inner ring */}
@@ -284,8 +284,6 @@ function HolographicPreview({ lod, isPreview }: { lod: ReturnType<typeof useFLLi
     groupRef.current.rotation.y = timeRef.current * (isPreview ? 1.2 : 0.3);
     groupRef.current.position.y = 2.0 + Math.sin(timeRef.current * 0.8) * 0.2;
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group ref={groupRef} position={[0, 2.0, 2]}>
@@ -319,7 +317,7 @@ function HolographicPreview({ lod, isPreview }: { lod: ReturnType<typeof useFLLi
 
 // ■■ Code Snippet Particles ■■
 function CodeParticles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 60 : lod.level === 'high' ? 35 : 15;
+  const count = 60;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -352,8 +350,6 @@ function CodeParticles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
-
-  if (!lod.enableParticles) return null;
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
@@ -393,8 +389,6 @@ function RatingStars({ lod, buildStep }: { lod: ReturnType<typeof useFLLiteLOD>;
     starsRef.current.instanceMatrix.needsUpdate = true;
     if (starsRef.current.instanceColor) starsRef.current.instanceColor.needsUpdate = true;
   });
-
-  if (!lod.enableEffects) return null;
 
   return (
     <instancedMesh ref={starsRef} args={[undefined, undefined, count]}>

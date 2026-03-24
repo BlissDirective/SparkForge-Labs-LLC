@@ -106,7 +106,7 @@ function MagnifierStation({ lod, isChecking }: { lod: ReturnType<typeof useStand
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[3.5, 0, 0]}>
@@ -143,7 +143,7 @@ function MagnifierStation({ lod, isChecking }: { lod: ReturnType<typeof useStand
 
 // ■■ Source Verification Pipeline ■■
 function VerificationPipeline({ lod, verified }: { lod: ReturnType<typeof useStandardLOD>; verified: number }) {
-  const stampCount = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 6 : 3;
+  const stampCount = 10;
   const stampsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -259,7 +259,7 @@ function TruthMeter({ lod, verified }: { lod: ReturnType<typeof useStandardLOD>;
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[0, 2.8, -4.5]}>
@@ -299,7 +299,7 @@ function TruthMeter({ lod, verified }: { lod: ReturnType<typeof useStandardLOD>;
 
 // ■■ Media Library Shelves (Instanced) ■■
 function MediaLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const shelfCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 5;
+  const shelfCount = 16;
   const shelvesRef = useRef<THREE.InstancedMesh>(null);
   const booksRef = useRef<THREE.InstancedMesh>(null);
 
@@ -329,8 +329,6 @@ function MediaLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     if (booksRef.current.instanceColor) booksRef.current.instanceColor.needsUpdate = true;
   }, [shelfCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={shelvesRef} args={[undefined, undefined, shelfCount]} castShadow>
@@ -347,7 +345,7 @@ function MediaLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Evidence Comparison Lightbox (Instanced) ■■
 function LightboxPanels({ lod, isChecking }: { lod: ReturnType<typeof useStandardLOD>; isChecking: boolean }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const count = 8;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 

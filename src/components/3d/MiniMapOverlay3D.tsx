@@ -12,7 +12,6 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { Text } from '@react-three/drei';
-import { useLOD } from '@/hooks/useLOD';
 
 // ■■ Lab Colors (L1–L10) ■■
 const LAB_COLORS = [
@@ -204,12 +203,11 @@ export function MiniMapOverlay3D({
   visible = true,
 }: MiniMapOverlay3DProps) {
   const groupRef = useRef<THREE.Group>(null!);
-  const lod = useLOD({ tier: 'system' });
 
-  // LOD-aware geometry params
-  const sphereSegs = lod.segments;
-  const tubularSegs = lod.tubularSegments;
-  const coneSegs = Math.max(6, Math.floor(lod.segments / 2));
+  
+  const sphereSegs = 64;
+  const tubularSegs = 64;
+  const coneSegs = Math.max(6, Math.floor(64 / 2));
 
   // Chrome bezel color
   const chromeColor = useMemo(() => new THREE.Color(0.7, 0.7, 0.75), []);

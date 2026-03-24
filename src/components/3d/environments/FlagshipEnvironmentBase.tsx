@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════
 // FlagshipEnvironmentBase — Shared 10M-budget foundation
 // ════════════════════════════════════════════════════
-// Provides LOD-aware lighting, fog, ground plane, sky dome,
+
 // and instanced mesh helpers for all 5 flagship environments.
 // Each flagship environment composes this base with game-specific
 // meshes, props, and effects to fill their 10M triangle budget.
@@ -21,7 +21,6 @@ import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD, type LODState } from '@/hooks/useLOD';
 
 // ■■ Shared LOD Config for Flagship Environments ■■
 export interface FlagshipLOD extends LODState {
@@ -36,7 +35,6 @@ export interface FlagshipLOD extends LODState {
 }
 
 export function useFlagshipLOD(): FlagshipLOD {
-  const lod = useLOD({ tier: 'flagship' });
 
   return useMemo(() => {
     const levelConfigs: Record<string, Partial<FlagshipLOD>> = {
@@ -92,7 +90,7 @@ export function useFlagshipLOD(): FlagshipLOD {
       },
     };
 
-    const config = levelConfigs[lod.level] || levelConfigs.high;
+    const config = levelConfigs['ultra'] || levelConfigs.high;
     return { ...lod, ...config } as FlagshipLOD;
   }, [lod]);
 }
@@ -118,7 +116,7 @@ export function Terrain({
   const meshRef = useRef<THREE.Mesh>(null);
 
   const geometry = useMemo(() => {
-    const segs = lod.terrainSegments;
+    const segs = 512;
     const geo = new THREE.PlaneGeometry(size, size, segs, segs);
     const pos = geo.attributes.position;
 
@@ -139,7 +137,7 @@ export function Terrain({
 
     geo.computeVertexNormals();
     return geo;
-  }, [size, heightScale, lod.terrainSegments]);
+  }, [size, heightScale, 512]);
 
   const material = useMemo(() => {
     return new THREE.MeshStandardMaterial({
@@ -208,7 +206,7 @@ export function SkyDome({
 
   return (
     <mesh material={material}>
-      <sphereGeometry args={[radius, lod.skySegments, lod.skySegments]} />
+      <sphereGeometry args={[radius, 96, 96]} />
     </mesh>
   );
 }
@@ -229,7 +227,7 @@ export function FogParticles({
   lod,
 }: FogParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const count = Math.min(baseCount, lod.instanceCount);
+  const count = Math.min(baseCount, 1000);
 
   const { matrices, speeds } = useMemo(() => {
     const m: THREE.Matrix4[] = [];
@@ -378,9 +376,9 @@ export function FlagshipLightingRig({
         position={[8, 12, 5]}
         intensity={1.0}
         color="#ffffff"
-        castShadow={lod.enableShadows}
-        shadow-mapSize-width={lod.enableShadows ? 2048 : 512}
-        shadow-mapSize-height={lod.enableShadows ? 2048 : 512}
+        castShadow={true}
+        shadow-mapSize-width={2048}
+        shadow-mapSize-height={2048}
         shadow-camera-far={50}
         shadow-camera-left={-20}
         shadow-camera-right={20}
@@ -399,7 +397,7 @@ export function FlagshipLightingRig({
         color="#AA66FF"
         distance={15}
       />
-      {lod.enableDetailProps && (
+      {(
         <pointLight
           position={[0, 8, 0]}
           intensity={0.2}
@@ -407,7 +405,7 @@ export function FlagshipLightingRig({
           distance={25}
         />
       )}
-      {lod.enableContactShadows && (
+      {(
         <ContactShadows
           position={[0, -0.99, 0]}
           opacity={0.4}
@@ -465,7 +463,7 @@ export function FlagshipEnvironmentWrapper({
       />
 
       {/* Fog wisps */}
-      {lod.enableParticles && (
+      {(
         <FogParticles color={fogColor || labColor} lod={lod} />
       )}
 

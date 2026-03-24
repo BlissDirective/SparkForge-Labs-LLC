@@ -12,7 +12,6 @@
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ── Types ──────────────────────────────────────────
@@ -278,9 +277,7 @@ function ArticulatedBot({
   const antTipRef   = useRef<THREE.MeshStandardMaterial>(null);
   const padMatLRef  = useRef<THREE.MeshStandardMaterial>(null);
   const padMatRRef  = useRef<THREE.MeshStandardMaterial>(null);
-
-  const lod = useLOD({ tier: 'system' });
-  const seg = lod.segments;                     // 64 at ultra
+  const seg = 64;                     // 64 at ultra
   const halfSeg = Math.max(8, Math.floor(seg / 2));
 
   const { personality, pathSeed, speed, phase, scale, visorBlinkInterval } = botState;
@@ -624,7 +621,7 @@ function ArticulatedBot({
       ))}
 
       {/* ── PERSONALITY ACCESSORY ─────────────────── */}
-      {lod.enableEffects && (
+      {(
         <PersonalityAccessory type={personality.type} color={c} seg={seg} />
       )}
 

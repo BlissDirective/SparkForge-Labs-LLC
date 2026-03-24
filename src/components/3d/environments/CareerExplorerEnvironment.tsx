@@ -36,7 +36,7 @@ const LAB_COLOR = '#F97316';
 
 // ■■ Exhibition Booths (Instanced) ■■
 function ExhibitionBooths({ lod, careersExplored }: { lod: ReturnType<typeof useStandardLOD>; careersExplored: number }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 7 : 4;
+  const count = 10;
   const wallsRef = useRef<THREE.InstancedMesh>(null);
   const countersRef = useRef<THREE.InstancedMesh>(null);
   const signsRef = useRef<THREE.InstancedMesh>(null);
@@ -119,7 +119,7 @@ function ExhibitionBooths({ lod, careersExplored }: { lod: ReturnType<typeof use
 
 // ■■ Holographic Job Preview Screens (Instanced) ■■
 function JobPreviewScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const count = 8;
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -160,8 +160,6 @@ function JobPreviewScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
     screensRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={screensRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -178,7 +176,7 @@ function JobPreviewScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 
 // ■■ Skill Tree Display ■■
 function SkillTree({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const nodeCount = lod.level === 'ultra' ? 15 : lod.level === 'high' ? 10 : 5;
+  const nodeCount = 15;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -226,7 +224,7 @@ function SkillTree({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial emissive={LAB_COLOR} emissiveIntensity={0.4} />
       </instancedMesh>
       {/* Branch lines (simplified as thin boxes) */}
-      {lod.enableDetailProps && nodes.slice(0, -3).map((n, i) => {
+      {nodes.slice(0, -3).map((n, i) => {
         const next = nodes[i + 3];
         if (!next) return null;
         const dx = next.x - n.x;
@@ -256,7 +254,7 @@ function SkillTree({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Career Path Floor ■■
 function CareerPathFloor({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const nodeCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const nodeCount = 8;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -291,7 +289,7 @@ function CareerPathFloor({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
       </instancedMesh>
       {/* Connecting path line */}
       <mesh position={[0, -0.87, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[3.5, 0.02, 4, lod.level === 'ultra' ? 48 : 24, Math.PI * 1.5]} />
+        <torusGeometry args={[3.5, 0.02, 4, 48, Math.PI * 1.5]} />
         <meshStandardMaterial
           color={LAB_COLOR}
           emissive={LAB_COLOR}
@@ -308,7 +306,7 @@ function CareerPathFloor({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 function InterviewPod({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   const screenRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -347,7 +345,7 @@ function InterviewPod({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#1A1428" metalness={0.4} roughness={0.5} />
       </mesh>
       {/* Pod rim light */}
-      {lod.enableDetailProps && (
+      {(
         <mesh rotation={[0, -Math.PI / 4, 0]} position={[0, 1.3, 0]}>
           <torusGeometry args={[1.02, 0.02, 4, segments, Math.PI]} />
           <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.4} />
@@ -359,7 +357,7 @@ function InterviewPod({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Portfolio Showcase Wall (Instanced) ■■
 function PortfolioWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+  const count = 12;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const contentRef = useRef<THREE.InstancedMesh>(null);
 
@@ -409,10 +407,10 @@ function PortfolioWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Industry Sector Map (Segmented Ring) ■■
 function IndustrySectorMap({ lod, currentCareer }: { lod: ReturnType<typeof useStandardLOD>; currentCareer: string }) {
-  const sectorCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 6 : 4;
+  const sectorCount = 8;
   const sectorsRef = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const segments = 24;
 
   const sectorColors = useMemo(() => [
     '#F97316', '#06B6D4', '#00FF88', '#AA66FF', '#FF66AA', '#FFAA44', '#FF6644', '#818CF8',

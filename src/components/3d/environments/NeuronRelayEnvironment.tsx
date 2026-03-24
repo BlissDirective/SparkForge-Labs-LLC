@@ -36,7 +36,7 @@ const LAB_COLOR = '#FF66AA';
 
 // ■■ Neuron Soma Bodies (Instanced) ■■
 function NeuronSomas({ lod, activeLayer }: { lod: ReturnType<typeof useStandardLOD>; activeLayer: number }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 7 : 4;
+  const count = 10;
   const somasRef = useRef<THREE.InstancedMesh>(null);
   const nucleiRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -88,7 +88,7 @@ function NeuronSomas({ lod, activeLayer }: { lod: ReturnType<typeof useStandardL
   return (
     <group>
       <instancedMesh ref={somasRef} args={[undefined, undefined, count]}>
-        <sphereGeometry args={[1, lod.level === 'ultra' ? 16 : 10, lod.level === 'ultra' ? 16 : 10]} />
+        <sphereGeometry args={[1, 16, 16} />
         <meshStandardMaterial
           emissive={LAB_COLOR}
           emissiveIntensity={0.3}
@@ -108,7 +108,7 @@ function NeuronSomas({ lod, activeLayer }: { lod: ReturnType<typeof useStandardL
 
 // ■■ Axon Pathways (Instanced Tubes) ■■
 function AxonPathways({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 15 : lod.level === 'high' ? 10 : 6;
+  const count = 15;
   const axonsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -176,7 +176,7 @@ function AxonPathways({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Synapse Junction Nodes (Instanced) ■■
 function SynapseJunctions({ lod, signalStrength }: { lod: ReturnType<typeof useStandardLOD>; signalStrength: number }) {
-  const count = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 14 : 8;
+  const count = 20;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -227,7 +227,7 @@ function SynapseJunctions({ lod, signalStrength }: { lod: ReturnType<typeof useS
 
 // ■■ Signal Pulse Particles ■■
 function SignalPulses({ lod, signalStrength }: { lod: ReturnType<typeof useStandardLOD>; signalStrength: number }) {
-  const count = lod.level === 'ultra' ? 30 : lod.level === 'high' ? 20 : 10;
+  const count = 30;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -259,8 +259,6 @@ function SignalPulses({ lod, signalStrength }: { lod: ReturnType<typeof useStand
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
-
-  if (!lod.enableParticles) return null;
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
@@ -315,7 +313,7 @@ function NeuralLayerPanels({ lod, activeLayer }: { lod: ReturnType<typeof useSta
               />
             </mesh>
             {/* Bracket */}
-            {lod.enableDetailProps && (
+            {(
               <>
                 <mesh position={[-1.1, 0, 0]}>
                   <boxGeometry args={[0.04, 0.6, 0.04]} />
@@ -346,8 +344,6 @@ function ActivationVisualizer({ lod }: { lod: ReturnType<typeof useStandardLOD> 
       mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.2) * 0.15;
     }
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[0, 0.5, -4.5]}>
@@ -388,7 +384,7 @@ function ActivationVisualizer({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 
 // ■■ Dendrite Ceiling Forest (Instanced) ■■
 function DendriteCeiling({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 30 : lod.level === 'high' ? 20 : 10;
+  const count = 30;
   const dendritesRef = useRef<THREE.InstancedMesh>(null);
   const tipsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -433,8 +429,6 @@ function DendriteCeiling({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.8) * 0.2;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={dendritesRef} args={[undefined, undefined, count]}>
@@ -473,7 +467,7 @@ function ChamberWalls({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#0A0610" roughness={0.9} />
       </mesh>
       {/* Brain-tissue accent folds on walls */}
-      {lod.enableDetailProps && (
+      {(
         <>
           {Array.from({ length: 6 }).map((_, i) => (
             <mesh key={i} position={[-5.9, 1.5 + i * 0.6, (i - 3) * 1.5]} rotation={[0, Math.PI / 2, 0]}>

@@ -37,8 +37,8 @@ const LAB_COLOR = '#FF6644';
 
 // ■■ Tool Racks with Items (Instanced) ■■
 function ToolRacks({ lod, toolsSelected }: { lod: ReturnType<typeof useStandardLOD>; toolsSelected: number }) {
-  const shelfCount = lod.level === 'ultra' ? 15 : lod.level === 'high' ? 10 : 6;
-  const toolCount = lod.level === 'ultra' ? 30 : lod.level === 'high' ? 20 : 10;
+  const shelfCount = 15;
+  const toolCount = 30;
   const shelvesRef = useRef<THREE.InstancedMesh>(null);
   const toolsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -127,7 +127,7 @@ function ToolRacks({ lod, toolsSelected }: { lod: ReturnType<typeof useStandardL
 
 // ■■ Task Assignment Board ■■
 function TaskBoard({ lod, currentTask }: { lod: ReturnType<typeof useStandardLOD>; currentTask: string }) {
-  const cardCount = lod.level === 'ultra' ? 9 : lod.level === 'high' ? 6 : 4;
+  const cardCount = 9;
   const cardsRef = useRef<THREE.InstancedMesh>(null);
   const pinsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -238,7 +238,7 @@ function ComparisonTable({ lod: _lod }: { lod: ReturnType<typeof useStandardLOD>
 
 // ■■ Effectiveness Meter Gauges ■■
 function EffectivenessGauges({ lod, toolsSelected }: { lod: ReturnType<typeof useStandardLOD>; toolsSelected: number }) {
-  const gaugeCount = lod.level === 'ultra' ? 5 : lod.level === 'high' ? 4 : 3;
+  const gaugeCount = 5;
   const needlesRef = useRef<THREE.InstancedMesh>(null);
   const dialsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -275,13 +275,13 @@ function EffectivenessGauges({ lod, toolsSelected }: { lod: ReturnType<typeof us
     <group>
       {/* Dial backgrounds */}
       <instancedMesh ref={dialsRef} args={[undefined, undefined, gaugeCount]}>
-        <circleGeometry args={[1, lod.level === 'ultra' ? 24 : 16]} />
+        <circleGeometry args={[1, 24} />
         <meshStandardMaterial color="#111118" metalness={0.5} roughness={0.3} side={THREE.DoubleSide} />
       </instancedMesh>
       {/* Gauge bezels */}
       {Array.from({ length: gaugeCount }, (_, i) => (
         <mesh key={i} position={[(i - (gaugeCount - 1) / 2) * 1.2, 2.5, 5.88]}>
-          <torusGeometry args={[0.37, 0.025, 6, lod.level === 'ultra' ? 24 : 12]} />
+          <torusGeometry args={[0.37, 0.025, 6, 24} />
           <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.2} metalness={0.7} roughness={0.2} />
         </mesh>
       ))}
@@ -296,7 +296,7 @@ function EffectivenessGauges({ lod, toolsSelected }: { lod: ReturnType<typeof us
 
 // ■■ Integration Pipeline Models (Instanced) ■■
 function IntegrationPipelines({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const segCount = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 12 : 7;
+  const segCount = 20;
   const segsRef = useRef<THREE.InstancedMesh>(null);
   const jointsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -330,8 +330,6 @@ function IntegrationPipelines({ lod }: { lod: ReturnType<typeof useStandardLOD> 
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.15;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={segsRef} args={[undefined, undefined, segCount]}>
@@ -348,7 +346,7 @@ function IntegrationPipelines({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 
 // ■■ Safety Rating Indicators ■■
 function SafetyRatings({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 5 : lod.level === 'high' ? 4 : 3;
+  const count = 5;
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
   const lightColors = ['#FF3333', '#FFAA33', '#33FF33'];
@@ -380,8 +378,6 @@ function SafetyRatings({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     mat.emissiveIntensity = 0.4 + Math.sin(timeRef.current * 1.5) * 0.15;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       {/* Indicator posts */}
@@ -405,7 +401,7 @@ function SafetyRatings({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Tool Evolution Timeline (Wall) ■■
 function EvolutionTimeline({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const markerCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 6 : 4;
+  const markerCount = 8;
   const markersRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -431,8 +427,6 @@ function EvolutionTimeline({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
     const mat = markersRef.current.material as THREE.MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.1;
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group>

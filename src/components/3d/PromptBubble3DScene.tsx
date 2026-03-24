@@ -11,7 +11,6 @@
 import { Canvas } from '@react-three/fiber';
 import PromptBubble3D from './PromptBubble3D';
 import PromptLabEnvironment from './environments/PromptLabEnvironment';
-import { LODWrapper } from './LODWrapper';
 
 interface Props {
   keywords: string[];
@@ -33,7 +32,6 @@ export default function PromptBubble3DScene({ keywords, isThinking, temperature 
       shadows
       style={{ background: 'transparent' }}
     >
-      <LODWrapper tier="flagship" adaptive>
         {/* [5M] Immersive AI Workshop Environment */}
         <PromptLabEnvironment
           isThinking={isThinking}
@@ -45,7 +43,6 @@ export default function PromptBubble3DScene({ keywords, isThinking, temperature 
           isThinking={isThinking}
           temperature={temperature}
         />
-      </LODWrapper>
     </Canvas>
   );
 }

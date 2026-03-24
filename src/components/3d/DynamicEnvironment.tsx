@@ -18,7 +18,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ── Lab color tables ───────────────────────────────
@@ -493,8 +492,7 @@ export function DynamicEnvironment({ activeLabId, intensity = 0.5 }: DynamicEnvi
   const mainLightRef  = useRef<THREE.PointLight>(null);
   const spotLight1Ref = useRef<THREE.SpotLight>(null);
   const spotLight2Ref = useRef<THREE.SpotLight>(null);
-  const lod = useLOD({ tier: 'system' });
-  const seg = lod.segments;
+  const seg = 64;
   const profile = useDeviceStore((s) => s.profile);
 
   const labColor = activeLabId ? (LAB_COLORS[activeLabId] ?? '#00BBFF') : '#00BBFF';
@@ -530,16 +528,16 @@ export function DynamicEnvironment({ activeLabId, intensity = 0.5 }: DynamicEnvi
       <FogLayers color={labColor} intensity={intensity} seg={seg} />
 
       {/* God ray columns */}
-      {lod.enableEffects && <GodRays color={labColor} seg={seg} />}
+      {<GodRays color={labColor} seg={seg} />}
 
       {/* Lamp housing fixtures */}
-      {lod.enableEffects && <LampFixtures color={labColor} seg={seg} />}
+      {<LampFixtures color={labColor} seg={seg} />}
 
       {/* Holographic data fragments */}
-      {lod.enableEffects && <DataFragments color={labColor} seg={seg} />}
+      {<DataFragments color={labColor} seg={seg} />}
 
       {/* Data highway splines */}
-      {lod.enableEffects && <DataHighways color={labColor} seg={seg} />}
+      {<DataHighways color={labColor} seg={seg} />}
 
       {/* Floating environment rings */}
       <EnvironmentRings color={labColor} seg={seg} />

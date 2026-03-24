@@ -38,7 +38,7 @@ const LAB_COLOR = '#AA66FF';
 
 // ■■ Treat Dispensers (Instanced) ■■
 function TreatDispensers({ lod, treatCount }: { lod: ReturnType<typeof useStandardLOD>; treatCount: number }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 7 : 4;
+  const count = 10;
   const basesRef = useRef<THREE.InstancedMesh>(null);
   const bowlsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -79,11 +79,11 @@ function TreatDispensers({ lod, treatCount }: { lod: ReturnType<typeof useStanda
   return (
     <group>
       <instancedMesh ref={basesRef} args={[undefined, undefined, count]} castShadow>
-        <cylinderGeometry args={[0.8, 1, 1, lod.level === 'ultra' ? 12 : 8]} />
+        <cylinderGeometry args={[0.8, 1, 1, 12} />
         <meshStandardMaterial color="#2A1E3A" metalness={0.5} roughness={0.4} />
       </instancedMesh>
       <instancedMesh ref={bowlsRef} args={[undefined, undefined, count]}>
-        <cylinderGeometry args={[1, 0.7, 1, lod.level === 'ultra' ? 12 : 8]} />
+        <cylinderGeometry args={[1, 0.7, 1, 12} />
         <meshStandardMaterial emissive="#00FF88" emissiveIntensity={0.2} metalness={0.6} roughness={0.3} />
       </instancedMesh>
     </group>
@@ -92,7 +92,7 @@ function TreatDispensers({ lod, treatCount }: { lod: ReturnType<typeof useStanda
 
 // ■■ Training Hoops (Instanced) ■■
 function TrainingHoops({ lod, isTraining }: { lod: ReturnType<typeof useStandardLOD>; isTraining: boolean }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 6 : 3;
+  const count = 8;
   const hoopsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -129,7 +129,7 @@ function TrainingHoops({ lod, isTraining }: { lod: ReturnType<typeof useStandard
 
   return (
     <instancedMesh ref={hoopsRef} args={[undefined, undefined, count]}>
-      <torusGeometry args={[1, 0.06, 8, lod.level === 'ultra' ? 24 : 16]} />
+      <torusGeometry args={[1, 0.06, 8, 24} />
       <meshStandardMaterial
         color={LAB_COLOR}
         emissive={LAB_COLOR}
@@ -143,7 +143,7 @@ function TrainingHoops({ lod, isTraining }: { lod: ReturnType<typeof useStandard
 
 // ■■ Reward Stations (Instanced) ■■
 function RewardStations({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 4 : 3;
+  const count = 6;
   const pedestalsRef = useRef<THREE.InstancedMesh>(null);
   const starsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -185,7 +185,7 @@ function RewardStations({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   return (
     <group>
       <instancedMesh ref={pedestalsRef} args={[undefined, undefined, count]} castShadow>
-        <cylinderGeometry args={[0.8, 1, 1, lod.level === 'ultra' ? 12 : 8]} />
+        <cylinderGeometry args={[0.8, 1, 1, 12} />
         <meshStandardMaterial color="#1E1630" metalness={0.6} roughness={0.3} />
       </instancedMesh>
       <instancedMesh ref={starsRef} args={[undefined, undefined, count]}>
@@ -246,7 +246,7 @@ function ReinforcementZones({ lod, isTraining }: { lod: ReturnType<typeof useSta
   const positiveRef = useRef<THREE.Mesh>(null);
   const negativeRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : 14;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -286,7 +286,7 @@ function ReinforcementZones({ lod, isTraining }: { lod: ReturnType<typeof useSta
         />
       </mesh>
       {/* Zone labels */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[-2.5, 0.1, -2]}>
             <boxGeometry args={[0.6, 0.15, 0.02]} />
@@ -304,7 +304,7 @@ function ReinforcementZones({ lod, isTraining }: { lod: ReturnType<typeof useSta
 
 // ■■ Training Targets (Instanced) ■■
 function TrainingTargets({ lod, isTraining }: { lod: ReturnType<typeof useStandardLOD>; isTraining: boolean }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+  const count = 12;
   const targetsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -335,7 +335,7 @@ function TrainingTargets({ lod, isTraining }: { lod: ReturnType<typeof useStanda
 
   return (
     <instancedMesh ref={targetsRef} args={[undefined, undefined, count]}>
-      <sphereGeometry args={[1, lod.level === 'ultra' ? 12 : 8, lod.level === 'ultra' ? 12 : 8]} />
+      <sphereGeometry args={[1, 12, 12} />
       <meshStandardMaterial
         color="#FFAA44"
         emissive="#FFAA44"
@@ -349,7 +349,7 @@ function TrainingTargets({ lod, isTraining }: { lod: ReturnType<typeof useStanda
 
 // ■■ Playground Equipment ■■
 function PlaygroundEquipment({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const segments = lod.level === 'ultra' ? 16 : 10;
+  const segments = 16;
 
   return (
     <group>
@@ -381,7 +381,7 @@ function PlaygroundEquipment({ lod }: { lod: ReturnType<typeof useStandardLOD> }
         </mesh>
       ))}
       {/* Seesaw */}
-      {lod.enableDetailProps && (
+      {(
         <group position={[1, -0.7, 2.5]}>
           <mesh>
             <boxGeometry args={[2.0, 0.04, 0.3]} />
@@ -411,8 +411,6 @@ function ResponseMeter({ lod, isTraining }: { lod: ReturnType<typeof useStandard
       needleRef.current.rotation.z += (targetAngle - needleRef.current.rotation.z) * delta * 3;
     }
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[4.5, 2, -3]}>

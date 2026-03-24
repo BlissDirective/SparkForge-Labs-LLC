@@ -15,7 +15,7 @@
 //
 // v3-FINAL Additions (Decision 6.5):
 //   - [v3] Dynamic import of ChatbotNodes3D for 3D node visualization
-//   - [v3] useIsMobile hook for 3D/SVG fallback
+//   - [v3] 3D node visualization
 //   - [v3] personalityColors passed to 3D scene
 //   - [v3] 3D renders above SVG graph on desktop, hidden on mobile
 //
@@ -491,8 +491,8 @@ export function ChatbotBuilderGame() {
                       ))}
                     </div>
 
-                    {/* [v3] 3D Visualization (desktop only, graph or test view) */}
-                    {(viewMode === "graph" || viewMode === "test") && !isMobile && (
+                    {/* [v3] 3D Visualization (graph or test view) */}
+                    {(viewMode === "graph" || viewMode === "test") && (
                       <Canvas3DErrorBoundary>
                         <ChatbotNodes3D
                           nodes={nodes}

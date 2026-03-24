@@ -24,7 +24,6 @@ import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import AgentArchitectEnvironment from './environments/AgentArchitectEnvironment';
-import { LODWrapper } from './LODWrapper';
 
 // ================================================================
 // TYPES (mirrored from game component)
@@ -635,7 +634,6 @@ export default function AgentPipeline3D(props: PipelineProps) {
       }}
       gl={{ antialias: true, alpha: false }}
     >
-      <LODWrapper tier="flagship" adaptive>
         {/* [5M] Immersive Server Command Center Environment */}
         <AgentArchitectEnvironment
           isRunning={props.isRunning}
@@ -643,7 +641,6 @@ export default function AgentPipeline3D(props: PipelineProps) {
         />
 
         <PipelineScene {...props} />
-      </LODWrapper>
     </Canvas>
   );
 }

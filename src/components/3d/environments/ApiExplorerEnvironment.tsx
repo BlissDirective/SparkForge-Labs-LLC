@@ -52,8 +52,8 @@ function ApiGatewayHub({ lod, requestsSent }: { lod: ReturnType<typeof useStanda
   const portsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 10;
-  const portCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 6 : 4;
+  const segments = 32;
+  const portCount = 8;
 
   React.useEffect(() => {
     if (!portsRef.current) return;
@@ -99,7 +99,7 @@ function ApiGatewayHub({ lod, requestsSent }: { lod: ReturnType<typeof useStanda
     <group position={[0, 0, 0]}>
       {/* Core octahedron */}
       <mesh ref={coreRef} position={[0, 1.2, 0]}>
-        <octahedronGeometry args={[0.5, lod.level === 'ultra' ? 2 : 1]} />
+        <octahedronGeometry args={[0.5, 2} />
         <meshStandardMaterial
           color={LAB_COLOR}
           emissive={LAB_COLOR}
@@ -140,7 +140,7 @@ function PipelineTubes({ lod, currentMethod }: { lod: ReturnType<typeof useStand
   const timeRef = useRef(0);
 
   const methods = useMemo(() => ['GET', 'POST', 'PUT', 'DELETE'], []);
-  const segments = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 6;
+  const segments = 12;
 
   const tubeGeometries = useMemo(() => {
     return methods.map((_, i) => {
@@ -194,7 +194,7 @@ function PipelineTubes({ lod, currentMethod }: { lod: ReturnType<typeof useStand
 
 // ■■ Endpoint Directory Tower ■■
 function EndpointTower({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const panelCount = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const panelCount = 8;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -296,7 +296,7 @@ function AuthKeycardStation({ lod: _lod }: { lod: ReturnType<typeof useStandardL
 function RateLimitMeter({ lod, requestsSent }: { lod: ReturnType<typeof useStandardLOD>; requestsSent: number }) {
   const needleRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -351,7 +351,7 @@ function RateLimitMeter({ lod, requestsSent }: { lod: ReturnType<typeof useStand
 
 // ■■ Documentation Hologram Library (Instanced) ■■
 function DocumentationLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 6 : 3;
+  const count = 10;
   const pagesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -386,8 +386,6 @@ function DocumentationLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> 
     if (pagesRef.current.instanceColor) pagesRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={pagesRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -404,7 +402,7 @@ function DocumentationLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 
 // ■■ Webhook Listener Array (Instanced) ■■
 function WebhookListeners({ lod, requestsSent }: { lod: ReturnType<typeof useStandardLOD>; requestsSent: number }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const count = 8;
   const dishesRef = useRef<THREE.InstancedMesh>(null);
   const stemsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -460,7 +458,7 @@ function WebhookListeners({ lod, requestsSent }: { lod: ReturnType<typeof useSta
 
 // ■■ Status Code Indicator Lights (Instanced) ■■
 function StatusCodeLights({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 12 : 6;
+  const count = 20;
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 

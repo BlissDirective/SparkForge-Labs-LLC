@@ -48,11 +48,11 @@ import {
 
 // ■■ Marble Pillars (expanded) ■■
 function MarblePillars({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const pillarCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const pillarCount = 16;
   const pillarsRef = useRef<THREE.InstancedMesh>(null);
   const capsRef = useRef<THREE.InstancedMesh>(null);
   const basesRef = useRef<THREE.InstancedMesh>(null);
-  const segs = lod.segments;
+  const segs = 64;
 
   React.useEffect(() => {
     if (!pillarsRef.current || !capsRef.current || !basesRef.current) return;
@@ -97,14 +97,12 @@ function MarblePillars({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 // ■■ Grand Chandelier ■■
 function GrandChandelier({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
   const chandelierRef = useRef<THREE.Group>(null);
-  const candleCount = lod.level === 'ultra' ? 16 : 10;
+  const candleCount = 16;
 
   useFrame((state) => {
     if (!chandelierRef.current) return;
     chandelierRef.current.rotation.y = state.clock.elapsedTime * 0.03;
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group ref={chandelierRef} position={[0, 5, -2]}>
@@ -115,12 +113,12 @@ function GrandChandelier({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
       </mesh>
       {/* Main ring */}
       <mesh position={[0, -0.8, 0]}>
-        <torusGeometry args={[1.5, 0.06, 6, lod.segments]} />
+        <torusGeometry args={[1.5, 0.06, 6, 64]} />
         <meshStandardMaterial color="#D4A640" metalness={0.8} roughness={0.2} emissive="#D4A640" emissiveIntensity={0.1} />
       </mesh>
       {/* Inner ring */}
       <mesh position={[0, -0.6, 0]}>
-        <torusGeometry args={[0.8, 0.04, 6, lod.segments]} />
+        <torusGeometry args={[0.8, 0.04, 6, 64]} />
         <meshStandardMaterial color="#D4A640" metalness={0.8} roughness={0.2} />
       </mesh>
       {/* Candle holders */}
@@ -196,17 +194,17 @@ function JudgeBench({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
           <meshStandardMaterial color="#8B4513" roughness={0.6} />
         </mesh>
         <mesh position={[0.18, 0.18, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-          <cylinderGeometry args={[0.07, 0.07, 0.22, lod.segments]} />
+          <cylinderGeometry args={[0.07, 0.07, 0.22, 64]} />
           <meshStandardMaterial color="#D4A640" metalness={0.7} roughness={0.2} />
         </mesh>
       </group>
       {/* Sound block */}
       <mesh position={[2, 1.52, 0.3]} castShadow>
-        <cylinderGeometry args={[0.12, 0.12, 0.04, lod.segments]} />
+        <cylinderGeometry args={[0.12, 0.12, 0.04, 64]} />
         <meshStandardMaterial color="#5D3A1A" roughness={0.7} />
       </mesh>
       {/* Nameplate */}
-      {lod.enableDetailProps && (
+      {(
         <mesh position={[0, 1.52, 0.55]}>
           <boxGeometry args={[1.2, 0.18, 0.03]} />
           <meshStandardMaterial color="#D4A640" metalness={0.8} roughness={0.2} />
@@ -218,7 +216,6 @@ function JudgeBench({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Witness Stand ■■
 function WitnessStand({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[5, -1, -4]}>
@@ -261,7 +258,7 @@ function WitnessStand({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Jury Box ■■
 function JuryBox({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const seatCount = lod.level === 'ultra' ? 12 : 8;
+  const seatCount = 12;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
   const backsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -282,8 +279,6 @@ function JuryBox({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     seatsRef.current.instanceMatrix.needsUpdate = true;
     backsRef.current.instanceMatrix.needsUpdate = true;
   }, [seatCount]);
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group>
@@ -308,7 +303,7 @@ function JuryBox({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Evidence Display Wall ■■
 function EvidenceWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const pinCount = lod.level === 'ultra' ? 15 : 8;
+  const pinCount = 15;
   const pinsRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -328,8 +323,6 @@ function EvidenceWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     pinsRef.current.instanceMatrix.needsUpdate = true;
     if (pinsRef.current.instanceColor) pinsRef.current.instanceColor.needsUpdate = true;
   }, [pinCount]);
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group position={[8, 0, -2]}>
@@ -356,7 +349,7 @@ function EvidenceWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Gallery Pews (expanded) ■■
 function GallerySeating({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const pewCount = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 14 : 8;
+  const pewCount = 24;
   const pewsRef = useRef<THREE.InstancedMesh>(null);
   const backsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -394,7 +387,7 @@ function GallerySeating({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Law Book Shelves (denser) ■■
 function LawBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const bookCount = lod.level === 'ultra' ? 120 : 60;
+  const bookCount = 120;
   const booksRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -421,8 +414,6 @@ function LawBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (booksRef.current.instanceColor) booksRef.current.instanceColor.needsUpdate = true;
   }, [bookCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={booksRef} args={[undefined, undefined, bookCount]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -433,7 +424,6 @@ function LawBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Stained Glass Windows (enhanced) ■■
 function StainedGlass({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  if (!lod.enableEffects) return null;
 
   const windows = [
     { x: -13, z: -4, color: '#EF4444' },
@@ -477,13 +467,11 @@ function ScalesOfJustice({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     if (rightPanRef.current) rightPanRef.current.position.y = 2 + Math.sin(tilt) * 0.8;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group position={[0, -1, -3]}>
       {/* Pedestal */}
       <mesh castShadow>
-        <cylinderGeometry args={[0.3, 0.4, 0.5, lod.segments]} />
+        <cylinderGeometry args={[0.3, 0.4, 0.5, 64]} />
         <meshStandardMaterial color="#D4A640" metalness={0.7} roughness={0.3} />
       </mesh>
       {/* Central pillar */}
@@ -493,7 +481,7 @@ function ScalesOfJustice({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
       </mesh>
       {/* Crown */}
       <mesh position={[0, 2.8, 0]}>
-        <sphereGeometry args={[0.12, lod.segments, lod.segments]} />
+        <sphereGeometry args={[0.12, 64, 64]} />
         <meshStandardMaterial color="#D4A640" metalness={0.8} roughness={0.2} emissive="#D4A640" emissiveIntensity={0.2} />
       </mesh>
       {/* Cross beam */}
@@ -508,7 +496,7 @@ function ScalesOfJustice({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
           <meshStandardMaterial color="#D4A640" metalness={0.7} roughness={0.3} />
         </mesh>
         <mesh position={[0, -0.35, 0]}>
-          <cylinderGeometry args={[0.35, 0.3, 0.06, lod.segments]} />
+          <cylinderGeometry args={[0.35, 0.3, 0.06, 64]} />
           <meshStandardMaterial color="#D4A640" metalness={0.7} roughness={0.3} />
         </mesh>
       </group>
@@ -519,7 +507,7 @@ function ScalesOfJustice({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
           <meshStandardMaterial color="#D4A640" metalness={0.7} roughness={0.3} />
         </mesh>
         <mesh position={[0, -0.35, 0]}>
-          <cylinderGeometry args={[0.35, 0.3, 0.06, lod.segments]} />
+          <cylinderGeometry args={[0.35, 0.3, 0.06, 64]} />
           <meshStandardMaterial color="#D4A640" metalness={0.7} roughness={0.3} />
         </mesh>
       </group>
@@ -530,7 +518,6 @@ function ScalesOfJustice({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Courthouse Archways ■■
 function CourthouseArches({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  if (!lod.enableDetailProps) return null;
 
   const archPositions: [number, number, number, number][] = [
     [0, 0, 12, 0],
@@ -553,7 +540,7 @@ function CourthouseArches({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
           </mesh>
           {/* Arch top */}
           <mesh position={[0, 3, 0]} rotation={[Math.PI / 2, 0, 0]}>
-            <torusGeometry args={[1.2, 0.2, 4, lod.segments, Math.PI]} />
+            <torusGeometry args={[1.2, 0.2, 4, 64, Math.PI]} />
             <meshStandardMaterial color="#D4C9B0" roughness={0.3} metalness={0.05} />
           </mesh>
           {/* Keystone */}
@@ -579,20 +566,20 @@ function JusticeMedallion({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
   return (
     <group position={[0, -0.97, 2]} rotation={[-Math.PI / 2, 0, 0]}>
       <mesh ref={ringRef}>
-        <ringGeometry args={[3.5, 3.8, lod.segments * 2]} />
+        <ringGeometry args={[3.5, 3.8, 64 * 2]} />
         <meshStandardMaterial color="#D4A640" metalness={0.7} roughness={0.3} emissive="#D4A640" emissiveIntensity={0.1} />
       </mesh>
       <mesh>
-        <circleGeometry args={[3.5, lod.segments * 2]} />
+        <circleGeometry args={[3.5, 64 * 2]} />
         <meshStandardMaterial color="#1A1520" roughness={0.4} metalness={0.2} />
       </mesh>
       {/* Inner decorative rings */}
       <mesh position={[0, 0, 0.01]}>
-        <ringGeometry args={[2, 2.1, lod.segments]} />
+        <ringGeometry args={[2, 2.1, 64]} />
         <meshBasicMaterial color="#D4A640" transparent opacity={0.3} />
       </mesh>
       <mesh position={[0, 0, 0.01]}>
-        <ringGeometry args={[1, 1.1, lod.segments]} />
+        <ringGeometry args={[1, 1.1, 64]} />
         <meshBasicMaterial color="#D4A640" transparent opacity={0.2} />
       </mesh>
     </group>
@@ -601,7 +588,7 @@ function JusticeMedallion({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 
 // ■■ Dust Motes (expanded) ■■
 function DustMotes({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
-  const count = lod.level === 'ultra' ? 150 : 60;
+  const count = 150;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   const motes = useMemo(() =>
@@ -630,8 +617,6 @@ function DustMotes({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
-
-  if (!lod.enableParticles) return null;
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>

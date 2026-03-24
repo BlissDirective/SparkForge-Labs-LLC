@@ -16,7 +16,6 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 // Intensity presets from Decision 5.5
 const INTENSITY_PRESETS = {
@@ -44,19 +43,17 @@ export function AmbientParticles({
   const haloRef = useRef<THREE.InstancedMesh>(null);
   const linesRef = useRef<THREE.LineSegments>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
-
-  const lod = useLOD({ tier: 'system' });
   const preset = INTENSITY_PRESETS[intensity];
   const count = baseCount || preset.count;
   const showConnections = preset.connections;
-  const showTrails = lod.enableEffects;
-  const showHalos = lod.enableEffects && intensity === 'high';
+  const showTrails = true;
+  const showHalos = intensity === 'high';
 
   // Particle geometry: icosahedron for higher fidelity
   const particleGeo = useMemo(() => {
-    const segments = Math.max(lod.segments >= 32 ? 1 : 0, 0);
+    const segments = Math.max(64 >= 32 ? 1 : 0, 0);
     return new THREE.IcosahedronGeometry(1, segments);
-  }, [lod.segments]);
+  }, [64]);
 
   // Trail segment geometry: elongated low-poly capsule
   const trailGeo = useMemo(() => {

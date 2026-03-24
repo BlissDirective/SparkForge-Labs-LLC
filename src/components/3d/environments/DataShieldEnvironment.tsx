@@ -62,7 +62,7 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
     }
   });
 
-  const segments = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 6 : 4;
+  const segments = 6;
 
   return (
     <group position={[0, 1.5, 0]}>
@@ -81,7 +81,7 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
       </mesh>
       {/* Inner shield sphere */}
       <mesh ref={innerRef}>
-        <icosahedronGeometry args={[0.5, lod.level === 'ultra' ? 2 : 1]} />
+        <icosahedronGeometry args={[0.5, 2} />
         <meshStandardMaterial
           color="#00FF88"
           emissive="#00FF88"
@@ -93,7 +93,7 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
       </mesh>
       {/* Orbiting ring */}
       <mesh ref={ringRef}>
-        <torusGeometry args={[1.2, 0.04, 8, lod.level === 'ultra' ? 32 : 16]} />
+        <torusGeometry args={[1.2, 0.04, 8, 32} />
         <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.5} metalness={0.9} roughness={0.1} />
       </mesh>
       {/* Base pedestal */}
@@ -107,7 +107,7 @@ function ShieldGenerator({ lod, shieldStrength }: { lod: ReturnType<typeof useSt
 
 // ■■ Data Stream Tunnels with Packets (Instanced) ■■
 function DataStreamTunnels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const packetCount = lod.level === 'ultra' ? 40 : lod.level === 'high' ? 25 : 12;
+  const packetCount = 40;
   const packetsRef = useRef<THREE.InstancedMesh>(null);
   const tubeRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -237,7 +237,7 @@ function PrivacyVault({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     }
   });
 
-  const segments = lod.level === 'ultra' ? 16 : 8;
+  const segments = 16;
 
   return (
     <group position={[-3.5, 0, -3]}>
@@ -277,7 +277,7 @@ function ThreatRadar({ lod, threatsBlocked }: { lod: ReturnType<typeof useStanda
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[3.5, 0, -3]}>
@@ -340,9 +340,7 @@ function CipherWheels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     if (ring3Ref.current) ring3Ref.current.rotation.z += delta * 0.7;
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
-
-  if (!lod.enableDetailProps) return null;
+  const segments = 32;
 
   return (
     <group position={[3.5, 1.8, 3]}>
@@ -369,7 +367,7 @@ function CipherWheels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Personal Data Lockers (Instanced) ■■
 function DataLockers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+  const count = 12;
   const lockersRef = useRef<THREE.InstancedMesh>(null);
   const shieldIconsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -434,7 +432,7 @@ function DataLockers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Intrusion Alert Beacons (Instanced) ■■
 function AlertBeacons({ lod, threatsBlocked }: { lod: ReturnType<typeof useStandardLOD>; threatsBlocked: number }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const count = 8;
   const beaconsRef = useRef<THREE.InstancedMesh>(null);
   const lightRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -470,8 +468,6 @@ function AlertBeacons({ lod, threatsBlocked }: { lod: ReturnType<typeof useStand
       ? 0.5 + Math.sin(timeRef.current * 6) * 0.4
       : 0.2 + Math.sin(timeRef.current * 2) * 0.1;
   });
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group>

@@ -37,7 +37,7 @@ const LAB_COLOR = '#FFAA44';
 
 // ■■ Floating Artworks in Frames (Instanced) ■■
 function FloatingArtworks({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const count = 16;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const canvasRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -107,8 +107,6 @@ function StylePanels({ lod, isDetecting }: { lod: ReturnType<typeof useStandardL
     }
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group position={[-4.5, 0, 2]}>
       {/* Left panel (original) */}
@@ -171,7 +169,7 @@ function BrushStrokeScanner({ lod, isDetecting }: { lod: ReturnType<typeof useSt
     <group position={[4, 0, -2]}>
       {/* Scanner base */}
       <mesh position={[0, 0.15, 0]} castShadow>
-        <cylinderGeometry args={[0.5, 0.6, 0.3, lod.level === 'ultra' ? 16 : 10]} />
+        <cylinderGeometry args={[0.5, 0.6, 0.3, 16} />
         <meshStandardMaterial color="#1A1822" metalness={0.6} roughness={0.3} />
       </mesh>
       {/* Vertical arm */}
@@ -198,7 +196,7 @@ function BrushStrokeScanner({ lod, isDetecting }: { lod: ReturnType<typeof useSt
         </mesh>
         {/* Scanner lens */}
         <mesh position={[0, -0.08, 0]}>
-          <circleGeometry args={[0.08, lod.level === 'ultra' ? 16 : 10]} />
+          <circleGeometry args={[0.08, 16} />
           <meshStandardMaterial color="#88DDFF" transparent opacity={0.4} emissive="#88DDFF" emissiveIntensity={0.2} side={THREE.DoubleSide} />
         </mesh>
       </group>
@@ -208,7 +206,7 @@ function BrushStrokeScanner({ lod, isDetecting }: { lod: ReturnType<typeof useSt
 
 // ■■ Art History Timeline Ribbon ■■
 function TimelineRibbon({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const markerCount = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 7 : 4;
+  const markerCount = 10;
   const markersRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -239,13 +237,11 @@ function TimelineRibbon({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.1;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       {/* Ribbon path (simplified as curved tube sections) */}
       <mesh position={[0, 3.0, 0]}>
-        <torusGeometry args={[5, 0.02, 4, lod.level === 'ultra' ? 48 : 24, Math.PI * 1.5]} />
+        <torusGeometry args={[5, 0.02, 4, 48, Math.PI * 1.5]} />
         <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.2} />
       </mesh>
       {/* Era markers */}
@@ -259,7 +255,7 @@ function TimelineRibbon({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Palette Extraction Station ■■
 function PaletteStation({ lod, artworksAnalyzed }: { lod: ReturnType<typeof useStandardLOD>; artworksAnalyzed: number }) {
-  const swatchCount = Math.min(artworksAnalyzed * 2, lod.level === 'ultra' ? 12 : 8);
+  const swatchCount = Math.min(artworksAnalyzed * 2, 12);
   const swatchRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -284,12 +280,12 @@ function PaletteStation({ lod, artworksAnalyzed }: { lod: ReturnType<typeof useS
     <group position={[-3, 0, -4]}>
       {/* Pedestal */}
       <mesh position={[0, 0.5, 0]} castShadow>
-        <cylinderGeometry args={[0.35, 0.45, 1.0, lod.level === 'ultra' ? 16 : 10]} />
+        <cylinderGeometry args={[0.35, 0.45, 1.0, 16} />
         <meshStandardMaterial color="#1A1822" metalness={0.5} roughness={0.4} />
       </mesh>
       {/* Top plate */}
       <mesh position={[0, 1.05, 0]}>
-        <cylinderGeometry args={[0.4, 0.4, 0.04, lod.level === 'ultra' ? 16 : 10]} />
+        <cylinderGeometry args={[0.4, 0.4, 0.04, 16} />
         <meshStandardMaterial color="#2A2235" metalness={0.7} roughness={0.2} />
       </mesh>
       {/* Color swatches */}
@@ -362,10 +358,10 @@ function ForgeryDesk({ lod: _lod, isDetecting }: { lod: ReturnType<typeof useSta
 
 // ■■ Museum Architecture (Columns) ■■
 function MuseumColumns({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 6 : 4;
+  const count = 8;
   const columnsRef = useRef<THREE.InstancedMesh>(null);
   const capsRef = useRef<THREE.InstancedMesh>(null);
-  const segments = lod.level === 'ultra' ? 16 : 10;
+  const segments = 16;
 
   React.useEffect(() => {
     if (!columnsRef.current || !capsRef.current) return;
@@ -401,7 +397,7 @@ function MuseumColumns({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <planeGeometry args={[13, 14]} />
         <meshStandardMaterial color="#080510" roughness={0.9} side={THREE.DoubleSide} />
       </mesh>
-      {lod.enableDetailProps && (
+      {(
         <mesh position={[0, 3.95, 0]}>
           <boxGeometry args={[10, 0.02, 0.05]} />
           <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.3} />

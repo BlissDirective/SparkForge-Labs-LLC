@@ -36,7 +36,7 @@ const LAB_COLOR = '#00BBFF';
 
 // ■■ Holographic Display Screens (Instanced) ■■
 function HolographicScreens({ lod, sceneIndex }: { lod: ReturnType<typeof useStandardLOD>; sceneIndex: number }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+  const count = 12;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -100,7 +100,7 @@ function MagnifyingGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   const glassRef = useRef<THREE.Group>(null);
   const lensRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 12;
+  const segments = 32;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -149,7 +149,7 @@ function MagnifyingGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Evidence Pinboard with Threads ■■
 function EvidencePinboard({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const pinCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const pinCount = 16;
   const pinsRef = useRef<THREE.InstancedMesh>(null);
   const cardsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -201,7 +201,7 @@ function EvidencePinboard({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial roughness={0.8} metalness={0.1} />
       </instancedMesh>
       {/* Thread connections */}
-      {lod.enableDetailProps && (
+      {(
         <group>
           {Array.from({ length: 5 }).map((_, i) => {
             const x1 = -3.5 + (i % 4) * 0.7;
@@ -223,7 +223,7 @@ function EvidencePinboard({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Surveillance Monitors (Instanced) ■■
 function SurveillanceMonitors({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const count = 16;
   const monitorsRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -277,7 +277,7 @@ function ScannerBeam({ lod, isScanning }: { lod: ReturnType<typeof useStandardLO
   const beamRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : 12;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -324,7 +324,7 @@ function ScannerBeam({ lod, isScanning }: { lod: ReturnType<typeof useStandardLO
 
 // ■■ Floating Data Fragments (Instanced) ■■
 function DataFragments({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 40 : lod.level === 'high' ? 25 : 12;
+  const count = 40;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -363,8 +363,6 @@ function DataFragments({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <boxGeometry args={[1, 1, 1]} />
@@ -397,7 +395,7 @@ function DetectiveDesk({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         </mesh>
       ))}
       {/* Gadgets on desk */}
-      {lod.enableDetailProps && (
+      {(
         <>
           {/* Tablet device */}
           <mesh position={[-0.5, 0.78, 0.1]}>
@@ -453,7 +451,7 @@ function RoomEnclosure({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#0C0E18" metalness={0.3} roughness={0.7} />
       </mesh>
       {/* Neon floor grid lines */}
-      {lod.enableDetailProps && (
+      {(
         <group position={[0, -0.97, 0]}>
           {Array.from({ length: 7 }).map((_, i) => (
             <mesh key={`h-${i}`} position={[0, 0, -4 + i * 1.2]} rotation={[-Math.PI / 2, 0, 0]}>

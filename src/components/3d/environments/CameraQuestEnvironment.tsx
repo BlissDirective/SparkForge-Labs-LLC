@@ -29,7 +29,7 @@ import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase'
 
 // ■■ Photography Lighting Rigs ■■
 function LightingRigs({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const count = 8;
   const boxRef = useRef<THREE.InstancedMesh>(null);
   const panelRef = useRef<THREE.InstancedMesh>(null);
 
@@ -83,7 +83,7 @@ function LightingRigs({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 
 // ■■ Camera Stations ■■
 function CameraStations({ lod, isCapturing }: { lod: ReturnType<typeof useFLLiteLOD>; isCapturing: boolean }) {
-  const stationCount = lod.enableDetailProps ? 4 : 2;
+  const stationCount = 4;
   const flashRef = useRef<THREE.Group>(null);
 
   useFrame(({ clock }) => {
@@ -136,7 +136,7 @@ function CameraStations({ lod, isCapturing }: { lod: ReturnType<typeof useFLLite
 
 // ■■ Photo Gallery Wall ■■
 function PhotoGallery({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const frameCount = lod.level === 'ultra' ? 20 : lod.level === 'high' ? 12 : 6;
+  const frameCount = 20;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const photosRef = useRef<THREE.InstancedMesh>(null);
 
@@ -198,7 +198,7 @@ function PhotoGallery({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 
 // ■■ Film Strip Ribbons ■■
 function FilmStrips({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+  const count = 12;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -241,7 +241,7 @@ function FilmStrips({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 
 // ■■ Neural Network Visualization ■■
 function NeuralNetworkViz({ lod, confidence }: { lod: ReturnType<typeof useFLLiteLOD>; confidence: number }) {
-  const nodeCount = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const nodeCount = 24;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
 
   const nodePositions = useMemo(() => {
@@ -341,7 +341,7 @@ export default function CameraQuestEnvironment({ isCapturing, confidence }: Came
       <LightingRigs lod={lod} />
       <CameraStations lod={lod} isCapturing={isCapturing} />
       <PhotoGallery lod={lod} />
-      {lod.enableDetailProps && <FilmStrips lod={lod} />}
+      {<FilmStrips lod={lod} />}
       <NeuralNetworkViz lod={lod} confidence={confidence} />
       <ViewfinderFrame />
     </FLLiteEnvironmentWrapper>

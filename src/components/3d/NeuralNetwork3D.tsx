@@ -27,7 +27,6 @@ import { OrbitControls, Text, Line, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import NeuralBuilderEnvironment from './environments/NeuralBuilderEnvironment';
-import { LODWrapper } from './LODWrapper';
 
 // ================================================================
 // TYPES
@@ -472,7 +471,6 @@ export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
         shadows
         style={{ background: 'transparent' }}
       >
-        <LODWrapper tier="flagship" adaptive>
           {/* [5M] Immersive Data Center Environment */}
           <NeuralBuilderEnvironment
             isTraining={props.isTraining}
@@ -490,7 +488,6 @@ export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
             onSelectConnection={props.onSelectConnection}
             onInspectNode={props.onInspectNode}
           />
-        </LODWrapper>
       </Canvas>
     </div>
   );

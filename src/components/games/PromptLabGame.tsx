@@ -31,18 +31,6 @@ const PromptBubble3DScene = dynamic(
   { ssr: false }
 );
 
-// [v3] Mobile detection hook for 3D/CSS fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
-
 // ================================================================
 // TYPES
 // ================================================================
@@ -752,7 +740,6 @@ export function PromptLabGame() {
   // [v3] 3D thought bubble state
   const [bubbleKeywords, setBubbleKeywords] = useState<string[]>([]);
   const [showBubbles, setShowBubbles] = useState(false);
-  const isMobile = useIsMobile();
 
   // --- Refs ---
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -828,7 +815,7 @@ export function PromptLabGame() {
 
     // [v3] Extract keywords for 3D bubbles
     const newKeywords = extractKeywords(input.trim());
-    if (newKeywords.length > 0 && !isMobile) {
+    if (newKeywords.length > 0) {
       setBubbleKeywords(prev => {
         const combined = [...prev, ...newKeywords];
         return combined.slice(-12); // Keep last 12
@@ -893,7 +880,7 @@ export function PromptLabGame() {
     } finally {
       setLoading(false);
     }
-  }, [input, loading, activeChild, messages, temperature, game, activeChallenge, systemPrompt, ageBand, isMobile]);
+  }, [input, loading, activeChild, messages, temperature, game, activeChallenge, systemPrompt, ageBand]);
 
   function handleTemplateSelect(text: string) {
     setInput(text);
@@ -1142,8 +1129,8 @@ export function PromptLabGame() {
                   exit={{ opacity: 0 }}
                   className="flex-1 flex flex-col min-h-0 relative"
                 >
-                  {/* [v3] 3D Thought Bubbles -- desktop only */}
-                  {showBubbles && !isMobile && (phase === 'sandbox' || phase === 'challenge') && (
+                  {/* [v3] 3D Thought Bubbles */}
+                  {showBubbles && (phase === 'sandbox' || phase === 'challenge') && (
                     <div
                       className="absolute inset-0 pointer-events-none z-0"
                       style={{ opacity: 0.7 }}
@@ -1154,35 +1141,6 @@ export function PromptLabGame() {
                         isThinking={loading}
                         temperature={temperature}
                       />
-                    </div>
-                  )}
-
-                  {/* [v3] Mobile CSS fallback -- floating keyword pills */}
-                  {showBubbles && isMobile && (phase === 'sandbox' || phase === 'challenge') && (
-                    <div
-                      className="absolute inset-0 pointer-events-none z-0 overflow-hidden"
-                      aria-hidden="true"
-                    >
-                      {bubbleKeywords.slice(-6).map((kw, i) => (
-                        <motion.div
-                          key={`${kw}-${i}`}
-                          className="absolute px-2 py-0.5 rounded-full text-[9px] font-display text-amber-200/60 border border-amber-500/10 bg-amber-500/5 backdrop-blur-sm"
-                          initial={{ opacity: 0, scale: 0, y: 20 }}
-                          animate={{
-                            opacity: [0, 0.6, 0.4],
-                            scale: [0, 1, 0.9],
-                            y: [20, -10 - i * 15, -20 - i * 15],
-                            x: [0, (i % 2 ? 1 : -1) * (10 + i * 8), (i % 2 ? 1 : -1) * (5 + i * 5)],
-                          }}
-                          transition={{ duration: 2, delay: i * 0.15 }}
-                          style={{
-                            left: `${20 + (i * 13) % 60}%`,
-                            top: `${30 + (i * 11) % 40}%`,
-                          }}
-                        >
-                          {kw}
-                        </motion.div>
-                      ))}
                     </div>
                   )}
 

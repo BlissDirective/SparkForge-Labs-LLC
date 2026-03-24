@@ -29,7 +29,7 @@ import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase'
 
 // ■■ Investigation Desks with Monitors ■■
 function InvestigationDesks({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const deskCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+  const deskCount = 12;
   const desksRef = useRef<THREE.InstancedMesh>(null);
   const monitorsRef = useRef<THREE.InstancedMesh>(null);
   const screenGlowRef = useRef<THREE.InstancedMesh>(null);
@@ -84,7 +84,7 @@ function InvestigationDesks({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 
 // ■■ Evidence Pinboards with Connection Lines ■■
 function EvidencePinboards({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const boardCount = lod.enableDetailProps ? 6 : 3;
+  const boardCount = 6;
   const lineRef = useRef<THREE.Group>(null);
 
   const lineGeometry = useMemo(() => {
@@ -173,7 +173,7 @@ function MagnifyingGlassHologram({ isAnalyzing }: { isAnalyzing: boolean }) {
 
 // ■■ Filing Cabinets ■■
 function FilingCabinets({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const cabinetCount = lod.level === 'ultra' ? 40 : lod.level === 'high' ? 24 : 12;
+  const cabinetCount = 40;
   const ref = useRef<THREE.InstancedMesh>(null);
   const handleRef = useRef<THREE.InstancedMesh>(null);
 
@@ -212,7 +212,7 @@ function FilingCabinets({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 
 // ■■ Holographic Data Screens ■■
 function HolographicScreens({ lod, selectedRow }: { lod: ReturnType<typeof useFLLiteLOD>; selectedRow: number | null }) {
-  const screenCount = lod.enableDetailProps ? 8 : 4;
+  const screenCount = 8;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -256,7 +256,7 @@ function HolographicScreens({ lod, selectedRow }: { lod: ReturnType<typeof useFL
 
 // ■■ Data Stream Particles ■■
 function DataStreamParticles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 300 : lod.level === 'high' ? 180 : 60;
+  const count = 300;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   const speeds = useMemo(() => Array.from({ length: count }, () => 0.5 + Math.random() * 1.5), [count]);
@@ -301,7 +301,6 @@ function DataStreamParticles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) 
 
 // ■■ Evidence Tape Barriers ■■
 function EvidenceTape({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  if (!lod.enableDetailProps) return null;
   const tapeCount = 6;
   return (
     <group>
@@ -341,7 +340,7 @@ export default function DataDetectiveEnvironment({ selectedRow, isAnalyzing }: D
       <MagnifyingGlassHologram isAnalyzing={isAnalyzing} />
       <FilingCabinets lod={lod} />
       <HolographicScreens lod={lod} selectedRow={selectedRow} />
-      {lod.enableParticles && <DataStreamParticles lod={lod} />}
+      {<DataStreamParticles lod={lod} />}
       <EvidenceTape lod={lod} />
     </FLLiteEnvironmentWrapper>
   );

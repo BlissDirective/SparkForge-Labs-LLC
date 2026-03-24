@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════
 // StandardEnvironmentBase — Shared 500K-budget foundation
 // ════════════════════════════════════════════════════
-// Provides LOD-aware lighting, terrain, sky, and fog for
+
 // all 20 Standard tier game environments. Upgraded from
 // 10K-25K to 500K triangle budget per game.
 //
@@ -19,7 +19,6 @@ import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD, type LODState } from '@/hooks/useLOD';
 
 // ■■ Shared LOD Config for Standard Environments ■■
 export interface StandardLOD extends LODState {
@@ -33,7 +32,6 @@ export interface StandardLOD extends LODState {
 }
 
 export function useStandardLOD(): StandardLOD {
-  const lod = useLOD({ tier: 'standard' });
 
   return useMemo(() => {
     const levelConfigs: Record<string, Partial<StandardLOD>> = {
@@ -84,7 +82,7 @@ export function useStandardLOD(): StandardLOD {
       },
     };
 
-    const config = levelConfigs[lod.level] || levelConfigs.high;
+    const config = levelConfigs['ultra'] || levelConfigs.high;
     return { ...lod, ...config } as StandardLOD;
   }, [lod]);
 }
@@ -104,7 +102,7 @@ export function StandardTerrain({
   lod,
 }: TerrainProps) {
   const geometry = useMemo(() => {
-    const segs = lod.terrainSegments;
+    const segs = 512;
     const geo = new THREE.PlaneGeometry(size, size, segs, segs);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
@@ -118,7 +116,7 @@ export function StandardTerrain({
     }
     geo.computeVertexNormals();
     return geo;
-  }, [size, heightScale, lod.terrainSegments]);
+  }, [size, heightScale, 512]);
 
   const material = useMemo(() =>
     new THREE.MeshStandardMaterial({
@@ -178,7 +176,7 @@ export function StandardSkyDome({
 
   return (
     <mesh material={material}>
-      <sphereGeometry args={[radius, lod.skySegments, lod.skySegments]} />
+      <sphereGeometry args={[radius, 96, 96]} />
     </mesh>
   );
 }
@@ -198,7 +196,7 @@ export function StandardFogParticles({
   lod,
 }: FogParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
-  const count = Math.min(baseCount, lod.instanceCount);
+  const count = Math.min(baseCount, 1000);
 
   const { matrices, speeds } = useMemo(() => {
     const m: THREE.Matrix4[] = [];
@@ -268,9 +266,9 @@ export function StandardLightingRig({ labColor, lod, ambientIntensity = 0.3 }: L
         position={[5, 8, 3]}
         intensity={0.8}
         color="#ffffff"
-        castShadow={lod.enableShadows}
-        shadow-mapSize-width={lod.enableShadows ? 512 : 256}
-        shadow-mapSize-height={lod.enableShadows ? 512 : 256}
+        castShadow={true}
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
         shadow-camera-far={30}
         shadow-camera-left={-10}
         shadow-camera-right={10}
@@ -279,7 +277,7 @@ export function StandardLightingRig({ labColor, lod, ambientIntensity = 0.3 }: L
       />
       <pointLight position={[-3, 2.5, -2]} intensity={0.35} color={labColor} distance={12} />
       <pointLight position={[3, 1.5, 3]} intensity={0.2} color="#AA66FF" distance={10} />
-      {lod.enableContactShadows && (
+      {(
         <ContactShadows position={[0, -0.99, 0]} opacity={0.3} scale={16} blur={2} far={2.5} />
       )}
     </>
@@ -315,7 +313,7 @@ export function StandardEnvironmentWrapper({
       <StandardLightingRig labColor={labColor} lod={lod} />
       <StandardTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} lod={lod} />
       <StandardSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} lod={lod} />
-      {lod.enableParticles && <StandardFogParticles color={fogColor || labColor} lod={lod} />}
+      {<StandardFogParticles color={fogColor || labColor} lod={lod} />}
       <Environment preset="night" />
       {children}
     </group>

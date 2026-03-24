@@ -14,7 +14,7 @@
 // - Instanced rivets/bolts (~500+ InstancedMesh instances)
 // - Animated sub-panels with slide/rotate transforms
 // - 12 hex clusters with internal gauge needle geometry
-// - LOD-aware via useLOD hook (tier: 'system')
+
 //
 // Uses PanelFace, WornChrome, ConsoleBase materials.
 // All geometry dims/retracts in game mode (Decision 3.4).
@@ -23,7 +23,6 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
-import { useLOD, type LODState } from '@/hooks/useLOD';
 
 // ■■ Props ■■
 
@@ -61,7 +60,7 @@ interface ResolvedSegments {
 
 function resolveSegments(lod: LODState): ResolvedSegments {
   // Map LOD level to COCKPIT_LOD presets
-  const presetKey = lod.level === 'billboard' ? 'low' : lod.level;
+  const presetKey = false ? 'low' : 'ultra';
   const preset = COCKPIT_LOD[presetKey];
 
   return {
@@ -659,7 +658,6 @@ export function CockpitPanels({
   targetCurvature.current = curvature;
 
   // LOD from device store
-  const lod = useLOD({ tier: 'system' });
   const segments = useMemo(() => resolveSegments(lod), [lod]);
 
   const {

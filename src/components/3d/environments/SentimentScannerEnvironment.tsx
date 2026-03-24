@@ -39,7 +39,7 @@ function MoodMeter({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>;
   const needleRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 10;
+  const segments = 32;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -107,7 +107,7 @@ function MoodMeter({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>;
 
 // ■■ Oscilloscope Screens (Instanced) ■■
 function OscilloscopeScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 5 : 3;
+  const count = 8;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -167,7 +167,7 @@ function OscilloscopeScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }
 
 // ■■ Text Conveyor Belt ■■
 function TextConveyor({ lod, textsAnalyzed }: { lod: ReturnType<typeof useStandardLOD>; textsAnalyzed: number }) {
-  const tagCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+  const tagCount = 12;
   const tagsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -218,7 +218,7 @@ function TextConveyor({ lod, textsAnalyzed }: { lod: ReturnType<typeof useStanda
         <meshStandardMaterial emissive={LAB_COLOR} emissiveIntensity={0.2} transparent opacity={0.8} />
       </instancedMesh>
       {/* Rollers at ends */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[-4.3, -0.02, 0]} rotation={[Math.PI / 2, 0, 0]}>
             <cylinderGeometry args={[0.12, 0.12, 0.75, 8]} />
@@ -236,7 +236,7 @@ function TextConveyor({ lod, textsAnalyzed }: { lod: ReturnType<typeof useStanda
 
 // ■■ Emoji Reaction Bubbles (Instanced) ■■
 function EmojiBubbles({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>; sentiment: number }) {
-  const count = lod.level === 'ultra' ? 40 : lod.level === 'high' ? 25 : 12;
+  const count = 40;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -273,8 +273,6 @@ function EmojiBubbles({ lod, sentiment }: { lod: ReturnType<typeof useStandardLO
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableParticles) return null;
-
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 8, 6]} />
@@ -285,7 +283,7 @@ function EmojiBubbles({ lod, sentiment }: { lod: ReturnType<typeof useStandardLO
 
 // ■■ Social Media Feed Wall ■■
 function SocialMediaWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const panelCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+  const panelCount = 12;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -322,7 +320,7 @@ function SocialMediaWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial emissive={LAB_COLOR} emissiveIntensity={0.2} transparent opacity={0.7} />
       </instancedMesh>
       {/* Header bar */}
-      {lod.enableDetailProps && (
+      {(
         <mesh position={[-6.85, 3.8, 0]} rotation={[0, Math.PI / 2, 0]}>
           <boxGeometry args={[5.5, 0.2, 0.04]} />
           <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.3} />
@@ -336,7 +334,7 @@ function SocialMediaWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 function ToneAnalyzer({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -374,7 +372,7 @@ function ToneAnalyzer({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <torusGeometry args={[0.3, 0.015, 4, segments]} />
         <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.3} transparent opacity={0.5} />
       </mesh>
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[0, 1.7, 0]} rotation={[Math.PI / 2, 0, 0]}>
             <torusGeometry args={[0.45, 0.01, 4, segments]} />
@@ -392,7 +390,7 @@ function ToneAnalyzer({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Polarity Graph Dashboard ■■
 function PolarityDashboard({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>; sentiment: number }) {
-  const barCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const barCount = 16;
   const barsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 

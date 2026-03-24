@@ -28,7 +28,6 @@
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD, lodTorus, type LODState } from '@/hooks/useLOD';
 
 // ■■ Lab colors for 10 indicators ■■
 const LAB_COLORS = [
@@ -702,9 +701,8 @@ export function StatusBar3D({
   const groupRef = useRef<THREE.Group>(null);
   const { viewport } = useThree();
 
-  // LOD-aware rendering
-  const lod = useLOD({ tier: 'system' });
-  const segments = lod.segments;
+  
+  const segments = 64;
 
   const labColorObj = useMemo(() => new THREE.Color(labColor), [labColor]);
 
@@ -797,7 +795,7 @@ export function StatusBar3D({
           labColor={labColor}
           opacity={opacity}
           segments={segments}
-          enableEffects={lod.enableEffects}
+          enableEffects={true}
         />
       </group>
 
@@ -807,7 +805,7 @@ export function StatusBar3D({
           streak={streak}
           opacity={opacity}
           segments={segments}
-          enableEffects={lod.enableEffects}
+          enableEffects={true}
         />
       </group>
 

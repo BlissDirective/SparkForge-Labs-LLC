@@ -16,7 +16,6 @@ import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { auroraFragmentShader, auroraVertexShader } from '@/shaders/index';
-import { useLOD } from '@/hooks/useLOD';
 
 interface AuroraBackgroundProps {
   intensity?: number;
@@ -100,7 +99,6 @@ export function AuroraBackground({
   const groupRef = useRef<THREE.Group>(null);
   const layerRefs = useRef<THREE.Mesh[]>([]);
   const { viewport } = useThree();
-  const lod = useLOD({ tier: 'system' });
 
   // Parse colors
   const colors = useMemo(() => ({
@@ -135,7 +133,7 @@ export function AuroraBackground({
   );
 
   // Ribbon params for volumetric effect
-  const ribbonSegments = Math.max(lod.segments * 2, 32);
+  const ribbonSegments = Math.max(64 * 2, 32);
 
   // Update all layer uniforms each frame
   useFrame(({ clock }) => {
@@ -177,7 +175,7 @@ export function AuroraBackground({
       ))}
 
       {/* Volumetric aurora ribbons for 3D depth */}
-      {lod.enableEffects && (
+      {(
         <>
           <AuroraRibbon
             yOffset={2}

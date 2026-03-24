@@ -37,7 +37,7 @@ const LAB_COLOR = '#FFAA44';
 
 // ■■ Floating Word Bubbles ■■
 function WordBubbles({ lod, isPredicting }: { lod: ReturnType<typeof useStandardLOD>; isPredicting: boolean }) {
-  const count = lod.level === 'ultra' ? 40 : lod.level === 'high' ? 25 : 12;
+  const count = 40;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -76,7 +76,7 @@ function WordBubbles({ lod, isPredicting }: { lod: ReturnType<typeof useStandard
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
-      <sphereGeometry args={[1, lod.level === 'ultra' ? 12 : 8, 8]} />
+      <sphereGeometry args={[1, 12, 8]} />
       <meshStandardMaterial
         emissive={LAB_COLOR}
         emissiveIntensity={0.3}
@@ -91,7 +91,7 @@ function WordBubbles({ lod, isPredicting }: { lod: ReturnType<typeof useStandard
 
 // ■■ Probability Tree ■■
 function ProbabilityTree({ lod, isPredicting }: { lod: ReturnType<typeof useStandardLOD>; isPredicting: boolean }) {
-  const branchCount = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const branchCount = 16;
   const branchRef = useRef<THREE.InstancedMesh>(null);
   const leafRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -146,12 +146,12 @@ function ProbabilityTree({ lod, isPredicting }: { lod: ReturnType<typeof useStan
     <group position={[0, -0.5, 0]}>
       {/* Trunk */}
       <mesh position={[0, 0.5, 0]} castShadow>
-        <cylinderGeometry args={[0.08, 0.15, 1.5, lod.level === 'ultra' ? 12 : 8]} />
+        <cylinderGeometry args={[0.08, 0.15, 1.5, 12} />
         <meshStandardMaterial color="#664422" roughness={0.8} metalness={0.1} />
       </mesh>
       {/* Trunk glow ring */}
       <mesh position={[0, 0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.2, 0.02, 6, lod.level === 'ultra' ? 24 : 12]} />
+        <torusGeometry args={[0.2, 0.02, 6, 24} />
         <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.5} />
       </mesh>
       {/* Branches */}
@@ -170,7 +170,7 @@ function ProbabilityTree({ lod, isPredicting }: { lod: ReturnType<typeof useStan
 
 // ■■ Sentence Construction Conveyor ■■
 function SentenceConveyor({ lod, wordCount }: { lod: ReturnType<typeof useStandardLOD>; wordCount: number }) {
-  const blockCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+  const blockCount = 12;
   const blocksRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -221,7 +221,7 @@ function SentenceConveyor({ lod, wordCount }: { lod: ReturnType<typeof useStanda
 
 // ■■ Autocomplete Suggestion Screens ■■
 function AutocompleteScreens({ lod, isPredicting }: { lod: ReturnType<typeof useStandardLOD>; isPredicting: boolean }) {
-  const count = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 4 : 3;
+  const count = 6;
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -267,7 +267,7 @@ function AutocompleteScreens({ lod, isPredicting }: { lod: ReturnType<typeof use
 
 // ■■ Dictionary Towers ■■
 function DictionaryTowers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const towerCount = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 4 : 2;
+  const towerCount = 6;
   const bookCount = towerCount * 8;
   const booksRef = useRef<THREE.InstancedMesh>(null);
 
@@ -307,8 +307,8 @@ function DictionaryTowers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Grammar Circuit Boards (Walls) ■■
 function GrammarCircuits({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const traceCount = lod.level === 'ultra' ? 30 : lod.level === 'high' ? 20 : 10;
-  const nodeCount = lod.level === 'ultra' ? 15 : lod.level === 'high' ? 10 : 5;
+  const traceCount = 30;
+  const nodeCount = 15;
   const tracesRef = useRef<THREE.InstancedMesh>(null);
   const nodesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -352,8 +352,6 @@ function GrammarCircuits({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.15;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={tracesRef} args={[undefined, undefined, traceCount]}>
@@ -381,8 +379,6 @@ function ContextWindowVisualizer({ lod, wordCount }: { lod: ReturnType<typeof us
         0.3 + Math.sin(timeRef.current * 2) * 0.1;
     }
   });
-
-  if (!lod.enableDetailProps) return null;
 
   const windowWidth = 1.5 + Math.min(wordCount, 10) * 0.1;
 

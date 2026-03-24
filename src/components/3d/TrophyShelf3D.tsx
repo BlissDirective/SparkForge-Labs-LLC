@@ -12,7 +12,7 @@
 //   - Rare/epic/legendary badges have particle auras
 //   - Hover reveals badge name via drei Text
 //   - Smooth entrance animation (staggered shelf slide-in)
-//   - LOD-aware: ~3,000 triangle budget (tier: 'system')
+
 //
 // Used in: SpatialDashboard.tsx (command bridge scene)
 
@@ -20,7 +20,6 @@ import { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, RoundedBox, Text } from '@react-three/drei';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ■■ Types ■■
@@ -468,7 +467,6 @@ export function TrophyShelf3D({
   isOpen,
   position = [0, 0, 0],
 }: TrophyShelf3DProps) {
-  const lod = useLOD({ tier: 'system' });
   const _profile = useDeviceStore((s) => s.profile);
 
   const [hoveredBadgeId, setHoveredBadgeId] = useState<string | null>(null);
@@ -577,9 +575,9 @@ export function TrophyShelf3D({
             badges={labBadges}
             yOffset={yPos}
             entranceProgress={rowEntranceProgress(i)}
-            segments={lod.segments}
-            enableEffects={lod.enableEffects}
-            enableAnimations={lod.enableAnimations}
+            segments={64}
+            enableEffects={true}
+            enableAnimations={true}
             hoveredBadgeId={hoveredBadgeId}
             onBadgeHover={handleBadgeHover}
           />

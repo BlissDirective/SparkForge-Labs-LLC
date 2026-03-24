@@ -40,7 +40,7 @@ function PixelGridTable({ lod, zoomLevel }: { lod: ReturnType<typeof useStandard
   const gridRef = useRef<THREE.InstancedMesh>(null);
   const frameRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const gridSize = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 12 : 8;
+  const gridSize = 16;
   const count = gridSize * gridSize;
 
   const cellSeeds = useMemo(() =>
@@ -110,7 +110,7 @@ function MagnificationStation({ lod, isAnalyzing }: { lod: ReturnType<typeof use
   const lensRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 12;
+  const segments = 32;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -165,7 +165,7 @@ function MagnificationStation({ lod, isAnalyzing }: { lod: ReturnType<typeof use
 function RGBChannelPanels({ lod, isAnalyzing }: { lod: ReturnType<typeof useStandardLOD>; isAnalyzing: boolean }) {
   const timeRef = useRef(0);
   const barsRef = useRef<THREE.InstancedMesh>(null);
-  const barCount = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const barCount = 24;
   const channels = ['#FF3333', '#33FF33', '#3333FF'] as const;
 
   useFrame((_, delta) => {
@@ -217,7 +217,7 @@ function RGBChannelPanels({ lod, isAnalyzing }: { lod: ReturnType<typeof useStan
 
 // ■■ Image Layer Decomposition Racks ■■
 function LayerRacks({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 6 : 4;
+  const count = 8;
   const shelvesRef = useRef<THREE.InstancedMesh>(null);
   const platesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -270,7 +270,7 @@ function LayerRacks({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Pixel Art Gallery (Wall Frames) ■■
 function PixelArtGallery({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 7 : 4;
+  const count = 10;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const artRef = useRef<THREE.InstancedMesh>(null);
 
@@ -324,8 +324,6 @@ function ResolutionScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
     }
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group position={[4, 0, 3]}>
       {/* Low-res screen */}
@@ -368,7 +366,7 @@ function ResolutionScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 // ■■ Anti-Aliasing Demonstration Zone ■■
 function AntiAliasingZone({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   const stepsRef = useRef<THREE.InstancedMesh>(null);
-  const stepCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+  const stepCount = 12;
 
   React.useEffect(() => {
     if (!stepsRef.current) return;
@@ -388,8 +386,6 @@ function AntiAliasingZone({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     if (stepsRef.current.instanceColor) stepsRef.current.instanceColor.needsUpdate = true;
   }, [stepCount]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       {/* Label plate */}
@@ -408,7 +404,7 @@ function AntiAliasingZone({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Binary Data Waterfall ■■
 function BinaryWaterfall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 80 : lod.level === 'high' ? 50 : 25;
+  const count = 80;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -440,8 +436,6 @@ function BinaryWaterfall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     meshRef.current.instanceMatrix.needsUpdate = true;
     if (meshRef.current.instanceColor) meshRef.current.instanceColor.needsUpdate = true;
   });
-
-  if (!lod.enableParticles) return null;
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>

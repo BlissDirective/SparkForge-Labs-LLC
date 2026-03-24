@@ -60,7 +60,7 @@ function JudgeBench({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#2A1A1A" metalness={0.4} roughness={0.5} />
       </mesh>
       {/* Nameplate */}
-      {lod.enableDetailProps && (
+      {(
         <mesh position={[0, 0.92, 0.81]}>
           <boxGeometry args={[0.6, 0.1, 0.02]} />
           <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.3} metalness={0.7} roughness={0.2} />
@@ -151,7 +151,7 @@ function WitnessStand({ lod: _lod, caseIndex: _caseIndex }: { lod: ReturnType<ty
 
 // ■■ Jury Box with 12 Seats (Instanced) ■■
 function JuryBox({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 6;
+  const count = 12;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
   const backsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -219,7 +219,7 @@ function ScalesOfJustice({ lod, verdictReached }: { lod: ReturnType<typeof useSt
     }
   });
 
-  const segments = lod.level === 'ultra' ? 24 : 12;
+  const segments = 24;
 
   return (
     <group position={[0, 0, -2]}>
@@ -244,7 +244,7 @@ function ScalesOfJustice({ lod, verdictReached }: { lod: ReturnType<typeof useSt
         <meshStandardMaterial color="#FFAA44" metalness={0.7} roughness={0.3} />
       </mesh>
       {/* Chain lines (simplified) */}
-      {lod.enableDetailProps && (
+      {(
         <>
           <mesh position={[-0.9, 2.95, 0]}>
             <cylinderGeometry args={[0.008, 0.008, 0.3, 4]} />
@@ -280,7 +280,7 @@ function ArgumentPodium({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#2A2030" metalness={0.6} roughness={0.3} />
       </mesh>
       {/* Microphone */}
-      {lod.enableDetailProps && (
+      {(
         <group position={[0.2, 1.3, 0.1]}>
           <mesh>
             <cylinderGeometry args={[0.012, 0.012, 0.3, 6]} />
@@ -343,7 +343,7 @@ function EvidenceScreen({ lod: _lod, caseIndex }: { lod: ReturnType<typeof useSt
 
 // ■■ Stained Glass Windows (Instanced) ■■
 function StainedGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 6 : lod.level === 'high' ? 4 : 2;
+  const count = 6;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const framesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -370,8 +370,6 @@ function StainedGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
     framesRef.current.instanceMatrix.needsUpdate = true;
   }, [count]);
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <group>
       <instancedMesh ref={panelsRef} args={[undefined, undefined, count]}>
@@ -388,7 +386,7 @@ function StainedGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Gallery Seating (Instanced) ■■
 function GallerySeating({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const count = 16;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {

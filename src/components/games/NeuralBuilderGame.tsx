@@ -239,11 +239,6 @@ function buildNetwork(sizes: number[]): NetworkData {
   return { nodes, connections };
 }
 
-function detectMobile(): boolean {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth < 768;
-}
-
 // ================================================================
 // MAIN COMPONENT
 // ================================================================
@@ -294,12 +289,6 @@ export function NeuralBuilderGame() {
 
   // --- Heartbeat (V2 Enhancement) ---
   const [heartbeatPhase, setHeartbeatPhase] = useState(0);
-
-  // --- Mobile detection ---
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    setIsMobile(detectMobile());
-  }, []);
 
   // --- Particles ---
   const particles = useMemo(
@@ -1052,7 +1041,6 @@ export function NeuralBuilderGame() {
                   onSelectConnection={setSelectedConnection}
                   onInspectNode={setInspectedNode}
                   labColor="#EC4899"
-                  isMobile={isMobile}
                 />
 
                 {/* Node inspection panel */}

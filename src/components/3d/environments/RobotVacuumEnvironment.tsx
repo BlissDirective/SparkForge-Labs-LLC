@@ -28,7 +28,7 @@ import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase'
 
 // ■■ Living Room Furniture ■■
 function LivingRoomFurniture({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const _sofaSegs = lod.level === 'ultra' ? 16 : 8;
+  const _sofaSegs = 16;
 
   return (
     <group position={[3, -0.6, 0]}>
@@ -66,7 +66,7 @@ function LivingRoomFurniture({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) 
         <meshBasicMaterial color="#00FF88" transparent opacity={0.15} />
       </mesh>
       {/* Bookshelf */}
-      {lod.enableDetailProps && (
+      {(
         <group position={[-3, 0.3, 1]}>
           {[0, 0.5, 1.0, 1.5].map((y, i) => (
             <mesh key={i} position={[0, y, 0]} castShadow>
@@ -89,7 +89,7 @@ function LivingRoomFurniture({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) 
 
 // ■■ Smart Home Control Panels ■■
 function ControlPanels({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const panelCount = lod.enableDetailProps ? 6 : 3;
+  const panelCount = 6;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const glowRef = useRef<THREE.InstancedMesh>(null);
 
@@ -135,7 +135,7 @@ function ControlPanels({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 
 // ■■ IoT Sensor Nodes ■■
 function IoTSensorNodes({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 30 : lod.level === 'high' ? 18 : 8;
+  const count = 30;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   const offsets = useMemo(() => Array.from({ length: count }, () => ({
@@ -224,7 +224,7 @@ function ChargingDock({ isRunning }: { isRunning: boolean }) {
 
 // ■■ Smart Light Fixtures ■■
 function SmartLights({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 5;
+  const count = 16;
   const ref = useRef<THREE.InstancedMesh>(null);
 
   React.useEffect(() => {
@@ -250,7 +250,7 @@ function SmartLights({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 
 // ■■ Dust Particles ■■
 function DustParticles({ lod, cleanProgress }: { lod: ReturnType<typeof useFLLiteLOD>; cleanProgress: number }) {
-  const baseCount = lod.level === 'ultra' ? 250 : lod.level === 'high' ? 150 : 60;
+  const baseCount = 250;
   const count = Math.max(10, Math.floor(baseCount * (1 - cleanProgress)));
   const ref = useRef<THREE.InstancedMesh>(null);
 
@@ -321,7 +321,7 @@ export default function RobotVacuumEnvironment({ isRunning, cleanProgress }: Rob
       <IoTSensorNodes lod={lod} />
       <ChargingDock isRunning={isRunning} />
       <SmartLights lod={lod} />
-      {lod.enableParticles && <DustParticles lod={lod} cleanProgress={cleanProgress} />}
+      {<DustParticles lod={lod} cleanProgress={cleanProgress} />}
     </FLLiteEnvironmentWrapper>
   );
 }

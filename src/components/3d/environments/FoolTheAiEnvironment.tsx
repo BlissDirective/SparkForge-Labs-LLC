@@ -55,7 +55,7 @@ function AiBrainDome({ lod, isTesting }: { lod: ReturnType<typeof useStandardLOD
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 12;
+  const segments = 32;
 
   return (
     <group position={[0, 0, 0]}>
@@ -78,7 +78,7 @@ function AiBrainDome({ lod, isTesting }: { lod: ReturnType<typeof useStandardLOD
       </mesh>
       {/* Brain mesh (icosahedron as brain proxy) */}
       <mesh ref={brainRef} position={[0, 0.8, 0]} castShadow>
-        <icosahedronGeometry args={[0.5, lod.level === 'ultra' ? 3 : 2]} />
+        <icosahedronGeometry args={[0.5, 3} />
         <meshStandardMaterial
           color={LAB_COLOR}
           emissive={LAB_COLOR}
@@ -125,7 +125,7 @@ function DisguiseStation({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#12101E" metalness={0.5} roughness={0.4} />
       </mesh>
       {/* Hanging tools */}
-      {lod.enableDetailProps && (
+      {(
         <>
           {[-0.5, 0, 0.5].map((x, i) => (
             <mesh key={i} position={[x, 0.75, -0.42]}>
@@ -171,7 +171,7 @@ function PerturbationGenerator({ lod, isTesting }: { lod: ReturnType<typeof useS
     }
   });
 
-  const segments = lod.level === 'ultra' ? 24 : 12;
+  const segments = 24;
 
   return (
     <group position={[3.5, 0, -1.5]}>
@@ -255,7 +255,7 @@ function ConfidenceMeter({ lod: _lod, foolAttempts }: { lod: ReturnType<typeof u
 
 // ■■ Attack Vector Selector Panel ■■
 function AttackVectorPanel({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const buttonCount = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 4;
+  const buttonCount = 12;
   const buttonsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -321,7 +321,7 @@ function DefenseShield({ lod, foolAttempts }: { lod: ReturnType<typeof useStanda
     }
   });
 
-  const segments = lod.level === 'ultra' ? 32 : 16;
+  const segments = 32;
 
   return (
     <group position={[0, 0.8, 0]}>
@@ -349,7 +349,7 @@ function DefenseShield({ lod, foolAttempts }: { lod: ReturnType<typeof useStanda
 
 // ■■ Success/Fail Indicator Lights (Instanced) ■■
 function IndicatorLights({ lod, foolAttempts }: { lod: ReturnType<typeof useStandardLOD>; foolAttempts: number }) {
-  const count = lod.level === 'ultra' ? 16 : lod.level === 'high' ? 10 : 6;
+  const count = 16;
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
 
@@ -380,8 +380,6 @@ function IndicatorLights({ lod, foolAttempts }: { lod: ReturnType<typeof useStan
     if (lightsRef.current.instanceColor) lightsRef.current.instanceColor.needsUpdate = true;
   });
 
-  if (!lod.enableDetailProps) return null;
-
   return (
     <instancedMesh ref={lightsRef} args={[undefined, undefined, count]}>
       <sphereGeometry args={[1, 8, 6]} />
@@ -392,7 +390,7 @@ function IndicatorLights({ lod, foolAttempts }: { lod: ReturnType<typeof useStan
 
 // ■■ Adversarial Examples Gallery (Instanced) ■■
 function AdversarialGallery({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 6 : 3;
+  const count = 10;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const imagesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -420,8 +418,6 @@ function AdversarialGallery({ lod }: { lod: ReturnType<typeof useStandardLOD> })
     imagesRef.current.instanceMatrix.needsUpdate = true;
     if (imagesRef.current.instanceColor) imagesRef.current.instanceColor.needsUpdate = true;
   }, [count]);
-
-  if (!lod.enableDetailProps) return null;
 
   return (
     <group>

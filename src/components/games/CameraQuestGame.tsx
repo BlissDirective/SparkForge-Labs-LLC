@@ -194,9 +194,6 @@ export function CameraQuestGame() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // [v3] Mobile detection — shared hook [ENH-2]
-  const isMobile = useIsMobile();
-
   // Filter items by age band
   const items = useMemo(() => {
     if (ageBand === 'A') return HUNT_ITEMS.filter((i) => i.difficulty <= 2);
@@ -422,17 +419,14 @@ export function CameraQuestGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col items-center justify-center"
                   >
-                    {/* [v3] 3D Scene — desktop only */}
-                    {!isMobile && (
-                      <CameraQuest3D
-                        items={items}
-                        currentIndex={ci}
-                        found={found}
-                        showConfidence={showConfidence}
-                        captured={captured}
-                        isMobile={isMobile}
-                      />
-                    )}
+                    {/* [v3] 3D Scene */}
+                    <CameraQuest3D
+                      items={items}
+                      currentIndex={ci}
+                      found={found}
+                      showConfidence={showConfidence}
+                      captured={captured}
+                    />
 
                     {/* Collection progress */}
                     <div className="flex gap-1 mb-3 flex-wrap justify-center">

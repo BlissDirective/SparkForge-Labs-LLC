@@ -43,7 +43,7 @@ function CrystalBall({ lod, confidence }: { lod: ReturnType<typeof useStandardLO
   const glowRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 24 : 12;
+  const segments = 32;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -105,7 +105,7 @@ function CrystalBall({ lod, confidence }: { lod: ReturnType<typeof useStandardLO
         <torusGeometry args={[0.35, 0.025, 8, segments]} />
         <meshStandardMaterial color="#00FF88" emissive="#00FF88" emissiveIntensity={0.5} />
       </mesh>
-      {lod.enableDetailProps && (
+      {(
         <mesh ref={innerRing3Ref}>
           <torusGeometry args={[0.6, 0.02, 6, segments]} />
           <meshStandardMaterial color="#FFAA44" emissive="#FFAA44" emissiveIntensity={0.4} />
@@ -126,7 +126,7 @@ function CrystalBall({ lod, confidence }: { lod: ReturnType<typeof useStandardLO
 
 // ■■ Ticker Display Boards (Instanced) ■■
 function TickerBoards({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
-  const count = lod.level === 'ultra' ? 12 : lod.level === 'high' ? 8 : 5;
+  const count = 12;
   const boardsRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -189,7 +189,7 @@ function TickerBoards({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
 // ■■ Prediction Booth Stations (Instanced) ■■
 function PredictionBooths({ lod, predictions }: { lod: ReturnType<typeof useStandardLOD>; predictions: number }) {
-  const count = lod.level === 'ultra' ? 8 : lod.level === 'high' ? 6 : 3;
+  const count = 8;
   const boothsRef = useRef<THREE.InstancedMesh>(null);
   const consolesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -254,7 +254,7 @@ function PredictionBooths({ lod, predictions }: { lod: ReturnType<typeof useStan
 
 // ■■ Probability Chart Pillars (Instanced) ■■
 function ProbabilityPillars({ lod, confidence }: { lod: ReturnType<typeof useStandardLOD>; confidence: number }) {
-  const count = lod.level === 'ultra' ? 10 : lod.level === 'high' ? 7 : 4;
+  const count = 10;
   const pillarsRef = useRef<THREE.InstancedMesh>(null);
   const capsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -319,7 +319,7 @@ function BettingPool({ lod, predictions }: { lod: ReturnType<typeof useStandardL
   const containerRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
-  const segments = lod.level === 'ultra' ? 32 : lod.level === 'high' ? 20 : 10;
+  const segments = 32;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -375,7 +375,7 @@ function TrendGraphWalls({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   const lineRefs = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
 
-  const lineCount = lod.level === 'ultra' ? 5 : lod.level === 'high' ? 3 : 2;
+  const lineCount = 5;
 
   const lineGeometries = useMemo(() => {
     const geos: THREE.BufferGeometry[] = [];
@@ -414,7 +414,7 @@ function TrendGraphWalls({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
         <meshStandardMaterial color="#0C141C" metalness={0.4} roughness={0.6} />
       </mesh>
       {/* Grid lines */}
-      {lod.enableDetailProps && (
+      {(
         <group position={[0, 2, 0.01]}>
           {Array.from({ length: 5 }).map((_, i) => (
             <mesh key={`hgrid-${i}`} position={[0, (i - 2) * 0.6, 0]}>
@@ -453,7 +453,7 @@ function TrendGraphWalls({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 function AnnouncementPodium({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   const spotlightRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
-  const segments = lod.level === 'ultra' ? 24 : lod.level === 'high' ? 16 : 8;
+  const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -500,7 +500,7 @@ function AnnouncementPodium({ lod }: { lod: ReturnType<typeof useStandardLOD> })
         />
       </mesh>
       {/* Spotlight fixture */}
-      {lod.enableDetailProps && (
+      {(
         <mesh position={[0, 4.2, 0]}>
           <cylinderGeometry args={[0.15, 0.2, 0.2, 8]} />
           <meshStandardMaterial color="#2A3540" metalness={0.7} roughness={0.3} />
@@ -516,21 +516,21 @@ function TradingFloorStructure({ lod }: { lod: ReturnType<typeof useStandardLOD>
     <group>
       {/* Raised floor platform */}
       <mesh position={[0, -0.95, 0]} receiveShadow>
-        <cylinderGeometry args={[7.5, 8.0, 0.1, lod.level === 'ultra' ? 48 : 24]} />
+        <cylinderGeometry args={[7.5, 8.0, 0.1, 48} />
         <meshStandardMaterial color="#0C161E" metalness={0.4} roughness={0.6} />
       </mesh>
       {/* Floor ring accent */}
       <mesh position={[0, -0.89, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[4.5, 0.03, 4, lod.level === 'ultra' ? 48 : 24]} />
+        <torusGeometry args={[4.5, 0.03, 4, 48} />
         <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.3} />
       </mesh>
       {/* Inner ring */}
       <mesh position={[0, -0.88, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[2.0, 0.02, 4, lod.level === 'ultra' ? 32 : 16]} />
+        <torusGeometry args={[2.0, 0.02, 4, 32} />
         <meshStandardMaterial color="#00FF88" emissive="#00FF88" emissiveIntensity={0.2} />
       </mesh>
       {/* Ceiling support beams */}
-      {lod.enableDetailProps && (
+      {(
         <>
           {[0, Math.PI / 2, Math.PI, Math.PI * 1.5].map((angle, i) => (
             <mesh

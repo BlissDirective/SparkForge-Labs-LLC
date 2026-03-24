@@ -13,13 +13,12 @@
 //   - Warning signage (2-3 emissive plane markers)
 //
 // Triangle budget: ~1,500,000
-// LOD-aware via useLOD({ tier: 'system' })
+
 // All geometry fits within cockpit shell (radius ~4.0, 140° arc)
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { useLOD } from '@/hooks/useLOD';
 
 // ■■ Props ■■
 
@@ -649,8 +648,7 @@ export function CockpitStructuralDetail({
   opacity,
   labColor,
 }: CockpitStructuralDetailProps) {
-  const lod = useLOD({ tier: 'system' });
-  const counts = useMemo(() => getScaledCounts(lod.level), [lod.level]);
+  const counts = useMemo(() => getScaledCounts('ultra'), ['ultra']);
 
   // Shared chrome material for structural elements
   const chromeMaterial = useMemo(
@@ -673,21 +671,20 @@ export function CockpitStructuralDetail({
   });
 
   // At billboard LOD, skip rendering entirely
-  if (lod.level === 'billboard') return null;
 
   return (
     <group name="cockpit-structural-detail">
       {/* Cable Bundles — 50+ TubeGeometry splines along ceiling/walls */}
       <CableBundles
         count={counts.cables}
-        tubularSegments={lod.tubularSegments}
+        tubularSegments={64}
         chromeMaterial={chromeMaterial}
       />
 
       {/* Conduit Pipes — horizontal pipes with junction boxes */}
       <ConduitPipes
         count={counts.pipes}
-        segments={lod.segments}
+        segments={64}
         chromeMaterial={chromeMaterial}
       />
 
@@ -700,7 +697,7 @@ export function CockpitStructuralDetail({
       {/* Structural Ribs — arc-shaped ribs evenly spaced */}
       <StructuralRibs
         count={counts.ribs}
-        segments={lod.segments}
+        segments={64}
         chromeMaterial={chromeMaterial}
       />
 
