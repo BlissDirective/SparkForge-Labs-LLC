@@ -2,7 +2,26 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-24 (D3D Phase 4B — Error Analysis & Discrepancy Catalog)
+## Last Updated: 2026-03-24 (Audit Report — Critical Findings #1-4)
+
+---
+
+### Audit Report — Critical Findings (2026-03-24)
+
+**Status:** COMPLETE
+**Branch:** claude/audit-critical-findings-xu1H3
+
+**Batch 1 — GPU Memory/Allocation Fixes:**
+- [x] Critical #1: SidePanels.tsx — Shared blip geometry + material, dynamic props in useFrame
+- [x] Critical #2: HolographicLabMap.tsx — Added useEffect disposal for ConnectionBeam geometry/material
+- [x] Critical #3: PostProcessingStack.tsx — useRef for chromatic Vector2 instead of useMemo
+
+**Batch 2 — Store Subscription Optimization:**
+- [x] Critical #4a: CockpitCanvas.tsx — 10 individual selectors replacing full destructure
+- [x] Critical #4b: useSpatialNavigation.ts — 7 individual selectors
+- [x] Critical #4c: SpatialOverlay.tsx — 3 individual selectors
+
+**TypeScript validation:** PASS (0 new errors; 14 pre-existing TSL shader type errors unchanged)
 
 ---
 
