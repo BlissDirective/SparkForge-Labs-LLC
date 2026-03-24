@@ -13,10 +13,9 @@
 //
 // Parallax depth layers (Decision 8.3 from VEC v2):
 //   Background aurora: 0.3x scroll speed
-//   Mid-layer hex shapes: 0.6x scroll speed (desktop only)
+//   Mid-layer hex shapes: 0.6x scroll speed
 //   Content: 1.0x (normal)
 //
-// Mobile (Decision 8.5): CSS gradient hero, 2 parallax layers
 // GSAP: GPU-composited transforms throughout
 //
 // ENHANCEMENTS APPLIED:
@@ -50,7 +49,7 @@ const StationPreview = dynamic(
   { ssr: true, loading: () => <div className="min-h-[400px]" /> }
 );
 
-// [v3] Dynamic import for CrystalHero — desktop only, SSR disabled
+// [v3] Dynamic import for CrystalHero — SSR disabled
 const CrystalHero = dynamic(
   () => import('@/components/3d/CrystalHero').then(mod => ({ default: mod.CrystalHero })),
   { ssr: false, loading: () => (
