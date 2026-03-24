@@ -280,3 +280,212 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({...
 | Visual Consistency | 🟢 4.5 / 5 | Frost-Prismatic system 95% compliant; minor hardcoded hex, animation inconsistency |
 | Dependency Health | 🟡 3.5 / 5 | Duplicate charting libs, leva in prod deps, `import * as THREE` everywhere |
 | Overall | 🟡 3.8 / 5 | Strong foundations with targeted performance issues to fix. Architecture decisions (CPA2, D3D, SceneRouter) are sound. |
+
+---
+---
+
+# R3F Best Practices Assessment — Appendix
+
+**Context:** Evaluation of SparkForge against React Three Fiber best practices across 4 domains: Immersive Wow Factor, Animation & Interactivity, Post-Processing & UI Zones, Stack Alignment & Pitfalls.
+
+---
+
+## 1. Immersive "Wow Factor"
+
+### What SparkForge Does Well
+- **Single persistent Canvas** (CPA2-1) eliminates canvas-swap pop — the entire app lives in one 3D world
+- **Cockpit is truly immersive** — 20M triangle command bridge with holographic lab map, 4 consoles, NPCs, volumetric fog, all lab-reactive
+- **Mechanical Iris transitions** frame game entry/exit as theatrical moments, not page navigations
+- **AuroraBackground** is genuinely reactive — color props update per-frame, syncs to active lab
+- **DynamicEnvironment** (cockpit) has per-lab particle physics, fog color lerp, data highway splines
+
+### 🔴 Critical: Game Environments Are Static Backdrops
+- **Files:** All 37 game environment components in `src/components/3d/environments/`
+- **Issue:** Game environments load once and freeze. They don't read `gameStore.score`, `gameStore.phase`, or `gameStore.hintsUsed`. Terrain, sky dome, and props render once, never update post-init.
+- **Contrast:** The cockpit's DynamicEnvironment reacts to `activeLabId` (fog shifts, particles change geometry, lights recolor). Games don't do any of this.
+- **Impact:** Games feel like disconnected mini-apps inside decorative dioramas, not immersive worlds that respond to player actions.
+- **Fix:** Create a `useGameEnvironmentReactivity(gameStore)` hook that maps game state → environment parameters:
+  - `score` → particle intensity, lighting warmth
+  - `phase === 'complete'` → victory particle burst, environment flash
+  - `round` → progressive terrain/sky shifts
+  - Apply to `StandardEnvironmentBase`, `FLLiteEnvironmentBase`, `FlagshipEnvironmentBase`
+
+### 🔴 Critical: No Victory Celebration Inside Game Worlds
+- **Files:** `CeremonyFX.tsx` (500K tris — confetti, 3D trophies, HUD ring expansion)
+- **Issue:** CeremonyFX exists and is well-built, but only renders in cockpit/dashboard transitions. When a game completes (`phase === 'complete'`), there's no 3D celebration inside the game environment — the player sees a flat HTML overlay while surrounded by a frozen 3D world.
+- **Fix:** Trigger CeremonyFX (or a lightweight variant) inside game scene groups on `game.completeGame()`. The iris transition back to cockpit should capture the tail-end of the celebration.
+
+### 🟡 Important: Particles Are Decorative, Not State-Driven
+- **Files:** `AmbientParticles.tsx`, `DynamicEnvironment.tsx` (LabParticles)
+- **Issue:** Particle count/intensity is driven by a UI slider (`off/low/medium/high`), not by player progress. No binding to `child.xp`, `child.level`, or `child.streak_count`.
+- **Opportunity:** 1 particle per 10 XP earned, brighter glow at higher levels, connection line density ↑ with streak — makes the environment a living progress indicator.
+
+### 🟡 Important: No Parallax Depth Feedback in Games
+- **Files:** `useParallaxMouse.ts` exists but only used in CockpitCanvas subtitle movement
+- **Issue:** Game 3D backgrounds don't track mouse/pointer movement. No depth parallax creates flat-feeling environments despite high triangle counts.
+- **Fix:** Apply `useParallaxMouse` to game environment camera rigs — subtle 2-3° tilt on mouse movement creates immediate depth perception.
+
+### 💡 Hero-to-Cockpit Handoff Is Clean But Not Visceral
+- **Issue:** Hero final frame (crystalline logo shards) → cockpit uses opacity crossfade only. No shard-to-panel morphing animation.
+- **Opportunity:** Vertex animation where logo shards spiral outward and morph into cockpit panel geometry would create a "signature moment" — the kind of thing users screenshot and share.
+
+---
+
+## 2. Animation Smoothness & Interactive 3D
+
+### What SparkForge Does Well
+- **452 `useFrame` calls** across 3D components, all properly delta-time normalized — zero frame-rate-dependent animations
+- **Smooth scene transitions** via MechanicalIris with staggered blade animation (0.1s–0.7s per blade)
+- **Custom spring physics** in PromptBubble3D (attraction/repulsion/damping)
+- **Lab map nodes** have proper hover feedback (scale 1.0 → 1.08 + glow intensity increase)
+- **Hero Animation** uses full GSAP timeline with 8 phases, fast-forward, skip
+
+### 🔴 Critical: Zero Drag Interactions in 3D
+- **Issue:** No `onPointerDown`/`onPointerMove`/`onPointerUp` drag handlers found on any 3D element. The holographic lab ring can't be drag-rotated. Side panels can't be repositioned. Console readouts aren't rearrangeable.
+- **Impact:** The cockpit feels like a museum exhibit — look but don't touch. Drag interactions are the difference between "viewing 3D" and "inhabiting 3D."
+- **Fix (High Priority):** Add drag-rotation to lab map ring:
+  - Plane-constrained raycasting on XZ plane
+  - Inertial momentum on release (decelerate over 0.5s)
+  - Snap-to-lab on settle
+  - Estimated effort: 4–6 hours
+
+### 🟡 Important: `@react-spring/three` Installed But Unused
+- **File:** `package-lock.json` shows `@react-spring/three` is a dependency, but **zero imports** found in any 3D component
+- **Issue:** All R3F animations use raw `useFrame` calculations. While correct, spring-based animation feels more "alive" — objects overshoot targets, settle naturally, respond to interruption gracefully.
+- **Opportunity:** Replace linear lerp patterns with spring physics for:
+  - Panel expansion animations
+  - NPC approach/retreat timing
+  - Lab map node reveals on hover
+  - Console activation transitions
+
+### 🟡 Important: Only 15-20% of 3D Geometry Has Hover Feedback
+- **Interactive (have hover states):** Lab nodes, badges, network nodes, consoles (cursor only)
+- **Static (no hover):** CockpitPanels (2M tris), SidePanels (1.5M tris), NPCs (1.5M tris), Floor (500K), HUD rings (500K)
+- **Impact:** 80% of the cockpit's visual mass feels dead to pointer interaction
+- **Fix:** Extend `useInteractiveSurface` hook to panels (subtle 1.02× scale + 20% emissive on hover) and NPCs (friendly glow). Low effort — hook already exists.
+
+### 🟡 Important: Missing Idle Micro-Animations
+| Component | Current | Opportunity |
+|-----------|---------|-------------|
+| AmbientNPCs | Walk + idle pose | Add breathing (scale 1.0 → 1.01), weight shift |
+| InteractiveConsole3D | Static mesh | Screen flicker, LED pulse |
+| CockpitPanels | Curved, dimmed in game mode | Subtle "breathing" (scale 1.0 → 1.005, 4s period) |
+| SidePanels | Static data display | Data column height animation, scrolling effect |
+
+### 💡 No Choreographed Group Animations
+- **Issue:** When entering a lab, all 8 NPC bots animate simultaneously via seeded noise. A staggered approach (0.1s offset per bot) would feel more cinematic.
+- **Pattern:** GSAP stagger or simple `setTimeout` cascade in `useFrame` with per-bot delay offsets.
+
+---
+
+## 3. Post-Processing & UI Zones
+
+### What SparkForge Does Well
+- **7 post-processing effects always-on** (D3D-5): N8AO, Bloom, ChromaticAberration, DepthOfField, Noise, Vignette, BarrelDistortion
+- **Scene-reactive multipliers** — effects intensify during transitions (bloom 1.8×, chromatic 1.5×), tone down in gameplay (chromatic 0.5×)
+- **Clean HTML/Canvas layering** — Canvas at z-0 (pointer-events-none), HTML at z-10, skip-link at z-9999
+- **EffectComposer multisampling: 4** — efficient MSAA alternative
+- **N8AO halfRes** — SSAO at 50% resolution, reconstructed (good GPU optimization)
+
+### 🔴 Critical: 21 Games Create Independent R3F Canvas Instances
+- **Files:** `AiArtDetectiveGame.tsx`, `BiasDetectiveGame.tsx`, and 19 others
+- **Issue:** These games import `Canvas` from `@react-three/fiber` and create their own Canvas inside `<GameShell>`, violating CPA2-1 (Single Persistent Canvas) and D3D-B1. This means **dual WebGL contexts** run simultaneously — CockpitCanvas + GameCanvas.
+- **Impact:** 2× GPU overhead, dual render loops, iris transition may not display correctly, potential WebGL context limits (browsers cap at ~8-16 concurrent contexts)
+- **Root Cause:** Games were likely built before the D3D-B1 decision lock and not yet migrated
+- **Fix:** Refactor all 21 games to pass 3D content via `gameSceneContent` prop to CockpitCanvas's SceneRouter instead of creating their own Canvas. GameShell already calls `sceneStore.enterGame()` correctly — games just need to stop creating a second Canvas.
+- **Effort:** 4–6 hours (pattern is mechanical — remove Canvas wrapper, export scene content as `<group>`)
+
+### 🟡 Important: Missing Cinematic Post-FX
+| Effect | Status | Impact |
+|--------|--------|--------|
+| **Color Grading LUT** | Not implemented | No per-lab color tinting (warm celebrations, cool labs) |
+| **Motion Blur** | Not implemented | Camera pans feel stiff; iris transitions lack motion trails |
+| **Screen-Space Reflections** | Not implemented | Chrome bezel panels don't reflect HUD, particles, lab colors |
+| **Adaptive Bloom Threshold** | Static 0.6 | Doesn't shift based on scene brightness; can blow out bright particles |
+
+### 🟡 Important: Zero `<Html>` (drei) Usage for 3D-Anchored UI
+- **Issue:** No imports of `Html` from `@react-three/drei` found anywhere. All 3D text is baked into geometry (SDF fonts, Text meshes).
+- **Trade-off:** Pure 3D text is architecturally clean but can't leverage CSS styling, dynamic content, or accessibility features.
+- **Opportunities for drei `<Html>`:**
+  - Lab name + completion % tooltip on hover (above HolographicLabMap nodes)
+  - NPC speech bubbles (personality-driven tips)
+  - "+50 XP" damage-number popups during celebrations
+  - "Entering Lab 3" label inside WormholeTransition tunnel
+
+### 🟢 Suggestion: Quick Post-FX Wins (Low Effort, High Impact)
+1. **Adaptive bloom** — Lower threshold (0.3) during celebrations, raise (0.8) during gameplay for UI legibility
+2. **Noise reactivity** — Increase film grain (0.12) during transitions for "digital distortion" feel
+3. **Barrel distortion modulation** — Increase to 0.04 during lab focus, zero during games
+4. **Per-lab color grade** — Warm amber for celebrations, cool cyan for Lab 1, desaturated for Lab 7 (Ethics)
+
+---
+
+## 4. Stack Alignment & Pitfalls
+
+### What SparkForge Does Well
+- **All R3F packages current:** fiber 9.5.0, drei 10.7.7, postprocessing 3.0.4, Three.js r183
+- **next.config.ts properly externalizes** Three.js from server builds via `serverExternalPackages`
+- **GLSL shader loading** configured for both Turbopack (dev) and Webpack (prod)
+- **Clean R3F/HTML boundary** — zero functional UI inside Canvas, no scope creep
+- **Single Canvas persistence** (CPA2-1, D3D-B1) is textbook correct
+
+### 🔴 Critical: No Performance Monitoring Tooling
+- **Issue:** Zero matches for `Stats`, `Perf`, or `r3f-perf` in codebase. The 50M triangle budget and 7 post-processing effects are ambitious claims with no instrumentation to verify they sustain 60fps.
+- **Impact:** Progressive feature creep silently degrades performance with no detection. Developers have no visibility into GPU load, frame time, or triangle count.
+- **Fix:** Install `r3f-perf` and add `<Perf />` inside CockpitCanvas behind a dev-only flag. Consider a toggleable performance overlay in Settings (Ctrl+Shift+P).
+
+### 🔴 Critical: GLSL Shaders Will Fail on WebGPU Path
+- **Files:** 19 GLSL shaders in `src/shaders/` — all status `'glsl'` per `webgpuDetect.ts`
+- **Issue:** Three.js r171+ requires TSL (Three Shader Language) for `WebGPURenderer`. All 19 shaders are GLSL-only. If a browser enables WebGPU, `ShaderMaterial` and `RawShaderMaterial` will fail to compile.
+- **Current Workaround:** `webgpuDetect.ts` forces WebGL2 fallback, but this is fragile — future browser updates may deprecate WebGL2.
+- **Fix:** Prioritize TSL migration for the 3 most-used shaders: `barrelDistortion`, `labPattern1-3`, `wormholeEffect`. Add error boundary that forces WebGL2 if TSL shader compilation fails.
+
+### 🟡 Important: CanvasTexture Memory Leaks in Game Components
+- **Files:** `AgentPipeline3D.tsx`, `LabStructure3D.tsx`, `PetCreature3D.tsx`
+- **Issue:** CanvasTexture created dynamically without disposal. `LabStructure3D` creates CanvasTexture in render path (line 67+) with no `useEffect` cleanup. Over 35 game sessions, textures accumulate in GPU memory.
+- **Fix:** Memoize CanvasTexture creation, add `useEffect` cleanup:
+```tsx
+const texture = useMemo(() => {
+  const t = new CanvasTexture(canvas);
+  return t;
+}, [deps]);
+
+useEffect(() => () => texture.dispose(), [texture]);
+```
+
+### 🟡 Important: No GPU Tier-Based Effect Degradation
+- **Issue:** All 7 post-processing effects run at full intensity always (D3D-5). No fallback if GPU underperforms. Mid-range GPUs (M1 Mac, Intel Iris, RTX 2060) may drop to 20–30fps.
+- **Fix:** Measure initial frame time over 60 frames. If average > 20ms (< 50fps), disable DOF and reduce SSAO to quarter-res. This preserves the "always-on" aesthetic while preventing slideshow performance.
+
+### 🟡 Important: Missing Asset Preloading Strategy
+- **Issue:** Only 1 `useGLTF.preload()` call found (PetCreature3D). No preloading for HDRI (`frost-prismatic.hdr`), game GLBs, or textures.
+- **Fix:** Add module-level preload calls for all GLTF-using components. Preload HDRI in CockpitCanvas module scope.
+
+### 💡 `r3f-perf` and `leva` Are Both Available but Unused
+- `leva` (0.10.1) is installed in production deps but has zero imports — move to `devDependencies`
+- `r3f-perf` is not installed at all — add as `devDependency` for GPU profiling
+
+---
+
+## R3F Assessment Summary
+
+### Scorecard
+
+| Area | Score | Key Issue |
+|---|---|---|
+| Immersive Wow Factor | 🟡 3.5 / 5 | Cockpit is immersive; game environments are static backdrops |
+| Animation Smoothness | 🟢 4 / 5 | 452 delta-time animations, no frame bugs; missing spring physics and drag |
+| Interactive 3D | 🟡 3 / 5 | 15-20% of geometry interactive; zero drag; NPCs/panels are decorative |
+| Post-Processing | 🟢 4 / 5 | 7 effects, scene-reactive; missing color grading, motion blur, SSR |
+| UI Zone Pattern | 🟢 4 / 5 | Clean HTML/Canvas split; 21 games violate single-canvas rule |
+| Stack Alignment | 🟢 4 / 5 | All packages current; @react-spring/three unused; no perf monitoring |
+| Pitfall Avoidance | 🟡 3 / 5 | No GPU profiling, GLSL→TSL migration pending, texture leaks |
+| **Overall R3F Health** | **🟡 3.6 / 5** | **Strong foundations, targeted gaps in reactivity and interactivity** |
+
+### Top 5 R3F Improvements (Ranked by Impact)
+
+1. **Fix 21-game dual Canvas violation** (🔴) — Eliminates 2× GPU overhead, restores iris transitions, prevents WebGL context exhaustion
+2. **Make game environments state-reactive** (🔴) — Binds score/phase/completion to lighting, particles, terrain — transforms games from dioramas to living worlds
+3. **Add `r3f-perf` + performance monitoring** (🔴) — Provides visibility into whether 50M tri budget + 7 post-FX actually sustain 60fps
+4. **Add drag interaction to lab map ring** (🔴) — Transforms cockpit from "look at" to "inhabit" — biggest interactivity win
+5. **Trigger CeremonyFX inside game worlds** (🟡) — Victory celebrations in 3D, not flat HTML overlays — biggest wow-factor win
