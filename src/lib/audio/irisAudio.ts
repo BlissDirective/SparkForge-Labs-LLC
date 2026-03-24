@@ -11,6 +11,51 @@
 //   - Light ray hum: sine harmonics as rays appear (0.5-0.9)
 //   - Final snap: transient click + sub-bass thud (0.9-1.0)
 //   - Reverse plays all in reverse order for iris-close
+//   - Lab-color pitch/timbre variations when labColor is provided
+
+// ── Lab Color Audio Profiles ──
+// Maps each lab's hex color to frequency offsets and filter characteristics
+// so iris transitions sound unique per lab.
+
+interface LabAudioProfile {
+  /** Hz offset applied to servo oscillator base frequency */
+  servoFreqOffset: number;
+  /** Hz offset applied to ray oscillator base frequency (440Hz) */
+  rayFreqOffset: number;
+  /** Filter Q override (null = keep default Q=3) */
+  filterQ: number | null;
+  /** Filter type override (null = keep default 'bandpass') */
+  filterType: BiquadFilterType | null;
+  /** Label for debugging */
+  label: string;
+}
+
+const LAB_COLOR_AUDIO_PROFILES: Record<string, LabAudioProfile> = {
+  '#00bbff': { servoFreqOffset: 0,   rayFreqOffset: 0,   filterQ: null, filterType: null,      label: 'L1 blue — base' },
+  '#aa66ff': { servoFreqOffset: -20, rayFreqOffset: -20,  filterQ: 4,   filterType: null,      label: 'L2 purple — resonant' },
+  '#ff66aa': { servoFreqOffset: 30,  rayFreqOffset: 15,   filterQ: null, filterType: 'lowpass', label: 'L3 pink — warm' },
+  '#ffaa44': { servoFreqOffset: 50,  rayFreqOffset: 25,   filterQ: null, filterType: 'bandpass',label: 'L4 amber — warm bandpass' },
+  '#00ff88': { servoFreqOffset: -10, rayFreqOffset: -5,   filterQ: null, filterType: 'highpass',label: 'L5 green — crisp' },
+  '#ff6644': { servoFreqOffset: 40,  rayFreqOffset: 30,   filterQ: 6,   filterType: null,      label: 'L6 orange-red — aggressive' },
+  '#06b6d4': { servoFreqOffset: -30, rayFreqOffset: -15,  filterQ: 1.5, filterType: 'highpass',label: 'L7 cyan — airy' },
+  '#818cf8': { servoFreqOffset: -15, rayFreqOffset: -10,  filterQ: 5,   filterType: null,      label: 'L8 indigo — deep resonance' },
+  '#f97316': { servoFreqOffset: 60,  rayFreqOffset: 35,   filterQ: 4,   filterType: 'bandpass',label: 'L9 deep orange — punchy' },
+  '#d946ef': { servoFreqOffset: 20,  rayFreqOffset: 10,   filterQ: 3.5, filterType: 'highpass',label: 'L10 magenta — shimmering' },
+};
+
+const DEFAULT_AUDIO_PROFILE: LabAudioProfile = {
+  servoFreqOffset: 0,
+  rayFreqOffset: 0,
+  filterQ: null,
+  filterType: null,
+  label: 'default',
+};
+
+/** Look up the audio profile for a given lab hex color. Case-insensitive. */
+function getAudioProfile(hexColor: string): LabAudioProfile {
+  const normalized = hexColor.trim().toLowerCase();
+  return LAB_COLOR_AUDIO_PROFILES[normalized] ?? DEFAULT_AUDIO_PROFILE;
+}
 
 class IrisAudioEngine {
   private ctx: AudioContext | null = null;
@@ -25,6 +70,7 @@ class IrisAudioEngine {
   private isActive = false;
   private _muted = false;
   private volumeScale = 0.8;
+  private activeProfile: LabAudioProfile = DEFAULT_AUDIO_PROFILE;
 
   init(): boolean {
     if (this.ctx) return true;
@@ -40,10 +86,17 @@ class IrisAudioEngine {
     }
   }
 
-  /** Start continuous iris sounds. Call once when transition begins. */
-  startTransition(direction: 'open' | 'close'): void {
+  /** Start continuous iris sounds. Call once when transition begins.
+   *  @param direction - 'open' or 'close'
+   *  @param labColor  - optional lab hex color (e.g. '#00BBFF') for pitch/timbre variation
+   */
+  startTransition(direction: 'open' | 'close', labColor?: string): void {
     if (!this.ctx || !this.masterGain || this.isActive || this._muted) return;
     this.isActive = true;
+
+    // Resolve lab-specific audio profile
+    this.activeProfile = labColor ? getAudioProfile(labColor) : DEFAULT_AUDIO_PROFILE;
+    const profile = this.activeProfile;
 
     const t = this.ctx.currentTime;
 
@@ -52,9 +105,9 @@ class IrisAudioEngine {
 
     // 2. Servo whir (continuous, pitch modulated by syncProgress)
     this.servoFilter = this.ctx.createBiquadFilter();
-    this.servoFilter.type = 'bandpass';
+    this.servoFilter.type = profile.filterType ?? 'bandpass';
     this.servoFilter.frequency.setValueAtTime(800, t);
-    this.servoFilter.Q.setValueAtTime(3, t);
+    this.servoFilter.Q.setValueAtTime(profile.filterQ ?? 3, t);
     this.servoFilter.connect(this.masterGain);
 
     this.servoGain = this.ctx.createGain();
@@ -62,9 +115,10 @@ class IrisAudioEngine {
     this.servoGain.gain.linearRampToValueAtTime(0.06 * this.volumeScale, t + 0.1);
     this.servoGain.connect(this.servoFilter);
 
+    const baseServoFreq = (direction === 'open' ? 200 : 400) + profile.servoFreqOffset;
     this.servoOsc = this.ctx.createOscillator();
     this.servoOsc.type = 'sawtooth';
-    this.servoOsc.frequency.setValueAtTime(direction === 'open' ? 200 : 400, t);
+    this.servoOsc.frequency.setValueAtTime(baseServoFreq, t);
     this.servoOsc.connect(this.servoGain);
     this.servoOsc.start(t);
 
@@ -99,9 +153,9 @@ class IrisAudioEngine {
     const t = this.ctx.currentTime;
     const p = direction === 'close' ? 1 - progress : progress;
 
-    // Servo pitch rises with progress (200Hz → 600Hz for open)
+    // Servo pitch rises with progress (200Hz → 600Hz for open), offset by lab profile
     if (this.servoOsc) {
-      const freq = 200 + p * 400;
+      const freq = 200 + this.activeProfile.servoFreqOffset + p * 400;
       this.servoOsc.frequency.setValueAtTime(freq, t);
     }
 
@@ -124,7 +178,7 @@ class IrisAudioEngine {
 
       this.rayOsc = this.ctx.createOscillator();
       this.rayOsc.type = 'sine';
-      this.rayOsc.frequency.setValueAtTime(440, t);
+      this.rayOsc.frequency.setValueAtTime(440 + this.activeProfile.rayFreqOffset, t);
       this.rayOsc.connect(this.rayGain);
       this.rayOsc.start(t);
     }
@@ -132,8 +186,8 @@ class IrisAudioEngine {
     if (this.rayOsc && this.rayGain) {
       const rayP = p < 0.5 ? 0 : (p - 0.5) / 0.4;
       this.rayGain.gain.setValueAtTime(Math.min(rayP, 1) * 0.03 * this.volumeScale, t);
-      // Harmonics shift
-      this.rayOsc.frequency.setValueAtTime(440 + rayP * 220, t);
+      // Harmonics shift, offset by lab profile
+      this.rayOsc.frequency.setValueAtTime(440 + this.activeProfile.rayFreqOffset + rayP * 220, t);
     }
 
     // Final snap at progress > 0.9
@@ -170,6 +224,7 @@ class IrisAudioEngine {
       this.rayOsc = null;
       this.rayGain = null;
       this.isActive = false;
+      this.activeProfile = DEFAULT_AUDIO_PROFILE;
     }, 150);
   }
 
@@ -222,3 +277,5 @@ class IrisAudioEngine {
 }
 
 export const irisAudioEngine = new IrisAudioEngine();
+export { getAudioProfile, LAB_COLOR_AUDIO_PROFILES };
+export type { LabAudioProfile };

@@ -20,6 +20,7 @@ import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCockpitStore } from '@/stores/cockpitStore';
+import { getShakeOffset } from '@/lib/3d/cameraShake';
 
 export type CameraMode = 'hero' | 'station' | 'spatial' | 'game';
 
@@ -135,6 +136,14 @@ export function CameraSystem({
         cam.position.x += driftX * delta;
         cam.position.y += driftY * delta;
       }
+    }
+
+    // Camera shake offset (Section 4.1-G)
+    const shake = getShakeOffset(delta);
+    if (shake.x !== 0 || shake.y !== 0 || shake.z !== 0) {
+      cam.position.x += shake.x;
+      cam.position.y += shake.y;
+      cam.position.z += shake.z;
     }
 
     // Mouse parallax offset (D3D-C4) — applied to all non-hero modes
