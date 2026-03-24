@@ -2,7 +2,7 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-23 (D3D Overhaul Plan Complete)
+## Last Updated: 2026-03-24 (D3D Phase 4B — Error Analysis & Discrepancy Catalog)
 
 ---
 
@@ -88,7 +88,7 @@ _(none)_
 | A — Foundation Cleanup | `db18293` | 1 doc | D3D-1 through D3D-9 (9) | COMMITTED |
 | B — Single Canvas & Iris | `93cd13e` | 4 src + 1 doc | D3D-B1 through D3D-B6 (6) | COMMITTED |
 | C — Post-FX & Audio | `d923968` | 4 src + 1 doc | D3D-C1 through D3D-C5 (5) | COMMITTED |
-| D — Doc Updates & Roadmap | — | 1 doc | 0 | IN PROGRESS |
+| D — Doc Updates & Roadmap | `6d7dc6d` | 1 doc + CLAUDE.md v6.0 | 0 | Phase 4A COMMITTED, 4B COMMITTED |
 
 **Source files created (8):**
 - `src/stores/sceneStore.ts` — Centralized scene management
@@ -112,6 +112,63 @@ _(none)_
 - 7 post-processing effects always-on with scene-reactive multipliers
 - Procedural iris audio (Web Audio API)
 - Mouse parallax + interactive surface hooks
+
+### D3D Phase 4B — Error Analysis & Discrepancy Catalog (March 24, 2026)
+
+#### Stage Documents Requiring D3D Updates (During Build)
+
+These discrepancies exist between existing stage docs and the D3D architecture. Each will be resolved when its stage is built — NOT pre-emptively.
+
+| Stage Doc | Discrepancy | Resolution |
+|-----------|-------------|-----------|
+| All 35 game stage docs (6B–7F) | Contain `useIsMobile()` pattern and conditional 3D rendering | Remove during build per D3D-1. Games render 3D unconditionally. |
+| All 3D component stage docs | Import `useLOD` / `LODWrapper` / `useLODContext` | Remove during build, hardcode ultra-quality values (D3D-2). |
+| Stage 3 Part 3 | Creates StationFrame with separate Canvas | Use CockpitCanvas with SceneRouter instead (D3D-B1). |
+| Stage 6B–7F (all games) | Games create own `<Canvas>` for 3D scenes | Render as `<group>` inside CockpitCanvas via GameShell (D3D-B3). |
+| Stage 4 Part 1 | `useApi.ts` references | BUG-1 already documented, no D3D impact. |
+| CockpitCanvas stage docs (5C–5D) | References `profile.bloomEnabled` conditional rendering | Remove conditional — PostProcessingStack is always-on (D3D-5, D3D-C1). |
+| GameShell stage docs | References `setGameActive(true/false)` from uiStore | Replace with `sceneStore.enterGame`/`exitGame` (D3D-B5). |
+| Hero Animation docs (5A–5B) | HeroAnimation may create separate Canvas | Must render as scene within CockpitCanvas (D3D-B1). |
+| Login 3D docs (5E–5F) | LoginPortal3D creates own Canvas | Login page is pre-auth — this Canvas is acceptable (outside CockpitCanvas scope). No D3D change needed. |
+
+#### Files With Stale References (Fix During Stage Build)
+
+These files contain references that D3D supersedes. They are NOT broken (old code still works), but will be updated during their respective stage builds:
+
+| Pattern | Occurrences | Files Affected | D3D Replacement |
+|---------|------------|----------------|----------------|
+| `useIsMobile` | ~401 | 84 files | Remove entirely (D3D-1) |
+| `useLOD` / `LODWrapper` / `useLODContext` | ~30 | 15 files | Remove, hardcode ultra (D3D-2) |
+| `GenericGameParticles` | ~35 | 35 game files | Remove CSS fallback (D3D-1) |
+| `setGameActive` | ~4 | GameShell, uiStore, CockpitCanvas | Use `sceneStore.enterGame`/`exitGame` (D3D-B5) |
+| `profile.bloomEnabled` | ~3 | CockpitCanvas, 2 config files | Always true — remove conditional (D3D-5) |
+| `DeviceSelectionModal` | ~2 | Provider, settings page | Remove entirely (D3D-1) |
+| `useAdaptiveLOD` | ~5 | LODWrapper, 3D game components | Remove entirely (D3D-2) |
+| `lodSphere` / `lodBox` | ~10 | 3D components | Replace with hardcoded max segments (D3D-2) |
+
+#### Non-Breaking Deprecations
+
+These patterns still function but are superseded by D3D architecture:
+
+| Deprecated | Replacement | Impact |
+|-----------|-------------|--------|
+| `uiStore.gameActive` | `sceneStore.activeScene === 'game'` | uiStore flag still exists but no longer read by CockpitCanvas |
+| `cockpitStore.heroPhase` | `sceneStore.activeScene === 'hero'` | cockpitStore retains `heroPhase` for HeroAnimation internal state machine |
+| `WormholeTransition` (cockpit-to-game) | `MechanicalIris` | WormholeTransition retained for lab-to-lab transitions within spatial dashboard |
+| Inline postprocessing in CockpitCanvas | `PostProcessingStack` component | Old inline EffectComposer replaced by extracted component (D3D-C1) |
+| `deviceStore.profile.bloomEnabled` | Always `true` | Profile property still exists but is always `true` |
+| `deviceStore.hasSelected` | Always `true` | No device selection flow exists |
+
+#### Import Graph Changes
+
+| Import Change | Affected Consumers | Notes |
+|---------------|-------------------|-------|
+| `sceneStore` added | CockpitCanvas, SceneRouter, GameShell, MechanicalIris, PostProcessingStack | New central state for scene management |
+| `useLOD` removed | All 3D game components, LODWrapper, GameShell | Consumers must remove import and inline ultra values |
+| `useIsMobile` removed | 84 files across games, layouts, 3D components | Consumers must remove import and conditional blocks |
+| `GenericGameParticles` removed | 35 game files | Consumers must remove import and mobile fallback rendering |
+| `PostProcessingStack` added | CockpitCanvas | Single consumer, replaces inline effects |
+| `irisAudio` added | MechanicalIris (via useIrisTransition) | Procedural audio for iris open/close |
 
 ### Code Review Notes
 _(none yet)_
