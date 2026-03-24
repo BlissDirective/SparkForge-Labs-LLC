@@ -31,9 +31,7 @@ import {
   Brain, Zap, ChevronRight, Plus, Minus, Play,
   RotateCcw, GraduationCap, Target, Volume2, VolumeX,
 } from 'lucide-react';
-import {
-  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
-} from 'recharts';
+import { ResponsiveLine } from '@nivo/line';
 
 // === [v3] Dynamic import for 3D network (no SSR) ===
 const NeuralNetwork3D = dynamic(
@@ -1234,37 +1232,47 @@ export function NeuralBuilderGame() {
                     <p className="font-display text-xs font-bold text-white mb-2">
                       {'\u{1F4C9}'} Loss Curve
                     </p>
-                    <ResponsiveContainer width="100%" height={120}>
-                      <LineChart data={lossHistory}>
-                        <XAxis
-                          dataKey="epoch"
-                          stroke="#ffffff30"
-                          fontSize={9}
-                        />
-                        <YAxis stroke="#ffffff30" fontSize={9} />
-                        <Tooltip
-                          contentStyle={{
-                            background: '#1a1a2e',
-                            border: '1px solid #EC4899',
-                            fontSize: 10,
-                          }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="loss"
-                          stroke="#EC4899"
-                          strokeWidth={2}
-                          dot={false}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey="acc"
-                          stroke="#22c55e"
-                          strokeWidth={1}
-                          dot={false}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    <div style={{ height: 120 }}>
+                      <ResponsiveLine
+                        data={[
+                          {
+                            id: 'loss',
+                            data: lossHistory.map((d) => ({ x: d.epoch, y: d.loss })),
+                          },
+                          {
+                            id: 'acc',
+                            data: lossHistory.map((d) => ({ x: d.epoch, y: d.acc })),
+                          },
+                        ]}
+                        colors={['#EC4899', '#22c55e']}
+                        lineWidth={2}
+                        enablePoints={false}
+                        enableGridX={false}
+                        enableGridY={false}
+                        axisBottom={{
+                          tickSize: 3,
+                          tickPadding: 3,
+                        }}
+                        axisLeft={{
+                          tickSize: 3,
+                          tickPadding: 3,
+                        }}
+                        theme={{
+                          axis: {
+                            ticks: { text: { fill: '#ffffff30', fontSize: 9 } },
+                          },
+                          tooltip: {
+                            container: {
+                              background: '#1a1a2e',
+                              border: '1px solid #EC4899',
+                              fontSize: 10,
+                            },
+                          },
+                        }}
+                        margin={{ top: 5, right: 10, bottom: 25, left: 30 }}
+                        curve="monotoneX"
+                      />
+                    </div>
                   </div>
                 )}
 

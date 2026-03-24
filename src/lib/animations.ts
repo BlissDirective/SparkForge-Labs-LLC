@@ -1,6 +1,31 @@
 // Enhancement 8.1: 'framer-motion' rebranded to 'motion' — import from 'motion/react'
 import { type Variants, type Transition } from 'motion/react';
 
+// ═══ DURATION PRESETS (Audit Finding #10: centralized timing scale) ═══
+export const DURATION = {
+  INSTANT: 0.1,
+  QUICK: 0.2,
+  NORMAL: 0.3,
+  SLOW: 0.5,
+  DRAMATIC: 0.8,
+} as const;
+
+// ═══ EASING PRESETS ═══
+export const EASING = {
+  OUT: 'easeOut',
+  IN_OUT: 'easeInOut',
+  SMOOTH: [0.25, 0.46, 0.45, 0.94],
+  OVERSHOOT: [0.34, 1.56, 0.64, 1],
+} as const;
+
+// ═══ TRANSITION PRESETS (duration + easing combos) ═══
+export const TRANSITION = {
+  QUICK: { duration: DURATION.QUICK, ease: EASING.OUT } as Transition,
+  NORMAL: { duration: DURATION.NORMAL, ease: EASING.OUT } as Transition,
+  SLOW: { duration: DURATION.SLOW, ease: EASING.IN_OUT } as Transition,
+  DRAMATIC: { duration: DURATION.DRAMATIC, ease: EASING.SMOOTH } as Transition,
+} as const;
+
 // ═══ SPRING PRESETS ═══
 export const springs = {
   gentle: { type: 'spring', stiffness: 150, damping: 20 } as Transition,
