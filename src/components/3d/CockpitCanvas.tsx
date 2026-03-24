@@ -52,6 +52,9 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
 // Note: Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
+// Game registry (Section 4.1-B: per-game camera presets)
+import { getGameBySlug } from '@/config/gameRegistry';
+
 // Stores
 import { useSceneStore } from '@/stores/sceneStore';
 // useDeviceStore available for future per-device tuning
@@ -243,9 +246,17 @@ export function CockpitCanvas({
 }: CockpitCanvasProps) {
   // Scene state from centralized store (D3D-B5)
   const activeScene = useSceneStore((s) => s.activeScene);
+  const activeGameId = useSceneStore((s) => s.activeGameId);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const transition = useSceneStore((s) => s.transition);
+
+  // Per-game camera preset lookup (Section 4.1-B)
+  const gameCameraPreset = useMemo(() => {
+    if (!activeGameId) return null;
+    const game = getGameBySlug(activeGameId);
+    return game?.cameraPreset ?? null;
+  }, [activeGameId]);
 
   // Determine camera mode from active scene
   const cameraMode: CameraMode = activeScene === 'hero'
@@ -293,13 +304,14 @@ export function CockpitCanvas({
           {/* Adaptive DPR */}
           <AdaptiveDpr pixelated />
 
-          {/* Unified Camera System (D3D-C4: parallax offset) */}
+          {/* Unified Camera System (D3D-C4: parallax, Section 4.1-B: per-game presets) */}
           <CameraSystem
             mode={cameraMode}
             stationFov={cameraFov}
             spatialDamping={0.04}
             enableOrbitDrift
             parallaxRef={parallaxRef}
+            gameCameraPreset={gameCameraPreset}
           />
 
           {/* HDR Environment */}

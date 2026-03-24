@@ -4,6 +4,13 @@
 export type GameTier = 'flagship' | 'fl-lite' | 'standard';
 export type AgeBand = 'A' | 'B' | 'C';
 
+/** Per-game camera preset for CameraSystem (Section 4.1-B) */
+export interface GameCameraPreset {
+  position: [number, number, number];
+  lookAt: [number, number, number];
+  fov: number;
+}
+
 export interface GameRegistryEntry {
   id: number;
   name: string;
@@ -18,6 +25,8 @@ export interface GameRegistryEntry {
   description: string;
   icon: string;
   triangleBudget: { desktop: number; tablet: number; mobile: number } | null;
+  /** Per-game camera override (Section 4.1-B). Falls back to GAME_CAMERA_DEFAULT. */
+  cameraPreset: GameCameraPreset | null;
 }
 
 const LAB_NAMES: Record<number, string> = {
@@ -32,6 +41,40 @@ const LAB_NAMES: Record<number, string> = {
   9: 'Building with AI',
   10: 'AI Futures',
 };
+
+// ── Per-Game Camera Presets (Section 4.1-B) ──
+// Games without a preset use GAME_CAMERA_DEFAULT via CameraSystem.
+// Presets are designed for each game's 3D scene layout.
+
+export const GAME_CAMERA_DEFAULT: GameCameraPreset = {
+  position: [0, 2, 5],
+  lookAt: [0, 0, 0],
+  fov: 45,
+};
+
+const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
+  // Flagship — wide FOV for immersive 3D scenes
+  'pet-trainer':      { position: [0, 3, 6],    lookAt: [0, 0.5, 0], fov: 50 },
+  'sort-toy-box':     { position: [0, 4, 7],    lookAt: [0, 0, 0],   fov: 55 },
+  'neural-builder':   { position: [0, 2.5, 5],  lookAt: [0, 1, 0],   fov: 48 },
+  'prompt-lab':       { position: [0, 1.5, 4],  lookAt: [0, 0.5, 0], fov: 42 },
+  'agent-architect':  { position: [2, 3, 6],    lookAt: [0, 0, 0],   fov: 52 },
+  'bias-detective':   { position: [0, 2, 5.5],  lookAt: [0, 0.8, 0], fov: 46 },
+  // FL-Lite — moderate depth, focused view
+  'data-detective':   { position: [0, 2, 4.5],  lookAt: [0, 0, 0],   fov: 44 },
+  'robot-vacuum':     { position: [0, 5, 8],    lookAt: [0, 0, 0],   fov: 55 },
+  'camera-quest':     { position: [0, 1.5, 4],  lookAt: [0, 0, 0],   fov: 50 },
+  'chatbot-builder':  { position: [0, 2, 4],    lookAt: [0, 0.5, 0], fov: 43 },
+  'emoji-decoder':    { position: [0, 1.5, 3.5],lookAt: [0, 0, 0],   fov: 40 },
+  'code-blocks':      { position: [0, 3, 5],    lookAt: [0, 0, 0],   fov: 48 },
+  'my-first-ai-app':  { position: [0, 2, 4],    lookAt: [0, 0, 0],   fov: 44 },
+  'future-forge':     { position: [0, 2.5, 5.5],lookAt: [0, 0, 0],   fov: 50 },
+  'ai-or-not':        { position: [0, 1.5, 4],  lookAt: [0, 0, 0],   fov: 42 },
+};
+
+function cameraPreset(slug: string): GameCameraPreset | null {
+  return CAMERA_PRESETS[slug] ?? null;
+}
 
 const TRIANGLE_BUDGETS = {
   flagship: { desktop: 10_000_000, tablet: 5_000_000, mobile: 2_500_000 },
@@ -61,6 +104,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Spot hidden AI systems in everyday scenes by tapping on objects that use artificial intelligence.',
     icon: '\uD83D\uDD75\uFE0F',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 2,
@@ -76,6 +120,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Travel through the history of AI and place key milestones on a timeline.',
     icon: '\u23F3',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 3,
@@ -91,6 +136,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Drag tasks into human or machine categories to learn what AI does best versus what humans excel at.',
     icon: '\uD83E\uDD1D',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 4,
@@ -106,6 +152,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Train a virtual AI pet by teaching it commands and watching it evolve through reinforcement learning.',
     icon: '\uD83D\uDC3E',
     triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('pet-trainer'),
   },
   {
     id: 5,
@@ -121,6 +168,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Toss toys into the correct bins to learn how AI classifies and sorts objects into categories.',
     icon: '\uD83E\uDDF8',
     triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('sort-toy-box'),
   },
   {
     id: 6,
@@ -136,6 +184,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Reward or correct an AI dog to teach it tricks, exploring how positive reinforcement shapes behavior.',
     icon: '\uD83C\uDF56',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 7,
@@ -151,6 +200,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Investigate datasets with a magnifying glass to find patterns, outliers, and hidden insights.',
     icon: '\uD83D\uDD0D',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('data-detective'),
   },
   {
     id: 8,
@@ -166,6 +216,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Construct a neural network by connecting neurons and layers, then watch data flow through your creation.',
     icon: '\uD83E\uDDE0',
     triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('neural-builder'),
   },
   {
     id: 9,
@@ -181,6 +232,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Pass signals through a chain of neurons to see how information travels in a neural network.',
     icon: '\u26A1',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 10,
@@ -196,6 +248,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Zoom into images pixel by pixel to understand how computer vision breaks down visual information.',
     icon: '\uD83D\uDDA5\uFE0F',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 11,
@@ -211,6 +264,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Craft and refine prompts to communicate with an AI, learning how word choice shapes responses.',
     icon: '\uD83D\uDCAC',
     triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('prompt-lab'),
   },
   {
     id: 12,
@@ -226,6 +280,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Guess the next word in a sentence to discover how language models predict text.',
     icon: '\uD83D\uDD24',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 13,
@@ -241,6 +296,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Slice sentences into tokens to learn how AI breaks language into smaller pieces for processing.',
     icon: '\u2702\uFE0F',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 14,
@@ -256,6 +312,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Examine artwork to determine whether it was created by a human artist or generated by AI.',
     icon: '\uD83C\uDFA8',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 15,
@@ -271,6 +328,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Design an AI agent pipeline by connecting perception, reasoning, and action modules together.',
     icon: '\uD83E\uDDD1\u200D\uD83D\uDD27',
     triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('agent-architect'),
   },
   {
     id: 16,
@@ -286,6 +344,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Program a robot vacuum to navigate rooms, teaching it pathfinding and obstacle avoidance.',
     icon: '\uD83E\uDD16',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('robot-vacuum'),
   },
   {
     id: 17,
@@ -301,6 +360,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Match real-world problems to the right AI tools to learn when and how to apply different technologies.',
     icon: '\uD83E\uDDF0',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 18,
@@ -316,6 +376,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Investigate AI systems for hidden biases using scales of justice to weigh fairness in decisions.',
     icon: '\u2696\uFE0F',
     triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('bias-detective'),
   },
   {
     id: 19,
@@ -331,6 +392,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Protect personal data from AI collection by identifying what information should stay private.',
     icon: '\uD83D\uDEE1\uFE0F',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 20,
@@ -346,6 +408,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Analyze media to distinguish real content from AI-generated deepfakes and synthetic media.',
     icon: '\uD83E\uDD14',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 21,
@@ -361,6 +424,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Debate ethical dilemmas in AI by presenting arguments for and against tough technology decisions.',
     icon: '\uD83C\uDFDB\uFE0F',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 22,
@@ -376,6 +440,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Capture polaroid snapshots of objects to train an image recognition model in a scavenger hunt.',
     icon: '\uD83D\uDCF7',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('camera-quest'),
   },
   {
     id: 23,
@@ -391,6 +456,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Create adversarial examples that trick an AI image classifier into making wrong predictions.',
     icon: '\uD83C\uDFAD',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 24,
@@ -406,6 +472,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Build your own image classifier by labeling training data and testing its accuracy.',
     icon: '\uD83D\uDDC2\uFE0F',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 25,
@@ -421,6 +488,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Make predictions about future AI trends and compare your forecasts against crowd wisdom.',
     icon: '\uD83D\uDCC8',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 26,
@@ -436,6 +504,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Analyze text messages to detect emotional tone and learn how AI understands human sentiment.',
     icon: '\uD83D\uDE00',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 27,
@@ -451,6 +520,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Design a chatbot conversation flow by connecting dialogue nodes and response branches.',
     icon: '\uD83D\uDCAC',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('chatbot-builder'),
   },
   {
     id: 28,
@@ -466,6 +536,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Translate phrases through multiple languages to see how meaning shifts in AI translation.',
     icon: '\uD83C\uDF10',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 29,
@@ -481,6 +552,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Decode emoji sequences into sentences to explore how AI interprets visual symbols as language.',
     icon: '\uD83D\uDD23',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('emoji-decoder'),
   },
   {
     id: 30,
@@ -496,6 +568,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Snap together code blocks to build simple AI programs and see them execute in real time.',
     icon: '\uD83E\uDDE9',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('code-blocks'),
   },
   {
     id: 31,
@@ -511,6 +584,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Explore AI-related careers by matching skills and interests to jobs in the AI industry.',
     icon: '\uD83D\uDCBC',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 32,
@@ -526,6 +600,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Send requests to real AI APIs and inspect responses to learn how software talks to AI services.',
     icon: '\uD83D\uDD0C',
     triangleBudget: null,
+    cameraPreset: null,
   },
   {
     id: 33,
@@ -541,6 +616,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Build a simple AI-powered app from scratch using a visual mockup builder with drag-and-drop components.',
     icon: '\uD83D\uDCF1',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('my-first-ai-app'),
   },
   {
     id: 34,
@@ -556,6 +632,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Design blueprints for future AI inventions and simulate their impact on society.',
     icon: '\uD83D\uDD2E',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('future-forge'),
   },
   {
     id: 35,
@@ -571,6 +648,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     description: 'Judge whether creative works were made by humans or AI to sharpen your detection skills.',
     icon: '\u2753',
     triangleBudget: budget('fl-lite', true),
+    cameraPreset: cameraPreset('ai-or-not'),
   },
 ] as const;
 
