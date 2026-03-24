@@ -2,7 +2,7 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-24 (Audit Report — Critical Findings #1-4)
+## Last Updated: 2026-03-24 (Audit Report — Important Findings #5-13)
 
 ---
 
@@ -22,6 +22,28 @@
 - [x] Critical #4c: SpatialOverlay.tsx — 3 individual selectors
 
 **TypeScript validation:** PASS (0 new errors; 14 pre-existing TSL shader type errors unchanged)
+
+### Audit Report — Important Findings (2026-03-24)
+
+**Status:** MOSTLY COMPLETE (2 deferred to dedicated PRs)
+**Branch:** claude/audit-critical-findings-xu1H3
+
+**Batch 3+4 — Quick Wins + Performance:**
+- [x] Important #6: StatusBar3D.tsx — Rewrote material factories to use ref + useFrame
+- [x] Important #7: CockpitPanels.tsx — Immediate geometry disposal via ref on dependency change
+- [x] Important #9: package.json — Moved leva to devDependencies
+- [x] Important #12: QueryProvider.tsx — Wrapped ReactQueryDevtools in NODE_ENV guard
+
+**Batch 5 — Dependency Cleanup + Design System:**
+- [x] Important #8: Removed recharts, replaced with @nivo/line in NeuralBuilderGame.tsx (~200KB savings)
+- [x] Important #10: Added DURATION/EASING/TRANSITION presets to existing animations.ts
+
+**Deferred to Dedicated PRs:**
+- [ ] Important #5: `import * as THREE` → named imports (103 files, large-scope refactor)
+- [ ] Important #11: Sub-scale font sizes text-[9px]/text-[10px] → text-xs (306 occurrences, 53 files)
+- [ ] Important #13: Duplicate particle system extraction (architectural refactor, 3 files)
+
+**TypeScript validation:** PASS (0 new errors)
 
 ---
 
