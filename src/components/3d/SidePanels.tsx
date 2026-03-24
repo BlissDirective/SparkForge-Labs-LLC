@@ -14,7 +14,7 @@
 //
 
 
-import React, { useRef, useMemo } from 'react';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox } from '@react-three/drei';
 import * as THREE from 'three';
@@ -325,6 +325,23 @@ function RadarPanel({
   // Intensity factor
   const intensity = dimmed ? 0.15 : 1.0;
 
+  // Shared blip geometry + material (Critical Fix #1: avoid per-render material recreation)
+  const blipGeo = useMemo(() => new THREE.SphereGeometry(0.025, 64, 64), []);
+  const blipMat = useMemo(() => new THREE.MeshStandardMaterial({
+    color: labColor,
+    emissive: labColor,
+    transparent: true,
+    opacity: 1.0,
+  }), [labColor]);
+
+  // Dispose shared blip geometry/material on unmount or dependency change
+  useEffect(() => {
+    return () => {
+      blipGeo.dispose();
+      blipMat.dispose();
+    };
+  }, [blipGeo, blipMat]);
+
   useFrame(({ clock }) => {
     const t = clock.elapsedTime;
 
@@ -332,6 +349,10 @@ function RadarPanel({
     if (sweepRef.current) {
       sweepRef.current.rotation.z = t * 1.5;
     }
+
+    // Update shared blip material dynamic properties
+    blipMat.emissiveIntensity = 0.9 * intensity;
+    blipMat.opacity = opacity * 0.85 * intensity;
 
     // Pulse blips
     blipRefs.current.forEach((blip, i) => {
@@ -447,7 +468,7 @@ function RadarPanel({
           ))}
         </group>
 
-        {/* Lab location blips (10 small spheres) */}
+        {/* Lab location blips (10 small spheres — shared geometry + material) */}
         {LAB_BLIP_ANGLES.map((angle, i) => {
           const r = LAB_BLIP_RADII[i];
           const x = Math.cos(angle) * r;
@@ -459,16 +480,9 @@ function RadarPanel({
                 if (el) blipRefs.current[i] = el;
               }}
               position={[x, y, 0.07]}
-            >
-              <sphereGeometry args={[0.025, 64, 64]} />
-              <meshStandardMaterial
-                color={`#${labColor.getHexString()}`}
-                emissive={labColor}
-                emissiveIntensity={0.9 * intensity}
-                transparent
-                opacity={opacity * 0.85 * intensity}
-              />
-            </mesh>
+              geometry={blipGeo}
+              material={blipMat}
+            />
           );
         })}
 
