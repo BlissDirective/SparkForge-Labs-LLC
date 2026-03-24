@@ -122,18 +122,17 @@ function SpatialDashboardContent({
   labCompletions: Record<number, number>;
   onLabEnter?: (labId: number) => void;
 }) {
-  const {
-    focusedLabId,
-    hoveredLabId,
-    cameraTarget,
-    orbitSpeed,
-    npcsVisible,
-    activeConsole,
-    focusLab,
-    setHoveredLab,
-    openConsole,
-    closeConsole,
-  } = useCockpitStore();
+  // Critical Fix #4: Individual selectors to avoid full-store re-renders in 3D path
+  const focusedLabId = useCockpitStore((s) => s.focusedLabId);
+  const hoveredLabId = useCockpitStore((s) => s.hoveredLabId);
+  const cameraTarget = useCockpitStore((s) => s.cameraTarget);
+  const orbitSpeed = useCockpitStore((s) => s.orbitSpeed);
+  const npcsVisible = useCockpitStore((s) => s.npcsVisible);
+  const activeConsole = useCockpitStore((s) => s.activeConsole);
+  const focusLab = useCockpitStore((s) => s.focusLab);
+  const setHoveredLab = useCockpitStore((s) => s.setHoveredLab);
+  const openConsole = useCockpitStore((s) => s.openConsole);
+  const closeConsole = useCockpitStore((s) => s.closeConsole);
 
   const child = useChildStore((s) => s.activeChild);
   const badges = useChildStore((s) => s.badges);

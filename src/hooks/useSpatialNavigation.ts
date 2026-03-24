@@ -32,15 +32,14 @@ export interface SpatialNavigation {
 
 export function useSpatialNavigation(): SpatialNavigation {
   const router = useRouter();
-  const {
-    focusedLabId,
-    hoveredLabId,
-    isTransitioning,
-    cameraTarget,
-    focusLab,
-    setHoveredLab,
-    returnToOverview,
-  } = useCockpitStore();
+  // Critical Fix #4: Individual selectors to avoid full-store re-renders
+  const focusedLabId = useCockpitStore((s) => s.focusedLabId);
+  const hoveredLabId = useCockpitStore((s) => s.hoveredLabId);
+  const isTransitioning = useCockpitStore((s) => s.isTransitioning);
+  const cameraTarget = useCockpitStore((s) => s.cameraTarget);
+  const focusLab = useCockpitStore((s) => s.focusLab);
+  const setHoveredLab = useCockpitStore((s) => s.setHoveredLab);
+  const returnToOverview = useCockpitStore((s) => s.returnToOverview);
 
   // Navigate camera to focus on a lab (no route change)
   const navigateToLab = useCallback(
