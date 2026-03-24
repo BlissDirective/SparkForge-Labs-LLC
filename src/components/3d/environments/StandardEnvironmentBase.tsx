@@ -19,6 +19,7 @@ import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
+import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
 
 // ■■ Standard Environment Constants (Ultra quality) ■■
 const _STANDARD_TERRAIN_SEGMENTS = 128;
@@ -230,23 +231,26 @@ interface StandardEnvironmentBaseProps {
 export function StandardEnvironmentWrapper({
   labColor,
   children,
-  terrainColor = '#0A0E16',
-  skyTopColor = '#050810',
-  skyHorizonColor = '#0A1628',
+  terrainColor,
+  skyTopColor,
+  skyHorizonColor,
   fogColor,
-  heightScale = 0.1,
-  terrainSize = 20,
+  heightScale,
+  terrainSize,
 }: StandardEnvironmentBaseProps) {
-
   return (
-    <group>
-      <StandardLightingRig labColor={labColor} />
-      <StandardTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} />
-      <StandardSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} />
-      {<StandardFogParticles color={fogColor || labColor} />}
-      <Environment preset="night" />
+    <ProceduralEnvironmentGenerator
+      labColor={labColor}
+      tier="standard"
+      terrainColor={terrainColor}
+      skyTopColor={skyTopColor}
+      skyHorizonColor={skyHorizonColor}
+      fogColor={fogColor}
+      heightScale={heightScale}
+      terrainSize={terrainSize}
+    >
       {children}
-    </group>
+    </ProceduralEnvironmentGenerator>
   );
 }
 

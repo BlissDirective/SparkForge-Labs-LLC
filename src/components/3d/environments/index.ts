@@ -48,3 +48,6 @@ export { default as LostInTranslationEnvironment } from './LostInTranslationEnvi
 export { default as CareerExplorerEnvironment } from './CareerExplorerEnvironment';
 export { default as ApiExplorerEnvironment } from './ApiExplorerEnvironment';
 export { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
+
+// ■■ Procedural Environment System ■■
+export { default as ProceduralEnvironmentGenerator, labColorToId } from './ProceduralEnvironmentGenerator';
