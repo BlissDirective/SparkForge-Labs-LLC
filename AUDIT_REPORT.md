@@ -172,6 +172,20 @@ export const ANIMATION = {
 - **Impact:** These elements won't scale when users enable larger font sizes via accessibility settings.
 - **Fix:** Use `text-xs` (12px minimum) or add the sizes to the Tailwind config if sub-12px is truly needed.
 
+### 12. React Query Devtools Bundled in Production
+- **Lens:** Architecture
+- **File:** `src/components/providers/QueryProvider.tsx`
+- **Issue:** `ReactQueryDevtools` is always mounted (`initialIsOpen={false}`), meaning it's bundled in production builds even though it's only needed in development.
+- **Impact:** Unnecessary bundle weight in production.
+- **Fix:** Wrap in `process.env.NODE_ENV === 'development'` guard.
+
+### 13. Duplicate Particle System Implementations
+- **Lens:** Architecture / 3D Component
+- **Files:** `AmbientParticles.tsx`, `GameParticles3D.tsx`, `LoginParticles3D.tsx`
+- **Issue:** Three separate particle implementations with similar IcosahedronGeometry logic. Each creates particles independently with overlapping patterns.
+- **Impact:** Code duplication, harder to maintain consistent particle behavior.
+- **Fix:** Extract shared `useParticleSystem()` hook or `ParticleGeometryFactory`.
+
 ---
 
 ## 🟢 Suggestions (6)
@@ -219,7 +233,9 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({...
 
 ## 💡 Insights
 
-1. **Single Canvas Architecture is Solid.** The CPA2-1 pattern (one persistent `<Canvas>` with SceneRouter managing visibility) is well-executed. Hero → Cockpit → Game transitions happen without canvas remounting — this is the correct approach for a complex multi-scene R3F app.
+1. **Architecture is Exceptionally Clean.** The architecture audit scored 4.8/5 across 17 categories. Zero god-components detected. Perfect concern separation (physics/animation/rendering/state in distinct layers). Scene graph follows clean world→zone→object→detail hierarchy. All 35 games follow consistent phase architecture (welcome→learn→play→complete). All D3D + CPA2 decision locks are properly implemented and verified in code.
+
+2. **Single Canvas Architecture is Solid.** The CPA2-1 pattern (one persistent `<Canvas>` with SceneRouter managing visibility) is well-executed. Hero → Cockpit → Game transitions happen without canvas remounting — this is the correct approach for a complex multi-scene R3F app.
 
 2. **Desktop-Ultra Decision is Bold but Correct for Target.** The D3D-1 decision to remove all mobile code paths simplifies the codebase significantly. 103 3D component files with zero mobile conditional logic is much cleaner than the previous `useIsMobile()` pattern. Future mobile support via native Three.js LOD is the right path.
 
@@ -260,7 +276,7 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({...
 | Category | Score | Notes |
 |---|---|---|
 | Performance | 🟡 3 / 5 | 4 critical GPU memory/allocation issues in cockpit components; single-canvas architecture is strong |
-| Architecture | 🟢 4 / 5 | Clean store separation, SceneRouter pattern, GameShell minimal; 3 full-store subscriptions and duplicate deps drag score |
+| Architecture | 🟢 4.5 / 5 | Exceptional separation of concerns, consistent game architecture, proper decision lock implementation; 3 full-store subscriptions and duplicate deps are only blemishes |
 | Visual Consistency | 🟢 4.5 / 5 | Frost-Prismatic system 95% compliant; minor hardcoded hex, animation inconsistency |
 | Dependency Health | 🟡 3.5 / 5 | Duplicate charting libs, leva in prod deps, `import * as THREE` everywhere |
 | Overall | 🟡 3.8 / 5 | Strong foundations with targeted performance issues to fix. Architecture decisions (CPA2, D3D, SceneRouter) are sound. |
