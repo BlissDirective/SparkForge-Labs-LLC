@@ -16,6 +16,7 @@
 //   6. Vignette             — Edge darkening
 //   7. BarrelDistortion     — Lens distortion (optional strength)
 
+import { useRef } from 'react';
 import { useMemo } from 'react';
 import {
   EffectComposer,
@@ -92,14 +93,13 @@ export function PostProcessingStack({
     }
   }, [activeScene, isTransitioning]);
 
-  // Chromatic aberration offset vector
-  const chromaticOffsetVec = useMemo(
-    () => new THREE.Vector2(
-      chromaticOffset * sceneMultipliers.chromatic,
-      chromaticOffset * sceneMultipliers.chromatic * 0.8
-    ),
-    [chromaticOffset, sceneMultipliers.chromatic]
+  // Chromatic aberration offset vector (Critical Fix #3: useRef to avoid Vector2 allocation on transition toggles)
+  const chromaticOffsetRef = useRef(new THREE.Vector2());
+  chromaticOffsetRef.current.set(
+    chromaticOffset * sceneMultipliers.chromatic,
+    chromaticOffset * sceneMultipliers.chromatic * 0.8
   );
+  const chromaticOffsetVec = chromaticOffsetRef.current;
 
   return (
     <EffectComposer multisampling={4}>

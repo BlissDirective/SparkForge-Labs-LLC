@@ -19,11 +19,10 @@ interface SpatialOverlayProps {
 
 export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
   const router = useRouter();
-  const {
-    focusedLabId,
-    spatialView,
-    returnToOverview,
-  } = useCockpitStore();
+  // Critical Fix #4: Individual selectors to avoid full-store re-renders
+  const focusedLabId = useCockpitStore((s) => s.focusedLabId);
+  const spatialView = useCockpitStore((s) => s.spatialView);
+  const returnToOverview = useCockpitStore((s) => s.returnToOverview);
 
   const focusedLab = focusedLabId ? LABS.find((l) => l.id === focusedLabId) : null;
   const completion = focusedLabId ? labCompletions[focusedLabId] ?? 0 : 0;

@@ -14,7 +14,7 @@
 //
 // All existing interfaces and interactions preserved.
 
-import { useRef, useMemo, useCallback } from 'react';
+import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
@@ -116,6 +116,14 @@ function ConnectionBeam({
     });
     return { geometry: geo, material: mat };
   }, [start, end, color]);
+
+  // Critical Fix #2: Dispose geometry + material on unmount to prevent VRAM leak
+  useEffect(() => {
+    return () => {
+      geometry.dispose();
+      material.dispose();
+    };
+  }, [geometry, material]);
 
   useFrame(() => {
     if (material) {

@@ -44,13 +44,11 @@
     "clsx": "^2.1.1",
     "gsap": "^3.14.2",
     "jotai": "^2.12.0",
-    "leva": "^0.10.1",
     "lucide-react": "^0.575.0",
     "motion": "^12.34.3",
     "next": "^15.2.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "recharts": "^3.8.0",
     "stripe": "^20.4.0",
     "tailwind-merge": "^3.5.0",
     "tailwindcss-animate": "^1.0.7",
@@ -61,6 +59,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "leva": "^0.10.1",
     "@playwright/test": "^1.50.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
