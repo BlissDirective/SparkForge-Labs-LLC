@@ -669,21 +669,37 @@ export function CockpitPanels({
   const arcRad = useMemo(() => (totalWrapArc * Math.PI) / 180, [totalWrapArc]);
 
   // Build all geometries based on current LOD
-  const geometries = useMemo(
-    () => buildGeometries(segments),
-    [segments]
-  );
-
-  // Dispose geometries on LOD change
-  useEffect(() => {
-    return () => {
-      Object.values(geometries).forEach((geo: unknown) => {
+  // Audit Finding #7: Track previous geometries in ref for immediate disposal
+  // when segments change, preventing VRAM accumulation between memoization
+  // swap and async useEffect cleanup
+  const prevGeometriesRef = useRef<ReturnType<typeof buildGeometries> | null>(null);
+  const geometries = useMemo(() => {
+    // Dispose previous geometries immediately on dependency change
+    if (prevGeometriesRef.current) {
+      Object.values(prevGeometriesRef.current).forEach((geo: unknown) => {
         if (geo && typeof (geo as THREE.BufferGeometry).dispose === 'function') {
           (geo as THREE.BufferGeometry).dispose();
         }
       });
+    }
+    const newGeos = buildGeometries(segments);
+    prevGeometriesRef.current = newGeos;
+    return newGeos;
+  }, [segments]);
+
+  // Final cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (prevGeometriesRef.current) {
+        Object.values(prevGeometriesRef.current).forEach((geo: unknown) => {
+          if (geo && typeof (geo as THREE.BufferGeometry).dispose === 'function') {
+            (geo as THREE.BufferGeometry).dispose();
+          }
+        });
+        prevGeometriesRef.current = null;
+      }
     };
-  }, [geometries]);
+  }, []);
 
   // Animate curvature transitions + material updates
   useFrame(({ clock }) => {

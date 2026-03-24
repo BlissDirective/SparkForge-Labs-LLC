@@ -46,38 +46,56 @@ interface StatusBarProps {
 }
 
 // ■■ Chrome material factory ■■
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Fixed: Create material once, update opacity via ref in useFrame to avoid
+// 60 material allocations/second during fade transitions (Audit Finding #6)
 function useChromeMaterial(opacity: number) {
-  return useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: '#2a2a3a',
-        metalness: 0.92,
-        roughness: 0.15,
-        envMapIntensity: 1.2,
-        transparent: true,
-        opacity: opacity * 0.85,
-      }),
-    [opacity]
-  );
+  const matRef = useRef<THREE.MeshStandardMaterial | null>(null);
+  if (!matRef.current) {
+    matRef.current = new THREE.MeshStandardMaterial({
+      color: '#2a2a3a',
+      metalness: 0.92,
+      roughness: 0.15,
+      envMapIntensity: 1.2,
+      transparent: true,
+      opacity: opacity * 0.85,
+    });
+  }
+  useFrame(() => {
+    if (matRef.current) matRef.current.opacity = opacity * 0.85;
+  });
+  useEffect(() => {
+    return () => { matRef.current?.dispose(); matRef.current = null; };
+  }, []);
+  return matRef.current;
 }
 
 // ■■ Emissive material factory ■■
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+// Fixed: Same pattern — create once, update dynamically (Audit Finding #6)
 function useEmissiveMaterial(color: string, intensity: number, opacity: number) {
-  return useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: '#000000',
-        emissive: new THREE.Color(color),
-        emissiveIntensity: intensity,
-        transparent: true,
-        opacity,
-        toneMapped: false,
-        depthWrite: false,
-      }),
-    [color, intensity, opacity]
-  );
+  const matRef = useRef<THREE.MeshStandardMaterial | null>(null);
+  const colorObj = useMemo(() => new THREE.Color(color), [color]);
+  if (!matRef.current) {
+    matRef.current = new THREE.MeshStandardMaterial({
+      color: '#000000',
+      emissive: colorObj,
+      emissiveIntensity: intensity,
+      transparent: true,
+      opacity,
+      toneMapped: false,
+      depthWrite: false,
+    });
+  }
+  useFrame(() => {
+    if (matRef.current) {
+      matRef.current.emissive.copy(colorObj);
+      matRef.current.emissiveIntensity = intensity;
+      matRef.current.opacity = opacity;
+    }
+  });
+  useEffect(() => {
+    return () => { matRef.current?.dispose(); matRef.current = null; };
+  }, []);
+  return matRef.current;
 }
 
 // ════════════════════════════════════════════════════
