@@ -250,15 +250,15 @@ Future enhancements building on the D3D foundation, organized by timeframe and e
 
 ### 4.1 Near-Term (Post-D3D, Low-Medium Effort)
 
-| Enhancement | Description | Effort | Dependencies |
-|-------------|-------------|--------|-------------|
-| **WebGPU Shader Ports** | Port 10 GLSL lab pattern shaders to TSL for WebGPU compatibility | Medium | TSL tooling maturity, Three.js r171+ |
-| **Per-Game Camera Presets** | Unique camera positions, FOV, and orbit constraints per game via `gameSceneRegistry` | Low | D3D-B4 (SceneRouter) |
-| **Iris Audio Integration** | Wire `irisAudioEngine` into `useIrisTransition` hook for automatic audio on transitions | Low | D3D-C3 (irisAudio), D3D-B2 (MechanicalIris) |
-| **CockpitCanvas Parallax** | Wire `useParallaxMouse` into `CameraSystem` for subtle mouse-driven depth | Low | D3D-C4 (useParallaxMouse) |
-| **Interactive Surface Deployment** | Apply `useInteractiveSurface` to all cockpit panels and consoles | Medium | D3D-C5 (useInteractiveSurface) |
-| **Transition Sound Variations** | Different iris audio pitch/timbre per lab color | Low | D3D-C3 |
-| **Camera Shake on Events** | Subtle camera shake on XP gain, level-up, game completion | Low | CameraSystem |
+| Enhancement | Description | Effort | Dependencies | Status |
+|-------------|-------------|--------|-------------|--------|
+| **WebGPU Shader Ports** | Port 10 GLSL lab pattern shaders to TSL for WebGPU compatibility | Medium | TSL tooling maturity, Three.js r171+ | **IMPLEMENTED (2026-03-24)** — 12 files in `src/shaders/labPatterns/tsl/`. shared.ts (rand2D, simplex2D), 10 lab patterns, index.ts barrel export with `getLabPatternTSL(labNumber)` lookup. |
+| **Per-Game Camera Presets** | Unique camera positions, FOV, and orbit constraints per game via `gameRegistry` | Low | D3D-B4 (SceneRouter) | **IMPLEMENTED (2026-03-24)** — `GameCameraPreset` interface + `CAMERA_PRESETS` map (15 3D games) in gameRegistry.ts. CameraSystem accepts `gameCameraPreset` prop. CockpitCanvas resolves preset via `getGameBySlug()`. |
+| **Iris Audio Integration** | Wire `irisAudioEngine` into `useIrisTransition` hook for automatic audio on transitions | Low | D3D-C3 (irisAudio), D3D-B2 (MechanicalIris) | **IMPLEMENTED (2026-03-24)** — Audio lifecycle (init/start/sync/stop) moved from CockpitCanvas into useIrisTransition hook. Any consumer gets automatic audio. |
+| **CockpitCanvas Parallax** | Wire `useParallaxMouse` into `CameraSystem` for subtle mouse-driven depth | Low | D3D-C4 (useParallaxMouse) | **PRE-EXISTING** — Already wired in D3D Part C (CockpitCanvas line 265, CameraSystem lines 150-153). |
+| **Interactive Surface Deployment** | Apply `useInteractiveSurface` to all cockpit panels and consoles | Medium | D3D-C5 (useInteractiveSurface) | **IMPLEMENTED (2026-03-24)** — `interactiveSurfaceConfig.ts` with `COCKPIT_INTERACTIVE_PRESETS` for 8 component types. `getInteractivePreset()` helper. Stub integration for Stage 5C/5D. |
+| **Transition Sound Variations** | Different iris audio pitch/timbre per lab color | Low | D3D-C3 | **IMPLEMENTED (2026-03-24)** — `LAB_COLOR_AUDIO_PROFILES` (10 colors) with servo/ray frequency offsets, filter Q/type overrides. `startTransition(dir, labColor?)` accepts lab color. |
+| **Camera Shake on Events** | Subtle camera shake on XP gain, level-up, game completion | Low | CameraSystem | **IMPLEMENTED (2026-03-24)** — `cameraShake.ts` with `triggerCameraShake()`, `SHAKE_PRESETS` (xpGain/levelUp/gameComplete/badgeEarned), `getShakeOffset(delta)`. Wired into CameraSystem useFrame. |
 
 ### 4.2 Medium-Term (Enhancement 2.0)
 
