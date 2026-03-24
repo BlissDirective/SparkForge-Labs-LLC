@@ -170,5 +170,39 @@ These patterns still function but are superseded by D3D architecture:
 | `PostProcessingStack` added | CockpitCanvas | Single consumer, replaces inline effects |
 | `irisAudio` added | MechanicalIris (via useIrisTransition) | Procedural audio for iris open/close |
 
+### Section 4.2 — Procedural Environment Generation (March 24, 2026)
+
+**Status:** COMPLETE
+**Branch:** `claude/procedural-environment-generation-8glJx`
+
+**Architecture:** ProceduralEnvironmentGenerator orchestrates 5 sub-generators (Terrain, SkyDome, Fog, Lighting, Props) driven by 10 lab theme profiles and 3 tier configs. All 3 base environment wrappers (Standard, FL-Lite, Flagship) refactored to delegate internally — zero breaking changes to 35 existing game environments.
+
+| Batch | Commit | Files | Status |
+|-------|--------|-------|--------|
+| 1 — Core config + sub-generators | `9269743` | 6 created (proceduralConfig.ts + 5 procedural/*.tsx) | COMMITTED |
+| 2 — Generator + integration | `d554608` | 2 created + 4 modified (generator, index, 3 base wrappers) | COMMITTED |
+| 3 — Documentation updates | — | 3 modified (PROGRESS.md, CLAUDE.md, PartD.md) | COMMITTED |
+
+**Files created (8):**
+- `src/lib/3d/proceduralConfig.ts` — 10 lab themes, 3 tier configs, seeded RNG, type definitions
+- `src/components/3d/environments/procedural/ProceduralTerrain.tsx` — Seeded FBM noise terrain + grid floor
+- `src/components/3d/environments/procedural/ProceduralSkyDome.tsx` — Gradient sky, star field, aurora
+- `src/components/3d/environments/procedural/ProceduralFog.tsx` — 5 fog behaviors (drift/sparkle/swirl/pulse/rise)
+- `src/components/3d/environments/procedural/ProceduralLighting.tsx` — Auto-scaled lighting rig
+- `src/components/3d/environments/procedural/ProceduralProps.tsx` — 10 geometry types, instanced scatter
+- `src/components/3d/environments/procedural/index.ts` — Barrel export
+- `src/components/3d/environments/ProceduralEnvironmentGenerator.tsx` — Main orchestrator
+
+**Files modified (4):**
+- `src/components/3d/environments/StandardEnvironmentBase.tsx` — Wrapper delegates to procedural (tier='standard')
+- `src/components/3d/environments/FLLiteEnvironmentBase.tsx` — Wrapper delegates to procedural (tier='fl-lite')
+- `src/components/3d/environments/FlagshipEnvironmentBase.tsx` — Wrapper delegates to procedural (tier='flagship')
+- `src/components/3d/environments/index.ts` — Added ProceduralEnvironmentGenerator export
+
+**Key decisions:**
+- Q1: Replace base wrappers (Option B) — procedural system is internal, external API unchanged
+- Q2: 10 lab theme profiles approved (digital-detection through quantum-frontier)
+- Q3: Game tier only (Option A) — triangle budget scales by Standard/FL-Lite/Flagship
+
 ### Code Review Notes
 _(none yet)_
