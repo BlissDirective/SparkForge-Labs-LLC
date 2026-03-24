@@ -32,12 +32,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#AA66FF';
 
 // ■■ Treat Dispensers (Instanced) ■■
-function TreatDispensers({ lod, treatCount }: { lod: ReturnType<typeof useStandardLOD>; treatCount: number }) {
+function TreatDispensers({ treatCount }: { treatCount: number }) {
   const count = 10;
   const basesRef = useRef<THREE.InstancedMesh>(null);
   const bowlsRef = useRef<THREE.InstancedMesh>(null);
@@ -79,11 +79,11 @@ function TreatDispensers({ lod, treatCount }: { lod: ReturnType<typeof useStanda
   return (
     <group>
       <instancedMesh ref={basesRef} args={[undefined, undefined, count]} castShadow>
-        <cylinderGeometry args={[0.8, 1, 1, 12} />
+        <cylinderGeometry args={[0.8, 1, 1, 12]} />
         <meshStandardMaterial color="#2A1E3A" metalness={0.5} roughness={0.4} />
       </instancedMesh>
       <instancedMesh ref={bowlsRef} args={[undefined, undefined, count]}>
-        <cylinderGeometry args={[1, 0.7, 1, 12} />
+        <cylinderGeometry args={[1, 0.7, 1, 12]} />
         <meshStandardMaterial emissive="#00FF88" emissiveIntensity={0.2} metalness={0.6} roughness={0.3} />
       </instancedMesh>
     </group>
@@ -91,7 +91,7 @@ function TreatDispensers({ lod, treatCount }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Training Hoops (Instanced) ■■
-function TrainingHoops({ lod, isTraining }: { lod: ReturnType<typeof useStandardLOD>; isTraining: boolean }) {
+function TrainingHoops({ isTraining }: { isTraining: boolean }) {
   const count = 8;
   const hoopsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -129,7 +129,7 @@ function TrainingHoops({ lod, isTraining }: { lod: ReturnType<typeof useStandard
 
   return (
     <instancedMesh ref={hoopsRef} args={[undefined, undefined, count]}>
-      <torusGeometry args={[1, 0.06, 8, 24} />
+      <torusGeometry args={[1, 0.06, 8, 24]} />
       <meshStandardMaterial
         color={LAB_COLOR}
         emissive={LAB_COLOR}
@@ -142,7 +142,7 @@ function TrainingHoops({ lod, isTraining }: { lod: ReturnType<typeof useStandard
 }
 
 // ■■ Reward Stations (Instanced) ■■
-function RewardStations({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function RewardStations() {
   const count = 6;
   const pedestalsRef = useRef<THREE.InstancedMesh>(null);
   const starsRef = useRef<THREE.InstancedMesh>(null);
@@ -185,7 +185,7 @@ function RewardStations({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
   return (
     <group>
       <instancedMesh ref={pedestalsRef} args={[undefined, undefined, count]} castShadow>
-        <cylinderGeometry args={[0.8, 1, 1, 12} />
+        <cylinderGeometry args={[0.8, 1, 1, 12]} />
         <meshStandardMaterial color="#1E1630" metalness={0.6} roughness={0.3} />
       </instancedMesh>
       <instancedMesh ref={starsRef} args={[undefined, undefined, count]}>
@@ -197,7 +197,7 @@ function RewardStations({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Scoreboard Display ■■
-function ScoreboardDisplay({ lod: _lod, treatCount }: { lod: ReturnType<typeof useStandardLOD>; treatCount: number }) {
+function ScoreboardDisplay({ treatCount }: { treatCount: number }) {
   const screenRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -242,7 +242,7 @@ function ScoreboardDisplay({ lod: _lod, treatCount }: { lod: ReturnType<typeof u
 }
 
 // ■■ Reinforcement Zones ■■
-function ReinforcementZones({ lod, isTraining }: { lod: ReturnType<typeof useStandardLOD>; isTraining: boolean }) {
+function ReinforcementZones({ isTraining }: { isTraining: boolean }) {
   const positiveRef = useRef<THREE.Mesh>(null);
   const negativeRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -303,7 +303,7 @@ function ReinforcementZones({ lod, isTraining }: { lod: ReturnType<typeof useSta
 }
 
 // ■■ Training Targets (Instanced) ■■
-function TrainingTargets({ lod, isTraining }: { lod: ReturnType<typeof useStandardLOD>; isTraining: boolean }) {
+function TrainingTargets({ isTraining }: { isTraining: boolean }) {
   const count = 12;
   const targetsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -335,7 +335,7 @@ function TrainingTargets({ lod, isTraining }: { lod: ReturnType<typeof useStanda
 
   return (
     <instancedMesh ref={targetsRef} args={[undefined, undefined, count]}>
-      <sphereGeometry args={[1, 12, 12} />
+      <sphereGeometry args={[1, 12, 12]} />
       <meshStandardMaterial
         color="#FFAA44"
         emissive="#FFAA44"
@@ -348,7 +348,7 @@ function TrainingTargets({ lod, isTraining }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Playground Equipment ■■
-function PlaygroundEquipment({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function PlaygroundEquipment() {
   const segments = 16;
 
   return (
@@ -398,7 +398,7 @@ function PlaygroundEquipment({ lod }: { lod: ReturnType<typeof useStandardLOD> }
 }
 
 // ■■ Response Meter Gauge ■■
-function ResponseMeter({ lod, isTraining }: { lod: ReturnType<typeof useStandardLOD>; isTraining: boolean }) {
+function ResponseMeter({ isTraining }: { isTraining: boolean }) {
   const needleRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -448,7 +448,6 @@ export default function TreatTrainerEnvironment({
   treatCount = 0,
   isTraining = false,
 }: TreatTrainerEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -458,14 +457,14 @@ export default function TreatTrainerEnvironment({
       skyHorizonColor="#120A28"
       fogColor="#AA66FF"
     >
-      <TreatDispensers lod={lod} treatCount={treatCount} />
-      <TrainingHoops lod={lod} isTraining={isTraining} />
-      <RewardStations lod={lod} />
-      <ScoreboardDisplay lod={lod} treatCount={treatCount} />
-      <ReinforcementZones lod={lod} isTraining={isTraining} />
-      <TrainingTargets lod={lod} isTraining={isTraining} />
-      <PlaygroundEquipment lod={lod} />
-      <ResponseMeter lod={lod} isTraining={isTraining} />
+      <TreatDispensers treatCount={treatCount} />
+      <TrainingHoops isTraining={isTraining} />
+      <RewardStations />
+      <ScoreboardDisplay treatCount={treatCount} />
+      <ReinforcementZones isTraining={isTraining} />
+      <TrainingTargets isTraining={isTraining} />
+      <PlaygroundEquipment />
+      <ResponseMeter isTraining={isTraining} />
       {/* Training active glow */}
       {isTraining && (
         <pointLight position={[0, 3, 0]} intensity={1.0} color={LAB_COLOR} distance={8} />

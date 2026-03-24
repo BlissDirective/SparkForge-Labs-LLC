@@ -20,86 +20,22 @@ import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
-// ■■ Shared LOD Config for FL-Lite Environments ■■
-export interface FLLiteLOD extends LODState {
-  terrainSegments: number;
-  skySegments: number;
-  instanceCount: number;
-  enableFog: boolean;
-  enableContactShadows: boolean;
-  enableParticles: boolean;
-  enableDetailProps: boolean;
-}
-
-export function useFLLiteLOD(): FLLiteLOD {
-
-  return useMemo(() => {
-    const levelConfigs: Record<string, Partial<FLLiteLOD>> = {
-      ultra: {
-        terrainSegments: 256,
-        skySegments: 64,
-        instanceCount: 500,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-      },
-      high: {
-        terrainSegments: 128,
-        skySegments: 48,
-        instanceCount: 300,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-      },
-      medium: {
-        terrainSegments: 64,
-        skySegments: 32,
-        instanceCount: 150,
-        enableFog: true,
-        enableContactShadows: false,
-        enableParticles: true,
-        enableDetailProps: false,
-      },
-      low: {
-        terrainSegments: 32,
-        skySegments: 16,
-        instanceCount: 50,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-      },
-      billboard: {
-        terrainSegments: 16,
-        skySegments: 8,
-        instanceCount: 10,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-      },
-    };
-
-    const config = levelConfigs['ultra'] || levelConfigs.high;
-    return { ...lod, ...config } as FLLiteLOD;
-  }, [lod]);
-}
+// ■■ FL-Lite Environment Constants (Ultra quality) ■■
+const FLLITE_TERRAIN_SEGMENTS = 256;
+const FLLITE_SKY_SEGMENTS = 64;
+const FLLITE_INSTANCE_COUNT = 500;
 
 // ■■ FL-Lite Terrain ■■
 interface TerrainProps {
   size?: number;
   color?: string;
   heightScale?: number;
-  lod: FLLiteLOD;
 }
 
 export function FLLiteTerrain({
   size = 30,
   color = '#0A0E16',
   heightScale = 0.15,
-  lod,
 }: TerrainProps) {
   const geometry = useMemo(() => {
     const segs = 512;
@@ -132,14 +68,12 @@ interface SkyDomeProps {
   topColor?: string;
   horizonColor?: string;
   radius?: number;
-  lod: FLLiteLOD;
 }
 
 export function FLLiteSkyDome({
   topColor = '#050810',
   horizonColor = '#0A1628',
   radius = 40,
-  lod,
 }: SkyDomeProps) {
   const material = useMemo(() =>
     new THREE.ShaderMaterial({
@@ -181,14 +115,12 @@ interface FogParticlesProps {
   count?: number;
   color?: string;
   spread?: number;
-  lod: FLLiteLOD;
 }
 
 export function FLLiteFogParticles({
   count: baseCount = 100,
   color = '#00BBFF',
   spread = 10,
-  lod,
 }: FogParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const count = Math.min(baseCount, 1000);
@@ -249,11 +181,10 @@ export function FLLiteFogParticles({
 // ■■ FL-Lite Lighting Rig ■■
 interface LightingRigProps {
   labColor: string;
-  lod: FLLiteLOD;
   ambientIntensity?: number;
 }
 
-export function FLLiteLightingRig({ labColor, lod, ambientIntensity = 0.35 }: LightingRigProps) {
+export function FLLiteLightingRig({ labColor, ambientIntensity = 0.35 }: LightingRigProps) {
   return (
     <>
       <ambientLight intensity={ambientIntensity} />
@@ -301,14 +232,13 @@ export function FLLiteEnvironmentWrapper({
   heightScale = 0.15,
   terrainSize = 30,
 }: FLLiteEnvironmentBaseProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <group>
-      <FLLiteLightingRig labColor={labColor} lod={lod} />
-      <FLLiteTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} lod={lod} />
-      <FLLiteSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} lod={lod} />
-      {<FLLiteFogParticles color={fogColor || labColor} lod={lod} />}
+      <FLLiteLightingRig labColor={labColor} />
+      <FLLiteTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} />
+      <FLLiteSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} />
+      {<FLLiteFogParticles color={fogColor || labColor} />}
       <Environment preset="night" />
       {children}
     </group>

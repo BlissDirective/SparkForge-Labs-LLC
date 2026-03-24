@@ -30,14 +30,14 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#00BBFF';
 const HUMAN_COLOR = '#FF8844';
 const MACHINE_COLOR = '#44AAFF';
 
 // ■■ Judge's Podium with Verdict Scales ■■
-function JudgePodium({ lod, isRevealing }: { lod: ReturnType<typeof useStandardLOD>; isRevealing: boolean }) {
+function JudgePodium({ isRevealing }: { isRevealing: boolean }) {
   const scaleRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -106,7 +106,7 @@ function JudgePodium({ lod, isRevealing }: { lod: ReturnType<typeof useStandardL
 }
 
 // ■■ Human Side Props (Instanced — Warm/Wooden) ■■
-function HumanSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function HumanSideProps() {
   const count = 14;
   const propsRef = useRef<THREE.InstancedMesh>(null);
   const accentsRef = useRef<THREE.InstancedMesh>(null);
@@ -169,7 +169,7 @@ function HumanSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Machine Side Props (Instanced — Chrome/Cold) ■■
-function MachineSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function MachineSideProps() {
   const count = 14;
   const propsRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
@@ -246,7 +246,7 @@ function MachineSideProps({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Energy Barrier Divider ■■
-function EnergyBarrier({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function EnergyBarrier() {
   const barrierRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -292,7 +292,7 @@ function EnergyBarrier({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Floating Comparison Cards (Instanced) ■■
-function ComparisonCards({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ComparisonCards() {
   const count = 12;
   const cardsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -340,7 +340,7 @@ function ComparisonCards({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Score Displays ■■
-function ScoreDisplays({ lod: _lod, humanScore, machineScore }: { lod: ReturnType<typeof useStandardLOD>; humanScore: number; machineScore: number }) {
+function ScoreDisplays({ humanScore, machineScore }: { humanScore: number; machineScore: number }) {
   const humanRef = useRef<THREE.Mesh>(null);
   const machineRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -383,7 +383,7 @@ function ScoreDisplays({ lod: _lod, humanScore, machineScore }: { lod: ReturnTyp
 }
 
 // ■■ Arena Seating (Instanced Bleachers) ■■
-function ArenaSeating({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ArenaSeating() {
   const count = 20;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -425,7 +425,6 @@ export default function HumanVsMachineEnvironment({
   machineScore = 0,
   isRevealing = false,
 }: HumanVsMachineEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -435,13 +434,13 @@ export default function HumanVsMachineEnvironment({
       skyHorizonColor="#0A1628"
       fogColor="#00BBFF"
     >
-      <JudgePodium lod={lod} isRevealing={isRevealing} />
-      <HumanSideProps lod={lod} />
-      <MachineSideProps lod={lod} />
-      <EnergyBarrier lod={lod} />
-      <ComparisonCards lod={lod} />
-      <ScoreDisplays lod={lod} humanScore={humanScore} machineScore={machineScore} />
-      <ArenaSeating lod={lod} />
+      <JudgePodium isRevealing={isRevealing} />
+      <HumanSideProps />
+      <MachineSideProps />
+      <EnergyBarrier />
+      <ComparisonCards />
+      <ScoreDisplays humanScore={humanScore} machineScore={machineScore} />
+      <ArenaSeating />
       {/* Reveal spotlight */}
       {isRevealing && (
         <pointLight position={[0, 4, 0]} intensity={2.0} color="#FFFFFF" distance={10} />

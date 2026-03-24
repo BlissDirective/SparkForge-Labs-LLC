@@ -31,12 +31,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF66AA';
 
 // ■■ Giant Pixel Grid Display Table ■■
-function PixelGridTable({ lod, zoomLevel }: { lod: ReturnType<typeof useStandardLOD>; zoomLevel: number }) {
+function PixelGridTable({ zoomLevel }: { zoomLevel: number }) {
   const gridRef = useRef<THREE.InstancedMesh>(null);
   const frameRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -106,7 +106,7 @@ function PixelGridTable({ lod, zoomLevel }: { lod: ReturnType<typeof useStandard
 }
 
 // ■■ Magnification Station ■■
-function MagnificationStation({ lod, isAnalyzing }: { lod: ReturnType<typeof useStandardLOD>; isAnalyzing: boolean }) {
+function MagnificationStation({ isAnalyzing }: { isAnalyzing: boolean }) {
   const lensRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -162,7 +162,7 @@ function MagnificationStation({ lod, isAnalyzing }: { lod: ReturnType<typeof use
 }
 
 // ■■ RGB Color Channel Analyzer Panels ■■
-function RGBChannelPanels({ lod, isAnalyzing }: { lod: ReturnType<typeof useStandardLOD>; isAnalyzing: boolean }) {
+function RGBChannelPanels({ isAnalyzing }: { isAnalyzing: boolean }) {
   const timeRef = useRef(0);
   const barsRef = useRef<THREE.InstancedMesh>(null);
   const barCount = 24;
@@ -216,7 +216,7 @@ function RGBChannelPanels({ lod, isAnalyzing }: { lod: ReturnType<typeof useStan
 }
 
 // ■■ Image Layer Decomposition Racks ■■
-function LayerRacks({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function LayerRacks() {
   const count = 8;
   const shelvesRef = useRef<THREE.InstancedMesh>(null);
   const platesRef = useRef<THREE.InstancedMesh>(null);
@@ -269,7 +269,7 @@ function LayerRacks({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Pixel Art Gallery (Wall Frames) ■■
-function PixelArtGallery({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function PixelArtGallery() {
   const count = 10;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const artRef = useRef<THREE.InstancedMesh>(null);
@@ -311,7 +311,7 @@ function PixelArtGallery({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Resolution Comparison Screens ■■
-function ResolutionScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ResolutionScreens() {
   const timeRef = useRef(0);
   const scanRef = useRef<THREE.Mesh>(null);
 
@@ -364,7 +364,7 @@ function ResolutionScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 }
 
 // ■■ Anti-Aliasing Demonstration Zone ■■
-function AntiAliasingZone({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function AntiAliasingZone() {
   const stepsRef = useRef<THREE.InstancedMesh>(null);
   const stepCount = 12;
 
@@ -403,7 +403,7 @@ function AntiAliasingZone({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Binary Data Waterfall ■■
-function BinaryWaterfall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function BinaryWaterfall() {
   const count = 80;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -455,7 +455,6 @@ export default function PixelInvestigatorEnvironment({
   zoomLevel = 1,
   isAnalyzing = false,
 }: PixelInvestigatorEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -465,14 +464,14 @@ export default function PixelInvestigatorEnvironment({
       skyHorizonColor="#1A0E22"
       fogColor="#FF66AA"
     >
-      <PixelGridTable lod={lod} zoomLevel={zoomLevel} />
-      <MagnificationStation lod={lod} isAnalyzing={isAnalyzing} />
-      <RGBChannelPanels lod={lod} isAnalyzing={isAnalyzing} />
-      <LayerRacks lod={lod} />
-      <PixelArtGallery lod={lod} />
-      <ResolutionScreens lod={lod} />
-      <AntiAliasingZone lod={lod} />
-      <BinaryWaterfall lod={lod} />
+      <PixelGridTable zoomLevel={zoomLevel} />
+      <MagnificationStation isAnalyzing={isAnalyzing} />
+      <RGBChannelPanels isAnalyzing={isAnalyzing} />
+      <LayerRacks />
+      <PixelArtGallery />
+      <ResolutionScreens />
+      <AntiAliasingZone />
+      <BinaryWaterfall />
       {/* Active analysis spotlight */}
       {isAnalyzing && (
         <pointLight position={[0, 3, 0]} intensity={1.2} color={LAB_COLOR} distance={8} />

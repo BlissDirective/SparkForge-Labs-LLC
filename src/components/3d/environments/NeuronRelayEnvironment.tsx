@@ -30,12 +30,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF66AA';
 
 // ■■ Neuron Soma Bodies (Instanced) ■■
-function NeuronSomas({ lod, activeLayer }: { lod: ReturnType<typeof useStandardLOD>; activeLayer: number }) {
+function NeuronSomas({ activeLayer }: { activeLayer: number }) {
   const count = 10;
   const somasRef = useRef<THREE.InstancedMesh>(null);
   const nucleiRef = useRef<THREE.InstancedMesh>(null);
@@ -88,7 +88,7 @@ function NeuronSomas({ lod, activeLayer }: { lod: ReturnType<typeof useStandardL
   return (
     <group>
       <instancedMesh ref={somasRef} args={[undefined, undefined, count]}>
-        <sphereGeometry args={[1, 16, 16} />
+        <sphereGeometry args={[1, 16, 16]} />
         <meshStandardMaterial
           emissive={LAB_COLOR}
           emissiveIntensity={0.3}
@@ -107,7 +107,7 @@ function NeuronSomas({ lod, activeLayer }: { lod: ReturnType<typeof useStandardL
 }
 
 // ■■ Axon Pathways (Instanced Tubes) ■■
-function AxonPathways({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function AxonPathways() {
   const count = 15;
   const axonsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -175,7 +175,7 @@ function AxonPathways({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Synapse Junction Nodes (Instanced) ■■
-function SynapseJunctions({ lod, signalStrength }: { lod: ReturnType<typeof useStandardLOD>; signalStrength: number }) {
+function SynapseJunctions({ signalStrength }: { signalStrength: number }) {
   const count = 20;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -226,7 +226,7 @@ function SynapseJunctions({ lod, signalStrength }: { lod: ReturnType<typeof useS
 }
 
 // ■■ Signal Pulse Particles ■■
-function SignalPulses({ lod, signalStrength }: { lod: ReturnType<typeof useStandardLOD>; signalStrength: number }) {
+function SignalPulses({ signalStrength }: { signalStrength: number }) {
   const count = 30;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -276,7 +276,7 @@ function SignalPulses({ lod, signalStrength }: { lod: ReturnType<typeof useStand
 }
 
 // ■■ Neural Layer Panels ■■
-function NeuralLayerPanels({ lod, activeLayer }: { lod: ReturnType<typeof useStandardLOD>; activeLayer: number }) {
+function NeuralLayerPanels({ activeLayer }: { activeLayer: number }) {
   const panelRefs = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
   const layers = ['INPUT', 'HIDDEN', 'OUTPUT'];
@@ -333,7 +333,7 @@ function NeuralLayerPanels({ lod, activeLayer }: { lod: ReturnType<typeof useSta
 }
 
 // ■■ Activation Function Visualizer ■■
-function ActivationVisualizer({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ActivationVisualizer() {
   const curveRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -383,7 +383,7 @@ function ActivationVisualizer({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 }
 
 // ■■ Dendrite Ceiling Forest (Instanced) ■■
-function DendriteCeiling({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function DendriteCeiling() {
   const count = 30;
   const dendritesRef = useRef<THREE.InstancedMesh>(null);
   const tipsRef = useRef<THREE.InstancedMesh>(null);
@@ -444,7 +444,7 @@ function DendriteCeiling({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Chamber Walls (Brain-Tissue Textured) ■■
-function ChamberWalls({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ChamberWalls() {
   return (
     <group>
       {/* Back wall */}
@@ -498,7 +498,6 @@ export default function NeuronRelayEnvironment({
   activeLayer = 0,
   signalStrength = 0.5,
 }: NeuronRelayEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -508,14 +507,14 @@ export default function NeuronRelayEnvironment({
       skyHorizonColor="#1A0A28"
       fogColor="#FF66AA"
     >
-      <ChamberWalls lod={lod} />
-      <NeuronSomas lod={lod} activeLayer={activeLayer} />
-      <AxonPathways lod={lod} />
-      <SynapseJunctions lod={lod} signalStrength={signalStrength} />
-      <SignalPulses lod={lod} signalStrength={signalStrength} />
-      <NeuralLayerPanels lod={lod} activeLayer={activeLayer} />
-      <ActivationVisualizer lod={lod} />
-      <DendriteCeiling lod={lod} />
+      <ChamberWalls />
+      <NeuronSomas activeLayer={activeLayer} />
+      <AxonPathways />
+      <SynapseJunctions signalStrength={signalStrength} />
+      <SignalPulses signalStrength={signalStrength} />
+      <NeuralLayerPanels activeLayer={activeLayer} />
+      <ActivationVisualizer />
+      <DendriteCeiling />
       {/* Active layer spotlight */}
       <pointLight
         position={[-4 + activeLayer * 4, 3, 0]}

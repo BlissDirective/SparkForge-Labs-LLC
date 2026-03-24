@@ -41,11 +41,10 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Spiral Library Tower ■■
-function LibraryTower({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function LibraryTower() {
   const shelfCount = 8;
   const booksPerShelf = 20;
   const booksRef = useRef<THREE.InstancedMesh>(null);
@@ -111,7 +110,7 @@ function LibraryTower({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Floating Book Library ■■
-function FloatingBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function FloatingBooks() {
   const count = 150;
   const booksRef = useRef<THREE.InstancedMesh>(null);
 
@@ -156,7 +155,7 @@ function FloatingBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Word Cloud Constellation ■■
-function WordCloud({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function WordCloud() {
   const count = 200;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -202,7 +201,7 @@ function WordCloud({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Giant Typewriter Machine ■■
-function TypewriterMachine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function TypewriterMachine() {
   const carriageRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -249,7 +248,7 @@ function TypewriterMachine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
 }
 
 // ■■ Ink Rivers (floor) ■■
-function InkRivers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function InkRivers() {
   const riverCount = 6;
   const riversRef = useRef<THREE.Group>(null);
 
@@ -280,7 +279,7 @@ function InkRivers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Token Counter Cylinder ■■
-function TokenCounter({ lod, fillLevel = 0.5 }: { lod: ReturnType<typeof useFlagshipLOD>; fillLevel: number }) {
+function TokenCounter({ fillLevel = 0.5 }: { fillLevel: number }) {
   const glowRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -316,7 +315,7 @@ function TokenCounter({ lod, fillLevel = 0.5 }: { lod: ReturnType<typeof useFlag
 }
 
 // ■■ Central AI Brain Mesh (enhanced) ■■
-function AIBrain({ lod, isThinking }: { lod: ReturnType<typeof useFlagshipLOD>; isThinking: boolean }) {
+function AIBrain({ isThinking }: { isThinking: boolean }) {
   const brainRef = useRef<THREE.Mesh>(null);
   const shell1Ref = useRef<THREE.Mesh>(null);
   const shell2Ref = useRef<THREE.Mesh>(null);
@@ -361,7 +360,7 @@ function AIBrain({ lod, isThinking }: { lod: ReturnType<typeof useFlagshipLOD>; 
 }
 
 // ■■ Inspiration Crystals ■■
-function InspirationCrystals({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function InspirationCrystals() {
   const clusterCount = 6;
   const crystalsPerCluster = 8;
   const crystalsRef = useRef<THREE.InstancedMesh>(null);
@@ -409,7 +408,7 @@ function InspirationCrystals({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }
 }
 
 // ■■ Dictionary Column Pillars ■■
-function DictionaryColumns({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function DictionaryColumns() {
   const columnCount = 6;
   const blocksPerColumn = 12;
   const blocksRef = useRef<THREE.InstancedMesh>(null);
@@ -449,7 +448,7 @@ function DictionaryColumns({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
 }
 
 // ■■ Writing Desk Surface ■■
-function WritingDesk({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function WritingDesk() {
   return (
     <group position={[0, -0.5, 0]}>
       <mesh receiveShadow castShadow>
@@ -473,7 +472,7 @@ function WritingDesk({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Holographic Screens ■■
-function HoloScreens({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function HoloScreens() {
   const screenRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -503,7 +502,7 @@ function HoloScreens({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Ambient Idea Motes (expanded) ■■
-function IdeaMotes({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function IdeaMotes() {
   const count = 150;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -549,7 +548,6 @@ export interface PromptLabEnvironmentProps {
 }
 
 export default function PromptLabEnvironment({ isThinking, tokenUsage }: PromptLabEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <FlagshipEnvironmentWrapper
@@ -561,18 +559,18 @@ export default function PromptLabEnvironment({ isThinking, tokenUsage }: PromptL
       heightScale={0.1}
       terrainSize={50}
     >
-      <LibraryTower lod={lod} />
-      <FloatingBooks lod={lod} />
-      <WordCloud lod={lod} />
-      <TypewriterMachine lod={lod} />
-      <InkRivers lod={lod} />
-      <TokenCounter lod={lod} fillLevel={tokenUsage} />
-      <AIBrain lod={lod} isThinking={isThinking} />
-      <InspirationCrystals lod={lod} />
-      <DictionaryColumns lod={lod} />
-      <WritingDesk lod={lod} />
-      <HoloScreens lod={lod} />
-      <IdeaMotes lod={lod} />
+      <LibraryTower />
+      <FloatingBooks />
+      <WordCloud />
+      <TypewriterMachine />
+      <InkRivers />
+      <TokenCounter fillLevel={tokenUsage} />
+      <AIBrain isThinking={isThinking} />
+      <InspirationCrystals />
+      <DictionaryColumns />
+      <WritingDesk />
+      <HoloScreens />
+      <IdeaMotes />
     </FlagshipEnvironmentWrapper>
   );
 }

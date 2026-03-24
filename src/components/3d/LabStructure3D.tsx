@@ -124,12 +124,10 @@ function ContactShadow({
 // ■■ Lab 1: What IS AI? — Multi-layer geodesic + satellite spheres + data rings ■■
 function Lab1Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -233,12 +231,10 @@ function Lab1Structure({
 // ■■ Lab 2: Teaching Machines — High-detail torus knot + conveyor rings + data flow ■■
 function Lab2Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -309,12 +305,10 @@ function Lab2Structure({
 // ■■ Lab 3: Neural Networks — 20 neuron spheres + synapse connections + pulsing signals ■■
 function Lab3Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -434,12 +428,10 @@ function Lab3Structure({
 // ■■ Lab 4: Generative AI — Multi-facet crystal cluster + palette shards + refraction ■■
 function Lab4Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -512,12 +504,10 @@ function Lab4Structure({
 // ■■ Lab 5: AI Helpers — 5-gear mechanism + drive shafts + housing frame ■■
 function Lab5Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -591,12 +581,10 @@ function Lab5Structure({
 // ■■ Lab 6: Ethics — Full justice scales with ornate base + chains + weights ■■
 function Lab6Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -682,12 +670,10 @@ function Lab6Structure({
 // ■■ Lab 7: Computer Vision — Detailed camera body + lens elements + aperture ■■
 function Lab7Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -765,12 +751,10 @@ function Lab7Structure({
 // ■■ Lab 8: Language — Holographic text projector + sound wave rings + word cloud ■■
 function Lab8Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -855,12 +839,10 @@ function Lab8Structure({
 // ■■ Lab 9: Build with AI — Server rack + circuit boards + LED arrays + data cables ■■
 function Lab9Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -958,12 +940,10 @@ function Lab9Structure({
 // ■■ Lab 10: AI Futures — Detailed spacecraft + engine nozzles + solar panels + antenna ■■
 function Lab10Structure({
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
@@ -1092,17 +1072,15 @@ function Lab10Structure({
 function LabModel({
   labId,
   color,
-  lod,
   isFocused,
   isHovered,
 }: {
   labId: number;
   color: string;
-  lod: LODState;
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const props = { color, lod, isFocused, isHovered };
+  const props = { color, isFocused, isHovered };
   switch (labId) {
     case 1: return <Lab1Structure {...props} />;
     case 2: return <Lab2Structure {...props} />;
@@ -1228,7 +1206,6 @@ export function LabStructure3D({
         <LabModel
           labId={labId}
           color={color}
-          lod={lod}
           isFocused={isFocused}
           isHovered={isHovered}
         />

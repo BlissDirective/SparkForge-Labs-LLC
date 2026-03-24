@@ -20,86 +20,22 @@ import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
-// ■■ Shared LOD Config for Standard Environments ■■
-export interface StandardLOD extends LODState {
-  terrainSegments: number;
-  skySegments: number;
-  instanceCount: number;
-  enableFog: boolean;
-  enableContactShadows: boolean;
-  enableParticles: boolean;
-  enableDetailProps: boolean;
-}
-
-export function useStandardLOD(): StandardLOD {
-
-  return useMemo(() => {
-    const levelConfigs: Record<string, Partial<StandardLOD>> = {
-      ultra: {
-        terrainSegments: 128,
-        skySegments: 48,
-        instanceCount: 250,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-      },
-      high: {
-        terrainSegments: 64,
-        skySegments: 32,
-        instanceCount: 180,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-      },
-      medium: {
-        terrainSegments: 48,
-        skySegments: 24,
-        instanceCount: 100,
-        enableFog: true,
-        enableContactShadows: false,
-        enableParticles: true,
-        enableDetailProps: false,
-      },
-      low: {
-        terrainSegments: 24,
-        skySegments: 12,
-        instanceCount: 40,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-      },
-      billboard: {
-        terrainSegments: 12,
-        skySegments: 8,
-        instanceCount: 10,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-      },
-    };
-
-    const config = levelConfigs['ultra'] || levelConfigs.high;
-    return { ...lod, ...config } as StandardLOD;
-  }, [lod]);
-}
+// ■■ Standard Environment Constants (Ultra quality) ■■
+const STANDARD_TERRAIN_SEGMENTS = 128;
+const STANDARD_SKY_SEGMENTS = 48;
+const STANDARD_INSTANCE_COUNT = 250;
 
 // ■■ Standard Terrain ■■
 interface TerrainProps {
   size?: number;
   color?: string;
   heightScale?: number;
-  lod: StandardLOD;
 }
 
 export function StandardTerrain({
   size = 20,
   color = '#0A0E16',
   heightScale = 0.1,
-  lod,
 }: TerrainProps) {
   const geometry = useMemo(() => {
     const segs = 512;
@@ -137,14 +73,12 @@ interface SkyDomeProps {
   topColor?: string;
   horizonColor?: string;
   radius?: number;
-  lod: StandardLOD;
 }
 
 export function StandardSkyDome({
   topColor = '#050810',
   horizonColor = '#0A1628',
   radius = 30,
-  lod,
 }: SkyDomeProps) {
   const material = useMemo(() =>
     new THREE.ShaderMaterial({
@@ -186,14 +120,12 @@ interface FogParticlesProps {
   count?: number;
   color?: string;
   spread?: number;
-  lod: StandardLOD;
 }
 
 export function StandardFogParticles({
   count: baseCount = 60,
   color = '#00BBFF',
   spread = 8,
-  lod,
 }: FogParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const count = Math.min(baseCount, 1000);
@@ -254,11 +186,10 @@ export function StandardFogParticles({
 // ■■ Standard Lighting Rig ■■
 interface LightingRigProps {
   labColor: string;
-  lod: StandardLOD;
   ambientIntensity?: number;
 }
 
-export function StandardLightingRig({ labColor, lod, ambientIntensity = 0.3 }: LightingRigProps) {
+export function StandardLightingRig({ labColor, ambientIntensity = 0.3 }: LightingRigProps) {
   return (
     <>
       <ambientLight intensity={ambientIntensity} />
@@ -306,14 +237,13 @@ export function StandardEnvironmentWrapper({
   heightScale = 0.1,
   terrainSize = 20,
 }: StandardEnvironmentBaseProps) {
-  const lod = useStandardLOD();
 
   return (
     <group>
-      <StandardLightingRig labColor={labColor} lod={lod} />
-      <StandardTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} lod={lod} />
-      <StandardSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} lod={lod} />
-      {<StandardFogParticles color={fogColor || labColor} lod={lod} />}
+      <StandardLightingRig labColor={labColor} />
+      <StandardTerrain size={terrainSize} color={terrainColor} heightScale={heightScale} />
+      <StandardSkyDome topColor={skyTopColor} horizonColor={skyHorizonColor} />
+      {<StandardFogParticles color={fogColor || labColor} />}
       <Environment preset="night" />
       {children}
     </group>

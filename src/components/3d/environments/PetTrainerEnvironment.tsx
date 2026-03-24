@@ -40,11 +40,10 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Training Arena — Circular fenced area ■■
-function TrainingArena({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function TrainingArena() {
   const segs = 64;
   const postCount = 32;
   const postsRef = useRef<THREE.InstancedMesh>(null);
@@ -84,7 +83,7 @@ function TrainingArena({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Obstacle Course Equipment ■■
-function ObstacleCourse({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function ObstacleCourse() {
   const segs = 64;
 
   return (
@@ -132,7 +131,7 @@ function ObstacleCourse({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Pet Playground Equipment ■■
-function PetPlayground({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function PetPlayground() {
   const segs = 64;
 
   return (
@@ -197,7 +196,7 @@ function PetPlayground({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Food Bowl & Toys (expanded) ■■
-function PropsAndToys({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function PropsAndToys() {
   const segs = 64;
   const bowlRef = useRef<THREE.Mesh>(null);
 
@@ -256,7 +255,7 @@ function PropsAndToys({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Enchanted Forest (mushrooms, ferns, grass tufts) ■■
-function EnchantedForest({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function EnchantedForest() {
   const mushroomCount = 60;
   const fernCount = 120;
   const grassCount = 300;
@@ -353,7 +352,7 @@ function EnchantedForest({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Babbling Creek with Stepping Stones ■■
-function CreekAndStones({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CreekAndStones() {
   const waterRef = useRef<THREE.Mesh>(null);
   const stoneCount = 12;
   const stonesRef = useRef<THREE.InstancedMesh>(null);
@@ -401,7 +400,7 @@ function CreekAndStones({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Firefly Swarm ■■
-function FireflySwarm({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function FireflySwarm() {
   const count = 250;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -451,7 +450,7 @@ function FireflySwarm({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Garden Flower Beds ■■
-function GardenBeds({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function GardenBeds() {
   const flowerCount = 200;
   const flowersRef = useRef<THREE.InstancedMesh>(null);
 
@@ -492,7 +491,7 @@ function GardenBeds({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Magical Lantern Posts ■■
-function LanternPosts({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function LanternPosts() {
   const lanternCount = 10;
   const postsRef = useRef<THREE.InstancedMesh>(null);
   const globeRef = useRef<THREE.InstancedMesh>(null);
@@ -532,7 +531,7 @@ function LanternPosts({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Ambient Butterflies (Instanced) ■■
-function Butterflies({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function Butterflies() {
   const count = 100;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -579,7 +578,7 @@ function Butterflies({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Instanced Trees (expanded) ■■
-function Trees({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function Trees() {
   const treeCount = 150;
   const trunkRef = useRef<THREE.InstancedMesh>(null);
   const canopyRef = useRef<THREE.InstancedMesh>(null);
@@ -621,7 +620,7 @@ function Trees({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Water Pond with Lily Pads ■■
-function WaterPond({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function WaterPond() {
   const waterRef = useRef<THREE.Mesh>(null);
   const segs = 64;
   const lilyCount = 8;
@@ -673,7 +672,6 @@ export default function PetTrainerEnvironment({
   evolutionStage,
   mood,
 }: PetTrainerEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   const moodIntensity = useMemo(() => {
     const intensities: Record<string, number> = {
@@ -693,18 +691,18 @@ export default function PetTrainerEnvironment({
       heightScale={0.25}
       terrainSize={50}
     >
-      <TrainingArena lod={lod} />
-      <ObstacleCourse lod={lod} />
-      <PetPlayground lod={lod} />
-      <PropsAndToys lod={lod} />
-      <EnchantedForest lod={lod} />
-      <Trees lod={lod} />
-      <CreekAndStones lod={lod} />
-      <FireflySwarm lod={lod} />
-      <GardenBeds lod={lod} />
-      <LanternPosts lod={lod} />
-      <WaterPond lod={lod} />
-      <Butterflies lod={lod} />
+      <TrainingArena />
+      <ObstacleCourse />
+      <PetPlayground />
+      <PropsAndToys />
+      <EnchantedForest />
+      <Trees />
+      <CreekAndStones />
+      <FireflySwarm />
+      <GardenBeds />
+      <LanternPosts />
+      <WaterPond />
+      <Butterflies />
 
       {/* Mood-reactive accent light */}
       <pointLight position={[0, 2, 0]} intensity={moodIntensity} color="#DDD6FE" distance={12} />

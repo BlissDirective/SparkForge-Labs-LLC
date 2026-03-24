@@ -12,8 +12,7 @@ export { default as NeuralBuilderEnvironment } from './NeuralBuilderEnvironment'
 export { default as PromptLabEnvironment } from './PromptLabEnvironment';
 export { default as AgentArchitectEnvironment } from './AgentArchitectEnvironment';
 export { default as BiasDetectiveEnvironment } from './BiasDetectiveEnvironment';
-export { FlagshipEnvironmentWrapper, useFlagshipLOD } from './FlagshipEnvironmentBase';
-export type { FlagshipLOD } from './FlagshipEnvironmentBase';
+export { FlagshipEnvironmentWrapper } from './FlagshipEnvironmentBase';
 
 // ■■ FL-Lite Environments (2M budget) ■■
 export { default as DataDetectiveEnvironment } from './DataDetectiveEnvironment';
@@ -25,8 +24,7 @@ export { default as CodeBlocksEnvironment } from './CodeBlocksEnvironment';
 export { default as MyFirstAiAppEnvironment } from './MyFirstAiAppEnvironment';
 export { default as FutureForgeEnvironment } from './FutureForgeEnvironment';
 export { default as AiOrNotEnvironment } from './AiOrNotEnvironment';
-export { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
-export type { FLLiteLOD } from './FLLiteEnvironmentBase';
+export { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Standard Environments (500K budget) ■■
 export { default as AiSpyEnvironment } from './AiSpyEnvironment';
@@ -49,5 +47,4 @@ export { default as SentimentScannerEnvironment } from './SentimentScannerEnviro
 export { default as LostInTranslationEnvironment } from './LostInTranslationEnvironment';
 export { default as CareerExplorerEnvironment } from './CareerExplorerEnvironment';
 export { default as ApiExplorerEnvironment } from './ApiExplorerEnvironment';
-export { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
-export type { StandardLOD } from './StandardEnvironmentBase';
+export { StandardEnvironmentWrapper } from './StandardEnvironmentBase';

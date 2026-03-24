@@ -46,7 +46,6 @@ const RENDER_QUALITY: Record<GPUTier, RenderQuality> = {
   'webgpu-mid':  { maxTrailSegments: 2, enableGlow: true,  sizeScale: 1.0, opacityScale: 1.0 },
   'webgpu-low':  { maxTrailSegments: 0, enableGlow: true,  sizeScale: 0.9, opacityScale: 0.9 },
   'webgl2':      { maxTrailSegments: 0, enableGlow: false, sizeScale: 0.8, opacityScale: 0.8 },
-  'css':         { maxTrailSegments: 0, enableGlow: false, sizeScale: 1.0, opacityScale: 1.0 },
 };
 
 // ■■ Uniforms for render material ■■

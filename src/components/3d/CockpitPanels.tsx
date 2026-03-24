@@ -58,10 +58,9 @@ interface ResolvedSegments {
   reflections: boolean;
 }
 
-function resolveSegments(lod: LODState): ResolvedSegments {
-  // Map LOD level to COCKPIT_LOD presets
-  const presetKey = false ? 'low' : 'ultra';
-  const preset = COCKPIT_LOD[presetKey];
+function resolveSegments(
+): ResolvedSegments {
+  const preset = COCKPIT_LOD['ultra'];
 
   return {
     mainSegments: preset.panelSegments,
@@ -658,7 +657,7 @@ export function CockpitPanels({
   targetCurvature.current = curvature;
 
   // LOD from device store
-  const segments = useMemo(() => resolveSegments(lod), [lod]);
+  const segments = useMemo(() => resolveSegments(), []);
 
   const {
     totalWrapArc,

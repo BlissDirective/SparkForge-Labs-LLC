@@ -31,12 +31,12 @@
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF6644';
 
 // ■■ Judge's Bench ■■
-function JudgeBench({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function JudgeBench() {
   return (
     <group position={[0, 0, -4]}>
       {/* Elevated platform */}
@@ -71,7 +71,7 @@ function JudgeBench({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Gavel Pedestal ■■
-function GavelPedestal({ lod: _lod, verdictReached }: { lod: ReturnType<typeof useStandardLOD>; verdictReached: boolean }) {
+function GavelPedestal({ verdictReached }: { verdictReached: boolean }) {
   const gavelRef = useRef<THREE.Group>(null);
   const timeRef = useRef(0);
 
@@ -108,7 +108,7 @@ function GavelPedestal({ lod: _lod, verdictReached }: { lod: ReturnType<typeof u
 }
 
 // ■■ Witness Stand with Holographic Display ■■
-function WitnessStand({ lod: _lod, caseIndex: _caseIndex }: { lod: ReturnType<typeof useStandardLOD>; caseIndex: number }) {
+function WitnessStand({ caseIndex: _caseIndex }: { caseIndex: number }) {
   const holoRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -150,7 +150,7 @@ function WitnessStand({ lod: _lod, caseIndex: _caseIndex }: { lod: ReturnType<ty
 }
 
 // ■■ Jury Box with 12 Seats (Instanced) ■■
-function JuryBox({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function JuryBox() {
   const count = 12;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
   const backsRef = useRef<THREE.InstancedMesh>(null);
@@ -197,7 +197,7 @@ function JuryBox({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Scales of Justice (Animated) ■■
-function ScalesOfJustice({ lod, verdictReached }: { lod: ReturnType<typeof useStandardLOD>; verdictReached: boolean }) {
+function ScalesOfJustice({ verdictReached }: { verdictReached: boolean }) {
   const beamRef = useRef<THREE.Mesh>(null);
   const leftPanRef = useRef<THREE.Mesh>(null);
   const rightPanRef = useRef<THREE.Mesh>(null);
@@ -266,7 +266,7 @@ function ScalesOfJustice({ lod, verdictReached }: { lod: ReturnType<typeof useSt
 }
 
 // ■■ Argument Podium ■■
-function ArgumentPodium({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ArgumentPodium() {
   return (
     <group position={[0, 0, 0.5]}>
       {/* Podium body */}
@@ -302,7 +302,7 @@ function ArgumentPodium({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Evidence Presentation Screen ■■
-function EvidenceScreen({ lod: _lod, caseIndex }: { lod: ReturnType<typeof useStandardLOD>; caseIndex: number }) {
+function EvidenceScreen({ caseIndex }: { caseIndex: number }) {
   const screenRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -342,7 +342,7 @@ function EvidenceScreen({ lod: _lod, caseIndex }: { lod: ReturnType<typeof useSt
 }
 
 // ■■ Stained Glass Windows (Instanced) ■■
-function StainedGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function StainedGlass() {
   const count = 6;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const framesRef = useRef<THREE.InstancedMesh>(null);
@@ -385,7 +385,7 @@ function StainedGlass({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Gallery Seating (Instanced) ■■
-function GallerySeating({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function GallerySeating() {
   const count = 16;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -422,7 +422,6 @@ export default function EthicsCourtroomEnvironment({
   caseIndex = 0,
   verdictReached = false,
 }: EthicsCourtroomEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -432,15 +431,15 @@ export default function EthicsCourtroomEnvironment({
       skyHorizonColor="#1A0E10"
       fogColor="#FF6644"
     >
-      <JudgeBench lod={lod} />
-      <GavelPedestal lod={lod} verdictReached={verdictReached} />
-      <WitnessStand lod={lod} caseIndex={caseIndex} />
-      <JuryBox lod={lod} />
-      <ScalesOfJustice lod={lod} verdictReached={verdictReached} />
-      <ArgumentPodium lod={lod} />
-      <EvidenceScreen lod={lod} caseIndex={caseIndex} />
-      <StainedGlass lod={lod} />
-      <GallerySeating lod={lod} />
+      <JudgeBench />
+      <GavelPedestal verdictReached={verdictReached} />
+      <WitnessStand caseIndex={caseIndex} />
+      <JuryBox />
+      <ScalesOfJustice verdictReached={verdictReached} />
+      <ArgumentPodium />
+      <EvidenceScreen caseIndex={caseIndex} />
+      <StainedGlass />
+      <GallerySeating />
       {/* Verdict spotlight */}
       {verdictReached && (
         <pointLight position={[0, 4, -2]} intensity={1.5} color="#FFAA44" distance={10} />

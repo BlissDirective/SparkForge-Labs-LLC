@@ -33,21 +33,9 @@ const MID_BUFFER_THRESHOLD = 128 * 1024 * 1024;   // 128 MB → 2 stripes
 // webgpu-mid:    5M peak, 500M+ lifetime, 2 stripes
 // webgpu-low:    2M peak, 200M+ lifetime, 1 stripe
 // webgl2:      500K peak, 50M lifetime, 0 stripes
-// css:            15 peak, 15 lifetime, 0 stripes
 
 /**
- * CSS-only fallback result — used when no GPU rendering is available,
- * or when running on server (SSR).
- */
-const CSS_FALLBACK: GPUDetectionResult = {
-  tier: 'css',
-  stripeCount: 0,
-  maxBufferSize: 0,
-  maxComputeWorkgroups: 0,
-};
-
-/**
- * WebGL2 fallback result — no compute shaders, instanced rendering only.
+ * WebGL2 fallback result — minimum GPU tier (D3D-1: no CSS-only tier).
  */
 const WEBGL2_FALLBACK: GPUDetectionResult = {
   tier: 'webgl2',
@@ -55,6 +43,11 @@ const WEBGL2_FALLBACK: GPUDetectionResult = {
   maxBufferSize: 0,
   maxComputeWorkgroups: 0,
 };
+
+/**
+ * WebGL2 fallback result — no compute shaders, instanced rendering only.
+ * (Uses WEBGL2_FALLBACK defined above)
+ */
 
 /**
  * Probe WebGL2 support by attempting to create a context on an
@@ -157,7 +150,7 @@ async function probeWebGPU(): Promise<GPUDetectionResult | null> {
 export async function detectGPUTier(): Promise<GPUDetectionResult> {
   // Server-side: return CSS fallback
   if (typeof window === 'undefined') {
-    return CSS_FALLBACK;
+    return WEBGL2_FALLBACK;
   }
 
   // Try WebGPU first
@@ -172,5 +165,5 @@ export async function detectGPUTier(): Promise<GPUDetectionResult> {
   }
 
   // No GPU rendering available
-  return CSS_FALLBACK;
+  return WEBGL2_FALLBACK;
 }

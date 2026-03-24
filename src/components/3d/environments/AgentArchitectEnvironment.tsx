@@ -43,11 +43,10 @@ import * as THREE from 'three';
 
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Server Corridor Walls (expanded) ■■
-function ServerCorridor({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function ServerCorridor() {
   const rackCount = 50;
   const racksRef = useRef<THREE.InstancedMesh>(null);
   const ledRef = useRef<THREE.InstancedMesh>(null);
@@ -109,7 +108,7 @@ function ServerCorridor({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Mission Control Display Wall ■■
-function MissionControlWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function MissionControlWall() {
   const screensRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -153,7 +152,7 @@ function MissionControlWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> })
 }
 
 // ■■ Autonomous Drone Fleet ■■
-function DroneFleet({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function DroneFleet() {
   const droneCount = 12;
   const dronesRef = useRef<THREE.InstancedMesh>(null);
   const propRef = useRef<THREE.InstancedMesh>(null);
@@ -216,7 +215,7 @@ function DroneFleet({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Holographic Blueprint Table ■■
-function BlueprintTable({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function BlueprintTable() {
   const holoRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -258,7 +257,7 @@ function BlueprintTable({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Robotic Assembly Line ■■
-function AssemblyLine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function AssemblyLine() {
   const armCount = 6;
   const armsRef = useRef<THREE.Group>(null);
 
@@ -301,7 +300,7 @@ function AssemblyLine({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Communication Array ■■
-function CommunicationArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CommunicationArray() {
   const dishRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -341,7 +340,7 @@ function CommunicationArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> })
 }
 
 // ■■ Cargo Containers ■■
-function CargoContainers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CargoContainers() {
   const containerCount = 12;
   const containersRef = useRef<THREE.InstancedMesh>(null);
 
@@ -378,7 +377,7 @@ function CargoContainers({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Conveyor Belt System ■■
-function ConveyorBelt({ lod, isRunning }: { lod: ReturnType<typeof useFlagshipLOD>; isRunning: boolean }) {
+function ConveyorBelt({ isRunning }: { isRunning: boolean }) {
   const rollersRef = useRef<THREE.InstancedMesh>(null);
   const rollerCount = 24;
 
@@ -433,7 +432,7 @@ function ConveyorBelt({ lod, isRunning }: { lod: ReturnType<typeof useFlagshipLO
 }
 
 // ■■ Tool Shelf Wall ■■
-function ToolShelves({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function ToolShelves() {
 
   return (
     <group position={[0, 0, -8]}>
@@ -467,7 +466,7 @@ function ToolShelves({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Debug Tower (expanded) ■■
-function DebugTower({ lod, activeBlockId }: { lod: ReturnType<typeof useFlagshipLOD>; activeBlockId: string | null }) {
+function DebugTower({ activeBlockId }: { activeBlockId: string | null }) {
   const frameCount = 8;
   const towerRef = useRef<THREE.Group>(null);
 
@@ -495,7 +494,7 @@ function DebugTower({ lod, activeBlockId }: { lod: ReturnType<typeof useFlagship
 }
 
 // ■■ Cable Conduits (Ceiling, expanded) ■■
-function CableConduits({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CableConduits() {
   const cableCount = 25;
   const cablesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -523,7 +522,7 @@ function CableConduits({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Data Pulse Floor Rings ■■
-function DataPulseFloor({ lod, isRunning }: { lod: ReturnType<typeof useFlagshipLOD>; isRunning: boolean }) {
+function DataPulseFloor({ isRunning }: { isRunning: boolean }) {
   const ringsRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -557,7 +556,6 @@ export interface AgentArchitectEnvironmentProps {
 }
 
 export default function AgentArchitectEnvironment({ isRunning, activeBlockId }: AgentArchitectEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <FlagshipEnvironmentWrapper
@@ -569,18 +567,18 @@ export default function AgentArchitectEnvironment({ isRunning, activeBlockId }: 
       heightScale={0.05}
       terrainSize={40}
     >
-      <ServerCorridor lod={lod} />
-      <MissionControlWall lod={lod} />
-      <DroneFleet lod={lod} />
-      <BlueprintTable lod={lod} />
-      <AssemblyLine lod={lod} />
-      <CommunicationArray lod={lod} />
-      <ConveyorBelt lod={lod} isRunning={isRunning} />
-      <ToolShelves lod={lod} />
-      <DebugTower lod={lod} activeBlockId={activeBlockId} />
-      <CableConduits lod={lod} />
-      <CargoContainers lod={lod} />
-      <DataPulseFloor lod={lod} isRunning={isRunning} />
+      <ServerCorridor />
+      <MissionControlWall />
+      <DroneFleet />
+      <BlueprintTable />
+      <AssemblyLine />
+      <CommunicationArray />
+      <ConveyorBelt isRunning={isRunning} />
+      <ToolShelves />
+      <DebugTower activeBlockId={activeBlockId} />
+      <CableConduits />
+      <CargoContainers />
+      <DataPulseFloor isRunning={isRunning} />
 
       {/* Ceiling */}
       <mesh position={[0, 5, 0]} rotation={[Math.PI / 2, 0, 0]}>

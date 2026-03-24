@@ -636,7 +636,7 @@ export function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
   const [currentTime, setCurrentTime] = useState(0);
   const profile = useDeviceStore((s) => s.profile);
 
-  const botCount = profile.lodBias === 'high' ? 8 : profile.lodBias === 'medium' ? 4 : 0;
+  const botCount = 8; // D3D-1: Always max bots (desktop-ultra)
 
   const bots = useMemo<BotState[]>(() => {
     return Array.from({ length: botCount }, (_: unknown, i: number) => {
@@ -656,11 +656,11 @@ export function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
   }, [botCount]);
 
   useFrame(({ clock }) => {
-    if (!visible || botCount === 0) return;
+    if (!visible) return;
     setCurrentTime(clock.elapsedTime);
   });
 
-  if (!visible || botCount === 0) return null;
+  if (!visible) return null;
 
   return (
     <group ref={botsRef}>

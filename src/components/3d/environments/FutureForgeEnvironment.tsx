@@ -30,13 +30,13 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#D946EF';
 const _FUCHSIA = new THREE.Color(LAB_COLOR);
 
 // ■■ City Skyline (Instanced Buildings) ■■
-function CitySkyline({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function CitySkyline() {
   const count = 50;
   const buildingsRef = useRef<THREE.InstancedMesh>(null);
   const windowsRef = useRef<THREE.InstancedMesh>(null);
@@ -94,7 +94,7 @@ function CitySkyline({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Holographic Billboards (Instanced) ■■
-function HolographicBillboards({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function HolographicBillboards() {
   const count = 12;
   const billboardsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -152,7 +152,7 @@ function HolographicBillboards({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }
 }
 
 // ■■ Flying Vehicles on Curved Tracks ■■
-function FlyingVehicles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function FlyingVehicles() {
   const vehicleCount = 8;
   const vehiclesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -198,7 +198,7 @@ function FlyingVehicles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Innovation Hub Dome ■■
-function InnovationDome({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function InnovationDome() {
   const domeRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -243,7 +243,7 @@ function InnovationDome({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ AI Brain Monument ■■
-function AIBrainMonument({ lod, innovationScore }: { lod: ReturnType<typeof useFLLiteLOD>; innovationScore: number }) {
+function AIBrainMonument({ innovationScore }: { innovationScore: number }) {
   const brainRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -292,7 +292,7 @@ function AIBrainMonument({ lod, innovationScore }: { lod: ReturnType<typeof useF
 }
 
 // ■■ Energy Beam Pillars ■■
-function EnergyBeams({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function EnergyBeams() {
   const beamCount = 8;
   const beamsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -327,7 +327,7 @@ function EnergyBeams({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Progress Meter Tower ■■
-function ProgressTower({ lod, innovationScore, step }: { lod: ReturnType<typeof useFLLiteLOD>; innovationScore: number; step: number }) {
+function ProgressTower({ innovationScore, step }: { innovationScore: number; step: number }) {
   const fillRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -380,7 +380,6 @@ export default function FutureForgeEnvironment({
   innovationScore = 0,
   step = 0,
 }: FutureForgeEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -390,13 +389,13 @@ export default function FutureForgeEnvironment({
       skyHorizonColor="#1A0E2A"
       fogColor="#D946EF"
     >
-      <CitySkyline lod={lod} />
-      <HolographicBillboards lod={lod} />
-      <FlyingVehicles lod={lod} />
-      <InnovationDome lod={lod} />
-      <AIBrainMonument lod={lod} innovationScore={innovationScore} />
-      <EnergyBeams lod={lod} />
-      <ProgressTower lod={lod} innovationScore={innovationScore} step={step} />
+      <CitySkyline />
+      <HolographicBillboards />
+      <FlyingVehicles />
+      <InnovationDome />
+      <AIBrainMonument innovationScore={innovationScore} />
+      <EnergyBeams />
+      <ProgressTower innovationScore={innovationScore} step={step} />
     </FLLiteEnvironmentWrapper>
   );
 }

@@ -31,12 +31,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FFAA44';
 
 // ■■ Floating Word Bubbles ■■
-function WordBubbles({ lod, isPredicting }: { lod: ReturnType<typeof useStandardLOD>; isPredicting: boolean }) {
+function WordBubbles({ isPredicting }: { isPredicting: boolean }) {
   const count = 40;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -90,7 +90,7 @@ function WordBubbles({ lod, isPredicting }: { lod: ReturnType<typeof useStandard
 }
 
 // ■■ Probability Tree ■■
-function ProbabilityTree({ lod, isPredicting }: { lod: ReturnType<typeof useStandardLOD>; isPredicting: boolean }) {
+function ProbabilityTree({ isPredicting }: { isPredicting: boolean }) {
   const branchCount = 16;
   const branchRef = useRef<THREE.InstancedMesh>(null);
   const leafRef = useRef<THREE.InstancedMesh>(null);
@@ -146,12 +146,12 @@ function ProbabilityTree({ lod, isPredicting }: { lod: ReturnType<typeof useStan
     <group position={[0, -0.5, 0]}>
       {/* Trunk */}
       <mesh position={[0, 0.5, 0]} castShadow>
-        <cylinderGeometry args={[0.08, 0.15, 1.5, 12} />
+        <cylinderGeometry args={[0.08, 0.15, 1.5, 12]} />
         <meshStandardMaterial color="#664422" roughness={0.8} metalness={0.1} />
       </mesh>
       {/* Trunk glow ring */}
       <mesh position={[0, 0.1, 0]} rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[0.2, 0.02, 6, 24} />
+        <torusGeometry args={[0.2, 0.02, 6, 24]} />
         <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.5} />
       </mesh>
       {/* Branches */}
@@ -169,7 +169,7 @@ function ProbabilityTree({ lod, isPredicting }: { lod: ReturnType<typeof useStan
 }
 
 // ■■ Sentence Construction Conveyor ■■
-function SentenceConveyor({ lod, wordCount }: { lod: ReturnType<typeof useStandardLOD>; wordCount: number }) {
+function SentenceConveyor({ wordCount }: { wordCount: number }) {
   const blockCount = 12;
   const blocksRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -220,7 +220,7 @@ function SentenceConveyor({ lod, wordCount }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Autocomplete Suggestion Screens ■■
-function AutocompleteScreens({ lod, isPredicting }: { lod: ReturnType<typeof useStandardLOD>; isPredicting: boolean }) {
+function AutocompleteScreens({ isPredicting }: { isPredicting: boolean }) {
   const count = 6;
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -266,7 +266,7 @@ function AutocompleteScreens({ lod, isPredicting }: { lod: ReturnType<typeof use
 }
 
 // ■■ Dictionary Towers ■■
-function DictionaryTowers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function DictionaryTowers() {
   const towerCount = 6;
   const bookCount = towerCount * 8;
   const booksRef = useRef<THREE.InstancedMesh>(null);
@@ -306,7 +306,7 @@ function DictionaryTowers({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Grammar Circuit Boards (Walls) ■■
-function GrammarCircuits({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function GrammarCircuits() {
   const traceCount = 30;
   const nodeCount = 15;
   const tracesRef = useRef<THREE.InstancedMesh>(null);
@@ -367,7 +367,7 @@ function GrammarCircuits({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Context Window Visualizer ■■
-function ContextWindowVisualizer({ lod, wordCount }: { lod: ReturnType<typeof useStandardLOD>; wordCount: number }) {
+function ContextWindowVisualizer({ wordCount }: { wordCount: number }) {
   const frameRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -419,7 +419,6 @@ export default function WordPredictorEnvironment({
   wordCount = 0,
   isPredicting = false,
 }: WordPredictorEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -429,13 +428,13 @@ export default function WordPredictorEnvironment({
       skyHorizonColor="#1A1208"
       fogColor="#FFAA44"
     >
-      <WordBubbles lod={lod} isPredicting={isPredicting} />
-      <ProbabilityTree lod={lod} isPredicting={isPredicting} />
-      <SentenceConveyor lod={lod} wordCount={wordCount} />
-      <AutocompleteScreens lod={lod} isPredicting={isPredicting} />
-      <DictionaryTowers lod={lod} />
-      <GrammarCircuits lod={lod} />
-      <ContextWindowVisualizer lod={lod} wordCount={wordCount} />
+      <WordBubbles isPredicting={isPredicting} />
+      <ProbabilityTree isPredicting={isPredicting} />
+      <SentenceConveyor wordCount={wordCount} />
+      <AutocompleteScreens isPredicting={isPredicting} />
+      <DictionaryTowers />
+      <GrammarCircuits />
+      <ContextWindowVisualizer wordCount={wordCount} />
       {/* Prediction active glow */}
       {isPredicting && (
         <pointLight position={[0, 2.5, 0]} intensity={1.0} color={LAB_COLOR} distance={10} />

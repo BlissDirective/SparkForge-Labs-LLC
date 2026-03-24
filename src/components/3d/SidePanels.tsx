@@ -69,13 +69,11 @@ function ChromeBezelFrame({
   height,
   depth,
   opacity,
-  lod,
 }: {
   width: number;
   height: number;
   depth: number;
   opacity: number;
-  lod: LODState;
 }) {
   const bezel = BEZEL_THICKNESS;
   const cornerSize = bezel * 2.5;
@@ -172,11 +170,9 @@ function ChromeBezelFrame({
 function MountingArm({
   side,
   opacity,
-  lod,
 }: {
   side: 'left' | 'right';
   opacity: number;
-  lod: LODState;
 }) {
   const sx = side === 'left' ? 1 : -1; // arm extends inward
   const _jointSegs = 64;
@@ -304,12 +300,10 @@ function RadarPanel({
   opacity,
   labColor,
   dimmed,
-  lod,
 }: {
   opacity: number;
   labColor: THREE.Color;
   dimmed: boolean;
-  lod: LODState;
 }) {
   const dishRef = useRef<THREE.Group>(null);
   const sweepRef = useRef<THREE.Mesh>(null);
@@ -543,7 +537,6 @@ function RadarPanel({
           height={PANEL_HEIGHT}
           depth={PANEL_DEPTH}
           opacity={opacity}
-          lod={lod}
         />
       </group>
     </group>
@@ -561,12 +554,10 @@ function TerminalPanel({
   opacity,
   labColor,
   dimmed,
-  lod,
 }: {
   opacity: number;
   labColor: THREE.Color;
   dimmed: boolean;
-  lod: LODState;
 }) {
   const barsRef = useRef<THREE.InstancedMesh>(null);
   const graphBarsRef = useRef<THREE.InstancedMesh>(null);
@@ -778,7 +769,6 @@ function TerminalPanel({
           height={PANEL_HEIGHT}
           depth={PANEL_DEPTH}
           opacity={opacity}
-          lod={lod}
         />
       </group>
     </group>
@@ -793,12 +783,10 @@ function PanelAssembly({
   side,
   children,
   opacity,
-  lod,
 }: {
   side: 'left' | 'right';
   children: React.ReactNode;
   opacity: number;
-  lod: LODState;
 }) {
   const groupRef = useRef<THREE.Group>(null);
   const sx = side === 'left' ? -1 : 1;
@@ -818,12 +806,12 @@ function PanelAssembly({
     <group position={[sx * 5.5, 0, -2]}>
       {/* Mounting arm — connects wall to panel */}
       <group position={[sx * (PANEL_WIDTH / 2 + ARM_LENGTH / 2 + 0.1), 0.5, 0]}>
-        <MountingArm side={side} opacity={opacity} lod={lod} />
+        <MountingArm side={side} opacity={opacity} />
       </group>
 
       {/* Second mounting arm (lower) */}
       <group position={[sx * (PANEL_WIDTH / 2 + ARM_LENGTH / 2 + 0.1), -0.8, 0]}>
-        <MountingArm side={side} opacity={opacity} lod={lod} />
+        <MountingArm side={side} opacity={opacity} />
       </group>
 
       {/* Panel group (tilts) */}
@@ -853,22 +841,20 @@ export function SidePanels({
   return (
     <group>
       {/* Left panel assembly — Radar */}
-      <PanelAssembly side="left" opacity={opacity} lod={lod}>
+      <PanelAssembly side="left" opacity={opacity}>
         <RadarPanel
           opacity={opacity}
           labColor={labColorVec}
           dimmed={dimmed}
-          lod={lod}
         />
       </PanelAssembly>
 
       {/* Right panel assembly — Terminal */}
-      <PanelAssembly side="right" opacity={opacity} lod={lod}>
+      <PanelAssembly side="right" opacity={opacity}>
         <TerminalPanel
           opacity={opacity}
           labColor={labColorVec}
           dimmed={dimmed}
-          lod={lod}
         />
       </PanelAssembly>
     </group>

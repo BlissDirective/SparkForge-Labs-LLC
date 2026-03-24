@@ -32,7 +32,7 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#F97316';
 
@@ -45,7 +45,7 @@ const METHOD_COLORS = {
 };
 
 // ■■ Central API Gateway Hub ■■
-function ApiGatewayHub({ lod, requestsSent }: { lod: ReturnType<typeof useStandardLOD>; requestsSent: number }) {
+function ApiGatewayHub({ requestsSent }: { requestsSent: number }) {
   const coreRef = useRef<THREE.Mesh>(null);
   const ring1Ref = useRef<THREE.Mesh>(null);
   const ring2Ref = useRef<THREE.Mesh>(null);
@@ -99,7 +99,7 @@ function ApiGatewayHub({ lod, requestsSent }: { lod: ReturnType<typeof useStanda
     <group position={[0, 0, 0]}>
       {/* Core octahedron */}
       <mesh ref={coreRef} position={[0, 1.2, 0]}>
-        <octahedronGeometry args={[0.5, 2} />
+        <octahedronGeometry args={[0.5, 2]} />
         <meshStandardMaterial
           color={LAB_COLOR}
           emissive={LAB_COLOR}
@@ -135,7 +135,7 @@ function ApiGatewayHub({ lod, requestsSent }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Request/Response Pipeline Tubes ■■
-function PipelineTubes({ lod, currentMethod }: { lod: ReturnType<typeof useStandardLOD>; currentMethod: string }) {
+function PipelineTubes({ currentMethod }: { currentMethod: string }) {
   const pulseRefs = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
 
@@ -193,7 +193,7 @@ function PipelineTubes({ lod, currentMethod }: { lod: ReturnType<typeof useStand
 }
 
 // ■■ Endpoint Directory Tower ■■
-function EndpointTower({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function EndpointTower() {
   const panelCount = 8;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -244,7 +244,7 @@ function EndpointTower({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Authentication Keycard Station ■■
-function AuthKeycardStation({ lod: _lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function AuthKeycardStation({ }: {}) {
   const cardRef = useRef<THREE.Mesh>(null);
   const scanRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -293,7 +293,7 @@ function AuthKeycardStation({ lod: _lod }: { lod: ReturnType<typeof useStandardL
 }
 
 // ■■ Rate Limit Meter ■■
-function RateLimitMeter({ lod, requestsSent }: { lod: ReturnType<typeof useStandardLOD>; requestsSent: number }) {
+function RateLimitMeter({ requestsSent }: { requestsSent: number }) {
   const needleRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
@@ -350,7 +350,7 @@ function RateLimitMeter({ lod, requestsSent }: { lod: ReturnType<typeof useStand
 }
 
 // ■■ Documentation Hologram Library (Instanced) ■■
-function DocumentationLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function DocumentationLibrary() {
   const count = 10;
   const pagesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -401,7 +401,7 @@ function DocumentationLibrary({ lod }: { lod: ReturnType<typeof useStandardLOD> 
 }
 
 // ■■ Webhook Listener Array (Instanced) ■■
-function WebhookListeners({ lod, requestsSent }: { lod: ReturnType<typeof useStandardLOD>; requestsSent: number }) {
+function WebhookListeners({ requestsSent }: { requestsSent: number }) {
   const count = 8;
   const dishesRef = useRef<THREE.InstancedMesh>(null);
   const stemsRef = useRef<THREE.InstancedMesh>(null);
@@ -457,7 +457,7 @@ function WebhookListeners({ lod, requestsSent }: { lod: ReturnType<typeof useSta
 }
 
 // ■■ Status Code Indicator Lights (Instanced) ■■
-function StatusCodeLights({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function StatusCodeLights() {
   const count = 20;
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -517,7 +517,6 @@ export default function ApiExplorerEnvironment({
   requestsSent = 0,
   currentMethod = 'GET',
 }: ApiExplorerEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -527,14 +526,14 @@ export default function ApiExplorerEnvironment({
       skyHorizonColor="#1A0E08"
       fogColor="#F97316"
     >
-      <ApiGatewayHub lod={lod} requestsSent={requestsSent} />
-      <PipelineTubes lod={lod} currentMethod={currentMethod} />
-      <EndpointTower lod={lod} />
-      <AuthKeycardStation lod={lod} />
-      <RateLimitMeter lod={lod} requestsSent={requestsSent} />
-      <DocumentationLibrary lod={lod} />
-      <WebhookListeners lod={lod} requestsSent={requestsSent} />
-      <StatusCodeLights lod={lod} />
+      <ApiGatewayHub requestsSent={requestsSent} />
+      <PipelineTubes currentMethod={currentMethod} />
+      <EndpointTower />
+      <AuthKeycardStation />
+      <RateLimitMeter requestsSent={requestsSent} />
+      <DocumentationLibrary />
+      <WebhookListeners requestsSent={requestsSent} />
+      <StatusCodeLights />
       {/* Active request glow */}
       {requestsSent > 0 && (
         <pointLight

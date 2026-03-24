@@ -24,10 +24,10 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Living Room Furniture ■■
-function LivingRoomFurniture({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function LivingRoomFurniture() {
   const _sofaSegs = 16;
 
   return (
@@ -88,7 +88,7 @@ function LivingRoomFurniture({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) 
 }
 
 // ■■ Smart Home Control Panels ■■
-function ControlPanels({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function ControlPanels() {
   const panelCount = 6;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const glowRef = useRef<THREE.InstancedMesh>(null);
@@ -134,7 +134,7 @@ function ControlPanels({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ IoT Sensor Nodes ■■
-function IoTSensorNodes({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function IoTSensorNodes() {
   const count = 30;
   const ref = useRef<THREE.InstancedMesh>(null);
 
@@ -223,7 +223,7 @@ function ChargingDock({ isRunning }: { isRunning: boolean }) {
 }
 
 // ■■ Smart Light Fixtures ■■
-function SmartLights({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function SmartLights() {
   const count = 16;
   const ref = useRef<THREE.InstancedMesh>(null);
 
@@ -249,7 +249,7 @@ function SmartLights({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Dust Particles ■■
-function DustParticles({ lod, cleanProgress }: { lod: ReturnType<typeof useFLLiteLOD>; cleanProgress: number }) {
+function DustParticles({ cleanProgress }: { cleanProgress: number }) {
   const baseCount = 250;
   const count = Math.max(10, Math.floor(baseCount * (1 - cleanProgress)));
   const ref = useRef<THREE.InstancedMesh>(null);
@@ -306,7 +306,6 @@ interface RobotVacuumEnvironmentProps {
 }
 
 export default function RobotVacuumEnvironment({ isRunning, cleanProgress }: RobotVacuumEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -316,12 +315,12 @@ export default function RobotVacuumEnvironment({ isRunning, cleanProgress }: Rob
       skyHorizonColor="#0E2818"
       fogColor="#00FF88"
     >
-      <LivingRoomFurniture lod={lod} />
-      <ControlPanels lod={lod} />
-      <IoTSensorNodes lod={lod} />
+      <LivingRoomFurniture />
+      <ControlPanels />
+      <IoTSensorNodes />
       <ChargingDock isRunning={isRunning} />
-      <SmartLights lod={lod} />
-      {<DustParticles lod={lod} cleanProgress={cleanProgress} />}
+      <SmartLights />
+      {<DustParticles cleanProgress={cleanProgress} />}
     </FLLiteEnvironmentWrapper>
   );
 }

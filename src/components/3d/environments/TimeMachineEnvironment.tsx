@@ -29,12 +29,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#00BBFF';
 
 // ■■ Time Vortex Portal (Concentric Spinning Rings) ■■
-function TimeVortexPortal({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function TimeVortexPortal() {
   const ringsRef = useRef<THREE.Group>(null);
   const ringRefs = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
@@ -94,7 +94,7 @@ function TimeVortexPortal({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Timeline Markers along Helical Path (Instanced) ■■
-function TimelineMarkers({ lod, currentYear }: { lod: ReturnType<typeof useStandardLOD>; currentYear: number }) {
+function TimelineMarkers({ currentYear }: { currentYear: number }) {
   const count = 20;
   const markersRef = useRef<THREE.InstancedMesh>(null);
   const glowsRef = useRef<THREE.InstancedMesh>(null);
@@ -148,7 +148,7 @@ function TimelineMarkers({ lod, currentYear }: { lod: ReturnType<typeof useStand
   return (
     <group>
       <instancedMesh ref={markersRef} args={[undefined, undefined, count]}>
-        <sphereGeometry args={[1, 12, 12} />
+        <sphereGeometry args={[1, 12, 12]} />
         <meshStandardMaterial emissive={LAB_COLOR} emissiveIntensity={0.5} metalness={0.6} roughness={0.3} />
       </instancedMesh>
       <instancedMesh ref={glowsRef} args={[undefined, undefined, count]}>
@@ -160,7 +160,7 @@ function TimelineMarkers({ lod, currentYear }: { lod: ReturnType<typeof useStand
 }
 
 // ■■ Era Display Panels (Instanced) ■■
-function EraDisplayPanels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function EraDisplayPanels() {
   const count = 6;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const labelsRef = useRef<THREE.InstancedMesh>(null);
@@ -214,7 +214,7 @@ function EraDisplayPanels({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Clock Gears on Walls (Instanced) ■■
-function ClockGears({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ClockGears() {
   const count = 12;
   const gearsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -251,14 +251,14 @@ function ClockGears({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 
   return (
     <instancedMesh ref={gearsRef} args={[undefined, undefined, count]} castShadow>
-      <torusGeometry args={[1, 0.15, 6, 12} />
+      <torusGeometry args={[1, 0.15, 6, 12]} />
       <meshStandardMaterial color="#2A3040" metalness={0.8} roughness={0.2} emissive={LAB_COLOR} emissiveIntensity={0.08} />
     </instancedMesh>
   );
 }
 
 // ■■ Temporal Energy Particles (Instanced) ■■
-function TemporalParticles({ lod, isPlacing }: { lod: ReturnType<typeof useStandardLOD>; isPlacing: boolean }) {
+function TemporalParticles({ isPlacing }: { isPlacing: boolean }) {
   const count = 50;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -308,7 +308,7 @@ function TemporalParticles({ lod, isPlacing }: { lod: ReturnType<typeof useStand
 }
 
 // ■■ Milestone Pedestals (Instanced) ■■
-function MilestonePedestals({ lod, currentYear }: { lod: ReturnType<typeof useStandardLOD>; currentYear: number }) {
+function MilestonePedestals({ currentYear }: { currentYear: number }) {
   const count = 8;
   const basesRef = useRef<THREE.InstancedMesh>(null);
   const topsRef = useRef<THREE.InstancedMesh>(null);
@@ -352,7 +352,7 @@ function MilestonePedestals({ lod, currentYear }: { lod: ReturnType<typeof useSt
   return (
     <group>
       <instancedMesh ref={basesRef} args={[undefined, undefined, count]} castShadow>
-        <cylinderGeometry args={[0.8, 1, 1, 12} />
+        <cylinderGeometry args={[0.8, 1, 1, 12]} />
         <meshStandardMaterial color="#1A1E30" metalness={0.6} roughness={0.3} />
       </instancedMesh>
       <instancedMesh ref={topsRef} args={[undefined, undefined, count]}>
@@ -364,7 +364,7 @@ function MilestonePedestals({ lod, currentYear }: { lod: ReturnType<typeof useSt
 }
 
 // ■■ Chamber Walls (Cylindrical) ■■
-function ChamberWalls({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ChamberWalls() {
   const segments = 48;
 
   return (
@@ -428,7 +428,6 @@ export default function TimeMachineEnvironment({
   currentYear = 2000,
   isPlacing = false,
 }: TimeMachineEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -438,13 +437,13 @@ export default function TimeMachineEnvironment({
       skyHorizonColor="#081830"
       fogColor="#00BBFF"
     >
-      <ChamberWalls lod={lod} />
-      <TimeVortexPortal lod={lod} />
-      <TimelineMarkers lod={lod} currentYear={currentYear} />
-      <EraDisplayPanels lod={lod} />
-      <ClockGears lod={lod} />
-      <TemporalParticles lod={lod} isPlacing={isPlacing} />
-      <MilestonePedestals lod={lod} currentYear={currentYear} />
+      <ChamberWalls />
+      <TimeVortexPortal />
+      <TimelineMarkers currentYear={currentYear} />
+      <EraDisplayPanels />
+      <ClockGears />
+      <TemporalParticles isPlacing={isPlacing} />
+      <MilestonePedestals currentYear={currentYear} />
       {/* Portal glow light */}
       <pointLight position={[0, 2.5, 0]} intensity={isPlacing ? 2.0 : 0.8} color={LAB_COLOR} distance={10} />
     </StandardEnvironmentWrapper>

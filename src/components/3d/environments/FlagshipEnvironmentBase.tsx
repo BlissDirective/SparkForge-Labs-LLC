@@ -22,78 +22,10 @@ import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
 
-// ■■ Shared LOD Config for Flagship Environments ■■
-export interface FlagshipLOD extends LODState {
-  terrainSegments: number;
-  skySegments: number;
-  instanceCount: number;
-  enableFog: boolean;
-  enableContactShadows: boolean;
-  enableParticles: boolean;
-  enableDetailProps: boolean;
-  enableVolumetrics: boolean;
-}
-
-export function useFlagshipLOD(): FlagshipLOD {
-
-  return useMemo(() => {
-    const levelConfigs: Record<string, Partial<FlagshipLOD>> = {
-      ultra: {
-        terrainSegments: 512,
-        skySegments: 96,
-        instanceCount: 1000,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-        enableVolumetrics: true,
-      },
-      high: {
-        terrainSegments: 256,
-        skySegments: 64,
-        instanceCount: 500,
-        enableFog: true,
-        enableContactShadows: true,
-        enableParticles: true,
-        enableDetailProps: true,
-        enableVolumetrics: false,
-      },
-      medium: {
-        terrainSegments: 128,
-        skySegments: 48,
-        instanceCount: 250,
-        enableFog: true,
-        enableContactShadows: false,
-        enableParticles: true,
-        enableDetailProps: false,
-        enableVolumetrics: false,
-      },
-      low: {
-        terrainSegments: 64,
-        skySegments: 24,
-        instanceCount: 80,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-        enableVolumetrics: false,
-      },
-      billboard: {
-        terrainSegments: 32,
-        skySegments: 12,
-        instanceCount: 20,
-        enableFog: false,
-        enableContactShadows: false,
-        enableParticles: false,
-        enableDetailProps: false,
-        enableVolumetrics: false,
-      },
-    };
-
-    const config = levelConfigs['ultra'] || levelConfigs.high;
-    return { ...lod, ...config } as FlagshipLOD;
-  }, [lod]);
-}
+// ■■ Flagship Environment Constants (Ultra quality) ■■
+const FLAGSHIP_TERRAIN_SEGMENTS = 512;
+const FLAGSHIP_SKY_SEGMENTS = 96;
+const FLAGSHIP_INSTANCE_COUNT = 1000;
 
 // ■■ Terrain Ground Plane ■■
 // Displacement-mapped ground with procedural height variation
@@ -103,7 +35,6 @@ interface TerrainProps {
   color?: string;
   secondaryColor?: string;
   heightScale?: number;
-  lod: FlagshipLOD;
 }
 
 export function Terrain({
@@ -111,7 +42,6 @@ export function Terrain({
   color = '#0A0E16',
   secondaryColor: _secondaryColor = '#111118',
   heightScale = 0.3,
-  lod,
 }: TerrainProps) {
   const meshRef = useRef<THREE.Mesh>(null);
 
@@ -166,14 +96,12 @@ interface SkyDomeProps {
   topColor?: string;
   horizonColor?: string;
   radius?: number;
-  lod: FlagshipLOD;
 }
 
 export function SkyDome({
   topColor = '#050810',
   horizonColor = '#0A1628',
   radius = 50,
-  lod,
 }: SkyDomeProps) {
   const material = useMemo(() => {
     const mat = new THREE.ShaderMaterial({
@@ -217,14 +145,12 @@ interface FogParticlesProps {
   count?: number;
   color?: string;
   spread?: number;
-  lod: FlagshipLOD;
 }
 
 export function FogParticles({
   count: baseCount = 200,
   color = '#00BBFF',
   spread = 15,
-  lod,
 }: FogParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const count = Math.min(baseCount, 1000);
@@ -360,13 +286,11 @@ export function InstancedScatter({
 // Multi-point light setup for immersive environments
 interface LightingRigProps {
   labColor: string;
-  lod: FlagshipLOD;
   ambientIntensity?: number;
 }
 
 export function FlagshipLightingRig({
   labColor,
-  lod,
   ambientIntensity = 0.35,
 }: LightingRigProps) {
   return (
@@ -443,28 +367,25 @@ export function FlagshipEnvironmentWrapper({
   heightScale = 0.3,
   terrainSize = 40,
 }: FlagshipEnvironmentBaseProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <group>
       {/* Shared Foundation */}
-      <FlagshipLightingRig labColor={labColor} lod={lod} />
+      <FlagshipLightingRig labColor={labColor} />
       <Terrain
         size={terrainSize}
         color={terrainColor}
         secondaryColor={terrainSecondaryColor}
         heightScale={heightScale}
-        lod={lod}
       />
       <SkyDome
         topColor={skyTopColor}
         horizonColor={skyHorizonColor}
-        lod={lod}
       />
 
       {/* Fog wisps */}
       {(
-        <FogParticles color={fogColor || labColor} lod={lod} />
+        <FogParticles color={fogColor || labColor} />
       )}
 
       {/* HDR Environment */}

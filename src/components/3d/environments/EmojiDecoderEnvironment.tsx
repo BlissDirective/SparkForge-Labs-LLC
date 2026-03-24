@@ -31,12 +31,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#818CF8';
 
 // ■■ Emoji Sculptures on Pedestals (Instanced) ■■
-function EmojiSculptures({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function EmojiSculptures() {
   const count = 20;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const pedestalRef = useRef<THREE.InstancedMesh>(null);
@@ -95,7 +95,7 @@ function EmojiSculptures({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
         <meshStandardMaterial color="#1A1832" metalness={0.6} roughness={0.3} />
       </instancedMesh>
       <instancedMesh ref={meshRef} args={[undefined, undefined, count]} castShadow>
-        <dodecahedronGeometry args={[1, 2} />
+        <dodecahedronGeometry args={[1, 2]} />
         <meshStandardMaterial metalness={0.3} roughness={0.4} envMapIntensity={0.5} />
       </instancedMesh>
     </group>
@@ -103,7 +103,7 @@ function EmojiSculptures({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Translation Machine Centerpiece ■■
-function TranslationMachine({ lod, isDecoding }: { lod: ReturnType<typeof useFLLiteLOD>; isDecoding: boolean }) {
+function TranslationMachine({ isDecoding }: { isDecoding: boolean }) {
   const gearsRef = useRef<THREE.Group>(null);
   const tubeRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -152,14 +152,14 @@ function TranslationMachine({ lod, isDecoding }: { lod: ReturnType<typeof useFLL
       </mesh>
       {/* Conveyor message tiles */}
       {(
-        <ConveyorTiles lod={lod} isDecoding={isDecoding} />
+        <ConveyorTiles isDecoding={isDecoding} />
       )}
     </group>
   );
 }
 
 // ■■ Conveyor Message Tiles ■■
-function ConveyorTiles({ lod, isDecoding }: { lod: ReturnType<typeof useFLLiteLOD>; isDecoding: boolean }) {
+function ConveyorTiles({ isDecoding }: { isDecoding: boolean }) {
   const count = 12;
   const tilesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -206,7 +206,7 @@ function ConveyorTiles({ lod, isDecoding }: { lod: ReturnType<typeof useFLLiteLO
 }
 
 // ■■ Rosetta Stone Pillars (Instanced) ■■
-function RosettaPillars({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function RosettaPillars() {
   const count = 12;
   const pillarsRef = useRef<THREE.InstancedMesh>(null);
   const glowRef = useRef<THREE.InstancedMesh>(null);
@@ -256,7 +256,7 @@ function RosettaPillars({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
   return (
     <group>
       <instancedMesh ref={pillarsRef} args={[undefined, undefined, count]} castShadow>
-        <cylinderGeometry args={[0.3, 0.4, 1, 16} />
+        <cylinderGeometry args={[0.3, 0.4, 1, 16]} />
         <meshStandardMaterial color="#2A2540" metalness={0.4} roughness={0.5} />
       </instancedMesh>
       <instancedMesh ref={glowRef} args={[undefined, undefined, count]}>
@@ -268,7 +268,7 @@ function RosettaPillars({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Display Cases (Instanced) ■■
-function DisplayCases({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function DisplayCases() {
   const count = 10;
   const casesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -294,7 +294,7 @@ function DisplayCases({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Holographic Dictionary Screens (Instanced) ■■
-function HolographicScreens({ lod, decodedCount }: { lod: ReturnType<typeof useFLLiteLOD>; decodedCount: number }) {
+function HolographicScreens({ decodedCount }: { decodedCount: number }) {
   const count = 8;
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -351,7 +351,7 @@ function HolographicScreens({ lod, decodedCount }: { lod: ReturnType<typeof useF
 }
 
 // ■■ Floating Symbol Particles ■■
-function FloatingSymbols({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function FloatingSymbols() {
   const count = 80;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -394,7 +394,7 @@ function FloatingSymbols({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Sentiment Floor Waves ■■
-function SentimentWaves({ lod, decodedCount }: { lod: ReturnType<typeof useFLLiteLOD>; decodedCount: number }) {
+function SentimentWaves({ decodedCount }: { decodedCount: number }) {
   const meshRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -440,7 +440,6 @@ export default function EmojiDecoderEnvironment({
   decodedCount = 0,
   isDecoding = false,
 }: EmojiDecoderEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -450,13 +449,13 @@ export default function EmojiDecoderEnvironment({
       skyHorizonColor="#12102A"
       fogColor="#818CF8"
     >
-      <EmojiSculptures lod={lod} />
-      <TranslationMachine lod={lod} isDecoding={isDecoding} />
-      <RosettaPillars lod={lod} />
-      <DisplayCases lod={lod} />
-      <HolographicScreens lod={lod} decodedCount={decodedCount} />
-      <FloatingSymbols lod={lod} />
-      <SentimentWaves lod={lod} decodedCount={decodedCount} />
+      <EmojiSculptures />
+      <TranslationMachine isDecoding={isDecoding} />
+      <RosettaPillars />
+      <DisplayCases />
+      <HolographicScreens decodedCount={decodedCount} />
+      <FloatingSymbols />
+      <SentimentWaves decodedCount={decodedCount} />
     </FLLiteEnvironmentWrapper>
   );
 }

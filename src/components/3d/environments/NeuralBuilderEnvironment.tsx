@@ -41,11 +41,10 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Server Racks (Instanced — expanded) ■■
-function ServerRacks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function ServerRacks() {
   const rackCount = 60;
   const racksRef = useRef<THREE.InstancedMesh>(null);
   const ledsRef = useRef<THREE.InstancedMesh>(null);
@@ -110,7 +109,7 @@ function ServerRacks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Quantum Core Processor ■■
-function QuantumCore({ lod, isTraining }: { lod: ReturnType<typeof useFlagshipLOD>; isTraining: boolean }) {
+function QuantumCore({ isTraining }: { isTraining: boolean }) {
   const coreRef = useRef<THREE.Mesh>(null);
   const ring1Ref = useRef<THREE.Mesh>(null);
   const ring2Ref = useRef<THREE.Mesh>(null);
@@ -169,7 +168,7 @@ function QuantumCore({ lod, isTraining }: { lod: ReturnType<typeof useFlagshipLO
 }
 
 // ■■ Data Pipeline Tubes ■■
-function DataPipelines({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function DataPipelines() {
   const tubeCount = 8;
   const particleCount = 200;
   const particlesRef = useRef<THREE.InstancedMesh>(null);
@@ -229,7 +228,7 @@ function DataPipelines({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Monitoring Dashboard Array ■■
-function MonitorArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function MonitorArray() {
   const screenRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -270,7 +269,7 @@ function MonitorArray({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Matrix Rain Particles ■■
-function MatrixRain({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function MatrixRain() {
   const count = 400;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -312,7 +311,7 @@ function MatrixRain({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Circuit Board Ground Details ■■
-function CircuitTraces({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CircuitTraces() {
   const traceCount = 100;
   const tracesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -345,7 +344,7 @@ function CircuitTraces({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Security Laser Grid ■■
-function SecurityGrid({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function SecurityGrid() {
   const beamCount = 20;
   const beamsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -377,7 +376,7 @@ function SecurityGrid({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Robotic Sorting Arms ■■
-function RoboticArms({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function RoboticArms() {
   const armCount = 4;
   const armsRef = useRef<THREE.Group>(null);
 
@@ -426,7 +425,7 @@ function RoboticArms({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Holographic Display Panels ■■
-function HolographicPanels({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function HolographicPanels() {
   const panelCount = 8;
   const panelsRef = useRef<THREE.Group>(null);
 
@@ -454,7 +453,7 @@ function HolographicPanels({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) 
 }
 
 // ■■ Cooling Fan Assemblies ■■
-function CoolingFans({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CoolingFans() {
   const fansRef = useRef<THREE.Group>(null);
 
   useFrame((_, delta) => {
@@ -480,7 +479,7 @@ function CoolingFans({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Ceiling Neural Pathway Lights ■■
-function CeilingPaths({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CeilingPaths() {
   const pathCount = 30;
   const pathsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -508,7 +507,7 @@ function CeilingPaths({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Data Stream Particles ■■
-function DataStreams({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function DataStreams() {
   const count = 300;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -553,7 +552,6 @@ export default function NeuralBuilderEnvironment({
   isTraining,
   accuracy,
 }: NeuralBuilderEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <FlagshipEnvironmentWrapper
@@ -565,18 +563,18 @@ export default function NeuralBuilderEnvironment({
       heightScale={0.05}
       terrainSize={35}
     >
-      <ServerRacks lod={lod} />
-      <QuantumCore lod={lod} isTraining={isTraining} />
-      <DataPipelines lod={lod} />
-      <MonitorArray lod={lod} />
-      <MatrixRain lod={lod} />
-      <CircuitTraces lod={lod} />
-      <SecurityGrid lod={lod} />
-      <RoboticArms lod={lod} />
-      <HolographicPanels lod={lod} />
-      <CoolingFans lod={lod} />
-      <CeilingPaths lod={lod} />
-      <DataStreams lod={lod} />
+      <ServerRacks />
+      <QuantumCore isTraining={isTraining} />
+      <DataPipelines />
+      <MonitorArray />
+      <MatrixRain />
+      <CircuitTraces />
+      <SecurityGrid />
+      <RoboticArms />
+      <HolographicPanels />
+      <CoolingFans />
+      <CeilingPaths />
+      <DataStreams />
 
       {/* Training-reactive accent light */}
       <pointLight position={[0, 3, 0]} intensity={isTraining ? 2 : 0.3} color={isTraining ? '#F472B6' : '#EC4899'} distance={15} />

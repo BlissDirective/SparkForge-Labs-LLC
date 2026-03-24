@@ -290,7 +290,7 @@ function XPSpeedometer({
 
       {/* Chrome bezel ring around speedometer */}
       <mesh position={[0, 0, 0.01]}>
-        <torusGeometry args={lodTorus({ segments, tubularSegments: segments * 2 } as unknown as LODState, 0.98, 0.035)} />
+        <torusGeometry args={[0.98, 0.035, 16, 64]} />
         <meshStandardMaterial
           color="#3a3a4a"
           metalness={0.95}

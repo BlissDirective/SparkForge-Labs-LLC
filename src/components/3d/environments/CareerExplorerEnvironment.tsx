@@ -30,12 +30,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#F97316';
 
 // ■■ Exhibition Booths (Instanced) ■■
-function ExhibitionBooths({ lod, careersExplored }: { lod: ReturnType<typeof useStandardLOD>; careersExplored: number }) {
+function ExhibitionBooths({ careersExplored }: { careersExplored: number }) {
   const count = 10;
   const wallsRef = useRef<THREE.InstancedMesh>(null);
   const countersRef = useRef<THREE.InstancedMesh>(null);
@@ -118,7 +118,7 @@ function ExhibitionBooths({ lod, careersExplored }: { lod: ReturnType<typeof use
 }
 
 // ■■ Holographic Job Preview Screens (Instanced) ■■
-function JobPreviewScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function JobPreviewScreens() {
   const count = 8;
   const screensRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -175,7 +175,7 @@ function JobPreviewScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) 
 }
 
 // ■■ Skill Tree Display ■■
-function SkillTree({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function SkillTree() {
   const nodeCount = 15;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -253,7 +253,7 @@ function SkillTree({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Career Path Floor ■■
-function CareerPathFloor({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function CareerPathFloor() {
   const nodeCount = 8;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -303,7 +303,7 @@ function CareerPathFloor({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Interview Simulation Pod ■■
-function InterviewPod({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function InterviewPod() {
   const screenRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
@@ -356,7 +356,7 @@ function InterviewPod({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Portfolio Showcase Wall (Instanced) ■■
-function PortfolioWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function PortfolioWall() {
   const count = 12;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const contentRef = useRef<THREE.InstancedMesh>(null);
@@ -406,7 +406,7 @@ function PortfolioWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Industry Sector Map (Segmented Ring) ■■
-function IndustrySectorMap({ lod, currentCareer }: { lod: ReturnType<typeof useStandardLOD>; currentCareer: string }) {
+function IndustrySectorMap({ currentCareer }: { currentCareer: string }) {
   const sectorCount = 8;
   const sectorsRef = useRef<THREE.Mesh[]>([]);
   const timeRef = useRef(0);
@@ -464,7 +464,6 @@ export default function CareerExplorerEnvironment({
   careersExplored = 0,
   currentCareer = 'AI Engineer',
 }: CareerExplorerEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -474,13 +473,13 @@ export default function CareerExplorerEnvironment({
       skyHorizonColor="#1A100A"
       fogColor="#F97316"
     >
-      <ExhibitionBooths lod={lod} careersExplored={careersExplored} />
-      <JobPreviewScreens lod={lod} />
-      <SkillTree lod={lod} />
-      <CareerPathFloor lod={lod} />
-      <InterviewPod lod={lod} />
-      <PortfolioWall lod={lod} />
-      <IndustrySectorMap lod={lod} currentCareer={currentCareer} />
+      <ExhibitionBooths careersExplored={careersExplored} />
+      <JobPreviewScreens />
+      <SkillTree />
+      <CareerPathFloor />
+      <InterviewPod />
+      <PortfolioWall />
+      <IndustrySectorMap currentCareer={currentCareer} />
       {/* Expo hall ambient glow */}
       <pointLight position={[0, 4, 0]} intensity={0.5} color={LAB_COLOR} distance={12} />
     </StandardEnvironmentWrapper>

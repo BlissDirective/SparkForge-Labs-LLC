@@ -30,12 +30,12 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { StandardEnvironmentWrapper, useStandardLOD } from './StandardEnvironmentBase';
+import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#818CF8';
 
 // ■■ Giant Mood Meter Centerpiece ■■
-function MoodMeter({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>; sentiment: number }) {
+function MoodMeter({ sentiment }: { sentiment: number }) {
   const needleRef = useRef<THREE.Group>(null);
   const glowRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
@@ -106,7 +106,7 @@ function MoodMeter({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>;
 }
 
 // ■■ Oscilloscope Screens (Instanced) ■■
-function OscilloscopeScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function OscilloscopeScreens() {
   const count = 8;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
@@ -166,7 +166,7 @@ function OscilloscopeScreens({ lod }: { lod: ReturnType<typeof useStandardLOD> }
 }
 
 // ■■ Text Conveyor Belt ■■
-function TextConveyor({ lod, textsAnalyzed }: { lod: ReturnType<typeof useStandardLOD>; textsAnalyzed: number }) {
+function TextConveyor({ textsAnalyzed }: { textsAnalyzed: number }) {
   const tagCount = 12;
   const tagsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -235,7 +235,7 @@ function TextConveyor({ lod, textsAnalyzed }: { lod: ReturnType<typeof useStanda
 }
 
 // ■■ Emoji Reaction Bubbles (Instanced) ■■
-function EmojiBubbles({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>; sentiment: number }) {
+function EmojiBubbles({ sentiment }: { sentiment: number }) {
   const count = 40;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -282,7 +282,7 @@ function EmojiBubbles({ lod, sentiment }: { lod: ReturnType<typeof useStandardLO
 }
 
 // ■■ Social Media Feed Wall ■■
-function SocialMediaWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function SocialMediaWall() {
   const panelCount = 12;
   const panelsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -331,7 +331,7 @@ function SocialMediaWall({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Tone Analyzer Microphone Station ■■
-function ToneAnalyzer({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
+function ToneAnalyzer() {
   const ringRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
@@ -389,7 +389,7 @@ function ToneAnalyzer({ lod }: { lod: ReturnType<typeof useStandardLOD> }) {
 }
 
 // ■■ Polarity Graph Dashboard ■■
-function PolarityDashboard({ lod, sentiment }: { lod: ReturnType<typeof useStandardLOD>; sentiment: number }) {
+function PolarityDashboard({ sentiment }: { sentiment: number }) {
   const barCount = 16;
   const barsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -448,7 +448,6 @@ export default function SentimentScannerEnvironment({
   sentiment = 0,
   textsAnalyzed = 0,
 }: SentimentScannerEnvironmentProps) {
-  const lod = useStandardLOD();
 
   return (
     <StandardEnvironmentWrapper
@@ -458,13 +457,13 @@ export default function SentimentScannerEnvironment({
       skyHorizonColor="#0E0A28"
       fogColor="#818CF8"
     >
-      <MoodMeter lod={lod} sentiment={sentiment} />
-      <OscilloscopeScreens lod={lod} />
-      <TextConveyor lod={lod} textsAnalyzed={textsAnalyzed} />
-      <EmojiBubbles lod={lod} sentiment={sentiment} />
-      <SocialMediaWall lod={lod} />
-      <ToneAnalyzer lod={lod} />
-      <PolarityDashboard lod={lod} sentiment={sentiment} />
+      <MoodMeter sentiment={sentiment} />
+      <OscilloscopeScreens />
+      <TextConveyor textsAnalyzed={textsAnalyzed} />
+      <EmojiBubbles sentiment={sentiment} />
+      <SocialMediaWall />
+      <ToneAnalyzer />
+      <PolarityDashboard sentiment={sentiment} />
       {/* Mood-reactive ambient light */}
       <pointLight
         position={[0, 3, -3]}

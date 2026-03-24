@@ -460,9 +460,9 @@ export function LEDRim({
   const bracketCount = Math.max(4, Math.floor(ledCount / BRACKET_INTERVAL));
 
   const enableEffects = true;
-  const enableAccentRims = 'ultra' === 'ultra' || 'ultra' === 'high' || 'ultra' === 'medium';
+  const enableAccentRims = true; // D3D-1: Always enabled (desktop-ultra)
   const enableDiffuser = true;
-  const enableGlow = 'ultra' === 'ultra' || 'ultra' === 'high';
+  const enableGlow = true; // D3D-1: Always enabled (desktop-ultra)
 
   // ■■ Build curves ■■
   const { totalWrapArc, panelRadius } = COCKPIT_GEOMETRY;

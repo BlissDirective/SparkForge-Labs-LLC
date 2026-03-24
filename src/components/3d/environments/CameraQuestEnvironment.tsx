@@ -25,10 +25,10 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Photography Lighting Rigs ■■
-function LightingRigs({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function LightingRigs() {
   const count = 8;
   const boxRef = useRef<THREE.InstancedMesh>(null);
   const panelRef = useRef<THREE.InstancedMesh>(null);
@@ -82,7 +82,7 @@ function LightingRigs({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Camera Stations ■■
-function CameraStations({ lod, isCapturing }: { lod: ReturnType<typeof useFLLiteLOD>; isCapturing: boolean }) {
+function CameraStations({ isCapturing }: { isCapturing: boolean }) {
   const stationCount = 4;
   const flashRef = useRef<THREE.Group>(null);
 
@@ -135,7 +135,7 @@ function CameraStations({ lod, isCapturing }: { lod: ReturnType<typeof useFLLite
 }
 
 // ■■ Photo Gallery Wall ■■
-function PhotoGallery({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function PhotoGallery() {
   const frameCount = 20;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const photosRef = useRef<THREE.InstancedMesh>(null);
@@ -197,7 +197,7 @@ function PhotoGallery({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Film Strip Ribbons ■■
-function FilmStrips({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function FilmStrips() {
   const count = 12;
   const ref = useRef<THREE.InstancedMesh>(null);
 
@@ -240,7 +240,7 @@ function FilmStrips({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Neural Network Visualization ■■
-function NeuralNetworkViz({ lod, confidence }: { lod: ReturnType<typeof useFLLiteLOD>; confidence: number }) {
+function NeuralNetworkViz({ confidence }: { confidence: number }) {
   const nodeCount = 24;
   const nodesRef = useRef<THREE.InstancedMesh>(null);
 
@@ -328,7 +328,6 @@ interface CameraQuestEnvironmentProps {
 }
 
 export default function CameraQuestEnvironment({ isCapturing, confidence }: CameraQuestEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -338,11 +337,11 @@ export default function CameraQuestEnvironment({ isCapturing, confidence }: Came
       skyHorizonColor="#0E1E28"
       fogColor="#06B6D4"
     >
-      <LightingRigs lod={lod} />
-      <CameraStations lod={lod} isCapturing={isCapturing} />
-      <PhotoGallery lod={lod} />
-      {<FilmStrips lod={lod} />}
-      <NeuralNetworkViz lod={lod} confidence={confidence} />
+      <LightingRigs />
+      <CameraStations isCapturing={isCapturing} />
+      <PhotoGallery />
+      {<FilmStrips />}
+      <NeuralNetworkViz confidence={confidence} />
       <ViewfinderFrame />
     </FLLiteEnvironmentWrapper>
   );

@@ -43,11 +43,10 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import {
   FlagshipEnvironmentWrapper,
-  useFlagshipLOD,
 } from './FlagshipEnvironmentBase';
 
 // ■■ Marble Pillars (expanded) ■■
-function MarblePillars({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function MarblePillars() {
   const pillarCount = 16;
   const pillarsRef = useRef<THREE.InstancedMesh>(null);
   const capsRef = useRef<THREE.InstancedMesh>(null);
@@ -95,7 +94,7 @@ function MarblePillars({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Grand Chandelier ■■
-function GrandChandelier({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function GrandChandelier() {
   const chandelierRef = useRef<THREE.Group>(null);
   const candleCount = 16;
 
@@ -155,7 +154,7 @@ function GrandChandelier({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Judge's Bench (enhanced) ■■
-function JudgeBench({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function JudgeBench() {
   const gavelRef = useRef<THREE.Group>(null);
 
   useFrame((state) => {
@@ -215,7 +214,7 @@ function JudgeBench({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Witness Stand ■■
-function WitnessStand({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function WitnessStand() {
 
   return (
     <group position={[5, -1, -4]}>
@@ -257,7 +256,7 @@ function WitnessStand({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Jury Box ■■
-function JuryBox({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function JuryBox() {
   const seatCount = 12;
   const seatsRef = useRef<THREE.InstancedMesh>(null);
   const backsRef = useRef<THREE.InstancedMesh>(null);
@@ -302,7 +301,7 @@ function JuryBox({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Evidence Display Wall ■■
-function EvidenceWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function EvidenceWall() {
   const pinCount = 15;
   const pinsRef = useRef<THREE.InstancedMesh>(null);
 
@@ -348,7 +347,7 @@ function EvidenceWall({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Gallery Pews (expanded) ■■
-function GallerySeating({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function GallerySeating() {
   const pewCount = 24;
   const pewsRef = useRef<THREE.InstancedMesh>(null);
   const backsRef = useRef<THREE.InstancedMesh>(null);
@@ -386,7 +385,7 @@ function GallerySeating({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Law Book Shelves (denser) ■■
-function LawBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function LawBooks() {
   const bookCount = 120;
   const booksRef = useRef<THREE.InstancedMesh>(null);
 
@@ -423,7 +422,7 @@ function LawBooks({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Stained Glass Windows (enhanced) ■■
-function StainedGlass({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function StainedGlass() {
 
   const windows = [
     { x: -13, z: -4, color: '#EF4444' },
@@ -454,7 +453,7 @@ function StainedGlass({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Scales of Justice Statue ■■
-function ScalesOfJustice({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function ScalesOfJustice() {
   const leftPanRef = useRef<THREE.Group>(null);
   const rightPanRef = useRef<THREE.Group>(null);
   const beamRef = useRef<THREE.Mesh>(null);
@@ -517,7 +516,7 @@ function ScalesOfJustice({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Courthouse Archways ■■
-function CourthouseArches({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function CourthouseArches() {
 
   const archPositions: [number, number, number, number][] = [
     [0, 0, 12, 0],
@@ -555,7 +554,7 @@ function CourthouseArches({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Floor Justice Medallion (enhanced) ■■
-function JusticeMedallion({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function JusticeMedallion() {
   const ringRef = useRef<THREE.Mesh>(null);
 
   useFrame((state) => {
@@ -587,7 +586,7 @@ function JusticeMedallion({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
 }
 
 // ■■ Dust Motes (expanded) ■■
-function DustMotes({ lod }: { lod: ReturnType<typeof useFlagshipLOD> }) {
+function DustMotes() {
   const count = 150;
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
@@ -636,7 +635,6 @@ export default function BiasDetectiveEnvironment({
   isBalanced,
   caseColor: _caseColor = '#EF4444',
 }: BiasDetectiveEnvironmentProps) {
-  const lod = useFlagshipLOD();
 
   return (
     <FlagshipEnvironmentWrapper
@@ -648,19 +646,19 @@ export default function BiasDetectiveEnvironment({
       heightScale={0.02}
       terrainSize={35}
     >
-      <MarblePillars lod={lod} />
-      <GrandChandelier lod={lod} />
-      <JudgeBench lod={lod} />
-      <WitnessStand lod={lod} />
-      <JuryBox lod={lod} />
-      <EvidenceWall lod={lod} />
-      <GallerySeating lod={lod} />
-      <LawBooks lod={lod} />
-      <StainedGlass lod={lod} />
-      <ScalesOfJustice lod={lod} />
-      <CourthouseArches lod={lod} />
-      <JusticeMedallion lod={lod} />
-      <DustMotes lod={lod} />
+      <MarblePillars />
+      <GrandChandelier />
+      <JudgeBench />
+      <WitnessStand />
+      <JuryBox />
+      <EvidenceWall />
+      <GallerySeating />
+      <LawBooks />
+      <StainedGlass />
+      <ScalesOfJustice />
+      <CourthouseArches />
+      <JusticeMedallion />
+      <DustMotes />
 
       {/* Warm courtroom lighting */}
       <pointLight position={[0, 4, -3]} intensity={0.8} color="#F5DEB3" distance={18} />

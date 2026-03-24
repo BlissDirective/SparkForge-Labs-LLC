@@ -30,13 +30,13 @@
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { FLLiteEnvironmentWrapper, useFLLiteLOD } from './FLLiteEnvironmentBase';
+import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#F97316';
 const _ORANGE = new THREE.Color(LAB_COLOR);
 
 // ■■ Device Mockup Stands (Instanced) ■■
-function DeviceMockups({ lod: _lod, buildStep }: { lod: ReturnType<typeof useFLLiteLOD>; buildStep: number }) {
+function DeviceMockups({ buildStep }: { buildStep: number }) {
   const frameCount = 4;
   const framesRef = useRef<THREE.InstancedMesh>(null);
   const screensRef = useRef<THREE.InstancedMesh>(null);
@@ -104,7 +104,7 @@ function DeviceMockups({ lod: _lod, buildStep }: { lod: ReturnType<typeof useFLL
 }
 
 // ■■ Component Library Shelves (Instanced) ■■
-function ComponentShelves({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function ComponentShelves() {
   const shelfCount = 24;
   const blocksRef = useRef<THREE.InstancedMesh>(null);
   const shelfRef = useRef<THREE.InstancedMesh>(null);
@@ -173,7 +173,7 @@ function ComponentShelves({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ App Store Portal Archway ■■
-function AppStorePortal({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function AppStorePortal() {
   const neonRef = useRef<THREE.Mesh>(null);
   const timeRef = useRef(0);
 
@@ -219,7 +219,7 @@ function AppStorePortal({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Launch Pad Platform ■■
-function LaunchPad({ lod, isPreview }: { lod: ReturnType<typeof useFLLiteLOD>; isPreview: boolean }) {
+function LaunchPad({ isPreview }: { isPreview: boolean }) {
   const lightsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
   const lightCount = 16;
@@ -256,7 +256,7 @@ function LaunchPad({ lod, isPreview }: { lod: ReturnType<typeof useFLLiteLOD>; i
     <group position={[-5, -0.9, 3]}>
       {/* Platform base */}
       <mesh receiveShadow>
-        <cylinderGeometry args={[2.5, 2.8, 0.2, 32} />
+        <cylinderGeometry args={[2.5, 2.8, 0.2, 32]} />
         <meshStandardMaterial color="#181420" metalness={0.7} roughness={0.3} />
       </mesh>
       {/* Inner ring */}
@@ -274,7 +274,7 @@ function LaunchPad({ lod, isPreview }: { lod: ReturnType<typeof useFLLiteLOD>; i
 }
 
 // ■■ Holographic App Preview ■■
-function HolographicPreview({ lod, isPreview }: { lod: ReturnType<typeof useFLLiteLOD>; isPreview: boolean }) {
+function HolographicPreview({ isPreview }: { isPreview: boolean }) {
   const groupRef = useRef<THREE.Group>(null);
   const timeRef = useRef(0);
 
@@ -316,7 +316,7 @@ function HolographicPreview({ lod, isPreview }: { lod: ReturnType<typeof useFLLi
 }
 
 // ■■ Code Snippet Particles ■■
-function CodeParticles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
+function CodeParticles() {
   const count = 60;
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -360,7 +360,7 @@ function CodeParticles({ lod }: { lod: ReturnType<typeof useFLLiteLOD> }) {
 }
 
 // ■■ Rating Stars Orbit ■■
-function RatingStars({ lod, buildStep }: { lod: ReturnType<typeof useFLLiteLOD>; buildStep: number }) {
+function RatingStars({ buildStep }: { buildStep: number }) {
   const count = 5;
   const starsRef = useRef<THREE.InstancedMesh>(null);
   const timeRef = useRef(0);
@@ -408,7 +408,6 @@ export default function MyFirstAiAppEnvironment({
   buildStep = 0,
   isPreview = false,
 }: MyFirstAiAppEnvironmentProps) {
-  const lod = useFLLiteLOD();
 
   return (
     <FLLiteEnvironmentWrapper
@@ -418,13 +417,13 @@ export default function MyFirstAiAppEnvironment({
       skyHorizonColor="#1A1208"
       fogColor="#F97316"
     >
-      <DeviceMockups lod={lod} buildStep={buildStep} />
-      <ComponentShelves lod={lod} />
-      <AppStorePortal lod={lod} />
-      <LaunchPad lod={lod} isPreview={isPreview} />
-      <HolographicPreview lod={lod} isPreview={isPreview} />
-      <CodeParticles lod={lod} />
-      <RatingStars lod={lod} buildStep={buildStep} />
+      <DeviceMockups buildStep={buildStep} />
+      <ComponentShelves />
+      <AppStorePortal />
+      <LaunchPad isPreview={isPreview} />
+      <HolographicPreview isPreview={isPreview} />
+      <CodeParticles />
+      <RatingStars buildStep={buildStep} />
     </FLLiteEnvironmentWrapper>
   );
 }

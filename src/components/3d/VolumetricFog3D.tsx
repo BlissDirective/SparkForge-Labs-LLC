@@ -146,24 +146,9 @@ export function VolumetricFog3D({
   const currentColorRef = useRef(new THREE.Color(labColor));
   const targetColor = useMemo(() => new THREE.Color(labColor), [labColor]);
 
-  // LOD-driven segments for sphere/cone geometry
-  const sphereSegments = useMemo(() => {
-    switch ('ultra') {
-      case 'ultra': return 24;
-      case 'high': return 16;
-      case 'medium': return 10;
-      default: return 6;
-    }
-  }, ['ultra']);
-
-  const coneSegments = useMemo(() => {
-    switch ('ultra') {
-      case 'ultra': return 16;
-      case 'high': return 12;
-      case 'medium': return 8;
-      default: return 4;
-    }
-  }, ['ultra']);
+  // D3D-1: Desktop-ultra hardcoded segments
+  const sphereSegments = 24;
+  const coneSegments = 16;
 
   // Disable god rays at low LOD or when explicitly off
   const showGodRays = godRaysEnabled && true;

@@ -439,9 +439,8 @@ function ProgressGrid({ labsCompleted, totalLabs, color }: { labsCompleted: numb
 
 // ── Console Content Router ─────────────────────────
 
-function ConsoleContent({ variant, data, color, lod }: {
+function ConsoleContent({ variant, data, color }: {
   variant: ConsoleVariant; data: ConsoleData; color: string;
-  lod: { segments: number; enableEffects: boolean; enableAnimations: boolean };
 }) {
   switch (variant) {
     case 'xp':       return <XPGauge xp={data.xp ?? 0} xpMax={data.xpMax ?? 500} color={color} segments={64} />;
@@ -593,7 +592,7 @@ export function InteractiveConsole3D({
         </Text>
 
         {/* ── Console Content ── */}
-        <ConsoleContent variant={variant} data={data} color={color} lod={lod} />
+        <ConsoleContent variant={variant} data={data} color={color} />
 
         {/* ── XP Level label ── */}
         {variant === 'xp' && (

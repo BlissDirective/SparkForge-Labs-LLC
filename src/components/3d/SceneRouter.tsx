@@ -7,6 +7,7 @@
 // Handles cockpit opacity fade during game mode (D3D-B6).
 
 import { useRef, type ReactNode } from 'react';
+import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSceneStore } from '@/stores/sceneStore';
 
