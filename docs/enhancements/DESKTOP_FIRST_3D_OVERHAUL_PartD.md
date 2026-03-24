@@ -264,7 +264,7 @@ Future enhancements building on the D3D foundation, organized by timeframe and e
 
 | Enhancement | Description | Effort | Dependencies |
 |-------------|-------------|--------|-------------|
-| **Procedural Environment Generation** | Generate per-lab 3D environments procedurally from lab color, theme, and difficulty level | High | D3D-9 (25 unique environments as base) |
+| **Procedural Environment Generation** | Generate per-lab 3D environments procedurally from lab color, theme, and difficulty level | High | D3D-9 (25 unique environments as base) | **IMPLEMENTED (2026-03-24)** — ProceduralEnvironmentGenerator + 5 sub-generators + proceduralConfig. 10 lab theme profiles, 3 tier configs, seeded FBM noise, 5 fog behaviors, instanced ambient props. All 3 base wrappers refactored to delegate to procedural system. |
 | **Advanced Particle Physics** | Gravity, collision, wind forces, turbulence fields for `DynamicEnvironment` particles | Medium | D3D-B1 (persistent Canvas) |
 | **Cockpit Skin 3D Variants** | Different 3D geometry per cockpit skin (not just material swaps) — e.g., alien bridge, steampunk console | High | cockpitStore skins, CockpitPanels |
 | **Custom HDR Environment** | Generate `frost-prismatic.hdr` procedurally instead of using drei preset | Medium | Three.js PMREMGenerator |

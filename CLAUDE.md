@@ -514,6 +514,8 @@ const Component3D = dynamic(
 | Components | PascalCase | `EmojiDecoderGame.tsx` |
 | Game components | `src/components/games/NameGame.tsx` | `PetTrainerGame.tsx` |
 | 3D components | `src/components/3d/Name3D.tsx` | `NeuralNetwork3D.tsx` |
+| 3D environments | `src/components/3d/environments/NameEnvironment.tsx` | `AiSpyEnvironment.tsx` |
+| Procedural 3D | `src/components/3d/environments/procedural/ProceduralName.tsx` | `ProceduralTerrain.tsx` |
 | Stores | camelCase | `authStore.ts` |
 | API routes | `src/app/api/resource/route.ts` | `src/app/api/children/route.ts` |
 | Hooks | camelCase with `use` prefix | `useGSAPScroll.ts` |
@@ -558,6 +560,7 @@ const Component3D = dynamic(
 | Flagship (games + envs) | 12 | Pet3DScene, NeuralNetwork3D, PromptBubble3D, AgentPipeline3D, BiasScales3D, SortScene3D + 6 environments |
 | FL-Lite (games + envs) | 19 | CodeBlocks3D, ChatbotNodes3D, DataDetective3D, RobotVacuum3D, CameraQuest3D, FutureForge3D, MyFirstAiApp3D, EmojiDecoder3D, AiOrNot3D + 10 environments |
 | Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
+| Procedural Environment | 7 | ProceduralEnvironmentGenerator, ProceduralTerrain, ProceduralSkyDome, ProceduralFog, ProceduralLighting, ProceduralProps, proceduralConfig |
 | Cockpit/Enhancement | 24 | CockpitCanvas, CameraSystem, SpatialDashboard, HolographicLabMap, CockpitPanels, SidePanels, StatusBar3D, HolographicHUD, LEDRim, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitSkinManager, CockpitAudioEngine |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
 | Hooks (D3D) | 2 | useParallaxMouse, useInteractiveSurface |

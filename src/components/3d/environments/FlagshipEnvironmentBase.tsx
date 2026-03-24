@@ -21,6 +21,7 @@ import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
+import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
 
 // ■■ Flagship Environment Constants (Ultra quality) ■■
 const _FLAGSHIP_TERRAIN_SEGMENTS = 512;
@@ -359,41 +360,27 @@ interface FlagshipEnvironmentBaseProps {
 export function FlagshipEnvironmentWrapper({
   labColor,
   children,
-  terrainColor = '#0A0E16',
-  terrainSecondaryColor = '#111118',
-  skyTopColor = '#050810',
-  skyHorizonColor = '#0A1628',
+  terrainColor,
+  terrainSecondaryColor: _terrainSecondaryColor,
+  skyTopColor,
+  skyHorizonColor,
   fogColor,
-  heightScale = 0.3,
-  terrainSize = 40,
+  heightScale,
+  terrainSize,
 }: FlagshipEnvironmentBaseProps) {
-
   return (
-    <group>
-      {/* Shared Foundation */}
-      <FlagshipLightingRig labColor={labColor} />
-      <Terrain
-        size={terrainSize}
-        color={terrainColor}
-        secondaryColor={terrainSecondaryColor}
-        heightScale={heightScale}
-      />
-      <SkyDome
-        topColor={skyTopColor}
-        horizonColor={skyHorizonColor}
-      />
-
-      {/* Fog wisps */}
-      {(
-        <FogParticles color={fogColor || labColor} />
-      )}
-
-      {/* HDR Environment */}
-      <Environment preset="night" />
-
-      {/* Game-specific content */}
+    <ProceduralEnvironmentGenerator
+      labColor={labColor}
+      tier="flagship"
+      terrainColor={terrainColor}
+      skyTopColor={skyTopColor}
+      skyHorizonColor={skyHorizonColor}
+      fogColor={fogColor}
+      heightScale={heightScale}
+      terrainSize={terrainSize}
+    >
       {children}
-    </group>
+    </ProceduralEnvironmentGenerator>
   );
 }
 
