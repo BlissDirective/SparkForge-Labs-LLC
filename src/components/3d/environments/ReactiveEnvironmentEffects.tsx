@@ -18,8 +18,10 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { AmbientLight, Color, MathUtils, InstancedMesh, Matrix4, PointLight, Vector3, Quaternion } from 'three';
+import { AmbientLight, Group, MathUtils, InstancedMesh, Matrix4, PointLight, Vector3, Quaternion } from 'three';
 import { useGameEnvironmentReactivity } from '@/hooks/useGameEnvironmentReactivity';
+import { GameCelebration } from '@/components/3d/GameCelebration';
+import { useParallaxMouse } from '@/hooks/useParallaxMouse';
 
 // ■■ Types ■■
 
@@ -162,6 +164,34 @@ function ProgressParticles({
 }
 
 // ════════════════════════════════════════════════════
+// Exported: useEnvironmentParallax
+// ════════════════════════════════════════════════════
+// Applies moderate 4° mouse-driven parallax tilt to a scene group.
+// Call in environment wrappers with a ref to the root <group>.
+//
+// Audit: R3F Best Practices §1 — Finding 4: No parallax depth in games
+
+const PARALLAX_TILT_RAD = (4 * Math.PI) / 180; // 4° moderate tilt
+
+export function useEnvironmentParallax(groupRef: React.RefObject<Group | null>) {
+  const parallax = useParallaxMouse({ intensity: 1.0, smoothing: 0.03 });
+
+  useFrame(() => {
+    if (!groupRef.current || !parallax.current) return;
+    groupRef.current.rotation.y = MathUtils.lerp(
+      groupRef.current.rotation.y,
+      parallax.current.smoothX * PARALLAX_TILT_RAD,
+      0.05,
+    );
+    groupRef.current.rotation.x = MathUtils.lerp(
+      groupRef.current.rotation.x,
+      parallax.current.smoothY * PARALLAX_TILT_RAD * 0.5,
+      0.05,
+    );
+  });
+}
+
+// ════════════════════════════════════════════════════
 // Main: ReactiveEnvironmentEffects
 // ════════════════════════════════════════════════════
 
@@ -235,6 +265,8 @@ export function ReactiveEnvironmentEffects({ labColor, tier }: ReactiveEnvironme
         reactivityRef={reactivity}
         tierScale={tierScale}
       />
+      {/* Evolving celebrations — escalates from confetti to full ceremony */}
+      <GameCelebration labColor={labColor} />
     </group>
   );
 }

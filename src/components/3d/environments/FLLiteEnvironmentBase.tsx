@@ -21,6 +21,7 @@ import { Environment, ContactShadows } from '@react-three/drei';
 import {
   BackSide,
   Color,
+  Group,
   InstancedMesh,
   Matrix4,
   MeshStandardMaterial,
@@ -30,7 +31,7 @@ import {
   Vector3,
 } from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
-import { ReactiveEnvironmentEffects } from './ReactiveEnvironmentEffects';
+import { ReactiveEnvironmentEffects, useEnvironmentParallax } from './ReactiveEnvironmentEffects';
 
 // ■■ FL-Lite Environment Constants (Ultra quality) ■■
 const _FLLITE_TERRAIN_SEGMENTS = 256;
@@ -244,20 +245,25 @@ export function FLLiteEnvironmentWrapper({
   heightScale,
   terrainSize,
 }: FLLiteEnvironmentBaseProps) {
+  const parallaxGroupRef = useRef<Group>(null);
+  useEnvironmentParallax(parallaxGroupRef);
+
   return (
-    <ProceduralEnvironmentGenerator
-      labColor={labColor}
-      tier="fl-lite"
-      terrainColor={terrainColor}
-      skyTopColor={skyTopColor}
-      skyHorizonColor={skyHorizonColor}
-      fogColor={fogColor}
-      heightScale={heightScale}
-      terrainSize={terrainSize}
-    >
-      <ReactiveEnvironmentEffects labColor={labColor} tier="fl-lite" />
-      {children}
-    </ProceduralEnvironmentGenerator>
+    <group ref={parallaxGroupRef}>
+      <ProceduralEnvironmentGenerator
+        labColor={labColor}
+        tier="fl-lite"
+        terrainColor={terrainColor}
+        skyTopColor={skyTopColor}
+        skyHorizonColor={skyHorizonColor}
+        fogColor={fogColor}
+        heightScale={heightScale}
+        terrainSize={terrainSize}
+      >
+        <ReactiveEnvironmentEffects labColor={labColor} tier="fl-lite" />
+        {children}
+      </ProceduralEnvironmentGenerator>
+    </group>
   );
 }
 

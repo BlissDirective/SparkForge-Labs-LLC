@@ -25,6 +25,7 @@ import {
   BufferGeometry,
   Color,
   Euler,
+  Group,
   InstancedMesh,
   Material,
   Matrix4,
@@ -36,7 +37,7 @@ import {
   Vector3,
 } from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
-import { ReactiveEnvironmentEffects } from './ReactiveEnvironmentEffects';
+import { ReactiveEnvironmentEffects, useEnvironmentParallax } from './ReactiveEnvironmentEffects';
 
 // ■■ Flagship Environment Constants (Ultra quality) ■■
 const _FLAGSHIP_TERRAIN_SEGMENTS = 512;
@@ -383,20 +384,25 @@ export function FlagshipEnvironmentWrapper({
   heightScale,
   terrainSize,
 }: FlagshipEnvironmentBaseProps) {
+  const parallaxGroupRef = useRef<Group>(null);
+  useEnvironmentParallax(parallaxGroupRef);
+
   return (
-    <ProceduralEnvironmentGenerator
-      labColor={labColor}
-      tier="flagship"
-      terrainColor={terrainColor}
-      skyTopColor={skyTopColor}
-      skyHorizonColor={skyHorizonColor}
-      fogColor={fogColor}
-      heightScale={heightScale}
-      terrainSize={terrainSize}
-    >
-      <ReactiveEnvironmentEffects labColor={labColor} tier="flagship" />
-      {children}
-    </ProceduralEnvironmentGenerator>
+    <group ref={parallaxGroupRef}>
+      <ProceduralEnvironmentGenerator
+        labColor={labColor}
+        tier="flagship"
+        terrainColor={terrainColor}
+        skyTopColor={skyTopColor}
+        skyHorizonColor={skyHorizonColor}
+        fogColor={fogColor}
+        heightScale={heightScale}
+        terrainSize={terrainSize}
+      >
+        <ReactiveEnvironmentEffects labColor={labColor} tier="flagship" />
+        {children}
+      </ProceduralEnvironmentGenerator>
+    </group>
   );
 }
 
