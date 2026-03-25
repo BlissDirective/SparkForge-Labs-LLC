@@ -30,7 +30,7 @@ import {
   lessThanEqual,
   hash,
 } from 'three/tsl';
-import * as THREE from 'three';
+import { Color, Vector3 } from 'three';
 import type Node from 'three/src/nodes/core/Node.js';
 import type StorageBufferNode from 'three/src/nodes/accessors/StorageBufferNode.js';
 import type UniformNode from 'three/src/nodes/core/UniformNode.js';
@@ -71,9 +71,9 @@ export interface ParticleStripeBuffers {
 // ■■ Uniform Interface ■■
 export interface ParticleUniforms {
   phase: UniformNode<'float', number>;
-  gravity: UniformNode<'vec3', THREE.Vector3>;
-  convergencePoint: UniformNode<'vec3', THREE.Vector3>;
-  shatterOrigin: UniformNode<'vec3', THREE.Vector3>;
+  gravity: UniformNode<'vec3', Vector3>;
+  convergencePoint: UniformNode<'vec3', Vector3>;
+  shatterOrigin: UniformNode<'vec3', Vector3>;
   drag: UniformNode<'float', number>;
   turbulence: UniformNode<'float', number>;
 }
@@ -107,9 +107,9 @@ export function createParticleStripe(count: number = PARTICLES_PER_STRIPE): Part
 function createUniforms(): ParticleUniforms {
   return {
     phase:            uniform(0),
-    gravity:          uniform(new THREE.Vector3(0, -2, 0)),
-    convergencePoint: uniform(new THREE.Vector3(0, 0, 0)),
-    shatterOrigin:    uniform(new THREE.Vector3(0, 0, 0)),
+    gravity:          uniform(new Vector3(0, -2, 0)),
+    convergencePoint: uniform(new Vector3(0, 0, 0)),
+    shatterOrigin:    uniform(new Vector3(0, 0, 0)),
     drag:             uniform(0.02),
     turbulence:       uniform(0.5),
   };
@@ -353,12 +353,12 @@ export function computeWorkgroupCount(particleCount: number): number {
 // ■■ Phase color palette ■■
 // Used for spawn-time color assignment matching Frost-Prismatic theme
 export const PHASE_COLORS = {
-  void:        new THREE.Color(0x00bbff), // Frost-Prismatic blue
-  assembly:    new THREE.Color(0x00bbff), // Blue convergence
-  showcase:    new THREE.Color(0xaa66ff), // Purple orbit glow
-  surge:       new THREE.Color(0xffaa44), // Amber energy
-  shatter:     new THREE.Color(0xff6644), // Orange explosion
-  regroup:     new THREE.Color(0x00ff88), // Green migration
-  materialize: new THREE.Color(0x00bbff), // Blue settle
-  online:      new THREE.Color(0x00bbff), // Blue ambient
+  void:        new Color(0x00bbff), // Frost-Prismatic blue
+  assembly:    new Color(0x00bbff), // Blue convergence
+  showcase:    new Color(0xaa66ff), // Purple orbit glow
+  surge:       new Color(0xffaa44), // Amber energy
+  shatter:     new Color(0xff6644), // Orange explosion
+  regroup:     new Color(0x00ff88), // Green migration
+  materialize: new Color(0x00bbff), // Blue settle
+  online:      new Color(0x00bbff), // Blue ambient
 } as const;

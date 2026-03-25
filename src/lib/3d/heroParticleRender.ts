@@ -23,7 +23,7 @@ import {
   mix,
   uniform,
 } from 'three/tsl';
-import * as THREE from 'three';
+import { AdditiveBlending, BufferAttribute, BufferGeometry, Color } from 'three';
 import { SpriteNodeMaterial } from 'three/webgpu';
 import type Node from 'three/src/nodes/core/Node.js';
 import type UniformNode from 'three/src/nodes/core/UniformNode.js';
@@ -55,7 +55,7 @@ export interface ParticleRenderUniforms {
   /** Glow intensity (0-1) */
   glowIntensity: UniformNode<'float', number>;
   /** Phase-dependent color tint override */
-  tintColor: UniformNode<'color', THREE.Color>;
+  tintColor: UniformNode<'color', Color>;
   /** Enable tint blending (0 = use particle color, 1 = full tint) */
   tintStrength: UniformNode<'float', number>;
 }
@@ -64,7 +64,7 @@ function createRenderUniforms(): ParticleRenderUniforms {
   return {
     globalOpacity: uniform(1.0),
     glowIntensity: uniform(0.15),
-    tintColor:     uniform(new THREE.Color(0x00bbff)),
+    tintColor:     uniform(new Color(0x00bbff)),
     tintStrength:  uniform(0.0),
   };
 }
@@ -128,7 +128,7 @@ export function createParticleRenderMaterial(
   const material = new SpriteNodeMaterial();
 
   // Configure blending: additive (src: ONE, dst: ONE)
-  material.blending = THREE.AdditiveBlending;
+  material.blending = AdditiveBlending;
   material.depthWrite = false;
   material.depthTest = true;
   material.transparent = true;
@@ -161,10 +161,10 @@ export function createParticleRenderMaterial(
 // Each trail is a sequence of billboard quads connecting the particle's
 // last N positions. Alpha decays linearly: segment[0] = 1.0, segment[N-1] = 0.0
 //
-export function createTrailGeometry(maxTrailSegments: number): THREE.BufferGeometry {
+export function createTrailGeometry(maxTrailSegments: number): BufferGeometry {
   if (maxTrailSegments <= 0) {
     // No trails — return empty geometry
-    return new THREE.BufferGeometry();
+    return new BufferGeometry();
   }
 
   // Each trail segment is a quad (2 triangles = 6 vertices)
@@ -182,9 +182,9 @@ export function createTrailGeometry(maxTrailSegments: number): THREE.BufferGeome
     }
   }
 
-  const geometry = new THREE.BufferGeometry();
-  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geometry.setAttribute('alpha', new THREE.BufferAttribute(alphas, 1));
+  const geometry = new BufferGeometry();
+  geometry.setAttribute('position', new BufferAttribute(positions, 3));
+  geometry.setAttribute('alpha', new BufferAttribute(alphas, 1));
 
   return geometry;
 }

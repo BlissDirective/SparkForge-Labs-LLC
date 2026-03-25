@@ -18,7 +18,7 @@
 //
 // Spec: SparkForge_Hero_Page_Animation_v2.0.md Section 4, Phase 6
 
-import * as THREE from 'three';
+import { CubicBezierCurve3, Vector3 } from 'three';
 import type { ShardAssignment } from './voronoiFracture';
 
 // ■■ Seeded PRNG ■■
@@ -44,21 +44,21 @@ export function seededRandom(seed: number): () => number {
 //   CP2: Converging approach toward target (inward sweep)
 //
 export function generateShardSpline(
-  startPos: THREE.Vector3,
-  targetPos: THREE.Vector3,
+  startPos: Vector3,
+  targetPos: Vector3,
   seed: number,
-): THREE.CubicBezierCurve3 {
+): CubicBezierCurve3 {
   const rng = seededRandom(seed);
 
   // Perpendicular offset directions for arc
-  const forward = new THREE.Vector3().subVectors(targetPos, startPos).normalize();
-  const up = new THREE.Vector3(0, 1, 0);
-  const right = new THREE.Vector3().crossVectors(forward, up).normalize();
-  const perpUp = new THREE.Vector3().crossVectors(right, forward).normalize();
+  const forward = new Vector3().subVectors(targetPos, startPos).normalize();
+  const up = new Vector3(0, 1, 0);
+  const right = new Vector3().crossVectors(forward, up).normalize();
+  const perpUp = new Vector3().crossVectors(right, forward).normalize();
 
   // CP1: Wide arc away from center — startPos + random * 4.0
   // Creates outward sweep away from the explosion epicenter
-  const cp1Offset = new THREE.Vector3(
+  const cp1Offset = new Vector3(
     (rng() - 0.5) * 2.0,
     (rng() - 0.5) * 2.0,
     (rng() - 0.5) * 2.0,
@@ -72,7 +72,7 @@ export function generateShardSpline(
 
   // CP2: Converging approach — targetPos + random * 2.0
   // Creates smooth approach into the cockpit target position
-  const cp2Offset = new THREE.Vector3(
+  const cp2Offset = new Vector3(
     (rng() - 0.5) * 2.0,
     (rng() - 0.5) * 2.0,
     (rng() - 0.5) * 2.0,
@@ -88,7 +88,7 @@ export function generateShardSpline(
 
   const cp2 = targetPos.clone().add(cp2Offset);
 
-  return new THREE.CubicBezierCurve3(startPos, cp1, cp2, targetPos);
+  return new CubicBezierCurve3(startPos, cp1, cp2, targetPos);
 }
 
 // ■■ Generate Batch Splines for All Shards ■■
@@ -98,10 +98,10 @@ export function generateShardSpline(
 //
 export function generateBatchSplines(
   assignments: ShardAssignment[],
-  currentPositions: THREE.Vector3[],
-): THREE.CubicBezierCurve3[] {
+  currentPositions: Vector3[],
+): CubicBezierCurve3[] {
   return assignments.map((assignment, i) => {
-    const startPos = currentPositions[i] ?? new THREE.Vector3();
+    const startPos = currentPositions[i] ?? new Vector3();
     return generateShardSpline(
       startPos,
       assignment.targetPosition,
@@ -163,10 +163,10 @@ export function generateSplineTimings(
 // @returns Position on the spline (clamped to [0, 1])
 //
 export function evaluateSplineEased(
-  spline: THREE.CubicBezierCurve3,
+  spline: CubicBezierCurve3,
   elapsed: number,
   duration: number,
-): THREE.Vector3 {
+): Vector3 {
   // Normalize to [0, 1]
   const t = Math.min(Math.max(elapsed / duration, 0), 1);
 
@@ -184,10 +184,10 @@ export function evaluateSplineEased(
 // Returns array of current positions.
 //
 export function evaluateBatchSplines(
-  splines: THREE.CubicBezierCurve3[],
+  splines: CubicBezierCurve3[],
   timings: SplineTiming[],
   phaseElapsed: number,
-): THREE.Vector3[] {
+): Vector3[] {
   return splines.map((spline, i) => {
     const timing = timings[i];
     const shardElapsed = phaseElapsed - timing.startDelay;
