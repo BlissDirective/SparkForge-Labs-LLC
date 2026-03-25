@@ -322,7 +322,7 @@ export function BuildClassifierGame() {
                       {['ML Pipeline', 'Classification', 'Training Data'].map((t) => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-body text-[10px] text-cyan-400"
+                          className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-body text-2xs text-cyan-400"
                         >
                           {t}
                         </span>
@@ -399,7 +399,7 @@ export function BuildClassifierGame() {
                       {['Collect', 'Train', 'Test'].map((s, i) => (
                         <div key={s} className="flex items-center gap-1">
                           <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold ${
                               i === 0
                                 ? 'bg-cyan-500/30 text-cyan-300'
                                 : 'bg-white/5 text-white/20'
@@ -408,7 +408,7 @@ export function BuildClassifierGame() {
                             {i + 1}
                           </div>
                           <span
-                            className={`font-body text-[9px] ${
+                            className={`font-body text-2xs ${
                               i === 0 ? 'text-cyan-400' : 'text-white/20'
                             }`}
                           >
@@ -429,7 +429,7 @@ export function BuildClassifierGame() {
                           >
                             {d.count}
                           </p>
-                          <p className="font-body text-[8px] text-white/30">{d.cat}</p>
+                          <p className="font-body text-2xs text-white/30">{d.cat}</p>
                         </div>
                       ))}
                     </div>
@@ -444,7 +444,7 @@ export function BuildClassifierGame() {
                       {currentImage.emoji}
                     </motion.div>
 
-                    <p className="font-body text-[10px] text-white/30 mb-3">
+                    <p className="font-body text-2xs text-white/30 mb-3">
                       Image {currentPoolIdx + 1}/{TRAINING_POOL.length}
                     </p>
 
@@ -470,7 +470,7 @@ export function BuildClassifierGame() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={skipImage}
-                        className="font-body text-[10px] text-white/20 hover:text-white/40"
+                        className="font-body text-2xs text-white/20 hover:text-white/40"
                       >
                         Skip →
                       </button>
@@ -479,7 +479,7 @@ export function BuildClassifierGame() {
                           initial={{ opacity: 0, scale: 0.9 }}
                           animate={{ opacity: 1, scale: 1 }}
                           onClick={() => setPhase('train')}
-                          className="px-3 py-1.5 rounded-lg font-display text-[10px] font-bold text-cyan-300 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20"
+                          className="px-3 py-1.5 rounded-lg font-display text-2xs font-bold text-cyan-300 border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20"
                           whileTap={{ scale: 0.95 }}
                           aria-label="Skip to training with current data"
                         >
@@ -511,7 +511,7 @@ export function BuildClassifierGame() {
                     {/* Balance warning */}
                     {dataBalance.some((d) => d.count < 3) && (
                       <div className="rounded-xl p-2 border border-amber-500/20 bg-amber-500/5">
-                        <p className="font-body text-[10px] text-amber-400">
+                        <p className="font-body text-2xs text-amber-400">
                           ⚠️ Some categories have very few examples — this might reduce
                           accuracy!
                         </p>
@@ -546,7 +546,7 @@ export function BuildClassifierGame() {
                     )}
 
                     {ageBand === 'C' && (
-                      <p className="font-body text-[9px] text-white/20 max-w-sm">
+                      <p className="font-body text-2xs text-white/20 max-w-sm">
                         Training iterates over labeled data, adjusting weights to minimize
                         classification loss. More balanced data reduces overfitting to
                         majority classes.
@@ -568,7 +568,7 @@ export function BuildClassifierGame() {
                       {['Collect', 'Train', 'Test'].map((s, i) => (
                         <div key={s} className="flex items-center gap-1">
                           <div
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold ${
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold ${
                               i === 2
                                 ? 'bg-cyan-500/30 text-cyan-300'
                                 : 'bg-green-500/20 text-green-400'
@@ -577,7 +577,7 @@ export function BuildClassifierGame() {
                             {i < 2 ? '✓' : '3'}
                           </div>
                           <span
-                            className={`font-body text-[9px] ${
+                            className={`font-body text-2xs ${
                               i === 2 ? 'text-cyan-400' : 'text-green-400/50'
                             }`}
                           >
@@ -626,7 +626,7 @@ export function BuildClassifierGame() {
                         {testResults.map((r, i) => (
                           <div
                             key={i}
-                            className={`w-5 h-5 rounded-full flex items-center justify-center text-[8px] ${
+                            className={`w-5 h-5 rounded-full flex items-center justify-center text-2xs ${
                               r.correct
                                 ? 'bg-green-500/20 text-green-400'
                                 : 'bg-red-500/20 text-red-400'
@@ -690,19 +690,19 @@ export function BuildClassifierGame() {
                     {/* Confusion matrix (Band C) */}
                     {ageBand === 'C' && (
                       <div className="rounded-xl p-3 border border-cyan-500/15 bg-cyan-500/5">
-                        <p className="font-display text-[10px] font-bold text-cyan-300 mb-2 text-center">
+                        <p className="font-display text-2xs font-bold text-cyan-300 mb-2 text-center">
                           Confusion Matrix
                         </p>
                         <table className="w-full text-center">
                           <thead>
                             <tr>
-                              <th className="font-body text-[8px] text-white/20 p-1">
+                              <th className="font-body text-2xs text-white/20 p-1">
                                 True ↓ / Pred →
                               </th>
                               {CATEGORIES.map((c) => (
                                 <th
                                   key={c}
-                                  className="font-body text-[8px] p-1"
+                                  className="font-body text-2xs p-1"
                                   style={{ color: CATEGORY_COLORS[c] }}
                                 >
                                   {c}
@@ -714,7 +714,7 @@ export function BuildClassifierGame() {
                             {CATEGORIES.map((row) => (
                               <tr key={row}>
                                 <td
-                                  className="font-body text-[8px] p-1"
+                                  className="font-body text-2xs p-1"
                                   style={{ color: CATEGORY_COLORS[row] }}
                                 >
                                   {row}
@@ -738,7 +738,7 @@ export function BuildClassifierGame() {
 
                     {/* Training data insight */}
                     <div className="rounded-xl p-2 border border-white/5 bg-white/[0.02] text-center">
-                      <p className="font-body text-[9px] text-white/30">
+                      <p className="font-body text-2xs text-white/30">
                         {accuracy >= 80
                           ? '🎯 Great dataset! Balanced training data leads to better accuracy.'
                           : accuracy >= 60

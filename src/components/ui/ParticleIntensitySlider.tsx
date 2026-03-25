@@ -131,7 +131,7 @@ export function ParticleIntensitySlider({
               />
 
               <span
-                className="font-data text-[10px] font-medium transition-colors"
+                className="font-data text-xs font-medium transition-colors"
                 style={{ color: isActive ? level.color : '#94A3B8' }}
               >
                 {level.label}
@@ -166,7 +166,7 @@ export function ParticleIntensitySlider({
       </div>
 
       {/* Current description */}
-      <p className="font-body text-[10px] text-white/30 text-center">
+      <p className="font-body text-xs text-white/30 text-center">
         {LEVELS[activeIndex]?.description || 'Balanced (default)'}
       </p>
     </div>

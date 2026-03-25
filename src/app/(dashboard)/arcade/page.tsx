@@ -221,7 +221,7 @@ export default function ArcadePage() {
                       {/* Tier badge */}
                       {game.has3D && (
                         <div
-                          className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[10px] font-data font-bold"
+                          className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-xs font-data font-bold"
                           style={{
                             backgroundColor: `${TIER_CONFIG[game.tier].color}18`,
                             color: TIER_CONFIG[game.tier].color,
@@ -251,14 +251,14 @@ export default function ArcadePage() {
                           {game.ageBands.map(band => (
                             <span
                               key={band}
-                              className="text-[10px] font-data text-white/25 px-1.5 py-0.5 rounded bg-white/[0.03]"
+                              className="text-xs font-data text-white/25 px-1.5 py-0.5 rounded bg-white/[0.03]"
                             >
                               {band === 'A' ? '7-9' : band === 'B' ? '10-12' : '13-16'}
                             </span>
                           ))}
                         </div>
                         <span
-                          className="text-[10px] font-data"
+                          className="text-xs font-data"
                           style={{ color: `${LAB_COLORS[game.lab]}80` }}
                         >
                           {game.tier === 'flagship' ? 'Flagship' : game.tier === 'fl-lite' ? 'Enhanced' : 'Standard'}

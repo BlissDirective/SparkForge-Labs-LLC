@@ -240,7 +240,7 @@ export default function SignupPage() {
                       return (
                         <span
                           key={i}
-                          className={`text-[10px] font-body px-2 py-0.5 rounded-full ${
+                          className={`text-xs font-body px-2 py-0.5 rounded-full ${
                             checks[i] ? 'bg-spark-green/20 text-spark-green' : 'bg-white/5 text-white/30'
                           }`}
                         >

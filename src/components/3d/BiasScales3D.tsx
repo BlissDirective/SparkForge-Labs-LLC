@@ -424,11 +424,11 @@ export function BiasScalesFallback({
             animate={{ scale: biasWeight > 0 ? [1, 1.05, 1] : 1 }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            <span className="text-[9px] font-bold text-red-400">
+            <span className="text-2xs font-bold text-red-400">
               {Math.round(biasWeight * 100)}%
             </span>
           </motion.div>
-          <span className="text-[8px] text-white/30 mt-0.5">Bias</span>
+          <span className="text-2xs text-white/30 mt-0.5">Bias</span>
         </div>
 
         {/* Right pan (FAIR) */}
@@ -445,11 +445,11 @@ export function BiasScalesFallback({
             animate={{ scale: fairWeight > 0 ? [1, 1.05, 1] : 1 }}
             transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
           >
-            <span className="text-[9px] font-bold text-emerald-400">
+            <span className="text-2xs font-bold text-emerald-400">
               {Math.round(fairWeight * 100)}%
             </span>
           </motion.div>
-          <span className="text-[8px] text-white/30 mt-0.5">Fair</span>
+          <span className="text-2xs text-white/30 mt-0.5">Fair</span>
         </div>
       </motion.div>
 

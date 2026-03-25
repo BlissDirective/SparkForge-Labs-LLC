@@ -161,7 +161,7 @@ function SubscriptionContent() {
         >
           Yearly
           {yearlySavings > 0 && (
-            <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded bg-spark-green text-[9px] font-bold text-black">
+            <span className="absolute -top-2 -right-2 px-1.5 py-0.5 rounded bg-spark-green text-2xs font-bold text-black">
               Save {yearlySavings}%
             </span>
           )}
@@ -212,7 +212,7 @@ function SubscriptionContent() {
                 />
 
                 {isPopular && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-spark-blue text-[10px] font-bold text-white z-10">
+                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-spark-blue text-xs font-bold text-white z-10">
                     Most Popular
                   </span>
                 )}

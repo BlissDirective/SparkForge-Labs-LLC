@@ -105,7 +105,7 @@ export function Sidebar() {
                     <p className="font-body text-sm font-semibold text-white truncate">
                       {activeChild.display_name}
                     </p>
-                    <p className="font-body text-[10px] text-white/40">
+                    <p className="font-body text-xs text-white/40">
                       Lv.{activeChild.level}
                       {activeChild.streak_count > 0 &&
                         ` · 🔥 ${activeChild.streak_count}`}
@@ -212,7 +212,7 @@ export function Sidebar() {
             <AnimatePresence>
               {sidebarOpen && (
                 <motion.span
-                  className="font-mono text-[10px] text-white/30 uppercase tracking-wider"
+                  className="font-mono text-xs text-white/30 uppercase tracking-wider"
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
@@ -278,7 +278,7 @@ export function Sidebar() {
                   }`}
                 />
                 <span
-                  className={`text-[10px] font-body relative z-10 ${
+                  className={`text-xs font-body relative z-10 ${
                     isActive ? 'text-white font-semibold' : 'text-white/40'
                   }`}
                 >

@@ -382,7 +382,7 @@ export default function PricingPage() {
           >
             Yearly
             {/* [ENH-7] Animated savings counter */}
-            <span className="absolute -top-2.5 -right-3 px-2 py-0.5 rounded-full bg-emerald-500 text-[9px] font-bold text-white">
+            <span className="absolute -top-2.5 -right-3 px-2 py-0.5 rounded-full bg-emerald-500 text-2xs font-bold text-white">
               Save {animatedSavings}%
             </span>
           </button>

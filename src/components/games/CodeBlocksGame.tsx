@@ -458,7 +458,7 @@ export function CodeBlocksGame() {
                     </p>
                     <div className="flex gap-2 justify-center">
                       {['Sequence', 'Loops', 'Conditionals', 'Functions'].map((t) => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 font-body text-[10px] text-orange-300">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 font-body text-2xs text-orange-300">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('learn')}
@@ -516,7 +516,7 @@ export function CodeBlocksGame() {
                         <h3 className="font-display text-sm font-bold text-white">
                           {challengeIdx + 1}/{challenges.length}: {challenge.title}
                         </h3>
-                        <p className="font-body text-[10px] text-white/40">
+                        <p className="font-body text-2xs text-white/40">
                           {ageBand === 'C' ? challenge.descriptionC : challenge.description}
                         </p>
                       </div>
@@ -535,7 +535,7 @@ export function CodeBlocksGame() {
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                       {/* COLUMN 1: Block Palette */}
                       <div className="space-y-1.5">
-                        <p className="font-display text-[9px] text-white/20 uppercase">Palette</p>
+                        <p className="font-display text-2xs text-white/20 uppercase">Palette</p>
                         {challenge.palette.map((block) => {
                           const used = placed.find((b) => b.id === block.id);
                           return (
@@ -557,11 +557,11 @@ export function CodeBlocksGame() {
                         })}
                         <div className="flex gap-1 mt-2">
                           <button onClick={() => setShowHint(true)} disabled={showHint}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-[9px] text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
                             <Bug className="w-3 h-3" /> Hint
                           </button>
                           <button onClick={() => { setPlaced([]); setResult(null); setOutputLines([]); setRobotPose('idle'); }}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-[9px] text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
                             <RotateCcw className="w-3 h-3" /> Reset
                           </button>
                         </div>
@@ -569,7 +569,7 @@ export function CodeBlocksGame() {
 
                       {/* COLUMN 2: Workspace (placed blocks) */}
                       <div className="flex flex-col">
-                        <p className="font-display text-[9px] text-white/20 uppercase mb-1">Workspace</p>
+                        <p className="font-display text-2xs text-white/20 uppercase mb-1">Workspace</p>
 
                         {/* 3D visualization on desktop */}
                         {isDesktop && placed.length > 0 && (
@@ -588,7 +588,7 @@ export function CodeBlocksGame() {
                           )}
 
                           {placed.length === 0 && (
-                            <p className="font-body text-[10px] text-white/10 text-center mt-8">
+                            <p className="font-body text-2xs text-white/10 text-center mt-8">
                               Click blocks to add them here
                             </p>
                           )}
@@ -606,9 +606,9 @@ export function CodeBlocksGame() {
                               }}
                               onClick={() => removeBlock(i)}
                               aria-label={`Remove ${block.label}`}>
-                              <span className="font-mono text-[8px] text-white/20">{BLOCK_SHAPES[block.type]}</span>
-                              <span className="font-body text-[10px] text-white/60 flex-1">{block.label}</span>
-                              {!running && <span className="text-white/10 text-[8px]">&times;</span>}
+                              <span className="font-mono text-2xs text-white/20">{BLOCK_SHAPES[block.type]}</span>
+                              <span className="font-body text-2xs text-white/60 flex-1">{block.label}</span>
+                              {!running && <span className="text-white/10 text-2xs">&times;</span>}
                             </motion.div>
                           ))}
                         </div>
@@ -644,7 +644,7 @@ export function CodeBlocksGame() {
                           <AnimatePresence mode="wait">
                             {ROBOT_POSES[robotPose]?.label && (
                               <motion.p key={robotPose}
-                                className="font-mono text-[8px] text-orange-300/50 mt-1"
+                                className="font-mono text-2xs text-orange-300/50 mt-1"
                                 initial={{ opacity: 0, y: 5 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0 }}>
@@ -659,29 +659,29 @@ export function CodeBlocksGame() {
                           className="flex-1 rounded-xl bg-black/40 border border-white/10 p-2 overflow-auto max-h-[200px]">
                           <div className="flex gap-1 mb-1">
                             <button onClick={() => setShowPseudo(false)}
-                              className={`font-mono text-[7px] px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/20'}`}>
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/20'}`}>
                               <Terminal className="w-2.5 h-2.5" /> Out
                             </button>
                             <button onClick={() => setShowPseudo(true)}
-                              className={`font-mono text-[7px] px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/20'}`}>
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/20'}`}>
                               Pseudo
                             </button>
                           </div>
                           {showPseudo ? (
-                            <pre className="font-mono text-[8px] text-purple-300/50 whitespace-pre-wrap">{challenge.pseudocode}</pre>
+                            <pre className="font-mono text-2xs text-purple-300/50 whitespace-pre-wrap">{challenge.pseudocode}</pre>
                           ) : (
                             <div className="space-y-0.5">
                               {outputLines.map((line, i) => (
-                                <motion.p key={i} className="font-mono text-[8px] text-green-400/70"
+                                <motion.p key={i} className="font-mono text-2xs text-green-400/70"
                                   initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                                   <span className="text-green-600/30">{'>'}</span> {line}
                                 </motion.p>
                               ))}
                               {outputLines.length === 0 && (
-                                <p className="font-mono text-[8px] text-white/10">Awaiting code...</p>
+                                <p className="font-mono text-2xs text-white/10">Awaiting code...</p>
                               )}
                               {running && (
-                                <motion.span className="font-mono text-[8px] text-green-400"
+                                <motion.span className="font-mono text-2xs text-green-400"
                                   animate={{ opacity: [1, 0] }}
                                   transition={{ repeat: Infinity, duration: 0.6 }}>
                                   _
@@ -710,7 +710,7 @@ export function CodeBlocksGame() {
                     {showHint && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                         className="mt-2 rounded-lg p-2 bg-amber-500/5 border border-amber-500/10">
-                        <p className="font-body text-[10px] text-amber-400">{'\ud83d\udca1'} {challenge.hint}</p>
+                        <p className="font-body text-2xs text-amber-400">{'\ud83d\udca1'} {challenge.hint}</p>
                       </motion.div>
                     )}
                   </motion.div>

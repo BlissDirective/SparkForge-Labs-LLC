@@ -85,7 +85,7 @@ export function XPPopupProvider({ children }: { children: React.ReactNode }) {
                 {/* Combo indicator */}
                 {event.combo && event.combo >= 2 && (
                   <motion.span
-                    className="font-display text-[10px] font-bold px-2 py-0.5 rounded-full mt-1"
+                    className="font-display text-xs font-bold px-2 py-0.5 rounded-full mt-1"
                     style={{
                       backgroundColor: event.combo >= 5 ? 'rgba(239,68,68,0.2)' : event.combo >= 3 ? 'rgba(249,115,22,0.2)' : 'rgba(245,158,11,0.2)',
                       color: event.combo >= 5 ? '#EF4444' : event.combo >= 3 ? '#F97316' : '#F59E0B',
@@ -101,7 +101,7 @@ export function XPPopupProvider({ children }: { children: React.ReactNode }) {
 
                 {/* Custom label */}
                 {event.label && (
-                  <span className="font-body text-[9px] text-white/40 mt-0.5">{event.label}</span>
+                  <span className="font-body text-2xs text-white/40 mt-0.5">{event.label}</span>
                 )}
 
                 {/* Sparkle particles */}

@@ -211,7 +211,7 @@ export function FoolTheAiGame() {
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {['Classification', 'Confidence', 'Adversarial AI'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-body text-[10px] text-cyan-400">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-body text-2xs text-cyan-400">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
@@ -230,13 +230,13 @@ export function FoolTheAiGame() {
                     <div className="rounded-xl p-3 mb-3 text-center"
                       style={{ backgroundColor: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
                       <p className="font-display text-sm font-bold text-cyan-400">{'\u{1F3AF}'} {challenge.text}</p>
-                      {ageBand === 'C' && <p className="font-body text-[9px] text-white/25 mt-0.5">{challenge.descC}</p>}
+                      {ageBand === 'C' && <p className="font-body text-2xs text-white/25 mt-0.5">{challenge.descC}</p>}
                       <div className="flex items-center justify-center gap-2 mt-1.5">
                         <div className="flex-1 max-w-[120px] h-1.5 rounded-full bg-white/5 overflow-hidden">
                           <motion.div className="h-full rounded-full bg-cyan-500" animate={{ width: `${(matchCount / challenge.target) * 100}%` }} />
                         </div>
-                        <span className="font-mono text-[10px] text-white/30">{matchCount}/{challenge.target}</span>
-                        <span className="font-body text-[9px] text-white/15">Round {ci + 1}/{CHALLENGES.length}</span>
+                        <span className="font-mono text-2xs text-white/30">{matchCount}/{challenge.target}</span>
+                        <span className="font-body text-2xs text-white/15">Round {ci + 1}/{CHALLENGES.length}</span>
                       </div>
                     </div>
 
@@ -257,14 +257,14 @@ export function FoolTheAiGame() {
                             whileTap={!tapped ? { scale: 0.95 } : {}}
                             aria-label={`${item.emoji} labeled as "${item.aiLabel}" with ${item.confidence}% confidence`}>
                             <span className="text-2xl block">{item.emoji}</span>
-                            <p className="font-body text-[9px] text-white/40 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
+                            <p className="font-body text-2xs text-white/40 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
                             {/* Confidence bar */}
                             <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden">
                               <motion.div className="h-full rounded-full" style={{ backgroundColor: confColor }}
                                 initial={{ width: 0 }} animate={{ width: `${item.confidence}%` }}
                                 transition={{ duration: 0.8, delay: 0.1 }} />
                             </div>
-                            <p className="font-mono text-[8px] mt-0.5" style={{ color: confColor }}>{item.confidence}%</p>
+                            <p className="font-mono text-2xs mt-0.5" style={{ color: confColor }}>{item.confidence}%</p>
                           </motion.button>
                         );
                       })}
@@ -281,7 +281,7 @@ export function FoolTheAiGame() {
                               {feedback.hit ? '\u2713 Good catch!' : "\u2717 Not what we're looking for"}
                             </p>
                           </div>
-                          <p className="font-body text-[10px] text-white/40">
+                          <p className="font-body text-2xs text-white/40">
                             {ageBand === 'C' ? ITEMS[feedback.idx].explanationC : ITEMS[feedback.idx].explanation}
                           </p>
                         </motion.div>

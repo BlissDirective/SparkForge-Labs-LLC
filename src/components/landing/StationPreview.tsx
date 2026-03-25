@@ -93,7 +93,7 @@ export function StationPreview() {
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FFAA44]/10">
                     <Zap className="w-3 h-3 text-[#FFAA44]" />
-                    <span className="font-mono text-[10px] text-[#FFAA44]">
+                    <span className="font-mono text-xs text-[#FFAA44]">
                       1,250 XP
                     </span>
                   </div>
@@ -123,7 +123,7 @@ export function StationPreview() {
                         }}
                       />
                     </div>
-                    <p className="font-mono text-[8px] text-white/20 mt-1">
+                    <p className="font-mono text-2xs text-white/20 mt-1">
                       {lab.label}
                     </p>
                   </div>

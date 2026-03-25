@@ -98,7 +98,7 @@ function BrainPulseAnimation() {
         {['A', 'B', 'C'].map((band) => (
           <span
             key={band}
-            className="w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center bg-[#AA66FF]/20 text-[#AA66FF]"
+            className="w-5 h-5 rounded text-xs font-bold flex items-center justify-center bg-[#AA66FF]/20 text-[#AA66FF]"
           >
             {band}
           </span>

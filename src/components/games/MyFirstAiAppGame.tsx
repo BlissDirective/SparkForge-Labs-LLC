@@ -475,7 +475,7 @@ export function MyFirstAiAppGame() {
                       placeholder="e.g. SuperBrain, ArtMagic, FunBot..." maxLength={24}
                       className="w-full max-w-xs px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-display text-center focus:outline-none focus:border-orange-500/50"
                       aria-label="Enter your app name" autoFocus />
-                    <p className="font-mono text-[10px] text-white/20 mt-1">{appName.length}/24</p>
+                    <p className="font-mono text-2xs text-white/20 mt-1">{appName.length}/24</p>
                     {appName.length >= 2 && (
                       <motion.div className="mt-4 px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20"
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -506,7 +506,7 @@ export function MyFirstAiAppGame() {
                               <span className="text-lg">{pow.emoji}</span>
                               <span className="font-display text-xs font-bold text-white">{pow.title}</span>
                             </div>
-                            <p className="font-body text-[10px] text-white/40 leading-snug">{getDesc(pow)}</p>
+                            <p className="font-body text-2xs text-white/40 leading-snug">{getDesc(pow)}</p>
                             {isSelected && (
                               <motion.div className="mt-1 h-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
                                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} />
@@ -552,7 +552,7 @@ export function MyFirstAiAppGame() {
                           whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} aria-label={`Select theme: ${theme.name}`}>
                           <div className={`w-full h-8 rounded-lg bg-gradient-to-r ${theme.bgGradient} mb-1`} />
                           <span className="text-sm">{theme.emoji}</span>
-                          <p className="font-mono text-[9px] text-white/50">{theme.name}</p>
+                          <p className="font-mono text-2xs text-white/50">{theme.name}</p>
                         </motion.button>
                       ))}
                     </div>
@@ -566,7 +566,7 @@ export function MyFirstAiAppGame() {
                           return <span key={id} className="text-xs">{p?.emoji}</span>;
                         })}
                       </div>
-                      <p className="font-mono text-[8px] mt-1" style={{ color: `${currentTheme.textColor}80` }}>Preview</p>
+                      <p className="font-mono text-2xs mt-1" style={{ color: `${currentTheme.textColor}80` }}>Preview</p>
                     </div>
                   </motion.div>
                 )}
@@ -617,7 +617,7 @@ export function MyFirstAiAppGame() {
                   </div>
                   {/* Innovation Score */}
                   <div className="mb-2">
-                    <p className="font-mono text-[10px] mb-1" style={{ color: `${currentTheme.textColor}80` }}>INNOVATION SCORE</p>
+                    <p className="font-mono text-2xs mb-1" style={{ color: `${currentTheme.textColor}80` }}>INNOVATION SCORE</p>
                     <div className="w-full h-3 rounded-full bg-black/20 overflow-hidden">
                       <motion.div className="h-full rounded-full bg-gradient-to-r from-orange-500 to-amber-400"
                         initial={{ width: 0 }} animate={{ width: `${innovationScore}%` }}
@@ -641,22 +641,22 @@ export function MyFirstAiAppGame() {
                 {showHowItWorks && (
                   <motion.div className="w-full max-w-xs rounded-xl p-3 bg-white/[0.03] border border-white/10"
                     initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}>
-                    <p className="font-mono text-[10px] text-orange-400 mb-2">DATA FLOW:</p>
+                    <p className="font-mono text-2xs text-orange-400 mb-2">DATA FLOW:</p>
                     <div className="flex items-center gap-1 flex-wrap">
-                      <span className="px-2 py-1 rounded bg-white/10 font-mono text-[10px] text-white/60">Input</span>
+                      <span className="px-2 py-1 rounded bg-white/10 font-mono text-2xs text-white/60">Input</span>
                       <span className="text-white/30">{'\u2192'}</span>
                       {selectedPowers.map((id, i) => {
                         const p = ALL_POWERS.find(pw => pw.id === id);
                         return (
                           <span key={id} className="contents">
-                            <span className="px-2 py-1 rounded font-mono text-[10px]" style={{ background: `${p?.color}20`, color: p?.color }}>
+                            <span className="px-2 py-1 rounded font-mono text-2xs" style={{ background: `${p?.color}20`, color: p?.color }}>
                               {p?.techLabel}</span>
                             {i < selectedPowers.length - 1 && <span className="text-white/30">{'\u2192'}</span>}
                           </span>
                         );
                       })}
                       <span className="text-white/30">{'\u2192'}</span>
-                      <span className="px-2 py-1 rounded bg-emerald-500/20 font-mono text-[10px] text-emerald-400">Output</span>
+                      <span className="px-2 py-1 rounded bg-emerald-500/20 font-mono text-2xs text-emerald-400">Output</span>
                     </div>
                   </motion.div>
                 )}
@@ -708,11 +708,11 @@ export function MyFirstAiAppGame() {
 
                 <div className="grid grid-cols-2 gap-2 text-center mb-3">
                   <div className="rounded-xl p-2 bg-orange-500/10 border border-orange-500/20">
-                    <p className="font-mono text-[10px] text-orange-400 mb-1">INNOVATION</p>
+                    <p className="font-mono text-2xs text-orange-400 mb-1">INNOVATION</p>
                     <p className="font-display text-xl font-bold text-orange-300">{innovationScore}/100</p>
                   </div>
                   <div className="rounded-xl p-2 bg-amber-500/10 border border-amber-500/20">
-                    <p className="font-mono text-[10px] text-amber-400 mb-1">AI POWERS</p>
+                    <p className="font-mono text-2xs text-amber-400 mb-1">AI POWERS</p>
                     <p className="font-display text-xl font-bold text-amber-300">{selectedPowers.length}</p>
                   </div>
                 </div>

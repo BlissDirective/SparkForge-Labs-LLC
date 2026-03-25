@@ -147,7 +147,7 @@ export function TreatTrainerGame() {
                     </p>
                     <div className="flex gap-2 justify-center">
                       {['Reinforcement Learning', 'Rewards', 'Training'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-[10px] text-purple-300">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-2xs text-purple-300">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
@@ -176,12 +176,12 @@ export function TreatTrainerGame() {
                         { key: 'goal' as const, label: ageBand === 'C' ? 'R(goal)' : 'Reach goal', color: '#8B5CF6' },
                       ]).map(({ key, label, color }) => (
                         <div key={key} className="flex items-center gap-2">
-                          <span className="font-body text-[9px] text-white/40 w-20 truncate">{label}</span>
+                          <span className="font-body text-2xs text-white/40 w-20 truncate">{label}</span>
                           <input type="range" min={-10} max={10} value={rewards[key]}
                             onChange={e => setRewards(r => ({ ...r, [key]: +e.target.value }))}
                             className="flex-1 h-1 accent-purple-500"
                             aria-label={`${label} reward`} />
-                          <span className="font-mono text-[10px] w-6 text-right" style={{ color }}>{rewards[key]}</span>
+                          <span className="font-mono text-2xs w-6 text-right" style={{ color }}>{rewards[key]}</span>
                         </div>
                       ))}
                     </div>
@@ -199,7 +199,7 @@ export function TreatTrainerGame() {
                           return (
                             <div key={i} className={`w-[32px] h-[32px] rounded-sm flex items-center justify-center text-xs
                               ${isW ? 'bg-white/10' : isR ? 'bg-purple-500/30' : isG ? 'bg-green-500/20' : isS ? 'bg-blue-500/20' : inP ? 'bg-purple-500/10' : 'bg-white/[0.02]'}`}>
-                              {isR ? '\u{1F916}' : isG ? '\u{1F9B4}' : isS ? '\u{1F3C1}' : isW ? '\u{1F9F1}' : inP ? <span className="text-[6px] text-purple-400">{'\u2022'}</span> : null}
+                              {isR ? '\u{1F916}' : isG ? '\u{1F9B4}' : isS ? '\u{1F3C1}' : isW ? '\u{1F9F1}' : inP ? <span className="text-2xs text-purple-400">{'\u2022'}</span> : null}
                             </div>
                           );
                         })}
@@ -209,14 +209,14 @@ export function TreatTrainerGame() {
                     {/* Steps chart */}
                     {history.length > 0 && (
                       <div className="mb-2">
-                        <p className="font-body text-[9px] text-white/20 mb-1">
+                        <p className="font-body text-2xs text-white/20 mb-1">
                           {ageBand === 'C' ? 'Steps per episode (convergence)' : 'Steps taken'}
                         </p>
                         <div className="flex items-end gap-1 h-8 justify-center">
                           {history.map((s, i) => (
                             <motion.div key={i} className="w-3 bg-purple-500/50 rounded-t"
                               initial={{ height: 0 }} animate={{ height: `${Math.min(100, s * 2)}%` }}>
-                              <span className="font-mono text-[6px] text-white/20 block text-center">{s}</span>
+                              <span className="font-mono text-2xs text-white/20 block text-center">{s}</span>
                             </motion.div>
                           ))}
                         </div>

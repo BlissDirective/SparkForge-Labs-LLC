@@ -224,7 +224,7 @@ export function AiOrNotGame() {
               <p className="font-body text-sm text-white/50 max-w-sm mb-6">Can AI really do that? Sort amazing scenarios into NOW, SOON, or SCI-FI!</p>
               <div className="flex flex-wrap gap-2 justify-center mb-6">
                 {['AI Futures', 'Critical Thinking', 'Predictions', 'Fun Facts'].map(tag => (
-                  <span key={tag} className="px-3 py-1 rounded-full bg-fuchsia-500/15 border border-fuchsia-500/20 font-mono text-[10px] text-fuchsia-300">{tag}</span>
+                  <span key={tag} className="px-3 py-1 rounded-full bg-fuchsia-500/15 border border-fuchsia-500/20 font-mono text-2xs text-fuchsia-300">{tag}</span>
                 ))}
               </div>
               <motion.button onClick={() => setPhase('learn')}
@@ -315,7 +315,7 @@ export function AiOrNotGame() {
                         whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.95 }}
                         aria-label={cfg.label}>
                         <span className="text-2xl block mb-1">{cfg.emoji}</span>
-                        <span className="font-display text-[11px] font-bold block" style={{ color: cfg.color }}>
+                        <span className="font-display text-xs font-bold block" style={{ color: cfg.color }}>
                           {cat === 'now' ? 'NOW' : cat === 'soon' ? 'SOON' : 'SCI-FI'}
                         </span>
                       </motion.button>
@@ -339,7 +339,7 @@ export function AiOrNotGame() {
                           transition={{ type: 'spring', stiffness: 400 }}>
                           <span className="text-3xl">{'\u{1F3AF}'}</span>
                           <p className="font-display text-sm font-bold text-emerald-400 mt-1">Correct!</p>
-                          {confidence >= 80 && <p className="font-mono text-[10px] text-amber-400">+5 confidence bonus!</p>}
+                          {confidence >= 80 && <p className="font-mono text-2xs text-amber-400">+5 confidence bonus!</p>}
                         </motion.div>
                       ) : (
                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
@@ -354,12 +354,12 @@ export function AiOrNotGame() {
                     {/* Your vote vs correct */}
                     <div className="flex items-center justify-center gap-4 mb-3">
                       <div className="text-center">
-                        <p className="font-mono text-[9px] text-white/30 mb-1">YOU SAID</p>
+                        <p className="font-mono text-2xs text-white/30 mb-1">YOU SAID</p>
                         <span className="text-xl">{CATEGORY_CONFIG[guess].emoji}</span>
                       </div>
                       <span className="text-white/20">{'\u2192'}</span>
                       <div className="text-center">
-                        <p className="font-mono text-[9px] text-white/30 mb-1">ANSWER</p>
+                        <p className="font-mono text-2xs text-white/30 mb-1">ANSWER</p>
                         <span className="text-xl">{CATEGORY_CONFIG[round.answer].emoji}</span>
                       </div>
                     </div>
@@ -385,7 +385,7 @@ export function AiOrNotGame() {
                     {/* Year tag */}
                     {round.year && (
                       <div className="flex justify-center mb-3">
-                        <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-[10px] text-white/30 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-2xs text-white/30 flex items-center gap-1">
                           <Clock className="w-3 h-3" /> {round.year}
                         </span>
                       </div>
@@ -436,7 +436,7 @@ export function AiOrNotGame() {
                       placeholder="I think AI will..."
                       className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm resize-none focus:outline-none focus:border-fuchsia-500/40 h-20"
                       maxLength={200} aria-label="Write your AI prediction" />
-                    <p className="font-mono text-[10px] text-white/20 mt-1 mb-3">{predictionText.length}/200</p>
+                    <p className="font-mono text-2xs text-white/20 mt-1 mb-3">{predictionText.length}/200</p>
                     <motion.button onClick={handlePrediction} disabled={predictionText.trim().length < 5}
                       className="w-full py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-display text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-30"
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
@@ -456,7 +456,7 @@ export function AiOrNotGame() {
 
                     {/* Final Timeline Summary */}
                     <div className="rounded-xl p-3 bg-white/[0.03] border border-white/10 mb-3">
-                      <p className="font-mono text-[10px] text-fuchsia-400 mb-2">YOUR RESULTS</p>
+                      <p className="font-mono text-2xs text-fuchsia-400 mb-2">YOUR RESULTS</p>
                       <div className="grid grid-cols-3 gap-2 text-center">
                         {(['now', 'soon', 'scifi'] as TimeCategory[]).map(cat => {
                           const count = history.filter(h => h.scenario.answer === cat && h.correct).length;
@@ -497,7 +497,7 @@ export function AiOrNotGame() {
               <div className="w-full max-w-xs rounded-2xl p-4 bg-white/[0.03] border border-fuchsia-500/20 mb-4">
                 {/* Reality Score */}
                 <div className="rounded-xl p-3 bg-fuchsia-500/10 border border-fuchsia-500/20 mb-3">
-                  <p className="font-mono text-[10px] text-fuchsia-400 mb-1">REALITY SCORE</p>
+                  <p className="font-mono text-2xs text-fuchsia-400 mb-1">REALITY SCORE</p>
                   <p className="font-display text-3xl font-bold text-fuchsia-300">{realityScore}%</p>
                 </div>
 
@@ -511,7 +511,7 @@ export function AiOrNotGame() {
                       <div key={cat} className="rounded-xl p-2 bg-white/[0.03] border border-white/10">
                         <span className="text-xl block">{cfg.emoji}</span>
                         <p className="font-mono text-xs mt-1" style={{ color: cfg.color }}>{count}/{total}</p>
-                        <p className="font-mono text-[9px] text-white/30">{cat === 'now' ? 'NOW' : cat === 'soon' ? 'SOON' : 'SCI-FI'}</p>
+                        <p className="font-mono text-2xs text-white/30">{cat === 'now' ? 'NOW' : cat === 'soon' ? 'SOON' : 'SCI-FI'}</p>
                       </div>
                     );
                   })}
@@ -520,11 +520,11 @@ export function AiOrNotGame() {
                 {/* Overall stats */}
                 <div className="grid grid-cols-2 gap-2 text-center">
                   <div className="rounded-xl p-2 bg-emerald-500/10 border border-emerald-500/20">
-                    <p className="font-mono text-[10px] text-emerald-400 mb-1">CORRECT</p>
+                    <p className="font-mono text-2xs text-emerald-400 mb-1">CORRECT</p>
                     <p className="font-display text-lg font-bold text-emerald-300">{totalCorrect}/{history.length}</p>
                   </div>
                   <div className="rounded-xl p-2 bg-amber-500/10 border border-amber-500/20">
-                    <p className="font-mono text-[10px] text-amber-400 mb-1">XP EARNED</p>
+                    <p className="font-mono text-2xs text-amber-400 mb-1">XP EARNED</p>
                     <p className="font-display text-lg font-bold text-amber-300">{game.score}</p>
                   </div>
                 </div>

@@ -270,7 +270,7 @@ export default function ParentDashboardPage() {
             aria-pressed={selectedChildId === child.id}
           >
             <p className="font-display text-sm font-bold text-white">{child.display_name}</p>
-            <p className="font-body text-[10px] text-white/40">
+            <p className="font-body text-xs text-white/40">
               Band {child.age_band} · Level {child.level}
             </p>
           </motion.button>

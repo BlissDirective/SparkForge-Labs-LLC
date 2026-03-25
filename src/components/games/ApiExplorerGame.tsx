@@ -500,14 +500,14 @@ export function ApiExplorerGame() {
                       Send requests to simulated AI APIs. Set parameters, read JSON responses,
                       and learn how real AI services work under the hood.
                     </p>
-                    <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 font-body text-[10px] text-orange-400">
+                    <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 font-body text-2xs text-orange-400">
                       Advanced — Ages 14-16
                     </span>
                     <div className="flex gap-2 justify-center">
                       {['REST APIs', 'JSON', 'HTTP', 'AI Services'].map((t) => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 font-body text-[10px] text-orange-400"
+                          className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 font-body text-2xs text-orange-400"
                         >
                           {t}
                         </span>
@@ -585,7 +585,7 @@ export function ApiExplorerGame() {
                         <button
                           key={i}
                           onClick={() => selectEndpoint(i)}
-                          className={`flex-shrink-0 px-2 py-1 rounded-lg font-mono text-[9px] transition-all ${
+                          className={`flex-shrink-0 px-2 py-1 rounded-lg font-mono text-2xs transition-all ${
                             i === selectedEndpoint
                               ? 'bg-orange-500/20 border border-orange-500/40 text-orange-300'
                               : endpointsUsed.has(i)
@@ -600,7 +600,7 @@ export function ApiExplorerGame() {
                       ))}
                       <button
                         onClick={() => setShowHistory(!showHistory)}
-                        className="flex-shrink-0 px-2 py-1 rounded-lg bg-white/[0.02] border border-white/10 text-white/20 font-mono text-[9px]"
+                        className="flex-shrink-0 px-2 py-1 rounded-lg bg-white/[0.02] border border-white/10 text-white/20 font-mono text-2xs"
                         aria-label="Toggle request history"
                       >
                         <History className="inline w-2.5 h-2.5" /> {history.length}
@@ -608,7 +608,7 @@ export function ApiExplorerGame() {
                     </div>
 
                     {/* Progress */}
-                    <p className="font-body text-[8px] text-white/15 mb-2">
+                    <p className="font-body text-2xs text-white/15 mb-2">
                       {endpointsUsed.size}/{ENDPOINTS.length} endpoints explored
                     </p>
 
@@ -616,7 +616,7 @@ export function ApiExplorerGame() {
                     <div className="rounded-xl p-3 border border-orange-500/15 bg-orange-500/5">
                       <div className="flex items-center gap-2 mb-2">
                         <span
-                          className={`px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                          className={`px-1.5 py-0.5 rounded text-2xs font-bold ${
                             endpoint.method === 'POST'
                               ? 'bg-green-500/20 text-green-400'
                               : 'bg-blue-500/20 text-blue-400'
@@ -629,7 +629,7 @@ export function ApiExplorerGame() {
                         </code>
                         <Globe className="w-3 h-3 text-white/15" />
                       </div>
-                      <p className="font-body text-[9px] text-white/30 mb-2">
+                      <p className="font-body text-2xs text-white/30 mb-2">
                         {endpoint.description}
                       </p>
 
@@ -637,7 +637,7 @@ export function ApiExplorerGame() {
                       <div className="space-y-1.5">
                         {endpoint.params.map((p) => (
                           <div key={p.name} className="flex items-center gap-2">
-                            <label className="font-mono text-[9px] text-white/40 w-24 text-right">
+                            <label className="font-mono text-2xs text-white/40 w-24 text-right">
                               {p.name}
                               {p.required && <span className="text-red-400">*</span>}
                             </label>
@@ -646,7 +646,7 @@ export function ApiExplorerGame() {
                               onChange={(e) => updateParam(p.name, e.target.value)}
                               placeholder={p.placeholder}
                               type={p.type === 'number' ? 'number' : 'text'}
-                              className="flex-1 px-2 py-1 rounded bg-black/30 border border-white/10 font-mono text-[10px] text-white/70 placeholder:text-white/15 focus:border-orange-500/40 outline-none"
+                              className="flex-1 px-2 py-1 rounded bg-black/30 border border-white/10 font-mono text-2xs text-white/70 placeholder:text-white/15 focus:border-orange-500/40 outline-none"
                               aria-label={`${p.name} parameter`}
                             />
                           </div>
@@ -702,21 +702,21 @@ export function ApiExplorerGame() {
                             <span className="font-mono text-xs font-bold" style={{ color: statusInfo.color }}>
                               {statusInfo.label}
                             </span>
-                            <span className="font-mono text-[8px] text-white/20 ml-auto">
+                            <span className="font-mono text-2xs text-white/20 ml-auto">
                               {response.latency}ms
                             </span>
                           </div>
 
                           {/* JSON body */}
                           <div className="p-3 overflow-auto max-h-48">
-                            <pre className="font-mono text-[10px] leading-relaxed whitespace-pre-wrap">
+                            <pre className="font-mono text-2xs leading-relaxed whitespace-pre-wrap">
                               <JsonViewer data={response.body} />
                             </pre>
                           </div>
 
                           {/* Teaching note */}
                           <div className="px-3 py-1.5 border-t border-white/5">
-                            <p className="font-body text-[8px] text-white/25">
+                            <p className="font-body text-2xs text-white/25">
                               💡 {endpoint.teachingNote}
                             </p>
                           </div>
@@ -733,11 +733,11 @@ export function ApiExplorerGame() {
                           exit={{ opacity: 0, height: 0 }}
                           className="rounded-xl border border-white/5 p-2 space-y-1 overflow-hidden"
                         >
-                          <p className="font-display text-[9px] font-bold text-white/25">
+                          <p className="font-display text-2xs font-bold text-white/25">
                             Request History
                           </p>
                           {history.map((h, i) => (
-                            <div key={i} className="flex items-center gap-2 text-[8px]">
+                            <div key={i} className="flex items-center gap-2 text-2xs">
                               <span className="font-mono text-white/15">{h.timestamp}</span>
                               <code className="font-mono text-orange-300/50">{h.endpoint}</code>
                               <span

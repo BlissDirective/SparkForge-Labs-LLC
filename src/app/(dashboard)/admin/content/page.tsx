@@ -470,7 +470,7 @@ export default function AdminReviewPage() {
                 >
                   {s.value}
                 </motion.p>
-                <p className="font-body text-[10px] text-white/30">
+                <p className="font-body text-xs text-white/30">
                   {s.label}
                 </p>
               </div>
@@ -534,7 +534,7 @@ export default function AdminReviewPage() {
                 </button>
                 <button
                   onClick={() => setSelected(new Set())}
-                  className="font-body text-[10px] text-white/20 hover:text-white/40 ml-auto"
+                  className="font-body text-xs text-white/20 hover:text-white/40 ml-auto"
                 >
                   Clear
                 </button>
@@ -623,7 +623,7 @@ export default function AdminReviewPage() {
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <span
-                          className="px-2 py-0.5 rounded text-[10px] font-bold bg-white/5"
+                          className="px-2 py-0.5 rounded text-xs font-bold bg-white/5"
                           style={{
                             color:
                               BAND_COLORS[item.target_age_band] || '#fff',
@@ -631,14 +631,14 @@ export default function AdminReviewPage() {
                         >
                           Band {item.target_age_band}
                         </span>
-                        <span className="font-body text-[10px] text-white/30">
+                        <span className="font-body text-xs text-white/30">
                           Lab {item.world}: {LAB_NAMES[item.world]}
                         </span>
-                        <span className="font-body text-[10px] text-white/20">
+                        <span className="font-body text-xs text-white/20">
                           {item.type} · {item.difficulty}
                         </span>
                         {!item.safety_check?.passed && (
-                          <span className="flex items-center gap-1 text-[10px] text-spark-orange">
+                          <span className="flex items-center gap-1 text-xs text-spark-orange">
                             <AlertTriangle className="w-3 h-3" /> Safety
                             flagged
                           </span>
@@ -726,12 +726,12 @@ export default function AdminReviewPage() {
                         {new Date(run.created_at).toLocaleString()}
                       </p>
                       {run.duration_ms && (
-                        <span className="font-body text-[10px] text-white/20 bg-white/5 px-2 py-0.5 rounded">
+                        <span className="font-body text-xs text-white/20 bg-white/5 px-2 py-0.5 rounded">
                           {formatDuration(run.duration_ms)}
                         </span>
                       )}
                     </div>
-                    <span className="font-body text-[10px] text-white/20 font-mono">
+                    <span className="font-body text-xs text-white/20 font-mono">
                       {run.run_id}
                     </span>
                   </div>
@@ -771,7 +771,7 @@ export default function AdminReviewPage() {
                         >
                           {s.value}
                         </p>
-                        <p className="font-body text-[9px] text-white/30">
+                        <p className="font-body text-2xs text-white/30">
                           {s.label}
                         </p>
                       </div>
@@ -780,20 +780,20 @@ export default function AdminReviewPage() {
 
                   {run.errors && run.errors.length > 0 && (
                     <div className="mt-3 p-2 rounded-lg bg-red-500/5 border border-red-500/10">
-                      <p className="font-body text-[10px] text-red-400 font-semibold mb-1">
+                      <p className="font-body text-xs text-red-400 font-semibold mb-1">
                         {run.errors.length} error
                         {run.errors.length === 1 ? '' : 's'}
                       </p>
                       {run.errors.slice(0, 3).map((e, i) => (
                         <p
                           key={i}
-                          className="font-body text-[10px] text-red-400/60 truncate"
+                          className="font-body text-xs text-red-400/60 truncate"
                         >
                           {e}
                         </p>
                       ))}
                       {run.errors.length > 3 && (
-                        <p className="font-body text-[10px] text-red-400/40 mt-1">
+                        <p className="font-body text-xs text-red-400/40 mt-1">
                           + {run.errors.length - 3} more
                         </p>
                       )}
@@ -890,7 +890,7 @@ export default function AdminReviewPage() {
                       (flag: string, i: number) => (
                         <li
                           key={i}
-                          className="font-body text-[10px] text-spark-orange/80"
+                          className="font-body text-xs text-spark-orange/80"
                         >
                           ⚠ {flag}
                         </li>
@@ -898,7 +898,7 @@ export default function AdminReviewPage() {
                     )}
                   </ul>
                 )}
-                <p className="font-body text-[10px] text-white/30 mt-1">
+                <p className="font-body text-xs text-white/30 mt-1">
                   Reading level: grade{' '}
                   {preview.safety_check?.flesch_kincaid_grade || '?'} ·{' '}
                   {preview.safety_check?.recommendation || 'unknown'}
@@ -930,11 +930,11 @@ export default function AdminReviewPage() {
                             <p className="font-body text-xs text-white/70 mb-1">
                               Q{i + 1}: {q.question}
                             </p>
-                            <p className="font-body text-[10px] text-spark-green">
+                            <p className="font-body text-xs text-spark-green">
                               ✓ {q.options?.[q.correct_index]}
                             </p>
                             {q.hint && (
-                              <p className="font-body text-[10px] text-white/20 mt-0.5">
+                              <p className="font-body text-xs text-white/20 mt-0.5">
                                 Hint: {q.hint}
                               </p>
                             )}
@@ -977,7 +977,7 @@ export default function AdminReviewPage() {
                   {preview.source_urls.map((url: string, i: number) => (
                     <p
                       key={i}
-                      className="font-body text-[10px] text-spark-blue truncate"
+                      className="font-body text-xs text-spark-blue truncate"
                     >
                       {url}
                     </p>
