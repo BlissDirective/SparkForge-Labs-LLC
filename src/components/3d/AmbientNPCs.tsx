@@ -343,6 +343,15 @@ function ArticulatedBot({
     if (leftArmRef.current)  leftArmRef.current.rotation.x = armSwing;
     if (rightArmRef.current) rightArmRef.current.rotation.x = -armSwing;
 
+    // ─── Idle micro-animations (Audit Section 2, Finding D) ───
+    // Breathing: head bobs up ~0.01 on 4s cycle
+    if (headRef.current) {
+      const breathe = Math.sin(t * 1.5708 + phase) * 0.01; // π/2 ≈ 4s full cycle
+      headRef.current.position.y = 0.22 + breathe;
+      // Subtle weight shift: tilt head side to side on a slower cycle
+      headRef.current.rotation.z = Math.sin(t * 0.4 + phase * 2) * 0.03;
+    }
+
     if (visorMatRef.current) {
       const bc = t % visorBlinkInterval;
       visorMatRef.current.opacity = bc < 0.1 ? 0.2 : 1.0;

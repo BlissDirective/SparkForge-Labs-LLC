@@ -396,9 +396,10 @@ function RadarPanel({
       blip.scale.setScalar(pulse * hoverBoost);
     });
 
-    // Subtle ring pulse
+    // Ring rotation: increased speed for perceptible motion (Finding D)
+    // Was 0.05 rad/s (imperceptible) — now 0.3 rad/s (~3s per revolution)
     if (ringGroupRef.current) {
-      ringGroupRef.current.rotation.z = t * 0.05;
+      ringGroupRef.current.rotation.z = t * 0.3;
     }
   });
 

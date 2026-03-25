@@ -744,7 +744,11 @@ export function CockpitPanels({
     // Scale group based on curvature (0 = hidden, 0.85 = full)
     if (groupRef.current) {
       const scale = currentCurvature.current / COCKPIT_GEOMETRY.panelCurvature;
-      groupRef.current.scale.setScalar(Math.max(scale, 0.01));
+      // Breathing: subtle 0.5% scale oscillation on 4s cycle (Finding D)
+      const breathe = !frameDimmed
+        ? Math.sin(clock.elapsedTime * 1.5708) * 0.005
+        : 0;
+      groupRef.current.scale.setScalar(Math.max(scale + breathe, 0.01));
     }
 
     // Smooth opacity transition (was hard assignment — Audit opacity gap fix)

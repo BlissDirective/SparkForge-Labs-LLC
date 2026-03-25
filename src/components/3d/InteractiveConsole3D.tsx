@@ -539,13 +539,19 @@ export function InteractiveConsole3D({
       chromeRef.current.emissiveIntensity = baseEmissive + hp * 0.4;
     }
 
+    // ─── Idle micro-animations (Audit Section 2, Finding D) ───
     if (glowRef.current) {
       const pulse = Math.sin(Date.now() * 0.003) * 0.1;
-      (glowRef.current.material as MeshBasicMaterial).opacity = (isActive ? 0.25 + pulse : 0.08 + pulse * 0.5) + hp * 0.1;
+      // Screen flicker: occasional rapid opacity dip (digital feel)
+      const flicker = Math.random() > 0.995 ? 0.15 : 0;
+      (glowRef.current.material as MeshBasicMaterial).opacity =
+        (isActive ? 0.25 + pulse : 0.08 + pulse * 0.5) + hp * 0.1 - flicker;
     }
     if (statusRef.current) {
       const sp = Math.sin(Date.now() * 0.005) * 0.5 + 0.5;
-      (statusRef.current.material as MeshBasicMaterial).opacity = 0.4 + sp * 0.4;
+      // LED pulse: rhythmic glow cycle on status ring
+      const ledPulse = Math.sin(Date.now() * 0.004 + variant.charCodeAt(0)) * 0.15;
+      (statusRef.current.material as MeshBasicMaterial).opacity = 0.4 + sp * 0.4 + ledPulse;
     }
   });
 
