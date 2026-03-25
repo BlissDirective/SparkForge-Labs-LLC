@@ -2,7 +2,32 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-24 (Audit Report — Important Findings #5-13)
+## Last Updated: 2026-03-25 (Audit Report — Suggestions #12-17)
+
+---
+
+### Audit Report — Suggestions (2026-03-25)
+
+**Status:** COMPLETE
+**Branch:** claude/audit-report-suggestions-oEzxB
+
+**Batch 1 — Canvas DPR + React.memo:**
+- [x] Suggestion #12: CockpitCanvas.tsx — Simplified dpr to [1, 3], letting AdaptiveDpr manage runtime values
+- [x] Suggestion #13: SKIPPED — frameloop="always" is intentional per D3D-5 mandate (ambient cockpit animations)
+- [x] Suggestion #14: Wrapped SpatialDashboardContent, AmbientNPCs, DynamicEnvironment with React.memo
+
+**Batch 2 — Design System Hex Replacement:**
+- [x] Suggestion #15: Replaced hardcoded hex values with Tailwind semantic tokens in 3 files:
+  - ParentLoadingSkeleton.tsx: bg-[#111118]/80 → bg-surface-card/80 (4 instances)
+  - UpgradePrompt.tsx: 7 hex replacements (surface-card, neon-orange, neon-amber tokens)
+  - FutureForgeGame.tsx: bg-surface-base, text-lab-10, via-lab-10, text-neon-amber tokens
+  - PaywallModal.tsx: SVG stroke="#FFAA44" left as-is (SVG attribute, no Tailwind equivalent)
+
+**Batch 3 — Layout Fix + GLTF Preload:**
+- [x] Suggestion #16: Fixed DemoGuard JSX indentation in dashboard layout (logic was correct, formatting misleading)
+- [x] Suggestion #17: Added GLTF_PRELOAD_PATHS registry in lib/3d/materials.ts with documented usage pattern
+
+**TypeScript validation:** PASS (0 new errors; pre-existing module resolution errors from missing node_modules unchanged)
 
 ---
 
