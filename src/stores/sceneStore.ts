@@ -1,3 +1,4 @@
+import { type ReactNode } from 'react';
 import { create } from 'zustand';
 
 export type ActiveScene = 'hero' | 'cockpit' | 'spatial' | 'game' | 'transitioning';
@@ -21,6 +22,10 @@ interface SceneState {
   isTransitioning: boolean;
   cockpitOpacityTarget: number;  // 1.0 in cockpit, 0.2 during game
 
+  // Game 3D scene content — registered by games, consumed by CockpitCanvas (D3D-B3)
+  gameSceneContent: ReactNode | null;
+  setGameSceneContent: (content: ReactNode | null) => void;
+
   enterGame: (gameId: string, labColor: string) => void;
   exitGame: () => void;
   enterSpatial: () => void;
@@ -41,6 +46,9 @@ export const useSceneStore = create<SceneState>((set, get) => ({
   transition: null,
   isTransitioning: false,
   cockpitOpacityTarget: 1.0,
+
+  gameSceneContent: null,
+  setGameSceneContent: (content) => set({ gameSceneContent: content }),
 
   enterGame: (gameId, labColor) => {
     set({
@@ -67,6 +75,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
       activeScene: 'transitioning',
       isTransitioning: true,
       cockpitOpacityTarget: 1.0,
+      gameSceneContent: null,
       transition: {
         from: 'game',
         to: 'cockpit',
@@ -133,3 +142,4 @@ export const selectTransition = (s: SceneState) => s.transition;
 export const selectIsTransitioning = (s: SceneState) => s.isTransitioning;
 export const selectActiveGameId = (s: SceneState) => s.activeGameId;
 export const selectCockpitOpacity = (s: SceneState) => s.cockpitOpacityTarget;
+export const selectGameSceneContent = (s: SceneState) => s.gameSceneContent;

@@ -255,6 +255,9 @@ export function CockpitCanvas({
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const transition = useSceneStore((s) => s.transition);
+  // Game 3D scene content — registered by games via sceneStore (D3D-B3)
+  const storeGameSceneContent = useSceneStore((s) => s.gameSceneContent);
+  const resolvedGameSceneContent = gameSceneContent ?? storeGameSceneContent;
 
   // Per-game camera preset lookup (Section 4.1-B)
   const gameCameraPreset = useMemo(() => {
@@ -394,7 +397,7 @@ export function CockpitCanvas({
                 onLabEnter={onLabEnter}
               />
             }
-            gameContent={gameSceneContent}
+            gameContent={resolvedGameSceneContent}
             irisContent={<MechanicalIris labColor={effectiveLabColor} />}
           />
 

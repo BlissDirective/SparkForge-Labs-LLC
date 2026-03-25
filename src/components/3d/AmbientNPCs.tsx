@@ -11,6 +11,7 @@
 
 import React, { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import { BackSide, Group, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 import { useDeviceStore } from '@/stores/deviceStore';
@@ -55,6 +56,14 @@ const PERSONALITIES: BotPersonality[] = [
   { type: 'guardian', color: '#FF6644', speedMult: 0.8, scaleMult: 1.2,  heightOffset: 0,   description: 'Patrol sentinel' },
   { type: 'scholar',  color: '#AA66FF', speedMult: 0.6, scaleMult: 0.9,  heightOffset: 0.1, description: 'Console drifter' },
 ];
+
+const PERSONALITY_DISPLAY_NAMES: Record<PersonalityType, string> = {
+  scout: 'Scout',
+  engineer: 'Engineer',
+  medic: 'Medic',
+  guardian: 'Guardian',
+  scholar: 'Scholar',
+};
 
 // ── Noise helpers ──────────────────────────────────
 
@@ -673,6 +682,24 @@ function ArticulatedBot({
       {(
         <PersonalityAccessory type={personality.type} color={c} seg={seg} />
       )}
+
+      {/* ── NPC NAME BADGE (Html overlay) ──────────── */}
+      <Html
+        position={[0, 0.35, 0]}
+        distanceFactor={10}
+        occlude="blending"
+        className="pointer-events-none select-none"
+        center
+      >
+        <div className="bg-[#0A0E16]/80 backdrop-blur-sm border border-white/[0.08] rounded-full px-2 py-0.5 whitespace-nowrap">
+          <span
+            className="font-data text-[9px] uppercase tracking-wider"
+            style={{ color: c }}
+          >
+            {PERSONALITY_DISPLAY_NAMES[personality.type]}
+          </span>
+        </div>
+      </Html>
 
     </group>
   );

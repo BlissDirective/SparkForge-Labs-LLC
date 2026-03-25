@@ -16,7 +16,7 @@
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Float } from '@react-three/drei';
+import { Float, Html } from '@react-three/drei';
 import {
   BackSide,
   BoxGeometry,
@@ -933,21 +933,46 @@ export function HolographicLabMap({
       {LABS.map((lab) => {
         const pos = LAB_POSITIONS[lab.id];
         if (!pos) return null;
+        const labColor = LAB_COLORS[lab.id] || '#00BBFF';
+        const completionPct = Math.round((labCompletions[lab.id] ?? 0) * 100);
         return (
-          <LabStructure3D
-            key={lab.id}
-            labId={lab.id}
-            position={pos}
-            color={LAB_COLORS[lab.id] || '#00BBFF'}
-            title={lab.title}
-            icon={lab.icon}
-            isFocused={focusedLabId === lab.id}
-            isHovered={hoveredLabId === lab.id}
-            completionPct={labCompletions[lab.id] ?? 0}
-            onClick={() => handleLabClick(lab.id)}
-            onPointerEnter={() => onLabHover(lab.id)}
-            onPointerLeave={() => onLabHover(null)}
-          />
+          <group key={lab.id} position={pos}>
+            <LabStructure3D
+              labId={lab.id}
+              position={[0, 0, 0]}
+              color={labColor}
+              title={lab.title}
+              icon={lab.icon}
+              isFocused={focusedLabId === lab.id}
+              isHovered={hoveredLabId === lab.id}
+              completionPct={labCompletions[lab.id] ?? 0}
+              onClick={() => handleLabClick(lab.id)}
+              onPointerEnter={() => onLabHover(lab.id)}
+              onPointerLeave={() => onLabHover(null)}
+            />
+            {hoveredLabId === lab.id && (
+              <Html
+                position={[0, 1.2, 0]}
+                distanceFactor={8}
+                occlude="blending"
+                className="pointer-events-none select-none"
+                center
+              >
+                <div
+                  className="bg-[#111118]/90 backdrop-blur-md border rounded-lg px-3 py-2 shadow-lg shadow-black/40 min-w-[120px] text-center"
+                  style={{ borderColor: labColor + '40' }}
+                >
+                  <p className="font-display text-xs font-bold text-white/90">{lab.title}</p>
+                  <p className="font-data text-[10px] text-white/60 mt-0.5">
+                    {completionPct}% Complete
+                  </p>
+                  <p className="font-body text-[9px] text-white/40 mt-0.5">
+                    {lab.games.length} {lab.games.length === 1 ? 'game' : 'games'}
+                  </p>
+                </div>
+              </Html>
+            )}
+          </group>
         );
       })}
     </group>
