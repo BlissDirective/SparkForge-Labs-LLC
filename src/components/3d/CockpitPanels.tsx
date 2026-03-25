@@ -19,7 +19,7 @@
 // Uses PanelFace, WornChrome, ConsoleBase materials.
 // All geometry dims/retracts in game mode (Decision 3.4).
 
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   BackSide,
@@ -42,6 +42,7 @@ import {
   Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
+import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 // ■■ Props ■■
 
@@ -673,6 +674,18 @@ export function CockpitPanels({
   const targetCurvature = useRef(curvature);
   const currentCurvature = useRef(curvature);
 
+  // ─── Hover feedback state (Audit Section 2, Finding C) ───
+  const hoverProgressRef = useRef(0);
+  const isHoveredRef = useRef(false);
+  const handlePanelPointerEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    document.body.style.cursor = 'pointer';
+  }, []);
+  const handlePanelPointerLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    document.body.style.cursor = 'default';
+  }, []);
+
   targetCurvature.current = curvature;
 
   // LOD from device store
@@ -721,29 +734,48 @@ export function CockpitPanels({
   }, []);
 
   // Animate curvature transitions + material updates
-  useFrame(({ clock }) => {
-    // Lerp curvature
-    currentCurvature.current = MathUtils.lerp(
+  useFrame(({ clock }, delta) => {
+    // Smooth curvature transition (dampedLerp for frame-rate independence)
+    currentCurvature.current = dampedLerp(
       currentCurvature.current,
       targetCurvature.current,
-      0.05
+      R3F_LERP_SPEED.SLOW,
+      delta
     );
 
     // Scale group based on curvature (0 = hidden, 0.85 = full)
     if (groupRef.current) {
       const scale = currentCurvature.current / COCKPIT_GEOMETRY.panelCurvature;
-      groupRef.current.scale.setScalar(Math.max(scale, 0.01));
+      // Breathing: subtle 0.5% scale oscillation on 4s cycle (Finding D)
+      const breathe = !frameDimmed
+        ? Math.sin(clock.elapsedTime * 1.5708) * 0.005
+        : 0;
+      groupRef.current.scale.setScalar(Math.max(scale + breathe, 0.01));
     }
 
-    // Update shared panel material opacity
+    // Smooth opacity transition (dampedLerp replaces hard assignment)
     if (panelMatRef.current) {
-      panelMatRef.current.opacity = opacity;
+      panelMatRef.current.opacity = dampedLerp(
+        panelMatRef.current.opacity,
+        opacity,
+        R3F_LERP_SPEED.NORMAL,
+        delta
+      );
     }
 
-    // Hex emissive pulse (4s period, dashboard mode only)
+    // Hover glow: smooth 0→1 progress for emissive boost on panel hover
+    const hoverTarget = isHoveredRef.current ? 1 : 0;
+    hoverProgressRef.current = dampedLerp(
+      hoverProgressRef.current,
+      hoverTarget,
+      R3F_LERP_SPEED.NORMAL,
+      delta
+    );
+
+    // Hex emissive pulse (4s period, dashboard mode only) + hover boost
     if (hexEmissiveRef.current && !frameDimmed) {
       const pulse = Math.sin(clock.elapsedTime * 1.5708) * 0.1 + 0.4;
-      hexEmissiveRef.current.emissiveIntensity = pulse;
+      hexEmissiveRef.current.emissiveIntensity = pulse + hoverProgressRef.current * 0.2;
     }
   });
 
@@ -783,6 +815,8 @@ export function CockpitPanels({
         geometry={geometries.outerTopGeo}
         position={[0, 3.5, 0]}
         rotation={[Math.PI / 2, 0, 0]}
+        onPointerEnter={handlePanelPointerEnter}
+        onPointerLeave={handlePanelPointerLeave}
       >
         <meshStandardMaterial
           ref={panelMatRef}
@@ -804,6 +838,8 @@ export function CockpitPanels({
         geometry={geometries.leftGeo}
         position={[0, 0, 0]}
         rotation={[Math.PI / 2, 0, 0]}
+        onPointerEnter={handlePanelPointerEnter}
+        onPointerLeave={handlePanelPointerLeave}
       >
         <meshStandardMaterial {...outerPanelMaterial} />
       </mesh>
@@ -822,6 +858,8 @@ export function CockpitPanels({
         geometry={geometries.rightGeo}
         position={[0, 0, 0]}
         rotation={[Math.PI / 2, 0, 0]}
+        onPointerEnter={handlePanelPointerEnter}
+        onPointerLeave={handlePanelPointerLeave}
       >
         <meshStandardMaterial {...outerPanelMaterial} />
       </mesh>

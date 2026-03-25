@@ -9,9 +9,10 @@
 //
 // Device scaling: Desktop 8 bots, Tablet 4 bots, Mobile 0.
 
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BackSide, Group, MeshBasicMaterial, MeshStandardMaterial } from 'three';
+import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ── Types ──────────────────────────────────────────
@@ -41,6 +42,8 @@ interface BotState {
   phase: number;
   scale: number;
   visorBlinkInterval: number;
+  /** Stagger delay in seconds for choreographed group entrance (Finding E) */
+  staggerDelay: number;
 }
 
 // ── Personality Definitions ────────────────────────
@@ -264,10 +267,12 @@ function ArticulatedBot({
   botState,
   time,
   focusedLabPosition,
+  visibleSince,
 }: {
   botState: BotState;
   time: number;
   focusedLabPosition: [number, number, number] | null;
+  visibleSince: number | null;
 }) {
   const groupRef    = useRef<Group>(null);
   const headRef     = useRef<Group>(null);
@@ -280,11 +285,23 @@ function ArticulatedBot({
   const seg = 64;                     // 64 at ultra
   const halfSeg = Math.max(8, Math.floor(seg / 2));
 
+  // ─── Hover feedback (Audit Section 2, Finding C) ───
+  const hoverProgressRef = useRef(0);
+  const isHoveredRef = useRef(false);
+  const handleBotPointerEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    document.body.style.cursor = 'pointer';
+  }, []);
+  const handleBotPointerLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    document.body.style.cursor = 'default';
+  }, []);
+
   const { personality, pathSeed, speed, phase, scale, visorBlinkInterval } = botState;
   const prevPos = useRef<[number, number, number]>([0, 0, 0]);
   const facingRef = useRef(0);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
     const t = time;
     const s = pathSeed;
@@ -298,8 +315,27 @@ function ArticulatedBot({
     const z = Math.sin(angle) * baseR + noiseZ;
     const y = 1.2 + personality.heightOffset + botState.height + Math.sin(t * 0.7 + phase) * 0.2;
 
+    // Hover glow progress (dampedLerp for frame-rate independence)
+    const hoverTarget = isHoveredRef.current ? 1 : 0;
+    hoverProgressRef.current = dampedLerp(
+      hoverProgressRef.current,
+      hoverTarget,
+      R3F_LERP_SPEED.NORMAL,
+      delta
+    );
+    const hp = hoverProgressRef.current;
+
     groupRef.current.position.set(x, y, z);
-    groupRef.current.scale.setScalar(scale * personality.scaleMult);
+    // Staggered entrance: scale from 0→1 over 0.5s after per-bot delay (Finding E)
+    let entranceScale = 1;
+    if (visibleSince !== null) {
+      const elapsed = t - visibleSince - botState.staggerDelay;
+      entranceScale = elapsed < 0 ? 0 : Math.min(elapsed / 0.5, 1);
+      // Ease-out for natural settle
+      entranceScale = 1 - (1 - entranceScale) * (1 - entranceScale);
+    }
+    // Scale includes hover boost (1.0→1.1 per npcBot preset)
+    groupRef.current.scale.setScalar(scale * personality.scaleMult * (1 + hp * 0.1) * entranceScale);
 
     const dx = x - prevPos.current[0];
     const dz = z - prevPos.current[2];
@@ -313,7 +349,7 @@ function ArticulatedBot({
     let diff = targetFacing - facingRef.current;
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;
-    facingRef.current += diff * 0.05;
+    facingRef.current = dampedLerp(facingRef.current, facingRef.current + diff, R3F_LERP_SPEED.SLOW, delta);
     groupRef.current.rotation.y = facingRef.current;
     prevPos.current = [x, y, z];
 
@@ -321,14 +357,23 @@ function ArticulatedBot({
     if (leftArmRef.current)  leftArmRef.current.rotation.x = armSwing;
     if (rightArmRef.current) rightArmRef.current.rotation.x = -armSwing;
 
+    // ─── Idle micro-animations (Audit Section 2, Finding D) ───
+    // Breathing: head bobs up ~0.01 on 4s cycle
+    if (headRef.current) {
+      const breathe = Math.sin(t * 1.5708 + phase) * 0.01; // π/2 ≈ 4s full cycle
+      headRef.current.position.y = 0.22 + breathe;
+      // Subtle weight shift: tilt head side to side on a slower cycle
+      headRef.current.rotation.z = Math.sin(t * 0.4 + phase * 2) * 0.03;
+    }
+
     if (visorMatRef.current) {
       const bc = t % visorBlinkInterval;
       visorMatRef.current.opacity = bc < 0.1 ? 0.2 : 1.0;
     }
     if (antTipRef.current) {
-      antTipRef.current.emissiveIntensity = 0.5 + ((Math.sin(t * 2.5 + phase * 3) + 1) * 0.5) * 1.5;
+      antTipRef.current.emissiveIntensity = 0.5 + ((Math.sin(t * 2.5 + phase * 3) + 1) * 0.5) * 1.5 + hp * 0.3;
     }
-    const padPulse = 0.8 + ((Math.sin(t * 1.8 + phase) + 1) * 0.5) * 1.2;
+    const padPulse = 0.8 + ((Math.sin(t * 1.8 + phase) + 1) * 0.5) * 1.2 + hp * 0.3;
     if (padMatLRef.current) padMatLRef.current.emissiveIntensity = padPulse;
     if (padMatRRef.current) padMatRRef.current.emissiveIntensity = padPulse;
   });
@@ -337,7 +382,11 @@ function ArticulatedBot({
   const c = personality.color;
 
   return (
-    <group ref={groupRef}>
+    <group
+      ref={groupRef}
+      onPointerEnter={handleBotPointerEnter}
+      onPointerLeave={handleBotPointerLeave}
+    >
 
       {/* ── HEAD GROUP ─────────────────────────────── */}
       <group ref={headRef} position={[0, 0.22, 0]}>
@@ -635,6 +684,8 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
   const botsRef = useRef<Group>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const _profile = useDeviceStore((s) => s.profile);
+  // Track when visibility began for staggered entrance (Finding E)
+  const visibleSinceRef = useRef<number | null>(null);
 
   const botCount = 8; // D3D-1: Always max bots (desktop-ultra)
 
@@ -651,12 +702,19 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
         phase: (i / Math.max(botCount, 1)) * Math.PI * 2,
         scale: (0.75 + (seed % 30) / 100) * personality.scaleMult,
         visorBlinkInterval: 3 + (seed % 50) / 10,
+        staggerDelay: i * 0.1, // 0.1s offset per bot for choreographed entrance
       };
     });
   }, [botCount]);
 
   useFrame(({ clock }) => {
-    if (!visible) return;
+    if (!visible) {
+      visibleSinceRef.current = null;
+      return;
+    }
+    if (visibleSinceRef.current === null) {
+      visibleSinceRef.current = clock.elapsedTime;
+    }
     setCurrentTime(clock.elapsedTime);
   });
 
@@ -670,6 +728,7 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
           botState={bot}
           time={currentTime}
           focusedLabPosition={focusedLabPosition}
+          visibleSince={visibleSinceRef.current}
         />
       ))}
     </group>

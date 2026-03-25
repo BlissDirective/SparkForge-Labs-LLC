@@ -9,7 +9,7 @@
 //
 // All existing props and CONSOLE_POSITIONS preserved.
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox, Float, ContactShadows } from '@react-three/drei';
 import {
@@ -19,9 +19,11 @@ import {
   Group,
   Mesh,
   MeshBasicMaterial,
+  MeshStandardMaterial,
   TubeGeometry,
   Vector3,
 } from 'three';
+import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 type ConsoleVariant = 'xp' | 'badges' | 'streak' | 'progress';
 
@@ -498,6 +500,7 @@ export function InteractiveConsole3D({
   const groupRef  = useRef<Group>(null);
   const glowRef   = useRef<Mesh>(null);
   const statusRef = useRef<Mesh>(null);
+  const chromeRef = useRef<MeshStandardMaterial>(null);
   const color  = CONSOLE_COLORS[variant];
   const label  = CONSOLE_LABELS[variant];
   const seg    = 64;
@@ -505,17 +508,51 @@ export function InteractiveConsole3D({
   // Console dimensions
   const W = 0.7, H = 0.5;
 
-  useFrame(() => {
+  // ─── Hover feedback (Audit Section 2, Finding C) ───
+  const hoverProgressRef = useRef(0);
+  const isHoveredRef = useRef(false);
+  const handleConsolePointerEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    document.body.style.cursor = 'pointer';
+  }, []);
+  const handleConsolePointerLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    document.body.style.cursor = 'default';
+  }, []);
+
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
     groupRef.current.position.y = position[1] + Math.sin(Date.now() * 0.002 + variant.charCodeAt(0)) * 0.03;
 
+    // Hover glow progress (dampedLerp for frame-rate independence)
+    const hoverTarget = isHoveredRef.current ? 1 : 0;
+    hoverProgressRef.current = dampedLerp(
+      hoverProgressRef.current,
+      hoverTarget,
+      R3F_LERP_SPEED.FAST, // consoles respond snappily
+      delta
+    );
+    const hp = hoverProgressRef.current;
+
+    // Chrome frame emissive reacts to hover (smooth transition)
+    if (chromeRef.current) {
+      const baseEmissive = isActive ? 0.12 : 0.03;
+      chromeRef.current.emissiveIntensity = baseEmissive + hp * 0.4;
+    }
+
+    // ─── Idle micro-animations (Audit Section 2, Finding D) ───
     if (glowRef.current) {
       const pulse = Math.sin(Date.now() * 0.003) * 0.1;
-      (glowRef.current.material as MeshBasicMaterial).opacity = isActive ? 0.25 + pulse : 0.08 + pulse * 0.5;
+      // Screen flicker: occasional rapid opacity dip (digital feel)
+      const flicker = Math.random() > 0.995 ? 0.15 : 0;
+      (glowRef.current.material as MeshBasicMaterial).opacity =
+        (isActive ? 0.25 + pulse : 0.08 + pulse * 0.5) + hp * 0.1 - flicker;
     }
     if (statusRef.current) {
       const sp = Math.sin(Date.now() * 0.005) * 0.5 + 0.5;
-      (statusRef.current.material as MeshBasicMaterial).opacity = 0.4 + sp * 0.4;
+      // LED pulse: rhythmic glow cycle on status ring
+      const ledPulse = Math.sin(Date.now() * 0.004 + variant.charCodeAt(0)) * 0.15;
+      (statusRef.current.material as MeshBasicMaterial).opacity = 0.4 + sp * 0.4 + ledPulse;
     }
   });
 
@@ -529,10 +566,10 @@ export function InteractiveConsole3D({
           radius={0.022}
           smoothness={64 >= 12 ? 6 : 3}
           onClick={(e) => { e.stopPropagation(); onClick(); }}
-          onPointerEnter={() => { document.body.style.cursor = 'pointer'; }}
-          onPointerLeave={() => { document.body.style.cursor = 'default'; }}
+          onPointerEnter={handleConsolePointerEnter}
+          onPointerLeave={handleConsolePointerLeave}
         >
-          <meshStandardMaterial color="#222230" metalness={0.95} roughness={0.1}
+          <meshStandardMaterial ref={chromeRef} color="#222230" metalness={0.95} roughness={0.1}
             emissive={color} emissiveIntensity={isActive ? 0.12 : 0.03} />
         </RoundedBox>
 
