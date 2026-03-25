@@ -301,3 +301,73 @@ export function safeVariant(variant: Variants, reducedMotion = false): Variants 
     exit: { opacity: 0, transition: { duration: 0.1 } },
   };
 }
+
+// ═══ R3F / useFrame EASING UTILITIES (Audit Finding: improve lerp curves) ═══
+// These functions are designed for use inside useFrame() loops where you
+// interpolate values each frame. They replace raw MathUtils.lerp with
+// shaped curves for more natural motion.
+
+/**
+ * Smooth-step easing (cubic Hermite). Use for smooth start + smooth stop.
+ * Input: t in [0,1], Output: eased t in [0,1]
+ */
+export function easeSmooth(t: number): number {
+  const c = Math.max(0, Math.min(1, t));
+  return c * c * (3 - 2 * c);
+}
+
+/**
+ * Ease-out quadratic. Decelerates to stop. Use for hover-off, settle.
+ */
+export function easeOutQuad(t: number): number {
+  const c = Math.max(0, Math.min(1, t));
+  return 1 - (1 - c) * (1 - c);
+}
+
+/**
+ * Ease-in-out cubic. Natural acceleration/deceleration.
+ */
+export function easeInOutCubic(t: number): number {
+  const c = Math.max(0, Math.min(1, t));
+  return c < 0.5 ? 4 * c * c * c : 1 - Math.pow(-2 * c + 2, 3) / 2;
+}
+
+/**
+ * Overshoot ease-out. Goes past target then settles. Use for bouncy feel.
+ * @param overshoot - How much to overshoot (default 1.5 = 50% past target)
+ */
+export function easeOutBack(t: number, overshoot = 1.5): number {
+  const c = Math.max(0, Math.min(1, t));
+  return 1 + (overshoot + 1) * Math.pow(c - 1, 3) + overshoot * Math.pow(c - 1, 2);
+}
+
+/**
+ * Frame-rate-independent damped lerp for useFrame. Replaces raw lerp.
+ * Produces smooth exponential approach regardless of frame rate.
+ *
+ * @param current - Current value
+ * @param target - Target value
+ * @param speed - Approach speed (higher = faster, 5-15 typical)
+ * @param delta - Frame delta time from useFrame
+ * @returns New value approaching target
+ *
+ * Usage in useFrame:
+ *   value = dampedLerp(value, target, 8, delta);
+ */
+export function dampedLerp(current: number, target: number, speed: number, delta: number): number {
+  return current + (target - current) * (1 - Math.exp(-speed * delta));
+}
+
+/** R3F lerp speed presets (for dampedLerp's speed parameter) */
+export const R3F_LERP_SPEED = {
+  /** Very slow settle (camera, large transitions) */
+  GLACIAL: 2,
+  /** Slow (panel opacity, background shifts) */
+  SLOW: 4,
+  /** Default for most hover/glow transitions */
+  NORMAL: 8,
+  /** Snappy response (button press, click feedback) */
+  FAST: 12,
+  /** Near-instant (emissive flashes, hit feedback) */
+  INSTANT: 20,
+} as const;

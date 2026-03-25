@@ -17,13 +17,13 @@ import {
   DoubleSide,
   Euler,
   Group,
-  MathUtils,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
   TubeGeometry,
   Vector3,
 } from 'three';
+import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 type ConsoleVariant = 'xp' | 'badges' | 'streak' | 'progress';
 
@@ -524,12 +524,13 @@ export function InteractiveConsole3D({
     if (!groupRef.current) return;
     groupRef.current.position.y = position[1] + Math.sin(Date.now() * 0.002 + variant.charCodeAt(0)) * 0.03;
 
-    // Hover glow progress (smooth 0→1)
+    // Hover glow progress (dampedLerp for frame-rate independence)
     const hoverTarget = isHoveredRef.current ? 1 : 0;
-    hoverProgressRef.current = MathUtils.lerp(
+    hoverProgressRef.current = dampedLerp(
       hoverProgressRef.current,
       hoverTarget,
-      0.1 * delta * 60 // matches console preset transitionSpeed
+      R3F_LERP_SPEED.FAST, // consoles respond snappily
+      delta
     );
     const hp = hoverProgressRef.current;
 

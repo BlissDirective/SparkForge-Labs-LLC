@@ -42,6 +42,7 @@ import {
   Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
+import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 // ■■ Props ■■
 
@@ -734,11 +735,12 @@ export function CockpitPanels({
 
   // Animate curvature transitions + material updates
   useFrame(({ clock }, delta) => {
-    // Lerp curvature
-    currentCurvature.current = MathUtils.lerp(
+    // Smooth curvature transition (dampedLerp for frame-rate independence)
+    currentCurvature.current = dampedLerp(
       currentCurvature.current,
       targetCurvature.current,
-      0.05
+      R3F_LERP_SPEED.SLOW,
+      delta
     );
 
     // Scale group based on curvature (0 = hidden, 0.85 = full)
@@ -751,21 +753,23 @@ export function CockpitPanels({
       groupRef.current.scale.setScalar(Math.max(scale + breathe, 0.01));
     }
 
-    // Smooth opacity transition (was hard assignment — Audit opacity gap fix)
+    // Smooth opacity transition (dampedLerp replaces hard assignment)
     if (panelMatRef.current) {
-      panelMatRef.current.opacity = MathUtils.lerp(
+      panelMatRef.current.opacity = dampedLerp(
         panelMatRef.current.opacity,
         opacity,
-        0.08
+        R3F_LERP_SPEED.NORMAL,
+        delta
       );
     }
 
     // Hover glow: smooth 0→1 progress for emissive boost on panel hover
     const hoverTarget = isHoveredRef.current ? 1 : 0;
-    hoverProgressRef.current = MathUtils.lerp(
+    hoverProgressRef.current = dampedLerp(
       hoverProgressRef.current,
       hoverTarget,
-      0.06 * delta * 60 // matches cockpitPanel preset transitionSpeed
+      R3F_LERP_SPEED.NORMAL,
+      delta
     );
 
     // Hex emissive pulse (4s period, dashboard mode only) + hover boost

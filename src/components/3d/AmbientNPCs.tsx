@@ -11,7 +11,8 @@
 
 import React, { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { BackSide, Group, MathUtils, MeshBasicMaterial, MeshStandardMaterial } from 'three';
+import { BackSide, Group, MeshBasicMaterial, MeshStandardMaterial } from 'three';
+import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ── Types ──────────────────────────────────────────
@@ -300,7 +301,7 @@ function ArticulatedBot({
   const prevPos = useRef<[number, number, number]>([0, 0, 0]);
   const facingRef = useRef(0);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!groupRef.current) return;
     const t = time;
     const s = pathSeed;
@@ -314,12 +315,13 @@ function ArticulatedBot({
     const z = Math.sin(angle) * baseR + noiseZ;
     const y = 1.2 + personality.heightOffset + botState.height + Math.sin(t * 0.7 + phase) * 0.2;
 
-    // Hover glow progress (smooth 0→1)
+    // Hover glow progress (dampedLerp for frame-rate independence)
     const hoverTarget = isHoveredRef.current ? 1 : 0;
-    hoverProgressRef.current = MathUtils.lerp(
+    hoverProgressRef.current = dampedLerp(
       hoverProgressRef.current,
       hoverTarget,
-      0.08 // matches npcBot preset transitionSpeed
+      R3F_LERP_SPEED.NORMAL,
+      delta
     );
     const hp = hoverProgressRef.current;
 
@@ -347,7 +349,7 @@ function ArticulatedBot({
     let diff = targetFacing - facingRef.current;
     while (diff > Math.PI) diff -= Math.PI * 2;
     while (diff < -Math.PI) diff += Math.PI * 2;
-    facingRef.current += diff * 0.05;
+    facingRef.current = dampedLerp(facingRef.current, facingRef.current + diff, R3F_LERP_SPEED.SLOW, delta);
     groupRef.current.rotation.y = facingRef.current;
     prevPos.current = [x, y, z];
 

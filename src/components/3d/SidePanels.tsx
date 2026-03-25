@@ -30,6 +30,7 @@ import {
   Vector3,
 } from 'three';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
+import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 // ════════════════════════════════════════════════════════════════
 // Props interface (unchanged from v1)
@@ -373,20 +374,21 @@ function RadarPanel({
       sweepRef.current.rotation.z = t * 1.5;
     }
 
-    // Hover glow progress (smooth 0→1)
+    // Hover glow progress (smooth 0→1 via dampedLerp)
     const hoverTarget = isHoveredRef.current ? 1 : 0;
-    hoverProgressRef.current = MathUtils.lerp(
+    hoverProgressRef.current = dampedLerp(
       hoverProgressRef.current,
       hoverTarget,
-      0.08 * delta * 60
+      R3F_LERP_SPEED.NORMAL,
+      delta
     );
     const hp = hoverProgressRef.current;
 
     // Update shared blip material with smooth opacity + hover emissive boost
     const targetEmissive = (0.9 + hp * 0.25) * intensity;
     const targetOpacity = opacity * 0.85 * intensity;
-    blipMat.emissiveIntensity = MathUtils.lerp(blipMat.emissiveIntensity, targetEmissive, 0.08);
-    blipMat.opacity = MathUtils.lerp(blipMat.opacity, targetOpacity, 0.08);
+    blipMat.emissiveIntensity = dampedLerp(blipMat.emissiveIntensity, targetEmissive, R3F_LERP_SPEED.NORMAL, delta);
+    blipMat.opacity = dampedLerp(blipMat.opacity, targetOpacity, R3F_LERP_SPEED.NORMAL, delta);
 
     // Pulse blips (+ hover scale boost)
     blipRefs.current.forEach((blip, i) => {
@@ -642,12 +644,13 @@ function TerminalPanel({
 
   // Update instanced bars each frame (scrolling effect)
   useFrame(({ clock }, delta) => {
-    // Hover glow progress
+    // Hover glow progress (dampedLerp for frame-rate independence)
     const hoverTarget = isHoveredRef.current ? 1 : 0;
-    hoverProgressRef.current = MathUtils.lerp(
+    hoverProgressRef.current = dampedLerp(
       hoverProgressRef.current,
       hoverTarget,
-      0.08 * delta * 60
+      R3F_LERP_SPEED.NORMAL,
+      delta
     );
 
     if (!barsRef.current) return;
