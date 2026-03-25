@@ -70,6 +70,8 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
 import { HDR_FALLBACK_PRESET } from '@/lib/3d/materials';
+// Module-level asset preloading (Audit Section 4.5)
+import '@/lib/3d/preloadAssets';
 import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
 
 // ── Props ────────────────────────────────────────────────────────
