@@ -41,6 +41,8 @@ interface BotState {
   phase: number;
   scale: number;
   visorBlinkInterval: number;
+  /** Stagger delay in seconds for choreographed group entrance (Finding E) */
+  staggerDelay: number;
 }
 
 // ── Personality Definitions ────────────────────────
@@ -264,10 +266,12 @@ function ArticulatedBot({
   botState,
   time,
   focusedLabPosition,
+  visibleSince,
 }: {
   botState: BotState;
   time: number;
   focusedLabPosition: [number, number, number] | null;
+  visibleSince: number | null;
 }) {
   const groupRef    = useRef<Group>(null);
   const headRef     = useRef<Group>(null);
@@ -320,8 +324,16 @@ function ArticulatedBot({
     const hp = hoverProgressRef.current;
 
     groupRef.current.position.set(x, y, z);
+    // Staggered entrance: scale from 0→1 over 0.5s after per-bot delay (Finding E)
+    let entranceScale = 1;
+    if (visibleSince !== null) {
+      const elapsed = t - visibleSince - botState.staggerDelay;
+      entranceScale = elapsed < 0 ? 0 : Math.min(elapsed / 0.5, 1);
+      // Ease-out for natural settle
+      entranceScale = 1 - (1 - entranceScale) * (1 - entranceScale);
+    }
     // Scale includes hover boost (1.0→1.1 per npcBot preset)
-    groupRef.current.scale.setScalar(scale * personality.scaleMult * (1 + hp * 0.1));
+    groupRef.current.scale.setScalar(scale * personality.scaleMult * (1 + hp * 0.1) * entranceScale);
 
     const dx = x - prevPos.current[0];
     const dz = z - prevPos.current[2];
@@ -670,6 +682,8 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
   const botsRef = useRef<Group>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const _profile = useDeviceStore((s) => s.profile);
+  // Track when visibility began for staggered entrance (Finding E)
+  const visibleSinceRef = useRef<number | null>(null);
 
   const botCount = 8; // D3D-1: Always max bots (desktop-ultra)
 
@@ -686,12 +700,19 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
         phase: (i / Math.max(botCount, 1)) * Math.PI * 2,
         scale: (0.75 + (seed % 30) / 100) * personality.scaleMult,
         visorBlinkInterval: 3 + (seed % 50) / 10,
+        staggerDelay: i * 0.1, // 0.1s offset per bot for choreographed entrance
       };
     });
   }, [botCount]);
 
   useFrame(({ clock }) => {
-    if (!visible) return;
+    if (!visible) {
+      visibleSinceRef.current = null;
+      return;
+    }
+    if (visibleSinceRef.current === null) {
+      visibleSinceRef.current = clock.elapsedTime;
+    }
     setCurrentTime(clock.elapsedTime);
   });
 
@@ -705,6 +726,7 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
           botState={bot}
           time={currentTime}
           focusedLabPosition={focusedLabPosition}
+          visibleSince={visibleSinceRef.current}
         />
       ))}
     </group>
