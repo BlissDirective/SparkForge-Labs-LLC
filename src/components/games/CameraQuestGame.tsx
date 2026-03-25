@@ -337,7 +337,7 @@ export function CameraQuestGame() {
                     {/* Privacy badge */}
                     <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-cyan-500/5 border border-cyan-500/15">
                       <Lock className="w-3 h-3 text-cyan-400" />
-                      <p className="font-body text-[10px] text-cyan-300">
+                      <p className="font-body text-2xs text-cyan-300">
                         No images are stored \u2014 privacy first!
                       </p>
                     </div>
@@ -463,7 +463,7 @@ export function CameraQuestGame() {
                       className="text-center mb-4"
                     >
                       <div className="flex items-center gap-1 justify-center mb-1">
-                        <span className="px-2 py-0.5 rounded bg-cyan-500/10 font-body text-[9px] text-cyan-300">
+                        <span className="px-2 py-0.5 rounded bg-cyan-500/10 font-body text-2xs text-cyan-300">
                           {item.category}
                         </span>
                         <span className="flex gap-0.5">
@@ -483,7 +483,7 @@ export function CameraQuestGame() {
                       <h3 className="font-display text-xl font-bold text-white">
                         Find {item.text}
                       </h3>
-                      <p className="font-body text-[10px] text-white/30 mt-1 max-w-sm">
+                      <p className="font-body text-2xs text-white/30 mt-1 max-w-sm">
                         {ageBand === 'C' ? item.hintC : item.hintA}
                       </p>
                     </motion.div>
@@ -541,7 +541,7 @@ export function CameraQuestGame() {
                         {/* Simulated confidence meter */}
                         {showConfidence && (
                           <div className="mb-3 rounded-xl p-3 border border-cyan-500/15 bg-cyan-500/[0.03]">
-                            <p className="font-body text-[10px] text-white/30 mb-1">
+                            <p className="font-body text-2xs text-white/30 mb-1">
                               AI Confidence:
                             </p>
                             <div className="h-3 rounded-full bg-white/5 overflow-hidden mb-1">
@@ -576,7 +576,7 @@ export function CameraQuestGame() {
                               {item.simConfidence}% confident
                             </p>
                             {item.simConfidence < 50 && (
-                              <p className="font-body text-[9px] text-white/25 mt-0.5">
+                              <p className="font-body text-2xs text-white/25 mt-0.5">
                                 {ageBand === 'C'
                                   ? 'Low confidence: abstract properties are difficult for standard classifiers.'
                                   : 'AI finds this one tricky! Some things are hard for computers to see.'}

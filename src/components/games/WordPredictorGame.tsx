@@ -274,7 +274,7 @@ export function WordPredictorGame() {
                       {['Next Token', 'Probability', 'Language Model'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-2xs"
                         >
                           {t}
                         </span>
@@ -367,13 +367,13 @@ export function WordPredictorGame() {
                                   transition={{ duration: 0.8, delay: 0.2 }}
                                 />
                               </div>
-                              <span className="font-mono text-[10px] text-white/30 w-8">
+                              <span className="font-mono text-2xs text-white/30 w-8">
                                 {p.confidence}%
                               </span>
                             </div>
                           ))}
                         </div>
-                        <p className="font-body text-[10px] text-white/25 mt-3 max-w-xs mx-auto">
+                        <p className="font-body text-2xs text-white/25 mt-3 max-w-xs mx-auto">
                           {ageBand === 'C' ? round.explanationC : round.explanation}
                         </p>
                       </motion.div>

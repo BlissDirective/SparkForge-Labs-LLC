@@ -306,7 +306,7 @@ export function SortToyBoxGame() {
                         (t) => (
                           <span
                             key={t}
-                            className="px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-[10px] text-purple-300"
+                            className="px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-2xs text-purple-300"
                           >
                             {t}
                           </span>

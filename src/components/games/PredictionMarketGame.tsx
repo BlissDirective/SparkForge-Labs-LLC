@@ -184,7 +184,7 @@ export function PredictionMarketGame() {
                   <motion.div key={predIdx} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }} className="max-w-md w-full text-center">
                     {/* Time horizon badge */}
-                    <span className="px-2 py-0.5 rounded bg-fuchsia-500/10 font-mono text-[10px] text-fuchsia-400 mb-2 inline-block">by {pred.horizon}</span>
+                    <span className="px-2 py-0.5 rounded bg-fuchsia-500/10 font-mono text-2xs text-fuchsia-400 mb-2 inline-block">by {pred.horizon}</span>
                     <span className="text-4xl block mb-3">{pred.emoji}</span>
                     <h3 className="font-display text-lg font-bold text-white mb-5">{pred.question}</h3>
 

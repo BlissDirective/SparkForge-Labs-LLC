@@ -179,7 +179,7 @@ export function TokenChopperGame() {
                       {['Tokenization', 'Subwords', 'API Cost'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-2xs"
                         >
                           {t}
                         </span>
@@ -210,14 +210,14 @@ export function TokenChopperGame() {
                         {CHALLENGES[challengeIdx].text}
                       </p>
                       {showHint && (
-                        <p className="font-body text-[10px] text-white/30 mt-1">
+                        <p className="font-body text-2xs text-white/30 mt-1">
                           {CHALLENGES[challengeIdx].hint}
                         </p>
                       )}
                       {!showHint && (
                         <button
                           onClick={() => setShowHint(true)}
-                          className="font-body text-[10px] text-white/20 hover:text-white/40 mt-1"
+                          className="font-body text-2xs text-white/20 hover:text-white/40 mt-1"
                         >
                           Show hint
                         </button>
@@ -249,7 +249,7 @@ export function TokenChopperGame() {
                               className="w-2 h-2 rounded-full"
                               style={{ backgroundColor: c.color }}
                             />
-                            <span className="font-body text-[8px] text-white/20">{c.label}</span>
+                            <span className="font-body text-2xs text-white/20">{c.label}</span>
                           </span>
                         ))}
                       </div>

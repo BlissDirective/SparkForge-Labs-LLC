@@ -169,7 +169,7 @@ export function LostInTranslationGame() {
                     </p>
                     <div className="flex gap-2 justify-center">
                       {['Translation', 'Idioms', 'Language'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 font-body text-[10px] text-indigo-300">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 font-body text-2xs text-indigo-300">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
@@ -188,7 +188,7 @@ export function LostInTranslationGame() {
 
                     {/* Original */}
                     <div className="rounded-xl p-4 mb-3 border border-indigo-500/20 bg-indigo-500/5 text-center">
-                      <p className="font-body text-[10px] text-white/30">{'\u{1F1EC}\u{1F1E7}'} Original</p>
+                      <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Original</p>
                       <p className="font-display text-base font-bold text-white">&ldquo;{round.original}&rdquo;</p>
                     </div>
 
@@ -207,9 +207,9 @@ export function LostInTranslationGame() {
                     {allRevealed && (
                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                         className="rounded-xl p-4 text-center border border-amber-500/30 bg-amber-500/5 mb-3">
-                        <p className="font-body text-[10px] text-white/30">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
+                        <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
                         <p className="font-display text-base font-bold text-amber-400">&ldquo;{round.final}&rdquo;</p>
-                        <p className="font-body text-[10px] text-white/30 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
+                        <p className="font-body text-2xs text-white/30 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
                       </motion.div>
                     )}
 

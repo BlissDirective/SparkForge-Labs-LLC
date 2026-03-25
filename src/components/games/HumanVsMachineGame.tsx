@@ -286,7 +286,7 @@ export function HumanVsMachineGame() {
                         (t) => (
                           <span
                             key={t}
-                            className="px-2 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 font-body text-[10px] text-sky-300"
+                            className="px-2 py-1 rounded-lg bg-sky-500/10 border border-sky-500/20 font-body text-2xs text-sky-300"
                           >
                             {t}
                           </span>
@@ -394,14 +394,14 @@ export function HumanVsMachineGame() {
                       >
                         <div className="grid grid-cols-2 gap-2">
                           <div className="rounded-lg p-2 bg-sky-500/5 border border-sky-500/10">
-                            <p className="font-body text-[9px] text-sky-400 uppercase">Human Advantage</p>
-                            <p className="font-body text-[10px] text-white/50 mt-0.5">
+                            <p className="font-body text-2xs text-sky-400 uppercase">Human Advantage</p>
+                            <p className="font-body text-2xs text-white/50 mt-0.5">
                               {ageBand === 'C' ? challenge.humanAdvantageC : challenge.humanAdvantage}
                             </p>
                           </div>
                           <div className="rounded-lg p-2 bg-amber-500/5 border border-amber-500/10">
-                            <p className="font-body text-[9px] text-amber-400 uppercase">AI Advantage</p>
-                            <p className="font-body text-[10px] text-white/50 mt-0.5">
+                            <p className="font-body text-2xs text-amber-400 uppercase">AI Advantage</p>
+                            <p className="font-body text-2xs text-white/50 mt-0.5">
                               {ageBand === 'C' ? challenge.aiAdvantageC : challenge.aiAdvantage}
                             </p>
                           </div>

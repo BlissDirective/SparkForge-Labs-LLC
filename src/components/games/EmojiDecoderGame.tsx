@@ -342,7 +342,7 @@ export function EmojiDecoderGame() {
               </p>
               <div className="flex flex-wrap gap-2 justify-center mb-6">
                 {['NLP', 'Emojis', 'Language', 'Context'].map(tag => (
-                  <span key={tag} className="px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/20 font-mono text-[10px] text-indigo-300">{tag}</span>
+                  <span key={tag} className="px-3 py-1 rounded-full bg-indigo-500/15 border border-indigo-500/20 font-mono text-2xs text-indigo-300">{tag}</span>
                 ))}
               </div>
               <motion.button onClick={() => setPhase('learn')}
@@ -418,7 +418,7 @@ export function EmojiDecoderGame() {
 
               {/* Difficulty */}
               <div className="flex justify-center mb-2">
-                <span className={`px-2 py-0.5 rounded-full font-mono text-[10px] ${
+                <span className={`px-2 py-0.5 rounded-full font-mono text-2xs ${
                   round.difficulty === 'easy' ? 'bg-emerald-500/15 text-emerald-400' :
                   round.difficulty === 'medium' ? 'bg-amber-500/15 text-amber-400' :
                   'bg-red-500/15 text-red-400'}`}>
@@ -534,7 +534,7 @@ export function EmojiDecoderGame() {
                       placeholder="Type your emoji sentence here... \u{1F60A}"
                       className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm resize-none focus:outline-none focus:border-indigo-500/40 h-20"
                       maxLength={60} aria-label="Type your emoji sentence" />
-                    <p className="font-mono text-[10px] text-white/20 mt-1">{labText.length}/60</p>
+                    <p className="font-mono text-2xs text-white/20 mt-1">{labText.length}/60</p>
                     <motion.button onClick={handleLabSubmit} disabled={labText.trim().length < 2}
                       className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-display text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-30"
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} aria-label="Submit emoji sentence">
@@ -576,15 +576,15 @@ export function EmojiDecoderGame() {
               <div className="w-full max-w-xs rounded-2xl p-4 bg-white/[0.03] border border-indigo-500/20 mb-4">
                 <div className="grid grid-cols-3 gap-3 text-center mb-3">
                   <div className="rounded-xl p-2 bg-emerald-500/10 border border-emerald-500/20">
-                    <p className="font-mono text-[10px] text-emerald-400 mb-1">CORRECT</p>
+                    <p className="font-mono text-2xs text-emerald-400 mb-1">CORRECT</p>
                     <p className="font-display text-xl font-bold text-emerald-300">{totalCorrect}/{totalRounds}</p>
                   </div>
                   <div className="rounded-xl p-2 bg-amber-500/10 border border-amber-500/20">
-                    <p className="font-mono text-[10px] text-amber-400 mb-1">BEST STREAK</p>
+                    <p className="font-mono text-2xs text-amber-400 mb-1">BEST STREAK</p>
                     <p className="font-display text-xl font-bold text-amber-300">{bestStreak}{'\u{1F525}'}</p>
                   </div>
                   <div className="rounded-xl p-2 bg-indigo-500/10 border border-indigo-500/20">
-                    <p className="font-mono text-[10px] text-indigo-400 mb-1">XP EARNED</p>
+                    <p className="font-mono text-2xs text-indigo-400 mb-1">XP EARNED</p>
                     <p className="font-display text-xl font-bold text-indigo-300">{game.score}</p>
                   </div>
                 </div>

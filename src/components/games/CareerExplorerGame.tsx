@@ -292,7 +292,7 @@ export default function CareerExplorerGame() {
                       {['AI Careers', 'Skills', 'Job Roles'].map((t) => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 font-body text-[10px] text-orange-400"
+                          className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 font-body text-2xs text-orange-400"
                         >
                           {t}
                         </span>
@@ -388,7 +388,7 @@ export default function CareerExplorerGame() {
                       ))}
                     </div>
 
-                    <p className="font-body text-[10px] text-white/30">
+                    <p className="font-body text-2xs text-white/30">
                       Round {round + 1} of {totalRounds}
                     </p>
 
@@ -409,7 +409,7 @@ export default function CareerExplorerGame() {
                             {currentCareer.title}
                           </h3>
                           <Briefcase className="inline w-3 h-3 text-orange-400 mr-1" />
-                          <span className="font-body text-[10px] text-orange-400">
+                          <span className="font-body text-2xs text-orange-400">
                             AI Career
                           </span>
                         </div>
@@ -558,7 +558,7 @@ export default function CareerExplorerGame() {
                           className="flex flex-col items-center p-2 rounded-lg bg-white/5 border border-white/5"
                         >
                           <span className="text-lg">{c.emoji}</span>
-                          <p className="font-body text-[7px] text-white/30 mt-1 leading-tight text-center">
+                          <p className="font-body text-2xs text-white/30 mt-1 leading-tight text-center">
                             {c.title}
                           </p>
                         </motion.div>
