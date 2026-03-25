@@ -2,7 +2,61 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-25 (Audit Report — R3F Section 4: Stack Alignment & Pitfalls)
+## Last Updated: 2026-03-25 (Creature Species + HDRI Asset Creation)
+
+---
+
+### Creature Species + HDRI Asset Creation (2026-03-25)
+
+**Status:** COMPLETE
+**Branch:** claude/audit-report-r3f-review-XQQ1z
+
+**HDRI Generation:**
+- [x] Created Node.js HDRI generator (tools/generate-frost-prismatic-hdri.js)
+- [x] Generated frost-prismatic.hdr (1024x512, Radiance RGBE, 2MB)
+  - Dark studio (#0a0a14) + Blue key (#3B82F6) + Purple fill (#8B5CF6) + Teal rim (#06B6D4)
+- [x] CockpitCanvas switched from drei 'night' preset to custom HDRI
+
+**5 Creature Species (replacing 6 generic pets):**
+- [x] creatureConfig.ts — Species configs, mood system, 6 evolution stages each
+- [x] CreatureBase.tsx — Shared toon shading, CreatureWrapper, BlinkingEye, InnerGlow
+- [x] BytelingCreature.tsx — Data & Binary theme (cubic shapes, blue #00BBFF)
+- [x] SparkpawCreature.tsx — Neural Networks theme (spheres/tentacles, purple #AA66FF)
+- [x] VoltkitCreature.tsx — Energy & Computing theme (triangles/spikes, green #00FF88)
+- [x] CogsworthCreature.tsx — Robotics & Building theme (cylinders/gears, amber #FFAA44)
+- [x] PixieCreature.tsx — Computer Vision theme (discs/lenses, cyan #06B6D4)
+
+**Integration:**
+- [x] PetCreature3D.tsx — Rewrote to use species dispatcher (no more GLB probing)
+- [x] Pet3DScene.tsx — Added speciesId prop
+- [x] PetTrainerGame.tsx — Replaced 6 generic pets with 5 AI-themed species
+- [x] creatures/index.ts — Barrel export + CREATURE_COMPONENTS lookup map
+
+**Files Created (10):**
+- `tools/generate-frost-prismatic-hdri.js`
+- `public/hdri/frost-prismatic.hdr`
+- `src/config/creatureConfig.ts`
+- `src/components/3d/creatures/CreatureBase.tsx`
+- `src/components/3d/creatures/BytelingCreature.tsx`
+- `src/components/3d/creatures/SparkpawCreature.tsx`
+- `src/components/3d/creatures/VoltkitCreature.tsx`
+- `src/components/3d/creatures/CogsworthCreature.tsx`
+- `src/components/3d/creatures/PixieCreature.tsx`
+- `src/components/3d/creatures/index.ts`
+
+**Files Modified (3):**
+- `src/components/3d/PetCreature3D.tsx` — Species-aware renderer
+- `src/components/3d/Pet3DScene.tsx` — Added speciesId prop
+- `src/components/games/PetTrainerGame.tsx` — 5 new species configs
+
+**Species Summary:**
+| Species | Theme | Shape | Color | Stages |
+|---------|-------|-------|-------|--------|
+| Byteling | Data & Binary | Cubic | #00BBFF | Data Seed → Bitlet → Bytepup → Datacrunch → Codec → Terabyte |
+| Sparkpaw | Neural Networks | Spherical | #AA66FF | Synapse Egg → Noodlet → Synapper → Neurowhelp → Dendrite → Cortex |
+| Voltkit | Energy & Computing | Triangular | #00FF88 | Spark Cell → Zaplet → Voltpup → Ampere → Gigawatt → Exaflare |
+| Cogsworth | Robotics & Building | Cylindrical | #FFAA44 | Gear Capsule → Sprocket → Ratchet → Dynamo → Fabricator → Archimedes |
+| Pixie | Computer Vision | Disc/Lens | #06B6D4 | Lens Seed → Peekaboo → Scanner → Focusfly → Spectra → Omniscient |
 
 ---
 
