@@ -87,7 +87,7 @@ Decision 5.2: 100-particle instanced spiral overlay for 20+ XP gains. Auto-unmou
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { Color, InstancedMesh, Object3D } from 'three';
 
 interface XPVortexProps {
   xpAmount: number;
@@ -103,7 +103,7 @@ export default function XPVortex({
   color = '#00BBFF',
   onComplete,
 }: XPVortexProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const [active, setActive] = useState(true);
 
@@ -127,8 +127,8 @@ export default function XPVortex({
     return data;
   }, []);
 
-  const colorObj = useMemo(() => new THREE.Color(color), [color]);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const colorObj = useMemo(() => new Color(color), [color]);
+  const dummy = useMemo(() => new Object3D(), []);
 
   useFrame((_, delta) => {
     if (!meshRef.current || !active || xpAmount < 20) return;
@@ -228,7 +228,7 @@ Decision 7.2: 5-tier PBR pedestals for trophy room display. Rarity determines ma
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, Sparkles } from '@react-three/drei';
-import * as THREE from 'three';
+import { Color, Mesh } from 'three';
 import type { Rarity } from '@/lib/gamification';
 import { getRarityColor, getRarityVisuals } from '@/lib/gamification';
 
@@ -241,7 +241,7 @@ interface BadgePedestal3DProps {
 
 // Rarity → material config
 function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
-  const color = new THREE.Color(unlocked ? getRarityColor(rarity) : '#333340');
+  const color = new Color(unlocked ? getRarityColor(rarity) : '#333340');
 
   switch (rarity) {
     case 'legendary':
@@ -249,7 +249,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.95,
         roughness: 0.1,
-        emissive: new THREE.Color(getRarityColor(rarity)),
+        emissive: new Color(getRarityColor(rarity)),
         emissiveIntensity: unlocked ? 0.3 : 0,
       };
     case 'epic':
@@ -257,7 +257,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.8,
         roughness: 0.15,
-        emissive: new THREE.Color(getRarityColor(rarity)),
+        emissive: new Color(getRarityColor(rarity)),
         emissiveIntensity: unlocked ? 0.2 : 0,
       };
     case 'rare':
@@ -265,7 +265,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.6,
         roughness: 0.2,
-        emissive: new THREE.Color(getRarityColor(rarity)),
+        emissive: new Color(getRarityColor(rarity)),
         emissiveIntensity: unlocked ? 0.15 : 0,
       };
     case 'uncommon':
@@ -273,7 +273,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.7,
         roughness: 0.25,
-        emissive: new THREE.Color('#000000'),
+        emissive: new Color('#000000'),
         emissiveIntensity: 0,
       };
     default: // common
@@ -281,7 +281,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.4,
         roughness: 0.5,
-        emissive: new THREE.Color('#000000'),
+        emissive: new Color('#000000'),
         emissiveIntensity: 0,
       };
   }
@@ -293,7 +293,7 @@ export default function BadgePedestal3D({
   badgeName = 'Badge',
   unlocked = true,
 }: BadgePedestal3DProps) {
-  const emblemRef = useRef<THREE.Mesh>(null);
+  const emblemRef = useRef<Mesh>(null);
   const material = useMemo(() => getPedestalMaterial(rarity, unlocked), [rarity, unlocked]);
   const visuals = useMemo(() => getRarityVisuals(rarity), [rarity]);
   const rarityColor = useMemo(() => getRarityColor(rarity), [rarity]);
@@ -399,7 +399,15 @@ Decision 4.2: LiquidMetal shader on Epic/Legendary badge meshes. Epic uses 0.5x 
 
 import { useRef, useMemo, useCallback, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Event,
+  MathUtils,
+  Mesh,
+  ShaderMaterial,
+  Vector2,
+} from 'three';
 import type { Rarity } from '@/lib/gamification';
 import { getRarityColor, getRarityVisuals } from '@/lib/gamification';
 import {
@@ -418,9 +426,9 @@ export default function BadgeLevitate3D({
   position = [0, 0, 0],
   badgeName = 'Badge',
 }: BadgeLevitate3DProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const [hovered, setHovered] = useState(false);
-  const rippleCenterRef = useRef(new THREE.Vector2(0.5, 0.5));
+  const rippleCenterRef = useRef(new Vector2(0.5, 0.5));
 
   const isLegendary = rarity === 'legendary';
   const isEpic = rarity === 'epic';
@@ -432,17 +440,17 @@ export default function BadgeLevitate3D({
   const shaderMaterial = useMemo(() => {
     if (!useLiquidMetal) return null;
 
-    return new THREE.ShaderMaterial({
+    return new ShaderMaterial({
       vertexShader: liquidMetalVertexShader,
       fragmentShader: liquidMetalFragmentShader,
       uniforms: {
         uTime: { value: 0 },
         uIntensity: { value: isLegendary ? 1.0 : 0.5 },
-        uColor: { value: new THREE.Color(color) },
-        uRippleCenter: { value: new THREE.Vector2(0.5, 0.5) },
+        uColor: { value: new Color(color) },
+        uRippleCenter: { value: new Vector2(0.5, 0.5) },
         uRippleStrength: { value: 0 },
       },
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     });
   }, [useLiquidMetal, isLegendary, color]);
 
@@ -466,7 +474,7 @@ export default function BadgeLevitate3D({
       shaderMaterial.uniforms.uTime.value += delta;
       shaderMaterial.uniforms.uRippleCenter.value.copy(rippleCenterRef.current);
       // Legendary gets mouse ripple; Epic gets none
-      shaderMaterial.uniforms.uRippleStrength.value = THREE.MathUtils.lerp(
+      shaderMaterial.uniforms.uRippleStrength.value = MathUtils.lerp(
         shaderMaterial.uniforms.uRippleStrength.value,
         hovered && isLegendary ? 1.0 : 0,
         delta * 4
@@ -476,9 +484,9 @@ export default function BadgeLevitate3D({
 
   // Track pointer for legendary ripple
   const handlePointerMove = useCallback(
-    (e: THREE.Event) => {
+    (e: Event) => {
       if (!isLegendary) return;
-      const event = e as THREE.Event & { uv?: THREE.Vector2 };
+      const event = e as Event & { uv?: Vector2 };
       if (event.uv) {
         rippleCenterRef.current.copy(event.uv);
       }
@@ -543,7 +551,15 @@ Decision 4.3: Holographic diffraction card for Daily Spark display. Interactive 
 import { useRef, useMemo, useCallback, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  Color,
+  Event,
+  FrontSide,
+  Group,
+  ShaderMaterial,
+  Vector2,
+  Vector3,
+} from 'three';
 import {
   holographicVertexShader,
   holographicFragmentShader,
@@ -566,25 +582,25 @@ export default function SparkCard3D({
   position = [0, 0, 0],
   onClick,
 }: SparkCard3DProps) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
-  const tiltRef = useRef(new THREE.Vector2(0, 0));
-  const targetTiltRef = useRef(new THREE.Vector2(0, 0));
+  const tiltRef = useRef(new Vector2(0, 0));
+  const targetTiltRef = useRef(new Vector2(0, 0));
 
   // FIX: `transparent` and `side` are INSIDE the constructor (were outside)
   const shaderMaterial = useMemo(
     () =>
-      new THREE.ShaderMaterial({
+      new ShaderMaterial({
         vertexShader: holographicVertexShader,
         fragmentShader: holographicFragmentShader,
         uniforms: {
           uTime: { value: 0 },
-          uTilt: { value: new THREE.Vector2(0, 0) },
+          uTilt: { value: new Vector2(0, 0) },
           uIntensity: { value: 0.8 },
-          uBaseColor: { value: new THREE.Color(color) },
+          uBaseColor: { value: new Color(color) },
         },
         transparent: true,
-        side: THREE.FrontSide,
+        side: FrontSide,
       }),
     [color]
   );
@@ -614,8 +630,8 @@ export default function SparkCard3D({
 
   // Track pointer for tilt
   const handlePointerMove = useCallback(
-    (e: THREE.Event) => {
-      const event = e as THREE.Event & { point?: THREE.Vector3 };
+    (e: Event) => {
+      const event = e as Event & { point?: Vector3 };
       if (!event.point || !groupRef.current) return;
 
       // Normalize point relative to card center

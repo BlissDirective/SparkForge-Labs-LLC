@@ -441,14 +441,21 @@ Decision 3.1: Crystal tunnel overlay (0.8s). When entering a game from within a 
 import { useRef, useMemo, useCallback, useState, useEffect, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import {
+  Shape,
+  Path,
+  ExtrudeGeometry,
+  Object3D,
+  DoubleSide,
+} from 'three';
+import type { BufferGeometry, InstancedMesh } from 'three';
 
 // Hex ring count
 const RING_COUNT = 18;
 
 // Generate hex ring geometry (flat hexagonal torus)
-function createHexRingGeometry(): THREE.BufferGeometry {
-  const shape = new THREE.Shape();
+function createHexRingGeometry(): BufferGeometry {
+  const shape = new Shape();
   const sides = 6;
   const outerRadius = 1.0;
   const innerRadius = 0.85;

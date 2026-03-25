@@ -642,7 +642,15 @@ void main() {
 // Decision 7.3: PBR desktop, CSS mobile
 // Decision 7.5: MeshToonMaterial for Pet Trainer
 
-import * as THREE from 'three';
+import {
+  Color,
+  DataTexture,
+  MeshBasicMaterial,
+  MeshPhysicalMaterial,
+  NearestFilter,
+  RedFormat,
+} from 'three';
+import type { Texture } from 'three';
 
 // ■■ HDR Environment Map Path ■■
 // Custom Frost-Prismatic HDR: dark studio, blue key, purple fill, teal rim
@@ -731,33 +739,33 @@ export const MATERIAL_PRESETS: Record<string, MaterialPreset> = {
 // ■■ Helper: Create MeshPhysicalMaterial from preset ■■
 export function createPhysicalMaterial(
   presetName: keyof typeof MATERIAL_PRESETS,
-  envMap?: THREE.Texture | null
-): THREE.MeshPhysicalMaterial {
+  envMap?: Texture | null
+): MeshPhysicalMaterial {
   const preset = MATERIAL_PRESETS[presetName];
   if (!preset) throw new Error(`Unknown material preset: ${presetName}`);
 
-  return new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(preset.color || '#ffffff'),
+  return new MeshPhysicalMaterial({
+    color: new Color(preset.color || '#ffffff'),
     metalness: preset.metalness,
     roughness: preset.roughness,
     envMap: envMap || null,
     envMapIntensity: preset.envMapIntensity,
-    emissive: preset.emissive ? new THREE.Color(preset.emissive) : undefined,
+    emissive: preset.emissive ? new Color(preset.emissive) : undefined,
     emissiveIntensity: preset.emissiveIntensity || 0,
   });
 }
 
 // ■■ Helper: Create 3-step toon gradient map ■■
 // Decision 7.5: MeshToonMaterial with 3-step gradient
-export function createToonGradientMap(): THREE.DataTexture {
+export function createToonGradientMap(): DataTexture {
   const colors = new Uint8Array(3);
   colors[0] = 80;  // Shadow band
   colors[1] = 160; // Mid band
   colors[2] = 255; // Light band
 
-  const gradientMap = new THREE.DataTexture(colors, 3, 1, THREE.RedFormat);
-  gradientMap.minFilter = THREE.NearestFilter;
-  gradientMap.magFilter = THREE.NearestFilter;
+  const gradientMap = new DataTexture(colors, 3, 1, RedFormat);
+  gradientMap.minFilter = NearestFilter;
+  gradientMap.magFilter = NearestFilter;
   gradientMap.needsUpdate = true;
   return gradientMap;
 }
@@ -766,9 +774,9 @@ export function createToonGradientMap(): THREE.DataTexture {
 export function createLEDMaterial(
   color: string,
   _intensity: number = 2.0
-): THREE.MeshBasicMaterial {
-  return new THREE.MeshBasicMaterial({
-    color: new THREE.Color(color),
+): MeshBasicMaterial {
+  return new MeshBasicMaterial({
+    color: new Color(color),
     transparent: true,
     opacity: 0.9,
     toneMapped: false,
@@ -813,7 +821,8 @@ Key characteristics:
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { AdditiveBlending } from 'three';
+import type { BufferAttribute, LineSegments, Points, PointsMaterial } from 'three';
 
 // Intensity presets from Decision 5.5
 const INTENSITY_PRESETS = {
@@ -838,8 +847,8 @@ export function AmbientParticles({
   baseCount,
   isMobile = false,
 }: AmbientParticlesProps) {
-  const pointsRef = useRef<THREE.Points>(null);
-  const linesRef = useRef<THREE.LineSegments>(null);
+  const pointsRef = useRef<Points>(null);
+  const linesRef = useRef<LineSegments>(null);
 
   const preset = INTENSITY_PRESETS[intensity];
   const count = isMobile
@@ -879,7 +888,7 @@ export function AmbientParticles({
     if (!pointsRef.current || count === 0) return;
 
     const posAttr = pointsRef.current.geometry.attributes
-      .position as THREE.BufferAttribute;
+      .position as BufferAttribute;
     const posArr = posAttr.array as Float32Array;
     const time = clock.elapsedTime * preset.speed;
 
@@ -904,7 +913,7 @@ export function AmbientParticles({
     // Update connection lines
     if (showConnections && linesRef.current) {
       const lineAttr = linesRef.current.geometry.attributes
-        .position as THREE.BufferAttribute;
+        .position as BufferAttribute;
       const lineArr = lineAttr.array as Float32Array;
       let lineIdx = 0;
       const thresholdSq = 2.5 * 2.5; // Connection distance threshold squared
@@ -963,7 +972,7 @@ export function AmbientParticles({
           opacity={preset.opacity}
           sizeAttenuation
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
         />
       </points>
 
@@ -981,7 +990,7 @@ export function AmbientParticles({
             transparent
             opacity={0.06}
             depthWrite={false}
-            blending={THREE.AdditiveBlending}
+            blending={AdditiveBlending}
           />
         </lineSegments>
       )}
@@ -1260,7 +1269,8 @@ export function StationFrame({
 import { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { AdditiveBlending, MathUtils, Object3D } from 'three';
+import type { BufferAttribute, Group, InstancedMesh, PointLight, Points, PointsMaterial } from 'three';
 
 // ■■ Phase timing constants ■■
 const PHASE_TIMINGS = {
@@ -1340,10 +1350,10 @@ function generateShardData() {
 
 // ■■ Inner Scene Component ■■
 function CrystalScene({ onComplete }: { onComplete: () => void }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const shardsRef = useRef<THREE.InstancedMesh>(null);
-  const dustRef = useRef<THREE.Points>(null);
-  const lightRef = useRef<THREE.PointLight>(null);
+  const groupRef = useRef<Group>(null);
+  const shardsRef = useRef<InstancedMesh>(null);
+  const dustRef = useRef<Points>(null);
+  const lightRef = useRef<PointLight>(null);
   const startTime = useRef(0);
   const completedRef = useRef(false);
 
@@ -1365,7 +1375,7 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
     if (!shardsRef.current) return;
 
     const mesh = shardsRef.current;
-    const dummy = new THREE.Object3D();
+    const dummy = new Object3D();
 
     for (let i = 0; i < SHARD_COUNT; i++) {
       dummy.position.set(0, 0, 0);
@@ -1394,8 +1404,8 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
         for (let i = 0; i < 100; i++) {
           arr[i * 3 + 1] += 0.002; // slow upward drift
         }
-        (posAttr as THREE.BufferAttribute).needsUpdate = true;
-        (dustRef.current.material as THREE.PointsMaterial).opacity =
+        (posAttr as BufferAttribute).needsUpdate = true;
+        (dustRef.current.material as PointsMaterial).opacity =
           progress * 0.3;
       }
     }
@@ -1408,7 +1418,7 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
     ) {
       const progress =
         (elapsed - T.CRYSTAL_START) / (T.CRYSTAL_END - T.CRYSTAL_START);
-      const dummy = new THREE.Object3D();
+      const dummy = new Object3D();
       const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
 
       for (let i = 0; i < SHARD_COUNT; i++) {
@@ -1419,9 +1429,9 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
         const startZ = shardData.offsets[i3 + 2] * 3 - 5;
 
         dummy.position.set(
-          THREE.MathUtils.lerp(startX, shardData.offsets[i3], eased),
-          THREE.MathUtils.lerp(startY, shardData.offsets[i3 + 1], eased),
-          THREE.MathUtils.lerp(startZ, shardData.offsets[i3 + 2], eased)
+          MathUtils.lerp(startX, shardData.offsets[i3], eased),
+          MathUtils.lerp(startY, shardData.offsets[i3 + 1], eased),
+          MathUtils.lerp(startZ, shardData.offsets[i3 + 2], eased)
         );
         dummy.scale.setScalar(shardData.scales[i] * eased);
         dummy.rotation.set(
@@ -1454,7 +1464,7 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
     ) {
       const progress =
         (elapsed - T.SHATTER_START) / (T.SHATTER_END - T.SHATTER_START);
-      const dummy = new THREE.Object3D();
+      const dummy = new Object3D();
       const eased = progress * progress; // easeInQuad
 
       for (let i = 0; i < SHARD_COUNT; i++) {
@@ -1492,7 +1502,7 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
     ) {
       const progress =
         (elapsed - T.FORM_START) / (T.FORM_END - T.FORM_START);
-      const dummy = new THREE.Object3D();
+      const dummy = new Object3D();
       const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
 
       for (let i = 0; i < SHARD_COUNT; i++) {
@@ -1516,16 +1526,16 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
 
         // Spiral interpolation
         const midX =
-          THREE.MathUtils.lerp(scatterX, targetX, eased) +
+          MathUtils.lerp(scatterX, targetX, eased) +
           Math.cos(theta) * r;
         const midY =
-          THREE.MathUtils.lerp(scatterY, targetY, eased) +
+          MathUtils.lerp(scatterY, targetY, eased) +
           Math.sin(theta) * r;
 
         dummy.position.set(
           midX,
           midY,
-          THREE.MathUtils.lerp(-2, 0, eased)
+          MathUtils.lerp(-2, 0, eased)
         );
         dummy.scale.setScalar(shardData.scales[i] * (1 - eased * 0.7));
         dummy.rotation.set(0, 0, 0);
@@ -1536,7 +1546,7 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
 
       // Fade light to station glow
       if (lightRef.current) {
-        lightRef.current.intensity = THREE.MathUtils.lerp(3, 0.5, eased);
+        lightRef.current.intensity = MathUtils.lerp(3, 0.5, eased);
         lightRef.current.color.set('#00BBFF');
       }
     }
@@ -1574,7 +1584,7 @@ function CrystalScene({ onComplete }: { onComplete: () => void }) {
           opacity={0}
           sizeAttenuation
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
         />
       </points>
 
