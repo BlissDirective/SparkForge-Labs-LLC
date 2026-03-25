@@ -56,6 +56,8 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Hooks (D3D-C4)
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
+// Frame-time monitoring (Audit Section 4.4, Plan B1: non-invasive, dev-only)
+import { useFrameTimeMonitor } from '@/hooks/useFrameTimeMonitor';
 // Note: Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
 // Game registry (Section 4.1-B: per-game camera presets)
@@ -67,7 +69,9 @@ import { useSceneStore } from '@/stores/sceneStore';
 // import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
-import { HDR_FALLBACK_PRESET } from '@/lib/3d/materials';
+import { HDR_FALLBACK_PRESET, FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
+// Module-level asset preloading (Audit Section 4.5)
+import '@/lib/3d/preloadAssets';
 import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
 
 // ── Props ────────────────────────────────────────────────────────
@@ -210,6 +214,13 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({
   );
 });
 
+// ── Frame Time Monitor (dev-only, Audit Section 4.4 Plan B1) ─────
+
+function FrameTimeMonitorInner() {
+  useFrameTimeMonitor({ enabled: process.env.NODE_ENV === 'development' });
+  return null;
+}
+
 // ════════════════════════════════════════════════════════════════
 // CockpitCanvas — Main Export (D3D-B1: Persistent, never unmounts)
 // ════════════════════════════════════════════════════════════════
@@ -312,12 +323,13 @@ export function CockpitCanvas({
           {/* Adaptive DPR */}
           <AdaptiveDpr pixelated />
 
-          {/* Dev-only performance monitor */}
+          {/* Dev-only performance monitoring (Audit Section 4.4, Plan B1) */}
           {PerfMonitor && (
             <Suspense fallback={null}>
               <PerfMonitor position="top-right" minimal />
             </Suspense>
           )}
+          <FrameTimeMonitorInner />
 
           {/* Unified Camera System (D3D-C4: parallax, Section 4.1-B: per-game presets) */}
           <CameraSystem
@@ -330,7 +342,8 @@ export function CockpitCanvas({
           />
 
           {/* HDR Environment */}
-          <Environment preset={HDR_FALLBACK_PRESET} />
+          {/* HDR Environment — custom Frost-Prismatic HDRI with drei preset fallback */}
+          <Environment files={FROST_PRISMATIC_HDR_PATH} />
 
           {/* ═══ SceneRouter — Centralized Visibility (D3D-B5) ═══ */}
           <SceneRouter

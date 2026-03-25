@@ -33,6 +33,7 @@ import PetTrainerEnvironment from './environments/PetTrainerEnvironment';
 
 interface PetSceneProps {
   emoji: string;
+  speciesId?: 'byteling' | 'sparkpaw' | 'voltkit' | 'cogsworth' | 'pixie';
   mood:
     | 'sleeping'
     | 'confused'
@@ -61,6 +62,7 @@ const SPARKLE_COUNTS: Record<PetSceneProps['mood'], number> = {
 
 export default function Pet3DScene({
   emoji,
+  speciesId = 'byteling',
   mood = 'learning',
   evolutionStage = 0,
   labColor = '#8B5CF6',
@@ -91,8 +93,9 @@ export default function Pet3DScene({
             mood={mood}
           />
 
-          {/* [v3] PetCreature3D replaces procedural orb */}
+          {/* [v3] PetCreature3D renders procedural species */}
           <PetCreature3D
+            speciesId={speciesId}
             mood={mood}
             evolutionStage={evolutionStage}
             labColor={labColor}

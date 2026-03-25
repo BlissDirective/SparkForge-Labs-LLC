@@ -2,7 +2,116 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-25 (Audit Report — R3F Post-Processing & UI Zones)
+## Last Updated: 2026-03-25 (Creature Species + HDRI Asset Creation)
+
+---
+
+### Creature Species + HDRI Asset Creation (2026-03-25)
+
+**Status:** COMPLETE
+**Branch:** claude/audit-report-r3f-review-XQQ1z
+
+**HDRI Generation:**
+- [x] Created Node.js HDRI generator (tools/generate-frost-prismatic-hdri.js)
+- [x] Generated frost-prismatic.hdr (1024x512, Radiance RGBE, 2MB)
+  - Dark studio (#0a0a14) + Blue key (#3B82F6) + Purple fill (#8B5CF6) + Teal rim (#06B6D4)
+- [x] CockpitCanvas switched from drei 'night' preset to custom HDRI
+
+**5 Creature Species (replacing 6 generic pets):**
+- [x] creatureConfig.ts — Species configs, mood system, 6 evolution stages each
+- [x] CreatureBase.tsx — Shared toon shading, CreatureWrapper, BlinkingEye, InnerGlow
+- [x] BytelingCreature.tsx — Data & Binary theme (cubic shapes, blue #00BBFF)
+- [x] SparkpawCreature.tsx — Neural Networks theme (spheres/tentacles, purple #AA66FF)
+- [x] VoltkitCreature.tsx — Energy & Computing theme (triangles/spikes, green #00FF88)
+- [x] CogsworthCreature.tsx — Robotics & Building theme (cylinders/gears, amber #FFAA44)
+- [x] PixieCreature.tsx — Computer Vision theme (discs/lenses, cyan #06B6D4)
+
+**Integration:**
+- [x] PetCreature3D.tsx — Rewrote to use species dispatcher (no more GLB probing)
+- [x] Pet3DScene.tsx — Added speciesId prop
+- [x] PetTrainerGame.tsx — Replaced 6 generic pets with 5 AI-themed species
+- [x] creatures/index.ts — Barrel export + CREATURE_COMPONENTS lookup map
+
+**Files Created (10):**
+- `tools/generate-frost-prismatic-hdri.js`
+- `public/hdri/frost-prismatic.hdr`
+- `src/config/creatureConfig.ts`
+- `src/components/3d/creatures/CreatureBase.tsx`
+- `src/components/3d/creatures/BytelingCreature.tsx`
+- `src/components/3d/creatures/SparkpawCreature.tsx`
+- `src/components/3d/creatures/VoltkitCreature.tsx`
+- `src/components/3d/creatures/CogsworthCreature.tsx`
+- `src/components/3d/creatures/PixieCreature.tsx`
+- `src/components/3d/creatures/index.ts`
+
+**Files Modified (3):**
+- `src/components/3d/PetCreature3D.tsx` — Species-aware renderer
+- `src/components/3d/Pet3DScene.tsx` — Added speciesId prop
+- `src/components/games/PetTrainerGame.tsx` — 5 new species configs
+
+**Species Summary:**
+| Species | Theme | Shape | Color | Stages |
+|---------|-------|-------|-------|--------|
+| Byteling | Data & Binary | Cubic | #00BBFF | Data Seed → Bitlet → Bytepup → Datacrunch → Codec → Terabyte |
+| Sparkpaw | Neural Networks | Spherical | #AA66FF | Synapse Egg → Noodlet → Synapper → Neurowhelp → Dendrite → Cortex |
+| Voltkit | Energy & Computing | Triangular | #00FF88 | Spark Cell → Zaplet → Voltpup → Ampere → Gigawatt → Exaflare |
+| Cogsworth | Robotics & Building | Cylindrical | #FFAA44 | Gear Capsule → Sprocket → Ratchet → Dynamo → Fabricator → Archimedes |
+| Pixie | Computer Vision | Disc/Lens | #06B6D4 | Lens Seed → Peekaboo → Scanner → Focusfly → Spectra → Omniscient |
+
+---
+
+### Audit Report — R3F Section 4: Stack Alignment & Pitfalls (2026-03-25)
+
+**Status:** COMPLETE
+**Branch:** claude/audit-report-r3f-review-XQQ1z
+
+**Plan A — TSL Shader Ports (9 GLSL → TSL):**
+- [x] Batch 1: Noise utilities — simplex3DTSL, fbm4/6TSL, fbm3_4/6TSL, curlNoiseTSL, perlinNoise2DTSL, hash2TSL
+- [x] Batch 2: auroraTSL, scanlineTSL, holographicTSL
+- [x] Batch 3: energyFieldTSL (vertex + fragment), liquidMetalTSL (vertex + fragment), fireNoiseTSL (vertex + fragment)
+- [x] Batch 4: crystallineLogoTSL (vertex + PBR fragment), electricVeinsTSL (fractal veins + propagation)
+- [x] Batch 5: Barrel export index (src/shaders/tsl/index.ts) + WebGPUErrorBoundary component
+
+**Plan B1 — Frame-Time Monitoring (Non-Invasive):**
+- [x] Created useFrameTimeMonitor hook — 60-frame sample window, logs warnings > 20ms avg
+- [x] Added FrameTimeMonitorInner component to CockpitCanvas (dev-only)
+- [x] Added Plan B2 adaptive degradation reference to CLAUDE.md Section 9.1
+
+**Plan C — Asset Preloading:**
+- [x] Created src/lib/3d/preloadAssets.ts — wires GLTF_PRELOAD_PATHS + HDRI preloading
+- [x] Module-level import in CockpitCanvas triggers preloading on first render
+- [x] Note: HDRI file (/public/hdri/frost-prismatic.hdr) pending creation — uses 'night' preset fallback
+
+**Files Created (14):**
+- `src/shaders/tsl/noiseUtils.ts` — Shared TSL noise functions (simplex3D, fbm, curl, perlin)
+- `src/shaders/tsl/auroraTSL.ts` — Aurora void background (Decision 2.5)
+- `src/shaders/tsl/scanlineTSL.ts` — CRT scanline overlay (Decision 2.3)
+- `src/shaders/tsl/holographicTSL.ts` — Holographic card diffraction (Decision 4.3)
+- `src/shaders/tsl/energyFieldTSL.ts` — Streak shield vertex + fragment (Decision 4.5)
+- `src/shaders/tsl/liquidMetalTSL.ts` — Badge levitate vertex + fragment (Decision 4.2)
+- `src/shaders/tsl/fireNoiseTSL.ts` — Diamond streak flame vertex + fragment
+- `src/shaders/tsl/crystallineLogoTSL.ts` — Hero Animation Phase 2 vertex + PBR fragment
+- `src/shaders/tsl/electricVeinsTSL.ts` — Hero Animation Phase 4 fractal veins
+- `src/shaders/tsl/index.ts` — Barrel export for all TSL shader ports
+- `src/components/3d/WebGPUErrorBoundary.tsx` — TSL compilation error boundary with WebGL2 fallback
+- `src/hooks/useFrameTimeMonitor.ts` — Non-invasive frame-time monitoring (dev-only)
+- `src/lib/3d/preloadAssets.ts` — Centralized GLTF + HDRI preloading
+
+**Files Modified (2):**
+- `src/components/3d/CockpitCanvas.tsx` — Added FrameTimeMonitorInner + asset preload import
+- `CLAUDE.md` — Added Plan B1/B2 performance monitoring reference to Section 9.1
+
+**TypeScript validation:** PASS (0 new errors; pre-existing module resolution errors from missing node_modules unchanged)
+
+**Audit Section 4 Item Status:**
+| Item | Status | Notes |
+|------|--------|-------|
+| 4.1 r3f-perf monitoring | ALREADY FIXED (prior audit) | r3f-perf installed, lazy-loaded, dev-only |
+| 4.2 GLSL → TSL migration | FIXED | 9 shaders ported + error boundary |
+| 4.3 CanvasTexture leaks | ALREADY FIXED (prior audit) | All 3 files have disposal |
+| 4.4 GPU tier degradation | FIXED (B1) | Frame-time monitor + B2 reference |
+| 4.5 Asset preloading | FIXED | preloadAssets.ts wired in CockpitCanvas |
+| 4.6 leva in prod deps | ALREADY FIXED (prior audit) | Moved to devDependencies |
 
 ---
 

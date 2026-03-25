@@ -588,6 +588,12 @@ Future mobile support will use R3F-native LOD (Three.js LOD object), not CSS fal
 | Chromatic Aberration | Always on |
 | Depth of Field | Always on |
 
+#### Performance Monitoring (Audit Section 4.4)
+
+**Plan B1 (IMPLEMENTED):** Non-invasive frame-time monitoring via `useFrameTimeMonitor` hook in CockpitCanvas. Dev-only. Logs console warnings when average frame time exceeds 20ms (< 50fps). Does NOT auto-degrade effects — D3D-5 honored.
+
+**Plan B2 (FUTURE — if persistent performance issues detected):** Adaptive effect degradation. Measure initial 60 frames; if avg > 20ms, disable DepthOfField and reduce N8AO to quarter-res. Implement via `performanceStore` dispatching to `PostProcessingStack` props. Only activate if Plan B1 monitoring shows consistent sub-50fps on target hardware.
+
 ### 9.2 Game Tier Definitions (3 tiers)
 
 **Note:** Enhanced Standard tier has been **merged into FL-Lite**. There are now 3 game tiers:
