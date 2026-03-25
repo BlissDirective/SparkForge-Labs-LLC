@@ -52,8 +52,8 @@ export default function DashboardLayout({
 
   return (
     <DemoGuard>
-    <DemoSessionBanner />
-    <div className="min-h-screen bg-surface-deep relative overflow-hidden">
+      <DemoSessionBanner />
+      <div className="min-h-screen bg-surface-deep relative overflow-hidden">
       {/* v3 [Decision 2.1] + CPA v1.0: Station Frame — cockpit panoramic canvas */}
       <StationFrame
         mode={stationMode.mode}
@@ -115,7 +115,7 @@ export default function DashboardLayout({
           </AnimatePresence>
         </div>
       </motion.main>
-    </div>
+      </div>
     </DemoGuard>
   );
 }

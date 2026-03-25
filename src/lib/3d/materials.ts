@@ -26,6 +26,27 @@ export const FROST_PRISMATIC_HDR_PATH = '/hdri/frost-prismatic.hdr';
 // Used until custom HDR is generated — 'night' preset is closest match
 export const HDR_FALLBACK_PRESET = 'night' as const;
 
+// ■■ Asset Preloading Registry (Audit Suggestion #17) ■■
+// Module-level preload calls for GLTF models. Import useGLTF from drei
+// and call useGLTF.preload() at module scope for each model path.
+// Currently procedural geometry is used; add preload calls here as
+// GLB/GLTF assets are introduced.
+//
+// Usage pattern for future GLTF components:
+//   import { useGLTF } from '@react-three/drei';
+//   import { GLTF_PRELOAD_PATHS } from '@/lib/3d/materials';
+//   // At module scope (outside component):
+//   GLTF_PRELOAD_PATHS.forEach(path => useGLTF.preload(path));
+//
+export const GLTF_PRELOAD_PATHS: string[] = [
+  // Pet Trainer models (preloaded in PetCreature3D.tsx)
+  '/models/pets/pet-stage-0.glb',
+  // Add future model paths here as they are created:
+  // '/models/pets/pet-stage-1.glb',
+  // '/models/pets/pet-stage-2.glb',
+  // '/models/pets/pet-stage-3.glb',
+];
+
 // ■■ Material Preset Types ■■
 export interface MaterialPreset {
   name: string;
