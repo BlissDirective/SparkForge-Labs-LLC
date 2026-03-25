@@ -39,7 +39,19 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 
 import {
   FlagshipEnvironmentWrapper,
@@ -48,13 +60,13 @@ import {
 // ■■ Server Corridor Walls (expanded) ■■
 function ServerCorridor() {
   const rackCount = 50;
-  const racksRef = useRef<THREE.InstancedMesh>(null);
-  const ledRef = useRef<THREE.InstancedMesh>(null);
+  const racksRef = useRef<InstancedMesh>(null);
+  const ledRef = useRef<InstancedMesh>(null);
   const ledCount = rackCount * 8;
 
   React.useEffect(() => {
     if (!racksRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < rackCount; i++) {
       const side = i < rackCount / 2 ? -1 : 1;
       const idx = i < rackCount / 2 ? i : i - rackCount / 2;
@@ -67,7 +79,7 @@ function ServerCorridor() {
 
   React.useEffect(() => {
     if (!ledRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < ledCount; i++) {
       const rackIdx = Math.floor(i / 8);
       const ledIdx = i % 8;
@@ -83,7 +95,7 @@ function ServerCorridor() {
 
   useFrame((state) => {
     if (!ledRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     const t = state.clock.elapsedTime;
     for (let i = 0; i < Math.min(ledCount, ledRef.current.count); i++) {
       const active = Math.sin(t * 2 + i * 0.5) > 0.3;
@@ -109,13 +121,13 @@ function ServerCorridor() {
 
 // ■■ Mission Control Display Wall ■■
 function MissionControlWall() {
-  const screensRef = useRef<THREE.Group>(null);
+  const screensRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!screensRef.current) return;
     const t = state.clock.elapsedTime;
     screensRef.current.children.forEach((child, i) => {
-      const mat = ((child as THREE.Group).children[1] as THREE.Mesh)?.material as THREE.MeshBasicMaterial;
+      const mat = ((child as Group).children[1] as Mesh)?.material as MeshBasicMaterial;
       if (mat?.opacity !== undefined) {
         mat.opacity = 0.06 + Math.sin(t * 0.5 + i * 0.8) * 0.03;
       }
@@ -143,7 +155,7 @@ function MissionControlWall() {
           </mesh>
           <mesh position={[0, 0, 0.05]}>
             <planeGeometry args={[s.w, s.h]} />
-            <meshBasicMaterial color="#10B981" transparent opacity={0.06} side={THREE.DoubleSide} />
+            <meshBasicMaterial color="#10B981" transparent opacity={0.06} side={DoubleSide} />
           </mesh>
         </group>
       ))}
@@ -154,8 +166,8 @@ function MissionControlWall() {
 // ■■ Autonomous Drone Fleet ■■
 function DroneFleet() {
   const droneCount = 12;
-  const dronesRef = useRef<THREE.InstancedMesh>(null);
-  const propRef = useRef<THREE.InstancedMesh>(null);
+  const dronesRef = useRef<InstancedMesh>(null);
+  const propRef = useRef<InstancedMesh>(null);
 
   const drones = useMemo(() =>
     Array.from({ length: droneCount }, () => ({
@@ -170,10 +182,10 @@ function DroneFleet() {
 
   useFrame((state) => {
     if (!dronesRef.current || !propRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     const t = state.clock.elapsedTime;
 
     for (let i = 0; i < droneCount; i++) {
@@ -185,7 +197,7 @@ function DroneFleet() {
 
       // Body
       pos.set(x, y, z);
-      quat.setFromEuler(new THREE.Euler(0, angle, 0));
+      quat.setFromEuler(new Euler(0, angle, 0));
       scl.set(0.3, 0.1, 0.3);
       temp.compose(pos, quat, scl);
       dronesRef.current.setMatrixAt(i, temp);
@@ -216,7 +228,7 @@ function DroneFleet() {
 
 // ■■ Holographic Blueprint Table ■■
 function BlueprintTable() {
-  const holoRef = useRef<THREE.Mesh>(null);
+  const holoRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!holoRef.current) return;
@@ -259,7 +271,7 @@ function BlueprintTable() {
 // ■■ Robotic Assembly Line ■■
 function AssemblyLine() {
   const armCount = 6;
-  const armsRef = useRef<THREE.Group>(null);
+  const armsRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!armsRef.current) return;
@@ -301,7 +313,7 @@ function AssemblyLine() {
 
 // ■■ Communication Array ■■
 function CommunicationArray() {
-  const dishRef = useRef<THREE.Mesh>(null);
+  const dishRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!dishRef.current) return;
@@ -326,7 +338,7 @@ function CommunicationArray() {
       <group ref={dishRef} position={[0, 4.5, 0]}>
         <mesh rotation={[0.5, 0, 0]}>
           <sphereGeometry args={[0.8, 64, 64, 0, Math.PI * 2, 0, Math.PI / 3]} />
-          <meshStandardMaterial color="#6B7280" metalness={0.8} roughness={0.2} side={THREE.DoubleSide} />
+          <meshStandardMaterial color="#6B7280" metalness={0.8} roughness={0.2} side={DoubleSide} />
         </mesh>
         <mesh position={[0, 0, 0.3]}>
           <cylinderGeometry args={[0.03, 0.03, 0.6, 4]} />
@@ -342,22 +354,22 @@ function CommunicationArray() {
 // ■■ Cargo Containers ■■
 function CargoContainers() {
   const containerCount = 12;
-  const containersRef = useRef<THREE.InstancedMesh>(null);
+  const containersRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!containersRef.current) return;
-    const temp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const temp = new Matrix4();
+    const color = new Color();
     const colors = ['#10B981', '#3B82F6', '#F59E0B', '#8B5CF6'];
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
 
     for (let i = 0; i < containerCount; i++) {
       const stack = Math.floor(i / 4);
       const idx = i % 4;
       pos.set(-8 + idx * 2.5, stack * 1.5, -10);
-      quat.setFromEuler(new THREE.Euler(0, (Math.random() - 0.5) * 0.1, 0));
+      quat.setFromEuler(new Euler(0, (Math.random() - 0.5) * 0.1, 0));
       scl.set(1, 1, 1);
       temp.compose(pos, quat, scl);
       containersRef.current.setMatrixAt(i, temp);
@@ -378,12 +390,12 @@ function CargoContainers() {
 
 // ■■ Conveyor Belt System ■■
 function ConveyorBelt({ isRunning }: { isRunning: boolean }) {
-  const rollersRef = useRef<THREE.InstancedMesh>(null);
+  const rollersRef = useRef<InstancedMesh>(null);
   const rollerCount = 24;
 
   React.useEffect(() => {
     if (!rollersRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < rollerCount; i++) {
       const z = (i - rollerCount / 2 + 0.5) * 1;
       temp.makeRotationZ(Math.PI / 2);
@@ -395,14 +407,14 @@ function ConveyorBelt({ isRunning }: { isRunning: boolean }) {
 
   useFrame((state) => {
     if (!rollersRef.current || !isRunning) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < rollerCount; i++) {
       rollersRef.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);
-      quat.multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(state.clock.getDelta() * 5, 0, 0)));
+      quat.multiply(new Quaternion().setFromEuler(new Euler(state.clock.getDelta() * 5, 0, 0)));
       temp.compose(pos, quat, scl);
       rollersRef.current.setMatrixAt(i, temp);
     }
@@ -468,13 +480,13 @@ function ToolShelves() {
 // ■■ Debug Tower (expanded) ■■
 function DebugTower({ activeBlockId }: { activeBlockId: string | null }) {
   const frameCount = 8;
-  const towerRef = useRef<THREE.Group>(null);
+  const towerRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!towerRef.current) return;
     towerRef.current.children.forEach((child, i) => {
       const isActive = activeBlockId && i === 0;
-      const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      const mat = (child as Mesh).material as MeshStandardMaterial;
       if (mat.emissiveIntensity !== undefined) {
         mat.emissiveIntensity = isActive ? 0.4 + Math.sin(state.clock.elapsedTime * 4) * 0.2 : 0.05;
       }
@@ -496,11 +508,11 @@ function DebugTower({ activeBlockId }: { activeBlockId: string | null }) {
 // ■■ Cable Conduits (Ceiling, expanded) ■■
 function CableConduits() {
   const cableCount = 25;
-  const cablesRef = useRef<THREE.InstancedMesh>(null);
+  const cablesRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!cablesRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < cableCount; i++) {
       const x = (Math.random() - 0.5) * 24;
       const z = (Math.random() - 0.5) * 24;
@@ -523,14 +535,14 @@ function CableConduits() {
 
 // ■■ Data Pulse Floor Rings ■■
 function DataPulseFloor({ isRunning }: { isRunning: boolean }) {
-  const ringsRef = useRef<THREE.Group>(null);
+  const ringsRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!ringsRef.current) return;
     ringsRef.current.children.forEach((ring, i) => {
       const t = (state.clock.elapsedTime * 0.5 + i * 0.25) % 1;
       ring.scale.setScalar(1 + t * 10);
-      const mat = (ring as THREE.Mesh).material as THREE.MeshBasicMaterial;
+      const mat = (ring as Mesh).material as MeshBasicMaterial;
       mat.opacity = (1 - t) * 0.12;
     });
   });

@@ -30,7 +30,19 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  PlaneGeometry,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#818CF8';
@@ -38,24 +50,24 @@ const LAB_COLOR = '#818CF8';
 // ■■ Emoji Sculptures on Pedestals (Instanced) ■■
 function EmojiSculptures() {
   const count = 20;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const pedestalRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
+  const pedestalRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const positions = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
+    const pts: Vector3[] = [];
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const radius = 6 + Math.sin(i * 1.7) * 1.5;
-      pts.push(new THREE.Vector3(Math.cos(angle) * radius, 0.8, Math.sin(angle) * radius));
+      pts.push(new Vector3(Math.cos(angle) * radius, 0.8, Math.sin(angle) * radius));
     }
     return pts;
   }, [count]);
 
   React.useEffect(() => {
     if (!meshRef.current || !pedestalRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const hues = [0.08, 0.12, 0.55, 0.0, 0.33, 0.75, 0.16, 0.95];
     for (let i = 0; i < count; i++) {
       tmp.makeScale(0.4, 0.8, 0.4);
@@ -75,14 +87,14 @@ function EmojiSculptures() {
   useFrame((_, delta) => {
     if (!meshRef.current) return;
     timeRef.current += delta;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
-    const scl = new THREE.Vector3(0.5, 0.5, 0.5);
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
+    const scl = new Vector3(0.5, 0.5, 0.5);
     for (let i = 0; i < count; i++) {
       const p = positions[i];
       const bobY = p.y + Math.sin(timeRef.current * 1.2 + i * 0.5) * 0.15;
-      rot.setFromEuler(new THREE.Euler(0, timeRef.current * 0.4 + i, 0));
-      tmp.compose(new THREE.Vector3(p.x, bobY, p.z), rot, scl);
+      rot.setFromEuler(new Euler(0, timeRef.current * 0.4 + i, 0));
+      tmp.compose(new Vector3(p.x, bobY, p.z), rot, scl);
       meshRef.current.setMatrixAt(i, tmp);
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
@@ -104,8 +116,8 @@ function EmojiSculptures() {
 
 // ■■ Translation Machine Centerpiece ■■
 function TranslationMachine({ isDecoding }: { isDecoding: boolean }) {
-  const gearsRef = useRef<THREE.Group>(null);
-  const tubeRef = useRef<THREE.Mesh>(null);
+  const gearsRef = useRef<Group>(null);
+  const tubeRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -117,7 +129,7 @@ function TranslationMachine({ isDecoding }: { isDecoding: boolean }) {
       });
     }
     if (tubeRef.current) {
-      (tubeRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (tubeRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isDecoding ? 0.6 + Math.sin(timeRef.current * 4) * 0.3 : 0.2;
     }
   });
@@ -161,7 +173,7 @@ function TranslationMachine({ isDecoding }: { isDecoding: boolean }) {
 // ■■ Conveyor Message Tiles ■■
 function ConveyorTiles({ isDecoding }: { isDecoding: boolean }) {
   const count = 12;
-  const tilesRef = useRef<THREE.InstancedMesh>(null);
+  const tilesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const speeds = useMemo(() =>
@@ -171,7 +183,7 @@ function ConveyorTiles({ isDecoding }: { isDecoding: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!tilesRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const baseX = -3.5 + (i / count) * 7;
       const x = ((baseX + timeRef.current * speeds[i] * (isDecoding ? 1.5 : 0.3) + 3.5) % 7) - 3.5;
@@ -184,8 +196,8 @@ function ConveyorTiles({ isDecoding }: { isDecoding: boolean }) {
 
   React.useEffect(() => {
     if (!tilesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       tmp.makeScale(0.3, 0.06, 0.25);
       tmp.setPosition(-3.5 + (i / count) * 7, 0.05, 0);
@@ -208,23 +220,23 @@ function ConveyorTiles({ isDecoding }: { isDecoding: boolean }) {
 // ■■ Rosetta Stone Pillars (Instanced) ■■
 function RosettaPillars() {
   const count = 12;
-  const pillarsRef = useRef<THREE.InstancedMesh>(null);
-  const glowRef = useRef<THREE.InstancedMesh>(null);
+  const pillarsRef = useRef<InstancedMesh>(null);
+  const glowRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const positions = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
+    const pts: Vector3[] = [];
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const r = 10;
-      pts.push(new THREE.Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r));
+      pts.push(new Vector3(Math.cos(angle) * r, 0, Math.sin(angle) * r));
     }
     return pts;
   }, [count]);
 
   React.useEffect(() => {
     if (!pillarsRef.current || !glowRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const height = 2.5 + (i % 3) * 0.5;
       tmp.makeScale(0.5, height, 0.5);
@@ -241,7 +253,7 @@ function RosettaPillars() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!glowRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const p = positions[i];
       const height = 2.5 + (i % 3) * 0.5;
@@ -270,11 +282,11 @@ function RosettaPillars() {
 // ■■ Display Cases (Instanced) ■■
 function DisplayCases() {
   const count = 10;
-  const casesRef = useRef<THREE.InstancedMesh>(null);
+  const casesRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!casesRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 + Math.PI / count;
       const r = 8;
@@ -296,21 +308,21 @@ function DisplayCases() {
 // ■■ Holographic Dictionary Screens (Instanced) ■■
 function HolographicScreens({ decodedCount }: { decodedCount: number }) {
   const count = 8;
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const positions = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
+    const pts: Vector3[] = [];
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 1.5 - Math.PI * 0.25;
-      pts.push(new THREE.Vector3(Math.cos(angle) * 4, 2.5 + (i % 2) * 0.5, Math.sin(angle) * 4));
+      pts.push(new Vector3(Math.cos(angle) * 4, 2.5 + (i % 2) * 0.5, Math.sin(angle) * 4));
     }
     return pts;
   }, [count]);
 
   React.useEffect(() => {
     if (!screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       tmp.makeScale(1.2, 0.8, 0.03);
       tmp.setPosition(positions[i].x, positions[i].y, positions[i].z);
@@ -322,7 +334,7 @@ function HolographicScreens({ decodedCount }: { decodedCount: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const p = positions[i];
       const bob = Math.sin(timeRef.current * 0.8 + i) * 0.1;
@@ -344,7 +356,7 @@ function HolographicScreens({ decodedCount }: { decodedCount: number }) {
         emissiveIntensity={intensity}
         transparent
         opacity={0.5}
-        side={THREE.DoubleSide}
+        side={DoubleSide}
       />
     </instancedMesh>
   );
@@ -353,7 +365,7 @@ function HolographicScreens({ decodedCount }: { decodedCount: number }) {
 // ■■ Floating Symbol Particles ■■
 function FloatingSymbols() {
   const count = 80;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -369,16 +381,16 @@ function FloatingSymbols() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const y = ((s.y + timeRef.current * s.speed * 0.3) % 5);
-      rot.setFromEuler(new THREE.Euler(timeRef.current * 0.3 + s.phase, timeRef.current * 0.5, 0));
+      rot.setFromEuler(new Euler(timeRef.current * 0.3 + s.phase, timeRef.current * 0.5, 0));
       tmp.compose(
-        new THREE.Vector3(s.x + Math.sin(timeRef.current * 0.5 + s.phase) * 0.4, y, s.z),
+        new Vector3(s.x + Math.sin(timeRef.current * 0.5 + s.phase) * 0.4, y, s.z),
         rot,
-        new THREE.Vector3(0.08, 0.08, 0.08),
+        new Vector3(0.08, 0.08, 0.08),
       );
       meshRef.current.setMatrixAt(i, tmp);
     }
@@ -395,12 +407,12 @@ function FloatingSymbols() {
 
 // ■■ Sentiment Floor Waves ■■
 function SentimentWaves({ decodedCount }: { decodedCount: number }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   const geometry = useMemo(() => {
     const segs = 64;
-    return new THREE.PlaneGeometry(14, 14, segs, segs);
+    return new PlaneGeometry(14, 14, segs, segs);
   }, ['ultra']);
 
   useFrame((_, delta) => {

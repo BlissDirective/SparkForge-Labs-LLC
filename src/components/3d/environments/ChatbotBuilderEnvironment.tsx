@@ -24,13 +24,24 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Chat Bubble Landscape ■■
 function ChatBubbles() {
   const count = 18;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   const configs = useMemo(() => Array.from({ length: count }, (_, i) => ({
     x: (Math.random() - 0.5) * 16,
@@ -43,13 +54,13 @@ function ChatBubbles() {
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const c = configs[i];
       temp.makeScale(c.scale, c.scale * 0.7, c.scale * 0.4);
       temp.setPosition(c.x, c.y, c.z);
       ref.current.setMatrixAt(i, temp);
-      ref.current.setColorAt(i, new THREE.Color(c.isLeft ? '#818CF8' : '#A78BFA'));
+      ref.current.setColorAt(i, new Color(c.isLeft ? '#818CF8' : '#A78BFA'));
     }
     ref.current.instanceMatrix.needsUpdate = true;
     if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
@@ -57,10 +68,10 @@ function ChatBubbles() {
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       ref.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);
@@ -82,13 +93,13 @@ function ChatBubbles() {
 // ■■ Server Tower Racks ■■
 function ServerTowers() {
   const count = 16;
-  const towersRef = useRef<THREE.InstancedMesh>(null);
-  const ledsRef = useRef<THREE.InstancedMesh>(null);
+  const towersRef = useRef<InstancedMesh>(null);
+  const ledsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!towersRef.current || !ledsRef.current) return;
-    const tTemp = new THREE.Matrix4();
-    const lTemp = new THREE.Matrix4();
+    const tTemp = new Matrix4();
+    const lTemp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / 4);
       const col = i % 4;
@@ -106,13 +117,13 @@ function ServerTowers() {
 
   useFrame(({ clock }) => {
     if (!ledsRef.current) return;
-    const temp = new THREE.Matrix4();
-    const _pos = new THREE.Vector3();
-    const _quat = new THREE.Quaternion();
-    const _scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const _pos = new Vector3();
+    const _quat = new Quaternion();
+    const _scl = new Vector3();
     for (let i = 0; i < count; i++) {
       ledsRef.current.getMatrixAt(i, temp);
-      ledsRef.current.setColorAt(i, new THREE.Color(
+      ledsRef.current.setColorAt(i, new Color(
         Math.sin(clock.elapsedTime * 3 + i * 1.2) > 0 ? '#818CF8' : '#4C51BF'
       ));
     }
@@ -137,10 +148,10 @@ function ServerTowers() {
 function ConversationTree({ activeNodeCount }: { activeNodeCount: number }) {
   const maxNodes = 20;
   const visibleNodes = Math.min(activeNodeCount, maxNodes);
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   const nodePositions = useMemo(() => {
-    const positions: THREE.Vector3[] = [];
+    const positions: Vector3[] = [];
     const layers = [1, 2, 3, 4, 5, 5];
     let idx = 0;
     for (let l = 0; l < layers.length && idx < maxNodes; l++) {
@@ -148,7 +159,7 @@ function ConversationTree({ activeNodeCount }: { activeNodeCount: number }) {
       for (let n = 0; n < layerCount; n++) {
         const x = (n - (layerCount - 1) / 2) * 1.2;
         const y = 4.5 - l * 0.8;
-        positions.push(new THREE.Vector3(x, y, 0));
+        positions.push(new Vector3(x, y, 0));
         idx++;
       }
     }
@@ -156,7 +167,7 @@ function ConversationTree({ activeNodeCount }: { activeNodeCount: number }) {
   }, [maxNodes]);
 
   const lineGeometry = useMemo(() => {
-    const points: THREE.Vector3[] = [];
+    const points: Vector3[] = [];
     let idx = 0;
     const layers = [1, 2, 3, 4, 5, 5];
     const layerStarts: number[] = [];
@@ -178,7 +189,7 @@ function ConversationTree({ activeNodeCount }: { activeNodeCount: number }) {
         }
       }
     }
-    return new THREE.BufferGeometry().setFromPoints(points);
+    return new BufferGeometry().setFromPoints(points);
   }, [nodePositions, maxNodes]);
 
   useFrame(({ clock }) => {
@@ -230,7 +241,7 @@ function AntennaArray() {
 // ■■ Message Stream Particles ■■
 function MessageParticles({ isTestMode }: { isTestMode: boolean }) {
   const count = 200;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   const speeds = useMemo(() => Array.from({ length: count }, () => ({
     v: 0.5 + Math.random() * 2.0,
@@ -241,7 +252,7 @@ function MessageParticles({ isTestMode }: { isTestMode: boolean }) {
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const s = speeds[i];
       const x = Math.cos(s.angle) * s.radius;
@@ -255,10 +266,10 @@ function MessageParticles({ isTestMode }: { isTestMode: boolean }) {
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     const speedMult = isTestMode ? 2.0 : 1.0;
     for (let i = 0; i < count; i++) {
       ref.current.getMatrixAt(i, temp);
@@ -284,17 +295,17 @@ function MessageParticles({ isTestMode }: { isTestMode: boolean }) {
 
 // ■■ Signal Wave Rings ■■
 function SignalWaveRings() {
-  const ringsRef = useRef<THREE.Group>(null);
+  const ringsRef = useRef<Group>(null);
   const ringCount = 4;
 
   useFrame(({ clock }) => {
     if (!ringsRef.current) return;
     ringsRef.current.children.forEach((child, i) => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof Mesh) {
         const t = (clock.elapsedTime * 0.5 + i * 0.25) % 1;
         const scale = 0.5 + t * 4;
         child.scale.set(scale, scale, 1);
-        const mat = child.material as THREE.MeshBasicMaterial;
+        const mat = child.material as MeshBasicMaterial;
         mat.opacity = (1 - t) * 0.3;
       }
     });
@@ -305,7 +316,7 @@ function SignalWaveRings() {
       {Array.from({ length: ringCount }).map((_, i) => (
         <mesh key={i}>
           <ringGeometry args={[0.95, 1.0, 32]} />
-          <meshBasicMaterial color="#818CF8" transparent opacity={0.3} side={THREE.DoubleSide} />
+          <meshBasicMaterial color="#818CF8" transparent opacity={0.3} side={DoubleSide} />
         </mesh>
       ))}
     </group>

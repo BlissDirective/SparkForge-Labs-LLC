@@ -30,16 +30,27 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF6644';
 
 // ■■ Hexagonal Shield Generator (Center) ■■
 function ShieldGenerator({ shieldStrength }: { shieldStrength: number }) {
-  const outerRef = useRef<THREE.Mesh>(null);
-  const innerRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  const outerRef = useRef<Mesh>(null);
+  const innerRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -48,12 +59,12 @@ function ShieldGenerator({ shieldStrength }: { shieldStrength: number }) {
     if (outerRef.current) {
       outerRef.current.rotation.y += delta * 0.3;
       outerRef.current.rotation.z = Math.sin(timeRef.current * 0.5) * 0.1;
-      (outerRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (outerRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + strengthNorm * 0.5 + Math.sin(timeRef.current * 2) * 0.1;
     }
     if (innerRef.current) {
       innerRef.current.rotation.y -= delta * 0.5;
-      (innerRef.current.material as THREE.MeshStandardMaterial).opacity =
+      (innerRef.current.material as MeshStandardMaterial).opacity =
         0.2 + strengthNorm * 0.3;
     }
     if (ringRef.current) {
@@ -108,8 +119,8 @@ function ShieldGenerator({ shieldStrength }: { shieldStrength: number }) {
 // ■■ Data Stream Tunnels with Packets (Instanced) ■■
 function DataStreamTunnels() {
   const packetCount = 40;
-  const packetsRef = useRef<THREE.InstancedMesh>(null);
-  const tubeRef = useRef<THREE.InstancedMesh>(null);
+  const packetsRef = useRef<InstancedMesh>(null);
+  const tubeRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const tubeCount = 4;
 
@@ -124,18 +135,18 @@ function DataStreamTunnels() {
 
   React.useEffect(() => {
     if (!tubeRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const angles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
     for (let i = 0; i < tubeCount; i++) {
       const angle = angles[i];
       const x = Math.cos(angle) * 4;
       const z = Math.sin(angle) * 4;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle, Math.PI / 2));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle, Math.PI / 2));
       tmp.compose(
-        new THREE.Vector3(x * 0.5, 0.8, z * 0.5),
+        new Vector3(x * 0.5, 0.8, z * 0.5),
         rot,
-        new THREE.Vector3(0.2, 4, 0.2),
+        new Vector3(0.2, 4, 0.2),
       );
       tubeRef.current.setMatrixAt(i, tmp);
     }
@@ -145,9 +156,9 @@ function DataStreamTunnels() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!packetsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const angles = [0, Math.PI / 2, Math.PI, Math.PI * 1.5];
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < packetCount; i++) {
       const s = packetSeeds[i];
       const angle = angles[s.tunnel];
@@ -181,7 +192,7 @@ function DataStreamTunnels() {
 
 // ■■ Firewall Barrier Walls ■■
 function FirewallBarriers({ shieldStrength }: { shieldStrength: number }) {
-  const wallsRef = useRef<THREE.Group>(null);
+  const wallsRef = useRef<Group>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -189,7 +200,7 @@ function FirewallBarriers({ shieldStrength }: { shieldStrength: number }) {
     if (!wallsRef.current) return;
     const strengthNorm = Math.min(shieldStrength / 100, 1);
     wallsRef.current.children.forEach((child, i) => {
-      const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+      const mat = (child as Mesh).material as MeshStandardMaterial;
       if (mat) {
         mat.opacity = 0.08 + strengthNorm * 0.15 + Math.sin(timeRef.current * 1.5 + i) * 0.03;
         mat.emissiveIntensity = 0.2 + strengthNorm * 0.4;
@@ -215,7 +226,7 @@ function FirewallBarriers({ shieldStrength }: { shieldStrength: number }) {
             emissiveIntensity={0.3}
             transparent
             opacity={0.12}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
           />
         </mesh>
       ))}
@@ -225,14 +236,14 @@ function FirewallBarriers({ shieldStrength }: { shieldStrength: number }) {
 
 // ■■ Privacy Vault ■■
 function PrivacyVault() {
-  const lockRef = useRef<THREE.Mesh>(null);
+  const lockRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (lockRef.current) {
       lockRef.current.rotation.z = Math.sin(timeRef.current * 0.8) * 0.15;
-      (lockRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (lockRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 2) * 0.15;
     }
   });
@@ -267,7 +278,7 @@ function PrivacyVault() {
 
 // ■■ Threat Detection Radar ■■
 function ThreatRadar({ threatsBlocked }: { threatsBlocked: number }) {
-  const sweepRef = useRef<THREE.Mesh>(null);
+  const sweepRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -295,7 +306,7 @@ function ThreatRadar({ threatsBlocked }: { threatsBlocked: number }) {
           emissiveIntensity={0.1}
           metalness={0.3}
           roughness={0.6}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Sweep arm */}
@@ -307,7 +318,7 @@ function ThreatRadar({ threatsBlocked }: { threatsBlocked: number }) {
           emissiveIntensity={0.8}
           transparent
           opacity={0.7}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Threat count indicator ring */}
@@ -319,7 +330,7 @@ function ThreatRadar({ threatsBlocked }: { threatsBlocked: number }) {
           emissiveIntensity={0.4}
           transparent
           opacity={0.6}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -328,9 +339,9 @@ function ThreatRadar({ threatsBlocked }: { threatsBlocked: number }) {
 
 // ■■ Encryption Cipher Wheels ■■
 function CipherWheels() {
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-  const ring3Ref = useRef<THREE.Mesh>(null);
+  const ring1Ref = useRef<Mesh>(null);
+  const ring2Ref = useRef<Mesh>(null);
+  const ring3Ref = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -368,13 +379,13 @@ function CipherWheels() {
 // ■■ Personal Data Lockers (Instanced) ■■
 function DataLockers() {
   const count = 12;
-  const lockersRef = useRef<THREE.InstancedMesh>(null);
-  const shieldIconsRef = useRef<THREE.InstancedMesh>(null);
+  const lockersRef = useRef<InstancedMesh>(null);
+  const shieldIconsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!lockersRef.current || !shieldIconsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const r = 6;
@@ -385,16 +396,16 @@ function DataLockers() {
       tmp.setPosition(x, 0.4, z);
       lockersRef.current.setMatrixAt(i, tmp);
       // Shield icon on front
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle, 0));
       tmp.compose(
-        new THREE.Vector3(
+        new Vector3(
           Math.cos(angle) * (r - 0.21),
           0.4,
           Math.sin(angle) * (r - 0.21),
         ),
         rot,
-        new THREE.Vector3(0.15, 0.15, 0.02),
+        new Vector3(0.15, 0.15, 0.02),
       );
       shieldIconsRef.current.setMatrixAt(i, tmp);
     }
@@ -405,7 +416,7 @@ function DataLockers() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!shieldIconsRef.current) return;
-    const mat = shieldIconsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = shieldIconsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.15;
   });
 
@@ -423,7 +434,7 @@ function DataLockers() {
           emissiveIntensity={0.4}
           transparent
           opacity={0.8}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </instancedMesh>
     </group>
@@ -433,13 +444,13 @@ function DataLockers() {
 // ■■ Intrusion Alert Beacons (Instanced) ■■
 function AlertBeacons({ threatsBlocked }: { threatsBlocked: number }) {
   const count = 8;
-  const beaconsRef = useRef<THREE.InstancedMesh>(null);
-  const lightRef = useRef<THREE.InstancedMesh>(null);
+  const beaconsRef = useRef<InstancedMesh>(null);
+  const lightRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!beaconsRef.current || !lightRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const corners = [
       [-5, 0, -5], [5, 0, -5], [-5, 0, 5], [5, 0, 5],
       [-5, 0, 0], [5, 0, 0], [0, 0, -5], [0, 0, 5],
@@ -462,7 +473,7 @@ function AlertBeacons({ threatsBlocked }: { threatsBlocked: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!lightRef.current) return;
-    const mat = lightRef.current.material as THREE.MeshStandardMaterial;
+    const mat = lightRef.current.material as MeshStandardMaterial;
     const alertLevel = Math.min(threatsBlocked / 10, 1);
     mat.emissiveIntensity = alertLevel > 0.5
       ? 0.5 + Math.sin(timeRef.current * 6) * 0.4

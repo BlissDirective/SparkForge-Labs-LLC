@@ -38,7 +38,17 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  Quaternion,
+  Vector3,
+} from 'three';
 import {
   FlagshipEnvironmentWrapper,
 } from './FlagshipEnvironmentBase';
@@ -46,13 +56,13 @@ import {
 // ■■ Server Racks (Instanced — expanded) ■■
 function ServerRacks() {
   const rackCount = 60;
-  const racksRef = useRef<THREE.InstancedMesh>(null);
-  const ledsRef = useRef<THREE.InstancedMesh>(null);
+  const racksRef = useRef<InstancedMesh>(null);
+  const ledsRef = useRef<InstancedMesh>(null);
   const ledCount = rackCount * 10;
 
   React.useEffect(() => {
     if (!racksRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < rackCount; i++) {
       const row = i < rackCount / 2 ? -1 : 1;
       const idx = i < rackCount / 2 ? i : i - rackCount / 2;
@@ -65,7 +75,7 @@ function ServerRacks() {
 
   React.useEffect(() => {
     if (!ledsRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < ledCount; i++) {
       const rackIdx = Math.floor(i / 10);
       const ledIdx = i % 10;
@@ -83,7 +93,7 @@ function ServerRacks() {
 
   useFrame((state) => {
     if (!ledsRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     const t = state.clock.elapsedTime;
     for (let i = 0; i < Math.min(ledCount, ledsRef.current.count); i++) {
       const blink = Math.sin(t * 3 + i * 0.7) > 0;
@@ -110,11 +120,11 @@ function ServerRacks() {
 
 // ■■ Quantum Core Processor ■■
 function QuantumCore({ isTraining }: { isTraining: boolean }) {
-  const coreRef = useRef<THREE.Mesh>(null);
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-  const ring3Ref = useRef<THREE.Mesh>(null);
-  const outerRef = useRef<THREE.Mesh>(null);
+  const coreRef = useRef<Mesh>(null);
+  const ring1Ref = useRef<Mesh>(null);
+  const ring2Ref = useRef<Mesh>(null);
+  const ring3Ref = useRef<Mesh>(null);
+  const outerRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -171,7 +181,7 @@ function QuantumCore({ isTraining }: { isTraining: boolean }) {
 function DataPipelines() {
   const tubeCount = 8;
   const particleCount = 200;
-  const particlesRef = useRef<THREE.InstancedMesh>(null);
+  const particlesRef = useRef<InstancedMesh>(null);
 
   const particles = useMemo(() =>
     Array.from({ length: particleCount }, () => ({
@@ -190,9 +200,9 @@ function DataPipelines() {
 
   useFrame((state) => {
     if (!particlesRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const t = state.clock.elapsedTime;
-    const color = new THREE.Color();
+    const color = new Color();
 
     for (let i = 0; i < particleCount; i++) {
       const p = particles[i];
@@ -215,7 +225,7 @@ function DataPipelines() {
       {tubePositions.map((pos, i) => (
         <mesh key={i} position={[pos.x, 2, pos.z]}>
           <cylinderGeometry args={[0.15, 0.15, 5, 64, 1, true]} />
-          <meshStandardMaterial color="#EC4899" transparent opacity={0.06} side={THREE.DoubleSide} metalness={0.3} roughness={0.1} />
+          <meshStandardMaterial color="#EC4899" transparent opacity={0.06} side={DoubleSide} metalness={0.3} roughness={0.1} />
         </mesh>
       ))}
       {/* Flowing particles */}
@@ -229,7 +239,7 @@ function DataPipelines() {
 
 // ■■ Monitoring Dashboard Array ■■
 function MonitorArray() {
-  const screenRef = useRef<THREE.Group>(null);
+  const screenRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!screenRef.current) return;
@@ -260,7 +270,7 @@ function MonitorArray() {
           {/* Screen surface */}
           <mesh position={[0, 0, 0.04]}>
             <planeGeometry args={[s.w, s.h]} />
-            <meshBasicMaterial color="#EC4899" transparent opacity={0.08} side={THREE.DoubleSide} />
+            <meshBasicMaterial color="#EC4899" transparent opacity={0.08} side={DoubleSide} />
           </mesh>
         </group>
       ))}
@@ -271,7 +281,7 @@ function MonitorArray() {
 // ■■ Matrix Rain Particles ■■
 function MatrixRain() {
   const count = 400;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const drops = useMemo(() =>
     Array.from({ length: count }, () => ({
@@ -284,9 +294,9 @@ function MatrixRain() {
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const t = state.clock.elapsedTime;
-    const color = new THREE.Color();
+    const color = new Color();
 
     for (let i = 0; i < count; i++) {
       const d = drops[i];
@@ -313,21 +323,21 @@ function MatrixRain() {
 // ■■ Circuit Board Ground Details ■■
 function CircuitTraces() {
   const traceCount = 100;
-  const tracesRef = useRef<THREE.InstancedMesh>(null);
+  const tracesRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!tracesRef.current) return;
-    const temp = new THREE.Matrix4();
-    const scl = new THREE.Vector3();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
+    const temp = new Matrix4();
+    const scl = new Vector3();
+    const pos = new Vector3();
+    const quat = new Quaternion();
     for (let i = 0; i < traceCount; i++) {
       const x = (Math.random() - 0.5) * 20;
       const z = (Math.random() - 0.5) * 22;
       const length = 1 + Math.random() * 5;
       const isHorizontal = Math.random() > 0.5;
       pos.set(x, -0.98, z);
-      quat.setFromEuler(new THREE.Euler(-Math.PI / 2, 0, isHorizontal ? 0 : Math.PI / 2));
+      quat.setFromEuler(new Euler(-Math.PI / 2, 0, isHorizontal ? 0 : Math.PI / 2));
       scl.set(length, 0.05, 1);
       temp.compose(pos, quat, scl);
       tracesRef.current.setMatrixAt(i, temp);
@@ -346,11 +356,11 @@ function CircuitTraces() {
 // ■■ Security Laser Grid ■■
 function SecurityGrid() {
   const beamCount = 20;
-  const beamsRef = useRef<THREE.InstancedMesh>(null);
+  const beamsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!beamsRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < beamCount; i++) {
       const isX = i < beamCount / 2;
       const idx = isX ? i : i - beamCount / 2;
@@ -378,7 +388,7 @@ function SecurityGrid() {
 // ■■ Robotic Sorting Arms ■■
 function RoboticArms() {
   const armCount = 4;
-  const armsRef = useRef<THREE.Group>(null);
+  const armsRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!armsRef.current) return;
@@ -427,7 +437,7 @@ function RoboticArms() {
 // ■■ Holographic Display Panels ■■
 function HolographicPanels() {
   const panelCount = 8;
-  const panelsRef = useRef<THREE.Group>(null);
+  const panelsRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!panelsRef.current) return;
@@ -444,7 +454,7 @@ function HolographicPanels() {
         return (
           <mesh key={i} position={[Math.cos(angle) * 5, 2.5, Math.sin(angle) * 5]}>
             <planeGeometry args={[1.5, 1]} />
-            <meshBasicMaterial color="#EC4899" transparent opacity={0.12} side={THREE.DoubleSide} depthWrite={false} />
+            <meshBasicMaterial color="#EC4899" transparent opacity={0.12} side={DoubleSide} depthWrite={false} />
           </mesh>
         );
       })}
@@ -454,7 +464,7 @@ function HolographicPanels() {
 
 // ■■ Cooling Fan Assemblies ■■
 function CoolingFans() {
-  const fansRef = useRef<THREE.Group>(null);
+  const fansRef = useRef<Group>(null);
 
   useFrame((_, delta) => {
     if (!fansRef.current) return;
@@ -481,11 +491,11 @@ function CoolingFans() {
 // ■■ Ceiling Neural Pathway Lights ■■
 function CeilingPaths() {
   const pathCount = 30;
-  const pathsRef = useRef<THREE.InstancedMesh>(null);
+  const pathsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!pathsRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < pathCount; i++) {
       const x = (Math.random() - 0.5) * 18;
       const z = (Math.random() - 0.5) * 22;
@@ -509,7 +519,7 @@ function CeilingPaths() {
 // ■■ Data Stream Particles ■■
 function DataStreams() {
   const count = 300;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const offsets = useMemo(() =>
     Array.from({ length: count }, () => ({
@@ -522,7 +532,7 @@ function DataStreams() {
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const t = state.clock.elapsedTime;
     for (let i = 0; i < count; i++) {
       const o = offsets[i];

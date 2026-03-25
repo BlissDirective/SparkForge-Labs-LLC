@@ -29,18 +29,31 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#06B6D4';
 
 // ■■ Crystal Ball Centerpiece ■■
 function CrystalBall({ confidence }: { confidence: number }) {
-  const outerRef = useRef<THREE.Mesh>(null);
-  const innerRing1Ref = useRef<THREE.Mesh>(null);
-  const innerRing2Ref = useRef<THREE.Mesh>(null);
-  const innerRing3Ref = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const outerRef = useRef<Mesh>(null);
+  const innerRing1Ref = useRef<Mesh>(null);
+  const innerRing2Ref = useRef<Mesh>(null);
+  const innerRing3Ref = useRef<Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   const segments = 32;
@@ -65,7 +78,7 @@ function CrystalBall({ confidence }: { confidence: number }) {
     }
     if (glowRef.current) {
       const intensity = 0.3 + confidence * 0.5 + Math.sin(t * 2.0) * 0.15;
-      (glowRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = intensity;
+      (glowRef.current.material as MeshStandardMaterial).emissiveIntensity = intensity;
       glowRef.current.scale.setScalar(1.15 + Math.sin(t * 1.5) * 0.05);
     }
   });
@@ -127,32 +140,32 @@ function CrystalBall({ confidence }: { confidence: number }) {
 // ■■ Ticker Display Boards (Instanced) ■■
 function TickerBoards() {
   const count = 12;
-  const boardsRef = useRef<THREE.InstancedMesh>(null);
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const boardsRef = useRef<InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!boardsRef.current || !screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const radius = 5.5;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle + Math.PI, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle + Math.PI, 0));
       // Board frame
       tmp.compose(
-        new THREE.Vector3(x, 3.2, z),
+        new Vector3(x, 3.2, z),
         rot,
-        new THREE.Vector3(1.4, 0.7, 0.1),
+        new Vector3(1.4, 0.7, 0.1),
       );
       boardsRef.current.setMatrixAt(i, tmp);
       // Screen surface
       tmp.compose(
-        new THREE.Vector3(x, 3.2, z),
+        new Vector3(x, 3.2, z),
         rot,
-        new THREE.Vector3(1.3, 0.6, 0.02),
+        new Vector3(1.3, 0.6, 0.02),
       );
       screensRef.current.setMatrixAt(i, tmp);
     }
@@ -163,7 +176,7 @@ function TickerBoards() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.4 + Math.sin(timeRef.current * 3) * 0.15;
   });
 
@@ -190,13 +203,13 @@ function TickerBoards() {
 // ■■ Prediction Booth Stations (Instanced) ■■
 function PredictionBooths({ predictions }: { predictions: number }) {
   const count = 8;
-  const boothsRef = useRef<THREE.InstancedMesh>(null);
-  const consolesRef = useRef<THREE.InstancedMesh>(null);
+  const boothsRef = useRef<InstancedMesh>(null);
+  const consolesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!boothsRef.current || !consolesRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 + Math.PI / count;
       const radius = 3.2;
@@ -207,12 +220,12 @@ function PredictionBooths({ predictions }: { predictions: number }) {
       tmp.setPosition(x, 0.85, z);
       boothsRef.current.setMatrixAt(i, tmp);
       // Console screen
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(-0.3, -angle + Math.PI, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(-0.3, -angle + Math.PI, 0));
       tmp.compose(
-        new THREE.Vector3(x, 1.15, z),
+        new Vector3(x, 1.15, z),
         rot,
-        new THREE.Vector3(0.5, 0.35, 0.03),
+        new Vector3(0.5, 0.35, 0.03),
       );
       consolesRef.current.setMatrixAt(i, tmp);
     }
@@ -223,7 +236,7 @@ function PredictionBooths({ predictions }: { predictions: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!consolesRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const active = i < Math.min(predictions, count);
       color.set(active ? '#00FF88' : LAB_COLOR);
@@ -255,15 +268,15 @@ function PredictionBooths({ predictions }: { predictions: number }) {
 // ■■ Probability Chart Pillars (Instanced) ■■
 function ProbabilityPillars({ confidence }: { confidence: number }) {
   const count = 10;
-  const pillarsRef = useRef<THREE.InstancedMesh>(null);
-  const capsRef = useRef<THREE.InstancedMesh>(null);
+  const pillarsRef = useRef<InstancedMesh>(null);
+  const capsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!pillarsRef.current || !capsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 1.1;
       const baseH = 0.3 + (Math.sin(i * 0.9 + timeRef.current * 0.5) * 0.5 + 0.5) * 1.8;
@@ -315,8 +328,8 @@ function ProbabilityPillars({ confidence }: { confidence: number }) {
 
 // ■■ Betting Pool Visualizer ■■
 function BettingPool({ predictions }: { predictions: number }) {
-  const liquidRef = useRef<THREE.Mesh>(null);
-  const containerRef = useRef<THREE.Mesh>(null);
+  const liquidRef = useRef<Mesh>(null);
+  const containerRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   const segments = 32;
@@ -326,7 +339,7 @@ function BettingPool({ predictions }: { predictions: number }) {
     if (liquidRef.current) {
       const fillLevel = Math.min(predictions / 10, 1.0);
       liquidRef.current.scale.y = 0.1 + fillLevel * 0.9;
-      (liquidRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (liquidRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 2) * 0.15;
     }
   });
@@ -342,7 +355,7 @@ function BettingPool({ predictions }: { predictions: number }) {
           opacity={0.2}
           metalness={0.8}
           roughness={0.1}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Liquid fill */}
@@ -372,23 +385,23 @@ function BettingPool({ predictions }: { predictions: number }) {
 
 // ■■ Market Trend Graph Walls ■■
 function TrendGraphWalls() {
-  const lineRefs = useRef<THREE.Mesh[]>([]);
+  const lineRefs = useRef<Mesh[]>([]);
   const timeRef = useRef(0);
 
   const lineCount = 5;
 
   const lineGeometries = useMemo(() => {
-    const geos: THREE.BufferGeometry[] = [];
+    const geos: BufferGeometry[] = [];
     for (let l = 0; l < lineCount; l++) {
-      const points: THREE.Vector3[] = [];
+      const points: Vector3[] = [];
       const segments = 40;
       for (let i = 0; i <= segments; i++) {
         const x = (i / segments) * 8 - 4;
         const y = Math.sin(i * 0.3 + l * 2.0) * 0.6 + l * 0.5 + 1.5;
-        points.push(new THREE.Vector3(x, y, 0));
+        points.push(new Vector3(x, y, 0));
       }
-      const curve = new THREE.CatmullRomCurve3(points);
-      const tube = new THREE.TubeGeometry(curve, segments, 0.025, 6, false);
+      const curve = new CatmullRomCurve3(points);
+      const tube = new TubeGeometry(curve, segments, 0.025, 6, false);
       geos.push(tube);
     }
     return geos;
@@ -398,7 +411,7 @@ function TrendGraphWalls() {
     timeRef.current += delta;
     lineRefs.current.forEach((mesh, i) => {
       if (mesh) {
-        (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity =
+        (mesh.material as MeshStandardMaterial).emissiveIntensity =
           0.4 + Math.sin(timeRef.current * 1.5 + i * 1.2) * 0.2;
       }
     });
@@ -451,14 +464,14 @@ function TrendGraphWalls() {
 
 // ■■ Result Announcement Podium ■■
 function AnnouncementPodium() {
-  const spotlightRef = useRef<THREE.Mesh>(null);
+  const spotlightRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (spotlightRef.current) {
-      (spotlightRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (spotlightRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 1.8) * 0.15;
     }
   });
@@ -495,7 +508,7 @@ function AnnouncementPodium() {
           emissiveIntensity={0.3}
           transparent
           opacity={0.08}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>

@@ -29,7 +29,16 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#D946EF';
@@ -37,12 +46,12 @@ const LAB_COLOR = '#D946EF';
 // ■■ Display Pedestals (Instanced) ■■
 function DisplayPedestals() {
   const count = 16;
-  const pedestalsRef = useRef<THREE.InstancedMesh>(null);
-  const topPlateRef = useRef<THREE.InstancedMesh>(null);
+  const pedestalsRef = useRef<InstancedMesh>(null);
+  const topPlateRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!pedestalsRef.current || !topPlateRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / (count / 2));
       const col = i % Math.ceil(count / 2);
@@ -78,32 +87,32 @@ function DisplayPedestals() {
 // ■■ Picture Frames on Walls (Instanced) ■■
 function PictureFrames() {
   const count = 20;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const canvasRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const canvasRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!framesRef.current || !canvasRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const side = i % 2 === 0 ? -1 : 1;
       const along = (Math.floor(i / 2) - count / 4) * 2.0;
       const wallZ = side * 8;
       const height = 2.0 + (i % 3) * 0.4;
       // Frame border
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, side > 0 ? Math.PI : 0, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, side > 0 ? Math.PI : 0, 0));
       tmp.compose(
-        new THREE.Vector3(along, height, wallZ),
+        new Vector3(along, height, wallZ),
         rot,
-        new THREE.Vector3(1.2, 0.9, 0.08),
+        new Vector3(1.2, 0.9, 0.08),
       );
       framesRef.current.setMatrixAt(i, tmp);
       // Inner canvas
       tmp.compose(
-        new THREE.Vector3(along, height, wallZ - side * 0.01),
+        new Vector3(along, height, wallZ - side * 0.01),
         rot,
-        new THREE.Vector3(1.0, 0.7, 0.01),
+        new Vector3(1.0, 0.7, 0.01),
       );
       canvasRef.current.setMatrixAt(i, tmp);
       color.setHSL(0.75 + (i / count) * 0.2, 0.3, 0.15);
@@ -131,13 +140,13 @@ function PictureFrames() {
 // ■■ Voting Booth Stations (Instanced) ■■
 function VotingBooths({ isJudging }: { isJudging: boolean }) {
   const count = 8;
-  const boothsRef = useRef<THREE.InstancedMesh>(null);
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const boothsRef = useRef<InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!boothsRef.current || !screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 2.5;
       // Booth body
@@ -156,7 +165,7 @@ function VotingBooths({ isJudging }: { isJudging: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = isJudging
       ? 0.5 + Math.sin(timeRef.current * 4) * 0.25
       : 0.2;
@@ -184,19 +193,19 @@ function VotingBooths({ isJudging }: { isJudging: boolean }) {
 
 // ■■ Holographic Label Projections ■■
 function LabelProjections({ isJudging }: { isJudging: boolean }) {
-  const humanRef = useRef<THREE.Mesh>(null);
-  const aiRef = useRef<THREE.Mesh>(null);
+  const humanRef = useRef<Mesh>(null);
+  const aiRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     const pulse = isJudging ? 0.5 + Math.sin(timeRef.current * 3) * 0.3 : 0.15;
     if (humanRef.current) {
-      (humanRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+      (humanRef.current.material as MeshStandardMaterial).emissiveIntensity = pulse;
       humanRef.current.position.y = 3.5 + Math.sin(timeRef.current * 0.8) * 0.1;
     }
     if (aiRef.current) {
-      (aiRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+      (aiRef.current.material as MeshStandardMaterial).emissiveIntensity = pulse;
       aiRef.current.position.y = 3.5 + Math.sin(timeRef.current * 0.8 + Math.PI) * 0.1;
     }
   });
@@ -220,25 +229,25 @@ function LabelProjections({ isJudging }: { isJudging: boolean }) {
 // ■■ Spotlight Rigs (Instanced) ■■
 function SpotlightRigs() {
   const count = 16;
-  const lightsRef = useRef<THREE.InstancedMesh>(null);
-  const armRef = useRef<THREE.InstancedMesh>(null);
+  const lightsRef = useRef<InstancedMesh>(null);
+  const armRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!lightsRef.current || !armRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / (count / 2));
       const col = i % Math.ceil(count / 2);
       const x = (col - Math.ceil(count / 4)) * 2.0;
       const z = row === 0 ? -3 : 3;
       // Light cone
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(Math.PI, 0, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(Math.PI, 0, 0));
       tmp.compose(
-        new THREE.Vector3(x, 4.5, z),
+        new Vector3(x, 4.5, z),
         rot,
-        new THREE.Vector3(0.15, 0.2, 0.15),
+        new Vector3(0.15, 0.2, 0.15),
       );
       lightsRef.current.setMatrixAt(i, tmp);
       // Arm
@@ -253,7 +262,7 @@ function SpotlightRigs() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!lightsRef.current) return;
-    const mat = lightsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = lightsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.5 + Math.sin(timeRef.current * 1.2) * 0.15;
   });
 
@@ -274,8 +283,8 @@ function SpotlightRigs() {
 // ■■ Gallery Visitor Silhouettes (Instanced) ■■
 function VisitorSilhouettes() {
   const count = 12;
-  const bodiesRef = useRef<THREE.InstancedMesh>(null);
-  const headsRef = useRef<THREE.InstancedMesh>(null);
+  const bodiesRef = useRef<InstancedMesh>(null);
+  const headsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const wanderSeeds = useMemo(() =>
@@ -291,7 +300,7 @@ function VisitorSilhouettes() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!bodiesRef.current || !headsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const s = wanderSeeds[i];
       const x = s.baseX + Math.sin(timeRef.current * s.speed + s.phase) * s.wanderRadius;
@@ -326,7 +335,7 @@ function VisitorSilhouettes() {
 // ■■ Verdict Particles (Green/Red Floating) ■■
 function VerdictParticles({ correctCount }: { correctCount: number }) {
   const count = 50;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -343,17 +352,17 @@ function VerdictParticles({ correctCount }: { correctCount: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const y = ((s.y + timeRef.current * s.speed * 0.2) % 5);
-      rot.setFromEuler(new THREE.Euler(timeRef.current * 0.5 + s.phase, timeRef.current * 0.3, 0));
+      rot.setFromEuler(new Euler(timeRef.current * 0.5 + s.phase, timeRef.current * 0.3, 0));
       tmp.compose(
-        new THREE.Vector3(s.x + Math.sin(timeRef.current * 0.4 + s.phase) * 0.5, y, s.z),
+        new Vector3(s.x + Math.sin(timeRef.current * 0.4 + s.phase) * 0.5, y, s.z),
         rot,
-        new THREE.Vector3(0.06, 0.06, 0.06),
+        new Vector3(0.06, 0.06, 0.06),
       );
       meshRef.current.setMatrixAt(i, tmp);
       color.set(s.isCorrect ? '#00FF88' : '#FF4444');
@@ -373,13 +382,13 @@ function VerdictParticles({ correctCount }: { correctCount: number }) {
 
 // ■■ Grand Entrance Archway ■■
 function GrandEntrance() {
-  const neonRef = useRef<THREE.Mesh>(null);
+  const neonRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (neonRef.current) {
-      (neonRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (neonRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.5 + Math.sin(timeRef.current * 2.5) * 0.2;
     }
   });

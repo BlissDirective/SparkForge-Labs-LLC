@@ -30,15 +30,25 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF66AA';
 
 // ■■ Giant Pixel Grid Display Table ■■
 function PixelGridTable({ zoomLevel }: { zoomLevel: number }) {
-  const gridRef = useRef<THREE.InstancedMesh>(null);
-  const frameRef = useRef<THREE.Mesh>(null);
+  const gridRef = useRef<InstancedMesh>(null);
+  const frameRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const gridSize = 16;
   const count = gridSize * gridSize;
@@ -55,8 +65,8 @@ function PixelGridTable({ zoomLevel }: { zoomLevel: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!gridRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const cellSize = 3.0 / gridSize;
     const offset = (gridSize - 1) * cellSize * 0.5;
 
@@ -107,8 +117,8 @@ function PixelGridTable({ zoomLevel }: { zoomLevel: number }) {
 
 // ■■ Magnification Station ■■
 function MagnificationStation({ isAnalyzing }: { isAnalyzing: boolean }) {
-  const lensRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  const lensRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 32;
 
@@ -120,7 +130,7 @@ function MagnificationStation({ isAnalyzing }: { isAnalyzing: boolean }) {
       lensRef.current.scale.setScalar(scale);
     }
     if (ringRef.current) {
-      (ringRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (ringRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isAnalyzing ? 0.6 + Math.sin(timeRef.current * 4) * 0.3 : 0.2;
     }
   });
@@ -150,7 +160,7 @@ function MagnificationStation({ isAnalyzing }: { isAnalyzing: boolean }) {
       {/* Lens glass */}
       <mesh position={[-0.8, 2.5, 0]}>
         <circleGeometry args={[0.22, segments]} />
-        <meshStandardMaterial color="#88CCFF" transparent opacity={0.3} emissive="#88CCFF" emissiveIntensity={0.2} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#88CCFF" transparent opacity={0.3} emissive="#88CCFF" emissiveIntensity={0.2} side={DoubleSide} />
       </mesh>
       {/* Glow ring */}
       <mesh ref={ringRef} position={[-0.8, 2.5, 0]}>
@@ -164,15 +174,15 @@ function MagnificationStation({ isAnalyzing }: { isAnalyzing: boolean }) {
 // ■■ RGB Color Channel Analyzer Panels ■■
 function RGBChannelPanels({ isAnalyzing }: { isAnalyzing: boolean }) {
   const timeRef = useRef(0);
-  const barsRef = useRef<THREE.InstancedMesh>(null);
+  const barsRef = useRef<InstancedMesh>(null);
   const barCount = 24;
   const channels = ['#FF3333', '#33FF33', '#3333FF'] as const;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!barsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let c = 0; c < 3; c++) {
       for (let i = 0; i < barCount; i++) {
         const idx = c * barCount + i;
@@ -218,13 +228,13 @@ function RGBChannelPanels({ isAnalyzing }: { isAnalyzing: boolean }) {
 // ■■ Image Layer Decomposition Racks ■■
 function LayerRacks() {
   const count = 8;
-  const shelvesRef = useRef<THREE.InstancedMesh>(null);
-  const platesRef = useRef<THREE.InstancedMesh>(null);
+  const shelvesRef = useRef<InstancedMesh>(null);
+  const platesRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!shelvesRef.current || !platesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const y = 0.4 + i * 0.45;
       // Shelf brackets
@@ -271,22 +281,22 @@ function LayerRacks() {
 // ■■ Pixel Art Gallery (Wall Frames) ■■
 function PixelArtGallery() {
   const count = 10;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const artRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const artRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!framesRef.current || !artRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const side = i % 2 === 0 ? 1 : -1;
       const x = side * 6.5;
       const z = (Math.floor(i / 2) - count / 4) * 2.5;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, side > 0 ? -Math.PI / 2 : Math.PI / 2, 0));
-      tmp.compose(new THREE.Vector3(x, 2.0, z), rot, new THREE.Vector3(0.9, 0.9, 0.06));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, side > 0 ? -Math.PI / 2 : Math.PI / 2, 0));
+      tmp.compose(new Vector3(x, 2.0, z), rot, new Vector3(0.9, 0.9, 0.06));
       framesRef.current.setMatrixAt(i, tmp);
-      tmp.compose(new THREE.Vector3(x - side * 0.04, 2.0, z), rot, new THREE.Vector3(0.7, 0.7, 0.02));
+      tmp.compose(new Vector3(x - side * 0.04, 2.0, z), rot, new Vector3(0.7, 0.7, 0.02));
       artRef.current.setMatrixAt(i, tmp);
       color.setHSL(0.9 + i * 0.02, 0.5, 0.2);
       artRef.current.setColorAt(i, color);
@@ -313,13 +323,13 @@ function PixelArtGallery() {
 // ■■ Resolution Comparison Screens ■■
 function ResolutionScreens() {
   const timeRef = useRef(0);
-  const scanRef = useRef<THREE.Mesh>(null);
+  const scanRef = useRef<Mesh>(null);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (scanRef.current) {
       scanRef.current.position.y = 1.5 + Math.sin(timeRef.current * 1.5) * 0.4;
-      (scanRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (scanRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 3) * 0.15;
     }
   });
@@ -365,13 +375,13 @@ function ResolutionScreens() {
 
 // ■■ Anti-Aliasing Demonstration Zone ■■
 function AntiAliasingZone() {
-  const stepsRef = useRef<THREE.InstancedMesh>(null);
+  const stepsRef = useRef<InstancedMesh>(null);
   const stepCount = 12;
 
   React.useEffect(() => {
     if (!stepsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < stepCount; i++) {
       const x = (i / stepCount) * 3 - 1.5;
       const y = -0.5 + (i / stepCount) * 1.5;
@@ -379,7 +389,7 @@ function AntiAliasingZone() {
       tmp.makeScale(3.0 / stepCount * 0.95, 0.08 + smooth * 0.02, 0.5);
       tmp.setPosition(x, y, 5.5);
       stepsRef.current.setMatrixAt(i, tmp);
-      color.lerpColors(new THREE.Color('#FF66AA'), new THREE.Color('#FFB8D9'), smooth);
+      color.lerpColors(new Color('#FF66AA'), new Color('#FFB8D9'), smooth);
       stepsRef.current.setColorAt(i, color);
     }
     stepsRef.current.instanceMatrix.needsUpdate = true;
@@ -405,7 +415,7 @@ function AntiAliasingZone() {
 // ■■ Binary Data Waterfall ■■
 function BinaryWaterfall() {
   const count = 80;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -421,8 +431,8 @@ function BinaryWaterfall() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const y = ((s.phase + timeRef.current * s.speed) % 5) - 0.5;

@@ -24,19 +24,30 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Photography Lighting Rigs ■■
 function LightingRigs() {
   const count = 8;
-  const boxRef = useRef<THREE.InstancedMesh>(null);
-  const panelRef = useRef<THREE.InstancedMesh>(null);
+  const boxRef = useRef<InstancedMesh>(null);
+  const panelRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!boxRef.current || !panelRef.current) return;
-    const bTemp = new THREE.Matrix4();
-    const pTemp = new THREE.Matrix4();
+    const bTemp = new Matrix4();
+    const pTemp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 1.2 - Math.PI * 0.6;
       const r = 8;
@@ -63,7 +74,7 @@ function LightingRigs() {
       {/* Light panels */}
       <instancedMesh ref={panelRef} args={[undefined, undefined, count]}>
         <planeGeometry args={[0.7, 0.5]} />
-        <meshBasicMaterial color="#06B6D4" transparent opacity={0.35} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#06B6D4" transparent opacity={0.35} side={DoubleSide} />
       </instancedMesh>
       {/* Stand poles */}
       {Array.from({ length: count }).map((_, i) => {
@@ -84,13 +95,13 @@ function LightingRigs() {
 // ■■ Camera Stations ■■
 function CameraStations({ isCapturing }: { isCapturing: boolean }) {
   const stationCount = 4;
-  const flashRef = useRef<THREE.Group>(null);
+  const flashRef = useRef<Group>(null);
 
   useFrame(({ clock }) => {
     if (!flashRef.current) return;
     flashRef.current.children.forEach((child, i) => {
-      if (child instanceof THREE.Mesh) {
-        const mat = child.material as THREE.MeshBasicMaterial;
+      if (child instanceof Mesh) {
+        const mat = child.material as MeshBasicMaterial;
         mat.opacity = isCapturing
           ? (Math.sin(clock.elapsedTime * 8 + i * 2) > 0.7 ? 0.8 : 0.1)
           : 0.1;
@@ -137,13 +148,13 @@ function CameraStations({ isCapturing }: { isCapturing: boolean }) {
 // ■■ Photo Gallery Wall ■■
 function PhotoGallery() {
   const frameCount = 20;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const photosRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const photosRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!framesRef.current || !photosRef.current) return;
-    const fTemp = new THREE.Matrix4();
-    const pTemp = new THREE.Matrix4();
+    const fTemp = new Matrix4();
+    const pTemp = new Matrix4();
     for (let i = 0; i < frameCount; i++) {
       const row = Math.floor(i / 5);
       const col = i % 5;
@@ -157,7 +168,7 @@ function PhotoGallery() {
       pTemp.makeRotationZ(tilt);
       pTemp.setPosition(x, y, z + 0.03);
       photosRef.current.setMatrixAt(i, pTemp);
-      photosRef.current.setColorAt(i, new THREE.Color().setHSL(0.5 + Math.random() * 0.15, 0.5, 0.15));
+      photosRef.current.setColorAt(i, new Color().setHSL(0.5 + Math.random() * 0.15, 0.5, 0.15));
     }
     framesRef.current.instanceMatrix.needsUpdate = true;
     photosRef.current.instanceMatrix.needsUpdate = true;
@@ -166,10 +177,10 @@ function PhotoGallery() {
 
   useFrame(({ clock }) => {
     if (!framesRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < frameCount; i++) {
       framesRef.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);
@@ -199,11 +210,11 @@ function PhotoGallery() {
 // ■■ Film Strip Ribbons ■■
 function FilmStrips() {
   const count = 12;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * 14;
       const z = (Math.random() - 0.5) * 10;
@@ -217,10 +228,10 @@ function FilmStrips() {
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       ref.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);
@@ -242,10 +253,10 @@ function FilmStrips() {
 // ■■ Neural Network Visualization ■■
 function NeuralNetworkViz({ confidence }: { confidence: number }) {
   const nodeCount = 24;
-  const nodesRef = useRef<THREE.InstancedMesh>(null);
+  const nodesRef = useRef<InstancedMesh>(null);
 
   const nodePositions = useMemo(() => {
-    const positions: THREE.Vector3[] = [];
+    const positions: Vector3[] = [];
     const layers = [4, 6, 6, 4, 2];
     let idx = 0;
     for (let l = 0; l < layers.length && idx < nodeCount; l++) {
@@ -253,7 +264,7 @@ function NeuralNetworkViz({ confidence }: { confidence: number }) {
       for (let n = 0; n < layerCount; n++) {
         const x = (l - 2) * 1.5;
         const y = (n - (layerCount - 1) / 2) * 0.8;
-        positions.push(new THREE.Vector3(x, y + 2.5, -6));
+        positions.push(new Vector3(x, y + 2.5, -6));
         idx++;
       }
     }
@@ -261,7 +272,7 @@ function NeuralNetworkViz({ confidence }: { confidence: number }) {
   }, [nodeCount]);
 
   const lineGeometry = useMemo(() => {
-    const points: THREE.Vector3[] = [];
+    const points: Vector3[] = [];
     for (let i = 0; i < nodePositions.length; i++) {
       for (let j = i + 1; j < Math.min(i + 5, nodePositions.length); j++) {
         if (Math.abs(nodePositions[j].x - nodePositions[i].x) < 2) {
@@ -269,17 +280,17 @@ function NeuralNetworkViz({ confidence }: { confidence: number }) {
         }
       }
     }
-    return new THREE.BufferGeometry().setFromPoints(points);
+    return new BufferGeometry().setFromPoints(points);
   }, [nodePositions]);
 
   React.useEffect(() => {
     if (!nodesRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < nodePositions.length; i++) {
       temp.makeTranslation(nodePositions[i].x, nodePositions[i].y, nodePositions[i].z);
       nodesRef.current.setMatrixAt(i, temp);
-      nodesRef.current.setColorAt(i, new THREE.Color().lerpColors(
-        new THREE.Color('#333344'), new THREE.Color('#06B6D4'), confidence
+      nodesRef.current.setColorAt(i, new Color().lerpColors(
+        new Color('#333344'), new Color('#06B6D4'), confidence
       ));
     }
     nodesRef.current.instanceMatrix.needsUpdate = true;

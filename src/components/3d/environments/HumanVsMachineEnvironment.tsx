@@ -29,7 +29,18 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#00BBFF';
@@ -38,8 +49,8 @@ const MACHINE_COLOR = '#44AAFF';
 
 // ■■ Judge's Podium with Verdict Scales ■■
 function JudgePodium({ isRevealing }: { isRevealing: boolean }) {
-  const scaleRef = useRef<THREE.Group>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const scaleRef = useRef<Group>(null);
+  const glowRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 16;
 
@@ -49,7 +60,7 @@ function JudgePodium({ isRevealing }: { isRevealing: boolean }) {
       scaleRef.current.rotation.y = Math.sin(timeRef.current * 0.4) * (isRevealing ? 0.3 : 0.05);
     }
     if (glowRef.current) {
-      const mat = glowRef.current.material as THREE.MeshStandardMaterial;
+      const mat = glowRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = isRevealing ? 0.8 + Math.sin(timeRef.current * 4) * 0.3 : 0.2;
     }
   });
@@ -108,12 +119,12 @@ function JudgePodium({ isRevealing }: { isRevealing: boolean }) {
 // ■■ Human Side Props (Instanced — Warm/Wooden) ■■
 function HumanSideProps() {
   const count = 14;
-  const propsRef = useRef<THREE.InstancedMesh>(null);
-  const accentsRef = useRef<THREE.InstancedMesh>(null);
+  const propsRef = useRef<InstancedMesh>(null);
+  const accentsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!propsRef.current || !accentsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / 3);
       const col = i % 3;
@@ -171,13 +182,13 @@ function HumanSideProps() {
 // ■■ Machine Side Props (Instanced — Chrome/Cold) ■■
 function MachineSideProps() {
   const count = 14;
-  const propsRef = useRef<THREE.InstancedMesh>(null);
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const propsRef = useRef<InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!propsRef.current || !screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / 3);
       const col = i % 3;
@@ -214,7 +225,7 @@ function MachineSideProps() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 3) * 0.15;
   });
 
@@ -247,13 +258,13 @@ function MachineSideProps() {
 
 // ■■ Energy Barrier Divider ■■
 function EnergyBarrier() {
-  const barrierRef = useRef<THREE.Mesh>(null);
+  const barrierRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (barrierRef.current) {
-      const mat = barrierRef.current.material as THREE.MeshStandardMaterial;
+      const mat = barrierRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.15;
       mat.opacity = 0.12 + Math.sin(timeRef.current * 1.5) * 0.04;
     }
@@ -270,7 +281,7 @@ function EnergyBarrier() {
           emissiveIntensity={0.3}
           transparent
           opacity={0.12}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>
@@ -279,11 +290,11 @@ function EnergyBarrier() {
         <>
           <mesh position={[0, 2, 0]} rotation={[0, Math.PI / 2, 0]}>
             <planeGeometry args={[8, 0.02]} />
-            <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.7} transparent opacity={0.5} side={THREE.DoubleSide} />
+            <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.7} transparent opacity={0.5} side={DoubleSide} />
           </mesh>
           <mesh position={[0, -0.5, 0]} rotation={[0, Math.PI / 2, 0]}>
             <planeGeometry args={[8, 0.02]} />
-            <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.7} transparent opacity={0.5} side={THREE.DoubleSide} />
+            <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.7} transparent opacity={0.5} side={DoubleSide} />
           </mesh>
         </>
       )}
@@ -294,7 +305,7 @@ function EnergyBarrier() {
 // ■■ Floating Comparison Cards (Instanced) ■■
 function ComparisonCards() {
   const count = 12;
-  const cardsRef = useRef<THREE.InstancedMesh>(null);
+  const cardsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -311,17 +322,17 @@ function ComparisonCards() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!cardsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const y = s.y + Math.sin(timeRef.current * s.speed + s.phase) * 0.3;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, timeRef.current * 0.2 + s.phase, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, timeRef.current * 0.2 + s.phase, 0));
       tmp.compose(
-        new THREE.Vector3(s.x, y, s.z),
+        new Vector3(s.x, y, s.z),
         rot,
-        new THREE.Vector3(0.3, 0.4, 0.01)
+        new Vector3(0.3, 0.4, 0.01)
       );
       cardsRef.current.setMatrixAt(i, tmp);
       color.set(s.isHuman ? HUMAN_COLOR : MACHINE_COLOR);
@@ -341,18 +352,18 @@ function ComparisonCards() {
 
 // ■■ Score Displays ■■
 function ScoreDisplays({ humanScore, machineScore }: { humanScore: number; machineScore: number }) {
-  const humanRef = useRef<THREE.Mesh>(null);
-  const machineRef = useRef<THREE.Mesh>(null);
+  const humanRef = useRef<Mesh>(null);
+  const machineRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (humanRef.current) {
-      const mat = humanRef.current.material as THREE.MeshStandardMaterial;
+      const mat = humanRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = 0.3 + (humanScore > machineScore ? Math.sin(timeRef.current * 3) * 0.2 : 0);
     }
     if (machineRef.current) {
-      const mat = machineRef.current.material as THREE.MeshStandardMaterial;
+      const mat = machineRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = 0.3 + (machineScore > humanScore ? Math.sin(timeRef.current * 3) * 0.2 : 0);
     }
   });
@@ -385,11 +396,11 @@ function ScoreDisplays({ humanScore, machineScore }: { humanScore: number; machi
 // ■■ Arena Seating (Instanced Bleachers) ■■
 function ArenaSeating() {
   const count = 20;
-  const seatsRef = useRef<THREE.InstancedMesh>(null);
+  const seatsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!seatsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const rows = 3;
     const seatsPerRow = Math.ceil(count / rows);
     for (let i = 0; i < count; i++) {

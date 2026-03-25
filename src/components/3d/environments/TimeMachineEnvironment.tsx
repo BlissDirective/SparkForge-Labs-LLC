@@ -28,15 +28,27 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BackSide,
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#00BBFF';
 
 // ■■ Time Vortex Portal (Concentric Spinning Rings) ■■
 function TimeVortexPortal() {
-  const ringsRef = useRef<THREE.Group>(null);
-  const ringRefs = useRef<THREE.Mesh[]>([]);
+  const ringsRef = useRef<Group>(null);
+  const ringRefs = useRef<Mesh[]>([]);
   const timeRef = useRef(0);
   const ringCount = 5;
   const segments = 48;
@@ -48,7 +60,7 @@ function TimeVortexPortal() {
       const dir = i % 2 === 0 ? 1 : -1;
       ring.rotation.z = timeRef.current * (0.3 + i * 0.15) * dir;
       ring.rotation.x = Math.sin(timeRef.current * 0.2 + i) * 0.1;
-      const mat = ring.material as THREE.MeshStandardMaterial;
+      const mat = ring.material as MeshStandardMaterial;
       mat.emissiveIntensity = 0.4 + Math.sin(timeRef.current * 2 + i * 0.8) * 0.2;
     });
   });
@@ -86,7 +98,7 @@ function TimeVortexPortal() {
           emissiveIntensity={0.6}
           transparent
           opacity={0.3}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -96,8 +108,8 @@ function TimeVortexPortal() {
 // ■■ Timeline Markers along Helical Path (Instanced) ■■
 function TimelineMarkers({ currentYear }: { currentYear: number }) {
   const count = 20;
-  const markersRef = useRef<THREE.InstancedMesh>(null);
-  const glowsRef = useRef<THREE.InstancedMesh>(null);
+  const markersRef = useRef<InstancedMesh>(null);
+  const glowsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const yearPositions = useMemo(() =>
@@ -117,8 +129,8 @@ function TimelineMarkers({ currentYear }: { currentYear: number }) {
 
   React.useEffect(() => {
     if (!markersRef.current || !glowsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const p = yearPositions[i];
       // Marker orb
@@ -141,7 +153,7 @@ function TimelineMarkers({ currentYear }: { currentYear: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!glowsRef.current) return;
-    const mat = glowsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = glowsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.4 + Math.sin(timeRef.current * 2) * 0.2;
   });
 
@@ -162,27 +174,27 @@ function TimelineMarkers({ currentYear }: { currentYear: number }) {
 // ■■ Era Display Panels (Instanced) ■■
 function EraDisplayPanels() {
   const count = 6;
-  const panelsRef = useRef<THREE.InstancedMesh>(null);
-  const labelsRef = useRef<THREE.InstancedMesh>(null);
+  const panelsRef = useRef<InstancedMesh>(null);
+  const labelsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!panelsRef.current || !labelsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const _eras = ['PAST', 'PRESENT', 'FUTURE', 'DAWN', 'RISE', 'BEYOND'];
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const radius = 5.5;
       const x = Math.sin(angle) * radius;
       const z = Math.cos(angle) * radius;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle + Math.PI, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle + Math.PI, 0));
       // Panel body
-      tmp.compose(new THREE.Vector3(x, 2.5, z), rot, new THREE.Vector3(1.2, 1.8, 0.08));
+      tmp.compose(new Vector3(x, 2.5, z), rot, new Vector3(1.2, 1.8, 0.08));
       panelsRef.current.setMatrixAt(i, tmp);
       // Label plate
-      tmp.compose(new THREE.Vector3(x, 3.5, z), rot, new THREE.Vector3(0.8, 0.2, 0.1));
+      tmp.compose(new Vector3(x, 3.5, z), rot, new Vector3(0.8, 0.2, 0.1));
       labelsRef.current.setMatrixAt(i, tmp);
       color.setHSL(0.55 + (i / count) * 0.15, 0.7, 0.2);
       panelsRef.current.setColorAt(i, color);
@@ -195,7 +207,7 @@ function EraDisplayPanels() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!labelsRef.current) return;
-    const mat = labelsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = labelsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.15;
   });
 
@@ -216,7 +228,7 @@ function EraDisplayPanels() {
 // ■■ Clock Gears on Walls (Instanced) ■■
 function ClockGears() {
   const count = 12;
-  const gearsRef = useRef<THREE.InstancedMesh>(null);
+  const gearsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const gearData = useMemo(() =>
@@ -231,18 +243,18 @@ function ClockGears() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!gearsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < count; i++) {
       const g = gearData[i];
       const wallRadius = 6.2;
       const x = Math.sin(g.angle) * wallRadius;
       const z = Math.cos(g.angle) * wallRadius;
-      rot.setFromEuler(new THREE.Euler(0, -g.angle, timeRef.current * g.speed));
+      rot.setFromEuler(new Euler(0, -g.angle, timeRef.current * g.speed));
       tmp.compose(
-        new THREE.Vector3(x, g.y, z),
+        new Vector3(x, g.y, z),
         rot,
-        new THREE.Vector3(g.radius, g.radius, 0.04)
+        new Vector3(g.radius, g.radius, 0.04)
       );
       gearsRef.current.setMatrixAt(i, tmp);
     }
@@ -260,7 +272,7 @@ function ClockGears() {
 // ■■ Temporal Energy Particles (Instanced) ■■
 function TemporalParticles({ isPlacing }: { isPlacing: boolean }) {
   const count = 50;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -276,7 +288,7 @@ function TemporalParticles({ isPlacing }: { isPlacing: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const speedMult = isPlacing ? 2.5 : 1.0;
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
@@ -310,16 +322,16 @@ function TemporalParticles({ isPlacing }: { isPlacing: boolean }) {
 // ■■ Milestone Pedestals (Instanced) ■■
 function MilestonePedestals({ currentYear }: { currentYear: number }) {
   const count = 8;
-  const basesRef = useRef<THREE.InstancedMesh>(null);
-  const topsRef = useRef<THREE.InstancedMesh>(null);
+  const basesRef = useRef<InstancedMesh>(null);
+  const topsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const milestones = useMemo(() => [1956, 1970, 1986, 1997, 2011, 2016, 2022, 2025].slice(0, count), [count]);
 
   React.useEffect(() => {
     if (!basesRef.current || !topsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const radius = 4.2;
@@ -345,7 +357,7 @@ function MilestonePedestals({ currentYear }: { currentYear: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!topsRef.current) return;
-    const mat = topsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = topsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.8) * 0.15;
   });
 
@@ -376,7 +388,7 @@ function ChamberWalls() {
           color="#0C0E1A"
           metalness={0.4}
           roughness={0.6}
-          side={THREE.BackSide}
+          side={BackSide}
         />
       </mesh>
       {/* Floor ring accent */}
@@ -387,7 +399,7 @@ function ChamberWalls() {
       {/* Ceiling dome */}
       <mesh position={[0, 5, 0]}>
         <sphereGeometry args={[7, segments, segments / 2, 0, Math.PI * 2, 0, Math.PI / 2]} />
-        <meshStandardMaterial color="#060810" side={THREE.BackSide} roughness={0.9} />
+        <meshStandardMaterial color="#060810" side={BackSide} roughness={0.9} />
       </mesh>
       {/* Circuitry accent lines */}
       {(

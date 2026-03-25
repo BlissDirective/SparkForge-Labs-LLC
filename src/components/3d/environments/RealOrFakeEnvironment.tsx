@@ -30,25 +30,32 @@
 
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF6644';
 
 // ■■ News Desk with Dual Screens ■■
 function NewsDesk({ isChecking }: { isChecking: boolean }) {
-  const realScreenRef = useRef<THREE.Mesh>(null);
-  const fakeScreenRef = useRef<THREE.Mesh>(null);
+  const realScreenRef = useRef<Mesh>(null);
+  const fakeScreenRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     const pulse = isChecking ? 0.4 + Math.sin(timeRef.current * 3) * 0.2 : 0.15;
     if (realScreenRef.current) {
-      (realScreenRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+      (realScreenRef.current.material as MeshStandardMaterial).emissiveIntensity = pulse;
     }
     if (fakeScreenRef.current) {
-      (fakeScreenRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = pulse;
+      (fakeScreenRef.current.material as MeshStandardMaterial).emissiveIntensity = pulse;
     }
   });
 
@@ -94,14 +101,14 @@ function NewsDesk({ isChecking }: { isChecking: boolean }) {
 
 // ■■ Fact-Checking Magnifier Station ■■
 function MagnifierStation({ isChecking }: { isChecking: boolean }) {
-  const lensRef = useRef<THREE.Mesh>(null);
+  const lensRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (lensRef.current) {
       lensRef.current.rotation.z = Math.sin(timeRef.current * 0.6) * 0.1;
-      const mat = lensRef.current.material as THREE.MeshStandardMaterial;
+      const mat = lensRef.current.material as MeshStandardMaterial;
       mat.opacity = isChecking ? 0.3 + Math.sin(timeRef.current * 4) * 0.1 : 0.2;
     }
   });
@@ -134,7 +141,7 @@ function MagnifierStation({ isChecking }: { isChecking: boolean }) {
           emissiveIntensity={0.2}
           transparent
           opacity={0.2}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -144,14 +151,14 @@ function MagnifierStation({ isChecking }: { isChecking: boolean }) {
 // ■■ Source Verification Pipeline ■■
 function VerificationPipeline({ verified }: { verified: number }) {
   const stampCount = 10;
-  const stampsRef = useRef<THREE.InstancedMesh>(null);
+  const stampsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!stampsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < stampCount; i++) {
       const baseX = -3 + (i / stampCount) * 6;
       const x = ((baseX + timeRef.current * 0.4 + 3) % 6) - 3;
@@ -186,7 +193,7 @@ function VerificationPipeline({ verified }: { verified: number }) {
       {/* Stamps moving on belt */}
       <instancedMesh ref={stampsRef} args={[undefined, undefined, stampCount]}>
         <circleGeometry args={[1, 8]} />
-        <meshStandardMaterial emissive="#FFFFFF" emissiveIntensity={0.4} side={THREE.DoubleSide} />
+        <meshStandardMaterial emissive="#FFFFFF" emissiveIntensity={0.4} side={DoubleSide} />
       </instancedMesh>
     </group>
   );
@@ -194,7 +201,7 @@ function VerificationPipeline({ verified }: { verified: number }) {
 
 // ■■ Deepfake Analysis Chamber ■■
 function DeepfakeChamber({ isChecking }: { isChecking: boolean }) {
-  const scanLineRef = useRef<THREE.Mesh>(null);
+  const scanLineRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -204,7 +211,7 @@ function DeepfakeChamber({ isChecking }: { isChecking: boolean }) {
         ? 0.5 + Math.sin(timeRef.current * 2) * 0.8
         : 0.5;
       scanLineRef.current.position.y = y;
-      (scanLineRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (scanLineRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isChecking ? 0.6 + Math.sin(timeRef.current * 8) * 0.3 : 0.1;
     }
   });
@@ -233,7 +240,7 @@ function DeepfakeChamber({ isChecking }: { isChecking: boolean }) {
           emissiveIntensity={0.3}
           transparent
           opacity={0.5}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Base platform */}
@@ -247,7 +254,7 @@ function DeepfakeChamber({ isChecking }: { isChecking: boolean }) {
 
 // ■■ Truth Meter (Giant Gauge) ■■
 function TruthMeter({ verified }: { verified: number }) {
-  const needleRef = useRef<THREE.Mesh>(null);
+  const needleRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -266,7 +273,7 @@ function TruthMeter({ verified }: { verified: number }) {
       {/* Gauge backing */}
       <mesh castShadow>
         <circleGeometry args={[0.9, segments]} />
-        <meshStandardMaterial color="#1A1420" metalness={0.5} roughness={0.4} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#1A1420" metalness={0.5} roughness={0.4} side={DoubleSide} />
       </mesh>
       {/* Gauge rim */}
       <mesh>
@@ -300,13 +307,13 @@ function TruthMeter({ verified }: { verified: number }) {
 // ■■ Media Library Shelves (Instanced) ■■
 function MediaLibrary() {
   const shelfCount = 16;
-  const shelvesRef = useRef<THREE.InstancedMesh>(null);
-  const booksRef = useRef<THREE.InstancedMesh>(null);
+  const shelvesRef = useRef<InstancedMesh>(null);
+  const booksRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!shelvesRef.current || !booksRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const categories = ['#FF6644', '#00FF88', '#00BBFF', '#FFAA44', '#AA66FF'];
     for (let i = 0; i < shelfCount; i++) {
       const row = Math.floor(i / 4);
@@ -346,12 +353,12 @@ function MediaLibrary() {
 // ■■ Evidence Comparison Lightbox (Instanced) ■■
 function LightboxPanels({ isChecking }: { isChecking: boolean }) {
   const count = 8;
-  const panelsRef = useRef<THREE.InstancedMesh>(null);
+  const panelsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!panelsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 1.5;
       tmp.makeScale(1.0, 0.7, 0.03);
@@ -364,7 +371,7 @@ function LightboxPanels({ isChecking }: { isChecking: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!panelsRef.current) return;
-    const mat = panelsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = panelsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = isChecking
       ? 0.3 + Math.sin(timeRef.current * 2) * 0.15
       : 0.1;

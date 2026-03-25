@@ -18,7 +18,17 @@
 import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  BackSide,
+  Color,
+  InstancedMesh,
+  Matrix4,
+  MeshStandardMaterial,
+  PlaneGeometry,
+  Quaternion,
+  ShaderMaterial,
+  Vector3,
+} from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
 
 // ■■ FL-Lite Environment Constants (Ultra quality) ■■
@@ -40,7 +50,7 @@ export function FLLiteTerrain({
 }: TerrainProps) {
   const geometry = useMemo(() => {
     const segs = 512;
-    const geo = new THREE.PlaneGeometry(size, size, segs, segs);
+    const geo = new PlaneGeometry(size, size, segs, segs);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i);
@@ -56,7 +66,7 @@ export function FLLiteTerrain({
   }, [size, heightScale, 512]);
 
   const material = useMemo(() =>
-    new THREE.MeshStandardMaterial({ color: new THREE.Color(color), roughness: 0.85, metalness: 0.1, envMapIntensity: 0.3 }),
+    new MeshStandardMaterial({ color: new Color(color), roughness: 0.85, metalness: 0.1, envMapIntensity: 0.3 }),
   [color]);
 
   return (
@@ -77,10 +87,10 @@ export function FLLiteSkyDome({
   radius = 40,
 }: SkyDomeProps) {
   const material = useMemo(() =>
-    new THREE.ShaderMaterial({
+    new ShaderMaterial({
       uniforms: {
-        topColor: { value: new THREE.Color(topColor) },
-        horizonColor: { value: new THREE.Color(horizonColor) },
+        topColor: { value: new Color(topColor) },
+        horizonColor: { value: new Color(horizonColor) },
       },
       vertexShader: `
         varying vec3 vWorldPosition;
@@ -100,7 +110,7 @@ export function FLLiteSkyDome({
           gl_FragColor = vec4(mix(horizonColor, topColor, t), 1.0);
         }
       `,
-      side: THREE.BackSide,
+      side: BackSide,
     }),
   [topColor, horizonColor]);
 
@@ -123,13 +133,13 @@ export function FLLiteFogParticles({
   color = '#00BBFF',
   spread = 10,
 }: FogParticlesProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const count = Math.min(baseCount, 1000);
 
   const { matrices, speeds } = useMemo(() => {
-    const m: THREE.Matrix4[] = [];
+    const m: Matrix4[] = [];
     const s: number[] = [];
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * spread * 2;
       const y = Math.random() * 2.5 - 0.5;
@@ -145,10 +155,10 @@ export function FLLiteFogParticles({
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       meshRef.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);

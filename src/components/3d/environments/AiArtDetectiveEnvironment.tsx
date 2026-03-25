@@ -30,7 +30,18 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FFAA44';
@@ -38,8 +49,8 @@ const LAB_COLOR = '#FFAA44';
 // ■■ Floating Artworks in Frames (Instanced) ■■
 function FloatingArtworks() {
   const count = 16;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const canvasRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const canvasRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -56,21 +67,21 @@ function FloatingArtworks() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!framesRef.current || !canvasRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const bob = Math.sin(timeRef.current * s.bobSpeed + s.phase) * 0.08;
       const orbitAngle = s.angle + timeRef.current * 0.02;
       const x = Math.cos(orbitAngle) * s.radius;
       const z = Math.sin(orbitAngle) * s.radius;
-      rot.setFromEuler(new THREE.Euler(0, -orbitAngle + Math.PI, 0));
+      rot.setFromEuler(new Euler(0, -orbitAngle + Math.PI, 0));
       // Frame
-      tmp.compose(new THREE.Vector3(x, s.height + bob, z), rot, new THREE.Vector3(0.75, 0.6, 0.05));
+      tmp.compose(new Vector3(x, s.height + bob, z), rot, new Vector3(0.75, 0.6, 0.05));
       framesRef.current.setMatrixAt(i, tmp);
       // Canvas
-      tmp.compose(new THREE.Vector3(x, s.height + bob, z), rot, new THREE.Vector3(0.6, 0.45, 0.02));
+      tmp.compose(new Vector3(x, s.height + bob, z), rot, new Vector3(0.6, 0.45, 0.02));
       canvasRef.current.setMatrixAt(i, tmp);
       color.setHSL(s.hue, 0.4, 0.2 + Math.sin(timeRef.current * 0.5 + i) * 0.05);
       canvasRef.current.setColorAt(i, color);
@@ -97,12 +108,12 @@ function FloatingArtworks() {
 // ■■ Style Comparison Panels ■■
 function StylePanels({ isDetecting }: { isDetecting: boolean }) {
   const timeRef = useRef(0);
-  const dividerRef = useRef<THREE.Mesh>(null);
+  const dividerRef = useRef<Mesh>(null);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (dividerRef.current) {
-      (dividerRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (dividerRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isDetecting ? 0.5 + Math.sin(timeRef.current * 3) * 0.25 : 0.15;
     }
   });
@@ -148,16 +159,16 @@ function StylePanels({ isDetecting }: { isDetecting: boolean }) {
 
 // ■■ Brush Stroke Scanner ■■
 function BrushStrokeScanner({ isDetecting }: { isDetecting: boolean }) {
-  const beamRef = useRef<THREE.Mesh>(null);
-  const scanArmRef = useRef<THREE.Group>(null);
+  const beamRef = useRef<Mesh>(null);
+  const scanArmRef = useRef<Group>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (beamRef.current) {
-      (beamRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (beamRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isDetecting ? 0.6 + Math.sin(timeRef.current * 5) * 0.3 : 0.1;
-      (beamRef.current.material as THREE.MeshStandardMaterial).opacity =
+      (beamRef.current.material as MeshStandardMaterial).opacity =
         isDetecting ? 0.5 + Math.sin(timeRef.current * 3) * 0.2 : 0.15;
     }
     if (scanArmRef.current && isDetecting) {
@@ -197,7 +208,7 @@ function BrushStrokeScanner({ isDetecting }: { isDetecting: boolean }) {
         {/* Scanner lens */}
         <mesh position={[0, -0.08, 0]}>
           <circleGeometry args={[0.08, 16]} />
-          <meshStandardMaterial color="#88DDFF" transparent opacity={0.4} emissive="#88DDFF" emissiveIntensity={0.2} side={THREE.DoubleSide} />
+          <meshStandardMaterial color="#88DDFF" transparent opacity={0.4} emissive="#88DDFF" emissiveIntensity={0.2} side={DoubleSide} />
         </mesh>
       </group>
     </group>
@@ -207,13 +218,13 @@ function BrushStrokeScanner({ isDetecting }: { isDetecting: boolean }) {
 // ■■ Art History Timeline Ribbon ■■
 function TimelineRibbon() {
   const markerCount = 10;
-  const markersRef = useRef<THREE.InstancedMesh>(null);
+  const markersRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!markersRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < markerCount; i++) {
       const t = i / (markerCount - 1);
       const angle = t * Math.PI * 1.5 - Math.PI * 0.75;
@@ -233,7 +244,7 @@ function TimelineRibbon() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!markersRef.current) return;
-    const mat = markersRef.current.material as THREE.MeshStandardMaterial;
+    const mat = markersRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.1;
   });
 
@@ -256,12 +267,12 @@ function TimelineRibbon() {
 // ■■ Palette Extraction Station ■■
 function PaletteStation({ artworksAnalyzed }: { artworksAnalyzed: number }) {
   const swatchCount = Math.min(artworksAnalyzed * 2, 12);
-  const swatchRef = useRef<THREE.InstancedMesh>(null);
+  const swatchRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!swatchRef.current || swatchCount === 0) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < swatchCount; i++) {
       const angle = (i / swatchCount) * Math.PI * 2;
       const x = Math.cos(angle) * 0.3;
@@ -301,13 +312,13 @@ function PaletteStation({ artworksAnalyzed }: { artworksAnalyzed: number }) {
 
 // ■■ Forgery Detection Desk ■■
 function ForgeryDesk({ isDetecting }: { isDetecting: boolean }) {
-  const uvLightRef = useRef<THREE.Mesh>(null);
+  const uvLightRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (uvLightRef.current) {
-      (uvLightRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (uvLightRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isDetecting ? 0.7 + Math.sin(timeRef.current * 4) * 0.3 : 0.15;
     }
   });
@@ -344,7 +355,7 @@ function ForgeryDesk({ isDetecting }: { isDetecting: boolean }) {
       {isDetecting && (
         <mesh position={[0, 0.95, 0]} rotation={[0, 0, -0.2]}>
           <coneGeometry args={[0.3, 0.6, 8, 1, true]} />
-          <meshStandardMaterial color="#7733FF" emissive="#7733FF" emissiveIntensity={0.2} transparent opacity={0.15} side={THREE.DoubleSide} />
+          <meshStandardMaterial color="#7733FF" emissive="#7733FF" emissiveIntensity={0.2} transparent opacity={0.15} side={DoubleSide} />
         </mesh>
       )}
       {/* Evidence sample on desk */}
@@ -359,13 +370,13 @@ function ForgeryDesk({ isDetecting }: { isDetecting: boolean }) {
 // ■■ Museum Architecture (Columns) ■■
 function MuseumColumns() {
   const count = 8;
-  const columnsRef = useRef<THREE.InstancedMesh>(null);
-  const capsRef = useRef<THREE.InstancedMesh>(null);
+  const columnsRef = useRef<InstancedMesh>(null);
+  const capsRef = useRef<InstancedMesh>(null);
   const segments = 16;
 
   React.useEffect(() => {
     if (!columnsRef.current || !capsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const side = i % 2 === 0 ? -1 : 1;
       const z = (Math.floor(i / 2) - count / 4) * 3.5;
@@ -395,7 +406,7 @@ function MuseumColumns() {
       {/* Ceiling with accent light strip */}
       <mesh position={[0, 4.0, 0]}>
         <planeGeometry args={[13, 14]} />
-        <meshStandardMaterial color="#080510" roughness={0.9} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#080510" roughness={0.9} side={DoubleSide} />
       </mesh>
       {(
         <mesh position={[0, 3.95, 0]}>

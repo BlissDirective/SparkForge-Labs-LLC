@@ -29,7 +29,18 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#00BBFF';
@@ -37,27 +48,27 @@ const LAB_COLOR = '#00BBFF';
 // ■■ Holographic Display Screens (Instanced) ■■
 function HolographicScreens({ sceneIndex }: { sceneIndex: number }) {
   const count = 12;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!framesRef.current || !screensRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 1.4 - Math.PI * 0.7;
       const radius = 4.5;
       const x = Math.sin(angle) * radius;
       const z = Math.cos(angle) * radius - 2;
       const y = 1.8 + (i % 3) * 0.6;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle, 0));
       // Frame
-      tmp.compose(new THREE.Vector3(x, y, z), rot, new THREE.Vector3(1.0, 0.7, 0.05));
+      tmp.compose(new Vector3(x, y, z), rot, new Vector3(1.0, 0.7, 0.05));
       framesRef.current.setMatrixAt(i, tmp);
       // Screen surface
-      tmp.compose(new THREE.Vector3(x, y, z), rot, new THREE.Vector3(0.9, 0.6, 0.02));
+      tmp.compose(new Vector3(x, y, z), rot, new Vector3(0.9, 0.6, 0.02));
       screensRef.current.setMatrixAt(i, tmp);
       const hue = 0.55 + (i / count) * 0.1;
       color.setHSL(hue, 0.8, 0.15 + (i === sceneIndex % count ? 0.2 : 0));
@@ -71,7 +82,7 @@ function HolographicScreens({ sceneIndex }: { sceneIndex: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.1;
   });
 
@@ -97,8 +108,8 @@ function HolographicScreens({ sceneIndex }: { sceneIndex: number }) {
 
 // ■■ Magnifying Glass Centerpiece ■■
 function MagnifyingGlass() {
-  const glassRef = useRef<THREE.Group>(null);
-  const lensRef = useRef<THREE.Mesh>(null);
+  const glassRef = useRef<Group>(null);
+  const lensRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 32;
 
@@ -109,7 +120,7 @@ function MagnifyingGlass() {
       glassRef.current.position.y = 2.5 + Math.sin(timeRef.current * 0.6) * 0.1;
     }
     if (lensRef.current) {
-      (lensRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (lensRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.4 + Math.sin(timeRef.current * 1.5) * 0.2;
     }
   });
@@ -130,7 +141,7 @@ function MagnifyingGlass() {
           emissiveIntensity={0.4}
           transparent
           opacity={0.25}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Handle */}
@@ -150,13 +161,13 @@ function MagnifyingGlass() {
 // ■■ Evidence Pinboard with Threads ■■
 function EvidencePinboard() {
   const pinCount = 16;
-  const pinsRef = useRef<THREE.InstancedMesh>(null);
-  const cardsRef = useRef<THREE.InstancedMesh>(null);
+  const pinsRef = useRef<InstancedMesh>(null);
+  const cardsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!pinsRef.current || !cardsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < pinCount; i++) {
       const col = i % 4;
       const row = Math.floor(i / 4);
@@ -224,13 +235,13 @@ function EvidencePinboard() {
 // ■■ Surveillance Monitors (Instanced) ■■
 function SurveillanceMonitors() {
   const count = 16;
-  const monitorsRef = useRef<THREE.InstancedMesh>(null);
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const monitorsRef = useRef<InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!monitorsRef.current || !screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const cols = Math.ceil(count / 2);
     for (let i = 0; i < count; i++) {
       const col = i % cols;
@@ -238,13 +249,13 @@ function SurveillanceMonitors() {
       const x = 4.8;
       const y = 1.8 + row * 1.0;
       const z = (col - cols / 2) * 0.9;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -Math.PI / 2, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -Math.PI / 2, 0));
       // Monitor body
-      tmp.compose(new THREE.Vector3(x, y, z), rot, new THREE.Vector3(0.6, 0.45, 0.06));
+      tmp.compose(new Vector3(x, y, z), rot, new Vector3(0.6, 0.45, 0.06));
       monitorsRef.current.setMatrixAt(i, tmp);
       // Screen
-      tmp.compose(new THREE.Vector3(x - 0.01, y, z), rot, new THREE.Vector3(0.52, 0.38, 0.01));
+      tmp.compose(new Vector3(x - 0.01, y, z), rot, new Vector3(0.52, 0.38, 0.01));
       screensRef.current.setMatrixAt(i, tmp);
     }
     monitorsRef.current.instanceMatrix.needsUpdate = true;
@@ -254,7 +265,7 @@ function SurveillanceMonitors() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.25 + Math.sin(timeRef.current * 3) * 0.1;
   });
 
@@ -274,8 +285,8 @@ function SurveillanceMonitors() {
 
 // ■■ Scanner Beam ■■
 function ScannerBeam({ isScanning }: { isScanning: boolean }) {
-  const beamRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  const beamRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
@@ -283,12 +294,12 @@ function ScannerBeam({ isScanning }: { isScanning: boolean }) {
     timeRef.current += delta;
     if (beamRef.current) {
       beamRef.current.rotation.y = timeRef.current * (isScanning ? 1.5 : 0.3);
-      const mat = beamRef.current.material as THREE.MeshStandardMaterial;
+      const mat = beamRef.current.material as MeshStandardMaterial;
       mat.opacity = isScanning ? 0.2 + Math.sin(timeRef.current * 4) * 0.1 : 0.05;
     }
     if (ringRef.current) {
       ringRef.current.rotation.z = timeRef.current * 0.8;
-      const mat = ringRef.current.material as THREE.MeshStandardMaterial;
+      const mat = ringRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = isScanning ? 0.8 + Math.sin(timeRef.current * 5) * 0.3 : 0.2;
     }
   });
@@ -309,7 +320,7 @@ function ScannerBeam({ isScanning }: { isScanning: boolean }) {
           emissiveIntensity={0.5}
           transparent
           opacity={0.05}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>
@@ -325,7 +336,7 @@ function ScannerBeam({ isScanning }: { isScanning: boolean }) {
 // ■■ Floating Data Fragments (Instanced) ■■
 function DataFragments() {
   const count = 40;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -342,21 +353,21 @@ function DataFragments() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const y = ((s.y + timeRef.current * s.speed * 0.15) % 4.5) + 0.5;
       const x = s.x + Math.sin(timeRef.current * 0.5 + s.phase) * 0.3;
-      rot.setFromEuler(new THREE.Euler(
+      rot.setFromEuler(new Euler(
         timeRef.current * s.rotSpeed * 0.3,
         timeRef.current * s.rotSpeed * 0.5,
         0
       ));
       tmp.compose(
-        new THREE.Vector3(x, y, s.z),
+        new Vector3(x, y, s.z),
         rot,
-        new THREE.Vector3(0.06, 0.04, 0.005)
+        new Vector3(0.06, 0.04, 0.005)
       );
       meshRef.current.setMatrixAt(i, tmp);
     }

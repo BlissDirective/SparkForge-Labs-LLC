@@ -29,7 +29,17 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#F97316';
@@ -37,44 +47,44 @@ const LAB_COLOR = '#F97316';
 // ■■ Exhibition Booths (Instanced) ■■
 function ExhibitionBooths({ careersExplored }: { careersExplored: number }) {
   const count = 10;
-  const wallsRef = useRef<THREE.InstancedMesh>(null);
-  const countersRef = useRef<THREE.InstancedMesh>(null);
-  const signsRef = useRef<THREE.InstancedMesh>(null);
+  const wallsRef = useRef<InstancedMesh>(null);
+  const countersRef = useRef<InstancedMesh>(null);
+  const signsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!wallsRef.current || !countersRef.current || !signsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const radius = 5.0;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle + Math.PI, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle + Math.PI, 0));
       // Back wall
       tmp.compose(
-        new THREE.Vector3(x, 1.0, z),
+        new Vector3(x, 1.0, z),
         rot,
-        new THREE.Vector3(1.5, 2.0, 0.08),
+        new Vector3(1.5, 2.0, 0.08),
       );
       wallsRef.current.setMatrixAt(i, tmp);
       // Counter
       tmp.compose(
-        new THREE.Vector3(
+        new Vector3(
           x + Math.cos(angle + Math.PI) * 0.4,
           0.1,
           z + Math.sin(angle + Math.PI) * 0.4,
         ),
         rot,
-        new THREE.Vector3(1.2, 0.06, 0.5),
+        new Vector3(1.2, 0.06, 0.5),
       );
       countersRef.current.setMatrixAt(i, tmp);
       // Sign
       tmp.compose(
-        new THREE.Vector3(x, 2.2, z),
+        new Vector3(x, 2.2, z),
         rot,
-        new THREE.Vector3(0.9, 0.25, 0.04),
+        new Vector3(0.9, 0.25, 0.04),
       );
       signsRef.current.setMatrixAt(i, tmp);
     }
@@ -86,7 +96,7 @@ function ExhibitionBooths({ careersExplored }: { careersExplored: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!signsRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const explored = i < Math.min(careersExplored, count);
       color.set(explored ? '#00FF88' : LAB_COLOR);
@@ -120,23 +130,23 @@ function ExhibitionBooths({ careersExplored }: { careersExplored: number }) {
 // ■■ Holographic Job Preview Screens (Instanced) ■■
 function JobPreviewScreens() {
   const count = 8;
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 + Math.PI / count;
       const radius = 3.0;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle + Math.PI, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle + Math.PI, 0));
       tmp.compose(
-        new THREE.Vector3(x, 2.5, z),
+        new Vector3(x, 2.5, z),
         rot,
-        new THREE.Vector3(0.8, 0.5, 0.02),
+        new Vector3(0.8, 0.5, 0.02),
       );
       screensRef.current.setMatrixAt(i, tmp);
     }
@@ -146,10 +156,10 @@ function JobPreviewScreens() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const rot = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const tmp = new Matrix4();
+    const pos = new Vector3();
+    const rot = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       screensRef.current.getMatrixAt(i, tmp);
       tmp.decompose(pos, rot, scl);
@@ -177,7 +187,7 @@ function JobPreviewScreens() {
 // ■■ Skill Tree Display ■■
 function SkillTree() {
   const nodeCount = 15;
-  const nodesRef = useRef<THREE.InstancedMesh>(null);
+  const nodesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const nodes = useMemo(() =>
@@ -195,8 +205,8 @@ function SkillTree() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!nodesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < nodeCount; i++) {
       const n = nodes[i];
       const pulse = 0.12 + Math.sin(timeRef.current * 2 + i * 0.7) * 0.02;
@@ -255,13 +265,13 @@ function SkillTree() {
 // ■■ Career Path Floor ■■
 function CareerPathFloor() {
   const nodeCount = 8;
-  const nodesRef = useRef<THREE.InstancedMesh>(null);
+  const nodesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!nodesRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < nodeCount; i++) {
       const pulse = 0.2 + Math.sin(timeRef.current * 1.5 + i * 0.9) * 0.04;
       const angle = (i / nodeCount) * Math.PI * 1.5 - Math.PI / 2;
@@ -304,14 +314,14 @@ function CareerPathFloor() {
 
 // ■■ Interview Simulation Pod ■■
 function InterviewPod() {
-  const screenRef = useRef<THREE.Mesh>(null);
+  const screenRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (screenRef.current) {
-      (screenRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (screenRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.25 + Math.sin(timeRef.current * 2.0) * 0.1;
     }
   });
@@ -325,7 +335,7 @@ function InterviewPod() {
           color="#14102A"
           metalness={0.5}
           roughness={0.4}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Interior screen */}
@@ -358,13 +368,13 @@ function InterviewPod() {
 // ■■ Portfolio Showcase Wall (Instanced) ■■
 function PortfolioWall() {
   const count = 12;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const contentRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const contentRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!framesRef.current || !contentRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const col = i % 4;
       const row = Math.floor(i / 4);
@@ -408,7 +418,7 @@ function PortfolioWall() {
 // ■■ Industry Sector Map (Segmented Ring) ■■
 function IndustrySectorMap({ currentCareer }: { currentCareer: string }) {
   const sectorCount = 8;
-  const sectorsRef = useRef<THREE.Mesh[]>([]);
+  const sectorsRef = useRef<Mesh[]>([]);
   const timeRef = useRef(0);
   const segments = 24;
 
@@ -421,7 +431,7 @@ function IndustrySectorMap({ currentCareer }: { currentCareer: string }) {
     sectorsRef.current.forEach((mesh, i) => {
       if (mesh) {
         const isActive = i === Math.abs(currentCareer.length) % sectorCount;
-        (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = isActive
+        (mesh.material as MeshStandardMaterial).emissiveIntensity = isActive
           ? 0.5 + Math.sin(timeRef.current * 3) * 0.2
           : 0.1;
       }

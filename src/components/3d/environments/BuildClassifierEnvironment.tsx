@@ -32,7 +32,15 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  InstancedMesh,
+  MathUtils,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#06B6D4';
@@ -40,7 +48,7 @@ const LAB_COLOR = '#06B6D4';
 // ■■ Sorting Conveyor Belts with Items (Instanced) ■■
 function ConveyorBelts({ itemsSorted }: { itemsSorted: number }) {
   const itemCount = 20;
-  const itemsRef = useRef<THREE.InstancedMesh>(null);
+  const itemsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const itemSeeds = useMemo(() =>
@@ -56,8 +64,8 @@ function ConveyorBelts({ itemsSorted }: { itemsSorted: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!itemsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < itemCount; i++) {
       const s = itemSeeds[i];
       const x = ((s.offset + timeRef.current * s.speed) % 8) - 4;
@@ -111,13 +119,13 @@ function ConveyorBelts({ itemsSorted }: { itemsSorted: number }) {
 // ■■ Category Bins (Instanced) ■■
 function CategoryBins() {
   const count = 6;
-  const binsRef = useRef<THREE.InstancedMesh>(null);
-  const labelsRef = useRef<THREE.InstancedMesh>(null);
+  const binsRef = useRef<InstancedMesh>(null);
+  const labelsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!binsRef.current || !labelsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const binColors = ['#FF6644', '#00FF88', '#00BBFF', '#FFAA44', '#AA66FF', '#FF66AA'];
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 1.6;
@@ -155,18 +163,18 @@ function CategoryBins() {
 
 // ■■ Decision Tree (Growing from Center) ■■
 function DecisionTree({ accuracy }: { accuracy: number }) {
-  const leavesRef = useRef<THREE.InstancedMesh>(null);
+  const leavesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const leafCount = 16;
 
   const leafPositions = useMemo(() => {
-    const pts: THREE.Vector3[] = [];
+    const pts: Vector3[] = [];
     for (let i = 0; i < leafCount; i++) {
       const layer = Math.floor(i / 4);
       const idx = i % 4;
       const spread = 0.4 + layer * 0.5;
       const angle = (idx / 4) * Math.PI * 2 + layer * 0.4;
-      pts.push(new THREE.Vector3(
+      pts.push(new Vector3(
         Math.cos(angle) * spread,
         1.5 + layer * 0.6,
         Math.sin(angle) * spread,
@@ -177,8 +185,8 @@ function DecisionTree({ accuracy }: { accuracy: number }) {
 
   React.useEffect(() => {
     if (!leavesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < leafCount; i++) {
       const p = leafPositions[i];
       const size = 0.12 + (accuracy / 100) * 0.08;
@@ -196,7 +204,7 @@ function DecisionTree({ accuracy }: { accuracy: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!leavesRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < leafCount; i++) {
       const p = leafPositions[i];
       const bob = Math.sin(timeRef.current * 0.8 + i * 0.5) * 0.03;
@@ -237,14 +245,14 @@ function DecisionTree({ accuracy }: { accuracy: number }) {
 
 // ■■ Feature Extraction Scanner ■■
 function FeatureScanner({ itemsSorted }: { itemsSorted: number }) {
-  const laserRef = useRef<THREE.Mesh>(null);
+  const laserRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (laserRef.current) {
       laserRef.current.position.y = 0.6 + Math.sin(timeRef.current * 2) * 0.3;
-      (laserRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (laserRef.current.material as MeshStandardMaterial).emissiveIntensity =
         itemsSorted > 0 ? 0.6 + Math.sin(timeRef.current * 5) * 0.3 : 0.15;
     }
   });
@@ -287,12 +295,12 @@ function FeatureScanner({ itemsSorted }: { itemsSorted: number }) {
 // ■■ Training Data Warehouse ■■
 function TrainingWarehouse() {
   const crateCount = 15;
-  const cratesRef = useRef<THREE.InstancedMesh>(null);
+  const cratesRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!cratesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < crateCount; i++) {
       const row = Math.floor(i / 5);
       const col = i % 5;
@@ -337,7 +345,7 @@ function TrainingWarehouse() {
 
 // ■■ Accuracy Dashboard ■■
 function AccuracyDashboard({ accuracy }: { accuracy: number }) {
-  const needleRef = useRef<THREE.Mesh>(null);
+  const needleRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -345,7 +353,7 @@ function AccuracyDashboard({ accuracy }: { accuracy: number }) {
     if (needleRef.current) {
       const targetAngle = -Math.PI / 3 + (accuracy / 100) * (2 * Math.PI / 3);
       const current = needleRef.current.rotation.z;
-      needleRef.current.rotation.z = THREE.MathUtils.lerp(current, targetAngle, delta * 2);
+      needleRef.current.rotation.z = MathUtils.lerp(current, targetAngle, delta * 2);
     }
   });
 
@@ -389,15 +397,15 @@ function AccuracyDashboard({ accuracy }: { accuracy: number }) {
 // ■■ Confusion Matrix Display Board ■■
 function ConfusionMatrix({ accuracy }: { accuracy: number }) {
   const cellCount = 16;
-  const cellsRef = useRef<THREE.InstancedMesh>(null);
+  const cellsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const gridSize = Math.ceil(Math.sqrt(cellCount));
 
   React.useEffect(() => {
     if (!cellsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < cellCount; i++) {
       const row = Math.floor(i / gridSize);
       const col = i % gridSize;
@@ -419,7 +427,7 @@ function ConfusionMatrix({ accuracy }: { accuracy: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!cellsRef.current) return;
-    const mat = cellsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = cellsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.1;
   });
 
@@ -440,7 +448,7 @@ function ConfusionMatrix({ accuracy }: { accuracy: number }) {
 
 // ■■ Validation Checkpoint Gate ■■
 function ValidationGate({ accuracy }: { accuracy: number }) {
-  const barrierRef = useRef<THREE.Mesh>(null);
+  const barrierRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -448,11 +456,11 @@ function ValidationGate({ accuracy }: { accuracy: number }) {
     if (barrierRef.current) {
       const isOpen = accuracy >= 70;
       const targetY = isOpen ? 2.5 : 0.8;
-      barrierRef.current.position.y = THREE.MathUtils.lerp(barrierRef.current.position.y, targetY, delta * 2);
-      (barrierRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      barrierRef.current.position.y = MathUtils.lerp(barrierRef.current.position.y, targetY, delta * 2);
+      (barrierRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isOpen ? 0.4 : 0.2 + Math.sin(timeRef.current * 3) * 0.1;
-      (barrierRef.current.material as THREE.MeshStandardMaterial).color.set(isOpen ? '#00FF88' : '#FF4444');
-      (barrierRef.current.material as THREE.MeshStandardMaterial).emissive.set(isOpen ? '#00FF88' : '#FF4444');
+      (barrierRef.current.material as MeshStandardMaterial).color.set(isOpen ? '#00FF88' : '#FF4444');
+      (barrierRef.current.material as MeshStandardMaterial).emissive.set(isOpen ? '#00FF88' : '#FF4444');
     }
   });
 

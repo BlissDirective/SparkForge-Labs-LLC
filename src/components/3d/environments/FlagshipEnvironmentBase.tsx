@@ -20,7 +20,21 @@
 import React, { useRef, useMemo, type ReactNode } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment, ContactShadows } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  BackSide,
+  BufferGeometry,
+  Color,
+  Euler,
+  InstancedMesh,
+  Material,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  PlaneGeometry,
+  Quaternion,
+  ShaderMaterial,
+  Vector3,
+} from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
 
 // ■■ Flagship Environment Constants (Ultra quality) ■■
@@ -44,11 +58,11 @@ export function Terrain({
   secondaryColor: _secondaryColor = '#111118',
   heightScale = 0.3,
 }: TerrainProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const geometry = useMemo(() => {
     const segs = 512;
-    const geo = new THREE.PlaneGeometry(size, size, segs, segs);
+    const geo = new PlaneGeometry(size, size, segs, segs);
     const pos = geo.attributes.position;
 
     // Procedural terrain displacement (layered noise approximation)
@@ -71,8 +85,8 @@ export function Terrain({
   }, [size, heightScale, 512]);
 
   const material = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: new THREE.Color(color),
+    return new MeshStandardMaterial({
+      color: new Color(color),
       roughness: 0.85,
       metalness: 0.1,
       envMapIntensity: 0.3,
@@ -105,10 +119,10 @@ export function SkyDome({
   radius = 50,
 }: SkyDomeProps) {
   const material = useMemo(() => {
-    const mat = new THREE.ShaderMaterial({
+    const mat = new ShaderMaterial({
       uniforms: {
-        topColor: { value: new THREE.Color(topColor) },
-        horizonColor: { value: new THREE.Color(horizonColor) },
+        topColor: { value: new Color(topColor) },
+        horizonColor: { value: new Color(horizonColor) },
       },
       vertexShader: `
         varying vec3 vWorldPosition;
@@ -128,7 +142,7 @@ export function SkyDome({
           gl_FragColor = vec4(mix(horizonColor, topColor, t), 1.0);
         }
       `,
-      side: THREE.BackSide,
+      side: BackSide,
     });
     return mat;
   }, [topColor, horizonColor]);
@@ -153,13 +167,13 @@ export function FogParticles({
   color = '#00BBFF',
   spread = 15,
 }: FogParticlesProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const count = Math.min(baseCount, 1000);
 
   const { matrices, speeds } = useMemo(() => {
-    const m: THREE.Matrix4[] = [];
+    const m: Matrix4[] = [];
     const s: number[] = [];
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
 
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * spread * 2;
@@ -177,10 +191,10 @@ export function FogParticles({
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
 
     for (let i = 0; i < count; i++) {
       meshRef.current.getMatrixAt(i, temp);
@@ -226,8 +240,8 @@ export function FogParticles({
 // ■■ Instanced Prop Scatter ■■
 // Distributes instances of a geometry across the terrain
 export interface ScatterConfig {
-  geometry: THREE.BufferGeometry;
-  material: THREE.Material;
+  geometry: BufferGeometry;
+  material: Material;
   count: number;
   spreadX: number;
   spreadZ: number;
@@ -248,14 +262,14 @@ export function InstancedScatter({
   maxScale = 1.5,
   castShadow = false,
 }: ScatterConfig) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
 
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * spreadX * 2;
@@ -264,7 +278,7 @@ export function InstancedScatter({
       const rotY = Math.random() * Math.PI * 2;
 
       pos.set(x, yOffset, z);
-      quat.setFromEuler(new THREE.Euler(0, rotY, 0));
+      quat.setFromEuler(new Euler(0, rotY, 0));
       scl.set(scale, scale, scale);
       temp.compose(pos, quat, scl);
 
