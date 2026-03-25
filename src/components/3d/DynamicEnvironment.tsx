@@ -15,7 +15,7 @@
 //
 // Interface preserved: DynamicEnvironmentProps { activeLabId, intensity }
 
-import { useRef, useMemo } from 'react';
+import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   BackSide,
@@ -512,7 +512,7 @@ function EnvironmentRings({ color, seg }: { color: string; seg: number }) {
 
 // ── Main Environment ───────────────────────────────
 
-export function DynamicEnvironment({ activeLabId, intensity = 0.5 }: DynamicEnvironmentProps) {
+export const DynamicEnvironment = React.memo(function DynamicEnvironment({ activeLabId, intensity = 0.5 }: DynamicEnvironmentProps) {
   const mainLightRef  = useRef<PointLight>(null);
   const spotLight1Ref = useRef<SpotLight>(null);
   const spotLight2Ref = useRef<SpotLight>(null);
@@ -579,4 +579,4 @@ export function DynamicEnvironment({ activeLabId, intensity = 0.5 }: DynamicEnvi
       />
     </group>
   );
-}
+});
