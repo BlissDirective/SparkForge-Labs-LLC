@@ -185,6 +185,7 @@ export const ANIMATION = {
 - **Issue:** Three separate particle implementations with similar IcosahedronGeometry logic. Each creates particles independently with overlapping patterns.
 - **Impact:** Code duplication, harder to maintain consistent particle behavior.
 - **Fix:** Extract shared `useParticleSystem()` hook or `ParticleGeometryFactory`.
+- **Status:** ⬜ WON'T FIX — Audit claim is inaccurate. `GameParticles3D` uses drei `<Sparkles>` (point sprites), not IcosahedronGeometry — it's a fundamentally different rendering approach. `AmbientParticles` (310 lines: trails, halos, connection lines, intensity presets) and `LoginParticles3D` (66 lines: simple pulse) share only the standard Three.js instancing idiom (`InstancedMesh` + `Object3D` dummy + `setMatrixAt`), which is the canonical R3F pattern — not meaningful duplication. A shared hook would either be too generic to help or too specific to cover both cases. Three distinct purposes, three appropriate implementations.
 
 ---
 
