@@ -15,7 +15,7 @@
 // All existing interfaces and interactions preserved.
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import {
   BackSide,
@@ -30,8 +30,11 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   Object3D,
+  Plane,
+  Raycaster,
   ShaderMaterial,
   TubeGeometry,
+  Vector2,
   Vector3,
 } from 'three';
 import { LabStructure3D } from './LabStructure3D';
@@ -695,6 +698,13 @@ function HolographicCore({
 
 // ─── Main Component ─────────────────────────────────────────
 
+// ─── Drag Constants ──────────────────────────────────────────
+const DRAG_DEAD_ZONE = 0.03; // radians — below this threshold, treat as click not drag
+const DRAG_INERTIA_DECAY = 3.5; // velocity decays by this factor per second
+const DRAG_INERTIA_MIN = 0.001; // stop inertia below this rad/s
+const DRAG_SNAP_SPEED = 4.0; // lerp speed for snap-to-lab
+const LAB_ANGLE_STEP_RAD = (2 * Math.PI) / 10;
+
 export function HolographicLabMap({
   focusedLabId,
   hoveredLabId,
@@ -708,13 +718,131 @@ export function HolographicLabMap({
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timeRef = useRef(0);
 
-  
+  // ─── Drag-to-Rotate State (all refs to avoid re-renders) ───
+  const { camera } = useThree();
+  const isDraggingRef = useRef(false);
+  const dragStartAngleRef = useRef(0);
+  const dragStartRotationRef = useRef(0);
+  const dragTotalRef = useRef(0); // total angular displacement during drag
+  const dragVelocityRef = useRef(0); // angular velocity for inertia
+  const prevDragAngleRef = useRef(0);
+  const isInertiaActiveRef = useRef(false);
 
-  // Gentle auto-rotation when no lab is focused
+  // Reusable objects for raycasting (avoid per-frame allocation)
+  const dragPlane = useMemo(() => new Plane(new Vector3(0, 1, 0), 0), []);
+  const dragRaycaster = useMemo(() => new Raycaster(), []);
+  const dragPointer = useMemo(() => new Vector2(), []);
+  const dragIntersect = useMemo(() => new Vector3(), []);
+
+  // Compute angle from screen pointer to group center on XZ plane
+  const getPointerAngle = useCallback(
+    (event: PointerEvent | { clientX: number; clientY: number }) => {
+      const canvas = camera.userData?.domElement ?? document.querySelector('canvas');
+      if (!canvas) return 0;
+      const rect = (canvas as HTMLElement).getBoundingClientRect();
+      dragPointer.set(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1
+      );
+      dragRaycaster.setFromCamera(dragPointer, camera);
+      if (dragRaycaster.ray.intersectPlane(dragPlane, dragIntersect)) {
+        return Math.atan2(dragIntersect.z, dragIntersect.x);
+      }
+      return 0;
+    },
+    [camera, dragPlane, dragRaycaster, dragPointer, dragIntersect]
+  );
+
+  // Pointer handlers for drag
+  const handleDragStart = useCallback(
+    (e: { nativeEvent: PointerEvent; stopPropagation: () => void }) => {
+      // Only start drag on primary button
+      if (e.nativeEvent.button !== 0) return;
+      isDraggingRef.current = true;
+      isInertiaActiveRef.current = false;
+      dragTotalRef.current = 0;
+      dragVelocityRef.current = 0;
+      const angle = getPointerAngle(e.nativeEvent);
+      dragStartAngleRef.current = angle;
+      prevDragAngleRef.current = angle;
+      dragStartRotationRef.current = groupRef.current?.rotation.y ?? 0;
+    },
+    [getPointerAngle]
+  );
+
+  const handleDragMove = useCallback(
+    (e: { nativeEvent: PointerEvent; stopPropagation: () => void }) => {
+      if (!isDraggingRef.current || !groupRef.current) return;
+      const angle = getPointerAngle(e.nativeEvent);
+      let delta = angle - dragStartAngleRef.current;
+
+      // Normalize delta to [-PI, PI]
+      if (delta > Math.PI) delta -= 2 * Math.PI;
+      if (delta < -Math.PI) delta += 2 * Math.PI;
+
+      // Track velocity (angular change this frame)
+      let frameDelta = angle - prevDragAngleRef.current;
+      if (frameDelta > Math.PI) frameDelta -= 2 * Math.PI;
+      if (frameDelta < -Math.PI) frameDelta += 2 * Math.PI;
+      dragVelocityRef.current = frameDelta;
+      prevDragAngleRef.current = angle;
+
+      dragTotalRef.current += Math.abs(frameDelta);
+
+      // Apply rotation — negate delta so dragging right rotates ring right
+      groupRef.current.rotation.y = dragStartRotationRef.current - delta;
+    },
+    [getPointerAngle]
+  );
+
+  const handleDragEnd = useCallback(() => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+
+    // If total drag distance exceeded dead zone, it was a real drag — start inertia
+    if (dragTotalRef.current > DRAG_DEAD_ZONE) {
+      isInertiaActiveRef.current = true;
+      // Scale velocity for feel (negate to match drag direction)
+      dragVelocityRef.current = -dragVelocityRef.current * 60; // convert per-frame → per-second approx
+    }
+  }, []);
+
+  // Listen for pointerup on window (in case pointer leaves canvas)
+  useEffect(() => {
+    const onPointerUp = () => {
+      if (isDraggingRef.current) handleDragEnd();
+    };
+    window.addEventListener('pointerup', onPointerUp);
+    return () => window.removeEventListener('pointerup', onPointerUp);
+  }, [handleDragEnd]);
+
+  // ─── Frame Loop: Auto-Rotation + Inertia Decay ───
   useFrame((_, delta) => {
     timeRef.current += delta;
-    if (!groupRef.current || focusedLabId !== null) return;
-    groupRef.current.rotation.y += delta * orbitSpeed;
+    if (!groupRef.current) return;
+
+    // During active drag, don't auto-rotate or apply inertia
+    if (isDraggingRef.current) return;
+
+    // Inertia decay after drag release
+    if (isInertiaActiveRef.current) {
+      groupRef.current.rotation.y += dragVelocityRef.current * delta;
+
+      // Exponential decay
+      dragVelocityRef.current *= Math.exp(-DRAG_INERTIA_DECAY * delta);
+
+      // Stop inertia when velocity is negligible
+      if (Math.abs(dragVelocityRef.current) < DRAG_INERTIA_MIN) {
+        dragVelocityRef.current = 0;
+        isInertiaActiveRef.current = false;
+      }
+      return;
+    }
+
+    // Gentle auto-rotation when no lab is focused and not dragging
+    if (focusedLabId === null) {
+      groupRef.current.rotation.y += delta * orbitSpeed;
+    }
   });
 
   // Core color follows focused lab or defaults to primary blue
@@ -724,9 +852,12 @@ export function HolographicLabMap({
 
   const pulse = useMemo(() => Math.sin(Date.now() * 0.002) * 0.5 + 0.5, []);
 
-  // Handle single vs double click
+  // Handle single vs double click — suppressed if drag exceeded dead zone
   const handleLabClick = useCallback(
     (labId: number) => {
+      // If user was dragging, suppress the click
+      if (dragTotalRef.current > DRAG_DEAD_ZONE) return;
+
       if (clickTimerRef.current) {
         clearTimeout(clickTimerRef.current);
         clickTimerRef.current = null;
@@ -770,7 +901,12 @@ export function HolographicLabMap({
   }, [focusedLabId]);
 
   return (
-    <group ref={groupRef}>
+    <group
+      ref={groupRef}
+      onPointerDown={handleDragStart}
+      onPointerMove={handleDragMove}
+      onPointerUp={handleDragEnd}
+    >
       {/* Central holographic core — 20M upgrade */}
       <HolographicCore
         color={coreColor}
