@@ -22,8 +22,14 @@
 //   Game Scene Group     — visible during gameplay
 //   Iris Overlay Group   — visible during transitions
 
-import React, { Suspense, useMemo } from 'react';
+import React, { Suspense, lazy, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
+
+// Dev-only R3F performance monitor (tree-shaken in production)
+const PerfMonitor =
+  process.env.NODE_ENV === 'development'
+    ? lazy(() => import('r3f-perf').then((m) => ({ default: m.Perf })))
+    : null;
 import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
 
 // 3D Components — Station Shell
@@ -302,6 +308,13 @@ export function CockpitCanvas({
         <Suspense fallback={null}>
           {/* Adaptive DPR */}
           <AdaptiveDpr pixelated />
+
+          {/* Dev-only performance monitor */}
+          {PerfMonitor && (
+            <Suspense fallback={null}>
+              <PerfMonitor position="top-right" minimal />
+            </Suspense>
+          )}
 
           {/* Unified Camera System (D3D-C4: parallax, Section 4.1-B: per-game presets) */}
           <CameraSystem
