@@ -30,6 +30,7 @@ import {
   Vector3,
 } from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
+import { ReactiveEnvironmentEffects } from './ReactiveEnvironmentEffects';
 
 // ■■ Standard Environment Constants (Ultra quality) ■■
 const _STANDARD_TERRAIN_SEGMENTS = 128;
@@ -259,6 +260,7 @@ export function StandardEnvironmentWrapper({
       heightScale={heightScale}
       terrainSize={terrainSize}
     >
+      <ReactiveEnvironmentEffects labColor={labColor} tier="standard" />
       {children}
     </ProceduralEnvironmentGenerator>
   );

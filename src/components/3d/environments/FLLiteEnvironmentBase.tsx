@@ -30,6 +30,7 @@ import {
   Vector3,
 } from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
+import { ReactiveEnvironmentEffects } from './ReactiveEnvironmentEffects';
 
 // ■■ FL-Lite Environment Constants (Ultra quality) ■■
 const _FLLITE_TERRAIN_SEGMENTS = 256;
@@ -254,6 +255,7 @@ export function FLLiteEnvironmentWrapper({
       heightScale={heightScale}
       terrainSize={terrainSize}
     >
+      <ReactiveEnvironmentEffects labColor={labColor} tier="fl-lite" />
       {children}
     </ProceduralEnvironmentGenerator>
   );

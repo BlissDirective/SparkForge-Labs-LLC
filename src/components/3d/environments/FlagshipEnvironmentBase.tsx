@@ -36,6 +36,7 @@ import {
   Vector3,
 } from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
+import { ReactiveEnvironmentEffects } from './ReactiveEnvironmentEffects';
 
 // ■■ Flagship Environment Constants (Ultra quality) ■■
 const _FLAGSHIP_TERRAIN_SEGMENTS = 512;
@@ -393,6 +394,7 @@ export function FlagshipEnvironmentWrapper({
       heightScale={heightScale}
       terrainSize={terrainSize}
     >
+      <ReactiveEnvironmentEffects labColor={labColor} tier="flagship" />
       {children}
     </ProceduralEnvironmentGenerator>
   );
