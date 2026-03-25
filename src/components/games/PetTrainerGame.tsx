@@ -50,6 +50,7 @@ type PetMood = 'sleeping' | 'confused' | 'learning' | 'smart' | 'genius' | 'cele
 
 interface PetConfig {
   id: string;
+  speciesId: 'byteling' | 'sparkpaw' | 'voltkit' | 'cogsworth' | 'pixie';
   emoji: string;
   name: string;
   personality: string;
@@ -78,51 +79,46 @@ interface CategorySet {
 }
 
 // ================================================================
-// PET CONFIGURATIONS — 6 pets with unique personalities
+// PET CONFIGURATIONS — 5 AI-themed creature species
 // ================================================================
+// Each species has unique personality, reactions, and procedural 3D form.
+// Species config details in: src/config/creatureConfig.ts
 
 const PETS: PetConfig[] = [
   {
-    id: 'dog', emoji: '\u{1F436}', name: 'Buddy',
-    personality: 'Eager and enthusiastic! Loves to learn new tricks.',
-    correctReactions: ['Woof! \u{1F389}', 'Tail wag! \u{1F43E}', '*happy bark*', 'Yes yes yes! \u{1F973}'],
-    wrongReactions: ['Hmm? \u{1F914}', '*tilts head*', 'Ruff... let me try again', 'Oops! \u{1F605}'],
-    thinkingPhrases: ['*sniffs carefully*', '*focuses hard*', 'Hmm hmm hmm...', '*ears perked*'],
+    id: 'byteling', speciesId: 'byteling', emoji: '\u{1F7E6}', name: 'Byteling',
+    personality: 'Logical, precise, loves organizing things.',
+    correctReactions: ['Data confirmed! \u{2713}', '01100111! \u{1F389}', '*sorts happily*', 'Pattern matched! \u{1F4CA}'],
+    wrongReactions: ['Error 404... \u{1F914}', '*recalculating*', 'Data mismatch...', 'Hmm, null result \u{1F605}'],
+    thinkingPhrases: ['*processing data...*', '*scanning patterns...*', '*analyzing...*', '*computing...*'],
   },
   {
-    id: 'cat', emoji: '\u{1F431}', name: 'Whiskers',
-    personality: 'Cool and calculating. Pretends not to care, but secretly loves learning.',
-    correctReactions: ['Obviously. \u{1F60C}', '*slow blink*', 'I knew that.', 'Purrrfect \u{1F63A}'],
-    wrongReactions: ['I meant to do that. \u{1F624}', '*looks away*', 'Hmph.', 'The data was unclear.'],
-    thinkingPhrases: ['*stares intensely*', '*considers options*', '*flicks tail*', 'Interesting...'],
+    id: 'sparkpaw', speciesId: 'sparkpaw', emoji: '\u{1F7E3}', name: 'Sparkpaw',
+    personality: 'Curious, social, loves making connections between ideas.',
+    correctReactions: ['Connection made! \u{1F9E0}', '*synapses fire*', 'Neural link! \u{2728}', 'Pattern found! \u{1F31F}'],
+    wrongReactions: ['Signal lost... \u{1F914}', '*reconnecting*', 'Weak signal...', 'Need more data... \u{1F605}'],
+    thinkingPhrases: ['*forming connections...*', '*synapsing...*', '*linking nodes...*', '*propagating...*'],
   },
   {
-    id: 'owl', emoji: '\u{1F989}', name: 'Newton',
-    personality: 'Wise and methodical. Takes time to analyze before answering.',
-    correctReactions: ['Precisely! \u{1F393}', 'As hypothesized!', 'Knowledge grows! \u{1F4DA}', 'Eureka! \u{2728}'],
-    wrongReactions: ['Fascinating error...', 'Hmm, recalculating...', 'A learning opportunity!', 'Back to the data! \u{1F4D6}'],
-    thinkingPhrases: ['*adjusts glasses*', 'Let me analyze...', 'Processing patterns...', '*hoots thoughtfully*'],
+    id: 'voltkit', speciesId: 'voltkit', emoji: '\u{26A1}', name: 'Voltkit',
+    personality: 'Energetic, fast, loves speed and efficiency.',
+    correctReactions: ['CHARGED! \u{26A1}', '*sparks fly*', 'Power surge! \u{1F50B}', 'Maximum output! \u{1F4A5}'],
+    wrongReactions: ['Short circuit... \u{26A1}', '*fizzle*', 'Low power...', 'Recharging... \u{1F50C}'],
+    thinkingPhrases: ['*charging up...*', '*calculating watts...*', '*boosting power...*', '*energizing...*'],
   },
   {
-    id: 'robot', emoji: '\u{1F916}', name: 'Sparky',
-    personality: 'Precise and literal. Loves data and numbers.',
-    correctReactions: ['CORRECT \u{2705} +1 accuracy', 'Pattern matched!', 'Beep boop! \u{26A1}', 'Confidence: HIGH'],
-    wrongReactions: ['ERROR 404: correct answer not found', 'Recalibrating...', 'Beep... boop? \u{1F527}', 'Data inconclusive'],
-    thinkingPhrases: ['Scanning...', 'Computing probability...', 'Analyzing features...', 'Running inference...'],
+    id: 'cogsworth', speciesId: 'cogsworth', emoji: '\u{2699}\u{FE0F}', name: 'Cogsworth',
+    personality: 'Methodical, creative, loves building and tinkering.',
+    correctReactions: ['Built it! \u{1F527}', '*gears click*', 'Mechanism works! \u{2699}\u{FE0F}', 'Assembly complete! \u{1F3D7}\u{FE0F}'],
+    wrongReactions: ['Gears jammed... \u{1F529}', '*steam hiss*', 'Misaligned...', 'Needs recalibration... \u{1F6E0}\u{FE0F}'],
+    thinkingPhrases: ['*turning gears...*', '*measuring twice...*', '*blueprinting...*', '*calibrating...*'],
   },
   {
-    id: 'dragon', emoji: '\u{1F409}', name: 'Ember',
-    personality: 'Fiery and dramatic. Everything is an adventure!',
-    correctReactions: ['RAWR! \u{1F525}', 'Fire of knowledge! \u{1F525}\u{2728}', 'Dragon SMASH this quiz!', 'Legendary! \u{2694}\u{FE0F}'],
-    wrongReactions: ['*confused smoke puff*', 'Even dragons make mistakes...', 'RAWR?? \u{1F4A8}', 'My flames of wisdom flicker...'],
-    thinkingPhrases: ['*smoke curls from nostrils*', '*squints at item*', 'Hmm, my dragon senses say...', '*flaps wings nervously*'],
-  },
-  {
-    id: 'alien', emoji: '\u{1F47D}', name: 'Zyx',
-    personality: 'Curious visitor from another world. Fascinated by Earth things.',
-    correctReactions: ['Earth knowledge acquired! \u{1F6F8}', 'Beaming with joy! \u{2728}', 'My planet will be impressed!', 'Cosmic! \u{1F31F}'],
-    wrongReactions: ['This planet confuses me...', 'Earth is strange \u{1F30D}', 'My antennae must be miscalibrated', 'Does not compute on my planet... \u{1F4E1}'],
-    thinkingPhrases: ['*antennae twitching*', 'Consulting galactic database...', 'On my planet this would be...', '*blinks three eyes*'],
+    id: 'pixie', speciesId: 'pixie', emoji: '\u{1F441}\u{FE0F}', name: 'Pixie',
+    personality: 'Observant, analytical, loves discovering hidden patterns.',
+    correctReactions: ['Spotted it! \u{1F441}\u{FE0F}', '*lens focuses*', 'Pattern detected! \u{1F50D}', 'Crystal clear! \u{2728}'],
+    wrongReactions: ['Blurry... \u{1F635}\u{200D}\u{1F4AB}', '*refocusing*', 'Out of focus...', 'Need another look... \u{1F50E}'],
+    thinkingPhrases: ['*scanning...*', '*analyzing pixels...*', '*focusing lens...*', '*detecting patterns...*'],
   },
 ];
 
@@ -534,7 +530,7 @@ export function PetTrainerGame() {
 
                     {/* 3D Pet Preview */}
                     <div className="flex justify-center">
-                      <Pet3DScene emoji={'\u{1F95A}'} mood="sleeping" evolutionStage={0} size="lg" />
+                      <Pet3DScene emoji={'\u{1F95A}'} speciesId="byteling" mood="sleeping" evolutionStage={0} size="lg" />
                     </div>
 
                     <h2 className="font-display text-2xl md:text-3xl font-bold text-white">
@@ -630,7 +626,7 @@ export function PetTrainerGame() {
                     className="max-w-md mx-auto text-center space-y-5">
                     {/* Pet with 3D scene */}
                     <div className="flex justify-center">
-                      <Pet3DScene emoji={pet.emoji} mood="sleeping" evolutionStage={0} size="md" />
+                      <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood="sleeping" evolutionStage={0} size="md" />
                     </div>
                     <div>
                       <h3 className="font-display text-lg font-bold text-white">What should {petName} learn?</h3>
@@ -685,7 +681,7 @@ export function PetTrainerGame() {
                     {/* Pet + mood display */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Pet3DScene emoji={pet.emoji} mood={mood} evolutionStage={evolutionStage} size="sm" showSparkles={mood === 'genius'} />
+                        <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood={mood} evolutionStage={evolutionStage} size="sm" showSparkles={mood === 'genius'} />
                         <div className="text-left">
                           <p className="font-display text-xs font-bold text-white">{petName}</p>
                           <p className="font-body text-2xs text-white/30">{EVOLUTION_LABELS[evolutionStage]}</p>
@@ -893,7 +889,7 @@ export function PetTrainerGame() {
                           <motion.div className="flex flex-col items-center gap-2"
                             animate={{ opacity: [0.5, 1, 0.5] }}
                             transition={{ duration: 2, repeat: Infinity }}>
-                            <Pet3DScene emoji={pet.emoji} mood="learning" evolutionStage={evolutionStage} size="sm" />
+                            <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood="learning" evolutionStage={evolutionStage} size="sm" />
                             <p className="font-body text-sm text-white/50 italic">&ldquo;{getPetThinking()}&rdquo;</p>
                           </motion.div>
                         ) : testResults.length > testIndex ? (
@@ -939,7 +935,7 @@ export function PetTrainerGame() {
                     className="max-w-md mx-auto text-center space-y-5">
                     {/* Celebrating pet */}
                     <div className="flex justify-center">
-                      <Pet3DScene emoji={pet.emoji} mood="celebrating" evolutionStage={evolutionStage} size="lg" />
+                      <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood="celebrating" evolutionStage={evolutionStage} size="lg" />
                     </div>
 
                     <h2 className="font-display text-xl font-bold text-white">
