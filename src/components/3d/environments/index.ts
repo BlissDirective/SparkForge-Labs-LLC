@@ -51,3 +51,6 @@ export { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 // ■■ Procedural Environment System ■■
 export { default as ProceduralEnvironmentGenerator, labColorToId } from './ProceduralEnvironmentGenerator';
+
+// ■■ Reactive Environment Effects (Audit: R3F §1 — Wow Factor) ■■
+export { ReactiveEnvironmentEffects } from './ReactiveEnvironmentEffects';

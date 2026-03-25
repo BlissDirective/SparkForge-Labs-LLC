@@ -21,6 +21,7 @@ import { Environment, ContactShadows } from '@react-three/drei';
 import {
   BackSide,
   Color,
+  Group,
   InstancedMesh,
   Matrix4,
   MeshStandardMaterial,
@@ -30,6 +31,7 @@ import {
   Vector3,
 } from 'three';
 import { ProceduralEnvironmentGenerator } from './ProceduralEnvironmentGenerator';
+import { ReactiveEnvironmentEffects, useEnvironmentParallax } from './ReactiveEnvironmentEffects';
 
 // ■■ Standard Environment Constants (Ultra quality) ■■
 const _STANDARD_TERRAIN_SEGMENTS = 128;
@@ -248,19 +250,25 @@ export function StandardEnvironmentWrapper({
   heightScale,
   terrainSize,
 }: StandardEnvironmentBaseProps) {
+  const parallaxGroupRef = useRef<Group>(null);
+  useEnvironmentParallax(parallaxGroupRef);
+
   return (
-    <ProceduralEnvironmentGenerator
-      labColor={labColor}
-      tier="standard"
-      terrainColor={terrainColor}
-      skyTopColor={skyTopColor}
-      skyHorizonColor={skyHorizonColor}
-      fogColor={fogColor}
-      heightScale={heightScale}
-      terrainSize={terrainSize}
-    >
-      {children}
-    </ProceduralEnvironmentGenerator>
+    <group ref={parallaxGroupRef}>
+      <ProceduralEnvironmentGenerator
+        labColor={labColor}
+        tier="standard"
+        terrainColor={terrainColor}
+        skyTopColor={skyTopColor}
+        skyHorizonColor={skyHorizonColor}
+        fogColor={fogColor}
+        heightScale={heightScale}
+        terrainSize={terrainSize}
+      >
+        <ReactiveEnvironmentEffects labColor={labColor} tier="standard" />
+        {children}
+      </ProceduralEnvironmentGenerator>
+    </group>
   );
 }
 
