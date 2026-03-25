@@ -24,7 +24,7 @@ export function UpgradePrompt({
   if (variant === 'child') {
     return (
       <motion.div
-        className="rounded-2xl border border-white/[0.06] bg-[#111118]/80 backdrop-blur-xl p-6 text-center max-w-md mx-auto shadow-lg shadow-black/20"
+        className="rounded-2xl border border-white/[0.06] bg-surface-card/80 backdrop-blur-xl p-6 text-center max-w-md mx-auto shadow-lg shadow-black/20"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
@@ -49,13 +49,13 @@ export function UpgradePrompt({
   // Parent-facing variant: includes upgrade CTA
   return (
     <motion.div
-      className="rounded-2xl border border-[#FF6644]/30 bg-[#111118]/80 backdrop-blur-xl p-6 text-center max-w-md mx-auto shadow-lg shadow-[#FF6644]/5"
+      className="rounded-2xl border border-neon-orange/30 bg-surface-card/80 backdrop-blur-xl p-6 text-center max-w-md mx-auto shadow-lg shadow-neon-orange/5"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <div className="w-12 h-12 rounded-full bg-[#FF6644]/10 flex items-center justify-center mx-auto mb-4">
-        <Rocket className="w-6 h-6 text-[#FF6644]" />
+      <div className="w-12 h-12 rounded-full bg-neon-orange/10 flex items-center justify-center mx-auto mb-4">
+        <Rocket className="w-6 h-6 text-neon-orange" />
       </div>
 
       <h3 className="font-display text-lg font-bold text-white mb-2">
@@ -68,7 +68,7 @@ export function UpgradePrompt({
 
       <Link href="/parent/subscription">
         <motion.button
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#FF6644] to-[#FFAA44] text-white font-display font-semibold text-sm shadow-lg shadow-[#FF6644]/20 transition-shadow hover:shadow-[#FF6644]/40"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-neon-orange to-neon-amber text-white font-display font-semibold text-sm shadow-lg shadow-neon-orange/20 transition-shadow hover:shadow-neon-orange/40"
           whileHover={{ scale: 1.03 }}
           whileTap={{ scale: 0.98 }}
         >

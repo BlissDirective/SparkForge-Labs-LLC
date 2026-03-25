@@ -200,10 +200,10 @@ export default function FutureForgeGame() {
   return (
     <GameShell gameId="future-forge" title="Future Forge" worldNumber={10} worldColor="#D946EF" totalRounds={totalRounds}>
       {/* Chrome bezel */}
-      <div className="relative rounded-2xl border border-white/[0.06] bg-[#0A0E16] overflow-hidden"
+      <div className="relative rounded-2xl border border-white/[0.06] bg-surface-base overflow-hidden"
         style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)' }}>
         {/* LED rim top */}
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#D946EF]/40 to-transparent" />
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-lab-10/40 to-transparent" />
 
         {/* Particles */}
         {particles.map(p => (
@@ -219,7 +219,7 @@ export default function FutureForgeGame() {
           <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="flex flex-col items-center justify-center gap-6 p-8 text-center">
             <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
-              <Rocket className="w-16 h-16 text-[#D946EF]" />
+              <Rocket className="w-16 h-16 text-lab-10" />
             </motion.div>
             <h2 className="font-display text-3xl text-white">Future Forge</h2>
             <p className="font-body text-white/70 max-w-md">Design AI solutions for tomorrow&apos;s biggest challenges!</p>
@@ -235,7 +235,7 @@ export default function FutureForgeGame() {
         {phase === 'learn' && (
           <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="flex flex-col items-center justify-center gap-6 p-8 text-center">
-            <Sparkles className="w-12 h-12 text-[#D946EF]" />
+            <Sparkles className="w-12 h-12 text-lab-10" />
             <h2 className="font-display text-2xl text-white">AI Capabilities</h2>
             <p className="font-body text-white/70 max-w-lg">{learnText}</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-w-lg">
@@ -317,7 +317,7 @@ export default function FutureForgeGame() {
                         <Icon className="w-6 h-6" style={{ color: cap.color }} />
                         <span className="font-display text-xs text-white">{cap.name}</span>
                         <span className="font-body text-2xs text-white/40">{cap.description}</span>
-                        {showBonus && <Star className="w-3 h-3 text-[#FFAA44] absolute -top-1 -right-1" />}
+                        {showBonus && <Star className="w-3 h-3 text-neon-amber absolute -top-1 -right-1" />}
                       </motion.button>
                     );
                   })}
@@ -361,7 +361,7 @@ export default function FutureForgeGame() {
         {phase === 'complete' && (
           <motion.div key="complete" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col items-center justify-center gap-6 p-8 text-center">
-            <CheckCircle className="w-16 h-16 text-[#D946EF]" />
+            <CheckCircle className="w-16 h-16 text-lab-10" />
             <h2 className="font-display text-3xl text-white">Future Designed!</h2>
             <p className="font-body text-white/70 max-w-md">
               {ageBand === 'A' ? 'You combined AI super powers to solve amazing future problems! You\'re a real AI inventor!' :
@@ -374,7 +374,7 @@ export default function FutureForgeGame() {
       </AnimatePresence>
 
         {/* LED rim bottom */}
-        <div className="h-[2px] bg-gradient-to-r from-transparent via-[#D946EF]/40 to-transparent" />
+        <div className="h-[2px] bg-gradient-to-r from-transparent via-lab-10/40 to-transparent" />
       </div>
     </GameShell>
   );
