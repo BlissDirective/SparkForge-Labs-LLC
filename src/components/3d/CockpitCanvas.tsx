@@ -22,7 +22,7 @@
 //   Game Scene Group     — visible during gameplay
 //   Iris Overlay Group   — visible during transitions
 
-import { Suspense, useMemo } from 'react';
+import React, { Suspense, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
 
@@ -115,7 +115,7 @@ interface CockpitCanvasProps {
 
 // ── Spatial Dashboard Scene Content ──────────────────────────────
 
-function SpatialDashboardContent({
+const SpatialDashboardContent = React.memo(function SpatialDashboardContent({
   labCompletions = {},
   onLabEnter,
 }: {
@@ -202,7 +202,7 @@ function SpatialDashboardContent({
       <AmbientNPCs visible={npcsVisible} focusedLabPosition={focusedLabPos} />
     </>
   );
-}
+});
 
 // ════════════════════════════════════════════════════════════════
 // CockpitCanvas — Main Export (D3D-B1: Persistent, never unmounts)
@@ -282,7 +282,7 @@ export function CockpitCanvas({
     >
       <Canvas
         frameloop="always"
-        dpr={[1, Math.min(typeof window !== 'undefined' ? window.devicePixelRatio : 2, 3)]}
+        dpr={[1, 3]}
         camera={{
           position: [0, 6.5, 7],
           fov: 58,

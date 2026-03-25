@@ -9,7 +9,7 @@
 //
 // Device scaling: Desktop 8 bots, Tablet 4 bots, Mobile 0.
 
-import { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { BackSide, Group, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { useDeviceStore } from '@/stores/deviceStore';
@@ -631,7 +631,7 @@ function ArticulatedBot({
 
 // ── Main Component ─────────────────────────────────
 
-export function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
+export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
   const botsRef = useRef<Group>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const _profile = useDeviceStore((s) => s.profile);
@@ -674,4 +674,4 @@ export function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
       ))}
     </group>
   );
-}
+});

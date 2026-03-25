@@ -31,7 +31,7 @@ function DashboardSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-white/[0.06] bg-[#111118]/80 p-4 space-y-3"
+            className="rounded-2xl border border-white/[0.06] bg-surface-card/80 p-4 space-y-3"
           >
             <SkeletonBar className="h-4 w-20" />
             <SkeletonBar className="h-8 w-16" />
@@ -45,7 +45,7 @@ function DashboardSkeleton() {
         {Array.from({ length: 2 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-white/[0.06] bg-[#111118]/80 p-6 space-y-4"
+            className="rounded-2xl border border-white/[0.06] bg-surface-card/80 p-6 space-y-4"
           >
             <div className="flex items-center gap-3">
               <SkeletonBar className="h-10 w-10 rounded-full" />
@@ -75,7 +75,7 @@ function SubscriptionSkeleton() {
         {Array.from({ length: 3 }).map((_, i) => (
           <div
             key={i}
-            className="rounded-2xl border border-white/[0.06] bg-[#111118]/80 p-6 space-y-4"
+            className="rounded-2xl border border-white/[0.06] bg-surface-card/80 p-6 space-y-4"
           >
             <SkeletonBar className="h-6 w-24" />
             <SkeletonBar className="h-10 w-20" />
@@ -94,7 +94,7 @@ function SubscriptionSkeleton() {
 
 function CardSkeleton() {
   return (
-    <div className="rounded-2xl border border-white/[0.06] bg-[#111118]/80 p-6 space-y-3">
+    <div className="rounded-2xl border border-white/[0.06] bg-surface-card/80 p-6 space-y-3">
       <SkeletonBar className="h-5 w-32" />
       <SkeletonBar className="h-4 w-full" />
       <SkeletonBar className="h-4 w-3/4" />
