@@ -17,7 +17,31 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BackSide,
+  BoxGeometry,
+  CapsuleGeometry,
+  CatmullRomCurve3,
+  Color,
+  ConeGeometry,
+  CylinderGeometry,
+  DoubleSide,
+  Group,
+  IcosahedronGeometry,
+  InstancedMesh,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
+  OctahedronGeometry,
+  PlaneGeometry,
+  PointLight,
+  SphereGeometry,
+  SpotLight,
+  TetrahedronGeometry,
+  TorusGeometry,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ── Lab color tables ───────────────────────────────
@@ -120,32 +144,32 @@ function initParticles(count: number): ParticleData {
 function LabParticles({ labId, color, count, intensity, seg }: {
   labId: number; color: string; count: number; intensity: number; seg: number;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const trailRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const meshRef = useRef<InstancedMesh>(null);
+  const trailRef = useRef<InstancedMesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
   const data = useMemo(() => initParticles(count), [count]);
   const frameCount = useRef(0);
   const halfSeg = Math.max(6, Math.floor(seg / 2));
 
   const trailGeo = useMemo(() => {
-    const g = new THREE.CylinderGeometry(0.008, 0.003, 0.15, 4, 1);
+    const g = new CylinderGeometry(0.008, 0.003, 0.15, 4, 1);
     g.rotateX(Math.PI / 2);
     return g;
   }, []);
 
   const geometry = useMemo(() => {
     switch (labId) {
-      case 1:  return new THREE.IcosahedronGeometry(1, 2);          // ~80 tris/particle
-      case 2:  return new THREE.TorusGeometry(1, 0.35, halfSeg, seg); // high-seg torus
-      case 3:  return new THREE.SphereGeometry(1, seg, halfSeg);    // smooth sphere
-      case 4:  return new THREE.TetrahedronGeometry(1, 2);
-      case 5:  return new THREE.OctahedronGeometry(1, 2);
-      case 6:  return new THREE.BoxGeometry(1, 0.3, 1, 4, 1, 4);
-      case 7:  return new THREE.SphereGeometry(1, halfSeg, halfSeg);
-      case 8:  return new THREE.CapsuleGeometry(0.5, 1, halfSeg / 2, halfSeg);
-      case 9:  return new THREE.BoxGeometry(1, 1, 1, 4, 4, 4);
-      case 10: return new THREE.ConeGeometry(0.7, 1, seg);
-      default: return new THREE.IcosahedronGeometry(1, 2);
+      case 1:  return new IcosahedronGeometry(1, 2);          // ~80 tris/particle
+      case 2:  return new TorusGeometry(1, 0.35, halfSeg, seg); // high-seg torus
+      case 3:  return new SphereGeometry(1, seg, halfSeg);    // smooth sphere
+      case 4:  return new TetrahedronGeometry(1, 2);
+      case 5:  return new OctahedronGeometry(1, 2);
+      case 6:  return new BoxGeometry(1, 0.3, 1, 4, 1, 4);
+      case 7:  return new SphereGeometry(1, halfSeg, halfSeg);
+      case 8:  return new CapsuleGeometry(0.5, 1, halfSeg / 2, halfSeg);
+      case 9:  return new BoxGeometry(1, 1, 1, 4, 4, 4);
+      case 10: return new ConeGeometry(0.7, 1, seg);
+      default: return new IcosahedronGeometry(1, 2);
     }
   }, [labId, seg, halfSeg]);
 
@@ -266,15 +290,15 @@ function LabParticles({ labId, color, count, intensity, seg }: {
 
 function FogLayers({ color, intensity, seg }: { color: string; intensity: number; seg: number }) {
   const refs = [
-    useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null),
-    useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null),
-    useRef<THREE.Mesh>(null), useRef<THREE.Mesh>(null),
+    useRef<Mesh>(null), useRef<Mesh>(null), useRef<Mesh>(null),
+    useRef<Mesh>(null), useRef<Mesh>(null), useRef<Mesh>(null),
+    useRef<Mesh>(null), useRef<Mesh>(null),
   ];
-  const colorObj = useMemo(() => new THREE.Color(color), [color]);
+  const colorObj = useMemo(() => new Color(color), [color]);
 
   useFrame((_, delta) => {
     refs.forEach((r) => {
-      if (r.current) (r.current.material as THREE.MeshBasicMaterial).color.lerp(colorObj, delta * 1.5);
+      if (r.current) (r.current.material as MeshBasicMaterial).color.lerp(colorObj, delta * 1.5);
     });
   });
 
@@ -291,7 +315,7 @@ function FogLayers({ color, intensity, seg }: { color: string; intensity: number
         <mesh key={i} ref={refs[i]} position={[0, fd.y, 0]}>
           <sphereGeometry args={[fd.r, seg, Math.floor(seg * 0.75)]} />
           <meshBasicMaterial color={color} transparent opacity={fd.op * intensity}
-            side={THREE.BackSide} depthWrite={false} />
+            side={BackSide} depthWrite={false} />
         </mesh>
       ))}
     </group>
@@ -313,7 +337,7 @@ function GodRays({ color, seg }: { color: string; seg: number }) {
           rotation={[rd.tilt, rd.ry, 0]}>
           <coneGeometry args={[0.6, 12, seg, 4, true]} />
           <meshBasicMaterial color={color} transparent opacity={0.04}
-            side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
+            side={DoubleSide} depthWrite={false} toneMapped={false} />
         </mesh>
       ))}
     </group>
@@ -362,8 +386,8 @@ function LampFixtures({ color, seg }: { color: string; seg: number }) {
 // ── Holographic Data Fragments ─────────────────────
 
 function DataFragments({ color, seg: _seg }: { color: string; seg: number }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const meshRef = useRef<InstancedMesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
   const count = 100;
 
   const positions = useMemo(() => {
@@ -375,7 +399,7 @@ function DataFragments({ color, seg: _seg }: { color: string; seg: number }) {
     }));
   }, []);
 
-  const geo = useMemo(() => new THREE.PlaneGeometry(0.18, 0.12, 4, 3), []);
+  const geo = useMemo(() => new PlaneGeometry(0.18, 0.12, 4, 3), []);
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
@@ -393,7 +417,7 @@ function DataFragments({ color, seg: _seg }: { color: string; seg: number }) {
   return (
     <instancedMesh ref={meshRef} args={[geo, undefined, count]}>
       <meshBasicMaterial color={color} transparent opacity={0.18}
-        side={THREE.DoubleSide} toneMapped={false} />
+        side={DoubleSide} toneMapped={false} />
     </instancedMesh>
   );
 }
@@ -401,8 +425,8 @@ function DataFragments({ color, seg: _seg }: { color: string; seg: number }) {
 // ── Star Field ─────────────────────────────────────
 
 function StarField({ seg }: { seg: number }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const meshRef = useRef<InstancedMesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
   const starCount = Math.min(5000, seg * 78); // scale with LOD
 
   const stars = useMemo(() => {
@@ -414,7 +438,7 @@ function StarField({ seg }: { seg: number }) {
     });
   }, [starCount]);
 
-  const geo = useMemo(() => new THREE.SphereGeometry(1, 4, 3), []);
+  const geo = useMemo(() => new SphereGeometry(1, 4, 3), []);
 
   useMemo(() => {
     if (!meshRef.current) return;
@@ -439,13 +463,13 @@ function StarField({ seg }: { seg: number }) {
 function DataHighways({ color, seg }: { color: string; seg: number }) {
   const highways = useMemo(() => {
     const routes = [
-      [new THREE.Vector3(-6,1,0), new THREE.Vector3(-3,3,3), new THREE.Vector3(0,2,6), new THREE.Vector3(3,4,3), new THREE.Vector3(6,1,0)],
-      [new THREE.Vector3(0,-1,-6), new THREE.Vector3(3,2,-3), new THREE.Vector3(6,1,0), new THREE.Vector3(3,3,3), new THREE.Vector3(0,2,6)],
-      [new THREE.Vector3(-6,3,0), new THREE.Vector3(-3,1,-3), new THREE.Vector3(0,4,-6), new THREE.Vector3(3,2,-3), new THREE.Vector3(6,3,0)],
+      [new Vector3(-6,1,0), new Vector3(-3,3,3), new Vector3(0,2,6), new Vector3(3,4,3), new Vector3(6,1,0)],
+      [new Vector3(0,-1,-6), new Vector3(3,2,-3), new Vector3(6,1,0), new Vector3(3,3,3), new Vector3(0,2,6)],
+      [new Vector3(-6,3,0), new Vector3(-3,1,-3), new Vector3(0,4,-6), new Vector3(3,2,-3), new Vector3(6,3,0)],
     ];
     return routes.map((pts) => {
-      const curve = new THREE.CatmullRomCurve3(pts);
-      return new THREE.TubeGeometry(curve, Math.max(16, seg), 0.018, 8, false);
+      const curve = new CatmullRomCurve3(pts);
+      return new TubeGeometry(curve, Math.max(16, seg), 0.018, 8, false);
     });
   }, [seg]);
 
@@ -463,7 +487,7 @@ function DataHighways({ color, seg }: { color: string; seg: number }) {
 // ── Floating Environment Rings ─────────────────────
 
 function EnvironmentRings({ color, seg }: { color: string; seg: number }) {
-  const ringRef = useRef<THREE.Group>(null);
+  const ringRef = useRef<Group>(null);
   useFrame(({ clock }) => {
     if (ringRef.current) ringRef.current.rotation.y = clock.elapsedTime * 0.04;
   });
@@ -489,18 +513,18 @@ function EnvironmentRings({ color, seg }: { color: string; seg: number }) {
 // ── Main Environment ───────────────────────────────
 
 export function DynamicEnvironment({ activeLabId, intensity = 0.5 }: DynamicEnvironmentProps) {
-  const mainLightRef  = useRef<THREE.PointLight>(null);
-  const spotLight1Ref = useRef<THREE.SpotLight>(null);
-  const spotLight2Ref = useRef<THREE.SpotLight>(null);
+  const mainLightRef  = useRef<PointLight>(null);
+  const spotLight1Ref = useRef<SpotLight>(null);
+  const spotLight2Ref = useRef<SpotLight>(null);
   const seg = 64;
   const profile = useDeviceStore((s) => s.profile);
 
   const labColor = activeLabId ? (LAB_COLORS[activeLabId] ?? '#00BBFF') : '#00BBFF';
   const accents  = activeLabId ? (LAB_ACCENT_COLORS[activeLabId] ?? LAB_ACCENT_COLORS[1]) : LAB_ACCENT_COLORS[1];
 
-  const threeColor   = useMemo(() => new THREE.Color(labColor), [labColor]);
-  const accentColor1 = useMemo(() => new THREE.Color(accents[0]), [accents]);
-  const accentColor2 = useMemo(() => new THREE.Color(accents[1]), [accents]);
+  const threeColor   = useMemo(() => new Color(labColor), [labColor]);
+  const accentColor1 = useMemo(() => new Color(accents[0]), [accents]);
+  const accentColor2 = useMemo(() => new Color(accents[1]), [accents]);
 
   useFrame((_, delta) => {
     const ls = delta * 2;

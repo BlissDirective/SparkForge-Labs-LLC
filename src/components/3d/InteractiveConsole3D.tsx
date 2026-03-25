@@ -12,7 +12,16 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox, Float, ContactShadows } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  CatmullRomCurve3,
+  DoubleSide,
+  Euler,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 
 type ConsoleVariant = 'xp' | 'badges' | 'streak' | 'progress';
 
@@ -126,12 +135,12 @@ function SideVentPanel({ side, H, color, seg }: { side: 1|-1; H: number; color: 
 // ── Holographic Projector Base (~60K tris) ─────────
 
 function ProjectorBase({ color, seg, isActive }: { color: string; seg: number; isActive: boolean }) {
-  const beamRef = useRef<THREE.Mesh>(null);
+  const beamRef = useRef<Mesh>(null);
   const halfSeg = Math.max(16, Math.floor(seg / 2));
 
   useFrame(({ clock }) => {
     if (!beamRef.current) return;
-    const mat = beamRef.current.material as THREE.MeshBasicMaterial;
+    const mat = beamRef.current.material as MeshBasicMaterial;
     mat.opacity = (isActive ? 0.12 : 0.04) + Math.sin(clock.elapsedTime * 2.5) * 0.03;
   });
 
@@ -168,7 +177,7 @@ function ProjectorBase({ color, seg, isActive }: { color: string; seg: number; i
       <mesh ref={beamRef} position={[0, 0.15, 0.04]} rotation={[Math.PI / 2, 0, 0]}>
         <coneGeometry args={[0.15, 0.35, seg, 4, true]} />
         <meshBasicMaterial color={color} transparent opacity={0.06}
-          side={THREE.DoubleSide} depthWrite={false} toneMapped={false} />
+          side={DoubleSide} depthWrite={false} toneMapped={false} />
       </mesh>
     </group>
   );
@@ -240,8 +249,8 @@ function CableBundles({ color, seg }: { color: string; seg: number }) {
       [[0.2, -0.28, -0.05],[0, -0.32, 0],[-0.2, -0.28, -0.05]],
     ] as [number,number,number][][];
     return defs.map((pts) => {
-      const curve = new THREE.CatmullRomCurve3(pts.map((p) => new THREE.Vector3(...p)));
-      return new THREE.TubeGeometry(curve, Math.max(8, seg / 4), 0.008, 6, false);
+      const curve = new CatmullRomCurve3(pts.map((p) => new Vector3(...p)));
+      return new TubeGeometry(curve, Math.max(8, seg / 4), 0.008, 6, false);
     });
   }, [seg]);
 
@@ -260,12 +269,12 @@ function CableBundles({ color, seg }: { color: string; seg: number }) {
 // ── Scan Line ──────────────────────────────────────
 
 function ScanLine({ width, height, color }: { width: number; height: number; color: string }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   useFrame(() => {
     if (!meshRef.current) return;
     const t = (Date.now() % 3000) / 3000;
     meshRef.current.position.y = -height / 2 + t * height;
-    const mat = meshRef.current.material as THREE.MeshBasicMaterial;
+    const mat = meshRef.current.material as MeshBasicMaterial;
     mat.opacity = Math.max(0, (1.0 - Math.abs(t - 0.5) * 1.2) * 0.35);
   });
   return (
@@ -296,7 +305,7 @@ function CornerBrackets({ width, height, color }: { width: number; height: numbe
 // ── XP Circular Gauge ──────────────────────────────
 
 function XPGauge({ xp, xpMax, color, segments }: { xp: number; xpMax: number; color: string; segments: number }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const progress = Math.min(xp / Math.max(xpMax, 1), 1);
   const displayRef = useRef(xp);
   useFrame(() => {
@@ -327,12 +336,12 @@ function XPGauge({ xp, xpMax, color, segments }: { xp: number; xpMax: number; co
 function BadgePedestal({ badgeCount, recentBadge, color, segments, enableEffects }: {
   badgeCount: number; recentBadge?: string; color: string; segments: number; enableEffects: boolean;
 }) {
-  const pedRef  = useRef<THREE.Group>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const pedRef  = useRef<Group>(null);
+  const glowRef = useRef<Mesh>(null);
   useFrame((_, delta) => {
     if (pedRef.current) pedRef.current.rotation.y += delta * 0.5;
     if (glowRef.current && enableEffects) {
-      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = 0.3 + Math.sin(Date.now() * 0.004) * 0.15;
+      (glowRef.current.material as MeshBasicMaterial).opacity = 0.3 + Math.sin(Date.now() * 0.004) * 0.15;
     }
   });
   return (
@@ -371,7 +380,7 @@ function BadgePedestal({ badgeCount, recentBadge, color, segments, enableEffects
 function StreakFlame({ streak, color, segments, enableAnimations }: {
   streak: number; color: string; segments: number; enableAnimations: boolean;
 }) {
-  const flameRef = useRef<THREE.Group>(null);
+  const flameRef = useRef<Group>(null);
   const flameScale = Math.min(0.5 + (streak / 30) * 1.0, 1.5);
   useFrame(() => {
     if (!flameRef.current || !enableAnimations) return;
@@ -453,7 +462,7 @@ function ConsoleContent({ variant, data, color }: {
 // ── Rising Antenna (interactive active state) ──────
 
 function RisingAntenna({ color, seg, isActive }: { color: string; seg: number; isActive: boolean }) {
-  const antennaRef = useRef<THREE.Group>(null);
+  const antennaRef = useRef<Group>(null);
   const halfSeg = Math.max(8, Math.floor(seg / 4));
   useFrame(() => {
     if (!antennaRef.current) return;
@@ -486,9 +495,9 @@ export function InteractiveConsole3D({
   isActive,
   onClick,
 }: InteractiveConsoleProps) {
-  const groupRef  = useRef<THREE.Group>(null);
-  const glowRef   = useRef<THREE.Mesh>(null);
-  const statusRef = useRef<THREE.Mesh>(null);
+  const groupRef  = useRef<Group>(null);
+  const glowRef   = useRef<Mesh>(null);
+  const statusRef = useRef<Mesh>(null);
   const color  = CONSOLE_COLORS[variant];
   const label  = CONSOLE_LABELS[variant];
   const seg    = 64;
@@ -502,16 +511,16 @@ export function InteractiveConsole3D({
 
     if (glowRef.current) {
       const pulse = Math.sin(Date.now() * 0.003) * 0.1;
-      (glowRef.current.material as THREE.MeshBasicMaterial).opacity = isActive ? 0.25 + pulse : 0.08 + pulse * 0.5;
+      (glowRef.current.material as MeshBasicMaterial).opacity = isActive ? 0.25 + pulse : 0.08 + pulse * 0.5;
     }
     if (statusRef.current) {
       const sp = Math.sin(Date.now() * 0.005) * 0.5 + 0.5;
-      (statusRef.current.material as THREE.MeshBasicMaterial).opacity = 0.4 + sp * 0.4;
+      (statusRef.current.material as MeshBasicMaterial).opacity = 0.4 + sp * 0.4;
     }
   });
 
   return (
-    <group ref={groupRef} position={position} rotation={new THREE.Euler(...rotation)}>
+    <group ref={groupRef} position={position} rotation={new Euler(...rotation)}>
       <Float speed={1.2} rotationIntensity={0} floatIntensity={0.15}>
 
         {/* ── Layer 1: Outer Chrome Frame (RoundedBox) ── */}
@@ -538,7 +547,7 @@ export function InteractiveConsole3D({
         <mesh ref={glowRef} position={[0, 0, -0.035]}>
           <planeGeometry args={[W + 0.04, H + 0.04]} />
           <meshBasicMaterial color={color} transparent opacity={0.08}
-            side={THREE.DoubleSide} toneMapped={false} />
+            side={DoubleSide} toneMapped={false} />
         </mesh>
         {/* Edge glow ring */}
         <mesh position={[0, 0, -0.033]}>

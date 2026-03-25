@@ -13,22 +13,22 @@
 //
 // Spec: SparkForge_Hero_Page_Animation_v2.0.md Section 4, Phase 5
 
-import * as THREE from 'three';
+import { Box3, BufferAttribute, BufferGeometry, Vector3 } from 'three';
 
 // ■■ Shard Assignment Interface ■■
 export interface ShardAssignment {
   shardIndex: number;
   targetGroup: 'panel' | 'sidePanel' | 'hud' | 'statusBar' | 'ledRim' | 'ambient';
-  targetPosition: THREE.Vector3;
-  initialVelocity: THREE.Vector3;
-  rotationAxis: THREE.Vector3;
+  targetPosition: Vector3;
+  initialVelocity: Vector3;
+  rotationAxis: Vector3;
   angularVelocity: number;
 }
 
 // ■■ Cockpit Target Group (consumed by assignShardsToTargets) ■■
 export interface CockpitTargetGroup {
   name: ShardAssignment['targetGroup'];
-  positions: THREE.Vector3[];
+  positions: Vector3[];
   weight: number; // Proportion of shards assigned to this group
 }
 
@@ -54,12 +54,12 @@ interface Point3 {
 // ■■ Generate Voronoi Seed Points ■■
 // Uses Halton sequence for quasi-random distribution within geometry bounds
 function generateSeedPoints(
-  bbox: THREE.Box3,
+  bbox: Box3,
   count: number,
   rng: () => number,
 ): Point3[] {
   const seeds: Point3[] = [];
-  const size = new THREE.Vector3();
+  const size = new Vector3();
   bbox.getSize(size);
   const min = bbox.min;
 
@@ -111,10 +111,10 @@ function assignVerticesToCells(
 // ■■ Build Shard Geometries from Cell Assignments ■■
 // Groups triangles by their dominant cell assignment
 function buildShardGeometries(
-  inputGeometry: THREE.BufferGeometry,
+  inputGeometry: BufferGeometry,
   assignments: Uint32Array,
   shardCount: number,
-): THREE.BufferGeometry[] {
+): BufferGeometry[] {
   const positions = inputGeometry.getAttribute('position');
   const normals = inputGeometry.getAttribute('normal');
   const uvs = inputGeometry.getAttribute('uv');
@@ -146,7 +146,7 @@ function buildShardGeometries(
   }
 
   // Build individual geometries per shard
-  const shards: THREE.BufferGeometry[] = [];
+  const shards: BufferGeometry[] = [];
 
   for (let s = 0; s < shardCount; s++) {
     const triIndices = shardTriangles.get(s);
@@ -176,11 +176,11 @@ function buildShardGeometries(
       }
     }
 
-    const shardGeo = new THREE.BufferGeometry();
-    shardGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
-    shardGeo.setAttribute('normal', new THREE.BufferAttribute(normArr, 3));
+    const shardGeo = new BufferGeometry();
+    shardGeo.setAttribute('position', new BufferAttribute(posArr, 3));
+    shardGeo.setAttribute('normal', new BufferAttribute(normArr, 3));
     if (uvArr) {
-      shardGeo.setAttribute('uv', new THREE.BufferAttribute(uvArr, 2));
+      shardGeo.setAttribute('uv', new BufferAttribute(uvArr, 2));
     }
 
     // Compute bounding sphere for frustum culling
@@ -203,10 +203,10 @@ function buildShardGeometries(
 //   - 100K shards: ~200ms (acceptable during Phase 1 idle)
 //
 export function generateVoronoiShards(
-  inputGeometry: THREE.BufferGeometry,
+  inputGeometry: BufferGeometry,
   shardCount: number,
   seed: number,
-): THREE.BufferGeometry[] {
+): BufferGeometry[] {
   const rng = mulberry32(seed);
 
   // Compute bounding box of input geometry
@@ -234,7 +234,7 @@ export function generateVoronoiShards(
 // and rotation parameters for the Phase 6 migration animation.
 //
 export function assignShardsToTargets(
-  shards: THREE.BufferGeometry[],
+  shards: BufferGeometry[],
   cockpitTargets: CockpitTargetGroup[],
 ): ShardAssignment[] {
   const assignments: ShardAssignment[] = [];
@@ -257,7 +257,7 @@ export function assignShardsToTargets(
     const target = targetPool[i % targetPool.length];
 
     // Compute shard centroid for velocity calculation
-    const centroid = new THREE.Vector3();
+    const centroid = new Vector3();
     shard.computeBoundingSphere();
     if (shard.boundingSphere) {
       centroid.copy(shard.boundingSphere.center);
@@ -269,13 +269,13 @@ export function assignShardsToTargets(
     const initialVelocity = radialDir.multiplyScalar(speed);
 
     // Add tangential component for spin
-    const tangent = new THREE.Vector3()
-      .crossVectors(radialDir, new THREE.Vector3(0, 1, 0))
+    const tangent = new Vector3()
+      .crossVectors(radialDir, new Vector3(0, 1, 0))
       .normalize();
     initialVelocity.add(tangent.multiplyScalar(Math.random() * 3));
 
     // Random rotation axis and angular velocity
-    const rotationAxis = new THREE.Vector3(
+    const rotationAxis = new Vector3(
       Math.random() - 0.5,
       Math.random() - 0.5,
       Math.random() - 0.5,

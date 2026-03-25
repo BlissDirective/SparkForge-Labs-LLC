@@ -29,7 +29,17 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF66AA';
@@ -37,8 +47,8 @@ const LAB_COLOR = '#FF66AA';
 // ■■ Neuron Soma Bodies (Instanced) ■■
 function NeuronSomas({ activeLayer }: { activeLayer: number }) {
   const count = 10;
-  const somasRef = useRef<THREE.InstancedMesh>(null);
-  const nucleiRef = useRef<THREE.InstancedMesh>(null);
+  const somasRef = useRef<InstancedMesh>(null);
+  const nucleiRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const neuronData = useMemo(() =>
@@ -56,8 +66,8 @@ function NeuronSomas({ activeLayer }: { activeLayer: number }) {
 
   React.useEffect(() => {
     if (!somasRef.current || !nucleiRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const n = neuronData[i];
       const s = n.scale;
@@ -81,7 +91,7 @@ function NeuronSomas({ activeLayer }: { activeLayer: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!somasRef.current) return;
-    const mat = somasRef.current.material as THREE.MeshStandardMaterial;
+    const mat = somasRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.15;
   });
 
@@ -109,7 +119,7 @@ function NeuronSomas({ activeLayer }: { activeLayer: number }) {
 // ■■ Axon Pathways (Instanced Tubes) ■■
 function AxonPathways() {
   const count = 15;
-  const axonsRef = useRef<THREE.InstancedMesh>(null);
+  const axonsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const axonData = useMemo(() =>
@@ -129,7 +139,7 @@ function AxonPathways() {
 
   React.useEffect(() => {
     if (!axonsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const a = axonData[i];
       const midX = (a.fromX + a.toX) / 2;
@@ -139,14 +149,14 @@ function AxonPathways() {
       const dy = a.toY - a.fromY;
       const dz = a.toZ - a.fromZ;
       const length = Math.sqrt(dx * dx + dy * dy + dz * dz);
-      const rot = new THREE.Quaternion();
-      const dir = new THREE.Vector3(dx, dy, dz).normalize();
-      const up = new THREE.Vector3(0, 1, 0);
+      const rot = new Quaternion();
+      const dir = new Vector3(dx, dy, dz).normalize();
+      const up = new Vector3(0, 1, 0);
       rot.setFromUnitVectors(up, dir);
       tmp.compose(
-        new THREE.Vector3(midX, midY, midZ),
+        new Vector3(midX, midY, midZ),
         rot,
-        new THREE.Vector3(0.02, length / 2, 0.02)
+        new Vector3(0.02, length / 2, 0.02)
       );
       axonsRef.current.setMatrixAt(i, tmp);
     }
@@ -156,7 +166,7 @@ function AxonPathways() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!axonsRef.current) return;
-    const mat = axonsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = axonsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.15;
   });
 
@@ -177,7 +187,7 @@ function AxonPathways() {
 // ■■ Synapse Junction Nodes (Instanced) ■■
 function SynapseJunctions({ signalStrength }: { signalStrength: number }) {
   const count = 20;
-  const nodesRef = useRef<THREE.InstancedMesh>(null);
+  const nodesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const junctionData = useMemo(() =>
@@ -192,8 +202,8 @@ function SynapseJunctions({ signalStrength }: { signalStrength: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!nodesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const j = junctionData[i];
       const pulse = Math.sin(timeRef.current * 3 + j.phase) > (1 - signalStrength) ? 1 : 0.3;
@@ -202,8 +212,8 @@ function SynapseJunctions({ signalStrength }: { signalStrength: number }) {
       tmp.setPosition(j.x, j.y, j.z);
       nodesRef.current.setMatrixAt(i, tmp);
       color.lerpColors(
-        new THREE.Color('#442244'),
-        new THREE.Color('#FFFFFF'),
+        new Color('#442244'),
+        new Color('#FFFFFF'),
         pulse > 0.5 ? signalStrength : 0
       );
       nodesRef.current.setColorAt(i, color);
@@ -228,7 +238,7 @@ function SynapseJunctions({ signalStrength }: { signalStrength: number }) {
 // ■■ Signal Pulse Particles ■■
 function SignalPulses({ signalStrength }: { signalStrength: number }) {
   const count = 30;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -245,7 +255,7 @@ function SignalPulses({ signalStrength }: { signalStrength: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const t = ((timeRef.current * s.speed * signalStrength + s.phase) % 1);
@@ -277,7 +287,7 @@ function SignalPulses({ signalStrength }: { signalStrength: number }) {
 
 // ■■ Neural Layer Panels ■■
 function NeuralLayerPanels({ activeLayer }: { activeLayer: number }) {
-  const panelRefs = useRef<THREE.Mesh[]>([]);
+  const panelRefs = useRef<Mesh[]>([]);
   const timeRef = useRef(0);
   const layers = ['INPUT', 'HIDDEN', 'OUTPUT'];
 
@@ -285,7 +295,7 @@ function NeuralLayerPanels({ activeLayer }: { activeLayer: number }) {
     timeRef.current += delta;
     panelRefs.current.forEach((panel, i) => {
       if (!panel) return;
-      const mat = panel.material as THREE.MeshStandardMaterial;
+      const mat = panel.material as MeshStandardMaterial;
       const isActive = i === activeLayer;
       mat.emissiveIntensity = isActive
         ? 0.5 + Math.sin(timeRef.current * 3) * 0.2
@@ -334,13 +344,13 @@ function NeuralLayerPanels({ activeLayer }: { activeLayer: number }) {
 
 // ■■ Activation Function Visualizer ■■
 function ActivationVisualizer() {
-  const curveRef = useRef<THREE.Mesh>(null);
+  const curveRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (curveRef.current) {
-      const mat = curveRef.current.material as THREE.MeshStandardMaterial;
+      const mat = curveRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.2) * 0.15;
     }
   });
@@ -385,8 +395,8 @@ function ActivationVisualizer() {
 // ■■ Dendrite Ceiling Forest (Instanced) ■■
 function DendriteCeiling() {
   const count = 30;
-  const dendritesRef = useRef<THREE.InstancedMesh>(null);
-  const tipsRef = useRef<THREE.InstancedMesh>(null);
+  const dendritesRef = useRef<InstancedMesh>(null);
+  const tipsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -401,16 +411,16 @@ function DendriteCeiling() {
 
   React.useEffect(() => {
     if (!dendritesRef.current || !tipsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
-      rot.setFromEuler(new THREE.Euler(s.angle, 0, s.angle * 0.5));
+      rot.setFromEuler(new Euler(s.angle, 0, s.angle * 0.5));
       // Branch
       tmp.compose(
-        new THREE.Vector3(s.x, 4.5 - s.length / 2, s.z),
+        new Vector3(s.x, 4.5 - s.length / 2, s.z),
         rot,
-        new THREE.Vector3(0.015, s.length / 2, 0.015)
+        new Vector3(0.015, s.length / 2, 0.015)
       );
       dendritesRef.current.setMatrixAt(i, tmp);
       // Tip
@@ -425,7 +435,7 @@ function DendriteCeiling() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!tipsRef.current) return;
-    const mat = tipsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = tipsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.8) * 0.2;
   });
 
@@ -479,7 +489,7 @@ function ChamberWalls() {
           {Array.from({ length: 5 }).map((_, i) => (
             <mesh key={`fl-${i}`} position={[-3 + i * 1.5, -0.96, 0]} rotation={[-Math.PI / 2, 0, 0]}>
               <planeGeometry args={[0.02, 8]} />
-              <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.25} transparent opacity={0.2} side={THREE.DoubleSide} />
+              <meshStandardMaterial color={LAB_COLOR} emissive={LAB_COLOR} emissiveIntensity={0.25} transparent opacity={0.2} side={DoubleSide} />
             </mesh>
           ))}
         </>

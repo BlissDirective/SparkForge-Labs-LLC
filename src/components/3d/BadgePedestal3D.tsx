@@ -19,7 +19,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, Sparkles } from '@react-three/drei';
-import * as THREE from 'three';
+import { Color, Mesh } from 'three';
 import type { Rarity } from '@/lib/gamification';
 import { getRarityColor, getRarityVisuals } from '@/lib/gamification';
 
@@ -32,7 +32,7 @@ interface BadgePedestal3DProps {
 
 // Rarity → material config
 function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
-  const color = new THREE.Color(unlocked ? getRarityColor(rarity) : '#333340');
+  const color = new Color(unlocked ? getRarityColor(rarity) : '#333340');
 
   switch (rarity) {
     case 'legendary':
@@ -40,7 +40,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.95,
         roughness: 0.1,
-        emissive: new THREE.Color(getRarityColor(rarity)),
+        emissive: new Color(getRarityColor(rarity)),
         emissiveIntensity: unlocked ? 0.3 : 0,
       };
     case 'epic':
@@ -48,7 +48,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.8,
         roughness: 0.15,
-        emissive: new THREE.Color(getRarityColor(rarity)),
+        emissive: new Color(getRarityColor(rarity)),
         emissiveIntensity: unlocked ? 0.2 : 0,
       };
     case 'rare':
@@ -56,7 +56,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.6,
         roughness: 0.2,
-        emissive: new THREE.Color(getRarityColor(rarity)),
+        emissive: new Color(getRarityColor(rarity)),
         emissiveIntensity: unlocked ? 0.15 : 0,
       };
     case 'uncommon':
@@ -64,7 +64,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.7,
         roughness: 0.25,
-        emissive: new THREE.Color('#000000'),
+        emissive: new Color('#000000'),
         emissiveIntensity: 0,
       };
     default: // common
@@ -72,7 +72,7 @@ function getPedestalMaterial(rarity: Rarity, unlocked: boolean) {
         color,
         metalness: 0.4,
         roughness: 0.5,
-        emissive: new THREE.Color('#000000'),
+        emissive: new Color('#000000'),
         emissiveIntensity: 0,
       };
   }
@@ -84,7 +84,7 @@ export default function BadgePedestal3D({
   badgeName = 'Badge',
   unlocked = true,
 }: BadgePedestal3DProps) {
-  const emblemRef = useRef<THREE.Mesh>(null);
+  const emblemRef = useRef<Mesh>(null);
   const material = useMemo(() => getPedestalMaterial(rarity, unlocked), [rarity, unlocked]);
   const visuals = useMemo(() => getRarityVisuals(rarity), [rarity]);
   const rarityColor = useMemo(() => getRarityColor(rarity), [rarity]);

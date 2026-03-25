@@ -37,7 +37,17 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import {
   FlagshipEnvironmentWrapper,
 } from './FlagshipEnvironmentBase';
@@ -46,11 +56,11 @@ import {
 function TrainingArena() {
   const segs = 64;
   const postCount = 32;
-  const postsRef = useRef<THREE.InstancedMesh>(null);
+  const postsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!postsRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const radius = 7;
     for (let i = 0; i < postCount; i++) {
       const angle = (i / postCount) * Math.PI * 2;
@@ -112,7 +122,7 @@ function ObstacleCourse() {
       </group>
       <mesh position={[0, 0.4, -3.5]} rotation={[Math.PI / 2, 0, 0]} castShadow>
         <torusGeometry args={[0.6, 0.08, 8, segs]} />
-        <meshStandardMaterial color="#8B5CF6" metalness={0.3} roughness={0.5} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#8B5CF6" metalness={0.3} roughness={0.5} side={DoubleSide} />
       </mesh>
       {/* Double-row weave poles */}
       {Array.from({ length: 8 }).map((_, i) => (
@@ -198,7 +208,7 @@ function PetPlayground() {
 // ■■ Food Bowl & Toys (expanded) ■■
 function PropsAndToys() {
   const segs = 64;
-  const bowlRef = useRef<THREE.Mesh>(null);
+  const bowlRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!bowlRef.current) return;
@@ -260,14 +270,14 @@ function EnchantedForest() {
   const fernCount = 120;
   const grassCount = 300;
 
-  const mushroomRef = useRef<THREE.InstancedMesh>(null);
-  const mushroomCapRef = useRef<THREE.InstancedMesh>(null);
-  const fernRef = useRef<THREE.InstancedMesh>(null);
-  const grassRef = useRef<THREE.InstancedMesh>(null);
+  const mushroomRef = useRef<InstancedMesh>(null);
+  const mushroomCapRef = useRef<InstancedMesh>(null);
+  const fernRef = useRef<InstancedMesh>(null);
+  const grassRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!mushroomRef.current || !mushroomCapRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < mushroomCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 9 + Math.random() * 10;
@@ -289,15 +299,15 @@ function EnchantedForest() {
 
   React.useEffect(() => {
     if (!fernRef.current) return;
-    const temp = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const pos = new THREE.Vector3();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const quat = new Quaternion();
+    const pos = new Vector3();
+    const scl = new Vector3();
     for (let i = 0; i < fernCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 8 + Math.random() * 12;
       pos.set(Math.cos(angle) * dist, -0.8, Math.sin(angle) * dist);
-      quat.setFromEuler(new THREE.Euler(-0.3, Math.random() * Math.PI * 2, 0));
+      quat.setFromEuler(new Euler(-0.3, Math.random() * Math.PI * 2, 0));
       const s = 0.3 + Math.random() * 0.4;
       scl.set(s, s * 1.5, s);
       temp.compose(pos, quat, scl);
@@ -308,15 +318,15 @@ function EnchantedForest() {
 
   React.useEffect(() => {
     if (!grassRef.current) return;
-    const temp = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const pos = new THREE.Vector3();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const quat = new Quaternion();
+    const pos = new Vector3();
+    const scl = new Vector3();
     for (let i = 0; i < grassCount; i++) {
       const angle = Math.random() * Math.PI * 2;
       const dist = 3 + Math.random() * 16;
       pos.set(Math.cos(angle) * dist, -0.9, Math.sin(angle) * dist);
-      quat.setFromEuler(new THREE.Euler(0, Math.random() * Math.PI * 2, 0));
+      quat.setFromEuler(new Euler(0, Math.random() * Math.PI * 2, 0));
       const s = 0.05 + Math.random() * 0.1;
       scl.set(s, 0.15 + Math.random() * 0.25, s);
       temp.compose(pos, quat, scl);
@@ -340,7 +350,7 @@ function EnchantedForest() {
       {/* Fern fronds */}
       <instancedMesh ref={fernRef} args={[undefined, undefined, fernCount]}>
         <planeGeometry args={[1, 1.5]} />
-        <meshStandardMaterial color="#2D5A27" transparent opacity={0.7} side={THREE.DoubleSide} roughness={0.9} />
+        <meshStandardMaterial color="#2D5A27" transparent opacity={0.7} side={DoubleSide} roughness={0.9} />
       </instancedMesh>
       {/* Grass tufts */}
       <instancedMesh ref={grassRef} args={[undefined, undefined, grassCount]}>
@@ -353,28 +363,28 @@ function EnchantedForest() {
 
 // ■■ Babbling Creek with Stepping Stones ■■
 function CreekAndStones() {
-  const waterRef = useRef<THREE.Mesh>(null);
+  const waterRef = useRef<Mesh>(null);
   const stoneCount = 12;
-  const stonesRef = useRef<THREE.InstancedMesh>(null);
+  const stonesRef = useRef<InstancedMesh>(null);
 
   useFrame((state) => {
     if (!waterRef.current) return;
-    const mat = waterRef.current.material as THREE.MeshStandardMaterial;
+    const mat = waterRef.current.material as MeshStandardMaterial;
     mat.envMapIntensity = 0.6 + Math.sin(state.clock.elapsedTime * 0.8) * 0.2;
   });
 
   React.useEffect(() => {
     if (!stonesRef.current) return;
-    const temp = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const pos = new THREE.Vector3();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const quat = new Quaternion();
+    const pos = new Vector3();
+    const scl = new Vector3();
     for (let i = 0; i < stoneCount; i++) {
       const t = i / stoneCount;
       const x = -12 + t * 24;
       const z = 12 + Math.sin(t * Math.PI * 2) * 2;
       pos.set(x, -0.85, z);
-      quat.setFromEuler(new THREE.Euler(0, Math.random() * Math.PI, 0));
+      quat.setFromEuler(new Euler(0, Math.random() * Math.PI, 0));
       const s = 0.3 + Math.random() * 0.3;
       scl.set(s, s * 0.4, s);
       temp.compose(pos, quat, scl);
@@ -402,7 +412,7 @@ function CreekAndStones() {
 // ■■ Firefly Swarm ■■
 function FireflySwarm() {
   const count = 250;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const fireflies = useMemo(() =>
     Array.from({ length: count }, () => ({
@@ -418,9 +428,9 @@ function FireflySwarm() {
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const t = state.clock.elapsedTime;
-    const color = new THREE.Color();
+    const color = new Color();
 
     for (let i = 0; i < count; i++) {
       const f = fireflies[i];
@@ -452,12 +462,12 @@ function FireflySwarm() {
 // ■■ Garden Flower Beds ■■
 function GardenBeds() {
   const flowerCount = 200;
-  const flowersRef = useRef<THREE.InstancedMesh>(null);
+  const flowersRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!flowersRef.current) return;
-    const temp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const temp = new Matrix4();
+    const color = new Color();
     const colors = ['#DDD6FE', '#F9A8D4', '#FBBF24', '#C084FC', '#A78BFA'];
 
     // Place flowers in patches around the arena
@@ -493,12 +503,12 @@ function GardenBeds() {
 // ■■ Magical Lantern Posts ■■
 function LanternPosts() {
   const lanternCount = 10;
-  const postsRef = useRef<THREE.InstancedMesh>(null);
-  const globeRef = useRef<THREE.InstancedMesh>(null);
+  const postsRef = useRef<InstancedMesh>(null);
+  const globeRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!postsRef.current || !globeRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < lanternCount; i++) {
       const angle = (i / lanternCount) * Math.PI * 2 + 0.2;
       const dist = 14;
@@ -533,7 +543,7 @@ function LanternPosts() {
 // ■■ Ambient Butterflies (Instanced) ■■
 function Butterflies() {
   const count = 100;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const offsets = useMemo(() =>
     Array.from({ length: count }, () => ({
@@ -548,10 +558,10 @@ function Butterflies() {
   useFrame((state) => {
     if (!meshRef.current) return;
     const elapsed = state.clock.elapsedTime;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
 
     for (let i = 0; i < count; i++) {
       const o = offsets[i];
@@ -561,7 +571,7 @@ function Butterflies() {
       const y = o.height + Math.sin(elapsed * 2 + o.phase) * 0.5;
       const wingFlap = 0.5 + Math.abs(Math.sin(elapsed * o.wingSpeed)) * 0.5;
       pos.set(x, y, z);
-      quat.setFromEuler(new THREE.Euler(0, angle + Math.PI / 2, 0));
+      quat.setFromEuler(new Euler(0, angle + Math.PI / 2, 0));
       scl.set(wingFlap * 0.15, 0.1, 0.15);
       temp.compose(pos, quat, scl);
       meshRef.current.setMatrixAt(i, temp);
@@ -572,7 +582,7 @@ function Butterflies() {
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>
       <planeGeometry args={[1, 0.6]} />
-      <meshBasicMaterial color="#DDD6FE" transparent opacity={0.6} side={THREE.DoubleSide} depthWrite={false} />
+      <meshBasicMaterial color="#DDD6FE" transparent opacity={0.6} side={DoubleSide} depthWrite={false} />
     </instancedMesh>
   );
 }
@@ -580,12 +590,12 @@ function Butterflies() {
 // ■■ Instanced Trees (expanded) ■■
 function Trees() {
   const treeCount = 150;
-  const trunkRef = useRef<THREE.InstancedMesh>(null);
-  const canopyRef = useRef<THREE.InstancedMesh>(null);
+  const trunkRef = useRef<InstancedMesh>(null);
+  const canopyRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!trunkRef.current || !canopyRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < treeCount; i++) {
       const angle = (i / treeCount) * Math.PI * 2 + Math.random() * 0.5;
       const dist = 9 + Math.random() * 12;
@@ -621,20 +631,20 @@ function Trees() {
 
 // ■■ Water Pond with Lily Pads ■■
 function WaterPond() {
-  const waterRef = useRef<THREE.Mesh>(null);
+  const waterRef = useRef<Mesh>(null);
   const segs = 64;
   const lilyCount = 8;
-  const liliesRef = useRef<THREE.InstancedMesh>(null);
+  const liliesRef = useRef<InstancedMesh>(null);
 
   useFrame((state) => {
     if (!waterRef.current) return;
-    const mat = waterRef.current.material as THREE.MeshStandardMaterial;
+    const mat = waterRef.current.material as MeshStandardMaterial;
     mat.envMapIntensity = 0.8 + Math.sin(state.clock.elapsedTime * 0.5) * 0.2;
   });
 
   React.useEffect(() => {
     if (!liliesRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < lilyCount; i++) {
       const angle = (i / lilyCount) * Math.PI * 2;
       const r = 1 + Math.random() * 1.5;
@@ -655,7 +665,7 @@ function WaterPond() {
       {(
         <instancedMesh ref={liliesRef} args={[undefined, undefined, lilyCount]}>
           <circleGeometry args={[1, 8]} />
-          <meshStandardMaterial color="#2D5A27" roughness={0.8} side={THREE.DoubleSide} />
+          <meshStandardMaterial color="#2D5A27" roughness={0.8} side={DoubleSide} />
         </instancedMesh>
       )}
     </group>

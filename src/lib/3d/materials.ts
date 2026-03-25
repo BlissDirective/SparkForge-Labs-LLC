@@ -6,7 +6,15 @@
 // Decision 7.3: PBR desktop, CSS mobile
 // Decision 7.5: MeshToonMaterial for Pet Trainer
 
-import * as THREE from 'three';
+import {
+  Color,
+  DataTexture,
+  MeshBasicMaterial,
+  MeshPhysicalMaterial,
+  NearestFilter,
+  RedFormat,
+  Texture,
+} from 'three';
 
 // ■■ HDR Environment Map Path ■■
 // Custom Frost-Prismatic HDR: dark studio, blue key, purple fill, teal rim
@@ -142,18 +150,18 @@ export const MATERIAL_PRESETS: Record<string, MaterialPreset> = {
 // ■■ Helper: Create MeshPhysicalMaterial from preset ■■
 export function createPhysicalMaterial(
   presetName: keyof typeof MATERIAL_PRESETS,
-  envMap?: THREE.Texture | null
-): THREE.MeshPhysicalMaterial {
+  envMap?: Texture | null
+): MeshPhysicalMaterial {
   const preset = MATERIAL_PRESETS[presetName];
   if (!preset) throw new Error(`Unknown material preset: ${presetName}`);
 
-  return new THREE.MeshPhysicalMaterial({
-    color: new THREE.Color(preset.color || '#ffffff'),
+  return new MeshPhysicalMaterial({
+    color: new Color(preset.color || '#ffffff'),
     metalness: preset.metalness,
     roughness: preset.roughness,
     envMap: envMap || null,
     envMapIntensity: preset.envMapIntensity,
-    emissive: preset.emissive ? new THREE.Color(preset.emissive) : undefined,
+    emissive: preset.emissive ? new Color(preset.emissive) : undefined,
     emissiveIntensity: preset.emissiveIntensity || 0,
     // CPA v1.0: Transmission support (IndicatorGlass)
     ...(preset.transmission !== undefined && {
@@ -166,15 +174,15 @@ export function createPhysicalMaterial(
 
 // ■■ Helper: Create 3-step toon gradient map ■■
 // Decision 7.5: MeshToonMaterial with 3-step gradient
-export function createToonGradientMap(): THREE.DataTexture {
+export function createToonGradientMap(): DataTexture {
   const colors = new Uint8Array(3);
   colors[0] = 80;  // Shadow band
   colors[1] = 160; // Mid band
   colors[2] = 255; // Light band
 
-  const gradientMap = new THREE.DataTexture(colors, 3, 1, THREE.RedFormat);
-  gradientMap.minFilter = THREE.NearestFilter;
-  gradientMap.magFilter = THREE.NearestFilter;
+  const gradientMap = new DataTexture(colors, 3, 1, RedFormat);
+  gradientMap.minFilter = NearestFilter;
+  gradientMap.magFilter = NearestFilter;
   gradientMap.needsUpdate = true;
   return gradientMap;
 }
@@ -183,9 +191,9 @@ export function createToonGradientMap(): THREE.DataTexture {
 export function createLEDMaterial(
   color: string,
   _intensity: number = 2.0
-): THREE.MeshBasicMaterial {
-  return new THREE.MeshBasicMaterial({
-    color: new THREE.Color(color),
+): MeshBasicMaterial {
+  return new MeshBasicMaterial({
+    color: new Color(color),
     transparent: true,
     opacity: 0.9,
     toneMapped: false,

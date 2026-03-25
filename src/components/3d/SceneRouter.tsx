@@ -7,7 +7,7 @@
 // Handles cockpit opacity fade during game mode (D3D-B6).
 
 import { useRef, type ReactNode } from 'react';
-import * as THREE from 'three';
+import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSceneStore } from '@/stores/sceneStore';
 
@@ -31,7 +31,7 @@ export function SceneRouter({
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const transition = useSceneStore((s) => s.transition);
 
-  const cockpitGroupRef = useRef<THREE.Group>(null);
+  const cockpitGroupRef = useRef<Group>(null);
   const cockpitOpacityRef = useRef(1.0);
 
   const showHero = activeScene === 'hero';

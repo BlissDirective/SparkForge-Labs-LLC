@@ -2,7 +2,15 @@
 
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BoxGeometry,
+  BufferAttribute,
+  Color,
+  Mesh,
+  MeshStandardMaterial,
+  PlaneGeometry,
+  Vector3,
+} from 'three';
 import {
   LabThemeProfile,
   TierConfig,
@@ -90,7 +98,7 @@ function fbm(
 function buildTerrainGeometry(
   theme: LabThemeProfile,
   tierConfig: TierConfig,
-): THREE.PlaneGeometry {
+): PlaneGeometry {
   const { terrainSize, segments, heightScale } = tierConfig;
   const { seed, noise } = theme;
   const { octaves, frequency, amplitude, lacunarity, persistence, warpStrength } = noise;
@@ -98,8 +106,8 @@ function buildTerrainGeometry(
   const rng = createSeededRng(seed);
   const noiseTable = buildNoiseTable(rng);
 
-  const geo = new THREE.PlaneGeometry(terrainSize, terrainSize, segments, segments);
-  const pos = geo.attributes.position as THREE.BufferAttribute;
+  const geo = new PlaneGeometry(terrainSize, terrainSize, segments, segments);
+  const pos = geo.attributes.position as BufferAttribute;
   const count = pos.count;
 
   const halfSize = terrainSize / 2;
@@ -142,7 +150,7 @@ function buildTerrainGeometry(
 // ---------------------------------------------------------------------------
 
 function GridFloorOverlay({ theme, tierConfig }: ProceduralTerrainProps) {
-  const gridColor = new THREE.Color(theme.terrainColor);
+  const gridColor = new Color(theme.terrainColor);
   const lineCount = 24;
   const size = tierConfig.terrainSize;
   const spacing = size / lineCount;
@@ -150,13 +158,13 @@ function GridFloorOverlay({ theme, tierConfig }: ProceduralTerrainProps) {
   const lineHeight = 0.005;
 
   const boxGeo = useMemo(
-    () => new THREE.BoxGeometry(size, lineThickness, lineHeight),
+    () => new BoxGeometry(size, lineThickness, lineHeight),
     [size],
   );
 
   const material = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: gridColor,
         emissive: gridColor,
         emissiveIntensity: 0.4,
@@ -168,14 +176,14 @@ function GridFloorOverlay({ theme, tierConfig }: ProceduralTerrainProps) {
   );
 
   const lines = useMemo(() => {
-    const result: THREE.Vector3[] = [];
+    const result: Vector3[] = [];
     const half = size / 2;
     for (let i = 0; i <= lineCount; i++) {
       const offset = -half + i * spacing;
       // Horizontal lines (along X)
-      result.push(new THREE.Vector3(0, offset, 0.01));
+      result.push(new Vector3(0, offset, 0.01));
       // Vertical lines (along Z) — will be rotated 90 deg
-      result.push(new THREE.Vector3(offset, 0, 0.01));
+      result.push(new Vector3(offset, 0, 0.01));
     }
     return result;
   }, [size, spacing]);
@@ -203,7 +211,7 @@ function GridFloorOverlay({ theme, tierConfig }: ProceduralTerrainProps) {
 // ---------------------------------------------------------------------------
 
 export default function ProceduralTerrain({ theme, tierConfig }: ProceduralTerrainProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const geometry = useMemo(
     () => buildTerrainGeometry(theme, tierConfig),
@@ -221,7 +229,7 @@ export default function ProceduralTerrain({ theme, tierConfig }: ProceduralTerra
     ],
   );
 
-  const terrainColor = useMemo(() => new THREE.Color(theme.terrainColor), [theme.terrainColor]);
+  const terrainColor = useMemo(() => new Color(theme.terrainColor), [theme.terrainColor]);
 
   return (
     <group position={[0, -1, 0]} rotation={[-Math.PI / 2, 0, 0]}>

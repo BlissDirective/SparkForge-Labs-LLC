@@ -29,14 +29,21 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#818CF8';
 
 // ■■ Babel Tower Centerpiece ■■
 function BabelTower({ translationsCompleted }: { translationsCompleted: number }) {
-  const ringRefs = useRef<THREE.Mesh[]>([]);
+  const ringRefs = useRef<Mesh[]>([]);
   const timeRef = useRef(0);
   const segments = 28;
   const towerLevels = 6;
@@ -46,7 +53,7 @@ function BabelTower({ translationsCompleted }: { translationsCompleted: number }
     ringRefs.current.forEach((mesh, i) => {
       if (mesh) {
         mesh.rotation.y = timeRef.current * (0.2 + i * 0.08) * (i % 2 === 0 ? 1 : -1);
-        (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity =
+        (mesh.material as MeshStandardMaterial).emissiveIntensity =
           0.2 + Math.sin(timeRef.current * 1.5 + i * 1.0) * 0.12;
       }
     });
@@ -108,14 +115,14 @@ function BabelTower({ translationsCompleted }: { translationsCompleted: number }
 
 // ■■ Translation Bridge ■■
 function TranslationBridge() {
-  const beamRef = useRef<THREE.Mesh>(null);
+  const beamRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (beamRef.current) {
-      (beamRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (beamRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.2 + Math.sin(timeRef.current * 2.5) * 0.15;
     }
   });
@@ -172,9 +179,9 @@ function TranslationBridge() {
 
 // ■■ Language Selector Globe ■■
 function LanguageGlobe({ languagePair: _languagePair }: { languagePair: string }) {
-  const globeRef = useRef<THREE.Mesh>(null);
-  const axisRef1 = useRef<THREE.Mesh>(null);
-  const axisRef2 = useRef<THREE.Mesh>(null);
+  const globeRef = useRef<Mesh>(null);
+  const axisRef1 = useRef<Mesh>(null);
+  const axisRef2 = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
@@ -233,13 +240,13 @@ function LanguageGlobe({ languagePair: _languagePair }: { languagePair: string }
 // ■■ Mistranslation Museum Cases (Instanced) ■■
 function MistranslationMuseum() {
   const count = 10;
-  const casesRef = useRef<THREE.InstancedMesh>(null);
-  const lidsRef = useRef<THREE.InstancedMesh>(null);
+  const casesRef = useRef<InstancedMesh>(null);
+  const lidsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!casesRef.current || !lidsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI + Math.PI;
       const radius = 5.5;
@@ -261,7 +268,7 @@ function MistranslationMuseum() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!lidsRef.current) return;
-    const mat = lidsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = lidsRef.current.material as MeshStandardMaterial;
     mat.opacity = 0.15 + Math.sin(timeRef.current * 1.2) * 0.05;
   });
 
@@ -288,7 +295,7 @@ function MistranslationMuseum() {
 // ■■ Phonetic Decoder Rings ■■
 function PhoneticDecoderRings() {
   const ringCount = 5;
-  const ringRefs = useRef<THREE.Mesh[]>([]);
+  const ringRefs = useRef<Mesh[]>([]);
   const timeRef = useRef(0);
   const segments = 32;
 
@@ -330,7 +337,7 @@ function PhoneticDecoderRings() {
 // ■■ Dictionary Constellation Ceiling (Instanced) ■■
 function DictionaryConstellation() {
   const count = 80;
-  const starsRef = useRef<THREE.InstancedMesh>(null);
+  const starsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -347,8 +354,8 @@ function DictionaryConstellation() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!starsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const brightness = 0.4 + Math.sin(timeRef.current * s.twinkleSpeed + s.twinklePhase) * 0.3;
@@ -374,12 +381,12 @@ function DictionaryConstellation() {
 // ■■ Cultural Display Cases (Instanced) ■■
 function CulturalDisplayCases() {
   const count = 8;
-  const casesRef = useRef<THREE.InstancedMesh>(null);
-  const glassRef = useRef<THREE.InstancedMesh>(null);
+  const casesRef = useRef<InstancedMesh>(null);
+  const glassRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!casesRef.current || !glassRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 1.8;
       // Pedestal
@@ -409,7 +416,7 @@ function CulturalDisplayCases() {
           opacity={0.1}
           metalness={0.9}
           roughness={0.05}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </instancedMesh>
     </group>

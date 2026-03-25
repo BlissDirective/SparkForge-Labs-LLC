@@ -9,7 +9,7 @@
 
 import { useRef, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Mesh, MeshStandardMaterial, Vector3 } from 'three';
 
 interface InteractiveSurfaceState {
   isHovered: boolean;
@@ -49,8 +49,8 @@ export function useInteractiveSurface(options: UseInteractiveSurfaceOptions = {}
   const [isPressed, setIsPressed] = useState(false);
   const hoverProgressRef = useRef(0);
   const pressProgressRef = useRef(0);
-  const meshRef = useRef<THREE.Mesh>(null);
-  const baseScaleRef = useRef(new THREE.Vector3(1, 1, 1));
+  const meshRef = useRef<Mesh>(null);
+  const baseScaleRef = useRef(new Vector3(1, 1, 1));
   const hasRecordedBase = useRef(false);
 
   // Smooth transitions via useFrame
@@ -78,7 +78,7 @@ export function useInteractiveSurface(options: UseInteractiveSurfaceOptions = {}
       meshRef.current.scale.copy(baseScaleRef.current).multiplyScalar(scaleFactor * pressScale);
 
       // Apply emissive intensity if material supports it
-      const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+      const mat = meshRef.current.material as MeshStandardMaterial;
       if (mat && 'emissiveIntensity' in mat) {
         mat.emissiveIntensity = hp * hoverEmissive;
       }

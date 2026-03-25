@@ -30,7 +30,17 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FFAA44';
@@ -38,7 +48,7 @@ const LAB_COLOR = '#FFAA44';
 // ■■ Floating Word Bubbles ■■
 function WordBubbles({ isPredicting }: { isPredicting: boolean }) {
   const count = 40;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -56,8 +66,8 @@ function WordBubbles({ isPredicting }: { isPredicting: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const speedMul = isPredicting ? 2.0 : 1.0;
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
@@ -92,8 +102,8 @@ function WordBubbles({ isPredicting }: { isPredicting: boolean }) {
 // ■■ Probability Tree ■■
 function ProbabilityTree({ isPredicting }: { isPredicting: boolean }) {
   const branchCount = 16;
-  const branchRef = useRef<THREE.InstancedMesh>(null);
-  const leafRef = useRef<THREE.InstancedMesh>(null);
+  const branchRef = useRef<InstancedMesh>(null);
+  const leafRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const branchData = useMemo(() =>
@@ -115,17 +125,17 @@ function ProbabilityTree({ isPredicting }: { isPredicting: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!branchRef.current || !leafRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
+    const color = new Color();
     for (let i = 0; i < branchCount; i++) {
       const b = branchData[i];
       const sway = isPredicting ? Math.sin(timeRef.current * 2 + i) * 0.05 : 0;
-      rot.setFromEuler(new THREE.Euler(b.rotX + sway, 0, b.rotZ + sway));
+      rot.setFromEuler(new Euler(b.rotX + sway, 0, b.rotZ + sway));
       tmp.compose(
-        new THREE.Vector3(b.x, b.y, b.z),
+        new Vector3(b.x, b.y, b.z),
         rot,
-        new THREE.Vector3(0.03, b.length, 0.03),
+        new Vector3(0.03, b.length, 0.03),
       );
       branchRef.current.setMatrixAt(i, tmp);
       // Leaf node at tip
@@ -171,14 +181,14 @@ function ProbabilityTree({ isPredicting }: { isPredicting: boolean }) {
 // ■■ Sentence Construction Conveyor ■■
 function SentenceConveyor({ wordCount }: { wordCount: number }) {
   const blockCount = 12;
-  const blocksRef = useRef<THREE.InstancedMesh>(null);
+  const blocksRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!blocksRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < blockCount; i++) {
       const progress = ((i / blockCount + timeRef.current * 0.08) % 1);
       const x = -4 + progress * 8;
@@ -222,19 +232,19 @@ function SentenceConveyor({ wordCount }: { wordCount: number }) {
 // ■■ Autocomplete Suggestion Screens ■■
 function AutocompleteScreens({ isPredicting }: { isPredicting: boolean }) {
   const count = 6;
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 0.6 - Math.PI * 0.3;
       const x = Math.sin(angle) * 5.5;
       const z = -Math.cos(angle) * 5.5;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, angle + Math.PI, 0));
-      tmp.compose(new THREE.Vector3(x, 2.0, z), rot, new THREE.Vector3(0.8, 0.55, 0.04));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, angle + Math.PI, 0));
+      tmp.compose(new Vector3(x, 2.0, z), rot, new Vector3(0.8, 0.55, 0.04));
       screensRef.current.setMatrixAt(i, tmp);
     }
     screensRef.current.instanceMatrix.needsUpdate = true;
@@ -243,7 +253,7 @@ function AutocompleteScreens({ isPredicting }: { isPredicting: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = isPredicting
       ? 0.4 + Math.sin(timeRef.current * 3) * 0.2
       : 0.15;
@@ -269,23 +279,23 @@ function AutocompleteScreens({ isPredicting }: { isPredicting: boolean }) {
 function DictionaryTowers() {
   const towerCount = 6;
   const bookCount = towerCount * 8;
-  const booksRef = useRef<THREE.InstancedMesh>(null);
+  const booksRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!booksRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     let idx = 0;
     for (let t = 0; t < towerCount; t++) {
       const baseX = -5 + t * (10 / (towerCount - 1 || 1));
       for (let b = 0; b < 8 && idx < bookCount; b++) {
         const y = 0.1 + b * 0.22;
-        const rot = new THREE.Quaternion();
-        rot.setFromEuler(new THREE.Euler(0, (b % 2) * 0.1 + t * 0.2, 0));
+        const rot = new Quaternion();
+        rot.setFromEuler(new Euler(0, (b % 2) * 0.1 + t * 0.2, 0));
         tmp.compose(
-          new THREE.Vector3(baseX, y, -5.5),
+          new Vector3(baseX, y, -5.5),
           rot,
-          new THREE.Vector3(0.35, 0.18, 0.22),
+          new Vector3(0.35, 0.18, 0.22),
         );
         booksRef.current.setMatrixAt(idx, tmp);
         color.setHSL(0.06 + b * 0.015, 0.5, 0.2 + b * 0.03);
@@ -309,13 +319,13 @@ function DictionaryTowers() {
 function GrammarCircuits() {
   const traceCount = 30;
   const nodeCount = 15;
-  const tracesRef = useRef<THREE.InstancedMesh>(null);
-  const nodesRef = useRef<THREE.InstancedMesh>(null);
+  const tracesRef = useRef<InstancedMesh>(null);
+  const nodesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!tracesRef.current || !nodesRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     // Traces on side walls
     for (let i = 0; i < traceCount; i++) {
       const side = i % 2 === 0 ? -1 : 1;
@@ -323,12 +333,12 @@ function GrammarCircuits() {
       const z = (Math.random() - 0.5) * 8;
       const length = 0.5 + Math.random() * 1.5;
       const isHoriz = Math.random() > 0.5;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, side > 0 ? -Math.PI / 2 : Math.PI / 2, isHoriz ? 0 : Math.PI / 2));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, side > 0 ? -Math.PI / 2 : Math.PI / 2, isHoriz ? 0 : Math.PI / 2));
       tmp.compose(
-        new THREE.Vector3(side * 6.4, y, z),
+        new Vector3(side * 6.4, y, z),
         rot,
-        new THREE.Vector3(length, 0.015, 0.015),
+        new Vector3(length, 0.015, 0.015),
       );
       tracesRef.current.setMatrixAt(i, tmp);
     }
@@ -348,7 +358,7 @@ function GrammarCircuits() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!nodesRef.current) return;
-    const mat = nodesRef.current.material as THREE.MeshStandardMaterial;
+    const mat = nodesRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.15;
   });
 
@@ -368,14 +378,14 @@ function GrammarCircuits() {
 
 // ■■ Context Window Visualizer ■■
 function ContextWindowVisualizer({ wordCount }: { wordCount: number }) {
-  const frameRef = useRef<THREE.Mesh>(null);
+  const frameRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (frameRef.current) {
       frameRef.current.position.x = Math.sin(timeRef.current * 0.3) * 1.5;
-      (frameRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (frameRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 2) * 0.1;
     }
   });
@@ -393,7 +403,7 @@ function ContextWindowVisualizer({ wordCount }: { wordCount: number }) {
           emissiveIntensity={0.3}
           transparent
           opacity={0.4}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Window bracket lines */}

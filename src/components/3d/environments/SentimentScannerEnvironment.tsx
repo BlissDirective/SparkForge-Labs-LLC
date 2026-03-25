@@ -29,15 +29,25 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#818CF8';
 
 // ■■ Giant Mood Meter Centerpiece ■■
 function MoodMeter({ sentiment }: { sentiment: number }) {
-  const needleRef = useRef<THREE.Group>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const needleRef = useRef<Group>(null);
+  const glowRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 32;
 
@@ -49,7 +59,7 @@ function MoodMeter({ sentiment }: { sentiment: number }) {
       needleRef.current.rotation.z += (targetAngle - needleRef.current.rotation.z) * delta * 2.0;
     }
     if (glowRef.current) {
-      (glowRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (glowRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.25 + Math.sin(timeRef.current * 1.5) * 0.1;
     }
   });
@@ -108,29 +118,29 @@ function MoodMeter({ sentiment }: { sentiment: number }) {
 // ■■ Oscilloscope Screens (Instanced) ■■
 function OscilloscopeScreens() {
   const count = 8;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!framesRef.current || !screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 1.6;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(-0.15, 0, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(-0.15, 0, 0));
       // Frame
       tmp.compose(
-        new THREE.Vector3(x, 1.3, 5.5),
+        new Vector3(x, 1.3, 5.5),
         rot,
-        new THREE.Vector3(1.1, 0.7, 0.08),
+        new Vector3(1.1, 0.7, 0.08),
       );
       framesRef.current.setMatrixAt(i, tmp);
       // Screen
       tmp.compose(
-        new THREE.Vector3(x, 1.3, 5.47),
+        new Vector3(x, 1.3, 5.47),
         rot,
-        new THREE.Vector3(1.0, 0.6, 0.02),
+        new Vector3(1.0, 0.6, 0.02),
       );
       screensRef.current.setMatrixAt(i, tmp);
     }
@@ -141,7 +151,7 @@ function OscilloscopeScreens() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2.5) * 0.12;
   });
 
@@ -168,7 +178,7 @@ function OscilloscopeScreens() {
 // ■■ Text Conveyor Belt ■■
 function TextConveyor({ textsAnalyzed }: { textsAnalyzed: number }) {
   const tagCount = 12;
-  const tagsRef = useRef<THREE.InstancedMesh>(null);
+  const tagsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const tagColors = useMemo(() => {
@@ -179,8 +189,8 @@ function TextConveyor({ textsAnalyzed }: { textsAnalyzed: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!tagsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < tagCount; i++) {
       const offset = (timeRef.current * 0.5 + (i / tagCount) * 8) % 8;
       const x = offset - 4;
@@ -237,7 +247,7 @@ function TextConveyor({ textsAnalyzed }: { textsAnalyzed: number }) {
 // ■■ Emoji Reaction Bubbles (Instanced) ■■
 function EmojiBubbles({ sentiment }: { sentiment: number }) {
   const count = 40;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -254,8 +264,8 @@ function EmojiBubbles({ sentiment }: { sentiment: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const y = ((s.startY + timeRef.current * s.speed * 0.4) % 5) - 0.5;
@@ -284,14 +294,14 @@ function EmojiBubbles({ sentiment }: { sentiment: number }) {
 // ■■ Social Media Feed Wall ■■
 function SocialMediaWall() {
   const panelCount = 12;
-  const panelsRef = useRef<THREE.InstancedMesh>(null);
+  const panelsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!panelsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < panelCount; i++) {
       const col = i % 3;
       const row = Math.floor(i / 3);
@@ -332,7 +342,7 @@ function SocialMediaWall() {
 
 // ■■ Tone Analyzer Microphone Station ■■
 function ToneAnalyzer() {
-  const ringRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
@@ -340,7 +350,7 @@ function ToneAnalyzer() {
     timeRef.current += delta;
     if (ringRef.current) {
       ringRef.current.scale.setScalar(1.0 + Math.sin(timeRef.current * 3) * 0.08);
-      (ringRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (ringRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 4) * 0.15;
     }
   });
@@ -391,14 +401,14 @@ function ToneAnalyzer() {
 // ■■ Polarity Graph Dashboard ■■
 function PolarityDashboard({ sentiment }: { sentiment: number }) {
   const barCount = 16;
-  const barsRef = useRef<THREE.InstancedMesh>(null);
+  const barsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!barsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < barCount; i++) {
       const x = (i - (barCount - 1) / 2) * 0.4;
       const normalizedI = i / (barCount - 1); // 0 to 1

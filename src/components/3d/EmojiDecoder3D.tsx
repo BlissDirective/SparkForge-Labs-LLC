@@ -16,7 +16,7 @@ import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Text } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { Group, Mesh, MeshStandardMaterial } from 'three';
 
 interface EmojiDecoder3DProps {
   inputEmojis: string[];
@@ -27,9 +27,9 @@ interface EmojiDecoder3DProps {
 
 // ■■ Translation Machine ■■
 function TranslationMachine({ isDecoding, progress }: { isDecoding: boolean; progress: number }) {
-  const gearRef1 = useRef<THREE.Mesh>(null);
-  const gearRef2 = useRef<THREE.Mesh>(null);
-  const conveyorRef = useRef<THREE.Group>(null);
+  const gearRef1 = useRef<Mesh>(null);
+  const gearRef2 = useRef<Mesh>(null);
+  const conveyorRef = useRef<Group>(null);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -99,7 +99,7 @@ function TranslationMachine({ isDecoding, progress }: { isDecoding: boolean; pro
 
 // ■■ Emoji Input Display ■■
 function EmojiDisplay({ emojis }: { emojis: string[] }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -127,12 +127,12 @@ function EmojiDisplay({ emojis }: { emojis: string[] }) {
 
 // ■■ Decoded Output ■■
 function DecodedOutput({ text, progress }: { text: string; progress: number }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!meshRef.current) return;
     meshRef.current.position.y = -1 + Math.sin(state.clock.elapsedTime * 0.5) * 0.05;
-    const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+    const mat = meshRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.1 + progress * 0.3;
   });
 

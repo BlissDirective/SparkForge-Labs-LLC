@@ -234,7 +234,8 @@ export async function POST(req: NextRequest) {
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, Sparkles, Ring } from '@react-three/drei';
-import * as THREE from 'three';
+import { Color } from 'three';
+import type { Mesh, PointLight } from 'three';
 
 interface LoginPortal3DProps {
   portalColor?: string;
@@ -247,13 +248,13 @@ export default function LoginPortal3D({
   intensity = 1.0,
   isHovered = false,
 }: LoginPortal3DProps) {
-  const portalRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
-  const innerRingRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.PointLight>(null);
+  const portalRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
+  const innerRingRef = useRef<Mesh>(null);
+  const glowRef = useRef<PointLight>(null);
 
-  const portalColorObj = useMemo(() => new THREE.Color(portalColor), [portalColor]);
-  const secondaryColor = useMemo(() => new THREE.Color('#00BBFF'), []);
+  const portalColorObj = useMemo(() => new Color(portalColor), [portalColor]);
+  const secondaryColor = useMemo(() => new Color('#00BBFF'), []);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -390,7 +391,8 @@ export default function LoginPortal3D({
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Color, Object3D, Vector3 } from 'three';
+import type { InstancedMesh } from 'three';
 
 interface LoginParticles3DProps {
   count?: number;
@@ -403,12 +405,12 @@ export default function LoginParticles3D({
   color = '#AA66FF',
   spread = 8,
 }: LoginParticles3DProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const meshRef = useRef<InstancedMesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
 
   const particles = useMemo(() => {
     return Array.from({ length: count }, () => ({
-      position: new THREE.Vector3(
+      position: new Vector3(
         (Math.random() - 0.5) * spread * 2,
         (Math.random() - 0.5) * spread * 2,
         (Math.random() - 0.5) * spread - 3,
@@ -438,7 +440,7 @@ export default function LoginParticles3D({
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  const particleColor = useMemo(() => new THREE.Color(color), [color]);
+  const particleColor = useMemo(() => new Color(color), [color]);
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>

@@ -30,7 +30,17 @@
 
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FFAA44';
@@ -38,12 +48,12 @@ const LAB_COLOR = '#FFAA44';
 // ■■ Conveyor Belts with Rollers ■■
 function ConveyorBelts({ isChopping }: { isChopping: boolean }) {
   const rollerCount = 30;
-  const rollersRef = useRef<THREE.InstancedMesh>(null);
+  const rollersRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!rollersRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const beltPositions = [
       { z: -2, length: 8 },
       { z: 0, length: 6 },
@@ -54,12 +64,12 @@ function ConveyorBelts({ isChopping }: { isChopping: boolean }) {
       const perBelt = Math.floor(rollerCount / 3);
       for (let i = 0; i < perBelt && idx < rollerCount; i++) {
         const x = -belt.length / 2 + (i / (perBelt - 1)) * belt.length;
-        const rot = new THREE.Quaternion();
-        rot.setFromEuler(new THREE.Euler(0, 0, Math.PI / 2));
+        const rot = new Quaternion();
+        rot.setFromEuler(new Euler(0, 0, Math.PI / 2));
         tmp.compose(
-          new THREE.Vector3(x, 0.15, belt.z),
+          new Vector3(x, 0.15, belt.z),
           rot,
-          new THREE.Vector3(0.08, 0.15, 0.08),
+          new Vector3(0.08, 0.15, 0.08),
         );
         rollersRef.current.setMatrixAt(idx, tmp);
         idx++;
@@ -72,14 +82,14 @@ function ConveyorBelts({ isChopping }: { isChopping: boolean }) {
     timeRef.current += delta;
     if (!rollersRef.current) return;
     const speed = isChopping ? 3.0 : 0.5;
-    const tmp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const scl = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const pos = new Vector3();
+    const scl = new Vector3();
+    const quat = new Quaternion();
     for (let i = 0; i < rollerCount; i++) {
       rollersRef.current.getMatrixAt(i, tmp);
       tmp.decompose(pos, quat, scl);
-      quat.setFromEuler(new THREE.Euler(timeRef.current * speed, 0, Math.PI / 2));
+      quat.setFromEuler(new Euler(timeRef.current * speed, 0, Math.PI / 2));
       tmp.compose(pos, quat, scl);
       rollersRef.current.setMatrixAt(i, tmp);
     }
@@ -119,8 +129,8 @@ function ConveyorBelts({ isChopping }: { isChopping: boolean }) {
 
 // ■■ Giant Chopper Mechanism ■■
 function ChopperMechanism({ isChopping }: { isChopping: boolean }) {
-  const bladeRef = useRef<THREE.Mesh>(null);
-  const gearRef = useRef<THREE.Mesh>(null);
+  const bladeRef = useRef<Mesh>(null);
+  const gearRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
@@ -174,14 +184,14 @@ function ChopperMechanism({ isChopping }: { isChopping: boolean }) {
 // ■■ Token Bins (Instanced) ■■
 function TokenBins({ tokensChopped }: { tokensChopped: number }) {
   const count = 12;
-  const binsRef = useRef<THREE.InstancedMesh>(null);
-  const labelsRef = useRef<THREE.InstancedMesh>(null);
+  const binsRef = useRef<InstancedMesh>(null);
+  const labelsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!binsRef.current || !labelsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 1.0;
       tmp.makeScale(0.35, 0.5, 0.3);
@@ -202,10 +212,10 @@ function TokenBins({ tokensChopped }: { tokensChopped: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!binsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const tmp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       binsRef.current.getMatrixAt(i, tmp);
       tmp.decompose(pos, quat, scl);
@@ -236,12 +246,12 @@ function TokenBins({ tokensChopped }: { tokensChopped: number }) {
 // ■■ Vocabulary Lookup Towers ■■
 function VocabTowers() {
   const count = 20;
-  const blocksRef = useRef<THREE.InstancedMesh>(null);
+  const blocksRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!blocksRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const towers = 4;
     let idx = 0;
     for (let t = 0; t < towers; t++) {
@@ -271,12 +281,12 @@ function VocabTowers() {
 // ■■ Subword Assembly Station ■■
 function SubwordStation({ isChopping }: { isChopping: boolean }) {
   const timeRef = useRef(0);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (glowRef.current) {
-      (glowRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (glowRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isChopping ? 0.4 + Math.sin(timeRef.current * 3) * 0.2 : 0.1;
     }
   });
@@ -316,20 +326,20 @@ function SubwordStation({ isChopping }: { isChopping: boolean }) {
 // ■■ Pipeline Tubes (Instanced) ■■
 function PipelineTubes({ isChopping }: { isChopping: boolean }) {
   const count = 8;
-  const tubesRef = useRef<THREE.InstancedMesh>(null);
+  const tubesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!tubesRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const y = 3.0 + i * 0.4;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, 0, Math.PI / 2));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, 0, Math.PI / 2));
       tmp.compose(
-        new THREE.Vector3(0, y, -4 + i * 0.3),
+        new Vector3(0, y, -4 + i * 0.3),
         rot,
-        new THREE.Vector3(0.08, 5.0, 0.08),
+        new Vector3(0.08, 5.0, 0.08),
       );
       tubesRef.current.setMatrixAt(i, tmp);
     }
@@ -339,7 +349,7 @@ function PipelineTubes({ isChopping }: { isChopping: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!tubesRef.current) return;
-    const mat = tubesRef.current.material as THREE.MeshStandardMaterial;
+    const mat = tubesRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = isChopping
       ? 0.3 + Math.sin(timeRef.current * 4) * 0.15
       : 0.1;
@@ -355,7 +365,7 @@ function PipelineTubes({ isChopping }: { isChopping: boolean }) {
         emissiveIntensity={0.1}
         transparent
         opacity={0.3}
-        side={THREE.DoubleSide}
+        side={DoubleSide}
       />
     </instancedMesh>
   );
@@ -363,13 +373,13 @@ function PipelineTubes({ isChopping }: { isChopping: boolean }) {
 
 // ■■ Token Counter Display ■■
 function TokenCounterDisplay({ tokensChopped }: { tokensChopped: number }) {
-  const digitRef = useRef<THREE.Mesh>(null);
+  const digitRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (digitRef.current) {
-      (digitRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (digitRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.4 + Math.sin(timeRef.current * 2) * 0.1;
     }
   });

@@ -18,7 +18,7 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { getShakeOffset } from '@/lib/3d/cameraShake';
 import type { GameCameraPreset } from '@/config/gameRegistry';
@@ -27,8 +27,8 @@ export type CameraMode = 'hero' | 'station' | 'spatial' | 'game';
 
 // D3D-B3: Default game camera preset — forward-looking, close to scene
 const GAME_CAMERA_DEFAULT = {
-  position: new THREE.Vector3(0, 2, 5),
-  lookAt: new THREE.Vector3(0, 0, 0),
+  position: new Vector3(0, 2, 5),
+  lookAt: new Vector3(0, 0, 0),
   fov: 45,
 };
 
@@ -71,9 +71,9 @@ export function CameraSystem({
   const cameraTarget = useCockpitStore((s) => s.cameraTarget);
 
   // Interpolation state refs
-  const lookAtTarget = useRef(new THREE.Vector3(...cameraTarget.lookAt));
-  const positionTarget = useRef(new THREE.Vector3(...cameraTarget.position));
-  const currentLookAt = useRef(new THREE.Vector3(...cameraTarget.lookAt));
+  const lookAtTarget = useRef(new Vector3(...cameraTarget.lookAt));
+  const positionTarget = useRef(new Vector3(...cameraTarget.position));
+  const currentLookAt = useRef(new Vector3(...cameraTarget.lookAt));
   const driftAngle = useRef(0);
 
   // Update spatial targets when cockpitStore changes
@@ -81,7 +81,7 @@ export function CameraSystem({
   lookAtTarget.current.set(...cameraTarget.lookAt);
 
   useFrame((_, delta) => {
-    const cam = camera as THREE.PerspectiveCamera;
+    const cam = camera as PerspectiveCamera;
 
     // ── Hero mode: GSAP drives camera directly, no interpolation ──
     if (mode === 'hero') {
@@ -93,7 +93,7 @@ export function CameraSystem({
     // ── Game mode: smooth transition to per-game camera preset (D3D-B3 + Section 4.1-B) ──
     if (mode === 'game') {
       const preset = gameCameraPreset
-        ? { position: new THREE.Vector3(...gameCameraPreset.position), lookAt: new THREE.Vector3(...gameCameraPreset.lookAt), fov: gameCameraPreset.fov }
+        ? { position: new Vector3(...gameCameraPreset.position), lookAt: new Vector3(...gameCameraPreset.lookAt), fov: gameCameraPreset.fov }
         : GAME_CAMERA_DEFAULT;
       const gamePos = preset.position;
       const gameLookAt = preset.lookAt;
@@ -104,7 +104,7 @@ export function CameraSystem({
       currentLookAt.current.lerp(gameLookAt, lf * 0.5);
       cam.lookAt(currentLookAt.current);
       if (Math.abs(cam.fov - gameFov) > 0.01) {
-        cam.fov = THREE.MathUtils.lerp(cam.fov, gameFov, lf);
+        cam.fov = MathUtils.lerp(cam.fov, gameFov, lf);
         cam.updateProjectionMatrix();
       }
     }
@@ -112,7 +112,7 @@ export function CameraSystem({
     // ── Station mode: FOV-only smooth interpolation ──
     else if (mode === 'station') {
       if (Math.abs(cam.fov - stationFov) > 0.01) {
-        cam.fov = THREE.MathUtils.lerp(cam.fov, stationFov, 0.05);
+        cam.fov = MathUtils.lerp(cam.fov, stationFov, 0.05);
         cam.updateProjectionMatrix();
       }
     }
@@ -131,7 +131,7 @@ export function CameraSystem({
 
       // Interpolate FOV
       if (Math.abs(cam.fov - cameraTarget.fov) > 0.01) {
-        cam.fov = THREE.MathUtils.lerp(cam.fov, cameraTarget.fov, lerpFactor);
+        cam.fov = MathUtils.lerp(cam.fov, cameraTarget.fov, lerpFactor);
         cam.updateProjectionMatrix();
       }
 

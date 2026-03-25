@@ -38,7 +38,18 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import {
   FlagshipEnvironmentWrapper,
 } from './FlagshipEnvironmentBase';
@@ -47,23 +58,23 @@ import {
 function LibraryTower() {
   const shelfCount = 8;
   const booksPerShelf = 20;
-  const booksRef = useRef<THREE.InstancedMesh>(null);
-  const shelvesRef = useRef<THREE.InstancedMesh>(null);
+  const booksRef = useRef<InstancedMesh>(null);
+  const shelvesRef = useRef<InstancedMesh>(null);
   const bookTotal = shelfCount * booksPerShelf;
 
   React.useEffect(() => {
     if (!shelvesRef.current || !booksRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
 
     for (let i = 0; i < shelfCount; i++) {
       const angle = (i / shelfCount) * Math.PI * 4; // 2 full spirals
       const radius = 3.5;
       const y = 0.5 + i * 1.2;
       pos.set(Math.cos(angle) * radius + 12, y, Math.sin(angle) * radius);
-      quat.setFromEuler(new THREE.Euler(0, angle, 0));
+      quat.setFromEuler(new Euler(0, angle, 0));
       scl.set(3, 0.08, 0.6);
       temp.compose(pos, quat, scl);
       shelvesRef.current.setMatrixAt(i, temp);
@@ -78,7 +89,7 @@ function LibraryTower() {
           y + 0.04 + height / 2,
           Math.sin(angle) * radius + Math.sin(angle + Math.PI / 2) * bx
         );
-        quat.setFromEuler(new THREE.Euler(0, angle, 0));
+        quat.setFromEuler(new Euler(0, angle, 0));
         scl.set(0.08, height, 0.25);
         temp.compose(pos, quat, scl);
         booksRef.current.setMatrixAt(bookIdx, temp);
@@ -112,7 +123,7 @@ function LibraryTower() {
 // ■■ Floating Book Library ■■
 function FloatingBooks() {
   const count = 150;
-  const booksRef = useRef<THREE.InstancedMesh>(null);
+  const booksRef = useRef<InstancedMesh>(null);
 
   const bookData = useMemo(() =>
     Array.from({ length: count }, (_, i) => ({
@@ -130,16 +141,16 @@ function FloatingBooks() {
   useFrame((state) => {
     if (!booksRef.current) return;
     const t = state.clock.elapsedTime;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3(0.4, 0.55, 0.06);
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3(0.4, 0.55, 0.06);
 
     for (let i = 0; i < count; i++) {
       const b = bookData[i];
       const angle = t * b.orbitSpeed + b.phase;
       pos.set(Math.cos(angle) * b.orbitRadius, b.height + Math.sin(t * b.bobSpeed + b.phase) * b.bobAmount, Math.sin(angle) * b.orbitRadius);
-      quat.setFromEuler(new THREE.Euler(b.tiltX, angle + Math.PI, b.tiltZ));
+      quat.setFromEuler(new Euler(b.tiltX, angle + Math.PI, b.tiltZ));
       temp.compose(pos, quat, scl);
       booksRef.current.setMatrixAt(i, temp);
     }
@@ -157,7 +168,7 @@ function FloatingBooks() {
 // ■■ Word Cloud Constellation ■■
 function WordCloud() {
   const count = 200;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const words = useMemo(() =>
     Array.from({ length: count }, () => ({
@@ -172,9 +183,9 @@ function WordCloud() {
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const t = state.clock.elapsedTime;
-    const color = new THREE.Color();
+    const color = new Color();
 
     for (let i = 0; i < count; i++) {
       const w = words[i];
@@ -202,7 +213,7 @@ function WordCloud() {
 
 // ■■ Giant Typewriter Machine ■■
 function TypewriterMachine() {
-  const carriageRef = useRef<THREE.Mesh>(null);
+  const carriageRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!carriageRef.current) return;
@@ -250,13 +261,13 @@ function TypewriterMachine() {
 // ■■ Ink Rivers (floor) ■■
 function InkRivers() {
   const riverCount = 6;
-  const riversRef = useRef<THREE.Group>(null);
+  const riversRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!riversRef.current) return;
     const t = state.clock.elapsedTime;
     riversRef.current.children.forEach((river, i) => {
-      const mat = (river as THREE.Mesh).material as THREE.MeshBasicMaterial;
+      const mat = (river as Mesh).material as MeshBasicMaterial;
       mat.opacity = 0.08 + Math.sin(t * 0.5 + i * 1.5) * 0.04;
     });
   });
@@ -280,11 +291,11 @@ function InkRivers() {
 
 // ■■ Token Counter Cylinder ■■
 function TokenCounter({ fillLevel = 0.5 }: { fillLevel: number }) {
-  const glowRef = useRef<THREE.Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!glowRef.current) return;
-    const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+    const mat = glowRef.current.material as MeshBasicMaterial;
     mat.opacity = 0.2 + Math.sin(state.clock.elapsedTime * 2) * 0.1;
   });
 
@@ -292,7 +303,7 @@ function TokenCounter({ fillLevel = 0.5 }: { fillLevel: number }) {
     <group position={[8, -1, 0]}>
       <mesh>
         <cylinderGeometry args={[0.6, 0.6, 3.5, 64, 1, true]} />
-        <meshStandardMaterial color="#F59E0B" transparent opacity={0.08} side={THREE.DoubleSide} metalness={0.3} roughness={0.1} />
+        <meshStandardMaterial color="#F59E0B" transparent opacity={0.08} side={DoubleSide} metalness={0.3} roughness={0.1} />
       </mesh>
       <mesh position={[0, -1.75 + fillLevel * 1.75, 0]}>
         <cylinderGeometry args={[0.55, 0.55, fillLevel * 3.5, 64]} />
@@ -316,9 +327,9 @@ function TokenCounter({ fillLevel = 0.5 }: { fillLevel: number }) {
 
 // ■■ Central AI Brain Mesh (enhanced) ■■
 function AIBrain({ isThinking }: { isThinking: boolean }) {
-  const brainRef = useRef<THREE.Mesh>(null);
-  const shell1Ref = useRef<THREE.Mesh>(null);
-  const shell2Ref = useRef<THREE.Mesh>(null);
+  const brainRef = useRef<Mesh>(null);
+  const shell1Ref = useRef<Mesh>(null);
+  const shell2Ref = useRef<Mesh>(null);
 
   const detail = 4;
 
@@ -363,16 +374,16 @@ function AIBrain({ isThinking }: { isThinking: boolean }) {
 function InspirationCrystals() {
   const clusterCount = 6;
   const crystalsPerCluster = 8;
-  const crystalsRef = useRef<THREE.InstancedMesh>(null);
+  const crystalsRef = useRef<InstancedMesh>(null);
   const totalCrystals = clusterCount * crystalsPerCluster;
 
   React.useEffect(() => {
     if (!crystalsRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
-    const color = new THREE.Color();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
+    const color = new Color();
     const colors = ['#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A'];
 
     for (let c = 0; c < clusterCount; c++) {
@@ -386,7 +397,7 @@ function InspirationCrystals() {
         const r = 0.3 + Math.random() * 0.5;
         const h = 0.3 + Math.random() * 1.2;
         pos.set(cx + Math.cos(angle) * r, -0.5 + h / 2, cz + Math.sin(angle) * r);
-        quat.setFromEuler(new THREE.Euler((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4));
+        quat.setFromEuler(new Euler((Math.random() - 0.5) * 0.4, Math.random() * Math.PI, (Math.random() - 0.5) * 0.4));
         const s = 0.1 + Math.random() * 0.15;
         scl.set(s, h, s);
         temp.compose(pos, quat, scl);
@@ -411,13 +422,13 @@ function InspirationCrystals() {
 function DictionaryColumns() {
   const columnCount = 6;
   const blocksPerColumn = 12;
-  const blocksRef = useRef<THREE.InstancedMesh>(null);
+  const blocksRef = useRef<InstancedMesh>(null);
   const totalBlocks = columnCount * blocksPerColumn;
 
   React.useEffect(() => {
     if (!blocksRef.current) return;
-    const temp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const temp = new Matrix4();
+    const color = new Color();
     const colors = ['#78350F', '#92400E', '#A16207', '#854D0E', '#713F12'];
 
     for (let c = 0; c < columnCount; c++) {
@@ -473,7 +484,7 @@ function WritingDesk() {
 
 // ■■ Holographic Screens ■■
 function HoloScreens() {
-  const screenRef = useRef<THREE.Group>(null);
+  const screenRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!screenRef.current) return;
@@ -487,15 +498,15 @@ function HoloScreens() {
     <group ref={screenRef}>
       <mesh position={[0, 3, -7]} rotation={[0.1, 0, 0]}>
         <planeGeometry args={[5, 3]} />
-        <meshBasicMaterial color="#F59E0B" transparent opacity={0.06} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#F59E0B" transparent opacity={0.06} side={DoubleSide} />
       </mesh>
       <mesh position={[-6, 3, -5]} rotation={[0, 0.5, 0]}>
         <planeGeometry args={[3, 2]} />
-        <meshBasicMaterial color="#FBBF24" transparent opacity={0.05} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#FBBF24" transparent opacity={0.05} side={DoubleSide} />
       </mesh>
       <mesh position={[6, 3, -5]} rotation={[0, -0.5, 0]}>
         <planeGeometry args={[3, 2]} />
-        <meshBasicMaterial color="#FBBF24" transparent opacity={0.05} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#FBBF24" transparent opacity={0.05} side={DoubleSide} />
       </mesh>
     </group>
   );
@@ -504,7 +515,7 @@ function HoloScreens() {
 // ■■ Ambient Idea Motes (expanded) ■■
 function IdeaMotes() {
   const count = 150;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const moteData = useMemo(() =>
     Array.from({ length: count }, () => ({
@@ -518,7 +529,7 @@ function IdeaMotes() {
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const t = state.clock.elapsedTime;
     for (let i = 0; i < count; i++) {
       const m = moteData[i];

@@ -27,7 +27,23 @@
 
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  Color,
+  CylinderGeometry,
+  DoubleSide,
+  ExtrudeGeometry,
+  Float32BufferAttribute,
+  Group,
+  InstancedMesh,
+  MathUtils,
+  Mesh,
+  MeshStandardMaterial,
+  Object3D,
+  PointLight,
+  RingGeometry,
+  Shape,
+} from 'three';
 
 // ■■ Lab colors for 10 indicators ■■
 const LAB_COLORS = [
@@ -49,9 +65,9 @@ interface StatusBarProps {
 // Fixed: Create material once, update opacity via ref in useFrame to avoid
 // 60 material allocations/second during fade transitions (Audit Finding #6)
 function useChromeMaterial(opacity: number) {
-  const matRef = useRef<THREE.MeshStandardMaterial | null>(null);
+  const matRef = useRef<MeshStandardMaterial | null>(null);
   if (!matRef.current) {
-    matRef.current = new THREE.MeshStandardMaterial({
+    matRef.current = new MeshStandardMaterial({
       color: '#2a2a3a',
       metalness: 0.92,
       roughness: 0.15,
@@ -72,10 +88,10 @@ function useChromeMaterial(opacity: number) {
 // ■■ Emissive material factory ■■
 // Fixed: Same pattern — create once, update dynamically (Audit Finding #6)
 function useEmissiveMaterial(color: string, intensity: number, opacity: number) {
-  const matRef = useRef<THREE.MeshStandardMaterial | null>(null);
-  const colorObj = useMemo(() => new THREE.Color(color), [color]);
+  const matRef = useRef<MeshStandardMaterial | null>(null);
+  const colorObj = useMemo(() => new Color(color), [color]);
   if (!matRef.current) {
-    matRef.current = new THREE.MeshStandardMaterial({
+    matRef.current = new MeshStandardMaterial({
       color: '#000000',
       emissive: colorObj,
       emissiveIntensity: intensity,
@@ -116,14 +132,14 @@ function XPSpeedometer({
   segments: number;
   enableEffects: boolean;
 }) {
-  const needleRef = useRef<THREE.Mesh>(null);
-  const fillRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.PointLight>(null);
+  const needleRef = useRef<Mesh>(null);
+  const fillRef = useRef<Mesh>(null);
+  const glowRef = useRef<PointLight>(null);
 
   const xpRatio = xpMax > 0 ? Math.min(xp / xpMax, 1.0) : 0;
   const currentRatio = useRef(xpRatio);
 
-  const labColorObj = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
   // Ring gauge: 270 degrees = 3π/2 radians, starts at bottom-left
   const arcStart = Math.PI * 0.75;  // 135°
@@ -131,20 +147,20 @@ function XPSpeedometer({
 
   // Outer ring (track)
   const trackGeo = useMemo(
-    () => new THREE.RingGeometry(0.7, 0.82, segments, 1, arcStart, arcTotal),
+    () => new RingGeometry(0.7, 0.82, segments, 1, arcStart, arcTotal),
     [segments, arcStart, arcTotal]
   );
 
   // Inner ring (thinner track highlight)
   const innerTrackGeo = useMemo(
-    () => new THREE.RingGeometry(0.6, 0.68, segments, 1, arcStart, arcTotal),
+    () => new RingGeometry(0.6, 0.68, segments, 1, arcStart, arcTotal),
     [segments, arcStart, arcTotal]
   );
 
   // Tick marks geometry — 27 ticks spread across arc
   const tickCount = 27;
   const tickGeo = useMemo(() => {
-    const geo = new THREE.BufferGeometry();
+    const geo = new BufferGeometry();
     const positions: number[] = [];
     for (let i = 0; i <= tickCount; i++) {
       const angle = arcStart + (i / tickCount) * arcTotal;
@@ -165,25 +181,25 @@ function XPSpeedometer({
       positions.push(cos * outerR + perpX, sin * outerR + perpY, 0.01);
       positions.push(cos * innerR - perpX, sin * innerR - perpY, 0.01);
     }
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+    geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
     geo.computeVertexNormals();
     return geo;
   }, [arcStart, arcTotal, tickCount]);
 
   // Needle geometry — elongated triangle
   const needleGeo = useMemo(() => {
-    const shape = new THREE.Shape();
+    const shape = new Shape();
     shape.moveTo(0, -0.03);
     shape.lineTo(0.72, 0);
     shape.lineTo(0, 0.03);
     shape.closePath();
     const extrudeSettings = { depth: 0.025, bevelEnabled: false };
-    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    return new ExtrudeGeometry(shape, extrudeSettings);
   }, []);
 
   // Needle hub
   const hubGeo = useMemo(
-    () => new THREE.CylinderGeometry(0.06, 0.06, 0.05, segments),
+    () => new CylinderGeometry(0.06, 0.06, 0.05, segments),
     [segments]
   );
 
@@ -191,12 +207,12 @@ function XPSpeedometer({
   // We use a full arc geometry and clip via shader or morph
   // Simpler: re-create arc geometry on ratio changes
   const fillArcGeo = useMemo(
-    () => new THREE.RingGeometry(0.7, 0.82, segments, 1, arcStart, arcTotal * Math.max(xpRatio, 0.001)),
+    () => new RingGeometry(0.7, 0.82, segments, 1, arcStart, arcTotal * Math.max(xpRatio, 0.001)),
     [segments, arcStart, arcTotal, xpRatio]
   );
 
   useFrame((_state, _delta) => {
-    currentRatio.current = THREE.MathUtils.lerp(currentRatio.current, xpRatio, 0.04);
+    currentRatio.current = MathUtils.lerp(currentRatio.current, xpRatio, 0.04);
 
     // Rotate needle to match XP ratio
     if (needleRef.current) {
@@ -232,7 +248,7 @@ function XPSpeedometer({
           roughness={0.4}
           transparent
           opacity={opacity * 0.6}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>
@@ -245,7 +261,7 @@ function XPSpeedometer({
           roughness={0.5}
           transparent
           opacity={opacity * 0.5}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>
@@ -259,7 +275,7 @@ function XPSpeedometer({
           transparent
           opacity={opacity * 0.85}
           toneMapped={false}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>
@@ -347,8 +363,8 @@ function StreakFlame({
   segments: number;
   enableEffects: boolean;
 }) {
-  const flameGroupRef = useRef<THREE.Group>(null);
-  const coneRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const flameGroupRef = useRef<Group>(null);
+  const coneRefs = useRef<(Mesh | null)[]>([]);
 
   // 7 overlapping cones for volumetric flame effect
   const flameElements = useMemo(() => {
@@ -421,7 +437,7 @@ function StreakFlame({
             transparent
             opacity={opacity * 0.75}
             toneMapped={false}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
             depthWrite={false}
           />
         </mesh>
@@ -476,16 +492,16 @@ function LabProgressIndicators({
   opacity: number;
   segments: number;
 }) {
-  const instancedRef = useRef<THREE.InstancedMesh>(null);
-  const glowInstancedRef = useRef<THREE.InstancedMesh>(null);
-  const baseInstancedRef = useRef<THREE.InstancedMesh>(null);
+  const instancedRef = useRef<InstancedMesh>(null);
+  const glowInstancedRef = useRef<InstancedMesh>(null);
+  const baseInstancedRef = useRef<InstancedMesh>(null);
 
   const labColors = useMemo(
-    () => LAB_COLORS.map((c) => new THREE.Color(c)),
+    () => LAB_COLORS.map((c) => new Color(c)),
     []
   );
 
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const dummy = useMemo(() => new Object3D(), []);
 
   // Set up instanced transforms + colors
   useEffect(() => {
@@ -518,10 +534,10 @@ function LabProgressIndicators({
 
       // Set colors
       const isLit = i < labProgress.done;
-      const color = isLit ? labColors[i] : new THREE.Color('#1a1e2e');
+      const color = isLit ? labColors[i] : new Color('#1a1e2e');
       instancedRef.current.setColorAt(i, color);
-      glowInstancedRef.current.setColorAt(i, isLit ? labColors[i] : new THREE.Color('#0a0e16'));
-      baseInstancedRef.current.setColorAt(i, new THREE.Color('#2a2a3a'));
+      glowInstancedRef.current.setColorAt(i, isLit ? labColors[i] : new Color('#0a0e16'));
+      baseInstancedRef.current.setColorAt(i, new Color('#2a2a3a'));
     }
 
     instancedRef.current.instanceMatrix.needsUpdate = true;
@@ -632,11 +648,11 @@ function ChromeDividers({
   segments: number;
   height: number;
 }) {
-  const instancedRef = useRef<THREE.InstancedMesh>(null);
-  const capInstancedRef = useRef<THREE.InstancedMesh>(null);
+  const instancedRef = useRef<InstancedMesh>(null);
+  const capInstancedRef = useRef<InstancedMesh>(null);
   const count = positions.length;
 
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const dummy = useMemo(() => new Object3D(), []);
 
   useEffect(() => {
     if (!instancedRef.current || !capInstancedRef.current) return;
@@ -716,13 +732,13 @@ export function StatusBar3D({
   labColor,
   opacity,
 }: StatusBarProps) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const { viewport } = useThree();
 
   
   const segments = 64;
 
-  const labColorObj = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
   if (opacity <= 0) return null;
 
@@ -859,7 +875,7 @@ export function StatusBar3D({
             transparent
             opacity={opacity * 0.7}
             toneMapped={false}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
             depthWrite={false}
           />
         </mesh>

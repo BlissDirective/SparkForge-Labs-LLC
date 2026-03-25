@@ -29,29 +29,40 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#F97316';
-const _ORANGE = new THREE.Color(LAB_COLOR);
+const _ORANGE = new Color(LAB_COLOR);
 
 // ■■ Device Mockup Stands (Instanced) ■■
 function DeviceMockups({ buildStep }: { buildStep: number }) {
   const frameCount = 4;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const screensRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const screensRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const positions = useMemo(() => [
-    new THREE.Vector3(-4, 1.8, -2),
-    new THREE.Vector3(-1.5, 2.2, -3),
-    new THREE.Vector3(1.5, 1.6, -2.5),
-    new THREE.Vector3(4, 2.0, -1.5),
+    new Vector3(-4, 1.8, -2),
+    new Vector3(-1.5, 2.2, -3),
+    new Vector3(1.5, 1.6, -2.5),
+    new Vector3(4, 2.0, -1.5),
   ], []);
 
   React.useEffect(() => {
     if (!framesRef.current || !screensRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     const sizes = [
       [0.9, 1.6, 0.06],  // phone
       [1.4, 1.0, 0.05],  // tablet landscape
@@ -68,7 +79,7 @@ function DeviceMockups({ buildStep }: { buildStep: number }) {
       tmp.setPosition(positions[i].x, positions[i].y, positions[i].z + 0.035);
       screensRef.current.setMatrixAt(i, tmp);
       const brightness = i < buildStep ? 0.6 : 0.15;
-      screensRef.current.setColorAt(i, new THREE.Color().setHSL(0.08, 0.9, brightness));
+      screensRef.current.setColorAt(i, new Color().setHSL(0.08, 0.9, brightness));
     }
     framesRef.current.instanceMatrix.needsUpdate = true;
     screensRef.current.instanceMatrix.needsUpdate = true;
@@ -78,7 +89,7 @@ function DeviceMockups({ buildStep }: { buildStep: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!screensRef.current) return;
-    const mat = screensRef.current.material as THREE.MeshStandardMaterial;
+    const mat = screensRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.1;
   });
 
@@ -106,14 +117,14 @@ function DeviceMockups({ buildStep }: { buildStep: number }) {
 // ■■ Component Library Shelves (Instanced) ■■
 function ComponentShelves() {
   const shelfCount = 24;
-  const blocksRef = useRef<THREE.InstancedMesh>(null);
-  const shelfRef = useRef<THREE.InstancedMesh>(null);
+  const blocksRef = useRef<InstancedMesh>(null);
+  const shelfRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!blocksRef.current || !shelfRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const rows = 4;
     const perRow = Math.ceil(shelfCount / rows);
     for (let i = 0; i < shelfCount; i++) {
@@ -144,10 +155,10 @@ function ComponentShelves() {
     timeRef.current += delta;
     // Gentle hover effect on blocks
     if (!blocksRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const tmp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < Math.min(4, shelfCount); i++) {
       blocksRef.current.getMatrixAt(i, tmp);
       tmp.decompose(pos, quat, scl);
@@ -174,13 +185,13 @@ function ComponentShelves() {
 
 // ■■ App Store Portal Archway ■■
 function AppStorePortal() {
-  const neonRef = useRef<THREE.Mesh>(null);
+  const neonRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (neonRef.current) {
-      (neonRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (neonRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.5 + Math.sin(timeRef.current * 3) * 0.2;
     }
   });
@@ -212,7 +223,7 @@ function AppStorePortal() {
       {/* Inner portal glow */}
       <mesh position={[0, 1.5, -0.1]}>
         <planeGeometry args={[2.0, 3.0]} />
-        <meshBasicMaterial color={LAB_COLOR} transparent opacity={0.06} side={THREE.DoubleSide} />
+        <meshBasicMaterial color={LAB_COLOR} transparent opacity={0.06} side={DoubleSide} />
       </mesh>
     </group>
   );
@@ -220,13 +231,13 @@ function AppStorePortal() {
 
 // ■■ Launch Pad Platform ■■
 function LaunchPad({ isPreview }: { isPreview: boolean }) {
-  const lightsRef = useRef<THREE.InstancedMesh>(null);
+  const lightsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const lightCount = 16;
 
   React.useEffect(() => {
     if (!lightsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < lightCount; i++) {
       const angle = (i / lightCount) * Math.PI * 2;
       const r = 2.2;
@@ -240,7 +251,7 @@ function LaunchPad({ isPreview }: { isPreview: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!lightsRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < lightCount; i++) {
       const phase = (i / lightCount) * Math.PI * 2;
       const pulse = isPreview
@@ -275,7 +286,7 @@ function LaunchPad({ isPreview }: { isPreview: boolean }) {
 
 // ■■ Holographic App Preview ■■
 function HolographicPreview({ isPreview }: { isPreview: boolean }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -308,7 +319,7 @@ function HolographicPreview({ isPreview }: { isPreview: boolean }) {
       {[0.5, 0.7, 0.9].map((r, i) => (
         <mesh key={i} rotation={[Math.PI / 2, 0, timeRef.current * (0.2 + i * 0.1)]}>
           <ringGeometry args={[r - 0.01, r + 0.01, 24]} />
-          <meshBasicMaterial color={LAB_COLOR} transparent opacity={0.12} side={THREE.DoubleSide} />
+          <meshBasicMaterial color={LAB_COLOR} transparent opacity={0.12} side={DoubleSide} />
         </mesh>
       ))}
     </group>
@@ -318,7 +329,7 @@ function HolographicPreview({ isPreview }: { isPreview: boolean }) {
 // ■■ Code Snippet Particles ■■
 function CodeParticles() {
   const count = 60;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const seeds = useMemo(() =>
@@ -335,16 +346,16 @@ function CodeParticles() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!meshRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
       const y = ((s.y + timeRef.current * s.speed * 0.2) % 6);
-      rot.setFromEuler(new THREE.Euler(0, timeRef.current * s.rotSpeed, timeRef.current * 0.2 + s.phase));
+      rot.setFromEuler(new Euler(0, timeRef.current * s.rotSpeed, timeRef.current * 0.2 + s.phase));
       tmp.compose(
-        new THREE.Vector3(s.x + Math.sin(timeRef.current * 0.3 + s.phase) * 0.3, y, s.z),
+        new Vector3(s.x + Math.sin(timeRef.current * 0.3 + s.phase) * 0.3, y, s.z),
         rot,
-        new THREE.Vector3(0.15, 0.04, 0.01),
+        new Vector3(0.15, 0.04, 0.01),
       );
       meshRef.current.setMatrixAt(i, tmp);
     }
@@ -362,24 +373,24 @@ function CodeParticles() {
 // ■■ Rating Stars Orbit ■■
 function RatingStars({ buildStep }: { buildStep: number }) {
   const count = 5;
-  const starsRef = useRef<THREE.InstancedMesh>(null);
+  const starsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!starsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2 + timeRef.current * 0.5;
       const r = 1.8;
       const y = 3.5 + Math.sin(timeRef.current + i * 1.3) * 0.2;
-      rot.setFromEuler(new THREE.Euler(0, -angle, timeRef.current * 0.8));
+      rot.setFromEuler(new Euler(0, -angle, timeRef.current * 0.8));
       tmp.compose(
-        new THREE.Vector3(Math.cos(angle) * r, y, Math.sin(angle) * r + 2),
+        new Vector3(Math.cos(angle) * r, y, Math.sin(angle) * r + 2),
         rot,
-        new THREE.Vector3(0.2, 0.2, 0.05),
+        new Vector3(0.2, 0.2, 0.05),
       );
       starsRef.current.setMatrixAt(i, tmp);
       const lit = i < buildStep;

@@ -19,7 +19,21 @@
 
 import { useRef, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  Object3D,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 
 // ■■ Props Interface (preserved from original) ■■
@@ -59,15 +73,15 @@ function generateArcPoints(
   radius: number,
   yOffset: number = 0,
   radiusOffset: number = 0,
-): THREE.Vector3[] {
+): Vector3[] {
   const arcRad = (arcDeg * Math.PI) / 180;
   const r = radius + radiusOffset;
-  const points: THREE.Vector3[] = [];
+  const points: Vector3[] = [];
   for (let i = 0; i <= segments; i++) {
     const t = i / segments;
     const angle = -arcRad / 2 + t * arcRad;
     points.push(
-      new THREE.Vector3(
+      new Vector3(
         Math.sin(angle) * r,
         yOffset,
         -Math.cos(angle) * r,
@@ -78,8 +92,8 @@ function generateArcPoints(
 }
 
 // ■■ Helper: build curve from points ■■
-function buildCurve(points: THREE.Vector3[]): THREE.CatmullRomCurve3 {
-  return new THREE.CatmullRomCurve3(points, false);
+function buildCurve(points: Vector3[]): CatmullRomCurve3 {
+  return new CatmullRomCurve3(points, false);
 }
 
 // ■■ Instanced LED Strip Sub-Component ■■
@@ -94,7 +108,7 @@ function LEDStrip({
   dataVizMode,
   enableEffects,
 }: {
-  curve: THREE.CatmullRomCurve3;
+  curve: CatmullRomCurve3;
   ledCount: number;
   ledSize: [number, number, number];
   color: string;
@@ -104,14 +118,14 @@ function LEDStrip({
   dataVizMode: boolean;
   enableEffects: boolean;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const colorRef = useRef(new THREE.Color(color));
-  const dimColor = useRef(new THREE.Color('#050508'));
+  const meshRef = useRef<InstancedMesh>(null);
+  const colorRef = useRef(new Color(color));
+  const dimColor = useRef(new Color('#050508'));
 
   // Pre-compute positions and orientations along curve
   const transforms = useMemo(() => {
-    const positions: THREE.Matrix4[] = [];
-    const dummy = new THREE.Object3D();
+    const positions: Matrix4[] = [];
+    const dummy = new Object3D();
     for (let i = 0; i < ledCount; i++) {
       const t = i / (ledCount - 1);
       const point = curve.getPointAt(t);
@@ -209,7 +223,7 @@ function CoreTube({
   pulseRef,
   spikeRef,
 }: {
-  curve: THREE.CatmullRomCurve3;
+  curve: CatmullRomCurve3;
   tubularSegments: number;
   radialSegments: number;
   radius: number;
@@ -217,16 +231,16 @@ function CoreTube({
   pulseRef: React.MutableRefObject<number>;
   spikeRef: React.MutableRefObject<number>;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const geometry = useMemo(
-    () => new THREE.TubeGeometry(curve, tubularSegments, radius, radialSegments, false),
+    () => new TubeGeometry(curve, tubularSegments, radius, radialSegments, false),
     [curve, tubularSegments, radius, radialSegments],
   );
 
   useFrame(() => {
     if (!meshRef.current) return;
-    const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+    const mat = meshRef.current.material as MeshStandardMaterial;
     const totalIntensity = pulseRef.current + spikeRef.current;
     mat.emissiveIntensity = Math.min(totalIntensity * 0.8, 2.0);
   });
@@ -254,23 +268,23 @@ function DiffuserShell({
   color,
   pulseRef,
 }: {
-  curve: THREE.CatmullRomCurve3;
+  curve: CatmullRomCurve3;
   tubularSegments: number;
   radialSegments: number;
   radius: number;
   color: string;
   pulseRef: React.MutableRefObject<number>;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const geometry = useMemo(
-    () => new THREE.TubeGeometry(curve, tubularSegments, radius, radialSegments, false),
+    () => new TubeGeometry(curve, tubularSegments, radius, radialSegments, false),
     [curve, tubularSegments, radius, radialSegments],
   );
 
   useFrame(() => {
     if (!meshRef.current) return;
-    const mat = meshRef.current.material as THREE.MeshPhysicalMaterial;
+    const mat = meshRef.current.material as MeshPhysicalMaterial;
     mat.emissiveIntensity = Math.min(pulseRef.current * 0.4, 0.8);
   });
 
@@ -288,8 +302,8 @@ function DiffuserShell({
         thickness={0.05}
         toneMapped={false}
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
-        side={THREE.DoubleSide}
+        blending={AdditiveBlending}
+        side={DoubleSide}
       />
     </mesh>
   );
@@ -302,23 +316,23 @@ function MountingBrackets({
   bracketSize,
   color,
 }: {
-  curve: THREE.CatmullRomCurve3;
+  curve: CatmullRomCurve3;
   bracketCount: number;
   bracketSize: [number, number, number];
   color: string;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const transforms = useMemo(() => {
-    const mats: THREE.Matrix4[] = [];
-    const dummy = new THREE.Object3D();
-    const up = new THREE.Vector3(0, 1, 0);
+    const mats: Matrix4[] = [];
+    const dummy = new Object3D();
+    const up = new Vector3(0, 1, 0);
 
     for (let i = 0; i < bracketCount; i++) {
       const t = (i + 0.5) / bracketCount;
       const point = curve.getPointAt(t);
       const tangent = curve.getTangentAt(t);
-      const normal = new THREE.Vector3()
+      const normal = new Vector3()
         .crossVectors(tangent, up)
         .normalize();
 
@@ -335,7 +349,7 @@ function MountingBrackets({
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
-    const bracketColor = new THREE.Color(color).multiplyScalar(0.15);
+    const bracketColor = new Color(color).multiplyScalar(0.15);
     for (let i = 0; i < bracketCount; i++) {
       mesh.setMatrixAt(i, transforms[i]);
       mesh.setColorAt(i, bracketColor);
@@ -369,23 +383,23 @@ function GlowHalo({
   pulseRef,
   spikeRef,
 }: {
-  curve: THREE.CatmullRomCurve3;
+  curve: CatmullRomCurve3;
   tubularSegments: number;
   radius: number;
   color: string;
   pulseRef: React.MutableRefObject<number>;
   spikeRef: React.MutableRefObject<number>;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const geometry = useMemo(
-    () => new THREE.TubeGeometry(curve, tubularSegments, radius, 6, false),
+    () => new TubeGeometry(curve, tubularSegments, radius, 6, false),
     [curve, tubularSegments, radius],
   );
 
   useFrame(() => {
     if (!meshRef.current) return;
-    const mat = meshRef.current.material as THREE.MeshBasicMaterial;
+    const mat = meshRef.current.material as MeshBasicMaterial;
     const totalIntensity = pulseRef.current + spikeRef.current;
     mat.opacity = Math.min(totalIntensity * 0.15, 0.35);
   });
@@ -398,8 +412,8 @@ function GlowHalo({
         opacity={0.12}
         toneMapped={false}
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
-        side={THREE.DoubleSide}
+        blending={AdditiveBlending}
+        side={DoubleSide}
       />
     </mesh>
   );
@@ -631,7 +645,7 @@ export function LEDRim({
           opacity={0.85}
           toneMapped={false}
           depthWrite={false}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
 
@@ -643,8 +657,8 @@ export function LEDRim({
           opacity={0.15}
           toneMapped={false}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          side={THREE.DoubleSide}
+          blending={AdditiveBlending}
+          side={DoubleSide}
         />
       </mesh>
     </group>

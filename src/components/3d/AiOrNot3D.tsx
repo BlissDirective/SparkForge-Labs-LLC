@@ -16,7 +16,13 @@ import React, { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment, Text } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import {
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  Vector3,
+} from 'three';
 
 interface AiOrNot3DProps {
   currentItem: { title: string; emoji: string; isAI: boolean } | null;
@@ -28,8 +34,8 @@ interface AiOrNot3DProps {
 
 // ■■ Display Pedestal ■■
 function DisplayPedestal({ emoji, isRevealing }: { emoji: string; isRevealing: boolean }) {
-  const pedestalRef = useRef<THREE.Mesh>(null);
-  const frameRef = useRef<THREE.Group>(null);
+  const pedestalRef = useRef<Mesh>(null);
+  const frameRef = useRef<Group>(null);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -83,21 +89,21 @@ function DisplayPedestal({ emoji, isRevealing }: { emoji: string; isRevealing: b
 
 // ■■ Voting Buttons ■■
 function VotingButtons({ verdict }: { verdict: 'human' | 'ai' | null }) {
-  const humanRef = useRef<THREE.Mesh>(null);
-  const aiRef = useRef<THREE.Mesh>(null);
+  const humanRef = useRef<Mesh>(null);
+  const aiRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
     if (humanRef.current) {
       const isSelected = verdict === 'human';
       const targetScale = isSelected ? 1.2 : 1;
-      humanRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+      humanRef.current.scale.lerp(new Vector3(targetScale, targetScale, targetScale), 0.1);
       humanRef.current.position.y = -1 + Math.sin(t * 1.5) * 0.03;
     }
     if (aiRef.current) {
       const isSelected = verdict === 'ai';
       const targetScale = isSelected ? 1.2 : 1;
-      aiRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+      aiRef.current.scale.lerp(new Vector3(targetScale, targetScale, targetScale), 0.1);
       aiRef.current.position.y = -1 + Math.sin(t * 1.5 + 1) * 0.03;
     }
   });
@@ -143,12 +149,12 @@ function VotingButtons({ verdict }: { verdict: 'human' | 'ai' | null }) {
 
 // ■■ Verdict Indicator ■■
 function VerdictRing({ isCorrect }: { isCorrect: boolean | null }) {
-  const ringRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!ringRef.current) return;
     ringRef.current.rotation.z = state.clock.elapsedTime * 0.5;
-    const mat = ringRef.current.material as THREE.MeshBasicMaterial;
+    const mat = ringRef.current.material as MeshBasicMaterial;
     mat.opacity = isCorrect !== null ? 0.4 + Math.sin(state.clock.elapsedTime * 4) * 0.2 : 0;
   });
 
@@ -161,7 +167,7 @@ function VerdictRing({ isCorrect }: { isCorrect: boolean | null }) {
         color={isCorrect ? '#10B981' : '#EF4444'}
         transparent
         opacity={0.4}
-        side={THREE.DoubleSide}
+        side={DoubleSide}
         depthWrite={false}
       />
     </mesh>

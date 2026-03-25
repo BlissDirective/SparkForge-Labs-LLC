@@ -31,7 +31,19 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#F97316';
@@ -46,10 +58,10 @@ const METHOD_COLORS = {
 
 // ■■ Central API Gateway Hub ■■
 function ApiGatewayHub({ requestsSent }: { requestsSent: number }) {
-  const coreRef = useRef<THREE.Mesh>(null);
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-  const portsRef = useRef<THREE.InstancedMesh>(null);
+  const coreRef = useRef<Mesh>(null);
+  const ring1Ref = useRef<Mesh>(null);
+  const ring2Ref = useRef<Mesh>(null);
+  const portsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const segments = 32;
@@ -57,17 +69,17 @@ function ApiGatewayHub({ requestsSent }: { requestsSent: number }) {
 
   React.useEffect(() => {
     if (!portsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < portCount; i++) {
       const angle = (i / portCount) * Math.PI * 2;
       const x = Math.cos(angle) * 1.0;
       const z = Math.sin(angle) * 1.0;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle, 0));
       tmp.compose(
-        new THREE.Vector3(x, 1.2, z),
+        new Vector3(x, 1.2, z),
         rot,
-        new THREE.Vector3(0.12, 0.12, 0.2),
+        new Vector3(0.12, 0.12, 0.2),
       );
       portsRef.current.setMatrixAt(i, tmp);
     }
@@ -78,13 +90,13 @@ function ApiGatewayHub({ requestsSent }: { requestsSent: number }) {
     timeRef.current += delta;
     if (coreRef.current) {
       coreRef.current.rotation.y = timeRef.current * 0.3;
-      (coreRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (coreRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 2) * 0.15;
     }
     if (ring1Ref.current) ring1Ref.current.rotation.z = timeRef.current * 0.5;
     if (ring2Ref.current) ring2Ref.current.rotation.x = timeRef.current * 0.4;
     if (portsRef.current) {
-      const color = new THREE.Color();
+      const color = new Color();
       const methods = Object.values(METHOD_COLORS);
       for (let i = 0; i < portCount; i++) {
         const active = requestsSent > 0 && Math.sin(timeRef.current * 3 + i * 1.5) > 0.3;
@@ -136,7 +148,7 @@ function ApiGatewayHub({ requestsSent }: { requestsSent: number }) {
 
 // ■■ Request/Response Pipeline Tubes ■■
 function PipelineTubes({ currentMethod }: { currentMethod: string }) {
-  const pulseRefs = useRef<THREE.Mesh[]>([]);
+  const pulseRefs = useRef<Mesh[]>([]);
   const timeRef = useRef(0);
 
   const methods = useMemo(() => ['GET', 'POST', 'PUT', 'DELETE'], []);
@@ -145,16 +157,16 @@ function PipelineTubes({ currentMethod }: { currentMethod: string }) {
   const tubeGeometries = useMemo(() => {
     return methods.map((_, i) => {
       const startAngle = (i / 4) * Math.PI * 2;
-      const points: THREE.Vector3[] = [];
+      const points: Vector3[] = [];
       for (let t = 0; t <= 20; t++) {
         const frac = t / 20;
         const x = Math.cos(startAngle) * (1.5 + frac * 3.5);
         const y = 1.2 + Math.sin(frac * Math.PI) * 1.0 - frac * 0.3;
         const z = Math.sin(startAngle) * (1.5 + frac * 3.5);
-        points.push(new THREE.Vector3(x, y, z));
+        points.push(new Vector3(x, y, z));
       }
-      const curve = new THREE.CatmullRomCurve3(points);
-      return new THREE.TubeGeometry(curve, 20, 0.06, segments, false);
+      const curve = new CatmullRomCurve3(points);
+      return new TubeGeometry(curve, 20, 0.06, segments, false);
     });
   }, [methods, segments]);
 
@@ -163,10 +175,10 @@ function PipelineTubes({ currentMethod }: { currentMethod: string }) {
     pulseRefs.current.forEach((mesh, i) => {
       if (mesh) {
         const isActive = methods[i] === currentMethod;
-        (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = isActive
+        (mesh.material as MeshStandardMaterial).emissiveIntensity = isActive
           ? 0.5 + Math.sin(timeRef.current * 4) * 0.25
           : 0.1;
-        (mesh.material as THREE.MeshStandardMaterial).opacity = isActive ? 0.8 : 0.35;
+        (mesh.material as MeshStandardMaterial).opacity = isActive ? 0.8 : 0.35;
       }
     });
   });
@@ -195,12 +207,12 @@ function PipelineTubes({ currentMethod }: { currentMethod: string }) {
 // ■■ Endpoint Directory Tower ■■
 function EndpointTower() {
   const panelCount = 8;
-  const panelsRef = useRef<THREE.InstancedMesh>(null);
+  const panelsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!panelsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < panelCount; i++) {
       const y = i * 0.45 + 0.5;
       tmp.makeScale(0.9, 0.3, 0.06);
@@ -213,7 +225,7 @@ function EndpointTower() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!panelsRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     const methods = Object.values(METHOD_COLORS);
     for (let i = 0; i < panelCount; i++) {
       color.set(methods[i % methods.length]);
@@ -245,8 +257,8 @@ function EndpointTower() {
 
 // ■■ Authentication Keycard Station ■■
 function AuthKeycardStation(_props: Record<string, never>) {
-  const cardRef = useRef<THREE.Mesh>(null);
-  const scanRef = useRef<THREE.Mesh>(null);
+  const cardRef = useRef<Mesh>(null);
+  const scanRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -256,7 +268,7 @@ function AuthKeycardStation(_props: Record<string, never>) {
       cardRef.current.position.y = 1.5 + Math.sin(timeRef.current * 0.8) * 0.05;
     }
     if (scanRef.current) {
-      (scanRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (scanRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 4) * 0.2;
     }
   });
@@ -294,7 +306,7 @@ function AuthKeycardStation(_props: Record<string, never>) {
 
 // ■■ Rate Limit Meter ■■
 function RateLimitMeter({ requestsSent }: { requestsSent: number }) {
-  const needleRef = useRef<THREE.Mesh>(null);
+  const needleRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
@@ -352,30 +364,30 @@ function RateLimitMeter({ requestsSent }: { requestsSent: number }) {
 // ■■ Documentation Hologram Library (Instanced) ■■
 function DocumentationLibrary() {
   const count = 10;
-  const pagesRef = useRef<THREE.InstancedMesh>(null);
+  const pagesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!pagesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI + Math.PI / 2;
       const radius = 3.5;
       const x = Math.cos(angle) * radius;
       const z = Math.sin(angle) * radius;
       const hover = Math.sin(timeRef.current * 0.6 + i * 0.8) * 0.12;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(
         Math.sin(timeRef.current * 0.3 + i) * 0.05,
         -angle + Math.PI,
         0,
       ));
       tmp.compose(
-        new THREE.Vector3(x, 2.8 + hover, z),
+        new Vector3(x, 2.8 + hover, z),
         rot,
-        new THREE.Vector3(0.6, 0.8, 0.02),
+        new Vector3(0.6, 0.8, 0.02),
       );
       pagesRef.current.setMatrixAt(i, tmp);
       const hue = 0.08 + (i / count) * 0.15;
@@ -394,7 +406,7 @@ function DocumentationLibrary() {
         emissiveIntensity={0.2}
         transparent
         opacity={0.5}
-        side={THREE.DoubleSide}
+        side={DoubleSide}
       />
     </instancedMesh>
   );
@@ -403,22 +415,22 @@ function DocumentationLibrary() {
 // ■■ Webhook Listener Array (Instanced) ■■
 function WebhookListeners({ requestsSent }: { requestsSent: number }) {
   const count = 8;
-  const dishesRef = useRef<THREE.InstancedMesh>(null);
-  const stemsRef = useRef<THREE.InstancedMesh>(null);
+  const dishesRef = useRef<InstancedMesh>(null);
+  const stemsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!dishesRef.current || !stemsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 1.4;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(-0.3, 0, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(-0.3, 0, 0));
       // Dish
       tmp.compose(
-        new THREE.Vector3(x, 3.0, 5.5),
+        new Vector3(x, 3.0, 5.5),
         rot,
-        new THREE.Vector3(0.3, 0.3, 0.15),
+        new Vector3(0.3, 0.3, 0.15),
       );
       dishesRef.current.setMatrixAt(i, tmp);
       // Stem
@@ -433,7 +445,7 @@ function WebhookListeners({ requestsSent }: { requestsSent: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!dishesRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const listening = requestsSent > 0 && Math.sin(timeRef.current * 2 + i * 2.0) > 0;
       color.set(listening ? '#00FF88' : '#333340');
@@ -459,12 +471,12 @@ function WebhookListeners({ requestsSent }: { requestsSent: number }) {
 // ■■ Status Code Indicator Lights (Instanced) ■■
 function StatusCodeLights() {
   const count = 20;
-  const lightsRef = useRef<THREE.InstancedMesh>(null);
+  const lightsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!lightsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / 5);
       const col = i % 5;
@@ -478,7 +490,7 @@ function StatusCodeLights() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!lightsRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       // Status code color groups: 2xx green, 3xx blue, 4xx yellow, 5xx red
       const group = i % 4;

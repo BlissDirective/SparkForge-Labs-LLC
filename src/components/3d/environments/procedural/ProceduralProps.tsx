@@ -2,7 +2,24 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BoxGeometry,
+  BufferGeometry,
+  Color,
+  ConeGeometry,
+  CylinderGeometry,
+  Euler,
+  IcosahedronGeometry,
+  InstancedMesh,
+  Matrix4,
+  MeshStandardMaterial,
+  OctahedronGeometry,
+  Quaternion,
+  SphereGeometry,
+  TetrahedronGeometry,
+  TorusGeometry,
+  Vector3,
+} from 'three';
 import {
   type LabThemeProfile,
   type TierConfig,
@@ -31,30 +48,30 @@ interface InstancedPropGroupProps {
 // Geometry factory
 // ---------------------------------------------------------------------------
 
-function createGeometryForType(type: PropDefinition['type']): THREE.BufferGeometry {
+function createGeometryForType(type: PropDefinition['type']): BufferGeometry {
   switch (type) {
     case 'crystal':
-      return new THREE.ConeGeometry(0.5, 1.2, 6);
+      return new ConeGeometry(0.5, 1.2, 6);
     case 'cube':
-      return new THREE.BoxGeometry(1, 1, 1);
+      return new BoxGeometry(1, 1, 1);
     case 'sphere':
-      return new THREE.SphereGeometry(0.5, 12, 8);
+      return new SphereGeometry(0.5, 12, 8);
     case 'torus':
-      return new THREE.TorusGeometry(0.5, 0.15, 8, 24);
+      return new TorusGeometry(0.5, 0.15, 8, 24);
     case 'cone':
-      return new THREE.ConeGeometry(0.5, 1, 12);
+      return new ConeGeometry(0.5, 1, 12);
     case 'octahedron':
-      return new THREE.OctahedronGeometry(0.5, 0);
+      return new OctahedronGeometry(0.5, 0);
     case 'tetrahedron':
-      return new THREE.TetrahedronGeometry(0.3, 0);
+      return new TetrahedronGeometry(0.3, 0);
     case 'cylinder':
-      return new THREE.CylinderGeometry(0.3, 0.3, 1, 12);
+      return new CylinderGeometry(0.3, 0.3, 1, 12);
     case 'ring':
-      return new THREE.TorusGeometry(0.6, 0.05, 6, 24);
+      return new TorusGeometry(0.6, 0.05, 6, 24);
     case 'icosahedron':
-      return new THREE.IcosahedronGeometry(0.4, 1);
+      return new IcosahedronGeometry(0.4, 1);
     default:
-      return new THREE.BoxGeometry(1, 1, 1);
+      return new BoxGeometry(1, 1, 1);
   }
 }
 
@@ -62,11 +79,11 @@ function createGeometryForType(type: PropDefinition['type']): THREE.BufferGeomet
 // Scratch objects (reused across frames to avoid GC pressure)
 // ---------------------------------------------------------------------------
 
-const _position = new THREE.Vector3();
-const _quaternion = new THREE.Quaternion();
-const _scale = new THREE.Vector3();
-const _euler = new THREE.Euler();
-const _matrix = new THREE.Matrix4();
+const _position = new Vector3();
+const _quaternion = new Quaternion();
+const _scale = new Vector3();
+const _euler = new Euler();
+const _matrix = new Matrix4();
 
 // ---------------------------------------------------------------------------
 // InstancedPropGroup
@@ -89,7 +106,7 @@ function InstancedPropGroup({
   tierMultiplier,
   spreadRadius,
 }: InstancedPropGroupProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const count = Math.floor(prop.count * tierMultiplier);
 
@@ -100,9 +117,9 @@ function InstancedPropGroup({
   const resolvedColor = prop.color === 'lab' ? labColor : prop.color;
 
   const material = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(resolvedColor),
-      emissive: prop.emissive ? new THREE.Color(resolvedColor) : undefined,
+    const mat = new MeshStandardMaterial({
+      color: new Color(resolvedColor),
+      emissive: prop.emissive ? new Color(resolvedColor) : undefined,
       emissiveIntensity: prop.emissive ? prop.emissiveIntensity : 0,
       metalness: prop.metalness,
       roughness: prop.roughness,

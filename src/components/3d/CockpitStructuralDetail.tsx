@@ -18,7 +18,19 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BoxGeometry,
+  CatmullRomCurve3,
+  Color,
+  CylinderGeometry,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  MeshStandardMaterial,
+  Quaternion,
+  TorusGeometry,
+  Vector3,
+} from 'three';
 
 // ■■ Props ■■
 
@@ -80,13 +92,13 @@ function seededRandom(seed: number): () => number {
 
 // ■■ Cable Path Generator ■■
 
-function generateCablePaths(count: number): THREE.CatmullRomCurve3[] {
+function generateCablePaths(count: number): CatmullRomCurve3[] {
   const rng = seededRandom(42);
-  const curves: THREE.CatmullRomCurve3[] = [];
+  const curves: CatmullRomCurve3[] = [];
 
   for (let i = 0; i < count; i++) {
     const pointCount = 5 + Math.floor(rng() * 4);
-    const points: THREE.Vector3[] = [];
+    const points: Vector3[] = [];
 
     // Cable runs along the cockpit arc — pick a random Y band
     const yBase = COCKPIT_Y_MIN + rng() * COCKPIT_HEIGHT;
@@ -104,7 +116,7 @@ function generateCablePaths(count: number): THREE.CatmullRomCurve3[] {
       const y = yBase + t * yDrift + (rng() - 0.5) * 0.08;
       const rOffset = r + (rng() - 0.5) * 0.06;
       points.push(
-        new THREE.Vector3(
+        new Vector3(
           Math.sin(angle) * rOffset,
           y,
           -Math.cos(angle) * rOffset
@@ -112,7 +124,7 @@ function generateCablePaths(count: number): THREE.CatmullRomCurve3[] {
       );
     }
 
-    curves.push(new THREE.CatmullRomCurve3(points, false, 'catmullrom', 0.5));
+    curves.push(new CatmullRomCurve3(points, false, 'catmullrom', 0.5));
   }
 
   return curves;
@@ -127,19 +139,19 @@ function CableBundles({
 }: {
   count: number;
   tubularSegments: number;
-  chromeMaterial: THREE.MeshStandardMaterial;
+  chromeMaterial: MeshStandardMaterial;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const meshRef = useRef<InstancedMesh>(null!);
 
   const { geometry, totalInstances } = useMemo(() => {
     const curves = generateCablePaths(count);
-    const _tempMatrix = new THREE.Matrix4();
-    const matrices: THREE.Matrix4[] = [];
+    const _tempMatrix = new Matrix4();
+    const matrices: Matrix4[] = [];
 
     // We create a single representative tube geometry and instance it.
     // Each cable segment is a stretched cylinder instance placed along the path.
     const segmentsPerCable = Math.min(tubularSegments, 16);
-    const segGeo = new THREE.CylinderGeometry(0.008, 0.008, 1, 4, 1);
+    const segGeo = new CylinderGeometry(0.008, 0.008, 1, 4, 1);
     // Rotate cylinder so its length axis is along Z for easier orientation
     segGeo.rotateX(Math.PI / 2);
 
@@ -148,15 +160,15 @@ function CableBundles({
       for (let s = 0; s < pts.length - 1; s++) {
         const start = pts[s];
         const end = pts[s + 1];
-        const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
-        const dir = new THREE.Vector3().subVectors(end, start);
+        const mid = new Vector3().addVectors(start, end).multiplyScalar(0.5);
+        const dir = new Vector3().subVectors(end, start);
         const len = dir.length();
 
-        const mat = new THREE.Matrix4();
-        const _up = new THREE.Vector3(0, 1, 0);
-        const quat = new THREE.Quaternion();
-        quat.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir.normalize());
-        mat.compose(mid, quat, new THREE.Vector3(1, 1, len));
+        const mat = new Matrix4();
+        const _up = new Vector3(0, 1, 0);
+        const quat = new Quaternion();
+        quat.setFromUnitVectors(new Vector3(0, 0, 1), dir.normalize());
+        mat.compose(mid, quat, new Vector3(1, 1, len));
         matrices.push(mat.clone());
       }
     }
@@ -170,11 +182,11 @@ function CableBundles({
     const curves = generateCablePaths(count);
     const segmentsPerCable = Math.min(tubularSegments, 16);
     let idx = 0;
-    const mat4 = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const dir = new THREE.Vector3();
-    const mid = new THREE.Vector3();
-    const forward = new THREE.Vector3(0, 0, 1);
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const dir = new Vector3();
+    const mid = new Vector3();
+    const forward = new Vector3(0, 0, 1);
 
     for (const curve of curves) {
       const pts = curve.getSpacedPoints(segmentsPerCable);
@@ -183,7 +195,7 @@ function CableBundles({
         dir.subVectors(pts[s + 1], pts[s]);
         const len = dir.length();
         quat.setFromUnitVectors(forward, dir.normalize());
-        mat4.compose(mid, quat, new THREE.Vector3(1, 1, len));
+        mat4.compose(mid, quat, new Vector3(1, 1, len));
         meshRef.current.setMatrixAt(idx, mat4);
         idx++;
       }
@@ -211,13 +223,13 @@ function ConduitPipes({
 }: {
   count: number;
   segments: number;
-  chromeMaterial: THREE.MeshStandardMaterial;
+  chromeMaterial: MeshStandardMaterial;
 }) {
   const _rng = useMemo(() => seededRandom(137), []);
 
   const pipes = useMemo(() => {
     const gen = seededRandom(137);
-    const result: { position: THREE.Vector3; angle: number; length: number }[] = [];
+    const result: { position: Vector3; angle: number; length: number }[] = [];
 
     for (let i = 0; i < count; i++) {
       const y = COCKPIT_Y_MIN + 0.3 + gen() * (COCKPIT_HEIGHT - 0.6);
@@ -227,7 +239,7 @@ function ConduitPipes({
       const r = COCKPIT_RADIUS - 0.12 - gen() * 0.1;
 
       result.push({
-        position: new THREE.Vector3(
+        position: new Vector3(
           Math.sin(angleMid) * r,
           y,
           -Math.cos(angleMid) * r
@@ -242,13 +254,13 @@ function ConduitPipes({
   // Junction boxes along each pipe
   const junctions = useMemo(() => {
     const gen = seededRandom(222);
-    const result: THREE.Vector3[] = [];
+    const result: Vector3[] = [];
     for (const pipe of pipes) {
       const jCount = 2 + Math.floor(gen() * 2);
       for (let j = 0; j < jCount; j++) {
         const offset = (gen() - 0.5) * pipe.length * 0.8;
         result.push(
-          new THREE.Vector3(
+          new Vector3(
             pipe.position.x + Math.sin(pipe.angle + 0.02) * offset * 0.3,
             pipe.position.y + (gen() - 0.5) * 0.05,
             pipe.position.z - Math.cos(pipe.angle + 0.02) * offset * 0.3
@@ -291,9 +303,9 @@ function VentilationPanels({
   chromeMaterial,
 }: {
   slatsPerPanel: number;
-  chromeMaterial: THREE.MeshStandardMaterial;
+  chromeMaterial: MeshStandardMaterial;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null!);
+  const meshRef = useRef<InstancedMesh>(null!);
 
   // 4 vent panels at fixed positions around the cockpit arc
   const panelConfigs = useMemo(
@@ -308,16 +320,16 @@ function VentilationPanels({
 
   const totalSlats = panelConfigs.length * slatsPerPanel;
   const slatGeo = useMemo(
-    () => new THREE.BoxGeometry(0.22, 0.004, 0.005),
+    () => new BoxGeometry(0.22, 0.004, 0.005),
     []
   );
 
   useMemo(() => {
     if (!meshRef.current) return;
-    const mat4 = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scale = new THREE.Vector3(1, 1, 1);
+    const mat4 = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scale = new Vector3(1, 1, 1);
     let idx = 0;
 
     for (const panel of panelConfigs) {
@@ -328,7 +340,7 @@ function VentilationPanels({
       for (let s = 0; s < slatsPerPanel; s++) {
         const slatY = panel.y + s * 0.012;
         pos.set(baseX, slatY, baseZ);
-        quat.setFromEuler(new THREE.Euler(0, -panel.angle, 0.25));
+        quat.setFromEuler(new Euler(0, -panel.angle, 0.25));
         mat4.compose(pos, quat, scale);
         meshRef.current.setMatrixAt(idx, mat4);
         idx++;
@@ -355,7 +367,7 @@ function StructuralRibs({
 }: {
   count: number;
   segments: number;
-  chromeMaterial: THREE.MeshStandardMaterial;
+  chromeMaterial: MeshStandardMaterial;
 }) {
   const ribs = useMemo(() => {
     const result: { angle: number }[] = [];
@@ -368,7 +380,7 @@ function StructuralRibs({
 
   // Each rib is a torus segment (partial arc in the Y plane)
   const ribGeo = useMemo(() => {
-    const geo = new THREE.TorusGeometry(
+    const geo = new TorusGeometry(
       COCKPIT_RADIUS - 0.02, // major radius matches cockpit shell
       0.02,                   // tube radius — thin structural rib
       6,                      // radial segments
@@ -404,7 +416,7 @@ function AccessHatches({
   chromeMaterial,
 }: {
   count: number;
-  chromeMaterial: THREE.MeshStandardMaterial;
+  chromeMaterial: MeshStandardMaterial;
 }) {
   const hatches = useMemo(() => {
     const gen = seededRandom(999);
@@ -473,14 +485,14 @@ function LEDIndicatorStrips({
   labColor: string;
   opacity: number;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null!);
-  const emissiveColor = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const meshRef = useRef<InstancedMesh>(null!);
+  const emissiveColor = useMemo(() => new Color(labColor), [labColor]);
   const timeRef = useRef(0);
 
   // Pre-compute LED positions along cable routes
   const ledPositions = useMemo(() => {
     const gen = seededRandom(777);
-    const positions: { pos: THREE.Vector3; phaseOffset: number }[] = [];
+    const positions: { pos: Vector3; phaseOffset: number }[] = [];
 
     // Distribute LEDs along the cockpit arc at various heights
     for (let i = 0; i < count; i++) {
@@ -493,7 +505,7 @@ function LEDIndicatorStrips({
       const y = baseY + (gen() - 0.5) * 0.15;
 
       positions.push({
-        pos: new THREE.Vector3(
+        pos: new Vector3(
           Math.sin(angle) * r,
           y,
           -Math.cos(angle) * r
@@ -504,11 +516,11 @@ function LEDIndicatorStrips({
     return positions;
   }, [count]);
 
-  const ledGeo = useMemo(() => new THREE.BoxGeometry(0.012, 0.006, 0.006), []);
+  const ledGeo = useMemo(() => new BoxGeometry(0.012, 0.006, 0.006), []);
 
   const ledMaterial = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: emissiveColor,
         emissive: emissiveColor,
         emissiveIntensity: 2.0,
@@ -522,14 +534,14 @@ function LEDIndicatorStrips({
   // Initialize instance matrices
   useMemo(() => {
     if (!meshRef.current) return;
-    const mat4 = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const scale = new THREE.Vector3(1, 1, 1);
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const scale = new Vector3(1, 1, 1);
 
     for (let i = 0; i < ledPositions.length; i++) {
       const { pos } = ledPositions[i];
       const angle = Math.atan2(pos.x, -pos.z);
-      quat.setFromEuler(new THREE.Euler(0, -angle, 0));
+      quat.setFromEuler(new Euler(0, -angle, 0));
       mat4.compose(pos, quat, scale);
       meshRef.current.setMatrixAt(i, mat4);
     }
@@ -542,16 +554,16 @@ function LEDIndicatorStrips({
     timeRef.current += delta;
     const t = timeRef.current;
 
-    const mat4 = new THREE.Matrix4();
-    const quat = new THREE.Quaternion();
-    const _pos = new THREE.Vector3();
-    const scale = new THREE.Vector3();
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const _pos = new Vector3();
+    const scale = new Vector3();
 
     for (let i = 0; i < ledPositions.length; i++) {
       const led = ledPositions[i];
       const pulse = 0.7 + 0.3 * Math.sin(t * 2.5 + led.phaseOffset);
       const angle = Math.atan2(led.pos.x, -led.pos.z);
-      quat.setFromEuler(new THREE.Euler(0, -angle, 0));
+      quat.setFromEuler(new Euler(0, -angle, 0));
       scale.set(pulse, pulse, pulse);
       mat4.compose(led.pos, quat, scale);
       meshRef.current.setMatrixAt(i, mat4);
@@ -593,9 +605,9 @@ function WarningSigns({
 
   const signMaterial = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: 0xff6644,
-        emissive: new THREE.Color(0xff6644),
+        emissive: new Color(0xff6644),
         emissiveIntensity: 0.8,
         transparent: true,
         opacity: 0.9,
@@ -606,9 +618,9 @@ function WarningSigns({
 
   const borderMaterial = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: 0xffaa44,
-        emissive: new THREE.Color(0xffaa44),
+        emissive: new Color(0xffaa44),
         emissiveIntensity: 0.5,
         transparent: true,
         opacity: 0.9,
@@ -653,7 +665,7 @@ export function CockpitStructuralDetail({
   // Shared chrome material for structural elements
   const chromeMaterial = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: CHROME_COLOR,
         metalness: 0.85,
         roughness: 0.35,

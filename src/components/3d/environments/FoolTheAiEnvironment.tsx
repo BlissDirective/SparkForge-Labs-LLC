@@ -30,15 +30,26 @@
 
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  MathUtils,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#06B6D4';
 
 // ■■ AI Brain in Glass Dome ■■
 function AiBrainDome({ isTesting }: { isTesting: boolean }) {
-  const brainRef = useRef<THREE.Mesh>(null);
-  const domeRef = useRef<THREE.Mesh>(null);
+  const brainRef = useRef<Mesh>(null);
+  const domeRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -46,11 +57,11 @@ function AiBrainDome({ isTesting }: { isTesting: boolean }) {
     if (brainRef.current) {
       brainRef.current.rotation.y += delta * (isTesting ? 0.8 : 0.2);
       brainRef.current.rotation.x = Math.sin(timeRef.current * 0.5) * 0.1;
-      (brainRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (brainRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isTesting ? 0.5 + Math.sin(timeRef.current * 4) * 0.3 : 0.3;
     }
     if (domeRef.current) {
-      (domeRef.current.material as THREE.MeshStandardMaterial).opacity =
+      (domeRef.current.material as MeshStandardMaterial).opacity =
         isTesting ? 0.12 + Math.sin(timeRef.current * 3) * 0.04 : 0.08;
     }
   });
@@ -73,7 +84,7 @@ function AiBrainDome({ isTesting }: { isTesting: boolean }) {
           opacity={0.08}
           metalness={0.9}
           roughness={0.1}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Brain mesh (icosahedron as brain proxy) */}
@@ -144,7 +155,7 @@ function DisguiseStation() {
           emissiveIntensity={0.15}
           transparent
           opacity={0.5}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -153,8 +164,8 @@ function DisguiseStation() {
 
 // ■■ Perturbation Generator (Noise Machine) ■■
 function PerturbationGenerator({ isTesting }: { isTesting: boolean }) {
-  const dialRefs = useRef<THREE.Mesh[]>([]);
-  const displayRef = useRef<THREE.Mesh>(null);
+  const dialRefs = useRef<Mesh[]>([]);
+  const displayRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -166,7 +177,7 @@ function PerturbationGenerator({ isTesting }: { isTesting: boolean }) {
       }
     });
     if (displayRef.current) {
-      (displayRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (displayRef.current.material as MeshStandardMaterial).emissiveIntensity =
         isTesting ? 0.5 + Math.sin(timeRef.current * 6) * 0.3 : 0.15;
     }
   });
@@ -215,7 +226,7 @@ function PerturbationGenerator({ isTesting }: { isTesting: boolean }) {
 
 // ■■ Confidence Meter Display ■■
 function ConfidenceMeter({ foolAttempts }: { foolAttempts: number }) {
-  const barRef = useRef<THREE.Mesh>(null);
+  const barRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -223,7 +234,7 @@ function ConfidenceMeter({ foolAttempts }: { foolAttempts: number }) {
     if (barRef.current) {
       const confidence = Math.max(0.1, 1 - foolAttempts * 0.08);
       const targetScale = confidence * 2.0;
-      barRef.current.scale.y = THREE.MathUtils.lerp(barRef.current.scale.y, targetScale, delta * 2);
+      barRef.current.scale.y = MathUtils.lerp(barRef.current.scale.y, targetScale, delta * 2);
       barRef.current.position.y = barRef.current.scale.y / 2 + 0.1;
     }
   });
@@ -256,13 +267,13 @@ function ConfidenceMeter({ foolAttempts }: { foolAttempts: number }) {
 // ■■ Attack Vector Selector Panel ■■
 function AttackVectorPanel() {
   const buttonCount = 12;
-  const buttonsRef = useRef<THREE.InstancedMesh>(null);
+  const buttonsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!buttonsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const cols = 4;
     for (let i = 0; i < buttonCount; i++) {
       const row = Math.floor(i / cols);
@@ -282,7 +293,7 @@ function AttackVectorPanel() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!buttonsRef.current) return;
-    const mat = buttonsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = buttonsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.1;
   });
 
@@ -303,16 +314,16 @@ function AttackVectorPanel() {
 
 // ■■ Defense Shield (Energy Barrier) ■■
 function DefenseShield({ foolAttempts }: { foolAttempts: number }) {
-  const shieldRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  const shieldRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     const integrity = Math.max(0.1, 1 - foolAttempts * 0.07);
     if (shieldRef.current) {
-      (shieldRef.current.material as THREE.MeshStandardMaterial).opacity = integrity * 0.15;
-      (shieldRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (shieldRef.current.material as MeshStandardMaterial).opacity = integrity * 0.15;
+      (shieldRef.current.material as MeshStandardMaterial).emissiveIntensity =
         integrity * 0.3 + Math.sin(timeRef.current * 2) * 0.1;
     }
     if (ringRef.current) {
@@ -334,7 +345,7 @@ function DefenseShield({ foolAttempts }: { foolAttempts: number }) {
           emissiveIntensity={0.3}
           transparent
           opacity={0.1}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           wireframe
         />
       </mesh>
@@ -350,12 +361,12 @@ function DefenseShield({ foolAttempts }: { foolAttempts: number }) {
 // ■■ Success/Fail Indicator Lights (Instanced) ■■
 function IndicatorLights({ foolAttempts }: { foolAttempts: number }) {
   const count = 16;
-  const lightsRef = useRef<THREE.InstancedMesh>(null);
+  const lightsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!lightsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const r = 5;
@@ -369,7 +380,7 @@ function IndicatorLights({ foolAttempts }: { foolAttempts: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!lightsRef.current) return;
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const isSuccess = i < foolAttempts;
       const pulse = Math.sin(timeRef.current * 3 + i * 0.5) * 0.3 + 0.7;
@@ -391,25 +402,25 @@ function IndicatorLights({ foolAttempts }: { foolAttempts: number }) {
 // ■■ Adversarial Examples Gallery (Instanced) ■■
 function AdversarialGallery() {
   const count = 10;
-  const framesRef = useRef<THREE.InstancedMesh>(null);
-  const imagesRef = useRef<THREE.InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
+  const imagesRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!framesRef.current || !imagesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI + Math.PI * 0.5;
       const r = 6.5;
       const x = Math.cos(angle) * r;
       const z = Math.sin(angle) * r;
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, -angle + Math.PI / 2, 0));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, -angle + Math.PI / 2, 0));
       // Frame
-      tmp.compose(new THREE.Vector3(x, 1.5, z), rot, new THREE.Vector3(0.9, 0.7, 0.04));
+      tmp.compose(new Vector3(x, 1.5, z), rot, new Vector3(0.9, 0.7, 0.04));
       framesRef.current.setMatrixAt(i, tmp);
       // Image
-      tmp.compose(new THREE.Vector3(x, 1.5, z), rot, new THREE.Vector3(0.75, 0.55, 0.02));
+      tmp.compose(new Vector3(x, 1.5, z), rot, new Vector3(0.75, 0.55, 0.02));
       imagesRef.current.setMatrixAt(i, tmp);
       color.setHSL(0.5 + (i / count) * 0.2, 0.4, 0.2);
       imagesRef.current.setColorAt(i, color);

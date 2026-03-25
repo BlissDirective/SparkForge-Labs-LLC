@@ -30,7 +30,17 @@
 
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF6644';
@@ -39,14 +49,14 @@ const LAB_COLOR = '#FF6644';
 function ToolRacks({ toolsSelected }: { toolsSelected: number }) {
   const shelfCount = 15;
   const toolCount = 30;
-  const shelvesRef = useRef<THREE.InstancedMesh>(null);
-  const toolsRef = useRef<THREE.InstancedMesh>(null);
+  const shelvesRef = useRef<InstancedMesh>(null);
+  const toolsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!shelvesRef.current || !toolsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     // Create 3 rack columns
     const racksPerColumn = Math.floor(shelfCount / 3);
     for (let i = 0; i < shelfCount; i++) {
@@ -69,9 +79,9 @@ function ToolRacks({ toolsSelected }: { toolsSelected: number }) {
       const x = -5 + col * 2.5 + (pos - toolsPerShelf / 2) * 0.2;
       const y = 0.58 + row * 0.65;
       const shapes = [
-        new THREE.Vector3(0.06, 0.12, 0.06),
-        new THREE.Vector3(0.08, 0.08, 0.08),
-        new THREE.Vector3(0.05, 0.15, 0.05),
+        new Vector3(0.06, 0.12, 0.06),
+        new Vector3(0.08, 0.08, 0.08),
+        new Vector3(0.05, 0.15, 0.05),
       ];
       const shape = shapes[i % 3];
       tmp.makeScale(shape.x, shape.y, shape.z);
@@ -89,7 +99,7 @@ function ToolRacks({ toolsSelected }: { toolsSelected: number }) {
     timeRef.current += delta;
     if (!toolsRef.current) return;
     // Pulse selected tools
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < Math.min(toolsSelected, toolCount); i++) {
       const bright = 0.5 + Math.sin(timeRef.current * 2 + i * 0.5) * 0.2;
       color.setRGB(bright, bright * 0.4, bright * 0.27);
@@ -128,23 +138,23 @@ function ToolRacks({ toolsSelected }: { toolsSelected: number }) {
 // ■■ Task Assignment Board ■■
 function TaskBoard({ currentTask }: { currentTask: string }) {
   const cardCount = 9;
-  const cardsRef = useRef<THREE.InstancedMesh>(null);
-  const pinsRef = useRef<THREE.InstancedMesh>(null);
+  const cardsRef = useRef<InstancedMesh>(null);
+  const pinsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!cardsRef.current || !pinsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < cardCount; i++) {
       const col = i % 3;
       const row = Math.floor(i / 3);
       const x = (col - 1) * 0.45;
       const y = 2.6 - row * 0.5;
       // Card
-      const rot = new THREE.Quaternion();
-      rot.setFromEuler(new THREE.Euler(0, 0, (Math.random() - 0.5) * 0.1));
-      tmp.compose(new THREE.Vector3(x + 3.5, y, -6.85), rot, new THREE.Vector3(0.35, 0.3, 0.01));
+      const rot = new Quaternion();
+      rot.setFromEuler(new Euler(0, 0, (Math.random() - 0.5) * 0.1));
+      tmp.compose(new Vector3(x + 3.5, y, -6.85), rot, new Vector3(0.35, 0.3, 0.01));
       cardsRef.current.setMatrixAt(i, tmp);
       const isActive = currentTask.length > 0 && i === 0;
       color.set(isActive ? LAB_COLOR : '#1E1A28');
@@ -191,13 +201,13 @@ function TaskBoard({ currentTask }: { currentTask: string }) {
 
 // ■■ Tool Comparison Table ■■
 function ComparisonTable(_props: Record<string, never>) {
-  const panelRef = useRef<THREE.Mesh>(null);
+  const panelRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (panelRef.current) {
-      (panelRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (panelRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.15 + Math.sin(timeRef.current * 1.5) * 0.05;
     }
   });
@@ -239,13 +249,13 @@ function ComparisonTable(_props: Record<string, never>) {
 // ■■ Effectiveness Meter Gauges ■■
 function EffectivenessGauges({ toolsSelected }: { toolsSelected: number }) {
   const gaugeCount = 5;
-  const needlesRef = useRef<THREE.InstancedMesh>(null);
-  const dialsRef = useRef<THREE.InstancedMesh>(null);
+  const needlesRef = useRef<InstancedMesh>(null);
+  const dialsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!dialsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < gaugeCount; i++) {
       const x = (i - (gaugeCount - 1) / 2) * 1.2;
       tmp.makeScale(0.35, 0.35, 0.03);
@@ -258,14 +268,14 @@ function EffectivenessGauges({ toolsSelected }: { toolsSelected: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!needlesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < gaugeCount; i++) {
       const x = (i - (gaugeCount - 1) / 2) * 1.2;
       const targetAngle = -Math.PI / 4 + (Math.min(toolsSelected, 5) / 5) * (Math.PI / 2);
       const angle = targetAngle + Math.sin(timeRef.current * 2 + i) * 0.05;
-      rot.setFromEuler(new THREE.Euler(0, 0, angle));
-      tmp.compose(new THREE.Vector3(x, 2.5, 5.92), rot, new THREE.Vector3(0.01, 0.25, 0.01));
+      rot.setFromEuler(new Euler(0, 0, angle));
+      tmp.compose(new Vector3(x, 2.5, 5.92), rot, new Vector3(0.01, 0.25, 0.01));
       needlesRef.current.setMatrixAt(i, tmp);
     }
     needlesRef.current.instanceMatrix.needsUpdate = true;
@@ -276,7 +286,7 @@ function EffectivenessGauges({ toolsSelected }: { toolsSelected: number }) {
       {/* Dial backgrounds */}
       <instancedMesh ref={dialsRef} args={[undefined, undefined, gaugeCount]}>
         <circleGeometry args={[1, 24]} />
-        <meshStandardMaterial color="#111118" metalness={0.5} roughness={0.3} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#111118" metalness={0.5} roughness={0.3} side={DoubleSide} />
       </instancedMesh>
       {/* Gauge bezels */}
       {Array.from({ length: gaugeCount }, (_, i) => (
@@ -297,22 +307,22 @@ function EffectivenessGauges({ toolsSelected }: { toolsSelected: number }) {
 // ■■ Integration Pipeline Models (Instanced) ■■
 function IntegrationPipelines() {
   const segCount = 20;
-  const segsRef = useRef<THREE.InstancedMesh>(null);
-  const jointsRef = useRef<THREE.InstancedMesh>(null);
+  const segsRef = useRef<InstancedMesh>(null);
+  const jointsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!segsRef.current || !jointsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < segCount; i++) {
       const t = i / segCount;
       const x = -4 + t * 8;
       const y = 1.5 + Math.sin(t * Math.PI * 2) * 0.3;
       const z = 3 + Math.cos(t * Math.PI) * 0.5;
       const isVertical = i % 3 === 0;
-      rot.setFromEuler(new THREE.Euler(0, 0, isVertical ? Math.PI / 2 : 0));
-      tmp.compose(new THREE.Vector3(x, y, z), rot, new THREE.Vector3(0.04, 0.4, 0.04));
+      rot.setFromEuler(new Euler(0, 0, isVertical ? Math.PI / 2 : 0));
+      tmp.compose(new Vector3(x, y, z), rot, new Vector3(0.04, 0.4, 0.04));
       segsRef.current.setMatrixAt(i, tmp);
       // Joints
       tmp.makeScale(0.06, 0.06, 0.06);
@@ -326,7 +336,7 @@ function IntegrationPipelines() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!jointsRef.current) return;
-    const mat = jointsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = jointsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 2) * 0.15;
   });
 
@@ -347,14 +357,14 @@ function IntegrationPipelines() {
 // ■■ Safety Rating Indicators ■■
 function SafetyRatings() {
   const count = 5;
-  const lightsRef = useRef<THREE.InstancedMesh>(null);
+  const lightsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const lightColors = ['#FF3333', '#FFAA33', '#33FF33'];
 
   React.useEffect(() => {
     if (!lightsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const x = -5.5 + i * (11 / (count - 1 || 1));
       for (let l = 0; l < 3; l++) {
@@ -374,7 +384,7 @@ function SafetyRatings() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!lightsRef.current) return;
-    const mat = lightsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = lightsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.4 + Math.sin(timeRef.current * 1.5) * 0.15;
   });
 
@@ -402,19 +412,19 @@ function SafetyRatings() {
 // ■■ Tool Evolution Timeline (Wall) ■■
 function EvolutionTimeline() {
   const markerCount = 8;
-  const markersRef = useRef<THREE.InstancedMesh>(null);
+  const markersRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!markersRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < markerCount; i++) {
       const x = -4 + (i / (markerCount - 1)) * 8;
       tmp.makeScale(0.05, 0.05, 0.05);
       tmp.setPosition(x, 3.2, -6.85);
       markersRef.current.setMatrixAt(i, tmp);
-      color.lerpColors(new THREE.Color('#FF6644'), new THREE.Color('#FFDD44'), i / markerCount);
+      color.lerpColors(new Color('#FF6644'), new Color('#FFDD44'), i / markerCount);
       markersRef.current.setColorAt(i, color);
     }
     markersRef.current.instanceMatrix.needsUpdate = true;
@@ -424,7 +434,7 @@ function EvolutionTimeline() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!markersRef.current) return;
-    const mat = markersRef.current.material as THREE.MeshStandardMaterial;
+    const mat = markersRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.1;
   });
 

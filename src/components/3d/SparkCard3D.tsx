@@ -19,7 +19,15 @@
 import { useRef, useMemo, useCallback, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { RoundedBox, Text } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  Color,
+  Event,
+  FrontSide,
+  Group,
+  ShaderMaterial,
+  Vector2,
+  Vector3,
+} from 'three';
 import {
   holographicVertexShader,
   holographicFragmentShader,
@@ -42,25 +50,25 @@ export default function SparkCard3D({
   position = [0, 0, 0],
   onClick,
 }: SparkCard3DProps) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const [hovered, setHovered] = useState(false);
-  const tiltRef = useRef(new THREE.Vector2(0, 0));
-  const targetTiltRef = useRef(new THREE.Vector2(0, 0));
+  const tiltRef = useRef(new Vector2(0, 0));
+  const targetTiltRef = useRef(new Vector2(0, 0));
 
   // FIX: `transparent` and `side` are INSIDE the constructor (were outside)
   const shaderMaterial = useMemo(
     () =>
-      new THREE.ShaderMaterial({
+      new ShaderMaterial({
         vertexShader: holographicVertexShader,
         fragmentShader: holographicFragmentShader,
         uniforms: {
           uTime: { value: 0 },
-          uTilt: { value: new THREE.Vector2(0, 0) },
+          uTilt: { value: new Vector2(0, 0) },
           uIntensity: { value: 0.8 },
-          uBaseColor: { value: new THREE.Color(color) },
+          uBaseColor: { value: new Color(color) },
         },
         transparent: true,
-        side: THREE.FrontSide,
+        side: FrontSide,
       }),
     [color]
   );
@@ -90,8 +98,8 @@ export default function SparkCard3D({
 
   // Track pointer for tilt
   const handlePointerMove = useCallback(
-    (e: THREE.Event) => {
-      const event = e as THREE.Event & { point?: THREE.Vector3 };
+    (e: Event) => {
+      const event = e as Event & { point?: Vector3 };
       if (!event.point || !groupRef.current) return;
 
       // Normalize point relative to card center

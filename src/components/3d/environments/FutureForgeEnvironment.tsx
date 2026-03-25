@@ -29,20 +29,30 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 const LAB_COLOR = '#D946EF';
-const _FUCHSIA = new THREE.Color(LAB_COLOR);
+const _FUCHSIA = new Color(LAB_COLOR);
 
 // ■■ City Skyline (Instanced Buildings) ■■
 function CitySkyline() {
   const count = 50;
-  const buildingsRef = useRef<THREE.InstancedMesh>(null);
-  const windowsRef = useRef<THREE.InstancedMesh>(null);
+  const buildingsRef = useRef<InstancedMesh>(null);
+  const windowsRef = useRef<InstancedMesh>(null);
 
   const buildingData = useMemo(() => {
-    const data: { pos: THREE.Vector3; height: number; width: number; depth: number }[] = [];
+    const data: { pos: Vector3; height: number; width: number; depth: number }[] = [];
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const r = 7 + Math.random() * 5;
@@ -50,7 +60,7 @@ function CitySkyline() {
       const width = 0.3 + Math.random() * 0.5;
       const depth = 0.3 + Math.random() * 0.5;
       data.push({
-        pos: new THREE.Vector3(Math.cos(angle) * r + (Math.random() - 0.5) * 2, height / 2 - 1, Math.sin(angle) * r + (Math.random() - 0.5) * 2),
+        pos: new Vector3(Math.cos(angle) * r + (Math.random() - 0.5) * 2, height / 2 - 1, Math.sin(angle) * r + (Math.random() - 0.5) * 2),
         height, width, depth,
       });
     }
@@ -59,8 +69,8 @@ function CitySkyline() {
 
   React.useEffect(() => {
     if (!buildingsRef.current || !windowsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const d = buildingData[i];
       tmp.makeScale(d.width, d.height, d.depth);
@@ -96,20 +106,20 @@ function CitySkyline() {
 // ■■ Holographic Billboards (Instanced) ■■
 function HolographicBillboards() {
   const count = 12;
-  const billboardsRef = useRef<THREE.InstancedMesh>(null);
+  const billboardsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const positions = useMemo(() =>
     Array.from({ length: count }, (_, i) => {
       const angle = (i / count) * Math.PI * 2;
       const r = 6 + (i % 3) * 2;
-      return new THREE.Vector3(Math.cos(angle) * r, 3.0 + (i % 2) * 0.8, Math.sin(angle) * r);
+      return new Vector3(Math.cos(angle) * r, 3.0 + (i % 2) * 0.8, Math.sin(angle) * r);
     }),
   [count]);
 
   React.useEffect(() => {
     if (!billboardsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = Math.atan2(positions[i].z, positions[i].x);
       tmp.makeRotationY(-angle);
@@ -122,10 +132,10 @@ function HolographicBillboards() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!billboardsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const tmp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       billboardsRef.current.getMatrixAt(i, tmp);
       tmp.decompose(pos, quat, scl);
@@ -145,7 +155,7 @@ function HolographicBillboards() {
         emissiveIntensity={0.4}
         transparent
         opacity={0.45}
-        side={THREE.DoubleSide}
+        side={DoubleSide}
       />
     </instancedMesh>
   );
@@ -154,7 +164,7 @@ function HolographicBillboards() {
 // ■■ Flying Vehicles on Curved Tracks ■■
 function FlyingVehicles() {
   const vehicleCount = 8;
-  const vehiclesRef = useRef<THREE.InstancedMesh>(null);
+  const vehiclesRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const tracks = useMemo(() =>
@@ -170,19 +180,19 @@ function FlyingVehicles() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!vehiclesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < vehicleCount; i++) {
       const t = tracks[i];
       const angle = timeRef.current * t.speed + t.phase;
       const x = Math.cos(angle) * t.radius;
       const z = Math.sin(angle) * t.radius;
       const y = t.height + Math.sin(angle * 2) * 0.2;
-      rot.setFromEuler(new THREE.Euler(t.tilt, -angle + Math.PI / 2, 0));
+      rot.setFromEuler(new Euler(t.tilt, -angle + Math.PI / 2, 0));
       tmp.compose(
-        new THREE.Vector3(x, y, z),
+        new Vector3(x, y, z),
         rot,
-        new THREE.Vector3(0.25, 0.08, 0.12),
+        new Vector3(0.25, 0.08, 0.12),
       );
       vehiclesRef.current.setMatrixAt(i, tmp);
     }
@@ -199,13 +209,13 @@ function FlyingVehicles() {
 
 // ■■ Innovation Hub Dome ■■
 function InnovationDome() {
-  const domeRef = useRef<THREE.Mesh>(null);
+  const domeRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (domeRef.current) {
-      (domeRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (domeRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.15 + Math.sin(timeRef.current * 1.5) * 0.08;
     }
   });
@@ -225,7 +235,7 @@ function InnovationDome() {
           opacity={0.25}
           metalness={0.8}
           roughness={0.1}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Base ring */}
@@ -244,8 +254,8 @@ function InnovationDome() {
 
 // ■■ AI Brain Monument ■■
 function AIBrainMonument({ innovationScore }: { innovationScore: number }) {
-  const brainRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  const brainRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -294,20 +304,20 @@ function AIBrainMonument({ innovationScore }: { innovationScore: number }) {
 // ■■ Energy Beam Pillars ■■
 function EnergyBeams() {
   const beamCount = 8;
-  const beamsRef = useRef<THREE.InstancedMesh>(null);
+  const beamsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const positions = useMemo(() =>
     Array.from({ length: beamCount }, (_, i) => {
       const angle = (i / beamCount) * Math.PI * 2;
-      return new THREE.Vector3(Math.cos(angle) * 5, 0, Math.sin(angle) * 5);
+      return new Vector3(Math.cos(angle) * 5, 0, Math.sin(angle) * 5);
     }),
   [beamCount]);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!beamsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < beamCount; i++) {
       const p = positions[i];
       const height = 3.5 + Math.sin(timeRef.current * 1.5 + i * 1.1) * 0.3;
@@ -328,13 +338,13 @@ function EnergyBeams() {
 
 // ■■ Progress Meter Tower ■■
 function ProgressTower({ innovationScore, step }: { innovationScore: number; step: number }) {
-  const fillRef = useRef<THREE.Mesh>(null);
+  const fillRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (fillRef.current) {
-      (fillRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (fillRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.4 + Math.sin(timeRef.current * 2) * 0.15;
     }
   });

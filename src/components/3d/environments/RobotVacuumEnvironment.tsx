@@ -23,7 +23,15 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  DoubleSide,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Living Room Furniture ■■
@@ -90,13 +98,13 @@ function LivingRoomFurniture() {
 // ■■ Smart Home Control Panels ■■
 function ControlPanels() {
   const panelCount = 6;
-  const panelsRef = useRef<THREE.InstancedMesh>(null);
-  const glowRef = useRef<THREE.InstancedMesh>(null);
+  const panelsRef = useRef<InstancedMesh>(null);
+  const glowRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!panelsRef.current || !glowRef.current) return;
-    const pTemp = new THREE.Matrix4();
-    const gTemp = new THREE.Matrix4();
+    const pTemp = new Matrix4();
+    const gTemp = new Matrix4();
     for (let i = 0; i < panelCount; i++) {
       const angle = (i / panelCount) * Math.PI * 2;
       const r = 10;
@@ -115,7 +123,7 @@ function ControlPanels() {
 
   useFrame(({ clock }) => {
     if (!glowRef.current) return;
-    const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+    const mat = glowRef.current.material as MeshBasicMaterial;
     mat.opacity = 0.25 + Math.sin(clock.elapsedTime * 1.5) * 0.1;
   });
 
@@ -127,7 +135,7 @@ function ControlPanels() {
       </instancedMesh>
       <instancedMesh ref={glowRef} args={[undefined, undefined, panelCount]}>
         <planeGeometry args={[0.7, 0.4]} />
-        <meshBasicMaterial color="#00FF88" transparent opacity={0.25} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#00FF88" transparent opacity={0.25} side={DoubleSide} />
       </instancedMesh>
     </group>
   );
@@ -136,7 +144,7 @@ function ControlPanels() {
 // ■■ IoT Sensor Nodes ■■
 function IoTSensorNodes() {
   const count = 30;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   const offsets = useMemo(() => Array.from({ length: count }, () => ({
     x: (Math.random() - 0.5) * 16,
@@ -146,7 +154,7 @@ function IoTSensorNodes() {
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       temp.makeScale(0.12, 0.06, 0.12);
       temp.setPosition(offsets[i].x, 3.5 + Math.random() * 0.5, offsets[i].z);
@@ -157,10 +165,10 @@ function IoTSensorNodes() {
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       ref.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);
@@ -181,15 +189,15 @@ function IoTSensorNodes() {
 
 // ■■ Charging Dock Station ■■
 function ChargingDock({ isRunning }: { isRunning: boolean }) {
-  const ringRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
 
   useFrame(({ clock }) => {
     if (ringRef.current) {
       ringRef.current.rotation.y = clock.elapsedTime * (isRunning ? 0.3 : 1.2);
     }
     if (glowRef.current) {
-      const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+      const mat = glowRef.current.material as MeshBasicMaterial;
       mat.opacity = isRunning ? 0.15 : 0.4 + Math.sin(clock.elapsedTime * 3) * 0.15;
     }
   });
@@ -225,11 +233,11 @@ function ChargingDock({ isRunning }: { isRunning: boolean }) {
 // ■■ Smart Light Fixtures ■■
 function SmartLights() {
   const count = 16;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * 14;
       const z = (Math.random() - 0.5) * 14;
@@ -252,7 +260,7 @@ function SmartLights() {
 function DustParticles({ cleanProgress }: { cleanProgress: number }) {
   const baseCount = 250;
   const count = Math.max(10, Math.floor(baseCount * (1 - cleanProgress)));
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   const speeds = useMemo(() => Array.from({ length: baseCount }, () => ({
     vx: (Math.random() - 0.5) * 0.3,
@@ -262,7 +270,7 @@ function DustParticles({ cleanProgress }: { cleanProgress: number }) {
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const s = 0.015 + Math.random() * 0.025;
       temp.makeScale(s, s, s);
@@ -274,10 +282,10 @@ function DustParticles({ cleanProgress }: { cleanProgress: number }) {
 
   useFrame((_, delta) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       ref.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);

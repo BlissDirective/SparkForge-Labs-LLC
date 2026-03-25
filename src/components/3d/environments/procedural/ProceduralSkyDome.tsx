@@ -2,7 +2,21 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  BackSide,
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  MeshBasicMaterial,
+  Object3D,
+  SphereGeometry,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import {
   type LabThemeProfile,
   type TierConfig,
@@ -68,17 +82,17 @@ function StarField({
   skyRadius: number;
 }) {
   const count = Math.floor(theme.sky.starDensity * 500);
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const phaseRef = useRef(0);
 
   const baseOpacities = useMemo(() => {
     const rng = createSeededRng(theme.seed + 1000);
-    const dummy = new THREE.Object3D();
+    const dummy = new Object3D();
     const opacities = new Float32Array(count);
     const innerRadius = skyRadius * 0.95;
 
     // Pre-build instance matrices
-    const matrices: THREE.Matrix4[] = [];
+    const matrices: Matrix4[] = [];
     for (let i = 0; i < count; i++) {
       const theta = rng() * Math.PI * 2;
       const phi = rng() * Math.PI * 0.55; // upper hemisphere bias
@@ -115,19 +129,19 @@ function StarField({
 
     // Twinkle animation — oscillate emissive intensity
     phaseRef.current += delta * 0.8;
-    const mat = mesh.material as THREE.MeshBasicMaterial;
+    const mat = mesh.material as MeshBasicMaterial;
     const twinkle = 0.6 + 0.4 * Math.sin(phaseRef.current * 2.3);
     mat.opacity = twinkle;
   });
 
   const geometry = useMemo(
-    () => new THREE.SphereGeometry(1, 4, 4),
+    () => new SphereGeometry(1, 4, 4),
     [],
   );
 
   const material = useMemo(
     () =>
-      new THREE.MeshBasicMaterial({
+      new MeshBasicMaterial({
         color: 0xffffff,
         transparent: true,
         opacity: 0.8,
@@ -158,16 +172,16 @@ function AuroraRibbons({
   theme: LabThemeProfile;
   skyRadius: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   const ribbons = useMemo(() => {
     const rng = createSeededRng(theme.seed + 2000);
     const ribbonCount = 2 + Math.floor(rng() * 1.5); // 2-3 ribbons
-    const auroraColor = new THREE.Color(theme.sky.auroraColor);
-    const result: { geometry: THREE.TubeGeometry; opacity: number }[] = [];
+    const auroraColor = new Color(theme.sky.auroraColor);
+    const result: { geometry: TubeGeometry; opacity: number }[] = [];
 
     for (let r = 0; r < ribbonCount; r++) {
-      const points: THREE.Vector3[] = [];
+      const points: Vector3[] = [];
       const segments = 6 + Math.floor(rng() * 3);
       const baseY = skyRadius * (0.45 + rng() * 0.3);
       const spread = skyRadius * 0.6;
@@ -175,7 +189,7 @@ function AuroraRibbons({
       for (let s = 0; s < segments; s++) {
         const frac = s / (segments - 1);
         points.push(
-          new THREE.Vector3(
+          new Vector3(
             (frac - 0.5) * spread * 2 + (rng() - 0.5) * spread * 0.3,
             baseY + (rng() - 0.5) * skyRadius * 0.12,
             -skyRadius * 0.3 + (rng() - 0.5) * skyRadius * 0.4,
@@ -183,13 +197,13 @@ function AuroraRibbons({
         );
       }
 
-      const curve = new THREE.CatmullRomCurve3(points, false, 'centripetal', 0.5);
+      const curve = new CatmullRomCurve3(points, false, 'centripetal', 0.5);
       const tubeRadius = 0.3 + rng() * 0.5;
       const tubularSegments = 48;
       const radialSegments = 6;
 
       result.push({
-        geometry: new THREE.TubeGeometry(
+        geometry: new TubeGeometry(
           curve,
           tubularSegments,
           tubeRadius,
@@ -219,9 +233,9 @@ function AuroraRibbons({
             color={ribbons.color}
             transparent
             opacity={ribbon.opacity}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
             depthWrite={false}
-            blending={THREE.AdditiveBlending}
+            blending={AdditiveBlending}
           />
         </mesh>
       ))}
@@ -239,9 +253,9 @@ export default function ProceduralSkyDome({
 }: ProceduralSkyDomeProps) {
   const skyUniforms = useMemo(
     () => ({
-      uTopColor: { value: new THREE.Color(theme.sky.topColor) },
-      uHorizonColor: { value: new THREE.Color(theme.sky.horizonColor) },
-      uLabColor: { value: new THREE.Color(theme.labColor ?? '#00BBFF') },
+      uTopColor: { value: new Color(theme.sky.topColor) },
+      uHorizonColor: { value: new Color(theme.sky.horizonColor) },
+      uLabColor: { value: new Color(theme.labColor ?? '#00BBFF') },
       uNebulaOpacity: { value: theme.sky.nebulaOpacity ?? 0 },
       uRadius: { value: tierConfig.skyRadius },
     }),
@@ -262,7 +276,7 @@ export default function ProceduralSkyDome({
           vertexShader={skyVertexShader}
           fragmentShader={skyFragmentShader}
           uniforms={skyUniforms}
-          side={THREE.BackSide}
+          side={BackSide}
           depthWrite={false}
         />
       </mesh>

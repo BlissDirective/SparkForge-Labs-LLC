@@ -14,7 +14,18 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  TubeGeometry,
+  Vector2,
+  Vector3,
+} from 'three';
 import { auroraFragmentShader, auroraVertexShader } from '@/shaders/index';
 
 interface AuroraBackgroundProps {
@@ -44,33 +55,33 @@ function AuroraRibbon({
   frequency: number;
   tubeRadius: number;
   segments: number;
-  color: THREE.Color;
+  color: Color;
   opacity: number;
   speed: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   // Generate the ribbon curve
   const { geometry, material } = useMemo(() => {
-    const points: THREE.Vector3[] = [];
+    const points: Vector3[] = [];
     const ribbonWidth = 20;
     const pointCount = Math.max(segments, 16);
     for (let i = 0; i <= pointCount; i++) {
       const t = (i / pointCount) * ribbonWidth - ribbonWidth / 2;
       const y = Math.sin(t * frequency * 0.5) * amplitude + yOffset;
       const z = zOffset + Math.cos(t * frequency * 0.3) * amplitude * 0.3;
-      points.push(new THREE.Vector3(t, y, z));
+      points.push(new Vector3(t, y, z));
     }
-    const curve = new THREE.CatmullRomCurve3(points);
-    const geo = new THREE.TubeGeometry(curve, segments, tubeRadius, 8, false);
-    const mat = new THREE.MeshBasicMaterial({
+    const curve = new CatmullRomCurve3(points);
+    const geo = new TubeGeometry(curve, segments, tubeRadius, 8, false);
+    const mat = new MeshBasicMaterial({
       color,
       transparent: true,
       opacity,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
       depthWrite: false,
-      blending: THREE.AdditiveBlending,
+      blending: AdditiveBlending,
     });
     return { geometry: geo, material: mat };
   }, [yOffset, zOffset, amplitude, frequency, tubeRadius, segments, color, opacity]);
@@ -96,15 +107,15 @@ export function AuroraBackground({
   color2 = '#8B5CF6', // Purple
   color3 = '#06B6D4', // Teal
 }: AuroraBackgroundProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const layerRefs = useRef<THREE.Mesh[]>([]);
+  const groupRef = useRef<Group>(null);
+  const layerRefs = useRef<Mesh[]>([]);
   const { viewport } = useThree();
 
   // Parse colors
   const colors = useMemo(() => ({
-    c1: new THREE.Color(color1),
-    c2: new THREE.Color(color2),
-    c3: new THREE.Color(color3),
+    c1: new Color(color1),
+    c2: new Color(color2),
+    c3: new Color(color3),
   }), [color1, color2, color3]);
 
   // Layer definitions: z-depth, opacity multiplier, color index, scale
@@ -121,12 +132,12 @@ export function AuroraBackground({
   const layerUniforms = useMemo(() =>
     layers.map(() => ({
       uTime: { value: 0 },
-      uColor1: { value: new THREE.Color(color1) },
-      uColor2: { value: new THREE.Color(color2) },
-      uColor3: { value: new THREE.Color(color3) },
+      uColor1: { value: new Color(color1) },
+      uColor2: { value: new Color(color2) },
+      uColor3: { value: new Color(color3) },
       uIntensity: { value: intensity },
       uSpeed: { value: speed },
-      uResolution: { value: new THREE.Vector2(viewport.width, viewport.height) },
+      uResolution: { value: new Vector2(viewport.width, viewport.height) },
     })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -169,7 +180,7 @@ export function AuroraBackground({
             uniforms={layerUniforms[i]}
             transparent
             depthWrite={false}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
           />
         </mesh>
       ))}

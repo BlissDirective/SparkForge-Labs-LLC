@@ -25,19 +25,41 @@
 
 import { useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  BoxGeometry,
+  Color,
+  ConeGeometry,
+  CylinderGeometry,
+  DoubleSide,
+  Euler,
+  ExtrudeGeometry,
+  ExtrudeGeometryOptions,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  PointLight,
+  Quaternion,
+  Shape,
+  TorusGeometry,
+  Vector2,
+  Vector3,
+} from 'three';
 import { useSceneStore } from '@/stores/sceneStore';
 
 // ■■ Types ■■
 
 interface BladeRefs {
-  mesh: THREE.Mesh;
-  pivotGroup: THREE.Group;
+  mesh: Mesh;
+  pivotGroup: Group;
 }
 
 interface PistonRef {
-  mesh: THREE.Mesh;
-  group: THREE.Group;
+  mesh: Mesh;
+  group: Group;
 }
 
 // ■■ Constants ■■
@@ -91,8 +113,8 @@ function easeOutBack(t: number): number {
 
 // ■■ Geometry Builders (memoized outside component) ■■
 
-function createBladeShape(): THREE.Shape {
-  const shape = new THREE.Shape();
+function createBladeShape(): Shape {
+  const shape = new Shape();
   const innerR = BLADE_INNER_RADIUS;
   const outerR = BLADE_OUTER_RADIUS;
   // Pie-slice wedge: arc from -halfArc to +halfArc
@@ -112,11 +134,11 @@ function createBladeShape(): THREE.Shape {
   );
 
   // Arc along outer radius
-  const outerArcPoints: THREE.Vector2[] = [];
+  const outerArcPoints: Vector2[] = [];
   for (let i = 0; i <= segments; i++) {
     const angle = -halfArc + (2 * halfArc * i) / segments;
     outerArcPoints.push(
-      new THREE.Vector2(Math.cos(angle) * outerR, Math.sin(angle) * outerR)
+      new Vector2(Math.cos(angle) * outerR, Math.sin(angle) * outerR)
     );
   }
   // Skip first point (already there via lineTo)
@@ -159,13 +181,13 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
 
   // ── Refs ──
-  const groupRef = useRef<THREE.Group>(null);
-  const gearRingRef = useRef<THREE.Mesh>(null);
-  const gearTeethRef = useRef<THREE.InstancedMesh>(null);
+  const groupRef = useRef<Group>(null);
+  const gearRingRef = useRef<Mesh>(null);
+  const gearTeethRef = useRef<InstancedMesh>(null);
   const bladeRefs = useRef<(BladeRefs | null)[]>(new Array(BLADE_COUNT).fill(null));
   const pistonRefs = useRef<(PistonRef | null)[]>(new Array(BLADE_COUNT).fill(null));
-  const lightRayRefs = useRef<(THREE.Mesh | null)[]>(new Array(LIGHT_RAY_COUNT).fill(null));
-  const centerLightRef = useRef<THREE.PointLight>(null);
+  const lightRayRefs = useRef<(Mesh | null)[]>(new Array(LIGHT_RAY_COUNT).fill(null));
+  const centerLightRef = useRef<PointLight>(null);
 
   // ── Derived Values ──
   const labColor = labColorProp || activeGameLabColor || DEFAULT_LAB_COLOR;
@@ -173,37 +195,37 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
   // ── Memoized Geometries ──
   const bladeGeometry = useMemo(() => {
     const shape = createBladeShape();
-    const extrudeSettings: THREE.ExtrudeGeometryOptions = {
+    const extrudeSettings: ExtrudeGeometryOptions = {
       depth: BLADE_THICKNESS,
       bevelEnabled: true,
       bevelThickness: 0.01,
       bevelSize: 0.01,
       bevelSegments: 2,
     };
-    const geo = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    const geo = new ExtrudeGeometry(shape, extrudeSettings);
     geo.translate(0, 0, -BLADE_THICKNESS / 2);
     return geo;
   }, []);
 
   const gearRingGeometry = useMemo(() => {
-    return new THREE.TorusGeometry(GEAR_RING_RADIUS, GEAR_RING_TUBE, 16, 64);
+    return new TorusGeometry(GEAR_RING_RADIUS, GEAR_RING_TUBE, 16, 64);
   }, []);
 
   const gearToothGeometry = useMemo(() => {
-    return new THREE.BoxGeometry(0.15, 0.08, 0.15);
+    return new BoxGeometry(0.15, 0.08, 0.15);
   }, []);
 
   const pistonGeometry = useMemo(() => {
-    return new THREE.CylinderGeometry(PISTON_RADIUS, PISTON_RADIUS, 1, 8);
+    return new CylinderGeometry(PISTON_RADIUS, PISTON_RADIUS, 1, 8);
   }, []);
 
   const lightRayGeometry = useMemo(() => {
-    return new THREE.ConeGeometry(1, 1, 16, 1, true);
+    return new ConeGeometry(1, 1, 16, 1, true);
   }, []);
 
   // ── Materials (memoized) ──
   const chromeMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    return new MeshStandardMaterial({
       color: 0xcccccc,
       metalness: 0.9,
       roughness: 0.15,
@@ -211,10 +233,10 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
     });
   }, []);
 
-  const bladeEmissiveColor = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const bladeEmissiveColor = useMemo(() => new Color(labColor), [labColor]);
 
   const bladeMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    return new MeshStandardMaterial({
       color: 0xaaaaaa,
       metalness: 0.9,
       roughness: 0.15,
@@ -225,7 +247,7 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
   }, [bladeEmissiveColor]);
 
   const pistonMaterial = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    return new MeshStandardMaterial({
       color: 0x888888,
       metalness: 0.9,
       roughness: 0.2,
@@ -233,24 +255,24 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
   }, []);
 
   const lightRayMaterial = useMemo(() => {
-    return new THREE.MeshBasicMaterial({
-      color: new THREE.Color(labColor),
+    return new MeshBasicMaterial({
+      color: new Color(labColor),
       transparent: true,
       opacity: 0,
-      blending: THREE.AdditiveBlending,
-      side: THREE.DoubleSide,
+      blending: AdditiveBlending,
+      side: DoubleSide,
       depthWrite: false,
     });
   }, [labColor]);
 
   // ── Gear Teeth Instance Matrix Setup ──
   const gearTeethMatrices = useMemo(() => {
-    const matrices: THREE.Matrix4[] = [];
-    const tempMatrix = new THREE.Matrix4();
-    const tempPosition = new THREE.Vector3();
-    const tempQuaternion = new THREE.Quaternion();
-    const tempScale = new THREE.Vector3(1, 1, 1);
-    const tempEuler = new THREE.Euler();
+    const matrices: Matrix4[] = [];
+    const tempMatrix = new Matrix4();
+    const tempPosition = new Vector3();
+    const tempQuaternion = new Quaternion();
+    const tempScale = new Vector3(1, 1, 1);
+    const tempEuler = new Euler();
 
     for (let i = 0; i < GEAR_TOOTH_COUNT; i++) {
       const angle = (i / GEAR_TOOTH_COUNT) * Math.PI * 2;
@@ -269,7 +291,7 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
 
   // Initialize instanced mesh matrices
   const initGearTeeth = useCallback(
-    (mesh: THREE.InstancedMesh | null) => {
+    (mesh: InstancedMesh | null) => {
       if (!mesh) return;
       gearTeethRef.current = mesh;
       for (let i = 0; i < GEAR_TOOTH_COUNT; i++) {
@@ -281,11 +303,11 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
   );
 
   // ── Reusable math objects for animation frame ──
-  const _tempMatrix = useMemo(() => new THREE.Matrix4(), []);
-  const _tempPos = useMemo(() => new THREE.Vector3(), []);
-  const _tempQuat = useMemo(() => new THREE.Quaternion(), []);
-  const _tempScale = useMemo(() => new THREE.Vector3(1, 1, 1), []);
-  const _tempEuler = useMemo(() => new THREE.Euler(), []);
+  const _tempMatrix = useMemo(() => new Matrix4(), []);
+  const _tempPos = useMemo(() => new Vector3(), []);
+  const _tempQuat = useMemo(() => new Quaternion(), []);
+  const _tempScale = useMemo(() => new Vector3(1, 1, 1), []);
+  const _tempEuler = useMemo(() => new Euler(), []);
 
   // ── Animation Loop ──
   useFrame(() => {
@@ -389,7 +411,7 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
       ray.position.z = height / 2;
 
       // Update material opacity
-      const mat = ray.material as THREE.MeshBasicMaterial;
+      const mat = ray.material as MeshBasicMaterial;
       mat.opacity = easedRay * 0.6;
     }
 
@@ -438,10 +460,10 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
             rotation={[0, 0, baseAngle]}
           >
             <group
-              ref={(el: THREE.Group | null) => {
+              ref={(el: Group | null) => {
                 if (el) {
                   bladeRefs.current[i] = {
-                    mesh: el.children[0] as THREE.Mesh,
+                    mesh: el.children[0] as Mesh,
                     pivotGroup: el,
                   };
                 }
@@ -467,10 +489,10 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
         return (
           <group
             key={`piston-${i}`}
-            ref={(el: THREE.Group | null) => {
+            ref={(el: Group | null) => {
               if (el) {
                 pistonRefs.current[i] = {
-                  mesh: el.children[0] as THREE.Mesh,
+                  mesh: el.children[0] as Mesh,
                   group: el,
                 };
               }
@@ -501,7 +523,7 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
         return (
           <mesh
             key={`ray-${i}`}
-            ref={(el: THREE.Mesh | null) => {
+            ref={(el: Mesh | null) => {
               lightRayRefs.current[i] = el;
             }}
             geometry={lightRayGeometry}

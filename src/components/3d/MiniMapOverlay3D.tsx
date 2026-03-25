@@ -10,7 +10,7 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Color, Group, Mesh, MeshStandardMaterial } from 'three';
 import { Text } from '@react-three/drei';
 
 // ■■ Lab Colors (L1–L10) ■■
@@ -53,7 +53,7 @@ interface LabNodeProps {
 
 function LabNode({ index, color, completed, segments }: LabNodeProps) {
   const pos = useMemo(() => getLabPosition(index), [index]);
-  const colorObj = useMemo(() => new THREE.Color(color), [color]);
+  const colorObj = useMemo(() => new Color(color), [color]);
 
   const labelPos = useMemo<[number, number, number]>(() => {
     const angle = (index / 10) * TWO_PI - Math.PI / 2;
@@ -105,15 +105,15 @@ function FocusedLabIndicator({
   color: string;
   tubularSegments: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null!);
+  const meshRef = useRef<Mesh>(null!);
   const pos = useMemo(() => getLabPosition(labIndex), [labIndex]);
-  const colorObj = useMemo(() => new THREE.Color(color), [color]);
+  const colorObj = useMemo(() => new Color(color), [color]);
 
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
     const pulse = 0.8 + Math.sin(clock.elapsedTime * 4) * 0.2;
     meshRef.current.scale.setScalar(pulse);
-    (meshRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+    (meshRef.current.material as MeshStandardMaterial).emissiveIntensity =
       0.5 + Math.sin(clock.elapsedTime * 4) * 0.5;
   });
 
@@ -142,8 +142,8 @@ function PlayerIndicator({
   focusedLabId: number | null;
   segments: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null!);
-  const coneRef = useRef<THREE.Mesh>(null!);
+  const groupRef = useRef<Group>(null!);
+  const coneRef = useRef<Mesh>(null!);
 
   useFrame(({ clock }) => {
     if (!groupRef.current || !coneRef.current) return;
@@ -202,7 +202,7 @@ export function MiniMapOverlay3D({
   scale = 0.3,
   visible = true,
 }: MiniMapOverlay3DProps) {
-  const groupRef = useRef<THREE.Group>(null!);
+  const groupRef = useRef<Group>(null!);
 
   
   const sphereSegs = 64;
@@ -210,7 +210,7 @@ export function MiniMapOverlay3D({
   const coneSegs = Math.max(6, Math.floor(64 / 2));
 
   // Chrome bezel color
-  const chromeColor = useMemo(() => new THREE.Color(0.7, 0.7, 0.75), []);
+  const chromeColor = useMemo(() => new Color(0.7, 0.7, 0.75), []);
 
   // Gentle auto-rotation when no lab is focused
   useFrame(({ clock }) => {

@@ -30,7 +30,15 @@
 
 import React, { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#FF6644';
@@ -72,7 +80,7 @@ function JudgeBench() {
 
 // ■■ Gavel Pedestal ■■
 function GavelPedestal({ verdictReached }: { verdictReached: boolean }) {
-  const gavelRef = useRef<THREE.Group>(null);
+  const gavelRef = useRef<Group>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -109,14 +117,14 @@ function GavelPedestal({ verdictReached }: { verdictReached: boolean }) {
 
 // ■■ Witness Stand with Holographic Display ■■
 function WitnessStand({ caseIndex: _caseIndex }: { caseIndex: number }) {
-  const holoRef = useRef<THREE.Mesh>(null);
+  const holoRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (holoRef.current) {
       holoRef.current.position.y = 1.5 + Math.sin(timeRef.current * 0.8) * 0.05;
-      (holoRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (holoRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.3 + Math.sin(timeRef.current * 2) * 0.15;
     }
   });
@@ -142,7 +150,7 @@ function WitnessStand({ caseIndex: _caseIndex }: { caseIndex: number }) {
           emissiveIntensity={0.3}
           transparent
           opacity={0.4}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -152,12 +160,12 @@ function WitnessStand({ caseIndex: _caseIndex }: { caseIndex: number }) {
 // ■■ Jury Box with 12 Seats (Instanced) ■■
 function JuryBox() {
   const count = 12;
-  const seatsRef = useRef<THREE.InstancedMesh>(null);
-  const backsRef = useRef<THREE.InstancedMesh>(null);
+  const seatsRef = useRef<InstancedMesh>(null);
+  const backsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!seatsRef.current || !backsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / (count / 2));
       const col = i % Math.ceil(count / 2);
@@ -198,9 +206,9 @@ function JuryBox() {
 
 // ■■ Scales of Justice (Animated) ■■
 function ScalesOfJustice({ verdictReached }: { verdictReached: boolean }) {
-  const beamRef = useRef<THREE.Mesh>(null);
-  const leftPanRef = useRef<THREE.Mesh>(null);
-  const rightPanRef = useRef<THREE.Mesh>(null);
+  const beamRef = useRef<Mesh>(null);
+  const leftPanRef = useRef<Mesh>(null);
+  const rightPanRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -303,13 +311,13 @@ function ArgumentPodium() {
 
 // ■■ Evidence Presentation Screen ■■
 function EvidenceScreen({ caseIndex }: { caseIndex: number }) {
-  const screenRef = useRef<THREE.Mesh>(null);
+  const screenRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (screenRef.current) {
-      (screenRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (screenRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.2 + Math.sin(timeRef.current * 1.5 + caseIndex) * 0.1;
     }
   });
@@ -344,13 +352,13 @@ function EvidenceScreen({ caseIndex }: { caseIndex: number }) {
 // ■■ Stained Glass Windows (Instanced) ■■
 function StainedGlass() {
   const count = 6;
-  const panelsRef = useRef<THREE.InstancedMesh>(null);
-  const framesRef = useRef<THREE.InstancedMesh>(null);
+  const panelsRef = useRef<InstancedMesh>(null);
+  const framesRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!panelsRef.current || !framesRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     const principleColors = ['#FF6644', '#00FF88', '#00BBFF', '#FFAA44', '#AA66FF', '#FF66AA'];
     for (let i = 0; i < count; i++) {
       const x = -5 + (i / (count - 1 || 1)) * 10;
@@ -387,11 +395,11 @@ function StainedGlass() {
 // ■■ Gallery Seating (Instanced) ■■
 function GallerySeating() {
   const count = 16;
-  const seatsRef = useRef<THREE.InstancedMesh>(null);
+  const seatsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!seatsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const row = Math.floor(i / (count / 2));
       const col = i % Math.ceil(count / 2);

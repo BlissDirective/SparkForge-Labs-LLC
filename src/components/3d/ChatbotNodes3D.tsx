@@ -11,10 +11,17 @@ import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame, invalidate } from "@react-three/fiber";
 import { Text, Environment } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import * as THREE from "three";
+import {
+  CatmullRomCurve3,
+  MathUtils,
+  Mesh,
+  MeshStandardMaterial,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 
 // Scratch vector to avoid per-frame allocations (BUG-M1 fix)
-const _scratchVec3 = new THREE.Vector3();
+const _scratchVec3 = new Vector3();
 
 // ■■■ Types ■■■
 
@@ -109,7 +116,7 @@ function NodeSphere({
   isInTestPath: boolean;
   personalityColors: PersonalityColors;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const baseColor = isRoot
     ? personalityColors.primary
     : isEnd
@@ -123,9 +130,9 @@ function NodeSphere({
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
-    const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+    const mat = meshRef.current.material as MeshStandardMaterial;
     const targetEmissive = isHovered || isInTestPath ? 0.7 : 0.15;
-    mat.emissiveIntensity = THREE.MathUtils.lerp(
+    mat.emissiveIntensity = MathUtils.lerp(
       mat.emissiveIntensity,
       targetEmissive,
       delta * 4
@@ -202,7 +209,7 @@ function ConnectionTube({
   color: string;
   isActive: boolean;
 }) {
-  const tubeRef = useRef<THREE.Mesh>(null);
+  const tubeRef = useRef<Mesh>(null);
 
   const curve = useMemo(() => {
     const mid: [number, number, number] = [
@@ -210,15 +217,15 @@ function ConnectionTube({
       (from[1] + to[1]) / 2,
       (from[2] + to[2]) / 2 + 0.3,
     ];
-    return new THREE.CatmullRomCurve3([
-      new THREE.Vector3(...from),
-      new THREE.Vector3(...mid),
-      new THREE.Vector3(...to),
+    return new CatmullRomCurve3([
+      new Vector3(...from),
+      new Vector3(...mid),
+      new Vector3(...to),
     ]);
   }, [from, to]);
 
   const geometry = useMemo(() => {
-    return new THREE.TubeGeometry(curve, 12, 0.02, 6, false);
+    return new TubeGeometry(curve, 12, 0.02, 6, false);
   }, [curve]);
 
   // Dispose geometry on unmount to prevent GPU memory leaks (BUG-M3 fix)
@@ -228,9 +235,9 @@ function ConnectionTube({
 
   useFrame((_, delta) => {
     if (!tubeRef.current) return;
-    const mat = tubeRef.current.material as THREE.MeshStandardMaterial;
+    const mat = tubeRef.current.material as MeshStandardMaterial;
     const targetOpacity = isActive ? 0.9 : 0.3;
-    mat.opacity = THREE.MathUtils.lerp(mat.opacity, targetOpacity, delta * 4);
+    mat.opacity = MathUtils.lerp(mat.opacity, targetOpacity, delta * 4);
     mat.emissiveIntensity = isActive ? 0.6 : 0.1;
     invalidate();
   });
@@ -262,7 +269,7 @@ function MessagePulse({
   color: string;
   active: boolean;
 }) {
-  const ref = useRef<THREE.Mesh>(null);
+  const ref = useRef<Mesh>(null);
   const progress = useRef(0);
 
   useFrame((_, delta) => {

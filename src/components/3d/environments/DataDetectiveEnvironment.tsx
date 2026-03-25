@@ -24,21 +24,34 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  LineBasicMaterial,
+  LineSegments,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Investigation Desks with Monitors ■■
 function InvestigationDesks() {
   const deskCount = 12;
-  const desksRef = useRef<THREE.InstancedMesh>(null);
-  const monitorsRef = useRef<THREE.InstancedMesh>(null);
-  const screenGlowRef = useRef<THREE.InstancedMesh>(null);
+  const desksRef = useRef<InstancedMesh>(null);
+  const monitorsRef = useRef<InstancedMesh>(null);
+  const screenGlowRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!desksRef.current || !monitorsRef.current || !screenGlowRef.current) return;
-    const dTemp = new THREE.Matrix4();
-    const mTemp = new THREE.Matrix4();
-    const gTemp = new THREE.Matrix4();
+    const dTemp = new Matrix4();
+    const mTemp = new Matrix4();
+    const gTemp = new Matrix4();
     for (let i = 0; i < deskCount; i++) {
       const angle = (i / deskCount) * Math.PI * 2;
       const radius = 5 + (i % 2) * 2;
@@ -60,7 +73,7 @@ function InvestigationDesks() {
 
   useFrame(({ clock }) => {
     if (!screenGlowRef.current) return;
-    const mat = screenGlowRef.current.material as THREE.MeshBasicMaterial;
+    const mat = screenGlowRef.current.material as MeshBasicMaterial;
     mat.opacity = 0.3 + Math.sin(clock.elapsedTime * 2) * 0.15;
   });
 
@@ -76,7 +89,7 @@ function InvestigationDesks() {
       </instancedMesh>
       <instancedMesh ref={screenGlowRef} args={[undefined, undefined, deskCount]}>
         <planeGeometry args={[0.85, 0.55]} />
-        <meshBasicMaterial color="#AA66FF" transparent opacity={0.35} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#AA66FF" transparent opacity={0.35} side={DoubleSide} />
       </instancedMesh>
     </group>
   );
@@ -85,24 +98,24 @@ function InvestigationDesks() {
 // ■■ Evidence Pinboards with Connection Lines ■■
 function EvidencePinboards() {
   const boardCount = 6;
-  const lineRef = useRef<THREE.Group>(null);
+  const lineRef = useRef<Group>(null);
 
   const lineGeometry = useMemo(() => {
-    const points: THREE.Vector3[] = [];
+    const points: Vector3[] = [];
     for (let i = 0; i < 20; i++) {
       points.push(
-        new THREE.Vector3((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, 0.02),
-        new THREE.Vector3((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, 0.02)
+        new Vector3((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, 0.02),
+        new Vector3((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 1.0, 0.02)
       );
     }
-    return new THREE.BufferGeometry().setFromPoints(points);
+    return new BufferGeometry().setFromPoints(points);
   }, []);
 
   useFrame(({ clock }) => {
     if (!lineRef.current) return;
     lineRef.current.children.forEach((child, i) => {
-      if (child instanceof THREE.LineSegments) {
-        (child.material as THREE.LineBasicMaterial).opacity =
+      if (child instanceof LineSegments) {
+        (child.material as LineBasicMaterial).opacity =
           0.4 + Math.sin(clock.elapsedTime * 1.5 + i) * 0.3;
       }
     });
@@ -132,8 +145,8 @@ function EvidencePinboards() {
 
 // ■■ Magnifying Glass Hologram ■■
 function MagnifyingGlassHologram({ isAnalyzing }: { isAnalyzing: boolean }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const lensRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const lensRef = useRef<Mesh>(null);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
@@ -141,7 +154,7 @@ function MagnifyingGlassHologram({ isAnalyzing }: { isAnalyzing: boolean }) {
     groupRef.current.rotation.y = clock.elapsedTime * speed;
     groupRef.current.position.y = 2.5 + Math.sin(clock.elapsedTime * 0.8) * 0.3;
     if (lensRef.current) {
-      const mat = lensRef.current.material as THREE.MeshBasicMaterial;
+      const mat = lensRef.current.material as MeshBasicMaterial;
       mat.opacity = isAnalyzing ? 0.5 + Math.sin(clock.elapsedTime * 4) * 0.2 : 0.25;
     }
   });
@@ -154,7 +167,7 @@ function MagnifyingGlassHologram({ isAnalyzing }: { isAnalyzing: boolean }) {
       </mesh>
       <mesh ref={lensRef}>
         <circleGeometry args={[1.15, 48]} />
-        <meshBasicMaterial color="#CC88FF" transparent opacity={0.25} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#CC88FF" transparent opacity={0.25} side={DoubleSide} />
       </mesh>
       <mesh position={[0, -1.6, 0]} rotation={[0, 0, -0.3]}>
         <cylinderGeometry args={[0.06, 0.08, 1.4, 12]} />
@@ -164,7 +177,7 @@ function MagnifyingGlassHologram({ isAnalyzing }: { isAnalyzing: boolean }) {
       {[0.4, 0.7, 1.0].map((r, i) => (
         <mesh key={i} rotation={[Math.PI / 2, 0, 0]}>
           <ringGeometry args={[r - 0.01, r + 0.01, 32]} />
-          <meshBasicMaterial color="#DD99FF" transparent opacity={0.15} side={THREE.DoubleSide} />
+          <meshBasicMaterial color="#DD99FF" transparent opacity={0.15} side={DoubleSide} />
         </mesh>
       ))}
     </group>
@@ -174,13 +187,13 @@ function MagnifyingGlassHologram({ isAnalyzing }: { isAnalyzing: boolean }) {
 // ■■ Filing Cabinets ■■
 function FilingCabinets() {
   const cabinetCount = 40;
-  const ref = useRef<THREE.InstancedMesh>(null);
-  const handleRef = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
+  const handleRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!ref.current || !handleRef.current) return;
-    const temp = new THREE.Matrix4();
-    const hTemp = new THREE.Matrix4();
+    const temp = new Matrix4();
+    const hTemp = new Matrix4();
     for (let i = 0; i < cabinetCount; i++) {
       const row = Math.floor(i / 10);
       const col = i % 10;
@@ -213,18 +226,18 @@ function FilingCabinets() {
 // ■■ Holographic Data Screens ■■
 function HolographicScreens({ selectedRow }: { selectedRow: number | null }) {
   const screenCount = 8;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < screenCount; i++) {
       const angle = (i / screenCount) * Math.PI * 2;
       const r = 3.5;
       temp.makeRotationY(-angle);
       temp.setPosition(Math.cos(angle) * r, 3.5 + (i % 3) * 0.6, Math.sin(angle) * r);
       ref.current.setMatrixAt(i, temp);
-      ref.current.setColorAt(i, new THREE.Color(selectedRow === i ? '#FF66AA' : '#AA66FF'));
+      ref.current.setColorAt(i, new Color(selectedRow === i ? '#FF66AA' : '#AA66FF'));
     }
     ref.current.instanceMatrix.needsUpdate = true;
     if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
@@ -232,10 +245,10 @@ function HolographicScreens({ selectedRow }: { selectedRow: number | null }) {
 
   useFrame(({ clock }) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < screenCount; i++) {
       ref.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);
@@ -249,7 +262,7 @@ function HolographicScreens({ selectedRow }: { selectedRow: number | null }) {
   return (
     <instancedMesh ref={ref} args={[undefined, undefined, screenCount]}>
       <planeGeometry args={[1.4, 0.9]} />
-      <meshBasicMaterial color="#AA66FF" transparent opacity={0.2} side={THREE.DoubleSide} />
+      <meshBasicMaterial color="#AA66FF" transparent opacity={0.2} side={DoubleSide} />
     </instancedMesh>
   );
 }
@@ -257,13 +270,13 @@ function HolographicScreens({ selectedRow }: { selectedRow: number | null }) {
 // ■■ Data Stream Particles ■■
 function DataStreamParticles() {
   const count = 300;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   const speeds = useMemo(() => Array.from({ length: count }, () => 0.5 + Math.random() * 1.5), [count]);
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (Math.random() - 0.5) * 18;
       const z = (Math.random() - 0.5) * 18;
@@ -276,10 +289,10 @@ function DataStreamParticles() {
 
   useFrame((_, delta) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       ref.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);

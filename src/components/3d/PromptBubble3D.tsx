@@ -21,15 +21,25 @@
 import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  Color,
+  DoubleSide,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshPhysicalMaterial,
+  SpriteMaterial,
+  Vector3,
+} from 'three';
 
 // -- Types --
 
 interface Bubble {
   id: string;
   keyword: string;
-  position: THREE.Vector3;
-  velocity: THREE.Vector3;
+  position: Vector3;
+  velocity: Vector3;
   radius: number;
   color: string;
   opacity: number;
@@ -99,13 +109,13 @@ export function extractKeywords(text: string): string[] {
 // -- Single Bubble Mesh --
 
 function BubbleMesh({ bubble }: { bubble: Bubble }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const textGroupRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<Mesh>(null);
+  const textGroupRef = useRef<Group>(null);
   const { camera } = useThree();
 
   const material = useMemo(() => {
-    return new THREE.MeshPhysicalMaterial({
-      color: new THREE.Color(bubble.color),
+    return new MeshPhysicalMaterial({
+      color: new Color(bubble.color),
       transparent: true,
       opacity: bubble.opacity * 0.6,
       roughness: 0.05,
@@ -116,7 +126,7 @@ function BubbleMesh({ bubble }: { bubble: Bubble }) {
       thickness: 0.5,
       ior: 1.5,
       envMapIntensity: 1.2,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     });
   }, [bubble.color, bubble.opacity]);
 
@@ -188,7 +198,7 @@ export default function PromptBubble3D({
       for (const keyword of newKeys) {
         const angle = Math.random() * Math.PI * 2;
         const dist = SPAWN_RADIUS * (0.4 + Math.random() * 0.6);
-        const pos = new THREE.Vector3(
+        const pos = new Vector3(
           Math.cos(angle) * dist,
           (Math.random() - 0.5) * 0.6,
           Math.sin(angle) * dist * 0.3 - 0.5
@@ -200,7 +210,7 @@ export default function PromptBubble3D({
           id: `${keyword}-${Date.now()}-${Math.random()}`,
           keyword,
           position: pos,
-          velocity: new THREE.Vector3(
+          velocity: new Vector3(
             (Math.random() - 0.5) * 0.01,
             (Math.random() - 0.5) * 0.01,
             0
@@ -277,7 +287,7 @@ export default function PromptBubble3D({
         }
 
         // Spring forces: attract to center
-        const toCenter = new THREE.Vector3(0, 0, -0.3).sub(b.position);
+        const toCenter = new Vector3(0, 0, -0.3).sub(b.position);
         toCenter.multiplyScalar(SPRING_STRENGTH);
         b.velocity.add(toCenter);
 
@@ -297,7 +307,7 @@ export default function PromptBubble3D({
 
         // Gentle orbit when thinking
         if (isThinking) {
-          const orbitForce = new THREE.Vector3(
+          const orbitForce = new Vector3(
             -b.position.y * 0.003,
             b.position.x * 0.003,
             0
@@ -307,7 +317,7 @@ export default function PromptBubble3D({
 
         // Temperature affects drift speed
         const tempMultiplier = 0.5 + temperature * 1.5;
-        const wobble = new THREE.Vector3(
+        const wobble = new Vector3(
           Math.sin(clockRef.current * 2 + i) * 0.001 * tempMultiplier,
           Math.cos(clockRef.current * 1.5 + i * 0.7) * 0.001 * tempMultiplier,
           0
@@ -321,9 +331,9 @@ export default function PromptBubble3D({
         b.position.add(b.velocity);
 
         // Clamp to visible area
-        b.position.x = THREE.MathUtils.clamp(b.position.x, -2, 2);
-        b.position.y = THREE.MathUtils.clamp(b.position.y, -1, 1);
-        b.position.z = THREE.MathUtils.clamp(b.position.z, -1.5, 0);
+        b.position.x = MathUtils.clamp(b.position.x, -2, 2);
+        b.position.y = MathUtils.clamp(b.position.y, -1, 1);
+        b.position.z = MathUtils.clamp(b.position.z, -1.5, 0);
 
         return b;
       }).filter(b => b.opacity > 0.01 && b.scale > 0.01);
@@ -332,11 +342,11 @@ export default function PromptBubble3D({
 
   // Glow sprite material (shared)
   const glowMaterial = useMemo(() => {
-    return new THREE.SpriteMaterial({
-      color: new THREE.Color('#F59E0B'),
+    return new SpriteMaterial({
+      color: new Color('#F59E0B'),
       transparent: true,
       opacity: 0.15,
-      blending: THREE.AdditiveBlending,
+      blending: AdditiveBlending,
     });
   }, []);
 

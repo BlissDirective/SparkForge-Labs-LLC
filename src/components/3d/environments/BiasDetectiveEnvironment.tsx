@@ -40,7 +40,14 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+} from 'three';
 import {
   FlagshipEnvironmentWrapper,
 } from './FlagshipEnvironmentBase';
@@ -48,14 +55,14 @@ import {
 // ■■ Marble Pillars (expanded) ■■
 function MarblePillars() {
   const pillarCount = 16;
-  const pillarsRef = useRef<THREE.InstancedMesh>(null);
-  const capsRef = useRef<THREE.InstancedMesh>(null);
-  const basesRef = useRef<THREE.InstancedMesh>(null);
+  const pillarsRef = useRef<InstancedMesh>(null);
+  const capsRef = useRef<InstancedMesh>(null);
+  const basesRef = useRef<InstancedMesh>(null);
   const segs = 64;
 
   React.useEffect(() => {
     if (!pillarsRef.current || !capsRef.current || !basesRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < pillarCount; i++) {
       const side = i < pillarCount / 2 ? -1 : 1;
       const idx = i < pillarCount / 2 ? i : i - pillarCount / 2;
@@ -95,7 +102,7 @@ function MarblePillars() {
 
 // ■■ Grand Chandelier ■■
 function GrandChandelier() {
-  const chandelierRef = useRef<THREE.Group>(null);
+  const chandelierRef = useRef<Group>(null);
   const candleCount = 16;
 
   useFrame((state) => {
@@ -155,7 +162,7 @@ function GrandChandelier() {
 
 // ■■ Judge's Bench (enhanced) ■■
 function JudgeBench() {
-  const gavelRef = useRef<THREE.Group>(null);
+  const gavelRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!gavelRef.current) return;
@@ -258,12 +265,12 @@ function WitnessStand() {
 // ■■ Jury Box ■■
 function JuryBox() {
   const seatCount = 12;
-  const seatsRef = useRef<THREE.InstancedMesh>(null);
-  const backsRef = useRef<THREE.InstancedMesh>(null);
+  const seatsRef = useRef<InstancedMesh>(null);
+  const backsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!seatsRef.current || !backsRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < seatCount; i++) {
       const row = Math.floor(i / (seatCount / 2));
       const col = i % (seatCount / 2);
@@ -303,12 +310,12 @@ function JuryBox() {
 // ■■ Evidence Display Wall ■■
 function EvidenceWall() {
   const pinCount = 15;
-  const pinsRef = useRef<THREE.InstancedMesh>(null);
+  const pinsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!pinsRef.current) return;
-    const temp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const temp = new Matrix4();
+    const color = new Color();
     const colors = ['#EF4444', '#3B82F6', '#F59E0B', '#10B981', '#8B5CF6'];
     for (let i = 0; i < pinCount; i++) {
       const x = (Math.random() - 0.5) * 3.5;
@@ -334,7 +341,7 @@ function EvidenceWall() {
       {Array.from({ length: 6 }).map((_, i) => (
         <mesh key={i} position={[-0.08, 0.5 - i * 0.4 + (i % 2) * 0.2, -1.5 + i * 0.5]} rotation={[0, -Math.PI / 2, (Math.random() - 0.5) * 0.15]}>
           <planeGeometry args={[0.6, 0.4]} />
-          <meshStandardMaterial color="#FEF3C7" roughness={0.9} side={THREE.DoubleSide} />
+          <meshStandardMaterial color="#FEF3C7" roughness={0.9} side={DoubleSide} />
         </mesh>
       ))}
       {/* Pins */}
@@ -349,12 +356,12 @@ function EvidenceWall() {
 // ■■ Gallery Pews (expanded) ■■
 function GallerySeating() {
   const pewCount = 24;
-  const pewsRef = useRef<THREE.InstancedMesh>(null);
-  const backsRef = useRef<THREE.InstancedMesh>(null);
+  const pewsRef = useRef<InstancedMesh>(null);
+  const backsRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!pewsRef.current || !backsRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < pewCount; i++) {
       const side = i < pewCount / 2 ? -1 : 1;
       const row = i < pewCount / 2 ? i : i - pewCount / 2;
@@ -387,13 +394,13 @@ function GallerySeating() {
 // ■■ Law Book Shelves (denser) ■■
 function LawBooks() {
   const bookCount = 120;
-  const booksRef = useRef<THREE.InstancedMesh>(null);
+  const booksRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!booksRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const colors = ['#8B0000', '#800020', '#4A0000', '#2F1B14', '#1A0A05'];
-    const color = new THREE.Color();
+    const color = new Color();
     for (let i = 0; i < bookCount; i++) {
       const shelf = Math.floor(i / 30);
       const bookIdx = i % 30;
@@ -443,7 +450,7 @@ function StainedGlass() {
           </mesh>
           <mesh position={[w.x > 0 ? -0.1 : 0.1, 0, 0]}>
             <planeGeometry args={[0.01, 3, 2]} />
-            <meshBasicMaterial color={w.color} transparent opacity={0.12} side={THREE.DoubleSide} />
+            <meshBasicMaterial color={w.color} transparent opacity={0.12} side={DoubleSide} />
           </mesh>
           <pointLight position={[w.x > 0 ? -1.5 : 1.5, 0, 0]} intensity={0.25} color={w.color} distance={6} />
         </group>
@@ -454,9 +461,9 @@ function StainedGlass() {
 
 // ■■ Scales of Justice Statue ■■
 function ScalesOfJustice() {
-  const leftPanRef = useRef<THREE.Group>(null);
-  const rightPanRef = useRef<THREE.Group>(null);
-  const beamRef = useRef<THREE.Mesh>(null);
+  const leftPanRef = useRef<Group>(null);
+  const rightPanRef = useRef<Group>(null);
+  const beamRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
@@ -555,7 +562,7 @@ function CourthouseArches() {
 
 // ■■ Floor Justice Medallion (enhanced) ■■
 function JusticeMedallion() {
-  const ringRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!ringRef.current) return;
@@ -588,7 +595,7 @@ function JusticeMedallion() {
 // ■■ Dust Motes (expanded) ■■
 function DustMotes() {
   const count = 150;
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const motes = useMemo(() =>
     Array.from({ length: count }, () => ({
@@ -603,7 +610,7 @@ function DustMotes() {
 
   useFrame((state) => {
     if (!meshRef.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     const t = state.clock.elapsedTime;
     for (let i = 0; i < count; i++) {
       const m = motes[i];

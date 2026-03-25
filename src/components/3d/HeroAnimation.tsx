@@ -20,7 +20,15 @@
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 // EffectComposer, Bloom, ChromaticAberration reserved for future post-processing passes
-import * as THREE from 'three';
+import {
+  BoxGeometry,
+  BufferGeometry,
+  Group,
+  Mesh,
+  MeshPhysicalMaterial,
+  PerspectiveCamera,
+  Vector3,
+} from 'three';
 import gsap from 'gsap';
 
 import {
@@ -87,11 +95,11 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
   const setHeroPhase = useCockpitStore((s) => s.setHeroPhase);
   const setCockpitReady = useCockpitStore((s) => s.setCockpitReady);
 
-  const shardGeo = useRef<THREE.BufferGeometry[]>([]);
-  const shardMeshRefs = useRef<THREE.Mesh[]>([]);
+  const shardGeo = useRef<BufferGeometry[]>([]);
+  const shardMeshRefs = useRef<Mesh[]>([]);
   const splineTimings = useRef<ReturnType<typeof generateSplineTimings>>([]);
-  const logoGroupRef = useRef<THREE.Group>(null);
-  const logoMaterialRef = useRef<THREE.MeshPhysicalMaterial | null>(null);
+  const logoGroupRef = useRef<Group>(null);
+  const logoMaterialRef = useRef<MeshPhysicalMaterial | null>(null);
   const emissiveIntensity = useRef(0);
   const shakeIntensity = useRef(0);
 
@@ -146,8 +154,8 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
       onUpdate: () => {
         camera.position.set(camProxy.x, camProxy.y, camProxy.z);
         if ('fov' in camera) {
-          (camera as THREE.PerspectiveCamera).fov = camProxy.fov;
-          (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+          (camera as PerspectiveCamera).fov = camProxy.fov;
+          (camera as PerspectiveCamera).updateProjectionMatrix();
         }
       },
     }, 0);
@@ -159,8 +167,8 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
       onUpdate: () => {
         camera.position.set(camProxy.x, camProxy.y, camProxy.z);
         if ('fov' in camera) {
-          (camera as THREE.PerspectiveCamera).fov = camProxy.fov;
-          (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+          (camera as PerspectiveCamera).fov = camProxy.fov;
+          (camera as PerspectiveCamera).updateProjectionMatrix();
         }
       },
     }, 2.0);
@@ -222,8 +230,8 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
       fov: 55, duration: 0.3, ease: 'power2.out',
       onUpdate: () => {
         if ('fov' in camera) {
-          (camera as THREE.PerspectiveCamera).fov = camProxy.fov;
-          (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+          (camera as PerspectiveCamera).fov = camProxy.fov;
+          (camera as PerspectiveCamera).updateProjectionMatrix();
         }
       },
     }, 10.0);
@@ -231,8 +239,8 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
       fov: 53, duration: 1.2, ease: 'power1.out',
       onUpdate: () => {
         if ('fov' in camera) {
-          (camera as THREE.PerspectiveCamera).fov = camProxy.fov;
-          (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+          (camera as PerspectiveCamera).fov = camProxy.fov;
+          (camera as PerspectiveCamera).updateProjectionMatrix();
         }
       },
     }, 10.3);
@@ -242,8 +250,8 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
       fov: 56, duration: 2.5, ease: 'power1.inOut',
       onUpdate: () => {
         if ('fov' in camera) {
-          (camera as THREE.PerspectiveCamera).fov = camProxy.fov;
-          (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+          (camera as PerspectiveCamera).fov = camProxy.fov;
+          (camera as PerspectiveCamera).updateProjectionMatrix();
         }
       },
     }, 11.5);
@@ -264,8 +272,8 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
       onUpdate: () => {
         camera.position.set(camProxy.x, camProxy.y, camProxy.z);
         if ('fov' in camera) {
-          (camera as THREE.PerspectiveCamera).fov = camProxy.fov;
-          (camera as THREE.PerspectiveCamera).updateProjectionMatrix();
+          (camera as PerspectiveCamera).fov = camProxy.fov;
+          (camera as PerspectiveCamera).updateProjectionMatrix();
         }
         camera.lookAt(0, 3, 0);
       },
@@ -354,18 +362,18 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
   useEffect(() => {
     if (state.shouldSkip) return;
 
-    const logoGeometry = new THREE.BoxGeometry(6, 1.5, 0.5, 4, 4, 4);
+    const logoGeometry = new BoxGeometry(6, 1.5, 0.5, 4, 4, 4);
     const clampedShardCount = Math.min(shardCount, 500);
     const shards = generateVoronoiShards(logoGeometry, clampedShardCount, 42);
     shardGeo.current = shards;
 
     const targets = [
-      { name: 'panel' as const, positions: [new THREE.Vector3(-3, 4, 0), new THREE.Vector3(3, 4, 0)], weight: 0.3 },
-      { name: 'sidePanel' as const, positions: [new THREE.Vector3(-5, 2, 0), new THREE.Vector3(5, 2, 0)], weight: 0.2 },
-      { name: 'hud' as const, positions: [new THREE.Vector3(0, 6, -1)], weight: 0.15 },
-      { name: 'statusBar' as const, positions: [new THREE.Vector3(0, -2, 0)], weight: 0.15 },
-      { name: 'ledRim' as const, positions: [new THREE.Vector3(-4, 0, 0), new THREE.Vector3(4, 0, 0)], weight: 0.1 },
-      { name: 'ambient' as const, positions: [new THREE.Vector3(0, 3, -3)], weight: 0.1 },
+      { name: 'panel' as const, positions: [new Vector3(-3, 4, 0), new Vector3(3, 4, 0)], weight: 0.3 },
+      { name: 'sidePanel' as const, positions: [new Vector3(-5, 2, 0), new Vector3(5, 2, 0)], weight: 0.2 },
+      { name: 'hud' as const, positions: [new Vector3(0, 6, -1)], weight: 0.15 },
+      { name: 'statusBar' as const, positions: [new Vector3(0, -2, 0)], weight: 0.15 },
+      { name: 'ledRim' as const, positions: [new Vector3(-4, 0, 0), new Vector3(4, 0, 0)], weight: 0.1 },
+      { name: 'ambient' as const, positions: [new Vector3(0, 3, -3)], weight: 0.1 },
     ];
     const assignments = assignShardsToTargets(shards, targets);
     const timings = generateSplineTimings(assignments.length, 42);

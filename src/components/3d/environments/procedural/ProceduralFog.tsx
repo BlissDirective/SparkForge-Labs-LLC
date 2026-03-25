@@ -2,7 +2,13 @@
 
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  InstancedMesh,
+  MeshBasicMaterial,
+  Object3D,
+  SphereGeometry,
+} from 'three';
 import {
   LabThemeProfile,
   TierConfig,
@@ -22,8 +28,8 @@ interface ProceduralFogProps {
 // Helpers
 // ---------------------------------------------------------------------------
 
-const _dummy = new THREE.Object3D();
-const _color = new THREE.Color();
+const _dummy = new Object3D();
+const _color = new Color();
 
 function initParticlePositions(
   count: number,
@@ -57,7 +63,7 @@ function initParticleScales(
 // ---------------------------------------------------------------------------
 
 export default function ProceduralFog({ theme, tierConfig }: ProceduralFogProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const count = tierConfig.fogCount;
   const spread = theme.fog?.spread ?? 20;
   const baseScale = theme.fog?.particleScale ?? 0.25;
@@ -74,10 +80,10 @@ export default function ProceduralFog({ theme, tierConfig }: ProceduralFogProps)
   }, [count, spread, baseScale, theme.seed]);
 
   // Geometry + material (memoized)
-  const geometry = useMemo(() => new THREE.SphereGeometry(1, 5, 3), []);
+  const geometry = useMemo(() => new SphereGeometry(1, 5, 3), []);
   const material = useMemo(() => {
     _color.set(theme.labColor);
-    return new THREE.MeshBasicMaterial({
+    return new MeshBasicMaterial({
       color: _color,
       transparent: true,
       opacity,

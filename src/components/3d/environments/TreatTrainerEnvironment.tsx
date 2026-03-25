@@ -31,7 +31,17 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { StandardEnvironmentWrapper } from './StandardEnvironmentBase';
 
 const LAB_COLOR = '#AA66FF';
@@ -39,14 +49,14 @@ const LAB_COLOR = '#AA66FF';
 // ■■ Treat Dispensers (Instanced) ■■
 function TreatDispensers({ treatCount }: { treatCount: number }) {
   const count = 10;
-  const basesRef = useRef<THREE.InstancedMesh>(null);
-  const bowlsRef = useRef<THREE.InstancedMesh>(null);
+  const basesRef = useRef<InstancedMesh>(null);
+  const bowlsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!basesRef.current || !bowlsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const color = new THREE.Color();
+    const tmp = new Matrix4();
+    const color = new Color();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const radius = 4.0;
@@ -72,7 +82,7 @@ function TreatDispensers({ treatCount }: { treatCount: number }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!bowlsRef.current) return;
-    const mat = bowlsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = bowlsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = 0.2 + Math.sin(timeRef.current * 2) * 0.1;
   });
 
@@ -93,7 +103,7 @@ function TreatDispensers({ treatCount }: { treatCount: number }) {
 // ■■ Training Hoops (Instanced) ■■
 function TrainingHoops({ isTraining }: { isTraining: boolean }) {
   const count = 8;
-  const hoopsRef = useRef<THREE.InstancedMesh>(null);
+  const hoopsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const hoopData = useMemo(() =>
@@ -108,22 +118,22 @@ function TrainingHoops({ isTraining }: { isTraining: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!hoopsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < count; i++) {
       const h = hoopData[i];
       const wobble = isTraining ? Math.sin(timeRef.current * 2 + h.phase) * 0.1 : 0;
-      rot.setFromEuler(new THREE.Euler(0, 0, wobble));
+      rot.setFromEuler(new Euler(0, 0, wobble));
       const scale = 0.6 + (i % 3) * 0.15;
       tmp.compose(
-        new THREE.Vector3(h.x, h.y + (isTraining ? Math.sin(timeRef.current + h.phase) * 0.15 : 0), h.z),
+        new Vector3(h.x, h.y + (isTraining ? Math.sin(timeRef.current + h.phase) * 0.15 : 0), h.z),
         rot,
-        new THREE.Vector3(scale, scale, scale)
+        new Vector3(scale, scale, scale)
       );
       hoopsRef.current.setMatrixAt(i, tmp);
     }
     hoopsRef.current.instanceMatrix.needsUpdate = true;
-    const mat = hoopsRef.current.material as THREE.MeshStandardMaterial;
+    const mat = hoopsRef.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = isTraining ? 0.5 + Math.sin(timeRef.current * 3) * 0.2 : 0.15;
   });
 
@@ -144,13 +154,13 @@ function TrainingHoops({ isTraining }: { isTraining: boolean }) {
 // ■■ Reward Stations (Instanced) ■■
 function RewardStations() {
   const count = 6;
-  const pedestalsRef = useRef<THREE.InstancedMesh>(null);
-  const starsRef = useRef<THREE.InstancedMesh>(null);
+  const pedestalsRef = useRef<InstancedMesh>(null);
+  const starsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   React.useEffect(() => {
     if (!pedestalsRef.current || !starsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 2.5;
       const z = 3.5;
@@ -170,13 +180,13 @@ function RewardStations() {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!starsRef.current) return;
-    const tmp = new THREE.Matrix4();
-    const rot = new THREE.Quaternion();
+    const tmp = new Matrix4();
+    const rot = new Quaternion();
     for (let i = 0; i < count; i++) {
       const x = (i - (count - 1) / 2) * 2.5;
       const y = 0.0 + Math.sin(timeRef.current * 1.5 + i) * 0.1;
-      rot.setFromEuler(new THREE.Euler(0, timeRef.current * 0.8 + i, 0));
-      tmp.compose(new THREE.Vector3(x, y, 3.5), rot, new THREE.Vector3(0.15, 0.15, 0.03));
+      rot.setFromEuler(new Euler(0, timeRef.current * 0.8 + i, 0));
+      tmp.compose(new Vector3(x, y, 3.5), rot, new Vector3(0.15, 0.15, 0.03));
       starsRef.current.setMatrixAt(i, tmp);
     }
     starsRef.current.instanceMatrix.needsUpdate = true;
@@ -198,13 +208,13 @@ function RewardStations() {
 
 // ■■ Scoreboard Display ■■
 function ScoreboardDisplay({ treatCount }: { treatCount: number }) {
-  const screenRef = useRef<THREE.Mesh>(null);
+  const screenRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (screenRef.current) {
-      const mat = screenRef.current.material as THREE.MeshStandardMaterial;
+      const mat = screenRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = 0.3 + Math.sin(timeRef.current * 1.5) * 0.1;
     }
   });
@@ -243,8 +253,8 @@ function ScoreboardDisplay({ treatCount }: { treatCount: number }) {
 
 // ■■ Reinforcement Zones ■■
 function ReinforcementZones({ isTraining }: { isTraining: boolean }) {
-  const positiveRef = useRef<THREE.Mesh>(null);
-  const negativeRef = useRef<THREE.Mesh>(null);
+  const positiveRef = useRef<Mesh>(null);
+  const negativeRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
   const segments = 24;
 
@@ -252,10 +262,10 @@ function ReinforcementZones({ isTraining }: { isTraining: boolean }) {
     timeRef.current += delta;
     const intensity = isTraining ? 0.4 + Math.sin(timeRef.current * 2) * 0.2 : 0.1;
     if (positiveRef.current) {
-      (positiveRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = intensity;
+      (positiveRef.current.material as MeshStandardMaterial).emissiveIntensity = intensity;
     }
     if (negativeRef.current) {
-      (negativeRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = intensity;
+      (negativeRef.current.material as MeshStandardMaterial).emissiveIntensity = intensity;
     }
   });
 
@@ -270,7 +280,7 @@ function ReinforcementZones({ isTraining }: { isTraining: boolean }) {
           emissiveIntensity={0.1}
           transparent
           opacity={0.25}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Negative zone (red) */}
@@ -282,7 +292,7 @@ function ReinforcementZones({ isTraining }: { isTraining: boolean }) {
           emissiveIntensity={0.1}
           transparent
           opacity={0.25}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Zone labels */}
@@ -305,7 +315,7 @@ function ReinforcementZones({ isTraining }: { isTraining: boolean }) {
 // ■■ Training Targets (Instanced) ■■
 function TrainingTargets({ isTraining }: { isTraining: boolean }) {
   const count = 12;
-  const targetsRef = useRef<THREE.InstancedMesh>(null);
+  const targetsRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
 
   const targetData = useMemo(() =>
@@ -320,7 +330,7 @@ function TrainingTargets({ isTraining }: { isTraining: boolean }) {
   useFrame((_, delta) => {
     timeRef.current += delta;
     if (!targetsRef.current) return;
-    const tmp = new THREE.Matrix4();
+    const tmp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const t = targetData[i];
       const visible = isTraining ? Math.sin(timeRef.current * t.popSpeed + t.phase) > 0 : true;
@@ -356,7 +366,7 @@ function PlaygroundEquipment() {
       {/* Tunnel */}
       <mesh position={[3, -0.3, 0]} rotation={[0, 0, Math.PI / 2]}>
         <cylinderGeometry args={[0.4, 0.4, 1.8, segments, 1, true]} />
-        <meshStandardMaterial color="#2A1E3A" metalness={0.4} roughness={0.5} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#2A1E3A" metalness={0.4} roughness={0.5} side={DoubleSide} />
       </mesh>
       {/* Slide ramp */}
       <mesh position={[-3, -0.2, 1]} rotation={[0.3, 0, 0]} castShadow>
@@ -399,7 +409,7 @@ function PlaygroundEquipment() {
 
 // ■■ Response Meter Gauge ■■
 function ResponseMeter({ isTraining }: { isTraining: boolean }) {
-  const needleRef = useRef<THREE.Mesh>(null);
+  const needleRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   useFrame((_, delta) => {
@@ -417,7 +427,7 @@ function ResponseMeter({ isTraining }: { isTraining: boolean }) {
       {/* Gauge backing */}
       <mesh>
         <circleGeometry args={[0.5, 16]} />
-        <meshStandardMaterial color="#1A1230" metalness={0.5} roughness={0.4} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#1A1230" metalness={0.5} roughness={0.4} side={DoubleSide} />
       </mesh>
       {/* Gauge ring */}
       <mesh position={[0, 0, 0.01]}>
@@ -432,7 +442,7 @@ function ResponseMeter({ isTraining }: { isTraining: boolean }) {
       {/* Center dot */}
       <mesh position={[0, 0, 0.03]}>
         <circleGeometry args={[0.04, 8]} />
-        <meshStandardMaterial color="#FFFFFF" emissive="#FFFFFF" emissiveIntensity={0.5} side={THREE.DoubleSide} />
+        <meshStandardMaterial color="#FFFFFF" emissive="#FFFFFF" emissiveIntensity={0.5} side={DoubleSide} />
       </mesh>
     </group>
   );

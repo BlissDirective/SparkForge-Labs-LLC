@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import * as THREE from 'three';
+import { Color } from 'three';
 import { ContactShadows } from '@react-three/drei';
 import {
   LabThemeProfile,
@@ -51,9 +51,9 @@ export default function ProceduralLighting({
   const ambientIntensity = theme.ambientIntensity ?? 0.3;
   const shadowMapSize = tierConfig.shadowMapSize ?? 1024;
 
-  const labColor = useMemo(() => new THREE.Color(theme.labColor), [theme.labColor]);
+  const labColor = useMemo(() => new Color(theme.labColor), [theme.labColor]);
   const accentColor = useMemo(
-    () => new THREE.Color(theme.accentColor),
+    () => new Color(theme.accentColor),
     [theme.accentColor],
   );
 

@@ -26,7 +26,16 @@
 
 import { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  MathUtils,
+  Mesh,
+  Object3D,
+  Vector3,
+} from 'three';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ================================================================
@@ -110,12 +119,12 @@ interface CelebrationParticlesProps {
   segments: number;
 }
 
-const _particleDummy = new THREE.Object3D();
-const _particleVelocities: THREE.Vector3[] = [];
+const _particleDummy = new Object3D();
+const _particleVelocities: Vector3[] = [];
 const _particleLifetimes: number[] = [];
 
 function CelebrationParticles({ active, color, segments }: CelebrationParticlesProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const startTimeRef = useRef(0);
   const isActiveRef = useRef(false);
 
@@ -127,7 +136,7 @@ function CelebrationParticles({ active, color, segments }: CelebrationParticlesP
       const angle = (i / CELEBRATION_PARTICLE_COUNT) * Math.PI * 2;
       const speed = 1.5 + Math.random() * 1.0;
       _particleVelocities.push(
-        new THREE.Vector3(
+        new Vector3(
           Math.cos(angle) * speed,
           1.0 + Math.random() * 1.5,
           Math.sin(angle) * speed
@@ -137,7 +146,7 @@ function CelebrationParticles({ active, color, segments }: CelebrationParticlesP
     }
   }, []);
 
-  const particleColor = useMemo(() => new THREE.Color(color), [color]);
+  const particleColor = useMemo(() => new Color(color), [color]);
 
   useFrame((state) => {
     if (!meshRef.current) return;
@@ -227,7 +236,7 @@ function PetEye({ position, dimmed, segments }: EyeProps) {
 // ================================================================
 
 interface EvolutionProps {
-  color: THREE.Color;
+  color: Color;
   eyesDimmed: boolean;
   segments: number;
 }
@@ -306,7 +315,7 @@ function TeenGeometry({ color, eyesDimmed, segments }: EvolutionProps) {
           color={color}
           emissive={color}
           emissiveIntensity={0.3}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           metalness={0.6}
           roughness={0.3}
         />
@@ -317,7 +326,7 @@ function TeenGeometry({ color, eyesDimmed, segments }: EvolutionProps) {
           color={color}
           emissive={color}
           emissiveIntensity={0.3}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           metalness={0.6}
           roughness={0.3}
         />
@@ -360,7 +369,7 @@ function TeenGeometry({ color, eyesDimmed, segments }: EvolutionProps) {
 // ================================================================
 
 function AdultGeometry({ color, eyesDimmed, segments }: EvolutionProps) {
-  const haloRef = useRef<THREE.Mesh>(null);
+  const haloRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!haloRef.current) return;
@@ -394,7 +403,7 @@ function AdultGeometry({ color, eyesDimmed, segments }: EvolutionProps) {
           color={color}
           emissive={color}
           emissiveIntensity={0.4}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           metalness={0.6}
           roughness={0.3}
         />
@@ -405,7 +414,7 @@ function AdultGeometry({ color, eyesDimmed, segments }: EvolutionProps) {
           color={color}
           emissive={color}
           emissiveIntensity={0.4}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           metalness={0.6}
           roughness={0.3}
         />
@@ -481,8 +490,8 @@ export function PetCompanion3D({
 }: PetCompanion3DProps) {
   const _particleMultiplier = useDeviceStore((s) => s.profile.particleMultiplier);
 
-  const groupRef = useRef<THREE.Group>(null);
-  const innerGroupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
+  const innerGroupRef = useRef<Group>(null);
 
   // Blink state
   const [eyesDimmed, setEyesDimmed] = useState(false);
@@ -505,7 +514,7 @@ export function PetCompanion3D({
 
   // Derived values
   const stage = getEvolutionStage(level);
-  const color = useMemo(() => new THREE.Color(petColor), [petColor]);
+  const color = useMemo(() => new Color(petColor), [petColor]);
   const segments = 64;
 
   // Track activity changes
@@ -582,17 +591,17 @@ export function PetCompanion3D({
     // ── Position: tracking vs drift ──
     if (focusedLabPosition) {
       // Smoothly track toward focused lab position
-      groupRef.current.position.x = THREE.MathUtils.lerp(
+      groupRef.current.position.x = MathUtils.lerp(
         groupRef.current.position.x,
         focusedLabPosition[0],
         TRACKING_LERP
       );
-      groupRef.current.position.z = THREE.MathUtils.lerp(
+      groupRef.current.position.z = MathUtils.lerp(
         groupRef.current.position.z,
         focusedLabPosition[2],
         TRACKING_LERP
       );
-      groupRef.current.position.y = THREE.MathUtils.lerp(
+      groupRef.current.position.y = MathUtils.lerp(
         groupRef.current.position.y,
         focusedLabPosition[1] + hoverY,
         TRACKING_LERP
@@ -608,12 +617,12 @@ export function PetCompanion3D({
         );
       }
 
-      groupRef.current.position.x = THREE.MathUtils.lerp(
+      groupRef.current.position.x = MathUtils.lerp(
         groupRef.current.position.x,
         drift.targetX,
         0.01
       );
-      groupRef.current.position.z = THREE.MathUtils.lerp(
+      groupRef.current.position.z = MathUtils.lerp(
         groupRef.current.position.z,
         drift.targetZ,
         0.01

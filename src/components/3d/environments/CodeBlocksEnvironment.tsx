@@ -23,20 +23,31 @@
 
 import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 import { FLLiteEnvironmentWrapper } from './FLLiteEnvironmentBase';
 
 // ■■ Giant Terminal Screens ■■
 function TerminalScreens({ isRunning }: { isRunning: boolean }) {
   const screenCount = 5;
-  const scanLineRef = useRef<THREE.Group>(null);
+  const scanLineRef = useRef<Group>(null);
 
   useFrame(({ clock }) => {
     if (!scanLineRef.current) return;
     scanLineRef.current.children.forEach((child, i) => {
-      if (child instanceof THREE.Mesh) {
+      if (child instanceof Mesh) {
         child.position.y = ((clock.elapsedTime * 0.8 + i * 0.3) % 1) * 3 - 0.5;
-        const mat = child.material as THREE.MeshBasicMaterial;
+        const mat = child.material as MeshBasicMaterial;
         mat.opacity = isRunning ? 0.2 : 0.08;
       }
     });
@@ -72,7 +83,7 @@ function TerminalScreens({ isRunning }: { isRunning: boolean }) {
           return (
             <mesh key={i} position={[Math.sin(angle) * r, 1.5, -Math.cos(angle) * r]} rotation={[0, angle, 0]}>
               <planeGeometry args={[3.2, 0.02]} />
-              <meshBasicMaterial color="#F97316" transparent opacity={0.12} side={THREE.DoubleSide} />
+              <meshBasicMaterial color="#F97316" transparent opacity={0.12} side={DoubleSide} />
             </mesh>
           );
         })}
@@ -84,11 +95,11 @@ function TerminalScreens({ isRunning }: { isRunning: boolean }) {
 // ■■ Circuit Board Floor Detail ■■
 function CircuitBoardFloor() {
   const traceCount = 120;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < traceCount; i++) {
       const isHorizontal = i % 2 === 0;
       const x = (Math.random() - 0.5) * 18;
@@ -101,7 +112,7 @@ function CircuitBoardFloor() {
       }
       temp.setPosition(x, -0.94, z);
       ref.current.setMatrixAt(i, temp);
-      ref.current.setColorAt(i, new THREE.Color().setHSL(0.07 + Math.random() * 0.03, 0.8, 0.3 + Math.random() * 0.2));
+      ref.current.setColorAt(i, new Color().setHSL(0.07 + Math.random() * 0.03, 0.8, 0.3 + Math.random() * 0.2));
     }
     ref.current.instanceMatrix.needsUpdate = true;
     if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
@@ -118,11 +129,11 @@ function CircuitBoardFloor() {
 // ■■ LED Strip Lighting ■■
 function LEDStrips() {
   const count = 24;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const isVertical = i % 3 === 0;
       const angle = (i / count) * Math.PI * 2;
@@ -145,7 +156,7 @@ function LEDStrips() {
     if (!ref.current) return;
     for (let i = 0; i < count; i++) {
       const brightness = 0.4 + Math.sin(clock.elapsedTime * 2 + i * 0.5) * 0.3;
-      ref.current.setColorAt(i, new THREE.Color('#F97316').multiplyScalar(brightness));
+      ref.current.setColorAt(i, new Color('#F97316').multiplyScalar(brightness));
     }
     if (ref.current.instanceColor) ref.current.instanceColor.needsUpdate = true;
   });
@@ -163,7 +174,7 @@ function BinaryRainColumns() {
   const columnCount = 8;
   const particlesPerColumn = 30;
   const totalCount = columnCount * particlesPerColumn;
-  const ref = useRef<THREE.InstancedMesh>(null);
+  const ref = useRef<InstancedMesh>(null);
 
   const configs = useMemo(() => Array.from({ length: columnCount }, () => ({
     x: (Math.random() - 0.5) * 14,
@@ -173,7 +184,7 @@ function BinaryRainColumns() {
 
   React.useEffect(() => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
+    const temp = new Matrix4();
     let idx = 0;
     for (let c = 0; c < columnCount; c++) {
       for (let p = 0; p < particlesPerColumn; p++) {
@@ -189,10 +200,10 @@ function BinaryRainColumns() {
 
   useFrame(({ clock: _clock }) => {
     if (!ref.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     let idx = 0;
     for (let c = 0; c < columnCount; c++) {
       for (let p = 0; p < particlesPerColumn; p++) {
@@ -219,13 +230,13 @@ function BinaryRainColumns() {
 // ■■ Robot Assistant Figures ■■
 function RobotAssistants() {
   const count = 6;
-  const bodyRef = useRef<THREE.InstancedMesh>(null);
-  const headRef = useRef<THREE.InstancedMesh>(null);
+  const bodyRef = useRef<InstancedMesh>(null);
+  const headRef = useRef<InstancedMesh>(null);
 
   React.useEffect(() => {
     if (!bodyRef.current || !headRef.current) return;
-    const bTemp = new THREE.Matrix4();
-    const hTemp = new THREE.Matrix4();
+    const bTemp = new Matrix4();
+    const hTemp = new Matrix4();
     for (let i = 0; i < count; i++) {
       const angle = (i / count) * Math.PI * 2;
       const r = 4;
@@ -242,10 +253,10 @@ function RobotAssistants() {
 
   useFrame(({ clock }) => {
     if (!headRef.current) return;
-    const temp = new THREE.Matrix4();
-    const pos = new THREE.Vector3();
-    const quat = new THREE.Quaternion();
-    const scl = new THREE.Vector3();
+    const temp = new Matrix4();
+    const pos = new Vector3();
+    const quat = new Quaternion();
+    const scl = new Vector3();
     for (let i = 0; i < count; i++) {
       headRef.current.getMatrixAt(i, temp);
       temp.decompose(pos, quat, scl);
@@ -275,12 +286,12 @@ function RobotAssistants() {
 // ■■ Execution Pipeline Conveyor ■■
 function ExecutionPipeline({ isRunning, blockCount }: { isRunning: boolean; blockCount: number }) {
   const stageCount = 6;
-  const stageRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const stageRefs = useRef<(Mesh | null)[]>([]);
 
   useFrame(({ clock }) => {
     stageRefs.current.forEach((mesh, i) => {
       if (!mesh) return;
-      const mat = mesh.material as THREE.MeshStandardMaterial;
+      const mat = mesh.material as MeshStandardMaterial;
       const isActive = isRunning && i < blockCount;
       mat.emissiveIntensity = isActive
         ? 0.5 + Math.sin(clock.elapsedTime * 3 + i * 0.5) * 0.3

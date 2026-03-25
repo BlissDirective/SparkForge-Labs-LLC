@@ -17,17 +17,17 @@
 import { useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { AdditiveBlending, DoubleSide, Mesh, ShaderMaterial } from 'three';
 import {
   fireNoiseVertexShader,
   fireNoiseFragmentShader,
 } from '@/shaders';
 
 function DiamondFlame() {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
+    return new ShaderMaterial({
       vertexShader: fireNoiseVertexShader,
       fragmentShader: fireNoiseFragmentShader,
       uniforms: {
@@ -36,9 +36,9 @@ function DiamondFlame() {
         uFlameHeight: { value: 1.2 },
       },
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      blending: AdditiveBlending,
       depthWrite: false,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     });
   }, []);
 

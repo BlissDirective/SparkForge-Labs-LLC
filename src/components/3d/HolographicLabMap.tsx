@@ -17,7 +17,23 @@
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  BackSide,
+  BoxGeometry,
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  Object3D,
+  ShaderMaterial,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import { LabStructure3D } from './LabStructure3D';
 import { LAB_POSITIONS } from '@/stores/cockpitStore';
 import { LABS } from '@/types';
@@ -95,21 +111,21 @@ function ConnectionBeam({
   color: string;
   time: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const { geometry, material } = useMemo(() => {
-    const curve = new THREE.CatmullRomCurve3([
-      new THREE.Vector3(...start),
-      new THREE.Vector3(
+    const curve = new CatmullRomCurve3([
+      new Vector3(...start),
+      new Vector3(
         (start[0] + end[0]) * 0.5,
         Math.max(start[1], end[1]) + 0.8,
         (start[2] + end[2]) * 0.5
       ),
-      new THREE.Vector3(...end),
+      new Vector3(...end),
     ]);
-    const geo = new THREE.TubeGeometry(curve, 12, 0.015, 4, false);
-    const mat = new THREE.MeshBasicMaterial({
-      color: new THREE.Color(color),
+    const geo = new TubeGeometry(curve, 12, 0.015, 4, false);
+    const mat = new MeshBasicMaterial({
+      color: new Color(color),
       transparent: true,
       opacity: 0.0,
       depthWrite: false,
@@ -145,11 +161,11 @@ function DataHighways({
   color: string;
   tubularSegments: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const timeRef = useRef(0);
 
   const highways = useMemo(() => {
-    const results: { id: string; geometry: THREE.TubeGeometry; material: THREE.MeshStandardMaterial }[] = [];
+    const results: { id: string; geometry: TubeGeometry; material: MeshStandardMaterial }[] = [];
     const visited = new Set<string>();
 
     for (const [labIdStr, neighbors] of Object.entries(LAB_ADJACENCY)) {
@@ -165,16 +181,16 @@ function DataHighways({
         const posB = LAB_POSITIONS[neighborId];
         if (!posB) continue;
 
-        const startV = new THREE.Vector3(posA[0], posA[1] - 0.3, posA[2]);
-        const endV = new THREE.Vector3(posB[0], posB[1] - 0.3, posB[2]);
+        const startV = new Vector3(posA[0], posA[1] - 0.3, posA[2]);
+        const endV = new Vector3(posB[0], posB[1] - 0.3, posB[2]);
         const mid = startV.clone().lerp(endV, 0.5);
         mid.y -= 0.5; // Sag below the lab ring for visual depth
 
-        const curve = new THREE.CatmullRomCurve3([startV, mid, endV]);
-        const geo = new THREE.TubeGeometry(curve, tubularSegments, 0.02, 8, false);
-        const mat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(color).multiplyScalar(0.4),
-          emissive: new THREE.Color(color),
+        const curve = new CatmullRomCurve3([startV, mid, endV]);
+        const geo = new TubeGeometry(curve, tubularSegments, 0.02, 8, false);
+        const mat = new MeshStandardMaterial({
+          color: new Color(color).multiplyScalar(0.4),
+          emissive: new Color(color),
           emissiveIntensity: 0.3,
           transparent: true,
           opacity: 0.2,
@@ -218,13 +234,13 @@ function GridIntersectionBoxes({
   gridDivisions: number;
   maxInstances: number;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const { geometry, material, count } = useMemo(() => {
-    const boxGeo = new THREE.BoxGeometry(0.06, 0.04, 0.06);
-    const boxMat = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(color),
-      emissive: new THREE.Color(color),
+    const boxGeo = new BoxGeometry(0.06, 0.04, 0.06);
+    const boxMat = new MeshStandardMaterial({
+      color: new Color(color),
+      emissive: new Color(color),
       emissiveIntensity: 0.3,
       transparent: true,
       opacity: 0.15,
@@ -234,8 +250,8 @@ function GridIntersectionBoxes({
 
     const half = gridSize / 2;
     const step = gridSize / gridDivisions;
-    const dummy = new THREE.Object3D();
-    const positions: THREE.Matrix4[] = [];
+    const dummy = new Object3D();
+    const positions: Matrix4[] = [];
 
     for (let x = -half; x <= half; x += step) {
       for (let z = -half; z <= half; z += step) {
@@ -266,7 +282,7 @@ function GridIntersectionBoxes({
     if (meshRef.current && !meshRef.current.userData.initialized) {
       const half = gridSize / 2;
       const step = gridSize / gridDivisions;
-      const dummy = new THREE.Object3D();
+      const dummy = new Object3D();
       let idx = 0;
 
       for (let x = -half; x <= half; x += step) {
@@ -304,8 +320,8 @@ function ProjectorPedestal({
   color: string;
   segments: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const lensRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const lensRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
 
   // Stacked ring definitions: [y, radius, thickness]
@@ -321,7 +337,7 @@ function ProjectorPedestal({
     timeRef.current += delta;
     // Lens pulse
     if (lensRef.current) {
-      const mat = lensRef.current.material as THREE.MeshStandardMaterial;
+      const mat = lensRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = 0.5 + Math.sin(timeRef.current * 3) * 0.3;
       lensRef.current.rotation.y += delta * 0.5;
     }
@@ -423,14 +439,14 @@ function HolographicCore({
   tubularSegments: number;
   maxInstances: number;
 }) {
-  const shellGroupRef = useRef<THREE.Group>(null);
-  const innerRef = useRef<THREE.Mesh>(null);
-  const ringsRef = useRef<THREE.Group>(null);
-  const dataPointsRef = useRef<THREE.InstancedMesh>(null);
-  const coronaOuterRef = useRef<THREE.Mesh>(null);
-  const coronaInnerRef = useRef<THREE.Mesh>(null);
-  const gridMatRef = useRef<THREE.ShaderMaterial>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const shellGroupRef = useRef<Group>(null);
+  const innerRef = useRef<Mesh>(null);
+  const ringsRef = useRef<Group>(null);
+  const dataPointsRef = useRef<InstancedMesh>(null);
+  const coronaOuterRef = useRef<Mesh>(null);
+  const coronaInnerRef = useRef<Mesh>(null);
+  const gridMatRef = useRef<ShaderMaterial>(null);
+  const dummy = useMemo(() => new Object3D(), []);
   const timeRef = useRef(0);
 
   // 4 concentric geodesic shell definitions: [detail level, scale, opacity, wireframe?]
@@ -467,7 +483,7 @@ function HolographicCore({
 
   // Grid floor shader material uniforms
   const gridUniforms = useMemo(() => ({
-    uColor: { value: new THREE.Color(color) },
+    uColor: { value: new Color(color) },
     uTime: { value: 0 },
   }), [color]);
 
@@ -495,7 +511,7 @@ function HolographicCore({
     if (innerRef.current) {
       const innerS = 0.15 + pulse * 0.02;
       innerRef.current.scale.setScalar(innerS);
-      (innerRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (innerRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.8 + Math.sin(t * 2) * 0.4;
     }
 
@@ -509,13 +525,13 @@ function HolographicCore({
     if (coronaOuterRef.current) {
       const cs = 2.2 + Math.sin(t * 1.2) * 0.15;
       coronaOuterRef.current.scale.setScalar(cs);
-      (coronaOuterRef.current.material as THREE.MeshBasicMaterial).opacity =
+      (coronaOuterRef.current.material as MeshBasicMaterial).opacity =
         0.025 + Math.sin(t * 1.8) * 0.01;
     }
     if (coronaInnerRef.current) {
       const cs2 = 1.6 + Math.sin(t * 1.8 + 1) * 0.1;
       coronaInnerRef.current.scale.setScalar(cs2);
-      (coronaInnerRef.current.material as THREE.MeshBasicMaterial).opacity =
+      (coronaInnerRef.current.material as MeshBasicMaterial).opacity =
         0.04 + Math.sin(t * 2.5) * 0.015;
     }
 
@@ -629,7 +645,7 @@ function HolographicCore({
           color={color}
           transparent
           opacity={0.025}
-          side={THREE.BackSide}
+          side={BackSide}
           depthWrite={false}
         />
       </mesh>
@@ -640,7 +656,7 @@ function HolographicCore({
             color={'#ffffff'}
             transparent
             opacity={0.04}
-            side={THREE.BackSide}
+            side={BackSide}
             depthWrite={false}
           />
         </mesh>
@@ -656,7 +672,7 @@ function HolographicCore({
           uniforms={gridUniforms}
           transparent
           depthWrite={false}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
 
@@ -688,7 +704,7 @@ export function HolographicLabMap({
   onLabHover,
   onLabDoubleClick,
 }: HolographicLabMapProps) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const clickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timeRef = useRef(0);
 

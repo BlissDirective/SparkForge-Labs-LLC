@@ -175,13 +175,13 @@ Replaces v2 CSS confetti with R3F particle burst + Bloom. 200 instanced cube par
 import { useRef, useMemo, useState, useEffect, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { Color, InstancedMesh, Object3D, Vector3 } from 'three';
 
 const PARTICLE_COUNT = 200;
 const DURATION = 2.0;
 
 interface ParticleData {
-  velocity: THREE.Vector3;
+  velocity: Vector3;
   size: number;
   rotSpeed: number;
   gravity: number;
@@ -201,7 +201,7 @@ function generateExplosion(): ParticleData[] {
     const speed = 2 + seed3 * 4;
 
     data.push({
-      velocity: new THREE.Vector3(
+      velocity: new Vector3(
         Math.sin(phi) * Math.cos(theta) * speed,
         Math.sin(phi) * Math.sin(theta) * speed + 2, // Bias upward
         Math.cos(phi) * speed * 0.5
@@ -221,17 +221,17 @@ function ExplosionScene({
   color: string;
   onComplete: () => void;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const startTime = useRef(0);
   const completedRef = useRef(false);
   const particles = useMemo(() => generateExplosion(), []);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
-  const threeColor = useMemo(() => new THREE.Color(color), [color]);
+  const dummy = useMemo(() => new Object3D(), []);
+  const threeColor = useMemo(() => new Color(color), [color]);
 
   // Set instance colors with slight per-particle variation
   useEffect(() => {
     if (!meshRef.current) return;
-    const c = new THREE.Color();
+    const c = new Color();
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       c.copy(threeColor);
       const seed = Math.sin(i * 7.19) * 0.5 + 0.5;
@@ -404,17 +404,17 @@ Diamond tier (100+ day streak) only. Uses the `fireNoise` shader from Part A. Th
 import { useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { AdditiveBlending, DoubleSide, Mesh, ShaderMaterial } from 'three';
 import {
   fireNoiseVertexShader,
   fireNoiseFragmentShader,
 } from '@/shaders';
 
 function DiamondFlame() {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const shaderMaterial = useMemo(() => {
-    return new THREE.ShaderMaterial({
+    return new ShaderMaterial({
       vertexShader: fireNoiseVertexShader,
       fragmentShader: fireNoiseFragmentShader,
       uniforms: {
@@ -423,9 +423,9 @@ function DiamondFlame() {
         uFlameHeight: { value: 1.2 },
       },
       transparent: true,
-      blending: THREE.AdditiveBlending,
+      blending: AdditiveBlending,
       depthWrite: false,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     });
   }, []);
 

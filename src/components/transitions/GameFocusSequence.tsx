@@ -14,14 +14,22 @@
 import { useRef, useMemo, useCallback, useState, useEffect, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  DoubleSide,
+  ExtrudeGeometry,
+  InstancedMesh,
+  Object3D,
+  Path,
+  Shape,
+} from 'three';
 
 // Hex ring count
 const RING_COUNT = 18;
 
 // Generate hex ring geometry (flat hexagonal torus)
-function createHexRingGeometry(): THREE.BufferGeometry {
-  const shape = new THREE.Shape();
+function createHexRingGeometry(): BufferGeometry {
+  const shape = new Shape();
   const sides = 6;
   const outerRadius = 1.0;
   const innerRadius = 0.85;
@@ -36,7 +44,7 @@ function createHexRingGeometry(): THREE.BufferGeometry {
   }
 
   // Inner hex (hole)
-  const hole = new THREE.Path();
+  const hole = new Path();
   for (let i = 0; i <= sides; i++) {
     const angle = (i / sides) * Math.PI * 2 - Math.PI / 6;
     const x = Math.cos(angle) * innerRadius;
@@ -46,7 +54,7 @@ function createHexRingGeometry(): THREE.BufferGeometry {
   }
   shape.holes.push(hole);
 
-  const geometry = new THREE.ExtrudeGeometry(shape, {
+  const geometry = new ExtrudeGeometry(shape, {
     depth: 0.05,
     bevelEnabled: false,
   });
@@ -62,7 +70,7 @@ function TunnelScene({
   color: string;
   onComplete: () => void;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const startTime = useRef(0);
   const completedRef = useRef(false);
 
@@ -86,7 +94,7 @@ function TunnelScene({
   // Setup instanced mesh
   useEffect(() => {
     if (!meshRef.current) return;
-    const dummy = new THREE.Object3D();
+    const dummy = new Object3D();
     for (let i = 0; i < RING_COUNT; i++) {
       dummy.position.set(0, 0, ringData[i].z);
       dummy.scale.setScalar(ringData[i].scale);
@@ -102,7 +110,7 @@ function TunnelScene({
     const elapsed = clock.elapsedTime - startTime.current;
     if (!meshRef.current) return;
 
-    const dummy = new THREE.Object3D();
+    const dummy = new Object3D();
     for (let i = 0; i < RING_COUNT; i++) {
       const ring = ringData[i];
       // Move rings toward camera (positive z)
@@ -133,7 +141,7 @@ function TunnelScene({
           transparent
           opacity={0.7}
           toneMapped={false}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </instancedMesh>
 

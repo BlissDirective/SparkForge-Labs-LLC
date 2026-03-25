@@ -12,7 +12,7 @@ import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { Group, MathUtils, Mesh } from 'three';
 
 // ---- Types ----
 
@@ -45,7 +45,7 @@ function PolaroidCard({
   isFound: boolean;
   stackOffset: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const flipRef = useRef(0);
 
   useFrame((state, delta) => {
@@ -53,7 +53,7 @@ function PolaroidCard({
 
     // Flip animation for found cards
     const targetFlip = isFound ? Math.PI : 0;
-    flipRef.current = THREE.MathUtils.lerp(flipRef.current, targetFlip, delta * 4);
+    flipRef.current = MathUtils.lerp(flipRef.current, targetFlip, delta * 4);
     groupRef.current.rotation.y = flipRef.current;
 
     // Active card float
@@ -145,13 +145,13 @@ function ConfidenceGauge({
   confidence: number;
   visible: boolean;
 }) {
-  const needleRef = useRef<THREE.Mesh>(null);
+  const needleRef = useRef<Mesh>(null);
 
   useFrame((_, delta) => {
     if (!needleRef.current || !visible) return;
     // Needle angle: -PI/2 (0%) to PI/2 (100%)
     const targetAngle = -Math.PI / 2 + (confidence / 100) * Math.PI;
-    needleRef.current.rotation.z = THREE.MathUtils.lerp(
+    needleRef.current.rotation.z = MathUtils.lerp(
       needleRef.current.rotation.z,
       targetAngle,
       delta * 3

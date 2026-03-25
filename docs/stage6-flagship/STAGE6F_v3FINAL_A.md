@@ -150,7 +150,15 @@ import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import { motion } from 'motion/react';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  Color,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshStandardMaterial,
+  Points,
+} from 'three';
 
 // -- Types --
 interface BiasScales3DProps {
@@ -167,11 +175,11 @@ interface BiasScales3DProps {
 }
 
 // -- Constants --
-const BRASS_COLOR = new THREE.Color('#B8860B');
-const BRASS_DARK = new THREE.Color('#8B6914');
-const GOLD_GLOW = new THREE.Color('#FFD700');
-const RED_WARN = new THREE.Color('#EF4444');
-const FAIR_GREEN = new THREE.Color('#10B981');
+const BRASS_COLOR = new Color('#B8860B');
+const BRASS_DARK = new Color('#8B6914');
+const GOLD_GLOW = new Color('#FFD700');
+const RED_WARN = new Color('#EF4444');
+const FAIR_GREEN = new Color('#10B981');
 
 const SPRING_STIFFNESS = 4.0;
 const SPRING_DAMPING = 0.85;
@@ -180,7 +188,7 @@ const MAX_TILT = Math.PI / 6; // 30 degrees max
 // -- Brushed brass material (shared) --
 function useBrassMaterial() {
   return useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    return new MeshStandardMaterial({
       color: BRASS_COLOR,
       metalness: 0.8,
       roughness: 0.3,
@@ -191,7 +199,7 @@ function useBrassMaterial() {
 
 // -- Warning Particles (red, emit when severely unbalanced) --
 function WarningParticles({ active, side }: { active: boolean; side: 'left' | 'right' }) {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
   const count = 20;
 
   const { positions, velocities } = useMemo(() => {
@@ -253,7 +261,7 @@ function WarningParticles({ active, side }: { active: boolean; side: 'left' | 'r
         opacity={0.7}
         sizeAttenuation
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
       />
     </points>
   );
@@ -261,12 +269,12 @@ function WarningParticles({ active, side }: { active: boolean; side: 'left' | 'r
 
 // -- Gold Glow (emissive ring when balanced) --
 function BalancedGlow({ active }: { active: boolean }) {
-  const ringRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
 
   useFrame((_, delta) => {
     if (!ringRef.current) return;
     const targetOpacity = active ? 0.6 : 0;
-    const mat = ringRef.current.material as THREE.MeshStandardMaterial;
+    const mat = ringRef.current.material as MeshStandardMaterial;
     mat.opacity += (targetOpacity - mat.opacity) * delta * 3;
 
     // Gentle pulse
@@ -299,10 +307,10 @@ export default function BiasScales3D({
   caseColor = '#EF4444',
   onReady,
 }: BiasScales3DProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const beamRef = useRef<THREE.Mesh>(null);
-  const leftPlatRef = useRef<THREE.Group>(null);
-  const rightPlatRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
+  const beamRef = useRef<Mesh>(null);
+  const leftPlatRef = useRef<Group>(null);
+  const rightPlatRef = useRef<Group>(null);
   const brassMat = useBrassMaterial();
 
   // Spring physics state
@@ -311,7 +319,7 @@ export default function BiasScales3D({
   // Determine tilt target from weights
   const targetAngle = useMemo(() => {
     const diff = biasWeight - fairWeight;
-    return THREE.MathUtils.clamp(diff * MAX_TILT * 2, -MAX_TILT, MAX_TILT);
+    return MathUtils.clamp(diff * MAX_TILT * 2, -MAX_TILT, MAX_TILT);
   }, [biasWeight, fairWeight]);
 
   // Severely unbalanced = particles

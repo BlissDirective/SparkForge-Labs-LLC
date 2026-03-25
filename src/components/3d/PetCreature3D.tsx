@@ -23,7 +23,15 @@
 import { useRef, useMemo, useState, useEffect, Suspense } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, useGLTF } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  Color,
+  DataTexture,
+  Group,
+  Mesh,
+  MeshToonMaterial,
+  NearestFilter,
+  RGBAFormat,
+} from 'three';
 
 // === Types ===
 
@@ -104,14 +112,14 @@ function createToonGradient(
   base: string,
   mid: string,
   highlight: string
-): THREE.DataTexture {
+): DataTexture {
   const size = 4;
   const data = new Uint8Array(size * 4);
   const colors = [
-    new THREE.Color(base), // darkest (shadow)
-    new THREE.Color(mid), // mid tone
-    new THREE.Color(highlight), // highlight
-    new THREE.Color(highlight), // brightest
+    new Color(base), // darkest (shadow)
+    new Color(mid), // mid tone
+    new Color(highlight), // highlight
+    new Color(highlight), // brightest
   ];
 
   for (let i = 0; i < size; i++) {
@@ -121,10 +129,10 @@ function createToonGradient(
     data[i * 4 + 3] = 255;
   }
 
-  const texture = new THREE.DataTexture(data, size, 1, THREE.RGBAFormat);
+  const texture = new DataTexture(data, size, 1, RGBAFormat);
   texture.needsUpdate = true;
-  texture.minFilter = THREE.NearestFilter;
-  texture.magFilter = THREE.NearestFilter;
+  texture.minFilter = NearestFilter;
+  texture.magFilter = NearestFilter;
   return texture;
 }
 
@@ -139,7 +147,7 @@ function GLBPetModel({
   mood: PetCreatureProps['mood'];
   evolutionStage: number;
 }) {
-  const meshRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<Group>(null);
   const { scene } = useGLTF(url);
   const moodCfg = MOOD_CONFIG[mood];
   const evoCfg = EVOLUTION_TOON[Math.min(evolutionStage, 5)];
@@ -156,12 +164,12 @@ function GLBPetModel({
   // Apply MeshToonMaterial to all meshes in the GLB
   useEffect(() => {
     clonedScene.traverse((child) => {
-      if ((child as THREE.Mesh).isMesh) {
-        const mesh = child as THREE.Mesh;
-        mesh.material = new THREE.MeshToonMaterial({
-          color: new THREE.Color(evoCfg.mid),
+      if ((child as Mesh).isMesh) {
+        const mesh = child as Mesh;
+        mesh.material = new MeshToonMaterial({
+          color: new Color(evoCfg.mid),
           gradientMap,
-          emissive: new THREE.Color(moodCfg.emissive),
+          emissive: new Color(moodCfg.emissive),
           emissiveIntensity: moodCfg.intensity * 0.3,
         });
         mesh.castShadow = true;
@@ -201,7 +209,7 @@ function FallbackOrb({
   mood: PetCreatureProps['mood'];
   evolutionStage: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const moodCfg = MOOD_CONFIG[mood];
   const evoCfg = EVOLUTION_TOON[Math.min(evolutionStage, 5)];
 
@@ -211,7 +219,7 @@ function FallbackOrb({
   );
 
   const emissiveColor = useMemo(
-    () => new THREE.Color(moodCfg.emissive),
+    () => new Color(moodCfg.emissive),
     [moodCfg.emissive]
   );
 

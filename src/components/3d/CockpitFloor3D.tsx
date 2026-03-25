@@ -18,7 +18,22 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BoxGeometry,
+  BufferGeometry,
+  CatmullRomCurve3,
+  Color,
+  CylinderGeometry,
+  DoubleSide,
+  ExtrudeGeometry,
+  InstancedMesh,
+  Matrix4,
+  MeshStandardMaterial,
+  Path,
+  Shape,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 
 // ■■ Props ■■
 
@@ -76,22 +91,22 @@ const PIPE_CONFIGS = [
 ];
 
 // ■■ Energy conduit curves ■■
-function buildConduitCurve(index: number): THREE.CatmullRomCurve3 {
+function buildConduitCurve(index: number): CatmullRomCurve3 {
   const offsetX = (index - 1) * 2.8;
-  return new THREE.CatmullRomCurve3([
-    new THREE.Vector3(offsetX - 1.5, FLOOR_Y - 0.35, -3.5),
-    new THREE.Vector3(offsetX - 0.5, FLOOR_Y - 0.5, -1.2),
-    new THREE.Vector3(offsetX + 0.8, FLOOR_Y - 0.4, 1.0),
-    new THREE.Vector3(offsetX + 1.6, FLOOR_Y - 0.55, 3.2),
+  return new CatmullRomCurve3([
+    new Vector3(offsetX - 1.5, FLOOR_Y - 0.35, -3.5),
+    new Vector3(offsetX - 0.5, FLOOR_Y - 0.5, -1.2),
+    new Vector3(offsetX + 0.8, FLOOR_Y - 0.4, 1.0),
+    new Vector3(offsetX + 1.6, FLOOR_Y - 0.55, 3.2),
   ]);
 }
 
 // ■■ Maintenance hatch frame builder ■■
-function buildHatchFrame(cx: number, cz: number, size: number): THREE.BufferGeometry {
+function buildHatchFrame(cx: number, cz: number, size: number): BufferGeometry {
   const half = size / 2;
   const t = 0.04; // frame thickness
   const h = 0.015; // frame height
-  const shape = new THREE.Shape();
+  const shape = new Shape();
   // Outer rectangle
   shape.moveTo(-half, -half);
   shape.lineTo(half, -half);
@@ -99,7 +114,7 @@ function buildHatchFrame(cx: number, cz: number, size: number): THREE.BufferGeom
   shape.lineTo(-half, half);
   shape.closePath();
   // Inner cutout
-  const hole = new THREE.Path();
+  const hole = new Path();
   hole.moveTo(-half + t, -half + t);
   hole.lineTo(half - t, -half + t);
   hole.lineTo(half - t, half - t);
@@ -107,7 +122,7 @@ function buildHatchFrame(cx: number, cz: number, size: number): THREE.BufferGeom
   hole.closePath();
   shape.holes.push(hole);
 
-  const geo = new THREE.ExtrudeGeometry(shape, {
+  const geo = new ExtrudeGeometry(shape, {
     depth: h,
     bevelEnabled: false,
   });
@@ -121,30 +136,30 @@ function buildHatchFrame(cx: number, cz: number, size: number): THREE.BufferGeom
 export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
 
   // Refs for animated elements
-  const ledInstanceRef = useRef<THREE.InstancedMesh>(null);
-  const conduitMatRefs = useRef<THREE.MeshStandardMaterial[]>([]);
-  const underGlowRef = useRef<THREE.MeshStandardMaterial>(null);
+  const ledInstanceRef = useRef<InstancedMesh>(null);
+  const conduitMatRefs = useRef<MeshStandardMaterial[]>([]);
+  const underGlowRef = useRef<MeshStandardMaterial>(null);
 
   // Parsed lab color
-  const labColorObj = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
   // ── Grate slats (InstancedMesh) ──
   const slatCounts = SLAT_COUNTS['ultra'] || SLAT_COUNTS.medium;
 
   const slatGeo = useMemo(
-    () => new THREE.BoxGeometry(SLAT_WIDTH, SLAT_HEIGHT, FLOOR_DEPTH),
+    () => new BoxGeometry(SLAT_WIDTH, SLAT_HEIGHT, FLOOR_DEPTH),
     []
   );
   const slatGeoZ = useMemo(
-    () => new THREE.BoxGeometry(FLOOR_WIDTH, SLAT_HEIGHT, SLAT_WIDTH),
+    () => new BoxGeometry(FLOOR_WIDTH, SLAT_HEIGHT, SLAT_WIDTH),
     []
   );
 
   const slatMatrixX = useMemo(() => {
-    const matrices: THREE.Matrix4[] = [];
+    const matrices: Matrix4[] = [];
     const spacing = FLOOR_WIDTH / (slatCounts.x - 1);
     for (let i = 0; i < slatCounts.x; i++) {
-      const m = new THREE.Matrix4();
+      const m = new Matrix4();
       m.setPosition(
         -FLOOR_WIDTH / 2 + i * spacing,
         FLOOR_Y,
@@ -156,10 +171,10 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   }, [slatCounts.x]);
 
   const slatMatrixZ = useMemo(() => {
-    const matrices: THREE.Matrix4[] = [];
+    const matrices: Matrix4[] = [];
     const spacing = FLOOR_DEPTH / (slatCounts.z - 1);
     for (let i = 0; i < slatCounts.z; i++) {
-      const m = new THREE.Matrix4();
+      const m = new Matrix4();
       m.setPosition(
         0,
         FLOOR_Y,
@@ -173,7 +188,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   // ── Grate material (dark chrome) ──
   const grateMat = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: 0x111118,
         metalness: 0.85,
         roughness: 0.3,
@@ -187,7 +202,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   const pipeSegments = PIPE_SEGMENTS['ultra'] || 10;
   const pipeMat = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: 0x1a1822,
         metalness: 0.7,
         roughness: 0.4,
@@ -200,7 +215,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   const pipeGeos = useMemo(
     () =>
       PIPE_CONFIGS.map((p) =>
-        new THREE.CylinderGeometry(p.radius, p.radius, p.length, pipeSegments)
+        new CylinderGeometry(p.radius, p.radius, p.length, pipeSegments)
       ),
     [pipeSegments]
   );
@@ -218,7 +233,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     () =>
       conduitCurves.map(
         (curve) =>
-          new THREE.TubeGeometry(curve, conduitTubeSegments, 0.04, conduitRadialSegments, false)
+          new TubeGeometry(curve, conduitTubeSegments, 0.04, conduitRadialSegments, false)
       ),
     [conduitCurves, conduitTubeSegments, conduitRadialSegments]
   );
@@ -226,7 +241,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   const conduitMats = useMemo(() => {
     const mats = [0, 1, 2].map(
       () =>
-        new THREE.MeshStandardMaterial({
+        new MeshStandardMaterial({
           color: 0x0a0e16,
           emissive: labColorObj,
           emissiveIntensity: 0.6,
@@ -249,11 +264,11 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
 
   const hatchMat = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: 0x1a1a22,
         metalness: 0.6,
         roughness: 0.5,
-        emissive: new THREE.Color(0xffaa44),
+        emissive: new Color(0xffaa44),
         emissiveIntensity: 0.15,
       }),
     []
@@ -262,13 +277,13 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   // ── LED channels (InstancedMesh along grate edges) ──
   const ledCount = LED_COUNTS['ultra'] || 30;
   const ledGeo = useMemo(
-    () => new THREE.BoxGeometry(0.06, 0.015, 0.025),
+    () => new BoxGeometry(0.06, 0.015, 0.025),
     []
   );
 
   const ledMat = useMemo(
     () =>
-      new THREE.MeshStandardMaterial({
+      new MeshStandardMaterial({
         color: labColorObj,
         emissive: labColorObj,
         emissiveIntensity: 1.0,
@@ -279,14 +294,14 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
 
   // Compute LED instance matrices — distributed along the 4 edges
   const ledMatrices = useMemo(() => {
-    const matrices: THREE.Matrix4[] = [];
+    const matrices: Matrix4[] = [];
     const perSide = Math.floor(ledCount / 4);
     const halfW = FLOOR_WIDTH / 2 - 0.1;
     const halfD = FLOOR_DEPTH / 2 - 0.1;
 
     // Top edge (z = -halfD)
     for (let i = 0; i < perSide; i++) {
-      const m = new THREE.Matrix4();
+      const m = new Matrix4();
       m.setPosition(
         -halfW + (i / (perSide - 1)) * (halfW * 2),
         FLOOR_Y + SLAT_HEIGHT / 2 + 0.005,
@@ -296,7 +311,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     }
     // Bottom edge (z = +halfD)
     for (let i = 0; i < perSide; i++) {
-      const m = new THREE.Matrix4();
+      const m = new Matrix4();
       m.setPosition(
         -halfW + (i / (perSide - 1)) * (halfW * 2),
         FLOOR_Y + SLAT_HEIGHT / 2 + 0.005,
@@ -306,8 +321,8 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     }
     // Left edge (x = -halfW)
     for (let i = 0; i < perSide; i++) {
-      const m = new THREE.Matrix4();
-      const rot = new THREE.Matrix4().makeRotationY(Math.PI / 2);
+      const m = new Matrix4();
+      const rot = new Matrix4().makeRotationY(Math.PI / 2);
       m.setPosition(
         -halfW,
         FLOOR_Y + SLAT_HEIGHT / 2 + 0.005,
@@ -318,8 +333,8 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     }
     // Right edge (x = +halfW)
     for (let i = 0; i < perSide; i++) {
-      const m = new THREE.Matrix4();
-      const rot = new THREE.Matrix4().makeRotationY(Math.PI / 2);
+      const m = new Matrix4();
+      const rot = new Matrix4().makeRotationY(Math.PI / 2);
       m.setPosition(
         halfW,
         FLOOR_Y + SLAT_HEIGHT / 2 + 0.005,
@@ -333,13 +348,13 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
 
   // ── Under-glow plane ──
   const underGlowMat = useMemo(() => {
-    const mat = new THREE.MeshStandardMaterial({
+    const mat = new MeshStandardMaterial({
       color: labColorObj,
       emissive: labColorObj,
       emissiveIntensity: 0.25,
       transparent: true,
       opacity: 0.12,
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     });
     underGlowRef.current = mat;
     return mat;
@@ -353,7 +368,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     const inst = ledInstanceRef.current;
     if (inst) {
       const totalLeds = ledMatrices.length;
-      const color = new THREE.Color();
+      const color = new Color();
       for (let i = 0; i < totalLeds; i++) {
         const wave = Math.sin(time * 3.0 + (i / totalLeds) * Math.PI * 4) * 0.5 + 0.5;
         color.copy(labColorObj).multiplyScalar(0.3 + wave * 0.7);
@@ -444,7 +459,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
             ledMatrices.forEach((m, i) => mesh.setMatrixAt(i, m));
             mesh.instanceMatrix.needsUpdate = true;
             // Initialize instance colors
-            const color = new THREE.Color(labColor);
+            const color = new Color(labColor);
             for (let i = 0; i < ledMatrices.length; i++) {
               mesh.setColorAt(i, color);
             }

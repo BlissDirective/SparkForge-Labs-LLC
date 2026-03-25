@@ -15,7 +15,17 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  BufferAttribute,
+  CylinderGeometry,
+  DoubleSide,
+  IcosahedronGeometry,
+  InstancedMesh,
+  LineSegments,
+  Object3D,
+  RingGeometry,
+} from 'three';
 
 // Intensity presets from Decision 5.5
 const INTENSITY_PRESETS = {
@@ -38,11 +48,11 @@ export function AmbientParticles({
   color = '#00BBFF',
   baseCount,
 }: AmbientParticlesProps) {
-  const instancedRef = useRef<THREE.InstancedMesh>(null);
-  const trailRef = useRef<THREE.InstancedMesh>(null);
-  const haloRef = useRef<THREE.InstancedMesh>(null);
-  const linesRef = useRef<THREE.LineSegments>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const instancedRef = useRef<InstancedMesh>(null);
+  const trailRef = useRef<InstancedMesh>(null);
+  const haloRef = useRef<InstancedMesh>(null);
+  const linesRef = useRef<LineSegments>(null);
+  const dummy = useMemo(() => new Object3D(), []);
   const preset = INTENSITY_PRESETS[intensity];
   const count = baseCount || preset.count;
   const showConnections = preset.connections;
@@ -52,19 +62,19 @@ export function AmbientParticles({
   // Particle geometry: icosahedron for higher fidelity
   const particleGeo = useMemo(() => {
     const segments = Math.max(64 >= 32 ? 1 : 0, 0);
-    return new THREE.IcosahedronGeometry(1, segments);
+    return new IcosahedronGeometry(1, segments);
   }, [64]);
 
   // Trail segment geometry: elongated low-poly capsule
   const trailGeo = useMemo(() => {
-    const geo = new THREE.CylinderGeometry(0.6, 0.2, 3, 4, 1);
+    const geo = new CylinderGeometry(0.6, 0.2, 3, 4, 1);
     geo.rotateX(Math.PI / 2);
     return geo;
   }, []);
 
   // Halo geometry: flat ring for glow effect
   const haloGeo = useMemo(() => {
-    return new THREE.RingGeometry(0.8, 2.0, 8);
+    return new RingGeometry(0.8, 2.0, 8);
   }, []);
 
   // Generate initial particle data
@@ -194,7 +204,7 @@ export function AmbientParticles({
     // Update connection lines
     if (showConnections && linesRef.current) {
       const lineAttr = linesRef.current.geometry.attributes
-        .position as THREE.BufferAttribute;
+        .position as BufferAttribute;
       const lineArr = lineAttr.array as Float32Array;
       let lineIdx = 0;
       const thresholdSq = 2.5 * 2.5;
@@ -246,7 +256,7 @@ export function AmbientParticles({
           roughness={0.4}
           metalness={0.3}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
         />
       </instancedMesh>
 
@@ -258,7 +268,7 @@ export function AmbientParticles({
             transparent
             opacity={0.06}
             depthWrite={false}
-            blending={THREE.AdditiveBlending}
+            blending={AdditiveBlending}
           />
         </instancedMesh>
       )}
@@ -270,9 +280,9 @@ export function AmbientParticles({
             color={color}
             transparent
             opacity={0.03}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
             depthWrite={false}
-            blending={THREE.AdditiveBlending}
+            blending={AdditiveBlending}
           />
         </instancedMesh>
       )}
@@ -291,7 +301,7 @@ export function AmbientParticles({
             transparent
             opacity={0.06}
             depthWrite={false}
-            blending={THREE.AdditiveBlending}
+            blending={AdditiveBlending}
           />
         </lineSegments>
       )}

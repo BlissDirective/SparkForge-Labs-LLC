@@ -345,7 +345,8 @@ R3F component that renders the current lab's pattern shader on a fullscreen quad
 
 import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Color, Vector2, DoubleSide } from 'three';
+import type { Mesh, ShaderMaterial } from 'three';
 import { getLabPatternShader } from '@/shaders/labPatterns';
 
 // Lab colors from useStationMode VEC v2 palette
@@ -375,8 +376,8 @@ export function LabPatternBackground({
   transitionProgress = 1.0,
   previousLabId = null,
 }: LabPatternBackgroundProps) {
-  const currentMeshRef = useRef<THREE.Mesh>(null);
-  const previousMeshRef = useRef<THREE.Mesh>(null);
+  const currentMeshRef = useRef<Mesh>(null);
+  const previousMeshRef = useRef<Mesh>(null);
   const { viewport } = useThree();
 
   // Current lab shader
@@ -384,9 +385,9 @@ export function LabPatternBackground({
   const currentUniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uLabColor: { value: new THREE.Color(LAB_COLORS[labId] || '#3B82F6') },
+      uLabColor: { value: new Color(LAB_COLORS[labId] || '#3B82F6') },
       uIntensity: { value: intensity },
-      uResolution: { value: new THREE.Vector2(viewport.width, viewport.height) },
+      uResolution: { value: new Vector2(viewport.width, viewport.height) },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [labId]
@@ -400,9 +401,9 @@ export function LabPatternBackground({
   const previousUniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uLabColor: { value: new THREE.Color(LAB_COLORS[previousLabId || 1] || '#3B82F6') },
+      uLabColor: { value: new Color(LAB_COLORS[previousLabId || 1] || '#3B82F6') },
       uIntensity: { value: intensity },
-      uResolution: { value: new THREE.Vector2(viewport.width, viewport.height) },
+      uResolution: { value: new Vector2(viewport.width, viewport.height) },
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [previousLabId]
@@ -413,7 +414,7 @@ export function LabPatternBackground({
 
     // Update current shader
     if (currentMeshRef.current) {
-      const mat = currentMeshRef.current.material as THREE.ShaderMaterial;
+      const mat = currentMeshRef.current.material as ShaderMaterial;
       mat.uniforms.uTime.value = time;
       mat.uniforms.uLabColor.value.set(LAB_COLORS[labId] || '#3B82F6');
       mat.uniforms.uIntensity.value = intensity * transitionProgress;
@@ -421,7 +422,7 @@ export function LabPatternBackground({
 
     // Update previous shader (fading out)
     if (previousMeshRef.current && previousLabId) {
-      const mat = previousMeshRef.current.material as THREE.ShaderMaterial;
+      const mat = previousMeshRef.current.material as ShaderMaterial;
       mat.uniforms.uTime.value = time;
       mat.uniforms.uLabColor.value.set(LAB_COLORS[previousLabId] || '#3B82F6');
       mat.uniforms.uIntensity.value = intensity * (1.0 - transitionProgress);
@@ -440,7 +441,7 @@ export function LabPatternBackground({
             uniforms={previousUniforms}
             transparent
             depthWrite={false}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
           />
         </mesh>
       )}
@@ -454,7 +455,7 @@ export function LabPatternBackground({
           uniforms={currentUniforms}
           transparent
           depthWrite={false}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>

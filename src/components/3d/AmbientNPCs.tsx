@@ -11,7 +11,7 @@
 
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { BackSide, Group, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ── Types ──────────────────────────────────────────
@@ -269,14 +269,14 @@ function ArticulatedBot({
   time: number;
   focusedLabPosition: [number, number, number] | null;
 }) {
-  const groupRef    = useRef<THREE.Group>(null);
-  const headRef     = useRef<THREE.Group>(null);
-  const leftArmRef  = useRef<THREE.Group>(null);
-  const rightArmRef = useRef<THREE.Group>(null);
-  const visorMatRef = useRef<THREE.MeshBasicMaterial>(null);
-  const antTipRef   = useRef<THREE.MeshStandardMaterial>(null);
-  const padMatLRef  = useRef<THREE.MeshStandardMaterial>(null);
-  const padMatRRef  = useRef<THREE.MeshStandardMaterial>(null);
+  const groupRef    = useRef<Group>(null);
+  const headRef     = useRef<Group>(null);
+  const leftArmRef  = useRef<Group>(null);
+  const rightArmRef = useRef<Group>(null);
+  const visorMatRef = useRef<MeshBasicMaterial>(null);
+  const antTipRef   = useRef<MeshStandardMaterial>(null);
+  const padMatLRef  = useRef<MeshStandardMaterial>(null);
+  const padMatRRef  = useRef<MeshStandardMaterial>(null);
   const seg = 64;                     // 64 at ultra
   const halfSeg = Math.max(8, Math.floor(seg / 2));
 
@@ -349,7 +349,7 @@ function ArticulatedBot({
         {/* Inner cranium detail */}
         <mesh>
           <sphereGeometry args={[0.094, halfSeg, halfSeg]} />
-          <meshStandardMaterial color="#0e0e18" {...metal} side={THREE.BackSide} />
+          <meshStandardMaterial color="#0e0e18" {...metal} side={BackSide} />
         </mesh>
         {/* Visor outer torus frame */}
         <mesh position={[0, -0.01, 0.04]} rotation={[Math.PI / 2, 0, 0]}>
@@ -419,7 +419,7 @@ function ArticulatedBot({
         <mesh>
           <cylinderGeometry args={[0.097, 0.087, 0.21, seg, 4]} />
           <meshStandardMaterial color="#111118" {...metal} wireframe={false}
-            side={THREE.BackSide} />
+            side={BackSide} />
         </mesh>
         {/* Shoulder pad left */}
         <mesh position={[0.115, 0.06, 0]}>
@@ -632,7 +632,7 @@ function ArticulatedBot({
 // ── Main Component ─────────────────────────────────
 
 export function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
-  const botsRef = useRef<THREE.Group>(null);
+  const botsRef = useRef<Group>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const _profile = useDeviceStore((s) => s.profile);
 
