@@ -17,7 +17,17 @@
 import React, { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  Color,
+  Group,
+  InstancedMesh,
+  Mesh,
+  MeshStandardMaterial,
+  Object3D,
+  SphereGeometry,
+  Vector3,
+} from 'three';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
 
 // ════════════════════════════════════════════════════════════════
@@ -302,18 +312,18 @@ function RadarPanel({
   dimmed,
 }: {
   opacity: number;
-  labColor: THREE.Color;
+  labColor: Color;
   dimmed: boolean;
 }) {
-  const dishRef = useRef<THREE.Group>(null);
-  const sweepRef = useRef<THREE.Mesh>(null);
-  const blipRefs = useRef<THREE.Mesh[]>([]);
-  const ringGroupRef = useRef<THREE.Group>(null);
+  const dishRef = useRef<Group>(null);
+  const sweepRef = useRef<Mesh>(null);
+  const blipRefs = useRef<Mesh[]>([]);
+  const ringGroupRef = useRef<Group>(null);
 
   // Radar sweep geometry (line from center outward)
   const _sweepGeom = useMemo(() => {
-    const points = [new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.95, 0, 0)];
-    return new THREE.BufferGeometry().setFromPoints(points);
+    const points = [new Vector3(0, 0, 0), new Vector3(0.95, 0, 0)];
+    return new BufferGeometry().setFromPoints(points);
   }, []);
 
   // Range ring radii
@@ -326,8 +336,8 @@ function RadarPanel({
   const intensity = dimmed ? 0.15 : 1.0;
 
   // Shared blip geometry + material (Critical Fix #1: avoid per-render material recreation)
-  const blipGeo = useMemo(() => new THREE.SphereGeometry(0.025, 64, 64), []);
-  const blipMat = useMemo(() => new THREE.MeshStandardMaterial({
+  const blipGeo = useMemo(() => new SphereGeometry(0.025, 64, 64), []);
+  const blipMat = useMemo(() => new MeshStandardMaterial({
     color: labColor,
     emissive: labColor,
     transparent: true,
@@ -561,8 +571,8 @@ function RadarPanel({
 // Sub-component: Terminal Panel (Right)
 // ════════════════════════════════════════════════════════════════
 
-const _tempObject = new THREE.Object3D();
-const _tempColor = new THREE.Color();
+const _tempObject = new Object3D();
+const _tempColor = new Color();
 
 function TerminalPanel({
   opacity,
@@ -570,11 +580,11 @@ function TerminalPanel({
   dimmed,
 }: {
   opacity: number;
-  labColor: THREE.Color;
+  labColor: Color;
   dimmed: boolean;
 }) {
-  const barsRef = useRef<THREE.InstancedMesh>(null);
-  const graphBarsRef = useRef<THREE.InstancedMesh>(null);
+  const barsRef = useRef<InstancedMesh>(null);
+  const graphBarsRef = useRef<InstancedMesh>(null);
 
   const intensity = dimmed ? 0.15 : 1.0;
 
@@ -802,7 +812,7 @@ function PanelAssembly({
   children: React.ReactNode;
   opacity: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const sx = side === 'left' ? -1 : 1;
 
   // Subtle animated tilt toward viewer
@@ -848,7 +858,7 @@ export function SidePanels({
   dimmed,
 }: SidePanelsProps) {
 
-  const labColorVec = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const labColorVec = useMemo(() => new Color(labColor), [labColor]);
 
   if (opacity <= 0) return null;
 

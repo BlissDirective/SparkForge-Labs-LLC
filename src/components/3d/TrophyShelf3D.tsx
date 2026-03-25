@@ -19,7 +19,7 @@
 import { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, RoundedBox, Text } from '@react-three/drei';
-import * as THREE from 'three';
+import { Color, Group, MathUtils, Mesh } from 'three';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ■■ Types ■■
@@ -169,8 +169,8 @@ function BadgeTrophy({
   onPointerEnter,
   onPointerLeave,
 }: BadgeTrophyProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const auraGroupRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<Mesh>(null);
+  const auraGroupRef = useRef<Group>(null);
   const config = TIER_CONFIG[badge.tier];
 
   // Rotation + aura orbit animation
@@ -190,15 +190,15 @@ function BadgeTrophy({
   });
 
   // Pulsing scale for legendary
-  const legendaryRef = useRef<THREE.Group>(null);
+  const legendaryRef = useRef<Group>(null);
   useFrame((state) => {
     if (!enableAnimations || badge.tier !== 'legendary' || !legendaryRef.current) return;
     const pulse = 1.0 + Math.sin(state.clock.elapsedTime * 2.0) * 0.08;
     legendaryRef.current.scale.setScalar(pulse);
   });
 
-  const badgeColor = useMemo(() => new THREE.Color(labColor), [labColor]);
-  const emissiveColor = useMemo(() => new THREE.Color(config.color), [config.color]);
+  const badgeColor = useMemo(() => new Color(labColor), [labColor]);
+  const emissiveColor = useMemo(() => new Color(config.color), [config.color]);
   const hoverScale = isHovered ? 1.3 : 1.0;
 
   // Clamp segments for budget compliance
@@ -328,7 +328,7 @@ interface EmptySlotProps {
 }
 
 function EmptySlot({ position, labColor }: EmptySlotProps) {
-  const color = useMemo(() => new THREE.Color(labColor).multiplyScalar(0.2), [labColor]);
+  const color = useMemo(() => new Color(labColor).multiplyScalar(0.2), [labColor]);
 
   return (
     <mesh position={position}>
@@ -369,15 +369,15 @@ function LabShelfRow({
   onBadgeHover,
 }: LabShelfRowProps) {
   const labColor = LAB_COLORS[labId] || '#00BBFF';
-  const labColorObj = useMemo(() => new THREE.Color(labColor), [labColor]);
-  const dimLabColor = useMemo(() => new THREE.Color(labColor).multiplyScalar(0.15), [labColor]);
+  const labColorObj = useMemo(() => new Color(labColor), [labColor]);
+  const dimLabColor = useMemo(() => new Color(labColor).multiplyScalar(0.15), [labColor]);
 
   // Slide in from the right with stagger
   const slideX = useMemo(() => {
     const clamped = Math.max(0, Math.min(1, entranceProgress));
     // Ease-out cubic
     const eased = 1 - Math.pow(1 - clamped, 3);
-    return THREE.MathUtils.lerp(3.0, 0, eased);
+    return MathUtils.lerp(3.0, 0, eased);
   }, [entranceProgress]);
 
   const opacity = useMemo(() => {
@@ -471,7 +471,7 @@ export function TrophyShelf3D({
 
   const [hoveredBadgeId, setHoveredBadgeId] = useState<string | null>(null);
   const entranceRef = useRef(0);
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   // Group badges by lab
   const badgesByLab = useMemo(() => groupBadgesByLab(badges), [badges]);
@@ -479,7 +479,7 @@ export function TrophyShelf3D({
   // Entrance animation — driven by useFrame for smooth interpolation
   useFrame((_, delta) => {
     const target = isOpen ? 1.0 : 0.0;
-    entranceRef.current = THREE.MathUtils.lerp(
+    entranceRef.current = MathUtils.lerp(
       entranceRef.current,
       target,
       delta * 3.0
@@ -487,7 +487,7 @@ export function TrophyShelf3D({
 
     // Scale the whole shelf group for open/close
     if (groupRef.current) {
-      const scale = THREE.MathUtils.lerp(0.01, 1.0, Math.max(0, entranceRef.current));
+      const scale = MathUtils.lerp(0.01, 1.0, Math.max(0, entranceRef.current));
       groupRef.current.scale.setScalar(scale);
       groupRef.current.visible = entranceRef.current > 0.01;
     }

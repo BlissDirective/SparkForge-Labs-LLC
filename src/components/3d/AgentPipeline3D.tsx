@@ -22,7 +22,26 @@
 import { useRef, useMemo, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  BoxGeometry,
+  BufferAttribute,
+  BufferGeometry,
+  CanvasTexture,
+  CatmullRomCurve3,
+  Color,
+  CylinderGeometry,
+  Group,
+  Mesh,
+  OctahedronGeometry,
+  PointLight,
+  Points,
+  RepeatWrapping,
+  SphereGeometry,
+  SpotLight,
+  TorusGeometry,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import AgentArchitectEnvironment from './environments/AgentArchitectEnvironment';
 
 // ================================================================
@@ -71,17 +90,17 @@ const PACKET_SIZE = 0.08;
 const PACKET_COUNT = 4;
 
 // Block type -> geometry mapping (Decision 6.2.4)
-const BLOCK_GEOMETRIES: Record<string, () => THREE.BufferGeometry> = {
-  goal: () => new THREE.BoxGeometry(0.7, 0.45, 0.7),
-  search: () => new THREE.CylinderGeometry(0.35, 0.35, 0.45, 16),
-  tool: () => new THREE.CylinderGeometry(0.3, 0.3, 0.55, 6),
-  decide: () => new THREE.OctahedronGeometry(0.38),
-  check: () => new THREE.OctahedronGeometry(0.32),
-  loop: () => new THREE.TorusGeometry(0.28, 0.09, 8, 24),
-  memory: () => new THREE.SphereGeometry(0.32, 16, 12),
-  parallel: () => new THREE.BoxGeometry(0.8, 0.35, 0.4),
-  human: () => new THREE.SphereGeometry(0.3, 16, 12),
-  done: () => new THREE.BoxGeometry(0.55, 0.35, 0.55),
+const BLOCK_GEOMETRIES: Record<string, () => BufferGeometry> = {
+  goal: () => new BoxGeometry(0.7, 0.45, 0.7),
+  search: () => new CylinderGeometry(0.35, 0.35, 0.45, 16),
+  tool: () => new CylinderGeometry(0.3, 0.3, 0.55, 6),
+  decide: () => new OctahedronGeometry(0.38),
+  check: () => new OctahedronGeometry(0.32),
+  loop: () => new TorusGeometry(0.28, 0.09, 8, 24),
+  memory: () => new SphereGeometry(0.32, 16, 12),
+  parallel: () => new BoxGeometry(0.8, 0.35, 0.4),
+  human: () => new SphereGeometry(0.3, 16, 12),
+  done: () => new BoxGeometry(0.55, 0.35, 0.55),
 };
 
 // ================================================================
@@ -91,7 +110,7 @@ const BLOCK_GEOMETRIES: Record<string, () => THREE.BufferGeometry> = {
 function Platform({ onPlatformClick }: {
   onPlatformClick?: (gx: number, gz: number) => void;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   const gridTexture = useMemo(() => {
     const canvas = document.createElement('canvas');
@@ -116,8 +135,8 @@ function Platform({ onPlatformClick }: {
       ctx.stroke();
     }
 
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    const tex = new CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = RepeatWrapping;
     return tex;
   }, []);
 
@@ -165,8 +184,8 @@ function Block3D({
   inPath: boolean;
   onClick?: (id: string) => void;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.PointLight>(null);
+  const meshRef = useRef<Mesh>(null);
+  const glowRef = useRef<PointLight>(null);
 
   const geometry = useMemo(() => {
     const factory = BLOCK_GEOMETRIES[block.typeId] || BLOCK_GEOMETRIES.goal;
@@ -187,7 +206,7 @@ function Block3D({
         glowRef.current.intensity = 2 + Math.sin(Date.now() * 0.008) * 1;
       }
     } else {
-      const target = new THREE.Vector3(1, 1, 1);
+      const target = new Vector3(1, 1, 1);
       meshRef.current.scale.lerp(target, delta * 4);
       if (glowRef.current) {
         glowRef.current.intensity = inPath ? 0.8 : 0;
@@ -208,12 +227,12 @@ function Block3D({
     onClick?.(block.id);
   }, [block.id, onClick]);
 
-  const baseColor = new THREE.Color(block.color);
+  const baseColor = new Color(block.color);
   const emissiveColor = isActive
     ? baseColor.clone().multiplyScalar(0.6)
     : inPath
       ? baseColor.clone().multiplyScalar(0.2)
-      : new THREE.Color(0x000000);
+      : new Color(0x000000);
 
   return (
     <group position={[worldX, BLOCK_Y, worldZ]}>
@@ -333,31 +352,31 @@ function Block3D({
 function TubeConnection({
   from, to, isActive, color,
 }: {
-  from: THREE.Vector3;
-  to: THREE.Vector3;
+  from: Vector3;
+  to: Vector3;
   isActive: boolean;
   color: string;
 }) {
   const tubeGeom = useMemo(() => {
-    const mid = new THREE.Vector3(
+    const mid = new Vector3(
       (from.x + to.x) / 2,
       Math.max(from.y, to.y) + 0.6,
       (from.z + to.z) / 2
     );
-    const curve = new THREE.CatmullRomCurve3([from, mid, to]);
-    return new THREE.TubeGeometry(
+    const curve = new CatmullRomCurve3([from, mid, to]);
+    return new TubeGeometry(
       curve, TUBE_SEGMENTS, TUBE_RADIUS, 6, false
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from.x, from.y, from.z, to.x, to.y, to.z]);
 
-  const baseColor = new THREE.Color(color);
+  const baseColor = new Color(color);
 
   return (
     <mesh geometry={tubeGeom}>
       <meshStandardMaterial
         color={color}
-        emissive={isActive ? baseColor : new THREE.Color(0x000000)}
+        emissive={isActive ? baseColor : new Color(0x000000)}
         emissiveIntensity={isActive ? 1.2 : 0}
         transparent
         opacity={isActive ? 0.9 : 0.3}
@@ -375,20 +394,20 @@ function TubeConnection({
 function DataPackets({
   from, to, active,
 }: {
-  from: THREE.Vector3;
-  to: THREE.Vector3;
+  from: Vector3;
+  to: Vector3;
   active: boolean;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const progressRef = useRef(0);
 
   const curve = useMemo(() => {
-    const mid = new THREE.Vector3(
+    const mid = new Vector3(
       (from.x + to.x) / 2,
       Math.max(from.y, to.y) + 0.6,
       (from.z + to.z) / 2
     );
-    return new THREE.CatmullRomCurve3([from, mid, to]);
+    return new CatmullRomCurve3([from, mid, to]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [from.x, from.y, from.z, to.x, to.y, to.z]);
 
@@ -430,11 +449,11 @@ function DataPackets({
 function ExecutionSpotlight({
   targetPos, active,
 }: {
-  targetPos: THREE.Vector3 | null;
+  targetPos: Vector3 | null;
   active: boolean;
 }) {
-  const lightRef = useRef<THREE.SpotLight>(null);
-  const targetRef = useRef(new THREE.Vector3(0, 0, 0));
+  const lightRef = useRef<SpotLight>(null);
+  const targetRef = useRef(new Vector3(0, 0, 0));
 
   useFrame((_, delta) => {
     if (!lightRef.current || !targetPos) return;
@@ -464,7 +483,7 @@ function ExecutionSpotlight({
 // ================================================================
 
 function PipelineParticles() {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
   const count = 80;
 
   const { positions, velocities } = useMemo(() => {
@@ -484,7 +503,7 @@ function PipelineParticles() {
   useFrame(() => {
     if (!pointsRef.current) return;
     const posAttr = pointsRef.current.geometry.attributes
-      .position as THREE.BufferAttribute;
+      .position as BufferAttribute;
     const arr = posAttr.array as Float32Array;
 
     for (let i = 0; i < count; i++) {
@@ -535,11 +554,11 @@ function PipelineScene({
   onPlatformClick,
 }: PipelineProps) {
   const blockPositions = useMemo(() => {
-    const map: Record<string, THREE.Vector3> = {};
+    const map: Record<string, Vector3> = {};
     blocks.forEach((b) => {
       const wx = b.x * GRID_SIZE - PLATFORM_W / 2 + GRID_SIZE / 2;
       const wz = b.z * GRID_SIZE - PLATFORM_D / 2 + GRID_SIZE / 2;
-      map[b.id] = new THREE.Vector3(wx, BLOCK_Y, wz);
+      map[b.id] = new Vector3(wx, BLOCK_Y, wz);
     });
     return map;
   }, [blocks]);

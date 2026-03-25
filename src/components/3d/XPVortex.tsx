@@ -14,7 +14,7 @@
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { Color, InstancedMesh, Object3D } from 'three';
 
 interface XPVortexProps {
   xpAmount: number;
@@ -30,7 +30,7 @@ export default function XPVortex({
   color = '#00BBFF',
   onComplete,
 }: XPVortexProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const [active, setActive] = useState(true);
 
@@ -54,8 +54,8 @@ export default function XPVortex({
     return data;
   }, []);
 
-  const colorObj = useMemo(() => new THREE.Color(color), [color]);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const colorObj = useMemo(() => new Color(color), [color]);
+  const dummy = useMemo(() => new Object3D(), []);
 
   useFrame((_, delta) => {
     if (!meshRef.current || !active || xpAmount < 20) return;

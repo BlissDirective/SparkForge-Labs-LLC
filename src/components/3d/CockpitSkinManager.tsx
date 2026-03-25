@@ -15,7 +15,20 @@
 import { useRef, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Stars } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  BackSide,
+  BufferAttribute,
+  Color,
+  DoubleSide,
+  FogExp2,
+  Group,
+  HemisphereLight,
+  Mesh,
+  MeshStandardMaterial,
+  Points,
+  ShaderMaterial,
+} from 'three';
 import { useCockpitStore, type CockpitSkin } from '@/stores/cockpitStore';
 import { useDeviceStore } from '@/stores/deviceStore';
 
@@ -267,7 +280,7 @@ interface SkinParticlesProps {
 }
 
 function SkinParticles({ definition, effectiveIntensity, particleCount }: SkinParticlesProps) {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
   const { colors, size, speed, behavior } = definition.particles;
 
   const { positions, particleColors, velocities } = useMemo(() => {
@@ -275,7 +288,7 @@ function SkinParticles({ definition, effectiveIntensity, particleCount }: SkinPa
     const col = new Float32Array(particleCount * 3);
     const vel = new Float32Array(particleCount * 3);
 
-    const parsedColors = colors.map((c) => new THREE.Color(c));
+    const parsedColors = colors.map((c) => new Color(c));
 
     for (let i = 0; i < particleCount; i++) {
       const i3 = i * 3;
@@ -319,7 +332,7 @@ function SkinParticles({ definition, effectiveIntensity, particleCount }: SkinPa
   useFrame((_, delta) => {
     if (!pointsRef.current) return;
     const geo = pointsRef.current.geometry;
-    const posAttr = geo.attributes.position as THREE.BufferAttribute;
+    const posAttr = geo.attributes.position as BufferAttribute;
     const posArray = posAttr.array as Float32Array;
 
     const effectSpeed = speed * effectiveIntensity;
@@ -363,7 +376,7 @@ function SkinParticles({ definition, effectiveIntensity, particleCount }: SkinPa
         opacity={effectiveIntensity * 0.6}
         sizeAttenuation
         depthWrite={false}
-        blending={THREE.AdditiveBlending}
+        blending={AdditiveBlending}
       />
     </points>
   );
@@ -379,22 +392,22 @@ interface CyberpunkBackgroundProps {
 }
 
 function CyberpunkBackground({ intensity, segments }: CyberpunkBackgroundProps) {
-  const gridRef = useRef<THREE.Mesh>(null);
-  const signsRef = useRef<THREE.Group>(null);
+  const gridRef = useRef<Mesh>(null);
+  const signsRef = useRef<Group>(null);
 
   const gridMaterial = useMemo(
     () =>
-      new THREE.ShaderMaterial({
+      new ShaderMaterial({
         vertexShader: NEON_GRID_VERTEX,
         fragmentShader: NEON_GRID_FRAGMENT,
         uniforms: {
           uTime: { value: 0 },
-          uColor1: { value: new THREE.Color('#FF00FF') },
-          uColor2: { value: new THREE.Color('#00FFFF') },
+          uColor1: { value: new Color('#FF00FF') },
+          uColor2: { value: new Color('#00FFFF') },
           uIntensity: { value: intensity },
         },
         transparent: true,
-        side: THREE.DoubleSide,
+        side: DoubleSide,
         depthWrite: false,
       }),
     [] // eslint-disable-line react-hooks/exhaustive-deps
@@ -418,8 +431,8 @@ function CyberpunkBackground({ intensity, segments }: CyberpunkBackgroundProps) 
 
     if (signsRef.current) {
       signsRef.current.children.forEach((child, i) => {
-        const mesh = child as THREE.Mesh;
-        const mat = mesh.material as THREE.MeshStandardMaterial;
+        const mesh = child as Mesh;
+        const mat = mesh.material as MeshStandardMaterial;
         if (mat.emissiveIntensity !== undefined) {
           mat.emissiveIntensity = (0.8 + 0.4 * Math.sin(t * 2 + i * 1.5)) * intensity;
         }
@@ -470,12 +483,12 @@ interface SpaceBackgroundProps {
 }
 
 function SpaceBackground({ intensity, segments }: SpaceBackgroundProps) {
-  const nebulaRef = useRef<THREE.Mesh>(null);
-  const planetRef = useRef<THREE.Group>(null);
+  const nebulaRef = useRef<Mesh>(null);
+  const planetRef = useRef<Group>(null);
 
   const nebulaMaterial = useMemo(
     () =>
-      new THREE.ShaderMaterial({
+      new ShaderMaterial({
         vertexShader: NEBULA_VERTEX,
         fragmentShader: NEBULA_FRAGMENT,
         uniforms: {
@@ -483,7 +496,7 @@ function SpaceBackground({ intensity, segments }: SpaceBackgroundProps) {
           uIntensity: { value: intensity },
         },
         transparent: true,
-        side: THREE.BackSide,
+        side: BackSide,
         depthWrite: false,
       }),
     [] // eslint-disable-line react-hooks/exhaustive-deps
@@ -538,7 +551,7 @@ function SpaceBackground({ intensity, segments }: SpaceBackgroundProps) {
             color="#667799"
             transparent
             opacity={0.4 * intensity}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
             depthWrite={false}
           />
         </mesh>
@@ -557,12 +570,12 @@ interface UnderwaterBackgroundProps {
 }
 
 function UnderwaterBackground({ intensity, segments }: UnderwaterBackgroundProps) {
-  const causticRef = useRef<THREE.Mesh>(null);
-  const kelpGroupRef = useRef<THREE.Group>(null);
+  const causticRef = useRef<Mesh>(null);
+  const kelpGroupRef = useRef<Group>(null);
 
   const causticMaterial = useMemo(
     () =>
-      new THREE.ShaderMaterial({
+      new ShaderMaterial({
         vertexShader: CAUSTIC_VERTEX,
         fragmentShader: CAUSTIC_FRAGMENT,
         uniforms: {
@@ -590,7 +603,7 @@ function UnderwaterBackground({ intensity, segments }: UnderwaterBackgroundProps
     () =>
       kelpClusters.map(
         (k) =>
-          new THREE.ShaderMaterial({
+          new ShaderMaterial({
             vertexShader: KELP_VERTEX,
             fragmentShader: KELP_FRAGMENT,
             uniforms: {
@@ -599,7 +612,7 @@ function UnderwaterBackground({ intensity, segments }: UnderwaterBackgroundProps
               uIntensity: { value: intensity },
             },
             transparent: true,
-            side: THREE.DoubleSide,
+            side: DoubleSide,
             depthWrite: false,
           })
       ),
@@ -664,8 +677,8 @@ interface CrystalBackgroundProps {
 }
 
 function CrystalBackground({ intensity, segments }: CrystalBackgroundProps) {
-  const crystalsRef = useRef<THREE.Group>(null);
-  const beamsRef = useRef<THREE.Group>(null);
+  const crystalsRef = useRef<Group>(null);
+  const beamsRef = useRef<Group>(null);
 
   // Crystal formation data
   const crystals = useMemo(
@@ -700,8 +713,8 @@ function CrystalBackground({ intensity, segments }: CrystalBackgroundProps) {
 
     if (beamsRef.current) {
       beamsRef.current.children.forEach((child, i) => {
-        const mesh = child as THREE.Mesh;
-        const mat = mesh.material as THREE.MeshStandardMaterial;
+        const mesh = child as Mesh;
+        const mat = mesh.material as MeshStandardMaterial;
         if (mat.emissiveIntensity !== undefined) {
           mat.emissiveIntensity = (0.5 + 0.3 * Math.sin(t * 1.5 + i * 2.0)) * intensity;
           mat.opacity = (0.3 + 0.15 * Math.sin(t * 1.5 + i * 2.0)) * intensity;
@@ -755,7 +768,7 @@ function CrystalBackground({ intensity, segments }: CrystalBackgroundProps) {
               transparent
               opacity={0.35 * intensity}
               depthWrite={false}
-              blending={THREE.AdditiveBlending}
+              blending={AdditiveBlending}
             />
           </mesh>
         ))}
@@ -798,21 +811,21 @@ export function CockpitSkinManager({ intensity = 1.0 }: CockpitSkinManagerProps)
   const { scene } = useThree();
 
   // Refs for smooth color transitions
-  const currentSkyColor = useRef(new THREE.Color(SKIN_DEFINITIONS.default.ambient.skyColor));
-  const currentGroundColor = useRef(new THREE.Color(SKIN_DEFINITIONS.default.ambient.groundColor));
-  const currentFogColor = useRef(new THREE.Color(SKIN_DEFINITIONS.default.fog.color));
+  const currentSkyColor = useRef(new Color(SKIN_DEFINITIONS.default.ambient.skyColor));
+  const currentGroundColor = useRef(new Color(SKIN_DEFINITIONS.default.ambient.groundColor));
+  const currentFogColor = useRef(new Color(SKIN_DEFINITIONS.default.fog.color));
   const currentFogDensity = useRef(0);
   const currentHemiIntensity = useRef(SKIN_DEFINITIONS.default.ambient.hemisphereIntensity);
   const prevSkinRef = useRef<CockpitSkin>(cockpitSkin);
   const transitionProgress = useRef(1.0); // 1.0 = fully transitioned
 
   // Light refs
-  const hemiLightRef = useRef<THREE.HemisphereLight>(null);
+  const hemiLightRef = useRef<HemisphereLight>(null);
 
   // Target colors for lerping
-  const targetSkyColor = useRef(new THREE.Color(SKIN_DEFINITIONS.default.ambient.skyColor));
-  const targetGroundColor = useRef(new THREE.Color(SKIN_DEFINITIONS.default.ambient.groundColor));
-  const targetFogColor = useRef(new THREE.Color(SKIN_DEFINITIONS.default.fog.color));
+  const targetSkyColor = useRef(new Color(SKIN_DEFINITIONS.default.ambient.skyColor));
+  const targetGroundColor = useRef(new Color(SKIN_DEFINITIONS.default.ambient.groundColor));
+  const targetFogColor = useRef(new Color(SKIN_DEFINITIONS.default.fog.color));
   const targetFogDensity = useRef(0);
   const targetHemiIntensity = useRef(SKIN_DEFINITIONS.default.ambient.hemisphereIntensity);
 
@@ -872,27 +885,27 @@ export function CockpitSkinManager({ intensity = 1.0 }: CockpitSkinManagerProps)
 
     // Manage fog
     if (currentFogDensity.current > 0.001) {
-      if (!scene.fog || !(scene.fog instanceof THREE.FogExp2)) {
-        scene.fog = new THREE.FogExp2(
+      if (!scene.fog || !(scene.fog instanceof FogExp2)) {
+        scene.fog = new FogExp2(
           currentFogColor.current.getHex(),
           currentFogDensity.current
         );
       } else {
-        (scene.fog as THREE.FogExp2).color.copy(currentFogColor.current);
-        (scene.fog as THREE.FogExp2).density = currentFogDensity.current;
+        (scene.fog as FogExp2).color.copy(currentFogColor.current);
+        (scene.fog as FogExp2).density = currentFogDensity.current;
       }
     } else if (scene.fog) {
       scene.fog = null;
     }
 
     // Update scene background color
-    if (scene.background instanceof THREE.Color) {
+    if (scene.background instanceof Color) {
       scene.background.lerp(
-        new THREE.Color(SKIN_DEFINITIONS[cockpitSkin].ambient.baseColor),
+        new Color(SKIN_DEFINITIONS[cockpitSkin].ambient.baseColor),
         transitionProgress.current < 1 ? smoothstep(transitionProgress.current) : 1
       );
     } else {
-      scene.background = new THREE.Color(SKIN_DEFINITIONS[cockpitSkin].ambient.baseColor);
+      scene.background = new Color(SKIN_DEFINITIONS[cockpitSkin].ambient.baseColor);
     }
   });
 

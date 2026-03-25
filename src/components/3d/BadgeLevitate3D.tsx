@@ -15,7 +15,15 @@
 
 import { useRef, useMemo, useCallback, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Event,
+  MathUtils,
+  Mesh,
+  ShaderMaterial,
+  Vector2,
+} from 'three';
 import type { Rarity } from '@/lib/gamification';
 import { getRarityColor, getRarityVisuals } from '@/lib/gamification';
 import {
@@ -34,9 +42,9 @@ export default function BadgeLevitate3D({
   position = [0, 0, 0],
   badgeName = 'Badge',
 }: BadgeLevitate3DProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const [hovered, setHovered] = useState(false);
-  const rippleCenterRef = useRef(new THREE.Vector2(0.5, 0.5));
+  const rippleCenterRef = useRef(new Vector2(0.5, 0.5));
 
   const isLegendary = rarity === 'legendary';
   const isEpic = rarity === 'epic';
@@ -48,17 +56,17 @@ export default function BadgeLevitate3D({
   const shaderMaterial = useMemo(() => {
     if (!useLiquidMetal) return null;
 
-    return new THREE.ShaderMaterial({
+    return new ShaderMaterial({
       vertexShader: liquidMetalVertexShader,
       fragmentShader: liquidMetalFragmentShader,
       uniforms: {
         uTime: { value: 0 },
         uIntensity: { value: isLegendary ? 1.0 : 0.5 },
-        uColor: { value: new THREE.Color(color) },
-        uRippleCenter: { value: new THREE.Vector2(0.5, 0.5) },
+        uColor: { value: new Color(color) },
+        uRippleCenter: { value: new Vector2(0.5, 0.5) },
         uRippleStrength: { value: 0 },
       },
-      side: THREE.DoubleSide,
+      side: DoubleSide,
     });
   }, [useLiquidMetal, isLegendary, color]);
 
@@ -82,7 +90,7 @@ export default function BadgeLevitate3D({
       shaderMaterial.uniforms.uTime.value += delta;
       shaderMaterial.uniforms.uRippleCenter.value.copy(rippleCenterRef.current);
       // Legendary gets mouse ripple; Epic gets none
-      shaderMaterial.uniforms.uRippleStrength.value = THREE.MathUtils.lerp(
+      shaderMaterial.uniforms.uRippleStrength.value = MathUtils.lerp(
         shaderMaterial.uniforms.uRippleStrength.value,
         hovered && isLegendary ? 1.0 : 0,
         delta * 4
@@ -92,9 +100,9 @@ export default function BadgeLevitate3D({
 
   // Track pointer for legendary ripple
   const handlePointerMove = useCallback(
-    (e: THREE.Event) => {
+    (e: Event) => {
       if (!isLegendary) return;
-      const event = e as THREE.Event & { uv?: THREE.Vector2 };
+      const event = e as Event & { uv?: Vector2 };
       if (event.uv) {
         rippleCenterRef.current.copy(event.uv);
       }

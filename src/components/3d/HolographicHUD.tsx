@@ -23,7 +23,26 @@
 
 import { useRef, useMemo, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BoxGeometry,
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  ExtrudeGeometry,
+  ExtrudeGeometryOptions,
+  Group,
+  InstancedMesh,
+  MathUtils,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  RingGeometry,
+  Shape,
+  SphereGeometry,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 import { Text } from '@react-three/drei';
 import { COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
 
@@ -92,8 +111,8 @@ function createArcShape(
   startAngle: number,
   endAngle: number,
   arcSegments: number,
-): THREE.Shape {
-  const shape = new THREE.Shape();
+): Shape {
+  const shape = new Shape();
   const angleStep = (endAngle - startAngle) / arcSegments;
 
   // Outer arc (forward)
@@ -117,21 +136,21 @@ function createArcShape(
 }
 
 // ■■ Build a TubeGeometry scan beam curve ■■
-function createScanBeamCurve(angle: number, innerR: number, outerR: number): THREE.CatmullRomCurve3 {
-  const points: THREE.Vector3[] = [];
+function createScanBeamCurve(angle: number, innerR: number, outerR: number): CatmullRomCurve3 {
+  const points: Vector3[] = [];
   const steps = 6;
   for (let i = 0; i <= steps; i++) {
     const t = i / steps;
-    const r = THREE.MathUtils.lerp(innerR, outerR, t);
+    const r = MathUtils.lerp(innerR, outerR, t);
     // Slight sinusoidal wobble for visual interest
     const wobble = Math.sin(t * Math.PI) * 0.04;
-    points.push(new THREE.Vector3(
+    points.push(new Vector3(
       Math.cos(angle + wobble) * r,
       Math.sin(angle + wobble) * r,
       t * 0.1 - 0.05, // slight z variation
     ));
   }
-  return new THREE.CatmullRomCurve3(points);
+  return new CatmullRomCurve3(points);
 }
 
 export function HolographicHUD({
@@ -153,31 +172,31 @@ export function HolographicHUD({
   const scanLineCount = cockpitLod.scanLines;
 
   // Refs
-  const ringRefs = useRef<(THREE.Mesh | null)[]>([]);
-  const coreOuterRef = useRef<THREE.Mesh>(null);
-  const coreInnerRef = useRef<THREE.Mesh>(null);
-  const coreCenterRef = useRef<THREE.Mesh>(null);
-  const scanGroupRef = useRef<THREE.Group>(null);
-  const dataArcGroupRef = useRef<THREE.Group>(null);
-  const reticleGroupRef = useRef<THREE.Group>(null);
-  const tickInstancedRef = useRef<THREE.InstancedMesh>(null);
+  const ringRefs = useRef<(Mesh | null)[]>([]);
+  const coreOuterRef = useRef<Mesh>(null);
+  const coreInnerRef = useRef<Mesh>(null);
+  const coreCenterRef = useRef<Mesh>(null);
+  const scanGroupRef = useRef<Group>(null);
+  const dataArcGroupRef = useRef<Group>(null);
+  const reticleGroupRef = useRef<Group>(null);
+  const tickInstancedRef = useRef<InstancedMesh>(null);
   const activeScanRef = useRef(0);
 
-  const hudColor = useMemo(() => new THREE.Color(color), [color]);
-  const _hudColorDim = useMemo(() => new THREE.Color(color).multiplyScalar(0.5), [color]);
+  const hudColor = useMemo(() => new Color(color), [color]);
+  const _hudColorDim = useMemo(() => new Color(color).multiplyScalar(0.5), [color]);
 
   // Ring geometries (LOD-driven segments)
   const ringGeometries = useMemo(() => {
     const activeRings = RING_DEFS.slice(0, ringCount);
     return activeRings.map((ring) =>
-      new THREE.RingGeometry(ring.innerRadius, ring.outerRadius, ringSegments),
+      new RingGeometry(ring.innerRadius, ring.outerRadius, ringSegments),
     );
   }, [ringCount, ringSegments]);
 
   // Data arc geometries (ExtrudeGeometry on arc Shapes)
   const dataArcGeometries = useMemo(() => {
     const arcSegments = Math.max(8, Math.floor(ringSegments / 4));
-    const extrudeSettings: THREE.ExtrudeGeometryOptions = {
+    const extrudeSettings: ExtrudeGeometryOptions = {
       depth: 0.03,
       bevelEnabled: true,
       bevelThickness: 0.005,
@@ -197,7 +216,7 @@ export function HolographicHUD({
         arcSegments,
       );
       return {
-        geometry: new THREE.ExtrudeGeometry(shape, extrudeSettings),
+        geometry: new ExtrudeGeometry(shape, extrudeSettings),
         zOffset: ring.zOffset,
         dataKey: arc.dataKey,
       };
@@ -206,32 +225,32 @@ export function HolographicHUD({
 
   // Volumetric scan beam geometries (TubeGeometry)
   const scanBeamGeometries = useMemo(() => {
-    const beams: THREE.TubeGeometry[] = [];
+    const beams: TubeGeometry[] = [];
     const tubularSegs = Math.max(6, Math.floor(64 / 4));
     for (let i = 0; i < scanLineCount; i++) {
       const angle = (i / scanLineCount) * Math.PI * 2;
       const curve = createScanBeamCurve(angle, 0.9, 5.2);
-      beams.push(new THREE.TubeGeometry(curve, tubularSegs, 0.015, 6, false));
+      beams.push(new TubeGeometry(curve, tubularSegs, 0.015, 6, false));
     }
     return beams;
   }, [scanLineCount, 64]);
 
   // Reticle crosshair geometries (4 line meshes)
   const reticleGeo = useMemo(() => {
-    return new THREE.BoxGeometry(0.02, 1.4, 0.01);
+    return new BoxGeometry(0.02, 1.4, 0.01);
   }, []);
 
   // Tick mark instanced geometry + matrix setup
-  const tickGeometry = useMemo(() => new THREE.BoxGeometry(0.04, 0.12, 0.01), []);
+  const tickGeometry = useMemo(() => new BoxGeometry(0.04, 0.12, 0.01), []);
 
   const tickMatrices = useMemo(() => {
-    const matrices: THREE.Matrix4[] = [];
+    const matrices: Matrix4[] = [];
     const activeRings = RING_DEFS.slice(0, ringCount);
     const ticksPerRing = Math.max(12, Math.floor(ringSegments / 2));
-    const tempMatrix = new THREE.Matrix4();
-    const tempPos = new THREE.Vector3();
-    const tempQuat = new THREE.Quaternion();
-    const tempScale = new THREE.Vector3(1, 1, 1);
+    const tempMatrix = new Matrix4();
+    const tempPos = new Vector3();
+    const tempQuat = new Quaternion();
+    const tempScale = new Vector3(1, 1, 1);
 
     for (let r = 0; r < activeRings.length; r++) {
       const ring = activeRings[r];
@@ -243,7 +262,7 @@ export function HolographicHUD({
           Math.sin(angle) * tickR,
           ring.zOffset,
         );
-        tempQuat.setFromAxisAngle(new THREE.Vector3(0, 0, 1), angle);
+        tempQuat.setFromAxisAngle(new Vector3(0, 0, 1), angle);
         // Every 4th tick is larger
         const isMajor = t % 4 === 0;
         tempScale.set(isMajor ? 1.5 : 1, isMajor ? 1.5 : 1, 1);
@@ -258,7 +277,7 @@ export function HolographicHUD({
 
   // Set instanced mesh matrices on first render
   const tickInstanceCallback = useCallback(
-    (mesh: THREE.InstancedMesh | null) => {
+    (mesh: InstancedMesh | null) => {
       if (!mesh) return;
       tickInstancedRef.current = mesh;
       for (let i = 0; i < tickMatrices.length; i++) {
@@ -271,15 +290,15 @@ export function HolographicHUD({
 
   // Core sphere geometries (multi-layered)
   const coreOuterGeo = useMemo(
-    () => new THREE.SphereGeometry(0.4, 64, 64),
+    () => new SphereGeometry(0.4, 64, 64),
     [64],
   );
   const coreInnerGeo = useMemo(
-    () => new THREE.SphereGeometry(0.25, 64, 64),
+    () => new SphereGeometry(0.25, 64, 64),
     [64],
   );
   const coreCenterGeo = useMemo(
-    () => new THREE.SphereGeometry(0.12, Math.max(8, Math.floor(64 / 2)), Math.max(8, Math.floor(64 / 2))),
+    () => new SphereGeometry(0.12, Math.max(8, Math.floor(64 / 2)), Math.max(8, Math.floor(64 / 2))),
     [64],
   );
 
@@ -304,20 +323,20 @@ export function HolographicHUD({
 
     // Core pulsing (multi-layer)
     if (coreOuterRef.current) {
-      const mat = coreOuterRef.current.material as THREE.MeshStandardMaterial;
+      const mat = coreOuterRef.current.material as MeshStandardMaterial;
       const pulse = Math.sin(t * 4.189) * 0.5 + 0.5;
       mat.emissiveIntensity = pulse * pulseIntensity * 1.5;
       coreOuterRef.current.rotation.y += 0.003;
       coreOuterRef.current.rotation.x += 0.001;
     }
     if (coreInnerRef.current) {
-      const mat = coreInnerRef.current.material as THREE.MeshStandardMaterial;
+      const mat = coreInnerRef.current.material as MeshStandardMaterial;
       const pulse = Math.sin(t * 5.5 + 1.0) * 0.5 + 0.5;
       mat.emissiveIntensity = pulse * pulseIntensity * 2.5;
       coreInnerRef.current.rotation.y -= 0.005;
     }
     if (coreCenterRef.current) {
-      const mat = coreCenterRef.current.material as THREE.MeshStandardMaterial;
+      const mat = coreCenterRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = pulseIntensity * 3.0;
     }
 
@@ -329,7 +348,7 @@ export function HolographicHUD({
         const diff = Math.abs(lineAngle - activeScanRef.current);
         const wrappedDiff = Math.min(diff, Math.PI * 2 - diff);
         const isActive = wrappedDiff < 0.25;
-        const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+        const mat = (child as Mesh).material as MeshStandardMaterial;
         mat.emissiveIntensity = isActive ? 2.0 : 0.25;
         mat.opacity = opacity * (isActive ? 0.8 : 0.4);
       });
@@ -338,7 +357,7 @@ export function HolographicHUD({
     // Data arc breathing
     if (dataArcGroupRef.current) {
       dataArcGroupRef.current.children.forEach((child, i) => {
-        const mat = (child as THREE.Mesh).material as THREE.MeshStandardMaterial;
+        const mat = (child as Mesh).material as MeshStandardMaterial;
         const phase = t * 1.2 + i * 0.7;
         mat.emissiveIntensity = 0.6 + Math.sin(phase) * 0.3;
       });
@@ -370,7 +389,7 @@ export function HolographicHUD({
             emissiveIntensity={ring.emissiveScale}
             transparent
             opacity={opacity * ring.opacityScale}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
             depthWrite={false}
             toneMapped={false}
           />
@@ -391,7 +410,7 @@ export function HolographicHUD({
               emissiveIntensity={0.7}
               transparent
               opacity={opacity * 0.7}
-              side={THREE.DoubleSide}
+              side={DoubleSide}
               depthWrite={false}
               toneMapped={false}
             />
@@ -462,7 +481,7 @@ export function HolographicHUD({
               emissiveIntensity={0.25}
               transparent
               opacity={opacity * 0.4}
-              side={THREE.DoubleSide}
+              side={DoubleSide}
               depthWrite={false}
               toneMapped={false}
             />

@@ -12,7 +12,7 @@
 import { useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
-import * as THREE from 'three';
+import { DoubleSide, MathUtils, Mesh, MeshBasicMaterial } from 'three';
 
 // --- Types ---
 type BlockType = 'event' | 'action' | 'logic' | 'loop' | 'function';
@@ -47,8 +47,8 @@ function Block3D({
   isTracing: boolean;
   totalBlocks: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
 
   const yPos = -index * 0.65;
   const blockWidth = 2.0;
@@ -73,7 +73,7 @@ function Block3D({
 
     // Glow intensity
     if (glowRef.current) {
-      const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+      const mat = glowRef.current.material as MeshBasicMaterial;
       if (isTracing || isActive) {
         mat.opacity = 0.3 + Math.sin(state.clock.elapsedTime * 6) * 0.15;
       } else {
@@ -132,7 +132,7 @@ function Block3D({
           color={color}
           transparent
           opacity={0}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -149,12 +149,12 @@ function TracerLine({
   totalBlocks: number;
   color?: string;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!meshRef.current || tracerY < 0) return;
     const targetY = -tracerY * 0.65;
-    meshRef.current.position.y = THREE.MathUtils.lerp(
+    meshRef.current.position.y = MathUtils.lerp(
       meshRef.current.position.y,
       targetY,
       0.15

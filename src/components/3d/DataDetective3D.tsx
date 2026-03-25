@@ -13,7 +13,15 @@ import { useRef, useMemo, useState, useEffect } from "react";
 import { Canvas, useFrame, invalidate } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import * as THREE from "three";
+import {
+  DoubleSide,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshStandardMaterial,
+  Points,
+  PointsMaterial,
+} from 'three';
 
 // ■■■ Types ■■■
 
@@ -35,12 +43,12 @@ function MagnifyingGlass({
   targetY: number;
   worldColor: string;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
   const currentY = useRef(0);
 
   useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
-    currentY.current = THREE.MathUtils.lerp(
+    currentY.current = MathUtils.lerp(
       currentY.current,
       targetY,
       delta * 3
@@ -68,7 +76,7 @@ function MagnifyingGlass({
           clearcoat={1.0}
           clearcoatRoughness={0}
           ior={1.5}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Rim */}
@@ -98,7 +106,7 @@ function MagnifyingGlass({
           color={worldColor}
           transparent
           opacity={0.15}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -117,7 +125,7 @@ function DeskLamp({ worldColor }: { worldColor: string }) {
           color="#2a2a3e"
           metalness={0.6}
           roughness={0.4}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Lamp arm */}
@@ -153,7 +161,7 @@ function FixParticles({
   position: [number, number, number];
   worldColor: string;
 }) {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
   const velocities = useRef<Float32Array>(new Float32Array(60));
   const lifetimes = useRef<Float32Array>(new Float32Array(20));
 
@@ -198,7 +206,7 @@ function FixParticles({
       pointsRef.current.geometry.attributes.position.needsUpdate = true;
       invalidate();
     }
-    const mat = pointsRef.current.material as THREE.PointsMaterial;
+    const mat = pointsRef.current.material as PointsMaterial;
     mat.opacity = anyAlive ? 0.8 : 0;
   });
 
@@ -241,27 +249,27 @@ function EvidenceCard({
   issueColor: string | null;
   worldColor: string;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const y = 0.8 - index * 0.28;
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
     const targetRotY = isSelected ? Math.PI * 0.05 : 0;
     const targetZ = isSelected ? 0.15 : 0;
-    meshRef.current.rotation.y = THREE.MathUtils.lerp(
+    meshRef.current.rotation.y = MathUtils.lerp(
       meshRef.current.rotation.y,
       targetRotY,
       delta * 4
     );
-    meshRef.current.position.z = THREE.MathUtils.lerp(
+    meshRef.current.position.z = MathUtils.lerp(
       meshRef.current.position.z,
       targetZ,
       delta * 4
     );
-    const mat = meshRef.current.material as THREE.MeshStandardMaterial;
+    const mat = meshRef.current.material as MeshStandardMaterial;
     mat.opacity = isDeleted
-      ? THREE.MathUtils.lerp(mat.opacity, 0.2, delta * 3)
-      : THREE.MathUtils.lerp(mat.opacity, 0.7, delta * 3);
+      ? MathUtils.lerp(mat.opacity, 0.2, delta * 3)
+      : MathUtils.lerp(mat.opacity, 0.7, delta * 3);
     invalidate();
   });
 
@@ -281,7 +289,7 @@ function EvidenceCard({
         emissive={isSelected ? worldColor : "#000000"}
         emissiveIntensity={isSelected ? 0.3 : 0}
         roughness={0.8}
-        side={THREE.DoubleSide}
+        side={DoubleSide}
       />
     </mesh>
   );

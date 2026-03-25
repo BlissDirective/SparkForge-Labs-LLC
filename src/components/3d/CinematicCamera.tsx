@@ -14,7 +14,7 @@
 
 import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import * as THREE from 'three';
+import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import type { CameraTarget } from '@/stores/cockpitStore';
 
 interface CinematicCameraProps {
@@ -31,9 +31,9 @@ export function CinematicCamera({
   reducedMotion = false,
 }: CinematicCameraProps) {
   const { camera } = useThree();
-  const lookAtTarget = useRef(new THREE.Vector3(...target.lookAt));
-  const positionTarget = useRef(new THREE.Vector3(...target.position));
-  const currentLookAt = useRef(new THREE.Vector3(...target.lookAt));
+  const lookAtTarget = useRef(new Vector3(...target.lookAt));
+  const positionTarget = useRef(new Vector3(...target.position));
+  const currentLookAt = useRef(new Vector3(...target.lookAt));
   const driftAngle = useRef(0);
 
   // Update targets when props change
@@ -41,7 +41,7 @@ export function CinematicCamera({
   lookAtTarget.current.set(...target.lookAt);
 
   useFrame((_, delta) => {
-    const cam = camera as THREE.PerspectiveCamera;
+    const cam = camera as PerspectiveCamera;
     const effectiveDamping = reducedMotion ? 0.15 : damping;
     const lerpFactor = 1 - Math.pow(1 - effectiveDamping, delta * 60);
 
@@ -54,7 +54,7 @@ export function CinematicCamera({
 
     // Interpolate FOV
     if (Math.abs(cam.fov - target.fov) > 0.01) {
-      cam.fov = THREE.MathUtils.lerp(cam.fov, target.fov, lerpFactor);
+      cam.fov = MathUtils.lerp(cam.fov, target.fov, lerpFactor);
       cam.updateProjectionMatrix();
     }
 

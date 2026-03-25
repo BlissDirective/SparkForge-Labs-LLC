@@ -21,7 +21,26 @@
 
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  BackSide,
+  BufferGeometry,
+  Color,
+  CylinderGeometry,
+  DoubleSide,
+  ExtrudeGeometry,
+  Group,
+  InstancedMesh,
+  MathUtils,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  RingGeometry,
+  Shape,
+  Side,
+  SphereGeometry,
+  Vector3,
+} from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
 
 // ■■ Props ■■
@@ -74,8 +93,8 @@ function resolveSegments(
 
 // ■■ Hex Shape Generator ■■
 
-function createHexShape(radius: number): THREE.Shape {
-  const shape = new THREE.Shape();
+function createHexShape(radius: number): Shape {
+  const shape = new Shape();
   for (let i = 0; i < 6; i++) {
     const angle = (Math.PI / 3) * i - Math.PI / 6; // flat-top hex
     const x = radius * Math.cos(angle);
@@ -89,11 +108,11 @@ function createHexShape(radius: number): THREE.Shape {
 
 // ■■ Bevel Profile for Panel Edges ■■
 
-function createBeveledPanelShape(width: number, height: number, bevel: number): THREE.Shape {
+function createBeveledPanelShape(width: number, height: number, bevel: number): Shape {
   const hw = width / 2;
   const hh = height / 2;
   const b = bevel;
-  const shape = new THREE.Shape();
+  const shape = new Shape();
 
   shape.moveTo(-hw + b, -hh);
   shape.lineTo(hw - b, -hh);
@@ -112,21 +131,21 @@ function createBeveledPanelShape(width: number, height: number, bevel: number): 
 // Pre-computes all panel geometries based on LOD level
 
 interface PanelGeometries {
-  outerTopGeo: THREE.CylinderGeometry;
-  innerTopGeo: THREE.CylinderGeometry;
-  outerConsoleGeo: THREE.CylinderGeometry;
-  innerConsoleGeo: THREE.CylinderGeometry;
-  leftGeo: THREE.CylinderGeometry;
-  rightGeo: THREE.CylinderGeometry;
-  innerLeftGeo: THREE.CylinderGeometry;
-  innerRightGeo: THREE.CylinderGeometry;
-  hexGeo: THREE.ExtrudeGeometry;
-  hexInsetGeo: THREE.ExtrudeGeometry;
-  needleGeo: THREE.CylinderGeometry;
-  needleDialGeo: THREE.RingGeometry;
-  ribGeo: THREE.CylinderGeometry;
-  rivetGeo: THREE.SphereGeometry;
-  subPanelGeo: THREE.ExtrudeGeometry;
+  outerTopGeo: CylinderGeometry;
+  innerTopGeo: CylinderGeometry;
+  outerConsoleGeo: CylinderGeometry;
+  innerConsoleGeo: CylinderGeometry;
+  leftGeo: CylinderGeometry;
+  rightGeo: CylinderGeometry;
+  innerLeftGeo: CylinderGeometry;
+  innerRightGeo: CylinderGeometry;
+  hexGeo: ExtrudeGeometry;
+  hexInsetGeo: ExtrudeGeometry;
+  needleGeo: CylinderGeometry;
+  needleDialGeo: RingGeometry;
+  ribGeo: CylinderGeometry;
+  rivetGeo: SphereGeometry;
+  subPanelGeo: ExtrudeGeometry;
 }
 
 function buildGeometries(segments: ResolvedSegments): PanelGeometries {
@@ -152,7 +171,7 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
   const sideSegs = segments.sideSegments;
 
   // Outer hull — top bar
-  const outerTopGeo = new THREE.CylinderGeometry(
+  const outerTopGeo = new CylinderGeometry(
     panelRadius, panelRadius,
     topBarHeight * 8,
     mainSegs, 2, true,
@@ -160,7 +179,7 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
   );
 
   // Inner hull — top bar (slightly smaller, darker)
-  const innerTopGeo = new THREE.CylinderGeometry(
+  const innerTopGeo = new CylinderGeometry(
     innerRadius, innerRadius,
     topBarHeight * 8 - 0.04,
     Math.max(mainSegs / 2, 16), 1, true,
@@ -168,7 +187,7 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
   );
 
   // Outer hull — console desk
-  const outerConsoleGeo = new THREE.CylinderGeometry(
+  const outerConsoleGeo = new CylinderGeometry(
     panelRadius * 0.95, panelRadius * 0.95,
     consoleDeskHeight * 8,
     mainSegs, 2, true,
@@ -176,7 +195,7 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
   );
 
   // Inner hull — console desk
-  const innerConsoleGeo = new THREE.CylinderGeometry(
+  const innerConsoleGeo = new CylinderGeometry(
     (panelRadius - innerRadiusOffset) * 0.95,
     (panelRadius - innerRadiusOffset) * 0.95,
     consoleDeskHeight * 8 - 0.04,
@@ -185,24 +204,24 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
   );
 
   // Side panels — outer
-  const leftGeo = new THREE.CylinderGeometry(
+  const leftGeo = new CylinderGeometry(
     panelRadius, panelRadius,
     3.5, sideSegs, 2, true,
     -arcRad / 2, sideArc
   );
-  const rightGeo = new THREE.CylinderGeometry(
+  const rightGeo = new CylinderGeometry(
     panelRadius, panelRadius,
     3.5, sideSegs, 2, true,
     sideArcStart, sideArc
   );
 
   // Side panels — inner
-  const innerLeftGeo = new THREE.CylinderGeometry(
+  const innerLeftGeo = new CylinderGeometry(
     innerRadius, innerRadius,
     3.4, Math.max(sideSegs / 2, 8), 1, true,
     -arcRad / 2, sideArc
   );
-  const innerRightGeo = new THREE.CylinderGeometry(
+  const innerRightGeo = new CylinderGeometry(
     innerRadius, innerRadius,
     3.4, Math.max(sideSegs / 2, 8), 1, true,
     sideArcStart, sideArc
@@ -210,43 +229,43 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
 
   // Hex outer shell with bevel
   const hexShape = createHexShape(hexRadius);
-  const hexGeo = new THREE.ExtrudeGeometry(hexShape, {
+  const hexGeo = new ExtrudeGeometry(hexShape, {
     depth: hexDepth,
     ...BEVEL_SETTINGS,
   });
 
   // Hex inner inset (gauge face)
   const hexInsetShape = createHexShape(hexRadius * 0.75);
-  const hexInsetGeo = new THREE.ExtrudeGeometry(hexInsetShape, {
+  const hexInsetGeo = new ExtrudeGeometry(hexInsetShape, {
     depth: hexDepth * 0.5,
     bevelEnabled: false,
   });
 
   // Gauge needle (thin tapered cylinder)
-  const needleGeo = new THREE.CylinderGeometry(
+  const needleGeo = new CylinderGeometry(
     0.003, 0.012, hexRadius * 0.6, 6
   );
 
   // Gauge dial ring
-  const needleDialGeo = new THREE.RingGeometry(
+  const needleDialGeo = new RingGeometry(
     hexRadius * 0.55, hexRadius * 0.62,
     segments.hexDetail ? 24 : 12
   );
 
   // Structural ribs (spars between top bar and console desk)
-  const ribGeo = new THREE.CylinderGeometry(
+  const ribGeo = new CylinderGeometry(
     0.02, 0.025, 6.2,
     segments.structuralDetail ? 12 : 6
   );
 
   // Rivet geometry (shared by instanced mesh)
-  const rivetGeo = new THREE.SphereGeometry(
+  const rivetGeo = new SphereGeometry(
     0.015, 6, 4
   );
 
   // Animated sub-panel (beveled rectangle)
   const subPanelShape = createBeveledPanelShape(0.5, 0.3, panelEdgeBevel * 3);
-  const subPanelGeo = new THREE.ExtrudeGeometry(subPanelShape, {
+  const subPanelGeo = new ExtrudeGeometry(subPanelShape, {
     depth: 0.015,
     ...BEVEL_SETTINGS,
   });
@@ -269,10 +288,10 @@ function buildRivetMatrices(
   panelRadius: number,
   arcRad: number
 ): Float32Array {
-  const matrix = new THREE.Matrix4();
-  const position = new THREE.Vector3();
-  const quaternion = new THREE.Quaternion();
-  const scale = new THREE.Vector3(1, 1, 1);
+  const matrix = new Matrix4();
+  const position = new Vector3();
+  const quaternion = new Quaternion();
+  const scale = new Vector3(1, 1, 1);
   const arr = new Float32Array(count * 16);
 
   for (let i = 0; i < count; i++) {
@@ -294,7 +313,7 @@ function buildRivetMatrices(
 
     // Orient rivet outward (normal to hull)
     quaternion.setFromAxisAngle(
-      new THREE.Vector3(0, 1, 0),
+      new Vector3(0, 1, 0),
       angle
     );
 
@@ -313,11 +332,11 @@ function buildRivetMatrices(
 
 interface HexClusterProps {
   side: 'left' | 'right';
-  hexGeo: THREE.ExtrudeGeometry;
-  hexInsetGeo: THREE.ExtrudeGeometry;
-  needleGeo: THREE.CylinderGeometry;
-  needleDialGeo: THREE.RingGeometry;
-  labColorObj: THREE.Color;
+  hexGeo: ExtrudeGeometry;
+  hexInsetGeo: ExtrudeGeometry;
+  needleGeo: CylinderGeometry;
+  needleDialGeo: RingGeometry;
+  labColorObj: Color;
   opacity: number;
   hexRadius: number;
   hexDepth: number;
@@ -338,7 +357,7 @@ function HexCluster({
   showSubPanels,
   showDetail,
 }: HexClusterProps) {
-  const needleRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const needleRefs = useRef<(Mesh | null)[]>([]);
   const mirror = side === 'left' ? -1 : 1;
 
   // Animate gauge needles
@@ -379,7 +398,7 @@ function HexCluster({
               roughness={0.35}
               transparent
               opacity={opacity}
-              side={THREE.DoubleSide}
+              side={DoubleSide}
             />
           </mesh>
 
@@ -456,7 +475,7 @@ function HexCluster({
 // ■■ Structural Ribs Component ■■
 
 interface StructuralRibsProps {
-  ribGeo: THREE.CylinderGeometry;
+  ribGeo: CylinderGeometry;
   opacity: number;
   arcRad: number;
   panelRadius: number;
@@ -502,14 +521,14 @@ function StructuralRibs({ ribGeo, opacity, arcRad, panelRadius }: StructuralRibs
 // ■■ Instanced Rivets Component ■■
 
 interface InstancedRivetsProps {
-  rivetGeo: THREE.SphereGeometry;
+  rivetGeo: SphereGeometry;
   opacity: number;
   panelRadius: number;
   arcRad: number;
 }
 
 function InstancedRivets({ rivetGeo, opacity, panelRadius, arcRad }: InstancedRivetsProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const matrices = useMemo(
     () => buildRivetMatrices(RIVET_COUNT, panelRadius, arcRad),
@@ -521,7 +540,7 @@ function InstancedRivets({ rivetGeo, opacity, panelRadius, arcRad }: InstancedRi
     const mesh = meshRef.current;
     if (!mesh) return;
 
-    const mat4 = new THREE.Matrix4();
+    const mat4 = new Matrix4();
     for (let i = 0; i < RIVET_COUNT; i++) {
       mat4.fromArray(matrices, i * 16);
       mesh.setMatrixAt(i, mat4);
@@ -549,9 +568,9 @@ function InstancedRivets({ rivetGeo, opacity, panelRadius, arcRad }: InstancedRi
 // ■■ Animated Sub-Panels Component ■■
 
 interface AnimatedSubPanelsProps {
-  subPanelGeo: THREE.ExtrudeGeometry;
+  subPanelGeo: ExtrudeGeometry;
   opacity: number;
-  labColorObj: THREE.Color;
+  labColorObj: Color;
   panelRadius: number;
   arcRad: number;
 }
@@ -565,7 +584,7 @@ function AnimatedSubPanels({
   panelRadius,
   arcRad,
 }: AnimatedSubPanelsProps) {
-  const panelRefs = useRef<(THREE.Group | null)[]>([]);
+  const panelRefs = useRef<(Group | null)[]>([]);
 
   const panelData = useMemo(() => {
     const panels: { angle: number; y: number; speed: number; phase: number }[] = [];
@@ -648,9 +667,9 @@ export function CockpitPanels({
   labColor,
   frameDimmed,
 }: CockpitPanelsProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const panelMatRef = useRef<THREE.MeshStandardMaterial>(null);
-  const hexEmissiveRef = useRef<THREE.MeshStandardMaterial>(null);
+  const groupRef = useRef<Group>(null);
+  const panelMatRef = useRef<MeshStandardMaterial>(null);
+  const hexEmissiveRef = useRef<MeshStandardMaterial>(null);
   const targetCurvature = useRef(curvature);
   const currentCurvature = useRef(curvature);
 
@@ -677,8 +696,8 @@ export function CockpitPanels({
     // Dispose previous geometries immediately on dependency change
     if (prevGeometriesRef.current) {
       Object.values(prevGeometriesRef.current).forEach((geo: unknown) => {
-        if (geo && typeof (geo as THREE.BufferGeometry).dispose === 'function') {
-          (geo as THREE.BufferGeometry).dispose();
+        if (geo && typeof (geo as BufferGeometry).dispose === 'function') {
+          (geo as BufferGeometry).dispose();
         }
       });
     }
@@ -692,8 +711,8 @@ export function CockpitPanels({
     return () => {
       if (prevGeometriesRef.current) {
         Object.values(prevGeometriesRef.current).forEach((geo: unknown) => {
-          if (geo && typeof (geo as THREE.BufferGeometry).dispose === 'function') {
-            (geo as THREE.BufferGeometry).dispose();
+          if (geo && typeof (geo as BufferGeometry).dispose === 'function') {
+            (geo as BufferGeometry).dispose();
           }
         });
         prevGeometriesRef.current = null;
@@ -704,7 +723,7 @@ export function CockpitPanels({
   // Animate curvature transitions + material updates
   useFrame(({ clock }) => {
     // Lerp curvature
-    currentCurvature.current = THREE.MathUtils.lerp(
+    currentCurvature.current = MathUtils.lerp(
       currentCurvature.current,
       targetCurvature.current,
       0.05
@@ -728,7 +747,7 @@ export function CockpitPanels({
     }
   });
 
-  const labColorObj = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
   // Shared material props
   const outerPanelMaterial = useMemo(
@@ -738,7 +757,7 @@ export function CockpitPanels({
       roughness: 0.35,
       transparent: true as const,
       opacity,
-      side: THREE.DoubleSide as THREE.Side,
+      side: DoubleSide as Side,
       depthWrite: false,
     }),
     [opacity]
@@ -751,7 +770,7 @@ export function CockpitPanels({
       roughness: 0.5,
       transparent: true as const,
       opacity: opacity * 0.85,
-      side: THREE.BackSide as THREE.Side,
+      side: BackSide as Side,
       depthWrite: false,
     }),
     [opacity]
@@ -828,7 +847,7 @@ export function CockpitPanels({
           roughness={0.6}
           transparent
           opacity={opacity}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
           depthWrite={false}
         />
       </mesh>
@@ -845,7 +864,7 @@ export function CockpitPanels({
           roughness={0.7}
           transparent
           opacity={opacity * 0.8}
-          side={THREE.BackSide}
+          side={BackSide}
           depthWrite={false}
         />
       </mesh>

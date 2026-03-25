@@ -12,12 +12,12 @@ import { useRef, useMemo, Suspense } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { AdditiveBlending, BufferAttribute, Group, Points } from 'three';
 
 // ■■ Inner 3D Scene ■■
 function CrystalText() {
-  const groupRef = useRef<THREE.Group>(null);
-  const sparklesRef = useRef<THREE.Points>(null);
+  const groupRef = useRef<Group>(null);
+  const sparklesRef = useRef<Points>(null);
   const { pointer } = useThree();
 
   // Generate sparkle positions
@@ -51,7 +51,7 @@ function CrystalText() {
         arr[i * 3] +=
           Math.cos(clock.elapsedTime * 0.5 + i * 0.3) * 0.001;
       }
-      (posAttr as THREE.BufferAttribute).needsUpdate = true;
+      (posAttr as BufferAttribute).needsUpdate = true;
     }
   });
 
@@ -89,7 +89,7 @@ function CrystalText() {
           opacity={0.4}
           sizeAttenuation
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
         />
       </points>
 

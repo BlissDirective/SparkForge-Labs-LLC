@@ -12,7 +12,16 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  BackSide,
+  Color,
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  ShaderMaterial,
+} from 'three';
 
 // ■■ Props ■■
 interface VolumetricFog3DProps {
@@ -137,14 +146,14 @@ export function VolumetricFog3D({
 }: VolumetricFog3DProps) {
 
   // Refs for animated elements
-  const fogGroupRef = useRef<THREE.Group>(null);
-  const fogMeshRefs = useRef<(THREE.Mesh | null)[]>([]);
-  const godRayRefs = useRef<(THREE.Mesh | null)[]>([]);
-  const densityMatRefs = useRef<(THREE.ShaderMaterial | null)[]>([]);
+  const fogGroupRef = useRef<Group>(null);
+  const fogMeshRefs = useRef<(Mesh | null)[]>([]);
+  const godRayRefs = useRef<(Mesh | null)[]>([]);
+  const densityMatRefs = useRef<(ShaderMaterial | null)[]>([]);
 
   // Track current color for smooth lerp
-  const currentColorRef = useRef(new THREE.Color(labColor));
-  const targetColor = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const currentColorRef = useRef(new Color(labColor));
+  const targetColor = useMemo(() => new Color(labColor), [labColor]);
 
   // D3D-1: Desktop-ultra hardcoded segments
   const sphereSegments = 24;
@@ -169,11 +178,11 @@ export function VolumetricFog3D({
   // Fog volume materials (created once, updated in frame loop)
   const fogMaterials = useMemo(() =>
     FOG_VOLUMES.map((vol) =>
-      new THREE.MeshBasicMaterial({
+      new MeshBasicMaterial({
         color: currentColorRef.current.clone(),
         transparent: true,
         opacity: vol.baseOpacity * density * opacity,
-        side: THREE.BackSide,
+        side: BackSide,
         depthWrite: false,
       })
     ),
@@ -184,13 +193,13 @@ export function VolumetricFog3D({
   // God ray materials
   const godRayMaterials = useMemo(() =>
     GOD_RAYS.map(() =>
-      new THREE.MeshBasicMaterial({
+      new MeshBasicMaterial({
         color: currentColorRef.current.clone(),
         transparent: true,
         opacity: 0.06 * density * opacity,
-        blending: THREE.AdditiveBlending,
+        blending: AdditiveBlending,
         depthWrite: false,
-        side: THREE.DoubleSide,
+        side: DoubleSide,
       })
     ),
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -297,7 +306,7 @@ export function VolumetricFog3D({
             uniforms={densityUniforms[i]}
             transparent
             depthWrite={false}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
           />
         </mesh>
       ))}

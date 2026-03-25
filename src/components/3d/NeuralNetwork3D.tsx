@@ -25,7 +25,7 @@ import { useRef, useMemo } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { Color, Mesh, Vector3 } from 'three';
 import NeuralBuilderEnvironment from './environments/NeuralBuilderEnvironment';
 
 // ================================================================
@@ -73,12 +73,12 @@ interface NeuralNetwork3DProps {
 // COLOR HELPERS
 // ================================================================
 
-const COLD_COLOR = new THREE.Color('#3b82f6'); // Blue
-const HOT_COLOR = new THREE.Color('#f97316');  // Orange
-const SPARK_COLOR = new THREE.Color('#fbbf24'); // Amber
+const COLD_COLOR = new Color('#3b82f6'); // Blue
+const HOT_COLOR = new Color('#f97316');  // Orange
+const SPARK_COLOR = new Color('#fbbf24'); // Amber
 
-function activationColor(activation: number): THREE.Color {
-  const c = new THREE.Color();
+function activationColor(activation: number): Color {
+  const c = new Color();
   c.lerpColors(COLD_COLOR, HOT_COLOR, Math.max(0, Math.min(1, activation)));
   return c;
 }
@@ -133,7 +133,7 @@ function NeuronSphere({
   onHover: (id: string | null) => void;
   onClick: (id: string) => void;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const segments = 20;
   const radius = 0.15;
 
@@ -159,7 +159,7 @@ function NeuronSphere({
     if (!meshRef.current) return;
     const targetScale = isInspected ? 1.4 : 1.0 + effectiveActivation * 0.15;
     meshRef.current.scale.lerp(
-      new THREE.Vector3(targetScale, targetScale, targetScale),
+      new Vector3(targetScale, targetScale, targetScale),
       0.1
     );
   });
@@ -219,7 +219,7 @@ function ConnectionLine({
   const opacity = isSelected ? 1.0 : 0.3 + Math.abs(connection.weight) * 0.5;
 
   // Spark flash at midpoint
-  const sparkRef = useRef<THREE.Mesh>(null);
+  const sparkRef = useRef<Mesh>(null);
   const midpoint: [number, number, number] = [
     (from[0] + to[0]) / 2,
     (from[1] + to[1]) / 2,

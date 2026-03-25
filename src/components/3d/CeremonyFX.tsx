@@ -14,7 +14,18 @@
 
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  Color,
+  DoubleSide,
+  Euler,
+  Group,
+  InstancedMesh,
+  Matrix4,
+  Mesh,
+  MeshStandardMaterial,
+  Quaternion,
+  Vector3,
+} from 'three';
 
 // ■■ Props ■■
 export interface CeremonyFXProps {
@@ -45,12 +56,12 @@ const CEREMONY_CONFIG: Record<
 };
 
 // ■■ Shared scratch objects (avoid per-frame allocation) ■■
-const _matrix = new THREE.Matrix4();
-const _position = new THREE.Vector3();
-const _quaternion = new THREE.Quaternion();
-const _scale = new THREE.Vector3();
-const _euler = new THREE.Euler();
-const _color = new THREE.Color();
+const _matrix = new Matrix4();
+const _position = new Vector3();
+const _quaternion = new Quaternion();
+const _scale = new Vector3();
+const _euler = new Euler();
+const _color = new Color();
 
 // ════════════════════════════════════════════════════
 // Sub-component: Confetti Burst
@@ -60,7 +71,7 @@ interface ConfettiData {
   velocities: Float32Array;
   rotations: Float32Array;
   rotSpeeds: Float32Array;
-  colors: THREE.Color[];
+  colors: Color[];
 }
 
 function ConfettiBurst({
@@ -72,14 +83,14 @@ function ConfettiBurst({
   count: number;
   labColor: string;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const data = useMemo<ConfettiData>(() => {
     const positions = new Float32Array(count * 3);
     const velocities = new Float32Array(count * 3);
     const rotations = new Float32Array(count * 3);
     const rotSpeeds = new Float32Array(count * 3);
-    const colors: THREE.Color[] = [];
+    const colors: Color[] = [];
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
@@ -105,7 +116,7 @@ function ConfettiBurst({
 
       // Mix lab color with confetti palette
       const palette = i % 3 === 0 ? labColor : CONFETTI_COLORS[i % CONFETTI_COLORS.length];
-      colors.push(new THREE.Color(palette));
+      colors.push(new Color(palette));
     }
 
     return { positions, velocities, rotations, rotSpeeds, colors };
@@ -155,10 +166,10 @@ function ConfettiBurst({
 // Sub-component: Firework Bursts
 // ════════════════════════════════════════════════════
 interface BurstData {
-  center: THREE.Vector3;
+  center: Vector3;
   delay: number;
   directions: Float32Array;
-  color: THREE.Color;
+  color: Color;
 }
 
 function FireworkBursts({
@@ -170,13 +181,13 @@ function FireworkBursts({
   particlesPerBurst: number;
   labColor: string;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const bursts = useMemo<BurstData[]>(() => {
     const burstCenters: BurstData[] = [
-      { center: new THREE.Vector3(-1.5, 2.5, 0), delay: 0.0, directions: new Float32Array(0), color: new THREE.Color(labColor) },
-      { center: new THREE.Vector3(1.0, 3.0, -0.5), delay: 0.6, directions: new Float32Array(0), color: new THREE.Color('#AA66FF') },
-      { center: new THREE.Vector3(0, 3.5, 0.5), delay: 1.2, directions: new Float32Array(0), color: new THREE.Color('#FF6644') },
+      { center: new Vector3(-1.5, 2.5, 0), delay: 0.0, directions: new Float32Array(0), color: new Color(labColor) },
+      { center: new Vector3(1.0, 3.0, -0.5), delay: 0.6, directions: new Float32Array(0), color: new Color('#AA66FF') },
+      { center: new Vector3(0, 3.5, 0.5), delay: 1.2, directions: new Float32Array(0), color: new Color('#FF6644') },
     ];
 
     for (const burst of burstCenters) {
@@ -249,7 +260,7 @@ function FireworkBursts({
 // Sub-component: Trophy Popup
 // ════════════════════════════════════════════════════
 function TrophyPopup({ elapsed }: { elapsed: number }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   useFrame(() => {
     const group = groupRef.current;
@@ -298,19 +309,19 @@ function TrophyPopup({ elapsed }: { elapsed: number }) {
 // Sub-component: HUD Ring Expansion
 // ════════════════════════════════════════════════════
 function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) {
-  const ringsRef = useRef<THREE.Group>(null);
+  const ringsRef = useRef<Group>(null);
   const ringCount = 3;
 
   const materials = useMemo(
     () =>
       Array.from({ length: ringCount }, (_, _i) =>
-        new THREE.MeshStandardMaterial({
+        new MeshStandardMaterial({
           color: labColor,
           emissive: labColor,
           emissiveIntensity: 0.6,
           transparent: true,
           opacity: 1,
-          side: THREE.DoubleSide,
+          side: DoubleSide,
           depthWrite: false,
         })
       ),
@@ -322,7 +333,7 @@ function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) 
     if (!group) return;
 
     for (let i = 0; i < ringCount; i++) {
-      const ring = group.children[i] as THREE.Mesh;
+      const ring = group.children[i] as Mesh;
       if (!ring) continue;
 
       const delay = i * 0.3;
@@ -370,7 +381,7 @@ function ParticleShower({
   count: number;
   labColor: string;
 }) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
+  const meshRef = useRef<InstancedMesh>(null);
 
   const data = useMemo(() => {
     const xPositions = new Float32Array(count);
@@ -378,7 +389,7 @@ function ParticleShower({
     const speeds = new Float32Array(count);
     const offsets = new Float32Array(count);
     const shimmerPhases = new Float32Array(count);
-    const particleColor = new THREE.Color(labColor);
+    const particleColor = new Color(labColor);
 
     for (let i = 0; i < count; i++) {
       xPositions[i] = (Math.random() - 0.5) * 6;

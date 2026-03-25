@@ -2,7 +2,7 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Color, InstancedMesh, Object3D, Vector3 } from 'three';
 
 interface LoginParticles3DProps {
   count?: number;
@@ -15,12 +15,12 @@ export default function LoginParticles3D({
   color = '#AA66FF',
   spread = 8,
 }: LoginParticles3DProps) {
-  const meshRef = useRef<THREE.InstancedMesh>(null);
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const meshRef = useRef<InstancedMesh>(null);
+  const dummy = useMemo(() => new Object3D(), []);
 
   const particles = useMemo(() => {
     return Array.from({ length: count }, () => ({
-      position: new THREE.Vector3(
+      position: new Vector3(
         (Math.random() - 0.5) * spread * 2,
         (Math.random() - 0.5) * spread * 2,
         (Math.random() - 0.5) * spread - 3,
@@ -50,7 +50,7 @@ export default function LoginParticles3D({
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  const particleColor = useMemo(() => new THREE.Color(color), [color]);
+  const particleColor = useMemo(() => new Color(color), [color]);
 
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]}>

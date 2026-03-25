@@ -12,7 +12,18 @@ import { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  DoubleSide,
+  Float32BufferAttribute,
+  Group,
+  Line,
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  Points,
+  Vector3,
+} from 'three';
 
 // ---- Types ----
 
@@ -49,8 +60,8 @@ function FloorGrid({ size, color }: { size: number; color: string }) {
       // Vertical
       pts.push(i, 0.01, 0, i, 0.01, size);
     }
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const geom = new BufferGeometry();
+    geom.setAttribute('position', new Float32BufferAttribute(pts, 3));
     return geom;
   }, [size]);
 
@@ -106,7 +117,7 @@ function DustParticles({
   dirtPositions: [number, number][];
   cleaned: Set<string>;
 }) {
-  const ref = useRef<THREE.Points>(null);
+  const ref = useRef<Points>(null);
 
   const { posArray, colArray } = useMemo(() => {
     const pos: number[] = [];
@@ -165,8 +176,8 @@ function VacuumRobot({
   dir: number;
   running: boolean;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const glowRef = useRef<Mesh>(null);
 
   // Direction to rotation (0=right, 1=down, 2=left, 3=up)
   const rotations = [0, -Math.PI / 2, Math.PI, Math.PI / 2];
@@ -176,19 +187,19 @@ function VacuumRobot({
     // Smooth position lerp
     const tx = pos[1] + 0.5;
     const tz = pos[0] + 0.5;
-    groupRef.current.position.x = THREE.MathUtils.lerp(
+    groupRef.current.position.x = MathUtils.lerp(
       groupRef.current.position.x, tx, 0.15
     );
-    groupRef.current.position.z = THREE.MathUtils.lerp(
+    groupRef.current.position.z = MathUtils.lerp(
       groupRef.current.position.z, tz, 0.15
     );
     // Smooth rotation
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(
+    groupRef.current.rotation.y = MathUtils.lerp(
       groupRef.current.rotation.y, rotations[dir], 0.15
     );
     // Glow pulse when running
     if (glowRef.current) {
-      const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+      const mat = glowRef.current.material as MeshBasicMaterial;
       mat.opacity = running
         ? 0.3 + Math.sin(state.clock.elapsedTime * 6) * 0.15
         : 0.1;
@@ -220,7 +231,7 @@ function VacuumRobot({
           color="#10B981"
           transparent
           opacity={0.1}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -230,15 +241,15 @@ function VacuumRobot({
 // ---- Trail Line ----
 
 function TrailLine({ trail }: { trail: string[] }) {
-  const ref = useRef<THREE.Line>(null);
+  const ref = useRef<Line>(null);
 
   useEffect(() => {
     if (!ref.current || trail.length < 2) return;
     const pts = trail.map((key) => {
       const [r, c] = key.split(',').map(Number);
-      return new THREE.Vector3(c + 0.5, 0.05, r + 0.5);
+      return new Vector3(c + 0.5, 0.05, r + 0.5);
     });
-    const geom = new THREE.BufferGeometry().setFromPoints(pts);
+    const geom = new BufferGeometry().setFromPoints(pts);
     ref.current.geometry.dispose();
     ref.current.geometry = geom;
   }, [trail]);
@@ -255,7 +266,7 @@ function TrailLine({ trail }: { trail: string[] }) {
 // ---- Charger Marker ----
 
 function ChargerMarker({ pos }: { pos: [number, number] }) {
-  const ref = useRef<THREE.Mesh>(null);
+  const ref = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!ref.current) return;

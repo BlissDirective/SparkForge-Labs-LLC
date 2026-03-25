@@ -30,7 +30,7 @@ import {
 import { BlendFunction } from 'postprocessing';
 import { BarrelDistortion } from './BarrelDistortion';
 import { useSceneStore } from '@/stores/sceneStore';
-import * as THREE from 'three';
+import { Vector2 } from 'three';
 
 interface PostProcessingStackProps {
   // Bloom
@@ -94,7 +94,7 @@ export function PostProcessingStack({
   }, [activeScene, isTransitioning]);
 
   // Chromatic aberration offset vector (Critical Fix #3: useRef to avoid Vector2 allocation on transition toggles)
-  const chromaticOffsetRef = useRef(new THREE.Vector2());
+  const chromaticOffsetRef = useRef(new Vector2());
   chromaticOffsetRef.current.set(
     chromaticOffset * sceneMultipliers.chromatic,
     chromaticOffset * sceneMultipliers.chromatic * 0.8

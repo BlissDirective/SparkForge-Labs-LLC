@@ -17,7 +17,16 @@
 
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import {
+  AdditiveBlending,
+  BackSide,
+  Color,
+  Group,
+  InstancedMesh,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
+} from 'three';
 
 // ■■ Props ■■
 interface WormholeTransitionProps {
@@ -79,26 +88,26 @@ export function WormholeTransition({
   const speedLineCount = Math.round(120 * 1.0);
 
   // Refs
-  const groupRef = useRef<THREE.Group>(null);
-  const tunnelRef = useRef<THREE.Mesh>(null);
-  const wallLayer1Ref = useRef<THREE.Mesh>(null);
-  const wallLayer2Ref = useRef<THREE.Mesh>(null);
-  const wallLayer3Ref = useRef<THREE.Mesh>(null);
-  const entryRingRef = useRef<THREE.Mesh>(null);
-  const exitRingRef = useRef<THREE.Mesh>(null);
-  const speedLinesRef = useRef<THREE.InstancedMesh>(null);
-  const destinationRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const tunnelRef = useRef<Mesh>(null);
+  const wallLayer1Ref = useRef<Mesh>(null);
+  const wallLayer2Ref = useRef<Mesh>(null);
+  const wallLayer3Ref = useRef<Mesh>(null);
+  const entryRingRef = useRef<Mesh>(null);
+  const exitRingRef = useRef<Mesh>(null);
+  const speedLinesRef = useRef<InstancedMesh>(null);
+  const destinationRef = useRef<Mesh>(null);
 
   // State
   const [elapsed, setElapsed] = useState(0);
   const completedRef = useRef(false);
 
   // Memoized data
-  const color = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const color = useMemo(() => new Color(labColor), [labColor]);
   const speedLineData = useMemo(() => generateSpeedLines(speedLineCount), [speedLineCount]);
 
   // Dummy matrix for instanced mesh updates
-  const dummy = useMemo(() => new THREE.Object3D(), []);
+  const dummy = useMemo(() => new Object3D(), []);
 
   // Reset when becoming active
   const wasActive = useRef(false);
@@ -136,7 +145,7 @@ export function WormholeTransition({
     if (entryRingRef.current) {
       const scale = easeOut(entryPhase);
       entryRingRef.current.scale.setScalar(scale);
-      const mat = entryRingRef.current.material as THREE.MeshBasicMaterial;
+      const mat = entryRingRef.current.material as MeshBasicMaterial;
       mat.opacity = scale * 0.9;
     }
 
@@ -144,13 +153,13 @@ export function WormholeTransition({
     if (exitRingRef.current) {
       const scale = easeOut(exitPhase);
       exitRingRef.current.scale.setScalar(scale);
-      const mat = exitRingRef.current.material as THREE.MeshBasicMaterial;
+      const mat = exitRingRef.current.material as MeshBasicMaterial;
       mat.opacity = scale * 0.9;
     }
 
     // ── Tunnel ──
     if (tunnelRef.current) {
-      const mat = tunnelRef.current.material as THREE.MeshBasicMaterial;
+      const mat = tunnelRef.current.material as MeshBasicMaterial;
       mat.opacity = tunnelAlpha * 0.3;
     }
 
@@ -160,14 +169,14 @@ export function WormholeTransition({
     walls.forEach((wall, i) => {
       if (!wall) return;
       wall.rotation.z += rotSpeeds[i] * delta;
-      const mat = wall.material as THREE.MeshBasicMaterial;
+      const mat = wall.material as MeshBasicMaterial;
       mat.opacity = tunnelAlpha * (0.08 + i * 0.03);
     });
 
     // ── Speed Lines (InstancedMesh) ──
     if (speedLinesRef.current) {
       const alpha = speedPhase > 0 ? 0.6 : 0;
-      (speedLinesRef.current.material as THREE.MeshBasicMaterial).opacity = alpha;
+      (speedLinesRef.current.material as MeshBasicMaterial).opacity = alpha;
 
       for (let i = 0; i < speedLineData.length; i++) {
         const line = speedLineData[i];
@@ -191,7 +200,7 @@ export function WormholeTransition({
     if (destinationRef.current) {
       const radius = destPhase * DESTINATION_SPHERE_MAX_RADIUS;
       destinationRef.current.scale.setScalar(radius);
-      const mat = destinationRef.current.material as THREE.MeshBasicMaterial;
+      const mat = destinationRef.current.material as MeshBasicMaterial;
       mat.opacity = destPhase * 0.8;
     }
 
@@ -226,11 +235,11 @@ export function WormholeTransition({
         />
         <meshBasicMaterial
           color={color}
-          side={THREE.BackSide}
+          side={BackSide}
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </mesh>
@@ -253,11 +262,11 @@ export function WormholeTransition({
         />
         <meshBasicMaterial
           color={color}
-          side={THREE.BackSide}
+          side={BackSide}
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </mesh>
@@ -280,11 +289,11 @@ export function WormholeTransition({
         />
         <meshBasicMaterial
           color={color}
-          side={THREE.BackSide}
+          side={BackSide}
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </mesh>
@@ -307,11 +316,11 @@ export function WormholeTransition({
         />
         <meshBasicMaterial
           color={color}
-          side={THREE.BackSide}
+          side={BackSide}
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </mesh>
@@ -331,7 +340,7 @@ export function WormholeTransition({
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </mesh>
@@ -351,7 +360,7 @@ export function WormholeTransition({
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </mesh>
@@ -377,7 +386,7 @@ export function WormholeTransition({
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </instancedMesh>
@@ -396,7 +405,7 @@ export function WormholeTransition({
           transparent
           opacity={0}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={AdditiveBlending}
           toneMapped={false}
         />
       </mesh>

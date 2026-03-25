@@ -11,7 +11,7 @@
 import { useRef, useState, useMemo, useCallback } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { ContactShadows, OrthographicCamera } from '@react-three/drei';
-import * as THREE from 'three';
+import { Group, MathUtils, Vector3 } from 'three';
 
 // ■■■ Types ■■■
 
@@ -44,17 +44,17 @@ interface SortScene3DProps {
 // ■■■ Parabolic Arc Helper ■■■
 // Parametric arc from start to end with peak height
 function getArcPosition(
-  start: THREE.Vector3,
-  end: THREE.Vector3,
+  start: Vector3,
+  end: Vector3,
   t: number,
   peakHeight: number = 2.5
-): THREE.Vector3 {
-  const x = THREE.MathUtils.lerp(start.x, end.x, t);
-  const z = THREE.MathUtils.lerp(start.z, end.z, t);
+): Vector3 {
+  const x = MathUtils.lerp(start.x, end.x, t);
+  const z = MathUtils.lerp(start.z, end.z, t);
   // Parabolic y = peak * 4t(1-t) + lerp(startY, endY, t)
-  const baseY = THREE.MathUtils.lerp(start.y, end.y, t);
+  const baseY = MathUtils.lerp(start.y, end.y, t);
   const arcY = peakHeight * 4 * t * (1 - t);
-  return new THREE.Vector3(x, baseY + arcY, z);
+  return new Vector3(x, baseY + arcY, z);
 }
 
 // ■■■ Shape Mesh Component ■■■
@@ -115,15 +115,15 @@ function ThrowableItem({
   item: SortItem;
   isSelected: boolean;
   isFlying: boolean;
-  flyTarget: THREE.Vector3 | null;
+  flyTarget: Vector3 | null;
   onSelect: () => void;
   onLanded: (correct: boolean) => void;
 }) {
-  const meshRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<Group>(null);
   const flyProgress = useRef(0);
-  const startPos = useRef(new THREE.Vector3(...item.position));
+  const startPos = useRef(new Vector3(...item.position));
   const rotSpeed = useRef(
-    new THREE.Vector3(
+    new Vector3(
       Math.random() * 8 - 4,
       Math.random() * 8 - 4,
       Math.random() * 4 - 2
@@ -196,7 +196,7 @@ function SortBin({
   isHighlighted: boolean;
   onClick: () => void;
 }) {
-  const meshRef = useRef<THREE.Group>(null);
+  const meshRef = useRef<Group>(null);
 
   useFrame(() => {
     if (!meshRef.current) return;
@@ -297,7 +297,7 @@ function Scene({
   onSelectItem,
 }: SortScene3DProps) {
   const [flyingItems, setFlyingItems] = useState<
-    Map<string, { target: THREE.Vector3; binId: number }>
+    Map<string, { target: Vector3; binId: number }>
   >(new Map());
 
   const handleBinClick = useCallback(
@@ -314,7 +314,7 @@ function Scene({
       setFlyingItems((prev) => {
         const next = new Map(prev);
         next.set(activeItemId, {
-          target: new THREE.Vector3(...bin.position),
+          target: new Vector3(...bin.position),
           binId,
         });
         return next;

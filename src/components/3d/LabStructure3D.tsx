@@ -24,7 +24,24 @@
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
-import * as THREE from 'three';
+import {
+  BackSide,
+  BufferGeometry,
+  CanvasTexture,
+  CatmullRomCurve3,
+  Color,
+  DoubleSide,
+  Float32BufferAttribute,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  NormalBlending,
+  Shape,
+  ShapeGeometry,
+  TubeGeometry,
+  Vector3,
+} from 'three';
 
 // ■■ Props Interface (unchanged) ■■
 interface LabStructureProps {
@@ -52,7 +69,7 @@ function getEmissiveIntensity(isFocused: boolean, isHovered: boolean): number {
 function useChromeMaterialProps(color: string, isFocused: boolean, isHovered: boolean) {
   return useMemo(() => ({
     color,
-    emissive: new THREE.Color(color),
+    emissive: new Color(color),
     emissiveIntensity: getEmissiveIntensity(isFocused, isHovered),
     metalness: 0.8,
     roughness: 0.2,
@@ -69,13 +86,13 @@ function ContactShadow({
   isHovered: boolean;
   isFocused: boolean;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const scale = useRef(1);
 
   useFrame((_, delta) => {
     if (!meshRef.current) return;
     const target = isFocused ? 1.5 : isHovered ? 1.25 : 1.0;
-    scale.current = THREE.MathUtils.lerp(scale.current, target, delta * 5);
+    scale.current = MathUtils.lerp(scale.current, target, delta * 5);
     meshRef.current.scale.set(scale.current * 1.2, scale.current, 1);
   });
 
@@ -94,7 +111,7 @@ function ContactShadow({
     gradient.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, size, size);
-    const tex = new THREE.CanvasTexture(canvas);
+    const tex = new CanvasTexture(canvas);
     tex.needsUpdate = true;
     return tex;
   }, []);
@@ -111,7 +128,7 @@ function ContactShadow({
         transparent
         opacity={0.6}
         depthWrite={false}
-        blending={THREE.NormalBlending}
+        blending={NormalBlending}
       />
     </mesh>
   );
@@ -131,11 +148,11 @@ function Lab1Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-  const ring3Ref = useRef<THREE.Mesh>(null);
-  const wireRef = useRef<THREE.Mesh>(null);
-  const satellitesRef = useRef<THREE.Group>(null);
+  const ring1Ref = useRef<Mesh>(null);
+  const ring2Ref = useRef<Mesh>(null);
+  const ring3Ref = useRef<Mesh>(null);
+  const wireRef = useRef<Mesh>(null);
+  const satellitesRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
   const detail = Math.min(Math.floor(seg / 8), 4);
@@ -238,10 +255,10 @@ function Lab2Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
-  const ring3Ref = useRef<THREE.Mesh>(null);
-  const conveyorRef = useRef<THREE.Group>(null);
+  const ring1Ref = useRef<Mesh>(null);
+  const ring2Ref = useRef<Mesh>(null);
+  const ring3Ref = useRef<Mesh>(null);
+  const conveyorRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
   const tubSeg = 64;
@@ -312,7 +329,7 @@ function Lab3Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const neuronsRef = useRef<THREE.Group>(null);
+  const neuronsRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
   const neuronCount = 20;
@@ -373,10 +390,10 @@ function Lab3Structure({
         neuronPositions[next][0], neuronPositions[next][1], neuronPositions[next][2]
       );
     }
-    const geo = new THREE.BufferGeometry();
+    const geo = new BufferGeometry();
     geo.setAttribute(
       'position',
-      new THREE.Float32BufferAttribute(points, 3)
+      new Float32BufferAttribute(points, 3)
     );
     return geo;
   }, [neuronPositions]);
@@ -403,7 +420,7 @@ function Lab3Structure({
             <sphereGeometry args={[0.06, Math.max(seg, 8), Math.max(seg, 8)]} />
             <meshPhysicalMaterial
               color={color}
-              emissive={new THREE.Color(color)}
+              emissive={new Color(color)}
               emissiveIntensity={getEmissiveIntensity(isFocused, isHovered) * 0.8}
               metalness={0.6}
               roughness={0.3}
@@ -435,8 +452,8 @@ function Lab4Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const paletteRef = useRef<THREE.Group>(null);
-  const shardsRef = useRef<THREE.Group>(null);
+  const paletteRef = useRef<Group>(null);
+  const shardsRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
   const paletteColors = useMemo(() => ['#FF6644', '#FFAA44', '#00FF88', '#00BBFF', '#AA66FF', '#FF66AA', '#FF66AA', '#06B6D4', '#D946EF', '#818CF8'], []);
@@ -511,7 +528,7 @@ function Lab5Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const gearsRef = useRef<(THREE.Group | null)[]>([]);
+  const gearsRef = useRef<(Group | null)[]>([]);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
 
@@ -588,7 +605,7 @@ function Lab6Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const beamRef = useRef<THREE.Group>(null);
+  const beamRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
 
@@ -677,8 +694,8 @@ function Lab7Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const lensRef = useRef<THREE.Group>(null);
-  const apertureRef = useRef<THREE.Group>(null);
+  const lensRef = useRef<Group>(null);
+  const apertureRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
 
@@ -758,15 +775,15 @@ function Lab8Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const particlesRef = useRef<THREE.Group>(null);
-  const wavesRef = useRef<THREE.Group>(null);
+  const particlesRef = useRef<Group>(null);
+  const wavesRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
 
   const tailGeometry = useMemo(() => {
-    const shape = new THREE.Shape();
+    const shape = new Shape();
     shape.moveTo(0, 0); shape.lineTo(-0.1, -0.22); shape.lineTo(0.07, -0.14); shape.closePath();
-    return new THREE.ShapeGeometry(shape);
+    return new ShapeGeometry(shape);
   }, []);
 
   const textParticles = useMemo(() => {
@@ -789,7 +806,7 @@ function Lab8Structure({
       wavesRef.current.children.forEach((ring, i) => {
         const scale = 1.0 + Math.sin(t * 2 + i * 0.8) * 0.15;
         ring.scale.setScalar(scale);
-        (ring as THREE.Mesh).material && ((ring as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity !== undefined && ((ring as THREE.Mesh).material as THREE.MeshBasicMaterial).opacity;
+        (ring as Mesh).material && ((ring as Mesh).material as MeshBasicMaterial).opacity !== undefined && ((ring as Mesh).material as MeshBasicMaterial).opacity;
       });
     }
   });
@@ -803,7 +820,7 @@ function Lab8Structure({
       </mesh>
       {/* Tail */}
       <mesh geometry={tailGeometry} position={[-0.12, -0.35, 0.01]}>
-        <meshPhysicalMaterial {...chromeProps} side={THREE.DoubleSide} />
+        <meshPhysicalMaterial {...chromeProps} side={DoubleSide} />
       </mesh>
       {/* Projector base cylinder */}
       <mesh position={[0, -0.45, 0]}>
@@ -846,8 +863,8 @@ function Lab9Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const circuitRef = useRef<THREE.Group>(null);
-  const ledsRef = useRef<THREE.Group>(null);
+  const circuitRef = useRef<Group>(null);
+  const ledsRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const _seg = 64;
   const tubSeg = 64;
@@ -863,8 +880,8 @@ function Lab9Structure({
       [[0.15, -0.05, 0.22], [0.3, -0.15, 0.15], [0.4, -0.3, 0.05], [0.35, -0.4, -0.1]],
     ];
     return routeDefs.map((route) => {
-      const curve = new THREE.CatmullRomCurve3(route.map((p) => new THREE.Vector3(...p)));
-      return new THREE.TubeGeometry(curve, Math.max(tubSeg, 16), 0.014, 6, false);
+      const curve = new CatmullRomCurve3(route.map((p) => new Vector3(...p)));
+      return new TubeGeometry(curve, Math.max(tubSeg, 16), 0.014, 6, false);
     });
   }, [tubSeg]);
 
@@ -873,7 +890,7 @@ function Lab9Structure({
     if (circuitRef.current) { circuitRef.current.rotation.y = t * 0.12; }
     if (ledsRef.current) {
       ledsRef.current.children.forEach((led, i) => {
-        const mat = (led as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        const mat = (led as Mesh).material as MeshBasicMaterial;
         if (mat) mat.opacity = 0.4 + Math.sin(t * 3 + i * 1.2) * 0.4;
       });
     }
@@ -947,9 +964,9 @@ function Lab10Structure({
   isFocused: boolean;
   isHovered: boolean;
 }) {
-  const rocketRef = useRef<THREE.Group>(null);
-  const exhaustRef = useRef<THREE.Group>(null);
-  const solarsRef = useRef<THREE.Group>(null);
+  const rocketRef = useRef<Group>(null);
+  const exhaustRef = useRef<Group>(null);
+  const solarsRef = useRef<Group>(null);
   const chromeProps = useChromeMaterialProps(color, isFocused, isHovered);
   const seg = 64;
 
@@ -971,7 +988,7 @@ function Lab10Structure({
         const p = exhaustParticles[i]; if (!p) return;
         const cycle = ((t * p.speed + i * 0.5) % 1.0);
         child.position.y = -0.45 - cycle * 0.35; child.position.x = p.offset[0]; child.position.z = p.offset[2];
-        const mat = (child as THREE.Mesh).material as THREE.MeshBasicMaterial;
+        const mat = (child as Mesh).material as MeshBasicMaterial;
         if (mat) mat.opacity = (1 - cycle) * 0.6;
         child.scale.setScalar(1 - cycle * 0.6);
       });
@@ -1032,7 +1049,7 @@ function Lab10Structure({
         return (
           <mesh key={`fin-${i}`} position={[Math.sin(rad) * 0.14, -0.15, Math.cos(rad) * 0.14]} rotation={[0, -rad, -0.25]}>
             <boxGeometry args={[0.16, 0.2, 0.012]} />
-            <meshPhysicalMaterial {...chromeProps} side={THREE.DoubleSide} />
+            <meshPhysicalMaterial {...chromeProps} side={DoubleSide} />
           </mesh>
         );
       })}
@@ -1097,7 +1114,7 @@ function LabModel({
         <sphereGeometry args={[0.35, 64, 64]} />
         <meshStandardMaterial
           color={color}
-          emissive={new THREE.Color(color)}
+          emissive={new Color(color)}
           emissiveIntensity={getEmissiveIntensity(isFocused, isHovered)}
           metalness={0.8}
           roughness={0.2}
@@ -1123,12 +1140,12 @@ export function LabStructure3D({
   onPointerEnter,
   onPointerLeave,
 }: LabStructureProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const glowRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
   const [hoverScale] = useState({ current: 1 });
 
-  const threeColor = useMemo(() => new THREE.Color(color), [color]);
+  const threeColor = useMemo(() => new Color(color), [color]);
 
   // Animate scale, glow, and completion ring
   useFrame((_, delta) => {
@@ -1136,7 +1153,7 @@ export function LabStructure3D({
 
     // Scale spring toward target
     const targetScale = isFocused ? 1.4 : isHovered ? 1.15 : 1.0;
-    hoverScale.current = THREE.MathUtils.lerp(
+    hoverScale.current = MathUtils.lerp(
       hoverScale.current,
       targetScale,
       delta * 6
@@ -1147,7 +1164,7 @@ export function LabStructure3D({
     if (glowRef.current) {
       const pulse = Math.sin(Date.now() * 0.003 + labId) * 0.1 + 0.9;
       glowRef.current.scale.setScalar(hoverScale.current * 1.3 * pulse);
-      const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+      const mat = glowRef.current.material as MeshBasicMaterial;
       mat.opacity = (isFocused ? 0.3 : isHovered ? 0.2 : 0.1) * pulse;
     }
 
@@ -1181,7 +1198,7 @@ export function LabStructure3D({
           color={color}
           transparent
           opacity={0.1}
-          side={THREE.BackSide}
+          side={BackSide}
         />
       </mesh>
 

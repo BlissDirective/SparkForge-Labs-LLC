@@ -13,7 +13,18 @@ import { useRef, useMemo, useEffect } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
 import { Environment } from "@react-three/drei";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
-import * as THREE from "three";
+import {
+  BufferAttribute,
+  BufferGeometry,
+  DoubleSide,
+  Group,
+  Line,
+  LineBasicMaterial,
+  MathUtils,
+  Mesh,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+} from 'three';
 
 // ---- Types ----
 
@@ -47,8 +58,8 @@ function PhoneFrame({
   themeColor: string;
   isPreview: boolean;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const screenRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const screenRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -60,7 +71,7 @@ function PhoneFrame({
     if (isPreview) {
       groupRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.4) * 0.15;
     } else {
-      groupRef.current.rotation.y = THREE.MathUtils.lerp(
+      groupRef.current.rotation.y = MathUtils.lerp(
         groupRef.current.rotation.y,
         0,
         0.05
@@ -69,7 +80,7 @@ function PhoneFrame({
 
     // Screen emissive pulse
     if (screenRef.current) {
-      const mat = screenRef.current.material as THREE.MeshStandardMaterial;
+      const mat = screenRef.current.material as MeshStandardMaterial;
       mat.emissiveIntensity = isPreview
         ? 0.3 + Math.sin(state.clock.elapsedTime * 2) * 0.1
         : 0.1 + buildProgress * 0.2;
@@ -154,8 +165,8 @@ function PowerOrbMesh({
   index: number;
   total: number;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!meshRef.current) return;
@@ -170,7 +181,7 @@ function PowerOrbMesh({
 
     // Glow pulse
     if (glowRef.current) {
-      const mat = glowRef.current.material as THREE.MeshBasicMaterial;
+      const mat = glowRef.current.material as MeshBasicMaterial;
       mat.opacity = 0.15 + Math.sin(t * 2 + index) * 0.08;
     }
   });
@@ -199,7 +210,7 @@ function PowerOrbMesh({
           color={color}
           transparent
           opacity={0.15}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
     </group>
@@ -215,16 +226,16 @@ function ConnectionLine({ start, color }: { start: [number, number, number]; col
       start[0], start[1], start[2],
       0, 0, 0.1,
     ]);
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute("position", new THREE.BufferAttribute(pts, 3));
-    const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.2 });
-    return new THREE.Line(geom, mat);
+    const geom = new BufferGeometry();
+    geom.setAttribute("position", new BufferAttribute(pts, 3));
+    const mat = new LineBasicMaterial({ color, transparent: true, opacity: 0.2 });
+    return new Line(geom, mat);
   }, [start, color]);
 
   useEffect(() => {
     return () => {
       lineObj.geometry.dispose();
-      (lineObj.material as THREE.LineBasicMaterial).dispose();
+      (lineObj.material as LineBasicMaterial).dispose();
     };
   }, [lineObj]);
 
@@ -285,7 +296,7 @@ function HolographicPreview({
   themeColor: string;
   innovationScore: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
+  const groupRef = useRef<Group>(null);
 
   useFrame((state) => {
     if (!groupRef.current) return;
@@ -310,7 +321,7 @@ function HolographicPreview({
           transmission={0.3}
           clearcoat={1.0}
           clearcoatRoughness={0.1}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
 
@@ -340,7 +351,7 @@ function HolographicPreview({
 // ---- Base Platform ----
 
 function BasePlatform({ themeColor }: { themeColor: string }) {
-  const ringRef = useRef<THREE.Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
 
   useFrame((state) => {
     if (!ringRef.current) return;

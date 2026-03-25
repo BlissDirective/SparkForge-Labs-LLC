@@ -12,14 +12,14 @@ import { useRef, Suspense, useState, useEffect } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import { Mesh, MeshPhysicalMaterial } from 'three';
 
 interface CrystalMeshProps {
   step: number; // 0-3
 }
 
 function CrystalMesh({ step }: CrystalMeshProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const meshRef = useRef<Mesh>(null);
   const [targetScale, setTargetScale] = useState(0);
   const currentScale = useRef(0);
 
@@ -56,7 +56,7 @@ function CrystalMesh({ step }: CrystalMeshProps) {
       Math.sin(clock.elapsedTime * 0.5) * 0.1;
 
     // Emissive pulse on step 3
-    const mat = meshRef.current.material as THREE.MeshPhysicalMaterial;
+    const mat = meshRef.current.material as MeshPhysicalMaterial;
     if (step >= 3) {
       mat.emissiveIntensity =
         0.5 + Math.sin(clock.elapsedTime * 3) * 0.3;

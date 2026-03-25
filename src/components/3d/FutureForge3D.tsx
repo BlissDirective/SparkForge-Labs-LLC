@@ -13,7 +13,17 @@ import { useRef, useMemo } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import * as THREE from 'three';
+import {
+  BufferGeometry,
+  DoubleSide,
+  Float32BufferAttribute,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  Vector3,
+} from 'three';
 
 // ---- Types ----
 
@@ -48,8 +58,8 @@ function BlueprintTable() {
       const z = (j / zCount) * d - d / 2;
       pts.push(-w / 2, 0.06, z, w / 2, 0.06, z);
     }
-    const geom = new THREE.BufferGeometry();
-    geom.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+    const geom = new BufferGeometry();
+    geom.setAttribute('position', new Float32BufferAttribute(pts, 3));
     return geom;
   }, []);
 
@@ -81,8 +91,8 @@ function SkillOrb({
   isSelected: boolean;
   totalSkills: number;
 }) {
-  const ref = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.Mesh>(null);
+  const ref = useRef<Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
 
   // Arrange in arc above table
   const angle = (index / (totalSkills - 1 || 1)) * Math.PI - Math.PI / 2;
@@ -97,7 +107,7 @@ function SkillOrb({
     ref.current.position.y =
       baseY + Math.sin(state.clock.elapsedTime * 1.5 + index * 0.7) * 0.08;
 
-    const mat = ref.current.material as THREE.MeshStandardMaterial;
+    const mat = ref.current.material as MeshStandardMaterial;
     mat.emissiveIntensity = isSelected
       ? 0.5 + Math.sin(state.clock.elapsedTime * 3) * 0.2
       : 0.05;
@@ -105,7 +115,7 @@ function SkillOrb({
 
     // Glow ring
     if (glowRef.current) {
-      const gMat = glowRef.current.material as THREE.MeshBasicMaterial;
+      const gMat = glowRef.current.material as MeshBasicMaterial;
       gMat.opacity = isSelected
         ? 0.3 + Math.sin(state.clock.elapsedTime * 4 + index) * 0.1
         : 0;
@@ -133,7 +143,7 @@ function SkillOrb({
           color="#D946EF"
           transparent
           opacity={0}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Emoji label */}
@@ -161,10 +171,10 @@ function HolographicPatent({
   inventionName: string;
   innovationScore: number;
 }) {
-  const groupRef = useRef<THREE.Group>(null);
-  const planeRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const planeRef = useRef<Mesh>(null);
   // Pre-allocate to avoid per-frame GC pressure
-  const _targetScale = useMemo(() => new THREE.Vector3(), []);
+  const _targetScale = useMemo(() => new Vector3(), []);
 
   useFrame((state, delta) => {
     if (!groupRef.current) return;
@@ -176,7 +186,7 @@ function HolographicPatent({
     groupRef.current.scale.lerp(_targetScale, delta * 3);
     // Holographic shimmer
     if (planeRef.current) {
-      const mat = planeRef.current.material as THREE.MeshPhysicalMaterial;
+      const mat = planeRef.current.material as MeshPhysicalMaterial;
       mat.emissiveIntensity = visible
         ? 0.2 + Math.sin(state.clock.elapsedTime * 2) * 0.1
         : 0;
@@ -197,7 +207,7 @@ function HolographicPatent({
           transmission={0.3}
           clearcoat={1.0}
           roughness={0.1}
-          side={THREE.DoubleSide}
+          side={DoubleSide}
         />
       </mesh>
       {/* Title */}
@@ -241,7 +251,7 @@ function HolographicPatent({
 // ---- Problem Display ----
 
 function ProblemDisplay({ emoji, visible }: { emoji: string; visible: boolean }) {
-  const ref = useRef<THREE.Group>(null);
+  const ref = useRef<Group>(null);
 
   useFrame((state) => {
     if (!ref.current) return;

@@ -3,7 +3,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, Sparkles, Ring } from '@react-three/drei';
-import * as THREE from 'three';
+import { Color, Mesh, PointLight } from 'three';
 
 interface LoginPortal3DProps {
   portalColor?: string;
@@ -16,13 +16,13 @@ export default function LoginPortal3D({
   intensity = 1.0,
   isHovered = false,
 }: LoginPortal3DProps) {
-  const portalRef = useRef<THREE.Mesh>(null);
-  const ringRef = useRef<THREE.Mesh>(null);
-  const innerRingRef = useRef<THREE.Mesh>(null);
-  const glowRef = useRef<THREE.PointLight>(null);
+  const portalRef = useRef<Mesh>(null);
+  const ringRef = useRef<Mesh>(null);
+  const innerRingRef = useRef<Mesh>(null);
+  const glowRef = useRef<PointLight>(null);
 
-  const portalColorObj = useMemo(() => new THREE.Color(portalColor), [portalColor]);
-  const secondaryColor = useMemo(() => new THREE.Color('#00BBFF'), []);
+  const portalColorObj = useMemo(() => new Color(portalColor), [portalColor]);
+  const secondaryColor = useMemo(() => new Color('#00BBFF'), []);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;
