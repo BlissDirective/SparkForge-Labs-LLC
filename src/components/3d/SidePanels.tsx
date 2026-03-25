@@ -14,7 +14,7 @@
 //
 
 
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, RoundedBox } from '@react-three/drei';
 import {
@@ -22,6 +22,7 @@ import {
   Color,
   Group,
   InstancedMesh,
+  MathUtils,
   Mesh,
   MeshStandardMaterial,
   Object3D,
@@ -320,6 +321,18 @@ function RadarPanel({
   const blipRefs = useRef<Mesh[]>([]);
   const ringGroupRef = useRef<Group>(null);
 
+  // ─── Hover feedback (Audit Section 2, Finding C) ───
+  const hoverProgressRef = useRef(0);
+  const isHoveredRef = useRef(false);
+  const handlePointerEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    document.body.style.cursor = 'pointer';
+  }, []);
+  const handlePointerLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    document.body.style.cursor = 'default';
+  }, []);
+
   // Radar sweep geometry (line from center outward)
   const _sweepGeom = useMemo(() => {
     const points = [new Vector3(0, 0, 0), new Vector3(0.95, 0, 0)];
@@ -352,7 +365,7 @@ function RadarPanel({
     };
   }, [blipGeo, blipMat]);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
     const t = clock.elapsedTime;
 
     // Rotate sweep arm
@@ -360,15 +373,27 @@ function RadarPanel({
       sweepRef.current.rotation.z = t * 1.5;
     }
 
-    // Update shared blip material dynamic properties
-    blipMat.emissiveIntensity = 0.9 * intensity;
-    blipMat.opacity = opacity * 0.85 * intensity;
+    // Hover glow progress (smooth 0→1)
+    const hoverTarget = isHoveredRef.current ? 1 : 0;
+    hoverProgressRef.current = MathUtils.lerp(
+      hoverProgressRef.current,
+      hoverTarget,
+      0.08 * delta * 60
+    );
+    const hp = hoverProgressRef.current;
 
-    // Pulse blips
+    // Update shared blip material with smooth opacity + hover emissive boost
+    const targetEmissive = (0.9 + hp * 0.25) * intensity;
+    const targetOpacity = opacity * 0.85 * intensity;
+    blipMat.emissiveIntensity = MathUtils.lerp(blipMat.emissiveIntensity, targetEmissive, 0.08);
+    blipMat.opacity = MathUtils.lerp(blipMat.opacity, targetOpacity, 0.08);
+
+    // Pulse blips (+ hover scale boost)
     blipRefs.current.forEach((blip, i) => {
       if (!blip) return;
       const pulse = 0.8 + Math.sin(t * 2.5 + i * 0.7) * 0.2;
-      blip.scale.setScalar(pulse);
+      const hoverBoost = 1 + hp * 0.08;
+      blip.scale.setScalar(pulse * hoverBoost);
     });
 
     // Subtle ring pulse
@@ -380,7 +405,10 @@ function RadarPanel({
   return (
     <group>
       {/* Panel body — BoxGeometry with physical depth */}
-      <mesh>
+      <mesh
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+      >
         <boxGeometry args={[PANEL_WIDTH, PANEL_HEIGHT, PANEL_DEPTH]} />
         <meshStandardMaterial
           color={PANEL_FACE_COLOR}
@@ -586,6 +614,18 @@ function TerminalPanel({
   const barsRef = useRef<InstancedMesh>(null);
   const graphBarsRef = useRef<InstancedMesh>(null);
 
+  // ─── Hover feedback (Audit Section 2, Finding C) ───
+  const hoverProgressRef = useRef(0);
+  const isHoveredRef = useRef(false);
+  const handlePointerEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    document.body.style.cursor = 'pointer';
+  }, []);
+  const handlePointerLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    document.body.style.cursor = 'default';
+  }, []);
+
   const intensity = dimmed ? 0.15 : 1.0;
 
   // Instanced bar count scaled by LOD
@@ -600,7 +640,15 @@ function TerminalPanel({
   const rowHeight = (PANEL_HEIGHT * 0.5) / DATA_ROW_COUNT;
 
   // Update instanced bars each frame (scrolling effect)
-  useFrame(({ clock }) => {
+  useFrame(({ clock }, delta) => {
+    // Hover glow progress
+    const hoverTarget = isHoveredRef.current ? 1 : 0;
+    hoverProgressRef.current = MathUtils.lerp(
+      hoverProgressRef.current,
+      hoverTarget,
+      0.08 * delta * 60
+    );
+
     if (!barsRef.current) return;
     const t = clock.elapsedTime;
 
@@ -627,9 +675,9 @@ function TerminalPanel({
       _tempObject.updateMatrix();
       barsRef.current.setMatrixAt(i, _tempObject.matrix);
 
-      // Color: lab color with brightness variation
+      // Color: lab color with brightness variation + hover boost
       const brightness = 0.3 + Math.abs(Math.sin(t * 0.8 + i * 0.02)) * 0.7;
-      _tempColor.copy(labColor).multiplyScalar(brightness * intensity);
+      _tempColor.copy(labColor).multiplyScalar(brightness * intensity * (1 + hoverProgressRef.current * 0.25));
       barsRef.current.setColorAt(i, _tempColor);
     }
 
@@ -667,7 +715,10 @@ function TerminalPanel({
   return (
     <group>
       {/* Panel body — BoxGeometry with physical depth */}
-      <mesh>
+      <mesh
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+      >
         <boxGeometry args={[PANEL_WIDTH, PANEL_HEIGHT, PANEL_DEPTH]} />
         <meshStandardMaterial
           color={PANEL_FACE_COLOR}

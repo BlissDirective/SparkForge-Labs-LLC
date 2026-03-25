@@ -9,9 +9,9 @@
 //
 // Device scaling: Desktop 8 bots, Tablet 4 bots, Mobile 0.
 
-import React, { useRef, useMemo, useState } from 'react';
+import React, { useRef, useMemo, useState, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { BackSide, Group, MeshBasicMaterial, MeshStandardMaterial } from 'three';
+import { BackSide, Group, MathUtils, MeshBasicMaterial, MeshStandardMaterial } from 'three';
 import { useDeviceStore } from '@/stores/deviceStore';
 
 // ── Types ──────────────────────────────────────────
@@ -280,6 +280,18 @@ function ArticulatedBot({
   const seg = 64;                     // 64 at ultra
   const halfSeg = Math.max(8, Math.floor(seg / 2));
 
+  // ─── Hover feedback (Audit Section 2, Finding C) ───
+  const hoverProgressRef = useRef(0);
+  const isHoveredRef = useRef(false);
+  const handleBotPointerEnter = useCallback(() => {
+    isHoveredRef.current = true;
+    document.body.style.cursor = 'pointer';
+  }, []);
+  const handleBotPointerLeave = useCallback(() => {
+    isHoveredRef.current = false;
+    document.body.style.cursor = 'default';
+  }, []);
+
   const { personality, pathSeed, speed, phase, scale, visorBlinkInterval } = botState;
   const prevPos = useRef<[number, number, number]>([0, 0, 0]);
   const facingRef = useRef(0);
@@ -298,8 +310,18 @@ function ArticulatedBot({
     const z = Math.sin(angle) * baseR + noiseZ;
     const y = 1.2 + personality.heightOffset + botState.height + Math.sin(t * 0.7 + phase) * 0.2;
 
+    // Hover glow progress (smooth 0→1)
+    const hoverTarget = isHoveredRef.current ? 1 : 0;
+    hoverProgressRef.current = MathUtils.lerp(
+      hoverProgressRef.current,
+      hoverTarget,
+      0.08 // matches npcBot preset transitionSpeed
+    );
+    const hp = hoverProgressRef.current;
+
     groupRef.current.position.set(x, y, z);
-    groupRef.current.scale.setScalar(scale * personality.scaleMult);
+    // Scale includes hover boost (1.0→1.1 per npcBot preset)
+    groupRef.current.scale.setScalar(scale * personality.scaleMult * (1 + hp * 0.1));
 
     const dx = x - prevPos.current[0];
     const dz = z - prevPos.current[2];
@@ -326,9 +348,9 @@ function ArticulatedBot({
       visorMatRef.current.opacity = bc < 0.1 ? 0.2 : 1.0;
     }
     if (antTipRef.current) {
-      antTipRef.current.emissiveIntensity = 0.5 + ((Math.sin(t * 2.5 + phase * 3) + 1) * 0.5) * 1.5;
+      antTipRef.current.emissiveIntensity = 0.5 + ((Math.sin(t * 2.5 + phase * 3) + 1) * 0.5) * 1.5 + hp * 0.3;
     }
-    const padPulse = 0.8 + ((Math.sin(t * 1.8 + phase) + 1) * 0.5) * 1.2;
+    const padPulse = 0.8 + ((Math.sin(t * 1.8 + phase) + 1) * 0.5) * 1.2 + hp * 0.3;
     if (padMatLRef.current) padMatLRef.current.emissiveIntensity = padPulse;
     if (padMatRRef.current) padMatRRef.current.emissiveIntensity = padPulse;
   });
@@ -337,7 +359,11 @@ function ArticulatedBot({
   const c = personality.color;
 
   return (
-    <group ref={groupRef}>
+    <group
+      ref={groupRef}
+      onPointerEnter={handleBotPointerEnter}
+      onPointerLeave={handleBotPointerLeave}
+    >
 
       {/* ── HEAD GROUP ─────────────────────────────── */}
       <group ref={headRef} position={[0, 0.22, 0]}>
