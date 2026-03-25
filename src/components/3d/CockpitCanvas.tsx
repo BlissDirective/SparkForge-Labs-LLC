@@ -69,7 +69,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 // import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
-import { HDR_FALLBACK_PRESET } from '@/lib/3d/materials';
+import { HDR_FALLBACK_PRESET, FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
 // Module-level asset preloading (Audit Section 4.5)
 import '@/lib/3d/preloadAssets';
 import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
@@ -342,7 +342,8 @@ export function CockpitCanvas({
           />
 
           {/* HDR Environment */}
-          <Environment preset={HDR_FALLBACK_PRESET} />
+          {/* HDR Environment — custom Frost-Prismatic HDRI with drei preset fallback */}
+          <Environment files={FROST_PRISMATIC_HDR_PATH} />
 
           {/* ═══ SceneRouter — Centralized Visibility (D3D-B5) ═══ */}
           <SceneRouter
