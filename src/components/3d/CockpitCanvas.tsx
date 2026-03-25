@@ -56,6 +56,8 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Hooks (D3D-C4)
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
+// Frame-time monitoring (Audit Section 4.4, Plan B1: non-invasive, dev-only)
+import { useFrameTimeMonitor } from '@/hooks/useFrameTimeMonitor';
 // Note: Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
 // Game registry (Section 4.1-B: per-game camera presets)
@@ -210,6 +212,13 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({
   );
 });
 
+// ── Frame Time Monitor (dev-only, Audit Section 4.4 Plan B1) ─────
+
+function FrameTimeMonitorInner() {
+  useFrameTimeMonitor({ enabled: process.env.NODE_ENV === 'development' });
+  return null;
+}
+
 // ════════════════════════════════════════════════════════════════
 // CockpitCanvas — Main Export (D3D-B1: Persistent, never unmounts)
 // ════════════════════════════════════════════════════════════════
@@ -312,12 +321,13 @@ export function CockpitCanvas({
           {/* Adaptive DPR */}
           <AdaptiveDpr pixelated />
 
-          {/* Dev-only performance monitor */}
+          {/* Dev-only performance monitoring (Audit Section 4.4, Plan B1) */}
           {PerfMonitor && (
             <Suspense fallback={null}>
               <PerfMonitor position="top-right" minimal />
             </Suspense>
           )}
+          <FrameTimeMonitorInner />
 
           {/* Unified Camera System (D3D-C4: parallax, Section 4.1-B: per-game presets) */}
           <CameraSystem
