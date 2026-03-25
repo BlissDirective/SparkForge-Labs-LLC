@@ -2,7 +2,44 @@
 
 ## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
 ## Status: NOT STARTED
-## Last Updated: 2026-03-25 (Audit Report — Suggestions #12-17)
+## Last Updated: 2026-03-25 (Audit Report — R3F Post-Processing & UI Zones)
+
+---
+
+### Audit Report — R3F Section 3: Post-Processing & UI Zones (2026-03-25)
+
+**Status:** COMPLETE
+**Branch:** claude/audit-r3f-postprocessing-l178F
+
+**Batch 1 — GPU Memory + Dev Monitoring:**
+- [x] Item 1: AiSpyGame.tsx — Removed independent Canvas (D3D-B1 violation). Game 3D content now injected via sceneStore.setGameSceneContent(). Added gameSceneContent state to sceneStore.ts. CockpitCanvas reads from store as fallback.
+- [x] Item 2: CanvasTexture disposal — AgentPipeline3D.tsx, LabStructure3D.tsx already had disposal (prior audit). Added missing disposal to PetCreature3D.tsx FallbackOrb + GLBPetModel components.
+- [x] Item 3: r3f-perf — Already installed (^7.2.3) and integrated in CockpitCanvas with React.lazy + dev-only guard. No changes needed.
+
+**Batch 2 — Post-Processing Enhancements + Html Overlays:**
+- [x] Item 4: Adaptive bloom threshold — PostProcessingStack.tsx bloom threshold now shifts per scene (0.3 celebrations, 0.4 transitions/hero, 0.5 spatial, 0.8 gameplay, 0.6 cockpit default)
+- [x] Item 5: Per-lab color grading — Added HueSaturation + BrightnessContrast effects. 10 per-lab color profiles (hue, saturation, brightness, contrast). Ceremony warm amber override. Vignette + BarrelDistortion now scene-reactive. Effect count: 7 → 9 always-on.
+- [x] Item 6: drei Html 3D-anchored overlays:
+  - HolographicLabMap.tsx: Lab name + completion % tooltip on hover (glassmorphism card, lab-colored border)
+  - AmbientNPCs.tsx: Personality name badges above bots (pill badge, neon text)
+  - CeremonyFX.tsx: Animated ceremony title popup ("Level Up!", "Badge Earned!", etc.) with float-up-and-fade CSS animation
+  - WormholeTransition.tsx: "Entering {Lab Name}" label at tunnel midpoint with fade-in/out gated to transition progress
+
+**Files Modified (10 total):**
+- `src/components/3d/PostProcessingStack.tsx` — 9 effects, adaptive bloom, color grading, reactive vignette/barrel
+- `src/components/3d/CockpitCanvas.tsx` — r3f-perf + gameSceneContent from store
+- `src/components/3d/HolographicLabMap.tsx` — Html tooltip overlay
+- `src/components/3d/AmbientNPCs.tsx` — Html name badges
+- `src/components/3d/CeremonyFX.tsx` — Html ceremony popup
+- `src/components/3d/WormholeTransition.tsx` — Html "Entering Lab" label
+- `src/components/3d/AgentPipeline3D.tsx` — CanvasTexture disposal
+- `src/components/3d/LabStructure3D.tsx` — CanvasTexture disposal
+- `src/components/3d/PetCreature3D.tsx` — DataTexture disposal (2 components)
+- `src/components/games/AiSpyGame.tsx` — Removed Canvas, uses sceneStore
+- `src/stores/sceneStore.ts` — Added gameSceneContent state + selector
+- `package.json` — r3f-perf devDependency
+
+**TypeScript validation:** PASS (0 new errors; 14 pre-existing TSL shader type errors unchanged)
 
 ---
 

@@ -19,7 +19,7 @@
 
 'use client';
 
-import { useRef, useMemo, useCallback } from 'react';
+import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
 import {
@@ -139,6 +139,9 @@ function Platform({ onPlatformClick }: {
     tex.wrapS = tex.wrapT = RepeatWrapping;
     return tex;
   }, []);
+
+  // Dispose CanvasTexture on unmount to prevent GPU memory leak
+  useEffect(() => () => gridTexture.dispose(), [gridTexture]);
 
   const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();

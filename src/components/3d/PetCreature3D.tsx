@@ -158,6 +158,9 @@ function GLBPetModel({
     [evoCfg.base, evoCfg.mid, evoCfg.highlight]
   );
 
+  // Dispose DataTexture on unmount to prevent GPU memory leak
+  useEffect(() => () => gradientMap.dispose(), [gradientMap]);
+
   // Memoize scene clone to avoid re-cloning every render
   const clonedScene = useMemo(() => scene.clone(), [scene]);
 
@@ -217,6 +220,9 @@ function FallbackOrb({
     () => createToonGradient(evoCfg.base, evoCfg.mid, evoCfg.highlight),
     [evoCfg.base, evoCfg.mid, evoCfg.highlight]
   );
+
+  // Dispose DataTexture on unmount to prevent GPU memory leak
+  useEffect(() => () => gradientMap.dispose(), [gradientMap]);
 
   const emissiveColor = useMemo(
     () => new Color(moodCfg.emissive),

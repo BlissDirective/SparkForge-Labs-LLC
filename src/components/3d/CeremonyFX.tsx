@@ -14,6 +14,7 @@
 
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import {
   Color,
   DoubleSide,
@@ -53,6 +54,14 @@ const CEREMONY_CONFIG: Record<
   badgeEarn:       { confetti: false, fireworks: true,  trophy: true,  hudRings: false, shower: false },
   labComplete:     { confetti: true,  fireworks: true,  trophy: false, hudRings: true,  shower: false },
   streakMilestone: { confetti: false, fireworks: false, trophy: false, hudRings: true,  shower: true  },
+};
+
+// ■■ Ceremony Label Map ■■
+const CEREMONY_LABELS: Record<CeremonyFXProps['type'], { title: string; subtitle: string }> = {
+  levelUp:         { title: 'Level Up!',      subtitle: 'New abilities unlocked' },
+  badgeEarn:       { title: 'Badge Earned!',   subtitle: 'Achievement unlocked' },
+  labComplete:     { title: 'Lab Complete!',   subtitle: 'All games mastered' },
+  streakMilestone: { title: 'Streak!',         subtitle: 'Keep it going' },
 };
 
 // ■■ Shared scratch objects (avoid per-frame allocation) ■■
@@ -510,6 +519,39 @@ export function CeremonyFX({
       {config.shower && (
         <ParticleShower elapsed={elapsed} count={showerCount} labColor={labColor} />
       )}
+
+      {/* ── 3D-Anchored Ceremony Label Popup ── */}
+      <Html
+        position={[0.6, 1.8, 0]}
+        distanceFactor={6}
+        className="pointer-events-none select-none"
+        center
+      >
+        <div
+          className="text-center whitespace-nowrap"
+          style={{
+            animation: 'ceremonyPopup 2s ease-out forwards',
+          }}
+        >
+          <p
+            className="font-data text-2xl font-bold drop-shadow-[0_0_12px_currentColor]"
+            style={{ color: labColor }}
+          >
+            {CEREMONY_LABELS[type].title}
+          </p>
+          <p className="font-display text-xs text-white/70 mt-1">
+            {CEREMONY_LABELS[type].subtitle}
+          </p>
+        </div>
+        <style>{`
+          @keyframes ceremonyPopup {
+            0% { opacity: 0; transform: translateY(20px) scale(0.8); }
+            20% { opacity: 1; transform: translateY(0px) scale(1.1); }
+            40% { transform: translateY(-5px) scale(1.0); }
+            100% { opacity: 0; transform: translateY(-30px) scale(0.9); }
+          }
+        `}</style>
+      </Html>
     </group>
   );
 }

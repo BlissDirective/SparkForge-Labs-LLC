@@ -21,7 +21,7 @@
 //
 
 
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
 import {
@@ -115,6 +115,9 @@ function ContactShadow({
     tex.needsUpdate = true;
     return tex;
   }, []);
+
+  // Dispose CanvasTexture on unmount to prevent GPU memory leak
+  useEffect(() => () => gradientTexture.dispose(), [gradientTexture]);
 
   return (
     <mesh

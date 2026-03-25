@@ -17,6 +17,7 @@
 
 import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import {
   AdditiveBlending,
   BackSide,
@@ -64,6 +65,20 @@ function generateSpeedLines(count: number): SpeedLineData[] {
   }
   return lines;
 }
+
+// ■■ Lab Name Mapping ■■
+const LAB_NAMES_BY_COLOR: Record<string, string> = {
+  '#00BBFF': 'AI Discovery',
+  '#AA66FF': 'ML Basics',
+  '#FF66AA': 'Data Lab',
+  '#FFAA44': 'Creativity Studio',
+  '#00FF88': 'Agent Workshop',
+  '#FF6644': 'Bias & Safety',
+  '#06B6D4': 'Ethics Lab',
+  '#818CF8': 'Future Tech',
+  '#F97316': 'Integration Hub',
+  '#D946EF': 'Mastery Zone',
+};
 
 // ■■ Helpers ■■
 function easeInOut(t: number): number {
@@ -214,7 +229,10 @@ export function WormholeTransition({
   // ■■ Bail if inactive ■■
   if (!active) return null;
 
-  
+  // Normalized progress for Html overlay visibility
+  const progress = elapsed / DURATION;
+  const labName = LAB_NAMES_BY_COLOR[labColor] || 'Unknown Lab';
+
   const cylSegments = Math.max(segments, 12);
   const torusSegments = Math.max(Math.round(segments * 0.75), 8);
   const torusTube = Math.max(Math.round(segments * 0.5), 6);
@@ -409,6 +427,35 @@ export function WormholeTransition({
           toneMapped={false}
         />
       </mesh>
+
+      {/* ── 3D-Anchored "Entering Lab" Label ── */}
+      {progress > 0.15 && progress < 0.85 && (
+        <Html
+          position={[0, 0, -TUNNEL_LENGTH / 2]}
+          distanceFactor={15}
+          className="pointer-events-none select-none"
+          center
+        >
+          <div
+            className="text-center whitespace-nowrap"
+            style={{
+              opacity:
+                progress < 0.3
+                  ? (progress - 0.15) / 0.15
+                  : progress > 0.7
+                    ? (0.85 - progress) / 0.15
+                    : 1,
+            }}
+          >
+            <p
+              className="font-display text-lg font-bold tracking-wide drop-shadow-[0_0_20px_currentColor]"
+              style={{ color: labColor }}
+            >
+              Entering {labName}
+            </p>
+          </div>
+        </Html>
+      )}
     </group>
   );
 }
