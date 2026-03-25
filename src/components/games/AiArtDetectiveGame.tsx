@@ -276,7 +276,7 @@ export function AiArtDetectiveGame() {
                       {['Generative AI', 'Art Analysis', 'Pattern Recognition'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-orange-400/10 border border-orange-400/20 text-orange-400 font-body text-2xs"
                         >
                           {t}
                         </span>
@@ -356,8 +356,8 @@ export function AiArtDetectiveGame() {
                     {roundIdx > 0 && (
                       <div className="mb-3 max-w-xs mx-auto">
                         <div className="flex justify-between mb-1">
-                          <span className="font-body text-[10px] text-white/30">Detection Confidence</span>
-                          <span className="font-data text-[10px] font-bold" style={{ color: confidenceColor }}>{confidencePct}%</span>
+                          <span className="font-body text-2xs text-white/30">Detection Confidence</span>
+                          <span className="font-data text-2xs font-bold" style={{ color: confidenceColor }}>{confidencePct}%</span>
                         </div>
                         <div className="h-2 rounded-full bg-white/10 overflow-hidden">
                           <motion.div className="h-full rounded-full" style={{ backgroundColor: confidenceColor }}
@@ -419,7 +419,7 @@ export function AiArtDetectiveGame() {
                             </motion.div>
                           )}
                           <div className="absolute bottom-2 left-0 right-0 text-center">
-                            <span className="px-2 py-0.5 rounded bg-black/30 font-display text-[10px] text-white/70">
+                            <span className="px-2 py-0.5 rounded bg-black/30 font-display text-2xs text-white/70">
                               {side === 'left' ? 'A' : 'B'}
                             </span>
                           </div>

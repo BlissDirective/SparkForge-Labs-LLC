@@ -183,7 +183,7 @@ export function PixelInvestigatorGame() {
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {['Computer Vision', 'Feature Extraction', 'Image Recognition'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20 font-body text-[10px] text-pink-400">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20 font-body text-2xs text-pink-400">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
@@ -201,22 +201,22 @@ export function PixelInvestigatorGame() {
                     className="flex-1 flex flex-col items-center justify-center">
                     {/* Header */}
                     <div className="flex items-center gap-2 mb-2 w-full max-w-md">
-                      <span className="px-2 py-0.5 rounded bg-pink-500/10 font-body text-[9px] text-pink-400">{round.category}</span>
-                      <span className="px-2 py-0.5 rounded font-body text-[9px]"
+                      <span className="px-2 py-0.5 rounded bg-pink-500/10 font-body text-2xs text-pink-400">{round.category}</span>
+                      <span className="px-2 py-0.5 rounded font-body text-2xs"
                         style={{ backgroundColor: round.tier === 'hard' ? 'rgba(239,68,68,0.1)' : round.tier === 'medium' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)',
                           color: round.tier === 'hard' ? '#EF4444' : round.tier === 'medium' ? '#F59E0B' : '#10B981' }}>
                         {round.tier}
                       </span>
                       <div className="flex-1" />
-                      <span className="font-mono text-[10px] text-white/20">{ri + 1}/{rounds.length}</span>
-                      {streak >= 2 && <span className="font-display text-[10px] font-bold text-amber-400">{'\u{1F525}'} x{streak}</span>}
+                      <span className="font-mono text-2xs text-white/20">{ri + 1}/{rounds.length}</span>
+                      {streak >= 2 && <span className="font-display text-2xs font-bold text-amber-400">{'\u{1F525}'} x{streak}</span>}
                     </div>
 
                     {/* Points available */}
                     <div className="flex items-center gap-1 mb-3">
                       <Zap className="w-3 h-3 text-amber-400" />
                       <span className="font-display text-xs font-bold text-amber-400">{pts} pts</span>
-                      <span className="font-body text-[9px] text-white/20">available</span>
+                      <span className="font-body text-2xs text-white/20">available</span>
                     </div>
 
                     {/* Image display */}
@@ -240,7 +240,7 @@ export function PixelInvestigatorGame() {
                           style={{ backgroundColor: level <= revealLevel ? '#EC4899' : 'rgba(255,255,255,0.1)' }} />
                       ))}
                     </div>
-                    <p className="font-body text-[9px] text-white/20 mb-3">{REVEAL_LABELS[revealLevel]}</p>
+                    <p className="font-body text-2xs text-white/20 mb-3">{REVEAL_LABELS[revealLevel]}</p>
 
                     {/* Result feedback */}
                     <AnimatePresence>
@@ -251,7 +251,7 @@ export function PixelInvestigatorGame() {
                             {wasCorrect ? `\u2713 +${pts + (streak >= 2 ? 5 : 0)} pts!` : `\u2717 It was ${round.answer}`}
                           </p>
                           {wasCorrect && revealLevel <= 1 && (
-                            <p className="font-body text-[10px] text-green-400/60 mt-0.5">Eagle eye! Early guess bonus!</p>
+                            <p className="font-body text-2xs text-green-400/60 mt-0.5">Eagle eye! Early guess bonus!</p>
                           )}
                         </motion.div>
                       )}
@@ -277,7 +277,7 @@ export function PixelInvestigatorGame() {
                     <AnimatePresence>
                       {showHint && !answered && (
                         <motion.p initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                          className="font-body text-[10px] text-pink-300/50 mb-2 max-w-sm text-center">
+                          className="font-body text-2xs text-pink-300/50 mb-2 max-w-sm text-center">
                           {ageBand === 'C' ? round.hintC : round.hintA}
                         </motion.p>
                       )}

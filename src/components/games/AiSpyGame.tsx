@@ -321,7 +321,7 @@ export function AiSpyGame() {
                       {['Spot AI', 'Everyday Tech', 'Hidden Intelligence'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-sky-400/10 border border-sky-400/20 text-sky-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-sky-400/10 border border-sky-400/20 text-sky-400 font-body text-2xs"
                         >
                           {t}
                         </span>
@@ -351,10 +351,10 @@ export function AiSpyGame() {
                   >
                     {/* Round counter + Score */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-mono text-[10px] text-white/30">
+                      <span className="font-mono text-2xs text-white/30">
                         Scene {sceneIdx + 1} / {scenes.length}
                       </span>
-                      <span className="font-mono text-[10px] text-sky-400/60">
+                      <span className="font-mono text-2xs text-sky-400/60">
                         Score: {game.score}
                       </span>
                     </div>
@@ -369,7 +369,7 @@ export function AiSpyGame() {
                       <h3 className="font-display text-base font-bold text-white mt-2">{scene.title}</h3>
                       <p className="font-body text-xs text-white/40 mt-1">{scene.description}</p>
                       {!revealed && (
-                        <p className="font-body text-[10px] text-sky-400/60 mt-2">
+                        <p className="font-body text-2xs text-sky-400/60 mt-2">
                           Tap items you think use AI ({totalAI} hidden)
                         </p>
                       )}
@@ -410,7 +410,7 @@ export function AiSpyGame() {
                                   {status === 'correct' && <CheckCircle2 className="w-4 h-4 text-green-400" />}
                                   {status === 'wrong' && <XCircle className="w-4 h-4 text-red-400" />}
                                   {status === 'missed' && (
-                                    <span className="text-amber-400 text-[10px] font-display">MISSED</span>
+                                    <span className="text-amber-400 text-2xs font-display">MISSED</span>
                                   )}
                                 </span>
                               )}
@@ -420,7 +420,7 @@ export function AiSpyGame() {
                               <motion.p
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="font-body text-[10px] text-white/40 mt-1.5 leading-relaxed"
+                                className="font-body text-2xs text-white/40 mt-1.5 leading-relaxed"
                               >
                                 {item.usesAI && <span className="text-sky-400 font-bold">Uses AI: </span>}
                                 {ageBand === 'C' ? item.explanationC : item.explanation}
@@ -447,7 +447,7 @@ export function AiSpyGame() {
                       <div className="space-y-2">
                         {/* Score summary */}
                         <div className="rounded-xl px-4 py-2 bg-white/[0.03] border border-white/5 text-center">
-                          <p className="font-body text-[10px] text-white/30">
+                          <p className="font-body text-2xs text-white/30">
                             {scene.items.filter(i => getItemStatus(i) === 'correct').length} / {scene.items.length} correct
                           </p>
                         </div>
@@ -487,7 +487,7 @@ export function AiSpyGame() {
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-sky-400/10 border border-sky-400/20">
                       <p className="font-data text-2xl text-sky-400">{game.score}</p>
-                      <p className="font-body text-[10px] text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>
                   </motion.div>
                 )}

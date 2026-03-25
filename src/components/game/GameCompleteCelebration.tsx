@@ -190,17 +190,17 @@ export function GameCompleteCelebration({
                 <div className="rounded-xl p-2 bg-white/[0.03] border border-white/5">
                   <Zap className="w-4 h-4 mx-auto mb-1" style={{ color: worldColor }} />
                   <p className="font-display text-lg font-black text-white">{score}</p>
-                  <p className="font-body text-[9px] text-white/30">SCORE</p>
+                  <p className="font-body text-2xs text-white/30">SCORE</p>
                 </div>
                 <div className="rounded-xl p-2 bg-white/[0.03] border border-white/5">
                   <Trophy className="w-4 h-4 mx-auto mb-1 text-amber-400" />
                   <p className="font-display text-lg font-black" style={{ color: worldColor }}>{xpReward}</p>
-                  <p className="font-body text-[9px] text-white/30">XP EARNED</p>
+                  <p className="font-body text-2xs text-white/30">XP EARNED</p>
                 </div>
                 <div className="rounded-xl p-2 bg-white/[0.03] border border-white/5">
                   <Star className="w-4 h-4 mx-auto mb-1 text-amber-400" />
                   <p className="font-display text-lg font-black text-white">{accuracy}%</p>
-                  <p className="font-body text-[9px] text-white/30">ACCURACY</p>
+                  <p className="font-body text-2xs text-white/30">ACCURACY</p>
                 </div>
               </motion.div>
 
@@ -232,7 +232,7 @@ export function GameCompleteCelebration({
                   <p className="font-display text-xs font-bold" style={{ color: worldColor }}>
                     Badge Earned!
                   </p>
-                  <p className="font-body text-[10px] text-white/40">{badge.title}</p>
+                  <p className="font-body text-xs text-white/40">{badge.title}</p>
                 </motion.div>
               )}
 

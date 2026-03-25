@@ -192,7 +192,7 @@ export function DataDetectiveGame() {
                     </p>
                     <div className="flex gap-2 justify-center">
                       {['Data Analysis', 'Anomaly Detection', 'Bias'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-[10px] text-purple-300">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-2xs text-purple-300">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}

@@ -685,7 +685,7 @@ export function AgentArchitectGame() {
 
                     <div className="flex flex-wrap gap-2 justify-center">
                       {['Goal Decomposition', 'Tool Use', 'Decision Trees', 'Loops'].map(tag => (
-                        <span key={tag} className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 font-body text-[10px] text-emerald-400">
+                        <span key={tag} className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 font-body text-2xs text-emerald-400">
                           {tag}
                         </span>
                       ))}
@@ -776,23 +776,23 @@ export function AgentArchitectGame() {
                                   <p className="font-display text-sm font-bold text-white">{m.title}</p>
                                   {isComplete && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
                                   {isLocked && (
-                                    <span className="text-[9px] text-white/20">
+                                    <span className="text-2xs text-white/20">
                                       {'\ud83d\udd12'} Complete 4 missions
                                     </span>
                                   )}
                                 </div>
-                                <p className="font-body text-[11px] text-white/40 mt-0.5">{m.description}</p>
+                                <p className="font-body text-xs text-white/40 mt-0.5">{m.description}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 mt-2">
-                              <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                              <span className={`px-1.5 py-0.5 rounded text-2xs font-bold ${
                                 m.difficulty === 'beginner' ? 'bg-emerald-500/10 text-emerald-400'
                                 : m.difficulty === 'intermediate' ? 'bg-amber-500/10 text-amber-400'
                                 : 'bg-red-500/10 text-red-400'
                               }`}>
                                 {m.difficulty}
                               </span>
-                              <span className="font-body text-[9px] text-white/20">
+                              <span className="font-body text-2xs text-white/20">
                                 {m.requirements.length} requirements
                               </span>
                             </div>
@@ -814,10 +814,10 @@ export function AgentArchitectGame() {
                         <span className="text-lg">{mission.emoji}</span>
                         <div className="flex-1">
                           <span className="font-display text-xs font-bold text-emerald-400">{mission.title}</span>
-                          <span className="font-body text-[10px] text-white/30 ml-2">{mission.description}</span>
+                          <span className="font-body text-2xs text-white/30 ml-2">{mission.description}</span>
                         </div>
                         <button onClick={() => setPhase('missions')}
-                          className="font-body text-[10px] text-white/20 hover:text-white/40">
+                          className="font-body text-2xs text-white/20 hover:text-white/40">
                           Back
                         </button>
                       </div>
@@ -832,7 +832,7 @@ export function AgentArchitectGame() {
                           style={{ borderColor: `${type.color}20` }}
                           aria-label={`Add ${type.label} block`}>
                           <span className="text-sm">{type.emoji}</span>
-                          <span className="font-body text-[11px] text-white/60">{type.label}</span>
+                          <span className="font-body text-xs text-white/60">{type.label}</span>
                         </motion.button>
                       ))}
 
@@ -840,7 +840,7 @@ export function AgentArchitectGame() {
 
                       {ageBand === 'C' && (
                         <button onClick={() => setShowCode(!showCode)}
-                          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-body text-[11px] ${
+                          className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-body text-xs ${
                             showCode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-white/40'
                           }`}
                           aria-label="Toggle pseudocode view">
@@ -921,9 +921,9 @@ export function AgentArchitectGame() {
                           <div className="p-3">
                             <div className="flex items-center gap-1.5 mb-2">
                               <Code2 className="w-3 h-3 text-emerald-400" />
-                              <span className="font-display text-[11px] font-bold text-emerald-400">Pseudocode</span>
+                              <span className="font-display text-xs font-bold text-emerald-400">Pseudocode</span>
                             </div>
-                            <pre className="font-mono text-[10px] text-white/50 leading-relaxed whitespace-pre-wrap">
+                            <pre className="font-mono text-2xs text-white/50 leading-relaxed whitespace-pre-wrap">
                               {pseudocode}
                             </pre>
                           </div>
@@ -969,7 +969,7 @@ export function AgentArchitectGame() {
                                 {TOOL_OPTIONS.map(tool => (
                                   <button key={tool.id}
                                     onClick={() => updateBlockConfig(selectedBlockData.id, { tool: tool.id })}
-                                    className={`px-2.5 py-1.5 rounded-lg text-[11px] border transition-colors ${
+                                    className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
                                       selectedBlockData.config.tool === tool.id
                                         ? 'border-orange-500/30 bg-orange-500/10 text-orange-400'
                                         : 'border-white/5 bg-white/[0.02] text-white/40 hover:bg-white/5'
@@ -986,7 +986,7 @@ export function AgentArchitectGame() {
                                 {SEARCH_TARGETS.map(target => (
                                   <button key={target.id}
                                     onClick={() => updateBlockConfig(selectedBlockData.id, { searchTarget: target.id })}
-                                    className={`px-2.5 py-1.5 rounded-lg text-[11px] border transition-colors ${
+                                    className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
                                       selectedBlockData.config.searchTarget === target.id
                                         ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
                                         : 'border-white/5 bg-white/[0.02] text-white/40 hover:bg-white/5'
@@ -1010,7 +1010,7 @@ export function AgentArchitectGame() {
                             {runSteps[runSteps.length - 1].narration}
                           </span>
                           {runSteps[runSteps.length - 1].decision && (
-                            <span className={`ml-auto px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            <span className={`ml-auto px-1.5 py-0.5 rounded text-2xs font-bold ${
                               runSteps[runSteps.length - 1].decision === 'yes'
                                 ? 'bg-green-500/10 text-green-400'
                                 : 'bg-red-500/10 text-red-400'
@@ -1024,7 +1024,7 @@ export function AgentArchitectGame() {
                           {runSteps.map((step, i) => {
                             const b = blocks.find(bl => bl.id === step.blockId);
                             return b ? (
-                              <span key={i} className="text-[11px] opacity-60">{b.type.emoji}</span>
+                              <span key={i} className="text-xs opacity-60">{b.type.emoji}</span>
                             ) : null;
                           })}
                         </div>
@@ -1060,11 +1060,11 @@ export function AgentArchitectGame() {
                     <div className="flex gap-4 text-center">
                       <div>
                         <p className="font-display text-2xl font-bold text-emerald-400">{reportData.pathLen}</p>
-                        <p className="font-body text-[10px] text-white/30">Steps</p>
+                        <p className="font-body text-2xs text-white/30">Steps</p>
                       </div>
                       <div>
                         <p className="font-display text-2xl font-bold text-emerald-400">{blocks.length}</p>
-                        <p className="font-body text-[10px] text-white/30">Blocks</p>
+                        <p className="font-body text-2xs text-white/30">Blocks</p>
                       </div>
                       <div>
                         <p className={`font-display text-sm font-bold ${
@@ -1074,7 +1074,7 @@ export function AgentArchitectGame() {
                         }`}>
                           {reportData.efficiency}
                         </p>
-                        <p className="font-body text-[10px] text-white/30">Efficiency</p>
+                        <p className="font-body text-2xs text-white/30">Efficiency</p>
                       </div>
                     </div>
 
@@ -1085,9 +1085,9 @@ export function AgentArchitectGame() {
                         return (
                           <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.02]">
                             <span className="text-xs">{b?.type.emoji}</span>
-                            <span className="font-body text-[10px] text-white/40 flex-1">{step.narration}</span>
+                            <span className="font-body text-2xs text-white/40 flex-1">{step.narration}</span>
                             {step.decision && (
-                              <span className={`text-[9px] font-bold ${
+                              <span className={`text-2xs font-bold ${
                                 step.decision === 'yes' ? 'text-green-400' : 'text-red-400'
                               }`}>
                                 {step.decision.toUpperCase()}
@@ -1103,7 +1103,7 @@ export function AgentArchitectGame() {
                       <div className="max-w-sm w-full rounded-xl p-3 border border-amber-500/20 bg-amber-500/5">
                         <p className="font-display text-xs font-bold text-amber-400">{'\ud83d\udca1'} Tips</p>
                         {reportData.tips.map((tip, i) => (
-                          <p key={i} className="font-body text-[10px] text-white/40">{'\u2022'} {tip}</p>
+                          <p key={i} className="font-body text-2xs text-white/40">{'\u2022'} {tip}</p>
                         ))}
                       </div>
                     )}
@@ -1125,7 +1125,7 @@ export function AgentArchitectGame() {
                           <div className="flex flex-wrap gap-2 mt-2">
                             {newUnlocks.map(bt => (
                               <span key={bt.id}
-                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 text-[11px] text-white/60">
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-white/5 text-xs text-white/60">
                                 {bt.emoji} {bt.label}
                               </span>
                             ))}

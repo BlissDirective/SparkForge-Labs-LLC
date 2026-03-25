@@ -182,7 +182,7 @@ export function RealOrFakeGame() {
                     {/* Round info */}
                     <div className="flex items-center justify-center gap-3 mb-3">
                       <span className="font-body text-xs text-white/30">{round.typeLabel}</span>
-                      <span className="font-data text-[10px] text-white/15">{score.correct}/{score.total}</span>
+                      <span className="font-data text-2xs text-white/15">{score.correct}/{score.total}</span>
                     </div>
 
                     {/* Content card with flip animation */}
@@ -213,7 +213,7 @@ export function RealOrFakeGame() {
                           <p className="font-display text-sm font-bold" style={{ color: feedback.correct ? '#10B981' : '#EF4444' }}>
                             {feedback.correct ? '✅ You spotted it!' : '❌ Tricky one!'}
                           </p>
-                          <p className="font-body text-[10px] text-white/40 mt-1">{feedback.clue}</p>
+                          <p className="font-body text-2xs text-white/40 mt-1">{feedback.clue}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>

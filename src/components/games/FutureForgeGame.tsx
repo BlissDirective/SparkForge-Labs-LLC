@@ -316,7 +316,7 @@ export default function FutureForgeGame() {
                         aria-pressed={isSelected}>
                         <Icon className="w-6 h-6" style={{ color: cap.color }} />
                         <span className="font-display text-xs text-white">{cap.name}</span>
-                        <span className="font-body text-[10px] text-white/40">{cap.description}</span>
+                        <span className="font-body text-2xs text-white/40">{cap.description}</span>
                         {showBonus && <Star className="w-3 h-3 text-[#FFAA44] absolute -top-1 -right-1" />}
                       </motion.button>
                     );

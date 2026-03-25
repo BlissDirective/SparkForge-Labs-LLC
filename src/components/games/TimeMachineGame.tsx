@@ -178,7 +178,7 @@ export function TimeMachineGame() {
                       {['AI History', 'Timeline', 'Milestones'].map(t => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-sky-400/10 border border-sky-400/20 text-sky-400 font-body text-[10px]"
+                          className="px-2 py-1 rounded-lg bg-sky-400/10 border border-sky-400/20 text-sky-400 font-body text-2xs"
                         >
                           {t}
                         </span>
@@ -227,14 +227,14 @@ export function TimeMachineGame() {
                               whileTap={selectedCard && !placedMilestone ? { scale: 0.95 } : {}}
                               aria-label={`Timeline slot: ${year}`}
                             >
-                              <span className="font-mono text-[10px] text-white/30">{year}</span>
+                              <span className="font-mono text-2xs text-white/30">{year}</span>
                               {placedMilestone && (
                                 <motion.div
                                   initial={{ scale: 0 }}
                                   animate={{ scale: 1 }}
                                   className="mt-1"
                                 >
-                                  <p className="font-display text-[9px] font-bold text-sky-400">
+                                  <p className="font-display text-2xs font-bold text-sky-400">
                                     {placedMilestone.label}
                                   </p>
                                 </motion.div>
@@ -270,7 +270,7 @@ export function TimeMachineGame() {
                           {feedback.correct && (() => {
                             const m = milestones.find(ml => ml.id === feedback.id);
                             return m ? (
-                              <p className="font-body text-[10px] text-white/40 mt-0.5">
+                              <p className="font-body text-2xs text-white/40 mt-0.5">
                                 {ageBand === 'C' ? m.descC : m.desc}
                               </p>
                             ) : null;
@@ -281,7 +281,7 @@ export function TimeMachineGame() {
 
                     {/* Card tray */}
                     <div className="border-t border-white/5 pt-3">
-                      <p className="font-body text-[10px] text-white/20 mb-2">Cards to place:</p>
+                      <p className="font-body text-2xs text-white/20 mb-2">Cards to place:</p>
                       <div className="flex flex-wrap gap-2">
                         {trayCards.map(card => (
                           <motion.button
@@ -295,8 +295,8 @@ export function TimeMachineGame() {
                             whileTap={{ scale: 0.97 }}
                             aria-label={`Milestone card: ${card.label}`}
                           >
-                            <p className="font-display text-[11px] font-bold text-white">{card.label}</p>
-                            <p className="font-body text-[9px] text-white/30 mt-0.5">
+                            <p className="font-display text-xs font-bold text-white">{card.label}</p>
+                            <p className="font-body text-2xs text-white/30 mt-0.5">
                               {ageBand === 'C' ? card.descC : card.desc}
                             </p>
                           </motion.button>

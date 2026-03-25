@@ -55,7 +55,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5 }}
-          className="flex items-center gap-4 text-[10px] font-mono text-white/25"
+          className="flex items-center gap-4 text-xs font-mono text-white/25"
         >
           <span>← → Navigate</span>
           <span className="w-px h-3 bg-white/10" />
@@ -96,7 +96,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
                   >
                     {focusedLab.title}
                   </h3>
-                  <p className="text-[10px] text-white/40 font-mono uppercase tracking-wider">
+                  <p className="text-xs text-white/40 font-mono uppercase tracking-wider">
                     {focusedLab.subtitle}
                   </p>
                 </div>
@@ -109,7 +109,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
 
               {/* Completion bar */}
               <div className="mb-4">
-                <div className="flex justify-between text-[10px] mb-1">
+                <div className="flex justify-between text-xs mb-1">
                   <span className="text-white/40 font-mono">PROGRESS</span>
                   <span
                     className="font-data"
@@ -131,7 +131,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
 
               {/* Games list */}
               <div className="mb-4">
-                <p className="text-[10px] text-white/30 font-mono uppercase mb-2">
+                <p className="text-xs text-white/30 font-mono uppercase mb-2">
                   {focusedLab.games.length} Games
                 </p>
                 <div className="space-y-1.5">
@@ -142,13 +142,13 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
                     >
                       <span className="text-sm">{game.emoji}</span>
                       <span className="font-body truncate">{game.title}</span>
-                      <span className="ml-auto text-[9px] font-data" style={{ color: focusedLab.tint }}>
+                      <span className="ml-auto text-2xs font-data" style={{ color: focusedLab.tint }}>
                         {game.xpReward}XP
                       </span>
                     </div>
                   ))}
                   {focusedLab.games.length > 3 && (
-                    <p className="text-[10px] text-white/20 font-mono">
+                    <p className="text-xs text-white/20 font-mono">
                       +{focusedLab.games.length - 3} more
                     </p>
                   )}
@@ -193,7 +193,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
             key={item.label}
             whileHover={{ scale: 1.1, x: 4 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-[10px] font-mono border transition-colors"
+            className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-mono border transition-colors"
             style={{
               background: 'rgba(17, 17, 24, 0.7)',
               borderColor: `${item.color}20`,

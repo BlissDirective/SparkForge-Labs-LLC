@@ -548,7 +548,7 @@ export function PetTrainerGame() {
 
                     <div className="flex flex-wrap gap-2 justify-center">
                       {['Supervised Learning', 'Data Quality', 'Overfitting'].map(tag => (
-                        <span key={tag} className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-[10px] text-purple-300/60">
+                        <span key={tag} className="px-2.5 py-1 rounded-lg bg-purple-500/10 border border-purple-500/20 font-body text-2xs text-purple-300/60">
                           {tag}
                         </span>
                       ))}
@@ -657,7 +657,7 @@ export function PetTrainerGame() {
                             </div>
                             <div className="flex-1">
                               <p className="font-display text-sm font-bold text-white group-hover:text-purple-300 transition-colors">{set.title}</p>
-                              <p className="font-body text-[10px] text-white/30">{set.categories.length} categories &middot; {set.training.length} items</p>
+                              <p className="font-body text-2xs text-white/30">{set.categories.length} categories &middot; {set.training.length} items</p>
                             </div>
                             <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-purple-400 transition-colors" />
                           </div>
@@ -688,12 +688,12 @@ export function PetTrainerGame() {
                         <Pet3DScene emoji={pet.emoji} mood={mood} evolutionStage={evolutionStage} size="sm" showSparkles={mood === 'genius'} />
                         <div className="text-left">
                           <p className="font-display text-xs font-bold text-white">{petName}</p>
-                          <p className="font-body text-[10px] text-white/30">{EVOLUTION_LABELS[evolutionStage]}</p>
+                          <p className="font-body text-2xs text-white/30">{EVOLUTION_LABELS[evolutionStage]}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="font-data text-sm font-bold text-purple-400">{accuracy}%</p>
-                        <p className="font-body text-[10px] text-white/30">accuracy</p>
+                        <p className="font-body text-2xs text-white/30">accuracy</p>
                       </div>
                     </div>
 
@@ -709,7 +709,7 @@ export function PetTrainerGame() {
                       <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }}
                         className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/25">
                         <Zap className="w-3 h-3 text-amber-400" />
-                        <span className="font-display text-[10px] font-bold text-amber-400">{streak}x Streak!</span>
+                        <span className="font-display text-2xs font-bold text-amber-400">{streak}x Streak!</span>
                       </motion.div>
                     )}
 
@@ -724,7 +724,7 @@ export function PetTrainerGame() {
                     {ageBand === 'C' && (
                       <div className="flex flex-wrap gap-1 justify-center">
                         {categorySet.training[currentItem]?.features.map(f => (
-                          <span key={f} className="px-2 py-0.5 rounded bg-white/5 font-mono text-[9px] text-white/30">{f}</span>
+                          <span key={f} className="px-2 py-0.5 rounded bg-white/5 font-mono text-2xs text-white/30">{f}</span>
                         ))}
                       </div>
                     )}
@@ -750,7 +750,7 @@ export function PetTrainerGame() {
                           aria-label={`Label as ${cat.label}`}>
                           <span className="text-2xl block mb-1">{cat.emoji}</span>
                           <span className="font-display text-xs font-bold text-white">{cat.label}</span>
-                          <span className="block font-body text-[9px] text-white/20 mt-0.5">{labelCounts[cat.id] || 0} labeled</span>
+                          <span className="block font-body text-2xs text-white/20 mt-0.5">{labelCounts[cat.id] || 0} labeled</span>
                         </motion.button>
                       ))}
                     </div>
@@ -810,17 +810,17 @@ export function PetTrainerGame() {
                     <div className="flex gap-4 justify-center">
                       <div className="text-center">
                         <p className="font-data text-xl font-bold text-purple-400">{accuracy}%</p>
-                        <p className="font-body text-[10px] text-white/30">Training Accuracy</p>
+                        <p className="font-body text-2xs text-white/30">Training Accuracy</p>
                       </div>
                       <div className="w-px h-10 bg-white/10" />
                       <div className="text-center">
                         <p className="font-data text-xl font-bold text-amber-400">{bestStreak}</p>
-                        <p className="font-body text-[10px] text-white/30">Best Streak</p>
+                        <p className="font-body text-2xs text-white/30">Best Streak</p>
                       </div>
                       <div className="w-px h-10 bg-white/10" />
                       <div className="text-center">
                         <p className="font-data text-xl font-bold text-white">{EVOLUTION_LABELS[evolutionStage].split(' ')[0]}</p>
-                        <p className="font-body text-[10px] text-white/30">Evolution</p>
+                        <p className="font-body text-2xs text-white/30">Evolution</p>
                       </div>
                     </div>
 
@@ -965,7 +965,7 @@ export function PetTrainerGame() {
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <span className="font-data text-lg font-bold text-white">{value}%</span>
-                            <span className="font-body text-[9px] text-white/30">{label}</span>
+                            <span className="font-body text-2xs text-white/30">{label}</span>
                           </div>
                         </div>
                       ))}
@@ -978,11 +978,11 @@ export function PetTrainerGame() {
                         <div className="grid gap-1" style={{ gridTemplateColumns: `auto ${categorySet.categories.map(() => '1fr').join(' ')}` }}>
                           <div /> {/* empty corner */}
                           {categorySet.categories.map(c => (
-                            <div key={`col-${c.id}`} className="text-center font-mono text-[9px] text-white/30 px-1">{c.label.slice(0, 4)}</div>
+                            <div key={`col-${c.id}`} className="text-center font-mono text-2xs text-white/30 px-1">{c.label.slice(0, 4)}</div>
                           ))}
                           {categorySet.categories.map(actual => (
                             <Fragment key={`row-${actual.id}`}>
-                              <div className="font-mono text-[9px] text-white/30 flex items-center">{actual.label.slice(0, 4)}</div>
+                              <div className="font-mono text-2xs text-white/30 flex items-center">{actual.label.slice(0, 4)}</div>
                               {categorySet.categories.map(predicted => {
                                 const count = testResults.filter(r =>
                                   r.actual === actual.id && r.predicted === predicted.id
@@ -1000,7 +1000,7 @@ export function PetTrainerGame() {
                             </Fragment>
                           ))}
                         </div>
-                        <p className="font-body text-[9px] text-white/20 mt-2 italic">Rows = actual, Columns = predicted</p>
+                        <p className="font-body text-2xs text-white/20 mt-2 italic">Rows = actual, Columns = predicted</p>
                       </div>
                     )}
 

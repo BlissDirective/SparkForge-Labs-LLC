@@ -886,7 +886,7 @@ export function NeuralBuilderGame() {
                   </button>
                   {ageBand === 'C' && (
                     <div className="flex items-center gap-2">
-                      <label className="font-body text-[10px] text-white/40">
+                      <label className="font-body text-2xs text-white/40">
                         LR:
                       </label>
                       <input
@@ -901,7 +901,7 @@ export function NeuralBuilderGame() {
                         className="w-20 accent-pink-500"
                         aria-label={`Learning rate: ${learningRate}`}
                       />
-                      <span className="font-mono text-[10px] text-white/50">
+                      <span className="font-mono text-2xs text-white/50">
                         {learningRate}
                       </span>
                     </div>
@@ -928,7 +928,7 @@ export function NeuralBuilderGame() {
                             <p className="font-display text-xs font-bold text-amber-300">
                               {ch.title}
                             </p>
-                            <p className="font-body text-[10px] text-white/40 mt-0.5">
+                            <p className="font-body text-2xs text-white/40 mt-0.5">
                               {ch.description}
                             </p>
                           </button>
@@ -941,7 +941,7 @@ export function NeuralBuilderGame() {
                 {/* Active challenge indicator (V2) */}
                 {activeChallenge && (
                   <div className="flex items-center justify-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] font-display font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                    <span className="px-2 py-0.5 rounded text-2xs font-display font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
                       {'\u{1F3AF}'}{' '}
                       {
                         ARCH_CHALLENGES.find((c) => c.id === activeChallenge)
@@ -965,7 +965,7 @@ export function NeuralBuilderGame() {
                       key={i}
                       className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white/5"
                     >
-                      <span className="font-body text-[10px] text-white/40">
+                      <span className="font-body text-2xs text-white/40">
                         {i === 0
                           ? 'In'
                           : i === layerSizes.length - 1
@@ -1001,7 +1001,7 @@ export function NeuralBuilderGame() {
                     <p className="font-mono text-lg text-white font-bold">
                       {totalNeurons}
                     </p>
-                    <p className="font-body text-[10px] text-white/40">
+                    <p className="font-body text-2xs text-white/40">
                       Neurons
                     </p>
                   </div>
@@ -1009,7 +1009,7 @@ export function NeuralBuilderGame() {
                     <p className="font-mono text-lg text-white font-bold">
                       {totalConnections}
                     </p>
-                    <p className="font-body text-[10px] text-white/40">
+                    <p className="font-body text-2xs text-white/40">
                       Connections
                     </p>
                   </div>
@@ -1017,7 +1017,7 @@ export function NeuralBuilderGame() {
                     <p className="font-mono text-lg text-white font-bold">
                       {layerSizes.length}
                     </p>
-                    <p className="font-body text-[10px] text-white/40">
+                    <p className="font-body text-2xs text-white/40">
                       Layers
                     </p>
                   </div>
@@ -1062,7 +1062,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-sm text-pink-300">
                           {inspectedNodeData.activation.toFixed(2)}
                         </p>
-                        <p className="font-body text-[10px] text-white/40">
+                        <p className="font-body text-2xs text-white/40">
                           Activation
                         </p>
                       </div>
@@ -1070,7 +1070,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-sm text-pink-300">
                           {inspectedNodeData.inputs}
                         </p>
-                        <p className="font-body text-[10px] text-white/40">
+                        <p className="font-body text-2xs text-white/40">
                           Inputs
                         </p>
                       </div>
@@ -1078,7 +1078,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-sm text-pink-300">
                           {inspectedNodeData.outputs}
                         </p>
-                        <p className="font-body text-[10px] text-white/40">
+                        <p className="font-body text-2xs text-white/40">
                           Outputs
                         </p>
                       </div>
@@ -1185,7 +1185,7 @@ export function NeuralBuilderGame() {
                         ? '\u2705 Challenge Complete!'
                         : '\u274C Not Quite...'}
                     </p>
-                    <div className="flex gap-3 justify-center mt-2 text-[10px] font-mono">
+                    <div className="flex gap-3 justify-center mt-2 text-2xs font-mono">
                       <span
                         className={
                           challengeResult.meetsAcc
@@ -1403,7 +1403,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-lg text-white font-bold">
                           {s}
                         </p>
-                        <p className="font-body text-[10px] text-white/40">
+                        <p className="font-body text-2xs text-white/40">
                           {i === 0
                             ? 'In'
                             : i === layerSizes.length - 1

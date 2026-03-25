@@ -124,7 +124,7 @@ export function NeuronRelayGame() {
                     </p>
                     <div className="flex gap-2 justify-center">
                       {['Neurons', 'Activation', 'Signal'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20 font-body text-[10px] text-pink-300">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20 font-body text-2xs text-pink-300">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
@@ -157,7 +157,7 @@ export function NeuronRelayGame() {
                     <div className="flex items-center gap-3 justify-center mb-4 flex-wrap">
                       {neurons.map(n => (
                         <div key={n.id} className="text-center">
-                          <p className="font-mono text-[8px] text-white/15 mb-1">
+                          <p className="font-mono text-2xs text-white/15 mb-1">
                             {ageBand === 'C' ? `N${n.id + 1} (w=${n.vol}%)` : `#${n.id + 1}`}
                           </p>
                           <motion.button onClick={() => toggle(n.id)}
@@ -169,7 +169,7 @@ export function NeuronRelayGame() {
                           </motion.button>
                           <input type="range" min={0} max={100} value={n.vol} onChange={e => setVol(n.id, +e.target.value)}
                             className="w-12 mt-1 accent-pink-500 h-1" aria-label={`Neuron ${n.id + 1} volume`} />
-                          <p className="font-mono text-[8px] text-white/15">{n.vol}%</p>
+                          <p className="font-mono text-2xs text-white/15">{n.vol}%</p>
                         </div>
                       ))}
 
@@ -187,9 +187,9 @@ export function NeuronRelayGame() {
                     </p>
 
                     {showHint && (
-                      <p className="font-body text-[10px] text-pink-300/50 text-center mb-2">{'\u{1F4A1}'} {puzzle.hint}</p>
+                      <p className="font-body text-2xs text-pink-300/50 text-center mb-2">{'\u{1F4A1}'} {puzzle.hint}</p>
                     )}
-                    {!showHint && <button onClick={() => setShowHint(true)} aria-label="Show hint for this puzzle" className="block mx-auto font-body text-[10px] text-white/20 hover:text-white/40 mb-2">Need a hint?</button>}
+                    {!showHint && <button onClick={() => setShowHint(true)} aria-label="Show hint for this puzzle" className="block mx-auto font-body text-2xs text-white/20 hover:text-white/40 mb-2">Need a hint?</button>}
 
                     <motion.button onClick={test} aria-label="Test neural signal output"
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white flex items-center justify-center gap-2"

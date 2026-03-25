@@ -242,7 +242,7 @@ export function DataShieldGame() {
                           <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#00FF88' : '#EF4444' }}>
                             {feedback.correct ? '✅ Smart choice!' : '⚠️ Be careful!'}
                           </p>
-                          <p className="font-body text-[10px] text-white/40 mt-1">{feedback.reason}</p>
+                          <p className="font-body text-2xs text-white/40 mt-1">{feedback.reason}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>

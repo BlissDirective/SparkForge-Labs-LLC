@@ -179,7 +179,7 @@ export function LabDiscoveryRing() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span
-                      className="font-mono text-[10px] px-1.5 py-0.5 rounded"
+                      className="font-mono text-xs px-1.5 py-0.5 rounded"
                       style={{ background: `${color}15`, color }}
                     >
                       LAB {id}

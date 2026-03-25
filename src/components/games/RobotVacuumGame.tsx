@@ -405,7 +405,7 @@ export function RobotVacuumGame() {
                         (t) => (
                           <span
                             key={t}
-                            className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 font-body text-[10px] text-emerald-300"
+                            className="px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 font-body text-2xs text-emerald-300"
                           >
                             {t}
                           </span>
@@ -496,7 +496,7 @@ export function RobotVacuumGame() {
                       <h3 className="font-display text-sm font-bold text-white flex-1">
                         {room.title}
                       </h3>
-                      <span className="font-mono text-[10px] text-white/20">
+                      <span className="font-mono text-2xs text-white/20">
                         Room {roomIdx + 1}/{ROOMS.length}
                       </span>
                     </div>
@@ -601,13 +601,13 @@ export function RobotVacuumGame() {
                                 )}
                                 {!isV && furn && <span>{furn.emoji}</span>}
                                 {!isV && !furn && isDirt && !isCleaned && (
-                                  <span className="text-[8px] opacity-60">
+                                  <span className="text-2xs opacity-60">
                                     {'\u{1F7E4}'}
                                   </span>
                                 )}
                                 {!isV && !furn && isCleaned && (
                                   <motion.span
-                                    className="text-[8px]"
+                                    className="text-2xs"
                                     initial={{ scale: 0 }}
                                     animate={{ scale: 1 }}
                                   >
@@ -615,20 +615,20 @@ export function RobotVacuumGame() {
                                   </motion.span>
                                 )}
                                 {!isV && !furn && !isDirt && isCharger && (
-                                  <span className="text-[8px]">{'\u26A1'}</span>
+                                  <span className="text-2xs">{'\u26A1'}</span>
                                 )}
                               </div>
                             );
                           })}
                         </div>
-                        <p className="font-mono text-[8px] text-white/15 text-center mt-1">
+                        <p className="font-mono text-2xs text-white/15 text-center mt-1">
                           Steps: {stepCount}
                         </p>
                       </div>
 
                       {/* Rules panel */}
                       <div className="flex-1 flex flex-col min-w-0">
-                        <p className="font-display text-[10px] font-bold text-white/30 mb-1">
+                        <p className="font-display text-2xs font-bold text-white/30 mb-1">
                           Rules (priority order):
                         </p>
                         <div className="flex-1 overflow-auto space-y-1">
@@ -637,7 +637,7 @@ export function RobotVacuumGame() {
                               key={i}
                               className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.02]"
                             >
-                              <span className="font-mono text-[8px] text-white/15 w-3">
+                              <span className="font-mono text-2xs text-white/15 w-3">
                                 {i + 1}
                               </span>
                               <select
@@ -645,7 +645,7 @@ export function RobotVacuumGame() {
                                 onChange={(e) =>
                                   updateRule(i, 'condition', e.target.value)
                                 }
-                                className="flex-1 px-1 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/15 text-white font-body text-[9px]"
+                                className="flex-1 px-1 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/15 text-white font-body text-2xs"
                                 aria-label={`Rule ${i + 1} condition`}
                               >
                                 {CONDITIONS.map((c) => (
@@ -654,7 +654,7 @@ export function RobotVacuumGame() {
                                   </option>
                                 ))}
                               </select>
-                              <span className="font-mono text-[8px] text-white/15">
+                              <span className="font-mono text-2xs text-white/15">
                                 {'\u2192'}
                               </span>
                               <select
@@ -662,7 +662,7 @@ export function RobotVacuumGame() {
                                 onChange={(e) =>
                                   updateRule(i, 'action', e.target.value)
                                 }
-                                className="flex-1 px-1 py-0.5 rounded bg-blue-500/10 border border-blue-500/15 text-white font-body text-[9px]"
+                                className="flex-1 px-1 py-0.5 rounded bg-blue-500/10 border border-blue-500/15 text-white font-body text-2xs"
                                 aria-label={`Rule ${i + 1} action`}
                               >
                                 {ACTIONS.map((a) => (
@@ -685,7 +685,7 @@ export function RobotVacuumGame() {
                         {!running && rules.length < 8 && (
                           <button
                             onClick={addRule}
-                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/20 font-body text-[9px] flex items-center justify-center gap-1"
+                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/20 font-body text-2xs flex items-center justify-center gap-1"
                           >
                             <Plus className="w-2.5 h-2.5" /> Add Rule
                           </button>
@@ -713,7 +713,7 @@ export function RobotVacuumGame() {
                               >
                                 {coverage}%
                               </p>
-                              <p className="font-body text-[8px] text-white/25">
+                              <p className="font-body text-2xs text-white/25">
                                 Coverage
                               </p>
                             </div>
@@ -721,7 +721,7 @@ export function RobotVacuumGame() {
                               <p className="font-display text-lg font-black text-white">
                                 {stepCount}
                               </p>
-                              <p className="font-body text-[8px] text-white/25">
+                              <p className="font-body text-2xs text-white/25">
                                 Steps
                               </p>
                             </div>
@@ -729,7 +729,7 @@ export function RobotVacuumGame() {
                               <p className="font-display text-lg font-black text-blue-400">
                                 {room.optimalSteps}
                               </p>
-                              <p className="font-body text-[8px] text-white/25">
+                              <p className="font-body text-2xs text-white/25">
                                 Optimal
                               </p>
                             </div>
@@ -750,13 +750,13 @@ export function RobotVacuumGame() {
                                   : 0}
                                 %
                               </p>
-                              <p className="font-body text-[8px] text-white/25">
+                              <p className="font-body text-2xs text-white/25">
                                 Efficiency
                               </p>
                             </div>
                           </div>
                           {ageBand === 'C' && (
-                            <p className="font-body text-[9px] text-white/25 mt-1 text-center">
+                            <p className="font-body text-2xs text-white/25 mt-1 text-center">
                               Rule evaluation: {rules.length} production rules,
                               first-match semantics. Efficiency = optimal/actual
                               steps.
@@ -772,7 +772,7 @@ export function RobotVacuumGame() {
                               setVacPos(room.charger);
                               setVacDir(0);
                             }}
-                            className="mt-2 w-full py-1.5 rounded-lg border border-emerald-500/20 text-emerald-400/60 font-body text-[10px] hover:bg-emerald-500/5 hover:text-emerald-400 transition-colors flex items-center justify-center gap-1"
+                            className="mt-2 w-full py-1.5 rounded-lg border border-emerald-500/20 text-emerald-400/60 font-body text-2xs hover:bg-emerald-500/5 hover:text-emerald-400 transition-colors flex items-center justify-center gap-1"
                           >
                             <RotateCcw className="w-2.5 h-2.5" /> Edit Rules &amp; Retry
                           </button>

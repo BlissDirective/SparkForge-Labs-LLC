@@ -220,7 +220,7 @@ export default function AddChildPage() {
                 className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body placeholder:text-white/20 focus:border-spark-blue/50 focus:outline-none"
                 aria-label="Child display name"
               />
-              <p className="font-body text-[10px] text-white/20 mt-1">
+              <p className="font-body text-xs text-white/20 mt-1">
                 No real names — this is just a fun nickname
               </p>
             </div>

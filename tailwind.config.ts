@@ -47,6 +47,9 @@ const config: Config = {
           10: '#D946EF', // AI's Future
         },
       },
+      fontSize: {
+        '2xs': ['0.625rem', { lineHeight: '0.875rem' }], // 10px — minimum sub-scale size
+      },
       fontFamily: {
         display: ['Exo 2', 'system-ui', 'sans-serif'],
         body: ['Sora', 'system-ui', 'sans-serif'],

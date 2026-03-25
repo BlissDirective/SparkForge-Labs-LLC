@@ -217,7 +217,7 @@ export function PaywallModal({
                       current={currentUsage!}
                       max={maxUsage!}
                     />
-                    <p className="font-body text-[10px] text-white/30 mt-2">
+                    <p className="font-body text-xs text-white/30 mt-2">
                       {context === 'games' ? 'Games played this week' :
                        context === 'prompts' ? 'Prompts used today' :
                        'Uses this period'}

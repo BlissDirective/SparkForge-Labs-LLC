@@ -420,7 +420,7 @@ export function ChatbotBuilderGame() {
                     </p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {["Dialog Trees", "NLP", "Graph Theory", "Chatbots"].map((t) => (
-                        <span key={t} className="px-2 py-1 rounded-lg font-body text-[10px]"
+                        <span key={t} className="px-2 py-1 rounded-lg font-body text-2xs"
                           style={{ backgroundColor: pers.colors.bg, border: `1px solid ${pers.colors.border}`, color: pers.colors.primary }}>
                           {t}
                         </span>
@@ -470,7 +470,7 @@ export function ChatbotBuilderGame() {
                     <div className="flex items-center gap-1 px-2 py-1.5 border-b border-white/5 overflow-x-auto">
                       {Object.entries(TEMPLATES).map(([name, t]) => (
                         <button key={name} onClick={() => loadTemplate(name)}
-                          className={`px-2 py-1 rounded-lg font-body whitespace-nowrap border text-[10px] ${activeTemplate === name ? "text-white" : "text-white/30"}`}
+                          className={`px-2 py-1 rounded-lg font-body whitespace-nowrap border text-2xs ${activeTemplate === name ? "text-white" : "text-white/30"}`}
                           style={activeTemplate === name ? { borderColor: pers.colors.border, backgroundColor: pers.colors.bg } : {}}>
                           {t.emoji} {name}
                         </button>
@@ -478,13 +478,13 @@ export function ChatbotBuilderGame() {
                       <div className="flex-1" />
                       {/* Personality toggle */}
                       <button onClick={() => setPersonality((p) => (p + 1) % PERSONALITIES.length)}
-                        className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-white/40 text-[10px]">
+                        className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-white/40 text-2xs">
                         <Settings2 className="w-3 h-3" /> {pers.emoji}
                       </button>
                       {/* View mode tabs */}
                       {(["tree", "graph", "test"] as const).map((mode) => (
                         <button key={mode} onClick={() => mode === "test" ? enterTestMode() : setViewMode(mode)}
-                          className={`px-2 py-1 rounded-lg font-display font-bold ${viewMode === mode ? "text-white" : "text-white/20"} text-[10px]`}
+                          className={`px-2 py-1 rounded-lg font-display font-bold ${viewMode === mode ? "text-white" : "text-white/20"} text-2xs`}
                           style={viewMode === mode ? { backgroundColor: pers.colors.bg, color: pers.colors.primary } : {}}>
                           {mode === "tree" ? "\uD83C\uDF33" : mode === "graph" ? "\uD83D\uDD78\uFE0F" : "\u25B6\uFE0F"} {mode}
                         </button>
@@ -517,13 +517,13 @@ export function ChatbotBuilderGame() {
                                   : node.id === "root" ? pers.colors.primary
                                   : nodes.some((n) => n.responses.some((r) => r.nextId === node.id)) ? "#10B981" : "#EF4444",
                               }} />
-                              <span className="font-mono text-[9px] text-white/20">{node.id}</span>
+                              <span className="font-mono text-2xs text-white/20">{node.id}</span>
                               {node.id === "root" && (
-                                <span className="px-1 py-0.5 rounded text-[8px] font-bold"
+                                <span className="px-1 py-0.5 rounded text-2xs font-bold"
                                   style={{ backgroundColor: pers.colors.bg, color: pers.colors.primary }}>START</span>
                               )}
                               {node.responses.length === 0 && (
-                                <span className="px-1 py-0.5 rounded text-[8px] font-bold bg-amber-500/10 text-amber-400">END</span>
+                                <span className="px-1 py-0.5 rounded text-2xs font-bold bg-amber-500/10 text-amber-400">END</span>
                               )}
                             </div>
                             {editing === node.id ? (
@@ -539,11 +539,11 @@ export function ChatbotBuilderGame() {
                             {node.responses.length > 0 && (
                               <div className="flex flex-wrap gap-1.5 mt-2">
                                 {node.responses.map((r, i) => (
-                                  <span key={i} className="px-2 py-0.5 rounded-lg font-body text-[10px] flex items-center gap-1"
+                                  <span key={i} className="px-2 py-0.5 rounded-lg font-body text-2xs flex items-center gap-1"
                                     style={{ backgroundColor: pers.colors.bg, border: `1px solid ${pers.colors.border}`, color: pers.colors.primary }}>
                                     {/* Enhancement A: Editable response labels */}
                                     <input value={r.label} onChange={(e) => updateResponseLabel(node.id, i, e.target.value)}
-                                      className="bg-transparent border-none outline-none w-16 font-body text-[10px]"
+                                      className="bg-transparent border-none outline-none w-16 font-body text-2xs"
                                       style={{ color: pers.colors.primary }}
                                       aria-label={`Response label ${i + 1}`} />
                                     {"\u2192"} {r.nextId || "?"}
@@ -553,7 +553,7 @@ export function ChatbotBuilderGame() {
                                 ))}
                               </div>
                             )}
-                            <button onClick={() => addResponse(node.id)} className="mt-1.5 font-body text-[10px] text-white/20 flex items-center gap-1"
+                            <button onClick={() => addResponse(node.id)} className="mt-1.5 font-body text-2xs text-white/20 flex items-center gap-1"
                               aria-label={`Add response to ${node.id}`}>
                               <Plus className="w-2.5 h-2.5" /> Add response
                             </button>
@@ -621,7 +621,7 @@ export function ChatbotBuilderGame() {
                       <div className="flex-1 overflow-auto p-3 space-y-2">
                         <div className="rounded-lg p-2 text-center mb-2"
                           style={{ backgroundColor: pers.colors.bg, border: `1px solid ${pers.colors.border}` }}>
-                          <p className="font-body text-[10px]" style={{ color: pers.colors.primary }}>
+                          <p className="font-body text-2xs" style={{ color: pers.colors.primary }}>
                             Testing: {activeTemplate} ({pers.emoji} {pers.name})
                           </p>
                         </div>
@@ -646,7 +646,7 @@ export function ChatbotBuilderGame() {
                                 <div className="flex flex-wrap gap-1.5 ml-9">
                                   {node.responses.map((r, ri) => (
                                     <motion.button key={ri} onClick={() => r.nextId && setTestPath((prev) => [...prev, r.nextId!])}
-                                      className="px-3 py-1.5 rounded-xl font-display text-[11px] font-bold"
+                                      className="px-3 py-1.5 rounded-xl font-display text-xs font-bold"
                                       style={{ backgroundColor: `${pers.colors.primary}15`, border: `1px solid ${pers.colors.border}`, color: pers.colors.primary }}
                                       whileTap={{ scale: 0.95 }} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
                                       transition={{ delay: 0.5 + ri * 0.1 }}>
@@ -680,7 +680,7 @@ export function ChatbotBuilderGame() {
                     {/* -- Bottom Bar: Challenges + Metrics -- */}
                     {viewMode !== "test" && (
                       <div className="border-t border-white/5 px-3 py-2">
-                        <div className="flex items-center gap-3 text-[9px] text-white/30 font-body">
+                        <div className="flex items-center gap-3 text-2xs text-white/30 font-body">
                           <span>Nodes: {metrics.nodeCount}</span>
                           <span>Edges: {metrics.edges}</span>
                           <span>Depth: {metrics.maxDepth}</span>
@@ -693,7 +693,7 @@ export function ChatbotBuilderGame() {
                           ))}
                         </div>
                         {ageBand === "C" && (
-                          <p className="font-body text-[9px] text-white/20 mt-1">
+                          <p className="font-body text-2xs text-white/20 mt-1">
                             Graph: {metrics.nodeCount} nodes, {metrics.edges} edges, max branch {metrics.maxBranch}, depth {metrics.maxDepth}
                           </p>
                         )}
@@ -725,7 +725,7 @@ export function ChatbotBuilderGame() {
                     </motion.span>
                   </div>
                   <div className="h-8 flex items-center justify-center">
-                    <p className="font-display text-[8px] font-bold" style={{ color: pers.colors.primary }}>
+                    <p className="font-display text-2xs font-bold" style={{ color: pers.colors.primary }}>
                       {activeTemplate} deployed!
                     </p>
                   </div>

@@ -594,7 +594,7 @@ export function EthicsCourtroomGame() {
                       {['AI Ethics', 'Critical Thinking', 'Debate'].map((t) => (
                         <span
                           key={t}
-                          className="px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/20 font-body text-[10px] text-red-400"
+                          className="px-2 py-1 rounded-lg bg-red-500/10 border border-red-500/20 font-body text-2xs text-red-400"
                         >
                           {t}
                         </span>
@@ -672,7 +672,7 @@ export function EthicsCourtroomGame() {
                       <h3 className="font-display text-sm font-bold text-white flex-1">
                         {currentCase.title}
                       </h3>
-                      <span className="font-mono text-[10px] text-white/20">
+                      <span className="font-mono text-2xs text-white/20">
                         Case {caseIdx + 1}/{CASES.length}
                       </span>
                     </div>
@@ -730,7 +730,7 @@ export function EthicsCourtroomGame() {
                                 <p className="font-display text-sm font-bold text-white">
                                   {p.role}
                                 </p>
-                                <p className="font-body text-[10px] text-white/40">
+                                <p className="font-body text-2xs text-white/40">
                                   {p.stance}
                                 </p>
                               </div>
@@ -755,7 +755,7 @@ export function EthicsCourtroomGame() {
                             Arguing as {currentCase.perspectives[chosenPerspective].role}
                           </p>
                         </div>
-                        <p className="font-body text-[10px] text-white/30 mb-1">
+                        <p className="font-body text-2xs text-white/30 mb-1">
                           Select your strongest arguments:
                         </p>
                         {currentCase.perspectives[chosenPerspective].arguments.map((arg, i) => (
@@ -772,7 +772,7 @@ export function EthicsCourtroomGame() {
                           >
                             <div className="flex items-start gap-2">
                               <div
-                                className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center text-[10px] ${
+                                className={`w-4 h-4 mt-0.5 rounded border flex items-center justify-center text-2xs ${
                                   selectedArgs.has(i)
                                     ? 'border-red-400 bg-red-500/20 text-red-300'
                                     : 'border-white/20'
@@ -783,7 +783,7 @@ export function EthicsCourtroomGame() {
                               <div className="flex-1">
                                 <p className="font-body text-sm text-white/70">{arg.text}</p>
                                 <span
-                                  className={`inline-block mt-1 px-1.5 py-0.5 rounded text-[8px] font-bold ${
+                                  className={`inline-block mt-1 px-1.5 py-0.5 rounded text-2xs font-bold ${
                                     arg.strength === 'strong'
                                       ? 'bg-green-500/15 text-green-400'
                                       : arg.strength === 'moderate'
@@ -836,7 +836,7 @@ export function EthicsCourtroomGame() {
                                 <p className="font-body text-xs text-white/60">
                                   • {arg.text}
                                 </p>
-                                <p className="font-body text-[9px] text-white/30 ml-3">
+                                <p className="font-body text-2xs text-white/30 ml-3">
                                   {arg.explanation}
                                 </p>
                               </div>
@@ -859,13 +859,13 @@ export function EthicsCourtroomGame() {
 
                         {/* Other perspectives teaser */}
                         <div className="rounded-xl p-3 border border-white/5 bg-white/[0.02]">
-                          <p className="font-body text-[10px] text-white/25 mb-1">
+                          <p className="font-body text-2xs text-white/25 mb-1">
                             Other perspectives:
                           </p>
                           {currentCase.perspectives
                             .filter((_, i) => i !== chosenPerspective)
                             .map((p, i) => (
-                              <p key={i} className="font-body text-[10px] text-white/40">
+                              <p key={i} className="font-body text-2xs text-white/40">
                                 {p.emoji}{' '}
                                 <span className="font-semibold">{p.role}:</span> {p.stance}
                               </p>

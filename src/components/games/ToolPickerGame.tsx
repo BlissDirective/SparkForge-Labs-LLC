@@ -216,7 +216,7 @@ export function ToolPickerGame() {
                             : 'border-white/10 bg-white/[0.02] hover:border-green-400/20'
                           }`} whileTap={!feedback ? { scale: 0.95 } : {}} aria-label={`Pick ${tool.label}`}>
                           <span className="text-2xl">{tool.emoji}</span>
-                          <p className="font-display text-[10px] font-bold text-white mt-1">{tool.label}</p>
+                          <p className="font-display text-2xs font-bold text-white mt-1">{tool.label}</p>
                         </motion.button>
                       ))}
                     </div>
@@ -229,7 +229,7 @@ export function ToolPickerGame() {
                           <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#00FF88' : '#EF4444' }}>
                             {feedback.correct ? '✅ Perfect pick!' : '❌ Not quite!'}
                           </p>
-                          <p className="font-body text-[10px] text-white/40 mt-1">{feedback.why}</p>
+                          <p className="font-body text-2xs text-white/40 mt-1">{feedback.why}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>

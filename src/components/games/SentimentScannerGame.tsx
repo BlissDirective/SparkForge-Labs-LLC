@@ -132,7 +132,7 @@ export function SentimentScannerGame() {
                     </p>
                     <div className="flex gap-2 justify-center">
                       {['Sentiment Analysis', 'NLP', 'Polarity'].map(t => (
-                        <span key={t} className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 font-body text-[10px] text-indigo-300">{t}</span>
+                        <span key={t} className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 font-body text-2xs text-indigo-300">{t}</span>
                       ))}
                     </div>
                     <motion.button onClick={() => setPhase('play')}
