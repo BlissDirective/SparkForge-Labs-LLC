@@ -464,6 +464,258 @@ MSW handlers not found — src/mocks/ directory does not exist
 
 ---
 
-*Phase 0 complete. Stages 1-10 deep audit, COPPA checklist, 35-game audit, and security audit pending — run next phases when ready.*
+# STAGE 1 AUDIT — Foundation
 
-*SparkForge Audit Agent v1.0 | Phase 0 | March 25, 2026*
+**Stage:** 1 (Phases 1-2)
+**Source Docs:** `STAGE1_Foundation_v2_PART1`, `STAGE1_Foundation_v2_PART2`
+**Scope:** Project config, Tailwind, types, stores, base components, root layout, game registry
+
+## Stage 1 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 1 |
+| HIGH | 2 |
+| WARNING | 4 |
+| INFO | 4 |
+| PASS | 10 |
+
+---
+
+## Stage 1 — CRITICAL FINDINGS
+
+### S1-CRIT-001 — LABS array in `types/index.ts` has 33 games, not 35 — 3 missing, 1 phantom
+
+**File:** `src/types/index.ts`
+**Category:** Architecture / Data Integrity
+**Description:** The `LABS` constant (source of truth for `getAllGames()`, `getGameBySlug()`, and all UI game listings) contains only **33 games**. Three games present in `gameRegistry.ts` (35 entries) are MISSING from LABS:
+
+| Missing Game | Lab | Tier |
+|-------------|-----|------|
+| `emoji-decoder` | Lab 8 (Words & Language) | FL-Lite |
+| `my-first-ai-app` | Lab 9 (Build Your AI) | FL-Lite |
+| `ai-or-not` | Lab 10 (AI Futures) | FL-Lite |
+
+Additionally, `vibe-coder` exists in LABS (Lab 9) but does NOT exist in `gameRegistry.ts` — it appears to be a phantom/renamed game.
+
+**Evidence:**
+```bash
+# gameRegistry.ts has 35 entries
+grep -c "slug:" src/config/gameRegistry.ts  # → 35
+
+# LABS in types/index.ts has 33 game slugs
+grep -c "slug:" src/types/index.ts  # → 36 (35 games + 1 type definition)
+# But 3 registry games are missing and 1 LABS game doesn't exist in registry
+```
+
+**Impact:** `getAllGames()` returns 33 instead of 35. `getGameBySlug('emoji-decoder')` returns `null`. Any UI using LABS as the game source shows incomplete data. The Arcade page and Lab navigation will be missing 3 games.
+
+**Required Fix:**
+1. Add `emoji-decoder` to Lab 8 games array in LABS
+2. Add `my-first-ai-app` to Lab 9 games array in LABS
+3. Add `ai-or-not` to Lab 10 games array in LABS
+4. Remove or rename `vibe-coder` — cross-reference with GCUD V10.2 for the authoritative slug. If `vibe-coder` was renamed to one of the missing games, replace it.
+5. Verify final count: `getAllGames().length === 35`
+
+---
+
+## Stage 1 — HIGH FINDINGS
+
+### S1-HIGH-001 — Missing npm packages: `three-mesh-bvh` and `troika-three-text`
+
+**File:** `package.json`
+**Category:** Dependencies
+**Description:** Stage 1 doc Step 2k specifies installing `three-bvh-csg three-mesh-bvh troika-three-text`. The actual `package.json` has `three-bvh-csg` but is **missing** `three-mesh-bvh` and `troika-three-text`.
+
+**Impact:** Hero Animation v2.0 (Phase 5A-5B) depends on `three-mesh-bvh` for BVH-accelerated raycasting and `troika-three-text` for SDF 3D text rendering. Build will fail at Phase 5A without these.
+
+**Required Fix:**
+```bash
+npm install three-mesh-bvh troika-three-text
+```
+
+---
+
+### S1-HIGH-002 — Missing hooks: `useMediaQuery.ts` and `useIsMobile.ts`
+
+**File:** `src/hooks/useMediaQuery.ts`, `src/hooks/useIsMobile.ts`
+**Category:** Doc-Drift / D3D Compliance
+**Description:** Stage 1 doc Step 21 specifies both files. Neither exists. Per D3D-1, `useIsMobile` was intentionally removed. However, `useMediaQuery` is a general-purpose utility that may still be imported by other code.
+
+**Impact:** Any component importing `@/hooks/useMediaQuery` will fail. If no active imports remain, this is just a doc-drift issue.
+
+**Required Fix:**
+1. Search for imports: `grep -r "useMediaQuery\|useIsMobile" src/` — if zero active imports, downgrade to INFO
+2. If imports exist for `useMediaQuery`, recreate as a generic hook:
+   ```typescript
+   // src/hooks/useMediaQuery.ts
+   import { useState, useEffect } from 'react';
+   export function useMediaQuery(query: string): boolean {
+     const [matches, setMatches] = useState(false);
+     useEffect(() => {
+       const mql = window.matchMedia(query);
+       setMatches(mql.matches);
+       const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
+       mql.addEventListener('change', handler);
+       return () => mql.removeEventListener('change', handler);
+     }, [query]);
+     return matches;
+   }
+   ```
+3. Update stage doc to note `useIsMobile` removed per D3D-1
+
+---
+
+## Stage 1 — WARNING FINDINGS
+
+### S1-WARN-001 — `gameRegistry.ts` lab names inconsistent with `types/index.ts` LABS
+
+**Files:** `src/config/gameRegistry.ts` (lines 32-43), `src/types/index.ts`
+**Category:** Architecture / Data Consistency
+**Description:** `LAB_NAMES` in gameRegistry.ts uses different titles from the LABS array in types/index.ts for 7 out of 10 labs:
+
+| Lab | gameRegistry.ts | types/index.ts |
+|-----|----------------|----------------|
+| 2 | "AI Assistants" | "Teaching Machines" |
+| 3 | "How AI Learns" | "The Brain Inside" |
+| 4 | "AI & Language" | "AI That Creates" |
+| 5 | "AI Agents" | "AI Helpers" |
+| 6 | "AI & Society" | "AI & Ethics" |
+| 8 | "AI Communication" | "Words & Language" |
+| 9 | "Building with AI" | "Build Your AI" |
+
+**Impact:** Different lab names appear in different parts of the UI depending on which data source is used (registry vs LABS constant).
+
+**Required Fix:** Align `LAB_NAMES` in `gameRegistry.ts` to match the authoritative LABS array, or have gameRegistry import lab names from LABS. Single source of truth.
+
+---
+
+### S1-WARN-002 — `cockpitStore.ts` duplicates types locally instead of importing from `@/types`
+
+**File:** `src/stores/cockpitStore.ts` (lines 12-16)
+**Category:** TypeScript Quality
+**Description:** `CockpitSkin`, `SpatialView`, `ConsoleType`, and `CeremonyType` are redefined locally in the store instead of being imported from `src/types/index.ts` where they are already defined.
+
+**Impact:** If types diverge between the two locations, TypeScript won't catch the mismatch. Maintenance risk.
+
+**Required Fix:**
+```typescript
+// Replace lines 12-16 with:
+import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/types';
+```
+
+---
+
+### S1-WARN-003 — `cockpitConfig.ts` export name doesn't match stage doc
+
+**File:** `src/lib/3d/cockpitConfig.ts` (line 12)
+**Category:** Doc-Drift
+**Description:** Stage doc specifies export name `COCKPIT_GEOMETRY_V2`. Actual code exports `COCKPIT_GEOMETRY` (no `_V2` suffix). Consumer `useAdaptiveCockpit.ts` imports `COCKPIT_GEOMETRY` — code is internally consistent.
+
+**Impact:** Cosmetic doc-drift. No runtime break.
+
+**Required Fix:** Update stage doc Step 20c to use `COCKPIT_GEOMETRY`.
+
+---
+
+### S1-WARN-004 — `deviceStore.ts` significantly diverged from stage doc (D3D-1 overhaul)
+
+**File:** `src/stores/deviceStore.ts`
+**Category:** Doc-Drift
+**Description:** Stage doc defines multi-device profiles (`DeviceType`, `DEVICE_PROFILES` for desktop/tablet/mobile, `hasSelected`, `setDeviceType`, `GPUTier` with `'css'` option). Actual code has D3D-1 hardcoded desktop-ultra profile with completely different API surface (`PerformanceProfile`, `DESKTOP_ULTRA_PROFILE`, `TriangleBudgetTier`, no device selection).
+
+**Impact:** Code is correct per D3D-1 decision lock. Stage doc is outdated — anyone reading the doc will get the wrong API.
+
+**Required Fix:** Update stage doc Step 20a to reflect the D3D-1 desktop-ultra store shape. Per CLAUDE.md Section 3.1, this is a mandatory auto-fix (deprecated API usage).
+
+---
+
+## Stage 1 — INFO FINDINGS
+
+### S1-INFO-001 — `authStore.ts` expanded beyond Stage 1 scope (expected)
+
+**Description:** Stage 1 doc defines simple store (`parent`, `isLoading`, `setParent`, `setLoading`, `clearAuth`). Actual store adds `isDemoMode`, `demoSession`, `startDemoSession`, `endDemoSession`, `checkDemoStatus` from Phase 5E-5F (Login 3D Enhancement). This is expected — stores evolve across stages.
+
+### S1-INFO-002 — `uiStore.ts` retains deprecated `gameActive` flag
+
+**Description:** CLAUDE.md Section 14 states `gameActive` is deprecated (use `sceneStore.enterGame`/`exitGame` instead). The flag still exists in uiStore but is unused by GameShell. Dead code — low priority cleanup.
+
+### S1-INFO-003 — Root layout is Stage 10 replacement (expected)
+
+**Description:** Current `src/app/layout.tsx` includes A11yProvider, ErrorBoundary, OfflineBanner, full SEO metadata, viewport config, PWA manifest — all Stage 10 enhancements. Expected since Stages 1-10 have been built.
+
+### S1-INFO-004 — Barrel files exist in component directories
+
+**Description:** Barrel files (`index.ts`) exist in `src/components/games/`, `src/shaders/`, `src/components/3d/environments/`, `src/components/3d/creatures/`. These re-export components for convenient imports. Next.js `optimizePackageImports` in `next.config.ts` handles the main offenders. Low impact on production bundle — may slow HMR in dev.
+
+---
+
+## Stage 1 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | `tsconfig.json` strict mode + paths | PASS | `"strict": true`, `"@/*": ["./src/*"]` |
+| 2 | `next.config.ts` serverExternalPackages | PASS | `['three', '@react-three/fiber', '@react-three/drei']` |
+| 3 | `tailwind.config.ts` Frost-Prismatic colors | PASS | All neon accents, surface colors, lab colors 1-10 correct |
+| 4 | BUG-10F: Correct fonts | PASS | Exo 2, Sora, JetBrains Mono, Orbitron. No Fredoka/Nunito. |
+| 5 | IMP-4: Both `spark-*` and `neon-*` tokens | PASS | Both defined with correct values |
+| 6 | No `any` types in Stage 1 files | PASS | Zero `any` usage in types, stores, lib |
+| 7 | `gameStore.ts` matches stage doc | PASS | All actions: startGame, updateScore, advanceRound, completeGame, resetGame |
+| 8 | `childStore.ts` matches stage doc | PASS | Persist middleware with partialize, all actions present |
+| 9 | `toastStore.ts` matches stage doc | PASS | Convenience functions, auto-dismiss, max 3 toasts |
+| 10 | `postcss.config.js` uses Tailwind 4 syntax | PASS | `'@tailwindcss/postcss': {}` (correct for TW4 Oxide engine) |
+
+---
+
+## Stage 1 — File Inventory
+
+| Expected File | Status |
+|--------------|--------|
+| `tsconfig.json` | EXISTS |
+| `tailwind.config.ts` | EXISTS |
+| `postcss.config.js` | EXISTS |
+| `next.config.ts` | EXISTS |
+| `.env.example` | EXISTS |
+| `src/app/globals.css` | EXISTS |
+| `src/types/index.ts` | EXISTS (33 games, should be 35) |
+| `src/stores/authStore.ts` | EXISTS (expanded by Phase 5E) |
+| `src/stores/childStore.ts` | EXISTS |
+| `src/stores/gameStore.ts` | EXISTS |
+| `src/stores/toastStore.ts` | EXISTS |
+| `src/stores/uiStore.ts` | EXISTS |
+| `src/stores/deviceStore.ts` | EXISTS (D3D-1 divergence) |
+| `src/stores/cockpitStore.ts` | EXISTS (CPA2 expanded) |
+| `src/stores/sceneStore.ts` | EXISTS (D3D-B5 addition) |
+| `src/stores/cockpitAtoms.ts` | EXISTS |
+| `src/lib/utils.ts` | EXISTS |
+| `src/lib/supabase/client.ts` | EXISTS |
+| `src/lib/supabase/server.ts` | EXISTS |
+| `src/lib/animations.ts` | EXISTS |
+| `src/lib/tier-config.ts` | EXISTS |
+| `src/lib/3d/cockpitConfig.ts` | EXISTS |
+| `src/lib/3d/webgpuDetect.ts` | EXISTS |
+| `src/hooks/useDebounce.ts` | EXISTS |
+| `src/hooks/useLocalStorage.ts` | EXISTS |
+| `src/hooks/useSystemPreferences.ts` | EXISTS |
+| `src/hooks/useAdaptiveCockpit.ts` | EXISTS |
+| `src/components/game/GameShell.tsx` | EXISTS |
+| `src/config/gameRegistry.ts` | EXISTS (35 games) |
+| `src/components/providers/QueryProvider.tsx` | EXISTS |
+| `src/app/layout.tsx` | EXISTS (Stage 10 version) |
+| `src/middleware.ts` | EXISTS |
+| `sentry.client.config.ts` | EXISTS |
+| `sentry.server.config.ts` | EXISTS |
+| `sentry.edge.config.ts` | EXISTS |
+| `src/app/global-error.tsx` | EXISTS |
+| `vitest.config.ts` | EXISTS |
+| `tests/setup.ts` | EXISTS |
+| `src/hooks/useMediaQuery.ts` | **MISSING** (D3D-1 removal) |
+| `src/hooks/useIsMobile.ts` | **MISSING** (D3D-1 removal) |
+
+**Files Expected:** 39 | **Files Found:** 37 | **Missing:** 2 (intentional D3D-1 removal)
+
+---
+
+*Stage 1 audit complete. Stage 2-3 audits collected, pending write-up.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stage 1 | March 25, 2026*
