@@ -464,7 +464,7 @@ MSW handlers not found — src/mocks/ directory does not exist
 
 ---
 
-# STAGE 1 AUDIT — Foundation
+*Phase 0 complete. Stages 1-10 deep audit, COPPA checklist, 35-game audit, and security audit pending — run next phases when ready.*
 
 **Stage:** 1 (Phases 1-2)
 **Source Docs:** `STAGE1_Foundation_v2_PART1`, `STAGE1_Foundation_v2_PART2`
