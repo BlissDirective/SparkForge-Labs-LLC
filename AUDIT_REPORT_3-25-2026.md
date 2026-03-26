@@ -946,6 +946,332 @@ if (!parsed.success) return apiError('Invalid input', 400);
 
 ---
 
-*Stage 2 audit complete. Stage 3 audit collected, pending write-up.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stage 1 + Stage 2 | March 25, 2026*
+# STAGE 3 AUDIT — Auth, Layout, Hero Animation, Cockpit, Login 3D
+
+**Stage:** 3 (Phases 4, 5, 5A-5F)
+**Source Docs:** `STAGE3_Auth_Layout_Shell_v2_PART1-2`, `STAGE3_Part3A/B_v3FINAL`, `HERO_ANIMATION_v3FINAL_PartA/B`, `COCKPIT_CPA2_v3FINAL_PartA/B`, `LOGIN_3D_v3FINAL_PartA/B`
+**Scope:** Auth pages, dashboard layout, StationFrame, Hero Animation (8-phase), Cockpit Architecture (CPA2), Login 3D Enhancement, Demo Login, middleware
+
+## Stage 3 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 1 |
+| HIGH | 2 |
+| WARNING | 3 |
+| INFO | 3 |
+| PASS | 28 |
+
+---
+
+## Stage 3 — CRITICAL FINDINGS
+
+### S3-CRIT-001 — Middleware missing `/reset-password` from public paths
+
+**File:** `src/middleware.ts` (line 29)
+**Category:** Auth / UX — Broken Feature
+**Description:** The `publicPaths` array does not include `/reset-password`. Unauthenticated users clicking "Forgot password?" from the login page will be redirected back to `/login` by the middleware, making password reset completely inaccessible.
+
+**Evidence:**
+```typescript
+// src/middleware.ts line 29 (current):
+const publicPaths = ['/login', '/signup', '/pricing', '/about', '/privacy', '/terms'];
+// MISSING: '/reset-password'
+```
+
+**Required Fix:**
+```typescript
+const publicPaths = ['/login', '/signup', '/reset-password', '/pricing', '/about', '/privacy', '/terms'];
+```
+
+---
+
+## Stage 3 — HIGH FINDINGS
+
+### S3-HIGH-001 — COPPA consent sent before user confirms checkbox
+
+**File:** `src/app/(auth)/signup/page.tsx` (line 66)
+**Category:** COPPA Compliance
+**Description:** The signup flow has 4 steps: Account (Step 1) → Verify (Step 2) → COPPA Consent (Step 3) → Profile (Step 4). However, `coppaConsent: true` is **hardcoded** in the Step 1 API call, sent to the server BEFORE the user reaches Step 3 where they actually check the COPPA consent checkbox. The consent is recorded server-side at account creation time regardless of the user's future checkbox action.
+
+**Evidence:**
+```typescript
+// signup/page.tsx line 66 — in Step 1 handler:
+const response = await fetch('/api/auth/signup', {
+  body: JSON.stringify({
+    email, password, fullName,
+    coppaConsent: true,  // ← Hardcoded TRUE before user sees Step 3
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+  }),
+});
+```
+
+**Impact:** The COPPA consent timestamp (`coppa_consent_at`) in the database is recorded at account creation, not at the time the user actually confirms consent. Under FTC COPPA rules (April 2026 deadline), consent must be verifiable and intentional. A hardcoded `true` before the checkbox is shown does not meet this standard.
+
+**Required Fix:** Restructure the signup flow so the API call happens AFTER Step 3 completion:
+
+*Option A (preferred):* Move the `/api/auth/signup` call to after Step 3 completes:
+```typescript
+// Step 3 completion handler:
+const handleConsentConfirm = async () => {
+  if (!coppaChecked) return; // User must check the box
+  const response = await fetch('/api/auth/signup', {
+    body: JSON.stringify({
+      email, password, fullName,
+      coppaConsent: true,  // Now this is truthful — user just confirmed
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    }),
+  });
+  // Then proceed to Step 4
+};
+```
+
+*Option B:* Create account in Step 1 without consent, then call a separate `/api/auth/consent` endpoint in Step 3 that sets `coppa_consent_at`.
+
+---
+
+### S3-HIGH-002 — Middleware blocks demo users from dashboard
+
+**File:** `src/middleware.ts` (lines 29-36)
+**Category:** Auth / Runtime
+**Description:** Demo users have no Supabase auth session (`user` will be `null`). Dashboard routes (`/home`, `/labs`, `/arcade`, `/profile`) are not in `publicPaths`. The middleware will redirect demo users to `/login` on every dashboard page load, making the Demo Login feature non-functional.
+
+**Evidence:**
+```typescript
+// middleware.ts logic:
+const { data: { user } } = await supabase.auth.getUser();
+if (!user && !isPublicPath) {
+  return NextResponse.redirect(new URL('/login', req.url));
+  // Demo users hit this redirect — they have no Supabase user
+}
+```
+
+**Required Fix:** Add demo session awareness to the middleware:
+```typescript
+const { data: { user } } = await supabase.auth.getUser();
+
+// Check for demo session cookie/indicator
+const isDemoSession = req.cookies.get('sparkforge-demo-session')?.value;
+
+if (!user && !isDemoSession && !isPublicPath) {
+  return NextResponse.redirect(new URL('/login', req.url));
+}
+```
+Alternatively, have the demo session creation in `/api/auth/demo` set a server-readable cookie that the middleware can check.
+
+---
+
+## Stage 3 — WARNING FINDINGS
+
+### S3-WARN-001 — Auth layout `dpr` may cause hydration mismatch
+
+**File:** `src/app/(auth)/layout.tsx` (line 35)
+**Category:** React / SSR
+**Description:** `window.devicePixelRatio` is accessed inline in the Canvas `dpr` prop. The layout is `'use client'` and the Canvas is dynamically imported with `ssr: false`, but the surrounding layout code is still server-rendered during hydration. A `typeof window !== 'undefined'` guard prevents crashes but the server always gets the fallback value `2` while the client may get a different value, causing a hydration mismatch warning.
+
+**Required Fix:** Use R3F Canvas's built-in `dpr` range (since D3D-1 means desktop-only):
+```typescript
+<Canvas dpr={[1, 3]}>  {/* R3F auto-selects based on devicePixelRatio */}
+```
+
+---
+
+### S3-WARN-002 — Unused `isCardHovered` state in login page
+
+**File:** `src/app/(auth)/login/page.tsx` (line 8)
+**Category:** Code Quality
+**Description:** `setIsCardHovered` is assigned but `isCardHovered` is never read. This state was likely intended to pass hover info to the 3D portal for interactive glow effects, but the connection is never wired up — `LoginPortal3D`'s `isHovered` prop in the auth layout defaults to `false`.
+
+**Required Fix:** Either wire `isCardHovered` up to the auth layout's 3D portal via context/callback, or remove the unused state to avoid dead code.
+
+---
+
+### S3-WARN-003 — `heroAudio.ts` path differs from CLAUDE.md spec
+
+**File:** `src/lib/audio/heroAudio.ts`
+**Category:** Doc-Drift
+**Description:** CLAUDE.md Phase 5B lists the file as `src/lib/3d/heroAudio.ts`. The actual file is at `src/lib/audio/heroAudio.ts`. All imports reference the correct actual path — code is internally consistent.
+
+**Impact:** Cosmetic doc-drift. No runtime break.
+
+**Required Fix:** Update CLAUDE.md Phase 5B file list to `src/lib/audio/heroAudio.ts`.
+
+---
+
+## Stage 3 — INFO FINDINGS
+
+### S3-INFO-001 — No TopBar component exists (intentional)
+
+**Description:** CLAUDE.md lists `TopBar` in the Stage 3 audit checklist but no `TopBar` component exists anywhere. The dashboard uses Sidebar-only navigation. The cockpit 3D HUD (`HolographicHUD`, `StatusBar3D`) replaces the traditional TopBar in the v3 Laboratory Control Station design. Appears intentional.
+
+### S3-INFO-002 — `demo-session.ts` has `deviceType` field contradicting D3D-1
+
+**File:** `src/lib/demo-session.ts` (line 12)
+**Description:** `DemoSession` interface includes `deviceType: 'desktop' | 'tablet' | 'mobile' | null` which contradicts D3D-1 (desktop-only). The field is always set to `null` and never used. Harmless but inconsistent.
+
+### S3-INFO-003 — `_SUPERSEDED` archive properly maintained
+
+**Description:** `src/components/3d/_SUPERSEDED/` contains `CrystalShatter.tsx` with a proper `SUPERSEDED_BY.md` manifest documenting the replacement by `HeroAnimation.tsx`, the date, reason, decision reference (Decision 8.1), and notes that `CrystalHero.tsx` is RETAINED. No active code imports CrystalShatter. Archive is clean.
+
+---
+
+## Stage 3 — PASS FINDINGS
+
+### Auth Pages (6 PASS)
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | `(auth)/layout.tsx` — 3D canvas layer | PASS | LoginPortal3D + LoginParticles3D dynamically imported, ssr: false |
+| 2 | `login/page.tsx` — DemoLoginButton present | PASS | Enhanced with LoginFormCard + DemoLoginButton + divider |
+| 3 | `signup/page.tsx` — 4-step COPPA flow | PASS | Steps 1-4 present, shield icon, consent checkbox, age-18+ text |
+| 4 | `reset-password/page.tsx` — full flow | PASS | Email input, Supabase resetPasswordForEmail, ARIA live region |
+| 5 | `LoginFormCard.tsx` — chrome bezel glow | PASS | `?demo=expired` amber notification handled |
+| 6 | `DemoLoginButton.tsx` — confirmation flow | PASS | Calls `/api/auth/demo`, starts client session, redirects to `/home` |
+
+### Dashboard Layout (4 PASS)
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 7 | `(dashboard)/layout.tsx` | PASS | StationFrame (dynamic, ssr:false), DemoGuard, DemoSessionBanner, CelebrationOverlay, Sidebar |
+| 8 | `Sidebar.tsx` — full nav | PASS | Desktop collapsed/expanded, keyboard nav, child switcher, correct fonts |
+| 9 | `StationFrame.tsx` — thin CockpitCanvas wrapper | PASS | CPA2-1 architecture, all props passed through |
+| 10 | `(dashboard)/home/page.tsx` | PASS | Placeholder with child stats, marked "replaced in Stage 4" |
+
+### Hero Animation (11 PASS)
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 11 | `HeroAnimation.tsx` | PASS | 8-phase cinematic, renders as `<group>` inside CockpitCanvas |
+| 12 | `useHeroAnimation.ts` | PASS | Hook orchestrating hero phases |
+| 13 | `crystallineLogo.vert` | PASS | Vertex shader |
+| 14 | `crystallineLogo.frag` | PASS | Fragment shader |
+| 15 | `electricVeins.frag` | PASS | Fragment shader |
+| 16 | `voronoiShatter.comp` | PASS | Compute shader |
+| 17 | `voronoiFracture.ts` | PASS | Exports generateVoronoiShards, assignShardsToTargets, SHARD_COUNTS |
+| 18 | `heroSplines.ts` | PASS | Exports generateSplineTimings |
+| 19 | `heroParticleCompute.ts` | PASS | TSL particle compute |
+| 20 | `heroParticleRender.ts` | PASS | TSL particle render |
+| 21 | `heroAudio.ts` | PASS | Audio system (path at src/lib/audio/, not src/lib/3d/) |
+
+### Cockpit Architecture (4 PASS — all CPA2 + D3D-B decisions verified)
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 22 | `CockpitCanvas.tsx` — single persistent Canvas | PASS | CPA2-1, D3D-B1: never unmounts, SceneRouter for visibility |
+| 23 | `SceneRouter.tsx` — D3D-B5 visibility control | PASS | Hero/cockpit/spatial/game/iris groups, opacity interpolation (D3D-B6) |
+| 24 | `MechanicalIris.tsx` — D3D-B2 transitions | PASS | 8-blade aperture, 100K tris, driven by sceneStore.transition.progress |
+| 25 | `PostProcessingStack.tsx` — D3D-5 always-on | PASS | 9 effects: N8AO, Bloom, ChromaticAberration, DOF, Noise, HueSaturation, BrightnessContrast, Vignette, BarrelDistortion |
+
+### Login 3D + Demo (3 PASS)
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 26 | `DemoGuard.tsx` — expiry protection | PASS | Checks every 30s, redirects to `/login?demo=expired` |
+| 27 | `DemoSessionBanner.tsx` — countdown + urgent | PASS | Timer, urgent mode at <5min, expired modal, "Create Account" CTA |
+| 28 | `demo-session.ts` — 1hr sessions | PASS | localStorage persistence, formatTimeRemaining utility |
+
+---
+
+## Stage 3 — File Inventory
+
+### Auth Pages
+| File | Status |
+|------|--------|
+| `src/app/(auth)/layout.tsx` | EXISTS (3D canvas layer) |
+| `src/app/(auth)/login/page.tsx` | EXISTS (enhanced) |
+| `src/app/(auth)/signup/page.tsx` | EXISTS (4-step COPPA) |
+| `src/app/(auth)/reset-password/page.tsx` | EXISTS |
+
+### Dashboard Layout
+| File | Status |
+|------|--------|
+| `src/app/(dashboard)/layout.tsx` | EXISTS |
+| `src/app/(dashboard)/home/page.tsx` | EXISTS |
+| `src/components/layout/Sidebar.tsx` | EXISTS |
+| `src/components/layout/StationFrame.tsx` | EXISTS |
+
+### Hero Animation (Phase 5A-5B)
+| File | Status |
+|------|--------|
+| `src/components/3d/HeroAnimation.tsx` | EXISTS |
+| `src/hooks/useHeroAnimation.ts` | EXISTS |
+| `src/shaders/crystallineLogo.vert` | EXISTS |
+| `src/shaders/crystallineLogo.frag` | EXISTS |
+| `src/shaders/electricVeins.frag` | EXISTS |
+| `src/shaders/voronoiShatter.comp` | EXISTS |
+| `src/lib/3d/voronoiFracture.ts` | EXISTS |
+| `src/lib/3d/heroSplines.ts` | EXISTS |
+| `src/lib/3d/heroParticleCompute.ts` | EXISTS |
+| `src/lib/3d/heroParticleRender.ts` | EXISTS |
+| `src/lib/audio/heroAudio.ts` | EXISTS (path differs from doc) |
+
+### Cockpit Architecture (Phase 5C-5D)
+| File | Status |
+|------|--------|
+| `src/components/3d/CockpitCanvas.tsx` | EXISTS |
+| `src/components/3d/CameraSystem.tsx` | EXISTS |
+| `src/components/3d/SceneRouter.tsx` | EXISTS |
+| `src/components/3d/MechanicalIris.tsx` | EXISTS |
+| `src/components/3d/PostProcessingStack.tsx` | EXISTS |
+| `src/components/3d/CockpitPanels.tsx` | EXISTS |
+| `src/components/3d/SidePanels.tsx` | EXISTS |
+| `src/components/3d/HolographicLabMap.tsx` | EXISTS |
+| `src/components/3d/HolographicHUD.tsx` | EXISTS |
+| `src/components/3d/StatusBar3D.tsx` | EXISTS |
+| `src/components/3d/LEDRim.tsx` | EXISTS |
+| `src/components/3d/AuroraBackground.tsx` | EXISTS |
+| `src/components/3d/CockpitStructuralDetail.tsx` | EXISTS |
+| `src/components/3d/CockpitFloor3D.tsx` | EXISTS |
+| `src/components/3d/VolumetricFog3D.tsx` | EXISTS |
+| `src/components/3d/DynamicEnvironment.tsx` | EXISTS |
+| `src/components/3d/InteractiveConsole3D.tsx` | EXISTS |
+| `src/components/3d/AmbientNPCs.tsx` | EXISTS |
+| `src/components/3d/CeremonyFX.tsx` | EXISTS |
+| `src/components/3d/WormholeTransition.tsx` | EXISTS |
+| `src/components/3d/MiniMapOverlay3D.tsx` | EXISTS |
+| `src/components/3d/CockpitSkinManager.tsx` | EXISTS |
+| `src/components/3d/SpatialDashboard.tsx` | EXISTS |
+| `src/components/3d/LabStructure3D.tsx` | EXISTS |
+
+### Login 3D + Demo (Phase 5E-5F)
+| File | Status |
+|------|--------|
+| `src/components/3d/LoginPortal3D.tsx` | EXISTS |
+| `src/components/3d/LoginParticles3D.tsx` | EXISTS |
+| `src/components/auth/DemoLoginButton.tsx` | EXISTS |
+| `src/components/auth/DemoGuard.tsx` | EXISTS |
+| `src/components/auth/DemoSessionBanner.tsx` | EXISTS |
+| `src/components/auth/LoginFormCard.tsx` | EXISTS |
+| `src/lib/demo-session.ts` | EXISTS |
+| `src/hooks/useDemoSession.ts` | EXISTS |
+| `src/app/api/auth/demo/route.ts` | EXISTS |
+
+### Stores Modified in Stage 3
+| File | Status |
+|------|--------|
+| `src/stores/authStore.ts` | EXISTS (demo extensions) |
+| `src/stores/cockpitStore.ts` | EXISTS (CPA2 full) |
+| `src/stores/sceneStore.ts` | EXISTS (D3D-B5) |
+| `src/stores/deviceStore.ts` | EXISTS (D3D-1 hardcoded) |
+
+### Archive
+| File | Status |
+|------|--------|
+| `src/components/3d/_SUPERSEDED/CrystalShatter.tsx` | EXISTS (archived) |
+| `src/components/3d/_SUPERSEDED/SUPERSEDED_BY.md` | EXISTS (manifest) |
+
+### Middleware
+| File | Status |
+|------|--------|
+| `src/middleware.ts` | EXISTS (**missing /reset-password**) |
+| `src/components/providers/AuthProvider.tsx` | EXISTS (demo hydration) |
+
+**Files Expected:** 55+ | **Files Found:** 55+ | **Missing:** 0 files missing (1 middleware config issue)
+
+---
+
+*Stages 1-3 audit complete. Stages 4-10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-3 | March 25, 2026*
