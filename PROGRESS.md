@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 1 Audit Fixes
-## Status: IN PROGRESS (Batch A complete, Batch B next)
-## Last Updated: 2026-03-26 (Stage 1 Batch A: Verification & Downgrade)
+## Current Phase: Stage 1 Audit Fixes — COMPLETE
+## Status: ALL Stage 1 findings resolved or deferred
+## Last Updated: 2026-03-26 (Stage 1 Batch B: Stage Doc Updates)
 
 ---
 
@@ -19,6 +19,38 @@
 **Files Modified (2 — documentation only):**
 - `AUDIT_REPORT_3-25-2026.md` — Updated S1-HIGH-002 (downgraded), S1-INFO-002 (deferred), finding counts, Batch 7 remediation log
 - `PROGRESS.md` — Added Batch A entry
+
+---
+
+### Stage 1 Audit Fix — Batch B: Stage Doc Updates (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+**Build Status:** Doc-only changes — no source code modified
+
+**Findings Addressed:**
+- [x] S1-WARN-003 — Fixed `COCKPIT_GEOMETRY_V2` → `COCKPIT_GEOMETRY` in stage doc (7 occurrences). Aligned segment counts to 20M upgrade. Added structural detail constants + missing bloom presets.
+- [x] S1-WARN-004 — Replaced entire deviceStore Step 20a with D3D-1 desktop-ultra implementation. Updated hooks Step 21: marked useMediaQuery/useIsMobile as REMOVED. Updated file inventory.
+
+**Files Modified (3):**
+- `docs/stage1-foundation/STAGE1_Foundation_v2_PART2.md` — Steps 20a, 20c, 21, file inventory table
+- `AUDIT_REPORT_3-25-2026.md` — S1-WARN-003 resolved, S1-WARN-004 resolved, finding counts final, Batch 8 remediation log
+- `PROGRESS.md` — Added Batch B entry, status updated to COMPLETE
+
+**Stage 1 Audit Summary — All Findings:**
+| ID | Severity | Status |
+|---|---|---|
+| S1-CRIT-001 | CRITICAL | Resolved (Batch 6) |
+| S1-HIGH-001 | HIGH | Resolved (Batch 1) |
+| S1-HIGH-002 | HIGH→INFO | Downgraded (Batch 7) — no active imports |
+| S1-WARN-001 | WARNING | Resolved (Batch 6) |
+| S1-WARN-002 | WARNING | Resolved (Batch 6) |
+| S1-WARN-003 | WARNING | Resolved (Batch 8) — stage doc updated |
+| S1-WARN-004 | WARNING | Resolved (Batch 8) — stage doc updated |
+| S1-INFO-001 | INFO | Expected — authStore expanded by Phase 5E |
+| S1-INFO-002 | INFO | Deferred — gameActive still consumed by useStationMode |
+| S1-INFO-003 | INFO | Expected — layout is Stage 10 version |
+| S1-INFO-004 | INFO | Low impact — barrel files with optimizePackageImports |
 
 ---
 

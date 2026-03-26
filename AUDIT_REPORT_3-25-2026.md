@@ -63,6 +63,11 @@
 - **S1-INFO-002:** Verified `gameActive`/`setGameActive` in uiStore are still actively consumed by `useStationMode.ts` (lines 104-105, 325). Not dead code — deferred to future refactor when `sceneStore` fully replaces mode derivation.
 - **Result: No code changes — audit report updated with verified findings**
 
+### Batch 8: Stage 1 Audit — Batch B (Stage Doc Updates)
+- **S1-WARN-003:** Updated `STAGE1_Foundation_v2_PART2.md` Step 20c — renamed `COCKPIT_GEOMETRY_V2` → `COCKPIT_GEOMETRY` across all 7 occurrences. Aligned `topBarSegments`/`sideSegments` to 20M upgrade values. Added structural detail constants. Added missing `parent`/`admin` bloom presets.
+- **S1-WARN-004:** Replaced entire Step 20a `deviceStore` section with D3D-1 desktop-ultra implementation (PerformanceProfile, DESKTOP_ULTRA_PROFILE, TRIANGLE_BUDGETS, selector helpers). Updated Step 21 hooks: marked `useMediaQuery`/`useIsMobile` as REMOVED per D3D-1. Updated file inventory table.
+- **Result: Stage doc now matches actual codebase — per CLAUDE.md Section 3.1 (auto-fix: deprecated API usage)**
+
 ---
 
 ## Executive Summary
@@ -527,10 +532,10 @@ MSW handlers not found — src/mocks/ directory does not exist
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 1 (resolved) |
-| HIGH | 1 (resolved) + 1 (downgraded to INFO) |
-| WARNING | 2 (resolved) + 2 (open → Batch B) |
-| INFO | 5 (4 original + 1 downgraded from HIGH) |
+| CRITICAL | 1 (resolved Batch 6) |
+| HIGH | 1 (resolved Batch 1) + 1 (downgraded to INFO — Batch 7) |
+| WARNING | 4 (all resolved: 2 Batch 6, 2 Batch 8) |
+| INFO | 5 (4 original + 1 downgraded from HIGH). S1-INFO-002 deferred. |
 | PASS | 10 |
 
 ---
@@ -641,7 +646,7 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 ---
 
-### S1-WARN-003 — `cockpitConfig.ts` export name doesn't match stage doc
+### S1-WARN-003 — ~~`cockpitConfig.ts` export name doesn't match stage doc~~ RESOLVED (Batch 8)
 
 **File:** `src/lib/3d/cockpitConfig.ts` (line 12)
 **Category:** Doc-Drift
@@ -649,11 +654,11 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 **Impact:** Cosmetic doc-drift. No runtime break.
 
-**Required Fix:** Update stage doc Step 20c to use `COCKPIT_GEOMETRY`.
+**Resolution:** Updated `STAGE1_Foundation_v2_PART2.md` Step 20c: renamed `COCKPIT_GEOMETRY_V2` → `COCKPIT_GEOMETRY` in all 7 occurrences (export + useAdaptiveCockpit references). Also aligned `topBarSegments` (48→256) and `sideSegments` (24→128) to match 20M cockpit upgrade values, and added missing structural detail constants. Added missing `parent`/`admin` bloom presets.
 
 ---
 
-### S1-WARN-004 — `deviceStore.ts` significantly diverged from stage doc (D3D-1 overhaul)
+### S1-WARN-004 — ~~`deviceStore.ts` significantly diverged from stage doc (D3D-1 overhaul)~~ RESOLVED (Batch 8)
 
 **File:** `src/stores/deviceStore.ts`
 **Category:** Doc-Drift
@@ -661,7 +666,7 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 **Impact:** Code is correct per D3D-1 decision lock. Stage doc is outdated — anyone reading the doc will get the wrong API.
 
-**Required Fix:** Update stage doc Step 20a to reflect the D3D-1 desktop-ultra store shape. Per CLAUDE.md Section 3.1, this is a mandatory auto-fix (deprecated API usage).
+**Resolution:** Replaced entire Step 20a in `STAGE1_Foundation_v2_PART2.md` with actual D3D-1 desktop-ultra implementation. Updated description, interface, profile, triangle budgets, store shape, and selector helpers. Also updated Step 21 hooks section: marked `useMediaQuery`/`useIsMobile` as REMOVED per D3D-1, updated file inventory table.
 
 ---
 

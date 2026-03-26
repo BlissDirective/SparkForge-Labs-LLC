@@ -18,7 +18,7 @@ Stage 1 Part 2 creates all foundational source files that every subsequent stage
 - **Animations** — 45+ Motion variants + spring presets
 - **Stores** — 4 Zustand stores (auth, child, game, toast) + uiStore + deviceStore + cockpitStore
 - **Jotai Atoms** — Fine-grained 3D state atoms for shader uniforms, particles, camera, LOD (Enhancement 8.1)
-- **Hooks** — 4 utility hooks (useDebounce, useLocalStorage, useMediaQuery, useIsMobile) + useAdaptiveCockpit
+- **Hooks** — 2 utility hooks (useDebounce, useLocalStorage) + useAdaptiveCockpit. ~~useMediaQuery, useIsMobile~~ removed per D3D-1 (desktop-only platform).
 - **Cockpit Config** — `src/lib/3d/cockpitConfig.ts` (CPA v2.0 geometry, bloom, camera, HUD, LOD presets)
 - **Audio Engine** — `src/lib/audio/cockpitAudio.ts` (CockpitAudioEngine class for spatial cockpit audio)
 - **Sentry** — Error tracking + performance monitoring config files (Enhancement 8.1)
@@ -926,106 +926,114 @@ export const useUIStore = create<UIState>((set) => ({
 
 **File:** `src/stores/deviceStore.ts`
 
-> CPA v2.0: Users select their device type at first launch. Drives LOD, FPS targets, and triangle budgets for all 3D components.
+> **D3D-1 Desktop-Ultra Overhaul (March 2026):** Hardcoded desktop-ultra profile. No device selection, no tiered budgets, no LOD levels. All rendering locked to maximum quality. Future mobile support will use R3F-native LOD (Three.js LOD object), not CSS fallbacks.
+>
+> **Supersedes:** Original CPA v2.0 multi-device store (DeviceType, DEVICE_PROFILES, hasSelected, setDeviceType). See CLAUDE.md Section 9.1, D3D-1/D3D-2 decision locks.
 
 ```typescript
+// ════════════════════════════════════════════════════
+// DEVICE STORE — Desktop-Ultra Hardcoded (D3D-1)
+// ════════════════════════════════════════════════════
+// Desktop-First Immersive 3D Overhaul: All rendering
+// locked to maximum quality. No device selection,
+// no tiered budgets, no LOD levels.
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-export type DeviceType = 'desktop' | 'tablet' | 'mobile';
-
-// ■■ GPU Rendering Tier (Hero Animation v2.0) ■■
+// ■■ GPU Rendering Tier ■■
 // Detected at runtime by webgpuDetection.ts
-// Determines particle budget and rendering pipeline for hero animation
-export type GPUTier = 'webgpu-high' | 'webgpu-mid' | 'webgpu-low' | 'webgl2' | 'css';
+export type GPUTier = 'webgpu-high' | 'webgpu-mid' | 'webgpu-low' | 'webgl2';
 
-export interface DeviceProfile {
+// ■■ Performance Profile — Desktop Ultra (Always) ■■
+export interface PerformanceProfile {
   targetFPS: number;
   maxTriangles: number;
-  lodBias: 'ultra' | 'high' | 'medium' | 'low';
-  bloom: boolean;
-  shadows: boolean;
-  pixelRatio: number;
+  particleMultiplier: number;
+  bloomEnabled: boolean;
+  postProcessingEnabled: boolean;
+  shadowsEnabled: boolean;
+  maxLights: number;
+  textureResolution: 'full';
+  instancedMeshLimit: number;
+  sphereSegments: number;
   antialias: boolean;
+  pixelRatio: number;
 }
 
-const DEVICE_PROFILES: Record<DeviceType, DeviceProfile> = {
-  desktop: {
-    targetFPS: 60,
-    maxTriangles: 500_000,
-    lodBias: 'ultra',
-    bloom: true,
-    shadows: true,
-    pixelRatio: 2.5,
-    antialias: true,
-  },
-  tablet: {
-    targetFPS: 45,
-    maxTriangles: 150_000,
-    lodBias: 'high',
-    bloom: true,
-    shadows: false,
-    pixelRatio: 1.5,
-    antialias: true,
-  },
-  mobile: {
-    targetFPS: 30,
-    maxTriangles: 50_000,
-    lodBias: 'low',
-    bloom: false,
-    shadows: false,
-    pixelRatio: 1,
-    antialias: false,
-  },
+// ■■ Single Profile — Desktop Ultra ■■
+const DESKTOP_ULTRA_PROFILE: PerformanceProfile = {
+  targetFPS: 60,
+  maxTriangles: 50_000_000,       // D3D-3: 50M total (30M cockpit + 20M game)
+  particleMultiplier: 1.5,        // Max particles always
+  bloomEnabled: true,
+  postProcessingEnabled: true,
+  shadowsEnabled: true,
+  maxLights: 24,                  // Increased for full cockpit + game lighting
+  textureResolution: 'full',
+  instancedMeshLimit: 10_000,     // Doubled for dense cockpit geometry
+  sphereSegments: 64,             // Ultra-quality curves
+  antialias: true,
+  pixelRatio: 3.0,                // D3D-4: Native DPR, generous cap
 };
 
+// ■■ Triangle Budgets — Desktop-Only (D3D-3) ■■
+export type TriangleBudgetTier = 'flagship' | 'flLite' | 'standard' | 'system';
+export const TRIANGLE_BUDGETS: Record<TriangleBudgetTier, number> = {
+  flagship:  20_000_000,    // 20M — full immersive game environment
+  flLite:    10_000_000,    // 10M — rich themed environment
+  standard:   5_000_000,    //  5M — full 3D lab environment
+  system:    30_000_000,    // 30M — cockpit shell
+};
+
+// ■■ Store Interface ■■
 interface DeviceState {
-  deviceType: DeviceType;
-  hasSelected: boolean;
-  profile: DeviceProfile;
-  /** GPU rendering tier detected at runtime by webgpuDetection.ts.
-   *  Determines particle budget and rendering pipeline for hero animation.
-   *  Cached in localStorage alongside existing device preferences. */
+  profile: PerformanceProfile;
   gpuTier: GPUTier;
-  /** Number of striped particle buffers (1-4) based on GPU VRAM capability.
-   *  Each stripe holds 2.5M particles at 48 bytes each. */
   stripeCount: number;
-  setDeviceType: (type: DeviceType) => void;
   setGpuTier: (tier: GPUTier, stripes?: number) => void;
+  getTriangleBudget: (tier: TriangleBudgetTier) => number;
+  getParticleCount: (baseCount: number) => number;
+  getSphereDetail: (preferredSegments?: number) => number;
 }
 
 export const useDeviceStore = create<DeviceState>()(
   persist(
-    (set) => ({
-      deviceType: 'desktop',
-      hasSelected: false,
-      profile: DEVICE_PROFILES.desktop,
-      gpuTier: 'webgl2' as GPUTier,  // safe default until detection runs
-      stripeCount: 0,                 // 0 = no WebGPU stripes (WebGL2/CSS mode)
-      setDeviceType: (deviceType) =>
-        set({
-          deviceType,
-          hasSelected: true,
-          profile: DEVICE_PROFILES[deviceType],
-        }),
+    (set, get) => ({
+      profile: DESKTOP_ULTRA_PROFILE,
+      gpuTier: 'webgl2' as GPUTier,
+      stripeCount: 0,
+
       setGpuTier: (gpuTier, stripes = 0) => set({ gpuTier, stripeCount: stripes }),
+
+      getTriangleBudget: (tier) => TRIANGLE_BUDGETS[tier],
+
+      getParticleCount: (baseCount) => {
+        const { particleMultiplier } = get().profile;
+        return Math.round(baseCount * particleMultiplier);
+      },
+
+      getSphereDetail: (preferredSegments) => {
+        const { sphereSegments } = get().profile;
+        return preferredSegments
+          ? Math.min(preferredSegments, sphereSegments)
+          : sphereSegments;
+      },
     }),
     {
       name: 'sparkforge-device',
       partialize: (state) => ({
-        deviceType: state.deviceType,
-        hasSelected: state.hasSelected,
         gpuTier: state.gpuTier,
         stripeCount: state.stripeCount,
       }),
-      onRehydrate: () => (state) => {
-        if (state) {
-          state.profile = DEVICE_PROFILES[state.deviceType];
-        }
-      },
     }
   )
 );
+
+// ■■ Selector Helpers ■■
+export const selectProfile = (s: DeviceState) => s.profile;
+export const selectGpuTier = (s: DeviceState) => s.gpuTier;
+export const selectStripeCount = (s: DeviceState) => s.stripeCount;
 ```
 
 ---
@@ -1293,7 +1301,8 @@ export const useCockpitStore = create<CockpitState>()(
 // Decisions: CPA-1 through CPA-12, CPA2-1 through CPA2-12
 
 // ■■ Cockpit Geometry Constants (v2.0 — adaptive curvature) ■■
-export const COCKPIT_GEOMETRY_V2 = {
+// NOTE: Export name is COCKPIT_GEOMETRY (not _V2) — matches all consumers
+export const COCKPIT_GEOMETRY = {
   // Base values (adapted by useAdaptiveCockpit)
   panelCurvature: 0.85,
   totalWrapArc: 140,            // degrees, overridden by adaptive
@@ -1309,8 +1318,14 @@ export const COCKPIT_GEOMETRY_V2 = {
   // NEW in v2
   hexDataTextureSize: 64,       // px, for lab number / indicator textures
   panelEdgeBevel: 0.005,        // subtle edge chamfer
-  topBarSegments: 48,           // increased from 32 for smoother curve
-  sideSegments: 24,             // increased from 16
+  topBarSegments: 256,          // 20M upgrade: ultra-smooth curves (was 48)
+  sideSegments: 128,            // 20M upgrade: high-poly side panels (was 24)
+
+  // 20M Cockpit Upgrade — structural detail constants
+  rivetSpacing: 0.15,           // spacing between instanced rivets
+  cableBundleCount: 50,         // TubeGeometry cable splines
+  ventPanelCount: 12,           // ventilation grate panels
+  floorGrateResolution: 64,     // grid resolution for floor panels
 } as const;
 
 // ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■
@@ -1331,6 +1346,8 @@ export const BLOOM_PRESETS = {
   gameComplete:  { intensity: 1.0, threshold: 0.2, smoothing: 0.6 },
   profile:       { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
   onboarding:    { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
+  parent:        { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
+  admin:         { intensity: 0.25, threshold: 0.75, smoothing: 0.95 },
 } as const;
 
 // ■■ Camera Presets — FOV + Barrel Distortion (CPA-9, CPA-10) ■■
@@ -1682,7 +1699,7 @@ export class CockpitAudioEngine {
 'use client';
 
 import { useState, useEffect } from 'react';
-import { ADAPTIVE_CURVATURE, COCKPIT_GEOMETRY_V2 } from '@/lib/3d/cockpitConfig';
+import { ADAPTIVE_CURVATURE, COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 
 interface AdaptiveCockpitParams {
   arcDegrees: number;
@@ -1693,9 +1710,9 @@ interface AdaptiveCockpitParams {
 
 export function useAdaptiveCockpit(): AdaptiveCockpitParams {
   const [params, setParams] = useState<AdaptiveCockpitParams>({
-    arcDegrees: COCKPIT_GEOMETRY_V2.totalWrapArc,
-    panelRadius: COCKPIT_GEOMETRY_V2.panelRadius,
-    curvature: COCKPIT_GEOMETRY_V2.panelCurvature,
+    arcDegrees: COCKPIT_GEOMETRY.totalWrapArc,
+    panelRadius: COCKPIT_GEOMETRY.panelRadius,
+    curvature: COCKPIT_GEOMETRY.panelCurvature,
     isCSSFallback: false,
   });
 
@@ -1708,21 +1725,21 @@ export function useAdaptiveCockpit(): AdaptiveCockpitParams {
         setParams({
           arcDegrees: ADAPTIVE_CURVATURE.ultraWide.arc,
           panelRadius: ADAPTIVE_CURVATURE.ultraWide.radius,
-          curvature: COCKPIT_GEOMETRY_V2.panelCurvature,
+          curvature: COCKPIT_GEOMETRY.panelCurvature,
           isCSSFallback: false,
         });
       } else if (w >= ADAPTIVE_CURVATURE.desktop.minWidth) {
         setParams({
           arcDegrees: ADAPTIVE_CURVATURE.desktop.arc,
           panelRadius: ADAPTIVE_CURVATURE.desktop.radius,
-          curvature: COCKPIT_GEOMETRY_V2.panelCurvature,
+          curvature: COCKPIT_GEOMETRY.panelCurvature,
           isCSSFallback: false,
         });
       } else if (w >= ADAPTIVE_CURVATURE.tablet.minWidth) {
         setParams({
           arcDegrees: ADAPTIVE_CURVATURE.tablet.arc,
           panelRadius: ADAPTIVE_CURVATURE.tablet.radius,
-          curvature: COCKPIT_GEOMETRY_V2.panelCurvature * 0.8,
+          curvature: COCKPIT_GEOMETRY.panelCurvature * 0.8,
           isCSSFallback: false,
         });
       } else {
@@ -2133,43 +2150,13 @@ export function useLocalStorage<T>(
 }
 ```
 
-### useMediaQuery
+### ~~useMediaQuery~~ — REMOVED (D3D-1)
 
-**File:** `src/hooks/useMediaQuery.ts`
-
-```typescript
-import { useState, useEffect } from 'react';
-
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia(query);
-    setMatches(mediaQuery.matches);
-
-    const handler = (event: MediaQueryListEvent) => {
-      setMatches(event.matches);
-    };
-
-    mediaQuery.addEventListener('change', handler);
-    return () => mediaQuery.removeEventListener('change', handler);
-  }, [query]);
-
-  return matches;
-}
-```
-
-### useIsMobile
-
-**File:** `src/hooks/useIsMobile.ts`
-
-```typescript
-import { useMediaQuery } from './useMediaQuery';
-
-export function useIsMobile(breakpoint = 768): boolean {
-  return useMediaQuery(`(max-width: ${breakpoint - 1}px)`);
-}
-```
+> **D3D-1 Decision Lock (March 2026):** `useMediaQuery` and `useIsMobile` were removed as part of the Desktop-First Immersive 3D Overhaul. SparkForge is a desktop-only platform — no mobile/tablet detection is needed. Future mobile support will use R3F-native LOD, not component-level media query checks.
+>
+> **Files deleted:** `src/hooks/useMediaQuery.ts`, `src/hooks/useIsMobile.ts`
+>
+> **Zero active imports remain** — only comment references in `src/app/(dashboard)/layout.tsx` and `src/stores/deviceStore.ts`.
 
 ---
 
@@ -2440,8 +2427,8 @@ git tag -a v0.1.0 -m "Stage 1 complete: Foundation"
 | `src/hooks/useAdaptiveCockpit.ts` | 20e | Viewport-adaptive curvature hook (CPA v2.0) |
 | `src/hooks/useDebounce.ts` | 21 | Value debouncing |
 | `src/hooks/useLocalStorage.ts` | 21 | SSR-safe localStorage |
-| `src/hooks/useMediaQuery.ts` | 21 | SSR-safe media queries |
-| `src/hooks/useIsMobile.ts` | 21 | Mobile detection for 3D fallback |
+| ~~`src/hooks/useMediaQuery.ts`~~ | ~~21~~ | REMOVED (D3D-1: desktop-only platform) |
+| ~~`src/hooks/useIsMobile.ts`~~ | ~~21~~ | REMOVED (D3D-1: desktop-only platform) |
 | `src/lib/feature-flags.ts` | 22 | Environment-based feature gates |
 | `src/hooks/useSystemPreferences.ts` | 23 | OS accessibility detection |
 | `src/components/providers/QueryProvider.tsx` | 24 | React Query wrapper |
