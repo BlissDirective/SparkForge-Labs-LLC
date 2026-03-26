@@ -2078,6 +2078,246 @@ Or use drei's `useDispose` utility.
 
 ---
 
-*Stages 1-6 audit complete. Stages 7-10 pending.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-6 | March 25, 2026*
+# STAGE 7 AUDIT — Remaining Games (29 games: 9 FL-Lite + 20 Standard)
+
+**Stage:** 7 (Phases 15-22)
+**Source Docs:** `STAGE7A_Batch + Parts 2-4`, `STAGE7B_v3FINAL_A/B/C`, `STAGE7C_Part1+2 + v3FINAL_A/B/C`, `STAGE7D_v3FINAL_A/B/C`, `STAGE7E_Part1+2`, `STAGE7F_v3FINAL_A/B + Part1/2`
+**Scope:** 9 FL-Lite games (10M tri budget) + 20 Standard games (5M tri budget), environments, 3D integration
+**Build Status:** All 29 games code-complete. Systemic D3D-B1 violation across 28/29 games.
+
+## Stage 7 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 1 (systemic — affects 28 games) |
+| HIGH | 4 |
+| WARNING | 4 |
+| INFO | 2 |
+| PASS | 7 |
+
+---
+
+## Stage 7 — FL-Lite Game Overview (9 games)
+
+| Game | Lines | Phases | Learn | Complete | startGame | completeGame | 3D Import | ARIA |
+|------|-------|--------|-------|----------|-----------|-------------|-----------|------|
+| DataDetective | 322 | welcome→play→complete | NO | YES | NO | YES | YES | 4 |
+| RobotVacuum | 834 | welcome→learn→play | YES | NO | NO | YES | YES | 2 |
+| CameraQuest | 619 | welcome→learn→hunt | YES | NO | NO | YES | YES | 1 |
+| ChatbotBuilder | 750 | welcome→learn→build | YES | NO | YES | YES | YES | 4 |
+| EmojiDecoder | 614 | welcome→learn→play→lab→complete | YES | YES | YES | YES | **NO** | 5 |
+| CodeBlocks | 727 | welcome→learn→play | YES | NO | NO | YES | YES | 2 |
+| MyFirstAiApp | 750 | welcome→learn→build→preview→complete | YES | YES | YES | YES | YES | 7 |
+| FutureForge | 381 | welcome→learn→play→complete | YES | YES | YES | YES | YES | 3 |
+| AiOrNot | 554 | welcome→learn→play→predict→complete | YES | YES | YES | YES | **NO** | 3 |
+
+## Stage 7 — Standard Game Overview (20 games)
+
+| Game | Lines | Phases | Learn | Complete | startGame | completeGame | ARIA |
+|------|-------|--------|-------|----------|-----------|-------------|------|
+| AiSpy | 499 | welcome→play→reveal→complete | NO | YES | NO | YES | 5+ |
+| TimeMachine | 316 | welcome→play | NO | NO | NO | YES | 2+ |
+| HumanVsMachine | 429 | welcome→play | NO | NO | NO | YES | 1+ |
+| TreatTrainer | 244 | welcome→select→train→report | NO | NO | YES | YES | 2+ |
+| NeuronRelay | 212 | welcome→learn→play→report | YES | NO | NO | YES | 5+ |
+| PixelInvestigator | 311 | welcome→zoom→discover→report | NO | NO | NO | YES | 4+ |
+| WordPredictor | 391 | welcome→play | NO | NO | NO | YES | 1+ |
+| TokenChopper | 298 | welcome→learn→play | YES | NO | NO | YES | 1+ |
+| AiArtDetective | 464 | welcome→examine→judge→report | NO | NO | NO | YES | 1+ |
+| ToolPicker | 247 | welcome→learn→match→report | YES | NO | NO | YES | 1+ |
+| DataShield | 260 | welcome→protect→report | NO | NO | NO | YES | 2+ |
+| RealOrFake | 231 | welcome→analyze→judge→report | NO | NO | NO | YES | 2+ |
+| EthicsCourtroom | 949 | welcome→learn→trial→complete | YES | YES | NO | YES | 5+ |
+| FoolTheAi | 299 | welcome→learn→create→test | YES | NO | NO | YES | 1+ |
+| BuildClassifier | 770 | welcome→label→train→test→report | YES | NO | NO | YES | 6+ |
+| PredictionMarket | 256 | welcome→learn→predict→report | YES | NO | NO | YES | 1+ |
+| SentimentScanner | 216 | welcome→analyze→report | NO | NO | NO | YES | 2+ |
+| LostInTranslation | 235 | welcome→translate→compare→report | NO | NO | NO | YES | 2+ |
+| CareerExplorer | 594 | welcome→learn→play→complete | YES | YES | YES | YES | 7+ |
+| ApiExplorer | 765 | welcome→learn→request→inspect→report | YES | NO | NO | YES | 5+ |
+
+---
+
+## Stage 7 — CRITICAL FINDINGS
+
+### S7-CRIT-001 — 28 of 29 games create standalone Canvas (systemic D3D-B1 violation)
+
+**Category:** Architecture — D3D Decision Lock Violation
+**Description:** Combined with S6-CRIT-002 (6 flagships), this makes **28 of 29 total 3D-using games** that create their own `<Canvas>` instead of rendering as `<group>` inside the persistent `CockpitCanvas`. Only **AiSpyGame** correctly uses `sceneStore.setGameSceneContent`.
+
+This violates:
+- **D3D-B1**: CockpitCanvas should never unmount; games shouldn't create separate Canvas instances
+- **D3D-B3**: Game scenes should render as `<group>` inside CockpitCanvas
+- **D3D-B5**: sceneStore should manage scene visibility
+- **D3D-B2**: MechanicalIris transitions can't work with separate Canvas
+- **D3D-B6**: Cockpit can't fade to 20% opacity during game
+
+**Impact:** Dual WebGL contexts running simultaneously on 28 games. GPU memory doubled. No iris transitions. SceneRouter bypassed. This is the single largest architectural gap in the entire codebase.
+
+**Required Fix:** Systemic refactor — remove `<Canvas>` from all 28 3D components, convert to `<group>`, and register via `sceneStore.setGameSceneContent`. This is a major effort but is required by 5 locked D3D decisions. AiSpyGame serves as the reference implementation.
+
+---
+
+## Stage 7 — HIGH FINDINGS
+
+### S7-HIGH-001 — 22 of 29 games never call `startGame()`
+
+**Category:** Store Initialization
+**Description:** Only 7 games call `game.startGame(slug, rounds)`:
+- **FL-Lite (5/9):** ChatbotBuilder, EmojiDecoder, MyFirstAiApp, FutureForge, AiOrNot
+- **Standard (2/20):** TreatTrainer, CareerExplorer
+
+The other 22 never initialize the game store. Combined with 5 flagships from S6-CRIT-003, that's **27 of 35 total games** that skip `startGame()`.
+
+**Required Fix:** Add `game.startGame(slug, totalRounds)` on mount for all games. Can be automated in `GameShell` if the `gameId` prop is reliably set.
+
+---
+
+### S7-HIGH-002 — 2 FL-Lite games missing 3D component integration
+
+**Files:** `EmojiDecoderGame.tsx`, `AiOrNotGame.tsx`
+**Category:** Missing Feature
+**Description:** Both are classified as FL-Lite (immersive 3D, 10M triangle budget) but neither imports nor renders its 3D component. `EmojiDecoder3D.tsx` and `AiOrNot3D.tsx` exist but are orphaned — never imported by any file.
+
+**Required Fix:**
+```typescript
+// In EmojiDecoderGame.tsx:
+const EmojiDecoder3D = dynamic(() => import('@/components/3d/EmojiDecoder3D'), { ssr: false });
+// Render in play/lab phase
+
+// In AiOrNotGame.tsx:
+const AiOrNot3D = dynamic(() => import('@/components/3d/AiOrNot3D'), { ssr: false });
+// Render in play/predict phase
+```
+
+---
+
+### S7-HIGH-003 — 21 of 29 games missing explicit `complete` phase
+
+**Category:** Game Architecture
+**Description:** Per CLAUDE.md Section 7, the phase cycle should include a `complete` phase that shows results and triggers celebrations. Only **8 of 29** Stage 7 games have it:
+- FL-Lite: DataDetective, EmojiDecoder, MyFirstAiApp, FutureForge, AiOrNot (5)
+- Standard: AiSpy, EthicsCourtroom, CareerExplorer (3)
+
+The other 21 call `completeGame()` mid-flow without transitioning to a dedicated completion screen with "What You Learned" summary.
+
+**Required Fix:** Add `complete` phase to each game with educational summary, score display, and celebration trigger. This can be phased — prioritize FL-Lite games first.
+
+---
+
+### S7-HIGH-004 — API Explorer Band C restriction not enforced in code
+
+**File:** `src/components/games/ApiExplorerGame.tsx`
+**Category:** COPPA / Age Restriction
+**Description:** API Explorer is marked "BAND C ONLY" in its header comment and shows an "Advanced — Ages 14-16" badge. However, it does NOT import `useChildStore` to read the child's age band. There is no programmatic gate preventing Band A (ages 7-10) or Band B (ages 11-13) users from accessing it. The restriction is documentation-only, not enforced.
+
+The `gameRegistry.ts` correctly marks it as `ageBands: ['C']`, but nothing in the game routing (`arcade/[gameSlug]/page.tsx`) checks this against the active child's age band.
+
+**Required Fix:** Add age band enforcement in the game router:
+```typescript
+// In arcade/[gameSlug]/page.tsx:
+const activeChild = useChildStore(s => s.activeChild);
+const gameConfig = GAME_REGISTRY[gameSlug];
+if (gameConfig?.ageBands && !gameConfig.ageBands.includes(activeChild?.age_band)) {
+  return <AgeRestrictionNotice requiredBands={gameConfig.ageBands} />;
+}
+```
+
+---
+
+## Stage 7 — WARNING FINDINGS
+
+### S7-WARN-001 — 15 of 29 games missing `learn` phase
+
+**Category:** Game Architecture
+**Description:** The architecture template specifies welcome→learn→play→complete. 15 games jump directly from welcome to play:
+- FL-Lite: DataDetective (1)
+- Standard: AiSpy, TimeMachine, HumanVsMachine, TreatTrainer, PixelInvestigator, WordPredictor, AiArtDetective, DataShield, RealOrFake, SentimentScanner, LostInTranslation (11)
+- Plus 3 Standard games use `tips`/`report` phases instead of `learn` (close equivalents)
+
+**Impact:** Acceptable for simpler Standard-tier games that teach through gameplay. DataDetective (FL-Lite) should have a learn phase added.
+
+---
+
+### S7-WARN-002 — All 9 FL-Lite environment files are orphaned (dead code)
+
+**Files:** All 9 files in `src/components/3d/environments/` for FL-Lite games
+**Category:** Dead Code
+**Description:** None of the 9 FL-Lite game files or their 3D components import their corresponding environment files. The 3D components use drei's `<Environment preset="night" />` inline instead. The environment files exist but are never loaded.
+
+**Impact:** Dead code adding to repo size. May be intended for future SceneRouter integration.
+
+---
+
+### S7-WARN-003 — Low ARIA label count on several games
+
+**Category:** Accessibility
+**Description:** Several games have minimal ARIA coverage:
+- CameraQuest: 1 label (capture button only)
+- RobotVacuum: 2 labels
+- CodeBlocks: 2 labels
+- Multiple Standard games: 1-2 labels
+
+Interactive buttons, dropdowns, and clickable elements lack `aria-label` in these games.
+
+---
+
+### S7-WARN-004 — Inconsistent error boundary usage across games
+
+**File:** `src/components/games/ChatbotBuilderGame.tsx` (line 35)
+**Category:** Consistency
+**Description:** Only ChatbotBuilderGame imports `Canvas3DErrorBoundary` to wrap its 3D component. The other 28 games don't use a 3D-specific error boundary. If a 3D component throws during render, it will crash the entire game page rather than showing a graceful fallback.
+
+**Required Fix:** Either wrap all 3D dynamic imports in a shared error boundary at the `GameShell` level, or add `Canvas3DErrorBoundary` to all games with 3D.
+
+---
+
+## Stage 7 — INFO FINDINGS
+
+### S7-INFO-001 — AiSpyGame is the D3D-B1 reference implementation
+
+**Description:** Of all 35 games, only AiSpyGame correctly uses `sceneStore.setGameSceneContent` to register its 3D environment into CockpitCanvas without creating a separate Canvas. It serves as the reference implementation for the D3D-B1 refactor.
+
+### S7-INFO-002 — Standard game size range
+
+**Description:** Standard games range from 212 lines (NeuronRelay) to 949 lines (EthicsCourtroom). Average is ~380 lines. All are functional with complete gameplay loops.
+
+---
+
+## Stage 7 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | All 29 game files exist | PASS | 9 FL-Lite + 20 Standard, all at correct paths |
+| 2 | All 29 games call `completeGame()` | PASS | Every game signals completion |
+| 3 | All 29 games use GameShell wrapper | PASS | Consistent wrapper pattern |
+| 4 | All 29 games have chrome bezel styling | PASS | LED rim + gradient borders |
+| 5 | All 29 games have age band routing | PASS | Content differentiates A/B/C (except ApiExplorer — C-only) |
+| 6 | All 29 environment files exist | PASS | 9 FL-Lite + 20 Standard environments |
+| 7 | All 9 FL-Lite 3D components exist | PASS | DataDetective3D, RobotVacuum3D, CameraQuest3D, ChatbotNodes3D, EmojiDecoder3D, CodeBlocks3D, MyFirstAiApp3D, FutureForge3D, AiOrNot3D |
+
+---
+
+## Stage 7 — Combined Game Statistics (29 games)
+
+| Metric | FL-Lite (9) | Standard (20) | Total |
+|--------|-------------|---------------|-------|
+| Files exist | 9/9 | 20/20 | 29/29 |
+| completeGame() called | 9/9 | 20/20 | 29/29 |
+| startGame() called | 5/9 | 2/20 | 7/29 |
+| Has learn phase | 8/9 | 6/20 | 14/29 |
+| Has complete phase | 5/9 | 3/20 | 8/29 |
+| 3D imported | 7/9 | 19/20* | 26/29 |
+| Own Canvas (D3D-B1 violation) | 9/9 | 19/20 | 28/29 |
+| sceneStore integration | 0/9 | 1/20 | 1/29 |
+| Environment files exist | 9/9 | 20/20 | 29/29 |
+
+*AiSpy uses sceneStore (no own Canvas). 19 Standard games have own Canvas via environment imports.
+
+---
+
+*Stages 1-7 audit complete. Stages 8-10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-7 | March 25, 2026*
