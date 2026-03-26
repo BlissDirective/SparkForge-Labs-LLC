@@ -2515,6 +2515,224 @@ const toast = useToastStore(s => s.addToast);
 
 ---
 
-*Stages 1-8 audit complete. Stages 9-10 pending.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-8 | March 25, 2026*
+# STAGE 9 AUDIT — Content Agent (AI Pipeline)
+
+**Stage:** 9 (Phase 25)
+**Source Docs:** `STAGE9_Content_Agent_v2_PART1-3`
+**Scope:** Anthropic Claude API integration, content generation pipeline, admin review dashboard, safety screening, Prompt Lab
+**Build Status:** COMPLETE — pipeline, admin dashboard, and all routes functional
+
+## Stage 9 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 1 |
+| HIGH | 4 |
+| WARNING | 4 |
+| INFO | 2 |
+| PASS | 20 |
+
+---
+
+## Stage 9 — CRITICAL FINDINGS
+
+### S9-CRIT-001 — ENH-9A not applied to Prompt Lab (top-level Anthropic init)
+
+**File:** `src/app/api/ai/prompt-lab/route.ts` (line 13)
+**Category:** Runtime Crash / Known Bug
+**Description:** The Anthropic SDK is initialized at the **top level** with `new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })`. This means:
+1. If `ANTHROPIC_API_KEY` is missing, the SDK initializes with `undefined` and crashes at runtime with an unhelpful error when `messages.create()` is called — no graceful 503
+2. Violates BUG-9A (lazy init) — the Content Agent pipeline (`pipeline.ts`) correctly uses lazy initialization via `getAnthropicClient()`, but Prompt Lab does not
+3. Violates ENH-9A — all 3 agent routes return 503 if key missing, but Prompt Lab crashes instead
+
+**Required Fix:** Add early key check and lazy initialization:
+```typescript
+export async function POST(req: Request) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return apiError('Prompt Lab is not configured. Add ANTHROPIC_API_KEY.', 503);
+  }
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+  // ... rest of handler
+}
+```
+
+---
+
+## Stage 9 — HIGH FINDINGS
+
+### S9-HIGH-001 — No client-side admin guard on admin dashboard
+
+**File:** `src/app/(dashboard)/admin/content/page.tsx`
+**Category:** Security / Access Control
+**Description:** The admin content page is a `'use client'` component with no auth check. Any authenticated user who navigates to `/admin/content` sees the full admin UI. API endpoints verify admin status (approve/reject return 403 for non-admins), but the page still renders and leaks queue metadata. The middleware (`src/middleware.ts`) also has no admin route protection.
+
+**Required Fix:** Add a client-side admin check with redirect:
+```typescript
+const { parent } = useAuthStore();
+useEffect(() => {
+  if (parent && !parent.is_admin) {
+    router.replace('/home');
+  }
+}, [parent]);
+if (!parent?.is_admin) return null; // Don't render until verified
+```
+Or better: add server-side protection via a layout or middleware check for `/admin/*` routes.
+
+---
+
+### S9-HIGH-002 — No Zod validation on review POST body
+
+**File:** `src/app/api/agent/review/route.ts` (lines 129-160)
+**Category:** Input Validation
+**Description:** The POST body is parsed with manual checks (`!body.action || !body.ids || !Array.isArray(body.ids)`) but `ids` are not validated as UUIDs. Malicious strings could be passed to Supabase queries. While Supabase parameterizes queries (preventing SQL injection), this is inconsistent with the Zod-everywhere pattern.
+
+**Required Fix:**
+```typescript
+const ReviewSchema = z.object({
+  action: z.enum(['approve', 'reject']),
+  ids: z.array(z.string().uuid()),
+  reason: z.string().optional(),
+});
+const parsed = await parseBody(req, ReviewSchema);
+```
+
+---
+
+### S9-HIGH-003 — Hardcoded model string in Prompt Lab (BUG-9B violation)
+
+**File:** `src/app/api/ai/prompt-lab/route.ts` (line 58)
+**Category:** Known Bug
+**Description:** Uses `'claude-sonnet-4-20250514'` directly instead of importing from the `MODELS` constant in `src/lib/agent/prompts.ts`. Also note the model is Sonnet 4 while the MODELS config uses Sonnet 4.5 (`claude-sonnet-4-5-20250514`) — this discrepancy may be intentional (cheaper model for chat) but should be explicit.
+
+**Required Fix:**
+```typescript
+import { MODELS } from '@/lib/agent/prompts';
+// Use MODELS.generation or add a MODELS.promptLab entry
+model: MODELS.generation, // or a dedicated chat model constant
+```
+
+---
+
+### S9-HIGH-004 — `any` types in Prompt Lab (2 occurrences)
+
+**File:** `src/app/api/ai/prompt-lab/route.ts` (lines 67-68, 81-82)
+**Category:** TypeScript Quality
+**Description:** Two eslint-disable comments for `@typescript-eslint/no-explicit-any`:
+- Line 68: `(block as any).text` — should use type guard for `TextBlock`
+- Line 82: `catch (error: any)` — should use `catch (error: unknown)`
+
+**Required Fix:** Already detailed in S2-WARN-002. Use type guard:
+```typescript
+.filter((block): block is Anthropic.TextBlock => block.type === 'text')
+.map(block => block.text)
+```
+
+---
+
+## Stage 9 — WARNING FINDINGS
+
+### S9-WARN-001 — No rate limiting on `/api/agent/run`
+
+**File:** `src/app/api/agent/run/route.ts`
+**Category:** Security / Cost
+**Description:** Admin-only check provides some protection, but a compromised admin session could trigger unlimited expensive pipeline runs (5+ Anthropic API calls with web search per run).
+
+**Required Fix:** Add `applyRateLimit(req, RATE_LIMITS.agent)` — e.g., 5 runs per hour.
+
+---
+
+### S9-WARN-002 — No rate limiting on review POST
+
+**File:** `src/app/api/agent/review/route.ts`
+**Category:** Security
+**Description:** Admin-only but no throttling on bulk approve/reject. A compromised session could mass-approve content.
+
+---
+
+### S9-WARN-003 — CRON_SECRET check skippable when env var not set
+
+**File:** `src/app/api/agent/schedule/route.ts` (line 16)
+**Category:** Security
+**Description:** The condition `if (cronSecret && ...)` means if `CRON_SECRET` is not set, anyone can trigger the schedule endpoint via GET. By design for local dev, but in production `CRON_SECRET` MUST be set.
+
+**Required Fix:** Add a warning log when `CRON_SECRET` is missing, or require it in production:
+```typescript
+if (!cronSecret && process.env.NODE_ENV === 'production') {
+  return apiError('CRON_SECRET required in production', 500);
+}
+```
+
+---
+
+### S9-WARN-004 — Prompt Lab has no post-response safety moderation
+
+**File:** `src/app/api/ai/prompt-lab/route.ts`
+**Category:** COPPA / Safety
+**Description:** The Prompt Lab (child-facing AI chat) relies ONLY on system prompt instructions for safety ("gently redirect" inappropriate topics). There is no post-response safety screening or content filtering. Claude could still produce unexpected content. The Content Agent has a multi-layer safety pipeline (LLM check + readability), but Prompt Lab has none.
+
+**Required Fix:** Add a lightweight post-response moderation check using the Haiku model, or at minimum a keyword blocklist filter before returning the response to the child.
+
+---
+
+## Stage 9 — INFO FINDINGS
+
+### S9-INFO-001 — Schedule route uses raw NextResponse instead of helpers
+
+**Description:** `schedule/route.ts` uses `NextResponse.json()` directly instead of `apiSuccess`/`apiError` helpers. Inconsistent with other routes but functionally equivalent.
+
+### S9-INFO-002 — Seed script is manual (prints instructions)
+
+**Description:** `seed.ts` reads SQL and prints instructions for the admin to execute manually. Does not auto-execute. Safe but requires manual setup step.
+
+---
+
+## Stage 9 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | All 9 Stage 9 files exist | PASS | Pipeline, prompts, readability, 3 routes, admin page, seed |
+| 2 | Pipeline calls Anthropic Claude API | PASS | 3 distinct API calls (research, generation, safety) |
+| 3 | BUG-9A: Lazy Anthropic init in pipeline | PASS | `getAnthropicClient()` with lazy `require()` |
+| 4 | BUG-9B: Centralized MODELS object | PASS | `prompts.ts` lines 7-12 (Sonnet 4.5, Haiku 4.5) |
+| 5 | Multi-stage safety screening | PASS | LLM safety (11 rules) + Flesch-Kincaid readability |
+| 6 | Readability validation against age band | PASS | Band A=grade 5, B=grade 8, C=grade 10 |
+| 7 | Content status = `pending_review` | PASS | Never auto-publishes — human review required |
+| 8 | Pipeline error handling | PASS | Fallback on research, skip-and-continue on gen, fail-safe on safety |
+| 9 | Retry with exponential backoff | PASS | Retries on 429 and 5xx with jitter |
+| 10 | Deduplication check | PASS | Checks title+world+age_band before insert |
+| 11 | ENH-9A on agent routes | PASS | All 3 agent routes return 503 if key missing |
+| 12 | Auth + admin on all agent routes | PASS | `getUser()` + `parents.is_admin` check |
+| 13 | Admin review: approve/reject/preview | PASS | Full CRUD with bulk operations |
+| 14 | `reviewed_by` and `reviewed_at` recorded | PASS | pipeline.ts lines 442-443, 477-478 |
+| 15 | Admin dashboard ARIA labels | PASS | Checkbox roles, button labels, dialog roles, focus management |
+| 16 | Keyboard accessibility (Escape closes modals) | PASS | Lines 155-167 |
+| 17 | No raw AI output exposed to children | PASS | All content goes through review before publishing |
+| 18 | No `any` in pipeline code | PASS | Proper interfaces throughout pipeline.ts |
+| 19 | No hardcoded API keys | PASS | All keys from `process.env` |
+| 20 | CRON schedule with feature flag | PASS | `ENABLE_CONTENT_AGENT=false` disables |
+
+---
+
+## Stage 9 — File Inventory
+
+| File | Status |
+|------|--------|
+| `src/lib/agent/pipeline.ts` | EXISTS (563 lines) |
+| `src/lib/agent/prompts.ts` | EXISTS (110 lines — MODELS + prompt templates) |
+| `src/lib/agent/readability.ts` | EXISTS (77 lines — Flesch-Kincaid) |
+| `src/lib/agent/seed.ts` | EXISTS (86 lines — manual SQL helper) |
+| `src/app/api/agent/run/route.ts` | EXISTS (54 lines) |
+| `src/app/api/agent/review/route.ts` | EXISTS (189 lines) |
+| `src/app/api/agent/schedule/route.ts` | EXISTS (47 lines) |
+| `src/app/(dashboard)/admin/content/page.tsx` | EXISTS (1,089 lines) |
+| `src/app/api/ai/prompt-lab/route.ts` | EXISTS (87 lines — ENH-9A missing) |
+
+**All expected files present.**
+
+---
+
+*Stages 1-9 audit complete. Stage 10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-9 | March 25, 2026*
