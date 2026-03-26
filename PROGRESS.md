@@ -1,8 +1,34 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 1 Audit Fixes — COMPLETE
-## Status: ALL Stage 1 findings resolved or deferred
-## Last Updated: 2026-03-26 (Stage 1 Batch B: Stage Doc Updates)
+## Current Phase: Stage 2 Audit Fixes — COMPLETE
+## Status: ALL Stage 2 HIGH + WARNING findings resolved
+## Last Updated: 2026-03-26 (Stage 2 Batch 9: Security + Type Safety + Config)
+
+---
+
+### Stage 2 Audit Fix — Batch 9: Security + Type Safety + Config (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+**Build Status:** Code changes — 5 source files modified
+
+**Findings Addressed:**
+- [x] S2-HIGH-001 — Added `verifyChildOwnership` to session end action (security: prevents session UUID enumeration)
+- [x] S2-HIGH-002 — Defined `ProgressWithContent` type in badges route, removed 3x `as any`, 3 eslint-disable, 4 non-null assertions
+- [x] S2-WARN-001 — Aligned Stripe env vars to `.env.example` names (`STRIPE_PLUS_MONTHLY_ID` format) in `tier-config.ts` + Stage 8 doc
+- [x] S2-WARN-002 — Used `Anthropic.TextBlock` type guard + `catch (error: unknown)` in prompt-lab route
+- [x] S2-WARN-003 — Replaced raw `req.json()` with `parseBody` + `z.discriminatedUnion` schema in sessions route
+- [ ] S2-INFO-001 — Deferred (timezone validated but discarded — cosmetic)
+- [ ] S2-INFO-002 — Deferred (all-labs childId not Zod-validated — cosmetic)
+
+**Files Modified (5 source + 2 docs):**
+- `src/app/api/sessions/route.ts` — Full rewrite: parseBody + discriminated union + ownership check
+- `src/app/api/gamification/badges/route.ts` — ProgressWithContent type, no more as any or !
+- `src/app/api/ai/prompt-lab/route.ts` — TextBlock type guard, catch error:unknown
+- `src/lib/tier-config.ts` — Stripe env var names aligned to .env.example
+- `docs/stage8-parent-dashboard/STAGE8_P3_v3FINAL_B.md` — Stripe env var names aligned
+- `AUDIT_REPORT_3-25-2026.md` — All S2 findings marked resolved, remediation log updated
+- `PROGRESS.md` — Batch 9 entry added
 
 ---
 

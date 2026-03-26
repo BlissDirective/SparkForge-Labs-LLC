@@ -68,6 +68,15 @@
 - **S1-WARN-004:** Replaced entire Step 20a `deviceStore` section with D3D-1 desktop-ultra implementation (PerformanceProfile, DESKTOP_ULTRA_PROFILE, TRIANGLE_BUDGETS, selector helpers). Updated Step 21 hooks: marked `useMediaQuery`/`useIsMobile` as REMOVED per D3D-1. Updated file inventory table.
 - **Result: Stage doc now matches actual codebase — per CLAUDE.md Section 3.1 (auto-fix: deprecated API usage)**
 
+### Batch 9: Stage 2 Audit Fixes (Security + Type Safety + Config)
+- **S2-HIGH-001 (Security):** Added `verifyChildOwnership` to session end action — prevents session UUID enumeration
+- **S2-HIGH-002 (TypeScript):** Defined `ProgressWithContent` type, removed 3x `as any` casts + 3 eslint-disable comments + 4 non-null assertions in badges route
+- **S2-WARN-001 (Config):** Aligned Stripe env var names in `tier-config.ts` to match `.env.example` (`STRIPE_PLUS_MONTHLY_ID` format). Also fixed Stage 8 doc.
+- **S2-WARN-002 (TypeScript):** Used `Anthropic.TextBlock` type guard + `catch (error: unknown)` with proper narrowing in prompt-lab route
+- **S2-WARN-003 (Consistency):** Replaced raw `req.json()` with `parseBody` using `z.discriminatedUnion` schema in sessions route
+- **S2-INFO-001, S2-INFO-002:** Deferred (cosmetic — no functional impact)
+- **Result: All Stage 2 HIGH + WARNING findings resolved**
+
 ---
 
 ## Executive Summary
@@ -769,146 +778,64 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 | Severity | Count |
 |----------|-------|
 | CRITICAL | 0 |
-| HIGH | 2 |
-| WARNING | 3 |
-| INFO | 2 |
+| HIGH | 2 (both resolved — Batch 9) |
+| WARNING | 3 (all resolved — Batch 9) |
+| INFO | 2 (deferred — cosmetic) |
 | PASS | 12 |
 
 ---
 
 ## Stage 2 — HIGH FINDINGS
 
-### S2-HIGH-001 — Session end endpoint missing child ownership verification
+### S2-HIGH-001 — ~~Session end endpoint missing child ownership verification~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/sessions/route.ts` (lines 35-62)
+**File:** `src/app/api/sessions/route.ts`
 **Category:** Security
-**Description:** The "end session" action fetches the session by UUID and updates it, but never verifies the session belongs to a child owned by the authenticated parent. A malicious authenticated user who guesses or enumerates session UUIDs could end another user's child session.
+**Description:** The "end session" action fetches the session by UUID and updates it, but never verifies the session belongs to a child owned by the authenticated parent.
 
-**Evidence:**
-```typescript
-// Line 35-40 (simplified):
-const { data: session } = await supabase
-  .from('sessions')
-  .select('*')
-  .eq('id', sessionId)  // No parent ownership check
-  .single();
-// Session is ended without verifying session.child_id belongs to auth.user
-```
-
-**Required Fix:** After fetching the session, verify ownership before allowing the end action:
-```typescript
-const { data: session } = await supabase
-  .from('sessions').select('*').eq('id', sessionId).single();
-
-if (!session) return apiError('Session not found', 404);
-
-// ADD: Verify child belongs to authenticated parent
-await verifyChildOwnership(auth.user.id, session.child_id);
-
-// Then proceed with ending the session
-```
+**Resolution:** Added `verifyChildOwnership(auth.user.id, session.child_id)` check after fetching the session in the `end` action. Returns 404 if ownership fails (prevents session UUID enumeration). Also refactored entire route to use `parseBody` with `z.discriminatedUnion` schema (fixes S2-WARN-003 simultaneously).
 
 ---
 
-### S2-HIGH-002 — `as any` casts in badges route bypass TypeScript safety (3 occurrences)
+### S2-HIGH-002 — ~~`as any` casts in badges route bypass TypeScript safety (3 occurrences)~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/gamification/badges/route.ts` (lines 82-83, 159, 167)
+**File:** `src/app/api/gamification/badges/route.ts`
 **Category:** TypeScript Quality
-**Description:** Three uses of `as any` for accessing Supabase join content relations (`p.content`). These are suppressed with eslint-disable comments. The Supabase `.select('content:content_id(world, type)')` returns a typed relation that's complex to narrow, so `as any` was used as a shortcut.
+**Description:** Three uses of `as any` for accessing Supabase join content relations (`p.content`), plus `newBadges!` non-null assertions.
 
-**Evidence:**
-```typescript
-// Line 83 (example):
-const world = (p.content as any)?.world;  // eslint-disable-line
-```
-
-**Required Fix:** Define a proper type for the progress-with-content join and cast once after the query:
-```typescript
-type ProgressWithContent = {
-  content_id: string;
-  completed: boolean;
-  score: number | null;
-  content: { world: number; type: string } | null;
-};
-
-// Cast once at query result:
-const { data: progress } = await supabase
-  .from('progress')
-  .select('*, content:content_id(world, type)')
-  .eq('child_id', childId);
-const typedProgress = (progress ?? []) as ProgressWithContent[];
-
-// Then access without any casts:
-typedProgress.forEach(p => {
-  const world = p.content?.world;  // Fully typed, no `as any`
-});
-```
-
-Also fix the `newBadges` array which uses non-null assertions (`newBadges!.push()`, `newBadges!.length`) — initialize as `const newBadges: Badge[] = [];` instead.
+**Resolution:** Defined `ProgressWithContent` type and cast once at query result (`typedProgress`). Removed all 3 `as any` casts and 3 eslint-disable comments. Changed `newBadges` initialization to `NonNullable<typeof allBadges>` — removed 4 non-null assertions (`!`). All content property access is now fully typed via `p.content?.world` / `p.content?.type`.
 
 ---
 
 ## Stage 2 — WARNING FINDINGS
 
-### S2-WARN-001 — Stripe env var names in `tier-config.ts` don't match stage doc
+### S2-WARN-001 — ~~Stripe env var names in `tier-config.ts` don't match stage doc~~ RESOLVED (Batch 9)
 
-**File:** `src/lib/tier-config.ts` (lines 82-91)
+**File:** `src/lib/tier-config.ts`
 **Category:** Doc-Drift / Config
-**Description:** Code uses `STRIPE_PRICE_PLUS_MONTHLY` etc., but the stage doc (Part 2, line 377) specifies `STRIPE_PLUS_MONTHLY_ID`. The doc has a fix comment from March 21, 2026 noting "Env var names corrected to match .env.example" but the actual code still uses the old names.
+**Description:** Code used `STRIPE_PRICE_PLUS_MONTHLY` etc., but `.env.example` (authoritative) uses `STRIPE_PLUS_MONTHLY_ID`.
 
-| Location | Plus Monthly | Plus Yearly |
-|----------|-------------|-------------|
-| Stage doc | `STRIPE_PLUS_MONTHLY_ID` | `STRIPE_PLUS_YEARLY_ID` |
-| Actual code | `STRIPE_PRICE_PLUS_MONTHLY` | `STRIPE_PRICE_PLUS_YEARLY` |
-
-**Impact:** If `.env.local` uses the doc naming convention, Stripe checkout will get undefined price IDs. If it uses the code naming convention, the doc is misleading.
-
-**Required Fix:** Check `.env.example` for the authoritative names. Align code and doc to match. Ensure `.env.example`, `tier-config.ts`, and the stage doc all use the same env var names.
+**Resolution:** Updated `tier-config.ts` to use `.env.example` names (`STRIPE_PLUS_MONTHLY_ID`, `STRIPE_PLUS_YEARLY_ID`, `STRIPE_FORGE_MONTHLY_ID`, `STRIPE_FORGE_YEARLY_ID`). Also updated `STAGE8_P3_v3FINAL_B.md` which had the old names. All three sources (`.env.example`, code, docs) now aligned.
 
 ---
 
-### S2-WARN-002 — `as any` and `catch (error: any)` in prompt-lab route
+### S2-WARN-002 — ~~`as any` and `catch (error: any)` in prompt-lab route~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/ai/prompt-lab/route.ts` (lines 68, 82)
+**File:** `src/app/api/ai/prompt-lab/route.ts`
 **Category:** TypeScript Quality
-**Description:** Two type-safety issues:
-1. Line 68: `(block as any).text` — Anthropic SDK `ContentBlock` with `type === 'text'` is `TextBlock` which has `.text`. Should use a type guard.
-2. Line 82: `catch (error: any)` — should use `catch (error: unknown)` with proper narrowing.
+**Description:** `(block as any).text` cast and `catch (error: any)` bypassed TypeScript safety.
 
-**Required Fix:**
-```typescript
-// Line 68 — use type guard:
-.filter((block): block is Anthropic.TextBlock => block.type === 'text')
-.map(block => block.text)
-
-// Line 82 — use unknown:
-catch (error: unknown) {
-  const message = error instanceof Error ? error.message : 'Unknown error';
-  return apiError(message, 500);
-}
-```
+**Resolution:** Used `Anthropic.TextBlock` type guard for content block filtering. Changed `catch (error: any)` to `catch (error: unknown)` with proper narrowing via `instanceof Error` + `'status' in error` check for 429 detection. Removed both eslint-disable comments.
 
 ---
 
-### S2-WARN-003 — `sessions/route.ts` uses raw `req.json()` instead of `parseBody`
+### S2-WARN-003 — ~~`sessions/route.ts` uses raw `req.json()` instead of `parseBody`~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/sessions/route.ts` (line 11)
+**File:** `src/app/api/sessions/route.ts`
 **Category:** Consistency / Error Handling
-**Description:** All other API routes use the `parseBody(req, Schema)` helper which provides consistent Zod validation and formatted error responses. The sessions route calls `await req.json()` directly, meaning malformed JSON will throw an unformatted error.
+**Description:** Route used raw `await req.json()` instead of `parseBody` helper.
 
-**Required Fix:** Define a `SessionSchema` in `src/lib/validations.ts` and use `parseBody`:
-```typescript
-// In validations.ts:
-export const SessionSchema = z.object({
-  action: z.enum(['start', 'end']),
-  childId: z.string().uuid(),
-  sessionId: z.string().uuid().optional(),
-});
-
-// In sessions/route.ts:
-const parsed = await parseBody(req, SessionSchema);
-if (!parsed.success) return apiError('Invalid input', 400);
-```
+**Resolution:** Replaced with `parseBody(req, SessionSchema)` using a `z.discriminatedUnion('action', [...])` schema that validates `start` (requires `childId`) and `end` (requires `sessionId`) actions with proper UUID validation. Malformed JSON now returns consistent formatted errors.
 
 ---
 
@@ -940,7 +867,7 @@ if (!parsed.success) return apiError('Invalid input', 400);
 |---|-------|--------|-------|
 | 1 | Zod validation on all API routes | PASS | All 14+ routes use `parseBody` or inline Zod schemas |
 | 2 | `requireAuth` on all protected routes | PASS | Every child/progress/gamification/content route checks auth |
-| 3 | `verifyChildOwnership` on child data routes | PASS | All child-accessing routes verify parent-child relationship (except session end) |
+| 3 | `verifyChildOwnership` on child data routes | PASS | All child-accessing routes verify parent-child relationship (session end fixed Batch 9) |
 | 4 | Rate limiting on auth endpoints | PASS | signup: 5/min, login: 5/min, prompt-lab: 20/hr, demo: 3/hr |
 | 5 | No SUPABASE_SERVICE_ROLE_KEY in client code | PASS | Only in `server.ts` createAdminClient (server-only) |
 | 6 | `createAdminClient` properly separated | PASS | `src/lib/supabase/server.ts` lines 25-30 |
@@ -970,10 +897,10 @@ if (!parsed.success) return apiError('Invalid input', 400);
 | `/api/progress/world` | GET | Yes + ownership | LabProgressSchema | — | PASS |
 | `/api/progress/all-labs` | GET | Yes + ownership | Manual check | — | PASS (BUG-3) |
 | `/api/gamification/xp` | POST | Yes + ownership + dedup | XpSchema | — | PASS |
-| `/api/gamification/badges` | GET, POST | Yes + ownership | BadgeCriteriaSchema | — | HIGH (as any) |
+| `/api/gamification/badges` | GET, POST | Yes + ownership | BadgeCriteriaSchema | — | PASS (Batch 9: as any removed) |
 | `/api/gamification/streak` | POST | Yes + ownership | Inline StreakSchema | — | PASS |
-| `/api/sessions` | POST | Yes + ownership (start) | Raw req.json() | — | HIGH (no ownership on end) |
-| `/api/ai/prompt-lab` | POST | Yes + ownership + tier | PromptLabSchema | 20/hr | WARN (as any) |
+| `/api/sessions` | POST | Yes + ownership (both) | SessionSchema (discriminated union) | — | PASS (Batch 9: ownership + parseBody) |
+| `/api/ai/prompt-lab` | POST | Yes + ownership + tier | PromptLabSchema | 20/hr | PASS (Batch 9: type guard + error:unknown) |
 | `/api/health` | GET | No | — | — | PASS |
 | `/api/stripe/checkout` | POST | Yes | — | — | PASS |
 | `/api/stripe/portal` | POST | Yes | — | — | PASS |
@@ -982,7 +909,7 @@ if (!parsed.success) return apiError('Invalid input', 400);
 | `/api/agent/review` | POST | Yes + admin | — | — | PASS |
 | `/api/agent/schedule` | POST | Yes + admin | — | — | PASS |
 
-**Routes Expected:** 20+ | **Routes Found:** 23 | **Issues:** 2 HIGH, 2 WARNING
+**Routes Expected:** 20+ | **Routes Found:** 23 | **Issues:** 0 (all resolved — Batch 9)
 
 ---
 
