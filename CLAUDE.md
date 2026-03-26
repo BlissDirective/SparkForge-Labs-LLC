@@ -123,13 +123,13 @@ Claude Code should reference these documents in this priority order:
 | 17 | **Quick Reference: 35 Games** | `docs/00-reference/` | Full game table (extracted from CLAUDE.md, canonical in GCUD V10.2) |
 | 18 | **Enhancement Blueprint v1.0** | Repo root | 12-section visionary upgrade plan (Enh 1.0–1.2+) |
 
-### Build Strategy: Single-Pass with v3-FINAL Priority
+### Build Strategy: Read File Prior to Usage. Certain v2 documents need to be developed prior to v3, and certain v3 should be developed before their v2 counterparts. 
 
-**Where a v3-FINAL document exists, use it as the ONLY source.** It contains all v2 content plus v3 enhancements. Do NOT build v2 first then patch. Where no v3-FINAL exists, use the v2 document directly.
+All docs containing "stage or Stage" should be read and evaluated for development order. Certain stages require v2 docs tk be developed first, while others may require v3 docs to be developed forst. Always read documents prior to development. 
 
 ### 3.1 Stage Document Modification Policy
 
-Stage documents in `docs/` are **living documents** — they should always contain the most current, buildable code. Claude Code acts as the **primary code reviewer** during development and is responsible for keeping stage docs accurate.
+Stage documents in `docs/` are **living documents** — they should always contain the most current, buildable code. Claude Code acts as the **primary code reviewer** during development and is responsible for keeping stage docs accurate. If updates to code and or documentation occur during development, periodically commit updates to ensure all files are up to date. 
 
 #### AUTO-FIX (No Approval Needed)
 
@@ -183,7 +183,7 @@ Claude Code serves as the **primary code reviewer** during development:
 - **Review log:** Append review notes to PROGRESS.md under a "Code Review Notes" section when non-trivial observations arise
 
 Review feedback should be practical and actionable — not stylistic nitpicking. Focus on:
-- Bugs that would cause runtime failures
+- Bugs that would cause any type of failures
 - Security issues (injection, auth bypass, data exposure)
 - Type safety gaps that bypass TypeScript's protections
 - Performance issues (N+1 queries, unnecessary re-renders, bundle size)
@@ -253,9 +253,9 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 
 ## 4. BUILD EXECUTION PLAN
 
-### Implementation Order (32 Phases)
+### Implementation Order 
 
-Follow this EXACT order. Never skip ahead.
+Always evaluate local and or remote files to assess if new/updated documents have been added. Development should always be conducted dynamically, reviewing files prior to moving to next applicable stage or section in development.
 
 | Phase | Stage | Source Documents | v3? | Hard Stops |
 |-------|-------|-----------------|-----|------------|
@@ -418,7 +418,7 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 
 ---
 
-## 5. PER-STAGE PLAYBOOKS
+## 5. PER-STAGE PLAYBOOKS (CRITICAL: Always Evaluate local and or remote documents for potential new additions or modifications.)
 
 **Full playbooks:** `docs/00-reference/Per-Stage-Playbooks.md`
 
