@@ -2318,6 +2318,203 @@ Interactive buttons, dropdowns, and clickable elements lack `aria-label` in thes
 
 ---
 
-*Stages 1-7 audit complete. Stages 8-10 pending.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-7 | March 25, 2026*
+# STAGE 8 AUDIT — Parent Dashboard & Stripe Payments
+
+**Stage:** 8 (Phases 23-24)
+**Source Docs:** `STAGE8_Parent_Dashboard_v2_PART1-2`, `STAGE8_P3_v3FINAL_A/B/C`
+**Scope:** Parent dashboard, subscription management, Stripe checkout/portal/webhook, pricing page, parental controls
+**Build Status:** COMPLETE — all files exist and functional
+
+## Stage 8 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 0 |
+| HIGH | 2 |
+| WARNING | 5 |
+| INFO | 2 |
+| PASS | 22 |
+
+---
+
+## Stage 8 — HIGH FINDINGS
+
+### S8-HIGH-001 — No Zod validation on Stripe checkout request body
+
+**File:** `src/app/api/stripe/checkout/route.ts` (lines 37-45)
+**Category:** Security / Input Validation
+**Description:** The `tier` and `interval` fields are cast with `as SubscriptionTier` and `as 'month' | 'year'` without runtime Zod validation. A malicious request could pass `tier: 'admin'` or `interval: 'decade'`. The code does check for `priceId` lookup failure (line 50) which partially mitigates this, but the raw tier value ends up in Stripe metadata (line 91) unsanitized.
+
+**Required Fix:**
+```typescript
+import { z } from 'zod';
+const CheckoutSchema = z.object({
+  tier: z.enum(['plus', 'forge']),
+  interval: z.enum(['month', 'year']),
+});
+const parsed = await parseBody(req, CheckoutSchema);
+if (!parsed.success) return apiError('Invalid checkout parameters', 400);
+const { tier, interval } = parsed.data;
+```
+
+---
+
+### S8-HIGH-002 — N+1 query pattern in `useParentDashboard` (up to 25 DB calls)
+
+**File:** `src/hooks/useParentDashboard.ts` (lines 50-116)
+**Category:** Performance
+**Description:** For each child, the hook makes 5 separate Supabase queries (lessons count, quiz count, badge count, games count, sessions). With 5 children on the Forge plan, this is **25 database queries** on every dashboard load.
+
+**Required Fix:** Consolidate into a single server-side API route or database function:
+```typescript
+// Option A: Single API route
+GET /api/parent/dashboard?parentId=xxx
+// Returns all children with pre-aggregated stats
+
+// Option B: Database function
+SELECT * FROM get_parent_dashboard(p_parent_id UUID)
+// Returns children + stats in one round-trip
+```
+
+---
+
+## Stage 8 — WARNING FINDINGS
+
+### S8-WARN-001 — No UI button to delete a child profile
+
+**File:** `src/app/(dashboard)/parent/page.tsx`
+**Category:** COPPA / Feature Gap
+**Description:** The DELETE API endpoint exists (`/api/children/[childId]` with ownership verification), but the parent dashboard has no delete button or confirmation flow. Parents cannot delete a child profile from the UI — they'd need to use the API directly.
+
+**Required Fix:** Add a delete button with confirmation modal on the child detail view. Include clear warning about permanent data deletion.
+
+---
+
+### S8-WARN-002 — Raw Stripe status stored without mapping
+
+**File:** `src/app/api/stripe/webhook/route.ts` (line 104)
+**Category:** Data Integrity
+**Description:** In `customer.subscription.updated`, the raw Stripe status string (e.g., `'incomplete'`, `'trialing'`, `'unpaid'`, `'past_due'`) is stored directly in the `subscription_status` column. If the column has a check constraint limited to expected values, this could silently fail.
+
+**Required Fix:** Map Stripe statuses to application statuses:
+```typescript
+const STATUS_MAP: Record<string, string> = {
+  active: 'active', trialing: 'active',
+  past_due: 'past_due', unpaid: 'canceled',
+  canceled: 'canceled', incomplete: 'active',
+  incomplete_expired: 'canceled', paused: 'paused',
+};
+const appStatus = STATUS_MAP[sub.status] ?? 'active';
+```
+
+---
+
+### S8-WARN-003 — Time limit save has no error handling
+
+**File:** `src/app/(dashboard)/parent/page.tsx` (lines 81-88)
+**Category:** Error Handling
+**Description:** `handleTimeLimit` calls both `updateChildTimeLimit` (optimistic store update) and `sb.from('children').update(...)` (Supabase write) but never checks the Supabase result for errors. If the DB write fails, the UI shows the updated limit but the actual limit is unchanged.
+
+**Required Fix:** Check the Supabase response and roll back the optimistic update on failure:
+```typescript
+const { error } = await sb.from('children').update({ daily_time_limit: minutes }).eq('id', childId);
+if (error) {
+  // Roll back optimistic update
+  updateChildTimeLimit(childId, previousLimit);
+  toast.error('Failed to save time limit');
+}
+```
+
+---
+
+### S8-WARN-004 — Subscription page uses `alert()` instead of toast
+
+**File:** `src/app/(dashboard)/parent/subscription/page.tsx` (lines 66, 69, 81, 84)
+**Category:** UX / Accessibility
+**Description:** Uses `alert()` for error messages. Not accessible-friendly (screen readers handle it inconsistently) and breaks the Frost-Prismatic visual design.
+
+**Required Fix:** Replace with `useToastStore`:
+```typescript
+const toast = useToastStore(s => s.addToast);
+// Replace: alert('Failed to start checkout');
+// With:    toast('error', 'Failed to start checkout');
+```
+
+---
+
+### S8-WARN-005 — Add-child page uses direct Supabase client call (bypasses server)
+
+**File:** `src/app/(dashboard)/parent/add-child/page.tsx` (line 78)
+**Category:** Security / Architecture
+**Description:** Child creation uses direct Supabase client call from the browser, bypassing any server-side validation or rate limiting. A malicious user could create unlimited child profiles by manipulating the client, ignoring tier-based child limits.
+
+**Required Fix:** Route child creation through the existing `/api/children` POST endpoint which enforces tier limits server-side.
+
+---
+
+## Stage 8 — INFO FINDINGS
+
+### S8-INFO-001 — Pricing page CTAs link to /signup (correct)
+
+**Description:** Public pricing page CTA buttons link to `/signup` rather than directly to Stripe checkout. Correct — unauthenticated users need to create an account first.
+
+### S8-INFO-002 — Stripe price IDs use placeholder fallbacks
+
+**Description:** `tier-config.ts` (lines 82-91) falls back to `price_placeholder_*` strings. The checkout route (line 50) checks for this prefix and returns an error. Good defensive pattern for development without Stripe keys.
+
+---
+
+## Stage 8 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | All 9 Stage 8 files exist | PASS | Parent pages, Stripe routes, pricing, store, tier-config |
+| 2 | Webhook signature verification | PASS | `stripe.webhooks.constructEvent(body, sig, secret)` |
+| 3 | Raw body handling for webhook | PASS | `req.text()` preserves body for sig verification |
+| 4 | 4 webhook event types handled | PASS | checkout.completed, sub.updated, sub.deleted, invoice.failed |
+| 5 | ENH-8A: 503 fallback if keys missing | PASS | All 3 Stripe routes return 503 + setup_url |
+| 6 | No Stripe secret in client code | PASS | Only in server-side `src/app/api/stripe/` |
+| 7 | BUG-8A: Single tier-config.ts | PASS | No duplicate `tiers.ts` anywhere |
+| 8 | Tier-config appended correctly | PASS | Comment confirms BUG-8A fix applied |
+| 9 | Free/Plus/Forge tiers displayed | PASS | Pricing page shows all 3 tiers |
+| 10 | Daily time limits per child | PASS | 15/30/60/90 min + Unlimited options |
+| 11 | Parent can view child progress | PASS | XP, lessons, time, streak, level, badges |
+| 12 | Delete child API endpoint exists | PASS | `/api/children/[childId]` DELETE with ownership |
+| 13 | No `any` types in Stage 8 files | PASS | Clean TypeScript |
+| 14 | Proper auth on Stripe routes | PASS | `requireAuth` on checkout/portal, admin client on webhook |
+| 15 | Webhook idempotency | PASS | `ignoreDuplicates: true` on event upsert |
+| 16 | Parent hold-button ARIA | PASS | `aria-label="Hold for 3 seconds..."` |
+| 17 | Math verification ARIA | PASS | `aria-label="Enter the sum"` + `aria-live="polite"` |
+| 18 | Child selector ARIA | PASS | `aria-label` + `aria-pressed` |
+| 19 | Time limit buttons ARIA | PASS | `aria-pressed` + `aria-label` |
+| 20 | Add-child form ARIA | PASS | `htmlFor`/`id` + `aria-label` on inputs |
+| 21 | Pricing FAQ ARIA | PASS | `aria-expanded` + `aria-controls` + `role="region"` |
+| 22 | Suspense boundary on subscription | PASS | Wraps `useSearchParams()` per Next.js best practice |
+
+---
+
+## Stage 8 — File Inventory
+
+| File | Status |
+|------|--------|
+| `src/app/(dashboard)/parent/page.tsx` | EXISTS |
+| `src/app/(dashboard)/parent/add-child/page.tsx` | EXISTS |
+| `src/app/(dashboard)/parent/subscription/page.tsx` | EXISTS |
+| `src/app/(dashboard)/onboarding/page.tsx` | EXISTS |
+| `src/app/(marketing)/pricing/page.tsx` | EXISTS |
+| `src/app/api/stripe/checkout/route.ts` | EXISTS |
+| `src/app/api/stripe/portal/route.ts` | EXISTS |
+| `src/app/api/stripe/webhook/route.ts` | EXISTS |
+| `src/stores/parentStore.ts` | EXISTS |
+| `src/lib/tier-config.ts` | EXISTS (BUG-8A: single file) |
+| `src/hooks/useParentDashboard.ts` | EXISTS |
+
+**All expected files present. No missing files.**
+
+---
+
+*Stages 1-8 audit complete. Stages 9-10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-8 | March 25, 2026*
