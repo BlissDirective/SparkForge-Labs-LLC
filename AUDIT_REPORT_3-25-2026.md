@@ -1272,6 +1272,259 @@ Alternatively, have the demo session creation in `/api/auth/demo` set a server-r
 
 ---
 
-*Stages 1-3 audit complete. Stages 4-10 pending.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-3 | March 25, 2026*
+# STAGE 4 AUDIT — Core Pages
+
+**Stage:** 4 (Phases 6-7)
+**Source Docs:** `STAGE4_Core_Pages_v2_PART1+3`, `STAGE4_Part2_v3FINAL_A/B`
+**Scope:** Dashboard home, Labs map, Profile page, Arcade, Game routing, React Query hooks
+**Build Status:** NOT COMPLETE — 3 of 5 core pages are stubs or missing
+
+## Stage 4 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 4 |
+| HIGH | 4 |
+| WARNING | 5 |
+| INFO | 1 |
+| PASS | 5 |
+
+---
+
+## Stage 4 — CRITICAL FINDINGS
+
+### S4-CRIT-001 — Home page is still a Stage 3 placeholder
+
+**File:** `src/app/(dashboard)/home/page.tsx`
+**Category:** Incomplete Build
+**Description:** The dashboard home page is a placeholder from Stage 3. Line 7 reads `// Home Dashboard -- Placeholder (replaced in Stage 4)`. The page shows only static stats from Zustand `childStore` (XP, level, streak, coins). It has no lab progress overview, no "continue learning" section, no React Query data fetching, no daily challenge widget — none of the Stage 4 deliverables.
+
+**Required Fix:** Build the full Stage 4 home dashboard per `STAGE4_Core_Pages_v2_PART1`:
+- Lab progress cards using `useAllLabsProgress(childId)` from `src/hooks/useProgress.ts`
+- Recent activity feed
+- Daily challenge widget using `useDailyChallenge(childId)` from `src/hooks/useContent.ts`
+- "Continue Learning" CTA linking to last incomplete game
+- React Query for all server data
+- Skeleton loading states
+- ARIA labels on all interactive cards
+
+---
+
+### S4-CRIT-002 — Labs page is a 13-line stub
+
+**File:** `src/app/(dashboard)/labs/page.tsx`
+**Category:** Incomplete Build
+**Description:** The entire labs page is 13 lines returning "Coming in Stage 4". No lab map, no 10-lab grid, no completion indicators, no progress data. This is the primary navigation surface for the platform.
+
+**Required Fix:** Build the full labs map per stage docs:
+- 10 lab cards with lab colors from `LABS` constant
+- Completion percentage per lab via `useAllLabsProgress(childId)`
+- Lab-colored borders/accents per Frost-Prismatic theme
+- Navigation to individual lab pages via Next.js `Link`
+- Skeleton loading state
+- ARIA labels and keyboard navigation
+
+---
+
+### S4-CRIT-003 — Individual lab page route missing entirely
+
+**File:** `src/app/(dashboard)/labs/[labId]/page.tsx` — DOES NOT EXIST
+**Category:** Missing Feature
+**Description:** No dynamic route exists for individual lab pages. The onboarding page references `/labs/${selectedLab}` (line 74) which would produce a 404. Users cannot browse games within a specific lab.
+
+**Required Fix:** Create `src/app/(dashboard)/labs/[labId]/page.tsx`:
+- Fetch lab metadata from `LABS` constant by ID
+- List all games in that lab with completion status
+- Show lab description, game count, age band requirements
+- Use `useLabProgress(childId, labId)` for per-game progress
+- Handle invalid labId with 404 fallback
+- ARIA labels, keyboard navigation, skeleton loading
+
+---
+
+### S4-CRIT-004 — BUG-5 unresolved: `useAllLabsProgress` exists but is not consumed
+
+**File:** `src/hooks/useProgress.ts` (line 36) → `src/app/(dashboard)/labs/page.tsx`
+**Category:** Known Bug / Incomplete Integration
+**Description:** The `useAllLabsProgress` React Query hook exists and correctly calls `/api/progress/all-labs` (BUG-3 fix). However, it is **not consumed by any page** — the labs page is a stub. BUG-5 ("Lab map shows wrong completion") cannot be considered fixed because the lab map doesn't exist.
+
+**Required Fix:** Build the labs page (S4-CRIT-002) with `useAllLabsProgress` as its primary data source.
+
+---
+
+## Stage 4 — HIGH FINDINGS
+
+### S4-HIGH-001 — `useApi.ts` dead code not deleted (BUG-1)
+
+**File:** `src/hooks/useApi.ts` (179 lines)
+**Category:** Dead Code / Known Bug
+**Description:** The old stub file still exists. Its header (lines 1-18) correctly warns it's a placeholder. All four replacement hooks exist (`useChildren`, `useContent`, `useProgress`, `useGamification`). **Zero files import from `useApi.ts`** — confirmed zero consumers.
+
+**Required Fix:**
+```bash
+rm src/hooks/useApi.ts
+```
+
+---
+
+### S4-HIGH-002 — Game router does not enforce GameShell wrapper
+
+**File:** `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` (line 221)
+**Category:** Architecture / Safety
+**Description:** The game router renders `<GameComponent />` directly without wrapping in `GameShell`. Each game file imports `GameShell` internally, but if any game omits it, there's no safety net — XP tracking, scene registration, chrome bezel, and ARIA context would all be missing.
+
+**Evidence:**
+```typescript
+// Line 221:
+return <GameComponent />;  // No GameShell wrapper
+```
+
+**Required Fix:** Wrap games at the router level as a safety net:
+```typescript
+return (
+  <GameShell gameId={gameSlug} labColor={game.labColor}>
+    <GameComponent />
+  </GameShell>
+);
+```
+Note: This may cause double-wrapping if individual games also use GameShell. Consider a prop like `<GameShell enforce>` that checks if already wrapped.
+
+---
+
+### S4-HIGH-003 — 4 hook files duplicate `apiFetch` instead of importing from `src/lib/api.ts`
+
+**Files:** `src/hooks/useChildren.ts`, `src/hooks/useContent.ts`, `src/hooks/useProgress.ts`, `src/hooks/useGamification.ts` (lines 4-11 each)
+**Category:** Code Quality / DRY
+**Description:** Each hook defines its own identical 5-line `apiFetch` function instead of importing the centralized version from `src/lib/api.ts` which has proper error typing (`ApiError` class) and generic support. Four copies of the same code.
+
+**Required Fix:**
+```typescript
+// In each hook file, replace local apiFetch with:
+import { apiFetch } from '@/lib/api';
+```
+
+---
+
+### S4-HIGH-004 — Home page has zero ARIA labels
+
+**File:** `src/app/(dashboard)/home/page.tsx` (lines 39-82)
+**Category:** Accessibility
+**Description:** The placeholder home page renders stat cards and a welcome section with zero `aria-label` attributes on any interactive or informational elements. This is a children's platform — accessibility is critical.
+
+**Required Fix:** Will be resolved when the full Stage 4 home page is built (S4-CRIT-001). Ensure all stat cards, navigation elements, and interactive widgets have proper ARIA labels.
+
+---
+
+## Stage 4 — WARNING FINDINGS
+
+### S4-WARN-001 — Hook return types implicitly `any`
+
+**Files:** `src/hooks/useContent.ts`, `src/hooks/useProgress.ts`, `src/hooks/useGamification.ts`
+**Category:** TypeScript Quality
+**Description:** The local `apiFetch` implementations don't use generics, so React Query hook return data is implicitly `any`. Consumers can access any property without TypeScript catching errors.
+
+**Required Fix:** Use the generic `apiFetch<T>` from `src/lib/api.ts` and type the query functions:
+```typescript
+const { data } = useQuery<LabProgress[]>({
+  queryKey: ['all-labs-progress', childId],
+  queryFn: () => apiFetch<LabProgress[]>(`/api/progress/all-labs?childId=${childId}`),
+});
+```
+
+---
+
+### S4-WARN-002 — Arcade page hardcodes all 35 games inline
+
+**File:** `src/app/(dashboard)/arcade/page.tsx` (lines 40-76)
+**Category:** Architecture / DRY
+**Description:** All 35 games are defined as inline objects in the arcade page rather than importing from `src/config/gameRegistry.ts`. This creates a second source of truth for game metadata.
+
+**Required Fix:** Import games from `gameRegistry.ts` or from `LABS` in `types/index.ts`:
+```typescript
+import { GAME_REGISTRY, getAllGames } from '@/config/gameRegistry';
+```
+
+---
+
+### S4-WARN-003 — No settings page exists
+
+**File:** `src/app/(dashboard)/settings/page.tsx` — DOES NOT EXIST
+**Category:** Missing Feature
+**Description:** CLAUDE.md mentions `skipIntroAnimation` in Settings. No settings page exists for users to configure preferences like skip intro, sound toggle, accessibility options.
+
+**Required Fix:** Create a settings page or integrate settings into the profile page (Stage 5).
+
+---
+
+### S4-WARN-004 — Arcade page shows no per-game completion status
+
+**File:** `src/app/(dashboard)/arcade/page.tsx`
+**Category:** UX / Feature Gap
+**Description:** The arcade page lists all 35 games but shows no completion indicators, progress bars, or "completed" badges per game. Users can't tell which games they've finished.
+
+**Required Fix:** Integrate `useChildProgress` to fetch completion status and display it on each game card.
+
+---
+
+### S4-WARN-005 — `content/[slug]/page.tsx` uses `as string` type assertion
+
+**File:** `src/app/(dashboard)/content/[slug]/page.tsx` (line 13)
+**Category:** TypeScript Quality
+**Description:** `params.slug as string` is a type assertion without validation. In Next.js 15 App Router, `params` can have string or string[] values for catch-all routes.
+
+**Required Fix:**
+```typescript
+const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
+```
+
+---
+
+## Stage 4 — INFO FINDINGS
+
+### S4-INFO-001 — Game route is at `/arcade/[gameSlug]` not `/play/[slug]`
+
+**Description:** Some docs reference `/play/[slug]` as the game route path. The actual implementation uses `/arcade/[gameSlug]`. The arcade page links correctly use this path. Internal consistency is fine — just a doc-vs-implementation naming choice.
+
+---
+
+## Stage 4 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | Arcade page fully implemented | PASS | 298 lines, search, lab filter, tier filter, age band badges, responsive grid |
+| 2 | Game router with dynamic imports | PASS | All 35 games via `next/dynamic`, proper loading states, 404 fallback |
+| 3 | Dashboard `error.tsx` | PASS | Proper `reset()` + Link to `/home` |
+| 4 | Dashboard `loading.tsx` | PASS | Skeleton UI |
+| 5 | No raw `<img>` or `<a>` tags in pages | PASS | Next.js `Link` and no images used |
+
+---
+
+## Stage 4 — File Inventory
+
+| Expected File | Status |
+|--------------|--------|
+| `src/app/(dashboard)/home/page.tsx` | EXISTS (placeholder only) |
+| `src/app/(dashboard)/labs/page.tsx` | EXISTS (13-line stub) |
+| `src/app/(dashboard)/labs/[labId]/page.tsx` | **MISSING** |
+| `src/app/(dashboard)/profile/page.tsx` | EXISTS (Stage 5 stub — expected) |
+| `src/app/(dashboard)/arcade/page.tsx` | EXISTS (fully implemented) |
+| `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | EXISTS (fully implemented) |
+| `src/app/(dashboard)/settings/page.tsx` | **MISSING** |
+| `src/app/(dashboard)/content/[slug]/page.tsx` | EXISTS |
+| `src/app/(dashboard)/error.tsx` | EXISTS |
+| `src/app/(dashboard)/loading.tsx` | EXISTS |
+| `src/hooks/useChildren.ts` | EXISTS |
+| `src/hooks/useContent.ts` | EXISTS |
+| `src/hooks/useProgress.ts` | EXISTS |
+| `src/hooks/useGamification.ts` | EXISTS |
+| `src/hooks/useApi.ts` | EXISTS (dead code — should be deleted) |
+
+**Files Expected:** 14 | **Files Found:** 13 | **Missing:** 1 (`labs/[labId]`) | **Stubs:** 2 (home, labs)
+
+---
+
+*Stage 4 audit complete. Stages 5-10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-4 | March 25, 2026*
