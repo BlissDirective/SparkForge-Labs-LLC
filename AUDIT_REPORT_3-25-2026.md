@@ -2733,6 +2733,284 @@ if (!cronSecret && process.env.NODE_ENV === 'production') {
 
 ---
 
-*Stages 1-9 audit complete. Stage 10 pending.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-9 | March 25, 2026*
+# STAGE 10 AUDIT — Polish & Deploy
+
+**Stage:** 10 (Phase 26)
+**Source Docs:** `STAGE10_Polish_Deploy_v2_PART1-2`
+**Scope:** Accessibility toolkit, PWA, CSP headers, Sentry monitoring, production readiness, icons/assets
+**Build Status:** PARTIALLY COMPLETE — a11y toolkit and Sentry done; CSP, PWA assets, and service worker missing
+
+## Stage 10 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 2 |
+| HIGH | 7 |
+| WARNING | 5 |
+| INFO | 3 |
+| PASS | 12 |
+
+---
+
+## Stage 10 — CRITICAL FINDINGS
+
+### S10-CRIT-001 — No CSP headers configured anywhere (BUG-10D unaddressed)
+
+**Files:** `src/middleware.ts`, `next.config.ts`
+**Category:** Security
+**Description:** No Content-Security-Policy headers exist anywhere in the codebase. The middleware only handles Supabase auth and route protection. `next.config.ts` has no `headers()` function. This means:
+- No `script-src` restrictions (XSS risk)
+- No `connect-src` restrictions (BUG-10D: Vercel analytics domains not configured)
+- No `frame-ancestors` protection (clickjacking risk)
+- No `font-src` or `img-src` restrictions
+
+**Required Fix:** Add CSP headers in `next.config.ts`:
+```typescript
+async headers() {
+  return [{
+    source: '/(.*)',
+    headers: [{
+      key: 'Content-Security-Policy',
+      value: [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+        "connect-src 'self' https://*.supabase.co https://*.sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com",
+        "img-src 'self' https://*.supabase.co data:",
+        "font-src 'self' https://fonts.gstatic.com",
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+        "frame-ancestors 'none'",
+      ].join('; '),
+    },
+    { key: 'X-Frame-Options', value: 'DENY' },
+    { key: 'X-Content-Type-Options', value: 'nosniff' },
+    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+    { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+    ],
+  }];
+}
+```
+
+---
+
+### S10-CRIT-002 — PWA icons referenced in manifest do not exist
+
+**File:** `public/manifest.json` (lines 13-24)
+**Category:** PWA / Assets
+**Description:** Manifest references `/icon-192.png` and `/icon-512.png` but neither file exists in `public/`. PWA install will fail on all platforms. Additionally missing: `favicon.ico`, `apple-touch-icon.png` (referenced in layout.tsx lines 103-104), and `og-image.png` (referenced in metadata line 50).
+
+**Required Fix:** Create and place these icon files:
+- `public/icon-192.png` (192x192, SparkForge logo)
+- `public/icon-512.png` (512x512, SparkForge logo)
+- `public/favicon.ico` (32x32 multi-resolution)
+- `public/apple-touch-icon.png` (180x180)
+- `public/og-image.png` (1200x630, social sharing preview)
+
+---
+
+## Stage 10 — HIGH FINDINGS
+
+### S10-HIGH-001 — No security headers in next.config.ts
+
+**File:** `next.config.ts`
+**Category:** Security
+**Description:** Missing standard production security headers: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`. These are basic protections expected for any production web application, especially one serving children.
+
+**Required Fix:** Add in the `headers()` function alongside CSP (see S10-CRIT-001).
+
+---
+
+### S10-HIGH-002 — ErrorBoundary does not report to Sentry
+
+**File:** `src/components/ui/ErrorBoundary.tsx` (line 33)
+**Category:** Monitoring
+**Description:** The ErrorBoundary wraps the entire app tree (inside `<A11yProvider>` in root layout) but only calls `console.error('ErrorBoundary caught:', error, errorInfo)`. Component-level errors caught here are invisible to Sentry monitoring.
+
+**Required Fix:**
+```typescript
+import * as Sentry from '@sentry/nextjs';
+
+componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+  console.error('ErrorBoundary caught:', error, errorInfo);
+  Sentry.captureException(error, {
+    contexts: { react: { componentStack: errorInfo.componentStack } },
+  });
+}
+```
+
+---
+
+### S10-HIGH-003 — Route-level error.tsx does not report to Sentry
+
+**File:** `src/app/error.tsx` (line 14)
+**Category:** Monitoring
+**Description:** The route-level error page only uses `console.error`. Unlike `global-error.tsx` (which correctly calls `Sentry.captureException`), route-level errors go unreported.
+
+**Required Fix:** Add `Sentry.captureException(error)` in the `useEffect`.
+
+---
+
+### S10-HIGH-004 — No service worker exists
+
+**Category:** PWA
+**Description:** No `public/sw.js`, no `next-pwa` or `@ducanh2912/next-pwa` or `serwist` package in dependencies, no `navigator.serviceWorker` registration found. PWA offline support, caching, and install prompts are non-functional.
+
+**Required Fix:** Install `@ducanh2912/next-pwa`, configure in `next.config.ts`, create basic service worker with offline caching.
+
+---
+
+### S10-HIGH-005 — No offline fallback page
+
+**File:** `src/app/offline/page.tsx` — DOES NOT EXIST
+**Category:** PWA / UX
+**Description:** Without an offline page, users going offline see browser error pages instead of a branded SparkForge offline message.
+
+**Required Fix:** Create `src/app/offline/page.tsx` with Frost-Prismatic styled offline message and "Try Again" button.
+
+---
+
+### S10-HIGH-006 — OpenDyslexic font files missing
+
+**File:** `src/app/globals-a11y.css` (lines 62-74)
+**Category:** Accessibility
+**Description:** CSS declares `@font-face` for `OpenDyslexic-Regular.woff2` and `OpenDyslexic-Bold.woff2` in `/fonts/`, but the font files don't exist in `public/fonts/`. The dyslexia font toggle in the accessibility toolbar silently fails.
+
+**Required Fix:** Download OpenDyslexic woff2 files from the OpenDyslexic project and place in `public/fonts/`.
+
+---
+
+### S10-HIGH-007 — No environment variable validation at startup
+
+**Category:** Production Readiness
+**Description:** No `src/lib/env.ts` or equivalent validates required env vars at build/startup time. The middleware directly asserts `process.env.NEXT_PUBLIC_SUPABASE_URL!` (line 8) which throws an unhelpful runtime error if missing.
+
+**Required Fix:** Create `src/lib/env.ts` with Zod validation:
+```typescript
+import { z } from 'zod';
+const envSchema = z.object({
+  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
+  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  STRIPE_SECRET_KEY: z.string().optional(),
+  ANTHROPIC_API_KEY: z.string().optional(),
+  SENTRY_DSN: z.string().optional(),
+});
+export const env = envSchema.parse(process.env);
+```
+
+---
+
+## Stage 10 — WARNING FINDINGS
+
+### S10-WARN-001 — accessibilityStore interface doesn't match CLAUDE.md
+
+**File:** `src/stores/accessibilityStore.ts` (lines 12-14)
+**Category:** Doc-Drift
+**Description:** CLAUDE.md Section 14 specifies `fontSize, contrast, reducedMotion, screenReader`. Actual store has `fontSize, highContrast, reduceMotion, dyslexiaFont, darkMode`. Property names differ (`contrast` vs `highContrast`, `reducedMotion` vs `reduceMotion`) and `screenReader` is absent.
+
+**Required Fix:** Add `screenReader` boolean to the store. Document naming divergence or rename for consistency.
+
+---
+
+### S10-WARN-002 — console.log leaks form data in pricing page
+
+**File:** `src/app/(marketing)/pricing/page.tsx` (line 274)
+**Category:** Data Exposure
+**Description:** `console.log('School interest:', schoolForm)` logs school inquiry form data (name, email, institution) to the browser console in production.
+
+**Required Fix:** Remove or guard: `if (process.env.NODE_ENV === 'development') console.log(...)`
+
+---
+
+### S10-WARN-003 — Light theme-color in dark-mode-only app
+
+**File:** `src/app/layout.tsx` (line 77)
+**Category:** Design Consistency
+**Description:** Light theme color `#F0F4F8` is defined in viewport metadata, but CLAUDE.md Section 6 states "Mode: Dark-mode only." This exists to support the a11y light mode toggle, but contradicts the design spec.
+
+---
+
+### S10-WARN-004 — error.tsx not reporting to Sentry (duplicate reference)
+
+**File:** `src/app/error.tsx` (line 14)
+**Description:** Covered under S10-HIGH-003. Only `console.error`, no Sentry reporting.
+
+---
+
+### S10-WARN-005 — Missing OG image for social sharing
+
+**File:** `src/app/layout.tsx` (line 50)
+**Category:** SEO / Marketing
+**Description:** `og-image.png` is referenced in metadata but doesn't exist in `public/`. Social sharing previews (Twitter, Slack, Discord, etc.) will show broken images.
+
+---
+
+## Stage 10 — INFO FINDINGS
+
+### S10-INFO-001 — Seed script console.logs are acceptable
+
+**Description:** `src/lib/agent/seed.ts` has 14 `console.log` calls. This is a CLI-only dev utility, not a production code path.
+
+### S10-INFO-002 — No TODO/FIXME comments found in source
+
+**Description:** Clean — no outstanding TODO/FIXME/HACK markers in source code.
+
+### S10-INFO-003 — Light/dark mode toggle exists despite dark-only spec
+
+**Description:** Full dark/light mode toggle is implemented in accessibilityStore + A11yProvider. This appears intentional as an accessibility feature, but contradicts CLAUDE.md Section 6 "dark-mode only."
+
+---
+
+## Stage 10 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | BUG-10F: Correct fonts | PASS | Exo 2, Sora, JetBrains Mono, Orbitron. No Fredoka/Nunito. |
+| 2 | Skip-to-content link | PASS | `<a href="#main-content">` in root layout |
+| 3 | Screen reader live region | PASS | `<div aria-live="polite" aria-atomic="true" id="sr-announcements" />` |
+| 4 | `prefers-reduced-motion` detected | PASS | A11yProvider auto-applies on first visit |
+| 5 | Reduced motion CSS rules | PASS | Multiple `@media (prefers-reduced-motion)` rules + `.reduce-motion` class |
+| 6 | A11y toolbar controls | PASS | Font size, dark/light, dyslexia, motion, contrast |
+| 7 | A11y toolbar ARIA patterns | PASS | `role="switch"`, `role="radiogroup"` properly used |
+| 8 | Sentry sample rate | PASS | 0.1 (10%) in production — not 1.0 |
+| 9 | Sentry tunnel route | PASS | `/monitoring` to bypass ad-blockers |
+| 10 | Sentry COPPA replay masking | PASS | `maskAllText: true`, `blockAllMedia: true` |
+| 11 | Sentry source map upload | PASS | `widenClientFileUpload: true` |
+| 12 | global-error.tsx reports to Sentry | PASS | `Sentry.captureException(error)` in useEffect |
+
+---
+
+## Stage 10 — File Inventory
+
+| File | Status |
+|------|--------|
+| `src/stores/accessibilityStore.ts` | EXISTS |
+| `src/components/accessibility/A11yProvider.tsx` | EXISTS |
+| `src/components/accessibility/AccessibilityToolbar.tsx` | EXISTS |
+| `src/app/layout.tsx` | EXISTS (correct fonts, skip link, live region) |
+| `src/app/globals-a11y.css` | EXISTS (OpenDyslexic fonts missing) |
+| `src/components/ui/OfflineBanner.tsx` | EXISTS |
+| `src/components/ui/ErrorBoundary.tsx` | EXISTS (no Sentry) |
+| `public/manifest.json` | EXISTS (icons missing) |
+| `sentry.client.config.ts` | EXISTS |
+| `sentry.server.config.ts` | EXISTS |
+| `sentry.edge.config.ts` | EXISTS |
+| `src/app/global-error.tsx` | EXISTS (reports to Sentry) |
+| `src/app/error.tsx` | EXISTS (no Sentry) |
+| `src/app/offline/page.tsx` | **MISSING** |
+| `public/sw.js` | **MISSING** |
+| `public/favicon.ico` | **MISSING** |
+| `public/apple-touch-icon.png` | **MISSING** |
+| `public/icon-192.png` | **MISSING** |
+| `public/icon-512.png` | **MISSING** |
+| `public/og-image.png` | **MISSING** |
+| `public/fonts/OpenDyslexic-*.woff2` | **MISSING** |
+
+**Present:** 13 files | **Missing:** 8 files (icons, fonts, service worker, offline page)
+
+---
+
+*All 10 stages audited. Full report complete.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-10 | March 25, 2026*
