@@ -464,7 +464,7 @@ MSW handlers not found — src/mocks/ directory does not exist
 
 ---
 
-*Phase 0 complete. Stages 1-10 deep audit, COPPA checklist, 35-game audit, and security audit pending — run next phases when ready.*
+# STAGE 1 AUDIT — Foundation
 
 **Stage:** 1 (Phases 1-2)
 **Source Docs:** `STAGE1_Foundation_v2_PART1`, `STAGE1_Foundation_v2_PART2`
@@ -3014,3 +3014,6 @@ export const env = envSchema.parse(process.env);
 *All 10 stages audited. Full report complete.*
 
 *SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-10 | March 25, 2026*
+*Stages 1-9 audit complete. Stage 10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-9 | March 25, 2026*
