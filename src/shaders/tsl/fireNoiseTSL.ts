@@ -1,3 +1,5 @@
+ 
+ 
 // ================================================================
 // TSL Port — Fire Noise Shader (Vertex + Fragment)
 // ================================================================
@@ -34,7 +36,7 @@ const prismaticColor = Fn(([t]: [ReturnType<typeof float>]) => {
   const b = vec3(0.5, 0.5, 0.5);
   const c = vec3(1.0, 1.0, 1.0);
   const d = vec3(0.00, 0.33, 0.67);
-  return add(a, mul(b, cos(mul(float(6.28318), add(mul(c, t), d)))));
+  return add(a, mul(b, (cos as any)(mul(float(6.28318), add(mul(c, t), d)))));
 });
 
 /** Fire noise vertex — wave distortion + height scaling */

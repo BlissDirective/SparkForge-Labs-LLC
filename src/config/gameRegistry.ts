@@ -31,14 +31,14 @@ export interface GameRegistryEntry {
 
 const LAB_NAMES: Record<number, string> = {
   1: 'What IS AI?',
-  2: 'AI Assistants',
-  3: 'How AI Learns',
-  4: 'AI & Language',
-  5: 'AI Agents',
-  6: 'AI & Society',
+  2: 'Teaching Machines',
+  3: 'The Brain Inside',
+  4: 'AI That Creates',
+  5: 'AI Helpers',
+  6: 'AI & Ethics',
   7: 'Computer Vision',
-  8: 'AI Communication',
-  9: 'Building with AI',
+  8: 'Words & Language',
+  9: 'Build Your AI',
   10: 'AI Futures',
 };
 

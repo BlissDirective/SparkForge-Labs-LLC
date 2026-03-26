@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 const config: Config = {
   darkMode: 'class',
@@ -51,10 +52,10 @@ const config: Config = {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }], // 10px — minimum sub-scale size
       },
       fontFamily: {
-        display: ['Exo 2', 'system-ui', 'sans-serif'],
-        body: ['Sora', 'system-ui', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
-        data: ['Orbitron', 'monospace'],
+        display: ['var(--font-display)', 'Exo 2', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)', 'Sora', 'system-ui', 'sans-serif'],
+        mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
+        data: ['var(--font-data)', 'Orbitron', 'monospace'],
       },
       boxShadow: {
         'glow-blue': '0 0 20px rgba(0,187,255,0.25)',
@@ -153,7 +154,7 @@ const config: Config = {
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssAnimate],
 };
 
 export default config;

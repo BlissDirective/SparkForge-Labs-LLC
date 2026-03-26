@@ -15,10 +15,12 @@
 //   4: Spectra       — owl-like, multi-spectral eyes, feather-antenna
 //   5: Omniscient    — floating form, orbiting lens-drones, aurora wings
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import { Group, Mesh, Color } from 'three';
-import type { CreatureProps } from '@/config/creatureConfig';
+import type { CreatureProps } from './CreatureBase';
+import type { MoodConfig } from '@/config/creatureConfig';
 import {
   CreatureWrapper,
   BlinkingEye,
@@ -48,11 +50,8 @@ interface StageProps {
   gradientMap: THREE.DataTexture;
   midColor: Color;
   emissiveColor: Color;
-  moodCfg: { emissive: string; intensity: number };
+  moodCfg: MoodConfig;
 }
-
-// Import THREE namespace for DataTexture type
-import type * as THREE from 'three';
 
 // ── Stage 0: Lens Seed (floating disc with iris) ─────────────────
 

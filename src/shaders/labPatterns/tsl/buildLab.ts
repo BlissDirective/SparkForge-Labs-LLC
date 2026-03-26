@@ -1,3 +1,5 @@
+ 
+ 
 // ================================================================
 // TSL Port — Lab 9: Code Compilation (Section 4.1-A WebGPU Shader Port)
 // ================================================================
@@ -26,7 +28,7 @@ export const lab9Pattern = Fn(() => {
   const lineHeight = float(0.025);
   const maxLines = float(30.0);
 
-  let totalCode = float(0.0);
+  let totalCode: any = float(0.0);
 
   // Code lines appearing and stacking upward
   for (let i = 0; i < 30; i++) {
@@ -58,7 +60,7 @@ export const lab9Pattern = Fn(() => {
     const currentLine = floor(mul(buildPhase, maxLines));
     const isCurrent = smoothstep(float(1.5), float(0.0), abs(sub(fi, currentLine)));
 
-    totalCode = add(totalCode, mul(mul(inLine, lineVisible), add(float(0.4), mul(isCurrent, float(0.6)))));
+    totalCode = add(totalCode, mul(mul(inLine, lineVisible), add(float(0.4), mul(isCurrent, float(0.6))))) as any;
   }
 
   // Progress bar at bottom

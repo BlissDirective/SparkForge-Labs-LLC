@@ -7,16 +7,17 @@
 // electric spark cell to phoenix-like Exaflare.
 // Triangle budget: 250 (egg) -> 2500 (genius)
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import { Group, Mesh, Color } from 'three';
-import type { CreatureProps } from '@/config/creatureConfig';
+import type { CreatureProps } from '../creatures/CreatureBase';
+import type { MoodConfig } from '@/config/creatureConfig';
 import {
   CreatureWrapper,
   BlinkingEye,
   InnerGlow,
   useToonSetup,
-  createToonGradient,
 } from '../creatures/CreatureBase';
 
 // ── Shared stage prop types ──────────────────────────────────────
@@ -24,7 +25,7 @@ import {
 interface StageProps {
   gradientMap: ReturnType<typeof useToonSetup>['gradientMap'];
   emissiveColor: Color;
-  moodCfg: { intensity: number; emissive: string };
+  moodCfg: MoodConfig;
 }
 
 // ── Stage 0: Spark Cell (Egg) ~250 tris ─────────────────────────
@@ -500,7 +501,7 @@ function Exaflare({ gradientMap, emissiveColor, moodCfg }: StageProps) {
 
 // ── Main Export ──────────────────────────────────────────────────
 
-export default function VoltkitCreature({ speciesId, evolutionStage, mood, labColor }: CreatureProps) {
+export default function VoltkitCreature({ speciesId, evolutionStage, mood, labColor: _labColor }: CreatureProps) {
   const { evoCfg, moodCfg, gradientMap, emissiveColor } = useToonSetup(speciesId, evolutionStage, mood);
   const stage = Math.min(Math.max(0, evolutionStage), 5);
 

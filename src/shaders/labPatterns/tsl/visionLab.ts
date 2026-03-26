@@ -1,3 +1,5 @@
+ 
+ 
 // ================================================================
 // TSL Port — Lab 7: Scan-line Grid (Section 4.1-A WebGPU Shader Port)
 // ================================================================
@@ -35,7 +37,7 @@ export const lab7Pattern = Fn(() => {
   const gridIntensity = mul(gridLine, float(0.15));
 
   // Moving detection rectangles (3 scanning boxes)
-  let detections = float(0.0);
+  let detections: any = float(0.0);
   for (let i = 0; i < 3; i++) {
     const fi = float(i);
     const boxCenterX = add(float(0.3), mul(float(0.4), sin(add(mul(t, float(0.5)), mul(fi, float(2.094))))));
@@ -65,7 +67,7 @@ export const lab7Pattern = Fn(() => {
     const scanY = add(sub(boxCenterY, boxSizeY), mul(fract(add(mul(t, float(0.8)), mul(fi, float(0.333)))), mul(boxSizeY, float(2.0))));
     const scanLine = mul(step(dx, boxSizeX), smoothstep(float(0.008), float(0.001), abs(sub(uvCoord.y, scanY))));
 
-    detections = add(detections, add(mul(add(boxOutline, corner), float(0.8)), mul(scanLine, float(0.5))));
+    detections = add(detections, add(mul(add(boxOutline, corner), float(0.8)), mul(scanLine, float(0.5)))) as any;
   }
 
   // Horizontal sweep line (full width scan)

@@ -69,7 +69,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 // import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
 import { useChildStore } from '@/stores/childStore';
-import { HDR_FALLBACK_PRESET, FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
+import { FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
 // Module-level asset preloading (Audit Section 4.5)
 import '@/lib/3d/preloadAssets';
 import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
@@ -264,8 +264,8 @@ export function CockpitCanvas({
   const activeScene = useSceneStore((s) => s.activeScene);
   const activeGameId = useSceneStore((s) => s.activeGameId);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
-  const isTransitioning = useSceneStore((s) => s.isTransitioning);
-  const transition = useSceneStore((s) => s.transition);
+  const _isTransitioning = useSceneStore((s) => s.isTransitioning);
+  const _transition = useSceneStore((s) => s.transition);
   // Game 3D scene content — registered by games via sceneStore (D3D-B3)
   const storeGameSceneContent = useSceneStore((s) => s.gameSceneContent);
   const resolvedGameSceneContent = gameSceneContent ?? storeGameSceneContent;

@@ -1,5 +1,4 @@
-/* ═══ Google Fonts (must precede @tailwind directives) ═══ */
-@import url('https://fonts.googleapis.com/css2?family=Exo+2:wght@300;400;500;600;700;800&family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Orbitron:wght@400;500;600;700&display=swap');
+/* Fonts loaded via <link> in layout.tsx — no @import needed */
 
 @tailwind base;
 @tailwind components;
@@ -11,6 +10,12 @@
    ═══════════════════════════════════════════ */
 
 :root {
+  /* ── Font Variables (mapped by Tailwind fontFamily) ── */
+  --font-display: 'Exo 2', system-ui, sans-serif;
+  --font-body: 'Sora', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-data: 'Orbitron', monospace;
+
   /* ── Neon Accent Variables ── */
   --neon-blue: #00BBFF;
   --neon-green: #00FF88;

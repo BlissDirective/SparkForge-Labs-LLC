@@ -1,3 +1,5 @@
+ 
+ 
 // ================================================================
 // TSL Port — Lab 5: Agent Path Traces (Section 4.1-A WebGPU Shader Port)
 // ================================================================
@@ -22,7 +24,7 @@ export const lab5Pattern = Fn(() => {
   const uvCoord = uv();
   const t = mul(uTime, float(0.35));
 
-  let totalPath = float(0.0);
+  let totalPath: any = float(0.0);
 
   // 6 agent paths — animated quadratic Bezier curves
   // Reduced Bezier sample count from 20 to 10 for TSL compatibility
@@ -68,10 +70,10 @@ export const lab5Pattern = Fn(() => {
   }
 
   totalPath = min(totalPath, float(1.5));
-  let color = mul(vec3(uLabColor), totalPath);
+  let color: any = mul(vec3(uLabColor), totalPath);
 
   // Decision node glow at path intersections
-  let nodeGlow = float(0.0);
+  let nodeGlow: any = float(0.0);
   for (let i = 0; i < 4; i++) {
     const fi = float(i);
     const nodePos = vec2(

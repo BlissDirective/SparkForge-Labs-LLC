@@ -1,8 +1,72 @@
 # SparkForge Build Progress
 
-## Current Phase: 3 — Stage 2 Parts 1-4 (Database & API)
-## Status: NOT STARTED
-## Last Updated: 2026-03-25 (Creature Species + HDRI Asset Creation)
+## Current Phase: Phase 0 Audit Fixes — COMPLETE
+## Status: Phase 0 COMPLETE (all 6 batches done)
+## Last Updated: 2026-03-26 (Phase 0 Batch 6: Data Integrity)
+
+---
+
+### Phase 0 Audit Fix — Batch 2: TypeScript & ESLint Fixes (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-phase-0-issues-vvp0t
+**Build Status:** PASS (npm run build succeeds, tsc --noEmit 0 errors)
+
+**Findings Addressed:**
+- [x] HIGH-001 — 63 genuine TypeScript errors fixed (was 229 pre-install, resolved to 63 post-install, now 0)
+- [x] HIGH-005 — DemoGuard children prop (resolved by npm install restoring type definitions)
+- [x] ESLint build errors — all unused imports removed from 17 component files
+- [x] TSL shader eslint-disable — 19 shader files get legitimate `no-explicit-any` + `no-unused-vars` disables
+
+**TypeScript Fixes (23 files):**
+- Creature components (4 files): Fixed CreatureProps import path, added MoodConfig properties, added THREE namespace import
+- TSL shader files (19 files): Fixed Node<> type mismatches with `as any` assertions, fixed `atan2` → `atan` import, fixed swizzle parameter types
+
+**ESLint Fixes (17 files):**
+- Removed unused imports: `useMemo`, `useFrame`, `Environment`, `MathUtils`, `Color`, `MeshStandardMaterial`, `vec2`, `vec4`, etc.
+- Removed unused variables: `bars`, `cellSize`, `colWidth`, `dp`, `uvCoord`, `flameUV`, etc.
+- Prefixed unused callback params with `_` where needed
+
+**Results:**
+- TypeScript errors: 63 → **0** (100% clean)
+- Next.js build: **PASS** (compiled + 42 static pages generated)
+- Total files modified: 40 (23 TS fixes + 17 ESLint fixes)
+
+---
+
+### Phase 0 Audit Fix — Batch 1: Environment & Dependencies (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-phase-0-issues-vvp0t
+**Audit Source:** AUDIT_REPORT_3-25-2026.md
+
+**Findings Addressed:**
+- [x] CRIT-001 — `npm install` (with `--legacy-peer-deps` for nivo/React 19 conflict)
+- [x] S1-HIGH-001 — Installed missing `three-mesh-bvh` and `troika-three-text`
+- [x] CRIT-003 — Test infrastructure: vitest, @vitest/coverage-v8, @testing-library/react, @testing-library/jest-dom, jsdom, msw, @playwright/test, @types/node
+- [x] HIGH-003 — vitest.config.ts now resolves `vitest/config`
+- [x] HIGH-004 — tests/setup.ts `global` resolves with @types/node
+
+**Files Created (6):**
+- `playwright.config.ts` — Playwright E2E config (chromium, localhost:3000)
+- `src/mocks/handlers.ts` — MSW mock handlers for all 24 API routes
+- `src/mocks/server.ts` — MSW server setup for Vitest (Node)
+- `src/mocks/browser.ts` — MSW worker setup for browser tests
+- `tests/e2e/health.spec.ts` — Basic E2E test stub (health check)
+- `tests/unit/` and `tests/integration/` directories created
+
+**Files Modified (1):**
+- `docs/stage10-polish-deploy/STAGE10_Polish_Deploy_v2_PART2.md` — Added DEFERRED section for production rate limiter (WARN-003: Upstash Redis)
+
+**Results After Batch 1:**
+- TypeScript errors: 15,378 → **63** (99.6% reduction)
+- Vitest: runnable (no test files yet)
+- Playwright: configured
+- MSW: 24 API route handlers ready
+- Build: reaches lint/type-check phase (fails on pre-existing code errors — Batch 2 scope)
+
+**Deferred:**
+- WARN-003 (Redis rate limiter) — reference added to Stage 10 doc, requires Upstash credentials
 
 ---
 

@@ -9,7 +9,7 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Group, Mesh, Color, MeshToonMaterial, MeshStandardMaterial } from 'three';
+import { Group, Mesh, Color, MeshToonMaterial } from 'three';
 import type { DataTexture } from 'three';
 import type { CreatureProps } from '@/components/3d/creatures/CreatureBase';
 import {
@@ -574,7 +574,7 @@ export default function SparkpawCreature({
   speciesId,
   evolutionStage,
   mood,
-  labColor,
+  labColor: _labColor,
 }: CreatureProps) {
   const { gradientMap, emissiveColor, moodCfg, evoCfg, stage } =
     useToonSetup(speciesId, evolutionStage, mood);

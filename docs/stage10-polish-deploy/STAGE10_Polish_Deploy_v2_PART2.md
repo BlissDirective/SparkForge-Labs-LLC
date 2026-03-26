@@ -1506,6 +1506,26 @@ jobs:
 | ENH-10D | Complete 35-game dynamic import map | 10B |
 | ENH-10E | System preference detection (color scheme + motion) | 10A |
 
+### DEFERRED — Production Rate Limiting (WARN-003)
+
+**Status:** DEFERRED from Phase 0 Audit (March 26, 2026)
+**Current:** In-memory `Map` rate limiter (`src/lib/rate-limit.ts`) — works for single instances but bypassed under multi-instance serverless.
+**Required for Production:** Replace with Upstash Redis rate limiter before production launch.
+
+```bash
+npm install @upstash/ratelimit @upstash/redis
+```
+
+**Env vars needed:**
+- `UPSTASH_REDIS_REST_URL`
+- `UPSTASH_REDIS_REST_TOKEN`
+
+**Affected routes:** `/api/auth/signup`, `/api/auth/login`, `/api/auth/demo`, `/api/ai/prompt-lab`
+
+This must be resolved before Stage 10 deployment (HS-4). See `AUDIT_REPORT_3-25-2026.md` WARN-003 for full details.
+
+---
+
 ### NEXT: Visual Checkpoint (HS-5)
 
 ```

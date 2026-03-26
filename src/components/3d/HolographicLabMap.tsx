@@ -702,8 +702,8 @@ function HolographicCore({
 const DRAG_DEAD_ZONE = 0.03; // radians — below this threshold, treat as click not drag
 const DRAG_INERTIA_DECAY = 3.5; // velocity decays by this factor per second
 const DRAG_INERTIA_MIN = 0.001; // stop inertia below this rad/s
-const DRAG_SNAP_SPEED = 4.0; // lerp speed for snap-to-lab
-const LAB_ANGLE_STEP_RAD = (2 * Math.PI) / 10;
+const _DRAG_SNAP_SPEED = 4.0; // lerp speed for snap-to-lab
+const _LAB_ANGLE_STEP_RAD = (2 * Math.PI) / 10;
 
 export function HolographicLabMap({
   focusedLabId,
