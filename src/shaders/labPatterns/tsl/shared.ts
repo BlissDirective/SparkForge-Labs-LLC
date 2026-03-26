@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ================================================================
 // TSL Shared Utilities — Lab Pattern Shaders (Section 4.1-A WebGPU Shader Port)
 // ================================================================

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ================================================================
 // TSL Noise Utilities — Ports of noise.glsl + electricVeins perlinNoise2D
 // ================================================================
@@ -61,21 +63,21 @@ export const simplex3DTSL = Fn(([v_immutable]: [ReturnType<typeof vec3>]) => {
   const Cy = float(1.0 / 3.0);
 
   // First corner
-  const i = floor(add(v, float(dot(v, vec3(Cy, Cy, Cy)))));
-  const x0 = add(sub(v, i), float(dot(i, vec3(Cx, Cx, Cx))));
+  const i = floor(add(v, float(dot(v, vec3(Cy, Cy, Cy))))) as any;
+  const x0 = add(sub(v, i), float(dot(i, vec3(Cx, Cx, Cx)))) as any;
 
   // Other corners
-  const g = step(x0.yzx, x0.xyz);
-  const l = sub(float(1.0), g);
-  const i1 = min(g.xyz, l.zxy);
-  const i2 = max(g.xyz, l.zxy);
+  const g = step(x0.yzx, x0.xyz) as any;
+  const l = sub(float(1.0), g) as any;
+  const i1 = min(g.xyz, l.zxy) as any;
+  const i2 = max(g.xyz, l.zxy) as any;
 
   const x1 = add(sub(x0, i1), vec3(Cx, Cx, Cx));
   const x2 = add(sub(x0, i2), vec3(Cy, Cy, Cy));
   const x3 = sub(x0, vec3(0.5, 0.5, 0.5));
 
   // Permutations
-  const iMod = mod289Vec3(i);
+  const iMod = mod289Vec3(i) as any;
   const p = permute4(
     add(
       permute4(
@@ -118,16 +120,16 @@ export const simplex3DTSL = Fn(([v_immutable]: [ReturnType<typeof vec3>]) => {
   // x = x_ * ns.x + ns.yyyy;  y = y_ * ns.x + ns.yyyy
   const nsX = float(0.285714285714);
   const nsY = float(-0.928571428571);
-  const xx = add(mul(x_, nsX), vec4(nsY, nsY, nsY, nsY));
-  const yy = add(mul(y_, nsX), vec4(nsY, nsY, nsY, nsY));
-  const hh = sub(sub(float(1.0), abs(xx)), abs(yy));
+  const xx = add(mul(x_, nsX), vec4(nsY, nsY, nsY, nsY)) as any;
+  const yy = add(mul(y_, nsX), vec4(nsY, nsY, nsY, nsY)) as any;
+  const hh = sub(sub(float(1.0), abs(xx)), abs(yy)) as any;
 
-  const b0 = vec4(xx.x, xx.y, yy.x, yy.y);
-  const b1 = vec4(xx.z, xx.w, yy.z, yy.w);
+  const b0 = vec4(xx.x, xx.y, yy.x, yy.y) as any;
+  const b1 = vec4(xx.z, xx.w, yy.z, yy.w) as any;
 
-  const s0 = add(mul(floor(b0), float(2.0)), float(1.0));
-  const s1 = add(mul(floor(b1), float(2.0)), float(1.0));
-  const sh = step(hh, vec4(0.0, 0.0, 0.0, 0.0)).negate();
+  const s0 = add(mul(floor(b0), float(2.0)), float(1.0)) as any;
+  const s1 = add(mul(floor(b1), float(2.0)), float(1.0)) as any;
+  const sh = (step as any)(hh, vec4(0.0, 0.0, 0.0, 0.0)).negate() as any;
 
   // a0, a1 via swizzle: xzyw
   const a0x = add(b0.x, mul(s0.x, sh.x));
@@ -145,7 +147,7 @@ export const simplex3DTSL = Fn(([v_immutable]: [ReturnType<typeof vec3>]) => {
   const p2 = vec3(a1x, a1y, hh.z);
   const p3 = vec3(a1z, a1w, hh.w);
 
-  const norm = taylorInvSqrt4(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+  const norm = taylorInvSqrt4(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3))) as any;
   const p0n = mul(p0, norm.x);
   const p1n = mul(p1, norm.y);
   const p2n = mul(p2, norm.z);
@@ -252,7 +254,7 @@ export const hash2TSL = Fn(([p_immutable]: [ReturnType<typeof vec2>]) => {
   const p = vec2(p_immutable);
   const d1 = dot(p, vec2(127.1, 311.7));
   const d2 = dot(p, vec2(269.5, 183.3));
-  return sub(mul(fract(sin(vec2(d1, d2)).mul(float(43758.5453123))), float(2.0)), float(1.0));
+  return sub(mul(fract(((sin as any)(vec2(d1, d2))).mul(float(43758.5453123))), float(2.0)), float(1.0));
 });
 
 // ────────────────────────────────────────────────────────────────
@@ -269,12 +271,12 @@ export const perlinNoise2DTSL = Fn(([p_immutable]: [ReturnType<typeof vec2>]) =>
   const u = mul(
     mul(mul(f, f), f),
     add(mul(f, add(mul(f, float(6.0)), float(-15.0))), float(10.0))
-  );
+  ) as any;
 
-  const a = dot(hash2TSL(add(i, vec2(0.0, 0.0))), sub(f, vec2(0.0, 0.0)));
-  const b = dot(hash2TSL(add(i, vec2(1.0, 0.0))), sub(f, vec2(1.0, 0.0)));
-  const c = dot(hash2TSL(add(i, vec2(0.0, 1.0))), sub(f, vec2(0.0, 1.0)));
-  const d = dot(hash2TSL(add(i, vec2(1.0, 1.0))), sub(f, vec2(1.0, 1.0)));
+  const a = (dot as any)(hash2TSL(add(i, vec2(0.0, 0.0))), sub(f, vec2(0.0, 0.0)));
+  const b = (dot as any)(hash2TSL(add(i, vec2(1.0, 0.0))), sub(f, vec2(1.0, 0.0)));
+  const c = (dot as any)(hash2TSL(add(i, vec2(0.0, 1.0))), sub(f, vec2(0.0, 1.0)));
+  const d = (dot as any)(hash2TSL(add(i, vec2(1.0, 1.0))), sub(f, vec2(1.0, 1.0)));
 
   return mix(mix(a, b, u.x), mix(c, d, u.x), u.y);
 });

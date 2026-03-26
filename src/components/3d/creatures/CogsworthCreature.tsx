@@ -9,8 +9,10 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import * as THREE from 'three';
 import { Group, Mesh, Color } from 'three';
-import type { CreatureProps } from '@/config/creatureConfig';
+import type { CreatureProps } from '../creatures/CreatureBase';
+import type { MoodConfig } from '@/config/creatureConfig';
 import {
   CreatureWrapper,
   BlinkingEye,
@@ -24,7 +26,7 @@ import {
 interface StageProps {
   gradientMap: ReturnType<typeof useToonSetup>['gradientMap'];
   emissiveColor: Color;
-  moodCfg: { intensity: number; emissive: string };
+  moodCfg: MoodConfig;
 }
 
 // ── Steam puff helper (small transparent sphere that scales up and fades) ──

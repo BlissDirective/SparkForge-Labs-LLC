@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ================================================================
 // TSL Port — Lab 2: Data Sorting Waves (Section 4.1-A WebGPU Shader Port)
 // ================================================================
@@ -25,7 +27,7 @@ export const lab2Pattern = Fn(() => {
   const barHeight = float(1.0 / 12.0);
 
   // Accumulate bar intensities via unrolled loop
-  let totalIntensity = float(0.0);
+  let totalIntensity: any = float(0.0);
 
   for (let i = 0; i < 12; i++) {
     const fi = float(i);
@@ -50,7 +52,7 @@ export const lab2Pattern = Fn(() => {
 
     // Height-based brightness
     const brightness = add(mul(sortPhase, float(0.7)), float(0.3));
-    totalIntensity = add(totalIntensity, mul(barShape, brightness));
+    totalIntensity = add(totalIntensity, mul(barShape, brightness)) as any;
   }
 
   const color = mul(vec3(uLabColor), totalIntensity);

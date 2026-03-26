@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ================================================================
 // TSL Port — Lab 8: Text Stream Flow (Section 4.1-A WebGPU Shader Port)
 // ================================================================
@@ -23,7 +25,7 @@ export const lab8Pattern = Fn(() => {
   const uvCoord = uv();
   const t = mul(uTime, float(0.25));
 
-  let totalText = float(0.0);
+  let totalText: any = float(0.0);
 
   // Horizontal text streams at different heights
   for (let i = 0; i < 8; i++) {
@@ -55,7 +57,7 @@ export const lab8Pattern = Fn(() => {
     // Brightness fades from center outward
     const horizontalFade = max(sub(float(1.0), mul(abs(sub(uvCoord.x, float(0.5))), float(1.5))), float(0.0));
 
-    totalText = add(totalText, mul(mul(glyph, float(0.3)), horizontalFade));
+    totalText = add(totalText, mul(mul(glyph, float(0.3)), horizontalFade)) as any;
   }
 
   // Vertical falling text (secondary layer)
@@ -79,7 +81,7 @@ export const lab8Pattern = Fn(() => {
       charOn
     );
 
-    totalText = add(totalText, mul(glyph, float(0.2)));
+    totalText = add(totalText, mul(glyph, float(0.2))) as any;
   }
 
   const color = mul(vec3(uLabColor), totalText);

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 // ================================================================
 // TSL Port — Lab 10: Starfield Warp (Section 4.1-A WebGPU Shader Port)
 // ================================================================
@@ -7,7 +9,7 @@
 
 import {
   Fn, float, vec2, vec3, vec4,
-  sin, cos, abs, fract, smoothstep, length, distance, dot, normalize, atan2, mod,
+  sin, cos, abs, fract, smoothstep, length, distance, dot, normalize, atan, mod,
   mul, add, sub, div, min, clamp, step,
   uv, uniform,
 } from 'three/tsl';
@@ -28,9 +30,9 @@ export const lab10Pattern = Fn(() => {
   const center = vec2(0.5, 0.5);
   const dir = sub(uvCoord, center);
   const dist = length(dir);
-  const angle = atan2(dir.y, dir.x);
+  const angle = atan(dir.y, dir.x);
 
-  let totalStars = float(0.0);
+  let totalStars: any = float(0.0);
 
   // Star layers at different depths (3 layers, reduced star count)
   for (let layer = 0; layer < 3; layer++) {
@@ -77,7 +79,7 @@ export const lab10Pattern = Fn(() => {
   const vortexPulse = mul(vortex, add(float(0.5), mul(float(0.5), sin(mul(t, float(2.0))))));
 
   // Radial speed lines (subtle)
-  let speedLines = float(0.0);
+  let speedLines: any = float(0.0);
   for (let k = 0; k < 8; k++) {
     const fk = float(k);
     const lineAngle = add(mul(fk, float(0.7854)), mul(t, float(0.1))); // 45 degree spacing

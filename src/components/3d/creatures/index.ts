@@ -18,7 +18,7 @@ export {
   createToonGradient,
 } from './CreatureBase';
 
-export type { CreatureProps } from '@/config/creatureConfig';
+export type { CreatureProps } from './CreatureBase';
 
 import type { SpeciesId } from '@/config/creatureConfig';
 import BytelingCreature from './BytelingCreature';
