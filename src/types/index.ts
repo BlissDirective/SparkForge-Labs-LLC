@@ -263,6 +263,7 @@ export const LABS: LabMeta[] = [
       { slug: 'camera-quest', title: 'Camera Quest', emoji: '📷', description: 'Find objects with your camera', estimatedMinutes: 15, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'fool-the-ai', title: 'Fool the AI', emoji: '🎩', description: 'Trick an AI image classifier', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'build-classifier', title: 'Build a Classifier', emoji: '🏷️', description: 'Train your own image classifier', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
+      { slug: 'prediction-market', title: 'Prediction Market', emoji: '📊', description: 'Vote on AI predictions', estimatedMinutes: 5, xpReward: 15, ageBands: ['A', 'B', 'C'] },
     ],
   },
   {
@@ -271,22 +272,23 @@ export const LABS: LabMeta[] = [
       { slug: 'sentiment-scanner', title: 'Sentiment Scanner', emoji: '😊', description: 'See how AI reads emotions in text', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
       { slug: 'chatbot-builder', title: 'Chatbot Builder', emoji: '💬', description: 'Build your own chatbot', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
       { slug: 'lost-in-translation', title: 'Lost in Translation', emoji: '🌍', description: 'Watch sentences change through translation', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
+      { slug: 'emoji-decoder', title: 'Emoji Decoder', emoji: '🔣', description: 'Decode emoji sequences into sentences', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B'] },
     ],
   },
   {
     id: 9, title: 'Build Your AI', subtitle: 'Hands-On Coding', color: '#00BBFF', tint: '#F97316', icon: '💻', description: 'Design, build, and test your own AI projects',
     games: [
       { slug: 'code-blocks', title: 'Code Blocks', emoji: '🧩', description: 'Snap code blocks together to build logic', estimatedMinutes: 15, xpReward: 25, ageBands: ['A', 'B', 'C'] },
-      { slug: 'vibe-coder', title: 'Vibe Coder', emoji: '✨', description: 'Describe what you want, see the code', estimatedMinutes: 15, xpReward: 30, ageBands: ['B', 'C'] },
-      { slug: 'api-explorer', title: 'API Explorer', emoji: '🔌', description: 'Send real API requests to Claude', estimatedMinutes: 20, xpReward: 35, ageBands: ['B', 'C'] },
+      { slug: 'career-explorer', title: 'Career Explorer', emoji: '🧭', description: 'Discover AI career paths', estimatedMinutes: 10, xpReward: 20, ageBands: ['B', 'C'] },
+      { slug: 'api-explorer', title: 'API Explorer', emoji: '🔌', description: 'Send real API requests to Claude', estimatedMinutes: 20, xpReward: 35, ageBands: ['C'] },
+      { slug: 'my-first-ai-app', title: 'My First AI App', emoji: '📱', description: 'Build a simple AI-powered app from scratch', estimatedMinutes: 15, xpReward: 30, ageBands: ['A', 'B', 'C'] },
     ],
   },
   {
     id: 10, title: 'AI Futures', subtitle: 'What Comes Next', color: '#00BBFF', tint: '#D946EF', icon: '🚀', description: 'Imagine what AI will do next — and what you\'ll create',
     games: [
       { slug: 'future-forge', title: 'Future Forge', emoji: '🔮', description: 'Design your dream AI invention', estimatedMinutes: 15, xpReward: 25, ageBands: ['A', 'B', 'C'] },
-      { slug: 'career-explorer', title: 'Career Explorer', emoji: '🧭', description: 'Discover AI career paths', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B', 'C'] },
-      { slug: 'prediction-market', title: 'Prediction Market', emoji: '📊', description: 'Vote on AI predictions', estimatedMinutes: 5, xpReward: 15, ageBands: ['A', 'B', 'C'] },
+      { slug: 'ai-or-not', title: 'AI or Not?', emoji: '❓', description: 'Judge whether creative works were made by humans or AI', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B'] },
     ],
   },
 ];

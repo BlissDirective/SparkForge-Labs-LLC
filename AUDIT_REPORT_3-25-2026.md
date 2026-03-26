@@ -48,6 +48,16 @@
 - Full `next/font/google` migration deferred (build env lacks internet access for font fetch)
 - **Result: Build PASS**
 
+### Batch 6: Data Integrity Fixes
+- **LABS array (S1-CRIT-001):** Fixed from 32 to 35 games
+  - Added: `emoji-decoder` (Lab 8), `my-first-ai-app` (Lab 9), `ai-or-not` (Lab 10)
+  - Removed: phantom `vibe-coder` (Lab 9 — no gameRegistry entry)
+  - Moved: `prediction-market` from Lab 10 → Lab 7 (per GCUD V10.2)
+  - Moved: `career-explorer` from Lab 10 → Lab 9 (per GCUD V10.2)
+- **Lab names (S1-WARN-001):** Aligned 7 mismatched names in gameRegistry.ts LAB_NAMES to match LABS
+- **cockpitStore types (S1-WARN-002):** Import from `@/types`, re-export for existing consumers
+- **Result: Build PASS | TypeScript 0 errors | getAllGames().length === 35**
+
 ---
 
 ## Executive Summary
@@ -522,7 +532,7 @@ MSW handlers not found — src/mocks/ directory does not exist
 
 ## Stage 1 — CRITICAL FINDINGS
 
-### S1-CRIT-001 — LABS array in `types/index.ts` has 33 games, not 35 — 3 missing, 1 phantom
+### S1-CRIT-001 — ~~LABS array in `types/index.ts` has 33 games, not 35 — 3 missing, 1 phantom~~ RESOLVED (Batch 6)
 
 **File:** `src/types/index.ts`
 **Category:** Architecture / Data Integrity
@@ -606,7 +616,7 @@ npm install three-mesh-bvh troika-three-text
 
 ## Stage 1 — WARNING FINDINGS
 
-### S1-WARN-001 — `gameRegistry.ts` lab names inconsistent with `types/index.ts` LABS
+### S1-WARN-001 — ~~`gameRegistry.ts` lab names inconsistent with `types/index.ts` LABS~~ RESOLVED (Batch 6: aligned all 10 lab names)
 
 **Files:** `src/config/gameRegistry.ts` (lines 32-43), `src/types/index.ts`
 **Category:** Architecture / Data Consistency
@@ -628,7 +638,7 @@ npm install three-mesh-bvh troika-three-text
 
 ---
 
-### S1-WARN-002 — `cockpitStore.ts` duplicates types locally instead of importing from `@/types`
+### S1-WARN-002 — ~~`cockpitStore.ts` duplicates types locally instead of importing from `@/types`~~ RESOLVED (Batch 6: imports from @/types, re-exports for consumers)
 
 **File:** `src/stores/cockpitStore.ts` (lines 12-16)
 **Category:** TypeScript Quality

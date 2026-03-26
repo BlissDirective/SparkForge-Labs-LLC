@@ -8,11 +8,13 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import type { CockpitSkin, SpatialView, CeremonyType } from '@/types';
 
-export type CockpitSkin = 'default' | 'cyberpunk' | 'space' | 'underwater' | 'crystal';
-export type SpatialView = 'overview' | 'lab-focus' | 'console' | 'orbit';
+// Re-export types so consumers can import from either @/types or @/stores/cockpitStore
+export type { CockpitSkin, SpatialView, CeremonyType };
+
+// ConsoleType in store includes null (no console focused); @/types version does not
 export type ConsoleType = 'xp' | 'badges' | 'streak' | 'progress' | null;
-export type CeremonyType = 'xp' | 'badge' | 'levelUp' | 'gameComplete' | 'streakMilestone';
 
 // Hero animation phase for seamless handoff (CPA2-3)
 export type HeroPhase = 'idle' | 'animating' | 'materializing' | 'complete';
