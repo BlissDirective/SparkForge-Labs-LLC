@@ -716,6 +716,236 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 ---
 
-*Stage 1 audit complete. Stage 2-3 audits collected, pending write-up.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stage 1 | March 25, 2026*
+# STAGE 2 AUDIT — Database & API
+
+**Stage:** 2 (Phases 3)
+**Source Docs:** `STAGE2_Database_API_v2_PART1-4`
+**Scope:** Supabase setup, API routes, database schema, RLS policies, API helpers, Zod validation, rate limiting
+
+## Stage 2 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 0 |
+| HIGH | 2 |
+| WARNING | 3 |
+| INFO | 2 |
+| PASS | 12 |
+
+---
+
+## Stage 2 — HIGH FINDINGS
+
+### S2-HIGH-001 — Session end endpoint missing child ownership verification
+
+**File:** `src/app/api/sessions/route.ts` (lines 35-62)
+**Category:** Security
+**Description:** The "end session" action fetches the session by UUID and updates it, but never verifies the session belongs to a child owned by the authenticated parent. A malicious authenticated user who guesses or enumerates session UUIDs could end another user's child session.
+
+**Evidence:**
+```typescript
+// Line 35-40 (simplified):
+const { data: session } = await supabase
+  .from('sessions')
+  .select('*')
+  .eq('id', sessionId)  // No parent ownership check
+  .single();
+// Session is ended without verifying session.child_id belongs to auth.user
+```
+
+**Required Fix:** After fetching the session, verify ownership before allowing the end action:
+```typescript
+const { data: session } = await supabase
+  .from('sessions').select('*').eq('id', sessionId).single();
+
+if (!session) return apiError('Session not found', 404);
+
+// ADD: Verify child belongs to authenticated parent
+await verifyChildOwnership(auth.user.id, session.child_id);
+
+// Then proceed with ending the session
+```
+
+---
+
+### S2-HIGH-002 — `as any` casts in badges route bypass TypeScript safety (3 occurrences)
+
+**File:** `src/app/api/gamification/badges/route.ts` (lines 82-83, 159, 167)
+**Category:** TypeScript Quality
+**Description:** Three uses of `as any` for accessing Supabase join content relations (`p.content`). These are suppressed with eslint-disable comments. The Supabase `.select('content:content_id(world, type)')` returns a typed relation that's complex to narrow, so `as any` was used as a shortcut.
+
+**Evidence:**
+```typescript
+// Line 83 (example):
+const world = (p.content as any)?.world;  // eslint-disable-line
+```
+
+**Required Fix:** Define a proper type for the progress-with-content join and cast once after the query:
+```typescript
+type ProgressWithContent = {
+  content_id: string;
+  completed: boolean;
+  score: number | null;
+  content: { world: number; type: string } | null;
+};
+
+// Cast once at query result:
+const { data: progress } = await supabase
+  .from('progress')
+  .select('*, content:content_id(world, type)')
+  .eq('child_id', childId);
+const typedProgress = (progress ?? []) as ProgressWithContent[];
+
+// Then access without any casts:
+typedProgress.forEach(p => {
+  const world = p.content?.world;  // Fully typed, no `as any`
+});
+```
+
+Also fix the `newBadges` array which uses non-null assertions (`newBadges!.push()`, `newBadges!.length`) — initialize as `const newBadges: Badge[] = [];` instead.
+
+---
+
+## Stage 2 — WARNING FINDINGS
+
+### S2-WARN-001 — Stripe env var names in `tier-config.ts` don't match stage doc
+
+**File:** `src/lib/tier-config.ts` (lines 82-91)
+**Category:** Doc-Drift / Config
+**Description:** Code uses `STRIPE_PRICE_PLUS_MONTHLY` etc., but the stage doc (Part 2, line 377) specifies `STRIPE_PLUS_MONTHLY_ID`. The doc has a fix comment from March 21, 2026 noting "Env var names corrected to match .env.example" but the actual code still uses the old names.
+
+| Location | Plus Monthly | Plus Yearly |
+|----------|-------------|-------------|
+| Stage doc | `STRIPE_PLUS_MONTHLY_ID` | `STRIPE_PLUS_YEARLY_ID` |
+| Actual code | `STRIPE_PRICE_PLUS_MONTHLY` | `STRIPE_PRICE_PLUS_YEARLY` |
+
+**Impact:** If `.env.local` uses the doc naming convention, Stripe checkout will get undefined price IDs. If it uses the code naming convention, the doc is misleading.
+
+**Required Fix:** Check `.env.example` for the authoritative names. Align code and doc to match. Ensure `.env.example`, `tier-config.ts`, and the stage doc all use the same env var names.
+
+---
+
+### S2-WARN-002 — `as any` and `catch (error: any)` in prompt-lab route
+
+**File:** `src/app/api/ai/prompt-lab/route.ts` (lines 68, 82)
+**Category:** TypeScript Quality
+**Description:** Two type-safety issues:
+1. Line 68: `(block as any).text` — Anthropic SDK `ContentBlock` with `type === 'text'` is `TextBlock` which has `.text`. Should use a type guard.
+2. Line 82: `catch (error: any)` — should use `catch (error: unknown)` with proper narrowing.
+
+**Required Fix:**
+```typescript
+// Line 68 — use type guard:
+.filter((block): block is Anthropic.TextBlock => block.type === 'text')
+.map(block => block.text)
+
+// Line 82 — use unknown:
+catch (error: unknown) {
+  const message = error instanceof Error ? error.message : 'Unknown error';
+  return apiError(message, 500);
+}
+```
+
+---
+
+### S2-WARN-003 — `sessions/route.ts` uses raw `req.json()` instead of `parseBody`
+
+**File:** `src/app/api/sessions/route.ts` (line 11)
+**Category:** Consistency / Error Handling
+**Description:** All other API routes use the `parseBody(req, Schema)` helper which provides consistent Zod validation and formatted error responses. The sessions route calls `await req.json()` directly, meaning malformed JSON will throw an unformatted error.
+
+**Required Fix:** Define a `SessionSchema` in `src/lib/validations.ts` and use `parseBody`:
+```typescript
+// In validations.ts:
+export const SessionSchema = z.object({
+  action: z.enum(['start', 'end']),
+  childId: z.string().uuid(),
+  sessionId: z.string().uuid().optional(),
+});
+
+// In sessions/route.ts:
+const parsed = await parseBody(req, SessionSchema);
+if (!parsed.success) return apiError('Invalid input', 400);
+```
+
+---
+
+## Stage 2 — INFO FINDINGS
+
+### S2-INFO-001 — Timezone validated but silently discarded in signup
+
+**File:** `src/app/api/auth/signup/route.ts` (line 17)
+**Category:** Data
+**Description:** `timezone` is part of `SignupSchema` (validated by Zod) but the `parents` table has no `timezone` column. The value is validated then silently discarded — never stored.
+
+**Impact:** No functional break. If timezone is needed for future features (scheduling, analytics), add a column. Otherwise, remove from schema to avoid confusion.
+
+---
+
+### S2-INFO-002 — `all-labs` childId not UUID-validated via Zod
+
+**File:** `src/app/api/progress/all-labs/route.ts`
+**Category:** Consistency
+**Description:** `childId` is validated manually (`if (!childId)`) rather than through a Zod schema with `.uuid()`. Other progress endpoints use Zod schemas. A malformed non-UUID string could reach `verifyChildOwnership` and the RPC calls — Supabase would reject it harmlessly, but it's inconsistent.
+
+**Impact:** No security risk (Supabase rejects malformed UUIDs). Consistency improvement only.
+
+---
+
+## Stage 2 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | Zod validation on all API routes | PASS | All 14+ routes use `parseBody` or inline Zod schemas |
+| 2 | `requireAuth` on all protected routes | PASS | Every child/progress/gamification/content route checks auth |
+| 3 | `verifyChildOwnership` on child data routes | PASS | All child-accessing routes verify parent-child relationship (except session end) |
+| 4 | Rate limiting on auth endpoints | PASS | signup: 5/min, login: 5/min, prompt-lab: 20/hr, demo: 3/hr |
+| 5 | No SUPABASE_SERVICE_ROLE_KEY in client code | PASS | Only in `server.ts` createAdminClient (server-only) |
+| 6 | `createAdminClient` properly separated | PASS | `src/lib/supabase/server.ts` lines 25-30 |
+| 7 | No raw SQL string interpolation | PASS | All queries use Supabase client `.from().select().eq()` pattern |
+| 8 | COPPA consent required at signup | PASS | `coppaConsent: z.literal(true)` in SignupSchema |
+| 9 | No `dangerouslySetInnerHTML` | PASS | Zero occurrences in codebase |
+| 10 | BUG-7: subscription_status default | PASS | SQL shows `DEFAULT 'active'` with explanatory comment |
+| 11 | BUG-3: `/api/progress/all-labs` endpoint exists | PASS | Bulk fetch with 10 parallel RPC calls via `Promise.all()` |
+| 12 | `/api/health` route (public, unauthenticated) | PASS | Correct — health checks should be public |
+
+---
+
+## Stage 2 — API Route Inventory
+
+| Route | Methods | Auth | Zod | Rate Limit | Status |
+|-------|---------|------|-----|------------|--------|
+| `/api/auth/signup` | POST | No (creates account) | SignupSchema | 5/min | PASS |
+| `/api/auth/login` | POST | No (authenticates) | LoginSchema | 5/min | PASS |
+| `/api/auth/logout` | POST | No (no-op if unauth) | — | — | PASS |
+| `/api/auth/me` | GET | Yes | — | — | PASS |
+| `/api/auth/demo` | POST | No | — | 3/hr/IP | PASS |
+| `/api/children` | GET, POST | Yes | CreateChildSchema | — | PASS |
+| `/api/children/[childId]` | GET, PATCH, DELETE | Yes + ownership | UpdateChildSchema | — | PASS |
+| `/api/content` | GET | Yes + tier | ContentQuerySchema | — | PASS |
+| `/api/content/[slug]` | GET | Yes + tier | — | — | PASS |
+| `/api/progress` | GET, POST | Yes + ownership | CompleteContentSchema | — | PASS |
+| `/api/progress/world` | GET | Yes + ownership | LabProgressSchema | — | PASS |
+| `/api/progress/all-labs` | GET | Yes + ownership | Manual check | — | PASS (BUG-3) |
+| `/api/gamification/xp` | POST | Yes + ownership + dedup | XpSchema | — | PASS |
+| `/api/gamification/badges` | GET, POST | Yes + ownership | BadgeCriteriaSchema | — | HIGH (as any) |
+| `/api/gamification/streak` | POST | Yes + ownership | Inline StreakSchema | — | PASS |
+| `/api/sessions` | POST | Yes + ownership (start) | Raw req.json() | — | HIGH (no ownership on end) |
+| `/api/ai/prompt-lab` | POST | Yes + ownership + tier | PromptLabSchema | 20/hr | WARN (as any) |
+| `/api/health` | GET | No | — | — | PASS |
+| `/api/stripe/checkout` | POST | Yes | — | — | PASS |
+| `/api/stripe/portal` | POST | Yes | — | — | PASS |
+| `/api/stripe/webhook` | POST | Signature verify | — | — | PASS |
+| `/api/agent/run` | POST | Yes + admin | — | — | PASS |
+| `/api/agent/review` | POST | Yes + admin | — | — | PASS |
+| `/api/agent/schedule` | POST | Yes + admin | — | — | PASS |
+
+**Routes Expected:** 20+ | **Routes Found:** 23 | **Issues:** 2 HIGH, 2 WARNING
+
+---
+
+*Stage 2 audit complete. Stage 3 audit collected, pending write-up.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stage 1 + Stage 2 | March 25, 2026*
