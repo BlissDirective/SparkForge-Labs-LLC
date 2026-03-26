@@ -1793,6 +1793,291 @@ if (isMounted.current) setConfetti(updated);
 
 ---
 
-*Stages 1-5 audit complete. Stages 6-10 pending.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-5 | March 25, 2026*
+# STAGE 6 AUDIT — Flagship Games (6 games)
+
+**Stage:** 6 (Phases 10-14)
+**Source Docs:** `STAGE6B_v3FINAL_A/B`, `STAGE6C_v3FINAL_A/B`, `STAGE6D_v3FINAL_A/B`, `STAGE6E_v3FINAL_A/B/C`, `STAGE6F_v3FINAL_A/B/C`
+**Scope:** 6 Flagship games with full 3D (20M triangle budget), creature system, Prompt Lab AI integration
+**Build Status:** All 6 games code-complete, but architectural issues with Canvas and gameStore
+
+## Stage 6 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 3 |
+| HIGH | 6 |
+| WARNING | 5 |
+| INFO | 1 |
+| PASS | 9 |
+
+---
+
+## Stage 6 — Game Overview
+
+| Game | File | Lines | Phases | Age Bands | completeGame | ARIA | 3D Component |
+|------|------|-------|--------|-----------|--------------|------|-------------|
+| Pet Trainer | PetTrainerGame.tsx | 1,048 | 7 (adopt→teach→train→data-lab→test→report) | A/B/C | YES | 5 labels | Pet3DScene |
+| Sort Toy Box | SortToyBoxGame.tsx | 420 | 3 (welcome→sort→reveal) | A/C partial | YES | **0 labels** | SortScene3D |
+| Neural Builder | NeuralBuilderGame.tsx | 1,484 | 6 (welcome→learn→build→train→test→report) | B/C | YES | 21 labels | NeuralNetwork3D |
+| Prompt Lab | PromptLabGame.tsx | 1,962 | 5 (welcome→learn→sandbox→challenge→report) | A/B/C | **MISSING** | 15 labels | PromptBubble3DScene |
+| Agent Architect | AgentArchitectGame.tsx | 1,171 | 5 (welcome→design→validate→report) | A/B/C | YES | 5 labels | AgentPipeline3D |
+| Bias Detective | BiasDetectiveGame.tsx | 1,547 | 7 (welcome→investigate→analyze→report) | A/B/C | YES | 3 labels | BiasScales3D |
+
+---
+
+## Stage 6 — CRITICAL FINDINGS
+
+### S6-CRIT-001 — Prompt Lab never calls `game.completeGame()`
+
+**File:** `src/components/games/PromptLabGame.tsx`
+**Category:** Core Feature Broken
+**Description:** Grep for `completeGame` returns zero matches. The game increments score and advances rounds but never signals completion. Combined with S5-CRIT-002 (gamification pipeline disconnected), Prompt Lab never awards XP, never triggers celebrations, and never counts toward lab completion progress.
+
+**Required Fix:** Add `game.completeGame()` when transitioning to the report/summary phase:
+```typescript
+// In the report phase transition:
+useEffect(() => {
+  if (phase === 'report') {
+    game.completeGame();
+  }
+}, [phase]);
+```
+
+---
+
+### S6-CRIT-002 — All 6 flagship 3D components create standalone Canvas (violates D3D-B1)
+
+**Files:** `Pet3DScene.tsx`, `SortScene3D.tsx`, `NeuralNetwork3D.tsx`, `PromptBubble3DScene.tsx`, `AgentPipeline3D.tsx`, `BiasScales3D.tsx`
+**Category:** Architecture / D3D Decision Lock Violation
+**Description:** Per D3D-B1 (Single Persistent Canvas), all game 3D should render as `<group>` inside `CockpitCanvas` via `sceneStore.setGameSceneContent`. Instead, all 6 flagship 3D components create their own independent `<Canvas>` instances. This means:
+- Two WebGL contexts run simultaneously (CockpitCanvas + game Canvas) — doubles GPU memory
+- No iris transition between cockpit and game (D3D-B2 violated)
+- Cockpit doesn't fade to 20% opacity during game (D3D-B6 violated)
+- Scene routing via `sceneStore` is bypassed (D3D-B5 violated)
+
+**Evidence:** Each file contains `<Canvas>` as a root element (Pet3DScene line 83, SortScene3D line 407, NeuralNetwork3D line 467, etc.)
+
+**Required Fix:** Refactor each 3D component to export a `<group>` instead of a `<Canvas>`, and have the game component register it via:
+```typescript
+const setGameSceneContent = useSceneStore(s => s.setGameSceneContent);
+useEffect(() => {
+  setGameSceneContent(<Pet3DSceneGroup {...props} />);
+  return () => setGameSceneContent(null);
+}, [props]);
+```
+This is a significant refactor affecting all 6 files. The `<Canvas>` wrapper, camera, lights, and postprocessing must be removed from each — `CockpitCanvas` already provides these.
+
+---
+
+### S6-CRIT-003 — 5 of 6 games never call `game.startGame()`
+
+**Files:** PetTrainerGame, NeuralBuilderGame, PromptLabGame, AgentArchitectGame, BiasDetectiveGame
+**Category:** Store Initialization
+**Description:** Only `SortToyBoxGame` calls `game.startGame("sort-toy-box", 1)`. The other 5 never initialize the game store with their slug and total rounds. This means `gameStore` may contain stale data from a previously played game, causing `updateScore` and `completeGame` to operate on wrong state.
+
+**Required Fix:** Each game must call `startGame` on mount:
+```typescript
+useEffect(() => {
+  game.startGame('pet-trainer', totalRounds);
+  return () => game.resetGame();
+}, []);
+```
+
+---
+
+## Stage 6 — HIGH FINDINGS
+
+### S6-HIGH-001 — Sort Toy Box has zero ARIA labels
+
+**File:** `src/components/games/SortToyBoxGame.tsx`
+**Category:** Accessibility
+**Description:** Zero `aria-label` or `aria-*` attributes. Interactive buttons ("Open the Toy Box" line 317, "Add Group" line 362, "See How AI Sorts" line 369) all lack accessibility labels.
+
+**Required Fix:** Add `aria-label` to all interactive buttons and the drag-and-drop sort area.
+
+---
+
+### S6-HIGH-002 — Sort Toy Box missing `learn` and `complete` phases
+
+**File:** `src/components/games/SortToyBoxGame.tsx` (line 34)
+**Category:** Game Architecture
+**Description:** Phase type is `'welcome' | 'sort' | 'reveal'` — no `learn` or `complete` phase. CLAUDE.md Section 7 mandates the welcome→learn→play→complete cycle. This is the smallest flagship (420 lines) and lacks educational content and a summary phase.
+
+**Required Fix:** Add `learn` phase (teaches clustering/unsupervised learning concepts) and `complete` phase ("What You Learned" summary with XP award).
+
+---
+
+### S6-HIGH-003 — No geometry/material disposal in 5 of 6 3D components
+
+**Files:** `Pet3DScene.tsx`, `SortScene3D.tsx`, `NeuralNetwork3D.tsx`, `PromptBubble3D.tsx`, `BiasScales3D.tsx`
+**Category:** Memory Leak / Performance
+**Description:** Only `AgentPipeline3D.tsx` (line 144) disposes a texture on unmount. The other 5 create geometries and materials without cleanup. Over time (especially navigating between games), GPU memory will accumulate.
+
+**Required Fix:** Add disposal in `useEffect` cleanup for each component:
+```typescript
+useEffect(() => {
+  return () => {
+    geometry.dispose();
+    material.dispose();
+  };
+}, []);
+```
+Or use drei's `useDispose` utility.
+
+---
+
+### S6-HIGH-004 — Missing Sort Toy Box 3D environment
+
+**File:** `src/components/3d/environments/SortToyBoxEnvironment.tsx` — DOES NOT EXIST
+**Category:** Missing Asset
+**Description:** All other 5 flagships have dedicated environment files (PetTrainerEnvironment, NeuralBuilderEnvironment, PromptLabEnvironment, AgentArchitectEnvironment, BiasDetectiveEnvironment). Sort Toy Box has none.
+
+**Required Fix:** Create `SortToyBoxEnvironment.tsx` with Lab 1 themed environment (blue `#00BBFF` accents).
+
+---
+
+### S6-HIGH-005 — No sceneStore integration in any flagship environment
+
+**Files:** All 5 environment files in `src/components/3d/environments/`
+**Category:** D3D-B5 Violation
+**Description:** None of the flagship environments reference `sceneStore`, `setGameSceneContent`, or `enterGame`/`exitGame`. Per D3D-B5, scene management should be centralized through `sceneStore`. The environments are mounted directly by the game components rather than registered into the cockpit scene system.
+
+**Required Fix:** Part of the S6-CRIT-002 refactor — environments should be wrapped in the `<group>` registered via `setGameSceneContent`.
+
+---
+
+### S6-HIGH-006 — Sort Toy Box has minimal age band differentiation
+
+**File:** `src/components/games/SortToyBoxGame.tsx` (lines 299-302, 397-401)
+**Category:** Content Quality
+**Description:** Only Band C gets differentiated text. Band A is not differentiated from Band B. Other flagships have multiple content sets per band with vocabulary and complexity adjustments.
+
+**Required Fix:** Add Band A content (simpler vocabulary, fewer items) and Band B content (intermediate complexity).
+
+---
+
+## Stage 6 — WARNING FINDINGS
+
+### S6-WARN-001 — Prompt Lab has no client-side rate limiting
+
+**File:** `src/components/games/PromptLabGame.tsx` (lines 722, 800)
+**Category:** Security / UX
+**Description:** `promptsUsed` state is tracked and displayed but not enforced client-side. Only the `loading` flag (debounce during in-flight request) and server-side 429 response prevent rapid-fire requests. A child could spam the send button before server rate-limits kick in.
+
+**Required Fix:** Add client-side cooldown (minimum 2-second gap between sends) and display remaining daily prompts.
+
+---
+
+### S6-WARN-002 — Sort Toy Box `useEffect` missing dependency
+
+**File:** `src/components/games/SortToyBoxGame.tsx` (line 151)
+**Category:** React Quality
+**Description:** `useEffect(() => { game.startGame("sort-toy-box", 1); }, [])` has empty dependency array but references `game`. ESLint `react-hooks/exhaustive-deps` violation.
+
+**Required Fix:** `useEffect(() => { game.startGame("sort-toy-box", 1); }, [game])` or extract via ref.
+
+---
+
+### S6-WARN-003 — Sort Toy Box has dead code (`_ShapeIcon`, `_assignGroup`)
+
+**File:** `src/components/games/SortToyBoxGame.tsx` (lines 105, 204)
+**Category:** Code Quality
+**Description:** Functions prefixed with `_` are never called — appear to be unused 2D fallback paths.
+
+**Required Fix:** Remove dead code.
+
+---
+
+### S6-WARN-004 — Bias Detective Canvas created in game file, not 3D component
+
+**File:** `src/components/games/BiasDetectiveGame.tsx` (lines 43-46)
+**Category:** Architecture
+**Description:** The game file dynamically imports both `BiasScales3D` and `Canvas` separately, creating the Canvas wrapper in the game component rather than the 3D file. Fragile coupling.
+
+---
+
+### S6-WARN-005 — Sort Toy Box redundant nested phase check
+
+**File:** `src/components/games/SortToyBoxGame.tsx` (line 344)
+**Category:** Code Quality
+**Description:** `{phase === 'sort' && (` nested inside a block already guarded by the same check. Redundant condition.
+
+---
+
+## Stage 6 — INFO FINDINGS
+
+### S6-INFO-001 — Sort Toy Box is significantly smaller than other flagships
+
+**Description:** At 420 lines, Sort Toy Box is 2.5-4.7x smaller than the other flagships (1,048-1,962 lines). Missing learn/complete phases and minimal age band content contribute to this gap. It may need a scope expansion to match flagship quality expectations.
+
+---
+
+## Stage 6 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | Zero `any` types across all 6 games | PASS | No `@ts-ignore`, no `as any`, no `: any` |
+| 2 | GameShell wrapper on all 6 games | PASS | All use `<GameShell>` with correct props |
+| 3 | Dynamic import ssr:false for all 3D | PASS | All use `dynamic(() => import(...), { ssr: false })` |
+| 4 | Chrome bezel + LED rim on all 6 | PASS | Gradient borders, box shadows, LED `h-[2px]` strips |
+| 5 | Creature system complete | PASS | 5 species + CreatureBase + creatureConfig (11KB) |
+| 6 | Prompt Lab API error handling | PASS | Handles 429, moderation rejection, network failures |
+| 7 | All 7 3D component files exist | PASS | Pet3DScene, SortScene3D, NeuralNetwork3D, PromptBubble3D, PromptBubble3DScene, AgentPipeline3D, BiasScales3D |
+| 8 | 5 of 6 environment files exist | PASS | PetTrainer, NeuralBuilder, PromptLab, AgentArchitect, BiasDetective |
+| 9 | 5 of 6 games call `completeGame()` | PASS | Only PromptLab is missing it |
+
+---
+
+## Stage 6 — File Inventory
+
+### Game Components
+| File | Lines | Status |
+|------|-------|--------|
+| `src/components/games/PetTrainerGame.tsx` | 1,048 | EXISTS |
+| `src/components/games/SortToyBoxGame.tsx` | 420 | EXISTS (needs learn/complete phases) |
+| `src/components/games/NeuralBuilderGame.tsx` | 1,484 | EXISTS |
+| `src/components/games/PromptLabGame.tsx` | 1,962 | EXISTS (missing completeGame) |
+| `src/components/games/AgentArchitectGame.tsx` | 1,171 | EXISTS |
+| `src/components/games/BiasDetectiveGame.tsx` | 1,547 | EXISTS |
+
+### 3D Components
+| File | Status |
+|------|--------|
+| `src/components/3d/Pet3DScene.tsx` | EXISTS (standalone Canvas) |
+| `src/components/3d/SortScene3D.tsx` | EXISTS (standalone Canvas) |
+| `src/components/3d/NeuralNetwork3D.tsx` | EXISTS (standalone Canvas) |
+| `src/components/3d/PromptBubble3D.tsx` | EXISTS |
+| `src/components/3d/PromptBubble3DScene.tsx` | EXISTS (standalone Canvas) |
+| `src/components/3d/AgentPipeline3D.tsx` | EXISTS (standalone Canvas) |
+| `src/components/3d/BiasScales3D.tsx` | EXISTS |
+
+### 3D Environments
+| File | Status |
+|------|--------|
+| `src/components/3d/environments/PetTrainerEnvironment.tsx` | EXISTS (27KB) |
+| `src/components/3d/environments/NeuralBuilderEnvironment.tsx` | EXISTS (20KB) |
+| `src/components/3d/environments/PromptLabEnvironment.tsx` | EXISTS |
+| `src/components/3d/environments/AgentArchitectEnvironment.tsx` | EXISTS (21KB) |
+| `src/components/3d/environments/BiasDetectiveEnvironment.tsx` | EXISTS (24KB) |
+| `src/components/3d/environments/SortToyBoxEnvironment.tsx` | **MISSING** |
+
+### Creature System
+| File | Status |
+|------|--------|
+| `src/components/3d/creatures/BytelingCreature.tsx` | EXISTS |
+| `src/components/3d/creatures/SparkpawCreature.tsx` | EXISTS |
+| `src/components/3d/creatures/VoltkitCreature.tsx` | EXISTS |
+| `src/components/3d/creatures/CogsworthCreature.tsx` | EXISTS |
+| `src/components/3d/creatures/PixieCreature.tsx` | EXISTS |
+| `src/components/3d/creatures/CreatureBase.tsx` | EXISTS |
+| `src/config/creatureConfig.ts` | EXISTS (11KB) |
+
+**Games:** 6/6 exist | **3D:** 7/7 exist | **Environments:** 5/6 (Sort Toy Box missing) | **Creatures:** 7/7 exist
+
+---
+
+*Stages 1-6 audit complete. Stages 7-10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-6 | March 25, 2026*
