@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
+ 
 // ================================================================
 // TSL Port — Scanline Overlay Fragment Shader
 // ================================================================

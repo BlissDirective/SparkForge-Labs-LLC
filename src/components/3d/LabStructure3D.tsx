@@ -809,7 +809,10 @@ function Lab8Structure({
       wavesRef.current.children.forEach((ring, i) => {
         const scale = 1.0 + Math.sin(t * 2 + i * 0.8) * 0.15;
         ring.scale.setScalar(scale);
-        (ring as Mesh).material && ((ring as Mesh).material as MeshBasicMaterial).opacity !== undefined && ((ring as Mesh).material as MeshBasicMaterial).opacity;
+        // Pulse ring opacity with scale
+        if ((ring as Mesh).material && ((ring as Mesh).material as MeshBasicMaterial).opacity !== undefined) {
+          ((ring as Mesh).material as MeshBasicMaterial).opacity = 0.3 + Math.sin(t * 2 + i * 0.8) * 0.15;
+        }
       });
     }
   });

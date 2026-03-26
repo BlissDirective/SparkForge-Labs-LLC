@@ -80,6 +80,7 @@
     "r3f-perf": "^7.2.3",
     "tailwindcss": "^4.0.0",
     "typescript": "^5",
+    "typescript-eslint": "^8.57.2",
     "vitest": "^4.1.2"
   }
 }

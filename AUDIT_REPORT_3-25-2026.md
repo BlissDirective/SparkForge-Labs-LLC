@@ -26,6 +26,19 @@
 - Added eslint-disable to 19 TSL shader files (legitimate `as any` for Three.js TSL type gaps)
 - **Result: `npm run build` PASS, `npx tsc --noEmit` 0 errors**
 
+### Batch 3: Implicit `any` Type Annotations — SKIPPED
+- Re-assessed: all 1,536 TS7006/TS7031 errors were artifacts of missing `node_modules`
+- After Batch 1 `npm install`, TypeScript infers all parameter types from installed `.d.ts` definitions
+- `npx tsc --noEmit` confirms 0 errors — no code changes needed
+
+### Batch 4: ESLint Configuration (CRIT-002)
+- Installed `typescript-eslint`
+- Created `eslint.config.mjs` (ESLint v9 flat config)
+- Extends `next/core-web-vitals` + `tseslint.configs.recommended`
+- TSL shader files: `no-explicit-any` and `no-unused-vars` disabled via config (removed redundant inline directives)
+- Fixed LabStructure3D.tsx no-op expression (line 812)
+- **Result: ESLint 0 errors, 30 warnings (all acceptable) | Build PASS**
+
 ---
 
 ## Executive Summary
@@ -78,7 +91,7 @@ Then re-run `npm run build` and `npx tsc --noEmit` to get the real error count. 
 
 ---
 
-### CRIT-002 — ESLint not configured for v9+ flat config
+### CRIT-002 — ~~ESLint not configured for v9+ flat config~~ RESOLVED (Batch 4)
 
 **Category:** Tooling / Code Quality
 **Description:** ESLint 10.0.0 is available via npx but no `eslint.config.js` (flat config) exists. The project has no `.eslintrc.*` file either. Zero linting is enforced.
@@ -207,7 +220,7 @@ const tierInfo = TIER_CONFIG[game.tier];
 
 ---
 
-### HIGH-002 — 1,536 implicit `any` parameter types (TS7006/TS7031)
+### HIGH-002 — ~~1,536 implicit `any` parameter types (TS7006/TS7031)~~ RESOLVED (Batch 1: all resolved by npm install restoring type definitions)
 
 **Category:** TypeScript Quality
 **Description:** 1,536 parameters lack explicit type annotations, relying on implicit `any` which TypeScript strict mode correctly flags. Most are in callbacks (`.map()`, `.filter()`, event handlers, Zustand `set`/`get`, R3F `useFrame` delta).

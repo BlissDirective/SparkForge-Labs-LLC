@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
+ 
 // ================================================================
 // TSL Port — Lab 7: Scan-line Grid (Section 4.1-A WebGPU Shader Port)
 // ================================================================

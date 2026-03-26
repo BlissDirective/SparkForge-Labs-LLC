@@ -1,5 +1,5 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
+ 
+ 
 // ================================================================
 // TSL Port — Lab 10: Starfield Warp (Section 4.1-A WebGPU Shader Port)
 // ================================================================
