@@ -1,8 +1,24 @@
 # SparkForge Build Progress
 
-## Current Phase: Phase 0 Audit Fixes — COMPLETE
-## Status: Phase 0 COMPLETE (all 6 batches done)
-## Last Updated: 2026-03-26 (Phase 0 Batch 6: Data Integrity)
+## Current Phase: Stage 1 Audit Fixes
+## Status: IN PROGRESS (Batch A complete, Batch B next)
+## Last Updated: 2026-03-26 (Stage 1 Batch A: Verification & Downgrade)
+
+---
+
+### Stage 1 Audit Fix — Batch A: Verification & Downgrade (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+**Build Status:** No code changes — verification only
+
+**Findings Addressed:**
+- [x] S1-HIGH-002 — Downgraded to INFO: `useMediaQuery`/`useIsMobile` have zero active imports. Both removed per D3D-1. Comment-only references in 3 files.
+- [x] S1-INFO-002 — Verified NOT dead code: `gameActive`/`setGameActive` still actively consumed by `useStationMode.ts` for mode derivation. Deferred to future `sceneStore` migration refactor.
+
+**Files Modified (2 — documentation only):**
+- `AUDIT_REPORT_3-25-2026.md` — Updated S1-HIGH-002 (downgraded), S1-INFO-002 (deferred), finding counts, Batch 7 remediation log
+- `PROGRESS.md` — Added Batch A entry
 
 ---
 

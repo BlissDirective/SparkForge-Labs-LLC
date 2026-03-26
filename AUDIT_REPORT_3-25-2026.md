@@ -58,6 +58,11 @@
 - **cockpitStore types (S1-WARN-002):** Import from `@/types`, re-export for existing consumers
 - **Result: Build PASS | TypeScript 0 errors | getAllGames().length === 35**
 
+### Batch 7: Stage 1 Audit — Batch A (Verification & Downgrade)
+- **S1-HIGH-002:** Downgraded to INFO — `useMediaQuery` and `useIsMobile` have zero active imports in `src/`. Both intentionally removed per D3D-1 (desktop-only platform). Only comment references remain. No code fix needed.
+- **S1-INFO-002:** Verified `gameActive`/`setGameActive` in uiStore are still actively consumed by `useStationMode.ts` (lines 104-105, 325). Not dead code — deferred to future refactor when `sceneStore` fully replaces mode derivation.
+- **Result: No code changes — audit report updated with verified findings**
+
 ---
 
 ## Executive Summary
@@ -522,10 +527,10 @@ MSW handlers not found — src/mocks/ directory does not exist
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 1 |
-| HIGH | 2 |
-| WARNING | 4 |
-| INFO | 4 |
+| CRITICAL | 1 (resolved) |
+| HIGH | 1 (resolved) + 1 (downgraded to INFO) |
+| WARNING | 2 (resolved) + 2 (open → Batch B) |
+| INFO | 5 (4 original + 1 downgraded from HIGH) |
 | PASS | 10 |
 
 ---
@@ -584,33 +589,15 @@ npm install three-mesh-bvh troika-three-text
 
 ---
 
-### S1-HIGH-002 — Missing hooks: `useMediaQuery.ts` and `useIsMobile.ts`
+### S1-HIGH-002 — ~~Missing hooks: `useMediaQuery.ts` and `useIsMobile.ts`~~ DOWNGRADED to INFO (Batch 7)
 
 **File:** `src/hooks/useMediaQuery.ts`, `src/hooks/useIsMobile.ts`
 **Category:** Doc-Drift / D3D Compliance
 **Description:** Stage 1 doc Step 21 specifies both files. Neither exists. Per D3D-1, `useIsMobile` was intentionally removed. However, `useMediaQuery` is a general-purpose utility that may still be imported by other code.
 
-**Impact:** Any component importing `@/hooks/useMediaQuery` will fail. If no active imports remain, this is just a doc-drift issue.
+**Impact:** ~~Any component importing `@/hooks/useMediaQuery` will fail.~~ **Verified March 26:** Zero active imports of `useMediaQuery` or `useIsMobile` in `src/`. Only 3 comment references remain (dashboard layout.tsx x2, deviceStore.ts x1). No code fix needed — doc-drift only.
 
-**Required Fix:**
-1. Search for imports: `grep -r "useMediaQuery\|useIsMobile" src/` — if zero active imports, downgrade to INFO
-2. If imports exist for `useMediaQuery`, recreate as a generic hook:
-   ```typescript
-   // src/hooks/useMediaQuery.ts
-   import { useState, useEffect } from 'react';
-   export function useMediaQuery(query: string): boolean {
-     const [matches, setMatches] = useState(false);
-     useEffect(() => {
-       const mql = window.matchMedia(query);
-       setMatches(mql.matches);
-       const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
-       mql.addEventListener('change', handler);
-       return () => mql.removeEventListener('change', handler);
-     }, [query]);
-     return matches;
-   }
-   ```
-3. Update stage doc to note `useIsMobile` removed per D3D-1
+**Resolution:** Downgraded from HIGH to INFO. Both hooks intentionally removed per D3D-1 (desktop-only platform). Stage doc update deferred to Batch B (S1-WARN-004 covers deviceStore doc update).
 
 ---
 
@@ -684,9 +671,9 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 **Description:** Stage 1 doc defines simple store (`parent`, `isLoading`, `setParent`, `setLoading`, `clearAuth`). Actual store adds `isDemoMode`, `demoSession`, `startDemoSession`, `endDemoSession`, `checkDemoStatus` from Phase 5E-5F (Login 3D Enhancement). This is expected — stores evolve across stages.
 
-### S1-INFO-002 — `uiStore.ts` retains deprecated `gameActive` flag
+### S1-INFO-002 — `uiStore.ts` retains `gameActive` flag — DEFERRED (Batch 7: still actively consumed)
 
-**Description:** CLAUDE.md Section 14 states `gameActive` is deprecated (use `sceneStore.enterGame`/`exitGame` instead). The flag still exists in uiStore but is unused by GameShell. Dead code — low priority cleanup.
+**Description:** CLAUDE.md Section 14 states `gameActive` is deprecated (use `sceneStore.enterGame`/`exitGame` instead). However, `gameActive`/`setGameActive` are still actively consumed by `useStationMode.ts` (lines 104-105, 325) for mode derivation (`'game'` mode triggers frame dimming per Decision 3.4). Removing this flag requires migrating `useStationMode` to read from `sceneStore` — a cross-cutting refactor deferred to a future sprint. Not dead code.
 
 ### S1-INFO-003 — Root layout is Stage 10 replacement (expected)
 
