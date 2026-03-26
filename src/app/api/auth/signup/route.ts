@@ -1,4 +1,5 @@
-// POST /api/auth/signup — Create parent account with COPPA consent
+// POST /api/auth/signup — Create parent account (Step 1)
+// S3-HIGH-001: coppa_consent_at is NOT set here — set by /api/auth/consent in Step 3
 // v2 [IMP-3]: Rate limiting applied (5 req/min)
 import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
@@ -14,7 +15,7 @@ export async function POST(req: NextRequest) {
   const parsed = await parseBody(req, SignupSchema);
   if (!parsed.success) return parsed.response;
 
-  const { email, password, fullName, coppaConsent: _coppaConsent, timezone: _timezone } = parsed.data;
+  const { email, password, fullName, timezone: _timezone } = parsed.data;
 
   const supabase = createAdminClient();
 
@@ -31,12 +32,12 @@ export async function POST(req: NextRequest) {
     return apiError('Failed to create account. Please try again.', 500, 'AUTH_ERROR');
   }
 
-  // v2 [NEW-3A]: onboarding_complete defaults false
+  // S3-HIGH-001: coppa_consent_at is NULL — will be set by /api/auth/consent after Step 3
   const { error: parentError } = await supabase.from('parents').insert({
     id: authData.user.id,
     email,
     full_name: fullName || null,
-    coppa_consent_at: new Date().toISOString(),
+    coppa_consent_at: null,
     onboarding_complete: false,
   });
 

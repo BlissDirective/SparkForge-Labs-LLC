@@ -1,11 +1,13 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { LoginFormCard } from '@/components/auth/LoginFormCard';
 import { DemoLoginButton } from '@/components/auth/DemoLoginButton';
+import { useAuthHover } from '../layout';
 
 export default function LoginPage() {
-  const [, setIsCardHovered] = useState(false);
+  // S3-WARN-002: Hover state wired to 3D portal via AuthHoverContext
+  const { setIsCardHovered } = useAuthHover();
 
   return (
     <Suspense fallback={null}>

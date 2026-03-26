@@ -77,6 +77,16 @@
 - **S2-INFO-001, S2-INFO-002:** Deferred (cosmetic — no functional impact)
 - **Result: All Stage 2 HIGH + WARNING findings resolved**
 
+### Batch 10: Stage 3 Audit Fixes (Security + COPPA + 3D Integration)
+- **S3-CRIT-001 (Auth):** Added `/reset-password` to middleware public paths
+- **S3-HIGH-001 (COPPA — Option B):** Removed `coppaConsent: true` from Step 1 signup. Created `/api/auth/consent` endpoint called in Step 3. `coppa_consent_at` now records the actual moment user confirms checkbox.
+- **S3-HIGH-002 (Auth):** Added `sparkforge-demo-active` httpOnly cookie in `/api/auth/demo`. Middleware checks cookie — demo users can access dashboard.
+- **S3-WARN-001 (SSR):** Replaced inline `window.devicePixelRatio` with `dpr={[1, 3]}` in auth layout
+- **S3-WARN-002 (3D — Option B):** Created `AuthHoverContext` — login page hover state now wired to `LoginPortal3D.isHovered` for interactive glow
+- **S3-WARN-003 (Doc):** Downgraded to INFO — verified CLAUDE.md uses basename only, no wrong path exists
+- **3D Integration Audit:** 4 findings logged as INFO (S3-INFO-3D-001–004) — `setLabColor`/`setSkipIntroAnimation`/`WormholeTransition` are Stage 4 scope, auth canvas isolation is by design
+- **Result: All Stage 3 CRITICAL + HIGH + WARNING findings resolved**
+
 ---
 
 ## Executive Summary
@@ -925,17 +935,17 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 1 |
-| HIGH | 2 |
-| WARNING | 3 |
-| INFO | 3 |
+| CRITICAL | 1 (resolved — Batch 10) |
+| HIGH | 2 (both resolved — Batch 10) |
+| WARNING | 3 (all resolved — Batch 10) |
+| INFO | 3 + 4 (3D integration notes deferred to Stage 4) |
 | PASS | 28 |
 
 ---
 
 ## Stage 3 — CRITICAL FINDINGS
 
-### S3-CRIT-001 — Middleware missing `/reset-password` from public paths
+### S3-CRIT-001 — ~~Middleware missing `/reset-password` from public paths~~ RESOLVED (Batch 10)
 
 **File:** `src/middleware.ts` (line 29)
 **Category:** Auth / UX — Broken Feature
@@ -948,16 +958,13 @@ const publicPaths = ['/login', '/signup', '/pricing', '/about', '/privacy', '/te
 // MISSING: '/reset-password'
 ```
 
-**Required Fix:**
-```typescript
-const publicPaths = ['/login', '/signup', '/reset-password', '/pricing', '/about', '/privacy', '/terms'];
-```
+**Resolution:** Added `/reset-password` to `publicPaths` array in `src/middleware.ts`.
 
 ---
 
 ## Stage 3 — HIGH FINDINGS
 
-### S3-HIGH-001 — COPPA consent sent before user confirms checkbox
+### S3-HIGH-001 — ~~COPPA consent sent before user confirms checkbox~~ RESOLVED (Batch 10 — Option B)
 
 **File:** `src/app/(auth)/signup/page.tsx` (line 66)
 **Category:** COPPA Compliance
@@ -995,11 +1002,11 @@ const handleConsentConfirm = async () => {
 };
 ```
 
-*Option B:* Create account in Step 1 without consent, then call a separate `/api/auth/consent` endpoint in Step 3 that sets `coppa_consent_at`.
+**Resolution (Option B implemented):** Removed `coppaConsent: true` from Step 1 signup call. Created `/api/auth/consent` endpoint that sets `coppa_consent_at` on the parent record. Step 3 handler now calls this endpoint ONLY after user checks the consent checkbox. `SignupSchema` no longer requires `coppaConsent`; separate `CoppaConsentSchema` added to validations.ts. Signup API sets `coppa_consent_at: null` — consent endpoint sets the real timestamp.
 
 ---
 
-### S3-HIGH-002 — Middleware blocks demo users from dashboard
+### S3-HIGH-002 — ~~Middleware blocks demo users from dashboard~~ RESOLVED (Batch 10)
 
 **File:** `src/middleware.ts` (lines 29-36)
 **Category:** Auth / Runtime
@@ -1026,36 +1033,33 @@ if (!user && !isDemoSession && !isPublicPath) {
   return NextResponse.redirect(new URL('/login', req.url));
 }
 ```
-Alternatively, have the demo session creation in `/api/auth/demo` set a server-readable cookie that the middleware can check.
+**Resolution:** Added `sparkforge-demo-active` httpOnly cookie (1hr maxAge) set by `/api/auth/demo` route. Middleware now checks for this cookie alongside Supabase auth — demo users are allowed through to dashboard routes.
 
 ---
 
 ## Stage 3 — WARNING FINDINGS
 
-### S3-WARN-001 — Auth layout `dpr` may cause hydration mismatch
+### S3-WARN-001 — ~~Auth layout `dpr` may cause hydration mismatch~~ RESOLVED (Batch 10)
 
 **File:** `src/app/(auth)/layout.tsx` (line 35)
 **Category:** React / SSR
 **Description:** `window.devicePixelRatio` is accessed inline in the Canvas `dpr` prop. The layout is `'use client'` and the Canvas is dynamically imported with `ssr: false`, but the surrounding layout code is still server-rendered during hydration. A `typeof window !== 'undefined'` guard prevents crashes but the server always gets the fallback value `2` while the client may get a different value, causing a hydration mismatch warning.
 
-**Required Fix:** Use R3F Canvas's built-in `dpr` range (since D3D-1 means desktop-only):
-```typescript
-<Canvas dpr={[1, 3]}>  {/* R3F auto-selects based on devicePixelRatio */}
-```
+**Resolution:** Replaced inline `window.devicePixelRatio` with `dpr={[1, 3]}` — R3F auto-selects based on device pixel ratio, no SSR mismatch.
 
 ---
 
-### S3-WARN-002 — Unused `isCardHovered` state in login page
+### S3-WARN-002 — ~~Unused `isCardHovered` state in login page~~ RESOLVED (Batch 10 — Option B: wired to 3D)
 
 **File:** `src/app/(auth)/login/page.tsx` (line 8)
 **Category:** Code Quality
 **Description:** `setIsCardHovered` is assigned but `isCardHovered` is never read. This state was likely intended to pass hover info to the 3D portal for interactive glow effects, but the connection is never wired up — `LoginPortal3D`'s `isHovered` prop in the auth layout defaults to `false`.
 
-**Required Fix:** Either wire `isCardHovered` up to the auth layout's 3D portal via context/callback, or remove the unused state to avoid dead code.
+**Resolution (Option B):** Created `AuthHoverContext` in auth layout. Login page calls `useAuthHover()` to set hover state. Auth layout passes `isCardHovered` to `LoginPortal3D`'s `isHovered` prop. Portal now responds to card hover with distortion effects.
 
 ---
 
-### S3-WARN-003 — `heroAudio.ts` path differs from CLAUDE.md spec
+### S3-WARN-003 — ~~`heroAudio.ts` path differs from CLAUDE.md spec~~ DOWNGRADED to INFO (Batch 10)
 
 **File:** `src/lib/audio/heroAudio.ts`
 **Category:** Doc-Drift
@@ -1063,11 +1067,27 @@ Alternatively, have the demo session creation in `/api/auth/demo` set a server-r
 
 **Impact:** Cosmetic doc-drift. No runtime break.
 
-**Required Fix:** Update CLAUDE.md Phase 5B file list to `src/lib/audio/heroAudio.ts`.
+**Resolution:** Verified CLAUDE.md Phase 5B uses basename only (`heroAudio.ts`) — no wrong path exists in docs. The 3D Component Registry also uses basename. Downgraded to INFO.
 
 ---
 
 ## Stage 3 — INFO FINDINGS
+
+### S3-INFO-3D-001 — 3D Integration Audit: `setLabColor()` has zero call sites (Stage 4 scope)
+
+**Description:** `setLabColor()` in uiStore is defined but never called. Lab pages (Stage 4) are stubs. When Stage 4 lab pages are built, they must call `setLabColor()` on route change to update cockpit LED/glow colors. Deferred to Stage 4.
+
+### S3-INFO-3D-002 — 3D Integration Audit: `setSkipIntroAnimation()` has no Settings page (Stage 4 scope)
+
+**Description:** `setSkipIntroAnimation()` in uiStore has no caller. Settings page (`src/app/(dashboard)/settings/`) does not exist — it's a Stage 4 Part 3 deliverable. Deferred to Stage 4.
+
+### S3-INFO-3D-003 — 3D Integration Audit: `WormholeTransition` built but never imported (Stage 4 scope)
+
+**Description:** `WormholeTransition.tsx` is fully implemented (300K tris) but never mounted. Lab-to-lab transitions depend on Stage 4 lab navigation wiring it up. Deferred to Stage 4.
+
+### S3-INFO-3D-004 — 3D Integration Audit: Auth layout uses separate R3F Canvas (by design)
+
+**Description:** Auth layout has its own lightweight R3F Canvas for `LoginPortal3D`. This is intentional — auth pages don't need the full 30M-tri cockpit. Hero animation plays post-login when entering dashboard layout. Not a CPA2-1 violation.
 
 ### S3-INFO-001 — No TopBar component exists (intentional)
 

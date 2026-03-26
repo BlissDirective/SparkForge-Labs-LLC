@@ -1,8 +1,37 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 2 Audit Fixes — COMPLETE
-## Status: ALL Stage 2 HIGH + WARNING findings resolved
-## Last Updated: 2026-03-26 (Stage 2 Batch 9: Security + Type Safety + Config)
+## Current Phase: Stage 3 Audit Fixes — COMPLETE
+## Status: ALL Stage 3 CRITICAL + HIGH + WARNING findings resolved
+## Last Updated: 2026-03-26 (Stage 3 Batch 10: Security + COPPA + 3D Integration)
+
+---
+
+### Stage 3 Audit Fix — Batch 10: Security + COPPA + 3D Integration (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Findings Addressed:**
+- [x] S3-CRIT-001 — Added `/reset-password` to middleware public paths
+- [x] S3-HIGH-001 — COPPA (Option B): Created `/api/auth/consent` endpoint, signup no longer sends consent prematurely
+- [x] S3-HIGH-002 — Demo users: `sparkforge-demo-active` httpOnly cookie + middleware check
+- [x] S3-WARN-001 — Auth layout `dpr={[1, 3]}` replaces inline `window.devicePixelRatio`
+- [x] S3-WARN-002 — `AuthHoverContext` wires login card hover to `LoginPortal3D.isHovered`
+- [x] S3-WARN-003 — Downgraded to INFO (no wrong path in docs)
+- [x] 3D Integration Audit — 4 findings deferred to Stage 4 (setLabColor, Settings page, WormholeTransition, auth canvas)
+
+**Files Created (2):**
+- `src/app/api/auth/consent/route.ts` — COPPA consent endpoint
+- (context in auth layout — inline, not separate file)
+
+**Files Modified (7):**
+- `src/middleware.ts` — `/reset-password` + demo cookie check
+- `src/app/api/auth/demo/route.ts` — Sets `sparkforge-demo-active` cookie
+- `src/app/api/auth/signup/route.ts` — Removed `coppaConsent`, sets `coppa_consent_at: null`
+- `src/lib/validations.ts` — `SignupSchema` no longer requires `coppaConsent`, added `CoppaConsentSchema`
+- `src/app/(auth)/signup/page.tsx` — Step 1 no coppaConsent, Step 3 calls `/api/auth/consent`
+- `src/app/(auth)/layout.tsx` — `AuthHoverContext`, `isHovered` prop, `dpr={[1, 3]}`
+- `src/app/(auth)/login/page.tsx` — Uses `useAuthHover()` context
 
 ---
 
