@@ -1,7 +1,6 @@
 'use client';
 
 import { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
 import {
   BoxGeometry,
   BufferAttribute,

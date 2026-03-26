@@ -30,7 +30,6 @@ import {
   ExtrudeGeometry,
   Group,
   InstancedMesh,
-  MathUtils,
   Matrix4,
   Mesh,
   MeshStandardMaterial,

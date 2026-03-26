@@ -14,7 +14,6 @@ import {
   Color,
   DataTexture,
   Group,
-  Mesh,
   NearestFilter,
   RGBAFormat,
 } from 'three';
@@ -80,7 +79,7 @@ export function useToonSetup(speciesId: SpeciesId, evolutionStage: number, mood:
 // ── Creature Wrapper (Float + Rotation + Mood) ───────────────────
 
 export function CreatureWrapper({
-  mood,
+  mood: _mood,
   evolutionStage,
   moodCfg,
   evoCfg,

@@ -64,6 +64,7 @@ interface StatusBarProps {
 // ■■ Chrome material factory ■■
 // Fixed: Create material once, update opacity via ref in useFrame to avoid
 // 60 material allocations/second during fade transitions (Audit Finding #6)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useChromeMaterial(opacity: number) {
   const matRef = useRef<MeshStandardMaterial | null>(null);
   if (!matRef.current) {
@@ -87,6 +88,7 @@ function useChromeMaterial(opacity: number) {
 
 // ■■ Emissive material factory ■■
 // Fixed: Same pattern — create once, update dynamically (Audit Finding #6)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useEmissiveMaterial(color: string, intensity: number, opacity: number) {
   const matRef = useRef<MeshStandardMaterial | null>(null);
   const colorObj = useMemo(() => new Color(color), [color]);

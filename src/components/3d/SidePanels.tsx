@@ -22,7 +22,6 @@ import {
   Color,
   Group,
   InstancedMesh,
-  MathUtils,
   Mesh,
   MeshStandardMaterial,
   Object3D,

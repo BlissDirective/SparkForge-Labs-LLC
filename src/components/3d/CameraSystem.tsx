@@ -16,7 +16,7 @@
 // CPA2-3: Seamless handoff — hero Phase 7 camera target matches
 //         SPATIAL_CAMERA_PRESETS.overview exactly ([0, 6.5, 7] fov 58)
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { MathUtils, PerspectiveCamera, Vector3 } from 'three';
 import { useCockpitStore } from '@/stores/cockpitStore';

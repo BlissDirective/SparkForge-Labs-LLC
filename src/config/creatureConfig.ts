@@ -12,8 +12,6 @@
 //   - Per-stage toon gradient colors
 //   - Per-stage triangle budgets (200–2500)
 
-import { Color } from 'three';
-
 // ── Types ────────────────────────────────────────────────────────
 
 export type SpeciesId = 'byteling' | 'sparkpaw' | 'voltkit' | 'cogsworth' | 'pixie';

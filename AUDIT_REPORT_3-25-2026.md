@@ -4,17 +4,33 @@
 **Auditor:** SparkForge Audit Agent v1.0
 **Repo:** blissdirective/sparkforge
 **Commit:** `3eb83e9a428fe38dab158dfbfff7df3e9b703d36`
-**Build Status:** FAIL (dependencies not installed)
-**Test Results:** Vitest — FAIL (not installed locally) | Playwright — FAIL (not configured)
-**TypeScript Errors:** 15,378 total (13,613 from missing node_modules + 1,536 implicit `any` + 229 real code errors)
-**ESLint:** FAIL (no `eslint.config.js` — needs ESLint v9+ flat config migration)
+**Build Status:** ~~FAIL (dependencies not installed)~~ **PASS** (resolved March 26, 2026 — Batch 1+2)
+**Test Results:** ~~Vitest — FAIL (not installed locally)~~ **Vitest v4.1.2 installed** | ~~Playwright — FAIL (not configured)~~ **Playwright configured**
+**TypeScript Errors:** ~~15,378 total~~ **0 errors** (resolved March 26, 2026 — Batch 1: npm install cleared 15,315; Batch 2: fixed remaining 63)
+**ESLint:** ~~FAIL (no `eslint.config.js`)~~ **Build passes** (Next.js built-in ESLint + eslint-disable on TSL shaders)
 **Source Files:** 346 TypeScript/TSX files
+
+---
+
+## Remediation Log (March 26, 2026)
+
+### Batch 1: Environment & Dependencies
+- `npm install --legacy-peer-deps` (nivo/React 19 conflict)
+- Installed missing: `three-mesh-bvh`, `troika-three-text`, `vitest`, `@vitest/coverage-v8`, `@testing-library/react`, `@testing-library/jest-dom`, `jsdom`, `msw`, `@playwright/test`, `@types/node`
+- Created: `playwright.config.ts`, `src/mocks/handlers.ts` (24 API routes), `src/mocks/server.ts`, `src/mocks/browser.ts`, `tests/e2e/health.spec.ts`
+- Deferred: WARN-003 (Redis rate limiter) — note added to Stage 10 doc
+
+### Batch 2: TypeScript & ESLint Fixes
+- Fixed 63 TypeScript errors: creature components (CreatureProps, MoodConfig, THREE namespace) + TSL shaders (Node type mismatches, atan2→atan, swizzle types)
+- Removed unused imports from 17 component files
+- Added eslint-disable to 19 TSL shader files (legitimate `as any` for Three.js TSL type gaps)
+- **Result: `npm run build` PASS, `npx tsc --noEmit` 0 errors**
 
 ---
 
 ## Executive Summary
 
-SparkForge has **346 source files** across a well-structured Next.js 15 App Router codebase with all 35 games code-complete. However, **`node_modules` is missing/incomplete**, which cascades into build failure, 15,378 TypeScript errors, and inability to run tests. Once dependencies are installed, the real error surface drops to ~1,765 TypeScript issues — predominantly **1,536 implicit `any` parameter types** (TS7006/TS7031) and **229 genuine code errors** (missing props, Zod parse typing, property access on `unknown`). ESLint has no flat config file. No test infrastructure is runnable. These are all fixable without architectural changes.
+SparkForge has **346 source files** across a well-structured Next.js 15 App Router codebase with all 35 games code-complete. ~~However, `node_modules` is missing/incomplete, which cascades into build failure, 15,378 TypeScript errors, and inability to run tests.~~ **As of March 26, 2026:** All dependencies installed, build passes, TypeScript reports 0 errors, Vitest and Playwright are configured, MSW mock handlers cover all 24 API routes. Remaining Phase 0 items: ESLint flat config creation (CRIT-002), font migration to next/font (WARN-001), useApi.ts cleanup (WARN-004), and data integrity fixes (S1-CRIT-001, S1-WARN-001).
 
 ### Finding Counts (Phase 0)
 
@@ -44,7 +60,7 @@ SparkForge has **346 source files** across a well-structured Next.js 15 App Rout
 
 ## CRITICAL FINDINGS
 
-### CRIT-001 — node_modules missing/incomplete — build cannot run
+### CRIT-001 — ~~node_modules missing/incomplete — build cannot run~~ RESOLVED (Batch 1)
 
 **Category:** Environment / Build
 **Description:** `node_modules` directory is missing or incomplete. `next`, `react`, `zustand`, `jotai`, `@react-three/fiber`, and all other dependencies are unresolvable. This causes `npm run build` to fail immediately (`sh: 1: next: not found`) and inflates TypeScript errors to 15,378.
@@ -109,7 +125,7 @@ npm install -D eslint @eslint/eslintrc typescript-eslint eslint-plugin-react esl
 
 ---
 
-### CRIT-003 — No test infrastructure runnable
+### CRIT-003 — ~~No test infrastructure runnable~~ RESOLVED (Batch 1)
 
 **Category:** Testing
 **Description:** Neither Vitest nor Playwright can execute. Vitest is not installed locally (ran via npx, failed to resolve `vitest/config`). Playwright is not configured. No MSW mock handlers exist (`src/mocks/` directory missing). Zero test coverage is verifiable.
@@ -138,7 +154,7 @@ Then create `src/mocks/handlers.ts` with mock handlers for critical API routes (
 
 ## HIGH FINDINGS
 
-### HIGH-001 — 229 genuine TypeScript code errors
+### HIGH-001 — ~~229 genuine TypeScript code errors~~ RESOLVED (Batch 1+2: 0 errors remaining)
 
 **Category:** TypeScript Quality
 **Description:** After filtering out missing-module errors (13,613) and implicit-any errors (1,536), there are 229 real code errors that indicate actual bugs or type mismatches.
@@ -228,7 +244,7 @@ This is a bulk fix — consider running a codemod or adding type annotations fil
 
 ---
 
-### HIGH-003 — Vitest config references uninstalled dependency
+### HIGH-003 — ~~Vitest config references uninstalled dependency~~ RESOLVED (Batch 1)
 
 **File:** `vitest.config.ts`
 **Category:** Testing / Build
@@ -246,7 +262,7 @@ npm install -D vitest @vitest/coverage-v8 @types/node
 
 ---
 
-### HIGH-004 — tests/setup.ts uses `global` without Node types
+### HIGH-004 — ~~tests/setup.ts uses `global` without Node types~~ RESOLVED (Batch 1)
 
 **File:** `tests/setup.ts`
 **Category:** Testing
@@ -260,7 +276,7 @@ tests/setup.ts(26,1): error TS2304: Cannot find name 'global'.
 
 ---
 
-### HIGH-005 — DemoGuard missing `children` prop in dashboard layout
+### HIGH-005 — ~~DemoGuard missing `children` prop in dashboard layout~~ RESOLVED (Batch 1: npm install restored types, error was from missing node_modules)
 
 **File:** `src/app/(dashboard)/layout.tsx` (line 54)
 **Category:** Runtime / React
@@ -334,7 +350,7 @@ import plugin from 'tailwindcss/plugin';
 
 ---
 
-### WARN-003 — In-memory rate limiting not production-ready
+### WARN-003 — In-memory rate limiting not production-ready — DEFERRED (note added to Stage 10 doc)
 
 **File:** `src/lib/rate-limit.ts`
 **Category:** Security / Scalability
@@ -366,12 +382,12 @@ const ratelimit = new Ratelimit({
 
 ## INFO FINDINGS
 
-### INFO-001 — Sentry config files reference missing module
+### INFO-001 — ~~Sentry config files reference missing module~~ RESOLVED (Batch 1: npm install)
 
 **Files:** `sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`
 **Category:** Doc-Drift / Environment
 **Description:** Three Sentry config files exist and import from `@sentry/nextjs`, but the package is not installed (missing node_modules). These files are correctly structured but will error until dependencies are installed.
-**Impact:** Non-functional until `npm install`. No code changes needed — just dependency installation.
+**Impact:** ~~Non-functional until `npm install`.~~ Resolved by Batch 1 npm install.
 
 ---
 
@@ -521,7 +537,7 @@ grep -c "slug:" src/types/index.ts  # → 36 (35 games + 1 type definition)
 
 ## Stage 1 — HIGH FINDINGS
 
-### S1-HIGH-001 — Missing npm packages: `three-mesh-bvh` and `troika-three-text`
+### S1-HIGH-001 — ~~Missing npm packages: `three-mesh-bvh` and `troika-three-text`~~ RESOLVED (Batch 1)
 
 **File:** `package.json`
 **Category:** Dependencies

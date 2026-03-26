@@ -542,7 +542,7 @@ export default function BytelingCreature({
   speciesId,
   evolutionStage,
   mood,
-  labColor,
+  labColor: _labColor,
 }: CreatureProps) {
   const { gradientMap, emissiveColor, moodCfg, evoCfg, stage } =
     useToonSetup(speciesId, evolutionStage, mood);
