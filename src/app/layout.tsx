@@ -13,6 +13,13 @@ import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
 
+// ── Fonts ──
+// Loaded via Google Fonts CDN with preconnect for performance.
+// CSS variables (--font-display, --font-body, --font-mono, --font-data)
+// are set in globals.css so Tailwind fontFamily can reference them.
+// TODO: Migrate to next/font/google when build environment has internet access.
+// See AUDIT_REPORT WARN-001 for details.
+
 // ── SEO Metadata ──────────────────────────────────
 
 export const metadata: Metadata = {
@@ -88,13 +95,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* Google Fonts — Exo 2, Sora, JetBrains Mono, Orbitron */}
+        {/* Google Fonts — Exo 2, Sora, JetBrains Mono, Orbitron (BUG-10F) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
           href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700&display=swap"
           rel="stylesheet"

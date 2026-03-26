@@ -39,6 +39,15 @@
 - Fixed LabStructure3D.tsx no-op expression (line 812)
 - **Result: ESLint 0 errors, 30 warnings (all acceptable) | Build PASS**
 
+### Batch 5: Font Migration & Code Cleanup
+- Removed duplicate `@import` for Google Fonts from globals.css (was loading fonts twice)
+- Added CSS custom properties (`--font-display`, `--font-body`, `--font-mono`, `--font-data`) to `:root`
+- Updated Tailwind fontFamily to use CSS variables with font-name fallbacks
+- Replaced `require('tailwindcss-animate')` with ESM `import tailwindcssAnimate`
+- Deleted deprecated `src/hooks/useApi.ts` stub (BUG-1, zero active imports)
+- Full `next/font/google` migration deferred (build env lacks internet access for font fetch)
+- **Result: Build PASS**
+
 ---
 
 ## Executive Summary
@@ -314,7 +323,7 @@ interface DemoGuardProps {
 
 ## WARNING FINDINGS
 
-### WARN-001 — Fonts loaded via Google Fonts CDN link, not next/font
+### WARN-001 — ~~Fonts loaded via Google Fonts CDN link, not next/font~~ PARTIALLY RESOLVED (Batch 5: duplicate @import removed, CSS vars added, preconnect added. Full next/font migration deferred — requires internet at build time)
 
 **File:** `src/app/layout.tsx` (line 99)
 **Category:** Performance
@@ -347,7 +356,7 @@ fontFamily: {
 
 ---
 
-### WARN-002 — tailwind.config.ts uses `require()` without Node types
+### WARN-002 — ~~tailwind.config.ts uses `require()` without Node types~~ RESOLVED (Batch 5: replaced with ESM import)
 
 **File:** `tailwind.config.ts` (line 156)
 **Category:** TypeScript
@@ -384,11 +393,11 @@ const ratelimit = new Ratelimit({
 
 ---
 
-### WARN-004 — useApi.ts stub still present (BUG-1 not fully resolved)
+### WARN-004 — ~~useApi.ts stub still present (BUG-1 not fully resolved)~~ RESOLVED (Batch 5: file deleted)
 
-**File:** `src/hooks/useApi.ts`
+**File:** ~~`src/hooks/useApi.ts`~~ DELETED
 **Category:** Architecture / Doc-Drift
-**Description:** The old `useApi.ts` stub file from Stage 1 still exists. Per BUG-1, Stage 4 Part 1 should have replaced it entirely. The stub may cause confusion or incorrect hook usage.
+**Description:** ~~The old `useApi.ts` stub file from Stage 1 still exists.~~ Deleted — all 4 replacement hooks confirmed in place (useChildren, useContent, useProgress, useGamification). Zero active imports of useApi.ts existed.
 **Required Fix:** Delete `src/hooks/useApi.ts` if Stage 4 replacement hooks (React Query-based) are in place. Verify no imports reference it, then remove.
 
 ---
