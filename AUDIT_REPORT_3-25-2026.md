@@ -1525,6 +1525,274 @@ const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 
 ---
 
-*Stage 4 audit complete. Stages 5-10 pending.*
+---
 
-*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-4 | March 25, 2026*
+# STAGE 5 AUDIT — Gamification & Profile
+
+**Stage:** 5 (Phases 8-9)
+**Source Docs:** `STAGE5_Gamification_Profile_PART1`, `STAGE5_Parts23_v3FINAL_A/B/C`
+**Scope:** XP system, streaks, badges, trophy room, celebration overlays, profile page, 3D ceremony effects
+**Build Status:** PARTIALLY IMPLEMENTED — hooks/APIs done, profile stub, game-to-XP pipeline disconnected
+
+## Stage 5 — Finding Counts
+
+| Severity | Count |
+|----------|-------|
+| CRITICAL | 2 |
+| HIGH | 7 |
+| WARNING | 5 |
+| INFO | 2 |
+| PASS | 6 |
+
+---
+
+## Stage 5 — CRITICAL FINDINGS
+
+### S5-CRIT-001 — Profile page is a stub
+
+**File:** `src/app/(dashboard)/profile/page.tsx`
+**Category:** Incomplete Build
+**Description:** The entire profile page is a 13-line placeholder returning "Coming in Stage 5." No child data fetching, no avatar editor, no XP/level/badge/streak display, no loading states, no error handling. This is the primary Stage 5 deliverable.
+
+**Required Fix:** Build the full profile page per Stage 5 Part 1:
+- React Query data fetching via `useChildren` hook
+- Avatar config editor (shape, color, accessories)
+- Stats display: XP progress bar, level, streak fire, spark coins
+- Badge gallery with earned/locked states
+- Edit display name capability
+- Loading skeletons, error boundary, ARIA labels
+
+---
+
+### S5-CRIT-002 — Games never award XP — gamification pipeline disconnected
+
+**Files:** All 35 game files in `src/components/games/`, `src/stores/gameStore.ts` (line 50)
+**Category:** Core Feature Broken
+**Description:** All 35 games call `game.completeGame()` from `gameStore`, which only sets `{ isComplete: true }` in local Zustand state. **No game calls `useCompleteAndReward()`** from `useGamification.ts`. The gamification hook exists and works — it's used by content viewers (`LessonViewer`, `QuizEngine`, `SparkFactViewer`) — but is completely disconnected from the game completion flow. This means:
+- XP is **never awarded** when a game completes
+- Streaks are **never updated** from game play
+- Badges are **never checked** after game completion
+- Celebrations **never trigger** from games
+
+**Impact:** The entire gamification system is non-functional for the platform's core activity (playing games).
+
+**Required Fix:** Wire `useCompleteAndReward` into `GameShell` so it fires automatically when `isComplete` transitions to `true`:
+
+```typescript
+// In GameShell.tsx — add effect:
+const isComplete = useGameStore(s => s.isComplete);
+const { completeAndReward } = useCompleteAndReward();
+const hasRewarded = useRef(false);
+
+useEffect(() => {
+  if (isComplete && !hasRewarded.current) {
+    hasRewarded.current = true;
+    completeAndReward({
+      childId: activeChild.id,
+      contentId: gameId,
+      score: gameStore.score,
+      source: 'game',
+    });
+  }
+}, [isComplete]);
+```
+
+This ensures all 35 games automatically award XP/badges/streaks without individual modification.
+
+---
+
+## Stage 5 — HIGH FINDINGS
+
+### S5-HIGH-001 — `gamification/` component directory is empty
+
+**File:** `src/components/gamification/` (contains only `.gitkeep`)
+**Category:** Missing Components
+**Description:** Stage docs call for `BadgeDisplay`, `TrophyRoom`, `BadgeGrid`, `LevelProgress` and other gamification UI components in this directory. It is entirely empty. Some gamification components exist in `src/components/game/` instead (`XPPopup.tsx`, `StreakFire.tsx`, `GameCompleteCelebration.tsx`) but key ones like badge display and trophy room don't exist anywhere.
+
+**Required Fix:** Create badge display grid and trophy room components per Stage 5 docs.
+
+---
+
+### S5-HIGH-002 — `streak` and `confetti` celebration types unhandled
+
+**File:** `src/components/shared/CelebrationOverlay.tsx` (lines 148-294)
+**Category:** Incomplete Feature
+**Description:** `CelebrationType` defines 5 types (`'xp' | 'badge' | 'level' | 'streak' | 'confetti'`). The overlay only renders modals/toasts for `'badge'`, `'level'`, and `'xp'`. The `'streak'` and `'confetti'` types trigger confetti particles but show no visual feedback (no "7-Day Streak!" toast, no confetti-only mode).
+
+**Required Fix:** Add streak milestone UI (e.g., animated streak count toast) and confetti-only rendering mode.
+
+---
+
+### S5-HIGH-003 — XP toast never auto-dismisses
+
+**File:** `src/components/shared/CelebrationOverlay.tsx` (lines 273-292)
+**Category:** UX Bug
+**Description:** The XP toast appears but has no auto-dismiss timer and no manual dismiss button. Badge and level modals dismiss on backdrop click, but the XP toast remains visible indefinitely.
+
+**Required Fix:** Add `setTimeout(() => dismissCelebration(), 3000)` in a `useEffect` when `celebrationType === 'xp'`, or add an onClick handler to dismiss.
+
+---
+
+### S5-HIGH-004 — No `reducedMotion` respect in any gamification component
+
+**Files:** `CelebrationOverlay.tsx`, `XPPopup.tsx`, `StreakFire.tsx`, `GameCompleteCelebration.tsx`, `CeremonyFX.tsx`
+**Category:** Accessibility
+**Description:** None of the gamification components check `useA11yStore`'s `reduceMotion` flag. All animations (confetti physics, badge flip, XP popup, streak fire, 3D ceremony) play at full intensity regardless of user preference. The `accessibilityStore` defines the flag and other components respect it.
+
+**Required Fix:** Import `useA11yStore` and conditionally:
+- Skip confetti particle physics when `reduceMotion` is true
+- Use simple fade-in instead of spring animations
+- Disable `CeremonyFX` 3D effects
+- Show static versions of celebrations (just the message, no motion)
+
+---
+
+### S5-HIGH-005 — No ARIA labels on any gamification component
+
+**Files:** `CelebrationOverlay.tsx`, `XPPopup.tsx`, `StreakFire.tsx`, `GameCompleteCelebration.tsx`
+**Category:** Accessibility
+**Description:** Zero ARIA attributes in any gamification component. Celebration modals have no `role="dialog"`, no `aria-modal="true"`, no `aria-label`. XP popup has no `role="status"` or `aria-live="polite"`. Confetti has no `aria-hidden="true"`. Screen readers cannot interpret these elements.
+
+**Required Fix:**
+- Modals: `role="dialog" aria-modal="true" aria-label="Badge Earned"`
+- XP toast: `role="status" aria-live="polite"`
+- Decorative confetti/particles: `aria-hidden="true"`
+- Streak fire: `aria-hidden="true"` (decorative)
+
+---
+
+### S5-HIGH-006 — XPPopupProvider never mounted
+
+**File:** `src/components/game/XPPopup.tsx`
+**Category:** Dead Feature
+**Description:** `XPPopupProvider` provides a `useXPPopup()` context for floating "+X XP" animations. However, it is not mounted in `GameShell`, the dashboard layout, or any page. Without the provider, `useXPPopup()` returns the default no-op `showXP: () => {}`.
+
+**Required Fix:** Mount `<XPPopupProvider>` in `GameShell` or the dashboard layout:
+```typescript
+// In GameShell.tsx:
+<XPPopupProvider>
+  {children}
+</XPPopupProvider>
+```
+
+---
+
+### S5-HIGH-007 — CeremonyFX (3D) not mounted in dashboard scene
+
+**File:** `src/app/(dashboard)/layout.tsx`, `src/components/3d/CeremonyFX.tsx`
+**Category:** Dead Feature
+**Description:** `CeremonyFX` is a well-implemented 3D celebration component (500K triangle budget) with instanced confetti, fireworks, trophies, HUD ring expansion, and particle showers. However, it is NOT rendered anywhere in the app. It needs to be a child of `CockpitCanvas`/`SceneRouter` to function.
+
+**Required Fix:** Wire `CeremonyFX` into the cockpit scene, driven by `uiStore.celebrationType`:
+```typescript
+// In CockpitCanvas.tsx or SceneRouter.tsx:
+{showCelebration && (
+  <CeremonyFX type={mapCelebrationType(celebrationType)} labColor={labColor} />
+)}
+```
+Create a mapping function between `CelebrationType` (`'level'`, `'badge'`) and `CeremonyFXProps.type` (`'levelUp'`, `'badgeEarn'`).
+
+---
+
+## Stage 5 — WARNING FINDINGS
+
+### S5-WARN-001 — CeremonyFX type enum mismatches CelebrationType
+
+**Files:** `src/components/3d/CeremonyFX.tsx` (line 34), `src/types/index.ts` (line 8)
+**Category:** Type Mismatch
+**Description:** Two parallel type systems: `CeremonyFXProps.type` uses `'levelUp' | 'badgeEarn' | 'labComplete' | 'streakMilestone'` while `CelebrationType` uses `'xp' | 'badge' | 'level' | 'streak' | 'confetti'`. No mapping layer exists.
+
+**Required Fix:** Create an explicit mapping function and document which component handles which celebration.
+
+---
+
+### S5-WARN-002 — Confetti rAF loop lacks unmount guard
+
+**File:** `src/components/shared/CelebrationOverlay.tsx` (lines 97-147)
+**Category:** React Safety
+**Description:** The confetti animation runs 300 frames via `requestAnimationFrame`. While `cancelAnimationFrame` is called in cleanup, `setConfetti` state updates could fire after unmount in React 18 concurrent mode.
+
+**Required Fix:** Add an `isMounted` ref checked before each `setConfetti`:
+```typescript
+const isMounted = useRef(true);
+useEffect(() => () => { isMounted.current = false; }, []);
+// In animation loop:
+if (isMounted.current) setConfetti(updated);
+```
+
+---
+
+### S5-WARN-003 — `as any` casts in badges route (duplicate of S2-HIGH-002)
+
+**File:** `src/app/api/gamification/badges/route.ts` (lines 83, 160, 168)
+**Description:** Already reported in Stage 2 audit. Three `as any` casts for Supabase join content types.
+
+---
+
+### S5-WARN-004 — `accessibilityStore` exported as `useA11yStore`
+
+**File:** `src/stores/accessibilityStore.ts`
+**Category:** Naming Consistency
+**Description:** CLAUDE.md Section 14 calls it "accessibilityStore" but the export is `useA11yStore`. Internal usage is consistent with the short name, but differs from documentation.
+
+---
+
+### S5-WARN-005 — CeremonyFX has leftover LOD comment
+
+**File:** `src/components/3d/CeremonyFX.tsx` (line 503)
+**Category:** Code Quality
+**Description:** Comment reads `// Scale particle counts based on LOD` followed by hardcoded `const pMul = 1.0;`. LOD was removed per D3D-2. Misleading comment.
+
+**Required Fix:** Update comment: `// Particle counts (desktop-ultra: full quality always)`
+
+---
+
+## Stage 5 — INFO FINDINGS
+
+### S5-INFO-001 — Gamification components in `game/` not `gamification/`
+
+**Description:** `XPPopup.tsx`, `StreakFire.tsx`, `GameCompleteCelebration.tsx` live in `src/components/game/` alongside `GameShell.tsx`. The `gamification/` directory is empty. Minor organizational inconsistency.
+
+### S5-INFO-002 — `useCompleteAndReward` properly used by content viewers
+
+**Description:** `LessonViewer.tsx`, `QuizEngine.tsx`, `SparkFactViewer.tsx` correctly import and call `useCompleteAndReward` — confirming the hook works. Only the game flow is disconnected.
+
+---
+
+## Stage 5 — PASS FINDINGS
+
+| # | Check | Status | Notes |
+|---|-------|--------|-------|
+| 1 | `useGamification.ts` hook | PASS | Full suite: `useAwardXP`, `useUpdateStreak`, `useBadges`, `useCheckBadges`, `useCompleteAndReward` |
+| 2 | `/api/gamification/xp` route | PASS | XP award with streak multiplier + level-up detection |
+| 3 | `/api/gamification/badges` route | PASS | 13 badge criteria types, ownership verification |
+| 4 | `/api/gamification/streak` route | PASS | Streak update with shield logic |
+| 5 | `childStore.ts` XP/level/badge state | PASS | `updateXP`, `updateLevel`, `updateStreak`, `setBadges`, persisted |
+| 6 | `uiStore.ts` celebration triggers | PASS | `triggerCelebration(type, data)` + `dismissCelebration()` |
+
+---
+
+## Stage 5 — File Inventory
+
+| File | Status |
+|------|--------|
+| `src/app/(dashboard)/profile/page.tsx` | EXISTS (stub only) |
+| `src/hooks/useGamification.ts` | EXISTS (fully implemented) |
+| `src/components/shared/CelebrationOverlay.tsx` | EXISTS (partial — missing streak/confetti types) |
+| `src/components/game/XPPopup.tsx` | EXISTS (provider never mounted) |
+| `src/components/game/StreakFire.tsx` | EXISTS |
+| `src/components/game/GameCompleteCelebration.tsx` | EXISTS |
+| `src/components/3d/CeremonyFX.tsx` | EXISTS (not mounted in scene) |
+| `src/components/gamification/` | EXISTS (empty — `.gitkeep` only) |
+| `src/stores/accessibilityStore.ts` | EXISTS |
+| `src/app/api/gamification/xp/route.ts` | EXISTS |
+| `src/app/api/gamification/badges/route.ts` | EXISTS |
+| `src/app/api/gamification/streak/route.ts` | EXISTS |
+
+**Implemented:** 11 files | **Stubs:** 1 (profile) | **Empty dir:** 1 (gamification/) | **Not mounted:** 2 (XPPopup provider, CeremonyFX)
+
+---
+
+*Stages 1-5 audit complete. Stages 6-10 pending.*
+
+*SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-5 | March 25, 2026*
