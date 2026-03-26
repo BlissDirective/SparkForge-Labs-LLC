@@ -54,29 +54,32 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "^0.183.2",
     "three-bvh-csg": "^0.0.18",
+    "three-mesh-bvh": "^0.9.9",
     "tone": "^15.1.22",
+    "troika-three-text": "^0.52.4",
     "zod": "^3.25.76",
     "zustand": "^5.0.11"
   },
   "devDependencies": {
-    "@playwright/test": "^1.50.0",
+    "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
-    "@types/node": "^22",
+    "@types/node": "^22.19.15",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@vitest/coverage-v8": "^4.0.18",
+    "@vitest/coverage-v8": "^4.1.2",
     "autoprefixer": "^10.4.27",
     "eslint": "^9",
     "eslint-config-next": "^15.2.0",
     "happy-dom": "^17.0.0",
+    "jsdom": "^29.0.1",
     "leva": "^0.10.1",
-    "msw": "^2.8.0",
+    "msw": "^2.12.14",
     "playwright": "^1.50.0",
     "postcss": "^8",
     "r3f-perf": "^7.2.3",
     "tailwindcss": "^4.0.0",
     "typescript": "^5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.1.2"
   }
 }
