@@ -1,29 +1,24 @@
 'use client';
 
 // ================================================================
-// CPA v2.0 — StatusBar3D: 3D Gauge-Style Bottom Status Strip
+// CPA v3.0 — StatusBar3D: 3D Gauge-Style Bottom Console Strip
 // ================================================================
-// 20M Cockpit Upgrade — 500,000 triangle budget
+// v3: 1M tri budget (was 500K), positioned at [0, -1.25, -1.95]
+// with 0.38 rad tilt for tight-focus cockpit seat camera.
+// Materials upgraded to cockpitMaterials.ts (alloy chrome, control panel).
 //
-// Bottom 5% of viewport: XP speedometer, streak flame, lab progress,
-// chrome dividers, all on a 3D console strip with depth.
+// CylinderGeometry: r=4.3, h=0.45, 144 segs, arc -2.05 to 4.1 rad
 //
 // Sections (left → right):
 //   [XP Speedometer] | [Streak Flame] | [10 Lab Indicators]
 //
-// Triangle budget breakdown (~500K):
-//   Base strip + chrome:       ~8,000
-//   XP speedometer:          ~180,000
-//   Streak flame sculpture:   ~60,000
-//   10 lab indicators:       ~200,000
-//   Chrome divider pillars:   ~12,000
-//   Tick marks + details:     ~40,000
-//
-// Data binding:
-// - XP, streak: from childStore
-// - Session time: from useSessionTracker
-// - Lab progress: from useProgress
-// - Alerts: derived from toast events
+// v3 budget breakdown (~1M):
+//   Base strip + chrome:       ~16,000
+//   XP speedometer:          ~350,000
+//   Streak flame sculpture:  ~120,000
+//   10 lab indicators:       ~400,000
+//   Chrome divider pillars:   ~24,000
+//   Tick marks + details:     ~90,000
 
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -61,18 +56,17 @@ interface StatusBarProps {
   opacity: number;
 }
 
-// ■■ Chrome material factory ■■
-// Fixed: Create material once, update opacity via ref in useFrame to avoid
-// 60 material allocations/second during fade transitions (Audit Finding #6)
+// ■■ Chrome material factory — v3: upgraded to alloy frame spec ■■
+// Fixed: Create material once, update opacity via ref in useFrame
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useChromeMaterial(opacity: number) {
   const matRef = useRef<MeshStandardMaterial | null>(null);
   if (!matRef.current) {
     matRef.current = new MeshStandardMaterial({
-      color: '#2a2a3a',
-      metalness: 0.92,
-      roughness: 0.15,
-      envMapIntensity: 1.2,
+      color: '#a8b5c8',         // v3: lighter alloy chrome (was #2a2a3a)
+      metalness: 0.98,          // v3: near-perfect metalness (was 0.92)
+      roughness: 0.12,          // v3: smoother finish (was 0.15)
+      envMapIntensity: 1.5,     // v3: stronger reflections (was 1.2)
       transparent: true,
       opacity: opacity * 0.85,
     });

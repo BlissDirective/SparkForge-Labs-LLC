@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
 ## Current Phase: Stage 4 — 3D-Embedded UI (12 mini-batches)
-## Status: Batch 2/12 COMPLETE — camera + materials
-## Last Updated: 2026-03-27 (Stage 4 Batch 2: Camera + Materials)
+## Status: Batch 3/12 COMPLETE — hull + LED + sidepanels + statusbar
+## Last Updated: 2026-03-27 (Stage 4 Batch 3: Full Geometry + Material Overhaul)
 
 ---
 
@@ -47,6 +47,25 @@
 - `src/stores/cockpitStore.ts` — SPATIAL_CAMERA_PRESETS tight-focus + CONSOLE_CAMERA_PRESETS
 - `src/components/3d/CockpitCanvas.tsx` — Initial camera position [0, 0.65, 1.1]
 - `src/components/3d/CameraSystem.tsx` — Updated handoff comment
+
+---
+
+### Stage 4 — Batch 3: Full Geometry + Material Overhaul (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Changes:**
+- [x] CockpitPanels.tsx: v3 header, imports cockpitMaterials, 12 ribs (was 8), 768 rivets (was 512)
+- [x] LEDRim.tsx: v3 header, 1500 ultra LEDs (was 1000), emissive 3.0 (was ~0.3), imports cockpitMaterials
+- [x] SidePanels.tsx: Positions [-2.35, 0.25, -1.65] (was [-5.5, 0, -2]), chrome #a8b5c8 (was #2a2e3e), metalness 0.98 (was 0.92), reads positions from COCKPIT_GEOMETRY
+- [x] StatusBar3D.tsx: v3 1M budget header, chrome #a8b5c8 metalness 0.98 roughness 0.12
+
+**Files Modified (4):**
+- `src/components/3d/CockpitPanels.tsx`
+- `src/components/3d/LEDRim.tsx`
+- `src/components/3d/SidePanels.tsx`
+- `src/components/3d/StatusBar3D.tsx`
 
 ---
 

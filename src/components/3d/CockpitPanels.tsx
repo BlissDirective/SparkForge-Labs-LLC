@@ -1,22 +1,18 @@
 'use client';
 
 // ================================================================
-// CPA v2.0 — CockpitPanels: 20M Cockpit Upgrade
+// CPA v3.0 — CockpitPanels: 3D-Embedded UI Upgrade
 // ================================================================
-// Decision CPA-1: CylinderGeometry segments, 140° arc, r=4.0
-// Decision CPA-2: 2 hex clusters x 6 hexes = 12 total (expanded from 6)
-// Decision CPA-11: ~2,000,000 tri budget (upgraded from ~1,200)
+// v3: 218° arc (was 140°), r=4.8 (was 4.0), 4M tri budget (was 2M)
+// Materials upgraded to cockpitMaterials.ts factory (alloy, panel, holographic)
+// Decision CPA-2: 2 hex clusters x 6 hexes = 12 total
 //
-// 20M Cockpit Upgrade additions:
-// - 256-segment curved hull (was 32) at ultra LOD
-// - Multi-layer construction: outer hull + inner hull + frame ribs
-// - Edge beveling on all panels via ExtrudeGeometry
-// - Instanced rivets/bolts (~500+ InstancedMesh instances)
-// - Animated sub-panels with slide/rotate transforms
-// - 12 hex clusters with internal gauge needle geometry
-
+// v3 additions (from cockpit-architecture.json):
+// - 288-segment curved hull for wider arc
+// - Metallic alloy frame (#a8b5c8, metalness 0.98)
+// - Curved control panel (#0a1625, emissive #00bbff @ 0.85)
+// - Tighter rivet spacing (0.12) for close-up camera detail
 //
-// Uses PanelFace, WornChrome, ConsoleBase materials.
 // All geometry dims/retracts in game mode (Decision 3.4).
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
@@ -41,6 +37,7 @@ import {
   Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
+import { createAlloyFrameMaterial, createControlPanelMaterial, createHolographicMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 // ■■ Props ■■
@@ -56,8 +53,8 @@ interface CockpitPanelsProps {
 
 const HEXES_PER_CLUSTER = 6;
 
-const RIB_COUNT = 8;
-const RIVET_COUNT = 512;
+const RIB_COUNT = 12;           // v3: more ribs across wider 218° arc (was 8)
+const RIVET_COUNT = 768;        // v3: tighter spacing (0.12) = more rivets (was 512)
 
 const BEVEL_SETTINGS = {
   bevelEnabled: true,

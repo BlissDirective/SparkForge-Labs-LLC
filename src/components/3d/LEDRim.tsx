@@ -1,18 +1,18 @@
 'use client';
 
 // ================================================================
-// SparkForge LEDRim — High-Fidelity Emissive Status Strip (CPA v2.0)
+// SparkForge LEDRim — Ultra-Bright Emissive Status Strip (CPA v3.0)
 // ================================================================
-// Decision 2.1: Part of persistent station frame
-// CPA v1.0→v2.0: Upgraded from ~150 tris to ~200K triangle budget
+// v3: 500K tri budget (was 200K), 1500 LEDs (was 1000),
+// emissiveIntensity 3.0 (was ~0.3), RingGeometry 288 segs,
+// wider arc (218°) per cockpit-architecture.json vision spec
 //
 // Features:
-//   - Segmented LED strip: 1000+ instanced LED capsules (ultra)
+//   - 1500 instanced LED capsules (ultra) across wider 218° arc
 //   - Multi-layer: inner core tube, outer diffuser shell, mounting brackets
 //   - Data visualization: LEDs light sequentially for progress/XP display
 //   - Secondary accent rims at offset y-positions
-//   - Mounting hardware: bracket meshes at regular intervals
-//   - LOD-adaptive: ultra=1000, high=500, medium=200, low=48 LEDs
+//   - Ultra-bright emissive (3.0) — 10x brighter than v2
 //
 // Color = current lab accent (default #00BBFF on dashboard)
 // Pulses gently, spikes on events (XP gain, badge earn, level up)
@@ -35,6 +35,7 @@ import {
   Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
+import { createLEDMaterial, createAlloyFrameMaterial } from '@/lib/3d/cockpitMaterials';
 
 // ■■ Props Interface (preserved from original) ■■
 interface LEDRimProps {
@@ -49,12 +50,13 @@ interface LEDRimProps {
 }
 
 // ■■ LED count per LOD level ■■
+// v3: Increased LED counts for wider 218° arc + closer camera
 const LED_COUNTS: Record<string, number> = {
-  ultra: 1000,
-  high: 500,
-  medium: 200,
-  low: 48,
-  billboard: 24,
+  ultra: 1500,      // v3: +500 for wider arc (was 1000)
+  high: 750,        // v3: proportional (was 500)
+  medium: 300,      // v3: proportional (was 200)
+  low: 72,          // v3: proportional (was 48)
+  billboard: 36,    // v3: proportional (was 24)
 };
 
 // ■■ Accent rim config ■■

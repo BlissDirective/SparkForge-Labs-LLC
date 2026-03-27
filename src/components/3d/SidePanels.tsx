@@ -1,16 +1,13 @@
 'use client';
 
 // ================================================================
-// CPA v2.0 — SidePanels: Left Radar + Right Terminal (1.5M tri budget)
+// CPA v3.0 — SidePanels: Left Settings Console + Right Profile Console
 // ================================================================
-// Decision CPA-6: Left=radar/labNav, Right=terminal/stats
-//
-// Left panel:  Physical rotating radar dish (cylinder base + torus dish
-//              + sweep arm), 3D lab blips (spheres), range ring torus
-//              geometries, chrome bezel frame, articulated mounting arm.
-// Right panel: Scrolling instanced 3D data columns (BoxGeometry bars),
-//              holographic Text displays (drei), miniature graph geometry,
-//              chrome bezel frame, articulated mounting arm.
+// v3: 3M tri budget (was 1.5M), positions pulled closer:
+//   Left:  [-2.35, 0.25, -1.65] rotation [0, 0.85, 0] (was [-5.5, 0, -2])
+//   Right: [2.35, 0.25, -1.65] rotation [0, -0.85, 0] (was [5.5, 0, -2])
+// Materials upgraded to cockpitMaterials.ts (alloy frame, control panel surface)
+// Decision CPA-6: Left=settings/labNav, Right=profile/stats
 //
 
 
@@ -28,7 +25,9 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three';
+import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
+import { createAlloyFrameMaterial, createControlPanelMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 // ════════════════════════════════════════════════════════════════
@@ -65,11 +64,11 @@ const DATA_COLUMN_COUNT = 24;
 const DATA_ROW_COUNT = 32;
 const TOTAL_BARS = DATA_COLUMN_COUNT * DATA_ROW_COUNT; // 768 instanced bars
 
-// Chrome bezel material params
-const CHROME_COLOR = '#2a2e3e';
-const CHROME_METALNESS = 0.92;
-const CHROME_ROUGHNESS = 0.18;
-const PANEL_FACE_COLOR = '#0d1018';
+// v3: Chrome material params upgraded per cockpitMaterials.ts
+const CHROME_COLOR = COCKPIT_MATERIAL_COLORS.alloyFrame;  // #a8b5c8 (was #2a2e3e)
+const CHROME_METALNESS = 0.98;   // v3: higher metalness (was 0.92)
+const CHROME_ROUGHNESS = 0.12;   // v3: smoother chrome (was 0.18)
+const PANEL_FACE_COLOR = COCKPIT_MATERIAL_COLORS.panelSurface;  // #0a1625 (was #0d1018)
 
 // ════════════════════════════════════════════════════════════════
 // Sub-component: Chrome Bezel Frame
@@ -873,15 +872,23 @@ function PanelAssembly({
   useFrame(({ clock }) => {
     if (!groupRef.current) return;
     const t = clock.elapsedTime;
-    // Gentle breathing tilt toward center (viewer)
-    const tiltY = sx * (0.25 + Math.sin(t * 0.3) * 0.02);
+    // v3: Tighter tilt toward viewer at close range
+    const baseRotY = side === 'left'
+      ? COCKPIT_GEOMETRY.leftConsoleRotation[1]
+      : COCKPIT_GEOMETRY.rightConsoleRotation[1];
+    const tiltY = baseRotY + Math.sin(t * 0.3) * 0.02;
     const tiltX = Math.sin(t * 0.2 + (side === 'left' ? 0 : Math.PI)) * 0.01;
     groupRef.current.rotation.y = tiltY;
     groupRef.current.rotation.x = tiltX;
   });
 
+  // v3: Use explicit positions from cockpitConfig (was [±5.5, 0, -2])
+  const pos = side === 'left'
+    ? COCKPIT_GEOMETRY.leftConsolePosition
+    : COCKPIT_GEOMETRY.rightConsolePosition;
+
   return (
-    <group position={[sx * 5.5, 0, -2]}>
+    <group position={[pos[0], pos[1], pos[2]]}>
       {/* Mounting arm — connects wall to panel */}
       <group position={[sx * (PANEL_WIDTH / 2 + ARM_LENGTH / 2 + 0.1), 0.5, 0]}>
         <MountingArm side={side} opacity={opacity} />
