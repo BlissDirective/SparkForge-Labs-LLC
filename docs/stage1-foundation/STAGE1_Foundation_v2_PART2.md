@@ -1300,13 +1300,15 @@ export const useCockpitStore = create<CockpitState>()(
 // Consolidates: CPA v1.0 + Enhancement 1.1 + Enhancement 1.2
 // Decisions: CPA-1 through CPA-12, CPA2-1 through CPA2-12
 
-// ■■ Cockpit Geometry Constants (v2.0 — adaptive curvature) ■■
+// ■■ Cockpit Geometry Constants (v3.0 — 3D-Embedded UI, tight-focus) ■■
 // NOTE: Export name is COCKPIT_GEOMETRY (not _V2) — matches all consumers
+// v3.0 (March 27, 2026): 218° arc (was 140°), r=4.8 (was 4.0),
+// per cockpit-architecture.json vision spec
 export const COCKPIT_GEOMETRY = {
   // Base values (adapted by useAdaptiveCockpit)
   panelCurvature: 0.85,
-  totalWrapArc: 140,            // degrees, overridden by adaptive
-  panelRadius: 4.0,             // overridden by adaptive
+  totalWrapArc: 218,            // v3: extreme panoramic wrap (was 140)
+  panelRadius: 4.8,             // v3: larger radius for immersion (was 4.0)
   centralViewportWidth: 0.56,
   sidesPanelWidth: 0.12,
   topBarHeight: 0.10,
@@ -1315,17 +1317,29 @@ export const COCKPIT_GEOMETRY = {
   hexRadius: 0.35,
   hexDepth: 0.02,
 
-  // NEW in v2
-  hexDataTextureSize: 64,       // px, for lab number / indicator textures
-  panelEdgeBevel: 0.005,        // subtle edge chamfer
-  topBarSegments: 256,          // 20M upgrade: ultra-smooth curves (was 48)
-  sideSegments: 128,            // 20M upgrade: high-poly side panels (was 24)
+  // v2 → v3 enhanced
+  hexDataTextureSize: 64,
+  panelEdgeBevel: 0.005,
+  topBarSegments: 288,          // v3: denser for wider arc (was 256)
+  sideSegments: 144,            // v3: denser for wider arc (was 128)
 
-  // 20M Cockpit Upgrade — structural detail constants
-  rivetSpacing: 0.15,           // spacing between instanced rivets
-  cableBundleCount: 50,         // TubeGeometry cable splines
-  ventPanelCount: 12,           // ventilation grate panels
-  floorGrateResolution: 64,     // grid resolution for floor panels
+  // v3: Structural detail constants (38M cockpit budget)
+  rivetSpacing: 0.12,           // v3: tighter for close camera (was 0.15)
+  cableBundleCount: 60,         // v3: more cables visible (was 50)
+  ventPanelCount: 16,           // v3: more vents across wider arc (was 12)
+  floorGrateResolution: 80,     // v3: higher res floor (was 64)
+
+  // v3: Explicit 3D positions from cockpit-architecture.json
+  leftConsolePosition: [-2.35, 0.25, -1.65],
+  leftConsoleRotation: [0, 0.85, 0],
+  rightConsolePosition: [2.35, 0.25, -1.65],
+  rightConsoleRotation: [0, -0.85, 0],
+  statusBarPosition: [0, -1.25, -1.95],
+  statusBarRotation: [0.38, 0, 0],
+  centerViewportRadius: 3.9,
+  centerViewportPosition: [0, 0.35, -3.3],
+  hudPosition: [0, 2.05, -3.4],
+  hudRotation: [-0.55, 0, 0],
 } as const;
 
 // ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■

@@ -1,11 +1,11 @@
 {
   "meta": {
     "project": "SparkForge",
-    "version": "CPA v2.0 + D3D Overhaul",
+    "version": "CPA v3.0 — 3D-Embedded UI (March 27, 2026)",
     "date": "2026-03-27",
     "totalTriangleBudget": 50000000,
-    "cockpitBudget": 30000000,
-    "gameBudget": 20000000
+    "cockpitBudget": 38000000,
+    "gameBudget": 12000000
   },
 
   "canvas": {
@@ -13,7 +13,7 @@
     "component": "CockpitCanvas.tsx",
     "neverUnmounts": true,
     "position": "fixed inset-0 z-0",
-    "camera": { "position": [0, 6.5, 7], "fov": 58, "near": 0.1, "far": 200 },
+    "camera": { "position": [0, 0.65, 1.1], "fov": 58, "near": 0.1, "far": 200, "note": "v3: tight-focus cockpit seat (was [0, 6.5, 7])" },
     "renderer": { "antialias": true, "alpha": true, "dpr": [1, 3], "logarithmicDepthBuffer": true },
     "environment": "frost-prismatic.hdr"
   },
@@ -28,24 +28,24 @@
   "cockpitShell": {
     "mainPanels": {
       "component": "CockpitPanels.tsx",
-      "triangles": 2000000,
-      "geometry": "256-segment curved hull",
-      "wrapArc": 140,
-      "radius": 4.0,
+      "triangles": 4000000,
+      "geometry": "288-segment curved hull (v3 upgrade)",
+      "wrapArc": 218,
+      "radius": 4.8,
       "curvature": 0.85,
       "features": ["multi-layer panels", "rivets", "animated sub-panels", "chrome bezels"]
     },
     "sidePanels": {
       "component": "SidePanels.tsx",
-      "triangles": 1500000,
-      "left": { "content": "rotating radar dish + lab blips", "position": "left flank" },
-      "right": { "content": "instanced data columns + holographic text", "position": "right flank" },
+      "triangles": 3000000,
+      "left": { "content": "settings controls + radar dish", "position": "[-2.35, 0.25, -1.65]" },
+      "right": { "content": "profile + data columns", "position": "[2.35, 0.25, -1.65]" },
       "modes": { "radar": "default", "labNav": "lab mode", "terminal": "admin", "stats": "all modes" }
     },
     "ledRim": {
       "component": "LEDRim.tsx",
-      "triangles": 200000,
-      "ledCount": "1000+",
+      "triangles": 500000,
+      "ledCount": "1500 (v3 upgrade, was 1000)",
       "position": "cockpit perimeter",
       "colorSource": "useStationMode().ledColor"
     },
@@ -222,11 +222,13 @@
   "camera": {
     "component": "CameraSystem.tsx",
     "modes": {
-      "station": { "fov": 56, "distortion": 0.02 },
-      "labmap": { "fov": 58, "distortion": 0.02 },
-      "lab": { "fov": 55, "distortion": 0.015 },
+      "station": { "fov": 58, "distortion": 0.025, "note": "v3 tight-focus" },
+      "labmap": { "fov": 62, "distortion": 0.02 },
+      "lab": { "fov": 55, "distortion": 0.02 },
       "game": { "fov": 52, "distortion": 0.0 },
-      "spatial": { "overview": [0, 6.5, 7], "labFocus": [0, 2.5, 2], "console": [0, 1.8, 3.5] }
+      "settings": { "fov": 56, "distortion": 0.015 },
+      "profile": { "fov": 56, "distortion": 0.015 },
+      "spatial": { "overview": [0, 0.85, 0.9], "labFocus": [0, 0.65, 0.6], "console": [0, 0.65, 1.1], "consoleLeft": [-2.0, 0.65, -0.5], "consoleRight": [2.0, 0.65, -0.5] }
     },
     "parallax": { "smoothing": 0.05, "intensity": 1.0 }
   },
@@ -251,17 +253,38 @@
     "uiStore": {
       "labColor": "#00BBFF (default, never called by any page yet)",
       "cssProperties": ["--lab-color", "--lab-glow"],
-      "skipIntroAnimation": "boolean (no UI toggle exists yet)",
+      "skipIntroAnimation": "boolean (Settings page toggle EXISTS — v3.0)",
       "soundEnabled": "boolean (connected to CockpitAudioEngine)",
       "particleIntensity": "off|low|medium|high"
+    },
+    "cockpitBroadcastStore": {
+      "note": "NEW in v3.0 — cross-panel event bus",
+      "eventTypes": 16,
+      "pulseDecay": "per-event intensity mapping with frame-rate decay"
     }
   },
 
-  "currentHTMLOverlay": {
-    "note": "These elements currently render as flat HTML ABOVE the 3D cockpit at z-10/z-40",
-    "sidebar": { "zIndex": 40, "style": "backdrop-blur-xl frosted glass", "content": "nav links, child switcher" },
-    "pages": { "zIndex": 10, "style": "glass-card basic Tailwind", "content": "stat cards, game lists" },
-    "gap": "HTML buttons are visually disconnected from 3D cockpit chrome/bloom aesthetic"
+  "3dEmbeddedUI": {
+    "note": "v3.0 (March 27, 2026): Pages are cockpit-integrated HTML overlays with 3D UI components",
+    "components": [
+      "HolographicButton (spring depress, ripple, broadcast)",
+      "RadialDial3D (spring drag-to-rotate, 24 ticks, value arc)",
+      "ToggleSwitch3D (45° snap, LED indicator)",
+      "HolographicCard (floating data card, drei Html content)",
+      "HolographicPanel (curved content surface)",
+      "NavigationButtonGrid (5 physical nav buttons: HOME/LABS/ARCADE/SETTINGS/PROFILE)",
+      "VariableDialCluster (3 auto-reconfiguring page-context dials)",
+      "CenterViewportScreen (spherical panoramic r=3.9, 144x72 segs)"
+    ],
+    "materials": "cockpitMaterials.ts — 7 factories (alloyFrame, controlPanel, holographic, button, bezel, console, LED)",
+    "pages": {
+      "home": "Stats + lab progress + daily challenge + continue learning CTA. setLabColor(#00BBFF) on mount.",
+      "labs": "10 lab cards + hover → LED shift + cockpitStore.setHoveredLabId. setLabColor on hover.",
+      "labDetail": "/labs/[labId] — game list + setLabColor + focusLab + camera fly. cockpitBroadcast lab-select.",
+      "arcade": "Game grid from gameRegistry + completion badges. setLabColor(#00FF88) on mount.",
+      "settings": "Sound/skip/particles/skins toggles. setLabColor(#FFAA44) on mount.",
+      "profile": "Stats + XP bar + badge gallery. setLabColor(#FF66AA) on mount."
+    }
   },
 
   "labColors": {
