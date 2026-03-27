@@ -1,8 +1,75 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 5 — Gamification Audit Fix + 3D Embedding
-## Status: COMPLETE — All 16 Stage 5 audit findings resolved + 4 3D enhancements
-## Last Updated: 2026-03-27 (Stage 5 Audit Fix: Full resolution + 3D embedding)
+## Current Phase: Stage 6 — Flagship Games Audit Fix
+## Status: COMPLETE — All 14 Stage 6 audit findings resolved
+## Last Updated: 2026-03-27 (Stage 6 Audit Fix: Full resolution)
+
+---
+
+### Stage 6 Audit Fix — Full Resolution (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/stage-6-audit-fixes-38BE4
+**Build Status:** All 14 findings resolved across 4 batches
+
+**Batch 1A — Critical Game Lifecycle (commit 01710ae):**
+- [x] S6-CRIT-001 — PromptLabGame: Added completeGame() call in report phase, "Finish Lab" button, full report UI with stats + age-band "What You Learned"
+- [x] S6-CRIT-003 — SortToyBoxGame: Removed redundant startGame("sort-toy-box", 1) — GameShell handles initialization with correct totalRounds=12
+
+**Batch 1B — D3D-B1 Canvas Refactor (commit 49c768a):**
+- [x] S6-CRIT-002 — Refactored 5 standalone Canvas → group: Pet3DScene, SortScene3D, NeuralNetwork3D, PromptBubble3DScene, AgentPipeline3D. Removed Canvas from BiasDetectiveGame. All 6 games register via setGameSceneContent().
+- [x] S6-HIGH-005 — Full sceneStore integration in all 6 flagship game components
+
+**Batch 2A — Sort Toy Box Expansion (commit bcb1a02):**
+- [x] S6-HIGH-001 — Full ARIA labels on all interactive elements
+- [x] S6-HIGH-002 — Added learn phase (3 lesson cards/band) + complete phase (stats, summary, completeGame)
+- [x] S6-HIGH-006 — Full A/B/C age band content in all phases
+- [x] S6-WARN-003 — Removed dead code (_ShapeIcon, _assignGroup)
+- [x] S6-WARN-005 — Removed redundant nested phase check
+
+**Batch 2B+2C+3 — Disposal, Environment, Rate Limit (commit e788614):**
+- [x] S6-HIGH-003 — Material disposal added to BiasScales3D + PromptBubble3D
+- [x] S6-HIGH-004 — Created SortToyBoxEnvironment.tsx (240 lines, Lab 2 purple theme)
+- [x] S6-WARN-001 — Client-side rate limiting in PromptLab (2s cooldown + 50/day cap)
+- [x] S6-WARN-002 — Resolved (removed redundant startGame call)
+- [x] S6-WARN-004 — Resolved (BiasDetective Canvas removed)
+
+**Files Created (1):**
+- `src/components/3d/environments/SortToyBoxEnvironment.tsx`
+
+**Files Modified (14):**
+- `src/components/games/PromptLabGame.tsx` — completeGame, report phase, rate limiting, sceneStore
+- `src/components/games/SortToyBoxGame.tsx` — Full rewrite: learn/complete phases, ARIA, age bands
+- `src/components/games/PetTrainerGame.tsx` — sceneStore integration
+- `src/components/games/NeuralBuilderGame.tsx` — sceneStore integration
+- `src/components/games/AgentArchitectGame.tsx` — sceneStore integration
+- `src/components/games/BiasDetectiveGame.tsx` — sceneStore + Canvas removal
+- `src/components/3d/Pet3DScene.tsx` — Canvas → group
+- `src/components/3d/SortScene3D.tsx` — Canvas → group
+- `src/components/3d/NeuralNetwork3D.tsx` — Canvas → group
+- `src/components/3d/PromptBubble3DScene.tsx` — Canvas → group
+- `src/components/3d/AgentPipeline3D.tsx` — Canvas → group
+- `src/components/3d/BiasScales3D.tsx` — Material disposal
+- `src/components/3d/PromptBubble3D.tsx` — Material disposal
+- `src/components/3d/environments/index.ts` — Added SortToyBoxEnvironment export
+
+**Stage 6 Audit Summary — All Findings:**
+| ID | Severity | Status |
+|---|---|---|
+| S6-CRIT-001 | CRITICAL | Resolved (Batch 1A) |
+| S6-CRIT-002 | CRITICAL | Resolved (Batch 1B) |
+| S6-CRIT-003 | CRITICAL | Resolved (Batch 1A) |
+| S6-HIGH-001 | HIGH | Resolved (Batch 2A) |
+| S6-HIGH-002 | HIGH | Resolved (Batch 2A) |
+| S6-HIGH-003 | HIGH | Resolved (Batch 2B) |
+| S6-HIGH-004 | HIGH | Resolved (Batch 2C) |
+| S6-HIGH-005 | HIGH | Resolved (Batch 1B) |
+| S6-HIGH-006 | HIGH | Resolved (Batch 2A) |
+| S6-WARN-001 | WARNING | Resolved (Batch 3) |
+| S6-WARN-002 | WARNING | Resolved (Batch 1A) |
+| S6-WARN-003 | WARNING | Resolved (Batch 2A) |
+| S6-WARN-004 | WARNING | Resolved (Batch 1B) |
+| S6-WARN-005 | WARNING | Resolved (Batch 2A) |
 
 ---
 

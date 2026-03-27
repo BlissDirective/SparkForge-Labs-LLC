@@ -93,6 +93,38 @@
 - **S4-WARN-005:** Fixed `as string` assertion in `content/[slug]/page.tsx` — replaced with safe `Array.isArray` check.
 - **Result: 4 hooks DRY, typed, using centralized API wrapper**
 
+### Batch 12: Stage 6 Audit — Batch 1A (Game Lifecycle)
+- **S6-CRIT-001:** PromptLabGame now calls `game.completeGame()` on entering report phase. Added "Finish Lab" button, full report phase UI with stats + "What You Learned" summary differentiated by age band.
+- **S6-CRIT-003:** Removed redundant `game.startGame("sort-toy-box", 1)` from SortToyBoxGame — GameShell already calls `startGame` with correct `totalRounds=12` on mount. The redundant call overrode totalRounds from 12 to 1.
+- **Result: All 6 flagship games properly initialize and complete via GameShell + gameStore**
+
+### Batch 13: Stage 6 Audit — Batch 1B (D3D-B1 Canvas Refactor)
+- **S6-CRIT-002:** Refactored all 6 flagship 3D components from standalone `<Canvas>` to `<group>` rendering inside CockpitCanvas via `sceneStore.setGameSceneContent()` (D3D-B1/B3/B5 compliance):
+  - `Pet3DScene.tsx` — Removed Canvas/EffectComposer/Bloom, exported as group
+  - `SortScene3D.tsx` — Removed Canvas wrapper, kept game-specific OrthographicCamera
+  - `NeuralNetwork3D.tsx` — Removed Canvas/div wrapper, exported as group
+  - `PromptBubble3DScene.tsx` — Removed Canvas, exported as group
+  - `AgentPipeline3D.tsx` — Removed Canvas wrapper, exported as group
+  - `BiasScales3D.tsx` — Already a group; removed Canvas from BiasDetectiveGame.tsx
+- **S6-HIGH-005:** Each game component now registers 3D content via `setGameSceneContent()` — full sceneStore integration.
+- **Result: Zero standalone Canvas instances in flagship games. All 3D renders through CockpitCanvas.**
+
+### Batch 14: Stage 6 Audit — Batch 2A (Sort Toy Box Expansion)
+- **S6-HIGH-001:** Added ARIA labels to all interactive buttons, phase regions, progress dots, sorting area, concept tags. Decorative elements marked `aria-hidden`.
+- **S6-HIGH-002:** Added `learn` phase (3 lesson cards per age band, progress dots, skip button) and `complete` phase (stats, "What You Learned" summary, `game.completeGame()`). Phase flow: welcome → learn → sort → reveal → complete.
+- **S6-HIGH-006:** Full A/B/C age band content: Band A (simple: "sorting", "patterns"), Band B (intermediate: "unsupervised learning", "features"), Band C (advanced: "K-means", "feature space", "distance metrics"). AI criteria descriptions differentiated per band.
+- **S6-WARN-003:** Removed dead code (`_ShapeIcon`, `_assignGroup`).
+- **S6-WARN-005:** Removed redundant nested `phase === 'sort'` check.
+- **Result: SortToyBoxGame expanded from 420 → 610 lines, now flagship quality.**
+
+### Batch 15: Stage 6 Audit — Batch 2B+2C+3 (Disposal, Environment, Rate Limit)
+- **S6-HIGH-003:** Added material disposal cleanup to BiasScales3D (`useBrassMaterial`) and PromptBubble3D (`MeshPhysicalMaterial`, `SpriteMaterial`). `useEffect` cleanup calls `material.dispose()` on unmount. Other 3D components use JSX-declared geometries/materials handled by R3F.
+- **S6-HIGH-004:** Created `SortToyBoxEnvironment.tsx` (240 lines) — Lab 2 purple `#AA66FF` theme with sorting table, animated conveyor belt (instanced rollers), 4 collection bins, classification floor grid, floating sort particles. Uses `FlagshipEnvironmentWrapper`. Added to environments index.
+- **S6-WARN-001:** Added client-side rate limiting to PromptLab `sendMessage` — 2-second cooldown between sends + 50 prompt daily cap.
+- **S6-WARN-002:** Already resolved (removed redundant `game.startGame` call in Batch 12).
+- **S6-WARN-004:** Already resolved (BiasDetective Canvas removed in Batch 13).
+- **Result: All 14 Stage 6 findings resolved. 6/6 environments now exist.**
+
 ---
 
 ## Executive Summary
@@ -1835,13 +1867,13 @@ if (isMounted.current) setConfetti(updated);
 
 ## Stage 6 — Finding Counts
 
-| Severity | Count |
-|----------|-------|
-| CRITICAL | 3 |
-| HIGH | 6 |
-| WARNING | 5 |
-| INFO | 1 |
-| PASS | 9 |
+| Severity | Count | Status |
+|----------|-------|--------|
+| CRITICAL | 3 | ALL RESOLVED (Batches 12-13) |
+| HIGH | 6 | ALL RESOLVED (Batches 13-15) |
+| WARNING | 5 | ALL RESOLVED (Batches 12-15) |
+| INFO | 1 | Acknowledged |
+| PASS | 9 | — |
 
 ---
 
@@ -1860,7 +1892,7 @@ if (isMounted.current) setConfetti(updated);
 
 ## Stage 6 — CRITICAL FINDINGS
 
-### S6-CRIT-001 — Prompt Lab never calls `game.completeGame()`
+### S6-CRIT-001 — ~~Prompt Lab never calls `game.completeGame()`~~ RESOLVED (Batch 12)
 
 **File:** `src/components/games/PromptLabGame.tsx`
 **Category:** Core Feature Broken
@@ -1878,7 +1910,7 @@ useEffect(() => {
 
 ---
 
-### S6-CRIT-002 — All 6 flagship 3D components create standalone Canvas (violates D3D-B1)
+### S6-CRIT-002 — ~~All 6 flagship 3D components create standalone Canvas (violates D3D-B1)~~ RESOLVED (Batch 13)
 
 **Files:** `Pet3DScene.tsx`, `SortScene3D.tsx`, `NeuralNetwork3D.tsx`, `PromptBubble3DScene.tsx`, `AgentPipeline3D.tsx`, `BiasScales3D.tsx`
 **Category:** Architecture / D3D Decision Lock Violation
@@ -1902,7 +1934,7 @@ This is a significant refactor affecting all 6 files. The `<Canvas>` wrapper, ca
 
 ---
 
-### S6-CRIT-003 — 5 of 6 games never call `game.startGame()`
+### S6-CRIT-003 — ~~5 of 6 games never call `game.startGame()`~~ RESOLVED (Batch 12 — GameShell handles startGame)
 
 **Files:** PetTrainerGame, NeuralBuilderGame, PromptLabGame, AgentArchitectGame, BiasDetectiveGame
 **Category:** Store Initialization
@@ -1920,7 +1952,7 @@ useEffect(() => {
 
 ## Stage 6 — HIGH FINDINGS
 
-### S6-HIGH-001 — Sort Toy Box has zero ARIA labels
+### S6-HIGH-001 — ~~Sort Toy Box has zero ARIA labels~~ RESOLVED (Batch 14)
 
 **File:** `src/components/games/SortToyBoxGame.tsx`
 **Category:** Accessibility
@@ -1930,7 +1962,7 @@ useEffect(() => {
 
 ---
 
-### S6-HIGH-002 — Sort Toy Box missing `learn` and `complete` phases
+### S6-HIGH-002 — ~~Sort Toy Box missing `learn` and `complete` phases~~ RESOLVED (Batch 14)
 
 **File:** `src/components/games/SortToyBoxGame.tsx` (line 34)
 **Category:** Game Architecture
@@ -1940,7 +1972,7 @@ useEffect(() => {
 
 ---
 
-### S6-HIGH-003 — No geometry/material disposal in 5 of 6 3D components
+### S6-HIGH-003 — ~~No geometry/material disposal in 5 of 6 3D components~~ RESOLVED (Batch 15)
 
 **Files:** `Pet3DScene.tsx`, `SortScene3D.tsx`, `NeuralNetwork3D.tsx`, `PromptBubble3D.tsx`, `BiasScales3D.tsx`
 **Category:** Memory Leak / Performance
@@ -1959,7 +1991,7 @@ Or use drei's `useDispose` utility.
 
 ---
 
-### S6-HIGH-004 — Missing Sort Toy Box 3D environment
+### S6-HIGH-004 — ~~Missing Sort Toy Box 3D environment~~ RESOLVED (Batch 15)
 
 **File:** `src/components/3d/environments/SortToyBoxEnvironment.tsx` — DOES NOT EXIST
 **Category:** Missing Asset
@@ -1969,7 +2001,7 @@ Or use drei's `useDispose` utility.
 
 ---
 
-### S6-HIGH-005 — No sceneStore integration in any flagship environment
+### S6-HIGH-005 — ~~No sceneStore integration in any flagship environment~~ RESOLVED (Batch 13)
 
 **Files:** All 5 environment files in `src/components/3d/environments/`
 **Category:** D3D-B5 Violation
@@ -1979,7 +2011,7 @@ Or use drei's `useDispose` utility.
 
 ---
 
-### S6-HIGH-006 — Sort Toy Box has minimal age band differentiation
+### S6-HIGH-006 — ~~Sort Toy Box has minimal age band differentiation~~ RESOLVED (Batch 14)
 
 **File:** `src/components/games/SortToyBoxGame.tsx` (lines 299-302, 397-401)
 **Category:** Content Quality
@@ -1991,7 +2023,7 @@ Or use drei's `useDispose` utility.
 
 ## Stage 6 — WARNING FINDINGS
 
-### S6-WARN-001 — Prompt Lab has no client-side rate limiting
+### S6-WARN-001 — ~~Prompt Lab has no client-side rate limiting~~ RESOLVED (Batch 15)
 
 **File:** `src/components/games/PromptLabGame.tsx` (lines 722, 800)
 **Category:** Security / UX
@@ -2001,7 +2033,7 @@ Or use drei's `useDispose` utility.
 
 ---
 
-### S6-WARN-002 — Sort Toy Box `useEffect` missing dependency
+### S6-WARN-002 — ~~Sort Toy Box `useEffect` missing dependency~~ RESOLVED (Batch 12 — removed redundant startGame call)
 
 **File:** `src/components/games/SortToyBoxGame.tsx` (line 151)
 **Category:** React Quality
@@ -2011,7 +2043,7 @@ Or use drei's `useDispose` utility.
 
 ---
 
-### S6-WARN-003 — Sort Toy Box has dead code (`_ShapeIcon`, `_assignGroup`)
+### S6-WARN-003 — ~~Sort Toy Box has dead code (`_ShapeIcon`, `_assignGroup`)~~ RESOLVED (Batch 14)
 
 **File:** `src/components/games/SortToyBoxGame.tsx` (lines 105, 204)
 **Category:** Code Quality
@@ -2021,7 +2053,7 @@ Or use drei's `useDispose` utility.
 
 ---
 
-### S6-WARN-004 — Bias Detective Canvas created in game file, not 3D component
+### S6-WARN-004 — ~~Bias Detective Canvas created in game file, not 3D component~~ RESOLVED (Batch 13)
 
 **File:** `src/components/games/BiasDetectiveGame.tsx` (lines 43-46)
 **Category:** Architecture
@@ -2029,7 +2061,7 @@ Or use drei's `useDispose` utility.
 
 ---
 
-### S6-WARN-005 — Sort Toy Box redundant nested phase check
+### S6-WARN-005 — ~~Sort Toy Box redundant nested phase check~~ RESOLVED (Batch 14)
 
 **File:** `src/components/games/SortToyBoxGame.tsx` (line 344)
 **Category:** Code Quality
@@ -2092,7 +2124,7 @@ Or use drei's `useDispose` utility.
 | `src/components/3d/environments/PromptLabEnvironment.tsx` | EXISTS |
 | `src/components/3d/environments/AgentArchitectEnvironment.tsx` | EXISTS (21KB) |
 | `src/components/3d/environments/BiasDetectiveEnvironment.tsx` | EXISTS (24KB) |
-| `src/components/3d/environments/SortToyBoxEnvironment.tsx` | **MISSING** |
+| `src/components/3d/environments/SortToyBoxEnvironment.tsx` | **EXISTS** (created Batch 15, 240 lines) |
 
 ### Creature System
 | File | Status |
@@ -2105,7 +2137,7 @@ Or use drei's `useDispose` utility.
 | `src/components/3d/creatures/CreatureBase.tsx` | EXISTS |
 | `src/config/creatureConfig.ts` | EXISTS (11KB) |
 
-**Games:** 6/6 exist | **3D:** 7/7 exist | **Environments:** 5/6 (Sort Toy Box missing) | **Creatures:** 7/7 exist
+**Games:** 6/6 exist | **3D:** 7/7 exist (all refactored to `<group>`) | **Environments:** 6/6 exist (Sort Toy Box added) | **Creatures:** 7/7 exist
 
 ---
 
