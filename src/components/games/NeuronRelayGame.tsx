@@ -141,7 +141,43 @@ export function NeuronRelayGame() {
                 {phase === 'welcome' && (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="text-center space-y-4">
-                    <span className="text-5xl" role="img" aria-label="brain">{'\u{1F9E0}'}</span>
+                    {/* ENH: Animated brain entrance with neural pulse */}
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                    >
+                      <motion.span
+                        className="text-5xl inline-block"
+                        role="img"
+                        aria-label="brain"
+                        animate={{ scale: [1, 1.15, 1] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      >
+                        {'\u{1F9E0}'}
+                      </motion.span>
+                      <motion.div
+                        className="absolute -inset-4 rounded-full"
+                        style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.2), transparent)' }}
+                        animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      />
+                      {/* ENH: Orbiting signal dots */}
+                      {[0, 1, 2].map(i => (
+                        <motion.div
+                          key={i}
+                          className="absolute w-2 h-2 rounded-full bg-pink-400"
+                          style={{ top: '50%', left: '50%' }}
+                          animate={{
+                            x: [Math.cos((i * 2 * Math.PI) / 3) * 28, Math.cos((i * 2 * Math.PI) / 3 + Math.PI) * 28],
+                            y: [Math.sin((i * 2 * Math.PI) / 3) * 28, Math.sin((i * 2 * Math.PI) / 3 + Math.PI) * 28],
+                            opacity: [0.8, 0.3, 0.8],
+                          }}
+                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                        />
+                      ))}
+                    </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white">Neuron Relay</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C' ? 'Simulate neuron activation. Toggle neurons and adjust weights to produce a target output signal within the specified range.'
@@ -165,18 +201,58 @@ export function NeuronRelayGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-md">
-                    <p className="font-body text-xs text-white/30 text-center mb-2">
-                      {ageBand === 'C' ? `Puzzle ${pi + 1}/${PUZZLES.length} \u2014 Target output: [${puzzle.target[0]}, ${puzzle.target[1]}]`
-                        : `Puzzle ${pi + 1}/${PUZZLES.length} \u2014 Hit the green zone!`}
-                    </p>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="font-body text-xs text-white/30">
+                        {ageBand === 'C' ? `Puzzle ${pi + 1}/${PUZZLES.length} \u2014 Target: [${puzzle.target[0]}, ${puzzle.target[1]}]`
+                          : `Puzzle ${pi + 1}/${PUZZLES.length} \u2014 Hit the green zone!`}
+                      </p>
+                      {/* ENH: Streak display */}
+                      {streak >= 2 && (
+                        <motion.span
+                          className="font-display text-2xs font-bold text-pink-400"
+                          style={{ textShadow: `0 0 ${4 + streak * 2}px rgba(236,72,153,${0.3 + streak * 0.1})` }}
+                          initial={{ scale: 0 }}
+                          animate={{ scale: [1, 1.15, 1] }}
+                          transition={{ duration: 0.5 }}
+                          key={streak}
+                        >
+                          {streak} streak {streak >= 4 ? '\uD83D\uDD25\uD83D\uDD25' : '\uD83D\uDD25'}
+                        </motion.span>
+                      )}
+                    </div>
 
-                    {/* Target bar */}
-                    <div className="h-4 rounded-full bg-white/5 mb-4 relative overflow-hidden">
-                      <div className="absolute h-full bg-pink-500/15 rounded-full"
-                        style={{ left: `${puzzle.target[0]}%`, width: `${puzzle.target[1] - puzzle.target[0]}%` }} />
-                      <motion.div className="absolute top-0 h-full w-1 bg-white rounded"
+                    {/* ENH: Target bar with highlighted green target zone */}
+                    <div className="h-6 rounded-full bg-white/5 mb-4 relative overflow-hidden">
+                      {/* Target zone with pulsing green highlight */}
+                      <motion.div
+                        className="absolute h-full rounded-full"
+                        style={{
+                          left: `${puzzle.target[0]}%`,
+                          width: `${puzzle.target[1] - puzzle.target[0]}%`,
+                          background: 'linear-gradient(180deg, rgba(74,222,128,0.25), rgba(74,222,128,0.1))',
+                          borderTop: '2px solid rgba(74,222,128,0.4)',
+                          borderBottom: '2px solid rgba(74,222,128,0.4)',
+                        }}
+                        animate={{
+                          boxShadow: inRange
+                            ? ['0 0 0px rgba(74,222,128,0)', '0 0 12px rgba(74,222,128,0.4)', '0 0 0px rgba(74,222,128,0)']
+                            : 'none',
+                        }}
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                      />
+                      {/* Target zone labels */}
+                      <span className="absolute text-[9px] font-mono text-green-400/40" style={{ left: `${puzzle.target[0]}%`, top: '-14px' }}>{puzzle.target[0]}</span>
+                      <span className="absolute text-[9px] font-mono text-green-400/40" style={{ left: `${puzzle.target[1]}%`, top: '-14px' }}>{puzzle.target[1]}</span>
+                      {/* ENH: Animated signal indicator with smooth spring motion */}
+                      <motion.div
+                        className="absolute top-0 h-full w-1.5 rounded"
+                        style={{
+                          background: inRange ? '#4ade80' : '#EC4899',
+                          boxShadow: inRange ? '0 0 8px rgba(74,222,128,0.6)' : '0 0 6px rgba(236,72,153,0.4)',
+                        }}
                         animate={{ left: `${Math.min(100, signal)}%` }}
-                        transition={{ type: 'spring', stiffness: 200 }} />
+                        transition={{ type: 'spring', stiffness: 150, damping: 15 }}
+                      />
                     </div>
 
                     {/* Neurons */}
@@ -186,14 +262,27 @@ export function NeuronRelayGame() {
                           <p className="font-mono text-2xs text-white/15 mb-1">
                             {ageBand === 'C' ? `N${n.id + 1} (w=${n.vol}%)` : `#${n.id + 1}`}
                           </p>
-                          <motion.button onClick={() => toggle(n.id)}
-                            className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-lg transition-all
-                              ${n.on ? 'border-pink-500 bg-pink-500/20' : 'border-white/10 bg-white/[0.02]'}`}
-                            animate={n.on ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.4 }}
-                            aria-label={`Neuron ${n.id + 1}: ${n.on ? 'on' : 'off'}`}
-                            aria-pressed={n.on}>
-                            {n.on ? '\u26A1' : '\u26AA'}
-                          </motion.button>
+                          {/* ENH: Neuron toggle with scale pop + color flash + signal pulse ring */}
+                          <div className="relative">
+                            <motion.button onClick={() => toggle(n.id)}
+                              className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-lg transition-colors
+                                ${n.on ? 'border-pink-500 bg-pink-500/20' : 'border-white/10 bg-white/[0.02]'}`}
+                              animate={firingNeurons.has(n.id) ? { scale: [1, 1.15, 1] } : n.on ? { scale: [1, 1.05, 1] } : { scale: 1 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                              aria-label={`Neuron ${n.id + 1}: ${n.on ? 'on' : 'off'}`}
+                              aria-pressed={n.on}>
+                              {n.on ? '\u26A1' : '\u26AA'}
+                            </motion.button>
+                            {/* ENH: Signal pulse ring on toggle */}
+                            {firingNeurons.has(n.id) && (
+                              <motion.div
+                                className="absolute inset-0 rounded-full border-2 border-pink-400"
+                                initial={{ scale: 1, opacity: 0.8 }}
+                                animate={{ scale: 2, opacity: 0 }}
+                                transition={{ duration: 0.6 }}
+                              />
+                            )}
+                          </div>
                           <input type="range" min={0} max={100} value={n.vol} onChange={e => setVol(n.id, +e.target.value)}
                             className="w-12 mt-1 accent-pink-500 h-1" aria-label={`Neuron ${n.id + 1} volume`} />
                           <p className="font-mono text-2xs text-white/15">{n.vol}%</p>
@@ -239,10 +328,22 @@ export function NeuronRelayGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across 8 puzzles.
                     </p>
-                    <div className="rounded-xl px-6 py-3 bg-[#EC4899]/10 border border-[#EC4899]/20">
-                      <p className="font-data text-2xl text-[#EC4899]">{game.score}</p>
+                    {/* ENH: Animated score counter */}
+                    <motion.div
+                      className="rounded-xl px-6 py-3 bg-[#EC4899]/10 border border-[#EC4899]/20"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                    >
+                      <motion.p
+                        className="font-data text-2xl text-[#EC4899]"
+                        animate={{ textShadow: ['0 0 0px rgba(236,72,153,0)', '0 0 12px rgba(236,72,153,0.5)', '0 0 0px rgba(236,72,153,0)'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {animatedScore}
+                      </motion.p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
-                    </div>
+                    </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
                       <ul className="space-y-1 text-2xs font-body text-white/40">

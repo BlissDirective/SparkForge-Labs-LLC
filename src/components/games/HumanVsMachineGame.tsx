@@ -201,9 +201,15 @@ export function HumanVsMachineGame() {
     setSubmitted(true);
     setAiThinking(true);
     game.updateScore(10);
+    // ENH: Update score comparison bars
+    setHumanTotal(h => h + 10);
     setTimeout(() => {
       setAiThinking(false);
       setAiRevealed(true);
+      // ENH: Determine verdict and update machine score
+      const aiScore = challenge.type === 'math' ? 12 : challenge.type === 'opinion' ? 5 : 8;
+      setMachineTotal(m => m + aiScore);
+      setVerdictType(challenge.type === 'opinion' ? 'human' : challenge.type === 'math' ? 'machine' : 'human');
     }, challenge.aiTime);
   }, [humanAnswer, challenge, game]);
 
@@ -211,6 +217,7 @@ export function HumanVsMachineGame() {
     setHumanAnswer('');
     setSubmitted(false);
     setAiRevealed(false);
+    setVerdictType(null);
     if (roundIdx < challenges.length - 1) {
       setRoundIdx((i) => i + 1);
       game.advanceRound();
@@ -315,6 +322,29 @@ export function HumanVsMachineGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-lg space-y-4"
                   >
+                    {/* ENH: Animated score comparison bars (human vs machine) */}
+                    <div className="flex items-center gap-3 mb-3 max-w-xs mx-auto">
+                      <div className="flex-1">
+                        <div className="flex justify-between mb-0.5">
+                          <span className="font-body text-2xs text-sky-400">You</span>
+                          <motion.span key={humanTotal} initial={{ scale: 1.3 }} animate={{ scale: 1 }} className="font-data text-2xs text-sky-300">{humanTotal}</motion.span>
+                        </div>
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                          <motion.div className="h-full rounded-full bg-sky-500" animate={{ width: `${Math.min((humanTotal / Math.max(humanTotal + machineTotal, 1)) * 100, 100)}%` }} transition={{ type: 'spring', stiffness: 80, damping: 12 }} />
+                        </div>
+                      </div>
+                      <span className="font-display text-2xs text-white/20">vs</span>
+                      <div className="flex-1">
+                        <div className="flex justify-between mb-0.5">
+                          <span className="font-body text-2xs text-amber-400">AI</span>
+                          <motion.span key={machineTotal} initial={{ scale: 1.3 }} animate={{ scale: 1 }} className="font-data text-2xs text-amber-300">{machineTotal}</motion.span>
+                        </div>
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                          <motion.div className="h-full rounded-full bg-amber-500" animate={{ width: `${Math.min((machineTotal / Math.max(humanTotal + machineTotal, 1)) * 100, 100)}%` }} transition={{ type: 'spring', stiffness: 80, damping: 12 }} />
+                        </div>
+                      </div>
+                    </div>
+
                     <div className="text-center mb-4">
                       <span className="text-3xl">{challenge.emoji}</span>
                       <h3 className="font-display text-base font-bold text-white mt-1">
@@ -323,6 +353,7 @@ export function HumanVsMachineGame() {
                       <p className="font-body text-sm text-white/50">
                         {challenge.prompt}
                       </p>
+                      <p className="font-body text-2xs text-white/20 mt-0.5">Round {roundIdx + 1}/{challenges.length}</p>
                     </div>
 
                     <div className="flex gap-3 mb-4">
@@ -333,16 +364,28 @@ export function HumanVsMachineGame() {
                           <span className="font-display text-xs font-bold text-white">You</span>
                         </div>
                         {!submitted ? (
-                          <input
-                            type="text"
-                            value={humanAnswer}
-                            onChange={(e) => setHumanAnswer(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
-                            placeholder="Your answer..."
-                            autoFocus
-                            aria-label="Your answer"
-                            className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/20 focus:outline-none focus:border-sky-500/50"
-                          />
+                          <div className="relative">
+                            {/* ENH: Human side thought bubble animation while typing */}
+                            {humanAnswer.length > 0 && (
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.5 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                className="absolute -top-5 right-1 font-body text-2xs text-sky-400/40"
+                              >
+                                {'\uD83D\uDCAD'}
+                              </motion.div>
+                            )}
+                            <input
+                              type="text"
+                              value={humanAnswer}
+                              onChange={(e) => setHumanAnswer(e.target.value)}
+                              onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+                              placeholder="Your answer..."
+                              autoFocus
+                              aria-label="Your answer"
+                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/20 focus:outline-none focus:border-sky-500/50"
+                            />
+                          </div>
                         ) : (
                           <p className="font-body text-sm text-white/80">{humanAnswer}</p>
                         )}
@@ -355,13 +398,24 @@ export function HumanVsMachineGame() {
                           <span className="font-display text-xs font-bold text-white">AI</span>
                         </div>
                         {aiThinking ? (
-                          <motion.p
-                            className="font-body text-sm text-white/30"
-                            animate={{ opacity: [0.3, 0.8, 0.3] }}
-                            transition={{ repeat: Infinity, duration: 1 }}
-                          >
-                            Thinking...
-                          </motion.p>
+                          // ENH: Machine side processing dots animation
+                          <div className="flex items-center gap-1">
+                            {[0, 1, 2].map(dot => (
+                              <motion.div
+                                key={dot}
+                                className="w-2 h-2 rounded-full bg-amber-400/60"
+                                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.9, 0.3] }}
+                                transition={{ repeat: Infinity, duration: 0.8, delay: dot * 0.2 }}
+                              />
+                            ))}
+                            <motion.span
+                              className="font-body text-xs text-white/30 ml-1"
+                              animate={{ opacity: [0.3, 0.8, 0.3] }}
+                              transition={{ repeat: Infinity, duration: 1 }}
+                            >
+                              Processing...
+                            </motion.span>
+                          </div>
                         ) : aiRevealed ? (
                           <p className="font-body text-sm text-white/80">
                             {challenge.aiAnswer}
@@ -392,19 +446,56 @@ export function HumanVsMachineGame() {
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-3"
                       >
+                        {/* ENH: Verdict reveal animation — scales in from center */}
+                        {verdictType && (
+                          <motion.div
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: [0, 1.15, 1], opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                            className="text-center py-2 rounded-xl"
+                            // ENH: Advantage flash (green=human, blue=machine)
+                            style={{
+                              backgroundColor: verdictType === 'human' ? 'rgba(0,187,255,0.08)' : 'rgba(245,158,11,0.08)',
+                              border: `1px solid ${verdictType === 'human' ? 'rgba(0,187,255,0.2)' : 'rgba(245,158,11,0.2)'}`,
+                            }}
+                          >
+                            <motion.p
+                              className="font-display text-xs font-bold"
+                              style={{ color: verdictType === 'human' ? '#00BBFF' : '#F59E0B' }}
+                              animate={{ color: verdictType === 'human' ? ['#00BBFF', '#00FF88', '#00BBFF'] : ['#F59E0B', '#60A5FA', '#F59E0B'] }}
+                              transition={{ duration: 1.2 }}
+                            >
+                              {verdictType === 'human' ? 'Human Advantage!' : 'Machine Advantage!'}
+                            </motion.p>
+                          </motion.div>
+                        )}
+
                         <div className="grid grid-cols-2 gap-2">
-                          <div className="rounded-lg p-2 bg-sky-500/5 border border-sky-500/10">
+                          {/* ENH: Advantage cards with color flash on entry */}
+                          <motion.div
+                            initial={{ x: -10, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.2 }}
+                            className="rounded-lg p-2 bg-sky-500/5 border border-sky-500/10"
+                            style={verdictType === 'human' ? { boxShadow: '0 0 12px rgba(0,187,255,0.15)' } : {}}
+                          >
                             <p className="font-body text-2xs text-sky-400 uppercase">Human Advantage</p>
                             <p className="font-body text-2xs text-white/50 mt-0.5">
                               {ageBand === 'C' ? challenge.humanAdvantageC : challenge.humanAdvantage}
                             </p>
-                          </div>
-                          <div className="rounded-lg p-2 bg-amber-500/5 border border-amber-500/10">
+                          </motion.div>
+                          <motion.div
+                            initial={{ x: 10, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.3 }}
+                            className="rounded-lg p-2 bg-amber-500/5 border border-amber-500/10"
+                            style={verdictType === 'machine' ? { boxShadow: '0 0 12px rgba(245,158,11,0.15)' } : {}}
+                          >
                             <p className="font-body text-2xs text-amber-400 uppercase">AI Advantage</p>
                             <p className="font-body text-2xs text-white/50 mt-0.5">
                               {ageBand === 'C' ? challenge.aiAdvantageC : challenge.aiAdvantage}
                             </p>
-                          </div>
+                          </motion.div>
                         </div>
                         <motion.button
                           onClick={nextRound}

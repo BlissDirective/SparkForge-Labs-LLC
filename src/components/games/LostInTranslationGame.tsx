@@ -3,6 +3,7 @@
 // Pre-computed translation telephone game.
 // Enhanced: chrome bezel, welcome phase, 7 rounds,
 // language flags, "why it changed" explanations, age-band.
+// ENH: Step reveal + flag bounce + degradation meter + comparison highlights
 // ════════════════════════════════════════════════════
 
 'use client';
@@ -15,6 +16,38 @@ import { useChildStore } from '@/stores/childStore';
 import { Languages, ArrowDown } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
+
+// ENH: Animated score counter hook
+function useAnimatedCounter(target: number, duration = 600) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (display === target) return;
+    const start = display;
+    const diff = target - start;
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+  return display;
+}
+
+// ENH: Compute simple degradation score (how different original vs final are)
+function computeDegradation(original: string, final: string): number {
+  const origWords = original.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+  const finalWords = final.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+  const origSet = new Set(origWords);
+  const shared = finalWords.filter(w => origSet.has(w)).length;
+  const total = Math.max(origWords.length, finalWords.length);
+  return total > 0 ? Math.round((1 - shared / total) * 100) : 0;
+}
 
 // 3D Environment (no SSR)
 const LostInTranslationEnvironment = dynamic(
@@ -103,6 +136,7 @@ export function LostInTranslationGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(-1);
+  const animatedScore = useAnimatedCounter(game.score);
 
   const rounds = useMemo(() => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]), [ageBand]);
 
@@ -153,7 +187,45 @@ export function LostInTranslationGame() {
                 {phase === 'welcome' && (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="text-center space-y-4">
-                    <span className="text-5xl" role="img" aria-label="globe">{'\u{1F30D}'}</span>
+                    {/* ENH: Animated globe entrance with orbiting flags */}
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 180, damping: 14 }}
+                    >
+                      <motion.span
+                        className="text-5xl inline-block"
+                        role="img"
+                        aria-label="globe"
+                        animate={{ rotate: [0, 360] }}
+                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                      >
+                        {'\u{1F30D}'}
+                      </motion.span>
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent)' }}
+                        animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      {/* ENH: Bouncing flag emojis around the globe */}
+                      {['\u{1F1EB}\u{1F1F7}', '\u{1F1EF}\u{1F1F5}', '\u{1F1E9}\u{1F1EA}', '\u{1F1EA}\u{1F1F8}'].map((flag, i) => (
+                        <motion.span
+                          key={i}
+                          className="absolute text-lg"
+                          style={{ top: '50%', left: '50%' }}
+                          animate={{
+                            x: [Math.cos((i * Math.PI) / 2) * 36, Math.cos((i * Math.PI) / 2 + Math.PI) * 36],
+                            y: [Math.sin((i * Math.PI) / 2) * 36, Math.sin((i * Math.PI) / 2 + Math.PI) * 36],
+                            scale: [1, 1.2, 1],
+                          }}
+                          transition={{ duration: 3, repeat: Infinity, delay: i * 0.4 }}
+                        >
+                          {flag}
+                        </motion.span>
+                      ))}
+                    </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white">Lost in Translation</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C' ? 'Observe how neural machine translation degrades meaning through multi-hop translation chains. Analyze why idioms fail.'
@@ -184,16 +256,64 @@ export function LostInTranslationGame() {
                       <p className="font-display text-base font-bold text-white">&ldquo;{round.original}&rdquo;</p>
                     </div>
 
-                    {/* Translation steps */}
+                    {/* ENH: Translation steps with sliding entrance + flag bounce */}
                     <div className="space-y-2 mb-3">
                       {round.steps.map((s, i) => (
-                        <motion.div key={i} className={`p-3 rounded-xl border text-center transition-all ${i <= step ? 'border-indigo-500/20 bg-indigo-500/5' : 'border-white/5 bg-white/[0.02]'}`}
-                          animate={{ opacity: i <= step ? 1 : 0.2 }}>
+                        <motion.div
+                          key={i}
+                          className={`p-3 rounded-xl border text-center transition-colors ${i <= step ? 'border-indigo-500/20 bg-indigo-500/5' : 'border-white/5 bg-white/[0.02]'}`}
+                          initial={i <= step ? { opacity: 0, x: -30 } : { opacity: 0.2 }}
+                          animate={i <= step ? { opacity: 1, x: 0 } : { opacity: 0.2 }}
+                          transition={i <= step ? { type: 'spring', stiffness: 120, damping: 15, delay: 0.1 } : {}}
+                        >
                           {i <= step && i > 0 && <ArrowDown className="w-3 h-3 text-indigo-500/30 mx-auto mb-1" />}
-                          <p className="font-body text-sm text-white/70">{i <= step ? s : '???'}</p>
+                          {i <= step ? (
+                            <div className="flex items-center justify-center gap-2">
+                              {/* ENH: Flag emoji bounce on reveal */}
+                              <motion.span
+                                className="inline-block"
+                                initial={{ scale: 0, y: -10 }}
+                                animate={{ scale: [0, 1.3, 1], y: [- 10, 4, 0] }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 12, delay: 0.15 }}
+                              >
+                                {s.slice(0, 4)}
+                              </motion.span>
+                              <p className="font-body text-sm text-white/70">{s.slice(4)}</p>
+                            </div>
+                          ) : (
+                            <p className="font-body text-sm text-white/70">???</p>
+                          )}
                         </motion.div>
                       ))}
                     </div>
+
+                    {/* ENH: Degradation meter — shows how much meaning was lost */}
+                    {allRevealed && (() => {
+                      const deg = computeDegradation(round.original, round.final);
+                      const color = deg > 60 ? '#EF4444' : deg > 30 ? '#FFAA44' : '#4ade80';
+                      return (
+                        <motion.div
+                          className="mb-3"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-body text-2xs text-white/30">Meaning degradation</span>
+                            <span className="font-data text-2xs" style={{ color }}>{deg}%</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-full"
+                              style={{ background: `linear-gradient(90deg, #4ade80, ${color})` }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${deg}%` }}
+                              transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.3 }}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })()}
 
                     {/* Final result */}
                     {allRevealed && (
