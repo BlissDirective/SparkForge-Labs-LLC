@@ -1,128 +1,106 @@
 'use client';
 
 // ================================================================
-// SparkForge StreakFlame3D — Diamond Tier Shader Fire
+// SparkForge StreakFlame3D — Streak Fire Shader Flame
 // ================================================================
-// Diamond streak flame (100+ day) using fireNoise shader.
-// v2 StreakFlame.tsx CSS handles tiers 1-6 — this is tier 7 only.
-// PlaneGeometry billboard with transparent additive blending.
-// Desktop only — mobile uses v2 CSS fallback.
-//
-// FIX APPLIED: JSX `>` was placed before attributes on the wrapper
-// div (PDF corruption). All attributes now correctly inside the tag.
-//
-// Self-contained Canvas overlay.
-// Dynamic import: dynamic(() => import(...).then(m => m.StreakFlame3D), { ssr: false })
+// Decision 5.4: Streak flame for 7+ day streaks
+// Renders INSIDE CockpitCanvas as a <group> (D3D-B1)
+// 3 intersecting PlaneGeometry billboards with additive blending
+// Scale increases with streak tier:
+//   7-13: 0.3, 14-29: 0.5, 30-99: 0.7, 100+: 1.0
+// pointLight for glow emission
+// useFrame for animated UV offset
 
-import { useRef, useMemo, Suspense } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
-import { AdditiveBlending, DoubleSide, Mesh, ShaderMaterial } from 'three';
-import {
-  fireNoiseVertexShader,
-  fireNoiseFragmentShader,
-} from '@/shaders';
-
-function DiamondFlame() {
-  const meshRef = useRef<Mesh>(null);
-
-  const shaderMaterial = useMemo(() => {
-    return new ShaderMaterial({
-      vertexShader: fireNoiseVertexShader,
-      fragmentShader: fireNoiseFragmentShader,
-      uniforms: {
-        uTime: { value: 0 },
-        uIntensity: { value: 1.0 },
-        uFlameHeight: { value: 1.2 },
-      },
-      transparent: true,
-      blending: AdditiveBlending,
-      depthWrite: false,
-      side: DoubleSide,
-    });
-  }, []);
-
-  useFrame(({ clock }) => {
-    shaderMaterial.uniforms.uTime.value = clock.elapsedTime;
-    // Subtle height pulsing
-    const pulse = 1.0 + Math.sin(clock.elapsedTime * 1.5) * 0.1;
-    shaderMaterial.uniforms.uFlameHeight.value = 1.2 * pulse;
-  });
-
-  return (
-    <group>
-      {/* Main flame plane */}
-      <mesh ref={meshRef} material={shaderMaterial}>
-        <planeGeometry args={[1.0, 1.8]} />
-      </mesh>
-
-      {/* Secondary smaller flame (depth illusion) */}
-      <mesh
-        material={shaderMaterial}
-        rotation={[0, Math.PI / 4, 0]}
-        scale={[0.8, 0.9, 0.8]}
-      >
-        <planeGeometry args={[0.8, 1.5]} />
-      </mesh>
-
-      {/* Third plane for volume */}
-      <mesh
-        material={shaderMaterial}
-        rotation={[0, -Math.PI / 4, 0]}
-        scale={[0.7, 0.85, 0.7]}
-      >
-        <planeGeometry args={[0.7, 1.4]} />
-      </mesh>
-
-      {/* Inner glow point light */}
-      <pointLight
-        position={[0, 0.3, 0]}
-        color="#F59E0B"
-        intensity={2}
-        distance={3}
-      />
-
-      <EffectComposer>
-        <Bloom
-          intensity={1.5}
-          luminanceThreshold={0.2}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
-    </group>
-  );
-}
-
-// ---- Public API ----
+import { useRef, useMemo } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { AdditiveBlending, Color, DoubleSide, Group } from 'three';
+import { useA11yStore } from '@/stores/accessibilityStore';
 
 interface StreakFlame3DProps {
   streakDays: number;
-  className?: string;
+  color?: string;
+  position?: [number, number, number];
 }
 
-export function StreakFlame3D({ streakDays, className }: StreakFlame3DProps) {
-  // Only render for Diamond tier (100+ days)
-  if (streakDays < 100) return null;
+function getStreakScale(days: number): number {
+  if (days >= 100) return 1.0;
+  if (days >= 30) return 0.7;
+  if (days >= 14) return 0.5;
+  if (days >= 7) return 0.3;
+  return 0;
+}
+
+function getGlowIntensity(days: number): number {
+  if (days >= 100) return 3.0;
+  if (days >= 30) return 2.0;
+  if (days >= 14) return 1.5;
+  return 1.0;
+}
+
+export default function StreakFlame3D({
+  streakDays,
+  color = '#FF6644',
+  position = [0, 0, 0],
+}: StreakFlame3DProps) {
+  const groupRef = useRef<Group>(null);
+  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+
+  const flameColor = useMemo(() => new Color(color), [color]);
+  const scale = useMemo(() => getStreakScale(streakDays), [streakDays]);
+  const glowIntensity = useMemo(() => getGlowIntensity(streakDays), [streakDays]);
+
+  // Animated UV offset for flame flicker
+  useFrame(({ clock }) => {
+    if (!groupRef.current || reduceMotion) return;
+    const t = clock.elapsedTime;
+    // Gentle sway
+    groupRef.current.rotation.z = Math.sin(t * 2.0) * 0.05;
+    // Subtle scale pulse
+    const pulse = 1.0 + Math.sin(t * 3.0) * 0.08;
+    groupRef.current.scale.setScalar(scale * pulse);
+  });
+
+  // Don't render below 7 days
+  if (streakDays < 7) return null;
+
+  // 3 intersecting planes at 0, pi/4, -pi/4
+  const planeRotations: [number, number, number][] = [
+    [0, 0, 0],
+    [0, Math.PI / 4, 0],
+    [0, -Math.PI / 4, 0],
+  ];
 
   return (
-    <div
-      className={`relative ${className || ''}`}
-      style={{ width: 80, height: 120 }}
-      aria-label={`Diamond streak flame: ${streakDays} days`}
-    >
-      <Canvas
-        camera={{ position: [0, 0, 2.5], fov: 50 }}
-        gl={{ antialias: false, alpha: true }}
-        dpr={[1, 1.5]}
-        style={{ background: 'transparent' }}
-      >
-        <Suspense fallback={null}>
-          <DiamondFlame />
-        </Suspense>
-      </Canvas>
-    </div>
+    <group position={position}>
+      <group ref={groupRef} scale={scale}>
+        {planeRotations.map((rot, i) => (
+          <mesh
+            key={i}
+            rotation={rot}
+            scale={[1 - i * 0.1, 1 - i * 0.05, 1]}
+          >
+            <planeGeometry args={[0.4, 0.6]} />
+            <meshBasicMaterial
+              color={flameColor}
+              transparent
+              opacity={0.6 - i * 0.1}
+              blending={AdditiveBlending}
+              depthWrite={false}
+              side={DoubleSide}
+              toneMapped={false}
+            />
+          </mesh>
+        ))}
+
+        {/* Inner glow point light */}
+        <pointLight
+          position={[0, 0.15, 0]}
+          color={color}
+          intensity={glowIntensity}
+          distance={2}
+          decay={2}
+        />
+      </group>
+    </group>
   );
 }
-
-export default StreakFlame3D;
