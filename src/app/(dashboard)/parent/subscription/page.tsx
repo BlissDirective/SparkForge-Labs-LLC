@@ -17,6 +17,7 @@ import { staggerContainer, staggerItem } from '@/lib/animations';
 import { Check, Sparkles, Crown, Rocket, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { toast } from '@/stores/toastStore';
 
 const TIER_ICONS: Record<SubscriptionTier, typeof Sparkles> = {
   free: Sparkles,
@@ -63,10 +64,10 @@ function SubscriptionContent() {
       if (data.data?.url) {
         window.location.href = data.data.url;
       } else if (data.error) {
-        alert(data.error);
+        toast.error(data.error);
       }
     } catch {
-      alert('Failed to start checkout. Please try again.');
+      toast.error('Failed to start checkout. Please try again.');
     }
   }
 
@@ -78,10 +79,10 @@ function SubscriptionContent() {
       if (data.data?.url) {
         window.location.href = data.data.url;
       } else if (data.error) {
-        alert(data.error);
+        toast.error(data.error);
       }
     } catch {
-      alert('Failed to open billing portal. Please try again.');
+      toast.error('Failed to open billing portal. Please try again.');
     }
   }
 

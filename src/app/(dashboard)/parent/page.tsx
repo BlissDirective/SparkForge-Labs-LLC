@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from '@/stores/toastStore';
 
 export default function ParentDashboardPage() {
   const {
@@ -78,13 +79,19 @@ export default function ParentDashboardPage() {
   }, [mathAnswer, mathProblem.answer]);
 
   // v2 [ENH-8C]: Time limit handler — saves to Supabase
+  // v3 [S8-WARN-003 fix]: Error handling + rollback on failure
   async function handleTimeLimit(childId: string, minutes: number | null) {
+    const previousLimit = children.find(c => c.id === childId)?.daily_time_limit_minutes ?? null;
     updateChildTimeLimit(childId, minutes);
     const sb = createClient();
-    await sb
+    const { error } = await sb
       .from('children')
       .update({ daily_time_limit_minutes: minutes })
       .eq('id', childId);
+    if (error) {
+      updateChildTimeLimit(childId, previousLimit);
+      toast.error('Failed to save time limit. Please try again.');
+    }
   }
 
   // ═══ Gate: Hold + Math ═══

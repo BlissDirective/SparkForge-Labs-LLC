@@ -1,15 +1,41 @@
 // ════════════════════════════════════════════════════
 // PARENT DASHBOARD HOOK — Fetches all child data
+// v3: S8-HIGH-002 fix — Uses /api/parent/dashboard (single PG function call)
+//     Replaces N+1 client-side Supabase queries
 // v2: Uses tier-config.ts imports (BUG-8A fix)
 // v2: Fetches daily_time_limit_minutes (ENH-8C)
-// v2: Uses createClient() from @/lib/supabase/client
 // ════════════════════════════════════════════════════
 'use client';
 
 import { useEffect } from 'react';
 import { useParentStore } from '@/stores/parentStore';
-import { createClient } from '@/lib/supabase/client';
 import type { SubscriptionTier } from '@/lib/tier-config';
+
+interface DashboardChild {
+  id: string;
+  display_name: string;
+  age_band: 'A' | 'B' | 'C';
+  xp: number;
+  level: number;
+  streak_count: number;
+  streak_last_date: string | null;
+  lessons_completed: number;
+  quizzes_passed: number;
+  games_played: number;
+  total_time_minutes: number;
+  badges_earned: number;
+  labs_completed: number;
+  last_active: string | null;
+  daily_time_limit_minutes: number | null;
+}
+
+interface DashboardResponse {
+  success: boolean;
+  data: {
+    tier: SubscriptionTier;
+    children: DashboardChild[];
+  };
+}
 
 export function useParentDashboard() {
   const store = useParentStore();
@@ -17,108 +43,30 @@ export function useParentDashboard() {
   useEffect(() => {
     async function load() {
       store.setLoading(true);
-      const sb = createClient();
 
-      const {
-        data: { user },
-      } = await sb.auth.getUser();
-      if (!user) {
-        store.setLoading(false);
-        return;
+      try {
+        const res = await fetch('/api/parent/dashboard');
+        if (!res.ok) {
+          store.setLoading(false);
+          return;
+        }
+
+        const json: DashboardResponse = await res.json();
+        if (!json.success || !json.data) {
+          store.setLoading(false);
+          return;
+        }
+
+        store.setTier(json.data.tier);
+        store.setChildren(json.data.children);
+
+        if (json.data.children.length > 0 && !store.selectedChildId) {
+          store.selectChild(json.data.children[0].id);
+        }
+      } catch {
+        // Network error — leave loading state
       }
 
-      const { data: parent } = await sb
-        .from('parents')
-        .select('subscription_tier')
-        .eq('id', user.id)
-        .single();
-
-      if (parent?.subscription_tier) {
-        store.setTier(parent.subscription_tier as SubscriptionTier);
-      }
-
-      const { data: children } = await sb
-        .from('children')
-        .select('*')
-        .eq('parent_id', user.id);
-
-      if (!children) {
-        store.setLoading(false);
-        return;
-      }
-
-      const summaries = await Promise.all(
-        children.map(async (child) => {
-          const { count: lessonsCount } = await sb
-            .from('progress')
-            .select('*', { count: 'exact', head: true })
-            .eq('child_id', child.id)
-            .eq('completed', true);
-
-          const { count: quizCount } = await sb
-            .from('progress')
-            .select('*', { count: 'exact', head: true })
-            .eq('child_id', child.id)
-            .eq('completed', true)
-            .gte('score', 70);
-
-          const { count: badgeCount } = await sb
-            .from('child_badges')
-            .select('*', { count: 'exact', head: true })
-            .eq('child_id', child.id);
-
-          const weekAgo = new Date();
-          weekAgo.setDate(weekAgo.getDate() - 7);
-          const { count: gamesCount } = await sb
-            .from('progress')
-            .select('*', { count: 'exact', head: true })
-            .eq('child_id', child.id)
-            .eq('completed', true)
-            .gte('completed_at', weekAgo.toISOString());
-
-          const { data: sessions } = await sb
-            .from('sessions')
-            .select('duration_seconds')
-            .eq('child_id', child.id);
-
-          const totalMinutes = Math.round(
-            (sessions ?? []).reduce(
-              (sum, row) => sum + (row.duration_seconds ?? 0),
-              0
-            ) / 60
-          );
-
-          const { data: lastSession } = await sb
-            .from('sessions')
-            .select('started_at')
-            .eq('child_id', child.id)
-            .order('started_at', { ascending: false })
-            .limit(1);
-
-          return {
-            id: child.id,
-            display_name: child.display_name,
-            age_band: child.age_band as 'A' | 'B' | 'C',
-            xp: child.xp ?? 0,
-            level: child.level ?? 1,
-            streak_count: child.streak_count ?? 0,
-            streak_last_date: child.streak_last_date ?? null,
-            lessons_completed: lessonsCount ?? 0,
-            quizzes_passed: quizCount ?? 0,
-            games_played: gamesCount ?? 0,
-            total_time_minutes: totalMinutes,
-            badges_earned: badgeCount ?? 0,
-            labs_completed: 0,
-            last_active: lastSession?.[0]?.started_at ?? null,
-            daily_time_limit_minutes: child.daily_time_limit_minutes ?? null,
-          };
-        })
-      );
-
-      store.setChildren(summaries);
-      if (summaries.length > 0 && !store.selectedChildId) {
-        store.selectChild(summaries[0].id);
-      }
       store.setLoading(false);
     }
 
