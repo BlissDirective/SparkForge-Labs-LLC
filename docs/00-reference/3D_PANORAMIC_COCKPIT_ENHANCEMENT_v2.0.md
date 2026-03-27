@@ -222,14 +222,16 @@ In v2.0, cockpit panel materials respond to the active skin:
 
 Material tint transitions use the same 1-second smoothstep lerp as CockpitSkinManager.
 
-### 3.4 Geometry Constants (Updated)
+### 3.4 Geometry Constants (Updated — v3.0 March 27, 2026)
+
+> **Note:** Export name in code is `COCKPIT_GEOMETRY` (not `_V2`). Values below reflect the v3.0 3D-Embedded UI upgrade.
 
 ```typescript
-export const COCKPIT_GEOMETRY_V2 = {
+export const COCKPIT_GEOMETRY = {
   // Base values (adapted by useAdaptiveCockpit)
   panelCurvature: 0.85,
-  totalWrapArc: 140,            // degrees, overridden by adaptive
-  panelRadius: 4.0,             // overridden by adaptive
+  totalWrapArc: 218,            // v3: extreme panoramic wrap (was 140)
+  panelRadius: 4.8,             // v3: larger radius for immersion (was 4.0)
   centralViewportWidth: 0.56,
   sidesPanelWidth: 0.12,
   topBarHeight: 0.10,
@@ -238,11 +240,22 @@ export const COCKPIT_GEOMETRY_V2 = {
   hexRadius: 0.35,
   hexDepth: 0.02,
 
-  // NEW in v2
-  hexDataTextureSize: 64,       // px, for lab number / indicator textures
-  panelEdgeBevel: 0.005,        // subtle edge chamfer
-  topBarSegments: 48,           // increased from 32 for smoother curve
-  sideSegments: 24,             // increased from 16
+  // v3 enhanced
+  hexDataTextureSize: 64,
+  panelEdgeBevel: 0.005,
+  topBarSegments: 288,          // v3: denser for wider arc (was 48→256→288)
+  sideSegments: 144,            // v3: denser (was 24→128→144)
+
+  // v3: Structural detail + explicit positions
+  rivetSpacing: 0.12,
+  cableBundleCount: 60,
+  ventPanelCount: 16,
+  floorGrateResolution: 80,
+  leftConsolePosition: [-2.35, 0.25, -1.65],
+  rightConsolePosition: [2.35, 0.25, -1.65],
+  statusBarPosition: [0, -1.25, -1.95],
+  centerViewportRadius: 3.9,
+  centerViewportPosition: [0, 0.35, -3.3],
 } as const;
 ```
 
@@ -337,7 +350,7 @@ export function CockpitCanvas({ mode, labCompletions, onLabEnter, children }: Co
       <Canvas
         frameloop="always"
         dpr={[1, profile.pixelRatio]}
-        camera={{ position: [0, 6.5, 7], fov: 58, near: 0.1, far: 100 }}
+        camera={{ position: [0, 0.65, 1.1], fov: 58, near: 0.1, far: 200 }}  // v3: tight-focus cockpit seat
         gl={{ antialias: profile.antialias, alpha: true, powerPreference: 'high-performance' }}
       >
         <Suspense fallback={null}>
@@ -731,30 +744,28 @@ export class CockpitAudioEngine {
 
 ## 11. PERFORMANCE BUDGETS & LOD
 
-### 11.1 Triangle Budget Breakdown (20M Upgrade — March 20, 2026)
+### 11.1 Triangle Budget Breakdown (v3.0 — 3D-Embedded UI Upgrade, March 27, 2026)
 
-> ⚠️ **Updated from original v2.0 spec (104K)** — Full 20M desktop budget activated per `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md`. See that document for the complete per-component diff.
+> ⚠️ **Updated March 27, 2026:** v3.0 3D-Embedded UI upgrade. Cockpit budget increased from 20M to 38M. Camera repositioned to tight-focus cockpit seat `[0, 0.65, 1.1]`. Hull widened to 218° arc. 8 new 3D UI components added. Desktop-only (D3D-1).
 
 #### Device Maximums
 
 | Device | maxTriangles | Notes |
 |--------|-------------|-------|
-| **Desktop** | **20,000,000** | Full cockpit + 1M dynamic headroom |
-| **Tablet** | **10,000,000** | 50% of desktop |
-| **Mobile** | 0 (CSS fallback) | No R3F — CSS-only frame |
+| **Desktop** | **50,000,000** | 38M cockpit + 12M game headroom (v3.0) |
 
 #### Cockpit Shell Components
 
 | Component | Desktop Budget | Tablet Budget | What Changed from v2.0 original |
 |-----------|---------------|--------------|----------------------------------|
-| **CockpitPanels** | 2,000,000 | 1,000,000 | 256-seg curved hull, multi-layer, instanced rivets, animated sub-panels, hex gauge clusters |
-| **LEDRim** | 200,000 | 100,000 | 1,000+ individual LED capsules, data visualization mode, audio-reactive pulse waves |
-| **SidePanels** | 1,500,000 | 750,000 | Physical radar dish, 3D data columns, holographic text, chrome bezels, articulated mounting arms |
-| **HolographicHUD** | 500,000 | 250,000 | 8 concentric rings (was 3), data-display arcs, reticle, volumetric scan beams |
-| **StatusBar3D** | 500,000 | 250,000 | Full circular XP speedometer, volumetric flame sculpture, 10 miniature lab indicators |
-| **AuroraBackground** | 50,000 | 25,000 | Volumetric layers with 3D depth geometry |
-| **AmbientParticles** | 200,000 | 100,000 | Higher-fidelity shapes, enhanced trails |
-| **Shell Subtotal** | **4,950,000** | **2,475,000** | |
+| **CockpitPanels** | 4,000,000 | — | v3: 288-seg hull, 218° arc, r=4.8, 12 ribs, 768 rivets, alloy #a8b5c8 |
+| **LEDRim** | 500,000 | — | v3: 1,500 LEDs, emissive 3.0, wider arc coverage |
+| **SidePanels** | 3,000,000 | — | v3: at [±2.35, 0.25, -1.65], alloy chrome, radar + terminal |
+| **HolographicHUD** | 1,000,000 | — | v3: 8 concentric rings, data arcs, notification system |
+| **StatusBar3D** | 1,000,000 | — | v3: at [0, -1.25, -1.95], XP speedometer, flame, 10 lab indicators |
+| **AuroraBackground** | 50,000 | — | Volumetric layers with 3D depth geometry |
+| **AmbientParticles** | 200,000 | — | Higher-fidelity shapes, enhanced trails |
+| **Shell Subtotal** | **9,750,000** | — | |
 
 #### Spatial Dashboard Components
 
@@ -762,33 +773,51 @@ export class CockpitAudioEngine {
 |-----------|---------------|--------------|--------------|
 | **HolographicLabMap** | 1,000,000 | 500,000 | Multi-layer geodesic shells, data highway splines, holographic projector pedestal |
 | **LabStructure3D** (×10 labs) | 3,000,000 | 1,500,000 | 300K/lab: subdivision surfaces, interior mechanisms, diorama scenes |
-| **InteractiveConsole3D** (×4) | 2,000,000 | 1,000,000 | 500K/console: multi-part housing, projector base, instrument cluster |
-| **AmbientNPCs** (8 bots) | 1,500,000 | 750,000 | 187K/bot: facial animation geometry, 3-finger grippers, personality accessories |
-| **DynamicEnvironment** | 3,000,000 | 1,500,000 | Volumetric fog, floating data fragments, dynamic weather effects |
-| **Stars/Skybox** | 500,000 | 250,000 | Enhanced starfield with nebula geometry |
-| **Spatial Subtotal** | **11,000,000** | **5,500,000** | |
+| **InteractiveConsole3D** (×4) | 3,000,000 | — | v3: 750K/console, holographic projections |
+| **AmbientNPCs** (8 bots) | 2,000,000 | — | v3: 250K/bot, enhanced articulation |
+| **DynamicEnvironment** | 3,000,000 | — | Volumetric fog, floating data fragments, dynamic weather effects |
+| **Stars/Skybox** | 500,000 | — | Enhanced starfield with nebula geometry |
+| **Spatial Subtotal** | **12,500,000** | — | |
 
 #### NEW Components (enabled by 20M upgrade)
 
 | Component | Desktop Budget | Tablet Budget | Description |
 |-----------|---------------|--------------|-------------|
-| **CockpitStructuralDetail** | 1,500,000 | 750,000 | Cable bundles, conduit pipes, ventilation panels, structural ribs, LED strips |
-| **VolumetricFog3D** | 500,000 | 250,000 | Fog volumes, god ray cones, lab-reactive coloring |
-| **CockpitFloor3D** | 500,000 | 250,000 | Grated panels, sub-floor piping, maintenance hatches, embedded LED channels |
-| **CeremonyFX** | 500,000 | 250,000 | Instanced confetti, firework bursts, 3D trophy models, HUD ring expansion |
-| **WormholeTransition** | 300,000 | 150,000 | Animated tunnel, swirling energy walls, portal rings, instanced speed lines |
-| **MiniMapOverlay3D** | 250,000 | 125,000 | Miniature lab ring, player indicator, completion color-coding |
-| **New Subtotal** | **3,550,000** | **1,775,000** | |
+| **CockpitStructuralDetail** | 2,000,000 | — | v3: 60 cables, 16 vents, tighter rivet spacing |
+| **VolumetricFog3D** | 500,000 | — | Fog volumes, god ray cones, lab-reactive coloring |
+| **CockpitFloor3D** | 1,000,000 | — | v3: higher res grate, enhanced sub-floor |
+| **CeremonyFX** | 500,000 | — | Instanced confetti, firework bursts, 3D trophy models |
+| **WormholeTransition** | 300,000 | — | Animated tunnel, swirling energy walls, portal rings |
+| **MiniMapOverlay3D** | 250,000 | — | Miniature lab ring, player indicator |
+| **Detail Subtotal** | **4,550,000** | — | |
 
-#### Budget Summary
+#### 3D-Embedded UI Components (NEW — v3.0, March 27, 2026)
 
-| Category | Desktop | Tablet |
-|----------|---------|--------|
-| Cockpit Shell | 4,950,000 | 2,475,000 |
-| Spatial Dashboard | 11,000,000 | 5,500,000 |
-| New Components | 3,550,000 | 1,775,000 |
-| Dynamic Headroom | 500,000 | 250,000 |
-| **TOTAL** | **20,000,000** | **10,000,000** |
+| Component | Desktop Budget | Description |
+|-----------|---------------|-------------|
+| **HolographicButton** | per-instance ~100K | Spring-depress, ripple, broadcast |
+| **RadialDial3D** | per-instance ~200K | Spring-physics drag-to-rotate, 24 ticks |
+| **ToggleSwitch3D** | per-instance ~80K | 45° snap, LED indicator |
+| **HolographicCard** | per-instance ~50K | Floating data card + Html content |
+| **HolographicPanel** | varies | Curved content surface |
+| **NavigationButtonGrid** | 1,000,000 | 5 physical nav buttons (HOME/LABS/ARCADE/SETTINGS/PROFILE) |
+| **VariableDialCluster** | 1,500,000 | 3 auto-reconfiguring page-context dials |
+| **CenterViewportScreen** | 3,000,000 | Spherical panoramic (r=3.9, 144×72 segs) |
+| **cockpitBroadcastStore** | — | Cross-panel event bus (16 event types) |
+| **cockpitMaterials.ts** | — | 7 material factories (alloy, panel, holographic, button, bezel, console, LED) |
+| **UI Subtotal** | **~11,000,000** | |
+
+#### Budget Summary (v3.0)
+
+| Category | Desktop |
+|----------|---------|
+| Cockpit Shell | 9,750,000 |
+| Spatial Dashboard | 12,500,000 |
+| Detail Components | 4,550,000 |
+| 3D UI Components | 11,000,000 |
+| **COCKPIT TOTAL** | **~37,800,000** |
+| Game Headroom | ~12,200,000 |
+| **SYSTEM TOTAL** | **50,000,000** |
 
 ### 11.2 LOD Levels for Cockpit Components
 
