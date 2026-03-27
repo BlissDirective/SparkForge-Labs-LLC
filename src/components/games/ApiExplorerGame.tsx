@@ -16,6 +16,8 @@
 // • Status codes explained (200, 400, 429, 500)
 // • Request history log
 // • ARIA labels
+//
+// ENH: Send/receive animation + method badges + typewriter response + status colors
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
@@ -334,6 +336,11 @@ export function ApiExplorerGame() {
   const [showHistory, setShowHistory] = useState(false);
   const [endpointsUsed, setEndpointsUsed] = useState<Set<number>>(new Set());
   const [recentRequests, setRecentRequests] = useState<number[]>([]);
+  // ENH: Typewriter effect state for response display
+  const [typewriterText, setTypewriterText] = useState('');
+  const [typewriterDone, setTypewriterDone] = useState(false);
+  // ENH: Track request animation state
+  const [requestSent, setRequestSent] = useState(false);
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
@@ -361,7 +368,30 @@ export function ApiExplorerGame() {
     setParams((prev) => ({ ...prev, [name]: value }));
   }
 
+  // ENH: Typewriter effect for JSON response
+  useEffect(() => {
+    if (!response) { setTypewriterText(''); setTypewriterDone(false); return; }
+    const fullText = JSON.stringify(response.body, null, 2);
+    let idx = 0;
+    setTypewriterText('');
+    setTypewriterDone(false);
+    const interval = setInterval(() => {
+      idx += 3; // 3 chars at a time for speed
+      if (idx >= fullText.length) {
+        setTypewriterText(fullText);
+        setTypewriterDone(true);
+        clearInterval(interval);
+      } else {
+        setTypewriterText(fullText.slice(0, idx));
+      }
+    }, 12);
+    return () => clearInterval(interval);
+  }, [response]);
+
   async function sendRequest() {
+    // ENH: Trigger request send animation
+    setRequestSent(true);
+    setTimeout(() => setRequestSent(false), 400);
     setSending(true);
     setResponse(null);
 
@@ -608,15 +638,19 @@ export function ApiExplorerGame() {
                     {/* Request builder */}
                     <div className="rounded-xl p-3 border border-orange-500/15 bg-orange-500/5">
                       <div className="flex items-center gap-2 mb-2">
-                        <span
+                        {/* ENH: HTTP method color badges (GET=green, POST=blue, PUT=orange, DELETE=red) */}
+                        <motion.span
                           className={`px-1.5 py-0.5 rounded text-2xs font-bold ${
-                            endpoint.method === 'POST'
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-blue-500/20 text-blue-400'
+                            endpoint.method === 'GET' ? 'bg-green-500/20 text-green-400'
+                            : endpoint.method === 'POST' ? 'bg-blue-500/20 text-blue-400'
+                            : endpoint.method === 'PUT' ? 'bg-orange-500/20 text-orange-400'
+                            : endpoint.method === 'DELETE' ? 'bg-red-500/20 text-red-400'
+                            : 'bg-white/10 text-white/50'
                           }`}
+                          whileHover={{ scale: 1.1 }}
                         >
                           {endpoint.method}
-                        </span>
+                        </motion.span>
                         <code className="font-mono text-xs text-orange-300 flex-1">
                           {endpoint.path}
                         </code>
@@ -646,6 +680,7 @@ export function ApiExplorerGame() {
                         ))}
                       </div>
 
+                      {/* ENH: Request sends with slide-up transition */}
                       <motion.button
                         onClick={sendRequest}
                         disabled={sending}
@@ -655,6 +690,8 @@ export function ApiExplorerGame() {
                             ? 'linear-gradient(135deg, #F97316, #EA580C)'
                             : '#555',
                         }}
+                        animate={requestSent ? { y: [0, -4, 0] } : {}}
+                        transition={{ duration: 0.3 }}
                         whileTap={{ scale: 0.98 }}
                         aria-label="Send API request"
                       >
@@ -676,34 +713,50 @@ export function ApiExplorerGame() {
                     <AnimatePresence>
                       {response && statusInfo && (
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
+                          // ENH: Response arrives with slide-down animation
+                          initial={{ opacity: 0, y: -15 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ type: 'spring', stiffness: 120, damping: 15 }}
                           className="rounded-xl border overflow-hidden mb-2 flex-1"
                           style={{ borderColor: `${statusInfo.color}30` }}
                         >
-                          {/* Status header */}
-                          <div
+                          {/* ENH: Status header with colorized status code */}
+                          <motion.div
                             className="flex items-center gap-2 px-3 py-1.5"
                             style={{ background: `${statusInfo.color}10` }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.1 }}
                           >
                             {response.status === 200 ? (
                               <CheckCircle2 className="w-3 h-3" style={{ color: statusInfo.color }} />
                             ) : (
                               <AlertCircle className="w-3 h-3" style={{ color: statusInfo.color }} />
                             )}
-                            <span className="font-mono text-xs font-bold" style={{ color: statusInfo.color }}>
+                            {/* ENH: Status code colorization (2xx=green, 4xx=amber, 5xx=red) */}
+                            <motion.span
+                              className="font-mono text-xs font-bold"
+                              style={{ color: statusInfo.color }}
+                              initial={{ scale: 0.8 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                            >
                               {statusInfo.label}
-                            </span>
+                            </motion.span>
                             <span className="font-mono text-2xs text-white/20 ml-auto">
                               {response.latency}ms
                             </span>
-                          </div>
+                          </motion.div>
 
-                          {/* JSON body */}
-                          <div className="p-3 overflow-auto max-h-48">
+                          {/* ENH: Terminal-style typewriter JSON response */}
+                          <div className="p-3 overflow-auto max-h-48 bg-black/20">
                             <pre className="font-mono text-2xs leading-relaxed whitespace-pre-wrap">
-                              <JsonViewer data={response.body} />
+                              {typewriterDone ? (
+                                <JsonViewer data={response.body} />
+                              ) : (
+                                <span className="text-green-400/70">{typewriterText}<motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-orange-400">|</motion.span></span>
+                              )}
                             </pre>
                           </div>
 

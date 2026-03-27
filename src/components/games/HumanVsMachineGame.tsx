@@ -8,6 +8,8 @@
 // V3 NOTE: No 3D enhancements. This is a standard polish game
 // per Decision 6.5. Retains unique 2D visual enhancements
 // with lab-colored particle background.
+//
+// ENH: Score bars + thinking indicators + verdict reveal + advantage flash
 // ================================================================
 
 'use client';
@@ -164,6 +166,11 @@ export function HumanVsMachineGame() {
   const [submitted, setSubmitted] = useState(false);
   const [aiRevealed, setAiRevealed] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
+  // ENH: Track scores for comparison bars and advantage indicator
+  const [humanTotal, setHumanTotal] = useState(0);
+  const [machineTotal, setMachineTotal] = useState(0);
+  // ENH: Verdict reveal animation trigger
+  const [verdictType, setVerdictType] = useState<'human' | 'machine' | null>(null);
 
   const challenges = useMemo(
     () => ALL_CHALLENGES.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]),

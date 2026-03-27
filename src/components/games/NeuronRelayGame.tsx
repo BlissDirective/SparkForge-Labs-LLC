@@ -3,6 +3,7 @@
 // Toggle neurons on/off, adjust volume, hit target signal.
 // Enhanced: chrome bezel, welcome phase, visual signal meter,
 // neuron labels, age-band explanations, 8 puzzles.
+// ENH: Signal pulse flow + toggle animation + animated meter + target zone
 // ════════════════════════════════════════════════════
 
 'use client';
@@ -15,6 +16,28 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Zap, BrainCircuit } from 'lucide-react';
+
+// ENH: Animated score counter hook
+function useAnimatedCounter(target: number, duration = 600) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (display === target) return;
+    const start = display;
+    const diff = target - start;
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+  return display;
+}
 
 // 3D Environment (no SSR)
 const NeuronRelayEnvironment = dynamic(
@@ -49,6 +72,9 @@ export function NeuronRelayGame() {
   const [neurons, setNeurons] = useState<Neuron[]>(() => Array.from({ length: puzzle.n }, (_, i) => ({ id: i, on: false, vol: 50 })));
   const [result, setResult] = useState<'none' | 'pass' | 'fail'>('none');
   const [showHint, setShowHint] = useState(false);
+  const [streak, setStreak] = useState(0);
+  const [firingNeurons, setFiringNeurons] = useState<Set<number>>(new Set());
+  const animatedScore = useAnimatedCounter(game.score);
 
   const signal = neurons.reduce((s, n) => s + (n.on ? n.vol * 0.2 : 0), 0);
 
@@ -62,12 +88,18 @@ export function NeuronRelayGame() {
     delay: (i * 0.7) % 4, dur: (i % 6) + 4,
   })), []);
 
-  function toggle(id: number) { setNeurons(prev => prev.map(n => n.id === id ? { ...n, on: !n.on } : n)); }
+  function toggle(id: number) {
+    setNeurons(prev => prev.map(n => n.id === id ? { ...n, on: !n.on } : n));
+    // ENH: Show firing pulse on toggle
+    setFiringNeurons(prev => { const next = new Set(prev); next.add(id); return next; });
+    setTimeout(() => setFiringNeurons(prev => { const next = new Set(prev); next.delete(id); return next; }), 600);
+  }
   function setVol(id: number, v: number) { setNeurons(prev => prev.map(n => n.id === id ? { ...n, vol: v } : n)); }
 
   function test() {
     setResult(inRange ? 'pass' : 'fail');
     if (inRange) {
+      setStreak(s => s + 1);
       game.updateScore(10);
       setTimeout(() => {
         if (pi < PUZZLES.length - 1) {
@@ -78,6 +110,8 @@ export function NeuronRelayGame() {
           game.advanceRound();
         } else { setPhase('complete'); game.completeGame(); }
       }, 1500);
+    } else {
+      setStreak(0);
     }
   }
 

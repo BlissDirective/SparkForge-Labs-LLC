@@ -16,6 +16,8 @@
 // - Feedback panel with "why AI got confused" explanations
 // - Score multiplier for consecutive correct finds
 // - ARIA labels
+//
+// ENH: Animated confidence bar + answer feedback + fooled counter
 // ================================================================
 
 'use client';
@@ -124,6 +126,10 @@ export function FoolTheAiGame() {
   const [found, setFound] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<{ idx: number; hit: boolean } | null>(null);
   const [consecutiveHits, setConsecutiveHits] = useState(0);
+  // ENH: Track total fooled count for animated counter
+  const [fooledCount, setFooledCount] = useState(0);
+  // ENH: Track streak for visual streak indicator
+  const [streakFlash, setStreakFlash] = useState(false);
 
   const challenge = CHALLENGES[ci];
   const matchCount = Array.from(found).filter(idx => challenge.check(ITEMS[idx])).length;
@@ -149,6 +155,10 @@ export function FoolTheAiGame() {
       const bonus = consecutiveHits >= 2 ? 4 : 0;
       game.updateScore(10 + bonus);
       setConsecutiveHits(c => c + 1);
+      // ENH: Increment fooled counter when AI was wrong and player found it
+      if (item.isWrong) setFooledCount(c => c + 1);
+      // ENH: Flash streak indicator on consecutive hits
+      if (consecutiveHits >= 1) { setStreakFlash(true); setTimeout(() => setStreakFlash(false), 600); }
     } else {
       setConsecutiveHits(0);
     }
@@ -219,17 +229,42 @@ export function FoolTheAiGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col">
-                    {/* Challenge header */}
+                    {/* Challenge header + ENH: fooled counter */}
                     <div className="rounded-xl p-3 mb-3 text-center"
                       style={{ backgroundColor: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
                       <p className="font-display text-sm font-bold text-cyan-400">{'\u{1F3AF}'} {challenge.text}</p>
                       {ageBand === 'C' && <p className="font-body text-2xs text-white/25 mt-0.5">{challenge.descC}</p>}
                       <div className="flex items-center justify-center gap-2 mt-1.5">
                         <div className="flex-1 max-w-[120px] h-1.5 rounded-full bg-white/5 overflow-hidden">
-                          <motion.div className="h-full rounded-full bg-cyan-500" animate={{ width: `${(matchCount / challenge.target) * 100}%` }} />
+                          <motion.div className="h-full rounded-full bg-cyan-500"
+                            animate={{ width: `${(matchCount / challenge.target) * 100}%` }}
+                            transition={{ type: 'spring', stiffness: 120, damping: 20 }} />
                         </div>
                         <span className="font-mono text-2xs text-white/30">{matchCount}/{challenge.target}</span>
                         <span className="font-body text-2xs text-white/15">Round {ci + 1}/{CHALLENGES.length}</span>
+                        {/* ENH: Animated fooled counter */}
+                        {fooledCount > 0 && (
+                          <motion.span
+                            key={fooledCount}
+                            initial={{ scale: 1.4, color: '#00FF88' }}
+                            animate={{ scale: 1, color: 'rgba(255,255,255,0.3)' }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                            className="font-data text-2xs"
+                          >
+                            {'\u{1F916}'} Fooled: {fooledCount}
+                          </motion.span>
+                        )}
+                        {/* ENH: Streak indicator with fire animation */}
+                        {consecutiveHits >= 2 && (
+                          <motion.span
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: streakFlash ? [1, 1.3, 1] : 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                            className="font-data text-2xs text-orange-400"
+                          >
+                            {'\u{1F525}'} {consecutiveHits}x streak!
+                          </motion.span>
+                        )}
                       </div>
                     </div>
 
@@ -241,21 +276,30 @@ export function FoolTheAiGame() {
                         const confColor = item.confidence > 80 ? '#10B981' : item.confidence > 50 ? '#F59E0B' : '#EF4444';
                         return (
                           <motion.button key={i} onClick={() => tap(i)} disabled={tapped && !isFeedback}
-                            className={`rounded-xl border p-2.5 text-center transition-all ${
+                            className={`rounded-xl border p-2.5 text-center transition-colors ${
                               isFeedback && feedback.hit ? 'border-green-500 bg-green-500/10'
                               : isFeedback && !feedback.hit ? 'border-orange-500 bg-orange-500/10'
                               : tapped ? 'border-white/5 opacity-20'
                               : 'border-white/10 bg-white/[0.02] hover:border-cyan-500/30'
                             }`}
+                            // ENH: Green pulse + scale pop on correct, red shake + opacity dip on wrong
+                            animate={
+                              isFeedback && feedback.hit
+                                ? { scale: [1, 1.15, 1.05], boxShadow: ['0 0 0px rgba(16,185,129,0)', '0 0 20px rgba(16,185,129,0.5)', '0 0 8px rgba(16,185,129,0.2)'] }
+                                : isFeedback && !feedback.hit
+                                  ? { x: [0, -6, 6, -4, 4, 0], opacity: [1, 0.5, 0.7, 0.5, 0.8, 1] }
+                                  : {}
+                            }
+                            transition={isFeedback ? { duration: 0.5, ease: 'easeOut' } : {}}
                             whileTap={!tapped ? { scale: 0.95 } : {}}
                             aria-label={`${item.emoji} labeled as "${item.aiLabel}" with ${item.confidence}% confidence`}>
                             <span className="text-2xl block">{item.emoji}</span>
                             <p className="font-body text-2xs text-white/40 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
-                            {/* Confidence bar */}
-                            <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden">
+                            {/* ENH: Confidence bar with spring physics */}
+                            <div className="mt-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
                               <motion.div className="h-full rounded-full" style={{ backgroundColor: confColor }}
                                 initial={{ width: 0 }} animate={{ width: `${item.confidence}%` }}
-                                transition={{ duration: 0.8, delay: 0.1 }} />
+                                transition={{ type: 'spring', stiffness: 80, damping: 12, delay: i * 0.05 }} />
                             </div>
                             <p className="font-mono text-2xs mt-0.5" style={{ color: confColor }}>{item.confidence}%</p>
                           </motion.button>

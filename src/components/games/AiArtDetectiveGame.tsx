@@ -3,6 +3,8 @@
 // Side-by-side: human vs AI art. Guess which is which.
 // Enhanced: chrome bezel, welcome phase, art analysis tips,
 // confidence meter, streak scoring, age-band clues.
+//
+// ENH: Zoom lens hover + tip highlights + animated slider + detective badge
 // ════════════════════════════════════════════════════
 
 'use client';
@@ -177,6 +179,8 @@ export function AiArtDetectiveGame() {
   const [streak, setStreak] = useState(0);
   const [tipIdx, setTipIdx] = useState(0);
   const [correctCount, setCorrectCount] = useState(0);
+  // ENH: Detective badge earned after 3+ correct
+  const [showDetectiveBadge, setShowDetectiveBadge] = useState(false);
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
@@ -204,8 +208,11 @@ export function AiArtDetectiveGame() {
     setShowResult(correct ? 'correct' : 'wrong');
     if (correct) {
       setStreak(s => s + 1);
-      setCorrectCount(c => c + 1);
+      const newCount = correctCount + 1;
+      setCorrectCount(newCount);
       game.updateScore(12 + streak * 2);
+      // ENH: Award detective badge after 3 correct detections
+      if (newCount === 3) { setShowDetectiveBadge(true); setTimeout(() => setShowDetectiveBadge(false), 2500); }
     } else {
       setStreak(0);
       game.updateScore(3);
@@ -308,8 +315,14 @@ export function AiArtDetectiveGame() {
                         initial={{ opacity: 0, x: 30 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -30 }}
-                        className="rounded-xl p-4 border border-orange-400/20 bg-orange-400/5"
+                        className="rounded-xl p-4 border border-orange-400/20 bg-orange-400/5 relative overflow-hidden"
                       >
+                        {/* ENH: Pulsing highlight on tip card */}
+                        <motion.div
+                          className="absolute inset-0 rounded-xl pointer-events-none"
+                          animate={{ boxShadow: ['inset 0 0 0px rgba(255,170,68,0)', 'inset 0 0 20px rgba(255,170,68,0.15)', 'inset 0 0 0px rgba(255,170,68,0)'] }}
+                          transition={{ duration: 2, repeat: Infinity }}
+                        />
                         <span className="text-3xl">{DETECTION_TIPS[tipIdx].emoji}</span>
                         <h4 className="font-display text-sm font-bold text-orange-300 mt-2">
                           {DETECTION_TIPS[tipIdx].title}
@@ -354,9 +367,16 @@ export function AiArtDetectiveGame() {
                           <span className="font-body text-2xs text-white/30">Detection Confidence</span>
                           <span className="font-data text-2xs font-bold" style={{ color: confidenceColor }}>{confidencePct}%</span>
                         </div>
-                        <div className="h-2 rounded-full bg-white/10 overflow-hidden">
+                        {/* ENH: Animated confidence slider with spring physics + thumb indicator */}
+                        <div className="h-2 rounded-full bg-white/10 overflow-hidden relative">
                           <motion.div className="h-full rounded-full" style={{ backgroundColor: confidenceColor }}
-                            animate={{ width: `${confidencePct}%` }} transition={{ type: 'spring', stiffness: 100 }} />
+                            animate={{ width: `${confidencePct}%` }} transition={{ type: 'spring', stiffness: 80, damping: 14 }} />
+                          <motion.div
+                            className="absolute top-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2"
+                            style={{ backgroundColor: confidenceColor, borderColor: 'rgba(255,255,255,0.3)' }}
+                            animate={{ left: `${Math.max(confidencePct - 2, 0)}%` }}
+                            transition={{ type: 'spring', stiffness: 80, damping: 14 }}
+                          />
                         </div>
                       </div>
                     )}
@@ -368,6 +388,25 @@ export function AiArtDetectiveGame() {
                     <p className="font-body text-sm text-white/50 mb-3">
                       Which one was made by AI? Round {roundIdx + 1}/{ROUNDS.length}
                     </p>
+
+                    {/* ENH: Detective badge animation overlay */}
+                    <AnimatePresence>
+                      {showDetectiveBadge && (
+                        <motion.div
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: [0, 1.2, 1], opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                          className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
+                        >
+                          <div className="bg-black/60 backdrop-blur-sm rounded-2xl px-6 py-4 text-center border border-orange-400/30">
+                            <motion.span className="text-4xl block" animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.6, repeat: 2 }}>{'\uD83D\uDD75\uFE0F'}</motion.span>
+                            <p className="font-display text-sm font-bold text-orange-300 mt-1">Detective Badge Earned!</p>
+                            <p className="font-body text-2xs text-white/40">3 correct detections</p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
 
                     <div className="flex gap-3 mb-4">
                       {(['left', 'right'] as const).map(side => (
@@ -383,7 +422,14 @@ export function AiArtDetectiveGame() {
                                 ? 'border-white/10'
                                 : 'border-white/20 hover:border-orange-400/50'
                           }`}
-                          whileHover={!showResult ? { scale: 1.03 } : {}}
+                          style={
+                            // ENH: Green overlay flash on correct detection
+                            showResult === 'correct' && side === round.aiSide
+                              ? { boxShadow: '0 0 25px rgba(74, 222, 128, 0.4)' }
+                              : {}
+                          }
+                          // ENH: Zoom lens hover effect — scale 1.05 with shadow lift
+                          whileHover={!showResult ? { scale: 1.05, boxShadow: '0 8px 30px rgba(0,0,0,0.4)' } : {}}
                           whileTap={!showResult ? { scale: 0.97 } : {}}
                           aria-label={`${side} artwork`}
                         >

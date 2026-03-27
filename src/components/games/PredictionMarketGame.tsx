@@ -3,6 +3,8 @@
 // Vote on AI predictions, see aggregate results.
 // Enhanced: chrome bezel, welcome phase, 8 predictions,
 // time horizon tags, expert analysis, animated tallying.
+//
+// ENH: Animated voting bars + crowd visualization + accuracy counter + gold glow
 // ════════════════════════════════════════════════════
 
 'use client';
@@ -98,6 +100,10 @@ export function PredictionMarketGame() {
   const [voted, setVoted] = useState(false);
   const [myVote, setMyVote] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  // ENH: Track prediction accuracy and vote history for crowd visualization
+  const [predictionAccuracy, setPredictionAccuracy] = useState(0);
+  const [totalVotes, setTotalVotes] = useState(0);
+  const [matchedMajority, setMatchedMajority] = useState(false);
 
   const predictions = useMemo(
     () => ALL_PREDICTIONS.filter(p => BAND_ORDER[p.band] <= BAND_ORDER[ageBand]),
@@ -122,6 +128,14 @@ export function PredictionMarketGame() {
     setMyVote(vote);
     setVoted(true);
     game.updateScore(10);
+    // ENH: Check if vote matches the majority opinion
+    const results = pred.mockResults;
+    const majority = results.yes >= results.no && results.yes >= results.maybe ? 'yes'
+      : results.no >= results.yes && results.no >= results.maybe ? 'no' : 'maybe';
+    const matched = vote === majority;
+    setMatchedMajority(matched);
+    setTotalVotes(t => t + 1);
+    if (matched) setPredictionAccuracy(a => a + 1);
   }
 
   function nextPrediction() {
@@ -192,19 +206,57 @@ export function PredictionMarketGame() {
                       </div>
                     ) : (
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                        <p className="font-body text-xs text-white/30">How others voted:</p>
-                        <div className="space-y-2 max-w-xs mx-auto">
-                          {[{ label: 'Yes', pct: pred.mockResults.yes, color: '#10B981' }, { label: 'No', pct: pred.mockResults.no, color: '#EF4444' }, { label: 'Maybe', pct: pred.mockResults.maybe, color: '#F59E0B' }].map(r => (
+                        {/* ENH: Accuracy counter with animated number */}
+                        <div className="flex items-center justify-center gap-3">
+                          <p className="font-body text-xs text-white/30">How others voted:</p>
+                          {totalVotes > 0 && (
+                            <motion.span
+                              key={predictionAccuracy}
+                              initial={{ scale: 1.3, color: '#FFD700' }}
+                              animate={{ scale: 1, color: 'rgba(255,255,255,0.4)' }}
+                              transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+                              className="font-data text-2xs"
+                            >
+                              Accuracy: {predictionAccuracy}/{totalVotes}
+                            </motion.span>
+                          )}
+                        </div>
+                        {/* ENH: Gold glow border when vote matches majority */}
+                        <motion.div
+                          className="space-y-2 max-w-xs mx-auto rounded-xl p-2"
+                          animate={matchedMajority ? {
+                            boxShadow: ['0 0 0px rgba(255,215,0,0)', '0 0 20px rgba(255,215,0,0.4)', '0 0 8px rgba(255,215,0,0.15)']
+                          } : {}}
+                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                        >
+                          {[{ label: 'Yes', pct: pred.mockResults.yes, color: '#10B981' }, { label: 'No', pct: pred.mockResults.no, color: '#EF4444' }, { label: 'Maybe', pct: pred.mockResults.maybe, color: '#F59E0B' }].map((r, rIdx) => (
                             <div key={r.label} className="flex items-center gap-2">
                               <span className={`font-body text-xs w-12 text-right ${myVote === r.label.toLowerCase() ? 'text-white font-bold' : 'text-white/30'}`}>{r.label}</span>
                               <div className="flex-1 h-6 bg-white/5 rounded overflow-hidden">
+                                {/* ENH: Spring physics on voting bars */}
                                 <motion.div className="h-full rounded" style={{ backgroundColor: r.color }}
-                                  initial={{ width: 0 }} animate={{ width: `${r.pct}%` }} transition={{ duration: 1, ease: 'easeOut' }} />
+                                  initial={{ width: 0 }} animate={{ width: `${r.pct}%` }}
+                                  transition={{ type: 'spring', stiffness: 60, damping: 12, delay: rIdx * 0.15 }} />
                               </div>
-                              <span className="font-mono text-xs text-white/30 w-8">{r.pct}%</span>
+                              <motion.span
+                                className="font-mono text-xs w-8"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1, color: myVote === r.label.toLowerCase() ? '#FFD700' : 'rgba(255,255,255,0.3)' }}
+                                transition={{ delay: 0.5 + rIdx * 0.15 }}
+                              >{r.pct}%</motion.span>
                             </div>
                           ))}
-                        </div>
+                        </motion.div>
+                        {/* ENH: Crowd wisdom summary */}
+                        {matchedMajority && (
+                          <motion.p
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="font-body text-2xs text-center text-amber-300/60"
+                          >
+                            You matched the crowd consensus!
+                          </motion.p>
+                        )}
 
                         {/* Expert analysis toggle */}
                         <motion.button onClick={() => setShowAnalysis(!showAnalysis)}

@@ -3,6 +3,7 @@
 // Type text, see it split into tokens in real-time.
 // Enhanced: chrome bezel, welcome phase, 5 challenges,
 // token categories, cost calculator, age-band explanations.
+// ENH: Staggered token entrance + type colors + chop animation + cost meter
 // ════════════════════════════════════════════════════
 
 'use client';
@@ -14,7 +15,29 @@ import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
-import { Scissors } from 'lucide-react';
+import { Scissors, Fuel } from 'lucide-react';
+
+// ENH: Animated score counter hook
+function useAnimatedCounter(target: number, duration = 600) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (display === target) return;
+    const start = display;
+    const diff = target - start;
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+  return display;
+}
 
 // 3D Environment (no SSR)
 const TokenChopperEnvironment = dynamic(
@@ -75,6 +98,8 @@ export function TokenChopperGame() {
   const [challengeIdx, setChallengeIdx] = useState(0);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
   const [showHint, setShowHint] = useState(false);
+  const [challengePassed, setChallengePassed] = useState(false);
+  const animatedScore = useAnimatedCounter(game.score);
 
   const tokens = useMemo(() => tokenize(text), [text]);
   const cost = (tokens.length * 0.00001).toFixed(5);
@@ -106,6 +131,7 @@ export function TokenChopperGame() {
 
     if (passed && !completed.has(challengeIdx)) {
       setCompleted(prev => new Set(prev).add(challengeIdx));
+      setChallengePassed(true);
       game.updateScore(15);
       game.advanceRound();
       setShowHint(false);
@@ -113,6 +139,7 @@ export function TokenChopperGame() {
         setTimeout(() => {
           setChallengeIdx(i => i + 1);
           setText('');
+          setChallengePassed(false);
         }, 1500);
       } else {
         setTimeout(() => { setPhase('complete'); game.completeGame(); }, 1500);
@@ -160,7 +187,27 @@ export function TokenChopperGame() {
                     exit={{ opacity: 0, y: -20 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <span className="text-5xl">{'\u2702\uFE0F'}</span>
+                    {/* ENH: Animated scissors entrance with chopping motion */}
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                    >
+                      <motion.span
+                        className="text-5xl inline-block"
+                        animate={{ rotate: [0, -20, 20, -10, 10, 0] }}
+                        transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
+                      >
+                        {'\u2702\uFE0F'}
+                      </motion.span>
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ background: 'radial-gradient(circle, rgba(255,170,68,0.15), transparent)' }}
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white">Token Chopper</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C'
@@ -196,8 +243,33 @@ export function TokenChopperGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    {/* ENH: Progress bar for challenges */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-body text-2xs text-white/30">
+                          {completed.size}/{CHALLENGES.length} challenges
+                        </span>
+                        <span className="font-data text-2xs text-orange-400">{animatedScore} pts</span>
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ background: 'linear-gradient(90deg, #FFAA44, #FF8822)' }}
+                          animate={{ width: `${(completed.size / CHALLENGES.length) * 100}%` }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                        />
+                      </div>
+                    </div>
+
                     {/* Challenge bar */}
-                    <div className="rounded-xl p-3 mb-3 border border-orange-400/20 bg-orange-400/5">
+                    <motion.div
+                      className="rounded-xl p-3 mb-3 border border-orange-400/20 bg-orange-400/5"
+                      animate={challengePassed ? {
+                        boxShadow: ['0 0 0px rgba(74,222,128,0)', '0 0 20px rgba(74,222,128,0.3)', '0 0 0px rgba(74,222,128,0)'],
+                        borderColor: ['rgba(255,170,68,0.2)', 'rgba(74,222,128,0.4)', 'rgba(255,170,68,0.2)'],
+                      } : {}}
+                      transition={{ duration: 0.8 }}
+                    >
                       <p className="font-display text-sm font-bold text-orange-400">
                         {CHALLENGES[challengeIdx].text}
                       </p>
@@ -214,7 +286,7 @@ export function TokenChopperGame() {
                           Show hint
                         </button>
                       )}
-                    </div>
+                    </motion.div>
 
                     {/* Input */}
                     <textarea
@@ -226,7 +298,7 @@ export function TokenChopperGame() {
                     />
 
                     {/* Stats bar */}
-                    <div className="flex items-center gap-4 mb-3">
+                    <div className="flex items-center gap-4 mb-2">
                       <span className="font-data text-xs text-white/40">{tokens.length} tokens</span>
                       <span className="font-mono text-xs text-white/20">{'\u2248'} ${cost}</span>
                       <div className="flex gap-2 ml-auto">
@@ -247,7 +319,29 @@ export function TokenChopperGame() {
                       </div>
                     </div>
 
-                    {/* Token pills */}
+                    {/* ENH: Cost meter — fills like a fuel gauge */}
+                    <div className="mb-3">
+                      <div className="flex items-center gap-2">
+                        <Fuel className="w-3 h-3 text-white/20" />
+                        <div className="flex-1 h-2.5 rounded-full bg-white/5 overflow-hidden">
+                          <motion.div
+                            className="h-full rounded-full"
+                            style={{
+                              background: parseFloat(cost) > 0.00005
+                                ? 'linear-gradient(90deg, #FFAA44, #FF6644)'
+                                : parseFloat(cost) > 0.00002
+                                  ? 'linear-gradient(90deg, #FFAA44, #FFCC44)'
+                                  : 'linear-gradient(90deg, #00FF88, #00BBFF)',
+                            }}
+                            animate={{ width: `${Math.min((parseFloat(cost) / 0.0001) * 100, 100)}%` }}
+                            transition={{ type: 'spring', stiffness: 120, damping: 20 }}
+                          />
+                        </div>
+                        <span className="font-mono text-2xs text-white/20 w-16 text-right">${cost}</span>
+                      </div>
+                    </div>
+
+                    {/* ENH: Token pills with staggered bounce entrance + type-colored borders */}
                     <div className="flex-1 overflow-auto">
                       <div className="flex flex-wrap gap-1.5">
                         {tokens.map((tok, i) => (
@@ -256,11 +350,18 @@ export function TokenChopperGame() {
                             className="px-2.5 py-1 rounded-lg font-mono text-xs text-white"
                             style={{
                               backgroundColor: TYPE_COLORS[tok.type].bg,
+                              borderLeft: `3px solid ${TYPE_COLORS[tok.type].border}`,
                               border: `1px solid ${TYPE_COLORS[tok.type].border}`,
+                              borderLeftWidth: '3px',
                             }}
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            transition={{ delay: i * 0.03 }}
+                            initial={{ scale: 0, opacity: 0, y: 8 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            transition={{
+                              type: 'spring',
+                              stiffness: 300,
+                              damping: 15,
+                              delay: i * 0.04,
+                            }}
                           >
                             {tok.token}
                           </motion.span>
@@ -292,10 +393,22 @@ export function TokenChopperGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You discovered how AI breaks text into tokens — the fundamental units that language models read, process, and generate.
                     </p>
-                    <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
-                      <p className="font-data text-2xl text-[#818CF8]">{game.score}</p>
+                    {/* ENH: Animated score counter */}
+                    <motion.div
+                      className="rounded-xl px-6 py-3 bg-[#FFAA44]/10 border border-[#FFAA44]/20"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                    >
+                      <motion.p
+                        className="font-data text-2xl text-[#FFAA44]"
+                        animate={{ textShadow: ['0 0 0px rgba(255,170,68,0)', '0 0 12px rgba(255,170,68,0.5)', '0 0 0px rgba(255,170,68,0)'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {animatedScore}
+                      </motion.p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
-                    </div>
+                    </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
                       <ul className="space-y-1 text-2xs font-body text-white/40">
