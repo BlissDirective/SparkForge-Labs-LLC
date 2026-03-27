@@ -10,7 +10,6 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import Link from 'next/link';
-import { createClient } from '@/lib/supabase/client';
 import { useParentStore } from '@/stores/parentStore';
 import { getTierLimits, TIER_DISPLAY } from '@/lib/tier-config';
 
@@ -64,26 +63,21 @@ export default function AddChildPage() {
     setError('');
 
     try {
-      const sb = createClient();
-      const {
-        data: { user },
-      } = await sb.auth.getUser();
-
-      if (!user) {
-        setError('Not logged in');
-        setSaving(false);
-        return;
-      }
-
-      const { error: insertError } = await sb.from('children').insert({
-        parent_id: user.id,
-        display_name: name.trim(),
-        age,
-        age_band: ageBand,
+      // S8-WARN-005 fix: Route through API for server-side validation + tier limit enforcement
+      const res = await fetch('/api/children', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: name.trim(),
+          age,
+          ageBand,
+        }),
       });
 
-      if (insertError) {
-        setError(insertError.message);
+      const result = await res.json();
+
+      if (!res.ok) {
+        setError(result.error || 'Failed to create profile');
         setSaving(false);
       } else {
         // ENH #4: Show confetti, then navigate

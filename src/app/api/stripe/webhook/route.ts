@@ -96,12 +96,18 @@ export async function POST(req: NextRequest) {
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription;
       const customerId = sub.customer as string;
-      const status =
-        sub.status === 'active'
-          ? 'active'
-          : sub.status === 'past_due'
-            ? 'past_due'
-            : sub.status;
+      // Map Stripe statuses to application statuses (S8-WARN-002 fix)
+      const STRIPE_STATUS_MAP: Record<string, string> = {
+        active: 'active',
+        trialing: 'active',
+        past_due: 'past_due',
+        unpaid: 'canceled',
+        canceled: 'canceled',
+        incomplete: 'active',
+        incomplete_expired: 'canceled',
+        paused: 'paused',
+      };
+      const status = STRIPE_STATUS_MAP[sub.status] ?? 'active';
 
       await supabase
         .from('parents')
