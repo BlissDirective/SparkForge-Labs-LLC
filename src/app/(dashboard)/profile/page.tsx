@@ -20,12 +20,16 @@ import { useUIStore } from '@/stores/uiStore';
 import { useA11yStore } from '@/stores/accessibilityStore';
 import { useBadges } from '@/hooks/useGamification';
 import { useAllLabsProgress } from '@/hooks/useProgress';
-import { calculateLevel, getFlameConfig, getLevelColor, getStreakEmoji } from '@/lib/gamification';
+import {
+  calculateLevel, getFlameConfig, getLevelColor,
+  getStreakEmoji, getStreakMessage, getRarityColor,
+} from '@/lib/gamification';
+import { getTodaysChallenge, isChallengeComplete, formatTimeRemaining, getSecondsUntilReset } from '@/lib/dailyChallenge';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import type { BadgeCategory } from '@/types';
 import {
-  Zap, Flame, Trophy, Star, Target, Award, Shield, Hexagon,
-  Diamond, Pentagon, Edit3, Check, X, Coins, Sparkles,
+  Zap, Flame, Trophy, Star, Target, Shield,
+  Edit3, Check, X, Coins, Sparkles, Clock, Lock,
 } from 'lucide-react';
 
 // ═══ BADGE CATEGORIES ═══
@@ -87,11 +91,21 @@ export default function ProfilePage() {
   const [editName, setEditName] = useState('');
   // Trophy room category filter
   const [activeCategory, setActiveCategory] = useState<BadgeCategory | 'all'>('all');
+  // Daily challenge countdown
+  const [resetCountdown, setResetCountdown] = useState(() => getSecondsUntilReset());
 
   // Set cockpit to profile pink on mount
   useEffect(() => {
     setLabColor('#FF66AA');
   }, [setLabColor]);
+
+  // Daily challenge countdown timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setResetCountdown(getSecondsUntilReset());
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, []);
 
   // ═══ Computed data ═══
   const levelInfo = useMemo(() => {
@@ -125,8 +139,14 @@ export default function ProfilePage() {
     return Math.round(total / 10);
   }, [labsProgress]);
 
-  const currentShape = activeChild?.avatar_config?.shape || 'circle';
-  const shapeConfig = AVATAR_SHAPES.find((s) => s.id === currentShape) || AVATAR_SHAPES[0];
+  const dailyChallenge = useMemo(() => getTodaysChallenge(), []);
+  const challengeComplete = useMemo(
+    () => isChallengeComplete(activeChild?.streak_last_date),
+    [activeChild?.streak_last_date],
+  );
+
+  const currentShapeIndex = activeChild?.avatar_config?.face_shape ?? 0;
+  const shapeConfig = AVATAR_SHAPES[currentShapeIndex] || AVATAR_SHAPES[0];
 
   // ═══ Handlers ═══
   const startEditName = useCallback(() => {
@@ -152,8 +172,8 @@ export default function ProfilePage() {
   }, []);
 
   const selectShape = useCallback(
-    (shapeId: string) => {
-      updateAvatarConfig({ shape: shapeId });
+    (index: number) => {
+      updateAvatarConfig({ face_shape: index });
     },
     [updateAvatarConfig]
   );
@@ -292,17 +312,17 @@ export default function ProfilePage() {
           <h2 className="font-display font-bold text-white text-sm">Avatar Shape</h2>
         </div>
         <div className="grid grid-cols-6 gap-2" role="radiogroup" aria-label="Select avatar shape">
-          {AVATAR_SHAPES.map((shape) => (
+          {AVATAR_SHAPES.map((shape, idx) => (
             <button
               key={shape.id}
-              onClick={() => selectShape(shape.id)}
+              onClick={() => selectShape(idx)}
               className={`aspect-square rounded-lg border transition-all flex items-center justify-center text-xs font-body ${
-                currentShape === shape.id
+                currentShapeIndex === idx
                   ? 'border-spark-pink/60 bg-spark-pink/10 text-white'
                   : 'border-white/[0.06] bg-white/[0.03] text-white/40 hover:border-white/20 hover:text-white/60'
               }`}
               role="radio"
-              aria-checked={currentShape === shape.id}
+              aria-checked={currentShapeIndex === idx}
               aria-label={`${shape.label} shape`}
             >
               <div
@@ -392,8 +412,105 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
+          {/* Streak message */}
+          <p className="font-body text-xs text-white/40 mt-3">
+            {getStreakMessage(activeChild.streak_count, false, false)}
+          </p>
+          {/* Streak shields */}
+          {activeChild.streak_shields > 0 && (
+            <div
+              className="flex items-center gap-1.5 mt-2 pt-2 border-t border-white/[0.06]"
+              aria-label={`${activeChild.streak_shields} streak shield${activeChild.streak_shields !== 1 ? 's' : ''} available`}
+            >
+              <Shield className="w-3.5 h-3.5 text-neon-blue" />
+              <span className="font-data text-[11px] text-neon-blue">
+                {activeChild.streak_shields} Streak Shield{activeChild.streak_shields !== 1 ? 's' : ''} Available
+              </span>
+            </div>
+          )}
         </motion.section>
       )}
+
+      {/* ═══ Daily Challenge ═══ */}
+      <motion.section
+        variants={reduceMotion ? undefined : staggerItem}
+        className="rounded-xl p-5 backdrop-blur-md border border-white/[0.06] bg-surface-card/50"
+        aria-label="Daily challenge"
+      >
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <Target className="w-4 h-4 text-spark-green" />
+            <h2 className="font-display font-bold text-white text-sm">Daily Challenge</h2>
+          </div>
+          <div className="flex items-center gap-1 text-white/30">
+            <Clock className="w-3 h-3" />
+            <span className="font-data text-[10px]">Resets in {formatTimeRemaining(resetCountdown)}</span>
+          </div>
+        </div>
+        <div
+          className={`rounded-lg p-4 border ${
+            challengeComplete
+              ? 'border-spark-green/30 bg-spark-green/5'
+              : 'border-spark-orange/20 bg-spark-orange/5'
+          }`}
+          role="status"
+          aria-label={`Daily challenge: ${dailyChallenge.title}. ${challengeComplete ? 'Completed' : 'In progress'}`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl flex-shrink-0" aria-hidden="true">{dailyChallenge.icon}</span>
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-bold text-white text-sm">{dailyChallenge.title}</p>
+              <p className="font-body text-xs text-white/40 mt-0.5">{dailyChallenge.description}</p>
+            </div>
+            <div className="text-right flex-shrink-0">
+              {challengeComplete ? (
+                <div className="flex items-center gap-1 text-spark-green">
+                  <Check className="w-4 h-4" />
+                  <span className="font-data text-xs">Done</span>
+                </div>
+              ) : (
+                <div className="font-data text-xs text-spark-orange">
+                  +{dailyChallenge.xpReward} XP
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* ═══ Spark Coins + Cosmetic Shop Teaser ═══ */}
+      <motion.section
+        variants={reduceMotion ? undefined : staggerItem}
+        className="rounded-xl p-5 backdrop-blur-md border border-white/[0.06] bg-surface-card/50"
+        aria-label="Spark Coins"
+      >
+        <div className="flex items-center gap-2 mb-3">
+          <Coins className="w-4 h-4 text-spark-orange" />
+          <h2 className="font-display font-bold text-white text-sm">Spark Coins</h2>
+        </div>
+        <div className="flex items-center justify-between">
+          <div>
+            <p
+              className="font-data text-3xl font-bold"
+              style={{ color: '#FFAA44' }}
+              aria-label={`${(activeChild.spark_coins || 0).toLocaleString()} Spark Coins`}
+            >
+              {(activeChild.spark_coins || 0).toLocaleString()}
+            </p>
+            <p className="font-body text-xs text-white/30 mt-1">
+              Earn coins by completing games and challenges
+            </p>
+          </div>
+          <div
+            className="rounded-lg px-4 py-2.5 border border-white/[0.06] bg-white/[0.03] text-center"
+            aria-label="Cosmetic shop coming soon"
+          >
+            <Lock className="w-4 h-4 text-white/20 mx-auto mb-1" />
+            <p className="font-mono text-[9px] text-white/20 uppercase tracking-wider">Shop</p>
+            <p className="font-body text-[8px] text-white/15">Coming Soon</p>
+          </div>
+        </div>
+      </motion.section>
 
       {/* ═══ Trophy Room — Badge Gallery by Category ═══ */}
       <motion.section
@@ -469,11 +586,16 @@ export default function ProfilePage() {
                   exit={reduceMotion ? undefined : { opacity: 0, scale: 0.9 }}
                   className={`rounded-lg p-2 text-center border transition-all ${
                     badge.earned
-                      ? 'border-spark-orange/20 bg-spark-orange/5'
+                      ? ''
                       : 'border-white/[0.04] bg-white/[0.02] opacity-40'
                   }`}
+                  style={badge.earned && badge.rarity ? {
+                    borderColor: `${getRarityColor(badge.rarity)}30`,
+                    background: `${getRarityColor(badge.rarity)}08`,
+                    boxShadow: `0 0 10px ${getRarityColor(badge.rarity)}10`,
+                  } : undefined}
                   role="listitem"
-                  aria-label={`Badge: ${badge.name}${badge.earned ? ' (earned)' : ' (locked)'}`}
+                  aria-label={`Badge: ${badge.name}${badge.earned ? ` (earned, ${badge.rarity || 'common'})` : ' (locked)'}`}
                   title={badge.description || badge.name}
                 >
                   <div className={`text-xl mb-1 ${badge.earned ? '' : 'grayscale'}`}>
@@ -481,7 +603,10 @@ export default function ProfilePage() {
                   </div>
                   <p className="font-mono text-[8px] text-white/40 truncate">{badge.name}</p>
                   {badge.rarity && badge.earned && (
-                    <p className="font-mono text-[7px] text-spark-purple/50 uppercase">
+                    <p
+                      className="font-data text-[7px] uppercase mt-0.5"
+                      style={{ color: getRarityColor(badge.rarity) }}
+                    >
                       {badge.rarity}
                     </p>
                   )}
@@ -542,7 +667,8 @@ export default function ProfilePage() {
       <div aria-live="polite" aria-atomic="true" className="sr-only">
         Profile: {activeChild.display_name}. Level {levelInfo?.level || activeChild.level},{' '}
         {levelInfo?.title || 'Explorer'}. {earnedBadges.length} badges earned out of{' '}
-        {allBadges.length}. {activeChild.streak_count} day streak.
+        {allBadges.length}. {activeChild.streak_count} day streak{flameConfig ? `, ${flameConfig.label} tier` : ''}.{' '}
+        {(activeChild.spark_coins || 0).toLocaleString()} Spark Coins.
       </div>
     </motion.div>
   );

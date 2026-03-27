@@ -1,19 +1,17 @@
 'use client';
 
 // ================================================================
-// SparkForge LevelUpExplosion — R3F Particle Burst
+// SparkForge LevelUpExplosion — 200-Particle R3F Burst
 // ================================================================
-// Replaces v2 CSS confetti with R3F particle burst + Bloom.
-// Triggered on level-up. 200 particles, 2.0s duration.
-// Auto-unmounts after completion. Mobile uses v2 CSS fallback.
-//
-// Self-contained Canvas overlay — no parent Canvas needed.
-// Dynamic import: dynamic(() => import(...).then(m => m.LevelUpExplosion), { ssr: false })
+// Triggered on level-up. 200 instanced cubes, 2.0s duration.
+// Deterministic particle generation (no Math.random).
+// Renders INSIDE CockpitCanvas as a <group> (D3D-B1).
+// Self-contained group — NOT a Canvas wrapper.
 
-import { useRef, useMemo, useState, useEffect, Suspense } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useRef, useMemo, useState, useEffect } from 'react';
+import { useFrame } from '@react-three/fiber';
 import { Color, InstancedMesh, Object3D, Vector3 } from 'three';
+import { useA11yStore } from '@/stores/accessibilityStore';
 
 const PARTICLE_COUNT = 200;
 const DURATION = 2.0;
@@ -25,10 +23,16 @@ interface ParticleData {
   gravity: number;
 }
 
+interface LevelUpExplosionProps {
+  active: boolean;
+  color?: string;
+  onComplete?: () => void;
+}
+
+// Deterministic particle generation from seed indices
 function generateExplosion(): ParticleData[] {
   const data: ParticleData[] = [];
   for (let i = 0; i < PARTICLE_COUNT; i++) {
-    // Deterministic "random" from index (avoids Math.random in hot path)
     const seed1 = Math.sin(i * 1.37) * 0.5 + 0.5;
     const seed2 = Math.sin(i * 2.71) * 0.5 + 0.5;
     const seed3 = Math.sin(i * 3.97) * 0.5 + 0.5;
@@ -52,59 +56,68 @@ function generateExplosion(): ParticleData[] {
   return data;
 }
 
-function ExplosionScene({
-  color,
+export default function LevelUpExplosion({
+  active,
+  color = '#00BBFF',
   onComplete,
-}: {
-  color: string;
-  onComplete: () => void;
-}) {
+}: LevelUpExplosionProps) {
   const meshRef = useRef<InstancedMesh>(null);
-  const startTime = useRef(0);
-  const completedRef = useRef(false);
+  const timeRef = useRef(0);
+  const [alive, setAlive] = useState(false);
+  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+
   const particles = useMemo(() => generateExplosion(), []);
   const dummy = useMemo(() => new Object3D(), []);
   const threeColor = useMemo(() => new Color(color), [color]);
 
-  // Set instance colors with slight per-particle variation
+  // Reset when active transitions to true
   useEffect(() => {
-    if (!meshRef.current) return;
+    if (active) {
+      timeRef.current = 0;
+      setAlive(true);
+    }
+  }, [active]);
+
+  // Set per-instance colors with slight variation
+  useEffect(() => {
+    if (!meshRef.current || !alive) return;
     const c = new Color();
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       c.copy(threeColor);
-      const seed = Math.sin(i * 7.19) * 0.5 + 0.5;
-      c.offsetHSL(
-        (seed - 0.5) * 0.1,
-        (Math.sin(i * 3.37) * 0.5) * 0.2,
-        (Math.sin(i * 4.91) * 0.5) * 0.1
-      );
+      const hueShift = (Math.sin(i * 7.19) - 0.5) * 0.1;
+      c.offsetHSL(hueShift, 0, 0);
       meshRef.current.setColorAt(i, c);
     }
     if (meshRef.current.instanceColor) {
       meshRef.current.instanceColor.needsUpdate = true;
     }
-  }, [threeColor]);
+  }, [threeColor, alive]);
 
-  useFrame(({ clock }) => {
-    if (startTime.current === 0) startTime.current = clock.elapsedTime;
-    const elapsed = clock.elapsedTime - startTime.current;
-    if (!meshRef.current) return;
+  useFrame((_, delta) => {
+    if (!meshRef.current || !alive) return;
+
+    if (reduceMotion) {
+      setAlive(false);
+      onComplete?.();
+      return;
+    }
+
+    timeRef.current += delta;
+    const t = timeRef.current;
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       const p = particles[i];
-      const t = elapsed;
 
       if (t > DURATION) {
         dummy.scale.setScalar(0);
       } else {
-        // Physics: position = v*t - 0.5*g*t^2 (gravity pulls down)
+        // Physics: position = v*t - 0.5*g*t^2
         dummy.position.set(
           p.velocity.x * t,
           p.velocity.y * t - 0.5 * p.gravity * t * t,
           p.velocity.z * t
         );
 
-        // Rotation
         dummy.rotation.set(
           t * p.rotSpeed,
           t * p.rotSpeed * 0.7,
@@ -112,11 +125,11 @@ function ExplosionScene({
         );
 
         // Fade out: full size until 60%, then shrink
-        const fadeProgress = elapsed / DURATION;
+        const progress = t / DURATION;
         const scale =
-          fadeProgress < 0.6
+          progress < 0.6
             ? p.size
-            : p.size * (1.0 - (fadeProgress - 0.6) / 0.4);
+            : p.size * (1.0 - (progress - 0.6) / 0.4);
         dummy.scale.setScalar(Math.max(0, scale));
       }
 
@@ -126,89 +139,28 @@ function ExplosionScene({
 
     meshRef.current.instanceMatrix.needsUpdate = true;
 
-    if (elapsed >= DURATION && !completedRef.current) {
-      completedRef.current = true;
-      onComplete();
+    if (t >= DURATION) {
+      setAlive(false);
+      onComplete?.();
     }
   });
+
+  if (!alive) return null;
 
   return (
     <group>
       <instancedMesh
         ref={meshRef}
         args={[undefined, undefined, PARTICLE_COUNT]}
+        frustumCulled={false}
       >
-        <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial toneMapped={false} transparent opacity={0.9} />
-      </instancedMesh>
-
-      <EffectComposer>
-        <Bloom
-          intensity={3.0}
-          luminanceThreshold={0.1}
-          luminanceSmoothing={0.9}
-          mipmapBlur
+        <boxGeometry args={[0.03, 0.03, 0.03]} />
+        <meshBasicMaterial
+          toneMapped={false}
+          transparent
+          opacity={0.9}
         />
-      </EffectComposer>
+      </instancedMesh>
     </group>
   );
 }
-
-// ---- Public API ----
-
-interface LevelUpExplosionProps {
-  /** Level tier color */
-  tierColor: string;
-  onComplete?: () => void;
-}
-
-export function LevelUpExplosion({
-  tierColor,
-  onComplete,
-}: LevelUpExplosionProps) {
-  const [visible, setVisible] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
-
-  const handleComplete = () => {
-    setFadeOut(true);
-    setTimeout(() => {
-      setVisible(false);
-      onComplete?.();
-    }, 300);
-  };
-
-  if (!visible) return null;
-
-  return (
-    <div
-      className={`fixed inset-0 z-50 pointer-events-none transition-opacity
-        duration-300 ${fadeOut ? 'opacity-0' : 'opacity-100'}`}
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{ position: [0, 0, 6], fov: 60 }}
-        gl={{ antialias: false, alpha: true }}
-        dpr={[1, 1.5]}
-        style={{ background: 'transparent' }}
-      >
-        <Suspense fallback={null}>
-          <ExplosionScene color={tierColor} onComplete={handleComplete} />
-        </Suspense>
-      </Canvas>
-
-      {/* LEVEL UP text */}
-      <div
-        className="absolute top-1/3 left-1/2 -translate-x-1/2
-          font-display text-5xl font-bold animate-bounce"
-        style={{
-          color: tierColor,
-          textShadow: `0 0 30px ${tierColor}80`,
-        }}
-      >
-        LEVEL UP!
-      </div>
-    </div>
-  );
-}
-
-export default LevelUpExplosion;
