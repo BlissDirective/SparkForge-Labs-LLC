@@ -2,6 +2,11 @@
 
 ## v3-FINAL (PART B) — Game Data & Logic
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-003:** GameShell already calls `startGame()` — no redundant call needed in BiasDetectiveGame.
+> - **sceneStore integration:** BiasDetectiveGame registers BiasScales3D via `setGameSceneContent()` during investigate/test/fix phases.
+> - **cockpitBroadcast:** GameShell broadcasts `game-enter`/`game-exit` events to cockpitBroadcastStore.
+
 ---
 
 **Date:** February 28, 2026 | **GCUD:** V9 | **Lab:** 6 (Red) | **Bands:** A+B+C

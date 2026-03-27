@@ -1,5 +1,10 @@
 # SPARKFORGE -- STAGE 6D v3-FINAL (PART A): Prompt Lab 3D
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-002:** `PromptBubble3DScene.tsx` refactored from standalone `<Canvas>` to `<group>` (D3D-B1). Canvas, camera, dpr, gl removed — CockpitCanvas provides these.
+> - **S6-HIGH-003:** Added `useEffect` disposal cleanup for `MeshPhysicalMaterial` and `SpriteMaterial` in `PromptBubble3D.tsx` to prevent GPU memory leaks.
+> - **3D Embedding:** PromptLabEnvironment correctly wired into PromptBubble3DScene group. No duplicate Environment instances.
+
 **Date:** March 5, 2026 | **GCUD:** V9 | **Vision:** Laboratory Control Station
 **Design:** Frost-Prismatic v3 (blue-dominant 60/40, chrome bezel, hex-radial, R3F station frame)
 **Lab:** 4 -- AI That Creates | **Color:** #F59E0B (Amber/Orange)

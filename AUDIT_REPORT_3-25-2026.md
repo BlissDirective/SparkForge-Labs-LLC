@@ -125,6 +125,15 @@
 - **S6-WARN-004:** Already resolved (BiasDetective Canvas removed in Batch 13).
 - **Result: All 14 Stage 6 findings resolved. 6/6 environments now exist.**
 
+### Batch 16: Stage 6 — 3D Embedding Audit (5 fixes)
+- **3D-EMB-001 (SortScene3D):** Wired in orphaned `SortToyBoxEnvironment` — was created but never imported/used. Now renders in the group.
+- **3D-EMB-002 (NeuralNetwork3D):** Removed duplicate `<Environment preset="night"/>` from inner `NetworkScene`. Also removed redundant `EffectComposer/Bloom` — CockpitCanvas `PostProcessingStack` handles postprocessing (D3D-C1).
+- **3D-EMB-003 (AgentPipeline3D):** Removed duplicate `<Environment preset="night"/>` from inner `PipelineScene`.
+- **3D-EMB-004 (BiasScales3D):** Removed duplicate `<Environment preset="studio"/>` from component body.
+- **3D-EMB-005 (GameShell):** Added `cockpitBroadcastStore` integration — broadcasts `game-enter`/`game-exit` events on mount/unmount. LED rim, HUD, and status bar now react to game transitions.
+- **Stage 6 doc files updated:** Added audit fix notes to 11 stage documents (6B A/B, 6C A/B, 6D A/B, 6E A/B, 6F A/B, 7B PartA).
+- **Result: Zero duplicate Environment instances. All environments wired. Cockpit broadcasts complete.**
+
 ---
 
 ## Executive Summary

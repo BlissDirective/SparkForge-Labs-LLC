@@ -1,5 +1,9 @@
 # Stage 6E v3-FINAL Part B — Agent Architect Game Logic & Data
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-003:** GameShell already calls `startGame()` — no redundant call needed in AgentArchitectGame.
+> - **sceneStore integration:** AgentArchitectGame registers AgentPipeline3D via `setGameSceneContent()` during build/report phases.
+
 **Version:** v3-FINAL
 **Build Phase:** 13 (Stage 6E — Agent Architect, Part B: Game logic, types, data, handlers)
 **Date:** February 28, 2026

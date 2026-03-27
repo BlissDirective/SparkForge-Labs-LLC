@@ -1,5 +1,10 @@
 # SPARKFORGE — STAGE 6C v3-FINAL (PART B): Neural Network Builder Game
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-003:** GameShell already calls `startGame()` — no redundant call needed in NeuralBuilderGame.
+> - **sceneStore integration:** NeuralBuilderGame now imports `useSceneStore` and registers 3D content via `setGameSceneContent()`. Scene updates reactively with training/accuracy state.
+> - **cockpitBroadcast:** GameShell broadcasts `game-enter`/`game-exit` events to cockpitBroadcastStore.
+
 **Date:** March 4, 2026 | **GCUD:** V9 | **Vision:** Laboratory Control Station
 **Source:** STAGE6C v3-FINAL Part B + v2 base + v2 Enhancements cross-reference
 **Decision Implemented:** 6.1 (3D network integration via NeuralNetwork3D dynamic import)

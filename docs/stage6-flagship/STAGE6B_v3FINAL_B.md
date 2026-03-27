@@ -1,5 +1,10 @@
 # Stage 6B v3-FINAL Part B — AI Pet Trainer Game
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-003:** GameShell already calls `startGame()` — no redundant call needed in PetTrainerGame.
+> - **sceneStore integration:** PetTrainerGame now imports `useSceneStore` and registers 3D content via `setGameSceneContent()`. Scene updates reactively with mood/evolution changes.
+> - **cockpitBroadcast:** GameShell broadcasts `game-enter`/`game-exit` events to cockpitBroadcastStore.
+
 **Version:** v3-FINAL (corrected)
 **Build Phase:** 10 (Stage 6B — Pet Trainer, Part B: Full game replacement)
 **Prerequisites:** Stage 6B Part A v3-FINAL (PetCreature3D.tsx + Pet3DScene.tsx) must be complete

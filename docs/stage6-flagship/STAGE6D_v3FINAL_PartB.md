@@ -1,5 +1,10 @@
 # SPARKFORGE -- STAGE 6D v3-FINAL (PART B): Prompt Lab 3D Integration
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-001:** PromptLabGame now calls `game.completeGame()` when entering report phase. Added "Finish Lab" button (visible after 1+ challenge or 4+ messages), full report phase UI with stats + "What You Learned" summary differentiated by age band (A/B/C).
+> - **S6-WARN-001:** Added client-side rate limiting to `sendMessage` — 2-second cooldown + 50 prompt daily cap.
+> - **sceneStore integration:** PromptLabGame registers PromptBubble3DScene via `setGameSceneContent()` when keywords are active.
+
 **Date:** March 5, 2026 | **GCUD:** V9 | **Vision:** Laboratory Control Station
 **Design:** Frost-Prismatic v3 (blue-dominant 60/40, chrome bezel, hex-radial, R3F station frame)
 **Lab:** 4 -- AI That Creates | **Color:** #F59E0B (Amber/Orange)

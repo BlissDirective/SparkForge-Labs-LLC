@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 6 — Flagship Games Audit Fix
-## Status: COMPLETE — All 14 Stage 6 audit findings resolved
-## Last Updated: 2026-03-27 (Stage 6 Audit Fix: Full resolution)
+## Current Phase: Stage 6 — Flagship Games Audit Fix + 3D Embedding
+## Status: COMPLETE — All 14 audit findings + 5 3D embedding issues resolved
+## Last Updated: 2026-03-27 (Stage 6 Audit Fix + 3D Embedding Audit)
 
 ---
 
@@ -70,6 +70,16 @@
 | S6-WARN-003 | WARNING | Resolved (Batch 2A) |
 | S6-WARN-004 | WARNING | Resolved (Batch 1B) |
 | S6-WARN-005 | WARNING | Resolved (Batch 2A) |
+
+**3D Embedding Audit (Batch 5, commit 18b47fc):**
+- [x] 3D-EMB-001 — SortScene3D: Wired in orphaned SortToyBoxEnvironment
+- [x] 3D-EMB-002 — NeuralNetwork3D: Removed duplicate Environment + EffectComposer
+- [x] 3D-EMB-003 — AgentPipeline3D: Removed duplicate Environment preset
+- [x] 3D-EMB-004 — BiasScales3D: Removed duplicate Environment preset
+- [x] 3D-EMB-005 — GameShell: Added cockpitBroadcastStore game-enter/game-exit events
+
+**Stage 6 Doc Updates (Batch 6):**
+- [x] Updated 11 stage documents with audit fix notes (6B A/B, 6C A/B, 6D A/B, 6E A/B, 6F A/B, 7B PartA)
 
 ---
 

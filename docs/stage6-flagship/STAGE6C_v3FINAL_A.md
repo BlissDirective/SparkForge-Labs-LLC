@@ -1,5 +1,9 @@
 # Stage 6C v3-FINAL Part A — Neural Network Builder 3D + Audio
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-002:** `NeuralNetwork3D.tsx` refactored from standalone `<Canvas>` to `<group>` (D3D-B1). Canvas, div wrapper, camera, dpr, gl removed — CockpitCanvas provides these.
+> - **3D Embedding:** Removed duplicate `<Environment preset="night"/>` from inner NetworkScene — `NeuralBuilderEnvironment` in outer group provides HDR. Removed redundant `EffectComposer/Bloom` — CockpitCanvas `PostProcessingStack` handles postprocessing (D3D-C1).
+
 **Version:** v3-FINAL (corrected)
 **Build Phase:** 11 (Stage 6C — Neural Builder, Part A: 3D component + audio hook)
 **Prerequisites:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure), Stage 5 complete
