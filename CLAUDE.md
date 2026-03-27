@@ -320,7 +320,7 @@ The Cockpit Architecture transforms the StationFrame shell into a full 3D comman
 
 **Phase 5C — Cockpit Architecture Part 1: Canvas, Camera & Shell Geometry**
 - **Source:** `COCKPIT_CPA2_v3FINAL_PartA.md` + `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` (Sections 2–4)
-- **Files created/upgraded:** `CockpitCanvas.tsx`, `CameraSystem.tsx`, `CockpitPanels.tsx` (2M tris), `SidePanels.tsx` (1.5M), `LEDRim.tsx` (200K), `HolographicHUD.tsx` (500K), `StatusBar3D.tsx` (500K), `CockpitStructuralDetail.tsx` (1.5M), `CockpitFloor3D.tsx` (500K)
+- **Files created/upgraded:** `CockpitCanvas.tsx` (camera [0,0.65,1.1]), `CameraSystem.tsx`, `CockpitPanels.tsx` (4M tris, 218° arc, r=4.8), `SidePanels.tsx` (3M, at [±2.35,0.25,-1.65]), `LEDRim.tsx` (500K, 1500 LEDs, emissive 3.0), `HolographicHUD.tsx` (1M), `StatusBar3D.tsx` (1M, at [0,-1.25,-1.95]), `CockpitStructuralDetail.tsx` (2M), `CockpitFloor3D.tsx` (1M)
 - **Files modified:** `StationFrame.tsx` (→ thin wrapper), `SpatialDashboard.tsx` (→ thin wrapper)
 - **Store updates:** `cockpitStore.ts` (spatial nav, skins, heroPhase), `cockpitConfig.ts` (TRIANGLE_BUDGET_V2)
 
