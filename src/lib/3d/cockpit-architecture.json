@@ -1,0 +1,781 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "meta": {
+    "name": "SparkForge 3D Panoramic Cockpit Architecture",
+    "version": "2.1",
+    "specDate": "2026-03-20",
+    "generatedDate": "2026-03-27",
+    "description": "Complete architectural definition for the 3D panoramic cockpit — geometry, triangle budgets, LOD levels, presets, skins, audio zones, scene graph, transitions, and decision locks.",
+    "sourceDocuments": [
+      "docs/00-reference/3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md",
+      "docs/00-reference/Upgrade-3D-Panoramic-Cockpit-2026-03-20.md",
+      "src/lib/3d/cockpitConfig.ts",
+      "src/stores/cockpitStore.ts",
+      "src/stores/sceneStore.ts",
+      "src/lib/audio/cockpitAudio.ts"
+    ],
+    "decisionLocks": "CPA2-1 through CPA2-15, D3D-B1 through D3D-B6"
+  },
+
+  "canvas": {
+    "component": "CockpitCanvas",
+    "file": "src/components/3d/CockpitCanvas.tsx",
+    "description": "Single persistent R3F Canvas for entire app lifecycle (CPA2-1, D3D-B1). Never unmounts.",
+    "renderer": {
+      "primary": "WebGPURenderer",
+      "fallback": "WebGL2",
+      "shaderLanguage": "TSL",
+      "tslCompilationTargets": ["WGSL", "GLSL"]
+    },
+    "config": {
+      "frameloop": "always",
+      "dpr": [1, 3],
+      "camera": {
+        "position": [0, 6.5, 7],
+        "fov": 58,
+        "near": 0.1,
+        "far": 200
+      },
+      "gl": {
+        "antialias": true,
+        "alpha": true,
+        "powerPreference": "high-performance",
+        "logarithmicDepthBuffer": true
+      }
+    },
+    "zIndexStack": [
+      { "zIndex": 0,  "layer": "R3F Canvas",            "content": "All 3D content (single canvas)" },
+      { "zIndex": 1,  "layer": "CSS station-frame-css",  "content": "Mobile fallback frame" },
+      { "zIndex": 2,  "layer": "CSS cockpit-indicators",  "content": "Mobile side indicators + status bar" },
+      { "zIndex": 5,  "layer": "CSS scanline-overlay",    "content": "CRT scanline effect" },
+      { "zIndex": 10, "layer": "HTML SpatialOverlay",     "content": "Lab info panel, nav hints, console quick-access" },
+      { "zIndex": 15, "layer": "HTML MiniMapOverlay",     "content": "Persistent mini-map (top-right)" },
+      { "zIndex": 20, "layer": "HTML Dashboard Content",  "content": "Actual page content (cards, grids, forms)" },
+      { "zIndex": 50, "layer": "HTML Modal Layer",        "content": "Modals, toasts, celebrations" }
+    ]
+  },
+
+  "geometry": {
+    "panelCurvature": 0.85,
+    "totalWrapArc": 140,
+    "panelRadius": 4.0,
+    "centralViewportWidth": 0.56,
+    "sidesPanelWidth": 0.12,
+    "topBarHeight": 0.10,
+    "consoleDeskHeight": 0.15,
+    "statusBarHeight": 0.05,
+    "hexRadius": 0.35,
+    "hexDepth": 0.02,
+    "hexDataTextureSize": 64,
+    "panelEdgeBevel": 0.005,
+    "topBarSegments": 256,
+    "sideSegments": 128,
+    "rivetSpacing": 0.15,
+    "cableBundleCount": 50,
+    "ventPanelCount": 12,
+    "floorGrateResolution": 64
+  },
+
+  "adaptiveCurvature": {
+    "ultraWide":   { "minWidth": 1920, "arc": 155, "radius": 4.2 },
+    "desktop":     { "minWidth": 1440, "arc": 140, "radius": 4.0 },
+    "tablet":      { "minWidth": 1024, "arc": 120, "radius": 3.6 },
+    "cssFallback": { "minWidth": 0,    "arc": 0,   "radius": 0 }
+  },
+
+  "triangleBudgets": {
+    "totalBudget": {
+      "desktop": 20000000,
+      "tablet": 10000000,
+      "mobile": 0
+    },
+    "cockpitShell": {
+      "subtotal":           { "desktop": 4950000,  "tablet": 2475000,  "mobile": 0 },
+      "cockpitPanels":      { "desktop": 2000000,  "tablet": 1000000,  "mobile": 0, "description": "256-seg curved hull, multi-layer, instanced rivets, animated sub-panels, hex gauge clusters" },
+      "ledRim":             { "desktop": 200000,   "tablet": 100000,   "mobile": 0, "description": "1000+ individual LED capsules, data visualization mode, audio-reactive pulse waves" },
+      "sidePanels":         { "desktop": 1500000,  "tablet": 750000,   "mobile": 0, "description": "Physical radar dish, 3D data columns, holographic text, chrome bezels, articulated mounting arms" },
+      "holographicHUD":     { "desktop": 500000,   "tablet": 250000,   "mobile": 0, "description": "8 concentric rings, data-display arcs, reticle, volumetric scan beams" },
+      "statusBar3D":        { "desktop": 500000,   "tablet": 250000,   "mobile": 0, "description": "Full circular XP speedometer, volumetric flame sculpture, 10 miniature lab indicators" },
+      "auroraBackground":   { "desktop": 50000,    "tablet": 25000,    "mobile": 0, "description": "Volumetric layers with 3D depth geometry, 3 ribbon TubeGeometry paths" },
+      "ambientParticles":   { "desktop": 200000,   "tablet": 100000,   "mobile": 0, "description": "Instanced icosahedron particles with trails and halos" }
+    },
+    "spatialContent": {
+      "subtotal":            { "desktop": 11000000, "tablet": 5500000,  "mobile": 0 },
+      "holographicLabMap":   { "desktop": 1000000,  "tablet": 500000,   "mobile": 0, "description": "Multi-layer geodesic shells, data highway splines, holographic projector pedestal" },
+      "labStructures":       { "desktop": 3000000,  "tablet": 1500000,  "mobile": 0, "description": "300K/lab × 10 labs: subdivision surfaces, interior mechanisms, dioramas" },
+      "interactiveConsoles": { "desktop": 2000000,  "tablet": 1000000,  "mobile": 0, "description": "500K/console × 4: multi-part housing, projector base, instrument cluster" },
+      "ambientNPCs":         { "desktop": 1500000,  "tablet": 750000,   "mobile": 0, "description": "187K/bot × 8: articulated body, facial animation, finger grippers" },
+      "dynamicEnvironment":  { "desktop": 3000000,  "tablet": 1500000,  "mobile": 0, "description": "Volumetric fog, environmental props, weather effects" },
+      "starsSkybox":         { "desktop": 500000,   "tablet": 250000,   "mobile": 0, "description": "Enhanced starfield with nebula geometry" }
+    },
+    "newComponents": {
+      "subtotal":                 { "desktop": 3550000, "tablet": 1775000, "mobile": 0 },
+      "cockpitStructuralDetail":  { "desktop": 1500000, "tablet": 750000,  "mobile": 0, "description": "Cable bundles, conduit pipes, ventilation panels, structural ribs, LED indicator strips" },
+      "volumetricFog":            { "desktop": 500000,  "tablet": 250000,  "mobile": 0, "description": "Fog volumes, god ray cones, density layers with FBM noise" },
+      "cockpitFloor":             { "desktop": 500000,  "tablet": 250000,  "mobile": 0, "description": "Grated floor, sub-floor piping, energy conduits, LED channels" },
+      "ceremonyFX":               { "desktop": 500000,  "tablet": 250000,  "mobile": 0, "description": "Instanced confetti, fireworks, 3D trophies, HUD ring expansion" },
+      "wormholeTransition":       { "desktop": 300000,  "tablet": 150000,  "mobile": 0, "description": "Tunnel interior, swirling energy walls, speed lines, portal rings" },
+      "miniMapOverlay":           { "desktop": 250000,  "tablet": 125000,  "mobile": 0, "description": "Miniature lab ring, player indicator, completion color-coding" }
+    },
+    "dynamicHeadroom": { "desktop": 500000, "tablet": 250000, "mobile": 0 }
+  },
+
+  "lod": {
+    "ultra": {
+      "panelSegments": 256,
+      "sideSegments": 128,
+      "hexDetail": true,
+      "hexSubPanels": true,
+      "hudRingSegments": 128,
+      "hudRingCount": 8,
+      "scanLines": 24,
+      "barrelDistortion": true,
+      "reflections": true,
+      "structuralDetail": true,
+      "volumetricFog": true,
+      "floorDetail": true,
+      "npcFingers": true,
+      "npcFacialAnim": true
+    },
+    "high": {
+      "panelSegments": 128,
+      "sideSegments": 64,
+      "hexDetail": true,
+      "hexSubPanels": true,
+      "hudRingSegments": 64,
+      "hudRingCount": 6,
+      "scanLines": 16,
+      "barrelDistortion": true,
+      "reflections": true,
+      "structuralDetail": true,
+      "volumetricFog": true,
+      "floorDetail": true,
+      "npcFingers": false,
+      "npcFacialAnim": true
+    },
+    "medium": {
+      "panelSegments": 64,
+      "sideSegments": 32,
+      "hexDetail": false,
+      "hexSubPanels": false,
+      "hudRingSegments": 32,
+      "hudRingCount": 4,
+      "scanLines": 8,
+      "barrelDistortion": false,
+      "reflections": false,
+      "structuralDetail": false,
+      "volumetricFog": false,
+      "floorDetail": false,
+      "npcFingers": false,
+      "npcFacialAnim": false
+    },
+    "low": {
+      "panelSegments": 32,
+      "sideSegments": 16,
+      "hexDetail": false,
+      "hexSubPanels": false,
+      "hudRingSegments": 16,
+      "hudRingCount": 3,
+      "scanLines": 6,
+      "barrelDistortion": false,
+      "reflections": false,
+      "structuralDetail": false,
+      "volumetricFog": false,
+      "floorDetail": false,
+      "npcFingers": false,
+      "npcFacialAnim": false
+    }
+  },
+
+  "fpsDegradation": [
+    { "minFpsPercent": 0.9, "action": "Full quality" },
+    { "minFpsPercent": 0.8, "action": "Reduce particle counts by 30%" },
+    { "minFpsPercent": 0.6, "action": "Drop to next LOD level, disable BarrelDistortion" },
+    { "minFpsPercent": 0.4, "action": "Disable HolographicHUD, reduce NPC count by half" },
+    { "minFpsPercent": 0.0, "action": "Disable all cockpit 3D, fall back to CSS frame" }
+  ],
+
+  "modePresets": {
+    "bloom": {
+      "dashboard":    { "intensity": 0.4,  "threshold": 0.6,  "smoothing": 0.9 },
+      "labmap":       { "intensity": 0.5,  "threshold": 0.55, "smoothing": 0.85 },
+      "lab":          { "intensity": 0.5,  "threshold": 0.5,  "smoothing": 0.85 },
+      "game":         { "intensity": 0.3,  "threshold": 0.7,  "smoothing": 0.95 },
+      "celebration":  { "intensity": 0.8,  "threshold": 0.3,  "smoothing": 0.7 },
+      "gameComplete": { "intensity": 1.0,  "threshold": 0.2,  "smoothing": 0.6 },
+      "profile":      { "intensity": 0.4,  "threshold": 0.6,  "smoothing": 0.9 },
+      "onboarding":   { "intensity": 0.35, "threshold": 0.65, "smoothing": 0.9 },
+      "parent":       { "intensity": 0.3,  "threshold": 0.7,  "smoothing": 0.95 },
+      "admin":        { "intensity": 0.25, "threshold": 0.75, "smoothing": 0.95 }
+    },
+    "camera": {
+      "dashboard":    { "fov": 56, "distortion": 0.02 },
+      "labmap":       { "fov": 58, "distortion": 0.02 },
+      "lab":          { "fov": 55, "distortion": 0.015 },
+      "game":         { "fov": 52, "distortion": 0.0 },
+      "celebration":  { "fov": 58, "distortion": 0.025 },
+      "profile":      { "fov": 54, "distortion": 0.01 },
+      "onboarding":   { "fov": 52, "distortion": 0.01 },
+      "parent":       { "fov": 54, "distortion": 0.01 },
+      "admin":        { "fov": 52, "distortion": 0.0 }
+    },
+    "vignette": {
+      "dashboard":    { "darkness": 0.5,  "offset": 0.3 },
+      "labmap":       { "darkness": 0.4,  "offset": 0.3 },
+      "lab":          { "darkness": 0.5,  "offset": 0.3 },
+      "game":         { "darkness": 0.6,  "offset": 0.25 },
+      "celebration":  { "darkness": 0.3,  "offset": 0.4 },
+      "profile":      { "darkness": 0.5,  "offset": 0.3 },
+      "onboarding":   { "darkness": 0.4,  "offset": 0.35 },
+      "parent":       { "darkness": 0.45, "offset": 0.3 },
+      "admin":        { "darkness": 0.4,  "offset": 0.3 }
+    },
+    "hud": {
+      "dashboard":    { "opacity": 0.15, "rotationSpeed": 0.1,  "pulseIntensity": 0.3,  "dataMode": "minimap" },
+      "labmap":       { "opacity": 0.18, "rotationSpeed": 0.15, "pulseIntensity": 0.4,  "dataMode": "minimap" },
+      "lab":          { "opacity": 0.20, "rotationSpeed": 0.2,  "pulseIntensity": 0.5,  "dataMode": "labfocus" },
+      "game":         { "opacity": 0.0,  "rotationSpeed": 0,    "pulseIntensity": 0,    "dataMode": "hidden" },
+      "celebration":  { "opacity": 0.85, "rotationSpeed": 0.4,  "pulseIntensity": 1.0,  "dataMode": "burst" },
+      "gameComplete": { "opacity": 1.0,  "rotationSpeed": 0.5,  "pulseIntensity": 1.0,  "dataMode": "burst" },
+      "profile":      { "opacity": 0.12, "rotationSpeed": 0.08, "pulseIntensity": 0.2,  "dataMode": "stats" },
+      "onboarding":   { "opacity": 0.10, "rotationSpeed": 0.05, "pulseIntensity": 0.15, "dataMode": "tutorial" },
+      "parent":       { "opacity": 0.08, "rotationSpeed": 0.05, "pulseIntensity": 0.1,  "dataMode": "stats" },
+      "admin":        { "opacity": 0.06, "rotationSpeed": 0.03, "pulseIntensity": 0.05, "dataMode": "stats" }
+    },
+    "panelCurvature": {
+      "dashboard": 0.85, "labmap": 0.85, "lab": 0.85,
+      "game": 0.3, "celebration": 0.85, "profile": 0.85,
+      "onboarding": 0.7, "parent": 0.6, "admin": 0.5
+    },
+    "panelOpacity": {
+      "dashboard": 1.0, "labmap": 1.0, "lab": 1.0,
+      "game": 0.2, "celebration": 1.0, "profile": 1.0,
+      "onboarding": 0.8, "parent": 0.7, "admin": 0.6
+    },
+    "statusBar": {
+      "dashboard": { "opacity": 1.0 },  "labmap": { "opacity": 1.0 },
+      "lab": { "opacity": 1.0 },        "game": { "opacity": 0.15 },
+      "celebration": { "opacity": 1.0 }, "profile": { "opacity": 1.0 },
+      "onboarding": { "opacity": 0.6 }, "parent": { "opacity": 0.7 },
+      "admin": { "opacity": 0.5 }
+    },
+    "sidePanels": {
+      "dashboard":    { "opacity": 0.6, "leftContent": "radar",   "rightContent": "stats" },
+      "labmap":       { "opacity": 0.7, "leftContent": "labNav",  "rightContent": "stats" },
+      "lab":          { "opacity": 0.5, "leftContent": "labNav",  "rightContent": "stats" },
+      "game":         { "opacity": 0.0, "leftContent": "radar",   "rightContent": "stats" },
+      "celebration":  { "opacity": 0.3, "leftContent": "radar",   "rightContent": "terminal" },
+      "profile":      { "opacity": 0.4, "leftContent": "radar",   "rightContent": "stats" },
+      "onboarding":   { "opacity": 0.3, "leftContent": "radar",   "rightContent": "stats" },
+      "parent":       { "opacity": 0.3, "leftContent": "stats",   "rightContent": "stats" },
+      "admin":        { "opacity": 0.2, "leftContent": "terminal", "rightContent": "stats" }
+    }
+  },
+
+  "skins": {
+    "available": ["default", "cyberpunk", "space", "underwater", "crystal"],
+    "unlockConditions": {
+      "default":    { "condition": "Always available",                      "badge": null },
+      "cyberpunk":  { "condition": "Complete all Lab 9 games",              "badge": "Digital Pioneer" },
+      "space":      { "condition": "Earn 10,000 total XP",                  "badge": "Star Navigator" },
+      "underwater": { "condition": "Maintain a 30-day streak",              "badge": "Deep Diver" },
+      "crystal":    { "condition": "Complete ALL 35 games at least once",   "badge": "Crystal Commander" }
+    },
+    "panelTints": {
+      "default":    { "panelTint": "#1a1e2e", "hexGlow": "lab",     "chromeReflection": "frost-prismatic" },
+      "cyberpunk":  { "panelTint": "#2a0030", "hexGlow": "#FF00FF", "chromeReflection": "neon-grid" },
+      "space":      { "panelTint": "#0a0a1e", "hexGlow": "#4444FF", "chromeReflection": "starfield" },
+      "underwater": { "panelTint": "#0a1a2e", "hexGlow": "#00BBFF", "chromeReflection": "caustic" },
+      "crystal":    { "panelTint": "#1a0828", "hexGlow": "#AA66FF", "chromeReflection": "prismatic" }
+    },
+    "consoleFrameStyles": {
+      "default":    { "material": "chrome",     "edgeGlow": true,  "transmission": 0.4, "bracketStyle": "angular" },
+      "cyberpunk":  { "material": "darkChrome", "edgeGlow": true,  "transmission": 0.3, "bracketStyle": "neon" },
+      "space":      { "material": "titanium",   "edgeGlow": false, "transmission": 0.5, "bracketStyle": "minimal" },
+      "underwater": { "material": "copper",     "edgeGlow": true,  "transmission": 0.6, "bracketStyle": "organic" },
+      "crystal":    { "material": "glass",      "edgeGlow": true,  "transmission": 0.8, "bracketStyle": "faceted" }
+    },
+    "skinReactiveElements": {
+      "default":    { "ledColor": "labColor", "hudRingColor": "labColor",    "scanLineSweep": "white",          "npcVisorColor": "#00BBFF", "particlePhysics": "drift" },
+      "cyberpunk":  { "ledColor": "#FF00FF",  "hudRingColor": "magenta/cyan", "scanLineSweep": "neon pink",      "npcVisorColor": "#FF00FF", "particlePhysics": "drift-fast" },
+      "space":      { "ledColor": "#4444FF",  "hudRingColor": "deep blue",   "scanLineSweep": "cool blue",      "npcVisorColor": "#AACCFF", "particlePhysics": "sparkle-slow" },
+      "underwater": { "ledColor": "#00BBFF",  "hudRingColor": "aqua",        "scanLineSweep": "caustic pattern", "npcVisorColor": "#66DDFF", "particlePhysics": "rise-bubbles" },
+      "crystal":    { "ledColor": "#AA66FF",  "hudRingColor": "purple",      "scanLineSweep": "prismatic",      "npcVisorColor": "#D946EF", "particlePhysics": "sparkle-orbit" }
+    },
+    "transitionSequence": {
+      "totalDuration": 2500,
+      "phases": [
+        { "name": "dissolveOut", "start": 0,    "end": 500,  "description": "Current skin fades via dithered dissolve shader" },
+        { "name": "flash",       "start": 500,  "end": 700,  "description": "Brief white flash (bloom spike to 2.0)" },
+        { "name": "dissolveIn",  "start": 700,  "end": 2000, "description": "New skin elements materialize with particle burst" },
+        { "name": "settle",      "start": 2000, "end": 2500, "description": "All elements reach steady state" }
+      ]
+    },
+    "previewDuration": 30
+  },
+
+  "transitions": {
+    "modeTransitions": {
+      "dashboard-to-lab":        { "duration": 800,  "easing": "spring(300, 25)" },
+      "lab-to-game":             { "duration": 600,  "easing": "easeInOut" },
+      "game-to-lab":             { "duration": 400,  "easing": "easeOut" },
+      "lab-to-dashboard":        { "duration": 800,  "easing": "spring(300, 25)" },
+      "any-to-celebration":      { "duration": 200,  "easing": "easeIn" },
+      "celebration-to-previous": { "duration": 1200, "easing": "easeOut" }
+    },
+    "irisTransition": {
+      "component": "MechanicalIris",
+      "duration": 600,
+      "usedFor": ["cockpit-to-game", "game-to-cockpit"],
+      "decision": "D3D-B2"
+    },
+    "wormholeTransition": {
+      "component": "WormholeTransition",
+      "file": "src/components/3d/WormholeTransition.tsx",
+      "triangles": 300000,
+      "totalDuration": 2500,
+      "usedFor": "lab-to-lab within spatial dashboard",
+      "sequence": [
+        { "phase": "cameraAcceleration", "start": 0,    "end": 800,  "description": "Camera flies toward focused lab at increasing speed" },
+        { "phase": "wormholeOpen",       "start": 800,  "end": 1200, "description": "Torus geometry expands, inner surface has lab-colored energy shader" },
+        { "phase": "tunnelTransit",      "start": 1200, "end": 2000, "description": "Camera passes through CylinderGeometry tunnel with animated UV shader" },
+        { "phase": "emerge",             "start": 2000, "end": 2500, "description": "Tunnel dissolves, lab page content fades in" }
+      ]
+    },
+    "heroToCockpit": {
+      "duration": 5000,
+      "overlapWindow": { "heroFadeStart": 14000, "cockpitMaterializeStart": 14000, "heroFadeEnd": 17000, "cockpitCompleteAt": 19000 },
+      "cameraHandoff": {
+        "heroFinalPosition": [0, 6.5, 7],
+        "heroFinalFov": 58,
+        "cockpitStartPosition": [0, 6.5, 7],
+        "cockpitStartFov": 58
+      },
+      "decision": "CPA2-3"
+    }
+  },
+
+  "ceremonies": {
+    "types": {
+      "xp":              { "bloomPeak": 0.6, "particleCount": 50,  "hudExpansion": 1.1, "duration": 1500 },
+      "badge":           { "bloomPeak": 0.8, "particleCount": 100, "hudExpansion": 1.3, "duration": 2000 },
+      "levelUp":         { "bloomPeak": 1.0, "particleCount": 200, "hudExpansion": 1.5, "duration": 3000 },
+      "gameComplete":    { "bloomPeak": 0.9, "particleCount": 150, "hudExpansion": 1.4, "duration": 2500 },
+      "streakMilestone": { "bloomPeak": 0.7, "particleCount": 80,  "hudExpansion": 1.2, "duration": 2000 }
+    },
+    "sequence": [
+      { "phase": "bloomSpike",   "start": 0.0, "end": 0.3, "description": "Bloom intensity jumps, vignette darkens" },
+      { "phase": "hudFlare",     "start": 0.3, "end": 1.0, "description": "HUD rings expand, scan lines spin rapidly, core sphere pulses" },
+      { "phase": "panelPulse",   "start": 1.0, "end": 1.5, "description": "Panels flash lab color, hex clusters strobe in sequence (50ms stagger)" },
+      { "phase": "particleBurst","start": 1.5, "end": 2.0, "description": "Particles explode from center (additive blending, lab-colored, gravity-affected)" },
+      { "phase": "settle",       "start": 2.0, "end": 3.0, "description": "All elements smoothly return to pre-ceremony state" }
+    ],
+    "component": "CeremonyFX",
+    "file": "src/components/3d/CeremonyFX.tsx",
+    "triangles": 500000
+  },
+
+  "sceneGraph": {
+    "description": "Unified scene composition order within CockpitCanvas (painter's algorithm)",
+    "layers": [
+      {
+        "name": "Background",
+        "order": 1,
+        "components": [
+          { "name": "CockpitSkinManager", "description": "Skin-specific background (stars/nebula/caustics/crystals/grid)" },
+          { "name": "AuroraBackground",   "triangles": 50000, "description": "Volumetric aurora layers, 3 ribbon TubeGeometry paths" }
+        ]
+      },
+      {
+        "name": "SpatialContent",
+        "order": 2,
+        "components": [
+          { "name": "HolographicLabMap",   "triangles": 1000000,  "instances": 1 },
+          { "name": "InteractiveConsole3D","triangles": 500000,   "instances": 4, "totalTriangles": 2000000 },
+          { "name": "AmbientNPCs",         "triangles": 187500,   "instances": 8, "totalTriangles": 1500000 },
+          { "name": "DynamicEnvironment",  "triangles": 3000000,  "instances": 1 }
+        ]
+      },
+      {
+        "name": "CockpitShell",
+        "order": 3,
+        "components": [
+          { "name": "CockpitPanels",           "triangles": 2000000 },
+          { "name": "LEDRim",                  "triangles": 200000 },
+          { "name": "SidePanels",              "triangles": 1500000 },
+          { "name": "StatusBar3D",             "triangles": 500000 },
+          { "name": "HolographicHUD",          "triangles": 500000 },
+          { "name": "CockpitStructuralDetail", "triangles": 1500000 },
+          { "name": "CockpitFloor3D",          "triangles": 500000 },
+          { "name": "VolumetricFog3D",         "triangles": 500000 }
+        ]
+      },
+      {
+        "name": "Postprocessing",
+        "order": 4,
+        "effects": [
+          { "name": "N8AO",                "description": "Screen-space ambient occlusion" },
+          { "name": "Bloom",               "description": "Luminance glow, adaptive threshold per scene" },
+          { "name": "ChromaticAberration",  "description": "RGB offset, sci-fi aesthetic" },
+          { "name": "DepthOfField",         "description": "Subtle tilt-shift focus" },
+          { "name": "Noise",               "description": "Film grain (6% opacity)" },
+          { "name": "HueSaturation",       "description": "Per-lab color grading with hue shifts" },
+          { "name": "BrightnessContrast",  "description": "Scene-reactive contrast" },
+          { "name": "Vignette",            "description": "Edge darkening" },
+          { "name": "BarrelDistortion",    "description": "Custom lens distortion" }
+        ],
+        "sceneMultipliers": {
+          "game":          { "bloom": 1.2, "chromatic": 0.5, "ssao": 0.8, "dof": 0.5, "noise": 1.0, "vignette": 0.8, "barrel": 0.0 },
+          "spatial":       { "bloom": 1.0, "chromatic": 0.8, "ssao": 1.2, "dof": 1.5, "noise": 0.8, "vignette": 1.0, "barrel": 2.0 },
+          "hero":          { "bloom": 1.5, "chromatic": 1.2, "ssao": 0.6, "dof": 0.3, "noise": 1.2, "vignette": 1.2, "barrel": 1.5 },
+          "transitioning": { "bloom": 1.8, "chromatic": 1.5, "ssao": 0.4, "dof": 0.2, "noise": 0.5, "vignette": 1.3, "barrel": 2.0 },
+          "cockpit":       { "bloom": 1.0, "chromatic": 1.0, "ssao": 1.0, "dof": 1.0, "noise": 1.0, "vignette": 1.0, "barrel": 1.0 }
+        }
+      },
+      {
+        "name": "TransitionFX",
+        "order": 5,
+        "components": [
+          { "name": "WormholeTransition", "triangles": 300000, "trigger": "lab entry/exit" },
+          { "name": "CeremonyFX",         "triangles": 500000, "trigger": "achievement/level-up" },
+          { "name": "MechanicalIris",     "trigger": "cockpit-to-game / game-to-cockpit" },
+          { "name": "MiniMapOverlay3D",   "triangles": 250000, "persistent": true }
+        ]
+      }
+    ]
+  },
+
+  "audio": {
+    "engine": "CockpitAudioEngine",
+    "file": "src/lib/audio/cockpitAudio.ts",
+    "hook": "src/hooks/useCockpitAudio.ts",
+    "api": "Web Audio API (native AudioContext)",
+    "spatialZones": {
+      "cockpit-ambient": { "source": "generative", "position": [0, 0, 0],      "radius": 20, "volume": 0.15, "skinVariations": true },
+      "console-xp":      { "source": "sfx",        "position": [-3, -1, 2],    "radius": 4,  "volume": 0.3,  "trigger": "proximity" },
+      "console-badges":  { "source": "sfx",        "position": [3, -1, 2],     "radius": 4,  "volume": 0.3,  "trigger": "proximity" },
+      "console-streak":  { "source": "sfx",        "position": [-3, -1, -3],   "radius": 4,  "volume": 0.3,  "trigger": "proximity" },
+      "console-progress":{ "source": "sfx",        "position": [3, -1, -3],    "radius": 4,  "volume": 0.3,  "trigger": "proximity" },
+      "hologram-core":   { "source": "generative", "position": [0, 0, 0],      "radius": 6,  "volume": 0.1,  "modulation": "labColor" },
+      "led-rim":         { "source": "sfx",        "position": [0, 3.5, -4],   "radius": 5,  "volume": 0.05, "trigger": "always" },
+      "hud-scan":        { "source": "sfx",        "position": [0, 2, -3],     "radius": 6,  "volume": 0.08, "trigger": "always" },
+      "npc-chatter":     { "source": "sfx",        "position": [0, 0, 0],      "radius": 8,  "volume": 0.12, "trigger": "contextual" },
+      "radar-ping":      { "source": "sfx",        "position": [-4, 0.5, -1],  "radius": 5,  "volume": 0.1,  "trigger": "periodic" }
+    },
+    "events": [
+      "console-focus", "console-unfocus", "lab-select", "lab-enter", "lab-exit",
+      "hud-scan-sweep", "hud-ring-rotate", "ceremony-fanfare", "ceremony-firework",
+      "ceremony-levelup", "wormhole-enter", "wormhole-exit", "npc-beep",
+      "panel-click", "led-pulse", "xp-tick"
+    ],
+    "skinSoundscapes": {
+      "default":    { "droneFreq": 55, "droneVolume": 0.04,  "noiseFilterFreq": 200, "noiseVolume": 0.015, "resonanceFreq": 440, "resonanceQ": 5,  "ambient": "Low synth pad (C2)",       "transition": "Crystal shimmer" },
+      "cyberpunk":  { "droneFreq": 60, "droneVolume": 0.05,  "noiseFilterFreq": 300, "noiseVolume": 0.02,  "resonanceFreq": 880, "resonanceQ": 8,  "ambient": "Distorted bass (Fm7)",     "transition": "Neon buzz surge" },
+      "space":      { "droneFreq": 45, "droneVolume": 0.03,  "noiseFilterFreq": 150, "noiseVolume": 0.01,  "resonanceFreq": 330, "resonanceQ": 3,  "ambient": "Deep space drone (Cm)",     "transition": "Airlock whoosh" },
+      "underwater": { "droneFreq": 50, "droneVolume": 0.04,  "noiseFilterFreq": 400, "noiseVolume": 0.025, "resonanceFreq": 550, "resonanceQ": 6,  "ambient": "Filtered bubbles (bandpass)", "transition": "Submersion gurgle" },
+      "crystal":    { "droneFreq": 65, "droneVolume": 0.035, "noiseFilterFreq": 250, "noiseVolume": 0.012, "resonanceFreq": 660, "resonanceQ": 10, "ambient": "Glass harmonica (Am)",       "transition": "Prism refraction ring" }
+    }
+  },
+
+  "spatialNavigation": {
+    "labRing": {
+      "radius": 3.8,
+      "labCount": 10,
+      "angleStep": 0.6283185307179586,
+      "startAngle": -1.5707963267948966,
+      "positions": {
+        "1":  [ 0.000,  0, -3.800],
+        "2":  [ 2.343,  0, -2.994],
+        "3":  [ 3.614,  0, -0.760],
+        "4":  [ 3.071,  0,  1.813],
+        "5":  [ 1.174,  0,  3.614],
+        "6":  [-1.174,  0,  3.614],
+        "7":  [-3.071,  0,  1.813],
+        "8":  [-3.614,  0, -0.760],
+        "9":  [-2.343,  0, -2.994],
+        "10": [-0.000,  0, -3.800]
+      }
+    },
+    "cameraPresets": {
+      "overview":  { "position": [0, 6.5, 7],   "lookAt": [0, -0.5, 0], "fov": 58 },
+      "lab-focus": { "position": [0, 2.5, 2],   "lookAt": [0, 0, 0],    "fov": 50 },
+      "console":   { "position": [0, 1.8, 3.5], "lookAt": [0, 0.5, 0],  "fov": 52 },
+      "orbit":     { "position": [0, 4, 5],     "lookAt": [0, 0, 0],    "fov": 55 }
+    },
+    "consolePositions": {
+      "xp":       { "position": [-3, -1, 2],  "rotation": [0, 0.3, 0] },
+      "badges":   { "position": [3, -1, 2],   "rotation": [0, -0.3, 0] },
+      "streak":   { "position": [-3, -1, -3], "rotation": [0, 0.3, 0] },
+      "progress": { "position": [3, -1, -3],  "rotation": [0, -0.3, 0] }
+    }
+  },
+
+  "sceneRouting": {
+    "component": "SceneRouter",
+    "file": "src/components/3d/SceneRouter.tsx",
+    "store": "src/stores/sceneStore.ts",
+    "scenes": ["hero", "cockpit", "spatial", "game", "transitioning"],
+    "transitionTypes": ["iris-open", "iris-close", "hero-to-cockpit", "cockpit-to-spatial", "none"],
+    "cockpitOpacity": {
+      "normal": 1.0,
+      "duringGame": 0.2,
+      "decision": "D3D-B6"
+    },
+    "visibilityRules": {
+      "hero":          { "heroGroup": true,  "cockpitGroup": false, "spatialGroup": false, "gameGroup": false },
+      "cockpit":       { "heroGroup": false, "cockpitGroup": true,  "spatialGroup": false, "gameGroup": false },
+      "spatial":       { "heroGroup": false, "cockpitGroup": true,  "spatialGroup": true,  "gameGroup": false },
+      "game":          { "heroGroup": false, "cockpitGroup": true,  "spatialGroup": false, "gameGroup": true },
+      "transitioning": { "heroGroup": "depends", "cockpitGroup": true, "spatialGroup": "depends", "gameGroup": "depends" }
+    }
+  },
+
+  "stateMachine": {
+    "description": "Cockpit mode state machine — navigation flow between spatial views",
+    "states": ["overview", "lab-focus", "lab-page", "game", "celebration", "console"],
+    "transitions": [
+      { "from": "overview",    "to": "lab-focus",   "trigger": "Arrow / Click on lab" },
+      { "from": "lab-focus",   "to": "lab-page",    "trigger": "Enter / Double-click" },
+      { "from": "lab-page",    "to": "game",        "trigger": "Game launch" },
+      { "from": "game",        "to": "celebration",  "trigger": "Game complete" },
+      { "from": "celebration", "to": "previous",     "trigger": "Animation complete (auto)" },
+      { "from": "any",         "to": "overview",     "trigger": "Escape key" },
+      { "from": "overview",    "to": "console",      "trigger": "Tab / Click console" },
+      { "from": "lab-focus",   "to": "console",      "trigger": "Tab / Click console" },
+      { "from": "console",     "to": "previous",     "trigger": "Escape / Click outside" }
+    ],
+    "heroPhases": {
+      "states": ["idle", "animating", "materializing", "complete"],
+      "flow": [
+        { "from": "idle",           "to": "animating",     "trigger": "First visit / hero sequence starts" },
+        { "from": "animating",      "to": "materializing", "trigger": "t=14s (hero Phase 6 → cockpit crossfade)" },
+        { "from": "materializing",  "to": "complete",      "trigger": "t=19s (cockpit fully materialized)" }
+      ]
+    }
+  },
+
+  "hudDataRings": {
+    "rings": [
+      { "index": 0, "name": "outer",  "innerRadius": 4.8, "outerRadius": 5.1,  "zOffset": -0.12, "rotationDir": -1, "speedMultiplier": 1.0,  "dataBinding": "Session time (fills clockwise over 60min)" },
+      { "index": 1, "name": "ring2",  "innerRadius": 4.2, "outerRadius": 4.45, "zOffset": -0.08, "rotationDir": 1,  "speedMultiplier": 0.8,  "dataBinding": "Lab progress (10 segments, each lit = lab completed)" },
+      { "index": 2, "name": "ring3",  "innerRadius": 3.6, "outerRadius": 3.82, "zOffset": -0.04, "rotationDir": -1, "speedMultiplier": 0.65, "dataBinding": null },
+      { "index": 3, "name": "ring4",  "innerRadius": 3.0, "outerRadius": 3.2,  "zOffset": 0.0,   "rotationDir": 1,  "speedMultiplier": 0.5,  "dataBinding": "Data arc: progress + xp" },
+      { "index": 4, "name": "ring5",  "innerRadius": 2.4, "outerRadius": 2.58, "zOffset": 0.04,  "rotationDir": -1, "speedMultiplier": 0.4,  "dataBinding": "Data arc: streak + level" },
+      { "index": 5, "name": "ring6",  "innerRadius": 1.8, "outerRadius": 1.96, "zOffset": 0.08,  "rotationDir": 1,  "speedMultiplier": 0.3,  "dataBinding": "Data arc: badges + games" },
+      { "index": 6, "name": "ring7",  "innerRadius": 1.2, "outerRadius": 1.36, "zOffset": 0.12,  "rotationDir": -1, "speedMultiplier": 0.2,  "dataBinding": "Data arc: session + lab" },
+      { "index": 7, "name": "inner",  "innerRadius": 0.7, "outerRadius": 0.84, "zOffset": 0.16,  "rotationDir": 1,  "speedMultiplier": 0.15, "dataBinding": "XP to next level (fill ring, pulsing at >90%)" }
+    ],
+    "coreSphere": {
+      "dataBinding": "Current level (size scales with level 1-50)"
+    },
+    "cardinalLabels": [
+      { "text": "SYS:NOMINAL",  "angle": 0 },
+      { "text": "NET:ACTIVE",   "angle": 1.5707963 },
+      { "text": "AI:ONLINE",    "angle": 3.1415926 },
+      { "text": "XP:TRACKING",  "angle": 4.7123889 }
+    ],
+    "scanBeamCount": 24,
+    "dataModes": ["minimap", "labfocus", "hidden", "burst", "stats", "tutorial"]
+  },
+
+  "hexClusters": {
+    "left": {
+      "count": 3,
+      "purpose": "Lab Navigation",
+      "hexes": [
+        { "index": 0, "binding": "Active lab indicator (pulsing lab color, lab number texture)" },
+        { "index": 1, "binding": "Lab completion ring (fill = completion %)" },
+        { "index": 2, "binding": "Next recommended lab (mission marker pulse)" }
+      ]
+    },
+    "right": {
+      "count": 3,
+      "purpose": "Status Indicators",
+      "hexes": [
+        { "index": 0, "binding": "XP rate indicator (sparkle speed = recent XP/min)" },
+        { "index": 1, "binding": "Streak status (flame opacity = streak heat)" },
+        { "index": 2, "binding": "Alert indicator (badge earned, friend request, challenge)" }
+      ]
+    }
+  },
+
+  "npcSystem": {
+    "maxCount": { "desktop": 8, "tablet": 4, "mobile": 0 },
+    "trianglesPerBot": 187500,
+    "personalityTypes": ["scout", "engineer", "medic", "guardian", "scholar"],
+    "behaviorStates": [
+      { "state": "idle",        "trigger": "No activity for 30s",   "animation": "Bobs gently, occasionally looks around" },
+      { "state": "curious",     "trigger": "Child hovers a lab",    "animation": "Turns to face lab, antennae perk up" },
+      { "state": "excited",     "trigger": "XP earned",             "animation": "Jumps, particle trail, celebration chirp" },
+      { "state": "guiding",     "trigger": "No activity 2min",      "animation": "Floats toward recommended lab, leaves trail" },
+      { "state": "sleeping",    "trigger": "Idle for 5min+",        "animation": "Settles on console, ZZZ particles, dims" },
+      { "state": "celebrating", "trigger": "Badge/level-up",        "animation": "Full celebration animation (spins, fireworks)" }
+    ],
+    "petCompanion": {
+      "enabled": true,
+      "perchPositions": {
+        "default": [1.5, 1.0, 2.0],
+        "console": [-1.0, 0.5, 3.0],
+        "focused": "dynamic",
+        "guiding": "dynamic"
+      }
+    }
+  },
+
+  "accessibility": {
+    "keyboardNavigation": [
+      { "key": "ArrowLeft/Right", "context": "Overview",       "action": "Cycle through labs" },
+      { "key": "ArrowUp/Down",    "context": "Lab focus",      "action": "Cycle through games in lab" },
+      { "key": "Enter",           "context": "Lab focused",    "action": "Enter lab" },
+      { "key": "Enter",           "context": "Game focused",   "action": "Launch game" },
+      { "key": "Escape",          "context": "Any depth",      "action": "Go back one level" },
+      { "key": "Tab",             "context": "Any",            "action": "Cycle through console quick-access buttons" },
+      { "key": "Space",           "context": "Console focused","action": "Toggle console detail panel" },
+      { "key": "1-0",             "context": "Overview",       "action": "Jump to Lab 1-10 directly" },
+      { "key": "M",               "context": "Any",            "action": "Toggle mini-map visibility" },
+      { "key": "N",               "context": "Any",            "action": "Toggle NPC visibility" }
+    ],
+    "ariaStructure": {
+      "root": { "role": "application", "label": "SparkForge Command Bridge" },
+      "labNav": { "role": "navigation", "label": "Lab Navigation", "childRole": "list", "childLabel": "10 Science Labs" },
+      "consoles": { "role": "complementary", "label": "Status Consoles", "childRole": "status" }
+    },
+    "reducedMotion": {
+      "transitions": "instant (0ms)",
+      "hudRings": "static",
+      "npcMovement": "disabled",
+      "particles": "static points",
+      "barrelDistortion": "disabled",
+      "bloomIntensity": 0.2,
+      "cameraTransitions": "direct cut (no spring)",
+      "ceremonies": "static overlay"
+    }
+  },
+
+  "progressiveEnhancement": {
+    "fullCockpit3D":    { "minWidth": 1024, "minGPU": "medium" },
+    "reducedCockpit3D": { "minWidth": 768,  "minGPU": "low" },
+    "cssOnly":          { "minWidth": 0,    "minGPU": "any" }
+  },
+
+  "fileRegistry": {
+    "core": [
+      { "file": "src/components/3d/CockpitCanvas.tsx",          "type": "Core",    "status": "implemented", "description": "Unified R3F Canvas orchestrator — single persistent Canvas" },
+      { "file": "src/components/3d/CameraSystem.tsx",            "type": "Core",    "status": "implemented", "description": "Unified camera management (hero + dashboard + transitions)" },
+      { "file": "src/components/3d/SceneRouter.tsx",             "type": "Core",    "status": "implemented", "description": "Visibility management per activeScene" },
+      { "file": "src/components/3d/PostProcessingStack.tsx",     "type": "FX",      "status": "implemented", "description": "9 always-on effects with scene-reactive multipliers" }
+    ],
+    "shell": [
+      { "file": "src/components/3d/CockpitPanels.tsx",           "triangles": 2000000,  "status": "implemented" },
+      { "file": "src/components/3d/HolographicHUD.tsx",           "triangles": 500000,   "status": "implemented" },
+      { "file": "src/components/3d/SidePanels.tsx",               "triangles": 1500000,  "status": "implemented" },
+      { "file": "src/components/3d/StatusBar3D.tsx",              "triangles": 500000,   "status": "implemented" },
+      { "file": "src/components/3d/LEDRim.tsx",                   "triangles": 200000,   "status": "implemented" },
+      { "file": "src/components/3d/CockpitStructuralDetail.tsx",  "triangles": 1500000,  "status": "implemented" },
+      { "file": "src/components/3d/CockpitFloor3D.tsx",           "triangles": 500000,   "status": "implemented" },
+      { "file": "src/components/3d/VolumetricFog3D.tsx",          "triangles": 500000,   "status": "implemented" }
+    ],
+    "spatial": [
+      { "file": "src/components/3d/HolographicLabMap.tsx",        "triangles": 1000000,  "status": "implemented" },
+      { "file": "src/components/3d/LabStructure3D.tsx",           "triangles": 3000000,  "status": "implemented" },
+      { "file": "src/components/3d/InteractiveConsole3D.tsx",     "triangles": 2000000,  "status": "implemented" },
+      { "file": "src/components/3d/AmbientNPCs.tsx",              "triangles": 1500000,  "status": "implemented" },
+      { "file": "src/components/3d/DynamicEnvironment.tsx",       "triangles": 3000000,  "status": "implemented" }
+    ],
+    "fx": [
+      { "file": "src/components/3d/WormholeTransition.tsx",       "triangles": 300000,   "status": "implemented" },
+      { "file": "src/components/3d/CeremonyFX.tsx",               "triangles": 500000,   "status": "implemented" },
+      { "file": "src/components/3d/MiniMapOverlay3D.tsx",         "triangles": 250000,   "status": "implemented" },
+      { "file": "src/components/3d/MechanicalIris.tsx",           "status": "implemented" },
+      { "file": "src/components/3d/CockpitSkinManager.tsx",       "status": "implemented" },
+      { "file": "src/components/3d/AuroraBackground.tsx",         "triangles": 50000,    "status": "implemented" },
+      { "file": "src/components/3d/AmbientParticles.tsx",         "triangles": 200000,   "status": "implemented" }
+    ],
+    "stores": [
+      { "file": "src/stores/cockpitStore.ts",   "description": "Spatial nav, skins, hero handoff, ceremony queue" },
+      { "file": "src/stores/sceneStore.ts",      "description": "Scene visibility, transitions, game registration" },
+      { "file": "src/stores/deviceStore.ts",     "description": "Device profiles, 20M/10M triangle budgets" }
+    ],
+    "config": [
+      { "file": "src/lib/3d/cockpitConfig.ts",  "description": "All presets, budgets, LOD levels, geometry constants" },
+      { "file": "src/lib/3d/materials.ts",       "description": "PanelFace, WornChrome, and 11 PBR presets" }
+    ],
+    "audio": [
+      { "file": "src/lib/audio/cockpitAudio.ts", "description": "CockpitAudioEngine singleton — spatial zones, skin-specific soundscapes" },
+      { "file": "src/hooks/useCockpitAudio.ts",  "description": "React hook for component-level audio integration" }
+    ],
+    "pending": [
+      { "file": "src/components/dashboard/ConsoleDetailPanel.tsx",  "status": "pending", "description": "Expandable console info overlays (glassmorphic HTML)" },
+      { "file": "src/components/dashboard/NPCDialogueBubble.tsx",   "status": "pending", "description": "Contextual NPC speech bubbles (HTML overlay)" },
+      { "file": "src/hooks/useAdaptiveCockpit.ts",                  "status": "pending", "description": "Viewport-adaptive curvature/radius (Phase 6)" },
+      { "file": "src/shaders/dissolve.glsl",                        "status": "pending", "description": "Skin transition dissolve shader" },
+      { "file": "src/shaders/wormhole.glsl",                        "status": "pending", "description": "Lab entry tunnel energy shader" }
+    ]
+  },
+
+  "decisionLocks": [
+    { "id": "CPA2-1",  "decision": "Single persistent R3F Canvas for entire app lifecycle",             "status": "implemented" },
+    { "id": "CPA2-2",  "decision": "WebGPU primary renderer with WebGL2 auto-fallback via TSL",         "status": "implemented" },
+    { "id": "CPA2-3",  "decision": "Seamless hero-to-cockpit handoff with zero DOM transitions",        "status": "implemented" },
+    { "id": "CPA2-4",  "decision": "All scenes as <group> wrappers within CockpitCanvas",              "status": "implemented" },
+    { "id": "CPA2-5",  "decision": "Viewport-adaptive curvature (120-155 deg based on width)",          "status": "pending" },
+    { "id": "CPA2-6",  "decision": "Hex clusters display real data (not decorative)",                   "status": "implemented" },
+    { "id": "CPA2-7",  "decision": "Skin unlock via achievements (not free selection)",                  "status": "implemented" },
+    { "id": "CPA2-8",  "decision": "Skin transition uses dissolve shader (not crossfade)",               "status": "pending" },
+    { "id": "CPA2-9",  "decision": "Lab entry uses wormhole cinematic (2.5s)",                           "status": "implemented" },
+    { "id": "CPA2-10", "decision": "NPC dialogue bubbles are HTML overlays (not 3D text)",              "status": "pending" },
+    { "id": "CPA2-11", "decision": "Spatial audio via Web Audio API Panner3D",                          "status": "implemented" },
+    { "id": "CPA2-12", "decision": "Mobile gets zero R3F (pure CSS fallback)",                           "status": "implemented" },
+    { "id": "CPA2-13", "decision": "Ceremony FX intensity scales by event type",                         "status": "implemented" },
+    { "id": "CPA2-14", "decision": "Console detail panels are glassmorphic HTML overlays",               "status": "pending" },
+    { "id": "CPA2-15", "decision": "Adaptive FPS monitoring can fall back to CSS at <40% of FPS target", "status": "implemented" },
+    { "id": "D3D-B1",  "decision": "CockpitCanvas never unmounts — uses SceneRouter for visibility",    "status": "implemented" },
+    { "id": "D3D-B2",  "decision": "MechanicalIris replaces WormholeTransition for cockpit-to-game",    "status": "implemented" },
+    { "id": "D3D-B3",  "decision": "Game scenes render as <group> inside CockpitCanvas",               "status": "implemented" },
+    { "id": "D3D-B4",  "decision": "SceneRouter manages visibility of cockpit/game/hero/spatial",       "status": "implemented" },
+    { "id": "D3D-B5",  "decision": "sceneStore — centralized scene state replaces fragmented state",     "status": "implemented" },
+    { "id": "D3D-B6",  "decision": "Cockpit fades to 20% opacity during game scenes",                   "status": "implemented" }
+  ],
+
+  "storeDependencies": {
+    "cockpitStore": {
+      "file": "src/stores/cockpitStore.ts",
+      "consumedBy": ["SpatialDashboard", "CameraSystem", "HolographicLabMap", "InteractiveConsole3D", "AmbientNPCs", "SpatialOverlay", "CockpitSkinManager", "MiniMapOverlay3D"],
+      "persisted": ["cockpitSkin", "unlockedSkins", "focusedLabId", "npcsVisible", "cockpitAudioEnabled", "ambientVolume", "miniMapVisible"]
+    },
+    "sceneStore": {
+      "file": "src/stores/sceneStore.ts",
+      "consumedBy": ["SceneRouter", "CockpitCanvas", "GameShell", "MechanicalIris", "PostProcessingStack"],
+      "persisted": []
+    },
+    "deviceStore": {
+      "file": "src/stores/deviceStore.ts",
+      "consumedBy": ["ALL 3D components (LOD gating)"],
+      "persisted": ["deviceType"]
+    },
+    "uiStore": {
+      "file": "src/stores/uiStore.ts",
+      "consumedBy": ["CockpitPanels", "LEDRim", "HolographicHUD", "DynamicEnvironment"],
+      "drives": "mode-dependent presets via useStationMode"
+    },
+    "childStore": {
+      "file": "src/stores/childStore.ts",
+      "consumedBy": ["StatusBar3D", "InteractiveConsole3D", "SpatialOverlay"],
+      "drives": "real-time gauge data (XP, level, badges, streak)"
+    }
+  },
+
+  "desktopUltraProfile": {
+    "targetFPS": 60,
+    "maxTriangles": 50000000,
+    "systemBudget": 30000000,
+    "gameBudget": 20000000,
+    "bloom": "always on",
+    "shadows": "always on",
+    "pixelRatio": "native (window.devicePixelRatio)",
+    "ssao": "always on",
+    "chromaticAberration": "always on",
+    "depthOfField": "always on",
+    "decision": "D3D-1, D3D-5"
+  }
+}
