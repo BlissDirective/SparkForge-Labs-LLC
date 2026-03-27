@@ -722,6 +722,10 @@ export function PromptLabGame() {
   const [showScoreDetail, setShowScoreDetail] = useState(false);
   const [promptsUsed, setPromptsUsed] = useState(0);
   const [copiedIdx, setCopiedIdx] = useState<number | null>(null);
+  // S6-WARN-001: Client-side rate limiting (2s cooldown between sends)
+  const [lastSentAt, setLastSentAt] = useState(0);
+  const SEND_COOLDOWN_MS = 2000;
+  const MAX_DAILY_PROMPTS = 50;
 
   // --- Challenge state ---
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
@@ -828,6 +832,14 @@ export function PromptLabGame() {
 
   const sendMessage = useCallback(async () => {
     if (!input.trim() || loading || !activeChild) return;
+    // S6-WARN-001: Client-side cooldown (2s between sends)
+    const now = Date.now();
+    if (now - lastSentAt < SEND_COOLDOWN_MS) return;
+    if (promptsUsed >= MAX_DAILY_PROMPTS) {
+      setError(`Daily limit reached (${MAX_DAILY_PROMPTS} prompts). Try again tomorrow!`);
+      return;
+    }
+    setLastSentAt(now);
 
     const score = scorePrompt(input);
     const userMessage: Message = {

@@ -113,6 +113,7 @@ function BubbleMesh({ bubble }: { bubble: Bubble }) {
   const textGroupRef = useRef<Group>(null);
   const { camera } = useThree();
 
+  // S6-HIGH-003: Added disposal cleanup for MeshPhysicalMaterial
   const material = useMemo(() => {
     return new MeshPhysicalMaterial({
       color: new Color(bubble.color),
@@ -129,6 +130,7 @@ function BubbleMesh({ bubble }: { bubble: Bubble }) {
       side: DoubleSide,
     });
   }, [bubble.color, bubble.opacity]);
+  useEffect(() => () => { material.dispose(); }, [material]);
 
   useFrame(() => {
     if (!meshRef.current) return;
@@ -340,7 +342,8 @@ export default function PromptBubble3D({
     });
   });
 
-  // Glow sprite material (shared)
+  // Glow sprite material (shared, with disposal)
+  // S6-HIGH-003: Added disposal cleanup
   const glowMaterial = useMemo(() => {
     return new SpriteMaterial({
       color: new Color('#F59E0B'),
@@ -349,6 +352,7 @@ export default function PromptBubble3D({
       blending: AdditiveBlending,
     });
   }, []);
+  useEffect(() => () => { glowMaterial.dispose(); }, [glowMaterial]);
 
   return (
     <group>

@@ -21,7 +21,7 @@
 // Performance: ~620 triangles. frameloop='always'.
 // ================================================================
 
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
 import { motion } from 'motion/react';
@@ -61,9 +61,10 @@ const SPRING_STIFFNESS = 4.0;
 const SPRING_DAMPING = 0.85;
 const MAX_TILT = Math.PI / 6; // 30 degrees max
 
-// -- Brushed brass material (shared) --
+// -- Brushed brass material (shared, with disposal) --
+// S6-HIGH-003: Added disposal cleanup to prevent GPU memory leaks
 function useBrassMaterial() {
-  return useMemo(() => {
+  const material = useMemo(() => {
     return new MeshStandardMaterial({
       color: BRASS_COLOR,
       metalness: 0.8,
@@ -71,6 +72,10 @@ function useBrassMaterial() {
       envMapIntensity: 0.6,
     });
   }, []);
+  useEffect(() => {
+    return () => { material.dispose(); };
+  }, [material]);
+  return material;
 }
 
 // -- Warning Particles (red, emit when severely unbalanced) --
