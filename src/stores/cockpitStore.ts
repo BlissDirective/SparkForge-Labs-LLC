@@ -39,29 +39,44 @@ for (let i = 1; i <= 10; i++) {
   ];
 }
 
-// Camera presets for spatial views
+// v3: Tight-focus camera presets — user sits IN the cockpit seat
+// Per cockpit-architecture.json: cameraPosition [0, 0.65, 1.1], FOV 58
 export const SPATIAL_CAMERA_PRESETS: Record<SpatialView, CameraTarget> = {
   overview: {
-    position: [0, 6.5, 7],
-    lookAt: [0, -0.5, 0],
-    fov: 58,
+    position: [0, 0.85, 0.9],
+    lookAt: [0, 0, -2.5],
+    fov: 62,
   },
   'lab-focus': {
-    position: [0, 2.5, 2],
-    lookAt: [0, 0, 0],
-    fov: 50,
-  },
-  console: {
-    position: [0, 1.8, 3.5],
-    lookAt: [0, 0.5, 0],
-    fov: 52,
-  },
-  orbit: {
-    position: [0, 4, 5],
-    lookAt: [0, 0, 0],
+    position: [0, 0.65, 0.6],
+    lookAt: [0, 0.3, -3.0],
     fov: 55,
   },
+  console: {
+    position: [0, 0.65, 1.1],
+    lookAt: [0, 0.25, -2.0],
+    fov: 58,
+  },
+  orbit: {
+    position: [0, 1.2, 1.5],
+    lookAt: [0, 0, -2.0],
+    fov: 58,
+  },
 };
+
+// v3: Console-specific camera targets for left/right console focus
+export const CONSOLE_CAMERA_PRESETS = {
+  'console-left': {
+    position: [-2.0, 0.65, -0.5] as [number, number, number],
+    lookAt: [-2.35, 0.25, -1.65] as [number, number, number],
+    fov: 56,
+  },
+  'console-right': {
+    position: [2.0, 0.65, -0.5] as [number, number, number],
+    lookAt: [2.35, 0.25, -1.65] as [number, number, number],
+    fov: 56,
+  },
+} as const;
 
 // ═══ CPA v2.0 — Skin unlock requirements (Decision CPA2-4) ═══
 export const SKIN_UNLOCK_CONDITIONS: Record<CockpitSkin, { description: string; badge: string | null }> = {

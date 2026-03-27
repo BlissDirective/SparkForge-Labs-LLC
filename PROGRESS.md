@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
 ## Current Phase: Stage 4 — 3D-Embedded UI (12 mini-batches)
-## Status: Batch 1/12 COMPLETE — audit fixes
-## Last Updated: 2026-03-27 (Stage 4 Batch 1: Code Cleanup)
+## Status: Batch 2/12 COMPLETE — camera + materials
+## Last Updated: 2026-03-27 (Stage 4 Batch 2: Camera + Materials)
 
 ---
 
@@ -22,6 +22,31 @@
 - `src/hooks/useChildren.ts` — Removed local apiFetch, import from @/lib/api
 - `src/hooks/useGamification.ts` — Removed local apiFetch, import from @/lib/api
 - `src/app/(dashboard)/content/[slug]/page.tsx` — Safe Array.isArray check for params.slug
+
+---
+
+### Stage 4 — Batch 2: Camera Repositioning + Materials Upgrade (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Changes:**
+- [x] Camera repositioned: `[0, 6.5, 7]` → `[0, 0.65, 1.1]` (cockpit seat, not overhead)
+- [x] COCKPIT_GEOMETRY v3: arc 140° → 218°, radius 4.0 → 4.8, segments 256→288/128→144
+- [x] ADAPTIVE_CURVATURE: ultraWide 155°→230°, desktop 140°→218°
+- [x] CAMERA_PRESETS: all modes updated for tight-focus + added 'settings' mode
+- [x] SPATIAL_CAMERA_PRESETS: all views tight-focus + added CONSOLE_CAMERA_PRESETS (left/right)
+- [x] Created `src/lib/3d/cockpitMaterials.ts` — 7 material factories per vision JSON
+- [x] Added explicit 3D positions: leftConsole, rightConsole, statusBar, centerViewport, HUD
+
+**Files Created (1):**
+- `src/lib/3d/cockpitMaterials.ts` — Material factory (alloy, panel, holographic, button, bezel, console, LED)
+
+**Files Modified (4):**
+- `src/lib/3d/cockpitConfig.ts` — COCKPIT_GEOMETRY v3, CAMERA_PRESETS, ADAPTIVE_CURVATURE
+- `src/stores/cockpitStore.ts` — SPATIAL_CAMERA_PRESETS tight-focus + CONSOLE_CAMERA_PRESETS
+- `src/components/3d/CockpitCanvas.tsx` — Initial camera position [0, 0.65, 1.1]
+- `src/components/3d/CameraSystem.tsx` — Updated handoff comment
 
 ---
 
