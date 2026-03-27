@@ -129,7 +129,8 @@ export function SentimentScannerGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start sentiment scanning game">
                       Start Scanning! <ScanLine className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -189,7 +190,8 @@ export function SentimentScannerGame() {
                     <motion.button onClick={check}
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Check sentiment answer">
                       Check!
                     </motion.button>
                   </motion.div>

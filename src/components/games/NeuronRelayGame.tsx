@@ -121,7 +121,8 @@ export function NeuronRelayGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #EC4899, #DB2777)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start neuron relay game">
                       Fire Neurons! <BrainCircuit className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -155,7 +156,8 @@ export function NeuronRelayGame() {
                             className={`w-12 h-12 rounded-full border-2 flex items-center justify-center text-lg transition-all
                               ${n.on ? 'border-pink-500 bg-pink-500/20' : 'border-white/10 bg-white/[0.02]'}`}
                             animate={n.on ? { scale: [1, 1.08, 1] } : {}} transition={{ duration: 0.4 }}
-                            aria-label={`Neuron ${n.id + 1}: ${n.on ? 'on' : 'off'}`}>
+                            aria-label={`Neuron ${n.id + 1}: ${n.on ? 'on' : 'off'}`}
+                            aria-pressed={n.on}>
                             {n.on ? '\u26A1' : '\u26AA'}
                           </motion.button>
                           <input type="range" min={0} max={100} value={n.vol} onChange={e => setVol(n.id, +e.target.value)}

@@ -477,7 +477,8 @@ export function CodeBlocksGame() {
                     <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start coding">
                       Start Coding! <Code2 className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -512,7 +513,8 @@ export function CodeBlocksGame() {
                       onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx((i) => i + 1) : setPhase('play')}
                       className="w-full max-w-xs py-2.5 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
-                      whileTap={{ scale: 0.95 }}>
+                      whileTap={{ scale: 0.95 }}
+                      aria-label={learnIdx < LEARN_CARDS.length - 1 ? 'Next learn card' : 'Start challenges'}>
                       {learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Challenges!'}
                       <ChevronRight className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -570,11 +572,13 @@ export function CodeBlocksGame() {
                         })}
                         <div className="flex gap-1 mt-2">
                           <button onClick={() => setShowHint(true)} disabled={showHint}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5"
+                            aria-label="Show hint">
                             <Bug className="w-3 h-3" /> Hint
                           </button>
                           <button onClick={() => { setPlaced([]); setResult(null); setOutputLines([]); setRobotPose('idle'); }}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5"
+                            aria-label="Reset workspace">
                             <RotateCcw className="w-3 h-3" /> Reset
                           </button>
                         </div>
@@ -625,7 +629,8 @@ export function CodeBlocksGame() {
                         <motion.button onClick={runCode} disabled={placed.length === 0 || running || result === 'correct'}
                           className="mt-2 w-full py-2.5 rounded-xl font-display font-bold text-sm text-white disabled:opacity-30 flex items-center justify-center gap-1"
                           style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
-                          whileTap={{ scale: 0.95 }}>
+                          whileTap={{ scale: 0.95 }}
+                          aria-label={running ? 'Code is running' : 'Run code'}>
                           {running ? 'Running...' : 'Run Code'}
                           <Play className="w-4 h-4" />
                         </motion.button>
@@ -633,7 +638,8 @@ export function CodeBlocksGame() {
                         {result === 'correct' && (
                           <motion.button onClick={nextChallenge}
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                            className="mt-1 w-full py-2 rounded-xl bg-white/5 border border-white/10 font-display text-xs text-white/50 flex items-center justify-center gap-1">
+                            className="mt-1 w-full py-2 rounded-xl bg-white/5 border border-white/10 font-display text-xs text-white/50 flex items-center justify-center gap-1"
+                            aria-label="Next challenge">
                             Next Challenge <ChevronRight className="w-3 h-3" />
                           </motion.button>
                         )}
@@ -667,11 +673,13 @@ export function CodeBlocksGame() {
                           className="flex-1 rounded-xl bg-black/40 border border-white/10 p-2 overflow-auto max-h-[200px]">
                           <div className="flex gap-1 mb-1">
                             <button onClick={() => setShowPseudo(false)}
-                              className={`font-mono text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/20'}`}>
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/20'}`}
+                              aria-label="Show output" aria-pressed={!showPseudo}>
                               <Terminal className="w-2.5 h-2.5" /> Out
                             </button>
                             <button onClick={() => setShowPseudo(true)}
-                              className={`font-mono text-2xs px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/20'}`}>
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/20'}`}
+                              aria-label="Show pseudocode" aria-pressed={showPseudo}>
                               Pseudo
                             </button>
                           </div>

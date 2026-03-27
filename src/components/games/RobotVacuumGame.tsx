@@ -433,6 +433,7 @@ export function RobotVacuumGame() {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Learn the rules"
                     >
                       Learn the Rules!{' '}
                       <BookOpen className="inline w-4 h-4 ml-1" />
@@ -481,6 +482,7 @@ export function RobotVacuumGame() {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label={learnIdx < LEARN_CARDS.length - 1 ? 'Next learn card' : 'Start cleaning'}
                     >
                       {learnIdx < LEARN_CARDS.length - 1
                         ? 'Next \u2192'
@@ -489,6 +491,7 @@ export function RobotVacuumGame() {
                     <button
                       onClick={() => setPhase('play')}
                       className="font-body text-xs text-white/20 hover:text-white/40"
+                      aria-label="Skip tutorial"
                     >
                       Skip tutorial
                     </button>
@@ -677,6 +680,7 @@ export function RobotVacuumGame() {
                                 <button
                                   onClick={() => removeRule(i)}
                                   className="text-white/10 hover:text-red-400"
+                                  aria-label={`Remove rule ${i + 1}`}
                                 >
                                   <Trash2 className="w-2.5 h-2.5" />
                                 </button>
@@ -688,6 +692,7 @@ export function RobotVacuumGame() {
                           <button
                             onClick={addRule}
                             className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/20 font-body text-2xs flex items-center justify-center gap-1"
+                            aria-label="Add a new rule"
                           >
                             <Plus className="w-2.5 h-2.5" /> Add Rule
                           </button>
@@ -775,6 +780,7 @@ export function RobotVacuumGame() {
                               setVacDir(0);
                             }}
                             className="mt-2 w-full py-1.5 rounded-lg border border-emerald-500/20 text-emerald-400/60 font-body text-2xs hover:bg-emerald-500/5 hover:text-emerald-400 transition-colors flex items-center justify-center gap-1"
+                            aria-label="Edit rules and retry"
                           >
                             <RotateCcw className="w-2.5 h-2.5" /> Edit Rules &amp; Retry
                           </button>
@@ -788,6 +794,7 @@ export function RobotVacuumGame() {
                         onClick={resetRoom}
                         disabled={running}
                         className="px-3 py-2 rounded-xl border border-white/10 text-white/25 font-body text-xs flex items-center gap-1 hover:border-white/20"
+                        aria-label="Reset room"
                       >
                         <RotateCcw className="w-3 h-3" /> Reset
                       </button>
@@ -803,6 +810,7 @@ export function RobotVacuumGame() {
                                 : 'rgba(255,255,255,0.05)',
                           }}
                           whileTap={{ scale: 0.98 }}
+                          aria-label={running ? 'Simulation running' : 'Run vacuum simulation'}
                         >
                           <Play className="w-3.5 h-3.5" />{' '}
                           {running ? 'Running...' : 'Run Vacuum!'}
@@ -816,6 +824,7 @@ export function RobotVacuumGame() {
                               'linear-gradient(135deg, #10B981, #059669)',
                           }}
                           whileTap={{ scale: 0.98 }}
+                          aria-label={roomIdx < ROOMS.length - 1 ? 'Go to next room' : 'Complete the game'}
                         >
                           {roomIdx < ROOMS.length - 1
                             ? 'Next Room \u2192'

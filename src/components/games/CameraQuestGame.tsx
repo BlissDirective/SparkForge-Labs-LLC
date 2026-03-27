@@ -362,6 +362,7 @@ export function CameraQuestGame() {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Learn how AI sees"
                     >
                       How AI Sees!{' '}
                       <Eye className="inline w-4 h-4 ml-1" />
@@ -410,6 +411,7 @@ export function CameraQuestGame() {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label={learnIdx < LEARN_CARDS.length - 1 ? 'Next learn card' : 'Start the hunt'}
                     >
                       {learnIdx < LEARN_CARDS.length - 1
                         ? 'Next \u2192'
@@ -418,6 +420,7 @@ export function CameraQuestGame() {
                     <button
                       onClick={() => setPhase('hunt')}
                       className="font-body text-xs text-white/20 hover:text-white/40"
+                      aria-label="Skip tutorial"
                     >
                       Skip tutorial
                     </button>
@@ -504,12 +507,14 @@ export function CameraQuestGame() {
                             background: 'linear-gradient(135deg, #06B6D4, #0891B2)',
                           }}
                           whileTap={{ scale: 0.95 }}
+                          aria-label="Open camera"
                         >
                           <Camera className="w-5 h-5" /> Open Camera
                         </motion.button>
                         <button
                           onClick={() => setCaptured(true)}
                           className="w-full py-2 rounded-xl border border-white/10 text-white/30 font-body text-xs"
+                          aria-label="Use manual mode without camera"
                         >
                           No camera? Use manual mode
                         </button>
@@ -599,6 +604,7 @@ export function CameraQuestGame() {
                             onClick={() => confirm(true)}
                             className="px-6 py-3 rounded-xl bg-green-500/10 border border-green-500/20 text-green-400 font-display text-sm font-bold flex items-center gap-1"
                             whileTap={{ scale: 0.95 }}
+                            aria-label="Confirm item found"
                           >
                             <Check className="w-4 h-4" /> Found it!
                           </motion.button>
@@ -606,6 +612,7 @@ export function CameraQuestGame() {
                             onClick={() => confirm(false)}
                             className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 font-display text-sm font-bold flex items-center gap-1"
                             whileTap={{ scale: 0.95 }}
+                            aria-label="Skip this item"
                           >
                             <X className="w-4 h-4" /> Skip
                           </motion.button>

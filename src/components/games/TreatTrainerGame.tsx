@@ -144,7 +144,8 @@ export function TreatTrainerGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start training the robot">
                       Start Training! <Dog className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -217,7 +218,8 @@ export function TreatTrainerGame() {
                     <motion.button onClick={runEpisode} disabled={running || episode >= 10}
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white flex items-center justify-center gap-2"
                       style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label={running ? 'Episode is running' : `Run training episode ${episode + 1}`}>
                       <Play className="w-4 h-4" /> {running ? 'Running...' : `Run Episode ${episode + 1}`}
                     </motion.button>
                   </motion.div>
