@@ -378,8 +378,7 @@ export default function PricingPage() {
     // If any errors, don't submit
     if (Object.values(errors).some(Boolean)) return;
 
-    // In production: POST to /api/school-interest or send email
-    console.log('School interest:', schoolForm);
+    // TODO: POST to /api/school-interest or send email
     setSchoolSubmitted(true);
   }
 

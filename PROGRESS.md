@@ -1,8 +1,61 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 5 — Gamification Audit Fix + 3D Embedding
-## Status: COMPLETE — All 16 Stage 5 audit findings resolved + 4 3D enhancements
-## Last Updated: 2026-03-27 (Stage 5 Audit Fix: Full resolution + 3D embedding)
+## Current Phase: Stage 8 — Parent Dashboard & Stripe Audit Fixes
+## Status: COMPLETE — All 8 Stage 8 audit findings resolved + 3D embedding verified
+## Last Updated: 2026-03-27 (Stage 8 Audit Fix: Full resolution + 3D embedding audit)
+
+---
+
+### Stage 8 Audit Fix — Full Resolution (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/stage-8-audit-fixes-A0DNZ
+**Build Status:** All 8 findings resolved + 3D embedding audit passed
+
+**Batch 1 — Security Fixes:**
+- [x] S8-HIGH-001 — Zod validation on Stripe checkout (CheckoutSchema from validations.ts)
+- [x] S8-WARN-002 — Stripe status mapping (STRIPE_STATUS_MAP, DB CHECK updated)
+- [x] S8-WARN-005 — Add-child routes through /api/children POST (server-side validation)
+- [x] S10-WARN-002 — console.log removed from pricing page
+
+**Batch 2 — Performance + UX:**
+- [x] S8-HIGH-002 — PG function get_parent_dashboard() + API route + hook rewrite (6N→1 query)
+- [x] S8-WARN-003 — Time limit error handling + optimistic rollback
+- [x] S8-WARN-004 — alert() replaced with toast in subscription page
+
+**Batch 3 — COPPA:**
+- [x] S8-WARN-001 — Delete child button + confirmation modal in parent dashboard
+
+**3D Embedding Audit:**
+- [x] All Stage 8 pages CSS-based (correct per design decisions)
+- [x] Parent pages inherit CockpitCanvas parent mode (amber LED, low HUD)
+- [x] Pricing page uses CSS-only treatment (Decision 8.4)
+- [x] No missing 3D implementations — architecture sound
+
+**Files Created (2):**
+- `sql/schema-stage8-dashboard-fn.sql` — PG function + DB constraint update
+- `src/app/api/parent/dashboard/route.ts` — Aggregated dashboard API
+
+**Files Modified (7):**
+- `src/app/api/stripe/checkout/route.ts` — Zod validation
+- `src/app/api/stripe/webhook/route.ts` — Status mapping
+- `src/hooks/useParentDashboard.ts` — API-driven fetch
+- `src/app/(dashboard)/parent/page.tsx` — Delete button, error handling, toast
+- `src/app/(dashboard)/parent/subscription/page.tsx` — Toast notifications
+- `src/app/(dashboard)/parent/add-child/page.tsx` — API route instead of direct DB
+- `src/app/(marketing)/pricing/page.tsx` — console.log removal
+
+**Stage 8 Audit Summary — All Findings:**
+| ID | Severity | Status |
+|---|---|---|
+| S8-HIGH-001 | HIGH | Resolved (Batch 1) |
+| S8-HIGH-002 | HIGH | Resolved (Batch 2) |
+| S8-WARN-001 | WARNING | Resolved (Batch 3) |
+| S8-WARN-002 | WARNING | Resolved (Batch 1) |
+| S8-WARN-003 | WARNING | Resolved (Batch 2) |
+| S8-WARN-004 | WARNING | Resolved (Batch 2) |
+| S8-WARN-005 | WARNING | Resolved (Batch 1) |
+| S10-WARN-002 | WARNING | Resolved (Batch 1) |
 
 ---
 
