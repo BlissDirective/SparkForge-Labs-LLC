@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { useBadges } from '@/hooks/useGamification';
 import { BadgeGrid } from './BadgeGrid';
@@ -9,11 +9,24 @@ import type { BadgeCategory } from '@/types';
 
 // ════════════════════════════════════════════════════
 // TROPHY ROOM — Full badge collection view
-// Category tabs, stats bar, filtered BadgeGrid
+// 3D showcase for rare/epic/legendary + category tabs + BadgeGrid
 // ════════════════════════════════════════════════════
+
+const RARITY_COLORS: Record<string, string> = {
+  rare: '#3b82f6',
+  epic: '#8b5cf6',
+  legendary: '#f59e0b',
+};
+
+const RARITY_LABELS: Record<string, string> = {
+  rare: 'Rare',
+  epic: 'Epic',
+  legendary: 'Legendary',
+};
 
 interface TrophyRoomProps {
   childId: string;
+  onShowcaseBadgeSelect?: (badge: BadgeData) => void;
 }
 
 const CATEGORY_TABS: { key: BadgeCategory | 'all'; label: string; emoji: string }[] = [
@@ -29,9 +42,10 @@ const CATEGORY_TABS: { key: BadgeCategory | 'all'; label: string; emoji: string 
   { key: 'prestige',    label: 'Prestige',     emoji: '\uD83D\uDC8E' },
 ];
 
-export function TrophyRoom({ childId }: TrophyRoomProps) {
+export function TrophyRoom({ childId, onShowcaseBadgeSelect }: TrophyRoomProps) {
   const { data, isLoading } = useBadges(childId);
   const [activeTab, setActiveTab] = useState<BadgeCategory | 'all'>('all');
+  const [selectedShowcaseId, setSelectedShowcaseId] = useState<string | null>(null);
 
   // Normalize API response into BadgeData[]
   const badges: BadgeData[] = useMemo(() => {
@@ -62,6 +76,27 @@ export function TrophyRoom({ childId }: TrophyRoomProps) {
     ? Math.round((totalEarned / totalAvailable) * 100)
     : 0;
 
+  // High-rarity earned badges for the 3D showcase section
+  const showcaseBadges = useMemo(
+    () =>
+      badges
+        .filter(
+          (b) =>
+            b.earned &&
+            (b.rarity === 'rare' || b.rarity === 'epic' || b.rarity === 'legendary'),
+        )
+        .slice(0, 6),
+    [badges],
+  );
+
+  const handleShowcaseSelect = useCallback(
+    (badge: BadgeData) => {
+      setSelectedShowcaseId((prev) => (prev === badge.id ? null : badge.id));
+      onShowcaseBadgeSelect?.(badge);
+    },
+    [onShowcaseBadgeSelect],
+  );
+
   if (isLoading) {
     return <TrophyRoomSkeleton />;
   }
@@ -89,6 +124,76 @@ export function TrophyRoom({ childId }: TrophyRoomProps) {
           </div>
         </div>
       </div>
+
+      {/* 3D Showcase — rare/epic/legendary earned badges */}
+      {showcaseBadges.length > 0 && (
+        <section aria-label="Featured high-rarity badges">
+          <h3 className="font-display text-sm font-semibold text-white/70 mb-3 flex items-center gap-1.5">
+            <span aria-hidden="true">&#10024;</span>
+            Featured Badges
+          </h3>
+
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-white/10">
+            {showcaseBadges.map((badge) => {
+              const isSelected = selectedShowcaseId === badge.id;
+              const accentColor = RARITY_COLORS[badge.rarity] || '#00BBFF';
+
+              return (
+                <motion.button
+                  key={badge.id}
+                  onClick={() => handleShowcaseSelect(badge)}
+                  whileHover={{ scale: 1.04, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  className={`
+                    relative flex-shrink-0 w-36 rounded-xl p-3 text-left
+                    backdrop-blur-md border bg-[#111118]/50
+                    transition-colors duration-200 cursor-pointer
+                    ${isSelected
+                      ? 'border-white/20 ring-1'
+                      : 'border-white/[0.06] hover:border-white/10'
+                    }
+                  `}
+                  style={{
+                    ringColor: isSelected ? accentColor : undefined,
+                    boxShadow: isSelected
+                      ? `0 0 16px ${accentColor}33, inset 0 0 12px ${accentColor}11`
+                      : undefined,
+                  }}
+                  aria-label={`${badge.name}, ${RARITY_LABELS[badge.rarity] || badge.rarity} rarity — click to preview in 3D`}
+                  aria-pressed={isSelected}
+                >
+                  {/* Badge emoji */}
+                  <span className="block text-3xl mb-2" aria-hidden="true">
+                    {badge.icon}
+                  </span>
+
+                  {/* Name */}
+                  <span className="block font-body text-xs text-white/90 truncate">
+                    {badge.name}
+                  </span>
+
+                  {/* Rarity label */}
+                  <span
+                    className="block font-data text-[10px] font-bold uppercase tracking-wider mt-1"
+                    style={{ color: accentColor }}
+                  >
+                    {RARITY_LABELS[badge.rarity] || badge.rarity}
+                  </span>
+
+                  {/* Selected indicator dot */}
+                  {isSelected && (
+                    <motion.span
+                      layoutId="showcase-indicator"
+                      className="absolute top-2 right-2 h-2 w-2 rounded-full"
+                      style={{ backgroundColor: accentColor }}
+                    />
+                  )}
+                </motion.button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* Category tabs */}
       <div

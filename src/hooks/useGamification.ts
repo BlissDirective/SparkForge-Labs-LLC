@@ -3,6 +3,7 @@ import { apiFetch } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
 import { useChildStore } from '@/stores/childStore';
 import { useToastStore } from '@/stores/toastStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 
 // v2 [ENH]: Optimistic XP update — shows instant feedback
 export function useAwardXP() {
@@ -41,8 +42,24 @@ export function useAwardXP() {
       // Show XP celebration
       triggerCelebration('xp', { xp: result.xpAwarded || result.amount });
 
+      // Broadcast to cockpit
+      useCockpitBroadcast.getState().broadcast({
+        type: 'xp-change',
+        source: 'gamification-xp',
+        value: result.xpAwarded || result.amount,
+        color: '#F59E0B',
+      });
+
       // If leveled up, show level celebration after XP toast
       if (result.leveledUp) {
+        useCockpitBroadcast.getState().broadcast({
+          type: 'level-up',
+          source: 'gamification-level',
+          value: result.newLevel,
+          color: '#8B5CF6',
+          label: result.newTitle,
+        });
+
         setTimeout(() => {
           triggerCelebration('level', {
             level: result.newLevel,
@@ -89,6 +106,13 @@ export function useUpdateStreak() {
     },
 
     onSuccess: (result) => {
+      // Broadcast streak update to cockpit
+      useCockpitBroadcast.getState().broadcast({
+        type: 'streak-update',
+        source: 'gamification-streak',
+        color: '#FF6644',
+      });
+
       // v2 [NEW-2D]: Streak recovery toast
       if (result.shieldUsed) {
         useToastStore.getState().addToast(
@@ -125,6 +149,14 @@ export function useCheckBadges() {
       apiFetch('/api/gamification/badges', { method: 'POST', body: JSON.stringify({ childId }) }),
     onSuccess: (result) => {
       if (result.newBadges && result.newBadges.length > 0) {
+        // Broadcast badge earn to cockpit
+        useCockpitBroadcast.getState().broadcast({
+          type: 'badge-earn',
+          source: 'gamification-badge',
+          color: '#AA66FF',
+          label: result.newBadges[0]?.name,
+        });
+
         // Delay badge celebration to not overlap with XP toast
         setTimeout(() => {
           triggerCelebration('badge', result.newBadges[0]);

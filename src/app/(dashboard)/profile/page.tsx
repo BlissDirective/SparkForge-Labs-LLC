@@ -20,6 +20,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useA11yStore } from '@/stores/accessibilityStore';
 import { useBadges } from '@/hooks/useGamification';
 import { useAllLabsProgress } from '@/hooks/useProgress';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   calculateLevel, getFlameConfig, getLevelColor,
   getStreakEmoji, getStreakMessage, getRarityColor,
@@ -81,6 +82,7 @@ export default function ProfilePage() {
   const updateAvatarConfig = useChildStore((s) => s.updateAvatarConfig);
   const setLabColor = useUIStore((s) => s.setLabColor);
   const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const childId = activeChild?.id || '';
 
   const { data: badges, isLoading: badgesLoading } = useBadges(childId);
@@ -97,7 +99,8 @@ export default function ProfilePage() {
   // Set cockpit to profile pink on mount
   useEffect(() => {
     setLabColor('#FF66AA');
-  }, [setLabColor]);
+    broadcast({ type: 'page-navigate', source: 'profile-page', color: '#FF66AA', targetPage: 'profile' });
+  }, [setLabColor, broadcast]);
 
   // Daily challenge countdown timer
   useEffect(() => {
@@ -174,8 +177,10 @@ export default function ProfilePage() {
   const selectShape = useCallback(
     (index: number) => {
       updateAvatarConfig({ face_shape: index });
+      const shape = AVATAR_SHAPES[index] || AVATAR_SHAPES[0];
+      broadcast({ type: 'button-press', source: 'avatar-shape-select', color: '#FF66AA', label: shape.label });
     },
-    [updateAvatarConfig]
+    [updateAvatarConfig, broadcast]
   );
 
   // ═══ Loading state ═══
@@ -535,7 +540,10 @@ export default function ProfilePage() {
           aria-label="Badge categories"
         >
           <button
-            onClick={() => setActiveCategory('all')}
+            onClick={() => {
+              setActiveCategory('all');
+              broadcast({ type: 'button-press', source: 'profile-category-tab', color: '#FF66AA', label: 'all' });
+            }}
             className={`px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider whitespace-nowrap border transition-all ${
               activeCategory === 'all'
                 ? 'border-spark-orange/40 bg-spark-orange/10 text-spark-orange'
@@ -552,7 +560,10 @@ export default function ProfilePage() {
             return (
               <button
                 key={cat.key}
-                onClick={() => setActiveCategory(cat.key)}
+                onClick={() => {
+                  setActiveCategory(cat.key);
+                  broadcast({ type: 'button-press', source: 'profile-category-tab', color: '#FF66AA', label: cat.key });
+                }}
                 className={`px-3 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider whitespace-nowrap border transition-all ${
                   activeCategory === cat.key
                     ? 'border-spark-orange/40 bg-spark-orange/10 text-spark-orange'
@@ -594,6 +605,9 @@ export default function ProfilePage() {
                     background: `${getRarityColor(badge.rarity)}08`,
                     boxShadow: `0 0 10px ${getRarityColor(badge.rarity)}10`,
                   } : undefined}
+                  onMouseEnter={() => {
+                    broadcast({ type: 'badge-earn', source: 'profile-badge-hover', color: getRarityColor(badge.rarity || 'common'), label: badge.name });
+                  }}
                   role="listitem"
                   aria-label={`Badge: ${badge.name}${badge.earned ? ` (earned, ${badge.rarity || 'common'})` : ' (locked)'}`}
                   title={badge.description || badge.name}
