@@ -13,13 +13,10 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Play, Dog } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const TreatTrainerEnvironment = dynamic(
   () => import('@/components/3d/environments/TreatTrainerEnvironment'),
   { ssr: false }
@@ -39,6 +36,7 @@ export function TreatTrainerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   // Initialize game store
   useEffect(() => { game.startGame("treat-trainer", TOTAL_EPISODES); }, []);
@@ -50,6 +48,10 @@ export function TreatTrainerGame() {
   const [robotPos, setRobotPos] = useState<[number, number]>(START);
   const [running, setRunning] = useState(false);
   const [history, setHistory] = useState<number[]>([]);
+
+  useEffect(() => {
+    setGameSceneContent(<TreatTrainerEnvironment treatCount={episode} isTraining={phase === 'play'} />);
+  }, [episode, phase, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i, x: (i * 37 + 13) % 100, y: (i * 53 + 7) % 100, size: (i % 3) + 1,
@@ -105,17 +107,6 @@ export function TreatTrainerGame() {
   return (
     <GameShell gameId="treat-trainer" title="Treat Trainer" worldNumber={2} worldColor="#8B5CF6" totalRounds={TOTAL_EPISODES}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <TreatTrainerEnvironment treatCount={episode} isTraining={phase === 'play'} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

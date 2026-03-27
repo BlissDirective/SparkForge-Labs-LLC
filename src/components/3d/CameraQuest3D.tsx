@@ -2,6 +2,8 @@
 
 // ================================================================
 // CAMERA QUEST 3D — Lab 7 (Computer Vision) — v3 Enhanced 3D
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // [v3] 3D polaroid cards that flip when found
 // [v3] Confidence gauge with rotating needle
 // [v3] Found card stack grows as items discovered
@@ -9,9 +11,8 @@
 // ================================================================
 
 import { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Text, Environment } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import { Group, MathUtils, Mesh } from 'three';
 
 // ---- Types ----
@@ -243,16 +244,6 @@ function QuestScene({
         visible={showConfidence && captured}
       />
 
-      <Environment preset="night" />
-
-      <EffectComposer>
-        <Bloom
-          intensity={0.3}
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
     </>
   );
 }
@@ -261,19 +252,8 @@ function QuestScene({
 
 export default function CameraQuest3D(props: CameraQuest3DProps) {
   return (
-    <div
-      style={{ width: '100%', height: 200, borderRadius: 12, overflow: 'hidden' }}
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{ position: [0, 2, 4], fov: 40 }}
-        frameloop="always"
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
-      >
-        <QuestScene {...props} />
-      </Canvas>
-    </div>
+    <group>
+      <QuestScene {...props} />
+    </group>
   );
 }

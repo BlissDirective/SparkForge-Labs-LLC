@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Play, RotateCcw, Code2, Bug, GraduationCap,
   Star, ChevronRight, Terminal,
@@ -315,6 +316,7 @@ function useIsDesktop() {
 export function CodeBlocksGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const isDesktop = useIsDesktop();
 
@@ -420,6 +422,16 @@ export function CodeBlocksGame() {
       game.completeGame();
     }
   }
+
+  useEffect(() => {
+    if (placed.length > 0) {
+      setGameSceneContent(
+        <CodeBlocks3D blocks={placed} runIdx={runIdx} tracerY={tracerY} running={running} />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [placed, runIdx, tracerY, running, setGameSceneContent]);
 
   // --- JSX ---
   return (
@@ -571,12 +583,7 @@ export function CodeBlocksGame() {
                       <div className="flex flex-col">
                         <p className="font-display text-2xs text-white/20 uppercase mb-1">Workspace</p>
 
-                        {/* 3D visualization on desktop */}
-                        {isDesktop && placed.length > 0 && (
-                          <div className="h-32 rounded-lg overflow-hidden border border-orange-500/10 mb-2">
-                            <CodeBlocks3D blocks={placed} runIdx={runIdx} tracerY={tracerY} running={running} />
-                          </div>
-                        )}
+                        {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                         {/* 2D block stack */}
                         <div className="flex-1 rounded-xl border border-dashed border-white/10 p-2 min-h-[120px] relative">

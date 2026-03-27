@@ -2,6 +2,8 @@
 
 // ================================================================
 // MY FIRST AI APP 3D — Lab 9 (Build with AI) — v3 Enhanced 3D
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // [v3] 3D app mockup that assembles as child builds it
 // [v3] Floating AI power orbs with emissive glow
 // [v3] Holographic app preview card with slow rotation
@@ -10,9 +12,7 @@
 // ================================================================
 
 import { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { useFrame } from "@react-three/fiber";
 import {
   BufferAttribute,
   BufferGeometry,
@@ -448,9 +448,6 @@ function Scene(props: MyFirstAiApp3DProps) {
         distance={5}
       />
 
-      {/* Environment */}
-      <Environment preset="night" />
-
       {/* Base platform */}
       <BasePlatform themeColor={themeColor} />
 
@@ -477,14 +474,6 @@ function Scene(props: MyFirstAiApp3DProps) {
         />
       )}
 
-      {/* Post-processing */}
-      <EffectComposer>
-        <Bloom
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.4}
-          intensity={0.4}
-        />
-      </EffectComposer>
     </>
   );
 }
@@ -493,28 +482,8 @@ function Scene(props: MyFirstAiApp3DProps) {
 
 export default function MyFirstAiApp3D(props: MyFirstAiApp3DProps) {
   return (
-    <div
-      className="w-full h-48 md:h-56 rounded-xl overflow-hidden"
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{
-          position: [0, 1.5, 5],
-          fov: 40,
-          near: 0.1,
-          far: 50,
-        }}
-        dpr={[1, 1.5]}
-        frameloop="always"
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: "high-performance",
-        }}
-        style={{ background: "transparent" }}
-      >
-        <Scene {...props} />
-      </Canvas>
-    </div>
+    <group>
+      <Scene {...props} />
+    </group>
   );
 }

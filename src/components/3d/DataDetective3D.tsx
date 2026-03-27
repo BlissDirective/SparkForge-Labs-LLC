@@ -2,6 +2,8 @@
 
 // ================================================================
 // DATA DETECTIVE 3D — Lab 2 (Teaching AI) — v3 Enhanced 3D
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // [v3] 3D magnifying glass cursor with lens refraction
 // [v3] Investigation desk lamp as R3F SpotLight
 // [v3] Evidence card depth + flip animations
@@ -10,9 +12,7 @@
 // ================================================================
 
 import { useRef, useMemo, useState, useEffect } from "react";
-import { Canvas, useFrame, invalidate } from "@react-three/fiber";
-import { Environment } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { useFrame, invalidate } from "@react-three/fiber";
 import {
   DoubleSide,
   Group,
@@ -295,9 +295,9 @@ function EvidenceCard({
   );
 }
 
-// ■■■ Scene ■■■
+// ■■■ Exported Component ■■■
 
-function DetectiveScene({
+export default function DataDetective3D({
   selectedRow,
   totalRows,
   fixedRows,
@@ -322,7 +322,7 @@ function DetectiveScene({
   }, [lastFixedRow]);
 
   return (
-    <>
+    <group>
       {/* Lighting */}
       <ambientLight intensity={0.3} />
       <DeskLamp worldColor={worldColor} />
@@ -350,52 +350,6 @@ function DetectiveScene({
         position={burstPos.current}
         worldColor={worldColor}
       />
-
-      {/* Environment */}
-      <Environment preset="night" />
-
-      {/* Bloom */}
-      <EffectComposer>
-        <Bloom
-          intensity={0.3}
-          luminanceThreshold={0.5}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
-    </>
-  );
-}
-
-// ■■■ Exported Component ■■■
-
-export default function DataDetective3D(props: DataDetective3DProps) {
-  return (
-    <div
-      className="w-full rounded-lg overflow-hidden"
-      style={{
-        height: 180,
-        background:
-          "radial-gradient(ellipse at center, rgba(139,92,246,0.06) 0%, transparent 70%)",
-      }}
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{ position: [0, 0.5, 3.5], fov: 45 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-        frameloop="always"
-      >
-        <DetectiveScene
-          selectedRow={props.selectedRow}
-          totalRows={props.totalRows}
-          fixedRows={props.fixedRows}
-          deletedRows={props.deletedRows}
-          lastFixedRow={props.lastFixedRow}
-          worldColor={props.worldColor}
-        />
-      </Canvas>
-    </div>
+    </group>
   );
 }

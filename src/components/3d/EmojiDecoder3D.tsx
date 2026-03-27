@@ -2,6 +2,8 @@
 
 // ════════════════════════════════════════════════════
 // EmojiDecoder3D — 3D Translation Machine (2M budget)
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // ════════════════════════════════════════════════════
 // Lab 8: AI Communication | Color: #818CF8 (Indigo)
 //
@@ -13,9 +15,8 @@
 // Full environment budget handled by EmojiDecoderEnvironment
 
 import React, { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Text } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import { Group, Mesh, MeshStandardMaterial } from 'three';
 
 interface EmojiDecoder3DProps {
@@ -163,10 +164,6 @@ function Scene({ inputEmojis, decodedText, isDecoding, progress }: EmojiDecoder3
       <EmojiDisplay emojis={inputEmojis} />
       <DecodedOutput text={decodedText} progress={progress} />
 
-      <Environment preset="night" />
-      <EffectComposer>
-        <Bloom intensity={0.3} luminanceThreshold={0.6} />
-      </EffectComposer>
     </>
   );
 }
@@ -179,10 +176,8 @@ export default function EmojiDecoder3D({
   progress,
 }: EmojiDecoder3DProps) {
   return (
-    <div className="w-full h-48 md:h-56 relative">
-      <Canvas camera={{ position: [0, 1, 4], fov: 50 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
-        <Scene inputEmojis={inputEmojis} decodedText={decodedText} isDecoding={isDecoding} progress={progress} />
-      </Canvas>
-    </div>
+    <group>
+      <Scene inputEmojis={inputEmojis} decodedText={decodedText} isDecoding={isDecoding} progress={progress} />
+    </group>
   );
 }

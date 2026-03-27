@@ -7,14 +7,16 @@
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Search, AlertTriangle, CheckCircle } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
+// 3D scene content — rendered inside CockpitCanvas via sceneStore (D3D-B3)
 const DataDetective3D = dynamic(
   () => import('@/components/3d/DataDetective3D'),
   { ssr: false }
@@ -113,6 +115,7 @@ const CASES: DataCase[] = [
 export function DataDetectiveGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
@@ -149,6 +152,24 @@ export function DataDetectiveGame() {
       game.completeGame();
     }
   }, [caseIdx, game]);
+
+  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3)
+  useEffect(() => {
+    if (phase === 'play') {
+      setGameSceneContent(
+        <DataDetective3D
+          selectedRow={selected}
+          totalRows={currentCase.data.length}
+          fixedRows={new Set<number>()}
+          deletedRows={new Set<number>()}
+          lastFixedRow={showResult && selected === currentCase.correctIndex ? selected : null}
+          worldColor="#AA66FF"
+        />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, selected, currentCase, showResult, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i, x: (i * 37 + 13) % 100, y: (i * 53 + 7) % 100, size: (i % 3) + 1,
@@ -208,17 +229,7 @@ export function DataDetectiveGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-lg">
-                    {/* 3D Scene */}
-                    <div className="h-32 mb-3 rounded-xl overflow-hidden">
-                      <DataDetective3D
-                        selectedRow={selected}
-                        totalRows={currentCase.data.length}
-                        fixedRows={new Set()}
-                        deletedRows={new Set()}
-                        lastFixedRow={showResult && selected === currentCase.correctIndex ? selected : null}
-                        worldColor="#AA66FF"
-                      />
-                    </div>
+                    {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* Case header */}
                     <div className="rounded-xl p-3 mb-3 border border-purple-500/20 bg-purple-500/5 text-center">

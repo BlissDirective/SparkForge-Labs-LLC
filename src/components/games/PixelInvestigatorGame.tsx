@@ -19,19 +19,16 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Eye, Search, Zap } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const PixelInvestigatorEnvironment = dynamic(
   () => import('@/components/3d/environments/PixelInvestigatorEnvironment'),
   { ssr: false }
@@ -86,6 +83,7 @@ export function PixelInvestigatorGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [ri, setRi] = useState(0);
   const [revealLevel, setRevealLevel] = useState(0);
@@ -104,6 +102,10 @@ export function PixelInvestigatorGame() {
   const round = rounds[ri];
   const blur = Math.max(0, 24 - revealLevel * 6);
   const pts = REVEAL_POINTS[revealLevel] || 10;
+
+  useEffect(() => {
+    setGameSceneContent(<PixelInvestigatorEnvironment zoomLevel={revealLevel} isAnalyzing={phase === 'play' && !answered} />);
+  }, [revealLevel, phase, answered, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
     id: i, x: Math.random() * 100, y: Math.random() * 100, size: Math.random() * 2 + 1,
@@ -141,16 +143,6 @@ export function PixelInvestigatorGame() {
 
   return (
     <GameShell gameId="pixel-investigator" title="Pixel Investigator" worldNumber={3} worldColor="#FF66AA" xpReward={20} totalRounds={rounds.length}>
-      {/* 3D Environment Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <Canvas
-          camera={{ position: [0, 2, 8], fov: 50 }}
-          style={{ background: 'transparent' }}
-          gl={{ alpha: true, antialias: true }}
-        >
-          <PixelInvestigatorEnvironment zoomLevel={revealLevel} isAnalyzing={phase === 'play' && !answered} />
-        </Canvas>
-      </div>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

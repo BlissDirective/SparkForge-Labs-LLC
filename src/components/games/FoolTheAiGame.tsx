@@ -20,19 +20,16 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { AlertTriangle, CheckCircle2, Target } from 'lucide-react';
+import { useSceneStore } from '@/stores/sceneStore';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const FoolTheAiEnvironment = dynamic(
   () => import('@/components/3d/environments/FoolTheAiEnvironment'),
   { ssr: false }
@@ -121,6 +118,7 @@ export function FoolTheAiGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
@@ -134,6 +132,11 @@ export function FoolTheAiGame() {
     id: i, x: Math.random() * 100, y: Math.random() * 100, size: Math.random() * 2 + 1,
     delay: Math.random() * 4, dur: Math.random() * 6 + 4,
   })), []);
+
+  useEffect(() => {
+    setGameSceneContent(<FoolTheAiEnvironment foolAttempts={found.size} isTesting={!!feedback} />);
+    return () => setGameSceneContent(null);
+  }, [found.size, feedback, setGameSceneContent]);
 
   function tap(idx: number) {
     if (found.has(idx) || feedback) return;
@@ -169,17 +172,6 @@ export function FoolTheAiGame() {
   return (
     <GameShell gameId="fool-the-ai" title="Fool the AI" worldNumber={7} worldColor="#06B6D4" xpReward={20} totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <FoolTheAiEnvironment foolAttempts={found.size} isTesting={!!feedback} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

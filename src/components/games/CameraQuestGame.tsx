@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Camera, Check, X, Eye, Lock, Star,
 } from 'lucide-react';
@@ -181,6 +182,7 @@ const LEARN_CARDS = [
 export function CameraQuestGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -263,6 +265,16 @@ export function CameraQuestGame() {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, []);
+
+  useEffect(() => {
+    if (phase === 'hunt') {
+      setGameSceneContent(
+        <CameraQuest3D items={items} currentIndex={ci} found={found} showConfidence={showConfidence} captured={captured} />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, items, ci, found, showConfidence, captured, setGameSceneContent]);
 
   return (
     <GameShell
@@ -419,14 +431,7 @@ export function CameraQuestGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col items-center justify-center"
                   >
-                    {/* [v3] 3D Scene */}
-                    <CameraQuest3D
-                      items={items}
-                      currentIndex={ci}
-                      found={found}
-                      showConfidence={showConfidence}
-                      captured={captured}
-                    />
+                    {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* Collection progress */}
                     <div className="flex gap-1 mb-3 flex-wrap justify-center">

@@ -19,7 +19,7 @@
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -33,12 +33,9 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useSceneStore } from '@/stores/sceneStore';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const ApiExplorerEnvironment = dynamic(
   () => import('@/components/3d/environments/ApiExplorerEnvironment'),
   { ssr: false }
@@ -338,6 +335,8 @@ export function ApiExplorerGame() {
   const [endpointsUsed, setEndpointsUsed] = useState<Set<number>>(new Set());
   const [recentRequests, setRecentRequests] = useState<number[]>([]);
 
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+
   const endpoint = ENDPOINTS[selectedEndpoint];
 
   const particles = useMemo(
@@ -352,6 +351,11 @@ export function ApiExplorerGame() {
       })),
     []
   );
+
+  useEffect(() => {
+    setGameSceneContent(<ApiExplorerEnvironment requestsSent={history.length} currentMethod={endpoint.method} />);
+    return () => setGameSceneContent(null);
+  }, [history.length, endpoint.method, setGameSceneContent]);
 
   function updateParam(name: string, value: string) {
     setParams((prev) => ({ ...prev, [name]: value }));
@@ -436,17 +440,6 @@ export function ApiExplorerGame() {
       totalRounds={ENDPOINTS.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <ApiExplorerEnvironment requestsSent={history.length} currentMethod={endpoint.method} />
-          </Canvas>
-        </div>
-
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (

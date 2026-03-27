@@ -2,6 +2,8 @@
 
 // ================================================================
 // FUTURE FORGE 3D — Lab 10 (AI's Future) — v3 Enhanced 3D
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // [v3] 3D blueprint table with grid lines
 // [v3] Floating skill orbs (selected vs dimmed)
 // [v3] Holographic patent card (step 4, slow rotation)
@@ -10,9 +12,8 @@
 // ================================================================
 
 import { useRef, useMemo } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Text, Environment } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import {
   BufferGeometry,
   DoubleSide,
@@ -308,16 +309,6 @@ function ForgeScene({
         innovationScore={innovationScore}
       />
 
-      <Environment preset="night" />
-
-      <EffectComposer>
-        <Bloom
-          intensity={0.4}
-          luminanceThreshold={0.5}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
     </>
   );
 }
@@ -326,22 +317,8 @@ function ForgeScene({
 
 export default function FutureForge3D(props: FutureForge3DProps) {
   return (
-    <div
-      style={{ width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' }}
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{ position: [0, 4, 4], fov: 45 }}
-        frameloop="always"
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
-        onCreated={({ camera }) => {
-          camera.lookAt(0, 0.5, 0);
-        }}
-      >
-        <ForgeScene {...props} />
-      </Canvas>
-    </div>
+    <group>
+      <ForgeScene {...props} />
+    </group>
   );
 }

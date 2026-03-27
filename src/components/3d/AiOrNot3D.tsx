@@ -2,6 +2,8 @@
 
 // ════════════════════════════════════════════════════
 // AiOrNot3D — 3D Art Gallery Judge (2M budget)
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // ════════════════════════════════════════════════════
 // Lab 10: AI Futures | Color: #D946EF (Fuchsia)
 //
@@ -13,9 +15,8 @@
 // Full environment budget handled by AiOrNotEnvironment
 
 import React, { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment, Text } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useFrame } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import {
   DoubleSide,
   Group,
@@ -202,10 +203,6 @@ function Scene({ currentItem, verdict, isCorrect, score, total }: AiOrNot3DProps
       <VerdictRing isCorrect={isCorrect} />
       <ScoreDisplay score={score} total={total} />
 
-      <Environment preset="night" />
-      <EffectComposer>
-        <Bloom intensity={0.3} luminanceThreshold={0.5} />
-      </EffectComposer>
     </>
   );
 }
@@ -219,10 +216,8 @@ export default function AiOrNot3D({
   total,
 }: AiOrNot3DProps) {
   return (
-    <div className="w-full h-48 md:h-56 relative">
-      <Canvas camera={{ position: [0, 0.5, 4], fov: 50 }} dpr={[1, 1.5]} gl={{ antialias: true }}>
-        <Scene currentItem={currentItem} verdict={verdict} isCorrect={isCorrect} score={score} total={total} />
-      </Canvas>
-    </div>
+    <group>
+      <Scene currentItem={currentItem} verdict={verdict} isCorrect={isCorrect} score={score} total={total} />
+    </group>
   );
 }

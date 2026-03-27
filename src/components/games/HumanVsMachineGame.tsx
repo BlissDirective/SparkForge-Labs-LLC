@@ -12,19 +12,16 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { Swords, User, Bot } from 'lucide-react';
+import { useSceneStore } from '@/stores/sceneStore';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const HumanVsMachineEnvironment = dynamic(
   () => import('@/components/3d/environments/HumanVsMachineEnvironment'),
   { ssr: false }
@@ -160,6 +157,7 @@ export function HumanVsMachineGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
   const [humanAnswer, setHumanAnswer] = useState('');
@@ -185,6 +183,11 @@ export function HumanVsMachineGame() {
       })),
     []
   );
+
+  useEffect(() => {
+    setGameSceneContent(<HumanVsMachineEnvironment humanScore={game.score} machineScore={roundIdx * 10} isRevealing={aiRevealed} />);
+    return () => setGameSceneContent(null);
+  }, [game.score, roundIdx, aiRevealed, setGameSceneContent]);
 
   const handleSubmit = useCallback(() => {
     if (!humanAnswer.trim()) return;
@@ -218,17 +221,6 @@ export function HumanVsMachineGame() {
       totalRounds={challenges.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <HumanVsMachineEnvironment humanScore={game.score} machineScore={roundIdx * 10} isRevealing={aiRevealed} />
-          </Canvas>
-        </div>
-
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (
             <motion.div

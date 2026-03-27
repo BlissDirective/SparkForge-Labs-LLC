@@ -7,19 +7,16 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { TrendingUp, MessageSquare } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const PredictionMarketEnvironment = dynamic(
   () => import('@/components/3d/environments/PredictionMarketEnvironment'),
   { ssr: false }
@@ -94,6 +91,7 @@ export function PredictionMarketGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [predIdx, setPredIdx] = useState(0);
@@ -106,6 +104,10 @@ export function PredictionMarketGame() {
     [ageBand]
   );
   const pred = predictions[predIdx];
+
+  useEffect(() => {
+    setGameSceneContent(<PredictionMarketEnvironment predictions={predIdx} confidence={voted ? 0.8 : 0.5} />);
+  }, [predIdx, voted, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -131,17 +133,6 @@ export function PredictionMarketGame() {
   return (
     <GameShell gameId="prediction-market" title="Prediction Market" worldNumber={10} worldColor="#D946EF" totalRounds={predictions.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <PredictionMarketEnvironment predictions={predIdx} confidence={voted ? 0.8 : 0.5} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

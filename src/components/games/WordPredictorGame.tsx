@@ -7,19 +7,16 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Brain, Zap } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const WordPredictorEnvironment = dynamic(
   () => import('@/components/3d/environments/WordPredictorEnvironment'),
   { ssr: false }
@@ -170,6 +167,7 @@ export function WordPredictorGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -183,6 +181,10 @@ export function WordPredictorGame() {
   );
   const round = rounds[roundIdx];
   const matched = round?.predictions.find(p => p.word.toLowerCase() === guess.trim().toLowerCase());
+
+  useEffect(() => {
+    setGameSceneContent(<WordPredictorEnvironment wordCount={roundIdx + 1} isPredicting={showResult} />);
+  }, [roundIdx, showResult, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -217,16 +219,6 @@ export function WordPredictorGame() {
 
   return (
     <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#FFAA44" totalRounds={rounds.length}>
-      {/* 3D Environment Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <Canvas
-          camera={{ position: [0, 2, 8], fov: 50 }}
-          style={{ background: 'transparent' }}
-          gl={{ alpha: true, antialias: true }}
-        >
-          <WordPredictorEnvironment wordCount={roundIdx + 1} isPredicting={showResult} />
-        </Canvas>
-      </div>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

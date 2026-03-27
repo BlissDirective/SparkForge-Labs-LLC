@@ -2,15 +2,16 @@
 
 // ================================================================
 // CHATBOT NODES 3D — Lab 8 (NLP) — v3 Enhanced 3D
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // [v3] 3D conversation tree nodes with glowing connections
 // [v3] Animated message routing paths during test mode
 // [v3] Decision 6.5 — Tier 2 Enhanced 3D
 // ================================================================
 
 import { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame, invalidate } from "@react-three/fiber";
-import { Text, Environment } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { useFrame, invalidate } from "@react-three/fiber";
+import { Text } from "@react-three/drei";
 import {
   CatmullRomCurve3,
   MathUtils,
@@ -382,18 +383,6 @@ function ChatbotScene({
           );
         })}
 
-      {/* Environment */}
-      <Environment preset="night" />
-
-      {/* Bloom (subtle) */}
-      <EffectComposer>
-        <Bloom
-          intensity={0.4}
-          luminanceThreshold={0.5}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
     </>
   );
 }
@@ -402,30 +391,14 @@ function ChatbotScene({
 
 export default function ChatbotNodes3D(props: ChatbotNodes3DProps) {
   return (
-    <div
-      className="w-full rounded-lg overflow-hidden"
-      style={{
-        height: 220,
-        background:
-          "radial-gradient(ellipse at center, rgba(99,102,241,0.06) 0%, transparent 70%)",
-      }}
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{ position: [0, -1, 6], fov: 50 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-        frameloop="always"
-      >
-        <ChatbotScene
-          nodes={props.nodes}
-          personalityColors={props.personalityColors}
-          hoveredNode={props.hoveredNode}
-          testPath={props.testPath}
-          isTestMode={props.isTestMode}
-        />
-      </Canvas>
-    </div>
+    <group>
+      <ChatbotScene
+        nodes={props.nodes}
+        personalityColors={props.personalityColors}
+        hoveredNode={props.hoveredNode}
+        testPath={props.testPath}
+        isTestMode={props.isTestMode}
+      />
+    </group>
   );
 }

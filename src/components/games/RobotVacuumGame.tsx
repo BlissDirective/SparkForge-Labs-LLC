@@ -16,11 +16,12 @@
 // 9. [v3] 3D isometric room on desktop (RobotVacuum3D)
 // ================================================================
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Play, Plus, Trash2, RotateCcw, BookOpen, Zap,
 } from 'lucide-react';
@@ -169,6 +170,7 @@ const DIR_OFFSETS: [number, number][] = [
 export function RobotVacuumGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -329,6 +331,16 @@ export function RobotVacuumGame() {
     setShowResults(false);
     setTrail([]);
   }
+
+  useEffect(() => {
+    if (phase === 'play') {
+      setGameSceneContent(
+        <RobotVacuum3D room={room} vacPos={vacPos} vacDir={vacDir} cleaned={cleaned} trail={trail} gridSize={GRID} running={running} />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, room, vacPos, vacDir, cleaned, trail, running, setGameSceneContent]);
 
   return (
     <GameShell
@@ -532,18 +544,7 @@ export function RobotVacuumGame() {
                       </span>
                     </div>
 
-                    {/* [v3] 3D Scene */}
-                    {phase === 'play' && (
-                      <RobotVacuum3D
-                        room={room}
-                        vacPos={vacPos}
-                        vacDir={vacDir}
-                        cleaned={cleaned}
-                        trail={trail}
-                        gridSize={GRID}
-                        running={running}
-                      />
-                    )}
+                    {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* Main area: Grid + Rules side by side */}
                     <div className="flex gap-3 flex-1 mb-2">

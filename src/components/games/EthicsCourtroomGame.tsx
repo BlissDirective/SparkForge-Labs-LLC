@@ -17,19 +17,16 @@
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { Scale, Users, MessageSquare, Award } from 'lucide-react';
+import { useSceneStore } from '@/stores/sceneStore';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const EthicsCourtroomEnvironment = dynamic(
   () => import('@/components/3d/environments/EthicsCourtroomEnvironment'),
   { ssr: false }
@@ -452,6 +449,7 @@ export function EthicsCourtroomGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [caseIdx, setCaseIdx] = useState(0);
@@ -474,6 +472,11 @@ export function EthicsCourtroomGame() {
       })),
     []
   );
+
+  useEffect(() => {
+    setGameSceneContent(<EthicsCourtroomEnvironment caseIndex={caseIdx} verdictReached={trialStep === 'verdict'} />);
+    return () => setGameSceneContent(null);
+  }, [caseIdx, trialStep, setGameSceneContent]);
 
   function choosePerspective(idx: number) {
     setChosenPerspective(idx);
@@ -523,17 +526,6 @@ export function EthicsCourtroomGame() {
       totalRounds={CASES.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <EthicsCourtroomEnvironment caseIndex={caseIdx} verdictReached={trialStep === 'verdict'} />
-          </Canvas>
-        </div>
-
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (

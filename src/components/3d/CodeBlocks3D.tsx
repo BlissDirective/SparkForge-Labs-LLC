@@ -1,16 +1,17 @@
 // ================================================================
 // CODE BLOCKS 3D — Lab 9 (Build With AI)
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // Enhanced 3D snap-together coding blocks for Code Blocks game.
 // Decision 6.5: Tier 2 Enhanced 3D (~2-5K triangles).
 // 3D block meshes with interlocking notch visuals, execution
 // glow trail, and depth rendering on workspace.
-// Used on desktop only; 2D fallback on mobile.
 // ================================================================
 
 'use client';
 
 import { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useFrame } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
 import { DoubleSide, MathUtils, Mesh, MeshBasicMaterial } from 'three';
 
@@ -218,16 +219,9 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
 // --- Exported Component ---
 export function CodeBlocks3D(props: CodeBlocks3DProps) {
   return (
-    <div className="w-full h-full min-h-[200px]">
-      <Canvas
-        shadows
-        dpr={[1, 2]}
-        camera={{ position: [0, 0, 4], fov: 45 }}
-        gl={{ antialias: true }}
-      >
-        <Scene {...props} />
-      </Canvas>
-    </div>
+    <group>
+      <Scene {...props} />
+    </group>
   );
 }
 

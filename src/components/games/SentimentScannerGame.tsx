@@ -7,19 +7,16 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { ScanLine } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const SentimentScannerEnvironment = dynamic(
   () => import('@/components/3d/environments/SentimentScannerEnvironment'),
   { ssr: false }
@@ -55,6 +52,7 @@ export function SentimentScannerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [text, setText] = useState('');
@@ -65,6 +63,10 @@ export function SentimentScannerGame() {
   const { score, hl, wordCount } = useMemo(() => analyze(text), [text]);
   const emoji = score > 0.3 ? '\u{1F60A}' : score < -0.3 ? '\u{1F622}' : '\u{1F610}';
   const pct = ((score + 1) / 2) * 100;
+
+  useEffect(() => {
+    setGameSceneContent(<SentimentScannerEnvironment sentiment={score} textsAnalyzed={ci} />);
+  }, [score, ci, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i, x: (i * 37 + 13) % 100, y: (i * 53 + 7) % 100, size: (i % 3) + 1,
@@ -90,17 +92,6 @@ export function SentimentScannerGame() {
   return (
     <GameShell gameId="sentiment-scanner" title="Sentiment Scanner" worldNumber={8} worldColor="#818CF8" totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <SentimentScannerEnvironment sentiment={score} textsAnalyzed={ci} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

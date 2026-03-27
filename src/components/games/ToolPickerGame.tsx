@@ -13,13 +13,10 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Wrench } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const ToolPickerEnvironment = dynamic(
   () => import('@/components/3d/environments/ToolPickerEnvironment'),
   { ssr: false }
@@ -75,6 +72,7 @@ export function ToolPickerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -89,6 +87,10 @@ export function ToolPickerGame() {
   );
   const task = tasks[roundIdx];
   const multiplier = streak >= 5 ? 3 : streak >= 3 ? 2 : 1;
+
+  useEffect(() => {
+    setGameSceneContent(<ToolPickerEnvironment toolsSelected={roundIdx} currentTask={task?.text || ''} />);
+  }, [roundIdx, task?.text, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -140,16 +142,6 @@ export function ToolPickerGame() {
 
   return (
     <GameShell gameId="tool-picker" title="Tool Picker" worldNumber={5} worldColor="#00FF88" totalRounds={tasks.length}>
-      {/* 3D Environment Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <Canvas
-          camera={{ position: [0, 2, 8], fov: 50 }}
-          style={{ background: 'transparent' }}
-          gl={{ alpha: true, antialias: true }}
-        >
-          <ToolPickerEnvironment toolsSelected={roundIdx} currentTask={task?.text || ''} />
-        </Canvas>
-      </div>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

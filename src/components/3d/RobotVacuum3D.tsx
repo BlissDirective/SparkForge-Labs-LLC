@@ -2,6 +2,8 @@
 
 // ================================================================
 // ROBOT VACUUM 3D — Lab 5 (AI Helpers) — v3 Enhanced 3D
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // [v3] 3D isometric room with furniture depth
 // [v3] Dust particles as Points, clean burst animation
 // [v3] Vacuum robot with directional arrow + trail line
@@ -9,9 +11,7 @@
 // ================================================================
 
 import { useRef, useMemo, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useFrame } from '@react-three/fiber';
 import {
   BufferGeometry,
   DoubleSide,
@@ -285,9 +285,9 @@ function ChargerMarker({ pos }: { pos: [number, number] }) {
   );
 }
 
-// ---- Scene (inner R3F) ----
+// ---- Main Export ----
 
-function RoomScene({
+export default function RobotVacuum3D({
   room,
   vacPos,
   vacDir,
@@ -297,7 +297,7 @@ function RoomScene({
   running,
 }: RobotVacuum3DProps) {
   return (
-    <>
+    <group>
       {/* Lighting */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 8, 5]} intensity={0.6} castShadow />
@@ -331,43 +331,6 @@ function RoomScene({
 
       {/* Vacuum */}
       <VacuumRobot pos={vacPos} dir={vacDir} running={running} />
-
-      {/* Environment */}
-      <Environment preset="night" />
-
-      {/* Bloom */}
-      <EffectComposer>
-        <Bloom
-          intensity={0.3}
-          luminanceThreshold={0.6}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
-    </>
-  );
-}
-
-// ---- Main Export ----
-
-export default function RobotVacuum3D(props: RobotVacuum3DProps) {
-  return (
-    <div
-      style={{ width: '100%', height: 220, borderRadius: 12, overflow: 'hidden' }}
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{ position: [5, 6, 5], fov: 45 }}
-        frameloop="always"
-        dpr={[1, 1.5]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: 'transparent' }}
-        onCreated={({ camera }) => {
-          camera.lookAt(3, 0, 3);
-        }}
-      >
-        <RoomScene {...props} />
-      </Canvas>
-    </div>
+    </group>
   );
 }

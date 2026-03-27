@@ -28,6 +28,7 @@ import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
 import { useGameStore } from "@/stores/gameStore";
 import { useChildStore } from "@/stores/childStore";
+import { useSceneStore } from "@/stores/sceneStore";
 import {
   Plus, RotateCcw, Bot, Settings2,
   BookOpen, Smartphone,
@@ -288,6 +289,7 @@ function TypingMessage({ text, isLatest, speed }: { text: string; isLatest: bool
 export function ChatbotBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
@@ -311,6 +313,22 @@ export function ChatbotBuilderGame() {
     id: i, x: Math.random() * 100, y: Math.random() * 100,
     size: Math.random() * 2 + 1, delay: Math.random() * 4, dur: Math.random() * 6 + 4,
   })), []);
+
+  useEffect(() => {
+    if (viewMode === "graph" || viewMode === "test") {
+      setGameSceneContent(
+        <ChatbotNodes3D
+          nodes={nodes}
+          personalityColors={pers.colors}
+          hoveredNode={viewMode === "graph" ? hoveredNode : null}
+          testPath={testPath}
+          isTestMode={viewMode === "test"}
+        />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [viewMode, nodes, pers.colors, hoveredNode, testPath, setGameSceneContent]);
 
   // --- Actions ---
   function loadTemplate(name: string) {
@@ -491,18 +509,7 @@ export function ChatbotBuilderGame() {
                       ))}
                     </div>
 
-                    {/* [v3] 3D Visualization (graph or test view) */}
-                    {(viewMode === "graph" || viewMode === "test") && (
-                      <Canvas3DErrorBoundary>
-                        <ChatbotNodes3D
-                          nodes={nodes}
-                          personalityColors={pers.colors}
-                          hoveredNode={viewMode === "graph" ? hoveredNode : null}
-                          testPath={testPath}
-                          isTestMode={viewMode === "test"}
-                        />
-                      </Canvas3DErrorBoundary>
-                    )}
+                    {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* -- TREE VIEW -- */}
                     {viewMode === "tree" && (

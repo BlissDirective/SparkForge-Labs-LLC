@@ -3,11 +3,19 @@
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
+
+// 3D scene content — rendered inside CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
+const AiOrNot3D = dynamic(
+  () => import('@/components/3d/AiOrNot3D'),
+  { ssr: false }
+);
 import { Play, BookOpen, ArrowRight, Lightbulb, Award, Rocket, Clock, Send, Brain, CheckCircle } from 'lucide-react';
 
 type Phase = 'welcome' | 'learn' | 'play' | 'predict' | 'complete';
@@ -144,6 +152,7 @@ const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 export function AiOrNotGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -165,6 +174,15 @@ export function AiOrNotGame() {
   const round = rounds[roundIdx];
   const totalRounds = rounds.length;
   const realityScore = Math.round((totalCorrect / Math.max(1, history.length)) * 100);
+
+  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
+  useEffect(() => {
+    if (phase === 'play' || phase === 'predict') {
+      setGameSceneContent(<AiOrNot3D />);
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
     id: i, x: ((i * 43 + 11) * 7) % 100, y: ((i * 61 + 13) * 11) % 100,
@@ -192,6 +210,16 @@ export function AiOrNotGame() {
   }, [predictionText, game]);
 
   const finishGame = useCallback(() => { game.completeGame(); setPhase('complete'); }, [game]);
+
+  useEffect(() => {
+    if (phase === 'play' || phase === 'predict') {
+      setGameSceneContent(
+        <AiOrNot3D />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, setGameSceneContent]);
 
   return (
     <GameShell gameId="ai-or-not" title="AI or Not?" worldNumber={10} worldColor="#D946EF" xpReward={25} totalRounds={totalRounds}>
