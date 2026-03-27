@@ -1,8 +1,27 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 3 Audit Fixes — COMPLETE
-## Status: ALL Stage 3 CRITICAL + HIGH + WARNING findings resolved
-## Last Updated: 2026-03-26 (Stage 3 Batch 10: Security + COPPA + 3D Integration)
+## Current Phase: Stage 4 — 3D-Embedded UI (12 mini-batches)
+## Status: Batch 1/12 COMPLETE — audit fixes
+## Last Updated: 2026-03-27 (Stage 4 Batch 1: Code Cleanup)
+
+---
+
+### Stage 4 — Batch 1: Audit Fixes / Code Cleanup (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Findings Addressed:**
+- [x] S4-HIGH-001 — Already resolved (useApi.ts deleted in prior batch)
+- [x] S4-HIGH-003 + S4-WARN-001 — Refactored 4 hooks to use centralized `apiFetch` from `src/lib/api.ts`
+- [x] S4-WARN-005 — Fixed `as string` assertion in content/[slug]/page.tsx
+
+**Files Modified (5):**
+- `src/hooks/useProgress.ts` — Removed local apiFetch, import from @/lib/api
+- `src/hooks/useContent.ts` — Removed local apiFetch, import from @/lib/api
+- `src/hooks/useChildren.ts` — Removed local apiFetch, import from @/lib/api
+- `src/hooks/useGamification.ts` — Removed local apiFetch, import from @/lib/api
+- `src/app/(dashboard)/content/[slug]/page.tsx` — Safe Array.isArray check for params.slug
 
 ---
 

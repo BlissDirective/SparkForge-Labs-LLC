@@ -87,6 +87,12 @@
 - **3D Integration Audit:** 4 findings logged as INFO (S3-INFO-3D-001–004) — `setLabColor`/`setSkipIntroAnimation`/`WormholeTransition` are Stage 4 scope, auth canvas isolation is by design
 - **Result: All Stage 3 CRITICAL + HIGH + WARNING findings resolved**
 
+### Batch 11: Stage 4 Audit — Batch 1 (Code Cleanup)
+- **S4-HIGH-001:** Already resolved — `useApi.ts` was deleted in earlier batch
+- **S4-HIGH-003 + S4-WARN-001:** Refactored 4 hooks (`useProgress.ts`, `useContent.ts`, `useChildren.ts`, `useGamification.ts`) to use centralized `apiFetch` from `src/lib/api.ts`. Removed 4 duplicate local `apiFetch` definitions. All hook return types now properly typed via generic `apiFetch<T>`.
+- **S4-WARN-005:** Fixed `as string` assertion in `content/[slug]/page.tsx` — replaced with safe `Array.isArray` check.
+- **Result: 4 hooks DRY, typed, using centralized API wrapper**
+
 ---
 
 ## Executive Summary
@@ -1272,9 +1278,9 @@ if (!user && !isDemoSession && !isPublicPath) {
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 4 |
-| HIGH | 4 |
-| WARNING | 5 |
+| CRITICAL | 4 (in progress — 3D-embedded UI plan) |
+| HIGH | 1 resolved (Batch 11) + 3 in progress |
+| WARNING | 2 resolved (Batch 11) + 3 in progress |
 | INFO | 1 |
 | PASS | 5 |
 
@@ -1343,7 +1349,7 @@ if (!user && !isDemoSession && !isPublicPath) {
 
 ## Stage 4 — HIGH FINDINGS
 
-### S4-HIGH-001 — `useApi.ts` dead code not deleted (BUG-1)
+### S4-HIGH-001 — ~~`useApi.ts` dead code not deleted (BUG-1)~~ RESOLVED (Batch 5 / confirmed Batch 11)
 
 **File:** `src/hooks/useApi.ts` (179 lines)
 **Category:** Dead Code / Known Bug
@@ -1380,7 +1386,7 @@ Note: This may cause double-wrapping if individual games also use GameShell. Con
 
 ---
 
-### S4-HIGH-003 — 4 hook files duplicate `apiFetch` instead of importing from `src/lib/api.ts`
+### S4-HIGH-003 — ~~4 hook files duplicate `apiFetch` instead of importing from `src/lib/api.ts`~~ RESOLVED (Batch 11)
 
 **Files:** `src/hooks/useChildren.ts`, `src/hooks/useContent.ts`, `src/hooks/useProgress.ts`, `src/hooks/useGamification.ts` (lines 4-11 each)
 **Category:** Code Quality / DRY
@@ -1406,7 +1412,7 @@ import { apiFetch } from '@/lib/api';
 
 ## Stage 4 — WARNING FINDINGS
 
-### S4-WARN-001 — Hook return types implicitly `any`
+### S4-WARN-001 — ~~Hook return types implicitly `any`~~ RESOLVED (Batch 11 — resolved by S4-HIGH-003)
 
 **Files:** `src/hooks/useContent.ts`, `src/hooks/useProgress.ts`, `src/hooks/useGamification.ts`
 **Category:** TypeScript Quality
@@ -1455,7 +1461,7 @@ import { GAME_REGISTRY, getAllGames } from '@/config/gameRegistry';
 
 ---
 
-### S4-WARN-005 — `content/[slug]/page.tsx` uses `as string` type assertion
+### S4-WARN-005 — ~~`content/[slug]/page.tsx` uses `as string` type assertion~~ RESOLVED (Batch 11)
 
 **File:** `src/app/(dashboard)/content/[slug]/page.tsx` (line 13)
 **Category:** TypeScript Quality
