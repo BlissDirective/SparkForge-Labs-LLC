@@ -22,6 +22,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Plus, Boxes, Brain } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -54,6 +55,8 @@ const COLORS = [
   { color: '#EF4444', name: 'Red' },
   { color: '#10B981', name: 'Green' },
 ];
+
+const GROUP_COLORS = ['#3B82F6', '#EF4444', '#10B981', '#F59E0B', '#8B5CF6'];
 
 const AI_CRITERIA = [
   {
@@ -157,6 +160,41 @@ export function SortToyBoxGame() {
   const [aiCriterion, setAiCriterion] = useState<(typeof AI_CRITERIA)[0] | null>(null);
 
   const allGrouped = shapes.every((s) => s.group !== null);
+
+  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  useEffect(() => {
+    if (phase === 'sort') {
+      const items = shapes.map((s) => ({
+        id: s.id,
+        shape: s.shape as 'box' | 'sphere' | 'cylinder' | 'cone' | 'torus',
+        color: s.color,
+        colorName: s.colorName,
+        size: s.size as 'small' | 'large',
+        group: s.group,
+        position: [0, 0, 0] as [number, number, number],
+      }));
+      const bins = Array.from({ length: groupCount }, (_, i) => ({
+        id: i + 1,
+        position: [((i - (groupCount - 1) / 2) * 3), 0, 3] as [number, number, number],
+        color: GROUP_COLORS[i] || '#888',
+        label: `Group ${i + 1}`,
+      }));
+      setGameSceneContent(
+        <SortScene3D
+          items={items}
+          bins={bins}
+          onItemDrop={(itemId, binId) => {
+            setShapes((prev) => prev.map((s) => s.id === itemId ? { ...s, group: binId } : s));
+          }}
+          onItemMiss={() => {}}
+          activeItemId={selectedShape}
+          onSelectItem={setSelectedShape}
+        />
+      );
+    }
+    return () => setGameSceneContent(null);
+  }, [phase, shapes, groupCount, selectedShape, setGameSceneContent]);
 
   const particles = useMemo(
     () =>

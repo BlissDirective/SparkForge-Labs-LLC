@@ -20,7 +20,7 @@
 'use client';
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text, Environment } from '@react-three/drei';
 import {
   BoxGeometry,
@@ -637,33 +637,21 @@ function PipelineScene({
 }
 
 // ================================================================
-// EXPORTED CANVAS WRAPPER
+// EXPORTED GROUP (D3D-B1 compliant)
 // ================================================================
+// S6-CRIT-002: Refactored from standalone Canvas to <group>.
 
 export default function AgentPipeline3D(props: PipelineProps) {
   return (
-    <Canvas
-      camera={{ position: [0, 10, 10], fov: 50 }}
-      shadows
-      dpr={[1, 1.5]}
-      frameloop={props.isRunning ? 'always' : 'demand'}
-      style={{
-        width: '100%',
-        height: '100%',
-        borderRadius: '0.75rem',
-        background:
-          'linear-gradient(180deg, #030712 0%, #0a1a14 100%)',
-      }}
-      gl={{ antialias: true, alpha: false }}
-    >
-        {/* [5M] Immersive Server Command Center Environment */}
-        <AgentArchitectEnvironment
-          isRunning={props.isRunning}
-          activeBlockId={props.activeBlockId}
-        />
+    <group>
+      {/* [5M] Immersive Server Command Center Environment */}
+      <AgentArchitectEnvironment
+        isRunning={props.isRunning}
+        activeBlockId={props.activeBlockId}
+      />
 
-        <PipelineScene {...props} />
-    </Canvas>
+      <PipelineScene {...props} />
+    </group>
   );
 }
 

@@ -22,7 +22,7 @@
 'use client';
 
 import { useRef, useMemo } from 'react';
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, Text, Line, Environment } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Color, Mesh, Vector3 } from 'three';
@@ -450,45 +450,31 @@ function NetworkScene({
 }
 
 // ================================================================
-// EXPORTED COMPONENT (wraps Canvas)
+// EXPORTED COMPONENT — Group (D3D-B1 compliant)
 // ================================================================
+// S6-CRIT-002: Refactored from standalone Canvas to <group> that
+// renders inside CockpitCanvas via sceneStore.setGameSceneContent.
 
 export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
   return (
-    <div
-      className="w-full rounded-lg overflow-hidden"
-      style={{
-        height: 400,
-        background: 'radial-gradient(ellipse at center, rgba(236,72,153,0.08) 0%, transparent 70%)',
-      }}
-      role="img"
-      aria-label={`3D neural network visualization with ${props.layerSizes.length} layers and ${props.network.nodes.length} neurons`}
-    >
-      <Canvas
-        camera={{ position: [0, 2, 10], fov: 50 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-        shadows
-        style={{ background: 'transparent' }}
-      >
-          {/* [5M] Immersive Data Center Environment */}
-          <NeuralBuilderEnvironment
-            isTraining={props.isTraining}
-            accuracy={props.accuracy}
-          />
+    <group>
+      {/* [5M] Immersive Data Center Environment */}
+      <NeuralBuilderEnvironment
+        isTraining={props.isTraining}
+        accuracy={props.accuracy}
+      />
 
-          <NetworkScene
-            layerSizes={props.layerSizes}
-            network={props.network}
-            isTraining={props.isTraining}
-            heartbeatPhase={props.heartbeatPhase}
-            dataFlowActive={props.dataFlowActive}
-            selectedConnection={props.selectedConnection}
-            inspectedNode={props.inspectedNode}
-            onSelectConnection={props.onSelectConnection}
-            onInspectNode={props.onInspectNode}
-          />
-      </Canvas>
-    </div>
+      <NetworkScene
+        layerSizes={props.layerSizes}
+        network={props.network}
+        isTraining={props.isTraining}
+        heartbeatPhase={props.heartbeatPhase}
+        dataFlowActive={props.dataFlowActive}
+        selectedConnection={props.selectedConnection}
+        inspectedNode={props.inspectedNode}
+        onSelectConnection={props.onSelectConnection}
+        onInspectNode={props.onInspectNode}
+      />
+    </group>
   );
 }

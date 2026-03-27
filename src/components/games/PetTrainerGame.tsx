@@ -18,12 +18,13 @@
 // training vs test data, balanced datasets.
 // ================================================================
 
-import { useState, useMemo, Fragment } from 'react';
+import { useState, useMemo, useEffect, Fragment } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Heart, Sparkles, Brain, Zap, ChevronRight, BarChart3,
   CheckCircle2, XCircle, RotateCcw, Eye,
@@ -360,6 +361,21 @@ export function PetTrainerGame() {
   const testAccuracy = testResults.length > 0
     ? Math.round((testResults.filter(r => r.correct).length / testResults.length) * 100)
     : 0;
+
+  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  useEffect(() => {
+    setGameSceneContent(
+      <Pet3DScene
+        emoji={pet.emoji}
+        speciesId={pet.speciesId}
+        mood={mood}
+        evolutionStage={evolutionStage}
+        labColor="#8B5CF6"
+      />
+    );
+    return () => setGameSceneContent(null);
+  }, [pet, mood, evolutionStage, setGameSceneContent]);
 
   // Check for overfitting (imbalanced labeling)
   const isOverfit = useMemo(() => {

@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useChildStore } from '@/stores/childStore';
 import { useGameStore } from '@/stores/gameStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Send, BookOpen, Star, AlertTriangle,
   ChevronRight, Lightbulb, GraduationCap,
@@ -740,6 +741,21 @@ export function PromptLabGame() {
   // [v3] 3D thought bubble state
   const [bubbleKeywords, setBubbleKeywords] = useState<string[]>([]);
   const [showBubbles, setShowBubbles] = useState(false);
+
+  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  useEffect(() => {
+    if (showBubbles && bubbleKeywords.length > 0) {
+      setGameSceneContent(
+        <PromptBubble3DScene
+          keywords={bubbleKeywords}
+          isThinking={loading}
+          temperature={temperature}
+        />
+      );
+    }
+    return () => setGameSceneContent(null);
+  }, [showBubbles, bubbleKeywords, loading, temperature, setGameSceneContent]);
 
   // --- Refs ---
   const messagesEndRef = useRef<HTMLDivElement>(null);

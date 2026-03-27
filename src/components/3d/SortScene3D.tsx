@@ -9,7 +9,7 @@
 'use client';
 
 import { useRef, useState, useMemo, useCallback } from 'react';
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { ContactShadows, OrthographicCamera } from '@react-three/drei';
 import { Group, MathUtils, Vector3 } from 'three';
 
@@ -400,14 +400,14 @@ function Scene({
   );
 }
 
-// ■■■ Exported Wrapper ■■■
+// ■■■ Exported Group (D3D-B1 compliant) ■■■
+// S6-CRIT-002: Refactored from standalone Canvas to <group>.
+// OrthographicCamera stays — game-specific overhead view for sorting.
 export function SortScene3D(props: SortScene3DProps) {
   return (
-    <div className="w-full h-full min-h-[300px]">
-      <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
-        <Scene {...props} />
-      </Canvas>
-    </div>
+    <group>
+      <Scene {...props} />
+    </group>
   );
 }
 

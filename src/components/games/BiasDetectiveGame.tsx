@@ -15,11 +15,12 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Search, Eye, CheckCircle2,
   GraduationCap, ChevronRight, Scale,
@@ -39,11 +40,8 @@ import {
   calculateScaleWeights,
 } from '@/components/3d/BiasScales3D';
 
-// [v3] R3F Canvas for 3D rendering
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
+// S6-CRIT-002: Canvas removed — BiasScales3D now renders as <group>
+// inside CockpitCanvas via sceneStore.setGameSceneContent (D3D-B1)
 
 
 // ================================================================
@@ -579,6 +577,22 @@ export function BiasDetectiveGame() {
     );
   }, [activeCase, collectedEvidence]);
 
+  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  useEffect(() => {
+    if (activeCase && (phase === 'investigate' || phase === 'testlab' || phase === 'fix')) {
+      setGameSceneContent(
+        <BiasScales3DComponent
+          biasWeight={scaleWeights.biasWeight}
+          fairWeight={scaleWeights.fairWeight}
+          isBalanced={scaleWeights.isBalanced}
+          caseColor="#EF4444"
+        />
+      );
+    }
+    return () => setGameSceneContent(null);
+  }, [activeCase, phase, scaleWeights, setGameSceneContent]);
+
   // Handlers
   function startCase(caseId: string) {
     setActiveCaseId(caseId);
@@ -994,24 +1008,14 @@ export function BiasDetectiveGame() {
                       </span>
                     </div>
 
-                    {/* [v3] 3D Justice Scales — responds to evidence */}
-                    <div className="w-full h-32 md:h-40 rounded-xl
-                      overflow-hidden"
+                    {/* [v3] 3D Justice Scales — now renders in CockpitCanvas (D3D-B1) */}
+                    {/* S6-CRIT-002: Inline Canvas removed — scales visible in cockpit background */}
+                    <div className="w-full h-32 md:h-40 rounded-xl overflow-hidden flex items-center justify-center"
                       style={{ background: 'rgba(0,0,0,0.2)' }}
                       aria-hidden="true">
-                      <Canvas
-                          camera={{ position: [0, 1.5, 3.5], fov: 45 }}
-                          style={{ background: 'transparent' }}
-                          gl={{ alpha: true, antialias: true }}
-                          frameloop="always">
-                          {/* [CR-6F-C2] frameloop="always" for spring physics + particles */}
-                          <BiasScales3DComponent
-                            biasWeight={scaleWeights.biasWeight}
-                            fairWeight={scaleWeights.fairWeight}
-                            isBalanced={scaleWeights.isBalanced}
-                            caseColor="#EF4444"
-                          />
-                        </Canvas>
+                      <p className="font-body text-2xs text-white/20">
+                        {scaleWeights.isBalanced ? '\u2696\uFE0F Scales balanced' : '\u26A0\uFE0F Bias detected — check the 3D view'}
+                      </p>
                     </div>
 
                     {/* Data Visualizations */}

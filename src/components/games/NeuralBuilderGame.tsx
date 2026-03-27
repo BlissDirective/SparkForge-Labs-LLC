@@ -26,6 +26,7 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { useNetworkAudio } from '@/hooks/useNetworkAudio';
 import {
   Brain, Zap, ChevronRight, Plus, Minus, Play,
@@ -287,6 +288,30 @@ export function NeuralBuilderGame() {
 
   // --- Heartbeat (V2 Enhancement) ---
   const [heartbeatPhase, setHeartbeatPhase] = useState(0);
+
+  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  useEffect(() => {
+    setGameSceneContent(
+      <NeuralNetwork3D
+        layerSizes={layerSizes}
+        network={network}
+        isTraining={isTraining}
+        trainEpoch={trainEpoch}
+        accuracy={accuracy}
+        complexity={layerSizes.length / 5}
+        trainingProgress={trainEpoch / 50}
+        dataFlowActive={dataFlowActive}
+        heartbeatPhase={heartbeatPhase}
+        selectedConnection={selectedConnection}
+        inspectedNode={inspectedNode}
+        onSelectConnection={setSelectedConnection}
+        onInspectNode={setInspectedNode}
+        labColor="#FF66AA"
+      />
+    );
+    return () => setGameSceneContent(null);
+  }, [layerSizes, network, isTraining, trainEpoch, accuracy, dataFlowActive, heartbeatPhase, selectedConnection, inspectedNode, setGameSceneContent]);
 
   // --- Particles ---
   const particles = useMemo(
