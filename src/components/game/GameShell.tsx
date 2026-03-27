@@ -12,10 +12,15 @@
 // REMOVED (D3D-2): LODWrapper, toLODTier, GAME_REGISTRY imports
 // REMOVED (D3D-B1): setGameActive(true/false) — canvas no longer unmounts
 // ADDED (D3D-B5): enterGame/exitGame via sceneStore — triggers iris transition
+// ADDED (S5-CRIT-002): useCompleteAndReward — auto XP/streak/badge on game complete
+// ADDED (S5-HIGH-006): XPPopupProvider — wraps children for XP popup display
 
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { useGameStore } from '@/stores/gameStore';
+import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCompleteAndReward } from '@/hooks/useGamification';
+import { XPPopupProvider } from '@/components/game/XPPopup';
 
 interface GameShellProps {
   gameId: string;
@@ -33,35 +38,52 @@ export function GameShell({
   title,
   worldNumber,
   worldColor,
+  xpReward = 50,
   totalRounds,
   hints = 3,
   children,
 }: GameShellProps) {
   const startGame = useGameStore((s) => s.startGame);
   const resetGame = useGameStore((s) => s.resetGame);
+  const isComplete = useGameStore((s) => s.isComplete);
+  const score = useGameStore((s) => s.score);
   const enterGame = useSceneStore((s) => s.enterGame);
   const exitGame = useSceneStore((s) => s.exitGame);
+  const activeChild = useChildStore((s) => s.activeChild);
+  const completeAndReward = useCompleteAndReward();
+  const hasRewarded = useRef(false);
 
+  // Scene + game initialization
   useEffect(() => {
     startGame(gameId, totalRounds, hints);
     enterGame(gameId, worldColor);
     return () => {
       exitGame();
       resetGame();
+      hasRewarded.current = false;
     };
   }, [gameId, totalRounds, hints, worldColor, startGame, resetGame, enterGame, exitGame]);
 
+  // Reward pipeline: fires once when game completes
+  useEffect(() => {
+    if (!isComplete || hasRewarded.current || !activeChild?.id) return;
+    hasRewarded.current = true;
+    completeAndReward(activeChild.id, gameId, xpReward, 'game', score);
+  }, [isComplete, activeChild?.id, gameId, xpReward, score, completeAndReward]);
+
   return (
-    <div
-      className="h-full w-full"
-      data-game-id={gameId}
-      data-world={worldNumber}
-      data-world-color={worldColor}
-      role="region"
-      aria-label={`${title} game`}
-    >
-      {children}
-    </div>
+    <XPPopupProvider>
+      <div
+        className="h-full w-full"
+        data-game-id={gameId}
+        data-world={worldNumber}
+        data-world-color={worldColor}
+        role="region"
+        aria-label={`${title} game`}
+      >
+        {children}
+      </div>
+    </XPPopupProvider>
   );
 }
 
