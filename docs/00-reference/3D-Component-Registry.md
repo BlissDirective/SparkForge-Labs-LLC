@@ -1,9 +1,9 @@
 # SPARKFORGE — 3D Component Registry
 
-**Version:** 2.1 | **Date:** March 20, 2026
+**Version:** 2.2 | **Date:** March 27, 2026
 **Extracted from:** CLAUDE.md v5.7 Section 9
 **Cross-reference:** CLAUDE.md Section 9.1 (LOD rules), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
-**Last updated:** 20M Triangle Budget upgrade — 8 new cockpit components added (CockpitCanvas, CameraSystem, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D)
+**Last updated:** Stage 5 Gamification 3D — 7 new gamification components added (XPVortex, LevelUpExplosion, BadgePedestal3D, AvatarPreview3D, StreakFlame3D, CeremonyFXBridge, BadgePedestalBridge). Previous: 20M Triangle Budget upgrade — 8 cockpit components.
 
 ---
 
@@ -24,6 +24,13 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 | GameParticles3D.tsx | 5 v3 | R3F particles (5 flagships) |
 | GenericGameParticles.tsx | 7 Shared v3 | CSS particles (23 standard) |
 | LODWrapper.tsx | — | Mandatory LOD container for all 3D scenes |
+| XPVortex.tsx | 5 v3 | 100-particle instanced spiral for XP celebrations (2.0s auto-unmount) |
+| LevelUpExplosion.tsx | 5 v3 | 200-particle instanced cube burst for level-up celebrations |
+| BadgePedestal3D.tsx | 5 v3 | 5-tier PBR pedestals (common→legendary) with Float + Sparkles |
+| AvatarPreview3D.tsx | 5 v3 | 6-shape 3D avatar with morph animation, idle rotation, letter overlay |
+| StreakFlame3D.tsx | 5 v3 | Streak flame billboard (7+ days), scale by tier, 3 intersecting planes |
+| CeremonyFXBridge.tsx | 5 v3 | uiStore → CeremonyFX bridge (maps CelebrationType to ceremony effects) |
+| BadgePedestalBridge.tsx | 5 v3 | Badge pedestal orchestrator for CockpitCanvas trophy showcase |
 
 ---
 
@@ -157,16 +164,16 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| System / Dashboard | 7 | StationFrame, HeroAnimation, AuroraBackground, AmbientParticles, GameParticles3D, GenericGameParticles, LODWrapper |
+| System / Dashboard | 14 | StationFrame, HeroAnimation, AuroraBackground, AmbientParticles, GameParticles3D, GenericGameParticles, LODWrapper, XPVortex, LevelUpExplosion, BadgePedestal3D, AvatarPreview3D, StreakFlame3D, CeremonyFXBridge, BadgePedestalBridge |
 | Flagship (games + environments) | 12 | 6 game components + 6 environment components |
 | FL-Lite (games + environments) | 19 | 9 game components + 10 environment components |
 | Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
 | Cockpit / Enhancement | 24 | Includes 8 new components from 20M upgrade (March 20, 2026) |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
-| **Total rows** | **88** | |
+| **Total rows** | **95** | |
 
-> **Note:** `AuroraBackground.tsx` and `AmbientParticles.tsx` appear in both System/Dashboard and Cockpit/Enhancement sections — they serve dual roles (standalone dashboard use + integrated cockpit use). Unique file count: **86**.
+> **Note:** `AuroraBackground.tsx` and `AmbientParticles.tsx` appear in both System/Dashboard and Cockpit/Enhancement sections — they serve dual roles (standalone dashboard use + integrated cockpit use). Unique file count: **93**.
 
 ---
 
-*End of 3D Component Registry v2.1 | Extracted from CLAUDE.md v5.7 | Updated March 20, 2026 — 20M cockpit upgrade*
+*End of 3D Component Registry v2.2 | Extracted from CLAUDE.md v5.7 | Updated March 27, 2026 — Stage 5 Gamification 3D (7 new components)*

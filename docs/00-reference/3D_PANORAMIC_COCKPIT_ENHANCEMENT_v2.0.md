@@ -119,7 +119,8 @@ R3F Canvas (fixed, full viewport, z-index: 0)
 └── /* LAYER 5: Transition FX (when active) */
     ├── WormholeTransition (lab entry/exit)
     ├── GameLaunchZoom (game focus sequence)
-    └── CeremonyFX (achievement/level-up)
+    ├── CeremonyFX (achievement/level-up)
+    └── CeremonyFXBridge (uiStore → CeremonyFX mapping, Stage 5)
 ```
 
 ### Z-Index Stack (Full)
@@ -392,7 +393,7 @@ Within `<CockpitScene>`, elements render in this order (painter's algorithm):
 2. **Spatial layer:** HolographicLabMap + DynamicEnvironment + InteractiveConsole3D ×4
 3. **Ambient layer:** AmbientNPCs + PetCompanion3D
 4. **Shell layer:** CockpitPanels + LEDRim + SidePanels + StatusBar3D + HolographicHUD
-5. **Transition layer:** WormholeTransition / GameLaunchZoom / CeremonyFX (when active)
+5. **Transition layer:** WormholeTransition / GameLaunchZoom / CeremonyFX + CeremonyFXBridge (when active)
 6. **Injected content:** `{children}` — game-specific 3D components
 7. **Postprocessing:** EffectComposer (Bloom + Vignette + BarrelDistortion)
 
@@ -1044,6 +1045,7 @@ When `prefers-reduced-motion: reduce` is active OR `accessibilityStore.reducedMo
 | `src/components/3d/VolumetricFog3D.tsx` | NEW | Fog volumes, god ray cones, lab-reactive coloring (500K tris) | ✅ IMPLEMENTED |
 | `src/components/3d/CockpitFloor3D.tsx` | NEW | Grated floor panels, sub-floor piping, embedded LED channels (500K tris) | ✅ IMPLEMENTED |
 | `src/components/3d/CeremonyFX.tsx` | NEW | Achievement/level-up ceremony FX — confetti, fireworks, 3D trophies (500K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/CeremonyFXBridge.tsx` | NEW (Stage 5) | uiStore → CeremonyFX bridge — maps CelebrationType to ceremony effects inside CockpitCanvas | ✅ IMPLEMENTED |
 | `src/components/3d/WormholeTransition.tsx` | NEW | Lab entry/exit cinematic tunnel (300K tris) | ✅ IMPLEMENTED |
 | `src/components/3d/MiniMapOverlay3D.tsx` | NEW | Persistent 3D minimap — lab ring, position indicator, completion coding (250K tris) | ✅ IMPLEMENTED |
 | `src/lib/audio/cockpitAudio.ts` | NEW | CockpitAudioEngine singleton — spatial zones, skin-specific soundscapes | ✅ IMPLEMENTED |
@@ -1155,7 +1157,7 @@ When `prefers-reduced-motion: reduce` is active OR `accessibilityStore.reducedMo
 | 1 (Foundation) | `cockpitConfig.ts`, `stores/cockpitStore.ts` | Config extensions, store additions |
 | 3 (Auth/Layout) | `StationFrame.tsx`, `CockpitPanels.tsx`, `HolographicHUD.tsx`, `SidePanels.tsx`, `StatusBar3D.tsx`, `BarrelDistortion.tsx` | Refactor to scene groups, add v2 features |
 | 4 (Core Pages) | `useStationMode` | Add transition cinematic triggers |
-| 5 (Gamification) | Ceremony system | CeremonyFX replaces/augments existing celebration overlay |
+| 5 (Gamification) | Ceremony system, CeremonyFXBridge | CeremonyFXBridge maps uiStore celebrations → CeremonyFX inside CockpitCanvas; BadgePedestalBridge added for trophy showcase |
 | 6-7 (Games) | Game chrome bezel | GameLaunchZoom morphs cockpit → game frame |
 | 8 (Parent) | No impact | Parent dashboard doesn't use cockpit 3D |
 | 10 (Polish) | Accessibility, PWA | Cockpit ARIA labels, reduced motion, keyboard nav |
@@ -1169,6 +1171,7 @@ cockpitConfig.ts (v2 constants)
         → SpatialDashboard.tsx (refactored to scene group)
         → WormholeTransition.tsx (NEW)
         → CeremonyFX.tsx (NEW)
+        → CeremonyFXBridge.tsx (NEW — Stage 5, uiStore → CeremonyFX)
     → cockpitStore.ts (extended state)
         → MiniMapOverlay.tsx (NEW)
         → ConsoleDetailPanel.tsx (NEW)
