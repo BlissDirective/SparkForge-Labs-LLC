@@ -1,12 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
+import { apiFetch } from '@/lib/api';
 import type { Content } from '@/types';
-
-async function apiFetch(url: string) {
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data.data;
-}
 
 // Fetch all content for a specific lab
 // v2 [ENH]: staleTime 10 minutes

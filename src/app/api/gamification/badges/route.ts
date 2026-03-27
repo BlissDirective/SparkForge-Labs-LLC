@@ -73,14 +73,22 @@ export async function POST(req: NextRequest) {
     .select('content_id, completed, score, content:content_id(world, type)')
     .eq('child_id', childId).eq('completed', true);
 
+  // S2-HIGH-002: Typed interface for progress-with-content join (replaces `as any`)
+  type ProgressWithContent = {
+    content_id: string;
+    completed: boolean;
+    score: number | null;
+    content: { world: number; type: string } | null;
+  };
+  const typedProgress = (progress ?? []) as ProgressWithContent[];
+
   const worldsVisited = new Set<number>();
   const gamesByWorld = new Map<number, number>();
   const quizScoresByWorld = new Map<number, number[]>();
   const uniqueGamesPlayed = new Set<string>();
 
-  for (const p of progress || []) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const c = p.content as any;
+  for (const p of typedProgress) {
+    const c = p.content;
     if (!c) continue;
     worldsVisited.add(c.world);
     if (c.type === 'game') {
@@ -95,7 +103,8 @@ export async function POST(req: NextRequest) {
   }
 
   // v2 [BUG-6]: Check ALL criteria types
-  const newBadges: typeof allBadges = [];
+  // S2-HIGH-002: Initialize as concrete array (removes non-null assertions)
+  const newBadges: NonNullable<typeof allBadges> = [];
 
   for (const badge of unearned) {
     let met = false;
@@ -155,23 +164,21 @@ export async function POST(req: NextRequest) {
         break;
       }
       case 'sandboxes_completed': {
-        const sandboxCount = (progress || []).filter(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          p => (p.content as any)?.type === 'sandbox'
+        const sandboxCount = typedProgress.filter(
+          p => p.content?.type === 'sandbox'
         ).length;
         met = sandboxCount >= badge.criteria_value;
         break;
       }
       case 'spark_facts_read': {
-        const factCount = (progress || []).filter(
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          p => (p.content as any)?.type === 'spark_fact'
+        const factCount = typedProgress.filter(
+          p => p.content?.type === 'spark_fact'
         ).length;
         met = factCount >= badge.criteria_value;
         break;
       }
       case 'total_badges':
-        met = (earnedIds.size + newBadges!.length) >= badge.criteria_value;
+        met = (earnedIds.size + newBadges.length) >= badge.criteria_value;
         break;
       case 'special':
         // Special badges awarded by specific game/event handlers
@@ -179,15 +186,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (met) {
-      newBadges!.push(badge);
+      newBadges.push(badge);
       earnedIds.add(badge.id);
     }
   }
 
   // Insert newly earned badges
-  if (newBadges!.length > 0) {
+  if (newBadges.length > 0) {
     await supabase.from('child_badges').insert(
-      newBadges!.map(b => ({ child_id: childId, badge_id: b!.id }))
+      newBadges.map(b => ({ child_id: childId, badge_id: b.id }))
     );
   }
 

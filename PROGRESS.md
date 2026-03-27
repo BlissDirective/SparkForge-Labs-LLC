@@ -1,8 +1,174 @@
 # SparkForge Build Progress
 
-## Current Phase: Phase 0 Audit Fixes — COMPLETE
-## Status: Phase 0 COMPLETE (all 6 batches done)
-## Last Updated: 2026-03-26 (Phase 0 Batch 6: Data Integrity)
+## Current Phase: Stage 4 — 3D-Embedded UI (12 mini-batches)
+## Status: ALL 12 BATCHES + DOC SYNC COMPLETE — Stage 4 3D-Embedded UI
+## Last Updated: 2026-03-27 (Stage 4 Doc Sync: CLAUDE.md + stage docs + cockpit JSON)
+
+---
+
+### Stage 4 — Batch 1: Audit Fixes / Code Cleanup (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Findings Addressed:**
+- [x] S4-HIGH-001 — Already resolved (useApi.ts deleted in prior batch)
+- [x] S4-HIGH-003 + S4-WARN-001 — Refactored 4 hooks to use centralized `apiFetch` from `src/lib/api.ts`
+- [x] S4-WARN-005 — Fixed `as string` assertion in content/[slug]/page.tsx
+
+**Files Modified (5):**
+- `src/hooks/useProgress.ts` — Removed local apiFetch, import from @/lib/api
+- `src/hooks/useContent.ts` — Removed local apiFetch, import from @/lib/api
+- `src/hooks/useChildren.ts` — Removed local apiFetch, import from @/lib/api
+- `src/hooks/useGamification.ts` — Removed local apiFetch, import from @/lib/api
+- `src/app/(dashboard)/content/[slug]/page.tsx` — Safe Array.isArray check for params.slug
+
+---
+
+### Stage 4 — Batch 2: Camera Repositioning + Materials Upgrade (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Changes:**
+- [x] Camera repositioned: `[0, 6.5, 7]` → `[0, 0.65, 1.1]` (cockpit seat, not overhead)
+- [x] COCKPIT_GEOMETRY v3: arc 140° → 218°, radius 4.0 → 4.8, segments 256→288/128→144
+- [x] ADAPTIVE_CURVATURE: ultraWide 155°→230°, desktop 140°→218°
+- [x] CAMERA_PRESETS: all modes updated for tight-focus + added 'settings' mode
+- [x] SPATIAL_CAMERA_PRESETS: all views tight-focus + added CONSOLE_CAMERA_PRESETS (left/right)
+- [x] Created `src/lib/3d/cockpitMaterials.ts` — 7 material factories per vision JSON
+- [x] Added explicit 3D positions: leftConsole, rightConsole, statusBar, centerViewport, HUD
+
+**Files Created (1):**
+- `src/lib/3d/cockpitMaterials.ts` — Material factory (alloy, panel, holographic, button, bezel, console, LED)
+
+**Files Modified (4):**
+- `src/lib/3d/cockpitConfig.ts` — COCKPIT_GEOMETRY v3, CAMERA_PRESETS, ADAPTIVE_CURVATURE
+- `src/stores/cockpitStore.ts` — SPATIAL_CAMERA_PRESETS tight-focus + CONSOLE_CAMERA_PRESETS
+- `src/components/3d/CockpitCanvas.tsx` — Initial camera position [0, 0.65, 1.1]
+- `src/components/3d/CameraSystem.tsx` — Updated handoff comment
+
+---
+
+### Stage 4 — Batch 3: Full Geometry + Material Overhaul (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Changes:**
+- [x] CockpitPanels.tsx: v3 header, imports cockpitMaterials, 12 ribs (was 8), 768 rivets (was 512)
+- [x] LEDRim.tsx: v3 header, 1500 ultra LEDs (was 1000), emissive 3.0 (was ~0.3), imports cockpitMaterials
+- [x] SidePanels.tsx: Positions [-2.35, 0.25, -1.65] (was [-5.5, 0, -2]), chrome #a8b5c8 (was #2a2e3e), metalness 0.98 (was 0.92), reads positions from COCKPIT_GEOMETRY
+- [x] StatusBar3D.tsx: v3 1M budget header, chrome #a8b5c8 metalness 0.98 roughness 0.12
+
+**Files Modified (4):**
+- `src/components/3d/CockpitPanels.tsx`
+- `src/components/3d/LEDRim.tsx`
+- `src/components/3d/SidePanels.tsx`
+- `src/components/3d/StatusBar3D.tsx`
+
+---
+
+### Stage 3 Audit Fix — Batch 10: Security + COPPA + 3D Integration (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+
+**Findings Addressed:**
+- [x] S3-CRIT-001 — Added `/reset-password` to middleware public paths
+- [x] S3-HIGH-001 — COPPA (Option B): Created `/api/auth/consent` endpoint, signup no longer sends consent prematurely
+- [x] S3-HIGH-002 — Demo users: `sparkforge-demo-active` httpOnly cookie + middleware check
+- [x] S3-WARN-001 — Auth layout `dpr={[1, 3]}` replaces inline `window.devicePixelRatio`
+- [x] S3-WARN-002 — `AuthHoverContext` wires login card hover to `LoginPortal3D.isHovered`
+- [x] S3-WARN-003 — Downgraded to INFO (no wrong path in docs)
+- [x] 3D Integration Audit — 4 findings deferred to Stage 4 (setLabColor, Settings page, WormholeTransition, auth canvas)
+
+**Files Created (2):**
+- `src/app/api/auth/consent/route.ts` — COPPA consent endpoint
+- (context in auth layout — inline, not separate file)
+
+**Files Modified (7):**
+- `src/middleware.ts` — `/reset-password` + demo cookie check
+- `src/app/api/auth/demo/route.ts` — Sets `sparkforge-demo-active` cookie
+- `src/app/api/auth/signup/route.ts` — Removed `coppaConsent`, sets `coppa_consent_at: null`
+- `src/lib/validations.ts` — `SignupSchema` no longer requires `coppaConsent`, added `CoppaConsentSchema`
+- `src/app/(auth)/signup/page.tsx` — Step 1 no coppaConsent, Step 3 calls `/api/auth/consent`
+- `src/app/(auth)/layout.tsx` — `AuthHoverContext`, `isHovered` prop, `dpr={[1, 3]}`
+- `src/app/(auth)/login/page.tsx` — Uses `useAuthHover()` context
+
+---
+
+### Stage 2 Audit Fix — Batch 9: Security + Type Safety + Config (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+**Build Status:** Code changes — 5 source files modified
+
+**Findings Addressed:**
+- [x] S2-HIGH-001 — Added `verifyChildOwnership` to session end action (security: prevents session UUID enumeration)
+- [x] S2-HIGH-002 — Defined `ProgressWithContent` type in badges route, removed 3x `as any`, 3 eslint-disable, 4 non-null assertions
+- [x] S2-WARN-001 — Aligned Stripe env vars to `.env.example` names (`STRIPE_PLUS_MONTHLY_ID` format) in `tier-config.ts` + Stage 8 doc
+- [x] S2-WARN-002 — Used `Anthropic.TextBlock` type guard + `catch (error: unknown)` in prompt-lab route
+- [x] S2-WARN-003 — Replaced raw `req.json()` with `parseBody` + `z.discriminatedUnion` schema in sessions route
+- [ ] S2-INFO-001 — Deferred (timezone validated but discarded — cosmetic)
+- [ ] S2-INFO-002 — Deferred (all-labs childId not Zod-validated — cosmetic)
+
+**Files Modified (5 source + 2 docs):**
+- `src/app/api/sessions/route.ts` — Full rewrite: parseBody + discriminated union + ownership check
+- `src/app/api/gamification/badges/route.ts` — ProgressWithContent type, no more as any or !
+- `src/app/api/ai/prompt-lab/route.ts` — TextBlock type guard, catch error:unknown
+- `src/lib/tier-config.ts` — Stripe env var names aligned to .env.example
+- `docs/stage8-parent-dashboard/STAGE8_P3_v3FINAL_B.md` — Stripe env var names aligned
+- `AUDIT_REPORT_3-25-2026.md` — All S2 findings marked resolved, remediation log updated
+- `PROGRESS.md` — Batch 9 entry added
+
+---
+
+### Stage 1 Audit Fix — Batch A: Verification & Downgrade (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+**Build Status:** No code changes — verification only
+
+**Findings Addressed:**
+- [x] S1-HIGH-002 — Downgraded to INFO: `useMediaQuery`/`useIsMobile` have zero active imports. Both removed per D3D-1. Comment-only references in 3 files.
+- [x] S1-INFO-002 — Verified NOT dead code: `gameActive`/`setGameActive` still actively consumed by `useStationMode.ts` for mode derivation. Deferred to future `sceneStore` migration refactor.
+
+**Files Modified (2 — documentation only):**
+- `AUDIT_REPORT_3-25-2026.md` — Updated S1-HIGH-002 (downgraded), S1-INFO-002 (deferred), finding counts, Batch 7 remediation log
+- `PROGRESS.md` — Added Batch A entry
+
+---
+
+### Stage 1 Audit Fix — Batch B: Stage Doc Updates (2026-03-26)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-1-audit-1dW5W
+**Build Status:** Doc-only changes — no source code modified
+
+**Findings Addressed:**
+- [x] S1-WARN-003 — Fixed `COCKPIT_GEOMETRY_V2` → `COCKPIT_GEOMETRY` in stage doc (7 occurrences). Aligned segment counts to 20M upgrade. Added structural detail constants + missing bloom presets.
+- [x] S1-WARN-004 — Replaced entire deviceStore Step 20a with D3D-1 desktop-ultra implementation. Updated hooks Step 21: marked useMediaQuery/useIsMobile as REMOVED. Updated file inventory.
+
+**Files Modified (3):**
+- `docs/stage1-foundation/STAGE1_Foundation_v2_PART2.md` — Steps 20a, 20c, 21, file inventory table
+- `AUDIT_REPORT_3-25-2026.md` — S1-WARN-003 resolved, S1-WARN-004 resolved, finding counts final, Batch 8 remediation log
+- `PROGRESS.md` — Added Batch B entry, status updated to COMPLETE
+
+**Stage 1 Audit Summary — All Findings:**
+| ID | Severity | Status |
+|---|---|---|
+| S1-CRIT-001 | CRITICAL | Resolved (Batch 6) |
+| S1-HIGH-001 | HIGH | Resolved (Batch 1) |
+| S1-HIGH-002 | HIGH→INFO | Downgraded (Batch 7) — no active imports |
+| S1-WARN-001 | WARNING | Resolved (Batch 6) |
+| S1-WARN-002 | WARNING | Resolved (Batch 6) |
+| S1-WARN-003 | WARNING | Resolved (Batch 8) — stage doc updated |
+| S1-WARN-004 | WARNING | Resolved (Batch 8) — stage doc updated |
+| S1-INFO-001 | INFO | Expected — authStore expanded by Phase 5E |
+| S1-INFO-002 | INFO | Deferred — gameActive still consumed by useStationMode |
+| S1-INFO-003 | INFO | Expected — layout is Stage 10 version |
+| S1-INFO-004 | INFO | Low impact — barrel files with optimizePackageImports |
 
 ---
 

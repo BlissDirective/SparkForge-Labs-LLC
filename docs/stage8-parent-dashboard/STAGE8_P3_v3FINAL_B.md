@@ -963,10 +963,11 @@ NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your-key-here
 STRIPE_WEBHOOK_SECRET=whsec_your-secret-here
 
 # Stripe Price IDs
-STRIPE_PRICE_PLUS_MONTHLY=price_plus_monthly_id_here
-STRIPE_PRICE_PLUS_YEARLY=price_plus_yearly_id_here
-STRIPE_PRICE_FORGE_MONTHLY=price_forge_monthly_id_here
-STRIPE_PRICE_FORGE_YEARLY=price_forge_yearly_id_here
+# Aligned with .env.example (S2-WARN-001)
+STRIPE_PLUS_MONTHLY_ID=price_plus_monthly_id_here
+STRIPE_PLUS_YEARLY_ID=price_plus_yearly_id_here
+STRIPE_FORGE_MONTHLY_ID=price_forge_monthly_id_here
+STRIPE_FORGE_YEARLY_ID=price_forge_yearly_id_here
 
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```

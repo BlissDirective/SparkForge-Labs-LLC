@@ -26,13 +26,17 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  const publicPaths = ['/', '/login', '/signup', '/pricing', '/about', '/privacy', '/terms'];
+  // S3-CRIT-001: Added /reset-password to public paths
+  const publicPaths = ['/', '/login', '/signup', '/reset-password', '/pricing', '/about', '/privacy', '/terms'];
   const isPublic = publicPaths.some(p => request.nextUrl.pathname === p);
   const isAPI = request.nextUrl.pathname.startsWith('/api');
   const isStatic = request.nextUrl.pathname.startsWith('/_next');
   const isAsset = request.nextUrl.pathname.match(/\.(ico|png|jpg|svg|woff2?)$/);
 
-  if (!user && !isPublic && !isAPI && !isStatic && !isAsset) {
+  // S3-HIGH-002: Allow demo users to access dashboard routes
+  const isDemoSession = request.cookies.get('sparkforge-demo-active')?.value === '1';
+
+  if (!user && !isDemoSession && !isPublic && !isAPI && !isStatic && !isAsset) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

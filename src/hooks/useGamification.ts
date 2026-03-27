@@ -1,17 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiFetch } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
 import { useChildStore } from '@/stores/childStore';
 import { useToastStore } from '@/stores/toastStore';
-
-async function apiFetch(url: string, options?: RequestInit) {
-  const res = await fetch(url, {
-    ...options,
-    headers: { 'Content-Type': 'application/json', ...options?.headers },
-  });
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error || 'Request failed');
-  return data.data;
-}
 
 // v2 [ENH]: Optimistic XP update — shows instant feedback
 export function useAwardXP() {

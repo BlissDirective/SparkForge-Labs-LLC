@@ -58,6 +58,41 @@
 - **cockpitStore types (S1-WARN-002):** Import from `@/types`, re-export for existing consumers
 - **Result: Build PASS | TypeScript 0 errors | getAllGames().length === 35**
 
+### Batch 7: Stage 1 Audit — Batch A (Verification & Downgrade)
+- **S1-HIGH-002:** Downgraded to INFO — `useMediaQuery` and `useIsMobile` have zero active imports in `src/`. Both intentionally removed per D3D-1 (desktop-only platform). Only comment references remain. No code fix needed.
+- **S1-INFO-002:** Verified `gameActive`/`setGameActive` in uiStore are still actively consumed by `useStationMode.ts` (lines 104-105, 325). Not dead code — deferred to future refactor when `sceneStore` fully replaces mode derivation.
+- **Result: No code changes — audit report updated with verified findings**
+
+### Batch 8: Stage 1 Audit — Batch B (Stage Doc Updates)
+- **S1-WARN-003:** Updated `STAGE1_Foundation_v2_PART2.md` Step 20c — renamed `COCKPIT_GEOMETRY_V2` → `COCKPIT_GEOMETRY` across all 7 occurrences. Aligned `topBarSegments`/`sideSegments` to 20M upgrade values. Added structural detail constants. Added missing `parent`/`admin` bloom presets.
+- **S1-WARN-004:** Replaced entire Step 20a `deviceStore` section with D3D-1 desktop-ultra implementation (PerformanceProfile, DESKTOP_ULTRA_PROFILE, TRIANGLE_BUDGETS, selector helpers). Updated Step 21 hooks: marked `useMediaQuery`/`useIsMobile` as REMOVED per D3D-1. Updated file inventory table.
+- **Result: Stage doc now matches actual codebase — per CLAUDE.md Section 3.1 (auto-fix: deprecated API usage)**
+
+### Batch 9: Stage 2 Audit Fixes (Security + Type Safety + Config)
+- **S2-HIGH-001 (Security):** Added `verifyChildOwnership` to session end action — prevents session UUID enumeration
+- **S2-HIGH-002 (TypeScript):** Defined `ProgressWithContent` type, removed 3x `as any` casts + 3 eslint-disable comments + 4 non-null assertions in badges route
+- **S2-WARN-001 (Config):** Aligned Stripe env var names in `tier-config.ts` to match `.env.example` (`STRIPE_PLUS_MONTHLY_ID` format). Also fixed Stage 8 doc.
+- **S2-WARN-002 (TypeScript):** Used `Anthropic.TextBlock` type guard + `catch (error: unknown)` with proper narrowing in prompt-lab route
+- **S2-WARN-003 (Consistency):** Replaced raw `req.json()` with `parseBody` using `z.discriminatedUnion` schema in sessions route
+- **S2-INFO-001, S2-INFO-002:** Deferred (cosmetic — no functional impact)
+- **Result: All Stage 2 HIGH + WARNING findings resolved**
+
+### Batch 10: Stage 3 Audit Fixes (Security + COPPA + 3D Integration)
+- **S3-CRIT-001 (Auth):** Added `/reset-password` to middleware public paths
+- **S3-HIGH-001 (COPPA — Option B):** Removed `coppaConsent: true` from Step 1 signup. Created `/api/auth/consent` endpoint called in Step 3. `coppa_consent_at` now records the actual moment user confirms checkbox.
+- **S3-HIGH-002 (Auth):** Added `sparkforge-demo-active` httpOnly cookie in `/api/auth/demo`. Middleware checks cookie — demo users can access dashboard.
+- **S3-WARN-001 (SSR):** Replaced inline `window.devicePixelRatio` with `dpr={[1, 3]}` in auth layout
+- **S3-WARN-002 (3D — Option B):** Created `AuthHoverContext` — login page hover state now wired to `LoginPortal3D.isHovered` for interactive glow
+- **S3-WARN-003 (Doc):** Downgraded to INFO — verified CLAUDE.md uses basename only, no wrong path exists
+- **3D Integration Audit:** 4 findings logged as INFO (S3-INFO-3D-001–004) — `setLabColor`/`setSkipIntroAnimation`/`WormholeTransition` are Stage 4 scope, auth canvas isolation is by design
+- **Result: All Stage 3 CRITICAL + HIGH + WARNING findings resolved**
+
+### Batch 11: Stage 4 Audit — Batch 1 (Code Cleanup)
+- **S4-HIGH-001:** Already resolved — `useApi.ts` was deleted in earlier batch
+- **S4-HIGH-003 + S4-WARN-001:** Refactored 4 hooks (`useProgress.ts`, `useContent.ts`, `useChildren.ts`, `useGamification.ts`) to use centralized `apiFetch` from `src/lib/api.ts`. Removed 4 duplicate local `apiFetch` definitions. All hook return types now properly typed via generic `apiFetch<T>`.
+- **S4-WARN-005:** Fixed `as string` assertion in `content/[slug]/page.tsx` — replaced with safe `Array.isArray` check.
+- **Result: 4 hooks DRY, typed, using centralized API wrapper**
+
 ---
 
 ## Executive Summary
@@ -522,10 +557,10 @@ MSW handlers not found — src/mocks/ directory does not exist
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 1 |
-| HIGH | 2 |
-| WARNING | 4 |
-| INFO | 4 |
+| CRITICAL | 1 (resolved Batch 6) |
+| HIGH | 1 (resolved Batch 1) + 1 (downgraded to INFO — Batch 7) |
+| WARNING | 4 (all resolved: 2 Batch 6, 2 Batch 8) |
+| INFO | 5 (4 original + 1 downgraded from HIGH). S1-INFO-002 deferred. |
 | PASS | 10 |
 
 ---
@@ -584,33 +619,15 @@ npm install three-mesh-bvh troika-three-text
 
 ---
 
-### S1-HIGH-002 — Missing hooks: `useMediaQuery.ts` and `useIsMobile.ts`
+### S1-HIGH-002 — ~~Missing hooks: `useMediaQuery.ts` and `useIsMobile.ts`~~ DOWNGRADED to INFO (Batch 7)
 
 **File:** `src/hooks/useMediaQuery.ts`, `src/hooks/useIsMobile.ts`
 **Category:** Doc-Drift / D3D Compliance
 **Description:** Stage 1 doc Step 21 specifies both files. Neither exists. Per D3D-1, `useIsMobile` was intentionally removed. However, `useMediaQuery` is a general-purpose utility that may still be imported by other code.
 
-**Impact:** Any component importing `@/hooks/useMediaQuery` will fail. If no active imports remain, this is just a doc-drift issue.
+**Impact:** ~~Any component importing `@/hooks/useMediaQuery` will fail.~~ **Verified March 26:** Zero active imports of `useMediaQuery` or `useIsMobile` in `src/`. Only 3 comment references remain (dashboard layout.tsx x2, deviceStore.ts x1). No code fix needed — doc-drift only.
 
-**Required Fix:**
-1. Search for imports: `grep -r "useMediaQuery\|useIsMobile" src/` — if zero active imports, downgrade to INFO
-2. If imports exist for `useMediaQuery`, recreate as a generic hook:
-   ```typescript
-   // src/hooks/useMediaQuery.ts
-   import { useState, useEffect } from 'react';
-   export function useMediaQuery(query: string): boolean {
-     const [matches, setMatches] = useState(false);
-     useEffect(() => {
-       const mql = window.matchMedia(query);
-       setMatches(mql.matches);
-       const handler = (e: MediaQueryListEvent) => setMatches(e.matches);
-       mql.addEventListener('change', handler);
-       return () => mql.removeEventListener('change', handler);
-     }, [query]);
-     return matches;
-   }
-   ```
-3. Update stage doc to note `useIsMobile` removed per D3D-1
+**Resolution:** Downgraded from HIGH to INFO. Both hooks intentionally removed per D3D-1 (desktop-only platform). Stage doc update deferred to Batch B (S1-WARN-004 covers deviceStore doc update).
 
 ---
 
@@ -654,7 +671,7 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 ---
 
-### S1-WARN-003 — `cockpitConfig.ts` export name doesn't match stage doc
+### S1-WARN-003 — ~~`cockpitConfig.ts` export name doesn't match stage doc~~ RESOLVED (Batch 8)
 
 **File:** `src/lib/3d/cockpitConfig.ts` (line 12)
 **Category:** Doc-Drift
@@ -662,11 +679,11 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 **Impact:** Cosmetic doc-drift. No runtime break.
 
-**Required Fix:** Update stage doc Step 20c to use `COCKPIT_GEOMETRY`.
+**Resolution:** Updated `STAGE1_Foundation_v2_PART2.md` Step 20c: renamed `COCKPIT_GEOMETRY_V2` → `COCKPIT_GEOMETRY` in all 7 occurrences (export + useAdaptiveCockpit references). Also aligned `topBarSegments` (48→256) and `sideSegments` (24→128) to match 20M cockpit upgrade values, and added missing structural detail constants. Added missing `parent`/`admin` bloom presets.
 
 ---
 
-### S1-WARN-004 — `deviceStore.ts` significantly diverged from stage doc (D3D-1 overhaul)
+### S1-WARN-004 — ~~`deviceStore.ts` significantly diverged from stage doc (D3D-1 overhaul)~~ RESOLVED (Batch 8)
 
 **File:** `src/stores/deviceStore.ts`
 **Category:** Doc-Drift
@@ -674,7 +691,7 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 **Impact:** Code is correct per D3D-1 decision lock. Stage doc is outdated — anyone reading the doc will get the wrong API.
 
-**Required Fix:** Update stage doc Step 20a to reflect the D3D-1 desktop-ultra store shape. Per CLAUDE.md Section 3.1, this is a mandatory auto-fix (deprecated API usage).
+**Resolution:** Replaced entire Step 20a in `STAGE1_Foundation_v2_PART2.md` with actual D3D-1 desktop-ultra implementation. Updated description, interface, profile, triangle budgets, store shape, and selector helpers. Also updated Step 21 hooks section: marked `useMediaQuery`/`useIsMobile` as REMOVED per D3D-1, updated file inventory table.
 
 ---
 
@@ -684,9 +701,9 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 
 **Description:** Stage 1 doc defines simple store (`parent`, `isLoading`, `setParent`, `setLoading`, `clearAuth`). Actual store adds `isDemoMode`, `demoSession`, `startDemoSession`, `endDemoSession`, `checkDemoStatus` from Phase 5E-5F (Login 3D Enhancement). This is expected — stores evolve across stages.
 
-### S1-INFO-002 — `uiStore.ts` retains deprecated `gameActive` flag
+### S1-INFO-002 — `uiStore.ts` retains `gameActive` flag — DEFERRED (Batch 7: still actively consumed)
 
-**Description:** CLAUDE.md Section 14 states `gameActive` is deprecated (use `sceneStore.enterGame`/`exitGame` instead). The flag still exists in uiStore but is unused by GameShell. Dead code — low priority cleanup.
+**Description:** CLAUDE.md Section 14 states `gameActive` is deprecated (use `sceneStore.enterGame`/`exitGame` instead). However, `gameActive`/`setGameActive` are still actively consumed by `useStationMode.ts` (lines 104-105, 325) for mode derivation (`'game'` mode triggers frame dimming per Decision 3.4). Removing this flag requires migrating `useStationMode` to read from `sceneStore` — a cross-cutting refactor deferred to a future sprint. Not dead code.
 
 ### S1-INFO-003 — Root layout is Stage 10 replacement (expected)
 
@@ -777,146 +794,64 @@ import type { CockpitSkin, SpatialView, ConsoleType, CeremonyType } from '@/type
 | Severity | Count |
 |----------|-------|
 | CRITICAL | 0 |
-| HIGH | 2 |
-| WARNING | 3 |
-| INFO | 2 |
+| HIGH | 2 (both resolved — Batch 9) |
+| WARNING | 3 (all resolved — Batch 9) |
+| INFO | 2 (deferred — cosmetic) |
 | PASS | 12 |
 
 ---
 
 ## Stage 2 — HIGH FINDINGS
 
-### S2-HIGH-001 — Session end endpoint missing child ownership verification
+### S2-HIGH-001 — ~~Session end endpoint missing child ownership verification~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/sessions/route.ts` (lines 35-62)
+**File:** `src/app/api/sessions/route.ts`
 **Category:** Security
-**Description:** The "end session" action fetches the session by UUID and updates it, but never verifies the session belongs to a child owned by the authenticated parent. A malicious authenticated user who guesses or enumerates session UUIDs could end another user's child session.
+**Description:** The "end session" action fetches the session by UUID and updates it, but never verifies the session belongs to a child owned by the authenticated parent.
 
-**Evidence:**
-```typescript
-// Line 35-40 (simplified):
-const { data: session } = await supabase
-  .from('sessions')
-  .select('*')
-  .eq('id', sessionId)  // No parent ownership check
-  .single();
-// Session is ended without verifying session.child_id belongs to auth.user
-```
-
-**Required Fix:** After fetching the session, verify ownership before allowing the end action:
-```typescript
-const { data: session } = await supabase
-  .from('sessions').select('*').eq('id', sessionId).single();
-
-if (!session) return apiError('Session not found', 404);
-
-// ADD: Verify child belongs to authenticated parent
-await verifyChildOwnership(auth.user.id, session.child_id);
-
-// Then proceed with ending the session
-```
+**Resolution:** Added `verifyChildOwnership(auth.user.id, session.child_id)` check after fetching the session in the `end` action. Returns 404 if ownership fails (prevents session UUID enumeration). Also refactored entire route to use `parseBody` with `z.discriminatedUnion` schema (fixes S2-WARN-003 simultaneously).
 
 ---
 
-### S2-HIGH-002 — `as any` casts in badges route bypass TypeScript safety (3 occurrences)
+### S2-HIGH-002 — ~~`as any` casts in badges route bypass TypeScript safety (3 occurrences)~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/gamification/badges/route.ts` (lines 82-83, 159, 167)
+**File:** `src/app/api/gamification/badges/route.ts`
 **Category:** TypeScript Quality
-**Description:** Three uses of `as any` for accessing Supabase join content relations (`p.content`). These are suppressed with eslint-disable comments. The Supabase `.select('content:content_id(world, type)')` returns a typed relation that's complex to narrow, so `as any` was used as a shortcut.
+**Description:** Three uses of `as any` for accessing Supabase join content relations (`p.content`), plus `newBadges!` non-null assertions.
 
-**Evidence:**
-```typescript
-// Line 83 (example):
-const world = (p.content as any)?.world;  // eslint-disable-line
-```
-
-**Required Fix:** Define a proper type for the progress-with-content join and cast once after the query:
-```typescript
-type ProgressWithContent = {
-  content_id: string;
-  completed: boolean;
-  score: number | null;
-  content: { world: number; type: string } | null;
-};
-
-// Cast once at query result:
-const { data: progress } = await supabase
-  .from('progress')
-  .select('*, content:content_id(world, type)')
-  .eq('child_id', childId);
-const typedProgress = (progress ?? []) as ProgressWithContent[];
-
-// Then access without any casts:
-typedProgress.forEach(p => {
-  const world = p.content?.world;  // Fully typed, no `as any`
-});
-```
-
-Also fix the `newBadges` array which uses non-null assertions (`newBadges!.push()`, `newBadges!.length`) — initialize as `const newBadges: Badge[] = [];` instead.
+**Resolution:** Defined `ProgressWithContent` type and cast once at query result (`typedProgress`). Removed all 3 `as any` casts and 3 eslint-disable comments. Changed `newBadges` initialization to `NonNullable<typeof allBadges>` — removed 4 non-null assertions (`!`). All content property access is now fully typed via `p.content?.world` / `p.content?.type`.
 
 ---
 
 ## Stage 2 — WARNING FINDINGS
 
-### S2-WARN-001 — Stripe env var names in `tier-config.ts` don't match stage doc
+### S2-WARN-001 — ~~Stripe env var names in `tier-config.ts` don't match stage doc~~ RESOLVED (Batch 9)
 
-**File:** `src/lib/tier-config.ts` (lines 82-91)
+**File:** `src/lib/tier-config.ts`
 **Category:** Doc-Drift / Config
-**Description:** Code uses `STRIPE_PRICE_PLUS_MONTHLY` etc., but the stage doc (Part 2, line 377) specifies `STRIPE_PLUS_MONTHLY_ID`. The doc has a fix comment from March 21, 2026 noting "Env var names corrected to match .env.example" but the actual code still uses the old names.
+**Description:** Code used `STRIPE_PRICE_PLUS_MONTHLY` etc., but `.env.example` (authoritative) uses `STRIPE_PLUS_MONTHLY_ID`.
 
-| Location | Plus Monthly | Plus Yearly |
-|----------|-------------|-------------|
-| Stage doc | `STRIPE_PLUS_MONTHLY_ID` | `STRIPE_PLUS_YEARLY_ID` |
-| Actual code | `STRIPE_PRICE_PLUS_MONTHLY` | `STRIPE_PRICE_PLUS_YEARLY` |
-
-**Impact:** If `.env.local` uses the doc naming convention, Stripe checkout will get undefined price IDs. If it uses the code naming convention, the doc is misleading.
-
-**Required Fix:** Check `.env.example` for the authoritative names. Align code and doc to match. Ensure `.env.example`, `tier-config.ts`, and the stage doc all use the same env var names.
+**Resolution:** Updated `tier-config.ts` to use `.env.example` names (`STRIPE_PLUS_MONTHLY_ID`, `STRIPE_PLUS_YEARLY_ID`, `STRIPE_FORGE_MONTHLY_ID`, `STRIPE_FORGE_YEARLY_ID`). Also updated `STAGE8_P3_v3FINAL_B.md` which had the old names. All three sources (`.env.example`, code, docs) now aligned.
 
 ---
 
-### S2-WARN-002 — `as any` and `catch (error: any)` in prompt-lab route
+### S2-WARN-002 — ~~`as any` and `catch (error: any)` in prompt-lab route~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/ai/prompt-lab/route.ts` (lines 68, 82)
+**File:** `src/app/api/ai/prompt-lab/route.ts`
 **Category:** TypeScript Quality
-**Description:** Two type-safety issues:
-1. Line 68: `(block as any).text` — Anthropic SDK `ContentBlock` with `type === 'text'` is `TextBlock` which has `.text`. Should use a type guard.
-2. Line 82: `catch (error: any)` — should use `catch (error: unknown)` with proper narrowing.
+**Description:** `(block as any).text` cast and `catch (error: any)` bypassed TypeScript safety.
 
-**Required Fix:**
-```typescript
-// Line 68 — use type guard:
-.filter((block): block is Anthropic.TextBlock => block.type === 'text')
-.map(block => block.text)
-
-// Line 82 — use unknown:
-catch (error: unknown) {
-  const message = error instanceof Error ? error.message : 'Unknown error';
-  return apiError(message, 500);
-}
-```
+**Resolution:** Used `Anthropic.TextBlock` type guard for content block filtering. Changed `catch (error: any)` to `catch (error: unknown)` with proper narrowing via `instanceof Error` + `'status' in error` check for 429 detection. Removed both eslint-disable comments.
 
 ---
 
-### S2-WARN-003 — `sessions/route.ts` uses raw `req.json()` instead of `parseBody`
+### S2-WARN-003 — ~~`sessions/route.ts` uses raw `req.json()` instead of `parseBody`~~ RESOLVED (Batch 9)
 
-**File:** `src/app/api/sessions/route.ts` (line 11)
+**File:** `src/app/api/sessions/route.ts`
 **Category:** Consistency / Error Handling
-**Description:** All other API routes use the `parseBody(req, Schema)` helper which provides consistent Zod validation and formatted error responses. The sessions route calls `await req.json()` directly, meaning malformed JSON will throw an unformatted error.
+**Description:** Route used raw `await req.json()` instead of `parseBody` helper.
 
-**Required Fix:** Define a `SessionSchema` in `src/lib/validations.ts` and use `parseBody`:
-```typescript
-// In validations.ts:
-export const SessionSchema = z.object({
-  action: z.enum(['start', 'end']),
-  childId: z.string().uuid(),
-  sessionId: z.string().uuid().optional(),
-});
-
-// In sessions/route.ts:
-const parsed = await parseBody(req, SessionSchema);
-if (!parsed.success) return apiError('Invalid input', 400);
-```
+**Resolution:** Replaced with `parseBody(req, SessionSchema)` using a `z.discriminatedUnion('action', [...])` schema that validates `start` (requires `childId`) and `end` (requires `sessionId`) actions with proper UUID validation. Malformed JSON now returns consistent formatted errors.
 
 ---
 
@@ -948,7 +883,7 @@ if (!parsed.success) return apiError('Invalid input', 400);
 |---|-------|--------|-------|
 | 1 | Zod validation on all API routes | PASS | All 14+ routes use `parseBody` or inline Zod schemas |
 | 2 | `requireAuth` on all protected routes | PASS | Every child/progress/gamification/content route checks auth |
-| 3 | `verifyChildOwnership` on child data routes | PASS | All child-accessing routes verify parent-child relationship (except session end) |
+| 3 | `verifyChildOwnership` on child data routes | PASS | All child-accessing routes verify parent-child relationship (session end fixed Batch 9) |
 | 4 | Rate limiting on auth endpoints | PASS | signup: 5/min, login: 5/min, prompt-lab: 20/hr, demo: 3/hr |
 | 5 | No SUPABASE_SERVICE_ROLE_KEY in client code | PASS | Only in `server.ts` createAdminClient (server-only) |
 | 6 | `createAdminClient` properly separated | PASS | `src/lib/supabase/server.ts` lines 25-30 |
@@ -978,10 +913,10 @@ if (!parsed.success) return apiError('Invalid input', 400);
 | `/api/progress/world` | GET | Yes + ownership | LabProgressSchema | — | PASS |
 | `/api/progress/all-labs` | GET | Yes + ownership | Manual check | — | PASS (BUG-3) |
 | `/api/gamification/xp` | POST | Yes + ownership + dedup | XpSchema | — | PASS |
-| `/api/gamification/badges` | GET, POST | Yes + ownership | BadgeCriteriaSchema | — | HIGH (as any) |
+| `/api/gamification/badges` | GET, POST | Yes + ownership | BadgeCriteriaSchema | — | PASS (Batch 9: as any removed) |
 | `/api/gamification/streak` | POST | Yes + ownership | Inline StreakSchema | — | PASS |
-| `/api/sessions` | POST | Yes + ownership (start) | Raw req.json() | — | HIGH (no ownership on end) |
-| `/api/ai/prompt-lab` | POST | Yes + ownership + tier | PromptLabSchema | 20/hr | WARN (as any) |
+| `/api/sessions` | POST | Yes + ownership (both) | SessionSchema (discriminated union) | — | PASS (Batch 9: ownership + parseBody) |
+| `/api/ai/prompt-lab` | POST | Yes + ownership + tier | PromptLabSchema | 20/hr | PASS (Batch 9: type guard + error:unknown) |
 | `/api/health` | GET | No | — | — | PASS |
 | `/api/stripe/checkout` | POST | Yes | — | — | PASS |
 | `/api/stripe/portal` | POST | Yes | — | — | PASS |
@@ -990,7 +925,7 @@ if (!parsed.success) return apiError('Invalid input', 400);
 | `/api/agent/review` | POST | Yes + admin | — | — | PASS |
 | `/api/agent/schedule` | POST | Yes + admin | — | — | PASS |
 
-**Routes Expected:** 20+ | **Routes Found:** 23 | **Issues:** 2 HIGH, 2 WARNING
+**Routes Expected:** 20+ | **Routes Found:** 23 | **Issues:** 0 (all resolved — Batch 9)
 
 ---
 
@@ -1006,17 +941,17 @@ if (!parsed.success) return apiError('Invalid input', 400);
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 1 |
-| HIGH | 2 |
-| WARNING | 3 |
-| INFO | 3 |
+| CRITICAL | 1 (resolved — Batch 10) |
+| HIGH | 2 (both resolved — Batch 10) |
+| WARNING | 3 (all resolved — Batch 10) |
+| INFO | 3 + 4 (3D integration notes deferred to Stage 4) |
 | PASS | 28 |
 
 ---
 
 ## Stage 3 — CRITICAL FINDINGS
 
-### S3-CRIT-001 — Middleware missing `/reset-password` from public paths
+### S3-CRIT-001 — ~~Middleware missing `/reset-password` from public paths~~ RESOLVED (Batch 10)
 
 **File:** `src/middleware.ts` (line 29)
 **Category:** Auth / UX — Broken Feature
@@ -1029,16 +964,13 @@ const publicPaths = ['/login', '/signup', '/pricing', '/about', '/privacy', '/te
 // MISSING: '/reset-password'
 ```
 
-**Required Fix:**
-```typescript
-const publicPaths = ['/login', '/signup', '/reset-password', '/pricing', '/about', '/privacy', '/terms'];
-```
+**Resolution:** Added `/reset-password` to `publicPaths` array in `src/middleware.ts`.
 
 ---
 
 ## Stage 3 — HIGH FINDINGS
 
-### S3-HIGH-001 — COPPA consent sent before user confirms checkbox
+### S3-HIGH-001 — ~~COPPA consent sent before user confirms checkbox~~ RESOLVED (Batch 10 — Option B)
 
 **File:** `src/app/(auth)/signup/page.tsx` (line 66)
 **Category:** COPPA Compliance
@@ -1076,11 +1008,11 @@ const handleConsentConfirm = async () => {
 };
 ```
 
-*Option B:* Create account in Step 1 without consent, then call a separate `/api/auth/consent` endpoint in Step 3 that sets `coppa_consent_at`.
+**Resolution (Option B implemented):** Removed `coppaConsent: true` from Step 1 signup call. Created `/api/auth/consent` endpoint that sets `coppa_consent_at` on the parent record. Step 3 handler now calls this endpoint ONLY after user checks the consent checkbox. `SignupSchema` no longer requires `coppaConsent`; separate `CoppaConsentSchema` added to validations.ts. Signup API sets `coppa_consent_at: null` — consent endpoint sets the real timestamp.
 
 ---
 
-### S3-HIGH-002 — Middleware blocks demo users from dashboard
+### S3-HIGH-002 — ~~Middleware blocks demo users from dashboard~~ RESOLVED (Batch 10)
 
 **File:** `src/middleware.ts` (lines 29-36)
 **Category:** Auth / Runtime
@@ -1107,36 +1039,33 @@ if (!user && !isDemoSession && !isPublicPath) {
   return NextResponse.redirect(new URL('/login', req.url));
 }
 ```
-Alternatively, have the demo session creation in `/api/auth/demo` set a server-readable cookie that the middleware can check.
+**Resolution:** Added `sparkforge-demo-active` httpOnly cookie (1hr maxAge) set by `/api/auth/demo` route. Middleware now checks for this cookie alongside Supabase auth — demo users are allowed through to dashboard routes.
 
 ---
 
 ## Stage 3 — WARNING FINDINGS
 
-### S3-WARN-001 — Auth layout `dpr` may cause hydration mismatch
+### S3-WARN-001 — ~~Auth layout `dpr` may cause hydration mismatch~~ RESOLVED (Batch 10)
 
 **File:** `src/app/(auth)/layout.tsx` (line 35)
 **Category:** React / SSR
 **Description:** `window.devicePixelRatio` is accessed inline in the Canvas `dpr` prop. The layout is `'use client'` and the Canvas is dynamically imported with `ssr: false`, but the surrounding layout code is still server-rendered during hydration. A `typeof window !== 'undefined'` guard prevents crashes but the server always gets the fallback value `2` while the client may get a different value, causing a hydration mismatch warning.
 
-**Required Fix:** Use R3F Canvas's built-in `dpr` range (since D3D-1 means desktop-only):
-```typescript
-<Canvas dpr={[1, 3]}>  {/* R3F auto-selects based on devicePixelRatio */}
-```
+**Resolution:** Replaced inline `window.devicePixelRatio` with `dpr={[1, 3]}` — R3F auto-selects based on device pixel ratio, no SSR mismatch.
 
 ---
 
-### S3-WARN-002 — Unused `isCardHovered` state in login page
+### S3-WARN-002 — ~~Unused `isCardHovered` state in login page~~ RESOLVED (Batch 10 — Option B: wired to 3D)
 
 **File:** `src/app/(auth)/login/page.tsx` (line 8)
 **Category:** Code Quality
 **Description:** `setIsCardHovered` is assigned but `isCardHovered` is never read. This state was likely intended to pass hover info to the 3D portal for interactive glow effects, but the connection is never wired up — `LoginPortal3D`'s `isHovered` prop in the auth layout defaults to `false`.
 
-**Required Fix:** Either wire `isCardHovered` up to the auth layout's 3D portal via context/callback, or remove the unused state to avoid dead code.
+**Resolution (Option B):** Created `AuthHoverContext` in auth layout. Login page calls `useAuthHover()` to set hover state. Auth layout passes `isCardHovered` to `LoginPortal3D`'s `isHovered` prop. Portal now responds to card hover with distortion effects.
 
 ---
 
-### S3-WARN-003 — `heroAudio.ts` path differs from CLAUDE.md spec
+### S3-WARN-003 — ~~`heroAudio.ts` path differs from CLAUDE.md spec~~ DOWNGRADED to INFO (Batch 10)
 
 **File:** `src/lib/audio/heroAudio.ts`
 **Category:** Doc-Drift
@@ -1144,11 +1073,27 @@ Alternatively, have the demo session creation in `/api/auth/demo` set a server-r
 
 **Impact:** Cosmetic doc-drift. No runtime break.
 
-**Required Fix:** Update CLAUDE.md Phase 5B file list to `src/lib/audio/heroAudio.ts`.
+**Resolution:** Verified CLAUDE.md Phase 5B uses basename only (`heroAudio.ts`) — no wrong path exists in docs. The 3D Component Registry also uses basename. Downgraded to INFO.
 
 ---
 
 ## Stage 3 — INFO FINDINGS
+
+### S3-INFO-3D-001 — 3D Integration Audit: `setLabColor()` has zero call sites (Stage 4 scope)
+
+**Description:** `setLabColor()` in uiStore is defined but never called. Lab pages (Stage 4) are stubs. When Stage 4 lab pages are built, they must call `setLabColor()` on route change to update cockpit LED/glow colors. Deferred to Stage 4.
+
+### S3-INFO-3D-002 — 3D Integration Audit: `setSkipIntroAnimation()` has no Settings page (Stage 4 scope)
+
+**Description:** `setSkipIntroAnimation()` in uiStore has no caller. Settings page (`src/app/(dashboard)/settings/`) does not exist — it's a Stage 4 Part 3 deliverable. Deferred to Stage 4.
+
+### S3-INFO-3D-003 — 3D Integration Audit: `WormholeTransition` built but never imported (Stage 4 scope)
+
+**Description:** `WormholeTransition.tsx` is fully implemented (300K tris) but never mounted. Lab-to-lab transitions depend on Stage 4 lab navigation wiring it up. Deferred to Stage 4.
+
+### S3-INFO-3D-004 — 3D Integration Audit: Auth layout uses separate R3F Canvas (by design)
+
+**Description:** Auth layout has its own lightweight R3F Canvas for `LoginPortal3D`. This is intentional — auth pages don't need the full 30M-tri cockpit. Hero animation plays post-login when entering dashboard layout. Not a CPA2-1 violation.
 
 ### S3-INFO-001 — No TopBar component exists (intentional)
 
@@ -1333,9 +1278,9 @@ Alternatively, have the demo session creation in `/api/auth/demo` set a server-r
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 4 |
-| HIGH | 4 |
-| WARNING | 5 |
+| CRITICAL | 4 (in progress — 3D-embedded UI plan) |
+| HIGH | 1 resolved (Batch 11) + 3 in progress |
+| WARNING | 2 resolved (Batch 11) + 3 in progress |
 | INFO | 1 |
 | PASS | 5 |
 
@@ -1404,7 +1349,7 @@ Alternatively, have the demo session creation in `/api/auth/demo` set a server-r
 
 ## Stage 4 — HIGH FINDINGS
 
-### S4-HIGH-001 — `useApi.ts` dead code not deleted (BUG-1)
+### S4-HIGH-001 — ~~`useApi.ts` dead code not deleted (BUG-1)~~ RESOLVED (Batch 5 / confirmed Batch 11)
 
 **File:** `src/hooks/useApi.ts` (179 lines)
 **Category:** Dead Code / Known Bug
@@ -1441,7 +1386,7 @@ Note: This may cause double-wrapping if individual games also use GameShell. Con
 
 ---
 
-### S4-HIGH-003 — 4 hook files duplicate `apiFetch` instead of importing from `src/lib/api.ts`
+### S4-HIGH-003 — ~~4 hook files duplicate `apiFetch` instead of importing from `src/lib/api.ts`~~ RESOLVED (Batch 11)
 
 **Files:** `src/hooks/useChildren.ts`, `src/hooks/useContent.ts`, `src/hooks/useProgress.ts`, `src/hooks/useGamification.ts` (lines 4-11 each)
 **Category:** Code Quality / DRY
@@ -1467,7 +1412,7 @@ import { apiFetch } from '@/lib/api';
 
 ## Stage 4 — WARNING FINDINGS
 
-### S4-WARN-001 — Hook return types implicitly `any`
+### S4-WARN-001 — ~~Hook return types implicitly `any`~~ RESOLVED (Batch 11 — resolved by S4-HIGH-003)
 
 **Files:** `src/hooks/useContent.ts`, `src/hooks/useProgress.ts`, `src/hooks/useGamification.ts`
 **Category:** TypeScript Quality
@@ -1516,7 +1461,7 @@ import { GAME_REGISTRY, getAllGames } from '@/config/gameRegistry';
 
 ---
 
-### S4-WARN-005 — `content/[slug]/page.tsx` uses `as string` type assertion
+### S4-WARN-005 — ~~`content/[slug]/page.tsx` uses `as string` type assertion~~ RESOLVED (Batch 11)
 
 **File:** `src/app/(dashboard)/content/[slug]/page.tsx` (line 13)
 **Category:** TypeScript Quality

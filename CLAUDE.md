@@ -320,7 +320,7 @@ The Cockpit Architecture transforms the StationFrame shell into a full 3D comman
 
 **Phase 5C — Cockpit Architecture Part 1: Canvas, Camera & Shell Geometry**
 - **Source:** `COCKPIT_CPA2_v3FINAL_PartA.md` + `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` (Sections 2–4)
-- **Files created/upgraded:** `CockpitCanvas.tsx`, `CameraSystem.tsx`, `CockpitPanels.tsx` (2M tris), `SidePanels.tsx` (1.5M), `LEDRim.tsx` (200K), `HolographicHUD.tsx` (500K), `StatusBar3D.tsx` (500K), `CockpitStructuralDetail.tsx` (1.5M), `CockpitFloor3D.tsx` (500K)
+- **Files created/upgraded:** `CockpitCanvas.tsx` (camera [0,0.65,1.1]), `CameraSystem.tsx`, `CockpitPanels.tsx` (4M tris, 218° arc, r=4.8), `SidePanels.tsx` (3M, at [±2.35,0.25,-1.65]), `LEDRim.tsx` (500K, 1500 LEDs, emissive 3.0), `HolographicHUD.tsx` (1M), `StatusBar3D.tsx` (1M, at [0,-1.25,-1.95]), `CockpitStructuralDetail.tsx` (2M), `CockpitFloor3D.tsx` (1M)
 - **Files modified:** `StationFrame.tsx` (→ thin wrapper), `SpatialDashboard.tsx` (→ thin wrapper)
 - **Store updates:** `cockpitStore.ts` (spatial nav, skins, heroPhase), `cockpitConfig.ts` (TRIANGLE_BUDGET_V2)
 
@@ -552,7 +552,7 @@ const Component3D = dynamic(
 
 ### 3D Component Registry
 
-**Full registry (82 components):** `docs/00-reference/3D-Component-Registry.md`
+**Full registry (93 components):** `docs/00-reference/3D-Component-Registry.md`
 
 | Category | Count | Key Components |
 |----------|-------|----------------|
@@ -562,6 +562,9 @@ const Component3D = dynamic(
 | Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
 | Procedural Environment | 7 | ProceduralEnvironmentGenerator, ProceduralTerrain, ProceduralSkyDome, ProceduralFog, ProceduralLighting, ProceduralProps, proceduralConfig |
 | Cockpit/Enhancement | 24 | CockpitCanvas, CameraSystem, SpatialDashboard, HolographicLabMap, CockpitPanels, SidePanels, StatusBar3D, HolographicHUD, LEDRim, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitSkinManager, CockpitAudioEngine |
+| **3D UI Components (v3.0)** | **8** | **HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard, HolographicPanel, NavigationButtonGrid, VariableDialCluster, CenterViewportScreen** |
+| **3D UI Materials** | **1** | **cockpitMaterials.ts (7 factories: alloyFrame, controlPanel, holographic, button, bezel, console, LED)** |
+| **3D UI Stores** | **1** | **cockpitBroadcastStore.ts (cross-panel event bus, 16 event types, pulse decay)** |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
 | Hooks (D3D) | 2 | useParallaxMouse, useInteractiveSurface |
 | Audio (D3D) | 1 | irisAudioEngine (+ LAB_COLOR_AUDIO_PROFILES for per-lab sound variations) |
@@ -654,29 +657,33 @@ Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
 
 Note: WormholeTransition is retained for lab-to-lab transitions within the spatial dashboard.
 
-#### Cockpit Triangle Budgets (20M Upgrade — March 20, 2026)
+#### Cockpit Triangle Budgets (v3.0 — 3D-Embedded UI Upgrade, March 27, 2026)
 
 | Component | Triangles | Notes |
 |-----------|-----------|-------|
-| CockpitPanels | 2,000,000 | 256-seg curved hull, multi-layer, rivets, animated sub-panels |
-| SidePanels | 1,500,000 | 3D box panels, physical radar dish, 3D data columns, chrome bezels |
+| CockpitPanels | 4,000,000 | 288-seg curved hull (218° arc, r=4.8), 12 ribs, 768 rivets |
+| SidePanels | 3,000,000 | Pulled to [±2.35, 0.25, -1.65], alloy chrome #a8b5c8, radar + terminal |
 | HolographicLabMap | 1,000,000 | Multi-layer geodesic shells, data highways, projector pedestal |
 | LabStructure3D (10 labs) | 3,000,000 | 300K/lab: subdivision surfaces, interior mechanisms, dioramas |
-| InteractiveConsole3D (4) | 2,000,000 | 500K/console: multi-part housing, projector base, instrument cluster |
-| AmbientNPCs (8 bots) | 1,500,000 | 187K/bot: articulated body, facial animation, finger grippers |
+| InteractiveConsole3D (4) | 3,000,000 | 750K/console: multi-part housing, projector base, instrument cluster |
+| AmbientNPCs (8 bots) | 2,000,000 | 250K/bot: articulated body, facial animation, finger grippers |
 | DynamicEnvironment | 3,000,000 | Volumetric fog, environmental props, weather effects |
-| HolographicHUD | 500,000 | 8 concentric rings, data arcs, reticle, volumetric scan beams |
-| StatusBar3D | 500,000 | XP speedometer, streak flame sculpture, 10 lab indicators |
-| LEDRim | 200,000 | 1000+ LED capsules, data viz mode, secondary accent rims |
-| CockpitStructuralDetail | 1,500,000 | Cable bundles, conduit pipes, vents, ribs, LED indicator strips |
+| HolographicHUD | 1,000,000 | 8 concentric rings, data arcs, reticle, volumetric scan beams |
+| StatusBar3D | 1,000,000 | XP speedometer, streak flame, 10 lab indicators (at [0,-1.25,-1.95]) |
+| LEDRim | 500,000 | 1500 LED capsules (was 1000), emissive 3.0, data viz mode |
+| CockpitStructuralDetail | 2,000,000 | 60 cable bundles, 16 vent panels, ribs, LED indicator strips |
+| CockpitFloor3D | 1,000,000 | Grated floor, sub-floor piping, energy conduits, LED channels |
 | VolumetricFog3D | 500,000 | Fog volumes, god ray cones, density layers with FBM noise |
-| CockpitFloor3D | 500,000 | Grated floor, sub-floor piping, energy conduits, LED channels |
 | CeremonyFX | 500,000 | Instanced confetti, fireworks, 3D trophies, HUD ring expansion |
 | WormholeTransition | 300,000 | Tunnel interior, swirling energy walls, speed lines, portal rings |
 | MiniMapOverlay3D | 250,000 | Miniature lab ring, player indicator, completion color-coding |
 | AuroraBackground | 50,000 | Volumetric aurora layers, 3 ribbon TubeGeometry paths |
 | AmbientParticles | 200,000 | Instanced icosahedron particles with trails and halos |
-| **Cockpit Total** | **~19,000,000** | System 30M budget (D3D-3) with ~11M dynamic headroom |
+| **NEW: 3D UI Components** | 5,000,000 | HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard/Panel |
+| **NEW: NavigationButtonGrid** | 1,000,000 | 5 physical cockpit nav buttons (HOME/LABS/ARCADE/SETTINGS/PROFILE) |
+| **NEW: VariableDialCluster** | 1,500,000 | 3 center-console dials, per-page auto-reconfigure |
+| **NEW: CenterViewportScreen** | 3,000,000 | Spherical panoramic screen (r=3.9, 144×72 segs, BackSide) |
+| **Cockpit Total** | **~37,800,000** | System 50M budget with ~12M game headroom |
 
 #### Desktop-Only Rendering (D3D-1)
 
@@ -778,7 +785,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-## 14. STORES (10 total)
+## 14. STORES (11 total)
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
@@ -792,6 +799,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | **deviceStore** | — | D3D-1/3: Hardcoded desktop-ultra. 50M total budget. No device selection. gpuTier, stripeCount. |
 | **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
 | **sceneStore** | D3D Part B | `activeScene`, `activeGameId`, `activeGameLabColor`, `transition`, `isTransitioning`, `cockpitOpacityTarget`. Actions: `enterGame`/`exitGame`/`enterSpatial`/`exitSpatial`/`setHeroActive`/`completeHero`/`updateTransitionProgress`/`completeTransition`. |
+| **cockpitBroadcastStore** | Stage 4 v3.0 | Cross-panel event bus. 16 event types (`dial-rotate`, `button-press`, `page-navigate`, `lab-select`, `xp-change`, etc.). Pulse decay system with per-event intensity mapping. All 3D UI components broadcast here; all cockpit elements subscribe. |
 
 ---
 

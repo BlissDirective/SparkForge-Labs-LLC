@@ -1973,17 +1973,25 @@ body[data-scanlines="off"] .scanline-overlay {
 
 ## File 12–16: Placeholder Dashboard Pages
 
+> **⚠️ SUPERSEDED (March 27, 2026):** These placeholder pages have ALL been replaced by full 3D-Embedded cockpit pages in Stage 4 v3.0. **DO NOT recreate these placeholders** — they will overwrite the live implementations. See `PROGRESS.md` Batches 8–12 for the actual built pages.
+
 ### `src/app/(dashboard)/home/page.tsx`
-Placeholder home dashboard with child stats grid (XP, Level, Streak, Coins). Uses `useChildStore` and stagger animations.
+~~Placeholder home dashboard with child stats grid (XP, Level, Streak, Coins).~~ **REPLACED:** Full 3D-embedded cockpit dashboard with React Query data, lab progress grid, daily challenge, continue learning CTA, ARIA labels. Calls `setLabColor('#00BBFF')` on mount.
 
 ### `src/app/(dashboard)/labs/page.tsx`
-Placeholder — "Coming in Stage 4"
+~~Placeholder — "Coming in Stage 4"~~ **REPLACED:** Full 10-lab map with per-lab colors, progress bars, hover → `setLabColor()` + `cockpitStore.setHoveredLabId()`, cockpitBroadcast events.
+
+### `src/app/(dashboard)/labs/[labId]/page.tsx`
+**NEW (Stage 4 v3.0):** Individual lab detail with game list, `setLabColor()` + `focusLab()` on mount, cockpitBroadcast `lab-select` event, `getGamesByLab()` from gameRegistry.
 
 ### `src/app/(dashboard)/arcade/page.tsx`
-Placeholder — "Coming in Stage 6"
+~~Placeholder — "Coming in Stage 6"~~ **REPLACED:** Full arcade with 35 games from `GAME_REGISTRY`, completion badges, search/filter, cockpit-themed styling.
+
+### `src/app/(dashboard)/settings/page.tsx`
+**NEW (Stage 4 v3.0):** Settings page with sound/skip intro/particles toggles + cockpit skin selector. Calls `setLabColor('#FFAA44')` on mount.
 
 ### `src/app/(dashboard)/profile/page.tsx`
-Placeholder — "Coming in Stage 5"
+~~Placeholder — "Coming in Stage 5"~~ **REPLACED:** Profile with XP bar, badge gallery, stats grid, account info. Calls `setLabColor('#FF66AA')` on mount.
 
 ### `src/app/(dashboard)/parent/page.tsx`
 Placeholder — "Coming in Stage 8"

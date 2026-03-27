@@ -14,7 +14,7 @@
 //   'game'     — Locked (cockpit hidden, games own their Canvas)
 //
 // CPA2-3: Seamless handoff — hero Phase 7 camera target matches
-//         SPATIAL_CAMERA_PRESETS.overview exactly ([0, 6.5, 7] fov 58)
+//         SPATIAL_CAMERA_PRESETS.overview (v3: [0, 0.85, 0.9] fov 62)
 
 import { useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';

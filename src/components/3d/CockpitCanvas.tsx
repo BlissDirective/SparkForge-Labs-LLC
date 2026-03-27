@@ -304,7 +304,7 @@ export function CockpitCanvas({
         frameloop="always"
         dpr={[1, 3]}
         camera={{
-          position: [0, 6.5, 7],
+          position: [0, 0.65, 1.1],  // v3: tight-focus cockpit seat (was [0, 6.5, 7])
           fov: 58,
           near: 0.1,
           far: 200,

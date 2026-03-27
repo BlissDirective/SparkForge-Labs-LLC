@@ -104,7 +104,7 @@ This part wires the Part 1 accessibility system into the root layout, adds SEO i
 |--------------|---------------|----------------------|
 | `src/app/layout.tsx` | Has QueryProvider, skip link, Google Fonts preconnect, SR div | REPLACE: adds A11yProvider, ErrorBoundary, OfflineBanner, globals-a11y.css import, PWA link, enhanced SEO. **Preserves** QueryProvider, preconnect, SR div. |
 | `next.config.ts` | Has Three.js externals, optimizePackageImports, serverActions | REPLACE: adds security headers, CSP, image optimization, caching. **Preserves** Three.js externals, optimize imports, server actions. |
-| `arcade/page.tsx` | Placeholder "Coming in Stage 6" | Unchanged — game router is at `[gameSlug]/page.tsx` (new route) |
+| `arcade/page.tsx` | ~~Placeholder "Coming in Stage 6"~~ **BUILT (Stage 4 v3.0)**: Full arcade with 35 games from GAME_REGISTRY, completion badges, search/filter | Unchanged — preserve existing built page |
 | `.env.example` | Has Supabase, Anthropic, Stripe, feature flags | REPLACE: adds deployment vars (ENABLE_CONTENT_AGENT, ENABLE_CAMERA_GAMES). Preserves existing structure. |
 
 ---

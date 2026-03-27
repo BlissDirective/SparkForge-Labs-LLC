@@ -12,10 +12,15 @@ export const SignupSchema = z.object({
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number'),
   fullName: z.string().min(1, 'Name is required').max(100).optional(),
-  coppaConsent: z.literal(true, {
-    errorMap: () => ({ message: 'Parental consent is required to create an account' }),
-  }),
   timezone: z.string().max(50).default('UTC'),
+});
+
+// S3-HIGH-001: Separate COPPA consent schema — called in Step 3 AFTER user confirms
+export const CoppaConsentSchema = z.object({
+  email: z.string().email(),
+  coppaConsent: z.literal(true, {
+    errorMap: () => ({ message: 'Parental consent is required' }),
+  }),
 });
 
 export const LoginSchema = z.object({

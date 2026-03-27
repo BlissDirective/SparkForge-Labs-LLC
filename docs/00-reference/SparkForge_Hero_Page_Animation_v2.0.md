@@ -750,8 +750,8 @@ Each shard is pre-assigned to a cockpit component target based on its originatin
 
 | Shard Group | Source Region | Target Component | Target Positions | Color Shift |
 |-------------|--------------|-----------------|------------------|-------------|
-| Top/bottom shards | Letters' top/bottom edges | `CockpitPanel` curved bezel | Arc positions at `panelRadius = 4.0` | Crystal `#00BBFF` → chrome `#1a1e2e` |
-| Side shards | Letters' left/right extremes | `SidePanel` (left radar, right terminal) | Panel edge positions at `x = ±3.5` | Crystal `#00BBFF` → chrome `#1a1e2e` |
+| Top/bottom shards | Letters' top/bottom edges | `CockpitPanel` curved bezel | Arc positions at `panelRadius = 4.8` (v3.0) | Crystal `#00BBFF` → chrome alloy `#a8b5c8` |
+| Side shards | Letters' left/right extremes | `SidePanel` (left settings, right profile) | Console positions at `x = ±2.35` (v3.0, was ±3.5) | Crystal `#00BBFF` → chrome alloy `#a8b5c8` |
 | Center shards | Letters' body centers | `HolographicHUD` concentric rings | Ring positions `r = 1.2, 2.2, 3.2` | Crystal `#00BBFF` → active lab color |
 | Bottom-center shards | Lower letter bodies | `StatusBar3D` gauge strip | Bottom bar positions `y = -2.0` | Crystal `#00BBFF` → gauge colors (varied) |
 | Edge shards | Letter bevel/outline edges | `LEDRim` arc | Top arc path following bezel curve | Crystal `#00BBFF` → LED `#00BBFF` |
@@ -869,7 +869,7 @@ const regroupAudio = {
 - Energy trace lines dissolve as solid geometry takes their place (alpha 1→0 over 0.3s per component)
 
 **Camera:**
-- Settled at final cockpit position `[0, 6.5, 7]`, FOV 56° → 58° (final CockpitCanvas default)
+- Settled at final cockpit position `[0, 0.65, 1.1]` (v3.0 tight-focus seat), FOV 58° (final CockpitCanvas default)
 - Subtle breathe motion begins: sinusoidal Y offset ±0.05 at 0.15Hz (persistent in live app)
 
 **Audio:**
@@ -906,7 +906,7 @@ const regroupAudio = {
   - Motion entrance animations per CLAUDE.md animation system
 
 **Camera:**
-- Final position locked: `[0, 6.5, 7]`, FOV 58°
+- Final position locked: `[0, 0.65, 1.1]` (v3.0 tight-focus seat), FOV 58°
 - Breathe motion continues seamlessly into live CockpitCanvas camera behavior
 - CinematicCamera component from CPA v2.0 takes over control
 

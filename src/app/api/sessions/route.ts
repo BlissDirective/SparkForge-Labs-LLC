@@ -1,25 +1,29 @@
 // POST /api/sessions — Start or end a play session
 import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
-import { StartSessionSchema, EndSessionSchema } from '@/lib/validations';
-import { apiSuccess, apiError, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
+import { apiSuccess, apiError, parseBody, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
+import { z } from 'zod';
+
+// Combined schema validates action + conditional fields
+const SessionSchema = z.discriminatedUnion('action', [
+  z.object({ action: z.literal('start'), childId: z.string().uuid() }),
+  z.object({ action: z.literal('end'), sessionId: z.string().uuid() }),
+]);
 
 export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
-  const body = await req.json();
-  const action = body.action;
+  const parsed = await parseBody(req, SessionSchema);
+  if (!parsed.success) return parsed.response;
 
-  if (action === 'start') {
-    const result = StartSessionSchema.safeParse(body);
-    if (!result.success) return apiError('Invalid request', 400);
+  const body = parsed.data;
+  const supabase = await createServerSupabase();
 
-    const { childId } = result.data;
+  if (body.action === 'start') {
+    const { childId } = body;
 
     if (!(await verifyChildOwnership(auth.user.id, childId))) return apiError('Child not found', 404);
-
-    const supabase = await createServerSupabase();
 
     const { data, error } = await supabase
       .from('sessions')
@@ -32,18 +36,18 @@ export async function POST(req: NextRequest) {
     return apiSuccess(data, 201);
   }
 
-  if (action === 'end') {
-    const result = EndSessionSchema.safeParse(body);
-    if (!result.success) return apiError('Invalid request', 400);
-
-    const { sessionId } = result.data;
-
-    const supabase = await createServerSupabase();
+  if (body.action === 'end') {
+    const { sessionId } = body;
 
     const { data: session } = await supabase
       .from('sessions').select('*').eq('id', sessionId).single();
 
     if (!session) return apiError('Session not found', 404);
+
+    // S2-HIGH-001: Verify the session's child belongs to the authenticated parent
+    if (!(await verifyChildOwnership(auth.user.id, session.child_id))) {
+      return apiError('Session not found', 404);
+    }
 
     const duration = Math.floor(
       (Date.now() - new Date(session.started_at).getTime()) / 1000

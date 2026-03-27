@@ -57,13 +57,13 @@ export default function SignupPage() {
     }
 
     try {
+      // S3-HIGH-001: Account created WITHOUT coppaConsent — consent recorded in Step 3
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email,
           password,
-          coppaConsent: true,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
@@ -88,14 +88,35 @@ export default function SignupPage() {
     setStep(3);
   }
 
-  // Step 3: COPPA consent
+  // Step 3: COPPA consent — S3-HIGH-001: records consent ONLY when user confirms
   async function handleStep3() {
     if (!coppaChecked) {
       setError('Please confirm you are 18 or older');
       return;
     }
     setError('');
-    setStep(4);
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/consent', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, coppaConsent: true }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Failed to record consent');
+        setLoading(false);
+        return;
+      }
+
+      setStep(4);
+    } catch {
+      setError('Network error. Please check your connection.');
+    } finally {
+      setLoading(false);
+    }
   }
 
   // Step 4: Create child profile

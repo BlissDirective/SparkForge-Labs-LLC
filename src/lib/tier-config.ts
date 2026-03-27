@@ -78,15 +78,16 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierLimits> = {
 };
 
 // ═══ STRIPE PRICE IDS ═══
+// S2-WARN-001: Env var names aligned with .env.example (authoritative source)
 // Replace with your actual Stripe price IDs after creating products
 export const STRIPE_PRICES = {
   plus: {
-    month: process.env.STRIPE_PRICE_PLUS_MONTHLY || 'price_placeholder_plus_monthly',
-    year: process.env.STRIPE_PRICE_PLUS_YEARLY || 'price_placeholder_plus_yearly',
+    month: process.env.STRIPE_PLUS_MONTHLY_ID || 'price_placeholder_plus_monthly',
+    year: process.env.STRIPE_PLUS_YEARLY_ID || 'price_placeholder_plus_yearly',
   },
   forge: {
-    month: process.env.STRIPE_PRICE_FORGE_MONTHLY || 'price_placeholder_forge_monthly',
-    year: process.env.STRIPE_PRICE_FORGE_YEARLY || 'price_placeholder_forge_yearly',
+    month: process.env.STRIPE_FORGE_MONTHLY_ID || 'price_placeholder_forge_monthly',
+    year: process.env.STRIPE_FORGE_YEARLY_ID || 'price_placeholder_forge_yearly',
   },
 } as const;
 

@@ -8,12 +8,14 @@
 //
 // Decisions: CPA-1 through CPA-12, CPA2-1 through CPA2-12
 
-// ■■ Cockpit Geometry Constants (v2.0 — adaptive curvature) ■■
+// ■■ Cockpit Geometry Constants (v3.0 — 3D-Embedded UI, tight-focus) ■■
+// Enhanced from v2.0: wider arc (218° from 140°), larger radius (4.8 from 4.0),
+// tighter side console positions, per cockpit-architecture.json vision spec.
 export const COCKPIT_GEOMETRY = {
   // Base values (adapted by useAdaptiveCockpit)
   panelCurvature: 0.85,
-  totalWrapArc: 140,            // degrees, overridden by adaptive
-  panelRadius: 4.0,             // overridden by adaptive
+  totalWrapArc: 218,            // degrees — extreme panoramic wrap (was 140)
+  panelRadius: 4.8,             // larger radius for immersive wrap (was 4.0)
   centralViewportWidth: 0.56,
   sidesPanelWidth: 0.12,
   topBarHeight: 0.10,
@@ -22,24 +24,43 @@ export const COCKPIT_GEOMETRY = {
   hexRadius: 0.35,
   hexDepth: 0.02,
 
-  // NEW in v2
+  // v2 → v3 enhanced
   hexDataTextureSize: 64,       // px, for lab number / indicator textures
   panelEdgeBevel: 0.005,        // subtle edge chamfer
-  topBarSegments: 256,          // 20M upgrade: ultra-smooth curves (was 48)
-  sideSegments: 128,            // 20M upgrade: high-poly side panels (was 24)
+  topBarSegments: 288,          // v3: denser for wider arc (was 256)
+  sideSegments: 144,            // v3: denser for wider arc (was 128)
 
-  // 20M Cockpit Upgrade — structural detail constants
-  rivetSpacing: 0.15,           // spacing between instanced rivets
-  cableBundleCount: 50,         // TubeGeometry cable splines
-  ventPanelCount: 12,           // ventilation grate panels
-  floorGrateResolution: 64,     // grid resolution for floor panels
+  // Structural detail constants (upgraded for 38M cockpit budget)
+  rivetSpacing: 0.12,           // tighter rivets for closer camera (was 0.15)
+  cableBundleCount: 60,         // more cables visible at tight focus (was 50)
+  ventPanelCount: 16,           // more vent panels across wider arc (was 12)
+  floorGrateResolution: 80,     // higher res floor (was 64)
+
+  // v3: Side console positions (pulled closer per vision JSON)
+  leftConsolePosition: [-2.35, 0.25, -1.65] as const,
+  leftConsoleRotation: [0, 0.85, 0] as const,
+  rightConsolePosition: [2.35, 0.25, -1.65] as const,
+  rightConsoleRotation: [0, -0.85, 0] as const,
+
+  // v3: Status bar position (explicit 3D placement)
+  statusBarPosition: [0, -1.25, -1.95] as const,
+  statusBarRotation: [0.38, 0, 0] as const,
+
+  // v3: Center viewport screen (spherical panoramic mesh)
+  centerViewportRadius: 3.9,
+  centerViewportPosition: [0, 0.35, -3.3] as const,
+
+  // v3: HUD position
+  hudPosition: [0, 2.05, -3.4] as const,
+  hudRotation: [-0.55, 0, 0] as const,
 } as const;
 
 // ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■
+// v3: Adaptive curvature updated for wider hull
 export const ADAPTIVE_CURVATURE = {
-  ultraWide: { minWidth: 1920, arc: 155, radius: 4.2 },
-  desktop:   { minWidth: 1440, arc: 140, radius: 4.0 },
-  tablet:    { minWidth: 1024, arc: 120, radius: 3.6 },
+  ultraWide: { minWidth: 1920, arc: 230, radius: 5.0 },
+  desktop:   { minWidth: 1440, arc: 218, radius: 4.8 },
+  tablet:    { minWidth: 1024, arc: 180, radius: 4.2 },
   cssFallback: { minWidth: 0, arc: 0, radius: 0 },
 } as const;
 
@@ -57,14 +78,15 @@ export const BLOOM_PRESETS = {
   admin:         { intensity: 0.25, threshold: 0.75, smoothing: 0.95 },
 } as const;
 
-// ■■ Camera Presets — FOV + Barrel Distortion (CPA-9, CPA-10) ■■
+// ■■ Camera Presets — FOV + Barrel Distortion (v3: tight-focus cockpit seat) ■■
 export const CAMERA_PRESETS = {
-  dashboard:   { fov: 56, distortion: 0.02 },
-  labmap:      { fov: 58, distortion: 0.02 },
-  lab:         { fov: 55, distortion: 0.015 },
+  dashboard:   { fov: 58, distortion: 0.025 },    // v3: wider FOV for immersion
+  labmap:      { fov: 62, distortion: 0.02 },     // v3: widest for spatial map
+  lab:         { fov: 55, distortion: 0.02 },
   game:        { fov: 52, distortion: 0.0 },
-  celebration: { fov: 58, distortion: 0.025 },
-  profile:     { fov: 54, distortion: 0.01 },
+  celebration: { fov: 62, distortion: 0.03 },     // v3: dramatic wide during celebrations
+  profile:     { fov: 56, distortion: 0.015 },    // v3: right console focus
+  settings:    { fov: 56, distortion: 0.015 },    // v3: left console focus
   onboarding:  { fov: 52, distortion: 0.01 },
   parent:      { fov: 54, distortion: 0.01 },
   admin:       { fov: 52, distortion: 0.0 },
