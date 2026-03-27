@@ -23,8 +23,7 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Environment } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { OrbitControls, Text, Line } from '@react-three/drei';
 import { Color, Mesh, Vector3 } from 'three';
 import NeuralBuilderEnvironment from './environments/NeuralBuilderEnvironment';
 
@@ -433,18 +432,9 @@ function NetworkScene({
       {/* Camera Controls */}
       <AutoOrbitController isTraining={isTraining} />
 
-      {/* Environment */}
-      <Environment preset="night" />
-
-      {/* Bloom */}
-      <EffectComposer>
-        <Bloom
-          intensity={0.6}
-          luminanceThreshold={0.4}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
+      {/* 3D Embedding: Removed duplicate Environment preset="night" — NeuralBuilderEnvironment
+         provides HDR/lighting in the outer group. Also removed EffectComposer — CockpitCanvas
+         provides PostProcessingStack (D3D-C1). */}
     </>
   );
 }

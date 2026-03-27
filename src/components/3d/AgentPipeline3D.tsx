@@ -21,7 +21,7 @@
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
-import { Text, Environment } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import {
   BoxGeometry,
   BufferAttribute,
@@ -630,8 +630,9 @@ function PipelineScene({
       {/* Ambient particles (Decision 5.3) */}
       <PipelineParticles />
 
-      {/* HDR environment for reflections */}
-      <Environment preset="night" />
+      {/* 3D Embedding: Removed duplicate Environment preset="night" —
+         AgentArchitectEnvironment provides HDR/lighting in the outer group.
+         CockpitCanvas also provides Environment via FROST_PRISMATIC_HDR_PATH. */}
     </>
   );
 }

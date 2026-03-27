@@ -23,7 +23,7 @@
 
 import { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Environment } from '@react-three/drei';
+// Environment import removed — BiasDetectiveEnvironment + CockpitCanvas provide HDR
 import { motion } from 'motion/react';
 import {
   AdditiveBlending,
@@ -341,8 +341,9 @@ export default function BiasScales3D({
         side={biasWeight > fairWeight ? 'left' : 'right'}
       />
 
-      {/* Environment for reflections (uses station HDR if available) */}
-      <Environment preset="studio" />
+      {/* 3D Embedding: Removed duplicate Environment preset="studio" —
+         BiasDetectiveEnvironment provides HDR/lighting above.
+         CockpitCanvas also provides Environment via FROST_PRISMATIC_HDR_PATH. */}
     </group>
   );
 }

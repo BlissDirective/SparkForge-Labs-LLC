@@ -12,6 +12,7 @@ import { useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { ContactShadows, OrthographicCamera } from '@react-three/drei';
 import { Group, MathUtils, Vector3 } from 'three';
+import SortToyBoxEnvironment from './environments/SortToyBoxEnvironment';
 
 // ■■■ Types ■■■
 
@@ -403,9 +404,11 @@ function Scene({
 // ■■■ Exported Group (D3D-B1 compliant) ■■■
 // S6-CRIT-002: Refactored from standalone Canvas to <group>.
 // OrthographicCamera stays — game-specific overhead view for sorting.
+// 3D Embedding: SortToyBoxEnvironment wired in (was orphaned — S6-HIGH-004 fix)
 export function SortScene3D(props: SortScene3DProps) {
   return (
     <group>
+      <SortToyBoxEnvironment />
       <Scene {...props} />
     </group>
   );
