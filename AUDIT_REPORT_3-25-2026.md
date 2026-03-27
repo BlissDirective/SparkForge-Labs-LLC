@@ -93,6 +93,52 @@
 - **S4-WARN-005:** Fixed `as string` assertion in `content/[slug]/page.tsx` — replaced with safe `Array.isArray` check.
 - **Result: 4 hooks DRY, typed, using centralized API wrapper**
 
+### Stage 7 Audit Fix — Full Resolution (March 27, 2026)
+
+**Branch:** `claude/stage-7-audit-fixes-i4ZvH`
+**Scope:** All 29 Stage 7 games (9 FL-Lite + 20 Standard) + game router + SceneRouter
+
+**Batch 1 — S7-CRIT-001: D3D-B1 Canvas Refactor (commit 26982ce)**
+- Removed standalone `<Canvas>` from all 28 Stage 7 games (AiSpy was already compliant)
+- 19 Standard games: Replaced inline Canvas+Environment with `useSceneStore.setGameSceneContent()` + useEffect
+- 9 FL-Lite 3D components: Removed Canvas/EffectComposer/Environment wrappers, export clean `<group>`
+- 9 FL-Lite game files: Added sceneStore integration via useEffect with conditional rendering
+- Also resolves S7-HIGH-002: EmojiDecoder + AiOrNot now import and register their 3D components
+- **37 files modified. D3D-B1/B3/B5/B2/B6 compliance achieved for all Stage 7 games.**
+
+**Batch 2 — S7-HIGH-001: startGame() Coverage — ALREADY RESOLVED**
+- GameShell.tsx (line 58) calls `startGame(gameId, totalRounds, hints)` on mount for all games
+- All 29 Stage 7 games use GameShell wrapper (verified in audit PASS findings)
+- No individual game needs to call startGame() — GameShell handles it
+
+**Batch 3 — S7-HIGH-003 + S7-WARN-001: Complete Phases + Learn Phases (commit 0e0d025)**
+- All 29 Stage 7 games verified to have `'complete'` in Phase type + complete phase JSX
+- Each game has unique educational "What You Learned" summary with 3+ learning points
+- Games modified with new complete phases: WordPredictor, TokenChopper, AiArtDetective, ToolPicker, DataShield, RealOrFake, FoolTheAi, BuildClassifier, PredictionMarket
+- Learn phases verified present in all FL-Lite games; Standard games use play-phase teaching
+- **24 files modified**
+
+**Batch 4 — S7-HIGH-004: Age Band Enforcement (commit 47aca47)**
+- Game router (`arcade/[gameSlug]/page.tsx`) now checks active child's age band against `gameRegistry.ageBands`
+- Restricted games show age-appropriate notice with back-to-arcade link
+- Resolves API Explorer (band C only) and all other band-restricted games
+
+**Batch 5 — S7-WARN-004: Error Boundary (commit 47aca47)**
+- SceneRouter wraps game 3D content in `Canvas3DErrorBoundary` + `Suspense`
+- All 35 games now have 3D error catching — crashes show graceful fallback instead of page crash
+- Systemic fix: one change covers all games, present and future
+
+**Batch 6 — S7-WARN-003: ARIA Label Improvements**
+- Improved ARIA coverage on low-label games: CameraQuest, RobotVacuum, CodeBlocks, NeuronRelay, TreatTrainer, SentimentScanner
+- Added aria-label to all interactive buttons, clickable elements, and toggle states
+
+**S7-WARN-002 (Orphaned Environments): DEFERRED**
+- 9 FL-Lite environment files remain in `src/components/3d/environments/` but are not imported
+- These are intended for future SceneRouter integration when lab-to-game transitions are enhanced
+- Not deleted — they are valid code that will be wired when spatial dashboard routes to games
+
+**Result: All Stage 7 CRITICAL + HIGH findings resolved. 3 of 4 WARNING findings resolved. 1 WARNING deferred.**
+
 ---
 
 ## Executive Summary
@@ -2116,7 +2162,7 @@ Or use drei's `useDispose` utility.
 **Stage:** 7 (Phases 15-22)
 **Source Docs:** `STAGE7A_Batch + Parts 2-4`, `STAGE7B_v3FINAL_A/B/C`, `STAGE7C_Part1+2 + v3FINAL_A/B/C`, `STAGE7D_v3FINAL_A/B/C`, `STAGE7E_Part1+2`, `STAGE7F_v3FINAL_A/B + Part1/2`
 **Scope:** 9 FL-Lite games (10M tri budget) + 20 Standard games (5M tri budget), environments, 3D integration
-**Build Status:** All 29 games code-complete. Systemic D3D-B1 violation across 28/29 games.
+**Build Status:** All 29 games code-complete. ~~Systemic D3D-B1 violation across 28/29 games.~~ **RESOLVED (March 27, 2026)** — All 29 games now D3D-B1 compliant via sceneStore integration.
 
 ## Stage 7 — Finding Counts
 
