@@ -744,6 +744,19 @@ export function PromptLabGame() {
   // --- Refs ---
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // S6-CRIT-001: Signal game completion when entering report phase
+  useEffect(() => {
+    if (phase === 'report') {
+      game.completeGame();
+    }
+  }, [phase, game]);
+
+  // Track completed challenges count
+  const completedChallenges = useMemo(
+    () => Object.values(challengeResults).filter((r) => r.passed).length,
+    [challengeResults]
+  );
+
   // --- Particles ---
   const particles = useMemo(
     () =>
@@ -1221,6 +1234,15 @@ export function PromptLabGame() {
                           >
                             <Target className="w-3 h-3" /> Challenges
                           </button>
+                          {(completedChallenges >= 1 || messages.length >= 4) && (
+                            <button
+                              onClick={() => setPhase('report')}
+                              className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-spark-green/10 text-spark-green text-xs font-display"
+                              aria-label="Complete Prompt Lab and view report"
+                            >
+                              <GraduationCap className="w-3 h-3" /> Finish Lab
+                            </button>
+                          )}
                         </div>
                       </div>
                     )}
@@ -1953,6 +1975,71 @@ export function PromptLabGame() {
 
             <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-amber-500/50 to-transparent" />
           </div>
+
+          {/* ===== REPORT — Game completion summary (S6-CRIT-001) ===== */}
+          {phase === 'report' && (
+            <motion.div
+              key="report"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex-1 flex flex-col items-center justify-center gap-6 p-6"
+            >
+              <div className="text-6xl mb-2">{'\u{1F389}'}</div>
+              <h2 className="font-display text-2xl font-bold text-white text-center">
+                Prompt Lab Complete!
+              </h2>
+              <p className="font-body text-sm text-white/50 text-center max-w-md">
+                {ageBand === 'A'
+                  ? 'Great job chatting with AI! You learned how to write clear messages.'
+                  : ageBand === 'B'
+                    ? 'You explored prompt engineering techniques and completed challenges. Nice work!'
+                    : 'You mastered advanced prompt engineering \u2014 temperature control, system prompts, and challenge scenarios.'}
+              </p>
+
+              {/* Stats */}
+              <div className="grid grid-cols-3 gap-4 max-w-sm w-full">
+                <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <p className="font-data text-2xl text-amber-400">{messages.filter((m) => m.role === 'user').length}</p>
+                  <p className="font-body text-2xs text-white/30">Prompts Sent</p>
+                </div>
+                <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <p className="font-data text-2xl text-amber-400">{game.score}</p>
+                  <p className="font-body text-2xs text-white/30">Points Earned</p>
+                </div>
+                <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <p className="font-data text-2xl text-spark-green">{completedChallenges}/{availableChallenges.length}</p>
+                  <p className="font-body text-2xs text-white/30">Challenges</p>
+                </div>
+              </div>
+
+              {/* What you learned */}
+              <div className="max-w-sm w-full rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                <p className="font-display text-sm font-bold text-white mb-2">{'\u{1F4A1}'} What You Learned</p>
+                <ul className="space-y-1.5">
+                  <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                    <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
+                    {ageBand === 'A' ? 'How to ask AI clear questions' : 'How to structure effective prompts'}
+                  </li>
+                  <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                    <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
+                    {ageBand === 'A' ? 'Being specific helps AI give better answers' : 'Prompt engineering techniques (specificity, examples, constraints)'}
+                  </li>
+                  {ageBand !== 'A' && (
+                    <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                      <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
+                      Temperature controls how creative vs. predictable AI responses are
+                    </li>
+                  )}
+                  {ageBand === 'C' && (
+                    <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                      <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
+                      System prompts can shape AI behavior for specific tasks
+                    </li>
+                  )}
+                </ul>
+              </div>
+            </motion.div>
+          )}
         </div>
       </div>
     </GameShell>

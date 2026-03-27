@@ -147,8 +147,8 @@ export function SortToyBoxGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
-  // Initialize game store
-  useEffect(() => { game.startGame("sort-toy-box", 1); }, []);
+  // S6-CRIT-003: Removed redundant startGame call — GameShell already calls
+  // startGame("sort-toy-box", 12) on mount with correct totalRounds
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [shapes, setShapes] = useState<Shape[]>(() => generateShapes());
