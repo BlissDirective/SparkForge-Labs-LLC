@@ -41,7 +41,7 @@ const ApiExplorerEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'learn' | 'explore';
+type Phase = 'welcome' | 'learn' | 'explore' | 'complete';
 
 interface Endpoint {
   path: string;
@@ -419,7 +419,7 @@ export function ApiExplorerGame() {
 
     const totalUsed = isNew ? endpointsUsed.size + 1 : endpointsUsed.size;
     if (totalUsed >= ENDPOINTS.length) {
-      setTimeout(() => game.completeGame(), 2000);
+      setTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
     }
   }
 
@@ -746,6 +746,31 @@ export function ApiExplorerGame() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">API Explorer Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You explored real AI service endpoints, sent requests with parameters, and read JSON responses — this is exactly how developers integrate AI into their applications!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">
+                      <p className="font-data text-2xl" style={{ color: '#F97316' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• APIs let programs communicate using structured requests and responses</li>
+                        <li>• HTTP methods (GET, POST) and status codes (200, 400, 500) form the language of the web</li>
+                        <li>• REST patterns and JSON data interchange are the backbone of modern AI services</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

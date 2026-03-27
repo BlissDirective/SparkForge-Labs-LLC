@@ -22,7 +22,7 @@ const TreatTrainerEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 const SIZE = 7;
 const WALLS: [number, number][] = [[1,1],[1,2],[2,4],[3,1],[3,3],[4,5],[5,2],[5,3]];
@@ -101,7 +101,7 @@ export function TreatTrainerGame() {
     game.updateScore(5);
     game.advanceRound();
     setRunning(false);
-    if (episode >= 9) game.completeGame();
+    if (episode >= 9) { setPhase('complete'); game.completeGame(); }
   }, [rewards, episode, game]);
 
   return (
@@ -220,6 +220,33 @@ export function TreatTrainerGame() {
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       <Play className="w-4 h-4" /> {running ? 'Running...' : `Run Episode ${episode + 1}`}
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Treat Trainer Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">
+                      You trained a robot agent across 10 episodes by tuning reward values, watching it learn to find the optimal path to the goal.
+                    </p>
+                    <div className="rounded-xl px-6 py-3 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20">
+                      <p className="font-data text-2xl text-[#8B5CF6]">{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Reinforcement learning uses rewards and penalties to teach AI agents how to behave</li>
+                        <li>• Positive rewards encourage desired actions while negative rewards discourage bad ones</li>
+                        <li>• Over many training episodes, the agent converges on better strategies — just like practice makes perfect</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
 

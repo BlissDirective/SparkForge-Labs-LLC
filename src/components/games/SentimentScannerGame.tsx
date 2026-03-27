@@ -22,7 +22,7 @@ const SentimentScannerEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 const POS = ['happy','joy','love','great','amazing','wonderful','beautiful','fantastic','excellent','awesome','brilliant','delightful','cheerful','kind','friendly'];
 const NEG = ['sad','angry','hate','terrible','awful','horrible','bad','worst','ugly','stupid','mean','boring','scary','cruel','lonely'];
@@ -84,7 +84,7 @@ export function SentimentScannerGame() {
       setTimeout(() => {
         setShowSuccess(false);
         if (ci < CHALLENGES.length - 1) { setCi(i => i + 1); setText(''); }
-        else game.completeGame();
+        else { setPhase('complete'); game.completeGame(); }
       }, 1500);
     }
   }
@@ -192,6 +192,31 @@ export function SentimentScannerGame() {
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       Check!
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Sentiment Scanner Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You mastered sentiment analysis by writing sentences that triggered specific emotional responses — the same technique AI uses to understand opinions online!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#FF66AA]/10 border border-[#FF66AA]/20">
+                      <p className="font-data text-2xl" style={{ color: '#FF66AA' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Sentiment analysis scores text from negative to positive</li>
+                        <li>• Emotion detection identifies feelings like joy, anger, and surprise in words</li>
+                        <li>• NLP keyword matching is a simple but powerful way to gauge tone</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
 

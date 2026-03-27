@@ -22,7 +22,7 @@ const PredictionMarketEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Prediction {
   question: string;
@@ -127,7 +127,7 @@ export function PredictionMarketGame() {
   function nextPrediction() {
     setVoted(false); setMyVote(null); setShowAnalysis(false);
     if (predIdx < predictions.length - 1) { setPredIdx(i => i + 1); game.advanceRound(); }
-    else game.completeGame();
+    else { setPhase('complete'); game.completeGame(); }
   }
 
   return (
@@ -233,6 +233,31 @@ export function PredictionMarketGame() {
                         </motion.button>
                       </motion.div>
                     )}
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Prediction Market Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You evaluated AI predictions with critical thinking and learned that forecasting the future requires understanding both technology and uncertainty.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#D946EF]/10 border border-[#D946EF]/20">
+                      <p className="font-data text-2xl" style={{ color: '#D946EF' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• AI prediction accuracy depends on data quality, model design, and the inherent uncertainty of future events</li>
+                        <li>• Probability and confidence calibration help us understand how sure we should be about AI forecasts</li>
+                        <li>• Critical thinking about AI predictions means weighing evidence, expert analysis, and real-world constraints</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

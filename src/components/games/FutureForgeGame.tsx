@@ -207,23 +207,6 @@ export default function FutureForgeGame() {
   const isCorrectPick = useCallback((id: string) => scenario.correctCapabilities.includes(id), [scenario]);
   const isBonusPick = useCallback((id: string) => scenario.bonusCapability === id, [scenario]);
 
-  useEffect(() => {
-    if (phase === 'play') {
-      setGameSceneContent(
-        <FutureForge3D
-          step={round}
-          selectedSkills={new Set(selected)}
-          allSkills={CAPABILITIES.map(c => ({ name: c.name, emoji: '⚡' }))}
-          problemEmoji="🔧"
-          inventionName={scenario.title}
-          innovationScore={roundScore}
-        />
-      );
-    } else {
-      setGameSceneContent(null);
-    }
-  }, [phase, round, selected, scenario, roundScore, setGameSceneContent]);
-
   // ── Particles (Lab 10: #D946EF) ──
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,

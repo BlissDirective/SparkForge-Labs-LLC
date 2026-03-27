@@ -22,7 +22,7 @@ const DataShieldEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface DataPoint {
   label: string;
@@ -138,7 +138,7 @@ export function DataShieldGame() {
       else {
         const nextS = scenarioIdx + 1;
         if (nextS < SCENARIOS.length) { setScenarioIdx(nextS); setPointIdx(0); game.advanceRound(); }
-        else game.completeGame();
+        else { setPhase('complete'); game.completeGame(); }
       }
     }, 2500);
   }
@@ -239,6 +239,31 @@ export function DataShieldGame() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Data Shield Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You proved you can protect your personal information from AI misuse and make smart privacy decisions online.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20">
+                      <p className="font-data text-2xl" style={{ color: '#FF6644' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Personal data like addresses, phone numbers, and photos should be protected from apps and websites</li>
+                        <li>• Not all data requests are necessary — always ask why an app needs your information</li>
+                        <li>• Data privacy is a right, and understanding what to share keeps you safe from AI-powered misuse</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

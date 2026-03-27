@@ -40,7 +40,7 @@ const RobotVacuum3D = dynamic(
   }
 );
 
-type Phase = 'welcome' | 'learn' | 'play';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Rule {
   condition: string;
@@ -319,6 +319,7 @@ export function RobotVacuumGame() {
       setTrail([]);
       game.advanceRound();
     } else {
+      setPhase('complete');
       game.completeGame();
     }
   }
@@ -821,6 +822,31 @@ export function RobotVacuumGame() {
                             : 'Complete! \u{1F389}'}
                         </motion.button>
                       )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Robot Vacuum Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You programmed an intelligent agent using IF/THEN rules to navigate rooms and clean efficiently — just like real robot vacuums use rule-based AI!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#10B981]/10 border border-[#10B981]/20">
+                      <p className="font-data text-2xl" style={{ color: '#10B981' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Robot pathfinding uses rules to decide where to move next</li>
+                        <li>• Rule priority order determines which action fires first</li>
+                        <li>• Coverage optimization balances thoroughness with efficiency</li>
+                      </ul>
                     </div>
                   </motion.div>
                 )}

@@ -40,7 +40,7 @@ const BuildClassifierEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'learn' | 'collect' | 'train' | 'test' | 'results';
+type Phase = 'welcome' | 'learn' | 'collect' | 'train' | 'test' | 'results' | 'complete';
 
 interface TrainingImage {
   emoji: string;
@@ -214,6 +214,7 @@ export function BuildClassifierGame() {
   function finishGame() {
     const correctCount = testResults.filter((r) => r.correct).length;
     game.updateScore(correctCount >= allTests.length * 0.8 ? 15 : 5);
+    setPhase('complete');
     game.completeGame();
   }
 
@@ -750,6 +751,32 @@ export function BuildClassifierGame() {
                     >
                       Complete! 🎉
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {/* COMPLETE */}
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Build a Classifier Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You experienced the full ML pipeline — from collecting training data to testing your classifier and seeing how data quality impacts accuracy.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">
+                      <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• ML classification requires labeled training data — the more balanced and accurate, the better the model performs</li>
+                        <li>• Training data quality directly affects decision boundaries and prediction accuracy</li>
+                        <li>• Testing on unseen data reveals whether a model truly learned patterns or just memorized examples</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

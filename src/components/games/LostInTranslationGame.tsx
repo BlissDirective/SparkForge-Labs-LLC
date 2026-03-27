@@ -22,7 +22,7 @@ const LostInTranslationEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Round {
   original: string;
@@ -123,7 +123,7 @@ export function LostInTranslationGame() {
     if (allRevealed) {
       game.updateScore(10);
       if (idx < rounds.length - 1) { setIdx(i => i + 1); setStep(-1); game.advanceRound(); }
-      else game.completeGame();
+      else { setPhase('complete'); game.completeGame(); }
     } else { setStep(s => s + 1); }
   }
 
@@ -212,6 +212,31 @@ export function LostInTranslationGame() {
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       {allRevealed ? (idx < rounds.length - 1 ? 'Next Phrase \u2192' : 'Finish!') : 'Reveal Next Translation \u2192'}
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Lost in Translation Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You discovered how meaning gets lost when AI translates through multiple languages — idioms, metaphors, and cultural expressions are still a big challenge for machine translation!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
+                      <p className="font-data text-2xl" style={{ color: '#818CF8' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Machine translation works word-by-word but misses figurative meaning</li>
+                        <li>• Language ambiguity means one phrase can have multiple interpretations</li>
+                        <li>• Context is crucial in NLP — without it, AI takes everything literally</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
 

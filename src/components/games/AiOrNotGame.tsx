@@ -211,16 +211,6 @@ export function AiOrNotGame() {
 
   const finishGame = useCallback(() => { game.completeGame(); setPhase('complete'); }, [game]);
 
-  useEffect(() => {
-    if (phase === 'play' || phase === 'predict') {
-      setGameSceneContent(
-        <AiOrNot3D />
-      );
-    } else {
-      setGameSceneContent(null);
-    }
-  }, [phase, setGameSceneContent]);
-
   return (
     <GameShell gameId="ai-or-not" title="AI or Not?" worldNumber={10} worldColor="#D946EF" xpReward={25} totalRounds={totalRounds}>
       <div className="h-full flex flex-col relative overflow-hidden">
