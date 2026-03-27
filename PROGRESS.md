@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
 ## Current Phase: Stage 4 — 3D-Embedded UI (12 mini-batches)
-## Status: Batch 3/12 COMPLETE — hull + LED + sidepanels + statusbar
-## Last Updated: 2026-03-27 (Stage 4 Batch 3: Full Geometry + Material Overhaul)
+## Status: Batch 4/12 COMPLETE — broadcast system + holographic button
+## Last Updated: 2026-03-27 (Stage 4 Batch 4: CockpitBroadcast + HolographicButton)
 
 ---
 
