@@ -52,6 +52,7 @@ import { AmbientNPCs } from './AmbientNPCs';
 // Scene Management (D3D-B5)
 import { SceneRouter } from './SceneRouter';
 import { MechanicalIris } from './MechanicalIris';
+import { CeremonyFXBridge } from './CeremonyFXBridge';
 import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Hooks (D3D-C4)
@@ -402,6 +403,9 @@ export function CockpitCanvas({
                   labColor={effectiveLabColor}
                   opacity={statusBarOpacity}
                 />
+
+                {/* ═══ Ceremony FX — 3D celebration effects (S5-HIGH-007) ═══ */}
+                <CeremonyFXBridge />
               </>
             }
             spatialContent={

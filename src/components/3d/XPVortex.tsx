@@ -1,23 +1,21 @@
 'use client';
 
 // ================================================================
-// SparkForge XPVortex — 100-Particle Spiral Overlay
+// SparkForge XPVortex — 100-Particle Instanced Spiral
 // ================================================================
-// Decision 5.2: Particle vortex for 20+ XP gains
-// GPU cost: ~0.2ms (100 instanced spheres, single draw call)
-// Geometry: InstancedMesh spiral rising upward
-// Lifespan: Auto-unmounts after 2s animation
-//
-// Usage: Overlaid in XP popup/celebration when xpAmount >= 20.
-// Below 20 XP returns null (no GPU cost).
+// Decision 5.2: Particle vortex for 20+ XP celebrations
+// GPU cost: ~0.2ms (100 instanced icosahedrons, single draw call)
+// Renders INSIDE CockpitCanvas as a <group> (D3D-B1)
+// Auto-unmounts after 2.0s animation
 
-import { useRef, useMemo, useState } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Color, InstancedMesh, Object3D } from 'three';
+import { useA11yStore } from '@/stores/accessibilityStore';
 
 interface XPVortexProps {
-  xpAmount: number;
+  active: boolean;
+  amount?: number;
   color?: string;
   onComplete?: () => void;
 }
@@ -26,16 +24,27 @@ const PARTICLE_COUNT = 100;
 const DURATION = 2.0;
 
 export default function XPVortex({
-  xpAmount,
+  active,
+  amount = PARTICLE_COUNT,
   color = '#00BBFF',
   onComplete,
 }: XPVortexProps) {
   const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
-  const [active, setActive] = useState(true);
+  const [alive, setAlive] = useState(false);
+  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+
+  // Reset timer when active transitions to true
+  useEffect(() => {
+    if (active) {
+      timeRef.current = 0;
+      setAlive(true);
+    }
+  }, [active]);
 
   // Pre-compute spiral paths for each particle
   const particleData = useMemo(() => {
+    const count = Math.min(amount, PARTICLE_COUNT);
     const data: Array<{
       angle: number;
       radius: number;
@@ -43,32 +52,39 @@ export default function XPVortex({
       phase: number;
       baseY: number;
     }> = [];
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
-      const t = i / PARTICLE_COUNT;
-      const angle = t * Math.PI * 6; // 3 full spirals
-      const radius = 0.3 + t * 1.2;
-      const speed = 0.5 + (Math.sin(i * 1.37) * 0.5 + 0.5) * 1.5;
-      const phase = (Math.sin(i * 2.71) * 0.5 + 0.5) * Math.PI * 2;
-      data.push({ angle, radius, speed, phase, baseY: -1 + t * 0.5 });
+    for (let i = 0; i < count; i++) {
+      const t = i / count;
+      data.push({
+        angle: t * Math.PI * 6, // 3 full spirals
+        radius: 0.3 + t * 1.2,
+        speed: 0.5 + (Math.sin(i * 1.37) * 0.5 + 0.5) * 1.5,
+        phase: (Math.sin(i * 2.71) * 0.5 + 0.5) * Math.PI * 2,
+        baseY: -1 + t * 0.5,
+      });
     }
     return data;
-  }, []);
+  }, [amount]);
 
   const colorObj = useMemo(() => new Color(color), [color]);
   const dummy = useMemo(() => new Object3D(), []);
+  const count = Math.min(amount, PARTICLE_COUNT);
 
   useFrame((_, delta) => {
-    if (!meshRef.current || !active || xpAmount < 20) return;
+    if (!meshRef.current || !alive) return;
+
+    // Skip animation for reduced motion — just call complete immediately
+    if (reduceMotion) {
+      setAlive(false);
+      onComplete?.();
+      return;
+    }
 
     timeRef.current += delta;
     const progress = Math.min(timeRef.current / DURATION, 1);
 
-    for (let i = 0; i < PARTICLE_COUNT; i++) {
+    for (let i = 0; i < count; i++) {
       const p = particleData[i];
-
-      // Spiral upward with contracting radius
-      const currentAngle =
-        p.angle + timeRef.current * p.speed + p.phase;
+      const currentAngle = p.angle + timeRef.current * p.speed + p.phase;
       const currentRadius = p.radius * (1 - progress * 0.3);
       const y = p.baseY + progress * 3.0 * p.speed;
 
@@ -78,7 +94,6 @@ export default function XPVortex({
         Math.sin(currentAngle) * currentRadius
       );
 
-      // Scale down as particles rise and fade
       const scale = Math.max(0, (1 - progress) * 0.5);
       dummy.scale.setScalar(scale);
       dummy.updateMatrix();
@@ -87,25 +102,22 @@ export default function XPVortex({
 
     meshRef.current.instanceMatrix.needsUpdate = true;
 
-    // Auto-complete after duration
-    if (progress >= 1 && active) {
-      setActive(false);
+    if (progress >= 1) {
+      setAlive(false);
       onComplete?.();
     }
   });
 
-  // Return null for small XP or after animation completes
-  // All hooks are called unconditionally above (React rules)
-  if (xpAmount < 20 || !active) return null;
+  if (!alive) return null;
 
   return (
-    <>
+    <group>
       <instancedMesh
         ref={meshRef}
-        args={[undefined, undefined, PARTICLE_COUNT]}
+        args={[undefined, undefined, count]}
         frustumCulled={false}
       >
-        <sphereGeometry args={[0.03, 6, 6]} />
+        <icosahedronGeometry args={[0.02, 1]} />
         <meshBasicMaterial
           color={colorObj}
           transparent
@@ -113,15 +125,6 @@ export default function XPVortex({
           toneMapped={false}
         />
       </instancedMesh>
-
-      <EffectComposer>
-        <Bloom
-          intensity={1.5}
-          luminanceThreshold={0.2}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
-    </>
+    </group>
   );
 }

@@ -500,7 +500,7 @@ export function CeremonyFX({
 
   const config = CEREMONY_CONFIG[type];
 
-  // Scale particle counts based on LOD
+  // Particle counts (desktop-ultra: full quality always)
   const pMul = 1.0;
   const confettiCount = Math.round(250 * pMul);
   const fireworkPerBurst = Math.round(60 * pMul);
