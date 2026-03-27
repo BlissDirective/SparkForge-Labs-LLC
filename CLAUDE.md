@@ -252,7 +252,8 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 ---
 
 ## 4. BUILD EXECUTION PLAN
-
+**Note:** A majority of the code was developed remotely via claude code committing to Github. At time of local terminal development, Claude Code shall dynamically review all local files cloned from Github. Claude code shall audit, enhance, and or fix any files, and or code during stage by stage development. CRITICAL: During local terminal development, claude code is not to re-write any code, unless explicitly directed by user, but rather use all existing code while auditing for errors, and or improvement opportunities.
+**Note:** During local development, when Claude Code is auditing, and or building, any updates tk existing code, or files should be committed to local and remote repositories. Ask user for clarification on where to commit to on Github and locally. 
 ### Implementation Order 
 
 Always evaluate local and or remote files to assess if new/updated documents have been added. Development should always be conducted dynamically, reviewing files prior to moving to next applicable stage or section in development.
