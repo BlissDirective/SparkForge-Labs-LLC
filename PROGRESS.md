@@ -1,8 +1,77 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 4 — 3D-Embedded UI (12 mini-batches)
-## Status: ALL 12 BATCHES + DOC SYNC COMPLETE — Stage 4 3D-Embedded UI
-## Last Updated: 2026-03-27 (Stage 4 Doc Sync: CLAUDE.md + stage docs + cockpit JSON)
+## Current Phase: Stage 5 — Gamification Audit Fix + 3D Embedding
+## Status: COMPLETE — All 16 Stage 5 audit findings resolved + 4 3D enhancements
+## Last Updated: 2026-03-27 (Stage 5 Audit Fix: Full resolution + 3D embedding)
+
+---
+
+### Stage 5 Audit Fix — Full Resolution (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/fix-stage-5-audit-issues-xgt8j
+**Build Status:** All 16 findings resolved + 4 3D embedding enhancements
+
+**Batch 1 — Critical Fixes (commit cf7cd6b):**
+- [x] S5-CRIT-001 — Profile page enhanced (215→689 lines): calculateLevel(), avatar shapes, trophy room, streak flames, daily challenge, editable name, cockpitBroadcast
+- [x] S5-CRIT-002 — Wired useCompleteAndReward into GameShell — all 35 games auto-award XP/badges/streaks
+- [x] S5-HIGH-006 — Mounted XPPopupProvider in GameShell
+
+**Batch 2 — High Fixes (commit a2fda4e):**
+- [x] S5-HIGH-001 — Created 4 UI + 3 3D gamification components (BadgeDisplay, BadgeGrid, LevelProgress, TrophyRoom, XPVortex, BadgePedestal3D, LevelUpExplosion)
+- [x] S5-HIGH-002 — Added streak/confetti celebration types to CelebrationOverlay
+- [x] S5-HIGH-003 — XP toast auto-dismiss (3s)
+- [x] S5-HIGH-004 — reduceMotion support in all gamification components
+- [x] S5-HIGH-005 — Full ARIA labels (dialog, aria-modal, aria-live, aria-hidden)
+- [x] S5-HIGH-007 — CeremonyFX wired into CockpitCanvas via CeremonyFXBridge + ceremonyMapping
+
+**Batch 3 — Warning Fixes (commit 1354d1f):**
+- [x] S5-WARN-001 — CelebrationType→CeremonyFX mapping (ceremonyMapping.ts)
+- [x] S5-WARN-002 — Confetti rAF unmount guard (isMounted ref)
+- [x] S5-WARN-003 — Already resolved (S2-HIGH-002 typed interface)
+- [x] S5-WARN-005 — LOD comment updated in CeremonyFX
+
+**Batch 4 — Info/Cleanup (commit fb02db2):**
+- [x] S5-INFO-001 — gamification/ barrel export index.ts, removed .gitkeep
+
+**3D Embedding Enhancements (commit 2801de2):**
+- [x] Enhancement A — Profile page broadcasts to cockpitBroadcastStore (page-navigate, badge-earn, button-press)
+- [x] Enhancement B — TrophyRoom 3D showcase for rare/epic/legendary badges + BadgePedestalBridge
+- [x] Enhancement C — AvatarPreview3D (136 lines, 6 shapes, morph animation, idle rotation, letter overlay)
+- [x] Enhancement D — useGamification hooks broadcast xp-change, level-up, badge-earn, streak-update to cockpit
+
+**Files Created (12):**
+- `src/components/gamification/BadgeDisplay.tsx`, `BadgeGrid.tsx`, `LevelProgress.tsx`, `TrophyRoom.tsx`, `index.ts`
+- `src/components/3d/XPVortex.tsx`, `BadgePedestal3D.tsx`, `LevelUpExplosion.tsx`, `AvatarPreview3D.tsx`, `BadgePedestalBridge.tsx`, `CeremonyFXBridge.tsx`
+- `src/lib/ceremonyMapping.ts`
+
+**Files Modified (6):**
+- `src/app/(dashboard)/profile/page.tsx` — Full enhancement
+- `src/components/game/GameShell.tsx` — Gamification pipeline + XPPopupProvider
+- `src/components/shared/CelebrationOverlay.tsx` — All 5 types, ARIA, reduceMotion
+- `src/hooks/useGamification.ts` — cockpitBroadcast integration
+- `src/components/3d/CeremonyFX.tsx` — LOD comment fix
+- `src/components/3d/CockpitCanvas.tsx` — CeremonyFXBridge added
+
+**Stage 5 Audit Summary — All Findings:**
+| ID | Severity | Status |
+|---|---|---|
+| S5-CRIT-001 | CRITICAL | Resolved (Batch 1) |
+| S5-CRIT-002 | CRITICAL | Resolved (Batch 1) |
+| S5-HIGH-001 | HIGH | Resolved (Batch 2) |
+| S5-HIGH-002 | HIGH | Resolved (Batch 2) |
+| S5-HIGH-003 | HIGH | Resolved (Batch 2) |
+| S5-HIGH-004 | HIGH | Resolved (Batch 2) |
+| S5-HIGH-005 | HIGH | Resolved (Batch 2) |
+| S5-HIGH-006 | HIGH | Resolved (Batch 1) |
+| S5-HIGH-007 | HIGH | Resolved (Batch 2) |
+| S5-WARN-001 | WARNING | Resolved (Batch 2/3) |
+| S5-WARN-002 | WARNING | Resolved (Batch 2) |
+| S5-WARN-003 | WARNING | Already resolved (S2-HIGH-002) |
+| S5-WARN-004 | WARNING | Acknowledged (naming only, no code change) |
+| S5-WARN-005 | WARNING | Resolved (Batch 3) |
+| S5-INFO-001 | INFO | Resolved (Batch 4) |
+| S5-INFO-002 | INFO | Confirmed working (no action needed) |
 
 ---
 

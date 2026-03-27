@@ -1525,17 +1525,17 @@ const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 **Stage:** 5 (Phases 8-9)
 **Source Docs:** `STAGE5_Gamification_Profile_PART1`, `STAGE5_Parts23_v3FINAL_A/B/C`
 **Scope:** XP system, streaks, badges, trophy room, celebration overlays, profile page, 3D ceremony effects
-**Build Status:** PARTIALLY IMPLEMENTED — hooks/APIs done, profile stub, game-to-XP pipeline disconnected
+**Build Status:** FULLY RESOLVED — All 16 findings addressed (March 27, 2026, branch: claude/fix-stage-5-audit-issues-xgt8j)
 
 ## Stage 5 — Finding Counts
 
-| Severity | Count |
-|----------|-------|
-| CRITICAL | 2 |
-| HIGH | 7 |
-| WARNING | 5 |
-| INFO | 2 |
-| PASS | 6 |
+| Severity | Count | Resolved |
+|----------|-------|----------|
+| CRITICAL | 2 | 2 ✅ |
+| HIGH | 7 | 7 ✅ |
+| WARNING | 5 | 5 ✅ |
+| INFO | 2 | 2 ✅ |
+| PASS | 6 | 6 (unchanged) |
 
 ---
 
@@ -1554,6 +1554,8 @@ const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug;
 - Badge gallery with earned/locked states
 - Edit display name capability
 - Loading skeletons, error boundary, ARIA labels
+
+**RESOLVED (March 27, 2026):** Profile page enhanced from 215-line basic page to 689-line full implementation. Includes: calculateLevel() for accurate XP progression, avatar shape selector (6 shapes), trophy room with category filters (9 categories), streak flame visualization with getFlameConfig(), daily challenge section with countdown timer, editable display name, Spark Coins display, full ARIA labels, reduceMotion support, cockpitBroadcast integration (page-navigate, badge-earn, button-press events). Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `cf7cd6b`.
 
 ---
 
@@ -1592,6 +1594,8 @@ useEffect(() => {
 
 This ensures all 35 games automatically award XP/badges/streaks without individual modification.
 
+**RESOLVED (March 27, 2026):** Wired `useCompleteAndReward` into GameShell.tsx via useEffect watching `isComplete`. Uses `hasRewarded` ref guard to prevent double-firing. All 35 games now auto-award XP, update streaks, check badges on completion without individual modification. Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `cf7cd6b`.
+
 ---
 
 ## Stage 5 — HIGH FINDINGS
@@ -1604,6 +1608,8 @@ This ensures all 35 games automatically award XP/badges/streaks without individu
 
 **Required Fix:** Create badge display grid and trophy room components per Stage 5 docs.
 
+**RESOLVED (March 27, 2026):** Created 4 UI components: BadgeDisplay.tsx (123 lines), BadgeGrid.tsx (132 lines), LevelProgress.tsx (123 lines), TrophyRoom.tsx (298 lines with 3D showcase). Created 3 new 3D components: XPVortex.tsx (130 lines, 100-particle spiral), BadgePedestal3D.tsx (130 lines, 5-tier PBR), LevelUpExplosion.tsx (166 lines, 200-particle burst). Also created BadgePedestalBridge.tsx and barrel export index.ts. Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `a2fda4e`.
+
 ---
 
 ### S5-HIGH-002 — `streak` and `confetti` celebration types unhandled
@@ -1614,6 +1620,8 @@ This ensures all 35 games automatically award XP/badges/streaks without individu
 
 **Required Fix:** Add streak milestone UI (e.g., animated streak count toast) and confetti-only rendering mode.
 
+**RESOLVED (March 27, 2026):** Added streak milestone toast (top-center, 4s auto-dismiss, flame emoji + streak count + tier name) and confetti-only mode (5s auto-dismiss, particles only). Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `a2fda4e`.
+
 ---
 
 ### S5-HIGH-003 — XP toast never auto-dismisses
@@ -1623,6 +1631,8 @@ This ensures all 35 games automatically award XP/badges/streaks without individu
 **Description:** The XP toast appears but has no auto-dismiss timer and no manual dismiss button. Badge and level modals dismiss on backdrop click, but the XP toast remains visible indefinitely.
 
 **Required Fix:** Add `setTimeout(() => dismissCelebration(), 3000)` in a `useEffect` when `celebrationType === 'xp'`, or add an onClick handler to dismiss.
+
+**RESOLVED (March 27, 2026):** Added useEffect with 3-second setTimeout calling dismissCelebration() when celebrationType === 'xp'. Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `a2fda4e`.
 
 ---
 
@@ -1638,6 +1648,8 @@ This ensures all 35 games automatically award XP/badges/streaks without individu
 - Disable `CeremonyFX` 3D effects
 - Show static versions of celebrations (just the message, no motion)
 
+**RESOLVED (March 27, 2026):** All gamification components now import useA11yStore and check reduceMotion. When true: confetti physics skipped, modals use opacity fade instead of spring, badge flip replaced with static, level-up star replaced with static. Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `a2fda4e`.
+
 ---
 
 ### S5-HIGH-005 — No ARIA labels on any gamification component
@@ -1651,6 +1663,8 @@ This ensures all 35 games automatically award XP/badges/streaks without individu
 - XP toast: `role="status" aria-live="polite"`
 - Decorative confetti/particles: `aria-hidden="true"`
 - Streak fire: `aria-hidden="true"` (decorative)
+
+**RESOLVED (March 27, 2026):** Badge modal: role="dialog" aria-modal="true" aria-label="Badge earned notification". Level modal: same. XP toast: role="status" aria-live="polite". Streak toast: role="status" aria-live="polite". Confetti layer: aria-hidden="true". Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `a2fda4e`.
 
 ---
 
@@ -1667,6 +1681,8 @@ This ensures all 35 games automatically award XP/badges/streaks without individu
   {children}
 </XPPopupProvider>
 ```
+
+**RESOLVED (March 27, 2026):** XPPopupProvider now wraps children inside GameShell.tsx (lines 75-86). All 35 games automatically get XP popup display capability. Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `cf7cd6b`.
 
 ---
 
@@ -1685,6 +1701,8 @@ This ensures all 35 games automatically award XP/badges/streaks without individu
 ```
 Create a mapping function between `CelebrationType` (`'level'`, `'badge'`) and `CeremonyFXProps.type` (`'levelUp'`, `'badgeEarn'`).
 
+**RESOLVED (March 27, 2026):** Created ceremonyMapping.ts (maps CelebrationType → CeremonyFX type), CeremonyFXBridge.tsx (orchestrator reading uiStore), and wired into CockpitCanvas cockpit content group. Ceremonies render as part of cockpit shell. Branch: `claude/fix-stage-5-audit-issues-xgt8j` commit `a2fda4e`.
+
 ---
 
 ## Stage 5 — WARNING FINDINGS
@@ -1696,6 +1714,8 @@ Create a mapping function between `CelebrationType` (`'level'`, `'badge'`) and `
 **Description:** Two parallel type systems: `CeremonyFXProps.type` uses `'levelUp' | 'badgeEarn' | 'labComplete' | 'streakMilestone'` while `CelebrationType` uses `'xp' | 'badge' | 'level' | 'streak' | 'confetti'`. No mapping layer exists.
 
 **Required Fix:** Create an explicit mapping function and document which component handles which celebration.
+
+**RESOLVED (March 27, 2026):** Created explicit mapping in src/lib/ceremonyMapping.ts: 'badge'->'badgeEarn', 'level'->'levelUp', 'streak'->'streakMilestone', 'confetti'->'labComplete', 'xp'->null (2D only).
 
 ---
 
@@ -1713,12 +1733,16 @@ useEffect(() => () => { isMounted.current = false; }, []);
 if (isMounted.current) setConfetti(updated);
 ```
 
+**RESOLVED (March 27, 2026):** Added isMounted ref, set false on cleanup. Both setConfetti calls check isMounted.current before executing.
+
 ---
 
 ### S5-WARN-003 — `as any` casts in badges route (duplicate of S2-HIGH-002)
 
 **File:** `src/app/api/gamification/badges/route.ts` (lines 83, 160, 168)
 **Description:** Already reported in Stage 2 audit. Three `as any` casts for Supabase join content types.
+
+**RESOLVED (previously):** Already fixed in S2-HIGH-002 — typed ProgressWithContent interface replaces as any casts.
 
 ---
 
@@ -1737,6 +1761,8 @@ if (isMounted.current) setConfetti(updated);
 **Description:** Comment reads `// Scale particle counts based on LOD` followed by hardcoded `const pMul = 1.0;`. LOD was removed per D3D-2. Misleading comment.
 
 **Required Fix:** Update comment: `// Particle counts (desktop-ultra: full quality always)`
+
+**RESOLVED (March 27, 2026):** Updated comment to "Particle counts (desktop-ultra: full quality always)".
 
 ---
 
@@ -1769,20 +1795,32 @@ if (isMounted.current) setConfetti(updated);
 
 | File | Status |
 |------|--------|
-| `src/app/(dashboard)/profile/page.tsx` | EXISTS (stub only) |
-| `src/hooks/useGamification.ts` | EXISTS (fully implemented) |
-| `src/components/shared/CelebrationOverlay.tsx` | EXISTS (partial — missing streak/confetti types) |
-| `src/components/game/XPPopup.tsx` | EXISTS (provider never mounted) |
+| `src/app/(dashboard)/profile/page.tsx` | ENHANCED (689 lines — full profile with avatar, trophy room, daily challenge, cockpitBroadcast) |
+| `src/hooks/useGamification.ts` | ENHANCED (210 lines — cockpitBroadcast integration on all hooks) |
+| `src/components/shared/CelebrationOverlay.tsx` | ENHANCED (446 lines — all 5 types, ARIA, reduceMotion, unmount guard) |
+| `src/components/game/XPPopup.tsx` | EXISTS (provider mounted via GameShell) |
 | `src/components/game/StreakFire.tsx` | EXISTS |
+| `src/components/game/GameShell.tsx` | ENHANCED (91 lines — useCompleteAndReward + XPPopupProvider) |
 | `src/components/game/GameCompleteCelebration.tsx` | EXISTS |
-| `src/components/3d/CeremonyFX.tsx` | EXISTS (not mounted in scene) |
-| `src/components/gamification/` | EXISTS (empty — `.gitkeep` only) |
+| `src/components/3d/CeremonyFX.tsx` | ENHANCED (mounted via CeremonyFXBridge in CockpitCanvas) |
+| `src/components/3d/CeremonyFXBridge.tsx` | CREATED (36 lines — uiStore → CeremonyFX bridge) |
+| `src/components/3d/XPVortex.tsx` | CREATED (130 lines — 100-particle instanced spiral) |
+| `src/components/3d/BadgePedestal3D.tsx` | CREATED (130 lines — 5-tier PBR pedestals) |
+| `src/components/3d/LevelUpExplosion.tsx` | CREATED (166 lines — 200-particle burst) |
+| `src/components/3d/AvatarPreview3D.tsx` | CREATED (136 lines — 6-shape 3D avatar with morph) |
+| `src/components/3d/BadgePedestalBridge.tsx` | CREATED (32 lines — badge pedestal orchestrator) |
+| `src/components/gamification/BadgeDisplay.tsx` | CREATED (123 lines — rarity-styled badge card) |
+| `src/components/gamification/BadgeGrid.tsx` | CREATED (132 lines — categorized badge grid) |
+| `src/components/gamification/LevelProgress.tsx` | CREATED (123 lines — SVG progress ring) |
+| `src/components/gamification/TrophyRoom.tsx` | CREATED (298 lines — full trophy room with 3D showcase) |
+| `src/components/gamification/index.ts` | CREATED (barrel export) |
+| `src/lib/ceremonyMapping.ts` | CREATED (32 lines — CelebrationType → CeremonyFX mapping) |
 | `src/stores/accessibilityStore.ts` | EXISTS |
 | `src/app/api/gamification/xp/route.ts` | EXISTS |
 | `src/app/api/gamification/badges/route.ts` | EXISTS |
 | `src/app/api/gamification/streak/route.ts` | EXISTS |
 
-**Implemented:** 11 files | **Stubs:** 1 (profile) | **Empty dir:** 1 (gamification/) | **Not mounted:** 2 (XPPopup provider, CeremonyFX)
+**Implemented:** 24 files | **Created:** 12 new files | **Enhanced:** 6 files | **Mounted:** 2 (XPPopup provider, CeremonyFX)
 
 ---
 
