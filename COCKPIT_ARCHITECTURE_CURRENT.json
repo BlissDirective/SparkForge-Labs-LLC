@@ -1,0 +1,271 @@
+{
+  "meta": {
+    "project": "SparkForge",
+    "version": "CPA v2.0 + D3D Overhaul",
+    "date": "2026-03-27",
+    "totalTriangleBudget": 50000000,
+    "cockpitBudget": 30000000,
+    "gameBudget": 20000000
+  },
+
+  "canvas": {
+    "type": "Single Persistent (CPA2-1, D3D-B1)",
+    "component": "CockpitCanvas.tsx",
+    "neverUnmounts": true,
+    "position": "fixed inset-0 z-0",
+    "camera": { "position": [0, 6.5, 7], "fov": 58, "near": 0.1, "far": 200 },
+    "renderer": { "antialias": true, "alpha": true, "dpr": [1, 3], "logarithmicDepthBuffer": true },
+    "environment": "frost-prismatic.hdr"
+  },
+
+  "sceneRouter": {
+    "component": "SceneRouter.tsx",
+    "scenes": ["hero", "cockpit", "spatial", "game", "transitioning"],
+    "visibilityControl": "opacity interpolation per group",
+    "cockpitFadeDuringGame": 0.2
+  },
+
+  "cockpitShell": {
+    "mainPanels": {
+      "component": "CockpitPanels.tsx",
+      "triangles": 2000000,
+      "geometry": "256-segment curved hull",
+      "wrapArc": 140,
+      "radius": 4.0,
+      "curvature": 0.85,
+      "features": ["multi-layer panels", "rivets", "animated sub-panels", "chrome bezels"]
+    },
+    "sidePanels": {
+      "component": "SidePanels.tsx",
+      "triangles": 1500000,
+      "left": { "content": "rotating radar dish + lab blips", "position": "left flank" },
+      "right": { "content": "instanced data columns + holographic text", "position": "right flank" },
+      "modes": { "radar": "default", "labNav": "lab mode", "terminal": "admin", "stats": "all modes" }
+    },
+    "ledRim": {
+      "component": "LEDRim.tsx",
+      "triangles": 200000,
+      "ledCount": "1000+",
+      "position": "cockpit perimeter",
+      "colorSource": "useStationMode().ledColor"
+    },
+    "structuralDetail": {
+      "component": "CockpitStructuralDetail.tsx",
+      "triangles": 1500000,
+      "features": ["50 cable bundles (TubeGeometry)", "12 vent panels", "ribs", "LED strips"]
+    },
+    "floor": {
+      "component": "CockpitFloor3D.tsx",
+      "triangles": 500000,
+      "features": ["grated floor panels", "sub-floor piping", "energy conduits", "LED channels"]
+    }
+  },
+
+  "holographicElements": {
+    "hud": {
+      "component": "HolographicHUD.tsx",
+      "triangles": 500000,
+      "position": "overhead, centered",
+      "features": ["8 concentric rings", "data arcs", "reticle", "scan beams"],
+      "modes": { "minimap": "dashboard", "labfocus": "lab", "hidden": "game", "burst": "celebration" }
+    },
+    "statusBar": {
+      "component": "StatusBar3D.tsx",
+      "triangles": 500000,
+      "position": "bottom 5% of viewport",
+      "features": ["XP speedometer gauge", "streak flame sculpture", "10 lab indicator dots"],
+      "dataBound": ["xp", "xpMax", "streak", "sessionTime", "labProgress"]
+    },
+    "labMap": {
+      "component": "HolographicLabMap.tsx",
+      "triangles": 1000000,
+      "features": ["multi-layer geodesic shells", "data highways", "projector pedestal"],
+      "labNodes": 10,
+      "labRingRadius": 3.8,
+      "interactions": ["onLabClick", "onLabHover", "onLabDoubleClick"],
+      "labStructures": {
+        "component": "LabStructure3D.tsx",
+        "trianglesPerLab": 300000,
+        "totalTriangles": 3000000,
+        "labs": {
+          "1": "Icosahedron + orbiting ring (What IS AI?)",
+          "2": "Torus knot + training loops (Teaching Machines)",
+          "3": "Dodecahedron + 6 neuron spheres (The Brain Inside)",
+          "4": "Crystal prism + palette ring (AI That Creates)",
+          "5": "Gear assembly with teeth (AI Helpers)",
+          "6": "Octahedron + balance scales (AI & Ethics)",
+          "7": "Camera lens + glass sphere (Computer Vision)",
+          "8": "Speech bubble + text particles (Words & Language)",
+          "9": "Code cube + circuit lines (Build Your AI)",
+          "10": "Rocket + exhaust particles (AI Futures)"
+        }
+      }
+    },
+    "miniMap": {
+      "component": "MiniMapOverlay3D.tsx",
+      "triangles": 250000,
+      "features": ["10 lab nodes in circle (radius 1.5)", "player indicator", "completion glow"]
+    }
+  },
+
+  "interactiveElements": {
+    "consoles": {
+      "component": "InteractiveConsole3D.tsx",
+      "triangles": 2000000,
+      "count": 4,
+      "variants": ["xp", "badges", "streak", "progress"],
+      "features": ["holographic projector base", "instrument cluster", "fold panels"],
+      "interaction": "R3F raycasting (onClick, onPointerOver)"
+    },
+    "npcs": {
+      "component": "AmbientNPCs.tsx",
+      "triangles": 1500000,
+      "count": 8,
+      "features": ["articulated body", "facial animation", "finger grippers", "speech bubbles (drei Html)"]
+    },
+    "iris": {
+      "component": "MechanicalIris.tsx",
+      "triangles": 100000,
+      "blades": 8,
+      "purpose": "cockpit-to-game transition (D3D-B2)",
+      "duration": 600
+    },
+    "wormhole": {
+      "component": "WormholeTransition.tsx",
+      "triangles": 300000,
+      "purpose": "lab-to-lab transition (NOT YET WIRED)",
+      "features": ["tunnel interior", "swirling energy walls", "portal rings"]
+    }
+  },
+
+  "atmosphere": {
+    "aurora": {
+      "component": "AuroraBackground.tsx",
+      "triangles": 50000,
+      "features": ["3 ribbon TubeGeometry paths", "volumetric layers"]
+    },
+    "fog": {
+      "component": "VolumetricFog3D.tsx",
+      "triangles": 500000,
+      "features": ["fog volumes", "god ray cones", "FBM noise density layers"]
+    },
+    "environment": {
+      "component": "DynamicEnvironment.tsx",
+      "triangles": 3000000,
+      "features": ["environmental props", "weather effects"]
+    },
+    "particles": {
+      "component": "AmbientParticles (inline)",
+      "triangles": 200000,
+      "features": ["instanced icosahedrons with trails and halos"]
+    },
+    "skinManager": {
+      "component": "CockpitSkinManager.tsx",
+      "skins": ["default (Frost-Prismatic)", "cyberpunk", "space", "underwater", "crystal"],
+      "controls": ["lighting", "fog", "particles", "skybox"]
+    }
+  },
+
+  "ceremonies": {
+    "component": "CeremonyFX.tsx",
+    "triangles": 500000,
+    "types": {
+      "levelUp": { "confetti": true, "fireworks": false, "hudRings": true, "trophy": true },
+      "badgeEarn": { "confetti": false, "fireworks": true, "hudRings": false, "trophy": true },
+      "labComplete": { "confetti": true, "fireworks": true, "hudRings": true, "trophy": false },
+      "streakMilestone": { "confetti": false, "fireworks": false, "hudRings": true, "particleShower": true }
+    },
+    "duration": 4.0,
+    "colors": ["#00BBFF", "#00FF88", "#AA66FF", "#FF6644", "#FFAA44", "#FF66AA", "#06B6D4", "#818CF8", "#F97316", "#D946EF"]
+  },
+
+  "heroAnimation": {
+    "component": "HeroAnimation.tsx",
+    "totalDuration": 19.0,
+    "phases": [
+      { "index": 0, "name": "void", "start": 0.0 },
+      { "index": 1, "name": "assembly", "start": 2.0 },
+      { "index": 2, "name": "showcase", "start": 4.5 },
+      { "index": 3, "name": "surge", "start": 7.5 },
+      { "index": 4, "name": "shatter", "start": 10.0 },
+      { "index": 5, "name": "regroup", "start": 11.5 },
+      { "index": 6, "name": "materialize", "start": 14.0, "note": "cockpit begins fading in" },
+      { "index": 7, "name": "online", "start": 17.0, "note": "hero fades out, cockpit takes over" }
+    ],
+    "handoff": "seamless crossfade within single Canvas (CPA2-3)"
+  },
+
+  "loginScene": {
+    "canvas": "separate lightweight R3F Canvas (auth layout only)",
+    "portal": {
+      "component": "LoginPortal3D.tsx",
+      "geometry": "icosahedron (r=1.2) + 2 chrome torus rings + 4 decorative segments",
+      "material": "MeshDistortMaterial, purple #AA66FF, distort 0.3/0.5 on hover",
+      "sparkles": 60,
+      "position": [0, 0, -2]
+    },
+    "particles": {
+      "component": "LoginParticles3D.tsx",
+      "count": 200,
+      "type": "instanced icosahedrons",
+      "spread": 8,
+      "color": "#AA66FF"
+    }
+  },
+
+  "postProcessing": {
+    "component": "PostProcessingStack.tsx",
+    "alwaysOn": true,
+    "effects": ["N8AO (SSAO)", "Bloom", "ChromaticAberration", "DepthOfField", "Noise", "HueSaturation", "BrightnessContrast", "Vignette", "BarrelDistortion"]
+  },
+
+  "camera": {
+    "component": "CameraSystem.tsx",
+    "modes": {
+      "station": { "fov": 56, "distortion": 0.02 },
+      "labmap": { "fov": 58, "distortion": 0.02 },
+      "lab": { "fov": 55, "distortion": 0.015 },
+      "game": { "fov": 52, "distortion": 0.0 },
+      "spatial": { "overview": [0, 6.5, 7], "labFocus": [0, 2.5, 2], "console": [0, 1.8, 3.5] }
+    },
+    "parallax": { "smoothing": 0.05, "intensity": 1.0 }
+  },
+
+  "stores": {
+    "sceneStore": {
+      "activeScene": "hero|cockpit|spatial|game|transitioning",
+      "transitions": {
+        "enterGame": { "type": "iris-open", "duration": 600, "cockpitOpacity": 0.2 },
+        "exitGame": { "type": "iris-close", "duration": 600, "cockpitOpacity": 1.0 },
+        "completeHero": { "type": "hero-to-cockpit", "duration": 1200 }
+      }
+    },
+    "cockpitStore": {
+      "spatialView": "overview|lab-focus|console|orbit",
+      "focusedLabId": "1-10 or null",
+      "activeConsole": "xp|badges|streak|progress|null",
+      "cockpitSkin": "default|cyberpunk|space|underwater|crystal",
+      "heroPhase": "idle|animating|materializing|complete",
+      "labPositions": "10 labs at radius 3.8, evenly spaced circle"
+    },
+    "uiStore": {
+      "labColor": "#00BBFF (default, never called by any page yet)",
+      "cssProperties": ["--lab-color", "--lab-glow"],
+      "skipIntroAnimation": "boolean (no UI toggle exists yet)",
+      "soundEnabled": "boolean (connected to CockpitAudioEngine)",
+      "particleIntensity": "off|low|medium|high"
+    }
+  },
+
+  "currentHTMLOverlay": {
+    "note": "These elements currently render as flat HTML ABOVE the 3D cockpit at z-10/z-40",
+    "sidebar": { "zIndex": 40, "style": "backdrop-blur-xl frosted glass", "content": "nav links, child switcher" },
+    "pages": { "zIndex": 10, "style": "glass-card basic Tailwind", "content": "stat cards, game lists" },
+    "gap": "HTML buttons are visually disconnected from 3D cockpit chrome/bloom aesthetic"
+  },
+
+  "labColors": {
+    "1": "#00BBFF", "2": "#AA66FF", "3": "#FF66AA", "4": "#FFAA44", "5": "#00FF88",
+    "6": "#FF6644", "7": "#06B6D4", "8": "#818CF8", "9": "#F97316", "10": "#D946EF"
+  }
+}
