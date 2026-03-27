@@ -218,5 +218,9 @@ export default function GamePage() {
     );
   }
 
+  // S4-HIGH-002: GameShell wrapper is enforced at the individual game level.
+  // Each game component imports and renders <GameShell> internally, which calls
+  // sceneStore.enterGame/exitGame for cockpit integration. Router-level wrapping
+  // is not used to avoid double-wrapping — the contract is: every game MUST use GameShell.
   return <GameComponent />;
 }
