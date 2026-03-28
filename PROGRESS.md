@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 9 — Content Agent Enhancement (Phases 1-3 COMPLETE)
-## Status: IN PROGRESS — Phases 1-3 complete, Phases 4-9 pending
-## Last Updated: 2026-03-28 (Phase 3: Trending AI Topics Pipeline)
+## Current Phase: Stage 9 — Content Agent Enhancement (Phases 1-4 COMPLETE)
+## Status: IN PROGRESS — Phases 1-4 complete, Phases 5-9 pending
+## Last Updated: 2026-03-28 (Phase 4: Interactive Lesson Builder)
 
 ---
 
@@ -76,6 +76,23 @@
 - [x] Phase 1: Content Agent Schema Extension ✅
 - [x] Phase 2: Dynamic Game Scaffolding (all 35 games) ✅
 - [x] Phase 3: Trending AI Topics Pipeline ✅
+- [x] Phase 4: Interactive Lesson Builder ✅
+
+### Phase 4: Interactive Lesson Builder (2026-03-28)
+
+**Status:** COMPLETE (commit ce06dd7)
+- [x] `useBranchingLesson` hook — decision-tree state machine with back/restart/progress
+- [x] `BranchingLessonRenderer` component — full interactive lesson UI with 4 node types
+- [x] Content API — multi-type filtering (comma-separated) + gameSlug filter
+- [x] ContentQuerySchema — accepts string type and gameSlug params
+
+**Files Created (2):**
+- `src/hooks/useBranchingLesson.ts`
+- `src/components/content/BranchingLessonRenderer.tsx`
+
+**Files Modified (2):**
+- `src/lib/validations.ts` — ContentQuerySchema extended
+- `src/app/api/content/route.ts` — multi-type + gameSlug filtering
 - [ ] Phase 4: Interactive Lesson Builder
 - [ ] Phase 5: AI Guide Avatar Integration
 - [ ] Phase 6: 3D Cockpit Content Integration
