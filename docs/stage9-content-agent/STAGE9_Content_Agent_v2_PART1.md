@@ -23,6 +23,24 @@
 
 **New file created:** `src/lib/agent/moderation.ts` — Defense-in-depth moderation for Prompt Lab
 
+### Phase 1 Enhancement: Content Agent Schema Extension (March 28, 2026)
+
+**Scope:** Foundation for 9-phase enhancement plan — extends Content Agent from 3 content types to 7, adds game-specific generation, trending topics, and branching lessons.
+
+| Component | Enhancement |
+|-----------|-------------|
+| **types/index.ts** | 4 new ContentType values + 12 new interfaces (GameScenarioConfig, GameChallengeConfig, TrendingTopicConfig, BranchingLessonConfig, etc.) |
+| **prompts.ts** | 35-game GAME_MECHANICS mapping + 4 new system prompts (scenario, challenge, trending, branching) + TRENDING_SEARCH_QUERIES |
+| **pipeline.ts** | 4 new stages (stageGenerateGameScenarios, stageGenerateGameChallenges, stageGenerateBranchingLessons, stageTrendingResearch) + PipelineMode type ('standard'/'enhanced'/'full') |
+| **useContent.ts** | 3 new hooks (useGameContent, useTrendingContent, useBranchingLessons) |
+| **run/route.ts** | ?mode= query param for pipeline mode selection |
+| **admin/content/page.tsx** | 4 new Lucide icons + pipeline mode selector dropdown |
+
+**Pipeline Mode Gate System:**
+- `standard`: Lessons + quizzes + spark facts (original behavior)
+- `enhanced`: + game scenarios + game challenges + branching lessons
+- `full`: + trending topic research + trending-based scenarios
+
 ---
 
 ## Overview

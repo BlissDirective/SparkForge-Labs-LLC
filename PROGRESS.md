@@ -1,8 +1,62 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 9 — Content Agent Audit Fixes (ALL RESOLVED)
-## Status: COMPLETE — 11 audit findings resolved (1 CRIT + 4 HIGH + 4 WARN + 2 INFO)
-## Last Updated: 2026-03-28 (Stage 9 Audit Fixes)
+## Current Phase: Stage 9 — Content Agent Enhancement (Phase 1 COMPLETE)
+## Status: IN PROGRESS — Phase 1 complete, Phases 2-9 pending
+## Last Updated: 2026-03-28 (Phase 1: Content Agent Schema Extension)
+
+---
+
+### Content Agent Enhancement — Phase 1: Schema Extension (2026-03-28)
+
+**Status:** COMPLETE
+**Branch:** `claude/stage-9-audit-fixes-YQomo`
+**Scope:** Foundation types, prompts, pipeline stages, hooks, admin dashboard for 9-phase enhancement plan
+
+**Phase 1A — TypeScript Types (commit b10df85):**
+- [x] 4 new ContentType values: game_scenario, game_challenge, trending_topic, branching_lesson
+- [x] 12 new interfaces: GameScenarioConfig, GameChallengeConfig, TrendingTopicConfig, BranchingLessonConfig, BranchNode, ContentMetadata, DynamicGameConfig, ArchitectureRequirement, PipelineGateStatus, NewGameBlueprint
+- [x] Extended CONTENT_TYPE_ICONS
+
+**Phase 1B — Pipeline Prompts (commit b10df85):**
+- [x] GAME_MECHANICS: 35-game slug→mechanics mapping
+- [x] 4 new system prompts: GAME_SCENARIO, GAME_CHALLENGE, TRENDING_RESEARCH, BRANCHING_LESSON
+- [x] TRENDING_SEARCH_QUERIES: 10 weekly-rotating queries
+
+**Phase 1C — Pipeline Stages (commit b10df85):**
+- [x] stageGenerateGameScenarios() — dynamic rounds for existing games
+- [x] stageGenerateGameChallenges() — time-limited events
+- [x] stageGenerateBranchingLessons() — interactive decision trees
+- [x] stageTrendingResearch() — weekly AI news with game adaptations
+- [x] PipelineMode: 'standard' | 'enhanced' | 'full'
+- [x] Extended AgentRunResult with new metrics
+
+**Phase 1D — Admin Dashboard (commit d163291):**
+- [x] 4 new Lucide icons for content types
+- [x] Pipeline mode selector (standard/enhanced/full)
+
+**Phase 1E — Content Hooks (commit b10df85):**
+- [x] useGameContent(gameSlug, ageBand) — game scenarios + challenges
+- [x] useTrendingContent(ageBand) — trending topics
+- [x] useBranchingLessons(labNumber, ageBand) — interactive lessons
+
+**Files Created (0) | Files Modified (5):**
+- `src/types/index.ts` — 12 new interfaces + 4 content types
+- `src/lib/agent/prompts.ts` — 4 prompts + 35 game mechanics + trending queries
+- `src/lib/agent/pipeline.ts` — 4 new stages + PipelineMode + enhanced orchestrator
+- `src/hooks/useContent.ts` — 3 new React Query hooks
+- `src/app/api/agent/run/route.ts` — mode query param support
+- `src/app/(dashboard)/admin/content/page.tsx` — icons + mode selector
+
+**Enhancement Roadmap (9 Phases):**
+- [x] Phase 1: Content Agent Schema Extension ✅
+- [ ] Phase 2: Dynamic Game Scaffolding (all 35 games)
+- [ ] Phase 3: Trending AI Topics Pipeline
+- [ ] Phase 4: Interactive Lesson Builder
+- [ ] Phase 5: AI Guide Avatar Integration
+- [ ] Phase 6: 3D Cockpit Content Integration
+- [ ] Phase 7: Admin Dashboard Enhancement
+- [ ] Phase 8: 3D Architecture/UI/UX Generator
+- [ ] Phase 9: New Game Development Generator
 
 ---
 
