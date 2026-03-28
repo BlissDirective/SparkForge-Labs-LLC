@@ -23,6 +23,7 @@ import {
   MathUtils,
   Mesh,
   MeshStandardMaterial,
+  Points,
   Vector3,
 } from 'three';
 import {
@@ -76,7 +77,7 @@ function HolographicGlowRing({ worldColor }: { worldColor: string }) {
 // ■■■ Discovery Burst Particles (using shared gameParticles) ■■■
 
 function DiscoveryBurstParticles({ particles }: { particles: Particle[] }) {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
 
   const posBuffer = useMemo(() => new Float32Array(40 * 3), []);
   const colBuffer = useMemo(() => new Float32Array(40 * 3), []);
