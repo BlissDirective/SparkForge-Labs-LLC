@@ -45,6 +45,11 @@ const Pet3DScene = dynamic(() => import('@/components/3d/Pet3DScene'), {
   ),
 });
 
+// P6-A: 3D data lab bar chart
+const PetDataLab3D = dynamic(() => import('@/components/3d/PetDataLab3D'), {
+  ssr: false,
+});
+
 // ================================================================
 // TYPES
 // ================================================================
@@ -384,19 +389,39 @@ export function PetTrainerGame() {
     : 0;
 
   // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  // P6-A: PetDataLab3D shown alongside pet during data-lab phase
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const dataLabBars = useMemo(() => {
+    return Object.entries(labelCounts).map(([label, count]) => ({
+      label,
+      count: count as number,
+      color: '#8B5CF6',
+    }));
+  }, [labelCounts]);
+
   useEffect(() => {
-    setGameSceneContent(
-      <Pet3DScene
-        emoji={pet.emoji}
-        speciesId={pet.speciesId}
-        mood={mood}
-        evolutionStage={evolutionStage}
-        labColor="#8B5CF6"
-      />
+    const sceneContent = (
+      <>
+        <Pet3DScene
+          emoji={pet.emoji}
+          speciesId={pet.speciesId}
+          mood={mood}
+          evolutionStage={evolutionStage}
+          labColor="#8B5CF6"
+        />
+        {phase === 'data-lab' && dataLabBars.length > 0 && (
+          <PetDataLab3D
+            data={dataLabBars}
+            totalItems={totalLabeled}
+            isOverfit={isOverfit}
+            labColor="#8B5CF6"
+          />
+        )}
+      </>
     );
+    setGameSceneContent(sceneContent);
     return () => setGameSceneContent(null);
-  }, [pet, mood, evolutionStage, setGameSceneContent]);
+  }, [pet, mood, evolutionStage, phase, dataLabBars, totalLabeled, isOverfit, setGameSceneContent]);
 
   // Check for overfitting (imbalanced labeling)
   const isOverfit = useMemo(() => {

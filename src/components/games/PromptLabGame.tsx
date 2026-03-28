@@ -34,6 +34,11 @@ const PromptBubble3DScene = dynamic(
   () => import('@/components/3d/PromptBubble3DScene'),
   { ssr: false }
 );
+// P6-B: 3D prompt quality visualization
+const PromptScore3D = dynamic(
+  () => import('@/components/3d/PromptScore3D'),
+  { ssr: false }
+);
 
 // ================================================================
 // TYPES
@@ -750,17 +755,27 @@ export function PromptLabGame() {
   const [showBubbles, setShowBubbles] = useState(false);
 
   // P3-E: Always-on environment — register immediately, update with keywords
+  // P6-B: Track last sent score for 3D visualization
+  const [lastSentScore, setLastSentScore] = useState<{ dimensions: { label: string; value: number; color: string }[]; total: number } | null>(null);
+
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   useEffect(() => {
     setGameSceneContent(
-      <PromptBubble3DScene
-        keywords={bubbleKeywords}
-        isThinking={loading}
-        temperature={temperature}
-      />
+      <>
+        <PromptBubble3DScene
+          keywords={bubbleKeywords}
+          isThinking={loading}
+          temperature={temperature}
+        />
+        <PromptScore3D
+          dimensions={lastSentScore?.dimensions ?? []}
+          totalScore={lastSentScore?.total ?? 0}
+          isVisible={!!lastSentScore && (phase === 'sandbox' || phase === 'challenge')}
+        />
+      </>
     );
     return () => setGameSceneContent(null);
-  }, [bubbleKeywords, loading, temperature, setGameSceneContent]);
+  }, [bubbleKeywords, loading, temperature, lastSentScore, phase, setGameSceneContent]);
 
   // --- Refs ---
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -851,6 +866,17 @@ export function PromptLabGame() {
     setLastSentAt(now);
 
     const score = scorePrompt(input);
+    // P6-B: Update 3D score visualization
+    setLastSentScore({
+      dimensions: [
+        { label: 'Specificity', value: score.specificity, color: '#F59E0B' },
+        { label: 'Clarity', value: score.clarity, color: '#F97316' },
+        { label: 'Creativity', value: score.creativity, color: '#EF4444' },
+        { label: 'Constraints', value: score.constraints, color: '#8B5CF6' },
+        { label: 'Technique', value: score.technique, color: '#10B981' },
+      ],
+      total: score.total,
+    });
     const userMessage: Message = {
       role: 'user',
       content: input.trim(),

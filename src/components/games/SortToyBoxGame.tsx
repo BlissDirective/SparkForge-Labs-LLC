@@ -29,6 +29,11 @@ const SortScene3D = dynamic(
   () => import('@/components/3d/SortScene3D').then((m) => m.SortScene3D),
   { ssr: false }
 );
+// P6-D: 3D AI feature-distance visualization
+const SortFeatureViz3D = dynamic(
+  () => import('@/components/3d/SortFeatureViz3D'),
+  { ssr: false }
+);
 
 type Phase = 'welcome' | 'learn' | 'sort' | 'reveal' | 'complete';
 
@@ -197,9 +202,25 @@ export function SortToyBoxGame() {
           onSelectItem={setSelectedShape}
         />
       );
+    } else if ((phase === 'reveal' || phase === 'complete') && aiCriterion) {
+      // P6-D: Show AI feature-distance visualization during reveal
+      setGameSceneContent(
+        <SortFeatureViz3D
+          items={shapes.map((s) => ({
+            id: s.id,
+            color: s.color,
+            shape: s.shape,
+            size: s.size,
+            group: s.group ?? 0,
+            position: [0, 0, 0] as [number, number, number],
+          }))}
+          criterion={aiCriterion.key}
+          labColor="#AA66FF"
+        />
+      );
     }
     return () => setGameSceneContent(null);
-  }, [phase, shapes, groupCount, selectedShape, setGameSceneContent]);
+  }, [phase, shapes, groupCount, selectedShape, aiCriterion, setGameSceneContent]);
 
   // Complete game when reaching complete phase
   useEffect(() => {

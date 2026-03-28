@@ -38,6 +38,11 @@ const BiasScales3DComponent = dynamic(
   () => import('@/components/3d/BiasScales3D'),
   { ssr: false }
 );
+// P6-C: 3D decision tree for fix phase
+const BiasDecisionTree3D = dynamic(
+  () => import('@/components/3d/BiasDecisionTree3D'),
+  { ssr: false }
+);
 
 import {
   calculateScaleWeights,
@@ -596,19 +601,52 @@ export function BiasDetectiveGame() {
     return caseColors[activeCase.id] || '#EF4444';
   }, [activeCase]);
 
+  // P6-C: Build decision tree nodes from active case fix options
+  const decisionTreeNodes = useMemo(() => {
+    if (!activeCase || phase !== 'fix') return [];
+    const correctFixes = activeCase.fixOptions.filter((f) => f.correct);
+    const wrongFixes = activeCase.fixOptions.filter((f) => !f.correct);
+    const nodes = [
+      { id: 'root', label: 'AI Decision', isBiased: true, isFixed: selectedFixes.length > 0, depth: 0, children: ['bias', 'fair'] },
+      { id: 'bias', label: 'Biased Path', isBiased: true, isFixed: false, depth: 1, children: wrongFixes.map((f) => f.id) },
+      { id: 'fair', label: 'Fair Path', isBiased: false, isFixed: selectedFixes.some((id) => correctFixes.some((f) => f.id === id)), depth: 1, children: correctFixes.map((f) => f.id) },
+      ...activeCase.fixOptions.map((f) => ({
+        id: f.id,
+        label: f.label,
+        isBiased: !f.correct,
+        isFixed: selectedFixes.includes(f.id) && f.correct,
+        depth: 2,
+        children: [],
+      })),
+    ];
+    return nodes;
+  }, [activeCase, phase, selectedFixes]);
+
   useEffect(() => {
     if (activeCase && (phase === 'investigate' || phase === 'testlab' || phase === 'fix')) {
+      const fixedCount = activeCase ? activeCase.fixOptions.filter((f) => f.correct && selectedFixes.includes(f.id)).length : 0;
+      const totalBiased = activeCase ? activeCase.fixOptions.filter((f) => !f.correct).length + 1 : 0;
       setGameSceneContent(
-        <BiasScales3DComponent
-          biasWeight={scaleWeights.biasWeight}
-          fairWeight={scaleWeights.fairWeight}
-          isBalanced={scaleWeights.isBalanced}
-          caseColor={dynamicCaseColor}
-        />
+        <>
+          <BiasScales3DComponent
+            biasWeight={scaleWeights.biasWeight}
+            fairWeight={scaleWeights.fairWeight}
+            isBalanced={scaleWeights.isBalanced}
+            caseColor={dynamicCaseColor}
+          />
+          {phase === 'fix' && decisionTreeNodes.length > 0 && (
+            <BiasDecisionTree3D
+              nodes={decisionTreeNodes}
+              caseColor={dynamicCaseColor}
+              fixedCount={fixedCount}
+              totalBiased={totalBiased}
+            />
+          )}
+        </>
       );
     }
     return () => setGameSceneContent(null);
-  }, [activeCase, phase, scaleWeights, dynamicCaseColor, setGameSceneContent]);
+  }, [activeCase, phase, scaleWeights, dynamicCaseColor, selectedFixes, decisionTreeNodes, setGameSceneContent]);
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
