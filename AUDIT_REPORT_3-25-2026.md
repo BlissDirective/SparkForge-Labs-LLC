@@ -120,6 +120,35 @@
 
 **Result: All Stage 8 HIGH + WARNING findings RESOLVED. 3D embedding verified.**
 
+### Batch 13: Stage 8 — Full Suite 3D Cockpit Enhancements (March 28, 2026)
+
+**All A+B+C+D enhancements implemented across 4 sub-batches:**
+
+**Sub-batch 5 — Parent Dashboard 3D (A1-A3):**
+- **A1: ParentStatHologram3D** — 4 floating holographic stat tiles (XP/Lessons/Time/Streak) with animated counters, chrome bezels, floating animation, and lab-colored glow (~200K tris)
+- **A2: Child Selector Broadcast** — `lab-select` with age-band color (A=blue, B=purple, C=amber) on child switch shifts cockpit LED rim
+- **A3: Time Limit Dial Broadcast** — `dial-rotate` on time limit changes triggers cockpit pulse
+- **ParentDashboardBridge** — Bridge component mounts parent 3D in CockpitCanvas on /parent routes
+- Parent page mount broadcasts `page-navigate` (amber #FFAA44)
+
+**Sub-batch 6 — Subscription + Ceremony (B1-B3):**
+- **B1: Tier Upgrade Ceremony** — CeremonyFX confetti on `?success=true` return from Stripe
+- **B2: Billing Toggle Broadcast** — `toggle-switch` event on Monthly/Yearly toggle
+- **B3: Tier Card Glow Sync** — `button-press` with tier color on card hover → LED rim
+
+**Sub-batch 7 — Onboarding Crystal + Launch (C1-C3):**
+- **C1: OnboardingCrystal3D** — Progressive crystal formation (Tetrahedron→Octahedron→Icosahedron) with orbiting facets and completion particles (~150K tris). Lab color tints crystal.
+- **C2: Lab Selection Broadcast** — `lab-select` with lab color on pick
+- **C3: Launch Sequence** — `game-enter` + `celebration-start` + confetti ceremony on "Launch!"
+
+**Sub-batch 8 — Pricing Enhancement + Integration (D1):**
+- **D1: CSS Comparison Bars** — Animated bars in feature comparison table. Numeric values get proportional tier-colored bars. "Unlimited"/"All 10" get full bars.
+- **CockpitCanvas Mount** — ParentDashboardBridge mounted in cockpitContent alongside CeremonyFXBridge
+
+**New Files (3):** `ParentStatHologram3D.tsx` (200K tris), `ParentDashboardBridge.tsx`, `OnboardingCrystal3D.tsx` (150K tris)
+**Modified Files (5):** `parent/page.tsx`, `subscription/page.tsx`, `onboarding/page.tsx`, `pricing/page.tsx`, `CockpitCanvas.tsx`
+**Total New Triangle Budget:** ~430K (well within 12M game headroom)
+
 ---
 
 ## Executive Summary

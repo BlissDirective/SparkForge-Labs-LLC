@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 8 — Parent Dashboard & Stripe Audit Fixes
-## Status: COMPLETE — All 8 Stage 8 audit findings resolved + 3D embedding verified
-## Last Updated: 2026-03-27 (Stage 8 Audit Fix: Full resolution + 3D embedding audit)
+## Current Phase: Stage 8 — Full Suite 3D Cockpit Enhancements
+## Status: COMPLETE — All 8 audit findings resolved + 10 3D enhancements (A1-D1)
+## Last Updated: 2026-03-28 (Stage 8: Audit fixes + Full Suite 3D cockpit integration)
 
 ---
 
@@ -26,24 +26,35 @@
 **Batch 3 — COPPA:**
 - [x] S8-WARN-001 — Delete child button + confirmation modal in parent dashboard
 
-**3D Embedding Audit:**
-- [x] All Stage 8 pages CSS-based (correct per design decisions)
-- [x] Parent pages inherit CockpitCanvas parent mode (amber LED, low HUD)
-- [x] Pricing page uses CSS-only treatment (Decision 8.4)
-- [x] No missing 3D implementations — architecture sound
+**3D Cockpit Enhancements (Batches 5-8):**
+- [x] A1: ParentStatHologram3D — 4 floating holographic stat tiles (~200K tris)
+- [x] A2: Child selector → lab-select broadcast (age-band color → LED rim)
+- [x] A3: Time limit → dial-rotate broadcast (snap to preset)
+- [x] B1: Tier upgrade ceremony — CeremonyFX confetti on ?success=true
+- [x] B2: Billing toggle → toggle-switch broadcast
+- [x] B3: Tier card hover → button-press broadcast (tier color → LED rim)
+- [x] C1: OnboardingCrystal3D — Progressive crystal formation (~150K tris)
+- [x] C2: Lab selection → lab-select broadcast (lab color)
+- [x] C3: Launch sequence — game-enter + celebration-start + confetti
+- [x] D1: Animated CSS comparison bars in pricing feature table
 
-**Files Created (2):**
+**Files Created (5):**
 - `sql/schema-stage8-dashboard-fn.sql` — PG function + DB constraint update
 - `src/app/api/parent/dashboard/route.ts` — Aggregated dashboard API
+- `src/components/3d/ParentStatHologram3D.tsx` — 4 floating stat tiles
+- `src/components/3d/ParentDashboardBridge.tsx` — Bridge for CockpitCanvas
+- `src/components/3d/OnboardingCrystal3D.tsx` — Progressive crystal formation
 
-**Files Modified (7):**
+**Files Modified (9):**
 - `src/app/api/stripe/checkout/route.ts` — Zod validation
 - `src/app/api/stripe/webhook/route.ts` — Status mapping
 - `src/hooks/useParentDashboard.ts` — API-driven fetch
-- `src/app/(dashboard)/parent/page.tsx` — Delete button, error handling, toast
-- `src/app/(dashboard)/parent/subscription/page.tsx` — Toast notifications
+- `src/app/(dashboard)/parent/page.tsx` — Delete button, error handling, toast, 3D broadcasts
+- `src/app/(dashboard)/parent/subscription/page.tsx` — Toast, ceremony, broadcasts
 - `src/app/(dashboard)/parent/add-child/page.tsx` — API route instead of direct DB
-- `src/app/(marketing)/pricing/page.tsx` — console.log removal
+- `src/app/(dashboard)/onboarding/page.tsx` — Crystal import, broadcasts, launch sequence
+- `src/app/(marketing)/pricing/page.tsx` — console.log removal, CSS comparison bars
+- `src/components/3d/CockpitCanvas.tsx` — ParentDashboardBridge mount
 
 **Stage 8 Audit Summary — All Findings:**
 | ID | Severity | Status |
