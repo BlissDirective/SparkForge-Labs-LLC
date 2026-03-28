@@ -13,6 +13,13 @@ import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
+import { useGuideContext } from '@/hooks/useGuideContext';
+
+// Phase 5: Guide chat panel (HTML overlay, not R3F — persists across all views)
+const GuideChatPanel = dynamic(
+  () => import('@/components/ui/GuideChatPanel'),
+  { ssr: false }
+);
 
 // Dashboard Layout — Laboratory Control Station Shell
 // v3 Decision 2.1: StationFrame canvas mounted on ALL dashboard pages
@@ -41,6 +48,9 @@ export default function DashboardLayout({
 
   // v2 [NEW-2A]: Auto-track play sessions
   useSessionTracker();
+
+  // Phase 5: Auto-detect guide context from route/scene
+  useGuideContext();
 
   // CPA v1.0: Trigger cockpit audio on mode transitions
   useEffect(() => {
@@ -90,6 +100,9 @@ export default function DashboardLayout({
       {/* z-index 10: HTML content layer */}
       <Sidebar />
       <CelebrationOverlay />
+
+      {/* Phase 5: AI Guide Avatar chat panel (persistent across all dashboard pages) */}
+      <GuideChatPanel />
 
       <motion.main
         className="min-h-screen pb-20 md:pb-0 relative z-10"

@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 9 — Content Agent Enhancement (Phases 1-4 COMPLETE)
-## Status: IN PROGRESS — Phases 1-4 complete, Phases 5-9 pending
-## Last Updated: 2026-03-28 (Phase 4: Interactive Lesson Builder)
+## Current Phase: Stage 9 — Content Agent Enhancement (Phases 1-5 COMPLETE)
+## Status: IN PROGRESS — Phases 1-5 complete, Phases 6-9 pending
+## Last Updated: 2026-03-28 (Phase 5: AI Guide Avatar)
 
 ---
 
@@ -77,6 +77,37 @@
 - [x] Phase 2: Dynamic Game Scaffolding (all 35 games) ✅
 - [x] Phase 3: Trending AI Topics Pipeline ✅
 - [x] Phase 4: Interactive Lesson Builder ✅
+- [x] Phase 5: AI Guide Avatar Integration ✅
+
+### Phase 5: AI Guide Avatar Integration (2026-03-28)
+
+**Status:** COMPLETE (commits a66d464, 800b0d1, Phase 5C)
+**Scope:** Full "Spark" AI Guide — 5 avatar concepts, voice I/O, streaming chat, context awareness
+
+**Phase 5A — Infrastructure (commit a66d464, 6 files):**
+- [x] `guideStore.ts` — 10th Zustand store (persisted preferences, conversation, voice, turns)
+- [x] `lib/guide/prompts.ts` — Composable prompt system (BASE + AGE_BAND + CONTEXT + LAB + GAME_HINTS)
+- [x] `/api/ai/guide/route.ts` — SSE streaming conversation (Haiku, tier-gated turns)
+- [x] `useVoiceInput.ts` — Web Speech API STT with interim results
+- [x] `useVoiceOutput.ts` — Web Speech API TTS (age-band-tuned pitch/rate, audio-reactive)
+- [x] `useGuideContext.ts` — Auto-detects context from route/sceneStore
+
+**Phase 5B — Components (commit 800b0d1, 3 files):**
+- [x] `GuideChatPanel.tsx` — Glassmorphic chat overlay (SSE streaming, voice, minimize/expand)
+- [x] `GuideAvatar3D.tsx` — R3F avatar (5 concepts: Orb, Fox, Drone, Spark, Nova, all audio-reactive)
+- [x] `GuideMobileAvatar.tsx` — CSS 2D fallback (pulse, spinner, lab-color glow)
+
+**Phase 5C — Integration (this commit):**
+- [x] Dashboard layout — GuideChatPanel mounted, useGuideContext activated
+
+**Files Created (9):**
+- `src/stores/guideStore.ts`, `src/lib/guide/prompts.ts`, `src/app/api/ai/guide/route.ts`
+- `src/hooks/useVoiceInput.ts`, `src/hooks/useVoiceOutput.ts`, `src/hooks/useGuideContext.ts`
+- `src/components/ui/GuideChatPanel.tsx`, `src/components/3d/GuideAvatar3D.tsx`
+- `src/components/ui/GuideMobileAvatar.tsx`
+
+**Files Modified (1):**
+- `src/app/(dashboard)/layout.tsx` — GuideChatPanel + useGuideContext integration
 
 ### Phase 4: Interactive Lesson Builder (2026-03-28)
 
