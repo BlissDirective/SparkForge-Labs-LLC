@@ -35,6 +35,9 @@ import {
   Trophy,
   TrendingUp,
   GitBranch,
+  Search,
+  BarChart3,
+  PlusCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -153,7 +156,7 @@ export default function AdminReviewPage() {
   }, [parent, router]);
 
   // ── State ──
-  const [activeTab, setActiveTab] = useState<'review' | 'runs'>('review');
+  const [activeTab, setActiveTab] = useState<'review' | 'runs' | 'analytics'>('review');
   const [items, setItems] = useState<QueueItem[]>([]);
   const [stats, setStats] = useState<Stats>({
     pending: 0,
@@ -171,6 +174,10 @@ export default function AdminReviewPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectDialog, setShowRejectDialog] = useState(false);
   const [pipelineMode, setPipelineMode] = useState<'standard' | 'enhanced' | 'full'>('enhanced');
+  // Phase 7: Search, type filter, analytics
+  const [searchQuery, setSearchQuery] = useState('');
+  const [typeFilter, setTypeFilter] = useState<string>('all');
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   const addToast = useToastStore((s) => s.addToast);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -366,6 +373,33 @@ export default function AdminReviewPage() {
   const isActionableFilter =
     filter === 'pending_review' || filter === 'needs_human_review';
 
+  // Phase 7: Client-side search + type filter
+  const filteredItems = items.filter(item => {
+    if (typeFilter !== 'all' && item.type !== typeFilter) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      if (!item.title.toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
+
+  // Phase 7: Analytics computation
+  const analytics = {
+    totalItems: items.length,
+    byType: items.reduce<Record<string, number>>((acc, item) => {
+      acc[item.type] = (acc[item.type] || 0) + 1;
+      return acc;
+    }, {}),
+    byWorld: items.reduce<Record<number, number>>((acc, item) => {
+      acc[item.world] = (acc[item.world] || 0) + 1;
+      return acc;
+    }, {}),
+    byBand: items.reduce<Record<string, number>>((acc, item) => {
+      acc[item.target_age_band] = (acc[item.target_age_band] || 0) + 1;
+      return acc;
+    }, {}),
+  };
+
   // Don't render admin UI until parent is verified as admin
   if (!parent?.is_admin) return null;
 
@@ -453,6 +487,7 @@ export default function AdminReviewPage() {
           [
             { key: 'review' as const, label: 'Review Queue', icon: FileText },
             { key: 'runs' as const, label: 'Run History', icon: History },
+            { key: 'analytics' as const, label: 'Analytics', icon: BarChart3 },
           ] as const
         ).map(({ key, label, icon: Icon }) => (
           <button
@@ -517,7 +552,49 @@ export default function AdminReviewPage() {
             ))}
           </motion.div>
 
-          {/* Filter tabs */}
+          {/* Phase 7: Search bar + content type filter */}
+          <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-3 mb-4">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[200px] max-w-[320px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search by title..."
+                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-sm text-white placeholder-white/30 font-body outline-none focus:ring-1 focus:ring-spark-blue/30"
+                aria-label="Search content queue"
+              />
+            </div>
+
+            {/* Content type filter */}
+            <select
+              value={typeFilter}
+              onChange={e => setTypeFilter(e.target.value)}
+              className="px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white/80 font-body text-xs focus:outline-none focus:ring-1 focus:ring-spark-blue/30"
+              aria-label="Filter by content type"
+            >
+              <option value="all">All Types</option>
+              <option value="lesson">Lessons</option>
+              <option value="quiz">Quizzes</option>
+              <option value="spark_fact">Spark Facts</option>
+              <option value="game_scenario">Game Scenarios</option>
+              <option value="game_challenge">Game Challenges</option>
+              <option value="trending_topic">Trending Topics</option>
+              <option value="branching_lesson">Branching Lessons</option>
+            </select>
+
+            {/* Manual create button */}
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-spark-green/15 text-spark-green font-display text-xs hover:bg-spark-green/25 transition-colors"
+              aria-label="Create content manually"
+            >
+              <PlusCircle className="w-3.5 h-3.5" /> Create
+            </button>
+          </motion.div>
+
+          {/* Status filter tabs */}
           <motion.div
             variants={staggerItem}
             className="flex flex-wrap gap-2 mb-4"
@@ -624,7 +701,7 @@ export default function AdminReviewPage() {
                   </button>
                 )}
 
-                {items.map((item) => (
+                {filteredItems.map((item) => (
                   <motion.div
                     key={item.id}
                     className={`glass-card rounded-xl p-4 flex items-center gap-3 transition-all ${
@@ -1124,6 +1201,83 @@ export default function AdminReviewPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* ═══ ANALYTICS TAB — Phase 7 ═══ */}
+      {activeTab === 'analytics' && (
+        <motion.div variants={staggerItem} className="space-y-6">
+          <h3 className="font-display text-lg text-white flex items-center gap-2">
+            <BarChart3 className="w-5 h-5 text-spark-blue" /> Content Analytics
+          </h3>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="glass-card rounded-xl p-4 text-center">
+              <p className="font-display text-3xl font-bold text-spark-blue">{analytics.totalItems}</p>
+              <p className="font-body text-xs text-white/30">Total in Queue</p>
+            </div>
+            <div className="glass-card rounded-xl p-4 text-center">
+              <p className="font-display text-3xl font-bold text-green-400">{Object.keys(analytics.byType).length}</p>
+              <p className="font-body text-xs text-white/30">Content Types</p>
+            </div>
+            <div className="glass-card rounded-xl p-4 text-center">
+              <p className="font-display text-3xl font-bold text-amber-400">{Object.keys(analytics.byWorld).length}</p>
+              <p className="font-body text-xs text-white/30">Labs Covered</p>
+            </div>
+            <div className="glass-card rounded-xl p-4 text-center">
+              <p className="font-display text-3xl font-bold text-purple-400">{Object.keys(analytics.byBand).length}</p>
+              <p className="font-body text-xs text-white/30">Age Bands</p>
+            </div>
+          </div>
+
+          {/* By Type breakdown */}
+          <div className="glass-card rounded-xl p-4">
+            <h4 className="font-display text-sm text-white/60 mb-3">By Content Type</h4>
+            <div className="space-y-2">
+              {Object.entries(analytics.byType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
+                <div key={type} className="flex items-center gap-3">
+                  <TypeIcon type={type} />
+                  <span className="font-body text-xs text-white/60 flex-1">{type.replace(/_/g, ' ')}</span>
+                  <div className="flex-1 h-2 bg-white/5 rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-spark-blue/60 rounded-full"
+                      style={{ width: `${(count / analytics.totalItems) * 100}%` }}
+                    />
+                  </div>
+                  <span className="font-data text-xs text-white/40 w-8 text-right">{count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* By Lab breakdown */}
+          <div className="glass-card rounded-xl p-4">
+            <h4 className="font-display text-sm text-white/60 mb-3">By Lab</h4>
+            <div className="grid grid-cols-5 gap-2">
+              {Array.from({ length: 10 }, (_, i) => i + 1).map(labId => (
+                <div key={labId} className="text-center p-2 rounded-lg bg-white/5">
+                  <p className="font-data text-lg text-white/80">{analytics.byWorld[labId] || 0}</p>
+                  <p className="font-body text-[10px] text-white/30">Lab {labId}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* By Age Band */}
+          <div className="glass-card rounded-xl p-4">
+            <h4 className="font-display text-sm text-white/60 mb-3">By Age Band</h4>
+            <div className="grid grid-cols-3 gap-3">
+              {(['A', 'B', 'C'] as const).map(band => (
+                <div key={band} className="text-center p-3 rounded-lg bg-white/5">
+                  <p className="font-data text-2xl text-white/80">{analytics.byBand[band] || 0}</p>
+                  <p className="font-body text-xs text-white/30">
+                    Band {band} ({band === 'A' ? '7-10' : band === 'B' ? '11-13' : '14-16'})
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   );
 }
