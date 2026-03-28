@@ -96,7 +96,8 @@ export const ChildIdSchema = z.object({
 export const ContentQuerySchema = z.object({
   world: z.coerce.number().int().min(1).max(10).optional(),
   ageBand: AgeBandSchema.optional(),
-  type: z.enum(['lesson', 'quiz', 'game', 'spark_fact', 'activity', 'sandbox']).optional(),
+  type: z.string().optional(), // Phase 1: Accepts single or comma-separated types
+  gameSlug: z.string().optional(), // Phase 2: Filter by game slug
   limit: z.coerce.number().int().min(1).max(50).default(20),
   offset: z.coerce.number().int().min(0).default(0),
 });

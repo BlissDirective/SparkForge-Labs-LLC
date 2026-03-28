@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   const parsed = parseQuery(req, ContentQuerySchema);
   if (!parsed.success) return parsed.response;
 
-  const { world, ageBand, type, limit = 20, offset = 0 } = parsed.data;
+  const { world, ageBand, type, gameSlug, limit = 20, offset = 0 } = parsed.data;
 
   if (world) {
     const access = isLabAccessible(auth.user.tier, world);
@@ -32,7 +32,21 @@ export async function GET(req: NextRequest) {
 
   if (world) query = query.eq('world', world);
   if (ageBand) query = query.eq('target_age_band', ageBand);
-  if (type) query = query.eq('type', type);
+
+  // Phase 1: Support comma-separated type filters (e.g., 'game_scenario,game_challenge')
+  if (type) {
+    const types = type.split(',').map(t => t.trim()).filter(Boolean);
+    if (types.length === 1) {
+      query = query.eq('type', types[0]);
+    } else if (types.length > 1) {
+      query = query.in('type', types);
+    }
+  }
+
+  // Phase 2: Filter by game slug (stored in game_config->game_type or content_body metadata)
+  if (gameSlug) {
+    query = query.contains('game_config', { game_type: gameSlug });
+  }
 
   const { data, count, error } = await query;
 
