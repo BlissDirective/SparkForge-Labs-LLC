@@ -315,12 +315,28 @@ export function LostInTranslationGame() {
                       );
                     })()}
 
-                    {/* Final result */}
+                    {/* ENH: Final result with comparison highlights */}
                     {allRevealed && (
                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                         className="rounded-xl p-4 text-center border border-amber-500/30 bg-amber-500/5 mb-3">
                         <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
                         <p className="font-display text-base font-bold text-amber-400">&ldquo;{round.final}&rdquo;</p>
+                        {/* ENH: Side-by-side comparison with highlight */}
+                        <motion.div
+                          className="mt-2 grid grid-cols-2 gap-2 text-left"
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                        >
+                          <div className="p-2 rounded-lg bg-indigo-500/5 border border-indigo-500/10">
+                            <p className="font-body text-2xs text-indigo-300/50 mb-0.5">Original</p>
+                            <p className="font-body text-xs text-white/60">{round.original}</p>
+                          </div>
+                          <div className="p-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                            <p className="font-body text-2xs text-amber-300/50 mb-0.5">Result</p>
+                            <p className="font-body text-xs text-amber-400/80">{round.final}</p>
+                          </div>
+                        </motion.div>
                         <p className="font-body text-2xs text-white/30 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
                       </motion.div>
                     )}
@@ -345,10 +361,23 @@ export function LostInTranslationGame() {
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Lost in Translation Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You discovered how meaning gets lost when AI translates through multiple languages — idioms, metaphors, and cultural expressions are still a big challenge for machine translation!</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
-                      <p className="font-data text-2xl" style={{ color: '#818CF8' }}>{game.score}</p>
+                    {/* ENH: Animated score counter */}
+                    <motion.div
+                      className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                    >
+                      <motion.p
+                        className="font-data text-2xl"
+                        style={{ color: '#818CF8' }}
+                        animate={{ textShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 12px rgba(99,102,241,0.5)', '0 0 0px rgba(99,102,241,0)'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {animatedScore}
+                      </motion.p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
-                    </div>
+                    </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
                       <ul className="space-y-1 text-2xs font-body text-white/40">
