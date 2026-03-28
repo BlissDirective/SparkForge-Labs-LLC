@@ -542,10 +542,10 @@ function SubscriptionContent() {
       if (data.data?.url) {
         window.location.href = data.data.url;
       } else if (data.error) {
-        alert(data.error);
+        toast.error(data.error);
       }
     } catch {
-      alert('Failed to start checkout. Please try again.');
+      toast.error('Failed to start checkout. Please try again.');
     }
   }
 
@@ -557,10 +557,10 @@ function SubscriptionContent() {
       if (data.data?.url) {
         window.location.href = data.data.url;
       } else if (data.error) {
-        alert(data.error);
+        toast.error(data.error);
       }
     } catch {
-      alert('Failed to open billing portal. Please try again.');
+      toast.error('Failed to open billing portal. Please try again.');
     }
   }
 
@@ -813,26 +813,21 @@ export default function AddChildPage() {
     setError('');
 
     try {
-      const sb = createClient();
-      const {
-        data: { user },
-      } = await sb.auth.getUser();
-
-      if (!user) {
-        setError('Not logged in');
-        setSaving(false);
-        return;
-      }
-
-      const { error: insertError } = await sb.from('children').insert({
-        parent_id: user.id,
-        display_name: name.trim(),
-        age,
-        age_band: ageBand,
+      // S8-WARN-005 fix: Route through API for server-side validation + tier limit enforcement
+      const res = await fetch('/api/children', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          displayName: name.trim(),
+          age,
+          ageBand,
+        }),
       });
 
-      if (insertError) {
-        setError(insertError.message);
+      const result = await res.json();
+
+      if (!res.ok) {
+        setError(result.error || 'Failed to create profile');
       } else {
         router.push('/parent');
       }

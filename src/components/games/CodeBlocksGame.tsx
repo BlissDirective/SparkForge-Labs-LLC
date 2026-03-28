@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Play, RotateCcw, Code2, Bug, GraduationCap,
   Star, ChevronRight, Terminal,
@@ -34,7 +35,7 @@ const CodeBlocks3D = dynamic(
 );
 
 // --- Types ---
-type Phase = 'welcome' | 'learn' | 'play';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 type BlockType = 'event' | 'action' | 'logic' | 'loop' | 'function';
 
 interface Block {
@@ -315,6 +316,7 @@ function useIsDesktop() {
 export function CodeBlocksGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const isDesktop = useIsDesktop();
 
@@ -417,9 +419,20 @@ export function CodeBlocksGame() {
       setChallengeIdx((i) => i + 1);
       game.advanceRound();
     } else {
+      setPhase('complete');
       game.completeGame();
     }
   }
+
+  useEffect(() => {
+    if (placed.length > 0) {
+      setGameSceneContent(
+        <CodeBlocks3D blocks={placed} runIdx={runIdx} tracerY={tracerY} running={running} />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [placed, runIdx, tracerY, running, setGameSceneContent]);
 
   // --- JSX ---
   return (
@@ -464,7 +477,8 @@ export function CodeBlocksGame() {
                     <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start coding">
                       Start Coding! <Code2 className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -499,7 +513,8 @@ export function CodeBlocksGame() {
                       onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx((i) => i + 1) : setPhase('play')}
                       className="w-full max-w-xs py-2.5 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
-                      whileTap={{ scale: 0.95 }}>
+                      whileTap={{ scale: 0.95 }}
+                      aria-label={learnIdx < LEARN_CARDS.length - 1 ? 'Next learn card' : 'Start challenges'}>
                       {learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Challenges!'}
                       <ChevronRight className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -557,11 +572,13 @@ export function CodeBlocksGame() {
                         })}
                         <div className="flex gap-1 mt-2">
                           <button onClick={() => setShowHint(true)} disabled={showHint}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5"
+                            aria-label="Show hint">
                             <Bug className="w-3 h-3" /> Hint
                           </button>
                           <button onClick={() => { setPlaced([]); setResult(null); setOutputLines([]); setRobotPose('idle'); }}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5">
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5"
+                            aria-label="Reset workspace">
                             <RotateCcw className="w-3 h-3" /> Reset
                           </button>
                         </div>
@@ -571,12 +588,7 @@ export function CodeBlocksGame() {
                       <div className="flex flex-col">
                         <p className="font-display text-2xs text-white/20 uppercase mb-1">Workspace</p>
 
-                        {/* 3D visualization on desktop */}
-                        {isDesktop && placed.length > 0 && (
-                          <div className="h-32 rounded-lg overflow-hidden border border-orange-500/10 mb-2">
-                            <CodeBlocks3D blocks={placed} runIdx={runIdx} tracerY={tracerY} running={running} />
-                          </div>
-                        )}
+                        {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                         {/* 2D block stack */}
                         <div className="flex-1 rounded-xl border border-dashed border-white/10 p-2 min-h-[120px] relative">
@@ -617,7 +629,8 @@ export function CodeBlocksGame() {
                         <motion.button onClick={runCode} disabled={placed.length === 0 || running || result === 'correct'}
                           className="mt-2 w-full py-2.5 rounded-xl font-display font-bold text-sm text-white disabled:opacity-30 flex items-center justify-center gap-1"
                           style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
-                          whileTap={{ scale: 0.95 }}>
+                          whileTap={{ scale: 0.95 }}
+                          aria-label={running ? 'Code is running' : 'Run code'}>
                           {running ? 'Running...' : 'Run Code'}
                           <Play className="w-4 h-4" />
                         </motion.button>
@@ -625,7 +638,8 @@ export function CodeBlocksGame() {
                         {result === 'correct' && (
                           <motion.button onClick={nextChallenge}
                             initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-                            className="mt-1 w-full py-2 rounded-xl bg-white/5 border border-white/10 font-display text-xs text-white/50 flex items-center justify-center gap-1">
+                            className="mt-1 w-full py-2 rounded-xl bg-white/5 border border-white/10 font-display text-xs text-white/50 flex items-center justify-center gap-1"
+                            aria-label="Next challenge">
                             Next Challenge <ChevronRight className="w-3 h-3" />
                           </motion.button>
                         )}
@@ -659,11 +673,13 @@ export function CodeBlocksGame() {
                           className="flex-1 rounded-xl bg-black/40 border border-white/10 p-2 overflow-auto max-h-[200px]">
                           <div className="flex gap-1 mb-1">
                             <button onClick={() => setShowPseudo(false)}
-                              className={`font-mono text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/20'}`}>
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/20'}`}
+                              aria-label="Show output" aria-pressed={!showPseudo}>
                               <Terminal className="w-2.5 h-2.5" /> Out
                             </button>
                             <button onClick={() => setShowPseudo(true)}
-                              className={`font-mono text-2xs px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/20'}`}>
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/20'}`}
+                              aria-label="Show pseudocode" aria-pressed={showPseudo}>
                               Pseudo
                             </button>
                           </div>
@@ -713,6 +729,31 @@ export function CodeBlocksGame() {
                         <p className="font-body text-2xs text-amber-400">{'\ud83d\udca1'} {challenge.hint}</p>
                       </motion.div>
                     )}
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Code Blocks Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You arranged code blocks to solve programming challenges, learning how algorithms execute step-by-step — the foundation of all software!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">
+                      <p className="font-data text-2xl" style={{ color: '#F97316' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Sequential programming means instructions run in order, top to bottom</li>
+                        <li>• Algorithm design is about choosing the right steps in the right sequence</li>
+                        <li>• Debugging means finding and fixing mistakes in your code logic</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

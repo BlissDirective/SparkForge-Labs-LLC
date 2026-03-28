@@ -14,14 +14,17 @@
 // ADDED (D3D-B5): enterGame/exitGame via sceneStore — triggers iris transition
 // ADDED (S5-CRIT-002): useCompleteAndReward — auto XP/streak/badge on game complete
 // ADDED (S5-HIGH-006): XPPopupProvider — wraps children for XP popup display
+// ADDED (ENH-Phase1B): Game completion → CeremonyFX tier (bronze/silver/gold)
 
 import { useEffect, useRef, type ReactNode } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { XPPopupProvider } from '@/components/game/XPPopup';
+import { getCompletionTier } from '@/lib/3d/gameParticles';
 
 interface GameShellProps {
   gameId: string;
@@ -71,11 +74,18 @@ export function GameShell({
   }, [gameId, totalRounds, hints, worldColor, startGame, resetGame, enterGame, exitGame, broadcast]);
 
   // Reward pipeline: fires once when game completes
+  // ENH-Phase1B: Also triggers CeremonyFX based on score tier
   useEffect(() => {
     if (!isComplete || hasRewarded.current || !activeChild?.id) return;
     hasRewarded.current = true;
     completeAndReward(activeChild.id, gameId, xpReward, 'game', score);
-  }, [isComplete, activeChild?.id, gameId, xpReward, score, completeAndReward]);
+
+    // Trigger cockpit CeremonyFX based on completion tier
+    const scorePercent = totalRounds > 0 ? (score / (totalRounds * 10)) * 100 : 50;
+    const tier = getCompletionTier(scorePercent);
+    const celebrationType = tier === 'gold' ? 'level' : tier === 'silver' ? 'confetti' : 'xp';
+    useUIStore.getState().triggerCelebration(celebrationType);
+  }, [isComplete, activeChild?.id, gameId, xpReward, score, totalRounds, completeAndReward]);
 
   return (
     <XPPopupProvider>

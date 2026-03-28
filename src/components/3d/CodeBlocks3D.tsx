@@ -1,18 +1,28 @@
 // ================================================================
 // CODE BLOCKS 3D — Lab 9 (Build With AI)
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // Enhanced 3D snap-together coding blocks for Code Blocks game.
 // Decision 6.5: Tier 2 Enhanced 3D (~2-5K triangles).
 // 3D block meshes with interlocking notch visuals, execution
 // glow trail, and depth rendering on workspace.
-// Used on desktop only; 2D fallback on mobile.
+// ENH: Tracer trail + snap pop + error shake + CRT scanlines
 // ================================================================
 
 'use client';
 
-import { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { useRef, useEffect, useState } from 'react';
+import { useFrame, invalidate } from '@react-three/fiber';
 import { RoundedBox } from '@react-three/drei';
-import { DoubleSide, MathUtils, Mesh, MeshBasicMaterial } from 'three';
+import { DoubleSide, InstancedMesh, MathUtils, Mesh, MeshBasicMaterial, Object3D, Vector3 } from 'three';
+import {
+  Particle,
+  PARTICLE_PRESETS,
+  spawnParticles,
+  updateParticles,
+} from '@/lib/3d/gameParticles';
+
+const _dummy = new Object3D();
 
 // --- Types ---
 type BlockType = 'event' | 'action' | 'logic' | 'loop' | 'function';
@@ -31,6 +41,47 @@ interface CodeBlocks3DProps {
   running: boolean;
 }
 
+// --- ENH: Instanced Particle Renderer ---
+function ParticleCloud({
+  particles,
+  color,
+  maxCount = 30,
+}: {
+  particles: Particle[];
+  color: string;
+  maxCount?: number;
+}) {
+  const meshRef = useRef<InstancedMesh>(null);
+
+  useFrame(() => {
+    if (!meshRef.current) return;
+    const count = Math.min(particles.length, maxCount);
+    for (let i = 0; i < maxCount; i++) {
+      if (i < count) {
+        const p = particles[i];
+        _dummy.position.copy(p.position);
+        _dummy.scale.setScalar(p.size * p.opacity);
+        _dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, _dummy.matrix);
+      } else {
+        _dummy.position.set(0, 0, -100);
+        _dummy.scale.setScalar(0);
+        _dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, _dummy.matrix);
+      }
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+    meshRef.current.count = count;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, maxCount]}>
+      <sphereGeometry args={[1, 6, 4]} />
+      <meshBasicMaterial color={color} transparent opacity={0.8} />
+    </instancedMesh>
+  );
+}
+
 // --- Single 3D Block ---
 function Block3D({
   type,
@@ -39,6 +90,8 @@ function Block3D({
   isActive,
   isTracing,
   totalBlocks,
+  snapScale,
+  isError,
 }: {
   type: BlockType;
   color: string;
@@ -46,6 +99,8 @@ function Block3D({
   isActive: boolean;
   isTracing: boolean;
   totalBlocks: number;
+  snapScale: number;
+  isError: boolean;
 }) {
   const meshRef = useRef<Mesh>(null);
   const glowRef = useRef<Mesh>(null);
@@ -63,23 +118,36 @@ function Block3D({
     meshRef.current.position.y =
       yPos + Math.sin(state.clock.elapsedTime * 2 + index * 0.5) * 0.02;
 
-    // Active pulse
-    if (isActive) {
-      const pulse = 1 + Math.sin(state.clock.elapsedTime * 8) * 0.03;
-      meshRef.current.scale.setScalar(pulse);
+    // ENH: Error shake — affected block shakes when error state
+    if (isError) {
+      meshRef.current.position.x = Math.sin(state.clock.elapsedTime * 30) * 0.015;
     } else {
-      meshRef.current.scale.setScalar(1);
+      meshRef.current.position.x = 0;
     }
 
-    // Glow intensity
+    // Active pulse + ENH: snap pop scale animation
+    if (isActive) {
+      const pulse = 1 + Math.sin(state.clock.elapsedTime * 8) * 0.03;
+      meshRef.current.scale.setScalar(pulse * snapScale);
+    } else {
+      meshRef.current.scale.setScalar(snapScale);
+    }
+
+    // Glow intensity — ENH: idle glow when not running but blocks exist
     if (glowRef.current) {
       const mat = glowRef.current.material as MeshBasicMaterial;
       if (isTracing || isActive) {
         mat.opacity = 0.3 + Math.sin(state.clock.elapsedTime * 6) * 0.15;
+      } else if (isError) {
+        // ENH: error red glow flash
+        mat.opacity = 0.15 + Math.sin(state.clock.elapsedTime * 12) * 0.1;
       } else {
-        mat.opacity = 0;
+        // ENH: subtle idle glow
+        mat.opacity = 0.03 + Math.sin(state.clock.elapsedTime * 0.8 + index * 0.5) * 0.02;
       }
     }
+
+    invalidate();
   });
 
   return (
@@ -93,11 +161,11 @@ function Block3D({
         castShadow
       >
         <meshStandardMaterial
-          color={color}
+          color={isError ? '#FF4444' : color}
           roughness={0.3}
           metalness={0.15}
-          emissive={color}
-          emissiveIntensity={isActive ? 0.4 : isTracing ? 0.2 : 0.05}
+          emissive={isError ? '#FF2222' : color}
+          emissiveIntensity={isActive ? 0.4 : isTracing ? 0.2 : isError ? 0.3 : 0.05}
         />
       </RoundedBox>
 
@@ -129,7 +197,7 @@ function Block3D({
       <mesh ref={glowRef} position={[0, 0, -blockDepth / 2 - 0.01]}>
         <planeGeometry args={[blockWidth + 0.2, blockHeight + 0.1]} />
         <meshBasicMaterial
-          color={color}
+          color={isError ? '#FF4444' : color}
           transparent
           opacity={0}
           side={DoubleSide}
@@ -173,8 +241,126 @@ function TracerLine({
   );
 }
 
+// --- ENH: CRT Scanlines overlay on workspace ---
+function CRTScanlines({ blockCount }: { blockCount: number }) {
+  const groupRef = useRef<import('three').Group>(null);
+  const lineCount = 24;
+  const height = Math.max(blockCount * 0.65 + 1.0, 2.5);
+  const spacing = height / lineCount;
+
+  return (
+    <group ref={groupRef} position={[0, -blockCount * 0.65 / 2 + 0.1, 0.76]}>
+      {Array.from({ length: lineCount }).map((_, i) => (
+        <mesh key={i} position={[0, height / 2 - i * spacing, 0]}>
+          <planeGeometry args={[3.2, 0.01]} />
+          <meshBasicMaterial
+            color="#00FF88"
+            transparent
+            opacity={0.03}
+            side={DoubleSide}
+          />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 // --- Scene ---
 function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
+  // ENH: Track previous block count for snap pop detection
+  const prevBlockCount = useRef(blocks.length);
+  const [snapScales, setSnapScales] = useState<Record<number, number>>({});
+  const snapTimers = useRef<Record<number, number>>({});
+
+  // ENH: Tracer trail particles
+  const trailRef = useRef<Particle[]>([]);
+  const trailSpawnTimer = useRef(0);
+
+  // ENH: Snap pop spark particles
+  const snapParticlesRef = useRef<Particle[]>([]);
+
+  // ENH: Detect new blocks for snap pop animation
+  useEffect(() => {
+    if (blocks.length > prevBlockCount.current) {
+      const newIdx = blocks.length - 1;
+      // Start snap pop scale at 1.15
+      setSnapScales((prev) => ({ ...prev, [newIdx]: 1.15 }));
+      snapTimers.current[newIdx] = 0.2; // 200ms
+
+      // Spawn sparkShower burst at new block position
+      const yPos = -newIdx * 0.65;
+      const origin = new Vector3(0, yPos, 0.2);
+      const sparks = spawnParticles('sparkShower', origin, {
+        count: 12,
+        colors: [blocks[newIdx]?.color || '#F97316', '#FFD700', '#FFFFFF'],
+        speedRange: [1.0, 2.5],
+        lifeRange: [0.3, 0.7],
+      });
+      snapParticlesRef.current.push(...sparks);
+    }
+    prevBlockCount.current = blocks.length;
+  }, [blocks.length, blocks]);
+
+  useFrame((state, delta) => {
+    // ENH: Animate snap pop scales back to 1.0
+    const newScales = { ...snapScales };
+    let changed = false;
+    for (const key in snapTimers.current) {
+      snapTimers.current[key] -= delta;
+      if (snapTimers.current[key] <= 0) {
+        delete snapTimers.current[key];
+        delete newScales[Number(key)];
+        changed = true;
+      } else {
+        // Lerp from 1.15 to 1.0 over 200ms
+        const t = 1 - snapTimers.current[key] / 0.2;
+        newScales[Number(key)] = MathUtils.lerp(1.15, 1.0, t);
+        changed = true;
+      }
+    }
+    if (changed) setSnapScales(newScales);
+
+    // ENH: Tracer trail particles — spawn behind the tracer position
+    if (running && tracerY >= 0) {
+      trailSpawnTimer.current += delta;
+      if (trailSpawnTimer.current > 0.03) {
+        trailSpawnTimer.current = 0;
+        const ty = -tracerY * 0.65;
+        const origin = new Vector3(-1.2, ty, 0.25);
+        const trail = spawnParticles('trailParticles', origin, {
+          count: 1,
+          colors: ['#F97316', '#FFD700', '#FFFFFF'],
+          speedRange: [0.1, 0.3],
+          lifeRange: [0.2, 0.5],
+          sizeRange: [0.015, 0.04],
+        });
+        trailRef.current.push(...trail);
+        // Cap at 20 trail particles
+        if (trailRef.current.length > 20) {
+          trailRef.current = trailRef.current.slice(-20);
+        }
+      }
+    }
+
+    // Update trail particles
+    if (trailRef.current.length > 0) {
+      updateParticles(trailRef.current, delta, PARTICLE_PRESETS.trailParticles);
+      trailRef.current = trailRef.current.filter((p) => p.life > 0);
+    }
+
+    // Update snap particles
+    if (snapParticlesRef.current.length > 0) {
+      updateParticles(snapParticlesRef.current, delta, PARTICLE_PRESETS.sparkShower);
+      snapParticlesRef.current = snapParticlesRef.current.filter((p) => p.life > 0);
+    }
+
+    invalidate();
+  });
+
+  // ENH: Error state — if not running and blocks exist, blocks are idle;
+  // simulate error on the last block only as a visual demo (no error prop from parent yet)
+  const hasError = !running && blocks.length > 0;
+
   return (
     <>
       <ambientLight intensity={0.6} />
@@ -194,6 +380,9 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
         />
       </mesh>
 
+      {/* ENH: CRT scanlines over workspace */}
+      <CRTScanlines blockCount={blocks.length} />
+
       {/* Blocks */}
       {blocks.map((block, i) => (
         <Block3D
@@ -204,6 +393,8 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
           isActive={running && runIdx === i}
           isTracing={running && tracerY >= i}
           totalBlocks={blocks.length}
+          snapScale={snapScales[i] ?? 1.0}
+          isError={false}
         />
       ))}
 
@@ -211,6 +402,12 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
       {running && (
         <TracerLine tracerY={tracerY} totalBlocks={blocks.length} />
       )}
+
+      {/* ENH: Tracer trail particles */}
+      <ParticleCloud particles={trailRef.current} color="#F97316" maxCount={20} />
+
+      {/* ENH: Snap pop spark particles */}
+      <ParticleCloud particles={snapParticlesRef.current} color="#FFD700" maxCount={30} />
     </>
   );
 }
@@ -218,16 +415,9 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
 // --- Exported Component ---
 export function CodeBlocks3D(props: CodeBlocks3DProps) {
   return (
-    <div className="w-full h-full min-h-[200px]">
-      <Canvas
-        shadows
-        dpr={[1, 2]}
-        camera={{ position: [0, 0, 4], fov: 45 }}
-        gl={{ antialias: true }}
-      >
-        <Scene {...props} />
-      </Canvas>
-    </div>
+    <group>
+      <Scene {...props} />
+    </group>
   );
 }
 

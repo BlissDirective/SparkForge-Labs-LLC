@@ -6,10 +6,11 @@
 // Reads from sceneStore to control which <group> is visible.
 // Handles cockpit opacity fade during game mode (D3D-B6).
 
-import { useRef, type ReactNode } from 'react';
+import { Suspense, useRef, type ReactNode } from 'react';
 import { Group } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSceneStore } from '@/stores/sceneStore';
+import { Canvas3DErrorBoundary } from './Canvas3DErrorBoundary';
 
 interface SceneRouterProps {
   heroContent?: ReactNode;
@@ -73,9 +74,13 @@ export function SceneRouter({
         {spatialContent}
       </group>
 
-      {/* Game Scene Group */}
+      {/* Game Scene Group — S7-WARN-004: Error boundary catches 3D crashes gracefully */}
       <group visible={showGame}>
-        {gameContent}
+        <Canvas3DErrorBoundary>
+          <Suspense fallback={null}>
+            {gameContent}
+          </Suspense>
+        </Canvas3DErrorBoundary>
       </group>
 
       {/* Mechanical Iris Overlay */}

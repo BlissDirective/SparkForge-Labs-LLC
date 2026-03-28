@@ -53,6 +53,7 @@ import { AmbientNPCs } from './AmbientNPCs';
 import { SceneRouter } from './SceneRouter';
 import { MechanicalIris } from './MechanicalIris';
 import { CeremonyFXBridge } from './CeremonyFXBridge';
+import { ParentDashboardBridge } from './ParentDashboardBridge';
 import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Hooks (D3D-C4)
@@ -406,6 +407,9 @@ export function CockpitCanvas({
 
                 {/* ═══ Ceremony FX — 3D celebration effects (S5-HIGH-007) ═══ */}
                 <CeremonyFXBridge />
+
+                {/* ═══ Parent Dashboard — 3D stat hologram (Stage 8 Enhancement A1) ═══ */}
+                <ParentDashboardBridge />
               </>
             }
             spatialContent={

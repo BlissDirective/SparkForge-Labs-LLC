@@ -16,29 +16,28 @@
 // - Feedback panel with "why AI got confused" explanations
 // - Score multiplier for consecutive correct finds
 // - ARIA labels
+//
+// ENH: Animated confidence bar + answer feedback + fooled counter
 // ================================================================
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { AlertTriangle, CheckCircle2, Target } from 'lucide-react';
+import { useSceneStore } from '@/stores/sceneStore';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const FoolTheAiEnvironment = dynamic(
   () => import('@/components/3d/environments/FoolTheAiEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Item {
   emoji: string;
@@ -121,11 +120,16 @@ export function FoolTheAiGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<{ idx: number; hit: boolean } | null>(null);
   const [consecutiveHits, setConsecutiveHits] = useState(0);
+  // ENH: Track total fooled count for animated counter
+  const [fooledCount, setFooledCount] = useState(0);
+  // ENH: Track streak for visual streak indicator
+  const [streakFlash, setStreakFlash] = useState(false);
 
   const challenge = CHALLENGES[ci];
   const matchCount = Array.from(found).filter(idx => challenge.check(ITEMS[idx])).length;
@@ -134,6 +138,11 @@ export function FoolTheAiGame() {
     id: i, x: Math.random() * 100, y: Math.random() * 100, size: Math.random() * 2 + 1,
     delay: Math.random() * 4, dur: Math.random() * 6 + 4,
   })), []);
+
+  useEffect(() => {
+    setGameSceneContent(<FoolTheAiEnvironment foolAttempts={found.size} isTesting={!!feedback} />);
+    return () => setGameSceneContent(null);
+  }, [found.size, feedback, setGameSceneContent]);
 
   function tap(idx: number) {
     if (found.has(idx) || feedback) return;
@@ -146,6 +155,10 @@ export function FoolTheAiGame() {
       const bonus = consecutiveHits >= 2 ? 4 : 0;
       game.updateScore(10 + bonus);
       setConsecutiveHits(c => c + 1);
+      // ENH: Increment fooled counter when AI was wrong and player found it
+      if (item.isWrong) setFooledCount(c => c + 1);
+      // ENH: Flash streak indicator on consecutive hits
+      if (consecutiveHits >= 1) { setStreakFlash(true); setTimeout(() => setStreakFlash(false), 600); }
     } else {
       setConsecutiveHits(0);
     }
@@ -160,6 +173,7 @@ export function FoolTheAiGame() {
           setConsecutiveHits(0);
           game.advanceRound();
         } else {
+          setPhase('complete');
           game.completeGame();
         }
       }
@@ -169,17 +183,6 @@ export function FoolTheAiGame() {
   return (
     <GameShell gameId="fool-the-ai" title="Fool the AI" worldNumber={7} worldColor="#06B6D4" xpReward={20} totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <FoolTheAiEnvironment foolAttempts={found.size} isTesting={!!feedback} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -226,17 +229,42 @@ export function FoolTheAiGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col">
-                    {/* Challenge header */}
+                    {/* Challenge header + ENH: fooled counter */}
                     <div className="rounded-xl p-3 mb-3 text-center"
                       style={{ backgroundColor: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
                       <p className="font-display text-sm font-bold text-cyan-400">{'\u{1F3AF}'} {challenge.text}</p>
                       {ageBand === 'C' && <p className="font-body text-2xs text-white/25 mt-0.5">{challenge.descC}</p>}
                       <div className="flex items-center justify-center gap-2 mt-1.5">
                         <div className="flex-1 max-w-[120px] h-1.5 rounded-full bg-white/5 overflow-hidden">
-                          <motion.div className="h-full rounded-full bg-cyan-500" animate={{ width: `${(matchCount / challenge.target) * 100}%` }} />
+                          <motion.div className="h-full rounded-full bg-cyan-500"
+                            animate={{ width: `${(matchCount / challenge.target) * 100}%` }}
+                            transition={{ type: 'spring', stiffness: 120, damping: 20 }} />
                         </div>
                         <span className="font-mono text-2xs text-white/30">{matchCount}/{challenge.target}</span>
                         <span className="font-body text-2xs text-white/15">Round {ci + 1}/{CHALLENGES.length}</span>
+                        {/* ENH: Animated fooled counter */}
+                        {fooledCount > 0 && (
+                          <motion.span
+                            key={fooledCount}
+                            initial={{ scale: 1.4, color: '#00FF88' }}
+                            animate={{ scale: 1, color: 'rgba(255,255,255,0.3)' }}
+                            transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                            className="font-data text-2xs"
+                          >
+                            {'\u{1F916}'} Fooled: {fooledCount}
+                          </motion.span>
+                        )}
+                        {/* ENH: Streak indicator with fire animation */}
+                        {consecutiveHits >= 2 && (
+                          <motion.span
+                            initial={{ scale: 0, opacity: 0 }}
+                            animate={{ scale: streakFlash ? [1, 1.3, 1] : 1, opacity: 1 }}
+                            transition={{ type: 'spring', stiffness: 400, damping: 10 }}
+                            className="font-data text-2xs text-orange-400"
+                          >
+                            {'\u{1F525}'} {consecutiveHits}x streak!
+                          </motion.span>
+                        )}
                       </div>
                     </div>
 
@@ -248,21 +276,30 @@ export function FoolTheAiGame() {
                         const confColor = item.confidence > 80 ? '#10B981' : item.confidence > 50 ? '#F59E0B' : '#EF4444';
                         return (
                           <motion.button key={i} onClick={() => tap(i)} disabled={tapped && !isFeedback}
-                            className={`rounded-xl border p-2.5 text-center transition-all ${
+                            className={`rounded-xl border p-2.5 text-center transition-colors ${
                               isFeedback && feedback.hit ? 'border-green-500 bg-green-500/10'
                               : isFeedback && !feedback.hit ? 'border-orange-500 bg-orange-500/10'
                               : tapped ? 'border-white/5 opacity-20'
                               : 'border-white/10 bg-white/[0.02] hover:border-cyan-500/30'
                             }`}
+                            // ENH: Green pulse + scale pop on correct, red shake + opacity dip on wrong
+                            animate={
+                              isFeedback && feedback.hit
+                                ? { scale: [1, 1.15, 1.05], boxShadow: ['0 0 0px rgba(16,185,129,0)', '0 0 20px rgba(16,185,129,0.5)', '0 0 8px rgba(16,185,129,0.2)'] }
+                                : isFeedback && !feedback.hit
+                                  ? { x: [0, -6, 6, -4, 4, 0], opacity: [1, 0.5, 0.7, 0.5, 0.8, 1] }
+                                  : {}
+                            }
+                            transition={isFeedback ? { duration: 0.5, ease: 'easeOut' } : {}}
                             whileTap={!tapped ? { scale: 0.95 } : {}}
                             aria-label={`${item.emoji} labeled as "${item.aiLabel}" with ${item.confidence}% confidence`}>
                             <span className="text-2xl block">{item.emoji}</span>
                             <p className="font-body text-2xs text-white/40 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
-                            {/* Confidence bar */}
-                            <div className="mt-1 h-1 rounded-full bg-white/10 overflow-hidden">
+                            {/* ENH: Confidence bar with spring physics */}
+                            <div className="mt-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
                               <motion.div className="h-full rounded-full" style={{ backgroundColor: confColor }}
                                 initial={{ width: 0 }} animate={{ width: `${item.confidence}%` }}
-                                transition={{ duration: 0.8, delay: 0.1 }} />
+                                transition={{ type: 'spring', stiffness: 80, damping: 12, delay: i * 0.05 }} />
                             </div>
                             <p className="font-mono text-2xs mt-0.5" style={{ color: confColor }}>{item.confidence}%</p>
                           </motion.button>
@@ -287,6 +324,32 @@ export function FoolTheAiGame() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </motion.div>
+                )}
+
+                {/* COMPLETE */}
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Fool the AI Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You explored how AI can be tricked and why understanding its weaknesses makes AI systems stronger and more reliable.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">
+                      <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Adversarial examples can fool AI by exploiting weaknesses in how models interpret visual features</li>
+                        <li>• AI confidence scores don't always mean the prediction is correct — high confidence can still be wrong</li>
+                        <li>• Understanding AI robustness helps researchers build more reliable and trustworthy AI systems</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

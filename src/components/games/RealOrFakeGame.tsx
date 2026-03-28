@@ -7,25 +7,22 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Fingerprint, CheckCircle2, XCircle, BookOpen } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const RealOrFakeEnvironment = dynamic(
   () => import('@/components/3d/environments/RealOrFakeEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'tips' | 'play';
+type Phase = 'welcome' | 'tips' | 'play' | 'complete';
 
 const DETECTION_TIPS = [
   { title: 'Vague vs Specific', emoji: '🔎', tip: 'Fake content is often vague and uses general praise. Real content includes specific details, measurements, and nuanced opinions.' },
@@ -65,6 +62,7 @@ export function RealOrFakeGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; clue: string } | null>(null);
@@ -76,6 +74,10 @@ export function RealOrFakeGame() {
     [ageBand]
   );
   const round = rounds[roundIdx];
+
+  useEffect(() => {
+    setGameSceneContent(<RealOrFakeEnvironment verified={score.correct} isChecking={!!feedback} />);
+  }, [score.correct, feedback, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -95,23 +97,13 @@ export function RealOrFakeGame() {
     setTimeout(() => {
       setFeedback(null);
       if (roundIdx < rounds.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
-      else game.completeGame();
+      else { setPhase('complete'); game.completeGame(); }
     }, 3500);
   }
 
   return (
     <GameShell gameId="real-or-fake" title="Real or Fake?" worldNumber={6} worldColor="#FF6644" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <RealOrFakeEnvironment verified={score.correct} isChecking={!!feedback} />
-          </Canvas>
-        </div>
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -217,6 +209,31 @@ export function RealOrFakeGame() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Real or Fake Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You sharpened your media literacy skills and can now spot deepfakes and AI-generated content with confidence.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20">
+                      <p className="font-data text-2xl" style={{ color: '#FF6644' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• AI-generated content often uses vague language, extreme claims, and excessive emotional triggers</li>
+                        <li>• Real content includes specific details, balanced perspectives, and verifiable facts</li>
+                        <li>• Media literacy and critical thinking are essential defenses against deepfakes and misinformation</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

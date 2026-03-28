@@ -1,9 +1,9 @@
 # SPARKFORGE — 3D Component Registry
 
-**Version:** 2.2 | **Date:** March 27, 2026
+**Version:** 2.3 | **Date:** March 28, 2026
 **Extracted from:** CLAUDE.md v5.7 Section 9
 **Cross-reference:** CLAUDE.md Section 9.1 (LOD rules), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
-**Last updated:** Stage 5 Gamification 3D — 7 new gamification components added (XPVortex, LevelUpExplosion, BadgePedestal3D, AvatarPreview3D, StreakFlame3D, CeremonyFXBridge, BadgePedestalBridge). Previous: 20M Triangle Budget upgrade — 8 cockpit components.
+**Last updated:** Stage 8 3D Cockpit Enhancements — 3 new components (ParentStatHologram3D, ParentDashboardBridge, OnboardingCrystal3D). Previous: Stage 5 Gamification 3D — 7 gamification components.
 
 ---
 
@@ -31,6 +31,9 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 | StreakFlame3D.tsx | 5 v3 | Streak flame billboard (7+ days), scale by tier, 3 intersecting planes |
 | CeremonyFXBridge.tsx | 5 v3 | uiStore → CeremonyFX bridge (maps CelebrationType to ceremony effects) |
 | BadgePedestalBridge.tsx | 5 v3 | Badge pedestal orchestrator for CockpitCanvas trophy showcase |
+| **ParentStatHologram3D.tsx** | **8 v3** | **4 floating holographic stat tiles (XP/Lessons/Time/Streak), animated counters, chrome bezels, ~200K tris** |
+| **ParentDashboardBridge.tsx** | **8 v3** | **parentStore → ParentStatHologram3D bridge, mounts on /parent routes** |
+| **OnboardingCrystal3D.tsx** | **8 v3** | **Progressive crystal formation (Tetra→Octa→Icosa), orbiting facets, completion particles, ~150K tris** |
 
 ---
 
@@ -164,7 +167,7 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| System / Dashboard | 14 | StationFrame, HeroAnimation, AuroraBackground, AmbientParticles, GameParticles3D, GenericGameParticles, LODWrapper, XPVortex, LevelUpExplosion, BadgePedestal3D, AvatarPreview3D, StreakFlame3D, CeremonyFXBridge, BadgePedestalBridge |
+| System / Dashboard | 17 | StationFrame, HeroAnimation, AuroraBackground, AmbientParticles, GameParticles3D, GenericGameParticles, LODWrapper, XPVortex, LevelUpExplosion, BadgePedestal3D, AvatarPreview3D, StreakFlame3D, CeremonyFXBridge, BadgePedestalBridge, **ParentStatHologram3D**, **ParentDashboardBridge**, **OnboardingCrystal3D** |
 | Flagship (games + environments) | 12 | 6 game components + 6 environment components |
 | FL-Lite (games + environments) | 19 | 9 game components + 10 environment components |
 | Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |

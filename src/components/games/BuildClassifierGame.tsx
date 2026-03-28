@@ -17,12 +17,13 @@
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   BookOpen,
   Database,
@@ -34,16 +35,12 @@ import {
 } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const BuildClassifierEnvironment = dynamic(
   () => import('@/components/3d/environments/BuildClassifierEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'learn' | 'collect' | 'train' | 'test' | 'results';
+type Phase = 'welcome' | 'learn' | 'collect' | 'train' | 'test' | 'results' | 'complete';
 
 interface TrainingImage {
   emoji: string;
@@ -132,6 +129,7 @@ export function BuildClassifierGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
 
@@ -216,6 +214,7 @@ export function BuildClassifierGame() {
   function finishGame() {
     const correctCount = testResults.filter((r) => r.correct).length;
     game.updateScore(correctCount >= allTests.length * 0.8 ? 15 : 5);
+    setPhase('complete');
     game.completeGame();
   }
 
@@ -241,6 +240,11 @@ export function BuildClassifierGame() {
         )
       : 0;
 
+  useEffect(() => {
+    setGameSceneContent(<BuildClassifierEnvironment accuracy={accuracy} itemsSorted={testResults.length} />);
+    return () => setGameSceneContent(null);
+  }, [accuracy, testResults.length, setGameSceneContent]);
+
   return (
     <GameShell
       gameId="build-classifier"
@@ -250,17 +254,6 @@ export function BuildClassifierGame() {
       totalRounds={allTests.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <BuildClassifierEnvironment accuracy={accuracy} itemsSorted={testResults.length} />
-          </Canvas>
-        </div>
-
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (
@@ -758,6 +751,32 @@ export function BuildClassifierGame() {
                     >
                       Complete! 🎉
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {/* COMPLETE */}
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Build a Classifier Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You experienced the full ML pipeline — from collecting training data to testing your classifier and seeing how data quality impacts accuracy.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">
+                      <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• ML classification requires labeled training data — the more balanced and accurate, the better the model performs</li>
+                        <li>• Training data quality directly affects decision boundaries and prediction accuracy</li>
+                        <li>• Testing on unseen data reveals whether a model truly learned patterns or just memorized examples</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
