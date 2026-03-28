@@ -10,11 +10,12 @@
 
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Rocket, Zap, Eye, MessageSquare, Cpu, Bot, Shield, Sparkles, CheckCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -131,6 +132,7 @@ const SCENARIOS: Scenario[] = [
 export default function FutureForgeGame() {
   const game = useGameStore();
   const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [round, setRound] = useState(1);
   const totalRounds = 8;
@@ -139,6 +141,24 @@ export default function FutureForgeGame() {
   const [selected, setSelected] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [roundScore, setRoundScore] = useState(0);
+
+  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3)
+  useEffect(() => {
+    if (phase === 'play') {
+      setGameSceneContent(
+        <FutureForge3D
+          step={round}
+          selectedSkills={new Set(selected)}
+          allSkills={CAPABILITIES.map(c => ({ name: c.name, emoji: '⚡' }))}
+          problemEmoji="🔧"
+          inventionName={scenario.title}
+          innovationScore={roundScore}
+        />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, round, selected, scenario, roundScore, setGameSceneContent]);
 
   const toggleCapability = useCallback((id: string) => {
     if (submitted) return;
@@ -269,17 +289,7 @@ export default function FutureForgeGame() {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-4">
-              {/* 3D Scene */}
-              <div className="hidden lg:block w-44 h-44 flex-shrink-0">
-                <FutureForge3D
-                    step={round}
-                    selectedSkills={new Set(selected)}
-                    allSkills={CAPABILITIES.map(c => ({ name: c.name, emoji: '⚡' }))}
-                    problemEmoji="🔧"
-                    inventionName={scenario.title}
-                    innovationScore={roundScore}
-                  />
-              </div>
+              {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
               {/* Scenario Card */}
               <div className="flex-1">

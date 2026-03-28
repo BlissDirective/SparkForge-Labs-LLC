@@ -16,9 +16,17 @@
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
+
+// 3D scene content — rendered inside CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
+const EmojiDecoder3D = dynamic(
+  () => import('@/components/3d/EmojiDecoder3D'),
+  { ssr: false }
+);
 import {
   Play, BookOpen, Sparkles, Zap, ArrowRight,
   Brain, Lightbulb, Award, Send
@@ -231,6 +239,7 @@ const DIFF_POINTS: Record<Difficulty, number> = { easy: 10, medium: 15, tricky: 
 export function EmojiDecoderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -250,6 +259,15 @@ export function EmojiDecoderGame() {
 
   // B-10: Clean up timer on unmount to prevent firing on unmounted component
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+
+  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
+  useEffect(() => {
+    if (phase === 'play' || phase === 'lab') {
+      setGameSceneContent(<EmojiDecoder3D />);
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, setGameSceneContent]);
 
   const rounds = useMemo(() => {
     const filtered = ALL_ROUNDS.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);

@@ -19,25 +19,22 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Eye, Search, Zap } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const PixelInvestigatorEnvironment = dynamic(
   () => import('@/components/3d/environments/PixelInvestigatorEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface ImageRound {
   emoji: string;
@@ -86,6 +83,7 @@ export function PixelInvestigatorGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [ri, setRi] = useState(0);
   const [revealLevel, setRevealLevel] = useState(0);
@@ -104,6 +102,10 @@ export function PixelInvestigatorGame() {
   const round = rounds[ri];
   const blur = Math.max(0, 24 - revealLevel * 6);
   const pts = REVEAL_POINTS[revealLevel] || 10;
+
+  useEffect(() => {
+    setGameSceneContent(<PixelInvestigatorEnvironment zoomLevel={revealLevel} isAnalyzing={phase === 'play' && !answered} />);
+  }, [revealLevel, phase, answered, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
     id: i, x: Math.random() * 100, y: Math.random() * 100, size: Math.random() * 2 + 1,
@@ -135,22 +137,12 @@ export function PixelInvestigatorGame() {
       setWasCorrect(false);
       setShowHint(false);
       if (ri < rounds.length - 1) { setRi(i => i + 1); game.advanceRound(); }
-      else game.completeGame();
+      else { setPhase('complete'); game.completeGame(); }
     }, 2000);
   }
 
   return (
     <GameShell gameId="pixel-investigator" title="Pixel Investigator" worldNumber={3} worldColor="#FF66AA" xpReward={20} totalRounds={rounds.length}>
-      {/* 3D Environment Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <Canvas
-          camera={{ position: [0, 2, 8], fov: 50 }}
-          style={{ background: 'transparent' }}
-          gl={{ alpha: true, antialias: true }}
-        >
-          <PixelInvestigatorEnvironment zoomLevel={revealLevel} isAnalyzing={phase === 'play' && !answered} />
-        </Canvas>
-      </div>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -298,6 +290,32 @@ export function PixelInvestigatorGame() {
                           {c}
                         </motion.button>
                       ))}
+                    </div>
+                  </motion.div>
+                )}
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Pixel Investigator Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">
+                      You identified images from blurry to clear, experiencing how computer vision processes visual information at different resolutions.
+                    </p>
+                    <div className="rounded-xl px-6 py-3 bg-[#FF66AA]/10 border border-[#FF66AA]/20">
+                      <p className="font-data text-2xl text-[#FF66AA]">{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Computer vision processes images from low-resolution features (shapes, colors) to fine details (textures, edges)</li>
+                        <li>• Early neural network layers detect broad patterns, while deeper layers recognize specific objects</li>
+                        <li>• Some objects are harder to distinguish than others — fine-grained classification is a real challenge in AI</li>
+                      </ul>
                     </div>
                   </motion.div>
                 )}

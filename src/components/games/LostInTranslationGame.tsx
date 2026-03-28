@@ -3,29 +3,59 @@
 // Pre-computed translation telephone game.
 // Enhanced: chrome bezel, welcome phase, 7 rounds,
 // language flags, "why it changed" explanations, age-band.
+// ENH: Step reveal + flag bounce + degradation meter + comparison highlights
 // ════════════════════════════════════════════════════
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { Languages, ArrowDown } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useSceneStore } from '@/stores/sceneStore';
+
+// ENH: Animated score counter hook
+function useAnimatedCounter(target: number, duration = 600) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (display === target) return;
+    const start = display;
+    const diff = target - start;
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+  return display;
+}
+
+// ENH: Compute simple degradation score (how different original vs final are)
+function computeDegradation(original: string, final: string): number {
+  const origWords = original.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+  const finalWords = final.toLowerCase().replace(/[^a-z\s]/g, '').split(/\s+/);
+  const origSet = new Set(origWords);
+  const shared = finalWords.filter(w => origSet.has(w)).length;
+  const total = Math.max(origWords.length, finalWords.length);
+  return total > 0 ? Math.round((1 - shared / total) * 100) : 0;
+}
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const LostInTranslationEnvironment = dynamic(
   () => import('@/components/3d/environments/LostInTranslationEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Round {
   original: string;
@@ -102,9 +132,11 @@ export function LostInTranslationGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(-1);
+  const animatedScore = useAnimatedCounter(game.score);
 
   const rounds = useMemo(() => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]), [ageBand]);
 
@@ -116,28 +148,22 @@ export function LostInTranslationGame() {
     delay: (i * 0.7) % 4, dur: (i % 6) + 4,
   })), []);
 
+  useEffect(() => {
+    setGameSceneContent(<LostInTranslationEnvironment languagePair={round?.original ?? ''} translationsCompleted={idx} />);
+    return () => setGameSceneContent(null);
+  }, [round?.original, idx, setGameSceneContent]);
+
   function reveal() {
     if (allRevealed) {
       game.updateScore(10);
       if (idx < rounds.length - 1) { setIdx(i => i + 1); setStep(-1); game.advanceRound(); }
-      else game.completeGame();
+      else { setPhase('complete'); game.completeGame(); }
     } else { setStep(s => s + 1); }
   }
 
   return (
     <GameShell gameId="lost-in-translation" title="Lost in Translation" worldNumber={8} worldColor="#818CF8" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <LostInTranslationEnvironment languagePair={round?.original ?? ''} translationsCompleted={idx} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -161,7 +187,45 @@ export function LostInTranslationGame() {
                 {phase === 'welcome' && (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="text-center space-y-4">
-                    <span className="text-5xl" role="img" aria-label="globe">{'\u{1F30D}'}</span>
+                    {/* ENH: Animated globe entrance with orbiting flags */}
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 180, damping: 14 }}
+                    >
+                      <motion.span
+                        className="text-5xl inline-block"
+                        role="img"
+                        aria-label="globe"
+                        animate={{ rotate: [0, 360] }}
+                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                      >
+                        {'\u{1F30D}'}
+                      </motion.span>
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent)' }}
+                        animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                      {/* ENH: Bouncing flag emojis around the globe */}
+                      {['\u{1F1EB}\u{1F1F7}', '\u{1F1EF}\u{1F1F5}', '\u{1F1E9}\u{1F1EA}', '\u{1F1EA}\u{1F1F8}'].map((flag, i) => (
+                        <motion.span
+                          key={i}
+                          className="absolute text-lg"
+                          style={{ top: '50%', left: '50%' }}
+                          animate={{
+                            x: [Math.cos((i * Math.PI) / 2) * 36, Math.cos((i * Math.PI) / 2 + Math.PI) * 36],
+                            y: [Math.sin((i * Math.PI) / 2) * 36, Math.sin((i * Math.PI) / 2 + Math.PI) * 36],
+                            scale: [1, 1.2, 1],
+                          }}
+                          transition={{ duration: 3, repeat: Infinity, delay: i * 0.4 }}
+                        >
+                          {flag}
+                        </motion.span>
+                      ))}
+                    </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white">Lost in Translation</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C' ? 'Observe how neural machine translation degrades meaning through multi-hop translation chains. Analyze why idioms fail.'
@@ -192,23 +256,87 @@ export function LostInTranslationGame() {
                       <p className="font-display text-base font-bold text-white">&ldquo;{round.original}&rdquo;</p>
                     </div>
 
-                    {/* Translation steps */}
+                    {/* ENH: Translation steps with sliding entrance + flag bounce */}
                     <div className="space-y-2 mb-3">
                       {round.steps.map((s, i) => (
-                        <motion.div key={i} className={`p-3 rounded-xl border text-center transition-all ${i <= step ? 'border-indigo-500/20 bg-indigo-500/5' : 'border-white/5 bg-white/[0.02]'}`}
-                          animate={{ opacity: i <= step ? 1 : 0.2 }}>
+                        <motion.div
+                          key={i}
+                          className={`p-3 rounded-xl border text-center transition-colors ${i <= step ? 'border-indigo-500/20 bg-indigo-500/5' : 'border-white/5 bg-white/[0.02]'}`}
+                          initial={i <= step ? { opacity: 0, x: -30 } : { opacity: 0.2 }}
+                          animate={i <= step ? { opacity: 1, x: 0 } : { opacity: 0.2 }}
+                          transition={i <= step ? { type: 'spring', stiffness: 120, damping: 15, delay: 0.1 } : {}}
+                        >
                           {i <= step && i > 0 && <ArrowDown className="w-3 h-3 text-indigo-500/30 mx-auto mb-1" />}
-                          <p className="font-body text-sm text-white/70">{i <= step ? s : '???'}</p>
+                          {i <= step ? (
+                            <div className="flex items-center justify-center gap-2">
+                              {/* ENH: Flag emoji bounce on reveal */}
+                              <motion.span
+                                className="inline-block"
+                                initial={{ scale: 0, y: -10 }}
+                                animate={{ scale: [0, 1.3, 1], y: [- 10, 4, 0] }}
+                                transition={{ type: 'spring', stiffness: 300, damping: 12, delay: 0.15 }}
+                              >
+                                {s.slice(0, 4)}
+                              </motion.span>
+                              <p className="font-body text-sm text-white/70">{s.slice(4)}</p>
+                            </div>
+                          ) : (
+                            <p className="font-body text-sm text-white/70">???</p>
+                          )}
                         </motion.div>
                       ))}
                     </div>
 
-                    {/* Final result */}
+                    {/* ENH: Degradation meter — shows how much meaning was lost */}
+                    {allRevealed && (() => {
+                      const deg = computeDegradation(round.original, round.final);
+                      const color = deg > 60 ? '#EF4444' : deg > 30 ? '#FFAA44' : '#4ade80';
+                      return (
+                        <motion.div
+                          className="mb-3"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-body text-2xs text-white/30">Meaning degradation</span>
+                            <span className="font-data text-2xs" style={{ color }}>{deg}%</span>
+                          </div>
+                          <div className="h-2 rounded-full bg-white/5 overflow-hidden">
+                            <motion.div
+                              className="h-full rounded-full"
+                              style={{ background: `linear-gradient(90deg, #4ade80, ${color})` }}
+                              initial={{ width: 0 }}
+                              animate={{ width: `${deg}%` }}
+                              transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.3 }}
+                            />
+                          </div>
+                        </motion.div>
+                      );
+                    })()}
+
+                    {/* ENH: Final result with comparison highlights */}
                     {allRevealed && (
                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                         className="rounded-xl p-4 text-center border border-amber-500/30 bg-amber-500/5 mb-3">
                         <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
                         <p className="font-display text-base font-bold text-amber-400">&ldquo;{round.final}&rdquo;</p>
+                        {/* ENH: Side-by-side comparison with highlight */}
+                        <motion.div
+                          className="mt-2 grid grid-cols-2 gap-2 text-left"
+                          initial={{ opacity: 0, y: 5 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.4 }}
+                        >
+                          <div className="p-2 rounded-lg bg-indigo-500/5 border border-indigo-500/10">
+                            <p className="font-body text-2xs text-indigo-300/50 mb-0.5">Original</p>
+                            <p className="font-body text-xs text-white/60">{round.original}</p>
+                          </div>
+                          <div className="p-2 rounded-lg bg-amber-500/5 border border-amber-500/10">
+                            <p className="font-body text-2xs text-amber-300/50 mb-0.5">Result</p>
+                            <p className="font-body text-xs text-amber-400/80">{round.final}</p>
+                          </div>
+                        </motion.div>
                         <p className="font-body text-2xs text-white/30 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
                       </motion.div>
                     )}
@@ -220,6 +348,44 @@ export function LostInTranslationGame() {
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       {allRevealed ? (idx < rounds.length - 1 ? 'Next Phrase \u2192' : 'Finish!') : 'Reveal Next Translation \u2192'}
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Lost in Translation Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You discovered how meaning gets lost when AI translates through multiple languages — idioms, metaphors, and cultural expressions are still a big challenge for machine translation!</p>
+                    {/* ENH: Animated score counter */}
+                    <motion.div
+                      className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                    >
+                      <motion.p
+                        className="font-data text-2xl"
+                        style={{ color: '#818CF8' }}
+                        animate={{ textShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 12px rgba(99,102,241,0.5)', '0 0 0px rgba(99,102,241,0)'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {animatedScore}
+                      </motion.p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </motion.div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Machine translation works word-by-word but misses figurative meaning</li>
+                        <li>• Language ambiguity means one phrase can have multiple interpretations</li>
+                        <li>• Context is crucial in NLP — without it, AI takes everything literally</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
 

@@ -16,11 +16,12 @@
 // 9. [v3] 3D isometric room on desktop (RobotVacuum3D)
 // ================================================================
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   Play, Plus, Trash2, RotateCcw, BookOpen, Zap,
 } from 'lucide-react';
@@ -39,7 +40,7 @@ const RobotVacuum3D = dynamic(
   }
 );
 
-type Phase = 'welcome' | 'learn' | 'play';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Rule {
   condition: string;
@@ -169,6 +170,7 @@ const DIR_OFFSETS: [number, number][] = [
 export function RobotVacuumGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -317,6 +319,7 @@ export function RobotVacuumGame() {
       setTrail([]);
       game.advanceRound();
     } else {
+      setPhase('complete');
       game.completeGame();
     }
   }
@@ -329,6 +332,16 @@ export function RobotVacuumGame() {
     setShowResults(false);
     setTrail([]);
   }
+
+  useEffect(() => {
+    if (phase === 'play') {
+      setGameSceneContent(
+        <RobotVacuum3D room={room} vacPos={vacPos} vacDir={vacDir} cleaned={cleaned} trail={trail} gridSize={GRID} running={running} />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, room, vacPos, vacDir, cleaned, trail, running, setGameSceneContent]);
 
   return (
     <GameShell
@@ -420,6 +433,7 @@ export function RobotVacuumGame() {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Learn the rules"
                     >
                       Learn the Rules!{' '}
                       <BookOpen className="inline w-4 h-4 ml-1" />
@@ -468,6 +482,7 @@ export function RobotVacuumGame() {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label={learnIdx < LEARN_CARDS.length - 1 ? 'Next learn card' : 'Start cleaning'}
                     >
                       {learnIdx < LEARN_CARDS.length - 1
                         ? 'Next \u2192'
@@ -476,6 +491,7 @@ export function RobotVacuumGame() {
                     <button
                       onClick={() => setPhase('play')}
                       className="font-body text-xs text-white/20 hover:text-white/40"
+                      aria-label="Skip tutorial"
                     >
                       Skip tutorial
                     </button>
@@ -532,18 +548,7 @@ export function RobotVacuumGame() {
                       </span>
                     </div>
 
-                    {/* [v3] 3D Scene */}
-                    {phase === 'play' && (
-                      <RobotVacuum3D
-                        room={room}
-                        vacPos={vacPos}
-                        vacDir={vacDir}
-                        cleaned={cleaned}
-                        trail={trail}
-                        gridSize={GRID}
-                        running={running}
-                      />
-                    )}
+                    {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* Main area: Grid + Rules side by side */}
                     <div className="flex gap-3 flex-1 mb-2">
@@ -675,6 +680,7 @@ export function RobotVacuumGame() {
                                 <button
                                   onClick={() => removeRule(i)}
                                   className="text-white/10 hover:text-red-400"
+                                  aria-label={`Remove rule ${i + 1}`}
                                 >
                                   <Trash2 className="w-2.5 h-2.5" />
                                 </button>
@@ -686,6 +692,7 @@ export function RobotVacuumGame() {
                           <button
                             onClick={addRule}
                             className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/20 font-body text-2xs flex items-center justify-center gap-1"
+                            aria-label="Add a new rule"
                           >
                             <Plus className="w-2.5 h-2.5" /> Add Rule
                           </button>
@@ -773,6 +780,7 @@ export function RobotVacuumGame() {
                               setVacDir(0);
                             }}
                             className="mt-2 w-full py-1.5 rounded-lg border border-emerald-500/20 text-emerald-400/60 font-body text-2xs hover:bg-emerald-500/5 hover:text-emerald-400 transition-colors flex items-center justify-center gap-1"
+                            aria-label="Edit rules and retry"
                           >
                             <RotateCcw className="w-2.5 h-2.5" /> Edit Rules &amp; Retry
                           </button>
@@ -786,6 +794,7 @@ export function RobotVacuumGame() {
                         onClick={resetRoom}
                         disabled={running}
                         className="px-3 py-2 rounded-xl border border-white/10 text-white/25 font-body text-xs flex items-center gap-1 hover:border-white/20"
+                        aria-label="Reset room"
                       >
                         <RotateCcw className="w-3 h-3" /> Reset
                       </button>
@@ -801,6 +810,7 @@ export function RobotVacuumGame() {
                                 : 'rgba(255,255,255,0.05)',
                           }}
                           whileTap={{ scale: 0.98 }}
+                          aria-label={running ? 'Simulation running' : 'Run vacuum simulation'}
                         >
                           <Play className="w-3.5 h-3.5" />{' '}
                           {running ? 'Running...' : 'Run Vacuum!'}
@@ -814,12 +824,38 @@ export function RobotVacuumGame() {
                               'linear-gradient(135deg, #10B981, #059669)',
                           }}
                           whileTap={{ scale: 0.98 }}
+                          aria-label={roomIdx < ROOMS.length - 1 ? 'Go to next room' : 'Complete the game'}
                         >
                           {roomIdx < ROOMS.length - 1
                             ? 'Next Room \u2192'
                             : 'Complete! \u{1F389}'}
                         </motion.button>
                       )}
+                    </div>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Robot Vacuum Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You programmed an intelligent agent using IF/THEN rules to navigate rooms and clean efficiently — just like real robot vacuums use rule-based AI!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#10B981]/10 border border-[#10B981]/20">
+                      <p className="font-data text-2xl" style={{ color: '#10B981' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Robot pathfinding uses rules to decide where to move next</li>
+                        <li>• Rule priority order determines which action fires first</li>
+                        <li>• Coverage optimization balances thoroughness with efficiency</li>
+                      </ul>
                     </div>
                   </motion.div>
                 )}

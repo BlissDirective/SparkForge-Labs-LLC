@@ -2,26 +2,39 @@
 
 // ================================================================
 // CHATBOT NODES 3D — Lab 8 (NLP) — v3 Enhanced 3D
+// D3D-B1: Exports clean scene group for CockpitCanvas integration
+// Canvas, Environment, and EffectComposer removed — provided by CockpitCanvas
 // [v3] 3D conversation tree nodes with glowing connections
 // [v3] Animated message routing paths during test mode
 // [v3] Decision 6.5 — Tier 2 Enhanced 3D
+// ENH: Pulse trails + data flow + root halo + endpoint burst
 // ================================================================
 
-import { useRef, useMemo, useEffect } from "react";
-import { Canvas, useFrame, invalidate } from "@react-three/fiber";
-import { Text, Environment } from "@react-three/drei";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import { useRef, useMemo, useEffect, useState } from "react";
+import { useFrame, invalidate } from "@react-three/fiber";
+import { Text } from "@react-three/drei";
 import {
   CatmullRomCurve3,
+  InstancedMesh,
   MathUtils,
+  Matrix4,
   Mesh,
+  MeshBasicMaterial,
   MeshStandardMaterial,
+  Object3D,
   TubeGeometry,
   Vector3,
 } from 'three';
+import {
+  Particle,
+  PARTICLE_PRESETS,
+  spawnParticles,
+  updateParticles,
+} from '@/lib/3d/gameParticles';
 
 // Scratch vector to avoid per-frame allocations (BUG-M1 fix)
 const _scratchVec3 = new Vector3();
+const _dummy = new Object3D();
 
 // ■■■ Types ■■■
 
@@ -95,6 +108,83 @@ function computeNodePositions3D(nodes: BotNode[]) {
   });
 
   return positions;
+}
+
+// ■■■ ENH: Instanced Particle Renderer ■■■
+
+function ParticleCloud({
+  particles,
+  color,
+}: {
+  particles: Particle[];
+  color: string;
+}) {
+  const meshRef = useRef<InstancedMesh>(null);
+  const maxCount = 80; // max particles we'll ever show
+
+  useFrame(() => {
+    if (!meshRef.current) return;
+    const count = Math.min(particles.length, maxCount);
+    for (let i = 0; i < maxCount; i++) {
+      if (i < count) {
+        const p = particles[i];
+        _dummy.position.copy(p.position);
+        _dummy.scale.setScalar(p.size * p.opacity);
+        _dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, _dummy.matrix);
+      } else {
+        _dummy.position.set(0, 0, -100);
+        _dummy.scale.setScalar(0);
+        _dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, _dummy.matrix);
+      }
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+    meshRef.current.count = count;
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, maxCount]}>
+      <sphereGeometry args={[1, 6, 4]} />
+      <meshBasicMaterial color={color} transparent opacity={0.8} />
+    </instancedMesh>
+  );
+}
+
+// ■■■ ENH: Root Halo (glowing torus around START node) ■■■
+
+function RootHalo({
+  position,
+  color,
+}: {
+  position: [number, number, number];
+  color: string;
+}) {
+  const meshRef = useRef<Mesh>(null);
+
+  useFrame((state) => {
+    if (!meshRef.current) return;
+    meshRef.current.rotation.z = state.clock.elapsedTime * 0.6;
+    meshRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.3) * 0.2;
+    const mat = meshRef.current.material as MeshStandardMaterial;
+    mat.emissiveIntensity = 0.4 + Math.sin(state.clock.elapsedTime * 2) * 0.2;
+    invalidate();
+  });
+
+  return (
+    <mesh ref={meshRef} position={position}>
+      <torusGeometry args={[0.38, 0.03, 12, 32]} />
+      <meshStandardMaterial
+        color={color}
+        emissive={color}
+        emissiveIntensity={0.4}
+        transparent
+        opacity={0.6}
+        roughness={0.2}
+        metalness={0.5}
+      />
+    </mesh>
+  );
 }
 
 // ■■■ Node Sphere Component ■■■
@@ -196,7 +286,7 @@ function NodeSphere({
   );
 }
 
-// ■■■ Connection Tube Component ■■■
+// ■■■ Connection Tube Component (ENH: data flow UV animation) ■■■
 
 function ConnectionTube({
   from,
@@ -233,12 +323,19 @@ function ConnectionTube({
     return () => { geometry.dispose(); };
   }, [geometry]);
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     if (!tubeRef.current) return;
     const mat = tubeRef.current.material as MeshStandardMaterial;
     const targetOpacity = isActive ? 0.9 : 0.3;
     mat.opacity = MathUtils.lerp(mat.opacity, targetOpacity, delta * 4);
     mat.emissiveIntensity = isActive ? 0.6 : 0.1;
+
+    // ENH: Data flow color modulation — cycle emissive intensity along time
+    if (isActive) {
+      const flow = Math.sin(state.clock.elapsedTime * 4) * 0.5 + 0.5;
+      mat.emissiveIntensity = 0.3 + flow * 0.5;
+    }
+
     invalidate();
   });
 
@@ -256,21 +353,28 @@ function ConnectionTube({
   );
 }
 
-// ■■■ Message Pulse (test mode) ■■■
+// ■■■ Message Pulse (test mode) — ENH: with trail particles ■■■
 
 function MessagePulse({
   from,
   to,
   color,
   active,
+  onReachEnd,
+  isEndNode,
 }: {
   from: [number, number, number];
   to: [number, number, number];
   color: string;
   active: boolean;
+  onReachEnd?: () => void;
+  isEndNode: boolean;
 }) {
   const ref = useRef<Mesh>(null);
   const progress = useRef(0);
+  const trailRef = useRef<Particle[]>([]);
+  const trailSpawnTimer = useRef(0);
+  const reachedEnd = useRef(false);
 
   useFrame((_, delta) => {
     if (!ref.current || !active) {
@@ -279,21 +383,123 @@ function MessagePulse({
     }
     ref.current.visible = true;
     progress.current += delta * 0.5;
-    if (progress.current > 1) progress.current = 0;
+
+    // ENH: Detect reaching end node
+    if (progress.current > 0.95 && isEndNode && !reachedEnd.current) {
+      reachedEnd.current = true;
+      onReachEnd?.();
+    }
+
+    if (progress.current > 1) {
+      progress.current = 0;
+      reachedEnd.current = false;
+    }
+
     const t = progress.current;
-    ref.current.position.set(
-      from[0] + (to[0] - from[0]) * t,
-      from[1] + (to[1] - from[1]) * t,
-      from[2] + (to[2] - from[2]) * t + Math.sin(t * Math.PI) * 0.2
-    );
+    const px = from[0] + (to[0] - from[0]) * t;
+    const py = from[1] + (to[1] - from[1]) * t + Math.sin(t * Math.PI) * 0.2;
+    const pz = from[2] + (to[2] - from[2]) * t;
+    ref.current.position.set(px, py, pz);
+
+    // ENH: Spawn trail particles behind the pulse
+    trailSpawnTimer.current += delta;
+    if (trailSpawnTimer.current > 0.04) {
+      trailSpawnTimer.current = 0;
+      const origin = new Vector3(px, py, pz);
+      const newTrail = spawnParticles('trailParticles', origin, {
+        count: 1,
+        colors: [color, '#FFFFFF'],
+        speedRange: [0.05, 0.15],
+        lifeRange: [0.2, 0.5],
+        sizeRange: [0.015, 0.035],
+      });
+      trailRef.current.push(...newTrail);
+      // Cap at 15 trail particles
+      if (trailRef.current.length > 15) {
+        trailRef.current = trailRef.current.slice(-15);
+      }
+    }
+
+    // Update trail
+    updateParticles(trailRef.current, delta, PARTICLE_PRESETS.trailParticles);
+    trailRef.current = trailRef.current.filter((p) => p.life > 0);
+
     invalidate();
   });
 
   return (
-    <mesh ref={ref} visible={false}>
-      <sphereGeometry args={[0.06, 8, 8]} />
+    <group>
+      <mesh ref={ref} visible={false}>
+        <sphereGeometry args={[0.06, 8, 8]} />
+        <meshBasicMaterial color={color} transparent opacity={0.9} />
+      </mesh>
+      {/* ENH: Trail particle instances */}
+      <ParticleCloud particles={trailRef.current} color={color} />
+    </group>
+  );
+}
+
+// ■■■ ENH: Endpoint Discovery Burst ■■■
+
+function EndpointBurst({
+  position,
+  color,
+  active,
+}: {
+  position: [number, number, number];
+  color: string;
+  active: boolean;
+}) {
+  const particlesRef = useRef<Particle[]>([]);
+  const meshRef = useRef<InstancedMesh>(null);
+  const hasSpawned = useRef(false);
+  const maxCount = 20;
+
+  useEffect(() => {
+    if (active && !hasSpawned.current) {
+      hasSpawned.current = true;
+      const origin = new Vector3(...position);
+      particlesRef.current = spawnParticles('discoveryBurst', origin, {
+        count: 20,
+        colors: [color, '#FFD700', '#FFFFFF'],
+        speedRange: [1.0, 3.0],
+        lifeRange: [0.6, 1.2],
+      });
+    }
+    if (!active) {
+      hasSpawned.current = false;
+    }
+  }, [active, position, color]);
+
+  useFrame((_, delta) => {
+    if (particlesRef.current.length === 0 || !meshRef.current) return;
+    updateParticles(particlesRef.current, delta, PARTICLE_PRESETS.discoveryBurst);
+    particlesRef.current = particlesRef.current.filter((p) => p.life > 0);
+
+    for (let i = 0; i < maxCount; i++) {
+      if (i < particlesRef.current.length) {
+        const p = particlesRef.current[i];
+        _dummy.position.copy(p.position);
+        _dummy.scale.setScalar(p.size * p.opacity);
+        _dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, _dummy.matrix);
+      } else {
+        _dummy.position.set(0, 0, -100);
+        _dummy.scale.setScalar(0);
+        _dummy.updateMatrix();
+        meshRef.current.setMatrixAt(i, _dummy.matrix);
+      }
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+    meshRef.current.count = Math.min(particlesRef.current.length, maxCount);
+    invalidate();
+  });
+
+  return (
+    <instancedMesh ref={meshRef} args={[undefined, undefined, maxCount]}>
+      <sphereGeometry args={[1, 6, 4]} />
       <meshBasicMaterial color={color} transparent opacity={0.9} />
-    </mesh>
+    </instancedMesh>
   );
 }
 
@@ -313,6 +519,20 @@ function ChatbotScene({
 
   const testPathSet = useMemo(() => new Set(testPath), [testPath]);
 
+  // ENH: Track which end nodes have received a burst
+  const [burstEndNodes, setBurstEndNodes] = useState<Set<string>>(new Set());
+
+  // Identify end nodes
+  const endNodeIds = useMemo(
+    () => new Set(nodes.filter((n) => n.responses.length === 0).map((n) => n.id)),
+    [nodes]
+  );
+
+  // Reset bursts when test path changes
+  useEffect(() => {
+    setBurstEndNodes(new Set());
+  }, [testPath]);
+
   return (
     <>
       {/* Lighting */}
@@ -323,6 +543,14 @@ function ChatbotScene({
         intensity={0.3}
         color={personalityColors.primary}
       />
+
+      {/* ENH: Root halo around START node */}
+      {positions["root"] && (
+        <RootHalo
+          position={positions["root"]}
+          color={personalityColors.primary}
+        />
+      )}
 
       {/* Node Spheres */}
       {nodes.map((node) => {
@@ -364,13 +592,14 @@ function ChatbotScene({
           })
       )}
 
-      {/* Message Pulses (test mode only) */}
+      {/* Message Pulses (test mode only) — ENH: with trail particles */}
       {isTestMode &&
         testPath.slice(0, -1).map((nodeId, i) => {
           const nextId = testPath[i + 1];
           const from = positions[nodeId];
           const to = positions[nextId];
           if (!from || !to) return null;
+          const isEnd = endNodeIds.has(nextId);
           return (
             <MessagePulse
               key={`pulse-${nodeId}-${nextId}`}
@@ -378,22 +607,29 @@ function ChatbotScene({
               to={to}
               color={personalityColors.primary}
               active={true}
+              isEndNode={isEnd}
+              onReachEnd={() => {
+                setBurstEndNodes((prev) => new Set(prev).add(nextId));
+              }}
             />
           );
         })}
 
-      {/* Environment */}
-      <Environment preset="night" />
+      {/* ENH: Discovery burst at end nodes when message arrives */}
+      {isTestMode &&
+        Array.from(burstEndNodes).map((nodeId) => {
+          const pos = positions[nodeId];
+          if (!pos) return null;
+          return (
+            <EndpointBurst
+              key={`burst-${nodeId}`}
+              position={pos}
+              color={personalityColors.primary}
+              active={true}
+            />
+          );
+        })}
 
-      {/* Bloom (subtle) */}
-      <EffectComposer>
-        <Bloom
-          intensity={0.4}
-          luminanceThreshold={0.5}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
     </>
   );
 }
@@ -402,30 +638,14 @@ function ChatbotScene({
 
 export default function ChatbotNodes3D(props: ChatbotNodes3DProps) {
   return (
-    <div
-      className="w-full rounded-lg overflow-hidden"
-      style={{
-        height: 220,
-        background:
-          "radial-gradient(ellipse at center, rgba(99,102,241,0.06) 0%, transparent 70%)",
-      }}
-      aria-hidden="true"
-    >
-      <Canvas
-        camera={{ position: [0, -1, 6], fov: 50 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-        style={{ background: "transparent" }}
-        frameloop="always"
-      >
-        <ChatbotScene
-          nodes={props.nodes}
-          personalityColors={props.personalityColors}
-          hoveredNode={props.hoveredNode}
-          testPath={props.testPath}
-          isTestMode={props.isTestMode}
-        />
-      </Canvas>
-    </div>
+    <group>
+      <ChatbotScene
+        nodes={props.nodes}
+        personalityColors={props.personalityColors}
+        hoveredNode={props.hoveredNode}
+        testPath={props.testPath}
+        isTestMode={props.isTestMode}
+      />
+    </group>
   );
 }

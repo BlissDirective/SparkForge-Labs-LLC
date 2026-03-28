@@ -13,19 +13,16 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Play, Dog } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const TreatTrainerEnvironment = dynamic(
   () => import('@/components/3d/environments/TreatTrainerEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 const SIZE = 7;
 const WALLS: [number, number][] = [[1,1],[1,2],[2,4],[3,1],[3,3],[4,5],[5,2],[5,3]];
@@ -39,6 +36,7 @@ export function TreatTrainerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   // Initialize game store
   useEffect(() => { game.startGame("treat-trainer", TOTAL_EPISODES); }, []);
@@ -50,6 +48,10 @@ export function TreatTrainerGame() {
   const [robotPos, setRobotPos] = useState<[number, number]>(START);
   const [running, setRunning] = useState(false);
   const [history, setHistory] = useState<number[]>([]);
+
+  useEffect(() => {
+    setGameSceneContent(<TreatTrainerEnvironment treatCount={episode} isTraining={phase === 'play'} />);
+  }, [episode, phase, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i, x: (i * 37 + 13) % 100, y: (i * 53 + 7) % 100, size: (i % 3) + 1,
@@ -99,23 +101,12 @@ export function TreatTrainerGame() {
     game.updateScore(5);
     game.advanceRound();
     setRunning(false);
-    if (episode >= 9) game.completeGame();
+    if (episode >= 9) { setPhase('complete'); game.completeGame(); }
   }, [rewards, episode, game]);
 
   return (
     <GameShell gameId="treat-trainer" title="Treat Trainer" worldNumber={2} worldColor="#8B5CF6" totalRounds={TOTAL_EPISODES}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <TreatTrainerEnvironment treatCount={episode} isTraining={phase === 'play'} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -153,7 +144,8 @@ export function TreatTrainerGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start training the robot">
                       Start Training! <Dog className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -226,9 +218,37 @@ export function TreatTrainerGame() {
                     <motion.button onClick={runEpisode} disabled={running || episode >= 10}
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white flex items-center justify-center gap-2"
                       style={{ background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label={running ? 'Episode is running' : `Run training episode ${episode + 1}`}>
                       <Play className="w-4 h-4" /> {running ? 'Running...' : `Run Episode ${episode + 1}`}
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Treat Trainer Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">
+                      You trained a robot agent across 10 episodes by tuning reward values, watching it learn to find the optimal path to the goal.
+                    </p>
+                    <div className="rounded-xl px-6 py-3 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20">
+                      <p className="font-data text-2xl text-[#8B5CF6]">{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Reinforcement learning uses rewards and penalties to teach AI agents how to behave</li>
+                        <li>• Positive rewards encourage desired actions while negative rewards discourage bad ones</li>
+                        <li>• Over many training episodes, the agent converges on better strategies — just like practice makes perfect</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
 
