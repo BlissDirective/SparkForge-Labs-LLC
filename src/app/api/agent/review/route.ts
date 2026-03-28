@@ -7,7 +7,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createServerSupabase } from '@/lib/supabase/server';
-import { apiSuccess, apiError } from '@/lib/api-helpers';
+import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
 import { approveContent, rejectContent } from '@/lib/agent/pipeline';
 
 // v2 [S9-HIGH-002]: Zod schema for review POST body
@@ -123,6 +123,10 @@ export async function GET(req: NextRequest) {
 
 // ── POST: Approve or reject ────────────────────────
 export async function POST(req: NextRequest) {
+  // v2 [S9-WARN-002]: Rate limit bulk admin actions (60/min)
+  const limited = applyRateLimit(req, 'admin-review');
+  if (limited) return limited;
+
   const { user, error } = await verifyAdmin();
 
   if (error || !user) {
