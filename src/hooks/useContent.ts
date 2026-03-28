@@ -7,7 +7,7 @@ import type { Content } from '@/types';
 export function useLabContent(labNumber: number, ageBand: string) {
   return useQuery({
     queryKey: ['content', 'lab', labNumber, ageBand],
-    queryFn: () => apiFetch(`/api/content?world=${labNumber}&ageBand=${ageBand}&limit=50`),
+    queryFn: () => apiFetch<{ items: Content[] }>(`/api/content?world=${labNumber}&ageBand=${ageBand}&limit=50`),
     enabled: !!labNumber && !!ageBand,
     staleTime: 10 * 60 * 1000, // v2 [ENH]: 10 minutes
   });
@@ -18,7 +18,7 @@ export function useLabContent(labNumber: number, ageBand: string) {
 export function useContentBySlug(slug: string) {
   return useQuery({
     queryKey: ['content', 'slug', slug],
-    queryFn: () => apiFetch(`/api/content/${slug}`),
+    queryFn: () => apiFetch<Content>(`/api/content/${slug}`),
     enabled: !!slug,
     staleTime: 30 * 60 * 1000, // v2 [ENH]: 30 minutes
   });
@@ -28,7 +28,7 @@ export function useContentBySlug(slug: string) {
 export function useAllContent(ageBand: string) {
   return useQuery({
     queryKey: ['content', 'all', ageBand],
-    queryFn: () => apiFetch(`/api/content?ageBand=${ageBand}&limit=50`),
+    queryFn: () => apiFetch<{ items: Content[] }>(`/api/content?ageBand=${ageBand}&limit=50`),
     enabled: !!ageBand,
   });
 }
@@ -37,11 +37,11 @@ export function useAllContent(ageBand: string) {
 export function useDailyChallenge(ageBand: string) {
   return useQuery({
     queryKey: ['content', 'daily', ageBand],
-    queryFn: () => apiFetch(`/api/content?ageBand=${ageBand}&limit=5`),
+    queryFn: () => apiFetch<{ items: Content[] }>(`/api/content?ageBand=${ageBand}&limit=5`),
     enabled: !!ageBand,
     staleTime: 60 * 60 * 1000, // 1 hour
     select: (data) => {
-      const items = (data?.items || []) as Content[];
+      const items = data?.items || [];
       if (items.length === 0) return null;
       const dayIndex = new Date().getDate() % items.length;
       return items[dayIndex];
@@ -53,10 +53,10 @@ export function useDailyChallenge(ageBand: string) {
 export function useLatestContent(ageBand: string) {
   return useQuery({
     queryKey: ['content', 'latest', ageBand],
-    queryFn: () => apiFetch(`/api/content?ageBand=${ageBand}&limit=3`),
+    queryFn: () => apiFetch<{ items: Content[] }>(`/api/content?ageBand=${ageBand}&limit=3`),
     enabled: !!ageBand,
     select: (data) => {
-      const items = (data?.items || []) as Content[];
+      const items = data?.items || [];
       return items.find((i) => i.is_agent_generated) || items[0] || null;
     },
   });

@@ -42,7 +42,7 @@ const LAB_ICONS = ['🤖', '🧠', '🔬', '🎨', '🤝', '⚖️', '👁', '�
 export default function LabsPage() {
   const { activeChild } = useChildStore();
   const setLabColor = useUIStore((s) => s.setLabColor);
-  const setHoveredLabId = useCockpitStore((s) => s.setHoveredLabId);
+  const setHoveredLabId = useCockpitStore((s) => s.setHoveredLab);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const childId = activeChild?.id || '';
 

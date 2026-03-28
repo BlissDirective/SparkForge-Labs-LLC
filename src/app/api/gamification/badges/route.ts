@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
     score: number | null;
     content: { world: number; type: string } | null;
   };
-  const typedProgress = (progress ?? []) as ProgressWithContent[];
+  const typedProgress = (progress ?? []) as unknown as ProgressWithContent[];
 
   const worldsVisited = new Set<number>();
   const gamesByWorld = new Map<number, number>();

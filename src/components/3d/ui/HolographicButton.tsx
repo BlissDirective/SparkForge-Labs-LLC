@@ -209,15 +209,16 @@ export function HolographicButton({
       />
 
       {/* Inner button surface */}
-      <mesh
+      <RoundedBox
         ref={buttonRef}
+        args={[width, height, 0.012]}
+        radius={0.006}
+        smoothness={4}
         material={buttonMaterial}
         onClick={handleClick}
         onPointerOver={handlePointerOver}
         onPointerOut={handlePointerOut}
-      >
-        <roundedBoxGeometry args={[width, height, 0.012, 4, 0.006]} />
-      </mesh>
+      />
 
       {/* Glow ring (always visible, pulses) */}
       <mesh ref={glowRef} position={[0, 0, 0.008]}>

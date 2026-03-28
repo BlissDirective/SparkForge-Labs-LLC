@@ -79,7 +79,7 @@ export default function LabDetailPage() {
   const games = useMemo(() => getGamesByLab(labId), [labId]);
 
   const { data: labProgress, isLoading } = useLabProgress(childId, labId);
-  const progressPercent = labProgress?.percent || 0;
+  const progressPercent = (labProgress as { percent?: number } | undefined)?.percent || 0;
 
   // 3D Integration: Tint cockpit to lab color + focus 3D map on this lab
   useEffect(() => {

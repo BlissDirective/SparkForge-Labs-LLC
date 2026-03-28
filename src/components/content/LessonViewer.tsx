@@ -190,7 +190,8 @@ export function LessonViewer({ content }: { content: Content }) {
 
   const lab = WORLDS.find((w) => w.id === content.world);
 
-  const isAlreadyCompleted = (allProgress || []).some(
+  const progressArray = (allProgress || []) as Progress[];
+  const isAlreadyCompleted = progressArray.some(
     (p: Progress) =>
       (p.content_id === content.id) && p.completed
   );

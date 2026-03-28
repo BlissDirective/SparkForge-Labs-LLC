@@ -49,8 +49,9 @@ export function TrophyRoom({ childId, onShowcaseBadgeSelect }: TrophyRoomProps) 
 
   // Normalize API response into BadgeData[]
   const badges: BadgeData[] = useMemo(() => {
-    if (!data?.badges) return [];
-    return data.badges.map((b: {
+    const rawData = data as { badges?: Array<{ id: string; name: string; icon: string; description: string; rarity: string; earned: boolean; category: string }> } | undefined;
+    if (!rawData?.badges) return [];
+    return rawData.badges.map((b: {
       id: string;
       name: string;
       icon: string;
@@ -154,7 +155,8 @@ export function TrophyRoom({ childId, onShowcaseBadgeSelect }: TrophyRoomProps) 
                     }
                   `}
                   style={{
-                    ringColor: isSelected ? accentColor : undefined,
+                    // @ts-expect-error -- ringColor is a valid CSS custom property for ring utilities
+                    '--tw-ring-color': isSelected ? accentColor : undefined,
                     boxShadow: isSelected
                       ? `0 0 16px ${accentColor}33, inset 0 0 12px ${accentColor}11`
                       : undefined,

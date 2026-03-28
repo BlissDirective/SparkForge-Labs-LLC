@@ -1,11 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { useChildStore } from '@/stores/childStore';
+import type { Child } from '@/types';
 
 export function useChildren() {
   return useQuery({
     queryKey: ['children'],
-    queryFn: () => apiFetch('/api/children'),
+    queryFn: () => apiFetch<Child[]>('/api/children'),
   });
 }
 
@@ -15,7 +16,7 @@ export function useCreateChild() {
 
   return useMutation({
     mutationFn: (body: { displayName: string; ageBand: string; birthYear?: number }) =>
-      apiFetch('/api/children', { method: 'POST', body: JSON.stringify(body) }),
+      apiFetch<Child>('/api/children', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: (newChild) => {
       qc.invalidateQueries({ queryKey: ['children'] });
       const current = useChildStore.getState().children;
