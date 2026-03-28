@@ -463,6 +463,35 @@ export default function AdminReviewPage() {
             <option value="full">Full (+ trending topics)</option>
           </select>
 
+          {/* Phase 9: Generate New Game button */}
+          <motion.button
+            onClick={async () => {
+              addToast('info', 'Starting new game generation...');
+              try {
+                const res = await fetch('/api/agent/game-generator', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({}),
+                });
+                const result = await res.json();
+                if (res.ok && result.data?.concept) {
+                  const c = result.data.concept;
+                  const passedGates = (result.data.gates || []).filter((g: { status: string }) => g.status === 'passed').length;
+                  addToast('success', `New game "${c.name}" (${c.tier}) generated! ${passedGates} gates passed. Review in Architecture Queue.`);
+                } else {
+                  addToast('error', result.error || 'Game generation failed.');
+                }
+              } catch {
+                addToast('error', 'Could not reach game generator API.');
+              }
+            }}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-400/20 text-amber-400 font-display text-sm hover:border-amber-400/40 transition-colors"
+            whileTap={{ scale: 0.98 }}
+            aria-label="Generate new game"
+          >
+            <Gamepad2 className="w-4 h-4" /> New Game
+          </motion.button>
+
           {/* Run Agent button */}
           <motion.button
             onClick={triggerAgent}
