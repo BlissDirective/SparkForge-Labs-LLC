@@ -276,9 +276,56 @@ export default function PricingPage() {
   }
 
   // [ENH-4] Memoized feature value renderer
-  const renderFeatureValue = useCallback((val: FeatureValue) => {
+  // D1: Enhanced feature values with animated CSS comparison bars for numeric values
+  const renderFeatureValue = useCallback((val: FeatureValue, tier?: SubscriptionTier) => {
     if (val === true) return <Check className="w-4 h-4 text-emerald-400 mx-auto" />;
     if (val === false) return <X className="w-4 h-4 text-white/15 mx-auto" />;
+
+    // Numeric values get visual bar treatment
+    const numericMatch = typeof val === 'string' && val.match(/^(\d+)/);
+    if (numericMatch && tier) {
+      const num = parseInt(numericMatch[1], 10);
+      const maxVal = tier === 'forge' ? num : (tier === 'plus' ? num * 1.2 : num * 4);
+      const barWidth = Math.min(100, (num / maxVal) * 100);
+      const tierColor = TIER_COLORS[tier];
+
+      return (
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-data text-sm text-white/80">{val}</span>
+          <div className="w-full h-1 rounded-full bg-white/[0.06] overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{ backgroundColor: tierColor }}
+              initial={{ width: 0 }}
+              whileInView={{ width: `${barWidth}%` }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    // "Unlimited" and "All 10" get full bar
+    if (typeof val === 'string' && (val === 'Unlimited' || val === 'All 10') && tier) {
+      const tierColor = TIER_COLORS[tier];
+      return (
+        <div className="flex flex-col items-center gap-1">
+          <span className="font-data text-sm" style={{ color: tierColor }}>{val}</span>
+          <div className="w-full h-1 rounded-full bg-white/[0.06] overflow-hidden">
+            <motion.div
+              className="h-full rounded-full"
+              style={{ backgroundColor: tierColor }}
+              initial={{ width: 0 }}
+              whileInView={{ width: '100%' }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: 'easeOut' }}
+            />
+          </div>
+        </div>
+      );
+    }
+
     return <span className="font-body text-sm text-white/70">{val}</span>;
   }, []);
 
@@ -541,9 +588,9 @@ export default function PricingPage() {
                 }`}
               >
                 <p className="font-body text-sm text-white/60">{row.label}</p>
-                <div className="text-center">{renderFeatureValue(row.free)}</div>
-                <div className="text-center">{renderFeatureValue(row.plus)}</div>
-                <div className="text-center">{renderFeatureValue(row.forge)}</div>
+                <div className="text-center">{renderFeatureValue(row.free, 'free')}</div>
+                <div className="text-center">{renderFeatureValue(row.plus, 'plus')}</div>
+                <div className="text-center">{renderFeatureValue(row.forge, 'forge')}</div>
               </div>
             ))}
 
