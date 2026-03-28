@@ -179,13 +179,23 @@ export function AiOrNotGame() {
   const realityScore = Math.round((totalCorrect / Math.max(1, history.length)) * 100);
 
   // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
+  // Map TimeCategory game state to AiOrNot3D's 'human'|'ai' visual categories:
+  // 'now' (exists today) → 'human', 'soon'/'scifi' (future AI) → 'ai'
   useEffect(() => {
     if (phase === 'play' || phase === 'predict') {
-      setGameSceneContent(<AiOrNot3D />);
+      setGameSceneContent(
+        <AiOrNot3D
+          currentItem={round ? { title: round.title, emoji: round.emoji, isAI: round.answer !== 'now' } : null}
+          verdict={guess ? (guess === 'now' ? 'human' : 'ai') : null}
+          isCorrect={showResult ? (guess === round?.answer) : null}
+          score={totalCorrect}
+          total={history.length}
+        />
+      );
     } else {
       setGameSceneContent(null);
     }
-  }, [phase, setGameSceneContent]);
+  }, [phase, round, guess, showResult, totalCorrect, history.length, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
     id: i, x: ((i * 43 + 11) * 7) % 100, y: ((i * 61 + 13) * 11) % 100,

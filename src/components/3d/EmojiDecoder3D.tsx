@@ -25,6 +25,7 @@ import {
   spawnParticles,
   updateParticles,
 } from '@/lib/3d/gameParticles';
+import EmojiDecoderEnvironment from '@/components/3d/environments/EmojiDecoderEnvironment';
 
 const _dummy = new Object3D();
 
@@ -302,6 +303,9 @@ export default function EmojiDecoder3D({
 }: EmojiDecoder3DProps) {
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <EmojiDecoderEnvironment decodedCount={inputEmojis.length} isDecoding={isDecoding} />
+
       <Scene inputEmojis={inputEmojis} decodedText={decodedText} isDecoding={isDecoding} progress={progress} />
     </group>
   );

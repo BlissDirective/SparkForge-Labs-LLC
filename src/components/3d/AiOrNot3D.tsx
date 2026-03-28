@@ -35,6 +35,7 @@ import {
   spawnParticles,
   updateParticles,
 } from '@/lib/3d/gameParticles';
+import AiOrNotEnvironment from '@/components/3d/environments/AiOrNotEnvironment';
 
 interface AiOrNot3DProps {
   currentItem: { title: string; emoji: string; isAI: boolean } | null;
@@ -453,6 +454,9 @@ export default function AiOrNot3D({
 }: AiOrNot3DProps) {
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <AiOrNotEnvironment isJudging={verdict !== null} correctCount={score} />
+
       <Scene currentItem={currentItem} verdict={verdict} isCorrect={isCorrect} score={score} total={total} />
     </group>
   );

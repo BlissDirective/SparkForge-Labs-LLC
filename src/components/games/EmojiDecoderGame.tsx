@@ -263,15 +263,6 @@ export function EmojiDecoderGame() {
   // B-10: Clean up timer on unmount to prevent firing on unmounted component
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
-  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
-  useEffect(() => {
-    if (phase === 'play' || phase === 'lab') {
-      setGameSceneContent(<EmojiDecoder3D />);
-    } else {
-      setGameSceneContent(null);
-    }
-  }, [phase, setGameSceneContent]);
-
   const rounds = useMemo(() => {
     const filtered = ALL_ROUNDS.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
     return [...filtered].sort(() => Math.random() - 0.5).slice(0, ageBand === 'A' ? 8 : 10);
@@ -279,6 +270,22 @@ export function EmojiDecoderGame() {
 
   const round = rounds[roundIdx];
   const totalRounds = rounds.length;
+
+  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
+  useEffect(() => {
+    if (phase === 'play' || phase === 'lab') {
+      setGameSceneContent(
+        <EmojiDecoder3D
+          inputEmojis={round?.emojis ? Array.from(round.emojis) : []}
+          decodedText={selected || ''}
+          isDecoding={showAI}
+          progress={totalRounds > 0 ? roundIdx / totalRounds : 0}
+        />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, round, selected, showAI, roundIdx, totalRounds, setGameSceneContent]);
 
   const answers = useMemo(() => {
     if (!round) return [];

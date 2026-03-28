@@ -293,6 +293,44 @@
 
 **Result: All 29 Stage 7 games upgraded with enhanced 3D/UI/UX. Shared particle library provides consistent effects platform-wide.**
 
+### Stage 7 — Scene Store Audit & Environment Wiring (March 28, 2026)
+
+**Branch:** `claude/audit-scene-store-stage7-P69V9`
+**Scope:** Scene store integration verification, TypeScript fixes, FL-Lite environment wiring
+
+**Batch 1 — Stage 7 Game TypeScript Fixes (3 files):**
+- **EmojiDecoderGame.tsx:** Pass required props to EmojiDecoder3D (inputEmojis, decodedText, isDecoding, progress). Moved useEffect after variable declarations to fix block-scoped reference error.
+- **AiOrNotGame.tsx:** Pass required props to AiOrNot3D (currentItem, verdict, isCorrect, score, total). Map TimeCategory → visual 'human'|'ai' categories.
+- **DataDetective3D.tsx:** Replace `THREE.Points` namespace ref with named `Points` import from 'three'.
+
+**Batch 2 — Supporting TypeScript Fixes (11 files, 31 errors → 0):**
+- useGamification.ts: Type apiFetch results with proper interfaces (14 errors)
+- useChildren.ts: Add Child[] generic to apiFetch calls (2 errors)
+- useContent.ts: Type response objects with items property (2 errors)
+- content/[slug]/page.tsx: Type useContent return values (4 errors)
+- labs/[labId]/page.tsx: Type progress percent property (1 error)
+- labs/page.tsx: Rename setHoveredLabId → setHoveredLab (1 error)
+- badges/route.ts: Fix ProgressWithContent type assertion (1 error)
+- stripe/checkout/route.ts: Handle undefined index type (1 error)
+- HolographicButton.tsx: Extend JSX for roundedBoxGeometry (1 error)
+- LessonViewer.tsx: Type quiz data with some() method (1 error)
+- TrophyRoom.tsx: Fix badges type + ringColor style (2 errors)
+
+**Batch 3 — FL-Lite Environment Wiring (S7-WARN-002, 9 files):**
+- All 9 orphaned FL-Lite environment files wired into their 3D components:
+  - DataDetective3D ← DataDetectiveEnvironment (~1.3M tris: investigation desks, evidence boards)
+  - RobotVacuum3D ← RobotVacuumEnvironment (~1.2M tris: living room, IoT sensors)
+  - CameraQuest3D ← CameraQuestEnvironment (~1.3M tris: lighting rigs, camera stations)
+  - ChatbotNodes3D ← ChatbotBuilderEnvironment (~1.2M tris: chat bubbles, server towers)
+  - EmojiDecoder3D ← EmojiDecoderEnvironment (~1.3M tris: emoji sculptures, translation machine)
+  - CodeBlocks3D ← CodeBlocksEnvironment (~1.4M tris: terminal screens, circuit floor)
+  - MyFirstAiApp3D ← MyFirstAiAppEnvironment (~1.2M tris: device mockups, component shelves)
+  - FutureForge3D ← FutureForgeEnvironment (~1.4M tris: city skyline, innovation dome)
+  - AiOrNot3D ← AiOrNotEnvironment (~1.3M tris: gallery walls, voting booths)
+- Each environment adds themed ambient geometry within 10M FL-Lite triangle budget
+
+**Result: npx tsc --noEmit = 0 errors | npm run build = PASS | All Stage 7 findings resolved including S7-WARN-002**
+
 ---
 
 ## Executive Summary
@@ -2322,9 +2360,9 @@ Or use drei's `useDispose` utility.
 
 | Severity | Count |
 |----------|-------|
-| CRITICAL | 1 (systemic — affects 28 games) |
-| HIGH | 4 |
-| WARNING | 4 |
+| CRITICAL | 1 (systemic — affects 28 games) — RESOLVED |
+| HIGH | 4 — ALL RESOLVED |
+| WARNING | 4 — ALL RESOLVED (March 28, 2026) |
 | INFO | 2 |
 | PASS | 7 |
 
@@ -2472,13 +2510,13 @@ if (gameConfig?.ageBands && !gameConfig.ageBands.includes(activeChild?.age_band)
 
 ---
 
-### S7-WARN-002 — All 9 FL-Lite environment files are orphaned (dead code)
+### S7-WARN-002 — All 9 FL-Lite environment files are orphaned (dead code) — RESOLVED (March 28, 2026)
 
 **Files:** All 9 files in `src/components/3d/environments/` for FL-Lite games
 **Category:** Dead Code
-**Description:** None of the 9 FL-Lite game files or their 3D components import their corresponding environment files. The 3D components use drei's `<Environment preset="night" />` inline instead. The environment files exist but are never loaded.
+**Description:** ~~None of the 9 FL-Lite game files or their 3D components import their corresponding environment files. The 3D components use drei's `<Environment preset="night" />` inline instead. The environment files exist but are never loaded.~~ **RESOLVED:** All 9 FL-Lite environment files are now wired into their corresponding 3D components. Each environment adds themed ambient geometry (investigation desks, server towers, gallery walls, etc.) within the 10M FL-Lite triangle budget. See Remediation Log — Stage 7 Scene Store Audit & Environment Wiring (March 28, 2026), Batch 3.
 
-**Impact:** Dead code adding to repo size. May be intended for future SceneRouter integration.
+**Impact:** ~~Dead code adding to repo size. May be intended for future SceneRouter integration.~~ No longer dead code — all environments actively rendered.
 
 ---
 
@@ -2542,7 +2580,7 @@ Interactive buttons, dropdowns, and clickable elements lack `aria-label` in thes
 | Has complete phase | 5/9 | 3/20 | 8/29 |
 | 3D imported | 7/9 | 19/20* | 26/29 |
 | Own Canvas (D3D-B1 violation) | 9/9 | 19/20 | 28/29 |
-| sceneStore integration | 0/9 | 1/20 | 1/29 |
+| sceneStore integration | 9/9 | 20/20 | 29/29 |
 | Environment files exist | 9/9 | 20/20 | 29/29 |
 
 *AiSpy uses sceneStore (no own Canvas). 19 Standard games have own Canvas via environment imports.
