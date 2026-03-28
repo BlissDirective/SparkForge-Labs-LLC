@@ -23,6 +23,7 @@ import {
   MathUtils,
   Mesh,
   MeshStandardMaterial,
+  Points,
   Vector3,
 } from 'three';
 import {
@@ -31,6 +32,7 @@ import {
   PARTICLE_PRESETS,
   Particle,
 } from '@/lib/3d/gameParticles';
+import DataDetectiveEnvironment from '@/components/3d/environments/DataDetectiveEnvironment';
 
 // ■■■ Types ■■■
 
@@ -76,7 +78,7 @@ function HolographicGlowRing({ worldColor }: { worldColor: string }) {
 // ■■■ Discovery Burst Particles (using shared gameParticles) ■■■
 
 function DiscoveryBurstParticles({ particles }: { particles: Particle[] }) {
-  const pointsRef = useRef<THREE.Points>(null);
+  const pointsRef = useRef<Points>(null);
 
   const posBuffer = useMemo(() => new Float32Array(40 * 3), []);
   const colBuffer = useMemo(() => new Float32Array(40 * 3), []);
@@ -344,6 +346,9 @@ export default function DataDetective3D({
 
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <DataDetectiveEnvironment selectedRow={selectedRow} isAnalyzing={selectedRow !== null} />
+
       {/* Lighting */}
       <ambientLight intensity={0.3} />
       <DeskLamp worldColor={worldColor} />

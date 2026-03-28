@@ -31,6 +31,7 @@ import {
   spawnParticles,
   updateParticles,
 } from '@/lib/3d/gameParticles';
+import ChatbotBuilderEnvironment from '@/components/3d/environments/ChatbotBuilderEnvironment';
 
 // Scratch vector to avoid per-frame allocations (BUG-M1 fix)
 const _scratchVec3 = new Vector3();
@@ -639,6 +640,9 @@ function ChatbotScene({
 export default function ChatbotNodes3D(props: ChatbotNodes3DProps) {
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <ChatbotBuilderEnvironment isTestMode={props.isTestMode} activeNodeCount={props.nodes.length} />
+
       <ChatbotScene
         nodes={props.nodes}
         personalityColors={props.personalityColors}

@@ -41,7 +41,8 @@ export async function POST(req: NextRequest) {
 
   const { tier, interval } = parsed.data;
 
-  const priceId = STRIPE_PRICES[tier as keyof typeof STRIPE_PRICES]?.[interval];
+  const tierPrices = STRIPE_PRICES[tier as keyof typeof STRIPE_PRICES];
+  const priceId = tierPrices?.[interval as keyof typeof tierPrices];
   if (!priceId || priceId.startsWith('price_placeholder')) {
     return apiError(
       'Stripe price IDs not configured. Create products in Stripe Dashboard first.',

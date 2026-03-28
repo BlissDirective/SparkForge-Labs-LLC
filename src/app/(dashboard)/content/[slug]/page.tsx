@@ -2,6 +2,7 @@
 
 import { useParams } from 'next/navigation';
 import { useContentBySlug } from '@/hooks/useContent';
+import type { Content } from '@/types';
 import { LessonViewer } from '@/components/content/LessonViewer';
 import { QuizEngine } from '@/components/content/QuizEngine';
 import { SparkFactViewer } from '@/components/content/SparkFactViewer';
@@ -11,7 +12,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
 export default function ContentPage() {
   const params = useParams();
   const slug = Array.isArray(params.slug) ? params.slug[0] : (params.slug ?? '');
-  const { data, isLoading, error } = useContentBySlug(slug);
+  const { data, isLoading, error } = useContentBySlug(slug) as { data: Content | undefined; isLoading: boolean; error: Error | null };
 
   if (isLoading) {
     return (

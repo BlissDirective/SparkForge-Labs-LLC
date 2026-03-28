@@ -38,6 +38,7 @@ import {
   spawnParticles,
   updateParticles,
 } from '@/lib/3d/gameParticles';
+import MyFirstAiAppEnvironment from '@/components/3d/environments/MyFirstAiAppEnvironment';
 
 // ---- Types ----
 
@@ -773,6 +774,9 @@ function Scene(props: MyFirstAiApp3DProps) {
 export default function MyFirstAiApp3D(props: MyFirstAiApp3DProps) {
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <MyFirstAiAppEnvironment buildStep={props.buildStep} isPreview={props.isPreview} />
+
       <Scene {...props} />
     </group>
   );

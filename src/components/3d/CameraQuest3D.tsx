@@ -34,6 +34,7 @@ import {
   PARTICLE_PRESETS,
   Particle,
 } from '@/lib/3d/gameParticles';
+import CameraQuestEnvironment from '@/components/3d/environments/CameraQuestEnvironment';
 
 // ---- Types ----
 
@@ -445,6 +446,9 @@ export default function CameraQuest3D(props: CameraQuest3DProps) {
 
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <CameraQuestEnvironment isCapturing={props.captured} confidence={props.items[props.currentIndex]?.simConfidence ?? 0} />
+
       <QuestScene {...props} sparkParticles={sparkParticles} />
     </group>
   );

@@ -13,7 +13,7 @@ export function useAwardXP() {
 
   return useMutation({
     mutationFn: (body: { childId: string; amount: number; source: string }) =>
-      apiFetch('/api/gamification/xp', { method: 'POST', body: JSON.stringify(body) }),
+      apiFetch<{ xpAwarded?: number; amount?: number; leveledUp?: boolean; newLevel?: number; newTitle?: string }>('/api/gamification/xp', { method: 'POST', body: JSON.stringify(body) }),
 
     // v2 [ENH]: Optimistic update — instantly show XP in sidebar
     onMutate: async (variables) => {
@@ -83,7 +83,7 @@ export function useUpdateStreak() {
 
   return useMutation({
     mutationFn: (childId: string) =>
-      apiFetch('/api/gamification/streak', { method: 'POST', body: JSON.stringify({ childId }) }),
+      apiFetch<{ shieldUsed?: boolean }>('/api/gamification/streak', { method: 'POST', body: JSON.stringify({ childId }) }),
 
     // v2 [ENH]: Optimistic streak increment
     onMutate: async () => {
@@ -133,7 +133,7 @@ export function useUpdateStreak() {
 export function useBadges(childId: string) {
   return useQuery({
     queryKey: ['badges', childId],
-    queryFn: () => apiFetch(`/api/gamification/badges?childId=${childId}`),
+    queryFn: () => apiFetch<{ badges: Array<{ id: string; name: string; icon: string; description: string; rarity: string; earned: boolean; category: string }> }>(`/api/gamification/badges?childId=${childId}`),
     enabled: !!childId,
     staleTime: 60 * 1000, // 1 minute
   });
@@ -146,7 +146,7 @@ export function useCheckBadges() {
 
   return useMutation({
     mutationFn: (childId: string) =>
-      apiFetch('/api/gamification/badges', { method: 'POST', body: JSON.stringify({ childId }) }),
+      apiFetch<{ newBadges: Array<{ id: string; name: string; icon: string; description: string; rarity: string; category: string }> }>('/api/gamification/badges', { method: 'POST', body: JSON.stringify({ childId }) }),
     onSuccess: (result) => {
       if (result.newBadges && result.newBadges.length > 0) {
         // Broadcast badge earn to cockpit
