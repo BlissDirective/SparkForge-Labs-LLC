@@ -46,6 +46,173 @@
 | S7-WARN-002 | WARNING | Resolved (March 28 — 9 FL-Lite environments wired) |
 | S7-WARN-003 | WARNING | Resolved (March 27 — ARIA improvements) |
 | S7-WARN-004 | WARNING | Resolved (March 27 — SceneRouter error boundary) |
+## Current Phase: Stage 6 — Flagship Games Enhancement (P0-P6 COMPLETE)
+## Status: COMPLETE — 14 audit fixes + 5 embedding fixes + 7 enhancement phases (P0-P6)
+## Last Updated: 2026-03-28 (P6 Session 3: 4 game-specific 3D visualizations)
+
+---
+
+### Stage 6 Enhancement — P0/P1/P2 (2026-03-28)
+
+**Status:** COMPLETE (Session 1 of 3)
+**Branch:** claude/stage-6-audit-fixes-38BE4
+**Scope:** SortToyBox env expansion + cockpit broadcast for all 6 + audio for all 6
+
+**Phase 1 (P0) — SortToyBoxEnvironment Expansion (commit 47859d6):**
+- [x] Expanded from 251 → 622 lines (5 → 12 sub-components)
+- [x] NEW: RoboticSortArms (6 animated arms, progress-reactive), FeatureScanner (sweeping beam)
+- [x] NEW: BinaryDecisionTree, ClusterSpheres (3 orbiting), WarehouseShelving (24 instanced)
+- [x] NEW: DataFlowTubes (3 glowing connections), HolographicLabels (3 floating panels)
+- [x] Reactive props: sortProgress, activeGroupCount
+- [x] useFrame hooks: 6 (up from 2). Triangle budget: ~3.8M (up from ~1M). Wow: 4/5 (up from 2/5)
+
+**Phase 2 (P1) — Cockpit Broadcast Integration (commit 497dc7d):**
+- [x] PetTrainerGame: button-press (correct/wrong), dial-rotate (accuracy), celebration-start (evolution)
+- [x] SortToyBoxGame: button-press (sort), celebration-start + dial-rotate (AI reveal)
+- [x] NeuralBuilderGame: dial-rotate (epoch progress), celebration-start (50/75/90% + complete)
+- [x] PromptLabGame: button-press + dial-rotate (send), celebration-start (challenge pass)
+- [x] AgentArchitectGame: button-press (place/run), celebration-start + dial-rotate (mission)
+- [x] BiasDetectiveGame: button-press + dial-rotate (evidence), celebration-start (case closed)
+
+**Phase 3 (P2) — Per-Game Audio Hooks (commit 21c0733):**
+- [x] usePetTrainerAudio.ts — correct chime, wrong tone, streak chord, evolution fanfare, blip
+- [x] useSortAudio.ts — throw whoosh, bin land thunk, group fill chime, AI reveal, complete
+- [x] usePromptLabAudio.ts — typewriter click, send whoosh, response pop, score tone, challenge fanfare
+- [x] useAgentAudio.ts — block click, connect wire, run hum, step tick, mission fanfare (star-rated)
+- [x] useBiasDetectiveAudio.ts — gavel strike, evidence reveal, scale creak, balanced chime, case closed
+- [x] All 6 games wired with soundEnabled toggle + audio calls at key action points
+
+**Files Created (5):**
+- `src/hooks/usePetTrainerAudio.ts`, `useSortAudio.ts`, `usePromptLabAudio.ts`
+- `src/hooks/useAgentAudio.ts`, `useBiasDetectiveAudio.ts`
+
+**Files Modified (7):**
+- `src/components/3d/environments/SortToyBoxEnvironment.tsx` — Full expansion
+- All 6 game components — cockpitBroadcast + audio integration
+
+### Stage 6 Enhancement — P3/P4/P5 Session 2 (2026-03-28)
+
+**Status:** COMPLETE
+**Branch:** claude/stage-6-audit-fixes-38BE4
+
+**Phase 4 (P3) — Dead Prop Fixes + Missing Interactions (commit 4b41e3b):**
+- [x] NeuralNetwork3D: dataFlowActive now drives traveling data dots along connections
+- [x] PromptBubble3D: merge mechanic implemented (similar keywords attract + absorb)
+- [x] Pet3DScene: emoji prop made optional (never used in 3D component)
+- [x] SortScene3D: hover state + cursor pointer on ThrowableItem
+- [x] AgentPipeline3D: hover glow + cursor pointer on Block3D
+- [x] BiasScales3D: chain links swing with beam tilt velocity (cascading pendulum)
+- [x] SortScene3D: landing particle burst (8 particles, auto-cleanup 700ms)
+- [x] PromptLabGame: always-on environment (registers on mount, not just on keywords)
+
+**Phase 5 (P4+P5) — CeremonyFX Milestones + Environment Reactivity (commit d4d83a4):**
+- [x] All 6 games trigger CeremonyFX at conservative milestones:
+  - PetTrainer: confetti on evolution, NeuralBuilder: confetti at 50/75%, streak at 90%
+  - SortToyBox: confetti on AI reveal, PromptLab: confetti on challenge pass
+  - AgentArchitect: confetti/streak on mission, BiasDetective: confetti on case closed
+- [x] BiasDetective: dynamic caseColor per case type (blue/amber/green/purple/pink/red)
+- [x] PetTrainer + NeuralBuilder environments already mood/accuracy-reactive (verified working)
+
+**Files Modified (13):**
+- 6 game components — CeremonyFX + uiStore integration
+- 7 3D components — data flow, merge, hover, particles, chain physics
+
+---
+
+### Stage 6 Audit Fix — Full Resolution (2026-03-27)
+
+**Status:** COMPLETE
+**Branch:** claude/stage-6-audit-fixes-38BE4
+**Build Status:** All 14 findings resolved across 4 batches
+
+**Batch 1A — Critical Game Lifecycle (commit 01710ae):**
+- [x] S6-CRIT-001 — PromptLabGame: Added completeGame() call in report phase, "Finish Lab" button, full report UI with stats + age-band "What You Learned"
+- [x] S6-CRIT-003 — SortToyBoxGame: Removed redundant startGame("sort-toy-box", 1) — GameShell handles initialization with correct totalRounds=12
+
+**Batch 1B — D3D-B1 Canvas Refactor (commit 49c768a):**
+- [x] S6-CRIT-002 — Refactored 5 standalone Canvas → group: Pet3DScene, SortScene3D, NeuralNetwork3D, PromptBubble3DScene, AgentPipeline3D. Removed Canvas from BiasDetectiveGame. All 6 games register via setGameSceneContent().
+- [x] S6-HIGH-005 — Full sceneStore integration in all 6 flagship game components
+
+**Batch 2A — Sort Toy Box Expansion (commit bcb1a02):**
+- [x] S6-HIGH-001 — Full ARIA labels on all interactive elements
+- [x] S6-HIGH-002 — Added learn phase (3 lesson cards/band) + complete phase (stats, summary, completeGame)
+- [x] S6-HIGH-006 — Full A/B/C age band content in all phases
+- [x] S6-WARN-003 — Removed dead code (_ShapeIcon, _assignGroup)
+- [x] S6-WARN-005 — Removed redundant nested phase check
+
+**Batch 2B+2C+3 — Disposal, Environment, Rate Limit (commit e788614):**
+- [x] S6-HIGH-003 — Material disposal added to BiasScales3D + PromptBubble3D
+- [x] S6-HIGH-004 — Created SortToyBoxEnvironment.tsx (240 lines, Lab 2 purple theme)
+- [x] S6-WARN-001 — Client-side rate limiting in PromptLab (2s cooldown + 50/day cap)
+- [x] S6-WARN-002 — Resolved (removed redundant startGame call)
+- [x] S6-WARN-004 — Resolved (BiasDetective Canvas removed)
+
+**Files Created (1):**
+- `src/components/3d/environments/SortToyBoxEnvironment.tsx`
+
+**Files Modified (14):**
+- `src/components/games/PromptLabGame.tsx` — completeGame, report phase, rate limiting, sceneStore
+- `src/components/games/SortToyBoxGame.tsx` — Full rewrite: learn/complete phases, ARIA, age bands
+- `src/components/games/PetTrainerGame.tsx` — sceneStore integration
+- `src/components/games/NeuralBuilderGame.tsx` — sceneStore integration
+- `src/components/games/AgentArchitectGame.tsx` — sceneStore integration
+- `src/components/games/BiasDetectiveGame.tsx` — sceneStore + Canvas removal
+- `src/components/3d/Pet3DScene.tsx` — Canvas → group
+- `src/components/3d/SortScene3D.tsx` — Canvas → group
+- `src/components/3d/NeuralNetwork3D.tsx` — Canvas → group
+- `src/components/3d/PromptBubble3DScene.tsx` — Canvas → group
+- `src/components/3d/AgentPipeline3D.tsx` — Canvas → group
+- `src/components/3d/BiasScales3D.tsx` — Material disposal
+- `src/components/3d/PromptBubble3D.tsx` — Material disposal
+- `src/components/3d/environments/index.ts` — Added SortToyBoxEnvironment export
+
+**Stage 6 Audit Summary — All Findings:**
+| ID | Severity | Status |
+|---|---|---|
+| S6-CRIT-001 | CRITICAL | Resolved (Batch 1A) |
+| S6-CRIT-002 | CRITICAL | Resolved (Batch 1B) |
+| S6-CRIT-003 | CRITICAL | Resolved (Batch 1A) |
+| S6-HIGH-001 | HIGH | Resolved (Batch 2A) |
+| S6-HIGH-002 | HIGH | Resolved (Batch 2A) |
+| S6-HIGH-003 | HIGH | Resolved (Batch 2B) |
+| S6-HIGH-004 | HIGH | Resolved (Batch 2C) |
+| S6-HIGH-005 | HIGH | Resolved (Batch 1B) |
+| S6-HIGH-006 | HIGH | Resolved (Batch 2A) |
+| S6-WARN-001 | WARNING | Resolved (Batch 3) |
+| S6-WARN-002 | WARNING | Resolved (Batch 1A) |
+| S6-WARN-003 | WARNING | Resolved (Batch 2A) |
+| S6-WARN-004 | WARNING | Resolved (Batch 1B) |
+| S6-WARN-005 | WARNING | Resolved (Batch 2A) |
+
+**3D Embedding Audit (Batch 5, commit 18b47fc):**
+- [x] 3D-EMB-001 — SortScene3D: Wired in orphaned SortToyBoxEnvironment
+- [x] 3D-EMB-002 — NeuralNetwork3D: Removed duplicate Environment + EffectComposer
+- [x] 3D-EMB-003 — AgentPipeline3D: Removed duplicate Environment preset
+- [x] 3D-EMB-004 — BiasScales3D: Removed duplicate Environment preset
+- [x] 3D-EMB-005 — GameShell: Added cockpitBroadcastStore game-enter/game-exit events
+
+**Stage 6 Doc Updates (Batch 6):**
+- [x] Updated 11 stage documents with audit fix notes (6B A/B, 6C A/B, 6D A/B, 6E A/B, 6F A/B, 7B PartA)
+
+### Stage 6 Enhancement — P6 Session 3 (2026-03-28)
+
+**Status:** COMPLETE
+**Branch:** claude/stage-6-audit-fixes-38BE4
+
+**Phase 6 (P6) — Game-Specific 3D Visualizations (commit 1e282e9):**
+- [x] PetDataLab3D (150 lines) — 3D bar chart for data-lab phase (label distribution, overfitting detection)
+- [x] PromptScore3D (130 lines) — Holographic quality ring with 5 dimension segments
+- [x] BiasDecisionTree3D (160 lines) — 3D octahedron decision tree for fix phase (biased=red, fixed=green)
+- [x] SortFeatureViz3D (170 lines) — 3D feature-space scatter plot for reveal phase
+
+**Files Created (4):**
+- `src/components/3d/PetDataLab3D.tsx`, `PromptScore3D.tsx`, `BiasDecisionTree3D.tsx`, `SortFeatureViz3D.tsx`
+
+**Files Modified (4):**
+- PetTrainerGame, PromptLabGame, BiasDetectiveGame, SortToyBoxGame — integrated 3D visualizations
+## Current Phase: Stage 8 — Full Suite 3D Cockpit Enhancements
+## Status: COMPLETE — All 8 audit findings resolved + 10 3D enhancements (A1-D1)
+## Last Updated: 2026-03-28 (Stage 8: Audit fixes + Full Suite 3D cockpit integration)
 
 ---
 

@@ -113,6 +113,7 @@ function BubbleMesh({ bubble }: { bubble: Bubble }) {
   const textGroupRef = useRef<Group>(null);
   const { camera } = useThree();
 
+  // S6-HIGH-003: Added disposal cleanup for MeshPhysicalMaterial
   const material = useMemo(() => {
     return new MeshPhysicalMaterial({
       color: new Color(bubble.color),
@@ -129,6 +130,7 @@ function BubbleMesh({ bubble }: { bubble: Bubble }) {
       side: DoubleSide,
     });
   }, [bubble.color, bubble.opacity]);
+  useEffect(() => () => { material.dispose(); }, [material]);
 
   useFrame(() => {
     if (!meshRef.current) return;
@@ -291,18 +293,37 @@ export default function PromptBubble3D({
         toCenter.multiplyScalar(SPRING_STRENGTH);
         b.velocity.add(toCenter);
 
-        // Repulsion from other bubbles
+        // Repulsion from other bubbles + P3: merge mechanic
         for (let j = 0; j < prev.length; j++) {
           if (i === j) continue;
           const other = prev[j];
+          if (other.merging || other.popping) continue;
           const diff = b.position.clone().sub(other.position);
           const dist = diff.length();
           const minDist = (b.radius + other.radius) * 1.5;
 
           if (dist < minDist && dist > 0.01) {
-            diff.normalize().multiplyScalar(REPEL_STRENGTH * (1 - dist / minDist));
-            b.velocity.add(diff);
+            // P3: Merge similar keywords when very close
+            const mergeDist = (b.radius + other.radius) * 0.8;
+            const bKey = b.keyword.toLowerCase().slice(0, 3);
+            const oKey = other.keyword.toLowerCase().slice(0, 3);
+            if (dist < mergeDist && bKey === oKey && !b.merging && b.radius <= other.radius) {
+              b.merging = true;
+              // Grow the absorber
+              other.radius = Math.min(0.5, other.radius + b.radius * 0.3);
+              other.scale = Math.min(1.5, other.scale + 0.2);
+            } else {
+              diff.normalize().multiplyScalar(REPEL_STRENGTH * (1 - dist / minDist));
+              b.velocity.add(diff);
+            }
           }
+        }
+
+        // P3: Merging bubbles shrink toward their absorber
+        if (b.merging) {
+          b.scale = Math.max(0, b.scale - delta * 3);
+          b.opacity = Math.max(0, b.opacity - delta * 2.5);
+          return b;
         }
 
         // Gentle orbit when thinking
@@ -340,7 +361,8 @@ export default function PromptBubble3D({
     });
   });
 
-  // Glow sprite material (shared)
+  // Glow sprite material (shared, with disposal)
+  // S6-HIGH-003: Added disposal cleanup
   const glowMaterial = useMemo(() => {
     return new SpriteMaterial({
       color: new Color('#F59E0B'),
@@ -349,6 +371,7 @@ export default function PromptBubble3D({
       blending: AdditiveBlending,
     });
   }, []);
+  useEffect(() => () => { glowMaterial.dispose(); }, [glowMaterial]);
 
   return (
     <group>

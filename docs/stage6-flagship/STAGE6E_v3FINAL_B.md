@@ -1,5 +1,13 @@
 # Stage 6E v3-FINAL Part B — Agent Architect Game Logic & Data
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-003:** GameShell already calls `startGame()` — no redundant call needed in AgentArchitectGame.
+> - **sceneStore integration:** AgentArchitectGame registers AgentPipeline3D via `setGameSceneContent()` during build/report phases.
+>
+> **ENHANCEMENTS APPLIED (March 28, 2026):**
+> - **P1:** Cockpit broadcast — `button-press` on block place/run, `celebration-start` + `dial-rotate` on mission complete
+> - **P2:** `useAgentAudio` (Tone.js) — block click, connect wire, run hum, step tick, star-rated mission fanfare
+
 **Version:** v3-FINAL
 **Build Phase:** 13 (Stage 6E — Agent Architect, Part B: Game logic, types, data, handlers)
 **Date:** February 28, 2026

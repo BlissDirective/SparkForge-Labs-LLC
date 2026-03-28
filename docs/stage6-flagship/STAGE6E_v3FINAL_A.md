@@ -1,5 +1,9 @@
 # Stage 6E v3-FINAL Part A — Agent Architect 3D Pipeline
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-002:** `AgentPipeline3D.tsx` refactored from standalone `<Canvas>` to `<group>` (D3D-B1). Canvas, camera, dpr, gl, frameloop, style removed — CockpitCanvas provides these.
+> - **3D Embedding:** Removed duplicate `<Environment preset="night"/>` from inner PipelineScene — `AgentArchitectEnvironment` in outer group provides HDR. CockpitCanvas also provides Environment via `FROST_PRISMATIC_HDR_PATH`.
+
 **Version:** v3-FINAL
 **Build Phase:** 13 (Stage 6E — Agent Architect, Part A: 3D pipeline component)
 **Prerequisites:** Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure), Stage 5 complete

@@ -2,6 +2,15 @@
 
 ## v3-FINAL (PART A) — BiasScales3D 3D Component
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-HIGH-003:** Added `useEffect` disposal cleanup for shared `MeshStandardMaterial` in `useBrassMaterial()` hook — `material.dispose()` called on unmount to prevent GPU memory leaks.
+> - **3D Embedding:** Removed duplicate `<Environment preset="studio"/>` from BiasScales3D — `BiasDetectiveEnvironment` provides HDR lighting. CockpitCanvas also provides Environment via `FROST_PRISMATIC_HDR_PATH`.
+> - **S6-WARN-004:** Canvas import removed from BiasDetectiveGame.tsx — BiasScales3D was already a `<group>` but the game created a standalone Canvas around it. Now renders inside CockpitCanvas via sceneStore.
+>
+> **P3+P5 ENHANCEMENTS (March 28, 2026):**
+> - **Chain physics:** Chain links now swing with beam tilt velocity — cascading pendulum effect
+> - **Dynamic caseColor:** Each bias case tints environment differently (hiring=blue, lending=green, content=purple, etc.)
+
 ---
 
 **Date:** February 28, 2026 | **GCUD:** V9 | **Vision:** Laboratory Control Station
