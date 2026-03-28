@@ -12,6 +12,7 @@ import {
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { TIER_CONFIG } from '@/lib/tier-config';
 import { MODELS } from '@/lib/agent/prompts';
+import { moderateResponse } from '@/lib/agent/moderation';
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   A: `You are Sparky, a friendly AI tutor for kids ages 7-10. Use simple words, fun analogies, and lots of encouragement. Keep responses under 150 words. If asked about anything inappropriate, gently redirect to a fun science or technology topic.`,
@@ -80,14 +81,32 @@ export async function POST(req: NextRequest) {
       .map(block => block.text)
       .join('');
 
+    // v2 [S9-WARN-004]: Post-response safety moderation (Option C: blocklist + Haiku)
+    const moderation = await moderateResponse(reply, ageBand, anthropic);
+
+    // Always count toward daily limit (prevents abuse via moderation bypass)
+    await supabase.from('children').update({
+      prompts_used_today: usedToday + 1, prompts_reset_date: today,
+    }).eq('id', childId);
+
+    if (!moderation.safe) {
+      // Log the blocked response for safety audit trail
+      await supabase.from('prompt_history').insert({
+        child_id: childId, prompt, response: reply,
+        temperature, age_band: ageBand, moderation_passed: false,
+      });
+
+      const safeReply = ageBand === 'A'
+        ? "Oops! Sparky got a little confused there. Let's talk about something fun instead! What do you want to learn about AI today?"
+        : "Hmm, let me try a different approach! Ask me something about AI, machine learning, or technology.";
+
+      return apiSuccess({ reply: safeReply, promptsRemaining: dailyLimit - usedToday - 1, moderated: true });
+    }
+
     await supabase.from('prompt_history').insert({
       child_id: childId, prompt, response: reply,
       temperature, age_band: ageBand, moderation_passed: true,
     });
-
-    await supabase.from('children').update({
-      prompts_used_today: usedToday + 1, prompts_reset_date: today,
-    }).eq('id', childId);
 
     return apiSuccess({ reply, promptsRemaining: dailyLimit - usedToday - 1 });
   } catch (error: unknown) {
