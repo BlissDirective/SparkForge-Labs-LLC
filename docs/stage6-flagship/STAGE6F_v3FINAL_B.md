@@ -10,6 +10,7 @@
 > **ENHANCEMENTS APPLIED (March 28, 2026):**
 > - **P1:** Cockpit broadcast — `button-press` + `dial-rotate` on evidence, `celebration-start` on case closed
 > - **P2:** `useBiasDetectiveAudio` (Tone.js) — gavel strike, evidence reveal, scale creak, balanced chime, case closed stamp
+> - **P6-C:** `BiasDecisionTree3D` — 3D octahedron decision tree during fix phase (biased=red, fixed=green, progress arc)
 
 ---
 

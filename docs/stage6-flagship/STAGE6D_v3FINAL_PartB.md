@@ -8,6 +8,7 @@
 > **ENHANCEMENTS APPLIED (March 28, 2026):**
 > - **P1:** Cockpit broadcast — `button-press` + `dial-rotate` on send, `celebration-start` on challenge pass
 > - **P2:** `usePromptLabAudio` (Tone.js) — typewriter click, send whoosh, response pop, score tone, challenge fanfare
+> - **P6-B:** `PromptScore3D` — 3D holographic quality ring with 5 dimension segments, updates on each prompt send
 
 **Date:** March 5, 2026 | **GCUD:** V9 | **Vision:** Laboratory Control Station
 **Design:** Frost-Prismatic v3 (blue-dominant 60/40, chrome bezel, hex-radial, R3F station frame)

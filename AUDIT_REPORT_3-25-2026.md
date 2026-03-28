@@ -164,6 +164,14 @@
 - BiasDetective: dynamic `caseColor` per case type (blue/amber/green/purple/pink/red)
 - PetTrainer + NeuralBuilder environments verified mood/accuracy-reactive
 
+**P6 — Game-Specific 3D Visualizations (March 28, 2026):**
+- 4 new 3D components created (610 total lines):
+  - `PetDataLab3D` — floating bar chart for training data distribution with overfitting warning
+  - `PromptScore3D` — holographic quality ring with 5 dimension segments
+  - `BiasDecisionTree3D` — 3D octahedron decision tree (biased=red, fixed=green) for fix phase
+  - `SortFeatureViz3D` — 3D feature-space scatter plot showing AI clustering logic
+- All 4 integrated into game sceneStore registrations, rendering alongside primary 3D scenes
+
 ---
 
 ## Executive Summary

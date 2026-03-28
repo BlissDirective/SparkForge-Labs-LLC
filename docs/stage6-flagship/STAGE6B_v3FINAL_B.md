@@ -8,6 +8,7 @@
 > **ENHANCEMENTS APPLIED (March 28, 2026):**
 > - **P1:** Cockpit broadcast — `button-press` on correct/wrong, `dial-rotate` at accuracy milestones, `celebration-start` on evolution
 > - **P2:** `usePetTrainerAudio` (Tone.js) — correct chime, wrong tone, streak chord, evolution fanfare, blip
+> - **P6-A:** `PetDataLab3D` — 3D bar chart visible during data-lab phase showing training data distribution + overfitting warning
 
 **Version:** v3-FINAL (corrected)
 **Build Phase:** 10 (Stage 6B — Pet Trainer, Part B: Full game replacement)

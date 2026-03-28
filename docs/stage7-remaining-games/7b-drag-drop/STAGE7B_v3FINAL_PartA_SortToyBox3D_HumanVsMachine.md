@@ -17,6 +17,7 @@
 > - **P0:** SortToyBoxEnvironment expanded 251 → 622 lines. 7 new sub-components (RoboticSortArms, BinaryDecisionTree, ClusterSpheres, WarehouseShelving, DataFlowTubes, FeatureScanner, HolographicLabels). Reactive props. 6 useFrame hooks. Wow: 4/5 (was 2/5).
 > - **P1:** Cockpit broadcast — `button-press` on sort, `celebration-start` + `dial-rotate` on AI reveal
 > - **P2:** `useSortAudio` (Tone.js) — throw whoosh, bin land thunk, group fill chime, AI reveal chord, complete arpeggio
+> - **P6-D:** `SortFeatureViz3D` — 3D feature-space scatter plot during reveal/complete phase showing AI clustering logic
 
 **Date:** February 28, 2026
 **GCUD Version:** V9
