@@ -6,7 +6,7 @@
 import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
-import { runAgentPipeline } from '@/lib/agent/pipeline';
+import { runAgentPipeline, type PipelineMode } from '@/lib/agent/pipeline';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -49,8 +49,14 @@ export async function POST(_req: NextRequest) {
     );
   }
 
+  // Phase 1: Support pipeline mode via query param (?mode=standard|enhanced|full)
+  const url = new URL(_req.url);
+  const mode = (url.searchParams.get('mode') || 'enhanced') as PipelineMode;
+  const validModes: PipelineMode[] = ['standard', 'enhanced', 'full'];
+  const pipelineMode = validModes.includes(mode) ? mode : 'enhanced';
+
   try {
-    const result = await runAgentPipeline();
+    const result = await runAgentPipeline(pipelineMode);
     return apiSuccess(result);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
