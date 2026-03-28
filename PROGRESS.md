@@ -1,8 +1,48 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 6 — Flagship Games Enhancement (P0-P6 COMPLETE)
-## Status: COMPLETE — 14 audit fixes + 5 embedding fixes + 7 enhancement phases (P0-P6)
-## Last Updated: 2026-03-28 (P6 Session 3: 4 game-specific 3D visualizations)
+## Current Phase: Stage 9 — Content Agent Audit Fixes (ALL RESOLVED)
+## Status: COMPLETE — 11 audit findings resolved (1 CRIT + 4 HIGH + 4 WARN + 2 INFO)
+## Last Updated: 2026-03-28 (Stage 9 Audit Fixes)
+
+---
+
+### Stage 9 Audit Fixes (2026-03-28)
+
+**Status:** COMPLETE
+**Branch:** `claude/stage-9-audit-fixes-YQomo`
+**Build Status:** TypeScript PASS (0 new errors), all changes compile clean
+
+**Batch 1 — CRIT-001 + HIGH-003 (commit 328fd17):**
+- [x] S9-CRIT-001 — Moved Anthropic SDK init from top-level to lazy per-request in prompt-lab/route.ts
+- [x] S9-HIGH-003 — Replaced hardcoded model string with MODELS.moderation from centralized config
+- [x] S9-HIGH-004 — Already resolved (proper TextBlock type guard + error: unknown)
+
+**Batch 2 — HIGH-001 + HIGH-002 (commit 2987334):**
+- [x] S9-HIGH-001 — Added client-side admin guard (useAuthStore + useRouter redirect) to admin content page
+- [x] S9-HIGH-002 — Replaced manual POST validation with Zod schema (ReviewSchema with UUID validation)
+
+**Batch 3 — WARN-001/002/003 + INFO-001 (commit 23cf531):**
+- [x] S9-WARN-001 — Added rate limiting on /api/agent/run (2/hr via RATE_LIMITS.contentAgent)
+- [x] S9-WARN-002 — Added rate limiting on review POST (60/min default)
+- [x] S9-WARN-003 — CRON_SECRET now required in production (blocks endpoint if unset)
+- [x] S9-INFO-001 — Migrated schedule route from raw NextResponse to apiSuccess/apiError helpers
+
+**Batch 4 — WARN-004 (commit fff7360):**
+- [x] S9-WARN-004 — Added defense-in-depth post-response moderation to Prompt Lab:
+  - Layer 1: Keyword blocklist (regex, zero latency)
+  - Layer 2: Haiku LLM moderation (age-band-aware screening)
+  - Blocked responses logged with moderation_passed=false
+  - Children see safe redirect messages
+
+**Files Created (1):**
+- `src/lib/agent/moderation.ts` — Post-response moderation (blocklist + Haiku)
+
+**Files Modified (5):**
+- `src/app/api/ai/prompt-lab/route.ts` — Lazy init + MODELS + moderation integration
+- `src/app/(dashboard)/admin/content/page.tsx` — Admin guard
+- `src/app/api/agent/review/route.ts` — Zod validation + rate limiting
+- `src/app/api/agent/run/route.ts` — Rate limiting
+- `src/app/api/agent/schedule/route.ts` — CRON_SECRET enforcement + apiSuccess/apiError
 
 ---
 

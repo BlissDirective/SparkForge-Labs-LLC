@@ -2718,165 +2718,121 @@ Interactive buttons, dropdowns, and clickable elements lack `aria-label` in thes
 
 ## Stage 9 — Finding Counts
 
-| Severity | Count |
-|----------|-------|
-| CRITICAL | 1 |
-| HIGH | 4 |
-| WARNING | 4 |
-| INFO | 2 |
-| PASS | 20 |
+| Severity | Count | Resolved |
+|----------|-------|----------|
+| CRITICAL | 1 | 1 ✅ |
+| HIGH | 4 | 4 ✅ |
+| WARNING | 4 | 4 ✅ |
+| INFO | 2 | 1 ✅ (INFO-002 is by design) |
+| PASS | 20 | — |
+
+**Stage 9 Audit Status: ALL FINDINGS RESOLVED (2026-03-28)**
+**Branch:** `claude/stage-9-audit-fixes-YQomo`
 
 ---
 
 ## Stage 9 — CRITICAL FINDINGS
 
-### S9-CRIT-001 — ENH-9A not applied to Prompt Lab (top-level Anthropic init)
+### S9-CRIT-001 — ENH-9A not applied to Prompt Lab (top-level Anthropic init) ✅ RESOLVED
 
 **File:** `src/app/api/ai/prompt-lab/route.ts` (line 13)
 **Category:** Runtime Crash / Known Bug
-**Description:** The Anthropic SDK is initialized at the **top level** with `new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })`. This means:
-1. If `ANTHROPIC_API_KEY` is missing, the SDK initializes with `undefined` and crashes at runtime with an unhelpful error when `messages.create()` is called — no graceful 503
-2. Violates BUG-9A (lazy init) — the Content Agent pipeline (`pipeline.ts`) correctly uses lazy initialization via `getAnthropicClient()`, but Prompt Lab does not
-3. Violates ENH-9A — all 3 agent routes return 503 if key missing, but Prompt Lab crashes instead
-
-**Required Fix:** Add early key check and lazy initialization:
-```typescript
-export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return apiError('Prompt Lab is not configured. Add ANTHROPIC_API_KEY.', 503);
-  }
-  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-  // ... rest of handler
-}
-```
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 1, commit 328fd17)
+**Resolution:** Moved `new Anthropic()` from top-level to inside POST handler. Added early `ANTHROPIC_API_KEY` check returning 503 with `SERVICE_UNAVAILABLE` code. Now compliant with BUG-9A (lazy init) and ENH-9A (graceful fallback).
 
 ---
 
 ## Stage 9 — HIGH FINDINGS
 
-### S9-HIGH-001 — No client-side admin guard on admin dashboard
+### S9-HIGH-001 — No client-side admin guard on admin dashboard ✅ RESOLVED
 
 **File:** `src/app/(dashboard)/admin/content/page.tsx`
 **Category:** Security / Access Control
-**Description:** The admin content page is a `'use client'` component with no auth check. Any authenticated user who navigates to `/admin/content` sees the full admin UI. API endpoints verify admin status (approve/reject return 403 for non-admins), but the page still renders and leaks queue metadata. The middleware (`src/middleware.ts`) also has no admin route protection.
-
-**Required Fix:** Add a client-side admin check with redirect:
-```typescript
-const { parent } = useAuthStore();
-useEffect(() => {
-  if (parent && !parent.is_admin) {
-    router.replace('/home');
-  }
-}, [parent]);
-if (!parent?.is_admin) return null; // Don't render until verified
-```
-Or better: add server-side protection via a layout or middleware check for `/admin/*` routes.
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 2, commit 2987334)
+**Resolution:** Added `useAuthStore` parent check with `useRouter` redirect. Non-admins redirected to `/home` via `useEffect`. Early `return null` prevents admin UI from rendering before verification completes.
 
 ---
 
-### S9-HIGH-002 — No Zod validation on review POST body
+### S9-HIGH-002 — No Zod validation on review POST body ✅ RESOLVED
 
 **File:** `src/app/api/agent/review/route.ts` (lines 129-160)
 **Category:** Input Validation
-**Description:** The POST body is parsed with manual checks (`!body.action || !body.ids || !Array.isArray(body.ids)`) but `ids` are not validated as UUIDs. Malicious strings could be passed to Supabase queries. While Supabase parameterizes queries (preventing SQL injection), this is inconsistent with the Zod-everywhere pattern.
-
-**Required Fix:**
-```typescript
-const ReviewSchema = z.object({
-  action: z.enum(['approve', 'reject']),
-  ids: z.array(z.string().uuid()),
-  reason: z.string().optional(),
-});
-const parsed = await parseBody(req, ReviewSchema);
-```
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 2, commit 2987334)
+**Resolution:** Replaced manual validation with `ReviewSchema = z.object({ action: z.enum(['approve', 'reject']), ids: z.array(z.string().uuid()).min(1), reason: z.string().optional() })`. Zod issues are returned as structured error messages.
 
 ---
 
-### S9-HIGH-003 — Hardcoded model string in Prompt Lab (BUG-9B violation)
+### S9-HIGH-003 — Hardcoded model string in Prompt Lab (BUG-9B violation) ✅ RESOLVED
 
 **File:** `src/app/api/ai/prompt-lab/route.ts` (line 58)
 **Category:** Known Bug
-**Description:** Uses `'claude-sonnet-4-20250514'` directly instead of importing from the `MODELS` constant in `src/lib/agent/prompts.ts`. Also note the model is Sonnet 4 while the MODELS config uses Sonnet 4.5 (`claude-sonnet-4-5-20250514`) — this discrepancy may be intentional (cheaper model for chat) but should be explicit.
-
-**Required Fix:**
-```typescript
-import { MODELS } from '@/lib/agent/prompts';
-// Use MODELS.generation or add a MODELS.promptLab entry
-model: MODELS.generation, // or a dedicated chat model constant
-```
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 1, commit 328fd17)
+**Resolution:** Imported `MODELS` from `@/lib/agent/prompts` and replaced hardcoded string with `MODELS.moderation` (claude-haiku-4-5-20251001). Uses the dedicated moderation model entry for Prompt Lab chat.
 
 ---
 
-### S9-HIGH-004 — `any` types in Prompt Lab (2 occurrences)
+### S9-HIGH-004 — `any` types in Prompt Lab (2 occurrences) ✅ PRE-RESOLVED
 
 **File:** `src/app/api/ai/prompt-lab/route.ts` (lines 67-68, 81-82)
 **Category:** TypeScript Quality
-**Description:** Two eslint-disable comments for `@typescript-eslint/no-explicit-any`:
-- Line 68: `(block as any).text` — should use type guard for `TextBlock`
-- Line 82: `catch (error: any)` — should use `catch (error: unknown)`
-
-**Required Fix:** Already detailed in S2-WARN-002. Use type guard:
-```typescript
-.filter((block): block is Anthropic.TextBlock => block.type === 'text')
-.map(block => block.text)
-```
+**Status:** ✅ **PRE-RESOLVED** — Already fixed in current codebase prior to audit fix session. Code uses proper `Anthropic.TextBlock` type guard and `catch (error: unknown)`. No changes needed.
 
 ---
 
 ## Stage 9 — WARNING FINDINGS
 
-### S9-WARN-001 — No rate limiting on `/api/agent/run`
+### S9-WARN-001 — No rate limiting on `/api/agent/run` ✅ RESOLVED
 
 **File:** `src/app/api/agent/run/route.ts`
 **Category:** Security / Cost
-**Description:** Admin-only check provides some protection, but a compromised admin session could trigger unlimited expensive pipeline runs (5+ Anthropic API calls with web search per run).
-
-**Required Fix:** Add `applyRateLimit(req, RATE_LIMITS.agent)` — e.g., 5 runs per hour.
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 3, commit 23cf531)
+**Resolution:** Added `applyRateLimit(req, 'agent-run', undefined, RATE_LIMITS.contentAgent)` — 2 runs per hour limit.
 
 ---
 
-### S9-WARN-002 — No rate limiting on review POST
+### S9-WARN-002 — No rate limiting on review POST ✅ RESOLVED
 
 **File:** `src/app/api/agent/review/route.ts`
 **Category:** Security
-**Description:** Admin-only but no throttling on bulk approve/reject. A compromised session could mass-approve content.
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 3, commit 23cf531)
+**Resolution:** Added `applyRateLimit(req, 'admin-review')` — uses default 60/min rate limit.
 
 ---
 
-### S9-WARN-003 — CRON_SECRET check skippable when env var not set
+### S9-WARN-003 — CRON_SECRET check skippable when env var not set ✅ RESOLVED
 
 **File:** `src/app/api/agent/schedule/route.ts` (line 16)
 **Category:** Security
-**Description:** The condition `if (cronSecret && ...)` means if `CRON_SECRET` is not set, anyone can trigger the schedule endpoint via GET. By design for local dev, but in production `CRON_SECRET` MUST be set.
-
-**Required Fix:** Add a warning log when `CRON_SECRET` is missing, or require it in production:
-```typescript
-if (!cronSecret && process.env.NODE_ENV === 'production') {
-  return apiError('CRON_SECRET required in production', 500);
-}
-```
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 3, commit 23cf531)
+**Resolution:** Added production-mode check: if `!cronSecret && process.env.NODE_ENV === 'production'`, returns 500 with `CONFIG_ERROR`. Dev mode still allows open access for local testing.
 
 ---
 
-### S9-WARN-004 — Prompt Lab has no post-response safety moderation
+### S9-WARN-004 — Prompt Lab has no post-response safety moderation ✅ RESOLVED
 
 **File:** `src/app/api/ai/prompt-lab/route.ts`
 **Category:** COPPA / Safety
-**Description:** The Prompt Lab (child-facing AI chat) relies ONLY on system prompt instructions for safety ("gently redirect" inappropriate topics). There is no post-response safety screening or content filtering. Claude could still produce unexpected content. The Content Agent has a multi-layer safety pipeline (LLM check + readability), but Prompt Lab has none.
-
-**Required Fix:** Add a lightweight post-response moderation check using the Haiku model, or at minimum a keyword blocklist filter before returning the response to the child.
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 4, commit fff7360)
+**Resolution:** Implemented Option C (defense-in-depth) via new `src/lib/agent/moderation.ts`:
+- **Layer 1:** Fast keyword blocklist (regex patterns for violence, explicit content, weapons, drugs, hate speech) — zero latency
+- **Layer 2:** Haiku LLM moderation (age-band-aware safety screening via `MODELS.moderation`) — catches nuanced content
+- Blocked responses logged with `moderation_passed: false` for audit trail
+- Children see safe redirect message instead of blocked content
+- Daily prompt count always incremented to prevent moderation bypass abuse
 
 ---
 
 ## Stage 9 — INFO FINDINGS
 
-### S9-INFO-001 — Schedule route uses raw NextResponse instead of helpers
+### S9-INFO-001 — Schedule route uses raw NextResponse instead of helpers ✅ RESOLVED
 
 **Description:** `schedule/route.ts` uses `NextResponse.json()` directly instead of `apiSuccess`/`apiError` helpers. Inconsistent with other routes but functionally equivalent.
+**Status:** ✅ **RESOLVED** (2026-03-28, Batch 3, commit 23cf531) — Migrated all responses to `apiSuccess`/`apiError` helpers.
 
 ### S9-INFO-002 — Seed script is manual (prints instructions)
 
 **Description:** `seed.ts` reads SQL and prints instructions for the admin to execute manually. Does not auto-execute. Safe but requires manual setup step.
+**Status:** ℹ️ **BY DESIGN** — No change needed. Manual execution is the intended safety pattern.
 
 ---
 
@@ -2919,9 +2875,10 @@ if (!cronSecret && process.env.NODE_ENV === 'production') {
 | `src/app/api/agent/review/route.ts` | EXISTS (189 lines) |
 | `src/app/api/agent/schedule/route.ts` | EXISTS (47 lines) |
 | `src/app/(dashboard)/admin/content/page.tsx` | EXISTS (1,089 lines) |
-| `src/app/api/ai/prompt-lab/route.ts` | EXISTS (87 lines — ENH-9A missing) |
+| `src/app/api/ai/prompt-lab/route.ts` | EXISTS (110 lines — ENH-9A + moderation applied) |
+| `src/lib/agent/moderation.ts` | **NEW** (107 lines — blocklist + Haiku moderation, S9-WARN-004) |
 
-**All expected files present.**
+**All expected files present + 1 new file added (moderation.ts).**
 
 ---
 
