@@ -30,6 +30,7 @@ import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useChildStore } from '@/stores/childStore';
+import { useGameContent } from '@/hooks/useContent';
 import {
   Play, BookOpen, Sparkles, Star, ArrowRight, ArrowLeft,
   Award, Rocket
@@ -238,6 +239,8 @@ export function MyFirstAiAppGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
+  const { data: dynamicContent } = useGameContent('my-first-ai-app', ageBand);
+  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);

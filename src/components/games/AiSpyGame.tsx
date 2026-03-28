@@ -14,6 +14,7 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Eye, CheckCircle2, XCircle } from 'lucide-react';
 
@@ -187,6 +188,8 @@ export function AiSpyGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const { data: dynamicContent } = useGameContent('ai-spy', ageBand);
+  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
 
   const scenes = useMemo(
     () => ALL_SCENES.filter(s => BAND_ORDER[s.band] <= BAND_ORDER[ageBand]),

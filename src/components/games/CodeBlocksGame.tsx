@@ -21,6 +21,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import {
   Play, RotateCcw, Code2, Bug, GraduationCap,
@@ -318,6 +319,8 @@ export function CodeBlocksGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const { data: dynamicContent } = useGameContent('code-blocks', ageBand);
+  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
   const isDesktop = useIsDesktop();
 
   const [phase, setPhase] = useState<Phase>('welcome');

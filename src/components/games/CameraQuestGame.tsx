@@ -20,6 +20,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import {
   Camera, Check, X, Eye, Lock, Star,
@@ -184,6 +185,8 @@ export function CameraQuestGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const { data: dynamicContent } = useGameContent('camera-quest', ageBand);
+  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);

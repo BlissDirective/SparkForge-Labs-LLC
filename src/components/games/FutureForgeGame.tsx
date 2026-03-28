@@ -15,6 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Rocket, Zap, Eye, MessageSquare, Cpu, Bot, Shield, Sparkles, CheckCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -132,6 +133,8 @@ const SCENARIOS: Scenario[] = [
 export default function FutureForgeGame() {
   const game = useGameStore();
   const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
+  const { data: dynamicContent } = useGameContent('future-forge', ageBand);
+  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [round, setRound] = useState(1);

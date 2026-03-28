@@ -25,6 +25,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
+import { useGameContent } from '@/hooks/useContent';
 import {
   Send,
   Server,
@@ -325,6 +326,9 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
 
 export function ApiExplorerGame() {
   const game = useGameStore();
+  const ageBand = 'C' as const;
+  const { data: dynamicContent } = useGameContent('api-explorer', ageBand);
+  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
