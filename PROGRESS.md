@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 9 — Content Agent Enhancement (Phases 1-7 COMPLETE)
-## Status: IN PROGRESS — Phases 1-7 complete, Phases 8-9 pending
-## Last Updated: 2026-03-28 (Phase 7: Admin Dashboard Enhancement)
+## Current Phase: Stage 9 — Content Agent Enhancement (Phases 1-8 COMPLETE)
+## Status: IN PROGRESS — Phases 1-8 complete, Phase 9 pending
+## Last Updated: 2026-03-28 (Phase 8: 3D Architecture/UI/UX Generator)
 
 ---
 
@@ -80,6 +80,29 @@
 - [x] Phase 5: AI Guide Avatar Integration ✅
 - [x] Phase 6: 3D Cockpit Content Integration ✅
 - [x] Phase 7: Admin Dashboard Enhancement ✅
+- [x] Phase 8: 3D Architecture/UI/UX Generator ✅
+
+### Phase 8: 3D Architecture/UI/UX Generator (2026-03-28)
+
+**Status:** COMPLETE (commits 3c58bce, Phase 8B)
+**Scope:** Autonomous Claude API pipeline that generates R3F components with 8-gate approval
+
+**Phase 8A — Pipeline + Prompts + Route (commit 3c58bce, 3 files):**
+- [x] `architect-prompts.ts` — 4 system prompts (analysis, R3F code gen, integration, COPPA audit)
+- [x] `architect-pipeline.ts` — 8-gate pipeline (analysis → architecture → code_gen → file_mgmt → build_test → coppa_audit → admin_approval → deploy)
+- [x] `/api/agent/architect` route — admin-only POST, rate limited, Zod validated
+
+**Phase 8B — Admin Integration (this commit):**
+- [x] "Generate 3D Architecture" button in admin preview modal
+- [x] Triggers architect pipeline per content item, shows gate results via toast
+
+**Files Created (3):**
+- `src/lib/agent/architect-prompts.ts`
+- `src/lib/agent/architect-pipeline.ts`
+- `src/app/api/agent/architect/route.ts`
+
+**Files Modified (1):**
+- `src/app/(dashboard)/admin/content/page.tsx` — architect trigger button
 
 ### Phase 7: Admin Dashboard Enhancement (2026-03-28)
 

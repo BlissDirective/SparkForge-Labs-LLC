@@ -1137,6 +1137,43 @@ export default function AdminReviewPage() {
                   </motion.button>
                 </div>
               )}
+
+              {/* Phase 8: Generate 3D Architecture button */}
+              <motion.button
+                onClick={async () => {
+                  if (!preview) return;
+                  addToast('info', 'Starting 3D architecture generation...');
+                  try {
+                    const res = await fetch('/api/agent/architect', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        contentId: preview.id,
+                        contentType: preview.type,
+                        contentTitle: preview.title,
+                        contentBody: typeof preview.content_json === 'object'
+                          ? (preview.content_json as Record<string, unknown>).content_body || preview.title
+                          : preview.title,
+                      }),
+                    });
+                    const result = await res.json();
+                    if (res.ok) {
+                      const gates = result.data?.gates || [];
+                      const passed = gates.filter((g: { status: string }) => g.status === 'passed').length;
+                      const failed = gates.filter((g: { status: string }) => g.status === 'failed').length;
+                      addToast('success', `Architecture generated: ${passed} gates passed, ${failed} failed, ${result.data?.generatedComponents?.length || 0} components created.`);
+                    } else {
+                      addToast('error', result.error || 'Architecture generation failed.');
+                    }
+                  } catch {
+                    addToast('error', 'Could not reach architect API.');
+                  }
+                }}
+                className="w-full mt-3 py-2.5 rounded-xl bg-purple-500/15 text-purple-400 font-display text-xs flex items-center justify-center gap-2 hover:bg-purple-500/25 transition-colors"
+                whileTap={{ scale: 0.98 }}
+              >
+                <Sparkles className="w-3.5 h-3.5" /> Generate 3D Architecture
+              </motion.button>
             </motion.div>
           </motion.div>
         )}
