@@ -8,8 +8,10 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
+import { useAuthStore } from '@/stores/authStore';
 import { useToastStore } from '@/stores/toastStore';
 import {
   Check,
@@ -128,6 +130,16 @@ function formatDuration(ms: number | null): string {
 }
 
 export default function AdminReviewPage() {
+  const router = useRouter();
+  const parent = useAuthStore((s) => s.parent);
+
+  // ── Admin guard — redirect non-admins ──
+  useEffect(() => {
+    if (parent && !parent.is_admin) {
+      router.replace('/home');
+    }
+  }, [parent, router]);
+
   // ── State ──
   const [activeTab, setActiveTab] = useState<'review' | 'runs'>('review');
   const [items, setItems] = useState<QueueItem[]>([]);
@@ -340,6 +352,9 @@ export default function AdminReviewPage() {
   // ── Render helpers ──
   const isActionableFilter =
     filter === 'pending_review' || filter === 'needs_human_review';
+
+  // Don't render admin UI until parent is verified as admin
+  if (!parent?.is_admin) return null;
 
   return (
     <motion.div

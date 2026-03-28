@@ -5,9 +5,17 @@
 // ════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
+import { z } from 'zod';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { apiSuccess, apiError } from '@/lib/api-helpers';
 import { approveContent, rejectContent } from '@/lib/agent/pipeline';
+
+// v2 [S9-HIGH-002]: Zod schema for review POST body
+const ReviewSchema = z.object({
+  action: z.enum(['approve', 'reject']),
+  ids: z.array(z.string().uuid()).min(1),
+  reason: z.string().optional(),
+});
 
 export const runtime = 'nodejs';
 
@@ -125,39 +133,24 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Parse body in try block, return error in catch block
-  let body: {
-    action: 'approve' | 'reject';
-    ids: string[];
-    reason?: string;
-  };
-
+  // v2 [S9-HIGH-002]: Zod validation replaces manual checks
+  let rawBody: unknown;
   try {
-    body = await req.json();
+    rawBody = await req.json();
   } catch {
     return apiError('Invalid request body', 400, 'PARSE_ERROR');
   }
 
-  if (
-    !body.action ||
-    !body.ids ||
-    !Array.isArray(body.ids) ||
-    body.ids.length === 0
-  ) {
+  const parsed = ReviewSchema.safeParse(rawBody);
+  if (!parsed.success) {
     return apiError(
-      'Required: action ("approve" | "reject") and ids (string[])',
+      `Validation error: ${parsed.error.issues.map(i => i.message).join(', ')}`,
       400,
       'VALIDATION_ERROR'
     );
   }
 
-  if (!['approve', 'reject'].includes(body.action)) {
-    return apiError(
-      'action must be "approve" or "reject"',
-      400,
-      'VALIDATION_ERROR'
-    );
-  }
+  const body = parsed.data;
 
   const results: { id: string; success: boolean; error?: string }[] = [];
 
