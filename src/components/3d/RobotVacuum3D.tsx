@@ -39,6 +39,7 @@ import {
   PARTICLE_PRESETS,
   Particle,
 } from '@/lib/3d/gameParticles';
+import RobotVacuumEnvironment from '@/components/3d/environments/RobotVacuumEnvironment';
 
 // ---- Types ----
 
@@ -565,6 +566,9 @@ export default function RobotVacuum3D({
 
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <RobotVacuumEnvironment isRunning={running} cleanProgress={room.dirt.length > 0 ? cleaned.size / room.dirt.length : 0} />
+
       {/* Lighting */}
       <ambientLight intensity={0.5} />
       <directionalLight position={[5, 8, 5]} intensity={0.6} castShadow />

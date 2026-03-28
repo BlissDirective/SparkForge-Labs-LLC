@@ -35,6 +35,7 @@ import {
   spawnParticles,
   updateParticles,
 } from '@/lib/3d/gameParticles';
+import FutureForgeEnvironment from '@/components/3d/environments/FutureForgeEnvironment';
 
 // ---- Types ----
 
@@ -536,6 +537,9 @@ function ForgeScene({
 export default function FutureForge3D(props: FutureForge3DProps) {
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <FutureForgeEnvironment innovationScore={props.innovationScore} step={props.step} />
+
       <ForgeScene {...props} />
     </group>
   );

@@ -32,6 +32,7 @@ import {
   PARTICLE_PRESETS,
   Particle,
 } from '@/lib/3d/gameParticles';
+import DataDetectiveEnvironment from '@/components/3d/environments/DataDetectiveEnvironment';
 
 // ■■■ Types ■■■
 
@@ -345,6 +346,9 @@ export default function DataDetective3D({
 
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <DataDetectiveEnvironment selectedRow={selectedRow} isAnalyzing={selectedRow !== null} />
+
       {/* Lighting */}
       <ambientLight intensity={0.3} />
       <DeskLamp worldColor={worldColor} />

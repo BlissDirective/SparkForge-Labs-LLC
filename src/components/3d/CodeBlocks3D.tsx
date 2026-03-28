@@ -21,6 +21,7 @@ import {
   spawnParticles,
   updateParticles,
 } from '@/lib/3d/gameParticles';
+import CodeBlocksEnvironment from '@/components/3d/environments/CodeBlocksEnvironment';
 
 const _dummy = new Object3D();
 
@@ -416,6 +417,9 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
 export function CodeBlocks3D(props: CodeBlocks3DProps) {
   return (
     <group>
+      {/* FL-Lite Environment — wired S7-WARN-002 */}
+      <CodeBlocksEnvironment isRunning={props.running} blockCount={props.blocks.length} />
+
       <Scene {...props} />
     </group>
   );
