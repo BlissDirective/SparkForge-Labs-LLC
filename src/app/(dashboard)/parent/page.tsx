@@ -2,12 +2,13 @@
 // PARENT DASHBOARD — Main overview
 // v2: Hold+math gate, tier-config imports, time limits,
 //     Frost-Prismatic styling, ARIA labels
+// v3: S8 audit fixes (Batch 1-3) + 3D cockpit broadcasts (Batch 5)
 // Enhancements: #1 glassmorphism shimmer on hold bar,
 //   #3 haptic micro-animation on correct math, #6 aria-live errors
 // ════════════════════════════════════════════════════
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useParentDashboard } from '@/hooks/useParentDashboard';
 import { TIER_DISPLAY, getTierLimits } from '@/lib/tier-config';
@@ -19,12 +20,21 @@ import {
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from '@/stores/toastStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+
+// Age band → cockpit LED color mapping
+const BAND_COLORS: Record<string, string> = {
+  A: '#3B82F6', // blue
+  B: '#8B5CF6', // purple
+  C: '#F59E0B', // amber
+};
 
 export default function ParentDashboardPage() {
   const {
     tier, children, selectedChildId, selectChild,
     isLoading, updateChildTimeLimit, setChildren,
   } = useParentDashboard();
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
 
   const [verified, setVerified] = useState(false);
   const [holdProgress, setHoldProgress] = useState(0);
@@ -49,6 +59,29 @@ export default function ParentDashboardPage() {
   const selected = children.find((c) => c.id === selectedChildId);
   const tierDisplay = TIER_DISPLAY[tier];
   const tierLimits = getTierLimits(tier);
+
+  // 3D cockpit broadcast: page-navigate on mount (amber parent theme)
+  useEffect(() => {
+    broadcast({
+      type: 'page-navigate',
+      source: 'parent-dashboard',
+      color: '#FFAA44',
+      label: 'PARENT',
+      targetPage: '/parent',
+    });
+  }, [broadcast]);
+
+  // 3D cockpit broadcast: child selection → LED rim color shift to age band
+  useEffect(() => {
+    if (selected) {
+      broadcast({
+        type: 'lab-select',
+        source: `child-${selected.id}`,
+        color: BAND_COLORS[selected.age_band] || '#FFAA44',
+        label: selected.display_name,
+      });
+    }
+  }, [selected, broadcast]);
 
   // v2 [ENH-8B]: Hold-to-reveal gate (3 second press)
   const startHold = useCallback(() => {
@@ -88,6 +121,16 @@ export default function ParentDashboardPage() {
   async function handleTimeLimit(childId: string, minutes: number | null) {
     const previousLimit = children.find(c => c.id === childId)?.daily_time_limit_minutes ?? null;
     updateChildTimeLimit(childId, minutes);
+
+    // 3D cockpit broadcast: dial-rotate for time limit snap
+    broadcast({
+      type: 'dial-rotate',
+      source: 'time-limit-dial',
+      value: minutes ?? 999,
+      color: '#00FF88',
+      label: minutes === null ? 'Unlimited' : `${minutes}m`,
+    });
+
     const sb = createClient();
     const { error } = await sb
       .from('children')
