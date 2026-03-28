@@ -19,6 +19,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 import { useSortAudio } from '@/hooks/useSortAudio';
 import { Plus, Boxes, Brain, ChevronRight, GraduationCap, Sparkles } from 'lucide-react';
 import dynamic from 'next/dynamic';
@@ -176,6 +177,8 @@ export function SortToyBoxGame() {
   // P2: Audio integration
   const audio = useSortAudio();
   const [soundEnabled, setSoundEnabled] = useState(false);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
   const allGrouped = shapes.every((s) => s.group !== null);
   const learnContent = LEARN_CONTENT[ageBand];
@@ -272,6 +275,7 @@ export function SortToyBoxGame() {
     setShapes(sorted);
     game.updateScore(20);
     if (soundEnabled) audio.playAIReveal();
+    triggerCelebration('confetti');
     broadcast({ type: 'celebration-start', source: 'sort-toy-box', value: 1, color: '#AA66FF' });
     broadcast({ type: 'dial-rotate', source: 'sort-toy-box', value: 1.0, color: '#AA66FF' });
     setPhase('reveal');

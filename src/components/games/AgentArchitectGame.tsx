@@ -17,6 +17,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 import { useAgentAudio } from '@/hooks/useAgentAudio';
 import {
   Play, RotateCcw, Zap,
@@ -421,6 +422,8 @@ export function AgentArchitectGame() {
   // P2: Audio integration
   const agentAudio = useAgentAudio();
   const [soundEnabled, setSoundEnabled] = useState(false);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
   // Particles
   const particles = useMemo(() =>
@@ -640,6 +643,7 @@ export function AgentArchitectGame() {
     setReportData({ stars, pathLen, efficiency, tips });
     game.updateScore(10 + stars * 5);
     if (soundEnabled) agentAudio.playMissionComplete(stars);
+    triggerCelebration(stars >= 3 ? 'streak' : 'confetti');
     broadcast({ type: 'celebration-start', source: 'agent-architect', value: stars, color: '#10B981' });
     broadcast({ type: 'dial-rotate', source: 'agent-architect', value: stars / 3, color: '#10B981' });
 

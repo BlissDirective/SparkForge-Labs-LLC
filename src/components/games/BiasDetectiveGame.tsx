@@ -22,6 +22,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 import { useBiasDetectiveAudio } from '@/hooks/useBiasDetectiveAudio';
 import {
   Search, Eye, CheckCircle2,
@@ -581,6 +582,20 @@ export function BiasDetectiveGame() {
 
   // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  // P5: Dynamic caseColor per case type for environment tinting
+  const dynamicCaseColor = useMemo(() => {
+    if (!activeCase) return '#EF4444';
+    const caseColors: Record<string, string> = {
+      hiring: '#3B82F6',    // Corporate blue
+      facial: '#F59E0B',    // Warning amber
+      lending: '#10B981',   // Financial green
+      content: '#AA66FF',   // Media purple
+      medical: '#EC4899',   // Health pink
+      recidivism: '#EF4444', // Justice red
+    };
+    return caseColors[activeCase.id] || '#EF4444';
+  }, [activeCase]);
+
   useEffect(() => {
     if (activeCase && (phase === 'investigate' || phase === 'testlab' || phase === 'fix')) {
       setGameSceneContent(
@@ -588,18 +603,20 @@ export function BiasDetectiveGame() {
           biasWeight={scaleWeights.biasWeight}
           fairWeight={scaleWeights.fairWeight}
           isBalanced={scaleWeights.isBalanced}
-          caseColor="#EF4444"
+          caseColor={dynamicCaseColor}
         />
       );
     }
     return () => setGameSceneContent(null);
-  }, [activeCase, phase, scaleWeights, setGameSceneContent]);
+  }, [activeCase, phase, scaleWeights, dynamicCaseColor, setGameSceneContent]);
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   // P2: Audio integration
   const biasAudio = useBiasDetectiveAudio();
   const [soundEnabled, setSoundEnabled] = useState(false);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
   // Handlers
   function startCase(caseId: string) {
@@ -641,6 +658,7 @@ export function BiasDetectiveGame() {
       - selectedFixes.filter(id => !correctFixes.includes(id)).length * 5;
     game.updateScore(Math.max(0, score) + relevantEvidenceCount * 2);
     if (soundEnabled) biasAudio.playCaseClosed();
+    triggerCelebration('confetti');
     broadcast({ type: 'celebration-start', source: 'bias-detective', value: 1, color: '#EF4444' });
     if (!completedCases.includes(activeCase.id)) {
       setCompletedCases(prev => [...prev, activeCase.id]);

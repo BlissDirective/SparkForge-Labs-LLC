@@ -28,6 +28,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 import { useNetworkAudio } from '@/hooks/useNetworkAudio';
 import {
   Brain, Zap, ChevronRight, Plus, Minus, Play,
@@ -285,6 +286,8 @@ export function NeuralBuilderGame() {
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
   // --- Architecture challenges (V2 Enhancement) ---
   const [showChallenges, setShowChallenges] = useState(false);
@@ -504,9 +507,10 @@ export function NeuralBuilderGame() {
       if (e % 5 === 0) {
         broadcast({ type: 'dial-rotate', source: 'neural-builder', value: acc / 100, color: '#EC4899' });
       }
-      // Milestone celebrations at 50%, 75%, 90%
+      // P4: Milestone celebrations at 50%, 75%, 90%
       if ((acc >= 50 && prevAcc < 50) || (acc >= 75 && prevAcc < 75) || (acc >= 90 && prevAcc < 90)) {
         broadcast({ type: 'celebration-start', source: 'neural-builder', value: acc, color: '#EC4899' });
+        triggerCelebration(acc >= 90 ? 'streak' : 'confetti');
       }
       prevAcc = acc;
     }

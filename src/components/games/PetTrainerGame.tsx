@@ -26,6 +26,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 import { usePetTrainerAudio } from '@/hooks/usePetTrainerAudio';
 import {
   Heart, Sparkles, Brain, Zap, ChevronRight, BarChart3,
@@ -366,14 +367,17 @@ export function PetTrainerGame() {
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
   const prevEvolution = useRef(0);
   useEffect(() => {
     if (evolutionStage > prevEvolution.current) {
       broadcast({ type: 'celebration-start', source: 'pet-trainer', value: evolutionStage, color: '#8B5CF6' });
+      triggerCelebration('confetti');
       if (soundEnabled) audio.playEvolution(evolutionStage);
       prevEvolution.current = evolutionStage;
     }
-  }, [evolutionStage, broadcast, soundEnabled, audio]);
+  }, [evolutionStage, broadcast, triggerCelebration, soundEnabled, audio]);
   const description = ageBand === 'C' ? categorySet.descriptionC : categorySet.description;
   const testAccuracy = testResults.length > 0
     ? Math.round((testResults.filter(r => r.correct).length / testResults.length) * 100)

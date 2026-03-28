@@ -17,6 +17,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameStore } from '@/stores/gameStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 import { usePromptLabAudio } from '@/hooks/usePromptLabAudio';
 import {
   Send, BookOpen, Star, AlertTriangle,
@@ -776,6 +777,8 @@ export function PromptLabGame() {
   // P2: Audio integration
   const promptAudio = usePromptLabAudio();
   const [soundEnabled, setSoundEnabled] = useState(false);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
   // Track completed challenges count
   const completedChallenges = useMemo(
@@ -923,6 +926,7 @@ export function PromptLabGame() {
         if (result.passed) {
           game.updateScore(15);
           if (soundEnabled) promptAudio.playChallengePassed();
+          triggerCelebration('confetti');
           broadcast({ type: 'celebration-start', source: 'prompt-lab', value: 1, color: '#F59E0B' });
         }
       }
