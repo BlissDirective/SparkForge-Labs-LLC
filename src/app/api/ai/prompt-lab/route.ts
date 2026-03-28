@@ -1,4 +1,6 @@
 // POST /api/ai/prompt-lab — Moderated AI chat for kids
+// v2 [BUG-9A]: Lazy Anthropic init — no top-level crash if key missing
+// v2 [BUG-9B]: Uses centralized MODELS config from prompts.ts
 import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createServerSupabase } from '@/lib/supabase/server';
@@ -9,8 +11,7 @@ import {
 } from '@/lib/api-helpers';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { TIER_CONFIG } from '@/lib/tier-config';
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { MODELS } from '@/lib/agent/prompts';
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   A: `You are Sparky, a friendly AI tutor for kids ages 7-10. Use simple words, fun analogies, and lots of encouragement. Keep responses under 150 words. If asked about anything inappropriate, gently redirect to a fun science or technology topic.`,
@@ -19,6 +20,14 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
+  // v2 [ENH-9A]: Graceful 503 if ANTHROPIC_API_KEY missing
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return apiError(
+      'Prompt Lab is not configured. Add ANTHROPIC_API_KEY to .env.local.',
+      503, 'SERVICE_UNAVAILABLE'
+    );
+  }
+
   const limited = applyRateLimit(req, 'prompt-lab', undefined, RATE_LIMITS.promptLab);
   if (limited) return limited;
 
@@ -53,9 +62,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // v2 [BUG-9A]: Lazy init — SDK instantiated per-request, not at module level
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      // v2 [BUG-9B]: Centralized model string from MODELS config
+      model: MODELS.moderation,
       max_tokens: 300,
       temperature,
       system: SYSTEM_PROMPTS[ageBand] || SYSTEM_PROMPTS.A,
