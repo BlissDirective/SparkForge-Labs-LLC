@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 9 — Content Agent Enhancement (Phase 1 COMPLETE)
-## Status: IN PROGRESS — Phase 1 complete, Phases 2-9 pending
-## Last Updated: 2026-03-28 (Phase 1: Content Agent Schema Extension)
+## Current Phase: Stage 9 — Content Agent Enhancement (Phases 1-3 COMPLETE)
+## Status: IN PROGRESS — Phases 1-3 complete, Phases 4-9 pending
+## Last Updated: 2026-03-28 (Phase 3: Trending AI Topics Pipeline)
 
 ---
 
@@ -47,10 +47,35 @@
 - `src/app/api/agent/run/route.ts` — mode query param support
 - `src/app/(dashboard)/admin/content/page.tsx` — icons + mode selector
 
+### Phase 2: Dynamic Game Scaffolding (2026-03-28)
+
+**Status:** COMPLETE (commit 9c9e4f4)
+- [x] All 35 game components wired with `useGameContent` hook
+- [x] Static content preserved as fallback, dynamic scenarios overlay when available
+- [x] 3 parallel batches: Labs 1-3 (12 games), Labs 4-7 (12 games), Labs 8-10 (11 games)
+
+### Phase 3: Trending AI Topics Pipeline (2026-03-28)
+
+**Status:** COMPLETE (commit fa5aabf)
+- [x] `/api/agent/trending` route — POST (admin) + GET (cron)
+- [x] `runTrendingPipeline()` standalone pipeline function
+- [x] `TrendingFeed.tsx` dashboard component (compact/full modes)
+- [x] `vercel.json` — weekly trending cron (Mondays 8 AM UTC)
+- [x] `schedule/route.ts` — supports ?mode= param, defaults to 'enhanced'
+
+**Files Created (2):**
+- `src/app/api/agent/trending/route.ts`
+- `src/components/dashboard/TrendingFeed.tsx`
+
+**Files Modified (3):**
+- `src/lib/agent/pipeline.ts` — added runTrendingPipeline()
+- `src/app/api/agent/schedule/route.ts` — mode param support
+- `vercel.json` — weekly trending cron
+
 **Enhancement Roadmap (9 Phases):**
 - [x] Phase 1: Content Agent Schema Extension ✅
-- [ ] Phase 2: Dynamic Game Scaffolding (all 35 games)
-- [ ] Phase 3: Trending AI Topics Pipeline
+- [x] Phase 2: Dynamic Game Scaffolding (all 35 games) ✅
+- [x] Phase 3: Trending AI Topics Pipeline ✅
 - [ ] Phase 4: Interactive Lesson Builder
 - [ ] Phase 5: AI Guide Avatar Integration
 - [ ] Phase 6: 3D Cockpit Content Integration
