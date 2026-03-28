@@ -4,6 +4,10 @@
 > - **S6-CRIT-002:** `PromptBubble3DScene.tsx` refactored from standalone `<Canvas>` to `<group>` (D3D-B1). Canvas, camera, dpr, gl removed — CockpitCanvas provides these.
 > - **S6-HIGH-003:** Added `useEffect` disposal cleanup for `MeshPhysicalMaterial` and `SpriteMaterial` in `PromptBubble3D.tsx` to prevent GPU memory leaks.
 > - **3D Embedding:** PromptLabEnvironment correctly wired into PromptBubble3DScene group. No duplicate Environment instances.
+>
+> **P3 ENHANCEMENTS (March 28, 2026):**
+> - **Merge mechanic:** PromptBubble3D `merging` field now active — similar keyword bubbles (matching first 3 chars) attract and absorb into larger bubble
+> - **Always-on env:** PromptLabGame registers PromptBubble3DScene on mount regardless of keyword state
 
 **Date:** March 5, 2026 | **GCUD:** V9 | **Vision:** Laboratory Control Station
 **Design:** Frost-Prismatic v3 (blue-dominant 60/40, chrome bezel, hex-radial, R3F station frame)

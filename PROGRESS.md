@@ -1,8 +1,8 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 6 — Flagship Games Enhancement (P0-P2)
-## Status: COMPLETE — 14 audit fixes + 5 embedding fixes + 3 enhancement phases
-## Last Updated: 2026-03-28 (P0-P2 Enhancements: Environment + Cockpit Broadcast + Audio)
+## Current Phase: Stage 6 — Flagship Games Enhancement (P0-P5)
+## Status: COMPLETE — 14 audit fixes + 5 embedding fixes + 6 enhancement phases
+## Last Updated: 2026-03-28 (P3-P5 Session 2: Dead props + CeremonyFX + Env reactivity)
 
 ---
 
@@ -43,6 +43,33 @@
 **Files Modified (7):**
 - `src/components/3d/environments/SortToyBoxEnvironment.tsx` — Full expansion
 - All 6 game components — cockpitBroadcast + audio integration
+
+### Stage 6 Enhancement — P3/P4/P5 Session 2 (2026-03-28)
+
+**Status:** COMPLETE
+**Branch:** claude/stage-6-audit-fixes-38BE4
+
+**Phase 4 (P3) — Dead Prop Fixes + Missing Interactions (commit 4b41e3b):**
+- [x] NeuralNetwork3D: dataFlowActive now drives traveling data dots along connections
+- [x] PromptBubble3D: merge mechanic implemented (similar keywords attract + absorb)
+- [x] Pet3DScene: emoji prop made optional (never used in 3D component)
+- [x] SortScene3D: hover state + cursor pointer on ThrowableItem
+- [x] AgentPipeline3D: hover glow + cursor pointer on Block3D
+- [x] BiasScales3D: chain links swing with beam tilt velocity (cascading pendulum)
+- [x] SortScene3D: landing particle burst (8 particles, auto-cleanup 700ms)
+- [x] PromptLabGame: always-on environment (registers on mount, not just on keywords)
+
+**Phase 5 (P4+P5) — CeremonyFX Milestones + Environment Reactivity (commit d4d83a4):**
+- [x] All 6 games trigger CeremonyFX at conservative milestones:
+  - PetTrainer: confetti on evolution, NeuralBuilder: confetti at 50/75%, streak at 90%
+  - SortToyBox: confetti on AI reveal, PromptLab: confetti on challenge pass
+  - AgentArchitect: confetti/streak on mission, BiasDetective: confetti on case closed
+- [x] BiasDetective: dynamic caseColor per case type (blue/amber/green/purple/pink/red)
+- [x] PetTrainer + NeuralBuilder environments already mood/accuracy-reactive (verified working)
+
+**Files Modified (13):**
+- 6 game components — CeremonyFX + uiStore integration
+- 7 3D components — data flow, merge, hover, particles, chain physics
 
 ---
 

@@ -150,6 +150,20 @@
 - Each hook: lazy Tone.js import, user gesture init, opt-in toggle, try/catch silent fallbacks
 - All 6 games now have Tone.js audio integration (all 35 games benefit via shared GameShell)
 
+**P3 — Dead Prop Fixes + Missing Interactions (March 28, 2026):**
+- NeuralNetwork3D: `dataFlowActive` dead prop fixed — traveling data dots along connections
+- PromptBubble3D: `merging` field now active — similar keyword bubbles attract + absorb
+- Pet3DScene: dead `emoji` prop made optional
+- SortScene3D: hover state + landing particle burst (8 particles)
+- AgentPipeline3D: hover glow on Block3D
+- BiasScales3D: chain physics — links swing with beam tilt
+- PromptLabGame: always-on environment (no more blank 3D until first keyword)
+
+**P4+P5 — CeremonyFX Milestones + Environment Reactivity (March 28, 2026):**
+- All 6 games trigger `uiStore.triggerCelebration()` at conservative milestones (confetti/streak)
+- BiasDetective: dynamic `caseColor` per case type (blue/amber/green/purple/pink/red)
+- PetTrainer + NeuralBuilder environments verified mood/accuracy-reactive
+
 ---
 
 ## Executive Summary
