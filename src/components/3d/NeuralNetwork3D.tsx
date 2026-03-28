@@ -22,9 +22,8 @@
 'use client';
 
 import { useRef, useMemo } from 'react';
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
-import { OrbitControls, Text, Line, Environment } from '@react-three/drei';
-import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
+import { OrbitControls, Text, Line } from '@react-three/drei';
 import { Color, Mesh, Vector3 } from 'three';
 import NeuralBuilderEnvironment from './environments/NeuralBuilderEnvironment';
 
@@ -205,6 +204,7 @@ function ConnectionLine({
   to,
   connection,
   isSelected,
+  dataFlowActive,
   onSelect,
 }: {
   from: [number, number, number];
@@ -220,13 +220,16 @@ function ConnectionLine({
 
   // Spark flash at midpoint
   const sparkRef = useRef<Mesh>(null);
+  // P3: Traveling data dot along connection (fixes dead dataFlowActive prop)
+  const dataDotRef = useRef<Mesh>(null);
+  const dotProgress = useRef(Math.random());
   const midpoint: [number, number, number] = [
     (from[0] + to[0]) / 2,
     (from[1] + to[1]) / 2,
     (from[2] + to[2]) / 2,
   ];
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!sparkRef.current) return;
     if (connection.sparkIntensity > 0.3) {
       const s = connection.sparkIntensity * 0.3;
@@ -234,6 +237,23 @@ function ConnectionLine({
       sparkRef.current.visible = true;
     } else {
       sparkRef.current.visible = false;
+    }
+    // P3: Animate traveling data dot when dataFlowActive
+    if (dataDotRef.current) {
+      if (dataFlowActive) {
+        dotProgress.current = (dotProgress.current + delta * 0.8) % 1;
+        const t = dotProgress.current;
+        dataDotRef.current.position.set(
+          from[0] + (to[0] - from[0]) * t,
+          from[1] + (to[1] - from[1]) * t,
+          from[2] + (to[2] - from[2]) * t
+        );
+        dataDotRef.current.visible = true;
+        const pulse = 0.04 + Math.sin(t * Math.PI) * 0.03;
+        dataDotRef.current.scale.setScalar(pulse / 0.04);
+      } else {
+        dataDotRef.current.visible = false;
+      }
     }
   });
 
@@ -256,6 +276,11 @@ function ConnectionLine({
       <mesh ref={sparkRef} position={midpoint} visible={false}>
         <sphereGeometry args={[0.08, 8, 8]} />
         <meshBasicMaterial color={SPARK_COLOR} transparent opacity={0.8} />
+      </mesh>
+      {/* P3: Traveling data dot — visible when dataFlowActive */}
+      <mesh ref={dataDotRef} visible={false}>
+        <sphereGeometry args={[0.04, 6, 6]} />
+        <meshBasicMaterial color="#60A5FA" transparent opacity={0.9} />
       </mesh>
     </group>
   );
@@ -433,62 +458,39 @@ function NetworkScene({
       {/* Camera Controls */}
       <AutoOrbitController isTraining={isTraining} />
 
-      {/* Environment */}
-      <Environment preset="night" />
-
-      {/* Bloom */}
-      <EffectComposer>
-        <Bloom
-          intensity={0.6}
-          luminanceThreshold={0.4}
-          luminanceSmoothing={0.9}
-          mipmapBlur
-        />
-      </EffectComposer>
+      {/* 3D Embedding: Removed duplicate Environment preset="night" — NeuralBuilderEnvironment
+         provides HDR/lighting in the outer group. Also removed EffectComposer — CockpitCanvas
+         provides PostProcessingStack (D3D-C1). */}
     </>
   );
 }
 
 // ================================================================
-// EXPORTED COMPONENT (wraps Canvas)
+// EXPORTED COMPONENT — Group (D3D-B1 compliant)
 // ================================================================
+// S6-CRIT-002: Refactored from standalone Canvas to <group> that
+// renders inside CockpitCanvas via sceneStore.setGameSceneContent.
 
 export default function NeuralNetwork3D(props: NeuralNetwork3DProps) {
   return (
-    <div
-      className="w-full rounded-lg overflow-hidden"
-      style={{
-        height: 400,
-        background: 'radial-gradient(ellipse at center, rgba(236,72,153,0.08) 0%, transparent 70%)',
-      }}
-      role="img"
-      aria-label={`3D neural network visualization with ${props.layerSizes.length} layers and ${props.network.nodes.length} neurons`}
-    >
-      <Canvas
-        camera={{ position: [0, 2, 10], fov: 50 }}
-        dpr={[1, 2]}
-        gl={{ antialias: true, alpha: true }}
-        shadows
-        style={{ background: 'transparent' }}
-      >
-          {/* [5M] Immersive Data Center Environment */}
-          <NeuralBuilderEnvironment
-            isTraining={props.isTraining}
-            accuracy={props.accuracy}
-          />
+    <group>
+      {/* [5M] Immersive Data Center Environment */}
+      <NeuralBuilderEnvironment
+        isTraining={props.isTraining}
+        accuracy={props.accuracy}
+      />
 
-          <NetworkScene
-            layerSizes={props.layerSizes}
-            network={props.network}
-            isTraining={props.isTraining}
-            heartbeatPhase={props.heartbeatPhase}
-            dataFlowActive={props.dataFlowActive}
-            selectedConnection={props.selectedConnection}
-            inspectedNode={props.inspectedNode}
-            onSelectConnection={props.onSelectConnection}
-            onInspectNode={props.onInspectNode}
-          />
-      </Canvas>
-    </div>
+      <NetworkScene
+        layerSizes={props.layerSizes}
+        network={props.network}
+        isTraining={props.isTraining}
+        heartbeatPhase={props.heartbeatPhase}
+        dataFlowActive={props.dataFlowActive}
+        selectedConnection={props.selectedConnection}
+        inspectedNode={props.inspectedNode}
+        onSelectConnection={props.onSelectConnection}
+        onInspectNode={props.onInspectNode}
+      />
+    </group>
   );
 }

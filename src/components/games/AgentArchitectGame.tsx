@@ -10,11 +10,15 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
+import { useAgentAudio } from '@/hooks/useAgentAudio';
 import {
   Play, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
@@ -390,6 +394,37 @@ export function AgentArchitectGame() {
     stars: number; pathLen: number; efficiency: string; tips: string[];
   } | null>(null);
 
+  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  useEffect(() => {
+    if (phase === 'build' || phase === 'report') {
+      setGameSceneContent(
+        <AgentPipeline3D
+          blocks={toPipelineBlocks(blocks)}
+          connections={arrows.map((a) => ({
+            fromId: a.from,
+            toId: a.to,
+            outputIndex: a.outputIdx,
+          }))}
+          activeBlockId={activeRunBlock}
+          runPath={runPath}
+          isRunning={isRunning}
+          onBlockClick={(id) => setSelectedBlock(id)}
+          onPlatformClick={() => {}}
+        />
+      );
+    }
+    return () => setGameSceneContent(null);
+  }, [phase, blocks, arrows, activeRunBlock, runPath, isRunning, setGameSceneContent]);
+
+  // P1: Cockpit broadcast integration
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P2: Audio integration
+  const agentAudio = useAgentAudio();
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
+
   // Particles
   const particles = useMemo(() =>
     Array.from({ length: 20 }, (_, i) => ({
@@ -454,6 +489,8 @@ export function AgentArchitectGame() {
     const yBase = 60 + Math.floor(blocks.length / 3) * 110;
     setBlocks(prev => [...prev, { id, type, x: xBase, y: yBase, config: {} }]);
     game.updateScore(1);
+    if (soundEnabled) agentAudio.playPlaceBlock();
+    broadcast({ type: 'button-press', source: 'agent-architect', value: 1, color: '#10B981' });
   }
 
   function _removeBlock(id: string) {
@@ -535,6 +572,8 @@ export function AgentArchitectGame() {
     setIsRunning(true);
     setRunPath([]);
     setRunSteps([]);
+    if (soundEnabled) agentAudio.playRunStart();
+    broadcast({ type: 'button-press', source: 'agent-architect', value: 1, color: '#10B981', label: 'Pipeline Run' });
 
     const goal = blocks.find(b => b.type.id === 'goal')!;
     const path: string[] = [goal.id];
@@ -603,6 +642,10 @@ export function AgentArchitectGame() {
 
     setReportData({ stars, pathLen, efficiency, tips });
     game.updateScore(10 + stars * 5);
+    if (soundEnabled) agentAudio.playMissionComplete(stars);
+    triggerCelebration(stars >= 3 ? 'streak' : 'confetti');
+    broadcast({ type: 'celebration-start', source: 'agent-architect', value: stars, color: '#10B981' });
+    broadcast({ type: 'dial-rotate', source: 'agent-architect', value: stars / 3, color: '#10B981' });
 
     if (mission && !completedMissions.includes(mission.id))
       setCompletedMissions(prev => [...prev, mission.id]);

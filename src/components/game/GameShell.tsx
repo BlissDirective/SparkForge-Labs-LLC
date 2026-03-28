@@ -20,6 +20,7 @@ import { useEffect, useRef, type ReactNode } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { XPPopupProvider } from '@/components/game/XPPopup';
@@ -57,15 +58,20 @@ export function GameShell({
   const hasRewarded = useRef(false);
 
   // Scene + game initialization
+  // 3D Embedding: broadcast game-enter/game-exit to cockpitBroadcastStore
+  // so cockpit LED rim, HUD, and status bar react to game transitions
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
   useEffect(() => {
     startGame(gameId, totalRounds, hints);
     enterGame(gameId, worldColor);
+    broadcast({ type: 'game-enter', source: gameId, intensity: 1.0 });
     return () => {
+      broadcast({ type: 'game-exit', source: gameId, intensity: 1.0 });
       exitGame();
       resetGame();
       hasRewarded.current = false;
     };
-  }, [gameId, totalRounds, hints, worldColor, startGame, resetGame, enterGame, exitGame]);
+  }, [gameId, totalRounds, hints, worldColor, startGame, resetGame, enterGame, exitGame, broadcast]);
 
   // Reward pipeline: fires once when game completes
   // ENH-Phase1B: Also triggers CeremonyFX based on score tier

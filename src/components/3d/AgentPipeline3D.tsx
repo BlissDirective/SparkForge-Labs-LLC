@@ -19,9 +19,9 @@
 
 'use client';
 
-import { useRef, useMemo, useCallback, useEffect } from 'react';
-import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
-import { Text, Environment } from '@react-three/drei';
+import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
+import { useFrame, ThreeEvent } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import {
   BoxGeometry,
   BufferAttribute,
@@ -230,10 +230,13 @@ function Block3D({
     onClick?.(block.id);
   }, [block.id, onClick]);
 
+  // P3: Hover state for block preview
+  const [hovered, setHovered] = useState(false);
+
   const baseColor = new Color(block.color);
   const emissiveColor = isActive
     ? baseColor.clone().multiplyScalar(0.6)
-    : inPath
+    : (inPath || hovered)
       ? baseColor.clone().multiplyScalar(0.2)
       : new Color(0x000000);
 
@@ -244,12 +247,21 @@ function Block3D({
         ref={meshRef}
         geometry={geometry}
         onClick={handleClick}
+        onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          setHovered(true);
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          document.body.style.cursor = 'auto';
+        }}
         castShadow
       >
         <meshStandardMaterial
           color={block.color}
           emissive={emissiveColor}
-          emissiveIntensity={isActive ? 1.5 : inPath ? 0.5 : 0}
+          emissiveIntensity={isActive ? 1.5 : (inPath || hovered) ? 0.5 : 0}
           roughness={0.4}
           metalness={0.3}
           transparent
@@ -630,40 +642,29 @@ function PipelineScene({
       {/* Ambient particles (Decision 5.3) */}
       <PipelineParticles />
 
-      {/* HDR environment for reflections */}
-      <Environment preset="night" />
+      {/* 3D Embedding: Removed duplicate Environment preset="night" —
+         AgentArchitectEnvironment provides HDR/lighting in the outer group.
+         CockpitCanvas also provides Environment via FROST_PRISMATIC_HDR_PATH. */}
     </>
   );
 }
 
 // ================================================================
-// EXPORTED CANVAS WRAPPER
+// EXPORTED GROUP (D3D-B1 compliant)
 // ================================================================
+// S6-CRIT-002: Refactored from standalone Canvas to <group>.
 
 export default function AgentPipeline3D(props: PipelineProps) {
   return (
-    <Canvas
-      camera={{ position: [0, 10, 10], fov: 50 }}
-      shadows
-      dpr={[1, 1.5]}
-      frameloop={props.isRunning ? 'always' : 'demand'}
-      style={{
-        width: '100%',
-        height: '100%',
-        borderRadius: '0.75rem',
-        background:
-          'linear-gradient(180deg, #030712 0%, #0a1a14 100%)',
-      }}
-      gl={{ antialias: true, alpha: false }}
-    >
-        {/* [5M] Immersive Server Command Center Environment */}
-        <AgentArchitectEnvironment
-          isRunning={props.isRunning}
-          activeBlockId={props.activeBlockId}
-        />
+    <group>
+      {/* [5M] Immersive Server Command Center Environment */}
+      <AgentArchitectEnvironment
+        isRunning={props.isRunning}
+        activeBlockId={props.activeBlockId}
+      />
 
-        <PipelineScene {...props} />
-    </Canvas>
+      <PipelineScene {...props} />
+    </group>
   );
 }
 

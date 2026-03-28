@@ -1,5 +1,10 @@
 # Stage 6B v3-FINAL Part A — AI Pet Trainer 3D Components
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-002:** `Pet3DScene.tsx` refactored from standalone `<Canvas>` to `<group>` (D3D-B1). Canvas, camera, dpr, gl, shadows, EffectComposer/Bloom removed — CockpitCanvas provides all of these. Component now renders inside CockpitCanvas via `sceneStore.setGameSceneContent()`.
+> - **S6-HIGH-003:** Material disposal not needed in Pet3DScene (uses JSX-declared materials handled by R3F).
+> - **3D Embedding:** PetTrainerEnvironment correctly wired into Pet3DScene group. No duplicate Environment instances.
+
 **Version:** v3-FINAL (corrected)
 **Build Phase:** 10 (Stage 6B — Pet Trainer, Part A: 3D components)
 **Prerequisites:** Stage 5 complete (all parts), Stage 3 Part 3 v3-FINAL (StationFrame + HDR infrastructure)

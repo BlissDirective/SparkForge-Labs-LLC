@@ -15,11 +15,15 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
+import { useBiasDetectiveAudio } from '@/hooks/useBiasDetectiveAudio';
 import {
   Search, Eye, CheckCircle2,
   GraduationCap, ChevronRight, Scale,
@@ -34,16 +38,18 @@ const BiasScales3DComponent = dynamic(
   () => import('@/components/3d/BiasScales3D'),
   { ssr: false }
 );
+// P6-C: 3D decision tree for fix phase
+const BiasDecisionTree3D = dynamic(
+  () => import('@/components/3d/BiasDecisionTree3D'),
+  { ssr: false }
+);
 
 import {
   calculateScaleWeights,
 } from '@/components/3d/BiasScales3D';
 
-// [v3] R3F Canvas for 3D rendering
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
+// S6-CRIT-002: Canvas removed — BiasScales3D now renders as <group>
+// inside CockpitCanvas via sceneStore.setGameSceneContent (D3D-B1)
 
 
 // ================================================================
@@ -579,6 +585,77 @@ export function BiasDetectiveGame() {
     );
   }, [activeCase, collectedEvidence]);
 
+  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  // P5: Dynamic caseColor per case type for environment tinting
+  const dynamicCaseColor = useMemo(() => {
+    if (!activeCase) return '#EF4444';
+    const caseColors: Record<string, string> = {
+      hiring: '#3B82F6',    // Corporate blue
+      facial: '#F59E0B',    // Warning amber
+      lending: '#10B981',   // Financial green
+      content: '#AA66FF',   // Media purple
+      medical: '#EC4899',   // Health pink
+      recidivism: '#EF4444', // Justice red
+    };
+    return caseColors[activeCase.id] || '#EF4444';
+  }, [activeCase]);
+
+  // P6-C: Build decision tree nodes from active case fix options
+  const decisionTreeNodes = useMemo(() => {
+    if (!activeCase || phase !== 'fix') return [];
+    const correctFixes = activeCase.fixOptions.filter((f) => f.correct);
+    const wrongFixes = activeCase.fixOptions.filter((f) => !f.correct);
+    const nodes = [
+      { id: 'root', label: 'AI Decision', isBiased: true, isFixed: selectedFixes.length > 0, depth: 0, children: ['bias', 'fair'] },
+      { id: 'bias', label: 'Biased Path', isBiased: true, isFixed: false, depth: 1, children: wrongFixes.map((f) => f.id) },
+      { id: 'fair', label: 'Fair Path', isBiased: false, isFixed: selectedFixes.some((id) => correctFixes.some((f) => f.id === id)), depth: 1, children: correctFixes.map((f) => f.id) },
+      ...activeCase.fixOptions.map((f) => ({
+        id: f.id,
+        label: f.label,
+        isBiased: !f.correct,
+        isFixed: selectedFixes.includes(f.id) && f.correct,
+        depth: 2,
+        children: [],
+      })),
+    ];
+    return nodes;
+  }, [activeCase, phase, selectedFixes]);
+
+  useEffect(() => {
+    if (activeCase && (phase === 'investigate' || phase === 'testlab' || phase === 'fix')) {
+      const fixedCount = activeCase ? activeCase.fixOptions.filter((f) => f.correct && selectedFixes.includes(f.id)).length : 0;
+      const totalBiased = activeCase ? activeCase.fixOptions.filter((f) => !f.correct).length + 1 : 0;
+      setGameSceneContent(
+        <>
+          <BiasScales3DComponent
+            biasWeight={scaleWeights.biasWeight}
+            fairWeight={scaleWeights.fairWeight}
+            isBalanced={scaleWeights.isBalanced}
+            caseColor={dynamicCaseColor}
+          />
+          {phase === 'fix' && decisionTreeNodes.length > 0 && (
+            <BiasDecisionTree3D
+              nodes={decisionTreeNodes}
+              caseColor={dynamicCaseColor}
+              fixedCount={fixedCount}
+              totalBiased={totalBiased}
+            />
+          )}
+        </>
+      );
+    }
+    return () => setGameSceneContent(null);
+  }, [activeCase, phase, scaleWeights, dynamicCaseColor, selectedFixes, decisionTreeNodes, setGameSceneContent]);
+
+  // P1: Cockpit broadcast integration
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P2: Audio integration
+  const biasAudio = useBiasDetectiveAudio();
+  const [soundEnabled, setSoundEnabled] = useState(false);
+  // P4: CeremonyFX milestones
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
+
   // Handlers
   function startCase(caseId: string) {
     setActiveCaseId(caseId);
@@ -594,6 +671,9 @@ export function BiasDetectiveGame() {
     if (collectedEvidence.includes(id)) return;
     setCollectedEvidence(prev => [...prev, id]);
     game.updateScore(3);
+    if (soundEnabled) biasAudio.playEvidenceReveal(activeCase?.evidence.find(e => e.id === id)?.biasRelevant ?? false);
+    broadcast({ type: 'button-press', source: 'bias-detective', value: 1, color: '#EF4444' });
+    broadcast({ type: 'dial-rotate', source: 'bias-detective', value: scaleWeights.biasWeight, color: '#EF4444' });
   }
 
   function runCustomTest() {
@@ -615,6 +695,9 @@ export function BiasDetectiveGame() {
     const score = selectedFixes.filter(id => correctFixes.includes(id)).length * 10
       - selectedFixes.filter(id => !correctFixes.includes(id)).length * 5;
     game.updateScore(Math.max(0, score) + relevantEvidenceCount * 2);
+    if (soundEnabled) biasAudio.playCaseClosed();
+    triggerCelebration('confetti');
+    broadcast({ type: 'celebration-start', source: 'bias-detective', value: 1, color: '#EF4444' });
     if (!completedCases.includes(activeCase.id)) {
       setCompletedCases(prev => [...prev, activeCase.id]);
     }
@@ -994,24 +1077,14 @@ export function BiasDetectiveGame() {
                       </span>
                     </div>
 
-                    {/* [v3] 3D Justice Scales — responds to evidence */}
-                    <div className="w-full h-32 md:h-40 rounded-xl
-                      overflow-hidden"
+                    {/* [v3] 3D Justice Scales — now renders in CockpitCanvas (D3D-B1) */}
+                    {/* S6-CRIT-002: Inline Canvas removed — scales visible in cockpit background */}
+                    <div className="w-full h-32 md:h-40 rounded-xl overflow-hidden flex items-center justify-center"
                       style={{ background: 'rgba(0,0,0,0.2)' }}
                       aria-hidden="true">
-                      <Canvas
-                          camera={{ position: [0, 1.5, 3.5], fov: 45 }}
-                          style={{ background: 'transparent' }}
-                          gl={{ alpha: true, antialias: true }}
-                          frameloop="always">
-                          {/* [CR-6F-C2] frameloop="always" for spring physics + particles */}
-                          <BiasScales3DComponent
-                            biasWeight={scaleWeights.biasWeight}
-                            fairWeight={scaleWeights.fairWeight}
-                            isBalanced={scaleWeights.isBalanced}
-                            caseColor="#EF4444"
-                          />
-                        </Canvas>
+                      <p className="font-body text-2xs text-white/20">
+                        {scaleWeights.isBalanced ? '\u2696\uFE0F Scales balanced' : '\u26A0\uFE0F Bias detected — check the 3D view'}
+                      </p>
                     </div>
 
                     {/* Data Visualizations */}

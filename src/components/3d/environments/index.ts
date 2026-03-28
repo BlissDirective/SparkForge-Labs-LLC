@@ -12,6 +12,7 @@ export { default as NeuralBuilderEnvironment } from './NeuralBuilderEnvironment'
 export { default as PromptLabEnvironment } from './PromptLabEnvironment';
 export { default as AgentArchitectEnvironment } from './AgentArchitectEnvironment';
 export { default as BiasDetectiveEnvironment } from './BiasDetectiveEnvironment';
+export { default as SortToyBoxEnvironment } from './SortToyBoxEnvironment';
 export { FlagshipEnvironmentWrapper } from './FlagshipEnvironmentBase';
 
 // ■■ FL-Lite Environments (2M budget) ■■

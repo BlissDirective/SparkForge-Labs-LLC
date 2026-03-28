@@ -2,6 +2,23 @@
 
 ## Sort Toy Box (Full 3D) + Human vs Machine (Standard Polish)
 
+> **AUDIT FIXES APPLIED (March 27, 2026):**
+> - **S6-CRIT-002:** `SortScene3D.tsx` refactored from standalone `<Canvas>` to `<group>` (D3D-B1). OrthographicCamera retained (game-specific overhead view).
+> - **S6-CRIT-003:** Removed redundant `game.startGame("sort-toy-box", 1)` — GameShell calls with correct `totalRounds=12`.
+> - **S6-HIGH-001:** Full ARIA labels on all interactive elements (buttons, regions, progress dots).
+> - **S6-HIGH-002:** Added `learn` phase (3 lesson cards per age band) + `complete` phase (stats, summary, `game.completeGame()`).
+> - **S6-HIGH-004:** Created `SortToyBoxEnvironment.tsx` (240 lines, Lab 2 purple #AA66FF theme). Wired into SortScene3D group.
+> - **S6-HIGH-006:** Full A/B/C age band content in all phases. Band A: simple vocabulary. Band B: intermediate. Band C: K-means, feature space, distance metrics.
+> - **S6-WARN-002/003/005:** Removed dead code, redundant checks, fixed dependency array.
+> - **sceneStore integration:** SortToyBoxGame registers SortScene3D via `setGameSceneContent()` during sort phase.
+> - **Expansion:** SortToyBoxGame grew from 420 to 610 lines — now at flagship quality level.
+>
+> **ENHANCEMENTS APPLIED (March 28, 2026):**
+> - **P0:** SortToyBoxEnvironment expanded 251 → 622 lines. 7 new sub-components (RoboticSortArms, BinaryDecisionTree, ClusterSpheres, WarehouseShelving, DataFlowTubes, FeatureScanner, HolographicLabels). Reactive props. 6 useFrame hooks. Wow: 4/5 (was 2/5).
+> - **P1:** Cockpit broadcast — `button-press` on sort, `celebration-start` + `dial-rotate` on AI reveal
+> - **P2:** `useSortAudio` (Tone.js) — throw whoosh, bin land thunk, group fill chime, AI reveal chord, complete arpeggio
+> - **P6-D:** `SortFeatureViz3D` — 3D feature-space scatter plot during reveal/complete phase showing AI clustering logic
+
 **Date:** February 28, 2026
 **GCUD Version:** V9
 **Batch:** 7B — Drag & Drop Games
