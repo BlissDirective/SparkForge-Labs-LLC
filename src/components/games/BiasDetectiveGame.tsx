@@ -21,6 +21,7 @@ import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   Search, Eye, CheckCircle2,
   GraduationCap, ChevronRight, Scale,
@@ -593,6 +594,9 @@ export function BiasDetectiveGame() {
     return () => setGameSceneContent(null);
   }, [activeCase, phase, scaleWeights, setGameSceneContent]);
 
+  // P1: Cockpit broadcast integration
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+
   // Handlers
   function startCase(caseId: string) {
     setActiveCaseId(caseId);
@@ -608,6 +612,9 @@ export function BiasDetectiveGame() {
     if (collectedEvidence.includes(id)) return;
     setCollectedEvidence(prev => [...prev, id]);
     game.updateScore(3);
+    broadcast({ type: 'button-press', source: 'bias-detective', value: 1, color: '#EF4444' });
+    // Broadcast balance change to cockpit dials
+    broadcast({ type: 'dial-rotate', source: 'bias-detective', value: scaleWeights.biasWeight, color: '#EF4444' });
   }
 
   function runCustomTest() {
@@ -629,6 +636,7 @@ export function BiasDetectiveGame() {
     const score = selectedFixes.filter(id => correctFixes.includes(id)).length * 10
       - selectedFixes.filter(id => !correctFixes.includes(id)).length * 5;
     game.updateScore(Math.max(0, score) + relevantEvidenceCount * 2);
+    broadcast({ type: 'celebration-start', source: 'bias-detective', value: 1, color: '#EF4444' });
     if (!completedCases.includes(activeCase.id)) {
       setCompletedCases(prev => [...prev, activeCase.id]);
     }

@@ -16,6 +16,7 @@ import { GameShell } from '@/components/game/GameShell';
 import { useChildStore } from '@/stores/childStore';
 import { useGameStore } from '@/stores/gameStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   Send, BookOpen, Star, AlertTriangle,
   ChevronRight, Lightbulb, GraduationCap,
@@ -771,6 +772,9 @@ export function PromptLabGame() {
     }
   }, [phase, game]);
 
+  // P1: Cockpit broadcast integration
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+
   // Track completed challenges count
   const completedChallenges = useMemo(
     () => Object.values(challengeResults).filter((r) => r.passed).length,
@@ -866,6 +870,9 @@ export function PromptLabGame() {
 
     // Award points for prompt quality
     game.updateScore(Math.max(1, Math.floor(score.total / 5)));
+    // P1: Broadcast prompt send + quality to cockpit
+    broadcast({ type: 'button-press', source: 'prompt-lab', value: score.total, color: '#F59E0B' });
+    broadcast({ type: 'dial-rotate', source: 'prompt-lab', value: temperature, color: '#F59E0B' });
 
     try {
       const res = await fetch('/api/ai/prompt-lab', {
@@ -908,7 +915,10 @@ export function PromptLabGame() {
       if (activeChallenge) {
         const result = activeChallenge.checkFn(data.reply, userMessage.content);
         setChallengeResults((prev) => ({ ...prev, [activeChallenge.id]: result }));
-        if (result.passed) game.updateScore(15);
+        if (result.passed) {
+          game.updateScore(15);
+          broadcast({ type: 'celebration-start', source: 'prompt-lab', value: 1, color: '#F59E0B' });
+        }
       }
 
       // [v3] Clear bubble keywords after pop animation

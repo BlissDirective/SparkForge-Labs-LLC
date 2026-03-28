@@ -27,6 +27,7 @@ import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useNetworkAudio } from '@/hooks/useNetworkAudio';
 import {
   Brain, Zap, ChevronRight, Plus, Minus, Play,
@@ -282,6 +283,9 @@ export function NeuralBuilderGame() {
   const audio = useNetworkAudio();
   const [soundEnabled, setSoundEnabled] = useState(false);
 
+  // P1: Cockpit broadcast integration
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+
   // --- Architecture challenges (V2 Enhancement) ---
   const [showChallenges, setShowChallenges] = useState(false);
   const [activeChallenge, setActiveChallenge] = useState<string | null>(null);
@@ -450,6 +454,7 @@ export function NeuralBuilderGame() {
         : 0.5;
     const maxAcc = Math.min(98, 60 + (1 - optimalMatch) * 38);
 
+    let prevAcc = 0;
     for (let e = 1; e <= epochs; e++) {
       await new Promise((r) => setTimeout(r, 600));
       const acc = Math.min(
@@ -495,9 +500,19 @@ export function NeuralBuilderGame() {
           audio.playActivation(e % layerSizes.length, layerSizes.length);
         }
       }
+      // P1: Broadcast training progress to cockpit
+      if (e % 5 === 0) {
+        broadcast({ type: 'dial-rotate', source: 'neural-builder', value: acc / 100, color: '#EC4899' });
+      }
+      // Milestone celebrations at 50%, 75%, 90%
+      if ((acc >= 50 && prevAcc < 50) || (acc >= 75 && prevAcc < 75) || (acc >= 90 && prevAcc < 90)) {
+        broadcast({ type: 'celebration-start', source: 'neural-builder', value: acc, color: '#EC4899' });
+      }
+      prevAcc = acc;
     }
 
     if (soundEnabled) audio.playComplete();
+    broadcast({ type: 'celebration-start', source: 'neural-builder', value: 1, color: '#EC4899' });
     setIsTraining(false);
     setDataFlowActive(false);
     game.updateScore(Math.round(maxAcc / 10) * 5);

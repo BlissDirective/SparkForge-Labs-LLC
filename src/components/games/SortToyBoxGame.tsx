@@ -18,6 +18,7 @@ import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { Plus, Boxes, Brain, ChevronRight, GraduationCap, Sparkles } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -169,6 +170,9 @@ export function SortToyBoxGame() {
   const [selectedShape, setSelectedShape] = useState<string | null>(null);
   const [aiCriterion, setAiCriterion] = useState<(typeof AI_CRITERIA)[0] | null>(null);
 
+  // P1: Cockpit broadcast integration
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+
   const allGrouped = shapes.every((s) => s.group !== null);
   const learnContent = LEARN_CONTENT[ageBand];
 
@@ -245,6 +249,7 @@ export function SortToyBoxGame() {
       prev.map((s) => (s.id === itemId ? { ...s, group: binId } : s))
     );
     game.updateScore(2);
+    broadcast({ type: 'button-press', source: 'sort-toy-box', value: 1, color: '#AA66FF' });
   }
 
   function revealAI() {
@@ -261,6 +266,8 @@ export function SortToyBoxGame() {
     });
     setShapes(sorted);
     game.updateScore(20);
+    broadcast({ type: 'celebration-start', source: 'sort-toy-box', value: 1, color: '#AA66FF' });
+    broadcast({ type: 'dial-rotate', source: 'sort-toy-box', value: 1.0, color: '#AA66FF' });
     setPhase('reveal');
   }
 

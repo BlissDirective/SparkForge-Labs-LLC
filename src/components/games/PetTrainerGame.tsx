@@ -18,13 +18,14 @@
 // training vs test data, balanced datasets.
 // ================================================================
 
-import { useState, useMemo, useEffect, Fragment } from 'react';
+import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   Heart, Sparkles, Brain, Zap, ChevronRight, BarChart3,
   CheckCircle2, XCircle, RotateCcw, Eye,
@@ -357,6 +358,16 @@ export function PetTrainerGame() {
   const accuracy = totalLabeled > 0 ? Math.round((correctCount / totalLabeled) * 100) : 0;
   const mood = getPetMood(accuracy, phase);
   const evolutionStage = getEvolutionStage(correctCount);
+
+  // P1: Cockpit broadcast integration
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  const prevEvolution = useRef(0);
+  useEffect(() => {
+    if (evolutionStage > prevEvolution.current) {
+      broadcast({ type: 'celebration-start', source: 'pet-trainer', value: evolutionStage, color: '#8B5CF6' });
+      prevEvolution.current = evolutionStage;
+    }
+  }, [evolutionStage, broadcast]);
   const description = ageBand === 'C' ? categorySet.descriptionC : categorySet.description;
   const testAccuracy = testResults.length > 0
     ? Math.round((testResults.filter(r => r.correct).length / testResults.length) * 100)
@@ -432,6 +443,11 @@ export function PetTrainerGame() {
       game.updateScore(5 + streakBonus);
     }
     setShowFeedback({ correct: isCorrect, message: getPetReaction(isCorrect) });
+    // P1: Broadcast training action to cockpit
+    broadcast({ type: 'button-press', source: 'pet-trainer', value: isCorrect ? 1 : 0, color: '#8B5CF6' });
+    if (accuracy > 0 && accuracy % 25 === 0) {
+      broadcast({ type: 'dial-rotate', source: 'pet-trainer', value: accuracy / 100, color: '#8B5CF6' });
+    }
     setTimeout(() => {
       setShowFeedback(null);
       const next = currentItem + 1;
