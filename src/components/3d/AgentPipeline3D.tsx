@@ -19,7 +19,7 @@
 
 'use client';
 
-import { useRef, useMemo, useCallback, useEffect } from 'react';
+import { useRef, useState, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, ThreeEvent } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import {
@@ -230,10 +230,13 @@ function Block3D({
     onClick?.(block.id);
   }, [block.id, onClick]);
 
+  // P3: Hover state for block preview
+  const [hovered, setHovered] = useState(false);
+
   const baseColor = new Color(block.color);
   const emissiveColor = isActive
     ? baseColor.clone().multiplyScalar(0.6)
-    : inPath
+    : (inPath || hovered)
       ? baseColor.clone().multiplyScalar(0.2)
       : new Color(0x000000);
 
@@ -244,12 +247,21 @@ function Block3D({
         ref={meshRef}
         geometry={geometry}
         onClick={handleClick}
+        onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          setHovered(true);
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          document.body.style.cursor = 'auto';
+        }}
         castShadow
       >
         <meshStandardMaterial
           color={block.color}
           emissive={emissiveColor}
-          emissiveIntensity={isActive ? 1.5 : inPath ? 0.5 : 0}
+          emissiveIntensity={isActive ? 1.5 : (inPath || hovered) ? 0.5 : 0}
           roughness={0.4}
           metalness={0.3}
           transparent

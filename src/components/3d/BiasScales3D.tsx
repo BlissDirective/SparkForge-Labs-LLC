@@ -211,6 +211,10 @@ export default function BiasScales3D({
     onReady?.();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // P3: Chain link refs for physics swing
+  const leftChainRefs = useRef<Mesh[]>([]);
+  const rightChainRefs = useRef<Mesh[]>([]);
+
   // Spring physics per frame
   useFrame((_, delta) => {
     const spring = springRef.current;
@@ -234,6 +238,21 @@ export default function BiasScales3D({
       rightPlatRef.current.position.y = -0.4 - Math.sin(spring.angle) * armLength * 0.5;
       rightPlatRef.current.position.x = armLength;
     }
+
+    // P3: Chain links swing with beam tilt (fixes static chains)
+    const chainSwing = spring.velocity * 2;
+    leftChainRefs.current.forEach((chain, i) => {
+      if (chain) {
+        chain.rotation.x = chainSwing * (1 + i * 0.3);
+        chain.rotation.z = spring.angle * 0.3 * (i + 1);
+      }
+    });
+    rightChainRefs.current.forEach((chain, i) => {
+      if (chain) {
+        chain.rotation.x = -chainSwing * (1 + i * 0.3);
+        chain.rotation.z = -spring.angle * 0.3 * (i + 1);
+      }
+    });
   });
 
   return (
@@ -266,9 +285,10 @@ export default function BiasScales3D({
 
       {/* Left platform group (BIAS side) */}
       <group ref={leftPlatRef} position={[-1.2, -0.4, 0]}>
-        {/* Chain segments (3 links) */}
+        {/* Chain segments (3 links) — P3: refs for swing physics */}
         {[0, 0.15, 0.3].map((y, i) => (
-          <mesh key={`lc-${i}`} position={[0, 0.6 - y, 0]}>
+          <mesh key={`lc-${i}`} position={[0, 0.6 - y, 0]}
+            ref={(el) => { if (el) leftChainRefs.current[i] = el; }}>
             <torusGeometry args={[0.04, 0.012, 6, 8]} />
             <meshStandardMaterial color={BRASS_DARK} metalness={0.7} roughness={0.4} />
           </mesh>
@@ -303,9 +323,10 @@ export default function BiasScales3D({
 
       {/* Right platform group (FAIR side) */}
       <group ref={rightPlatRef} position={[1.2, -0.4, 0]}>
-        {/* Chain segments */}
+        {/* Chain segments — P3: refs for swing physics */}
         {[0, 0.15, 0.3].map((y, i) => (
-          <mesh key={`rc-${i}`} position={[0, 0.6 - y, 0]}>
+          <mesh key={`rc-${i}`} position={[0, 0.6 - y, 0]}
+            ref={(el) => { if (el) rightChainRefs.current[i] = el; }}>
             <torusGeometry args={[0.04, 0.012, 6, 8]} />
             <meshStandardMaterial color={BRASS_DARK} metalness={0.7} roughness={0.4} />
           </mesh>

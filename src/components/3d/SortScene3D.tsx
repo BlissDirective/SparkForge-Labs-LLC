@@ -157,6 +157,9 @@ function ThrowableItem({
     }
   });
 
+  // P3: Hover state
+  const [hovered, setHovered] = useState(false);
+
   return (
     <group
       ref={meshRef}
@@ -165,12 +168,21 @@ function ThrowableItem({
         e.stopPropagation();
         if (!isFlying) onSelect();
       }}
+      onPointerOver={(e: ThreeEvent<PointerEvent>) => {
+        e.stopPropagation();
+        setHovered(true);
+        document.body.style.cursor = 'pointer';
+      }}
+      onPointerOut={() => {
+        setHovered(false);
+        document.body.style.cursor = 'auto';
+      }}
     >
       <ShapeMesh
         shape={item.shape}
         color={item.color}
         size={item.size}
-        isSelected={isSelected}
+        isSelected={isSelected || hovered}
       />
       {/* Selection ring */}
       {isSelected && !isFlying && (
@@ -289,6 +301,48 @@ function TableSurface() {
   );
 }
 
+// ■■■ P3: Landing Particle Burst ■■■
+function LandingBurst({ position, color }: { position: [number, number, number]; color: string }) {
+  const groupRef = useRef<Group>(null);
+  const particleCount = 8;
+  const velocities = useRef(
+    Array.from({ length: particleCount }, () => new Vector3(
+      (Math.random() - 0.5) * 3,
+      Math.random() * 2 + 1,
+      (Math.random() - 0.5) * 3
+    ))
+  );
+  const lifeRef = useRef(0);
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    lifeRef.current += delta;
+    if (lifeRef.current > 0.6) {
+      groupRef.current.visible = false;
+      return;
+    }
+    groupRef.current.children.forEach((child, i) => {
+      const vel = velocities.current[i];
+      child.position.x += vel.x * delta;
+      child.position.y += vel.y * delta - 4 * delta * lifeRef.current;
+      child.position.z += vel.z * delta;
+      const s = Math.max(0, 1 - lifeRef.current * 2);
+      child.scale.setScalar(s);
+    });
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      {Array.from({ length: particleCount }, (_, i) => (
+        <mesh key={i}>
+          <sphereGeometry args={[0.05, 4, 4]} />
+          <meshStandardMaterial color={color} emissive={color} emissiveIntensity={1.5} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
 // ■■■ Main Scene ■■■
 function Scene({
   items,
@@ -300,6 +354,9 @@ function Scene({
   const [flyingItems, setFlyingItems] = useState<
     Map<string, { target: Vector3; binId: number }>
   >(new Map());
+  // P3: Landing particle bursts
+  const [bursts, setBursts] = useState<{ id: number; position: [number, number, number]; color: string }[]>([]);
+  const burstIdRef = useRef(0);
 
   const handleBinClick = useCallback(
     (binId: number) => {
@@ -332,11 +389,25 @@ function Scene({
         const next = new Map(prev);
         const data = next.get(itemId);
         next.delete(itemId);
-        if (data) onItemDrop(itemId, data.binId);
+        if (data) {
+          onItemDrop(itemId, data.binId);
+          // P3: Trigger landing particle burst
+          const item = items.find((i) => i.id === itemId);
+          const bin = bins.find((b) => b.id === data.binId);
+          if (bin) {
+            const id = burstIdRef.current++;
+            setBursts((prev) => [...prev, {
+              id,
+              position: bin.position,
+              color: item?.color || bin.color,
+            }]);
+            setTimeout(() => setBursts((prev) => prev.filter((b) => b.id !== id)), 700);
+          }
+        }
         return next;
       });
     },
-    [onItemDrop]
+    [onItemDrop, items, bins]
   );
 
   return (
@@ -396,6 +467,11 @@ function Scene({
           isHighlighted={activeItemId !== null}
           onClick={() => handleBinClick(bin.id)}
         />
+      ))}
+
+      {/* P3: Landing particle bursts */}
+      {bursts.map((burst) => (
+        <LandingBurst key={burst.id} position={burst.position} color={burst.color} />
       ))}
     </>
   );

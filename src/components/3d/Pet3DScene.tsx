@@ -22,7 +22,7 @@ import PetTrainerEnvironment from './environments/PetTrainerEnvironment';
 // === Types ===
 
 export interface PetSceneProps {
-  emoji: string;
+  emoji?: string; // P3: Made optional — emoji overlay is rendered by game component, not 3D scene
   speciesId?: 'byteling' | 'sparkpaw' | 'voltkit' | 'cogsworth' | 'pixie';
   mood:
     | 'sleeping'

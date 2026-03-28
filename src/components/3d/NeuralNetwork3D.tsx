@@ -204,6 +204,7 @@ function ConnectionLine({
   to,
   connection,
   isSelected,
+  dataFlowActive,
   onSelect,
 }: {
   from: [number, number, number];
@@ -219,13 +220,16 @@ function ConnectionLine({
 
   // Spark flash at midpoint
   const sparkRef = useRef<Mesh>(null);
+  // P3: Traveling data dot along connection (fixes dead dataFlowActive prop)
+  const dataDotRef = useRef<Mesh>(null);
+  const dotProgress = useRef(Math.random());
   const midpoint: [number, number, number] = [
     (from[0] + to[0]) / 2,
     (from[1] + to[1]) / 2,
     (from[2] + to[2]) / 2,
   ];
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!sparkRef.current) return;
     if (connection.sparkIntensity > 0.3) {
       const s = connection.sparkIntensity * 0.3;
@@ -233,6 +237,23 @@ function ConnectionLine({
       sparkRef.current.visible = true;
     } else {
       sparkRef.current.visible = false;
+    }
+    // P3: Animate traveling data dot when dataFlowActive
+    if (dataDotRef.current) {
+      if (dataFlowActive) {
+        dotProgress.current = (dotProgress.current + delta * 0.8) % 1;
+        const t = dotProgress.current;
+        dataDotRef.current.position.set(
+          from[0] + (to[0] - from[0]) * t,
+          from[1] + (to[1] - from[1]) * t,
+          from[2] + (to[2] - from[2]) * t
+        );
+        dataDotRef.current.visible = true;
+        const pulse = 0.04 + Math.sin(t * Math.PI) * 0.03;
+        dataDotRef.current.scale.setScalar(pulse / 0.04);
+      } else {
+        dataDotRef.current.visible = false;
+      }
     }
   });
 
@@ -255,6 +276,11 @@ function ConnectionLine({
       <mesh ref={sparkRef} position={midpoint} visible={false}>
         <sphereGeometry args={[0.08, 8, 8]} />
         <meshBasicMaterial color={SPARK_COLOR} transparent opacity={0.8} />
+      </mesh>
+      {/* P3: Traveling data dot — visible when dataFlowActive */}
+      <mesh ref={dataDotRef} visible={false}>
+        <sphereGeometry args={[0.04, 6, 6]} />
+        <meshBasicMaterial color="#60A5FA" transparent opacity={0.9} />
       </mesh>
     </group>
   );

@@ -748,20 +748,18 @@ export function PromptLabGame() {
   const [bubbleKeywords, setBubbleKeywords] = useState<string[]>([]);
   const [showBubbles, setShowBubbles] = useState(false);
 
-  // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  // P3-E: Always-on environment — register immediately, update with keywords
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   useEffect(() => {
-    if (showBubbles && bubbleKeywords.length > 0) {
-      setGameSceneContent(
-        <PromptBubble3DScene
-          keywords={bubbleKeywords}
-          isThinking={loading}
-          temperature={temperature}
-        />
-      );
-    }
+    setGameSceneContent(
+      <PromptBubble3DScene
+        keywords={bubbleKeywords}
+        isThinking={loading}
+        temperature={temperature}
+      />
+    );
     return () => setGameSceneContent(null);
-  }, [showBubbles, bubbleKeywords, loading, temperature, setGameSceneContent]);
+  }, [bubbleKeywords, loading, temperature, setGameSceneContent]);
 
   // --- Refs ---
   const messagesEndRef = useRef<HTMLDivElement>(null);
