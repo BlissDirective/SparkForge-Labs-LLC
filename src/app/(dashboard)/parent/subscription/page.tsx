@@ -1,12 +1,13 @@
 // ════════════════════════════════════════════════════
 // SUBSCRIPTION MANAGEMENT — Current plan, upgrade/downgrade
 // v2: Uses tier-config.ts, Frost-Prismatic, success/cancel banners
+// v3: S8 audit fixes (Batch 2) + 3D cockpit broadcasts (Batch 6)
 // Enhancements: #2 tier badge color glow, #5 animated gradient
 //   border on "Most Popular", #8 Suspense wrapper for useSearchParams
 // ════════════════════════════════════════════════════
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { motion } from 'motion/react';
 import { useParentStore } from '@/stores/parentStore';
 import {
@@ -17,6 +18,9 @@ import { staggerContainer, staggerItem } from '@/lib/animations';
 import { Check, Sparkles, Crown, Rocket, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { toast } from '@/stores/toastStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 
 const TIER_ICONS: Record<SubscriptionTier, typeof Sparkles> = {
   free: Sparkles,
@@ -42,10 +46,36 @@ const TIER_GLOW: Record<SubscriptionTier, string> = {
 function SubscriptionContent() {
   const { tier } = useParentStore();
   const searchParams = useSearchParams();
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
   const showSuccess = searchParams.get('success') === 'true';
   const showCanceled = searchParams.get('canceled') === 'true';
+
+  // 3D cockpit broadcast: page-navigate on mount
+  useEffect(() => {
+    broadcast({
+      type: 'page-navigate',
+      source: 'subscription-page',
+      color: '#FFAA44',
+      label: 'SUBSCRIPTION',
+      targetPage: '/parent/subscription',
+    });
+  }, [broadcast]);
+
+  // B1: CeremonyFX on successful subscription return
+  useEffect(() => {
+    if (showSuccess) {
+      broadcast({
+        type: 'celebration-start',
+        source: 'subscription-upgrade',
+        color: '#FFD700',
+        label: 'Subscription Active!',
+      });
+      triggerCelebration('confetti', { reason: 'subscription-upgrade' });
+    }
+  }, [showSuccess, broadcast, triggerCelebration]);
 
   async function handleUpgrade(targetTier: SubscriptionTier) {
     if (targetTier === 'free' || targetTier === tier) return;
@@ -63,10 +93,10 @@ function SubscriptionContent() {
       if (data.data?.url) {
         window.location.href = data.data.url;
       } else if (data.error) {
-        alert(data.error);
+        toast.error(data.error);
       }
     } catch {
-      alert('Failed to start checkout. Please try again.');
+      toast.error('Failed to start checkout. Please try again.');
     }
   }
 
@@ -78,10 +108,10 @@ function SubscriptionContent() {
       if (data.data?.url) {
         window.location.href = data.data.url;
       } else if (data.error) {
-        alert(data.error);
+        toast.error(data.error);
       }
     } catch {
-      alert('Failed to open billing portal. Please try again.');
+      toast.error('Failed to open billing portal. Please try again.');
     }
   }
 
@@ -140,7 +170,10 @@ function SubscriptionContent() {
       {/* Billing toggle */}
       <motion.div variants={staggerItem} className="flex items-center justify-center gap-3 mb-8">
         <button
-          onClick={() => setBilling('monthly')}
+          onClick={() => {
+            setBilling('monthly');
+            broadcast({ type: 'toggle-switch', source: 'billing-toggle', color: '#00BBFF', label: 'Monthly' });
+          }}
           className={`px-4 py-2 rounded-lg font-body text-sm transition-all ${
             billing === 'monthly'
               ? 'bg-white/10 text-white border border-white/20'
@@ -151,7 +184,10 @@ function SubscriptionContent() {
           Monthly
         </button>
         <button
-          onClick={() => setBilling('yearly')}
+          onClick={() => {
+            setBilling('yearly');
+            broadcast({ type: 'toggle-switch', source: 'billing-toggle', color: '#00FF88', label: 'Yearly' });
+          }}
           className={`px-4 py-2 rounded-lg font-body text-sm relative transition-all ${
             billing === 'yearly'
               ? 'bg-white/10 text-white border border-white/20'
@@ -185,6 +221,7 @@ function SubscriptionContent() {
                 isPopular ? '' : ''
               }`}
               whileHover={{ y: -4 }}
+              onHoverStart={() => broadcast({ type: 'button-press', source: `tier-${slug}`, color, label: t.name })}
             >
               {/* ENH #5: Animated gradient border on "Most Popular" card */}
               {isPopular && (

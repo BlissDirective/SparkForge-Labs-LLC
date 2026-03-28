@@ -601,17 +601,11 @@ export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
-  let body: { tier?: string; interval?: string };
-  try {
-    body = await req.json();
-  } catch {
-    return apiError('Invalid request body', 400);
-  }
+  // S8-HIGH-001 fix: Zod validation on checkout request body
+  const parsed = await parseBody(req, CheckoutSchema);
+  if (!parsed.success) return parsed.response;
 
-  const tier = (body.tier ?? 'plus') as SubscriptionTier;
-  const interval = (body.interval ?? 'month') as 'month' | 'year';
-
-  if (tier === 'free') return apiError('Cannot checkout for free tier', 400);
+  const { tier, interval } = parsed.data;
 
   const priceId = STRIPE_PRICES[tier as keyof typeof STRIPE_PRICES]?.[interval];
   if (!priceId || priceId.startsWith('price_placeholder')) {

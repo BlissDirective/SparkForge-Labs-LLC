@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
+import dynamic from 'next/dynamic';
 import {
   Sparkles,
   ChevronRight,
@@ -13,10 +14,18 @@ import {
 import { useChildStore } from '@/stores/childStore';
 import { useAuthStore } from '@/stores/authStore';
 import { WORLDS } from '@/types';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useUIStore } from '@/stores/uiStore';
 
 // Onboarding Wizard — First-Time Parent/Child Setup
 // v2 [NEW-3A]: 3-step: child profile -> pick lab -> celebrate
-// v3: OnboardingCrystal placeholder (R3F crystal forming)
+// v3: OnboardingCrystal3D — progressive crystal formation (C1)
+
+// Dynamic import for 3D crystal (ssr: false required for R3F)
+const OnboardingCrystal3D = dynamic(
+  () => import('@/components/3d/OnboardingCrystal3D'),
+  { ssr: false }
+);
 
 const FREE_LABS = WORLDS.filter((w) => w.id <= 3);
 
@@ -30,11 +39,16 @@ export default function OnboardingPage() {
   const router = useRouter();
   const { activeChild } = useChildStore();
   const { parent } = useAuthStore();
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
   const [step, setStep] = useState(1);
   const [childName, setChildName] = useState('');
   const [childAge, setChildAge] = useState(10);
   const [selectedLab, setSelectedLab] = useState<number>(1);
   const [loading, setLoading] = useState(false);
+
+  // Get selected lab color for crystal tint
+  const selectedLabColor = FREE_LABS.find((l) => l.id === selectedLab)?.color || '#AA66FF';
 
   useEffect(() => {
     if (activeChild) {
@@ -49,8 +63,35 @@ export default function OnboardingPage() {
     }
   }, [parent, router]);
 
+  // 3D cockpit broadcast: page-navigate per step
+  useEffect(() => {
+    broadcast({
+      type: 'page-navigate',
+      source: `onboarding-step-${step}`,
+      color: '#AA66FF',
+      label: `ONBOARDING ${step}/3`,
+      targetPage: '/onboarding',
+    });
+  }, [step, broadcast]);
+
   async function completeOnboarding() {
     setLoading(true);
+
+    // C3: Launch sequence — broadcast game-enter + celebration
+    broadcast({
+      type: 'game-enter',
+      source: 'onboarding-launch',
+      color: selectedLabColor,
+      label: 'First Lab Launch!',
+    });
+    broadcast({
+      type: 'celebration-start',
+      source: 'onboarding-complete',
+      color: '#FFD700',
+      label: 'Welcome to SparkForge!',
+    });
+    triggerCelebration('confetti', { reason: 'onboarding-complete' });
+
     try {
       // Mark onboarding complete via API
       await fetch('/api/auth/me', {
@@ -70,11 +111,12 @@ export default function OnboardingPage() {
         });
       }
 
-      // Navigate to the selected lab
-      router.push(`/labs/${selectedLab}`);
+      // Brief delay for celebration effect, then navigate
+      setTimeout(() => {
+        router.push(`/labs/${selectedLab}`);
+      }, 800);
     } catch (error) {
       console.error('Onboarding error:', error);
-    } finally {
       setLoading(false);
     }
   }
@@ -201,7 +243,10 @@ export default function OnboardingPage() {
                 {FREE_LABS.map((lab) => (
                   <motion.button
                     key={lab.id}
-                    onClick={() => setSelectedLab(lab.id)}
+                    onClick={() => {
+                      setSelectedLab(lab.id);
+                      broadcast({ type: 'lab-select', source: `lab-${lab.id}`, color: lab.color, label: lab.title });
+                    }}
                     className={`w-full p-4 rounded-xl text-left flex items-center gap-4 transition-all ${
                       selectedLab === lab.id
                         ? 'bg-white/15 border-2 border-spark-purple/50'

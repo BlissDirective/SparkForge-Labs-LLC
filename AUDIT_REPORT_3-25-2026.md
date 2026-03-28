@@ -93,6 +93,61 @@
 - **S4-WARN-005:** Fixed `as string` assertion in `content/[slug]/page.tsx` — replaced with safe `Array.isArray` check.
 - **Result: 4 hooks DRY, typed, using centralized API wrapper**
 
+### Batch 12: Stage 8 Audit Fixes — Full Resolution (March 27, 2026)
+
+**All 8 Stage 8 findings resolved across 3 sub-batches + 3D embedding audit:**
+
+**Sub-batch 1 — Security:**
+- **S8-HIGH-001 (Security):** Added Zod `CheckoutSchema` validation on Stripe checkout request body. Replaced unsafe `as SubscriptionTier` type assertion with `parseBody(req, CheckoutSchema)`. Schema already existed in `validations.ts`.
+- **S8-WARN-002 (Data Integrity):** Added `STRIPE_STATUS_MAP` in webhook to normalize 8 Stripe statuses → 5 app statuses (`active`, `past_due`, `canceled`, `paused`, `active`). Updated DB CHECK constraint to include `'paused'`.
+- **S8-WARN-005 (Security):** Rewrote `add-child/page.tsx` to route through `/api/children` POST endpoint instead of direct Supabase client insert. Server-side Zod validation + tier limit enforcement now applies.
+- **S10-WARN-002 (Data Exposure):** Removed `console.log('School interest:', schoolForm)` from pricing page.
+
+**Sub-batch 2 — Performance + UX:**
+- **S8-HIGH-002 (Performance):** Created PostgreSQL function `get_parent_dashboard(p_parent_id)` using LATERAL JOINs — single DB call replaces 6N queries. New API route `GET /api/parent/dashboard`. Rewrote `useParentDashboard` hook to fetch from API. SQL migration: `sql/schema-stage8-dashboard-fn.sql`.
+- **S8-WARN-003 (Error Handling):** Added error check + optimistic rollback on time limit save failure. Uses `toast.error()` for user feedback.
+- **S8-WARN-004 (UX):** Replaced 4x `alert()` calls in subscription page with `toast.error()` from `toastStore`.
+
+**Sub-batch 3 — COPPA:**
+- **S8-WARN-001 (COPPA):** Added "Delete Profile" button + confirmation modal to parent dashboard. Modal warns about permanent data deletion (progress, badges, sessions, prompt history). Routes through existing `/api/children/[childId]` DELETE endpoint. Updates local state after successful deletion.
+
+**3D Embedding Audit (Stage 8):**
+- All 5 Stage 8 pages are intentionally CSS-based per Frost-Prismatic design system
+- Parent dashboard pages correctly inherit 3D ambiance via CockpitCanvas `parent` mode (amber LED, low HUD)
+- Pricing page correctly implements Decision 8.4 (separate marketing route, CSS-only treatment)
+- OnboardingCrystal referenced in code comment but not imported — deferred enhancement, non-blocking
+- **No missing 3D implementations. Architecture is sound.**
+
+**Result: All Stage 8 HIGH + WARNING findings RESOLVED. 3D embedding verified.**
+
+### Batch 13: Stage 8 — Full Suite 3D Cockpit Enhancements (March 28, 2026)
+
+**All A+B+C+D enhancements implemented across 4 sub-batches:**
+
+**Sub-batch 5 — Parent Dashboard 3D (A1-A3):**
+- **A1: ParentStatHologram3D** — 4 floating holographic stat tiles (XP/Lessons/Time/Streak) with animated counters, chrome bezels, floating animation, and lab-colored glow (~200K tris)
+- **A2: Child Selector Broadcast** — `lab-select` with age-band color (A=blue, B=purple, C=amber) on child switch shifts cockpit LED rim
+- **A3: Time Limit Dial Broadcast** — `dial-rotate` on time limit changes triggers cockpit pulse
+- **ParentDashboardBridge** — Bridge component mounts parent 3D in CockpitCanvas on /parent routes
+- Parent page mount broadcasts `page-navigate` (amber #FFAA44)
+
+**Sub-batch 6 — Subscription + Ceremony (B1-B3):**
+- **B1: Tier Upgrade Ceremony** — CeremonyFX confetti on `?success=true` return from Stripe
+- **B2: Billing Toggle Broadcast** — `toggle-switch` event on Monthly/Yearly toggle
+- **B3: Tier Card Glow Sync** — `button-press` with tier color on card hover → LED rim
+
+**Sub-batch 7 — Onboarding Crystal + Launch (C1-C3):**
+- **C1: OnboardingCrystal3D** — Progressive crystal formation (Tetrahedron→Octahedron→Icosahedron) with orbiting facets and completion particles (~150K tris). Lab color tints crystal.
+- **C2: Lab Selection Broadcast** — `lab-select` with lab color on pick
+- **C3: Launch Sequence** — `game-enter` + `celebration-start` + confetti ceremony on "Launch!"
+
+**Sub-batch 8 — Pricing Enhancement + Integration (D1):**
+- **D1: CSS Comparison Bars** — Animated bars in feature comparison table. Numeric values get proportional tier-colored bars. "Unlimited"/"All 10" get full bars.
+- **CockpitCanvas Mount** — ParentDashboardBridge mounted in cockpitContent alongside CeremonyFXBridge
+
+**New Files (3):** `ParentStatHologram3D.tsx` (200K tris), `ParentDashboardBridge.tsx`, `OnboardingCrystal3D.tsx` (150K tris)
+**Modified Files (5):** `parent/page.tsx`, `subscription/page.tsx`, `onboarding/page.tsx`, `pricing/page.tsx`, `CockpitCanvas.tsx`
+**Total New Triangle Budget:** ~430K (well within 12M game headroom)
 ### Stage 7 Audit Fix — Full Resolution (March 27, 2026)
 
 **Branch:** `claude/stage-7-audit-fixes-i4ZvH`
@@ -2427,128 +2482,89 @@ Interactive buttons, dropdowns, and clickable elements lack `aria-label` in thes
 
 ## Stage 8 — Finding Counts
 
-| Severity | Count |
-|----------|-------|
-| CRITICAL | 0 |
-| HIGH | 2 |
-| WARNING | 5 |
-| INFO | 2 |
-| PASS | 22 |
+| Severity | Count | Resolved |
+|----------|-------|----------|
+| CRITICAL | 0 | — |
+| HIGH | 2 | 2 (Batch 12) |
+| WARNING | 5 | 5 (Batch 12) |
+| INFO | 2 | N/A (info only) |
+| PASS | 22 | — |
+
+**Status: ALL Stage 8 findings RESOLVED (March 27, 2026 — Batch 12)**
 
 ---
 
 ## Stage 8 — HIGH FINDINGS
 
-### S8-HIGH-001 — No Zod validation on Stripe checkout request body
+### S8-HIGH-001 — ~~No Zod validation on Stripe checkout request body~~ RESOLVED (Batch 12)
 
 **File:** `src/app/api/stripe/checkout/route.ts` (lines 37-45)
 **Category:** Security / Input Validation
-**Description:** The `tier` and `interval` fields are cast with `as SubscriptionTier` and `as 'month' | 'year'` without runtime Zod validation. A malicious request could pass `tier: 'admin'` or `interval: 'decade'`. The code does check for `priceId` lookup failure (line 50) which partially mitigates this, but the raw tier value ends up in Stripe metadata (line 91) unsanitized.
+**Description:** The `tier` and `interval` fields were cast with `as SubscriptionTier` and `as 'month' | 'year'` without runtime Zod validation.
 
-**Required Fix:**
-```typescript
-import { z } from 'zod';
-const CheckoutSchema = z.object({
-  tier: z.enum(['plus', 'forge']),
-  interval: z.enum(['month', 'year']),
-});
-const parsed = await parseBody(req, CheckoutSchema);
-if (!parsed.success) return apiError('Invalid checkout parameters', 400);
-const { tier, interval } = parsed.data;
-```
+**Resolution:** Replaced type assertions with `parseBody(req, CheckoutSchema)` using the existing `CheckoutSchema` from `src/lib/validations.ts` (which validates `tier: z.enum(['plus', 'forge'])` and `interval: z.enum(['month', 'year'])`).
 
 ---
 
-### S8-HIGH-002 — N+1 query pattern in `useParentDashboard` (up to 25 DB calls)
+### S8-HIGH-002 — ~~N+1 query pattern in `useParentDashboard` (up to 25 DB calls)~~ RESOLVED (Batch 12)
 
-**File:** `src/hooks/useParentDashboard.ts` (lines 50-116)
+**File:** `src/hooks/useParentDashboard.ts`
 **Category:** Performance
-**Description:** For each child, the hook makes 5 separate Supabase queries (lessons count, quiz count, badge count, games count, sessions). With 5 children on the Forge plan, this is **25 database queries** on every dashboard load.
+**Description:** Hook made 6 separate Supabase queries per child (6N total for N children).
 
-**Required Fix:** Consolidate into a single server-side API route or database function:
-```typescript
-// Option A: Single API route
-GET /api/parent/dashboard?parentId=xxx
-// Returns all children with pre-aggregated stats
-
-// Option B: Database function
-SELECT * FROM get_parent_dashboard(p_parent_id UUID)
-// Returns children + stats in one round-trip
-```
+**Resolution:** Option B implemented — PostgreSQL function `get_parent_dashboard(p_parent_id)` with LATERAL JOINs (single DB call). New API route `GET /api/parent/dashboard`. Hook rewritten to fetch from API. SQL migration: `sql/schema-stage8-dashboard-fn.sql`.
 
 ---
 
 ## Stage 8 — WARNING FINDINGS
 
-### S8-WARN-001 — No UI button to delete a child profile
+### S8-WARN-001 — ~~No UI button to delete a child profile~~ RESOLVED (Batch 12)
 
 **File:** `src/app/(dashboard)/parent/page.tsx`
 **Category:** COPPA / Feature Gap
-**Description:** The DELETE API endpoint exists (`/api/children/[childId]` with ownership verification), but the parent dashboard has no delete button or confirmation flow. Parents cannot delete a child profile from the UI — they'd need to use the API directly.
+**Description:** The DELETE API endpoint existed but no UI to trigger it.
 
-**Required Fix:** Add a delete button with confirmation modal on the child detail view. Include clear warning about permanent data deletion.
+**Resolution:** Added "Delete Profile" button in child overview section + animated confirmation modal with data deletion warning. Routes through `/api/children/[childId]` DELETE endpoint. Updates local state on success.
 
 ---
 
-### S8-WARN-002 — Raw Stripe status stored without mapping
+### S8-WARN-002 — ~~Raw Stripe status stored without mapping~~ RESOLVED (Batch 12)
 
-**File:** `src/app/api/stripe/webhook/route.ts` (line 104)
+**File:** `src/app/api/stripe/webhook/route.ts` (line 99)
 **Category:** Data Integrity
-**Description:** In `customer.subscription.updated`, the raw Stripe status string (e.g., `'incomplete'`, `'trialing'`, `'unpaid'`, `'past_due'`) is stored directly in the `subscription_status` column. If the column has a check constraint limited to expected values, this could silently fail.
+**Description:** Raw Stripe status string stored directly in `subscription_status` column, could violate CHECK constraint.
 
-**Required Fix:** Map Stripe statuses to application statuses:
-```typescript
-const STATUS_MAP: Record<string, string> = {
-  active: 'active', trialing: 'active',
-  past_due: 'past_due', unpaid: 'canceled',
-  canceled: 'canceled', incomplete: 'active',
-  incomplete_expired: 'canceled', paused: 'paused',
-};
-const appStatus = STATUS_MAP[sub.status] ?? 'active';
-```
+**Resolution:** Added `STRIPE_STATUS_MAP` mapping 8 Stripe statuses → 5 app statuses. Updated DB CHECK constraint to include `'paused'` via `sql/schema-stage8-dashboard-fn.sql`.
 
 ---
 
-### S8-WARN-003 — Time limit save has no error handling
+### S8-WARN-003 — ~~Time limit save has no error handling~~ RESOLVED (Batch 12)
 
-**File:** `src/app/(dashboard)/parent/page.tsx` (lines 81-88)
+**File:** `src/app/(dashboard)/parent/page.tsx`
 **Category:** Error Handling
-**Description:** `handleTimeLimit` calls both `updateChildTimeLimit` (optimistic store update) and `sb.from('children').update(...)` (Supabase write) but never checks the Supabase result for errors. If the DB write fails, the UI shows the updated limit but the actual limit is unchanged.
+**Description:** `handleTimeLimit` had no error check on Supabase write — silent failure with stale optimistic UI.
 
-**Required Fix:** Check the Supabase response and roll back the optimistic update on failure:
-```typescript
-const { error } = await sb.from('children').update({ daily_time_limit: minutes }).eq('id', childId);
-if (error) {
-  // Roll back optimistic update
-  updateChildTimeLimit(childId, previousLimit);
-  toast.error('Failed to save time limit');
-}
-```
+**Resolution:** Added error check + rollback to previous limit on failure. Uses `toast.error()` for user feedback.
 
 ---
 
-### S8-WARN-004 — Subscription page uses `alert()` instead of toast
+### S8-WARN-004 — ~~Subscription page uses `alert()` instead of toast~~ RESOLVED (Batch 12)
 
-**File:** `src/app/(dashboard)/parent/subscription/page.tsx` (lines 66, 69, 81, 84)
+**File:** `src/app/(dashboard)/parent/subscription/page.tsx`
 **Category:** UX / Accessibility
-**Description:** Uses `alert()` for error messages. Not accessible-friendly (screen readers handle it inconsistently) and breaks the Frost-Prismatic visual design.
+**Description:** Used `alert()` for error messages — breaks design and accessibility.
 
-**Required Fix:** Replace with `useToastStore`:
-```typescript
-const toast = useToastStore(s => s.addToast);
-// Replace: alert('Failed to start checkout');
-// With:    toast('error', 'Failed to start checkout');
-```
+**Resolution:** Replaced 4x `alert()` calls with `toast.error()` from `@/stores/toastStore`.
 
 ---
 
-### S8-WARN-005 — Add-child page uses direct Supabase client call (bypasses server)
+### S8-WARN-005 — ~~Add-child page uses direct Supabase client call (bypasses server)~~ RESOLVED (Batch 12)
 
-**File:** `src/app/(dashboard)/parent/add-child/page.tsx` (line 78)
+**File:** `src/app/(dashboard)/parent/add-child/page.tsx`
 **Category:** Security / Architecture
-**Description:** Child creation uses direct Supabase client call from the browser, bypassing any server-side validation or rate limiting. A malicious user could create unlimited child profiles by manipulating the client, ignoring tier-based child limits.
+**Description:** Direct Supabase client insert bypassed server-side validation and tier limits.
 
-**Required Fix:** Route child creation through the existing `/api/children` POST endpoint which enforces tier limits server-side.
+**Resolution:** Replaced direct Supabase call with `fetch('/api/children', { method: 'POST', ... })`. Server-side route enforces Zod validation via `CreateChildSchema` and tier limits via `canCreateChild()`.
 
 ---
 
@@ -3011,13 +3027,13 @@ export const env = envSchema.parse(process.env);
 
 ---
 
-### S10-WARN-002 — console.log leaks form data in pricing page
+### S10-WARN-002 — ~~console.log leaks form data in pricing page~~ RESOLVED (Batch 12)
 
 **File:** `src/app/(marketing)/pricing/page.tsx` (line 274)
 **Category:** Data Exposure
-**Description:** `console.log('School interest:', schoolForm)` logs school inquiry form data (name, email, institution) to the browser console in production.
+**Description:** `console.log('School interest:', schoolForm)` leaked form data to browser console.
 
-**Required Fix:** Remove or guard: `if (process.env.NODE_ENV === 'development') console.log(...)`
+**Resolution:** Replaced with TODO comment for future API endpoint implementation. No data exposure.
 
 ---
 
