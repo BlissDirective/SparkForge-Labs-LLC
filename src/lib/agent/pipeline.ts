@@ -706,6 +706,85 @@ async function stageTrendingResearch(): Promise<TrendingFinding[]> {
 
 // ── MAIN PIPELINE ORCHESTRATOR ─────────────────────
 
+/**
+ * Standalone trending pipeline — runs only trending research + scenario generation.
+ * Used by /api/agent/trending route and weekly cron.
+ */
+export async function runTrendingPipeline(): Promise<AgentRunResult> {
+  const startTime = Date.now();
+  const runId = `trending_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const supabase = createAdminClient();
+  const errors: string[] = [];
+  let generatedCount = 0;
+  let approvedCount = 0;
+  let flaggedCount = 0;
+  let rejectedCount = 0;
+  let trendingTopicsCount = 0;
+  let gameScenariosCount = 0;
+
+  try {
+    // Stage 1: Trending research
+    const trendingFindings = await stageTrendingResearch();
+    trendingTopicsCount = trendingFindings.length;
+
+    if (trendingFindings.length === 0) {
+      errors.push('No trending findings returned');
+    }
+
+    // Stage 2: Generate game scenarios from trending topics
+    const scenarios = await stageGenerateGameScenarios(trendingFindings);
+    gameScenariosCount = scenarios.length;
+    generatedCount = scenarios.length;
+
+    // Stage 3+4: Screen and insert each scenario
+    for (const item of scenarios) {
+      try {
+        const safetyResult = await stageScreen(item);
+        const parentFinding = trendingFindings.find(f => f.world === item.world);
+        const sourceUrls = parentFinding ? [parentFinding.source_url] : [];
+
+        const result = await stageInsert(supabase, item, safetyResult, runId, sourceUrls);
+        if (result === 'approved') approvedCount++;
+        else if (result === 'flagged') flaggedCount++;
+        else rejectedCount++;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        errors.push(`Trending screen/insert error: ${msg}`);
+      }
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    errors.push(`Trending pipeline error: ${msg}`);
+  }
+
+  const durationMs = Date.now() - startTime;
+
+  await supabase.from('agent_runs').insert({
+    run_id: runId,
+    findings_count: trendingTopicsCount,
+    generated_count: generatedCount,
+    approved_count: approvedCount,
+    flagged_count: flaggedCount,
+    rejected_count: rejectedCount,
+    duration_ms: durationMs,
+    errors: errors.length > 0 ? errors : [],
+    completed_at: new Date().toISOString(),
+  });
+
+  return {
+    runId,
+    findings: trendingTopicsCount,
+    generated: generatedCount,
+    approved: approvedCount,
+    flagged: flaggedCount,
+    rejected: rejectedCount,
+    durationMs,
+    errors,
+    trendingTopics: trendingTopicsCount,
+    gameScenarios: gameScenariosCount,
+  };
+}
+
 /** Pipeline mode controls which content types to generate */
 export type PipelineMode = 'standard' | 'enhanced' | 'full';
 

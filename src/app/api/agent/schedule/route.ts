@@ -7,7 +7,7 @@
 
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError } from '@/lib/api-helpers';
-import { runAgentPipeline } from '@/lib/agent/pipeline';
+import { runAgentPipeline, type PipelineMode } from '@/lib/agent/pipeline';
 
 export const runtime = 'nodejs';
 
@@ -39,8 +39,12 @@ export async function GET(req: NextRequest) {
     });
   }
 
+  // Phase 3: Schedule runs in 'enhanced' mode (includes game scenarios + challenges)
+  const url = new URL(req.url);
+  const mode = (url.searchParams.get('mode') || 'enhanced') as PipelineMode;
+
   try {
-    const result = await runAgentPipeline();
+    const result = await runAgentPipeline(mode);
     return apiSuccess(result);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
