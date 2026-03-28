@@ -22,6 +22,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useBiasDetectiveAudio } from '@/hooks/useBiasDetectiveAudio';
 import {
   Search, Eye, CheckCircle2,
   GraduationCap, ChevronRight, Scale,
@@ -596,6 +597,9 @@ export function BiasDetectiveGame() {
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P2: Audio integration
+  const biasAudio = useBiasDetectiveAudio();
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   // Handlers
   function startCase(caseId: string) {
@@ -612,8 +616,8 @@ export function BiasDetectiveGame() {
     if (collectedEvidence.includes(id)) return;
     setCollectedEvidence(prev => [...prev, id]);
     game.updateScore(3);
+    if (soundEnabled) biasAudio.playEvidenceReveal(activeCase?.evidence.find(e => e.id === id)?.biasRelevant ?? false);
     broadcast({ type: 'button-press', source: 'bias-detective', value: 1, color: '#EF4444' });
-    // Broadcast balance change to cockpit dials
     broadcast({ type: 'dial-rotate', source: 'bias-detective', value: scaleWeights.biasWeight, color: '#EF4444' });
   }
 
@@ -636,6 +640,7 @@ export function BiasDetectiveGame() {
     const score = selectedFixes.filter(id => correctFixes.includes(id)).length * 10
       - selectedFixes.filter(id => !correctFixes.includes(id)).length * 5;
     game.updateScore(Math.max(0, score) + relevantEvidenceCount * 2);
+    if (soundEnabled) biasAudio.playCaseClosed();
     broadcast({ type: 'celebration-start', source: 'bias-detective', value: 1, color: '#EF4444' });
     if (!completedCases.includes(activeCase.id)) {
       setCompletedCases(prev => [...prev, activeCase.id]);

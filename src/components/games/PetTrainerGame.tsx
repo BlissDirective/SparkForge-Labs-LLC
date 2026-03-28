@@ -26,6 +26,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { usePetTrainerAudio } from '@/hooks/usePetTrainerAudio';
 import {
   Heart, Sparkles, Brain, Zap, ChevronRight, BarChart3,
   CheckCircle2, XCircle, RotateCcw, Eye,
@@ -339,6 +340,10 @@ export function PetTrainerGame() {
   const [testResults, setTestResults] = useState<{ correct: boolean; predicted: string; actual: string }[]>([]);
   const [petThinking, setPetThinking] = useState(false);
 
+  // P2: Audio integration
+  const audio = usePetTrainerAudio();
+  const [soundEnabled, setSoundEnabled] = useState(false);
+
   // === Particles ===
   const particles = useMemo(() =>
     Array.from({ length: 25 }, (_, i) => ({
@@ -365,9 +370,10 @@ export function PetTrainerGame() {
   useEffect(() => {
     if (evolutionStage > prevEvolution.current) {
       broadcast({ type: 'celebration-start', source: 'pet-trainer', value: evolutionStage, color: '#8B5CF6' });
+      if (soundEnabled) audio.playEvolution(evolutionStage);
       prevEvolution.current = evolutionStage;
     }
-  }, [evolutionStage, broadcast]);
+  }, [evolutionStage, broadcast, soundEnabled, audio]);
   const description = ageBand === 'C' ? categorySet.descriptionC : categorySet.description;
   const testAccuracy = testResults.length > 0
     ? Math.round((testResults.filter(r => r.correct).length / testResults.length) * 100)
@@ -443,6 +449,11 @@ export function PetTrainerGame() {
       game.updateScore(5 + streakBonus);
     }
     setShowFeedback({ correct: isCorrect, message: getPetReaction(isCorrect) });
+    // P2: Audio feedback
+    if (soundEnabled) {
+      if (isCorrect) { audio.playCorrect(); if (newStreak >= 3) audio.playStreak(newStreak); }
+      else audio.playWrong();
+    }
     // P1: Broadcast training action to cockpit
     broadcast({ type: 'button-press', source: 'pet-trainer', value: isCorrect ? 1 : 0, color: '#8B5CF6' });
     if (accuracy > 0 && accuracy % 25 === 0) {

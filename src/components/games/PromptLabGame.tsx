@@ -17,6 +17,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameStore } from '@/stores/gameStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { usePromptLabAudio } from '@/hooks/usePromptLabAudio';
 import {
   Send, BookOpen, Star, AlertTriangle,
   ChevronRight, Lightbulb, GraduationCap,
@@ -774,6 +775,9 @@ export function PromptLabGame() {
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P2: Audio integration
+  const promptAudio = usePromptLabAudio();
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   // Track completed challenges count
   const completedChallenges = useMemo(
@@ -870,6 +874,8 @@ export function PromptLabGame() {
 
     // Award points for prompt quality
     game.updateScore(Math.max(1, Math.floor(score.total / 5)));
+    // P2: Audio feedback
+    if (soundEnabled) { promptAudio.playSend(); promptAudio.playScore(score.total); }
     // P1: Broadcast prompt send + quality to cockpit
     broadcast({ type: 'button-press', source: 'prompt-lab', value: score.total, color: '#F59E0B' });
     broadcast({ type: 'dial-rotate', source: 'prompt-lab', value: temperature, color: '#F59E0B' });
@@ -908,6 +914,7 @@ export function PromptLabGame() {
         timestamp: Date.now(),
       };
       setMessages([...updatedMessages, assistantMessage]);
+      if (soundEnabled) promptAudio.playResponse();
       setPromptsUsed((p) => p + 1);
       game.advanceRound();
 
@@ -917,6 +924,7 @@ export function PromptLabGame() {
         setChallengeResults((prev) => ({ ...prev, [activeChallenge.id]: result }));
         if (result.passed) {
           game.updateScore(15);
+          if (soundEnabled) promptAudio.playChallengePassed();
           broadcast({ type: 'celebration-start', source: 'prompt-lab', value: 1, color: '#F59E0B' });
         }
       }

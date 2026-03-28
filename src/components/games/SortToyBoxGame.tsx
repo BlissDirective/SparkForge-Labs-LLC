@@ -19,6 +19,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useSortAudio } from '@/hooks/useSortAudio';
 import { Plus, Boxes, Brain, ChevronRight, GraduationCap, Sparkles } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
@@ -172,6 +173,9 @@ export function SortToyBoxGame() {
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P2: Audio integration
+  const audio = useSortAudio();
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   const allGrouped = shapes.every((s) => s.group !== null);
   const learnContent = LEARN_CONTENT[ageBand];
@@ -250,6 +254,7 @@ export function SortToyBoxGame() {
     );
     game.updateScore(2);
     broadcast({ type: 'button-press', source: 'sort-toy-box', value: 1, color: '#AA66FF' });
+    if (soundEnabled) { audio.playThrow(); setTimeout(() => audio.playLand(binId), 400); }
   }
 
   function revealAI() {
@@ -266,6 +271,7 @@ export function SortToyBoxGame() {
     });
     setShapes(sorted);
     game.updateScore(20);
+    if (soundEnabled) audio.playAIReveal();
     broadcast({ type: 'celebration-start', source: 'sort-toy-box', value: 1, color: '#AA66FF' });
     broadcast({ type: 'dial-rotate', source: 'sort-toy-box', value: 1.0, color: '#AA66FF' });
     setPhase('reveal');

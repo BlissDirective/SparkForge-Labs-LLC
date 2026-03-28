@@ -17,6 +17,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useAgentAudio } from '@/hooks/useAgentAudio';
 import {
   Play, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
@@ -417,6 +418,9 @@ export function AgentArchitectGame() {
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // P2: Audio integration
+  const agentAudio = useAgentAudio();
+  const [soundEnabled, setSoundEnabled] = useState(false);
 
   // Particles
   const particles = useMemo(() =>
@@ -482,6 +486,7 @@ export function AgentArchitectGame() {
     const yBase = 60 + Math.floor(blocks.length / 3) * 110;
     setBlocks(prev => [...prev, { id, type, x: xBase, y: yBase, config: {} }]);
     game.updateScore(1);
+    if (soundEnabled) agentAudio.playPlaceBlock();
     broadcast({ type: 'button-press', source: 'agent-architect', value: 1, color: '#10B981' });
   }
 
@@ -564,6 +569,7 @@ export function AgentArchitectGame() {
     setIsRunning(true);
     setRunPath([]);
     setRunSteps([]);
+    if (soundEnabled) agentAudio.playRunStart();
     broadcast({ type: 'button-press', source: 'agent-architect', value: 1, color: '#10B981', label: 'Pipeline Run' });
 
     const goal = blocks.find(b => b.type.id === 'goal')!;
@@ -633,6 +639,7 @@ export function AgentArchitectGame() {
 
     setReportData({ stars, pathLen, efficiency, tips });
     game.updateScore(10 + stars * 5);
+    if (soundEnabled) agentAudio.playMissionComplete(stars);
     broadcast({ type: 'celebration-start', source: 'agent-architect', value: stars, color: '#10B981' });
     broadcast({ type: 'dial-rotate', source: 'agent-architect', value: stars / 3, color: '#10B981' });
 
