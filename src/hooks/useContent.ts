@@ -49,6 +49,54 @@ export function useDailyChallenge(ageBand: string) {
   });
 }
 
+// ═══ Phase 1: Enhanced Content Hooks ═══
+
+// Fetch game-specific dynamic content (scenarios + challenges) for a game
+export function useGameContent(gameSlug: string, ageBand: string) {
+  return useQuery({
+    queryKey: ['content', 'game', gameSlug, ageBand],
+    queryFn: () =>
+      apiFetch(
+        `/api/content?ageBand=${ageBand}&type=game_scenario,game_challenge&gameSlug=${gameSlug}&limit=10`
+      ),
+    enabled: !!gameSlug && !!ageBand,
+    staleTime: 5 * 60 * 1000, // 5 minutes — game content refreshes more often
+    select: (data) => {
+      const items = (data?.items || []) as Content[];
+      return {
+        scenarios: items.filter((i) => i.type === 'game_scenario'),
+        challenges: items.filter((i) => i.type === 'game_challenge'),
+      };
+    },
+  });
+}
+
+// Fetch trending topics adapted for games
+export function useTrendingContent(ageBand: string) {
+  return useQuery({
+    queryKey: ['content', 'trending', ageBand],
+    queryFn: () =>
+      apiFetch(
+        `/api/content?ageBand=${ageBand}&type=trending_topic&limit=5`
+      ),
+    enabled: !!ageBand,
+    staleTime: 30 * 60 * 1000, // 30 minutes
+  });
+}
+
+// Fetch branching lessons for a lab
+export function useBranchingLessons(labNumber: number, ageBand: string) {
+  return useQuery({
+    queryKey: ['content', 'branching', labNumber, ageBand],
+    queryFn: () =>
+      apiFetch(
+        `/api/content?world=${labNumber}&ageBand=${ageBand}&type=branching_lesson&limit=10`
+      ),
+    enabled: !!labNumber && !!ageBand,
+    staleTime: 10 * 60 * 1000,
+  });
+}
+
 // Latest content (prioritizes AI-generated)
 export function useLatestContent(ageBand: string) {
   return useQuery({

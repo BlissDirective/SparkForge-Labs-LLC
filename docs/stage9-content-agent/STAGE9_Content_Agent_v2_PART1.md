@@ -2,9 +2,44 @@
 
 **Version:** v2 (Frost-Prismatic v2.1) — Audited & Corrected
 **Build Phase:** 25
-**Date:** February 23, 2026 | **Audited:** March 11, 2026
+**Date:** February 23, 2026 | **Audited:** March 11, 2026 | **Audit Fixes:** March 28, 2026
 **Prerequisites:** Stages 1–8 complete, `content_queue` table exists (Stage 2 v2)
 **Validation:** `npm run build` PASS, `npx tsc --noEmit` PASS
+
+### Audit Fixes Applied (March 28, 2026 — Branch: claude/stage-9-audit-fixes-YQomo)
+
+| Finding | Severity | Fix |
+|---------|----------|-----|
+| S9-CRIT-001 | CRITICAL | Prompt Lab: Lazy Anthropic init + 503 fallback (BUG-9A/ENH-9A) |
+| S9-HIGH-001 | HIGH | Admin content page: Client-side admin guard with redirect |
+| S9-HIGH-002 | HIGH | Review route: Zod validation for POST body (UUID-validated ids) |
+| S9-HIGH-003 | HIGH | Prompt Lab: Centralized MODELS.moderation instead of hardcoded string |
+| S9-HIGH-004 | HIGH | Pre-resolved: TextBlock type guard + error: unknown already in code |
+| S9-WARN-001 | WARNING | Agent run route: Rate limiting (2/hr) |
+| S9-WARN-002 | WARNING | Review route: Rate limiting (60/min) |
+| S9-WARN-003 | WARNING | Schedule route: CRON_SECRET required in production |
+| S9-WARN-004 | WARNING | Prompt Lab: Post-response moderation (blocklist + Haiku LLM) |
+| S9-INFO-001 | INFO | Schedule route: Migrated to apiSuccess/apiError helpers |
+
+**New file created:** `src/lib/agent/moderation.ts` — Defense-in-depth moderation for Prompt Lab
+
+### Phase 1 Enhancement: Content Agent Schema Extension (March 28, 2026)
+
+**Scope:** Foundation for 9-phase enhancement plan — extends Content Agent from 3 content types to 7, adds game-specific generation, trending topics, and branching lessons.
+
+| Component | Enhancement |
+|-----------|-------------|
+| **types/index.ts** | 4 new ContentType values + 12 new interfaces (GameScenarioConfig, GameChallengeConfig, TrendingTopicConfig, BranchingLessonConfig, etc.) |
+| **prompts.ts** | 35-game GAME_MECHANICS mapping + 4 new system prompts (scenario, challenge, trending, branching) + TRENDING_SEARCH_QUERIES |
+| **pipeline.ts** | 4 new stages (stageGenerateGameScenarios, stageGenerateGameChallenges, stageGenerateBranchingLessons, stageTrendingResearch) + PipelineMode type ('standard'/'enhanced'/'full') |
+| **useContent.ts** | 3 new hooks (useGameContent, useTrendingContent, useBranchingLessons) |
+| **run/route.ts** | ?mode= query param for pipeline mode selection |
+| **admin/content/page.tsx** | 4 new Lucide icons + pipeline mode selector dropdown |
+
+**Pipeline Mode Gate System:**
+- `standard`: Lessons + quizzes + spark facts (original behavior)
+- `enhanced`: + game scenarios + game challenges + branching lessons
+- `full`: + trending topic research + trending-based scenarios
 
 ---
 

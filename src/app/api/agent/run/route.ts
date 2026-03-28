@@ -5,12 +5,17 @@
 
 import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
-import { apiSuccess, apiError } from '@/lib/api-helpers';
-import { runAgentPipeline } from '@/lib/agent/pipeline';
+import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
+import { runAgentPipeline, type PipelineMode } from '@/lib/agent/pipeline';
+import { RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
 export async function POST(_req: NextRequest) {
+  // v2 [S9-WARN-001]: Rate limit expensive pipeline runs (2/hr)
+  const limited = applyRateLimit(_req, 'agent-run', undefined, RATE_LIMITS.contentAgent);
+  if (limited) return limited;
+
   // v2 [ENH-9A]: Check for API key before proceeding
   if (!process.env.ANTHROPIC_API_KEY) {
     return apiError(
@@ -44,8 +49,14 @@ export async function POST(_req: NextRequest) {
     );
   }
 
+  // Phase 1: Support pipeline mode via query param (?mode=standard|enhanced|full)
+  const url = new URL(_req.url);
+  const mode = (url.searchParams.get('mode') || 'enhanced') as PipelineMode;
+  const validModes: PipelineMode[] = ['standard', 'enhanced', 'full'];
+  const pipelineMode = validModes.includes(mode) ? mode : 'enhanced';
+
   try {
-    const result = await runAgentPipeline();
+    const result = await runAgentPipeline(pipelineMode);
     return apiSuccess(result);
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);

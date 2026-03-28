@@ -1,6 +1,6 @@
 export type AgeBand = 'A' | 'B' | 'C';
 export type SubscriptionTier = 'free' | 'plus' | 'forge';
-export type ContentType = 'lesson' | 'quiz' | 'game' | 'spark_fact' | 'activity' | 'sandbox';
+export type ContentType = 'lesson' | 'quiz' | 'game' | 'spark_fact' | 'activity' | 'sandbox' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson';
 export type ContentStatus = 'published' | 'pending_review' | 'needs_human_review' | 'rejected' | 'draft';
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 export type BadgeCategory = 'progress' | 'streak' | 'lab' | 'game_master' | 'knowledge' | 'explorer' | 'creator' | 'secret' | 'prestige';
@@ -184,6 +184,139 @@ export interface ContentQueueItem {
   reviewed_at?: string;
 }
 
+// ═══ Phase 1: Content Agent Enhancement Types ═══
+
+/** Game scenario — dynamic round/level data injected into existing games */
+export interface GameScenarioConfig {
+  game_slug: string;              // Target game from GAME_REGISTRY
+  scenario_id: string;            // Unique scenario identifier
+  scenario_type: 'round' | 'level' | 'challenge' | 'dataset' | 'decision_tree';
+  parameters: Record<string, unknown>;  // Game-specific config (items, rules, difficulty_params)
+  narrative?: string;             // Optional story context for the scenario
+  learning_objectives: string[];  // What child learns from this scenario
+  topics: string[];               // AI concept tags (e.g., 'tokens', 'bias', 'neural-networks')
+  keywords: string[];             // Search/discovery keywords
+  prerequisite_content_ids?: string[];  // Content that should be completed first
+}
+
+/** Game challenge — time-limited special events for games */
+export interface GameChallengeConfig {
+  game_slug: string;
+  challenge_type: 'daily' | 'weekly' | 'event' | 'trending';
+  time_limit_seconds?: number;
+  bonus_xp: number;
+  parameters: Record<string, unknown>;
+  narrative: string;
+  expires_at?: string;            // ISO8601 — when challenge disappears
+  source_topic?: string;          // Trending AI topic that inspired this
+}
+
+/** Trending topic — AI news adapted to game mechanics */
+export interface TrendingTopicConfig {
+  source_url: string;
+  headline: string;
+  summary: string;
+  published_date: string;
+  adapted_games: {
+    game_slug: string;
+    scenario: GameScenarioConfig;
+  }[];
+}
+
+/** Branching lesson — interactive lesson with decision tree */
+export interface BranchingLessonConfig {
+  entry_node_id: string;
+  nodes: BranchNode[];
+  learning_outcomes: string[];
+  estimated_paths: number;        // Number of unique paths through the tree
+}
+
+export interface BranchNode {
+  id: string;
+  type: 'content' | 'choice' | 'outcome' | 'interactive';
+  content_body: string;           // Markdown content for this node
+  choices?: { label: string; next_node_id: string; feedback?: string }[];
+  interactive_config?: {          // For embedded mini-simulations
+    type: 'diagram' | 'animation' | 'mini_game';
+    data: Record<string, unknown>;
+  };
+}
+
+/** Enhanced content metadata — extends base Content for all new types */
+export interface ContentMetadata {
+  topics: string[];               // 3-5 AI concept tags
+  learning_outcomes: string[];    // What child learns
+  keywords: string[];             // Search terms (5-10)
+  prerequisite_ids?: string[];    // Content IDs that should precede this
+  badge_criteria?: {              // Optional badge unlock trigger
+    badge_id: string;
+    condition: string;            // e.g., 'score>80', 'complete', 'streak>3'
+  };
+  source_finding?: {              // Link back to research finding
+    title: string;
+    source_url: string;
+    educational_potential: number;
+  };
+}
+
+/** Extended GameConfig for dynamic game content */
+export interface DynamicGameConfig extends GameConfig {
+  scenarios?: GameScenarioConfig[];
+  challenges?: GameChallengeConfig[];
+  trending?: TrendingTopicConfig;
+  metadata?: ContentMetadata;
+}
+
+/** Architecture pipeline — describes 3D/UI requirements for new content */
+export interface ArchitectureRequirement {
+  content_id: string;
+  content_type: ContentType;
+  required_3d_components: {
+    name: string;                  // Component name (PascalCase)
+    type: 'environment' | 'game_scene' | 'ui_element' | 'effect';
+    triangle_budget: number;
+    description: string;
+    integration_point: string;     // Where in existing architecture
+  }[];
+  required_ui_components: {
+    name: string;
+    type: 'page' | 'panel' | 'overlay' | 'modal';
+    description: string;
+  }[];
+  existing_reusable: string[];    // Existing components that can be reused
+  estimated_complexity: 'low' | 'medium' | 'high';
+}
+
+/** Content pipeline gate status for 8-gate approval process */
+export type PipelineGate = 'analysis' | 'architecture' | 'code_gen' | 'file_management' | 'build_test' | 'coppa_audit' | 'admin_approval' | 'deployed';
+
+export interface PipelineGateStatus {
+  gate: PipelineGate;
+  status: 'pending' | 'in_progress' | 'passed' | 'failed' | 'skipped';
+  completed_at?: string;
+  notes?: string;
+}
+
+/** New game blueprint — full game spec for Phase 9 game generator */
+export interface NewGameBlueprint {
+  name: string;
+  slug: string;
+  lab: number;
+  tier: 'flagship' | 'fl-lite' | 'standard';
+  age_bands: AgeBand[];
+  description: string;
+  learning_objectives: string[];
+  mechanics: string;              // Markdown description of game mechanics
+  phases: ('welcome' | 'learn' | 'play' | 'complete')[];
+  scoring: {
+    base_xp: number;
+    perfect_bonus: number;
+    time_bonus: boolean;
+  };
+  three_d_requirements?: ArchitectureRequirement;
+  pipeline_gates: PipelineGateStatus[];
+}
+
 export interface LabMeta {
   id: number;
   title: string;
@@ -333,6 +466,7 @@ export const GAME_LIMITS: Record<SubscriptionTier, number> = { free: 3, plus: 99
 
 export const CONTENT_TYPE_ICONS: Record<ContentType, string> = {
   lesson: '📚', quiz: '❓', game: '🎮', spark_fact: '⚡', activity: '🎯', sandbox: '🏖️',
+  game_scenario: '🎲', game_challenge: '🏆', trending_topic: '📡', branching_lesson: '🌳',
 };
 
 export const RARITY_COLORS: Record<BadgeRarity, string> = {

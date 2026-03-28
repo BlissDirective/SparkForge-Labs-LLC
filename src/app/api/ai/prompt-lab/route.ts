@@ -1,4 +1,6 @@
 // POST /api/ai/prompt-lab — Moderated AI chat for kids
+// v2 [BUG-9A]: Lazy Anthropic init — no top-level crash if key missing
+// v2 [BUG-9B]: Uses centralized MODELS config from prompts.ts
 import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { createServerSupabase } from '@/lib/supabase/server';
@@ -9,8 +11,8 @@ import {
 } from '@/lib/api-helpers';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { TIER_CONFIG } from '@/lib/tier-config';
-
-const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+import { MODELS } from '@/lib/agent/prompts';
+import { moderateResponse } from '@/lib/agent/moderation';
 
 const SYSTEM_PROMPTS: Record<string, string> = {
   A: `You are Sparky, a friendly AI tutor for kids ages 7-10. Use simple words, fun analogies, and lots of encouragement. Keep responses under 150 words. If asked about anything inappropriate, gently redirect to a fun science or technology topic.`,
@@ -19,6 +21,14 @@ const SYSTEM_PROMPTS: Record<string, string> = {
 };
 
 export async function POST(req: NextRequest) {
+  // v2 [ENH-9A]: Graceful 503 if ANTHROPIC_API_KEY missing
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return apiError(
+      'Prompt Lab is not configured. Add ANTHROPIC_API_KEY to .env.local.',
+      503, 'SERVICE_UNAVAILABLE'
+    );
+  }
+
   const limited = applyRateLimit(req, 'prompt-lab', undefined, RATE_LIMITS.promptLab);
   if (limited) return limited;
 
@@ -53,9 +63,13 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // v2 [BUG-9A]: Lazy init — SDK instantiated per-request, not at module level
+  const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+
   try {
     const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
+      // v2 [BUG-9B]: Centralized model string from MODELS config
+      model: MODELS.moderation,
       max_tokens: 300,
       temperature,
       system: SYSTEM_PROMPTS[ageBand] || SYSTEM_PROMPTS.A,
@@ -67,14 +81,32 @@ export async function POST(req: NextRequest) {
       .map(block => block.text)
       .join('');
 
+    // v2 [S9-WARN-004]: Post-response safety moderation (Option C: blocklist + Haiku)
+    const moderation = await moderateResponse(reply, ageBand, anthropic);
+
+    // Always count toward daily limit (prevents abuse via moderation bypass)
+    await supabase.from('children').update({
+      prompts_used_today: usedToday + 1, prompts_reset_date: today,
+    }).eq('id', childId);
+
+    if (!moderation.safe) {
+      // Log the blocked response for safety audit trail
+      await supabase.from('prompt_history').insert({
+        child_id: childId, prompt, response: reply,
+        temperature, age_band: ageBand, moderation_passed: false,
+      });
+
+      const safeReply = ageBand === 'A'
+        ? "Oops! Sparky got a little confused there. Let's talk about something fun instead! What do you want to learn about AI today?"
+        : "Hmm, let me try a different approach! Ask me something about AI, machine learning, or technology.";
+
+      return apiSuccess({ reply: safeReply, promptsRemaining: dailyLimit - usedToday - 1, moderated: true });
+    }
+
     await supabase.from('prompt_history').insert({
       child_id: childId, prompt, response: reply,
       temperature, age_band: ageBand, moderation_passed: true,
     });
-
-    await supabase.from('children').update({
-      prompts_used_today: usedToday + 1, prompts_reset_date: today,
-    }).eq('id', childId);
 
     return apiSuccess({ reply, promptsRemaining: dailyLimit - usedToday - 1 });
   } catch (error: unknown) {

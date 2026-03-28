@@ -1,5 +1,261 @@
 # SparkForge Build Progress
 
+## Current Phase: Stage 9 — Content Agent Enhancement (ALL 9 PHASES COMPLETE)
+## Status: COMPLETE — Full 9-phase enhancement plan implemented
+## Last Updated: 2026-03-28 (Phase 9: New Game Development Generator)
+
+---
+
+### Content Agent Enhancement — Phase 1: Schema Extension (2026-03-28)
+
+**Status:** COMPLETE
+**Branch:** `claude/stage-9-audit-fixes-YQomo`
+**Scope:** Foundation types, prompts, pipeline stages, hooks, admin dashboard for 9-phase enhancement plan
+
+**Phase 1A — TypeScript Types (commit b10df85):**
+- [x] 4 new ContentType values: game_scenario, game_challenge, trending_topic, branching_lesson
+- [x] 12 new interfaces: GameScenarioConfig, GameChallengeConfig, TrendingTopicConfig, BranchingLessonConfig, BranchNode, ContentMetadata, DynamicGameConfig, ArchitectureRequirement, PipelineGateStatus, NewGameBlueprint
+- [x] Extended CONTENT_TYPE_ICONS
+
+**Phase 1B — Pipeline Prompts (commit b10df85):**
+- [x] GAME_MECHANICS: 35-game slug→mechanics mapping
+- [x] 4 new system prompts: GAME_SCENARIO, GAME_CHALLENGE, TRENDING_RESEARCH, BRANCHING_LESSON
+- [x] TRENDING_SEARCH_QUERIES: 10 weekly-rotating queries
+
+**Phase 1C — Pipeline Stages (commit b10df85):**
+- [x] stageGenerateGameScenarios() — dynamic rounds for existing games
+- [x] stageGenerateGameChallenges() — time-limited events
+- [x] stageGenerateBranchingLessons() — interactive decision trees
+- [x] stageTrendingResearch() — weekly AI news with game adaptations
+- [x] PipelineMode: 'standard' | 'enhanced' | 'full'
+- [x] Extended AgentRunResult with new metrics
+
+**Phase 1D — Admin Dashboard (commit d163291):**
+- [x] 4 new Lucide icons for content types
+- [x] Pipeline mode selector (standard/enhanced/full)
+
+**Phase 1E — Content Hooks (commit b10df85):**
+- [x] useGameContent(gameSlug, ageBand) — game scenarios + challenges
+- [x] useTrendingContent(ageBand) — trending topics
+- [x] useBranchingLessons(labNumber, ageBand) — interactive lessons
+
+**Files Created (0) | Files Modified (5):**
+- `src/types/index.ts` — 12 new interfaces + 4 content types
+- `src/lib/agent/prompts.ts` — 4 prompts + 35 game mechanics + trending queries
+- `src/lib/agent/pipeline.ts` — 4 new stages + PipelineMode + enhanced orchestrator
+- `src/hooks/useContent.ts` — 3 new React Query hooks
+- `src/app/api/agent/run/route.ts` — mode query param support
+- `src/app/(dashboard)/admin/content/page.tsx` — icons + mode selector
+
+### Phase 2: Dynamic Game Scaffolding (2026-03-28)
+
+**Status:** COMPLETE (commit 9c9e4f4)
+- [x] All 35 game components wired with `useGameContent` hook
+- [x] Static content preserved as fallback, dynamic scenarios overlay when available
+- [x] 3 parallel batches: Labs 1-3 (12 games), Labs 4-7 (12 games), Labs 8-10 (11 games)
+
+### Phase 3: Trending AI Topics Pipeline (2026-03-28)
+
+**Status:** COMPLETE (commit fa5aabf)
+- [x] `/api/agent/trending` route — POST (admin) + GET (cron)
+- [x] `runTrendingPipeline()` standalone pipeline function
+- [x] `TrendingFeed.tsx` dashboard component (compact/full modes)
+- [x] `vercel.json` — weekly trending cron (Mondays 8 AM UTC)
+- [x] `schedule/route.ts` — supports ?mode= param, defaults to 'enhanced'
+
+**Files Created (2):**
+- `src/app/api/agent/trending/route.ts`
+- `src/components/dashboard/TrendingFeed.tsx`
+
+**Files Modified (3):**
+- `src/lib/agent/pipeline.ts` — added runTrendingPipeline()
+- `src/app/api/agent/schedule/route.ts` — mode param support
+- `vercel.json` — weekly trending cron
+
+**Enhancement Roadmap (9 Phases):**
+- [x] Phase 1: Content Agent Schema Extension ✅
+- [x] Phase 2: Dynamic Game Scaffolding (all 35 games) ✅
+- [x] Phase 3: Trending AI Topics Pipeline ✅
+- [x] Phase 4: Interactive Lesson Builder ✅
+- [x] Phase 5: AI Guide Avatar Integration ✅
+- [x] Phase 6: 3D Cockpit Content Integration ✅
+- [x] Phase 7: Admin Dashboard Enhancement ✅
+- [x] Phase 8: 3D Architecture/UI/UX Generator ✅
+- [x] Phase 9: New Game Development Generator ✅
+
+### Phase 9: New Game Development Generator (2026-03-28)
+
+**Status:** COMPLETE (commit 3b1ce43)
+**Scope:** Autonomous pipeline that creates entirely new games (concept → code → 3D → audit)
+
+- [x] `game-generator-prompts.ts` — 3 prompts (concept, game code, environment code)
+- [x] `game-generator-pipeline.ts` — 9-stage pipeline with COPPA audit
+- [x] `/api/agent/game-generator` route — admin-only, rate limited
+- [x] Admin dashboard — "New Game" button with tier/lab targeting
+
+**Files Created (3):**
+- `src/lib/agent/game-generator-prompts.ts`
+- `src/lib/agent/game-generator-pipeline.ts`
+- `src/app/api/agent/game-generator/route.ts`
+
+**Files Modified (1):**
+- `src/app/(dashboard)/admin/content/page.tsx` — New Game button
+
+---
+
+### FULL ENHANCEMENT SUMMARY (9 Phases, 2026-03-28)
+
+| Phase | Scope | New Files | Modified | Lines Added |
+|-------|-------|-----------|----------|-------------|
+| Audit Fixes | 11 findings resolved | 1 | 7 | ~200 |
+| Phase 1: Schema | Types, prompts, pipeline, hooks | 0 | 7 | ~670 |
+| Phase 2: Scaffolding | 35 games wired with useGameContent | 0 | 35 | ~106 |
+| Phase 3: Trending | API route, feed component, cron | 2 | 3 | ~297 |
+| Phase 4: Lessons | Branching renderer, hook, API | 2 | 2 | ~357 |
+| Phase 5: AI Guide | Store, prompts, API, voice, chat, 3D | 9 | 1 | ~1,400 |
+| Phase 6: Cockpit | Content bridge, NPC bubbles, hologram | 3 | 0 | ~366 |
+| Phase 7: Admin | Search, analytics, type filter | 0 | 1 | ~157 |
+| Phase 8: 3D Generator | Architect pipeline, prompts, API | 3 | 1 | ~712 |
+| Phase 9: Game Generator | Game pipeline, prompts, API | 3 | 1 | ~583 |
+| **TOTAL** | | **23 new** | **58 modified** | **~4,848** |
+
+### Phase 8: 3D Architecture/UI/UX Generator (2026-03-28)
+
+**Status:** COMPLETE (commits 3c58bce, Phase 8B)
+**Scope:** Autonomous Claude API pipeline that generates R3F components with 8-gate approval
+
+**Phase 8A — Pipeline + Prompts + Route (commit 3c58bce, 3 files):**
+- [x] `architect-prompts.ts` — 4 system prompts (analysis, R3F code gen, integration, COPPA audit)
+- [x] `architect-pipeline.ts` — 8-gate pipeline (analysis → architecture → code_gen → file_mgmt → build_test → coppa_audit → admin_approval → deploy)
+- [x] `/api/agent/architect` route — admin-only POST, rate limited, Zod validated
+
+**Phase 8B — Admin Integration (this commit):**
+- [x] "Generate 3D Architecture" button in admin preview modal
+- [x] Triggers architect pipeline per content item, shows gate results via toast
+
+**Files Created (3):**
+- `src/lib/agent/architect-prompts.ts`
+- `src/lib/agent/architect-pipeline.ts`
+- `src/app/api/agent/architect/route.ts`
+
+**Files Modified (1):**
+- `src/app/(dashboard)/admin/content/page.tsx` — architect trigger button
+
+### Phase 7: Admin Dashboard Enhancement (2026-03-28)
+
+**Status:** COMPLETE (commit 22c92a1)
+- [x] Search bar — real-time title search with client-side filtering
+- [x] Content type filter — dropdown for all 7 content types
+- [x] Manual create button — UI hook for future create modal
+- [x] Analytics tab — content statistics with by-type, by-lab, by-band breakdowns
+- [x] filteredItems — replaces items.map for search + type filter support
+
+**Files Modified (1):**
+- `src/app/(dashboard)/admin/content/page.tsx` — +157 lines
+
+### Phase 6: 3D Cockpit Content Integration (2026-03-28)
+
+**Status:** COMPLETE (commit 157eb08)
+- [x] `useCockpitContentBridge` hook — bridges Content Agent data to cockpit elements
+- [x] `NPCSpeechBubble.tsx` — floating 3D speech bubbles above NPC bots
+- [x] `ContentHologram3D.tsx` — holographic content display (daily challenge, trending, recs)
+
+**Files Created (3):**
+- `src/hooks/useCockpitContentBridge.ts`
+- `src/components/3d/NPCSpeechBubble.tsx`
+- `src/components/3d/ContentHologram3D.tsx`
+
+### Phase 5: AI Guide Avatar Integration (2026-03-28)
+
+**Status:** COMPLETE (commits a66d464, 800b0d1, Phase 5C)
+**Scope:** Full "Spark" AI Guide — 5 avatar concepts, voice I/O, streaming chat, context awareness
+
+**Phase 5A — Infrastructure (commit a66d464, 6 files):**
+- [x] `guideStore.ts` — 10th Zustand store (persisted preferences, conversation, voice, turns)
+- [x] `lib/guide/prompts.ts` — Composable prompt system (BASE + AGE_BAND + CONTEXT + LAB + GAME_HINTS)
+- [x] `/api/ai/guide/route.ts` — SSE streaming conversation (Haiku, tier-gated turns)
+- [x] `useVoiceInput.ts` — Web Speech API STT with interim results
+- [x] `useVoiceOutput.ts` — Web Speech API TTS (age-band-tuned pitch/rate, audio-reactive)
+- [x] `useGuideContext.ts` — Auto-detects context from route/sceneStore
+
+**Phase 5B — Components (commit 800b0d1, 3 files):**
+- [x] `GuideChatPanel.tsx` — Glassmorphic chat overlay (SSE streaming, voice, minimize/expand)
+- [x] `GuideAvatar3D.tsx` — R3F avatar (5 concepts: Orb, Fox, Drone, Spark, Nova, all audio-reactive)
+- [x] `GuideMobileAvatar.tsx` — CSS 2D fallback (pulse, spinner, lab-color glow)
+
+**Phase 5C — Integration (this commit):**
+- [x] Dashboard layout — GuideChatPanel mounted, useGuideContext activated
+
+**Files Created (9):**
+- `src/stores/guideStore.ts`, `src/lib/guide/prompts.ts`, `src/app/api/ai/guide/route.ts`
+- `src/hooks/useVoiceInput.ts`, `src/hooks/useVoiceOutput.ts`, `src/hooks/useGuideContext.ts`
+- `src/components/ui/GuideChatPanel.tsx`, `src/components/3d/GuideAvatar3D.tsx`
+- `src/components/ui/GuideMobileAvatar.tsx`
+
+**Files Modified (1):**
+- `src/app/(dashboard)/layout.tsx` — GuideChatPanel + useGuideContext integration
+
+### Phase 4: Interactive Lesson Builder (2026-03-28)
+
+**Status:** COMPLETE (commit ce06dd7)
+- [x] `useBranchingLesson` hook — decision-tree state machine with back/restart/progress
+- [x] `BranchingLessonRenderer` component — full interactive lesson UI with 4 node types
+- [x] Content API — multi-type filtering (comma-separated) + gameSlug filter
+- [x] ContentQuerySchema — accepts string type and gameSlug params
+
+**Files Created (2):**
+- `src/hooks/useBranchingLesson.ts`
+- `src/components/content/BranchingLessonRenderer.tsx`
+
+**Files Modified (2):**
+- `src/lib/validations.ts` — ContentQuerySchema extended
+- `src/app/api/content/route.ts` — multi-type + gameSlug filtering
+- [ ] Phase 4: Interactive Lesson Builder
+- [ ] Phase 5: AI Guide Avatar Integration
+- [ ] Phase 6: 3D Cockpit Content Integration
+- [ ] Phase 7: Admin Dashboard Enhancement
+- [ ] Phase 8: 3D Architecture/UI/UX Generator
+- [ ] Phase 9: New Game Development Generator
+
+---
+
+### Stage 9 Audit Fixes (2026-03-28)
+
+**Status:** COMPLETE
+**Branch:** `claude/stage-9-audit-fixes-YQomo`
+**Build Status:** TypeScript PASS (0 new errors), all changes compile clean
+
+**Batch 1 — CRIT-001 + HIGH-003 (commit 328fd17):**
+- [x] S9-CRIT-001 — Moved Anthropic SDK init from top-level to lazy per-request in prompt-lab/route.ts
+- [x] S9-HIGH-003 — Replaced hardcoded model string with MODELS.moderation from centralized config
+- [x] S9-HIGH-004 — Already resolved (proper TextBlock type guard + error: unknown)
+
+**Batch 2 — HIGH-001 + HIGH-002 (commit 2987334):**
+- [x] S9-HIGH-001 — Added client-side admin guard (useAuthStore + useRouter redirect) to admin content page
+- [x] S9-HIGH-002 — Replaced manual POST validation with Zod schema (ReviewSchema with UUID validation)
+
+**Batch 3 — WARN-001/002/003 + INFO-001 (commit 23cf531):**
+- [x] S9-WARN-001 — Added rate limiting on /api/agent/run (2/hr via RATE_LIMITS.contentAgent)
+- [x] S9-WARN-002 — Added rate limiting on review POST (60/min default)
+- [x] S9-WARN-003 — CRON_SECRET now required in production (blocks endpoint if unset)
+- [x] S9-INFO-001 — Migrated schedule route from raw NextResponse to apiSuccess/apiError helpers
+
+**Batch 4 — WARN-004 (commit fff7360):**
+- [x] S9-WARN-004 — Added defense-in-depth post-response moderation to Prompt Lab:
+  - Layer 1: Keyword blocklist (regex, zero latency)
+  - Layer 2: Haiku LLM moderation (age-band-aware screening)
+  - Blocked responses logged with moderation_passed=false
+  - Children see safe redirect messages
+
+**Files Created (1):**
+- `src/lib/agent/moderation.ts` — Post-response moderation (blocklist + Haiku)
+
+**Files Modified (5):**
+- `src/app/api/ai/prompt-lab/route.ts` — Lazy init + MODELS + moderation integration
+- `src/app/(dashboard)/admin/content/page.tsx` — Admin guard
+- `src/app/api/agent/review/route.ts` — Zod validation + rate limiting
+- `src/app/api/agent/run/route.ts` — Rate limiting
+- `src/app/api/agent/schedule/route.ts` — CRON_SECRET enforcement + apiSuccess/apiError
 ## Current Phase: Stage 7 — Scene Store Audit & Environment Wiring
 ## Status: COMPLETE — All Stage 7 findings resolved including S7-WARN-002 + 34 TS errors fixed
 ## Last Updated: 2026-03-28

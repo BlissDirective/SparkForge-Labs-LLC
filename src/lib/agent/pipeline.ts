@@ -15,6 +15,12 @@ import {
   SAFETY_SCREENING_PROMPT,
   SEARCH_QUERIES,
   WORLD_TOPICS,
+  GAME_SCENARIO_SYSTEM_PROMPT,
+  GAME_CHALLENGE_SYSTEM_PROMPT,
+  GAME_MECHANICS,
+  TRENDING_RESEARCH_PROMPT,
+  TRENDING_SEARCH_QUERIES,
+  BRANCHING_LESSON_SYSTEM_PROMPT,
 } from './prompts';
 import { validateReadability } from './readability';
 
@@ -30,7 +36,7 @@ interface Finding {
 
 interface GeneratedContent {
   title: string;
-  type: 'lesson' | 'quiz' | 'spark_fact';
+  type: 'lesson' | 'quiz' | 'spark_fact' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson';
   target_age_band: 'A' | 'B' | 'C';
   world: number;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
@@ -42,8 +48,29 @@ interface GeneratedContent {
     explanation: string;
     hint: string;
   }[];
+  // Phase 1: Extended fields for new content types
+  game_slug?: string;
+  parameters?: Record<string, unknown>;
+  learning_objectives?: string[];
+  topics?: string[];
+  keywords?: string[];
+  challenge_type?: 'daily' | 'weekly' | 'event' | 'trending';
+  time_limit_seconds?: number;
+  bonus_xp?: number;
+  source_topic?: string;
+  expires_at?: string;
+  entry_node_id?: string;
+  nodes?: Record<string, unknown>[];
+  estimated_paths?: number;
   xp_reward: number;
   estimated_duration_minutes: number;
+}
+
+/** Trending finding — extended with game adaptation ideas */
+interface TrendingFinding extends Finding {
+  headline: string;
+  published_date: string;
+  game_adaptations: { game_slug: string; adaptation_idea: string }[];
 }
 
 interface SafetyResult {
@@ -63,6 +90,11 @@ export interface AgentRunResult {
   rejected: number;
   durationMs: number;
   errors: string[];
+  // Phase 1: Enhanced metrics
+  gameScenarios?: number;
+  gameChallenges?: number;
+  trendingTopics?: number;
+  branchingLessons?: number;
 }
 
 /** Shape of Anthropic message content blocks */
@@ -483,9 +515,282 @@ export async function rejectContent(
   return { success: true };
 }
 
+// ═══ PHASE 1: ENHANCED GENERATION STAGES ═══════════
+
+/**
+ * Stage 2B: Generate game scenarios from research findings.
+ * Creates dynamic round/level data for existing games.
+ */
+async function stageGenerateGameScenarios(
+  findings: Finding[]
+): Promise<GeneratedContent[]> {
+  const anthropic = getAnthropicClient();
+  if (!anthropic) return [];
+
+  const allScenarios: GeneratedContent[] = [];
+
+  for (const finding of findings) {
+    try {
+      // Find games in this finding's lab that could use scenarios
+      const labGames = Object.entries(GAME_MECHANICS)
+        .filter(([, desc]) => desc.length > 0)
+        .slice(0, 3); // Limit to 3 games per finding
+
+      const gameMechanicsContext = labGames
+        .map(([slug, desc]) => `- ${slug}: ${desc}`)
+        .join('\n');
+
+      const response = await withRetry(() =>
+        anthropic.messages.create({
+          model: MODELS.generation,
+          max_tokens: 4000,
+          system: GAME_SCENARIO_SYSTEM_PROMPT + `\n\nGAME MECHANICS:\n${gameMechanicsContext}`,
+          messages: [
+            {
+              role: 'user',
+              content: `Create 2-3 game scenarios from this finding:\n\nTitle: ${finding.title}\nSummary: ${finding.summary}\nLab: ${finding.world} (${WORLD_TOPICS[finding.world]})\n\nGenerate scenarios for different age bands. Choose games from the GAME MECHANICS list above.`,
+            },
+          ],
+        })
+      );
+
+      const text = extractText(response);
+      const scenarios = parseJSON<GeneratedContent[]>(text);
+      if (scenarios) allScenarios.push(...scenarios);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`Game scenario generation failed for: ${finding.title}`, msg);
+    }
+  }
+
+  return allScenarios;
+}
+
+/**
+ * Stage 2C: Generate game challenges from research findings.
+ * Creates time-limited special events for games.
+ */
+async function stageGenerateGameChallenges(
+  findings: Finding[]
+): Promise<GeneratedContent[]> {
+  const anthropic = getAnthropicClient();
+  if (!anthropic) return [];
+
+  const allChallenges: GeneratedContent[] = [];
+
+  // Only generate 1-2 challenges per pipeline run (they're special events)
+  const topFindings = findings
+    .sort((a, b) => b.educational_potential - a.educational_potential)
+    .slice(0, 2);
+
+  for (const finding of topFindings) {
+    try {
+      const response = await withRetry(() =>
+        anthropic.messages.create({
+          model: MODELS.generation,
+          max_tokens: 3000,
+          system: GAME_CHALLENGE_SYSTEM_PROMPT,
+          messages: [
+            {
+              role: 'user',
+              content: `Create 1 daily challenge and 1 trending challenge from:\n\nTitle: ${finding.title}\nSummary: ${finding.summary}\nLab: ${finding.world} (${WORLD_TOPICS[finding.world]})\nSource: ${finding.source_url}\n\nAvailable games: ${Object.keys(GAME_MECHANICS).join(', ')}`,
+            },
+          ],
+        })
+      );
+
+      const text = extractText(response);
+      const challenges = parseJSON<GeneratedContent[]>(text);
+      if (challenges) allChallenges.push(...challenges);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`Challenge generation failed for: ${finding.title}`, msg);
+    }
+  }
+
+  return allChallenges;
+}
+
+/**
+ * Stage 2D: Generate branching lessons from research findings.
+ * Creates interactive decision-tree lessons.
+ */
+async function stageGenerateBranchingLessons(
+  findings: Finding[]
+): Promise<GeneratedContent[]> {
+  const anthropic = getAnthropicClient();
+  if (!anthropic) return [];
+
+  const allLessons: GeneratedContent[] = [];
+
+  // Generate 1 branching lesson per run (they're complex)
+  const topFinding = findings
+    .sort((a, b) => b.educational_potential - a.educational_potential)[0];
+
+  if (!topFinding) return [];
+
+  for (const band of ['A', 'B', 'C'] as const) {
+    try {
+      const response = await withRetry(() =>
+        anthropic.messages.create({
+          model: MODELS.generation,
+          max_tokens: 6000,
+          system: BRANCHING_LESSON_SYSTEM_PROMPT,
+          messages: [
+            {
+              role: 'user',
+              content: `Create 1 branching lesson for Band ${band} from:\n\nTitle: ${topFinding.title}\nSummary: ${topFinding.summary}\nLab: ${topFinding.world} (${WORLD_TOPICS[topFinding.world]})`,
+            },
+          ],
+        })
+      );
+
+      const text = extractText(response);
+      const lesson = parseJSON<GeneratedContent>(text);
+      if (lesson) allLessons.push(lesson);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error(`Branching lesson generation failed (Band ${band}):`, msg);
+    }
+  }
+
+  return allLessons;
+}
+
+/**
+ * Stage 1B: Trending topic research.
+ * Finds this week's AI news and maps to game adaptations.
+ */
+async function stageTrendingResearch(): Promise<TrendingFinding[]> {
+  const anthropic = getAnthropicClient();
+  if (!anthropic) return [];
+
+  try {
+    // Rotate through trending queries
+    const queryIdx = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000)) % TRENDING_SEARCH_QUERIES.length;
+    const queries = [
+      TRENDING_SEARCH_QUERIES[queryIdx],
+      TRENDING_SEARCH_QUERIES[(queryIdx + 1) % TRENDING_SEARCH_QUERIES.length],
+    ];
+
+    const response = await withRetry(() =>
+      anthropic.messages.create({
+        model: MODELS.research,
+        max_tokens: 4000,
+        system: TRENDING_RESEARCH_PROMPT,
+        tools: [
+          {
+            type: 'web_search_20250305' as string,
+            name: 'web_search',
+            max_uses: 5,
+          } as Record<string, unknown>,
+        ],
+        messages: [
+          {
+            role: 'user',
+            content: `Find trending AI news using these queries: ${queries.join('; ')}. Return 2-4 findings with game adaptation ideas.`,
+          },
+        ],
+      })
+    );
+
+    const text = extractText(response);
+    const findings = parseJSON<TrendingFinding[]>(text);
+    return findings || [];
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    console.error('Trending research failed:', msg);
+    return [];
+  }
+}
+
 // ── MAIN PIPELINE ORCHESTRATOR ─────────────────────
 
-export async function runAgentPipeline(): Promise<AgentRunResult> {
+/**
+ * Standalone trending pipeline — runs only trending research + scenario generation.
+ * Used by /api/agent/trending route and weekly cron.
+ */
+export async function runTrendingPipeline(): Promise<AgentRunResult> {
+  const startTime = Date.now();
+  const runId = `trending_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  const supabase = createAdminClient();
+  const errors: string[] = [];
+  let generatedCount = 0;
+  let approvedCount = 0;
+  let flaggedCount = 0;
+  let rejectedCount = 0;
+  let trendingTopicsCount = 0;
+  let gameScenariosCount = 0;
+
+  try {
+    // Stage 1: Trending research
+    const trendingFindings = await stageTrendingResearch();
+    trendingTopicsCount = trendingFindings.length;
+
+    if (trendingFindings.length === 0) {
+      errors.push('No trending findings returned');
+    }
+
+    // Stage 2: Generate game scenarios from trending topics
+    const scenarios = await stageGenerateGameScenarios(trendingFindings);
+    gameScenariosCount = scenarios.length;
+    generatedCount = scenarios.length;
+
+    // Stage 3+4: Screen and insert each scenario
+    for (const item of scenarios) {
+      try {
+        const safetyResult = await stageScreen(item);
+        const parentFinding = trendingFindings.find(f => f.world === item.world);
+        const sourceUrls = parentFinding ? [parentFinding.source_url] : [];
+
+        const result = await stageInsert(supabase, item, safetyResult, runId, sourceUrls);
+        if (result === 'approved') approvedCount++;
+        else if (result === 'flagged') flaggedCount++;
+        else rejectedCount++;
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e);
+        errors.push(`Trending screen/insert error: ${msg}`);
+      }
+    }
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    errors.push(`Trending pipeline error: ${msg}`);
+  }
+
+  const durationMs = Date.now() - startTime;
+
+  await supabase.from('agent_runs').insert({
+    run_id: runId,
+    findings_count: trendingTopicsCount,
+    generated_count: generatedCount,
+    approved_count: approvedCount,
+    flagged_count: flaggedCount,
+    rejected_count: rejectedCount,
+    duration_ms: durationMs,
+    errors: errors.length > 0 ? errors : [],
+    completed_at: new Date().toISOString(),
+  });
+
+  return {
+    runId,
+    findings: trendingTopicsCount,
+    generated: generatedCount,
+    approved: approvedCount,
+    flagged: flaggedCount,
+    rejected: rejectedCount,
+    durationMs,
+    errors,
+    trendingTopics: trendingTopicsCount,
+    gameScenarios: gameScenariosCount,
+  };
+}
+
+/** Pipeline mode controls which content types to generate */
+export type PipelineMode = 'standard' | 'enhanced' | 'full';
+
+export async function runAgentPipeline(
+  mode: PipelineMode = 'enhanced'
+): Promise<AgentRunResult> {
   const startTime = Date.now();
   const runId = `run_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
   const supabase = createAdminClient();
@@ -496,17 +801,54 @@ export async function runAgentPipeline(): Promise<AgentRunResult> {
   let flaggedCount = 0;
   let rejectedCount = 0;
 
+  let gameScenariosCount = 0;
+  let gameChallengesCount = 0;
+  let trendingTopicsCount = 0;
+  let branchingLessonsCount = 0;
+
   try {
     // Stage 1: Research
     const findings = await stageResearch();
     findingsCount = findings.length;
 
-    // Stage 2: Generate content from findings
+    // Stage 2A: Generate standard content (lessons, quizzes, facts)
     const content = await stageGenerate(findings);
     generatedCount = content.length;
 
+    // Phase 1: Enhanced generation stages (mode-gated)
+    let allContent: GeneratedContent[] = [...content];
+
+    if (mode === 'enhanced' || mode === 'full') {
+      // Stage 2B: Generate game scenarios for existing games
+      const scenarios = await stageGenerateGameScenarios(findings);
+      gameScenariosCount = scenarios.length;
+      allContent.push(...scenarios);
+
+      // Stage 2C: Generate game challenges (special events)
+      const challenges = await stageGenerateGameChallenges(findings);
+      gameChallengesCount = challenges.length;
+      allContent.push(...challenges);
+
+      // Stage 2D: Generate branching lessons (interactive)
+      const branchingLessons = await stageGenerateBranchingLessons(findings);
+      branchingLessonsCount = branchingLessons.length;
+      allContent.push(...branchingLessons);
+    }
+
+    if (mode === 'full') {
+      // Stage 1B: Trending topic research + scenario generation
+      const trendingFindings = await stageTrendingResearch();
+      trendingTopicsCount = trendingFindings.length;
+
+      // Generate scenarios from trending topics
+      const trendingScenarios = await stageGenerateGameScenarios(trendingFindings);
+      allContent.push(...trendingScenarios);
+    }
+
+    generatedCount = allContent.length;
+
     // Stage 3 + 4: Screen each item and insert to queue
-    for (const item of content) {
+    for (const item of allContent) {
       try {
         const safetyResult = await stageScreen(item);
 
@@ -559,5 +901,9 @@ export async function runAgentPipeline(): Promise<AgentRunResult> {
     rejected: rejectedCount,
     durationMs,
     errors,
+    gameScenarios: gameScenariosCount,
+    gameChallenges: gameChallengesCount,
+    trendingTopics: trendingTopicsCount,
+    branchingLessons: branchingLessonsCount,
   };
 }
