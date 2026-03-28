@@ -134,6 +134,22 @@
 - **Stage 6 doc files updated:** Added audit fix notes to 11 stage documents (6B A/B, 6C A/B, 6D A/B, 6E A/B, 6F A/B, 7B PartA).
 - **Result: Zero duplicate Environment instances. All environments wired. Cockpit broadcasts complete.**
 
+### Enhancement Phase — P0/P1/P2 (March 28, 2026)
+
+**P0 — SortToyBoxEnvironment Expansion:**
+- Expanded from 251 → 622 lines (5 → 12 sub-components)
+- 7 new components: RoboticSortArms, BinaryDecisionTree, ClusterSpheres, WarehouseShelving, DataFlowTubes, FeatureScanner, HolographicLabels
+- Reactive props: `sortProgress`, `activeGroupCount`. useFrame hooks: 6. Wow: 4/5 (was 2/5)
+
+**P1 — Cockpit Broadcast Integration (all 6 games):**
+- Every flagship game now broadcasts `button-press`, `dial-rotate`, and `celebration-start` events to `cockpitBroadcastStore` at key action points
+- LED rim, HUD rings, status bar, and dials now react during gameplay
+
+**P2 — Per-Game Audio Hooks (5 new Tone.js hooks):**
+- Created 5 audio hooks matching NeuralBuilder's pattern: `usePetTrainerAudio`, `useSortAudio`, `usePromptLabAudio`, `useAgentAudio`, `useBiasDetectiveAudio`
+- Each hook: lazy Tone.js import, user gesture init, opt-in toggle, try/catch silent fallbacks
+- All 6 games now have Tone.js audio integration (all 35 games benefit via shared GameShell)
+
 ---
 
 ## Executive Summary

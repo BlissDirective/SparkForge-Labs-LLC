@@ -12,6 +12,11 @@
 > - **S6-WARN-002/003/005:** Removed dead code, redundant checks, fixed dependency array.
 > - **sceneStore integration:** SortToyBoxGame registers SortScene3D via `setGameSceneContent()` during sort phase.
 > - **Expansion:** SortToyBoxGame grew from 420 to 610 lines — now at flagship quality level.
+>
+> **ENHANCEMENTS APPLIED (March 28, 2026):**
+> - **P0:** SortToyBoxEnvironment expanded 251 → 622 lines. 7 new sub-components (RoboticSortArms, BinaryDecisionTree, ClusterSpheres, WarehouseShelving, DataFlowTubes, FeatureScanner, HolographicLabels). Reactive props. 6 useFrame hooks. Wow: 4/5 (was 2/5).
+> - **P1:** Cockpit broadcast — `button-press` on sort, `celebration-start` + `dial-rotate` on AI reveal
+> - **P2:** `useSortAudio` (Tone.js) — throw whoosh, bin land thunk, group fill chime, AI reveal chord, complete arpeggio
 
 **Date:** February 28, 2026
 **GCUD Version:** V9

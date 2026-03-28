@@ -1,8 +1,48 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 6 — Flagship Games Audit Fix + 3D Embedding
-## Status: COMPLETE — All 14 audit findings + 5 3D embedding issues resolved
-## Last Updated: 2026-03-27 (Stage 6 Audit Fix + 3D Embedding Audit)
+## Current Phase: Stage 6 — Flagship Games Enhancement (P0-P2)
+## Status: COMPLETE — 14 audit fixes + 5 embedding fixes + 3 enhancement phases
+## Last Updated: 2026-03-28 (P0-P2 Enhancements: Environment + Cockpit Broadcast + Audio)
+
+---
+
+### Stage 6 Enhancement — P0/P1/P2 (2026-03-28)
+
+**Status:** COMPLETE (Session 1 of 3)
+**Branch:** claude/stage-6-audit-fixes-38BE4
+**Scope:** SortToyBox env expansion + cockpit broadcast for all 6 + audio for all 6
+
+**Phase 1 (P0) — SortToyBoxEnvironment Expansion (commit 47859d6):**
+- [x] Expanded from 251 → 622 lines (5 → 12 sub-components)
+- [x] NEW: RoboticSortArms (6 animated arms, progress-reactive), FeatureScanner (sweeping beam)
+- [x] NEW: BinaryDecisionTree, ClusterSpheres (3 orbiting), WarehouseShelving (24 instanced)
+- [x] NEW: DataFlowTubes (3 glowing connections), HolographicLabels (3 floating panels)
+- [x] Reactive props: sortProgress, activeGroupCount
+- [x] useFrame hooks: 6 (up from 2). Triangle budget: ~3.8M (up from ~1M). Wow: 4/5 (up from 2/5)
+
+**Phase 2 (P1) — Cockpit Broadcast Integration (commit 497dc7d):**
+- [x] PetTrainerGame: button-press (correct/wrong), dial-rotate (accuracy), celebration-start (evolution)
+- [x] SortToyBoxGame: button-press (sort), celebration-start + dial-rotate (AI reveal)
+- [x] NeuralBuilderGame: dial-rotate (epoch progress), celebration-start (50/75/90% + complete)
+- [x] PromptLabGame: button-press + dial-rotate (send), celebration-start (challenge pass)
+- [x] AgentArchitectGame: button-press (place/run), celebration-start + dial-rotate (mission)
+- [x] BiasDetectiveGame: button-press + dial-rotate (evidence), celebration-start (case closed)
+
+**Phase 3 (P2) — Per-Game Audio Hooks (commit 21c0733):**
+- [x] usePetTrainerAudio.ts — correct chime, wrong tone, streak chord, evolution fanfare, blip
+- [x] useSortAudio.ts — throw whoosh, bin land thunk, group fill chime, AI reveal, complete
+- [x] usePromptLabAudio.ts — typewriter click, send whoosh, response pop, score tone, challenge fanfare
+- [x] useAgentAudio.ts — block click, connect wire, run hum, step tick, mission fanfare (star-rated)
+- [x] useBiasDetectiveAudio.ts — gavel strike, evidence reveal, scale creak, balanced chime, case closed
+- [x] All 6 games wired with soundEnabled toggle + audio calls at key action points
+
+**Files Created (5):**
+- `src/hooks/usePetTrainerAudio.ts`, `useSortAudio.ts`, `usePromptLabAudio.ts`
+- `src/hooks/useAgentAudio.ts`, `useBiasDetectiveAudio.ts`
+
+**Files Modified (7):**
+- `src/components/3d/environments/SortToyBoxEnvironment.tsx` — Full expansion
+- All 6 game components — cockpitBroadcast + audio integration
 
 ---
 

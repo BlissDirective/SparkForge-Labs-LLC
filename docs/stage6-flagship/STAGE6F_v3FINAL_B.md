@@ -6,6 +6,10 @@
 > - **S6-CRIT-003:** GameShell already calls `startGame()` — no redundant call needed in BiasDetectiveGame.
 > - **sceneStore integration:** BiasDetectiveGame registers BiasScales3D via `setGameSceneContent()` during investigate/test/fix phases.
 > - **cockpitBroadcast:** GameShell broadcasts `game-enter`/`game-exit` events to cockpitBroadcastStore.
+>
+> **ENHANCEMENTS APPLIED (March 28, 2026):**
+> - **P1:** Cockpit broadcast — `button-press` + `dial-rotate` on evidence, `celebration-start` on case closed
+> - **P2:** `useBiasDetectiveAudio` (Tone.js) — gavel strike, evidence reveal, scale creak, balanced chime, case closed stamp
 
 ---
 
