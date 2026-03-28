@@ -3,29 +3,49 @@
 // Drag AI milestone cards to correct timeline positions.
 // Enhanced: chrome bezel, welcome phase, age-band content,
 // more milestones, visual timeline, educational tooltips.
+// ENH: Clock animation + placement celebration + progress bar + score counter
 // ════════════════════════════════════════════════════
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Clock } from 'lucide-react';
 
+// ENH: Animated score counter hook
+function useAnimatedCounter(target: number, duration = 600) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (display === target) return;
+    const start = display;
+    const diff = target - start;
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+  return display;
+}
+
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const TimeMachineEnvironment = dynamic(
   () => import('@/components/3d/environments/TimeMachineEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Milestone {
   id: string;
@@ -59,11 +79,15 @@ export function TimeMachineGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [placed, setPlaced] = useState<Map<string, number>>(new Map());
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ id: string; correct: boolean } | null>(null);
+  const [streak, setStreak] = useState(0);
+  const [celebrateSlot, setCelebrateSlot] = useState<number | null>(null);
+  const animatedScore = useAnimatedCounter(game.score);
 
   const milestones = useMemo(
     () => ALL_MILESTONES.filter(m => BAND_ORDER[m.band] <= BAND_ORDER[ageBand]).sort((a, b) => a.year - b.year),
@@ -80,6 +104,10 @@ export function TimeMachineGame() {
   });
 
   const slots = milestones.map(m => m.year);
+
+  useEffect(() => {
+    setGameSceneContent(<TimeMachineEnvironment currentYear={slots[placed.size] || 2024} isPlacing={selectedCard !== null} />);
+  }, [placed.size, selectedCard, slots, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -99,16 +127,21 @@ export function TimeMachineGame() {
     setFeedback({ id: card.id, correct });
 
     if (correct) {
+      setStreak(s => s + 1);
+      setCelebrateSlot(slotYear);
+      setTimeout(() => setCelebrateSlot(null), 800);
       setPlaced(prev => new Map(prev).set(card.id, slotYear));
       setTrayCards(prev => {
         const remaining = prev.filter(c => c.id !== card.id);
         if (remaining.length === 0) {
-          setTimeout(() => game.completeGame(), 2000);
+          setTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
         }
         return remaining;
       });
       game.updateScore(12);
       game.advanceRound();
+    } else {
+      setStreak(0);
     }
     setSelectedCard(null);
 
@@ -120,17 +153,6 @@ export function TimeMachineGame() {
   return (
     <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#00BBFF" totalRounds={milestones.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <TimeMachineEnvironment currentYear={slots[placed.size] || 2024} isPlacing={selectedCard !== null} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -169,7 +191,27 @@ export function TimeMachineGame() {
                     exit={{ opacity: 0, y: -20 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <span className="text-5xl">⏰</span>
+                    {/* ENH: Animated ticking clock */}
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+                    >
+                      <motion.span
+                        className="text-5xl inline-block"
+                        animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
+                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                      >
+                        ⏰
+                      </motion.span>
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ background: 'radial-gradient(circle, rgba(0,187,255,0.15), transparent)' }}
+                        animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white">Time Machine</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       Travel through the history of AI! Place milestone cards on the correct year.
@@ -203,6 +245,37 @@ export function TimeMachineGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    {/* ENH: Visual progress bar */}
+                    <div className="mb-3">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="font-body text-2xs text-white/30">
+                          {placed.size}/{milestones.length} placed
+                        </span>
+                        {streak >= 2 && (
+                          <motion.span
+                            className="font-display text-2xs font-bold"
+                            style={{
+                              color: '#00BBFF',
+                              textShadow: `0 0 ${4 + streak * 2}px rgba(0,187,255,${0.3 + streak * 0.1})`,
+                            }}
+                            initial={{ scale: 0 }}
+                            animate={{ scale: [1, 1.15, 1] }}
+                            transition={{ duration: 0.5 }}
+                            key={streak}
+                          >
+                            {streak} streak {streak >= 5 ? '🔥🔥' : '🔥'}
+                          </motion.span>
+                        )}
+                      </div>
+                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
+                        <motion.div
+                          className="h-full rounded-full"
+                          style={{ background: 'linear-gradient(90deg, #00BBFF, #00DDFF)' }}
+                          animate={{ width: `${(placed.size / milestones.length) * 100}%` }}
+                          transition={{ type: 'spring', stiffness: 200, damping: 20 }}
+                        />
+                      </div>
+                    </div>
                     <p className="font-body text-xs text-white/30 mb-3 text-center">
                       Select a card, then tap the correct year on the timeline
                     </p>
@@ -223,8 +296,10 @@ export function TimeMachineGame() {
                                   : selectedCard
                                     ? 'bg-white/5 border border-white/15 hover:border-sky-400/40'
                                     : 'bg-white/[0.02] border border-white/5'
-                              } ${isFeedbackTarget && feedback?.correct ? 'ring-2 ring-green-500/50' : ''}`}
+                              } ${isFeedbackTarget && feedback?.correct ? 'ring-2 ring-green-500/50' : ''} ${celebrateSlot === year ? 'ring-2 ring-green-400/60' : ''}`}
                               whileTap={selectedCard && !placedMilestone ? { scale: 0.95 } : {}}
+                              animate={celebrateSlot === year ? { scale: [1, 1.2, 1], boxShadow: ['0 0 0px rgba(74,222,128,0)', '0 0 20px rgba(74,222,128,0.4)', '0 0 0px rgba(74,222,128,0)'] } : {}}
+                              transition={celebrateSlot === year ? { duration: 0.6 } : undefined}
                               aria-label={`Timeline slot: ${year}`}
                             >
                               <span className="font-mono text-2xs text-white/30">{year}</span>
@@ -302,6 +377,52 @@ export function TimeMachineGame() {
                           </motion.button>
                         ))}
                       </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.h2
+                      className="font-display text-2xl font-bold text-white"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      Timeline Mastery!
+                    </motion.h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">
+                      You traveled through the history of artificial intelligence, placing key milestones on the timeline from the 1950s to today.
+                    </p>
+                    {/* ENH: Animated score counter */}
+                    <motion.div
+                      className="rounded-xl px-6 py-3 bg-[#00BBFF]/10 border border-[#00BBFF]/20"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                    >
+                      <motion.p
+                        className="font-data text-2xl text-[#00BBFF]"
+                        animate={{ textShadow: ['0 0 0px rgba(0,187,255,0)', '0 0 12px rgba(0,187,255,0.5)', '0 0 0px rgba(0,187,255,0)'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {animatedScore}
+                      </motion.p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </motion.div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• AI has a rich history spanning over 70 years of breakthroughs and setbacks</li>
+                        <li>• Key milestones like the Turing Test, Deep Blue, and AlphaGo shaped how we think about machine intelligence</li>
+                        <li>• Modern AI (transformers, large language models) builds on decades of earlier research and innovation</li>
+                      </ul>
                     </div>
                   </motion.div>
                 )}

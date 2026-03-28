@@ -11,6 +11,8 @@
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
+import { useChildStore } from '@/stores/childStore';
+import { getGameBySlug } from '@/config/gameRegistry';
 
 function GameLoader() {
   return (
@@ -188,8 +190,39 @@ const GAME_MAP: Record<string, ReturnType<typeof dynamic>> = {
 
 export default function GamePage() {
   const { gameSlug } = useParams<{ gameSlug: string }>();
+  const activeChild = useChildStore((s) => s.activeChild);
 
   const GameComponent = GAME_MAP[gameSlug];
+
+  // S7-HIGH-004: Age band enforcement — check game registry for band restrictions
+  const gameConfig = getGameBySlug(gameSlug);
+  const childBand = activeChild?.age_band || 'B';
+  if (GameComponent && gameConfig?.ageBands && !gameConfig.ageBands.includes(childBand)) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] p-8">
+        <div className="text-center max-w-md">
+          <div className="text-5xl mb-4" aria-hidden="true">🔒</div>
+          <h2 className="font-display text-xl font-bold text-white mb-2">
+            Age Restricted
+          </h2>
+          <p className="font-body text-sm text-white/40 mb-2">
+            This game is designed for {gameConfig.ageBands.map(b =>
+              b === 'A' ? 'ages 7-10' : b === 'B' ? 'ages 11-13' : 'ages 14-16'
+            ).join(', ')}.
+          </p>
+          <p className="font-body text-xs text-white/30 mb-6">
+            Check out other games in the Arcade that match your age group!
+          </p>
+          <Link
+            href="/arcade"
+            className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 font-display font-bold text-sm hover:bg-white/10 transition-colors inline-block"
+          >
+            Back to Arcade
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!GameComponent) {
     return (

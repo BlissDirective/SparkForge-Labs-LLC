@@ -28,6 +28,7 @@ import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
 import { useGameStore } from "@/stores/gameStore";
 import { useChildStore } from "@/stores/childStore";
+import { useSceneStore } from "@/stores/sceneStore";
 import {
   Plus, RotateCcw, Bot, Settings2,
   BookOpen, Smartphone,
@@ -41,7 +42,7 @@ const ChatbotNodes3D = dynamic(
 );
 
 // --- Types ---
-type Phase = "welcome" | "learn" | "build";
+type Phase = "welcome" | "learn" | "build" | "complete";
 type ViewMode = "tree" | "graph" | "test";
 
 interface BotNode {
@@ -288,6 +289,7 @@ function TypingMessage({ text, isLatest, speed }: { text: string; isLatest: bool
 export function ChatbotBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
@@ -311,6 +313,22 @@ export function ChatbotBuilderGame() {
     id: i, x: Math.random() * 100, y: Math.random() * 100,
     size: Math.random() * 2 + 1, delay: Math.random() * 4, dur: Math.random() * 6 + 4,
   })), []);
+
+  useEffect(() => {
+    if (viewMode === "graph" || viewMode === "test") {
+      setGameSceneContent(
+        <ChatbotNodes3D
+          nodes={nodes}
+          personalityColors={pers.colors}
+          hoveredNode={viewMode === "graph" ? hoveredNode : null}
+          testPath={testPath}
+          isTestMode={viewMode === "test"}
+        />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [viewMode, nodes, pers.colors, hoveredNode, testPath, setGameSceneContent]);
 
   // --- Actions ---
   function loadTemplate(name: string) {
@@ -377,7 +395,7 @@ export function ChatbotBuilderGame() {
   function deployBot() {
     setShowDeploy(true);
     game.updateScore(30);
-    deployTimerRef.current = setTimeout(() => game.completeGame(), 3000);
+    deployTimerRef.current = setTimeout(() => { setPhase('complete'); game.completeGame(); }, 3000);
   }
   // Cleanup deploy timer on unmount (LOW-4 fix)
   useEffect(() => () => { if (deployTimerRef.current) clearTimeout(deployTimerRef.current); }, []);
@@ -491,18 +509,7 @@ export function ChatbotBuilderGame() {
                       ))}
                     </div>
 
-                    {/* [v3] 3D Visualization (graph or test view) */}
-                    {(viewMode === "graph" || viewMode === "test") && (
-                      <Canvas3DErrorBoundary>
-                        <ChatbotNodes3D
-                          nodes={nodes}
-                          personalityColors={pers.colors}
-                          hoveredNode={viewMode === "graph" ? hoveredNode : null}
-                          testPath={testPath}
-                          isTestMode={viewMode === "test"}
-                        />
-                      </Canvas3DErrorBoundary>
-                    )}
+                    {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* -- TREE VIEW -- */}
                     {viewMode === "tree" && (
@@ -699,6 +706,31 @@ export function ChatbotBuilderGame() {
                         )}
                       </div>
                     )}
+                  </motion.div>
+                )}
+
+                {phase === "complete" && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 p-6"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Chatbot Builder Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You designed a conversation flow with branching dialog paths and deployed your own chatbot — real chatbot developers use the same graph-based approach!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
+                      <p className="font-data text-2xl" style={{ color: '#818CF8' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Conversation design maps out all possible dialog paths</li>
+                        <li>• NLP intents help chatbots understand what users mean</li>
+                        <li>• Chatbot architecture uses nodes and edges like a flowchart</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

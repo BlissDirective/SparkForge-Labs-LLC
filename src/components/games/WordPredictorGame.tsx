@@ -3,29 +3,49 @@
 // Guess the next word, see AI's probability distribution.
 // Enhanced: chrome bezel, welcome phase, age-band sentences,
 // animated probability bars, streak counter, explanations.
+// ENH: Spring probability bars + brain pulse + streak flame + answer feedback
 // ════════════════════════════════════════════════════
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Brain, Zap } from 'lucide-react';
 
+// ENH: Animated score counter hook
+function useAnimatedCounter(target: number, duration = 600) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    if (display === target) return;
+    const start = display;
+    const diff = target - start;
+    const startTime = performance.now();
+    let raf: number;
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setDisplay(Math.round(start + diff * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
+  return display;
+}
+
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const WordPredictorEnvironment = dynamic(
   () => import('@/components/3d/environments/WordPredictorEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Round {
   sentence: string;
@@ -170,12 +190,16 @@ export function WordPredictorGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
   const [guess, setGuess] = useState('');
   const [showResult, setShowResult] = useState(false);
   const [streak, setStreak] = useState(0);
+  const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'wrong' | null>(null);
+  const [isPredicting, setIsPredicting] = useState(false);
+  const animatedScore = useAnimatedCounter(game.score);
 
   const rounds = useMemo(
     () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
@@ -183,6 +207,10 @@ export function WordPredictorGame() {
   );
   const round = rounds[roundIdx];
   const matched = round?.predictions.find(p => p.word.toLowerCase() === guess.trim().toLowerCase());
+
+  useEffect(() => {
+    setGameSceneContent(<WordPredictorEnvironment wordCount={roundIdx + 1} isPredicting={showResult} />);
+  }, [roundIdx, showResult, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -195,38 +223,37 @@ export function WordPredictorGame() {
 
   function submitGuess() {
     if (!guess.trim()) return;
-    setShowResult(true);
-    if (matched) {
-      setStreak(s => s + 1);
-      game.updateScore(15);
-    } else {
-      setStreak(0);
-      game.updateScore(5);
-    }
+    // ENH: Brain thinking pulse before reveal
+    setIsPredicting(true);
     setTimeout(() => {
-      setShowResult(false);
-      setGuess('');
-      if (roundIdx < rounds.length - 1) {
-        setRoundIdx(i => i + 1);
-        game.advanceRound();
+      setIsPredicting(false);
+      setShowResult(true);
+      if (matched) {
+        setStreak(s => s + 1);
+        setAnswerFeedback('correct');
+        game.updateScore(15);
       } else {
-        game.completeGame();
+        setStreak(0);
+        setAnswerFeedback('wrong');
+        game.updateScore(5);
       }
-    }, 4000);
+      setTimeout(() => setAnswerFeedback(null), 1000);
+      setTimeout(() => {
+        setShowResult(false);
+        setGuess('');
+        if (roundIdx < rounds.length - 1) {
+          setRoundIdx(i => i + 1);
+          game.advanceRound();
+        } else {
+          setPhase('complete');
+          game.completeGame();
+        }
+      }, 4000);
+    }, 800);
   }
 
   return (
     <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#FFAA44" totalRounds={rounds.length}>
-      {/* 3D Environment Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <Canvas
-          camera={{ position: [0, 2, 8], fov: 50 }}
-          style={{ background: 'transparent' }}
-          gl={{ alpha: true, antialias: true }}
-        >
-          <WordPredictorEnvironment wordCount={roundIdx + 1} isPredicting={showResult} />
-        </Canvas>
-      </div>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -265,7 +292,27 @@ export function WordPredictorGame() {
                     exit={{ opacity: 0, y: -20 }}
                     className="text-center space-y-4"
                   >
-                    <span className="text-5xl">🔮</span>
+                    {/* ENH: Animated brain entrance */}
+                    <motion.div
+                      className="relative"
+                      initial={{ scale: 0, rotate: -90 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ type: 'spring', stiffness: 180, damping: 14 }}
+                    >
+                      <motion.span
+                        className="text-5xl inline-block"
+                        animate={{ scale: [1, 1.1, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        🔮
+                      </motion.span>
+                      <motion.div
+                        className="absolute -inset-3 rounded-full"
+                        style={{ background: 'radial-gradient(circle, rgba(255,170,68,0.15), transparent)' }}
+                        animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white">Word Predictor</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       Can you guess the next word? See how AI predicts language!
@@ -299,10 +346,32 @@ export function WordPredictorGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-md mx-auto space-y-4"
                   >
-                    {streak >= 3 && (
-                      <p className="font-display text-xs text-orange-400 mb-2">
-                        {streak} streak!
-                      </p>
+                    {/* ENH: Streak flame that grows with consecutive correct guesses */}
+                    {streak >= 2 && (
+                      <motion.div
+                        className="flex items-center gap-1 mb-2"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        key={streak}
+                      >
+                        <motion.span
+                          className="inline-block"
+                          style={{ fontSize: `${Math.min(12 + streak * 3, 28)}px` }}
+                          animate={{ scale: [1, 1.2, 1], rotate: [0, -5, 5, 0] }}
+                          transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 0.5 }}
+                        >
+                          {streak >= 5 ? '\uD83D\uDD25\uD83D\uDD25' : '\uD83D\uDD25'}
+                        </motion.span>
+                        <motion.span
+                          className="font-display text-xs font-bold"
+                          style={{
+                            color: '#FFAA44',
+                            textShadow: `0 0 ${4 + streak * 3}px rgba(255,170,68,${0.3 + streak * 0.1})`,
+                          }}
+                        >
+                          {streak} streak!
+                        </motion.span>
+                      </motion.div>
                     )}
                     <p className="font-body text-white/40 text-xs mb-4">What word comes next?</p>
                     <p className="font-display text-xl font-bold text-white mb-6">
@@ -311,26 +380,45 @@ export function WordPredictorGame() {
                     </p>
 
                     {!showResult ? (
-                      <div className="flex gap-2 max-w-xs mx-auto">
-                        <input
-                          type="text"
-                          value={guess}
-                          onChange={e => setGuess(e.target.value)}
-                          onKeyDown={e => e.key === 'Enter' && submitGuess()}
-                          placeholder="Your guess..."
-                          autoFocus
-                          aria-label="Word prediction guess"
-                          className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm focus:outline-none focus:border-orange-400/50"
-                        />
-                        <motion.button
-                          onClick={submitGuess}
-                          disabled={!guess.trim()}
-                          className="px-5 py-3 rounded-xl text-white font-display font-bold text-sm disabled:opacity-30"
-                          style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                          <Zap className="w-4 h-4" />
-                        </motion.button>
+                      <div className="space-y-3">
+                        {/* ENH: Brain thinking pulse during prediction */}
+                        {isPredicting && (
+                          <motion.div
+                            className="flex items-center justify-center gap-2 mb-2"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                          >
+                            <motion.div
+                              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+                              transition={{ duration: 0.6, repeat: Infinity }}
+                            >
+                              <Brain className="w-6 h-6 text-orange-400" />
+                            </motion.div>
+                            <span className="font-body text-xs text-orange-400/70">AI is thinking...</span>
+                          </motion.div>
+                        )}
+                        <div className="flex gap-2 max-w-xs mx-auto">
+                          <input
+                            type="text"
+                            value={guess}
+                            onChange={e => setGuess(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && submitGuess()}
+                            placeholder="Your guess..."
+                            autoFocus
+                            aria-label="Word prediction guess"
+                            className="flex-1 px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm focus:outline-none focus:border-orange-400/50"
+                            disabled={isPredicting}
+                          />
+                          <motion.button
+                            onClick={submitGuess}
+                            disabled={!guess.trim() || isPredicting}
+                            className="px-5 py-3 rounded-xl text-white font-display font-bold text-sm disabled:opacity-30"
+                            style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            <Zap className="w-4 h-4" />
+                          </motion.button>
+                        </div>
                       </div>
                     ) : (
                       <motion.div
@@ -338,46 +426,120 @@ export function WordPredictorGame() {
                         animate={{ opacity: 1, y: 0 }}
                         className="space-y-3"
                       >
-                        <p className="font-display text-sm font-bold text-orange-400 mb-1">
-                          You guessed: &quot;{guess}&quot;
-                        </p>
-                        <p className="font-body text-sm text-white/60 mb-4">
-                          {matched
-                            ? `The AI predicted that too! (${matched.confidence}% confidence)`
-                            : 'The AI had different predictions \u2014 see below!'}
-                        </p>
+                        {/* ENH: Green flash on correct, red shake on wrong */}
+                        <motion.div
+                          className={`rounded-xl px-4 py-2 text-center ${
+                            answerFeedback === 'correct'
+                              ? 'bg-green-500/15 border border-green-500/30'
+                              : answerFeedback === 'wrong'
+                                ? 'bg-red-500/10 border border-red-500/30'
+                                : 'bg-transparent border border-transparent'
+                          }`}
+                          animate={
+                            answerFeedback === 'correct'
+                              ? { scale: [1, 1.03, 1], boxShadow: ['0 0 0px rgba(74,222,128,0)', '0 0 20px rgba(74,222,128,0.3)', '0 0 0px rgba(74,222,128,0)'] }
+                              : answerFeedback === 'wrong'
+                                ? { x: [-6, 6, -4, 4, -2, 0] }
+                                : {}
+                          }
+                          transition={{ duration: 0.5 }}
+                        >
+                          <p className="font-display text-sm font-bold text-orange-400 mb-1">
+                            You guessed: &quot;{guess}&quot;
+                          </p>
+                          <p className="font-body text-sm text-white/60">
+                            {matched
+                              ? `The AI predicted that too! (${matched.confidence}% confidence)`
+                              : 'The AI had different predictions \u2014 see below!'}
+                          </p>
+                        </motion.div>
+                        {/* ENH: Spring-animated probability bars */}
                         <div className="space-y-2 max-w-xs mx-auto text-left">
                           <p className="font-body text-xs text-white/30">AI&apos;s probability distribution:</p>
-                          {round.predictions.map(p => (
-                            <div key={p.word} className="flex items-center gap-2">
-                              <span
-                                className={`font-body text-xs w-16 text-right ${
-                                  p.word.toLowerCase() === guess.trim().toLowerCase()
-                                    ? 'text-orange-400 font-bold'
-                                    : 'text-white/40'
-                                }`}
+                          {round.predictions.map((p, pIdx) => {
+                            const isGuessed = p.word.toLowerCase() === guess.trim().toLowerCase();
+                            return (
+                              <motion.div
+                                key={p.word}
+                                className="flex items-center gap-2"
+                                initial={{ opacity: 0, x: -10 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: pIdx * 0.1 }}
                               >
-                                {p.word}
-                              </span>
-                              <div className="flex-1 h-5 bg-white/5 rounded overflow-hidden">
-                                <motion.div
-                                  className="h-full rounded bg-orange-400/60"
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${p.confidence}%` }}
-                                  transition={{ duration: 0.8, delay: 0.2 }}
-                                />
-                              </div>
-                              <span className="font-mono text-2xs text-white/30 w-8">
-                                {p.confidence}%
-                              </span>
-                            </div>
-                          ))}
+                                <span
+                                  className={`font-body text-xs w-16 text-right ${
+                                    isGuessed ? 'text-orange-400 font-bold' : 'text-white/40'
+                                  }`}
+                                >
+                                  {p.word}
+                                </span>
+                                <div className={`flex-1 h-5 bg-white/5 rounded overflow-hidden ${
+                                  isGuessed && matched ? 'ring-1 ring-green-400/40' : ''
+                                }`}>
+                                  <motion.div
+                                    className={`h-full rounded ${
+                                      isGuessed && matched
+                                        ? 'bg-green-400/60'
+                                        : isGuessed && !matched
+                                          ? 'bg-red-400/40'
+                                          : 'bg-orange-400/60'
+                                    }`}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${p.confidence}%` }}
+                                    transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.15 + pIdx * 0.12 }}
+                                  />
+                                </div>
+                                <span className="font-mono text-2xs text-white/30 w-8">
+                                  {p.confidence}%
+                                </span>
+                              </motion.div>
+                            );
+                          })}
                         </div>
                         <p className="font-body text-2xs text-white/25 mt-3 max-w-xs mx-auto">
                           {ageBand === 'C' ? round.explanationC : round.explanation}
                         </p>
                       </motion.div>
                     )}
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Word Predictor Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">
+                      You explored how language models predict the next word by analyzing context and assigning probabilities to possible completions.
+                    </p>
+                    {/* ENH: Animated score counter */}
+                    <motion.div
+                      className="rounded-xl px-6 py-3 bg-[#FFAA44]/10 border border-[#FFAA44]/20"
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                    >
+                      <motion.p
+                        className="font-data text-2xl text-[#FFAA44]"
+                        animate={{ textShadow: ['0 0 0px rgba(255,170,68,0)', '0 0 12px rgba(255,170,68,0.5)', '0 0 0px rgba(255,170,68,0)'] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        {animatedScore}
+                      </motion.p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </motion.div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Language models predict the next word by calculating probability distributions over possible completions</li>
+                        <li>• Context matters — the same word can have very different probabilities depending on the surrounding sentence</li>
+                        <li>• High-confidence predictions happen when context strongly implies one answer, while ambiguous contexts spread probability across many words</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

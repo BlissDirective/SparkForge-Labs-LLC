@@ -23,11 +23,12 @@
 
 'use client';
 
-import { useState, useMemo, useCallback, Suspense } from 'react';
+import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { useChildStore } from '@/stores/childStore';
 import {
   Play, BookOpen, Sparkles, Star, ArrowRight, ArrowLeft,
@@ -235,6 +236,7 @@ function calcInnovationScore(
 export function MyFirstAiAppGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -333,6 +335,26 @@ export function MyFirstAiAppGame() {
     [selectedPowers]
   );
 
+  useEffect(() => {
+    if (phase === 'build' || phase === 'preview') {
+      setGameSceneContent(
+        <MyFirstAiApp3D
+          buildStep={stepIdx}
+          totalSteps={BUILD_STEPS.length}
+          selectedPowers={powerOrbs3D}
+          maxPowers={maxPowers}
+          themeColor={currentTheme.accentColor}
+          categoryEmoji={currentCategory?.emoji || '\u{1F4F1}'}
+          appName={appName}
+          innovationScore={innovationScore}
+          isPreview={phase === 'preview'}
+        />
+      );
+    } else {
+      setGameSceneContent(null);
+    }
+  }, [phase, stepIdx, powerOrbs3D, maxPowers, currentTheme, currentCategory, appName, innovationScore, setGameSceneContent]);
+
   return (
     <GameShell gameId="my-first-ai-app" title="My First AI App" worldNumber={9} worldColor="#F97316" xpReward={30} totalRounds={BUILD_STEPS.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
@@ -350,22 +372,7 @@ export function MyFirstAiAppGame() {
         <div className="absolute top-0 left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent via-orange-500/30 to-transparent" />
         <div className="absolute bottom-0 left-[10%] right-[10%] h-[1px] bg-gradient-to-r from-transparent via-orange-500/20 to-transparent" />
 
-        {/* [v3] 3D App Mockup — renders during build + preview phases */}
-        {(phase === 'build' || phase === 'preview') && (
-          <Suspense fallback={null}>
-            <MyFirstAiApp3D
-              buildStep={stepIdx}
-              totalSteps={BUILD_STEPS.length}
-              selectedPowers={powerOrbs3D}
-              maxPowers={maxPowers}
-              themeColor={currentTheme.accentColor}
-              categoryEmoji={currentCategory?.emoji || '\u{1F4F1}'}
-              appName={appName}
-              innovationScore={innovationScore}
-              isPreview={phase === 'preview'}
-            />
-          </Suspense>
-        )}
+        {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
         <AnimatePresence mode="wait">
           {/* ■■■■■■■■■■ WELCOME ■■■■■■■■■■ */}

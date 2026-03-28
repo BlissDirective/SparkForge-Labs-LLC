@@ -13,19 +13,16 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { Wrench } from 'lucide-react';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const ToolPickerEnvironment = dynamic(
   () => import('@/components/3d/environments/ToolPickerEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Tool {
   id: string;
@@ -75,6 +72,7 @@ export function ToolPickerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -89,6 +87,10 @@ export function ToolPickerGame() {
   );
   const task = tasks[roundIdx];
   const multiplier = streak >= 5 ? 3 : streak >= 3 ? 2 : 1;
+
+  useEffect(() => {
+    setGameSceneContent(<ToolPickerEnvironment toolsSelected={roundIdx} currentTask={task?.text || ''} />);
+  }, [roundIdx, task?.text, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -112,7 +114,7 @@ export function ToolPickerGame() {
           setTimeout(() => {
             setFeedback(null);
             if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
-            else game.completeGame();
+            else { setPhase('complete'); game.completeGame(); }
           }, 2000);
           return 0;
         }
@@ -134,22 +136,12 @@ export function ToolPickerGame() {
     setTimeout(() => {
       setFeedback(null);
       if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
-      else game.completeGame();
+      else { setPhase('complete'); game.completeGame(); }
     }, 2000);
   }
 
   return (
     <GameShell gameId="tool-picker" title="Tool Picker" worldNumber={5} worldColor="#00FF88" totalRounds={tasks.length}>
-      {/* 3D Environment Background */}
-      <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-        <Canvas
-          camera={{ position: [0, 2, 8], fov: 50 }}
-          style={{ background: 'transparent' }}
-          gl={{ alpha: true, antialias: true }}
-        >
-          <ToolPickerEnvironment toolsSelected={roundIdx} currentTask={task?.text || ''} />
-        </Canvas>
-      </div>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -233,6 +225,31 @@ export function ToolPickerGame() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Tool Picker Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You mastered the art of choosing the right AI tool for every task — knowing when to use each tool is a superpower.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#00FF88]/10 border border-[#00FF88]/20">
+                      <p className="font-data text-2xl" style={{ color: '#00FF88' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Different AI tools are specialized for different tasks like math, writing, or translation</li>
+                        <li>• Choosing the right tool saves time and produces better results than forcing one tool to do everything</li>
+                        <li>• Understanding AI tool specialization helps you work smarter with technology</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

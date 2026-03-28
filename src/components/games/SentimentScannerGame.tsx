@@ -7,25 +7,22 @@
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { ScanLine } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const SentimentScannerEnvironment = dynamic(
   () => import('@/components/3d/environments/SentimentScannerEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 const POS = ['happy','joy','love','great','amazing','wonderful','beautiful','fantastic','excellent','awesome','brilliant','delightful','cheerful','kind','friendly'];
 const NEG = ['sad','angry','hate','terrible','awful','horrible','bad','worst','ugly','stupid','mean','boring','scary','cruel','lonely'];
@@ -55,6 +52,7 @@ export function SentimentScannerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [text, setText] = useState('');
@@ -65,6 +63,10 @@ export function SentimentScannerGame() {
   const { score, hl, wordCount } = useMemo(() => analyze(text), [text]);
   const emoji = score > 0.3 ? '\u{1F60A}' : score < -0.3 ? '\u{1F622}' : '\u{1F610}';
   const pct = ((score + 1) / 2) * 100;
+
+  useEffect(() => {
+    setGameSceneContent(<SentimentScannerEnvironment sentiment={score} textsAnalyzed={ci} />);
+  }, [score, ci, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i, x: (i * 37 + 13) % 100, y: (i * 53 + 7) % 100, size: (i % 3) + 1,
@@ -82,7 +84,7 @@ export function SentimentScannerGame() {
       setTimeout(() => {
         setShowSuccess(false);
         if (ci < CHALLENGES.length - 1) { setCi(i => i + 1); setText(''); }
-        else game.completeGame();
+        else { setPhase('complete'); game.completeGame(); }
       }, 1500);
     }
   }
@@ -90,17 +92,6 @@ export function SentimentScannerGame() {
   return (
     <GameShell gameId="sentiment-scanner" title="Sentiment Scanner" worldNumber={8} worldColor="#818CF8" totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <SentimentScannerEnvironment sentiment={score} textsAnalyzed={ci} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -138,7 +129,8 @@ export function SentimentScannerGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start sentiment scanning game">
                       Start Scanning! <ScanLine className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -198,9 +190,35 @@ export function SentimentScannerGame() {
                     <motion.button onClick={check}
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Check sentiment answer">
                       Check!
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Sentiment Scanner Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You mastered sentiment analysis by writing sentences that triggered specific emotional responses — the same technique AI uses to understand opinions online!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#FF66AA]/10 border border-[#FF66AA]/20">
+                      <p className="font-data text-2xl" style={{ color: '#FF66AA' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• Sentiment analysis scores text from negative to positive</li>
+                        <li>• Emotion detection identifies feelings like joy, anger, and surprise in words</li>
+                        <li>• NLP keyword matching is a simple but powerful way to gauge tone</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
 

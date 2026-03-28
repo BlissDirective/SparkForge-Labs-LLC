@@ -16,10 +16,12 @@
 // • Status codes explained (200, 400, 429, 500)
 // • Request history log
 // • ARIA labels
+//
+// ENH: Send/receive animation + method badges + typewriter response + status colors
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -33,18 +35,15 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useSceneStore } from '@/stores/sceneStore';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const ApiExplorerEnvironment = dynamic(
   () => import('@/components/3d/environments/ApiExplorerEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'learn' | 'explore';
+type Phase = 'welcome' | 'learn' | 'explore' | 'complete';
 
 interface Endpoint {
   path: string;
@@ -337,6 +336,13 @@ export function ApiExplorerGame() {
   const [showHistory, setShowHistory] = useState(false);
   const [endpointsUsed, setEndpointsUsed] = useState<Set<number>>(new Set());
   const [recentRequests, setRecentRequests] = useState<number[]>([]);
+  // ENH: Typewriter effect state for response display
+  const [typewriterText, setTypewriterText] = useState('');
+  const [typewriterDone, setTypewriterDone] = useState(false);
+  // ENH: Track request animation state
+  const [requestSent, setRequestSent] = useState(false);
+
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const endpoint = ENDPOINTS[selectedEndpoint];
 
@@ -353,11 +359,39 @@ export function ApiExplorerGame() {
     []
   );
 
+  useEffect(() => {
+    setGameSceneContent(<ApiExplorerEnvironment requestsSent={history.length} currentMethod={endpoint.method} />);
+    return () => setGameSceneContent(null);
+  }, [history.length, endpoint.method, setGameSceneContent]);
+
   function updateParam(name: string, value: string) {
     setParams((prev) => ({ ...prev, [name]: value }));
   }
 
+  // ENH: Typewriter effect for JSON response
+  useEffect(() => {
+    if (!response) { setTypewriterText(''); setTypewriterDone(false); return; }
+    const fullText = JSON.stringify(response.body, null, 2);
+    let idx = 0;
+    setTypewriterText('');
+    setTypewriterDone(false);
+    const interval = setInterval(() => {
+      idx += 3; // 3 chars at a time for speed
+      if (idx >= fullText.length) {
+        setTypewriterText(fullText);
+        setTypewriterDone(true);
+        clearInterval(interval);
+      } else {
+        setTypewriterText(fullText.slice(0, idx));
+      }
+    }, 12);
+    return () => clearInterval(interval);
+  }, [response]);
+
   async function sendRequest() {
+    // ENH: Trigger request send animation
+    setRequestSent(true);
+    setTimeout(() => setRequestSent(false), 400);
     setSending(true);
     setResponse(null);
 
@@ -415,7 +449,7 @@ export function ApiExplorerGame() {
 
     const totalUsed = isNew ? endpointsUsed.size + 1 : endpointsUsed.size;
     if (totalUsed >= ENDPOINTS.length) {
-      setTimeout(() => game.completeGame(), 2000);
+      setTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
     }
   }
 
@@ -436,17 +470,6 @@ export function ApiExplorerGame() {
       totalRounds={ENDPOINTS.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <ApiExplorerEnvironment requestsSent={history.length} currentMethod={endpoint.method} />
-          </Canvas>
-        </div>
-
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map((p) => (
@@ -615,15 +638,19 @@ export function ApiExplorerGame() {
                     {/* Request builder */}
                     <div className="rounded-xl p-3 border border-orange-500/15 bg-orange-500/5">
                       <div className="flex items-center gap-2 mb-2">
-                        <span
+                        {/* ENH: HTTP method color badges (GET=green, POST=blue, PUT=orange, DELETE=red) */}
+                        <motion.span
                           className={`px-1.5 py-0.5 rounded text-2xs font-bold ${
-                            endpoint.method === 'POST'
-                              ? 'bg-green-500/20 text-green-400'
-                              : 'bg-blue-500/20 text-blue-400'
+                            endpoint.method === 'GET' ? 'bg-green-500/20 text-green-400'
+                            : endpoint.method === 'POST' ? 'bg-blue-500/20 text-blue-400'
+                            : endpoint.method === 'PUT' ? 'bg-orange-500/20 text-orange-400'
+                            : endpoint.method === 'DELETE' ? 'bg-red-500/20 text-red-400'
+                            : 'bg-white/10 text-white/50'
                           }`}
+                          whileHover={{ scale: 1.1 }}
                         >
                           {endpoint.method}
-                        </span>
+                        </motion.span>
                         <code className="font-mono text-xs text-orange-300 flex-1">
                           {endpoint.path}
                         </code>
@@ -653,6 +680,7 @@ export function ApiExplorerGame() {
                         ))}
                       </div>
 
+                      {/* ENH: Request sends with slide-up transition */}
                       <motion.button
                         onClick={sendRequest}
                         disabled={sending}
@@ -662,6 +690,8 @@ export function ApiExplorerGame() {
                             ? 'linear-gradient(135deg, #F97316, #EA580C)'
                             : '#555',
                         }}
+                        animate={requestSent ? { y: [0, -4, 0] } : {}}
+                        transition={{ duration: 0.3 }}
                         whileTap={{ scale: 0.98 }}
                         aria-label="Send API request"
                       >
@@ -683,34 +713,50 @@ export function ApiExplorerGame() {
                     <AnimatePresence>
                       {response && statusInfo && (
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
+                          // ENH: Response arrives with slide-down animation
+                          initial={{ opacity: 0, y: -15 }}
                           animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
+                          exit={{ opacity: 0, y: 10 }}
+                          transition={{ type: 'spring', stiffness: 120, damping: 15 }}
                           className="rounded-xl border overflow-hidden mb-2 flex-1"
                           style={{ borderColor: `${statusInfo.color}30` }}
                         >
-                          {/* Status header */}
-                          <div
+                          {/* ENH: Status header with colorized status code */}
+                          <motion.div
                             className="flex items-center gap-2 px-3 py-1.5"
                             style={{ background: `${statusInfo.color}10` }}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.1 }}
                           >
                             {response.status === 200 ? (
                               <CheckCircle2 className="w-3 h-3" style={{ color: statusInfo.color }} />
                             ) : (
                               <AlertCircle className="w-3 h-3" style={{ color: statusInfo.color }} />
                             )}
-                            <span className="font-mono text-xs font-bold" style={{ color: statusInfo.color }}>
+                            {/* ENH: Status code colorization (2xx=green, 4xx=amber, 5xx=red) */}
+                            <motion.span
+                              className="font-mono text-xs font-bold"
+                              style={{ color: statusInfo.color }}
+                              initial={{ scale: 0.8 }}
+                              animate={{ scale: 1 }}
+                              transition={{ type: 'spring', stiffness: 300, damping: 15 }}
+                            >
                               {statusInfo.label}
-                            </span>
+                            </motion.span>
                             <span className="font-mono text-2xs text-white/20 ml-auto">
                               {response.latency}ms
                             </span>
-                          </div>
+                          </motion.div>
 
-                          {/* JSON body */}
-                          <div className="p-3 overflow-auto max-h-48">
+                          {/* ENH: Terminal-style typewriter JSON response */}
+                          <div className="p-3 overflow-auto max-h-48 bg-black/20">
                             <pre className="font-mono text-2xs leading-relaxed whitespace-pre-wrap">
-                              <JsonViewer data={response.body} />
+                              {typewriterDone ? (
+                                <JsonViewer data={response.body} />
+                              ) : (
+                                <span className="text-green-400/70">{typewriterText}<motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-orange-400">|</motion.span></span>
+                              )}
                             </pre>
                           </div>
 
@@ -753,6 +799,31 @@ export function ApiExplorerGame() {
                         </motion.div>
                       )}
                     </AnimatePresence>
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">API Explorer Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You explored real AI service endpoints, sent requests with parameters, and read JSON responses — this is exactly how developers integrate AI into their applications!</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">
+                      <p className="font-data text-2xl" style={{ color: '#F97316' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• APIs let programs communicate using structured requests and responses</li>
+                        <li>• HTTP methods (GET, POST) and status codes (200, 400, 500) form the language of the web</li>
+                        <li>• REST patterns and JSON data interchange are the backbone of modern AI services</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>

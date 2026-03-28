@@ -3,29 +3,28 @@
 // Vote on AI predictions, see aggregate results.
 // Enhanced: chrome bezel, welcome phase, 8 predictions,
 // time horizon tags, expert analysis, animated tallying.
+//
+// ENH: Animated voting bars + crowd visualization + accuracy counter + gold glow
 // ════════════════════════════════════════════════════
 
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import { TrendingUp, MessageSquare } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // 3D Environment (no SSR)
-const Canvas = dynamic(
-  () => import('@react-three/fiber').then(mod => mod.Canvas),
-  { ssr: false }
-);
 const PredictionMarketEnvironment = dynamic(
   () => import('@/components/3d/environments/PredictionMarketEnvironment'),
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play';
+type Phase = 'welcome' | 'play' | 'complete';
 
 interface Prediction {
   question: string;
@@ -94,18 +93,27 @@ export function PredictionMarketGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [predIdx, setPredIdx] = useState(0);
   const [voted, setVoted] = useState(false);
   const [myVote, setMyVote] = useState<string | null>(null);
   const [showAnalysis, setShowAnalysis] = useState(false);
+  // ENH: Track prediction accuracy and vote history for crowd visualization
+  const [predictionAccuracy, setPredictionAccuracy] = useState(0);
+  const [totalVotes, setTotalVotes] = useState(0);
+  const [matchedMajority, setMatchedMajority] = useState(false);
 
   const predictions = useMemo(
     () => ALL_PREDICTIONS.filter(p => BAND_ORDER[p.band] <= BAND_ORDER[ageBand]),
     [ageBand]
   );
   const pred = predictions[predIdx];
+
+  useEffect(() => {
+    setGameSceneContent(<PredictionMarketEnvironment predictions={predIdx} confidence={voted ? 0.8 : 0.5} />);
+  }, [predIdx, voted, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -120,28 +128,25 @@ export function PredictionMarketGame() {
     setMyVote(vote);
     setVoted(true);
     game.updateScore(10);
+    // ENH: Check if vote matches the majority opinion
+    const results = pred.mockResults;
+    const majority = results.yes >= results.no && results.yes >= results.maybe ? 'yes'
+      : results.no >= results.yes && results.no >= results.maybe ? 'no' : 'maybe';
+    const matched = vote === majority;
+    setMatchedMajority(matched);
+    setTotalVotes(t => t + 1);
+    if (matched) setPredictionAccuracy(a => a + 1);
   }
 
   function nextPrediction() {
     setVoted(false); setMyVote(null); setShowAnalysis(false);
     if (predIdx < predictions.length - 1) { setPredIdx(i => i + 1); game.advanceRound(); }
-    else game.completeGame();
+    else { setPhase('complete'); game.completeGame(); }
   }
 
   return (
     <GameShell gameId="prediction-market" title="Prediction Market" worldNumber={10} worldColor="#D946EF" totalRounds={predictions.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
-        {/* 3D Environment Background */}
-        <div className="absolute inset-0 z-0 pointer-events-none" aria-hidden="true">
-          <Canvas
-            camera={{ position: [0, 2, 8], fov: 50 }}
-            style={{ background: 'transparent' }}
-            gl={{ alpha: true, antialias: true }}
-          >
-            <PredictionMarketEnvironment predictions={predIdx} confidence={voted ? 0.8 : 0.5} />
-          </Canvas>
-        </div>
-
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -201,19 +206,57 @@ export function PredictionMarketGame() {
                       </div>
                     ) : (
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
-                        <p className="font-body text-xs text-white/30">How others voted:</p>
-                        <div className="space-y-2 max-w-xs mx-auto">
-                          {[{ label: 'Yes', pct: pred.mockResults.yes, color: '#10B981' }, { label: 'No', pct: pred.mockResults.no, color: '#EF4444' }, { label: 'Maybe', pct: pred.mockResults.maybe, color: '#F59E0B' }].map(r => (
+                        {/* ENH: Accuracy counter with animated number */}
+                        <div className="flex items-center justify-center gap-3">
+                          <p className="font-body text-xs text-white/30">How others voted:</p>
+                          {totalVotes > 0 && (
+                            <motion.span
+                              key={predictionAccuracy}
+                              initial={{ scale: 1.3, color: '#FFD700' }}
+                              animate={{ scale: 1, color: 'rgba(255,255,255,0.4)' }}
+                              transition={{ type: 'spring', stiffness: 200, damping: 12 }}
+                              className="font-data text-2xs"
+                            >
+                              Accuracy: {predictionAccuracy}/{totalVotes}
+                            </motion.span>
+                          )}
+                        </div>
+                        {/* ENH: Gold glow border when vote matches majority */}
+                        <motion.div
+                          className="space-y-2 max-w-xs mx-auto rounded-xl p-2"
+                          animate={matchedMajority ? {
+                            boxShadow: ['0 0 0px rgba(255,215,0,0)', '0 0 20px rgba(255,215,0,0.4)', '0 0 8px rgba(255,215,0,0.15)']
+                          } : {}}
+                          transition={{ duration: 0.8, ease: 'easeOut' }}
+                        >
+                          {[{ label: 'Yes', pct: pred.mockResults.yes, color: '#10B981' }, { label: 'No', pct: pred.mockResults.no, color: '#EF4444' }, { label: 'Maybe', pct: pred.mockResults.maybe, color: '#F59E0B' }].map((r, rIdx) => (
                             <div key={r.label} className="flex items-center gap-2">
                               <span className={`font-body text-xs w-12 text-right ${myVote === r.label.toLowerCase() ? 'text-white font-bold' : 'text-white/30'}`}>{r.label}</span>
                               <div className="flex-1 h-6 bg-white/5 rounded overflow-hidden">
+                                {/* ENH: Spring physics on voting bars */}
                                 <motion.div className="h-full rounded" style={{ backgroundColor: r.color }}
-                                  initial={{ width: 0 }} animate={{ width: `${r.pct}%` }} transition={{ duration: 1, ease: 'easeOut' }} />
+                                  initial={{ width: 0 }} animate={{ width: `${r.pct}%` }}
+                                  transition={{ type: 'spring', stiffness: 60, damping: 12, delay: rIdx * 0.15 }} />
                               </div>
-                              <span className="font-mono text-xs text-white/30 w-8">{r.pct}%</span>
+                              <motion.span
+                                className="font-mono text-xs w-8"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1, color: myVote === r.label.toLowerCase() ? '#FFD700' : 'rgba(255,255,255,0.3)' }}
+                                transition={{ delay: 0.5 + rIdx * 0.15 }}
+                              >{r.pct}%</motion.span>
                             </div>
                           ))}
-                        </div>
+                        </motion.div>
+                        {/* ENH: Crowd wisdom summary */}
+                        {matchedMajority && (
+                          <motion.p
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className="font-body text-2xs text-center text-amber-300/60"
+                          >
+                            You matched the crowd consensus!
+                          </motion.p>
+                        )}
 
                         {/* Expert analysis toggle */}
                         <motion.button onClick={() => setShowAnalysis(!showAnalysis)}
@@ -242,6 +285,31 @@ export function PredictionMarketGame() {
                         </motion.button>
                       </motion.div>
                     )}
+                  </motion.div>
+                )}
+
+                {phase === 'complete' && (
+                  <motion.div
+                    key="complete"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
+                  >
+                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <h2 className="font-display text-2xl font-bold text-white">Prediction Market Complete!</h2>
+                    <p className="font-body text-sm text-white/50 max-w-sm">You evaluated AI predictions with critical thinking and learned that forecasting the future requires understanding both technology and uncertainty.</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#D946EF]/10 border border-[#D946EF]/20">
+                      <p className="font-data text-2xl" style={{ color: '#D946EF' }}>{game.score}</p>
+                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• AI prediction accuracy depends on data quality, model design, and the inherent uncertainty of future events</li>
+                        <li>• Probability and confidence calibration help us understand how sure we should be about AI forecasts</li>
+                        <li>• Critical thinking about AI predictions means weighing evidence, expert analysis, and real-world constraints</li>
+                      </ul>
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
