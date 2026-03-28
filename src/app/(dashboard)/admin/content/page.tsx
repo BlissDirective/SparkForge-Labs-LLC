@@ -31,6 +31,10 @@ import {
   Loader2,
   HelpCircle,
   Mail,
+  Gamepad2,
+  Trophy,
+  TrendingUp,
+  GitBranch,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -116,6 +120,14 @@ function TypeIcon({ type }: { type: string }) {
       return <HelpCircle className="w-4 h-4 text-spark-purple" />;
     case 'spark_fact':
       return <Zap className="w-4 h-4 text-spark-orange" />;
+    case 'game_scenario':
+      return <Gamepad2 className="w-4 h-4 text-green-400" />;
+    case 'game_challenge':
+      return <Trophy className="w-4 h-4 text-amber-400" />;
+    case 'trending_topic':
+      return <TrendingUp className="w-4 h-4 text-cyan-400" />;
+    case 'branching_lesson':
+      return <GitBranch className="w-4 h-4 text-pink-400" />;
     default:
       return <FileText className="w-4 h-4 text-white/40" />;
   }
@@ -158,6 +170,7 @@ export default function AdminReviewPage() {
   const [actionLoading, setActionLoading] = useState<Set<string>>(new Set());
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectDialog, setShowRejectDialog] = useState(false);
+  const [pipelineMode, setPipelineMode] = useState<'standard' | 'enhanced' | 'full'>('enhanced');
 
   const addToast = useToastStore((s) => s.addToast);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -332,7 +345,7 @@ export default function AdminReviewPage() {
   async function triggerAgent() {
     setAgentRunning(true);
     try {
-      const res = await fetch('/api/agent/run', { method: 'POST' });
+      const res = await fetch(`/api/agent/run?mode=${pipelineMode}`, { method: 'POST' });
       const result = await res.json();
 
       if (result.data?.success || result.success) {
@@ -403,6 +416,18 @@ export default function AdminReviewPage() {
               className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`}
             />
           </motion.button>
+
+          {/* Pipeline mode selector */}
+          <select
+            value={pipelineMode}
+            onChange={(e) => setPipelineMode(e.target.value as 'standard' | 'enhanced' | 'full')}
+            className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white/80 font-body text-sm focus:outline-none focus:ring-2 focus:ring-spark-blue/40"
+            aria-label="Pipeline generation mode"
+          >
+            <option value="standard">Standard (lessons/quizzes/facts)</option>
+            <option value="enhanced">Enhanced (+ scenarios/challenges/branching)</option>
+            <option value="full">Full (+ trending topics)</option>
+          </select>
 
           {/* Run Agent button */}
           <motion.button
