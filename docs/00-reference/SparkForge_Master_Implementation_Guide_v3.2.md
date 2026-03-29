@@ -885,3 +885,371 @@ Legend: **C** = Creates new file | **M** = Modifies existing file | **R** = Repl
 | C | `sentry.edge.config.ts` |
 
 ---
+
+## SECTION 4: COMPLETE SOURCE CODE REGISTRY
+
+Every file in `/src/` organized by directory, with its stage of origin. Files created during audit/enhancement cycles (not in any stage doc) are marked with their commit origin.
+
+### 4.1 App Routes — `src/app/` (59 files)
+
+| File | Stage Origin | Notes |
+|------|-------------|-------|
+| `layout.tsx` | Stage 1 P1 | Root layout with fonts, providers |
+| `globals.css` | Stage 1 P1 | Tailwind + Frost-Prismatic tokens |
+| `globals-a11y.css` | Stage 10 P1 | Accessibility CSS layer |
+| `error.tsx` | Stage 1 P1 | Root error boundary |
+| `global-error.tsx` | Stage 1 P1 | Global error boundary |
+| `not-found.tsx` | Stage 1 P1 / Stage 10 | Enhanced 404 |
+| `robots.ts` | Stage 1 P1 | SEO robots |
+| `sitemap.ts` | Stage 1 P1 | SEO sitemap |
+| `(auth)/layout.tsx` | Stage 3 P1 / Login3D PartA | Auth layout (replaced with 3D canvas) |
+| `(auth)/login/page.tsx` | Stage 3 P1 / Login3D PartB | Login (replaced with Demo button) |
+| `(auth)/signup/page.tsx` | Stage 3 P1 | Signup |
+| `(auth)/reset-password/page.tsx` | Stage 3 P1 | Password reset |
+| `(dashboard)/layout.tsx` | Stage 3 P2 / Login3D PartB | Dashboard shell + DemoGuard |
+| `(dashboard)/loading.tsx` | Stage 3 P2 | Loading state |
+| `(dashboard)/error.tsx` | Stage 3 P2 | Dashboard error |
+| `(dashboard)/home/page.tsx` | Stage 4 P1 | Dashboard home |
+| `(dashboard)/labs/page.tsx` | Stage 4 P1 | Labs map |
+| `(dashboard)/labs/[labId]/page.tsx` | Stage 4 P1 | Individual lab |
+| `(dashboard)/arcade/page.tsx` | Stage 4 P1 | Arcade listing |
+| `(dashboard)/arcade/[gameSlug]/page.tsx` | Stage 4 P1 / Stage 10 | Game router (35 games) |
+| `(dashboard)/profile/page.tsx` | Stage 4 P3 | Player profile |
+| `(dashboard)/settings/page.tsx` | Stage 4 P3 | Settings |
+| `(dashboard)/content/[slug]/page.tsx` | Stage 4 P3 | Content viewer |
+| `(dashboard)/onboarding/page.tsx` | Stage 3 P3B | Onboarding flow |
+| `(dashboard)/badges/page.tsx` | Stage 5 P1 | Badge collection |
+| `(dashboard)/parent/page.tsx` | Stage 8 P2 | Parent dashboard |
+| `(dashboard)/parent/add-child/page.tsx` | Stage 8 P2 | Add child |
+| `(dashboard)/parent/subscription/page.tsx` | Stage 8 P2 | Subscription management |
+| `(dashboard)/admin/content/page.tsx` | Stage 9 P2 | Admin content review |
+| `(marketing)/layout.tsx` | Stage 3 P3A | Marketing shell |
+| `(marketing)/page.tsx` | Stage 3 P3A | Landing page |
+| `(marketing)/pricing/page.tsx` | Stage 8 P3C | Pricing page |
+| `api/auth/signup/route.ts` | Stage 2 P3 | Auth API |
+| `api/auth/login/route.ts` | Stage 2 P3 | Auth API |
+| `api/auth/logout/route.ts` | Stage 2 P3 | Auth API |
+| `api/auth/me/route.ts` | Stage 2 P3 | Auth API |
+| `api/auth/consent/route.ts` | Stage 2 P3 | Consent API |
+| `api/auth/demo/route.ts` | Login3D PartA | Demo session API |
+| `api/children/route.ts` | Stage 2 P3 | Children CRUD |
+| `api/children/[childId]/route.ts` | Stage 2 P3 | Child by ID |
+| `api/content/route.ts` | Stage 2 P3 | Content API |
+| `api/content/[slug]/route.ts` | Stage 2 P3 | Content by slug |
+| `api/progress/route.ts` | Stage 2 P4 | Progress API |
+| `api/progress/world/route.ts` | Stage 2 P4 | Lab progress |
+| `api/progress/all-labs/route.ts` | Stage 2 P4 | All labs progress |
+| `api/gamification/xp/route.ts` | Stage 2 P4 | XP API |
+| `api/gamification/streak/route.ts` | Stage 2 P4 | Streak API |
+| `api/gamification/badges/route.ts` | Stage 2 P4 | Badges API |
+| `api/sessions/route.ts` | Stage 2 P4 | Session tracking |
+| `api/health/route.ts` | Stage 2 P4 | Health check |
+| `api/ai/guide/route.ts` | Stage 9 P1 | AI Guide chat |
+| `api/ai/prompt-lab/route.ts` | Stage 6D | Prompt Lab AI |
+| `api/stripe/checkout/route.ts` | Stage 8 P1 | Stripe checkout |
+| `api/stripe/portal/route.ts` | Stage 8 P1 | Stripe portal |
+| `api/stripe/webhook/route.ts` | Stage 8 P1 | Stripe webhook |
+| `api/parent/dashboard/route.ts` | Stage 8 P1 | Parent data |
+| `api/agent/run/route.ts` | Stage 9 P1 | Agent trigger |
+| `api/agent/schedule/route.ts` | Stage 9 P1 | Agent cron |
+| `api/agent/review/route.ts` | Stage 9 P2 | Content review |
+| `api/agent/architect/route.ts` | Enh: S9 Phase 1 | Architect pipeline |
+| `api/agent/trending/route.ts` | Enh: S9 Phase 1 | Trending research |
+| `api/agent/game-generator/route.ts` | Enh: S9 Phase 1 | Game generator |
+
+### 4.2 Stores — `src/stores/` (13 files)
+
+| File | Stage Origin | Key State |
+|------|-------------|-----------|
+| `authStore.ts` | Stage 1 P2 / Login3D | user, session, isDemoMode, demoSession |
+| `childStore.ts` | Stage 1 P2 | children[], activeChild, xp, level, badges |
+| `gameStore.ts` | Stage 1 P2 | currentGame, phase, score, rounds |
+| `toastStore.ts` | Stage 1 P2 | toasts[], addToast/removeToast |
+| `uiStore.ts` | Stage 1 P2 / Hero | sidebar, celebration, labColor, skipIntroAnimation |
+| `deviceStore.ts` | Stage 1 P2 / Hero | gpuTier, stripeCount, desktop-ultra hardcoded |
+| `cockpitStore.ts` | Stage 1 P2 / CPA2 | spatialView, focusedLabId, heroPhase, cockpitSkin |
+| `cockpitAtoms.ts` | Stage 3 (Phase 1-3) | Jotai atoms for cockpit 3D state |
+| `parentStore.ts` | Stage 8 P1 | subscription, children, timeLimit |
+| `accessibilityStore.ts` | Stage 10 P1 | fontSize, contrast, reducedMotion |
+| `sceneStore.ts` | Enh: D3D Part A | activeScene, activeGameId, transition state |
+| `guideStore.ts` | Enh: S9 Batch 1 | AI Guide avatar state |
+| `cockpitBroadcastStore.ts` | Enh: S1 Batch A | Cross-panel event bus, 16 event types |
+
+### 4.3 Hooks — `src/hooks/` (35 files)
+
+| File | Stage Origin | Purpose |
+|------|-------------|---------|
+| `useAdaptiveCockpit.ts` | Stage 1 P2 | Cockpit adaptation |
+| `useAgentAudio.ts` | Stage 6E | Agent Architect audio |
+| `useAmbientSoundscape.ts` | Enh: Cockpit audio | Ambient soundscape |
+| `useBiasDetectiveAudio.ts` | Stage 6F | Bias Detective audio |
+| `useBranchingLesson.ts` | Enh: S9 Phase 1 | Interactive branching lessons |
+| `useChildren.ts` | Stage 2 P4 → Stage 4 P1 | Children data (replaced stub) |
+| `useCockpitAudio.ts` | CPA2 PartB | Cockpit ambient audio |
+| `useCockpitContentBridge.ts` | Enh: S9 Batch 1 | Cockpit-to-content bridge |
+| `useContent.ts` | Stage 2 P4 → Stage 4 P1 | Content data (replaced stub) |
+| `useDebounce.ts` | Stage 1 P2 | Debounce utility |
+| `useDemoSession.ts` | Login3D PartB | Demo session management |
+| `useFrameTimeMonitor.ts` | Enh: Audit S4.2 | Dev-only FPS monitoring |
+| `useGSAPScroll.ts` | Stage 3 P3A | GSAP scroll animations |
+| `useGameEnvironmentReactivity.ts` | Enh: Env reactivity | State-driven 3D environment |
+| `useGamification.ts` | Stage 2 P4 → Stage 4 P1 | Gamification data |
+| `useGuideContext.ts` | Enh: S9 Batch 1 | AI Guide context |
+| `useHeroAnimation.ts` | Hero PartB | Hero animation orchestrator |
+| `useInteractiveSurface.ts` | Enh: D3D Part D | Interactive cockpit surfaces |
+| `useIrisTransition.ts` | Enh: D3D Part A | Mechanical iris transitions |
+| `useLocalStorage.ts` | Stage 1 P2 | localStorage wrapper |
+| `useNetworkAudio.ts` | Stage 6C | Neural Builder audio |
+| `useParallaxMouse.ts` | Enh: D3D Part D | Parallax mouse tracking |
+| `useParentDashboard.ts` | Stage 8 P1 | Parent dashboard data |
+| `usePetTrainerAudio.ts` | Stage 6B | Pet Trainer audio |
+| `useProgress.ts` | Stage 2 P4 → Stage 4 P1 | Progress data |
+| `usePromptLabAudio.ts` | Stage 6D | Prompt Lab audio |
+| `useSessionTimer.ts` | Stage 8 P1 | Time limit enforcement |
+| `useSessionTracker.ts` | Stage 3 P2 | Session activity tracking |
+| `useSortAudio.ts` | Stage 7B | Sort Toy Box audio |
+| `useSoundEffect.ts` | Stage 5 P1 | General sound effects |
+| `useSpatialNavigation.ts` | CPA2 PartB | Spatial dashboard navigation |
+| `useStationMode.ts` | Stage 3 P2 / Stage 4 P2B | Station mode switching |
+| `useSystemPreferences.ts` | Stage 1 P2 | System preference detection |
+| `useVoiceInput.ts` | Enh: S9 Batch 1 | Voice input for AI Guide |
+| `useVoiceOutput.ts` | Enh: S9 Batch 1 | Voice output for AI Guide |
+
+### 4.4 Lib Utilities — `src/lib/` (43 files)
+
+| File | Stage Origin | Purpose |
+|------|-------------|---------|
+| `utils.ts` | Stage 1 P2 | cn() + general utilities |
+| `animations.ts` | Stage 1 P2 | Motion animation presets |
+| `feature-flags.ts` | Stage 1 P2 | Feature flag system |
+| `webgpuDetection.ts` | Stage 1 P2 | WebGPU capability detection |
+| `validations.ts` | Stage 2 P2 | Zod schemas |
+| `tier-config.ts` | Stage 2 P2 / Stage 8 P1 | Subscription tier config |
+| `rate-limit.ts` | Stage 2 P2 | Rate limiting |
+| `api-helpers.ts` | Stage 2 P2 | API response helpers |
+| `api.ts` | Stage 2 P4 | Frontend API client |
+| `gamification.ts` | Stage 5 P1 | XP/level calculations |
+| `cosmetics.ts` | Stage 5 P1 | Cosmetic items catalog |
+| `avatar.ts` | Stage 5 P1 | Avatar system |
+| `dailyChallenge.ts` | Stage 5 P1 | Daily challenge logic |
+| `demo-session.ts` | Login3D PartA | Demo session utilities |
+| `ceremonyMapping.ts` | Enh: S5-CRIT fix | Ceremony-to-badge mapping |
+| `supabase/client.ts` | Stage 1 P2 | Supabase browser client |
+| `supabase/server.ts` | Stage 1 P2 | Supabase server client |
+| `3d/cockpitConfig.ts` | Stage 1 P2 | Cockpit configuration |
+| `3d/webgpuDetect.ts` | Stage 1 P2 | WebGPU detect (3D-specific) |
+| `3d/materials.ts` | Stage 3 P3A | 11 PBR material presets |
+| `3d/voronoiFracture.ts` | Hero PartA | Voronoi fracture system |
+| `3d/heroSplines.ts` | Hero PartA | Hero animation splines |
+| `3d/heroParticleCompute.ts` | Hero PartB | Hero particle compute |
+| `3d/heroParticleRender.ts` | Hero PartB | Hero particle render |
+| `3d/preloadAssets.ts` | Enh: Cockpit | Asset preloading |
+| `3d/proceduralConfig.ts` | Enh: S4.2 Batch 1 | Procedural environment config |
+| `3d/cockpitMaterials.ts` | Enh: S1 Batch A | 7 cockpit material factories |
+| `3d/interactiveSurfaceConfig.ts` | Enh: S4.1 Batch 1 | 8 cockpit surface presets |
+| `3d/cameraShake.ts` | Enh: S4.1 Batch 1 | Camera shake + SHAKE_PRESETS |
+| `3d/gameParticles.ts` | Enh: S7-CRIT-001 | Game particle system |
+| `audio/cockpitAudio.ts` | Stage 1 P2 | Cockpit audio engine |
+| `audio/heroAudio.ts` | Hero PartB | Hero animation audio |
+| `audio/irisAudio.ts` | Enh: D3D Part A | Iris transition audio |
+| `agent/prompts.ts` | Stage 9 P1 | Agent system prompts |
+| `agent/readability.ts` | Stage 9 P1 | Flesch-Kincaid validation |
+| `agent/pipeline.ts` | Stage 9 P1 | 4-stage agent pipeline |
+| `agent/moderation.ts` | Stage 9 P1 | Content moderation |
+| `agent/seed.ts` | Stage 9 P3 | Seed content data |
+| `agent/architect-pipeline.ts` | Enh: S9 Batch 1 | Architect pipeline extension |
+| `agent/architect-prompts.ts` | Enh: S9 Batch 1 | Architect prompts |
+| `agent/game-generator-pipeline.ts` | Enh: S9 Batch 1 | Game generator pipeline |
+| `agent/game-generator-prompts.ts` | Enh: S9 Batch 1 | Game generator prompts |
+| `guide/prompts.ts` | Enh: S9 Batch 1 | AI Guide prompts |
+
+### 4.5 Config — `src/config/` (2 files)
+
+| File | Stage Origin | Purpose |
+|------|-------------|---------|
+| `gameRegistry.ts` | Stage 7F P2 / Enh: Triangle budgets | 35-game registry with slugs, labs, tiers |
+| `creatureConfig.ts` | Enh: Audit S4.2 | Pet creature species definitions |
+
+### 4.6 Middleware — `src/middleware.ts` + `src/middleware/`
+
+| File | Stage Origin | Purpose |
+|------|-------------|---------|
+| `middleware.ts` | Stage 1 P2 | Next.js root middleware |
+| `middleware/tierCheck.ts` | Stage 8 P1 | Server-side tier limit checking |
+
+### 4.7 Mocks — `src/mocks/` (3 files)
+
+| File | Stage Origin | Purpose |
+|------|-------------|---------|
+| `browser.ts` | Stage 1 P1 | MSW browser setup |
+| `handlers.ts` | Stage 1 P1 | MSW mock handlers |
+| `server.ts` | Stage 1 P1 | MSW server setup |
+
+### 4.8 Types — `src/types/` (1 file)
+
+| File | Stage Origin | Purpose |
+|------|-------------|---------|
+| `index.ts` | Stage 1 P2 / All stages | Central type definitions (expanded by every stage) |
+
+---
+
+## SECTION 5: ENHANCEMENT & UNDOCUMENTED FILES MAP
+
+Files created during audit cycles, enhancement work, or bug fixes — **not in any original stage document** but vital to the codebase. Each is traced to its commit of origin.
+
+### 5.1 D3D Desktop-First Overhaul (commit `a44901c`, March 23, 2026)
+
+**Source Docs:** `docs/enhancements/DESKTOP_FIRST_3D_OVERHAUL_PartA-D.md`
+
+| File | Purpose |
+|------|---------|
+| `src/stores/sceneStore.ts` | Centralized scene state (D3D-B5) |
+| `src/components/3d/MechanicalIris.tsx` | Cockpit-to-game iris transition (D3D-B2) |
+| `src/components/3d/SceneRouter.tsx` | Scene visibility management (D3D-B4) |
+| `src/components/3d/PostProcessingStack.tsx` | 7-effect always-on stack (D3D-5/C1) |
+| `src/hooks/useIrisTransition.ts` | Iris transition hook |
+| `src/hooks/useInteractiveSurface.ts` | Interactive cockpit surfaces (D3D Part D) |
+| `src/hooks/useParallaxMouse.ts` | Parallax mouse tracking (D3D Part D) |
+| `src/lib/audio/irisAudio.ts` | Iris transition audio + LAB_COLOR_AUDIO_PROFILES |
+
+### 5.2 Cockpit Upgrade & Audit Enhancements (March 20-25, 2026)
+
+| File | Commit | Purpose |
+|------|--------|---------|
+| `src/components/3d/CockpitFloor3D.tsx` | `65060f0` (Cockpit upgrade #8) | Grated floor, piping, LED channels |
+| `src/components/3d/CeremonyFXBridge.tsx` | Enh: Cockpit | Bridge between 2D ceremonies and 3D FX |
+| `src/components/3d/BadgePedestalBridge.tsx` | Enh: Cockpit | Bridge between badges UI and 3D pedestal |
+| `src/components/3d/ParentDashboardBridge.tsx` | Enh: Cockpit | Bridge to 3D parent dashboard |
+| `src/components/3d/ParentStatHologram3D.tsx` | Enh: Cockpit | 3D holographic parent stats |
+| `src/components/3d/ContentHologram3D.tsx` | Enh: Cockpit | 3D content hologram display |
+| `src/components/3d/Canvas3DErrorBoundary.tsx` | Enh: S4.2 | Canvas crash recovery |
+| `src/components/3d/WebGPUErrorBoundary.tsx` | Enh: S4.2 | WebGPU failure fallback |
+| `src/components/3d/OnboardingCrystal3D.tsx` | Enh: Cockpit | Enhanced onboarding crystal |
+| `src/components/3d/GuideAvatar3D.tsx` | Enh: AI Guide | 3D AI Guide avatar |
+| `src/components/3d/AvatarPreview3D.tsx` | Enh: Profile | 3D avatar preview |
+| `src/components/3d/CinematicCamera.tsx` | Enh: Cockpit | Cinematic camera system |
+| `src/components/3d/NPCSpeechBubble.tsx` | Enh: S9 Batch 1 | NPC speech bubble 3D |
+| `src/lib/3d/preloadAssets.ts` | Enh: Cockpit | Asset preloading utility |
+| `src/lib/3d/proceduralConfig.ts` | Enh: S4.2 Batch 1 | Procedural environment config |
+| `src/lib/3d/cameraShake.ts` | Enh: S4.1 Batch 1 | Camera shake presets |
+| `src/lib/3d/interactiveSurfaceConfig.ts` | Enh: S4.1 Batch 1 | Surface interaction presets |
+| `src/lib/3d/cockpitMaterials.ts` | Enh: S1 Batch A | 7 cockpit material factories |
+| `src/lib/3d/gameParticles.ts` | Enh: S7-CRIT-001 | Game particle system |
+| `src/hooks/useFrameTimeMonitor.ts` | Enh: Audit S4.2 | Dev-only frame time monitor |
+| `src/hooks/useGameEnvironmentReactivity.ts` | Enh: Env reactivity | State-driven 3D environment |
+| `src/hooks/useAmbientSoundscape.ts` | Enh: Cockpit audio | Ambient soundscape |
+| `src/lib/ceremonyMapping.ts` | Enh: S5-CRIT fix | Ceremony mapping |
+
+### 5.3 Stage 9 Content Agent — Phase 1 Enhancement (commit `84598bc`, March 28, 2026)
+
+| File | Purpose |
+|------|---------|
+| `src/stores/guideStore.ts` | AI Guide avatar state management |
+| `src/hooks/useVoiceInput.ts` | Voice input for AI Guide |
+| `src/hooks/useVoiceOutput.ts` | Voice output for AI Guide |
+| `src/hooks/useGuideContext.ts` | AI Guide context provider |
+| `src/hooks/useCockpitContentBridge.ts` | Cockpit-to-content data bridge |
+| `src/hooks/useBranchingLesson.ts` | Interactive branching lesson navigation |
+| `src/lib/agent/architect-pipeline.ts` | Architect pipeline extension |
+| `src/lib/agent/architect-prompts.ts` | Architect system prompts |
+| `src/lib/agent/game-generator-pipeline.ts` | Game generator pipeline |
+| `src/lib/agent/game-generator-prompts.ts` | Game generator prompts |
+| `src/lib/guide/prompts.ts` | AI Guide conversation prompts |
+| `src/components/content/BranchingLessonRenderer.tsx` | Interactive branching lesson UI |
+| `src/components/ui/GuideChatPanel.tsx` | AI Guide chat panel |
+| `src/components/ui/GuideMobileAvatar.tsx` | AI Guide mobile avatar |
+| `src/components/3d/NPCSpeechBubble.tsx` | NPC speech bubble 3D |
+| `src/app/api/agent/architect/route.ts` | Architect API route |
+| `src/app/api/agent/trending/route.ts` | Trending research API |
+| `src/app/api/agent/game-generator/route.ts` | Game generator API |
+
+### 5.4 3D UI Components (commit `21cb7fa`, March 27, 2026)
+
+**Source Doc:** CLAUDE.md v6.0 Section 9.3 (Cockpit Triangle Budgets v3.0)
+
+| File | Purpose | Triangle Budget |
+|------|---------|----------------|
+| `src/components/3d/ui/HolographicButton.tsx` | Physical cockpit buttons | Part of 5M |
+| `src/components/3d/ui/RadialDial3D.tsx` | Rotary dial controls | Part of 5M |
+| `src/components/3d/ui/ToggleSwitch3D.tsx` | Physical toggle switches | Part of 5M |
+| `src/components/3d/ui/HolographicCard.tsx` | Holographic info cards | Part of 5M |
+| `src/components/3d/ui/HolographicPanel.tsx` | Large holographic panels | Part of 5M |
+| `src/components/3d/ui/NavigationButtonGrid.tsx` | 5 nav buttons (HOME/LABS/ARCADE/SETTINGS/PROFILE) | 1M |
+| `src/components/3d/ui/VariableDialCluster.tsx` | 3 center-console dials | 1.5M |
+| `src/components/3d/ui/CenterViewportScreen.tsx` | Spherical panoramic screen | 3M |
+| `src/components/3d/ui/index.ts` | Barrel export | — |
+| `src/stores/cockpitBroadcastStore.ts` | Cross-panel event bus (16 event types) | — |
+
+### 5.5 Procedural Environment System (commit `fe8e082`, March 24, 2026)
+
+| File | Purpose |
+|------|---------|
+| `src/components/3d/environments/procedural/ProceduralTerrain.tsx` | Procedural terrain generation |
+| `src/components/3d/environments/procedural/ProceduralSkyDome.tsx` | Sky dome with atmosphere |
+| `src/components/3d/environments/procedural/ProceduralFog.tsx` | Volumetric fog layers |
+| `src/components/3d/environments/procedural/ProceduralLighting.tsx` | Dynamic lighting system |
+| `src/components/3d/environments/procedural/ProceduralProps.tsx` | Environment prop placement |
+| `src/components/3d/environments/procedural/index.ts` | Barrel export |
+| `src/components/3d/environments/ProceduralEnvironmentGenerator.tsx` | Main generator orchestrator |
+| `src/components/3d/environments/ReactiveEnvironmentEffects.tsx` | Game-state-reactive effects |
+
+### 5.6 Creature System (commit `3eb83e9`, March 25, 2026)
+
+| File | Purpose |
+|------|---------|
+| `src/components/3d/creatures/CreatureBase.tsx` | Base creature component |
+| `src/components/3d/creatures/VoltkitCreature.tsx` | Electric creature variant |
+| `src/components/3d/creatures/PixieCreature.tsx` | Fairy creature variant |
+| `src/components/3d/creatures/BytelingCreature.tsx` | Digital creature variant |
+| `src/components/3d/creatures/SparkpawCreature.tsx` | Fire creature variant |
+| `src/components/3d/creatures/CogsworthCreature.tsx` | Mechanical creature variant |
+| `src/components/3d/creatures/index.ts` | Barrel export |
+| `src/config/creatureConfig.ts` | Creature species definitions |
+
+### 5.7 TSL Shader System (commits `3eb83e9` + `0afa537`)
+
+| File | Purpose |
+|------|---------|
+| `src/shaders/tsl/auroraTSL.ts` | Aurora effect (TSL port) |
+| `src/shaders/tsl/crystallineLogoTSL.ts` | Crystalline logo (Hero) |
+| `src/shaders/tsl/electricVeinsTSL.ts` | Electric veins (Hero) |
+| `src/shaders/tsl/energyFieldTSL.ts` | Energy field effect |
+| `src/shaders/tsl/fireNoiseTSL.ts` | Fire/noise effect |
+| `src/shaders/tsl/holographicTSL.ts` | Holographic effect |
+| `src/shaders/tsl/liquidMetalTSL.ts` | Liquid metal effect |
+| `src/shaders/tsl/scanlineTSL.ts` | Scanline effect |
+| `src/shaders/tsl/noiseUtils.ts` | Shared noise functions |
+| `src/shaders/tsl/index.ts` | Barrel export |
+| `src/shaders/labPatterns/tsl/agentLab.ts` | Lab 5 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/buildLab.ts` | Lab 9 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/codeLab.ts` | Lab 9 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/createLab.ts` | Lab 4 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/dataLab.ts` | Lab 2 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/ethicsLab.ts` | Lab 6 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/frontierLab.ts` | Lab 10 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/languageLab.ts` | Lab 8 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/neuralLab.ts` | Lab 3 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/visionLab.ts` | Lab 7 pattern (TSL) |
+| `src/shaders/labPatterns/tsl/shared.ts` | Shared TSL utilities |
+| `src/shaders/labPatterns/tsl/index.ts` | Barrel export |
+
+### 5.8 Game Environments (35 files — one per game)
+
+All created by their corresponding Stage 6/7 docs + the `StandardEnvironmentBase.tsx`, `FlagshipEnvironmentBase.tsx`, `FLLiteEnvironmentBase.tsx` base classes.
+
+| Base Class | Stage | Games Using |
+|------------|-------|-------------|
+| `FlagshipEnvironmentBase.tsx` | Stage 6 | Pet Trainer, Neural Builder, Prompt Lab, Agent Architect, Bias Detective |
+| `FLLiteEnvironmentBase.tsx` | Stage 7 | Sort Toy Box, Code Blocks, Chatbot Builder, Data Detective, Robot Vacuum, Camera Quest, Future Forge, My First AI App, Emoji Decoder |
+| `StandardEnvironmentBase.tsx` | Stage 7 | All 20 Standard tier games |
+
+Individual environment files follow pattern: `src/components/3d/environments/{GameName}Environment.tsx`
+
+### 5.9 Dashboard Components (created during audit fixes)
+
+| File | Commit | Purpose |
+|------|--------|---------|
+| `src/components/dashboard/SpatialOverlay.tsx` | Enh: Cockpit | Spatial dashboard HTML overlay |
+| `src/components/dashboard/TrendingFeed.tsx` | Enh: S9 Phase 1 | Trending AI topics feed |
+
+---
