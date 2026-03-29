@@ -2927,23 +2927,23 @@ Interactive buttons, dropdowns, and clickable elements lack `aria-label` in thes
 **Stage:** 10 (Phase 26)
 **Source Docs:** `STAGE10_Polish_Deploy_v2_PART1-2`
 **Scope:** Accessibility toolkit, PWA, CSP headers, Sentry monitoring, production readiness, icons/assets
-**Build Status:** PARTIALLY COMPLETE — a11y toolkit and Sentry done; CSP, PWA assets, and service worker missing
+**Build Status:** COMPLETE — All Stage 10 audit findings resolved (2026-03-29)
 
 ## Stage 10 — Finding Counts
 
-| Severity | Count |
-|----------|-------|
-| CRITICAL | 2 |
-| HIGH | 7 |
-| WARNING | 5 |
-| INFO | 3 |
-| PASS | 12 |
+| Severity | Count | Resolved |
+|----------|-------|----------|
+| CRITICAL | 2 | 2 ✅ |
+| HIGH | 7 | 7 ✅ |
+| WARNING | 5 | 5 ✅ (3 fixed, 1 prev resolved, 1 documented intentional) |
+| INFO | 3 | 3 ✅ (all acceptable/documented) |
+| PASS | 12 | 12 ✅ |
 
 ---
 
 ## Stage 10 — CRITICAL FINDINGS
 
-### S10-CRIT-001 — No CSP headers configured anywhere (BUG-10D unaddressed)
+### S10-CRIT-001 — ~~No CSP headers configured anywhere (BUG-10D unaddressed)~~ RESOLVED (2026-03-29)
 
 **Files:** `src/middleware.ts`, `next.config.ts`
 **Category:** Security
@@ -2953,150 +2953,99 @@ Interactive buttons, dropdowns, and clickable elements lack `aria-label` in thes
 - No `frame-ancestors` protection (clickjacking risk)
 - No `font-src` or `img-src` restrictions
 
-**Required Fix:** Add CSP headers in `next.config.ts`:
-```typescript
-async headers() {
-  return [{
-    source: '/(.*)',
-    headers: [{
-      key: 'Content-Security-Policy',
-      value: [
-        "default-src 'self'",
-        "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
-        "connect-src 'self' https://*.supabase.co https://*.sentry.io https://vitals.vercel-insights.com https://va.vercel-scripts.com",
-        "img-src 'self' https://*.supabase.co data:",
-        "font-src 'self' https://fonts.gstatic.com",
-        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-        "frame-ancestors 'none'",
-      ].join('; '),
-    },
-    { key: 'X-Frame-Options', value: 'DENY' },
-    { key: 'X-Content-Type-Options', value: 'nosniff' },
-    { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-    { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
-    ],
-  }];
-}
-```
+**Resolution:** Added full CSP + security headers in `next.config.ts` `headers()` function. Includes `connect-src` for Supabase, Sentry, Vercel analytics, Stripe, Anthropic. `unsafe-eval` only in dev mode. Also added HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy, Permissions-Policy, and immutable caching for static assets.
 
 ---
 
-### S10-CRIT-002 — PWA icons referenced in manifest do not exist
+### S10-CRIT-002 — ~~PWA icons referenced in manifest do not exist~~ RESOLVED (2026-03-29)
 
 **File:** `public/manifest.json` (lines 13-24)
 **Category:** PWA / Assets
 **Description:** Manifest references `/icon-192.png` and `/icon-512.png` but neither file exists in `public/`. PWA install will fail on all platforms. Additionally missing: `favicon.ico`, `apple-touch-icon.png` (referenced in layout.tsx lines 103-104), and `og-image.png` (referenced in metadata line 50).
 
-**Required Fix:** Create and place these icon files:
-- `public/icon-192.png` (192x192, SparkForge logo)
-- `public/icon-512.png` (512x512, SparkForge logo)
-- `public/favicon.ico` (32x32 multi-resolution)
-- `public/apple-touch-icon.png` (180x180)
-- `public/og-image.png` (1200x630, social sharing preview)
+**Resolution:** Generated all icons via `scripts/generate-pwa-icons.mjs` using Sharp. Crystalline glassmorphic "SF" branding with aurora background, chrome bezel, neon blue glow. All files placed in `public/`: icon-512.png, icon-192.png, apple-touch-icon.png, favicon.ico, favicon.png, og-image.png (1200×630).
 
 ---
 
 ## Stage 10 — HIGH FINDINGS
 
-### S10-HIGH-001 — No security headers in next.config.ts
+### S10-HIGH-001 — ~~No security headers in next.config.ts~~ RESOLVED (2026-03-29)
 
 **File:** `next.config.ts`
 **Category:** Security
 **Description:** Missing standard production security headers: `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`, `Strict-Transport-Security`. These are basic protections expected for any production web application, especially one serving children.
 
-**Required Fix:** Add in the `headers()` function alongside CSP (see S10-CRIT-001).
+**Resolution:** All security headers added in `next.config.ts` `headers()` function alongside CSP (see S10-CRIT-001). Includes HSTS with 2-year max-age, preload directive.
 
 ---
 
-### S10-HIGH-002 — ErrorBoundary does not report to Sentry
+### S10-HIGH-002 — ~~ErrorBoundary does not report to Sentry~~ RESOLVED (2026-03-29)
 
 **File:** `src/components/ui/ErrorBoundary.tsx` (line 33)
 **Category:** Monitoring
 **Description:** The ErrorBoundary wraps the entire app tree (inside `<A11yProvider>` in root layout) but only calls `console.error('ErrorBoundary caught:', error, errorInfo)`. Component-level errors caught here are invisible to Sentry monitoring.
 
-**Required Fix:**
-```typescript
-import * as Sentry from '@sentry/nextjs';
-
-componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-  console.error('ErrorBoundary caught:', error, errorInfo);
-  Sentry.captureException(error, {
-    contexts: { react: { componentStack: errorInfo.componentStack } },
-  });
-}
-```
+**Resolution:** Added `import * as Sentry from '@sentry/nextjs'` and `Sentry.captureException(error, { contexts: { react: { componentStack } } })` in `componentDidCatch`.
 
 ---
 
-### S10-HIGH-003 — Route-level error.tsx does not report to Sentry
+### S10-HIGH-003 — ~~Route-level error.tsx does not report to Sentry~~ RESOLVED (2026-03-29)
 
 **File:** `src/app/error.tsx` (line 14)
 **Category:** Monitoring
 **Description:** The route-level error page only uses `console.error`. Unlike `global-error.tsx` (which correctly calls `Sentry.captureException`), route-level errors go unreported.
 
-**Required Fix:** Add `Sentry.captureException(error)` in the `useEffect`.
+**Resolution:** Added `import * as Sentry from '@sentry/nextjs'` and `Sentry.captureException(error)` in the `useEffect`.
 
 ---
 
-### S10-HIGH-004 — No service worker exists
+### S10-HIGH-004 — ~~No service worker exists~~ RESOLVED (2026-03-29)
 
 **Category:** PWA
 **Description:** No `public/sw.js`, no `next-pwa` or `@ducanh2912/next-pwa` or `serwist` package in dependencies, no `navigator.serviceWorker` registration found. PWA offline support, caching, and install prompts are non-functional.
 
-**Required Fix:** Install `@ducanh2912/next-pwa`, configure in `next.config.ts`, create basic service worker with offline caching.
+**Resolution:** Created hand-written `public/sw.js` with cache-first strategy for static assets (JS, CSS, images, fonts), network-first for navigation requests with offline fallback, pre-caches essential routes. Service worker registered in `A11yProvider` on client mount. No external PWA package needed.
 
 ---
 
-### S10-HIGH-005 — No offline fallback page
+### S10-HIGH-005 — ~~No offline fallback page~~ RESOLVED (2026-03-29)
 
-**File:** `src/app/offline/page.tsx` — DOES NOT EXIST
+**File:** `src/app/offline/page.tsx` — CREATED
 **Category:** PWA / UX
 **Description:** Without an offline page, users going offline see browser error pages instead of a branded SparkForge offline message.
 
-**Required Fix:** Create `src/app/offline/page.tsx` with Frost-Prismatic styled offline message and "Try Again" button.
+**Resolution:** Created `src/app/offline/page.tsx` with Frost-Prismatic styled offline page — deep void background, neon blue accents, "You're Offline" messaging, and "Try Again" button. Pre-cached by service worker.
 
 ---
 
-### S10-HIGH-006 — OpenDyslexic font files missing
+### S10-HIGH-006 — ~~OpenDyslexic font files missing~~ RESOLVED (2026-03-29)
 
 **File:** `src/app/globals-a11y.css` (lines 62-74)
 **Category:** Accessibility
 **Description:** CSS declares `@font-face` for `OpenDyslexic-Regular.woff2` and `OpenDyslexic-Bold.woff2` in `/fonts/`, but the font files don't exist in `public/fonts/`. The dyslexia font toggle in the accessibility toolbar silently fails.
 
-**Required Fix:** Download OpenDyslexic woff2 files from the OpenDyslexic project and place in `public/fonts/`.
+**Resolution:** Downloaded `OpenDyslexic-Regular.woff` and `OpenDyslexic-Bold.woff` from CDN to `public/fonts/`. Updated `globals-a11y.css` `@font-face` declarations from `.woff2` to `.woff` format (woff2 not available from source). Dyslexia font toggle now functional.
 
 ---
 
-### S10-HIGH-007 — No environment variable validation at startup
+### S10-HIGH-007 — ~~No environment variable validation at startup~~ RESOLVED (2026-03-29)
 
 **Category:** Production Readiness
 **Description:** No `src/lib/env.ts` or equivalent validates required env vars at build/startup time. The middleware directly asserts `process.env.NEXT_PUBLIC_SUPABASE_URL!` (line 8) which throws an unhelpful runtime error if missing.
 
-**Required Fix:** Create `src/lib/env.ts` with Zod validation:
-```typescript
-import { z } from 'zod';
-const envSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
-  STRIPE_SECRET_KEY: z.string().optional(),
-  ANTHROPIC_API_KEY: z.string().optional(),
-  SENTRY_DSN: z.string().optional(),
-});
-export const env = envSchema.parse(process.env);
-```
+**Resolution:** Created `src/lib/env.ts` with Zod schema. Required: `NEXT_PUBLIC_SUPABASE_URL` (url), `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Optional: Stripe keys, `ANTHROPIC_API_KEY`, Sentry config, `NEXT_PUBLIC_URL`. Parses at module import with clear formatted error messages listing all missing/invalid vars.
 
 ---
 
 ## Stage 10 — WARNING FINDINGS
 
-### S10-WARN-001 — accessibilityStore interface doesn't match CLAUDE.md
+### S10-WARN-001 — ~~accessibilityStore interface doesn't match CLAUDE.md~~ RESOLVED (2026-03-29)
 
 **File:** `src/stores/accessibilityStore.ts` (lines 12-14)
 **Category:** Doc-Drift
 **Description:** CLAUDE.md Section 14 specifies `fontSize, contrast, reducedMotion, screenReader`. Actual store has `fontSize, highContrast, reduceMotion, dyslexiaFont, darkMode`. Property names differ (`contrast` vs `highContrast`, `reducedMotion` vs `reduceMotion`) and `screenReader` is absent.
 
-**Required Fix:** Add `screenReader` boolean to the store. Document naming divergence or rename for consistency.
+**Resolution:** Added `screenReader: boolean` and `toggleScreenReader()` to the store. Naming kept as `highContrast`/`reduceMotion` (more descriptive); CLAUDE.md summary is abbreviated. Store now has all documented fields.
 
 ---
 
@@ -3125,11 +3074,13 @@ export const env = envSchema.parse(process.env);
 
 ---
 
-### S10-WARN-005 — Missing OG image for social sharing
+### S10-WARN-005 — ~~Missing OG image for social sharing~~ RESOLVED (2026-03-29)
 
 **File:** `src/app/layout.tsx` (line 50)
 **Category:** SEO / Marketing
 **Description:** `og-image.png` is referenced in metadata but doesn't exist in `public/`. Social sharing previews (Twitter, Slack, Discord, etc.) will show broken images.
+
+**Resolution:** Generated `public/og-image.png` (1200×630) via `scripts/generate-pwa-icons.mjs`. Features SF monogram, "SparkForge" wordmark, tagline, aurora background, chrome frame, and cockpit HUD accent elements.
 
 ---
 
@@ -3168,39 +3119,44 @@ export const env = envSchema.parse(process.env);
 
 ---
 
-## Stage 10 — File Inventory
+## Stage 10 — File Inventory (Updated 2026-03-29)
 
 | File | Status |
 |------|--------|
-| `src/stores/accessibilityStore.ts` | EXISTS |
-| `src/components/accessibility/A11yProvider.tsx` | EXISTS |
-| `src/components/accessibility/AccessibilityToolbar.tsx` | EXISTS |
-| `src/app/layout.tsx` | EXISTS (correct fonts, skip link, live region) |
-| `src/app/globals-a11y.css` | EXISTS (OpenDyslexic fonts missing) |
-| `src/components/ui/OfflineBanner.tsx` | EXISTS |
-| `src/components/ui/ErrorBoundary.tsx` | EXISTS (no Sentry) |
-| `public/manifest.json` | EXISTS (icons missing) |
-| `sentry.client.config.ts` | EXISTS |
-| `sentry.server.config.ts` | EXISTS |
-| `sentry.edge.config.ts` | EXISTS |
-| `src/app/global-error.tsx` | EXISTS (reports to Sentry) |
-| `src/app/error.tsx` | EXISTS (no Sentry) |
-| `src/app/offline/page.tsx` | **MISSING** |
-| `public/sw.js` | **MISSING** |
-| `public/favicon.ico` | **MISSING** |
-| `public/apple-touch-icon.png` | **MISSING** |
-| `public/icon-192.png` | **MISSING** |
-| `public/icon-512.png` | **MISSING** |
-| `public/og-image.png` | **MISSING** |
-| `public/fonts/OpenDyslexic-*.woff2` | **MISSING** |
+| `src/stores/accessibilityStore.ts` | EXISTS ✅ (+ screenReader field) |
+| `src/components/accessibility/A11yProvider.tsx` | EXISTS ✅ (+ SW registration) |
+| `src/components/accessibility/AccessibilityToolbar.tsx` | EXISTS ✅ |
+| `src/app/layout.tsx` | EXISTS ✅ (correct fonts, skip link, live region) |
+| `src/app/globals-a11y.css` | EXISTS ✅ (OpenDyslexic woff loaded) |
+| `src/components/ui/OfflineBanner.tsx` | EXISTS ✅ |
+| `src/components/ui/ErrorBoundary.tsx` | EXISTS ✅ (+ Sentry reporting) |
+| `public/manifest.json` | EXISTS ✅ (icons present) |
+| `sentry.client.config.ts` | EXISTS ✅ |
+| `sentry.server.config.ts` | EXISTS ✅ |
+| `sentry.edge.config.ts` | EXISTS ✅ |
+| `src/app/global-error.tsx` | EXISTS ✅ (reports to Sentry) |
+| `src/app/error.tsx` | EXISTS ✅ (+ Sentry reporting) |
+| `next.config.ts` | EXISTS ✅ (+ CSP + security headers) |
+| `src/lib/env.ts` | EXISTS ✅ (Zod env validation) |
+| `src/app/offline/page.tsx` | EXISTS ✅ (Frost-Prismatic styled) |
+| `public/sw.js` | EXISTS ✅ (cache-first static, network-first nav) |
+| `public/favicon.ico` | EXISTS ✅ (32×32 crystalline SF) |
+| `public/favicon.png` | EXISTS ✅ (32×32) |
+| `public/apple-touch-icon.png` | EXISTS ✅ (180×180) |
+| `public/icon-192.png` | EXISTS ✅ (192×192 crystalline SF) |
+| `public/icon-512.png` | EXISTS ✅ (512×512 crystalline SF) |
+| `public/og-image.png` | EXISTS ✅ (1200×630 branded) |
+| `public/fonts/OpenDyslexic-Regular.woff` | EXISTS ✅ |
+| `public/fonts/OpenDyslexic-Bold.woff` | EXISTS ✅ |
+| `scripts/generate-pwa-icons.mjs` | EXISTS ✅ (icon generator) |
 
-**Present:** 13 files | **Missing:** 8 files (icons, fonts, service worker, offline page)
+**Present:** 26 files | **Missing:** 0 files
 
 ---
 
 *All 10 stages audited. Full report complete.*
 
 *SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-10 | March 25, 2026*
-*Stages 1-9 audit complete. Stage 10 pending.*
+*Updated: March 29, 2026 — All Stage 10 findings resolved (2 CRITICAL, 7 HIGH, 5 WARNING, 3 INFO → all ✅)*
 
 *SparkForge Audit Agent v1.0 | Phase 0 + Stages 1-9 | March 25, 2026*
