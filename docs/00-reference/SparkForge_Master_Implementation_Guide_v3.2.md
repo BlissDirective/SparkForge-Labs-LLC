@@ -1253,3 +1253,149 @@ Individual environment files follow pattern: `src/components/3d/environments/{Ga
 | `src/components/dashboard/TrendingFeed.tsx` | Enh: S9 Phase 1 | Trending AI topics feed |
 
 ---
+
+## SECTION 6: ALL 35 GAMES — QUICK REFERENCE
+
+Updated with correct tiers per D3D-3 (3-tier system: Flagship/FL-Lite/Standard).
+
+| # | Game | Lab | Stage | Slug | Tier | 3D Component | Bands | Env File |
+|---|------|-----|-------|------|------|--------------|-------|----------|
+| 1 | AI Spy | 1 | 7A | `ai-spy` | Standard | AiSpyEnvironment | A,B,C | `AiSpyEnvironment.tsx` |
+| 2 | Time Machine | 1 | 7A | `time-machine` | Standard | TimeMachineEnvironment | A,B,C | `TimeMachineEnvironment.tsx` |
+| 3 | Human vs Machine | 1 | 7B | `human-vs-machine` | Standard | HumanVsMachineEnvironment | A,B,C | `HumanVsMachineEnvironment.tsx` |
+| 4 | AI Pet Trainer | 2 | 6B | `pet-trainer` | **Flagship** | Pet3DScene, PetCreature3D | A,B,C | `PetTrainerEnvironment.tsx` |
+| 5 | Sort Toy Box | 2 | 7B | `sort-toy-box` | **Flagship** | SortScene3D, SortFeatureViz3D | A,B,C | `SortToyBoxEnvironment.tsx` |
+| 6 | Treat Trainer | 2 | 7C | `treat-trainer` | Standard | TreatTrainerEnvironment | A,B,C | `TreatTrainerEnvironment.tsx` |
+| 7 | Data Detective | 2 | 7C | `data-detective` | **FL-Lite** | DataDetective3D | A,B,C | `DataDetectiveEnvironment.tsx` |
+| 8 | Neural Builder | 3 | 6C | `neural-builder` | **Flagship** | NeuralNetwork3D | A,B,C | `NeuralBuilderEnvironment.tsx` |
+| 9 | Neuron Relay | 3 | 7C | `neuron-relay` | Standard | NeuronRelayEnvironment | A,B,C | `NeuronRelayEnvironment.tsx` |
+| 10 | Pixel Investigator | 3 | 7D | `pixel-investigator` | Standard | PixelInvestigatorEnvironment | B,C | `PixelInvestigatorEnvironment.tsx` |
+| 11 | Prompt Lab | 4 | 6D | `prompt-lab` | **Flagship** | PromptBubble3D, PromptScore3D | A,B,C | `PromptLabEnvironment.tsx` |
+| 12 | Word Predictor | 4 | 7A | `word-predictor` | Standard | WordPredictorEnvironment | A,B,C | `WordPredictorEnvironment.tsx` |
+| 13 | Token Chopper | 4 | 7A | `token-chopper` | Standard | TokenChopperEnvironment | B,C | `TokenChopperEnvironment.tsx` |
+| 14 | AI Art Detective | 4 | 7A | `ai-art-detective` | Standard | AiArtDetectiveEnvironment | A,B,C | `AiArtDetectiveEnvironment.tsx` |
+| 15 | Agent Architect | 5 | 6E | `agent-architect` | **Flagship** | AgentPipeline3D | A,B,C | `AgentArchitectEnvironment.tsx` |
+| 16 | Robot Vacuum | 5 | 7D | `robot-vacuum` | **FL-Lite** | RobotVacuum3D | A,B,C | `RobotVacuumEnvironment.tsx` |
+| 17 | Tool Picker | 6 | 7A | `tool-picker` | Standard | ToolPickerEnvironment | A,B,C | `ToolPickerEnvironment.tsx` |
+| 18 | Bias Detective | 6 | 6F | `bias-detective` | **Flagship** | BiasScales3D, BiasDecisionTree3D | B,C | `BiasDetectiveEnvironment.tsx` |
+| 19 | Data Shield | 6 | 7A | `data-shield` | Standard | DataShieldEnvironment | A,B,C | `DataShieldEnvironment.tsx` |
+| 20 | Real or Fake | 6 | 7A | `real-or-fake` | Standard | RealOrFakeEnvironment | A,B,C | `RealOrFakeEnvironment.tsx` |
+| 21 | Ethics Courtroom | 6 | 7E | `ethics-courtroom` | Standard | EthicsCourtroomEnvironment | B,C | `EthicsCourtroomEnvironment.tsx` |
+| 22 | Camera Quest | 7 | 7D | `camera-quest` | **FL-Lite** | CameraQuest3D | A,B,C | `CameraQuestEnvironment.tsx` |
+| 23 | Fool the AI | 7 | 7D | `fool-the-ai` | Standard | FoolTheAiEnvironment | B,C | `FoolTheAiEnvironment.tsx` |
+| 24 | Build Classifier | 7 | 7E | `build-classifier` | Standard | BuildClassifierEnvironment | B,C | `BuildClassifierEnvironment.tsx` |
+| 25 | Prediction Market | 7 | 7A | `prediction-market` | Standard | PredictionMarketEnvironment | B,C | `PredictionMarketEnvironment.tsx` |
+| 26 | Sentiment Scanner | 8 | 7C | `sentiment-scanner` | Standard | SentimentScannerEnvironment | A,B,C | `SentimentScannerEnvironment.tsx` |
+| 27 | Chatbot Builder | 8 | 7C | `chatbot-builder` | **FL-Lite** | ChatbotNodes3D | B,C | `ChatbotBuilderEnvironment.tsx` |
+| 28 | Lost in Translation | 8 | 7C | `lost-in-translation` | Standard | LostInTranslationEnvironment | A,B,C | `LostInTranslationEnvironment.tsx` |
+| 29 | Emoji Decoder | 8 | 7F | `emoji-decoder` | **FL-Lite** | EmojiDecoder3D | A,B | `EmojiDecoderEnvironment.tsx` |
+| 30 | Code Blocks | 9 | 7B | `code-blocks` | **FL-Lite** | CodeBlocks3D | A,B,C | `CodeBlocksEnvironment.tsx` |
+| 31 | Career Explorer | 9 | 7B | `career-explorer` | Standard | CareerExplorerEnvironment | B,C | `CareerExplorerEnvironment.tsx` |
+| 32 | API Explorer | 9 | 7E | `api-explorer` | Standard | ApiExplorerEnvironment | C | `ApiExplorerEnvironment.tsx` |
+| 33 | My First AI App | 9 | 7F | `my-first-ai-app` | **FL-Lite** | MyFirstAiApp3D | A,B,C | `MyFirstAiAppEnvironment.tsx` |
+| 34 | Future Forge | 10 | 7D | `future-forge` | **FL-Lite** | FutureForge3D | A,B,C | `FutureForgeEnvironment.tsx` |
+| 35 | AI or Not? | 10 | 7F | `ai-or-not` | **FL-Lite** | AiOrNot3D | A,B | `AiOrNotEnvironment.tsx` |
+
+**Tier Summary:** 6 Flagship (20M tris) + 9 FL-Lite (10M tris) + 20 Standard (5M tris) = **35 games**
+
+**Audit Status (March 29, 2026):** All 35 games pass functional completeness audit — phase system, age bands, completeGame(), ARIA labels, GameShell wrapper, 3D environments, substantive content.
+
+---
+
+## SECTION 7: COMPLETE STORE & HOOK REGISTRY
+
+### 7.1 Zustand Stores (12) + Jotai Atoms (1)
+
+| Store | File | Stage | Key Actions |
+|-------|------|-------|-------------|
+| authStore | `stores/authStore.ts` | S1/Login3D | signIn, signUp, signOut, startDemoSession, endDemoSession |
+| childStore | `stores/childStore.ts` | S1/S4/S5 | setActiveChild, updateXP, addBadge, setAvatar |
+| gameStore | `stores/gameStore.ts` | S1/S6 | startGame, updateScore, advanceRound, completeGame, resetGame |
+| toastStore | `stores/toastStore.ts` | S1 | addToast, removeToast |
+| uiStore | `stores/uiStore.ts` | S1/Hero | toggleSidebar, setCelebration, setLabColor, skipIntroAnimation |
+| deviceStore | `stores/deviceStore.ts` | S1/Hero | Hardcoded desktop-ultra (50M budget, gpuTier, stripeCount) |
+| cockpitStore | `stores/cockpitStore.ts` | S1/CPA2 | setSpatialView, setFocusedLab, setHeroPhase, setCockpitSkin |
+| cockpitAtoms | `stores/cockpitAtoms.ts` | S3 | Jotai atoms for cockpit 3D reactive state |
+| parentStore | `stores/parentStore.ts` | S8 | setSubscription, setTimeLimit, setContentFilter |
+| accessibilityStore | `stores/accessibilityStore.ts` | S10 | setFontSize, setContrast, setReducedMotion |
+| sceneStore | `stores/sceneStore.ts` | D3D | enterGame, exitGame, enterSpatial, exitSpatial, setHeroActive |
+| guideStore | `stores/guideStore.ts` | S9 Enh | setGuideState, setConversation |
+| cockpitBroadcastStore | `stores/cockpitBroadcastStore.ts` | S4 v3.0 | broadcast(event), subscribe(event), 16 event types |
+
+### 7.2 Custom Hooks (35)
+
+| Hook | Stage | Category | Description |
+|------|-------|----------|-------------|
+| useAdaptiveCockpit | S1 | 3D | Cockpit LOD/quality adaptation |
+| useAgentAudio | S6E | Audio | Agent Architect sound effects |
+| useAmbientSoundscape | Enh | Audio | Cockpit ambient audio layers |
+| useBiasDetectiveAudio | S6F | Audio | Bias Detective sound effects |
+| useBranchingLesson | S9 Enh | Content | Branching lesson navigation |
+| useChildren | S2→S4 | Data | Children CRUD + React Query |
+| useCockpitAudio | CPA2 | Audio | Cockpit audio engine hook |
+| useCockpitContentBridge | S9 Enh | Bridge | Cockpit-to-content data bridge |
+| useContent | S2→S4 | Data | Content fetching + caching |
+| useDebounce | S1 | Utility | Debounce values |
+| useDemoSession | Login3D | Auth | Demo session timer + expiry |
+| useFrameTimeMonitor | Enh | Perf | Dev-only frame time logging |
+| useGSAPScroll | S3 | Animation | GSAP scroll triggers |
+| useGameEnvironmentReactivity | Enh | 3D | State-driven environment effects |
+| useGamification | S2→S4 | Data | XP, badges, streaks |
+| useGuideContext | S9 Enh | AI | AI Guide conversation context |
+| useHeroAnimation | Hero | 3D | 8-phase hero orchestrator |
+| useInteractiveSurface | D3D | 3D | Cockpit surface interactions |
+| useIrisTransition | D3D | 3D | Mechanical iris transitions |
+| useLocalStorage | S1 | Utility | localStorage with SSR safety |
+| useNetworkAudio | S6C | Audio | Neural Builder audio |
+| useParallaxMouse | D3D | 3D | Mouse-driven parallax |
+| useParentDashboard | S8 | Data | Parent dashboard data |
+| usePetTrainerAudio | S6B | Audio | Pet Trainer sound effects |
+| useProgress | S2→S4 | Data | Progress tracking |
+| usePromptLabAudio | S6D | Audio | Prompt Lab sound effects |
+| useSessionTimer | S8 | Auth | Daily time limit enforcement |
+| useSessionTracker | S3 | Auth | Session activity tracking |
+| useSortAudio | S7B | Audio | Sort Toy Box audio |
+| useSoundEffect | S5 | Audio | General Tone.js sound effects |
+| useSpatialNavigation | CPA2 | 3D | Spatial dashboard navigation |
+| useStationMode | S3/S4 | UI | Station mode switching |
+| useSystemPreferences | S1 | Utility | OS preference detection |
+| useVoiceInput | S9 Enh | AI | Voice input processing |
+| useVoiceOutput | S9 Enh | AI | Voice TTS output |
+
+---
+
+## SECTION 8: 3D COMPONENT REGISTRY SUMMARY
+
+Full registry in `docs/00-reference/3D-Component-Registry.md`. Summary below.
+
+### 8.1 By Category
+
+| Category | Count | Key Components | Triangle Budget |
+|----------|-------|----------------|----------------|
+| System/Dashboard | 9 | CockpitCanvas, HeroAnimation, StationFrame, SceneRouter, MechanicalIris, PostProcessingStack | 30M (cockpit) |
+| Cockpit Geometry | 15 | CockpitPanels(4M), SidePanels(3M), HolographicHUD(1M), StatusBar3D(1M), LEDRim(500K), CockpitFloor3D(1M), CockpitStructuralDetail(2M) | 37.8M total |
+| 3D UI Components | 9 | HolographicButton, RadialDial3D, ToggleSwitch3D, NavigationButtonGrid(1M), VariableDialCluster(1.5M), CenterViewportScreen(3M) | 5M + 5.5M |
+| Flagship Games | 12 | Pet3DScene, NeuralNetwork3D, PromptBubble3D, AgentPipeline3D, BiasScales3D, SortScene3D + environments | 20M per game |
+| FL-Lite Games | 19 | CodeBlocks3D, ChatbotNodes3D, DataDetective3D, RobotVacuum3D, CameraQuest3D, FutureForge3D, MyFirstAiApp3D, EmojiDecoder3D, AiOrNot3D + envs | 10M per game |
+| Standard Environments | 21 | StandardEnvironmentBase + 20 game-specific environments | 5M per game |
+| Procedural | 7 | ProceduralEnvironmentGenerator, Terrain, SkyDome, Fog, Lighting, Props | Shared with envs |
+| Creatures | 7 | CreatureBase + 5 species (Voltkit, Pixie, Byteling, Sparkpaw, Cogsworth) | Part of Pet Trainer |
+| Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio | Part of system |
+| Audio | 3 | cockpitAudio, heroAudio, irisAudio | — |
+| TSL Shaders | 22 | 10 lab patterns + 9 effect shaders + shared + indices | — |
+| **Total** | **~140** | | **50M system budget** |
+
+### 8.2 Desktop-Ultra Profile (D3D-1)
+
+| Property | Value |
+|----------|-------|
+| Target FPS | 60 |
+| Max Triangles | 50,000,000 (37.8M cockpit + 12.2M game headroom) |
+| Bloom | Always on |
+| Shadows | Always on |
+| SSAO | Always on |
+| Chromatic Aberration | Always on |
+| Depth of Field | Always on |
+| Pixel Ratio | Native (`window.devicePixelRatio`) |
+
+---
