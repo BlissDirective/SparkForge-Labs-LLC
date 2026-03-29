@@ -15,12 +15,14 @@ interface A11yState {
   dyslexiaFont: boolean;
   reduceMotion: boolean;
   highContrast: boolean;
+  screenReader: boolean;
 
   toggleDarkMode: () => void;
   setFontSize: (s: FontSize) => void;
   toggleDyslexiaFont: () => void;
   toggleReduceMotion: () => void;
   toggleHighContrast: () => void;
+  toggleScreenReader: () => void;
 }
 
 export const useA11yStore = create<A11yState>()(
@@ -33,12 +35,14 @@ export const useA11yStore = create<A11yState>()(
       dyslexiaFont: false,
       reduceMotion: false,
       highContrast: false,
+      screenReader: false,
 
       toggleDarkMode: () => set((s) => ({ darkMode: !s.darkMode })),
       setFontSize: (fontSize) => set({ fontSize }),
       toggleDyslexiaFont: () => set((s) => ({ dyslexiaFont: !s.dyslexiaFont })),
       toggleReduceMotion: () => set((s) => ({ reduceMotion: !s.reduceMotion })),
       toggleHighContrast: () => set((s) => ({ highContrast: !s.highContrast })),
+      toggleScreenReader: () => set((s) => ({ screenReader: !s.screenReader })),
     }),
     { name: 'sparkforge-a11y' }
   )

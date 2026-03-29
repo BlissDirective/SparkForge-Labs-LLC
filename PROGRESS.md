@@ -1381,5 +1381,89 @@ All 7 near-term enhancements from the D3D roadmap have been implemented:
 - `src/components/3d/CockpitCanvas.tsx` — Game preset lookup, removed redundant audio code
 - `src/config/gameRegistry.ts` — Added cameraPreset field to all 35 games
 
+---
+
+### Stage 10 Audit Fixes (2026-03-29)
+
+**Status:** COMPLETE
+**Branch:** `claude/stage-10-audit-fixes-Ax92m`
+**Source:** `AUDIT_REPORT_3-25-2026.md` — Stage 10 section (2 CRITICAL, 7 HIGH, 5 WARNING, 3 INFO)
+
+**Batch 1 — CSP + Security Headers (S10-CRIT-001, S10-HIGH-001, BUG-10D):**
+- [x] Added `Content-Security-Policy` header in `next.config.ts` with `connect-src` for Supabase, Sentry, Vercel analytics, Stripe, Anthropic
+- [x] Added `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`
+- [x] Added `Permissions-Policy: camera=(), microphone=(), geolocation=()`
+- [x] Added `Strict-Transport-Security` (HSTS) with 2-year max-age + preload
+- [x] Added immutable caching headers for `/_next/static/` assets
+
+**Batch 2 — Sentry Error Reporting (S10-HIGH-002, S10-HIGH-003):**
+- [x] `ErrorBoundary.tsx` — Added `Sentry.captureException` in `componentDidCatch`
+- [x] `error.tsx` — Added `Sentry.captureException` in `useEffect`
+
+**Batch 3 — Environment Validation (S10-HIGH-007):**
+- [x] Created `src/lib/env.ts` with Zod schema for all required/optional env vars
+- [x] Validates at module import: NEXT_PUBLIC_SUPABASE_URL (required), NEXT_PUBLIC_SUPABASE_ANON_KEY (required), Stripe/Anthropic/Sentry keys (optional with graceful fallback)
+
+**Batch 4 — Accessibility Store (S10-WARN-001):**
+- [x] Added `screenReader: boolean` + `toggleScreenReader()` to `accessibilityStore.ts`
+- [x] Now matches CLAUDE.md Section 14 specification
+
+**Batch 5 — PWA Offline Support (S10-HIGH-004, S10-HIGH-005):**
+- [x] Created `public/sw.js` — Cache-first for static assets, network-first for navigation, offline fallback
+- [x] Created `src/app/offline/page.tsx` — Frost-Prismatic styled offline page with retry button
+- [x] Service worker registered in `A11yProvider` on client mount
+
+**Batch 6 — OpenDyslexic Fonts (S10-HIGH-006):**
+- [x] Downloaded `OpenDyslexic-Regular.woff` and `OpenDyslexic-Bold.woff` to `public/fonts/`
+- [x] Updated `globals-a11y.css` `@font-face` from woff2 to woff format
+
+**Batch 7 — Theme Color (S10-WARN-003):**
+- [x] Dual theme-color retained as intentional — supports a11y light mode toggle (S10-INFO-003)
+- [x] No code change needed; documented as design decision
+
+**PWA Branded Icons (S10-CRIT-002, S10-WARN-005):**
+- [x] Created `scripts/generate-pwa-icons.mjs` — Sharp-based icon generator with crystalline glassmorphic SparkForge branding
+- [x] Generated `icon-512.png` (512×512), `icon-192.png` (192×192), `apple-touch-icon.png` (180×180), `favicon.ico`/`favicon.png` (32×32), `og-image.png` (1200×630)
+- [x] Design: Deep void (#0A0E16) background, aurora gradients, chrome bezel ring, neon blue (#00BBFF) "SF" monogram with glassmorphic glow, HUD accent dots
+
+**Files Created (7):**
+- `scripts/generate-pwa-icons.mjs`
+- `public/icon-512.png`, `public/icon-192.png`, `public/apple-touch-icon.png`
+- `public/favicon.ico`, `public/favicon.png`, `public/og-image.png`
+- `public/sw.js`
+- `src/app/offline/page.tsx`
+- `src/lib/env.ts`
+- `public/fonts/OpenDyslexic-Regular.woff`, `public/fonts/OpenDyslexic-Bold.woff`
+
+**Files Modified (5):**
+- `next.config.ts` — CSP + security headers + static caching
+- `src/components/ui/ErrorBoundary.tsx` — Sentry reporting
+- `src/app/error.tsx` — Sentry reporting
+- `src/stores/accessibilityStore.ts` — screenReader field
+- `src/components/accessibility/A11yProvider.tsx` — SW registration
+- `src/app/globals-a11y.css` — OpenDyslexic woff format fix
+
+**Audit Finding Resolution Summary:**
+
+| Finding | Severity | Status |
+|---------|----------|--------|
+| S10-CRIT-001 (No CSP) | CRITICAL | RESOLVED |
+| S10-CRIT-002 (PWA icons missing) | CRITICAL | RESOLVED |
+| S10-HIGH-001 (No security headers) | HIGH | RESOLVED |
+| S10-HIGH-002 (ErrorBoundary no Sentry) | HIGH | RESOLVED |
+| S10-HIGH-003 (error.tsx no Sentry) | HIGH | RESOLVED |
+| S10-HIGH-004 (No service worker) | HIGH | RESOLVED |
+| S10-HIGH-005 (No offline page) | HIGH | RESOLVED |
+| S10-HIGH-006 (OpenDyslexic fonts missing) | HIGH | RESOLVED |
+| S10-HIGH-007 (No env validation) | HIGH | RESOLVED |
+| S10-WARN-001 (a11y store mismatch) | WARNING | RESOLVED |
+| S10-WARN-002 (console.log pricing) | WARNING | PREVIOUSLY RESOLVED |
+| S10-WARN-003 (Light theme-color) | WARNING | DOCUMENTED (intentional) |
+| S10-WARN-004 (error.tsx duplicate) | WARNING | RESOLVED (via S10-HIGH-003) |
+| S10-WARN-005 (Missing OG image) | WARNING | RESOLVED |
+| S10-INFO-001 (Seed script logs) | INFO | ACCEPTABLE |
+| S10-INFO-002 (No TODO/FIXME) | INFO | CLEAN |
+| S10-INFO-003 (Light/dark toggle) | INFO | DOCUMENTED (intentional a11y) |
+
 ### Code Review Notes
 _(none yet)_

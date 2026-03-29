@@ -19,6 +19,13 @@ export function A11yProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
 
+    // [S10-HIGH-004] Register service worker for PWA offline support
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').catch(() => {
+        // SW registration failure is non-critical
+      });
+    }
+
     // [ENH-10E] On first visit, detect system preferences
     const hasStoredPrefs = localStorage.getItem('sparkforge-a11y');
     if (!hasStoredPrefs) {

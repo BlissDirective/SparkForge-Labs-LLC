@@ -2,7 +2,13 @@
 
 **Version:** v2 (Frost-Prismatic v2.1) — Audited & Corrected
 **Build Phase:** 26
-**Date:** February 23, 2026 | **Audited:** March 12, 2026
+**Date:** February 23, 2026 | **Audited:** March 12, 2026 | **Audit Fixes Applied:** March 29, 2026
+
+> **AUDIT FIX NOTE (2026-03-29):** Stage 10 Part 1 fixes applied per `AUDIT_REPORT_3-25-2026.md`:
+> - S10-HIGH-002: `ErrorBoundary.tsx` now reports to Sentry via `Sentry.captureException` in `componentDidCatch`
+> - S10-HIGH-006: OpenDyslexic font files (`woff` format) placed in `public/fonts/`, `@font-face` updated from woff2 to woff
+> - S10-WARN-001: `screenReader: boolean` + `toggleScreenReader()` added to `accessibilityStore.ts`
+> - Service worker registration added to `A11yProvider.tsx` on client mount
 **Prerequisites:** Stages 1–9 complete, all user-facing text says "Lab" not "World"
 **Validation:** `npm run build` PASS, `npx tsc --noEmit` PASS
 
