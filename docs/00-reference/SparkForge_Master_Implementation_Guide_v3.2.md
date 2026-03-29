@@ -1399,3 +1399,152 @@ Full registry in `docs/00-reference/3D-Component-Registry.md`. Summary below.
 | Pixel Ratio | Native (`window.devicePixelRatio`) |
 
 ---
+
+## SECTION 9: 30-DAY COMMIT LOG (Feb 28 – Mar 29, 2026)
+
+50 commits across the audit and enhancement period. Ordered newest-first.
+
+| Date | Hash | Message | PR |
+|------|------|---------|----|
+| 2026-03-29 | `e59de8c` | fix: create 3 missing files referenced in Stage 3 docs | — |
+| 2026-03-28 | `84598bc` | Stage 9 Batch 1: Fix Prompt Lab Anthropic init + model string | #47 |
+| 2026-03-28 | `591f316` | Batch 1: Fix Stage 7 game TS errors — 3D prop passing + namespace import | #46 |
+| 2026-03-28 | `8e5c654` | Stage 6 Batch 1A: Fix S6-CRIT-001 + S6-CRIT-003 — game lifecycle fixes | #43 |
+| 2026-03-27 | `1f145d7` | Stage 8 Batch 1: Security fixes (S8-HIGH-001, S8-WARN-002, S8-WARN-005, S10-WARN-002) | #45 |
+| 2026-03-27 | `b399d16` | S7-CRIT-001: D3D-B1 Canvas refactor — all 28 Stage 7 games now use sceneStore | #44 |
+| 2026-03-27 | `5442937` | Claude/fix stage 5 audit issues | #42 |
+| 2026-03-27 | `c36418a` | Batch 1: Fix S5-CRIT-001, S5-CRIT-002, S5-HIGH-006 — profile page + gamification pipeline | #41 |
+| 2026-03-27 | `6c13a90` | Update CLAUDE.md | — |
+| 2026-03-27 | `006a7d7` | Update PROGRESS.md | — |
+| 2026-03-27 | `21cb7fa` | Stage 1 Batch A: Verify & downgrade S1-HIGH-002, defer S1-INFO-002 | #40 |
+| 2026-03-26 | `f276f01` | Add comprehensive cockpit architecture JSON definition | #39 |
+| 2026-03-26 | `973760c` | Phase 0 Batch 1: Restore dependencies & test infrastructure | #38 |
+| 2026-03-26 | `5c49e04` | Update CLAUDE.md | — |
+| 2026-03-26 | `2d8fde4` | Claude/execute audit report | #36 |
+| 2026-03-26 | `8010dc2` | Audit Phase 0: Environment scan — build, TypeScript, tests, ESLint | #37 |
+| 2026-03-26 | `b0b9df3` | Claude/execute audit report | #34 |
+| 2026-03-26 | `ef11ee1` | Claude/execute audit report | #32 |
+| 2026-03-26 | `203f1f2` | Audit Phase 0: Environment scan — build, TypeScript, tests, ESLint | #31 |
+| 2026-03-25 | `3eb83e9` | Audit Section 4.2: TSL ports for 9 remaining GLSL shaders + WebGPU error boundary | #30 |
+| 2026-03-25 | `6af2460` | Create SPARKFORGE_AUDIT_AGENT.md | — |
+| 2026-03-25 | `7356a8f` | fix(3d): CanvasTexture disposal + r3f-perf dev monitor | #29 |
+| 2026-03-25 | `0a35396` | R3F Animation Enhancements: Drag, Hover, Micro-Animations, Easing | #28 |
+| 2026-03-25 | `1674644` | feat(3d): add game environment reactivity — state-driven lighting, particles, victory flash | #27 |
+| 2026-03-25 | `e629161` | Audit Suggestions #12, #14: Simplify Canvas dpr + add React.memo to 3D subtrees | #26 |
+| 2026-03-25 | `dd72893` | Audit Finding 11: Replace sub-scale font sizes with Tailwind tokens | #25 |
+| 2026-03-24 | `481967e` | fix(3d): convert THREE namespace imports to named imports — environments | #24 |
+| 2026-03-24 | `414e611` | fix(perf): critical GPU memory/allocation fixes in cockpit 3D components | #23 |
+| 2026-03-24 | `b390386` | docs: add Master Triad full codebase audit report | #22 |
+| 2026-03-24 | `1089874` | Section 4.1 Batch 1: Iris audio integration, lab-color sound variations, camera shake | #21 |
+| 2026-03-24 | `fe8e082` | Section 4.2 Batch 1: Procedural environment core config + 5 sub-generators | #20 |
+| 2026-03-24 | `8fe0cae` | Create Agent-Frontend.md | — |
+| 2026-03-24 | `45d8cc9` | D3D Phase 1 (WIP): Remove mobile/LOD/CSS fallbacks, lock desktop-ultra | #19 |
+| 2026-03-23 | `a44901c` | D3D Overhaul Part A: Foundation cleanup — constraint removal spec | #18 |
+| 2026-03-23 | `62a6f77` | Add Mobile 3D Enhancement Plan Part A: Analysis & Options | #17 |
+| 2026-03-23 | `c3f07e8` | fix: resolve 3 critical blockers + implement Login 3D Enhancement (Phases 5E-5F) | #16 |
+| 2026-03-23 | `2d62838` | Stage 3 Login Enhancement: 3D login page + Demo Login feature docs | #15 |
+| 2026-03-22 | `0afa537` | Phase 1-3 Commits | — |
+| 2026-03-21 | `8a42bdc` | fix: rename stage8 doc to remove colon invalid on Windows | — |
+| 2026-03-20 | `472e222` | Claude/review sparkforge docs | #14 |
+| 2026-03-20 | `d210106` | docs: add Hero Animation + Cockpit CPA2 to BUILD EXECUTION PLAN (Phases 5A-5D) | #13 |
+| 2026-03-20 | `ea799b9` | docs: add Hero Animation + Cockpit CPA2 to BUILD EXECUTION PLAN (Phases 5A-5D) | #12 |
+| 2026-03-20 | `b0b3988` | Claude/consolidate cockpit docs | #11 |
+| 2026-03-20 | `3beda8d` | Claude/complete 3d cockpit upgrade | #9 |
+| 2026-03-20 | `65060f0` | Claude/upgrade 3d cockpit | #8 |
+| 2026-03-19 | `23035cc` | docs: audit CLAUDE.md v5.6, extract playbooks + 3D registry, update reference docs | #7 |
+| 2026-03-19 | `010d0fe` | Add market research and competitive analysis document | #6 |
+| 2026-03-19 | `2a1ba9a` | Claude/ai guide avatar design | #5 |
+| 2026-03-18 | `abd1601` | fix: resolve dual-canvas bug, integrate LODWrapper, add mobile particle fallback | #4 |
+| 2026-03-18 | `f4b6e1f` | Claude/review stage 6 conflicts | #3 |
+| 2026-03-18 | `09a4c38` | Claude/upgrade triangle budgets | #2 |
+
+---
+
+## SECTION 10: KNOWN GAPS & AUDIT FINDINGS
+
+### 10.1 Resolved Gaps (fixed during this audit)
+
+| Gap | Resolution | Commit |
+|-----|-----------|--------|
+| `src/shaders/dissolve.glsl` missing | Created with full GLSL — CPA2-5 dissolve shader | `e59de8c` |
+| `src/shaders/wormhole.glsl` missing | Created with full GLSL — CPA2-6 tunnel energy | `e59de8c` |
+| `src/components/providers/PageTransitionProvider.tsx` missing | Created with full React context + sceneStore integration | `e59de8c` |
+
+### 10.2 Non-Blocking Items
+
+| Item | Status | Notes |
+|------|--------|-------|
+| Pet GLB assets (`public/models/pets/`) | Dir exists, GLBs pending | Parallel workstream. Game uses fallback orb. |
+| Font file (`public/fonts/Exo2-Bold.woff`) | Not yet placed | drei Text falls back to default. Stage 10 polish. |
+| `src/components/celebrations/` | Empty (.gitkeep) | Placeholder for future celebration components |
+| `src/components/profile/` | Empty (.gitkeep) | Placeholder for profile components (profile page exists in app/) |
+| `src/app/(public)/` | Empty (.gitkeep) | Placeholder for public-facing routes |
+
+### 10.3 Documentation vs Code Drift
+
+| Finding | Details |
+|---------|---------|
+| Guide filename | File is `SparkForge_Master_Implementation_Guide_v3.2.md` but internal version is now v4.0. Kept same filename for git history continuity. |
+| CLAUDE.md says 9 stores | Actual count is 13 (11 Zustand + 1 Jotai + 1 broadcast). CLAUDE.md v6.0 says "9 stores" in Section 14 header but lists 11. |
+| 3D-Component-Registry says 78 | Actual count is ~140 (93 unique components + environments + procedural + creatures). Registry needs update. |
+| Stage 6 docs reference useIsMobile() | D3D-1 removed all mobile detection. Stage 6 docs still mention `useIsMobile()` fallback — code has been updated but docs have not. |
+
+---
+
+## SECTION 11: BUILD EXECUTION ORDER
+
+The definitive development order. Each phase must complete before the next begins.
+
+| Phase | Stage | Source Documents | Type | Hard Stops | Tag |
+|-------|-------|-----------------|------|------------|-----|
+| 1 | Stage 1 Part 1 | STAGE1_Foundation_v2_PART1 | v2 | — | — |
+| 2 | Stage 1 Part 2 | STAGE1_Foundation_v2_PART2 | v2 | — | v0.1.0 |
+| 3 | Stage 2 Parts 1-4 | STAGE2_Database_API_v2_PART1-4 | v2 | HS-1, HS-7 | v0.2.0 |
+| 4 | Stage 3 Parts 1-2 | STAGE3_Auth_Layout_Shell_v2_PART1-2 | v2 | — | — |
+| 5 | Stage 3 Part 3 | STAGE3_Part3A/B_v3FINAL | v3 | — | v0.3.0 |
+| **5A** | **Hero Animation Part 1** | **HERO_ANIMATION_v3FINAL_PartA** | **v3** | — | — |
+| **5B** | **Hero Animation Part 2** | **HERO_ANIMATION_v3FINAL_PartB** | **v3** | HS-5 | v0.3.1 |
+| **5C** | **Cockpit Part 1** | **COCKPIT_CPA2_v3FINAL_PartA** | **v3** | — | — |
+| **5D** | **Cockpit Part 2** | **COCKPIT_CPA2_v3FINAL_PartB** | **v3** | HS-5, HS-9 | v0.3.2 |
+| **5E** | **Login 3D Part 1** | **LOGIN_3D_v3FINAL_PartA** | **v3** | — | — |
+| **5F** | **Login 3D Part 2** | **LOGIN_3D_v3FINAL_PartB** | **v3** | HS-5, HS-10 | v0.3.3 |
+| 6 | Stage 4 Parts 1+3 | STAGE4_Core_Pages_v2_PART1+3 | v2 | — | — |
+| 7 | Stage 4 Part 2 | STAGE4_Part2A/B_v3FINAL | v3 | — | v0.4.0 |
+| 8 | Stage 5 Part 1 | STAGE5_Gamification_Profile_PART1 | v2 | — | — |
+| 9 | Stage 5 Parts 2-3 | STAGE5_Parts23A/B/C_v3FINAL | v3 | — | v0.5.0 |
+| 10 | Stage 6B | STAGE6B_v3FINAL_A/B | v3 | HS-8 (soft) | — |
+| 11 | Stage 6C | STAGE6C_v3FINAL_A/B | v3 | — | — |
+| 12 | Stage 6D | STAGE6D_v2 + v3FINAL_A/B | Mixed | — | — |
+| 13 | Stage 6E | STAGE6E_v3FINAL_A/B/C | v3 | — | — |
+| 14 | Stage 6F | STAGE6F_v3FINAL_A/B/C | v3 | — | v0.6.0 |
+| 15 | Stage 7A (9 games) | STAGE7A Batch + Parts 2-4 | v2 | — | — |
+| 16 | Stage 7B (4 games) | STAGE7B_v3FINAL_A/B/C | v3 | — | — |
+| 17 | Stage 7C (4 games v2) | STAGE7C_Part1 + Part2 | v2 | — | — |
+| 18 | Stage 7C (2 games v3) | STAGE7C_v3FINAL_A/B/C | v3 | — | — |
+| 19 | Stage 7D (5 games) | STAGE7D_Part1 + v3FINAL_A/B/C | Mixed | — | — |
+| 20 | Stage 7E (3 games) | STAGE7E_Part1 + Part2 | v2 | — | — |
+| 21 | Stage 7F (3 games) | STAGE7F_v3FINAL_A/B + Part1 + Part2 | Mixed | — | — |
+| 22 | Stage 7 Shared | STAGE7_Shared + XP_Celebration | Mixed | — | v0.7.0 |
+| 23 | Stage 8 Parts 1-2 | STAGE8_Parent_Dashboard_v2_PART1-2 | v2 | HS-2 | — |
+| 24 | Stage 8 Part 3 | STAGE8_P3_v3FINAL_A/B/C | v3 | — | v0.8.0 |
+| 25 | Stage 9 Parts 1-3 | STAGE9_Content_Agent_v2_PART1-3 | v2 | HS-3 | v0.9.0 |
+| 26 | Stage 10 Parts 1-2 | STAGE10_Polish_Deploy_v2_PART1-2 | v2 | HS-4, HS-5 | v0.10.0 |
+
+### Enhancement Phases (post-stage or during audit cycles)
+
+| Enhancement | Source | When to Apply | Files Created |
+|-------------|--------|---------------|---------------|
+| D3D Desktop-First Overhaul (Parts A-D) | `docs/enhancements/DESKTOP_FIRST_3D_OVERHAUL_*.md` | After Stage 3-Cockpit, before Stage 4 | 8 files (Section 5.1) |
+| Procedural Environment System | Audit Section 4.2 commits | After Stage 4 Part 2 | 8 files (Section 5.5) |
+| Creature System | Audit Section 4.2 commits | After Stage 6B (Pet Trainer) | 8 files (Section 5.6) |
+| TSL Shader Ports | Audit Section 4.2 commits | After Stage 4 Part 2A | 22 files (Section 5.7) |
+| 3D UI Components | Stage 4 v3.0 / S1 Batch A | After Stage 4 Part 2B | 10 files (Section 5.4) |
+| Content Agent Phase 1 | S9 Batch 1 commits | After Stage 9 Part 3 | 18 files (Section 5.3) |
+| AI Guide Avatar | `docs/enhancements/AI_GUIDE_AVATAR_ENHANCEMENT_PLAN.md` | Future | Planned |
+
+---
+
+*End of Master Implementation Guide v4.0 | SparkForge | Laboratory Control Station*
+*409 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 | March 29, 2026*
+
+*This is a living document. Updated after each delivery session. GCUD V10.2 is the canonical source for game content tracking. Master Directory v1.2 is the canonical source for file registry and build flow.*
