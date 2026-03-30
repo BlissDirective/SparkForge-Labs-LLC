@@ -20,7 +20,7 @@
 
 ### Critical Rules
 
-- **Single-pass build with v3-FINAL priority.** Where a v3-FINAL document exists, it is the ONLY source needed. It contains ALL v2 content plus v3 visual enhancements. Do NOT build v2 first then patch.
+- **Evaluate each stage's v3-FINAL documents before building.** V3-FINAL documents fall into two categories: **(1) Replacement** — the v3-FINAL fully supersedes v2 and is the ONLY source needed (e.g., Stage 7B where v2 is archived to `_SUPERSEDED/`). **(2) Additive** — the v3-FINAL adds 3D/shader enhancements on top of v2; both v2 AND v3-FINAL are required, with v2 built first (e.g., Stages 5, 6D, 7C, 7D, 7F). Check each document's header for "Supersedes" or "Additive" designation. When a v3-FINAL is additive, the v2 is NOT superseded — it remains a prerequisite (see CLAUDE.md Section 3.2).
 - **Follow stages in order:** 1 → 2 → 3 → 3-Hero → 3-Cockpit → 3-Login3D → 4 → 5 → 6 → 7 → 8 → 9 → 10
 - **Each stage depends on ALL previous stages being complete**
 - **Never skip ahead. Never implement partial files.**
@@ -33,12 +33,12 @@
 | Priority | Document | Location | Purpose |
 |----------|----------|----------|---------|
 | 1 | **CLAUDE.md v6.0** | Repo root | Architecture, rules, autonomy, D3D decisions |
-| 2 | **This file (v4.0)** | `docs/00-reference/` | Ultra-comprehensive file map, registries |
-| 3 | **Stage documents** | `docs/stage*/` folders | Complete copy-paste code per stage |
+| 2 | **Stage documents** | `docs/stage*/` folders | Complete copy-paste code per stage |
+| 3 | **This file (v4.0)** | `docs/00-reference/` | Ultra-comprehensive file map, registries |
 | 4 | **PROGRESS.md** | Repo root | Current build status, phase tracking |
 | 5 | **Master Directory v1.2** | `docs/00-reference/` | 26-phase flow map, file registry |
 | 6 | **GCUD V10.2** | `docs/00-reference/` | Source of truth for game content + status |
-| 7 | **3D-Component-Registry.md** | `docs/00-reference/` | 93-component 3D registry with tiers/budgets |
+| 7 | **3D-Component-Registry.md** | `docs/00-reference/` | ~140-component 3D registry with tiers/budgets |
 | 8 | **Per-Stage-Playbooks.md** | `docs/00-reference/` | Full build playbooks for all 10 stages |
 | 9 | **CPA v2.0** | `docs/00-reference/` | 3D Panoramic Cockpit full spec |
 | 10 | **ERROR_HANDLING_AUTOFIX_GUIDE.md** | `docs/00-reference/` | Build/TS/import error patterns |
@@ -1510,8 +1510,13 @@ Full registry in `docs/00-reference/3D-Component-Registry.md`. Summary below.
 | Finding | Details |
 |---------|---------|
 | Guide filename | File is `SparkForge_Master_Implementation_Guide_v3.2.md` but internal version is now v4.0. Kept same filename for git history continuity. |
-| CLAUDE.md says 9 stores | Actual count is 13 (11 Zustand + 1 Jotai + 1 broadcast). CLAUDE.md v6.0 says "9 stores" in Section 14 header but lists 11. |
-| 3D-Component-Registry says 78 | Actual count is ~140 (93 unique components + environments + procedural + creatures). Registry needs update. |
+| CLAUDE.md store count | Tech stack said "9 stores" — **FIXED** to 13 (11 Zustand + 1 Jotai + 1 broadcast). Section 14 correctly lists all 13. |
+| CLAUDE.md 3D component count | Section 9 said "93 components" — **FIXED** to ~140. Full registry in 3D-Component-Registry.md needs separate update. |
+| CLAUDE.md triangle budgets | Sections 1 & 13 had outdated budgets (10M/2M/500K) — **FIXED** to match D3D-3 (20M/10M/5M). |
+| CLAUDE.md cockpit system budget | Section 9 said "30M cockpit" — **FIXED** to ~37.8M to match detailed budget table. |
+| CLAUDE.md HS-9/HS-10 mobile refs | Referenced mobile CSS fallbacks removed by D3D-1 — **FIXED**, mobile verification steps removed. |
+| CLAUDE.md Stage 6D build table | Listed only v3-FINAL — **FIXED** to show v2 + v3-FINAL (Mixed), matching MIG Section 11. |
+| CLAUDE.md Three.js version | Said r171+ — **FIXED** to r183+ to match MIG and installed version. |
 | Stage 6 docs reference useIsMobile() | D3D-1 removed all mobile detection. Stage 6 docs still mention `useIsMobile()` fallback — code has been updated but docs have not. |
 
 ---
