@@ -68,7 +68,7 @@ INSERT INTO badges (name, description, icon, category, criteria_type, criteria_v
 ('All Labs Visited', 'Visit all 10 labs', '🌍', 'explorer', 'worlds_visited', 10, 'rare'),
 ('Multi-Gamer', 'Play 10 different games', '🕹️', 'explorer', 'unique_games_played', 10, 'uncommon'),
 ('Game Collector', 'Play 20 different games', '🎯', 'explorer', 'unique_games_played', 20, 'rare'),
-('Complete Collection', 'Play all 28 games', '🏆', 'explorer', 'unique_games_played', 28, 'epic');
+('Complete Collection', 'Play all 35 games', '🏆', 'explorer', 'unique_games_played', 35, 'epic');
 
 -- CREATOR BADGES (5)
 INSERT INTO badges (name, description, icon, category, criteria_type, criteria_value, rarity) VALUES
@@ -96,4 +96,4 @@ INSERT INTO badges (name, description, icon, category, criteria_type, criteria_v
 ('Almost There', 'Master 8 labs', '🥇', 'prestige', 'worlds_mastered', 8, 'epic'),
 ('AI Master', 'Master all 10 labs', '👑', 'prestige', 'worlds_mastered', 10, 'legendary'),
 ('Forge Champion', 'Reach level 50', '🏆', 'prestige', 'reach_level', 50, 'legendary'),
-('Ultimate Scholar', 'Earn every other badge', '💫', 'prestige', 'total_badges', 72, 'legendary');
+('Ultimate Scholar', 'Earn every other badge', '💫', 'prestige', 'total_badges', 67, 'legendary');
