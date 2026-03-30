@@ -47,7 +47,7 @@ const DESKTOP_ULTRA_PROFILE: PerformanceProfile = {
   instancedMeshLimit: 10_000,     // Doubled for dense cockpit geometry
   sphereSegments: 64,             // Ultra-quality curves
   antialias: true,
-  pixelRatio: 3.0,                // D3D-4: Native DPR, generous cap
+  pixelRatio: typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2.5) : 2, // D3D-4: Native DPR, capped at 2.5 to prevent wasteful rendering on 3x screens
 };
 
 // ■■ Triangle Budgets — Desktop-Only (D3D-3) ■■

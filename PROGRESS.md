@@ -1,8 +1,25 @@
 # SparkForge Build Progress
 
-## Current Phase: Frontend Audit + Fixes
+## Current Phase: Documentation Drift Fixes
 ## Status: COMPLETE
 ## Last Updated: 2026-03-30
+
+---
+
+### Documentation Drift Fixes (March 30, 2026)
+
+**Status:** COMPLETE
+**Scope:** Archive obsolete docs, fix CLAUDE.md Section 14, note registry refresh needed
+
+- [x] I1: Archived MOBILE_3D_ENHANCEMENT_PLAN_PartA.md and PartB.md to `docs/00-reference/_SUPERSEDED/` via `git mv`. Updated SUPERSEDED_BY.md manifest with D3D-1 obsolescence reason.
+- [x] I2: Added v3.0 refresh note to `docs/00-reference/3D-Component-Registry.md` — authoritative list is now CLAUDE.md Section 9 (93 components). LOD/mobile references in registry are outdated per D3D-1/D3D-2.
+- [x] I5: Updated CLAUDE.md Section 14 authStore entry to match actual implementation: `parent, isLoading, isDemoMode, demoSession, setParent/setLoading/clearAuth/startDemoSession/endDemoSession/checkDemoStatus` (was incorrectly listing `user, session, loading, signIn/signUp/signOut`).
+- [x] I6: Added note to CLAUDE.md Section 14 accessibilityStore entry that store is exported as `useA11yStore`.
+- [x] I9: Verified gameRegistry cleanup — `src/config/gameRegistry.ts` contains zero tablet/mobile column references. Batch 3 cleanup confirmed complete.
+
+### Discrepancies Log
+
+- **I3 — Stage 7 Shared file naming:** CLAUDE.md Section 4 references `STAGE7_Shared_v3FINAL_A` and `XP_Celebration(v2)` but the actual filenames in `docs/` may use spaces (e.g., `STAGE7 Shared v3FINAL PartA.md`). This is a documentation reference inconsistency only — the actual files with spaces are fine and should not be renamed. Stage doc references in CLAUDE.md use underscore convention while files may use spaces.
 
 ---
 

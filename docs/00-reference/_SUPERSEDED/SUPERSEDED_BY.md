@@ -43,4 +43,34 @@ Use these in this order of authority:
 
 ---
 
-*Archived by: Claude Code | March 20, 2026 | Per CLAUDE.md Section 3.2 Superseded Document Policy*
+---
+
+### `MOBILE_3D_ENHANCEMENT_PLAN_PartA.md`
+
+| Field | Value |
+|-------|-------|
+| **Archived** | March 30, 2026 |
+| **Original date** | March 2026 |
+| **Superseded by** | D3D Desktop-First Overhaul (CLAUDE.md v6.0, March 24, 2026) |
+| **Why archived** | Obsoleted by D3D Desktop-First Overhaul (March 24, 2026) — mobile code paths removed per D3D-1. All mobile/tablet rendering code paths, CSS fallbacks, and `useIsMobile()` references have been eliminated. The platform now renders desktop-ultra only (50M triangle budget). |
+
+### `MOBILE_3D_ENHANCEMENT_PLAN_PartB.md`
+
+| Field | Value |
+|-------|-------|
+| **Archived** | March 30, 2026 |
+| **Original date** | March 2026 |
+| **Superseded by** | D3D Desktop-First Overhaul (CLAUDE.md v6.0, March 24, 2026) |
+| **Why archived** | Obsoleted by D3D Desktop-First Overhaul (March 24, 2026) — mobile code paths removed per D3D-1. All mobile/tablet rendering code paths, CSS fallbacks, and `useIsMobile()` references have been eliminated. The platform now renders desktop-ultra only (50M triangle budget). |
+
+### Known Issues in the Archived Mobile Files (DO NOT APPLY)
+
+| Issue | Description |
+|-------|-------------|
+| **Mobile code paths removed** | D3D-1 decision lock removed all mobile/tablet rendering. 401 `isMobile` occurrences were removed. These plans describe features that no longer exist in the codebase. |
+| **CSS fallback architecture removed** | D3D-1/D3D-2 removed CSS particle fallbacks, `GenericGameParticles`, and LOD-based degradation. All rendering is now desktop-ultra at full quality. |
+| **Outdated device detection** | Plans reference `useIsMobile()`, `DeviceSelectionModal`, and tiered device profiles — all removed per D3D overhaul. |
+
+---
+
+*Archived by: Claude Code | March 30, 2026 | Per CLAUDE.md Section 3.2 Superseded Document Policy*

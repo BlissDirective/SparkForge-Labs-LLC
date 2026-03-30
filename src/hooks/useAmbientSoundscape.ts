@@ -8,8 +8,25 @@
 // All Tone.js nodes are created lazily on first resume() call.
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import * as Tone from 'tone';
+import type * as ToneNs from 'tone';
 import { useUIStore } from '@/stores/uiStore';
+
+// Lazy-load Tone.js to avoid pulling ~200KB into the main bundle.
+// The module is cached after first import so subsequent calls are free.
+let _Tone: typeof ToneNs | null = null;
+
+async function getTone(): Promise<typeof ToneNs> {
+  if (!_Tone) {
+    _Tone = await import('tone');
+  }
+  return _Tone;
+}
+
+/** Synchronous access — only safe AFTER getTone() has resolved at least once. */
+function Tone(): typeof ToneNs {
+  if (!_Tone) throw new Error('Tone.js not yet loaded — call getTone() first');
+  return _Tone;
+}
 
 // ── Types ───────────────────────────────────────────────────────
 
@@ -64,16 +81,16 @@ function pick<T>(arr: T[]): T {
 // Each factory returns a Soundscape object with start/stop/setVolume/dispose.
 // All audio is routed through a master Volume node passed as argument.
 
-type SoundscapeFactory = (output: Tone.Volume) => Soundscape;
+type SoundscapeFactory = (output: ToneNs.Volume) => Soundscape;
 
 /**
  * Helper: wraps disposable Tone nodes and scheduled intervals into a
  * Soundscape with a consistent start/stop/setVolume/dispose API.
  */
 function createSoundscape(
-  output: Tone.Volume,
+  output: ToneNs.Volume,
   setup: (ctx: {
-    output: Tone.Volume;
+    output: ToneNs.Volume;
     addNode: (node: { dispose: () => void }) => void;
     addInterval: (id: ReturnType<typeof setInterval>) => void;
     addTimeout: (id: ReturnType<typeof setTimeout>) => void;
@@ -133,18 +150,18 @@ function createSoundscape(
 
 const createLab1: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 4, wet: 0.6 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 4, wet: 0.6 }).connect(output);
     addNode(reverb);
 
     // Sine pad — C3
-    const pad = new Tone.Synth({
+    const pad = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 2, decay: 0, sustain: 1, release: 2 },
     }).connect(reverb);
     addNode(pad);
 
     // Bell ping — C5
-    const bell = new Tone.Synth({
+    const bell = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 0.01, decay: 1.5, sustain: 0, release: 0.5 },
       volume: -12,
@@ -152,7 +169,7 @@ const createLab1: SoundscapeFactory = (output) =>
     addNode(bell);
 
     // Low digital hum
-    const hum = new Tone.Synth({
+    const hum = new (Tone()).Synth({
       oscillator: { type: 'triangle' },
       envelope: { attack: 3, decay: 0, sustain: 1, release: 2 },
       volume: -20,
@@ -182,10 +199,10 @@ const createLab1: SoundscapeFactory = (output) =>
 
 const createLab2: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 3.5, wet: 0.5 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 3.5, wet: 0.5 }).connect(output);
     addNode(reverb);
 
-    const pad = new Tone.FMSynth({
+    const pad = new (Tone()).FMSynth({
       harmonicity: 2,
       modulationIndex: 1.5,
       envelope: { attack: 2.5, decay: 0, sustain: 1, release: 2 },
@@ -195,7 +212,7 @@ const createLab2: SoundscapeFactory = (output) =>
     }).connect(reverb);
     addNode(pad);
 
-    const arp = new Tone.Synth({
+    const arp = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.3 },
       volume: -16,
@@ -203,9 +220,9 @@ const createLab2: SoundscapeFactory = (output) =>
     addNode(arp);
 
     // Click train — subtle
-    const clickFilter = new Tone.Filter({ frequency: 6000, type: 'highpass' }).connect(output);
+    const clickFilter = new (Tone()).Filter({ frequency: 6000, type: 'highpass' }).connect(output);
     addNode(clickFilter);
-    const clickNoise = new Tone.NoiseSynth({
+    const clickNoise = new (Tone()).NoiseSynth({
       noise: { type: 'white' },
       envelope: { attack: 0.001, decay: 0.02, sustain: 0, release: 0.01 },
       volume: -28,
@@ -239,13 +256,13 @@ const createLab2: SoundscapeFactory = (output) =>
 
 const createLab3: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 5, wet: 0.7 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 5, wet: 0.7 }).connect(output);
     addNode(reverb);
 
     // Pulsing bass — tremolo on A2 triangle
-    const tremolo = new Tone.Tremolo({ frequency: 2, depth: 0.4 }).connect(output).start();
+    const tremolo = new (Tone()).Tremolo({ frequency: 2, depth: 0.4 }).connect(output).start();
     addNode(tremolo);
-    const bass = new Tone.Synth({
+    const bass = new (Tone()).Synth({
       oscillator: { type: 'triangle' },
       envelope: { attack: 1, decay: 0, sustain: 1, release: 1.5 },
       volume: -10,
@@ -253,7 +270,7 @@ const createLab3: SoundscapeFactory = (output) =>
     addNode(bass);
 
     // Neural blips — random high freq, very short
-    const blip = new Tone.Synth({
+    const blip = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 0.005, decay: 0.05, sustain: 0, release: 0.02 },
       volume: -20,
@@ -261,8 +278,8 @@ const createLab3: SoundscapeFactory = (output) =>
     addNode(blip);
 
     // Ambient wash
-    const wash = new Tone.Noise({ type: 'pink', volume: -30 });
-    const washFilter = new Tone.Filter({ frequency: 800, type: 'lowpass' }).connect(reverb);
+    const wash = new (Tone()).Noise({ type: 'pink', volume: -30 });
+    const washFilter = new (Tone()).Filter({ frequency: 800, type: 'lowpass' }).connect(reverb);
     addNode(washFilter);
     wash.connect(washFilter);
     addNode(wash);
@@ -290,11 +307,11 @@ const createLab3: SoundscapeFactory = (output) =>
 
 const createLab4: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 4, wet: 0.6 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 4, wet: 0.6 }).connect(output);
     addNode(reverb);
 
     // Warm pad
-    const pad = new Tone.FMSynth({
+    const pad = new (Tone()).FMSynth({
       harmonicity: 1.5,
       modulationIndex: 0.8,
       envelope: { attack: 3, decay: 0, sustain: 1, release: 2 },
@@ -305,7 +322,7 @@ const createLab4: SoundscapeFactory = (output) =>
     addNode(pad);
 
     // Melody synth — pentatonic phrases
-    const melody = new Tone.Synth({
+    const melody = new (Tone()).Synth({
       oscillator: { type: 'triangle' },
       envelope: { attack: 0.05, decay: 0.6, sustain: 0.1, release: 0.4 },
       volume: -14,
@@ -313,7 +330,7 @@ const createLab4: SoundscapeFactory = (output) =>
     addNode(melody);
 
     // Sparkle — high sine pings
-    const sparkle = new Tone.Synth({
+    const sparkle = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 0.005, decay: 0.3, sustain: 0, release: 0.2 },
       volume: -22,
@@ -354,24 +371,24 @@ const createLab4: SoundscapeFactory = (output) =>
 
 const createLab5: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 2.5, wet: 0.4 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 2.5, wet: 0.4 }).connect(output);
     addNode(reverb);
 
     // Steady drone — E2
-    const drone = new Tone.Synth({
+    const drone = new (Tone()).Synth({
       oscillator: { type: 'sawtooth' },
       envelope: { attack: 3, decay: 0, sustain: 1, release: 2 },
       volume: -16,
     });
-    const droneFilter = new Tone.Filter({ frequency: 200, type: 'lowpass' }).connect(output);
+    const droneFilter = new (Tone()).Filter({ frequency: 200, type: 'lowpass' }).connect(output);
     addNode(droneFilter);
     drone.connect(droneFilter);
     addNode(drone);
 
     // Servo noise bursts
-    const servoFilter = new Tone.Filter({ frequency: 3000, type: 'bandpass', Q: 4 }).connect(reverb);
+    const servoFilter = new (Tone()).Filter({ frequency: 3000, type: 'bandpass', Q: 4 }).connect(reverb);
     addNode(servoFilter);
-    const servo = new Tone.NoiseSynth({
+    const servo = new (Tone()).NoiseSynth({
       noise: { type: 'white' },
       envelope: { attack: 0.01, decay: 0.08, sustain: 0.02, release: 0.05 },
       volume: -18,
@@ -379,7 +396,7 @@ const createLab5: SoundscapeFactory = (output) =>
     addNode(servo);
 
     // Processing beeps
-    const beep = new Tone.Synth({
+    const beep = new (Tone()).Synth({
       oscillator: { type: 'square' },
       envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.03 },
       volume: -22,
@@ -411,17 +428,17 @@ const createLab5: SoundscapeFactory = (output) =>
 
 const createLab6: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 6, wet: 0.7 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 6, wet: 0.7 }).connect(output);
     addNode(reverb);
 
     // Organ-like pad — two notes layered
-    const padD = new Tone.Synth({
+    const padD = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 4, decay: 0, sustain: 1, release: 3 },
       volume: -8,
     }).connect(reverb);
     addNode(padD);
-    const padA = new Tone.Synth({
+    const padA = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 4, decay: 0, sustain: 1, release: 3 },
       volume: -10,
@@ -429,7 +446,7 @@ const createLab6: SoundscapeFactory = (output) =>
     addNode(padA);
 
     // Heartbeat — sub-bass pulse at ~0.8Hz (period 1.25s)
-    const heartbeat = new Tone.MembraneSynth({
+    const heartbeat = new (Tone()).MembraneSynth({
       pitchDecay: 0.05,
       octaves: 2,
       envelope: { attack: 0.01, decay: 0.4, sustain: 0, release: 0.3 },
@@ -438,7 +455,7 @@ const createLab6: SoundscapeFactory = (output) =>
     addNode(heartbeat);
 
     // Contemplative bell — D5
-    const bell = new Tone.Synth({
+    const bell = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 0.01, decay: 3, sustain: 0, release: 1 },
       volume: -16,
@@ -472,20 +489,20 @@ const createLab6: SoundscapeFactory = (output) =>
 
 const createLab7: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 4, wet: 0.55 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 4, wet: 0.55 }).connect(output);
     addNode(reverb);
 
     // Ocean-like pad — filtered pink noise
-    const oceanNoise = new Tone.Noise({ type: 'pink', volume: -22 });
-    const oceanFilter = new Tone.Filter({ frequency: 600, type: 'lowpass' }).connect(reverb);
+    const oceanNoise = new (Tone()).Noise({ type: 'pink', volume: -22 });
+    const oceanFilter = new (Tone()).Filter({ frequency: 600, type: 'lowpass' }).connect(reverb);
     addNode(oceanFilter);
     oceanNoise.connect(oceanFilter);
     addNode(oceanNoise);
 
     // Shutter click — short burst of filtered noise
-    const shutterFilter = new Tone.Filter({ frequency: 8000, type: 'highpass' }).connect(output);
+    const shutterFilter = new (Tone()).Filter({ frequency: 8000, type: 'highpass' }).connect(output);
     addNode(shutterFilter);
-    const shutter = new Tone.NoiseSynth({
+    const shutter = new (Tone()).NoiseSynth({
       noise: { type: 'white' },
       envelope: { attack: 0.001, decay: 0.015, sustain: 0, release: 0.01 },
       volume: -16,
@@ -493,7 +510,7 @@ const createLab7: SoundscapeFactory = (output) =>
     addNode(shutter);
 
     // Scanning sweep — frequency sweep 200-2000Hz
-    const sweep = new Tone.Synth({
+    const sweep = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 0.1, decay: 1.5, sustain: 0.2, release: 0.5 },
       volume: -24,
@@ -531,11 +548,11 @@ const createLab7: SoundscapeFactory = (output) =>
 
 const createLab8: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 3, wet: 0.45 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 3, wet: 0.45 }).connect(output);
     addNode(reverb);
 
     // Soft string pad — Bb3
-    const pad = new Tone.Synth({
+    const pad = new (Tone()).Synth({
       oscillator: { type: 'triangle' },
       envelope: { attack: 3, decay: 0, sustain: 1, release: 2.5 },
       volume: -10,
@@ -543,9 +560,9 @@ const createLab8: SoundscapeFactory = (output) =>
     addNode(pad);
 
     // Typewriter clicks
-    const clickFilter = new Tone.Filter({ frequency: 5000, type: 'highpass' }).connect(output);
+    const clickFilter = new (Tone()).Filter({ frequency: 5000, type: 'highpass' }).connect(output);
     addNode(clickFilter);
-    const click = new Tone.NoiseSynth({
+    const click = new (Tone()).NoiseSynth({
       noise: { type: 'white' },
       envelope: { attack: 0.001, decay: 0.01, sustain: 0, release: 0.005 },
       volume: -20,
@@ -553,14 +570,14 @@ const createLab8: SoundscapeFactory = (output) =>
     addNode(click);
 
     // Speech-like filtered noise — bandpass around vocal formants
-    const speechNoise = new Tone.Noise({ type: 'pink', volume: -30 });
-    const speechFilter = new Tone.Filter({ frequency: 1200, type: 'bandpass', Q: 2 }).connect(reverb);
+    const speechNoise = new (Tone()).Noise({ type: 'pink', volume: -30 });
+    const speechFilter = new (Tone()).Filter({ frequency: 1200, type: 'bandpass', Q: 2 }).connect(reverb);
     addNode(speechFilter);
     speechNoise.connect(speechFilter);
     addNode(speechNoise);
 
     // LFO to modulate speech filter for formant-like movement
-    const lfo = new Tone.LFO({ frequency: 0.3, min: 600, max: 2400 });
+    const lfo = new (Tone()).LFO({ frequency: 0.3, min: 600, max: 2400 });
     lfo.connect(speechFilter.frequency);
     addNode(lfo);
 
@@ -588,11 +605,11 @@ const createLab8: SoundscapeFactory = (output) =>
 
 const createLab9: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 2.5, wet: 0.4 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 2.5, wet: 0.4 }).connect(output);
     addNode(reverb);
 
     // Electronic pad — G3
-    const pad = new Tone.FMSynth({
+    const pad = new (Tone()).FMSynth({
       harmonicity: 3,
       modulationIndex: 0.5,
       envelope: { attack: 2, decay: 0, sustain: 1, release: 2 },
@@ -603,9 +620,9 @@ const createLab9: SoundscapeFactory = (output) =>
     addNode(pad);
 
     // Data stream — fast filtered clicks
-    const streamFilter = new Tone.Filter({ frequency: 4000, type: 'bandpass', Q: 6 }).connect(output);
+    const streamFilter = new (Tone()).Filter({ frequency: 4000, type: 'bandpass', Q: 6 }).connect(output);
     addNode(streamFilter);
-    const stream = new Tone.NoiseSynth({
+    const stream = new (Tone()).NoiseSynth({
       noise: { type: 'white' },
       envelope: { attack: 0.001, decay: 0.008, sustain: 0, release: 0.005 },
       volume: -24,
@@ -613,7 +630,7 @@ const createLab9: SoundscapeFactory = (output) =>
     addNode(stream);
 
     // Compilation bursts — short synth sequences
-    const burst = new Tone.Synth({
+    const burst = new (Tone()).Synth({
       oscillator: { type: 'square' },
       envelope: { attack: 0.002, decay: 0.04, sustain: 0, release: 0.02 },
       volume: -20,
@@ -652,19 +669,19 @@ const createLab9: SoundscapeFactory = (output) =>
 
 const createLab10: SoundscapeFactory = (output) =>
   createSoundscape(output, ({ addNode, addInterval }) => {
-    const reverb = new Tone.Reverb({ decay: 8, wet: 0.8 }).connect(output);
+    const reverb = new (Tone()).Reverb({ decay: 8, wet: 0.8 }).connect(output);
     addNode(reverb);
-    const widener = new Tone.StereoWidener({ width: 0.8 }).connect(reverb);
+    const widener = new (Tone()).StereoWidener({ width: 0.8 }).connect(reverb);
     addNode(widener);
 
     // Cosmic pad — C2 + G2
-    const padC = new Tone.Synth({
+    const padC = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 5, decay: 0, sustain: 1, release: 4 },
       volume: -8,
     }).connect(widener);
     addNode(padC);
-    const padG = new Tone.Synth({
+    const padG = new (Tone()).Synth({
       oscillator: { type: 'triangle' },
       envelope: { attack: 5, decay: 0, sustain: 1, release: 4 },
       volume: -10,
@@ -672,7 +689,7 @@ const createLab10: SoundscapeFactory = (output) =>
     addNode(padG);
 
     // Stellar pings — high harmonics
-    const ping = new Tone.Synth({
+    const ping = new (Tone()).Synth({
       oscillator: { type: 'sine' },
       envelope: { attack: 0.005, decay: 1.2, sustain: 0, release: 0.5 },
       volume: -18,
@@ -680,12 +697,12 @@ const createLab10: SoundscapeFactory = (output) =>
     addNode(ping);
 
     // Warp effect — pitch bend sweep synth
-    const warp = new Tone.Synth({
+    const warp = new (Tone()).Synth({
       oscillator: { type: 'sawtooth' },
       envelope: { attack: 0.5, decay: 2, sustain: 0.1, release: 1 },
       volume: -22,
     });
-    const warpFilter = new Tone.Filter({ frequency: 1000, type: 'lowpass' }).connect(reverb);
+    const warpFilter = new (Tone()).Filter({ frequency: 1000, type: 'lowpass' }).connect(reverb);
     addNode(warpFilter);
     warp.connect(warpFilter);
     addNode(warp);
@@ -755,8 +772,8 @@ export function useAmbientSoundscape(
   // Refs for audio state (not tied to React render cycle)
   const initializedRef = useRef(false);
   const activeScapeRef = useRef<Soundscape | null>(null);
-  const activeVolumeRef = useRef<Tone.Volume | null>(null);
-  const fadingOutRef = useRef<{ scape: Soundscape; vol: Tone.Volume } | null>(null);
+  const activeVolumeRef = useRef<ToneNs.Volume | null>(null);
+  const fadingOutRef = useRef<{ scape: Soundscape; vol: ToneNs.Volume } | null>(null);
   const crossfadeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pendingLabIdRef = useRef<number | null>(null);
   const volumeRef = useRef(masterVolume);
@@ -772,7 +789,8 @@ export function useAmbientSoundscape(
   const ensureContext = useCallback(async (): Promise<boolean> => {
     if (typeof window === 'undefined') return false;
     try {
-      await Tone.start();
+      const T = await getTone();
+      await T.start();
       return true;
     } catch {
       return false;
@@ -781,11 +799,11 @@ export function useAmbientSoundscape(
 
   // ── Create a new soundscape for a lab ───────────────────────
 
-  const createForLab = useCallback((labId: number): { scape: Soundscape; vol: Tone.Volume } | null => {
+  const createForLab = useCallback((labId: number): { scape: Soundscape; vol: ToneNs.Volume } | null => {
     const factory = SOUNDSCAPE_FACTORIES[labId];
     if (!factory) return null;
 
-    const vol = new Tone.Volume(DB_SILENCE).toDestination();
+    const vol = new (Tone()).Volume(DB_SILENCE).toDestination();
     const scape = factory(vol);
     return { scape, vol };
   }, []);

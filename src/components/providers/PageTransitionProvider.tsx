@@ -78,7 +78,9 @@ interface PageTransitionProviderProps {
 
 export function PageTransitionProvider({ children }: PageTransitionProviderProps) {
   const router = useRouter();
-  const sceneStore = useSceneStore();
+  const enterSpatial = useSceneStore((s) => s.enterSpatial);
+  const enterGame = useSceneStore((s) => s.enterGame);
+  const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
 
   const [state, setState] = useState<PageTransitionState>({
     isTransitioning: false,
@@ -128,12 +130,12 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
 
       // Kick off 3D scene transitions through sceneStore
       if (type === 'lab') {
-        sceneStore.enterSpatial();
+        enterSpatial();
       } else if (type === 'game') {
         // Game transitions extract labColor from route or use default
-        const labColor = sceneStore.activeGameLabColor || '#00BBFF';
+        const labColor = activeGameLabColor || '#00BBFF';
         const gameId = targetRoute.split('/').pop() || '';
-        sceneStore.enterGame(gameId, labColor);
+        enterGame(gameId, labColor);
       }
 
       // Animate progress from 0 to 1 over the duration
@@ -163,7 +165,7 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
         router.push(targetRoute);
       }, navigateDelay);
     },
-    [router, sceneStore, clearProgressTimer, completeTransition]
+    [router, enterSpatial, enterGame, activeGameLabColor, clearProgressTimer, completeTransition]
   );
 
   const contextValue: PageTransitionContextValue = {
@@ -195,7 +197,7 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
                 className="absolute inset-0"
                 style={{
                   background: `radial-gradient(circle at center, transparent 20%, ${
-                    sceneStore.activeGameLabColor || '#00BBFF'
+                    activeGameLabColor || '#00BBFF'
                   }15 60%, #0A0E1680 100%)`,
                   opacity: Math.sin(state.progress * Math.PI),
                 }}

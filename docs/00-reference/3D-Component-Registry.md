@@ -5,6 +5,8 @@
 **Cross-reference:** CLAUDE.md Section 9.1 (LOD rules), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
 **Last updated:** Stage 8 3D Cockpit Enhancements — 3 new components (ParentStatHologram3D, ParentDashboardBridge, OnboardingCrystal3D). Previous: Stage 5 Gamification 3D — 7 gamification components.
 
+> **NOTE (March 30, 2026):** This registry needs a v3.0 refresh. The D3D Desktop-First Overhaul (CLAUDE.md v6.0, March 24, 2026) added significant new components including SceneRouter, MechanicalIris, PostProcessingStack, 3D UI Components (HolographicButton, RadialDial3D, ToggleSwitch3D, etc.), cockpitMaterials, cockpitBroadcastStore, and camera utilities (cameraShake, interactiveSurfaceConfig). The authoritative component list is now in **CLAUDE.md Section 9** (93 components). LOD/mobile references in this file are outdated per D3D-1/D3D-2. Triangle budgets were updated to Flagship 20M, FL-Lite 10M, Standard 5M (D3D-3), System 50M.
+
 ---
 
 ## Overview

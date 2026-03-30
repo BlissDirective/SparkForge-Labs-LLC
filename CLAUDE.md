@@ -790,12 +790,12 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
-| authStore | 3 | user, session, loading, signIn/signUp/signOut |
+| authStore | 3 | parent, isLoading, isDemoMode, demoSession, setParent/setLoading/clearAuth/startDemoSession/endDemoSession/checkDemoStatus |
 | childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
 | gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
 | toastStore | 1 | toasts[], addToast/removeToast |
 | uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation. Note: `gameActive` flag deprecated (D3D-B1) — use `sceneStore.enterGame`/`exitGame` instead. |
-| accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader |
+| accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader. Exported as `useA11yStore`. |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
 | **deviceStore** | — | D3D-1/3: Hardcoded desktop-ultra. 50M total budget. No device selection. gpuTier, stripeCount. |
 | **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
