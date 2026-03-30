@@ -1,3 +1,7 @@
+-- ARCHIVED: Merged into 005_content_seed.sql — see Audit Batch 3
+-- This file is kept for historical reference only. Do NOT run it.
+-- The canonical content seed file is 005_content_seed.sql.
+
 -- ════════════════════════════════════════════════════
 -- SPARKFORGE STARTER CONTENT (6 items for Labs 1-3)
 -- Run after 001_schema.sql

@@ -24,7 +24,7 @@ export interface GameRegistryEntry {
   stage: string;
   description: string;
   icon: string;
-  triangleBudget: { desktop: number; tablet: number; mobile: number } | null;
+  triangleBudget: { desktop: number } | null;
   /** Per-game camera override (Section 4.1-B). Falls back to GAME_CAMERA_DEFAULT. */
   cameraPreset: GameCameraPreset | null;
 }
@@ -77,9 +77,9 @@ function cameraPreset(slug: string): GameCameraPreset | null {
 }
 
 const TRIANGLE_BUDGETS = {
-  flagship: { desktop: 10_000_000, tablet: 5_000_000, mobile: 2_500_000 },
-  'fl-lite': { desktop: 2_000_000, tablet: 1_000_000, mobile: 500_000 },
-  standard3D: { desktop: 25_000, tablet: 12_000, mobile: 5_000 },
+  flagship: { desktop: 20_000_000 },
+  'fl-lite': { desktop: 10_000_000 },
+  standard3D: { desktop: 5_000_000 },
 } as const;
 
 function budget(tier: GameTier, has3D: boolean) {
@@ -682,14 +682,13 @@ export function getGamesForAgeBand(band: AgeBand): GameRegistryEntry[] {
 }
 
 /**
- * Calculate the total triangle budget across all 3D games for a device type.
+ * Calculate the total triangle budget across all 3D games.
  * Useful for estimating overall GPU load if all scenes were loaded simultaneously.
+ * Desktop-only (D3D-1) — no tablet/mobile columns.
  */
-export function getTotalTriangleBudget(
-  deviceType: 'desktop' | 'tablet' | 'mobile'
-): number {
+export function getTotalTriangleBudget(): number {
   return GAME_REGISTRY.reduce((total, game) => {
     if (!game.triangleBudget) return total;
-    return total + game.triangleBudget[deviceType];
+    return total + game.triangleBudget.desktop;
   }, 0);
 }

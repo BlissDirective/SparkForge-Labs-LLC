@@ -44,6 +44,6 @@
 
 ---
 
-**Tier Legend:** Flag = Flagship (Full 3D, 10M), Full3D = Full 3D (10M), FL-L = FL-Lite (Immersive 3D, 2M), Std = Standard (Immersive 3D, 500K)
-**3D Legend:** Full = Full R3F 3D scene, Enh = Enhanced R3F environment, Env = Dedicated 3D environment (500K budget)
+**Tier Legend:** Flag = Flagship (Full 3D, 20M), Full3D = Full 3D (20M), FL-L = FL-Lite (Immersive 3D, 10M), Std = Standard (Immersive 3D, 5M)
+**3D Legend:** Full = Full R3F 3D scene, Enh = Enhanced R3F environment, Env = Dedicated 3D environment (5M budget)
 **Band Legend:** A = Ages 7-9, B = Ages 10-12, C = Ages 13-16
