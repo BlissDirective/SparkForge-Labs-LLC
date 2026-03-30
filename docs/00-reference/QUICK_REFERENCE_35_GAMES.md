@@ -10,7 +10,7 @@
 | 2 | Time Machine | 1 | time-machine | Std | Env | A,B,C | 7A |
 | 3 | Human vs Machine | 1 | human-vs-machine | Std | Env | A,B,C | 7B |
 | 4 | AI Pet Trainer | 2 | pet-trainer | Flag | Full | A,B,C | 6B |
-| 5 | Sort Toy Box | 2 | sort-toy-box | Full3D | Full | A,B,C | 7B |
+| 5 | Sort Toy Box | 2 | sort-toy-box | Flag | Full | A,B,C | 7B |
 | 6 | Treat Trainer | 2 | treat-trainer | Std | Env | A,B,C | 7C |
 | 7 | Data Detective | 2 | data-detective | FL-L | Enh | A,B,C | 7C |
 | 8 | Neural Builder | 3 | neural-builder | Flag | Full | A,B,C | 6C |
@@ -44,6 +44,6 @@
 
 ---
 
-**Tier Legend:** Flag = Flagship (Full 3D, 20M), Full3D = Full 3D (20M), FL-L = FL-Lite (Immersive 3D, 10M), Std = Standard (Immersive 3D, 5M)
+**Tier Legend:** Flag = Flagship (Full 3D, 20M), FL-L = FL-Lite (Immersive 3D, 10M), Std = Standard (Immersive 3D, 5M)
 **3D Legend:** Full = Full R3F 3D scene, Enh = Enhanced R3F environment, Env = Dedicated 3D environment (5M budget)
 **Band Legend:** A = Ages 7-9, B = Ages 10-12, C = Ages 13-16

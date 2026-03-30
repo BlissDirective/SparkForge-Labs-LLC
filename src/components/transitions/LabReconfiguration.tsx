@@ -17,19 +17,7 @@
 import { useCallback, useRef, useState, useEffect, type RefObject } from 'react';
 import gsap from 'gsap';
 import { useStationMode } from '@/hooks/useStationMode';
-
-// Lab Colors — VEC v2 palette (from useStationMode)
-const LAB_COLORS: Record<number, string> = {
-  1: '#3B82F6', 2: '#8B5CF6', 3: '#EC4899', 4: '#F59E0B', 5: '#10B981',
-  6: '#EF4444', 7: '#06B6D4', 8: '#8B5CF6', 9: '#10B981', 10: '#F59E0B',
-};
-
-const LAB_NAMES: Record<number, string> = {
-  1: 'What IS AI?', 2: 'Teaching Machines', 3: 'The Brain Inside',
-  4: 'AI That Creates', 5: 'AI Helpers', 6: 'AI & Ethics',
-  7: 'Computer Vision', 8: 'Words & Language', 9: 'Build with AI',
-  10: "AI's Future",
-};
+import { LAB_COLORS, LAB_NAMES } from '@/config/labs';
 
 // Transition State Types
 export type TransitionPhase =

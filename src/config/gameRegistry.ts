@@ -29,18 +29,7 @@ export interface GameRegistryEntry {
   cameraPreset: GameCameraPreset | null;
 }
 
-const LAB_NAMES: Record<number, string> = {
-  1: 'What IS AI?',
-  2: 'Teaching Machines',
-  3: 'The Brain Inside',
-  4: 'AI That Creates',
-  5: 'AI Helpers',
-  6: 'AI & Ethics',
-  7: 'Computer Vision',
-  8: 'Words & Language',
-  9: 'Build Your AI',
-  10: 'AI Futures',
-};
+import { LAB_NAMES } from '@/config/labs';
 
 // ── Per-Game Camera Presets (Section 4.1-B) ──
 // Games without a preset use GAME_CAMERA_DEFAULT via CameraSystem.
@@ -211,7 +200,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'flagship',
     has3D: true,
     component3D: 'NeuralNetwork3D',
-    ageBands: ['A', 'B', 'C'],
+    ageBands: ['B', 'C'],
     stage: '6C',
     description: 'Construct a neural network by connecting neurons and layers, then watch data flow through your creation.',
     icon: '\uD83E\uDDE0',
@@ -243,7 +232,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'standard',
     has3D: false,
     component3D: null,
-    ageBands: ['B', 'C'],
+    ageBands: ['A', 'B', 'C'],
     stage: '7D',
     description: 'Zoom into images pixel by pixel to understand how computer vision breaks down visual information.',
     icon: '\uD83D\uDDA5\uFE0F',
@@ -323,7 +312,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'flagship',
     has3D: true,
     component3D: 'AgentPipeline3D',
-    ageBands: ['A', 'B', 'C'],
+    ageBands: ['B', 'C'],
     stage: '6E',
     description: 'Design an AI agent pipeline by connecting perception, reasoning, and action modules together.',
     icon: '\uD83E\uDDD1\u200D\uD83D\uDD27',
@@ -451,7 +440,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'standard',
     has3D: false,
     component3D: null,
-    ageBands: ['B', 'C'],
+    ageBands: ['A', 'B', 'C'],
     stage: '7D',
     description: 'Create adversarial examples that trick an AI image classifier into making wrong predictions.',
     icon: '\uD83C\uDFAD',
@@ -483,7 +472,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'standard',
     has3D: false,
     component3D: null,
-    ageBands: ['B', 'C'],
+    ageBands: ['A', 'B', 'C'],
     stage: '7A',
     description: 'Make predictions about future AI trends and compare your forecasts against crowd wisdom.',
     icon: '\uD83D\uDCC8',

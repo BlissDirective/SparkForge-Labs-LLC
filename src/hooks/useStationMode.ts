@@ -14,6 +14,7 @@ import {
   STATUS_BAR_PRESETS,
 } from '@/lib/3d/cockpitConfig';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
+import { LAB_COLORS, LAB_NAMES, DEFAULT_LED_COLOR } from '@/config/labs';
 
 // useStationMode — Laboratory Control Station Mode Manager
 // Decisions: 2.1 (all pages), 3.4 (dimmed during games)
@@ -63,34 +64,7 @@ export interface StationModeState {
   panelOpacity: number;
 }
 
-// Lab accent colors from the 10-lab palette
-const LAB_COLORS: Record<number, string> = {
-  1: '#00BBFF', // What IS AI? — Blue
-  2: '#AA66FF', // Teaching Machines — Purple
-  3: '#FF66AA', // The Brain Inside — Pink
-  4: '#FFAA44', // AI That Creates — Amber
-  5: '#00FF88', // AI Helpers — Emerald
-  6: '#FF6644', // AI & Ethics — Red
-  7: '#06B6D4', // Computer Vision — Cyan
-  8: '#818CF8', // Words & Language — Violet
-  9: '#F97316', // Build with AI — Orange (AUDIT-F2: was #10B981, fixed per CLAUDE.md)
-  10: '#D946EF', // AI's Future — Fuchsia
-};
-
-const LAB_NAMES: Record<number, string> = {
-  1: 'What IS AI?',
-  2: 'Teaching Machines',
-  3: 'The Brain Inside',
-  4: 'AI That Creates',
-  5: 'AI Helpers',
-  6: 'AI & Ethics',
-  7: 'Computer Vision',
-  8: 'Words & Language',
-  9: 'Build with AI',
-  10: "AI's Future",
-};
-
-const DEFAULT_LED_COLOR = '#00BBFF'; // Frost-Prismatic primary blue
+// Lab colors, names, and default LED color imported from @/config/labs (single source of truth)
 
 export function useStationMode(): StationModeState & {
   setCelebration: (active: boolean) => void;
