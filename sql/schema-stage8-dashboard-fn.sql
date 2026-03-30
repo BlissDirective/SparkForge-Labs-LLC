@@ -7,9 +7,10 @@
 -- Update subscription_status CHECK to include 'paused' (S8-WARN-002 alignment)
 ALTER TABLE parents DROP CONSTRAINT IF EXISTS parents_subscription_status_check;
 ALTER TABLE parents ADD CONSTRAINT parents_subscription_status_check
-  CHECK (subscription_status IN ('none', 'active', 'past_due', 'canceled', 'paused'));
+  CHECK (subscription_status IN ('none', 'active', 'past_due', 'canceled', 'trialing', 'paused'));
 
 -- Main dashboard function
+-- HIGH-004: Added auth.uid() check to prevent IDOR — users can only query their own data
 CREATE OR REPLACE FUNCTION get_parent_dashboard(p_parent_id UUID)
 RETURNS TABLE (
   child_id UUID,
@@ -27,10 +28,18 @@ RETURNS TABLE (
   last_active TIMESTAMPTZ,
   daily_time_limit_minutes INTEGER
 )
-LANGUAGE sql
+LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
+BEGIN
+  -- HIGH-004: Prevent IDOR — only allow querying own dashboard data
+  IF p_parent_id != auth.uid() THEN
+    RAISE EXCEPTION 'unauthorized: cannot access another user''s dashboard data';
+  END IF;
+
+  RETURN QUERY
   SELECT
     c.id AS child_id,
     c.display_name,
@@ -89,6 +98,7 @@ AS $$
   ) s_last ON true
   WHERE c.parent_id = p_parent_id
   ORDER BY c.created_at ASC;
+END;
 $$;
 
 -- Grant execute to authenticated users

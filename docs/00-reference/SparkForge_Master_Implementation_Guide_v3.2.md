@@ -825,7 +825,11 @@ Legend: **C** = Creates new file | **M** = Modifies existing file | **R** = Repl
 | C | `src/components/landing/FeatureShowcase.tsx` |
 | C | `src/components/landing/StationPreview.tsx` |
 | C | `src/components/landing/LabDiscoveryRing.tsx` |
+| C | `src/components/marketing/MarketingHeader.tsx` |
+| C | `src/components/marketing/MarketingFooter.tsx` |
 | C | `src/app/(marketing)/pricing/page.tsx` |
+| C | `src/app/(marketing)/privacy/page.tsx` |
+| C | `src/app/(marketing)/terms/page.tsx` |
 
 ---
 
@@ -923,14 +927,17 @@ Every file in `/src/` organized by directory, with its stage of origin. Files cr
 | `(dashboard)/parent/add-child/page.tsx` | Stage 8 P2 | Add child |
 | `(dashboard)/parent/subscription/page.tsx` | Stage 8 P2 | Subscription management |
 | `(dashboard)/admin/content/page.tsx` | Stage 9 P2 | Admin content review |
-| `(marketing)/layout.tsx` | Stage 3 P3A | Marketing shell |
+| `(marketing)/layout.tsx` | Stage 3 P3A / Audit | Marketing shell (shared header + footer + aurora bg) |
 | `(marketing)/page.tsx` | Stage 3 P3A | Landing page |
 | `(marketing)/pricing/page.tsx` | Stage 8 P3C | Pricing page |
+| `(marketing)/privacy/page.tsx` | Audit CRIT-005 | Privacy Policy (COPPA-compliant, 13 sections) |
+| `(marketing)/terms/page.tsx` | Audit CRIT-005 | Terms of Service (14 sections) |
 | `api/auth/signup/route.ts` | Stage 2 P3 | Auth API |
 | `api/auth/login/route.ts` | Stage 2 P3 | Auth API |
 | `api/auth/logout/route.ts` | Stage 2 P3 | Auth API |
 | `api/auth/me/route.ts` | Stage 2 P3 | Auth API |
-| `api/auth/consent/route.ts` | Stage 2 P3 | Consent API |
+| `api/auth/consent/route.ts` | Stage 2 P3 / Audit CRIT-002 | Consent API (secured with session auth + rate limiting) |
+| `api/auth/callback/route.ts` | Audit HIGH-009 | OAuth/magic link callback handler |
 | `api/auth/demo/route.ts` | Login3D PartA | Demo session API |
 | `api/children/route.ts` | Stage 2 P3 | Children CRUD |
 | `api/children/[childId]/route.ts` | Stage 2 P3 | Child by ID |

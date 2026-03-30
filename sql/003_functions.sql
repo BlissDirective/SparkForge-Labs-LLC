@@ -75,4 +75,4 @@ BEGIN
     AND c.target_age_band = p_age_band
     AND c.status = 'published';
 END;
-$$ LANGUAGE plpgsql SECURITY DEFINER;
+$$ LANGUAGE plpgsql SET search_path = public, pg_temp SECURITY DEFINER;

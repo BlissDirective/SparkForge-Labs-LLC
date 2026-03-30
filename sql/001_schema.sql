@@ -26,8 +26,8 @@ CREATE TABLE IF NOT EXISTS parents (
   stripe_customer_id    TEXT UNIQUE,
   subscription_tier     TEXT NOT NULL DEFAULT 'free'
                         CHECK (subscription_tier IN ('free', 'plus', 'forge')),
-  subscription_status   TEXT NOT NULL DEFAULT 'active'
-                        CHECK (subscription_status IN ('active', 'past_due', 'canceled', 'trialing')),
+  subscription_status   TEXT NOT NULL DEFAULT 'none'
+                        CHECK (subscription_status IN ('none', 'active', 'past_due', 'canceled', 'trialing', 'paused')),
   coppa_consent_at      TIMESTAMPTZ,
   is_admin              BOOLEAN NOT NULL DEFAULT false,
   onboarding_complete   BOOLEAN NOT NULL DEFAULT false,

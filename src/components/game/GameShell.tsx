@@ -64,9 +64,9 @@ export function GameShell({
   useEffect(() => {
     startGame(gameId, totalRounds, hints);
     enterGame(gameId, worldColor);
-    broadcast({ type: 'game-enter', source: gameId, intensity: 1.0 });
+    broadcast({ type: 'game-enter', source: gameId, value: 1.0 });
     return () => {
-      broadcast({ type: 'game-exit', source: gameId, intensity: 1.0 });
+      broadcast({ type: 'game-exit', source: gameId, value: 1.0 });
       exitGame();
       resetGame();
       hasRewarded.current = false;

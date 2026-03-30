@@ -11,9 +11,39 @@
 
 ---
 
+## 0. RESOLUTION STATUS (Updated March 30, 2026)
+
+**Resolved by:** claude/audit-findings-implementation-WJSMR branch
+**Build Status after fixes:** PASS (TypeScript compilation + ESLint clean)
+
+| Finding | Status | Commit |
+|---------|--------|--------|
+| **CRIT-001** AuthProvider not wired | **RESOLVED** | Added to (dashboard) and (auth) layouts |
+| **CRIT-002** Unauthenticated consent | **RESOLVED** | Auth check + rate limiting added |
+| **CRIT-003** Sentry child PII | **RESOLVED** | beforeSend PII scrubbing on all 3 configs |
+| **CRIT-004** SQL constraint conflicts | **RESOLVED** | Consolidated to canonical 6-value set + migration |
+| **CRIT-005** Missing privacy/terms | **RESOLVED** | Created both pages under (marketing) route group |
+| **HIGH-001** Duplicate RLS files | **RESOLVED** | Deleted 001b_rls.sql (duplicate of 002) |
+| **HIGH-002** Duplicate function files | **RESOLVED** | Deleted 001c_functions.sql (duplicate of 003) |
+| **HIGH-003** Missing search_path | **RESOLVED** | Added SET search_path to get_lab_progress |
+| **HIGH-004** Dashboard IDOR | **RESOLVED** | auth.uid() check in get_parent_dashboard |
+| **HIGH-005** No streak reset cron | **RESOLVED** | Added daily streak-reset pg_cron job |
+| **HIGH-006** Badge count mismatches | **RESOLVED** | Updated to 35 games / 67 badges |
+| **HIGH-007** 9 TypeScript errors | **RESOLVED** | All 9 errors fixed across 5 files |
+| **HIGH-008** Cascading deletes | **VERIFIED OK** | All FKs already have ON DELETE CASCADE |
+| **HIGH-009** Missing auth callback | **RESOLVED** | Created route.ts with code exchange |
+
+**Additional build fixes applied:**
+- ESLint: Escaped JSX entities in CameraQuestGame, FoolTheAiGame
+- ESLint: prefer-const in pipeline.ts
+- Next.js: Extracted useAuthHover from layout (invalid layout export)
+- TypeScript: Fixed useContent.ts queryFn return type
+
+---
+
 ## 1. Executive Summary
 
-SparkForge is approximately **95% code-complete** across all 10 development stages. All 35 games exist. The build fails on a single TS error. There are 5 CRITICAL findings (mostly COPPA/security), 9 HIGH findings, and numerous moderate/minor issues. The top risks are: AuthProvider not wired into layouts, unauthenticated COPPA consent endpoint, missing privacy/terms pages, Sentry potentially capturing child PII, and subscription_status constraint conflicts across SQL files.
+SparkForge is approximately **95% code-complete** across all 10 development stages. All 35 games exist. ~~The build fails on a single TS error.~~ **All CRITICAL and HIGH findings have been resolved (March 30, 2026).** There are 5 CRITICAL findings (mostly COPPA/security), 9 HIGH findings, and numerous moderate/minor issues. The top risks were: AuthProvider not wired into layouts, unauthenticated COPPA consent endpoint, missing privacy/terms pages, Sentry potentially capturing child PII, and subscription_status constraint conflicts across SQL files.
 
 ### Finding Summary
 

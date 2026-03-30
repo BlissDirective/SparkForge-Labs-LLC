@@ -13,7 +13,7 @@ ALTER TABLE parents
 ALTER TABLE parents
   ADD COLUMN IF NOT EXISTS subscription_status TEXT
   DEFAULT 'none'
-  CHECK (subscription_status IN ('none', 'active', 'past_due', 'canceled'));
+  CHECK (subscription_status IN ('none', 'active', 'past_due', 'canceled', 'trialing', 'paused'));
 
 ALTER TABLE parents
   ADD COLUMN IF NOT EXISTS stripe_customer_id TEXT UNIQUE;

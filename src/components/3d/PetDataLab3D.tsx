@@ -140,8 +140,9 @@ function OverfitPulse({ labColor, width }: { labColor: string; width: number }) 
     if (!meshRef.current) return;
     const pulse = 0.3 + Math.sin(clock.getElapsedTime() * 3) * 0.2;
     meshRef.current.children.forEach((child) => {
-      if ('material' in child && child.material && 'opacity' in child.material) {
-        (child.material as { opacity: number }).opacity = pulse;
+      const mat = 'material' in child ? (child as unknown as { material: Record<string, unknown> }).material : null;
+      if (mat && typeof mat === 'object' && 'opacity' in mat) {
+        (mat as { opacity: number }).opacity = pulse;
       }
     });
   });

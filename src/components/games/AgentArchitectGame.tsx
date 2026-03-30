@@ -405,9 +405,9 @@ export function AgentArchitectGame() {
         <AgentPipeline3D
           blocks={toPipelineBlocks(blocks)}
           connections={arrows.map((a) => ({
-            fromId: a.from,
-            toId: a.to,
-            outputIndex: a.outputIdx,
+            fromId: a.fromId,
+            toId: a.toId,
+            outputIndex: a.outputIndex,
           }))}
           activeBlockId={activeRunBlock}
           runPath={runPath}

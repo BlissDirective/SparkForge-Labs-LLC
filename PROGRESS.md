@@ -1,8 +1,105 @@
 # SparkForge Build Progress
 
-## Current Phase: Stage 9 — Content Agent Enhancement (ALL 9 PHASES COMPLETE)
-## Status: COMPLETE — Full 9-phase enhancement plan implemented
-## Last Updated: 2026-03-28 (Phase 9: New Game Development Generator)
+## Current Phase: Audit Findings + Marketing/Legal Pages Enhancement
+## Status: IN PROGRESS — CRIT + HIGH findings resolved, marketing layout + COPPA pages complete
+## Last Updated: 2026-03-30 (Marketing layout + COPPA-compliant privacy/terms)
+
+---
+
+### Marketing Layout & Legal Pages Enhancement (2026-03-30)
+
+**Status:** COMPLETE
+**Branch:** `claude/audit-findings-implementation-WJSMR`
+**Scope:** Shared marketing layout, production-ready COPPA privacy policy, terms of service
+
+**Phase 1 — Shared Marketing Layout:**
+- [x] `src/components/marketing/MarketingHeader.tsx` — Fixed glassmorphism header with nav, auth CTAs, active page indicator
+- [x] `src/components/marketing/MarketingFooter.tsx` — 3-column footer (Platform, Legal, Contact) with COPPA badge
+- [x] `src/app/(marketing)/layout.tsx` — Updated with shared header/footer, aurora background gradient
+
+**Phase 2 — COPPA-Compliant Privacy Policy (13 sections):**
+- [x] Operator identification with physical contact details
+- [x] Detailed data collection inventory (what we collect AND don't collect)
+- [x] Third-party service disclosures with data/purpose/security per service (5 services)
+- [x] Verifiable Parental Consent (VPC) method description
+- [x] Parental rights enumeration with exercise instructions
+- [x] Written data retention policy with per-category periods (2025 COPPA amendment)
+- [x] Written security program disclosure (2025 COPPA amendment)
+- [x] Cookie/persistent identifier disclosure table
+- [x] No-advertising/no-profiling/no-monetization statement
+- [x] Demo mode data handling
+- [x] Policy change notification + re-consent requirement
+- [x] Legal review required banner
+
+**Phase 3 — Terms of Service (14 sections):**
+- [x] Eligibility & age requirements (COPPA alignment)
+- [x] Account terms with security responsibilities
+- [x] Subscription tiers (Free/Plus/Forge) with billing details
+- [x] Parental gate for all purchases
+- [x] Demo mode terms
+- [x] Comprehensive acceptable use policy
+- [x] AI-specific disclosures (Anthropic API, moderation, no profiling)
+- [x] No-advertising statement
+- [x] Intellectual property
+- [x] Termination (by user and by operator)
+- [x] Disclaimers & limitation of liability
+- [x] Dispute resolution (Delaware law, JAMS arbitration)
+- [x] Change notification + re-consent requirement
+
+**Phase 4 — Documentation Updates:**
+- [x] Master Implementation Guide v4.0 — Added marketing components, privacy/terms pages, auth callback to file registries
+- [x] PROGRESS.md — Full implementation log
+- [x] AUDIT_REPORT_03.29.2026.md — Resolution status table (updated earlier)
+
+**Files Created (4):**
+- `src/components/marketing/MarketingHeader.tsx`
+- `src/components/marketing/MarketingFooter.tsx`
+- `src/app/(marketing)/privacy/page.tsx` (rewritten from scratch)
+- `src/app/(marketing)/terms/page.tsx` (rewritten from scratch)
+
+**Files Modified (2):**
+- `src/app/(marketing)/layout.tsx` (full rewrite — added header/footer/aurora)
+- `docs/00-reference/SparkForge_Master_Implementation_Guide_v3.2.md` (file registry updates)
+
+---
+
+### Audit Findings Implementation (2026-03-30)
+
+**Status:** CRITICAL + HIGH COMPLETE
+**Branch:** `claude/audit-findings-implementation-WJSMR`
+**Source:** `AUDIT_REPORT_03.29.2026.md`
+
+**CRITICAL Findings (5/5 Resolved):**
+- [x] CRIT-001: AuthProvider wired into (dashboard) and (auth) layouts
+- [x] CRIT-002: COPPA consent endpoint secured with session auth + rate limiting
+- [x] CRIT-003: Sentry PII scrubbing via beforeSend on all 3 configs (client/server/edge)
+- [x] CRIT-004: SQL CHECK constraints consolidated to canonical 6-value set + migration script
+- [x] CRIT-005: /privacy and /terms pages created under (marketing) route group
+
+**HIGH Findings (8/8 Resolved, 1 Verified OK):**
+- [x] HIGH-001/002: Duplicate SQL files deleted (001b_rls.sql, 001c_functions.sql)
+- [x] HIGH-003: search_path added to get_lab_progress SECURITY DEFINER function
+- [x] HIGH-004: IDOR fix — auth.uid() check in get_parent_dashboard
+- [x] HIGH-005: Daily streak reset pg_cron job added
+- [x] HIGH-006: Badge thresholds corrected (35 games, 67 badges)
+- [x] HIGH-007: All 9 TypeScript errors fixed across 5 source files
+- [x] HIGH-008: Cascading deletes verified — all FKs have ON DELETE CASCADE (no fix needed)
+- [x] HIGH-009: Auth callback route.ts created for OAuth/magic link flows
+
+**Build Verification:**
+- [x] TypeScript compilation: PASS
+- [x] ESLint: PASS (additional fixes applied for unescaped entities, prefer-const, layout exports)
+- [ ] Prerender: EXPECTED FAIL (missing Supabase env vars in build environment)
+
+**Discrepancies Log:**
+- useAuthHover exported from (auth)/layout.tsx violated Next.js layout export rules — extracted to src/hooks/useAuthHover.ts
+- useContent.ts queryFn return type needed explicit cast for type-safe select callback
+
+---
+
+### Previous: Stage 9 — Content Agent Enhancement (ALL 9 PHASES COMPLETE)
+**Status:** COMPLETE — Full 9-phase enhancement plan implemented
+**Last Updated:** 2026-03-28 (Phase 9: New Game Development Generator)
 
 ---
 

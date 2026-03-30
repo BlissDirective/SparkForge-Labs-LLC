@@ -1,6 +1,9 @@
 import { Metadata } from 'next';
+import { MarketingHeader } from '@/components/marketing/MarketingHeader';
+import { MarketingFooter } from '@/components/marketing/MarketingFooter';
 
-// Marketing Layout — Public pages (landing, pricing, etc.)
+// Marketing Layout — Public pages (landing, pricing, privacy, terms)
+// Shared header (fixed, glassmorphism) + footer + aurora background
 
 export const metadata: Metadata = {
   title: 'SparkForge — AI Learning Lab for Kids',
@@ -13,5 +16,30 @@ export default function MarketingLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return (
+    <div className="min-h-screen bg-surface-deep relative">
+      {/* Aurora background — subtle animated gradient behind all marketing pages */}
+      <div
+        className="fixed inset-0 pointer-events-none z-0"
+        aria-hidden="true"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-spark-blue/[0.03] via-transparent to-spark-purple/[0.04]" />
+        <div className="absolute top-0 left-1/4 w-[800px] h-[600px] rounded-full bg-spark-blue/[0.02] blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[500px] rounded-full bg-spark-purple/[0.03] blur-[100px]" />
+      </div>
+
+      {/* Fixed header */}
+      <MarketingHeader />
+
+      {/* Page content — z-10 above aurora, pt-16 clears fixed header */}
+      <main className="relative z-10">
+        {children}
+      </main>
+
+      {/* Footer */}
+      <div className="relative z-10">
+        <MarketingFooter />
+      </div>
+    </div>
+  );
 }

@@ -402,6 +402,14 @@ export function PetTrainerGame() {
     }));
   }, [labelCounts]);
 
+  // Check for overfitting (imbalanced labeling)
+  const isOverfit = useMemo(() => {
+    const counts = Object.values(labelCounts);
+    if (counts.length < 2 || totalLabeled < 6) return false;
+    const max = Math.max(...counts);
+    return max / totalLabeled > 0.75;
+  }, [labelCounts, totalLabeled]);
+
   useEffect(() => {
     const sceneContent = (
       <>
@@ -425,14 +433,6 @@ export function PetTrainerGame() {
     setGameSceneContent(sceneContent);
     return () => setGameSceneContent(null);
   }, [pet, mood, evolutionStage, phase, dataLabBars, totalLabeled, isOverfit, setGameSceneContent]);
-
-  // Check for overfitting (imbalanced labeling)
-  const isOverfit = useMemo(() => {
-    const counts = Object.values(labelCounts);
-    if (counts.length < 2 || totalLabeled < 6) return false;
-    const max = Math.max(...counts);
-    return max / totalLabeled > 0.75;
-  }, [labelCounts, totalLabeled]);
 
   // === Random pet reaction ===
   function getPetReaction(correct: boolean): string {

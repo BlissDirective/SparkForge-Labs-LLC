@@ -58,7 +58,7 @@ export function useGameContent(gameSlug: string, ageBand: string) {
     queryFn: () =>
       apiFetch(
         `/api/content?ageBand=${ageBand}&type=game_scenario,game_challenge&gameSlug=${gameSlug}&limit=10`
-      ),
+      ) as Promise<{ items?: Content[] }>,
     enabled: !!gameSlug && !!ageBand,
     staleTime: 5 * 60 * 1000, // 5 minutes — game content refreshes more often
     select: (data) => {
