@@ -15,9 +15,8 @@ interface UIState {
    *  Default: false. Toggled in Settings page (Stage 4 Part 3).
    *  When true, HeroAnimation renders Phase 8 final state immediately. */
   skipIntroAnimation: boolean;
-  /** FIX-DUAL-CANVAS: Global game-active flag consumed by useStationMode.
-   *  When true, StationFrame unmounts its R3F Canvas so games get full GPU.
-   *  Set by GameShell on mount/unmount. */
+  /** @deprecated D3D-B1: gameActive moved to sceneStore.enterGame/exitGame.
+   *  Retained for backward compatibility — will be removed in next cleanup. */
   gameActive: boolean;
   setGameActive: (active: boolean) => void;
   setSkipIntroAnimation: (skip: boolean) => void;

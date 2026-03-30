@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { useUIStore } from '@/stores/uiStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   BLOOM_PRESETS,
   CAMERA_PRESETS,
@@ -73,7 +73,7 @@ const LAB_COLORS: Record<number, string> = {
   6: '#FF6644', // AI & Ethics — Red
   7: '#06B6D4', // Computer Vision — Cyan
   8: '#818CF8', // Words & Language — Violet
-  9: '#10B981', // Build with AI — Green
+  9: '#F97316', // Build with AI — Orange (AUDIT-F2: was #10B981, fixed per CLAUDE.md)
   10: '#D946EF', // AI's Future — Fuchsia
 };
 
@@ -93,16 +93,14 @@ const LAB_NAMES: Record<number, string> = {
 const DEFAULT_LED_COLOR = '#00BBFF'; // Frost-Prismatic primary blue
 
 export function useStationMode(): StationModeState & {
-  setGameActive: (active: boolean) => void;
   setCelebration: (active: boolean) => void;
   setLabId: (id: number | null) => void;
 } {
   const pathname = usePathname();
 
-  // FIX-DUAL-CANVAS: gameActive lives in Zustand uiStore (global shared state)
-  // so dashboard layout and game components share the SAME flag.
-  const gameActive = useUIStore((s) => s.gameActive);
-  const setGameActive = useUIStore((s) => s.setGameActive);
+  // AUDIT-A1: D3D-B1 — Read game state from sceneStore (replaces deprecated uiStore.gameActive)
+  const activeScene = useSceneStore((s) => s.activeScene);
+  const gameActive = activeScene === 'game' || activeScene === 'transitioning';
   const [celebrationActive, setCelebration] = useState(false);
   const [manualLabId, setLabId] = useState<number | null>(null);
 
@@ -322,7 +320,6 @@ export function useStationMode(): StationModeState & {
 
   return {
     ...state,
-    setGameActive,
     setCelebration,
     setLabId,
   };
@@ -364,30 +361,5 @@ export function useLabTransitionProgress() {
   return { progress, previousLabId, startTransition };
 }
 
-// Game focus state — tracks when crystal tunnel is active
-// Used by StationFrame to dim frame during game entry
-export function useGameFocusState() {
-  const [isFocusing, setIsFocusing] = useState(false);
-  const [isGameActive, setIsGameActive] = useState(false);
-
-  const startFocus = useCallback(() => {
-    setIsFocusing(true);
-  }, []);
-
-  const completeFocus = useCallback(() => {
-    setIsFocusing(false);
-    setIsGameActive(true);
-  }, []);
-
-  const exitGame = useCallback(() => {
-    setIsGameActive(false);
-  }, []);
-
-  return {
-    isFocusing, // Crystal tunnel playing
-    isGameActive, // Game loaded and active
-    startFocus,
-    completeFocus,
-    exitGame,
-  };
-}
+// AUDIT-A1: useGameFocusState removed — superseded by sceneStore (D3D-B5)
+// Game focus state is now managed by sceneStore.enterGame/exitGame/transition

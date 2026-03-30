@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react';
 import { ADAPTIVE_CURVATURE, COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 
+// AUDIT-A7: Removed isCSSFallback per D3D-1 (desktop-only, no CSS fallback)
 interface AdaptiveCockpitParams {
   arcDegrees: number;
   panelRadius: number;
   curvature: number;
-  isCSSFallback: boolean;
 }
 
 export function useAdaptiveCockpit(): AdaptiveCockpitParams {
@@ -15,7 +15,6 @@ export function useAdaptiveCockpit(): AdaptiveCockpitParams {
     arcDegrees: COCKPIT_GEOMETRY.totalWrapArc,
     panelRadius: COCKPIT_GEOMETRY.panelRadius,
     curvature: COCKPIT_GEOMETRY.panelCurvature,
-    isCSSFallback: false,
   });
 
   useEffect(() => {
@@ -28,28 +27,19 @@ export function useAdaptiveCockpit(): AdaptiveCockpitParams {
           arcDegrees: ADAPTIVE_CURVATURE.ultraWide.arc,
           panelRadius: ADAPTIVE_CURVATURE.ultraWide.radius,
           curvature: COCKPIT_GEOMETRY.panelCurvature,
-          isCSSFallback: false,
         });
       } else if (w >= ADAPTIVE_CURVATURE.desktop.minWidth) {
         setParams({
           arcDegrees: ADAPTIVE_CURVATURE.desktop.arc,
           panelRadius: ADAPTIVE_CURVATURE.desktop.radius,
           curvature: COCKPIT_GEOMETRY.panelCurvature,
-          isCSSFallback: false,
-        });
-      } else if (w >= ADAPTIVE_CURVATURE.tablet.minWidth) {
-        setParams({
-          arcDegrees: ADAPTIVE_CURVATURE.tablet.arc,
-          panelRadius: ADAPTIVE_CURVATURE.tablet.radius,
-          curvature: COCKPIT_GEOMETRY.panelCurvature * 0.8,
-          isCSSFallback: false,
         });
       } else {
+        // D3D-1: Even on smaller windows, render 3D (desktop-only platform)
         setParams({
-          arcDegrees: 0,
-          panelRadius: 0,
-          curvature: 0,
-          isCSSFallback: true,
+          arcDegrees: ADAPTIVE_CURVATURE.desktop.arc,
+          panelRadius: ADAPTIVE_CURVATURE.desktop.radius,
+          curvature: COCKPIT_GEOMETRY.panelCurvature,
         });
       }
     }
