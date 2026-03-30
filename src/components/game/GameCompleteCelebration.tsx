@@ -39,6 +39,7 @@ export function GameCompleteCelebration({
   const [phase, setPhase] = useState<'burst' | 'stats' | 'badge'>('burst');
 
   // Generate confetti
+  // TODO: Consider consolidating with CelebrationOverlay confetti system (src/components/shared/CelebrationOverlay.tsx)
   const confetti = useMemo<Confetto[]>(() =>
     Array.from({ length: 60 }, (_, i) => ({
       id: i,
@@ -68,6 +69,8 @@ export function GameCompleteCelebration({
     <AnimatePresence>
       <motion.div
         className="fixed inset-0 z-[100] flex items-center justify-center"
+        role="dialog"
+        aria-modal="true"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -246,6 +249,7 @@ export function GameCompleteCelebration({
                 transition={{ delay: 2.0 }}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
+                aria-label="Continue to next activity"
               >
                 Continue <ArrowRight className="w-4 h-4" />
               </motion.button>

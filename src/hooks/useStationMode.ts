@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
-import { useUIStore } from '@/stores/uiStore';
+import { useSceneStore } from '@/stores/sceneStore';
 import {
   BLOOM_PRESETS,
   CAMERA_PRESETS,
@@ -14,6 +14,7 @@ import {
   STATUS_BAR_PRESETS,
 } from '@/lib/3d/cockpitConfig';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
+import { LAB_COLORS, LAB_NAMES, DEFAULT_LED_COLOR } from '@/config/labs';
 
 // useStationMode — Laboratory Control Station Mode Manager
 // Decisions: 2.1 (all pages), 3.4 (dimmed during games)
@@ -63,46 +64,17 @@ export interface StationModeState {
   panelOpacity: number;
 }
 
-// Lab accent colors from the 10-lab palette
-const LAB_COLORS: Record<number, string> = {
-  1: '#00BBFF', // What IS AI? — Blue
-  2: '#AA66FF', // Teaching Machines — Purple
-  3: '#FF66AA', // The Brain Inside — Pink
-  4: '#FFAA44', // AI That Creates — Amber
-  5: '#00FF88', // AI Helpers — Emerald
-  6: '#FF6644', // AI & Ethics — Red
-  7: '#06B6D4', // Computer Vision — Cyan
-  8: '#818CF8', // Words & Language — Violet
-  9: '#10B981', // Build with AI — Green
-  10: '#D946EF', // AI's Future — Fuchsia
-};
-
-const LAB_NAMES: Record<number, string> = {
-  1: 'What IS AI?',
-  2: 'Teaching Machines',
-  3: 'The Brain Inside',
-  4: 'AI That Creates',
-  5: 'AI Helpers',
-  6: 'AI & Ethics',
-  7: 'Computer Vision',
-  8: 'Words & Language',
-  9: 'Build with AI',
-  10: "AI's Future",
-};
-
-const DEFAULT_LED_COLOR = '#00BBFF'; // Frost-Prismatic primary blue
+// Lab colors, names, and default LED color imported from @/config/labs (single source of truth)
 
 export function useStationMode(): StationModeState & {
-  setGameActive: (active: boolean) => void;
   setCelebration: (active: boolean) => void;
   setLabId: (id: number | null) => void;
 } {
   const pathname = usePathname();
 
-  // FIX-DUAL-CANVAS: gameActive lives in Zustand uiStore (global shared state)
-  // so dashboard layout and game components share the SAME flag.
-  const gameActive = useUIStore((s) => s.gameActive);
-  const setGameActive = useUIStore((s) => s.setGameActive);
+  // AUDIT-A1: D3D-B1 — Read game state from sceneStore (replaces deprecated uiStore.gameActive)
+  const activeScene = useSceneStore((s) => s.activeScene);
+  const gameActive = activeScene === 'game' || activeScene === 'transitioning';
   const [celebrationActive, setCelebration] = useState(false);
   const [manualLabId, setLabId] = useState<number | null>(null);
 
@@ -322,7 +294,6 @@ export function useStationMode(): StationModeState & {
 
   return {
     ...state,
-    setGameActive,
     setCelebration,
     setLabId,
   };
@@ -364,30 +335,5 @@ export function useLabTransitionProgress() {
   return { progress, previousLabId, startTransition };
 }
 
-// Game focus state — tracks when crystal tunnel is active
-// Used by StationFrame to dim frame during game entry
-export function useGameFocusState() {
-  const [isFocusing, setIsFocusing] = useState(false);
-  const [isGameActive, setIsGameActive] = useState(false);
-
-  const startFocus = useCallback(() => {
-    setIsFocusing(true);
-  }, []);
-
-  const completeFocus = useCallback(() => {
-    setIsFocusing(false);
-    setIsGameActive(true);
-  }, []);
-
-  const exitGame = useCallback(() => {
-    setIsGameActive(false);
-  }, []);
-
-  return {
-    isFocusing, // Crystal tunnel playing
-    isGameActive, // Game loaded and active
-    startFocus,
-    completeFocus,
-    exitGame,
-  };
-}
+// AUDIT-A1: useGameFocusState removed — superseded by sceneStore (D3D-B5)
+// Game focus state is now managed by sceneStore.enterGame/exitGame/transition

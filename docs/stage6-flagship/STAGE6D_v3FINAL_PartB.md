@@ -64,7 +64,7 @@ The stage document specified 6 modifications to the existing PromptLabGame.tsx. 
 | # | Issue | Location | Fix |
 |---|-------|----------|-----|
 | 3 | Sandbox container `motion.div` has no `relative` positioning -- absolute-positioned 3D overlay won't anchor to correct parent | Mod 5 sandbox wrapper | Added `relative` to className: `"flex-1 flex flex-col min-h-0 relative"` |
-| 4 | `sendMessage` useCallback deps array missing `isMobile` -- stale closure means keyword extraction may use wrong mobile state | Mod 3 deps | Added `isMobile` to the deps array |
+| 4 | ~~`sendMessage` useCallback deps array missing `isMobile`~~ -- REMOVED per D3D-1: `isMobile` no longer exists. Desktop-only platform. | Mod 3 deps | N/A (D3D-1) |
 
 ### LOW (1 note)
 
@@ -80,26 +80,25 @@ The stage document specified 6 modifications to the existing PromptLabGame.tsx. 
 - `import dynamic from 'next/dynamic'`
 - `import { extractKeywords } from '@/components/3d/PromptBubble3D'`
 - `const PromptBubble3DScene = dynamic(() => import(...), { ssr: false })`
-- `function useIsMobile()` -- resize listener, 768px breakpoint
+- ~~`function useIsMobile()`~~ -- REMOVED per D3D-1 (desktop-only, 3D always renders)
 
 ### Mod 2: State Variables (after systemPrompt state)
 - `bubbleKeywords: string[]` -- accumulated keywords from prompts
 - `showBubbles: boolean` -- controls 3D scene visibility
-- `isMobile: boolean` -- from `useIsMobile()` hook
+- ~~`isMobile: boolean`~~ -- REMOVED per D3D-1 (desktop-only, no mobile detection needed)
 
 ### Mod 3: Keyword Extraction (inside sendMessage, after setInput)
 - Calls `extractKeywords(input.trim())`
 - Appends to `bubbleKeywords` (max 12 via slice)
-- Sets `showBubbles(true)` on desktop only
+- Sets `showBubbles(true)` unconditionally (D3D-1: desktop-only platform)
 
 ### Mod 4: Bubble Cleanup (after challenge check, before catch)
 - `setTimeout(() => { setBubbleKeywords([]); setShowBubbles(false) }, 1000)`
 - 1s delay allows pop animation in PromptBubble3D to complete
 
 ### Mod 5: 3D Scene JSX (inside sandbox phase, before challenge banner)
-- Desktop: `PromptBubble3DScene` with absolute positioning, opacity 0.7, pointer-events-none
-- Mobile: Floating keyword pills with Motion keyframe animations
-- Both have `aria-hidden="true"` for accessibility
+- `PromptBubble3DScene` with absolute positioning, opacity 0.7, pointer-events-none (D3D-1: always renders, no mobile fallback)
+- Has `aria-hidden="true"` for accessibility
 
 ### Mod 6: SSR-Safe Wrapper (new file)
 - `PromptBubble3DScene.tsx` -- Canvas wrapper with camera, frameloop, dpr, gl config

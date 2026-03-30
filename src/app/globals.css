@@ -1,8 +1,10 @@
 /* Fonts loaded via <link> in layout.tsx — no @import needed */
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* AUDIT-G7: Tailwind CSS v4 migration — use @import instead of @tailwind directives */
+@import "tailwindcss";
+
+/* Load v3-style config for backward compatibility */
+@config "../../tailwind.config.ts";
 
 /* ═══════════════════════════════════════════
    FROST-PRISMATIC DESIGN SYSTEM v2.1

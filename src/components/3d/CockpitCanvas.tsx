@@ -266,8 +266,6 @@ export function CockpitCanvas({
   const activeScene = useSceneStore((s) => s.activeScene);
   const activeGameId = useSceneStore((s) => s.activeGameId);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
-  const _isTransitioning = useSceneStore((s) => s.isTransitioning);
-  const _transition = useSceneStore((s) => s.transition);
   // Game 3D scene content — registered by games via sceneStore (D3D-B3)
   const storeGameSceneContent = useSceneStore((s) => s.gameSceneContent);
   const resolvedGameSceneContent = gameSceneContent ?? storeGameSceneContent;

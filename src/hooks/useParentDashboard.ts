@@ -38,41 +38,54 @@ interface DashboardResponse {
 }
 
 export function useParentDashboard() {
-  const store = useParentStore();
+  // Subscribe to individual state slices to avoid re-renders on unrelated store changes
+  const isLoading = useParentStore((s) => s.isLoading);
+  const tier = useParentStore((s) => s.tier);
+  const children = useParentStore((s) => s.children);
+  const selectedChildId = useParentStore((s) => s.selectedChildId);
 
   useEffect(() => {
     async function load() {
-      store.setLoading(true);
+      // Use getState() for actions — they are stable references and
+      // don't need to trigger re-renders when subscribed via selector
+      const { setLoading, setTier, setChildren, selectChild } = useParentStore.getState();
+
+      setLoading(true);
 
       try {
         const res = await fetch('/api/parent/dashboard');
         if (!res.ok) {
-          store.setLoading(false);
+          setLoading(false);
           return;
         }
 
         const json: DashboardResponse = await res.json();
         if (!json.success || !json.data) {
-          store.setLoading(false);
+          setLoading(false);
           return;
         }
 
-        store.setTier(json.data.tier);
-        store.setChildren(json.data.children);
+        setTier(json.data.tier);
+        setChildren(json.data.children);
 
-        if (json.data.children.length > 0 && !store.selectedChildId) {
-          store.selectChild(json.data.children[0].id);
+        if (json.data.children.length > 0 && !useParentStore.getState().selectedChildId) {
+          selectChild(json.data.children[0].id);
         }
       } catch {
         // Network error — leave loading state
       }
 
-      store.setLoading(false);
+      setLoading(false);
     }
 
     load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return store;
+  // Expose store actions needed by the parent dashboard page
+  // Using getState() to avoid subscribing to action references
+  const selectChild = useParentStore((s) => s.selectChild);
+  const updateChildTimeLimit = useParentStore((s) => s.updateChildTimeLimit);
+  const setChildren = useParentStore((s) => s.setChildren);
+
+  return { isLoading, tier, children, selectedChildId, selectChild, updateChildTimeLimit, setChildren };
 }

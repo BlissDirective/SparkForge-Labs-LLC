@@ -15,8 +15,8 @@
 ## PART B COVERS
 
 1. **MyFirstAiAppGame.tsx** — Full standalone replacement with v3 3D integration (~700 lines)
-2. **EmojiDecoderGame.tsx** — UNCHANGED (Tier 3 Standard, v2 authoritative)
-3. **AiOrNotGame.tsx** — UNCHANGED (Tier 3 Standard, v2 authoritative)
+2. **EmojiDecoderGame.tsx** — UNCHANGED (FL-Lite, v2 authoritative)
+3. **AiOrNotGame.tsx** — UNCHANGED (FL-Lite, v2 authoritative)
 4. **Registry + Exports** — UNCHANGED (already added in v2 Stage 7F Part 2)
 5. Full verification checklist
 6. Git commands
@@ -812,9 +812,9 @@ export function MyFirstAiAppGame() {
 
 ---
 
-## UNCHANGED FILES (Tier 3 Standard Polish — No 3D Additions)
+## UNCHANGED FILES (FL-Lite — No 3D Additions)
 
-The following 2 game files receive Tier 3 Standard Polish treatment per Decision 6.5. This means they keep their existing v2 code exactly as-is, with no 3D component additions. Their v2 implementations already include chrome bezels, particle backgrounds, welcome phases, and learn phases.
+The following 2 game files receive FL-Lite treatment per Decision 6.5. This means they keep their existing v2 code exactly as-is, with no 3D component additions. Their v2 implementations already include chrome bezels, particle backgrounds, welcome phases, and learn phases.
 
 ### EmojiDecoderGame.tsx — UNCHANGED
 
@@ -822,8 +822,8 @@ The following 2 game files receive Tier 3 Standard Polish treatment per Decision
 |----------|-------|
 | **File** | `src/components/games/EmojiDecoderGame.tsx` |
 | **Status** | Retain v2 code exactly as delivered in STAGE7F_Part1.pdf |
-| **Treatment** | Tier 3 Standard Polish (indigo bezel, particles, welcome/learn phases) |
-| **Reason** | Emoji Decoder is an Enhanced Standard game (not Flagship-Lite). Decision 6.5 reserves Tier 2 Enhanced 3D for flagship and flagship-lite games only. |
+| **Treatment** | FL-Lite (indigo bezel, particles, welcome/learn phases) |
+| **Reason** | Emoji Decoder is an FL-Lite game. Decision 6.5 reserves Tier 2 Enhanced 3D for flagship and flagship-lite games only. |
 
 **v2 Features Confirmed Present:**
 
@@ -843,8 +843,8 @@ The following 2 game files receive Tier 3 Standard Polish treatment per Decision
 |----------|-------|
 | **File** | `src/components/games/AiOrNotGame.tsx` |
 | **Status** | Retain v2 code exactly as delivered in STAGE7F_Part2.pdf |
-| **Treatment** | Tier 3 Standard Polish (fuchsia bezel, particles, welcome/learn phases) |
-| **Reason** | AI or Not? is an Enhanced Standard game (not Flagship-Lite). Decision 6.5 reserves Tier 2 Enhanced 3D for flagship and flagship-lite games only. |
+| **Treatment** | FL-Lite (fuchsia bezel, particles, welcome/learn phases) |
+| **Reason** | AI or Not? is an FL-Lite game. Decision 6.5 reserves Tier 2 Enhanced 3D for flagship and flagship-lite games only. |
 
 **v2 Features Confirmed Present:**
 
@@ -886,8 +886,8 @@ These files were updated in v2 Stage 7F Part 2 and remain authoritative.
 | Game | Tier | 3D Component | Triangles | Mobile Fallback |
 |------|------|-------------|-----------|----------------|
 | My First AI App | Tier 2 Enhanced | MyFirstAiApp3D.tsx 3D app assembly | ~2K | CSS game UI only (existing v2) |
-| Emoji Decoder | Tier 3 Standard | None | 0 | N/A (2D only) |
-| AI or Not? | Tier 3 Standard | None | 0 | N/A (2D only) |
+| Emoji Decoder | FL-Lite | None | 0 | N/A (2D only) |
+| AI or Not? | FL-Lite | None | 0 | N/A (2D only) |
 
 ### Build Verification
 
@@ -967,8 +967,8 @@ git commit -m "feat(7F): v3-FINAL 3D enhancements for My First AI App
 
 - NEW: MyFirstAiApp3D.tsx (3D phone mockup + power orbs + holographic preview, ~2K tri)
 - MOD: MyFirstAiAppGame.tsx (dynamic import + isMobile + 3D integration)
-- UNCHANGED: EmojiDecoderGame.tsx (Tier 3 standard)
-- UNCHANGED: AiOrNotGame.tsx (Tier 3 standard)
+- UNCHANGED: EmojiDecoderGame.tsx (FL-Lite)
+- UNCHANGED: AiOrNotGame.tsx (FL-Lite)
 - UNCHANGED: index.ts registry (all 31 games already present)
 - UNCHANGED: [gameSlug]/page.tsx router (all 31 routes already present)
 
@@ -997,8 +997,8 @@ git push origin main
 |------|------|------|-------|-------------|
 | `src/components/3d/MyFirstAiApp3D.tsx` | A | NEW | ~478 | Tier 2: 3D app assembly (~2K tri) |
 | `src/components/games/MyFirstAiAppGame.tsx` | B | REPLACE | ~700 | Dynamic import + isMobile |
-| `src/components/games/EmojiDecoderGame.tsx` | — | UNCHANGED | ~543 | Tier 3 standard (no 3D) |
-| `src/components/games/AiOrNotGame.tsx` | — | UNCHANGED | ~473 | Tier 3 standard (no 3D) |
+| `src/components/games/EmojiDecoderGame.tsx` | — | UNCHANGED | ~543 | FL-Lite (no 3D) |
+| `src/components/games/AiOrNotGame.tsx` | — | UNCHANGED | ~473 | FL-Lite (no 3D) |
 | `src/components/games/index.ts` | — | UNCHANGED | ~40 | No changes needed |
 | `src/config/gameRegistry.ts` | — | UNCHANGED | ~3 entries | No changes needed |
 | `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | — | UNCHANGED | ~60 | No changes needed |
@@ -1068,8 +1068,8 @@ The original v2 MyFirstAiApp code (from STAGE7F_Part1) is **FULLY SUPERSEDED** b
 | Game | Tier | 3D Component | Status |
 |------|------|-------------|--------|
 | My First AI App | Tier 2 Enhanced | MyFirstAiApp3D.tsx | COMPLETE |
-| Emoji Decoder | Tier 3 Standard | None | COMPLETE (no 3D needed) |
-| AI or Not? | Tier 3 Standard | None | COMPLETE (no 3D needed) |
+| Emoji Decoder | FL-Lite | None | COMPLETE (no 3D needed) |
+| AI or Not? | FL-Lite | None | COMPLETE (no 3D needed) |
 
 ---
 

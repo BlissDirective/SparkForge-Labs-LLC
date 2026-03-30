@@ -5,11 +5,13 @@
 **Cross-reference:** CLAUDE.md Section 9.1 (LOD rules), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
 **Last updated:** Stage 8 3D Cockpit Enhancements — 3 new components (ParentStatHologram3D, ParentDashboardBridge, OnboardingCrystal3D). Previous: Stage 5 Gamification 3D — 7 gamification components.
 
+> **NOTE (March 30, 2026):** This registry needs a v3.0 refresh. The D3D Desktop-First Overhaul (CLAUDE.md v6.0, March 24, 2026) added significant new components including SceneRouter, MechanicalIris, PostProcessingStack, 3D UI Components (HolographicButton, RadialDial3D, ToggleSwitch3D, etc.), cockpitMaterials, cockpitBroadcastStore, and camera utilities (cameraShake, interactiveSurfaceConfig). The authoritative component list is now in **CLAUDE.md Section 9** (93 components). LOD/mobile references in this file are outdated per D3D-1/D3D-2. Triangle budgets were updated to Flagship 20M, FL-Lite 10M, Standard 5M (D3D-3), System 50M.
+
 ---
 
 ## Overview
 
-All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(() => import(...), { ssr: false })`. Triangle budgets: Flagship 10M+, FL-Lite 2M+, Standard 500K+.
+All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(() => import(...), { ssr: false })`. Triangle budgets: Flagship 20M, FL-Lite 10M, Standard 5M (per D3D-3).
 
 ---
 
@@ -61,7 +63,7 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 
 ---
 
-## FL-Lite Game Components (2M+ triangles)
+## FL-Lite Game Components (10M triangles)
 
 | Component | Stage | Description |
 |-----------|-------|-------------|
@@ -75,7 +77,7 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 | EmojiDecoder3D.tsx | 7F v3 | Emoji Decoder game 3D component: translation machine, emoji display, decoded output |
 | AiOrNot3D.tsx | 7F v3 | AI or Not? game 3D component: display pedestal, voting buttons, verdict ring, score display |
 
-### FL-Lite Environment Components (2M+ triangles)
+### FL-Lite Environment Components (10M triangles)
 
 | Component | Stage | Description |
 |-----------|-------|-------------|
@@ -92,31 +94,31 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 
 ---
 
-## Standard Game Environment Components (500K+ triangles)
+## Standard Game Environment Components (5M triangles)
 
 | Component | Stage | Description |
 |-----------|-------|-------------|
 | StandardEnvironmentBase.tsx | 7 Standard | Shared LOD-aware foundation: 128-seg terrain, sky dome, fog particles, lighting rig |
-| AiSpyEnvironment.tsx | 7A | Futuristic detective office: holographic screens, magnifier, evidence pinboard, scanner beam (~500K tris) |
-| TimeMachineEnvironment.tsx | 7A | Time vortex portal chamber: spinning rings, timeline helix, era panels, clock mechanisms (~500K tris) |
-| HumanVsMachineEnvironment.tsx | 7B | Split arena: human workshop vs machine factory, judge podium, comparison cards (~500K tris) |
-| TreatTrainerEnvironment.tsx | 7C | AI training playground: obstacle course, treat dispensers, reward stations, behavior scoreboard (~500K tris) |
-| NeuronRelayEnvironment.tsx | 7C | Neural relay station: giant neuron models, axon pathways, synapse junctions, signal pulses (~500K tris) |
-| PixelInvestigatorEnvironment.tsx | 7D | Digital forensics lab: pixel grid table, magnification station, RGB analyzer, binary waterfall (~500K tris) |
-| WordPredictorEnvironment.tsx | 7A | Language prediction library: word bubbles, probability tree, autocomplete screens, dictionary towers (~500K tris) |
-| TokenChopperEnvironment.tsx | 7A | Tokenization factory: conveyor belts, chopper mechanism, token bins, BPE visualizer (~500K tris) |
-| AiArtDetectiveEnvironment.tsx | 7A | Art analysis museum: floating artworks, style panels, technique analyzer, palette station (~500K tris) |
-| ToolPickerEnvironment.tsx | 7A | AI tool workshop: labeled racks, task board, comparison table, effectiveness gauges (~500K tris) |
-| DataShieldEnvironment.tsx | 7A | Cybersecurity command center: shield generator, data tunnels, firewall walls, privacy vault (~500K tris) |
-| RealOrFakeEnvironment.tsx | 7A | Media verification studio: dual screens, fact-checker, deepfake chamber, truth meter (~500K tris) |
-| EthicsCourtroomEnvironment.tsx | 7E | AI ethics courtroom: judge bench, witness stand, jury box, scales of justice, gavel (~500K tris) |
-| FoolTheAiEnvironment.tsx | 7D | Adversarial testing lab: AI brain dome, disguise station, perturbation generator, defense shield (~500K tris) |
-| BuildClassifierEnvironment.tsx | 7E | Classification yard: sorting conveyors, category bins, decision tree, accuracy dashboard (~500K tris) |
-| PredictionMarketEnvironment.tsx | 7A | Prediction trading floor: ticker displays, wager console, probability charts, crystal ball (~500K tris) |
-| SentimentScannerEnvironment.tsx | 7C | Emotion analysis lab: mood meter, sentiment oscilloscope, emoji bubbles, polarity dashboard (~500K tris) |
-| LostInTranslationEnvironment.tsx | 7C | Universal translation hub: Babel tower, translation bridge, language globe, dictionary ceiling (~500K tris) |
-| CareerExplorerEnvironment.tsx | 7B | AI career expo: exhibition booths, holographic previews, skill tree, career flowchart (~500K tris) |
-| ApiExplorerEnvironment.tsx | 7E | API command center: gateway hub, pipeline tubes, endpoint tower, auth station, webhook array (~500K tris) |
+| AiSpyEnvironment.tsx | 7A | Futuristic detective office: holographic screens, magnifier, evidence pinboard, scanner beam (~5M tris) |
+| TimeMachineEnvironment.tsx | 7A | Time vortex portal chamber: spinning rings, timeline helix, era panels, clock mechanisms (~5M tris) |
+| HumanVsMachineEnvironment.tsx | 7B | Split arena: human workshop vs machine factory, judge podium, comparison cards (~5M tris) |
+| TreatTrainerEnvironment.tsx | 7C | AI training playground: obstacle course, treat dispensers, reward stations, behavior scoreboard (~5M tris) |
+| NeuronRelayEnvironment.tsx | 7C | Neural relay station: giant neuron models, axon pathways, synapse junctions, signal pulses (~5M tris) |
+| PixelInvestigatorEnvironment.tsx | 7D | Digital forensics lab: pixel grid table, magnification station, RGB analyzer, binary waterfall (~5M tris) |
+| WordPredictorEnvironment.tsx | 7A | Language prediction library: word bubbles, probability tree, autocomplete screens, dictionary towers (~5M tris) |
+| TokenChopperEnvironment.tsx | 7A | Tokenization factory: conveyor belts, chopper mechanism, token bins, BPE visualizer (~5M tris) |
+| AiArtDetectiveEnvironment.tsx | 7A | Art analysis museum: floating artworks, style panels, technique analyzer, palette station (~5M tris) |
+| ToolPickerEnvironment.tsx | 7A | AI tool workshop: labeled racks, task board, comparison table, effectiveness gauges (~5M tris) |
+| DataShieldEnvironment.tsx | 7A | Cybersecurity command center: shield generator, data tunnels, firewall walls, privacy vault (~5M tris) |
+| RealOrFakeEnvironment.tsx | 7A | Media verification studio: dual screens, fact-checker, deepfake chamber, truth meter (~5M tris) |
+| EthicsCourtroomEnvironment.tsx | 7E | AI ethics courtroom: judge bench, witness stand, jury box, scales of justice, gavel (~5M tris) |
+| FoolTheAiEnvironment.tsx | 7D | Adversarial testing lab: AI brain dome, disguise station, perturbation generator, defense shield (~5M tris) |
+| BuildClassifierEnvironment.tsx | 7E | Classification yard: sorting conveyors, category bins, decision tree, accuracy dashboard (~5M tris) |
+| PredictionMarketEnvironment.tsx | 7A | Prediction trading floor: ticker displays, wager console, probability charts, crystal ball (~5M tris) |
+| SentimentScannerEnvironment.tsx | 7C | Emotion analysis lab: mood meter, sentiment oscilloscope, emoji bubbles, polarity dashboard (~5M tris) |
+| LostInTranslationEnvironment.tsx | 7C | Universal translation hub: Babel tower, translation bridge, language globe, dictionary ceiling (~5M tris) |
+| CareerExplorerEnvironment.tsx | 7B | AI career expo: exhibition booths, holographic previews, skill tree, career flowchart (~5M tris) |
+| ApiExplorerEnvironment.tsx | 7E | API command center: gateway hub, pipeline tubes, endpoint tower, auth station, webhook array (~5M tris) |
 
 ---
 
@@ -136,15 +138,15 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 | CockpitCanvas.tsx | 20M | Single persistent R3F Canvas (CPA2-1), hero+cockpit+spatial groups |
 | CockpitPanels.tsx | 20M | 256-seg curved hull, multi-layer, instanced rivets (~2M tris) |
 | SidePanels.tsx | 20M | Left radar dish + right terminal with data columns (~1.5M tris) |
-| HolographicHUD.tsx | 20M | 8 concentric rings, scan beams, reticle system (~500K tris) |
-| StatusBar3D.tsx | 20M | 3D console strip, XP speedometer, flame sculpture (~500K tris) |
+| HolographicHUD.tsx | 20M | 8 concentric rings, scan beams, reticle system (~1M tris) |
+| StatusBar3D.tsx | 20M | 3D console strip, XP speedometer, flame sculpture (~1M tris) |
 | LEDRim.tsx | 20M | 1000+ instanced LED capsules, data viz mode (~200K tris) |
 | AuroraBackground.tsx | 20M | 6 layered shader planes + 3 volumetric ribbons (~50K tris) |
 | AmbientParticles.tsx | 20M | Instanced icosahedron particles + trails + halos (~200K tris) |
 | CockpitSkinManager.tsx | 20M | 5 skin soundscapes, increased particle counts |
 | CockpitStructuralDetail.tsx | 20M | Cable bundles, conduits, vents, ribs, LEDs (~1.5M tris) |
 | VolumetricFog3D.tsx | 20M | Fog volumes, god ray cones, density layers (~500K tris) |
-| CockpitFloor3D.tsx | 20M | Grated floor, sub-floor piping, energy conduits (~500K tris) |
+| CockpitFloor3D.tsx | 20M | Grated floor, sub-floor piping, energy conduits (~1M tris) |
 | CeremonyFX.tsx | 20M | Confetti, fireworks, trophies, HUD ring expansion (~500K tris) |
 | WormholeTransition.tsx | 20M | Lab entrance tunnel, speed lines, portal rings (~300K tris) |
 | MiniMapOverlay3D.tsx | 20M | Persistent 3D minimap of lab ring (~250K tris) |

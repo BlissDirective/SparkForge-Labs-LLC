@@ -155,12 +155,11 @@ export function TrophyRoom({ childId, onShowcaseBadgeSelect }: TrophyRoomProps) 
                     }
                   `}
                   style={{
-                    // @ts-expect-error -- ringColor is a valid CSS custom property for ring utilities
                     '--tw-ring-color': isSelected ? accentColor : undefined,
                     boxShadow: isSelected
                       ? `0 0 16px ${accentColor}33, inset 0 0 12px ${accentColor}11`
                       : undefined,
-                  }}
+                  } as React.CSSProperties}
                   aria-label={`${badge.name}, ${RARITY_LABELS[badge.rarity] || badge.rarity} rarity — click to preview in 3D`}
                   aria-pressed={isSelected}
                 >

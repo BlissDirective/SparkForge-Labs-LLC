@@ -687,9 +687,9 @@ Add to the Change Log section of GCUD V8:
 ```
 STAGE 7F (Feb 20, 2026): Band A Coverage — Labs 8-10
 - Resolved Gap #8 / CC-13: Band A thin in Labs 8-10
-- Added Emoji Decoder (Lab 8, Bands A-B, Enhanced Standard, 543 lines)
+- Added Emoji Decoder (Lab 8, Bands A-B, FL-Lite, 543 lines)
 - Added My First AI App (Lab 9, Bands A-B-C, Flagship-Lite, 619 lines)
-- Added AI or Not? (Lab 10, Bands A-B, Enhanced Standard, 473 lines)
+- Added AI or Not? (Lab 10, Bands A-B, FL-Lite, 473 lines)
 - Total curriculum: 31 games (was 28), Band A coverage: 22 games (was 19)
 - Lab 8: 3→4 games | Lab 9: 3→4 games | Lab 10: 3→4 games
 ```

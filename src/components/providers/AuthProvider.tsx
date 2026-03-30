@@ -94,8 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             ? localStorage.getItem('sparkforge-active-child')
             : null;
           const activeChild = stored
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            ? kids.find((k: any) => k.id === stored) || kids[0]
+            ? kids.find((k: { id: string }) => k.id === stored) || kids[0]
             : kids[0];
           setActiveChild(activeChild);
         }

@@ -149,6 +149,7 @@ export default function AdminReviewPage() {
   const parent = useAuthStore((s) => s.parent);
 
   // ── Admin guard — redirect non-admins ──
+  // Note: Server-side admin enforcement via API 403 responses — this is defense-in-depth UI redirect
   useEffect(() => {
     if (parent && !parent.is_admin) {
       router.replace('/home');

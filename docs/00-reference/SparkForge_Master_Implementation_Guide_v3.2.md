@@ -74,6 +74,24 @@
 
 ---
 
+## Code Audit Status (March 30, 2026)
+
+A comprehensive full-repo code audit was completed on March 30, 2026, covering all 497 source files, 127 docs, and 18 SQL files. **154 issues found and fixed** (21 Critical, 42 High, 52 Medium, 39 Low).
+
+### Key Architecture Updates Applied During Audit
+- **D3D-1 Compliance**: All `useIsMobile()`, `GenericGameParticles`, CSS fallback code removed from source and stage docs
+- **D3D-2 Compliance**: All `useLOD`, `LODWrapper`, LOD atoms removed; `COCKPIT_LOD` replaced with `COCKPIT_DETAIL`
+- **D3D-3 Compliance**: Triangle budgets updated across all docs (Flagship 20M, FL-Lite 10M, Standard 5M)
+- **D3D-B1 Compliance**: `gameActive`/`setGameActive` deprecated in `uiStore`; `useStationMode` reads from `sceneStore`
+- **CPA2-1**: Standalone Canvas violations flagged in GameFocusSequence, OnboardingCrystal
+- **SQL**: Duplicate seed files merged (badges, content, cron); RUN_ORDER.md comprehensive
+- **Tailwind**: Migrated to v4 (`@import "tailwindcss"` + `@config` compatibility)
+- **Security**: COPPA consent uses `getUser()`, SQL functions use SECURITY INVOKER
+- **New Pages**: `/parent/prompt-history` and `/parent/export` fully created
+- **Centralized Config**: Lab names/colors in `src/config/labs.ts`, Stripe version in `src/lib/stripe.ts`
+
+---
+
 ## SECTION 2: COMPLETE DOCUMENT REGISTRY
 
 Every documentation file in the repo, organized by location. **Status** indicates if the file is actively used for builds (ACTIVE), reference-only (REF), or archived (SUPERSEDED).

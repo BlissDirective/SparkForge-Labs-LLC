@@ -17,9 +17,9 @@ SparkForge currently uses a **binary mobile strategy**: desktop/tablet get full 
 | **Cockpit** | 20M tri 3D panoramic | 10M tri reduced 3D | Zero 3D — flat CSS glassmorphic dashboard |
 | **Hero Animation** | 8-phase 19s cinematic | 8-phase 19s cinematic | Skipped entirely — instant dashboard |
 | **Login Portal** | 3D crystal portal + 200 particles | 3D crystal portal + 200 particles | 30 CSS pulsing dots |
-| **Games (Flagship)** | Full R3F scenes (10M tri) | Reduced R3F (5M tri) | CSS particles only — `GenericGameParticles` |
-| **Games (FL-Lite)** | Full R3F scenes (2M tri) | Reduced R3F (1M tri) | CSS particles only |
-| **Games (Standard)** | R3F environments (500K tri) | R3F environments (250K tri) | CSS particles only |
+| **Games (Flagship)** | Full R3F scenes (20M tri) | Reduced R3F (10M tri) | CSS particles only — `GenericGameParticles` |
+| **Games (FL-Lite)** | Full R3F scenes (10M tri) | Reduced R3F (5M tri) | CSS particles only |
+| **Games (Standard)** | R3F environments (5M tri) | R3F environments (2.5M tri) | CSS particles only |
 | **Lab Map** | 3D holographic map | 3D holographic map | Flat 2D grid/carousel |
 | **Particles** | R3F instanced particles | R3F instanced particles | `motion/react` CSS div drift |
 | **Post-processing** | Bloom, vignette, barrel distortion | Bloom, vignette | None |

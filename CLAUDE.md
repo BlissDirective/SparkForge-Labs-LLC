@@ -2,7 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 6.0 | **Date:** March 24, 2026 | **Vision:** Laboratory Control Station
+**Version:** 6.1 | **Date:** March 30, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v6.0 (March 24, 2026) — Full Code Audit: 154 issues found and fixed (21C/42H/52M/39L). D3D compliance enforced across source + docs. SQL merged. Tailwind v4 migrated. Security hardened. 2 parent pages created. Lab config centralized. Stage docs updated.
 **Supersedes:** CLAUDE.md v5.9 (March 23, 2026) — D3D Desktop-First Overhaul: Removed mobile/LOD/CSS fallback architecture (D3D-1/2). Added desktop-ultra rendering (50M triangle budget). Added sceneStore, SceneRouter, MechanicalIris, PostProcessingStack. Updated Sections 7, 9, 9.1, 9.2, 9.3, 11, 14. Added 20 D3D decision locks (D3D-1–9, D3D-B1–6, D3D-C1–5). Version footer updated.
 
 ---
@@ -790,12 +791,12 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
-| authStore | 3 | user, session, loading, signIn/signUp/signOut |
+| authStore | 3 | parent, isLoading, isDemoMode, demoSession, setParent/setLoading/clearAuth/startDemoSession/endDemoSession/checkDemoStatus |
 | childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
 | gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
 | toastStore | 1 | toasts[], addToast/removeToast |
 | uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation. Note: `gameActive` flag deprecated (D3D-B1) — use `sceneStore.enterGame`/`exitGame` instead. |
-| accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader |
+| accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader. Exported as `useA11yStore`. |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
 | **deviceStore** | — | D3D-1/3: Hardcoded desktop-ultra. 50M total budget. No device selection. gpuTier, stripeCount. |
 | **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |

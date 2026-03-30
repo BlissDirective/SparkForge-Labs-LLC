@@ -348,7 +348,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 2, title: 'Teaching Machines', subtitle: 'Machine Learning', color: '#00BBFF', tint: '#AA66FF', icon: '🧠', description: 'Train your own AI models and see learning in action',
+    id: 2, title: 'Teaching Machines', subtitle: 'Machine Learning', color: '#AA66FF', tint: '#AA66FF', icon: '🧠', description: 'Train your own AI models and see learning in action',
     games: [
       { slug: 'pet-trainer', title: 'AI Pet Trainer', emoji: '🐾', description: 'Adopt and train a virtual AI pet', estimatedMinutes: 20, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'sort-toy-box', title: 'Sort the Toy Box', emoji: '📦', description: 'Group shapes like an AI would', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
@@ -357,7 +357,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 3, title: 'The Brain Inside', subtitle: 'Neural Networks', color: '#00BBFF', tint: '#FF66AA', icon: '🧬', description: 'Explore neural networks — the brain of AI',
+    id: 3, title: 'The Brain Inside', subtitle: 'Neural Networks', color: '#FF66AA', tint: '#FF66AA', icon: '🧬', description: 'Explore neural networks — the brain of AI',
     games: [
       { slug: 'neural-builder', title: 'Neural Network Builder', emoji: '🏗️', description: 'Build and train a visual neural network', estimatedMinutes: 25, xpReward: 35, ageBands: ['B', 'C'] },
       { slug: 'neuron-relay', title: 'Neuron Relay', emoji: '⚡', description: 'Pass signals through a neuron chain', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
@@ -365,7 +365,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 4, title: 'AI That Creates', subtitle: 'Generative AI', color: '#00BBFF', tint: '#FFAA44', icon: '🎨', description: 'See how AI generates art, music, and text',
+    id: 4, title: 'AI That Creates', subtitle: 'Generative AI', color: '#FFAA44', tint: '#FFAA44', icon: '🎨', description: 'See how AI generates art, music, and text',
     games: [
       { slug: 'prompt-lab', title: 'Prompt Lab', emoji: '⌨️', description: 'Master the art of talking to AI', estimatedMinutes: 15, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'word-predictor', title: 'Word Predictor', emoji: '📝', description: 'Guess what word AI picks next', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
@@ -374,7 +374,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 5, title: 'AI Helpers', subtitle: 'Agents & Tools', color: '#00BBFF', tint: '#00FF88', icon: '🔧', description: 'Meet the AI assistants changing the world',
+    id: 5, title: 'AI Helpers', subtitle: 'Agents & Tools', color: '#00FF88', tint: '#00FF88', icon: '🔧', description: 'Meet the AI assistants changing the world',
     games: [
       { slug: 'agent-architect', title: 'Agent Architect', emoji: '📐', description: 'Build an AI agent with a flowchart', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
       { slug: 'robot-vacuum', title: 'Robot Vacuum Challenge', emoji: '🤖', description: 'Program a vacuum with rules', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
@@ -382,7 +382,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 6, title: 'AI & Ethics', subtitle: 'Fairness & Safety', color: '#00BBFF', tint: '#FF6644', icon: '⚖️', description: 'Tackle the big questions: fairness, bias, and safety',
+    id: 6, title: 'AI & Ethics', subtitle: 'Fairness & Safety', color: '#FF6644', tint: '#FF6644', icon: '⚖️', description: 'Tackle the big questions: fairness, bias, and safety',
     games: [
       { slug: 'bias-detective', title: 'Bias Detective', emoji: '🔍', description: 'Investigate unfair AI systems', estimatedMinutes: 25, xpReward: 35, ageBands: ['B', 'C'] },
       { slug: 'data-shield', title: 'Data Shield', emoji: '🛡️', description: 'Protect your personal data', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B', 'C'] },
@@ -391,7 +391,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 7, title: 'Computer Vision', subtitle: 'How AI Sees', color: '#00BBFF', tint: '#06B6D4', icon: '👁️', description: 'Teach machines to see and understand images',
+    id: 7, title: 'Computer Vision', subtitle: 'How AI Sees', color: '#06B6D4', tint: '#06B6D4', icon: '👁️', description: 'Teach machines to see and understand images',
     games: [
       { slug: 'camera-quest', title: 'Camera Quest', emoji: '📷', description: 'Find objects with your camera', estimatedMinutes: 15, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'fool-the-ai', title: 'Fool the AI', emoji: '🎩', description: 'Trick an AI image classifier', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
@@ -400,7 +400,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 8, title: 'Words & Language', subtitle: 'NLP', color: '#00BBFF', tint: '#818CF8', icon: '💬', description: 'Explore how AI reads, writes, translates, and understands language',
+    id: 8, title: 'Words & Language', subtitle: 'NLP', color: '#818CF8', tint: '#818CF8', icon: '💬', description: 'Explore how AI reads, writes, translates, and understands language',
     games: [
       { slug: 'sentiment-scanner', title: 'Sentiment Scanner', emoji: '😊', description: 'See how AI reads emotions in text', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
       { slug: 'chatbot-builder', title: 'Chatbot Builder', emoji: '💬', description: 'Build your own chatbot', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
@@ -409,7 +409,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 9, title: 'Build Your AI', subtitle: 'Hands-On Coding', color: '#00BBFF', tint: '#F97316', icon: '💻', description: 'Design, build, and test your own AI projects',
+    id: 9, title: 'Build Your AI', subtitle: 'Hands-On Coding', color: '#F97316', tint: '#F97316', icon: '💻', description: 'Design, build, and test your own AI projects',
     games: [
       { slug: 'code-blocks', title: 'Code Blocks', emoji: '🧩', description: 'Snap code blocks together to build logic', estimatedMinutes: 15, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'career-explorer', title: 'Career Explorer', emoji: '🧭', description: 'Discover AI career paths', estimatedMinutes: 10, xpReward: 20, ageBands: ['B', 'C'] },
@@ -418,7 +418,7 @@ export const LABS: LabMeta[] = [
     ],
   },
   {
-    id: 10, title: 'AI Futures', subtitle: 'What Comes Next', color: '#00BBFF', tint: '#D946EF', icon: '🚀', description: 'Imagine what AI will do next — and what you\'ll create',
+    id: 10, title: 'AI Futures', subtitle: 'What Comes Next', color: '#D946EF', tint: '#D946EF', icon: '🚀', description: 'Imagine what AI will do next — and what you\'ll create',
     games: [
       { slug: 'future-forge', title: 'Future Forge', emoji: '🔮', description: 'Design your dream AI invention', estimatedMinutes: 15, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'ai-or-not', title: 'AI or Not?', emoji: '❓', description: 'Judge whether creative works were made by humans or AI', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B'] },

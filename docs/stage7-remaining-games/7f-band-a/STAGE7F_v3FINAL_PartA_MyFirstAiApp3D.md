@@ -17,8 +17,8 @@
 | Game | Lab | Color | Tier |
 |------|-----|-------|------|
 | My First AI App | Lab 9 — Build with AI | Orange (#F97316) | Flagship-Lite (Tier 2 Enhanced 3D) |
-| Emoji Decoder | Lab 8 — Words & Language | Indigo (#6366F1) | Enhanced Standard (Tier 3 — UNCHANGED) |
-| AI or Not? | Lab 10 — AI's Future | Fuchsia (#D946EF) | Enhanced Standard (Tier 3 — UNCHANGED) |
+| Emoji Decoder | Lab 8 — Words & Language | Indigo (#6366F1) | FL-Lite (UNCHANGED) |
+| AI or Not? | Lab 10 — AI's Future | Fuchsia (#D946EF) | FL-Lite (UNCHANGED) |
 
 ---
 
@@ -29,8 +29,8 @@
 ## V2 FEATURES PRESERVED
 
 - [ ] My First AI App: 5-step build wizard, 7 categories, 9 AI powers, 6 themes, innovation score, app card (v2 code in Part B)
-- [ ] Emoji Decoder: 16 puzzles, 3 tiers, AI comparison, streak bonus, emoji lab (UNCHANGED — Tier 3)
-- [ ] AI or Not?: 12 scenarios, 3 categories, confidence slider, prediction round (UNCHANGED — Tier 3)
+- [ ] Emoji Decoder: 16 puzzles, 3 tiers, AI comparison, streak bonus, emoji lab (UNCHANGED — FL-Lite)
+- [ ] AI or Not?: 12 scenarios, 3 categories, confidence slider, prediction round (UNCHANGED — FL-Lite)
 - [ ] All games: Chrome bezels, particle backgrounds, age-band depth (A/B/C), ARIA labels
 
 ---
@@ -659,8 +659,8 @@ export default function MyFirstAiApp3D(props: MyFirstAiApp3DProps) {
 | Game | Tier | 3D Component | Status |
 |------|------|-------------|--------|
 | My First AI App | Tier 2 Enhanced | MyFirstAiApp3D.tsx — 3D app assembly | COMPLETE (Part A) |
-| Emoji Decoder | Tier 3 Standard | None (standard 2D polish) | COMPLETE (no 3D needed) |
-| AI or Not? | Tier 3 Standard | None (standard 2D polish) | COMPLETE (no 3D needed) |
+| Emoji Decoder | FL-Lite | None (standard 2D polish) | COMPLETE (no 3D needed) |
+| AI or Not? | FL-Lite | None (standard 2D polish) | COMPLETE (no 3D needed) |
 
 ---
 

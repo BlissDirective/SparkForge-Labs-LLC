@@ -22,7 +22,7 @@ This document specifies the full **19-second cinematic hero animation** that pla
 
 **Particle Budget Clarification:** The "1B+" figure refers to total lifetime particle throughput — particles spawned, simulated, and recycled across the full 19-second sequence. Peak simultaneous rendered particles cap at ~10M (WebGPU high-end) during Phase 2 convergence and Phase 5 shatter, achieved via **multi-buffer striped architecture** (4 × 256MB storage buffers, each holding 2.5M particles) and TSL-authored compute shaders that compile to both WGSL (WebGPU) and GLSL (WebGL2). At 60fps across 19s (~1,140 frames), recycling 10M particles per frame yields ~11.4B potential lifetime spawns — well above the 1B target. VRAM-aware streaming and particle pool recycling make this feasible on consumer GPUs with 4GB+ VRAM.
 
-**Triangle Budget:** The hero animation peaks at ~1,000,000,000+ lifetime particles (WebGPU) or device-tier caps (WebGL2/CSS fallback). Mesh geometry peaks at ~100,000 shard triangles during Phase 5 (upgraded from 50K), transitioning to the cockpit's ~104,400 triangles (per CPA v2.0) by Phase 7.
+**Triangle Budget:** The hero animation peaks at ~1,000,000,000+ lifetime particles (WebGPU) or device-tier caps (WebGL2/CSS fallback). Mesh geometry peaks at ~100,000 shard triangles during Phase 5 (upgraded from 50K), transitioning to the cockpit's ~30M+ triangles (post D3D-3 upgrade; originally ~104,400 per CPA v2.0) by Phase 7.
 
 **Tech Stack Upgrade Summary (vs. prior 500M spec):**
 - **Three.js r171+** — production-ready WebGPU with `import * as THREE from 'three/webgpu'` and automatic WebGL2 fallback
@@ -846,7 +846,7 @@ const regroupAudio = {
 };
 ```
 
-**Triangle Budget:** ~50,000 (shards still individual mesh instances) → transitioning to cockpit geometry (~104,400 triangles per CPA v2.0 specification) as shards merge into panels. The transition is not a pop — individual shard meshes are disposed as they complete their morph into the cockpit `BufferGeometry`, which is progressively revealed.
+**Triangle Budget:** ~50,000 (shards still individual mesh instances) → transitioning to cockpit geometry (~30M+ triangles post D3D-3 upgrade; originally ~104,400 per CPA v2.0 specification) as shards merge into panels. The transition is not a pop — individual shard meshes are disposed as they complete their morph into the cockpit `BufferGeometry`, which is progressively revealed.
 ## Section 7: Phase 7 — Cockpit Materialization (14–17s)
 
 **Visual:**
@@ -882,7 +882,7 @@ const regroupAudio = {
   6. StatusBar: gauge click-click-click (granular noise, 3 hits at 100ms intervals)
 - Ambient cockpit hum reaches full volume (−6dB) — this is the persistent soundscape
 
-**Triangle Budget:** Transitioning from shard geometry to final cockpit geometry (104,400 per CPA v2.0 Section 11.1)
+**Triangle Budget:** Transitioning from shard geometry to final cockpit geometry (30M+ post D3D-3 upgrade; originally 104,400 per CPA v2.0 Section 11.1)
 
 **GSAP Timeline Label:** `"materialize"`
 
@@ -915,7 +915,7 @@ const regroupAudio = {
 - Transition to persistent cockpit ambient soundscape (CockpitAudioEngine from CPA v2.0 Section 10)
 - Volume crossfade: hero audio → cockpit audio over 1s
 
-**Triangle Budget:** Final state = CPA v2.0 grand total: 104,400 (desktop ultra)
+**Triangle Budget:** Final state = cockpit grand total: ~30M+ (post D3D-3 upgrade; originally 104,400 per CPA v2.0)
 
 **GSAP Timeline Label:** `"online"`
 
@@ -1049,11 +1049,11 @@ The hero animation's triangle budget relates to and transitions into the cockpit
 
 | Animation Phase | Hero Tris | Cockpit Tris | Total | Within Device Budget? |
 |----------------|----------:|-------------:|------:|:---------------------:|
-| Phases 1–4 (logo) | ~20,000 | 0 | 20,000 | Yes (500K budget) |
+| Phases 1–4 (logo) | ~20,000 | 0 | 20,000 | Yes (30M system budget) |
 | Phase 5 (shatter) | ~100,000 | 0 | 100,000 | Yes (upgraded: 100K Voronoi shards) |
-| Phase 6 (transition) | ~100,000 → 0 | 0 → 104,400 | 100K–104K | Yes |
-| Phase 7 (cockpit) | 0 | 104,400 | 104,400 | Yes |
-| Phase 8 (live) | 0 | 104,400 | 104,400 | Yes (395K headroom) |
+| Phase 6 (transition) | ~100,000 → 0 | 0 → ~30M | 100K–30M | Yes (progressive reveal) |
+| Phase 7 (cockpit) | 0 | ~30M | ~30M | Yes (30M system budget) |
+| Phase 8 (live) | 0 | ~30M | ~30M | Yes (20M game headroom) |
 
 > **Note:** Particle quads are NOT counted in the triangle budget — they use instanced rendering with a separate GPU budget.
 

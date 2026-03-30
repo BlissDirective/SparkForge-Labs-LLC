@@ -18,10 +18,9 @@ export const cameraPositionAtom = atom<[number, number, number]>([0, 0.65, 1.1])
 export const cameraLookAtAtom = atom<[number, number, number]>([0, 0, -2.5]);
 export const cameraFovAtom = atom(58);
 
-// ═══ LOD State (updated on FPS degradation) ═══
-export const currentLODLevelAtom = atom<'ultra' | 'high' | 'medium' | 'low' | 'billboard'>('high');
+// AUDIT-A5: LOD atoms removed per D3D-2 (all geometry at max quality, no LOD system)
+// triangleBudgetUsedAtom retained for dev-only monitoring (Plan B1)
 export const triangleBudgetUsedAtom = atom(0);
-export const fpsRatioAtom = atom(1.0); // actual FPS / target FPS
 
 // ═══ WebGPU State (Enhancement 8.2) ═══
 export const rendererTypeAtom = atom<'webgpu' | 'webgl2' | 'webgl'>('webgl2');

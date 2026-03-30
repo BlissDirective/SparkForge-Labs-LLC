@@ -18,13 +18,15 @@ export async function POST(req: NextRequest) {
 
   // Require authenticated session
   const supabase = await createServerSupabase();
-  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  // AUDIT-D1: Use getUser() instead of getSession() for server-side JWT validation
+  // getSession() only reads from local cookie without validating with Supabase Auth server
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  if (sessionError || !session?.user) {
+  if (userError || !user) {
     return apiError('Authentication required.', 401);
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
 
   // Use admin client to update consent, scoped to the authenticated user's ID
   const adminClient = createAdminClient();

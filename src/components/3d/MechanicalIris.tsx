@@ -3,6 +3,12 @@
 // ════════════════════════════════════════════════════
 // MechanicalIris — Camera-Aperture Scene Transition
 // ════════════════════════════════════════════════════
+// TODO (J1 — 3D Geometry Disposal): This component creates geometries and
+// materials via useMemo but never disposes them on unmount. Add a useEffect
+// cleanup that calls .dispose() on bladeGeometry, gearRingGeometry,
+// gearToothGeometry, pistonGeometry, lightRayGeometry, chromeMaterial,
+// bladeMaterial, pistonMaterial, and lightRayMaterial when the component
+// unmounts to prevent GPU memory leaks in long-running sessions.
 // Signature visual transition for cockpit ↔ game scenes.
 // Triangle budget: ~100,000 (lightweight transition overlay).
 //

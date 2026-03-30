@@ -142,13 +142,17 @@ export async function POST(req: NextRequest) {
         met = worldsVisited.size >= badge.criteria_value;
         break;
       case 'worlds_mastered': {
-        let mastered = 0;
-        for (let w = 1; w <= 10; w++) {
-          const { data: lp } = await supabase.rpc('get_lab_progress', {
-            p_child_id: childId, p_world: w, p_age_band: child.age_band,
-          });
-          if ((lp?.[0]?.percent || 0) >= 100) mastered++;
-        }
+        // J6: Parallelize all 10 lab progress queries instead of sequential N+1
+        const labResults = await Promise.all(
+          Array.from({ length: 10 }, (_, i) =>
+            supabase.rpc('get_lab_progress', {
+              p_child_id: childId, p_world: i + 1, p_age_band: child.age_band,
+            })
+          )
+        );
+        const mastered = labResults.filter(
+          ({ data: lp }) => (lp?.[0]?.percent || 0) >= 100
+        ).length;
         met = mastered >= badge.criteria_value;
         break;
       }

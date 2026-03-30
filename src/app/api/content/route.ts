@@ -1,9 +1,9 @@
 // GET /api/content — Fetch published content with filters
 // v2 [ENH]: Added Cache-Control: 5 minute cache
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { ContentQuerySchema } from '@/lib/validations';
-import { apiError, parseQuery, requireAuth } from '@/lib/api-helpers';
+import { apiSuccess, apiError, parseQuery, requireAuth } from '@/lib/api-helpers';
 import { isLabAccessible } from '@/lib/tier-config';
 
 export async function GET(req: NextRequest) {
@@ -53,10 +53,7 @@ export async function GET(req: NextRequest) {
   if (error) return apiError('Failed to fetch content', 500);
 
   // v2 [ENH]: Cache-Control header for content
-  const response = NextResponse.json(
-    { success: true, data: data || [], total: count || 0, limit, offset },
-    { status: 200 }
-  );
+  const response = apiSuccess({ data: data || [], total: count || 0, limit, offset });
   response.headers.set('Cache-Control', 'public, s-maxage=300, stale-while-revalidate=60');
   return response;
 }

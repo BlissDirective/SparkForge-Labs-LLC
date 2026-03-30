@@ -95,17 +95,8 @@ const Canvas = dynamic(
   { ssr: false }
 );
 
-// [v3] Mobile detection for 3D/2D fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
+// [D3D-1] Desktop-only platform — useIsMobile() removed per D3D Desktop-First Overhaul.
+// 3D always renders unconditionally.
 
 // ================================================================
 // TYPES
@@ -591,7 +582,7 @@ export function BiasDetectiveGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile(); // [v3]
+  // [D3D-1] useIsMobile removed — desktop-only platform, 3D always renders
 
   // Phase state
   const [phase, setPhase] = useState<Phase>('welcome');

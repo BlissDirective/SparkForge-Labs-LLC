@@ -24,23 +24,12 @@ export interface GameRegistryEntry {
   stage: string;
   description: string;
   icon: string;
-  triangleBudget: { desktop: number; tablet: number; mobile: number } | null;
+  triangleBudget: { desktop: number } | null;
   /** Per-game camera override (Section 4.1-B). Falls back to GAME_CAMERA_DEFAULT. */
   cameraPreset: GameCameraPreset | null;
 }
 
-const LAB_NAMES: Record<number, string> = {
-  1: 'What IS AI?',
-  2: 'Teaching Machines',
-  3: 'The Brain Inside',
-  4: 'AI That Creates',
-  5: 'AI Helpers',
-  6: 'AI & Ethics',
-  7: 'Computer Vision',
-  8: 'Words & Language',
-  9: 'Build Your AI',
-  10: 'AI Futures',
-};
+import { LAB_NAMES } from '@/config/labs';
 
 // ── Per-Game Camera Presets (Section 4.1-B) ──
 // Games without a preset use GAME_CAMERA_DEFAULT via CameraSystem.
@@ -77,9 +66,9 @@ function cameraPreset(slug: string): GameCameraPreset | null {
 }
 
 const TRIANGLE_BUDGETS = {
-  flagship: { desktop: 10_000_000, tablet: 5_000_000, mobile: 2_500_000 },
-  'fl-lite': { desktop: 2_000_000, tablet: 1_000_000, mobile: 500_000 },
-  standard3D: { desktop: 25_000, tablet: 12_000, mobile: 5_000 },
+  flagship: { desktop: 20_000_000 },
+  'fl-lite': { desktop: 10_000_000 },
+  standard3D: { desktop: 5_000_000 },
 } as const;
 
 function budget(tier: GameTier, has3D: boolean) {
@@ -211,7 +200,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'flagship',
     has3D: true,
     component3D: 'NeuralNetwork3D',
-    ageBands: ['A', 'B', 'C'],
+    ageBands: ['B', 'C'],
     stage: '6C',
     description: 'Construct a neural network by connecting neurons and layers, then watch data flow through your creation.',
     icon: '\uD83E\uDDE0',
@@ -243,7 +232,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'standard',
     has3D: false,
     component3D: null,
-    ageBands: ['B', 'C'],
+    ageBands: ['A', 'B', 'C'],
     stage: '7D',
     description: 'Zoom into images pixel by pixel to understand how computer vision breaks down visual information.',
     icon: '\uD83D\uDDA5\uFE0F',
@@ -323,7 +312,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'flagship',
     has3D: true,
     component3D: 'AgentPipeline3D',
-    ageBands: ['A', 'B', 'C'],
+    ageBands: ['B', 'C'],
     stage: '6E',
     description: 'Design an AI agent pipeline by connecting perception, reasoning, and action modules together.',
     icon: '\uD83E\uDDD1\u200D\uD83D\uDD27',
@@ -350,8 +339,8 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     id: 17,
     name: 'Tool Picker',
     slug: 'tool-picker',
-    lab: 6,
-    labName: LAB_NAMES[6],
+    lab: 5,
+    labName: LAB_NAMES[5],
     tier: 'standard',
     has3D: false,
     component3D: null,
@@ -451,7 +440,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'standard',
     has3D: false,
     component3D: null,
-    ageBands: ['B', 'C'],
+    ageBands: ['A', 'B', 'C'],
     stage: '7D',
     description: 'Create adversarial examples that trick an AI image classifier into making wrong predictions.',
     icon: '\uD83C\uDFAD',
@@ -483,7 +472,7 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     tier: 'standard',
     has3D: false,
     component3D: null,
-    ageBands: ['B', 'C'],
+    ageBands: ['A', 'B', 'C'],
     stage: '7A',
     description: 'Make predictions about future AI trends and compare your forecasts against crowd wisdom.',
     icon: '\uD83D\uDCC8',
@@ -682,14 +671,13 @@ export function getGamesForAgeBand(band: AgeBand): GameRegistryEntry[] {
 }
 
 /**
- * Calculate the total triangle budget across all 3D games for a device type.
+ * Calculate the total triangle budget across all 3D games.
  * Useful for estimating overall GPU load if all scenes were loaded simultaneously.
+ * Desktop-only (D3D-1) — no tablet/mobile columns.
  */
-export function getTotalTriangleBudget(
-  deviceType: 'desktop' | 'tablet' | 'mobile'
-): number {
+export function getTotalTriangleBudget(): number {
   return GAME_REGISTRY.reduce((total, game) => {
     if (!game.triangleBudget) return total;
-    return total + game.triangleBudget[deviceType];
+    return total + game.triangleBudget.desktop;
   }, 0);
 }

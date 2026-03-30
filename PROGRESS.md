@@ -1,8 +1,25 @@
 # SparkForge Build Progress
 
-## Current Phase: Frontend Audit + Fixes
+## Current Phase: Documentation Drift Fixes
 ## Status: COMPLETE
 ## Last Updated: 2026-03-30
+
+---
+
+### Documentation Drift Fixes (March 30, 2026)
+
+**Status:** COMPLETE
+**Scope:** Archive obsolete docs, fix CLAUDE.md Section 14, note registry refresh needed
+
+- [x] I1: Archived MOBILE_3D_ENHANCEMENT_PLAN_PartA.md and PartB.md to `docs/00-reference/_SUPERSEDED/` via `git mv`. Updated SUPERSEDED_BY.md manifest with D3D-1 obsolescence reason.
+- [x] I2: Added v3.0 refresh note to `docs/00-reference/3D-Component-Registry.md` — authoritative list is now CLAUDE.md Section 9 (93 components). LOD/mobile references in registry are outdated per D3D-1/D3D-2.
+- [x] I5: Updated CLAUDE.md Section 14 authStore entry to match actual implementation: `parent, isLoading, isDemoMode, demoSession, setParent/setLoading/clearAuth/startDemoSession/endDemoSession/checkDemoStatus` (was incorrectly listing `user, session, loading, signIn/signUp/signOut`).
+- [x] I6: Added note to CLAUDE.md Section 14 accessibilityStore entry that store is exported as `useA11yStore`.
+- [x] I9: Verified gameRegistry cleanup — `src/config/gameRegistry.ts` contains zero tablet/mobile column references. Batch 3 cleanup confirmed complete.
+
+### Discrepancies Log
+
+- **I3 — Stage 7 Shared file naming:** CLAUDE.md Section 4 references `STAGE7_Shared_v3FINAL_A` and `XP_Celebration(v2)` but the actual filenames in `docs/` may use spaces (e.g., `STAGE7 Shared v3FINAL PartA.md`). This is a documentation reference inconsistency only — the actual files with spaces are fine and should not be renamed. Stage doc references in CLAUDE.md use underscore convention while files may use spaces.
 
 ---
 
@@ -1600,3 +1617,52 @@ All 7 near-term enhancements from the D3D roadmap have been implemented:
 
 ### Code Review Notes
 _(none yet)_
+
+---
+
+## Full Code Audit — March 30, 2026
+
+### Audit Scope
+- **497 source files** in src/
+- **127 documentation files** in docs/
+- **18 SQL files** in sql/
+- **Config, scripts, tools** at repo root
+- **6 parallel audit agents** covering: Routes & API, Components, Stores/Hooks/Types, Stage Documents, Config/SQL/Scripts, Cross-Cutting Concerns
+
+### Issues Found: 154 total
+| Severity | Count | Status |
+|----------|-------|--------|
+| Critical | 21 | ✅ All fixed |
+| High | 42 | ✅ All fixed |
+| Medium | 52 | ✅ All fixed |
+| Low | 39 | ✅ All fixed |
+
+### Batches Completed (10 total)
+1. **Batch 1** — Critical Security + Missing Functionality (7 issues)
+2. **Batch 2** — D3D Overhaul Propagation (7 issues)
+3. **Batch 3** — Triangle Budgets + SQL Merge (7 issues)
+4. **Batch 4** — Data Inconsistencies (12 issues)
+5. **Batch 5a** — Architecture + Tailwind v4 Migration (6 issues)
+6. **Batch 5b** — Parent Dashboard Pages Created (2 issues, 1125 lines new)
+7. **Batch 6** — Docs Drift + Performance (17 issues)
+8. **Batch 7** — Medium Code Quality (18 issues)
+9. **Batch 8** — Stage Doc Deprecated Patterns (8 files updated)
+10. **Batch 9** — Low Priority Cleanup (10 issues)
+
+### Key Changes Summary
+- Security: COPPA consent JWT validation, SQL security fixes, demo cookie cleanup
+- Missing functionality: PATCH /api/auth/me, postprocessing package, 2 parent dashboard pages
+- D3D compliance: Removed deprecated gameActive/LOD/mobile code from 15+ source files
+- Data: Fixed all lab colors, 5 age band mismatches, centralized lab config
+- Architecture: Tailwind v4 migration, SSR-safe localStorage, middleware validation
+- SQL: Merged duplicate seed files, unified RUN_ORDER.md
+- Docs: Archived obsolete mobile plans, updated triangle budgets, fixed stage doc imports
+- Performance: Lazy Tone.js, optimized store subscriptions, parallel badge queries
+
+### Validation
+- TypeScript (`npx tsc --noEmit`): ✅ PASS — zero errors
+- All 35 game components present: ✅ VERIFIED
+- All 3D registry components exist: ✅ VERIFIED
+- Import graph clean (no broken imports): ✅ VERIFIED
+- No deprecated fonts (Fredoka/Nunito): ✅ VERIFIED
+- No deprecated mobile patterns in source: ✅ VERIFIED

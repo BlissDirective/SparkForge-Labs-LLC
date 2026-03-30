@@ -9,7 +9,7 @@
 | Total Project Files | 94 active files |
 | Stage Documents | 10 stages, all copy-paste ready |
 | v3-FINAL Patches | 16 documents across 38 part files |
-| Games | **35 games** — 6 Flagship (10M+), 9 FL-Lite (2M+), 20 Standard (500K+) |
+| Games | **35 games** — 6 Flagship (20M), 9 FL-Lite (10M), 20 Standard (5M) |
 | Locked Decisions | 64 decisions (48 core + 4 OD + 12 CPA2) |
 | Code Written | ~70% — Stages 1-7 code-complete, audited |
 
@@ -278,9 +278,9 @@ Total build steps: 27 ordered implementation phases across 10 stages (CLAUDE.md 
 | 34 | Future Forge | 10 | future-forge | FL-Lite+3D | A,B,C | 7D |
 | 35 | AI or Not? | 10 | ai-or-not | Enhanced | A,B | 7F |
 
-**Tiers:** 6 Flagship (10M+) + 9 FL-Lite (2M+) + 20 Standard (500K+) = **35 games**
+**Tiers:** 6 Flagship (20M) + 9 FL-Lite (10M) + 20 Standard (5M) = **35 games**
 
-> **Triangle Budget Update (March 18, 2026):** All 35 games now have full 3D environments with dedicated R3F scenes. Flagship: 10M+ (10,000,000), FL-Lite: 2M+ (2,000,000), Standard: 500K+ (500,000). The CSS-only and Enhanced Standard tiers have been eliminated — merged into FL-Lite. See GAME_ENHANCEMENT_AUDIT.md and 3D-Component-Registry.md.
+> **Triangle Budget Update (D3D-3 overhaul):** All 35 games now have full 3D environments with dedicated R3F scenes. Flagship: 20M (20,000,000), FL-Lite: 10M (10,000,000), Standard: 5M (5,000,000). System (Cockpit): 30M. The CSS-only and Enhanced Standard tiers have been eliminated — merged into FL-Lite. See GAME_ENHANCEMENT_AUDIT.md and 3D-Component-Registry.md.
 
 ### Games Per Lab
 
@@ -320,7 +320,7 @@ Total build steps: 27 ordered implementation phases across 10 stages (CLAUDE.md 
 | Total Project Files | 85 | **92** |
 | Locked Decisions | 48 | **64 (48 core + 4 OD + 12 CPA2)** |
 | Game tier breakdown | 5+1+7+2+20 (5 tiers) | **6+9+20 (3 tiers: Flagship/FL-Lite/Standard)** |
-| Triangle budgets | FL-Lite 10K–50K, Standard 10K–25K | **FL-Lite 2M+, Standard 500K+** |
+| Triangle budgets | FL-Lite 10K–50K, Standard 10K–25K | **Flagship 20M, FL-Lite 10M, Standard 5M** |
 | Version references | CLAUDE.md v5.1, GCUD V10, MIG v3.1 | **CLAUDE.md v5.6, GCUD V10.2, MIG v3.2** |
 | New reference docs | — | **Per-Stage-Playbooks.md, 3D-Component-Registry.md** |
 

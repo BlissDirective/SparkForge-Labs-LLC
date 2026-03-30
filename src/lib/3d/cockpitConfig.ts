@@ -217,124 +217,66 @@ export const CEREMONY_INTENSITY = {
   streakMilestone: { bloomPeak: 0.7, particleCount: 80,  hudExpansion: 1.2, duration: 2000 },
 } as const;
 
-// ■■ Cockpit LOD Levels (CPA2-12 — upgraded for 20M budget) ■■
-export const COCKPIT_LOD = {
-  ultra: {
-    panelSegments: 256,        // increased from 48 for glass-smooth curves
-    sideSegments: 128,         // increased from 24 for high-poly side panels
-    hexDetail: true,
-    hexSubPanels: true,        // NEW: recessed instrument clusters inside hexes
-    hudRingSegments: 128,      // increased from 64 for seamless ring geometry
-    hudRingCount: 8,           // NEW: 8 concentric rings (was 3)
-    scanLines: 24,             // increased from 12 for volumetric beams
-    barrelDistortion: true,
-    reflections: true,
-    structuralDetail: true,    // NEW: cables, conduits, vents
-    volumetricFog: true,       // NEW: fog volumes + god rays
-    floorDetail: true,         // NEW: grated floor panels
-    npcFingers: true,          // NEW: articulated finger geometry
-    npcFacialAnim: true,       // NEW: visor expression geometry
-  },
-  high: {
-    panelSegments: 128,        // increased from 32
-    sideSegments: 64,          // increased from 16
-    hexDetail: true,
-    hexSubPanels: true,
-    hudRingSegments: 64,       // increased from 48
-    hudRingCount: 6,           // reduced from 8
-    scanLines: 16,             // increased from 12
-    barrelDistortion: true,
-    reflections: true,
-    structuralDetail: true,
-    volumetricFog: true,
-    floorDetail: true,
-    npcFingers: false,
-    npcFacialAnim: true,
-  },
-  medium: {
-    panelSegments: 64,         // increased from 24
-    sideSegments: 32,          // increased from 12
-    hexDetail: false,          // Hex clusters simplified to circles
-    hexSubPanels: false,
-    hudRingSegments: 32,
-    hudRingCount: 4,
-    scanLines: 8,
-    barrelDistortion: false,
-    reflections: false,
-    structuralDetail: false,
-    volumetricFog: false,
-    floorDetail: false,
-    npcFingers: false,
-    npcFacialAnim: false,
-  },
-  low: {
-    panelSegments: 32,         // increased from 16
-    sideSegments: 16,          // increased from 8
-    hexDetail: false,
-    hexSubPanels: false,
-    hudRingSegments: 16,
-    hudRingCount: 3,
-    scanLines: 6,
-    barrelDistortion: false,
-    reflections: false,
-    structuralDetail: false,
-    volumetricFog: false,
-    floorDetail: false,
-    npcFingers: false,
-    npcFacialAnim: false,
-  },
+// AUDIT-A6: COCKPIT_LOD removed per D3D-2 (no LOD system — all geometry at max quality)
+// Desktop-ultra always uses maximum detail settings:
+export const COCKPIT_DETAIL = {
+  panelSegments: 256,
+  sideSegments: 128,
+  hexDetail: true,
+  hexSubPanels: true,
+  hudRingSegments: 128,
+  hudRingCount: 8,
+  scanLines: 24,
+  barrelDistortion: true,
+  reflections: true,
+  structuralDetail: true,
+  volumetricFog: true,
+  floorDetail: true,
+  npcFingers: true,
+  npcFacialAnim: true,
 } as const;
 
-// ■■ Triangle Budget Breakdown (20M Cockpit Upgrade — March 20, 2026) ■■
-// Total: 20M desktop / 10M tablet / 0 mobile (CSS fallback)
+// AUDIT-A6: Triangle Budget — D3D-1 desktop-only (tablet/mobile columns removed)
+// Total: 30M system (cockpit) per CLAUDE.md Section 9
 export const TRIANGLE_BUDGET_V2 = {
   cockpitShell: {
-    cockpitPanels:      { desktop: 2_000_000,  tablet: 1_000_000, mobile: 0 },
-    ledRim:             { desktop: 200_000,    tablet: 100_000,   mobile: 0 },
-    sidePanels:         { desktop: 1_500_000,  tablet: 750_000,   mobile: 0 },
-    holographicHUD:     { desktop: 500_000,    tablet: 250_000,   mobile: 0 },
-    statusBar3D:        { desktop: 500_000,    tablet: 250_000,   mobile: 0 },
-    auroraBackground:   { desktop: 50_000,     tablet: 25_000,    mobile: 0 },
-    ambientParticles:   { desktop: 200_000,    tablet: 100_000,   mobile: 0 },
-    // Shell subtotal: 4,950,000 desktop / 2,475,000 tablet
+    cockpitPanels:      4_000_000,
+    ledRim:             500_000,
+    sidePanels:         3_000_000,
+    holographicHUD:     1_000_000,
+    statusBar3D:        1_000_000,
+    auroraBackground:   50_000,
+    ambientParticles:   200_000,
   },
   spatialContent: {
-    holographicLabMap:   { desktop: 1_000_000, tablet: 500_000,   mobile: 0 },
-    labStructures:       { desktop: 3_000_000, tablet: 1_500_000, mobile: 0 },
-    interactiveConsoles: { desktop: 2_000_000, tablet: 1_000_000, mobile: 0 },
-    ambientNPCs:         { desktop: 1_500_000, tablet: 750_000,   mobile: 0 },
-    dynamicEnvironment:  { desktop: 3_000_000, tablet: 1_500_000, mobile: 0 },
-    starsSkybox:         { desktop: 500_000,   tablet: 250_000,   mobile: 0 },
-    // Spatial subtotal: 11,000,000 desktop / 5,500,000 tablet
+    holographicLabMap:   1_000_000,
+    labStructures:       3_000_000,
+    interactiveConsoles: 3_000_000,
+    ambientNPCs:         2_000_000,
+    dynamicEnvironment:  3_000_000,
+    starsSkybox:         500_000,
   },
   newComponents: {
-    cockpitStructuralDetail: { desktop: 1_500_000, tablet: 750_000,  mobile: 0 },
-    volumetricFog:           { desktop: 500_000,   tablet: 250_000,  mobile: 0 },
-    cockpitFloor:            { desktop: 500_000,   tablet: 250_000,  mobile: 0 },
-    ceremonyFX:              { desktop: 500_000,   tablet: 250_000,  mobile: 0 },
-    wormholeTransition:      { desktop: 300_000,   tablet: 150_000,  mobile: 0 },
-    miniMapOverlay:          { desktop: 250_000,   tablet: 125_000,  mobile: 0 },
-    // New subtotal: 3,550,000 desktop / 1,775,000 tablet
+    cockpitStructuralDetail: 2_000_000,
+    volumetricFog:           500_000,
+    cockpitFloor:            1_000_000,
+    ceremonyFX:              500_000,
+    wormholeTransition:      300_000,
+    miniMapOverlay:          250_000,
   },
-  dynamicHeadroom: { desktop: 500_000, tablet: 250_000, mobile: 0 },
-  // Grand total: 20,000,000 desktop / 10,000,000 tablet
+  uiComponents: {
+    holographicButtons:      5_000_000,
+    navigationButtonGrid:    1_000_000,
+    variableDialCluster:     1_500_000,
+    centerViewportScreen:    3_000_000,
+  },
+  dynamicHeadroom:           500_000,
+  // Grand total: ~37,800,000 (within 50M system budget)
 } as const;
 
-// ■■ Adaptive FPS Degradation Thresholds ■■
-export const FPS_DEGRADATION = {
-  full:           { min: 0.9,  action: 'Full quality' },
-  reduceParticle: { min: 0.8,  action: 'Reduce particle counts by 30%' },
-  dropLOD:        { min: 0.6,  action: 'Drop to next LOD level, disable BarrelDistortion' },
-  disableHUD:     { min: 0.4,  action: 'Disable HolographicHUD, reduce NPC count by half' },
-  cssFallback:    { min: 0.0,  action: 'Disable all cockpit 3D, fall back to CSS frame' },
-} as const;
-
-// ■■ Progressive Enhancement Thresholds (CPA2-9) ■■
-export const COCKPIT_FEATURE_THRESHOLDS = {
-  fullCockpit3D:    { minWidth: 1024, minGPU: 'medium' as const },
-  reducedCockpit3D: { minWidth: 768,  minGPU: 'low' as const },
-  cssOnly:          { minWidth: 0,    minGPU: 'any' as const },
-} as const;
+// AUDIT-A6: FPS_DEGRADATION and COCKPIT_FEATURE_THRESHOLDS removed per D3D-5 / D3D-1
+// All effects always-on (D3D-5). Desktop-only, no CSS fallback (D3D-1).
+// Plan B1 (useFrameTimeMonitor) handles dev-only performance logging without degradation.
 
 // ■■ Type exports for consumers ■■
 export type StationModeKey = keyof typeof BLOOM_PRESETS;

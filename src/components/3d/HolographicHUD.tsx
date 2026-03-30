@@ -44,7 +44,7 @@ import {
   Vector3,
 } from 'three';
 import { Text } from '@react-three/drei';
-import { COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
+import { COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
 
 // ■■ Ring configuration ■■
 interface RingDef {
@@ -161,15 +161,10 @@ export function HolographicHUD({
   active,
 }: HolographicHUDProps) {
 
-  // Resolve cockpit LOD tier
-  const cockpitLod = useMemo(() => {
-    const level = 'ultra' as keyof typeof COCKPIT_LOD;
-    return COCKPIT_LOD[level] ?? COCKPIT_LOD.low;
-  }, ['ultra']);
-
-  const ringCount = cockpitLod.hudRingCount;
-  const ringSegments = cockpitLod.hudRingSegments;
-  const scanLineCount = cockpitLod.scanLines;
+  // AUDIT-A6: D3D-2 — always max quality, no LOD tiers
+  const ringCount = COCKPIT_DETAIL.hudRingCount;
+  const ringSegments = COCKPIT_DETAIL.hudRingSegments;
+  const scanLineCount = COCKPIT_DETAIL.scanLines;
 
   // Refs
   const ringRefs = useRef<(Mesh | null)[]>([]);

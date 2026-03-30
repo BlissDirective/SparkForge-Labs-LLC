@@ -38,7 +38,6 @@ export default tseslint.config(
       'react-hooks/exhaustive-deps': 'warn',
 
       // Allow empty interfaces (common in R3F component props)
-      '@typescript-eslint/no-empty-interface': 'off',
       '@typescript-eslint/no-empty-object-type': 'off',
 
       // Allow require() in config files (tailwind, postcss)

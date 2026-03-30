@@ -7,35 +7,7 @@ import {
   verifyChildOwnership, applyRateLimit, checkDuplicate,
 } from '@/lib/api-helpers';
 import { RATE_LIMITS } from '@/lib/rate-limit';
-
-// Level calculation using LEVELS array from types
-function calculateLevel(xp: number) {
-  // Levels defined in src/types/index.ts LEVELS array
-  // Each level has { level, title, minXP, maxXP }
-  // Simplified inline for this route:
-  const tiers = [
-    { min: 0, max: 500, level_range: [1, 5], title: 'Spark Starter' },
-    { min: 500, max: 1500, level_range: [6, 10], title: 'Curious Coder' },
-    { min: 1500, max: 3500, level_range: [11, 20], title: 'Data Explorer' },
-    { min: 3500, max: 7000, level_range: [21, 30], title: 'Algorithm Ace' },
-    { min: 7000, max: 12000, level_range: [31, 40], title: 'Neural Navigator' },
-    { min: 12000, max: 20000, level_range: [41, 50], title: 'AI Architect' },
-  ];
-
-  for (const tier of tiers) {
-    if (xp <= tier.max) {
-      const range = tier.max - tier.min;
-      const levels = tier.level_range[1] - tier.level_range[0] + 1;
-      const perLevel = range / levels;
-      const inTier = xp - tier.min;
-      const levelInTier = Math.floor(inTier / perLevel);
-      const level = tier.level_range[0] + levelInTier;
-      const progress = (inTier % perLevel) / perLevel;
-      return { level: Math.max(1, level), title: tier.title, progress };
-    }
-  }
-  return { level: 51, title: 'Forge Master', progress: 1 };
-}
+import { calculateLevel } from '@/lib/gamification';
 
 export async function POST(req: NextRequest) {
   const limited = applyRateLimit(req, 'gamification-xp', undefined, RATE_LIMITS.general);

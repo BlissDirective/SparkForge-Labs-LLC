@@ -26,7 +26,7 @@ This document transforms the SparkForge login/signup pages from a flat glassmorp
 
 No new packages required. Uses existing:
 - `three` / `@react-three/fiber` / `@react-three/drei` / `@react-three/postprocessing`
-- `framer-motion` (Motion)
+- `motion` (Motion — import from 'motion/react')
 - `zustand`
 - `lucide-react`
 
@@ -495,53 +495,27 @@ const R3FCanvas = dynamic(
   { ssr: false }
 );
 
-function useIsMobile() {
-  if (typeof window === 'undefined') return false;
-  return window.innerWidth < 768;
-}
+// [D3D-1] useIsMobile() removed — desktop-only platform, 3D always renders unconditionally.
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  const isMobile = typeof window !== 'undefined' ? useIsMobile() : false;
-
   return (
     <div className="min-h-screen bg-surface-deep bg-cosmic-dark flex flex-col items-center justify-center px-4 py-8 relative overflow-hidden">
       {/* Demo session banner — renders only when in demo mode */}
       <DemoSessionBanner />
 
-      {/* 3D Background Layer — desktop only */}
-      {!isMobile && (
-        <div className="fixed inset-0 z-0 pointer-events-none">
-          <Suspense fallback={null}>
-            <R3FCanvas
-              camera={{ position: [0, 0, 5], fov: 50 }}
-              dpr={[1, 2]}
-              style={{ background: 'transparent' }}
-              gl={{ alpha: true, antialias: true }}
-            >
-              <LoginScene3D />
-            </R3FCanvas>
-          </Suspense>
-        </div>
-      )}
-
-      {/* CSS Particle Fallback — mobile */}
-      {isMobile && (
-        <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
-          {Array.from({ length: 30 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute rounded-full animate-pulse"
-              style={{
-                width: `${2 + Math.random() * 4}px`,
-                height: `${2 + Math.random() * 4}px`,
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                backgroundColor: i % 3 === 0 ? '#AA66FF' : i % 3 === 1 ? '#00BBFF' : '#00FF88',
-                opacity: 0.3 + Math.random() * 0.4,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 3}s`,
-              }}
-            />
+      {/* 3D Background Layer — always renders (D3D-1: desktop-only platform) */}
+      <div className="fixed inset-0 z-0 pointer-events-none">
+        <Suspense fallback={null}>
+          <R3FCanvas
+            camera={{ position: [0, 0, 5], fov: 50 }}
+            dpr={[1, 2]}
+            style={{ background: 'transparent' }}
+            gl={{ alpha: true, antialias: true }}
+          >
+            <LoginScene3D />
+          </R3FCanvas>
+        </Suspense>
+      </div>
           ))}
         </div>
       )}
@@ -580,7 +554,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { Play, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
@@ -696,7 +670,7 @@ export function DemoLoginButton() {
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { Clock, X, UserPlus } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';

@@ -36,7 +36,7 @@ import {
   SphereGeometry,
   Vector3,
 } from 'three';
-import { COCKPIT_GEOMETRY, COCKPIT_LOD } from '@/lib/3d/cockpitConfig';
+import { COCKPIT_GEOMETRY, COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
 import { createAlloyFrameMaterial, createControlPanelMaterial, createHolographicMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
@@ -76,7 +76,7 @@ interface ResolvedSegments {
 
 function resolveSegments(
 ): ResolvedSegments {
-  const preset = COCKPIT_LOD['ultra'];
+  const preset = COCKPIT_DETAIL;
 
   return {
     mainSegments: preset.panelSegments,

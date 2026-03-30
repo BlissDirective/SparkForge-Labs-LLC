@@ -1,3 +1,7 @@
+-- ARCHIVED: Merged into 004_badges_seed.sql — see Audit Batch 3
+-- This file is kept for historical reference only. Do NOT run it.
+-- The canonical badge seed file is 004_badges_seed.sql.
+
 -- ════════════════════════════════════════════════════
 -- SPARKFORGE BADGE DEFINITIONS (68 badges)
 -- Run after 001_schema.sql
