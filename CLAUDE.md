@@ -19,13 +19,13 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 | Language | TypeScript (strict mode) | Type safety |
 | Styling | Tailwind CSS 4 (Oxide engine) | Utility-first CSS |
 | Database | Supabase (PostgreSQL + Auth + Storage) | All persistent data |
-| State | Zustand (9 stores) + Jotai (3D atoms) | Client state |
+| State | Zustand (13 stores) + Jotai (3D atoms) | Client state |
 | Data Fetching | React Query (@tanstack/react-query) | Server state + caching |
 | Validation | Zod | Schema validation |
 | Payments | Stripe | Subscriptions (Free/Plus/Forge) |
 | AI | Anthropic Claude API | Prompt Lab game + Content Agent |
 | 2D Motion | Motion (ex Framer Motion) + GSAP | Transitions, scroll |
-| 3D Rendering | React Three Fiber v9 + drei + postprocessing | 3D scenes, shaders (Three.js r171+, TSL, WebGPU/WebGL2) |
+| 3D Rendering | React Three Fiber v9 + drei + postprocessing | 3D scenes, shaders (Three.js r183+, TSL, WebGPU/WebGL2) |
 | Charts | @nivo/core + @nivo/line + @nivo/bar + @nivo/radar | Data visualization |
 | Audio | Tone.js | Game audio feedback |
 | Monitoring | Sentry (@sentry/nextjs) | Error tracking + performance |
@@ -34,9 +34,9 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 ### Current State
 
-- **Documentation:** COMPLETE — 94 active project files
+- **Documentation:** COMPLETE — 128 documentation files (80+ active stage docs)
 - **v3-FINAL patches:** 16 documents (38 part files), 64 locked decisions (48 core + 4 OD + 12 CPA2)
-- **Games:** 35 total — 6 Flagship (full 3D, 10M tris), 9 FL-Lite (immersive 3D, 2M tris), 20 Standard (themed 3D, 500K tris)
+- **Games:** 35 total — 6 Flagship (full 3D, 20M tris), 9 FL-Lite (immersive 3D, 10M tris), 20 Standard (themed 3D, 5M tris)
 - **Code written:** ~70% — Stages 1-7 code-complete, audited
 
 ---
@@ -83,8 +83,8 @@ A hard stop means: **STOP ALL WORK. Output a clear status message. Wait for the 
 | HS-6 | Build failure after 2 auto-fix attempts | Any time | "HARD STOP: Build is failing and I've exhausted auto-fix attempts. Here's the error: [error]. Here's what I've tried: [attempts]. Please advise." |
 | HS-7 | Supabase SQL execution | Stage 2 Part 1 (DB schema) | "HARD STOP: Please run the following SQL blocks in your Supabase SQL Editor in order. Reply 'done' when complete." |
 | HS-8 | GLB/3D asset creation | Stage 6B (Pet Trainer) | "SOFT NOTE: Pet Trainer will use procedural fallback (orb) until GLB assets are placed in `public/models/pets/`. This is non-blocking — game is fully playable." |
-| HS-9 | Hero-to-Cockpit handoff verification | After Phase 5D (Cockpit Architecture Part 2) | "HARD STOP: Hero Animation + Cockpit Architecture complete. Please verify: (1) 8-phase hero animation plays on first visit, (2) Fast-forward (click/Enter/Space) accelerates to 4x, (3) Skip toggle works in Settings, (4) Hero→cockpit handoff is seamless (no canvas swap, no flash), (5) Cockpit spatial dashboard renders with holographic lab map, (6) Lab entry wormhole transition works, (7) Mobile shows CSS fallback (no R3F). Reply 'approved' to continue to Stage 4." |
-| HS-10 | Login 3D + Demo Login verification | After Phase 5F (Login Enhancement Part B) | "HARD STOP: Login 3D Enhancement complete. Please verify: (1) 3D crystal portal renders behind login card on desktop, (2) Chrome bezel glow pulses on login card, (3) Demo Login button visible with confirmation flow, (4) Demo starts and redirects to /home with hero animation, (5) Demo banner shows countdown timer at top of dashboard, (6) Banner turns red/urgent when <5 min remain, (7) Expired modal appears when timer hits 0:00, (8) Mobile shows CSS particle fallback (no 3D canvas), (9) ?demo=expired shows amber notification on login page. Reply 'approved' to continue to Stage 4." |
+| HS-9 | Hero-to-Cockpit handoff verification | After Phase 5D (Cockpit Architecture Part 2) | "HARD STOP: Hero Animation + Cockpit Architecture complete. Please verify: (1) 8-phase hero animation plays on first visit, (2) Fast-forward (click/Enter/Space) accelerates to 4x, (3) Skip toggle works in Settings, (4) Hero→cockpit handoff is seamless (no canvas swap, no flash), (5) Cockpit spatial dashboard renders with holographic lab map, (6) Lab entry wormhole transition works. Reply 'approved' to continue to Stage 4." |
+| HS-10 | Login 3D + Demo Login verification | After Phase 5F (Login Enhancement Part B) | "HARD STOP: Login 3D Enhancement complete. Please verify: (1) 3D crystal portal renders behind login card on desktop, (2) Chrome bezel glow pulses on login card, (3) Demo Login button visible with confirmation flow, (4) Demo starts and redirects to /home with hero animation, (5) Demo banner shows countdown timer at top of dashboard, (6) Banner turns red/urgent when <5 min remain, (7) Expired modal appears when timer hits 0:00, (8) ?demo=expired shows amber notification on login page. Reply 'approved' to continue to Stage 4." |
 
 ### Escalation Rules
 
@@ -277,7 +277,7 @@ Always evaluate local and or remote files to assess if new/updated documents hav
 | 9 | Stage 5 Parts 2-3 | STAGE5_Parts23_v3FINAL_A/B/C | YES | — |
 | 10 | Stage 6B | STAGE6B_v3FINAL_A/B | YES | HS-8 (soft) |
 | 11 | Stage 6C | STAGE6C_v3FINAL_A/B | YES | — |
-| 12 | Stage 6D | STAGE6D_v3FINAL_A/B | YES | — |
+| 12 | Stage 6D | STAGE6D_v2 + v3FINAL_A/B | Mixed | — |
 | 13 | Stage 6E | STAGE6E_v3FINAL_A/B/C | YES | — |
 | 14 | Stage 6F | STAGE6F_v3FINAL_A/B/C | YES | — |
 | 15 | Stage 7A (9 games) | STAGE7A_Batch + Parts 2-4 | No | — |
@@ -392,8 +392,8 @@ Reply 'approved' to continue to Stage [N+1], or describe issues.
 | 2 | API routes respond (test /api/health), Supabase connected |
 | 3 | Signup → Login → Dashboard loads with sidebar. Station frame visible (Part 3). |
 | 3-Hero | 8-phase hero animation plays (19s). Fast-forward works (4x). Skip toggle in Settings. WebGPU/WebGL2/CSS fallback chain. Audio plays (mutable). `prefers-reduced-motion` skips to cockpit. |
-| 3-Cockpit | Cockpit renders at 20M tris (desktop). Hero→cockpit seamless handoff (CPA2-3). Spatial dashboard with holographic lab map. 4 consoles, NPCs, dynamic environment. Wormhole transitions. Mobile CSS fallback. |
-| 3-Login3D | 3D crystal portal behind login card (desktop). Chrome bezel glow pulses. Demo Login button with confirmation. Demo → /home with hero animation. Timer banner at dashboard top. Urgent mode at <5min. Expiry modal at 0:00. Mobile CSS particles. ?demo=expired amber notice. |
+| 3-Cockpit | Cockpit renders at ~37.8M tris (desktop-ultra). Hero→cockpit seamless handoff (CPA2-3). Spatial dashboard with holographic lab map. 4 consoles, NPCs, dynamic environment. Wormhole transitions. |
+| 3-Login3D | 3D crystal portal behind login card (desktop). Chrome bezel glow pulses. Demo Login button with confirmation. Demo → /home with hero animation. Timer banner at dashboard top. Urgent mode at <5min. Expiry modal at 0:00. ?demo=expired amber notice. |
 | 4 | Dashboard home, Labs map, Profile page. Lab reconfiguration transitions work. |
 | 5 | XP popup, streak fire, badge displays, trophy room. 3D particle effects on desktop. |
 | 6 | All 5 flagship games playable: full phase cycle (welcome→learn→play→complete). 3D visible on desktop. |
@@ -545,7 +545,7 @@ const Component3D = dynamic(
 - **Single persistent Canvas (D3D-B1)** — CockpitCanvas never unmounts
 - **Scene management via sceneStore (D3D-B5)** — centralized visibility control
 - **Mechanical iris transitions (D3D-B2)** — cockpit-to-game via MechanicalIris
-- **Triangle budgets: Flagship 20M, FL-Lite 10M, Standard 5M, System 30M (D3D-3)**
+- **Triangle budgets: Flagship 20M, FL-Lite 10M, Standard 5M, System ~37.8M cockpit + ~12M game headroom (D3D-3)**
 - Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
 - Environment: `frost-prismatic.hdr` in `public/hdri/`
 - 11 PBR presets in `lib/3d/materials.ts`
@@ -553,7 +553,7 @@ const Component3D = dynamic(
 
 ### 3D Component Registry
 
-**Full registry (93 components):** `docs/00-reference/3D-Component-Registry.md`
+**Full registry (~140 components):** `docs/00-reference/3D-Component-Registry.md`
 
 | Category | Count | Key Components |
 |----------|-------|----------------|
@@ -584,7 +584,7 @@ Future mobile support will use R3F-native LOD (Three.js LOD object), not CSS fal
 | Property | Value |
 |----------|-------|
 | Target FPS | 60 |
-| Max Triangles | 50,000,000 (30M cockpit + 20M game) |
+| Max Triangles | 50,000,000 (~37.8M cockpit + ~12.2M game headroom) |
 | Bloom | Always on |
 | Shadows | Always on |
 | Pixel Ratio | Native (`window.devicePixelRatio`) |
@@ -692,7 +692,7 @@ Mobile/tablet code paths have been removed (D3D-1). The cockpit always renders a
 
 #### TSL / WebGPU Notes
 
-Since Three.js r171+, custom `ShaderMaterial` and `RawShaderMaterial` are **not supported** in `WebGPURenderer`. All shaders must use **TSL (Three Shader Language)**, which auto-compiles to:
+Since Three.js r183+, custom `ShaderMaterial` and `RawShaderMaterial` are **not supported** in `WebGPURenderer`. All shaders must use **TSL (Three Shader Language)**, which auto-compiles to:
 - **WGSL** for WebGPU path
 - **GLSL** for WebGL2 fallback path
 
@@ -782,7 +782,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 **Full table:** `docs/00-reference/QUICK_REFERENCE_35_GAMES.md` (also in GCUD V10.2)
 
-**Summary:** 6 Flagship (full 3D, 10M budget) + 9 FL-Lite (immersive 3D, 2M budget) + 20 Standard (themed 3D) = **35 games** across 10 Labs. All games support age bands A/B/C (some B/C or C only). Built across Stages 6B–7F.
+**Summary:** 6 Flagship (full 3D, 20M budget) + 9 FL-Lite (immersive 3D, 10M budget) + 20 Standard (themed 3D, 5M budget) = **35 games** across 10 Labs. All games support age bands A/B/C (some B/C or C only). Built across Stages 6B–7F.
 
 ---
 
@@ -807,4 +807,4 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 ---
 
 *End of CLAUDE.md v6.0 — SparkForge Autonomous Development Playbook*
-*98 active files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 84 decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Enhancement 1.1 IMPLEMENTED (20M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | Tech Stack 8.1 APPLIED | March 24, 2026*
+*128 doc files | 409 src files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | ~140 3D components | 13 stores | 84 decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | Tech Stack 8.1 APPLIED | March 30, 2026*
