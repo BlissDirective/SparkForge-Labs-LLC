@@ -87,7 +87,7 @@ export async function checkHaikuModeration(
   } catch {
     // If moderation fails, err on the side of caution and allow
     // (the system prompt already provides primary safety)
-    console.warn('Haiku moderation check failed — allowing response (system prompt provides primary safety)');
+    // Moderation check failed — allowing response (system prompt provides primary safety)
     return { safe: true, layer: 'passed' };
   }
 }

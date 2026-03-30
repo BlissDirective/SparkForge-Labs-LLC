@@ -151,9 +151,11 @@ async function withRetry<T>(
 
       const delay = baseDelayMs * Math.pow(2, attempt);
       const jitter = delay * 0.1 * Math.random();
-      console.warn(
-        `Anthropic API retry ${attempt + 1}/${maxRetries} in ${Math.round(delay + jitter)}ms`
-      );
+      if (process.env.NODE_ENV === 'development') {
+        console.warn(
+          `Anthropic API retry ${attempt + 1}/${maxRetries} in ${Math.round(delay + jitter)}ms`
+        );
+      }
       await new Promise((resolve) => setTimeout(resolve, delay + jitter));
     }
   }
@@ -380,7 +382,9 @@ async function stageInsert(
     .limit(1);
 
   if (existing && existing.length > 0) {
-    console.log(`Skipping duplicate: "${content.title}" (band ${content.target_age_band})`);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Skipping duplicate: "${content.title}" (band ${content.target_age_band})`);
+    }
     return 'flagged'; // Count as flagged to surface in run report
   }
 
