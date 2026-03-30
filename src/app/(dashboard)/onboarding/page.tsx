@@ -24,7 +24,7 @@ import { useUIStore } from '@/stores/uiStore';
 // Dynamic import for 3D crystal (ssr: false required for R3F)
 const OnboardingCrystal3D = dynamic(
   () => import('@/components/3d/OnboardingCrystal3D'),
-  { ssr: false }
+  { ssr: false, loading: () => null }
 );
 
 const FREE_LABS = WORLDS.filter((w) => w.id <= 3);
