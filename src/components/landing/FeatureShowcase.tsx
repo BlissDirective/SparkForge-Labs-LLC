@@ -214,25 +214,7 @@ export function FeatureShowcase() {
         })}
       </div>
 
-      {/* Keyframe for holographic sweep — injected once, respects reduced motion */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes holographic-sweep {
-              0% { background-position: 200% 0; }
-              100% { background-position: -200% 0; }
-            }
-            .holographic-sweep-bg {
-              animation: holographic-sweep 3s linear infinite;
-            }
-            @media (prefers-reduced-motion: reduce) {
-              .holographic-sweep-bg {
-                animation: none;
-              }
-            }
-          `,
-        }}
-      />
+      {/* Keyframes moved to globals.css (HIGH-005 audit fix) */}
     </div>
   );
 }

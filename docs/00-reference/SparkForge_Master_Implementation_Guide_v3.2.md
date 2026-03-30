@@ -1549,9 +1549,32 @@ The definitive development order. Each phase must complete before the next begin
 | Content Agent Phase 1 | S9 Batch 1 commits | After Stage 9 Part 3 | 18 files (Section 5.3) |
 | AI Guide Avatar | `docs/enhancements/AI_GUIDE_AVATAR_ENHANCEMENT_PLAN.md` | Future | Planned |
 
+### 5.8 Frontend Audit Fixes — March 30, 2026
+
+| Category | Detail |
+|----------|--------|
+| Build fixes | Offline page `'use client'`, Supabase build-safe fallbacks |
+| React 19 compat | @nivo/* upgraded 0.88.0 to 0.99.0 |
+| Error boundaries | Added `error.tsx` + `loading.tsx` for (auth) and (marketing) route groups |
+| Production hardening | Guarded non-essential console statements |
+| CSS cleanup | Moved inline CSS keyframes (dangerouslySetInnerHTML) to `globals.css` |
+| 3D imports | Added loading fallbacks to dynamic 3D imports |
+| Accessibility | Improved ARIA on 8 games (52+ labels added) |
+| Documentation | Updated CLAUDE.md store registry (13 stores: added guideStore + cockpitAtoms) |
+
+**Files Created:**
+
+| File | Purpose |
+|------|---------|
+| `src/app/(auth)/error.tsx` | Auth route error boundary |
+| `src/app/(auth)/loading.tsx` | Auth route loading state |
+| `src/app/(marketing)/error.tsx` | Marketing route error boundary |
+| `src/app/(marketing)/loading.tsx` | Marketing route loading state |
+| `src/app/(dashboard)/admin/content/AdminContentClient.tsx` | Admin content client component |
+
 ---
 
 *End of Master Implementation Guide v4.0 | SparkForge | Laboratory Control Station*
-*409 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 | March 29, 2026*
+*414 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 | March 30, 2026*
 
 *This is a living document. Updated after each delivery session. GCUD V10.2 is the canonical source for game content tracking. Master Directory v1.2 is the canonical source for file registry and build flow.*

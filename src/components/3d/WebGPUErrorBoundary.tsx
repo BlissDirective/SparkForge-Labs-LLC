@@ -62,9 +62,11 @@ export class WebGPUErrorBoundary extends Component<WebGPUErrorBoundaryProps, Web
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('[WebGPUErrorBoundary] TSL shader compilation failed:', error.message);
-    console.error('[WebGPUErrorBoundary] Forcing WebGL2 fallback for this session.');
-    console.debug('[WebGPUErrorBoundary] Component stack:', errorInfo.componentStack);
+    if (process.env.NODE_ENV === 'development') {
+      console.error('[WebGPUErrorBoundary] TSL shader compilation failed:', error.message);
+      console.error('[WebGPUErrorBoundary] Forcing WebGL2 fallback for this session.');
+      console.debug('[WebGPUErrorBoundary] Component stack:', errorInfo.componentStack);
+    }
 
     // Report to Sentry if available
     if (typeof window !== 'undefined' && 'Sentry' in window) {

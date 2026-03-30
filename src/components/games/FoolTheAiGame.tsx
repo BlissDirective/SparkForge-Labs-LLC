@@ -209,7 +209,7 @@ export function FoolTheAiGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
                     <motion.span className="text-6xl block" animate={{ rotate: [0, 5, -5, 0] }}
                       transition={{ duration: 2, repeat: Infinity }}>{'\u{1F916}'}</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">Fool the AI</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Fool the AI welcome screen">Fool the AI</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C'
                         ? 'Examine AI classification outputs with softmax confidence scores. Identify misclassifications, low-confidence predictions, and adversarial failures.'
@@ -223,7 +223,8 @@ export function FoolTheAiGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start investigating AI classifications">
                       Start Investigating! <Target className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -233,7 +234,7 @@ export function FoolTheAiGame() {
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col">
                     {/* Challenge header + ENH: fooled counter */}
-                    <div className="rounded-xl p-3 mb-3 text-center"
+                    <div className="rounded-xl p-3 mb-3 text-center" role="status" aria-label={`Challenge: ${challenge.text} Progress: ${matchCount} of ${challenge.target}`}
                       style={{ backgroundColor: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
                       <p className="font-display text-sm font-bold text-cyan-400">{'\u{1F3AF}'} {challenge.text}</p>
                       {ageBand === 'C' && <p className="font-body text-2xs text-white/25 mt-0.5">{challenge.descC}</p>}
@@ -339,9 +340,9 @@ export function FoolTheAiGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">Fool the AI Complete!</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Fool the AI game complete">Fool the AI Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored how AI can be tricked and why understanding its weaknesses makes AI systems stronger and more reliable.</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">
+                    <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>

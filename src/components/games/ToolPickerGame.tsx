@@ -168,7 +168,7 @@ export function ToolPickerGame() {
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }} className="text-center space-y-4">
                     <span className="text-5xl">🔧</span>
-                    <h2 className="font-display text-2xl font-bold text-white">Tool Picker</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Tool Picker welcome phase">Tool Picker</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">Quick-fire challenge! Pick the right AI tool for each task. Be fast — you only have 6 seconds!</p>
                     <div className="flex flex-wrap gap-2 justify-center">
                       {TOOLS.map(t => <span key={t.id} className="px-2 py-1 rounded-lg bg-green-400/10 border border-green-400/20 text-xs font-body text-green-400">{t.emoji} {t.label}</span>)}
@@ -176,7 +176,8 @@ export function ToolPickerGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #00FF88, #00CC66)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start the Tool Picker game">
                       Start Picking! <Wrench className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -187,7 +188,8 @@ export function ToolPickerGame() {
                     {/* Timer + Streak */}
                     <div className="flex items-center justify-center gap-4 mb-4">
                       <motion.div className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm ${timer <= 2 ? 'bg-red-500/20 text-orange-400' : 'bg-green-400/10 text-green-400'}`}
-                        animate={timer <= 2 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 0.5, repeat: Infinity }}>
+                        animate={timer <= 2 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 0.5, repeat: Infinity }}
+                        role="status" aria-label={`${timer} seconds remaining`}>
                         {timer}
                       </motion.div>
                       {streak >= 2 && (
@@ -197,7 +199,8 @@ export function ToolPickerGame() {
 
                     {/* Task */}
                     <motion.div key={roundIdx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                      className="rounded-xl p-4 mb-4 border border-green-400/20 bg-green-400/5 text-center">
+                      className="rounded-xl p-4 mb-4 border border-green-400/20 bg-green-400/5 text-center"
+                      role="status" aria-label={`Task ${roundIdx + 1} of ${tasks.length}: ${task.text}`}>
                       <p className="font-display text-base font-bold text-white">{task.text}</p>
                     </motion.div>
 
@@ -239,9 +242,9 @@ export function ToolPickerGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">Tool Picker Complete!</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Tool Picker complete phase">Tool Picker Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You mastered the art of choosing the right AI tool for every task — knowing when to use each tool is a superpower.</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#00FF88]/10 border border-[#00FF88]/20">
+                    <div className="rounded-xl px-6 py-3 bg-[#00FF88]/10 border border-[#00FF88]/20" role="status" aria-label={`Final score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#00FF88' }}>{game.score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>

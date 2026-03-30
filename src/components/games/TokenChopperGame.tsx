@@ -211,7 +211,7 @@ export function TokenChopperGame() {
                         transition={{ duration: 2, repeat: Infinity }}
                       />
                     </motion.div>
-                    <h2 className="font-display text-2xl font-bold text-white">Token Chopper</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Token Chopper welcome phase">Token Chopper</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C'
                         ? 'Explore how language models tokenize text using byte-pair encoding. See subword splitting in action.'
@@ -233,6 +233,7 @@ export function TokenChopperGame() {
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Start the Token Chopper game"
                     >
                       Start Chopping! <Scissors className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -249,10 +250,10 @@ export function TokenChopperGame() {
                     {/* ENH: Progress bar for challenges */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/30">
+                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${completed.size} of ${CHALLENGES.length} challenges completed`}>
                           {completed.size}/{CHALLENGES.length} challenges
                         </span>
-                        <span className="font-data text-2xs text-orange-400">{animatedScore} pts</span>
+                        <span className="font-data text-2xs text-orange-400" role="status" aria-label={`Score: ${animatedScore} points`}>{animatedScore} pts</span>
                       </div>
                       <div className="h-1.5 rounded-full bg-white/5 overflow-hidden">
                         <motion.div
@@ -285,6 +286,7 @@ export function TokenChopperGame() {
                         <button
                           onClick={() => setShowHint(true)}
                           className="font-body text-2xs text-white/20 hover:text-white/40 mt-1"
+                          aria-label="Show hint for current challenge"
                         >
                           Show hint
                         </button>
@@ -302,8 +304,8 @@ export function TokenChopperGame() {
 
                     {/* Stats bar */}
                     <div className="flex items-center gap-4 mb-2">
-                      <span className="font-data text-xs text-white/40">{tokens.length} tokens</span>
-                      <span className="font-mono text-xs text-white/20">{'\u2248'} ${cost}</span>
+                      <span className="font-data text-xs text-white/40" role="status" aria-label={`${tokens.length} tokens`}>{tokens.length} tokens</span>
+                      <span className="font-mono text-xs text-white/20" role="status" aria-label={`Estimated cost: $${cost}`}>{'\u2248'} ${cost}</span>
                       <div className="flex gap-2 ml-auto">
                         {[
                           { label: 'word', color: '#3B82F6' },
@@ -378,6 +380,7 @@ export function TokenChopperGame() {
                       className="mt-3 w-full py-3 rounded-xl text-white font-display font-bold text-sm"
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Check challenge answer"
                     >
                       Check Challenge
                     </motion.button>
@@ -392,7 +395,7 @@ export function TokenChopperGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">Token Chopper Complete!</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Token Chopper complete phase">Token Chopper Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You discovered how AI breaks text into tokens — the fundamental units that language models read, process, and generate.
                     </p>
@@ -402,6 +405,8 @@ export function TokenChopperGame() {
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                      role="status"
+                      aria-label={`Final score: ${animatedScore} points`}
                     >
                       <motion.p
                         className="font-data text-2xl text-[#FFAA44]"

@@ -786,7 +786,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-## 14. STORES (11 total)
+## 14. STORES (13 total)
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
@@ -801,6 +801,8 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
 | **sceneStore** | D3D Part B | `activeScene`, `activeGameId`, `activeGameLabColor`, `transition`, `isTransitioning`, `cockpitOpacityTarget`. Actions: `enterGame`/`exitGame`/`enterSpatial`/`exitSpatial`/`setHeroActive`/`completeHero`/`updateTransitionProgress`/`completeTransition`. |
 | **cockpitBroadcastStore** | Stage 4 v3.0 | Cross-panel event bus. 16 event types (`dial-rotate`, `button-press`, `page-navigate`, `lab-select`, `xp-change`, etc.). Pulse decay system with per-event intensity mapping. All 3D UI components broadcast here; all cockpit elements subscribe. |
+| **guideStore** | 5/Phase5 | visible, minimized, context, labId, gameId, mood, messages, isStreaming, voiceEnabled, avatarConcept |
+| **cockpitAtoms** | CPA v2.0 | Jotai atoms for fine-grained cockpit 3D reactive state (labHover, panelFocus, etc.) |
 
 ---
 

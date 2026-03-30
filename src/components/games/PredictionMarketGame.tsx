@@ -172,7 +172,7 @@ export function PredictionMarketGame() {
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }} className="text-center space-y-4">
                     <span className="text-5xl">📈</span>
-                    <h2 className="font-display text-2xl font-bold text-white">Prediction Market</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Prediction Market welcome screen">Prediction Market</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">What will AI do in the future? Vote on predictions and see what others think!</p>
                     <div className="flex gap-2 justify-center">
                       {['AI Future', 'Forecasting', 'Critical Thinking'].map(t => (
@@ -182,7 +182,8 @@ export function PredictionMarketGame() {
                     <motion.button onClick={() => setPhase('play')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #D946EF, #A855F7)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Start predicting AI futures">
                       Start Predicting! <TrendingUp className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -192,7 +193,7 @@ export function PredictionMarketGame() {
                   <motion.div key={predIdx} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }} className="max-w-md w-full text-center">
                     {/* Time horizon badge */}
-                    <span className="px-2 py-0.5 rounded bg-fuchsia-500/10 font-mono text-2xs text-fuchsia-400 mb-2 inline-block">by {pred.horizon}</span>
+                    <span className="px-2 py-0.5 rounded bg-fuchsia-500/10 font-mono text-2xs text-fuchsia-400 mb-2 inline-block" aria-label={`Prediction horizon: by ${pred.horizon}`}>by {pred.horizon}</span>
                     <span className="text-4xl block mb-3">{pred.emoji}</span>
                     <h3 className="font-display text-lg font-bold text-white mb-5">{pred.question}</h3>
 
@@ -219,6 +220,8 @@ export function PredictionMarketGame() {
                               animate={{ scale: 1, color: 'rgba(255,255,255,0.4)' }}
                               transition={{ type: 'spring', stiffness: 200, damping: 12 }}
                               className="font-data text-2xs"
+                              role="status"
+                              aria-label={`Prediction accuracy: ${predictionAccuracy} out of ${totalVotes}`}
                             >
                               Accuracy: {predictionAccuracy}/{totalVotes}
                             </motion.span>
@@ -264,7 +267,9 @@ export function PredictionMarketGame() {
                         {/* Expert analysis toggle */}
                         <motion.button onClick={() => setShowAnalysis(!showAnalysis)}
                           className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/5 mx-auto"
-                          whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}>
+                          whileHover={{ backgroundColor: 'rgba(255,255,255,0.08)' }}
+                          aria-label={showAnalysis ? 'Hide expert analysis' : 'Show expert analysis'}
+                          aria-expanded={showAnalysis}>
                           <MessageSquare className="w-3 h-3 text-fuchsia-400" />
                           <span className="font-display text-xs font-bold text-white">Expert Analysis</span>
                         </motion.button>
@@ -283,7 +288,8 @@ export function PredictionMarketGame() {
                         <motion.button onClick={nextPrediction}
                           className="w-full max-w-xs mx-auto py-3 rounded-xl font-display font-bold text-white"
                           style={{ background: 'linear-gradient(135deg, #D946EF, #A855F7)' }}
-                          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                          whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                          aria-label={`Next prediction, ${predIdx + 2} of ${predictions.length}`}>
                           Next Prediction →
                         </motion.button>
                       </motion.div>
@@ -299,9 +305,9 @@ export function PredictionMarketGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">Prediction Market Complete!</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Prediction Market game complete">Prediction Market Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You evaluated AI predictions with critical thinking and learned that forecasting the future requires understanding both technology and uncertainty.</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#D946EF]/10 border border-[#D946EF]/20">
+                    <div className="rounded-xl px-6 py-3 bg-[#D946EF]/10 border border-[#D946EF]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#D946EF' }}>{game.score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>

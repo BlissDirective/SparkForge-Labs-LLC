@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { CelebrationOverlay } from '@/components/shared/CelebrationOverlay';
 import { ContinueBanner } from '@/components/shared/ContinueBanner';
@@ -19,7 +19,7 @@ import { useGuideContext } from '@/hooks/useGuideContext';
 // Phase 5: Guide chat panel (HTML overlay, not R3F — persists across all views)
 const GuideChatPanel = dynamic(
   () => import('@/components/ui/GuideChatPanel'),
-  { ssr: false }
+  { ssr: false, loading: () => null }
 );
 
 // Dashboard Layout — Laboratory Control Station Shell
@@ -33,7 +33,7 @@ const GuideChatPanel = dynamic(
 const StationFrame = dynamic(
   () =>
     import('@/components/3d/StationFrame').then((m) => m.StationFrame),
-  { ssr: false }
+  { ssr: false, loading: () => <div className="fixed inset-0 bg-surface-deep" /> }
 );
 
 export default function DashboardLayout({

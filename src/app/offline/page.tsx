@@ -1,7 +1,9 @@
 // ════════════════════════════════════════════════════
 // OFFLINE PAGE — Frost-Prismatic styled fallback
 // S10-HIGH-005: Branded offline experience instead of browser error
+// AUDIT-FIX: Added 'use client' — onClick handler requires client component
 // ════════════════════════════════════════════════════
+'use client';
 
 export default function OfflinePage() {
   return (
