@@ -12,6 +12,9 @@ export interface DemoSession {
 }
 
 export function createDemoSession(): DemoSession {
+  if (typeof window === 'undefined') {
+    throw new Error('createDemoSession can only be called in the browser');
+  }
   const now = Date.now();
   const session: DemoSession = {
     id: `demo-${now}-${Math.random().toString(36).slice(2, 9)}`,
@@ -24,6 +27,7 @@ export function createDemoSession(): DemoSession {
 }
 
 export function getDemoSession(): DemoSession | null {
+  if (typeof window === 'undefined') return null;
   const raw = localStorage.getItem(DEMO_SESSION_KEY);
   if (!raw) return null;
   try {
@@ -52,6 +56,7 @@ export function isDemoExpired(): boolean {
 }
 
 export function clearDemoSession(): void {
+  if (typeof window === 'undefined') return;
   localStorage.removeItem(DEMO_SESSION_KEY);
 }
 

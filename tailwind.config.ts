@@ -1,8 +1,9 @@
 import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
 
+// AUDIT-G7: Tailwind v4 uses @import "tailwindcss" in CSS — darkMode:'class' removed (v4 uses @custom-variant)
+// Content detection is automatic in v4 but kept for compatibility mode
 const config: Config = {
-  darkMode: 'class',
   content: ['./src/**/*.{ts,tsx,mdx}'],
   theme: {
     extend: {
