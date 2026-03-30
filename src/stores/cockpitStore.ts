@@ -5,6 +5,12 @@
 // Manages: focused lab, camera target, spatial mode, console state,
 //          cockpit skin (unlock-gated), ceremony queue, audio prefs, mini-map
 // Persisted: cockpit skin + unlocked skins + last focused lab + NPC vis + audio + mini-map
+//
+// KNOWN ISSUE (J5): Multiple actions use bare setTimeout to clear
+// isTransitioning after fixed delays (800ms/600ms). These timeouts are
+// not cleaned up if the store action is called again before the timeout
+// fires, which can cause stale state. A future fix should store timeout
+// IDs and clear them on subsequent calls or on store reset.
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
