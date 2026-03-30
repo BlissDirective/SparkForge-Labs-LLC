@@ -129,7 +129,7 @@ export function RealOrFakeGame() {
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }} className="text-center space-y-4">
                     <span className="text-5xl">🔍</span>
-                    <h2 className="font-display text-2xl font-bold text-white">Real or Fake?</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Real or Fake welcome screen">Real or Fake?</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">Can you spot AI-generated content? Read each piece carefully and decide if it&apos;s real or fake!</p>
                     <div className="flex gap-2 justify-center">
                       {['Deepfakes', 'Misinformation', 'Critical Thinking'].map(t => (
@@ -139,7 +139,8 @@ export function RealOrFakeGame() {
                     <motion.button onClick={() => setPhase('tips')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label="Learn detection tips before playing">
                       Learn Detection Tips! <BookOpen className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -163,10 +164,12 @@ export function RealOrFakeGame() {
                       onClick={() => { if (tipIdx < DETECTION_TIPS.length - 1) setTipIdx(i => i + 1); else setPhase('play'); }}
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
-                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      aria-label={tipIdx < DETECTION_TIPS.length - 1 ? `Next tip, ${tipIdx + 2} of ${DETECTION_TIPS.length}` : 'Start detecting'}>
                       {tipIdx < DETECTION_TIPS.length - 1 ? 'Next Tip →' : 'Start Detecting! 🔍'}
                     </motion.button>
-                    <button onClick={() => setPhase('play')} className="font-body text-xs text-white/20 hover:text-white/40">
+                    <button onClick={() => setPhase('play')} className="font-body text-xs text-white/20 hover:text-white/40"
+                      aria-label="Skip tips and start playing">
                       Skip tips →
                     </button>
                   </motion.div>
@@ -177,7 +180,7 @@ export function RealOrFakeGame() {
                     {/* Round info */}
                     <div className="flex items-center justify-center gap-3 mb-3">
                       <span className="font-body text-xs text-white/30">{round.typeLabel}</span>
-                      <span className="font-data text-2xs text-white/15">{score.correct}/{score.total}</span>
+                      <span className="font-data text-2xs text-white/15" role="status" aria-label={`Score: ${score.correct} correct out of ${score.total}`}>{score.correct}/{score.total}</span>
                     </div>
 
                     {/* Content card with flip animation */}
@@ -223,9 +226,9 @@ export function RealOrFakeGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">Real or Fake Complete!</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Real or Fake game complete">Real or Fake Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You sharpened your media literacy skills and can now spot deepfakes and AI-generated content with confidence.</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20">
+                    <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#FF6644' }}>{game.score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>

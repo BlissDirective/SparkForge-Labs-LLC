@@ -316,7 +316,7 @@ export function WordPredictorGame() {
                         transition={{ duration: 2, repeat: Infinity }}
                       />
                     </motion.div>
-                    <h2 className="font-display text-2xl font-bold text-white">Word Predictor</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Word Predictor welcome phase">Word Predictor</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       Can you guess the next word? See how AI predicts language!
                     </p>
@@ -336,6 +336,7 @@ export function WordPredictorGame() {
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Start the Word Predictor game"
                     >
                       Start Predicting! <Brain className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -376,8 +377,8 @@ export function WordPredictorGame() {
                         </motion.span>
                       </motion.div>
                     )}
-                    <p className="font-body text-white/40 text-xs mb-4">What word comes next?</p>
-                    <p className="font-display text-xl font-bold text-white mb-6">
+                    <p className="font-body text-white/40 text-xs mb-4" role="status" aria-label={`Round ${roundIdx + 1} of ${rounds.length}`}>What word comes next?</p>
+                    <p className="font-display text-xl font-bold text-white mb-6" aria-label={`Sentence to complete: ${round.sentence}`}>
                       {round.sentence.replace('___', '')}
                       <span className="inline-block w-20 border-b-2 border-orange-400/40 mx-1" />
                     </p>
@@ -418,6 +419,7 @@ export function WordPredictorGame() {
                             className="px-5 py-3 rounded-xl text-white font-display font-bold text-sm disabled:opacity-30"
                             style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                             whileTap={{ scale: 0.95 }}
+                            aria-label="Submit word prediction guess"
                           >
                             <Zap className="w-4 h-4" />
                           </motion.button>
@@ -515,7 +517,7 @@ export function WordPredictorGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">Word Predictor Complete!</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Word Predictor complete phase">Word Predictor Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You explored how language models predict the next word by analyzing context and assigning probabilities to possible completions.
                     </p>
@@ -525,6 +527,8 @@ export function WordPredictorGame() {
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                      role="status"
+                      aria-label={`Final score: ${animatedScore} points`}
                     >
                       <motion.p
                         className="font-data text-2xl text-[#FFAA44]"

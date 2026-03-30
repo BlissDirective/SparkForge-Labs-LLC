@@ -273,7 +273,7 @@ export function AiArtDetectiveGame() {
                     className="text-center space-y-4"
                   >
                     <span className="text-5xl">{'\uD83C\uDFA8'}</span>
-                    <h2 className="font-display text-2xl font-bold text-white">AI Art Detective</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="AI Art Detective welcome screen">AI Art Detective</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       Can you tell which artwork was made by AI? Study the styles and spot the machine!
                     </p>
@@ -293,6 +293,7 @@ export function AiArtDetectiveGame() {
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Learn detection tips before playing"
                     >
                       Learn Detection Tips! <Eye className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -344,12 +345,14 @@ export function AiArtDetectiveGame() {
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label={tipIdx < DETECTION_TIPS.length - 1 ? `Next tip, ${tipIdx + 2} of ${DETECTION_TIPS.length}` : 'Start the gallery'}
                     >
                       {tipIdx < DETECTION_TIPS.length - 1 ? 'Next Tip \u2192' : 'Start the Gallery!'}
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
                       className="font-body text-xs text-white/20 hover:text-white/40"
+                      aria-label="Skip tips and start playing"
                     >
                       Skip tips {'\u2192'}
                     </button>
@@ -365,7 +368,7 @@ export function AiArtDetectiveGame() {
                   >
                     {/* Confidence meter */}
                     {roundIdx > 0 && (
-                      <div className="mb-3 max-w-xs mx-auto">
+                      <div className="mb-3 max-w-xs mx-auto" role="status" aria-label={`Detection confidence: ${confidencePct}%`}>
                         <div className="flex justify-between mb-1">
                           <span className="font-body text-2xs text-white/30">Detection Confidence</span>
                           <span className="font-data text-2xs font-bold" style={{ color: confidenceColor }}>{confidencePct}%</span>
@@ -384,7 +387,7 @@ export function AiArtDetectiveGame() {
                       </div>
                     )}
                     {streak >= 3 && (
-                      <p className="font-display text-xs text-orange-400 mb-2">
+                      <p className="font-display text-xs text-orange-400 mb-2" role="status" aria-label={`${streak} streak, score multiplier active`}>
                         {streak} streak! Score multiplier active!
                       </p>
                     )}
@@ -434,7 +437,7 @@ export function AiArtDetectiveGame() {
                           // ENH: Zoom lens hover effect — scale 1.05 with shadow lift
                           whileHover={!showResult ? { scale: 1.05, boxShadow: '0 8px 30px rgba(0,0,0,0.4)' } : {}}
                           whileTap={!showResult ? { scale: 0.97 } : {}}
-                          aria-label={`${side} artwork`}
+                          aria-label={`Select ${side} artwork as AI-generated, round ${roundIdx + 1} of ${ROUNDS.length}`}
                         >
                           <div className="absolute inset-0">
                             {(side === 'left' ? round.leftShapes : round.rightShapes).map((s, i) => (
@@ -506,9 +509,9 @@ export function AiArtDetectiveGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
-                    <h2 className="font-display text-2xl font-bold text-white">AI Art Detective Complete!</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="AI Art Detective game complete">AI Art Detective Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You trained your eye to distinguish AI-generated art from human creations — a crucial skill in the age of generative AI.</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#FFAA44]/10 border border-[#FFAA44]/20">
+                    <div className="rounded-xl px-6 py-3 bg-[#FFAA44]/10 border border-[#FFAA44]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#FFAA44' }}>{game.score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>

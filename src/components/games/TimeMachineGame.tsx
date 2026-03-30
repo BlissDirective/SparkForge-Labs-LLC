@@ -215,7 +215,7 @@ export function TimeMachineGame() {
                         transition={{ duration: 2, repeat: Infinity }}
                       />
                     </motion.div>
-                    <h2 className="font-display text-2xl font-bold text-white">Time Machine</h2>
+                    <h2 className="font-display text-2xl font-bold text-white" aria-label="Time Machine welcome phase">Time Machine</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       Travel through the history of AI! Place milestone cards on the correct year.
                     </p>
@@ -235,6 +235,7 @@ export function TimeMachineGame() {
                       style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Start the Time Machine game"
                     >
                       Start the Time Machine! <Clock className="inline w-4 h-4 ml-1" />
                     </motion.button>
@@ -251,7 +252,7 @@ export function TimeMachineGame() {
                     {/* ENH: Visual progress bar */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/30">
+                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${placed.size} of ${milestones.length} milestones placed`}>
                           {placed.size}/{milestones.length} placed
                         </span>
                         {streak >= 2 && (
@@ -397,6 +398,7 @@ export function TimeMachineGame() {
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
+                      aria-label="Time Machine complete phase - Timeline Mastery"
                     >
                       Timeline Mastery!
                     </motion.h2>
@@ -409,6 +411,8 @@ export function TimeMachineGame() {
                       initial={{ scale: 0.8, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: 'spring', stiffness: 200, delay: 0.4 }}
+                      role="status"
+                      aria-label={`Final score: ${animatedScore} points`}
                     >
                       <motion.p
                         className="font-data text-2xl text-[#00BBFF]"
