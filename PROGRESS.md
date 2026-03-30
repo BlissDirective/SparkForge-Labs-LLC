@@ -1,8 +1,65 @@
 # SparkForge Build Progress
 
-## Current Phase: Audit Findings Implementation (CRIT + HIGH complete)
-## Status: IN PROGRESS — All CRITICAL and HIGH findings resolved
-## Last Updated: 2026-03-30 (Audit findings implementation)
+## Current Phase: Audit Findings + Marketing/Legal Pages Enhancement
+## Status: IN PROGRESS — CRIT + HIGH findings resolved, marketing layout + COPPA pages complete
+## Last Updated: 2026-03-30 (Marketing layout + COPPA-compliant privacy/terms)
+
+---
+
+### Marketing Layout & Legal Pages Enhancement (2026-03-30)
+
+**Status:** COMPLETE
+**Branch:** `claude/audit-findings-implementation-WJSMR`
+**Scope:** Shared marketing layout, production-ready COPPA privacy policy, terms of service
+
+**Phase 1 — Shared Marketing Layout:**
+- [x] `src/components/marketing/MarketingHeader.tsx` — Fixed glassmorphism header with nav, auth CTAs, active page indicator
+- [x] `src/components/marketing/MarketingFooter.tsx` — 3-column footer (Platform, Legal, Contact) with COPPA badge
+- [x] `src/app/(marketing)/layout.tsx` — Updated with shared header/footer, aurora background gradient
+
+**Phase 2 — COPPA-Compliant Privacy Policy (13 sections):**
+- [x] Operator identification with physical contact details
+- [x] Detailed data collection inventory (what we collect AND don't collect)
+- [x] Third-party service disclosures with data/purpose/security per service (5 services)
+- [x] Verifiable Parental Consent (VPC) method description
+- [x] Parental rights enumeration with exercise instructions
+- [x] Written data retention policy with per-category periods (2025 COPPA amendment)
+- [x] Written security program disclosure (2025 COPPA amendment)
+- [x] Cookie/persistent identifier disclosure table
+- [x] No-advertising/no-profiling/no-monetization statement
+- [x] Demo mode data handling
+- [x] Policy change notification + re-consent requirement
+- [x] Legal review required banner
+
+**Phase 3 — Terms of Service (14 sections):**
+- [x] Eligibility & age requirements (COPPA alignment)
+- [x] Account terms with security responsibilities
+- [x] Subscription tiers (Free/Plus/Forge) with billing details
+- [x] Parental gate for all purchases
+- [x] Demo mode terms
+- [x] Comprehensive acceptable use policy
+- [x] AI-specific disclosures (Anthropic API, moderation, no profiling)
+- [x] No-advertising statement
+- [x] Intellectual property
+- [x] Termination (by user and by operator)
+- [x] Disclaimers & limitation of liability
+- [x] Dispute resolution (Delaware law, JAMS arbitration)
+- [x] Change notification + re-consent requirement
+
+**Phase 4 — Documentation Updates:**
+- [x] Master Implementation Guide v4.0 — Added marketing components, privacy/terms pages, auth callback to file registries
+- [x] PROGRESS.md — Full implementation log
+- [x] AUDIT_REPORT_03.29.2026.md — Resolution status table (updated earlier)
+
+**Files Created (4):**
+- `src/components/marketing/MarketingHeader.tsx`
+- `src/components/marketing/MarketingFooter.tsx`
+- `src/app/(marketing)/privacy/page.tsx` (rewritten from scratch)
+- `src/app/(marketing)/terms/page.tsx` (rewritten from scratch)
+
+**Files Modified (2):**
+- `src/app/(marketing)/layout.tsx` (full rewrite — added header/footer/aurora)
+- `docs/00-reference/SparkForge_Master_Implementation_Guide_v3.2.md` (file registry updates)
 
 ---
 
