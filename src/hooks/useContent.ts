@@ -61,7 +61,7 @@ export function useGameContent(gameSlug: string, ageBand: string) {
       ),
     enabled: !!gameSlug && !!ageBand,
     staleTime: 5 * 60 * 1000, // 5 minutes — game content refreshes more often
-    select: (data) => {
+    select: (data: { items?: Content[] }) => {
       const items = (data?.items || []) as Content[];
       return {
         scenarios: items.filter((i) => i.type === 'game_scenario'),
