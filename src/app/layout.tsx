@@ -14,11 +14,12 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
 
 // ── Fonts ──
-// Loaded via Google Fonts CDN with preconnect for performance.
+// Loaded via Google Fonts CDN with preconnect + display=swap for performance.
+// next/font/google requires build-time internet (not available in all CI envs).
+// FUTURE: Migrate to next/font/local with self-hosted woff2 files in public/fonts/
+// for zero-latency loading and no third-party privacy exposure.
 // CSS variables (--font-display, --font-body, --font-mono, --font-data)
 // are set in globals.css so Tailwind fontFamily can reference them.
-// TODO: Migrate to next/font/google when build environment has internet access.
-// See AUDIT_REPORT WARN-001 for details.
 
 // ── SEO Metadata ──────────────────────────────────
 
