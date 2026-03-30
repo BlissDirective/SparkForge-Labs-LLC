@@ -7,6 +7,7 @@ import { ContinueBanner } from '@/components/shared/ContinueBanner';
 import { useUIStore } from '@/stores/uiStore';
 // REMOVED (D3D-1): useMediaQuery — desktop-only platform
 import { useSessionTracker } from '@/hooks/useSessionTracker';
+import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
 import { useCockpitAudio } from '@/hooks/useCockpitAudio';
 import { motion, AnimatePresence } from 'motion/react';
@@ -61,6 +62,7 @@ export default function DashboardLayout({
   }, [stationMode.mode, onModeChange]);
 
   return (
+    <AuthProvider>
     <DemoGuard>
       <DemoSessionBanner />
       <div className="min-h-screen bg-surface-deep relative overflow-hidden">
@@ -130,5 +132,6 @@ export default function DashboardLayout({
       </motion.main>
       </div>
     </DemoGuard>
+    </AuthProvider>
   );
 }
