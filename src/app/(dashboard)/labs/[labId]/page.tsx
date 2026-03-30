@@ -25,7 +25,7 @@ import { useLabProgress } from '@/hooks/useProgress';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { getGamesByLab } from '@/config/gameRegistry';
-import { ArrowLeft, ChevronRight, Star, Lock, Play } from 'lucide-react';
+import { ArrowLeft, Play } from 'lucide-react';
 
 const LAB_NAMES = [
   'What IS AI?', 'Teaching Machines', 'The Brain Inside',
@@ -68,7 +68,9 @@ export default function LabDetailPage() {
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const childId = activeChild?.id || '';
 
-  // Validate lab ID
+  // Validate lab ID — notFound() is called after hooks that are always called unconditionally
+  // (useParams, useChildStore, useUIStore, useCockpitStore, useCockpitBroadcast).
+  // This is safe because none of the hooks above are conditional — React hook order is preserved.
   if (labId < 1 || labId > 10) {
     notFound();
   }

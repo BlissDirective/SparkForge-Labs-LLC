@@ -8,13 +8,13 @@ import { useChildStore } from '@/stores/childStore';
 //   ends on unmount. Non-critical — all failures silent.
 
 export function useSessionTracker() {
-  const { activeChild } = useChildStore();
+  const activeChildId = useChildStore((s) => s.activeChild?.id);
   const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!activeChild?.id) return;
+    if (!activeChildId) return;
 
-    const childId = activeChild.id;
+    const childId = activeChildId;
 
     async function startSession() {
       try {
@@ -66,5 +66,5 @@ export function useSessionTracker() {
       endSession();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [activeChild?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeChildId]); // eslint-disable-line react-hooks/exhaustive-deps
 }

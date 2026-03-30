@@ -332,8 +332,7 @@ function AutoOrbitController({
 }: {
   isTraining: boolean;
 }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const controlsRef = useRef<any>(null);
+  const controlsRef = useRef<React.ComponentRef<typeof OrbitControls>>(null);
 
   useFrame(() => {
     if (!controlsRef.current) return;

@@ -39,5 +39,16 @@ export function useLocalStorage<T>(
     [key]
   );
 
+  // Cross-tab sync via storage event
+  useEffect(() => {
+    const handler = (e: StorageEvent) => {
+      if (e.key === `sparkforge-${key}` && e.newValue !== null) {
+        try { setStoredValue(JSON.parse(e.newValue)); } catch { /* ignore parse errors */ }
+      }
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, [key]);
+
   return [storedValue, setValue];
 }

@@ -18,8 +18,7 @@
 //   8. Vignette             — Edge darkening
 //   9. BarrelDistortion     — Lens distortion (optional strength)
 
-import { useRef } from 'react';
-import { useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import {
   EffectComposer,
   Bloom,

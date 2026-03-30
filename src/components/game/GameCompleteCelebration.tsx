@@ -39,6 +39,7 @@ export function GameCompleteCelebration({
   const [phase, setPhase] = useState<'burst' | 'stats' | 'badge'>('burst');
 
   // Generate confetti
+  // TODO: Consider consolidating with CelebrationOverlay confetti system (src/components/shared/CelebrationOverlay.tsx)
   const confetti = useMemo<Confetto[]>(() =>
     Array.from({ length: 60 }, (_, i) => ({
       id: i,
