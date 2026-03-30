@@ -26,7 +26,7 @@ This document transforms the SparkForge login/signup pages from a flat glassmorp
 
 No new packages required. Uses existing:
 - `three` / `@react-three/fiber` / `@react-three/drei` / `@react-three/postprocessing`
-- `framer-motion` (Motion)
+- `motion` (Motion — import from 'motion/react')
 - `zustand`
 - `lucide-react`
 
@@ -580,7 +580,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 'use client';
 
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { Play, Loader2 } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
@@ -696,7 +696,7 @@ export function DemoLoginButton() {
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { Clock, X, UserPlus } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';

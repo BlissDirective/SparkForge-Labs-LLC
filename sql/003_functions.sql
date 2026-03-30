@@ -59,6 +59,9 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Lab completion progress calculator
+-- AUDIT-D2: Changed to SECURITY INVOKER so function runs with caller's permissions.
+-- The child_id parameter is validated against RLS policies on the progress table,
+-- ensuring parents can only query progress for their own children.
 CREATE OR REPLACE FUNCTION get_lab_progress(p_child_id UUID, p_world INT, p_age_band TEXT)
 RETURNS TABLE(total_items BIGINT, completed_items BIGINT, percent NUMERIC) AS $$
 BEGIN
@@ -75,4 +78,8 @@ BEGIN
     AND c.target_age_band = p_age_band
     AND c.status = 'published';
 END;
-$$ LANGUAGE plpgsql SET search_path = public, pg_temp SECURITY DEFINER;
+$$ LANGUAGE plpgsql SET search_path = public, pg_temp SECURITY INVOKER;
+
+-- Content updated_at trigger (AUDIT-H5: was missing)
+CREATE TRIGGER content_updated_at BEFORE UPDATE ON content
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at();
