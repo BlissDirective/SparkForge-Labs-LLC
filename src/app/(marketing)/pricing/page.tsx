@@ -331,36 +331,7 @@ export default function PricingPage() {
 
   return (
     <div className="relative min-h-screen">
-      {/* [ENH-2] CSS keyframes for badge pulse animation */}
-      <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes badge-pulse {
-          0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
-          50% { opacity: 0.9; box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
-        }
-        .badge-pulse {
-          animation: badge-pulse 2s ease-in-out infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .badge-pulse { animation: none; }
-        }
-        @keyframes scanline-scroll {
-          0% { background-position: 0 0; }
-          100% { background-position: 0 4px; }
-        }
-        .scanline-overlay {
-          background-image: repeating-linear-gradient(
-            0deg,
-            transparent,
-            transparent 2px,
-            rgba(59, 130, 246, 0.015) 2px,
-            rgba(59, 130, 246, 0.015) 4px
-          );
-          animation: scanline-scroll 0.5s linear infinite;
-        }
-        @media (prefers-reduced-motion: reduce) {
-          .scanline-overlay { animation: none; }
-        }
-      `}} />
+      {/* [ENH-2] Keyframes moved to globals.css (HIGH-005 audit fix) */}
 
       {/* ─── [v3] Aurora background — visual continuity with ScrollJourney ─── */}
       <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">

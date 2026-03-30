@@ -197,36 +197,7 @@ export function StationPreview() {
         })}
       </div>
 
-      {/* Keyframes for LED pulse + scanline overlay */}
-      <style
-        dangerouslySetInnerHTML={{
-          __html: `
-            @keyframes led-pulse {
-              0%, 100% { opacity: 0.6; }
-              50% { opacity: 1; }
-            }
-            .led-rim-pulse {
-              animation: led-pulse 4s ease-in-out infinite;
-            }
-            /* [Enhancement #5] Scanline overlay — 2px repeating gradient */
-            .scanline-overlay {
-              background: repeating-linear-gradient(
-                to bottom,
-                transparent 0px,
-                transparent 2px,
-                rgba(0, 0, 0, 0.08) 2px,
-                rgba(0, 0, 0, 0.08) 4px
-              );
-            }
-            /* [Enhancement #1] Respect reduced motion preference */
-            @media (prefers-reduced-motion: reduce) {
-              .led-rim-pulse {
-                animation: none;
-              }
-            }
-          `,
-        }}
-      />
+      {/* Keyframes moved to globals.css (HIGH-005 audit fix) */}
     </div>
   );
 }

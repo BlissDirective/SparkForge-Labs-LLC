@@ -608,3 +608,63 @@ body[data-scanlines="off"] .scanline-overlay {
     transform: scale(0);
   }
 }
+
+/* ================================================================ */
+/* HIGH-005: Keyframes moved from dangerouslySetInnerHTML            */
+/* Source: pricing/page.tsx, StationPreview.tsx, FeatureShowcase.tsx  */
+/* ================================================================ */
+
+/* Pricing page — badge pulse animation */
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4); }
+  50% { opacity: 0.9; box-shadow: 0 0 0 6px rgba(59, 130, 246, 0); }
+}
+.badge-pulse {
+  animation: badge-pulse 2s ease-in-out infinite;
+}
+
+/* Pricing page — scanline scroll */
+@keyframes scanline-scroll {
+  0% { background-position: 0 0; }
+  100% { background-position: 0 4px; }
+}
+
+/* StationPreview — LED rim pulse */
+@keyframes led-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+.led-rim-pulse {
+  animation: led-pulse 4s ease-in-out infinite;
+}
+
+/* FeatureShowcase — holographic sweep */
+@keyframes holographic-sweep {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.holographic-sweep-bg {
+  animation: holographic-sweep 3s linear infinite;
+}
+
+/* Shared: scanline overlay used by pricing + StationPreview */
+.scanline-overlay {
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(59, 130, 246, 0.015) 2px,
+    rgba(59, 130, 246, 0.015) 4px
+  );
+  animation: scanline-scroll 0.5s linear infinite;
+}
+
+/* Respect reduced motion for all moved keyframes */
+@media (prefers-reduced-motion: reduce) {
+  .badge-pulse,
+  .led-rim-pulse,
+  .holographic-sweep-bg,
+  .scanline-overlay {
+    animation: none;
+  }
+}
