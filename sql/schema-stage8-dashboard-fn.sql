@@ -7,7 +7,7 @@
 -- Update subscription_status CHECK to include 'paused' (S8-WARN-002 alignment)
 ALTER TABLE parents DROP CONSTRAINT IF EXISTS parents_subscription_status_check;
 ALTER TABLE parents ADD CONSTRAINT parents_subscription_status_check
-  CHECK (subscription_status IN ('none', 'active', 'past_due', 'canceled', 'paused'));
+  CHECK (subscription_status IN ('none', 'active', 'past_due', 'canceled', 'trialing', 'paused'));
 
 -- Main dashboard function
 CREATE OR REPLACE FUNCTION get_parent_dashboard(p_parent_id UUID)
