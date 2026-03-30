@@ -1,18 +1,11 @@
 'use client';
 
-import { createContext, Suspense, useContext, useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { AuthProvider } from '@/components/providers/AuthProvider';
-
-// S3-WARN-002: Context to pass card hover state from login page to 3D portal
-const AuthHoverContext = createContext<{
-  isCardHovered: boolean;
-  setIsCardHovered: (hovered: boolean) => void;
-}>({ isCardHovered: false, setIsCardHovered: () => {} });
-
-export const useAuthHover = () => useContext(AuthHoverContext);
+import { AuthHoverContext } from '@/hooks/useAuthHover';
 
 // Dynamic 3D imports — SSR disabled
 const LoginPortal3D = dynamic(

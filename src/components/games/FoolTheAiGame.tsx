@@ -349,7 +349,7 @@ export function FoolTheAiGame() {
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
                       <ul className="space-y-1 text-2xs font-body text-white/40">
                         <li>• Adversarial examples can fool AI by exploiting weaknesses in how models interpret visual features</li>
-                        <li>• AI confidence scores don't always mean the prediction is correct — high confidence can still be wrong</li>
+                        <li>• AI confidence scores don&apos;t always mean the prediction is correct — high confidence can still be wrong</li>
                         <li>• Understanding AI robustness helps researchers build more reliable and trustworthy AI systems</li>
                       </ul>
                     </div>

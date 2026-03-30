@@ -3,7 +3,7 @@
 import { Suspense } from 'react';
 import { LoginFormCard } from '@/components/auth/LoginFormCard';
 import { DemoLoginButton } from '@/components/auth/DemoLoginButton';
-import { useAuthHover } from '../layout';
+import { useAuthHover } from '@/hooks/useAuthHover';
 
 export default function LoginPage() {
   // S3-WARN-002: Hover state wired to 3D portal via AuthHoverContext

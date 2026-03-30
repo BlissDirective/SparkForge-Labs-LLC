@@ -816,7 +816,7 @@ export async function runAgentPipeline(
     generatedCount = content.length;
 
     // Phase 1: Enhanced generation stages (mode-gated)
-    let allContent: GeneratedContent[] = [...content];
+    const allContent: GeneratedContent[] = [...content];
 
     if (mode === 'enhanced' || mode === 'full') {
       // Stage 2B: Generate game scenarios for existing games

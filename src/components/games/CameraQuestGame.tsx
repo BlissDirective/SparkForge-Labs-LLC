@@ -644,7 +644,7 @@ export function CameraQuestGame() {
                       <ul className="space-y-1 text-2xs font-body text-white/40">
                         <li>• Computer vision detects colors, shapes, and objects in images</li>
                         <li>• AI assigns confidence scores to show how certain it is</li>
-                        <li>• Abstract concepts like "soft" or "tall" are much harder for AI to recognize</li>
+                        <li>• Abstract concepts like &quot;soft&quot; or &quot;tall&quot; are much harder for AI to recognize</li>
                       </ul>
                     </div>
                   </motion.div>
