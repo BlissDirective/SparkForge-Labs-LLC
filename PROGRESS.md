@@ -1,8 +1,44 @@
 # SparkForge Build Progress
 
-## Current Phase: Audit Findings + Marketing/Legal Pages Enhancement
-## Status: IN PROGRESS — CRIT + HIGH findings resolved, marketing layout + COPPA pages complete
-## Last Updated: 2026-03-30 (Marketing layout + COPPA-compliant privacy/terms)
+## Current Phase: Frontend Audit + Fixes
+## Status: COMPLETE
+## Last Updated: 2026-03-30
+
+---
+
+### Frontend Audit Fixes (March 30, 2026)
+
+**Status:** COMPLETE
+**Scope:** Build fixes, React 19 compatibility, error boundaries, accessibility, production hardening
+
+- [x] CRIT-001: Added 'use client' to /offline page (build fix)
+- [x] CRIT-002: Made Supabase client build-safe with placeholder fallbacks (build fix)
+- [x] CRIT-003: Upgraded @nivo/* from 0.88.0 to 0.99.0 for React 19 compatibility
+- [x] HIGH-001: Documented font loading migration plan (next/font deferred — no build internet)
+- [x] HIGH-002: Added error.tsx for (auth) and (marketing) route groups
+- [x] HIGH-003: Added loading.tsx for (auth) and (marketing) route groups
+- [x] HIGH-004: Guarded non-essential console statements for production
+- [x] HIGH-005: Moved dangerouslySetInnerHTML CSS keyframes to globals.css
+- [x] WARN-001: Added loading fallbacks to dynamic 3D imports
+- [x] WARN-003: Improved ARIA accessibility on 8 simpler games (52+ labels added)
+- [x] WARN-005: Documented guideStore + cockpitAtoms in CLAUDE.md
+
+**Files Created (5):**
+- `src/app/(auth)/error.tsx`
+- `src/app/(auth)/loading.tsx`
+- `src/app/(marketing)/error.tsx`
+- `src/app/(marketing)/loading.tsx`
+- `src/app/(dashboard)/admin/content/AdminContentClient.tsx`
+
+**Files Modified (8+):**
+- `src/app/offline/page.tsx` (added 'use client')
+- `src/lib/supabase/client.ts` (build-safe fallbacks)
+- `src/lib/supabase/server.ts` (build-safe fallbacks)
+- `src/lib/env.ts` (relaxed Supabase validation)
+- `src/middleware.ts` (build-safe fallbacks)
+- `src/app/globals.css` (CSS keyframes from dangerouslySetInnerHTML)
+- `package.json` (@nivo upgrade)
+- 8 game components (ARIA improvements)
 
 ---
 

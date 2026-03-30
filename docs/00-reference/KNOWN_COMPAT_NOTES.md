@@ -2,7 +2,7 @@
 
 **Purpose:** Flags version-sensitive packages and API surfaces that may require adjustment depending on install date. Stage documents contain code patterns targeting specific library APIs — this file tracks where those patterns are fragile.
 
-**Last Updated:** 2026-03-15
+**Last Updated:** 2026-03-30
 
 ---
 
@@ -135,6 +135,29 @@
 | **New packages** | `three-bvh-csg` (Voronoi fracture mesh operations), `three-mesh-bvh` (BVH acceleration for shard collision), `troika-three-text` (high-quality SDF-based 3D text geometry) |
 | **Files affected** | `src/components/3d/HeroAnimation.tsx`, `src/lib/3d/heroParticleCompute.ts`, `src/lib/3d/heroParticleRender.ts`, `src/lib/webgpuDetection.ts`, `src/stores/deviceStore.ts` (GPUTier) |
 | **Stages affected** | 1 Part 2 (deviceStore, webgpuDetection), 3 Part 3A/B (HeroAnimation) |
+
+### 12. @nivo/* (Charts — React 19 Compatibility)
+
+| Item | Detail |
+|------|--------|
+| **Previous version** | `@nivo/*` 0.88.0 |
+| **Current version** | `@nivo/*` 0.99.0 (upgraded March 30, 2026) |
+| **Reason** | React 19 compatibility — 0.88.0 had peer dependency conflicts with React 19 |
+| **Key change** | `--legacy-peer-deps` is no longer required for `npm install` after this upgrade |
+| **Fix** | `npm install @nivo/core@0.99 @nivo/line@0.99 @nivo/bar@0.99 @nivo/radar@0.99` |
+| **Files affected** | Parent dashboard charts, progress visualizations |
+| **Stages affected** | 8 (parent dashboard) |
+
+### 13. next/font/google (Font Loading)
+
+| Item | Detail |
+|------|--------|
+| **Issue** | `next/font/google` requires build-time internet access to download font files for self-hosting |
+| **Current workaround** | Using Google Fonts CDN with `<link>` tags, `preconnect` hints, and `display=swap` |
+| **Why** | Ensures fonts load reliably in all build environments (offline CI, restricted networks) |
+| **Trade-off** | Slightly slower first-paint vs self-hosted; mitigated by `preconnect` + `display=swap` |
+| **Files affected** | `src/app/layout.tsx` (font loading strategy) |
+| **Stages affected** | 1 Part 2 (root layout), 10 (production optimization) |
 
 ---
 
