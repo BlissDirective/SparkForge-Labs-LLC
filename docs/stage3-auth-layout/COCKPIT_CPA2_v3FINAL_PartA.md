@@ -96,10 +96,11 @@ const createWebGPURenderer = async (canvas: HTMLCanvasElement) => {
 <Canvas gl={createWebGPURenderer} />
 ```
 
-### Mobile Fallback
-When `useIsMobile()` returns `true`, CockpitCanvas renders a CSS-only fallback (glassmorphic dashboard, CSS particles, gradient backgrounds). No R3F Canvas is mounted on mobile (CPA2-9).
+### Mobile Fallback — REMOVED (D3D-1)
 
-**Status:** ✅ Already implemented (`src/components/3d/CockpitCanvas.tsx`, 501 lines)
+> **D3D-1 (Desktop-First Overhaul):** Mobile CSS fallback code has been removed. CockpitCanvas always renders the full R3F scene unconditionally. No `useIsMobile()`, no CSS-only fallback. Future mobile support will use R3F-native LOD (Three.js LOD object), not CSS substitution.
+
+**Status:** ✅ Desktop-only rendering (`src/components/3d/CockpitCanvas.tsx`)
 
 ---
 
@@ -272,7 +273,7 @@ Verify:
 - [ ] Single R3F Canvas in DOM (check DevTools — only one `<canvas>`)
 - [ ] StationFrame and SpatialDashboard are thin wrappers (no own Canvas)
 - [ ] CockpitPanels render at full detail on desktop
-- [ ] LOD degrades on tablet/mobile profiles
+- [ ] ~~LOD degrades on tablet/mobile profiles~~ — REMOVED (D3D-1/D3D-2: desktop-only, no LOD)
 - [ ] cockpitStore persists heroPhase across routes
 
 ---

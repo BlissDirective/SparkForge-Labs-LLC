@@ -116,17 +116,8 @@ const AgentPipeline3D = dynamic(
 
 import { toPipelineBlocks } from '@/components/3d/AgentPipeline3D';
 
-// [v3] Mobile detection for 3D/2D fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
+// [D3D-1] Desktop-only platform — useIsMobile() removed per D3D Desktop-First Overhaul.
+// 3D always renders unconditionally.
 
 // ================================================================
 // TYPES
@@ -454,7 +445,7 @@ export function AgentArchitectGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const isMobile = useIsMobile(); // [v3]
+  // [D3D-1] useIsMobile removed — desktop-only platform, 3D always renders
 
   // Core state
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -741,7 +732,7 @@ export function AgentArchitectGame() {
 - [x] All HTML entities decoded (`>`, `<`, `&` — not `&gt;`, `&lt;`, `&amp;`)
 - [x] `game.updateScore()` used (matches gameStore API, not `addScore`)
 - [x] `toPipelineBlocks` import matches AgentPipeline3D.tsx export signature
-- [x] `useIsMobile()` pattern matches project convention (window.innerWidth < 768)
+- [x] `useIsMobile()` removed per D3D-1 (desktop-only platform, 3D always renders)
 - [x] `AgentPipeline3D` dynamic import with `{ ssr: false }` per 3D architecture rules
 - [x] `GameShell` import path: `@/components/game/GameShell` (verified exists)
 - [x] `useGameStore` / `useChildStore` imports match actual store files

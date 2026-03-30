@@ -505,6 +505,10 @@ Three critical fixes applied to GameShell (`src/components/game/GameShell.tsx`) 
 
 ### Fix 1: FIX-DUAL-CANVAS v2 — Global Game-Active State
 
+> **SUPERSEDED (D3D-B1):** The `gameActive`/`setGameActive` pattern below is deprecated.
+> GameShell now uses `sceneStore.enterGame()`/`exitGame()` instead. The CockpitCanvas
+> persists during gameplay (D3D-B1). Do NOT implement this section — use sceneStore.
+
 **Problem:** `useStationMode().setGameActive()` was never called by any game, AND used local `useState` (not shared global state). StationFrame's R3F Canvas remained mounted alongside game Canvases, causing dual WebGL contexts.
 
 **Solution:**
@@ -516,6 +520,10 @@ Three critical fixes applied to GameShell (`src/components/game/GameShell.tsx`) 
 
 ### Fix 2: LODWrapper Integration
 
+> **SUPERSEDED (D3D-2):** The LOD system (`useLOD`, `LODWrapper`) has been removed per the
+> D3D Desktop-First Overhaul. All geometry renders at maximum quality always. Do NOT
+> implement LODWrapper — `deviceStore` is hardcoded to desktop-ultra (50M triangle budget).
+
 **Problem:** CLAUDE.md Section 9.1 mandates LOD for every 3D component, but no game wrapped its content with `<LODWrapper>`. The adaptive performance system was non-functional.
 
 **Solution:** GameShell wraps all children with `<LODWrapper tier={lodTier} adaptive>`. Tier is auto-resolved from `gameRegistry` using the game's slug. Mapping: `'fl-lite'` → `'flLite'`.
@@ -523,6 +531,10 @@ Three critical fixes applied to GameShell (`src/components/game/GameShell.tsx`) 
 **Files modified:** `src/components/game/GameShell.tsx`
 
 ### Fix 3: Mobile CSS Particle Fallback
+
+> **SUPERSEDED (D3D-1):** Mobile CSS fallback code has been removed per the D3D Desktop-First
+> Overhaul. `useIsMobile()` and `GenericGameParticles` no longer exist. The platform is
+> desktop-only — 3D always renders unconditionally. Do NOT implement this section.
 
 **Problem:** When `useIsMobile()` hides the 3D `<Canvas>`, mobile users see a blank background. `GenericGameParticles` exists for this purpose but was not integrated.
 
@@ -532,27 +544,27 @@ Three critical fixes applied to GameShell (`src/components/game/GameShell.tsx`) 
 
 ### Updated GameShell Architecture
 
+> **SUPERSEDED (D3D-B1/D3D-1/D3D-2):** The code block below shows the pre-D3D architecture.
+> The current GameShell uses `sceneStore.enterGame()`/`exitGame()` instead of `setGameActive`,
+> has no LODWrapper (D3D-2), and no mobile fallback (D3D-1). See `sceneStore` for current pattern.
+
 ```tsx
-// src/components/game/GameShell.tsx — Post-fix architecture
+// src/components/game/GameShell.tsx — DEPRECATED Post-fix architecture (pre-D3D)
+// Current architecture uses sceneStore.enterGame()/exitGame() — see sceneStore docs
 export function GameShell({ gameId, title, worldNumber, worldColor, ... }) {
   // 1. Game state initialization
   startGame(gameId, totalRounds, hints);
 
-  // 2. FIX-DUAL-CANVAS: Signal StationFrame to unmount Canvas
-  setGameActive(true);  // → uiStore → useStationMode → StationFrame
+  // 2. [DEPRECATED] FIX-DUAL-CANVAS: was setGameActive(true)
+  // NOW: sceneStore.enterGame(gameId, worldColor)  // CockpitCanvas persists (D3D-B1)
 
-  // 3. LOD context for all 3D children
-  const lodTier = resolveFromGameRegistry(gameId);  // 'flagship' | 'flLite' | 'standard'
+  // 3. [DEPRECATED] LOD context removed (D3D-2: all geometry at max quality)
 
   return (
     <div>
-      {/* 4. Mobile CSS particle fallback */}
-      {isMobile && <GenericGameParticles color={worldColor} />}
+      {/* [DEPRECATED] Mobile CSS particle fallback removed (D3D-1: desktop-only) */}
 
-      {/* 5. LOD wrapper for 3D content */}
-      <LODWrapper tier={lodTier} adaptive>
-        {children}  {/* Game content + 3D Canvas */}
-      </LODWrapper>
+      {children}  {/* Game content renders inside persistent CockpitCanvas (D3D-B3) */}
     </div>
   );
 }

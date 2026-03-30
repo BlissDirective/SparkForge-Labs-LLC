@@ -7,7 +7,7 @@
 
 Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laboratory Control Station vision. This replaces the Part 3A CSS-only StationFrame placeholder with a persistent R3F Canvas containing aurora background shaders, GPU-instanced ambient particles with connection lines, an emissive LED rim strip, Bloom post-processing, and WebGL detection with CSS fallbacks. It also adds the cinematic entry sequence (originally CrystalShatter ~7s, now **superseded by HeroAnimation.tsx** — 8-phase, 19s), a landing page CrystalHero with mouse parallax, an OnboardingCrystal that forms as onboarding steps progress, GLSL shader infrastructure (noise library, aurora, scanline, chrome), 7+4 PBR material presets, and a GSAP ScrollTrigger wrapper hook.
 
-**CPA v2.0 additions:** StationFrame refactored from a standalone Canvas into a scene group within the unified `CockpitCanvas` orchestrator (Decision CPA2-1). Single R3F Canvas contains ALL cockpit + spatial dashboard elements. CockpitPanels upgraded with viewport-adaptive curvature (CPA2-2) and functional hex clusters with real data binding (CPA2-3). HolographicHUD v2 with data-driven rings (session time, lab progress, XP-to-level), mini-map integration, and threat/achievement radar. SidePanels with skin-reactive shader uniforms. StatusBar3D with real-time store subscriptions. Skin-reactive panel materials per cockpit skin (CPA2-5). NEW: WormholeTransition for lab entry cinematics (CPA2-6), CeremonyFX for achievement celebrations (CPA2-10), ConsoleDetailPanel for expandable console info, MiniMapOverlay for persistent navigation, NPCDialogueBubble for contextual NPC speech. 4 material presets (PanelFace, WornChrome, IndicatorGlass, ConsoleBase). 5 GLSL shaders (radarSweep, dataStream, holographicRing, dissolve, wormhole). Triangle budget: 104,400 (desktop ultra) with LOD degradation.
+**CPA v2.0 additions:** StationFrame refactored from a standalone Canvas into a scene group within the unified `CockpitCanvas` orchestrator (Decision CPA2-1). Single R3F Canvas contains ALL cockpit + spatial dashboard elements. CockpitPanels upgraded with viewport-adaptive curvature (CPA2-2) and functional hex clusters with real data binding (CPA2-3). HolographicHUD v2 with data-driven rings (session time, lab progress, XP-to-level), mini-map integration, and threat/achievement radar. SidePanels with skin-reactive shader uniforms. StatusBar3D with real-time store subscriptions. Skin-reactive panel materials per cockpit skin (CPA2-5). NEW: WormholeTransition for lab entry cinematics (CPA2-6), CeremonyFX for achievement celebrations (CPA2-10), ConsoleDetailPanel for expandable console info, MiniMapOverlay for persistent navigation, NPCDialogueBubble for contextual NPC speech. 4 material presets (PanelFace, WornChrome, IndicatorGlass, ConsoleBase). 5 GLSL shaders (radarSweep, dataStream, holographicRing, dissolve, wormhole). Triangle budget: 30M+ (post D3D-3 upgrade, desktop-ultra only, LOD removed per D3D-2).
 
 ### v3 Decisions Implemented
 
@@ -39,7 +39,7 @@ Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laborator
 - **CPA-8**: R3F Vignette replaces CSS (darkness=0.5, offset=0.3)
 - **CPA-9**: Dashboard FOV (56°, was 50°)
 - **CPA-10**: Barrel distortion (0.02 strength, 0.0 in games)
-- **CPA-11**: Total station frame tri budget — upgraded to 104,400 (desktop ultra) with LOD degradation
+- **CPA-11**: Total station frame tri budget — upgraded to 30M+ (post D3D-3 upgrade, desktop-ultra only, LOD removed per D3D-2)
 - **CPA-12**: Mobile cockpit (CSS-only indicators, zero WebGL)
 - **CPA2-1**: Single R3F Canvas for all cockpit + spatial content (replaces dual canvas)
 - **CPA2-2**: Viewport-adaptive curvature (120-155° arc based on window width)
@@ -165,9 +165,7 @@ interface CockpitCanvasProps {
 
 export function CockpitCanvas({ mode, labCompletions, onLabEnter, children }: CockpitCanvasProps) {
   const profile = useDeviceStore(s => s.profile);
-  const isMobile = useIsMobile();
-
-  if (isMobile) return null; // CSS fallback handles mobile
+  // [D3D-1] useIsMobile() removed — desktop-only platform, 3D always renders
 
   return (
     <div className="fixed inset-0 z-0" aria-label="3D Cockpit Environment" role="application">

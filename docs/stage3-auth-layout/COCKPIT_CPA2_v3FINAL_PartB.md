@@ -242,15 +242,9 @@ export function useCockpitAudio(): {
 
 ---
 
-## Mobile CSS Fallback (CPA2-9)
+## Mobile CSS Fallback (CPA2-9) — REMOVED (D3D-1)
 
-On mobile (`useIsMobile()` returns `true`):
-- Full cockpit is hidden (no R3F Canvas)
-- 2D glassmorphic dashboard: HTML/CSS with `backdrop-filter: blur()`
-- CSS particle backgrounds via `GenericGameParticles.tsx`
-- Chrome bezel as CSS borders/gradients
-- Lab map as flat grid/carousel
-- All interactive functionality preserved
+> **D3D-1 (Desktop-First Overhaul):** This entire section is superseded. Mobile CSS fallback code has been removed. The cockpit always renders at full quality unconditionally. No `useIsMobile()`, no `GenericGameParticles` CSS fallback, no glassmorphic 2D dashboard. Future mobile support will use R3F-native LOD (Three.js LOD object), not CSS substitution.
 
 ---
 
@@ -272,9 +266,9 @@ npm run dev            # Visual verification
 - [ ] Ceremony FX triggers on achievement
 - [ ] Cockpit skins switch correctly
 - [ ] Audio plays with spatial positioning
-- [ ] Mobile shows CSS fallback (no R3F)
+- [ ] ~~Mobile shows CSS fallback (no R3F)~~ — REMOVED (D3D-1: desktop-only platform)
 - [ ] Single `<canvas>` element in DOM (check DevTools)
-- [ ] FPS stays at target (60 desktop, 45 tablet, 30 mobile)
+- [ ] FPS stays at target (60 desktop) — D3D-1: desktop-only platform
 
 ---
 

@@ -633,17 +633,8 @@ const BiasScales3DComponent = dynamic(
 // [CR-6F-A4] Updated signature — removed unused first param
 import { calculateScaleWeights, BiasScalesFallback } from '@/components/3d/BiasScales3D';
 
-// [v3] Mobile detection for 3D/2D fallback
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
+// [D3D-1] Desktop-only platform — useIsMobile() removed per D3D Desktop-First Overhaul.
+// 3D always renders unconditionally.
 ```
 
 ### Integration Point 2: Scale weights calculation (inside component)
@@ -669,13 +660,7 @@ const scaleWeights = useMemo(() => {
     className="w-full h-32 md:h-40 rounded-xl overflow-hidden mb-3"
     style={{ background: 'rgba(0,0,0,0.2)' }}
   >
-    {isMobile ? (
-      <BiasScalesFallback
-        biasWeight={scaleWeights.biasWeight}
-        fairWeight={scaleWeights.fairWeight}
-        isBalanced={scaleWeights.isBalanced}
-      />
-    ) : (
+    {/* [D3D-1] 3D always renders — desktop-only platform */}
       <Canvas
         camera={{ position: [0, 1.5, 3.5], fov: 45 }}
         style={{ background: 'transparent' }}
