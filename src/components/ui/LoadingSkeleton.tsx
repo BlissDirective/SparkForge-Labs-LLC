@@ -1,7 +1,9 @@
-// ════════════════════════════════════════════════════
-// LOADING SKELETON — Pulsing placeholder for loading
-// Uses skeleton-shimmer from globals.css
-// ════════════════════════════════════════════════════
+// Re-export shared skeleton components to avoid duplication.
+// Primary implementation lives in src/components/shared/LoadingSkeleton.tsx.
+// This file preserves the LoadingSkeleton and PageSkeleton APIs for any
+// consumers that import from '@/components/ui/LoadingSkeleton'.
+
+export { Skeleton, CardSkeleton } from '@/components/shared/LoadingSkeleton';
 
 interface SkeletonProps {
   variant?: 'card' | 'text' | 'avatar' | 'rect';
@@ -11,6 +13,7 @@ interface SkeletonProps {
   count?: number;
 }
 
+/** Variant-based skeleton with count support */
 export function LoadingSkeleton({
   variant = 'rect',
   width,
@@ -45,22 +48,7 @@ export function LoadingSkeleton({
   );
 }
 
-/** Pre-built skeleton layouts for common patterns */
-export function CardSkeleton() {
-  return (
-    <div className="glass-card rounded-xl p-4 space-y-3">
-      <div className="flex items-center gap-3">
-        <LoadingSkeleton variant="avatar" />
-        <div className="flex-1 space-y-2">
-          <LoadingSkeleton variant="text" />
-          <LoadingSkeleton variant="text" width="50%" />
-        </div>
-      </div>
-      <LoadingSkeleton height="60px" />
-    </div>
-  );
-}
-
+/** Pre-built full page skeleton layout */
 export function PageSkeleton() {
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-4">

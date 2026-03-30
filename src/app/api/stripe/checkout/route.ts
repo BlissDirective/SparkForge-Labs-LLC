@@ -5,20 +5,13 @@
 // v2: apiVersion matches installed stripe@20.4.0
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
-import Stripe from 'stripe';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { STRIPE_PRICES } from '@/lib/tier-config';
 import { apiSuccess, apiError, requireAuth, parseBody } from '@/lib/api-helpers';
 import { CheckoutSchema } from '@/lib/validations';
+import { getStripe } from '@/lib/stripe';
 
 export const runtime = 'nodejs';
-
-// v2 [ENH-8A]: Lazy Stripe init with graceful fallback
-function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return null;
-  return new Stripe(key, { apiVersion: '2026-02-25.clover' });
-}
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe();

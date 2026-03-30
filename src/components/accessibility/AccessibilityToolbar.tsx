@@ -7,12 +7,10 @@
 
 import { motion } from 'motion/react';
 import { useA11yStore } from '@/stores/accessibilityStore';
-import { Sun, Moon, Type, Eye, Zap } from 'lucide-react';
+import { Moon, Type, Eye, Zap } from 'lucide-react';
 
 export function AccessibilityToolbar() {
   const {
-    darkMode,
-    toggleDarkMode,
     fontSize,
     setFontSize,
     dyslexiaFont,
@@ -33,18 +31,14 @@ export function AccessibilityToolbar() {
         Accessibility
       </h3>
 
-      {/* Dark Mode */}
+      {/* Dark Mode — disabled per CLAUDE.md: SparkForge is dark-mode only.
+         The toggle is rendered but non-interactive to maintain layout consistency.
+         Light mode is not supported in the Frost-Prismatic design system. */}
       <ToggleRow
-        icon={
-          darkMode ? (
-            <Moon className="w-4 h-4" />
-          ) : (
-            <Sun className="w-4 h-4" />
-          )
-        }
-        label={darkMode ? 'Dark Mode' : 'Light Mode'}
-        active={darkMode}
-        onToggle={toggleDarkMode}
+        icon={<Moon className="w-4 h-4" />}
+        label="Dark Mode (Always On)"
+        active={true}
+        onToggle={() => { /* Dark-mode only — toggle disabled */ }}
       />
 
       {/* Font Size */}

@@ -155,6 +155,7 @@ export default function SignupPage() {
         body: JSON.stringify({
           displayName: displayName.trim(),
           ageBand,
+          // Note: approximate birth year — exact DOB not collected for COPPA privacy
           birthYear: new Date().getFullYear() - childAge,
         }),
       });

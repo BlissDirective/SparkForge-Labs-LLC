@@ -1,3 +1,4 @@
+// Note: Identical to sentry.server.config.ts — edge runtime uses same configuration
 import * as Sentry from '@sentry/nextjs';
 
 // CRIT-003: Strip child PII fields from Sentry events (COPPA compliance)

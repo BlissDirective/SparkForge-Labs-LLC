@@ -11,9 +11,9 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
-export async function POST(_req: NextRequest) {
+export async function POST(req: NextRequest) {
   // v2 [S9-WARN-001]: Rate limit expensive pipeline runs (2/hr)
-  const limited = applyRateLimit(_req, 'agent-run', undefined, RATE_LIMITS.contentAgent);
+  const limited = applyRateLimit(req, 'agent-run', undefined, RATE_LIMITS.contentAgent);
   if (limited) return limited;
 
   // v2 [ENH-9A]: Check for API key before proceeding
@@ -50,7 +50,7 @@ export async function POST(_req: NextRequest) {
   }
 
   // Phase 1: Support pipeline mode via query param (?mode=standard|enhanced|full)
-  const url = new URL(_req.url);
+  const url = new URL(req.url);
   const mode = (url.searchParams.get('mode') || 'enhanced') as PipelineMode;
   const validModes: PipelineMode[] = ['standard', 'enhanced', 'full'];
   const pipelineMode = validModes.includes(mode) ? mode : 'enhanced';

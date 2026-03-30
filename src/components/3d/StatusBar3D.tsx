@@ -33,7 +33,6 @@ import {
   InstancedMesh,
   MathUtils,
   Mesh,
-  MeshStandardMaterial,
   Object3D,
   PointLight,
   RingGeometry,
@@ -54,60 +53,6 @@ interface StatusBarProps {
   labProgress: { done: number; total: number };
   labColor: string;
   opacity: number;
-}
-
-// ■■ Chrome material factory — v3: upgraded to alloy frame spec ■■
-// Fixed: Create material once, update opacity via ref in useFrame
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useChromeMaterial(opacity: number) {
-  const matRef = useRef<MeshStandardMaterial | null>(null);
-  if (!matRef.current) {
-    matRef.current = new MeshStandardMaterial({
-      color: '#a8b5c8',         // v3: lighter alloy chrome (was #2a2a3a)
-      metalness: 0.98,          // v3: near-perfect metalness (was 0.92)
-      roughness: 0.12,          // v3: smoother finish (was 0.15)
-      envMapIntensity: 1.5,     // v3: stronger reflections (was 1.2)
-      transparent: true,
-      opacity: opacity * 0.85,
-    });
-  }
-  useFrame(() => {
-    if (matRef.current) matRef.current.opacity = opacity * 0.85;
-  });
-  useEffect(() => {
-    return () => { matRef.current?.dispose(); matRef.current = null; };
-  }, []);
-  return matRef.current;
-}
-
-// ■■ Emissive material factory ■■
-// Fixed: Same pattern — create once, update dynamically (Audit Finding #6)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-function useEmissiveMaterial(color: string, intensity: number, opacity: number) {
-  const matRef = useRef<MeshStandardMaterial | null>(null);
-  const colorObj = useMemo(() => new Color(color), [color]);
-  if (!matRef.current) {
-    matRef.current = new MeshStandardMaterial({
-      color: '#000000',
-      emissive: colorObj,
-      emissiveIntensity: intensity,
-      transparent: true,
-      opacity,
-      toneMapped: false,
-      depthWrite: false,
-    });
-  }
-  useFrame(() => {
-    if (matRef.current) {
-      matRef.current.emissive.copy(colorObj);
-      matRef.current.emissiveIntensity = intensity;
-      matRef.current.opacity = opacity;
-    }
-  });
-  useEffect(() => {
-    return () => { matRef.current?.dispose(); matRef.current = null; };
-  }, []);
-  return matRef.current;
 }
 
 // ════════════════════════════════════════════════════

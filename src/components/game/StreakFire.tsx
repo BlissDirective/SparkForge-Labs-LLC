@@ -19,7 +19,7 @@ export function StreakFire({ streak, worldColor }: StreakFireProps) {
   const particleCount = Math.min(20, streak * 3);
 
   return (
-    <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+    <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden" aria-hidden="true">
       {/* Edge glow — intensifies with streak */}
       <AnimatePresence>
         {streak >= 3 && (

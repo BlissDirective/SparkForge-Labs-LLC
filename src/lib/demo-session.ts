@@ -8,7 +8,8 @@ export interface DemoSession {
   id: string;
   startedAt: number;
   expiresAt: number;
-  deviceType: 'desktop' | 'tablet' | 'mobile' | null;
+  // D3D-1: Desktop-only platform — no tablet/mobile support
+  deviceType: 'desktop';
 }
 
 export function createDemoSession(): DemoSession {
@@ -20,7 +21,7 @@ export function createDemoSession(): DemoSession {
     id: `demo-${now}-${Math.random().toString(36).slice(2, 9)}`,
     startedAt: now,
     expiresAt: now + DEMO_DURATION_MS,
-    deviceType: null,
+    deviceType: 'desktop',
   };
   localStorage.setItem(DEMO_SESSION_KEY, JSON.stringify(session));
   return session;

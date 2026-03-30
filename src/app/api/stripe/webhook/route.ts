@@ -7,15 +7,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/server';
+import { getStripe } from '@/lib/stripe';
 
 // Disable body parsing — Stripe needs raw body for signature verification
 export const runtime = 'nodejs';
-
-function getStripe(): Stripe | null {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) return null;
-  return new Stripe(key, { apiVersion: '2026-02-25.clover' });
-}
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe();

@@ -65,7 +65,7 @@ export function StandardTerrain({
     }
     geo.computeVertexNormals();
     return geo;
-  }, [size, heightScale, 512]);
+  }, [size, heightScale]);
 
   const material = useMemo(() =>
     new MeshStandardMaterial({
