@@ -102,37 +102,176 @@
   },
 
   "quadrant_layout": {
+    "design_principle": "Left (identity) and Right (control) are FIXED across all pages. Center SWAPS content per route — it is the cockpit's main screen. Bottom is FIXED instruments.",
+
     "center_console": {
       "position": [0, 0.35, -3.3],
       "width_percent": 45,
-      "components": {
-        "center_viewport_screen": {
-          "component": "CenterViewportScreen",
-          "triangles": 3000000,
-          "radius": 3.9,
-          "segments": [144, 72],
-          "material": "carbon_composite inner, chrome_bezel frame",
-          "description": "Spherical panoramic main screen — page content renders HERE"
+      "behavior": "SWAPS_PER_PAGE — different 3D content per route",
+      "shell": {
+        "component": "CenterViewportScreen",
+        "triangles": 3000000,
+        "radius": 3.9,
+        "segments": [144, 72],
+        "material": "carbon_composite inner, chrome_bezel frame",
+        "description": "Spherical panoramic main screen shell. Content inside changes per route."
+      },
+      "per_page_content": {
+        "/home": {
+          "components": [
+            {
+              "id": "lab_map",
+              "component": "HolographicLabMap",
+              "triangles": 1000000,
+              "position": [0, 0.3, -3.0],
+              "material": "holographic",
+              "description": "Interactive 3D lab network — 10 pulsing nodes, geodesic shells, data highways. ONLY holographic element in cockpit.",
+              "interactive": {
+                "lab_nodes": 10,
+                "click": "Focus lab, fly camera, show detail overlay",
+                "hover": "Pulse glow, show lab name + completion %",
+                "double_click": "Enter lab route"
+              }
+            },
+            {
+              "id": "welcome_stats",
+              "component": "uikit Container + Text",
+              "position": [0, 1.1, -2.9],
+              "content": ["Welcome back, {child.display_name}", "Level {child.level} · {child.xp} XP · {child.streak_count} day streak"],
+              "style": "Orbitron font, #F0F0F4 primary, #00BBFF accent, chrome-bordered panel",
+              "description": "Floating welcome header with quick stats above the lab map"
+            },
+            {
+              "id": "continue_learning",
+              "component": "HolographicButton",
+              "position": [0, -0.4, -2.8],
+              "label": "Continue: {last_lab} — {last_game}",
+              "icon": "ChevronRight",
+              "color": "#00BBFF",
+              "description": "Prominent CTA to resume last session. Spring-press animation, LED pulse on hover."
+            }
+          ]
         },
-        "holographic_lab_map": {
-          "component": "HolographicLabMap",
-          "triangles": 1000000,
-          "position": [0, 0.5, -3.0],
-          "material": "holographic (ONLY holographic element)",
-          "description": "Interactive 3D lab network with pulsing nodes, geodesic shells, data highways",
-          "interactive": {
-            "lab_nodes": 10,
-            "click": "Focus lab, fly camera, show detail overlay",
-            "hover": "Pulse glow, show lab name + completion %",
-            "double_click": "Enter lab page"
-          }
+        "/labs": {
+          "components": [
+            {
+              "id": "lab_map_zoomed",
+              "component": "HolographicLabMap",
+              "triangles": 1000000,
+              "position": [0, 0.3, -2.5],
+              "camera_preset": { "fov": 62, "position": [0, 1.2, 0.5] },
+              "description": "Lab map zoomed in, nodes larger, completion % visible per node. Click to focus, double-click to enter.",
+              "interactive": {
+                "click": "Focus lab — camera flies to node, right panel shows game list",
+                "double_click": "Navigate to /labs/[labId]"
+              }
+            }
+          ]
         },
-        "floating_stats": {
-          "component": "uikit Container + Text",
-          "position": [0, 1.2, -3.0],
-          "content": ["Total Labs Active: 10", "Labs in Progress: {dynamic}", "Completed: {dynamic}"],
-          "material": "control_panel",
-          "description": "Live metrics floating above lab map (uikit text on 3D panel)"
+        "/labs/[labId]": {
+          "components": [
+            {
+              "id": "focused_lab",
+              "component": "LabStructure3D",
+              "triangles": 300000,
+              "position": [0, 0.3, -2.8],
+              "description": "Single lab structure with interior mechanisms, diorama view. Orbiting game cards float around it.",
+              "dynamic": "Lab ID determines which structure renders"
+            },
+            {
+              "id": "lab_game_cards",
+              "component": "HolographicCard (array)",
+              "position": [0, 0.3, -2.5],
+              "layout": "orbital ring around lab structure",
+              "description": "Each game in the lab shown as a floating card. Click to launch game. Shows completion status, tier badge."
+            }
+          ]
+        },
+        "/arcade": {
+          "components": [
+            {
+              "id": "game_tile_grid",
+              "component": "uikit Container (scrollable grid)",
+              "position": [0, 0.3, -2.8],
+              "layout": "4-column grid on curved CenterViewportScreen surface",
+              "description": "All 35 games displayed as holographic tiles. Filterable by lab (LED rim changes color). Shows tier badge, completion star, play count.",
+              "per_tile": {
+                "component": "HolographicCard",
+                "content": "game icon + name + tier badge + completion status",
+                "click": "Navigate to /arcade/[gameSlug]"
+              }
+            }
+          ]
+        },
+        "/arcade/[gameSlug]": {
+          "behavior": "GAME_MODE_TAKEOVER",
+          "description": "Center screen EXPANDS to 75% of total viewport. Game 3D environment fills expanded center. Left, right, bottom panels slide partially offscreen and dim to 40% opacity.",
+          "center_scale": 1.75,
+          "cockpit_panel_opacity": 0.4,
+          "cockpit_panel_offset": "panels slide 30% toward edges (left further left, right further right, bottom lower)",
+          "transition": "MechanicalIris wipe opens to expanded view. Camera FOV widens from 58 to 72.",
+          "components": [
+            {
+              "id": "game_environment",
+              "component": "dynamic — per-game 3D scene via sceneStore.gameSceneContent",
+              "description": "Full game 3D environment fills expanded center viewport"
+            },
+            {
+              "id": "game_ui_overlay",
+              "component": "GameScoreGauge + GameTimerDisplay + QuizPanel3D (or game-specific panel)",
+              "position": "floating panels within game scene, positioned by game type",
+              "description": "Score gauge, timer, quiz buttons — all rendered as 3D objects inside game scene"
+            }
+          ]
+        },
+        "/profile": {
+          "components": [
+            {
+              "id": "trophy_room",
+              "component": "BadgePedestal3D (array) + uikit category tabs",
+              "position": [0, 0.3, -2.8],
+              "description": "3D trophy room with metallic pedestals. 9 badge categories as tab buttons along top. Earned badges glow, locked badges are dim chrome. Hover sparkle + detail popup.",
+              "categories": ["progress", "streak", "lab", "game_master", "knowledge", "explorer", "creator", "secret", "prestige"]
+            },
+            {
+              "id": "avatar_editor_large",
+              "component": "AvatarPreview3D (expanded)",
+              "position": [0, 0.8, -2.5],
+              "description": "When on profile page, center also shows enlarged avatar with cosmetic selection ring"
+            }
+          ]
+        },
+        "/settings": {
+          "components": [
+            {
+              "id": "settings_main",
+              "component": "HolographicPanel (array of sections)",
+              "position": [0, 0.3, -2.8],
+              "sections": [
+                {
+                  "title": "Audio Controls",
+                  "controls": [
+                    { "type": "ToggleSwitch3D", "label": "Master Audio", "binding": "sound" },
+                    { "type": "ToggleSwitch3D", "label": "Cockpit Ambient", "binding": "cockpitAudioEnabled" },
+                    { "type": "RadialDial3D", "label": "Volume", "binding": "ambientVolume" }
+                  ]
+                },
+                {
+                  "title": "Visual Controls",
+                  "controls": [
+                    { "type": "ToggleSwitch3D", "label": "Skip Hero Intro", "binding": "skipIntroAnimation" },
+                    { "type": "HolographicButton (4-group)", "label": "Particles", "options": ["Off", "Low", "Med", "High"], "binding": "particleIntensity" }
+                  ]
+                },
+                {
+                  "title": "Cockpit Skin",
+                  "controls": [
+                    { "type": "HolographicCard (5-grid)", "skins": ["Default", "Cyberpunk", "Space", "Underwater", "Crystal"], "binding": "cockpitSkin" }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       }
     },
@@ -141,27 +280,33 @@
       "position": [-2.35, 0.25, -1.65],
       "rotation": [0, 0.85, 0],
       "width_percent": 25,
+      "behavior": "FIXED — Player Identity Hub. Content is always about WHO YOU ARE. Slight emphasis shifts per page but layout stays consistent.",
       "components": {
         "avatar_viewport": {
           "component": "AvatarPreview3D",
           "position": [-2.2, 0.8, -1.5],
-          "description": "3D avatar with rotation capability, cosmetic display"
+          "description": "3D avatar with rotation capability, cosmetic display. On /profile, expands slightly and shows cosmetic selector ring."
         },
         "ai_guide_avatar": {
           "component": "GuideAvatar3D",
           "position": [-2.5, 0.4, -1.3],
-          "description": "Floating semi-transparent AI guide hologram with idle animation"
+          "description": "Floating semi-transparent AI guide hologram with idle animation. Speaks during onboarding, pulses when guide chat is active."
         },
         "trophy_display": {
-          "component": "BadgePedestal3D (array of 9)",
+          "component": "BadgePedestal3D (compact, 3 recent)",
           "position": [-2.0, 0.0, -1.8],
-          "description": "3D trophy shelf with metallic glowing trophies, radial carousel on hover"
+          "description": "Shows 3 most recently earned badges as mini trophies. Click to navigate to /profile trophy room."
         },
         "left_radial_gauges": {
           "component": "RadialDial3D (array of 4)",
-          "positions": [[-2.6, -0.2, -1.5], [-2.3, -0.2, -1.5], [-2.0, -0.2, -1.5], [-1.7, -0.2, -1.5]],
-          "bindings": ["energy_level", "lab_uptime", "security_status", "ai_readiness"],
-          "description": "Small circular radial displays with clean typography"
+          "positions": [[-2.6, -0.3, -1.5], [-2.3, -0.3, -1.5], [-2.0, -0.3, -1.5], [-1.7, -0.3, -1.5]],
+          "gauges": [
+            { "id": "xp_gauge", "label": "XP", "binding": "child.xp", "max": "child.xp_to_next_level", "color": "#00BBFF" },
+            { "id": "level_gauge", "label": "LEVEL", "binding": "child.level", "max": 100, "color": "#AA66FF" },
+            { "id": "streak_gauge", "label": "STREAK", "binding": "child.streak_count", "max": 365, "color": "#FF6644" },
+            { "id": "progress_gauge", "label": "PROGRESS", "binding": "overallProgress", "max": 100, "color": "#00FF88", "format": "{value}%" }
+          ],
+          "description": "4 small radial gauges showing player vital stats. Always visible. Values update in real-time via Zustand subscriptions."
         }
       }
     },
@@ -170,11 +315,12 @@
       "position": [2.35, 0.25, -1.65],
       "rotation": [0, -0.85, 0],
       "width_percent": 25,
+      "behavior": "FIXED — Control & Monitoring Hub. Always about WHAT'S HAPPENING and WHAT YOU CAN CONTROL. Settings panel shows key toggles; activity log streams events; quick actions provide shortcuts.",
       "components": {
         "settings_panel": {
-          "component": "HolographicPanel (curved)",
+          "component": "HolographicPanel (compact)",
           "position": [2.0, 0.6, -1.5],
-          "description": "Physical dials, toggle switches, push-buttons for settings. Chrome bezels with orange backlighting when active.",
+          "description": "Quick-access settings: 2 toggle switches + 2 dials. On /settings page, these sync with the expanded center settings panel.",
           "controls": [
             { "type": "ToggleSwitch3D", "id": "audio-toggle", "label": "Audio", "binding": "cockpitAudioEnabled" },
             { "type": "ToggleSwitch3D", "id": "particles-toggle", "label": "Particles", "binding": "particleIntensity" },
@@ -185,14 +331,28 @@
         "activity_log": {
           "component": "uikit Container (scrollable)",
           "position": [2.4, 0.0, -1.8],
-          "description": "Vertical tracking history — 'Lab Activity Log' with 3D depth cards and connection lines",
-          "content": "Dynamic list of recent activities (game completions, XP gains, badge earns)"
+          "max_items": 20,
+          "per_item": {
+            "layout": "icon + text + timestamp",
+            "examples": [
+              "🎮 Completed AI Spy — Lab 1 · 2m ago",
+              "⚡ +150 XP earned · 5m ago",
+              "🏆 Badge: Lab Pioneer · 12m ago",
+              "🔥 Streak extended: 5 days · 1h ago"
+            ]
+          },
+          "description": "Vertical scrollable feed of recent activity. Chrome-bordered cards with connection lines between entries. New entries animate in from top with spring physics."
         },
         "quick_actions": {
           "component": "HolographicButton (array of 4)",
-          "position": [2.2, -0.3, -1.5],
-          "labels": ["Worldwide Sync", "Ground Protocols", "Lab Network", "Support Nexus"],
-          "description": "Quick-access buttons with hover glow and press animation"
+          "position": [2.2, -0.4, -1.5],
+          "buttons": [
+            { "label": "Continue", "icon": "Play", "color": "#00BBFF", "action": "navigate to last incomplete game" },
+            { "label": "Daily", "icon": "Zap", "color": "#FFAA44", "action": "navigate to daily challenge" },
+            { "label": "Guide", "icon": "MessageCircle", "color": "#AA66FF", "action": "open GuideAvatar chat" },
+            { "label": "Parent", "icon": "Users", "color": "#00FF88", "action": "navigate to /parent" }
+          ],
+          "description": "4 quick-action buttons with hover glow and press animation. Always accessible regardless of current page."
         }
       }
     },
@@ -201,22 +361,36 @@
       "position": [0, -0.6, -1.85],
       "height_percent": 15,
       "span": "full_width",
+      "behavior": "FIXED — Instrument Panel. Layout never changes. Only dial labels/values update per page. Like a car dashboard.",
       "components": {
         "variable_dials": {
           "component": "VariableDialCluster",
           "position": [0, -0.3, -1.4],
-          "description": "3 physical dials — per-page auto-reconfigure (XP Rate / Streak / Progress on Home, etc.)"
+          "description": "3 physical dials that auto-reconfigure per page context",
+          "per_page_config": {
+            "/home": ["XP Rate", "Streak Days", "Lab Progress %"],
+            "/labs": ["Completion %", "Games Played", "Quiz Average %"],
+            "/arcade": ["Difficulty", "Game Count", "Time Played"],
+            "/profile": ["Total XP", "Level", "Badges Earned"],
+            "/settings": ["Volume %", "Brightness %", "Particles %"]
+          }
         },
         "navigation_buttons": {
           "component": "NavigationButtonGrid",
           "position": [0, -0.6, -1.85],
-          "buttons": ["HOME", "LABS", "ARCADE", "SETTINGS", "PROFILE"],
-          "description": "5 large illuminated buttons. Sleek typography with orange accent borders."
+          "buttons": [
+            { "id": "HOME", "color": "#00BBFF", "route": "/home" },
+            { "id": "LABS", "color": "#AA66FF", "route": "/labs" },
+            { "id": "ARCADE", "color": "#00FF88", "route": "/arcade" },
+            { "id": "SETTINGS", "color": "#FFAA44", "route": "/settings" },
+            { "id": "PROFILE", "color": "#FF66AA", "route": "/profile" }
+          ],
+          "description": "5 large illuminated physical buttons. Active button stays depressed with pulsing glow. Press broadcasts page-navigate event."
         },
         "quick_stats_bar": {
           "component": "StatusBar3D",
           "position": [0, -1.25, -1.95],
-          "description": "XP speedometer, streak flame, 10 lab indicators, session timer"
+          "description": "XP speedometer needle, streak flame animation, 10 lab color indicators, session timer. Always visible, always updating."
         }
       }
     }
@@ -278,11 +452,17 @@
       },
       "game": {
         "bloom": { "intensity": 0.3, "threshold": 0.7 },
-        "camera_fov": 52,
-        "cockpit_opacity": 0.2,
-        "center_content": "game_3d_environment",
-        "game_ui": "3d_holographic_panels (score, timer, quiz)",
-        "bottom_content": "minimal_nav"
+        "camera_fov": 72,
+        "cockpit_panel_opacity": 0.4,
+        "center_screen_scale": 1.75,
+        "cockpit_panel_offset": "left/right/bottom slide 30% toward edges",
+        "transition_in": "MechanicalIris wipe open + camera FOV 58→72",
+        "transition_out": "MechanicalIris wipe close + camera FOV 72→58",
+        "center_content": "game_3d_environment (75% viewport)",
+        "game_ui": "3d_holographic_panels (score gauge, timer LED, quiz buttons)",
+        "left_content": "identity hub at 40% opacity, shifted further left",
+        "right_content": "control hub at 40% opacity, shifted further right",
+        "bottom_content": "instruments at 40% opacity, shifted lower"
       },
       "profile": {
         "bloom": { "intensity": 0.4, "threshold": 0.6 },
@@ -314,7 +494,7 @@
     "primary": "Raycasting (mouse hover + click on 3D objects)",
     "secondary": "Keyboard navigation (Tab through NavigationButtonGrid, Enter to activate)",
     "tertiary": "cockpitBroadcastStore event bus (16 event types for cross-panel reactivity)",
-    "text_input": "HTML overlay for text fields (login, chat, search) — positioned over 3D via CSS",
+    "text_input": "Full 3D via @react-three/uikit Input (hidden HTML proxy for keyboard/paste/autocomplete). All text inputs render as 3D cockpit-styled fields inside Canvas.",
     "scroll": "@react-three/uikit scroll containers for lists (activity log, game lists)",
     "drag": "@react-three/drei useDrag for sortable/draggable game elements"
   },
@@ -347,11 +527,12 @@
   },
 
   "html_exceptions": {
-    "description": "These elements REMAIN as HTML — not rendered in 3D Canvas",
-    "marketing_pages": ["/ (landing)", "/pricing", "/terms", "/privacy"],
-    "text_inputs": ["Login email/password", "Signup form", "Chat input (PromptLab, Guide)", "Search field"],
-    "screen_reader_nav": "sr-only navigation links for accessibility",
-    "error_pages": ["404", "500", "offline"],
-    "admin_panel": "/admin/content (internal tool, no aesthetic requirement)"
+    "description": "MINIMAL HTML remains — only what CANNOT be 3D",
+    "marketing_body": "/ (below 3D hero), /pricing (table content), /terms, /privacy — SEO requires crawlable HTML body",
+    "marketing_hero": "3D cockpit preview section at top of landing page (rendered in Canvas)",
+    "screen_reader_nav": "sr-only navigation links for WCAG accessibility compliance",
+    "error_pages": ["404", "500", "offline — must work without WebGL"],
+    "admin_panel": "/admin/content (internal tool, no aesthetic requirement)",
+    "text_input_proxy": "uikit Input uses hidden HTML <input> for keyboard/paste/autocomplete proxy — not visible but required for browser compatibility"
   }
 }
