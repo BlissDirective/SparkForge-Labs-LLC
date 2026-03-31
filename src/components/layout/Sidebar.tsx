@@ -14,10 +14,12 @@ import {
 } from 'lucide-react';
 import { useUIStore } from '@/stores/uiStore';
 import { useChildStore } from '@/stores/childStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 
 // Sidebar — Laboratory Control Station Instrument Panel
 // v3 Decision 2.2: Hybrid icons + hover labels, instrument styling
 // v3 Decision 3.3: Lab mode highlights with accent glow + status
+// INT-3: Broadcasts page-navigate events to cockpitBroadcastStore
 // v2 preserved: gradient active bar, keyboard nav, child switcher,
 //   ARIA labels, stagger animations, mobile bottom bar
 
@@ -33,6 +35,7 @@ export function Sidebar() {
   const pathname = usePathname();
   const { sidebarOpen, toggleSidebar, labColor } = useUIStore();
   const { activeChild } = useChildStore();
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const navRef = useRef<HTMLElement>(null);
 
   // v2 [ACC]: Keyboard navigation — arrow keys cycle items, Enter activates
@@ -134,6 +137,14 @@ export function Sidebar() {
                 href={item.href}
                 data-nav-item
                 onKeyDown={(e) => handleKeyDown(e, index)}
+                onClick={() => {
+                  // INT-3: Broadcast page-navigate to cockpit — triggers LED pulse, HUD flash, dial reconfigure
+                  broadcast({
+                    type: 'page-navigate',
+                    source: `sidebar-${item.label.toLowerCase()}`,
+                    label: item.label,
+                  });
+                }}
                 aria-label={item.label}
                 aria-current={isActive ? 'page' : undefined}
                 className="relative block"

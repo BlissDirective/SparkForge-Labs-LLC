@@ -5,6 +5,8 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { CelebrationOverlay } from '@/components/shared/CelebrationOverlay';
 import { ContinueBanner } from '@/components/shared/ContinueBanner';
 import { useUIStore } from '@/stores/uiStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useSceneStore } from '@/stores/sceneStore';
 // REMOVED (D3D-1): useMediaQuery — desktop-only platform
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { AuthProvider } from '@/components/providers/AuthProvider';
@@ -45,7 +47,17 @@ export default function DashboardLayout({
   const isDesktop = true; // D3D-1: Desktop-only platform — always desktop
   const stationMode = useStationMode();
   const { onModeChange } = useCockpitAudio();
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const prevModeRef = useRef(stationMode.mode);
+
+  // INT-6: Hero animation initialization — first-time visitors see the 8-phase cinematic
+  const setHeroActive = useSceneStore((s) => s.setHeroActive);
+  useEffect(() => {
+    const skipIntro = typeof window !== 'undefined' && localStorage.getItem('skipIntroAnimation');
+    if (!skipIntro) {
+      setHeroActive();
+    }
+  }, [setHeroActive]);
 
   // v2 [NEW-2A]: Auto-track play sessions
   useSessionTracker();
@@ -53,13 +65,20 @@ export default function DashboardLayout({
   // Phase 5: Auto-detect guide context from route/scene
   useGuideContext();
 
-  // CPA v1.0: Trigger cockpit audio on mode transitions
+  // CPA v1.0 + INT-4: Trigger cockpit audio + broadcast on mode transitions
   useEffect(() => {
     if (stationMode.mode !== prevModeRef.current) {
       onModeChange(stationMode.mode);
+      // INT-4: Route-to-scene mode broadcasting — cockpit reacts to every navigation
+      broadcast({
+        type: 'page-navigate',
+        source: 'route-change',
+        label: stationMode.mode,
+        color: stationMode.ledColor,
+      });
       prevModeRef.current = stationMode.mode;
     }
-  }, [stationMode.mode, onModeChange]);
+  }, [stationMode.mode, onModeChange, broadcast, stationMode.ledColor]);
 
   return (
     <AuthProvider>
@@ -106,6 +125,9 @@ export default function DashboardLayout({
       {/* Phase 5: AI Guide Avatar chat panel (persistent across all dashboard pages) */}
       <GuideChatPanel />
 
+      {/* INT-1: HTML content constrained to center viewport zone.
+          Cockpit panels, LEDs, HUD, and side panels visible around edges.
+          NOT glassmorphic — opaque metallic console aesthetic. */}
       <motion.main
         className="min-h-screen pb-20 md:pb-0 relative z-10"
         animate={{
@@ -113,7 +135,7 @@ export default function DashboardLayout({
         }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-6">
+        <div className="cockpit-viewport-content">
           {/* v2 [NEW-3D]: ContinueBanner */}
           <ContinueBanner />
 
