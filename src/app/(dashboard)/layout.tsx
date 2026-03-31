@@ -1,13 +1,11 @@
 'use client';
 
-import { Suspense, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { CelebrationOverlay } from '@/components/shared/CelebrationOverlay';
 import { ContinueBanner } from '@/components/shared/ContinueBanner';
-import { useUIStore } from '@/stores/uiStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useSceneStore } from '@/stores/sceneStore';
-// REMOVED (D3D-1): useMediaQuery — desktop-only platform
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
@@ -43,8 +41,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { sidebarOpen } = useUIStore();
-  const isDesktop = true; // D3D-1: Desktop-only platform — always desktop
+  // Q2:B — Visual sidebar removed. 3D NavigationButtonGrid is primary nav.
+  // sidebarOpen kept for potential future use but no longer drives margin.
   const stationMode = useStationMode();
   const { onModeChange } = useCockpitAudio();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
@@ -128,13 +126,8 @@ export default function DashboardLayout({
       {/* INT-1: HTML content constrained to center viewport zone.
           Cockpit panels, LEDs, HUD, and side panels visible around edges.
           NOT glassmorphic — opaque metallic console aesthetic. */}
-      <motion.main
-        className="min-h-screen pb-20 md:pb-0 relative z-10"
-        animate={{
-          marginLeft: isDesktop ? (sidebarOpen ? 220 : 72) : 0,
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      >
+      {/* Q2:B — No sidebar margin offset needed. Content centered in viewport zone. */}
+      <main className="min-h-screen relative z-10">
         <div className="cockpit-viewport-content">
           {/* v2 [NEW-3D]: ContinueBanner */}
           <ContinueBanner />
@@ -151,7 +144,7 @@ export default function DashboardLayout({
             </motion.div>
           </AnimatePresence>
         </div>
-      </motion.main>
+      </main>
       </div>
     </DemoGuard>
     </AuthProvider>
