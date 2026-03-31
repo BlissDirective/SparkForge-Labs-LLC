@@ -580,19 +580,279 @@
   },
 
   "interaction_model": {
-    "primary": "Raycasting (mouse hover + click on 3D objects)",
-    "secondary": "Keyboard navigation (Tab through NavigationButtonGrid, Enter to activate)",
-    "tertiary": "cockpitBroadcastStore event bus (16 event types for cross-panel reactivity)",
-    "text_input": "Full 3D via @react-three/uikit Input (hidden HTML proxy for keyboard/paste/autocomplete). All text inputs render as 3D cockpit-styled fields inside Canvas.",
-    "scroll": "@react-three/uikit scroll containers for lists (activity log, game lists)",
-    "drag": "@react-three/drei useDrag for sortable/draggable game elements"
+    "description": "All user interaction happens through raycasting on 3D objects, keyboard fallback, and cockpitBroadcastStore event bus. No DOM click events on dashboard pages. Mouse cursor changes reflect interactivity.",
+
+    "pointer": {
+      "engine": "@pmndrs/pointer-events (bundled with @react-three/uikit)",
+      "raycaster": "Three.js Raycaster from camera through mouse position. Hits 3D meshes and uikit containers.",
+      "cursor_mapping": {
+        "default": "crosshair — cockpit aesthetic cursor over non-interactive surfaces",
+        "interactive": "pointer — over buttons, cards, lab nodes, dials, toggles",
+        "draggable": "grab / grabbing — over RadialDial3D during rotation, game drag elements",
+        "text_input": "text — over uikit Input fields"
+      }
+    },
+
+    "hover": {
+      "description": "Layered feedback system: buttons/cards get glow+scale, panels/containers get chrome edge-trace.",
+      "buttons_and_cards": {
+        "applies_to": ["HolographicButton", "HolographicCard", "NavigationButtonGrid buttons", "quick action buttons", "game tiles", "badge pedestals"],
+        "on_hover": {
+          "scale": 1.05,
+          "emissive_intensity": "increase by 0.8 (e.g., idle 1.2 → hover 2.0)",
+          "glow_color": "element accent color",
+          "transition": "spring physics (stiffness 400, damping 25)",
+          "audio": "electromagnetic_hum from element's spatial zone (if mechanical density > 0.3)"
+        },
+        "on_leave": {
+          "scale": 1.0,
+          "emissive_intensity": "return to idle",
+          "transition": "spring physics (stiffness 300, damping 30)"
+        }
+      },
+      "panels_and_containers": {
+        "applies_to": ["HolographicPanel", "CenterViewportScreen", "settings sections", "activity log container", "uikit Container regions"],
+        "on_hover": {
+          "edge_highlight": "Chrome edge-trace — a bright white/cyan line (opacity 0.3) traces the border of the panel. Like a spotlight scanning the frame edge.",
+          "edge_color": "#a8b5c8 (chrome) with 0.15 opacity cyan (#00E5FF) blend",
+          "edge_width": 2,
+          "transition": "0.2s ease-in"
+        },
+        "on_leave": {
+          "edge_highlight": "fade out over 0.3s"
+        }
+      },
+      "non_interactive": {
+        "applies_to": ["CockpitPanels hull", "structural ribs", "rivets", "floor", "cables", "aurora background"],
+        "on_hover": "no response — these are scenery"
+      }
+    },
+
+    "click_press": {
+      "buttons": {
+        "applies_to": ["HolographicButton", "NavigationButtonGrid buttons", "quick action buttons"],
+        "on_press": {
+          "depress": "0.03 units on local Z axis (button physically pushes into panel)",
+          "emissive_spike": "emissive intensity spikes to 2.5, decays over 0.3s",
+          "ripple": "Radial ring expansion from press point (RingGeometry, additive blending, 0.5s expand + fade)",
+          "audio": "metallic_thunk from element's spatial zone",
+          "broadcast": "cockpitBroadcastStore event (type based on button: page-navigate, button-press, etc.)"
+        },
+        "on_release": {
+          "spring_return": "spring physics bounce-back to rest position (stiffness 500, damping 20)",
+          "audio": "spring_release"
+        }
+      },
+      "toggles": {
+        "applies_to": ["ToggleSwitch3D"],
+        "on_click": {
+          "lever_snap": "45-degree rotation to opposite position with spring physics overshoot",
+          "led_indicator": "LED dot changes color (off=#333, on=accent color)",
+          "audio": "mechanical_snap from right_console zone",
+          "broadcast": "toggle-switch event with new value"
+        }
+      },
+      "dials": {
+        "applies_to": ["RadialDial3D", "VariableDialCluster dials"],
+        "on_drag": {
+          "rotation": "Dial rotates to follow mouse drag angle (polar coordinates). Spring-damped to prevent overshoot.",
+          "tick_marks": "Active tick mark highlights as needle passes it",
+          "audio": "whirr_continuous from element's zone — pitch maps to current value",
+          "broadcast": "dial-rotate event with current value (throttled to 60fps)"
+        },
+        "on_release": {
+          "snap": "Snaps to nearest tick mark if snap mode enabled",
+          "audio": "whirr stops, soft detent click"
+        }
+      },
+      "lab_nodes": {
+        "applies_to": ["HolographicLabMap lab nodes"],
+        "on_click": {
+          "camera_fly": "Camera interpolates to focused lab position over 800ms (spring easing)",
+          "node_expand": "Clicked lab node scales 1.5x, other nodes dim to 40%",
+          "right_panel": "Right quadrant shows lab's game list",
+          "audio": "hologram_focus from center_screen zone",
+          "broadcast": "lab-select event with labId"
+        },
+        "on_double_click": {
+          "navigate": "router.push('/labs/[labId]') — enters lab detail mode",
+          "transition": "smooth crossfade (400ms)",
+          "audio": "whoosh_crossfade"
+        }
+      },
+      "game_tiles": {
+        "applies_to": ["Arcade game tile HolographicCards"],
+        "on_click": {
+          "navigate": "router.push('/arcade/[gameSlug]') — enters game mode",
+          "transition": "MechanicalIris wipe (600ms)",
+          "audio": "iris_open_servo from center_screen zone",
+          "broadcast": "game-enter event with gameId + labColor"
+        }
+      }
+    },
+
+    "scroll": {
+      "engine": "@react-three/uikit scroll containers",
+      "behavior": "Mouse wheel scrolls the uikit container under the cursor. If no scrollable container under cursor, wheel does nothing (cockpit doesn't page-scroll).",
+      "applies_to": ["activity_log (right quadrant)", "arcade game grid (center)", "trophy gallery (center on /profile)", "lab game list (center on /labs/[labId])"],
+      "scroll_indicator": "Thin LED strip along container edge — brightness indicates scroll position (top=bright at top, bottom=bright at bottom)",
+      "scroll_speed": 40,
+      "scroll_damping": 0.92,
+      "overscroll": "rubber-band spring (bounces back when exceeding bounds)"
+    },
+
+    "text_input": {
+      "engine": "@react-three/uikit Input component",
+      "rendering": "Text rendered as SDF glyphs inside Canvas. Hidden HTML <input> element proxies keyboard events, paste, and autocomplete.",
+      "applies_to": ["Login email", "Login password", "Signup fields", "Chat input (Guide, PromptLab)", "Search field (Arcade filter)"],
+      "styling": {
+        "background": "carbon_composite material (#0a1625)",
+        "border": "chrome_bezel (1px, #a8b5c8 at 30% opacity)",
+        "text_color": "#F0F0F4",
+        "placeholder_color": "#F0F0F4 at 30% opacity",
+        "focus_ring": "accent color glow (2px, 50% opacity)",
+        "caret": "blinking vertical bar, accent color, 1s blink cycle"
+      },
+      "focus_behavior": {
+        "on_click": "Focus the hidden HTML input. Show caret in 3D. Chrome edge-trace highlights the input container.",
+        "on_type": "Characters appear in 3D text with slight spring animation per character (scale from 1.2 to 1.0 over 0.1s)",
+        "on_paste": "Pasted text appears instantly, no per-character animation",
+        "on_blur": "Caret disappears, edge-trace fades, hidden input blurs"
+      }
+    },
+
+    "drag_and_drop": {
+      "engine": "@react-three/drei useDrag + custom raycasting",
+      "phase": "Phase 5+ (game UIs only — SortToyBox, CodeBlocks, etc.)",
+      "behavior": "Raycaster identifies draggable mesh. On pointerDown, mesh follows mouse position projected onto a drag plane. Drop zones highlight when dragged mesh overlaps. Spring physics on release.",
+      "visual_feedback": {
+        "dragging": "Mesh lifts 0.1 units toward camera, shadow intensifies, opacity 0.9",
+        "valid_drop": "Drop zone border pulses green (#00FF88)",
+        "invalid_drop": "Drop zone border flashes red (#FF6644), mesh springs back to origin"
+      }
+    },
+
+    "tooltips": {
+      "type": "3D holographic panel",
+      "applies_to": ["Lab nodes (name + completion %)", "Badges (name + rarity + date earned)", "Gauges (label + current value + max)", "Game tiles (name + tier + play count)", "Quick action buttons (action description)"],
+      "behavior": {
+        "on_hover_delay": "300ms before tooltip appears (prevents flicker on mouse pass-through)",
+        "fade_in": "0.3s opacity 0→1 + scale 0.8→1.0 with spring",
+        "fade_out": "0.2s opacity 1→0 on mouse leave",
+        "position": "Offset from element — above for bottom elements, below for top elements, to the side for side elements. Auto-avoids occluding the hovered element.",
+        "max_width": "0.4 (3D units)",
+        "z_offset": "0.15 toward camera (ensures tooltip renders in front)"
+      },
+      "styling": {
+        "background": "carbon_composite (#0A0F1F at 95% opacity)",
+        "border": "chrome_bezel (1px)",
+        "text": "Sora font, #F0F0F4, 0.02 size (3D units)",
+        "accent_line": "Thin LED accent line at top, element's accent color",
+        "shadow": "subtle drop shadow (0.02 blur, rgba(0,0,0,0.5))"
+      }
+    },
+
+    "modals": {
+      "type": "center_screen_takeover",
+      "description": "Dialog content replaces current center viewport content. No overlay dimming — the center screen IS the dialog. Press close button or navigate away to return to previous content.",
+      "applies_to": ["Confirmation dialogs", "Paywall prompt", "Error messages", "Game completion screen", "Demo session expiry"],
+      "behavior": {
+        "open": "Current center content crossfades out (200ms). Dialog content crossfades in (300ms). LED rim pulses once in dialog accent color.",
+        "close": "Dialog crossfades out (200ms). Previous content crossfades back in (300ms). Triggered by close button, Escape key, or navigation.",
+        "close_button": "HolographicButton in top-right of dialog panel, labeled 'X' or 'Close'"
+      },
+      "layout": {
+        "container": "HolographicPanel centered in CenterViewportScreen",
+        "max_width": "70% of center viewport",
+        "sections": "icon/emoji + title (Exo 2) + body text (Sora) + action buttons (HolographicButton row)"
+      }
+    },
+
+    "keyboard": {
+      "scope": "Navigation buttons + center primary action — mouse is primary input",
+      "tab_order": [
+        "NavigationButtonGrid: HOME → LABS → ARCADE → SETTINGS → PROFILE",
+        "Center primary action: Continue Learning CTA (on /home), focused lab node (on /labs), first game tile (on /arcade)"
+      ],
+      "keys": {
+        "Tab": "Cycle forward through Tab order",
+        "Shift+Tab": "Cycle backward",
+        "Enter / Space": "Activate focused element (same as click)",
+        "Escape": "Close modal dialog, exit text input focus, return focus to nav buttons",
+        "Arrow Left/Right": "Navigate within NavigationButtonGrid (between 5 buttons)",
+        "Arrow Up/Down": "Navigate within center scroll containers (activity log, game grid)"
+      },
+      "focus_indicator": {
+        "type": "Bright glow outline around focused element",
+        "color": "#00E5FF (cyan)",
+        "width": 3,
+        "pulse": "Gentle pulse (opacity 0.6 → 1.0 → 0.6, 2s cycle)"
+      }
+    },
+
+    "broadcast_integration": {
+      "description": "Every interaction broadcasts to cockpitBroadcastStore, which drives cross-panel visual + audio reactions.",
+      "flow": "User action → component handler → broadcast(event) → all subscribed cockpit components react",
+      "example_chain": {
+        "trigger": "User clicks LABS nav button",
+        "broadcast": "{ type: 'page-navigate', source: 'nav-labs', color: '#AA66FF', label: 'LABS' }",
+        "reactions": [
+          "LED rim: purple pulse wave sweeps across 218° arc",
+          "HUD: rings flash briefly (hudFlashIntensity 0.7)",
+          "StatusBar3D: needle sweep (statusBarSweep 0.6)",
+          "VariableDialCluster: dials reconfigure to labs config (Completion / Games / Quiz Avg)",
+          "Center viewport: crossfade from current content to labs map (400ms)",
+          "Camera: FOV interpolates 58→62 (spring easing)",
+          "Audio: whoosh_crossfade from center_screen zone + nav button metallic_thunk from bottom_console zone",
+          "Active nav button: LABS stays depressed with pulsing purple glow"
+        ]
+      }
+    }
   },
 
   "accessibility": {
-    "screen_reader": "sr-only HTML nav links (current Sidebar.tsx pattern)",
-    "keyboard": "Tab order: NavigationButtonGrid → page content → settings",
-    "reduced_motion": "prefers-reduced-motion: skip hero animation, reduce particle count",
-    "high_contrast": "Accessibility toolbar toggles higher emissive intensity"
+    "description": "Accessibility in a full 3D UI requires special consideration. Screen readers cannot parse Canvas content, so we maintain sr-only HTML and keyboard navigation as fallbacks.",
+    "screen_reader": {
+      "strategy": "sr-only HTML nav links (Sidebar.tsx) provide Tab-accessible navigation. ARIA live regions announce state changes (XP gains, badge earns, page transitions).",
+      "component": "src/components/layout/Sidebar.tsx — renders sr-only <nav> with links to all routes",
+      "aria_live": "Dashboard layout includes aria-live='polite' region that announces: route changes, XP updates, level-ups, badge earns, game start/complete"
+    },
+    "keyboard": {
+      "nav_buttons": "5 NavigationButtonGrid buttons are Tab-accessible via sr-only Sidebar links. Enter activates navigation.",
+      "center_action": "Primary CTA in center viewport has keyboard focus after nav buttons.",
+      "escape": "Returns focus to navigation, closes modals"
+    },
+    "reduced_motion": {
+      "media_query": "prefers-reduced-motion: reduce",
+      "effects": [
+        "Skip hero animation entirely — jump to cockpit",
+        "Disable particle systems (count → 0)",
+        "Disable spring physics — use instant transitions",
+        "Disable HUD ring rotation",
+        "Disable LED pulse animations",
+        "Reduce celebration to single badge display (no confetti/fireworks)",
+        "Disable barrel distortion",
+        "Crossfade transitions reduced to instant swap"
+      ]
+    },
+    "high_contrast": {
+      "toggle": "Accessibility toolbar or settings",
+      "effects": [
+        "Emissive intensity increased 2x on all interactive elements",
+        "Text color forced to #FFFFFF (pure white)",
+        "Background surfaces darkened to #000000",
+        "Focus indicator width increased from 3px to 5px",
+        "Tooltip background opacity increased to 100%"
+      ]
+    },
+    "font_size": {
+      "toggle": "Accessibility toolbar or settings",
+      "effects": [
+        "uikit Text size multiplied by 1.0 / 1.25 / 1.5",
+        "Gauge label text scales proportionally",
+        "Tooltip text scales proportionally"
+      ]
+    }
   },
 
   "audio_zones": {
