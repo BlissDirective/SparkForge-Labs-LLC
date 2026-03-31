@@ -1973,7 +1973,124 @@ Every documentation file categorized: **MAJOR UPDATE** (contains HTML code to re
 | **NO CHANGE** | ~74 | All SQL, API-only, pure 3D specs, hero animation, cockpit geometry, shaders, superseded docs |
 | **TOTAL** | ~128 | |
 
-*End of Appendix A Section A.3. Sections A.4–A.5 follow.*
+### A.4 NEW FILES, DEPENDENCIES & STORE CHANGES
+
+#### A.4.1 New Source Files to Create (~24 files)
+
+All new files go under existing directories. No new directory structure needed.
+
+**Infrastructure — `src/hooks/` + `src/components/3d/ui/`** (7 files)
+
+| File | Location | Purpose | Triangle Budget |
+|------|----------|---------|----------------|
+| `useCockpitScene.ts` | `src/hooks/` | Hook: per-route scene descriptor manager. Returns `{ centerContent, modePreset, pageData }`. Reads Next.js router, drives CockpitUILayer. | — |
+| `CockpitUILayer.tsx` | `src/components/3d/ui/` | Orchestrator: manages all 3D UI panels, handles mode transitions (400ms crossfade), wires quadrant layout. Renders inside CockpitCanvas. | — |
+| `CockpitText.tsx` | `src/components/3d/ui/` | Primitive: uikit Text wrapper with Frost-Prismatic styling (Exo 2 / Sora / Orbitron fonts, #F0F0F4 color, emissive options). | Part of 3M |
+| `CockpitContainer.tsx` | `src/components/3d/ui/` | Primitive: uikit Container wrapper with carbon composite background + chrome bezel border. | Part of 3M |
+| `CockpitScrollPanel.tsx` | `src/components/3d/ui/` | Primitive: uikit scroll container with LED scroll indicator strip. For activity log, game grid, trophy gallery. | Part of 3M |
+| `CockpitInput.tsx` | `src/components/3d/ui/` | Primitive: uikit Input with hidden HTML `<input>` proxy for keyboard/paste/autocomplete. SDF text + per-character spring animation. | Part of 3M |
+| `CockpitTooltip.tsx` | `src/components/3d/ui/` | Primitive: 3D holographic tooltip panel. Auto-positioned, 300ms delay, chrome bezel, carbon composite background. | Part of 3M |
+
+**Dashboard Panels — `src/components/3d/panels/`** (6 files, NEW directory)
+
+| File | Route | Center Content | Triangle Budget |
+|------|-------|----------------|----------------|
+| `DashboardCenter.tsx` | `/home` | HolographicLabMap + welcome stats (uikit Text) + Continue CTA (HolographicButton) | Reuses existing 1M lab map |
+| `DashboardLeft.tsx` | All | AvatarPreview3D + GuideAvatar3D + 3 BadgePedestal3D + 4 RadialDial3D gauges (XP, Level, Streak, Progress) | ~500K new |
+| `DashboardRight.tsx` | All | Settings quick-access (2 toggles + 2 dials) + CockpitScrollPanel activity log (20 items) + 4 HolographicButton quick actions | ~500K new |
+| `LabsCenter.tsx` | `/labs` | Zoomed HolographicLabMap with game counts per node, click→focus, double-click→enter | Reuses existing |
+| `LabDetailPanel.tsx` | `/labs/[id]` | LabStructure3D (300K) + orbital HolographicCard ring (game list) | ~500K new |
+| `ArcadePanel.tsx` | `/arcade` | 4-column CockpitScrollPanel grid of HolographicCards (35 game tiles). Filterable by lab. | ~500K new |
+
+**Page-Specific Panels — `src/components/3d/panels/`** (5 files)
+
+| File | Route | Content |
+|------|-------|---------|
+| `ProfileCenter.tsx` | `/profile` | BadgePedestal3D array (9 categories) + enlarged AvatarPreview3D with cosmetic ring |
+| `SettingsPanel.tsx` | `/settings` | HolographicPanel array: Audio (3 controls), Visual (2 controls), Cockpit Skin (5-card grid) |
+| `ParentPanel.tsx` | `/parent` | Parent analytics: children overview, time limits, subscription status (uikit Text + RadialDial3D gauges) |
+| `LoginPanel3D.tsx` | `/login`, `/signup` | uikit form panel (CockpitInput for email/password) + 3D portal background. Replaces LoginFormCard. |
+| `OnboardingPanel.tsx` | `/onboarding` | Multi-step 3D wizard in center viewport. CockpitContainer per step. |
+
+**Game UI — `src/components/3d/ui/`** (5 files)
+
+| File | Purpose | Used By |
+|------|---------|---------|
+| `GameScoreGauge.tsx` | Animated score display gauge with number spring animation | All 35 games |
+| `GameTimerDisplay.tsx` | Countdown timer with visual warning states (amber <30s, red <10s) | Timed games |
+| `QuizPanel3D.tsx` | Quiz question + answer buttons + streak indicator | Tap & Quiz games (9) |
+| `ChatPanel3D.tsx` | Chat/dialogue panel for AI interaction games | Chatbot Builder, Prompt Lab |
+| `PhaseIndicator3D.tsx` | Multi-phase progress display ("Phase 2/4") with holographic markers | All phased games |
+
+**Marketing — `src/components/3d/`** (1 file)
+
+| File | Purpose |
+|------|---------|
+| `MarketingHero3D.tsx` | 3D cockpit preview embedded in HTML marketing landing page. Canvas inset in scrollable HTML body. |
+
+#### A.4.2 New Directory
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/components/3d/panels/` | Dashboard panel components (center/left/right/page-specific). Separates UI panels from geometry/FX. |
+
+#### A.4.3 NPM Dependencies
+
+| Package | Status | Version | Purpose |
+|---------|--------|---------|---------|
+| `@react-three/uikit` | **ALREADY INSTALLED** | ^1.0.64 | Text, Input, Container, scroll — core 3D UI primitives |
+| `@react-three/uikit-apfel` | **ALREADY INSTALLED** | ^0.8.21 | Apple-style presets for uikit |
+| `@react-three/fiber` | INSTALLED | ^9.5.0 | R3F core |
+| `@react-three/drei` | INSTALLED | ^10.7.7 | Html proxy, useTexture, etc. |
+| `three` | INSTALLED | ^0.183.2 | Three.js core |
+| `tone` | INSTALLED | ^15.1.22 | Audio synthesis |
+
+**Zero new npm dependencies required.** The stack is complete.
+
+#### A.4.4 Store State Changes
+
+**`src/stores/cockpitStore.ts`** — Add 4 audio control fields:
+
+| Field | Type | Default | Binding (JSON spec) |
+|-------|------|---------|---------------------|
+| `spatialAudioVolume` | `number` | `0.3` | Spatial FX volume dial (0–1) |
+| `eventAudioVolume` | `number` | `0.5` | UI sounds volume dial (0–1) |
+| `mechanicalAudioDensity` | `number` | `0.7` | Mechanical detail dial (0=atmospheric, 1=every click has audio) |
+| `labAudioEnabled` | `boolean` | `true` | Lab soundscape crossfade toggle |
+
+Plus 4 setter actions: `setSpatialAudioVolume`, `setEventAudioVolume`, `setMechanicalAudioDensity`, `setLabAudioEnabled`.
+
+**Already exists:** `cockpitAudioEnabled` (boolean), `ambientVolume` (number, 0.15).
+
+**`src/stores/uiStore.ts`** — Add mode preset state:
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `cockpitMode` | `'dashboard' \| 'labs' \| 'lab_detail' \| 'game' \| 'profile' \| 'settings' \| 'celebration' \| 'parent'` | `'dashboard'` | Active cockpit atmosphere mode |
+
+**`src/stores/sceneStore.ts`** — Add center content routing:
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `centerContentType` | `'labmap' \| 'labmap_zoomed' \| 'lab_detail' \| 'arcade_grid' \| 'trophy_room' \| 'settings' \| 'parent' \| 'login' \| 'onboarding' \| 'game' \| 'content'` | `'labmap'` | What renders in center viewport |
+| `centerContentProps` | `Record<string, unknown>` | `{}` | Props passed to center panel (labId, gameSlug, etc.) |
+
+#### A.4.5 Existing 3D UI Components — Already Built (Zero Changes)
+
+These 8 components are the **foundation** for the migration. New panel files compose them.
+
+| Component | File | Status | Used By |
+|-----------|------|--------|---------|
+| HolographicButton | `src/components/3d/ui/HolographicButton.tsx` | READY | Nav, CTAs, quick actions |
+| RadialDial3D | `src/components/3d/ui/RadialDial3D.tsx` | READY | Gauges, volume, settings |
+| ToggleSwitch3D | `src/components/3d/ui/ToggleSwitch3D.tsx` | READY | Audio, particles, settings |
+| HolographicCard | `src/components/3d/ui/HolographicCard.tsx` | READY | Game tiles, lab cards, badges |
+| HolographicPanel | `src/components/3d/ui/HolographicPanel.tsx` | READY | Settings sections, containers |
+| NavigationButtonGrid | `src/components/3d/ui/NavigationButtonGrid.tsx` | READY | Primary 5-button nav |
+| VariableDialCluster | `src/components/3d/ui/VariableDialCluster.tsx` | READY | Bottom 3 dials per-page |
+| CenterViewportScreen | `src/components/3d/ui/CenterViewportScreen.tsx` | READY | Center viewport shell |
+
+*End of Appendix A Section A.4. Section A.5 follows.*
 
 ---
 
