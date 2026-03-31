@@ -1597,7 +1597,601 @@ The definitive development order. Each phase must complete before the next begin
 
 ---
 
+---
+
+## APPENDIX A: UNIFIED 3D UI MIGRATION — DOCUMENT & FILE CORRECTION PLAN
+
+**Version:** 1.0 | **Date:** March 31, 2026 | **Status:** ASSESSMENT COMPLETE — Ready for Implementation Planning
+**Source:** `Master-SparkForge-UI-Design-Change.md` + `SparkForge-Full-ControlScreen.json` (1,081 lines, 11 sections)
+**Decision:** UI-1 through UI-18 (18 new architectural decisions)
+
+---
+
+### A.1 EXECUTIVE SUMMARY
+
+SparkForge is migrating from a **split architecture** (3D cockpit at z-index 0 + full-screen HTML at z-index 10) to a **unified 3D cockpit interface** where every dashboard element renders inside a single persistent R3F Canvas. The HTML layer completely obscured the 37.8M-triangle cockpit — making the 3D investment invisible.
+
+#### Migration Scale
+
+| Metric | Count |
+|--------|-------|
+| Source files affected (REPLACE + MODIFY) | **~90** |
+| Source files preserved (zero changes) | **~320** |
+| New source files to create | **~24** |
+| Stage documents requiring updates | **~45** |
+| Reference documents requiring updates | **~8** |
+| Root documents requiring updates | **~3** |
+| New npm dependencies | **0** (@react-three/uikit already installed) |
+| New decision locks | **18** (UI-1 through UI-18) |
+| New cockpitStore fields | **4** (audio controls) |
+| Estimated LOC replaced/rewritten | **~11,700** |
+| Estimated LOC preserved | **~45,000+** |
+
+#### What Changes
+
+| Layer | Before | After |
+|-------|--------|-------|
+| Dashboard pages | Full HTML pages (248–689 LOC each) | Thin scene descriptors (~20–30 LOC each) via `useCockpitScene()` |
+| Navigation | HTML Sidebar.tsx (DOM links) | 3D NavigationButtonGrid (already built) + sr-only HTML fallback |
+| Settings | HTML toggles + sliders | ToggleSwitch3D + RadialDial3D (already built) |
+| Forms (login, signup, chat) | HTML `<form>` + `<input>` | uikit Input with hidden HTML proxy |
+| Data displays | Tailwind cards + grids | HolographicCard + HolographicPanel (already built) |
+| Game UI overlays | HTML score/timer/quiz | 3D GameScoreGauge + QuizPanel3D (new) |
+| Celebrations | Framer Motion overlay | CeremonyFX (already 3D) + broadcast events |
+| Page transitions | CSS crossfade | 400ms ease-out-cubic crossfade in 3D + MechanicalIris for games |
+| Glassmorphism | CSS backdrop-filter | Opaque metallic: carbon composite + chrome bezel |
+
+#### What Does NOT Change
+
+- **140 existing 3D components** (cockpit, environments, game scenes, hero animation)
+- **8 existing 3D UI primitives** (HolographicButton, RadialDial3D, ToggleSwitch3D, NavigationButtonGrid, etc.)
+- **37 custom hooks** (React Query data layer)
+- **31 API routes** (backend unchanged)
+- **13 Zustand stores** (cockpitStore gets 4 new audio fields only)
+- **47 shader files** (GLSL + TSL)
+- **35 game 3D environments**
+- **cockpitBroadcastStore** (16 events already defined)
+- **cockpitMaterials.ts** (7 factories match JSON spec)
+- **CockpitAudioEngine** + 10 lab soundscapes
+
+#### Stays HTML (SEO / Accessibility / Compliance)
+
+| Category | Reason |
+|----------|--------|
+| Marketing landing page body (`/pricing`, `/terms`, `/privacy`) | SEO — Google must crawl |
+| Screen-reader nav (Sidebar.tsx sr-only) | WCAG accessibility |
+| Error/offline pages | Must work without WebGL |
+| Admin panel (`/admin/content`) | Internal tool |
+| Hidden text input proxy | Browser keyboard/paste/autocomplete |
+
+---
+
+### A.2 SOURCE CODE IMPACT — FILE-BY-FILE CORRECTION PLAN
+
+Every `/src/` file categorized by migration impact. **REPLACE** = file becomes thin 3D scene descriptor. **MODIFY** = file needs partial changes (add hooks, remove HTML, adjust wiring). **PRESERVE** = zero changes needed.
+
+#### A.2.1 REPLACE — Files Becoming 3D Scene Descriptors (~22 files, ~4,200 LOC removed)
+
+These files lose their HTML/Tailwind UI and become minimal wrappers that feed scene data to the cockpit via `useCockpitScene()`.
+
+| File | Lines | Replacement |
+|------|-------|-------------|
+| `src/app/(dashboard)/home/page.tsx` | 248 | → `DashboardCenter.tsx` (lab map + welcome + CTA) |
+| `src/app/(dashboard)/labs/page.tsx` | 199 | → `LabsCenter.tsx` (zoomed lab map) |
+| `src/app/(dashboard)/labs/[labId]/page.tsx` | 256 | → `LabDetailPanel.tsx` (lab structure + orbital cards) |
+| `src/app/(dashboard)/arcade/page.tsx` | 275 | → `ArcadePanel.tsx` (4-column scrollable game grid) |
+| `src/app/(dashboard)/profile/page.tsx` | 689 | → `ProfileCenter.tsx` (3D trophy room + avatar) |
+| `src/app/(dashboard)/settings/page.tsx` | 248 | → `SettingsPanel.tsx` (3D toggle/dial controls) |
+| `src/app/(dashboard)/onboarding/page.tsx` | 347 | → `OnboardingPanel.tsx` (3D step wizard) |
+| `src/app/(auth)/login/page.tsx` | ~120 | → `LoginPanel3D.tsx` (uikit form + portal) |
+| `src/app/(auth)/signup/page.tsx` | ~120 | → `LoginPanel3D.tsx` (shared auth panel) |
+| `src/components/shared/CelebrationOverlay.tsx` | 446 | → CeremonyFX (already 3D) + broadcast triggers |
+| `src/components/gamification/TrophyRoom.tsx` | ~80 | → `ProfileCenter.tsx` BadgePedestal3D array |
+| `src/components/gamification/BadgeDisplay.tsx` | ~60 | → BadgeLevitate3D (already 3D) |
+| `src/components/gamification/BadgeGrid.tsx` | ~80 | → HolographicCard grid in ProfileCenter |
+| `src/components/gamification/LevelProgress.tsx` | ~70 | → RadialDial3D gauge (left quadrant) |
+| `src/components/content/LessonViewer.tsx` | ~150 | → HolographicPanel in center viewport |
+| `src/components/content/QuizEngine.tsx` | ~300 | → `QuizPanel3D.tsx` (new 3D component) |
+| `src/components/content/CompletionIndicator.tsx` | ~50 | → CeremonyFX burst trigger |
+| `src/components/auth/LoginFormCard.tsx` | ~80 | → uikit Input panel in LoginPanel3D |
+| `src/components/parent/PaywallModal.tsx` | ~60 | → center screen takeover (3D modal) |
+| `src/components/parent/UpgradePrompt.tsx` | ~70 | → HolographicPanel center modal |
+| `src/components/dashboard/SpatialOverlay.tsx` | ~80 | → absorbed into CockpitUILayer |
+| `src/components/dashboard/TrendingFeed.tsx` | ~100 | → right quadrant activity log scroll |
+
+#### A.2.2 MODIFY — Files Needing Partial Changes (~47 files, ~7,500 LOC touched)
+
+| File | Lines | Changes Needed |
+|------|-------|----------------|
+| **Layouts & Root** | | |
+| `src/app/layout.tsx` | ~120 | Add CockpitCanvas provider at root level |
+| `src/app/(dashboard)/layout.tsx` | 152 | Remove visual Sidebar; keep sr-only nav; wire `useCockpitScene` |
+| `src/app/(auth)/layout.tsx` | ~100 | Update 3D canvas portal setup for unified entry |
+| `src/app/(marketing)/page.tsx` | ~100 | Embed `MarketingHero3D` canvas; keep HTML body for SEO |
+| `src/app/globals.css` | ~500 | Add cockpit CSS variables; remove dashboard Tailwind tokens |
+| **Dashboard Pages** | | |
+| `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | 259 | Remove HTML game UI overlay; wire to sceneStore game mode |
+| `src/app/(dashboard)/content/[slug]/page.tsx` | 46 | Wire to content hologram in center viewport |
+| `src/app/(dashboard)/parent/page.tsx` | 585 | Parent stats → `ParentPanel.tsx` 3D gauges |
+| `src/app/(dashboard)/parent/add-child/page.tsx` | 282 | Form → uikit Input with hidden HTML proxy |
+| `src/app/(dashboard)/parent/subscription/page.tsx` | 344 | Billing UI → center screen 3D modal |
+| `src/app/(dashboard)/parent/export/page.tsx` | 650 | Export UI → 3D data panel |
+| `src/app/(dashboard)/parent/prompt-history/page.tsx` | 475 | History list → scrollable 3D activity log |
+| **Game Components** | | |
+| `src/components/game/GameShell.tsx` | ~120 | Add sceneStore broadcast wiring; update mode transitions |
+| `src/components/game/XPPopup.tsx` | ~60 | Replace motion.div with 3D particle burst |
+| `src/components/game/StreakFire.tsx` | ~50 | Streak display → 3D StreakFlame3D trigger |
+| `src/components/game/GameCompleteCelebration.tsx` | ~100 | Overlay → CeremonyFX broadcast event |
+| **Shared Components** | | |
+| `src/components/shared/ContinueBanner.tsx` | 66 | Remove visual HTML; keep logic for sceneStore |
+| `src/components/shared/LoadingSkeleton.tsx` | 75 | Replace with 3D loading animation |
+| `src/components/shared/LoadingScreen.tsx` | 57 | Loading → cockpit boot sequence animation |
+| `src/components/shared/EmptyState.tsx` | 32 | Empty card → minimal uikit Text |
+| `src/components/shared/ErrorBanner.tsx` | 42 | Error → 3D HUD alert via toast store |
+| `src/components/shared/StepIndicator.tsx` | 56 | Step dots → `PhaseIndicator3D.tsx` |
+| `src/components/shared/ToastContainer.tsx` | 56 | Toast → 3D toast zone with broadcast audio |
+| `src/components/shared/FeatureGate.tsx` | 21 | Update gate logic for 3D scene states |
+| **Content Components** | | |
+| `src/components/content/BranchingLessonRenderer.tsx` | ~100 | Branching UI → holographic flow panel |
+| `src/components/content/SparkFactViewer.tsx` | ~80 | Fact display → 3D text hologram popup |
+| **Auth Components** | | |
+| `src/components/auth/DemoLoginButton.tsx` | ~40 | Demo button → 3D nav integration broadcast |
+| `src/components/auth/DemoSessionBanner.tsx` | ~50 | Banner → 3D HUD countdown callout |
+| `src/components/auth/DemoGuard.tsx` | ~30 | Logic preserved; update state calls |
+| **Parent Components** | | |
+| `src/components/parent/TimeLimitBanner.tsx` | ~60 | Timer alert → 3D center overlay panel |
+| `src/components/parent/ParentLoadingSkeleton.tsx` | ~50 | Skeleton → 3D loading state |
+| **UI Components** | | |
+| `src/components/ui/GuideChatPanel.tsx` | ~200 | Chat panel → `ChatPanel3D.tsx` wrapper |
+| `src/components/ui/OfflineBanner.tsx` | ~50 | Offline → 3D HUD alert text |
+| `src/components/ui/LoadingSkeleton.tsx` | ~60 | Skeleton → 3D spinner animation |
+| `src/components/ui/ParticleIntensitySlider.tsx` | ~80 | HTML slider → RadialDial3D control |
+| `src/components/ui/ErrorBoundary.tsx` | ~60 | Add Canvas error boundary logic |
+| **Accessibility** | | |
+| `src/components/accessibility/AccessibilityToolbar.tsx` | ~80 | Toolbar → floating 3D settings icon |
+| **Transitions** | | |
+| `src/components/transitions/GameFocusSequence.tsx` | ~100 | Sequence → MechanicalIris + FOV scale transition |
+| `src/components/transitions/LabReconfiguration.tsx` | ~80 | Reconfig → variable dial reset animation |
+| **Layout** | | |
+| `src/components/layout/Sidebar.tsx` | ~100 | Keep sr-only; add keyboard nav broadcast |
+| **Providers** | | |
+| `src/components/providers/AuthProvider.tsx` | ~80 | Add 3D auth mode detection |
+| `src/components/providers/PageTransitionProvider.tsx` | ~60 | Wire transitions to sceneStore |
+| **Stores** (3 files) | | |
+| `src/stores/cockpitStore.ts` | ~300 | +4 audio fields, +mode preset state |
+| `src/stores/uiStore.ts` | 63 | +mode presets, update gameActive → sceneStore |
+| `src/stores/sceneStore.ts` | 146 | +centerContentType, +page route mapping |
+| **Hooks** (4 files) | | |
+| `src/hooks/useStationMode.ts` | ~150 | Add auto mode-selection per route (8 presets) |
+| `src/hooks/useCockpitAudio.ts` | ~300 | Wire spatial audio per mode changes |
+| `src/hooks/useAdaptiveCockpit.ts` | ~60 | Fine-tune 3D layout breakpoints |
+| `src/hooks/useAuthHover.ts` | ~40 | Update for 3D raycasting hover |
+
+#### A.2.3 PRESERVE — Files With Zero Changes (~320 files)
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| 3D components (cockpit, hero, scenes) | ~75 | CockpitCanvas, HeroAnimation, StationFrame, SceneRouter, MechanicalIris |
+| 3D UI primitives | 9 | HolographicButton, RadialDial3D, NavigationButtonGrid, CenterViewportScreen |
+| 3D game environments | 35 | PetTrainerEnvironment, SortToyBoxEnvironment, all StandardEnvironmentBase games |
+| 3D creatures & NPCs | 8 | CreatureBase, 5 species, GuideAvatar3D, AmbientNPCs |
+| 3D FX & particles | 10 | CeremonyFX, XPVortex, LevelUpExplosion, GameParticles3D |
+| Procedural environment system | 7 | ProceduralTerrain, SkyDome, Fog, Lighting, Props |
+| Shaders (GLSL + TSL) | 47 | 10 lab patterns + TSL ports + hero/aurora/dissolve shaders |
+| API routes | 31 | All `/api/` routes (auth, children, progress, stripe, agent, health) |
+| Data hooks (React Query) | 29 | useChildren, useContent, useProgress, useGamification, useSortAudio |
+| Stores (unchanged) | 10 | authStore, childStore, gameStore, parentStore, guideStore, etc. |
+| Utility libraries | 43 | utils.ts, animations.ts, validations.ts, tier-config.ts, all agent/* |
+| Config files | 2 | gameRegistry.ts, creatureConfig.ts |
+| Types | 2 | types/index.ts, types/shaders.d.ts |
+| Middleware | 2 | middleware.ts, tierCheck.ts |
+| Mocks | 3 | browser.ts, handlers.ts, server.ts |
+| Error/system pages | 5 | error.tsx, global-error.tsx, offline/page.tsx, robots.ts, sitemap.ts |
+| Marketing components | 6 | ScrollJourney, FeatureShowcase, StationPreview, MarketingHeader/Footer |
+| Games (35 game .tsx files) | 35 | All game logic files — Phase 5-6 migrates UI, not game logic |
+
+#### A.2.4 IMPACT SUMMARY TABLE
+
+| Category | REPLACE | MODIFY | PRESERVE | Total |
+|----------|---------|--------|----------|-------|
+| Page files | 9 | 8 | 2 | 19 |
+| Shared components | 2 | 8 | 1 | 11 |
+| Gamification components | 4 | 0 | 1 | 5 |
+| Content components | 3 | 2 | 0 | 5 |
+| Auth components | 1 | 3 | 0 | 4 |
+| Parent components | 2 | 2 | 0 | 4 |
+| Game/UI components | 0 | 7 | 0 | 7 |
+| Dashboard components | 2 | 0 | 0 | 2 |
+| Layout/Transitions | 0 | 3 | 0 | 3 |
+| Providers | 0 | 2 | 1 | 3 |
+| 3D components | 0 | 0 | ~140 | ~140 |
+| Stores | 0 | 3 | 10 | 13 |
+| Hooks | 0 | 4 | 31 | 35 |
+| API routes | 0 | 0 | 31 | 31 |
+| CSS files | 0 | 1 | 1 | 2 |
+| Everything else | 0 | 0 | ~100 | ~100 |
+| **TOTALS** | **~22** | **~47** | **~320** | **~390** |
+
+### A.3 DOCUMENTATION IMPACT MAP — EVERY DOC FILE CATEGORIZED
+
+Every documentation file categorized: **MAJOR UPDATE** (contains HTML code to rewrite), **MINOR UPDATE** (references HTML patterns), **ARCHITECTURE UPDATE** (defines rules needing 3D UI sections), **NO CHANGE** (unaffected).
+
+#### A.3.1 Root Documents
+
+| File | Impact | Changes Required |
+|------|--------|-----------------|
+| `CLAUDE.md` | **ARCHITECTURE** | Section 7 (game template): add 3D UI pattern. Section 8 (conventions): add 3D panel naming. Section 9 (3D rules): add UI-1–UI-18 decisions. Section 14 (stores): add cockpitStore audio fields. Add new Section 15: 3D UI Architecture. |
+| `Master-SparkForge-UI-Design-Change.md` | NO CHANGE | Source of truth for this migration |
+| `ENHANCEMENT_BLUEPRINT_v1.0.md` | **MINOR** | Section 1 references HTML dashboard — update to reference unified 3D |
+| `TESTING.md` | **MINOR** | Add 3D UI testing patterns (raycasting, uikit, Canvas interaction tests) |
+| `Feature-Workflow-Test.md` | **MINOR** | Add 3D panel feature workflow |
+| `database-patterns.md` | NO CHANGE | Backend-only, no UI references |
+| `SparkForge-agent.md` | NO CHANGE | Agent pipeline, no UI code |
+| `PROGRESS.md` | **MINOR** | Add Phase 11: 3D UI Migration tracking rows |
+| `DEPLOYMENT.md` | NO CHANGE | Deployment procedures unchanged |
+| All `AUDIT_REPORT*.md` | NO CHANGE | Historical reference |
+| `Cockpit-Interface-Plan.md` | NO CHANGE | Precursor to Master UI Design Change |
+
+#### A.3.2 Reference Documents — `docs/00-reference/`
+
+| File | Impact | Changes Required |
+|------|--------|-----------------|
+| `SparkForge_Master_Implementation_Guide_v3.2.md` | **ARCHITECTURE** | THIS APPENDIX. Also: Section 3 (document-to-code map) needs Phase 11 entries. Section 4 (source registry) needs new files. Section 11 (build order) needs Phase 11 added. |
+| `3D-Component-Registry.md` | **ARCHITECTURE** | Add ~24 new UI panel components. Add `CockpitUILayer` category. Update triangle budgets (+3M for UI). |
+| `Per-Stage-Playbooks.md` | **ARCHITECTURE** | Add Phase 11 playbook (7 sub-phases). Update Stage 3-4 playbooks with 3D UI migration notes. |
+| `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` | **MINOR** | Add UI-1–UI-18 decision cross-references. Note quadrant layout supersedes original spatial dashboard HTML overlay. |
+| `GCUD_V10.2.md` | **MINOR** | Game entries reference HTML UI phases — add note that Phase 5-6 migrates game UI to 3D. |
+| `QUICK_REFERENCE_35_GAMES.md` | NO CHANGE | Game metadata table, no UI code |
+| `SparkForge_Master_Directory_v1.2.md` | **MINOR** | Add Phase 11 to 26-phase flow map |
+| `Implementation_Plan_Hero_Page_Animation_v2.0.md` | NO CHANGE | Hero animation spec, no HTML |
+| `SparkForge_Hero_Page_Animation_v2.0.md` | NO CHANGE | Hero 8-phase spec, no HTML |
+| `ERROR_HANDLING_AUTOFIX_GUIDE.md` | **MINOR** | Add uikit error patterns, Canvas crash recovery |
+| `KNOWN_COMPAT_NOTES.md` | **MINOR** | Add @react-three/uikit compatibility notes |
+| `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md` | NO CHANGE | Historical changelog |
+| `COCKPIT_INTEGRATION_ARCHITECTURE_v1.0.md` | NO CHANGE | Precursor reference |
+| `SPARKFORGE_AUDIT_AGENT.md` | NO CHANGE | Audit process doc |
+| `MARKET_RESEARCH_COMPETITIVE_ANALYSIS.md` | NO CHANGE | Market research |
+
+#### A.3.3 Stage Documents — By Stage
+
+**Stage 1: Foundation** — `docs/stage1-foundation/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE1_Foundation_v2_PART1.md` | **MINOR** | Creates `globals.css`, `layout.tsx` — will need 3D CSS token updates |
+| `STAGE1_Foundation_v2_PART2.md` | **MINOR** | Creates stores, hooks — cockpitStore needs audio field additions |
+
+**Stage 2: Database & API** — `docs/stage2-database-api/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE2_Database_API_v2_PART1-4.md` (4 files) | NO CHANGE | SQL, API routes, data hooks — no UI code |
+
+**Stage 3: Auth & Layout** — `docs/stage3-auth-layout/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE3_Auth_Layout_Shell_v2_PART1.md` | **MAJOR** | Creates auth pages (login, signup, reset), auth layout — all become 3D |
+| `STAGE3_Auth_Layout_Shell_v2_PART2.md` | **MAJOR** | Creates dashboard layout, Sidebar, shared components (CelebrationOverlay, ContinueBanner, LoadingSkeleton, EmptyState, ErrorBanner, ToastContainer) — all MODIFY or REPLACE |
+| `STAGE3_Auth_Layout_Shell_v3_PART3A.md` | **MINOR** | Creates StationFrame, 3D shell, marketing layout — StationFrame thin wrapper update |
+| `STAGE3_Auth_Layout_Shell_v3_PART3B.md` | **MINOR** | Creates OnboardingCrystal, shaders — onboarding page becomes 3D wizard |
+| `COCKPIT_CPA2_v3FINAL_PartA.md` | NO CHANGE | Pure 3D cockpit geometry — preserved |
+| `COCKPIT_CPA2_v3FINAL_PartB.md` | NO CHANGE | Spatial dashboard 3D — preserved |
+| `HERO_ANIMATION_v3FINAL_PartA.md` | NO CHANGE | Hero shaders/stores — preserved |
+| `HERO_ANIMATION_v3FINAL_PartB.md` | NO CHANGE | Hero particles/audio — preserved |
+| `LOGIN_3D_v3FINAL_PartA.md` | **MAJOR** | Creates LoginPortal3D, DemoLoginButton, DemoSessionBanner, auth layout replacement — all need 3D UI update |
+| `LOGIN_3D_v3FINAL_PartB.md` | **MAJOR** | Creates LoginFormCard, DemoGuard, enhanced login page — forms migrate to uikit |
+
+**Stage 4: Core Pages** — `docs/stage4-core-pages/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE4_Core_Pages_v2_PART1.md` | **MAJOR** | Creates dashboard home, labs, arcade, lab detail pages — all become scene descriptors |
+| `STAGE4_Part2A_v3FINAL.md` | NO CHANGE | Lab pattern GLSL shaders — preserved |
+| `STAGE4_Part2B_v3FINAL.md` | **MINOR** | Creates LabReconfiguration, GameFocusSequence — transitions need 3D update |
+| `STAGE4_Core_Pages_v2_PART3.md` | **MAJOR** | Creates profile, settings, content pages — all become 3D panels |
+
+**Stage 5: Gamification** — `docs/stage5-gamification/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE5_Gamification_Profile_PART1.md` | **MAJOR** | Creates BadgeDisplay, BadgeGrid, LevelProgress, TrophyRoom — all REPLACE with 3D |
+| `STAGE5_Parts23A_v3FINAL.md` | NO CHANGE | Reward shaders — preserved |
+| `STAGE5_Parts23B_v3FINAL.md` | **MINOR** | Creates XPVortex, BadgePedestal3D (already 3D) + ParticleIntensitySlider (HTML → dial) |
+| `STAGE5_Parts23C_v3FINAL.md` | NO CHANGE | 3D particles, ceremonies — preserved |
+
+**Stage 6: Flagship Games** — `docs/stage6-flagship/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE6B_v3FINAL_A.md` | NO CHANGE | Pet Trainer 3D components — preserved |
+| `STAGE6B_v3FINAL_B.md` | **MAJOR** | PetTrainerGame.tsx — game UI migrates to 3D panels (Phase 5) |
+| `STAGE6C_v3FINAL_A.md` | NO CHANGE | Neural Builder 3D — preserved |
+| `STAGE6C_v3FINAL_B.md` | **MAJOR** | NeuralBuilderGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6D_v2_PromptLab.md` | **MAJOR** | PromptLabGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6D_v2_Enhancements.md` | **MINOR** | Prompt Lab enhancements — partial UI references |
+| `STAGE6D_v3FINAL_PartA.md` | NO CHANGE | Prompt Lab 3D — preserved |
+| `STAGE6D_v3FINAL_PartB.md` | **MINOR** | Enhanced game — partial UI updates |
+| `STAGE6E_v3FINAL_A.md` | NO CHANGE | Agent Architect 3D — preserved |
+| `STAGE6E_v3FINAL_B.md` | **MAJOR** | AgentArchitectGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6E_v3FINAL_C.md` | NO CHANGE | Verification — no UI code |
+| `STAGE6F_v3FINAL_A.md` | NO CHANGE | Bias Detective 3D — preserved |
+| `STAGE6F_v3FINAL_B.md` | **MAJOR** | BiasDetectiveGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6F_v3FINAL_C.md` | NO CHANGE | Verification — no UI code |
+
+**Stage 7: Remaining Games** — `docs/stage7-remaining-games/`
+
+| Substage | Files | Impact | Reason |
+|----------|-------|--------|--------|
+| 7A (4 docs) | BatchA, Part2, Part3, Part4 | **MAJOR** | 9 game .tsx files — all have HTML game UI that migrates in Phase 6 |
+| 7B (3 docs) | v3FINAL PartA/B/C | **MAJOR** | 4 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7C (5 docs) | Part1, Part2, v3FINAL A/B/C | **MAJOR** | 6 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7D (4 docs) | Part1, v3FINAL A/B/C | **MAJOR** | 5 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7E (2 docs) | Part1, Part2 | **MAJOR** | 3 game .tsx files — HTML game UI migrates. |
+| 7F (4 docs) | v3FINAL A/B, Part1, Part2 | **MAJOR** | 3 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7 Shared (2 docs) | Shared Systems, XP Celebration | **MAJOR** | GameShell, XPPopup, GameCompleteCelebration — all MODIFY |
+
+**Stage 8: Parent Dashboard** — `docs/stage8-parent-dashboard/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE8_Parent_Dashboard_v2_PART1.md` | **MINOR** | Creates parentStore, Stripe routes, hooks — mostly preserved. tierCheck middleware unchanged. |
+| `STAGE8_Parent_Dashboard_v2_PART2.md` | **MAJOR** | Creates parent pages (parent, add-child, subscription), PaywallModal, TimeLimitBanner, UpgradePrompt — all MODIFY/REPLACE |
+| `STAGE8_P3_v3FINAL_A.md` | **MINOR** | ScrollJourney, LabDiscoveryRing — landing stays HTML for SEO but gets 3D hero embed |
+| `STAGE8_P3_v3FINAL_B.md` | **MINOR** | FeatureShowcase, StationPreview — marketing HTML preserved for SEO |
+| `STAGE8_P3_v3FINAL_C.md` | **MINOR** | Pricing page — stays HTML for SEO |
+
+**Stage 9: Content Agent** — `docs/stage9-content-agent/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE9_Content_Agent_v2_PART1.md` | NO CHANGE | Agent pipeline, prompts, API — no UI code |
+| `STAGE9_Content_Agent_v2_PART2.md` | **MINOR** | Admin content page — stays HTML (internal tool, UI-1 exemption) |
+| `STAGE9_Content_Agent_v2_PART3.md` | NO CHANGE | Seed content data — no UI code |
+
+**Stage 10: Polish & Deploy** — `docs/stage10-polish-deploy/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE10_Polish_Deploy_v2_PART1.md` | **MAJOR** | Creates AccessibilityToolbar (→ 3D), OfflineBanner (→ HUD), LoadingSkeleton (→ 3D), not-found.tsx update |
+| `STAGE10_Polish_Deploy_v2_PART2.md` | **MINOR** | Production config, game router — gameSlug page needs sceneStore wiring |
+
+**Enhancement Documents** — `docs/enhancements/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `DESKTOP_FIRST_3D_OVERHAUL_PartA-D.md` (4 files) | **MINOR** | D3D decisions still valid; add UI-1–UI-18 cross-references |
+| `AI_GUIDE_AVATAR_ENHANCEMENT_PLAN.md` | NO CHANGE | Future enhancement — already 3D |
+
+#### A.3.4 DOCUMENTATION IMPACT SUMMARY
+
+| Impact Level | Count | Examples |
+|-------------|-------|---------|
+| **MAJOR UPDATE** | ~32 | Stage 3 P1-P2, Stage 4 P1+P3, Stage 5 P1, all 6 flagship game docs, all 22 Stage 7 game docs, Stage 8 P2, Stage 10 P1 |
+| **MINOR UPDATE** | ~18 | CLAUDE.md, Stage 1 P1-P2, Login3D, Stage 4 P2B, Stage 5 P23B, Stage 8 P1+P3, TESTING.md, reference docs |
+| **ARCHITECTURE UPDATE** | ~4 | Master Implementation Guide, 3D-Component-Registry, Per-Stage-Playbooks, CLAUDE.md |
+| **NO CHANGE** | ~74 | All SQL, API-only, pure 3D specs, hero animation, cockpit geometry, shaders, superseded docs |
+| **TOTAL** | ~128 | |
+
+### A.4 NEW FILES, DEPENDENCIES & STORE CHANGES
+
+#### A.4.1 New Source Files to Create (~24 files)
+
+All new files go under existing directories. No new directory structure needed.
+
+**Infrastructure — `src/hooks/` + `src/components/3d/ui/`** (7 files)
+
+| File | Location | Purpose | Triangle Budget |
+|------|----------|---------|----------------|
+| `useCockpitScene.ts` | `src/hooks/` | Hook: per-route scene descriptor manager. Returns `{ centerContent, modePreset, pageData }`. Reads Next.js router, drives CockpitUILayer. | — |
+| `CockpitUILayer.tsx` | `src/components/3d/ui/` | Orchestrator: manages all 3D UI panels, handles mode transitions (400ms crossfade), wires quadrant layout. Renders inside CockpitCanvas. | — |
+| `CockpitText.tsx` | `src/components/3d/ui/` | Primitive: uikit Text wrapper with Frost-Prismatic styling (Exo 2 / Sora / Orbitron fonts, #F0F0F4 color, emissive options). | Part of 3M |
+| `CockpitContainer.tsx` | `src/components/3d/ui/` | Primitive: uikit Container wrapper with carbon composite background + chrome bezel border. | Part of 3M |
+| `CockpitScrollPanel.tsx` | `src/components/3d/ui/` | Primitive: uikit scroll container with LED scroll indicator strip. For activity log, game grid, trophy gallery. | Part of 3M |
+| `CockpitInput.tsx` | `src/components/3d/ui/` | Primitive: uikit Input with hidden HTML `<input>` proxy for keyboard/paste/autocomplete. SDF text + per-character spring animation. | Part of 3M |
+| `CockpitTooltip.tsx` | `src/components/3d/ui/` | Primitive: 3D holographic tooltip panel. Auto-positioned, 300ms delay, chrome bezel, carbon composite background. | Part of 3M |
+
+**Dashboard Panels — `src/components/3d/panels/`** (6 files, NEW directory)
+
+| File | Route | Center Content | Triangle Budget |
+|------|-------|----------------|----------------|
+| `DashboardCenter.tsx` | `/home` | HolographicLabMap + welcome stats (uikit Text) + Continue CTA (HolographicButton) | Reuses existing 1M lab map |
+| `DashboardLeft.tsx` | All | AvatarPreview3D + GuideAvatar3D + 3 BadgePedestal3D + 4 RadialDial3D gauges (XP, Level, Streak, Progress) | ~500K new |
+| `DashboardRight.tsx` | All | Settings quick-access (2 toggles + 2 dials) + CockpitScrollPanel activity log (20 items) + 4 HolographicButton quick actions | ~500K new |
+| `LabsCenter.tsx` | `/labs` | Zoomed HolographicLabMap with game counts per node, click→focus, double-click→enter | Reuses existing |
+| `LabDetailPanel.tsx` | `/labs/[id]` | LabStructure3D (300K) + orbital HolographicCard ring (game list) | ~500K new |
+| `ArcadePanel.tsx` | `/arcade` | 4-column CockpitScrollPanel grid of HolographicCards (35 game tiles). Filterable by lab. | ~500K new |
+
+**Page-Specific Panels — `src/components/3d/panels/`** (5 files)
+
+| File | Route | Content |
+|------|-------|---------|
+| `ProfileCenter.tsx` | `/profile` | BadgePedestal3D array (9 categories) + enlarged AvatarPreview3D with cosmetic ring |
+| `SettingsPanel.tsx` | `/settings` | HolographicPanel array: Audio (3 controls), Visual (2 controls), Cockpit Skin (5-card grid) |
+| `ParentPanel.tsx` | `/parent` | Parent analytics: children overview, time limits, subscription status (uikit Text + RadialDial3D gauges) |
+| `LoginPanel3D.tsx` | `/login`, `/signup` | uikit form panel (CockpitInput for email/password) + 3D portal background. Replaces LoginFormCard. |
+| `OnboardingPanel.tsx` | `/onboarding` | Multi-step 3D wizard in center viewport. CockpitContainer per step. |
+
+**Game UI — `src/components/3d/ui/`** (5 files)
+
+| File | Purpose | Used By |
+|------|---------|---------|
+| `GameScoreGauge.tsx` | Animated score display gauge with number spring animation | All 35 games |
+| `GameTimerDisplay.tsx` | Countdown timer with visual warning states (amber <30s, red <10s) | Timed games |
+| `QuizPanel3D.tsx` | Quiz question + answer buttons + streak indicator | Tap & Quiz games (9) |
+| `ChatPanel3D.tsx` | Chat/dialogue panel for AI interaction games | Chatbot Builder, Prompt Lab |
+| `PhaseIndicator3D.tsx` | Multi-phase progress display ("Phase 2/4") with holographic markers | All phased games |
+
+**Marketing — `src/components/3d/`** (1 file)
+
+| File | Purpose |
+|------|---------|
+| `MarketingHero3D.tsx` | 3D cockpit preview embedded in HTML marketing landing page. Canvas inset in scrollable HTML body. |
+
+#### A.4.2 New Directory
+
+| Directory | Purpose |
+|-----------|---------|
+| `src/components/3d/panels/` | Dashboard panel components (center/left/right/page-specific). Separates UI panels from geometry/FX. |
+
+#### A.4.3 NPM Dependencies
+
+| Package | Status | Version | Purpose |
+|---------|--------|---------|---------|
+| `@react-three/uikit` | **ALREADY INSTALLED** | ^1.0.64 | Text, Input, Container, scroll — core 3D UI primitives |
+| `@react-three/uikit-apfel` | **ALREADY INSTALLED** | ^0.8.21 | Apple-style presets for uikit |
+| `@react-three/fiber` | INSTALLED | ^9.5.0 | R3F core |
+| `@react-three/drei` | INSTALLED | ^10.7.7 | Html proxy, useTexture, etc. |
+| `three` | INSTALLED | ^0.183.2 | Three.js core |
+| `tone` | INSTALLED | ^15.1.22 | Audio synthesis |
+
+**Zero new npm dependencies required.** The stack is complete.
+
+#### A.4.4 Store State Changes
+
+**`src/stores/cockpitStore.ts`** — Add 4 audio control fields:
+
+| Field | Type | Default | Binding (JSON spec) |
+|-------|------|---------|---------------------|
+| `spatialAudioVolume` | `number` | `0.3` | Spatial FX volume dial (0–1) |
+| `eventAudioVolume` | `number` | `0.5` | UI sounds volume dial (0–1) |
+| `mechanicalAudioDensity` | `number` | `0.7` | Mechanical detail dial (0=atmospheric, 1=every click has audio) |
+| `labAudioEnabled` | `boolean` | `true` | Lab soundscape crossfade toggle |
+
+Plus 4 setter actions: `setSpatialAudioVolume`, `setEventAudioVolume`, `setMechanicalAudioDensity`, `setLabAudioEnabled`.
+
+**Already exists:** `cockpitAudioEnabled` (boolean), `ambientVolume` (number, 0.15).
+
+**`src/stores/uiStore.ts`** — Add mode preset state:
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `cockpitMode` | `'dashboard' \| 'labs' \| 'lab_detail' \| 'game' \| 'profile' \| 'settings' \| 'celebration' \| 'parent'` | `'dashboard'` | Active cockpit atmosphere mode |
+
+**`src/stores/sceneStore.ts`** — Add center content routing:
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `centerContentType` | `'labmap' \| 'labmap_zoomed' \| 'lab_detail' \| 'arcade_grid' \| 'trophy_room' \| 'settings' \| 'parent' \| 'login' \| 'onboarding' \| 'game' \| 'content'` | `'labmap'` | What renders in center viewport |
+| `centerContentProps` | `Record<string, unknown>` | `{}` | Props passed to center panel (labId, gameSlug, etc.) |
+
+#### A.4.5 Existing 3D UI Components — Already Built (Zero Changes)
+
+These 8 components are the **foundation** for the migration. New panel files compose them.
+
+| Component | File | Status | Used By |
+|-----------|------|--------|---------|
+| HolographicButton | `src/components/3d/ui/HolographicButton.tsx` | READY | Nav, CTAs, quick actions |
+| RadialDial3D | `src/components/3d/ui/RadialDial3D.tsx` | READY | Gauges, volume, settings |
+| ToggleSwitch3D | `src/components/3d/ui/ToggleSwitch3D.tsx` | READY | Audio, particles, settings |
+| HolographicCard | `src/components/3d/ui/HolographicCard.tsx` | READY | Game tiles, lab cards, badges |
+| HolographicPanel | `src/components/3d/ui/HolographicPanel.tsx` | READY | Settings sections, containers |
+| NavigationButtonGrid | `src/components/3d/ui/NavigationButtonGrid.tsx` | READY | Primary 5-button nav |
+| VariableDialCluster | `src/components/3d/ui/VariableDialCluster.tsx` | READY | Bottom 3 dials per-page |
+| CenterViewportScreen | `src/components/3d/ui/CenterViewportScreen.tsx` | READY | Center viewport shell |
+
+### A.5 IMPLEMENTATION PHASES, CLAUDE.MD IMPACT & RISK MITIGATION
+
+#### A.5.1 Implementation Phase Plan (Phase 11 — 3D UI Migration)
+
+Inserts into the Build Execution Plan (Section 11) after Phase 26 (Stage 10). Decision UI-18 mandates phased migration: dashboard first, then flagships, then standard games.
+
+| Sub-Phase | Week | Scope | New Files | Modified Files | Hard Stops |
+|-----------|------|-------|-----------|----------------|------------|
+| **11A: Infrastructure** | 1 | `useCockpitScene`, `CockpitUILayer`, 5 uikit primitives (Text, Container, ScrollPanel, Input, Tooltip) | 7 | 3 (stores) | — |
+| **11B: Dashboard** | 2 | 6 pages → scene descriptors. Create DashboardCenter/Left/Right, LabsCenter, LabDetailPanel, ArcadePanel | 6 | 6 (pages) | HS-5 (visual verify) |
+| **11C: Auth + Forms** | 3 | Login/signup → LoginPanel3D, OnboardingPanel. Chat → ChatPanel3D. | 3 | 4 (auth pages/layout) | HS-5 |
+| **11D: Gamification** | 3–4 | Celebration → CeremonyFX broadcast. XP/streak → 3D triggers. Profile → ProfileCenter. Settings → SettingsPanel. Parent → ParentPanel. | 3 | 12 (shared + game components) | — |
+| **11E: Flagship Games** | 4–5 | 6 flagship game UIs → 3D panels. Create GameScoreGauge, GameTimerDisplay, QuizPanel3D, PhaseIndicator3D. | 4 | 6 (game files) | HS-5 |
+| **11F: Standard Games** | 6–8 | 29 standard game UIs via 4 shared templates (QuizPanel3D, ChatPanel3D, PhaseIndicator3D, GameScoreGauge). | 0 | 29 (game files) | — |
+| **11G: Marketing** | 8 | MarketingHero3D embedded in landing page. CSS refinements. | 1 | 2 (marketing pages) | HS-5 |
+
+**Totals:** ~24 new files, ~55 modified files. Tag: `v0.11.0`.
+
+#### A.5.2 CLAUDE.md Sections Requiring Updates
+
+| Section | Current Content | Required Change |
+|---------|----------------|-----------------|
+| **Section 1 (Project Identity)** | Tech stack table | Add `@react-three/uikit` row. Update "Styling" from "Tailwind CSS 4" to "Tailwind CSS 4 (marketing/SEO only) + cockpitMaterials.ts (dashboard 3D)". |
+| **Section 4 (Build Execution Plan)** | Phases 1–26 | Add Phase 11A–11G (3D UI Migration) after Phase 26. Add visual checkpoint HS-11. |
+| **Section 5 (Per-Stage Playbooks)** | 10 stage playbooks | Add Phase 11 playbook with 7 sub-phases. |
+| **Section 6 (Design System)** | Frost-Prismatic colors, glassmorphism | Add UI-3: "Opaque metallic cockpit — NOT glassmorphic. Carbon composite + chrome bezel. Holographic ONLY on center lab map." Update material references. |
+| **Section 7 (Game Architecture)** | HTML game template with phase system | Add 3D game UI template pattern using `GameScoreGauge`, `QuizPanel3D`, `PhaseIndicator3D`. Note: game logic stays identical, only UI rendering changes. |
+| **Section 8 (File Conventions)** | Component naming conventions | Add: `3D panels: src/components/3d/panels/NamePanel.tsx`. Add: `3D UI primitives: src/components/3d/ui/CockpitName.tsx`. |
+| **Section 9 (3D Architecture)** | 140 component registry, D3D decisions | Add UI-1 through UI-18 decision locks. Add 3D UI component triangle budget (+3M). Update total to ~40.8M cockpit + ~9.2M game headroom. Add quadrant layout spec reference. |
+| **Section 9.3 (Cockpit Budgets)** | 37.8M cockpit triangle budget table | Add row: "3D UI Panels (24 components) — 3,000,000 triangles". Update cockpit total to ~40.8M. |
+| **Section 10 (Error Handling)** | Build/TS error patterns | Add uikit error patterns: Input proxy failures, Canvas crash on UI unmount, SDF font loading errors. |
+| **Section 11 (Known Bugs)** | Bug registry | Add: `UI-MIGRATION-PHASE` tracking entry for phased rollout status. |
+| **Section 14 (Stores)** | 13 stores table | Update cockpitStore entry: add `spatialAudioVolume`, `eventAudioVolume`, `mechanicalAudioDensity`, `labAudioEnabled`. Update uiStore: add `cockpitMode`. Update sceneStore: add `centerContentType`, `centerContentProps`. |
+
+#### A.5.3 Master Implementation Guide Sections Requiring Updates (This File)
+
+| Section | Required Change |
+|---------|-----------------|
+| **Section 3 (Document-to-Code Map)** | Add Phase 11 sub-stages with file creation/modification maps |
+| **Section 4 (Source Code Registry)** | Add ~24 new files to Section 4.x registries |
+| **Section 5 (Enhancement Map)** | Add Section 5.9: 3D UI Migration (24 files) |
+| **Section 7 (Store Registry)** | Update cockpitStore, uiStore, sceneStore entries with new fields |
+| **Section 8 (3D Component Registry)** | Add `3D UI Panels` category (~24 components) |
+| **Section 11 (Build Execution Order)** | Add Phase 11A–11G rows after Phase 26 |
+
+#### A.5.4 Other Documents Requiring Updates
+
+| Document | Location | Change |
+|----------|----------|--------|
+| `3D-Component-Registry.md` | `docs/00-reference/` | Add ~24 UI panel components. New category: "3D UI Panels". |
+| `Per-Stage-Playbooks.md` | `docs/00-reference/` | Add Phase 11 playbook (7 sub-phases with file lists + visual checkpoints). |
+| `KNOWN_COMPAT_NOTES.md` | `docs/00-reference/` | Add @react-three/uikit v1.0.64 notes: Input proxy caveats, SDF font requirements. |
+| `ERROR_HANDLING_AUTOFIX_GUIDE.md` | `docs/00-reference/` | Add uikit-specific error patterns and auto-fix strategies. |
+| `PROGRESS.md` | Repo root | Add Phase 11 tracking rows (11A–11G). |
+
+#### A.5.5 Risk Mitigation
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Text readability in 3D | Users can't read small text on curved surfaces | Larger fonts (14px+), geometric typefaces (Exo 2, Orbitron), high-contrast. Fallback to `drei Html` per element if needed. |
+| uikit Input edge cases | Login/signup may lose keyboard/paste functionality | Hidden HTML `<input>` proxy handles native events. Fallback to `drei Html` overlay per input if uikit fails. |
+| Performance: +3M triangles for UI | Frame rate drop below 50fps target | SDF text instancing, `useFrameTimeMonitor` (Plan B1). If persistent issues: `Plan B2` adaptive effect degradation. |
+| Single Canvas crash | WebGL context loss kills entire UI | `Canvas3DErrorBoundary` (exists) + fallback to HTML error page. Test context loss recovery. |
+| 35 game UI migrations | Massive PR surface area | Phase 5–6 uses 4 shared templates (QuizPanel3D, ChatPanel3D, PhaseIndicator3D, GameScoreGauge) covering all 29 standard games. 6 flagships get custom treatment. |
+| Accessibility regression | Screen readers can't parse Canvas | sr-only Sidebar nav (preserved), ARIA live regions for state changes, `prefers-reduced-motion` reduces 8 effects to instant. |
+| Glassmorphism muscle memory | Users expect transparent frosted panels | UI-3 decision lock: Opaque metallic is deliberate. Holographic ONLY on center lab map. No CSS `backdrop-filter`. |
+
+#### A.5.6 New Decision Locks (UI-1 through UI-18)
+
+All 18 decisions from `Master-SparkForge-UI-Design-Change.md` Section 4 become locked architectural decisions:
+
+| ID | Decision | Summary |
+|----|----------|---------|
+| UI-1 | Full 3D dashboard | Everything behind auth renders in 3D. Zero SEO risk (behind auth). |
+| UI-2 | uikit for text/forms | uikit Input uses hidden HTML proxy for keyboard/paste/autocomplete. |
+| UI-3 | Opaque metallic cockpit | NOT glassmorphic. Carbon composite + chrome bezel. Holographic ONLY on center lab map. |
+| UI-4 | Center swaps per page | Center viewport shows different 3D content per route. Left/right/bottom fixed. |
+| UI-5 | Left = Player Identity | Avatar + AI Guide + Trophies + 4 Gauges. Always present. |
+| UI-6 | Right = Control Hub | Settings + Activity Log + Quick Actions. Always present. |
+| UI-7 | Bottom = Instruments | 3 Dials (page-aware) + 5 Nav Buttons + StatusBar3D. Never changes layout. |
+| UI-8 | Game = 75% takeover | Center scales 1.75x, FOV 58→72, panels slide 30% outward, dim to 40%. |
+| UI-9 | Dramatic celebration | Gold LEDs, HUD expansion, bloom spike, 3D confetti, 2.5s duration. |
+| UI-10 | Smooth crossfade | 400ms ease-out-cubic between non-game pages. MechanicalIris for game entry/exit. |
+| UI-11 | Layered hover feedback | Buttons/cards: glow + scale 1.05. Panels: chrome edge-trace. |
+| UI-12 | Center screen modals | Dialog replaces center content. No overlay dimming. Close via button/Escape. |
+| UI-13 | 3D holographic tooltips | Materialize next to hovered element. Chrome bezel. 300ms delay. |
+| UI-14 | Keyboard nav | 5 nav buttons + center CTA are Tab-accessible. Mouse is primary input. |
+| UI-15 | Dense spatial audio | Every interaction has spatial audio. User controls density via settings dial. |
+| UI-16 | Full audio customization | 6 controls: master, ambient/spatial/event volumes, mechanical density, lab crossfade. |
+| UI-17 | Lab audio crossfade | 10 Tone.js generative soundscapes. 1.5s crossfade on lab transition. |
+| UI-18 | Phased game migration | Dashboard first → 6 flagships → 29 standard. |
+
+**Total decision locks after migration: 84 existing + 18 UI = 102 locked decisions.**
+
+---
+
+*End of Appendix A — Unified 3D UI Migration: Document & File Correction Plan v1.0*
+*24 new files | ~22 REPLACE + ~47 MODIFY + ~320 PRESERVE = ~390 source files assessed | ~32 MAJOR + ~18 MINOR + ~4 ARCHITECTURE + ~74 NO CHANGE = 128 docs assessed | 18 new decision locks (UI-1–UI-18) | 0 new npm dependencies | 4 new store fields | 7 implementation sub-phases | March 31, 2026*
+
+---
+
 *End of Master Implementation Guide v4.0 | SparkForge | Laboratory Control Station*
-*414 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 | March 30, 2026*
+*414 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks + 18 UI decisions | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 + Master UI Design Change v1.0 | March 31, 2026*
 
 *This is a living document. Updated after each delivery session. GCUD V10.2 is the canonical source for game content tracking. Master Directory v1.2 is the canonical source for file registry and build flow.*
