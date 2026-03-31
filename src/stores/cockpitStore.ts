@@ -13,6 +13,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CockpitSkin, SpatialView, CeremonyType } from '@/types';
+import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
 
 // Re-export types so consumers can import from either @/types or @/stores/cockpitStore
 export type { CockpitSkin, SpatialView, CeremonyType };
@@ -123,6 +124,18 @@ interface CockpitState {
   // CPA v2.0 — Audio preferences (Decision CPA2-8)
   cockpitAudioEnabled: boolean;
   ambientVolume: number;
+  // UI Design Change — expanded audio controls (6 user settings)
+  spatialAudioVolume: number;
+  eventAudioVolume: number;
+  mechanicalAudioDensity: number;
+  labAudioEnabled: boolean;
+
+  // UI Design Change — visual control
+  brightness: number;
+
+  // UI Design Change — active cockpit mode
+  activeMode: CockpitMode;
+  previousMode: CockpitMode | null;
 
   // CPA v2.0 — Mini-map
   miniMapVisible: boolean;
@@ -154,6 +167,12 @@ interface CockpitState {
   dequeueCeremony: () => void;
   setCockpitAudio: (enabled: boolean) => void;
   setAmbientVolume: (volume: number) => void;
+  setSpatialAudioVolume: (volume: number) => void;
+  setEventAudioVolume: (volume: number) => void;
+  setMechanicalAudioDensity: (density: number) => void;
+  setLabAudioEnabled: (enabled: boolean) => void;
+  setBrightness: (brightness: number) => void;
+  setActiveMode: (mode: CockpitMode) => void;
   toggleMiniMap: () => void;
   setHeroPhase: (phase: HeroPhase) => void;
   setCockpitReady: (ready: boolean) => void;
@@ -176,6 +195,13 @@ export const useCockpitStore = create<CockpitState>()(
       ceremonyQueue: [] as CeremonyQueueItem[],
       cockpitAudioEnabled: true,
       ambientVolume: 0.15,
+      spatialAudioVolume: 0.3,
+      eventAudioVolume: 0.5,
+      mechanicalAudioDensity: 0.7,
+      labAudioEnabled: true,
+      brightness: 1.0,
+      activeMode: 'dashboard' as CockpitMode,
+      previousMode: null as CockpitMode | null,
       miniMapVisible: true,
       heroPhase: 'idle' as HeroPhase,
       cockpitReady: false,
@@ -293,6 +319,21 @@ export const useCockpitStore = create<CockpitState>()(
 
       setAmbientVolume: (ambientVolume) => set({ ambientVolume }),
 
+      setSpatialAudioVolume: (spatialAudioVolume) => set({ spatialAudioVolume }),
+
+      setEventAudioVolume: (eventAudioVolume) => set({ eventAudioVolume }),
+
+      setMechanicalAudioDensity: (mechanicalAudioDensity) => set({ mechanicalAudioDensity }),
+
+      setLabAudioEnabled: (labAudioEnabled) => set({ labAudioEnabled }),
+
+      setBrightness: (brightness) => set({ brightness }),
+
+      setActiveMode: (mode) => set((s) => ({
+        activeMode: mode,
+        previousMode: s.activeMode,
+      })),
+
       toggleMiniMap: () => set((s) => ({ miniMapVisible: !s.miniMapVisible })),
 
       setHeroPhase: (heroPhase) => set({ heroPhase }),
@@ -307,6 +348,11 @@ export const useCockpitStore = create<CockpitState>()(
         npcsVisible: state.npcsVisible,
         cockpitAudioEnabled: state.cockpitAudioEnabled,
         ambientVolume: state.ambientVolume,
+        spatialAudioVolume: state.spatialAudioVolume,
+        eventAudioVolume: state.eventAudioVolume,
+        mechanicalAudioDensity: state.mechanicalAudioDensity,
+        labAudioEnabled: state.labAudioEnabled,
+        brightness: state.brightness,
         miniMapVisible: state.miniMapVisible,
       }),
     }
