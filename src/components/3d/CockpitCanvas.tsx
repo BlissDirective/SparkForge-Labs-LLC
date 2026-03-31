@@ -49,6 +49,11 @@ import { DynamicEnvironment } from './DynamicEnvironment';
 import { InteractiveConsole3D, CONSOLE_POSITIONS } from './InteractiveConsole3D';
 import { AmbientNPCs } from './AmbientNPCs';
 
+// 3D UI Components — Cockpit-Embedded Controls (INT-1: Wire orphaned components)
+import { NavigationButtonGrid } from './ui/NavigationButtonGrid';
+import { VariableDialCluster } from './ui/VariableDialCluster';
+import { CenterViewportScreen } from './ui/CenterViewportScreen';
+
 // Scene Management (D3D-B5)
 import { SceneRouter } from './SceneRouter';
 import { MechanicalIris } from './MechanicalIris';
@@ -296,8 +301,8 @@ export function CockpitCanvas({
   // ── Single Persistent R3F Canvas (D3D-B1: NEVER unmounts) ──
   return (
     <div
-      className="fixed inset-0 z-0 pointer-events-none r3f-vignette-active"
-      style={{ opacity: frameDimmed ? 0.4 : 1 }}
+      className="fixed inset-0 z-0 r3f-vignette-active"
+      style={{ opacity: frameDimmed ? 0.4 : 1, pointerEvents: 'auto' }}
       aria-hidden="true"
     >
       <Canvas
@@ -403,6 +408,12 @@ export function CockpitCanvas({
                   opacity={statusBarOpacity}
                 />
 
+                {/* ═══ 3D UI: Navigation Buttons — bottom console (INT-1) ═══ */}
+                <NavigationButtonGrid position={[0, -0.6, -1.85]} />
+
+                {/* ═══ 3D UI: Variable Dials — center console (INT-1) ═══ */}
+                <VariableDialCluster position={[0, -0.3, -1.4]} />
+
                 {/* ═══ Ceremony FX — 3D celebration effects (S5-HIGH-007) ═══ */}
                 <CeremonyFXBridge />
 
@@ -411,10 +422,14 @@ export function CockpitCanvas({
               </>
             }
             spatialContent={
-              <SpatialDashboardContent
-                labCompletions={labCompletions}
-                onLabEnter={onLabEnter}
-              />
+              <>
+                {/* ═══ 3D UI: Center Viewport Screen — panoramic backdrop (INT-1) ═══ */}
+                <CenterViewportScreen labColor={effectiveLabColor} opacity={0.85} />
+                <SpatialDashboardContent
+                  labCompletions={labCompletions}
+                  onLabEnter={onLabEnter}
+                />
+              </>
             }
             gameContent={resolvedGameSceneContent}
             irisContent={<MechanicalIris labColor={effectiveLabColor} />}

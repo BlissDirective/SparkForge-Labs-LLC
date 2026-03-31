@@ -1,0 +1,1081 @@
+{
+  "meta": {
+    "name": "SparkForge Full Control Screen",
+    "version": "1.0-DRAFT",
+    "date": "2026-03-31",
+    "description": "Master cockpit UI layout specification. Defines every visual element, position, material, and interaction in the 3D panoramic cockpit. Source of truth for the full 3D UI migration.",
+    "design_language": "Opaque metallic control panel with high-polish chrome bezels, matte-black carbon composite surfaces, physical 3D dials/buttons/switches. Holographic glow LIMITED to center lab map only.",
+    "perspective": "First-person, 1-foot from panel face, 130-degree forward curvature",
+    "triangle_budget": "50,000,000 total (37,800,000 cockpit structure + 12,200,000 game headroom)"
+  },
+
+  "global_materials": {
+    "carbon_composite": {
+      "type": "MeshStandardMaterial",
+      "color": "#0A0F1F",
+      "metalness": 0.3,
+      "roughness": 0.8,
+      "description": "Matte-black base surface for all panel faces"
+    },
+    "chrome_bezel": {
+      "type": "MeshStandardMaterial",
+      "color": "#a8b5c8",
+      "metalness": 0.98,
+      "roughness": 0.12,
+      "envMapIntensity": 2.0,
+      "description": "High-polish chrome for every edge, button housing, and structural frame"
+    },
+    "control_panel": {
+      "type": "MeshPhongMaterial",
+      "color": "#0a1625",
+      "shininess": 95,
+      "emissive": "dynamic_lab_color",
+      "emissiveIntensity": 0.85,
+      "description": "Dark wet-glass surface for interactive screen areas"
+    },
+    "button_active": {
+      "type": "MeshPhongMaterial",
+      "emissive": "dynamic_color",
+      "emissiveIntensity": 2.5,
+      "shininess": 120,
+      "description": "Bright emissive for pressed/active buttons"
+    },
+    "button_idle": {
+      "type": "MeshPhongMaterial",
+      "emissive": "dynamic_color",
+      "emissiveIntensity": 1.2,
+      "shininess": 80,
+      "description": "Subtle glow for idle interactive elements"
+    },
+    "holographic": {
+      "type": "MeshBasicMaterial",
+      "color": "#00eeff",
+      "transparent": true,
+      "opacity": 0.9,
+      "blending": "AdditiveBlending",
+      "description": "ONLY for center lab map and small data readouts"
+    },
+    "led_emissive": {
+      "type": "MeshBasicMaterial",
+      "toneMapped": false,
+      "description": "Ultra-bright LED strips and indicators"
+    }
+  },
+
+  "global_lighting": {
+    "ambient": { "color": "#0A0F1F", "intensity": 0.3 },
+    "cockpit_fill": { "type": "PointLight", "color": "#00E5FF", "intensity": 0.4, "position": [0, 2, -2] },
+    "accent_orange": { "type": "SpotLight", "color": "#FF9500", "intensity": 0.2, "target": "active_control" },
+    "center_bloom": { "type": "PointLight", "color": "#00E5FF", "intensity": 0.8, "position": [0, 0.5, -3.3], "description": "Blue holographic bloom from center screen ONLY" }
+  },
+
+  "cockpit_shell": {
+    "arc_degrees": 130,
+    "radius": 4.8,
+    "camera": {
+      "position": [0, 0.65, 1.1],
+      "fov": 58,
+      "near": 0.1,
+      "far": 200,
+      "description": "First-person seated 1 foot from panel"
+    },
+    "panels": {
+      "component": "CockpitPanels",
+      "triangles": 4000000,
+      "segments": 288,
+      "ribs": 12,
+      "rivets": 768,
+      "material": "chrome_bezel + carbon_composite"
+    },
+    "floor": {
+      "component": "CockpitFloor3D",
+      "triangles": 1000000,
+      "description": "Grated floor with sub-floor piping, energy conduits, LED channels"
+    },
+    "structural_detail": {
+      "component": "CockpitStructuralDetail",
+      "triangles": 2000000,
+      "cables": 60,
+      "vents": 16,
+      "description": "Cable bundles, vent panels, ribs, LED indicator strips"
+    }
+  },
+
+  "quadrant_layout": {
+    "design_principle": "Left (identity) and Right (control) are FIXED across all pages. Center SWAPS content per route — it is the cockpit's main screen. Bottom is FIXED instruments.",
+
+    "center_console": {
+      "position": [0, 0.35, -3.3],
+      "width_percent": 45,
+      "behavior": "SWAPS_PER_PAGE — different 3D content per route",
+      "shell": {
+        "component": "CenterViewportScreen",
+        "triangles": 3000000,
+        "radius": 3.9,
+        "segments": [144, 72],
+        "material": "carbon_composite inner, chrome_bezel frame",
+        "description": "Spherical panoramic main screen shell. Content inside changes per route."
+      },
+      "per_page_content": {
+        "/home": {
+          "components": [
+            {
+              "id": "lab_map",
+              "component": "HolographicLabMap",
+              "triangles": 1000000,
+              "position": [0, 0.3, -3.0],
+              "material": "holographic",
+              "description": "Interactive 3D lab network — 10 pulsing nodes, geodesic shells, data highways. ONLY holographic element in cockpit.",
+              "interactive": {
+                "lab_nodes": 10,
+                "click": "Focus lab, fly camera, show detail overlay",
+                "hover": "Pulse glow, show lab name + completion %",
+                "double_click": "Enter lab route"
+              }
+            },
+            {
+              "id": "welcome_stats",
+              "component": "uikit Container + Text",
+              "position": [0, 1.1, -2.9],
+              "content": ["Welcome back, {child.display_name}", "Level {child.level} · {child.xp} XP · {child.streak_count} day streak"],
+              "style": "Orbitron font, #F0F0F4 primary, #00BBFF accent, chrome-bordered panel",
+              "description": "Floating welcome header with quick stats above the lab map"
+            },
+            {
+              "id": "continue_learning",
+              "component": "HolographicButton",
+              "position": [0, -0.4, -2.8],
+              "label": "Continue: {last_lab} — {last_game}",
+              "icon": "ChevronRight",
+              "color": "#00BBFF",
+              "description": "Prominent CTA to resume last session. Spring-press animation, LED pulse on hover."
+            }
+          ]
+        },
+        "/labs": {
+          "components": [
+            {
+              "id": "lab_map_zoomed",
+              "component": "HolographicLabMap",
+              "triangles": 1000000,
+              "position": [0, 0.3, -2.5],
+              "camera_preset": { "fov": 62, "position": [0, 1.2, 0.5] },
+              "description": "Lab map zoomed in, nodes larger, completion % visible per node. Click to focus, double-click to enter.",
+              "interactive": {
+                "click": "Focus lab — camera flies to node, right panel shows game list",
+                "double_click": "Navigate to /labs/[labId]"
+              }
+            }
+          ]
+        },
+        "/labs/[labId]": {
+          "components": [
+            {
+              "id": "focused_lab",
+              "component": "LabStructure3D",
+              "triangles": 300000,
+              "position": [0, 0.3, -2.8],
+              "description": "Single lab structure with interior mechanisms, diorama view. Orbiting game cards float around it.",
+              "dynamic": "Lab ID determines which structure renders"
+            },
+            {
+              "id": "lab_game_cards",
+              "component": "HolographicCard (array)",
+              "position": [0, 0.3, -2.5],
+              "layout": "orbital ring around lab structure",
+              "description": "Each game in the lab shown as a floating card. Click to launch game. Shows completion status, tier badge."
+            }
+          ]
+        },
+        "/arcade": {
+          "components": [
+            {
+              "id": "game_tile_grid",
+              "component": "uikit Container (scrollable grid)",
+              "position": [0, 0.3, -2.8],
+              "layout": "4-column grid on curved CenterViewportScreen surface",
+              "description": "All 35 games displayed as holographic tiles. Filterable by lab (LED rim changes color). Shows tier badge, completion star, play count.",
+              "per_tile": {
+                "component": "HolographicCard",
+                "content": "game icon + name + tier badge + completion status",
+                "click": "Navigate to /arcade/[gameSlug]"
+              }
+            }
+          ]
+        },
+        "/arcade/[gameSlug]": {
+          "behavior": "GAME_MODE_TAKEOVER",
+          "description": "Center screen EXPANDS to 75% of total viewport. Game 3D environment fills expanded center. Left, right, bottom panels slide partially offscreen and dim to 40% opacity.",
+          "center_scale": 1.75,
+          "cockpit_panel_opacity": 0.4,
+          "cockpit_panel_offset": "panels slide 30% toward edges (left further left, right further right, bottom lower)",
+          "transition": "MechanicalIris wipe opens to expanded view. Camera FOV widens from 58 to 72.",
+          "components": [
+            {
+              "id": "game_environment",
+              "component": "dynamic — per-game 3D scene via sceneStore.gameSceneContent",
+              "description": "Full game 3D environment fills expanded center viewport"
+            },
+            {
+              "id": "game_ui_overlay",
+              "component": "GameScoreGauge + GameTimerDisplay + QuizPanel3D (or game-specific panel)",
+              "position": "floating panels within game scene, positioned by game type",
+              "description": "Score gauge, timer, quiz buttons — all rendered as 3D objects inside game scene"
+            }
+          ]
+        },
+        "/profile": {
+          "components": [
+            {
+              "id": "trophy_room",
+              "component": "BadgePedestal3D (array) + uikit category tabs",
+              "position": [0, 0.3, -2.8],
+              "description": "3D trophy room with metallic pedestals. 9 badge categories as tab buttons along top. Earned badges glow, locked badges are dim chrome. Hover sparkle + detail popup.",
+              "categories": ["progress", "streak", "lab", "game_master", "knowledge", "explorer", "creator", "secret", "prestige"]
+            },
+            {
+              "id": "avatar_editor_large",
+              "component": "AvatarPreview3D (expanded)",
+              "position": [0, 0.8, -2.5],
+              "description": "When on profile page, center also shows enlarged avatar with cosmetic selection ring"
+            }
+          ]
+        },
+        "/settings": {
+          "components": [
+            {
+              "id": "settings_main",
+              "component": "HolographicPanel (array of sections)",
+              "position": [0, 0.3, -2.8],
+              "sections": [
+                {
+                  "title": "Audio Controls",
+                  "controls": [
+                    { "type": "ToggleSwitch3D", "label": "Master Audio", "binding": "sound" },
+                    { "type": "ToggleSwitch3D", "label": "Cockpit Ambient", "binding": "cockpitAudioEnabled" },
+                    { "type": "RadialDial3D", "label": "Volume", "binding": "ambientVolume" }
+                  ]
+                },
+                {
+                  "title": "Visual Controls",
+                  "controls": [
+                    { "type": "ToggleSwitch3D", "label": "Skip Hero Intro", "binding": "skipIntroAnimation" },
+                    { "type": "HolographicButton (4-group)", "label": "Particles", "options": ["Off", "Low", "Med", "High"], "binding": "particleIntensity" }
+                  ]
+                },
+                {
+                  "title": "Cockpit Skin",
+                  "controls": [
+                    { "type": "HolographicCard (5-grid)", "skins": ["Default", "Cyberpunk", "Space", "Underwater", "Crystal"], "binding": "cockpitSkin" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      }
+    },
+
+    "left_quadrant": {
+      "position": [-2.35, 0.25, -1.65],
+      "rotation": [0, 0.85, 0],
+      "width_percent": 25,
+      "behavior": "FIXED — Player Identity Hub. Content is always about WHO YOU ARE. Slight emphasis shifts per page but layout stays consistent.",
+      "components": {
+        "avatar_viewport": {
+          "component": "AvatarPreview3D",
+          "position": [-2.2, 0.8, -1.5],
+          "description": "3D avatar with rotation capability, cosmetic display. On /profile, expands slightly and shows cosmetic selector ring."
+        },
+        "ai_guide_avatar": {
+          "component": "GuideAvatar3D",
+          "position": [-2.5, 0.4, -1.3],
+          "description": "Floating semi-transparent AI guide hologram with idle animation. Speaks during onboarding, pulses when guide chat is active."
+        },
+        "trophy_display": {
+          "component": "BadgePedestal3D (compact, 3 recent)",
+          "position": [-2.0, 0.0, -1.8],
+          "description": "Shows 3 most recently earned badges as mini trophies. Click to navigate to /profile trophy room."
+        },
+        "left_radial_gauges": {
+          "component": "RadialDial3D (array of 4)",
+          "positions": [[-2.6, -0.3, -1.5], [-2.3, -0.3, -1.5], [-2.0, -0.3, -1.5], [-1.7, -0.3, -1.5]],
+          "gauges": [
+            { "id": "xp_gauge", "label": "XP", "binding": "child.xp", "max": "child.xp_to_next_level", "color": "#00BBFF" },
+            { "id": "level_gauge", "label": "LEVEL", "binding": "child.level", "max": 100, "color": "#AA66FF" },
+            { "id": "streak_gauge", "label": "STREAK", "binding": "child.streak_count", "max": 365, "color": "#FF6644" },
+            { "id": "progress_gauge", "label": "PROGRESS", "binding": "overallProgress", "max": 100, "color": "#00FF88", "format": "{value}%" }
+          ],
+          "description": "4 small radial gauges showing player vital stats. Always visible. Values update in real-time via Zustand subscriptions."
+        }
+      }
+    },
+
+    "right_quadrant": {
+      "position": [2.35, 0.25, -1.65],
+      "rotation": [0, -0.85, 0],
+      "width_percent": 25,
+      "behavior": "FIXED — Control & Monitoring Hub. Always about WHAT'S HAPPENING and WHAT YOU CAN CONTROL. Settings panel shows key toggles; activity log streams events; quick actions provide shortcuts.",
+      "components": {
+        "settings_panel": {
+          "component": "HolographicPanel (compact)",
+          "position": [2.0, 0.6, -1.5],
+          "description": "Quick-access settings: 2 toggle switches + 2 dials. On /settings page, these sync with the expanded center settings panel.",
+          "controls": [
+            { "type": "ToggleSwitch3D", "id": "audio-toggle", "label": "Audio", "binding": "cockpitAudioEnabled" },
+            { "type": "ToggleSwitch3D", "id": "particles-toggle", "label": "Particles", "binding": "particleIntensity" },
+            { "type": "RadialDial3D", "id": "volume-dial", "label": "Volume", "binding": "ambientVolume" },
+            { "type": "RadialDial3D", "id": "brightness-dial", "label": "Brightness", "binding": "brightness" }
+          ]
+        },
+        "activity_log": {
+          "component": "uikit Container (scrollable)",
+          "position": [2.4, 0.0, -1.8],
+          "max_items": 20,
+          "per_item": {
+            "layout": "icon + text + timestamp",
+            "examples": [
+              "🎮 Completed AI Spy — Lab 1 · 2m ago",
+              "⚡ +150 XP earned · 5m ago",
+              "🏆 Badge: Lab Pioneer · 12m ago",
+              "🔥 Streak extended: 5 days · 1h ago"
+            ]
+          },
+          "description": "Vertical scrollable feed of recent activity. Chrome-bordered cards with connection lines between entries. New entries animate in from top with spring physics."
+        },
+        "quick_actions": {
+          "component": "HolographicButton (array of 4)",
+          "position": [2.2, -0.4, -1.5],
+          "buttons": [
+            { "label": "Continue", "icon": "Play", "color": "#00BBFF", "action": "navigate to last incomplete game" },
+            { "label": "Daily", "icon": "Zap", "color": "#FFAA44", "action": "navigate to daily challenge" },
+            { "label": "Guide", "icon": "MessageCircle", "color": "#AA66FF", "action": "open GuideAvatar chat" },
+            { "label": "Parent", "icon": "Users", "color": "#00FF88", "action": "navigate to /parent" }
+          ],
+          "description": "4 quick-action buttons with hover glow and press animation. Always accessible regardless of current page."
+        }
+      }
+    },
+
+    "bottom_module": {
+      "position": [0, -0.6, -1.85],
+      "height_percent": 15,
+      "span": "full_width",
+      "behavior": "FIXED — Instrument Panel. Layout never changes. Only dial labels/values update per page. Like a car dashboard.",
+      "components": {
+        "variable_dials": {
+          "component": "VariableDialCluster",
+          "position": [0, -0.3, -1.4],
+          "description": "3 physical dials that auto-reconfigure per page context",
+          "per_page_config": {
+            "/home": ["XP Rate", "Streak Days", "Lab Progress %"],
+            "/labs": ["Completion %", "Games Played", "Quiz Average %"],
+            "/arcade": ["Difficulty", "Game Count", "Time Played"],
+            "/profile": ["Total XP", "Level", "Badges Earned"],
+            "/settings": ["Volume %", "Brightness %", "Particles %"]
+          }
+        },
+        "navigation_buttons": {
+          "component": "NavigationButtonGrid",
+          "position": [0, -0.6, -1.85],
+          "buttons": [
+            { "id": "HOME", "color": "#00BBFF", "route": "/home" },
+            { "id": "LABS", "color": "#AA66FF", "route": "/labs" },
+            { "id": "ARCADE", "color": "#00FF88", "route": "/arcade" },
+            { "id": "SETTINGS", "color": "#FFAA44", "route": "/settings" },
+            { "id": "PROFILE", "color": "#FF66AA", "route": "/profile" }
+          ],
+          "description": "5 large illuminated physical buttons. Active button stays depressed with pulsing glow. Press broadcasts page-navigate event."
+        },
+        "quick_stats_bar": {
+          "component": "StatusBar3D",
+          "position": [0, -1.25, -1.95],
+          "description": "XP speedometer needle, streak flame animation, 10 lab color indicators, session timer. Always visible, always updating."
+        }
+      }
+    }
+  },
+
+  "top_module": {
+    "hud": {
+      "component": "HolographicHUD",
+      "position": [0, 2.05, -3.4],
+      "triangles": 1000000,
+      "rings": 8,
+      "scan_beams": 24,
+      "description": "Concentric ring system with data arcs — subtle, not dominant"
+    },
+    "led_rim": {
+      "component": "LEDRim",
+      "triangles": 500000,
+      "leds": 1500,
+      "emissive_intensity": 3.0,
+      "description": "Ultra-bright status strip along cockpit edge"
+    },
+    "user_profile_badge": {
+      "component": "uikit Container + Text",
+      "position": [2.8, 1.5, -2.0],
+      "content": "{child.display_name} · Level {child.level}",
+      "description": "Top-right profile badge with notification bell"
+    }
+  },
+
+  "mode_presets": {
+    "description": "Each route triggers a different cockpit mood. 8 atmosphere layers change per mode: bloom, camera, vignette, LED, HUD, panels, particles, audio. Transitions between non-game modes use smooth crossfade (400ms). Game mode uses MechanicalIris.",
+    "transition_default": {
+      "type": "crossfade",
+      "duration_ms": 400,
+      "easing": "ease-out-cubic",
+      "description": "Center content fades old→new. LED color interpolates. Camera FOV lerps. No hard cuts."
+    },
+    "modes": {
+      "dashboard": {
+        "route": "/home",
+        "led_color": "#00BBFF",
+        "bloom": { "intensity": 0.4, "threshold": 0.6, "smoothing": 0.9 },
+        "camera": { "fov": 58, "distortion": 0.025 },
+        "vignette": { "darkness": 0.5, "offset": 0.3 },
+        "hud": { "opacity": 0.15, "rotationSpeed": 0.1, "pulseIntensity": 0.3, "dataMode": "minimap" },
+        "panels": { "curvature": 0.85, "opacity": 1.0 },
+        "side_panels": { "opacity": 0.6 },
+        "status_bar": { "opacity": 1.0 },
+        "center_scale": 1.0,
+        "panel_offset": 0,
+        "particles": "medium",
+        "ambient_audio": "cockpit_hum",
+        "atmosphere": "Calm command bridge. Blue-dominant. Lab map glowing in center. Steady instrument readings. Home base feeling."
+      },
+      "labs": {
+        "route": "/labs",
+        "led_color": "#00BBFF",
+        "bloom": { "intensity": 0.5, "threshold": 0.55, "smoothing": 0.85 },
+        "camera": { "fov": 62, "distortion": 0.02 },
+        "vignette": { "darkness": 0.4, "offset": 0.3 },
+        "hud": { "opacity": 0.18, "rotationSpeed": 0.15, "pulseIntensity": 0.4, "dataMode": "minimap" },
+        "panels": { "curvature": 0.85, "opacity": 1.0 },
+        "side_panels": { "opacity": 0.7 },
+        "status_bar": { "opacity": 1.0 },
+        "center_scale": 1.0,
+        "panel_offset": 0,
+        "particles": "medium",
+        "ambient_audio": "cockpit_hum + data_processing",
+        "atmosphere": "Exploration mode. Wider FOV reveals more of the lab ring. Slightly brighter bloom. HUD shows minimap. Ready to dive into a lab."
+      },
+      "lab_detail": {
+        "route": "/labs/[labId]",
+        "led_color": "dynamic_lab_color",
+        "bloom": { "intensity": 0.5, "threshold": 0.5, "smoothing": 0.85 },
+        "camera": { "fov": 55, "distortion": 0.02 },
+        "vignette": { "darkness": 0.5, "offset": 0.3 },
+        "hud": { "opacity": 0.20, "rotationSpeed": 0.2, "pulseIntensity": 0.5, "dataMode": "labfocus" },
+        "panels": { "curvature": 0.85, "opacity": 1.0 },
+        "side_panels": { "opacity": 0.5 },
+        "status_bar": { "opacity": 1.0 },
+        "center_scale": 1.0,
+        "panel_offset": 0,
+        "particles": "high",
+        "ambient_audio": "lab_specific_theme",
+        "atmosphere": "Focused on a single lab. LED rim shifts to lab color. Higher particle density. HUD switches to lab-focus data. Tighter FOV draws attention to center structure."
+      },
+      "game": {
+        "route": "/arcade/[gameSlug]",
+        "led_color": "dynamic_lab_color",
+        "bloom": { "intensity": 0.3, "threshold": 0.7, "smoothing": 0.95 },
+        "camera": { "fov": 72, "distortion": 0.0 },
+        "vignette": { "darkness": 0.6, "offset": 0.25 },
+        "hud": { "opacity": 0.0, "rotationSpeed": 0, "pulseIntensity": 0, "dataMode": "hidden" },
+        "panels": { "curvature": 0.3, "opacity": 0.4 },
+        "side_panels": { "opacity": 0.4 },
+        "status_bar": { "opacity": 0.4 },
+        "center_scale": 1.75,
+        "panel_offset": 0.3,
+        "particles": "low",
+        "ambient_audio": "game_specific",
+        "transition_in": {
+          "type": "mechanical_iris",
+          "duration_ms": 600,
+          "sequence": ["iris_open", "camera_fov_58_to_72", "center_scale_1_to_1.75", "panels_slide_outward_30%", "panels_fade_to_0.4"]
+        },
+        "transition_out": {
+          "type": "mechanical_iris",
+          "duration_ms": 600,
+          "sequence": ["panels_fade_to_1.0", "panels_slide_inward", "center_scale_1.75_to_1", "camera_fov_72_to_58", "iris_close"]
+        },
+        "atmosphere": "Game immersion. Center viewport EXPANDS to 75% of screen. Cockpit panels retract and dim to 40%. HUD hidden. Wider FOV. No barrel distortion. Cockpit becomes a faint frame around the game world."
+      },
+      "profile": {
+        "route": "/profile",
+        "led_color": "#AA66FF",
+        "bloom": { "intensity": 0.4, "threshold": 0.6, "smoothing": 0.9 },
+        "camera": { "fov": 56, "distortion": 0.015 },
+        "vignette": { "darkness": 0.5, "offset": 0.3 },
+        "hud": { "opacity": 0.12, "rotationSpeed": 0.08, "pulseIntensity": 0.2, "dataMode": "stats" },
+        "panels": { "curvature": 0.85, "opacity": 1.0 },
+        "side_panels": { "opacity": 0.4 },
+        "status_bar": { "opacity": 1.0 },
+        "center_scale": 1.0,
+        "panel_offset": 0,
+        "particles": "medium",
+        "ambient_audio": "trophy_shimmer",
+        "atmosphere": "Personal space. Purple-tinted LED rim. Trophy room in center catches light. Left panel avatar expands slightly. Reflective, rewarding mood."
+      },
+      "settings": {
+        "route": "/settings",
+        "led_color": "#FFAA44",
+        "bloom": { "intensity": 0.35, "threshold": 0.65, "smoothing": 0.9 },
+        "camera": { "fov": 56, "distortion": 0.015 },
+        "vignette": { "darkness": 0.5, "offset": 0.3 },
+        "hud": { "opacity": 0.10, "rotationSpeed": 0.05, "pulseIntensity": 0.15, "dataMode": "stats" },
+        "panels": { "curvature": 0.85, "opacity": 1.0 },
+        "side_panels": { "opacity": 0.4 },
+        "status_bar": { "opacity": 1.0 },
+        "center_scale": 1.0,
+        "panel_offset": 0,
+        "particles": "low",
+        "ambient_audio": "subtle_clicks",
+        "atmosphere": "Engineering mode. Amber LED tint. Center shows settings panels with physical controls. Right panel settings sync with center. Reduced particles — clean, utilitarian."
+      },
+      "celebration": {
+        "trigger": "XP gain, badge earn, level-up, game complete",
+        "led_color": "#FFD700",
+        "bloom": { "intensity": 0.8, "threshold": 0.3, "smoothing": 0.7 },
+        "camera": { "fov": 62, "distortion": 0.03 },
+        "vignette": { "darkness": 0.3, "offset": 0.4 },
+        "hud": { "opacity": 0.85, "rotationSpeed": 0.4, "pulseIntensity": 1.0, "dataMode": "burst" },
+        "panels": { "curvature": 0.85, "opacity": 1.0 },
+        "side_panels": { "opacity": 0.3 },
+        "status_bar": { "opacity": 1.0 },
+        "center_scale": 1.0,
+        "panel_offset": 0,
+        "particles": "max",
+        "ambient_audio": "fanfare",
+        "duration_ms": 2500,
+        "effects": {
+          "ceremony_fx": "3D confetti burst + trophy materialization",
+          "hud_expansion": "Rings expand outward, spin faster",
+          "led_flash": "Gold pulse wave across all 1500 LEDs",
+          "bloom_spike": "Bloom peaks at 0.8 then decays to previous mode",
+          "camera_punch": "Slight camera shake (SHAKE_PRESETS.celebration)"
+        },
+        "atmosphere": "DRAMATIC BURST. Gold LEDs flash. HUD rings expand and spin. Bloom spikes. 3D confetti and trophies materialize. 2-3 second cinematic moment then smoothly fades back to previous mode."
+      },
+      "parent": {
+        "route": "/parent",
+        "led_color": "#FFAA44",
+        "bloom": { "intensity": 0.3, "threshold": 0.7, "smoothing": 0.95 },
+        "camera": { "fov": 54, "distortion": 0.01 },
+        "vignette": { "darkness": 0.45, "offset": 0.3 },
+        "hud": { "opacity": 0.08, "rotationSpeed": 0.05, "pulseIntensity": 0.1, "dataMode": "stats" },
+        "panels": { "curvature": 0.6, "opacity": 0.7 },
+        "side_panels": { "opacity": 0.3 },
+        "status_bar": { "opacity": 0.7 },
+        "center_scale": 1.0,
+        "panel_offset": 0,
+        "particles": "low",
+        "ambient_audio": "cockpit_hum_subdued",
+        "center_content": "parent analytics panels — children overview, time limits, subscription status, usage graphs",
+        "atmosphere": "Responsible adult mode. Amber tint. Reduced cockpit intensity — panels at 70%, bloom subdued. Center shows clean data panels. Focus on readability over spectacle."
+      }
+    }
+  },
+
+  "interaction_model": {
+    "description": "All user interaction happens through raycasting on 3D objects, keyboard fallback, and cockpitBroadcastStore event bus. No DOM click events on dashboard pages. Mouse cursor changes reflect interactivity.",
+
+    "pointer": {
+      "engine": "@pmndrs/pointer-events (bundled with @react-three/uikit)",
+      "raycaster": "Three.js Raycaster from camera through mouse position. Hits 3D meshes and uikit containers.",
+      "cursor_mapping": {
+        "default": "crosshair — cockpit aesthetic cursor over non-interactive surfaces",
+        "interactive": "pointer — over buttons, cards, lab nodes, dials, toggles",
+        "draggable": "grab / grabbing — over RadialDial3D during rotation, game drag elements",
+        "text_input": "text — over uikit Input fields"
+      }
+    },
+
+    "hover": {
+      "description": "Layered feedback system: buttons/cards get glow+scale, panels/containers get chrome edge-trace.",
+      "buttons_and_cards": {
+        "applies_to": ["HolographicButton", "HolographicCard", "NavigationButtonGrid buttons", "quick action buttons", "game tiles", "badge pedestals"],
+        "on_hover": {
+          "scale": 1.05,
+          "emissive_intensity": "increase by 0.8 (e.g., idle 1.2 → hover 2.0)",
+          "glow_color": "element accent color",
+          "transition": "spring physics (stiffness 400, damping 25)",
+          "audio": "electromagnetic_hum from element's spatial zone (if mechanical density > 0.3)"
+        },
+        "on_leave": {
+          "scale": 1.0,
+          "emissive_intensity": "return to idle",
+          "transition": "spring physics (stiffness 300, damping 30)"
+        }
+      },
+      "panels_and_containers": {
+        "applies_to": ["HolographicPanel", "CenterViewportScreen", "settings sections", "activity log container", "uikit Container regions"],
+        "on_hover": {
+          "edge_highlight": "Chrome edge-trace — a bright white/cyan line (opacity 0.3) traces the border of the panel. Like a spotlight scanning the frame edge.",
+          "edge_color": "#a8b5c8 (chrome) with 0.15 opacity cyan (#00E5FF) blend",
+          "edge_width": 2,
+          "transition": "0.2s ease-in"
+        },
+        "on_leave": {
+          "edge_highlight": "fade out over 0.3s"
+        }
+      },
+      "non_interactive": {
+        "applies_to": ["CockpitPanels hull", "structural ribs", "rivets", "floor", "cables", "aurora background"],
+        "on_hover": "no response — these are scenery"
+      }
+    },
+
+    "click_press": {
+      "buttons": {
+        "applies_to": ["HolographicButton", "NavigationButtonGrid buttons", "quick action buttons"],
+        "on_press": {
+          "depress": "0.03 units on local Z axis (button physically pushes into panel)",
+          "emissive_spike": "emissive intensity spikes to 2.5, decays over 0.3s",
+          "ripple": "Radial ring expansion from press point (RingGeometry, additive blending, 0.5s expand + fade)",
+          "audio": "metallic_thunk from element's spatial zone",
+          "broadcast": "cockpitBroadcastStore event (type based on button: page-navigate, button-press, etc.)"
+        },
+        "on_release": {
+          "spring_return": "spring physics bounce-back to rest position (stiffness 500, damping 20)",
+          "audio": "spring_release"
+        }
+      },
+      "toggles": {
+        "applies_to": ["ToggleSwitch3D"],
+        "on_click": {
+          "lever_snap": "45-degree rotation to opposite position with spring physics overshoot",
+          "led_indicator": "LED dot changes color (off=#333, on=accent color)",
+          "audio": "mechanical_snap from right_console zone",
+          "broadcast": "toggle-switch event with new value"
+        }
+      },
+      "dials": {
+        "applies_to": ["RadialDial3D", "VariableDialCluster dials"],
+        "on_drag": {
+          "rotation": "Dial rotates to follow mouse drag angle (polar coordinates). Spring-damped to prevent overshoot.",
+          "tick_marks": "Active tick mark highlights as needle passes it",
+          "audio": "whirr_continuous from element's zone — pitch maps to current value",
+          "broadcast": "dial-rotate event with current value (throttled to 60fps)"
+        },
+        "on_release": {
+          "snap": "Snaps to nearest tick mark if snap mode enabled",
+          "audio": "whirr stops, soft detent click"
+        }
+      },
+      "lab_nodes": {
+        "applies_to": ["HolographicLabMap lab nodes"],
+        "on_click": {
+          "camera_fly": "Camera interpolates to focused lab position over 800ms (spring easing)",
+          "node_expand": "Clicked lab node scales 1.5x, other nodes dim to 40%",
+          "right_panel": "Right quadrant shows lab's game list",
+          "audio": "hologram_focus from center_screen zone",
+          "broadcast": "lab-select event with labId"
+        },
+        "on_double_click": {
+          "navigate": "router.push('/labs/[labId]') — enters lab detail mode",
+          "transition": "smooth crossfade (400ms)",
+          "audio": "whoosh_crossfade"
+        }
+      },
+      "game_tiles": {
+        "applies_to": ["Arcade game tile HolographicCards"],
+        "on_click": {
+          "navigate": "router.push('/arcade/[gameSlug]') — enters game mode",
+          "transition": "MechanicalIris wipe (600ms)",
+          "audio": "iris_open_servo from center_screen zone",
+          "broadcast": "game-enter event with gameId + labColor"
+        }
+      }
+    },
+
+    "scroll": {
+      "engine": "@react-three/uikit scroll containers",
+      "behavior": "Mouse wheel scrolls the uikit container under the cursor. If no scrollable container under cursor, wheel does nothing (cockpit doesn't page-scroll).",
+      "applies_to": ["activity_log (right quadrant)", "arcade game grid (center)", "trophy gallery (center on /profile)", "lab game list (center on /labs/[labId])"],
+      "scroll_indicator": "Thin LED strip along container edge — brightness indicates scroll position (top=bright at top, bottom=bright at bottom)",
+      "scroll_speed": 40,
+      "scroll_damping": 0.92,
+      "overscroll": "rubber-band spring (bounces back when exceeding bounds)"
+    },
+
+    "text_input": {
+      "engine": "@react-three/uikit Input component",
+      "rendering": "Text rendered as SDF glyphs inside Canvas. Hidden HTML <input> element proxies keyboard events, paste, and autocomplete.",
+      "applies_to": ["Login email", "Login password", "Signup fields", "Chat input (Guide, PromptLab)", "Search field (Arcade filter)"],
+      "styling": {
+        "background": "carbon_composite material (#0a1625)",
+        "border": "chrome_bezel (1px, #a8b5c8 at 30% opacity)",
+        "text_color": "#F0F0F4",
+        "placeholder_color": "#F0F0F4 at 30% opacity",
+        "focus_ring": "accent color glow (2px, 50% opacity)",
+        "caret": "blinking vertical bar, accent color, 1s blink cycle"
+      },
+      "focus_behavior": {
+        "on_click": "Focus the hidden HTML input. Show caret in 3D. Chrome edge-trace highlights the input container.",
+        "on_type": "Characters appear in 3D text with slight spring animation per character (scale from 1.2 to 1.0 over 0.1s)",
+        "on_paste": "Pasted text appears instantly, no per-character animation",
+        "on_blur": "Caret disappears, edge-trace fades, hidden input blurs"
+      }
+    },
+
+    "drag_and_drop": {
+      "engine": "@react-three/drei useDrag + custom raycasting",
+      "phase": "Phase 5+ (game UIs only — SortToyBox, CodeBlocks, etc.)",
+      "behavior": "Raycaster identifies draggable mesh. On pointerDown, mesh follows mouse position projected onto a drag plane. Drop zones highlight when dragged mesh overlaps. Spring physics on release.",
+      "visual_feedback": {
+        "dragging": "Mesh lifts 0.1 units toward camera, shadow intensifies, opacity 0.9",
+        "valid_drop": "Drop zone border pulses green (#00FF88)",
+        "invalid_drop": "Drop zone border flashes red (#FF6644), mesh springs back to origin"
+      }
+    },
+
+    "tooltips": {
+      "type": "3D holographic panel",
+      "applies_to": ["Lab nodes (name + completion %)", "Badges (name + rarity + date earned)", "Gauges (label + current value + max)", "Game tiles (name + tier + play count)", "Quick action buttons (action description)"],
+      "behavior": {
+        "on_hover_delay": "300ms before tooltip appears (prevents flicker on mouse pass-through)",
+        "fade_in": "0.3s opacity 0→1 + scale 0.8→1.0 with spring",
+        "fade_out": "0.2s opacity 1→0 on mouse leave",
+        "position": "Offset from element — above for bottom elements, below for top elements, to the side for side elements. Auto-avoids occluding the hovered element.",
+        "max_width": "0.4 (3D units)",
+        "z_offset": "0.15 toward camera (ensures tooltip renders in front)"
+      },
+      "styling": {
+        "background": "carbon_composite (#0A0F1F at 95% opacity)",
+        "border": "chrome_bezel (1px)",
+        "text": "Sora font, #F0F0F4, 0.02 size (3D units)",
+        "accent_line": "Thin LED accent line at top, element's accent color",
+        "shadow": "subtle drop shadow (0.02 blur, rgba(0,0,0,0.5))"
+      }
+    },
+
+    "modals": {
+      "type": "center_screen_takeover",
+      "description": "Dialog content replaces current center viewport content. No overlay dimming — the center screen IS the dialog. Press close button or navigate away to return to previous content.",
+      "applies_to": ["Confirmation dialogs", "Paywall prompt", "Error messages", "Game completion screen", "Demo session expiry"],
+      "behavior": {
+        "open": "Current center content crossfades out (200ms). Dialog content crossfades in (300ms). LED rim pulses once in dialog accent color.",
+        "close": "Dialog crossfades out (200ms). Previous content crossfades back in (300ms). Triggered by close button, Escape key, or navigation.",
+        "close_button": "HolographicButton in top-right of dialog panel, labeled 'X' or 'Close'"
+      },
+      "layout": {
+        "container": "HolographicPanel centered in CenterViewportScreen",
+        "max_width": "70% of center viewport",
+        "sections": "icon/emoji + title (Exo 2) + body text (Sora) + action buttons (HolographicButton row)"
+      }
+    },
+
+    "keyboard": {
+      "scope": "Navigation buttons + center primary action — mouse is primary input",
+      "tab_order": [
+        "NavigationButtonGrid: HOME → LABS → ARCADE → SETTINGS → PROFILE",
+        "Center primary action: Continue Learning CTA (on /home), focused lab node (on /labs), first game tile (on /arcade)"
+      ],
+      "keys": {
+        "Tab": "Cycle forward through Tab order",
+        "Shift+Tab": "Cycle backward",
+        "Enter / Space": "Activate focused element (same as click)",
+        "Escape": "Close modal dialog, exit text input focus, return focus to nav buttons",
+        "Arrow Left/Right": "Navigate within NavigationButtonGrid (between 5 buttons)",
+        "Arrow Up/Down": "Navigate within center scroll containers (activity log, game grid)"
+      },
+      "focus_indicator": {
+        "type": "Bright glow outline around focused element",
+        "color": "#00E5FF (cyan)",
+        "width": 3,
+        "pulse": "Gentle pulse (opacity 0.6 → 1.0 → 0.6, 2s cycle)"
+      }
+    },
+
+    "broadcast_integration": {
+      "description": "Every interaction broadcasts to cockpitBroadcastStore, which drives cross-panel visual + audio reactions.",
+      "flow": "User action → component handler → broadcast(event) → all subscribed cockpit components react",
+      "example_chain": {
+        "trigger": "User clicks LABS nav button",
+        "broadcast": "{ type: 'page-navigate', source: 'nav-labs', color: '#AA66FF', label: 'LABS' }",
+        "reactions": [
+          "LED rim: purple pulse wave sweeps across 218° arc",
+          "HUD: rings flash briefly (hudFlashIntensity 0.7)",
+          "StatusBar3D: needle sweep (statusBarSweep 0.6)",
+          "VariableDialCluster: dials reconfigure to labs config (Completion / Games / Quiz Avg)",
+          "Center viewport: crossfade from current content to labs map (400ms)",
+          "Camera: FOV interpolates 58→62 (spring easing)",
+          "Audio: whoosh_crossfade from center_screen zone + nav button metallic_thunk from bottom_console zone",
+          "Active nav button: LABS stays depressed with pulsing purple glow"
+        ]
+      }
+    }
+  },
+
+  "accessibility": {
+    "description": "Accessibility in a full 3D UI requires special consideration. Screen readers cannot parse Canvas content, so we maintain sr-only HTML and keyboard navigation as fallbacks.",
+    "screen_reader": {
+      "strategy": "sr-only HTML nav links (Sidebar.tsx) provide Tab-accessible navigation. ARIA live regions announce state changes (XP gains, badge earns, page transitions).",
+      "component": "src/components/layout/Sidebar.tsx — renders sr-only <nav> with links to all routes",
+      "aria_live": "Dashboard layout includes aria-live='polite' region that announces: route changes, XP updates, level-ups, badge earns, game start/complete"
+    },
+    "keyboard": {
+      "nav_buttons": "5 NavigationButtonGrid buttons are Tab-accessible via sr-only Sidebar links. Enter activates navigation.",
+      "center_action": "Primary CTA in center viewport has keyboard focus after nav buttons.",
+      "escape": "Returns focus to navigation, closes modals"
+    },
+    "reduced_motion": {
+      "media_query": "prefers-reduced-motion: reduce",
+      "effects": [
+        "Skip hero animation entirely — jump to cockpit",
+        "Disable particle systems (count → 0)",
+        "Disable spring physics — use instant transitions",
+        "Disable HUD ring rotation",
+        "Disable LED pulse animations",
+        "Reduce celebration to single badge display (no confetti/fireworks)",
+        "Disable barrel distortion",
+        "Crossfade transitions reduced to instant swap"
+      ]
+    },
+    "high_contrast": {
+      "toggle": "Accessibility toolbar or settings",
+      "effects": [
+        "Emissive intensity increased 2x on all interactive elements",
+        "Text color forced to #FFFFFF (pure white)",
+        "Background surfaces darkened to #000000",
+        "Focus indicator width increased from 3px to 5px",
+        "Tooltip background opacity increased to 100%"
+      ]
+    },
+    "font_size": {
+      "toggle": "Accessibility toolbar or settings",
+      "effects": [
+        "uikit Text size multiplied by 1.0 / 1.25 / 1.5",
+        "Gauge label text scales proportionally",
+        "Tooltip text scales proportionally"
+      ]
+    }
+  },
+
+  "audio_zones": {
+    "description": "3-layer spatial audio system. All synthesized via Web Audio API (no audio files). Zones realigned to finalized quadrant positions. Dense mechanical + atmospheric spatial hybrid. Full user customization via settings.",
+
+    "layers": {
+      "ambient": {
+        "engine": "CockpitAudioEngine (singleton)",
+        "description": "Persistent skin-reactive drone (45-65Hz sine) + pink noise. Always running. Crossfades between skins over 2.5s.",
+        "default_volume": 0.15,
+        "user_controllable": true,
+        "binding": "cockpitStore.ambientVolume"
+      },
+      "spatial": {
+        "engine": "Web Audio API PannerNode (HRTF model)",
+        "description": "Positioned 3D audio sources. Sound direction matches zone position relative to camera. Creates sense of physical space.",
+        "default_volume": 0.3,
+        "user_controllable": true,
+        "binding": "cockpitStore.spatialAudioVolume"
+      },
+      "events": {
+        "engine": "useSoundEffect + useCockpitAudio",
+        "description": "One-shot synthesized sounds for interactions. Each event plays from the spatial position of the triggering element.",
+        "default_volume": 0.5,
+        "user_controllable": true,
+        "binding": "cockpitStore.eventAudioVolume"
+      }
+    },
+
+    "user_audio_settings": {
+      "description": "Full audio customization exposed in /settings mode. All bindable to ToggleSwitch3D and RadialDial3D controls.",
+      "controls": [
+        { "id": "master-audio", "type": "toggle", "label": "Master Audio", "binding": "uiStore.sound", "default": true },
+        { "id": "ambient-volume", "type": "dial", "label": "Ambient", "binding": "cockpitStore.ambientVolume", "min": 0, "max": 1, "default": 0.15 },
+        { "id": "spatial-volume", "type": "dial", "label": "Spatial FX", "binding": "cockpitStore.spatialAudioVolume", "min": 0, "max": 1, "default": 0.3 },
+        { "id": "event-volume", "type": "dial", "label": "UI Sounds", "binding": "cockpitStore.eventAudioVolume", "min": 0, "max": 1, "default": 0.5 },
+        { "id": "mechanical-density", "type": "dial", "label": "Mech. Detail", "binding": "cockpitStore.mechanicalAudioDensity", "min": 0, "max": 1, "default": 0.7, "description": "0=atmospheric only, 1=every click/hover/scroll has mechanical audio" },
+        { "id": "lab-crossfade", "type": "toggle", "label": "Lab Soundscapes", "binding": "cockpitStore.labAudioEnabled", "default": true }
+      ]
+    },
+
+    "zones": {
+      "cockpit_ambient": {
+        "position": [0, 0, 0],
+        "radius": 20,
+        "type": "generative",
+        "volume": 0.15,
+        "trigger": "always",
+        "sounds": {
+          "drone": "Skin-reactive sine oscillator (45-65Hz). Lab frequency offset: L1=0, L2=+5, L3=-3, L4=+8, L5=-5, L6=+3, L7=-8, L8=+10, L9=-2, L10=+7 Hz",
+          "noise": "Filtered pink noise (skin-reactive cutoff 150-400Hz)",
+          "resonance": "Subtle harmonic resonance (330-880Hz, Q 3-10)"
+        },
+        "description": "Omnidirectional ambient. Fills the entire cockpit. Skin and lab modulated."
+      },
+
+      "center_screen": {
+        "position": [0, 0.35, -3.3],
+        "radius": 5,
+        "type": "generative + sfx",
+        "volume": 0.1,
+        "trigger": "contextual",
+        "sounds": {
+          "data_hum": "Low data-processing hum when lab map or content is active",
+          "hologram_shimmer": "Faint crystalline shimmer when HolographicLabMap renders",
+          "content_transition": "Soft whoosh on center content crossfade (400ms)",
+          "scan_sweep": "Periodic scan beam sweep audio (matches HUD rotation)"
+        },
+        "description": "Center viewport audio. Positioned directly ahead. Holographic shimmer from lab map, data hum from content panels."
+      },
+
+      "left_console": {
+        "position": [-2.35, 0.25, -1.65],
+        "radius": 4,
+        "type": "sfx",
+        "volume": 0.25,
+        "trigger": "interaction",
+        "sounds": {
+          "avatar_rotate": "Soft servo whirr when avatar is rotated",
+          "guide_speak": "Guide avatar speech emanates from this position",
+          "trophy_sparkle": "Metallic chime when hovering earned badges",
+          "gauge_tick": "Subtle tick as gauge needles move"
+        },
+        "description": "Left identity hub audio. Avatar interaction, guide speech, trophy feedback. Spatially positioned to the left."
+      },
+
+      "right_console": {
+        "position": [2.35, 0.25, -1.65],
+        "radius": 4,
+        "type": "sfx",
+        "volume": 0.25,
+        "trigger": "interaction",
+        "sounds": {
+          "toggle_snap": "Mechanical snap when ToggleSwitch3D flipped (45-degree detent)",
+          "dial_rotation": "Continuous low whirr during RadialDial3D rotation, stops on release",
+          "activity_scroll": "Soft tick per item when scrolling activity log",
+          "activity_new": "Ping when new activity entry appears at top of feed",
+          "button_press": "Metallic click with spring release for quick action buttons"
+        },
+        "description": "Right control hub audio. Toggle snaps, dial whirrs, scroll ticks, button clicks. Dense mechanical feedback."
+      },
+
+      "bottom_console": {
+        "position": [0, -0.6, -1.85],
+        "radius": 4,
+        "type": "sfx",
+        "volume": 0.3,
+        "trigger": "interaction",
+        "sounds": {
+          "nav_button_press": "Heavy metallic thunk with spring release when NavigationButtonGrid button pressed",
+          "nav_button_hover": "Faint electromagnetic hum on button hover (density-dependent)",
+          "dial_cluster_rotate": "Variable Dial rotation audio — pitch maps to dial value",
+          "status_bar_tick": "XP speedometer needle sweep audio",
+          "streak_crackle": "Flame crackle from streak fire animation"
+        },
+        "description": "Bottom instrument panel audio. Navigation button presses are the most prominent \u2014 heavy, satisfying clicks. Dial rotations and status bar updates provide continuous feedback."
+      },
+
+      "hud_overhead": {
+        "position": [0, 2.05, -3.4],
+        "radius": 6,
+        "type": "generative",
+        "volume": 0.08,
+        "trigger": "always",
+        "sounds": {
+          "ring_rotation": "Faint ring rotation hum \u2014 pitch shifts with rotationSpeed",
+          "scan_beam": "Periodic scan beam sweep (every ~4 seconds)",
+          "data_arc_pulse": "Brief pulse when data arc segment updates"
+        },
+        "description": "HUD overhead audio. Very subtle \u2014 creates sense of machinery above. Ring rotation and scan beams provide constant low-level spatial awareness."
+      },
+
+      "led_rim": {
+        "position": [0, 0, -4.8],
+        "radius": 5,
+        "type": "sfx",
+        "volume": 0.05,
+        "trigger": "event",
+        "sounds": {
+          "pulse": "LED pulse wave \u2014 sweeps left-to-right across 218-degree arc when broadcast event fires",
+          "color_shift": "Subtle harmonic shift when LED color changes (lab transition)",
+          "spike": "Brief bright burst on xp-gain or badge-earn events"
+        },
+        "description": "LED rim audio. Positioned along the cockpit arc edge. Pulse waves and color shift tones."
+      },
+
+      "npc_area": {
+        "position": [0, 0, -2],
+        "radius": 8,
+        "type": "sfx",
+        "volume": 0.12,
+        "trigger": "contextual",
+        "sounds": {
+          "idle_beep": "Random short electronic beeps from NPC bots (every 8-15 seconds)",
+          "curious_chirp": "When NPC notices user hovering nearby",
+          "guide_notification": "Soft chime when AI guide has something to say"
+        },
+        "description": "NPC ambient chatter. Random electronic beeps give the cockpit a lived-in feeling. Contextual responses to user proximity."
+      },
+
+      "game_scene": {
+        "position": [0, 0.35, -3.3],
+        "radius": 10,
+        "type": "game-specific",
+        "volume": 0.6,
+        "trigger": "game_mode_active",
+        "sounds": {
+          "description": "Each game has its own audio hooks (usePetTrainerAudio, usePromptLabAudio, useSortAudio, etc.). Game audio takes priority during game mode. Cockpit ambient reduces to 20% volume."
+        },
+        "description": "Game audio zone. Activates in game mode. Game-specific audio engine takes over center. Cockpit ambient ducks to background."
+      }
+    },
+
+    "events": {
+      "description": "16 discrete audio events triggered by cockpitBroadcastStore. Each plays from the spatial position of the triggering zone.",
+      "list": [
+        { "id": "button-press", "zone": "bottom_console", "sound": "metallic_thunk", "description": "Navigation button physical press" },
+        { "id": "button-release", "zone": "bottom_console", "sound": "spring_release", "description": "Button springs back up" },
+        { "id": "dial-rotate", "zone": "bottom_console", "sound": "whirr_continuous", "description": "Variable dial rotation" },
+        { "id": "toggle-switch", "zone": "right_console", "sound": "mechanical_snap", "description": "Toggle switch 45-degree detent" },
+        { "id": "page-navigate", "zone": "center_screen", "sound": "whoosh_crossfade", "description": "Center content transition" },
+        { "id": "lab-select", "zone": "center_screen", "sound": "hologram_focus", "description": "Lab node focused on map" },
+        { "id": "lab-hover", "zone": "center_screen", "sound": "electromagnetic_hum", "description": "Hovering over lab node" },
+        { "id": "game-enter", "zone": "center_screen", "sound": "iris_open_servo", "description": "MechanicalIris opening" },
+        { "id": "game-exit", "zone": "center_screen", "sound": "iris_close_servo", "description": "MechanicalIris closing" },
+        { "id": "xp-change", "zone": "bottom_console", "sound": "ascending_chirp", "description": "XP gained — pitch based on amount" },
+        { "id": "badge-earn", "zone": "left_console", "sound": "trophy_materialize", "description": "Badge/trophy appears on pedestal" },
+        { "id": "level-up", "zone": "cockpit_ambient", "sound": "fanfare_burst", "description": "Full cockpit fanfare — omnidirectional" },
+        { "id": "streak-update", "zone": "bottom_console", "sound": "flame_crackle", "description": "Streak fire intensifies" },
+        { "id": "celebration-start", "zone": "cockpit_ambient", "sound": "ceremony_fanfare", "description": "Celebration mode begins — gold burst" },
+        { "id": "celebration-end", "zone": "cockpit_ambient", "sound": "fade_to_ambient", "description": "Celebration fades back to normal" },
+        { "id": "skin-change", "zone": "cockpit_ambient", "sound": "crossfade_drone", "description": "Ambient drone crossfades to new skin timbre" }
+      ]
+    },
+
+    "lab_crossfade": {
+      "engine": "useAmbientSoundscape (Tone.js, lazy-loaded)",
+      "crossfade_duration": 1.5,
+      "description": "10 unique generative lab soundscapes. When entering a lab route, the ambient layer crossfades to that lab's unique timbre over 1.5 seconds.",
+      "per_lab_profiles": "Defined in LAB_COLOR_AUDIO_PROFILES (src/lib/audio/irisAudio.ts). Each lab maps to frequency offsets, filter types, and resonance Q values.",
+      "preserved": true
+    }
+  },
+
+  "page_to_scene_mapping": {
+    "description": "Each Next.js route maps to a cockpit mode. Pages become thin React components that set the scene and provide data — NO visible HTML rendering.",
+    "/home": { "mode": "dashboard", "data_hooks": ["useAllLabsProgress", "useDailyChallenge", "useBadges"] },
+    "/labs": { "mode": "labs", "data_hooks": ["useAllLabsProgress"] },
+    "/labs/[labId]": { "mode": "lab_detail", "data_hooks": ["useLabProgress", "useLabContent"] },
+    "/arcade": { "mode": "labs", "data_hooks": ["gameRegistry"] },
+    "/arcade/[gameSlug]": { "mode": "game", "data_hooks": ["useGameStore", "useSceneStore"] },
+    "/profile": { "mode": "profile", "data_hooks": ["useChildStore", "useBadges"] },
+    "/settings": { "mode": "settings", "data_hooks": ["useUIStore", "useCockpitStore", "useA11yStore"] },
+    "/parent": { "mode": "parent", "data_hooks": ["useParentDashboard"] }
+  },
+
+  "html_exceptions": {
+    "description": "MINIMAL HTML remains — only what CANNOT be 3D",
+    "marketing_body": "/ (below 3D hero), /pricing (table content), /terms, /privacy — SEO requires crawlable HTML body",
+    "marketing_hero": "3D cockpit preview section at top of landing page (rendered in Canvas)",
+    "screen_reader_nav": "sr-only navigation links for WCAG accessibility compliance",
+    "error_pages": ["404", "500", "offline — must work without WebGL"],
+    "admin_panel": "/admin/content (internal tool, no aesthetic requirement)",
+    "text_input_proxy": "uikit Input uses hidden HTML <input> for keyboard/paste/autocomplete proxy — not visible but required for browser compatibility"
+  }
+}

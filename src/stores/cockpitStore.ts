@@ -6,11 +6,9 @@
 //          cockpit skin (unlock-gated), ceremony queue, audio prefs, mini-map
 // Persisted: cockpit skin + unlocked skins + last focused lab + NPC vis + audio + mini-map
 //
-// KNOWN ISSUE (J5): Multiple actions use bare setTimeout to clear
-// isTransitioning after fixed delays (800ms/600ms). These timeouts are
-// not cleaned up if the store action is called again before the timeout
-// fires, which can cause stale state. A future fix should store timeout
-// IDs and clear them on subsequent calls or on store reset.
+// FIXED (J5): Timeout IDs are now stored in state and cleared before
+// setting new ones, preventing stale isTransitioning writes when actions
+// are called multiple times in quick succession.
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
@@ -133,6 +131,12 @@ interface CockpitState {
   heroPhase: HeroPhase;
   cockpitReady: boolean;        // true once cockpit geometry is fully materialized
 
+  // Internal timeout IDs for transition cleanup (J5 fix)
+  _spatialViewTimeout: ReturnType<typeof setTimeout> | null;
+  _focusLabTimeout: ReturnType<typeof setTimeout> | null;
+  _openConsoleTimeout: ReturnType<typeof setTimeout> | null;
+  _returnToOverviewTimeout: ReturnType<typeof setTimeout> | null;
+
   // Actions
   setSpatialView: (view: SpatialView) => void;
   focusLab: (labId: number | null) => void;
@@ -175,15 +179,21 @@ export const useCockpitStore = create<CockpitState>()(
       miniMapVisible: true,
       heroPhase: 'idle' as HeroPhase,
       cockpitReady: false,
+      _spatialViewTimeout: null,
+      _focusLabTimeout: null,
+      _openConsoleTimeout: null,
+      _returnToOverviewTimeout: null,
 
       setSpatialView: (spatialView) => {
+        const prev = get()._spatialViewTimeout;
+        if (prev) clearTimeout(prev);
+        const timeout = setTimeout(() => set({ isTransitioning: false }), 800);
         set({
           spatialView,
           cameraTarget: SPATIAL_CAMERA_PRESETS[spatialView],
           isTransitioning: true,
+          _spatialViewTimeout: timeout,
         });
-        // Auto-clear transitioning after animation
-        setTimeout(() => set({ isTransitioning: false }), 800);
       },
 
       focusLab: (labId) => {
@@ -197,10 +207,14 @@ export const useCockpitStore = create<CockpitState>()(
         // Camera flies to lab position, offset slightly above and behind
         const angle = Math.atan2(pos[2], pos[0]);
         const camDist = 2.2;
+        const prev = get()._focusLabTimeout;
+        if (prev) clearTimeout(prev);
+        const timeout = setTimeout(() => set({ isTransitioning: false }), 800);
         set({
           focusedLabId: labId,
           spatialView: 'lab-focus',
           isTransitioning: true,
+          _focusLabTimeout: timeout,
           cameraTarget: {
             position: [
               pos[0] + Math.cos(angle) * camDist,
@@ -211,18 +225,20 @@ export const useCockpitStore = create<CockpitState>()(
             fov: 50,
           },
         });
-        setTimeout(() => set({ isTransitioning: false }), 800);
       },
 
       setHoveredLab: (hoveredLabId) => set({ hoveredLabId }),
 
       openConsole: (activeConsole) => {
+        const prev = get()._openConsoleTimeout;
+        if (prev) clearTimeout(prev);
+        const timeout = setTimeout(() => set({ isTransitioning: false }), 600);
         set({
           activeConsole,
           spatialView: 'console',
           isTransitioning: true,
+          _openConsoleTimeout: timeout,
         });
-        setTimeout(() => set({ isTransitioning: false }), 600);
       },
 
       closeConsole: () => {
@@ -254,14 +270,17 @@ export const useCockpitStore = create<CockpitState>()(
       toggleNPCs: () => set((s) => ({ npcsVisible: !s.npcsVisible })),
 
       returnToOverview: () => {
+        const prev = get()._returnToOverviewTimeout;
+        if (prev) clearTimeout(prev);
+        const timeout = setTimeout(() => set({ isTransitioning: false }), 800);
         set({
           spatialView: 'overview',
           focusedLabId: null,
           activeConsole: null,
           isTransitioning: true,
+          _returnToOverviewTimeout: timeout,
           cameraTarget: SPATIAL_CAMERA_PRESETS.overview,
         });
-        setTimeout(() => set({ isTransitioning: false }), 800);
       },
 
       enqueueCeremony: (item) =>
