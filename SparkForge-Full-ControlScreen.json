@@ -596,11 +596,205 @@
   },
 
   "audio_zones": {
-    "cockpit_ambient": { "type": "spatial", "position": [0, 0, 0], "description": "Low hum, subtle ticking" },
-    "center_screen": { "type": "spatial", "position": [0, 0.5, -3.3], "description": "Data processing sounds when lab map active" },
-    "left_console": { "type": "spatial", "position": [-2.35, 0.25, -1.65], "description": "Avatar interaction sounds" },
-    "right_console": { "type": "spatial", "position": [2.35, 0.25, -1.65], "description": "Toggle clicks, dial rotation audio" },
-    "bottom_console": { "type": "spatial", "position": [0, -0.6, -1.85], "description": "Button press sounds, navigation clicks" }
+    "description": "3-layer spatial audio system. All synthesized via Web Audio API (no audio files). Zones realigned to finalized quadrant positions. Dense mechanical + atmospheric spatial hybrid. Full user customization via settings.",
+
+    "layers": {
+      "ambient": {
+        "engine": "CockpitAudioEngine (singleton)",
+        "description": "Persistent skin-reactive drone (45-65Hz sine) + pink noise. Always running. Crossfades between skins over 2.5s.",
+        "default_volume": 0.15,
+        "user_controllable": true,
+        "binding": "cockpitStore.ambientVolume"
+      },
+      "spatial": {
+        "engine": "Web Audio API PannerNode (HRTF model)",
+        "description": "Positioned 3D audio sources. Sound direction matches zone position relative to camera. Creates sense of physical space.",
+        "default_volume": 0.3,
+        "user_controllable": true,
+        "binding": "cockpitStore.spatialAudioVolume"
+      },
+      "events": {
+        "engine": "useSoundEffect + useCockpitAudio",
+        "description": "One-shot synthesized sounds for interactions. Each event plays from the spatial position of the triggering element.",
+        "default_volume": 0.5,
+        "user_controllable": true,
+        "binding": "cockpitStore.eventAudioVolume"
+      }
+    },
+
+    "user_audio_settings": {
+      "description": "Full audio customization exposed in /settings mode. All bindable to ToggleSwitch3D and RadialDial3D controls.",
+      "controls": [
+        { "id": "master-audio", "type": "toggle", "label": "Master Audio", "binding": "uiStore.sound", "default": true },
+        { "id": "ambient-volume", "type": "dial", "label": "Ambient", "binding": "cockpitStore.ambientVolume", "min": 0, "max": 1, "default": 0.15 },
+        { "id": "spatial-volume", "type": "dial", "label": "Spatial FX", "binding": "cockpitStore.spatialAudioVolume", "min": 0, "max": 1, "default": 0.3 },
+        { "id": "event-volume", "type": "dial", "label": "UI Sounds", "binding": "cockpitStore.eventAudioVolume", "min": 0, "max": 1, "default": 0.5 },
+        { "id": "mechanical-density", "type": "dial", "label": "Mech. Detail", "binding": "cockpitStore.mechanicalAudioDensity", "min": 0, "max": 1, "default": 0.7, "description": "0=atmospheric only, 1=every click/hover/scroll has mechanical audio" },
+        { "id": "lab-crossfade", "type": "toggle", "label": "Lab Soundscapes", "binding": "cockpitStore.labAudioEnabled", "default": true }
+      ]
+    },
+
+    "zones": {
+      "cockpit_ambient": {
+        "position": [0, 0, 0],
+        "radius": 20,
+        "type": "generative",
+        "volume": 0.15,
+        "trigger": "always",
+        "sounds": {
+          "drone": "Skin-reactive sine oscillator (45-65Hz). Lab frequency offset: L1=0, L2=+5, L3=-3, L4=+8, L5=-5, L6=+3, L7=-8, L8=+10, L9=-2, L10=+7 Hz",
+          "noise": "Filtered pink noise (skin-reactive cutoff 150-400Hz)",
+          "resonance": "Subtle harmonic resonance (330-880Hz, Q 3-10)"
+        },
+        "description": "Omnidirectional ambient. Fills the entire cockpit. Skin and lab modulated."
+      },
+
+      "center_screen": {
+        "position": [0, 0.35, -3.3],
+        "radius": 5,
+        "type": "generative + sfx",
+        "volume": 0.1,
+        "trigger": "contextual",
+        "sounds": {
+          "data_hum": "Low data-processing hum when lab map or content is active",
+          "hologram_shimmer": "Faint crystalline shimmer when HolographicLabMap renders",
+          "content_transition": "Soft whoosh on center content crossfade (400ms)",
+          "scan_sweep": "Periodic scan beam sweep audio (matches HUD rotation)"
+        },
+        "description": "Center viewport audio. Positioned directly ahead. Holographic shimmer from lab map, data hum from content panels."
+      },
+
+      "left_console": {
+        "position": [-2.35, 0.25, -1.65],
+        "radius": 4,
+        "type": "sfx",
+        "volume": 0.25,
+        "trigger": "interaction",
+        "sounds": {
+          "avatar_rotate": "Soft servo whirr when avatar is rotated",
+          "guide_speak": "Guide avatar speech emanates from this position",
+          "trophy_sparkle": "Metallic chime when hovering earned badges",
+          "gauge_tick": "Subtle tick as gauge needles move"
+        },
+        "description": "Left identity hub audio. Avatar interaction, guide speech, trophy feedback. Spatially positioned to the left."
+      },
+
+      "right_console": {
+        "position": [2.35, 0.25, -1.65],
+        "radius": 4,
+        "type": "sfx",
+        "volume": 0.25,
+        "trigger": "interaction",
+        "sounds": {
+          "toggle_snap": "Mechanical snap when ToggleSwitch3D flipped (45-degree detent)",
+          "dial_rotation": "Continuous low whirr during RadialDial3D rotation, stops on release",
+          "activity_scroll": "Soft tick per item when scrolling activity log",
+          "activity_new": "Ping when new activity entry appears at top of feed",
+          "button_press": "Metallic click with spring release for quick action buttons"
+        },
+        "description": "Right control hub audio. Toggle snaps, dial whirrs, scroll ticks, button clicks. Dense mechanical feedback."
+      },
+
+      "bottom_console": {
+        "position": [0, -0.6, -1.85],
+        "radius": 4,
+        "type": "sfx",
+        "volume": 0.3,
+        "trigger": "interaction",
+        "sounds": {
+          "nav_button_press": "Heavy metallic thunk with spring release when NavigationButtonGrid button pressed",
+          "nav_button_hover": "Faint electromagnetic hum on button hover (density-dependent)",
+          "dial_cluster_rotate": "Variable Dial rotation audio — pitch maps to dial value",
+          "status_bar_tick": "XP speedometer needle sweep audio",
+          "streak_crackle": "Flame crackle from streak fire animation"
+        },
+        "description": "Bottom instrument panel audio. Navigation button presses are the most prominent \u2014 heavy, satisfying clicks. Dial rotations and status bar updates provide continuous feedback."
+      },
+
+      "hud_overhead": {
+        "position": [0, 2.05, -3.4],
+        "radius": 6,
+        "type": "generative",
+        "volume": 0.08,
+        "trigger": "always",
+        "sounds": {
+          "ring_rotation": "Faint ring rotation hum \u2014 pitch shifts with rotationSpeed",
+          "scan_beam": "Periodic scan beam sweep (every ~4 seconds)",
+          "data_arc_pulse": "Brief pulse when data arc segment updates"
+        },
+        "description": "HUD overhead audio. Very subtle \u2014 creates sense of machinery above. Ring rotation and scan beams provide constant low-level spatial awareness."
+      },
+
+      "led_rim": {
+        "position": [0, 0, -4.8],
+        "radius": 5,
+        "type": "sfx",
+        "volume": 0.05,
+        "trigger": "event",
+        "sounds": {
+          "pulse": "LED pulse wave \u2014 sweeps left-to-right across 218-degree arc when broadcast event fires",
+          "color_shift": "Subtle harmonic shift when LED color changes (lab transition)",
+          "spike": "Brief bright burst on xp-gain or badge-earn events"
+        },
+        "description": "LED rim audio. Positioned along the cockpit arc edge. Pulse waves and color shift tones."
+      },
+
+      "npc_area": {
+        "position": [0, 0, -2],
+        "radius": 8,
+        "type": "sfx",
+        "volume": 0.12,
+        "trigger": "contextual",
+        "sounds": {
+          "idle_beep": "Random short electronic beeps from NPC bots (every 8-15 seconds)",
+          "curious_chirp": "When NPC notices user hovering nearby",
+          "guide_notification": "Soft chime when AI guide has something to say"
+        },
+        "description": "NPC ambient chatter. Random electronic beeps give the cockpit a lived-in feeling. Contextual responses to user proximity."
+      },
+
+      "game_scene": {
+        "position": [0, 0.35, -3.3],
+        "radius": 10,
+        "type": "game-specific",
+        "volume": 0.6,
+        "trigger": "game_mode_active",
+        "sounds": {
+          "description": "Each game has its own audio hooks (usePetTrainerAudio, usePromptLabAudio, useSortAudio, etc.). Game audio takes priority during game mode. Cockpit ambient reduces to 20% volume."
+        },
+        "description": "Game audio zone. Activates in game mode. Game-specific audio engine takes over center. Cockpit ambient ducks to background."
+      }
+    },
+
+    "events": {
+      "description": "16 discrete audio events triggered by cockpitBroadcastStore. Each plays from the spatial position of the triggering zone.",
+      "list": [
+        { "id": "button-press", "zone": "bottom_console", "sound": "metallic_thunk", "description": "Navigation button physical press" },
+        { "id": "button-release", "zone": "bottom_console", "sound": "spring_release", "description": "Button springs back up" },
+        { "id": "dial-rotate", "zone": "bottom_console", "sound": "whirr_continuous", "description": "Variable dial rotation" },
+        { "id": "toggle-switch", "zone": "right_console", "sound": "mechanical_snap", "description": "Toggle switch 45-degree detent" },
+        { "id": "page-navigate", "zone": "center_screen", "sound": "whoosh_crossfade", "description": "Center content transition" },
+        { "id": "lab-select", "zone": "center_screen", "sound": "hologram_focus", "description": "Lab node focused on map" },
+        { "id": "lab-hover", "zone": "center_screen", "sound": "electromagnetic_hum", "description": "Hovering over lab node" },
+        { "id": "game-enter", "zone": "center_screen", "sound": "iris_open_servo", "description": "MechanicalIris opening" },
+        { "id": "game-exit", "zone": "center_screen", "sound": "iris_close_servo", "description": "MechanicalIris closing" },
+        { "id": "xp-change", "zone": "bottom_console", "sound": "ascending_chirp", "description": "XP gained — pitch based on amount" },
+        { "id": "badge-earn", "zone": "left_console", "sound": "trophy_materialize", "description": "Badge/trophy appears on pedestal" },
+        { "id": "level-up", "zone": "cockpit_ambient", "sound": "fanfare_burst", "description": "Full cockpit fanfare — omnidirectional" },
+        { "id": "streak-update", "zone": "bottom_console", "sound": "flame_crackle", "description": "Streak fire intensifies" },
+        { "id": "celebration-start", "zone": "cockpit_ambient", "sound": "ceremony_fanfare", "description": "Celebration mode begins — gold burst" },
+        { "id": "celebration-end", "zone": "cockpit_ambient", "sound": "fade_to_ambient", "description": "Celebration fades back to normal" },
+        { "id": "skin-change", "zone": "cockpit_ambient", "sound": "crossfade_drone", "description": "Ambient drone crossfades to new skin timbre" }
+      ]
+    },
+
+    "lab_crossfade": {
+      "engine": "useAmbientSoundscape (Tone.js, lazy-loaded)",
+      "crossfade_duration": 1.5,
+      "description": "10 unique generative lab soundscapes. When entering a lab route, the ambient layer crossfades to that lab's unique timbre over 1.5 seconds.",
+      "per_lab_profiles": "Defined in LAB_COLOR_AUDIO_PROFILES (src/lib/audio/irisAudio.ts). Each lab maps to frequency offsets, filter types, and resonance Q values.",
+      "preserved": true
+    }
   },
 
   "page_to_scene_mapping": {
