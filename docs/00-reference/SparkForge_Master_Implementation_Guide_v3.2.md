@@ -1812,7 +1812,168 @@ These files lose their HTML/Tailwind UI and become minimal wrappers that feed sc
 | Everything else | 0 | 0 | ~100 | ~100 |
 | **TOTALS** | **~22** | **~47** | **~320** | **~390** |
 
-*End of Appendix A Section A.2. Sections A.3–A.5 follow.*
+### A.3 DOCUMENTATION IMPACT MAP — EVERY DOC FILE CATEGORIZED
+
+Every documentation file categorized: **MAJOR UPDATE** (contains HTML code to rewrite), **MINOR UPDATE** (references HTML patterns), **ARCHITECTURE UPDATE** (defines rules needing 3D UI sections), **NO CHANGE** (unaffected).
+
+#### A.3.1 Root Documents
+
+| File | Impact | Changes Required |
+|------|--------|-----------------|
+| `CLAUDE.md` | **ARCHITECTURE** | Section 7 (game template): add 3D UI pattern. Section 8 (conventions): add 3D panel naming. Section 9 (3D rules): add UI-1–UI-18 decisions. Section 14 (stores): add cockpitStore audio fields. Add new Section 15: 3D UI Architecture. |
+| `Master-SparkForge-UI-Design-Change.md` | NO CHANGE | Source of truth for this migration |
+| `ENHANCEMENT_BLUEPRINT_v1.0.md` | **MINOR** | Section 1 references HTML dashboard — update to reference unified 3D |
+| `TESTING.md` | **MINOR** | Add 3D UI testing patterns (raycasting, uikit, Canvas interaction tests) |
+| `Feature-Workflow-Test.md` | **MINOR** | Add 3D panel feature workflow |
+| `database-patterns.md` | NO CHANGE | Backend-only, no UI references |
+| `SparkForge-agent.md` | NO CHANGE | Agent pipeline, no UI code |
+| `PROGRESS.md` | **MINOR** | Add Phase 11: 3D UI Migration tracking rows |
+| `DEPLOYMENT.md` | NO CHANGE | Deployment procedures unchanged |
+| All `AUDIT_REPORT*.md` | NO CHANGE | Historical reference |
+| `Cockpit-Interface-Plan.md` | NO CHANGE | Precursor to Master UI Design Change |
+
+#### A.3.2 Reference Documents — `docs/00-reference/`
+
+| File | Impact | Changes Required |
+|------|--------|-----------------|
+| `SparkForge_Master_Implementation_Guide_v3.2.md` | **ARCHITECTURE** | THIS APPENDIX. Also: Section 3 (document-to-code map) needs Phase 11 entries. Section 4 (source registry) needs new files. Section 11 (build order) needs Phase 11 added. |
+| `3D-Component-Registry.md` | **ARCHITECTURE** | Add ~24 new UI panel components. Add `CockpitUILayer` category. Update triangle budgets (+3M for UI). |
+| `Per-Stage-Playbooks.md` | **ARCHITECTURE** | Add Phase 11 playbook (7 sub-phases). Update Stage 3-4 playbooks with 3D UI migration notes. |
+| `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` | **MINOR** | Add UI-1–UI-18 decision cross-references. Note quadrant layout supersedes original spatial dashboard HTML overlay. |
+| `GCUD_V10.2.md` | **MINOR** | Game entries reference HTML UI phases — add note that Phase 5-6 migrates game UI to 3D. |
+| `QUICK_REFERENCE_35_GAMES.md` | NO CHANGE | Game metadata table, no UI code |
+| `SparkForge_Master_Directory_v1.2.md` | **MINOR** | Add Phase 11 to 26-phase flow map |
+| `Implementation_Plan_Hero_Page_Animation_v2.0.md` | NO CHANGE | Hero animation spec, no HTML |
+| `SparkForge_Hero_Page_Animation_v2.0.md` | NO CHANGE | Hero 8-phase spec, no HTML |
+| `ERROR_HANDLING_AUTOFIX_GUIDE.md` | **MINOR** | Add uikit error patterns, Canvas crash recovery |
+| `KNOWN_COMPAT_NOTES.md` | **MINOR** | Add @react-three/uikit compatibility notes |
+| `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md` | NO CHANGE | Historical changelog |
+| `COCKPIT_INTEGRATION_ARCHITECTURE_v1.0.md` | NO CHANGE | Precursor reference |
+| `SPARKFORGE_AUDIT_AGENT.md` | NO CHANGE | Audit process doc |
+| `MARKET_RESEARCH_COMPETITIVE_ANALYSIS.md` | NO CHANGE | Market research |
+
+#### A.3.3 Stage Documents — By Stage
+
+**Stage 1: Foundation** — `docs/stage1-foundation/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE1_Foundation_v2_PART1.md` | **MINOR** | Creates `globals.css`, `layout.tsx` — will need 3D CSS token updates |
+| `STAGE1_Foundation_v2_PART2.md` | **MINOR** | Creates stores, hooks — cockpitStore needs audio field additions |
+
+**Stage 2: Database & API** — `docs/stage2-database-api/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE2_Database_API_v2_PART1-4.md` (4 files) | NO CHANGE | SQL, API routes, data hooks — no UI code |
+
+**Stage 3: Auth & Layout** — `docs/stage3-auth-layout/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE3_Auth_Layout_Shell_v2_PART1.md` | **MAJOR** | Creates auth pages (login, signup, reset), auth layout — all become 3D |
+| `STAGE3_Auth_Layout_Shell_v2_PART2.md` | **MAJOR** | Creates dashboard layout, Sidebar, shared components (CelebrationOverlay, ContinueBanner, LoadingSkeleton, EmptyState, ErrorBanner, ToastContainer) — all MODIFY or REPLACE |
+| `STAGE3_Auth_Layout_Shell_v3_PART3A.md` | **MINOR** | Creates StationFrame, 3D shell, marketing layout — StationFrame thin wrapper update |
+| `STAGE3_Auth_Layout_Shell_v3_PART3B.md` | **MINOR** | Creates OnboardingCrystal, shaders — onboarding page becomes 3D wizard |
+| `COCKPIT_CPA2_v3FINAL_PartA.md` | NO CHANGE | Pure 3D cockpit geometry — preserved |
+| `COCKPIT_CPA2_v3FINAL_PartB.md` | NO CHANGE | Spatial dashboard 3D — preserved |
+| `HERO_ANIMATION_v3FINAL_PartA.md` | NO CHANGE | Hero shaders/stores — preserved |
+| `HERO_ANIMATION_v3FINAL_PartB.md` | NO CHANGE | Hero particles/audio — preserved |
+| `LOGIN_3D_v3FINAL_PartA.md` | **MAJOR** | Creates LoginPortal3D, DemoLoginButton, DemoSessionBanner, auth layout replacement — all need 3D UI update |
+| `LOGIN_3D_v3FINAL_PartB.md` | **MAJOR** | Creates LoginFormCard, DemoGuard, enhanced login page — forms migrate to uikit |
+
+**Stage 4: Core Pages** — `docs/stage4-core-pages/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE4_Core_Pages_v2_PART1.md` | **MAJOR** | Creates dashboard home, labs, arcade, lab detail pages — all become scene descriptors |
+| `STAGE4_Part2A_v3FINAL.md` | NO CHANGE | Lab pattern GLSL shaders — preserved |
+| `STAGE4_Part2B_v3FINAL.md` | **MINOR** | Creates LabReconfiguration, GameFocusSequence — transitions need 3D update |
+| `STAGE4_Core_Pages_v2_PART3.md` | **MAJOR** | Creates profile, settings, content pages — all become 3D panels |
+
+**Stage 5: Gamification** — `docs/stage5-gamification/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE5_Gamification_Profile_PART1.md` | **MAJOR** | Creates BadgeDisplay, BadgeGrid, LevelProgress, TrophyRoom — all REPLACE with 3D |
+| `STAGE5_Parts23A_v3FINAL.md` | NO CHANGE | Reward shaders — preserved |
+| `STAGE5_Parts23B_v3FINAL.md` | **MINOR** | Creates XPVortex, BadgePedestal3D (already 3D) + ParticleIntensitySlider (HTML → dial) |
+| `STAGE5_Parts23C_v3FINAL.md` | NO CHANGE | 3D particles, ceremonies — preserved |
+
+**Stage 6: Flagship Games** — `docs/stage6-flagship/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE6B_v3FINAL_A.md` | NO CHANGE | Pet Trainer 3D components — preserved |
+| `STAGE6B_v3FINAL_B.md` | **MAJOR** | PetTrainerGame.tsx — game UI migrates to 3D panels (Phase 5) |
+| `STAGE6C_v3FINAL_A.md` | NO CHANGE | Neural Builder 3D — preserved |
+| `STAGE6C_v3FINAL_B.md` | **MAJOR** | NeuralBuilderGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6D_v2_PromptLab.md` | **MAJOR** | PromptLabGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6D_v2_Enhancements.md` | **MINOR** | Prompt Lab enhancements — partial UI references |
+| `STAGE6D_v3FINAL_PartA.md` | NO CHANGE | Prompt Lab 3D — preserved |
+| `STAGE6D_v3FINAL_PartB.md` | **MINOR** | Enhanced game — partial UI updates |
+| `STAGE6E_v3FINAL_A.md` | NO CHANGE | Agent Architect 3D — preserved |
+| `STAGE6E_v3FINAL_B.md` | **MAJOR** | AgentArchitectGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6E_v3FINAL_C.md` | NO CHANGE | Verification — no UI code |
+| `STAGE6F_v3FINAL_A.md` | NO CHANGE | Bias Detective 3D — preserved |
+| `STAGE6F_v3FINAL_B.md` | **MAJOR** | BiasDetectiveGame.tsx — game UI migrates (Phase 5) |
+| `STAGE6F_v3FINAL_C.md` | NO CHANGE | Verification — no UI code |
+
+**Stage 7: Remaining Games** — `docs/stage7-remaining-games/`
+
+| Substage | Files | Impact | Reason |
+|----------|-------|--------|--------|
+| 7A (4 docs) | BatchA, Part2, Part3, Part4 | **MAJOR** | 9 game .tsx files — all have HTML game UI that migrates in Phase 6 |
+| 7B (3 docs) | v3FINAL PartA/B/C | **MAJOR** | 4 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7C (5 docs) | Part1, Part2, v3FINAL A/B/C | **MAJOR** | 6 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7D (4 docs) | Part1, v3FINAL A/B/C | **MAJOR** | 5 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7E (2 docs) | Part1, Part2 | **MAJOR** | 3 game .tsx files — HTML game UI migrates. |
+| 7F (4 docs) | v3FINAL A/B, Part1, Part2 | **MAJOR** | 3 game .tsx files — HTML game UI migrates. 3D components preserved. |
+| 7 Shared (2 docs) | Shared Systems, XP Celebration | **MAJOR** | GameShell, XPPopup, GameCompleteCelebration — all MODIFY |
+
+**Stage 8: Parent Dashboard** — `docs/stage8-parent-dashboard/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE8_Parent_Dashboard_v2_PART1.md` | **MINOR** | Creates parentStore, Stripe routes, hooks — mostly preserved. tierCheck middleware unchanged. |
+| `STAGE8_Parent_Dashboard_v2_PART2.md` | **MAJOR** | Creates parent pages (parent, add-child, subscription), PaywallModal, TimeLimitBanner, UpgradePrompt — all MODIFY/REPLACE |
+| `STAGE8_P3_v3FINAL_A.md` | **MINOR** | ScrollJourney, LabDiscoveryRing — landing stays HTML for SEO but gets 3D hero embed |
+| `STAGE8_P3_v3FINAL_B.md` | **MINOR** | FeatureShowcase, StationPreview — marketing HTML preserved for SEO |
+| `STAGE8_P3_v3FINAL_C.md` | **MINOR** | Pricing page — stays HTML for SEO |
+
+**Stage 9: Content Agent** — `docs/stage9-content-agent/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE9_Content_Agent_v2_PART1.md` | NO CHANGE | Agent pipeline, prompts, API — no UI code |
+| `STAGE9_Content_Agent_v2_PART2.md` | **MINOR** | Admin content page — stays HTML (internal tool, UI-1 exemption) |
+| `STAGE9_Content_Agent_v2_PART3.md` | NO CHANGE | Seed content data — no UI code |
+
+**Stage 10: Polish & Deploy** — `docs/stage10-polish-deploy/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `STAGE10_Polish_Deploy_v2_PART1.md` | **MAJOR** | Creates AccessibilityToolbar (→ 3D), OfflineBanner (→ HUD), LoadingSkeleton (→ 3D), not-found.tsx update |
+| `STAGE10_Polish_Deploy_v2_PART2.md` | **MINOR** | Production config, game router — gameSlug page needs sceneStore wiring |
+
+**Enhancement Documents** — `docs/enhancements/`
+
+| File | Impact | Reason |
+|------|--------|--------|
+| `DESKTOP_FIRST_3D_OVERHAUL_PartA-D.md` (4 files) | **MINOR** | D3D decisions still valid; add UI-1–UI-18 cross-references |
+| `AI_GUIDE_AVATAR_ENHANCEMENT_PLAN.md` | NO CHANGE | Future enhancement — already 3D |
+
+#### A.3.4 DOCUMENTATION IMPACT SUMMARY
+
+| Impact Level | Count | Examples |
+|-------------|-------|---------|
+| **MAJOR UPDATE** | ~32 | Stage 3 P1-P2, Stage 4 P1+P3, Stage 5 P1, all 6 flagship game docs, all 22 Stage 7 game docs, Stage 8 P2, Stage 10 P1 |
+| **MINOR UPDATE** | ~18 | CLAUDE.md, Stage 1 P1-P2, Login3D, Stage 4 P2B, Stage 5 P23B, Stage 8 P1+P3, TESTING.md, reference docs |
+| **ARCHITECTURE UPDATE** | ~4 | Master Implementation Guide, 3D-Component-Registry, Per-Stage-Playbooks, CLAUDE.md |
+| **NO CHANGE** | ~74 | All SQL, API-only, pure 3D specs, hero animation, cockpit geometry, shaders, superseded docs |
+| **TOTAL** | ~128 | |
+
+*End of Appendix A Section A.3. Sections A.4–A.5 follow.*
 
 ---
 
