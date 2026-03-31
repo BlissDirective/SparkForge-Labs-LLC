@@ -18,7 +18,7 @@ const nextConfig: NextConfig = {
     const cspDirectives = [
       "default-src 'self'",
       // unsafe-eval only in dev (HMR); unsafe-inline for Next.js script injection
-      `script-src 'self' ${isProd ? '' : "'unsafe-eval'"} 'unsafe-inline'`,
+      `script-src 'self' ${isProd ? '' : "'unsafe-eval'"} 'unsafe-inline' blob:`,
       [
         "connect-src 'self'",
         'https://*.supabase.co',
