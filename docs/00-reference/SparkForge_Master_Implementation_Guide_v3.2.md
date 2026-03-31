@@ -1666,7 +1666,153 @@ SparkForge is migrating from a **split architecture** (3D cockpit at z-index 0 +
 
 ---
 
-*End of Appendix A Section A.1. Sections A.2–A.5 follow.*
+### A.2 SOURCE CODE IMPACT — FILE-BY-FILE CORRECTION PLAN
+
+Every `/src/` file categorized by migration impact. **REPLACE** = file becomes thin 3D scene descriptor. **MODIFY** = file needs partial changes (add hooks, remove HTML, adjust wiring). **PRESERVE** = zero changes needed.
+
+#### A.2.1 REPLACE — Files Becoming 3D Scene Descriptors (~22 files, ~4,200 LOC removed)
+
+These files lose their HTML/Tailwind UI and become minimal wrappers that feed scene data to the cockpit via `useCockpitScene()`.
+
+| File | Lines | Replacement |
+|------|-------|-------------|
+| `src/app/(dashboard)/home/page.tsx` | 248 | → `DashboardCenter.tsx` (lab map + welcome + CTA) |
+| `src/app/(dashboard)/labs/page.tsx` | 199 | → `LabsCenter.tsx` (zoomed lab map) |
+| `src/app/(dashboard)/labs/[labId]/page.tsx` | 256 | → `LabDetailPanel.tsx` (lab structure + orbital cards) |
+| `src/app/(dashboard)/arcade/page.tsx` | 275 | → `ArcadePanel.tsx` (4-column scrollable game grid) |
+| `src/app/(dashboard)/profile/page.tsx` | 689 | → `ProfileCenter.tsx` (3D trophy room + avatar) |
+| `src/app/(dashboard)/settings/page.tsx` | 248 | → `SettingsPanel.tsx` (3D toggle/dial controls) |
+| `src/app/(dashboard)/onboarding/page.tsx` | 347 | → `OnboardingPanel.tsx` (3D step wizard) |
+| `src/app/(auth)/login/page.tsx` | ~120 | → `LoginPanel3D.tsx` (uikit form + portal) |
+| `src/app/(auth)/signup/page.tsx` | ~120 | → `LoginPanel3D.tsx` (shared auth panel) |
+| `src/components/shared/CelebrationOverlay.tsx` | 446 | → CeremonyFX (already 3D) + broadcast triggers |
+| `src/components/gamification/TrophyRoom.tsx` | ~80 | → `ProfileCenter.tsx` BadgePedestal3D array |
+| `src/components/gamification/BadgeDisplay.tsx` | ~60 | → BadgeLevitate3D (already 3D) |
+| `src/components/gamification/BadgeGrid.tsx` | ~80 | → HolographicCard grid in ProfileCenter |
+| `src/components/gamification/LevelProgress.tsx` | ~70 | → RadialDial3D gauge (left quadrant) |
+| `src/components/content/LessonViewer.tsx` | ~150 | → HolographicPanel in center viewport |
+| `src/components/content/QuizEngine.tsx` | ~300 | → `QuizPanel3D.tsx` (new 3D component) |
+| `src/components/content/CompletionIndicator.tsx` | ~50 | → CeremonyFX burst trigger |
+| `src/components/auth/LoginFormCard.tsx` | ~80 | → uikit Input panel in LoginPanel3D |
+| `src/components/parent/PaywallModal.tsx` | ~60 | → center screen takeover (3D modal) |
+| `src/components/parent/UpgradePrompt.tsx` | ~70 | → HolographicPanel center modal |
+| `src/components/dashboard/SpatialOverlay.tsx` | ~80 | → absorbed into CockpitUILayer |
+| `src/components/dashboard/TrendingFeed.tsx` | ~100 | → right quadrant activity log scroll |
+
+#### A.2.2 MODIFY — Files Needing Partial Changes (~47 files, ~7,500 LOC touched)
+
+| File | Lines | Changes Needed |
+|------|-------|----------------|
+| **Layouts & Root** | | |
+| `src/app/layout.tsx` | ~120 | Add CockpitCanvas provider at root level |
+| `src/app/(dashboard)/layout.tsx` | 152 | Remove visual Sidebar; keep sr-only nav; wire `useCockpitScene` |
+| `src/app/(auth)/layout.tsx` | ~100 | Update 3D canvas portal setup for unified entry |
+| `src/app/(marketing)/page.tsx` | ~100 | Embed `MarketingHero3D` canvas; keep HTML body for SEO |
+| `src/app/globals.css` | ~500 | Add cockpit CSS variables; remove dashboard Tailwind tokens |
+| **Dashboard Pages** | | |
+| `src/app/(dashboard)/arcade/[gameSlug]/page.tsx` | 259 | Remove HTML game UI overlay; wire to sceneStore game mode |
+| `src/app/(dashboard)/content/[slug]/page.tsx` | 46 | Wire to content hologram in center viewport |
+| `src/app/(dashboard)/parent/page.tsx` | 585 | Parent stats → `ParentPanel.tsx` 3D gauges |
+| `src/app/(dashboard)/parent/add-child/page.tsx` | 282 | Form → uikit Input with hidden HTML proxy |
+| `src/app/(dashboard)/parent/subscription/page.tsx` | 344 | Billing UI → center screen 3D modal |
+| `src/app/(dashboard)/parent/export/page.tsx` | 650 | Export UI → 3D data panel |
+| `src/app/(dashboard)/parent/prompt-history/page.tsx` | 475 | History list → scrollable 3D activity log |
+| **Game Components** | | |
+| `src/components/game/GameShell.tsx` | ~120 | Add sceneStore broadcast wiring; update mode transitions |
+| `src/components/game/XPPopup.tsx` | ~60 | Replace motion.div with 3D particle burst |
+| `src/components/game/StreakFire.tsx` | ~50 | Streak display → 3D StreakFlame3D trigger |
+| `src/components/game/GameCompleteCelebration.tsx` | ~100 | Overlay → CeremonyFX broadcast event |
+| **Shared Components** | | |
+| `src/components/shared/ContinueBanner.tsx` | 66 | Remove visual HTML; keep logic for sceneStore |
+| `src/components/shared/LoadingSkeleton.tsx` | 75 | Replace with 3D loading animation |
+| `src/components/shared/LoadingScreen.tsx` | 57 | Loading → cockpit boot sequence animation |
+| `src/components/shared/EmptyState.tsx` | 32 | Empty card → minimal uikit Text |
+| `src/components/shared/ErrorBanner.tsx` | 42 | Error → 3D HUD alert via toast store |
+| `src/components/shared/StepIndicator.tsx` | 56 | Step dots → `PhaseIndicator3D.tsx` |
+| `src/components/shared/ToastContainer.tsx` | 56 | Toast → 3D toast zone with broadcast audio |
+| `src/components/shared/FeatureGate.tsx` | 21 | Update gate logic for 3D scene states |
+| **Content Components** | | |
+| `src/components/content/BranchingLessonRenderer.tsx` | ~100 | Branching UI → holographic flow panel |
+| `src/components/content/SparkFactViewer.tsx` | ~80 | Fact display → 3D text hologram popup |
+| **Auth Components** | | |
+| `src/components/auth/DemoLoginButton.tsx` | ~40 | Demo button → 3D nav integration broadcast |
+| `src/components/auth/DemoSessionBanner.tsx` | ~50 | Banner → 3D HUD countdown callout |
+| `src/components/auth/DemoGuard.tsx` | ~30 | Logic preserved; update state calls |
+| **Parent Components** | | |
+| `src/components/parent/TimeLimitBanner.tsx` | ~60 | Timer alert → 3D center overlay panel |
+| `src/components/parent/ParentLoadingSkeleton.tsx` | ~50 | Skeleton → 3D loading state |
+| **UI Components** | | |
+| `src/components/ui/GuideChatPanel.tsx` | ~200 | Chat panel → `ChatPanel3D.tsx` wrapper |
+| `src/components/ui/OfflineBanner.tsx` | ~50 | Offline → 3D HUD alert text |
+| `src/components/ui/LoadingSkeleton.tsx` | ~60 | Skeleton → 3D spinner animation |
+| `src/components/ui/ParticleIntensitySlider.tsx` | ~80 | HTML slider → RadialDial3D control |
+| `src/components/ui/ErrorBoundary.tsx` | ~60 | Add Canvas error boundary logic |
+| **Accessibility** | | |
+| `src/components/accessibility/AccessibilityToolbar.tsx` | ~80 | Toolbar → floating 3D settings icon |
+| **Transitions** | | |
+| `src/components/transitions/GameFocusSequence.tsx` | ~100 | Sequence → MechanicalIris + FOV scale transition |
+| `src/components/transitions/LabReconfiguration.tsx` | ~80 | Reconfig → variable dial reset animation |
+| **Layout** | | |
+| `src/components/layout/Sidebar.tsx` | ~100 | Keep sr-only; add keyboard nav broadcast |
+| **Providers** | | |
+| `src/components/providers/AuthProvider.tsx` | ~80 | Add 3D auth mode detection |
+| `src/components/providers/PageTransitionProvider.tsx` | ~60 | Wire transitions to sceneStore |
+| **Stores** (3 files) | | |
+| `src/stores/cockpitStore.ts` | ~300 | +4 audio fields, +mode preset state |
+| `src/stores/uiStore.ts` | 63 | +mode presets, update gameActive → sceneStore |
+| `src/stores/sceneStore.ts` | 146 | +centerContentType, +page route mapping |
+| **Hooks** (4 files) | | |
+| `src/hooks/useStationMode.ts` | ~150 | Add auto mode-selection per route (8 presets) |
+| `src/hooks/useCockpitAudio.ts` | ~300 | Wire spatial audio per mode changes |
+| `src/hooks/useAdaptiveCockpit.ts` | ~60 | Fine-tune 3D layout breakpoints |
+| `src/hooks/useAuthHover.ts` | ~40 | Update for 3D raycasting hover |
+
+#### A.2.3 PRESERVE — Files With Zero Changes (~320 files)
+
+| Category | Count | Examples |
+|----------|-------|---------|
+| 3D components (cockpit, hero, scenes) | ~75 | CockpitCanvas, HeroAnimation, StationFrame, SceneRouter, MechanicalIris |
+| 3D UI primitives | 9 | HolographicButton, RadialDial3D, NavigationButtonGrid, CenterViewportScreen |
+| 3D game environments | 35 | PetTrainerEnvironment, SortToyBoxEnvironment, all StandardEnvironmentBase games |
+| 3D creatures & NPCs | 8 | CreatureBase, 5 species, GuideAvatar3D, AmbientNPCs |
+| 3D FX & particles | 10 | CeremonyFX, XPVortex, LevelUpExplosion, GameParticles3D |
+| Procedural environment system | 7 | ProceduralTerrain, SkyDome, Fog, Lighting, Props |
+| Shaders (GLSL + TSL) | 47 | 10 lab patterns + TSL ports + hero/aurora/dissolve shaders |
+| API routes | 31 | All `/api/` routes (auth, children, progress, stripe, agent, health) |
+| Data hooks (React Query) | 29 | useChildren, useContent, useProgress, useGamification, useSortAudio |
+| Stores (unchanged) | 10 | authStore, childStore, gameStore, parentStore, guideStore, etc. |
+| Utility libraries | 43 | utils.ts, animations.ts, validations.ts, tier-config.ts, all agent/* |
+| Config files | 2 | gameRegistry.ts, creatureConfig.ts |
+| Types | 2 | types/index.ts, types/shaders.d.ts |
+| Middleware | 2 | middleware.ts, tierCheck.ts |
+| Mocks | 3 | browser.ts, handlers.ts, server.ts |
+| Error/system pages | 5 | error.tsx, global-error.tsx, offline/page.tsx, robots.ts, sitemap.ts |
+| Marketing components | 6 | ScrollJourney, FeatureShowcase, StationPreview, MarketingHeader/Footer |
+| Games (35 game .tsx files) | 35 | All game logic files — Phase 5-6 migrates UI, not game logic |
+
+#### A.2.4 IMPACT SUMMARY TABLE
+
+| Category | REPLACE | MODIFY | PRESERVE | Total |
+|----------|---------|--------|----------|-------|
+| Page files | 9 | 8 | 2 | 19 |
+| Shared components | 2 | 8 | 1 | 11 |
+| Gamification components | 4 | 0 | 1 | 5 |
+| Content components | 3 | 2 | 0 | 5 |
+| Auth components | 1 | 3 | 0 | 4 |
+| Parent components | 2 | 2 | 0 | 4 |
+| Game/UI components | 0 | 7 | 0 | 7 |
+| Dashboard components | 2 | 0 | 0 | 2 |
+| Layout/Transitions | 0 | 3 | 0 | 3 |
+| Providers | 0 | 2 | 1 | 3 |
+| 3D components | 0 | 0 | ~140 | ~140 |
+| Stores | 0 | 3 | 10 | 13 |
+| Hooks | 0 | 4 | 31 | 35 |
+| API routes | 0 | 0 | 31 | 31 |
+| CSS files | 0 | 1 | 1 | 2 |
+| Everything else | 0 | 0 | ~100 | ~100 |
+| **TOTALS** | **~22** | **~47** | **~320** | **~390** |
+
+*End of Appendix A Section A.2. Sections A.3–A.5 follow.*
 
 ---
 
