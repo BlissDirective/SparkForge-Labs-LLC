@@ -1597,7 +1597,80 @@ The definitive development order. Each phase must complete before the next begin
 
 ---
 
+---
+
+## APPENDIX A: UNIFIED 3D UI MIGRATION — DOCUMENT & FILE CORRECTION PLAN
+
+**Version:** 1.0 | **Date:** March 31, 2026 | **Status:** ASSESSMENT COMPLETE — Ready for Implementation Planning
+**Source:** `Master-SparkForge-UI-Design-Change.md` + `SparkForge-Full-ControlScreen.json` (1,081 lines, 11 sections)
+**Decision:** UI-1 through UI-18 (18 new architectural decisions)
+
+---
+
+### A.1 EXECUTIVE SUMMARY
+
+SparkForge is migrating from a **split architecture** (3D cockpit at z-index 0 + full-screen HTML at z-index 10) to a **unified 3D cockpit interface** where every dashboard element renders inside a single persistent R3F Canvas. The HTML layer completely obscured the 37.8M-triangle cockpit — making the 3D investment invisible.
+
+#### Migration Scale
+
+| Metric | Count |
+|--------|-------|
+| Source files affected (REPLACE + MODIFY) | **~90** |
+| Source files preserved (zero changes) | **~320** |
+| New source files to create | **~24** |
+| Stage documents requiring updates | **~45** |
+| Reference documents requiring updates | **~8** |
+| Root documents requiring updates | **~3** |
+| New npm dependencies | **0** (@react-three/uikit already installed) |
+| New decision locks | **18** (UI-1 through UI-18) |
+| New cockpitStore fields | **4** (audio controls) |
+| Estimated LOC replaced/rewritten | **~11,700** |
+| Estimated LOC preserved | **~45,000+** |
+
+#### What Changes
+
+| Layer | Before | After |
+|-------|--------|-------|
+| Dashboard pages | Full HTML pages (248–689 LOC each) | Thin scene descriptors (~20–30 LOC each) via `useCockpitScene()` |
+| Navigation | HTML Sidebar.tsx (DOM links) | 3D NavigationButtonGrid (already built) + sr-only HTML fallback |
+| Settings | HTML toggles + sliders | ToggleSwitch3D + RadialDial3D (already built) |
+| Forms (login, signup, chat) | HTML `<form>` + `<input>` | uikit Input with hidden HTML proxy |
+| Data displays | Tailwind cards + grids | HolographicCard + HolographicPanel (already built) |
+| Game UI overlays | HTML score/timer/quiz | 3D GameScoreGauge + QuizPanel3D (new) |
+| Celebrations | Framer Motion overlay | CeremonyFX (already 3D) + broadcast events |
+| Page transitions | CSS crossfade | 400ms ease-out-cubic crossfade in 3D + MechanicalIris for games |
+| Glassmorphism | CSS backdrop-filter | Opaque metallic: carbon composite + chrome bezel |
+
+#### What Does NOT Change
+
+- **140 existing 3D components** (cockpit, environments, game scenes, hero animation)
+- **8 existing 3D UI primitives** (HolographicButton, RadialDial3D, ToggleSwitch3D, NavigationButtonGrid, etc.)
+- **37 custom hooks** (React Query data layer)
+- **31 API routes** (backend unchanged)
+- **13 Zustand stores** (cockpitStore gets 4 new audio fields only)
+- **47 shader files** (GLSL + TSL)
+- **35 game 3D environments**
+- **cockpitBroadcastStore** (16 events already defined)
+- **cockpitMaterials.ts** (7 factories match JSON spec)
+- **CockpitAudioEngine** + 10 lab soundscapes
+
+#### Stays HTML (SEO / Accessibility / Compliance)
+
+| Category | Reason |
+|----------|--------|
+| Marketing landing page body (`/pricing`, `/terms`, `/privacy`) | SEO — Google must crawl |
+| Screen-reader nav (Sidebar.tsx sr-only) | WCAG accessibility |
+| Error/offline pages | Must work without WebGL |
+| Admin panel (`/admin/content`) | Internal tool |
+| Hidden text input proxy | Browser keyboard/paste/autocomplete |
+
+---
+
+*End of Appendix A Section A.1. Sections A.2–A.5 follow.*
+
+---
+
 *End of Master Implementation Guide v4.0 | SparkForge | Laboratory Control Station*
-*414 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 | March 30, 2026*
+*414 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks + 18 UI decisions | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 + Master UI Design Change v1.0 | March 31, 2026*
 
 *This is a living document. Updated after each delivery session. GCUD V10.2 is the canonical source for game content tracking. Master Directory v1.2 is the canonical source for file registry and build flow.*
