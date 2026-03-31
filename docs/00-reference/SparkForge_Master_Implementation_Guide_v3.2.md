@@ -2090,7 +2090,104 @@ These 8 components are the **foundation** for the migration. New panel files com
 | VariableDialCluster | `src/components/3d/ui/VariableDialCluster.tsx` | READY | Bottom 3 dials per-page |
 | CenterViewportScreen | `src/components/3d/ui/CenterViewportScreen.tsx` | READY | Center viewport shell |
 
-*End of Appendix A Section A.4. Section A.5 follows.*
+### A.5 IMPLEMENTATION PHASES, CLAUDE.MD IMPACT & RISK MITIGATION
+
+#### A.5.1 Implementation Phase Plan (Phase 11 — 3D UI Migration)
+
+Inserts into the Build Execution Plan (Section 11) after Phase 26 (Stage 10). Decision UI-18 mandates phased migration: dashboard first, then flagships, then standard games.
+
+| Sub-Phase | Week | Scope | New Files | Modified Files | Hard Stops |
+|-----------|------|-------|-----------|----------------|------------|
+| **11A: Infrastructure** | 1 | `useCockpitScene`, `CockpitUILayer`, 5 uikit primitives (Text, Container, ScrollPanel, Input, Tooltip) | 7 | 3 (stores) | — |
+| **11B: Dashboard** | 2 | 6 pages → scene descriptors. Create DashboardCenter/Left/Right, LabsCenter, LabDetailPanel, ArcadePanel | 6 | 6 (pages) | HS-5 (visual verify) |
+| **11C: Auth + Forms** | 3 | Login/signup → LoginPanel3D, OnboardingPanel. Chat → ChatPanel3D. | 3 | 4 (auth pages/layout) | HS-5 |
+| **11D: Gamification** | 3–4 | Celebration → CeremonyFX broadcast. XP/streak → 3D triggers. Profile → ProfileCenter. Settings → SettingsPanel. Parent → ParentPanel. | 3 | 12 (shared + game components) | — |
+| **11E: Flagship Games** | 4–5 | 6 flagship game UIs → 3D panels. Create GameScoreGauge, GameTimerDisplay, QuizPanel3D, PhaseIndicator3D. | 4 | 6 (game files) | HS-5 |
+| **11F: Standard Games** | 6–8 | 29 standard game UIs via 4 shared templates (QuizPanel3D, ChatPanel3D, PhaseIndicator3D, GameScoreGauge). | 0 | 29 (game files) | — |
+| **11G: Marketing** | 8 | MarketingHero3D embedded in landing page. CSS refinements. | 1 | 2 (marketing pages) | HS-5 |
+
+**Totals:** ~24 new files, ~55 modified files. Tag: `v0.11.0`.
+
+#### A.5.2 CLAUDE.md Sections Requiring Updates
+
+| Section | Current Content | Required Change |
+|---------|----------------|-----------------|
+| **Section 1 (Project Identity)** | Tech stack table | Add `@react-three/uikit` row. Update "Styling" from "Tailwind CSS 4" to "Tailwind CSS 4 (marketing/SEO only) + cockpitMaterials.ts (dashboard 3D)". |
+| **Section 4 (Build Execution Plan)** | Phases 1–26 | Add Phase 11A–11G (3D UI Migration) after Phase 26. Add visual checkpoint HS-11. |
+| **Section 5 (Per-Stage Playbooks)** | 10 stage playbooks | Add Phase 11 playbook with 7 sub-phases. |
+| **Section 6 (Design System)** | Frost-Prismatic colors, glassmorphism | Add UI-3: "Opaque metallic cockpit — NOT glassmorphic. Carbon composite + chrome bezel. Holographic ONLY on center lab map." Update material references. |
+| **Section 7 (Game Architecture)** | HTML game template with phase system | Add 3D game UI template pattern using `GameScoreGauge`, `QuizPanel3D`, `PhaseIndicator3D`. Note: game logic stays identical, only UI rendering changes. |
+| **Section 8 (File Conventions)** | Component naming conventions | Add: `3D panels: src/components/3d/panels/NamePanel.tsx`. Add: `3D UI primitives: src/components/3d/ui/CockpitName.tsx`. |
+| **Section 9 (3D Architecture)** | 140 component registry, D3D decisions | Add UI-1 through UI-18 decision locks. Add 3D UI component triangle budget (+3M). Update total to ~40.8M cockpit + ~9.2M game headroom. Add quadrant layout spec reference. |
+| **Section 9.3 (Cockpit Budgets)** | 37.8M cockpit triangle budget table | Add row: "3D UI Panels (24 components) — 3,000,000 triangles". Update cockpit total to ~40.8M. |
+| **Section 10 (Error Handling)** | Build/TS error patterns | Add uikit error patterns: Input proxy failures, Canvas crash on UI unmount, SDF font loading errors. |
+| **Section 11 (Known Bugs)** | Bug registry | Add: `UI-MIGRATION-PHASE` tracking entry for phased rollout status. |
+| **Section 14 (Stores)** | 13 stores table | Update cockpitStore entry: add `spatialAudioVolume`, `eventAudioVolume`, `mechanicalAudioDensity`, `labAudioEnabled`. Update uiStore: add `cockpitMode`. Update sceneStore: add `centerContentType`, `centerContentProps`. |
+
+#### A.5.3 Master Implementation Guide Sections Requiring Updates (This File)
+
+| Section | Required Change |
+|---------|-----------------|
+| **Section 3 (Document-to-Code Map)** | Add Phase 11 sub-stages with file creation/modification maps |
+| **Section 4 (Source Code Registry)** | Add ~24 new files to Section 4.x registries |
+| **Section 5 (Enhancement Map)** | Add Section 5.9: 3D UI Migration (24 files) |
+| **Section 7 (Store Registry)** | Update cockpitStore, uiStore, sceneStore entries with new fields |
+| **Section 8 (3D Component Registry)** | Add `3D UI Panels` category (~24 components) |
+| **Section 11 (Build Execution Order)** | Add Phase 11A–11G rows after Phase 26 |
+
+#### A.5.4 Other Documents Requiring Updates
+
+| Document | Location | Change |
+|----------|----------|--------|
+| `3D-Component-Registry.md` | `docs/00-reference/` | Add ~24 UI panel components. New category: "3D UI Panels". |
+| `Per-Stage-Playbooks.md` | `docs/00-reference/` | Add Phase 11 playbook (7 sub-phases with file lists + visual checkpoints). |
+| `KNOWN_COMPAT_NOTES.md` | `docs/00-reference/` | Add @react-three/uikit v1.0.64 notes: Input proxy caveats, SDF font requirements. |
+| `ERROR_HANDLING_AUTOFIX_GUIDE.md` | `docs/00-reference/` | Add uikit-specific error patterns and auto-fix strategies. |
+| `PROGRESS.md` | Repo root | Add Phase 11 tracking rows (11A–11G). |
+
+#### A.5.5 Risk Mitigation
+
+| Risk | Impact | Mitigation |
+|------|--------|------------|
+| Text readability in 3D | Users can't read small text on curved surfaces | Larger fonts (14px+), geometric typefaces (Exo 2, Orbitron), high-contrast. Fallback to `drei Html` per element if needed. |
+| uikit Input edge cases | Login/signup may lose keyboard/paste functionality | Hidden HTML `<input>` proxy handles native events. Fallback to `drei Html` overlay per input if uikit fails. |
+| Performance: +3M triangles for UI | Frame rate drop below 50fps target | SDF text instancing, `useFrameTimeMonitor` (Plan B1). If persistent issues: `Plan B2` adaptive effect degradation. |
+| Single Canvas crash | WebGL context loss kills entire UI | `Canvas3DErrorBoundary` (exists) + fallback to HTML error page. Test context loss recovery. |
+| 35 game UI migrations | Massive PR surface area | Phase 5–6 uses 4 shared templates (QuizPanel3D, ChatPanel3D, PhaseIndicator3D, GameScoreGauge) covering all 29 standard games. 6 flagships get custom treatment. |
+| Accessibility regression | Screen readers can't parse Canvas | sr-only Sidebar nav (preserved), ARIA live regions for state changes, `prefers-reduced-motion` reduces 8 effects to instant. |
+| Glassmorphism muscle memory | Users expect transparent frosted panels | UI-3 decision lock: Opaque metallic is deliberate. Holographic ONLY on center lab map. No CSS `backdrop-filter`. |
+
+#### A.5.6 New Decision Locks (UI-1 through UI-18)
+
+All 18 decisions from `Master-SparkForge-UI-Design-Change.md` Section 4 become locked architectural decisions:
+
+| ID | Decision | Summary |
+|----|----------|---------|
+| UI-1 | Full 3D dashboard | Everything behind auth renders in 3D. Zero SEO risk (behind auth). |
+| UI-2 | uikit for text/forms | uikit Input uses hidden HTML proxy for keyboard/paste/autocomplete. |
+| UI-3 | Opaque metallic cockpit | NOT glassmorphic. Carbon composite + chrome bezel. Holographic ONLY on center lab map. |
+| UI-4 | Center swaps per page | Center viewport shows different 3D content per route. Left/right/bottom fixed. |
+| UI-5 | Left = Player Identity | Avatar + AI Guide + Trophies + 4 Gauges. Always present. |
+| UI-6 | Right = Control Hub | Settings + Activity Log + Quick Actions. Always present. |
+| UI-7 | Bottom = Instruments | 3 Dials (page-aware) + 5 Nav Buttons + StatusBar3D. Never changes layout. |
+| UI-8 | Game = 75% takeover | Center scales 1.75x, FOV 58→72, panels slide 30% outward, dim to 40%. |
+| UI-9 | Dramatic celebration | Gold LEDs, HUD expansion, bloom spike, 3D confetti, 2.5s duration. |
+| UI-10 | Smooth crossfade | 400ms ease-out-cubic between non-game pages. MechanicalIris for game entry/exit. |
+| UI-11 | Layered hover feedback | Buttons/cards: glow + scale 1.05. Panels: chrome edge-trace. |
+| UI-12 | Center screen modals | Dialog replaces center content. No overlay dimming. Close via button/Escape. |
+| UI-13 | 3D holographic tooltips | Materialize next to hovered element. Chrome bezel. 300ms delay. |
+| UI-14 | Keyboard nav | 5 nav buttons + center CTA are Tab-accessible. Mouse is primary input. |
+| UI-15 | Dense spatial audio | Every interaction has spatial audio. User controls density via settings dial. |
+| UI-16 | Full audio customization | 6 controls: master, ambient/spatial/event volumes, mechanical density, lab crossfade. |
+| UI-17 | Lab audio crossfade | 10 Tone.js generative soundscapes. 1.5s crossfade on lab transition. |
+| UI-18 | Phased game migration | Dashboard first → 6 flagships → 29 standard. |
+
+**Total decision locks after migration: 84 existing + 18 UI = 102 locked decisions.**
+
+---
+
+*End of Appendix A — Unified 3D UI Migration: Document & File Correction Plan v1.0*
+*24 new files | ~22 REPLACE + ~47 MODIFY + ~320 PRESERVE = ~390 source files assessed | ~32 MAJOR + ~18 MINOR + ~4 ARCHITECTURE + ~74 NO CHANGE = 128 docs assessed | 18 new decision locks (UI-1–UI-18) | 0 new npm dependencies | 4 new store fields | 7 implementation sub-phases | March 31, 2026*
 
 ---
 
