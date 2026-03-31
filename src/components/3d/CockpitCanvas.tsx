@@ -54,6 +54,9 @@ import { NavigationButtonGrid } from './ui/NavigationButtonGrid';
 import { VariableDialCluster } from './ui/VariableDialCluster';
 import { CenterViewportScreen } from './ui/CenterViewportScreen';
 
+// UI Design Change — Master UI Layer (Phase 1: quadrant orchestrator)
+import { CockpitUILayer } from './CockpitUILayer';
+
 // Scene Management (D3D-B5)
 import { SceneRouter } from './SceneRouter';
 import { MechanicalIris } from './MechanicalIris';
@@ -419,6 +422,10 @@ export function CockpitCanvas({
 
                 {/* ═══ Parent Dashboard — 3D stat hologram (Stage 8 Enhancement A1) ═══ */}
                 <ParentDashboardBridge />
+
+                {/* ═══ UI Layer — Quadrant orchestrator (Phase 1 UI Design Change) ═══ */}
+                {/* Phase 2 will populate left/center/right/bottom with panel components */}
+                <CockpitUILayer />
               </>
             }
             spatialContent={
