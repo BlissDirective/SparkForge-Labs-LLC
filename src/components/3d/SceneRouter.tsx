@@ -7,7 +7,7 @@
 // Handles cockpit opacity fade during game mode (D3D-B6).
 
 import { Suspense, useRef, type ReactNode } from 'react';
-import { Group } from 'three';
+import { Group, Mesh, type Material } from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Canvas3DErrorBoundary } from './Canvas3DErrorBoundary';
@@ -45,16 +45,28 @@ export function SceneRouter({
     transition?.type === 'iris-open' || transition?.type === 'iris-close'
   );
 
-  // Smooth cockpit opacity interpolation
+  // Smooth cockpit opacity interpolation + material traversal (D3D-B6 implemented)
   useFrame((_, delta) => {
     const current = cockpitOpacityRef.current;
     const target = cockpitOpacityTarget;
     if (Math.abs(current - target) > 0.001) {
       cockpitOpacityRef.current += (target - current) * Math.min(delta * 5, 1);
     }
-    // Apply opacity to cockpit group children (traversal for material opacity)
-    // Note: actual opacity application is handled by individual components
-    // reading cockpitOpacityTarget from sceneStore
+
+    // Apply opacity to cockpit group children via material traversal
+    const group = cockpitGroupRef.current;
+    if (group && Math.abs(current - target) > 0.001) {
+      const opacity = cockpitOpacityRef.current;
+      group.traverse((child) => {
+        if (child instanceof Mesh && child.material) {
+          const mat = child.material as Material & { opacity?: number; transparent?: boolean };
+          if (mat.opacity !== undefined) {
+            mat.opacity = Math.min(mat.opacity, opacity);
+            mat.transparent = opacity < 0.99;
+          }
+        }
+      });
+    }
   });
 
   return (

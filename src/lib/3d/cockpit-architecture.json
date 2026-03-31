@@ -31,7 +31,7 @@
       "frameloop": "always",
       "dpr": [1, 3],
       "camera": {
-        "position": [0, 6.5, 7],
+        "position": [0, 0.65, 1.1],
         "fov": 58,
         "near": 0.1,
         "far": 200
@@ -45,8 +45,6 @@
     },
     "zIndexStack": [
       { "zIndex": 0,  "layer": "R3F Canvas",            "content": "All 3D content (single canvas)" },
-      { "zIndex": 1,  "layer": "CSS station-frame-css",  "content": "Mobile fallback frame" },
-      { "zIndex": 2,  "layer": "CSS cockpit-indicators",  "content": "Mobile side indicators + status bar" },
       { "zIndex": 5,  "layer": "CSS scanline-overlay",    "content": "CRT scanline effect" },
       { "zIndex": 10, "layer": "HTML SpatialOverlay",     "content": "Lab info panel, nav hints, console quick-access" },
       { "zIndex": 15, "layer": "HTML MiniMapOverlay",     "content": "Persistent mini-map (top-right)" },
@@ -78,121 +76,56 @@
 
   "adaptiveCurvature": {
     "ultraWide":   { "minWidth": 1920, "arc": 155, "radius": 4.2 },
-    "desktop":     { "minWidth": 1440, "arc": 140, "radius": 4.0 },
-    "tablet":      { "minWidth": 1024, "arc": 120, "radius": 3.6 },
-    "cssFallback": { "minWidth": 0,    "arc": 0,   "radius": 0 }
+    "desktop":     { "minWidth": 1440, "arc": 140, "radius": 4.0 }
   },
 
   "triangleBudgets": {
     "totalBudget": {
-      "desktop": 20000000,
-      "tablet": 10000000,
-      "mobile": 0
+      "desktop": 50000000
     },
     "cockpitShell": {
-      "subtotal":           { "desktop": 4950000,  "tablet": 2475000,  "mobile": 0 },
-      "cockpitPanels":      { "desktop": 2000000,  "tablet": 1000000,  "mobile": 0, "description": "256-seg curved hull, multi-layer, instanced rivets, animated sub-panels, hex gauge clusters" },
-      "ledRim":             { "desktop": 200000,   "tablet": 100000,   "mobile": 0, "description": "1000+ individual LED capsules, data visualization mode, audio-reactive pulse waves" },
-      "sidePanels":         { "desktop": 1500000,  "tablet": 750000,   "mobile": 0, "description": "Physical radar dish, 3D data columns, holographic text, chrome bezels, articulated mounting arms" },
-      "holographicHUD":     { "desktop": 500000,   "tablet": 250000,   "mobile": 0, "description": "8 concentric rings, data-display arcs, reticle, volumetric scan beams" },
-      "statusBar3D":        { "desktop": 500000,   "tablet": 250000,   "mobile": 0, "description": "Full circular XP speedometer, volumetric flame sculpture, 10 miniature lab indicators" },
-      "auroraBackground":   { "desktop": 50000,    "tablet": 25000,    "mobile": 0, "description": "Volumetric layers with 3D depth geometry, 3 ribbon TubeGeometry paths" },
-      "ambientParticles":   { "desktop": 200000,   "tablet": 100000,   "mobile": 0, "description": "Instanced icosahedron particles with trails and halos" }
+      "subtotal":           { "desktop": 7750000 },
+      "cockpitPanels":      { "desktop": 4000000,  "description": "288-seg curved hull (218° arc, r=4.8), 12 ribs, 768 rivets, animated sub-panels, hex gauge clusters" },
+      "ledRim":             { "desktop": 500000,   "description": "1500 individual LED capsules, emissive 3.0, data visualization mode, audio-reactive pulse waves" },
+      "sidePanels":         { "desktop": 1500000,  "description": "Physical radar dish, 3D data columns, holographic text, chrome bezels, articulated mounting arms" },
+      "holographicHUD":     { "desktop": 1000000,  "description": "8 concentric rings, data-display arcs, reticle, volumetric scan beams" },
+      "statusBar3D":        { "desktop": 1000000,  "description": "Full circular XP speedometer, volumetric flame sculpture, 10 miniature lab indicators (at [0,-1.25,-1.95])" },
+      "auroraBackground":   { "desktop": 50000,    "description": "Volumetric layers with 3D depth geometry, 3 ribbon TubeGeometry paths" },
+      "ambientParticles":   { "desktop": 200000,   "description": "Instanced icosahedron particles with trails and halos" }
     },
     "spatialContent": {
-      "subtotal":            { "desktop": 11000000, "tablet": 5500000,  "mobile": 0 },
-      "holographicLabMap":   { "desktop": 1000000,  "tablet": 500000,   "mobile": 0, "description": "Multi-layer geodesic shells, data highway splines, holographic projector pedestal" },
-      "labStructures":       { "desktop": 3000000,  "tablet": 1500000,  "mobile": 0, "description": "300K/lab × 10 labs: subdivision surfaces, interior mechanisms, dioramas" },
-      "interactiveConsoles": { "desktop": 2000000,  "tablet": 1000000,  "mobile": 0, "description": "500K/console × 4: multi-part housing, projector base, instrument cluster" },
-      "ambientNPCs":         { "desktop": 1500000,  "tablet": 750000,   "mobile": 0, "description": "187K/bot × 8: articulated body, facial animation, finger grippers" },
-      "dynamicEnvironment":  { "desktop": 3000000,  "tablet": 1500000,  "mobile": 0, "description": "Volumetric fog, environmental props, weather effects" },
-      "starsSkybox":         { "desktop": 500000,   "tablet": 250000,   "mobile": 0, "description": "Enhanced starfield with nebula geometry" }
+      "subtotal":            { "desktop": 13500000 },
+      "holographicLabMap":   { "desktop": 1000000,  "description": "Multi-layer geodesic shells, data highway splines, holographic projector pedestal" },
+      "labStructures":       { "desktop": 3000000,  "description": "300K/lab × 10 labs: subdivision surfaces, interior mechanisms, dioramas" },
+      "interactiveConsoles": { "desktop": 3000000,  "description": "750K/console × 4: multi-part housing, projector base, instrument cluster" },
+      "ambientNPCs":         { "desktop": 2000000,  "description": "250K/bot × 8: articulated body, facial animation, finger grippers" },
+      "dynamicEnvironment":  { "desktop": 3000000,  "description": "Volumetric fog, environmental props, weather effects" },
+      "starsSkybox":         { "desktop": 500000,   "description": "Enhanced starfield with nebula geometry" },
+      "cockpitStructuralDetail":  { "desktop": 2000000, "description": "60 cable bundles, 16 vent panels, ribs, LED indicator strips" },
+      "cockpitFloor":             { "desktop": 1000000, "description": "Grated floor, sub-floor piping, energy conduits, LED channels" }
     },
-    "newComponents": {
-      "subtotal":                 { "desktop": 3550000, "tablet": 1775000, "mobile": 0 },
-      "cockpitStructuralDetail":  { "desktop": 1500000, "tablet": 750000,  "mobile": 0, "description": "Cable bundles, conduit pipes, ventilation panels, structural ribs, LED indicator strips" },
-      "volumetricFog":            { "desktop": 500000,  "tablet": 250000,  "mobile": 0, "description": "Fog volumes, god ray cones, density layers with FBM noise" },
-      "cockpitFloor":             { "desktop": 500000,  "tablet": 250000,  "mobile": 0, "description": "Grated floor, sub-floor piping, energy conduits, LED channels" },
-      "ceremonyFX":               { "desktop": 500000,  "tablet": 250000,  "mobile": 0, "description": "Instanced confetti, fireworks, 3D trophies, HUD ring expansion" },
-      "wormholeTransition":       { "desktop": 300000,  "tablet": 150000,  "mobile": 0, "description": "Tunnel interior, swirling energy walls, speed lines, portal rings" },
-      "miniMapOverlay":           { "desktop": 250000,  "tablet": 125000,  "mobile": 0, "description": "Miniature lab ring, player indicator, completion color-coding" }
+    "fxComponents": {
+      "subtotal":                 { "desktop": 1550000 },
+      "volumetricFog":            { "desktop": 500000,  "description": "Fog volumes, god ray cones, density layers with FBM noise" },
+      "ceremonyFX":               { "desktop": 500000,  "description": "Instanced confetti, fireworks, 3D trophies, HUD ring expansion" },
+      "wormholeTransition":       { "desktop": 300000,  "description": "Tunnel interior, swirling energy walls, speed lines, portal rings" },
+      "miniMapOverlay":           { "desktop": 250000,  "description": "Miniature lab ring, player indicator, completion color-coding" }
     },
-    "dynamicHeadroom": { "desktop": 500000, "tablet": 250000, "mobile": 0 }
-  },
-
-  "lod": {
-    "ultra": {
-      "panelSegments": 256,
-      "sideSegments": 128,
-      "hexDetail": true,
-      "hexSubPanels": true,
-      "hudRingSegments": 128,
-      "hudRingCount": 8,
-      "scanLines": 24,
-      "barrelDistortion": true,
-      "reflections": true,
-      "structuralDetail": true,
-      "volumetricFog": true,
-      "floorDetail": true,
-      "npcFingers": true,
-      "npcFacialAnim": true
+    "uiComponents": {
+      "subtotal":                 { "desktop": 10500000 },
+      "holographicButtons":       { "desktop": 5000000,  "description": "HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard, HolographicPanel" },
+      "navigationButtonGrid":     { "desktop": 1000000,  "description": "5 physical cockpit nav buttons (HOME/LABS/ARCADE/SETTINGS/PROFILE)" },
+      "variableDialCluster":      { "desktop": 1500000,  "description": "3 center-console dials, per-page auto-reconfigure" },
+      "centerViewportScreen":     { "desktop": 3000000,  "description": "Spherical panoramic screen (r=3.9, 144×72 segs, BackSide)" }
     },
-    "high": {
-      "panelSegments": 128,
-      "sideSegments": 64,
-      "hexDetail": true,
-      "hexSubPanels": true,
-      "hudRingSegments": 64,
-      "hudRingCount": 6,
-      "scanLines": 16,
-      "barrelDistortion": true,
-      "reflections": true,
-      "structuralDetail": true,
-      "volumetricFog": true,
-      "floorDetail": true,
-      "npcFingers": false,
-      "npcFacialAnim": true
-    },
-    "medium": {
-      "panelSegments": 64,
-      "sideSegments": 32,
-      "hexDetail": false,
-      "hexSubPanels": false,
-      "hudRingSegments": 32,
-      "hudRingCount": 4,
-      "scanLines": 8,
-      "barrelDistortion": false,
-      "reflections": false,
-      "structuralDetail": false,
-      "volumetricFog": false,
-      "floorDetail": false,
-      "npcFingers": false,
-      "npcFacialAnim": false
-    },
-    "low": {
-      "panelSegments": 32,
-      "sideSegments": 16,
-      "hexDetail": false,
-      "hexSubPanels": false,
-      "hudRingSegments": 16,
-      "hudRingCount": 3,
-      "scanLines": 6,
-      "barrelDistortion": false,
-      "reflections": false,
-      "structuralDetail": false,
-      "volumetricFog": false,
-      "floorDetail": false,
-      "npcFingers": false,
-      "npcFacialAnim": false
-    }
+    "dynamicHeadroom": { "desktop": 12200000 }
   },
 
   "fpsDegradation": [
     { "minFpsPercent": 0.9, "action": "Full quality" },
     { "minFpsPercent": 0.8, "action": "Reduce particle counts by 30%" },
     { "minFpsPercent": 0.6, "action": "Drop to next LOD level, disable BarrelDistortion" },
-    { "minFpsPercent": 0.4, "action": "Disable HolographicHUD, reduce NPC count by half" },
-    { "minFpsPercent": 0.0, "action": "Disable all cockpit 3D, fall back to CSS frame" }
+    { "minFpsPercent": 0.4, "action": "Disable HolographicHUD, reduce NPC count by half" }
   ],
 
   "modePresets": {
@@ -346,9 +279,9 @@
       "duration": 5000,
       "overlapWindow": { "heroFadeStart": 14000, "cockpitMaterializeStart": 14000, "heroFadeEnd": 17000, "cockpitCompleteAt": 19000 },
       "cameraHandoff": {
-        "heroFinalPosition": [0, 6.5, 7],
+        "heroFinalPosition": [0, 0.65, 1.1],
         "heroFinalFov": 58,
-        "cockpitStartPosition": [0, 6.5, 7],
+        "cockpitStartPosition": [0, 0.65, 1.1],
         "cockpitStartFov": 58
       },
       "decision": "CPA2-3"
@@ -391,8 +324,8 @@
         "order": 2,
         "components": [
           { "name": "HolographicLabMap",   "triangles": 1000000,  "instances": 1 },
-          { "name": "InteractiveConsole3D","triangles": 500000,   "instances": 4, "totalTriangles": 2000000 },
-          { "name": "AmbientNPCs",         "triangles": 187500,   "instances": 8, "totalTriangles": 1500000 },
+          { "name": "InteractiveConsole3D","triangles": 750000,   "instances": 4, "totalTriangles": 3000000 },
+          { "name": "AmbientNPCs",         "triangles": 250000,   "instances": 8, "totalTriangles": 2000000 },
           { "name": "DynamicEnvironment",  "triangles": 3000000,  "instances": 1 }
         ]
       },
@@ -400,14 +333,17 @@
         "name": "CockpitShell",
         "order": 3,
         "components": [
-          { "name": "CockpitPanels",           "triangles": 2000000 },
-          { "name": "LEDRim",                  "triangles": 200000 },
-          { "name": "SidePanels",              "triangles": 1500000 },
-          { "name": "StatusBar3D",             "triangles": 500000 },
-          { "name": "HolographicHUD",          "triangles": 500000 },
-          { "name": "CockpitStructuralDetail", "triangles": 1500000 },
-          { "name": "CockpitFloor3D",          "triangles": 500000 },
-          { "name": "VolumetricFog3D",         "triangles": 500000 }
+          { "name": "CockpitPanels",           "triangles": 4000000 },
+          { "name": "LEDRim",                  "triangles": 500000 },
+          { "name": "SidePanels",              "triangles": 3000000 },
+          { "name": "StatusBar3D",             "triangles": 1000000 },
+          { "name": "HolographicHUD",          "triangles": 1000000 },
+          { "name": "CockpitStructuralDetail", "triangles": 2000000 },
+          { "name": "CockpitFloor3D",          "triangles": 1000000 },
+          { "name": "VolumetricFog3D",         "triangles": 500000 },
+          { "name": "NavigationButtonGrid",    "triangles": 1000000, "description": "5 physical cockpit nav buttons (HOME/LABS/ARCADE/SETTINGS/PROFILE)" },
+          { "name": "VariableDialCluster",     "triangles": 1500000, "description": "3 center-console dials, per-page auto-reconfigure" },
+          { "name": "CenterViewportScreen",    "triangles": 3000000, "description": "Spherical panoramic screen (r=3.9, 144×72 segs, BackSide)" }
         ]
       },
       {
@@ -497,7 +433,7 @@
       }
     },
     "cameraPresets": {
-      "overview":  { "position": [0, 6.5, 7],   "lookAt": [0, -0.5, 0], "fov": 58 },
+      "overview":  { "position": [0, 0.65, 1.1], "lookAt": [0, -0.5, 0], "fov": 58 },
       "lab-focus": { "position": [0, 2.5, 2],   "lookAt": [0, 0, 0],    "fov": 50 },
       "console":   { "position": [0, 1.8, 3.5], "lookAt": [0, 0.5, 0],  "fov": 52 },
       "orbit":     { "position": [0, 4, 5],     "lookAt": [0, 0, 0],    "fov": 55 }
@@ -600,8 +536,8 @@
   },
 
   "npcSystem": {
-    "maxCount": { "desktop": 8, "tablet": 4, "mobile": 0 },
-    "trianglesPerBot": 187500,
+    "maxCount": { "desktop": 8 },
+    "trianglesPerBot": 250000,
     "personalityTypes": ["scout", "engineer", "medic", "guardian", "scholar"],
     "behaviorStates": [
       { "state": "idle",        "trigger": "No activity for 30s",   "animation": "Bobs gently, occasionally looks around" },
@@ -653,9 +589,8 @@
   },
 
   "progressiveEnhancement": {
-    "fullCockpit3D":    { "minWidth": 1024, "minGPU": "medium" },
-    "reducedCockpit3D": { "minWidth": 768,  "minGPU": "low" },
-    "cssOnly":          { "minWidth": 0,    "minGPU": "any" }
+    "fullCockpit3D":    { "minWidth": 1440, "minGPU": "desktop-ultra" },
+    "ultraWideCockpit": { "minWidth": 1920, "minGPU": "desktop-ultra" }
   },
 
   "fileRegistry": {
@@ -666,13 +601,13 @@
       { "file": "src/components/3d/PostProcessingStack.tsx",     "type": "FX",      "status": "implemented", "description": "9 always-on effects with scene-reactive multipliers" }
     ],
     "shell": [
-      { "file": "src/components/3d/CockpitPanels.tsx",           "triangles": 2000000,  "status": "implemented" },
-      { "file": "src/components/3d/HolographicHUD.tsx",           "triangles": 500000,   "status": "implemented" },
-      { "file": "src/components/3d/SidePanels.tsx",               "triangles": 1500000,  "status": "implemented" },
-      { "file": "src/components/3d/StatusBar3D.tsx",              "triangles": 500000,   "status": "implemented" },
-      { "file": "src/components/3d/LEDRim.tsx",                   "triangles": 200000,   "status": "implemented" },
-      { "file": "src/components/3d/CockpitStructuralDetail.tsx",  "triangles": 1500000,  "status": "implemented" },
-      { "file": "src/components/3d/CockpitFloor3D.tsx",           "triangles": 500000,   "status": "implemented" },
+      { "file": "src/components/3d/CockpitPanels.tsx",           "triangles": 4000000,  "status": "implemented" },
+      { "file": "src/components/3d/HolographicHUD.tsx",           "triangles": 1000000,  "status": "implemented" },
+      { "file": "src/components/3d/SidePanels.tsx",               "triangles": 3000000,  "status": "implemented" },
+      { "file": "src/components/3d/StatusBar3D.tsx",              "triangles": 1000000,  "status": "implemented" },
+      { "file": "src/components/3d/LEDRim.tsx",                   "triangles": 500000,   "status": "implemented" },
+      { "file": "src/components/3d/CockpitStructuralDetail.tsx",  "triangles": 2000000,  "status": "implemented" },
+      { "file": "src/components/3d/CockpitFloor3D.tsx",           "triangles": 1000000,  "status": "implemented" },
       { "file": "src/components/3d/VolumetricFog3D.tsx",          "triangles": 500000,   "status": "implemented" }
     ],
     "spatial": [
@@ -707,9 +642,9 @@
     "pending": [
       { "file": "src/components/dashboard/ConsoleDetailPanel.tsx",  "status": "pending", "description": "Expandable console info overlays (glassmorphic HTML)" },
       { "file": "src/components/dashboard/NPCDialogueBubble.tsx",   "status": "pending", "description": "Contextual NPC speech bubbles (HTML overlay)" },
-      { "file": "src/hooks/useAdaptiveCockpit.ts",                  "status": "pending", "description": "Viewport-adaptive curvature/radius (Phase 6)" },
-      { "file": "src/shaders/dissolve.glsl",                        "status": "pending", "description": "Skin transition dissolve shader" },
-      { "file": "src/shaders/wormhole.glsl",                        "status": "pending", "description": "Lab entry tunnel energy shader" }
+      { "file": "src/hooks/useAdaptiveCockpit.ts",                  "status": "implemented", "description": "Viewport-adaptive curvature/radius (Phase 6)" },
+      { "file": "src/shaders/dissolve.glsl",                        "status": "implemented", "description": "Skin transition dissolve shader" },
+      { "file": "src/shaders/wormhole.glsl",                        "status": "implemented", "description": "Lab entry tunnel energy shader" }
     ]
   },
 
@@ -725,10 +660,10 @@
     { "id": "CPA2-9",  "decision": "Lab entry uses wormhole cinematic (2.5s)",                           "status": "implemented" },
     { "id": "CPA2-10", "decision": "NPC dialogue bubbles are HTML overlays (not 3D text)",              "status": "pending" },
     { "id": "CPA2-11", "decision": "Spatial audio via Web Audio API Panner3D",                          "status": "implemented" },
-    { "id": "CPA2-12", "decision": "Mobile gets zero R3F (pure CSS fallback)",                           "status": "implemented" },
+    { "id": "CPA2-12", "decision": "Desktop-only rendering (D3D-1) — no mobile/tablet code paths",      "status": "implemented" },
     { "id": "CPA2-13", "decision": "Ceremony FX intensity scales by event type",                         "status": "implemented" },
     { "id": "CPA2-14", "decision": "Console detail panels are glassmorphic HTML overlays",               "status": "pending" },
-    { "id": "CPA2-15", "decision": "Adaptive FPS monitoring can fall back to CSS at <40% of FPS target", "status": "implemented" },
+    { "id": "CPA2-15", "decision": "Adaptive FPS monitoring logs warnings (Plan B1) — no CSS fallback per D3D-1/D3D-5", "status": "implemented" },
     { "id": "D3D-B1",  "decision": "CockpitCanvas never unmounts — uses SceneRouter for visibility",    "status": "implemented" },
     { "id": "D3D-B2",  "decision": "MechanicalIris replaces WormholeTransition for cockpit-to-game",    "status": "implemented" },
     { "id": "D3D-B3",  "decision": "Game scenes render as <group> inside CockpitCanvas",               "status": "implemented" },
@@ -750,8 +685,8 @@
     },
     "deviceStore": {
       "file": "src/stores/deviceStore.ts",
-      "consumedBy": ["ALL 3D components (LOD gating)"],
-      "persisted": ["deviceType"]
+      "consumedBy": ["ALL 3D components (desktop-ultra profile)"],
+      "persisted": []
     },
     "uiStore": {
       "file": "src/stores/uiStore.ts",
@@ -762,6 +697,30 @@
       "file": "src/stores/childStore.ts",
       "consumedBy": ["StatusBar3D", "InteractiveConsole3D", "SpatialOverlay"],
       "drives": "real-time gauge data (XP, level, badges, streak)"
+    },
+    "cockpitBroadcastStore": {
+      "file": "src/stores/cockpitBroadcastStore.ts",
+      "description": "Cross-panel event bus with pulse decay system and per-event intensity mapping",
+      "consumedBy": ["NavigationButtonGrid", "VariableDialCluster", "CenterViewportScreen", "HolographicButton", "RadialDial3D", "ToggleSwitch3D", "HolographicCard", "HolographicPanel", "CockpitPanels", "LEDRim", "SidePanels", "StatusBar3D", "HolographicHUD"],
+      "eventTypes": [
+        "dial-rotate",
+        "button-press",
+        "page-navigate",
+        "lab-select",
+        "xp-change",
+        "level-up",
+        "badge-earned",
+        "streak-update",
+        "game-start",
+        "game-complete",
+        "console-focus",
+        "console-unfocus",
+        "skin-change",
+        "ceremony-trigger",
+        "npc-interact",
+        "hud-mode-change"
+      ],
+      "persisted": []
     }
   },
 
