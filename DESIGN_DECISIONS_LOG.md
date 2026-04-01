@@ -174,7 +174,14 @@ The following individual cockpit components need visual design review before imp
 | 2.4 Sizes | **3 sizes** | Small: 0.08×0.035 (filter pills). Medium: 0.12×0.05 (standard CTAs). Large: 0.18×0.06 (primary CTAs). |
 | 2.5 Text | **Inset text** | Engraved INTO surface (recessed 0.001), backlit by emissive. Consistent with nav button engraved style. |
 
-### Component 3: RadialDial3D — PENDING
+### Component 3: RadialDial3D — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 3.1 Knob Shape | **Knurled cylinder** | Cylinder with visible grip ridges around edge. Textured, tactile. Precision lab instrument dial. |
+| 3.2 Value Display | **LED ring + label** | 24 individual LED dots fill proportionally to value + small label below dial ("XP", "VOL"). |
+| 3.3 Tick Marks | **Illuminated dots** | 24 small glowing dots around rim. Active=accent color, inactive=dim. Feels like tiny LEDs. |
+| 3.4 Drag Feedback | **Smooth rotation** | Dial rotates smoothly following mouse. Arc updates continuously. Clean and direct. |
+| 3.5 Gauge vs Control | **Visual distinction (glass cover)** | Read-only gauges have sealed translucent dome over dial face, no knob protrusion. Interactive dials have exposed knobs. |
 
 ### Component 4: ToggleSwitch3D — PENDING
 
