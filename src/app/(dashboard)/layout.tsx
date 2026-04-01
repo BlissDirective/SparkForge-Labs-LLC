@@ -1,35 +1,40 @@
 'use client';
 
+// ════════════════════════════════════════════════════════════════
+// Dashboard Layout — Full 3D Cockpit (UI Design Change)
+// ════════════════════════════════════════════════════════════════
+// UI-1: Everything behind auth renders in 3D. Zero HTML dashboard UI.
+// Pages are thin scene descriptors — they call useCockpitScene() to
+// set cockpit mode + feed data to cockpitUIStore. All visible content
+// renders inside CockpitCanvas via CockpitUILayer quadrants.
+//
+// Retained HTML:
+//   - Sidebar (sr-only, WCAG accessibility nav)
+//   - DemoSessionBanner / DemoGuard (auth infrastructure)
+//   - GuideChatPanel (HTML overlay for text input — uikit migration Phase 3)
+//   - ARIA live region for screen reader announcements
+
 import { useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { CelebrationOverlay } from '@/components/shared/CelebrationOverlay';
-import { ContinueBanner } from '@/components/shared/ContinueBanner';
-import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
 import { useCockpitAudio } from '@/hooks/useCockpitAudio';
-import { motion, AnimatePresence } from 'motion/react';
+import { useCockpitScene } from '@/hooks/useCockpitScene';
+import { useCockpitUIStore, modeToCenterContent } from '@/stores/cockpitUIStore';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
 import { useGuideContext } from '@/hooks/useGuideContext';
 
-// Phase 5: Guide chat panel (HTML overlay, not R3F — persists across all views)
+// Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
   () => import('@/components/ui/GuideChatPanel'),
   { ssr: false, loading: () => null }
 );
 
-// Dashboard Layout — Laboratory Control Station Shell
-// v3 Decision 2.1: StationFrame canvas mounted on ALL dashboard pages
-// v3 Decision 2.5: Edge-to-edge, frame as border overlay
-// CPA v1.0: Cockpit Panoramic Architecture — curved panels, HUD, side panels
-// v2 BUG-4: useMediaQuery instead of window.innerWidth (SSR-safe)
-// v2 NEW-2A: useSessionTracker auto-tracks play sessions
-
-// v3: Dynamic import StationFrame with ssr: false (R3F requires DOM)
+// StationFrame — cockpit panoramic canvas (wraps CockpitCanvas)
 const StationFrame = dynamic(
   () =>
     import('@/components/3d/StationFrame').then((m) => m.StationFrame),
@@ -41,14 +46,22 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Q2:B — Visual sidebar removed. 3D NavigationButtonGrid is primary nav.
-  // sidebarOpen kept for potential future use but no longer drives margin.
+  // ── Mode systems ──────────────────────────────────
+  // useStationMode: legacy system (drives StationFrame props)
+  // useCockpitScene: new unified system (drives cockpitStore.activeMode + broadcasts)
+  // Both coexist during migration. useCockpitScene is authoritative for mode presets.
   const stationMode = useStationMode();
+  const scene = useCockpitScene();
   const { onModeChange } = useCockpitAudio();
-  const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const prevModeRef = useRef(stationMode.mode);
 
-  // INT-6: Hero animation initialization — first-time visitors see the 8-phase cinematic
+  // Sync center content key from cockpit scene mode
+  const setCenterContent = useCockpitUIStore((s) => s.setCenterContent);
+  useEffect(() => {
+    setCenterContent(modeToCenterContent(scene.mode));
+  }, [scene.mode, setCenterContent]);
+
+  // Hero animation initialization — first-time visitors see the 8-phase cinematic
   const setHeroActive = useSceneStore((s) => s.setHeroActive);
   useEffect(() => {
     const skipIntro = typeof window !== 'undefined' && localStorage.getItem('skipIntroAnimation');
@@ -57,94 +70,61 @@ export default function DashboardLayout({
     }
   }, [setHeroActive]);
 
-  // v2 [NEW-2A]: Auto-track play sessions
+  // Auto-track play sessions
   useSessionTracker();
 
-  // Phase 5: Auto-detect guide context from route/scene
+  // Auto-detect guide context from route/scene
   useGuideContext();
 
-  // CPA v1.0 + INT-4: Trigger cockpit audio + broadcast on mode transitions
+  // Cockpit audio mode transitions (legacy bridge)
   useEffect(() => {
     if (stationMode.mode !== prevModeRef.current) {
       onModeChange(stationMode.mode);
-      // INT-4: Route-to-scene mode broadcasting — cockpit reacts to every navigation
-      broadcast({
-        type: 'page-navigate',
-        source: 'route-change',
-        label: stationMode.mode,
-        color: stationMode.ledColor,
-      });
       prevModeRef.current = stationMode.mode;
     }
-  }, [stationMode.mode, onModeChange, broadcast, stationMode.ledColor]);
+  }, [stationMode.mode, onModeChange]);
 
   return (
     <AuthProvider>
     <DemoGuard>
       <DemoSessionBanner />
       <div className="min-h-screen bg-surface-deep relative overflow-hidden">
-      {/* v3 [Decision 2.1] + CPA v1.0: Station Frame — cockpit panoramic canvas */}
-      <StationFrame
-        mode={stationMode.mode}
-        ledColor={stationMode.ledColor}
-        bgIntensity={stationMode.bgIntensity}
-        particleCount={stationMode.particleCount}
-        frameGlow={stationMode.frameGlow}
-        frameDimmed={stationMode.frameDimmed}
-        // CPA v1.0 props
-        bloomIntensity={stationMode.bloomIntensity}
-        bloomThreshold={stationMode.bloomThreshold}
-        bloomSmoothing={stationMode.bloomSmoothing}
-        vignetteDarkness={stationMode.vignetteDarkness}
-        vignetteOffset={stationMode.vignetteOffset}
-        cameraFov={stationMode.cameraFov}
-        barrelDistortion={stationMode.barrelDistortion}
-        hudOpacity={stationMode.hudOpacity}
-        hudRotationSpeed={stationMode.hudRotationSpeed}
-        hudPulseIntensity={stationMode.hudPulseIntensity}
-        sidePanelOpacity={stationMode.sidePanelOpacity}
-        sidePanelLeftContent={stationMode.sidePanelLeftContent}
-        sidePanelRightContent={stationMode.sidePanelRightContent}
-        statusBarOpacity={stationMode.statusBarOpacity}
-        panelCurvature={stationMode.panelCurvature}
-        panelOpacity={stationMode.panelOpacity}
-      />
+        {/* 3D Cockpit Canvas — the ENTIRE dashboard UI */}
+        <StationFrame
+          mode={stationMode.mode}
+          ledColor={scene.resolvedLedColor}
+          bgIntensity={stationMode.bgIntensity}
+          frameDimmed={stationMode.frameDimmed}
+          bloomIntensity={scene.canvasProps.bloomIntensity}
+          bloomThreshold={scene.canvasProps.bloomThreshold}
+          bloomSmoothing={scene.canvasProps.bloomSmoothing}
+          vignetteDarkness={scene.canvasProps.vignetteDarkness}
+          vignetteOffset={scene.canvasProps.vignetteOffset}
+          cameraFov={scene.canvasProps.cameraFov}
+          barrelDistortion={scene.canvasProps.barrelDistortion}
+          hudOpacity={scene.canvasProps.hudOpacity}
+          hudRotationSpeed={scene.canvasProps.hudRotationSpeed}
+          hudPulseIntensity={scene.canvasProps.hudPulseIntensity}
+          sidePanelOpacity={scene.canvasProps.sidePanelOpacity}
+          sidePanelLeftContent={stationMode.sidePanelLeftContent}
+          sidePanelRightContent={stationMode.sidePanelRightContent}
+          statusBarOpacity={scene.canvasProps.statusBarOpacity}
+          panelCurvature={scene.canvasProps.panelCurvature}
+          panelOpacity={scene.canvasProps.panelOpacity}
+        />
 
-      {/* v3: Scanline overlay (Decision 2.3 — toggleable via accessibility) */}
-      <div className="scanline-overlay" aria-hidden="true" />
+        {/* sr-only navigation for WCAG accessibility */}
+        <Sidebar />
 
-      {/* v3: Vignette overlay for screen depth */}
-      <div className="vignette-overlay" aria-hidden="true" />
+        {/* ARIA live region — screen reader announcements for 3D state changes */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only" id="cockpit-announcer" />
 
-      {/* z-index 10: HTML content layer */}
-      <Sidebar />
-      <CelebrationOverlay />
+        {/* Guide chat panel — HTML overlay for text input (Phase 3: migrate to uikit) */}
+        <GuideChatPanel />
 
-      {/* Phase 5: AI Guide Avatar chat panel (persistent across all dashboard pages) */}
-      <GuideChatPanel />
-
-      {/* INT-1: HTML content constrained to center viewport zone.
-          Cockpit panels, LEDs, HUD, and side panels visible around edges.
-          NOT glassmorphic — opaque metallic console aesthetic. */}
-      {/* Q2:B — No sidebar margin offset needed. Content centered in viewport zone. */}
-      <main className="min-h-screen relative z-10">
-        <div className="cockpit-viewport-content">
-          {/* v2 [NEW-3D]: ContinueBanner */}
-          <ContinueBanner />
-
-          {/* Page content with transition */}
-          <AnimatePresence mode="wait">
-            <motion.div
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.2 }}
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </main>
+        {/* Page children — thin scene descriptors that set mode + feed data.
+            These render NO visible HTML. They only call hooks. */}
+        {children}
       </div>
     </DemoGuard>
     </AuthProvider>

@@ -1,11 +1,11 @@
 'use client';
 
 // ════════════════════════════════════════════════════════════════
-// CockpitUILayer — Master 3D UI Orchestrator
+// CockpitUILayer — Master 3D UI Orchestrator (Phase 2)
 // ════════════════════════════════════════════════════════════════
 // Renders Left, Center, Right, and Bottom UI quadrants inside the
-// cockpit scene. Positions each quadrant per the JSON spec. Reacts
-// to the active CockpitMode for opacity, scale, and offset changes.
+// cockpit scene. Reads cockpitUIStore to swap center content per route.
+// Reacts to the active CockpitMode for opacity, scale, and offset.
 //
 // Per SparkForge-Full-ControlScreen.json §quadrant_layout:
 //   Left  25% [-2.35, 0.25, -1.65] — Player Identity Hub (FIXED)
@@ -14,16 +14,14 @@
 //   Bottom 15% [0, -0.6, -1.85]    — Fixed Instruments
 //
 // Game mode: center scales 1.75x, panels slide 30% outward, dim to 40%.
-// Non-game transitions: 400ms crossfade.
-//
-// This component renders PLACEHOLDER groups for each quadrant.
-// Phase 2 will populate them with actual panel components.
+// Non-game transitions: 400ms crossfade via lerp.
 
-import { useRef, type ReactNode } from 'react';
+import React, { useRef, Suspense, lazy } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Group } from 'three';
 import { MathUtils } from 'three';
 import { useCockpitStore } from '@/stores/cockpitStore';
+import { useCockpitUIStore, type CenterContentKey } from '@/stores/cockpitUIStore';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import { COCKPIT_MODE_PRESETS, type CockpitMode } from '@/lib/3d/cockpitModePresets';
 
@@ -36,17 +34,44 @@ const RIGHT_ROTATION = COCKPIT_GEOMETRY.rightConsoleRotation;
 const CENTER_POSITION: [number, number, number] = [0, 0.35, -3.3];
 const BOTTOM_POSITION: [number, number, number] = [0, -0.6, -1.85];
 
-// ── Props ──────────────────────────────────────────
+// ── Lazy-loaded panel components ──────────────────
+// Each center panel is lazy-loaded to keep initial bundle lean.
+// Left/Right are always loaded (fixed, always visible).
 
-interface CockpitUILayerProps {
-  /** Content for the left quadrant (Player Identity Hub) */
-  leftContent?: ReactNode;
-  /** Content for the center quadrant (swaps per page) */
-  centerContent?: ReactNode;
-  /** Content for the right quadrant (Control & Monitoring Hub) */
-  rightContent?: ReactNode;
-  /** Content for the bottom quadrant (Fixed Instruments) */
-  bottomContent?: ReactNode;
+const DashboardCenter = lazy(() => import('./panels/DashboardCenter'));
+const LabsCenter = lazy(() => import('./panels/LabsCenter'));
+const LabDetailPanel = lazy(() => import('./panels/LabDetailPanel'));
+const ArcadePanel = lazy(() => import('./panels/ArcadePanel'));
+const ProfileCenter = lazy(() => import('./panels/ProfileCenter'));
+const SettingsPanel = lazy(() => import('./panels/SettingsPanel'));
+const ParentPanel = lazy(() => import('./panels/ParentPanel'));
+const DashboardLeft = lazy(() => import('./panels/DashboardLeft'));
+const DashboardRight = lazy(() => import('./panels/DashboardRight'));
+
+// ── Center content router ─────────────────────────
+
+function CenterContentRouter({ contentKey }: { contentKey: CenterContentKey }) {
+  switch (contentKey) {
+    case 'home':
+      return <DashboardCenter />;
+    case 'labs':
+      return <LabsCenter />;
+    case 'lab_detail':
+      return <LabDetailPanel />;
+    case 'arcade':
+      return <ArcadePanel />;
+    case 'profile':
+      return <ProfileCenter />;
+    case 'settings':
+      return <SettingsPanel />;
+    case 'parent':
+      return <ParentPanel />;
+    case 'game':
+      // Game mode — no center panel, game scene fills via SceneRouter
+      return null;
+    default:
+      return <DashboardCenter />;
+  }
 }
 
 // ── Lerp targets per mode ──────────────────────────
@@ -64,23 +89,19 @@ function getModeTargets(mode: CockpitMode) {
 
 // ── Component ──────────────────────────────────────
 
-export function CockpitUILayer({
-  leftContent,
-  centerContent,
-  rightContent,
-  bottomContent,
-}: CockpitUILayerProps) {
+export function CockpitUILayer() {
   const leftRef = useRef<Group>(null);
   const rightRef = useRef<Group>(null);
   const centerRef = useRef<Group>(null);
   const bottomRef = useRef<Group>(null);
 
   const activeMode = useCockpitStore((s) => s.activeMode);
+  const centerContent = useCockpitUIStore((s) => s.centerContent);
 
   // Smoothly interpolate quadrant transforms per frame
   useFrame((_, delta) => {
     const targets = getModeTargets(activeMode);
-    const lerpSpeed = Math.min(delta * 5, 1); // ~5 units/sec convergence
+    const lerpSpeed = Math.min(delta * 5, 1);
 
     // Center: scale by centerScale
     if (centerRef.current) {
@@ -91,12 +112,12 @@ export function CockpitUILayer({
       cs.z = MathUtils.lerp(cs.z, t, lerpSpeed);
     }
 
-    // Left panel: slide outward by panelOffset, adjust opacity
+    // Left panel: slide outward by panelOffset
     if (leftRef.current) {
       const offset = targets.panelOffset;
       leftRef.current.position.x = MathUtils.lerp(
         leftRef.current.position.x,
-        LEFT_POSITION[0] - offset * 0.8, // Slide further left
+        LEFT_POSITION[0] - offset * 0.8,
         lerpSpeed,
       );
     }
@@ -106,7 +127,7 @@ export function CockpitUILayer({
       const offset = targets.panelOffset;
       rightRef.current.position.x = MathUtils.lerp(
         rightRef.current.position.x,
-        RIGHT_POSITION[0] + offset * 0.8, // Slide further right
+        RIGHT_POSITION[0] + offset * 0.8,
         lerpSpeed,
       );
     }
@@ -116,7 +137,7 @@ export function CockpitUILayer({
       const offset = targets.panelOffset;
       bottomRef.current.position.y = MathUtils.lerp(
         bottomRef.current.position.y,
-        BOTTOM_POSITION[1] - offset * 0.4, // Slide lower
+        BOTTOM_POSITION[1] - offset * 0.4,
         lerpSpeed,
       );
     }
@@ -124,14 +145,16 @@ export function CockpitUILayer({
 
   return (
     <group name="cockpit-ui-layer">
-      {/* ═══ LEFT QUADRANT — Player Identity Hub ═══ */}
+      {/* ═══ LEFT QUADRANT — Player Identity Hub (FIXED) ═══ */}
       <group
         ref={leftRef}
         name="quadrant-left"
         position={[LEFT_POSITION[0], LEFT_POSITION[1], LEFT_POSITION[2]]}
         rotation={[LEFT_ROTATION[0], LEFT_ROTATION[1], LEFT_ROTATION[2]]}
       >
-        {leftContent}
+        <Suspense fallback={null}>
+          <DashboardLeft />
+        </Suspense>
       </group>
 
       {/* ═══ CENTER QUADRANT — Swaps per page ═══ */}
@@ -140,27 +163,32 @@ export function CockpitUILayer({
         name="quadrant-center"
         position={CENTER_POSITION}
       >
-        {centerContent}
+        <Suspense fallback={null}>
+          <CenterContentRouter contentKey={centerContent} />
+        </Suspense>
       </group>
 
-      {/* ═══ RIGHT QUADRANT — Control & Monitoring Hub ═══ */}
+      {/* ═══ RIGHT QUADRANT — Control & Monitoring Hub (FIXED) ═══ */}
       <group
         ref={rightRef}
         name="quadrant-right"
         position={[RIGHT_POSITION[0], RIGHT_POSITION[1], RIGHT_POSITION[2]]}
         rotation={[RIGHT_ROTATION[0], RIGHT_ROTATION[1], RIGHT_ROTATION[2]]}
       >
-        {rightContent}
+        <Suspense fallback={null}>
+          <DashboardRight />
+        </Suspense>
       </group>
 
       {/* ═══ BOTTOM QUADRANT — Fixed Instruments ═══ */}
+      {/* NavigationButtonGrid, VariableDialCluster, StatusBar3D are
+          already rendered directly in CockpitCanvas cockpitContent.
+          This group is reserved for additional bottom UI if needed. */}
       <group
         ref={bottomRef}
         name="quadrant-bottom"
         position={BOTTOM_POSITION}
-      >
-        {bottomContent}
-      </group>
+      />
     </group>
   );
 }
