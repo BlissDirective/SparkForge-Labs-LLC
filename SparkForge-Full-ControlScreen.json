@@ -1077,5 +1077,343 @@
     "error_pages": ["404", "500", "offline — must work without WebGL"],
     "admin_panel": "/admin/content (internal tool, no aesthetic requirement)",
     "text_input_proxy": "uikit Input uses hidden HTML <input> for keyboard/paste/autocomplete proxy — not visible but required for browser compatibility"
+  },
+
+  "design_tokens": {
+    "version": "1.0",
+    "description": "System-level design tokens enforced across all cockpit components. Generated as cockpitDesignTokens.ts for code consumption. See DESIGN_DECISIONS_LOG.md for decision rationale.",
+
+    "typography": {
+      "levels": {
+        "display":  { "fontSize": 0.07,  "font": "Exo2-Bold",            "weight": "bold",    "use": "Page titles (Game Arcade, Parent Dashboard)" },
+        "h1":       { "fontSize": 0.05,  "font": "Exo2-Bold",            "weight": "bold",    "use": "Section headers (Trophy Room, Audio Controls)" },
+        "h2":       { "fontSize": 0.038, "font": "Exo2-Bold",            "weight": "bold",    "use": "Sub-headers (Lab 3: The Brain Inside)" },
+        "h3":       { "fontSize": 0.032, "font": "Exo2-Bold",            "weight": "bold",    "use": "Card titles, panel labels" },
+        "body":     { "fontSize": 0.032, "font": "Sora-Regular",          "weight": "regular", "use": "Body text, descriptions, instructions" },
+        "label":    { "fontSize": 0.022, "font": "Sora-Regular",          "weight": "regular", "use": "Input labels, toggle labels, small annotations" },
+        "caption":  { "fontSize": 0.016, "font": "Sora-Regular",          "weight": "regular", "use": "Timestamps, hints, tertiary info" }
+      },
+      "numeric_font": "Orbitron-Bold",
+      "numeric_font_rule": "ALL numeric values (XP, levels, percentages, counts, timers, scores, prices) use Orbitron regardless of text level",
+      "colors": {
+        "primary":   { "hex": "#F0F0F4", "opacity": 1.0,  "use": "Main text, important values" },
+        "secondary": { "hex": "#F0F0F4", "opacity": 0.8,  "use": "Supporting text, descriptions" },
+        "muted":     { "hex": "#F0F0F4", "opacity": 0.5,  "use": "Labels, annotations, non-critical" },
+        "dim":       { "hex": "#F0F0F4", "opacity": 0.25, "use": "Timestamps, placeholders, ghost text" },
+        "accent":    { "hex": "dynamic_mode_color",        "use": "Section headers use current mode accent (amber for settings, purple for profile, etc.)" }
+      }
+    },
+
+    "edges": {
+      "bevel_style": {
+        "structural": { "type": "chamfer",  "width": 0.008, "description": "Hard 45-degree cuts on hull, floor, ribs. Industrial, load-bearing." },
+        "interactive": { "type": "rounded", "radius": 0.004, "description": "Soft rounded edges on buttons, dials, toggles. Inviting to touch." },
+        "display":    { "type": "sharp",    "width": 0,     "description": "No bevel on screens, cards, data readouts. Clean flat surfaces." }
+      },
+      "border_radius": {
+        "small": 4,
+        "medium": 8,
+        "large": 12,
+        "description": "Soft technical scale for uikit containers. Modern, Tesla-like."
+      },
+      "chrome_border": {
+        "width": 2,
+        "color": "#a8b5c8",
+        "glow_intensity": 0.15,
+        "glow_color": "#a8b5c8",
+        "description": "Bold frame — 2px chrome with slight glow. Defining visual feature."
+      },
+      "hover_glow": {
+        "type": "pulse_trace",
+        "pulse_min": 0.6,
+        "pulse_max": 1.0,
+        "pulse_period_s": 1.5,
+        "trace_color": "#00E5FF",
+        "trace_width": 2,
+        "description": "Line traces border AND pulses brightness over 1.5s. Cockpit breathes."
+      }
+    },
+
+    "depth_layers": {
+      "step_size": 0.005,
+      "layers": {
+        "deep_recess": { "z_offset": -0.020, "index": 0, "use": "Deep-set instrument wells, recessed housings" },
+        "recess":      { "z_offset": -0.010, "index": 1, "use": "Screen insets, dial cavities" },
+        "surface":     { "z_offset":  0.000, "index": 2, "use": "Panel face baseline. Reference plane." },
+        "low_raise":   { "z_offset":  0.005, "index": 3, "use": "Toggle mounting plates, card bases" },
+        "high_raise":  { "z_offset":  0.010, "index": 4, "use": "Button caps, dial knobs (tactile protrusion)" },
+        "content":     { "z_offset":  0.015, "index": 5, "use": "Text, labels, icons floating above controls" },
+        "glow":        { "z_offset":  0.020, "index": 6, "use": "Emissive halos, hover glow rings behind elements" },
+        "overlay":     { "z_offset":  0.025, "index": 7, "use": "Tooltips, modals, popups (always on top)" }
+      },
+      "screen_style": "flush",
+      "button_protrusion": "high_raise",
+      "press_depth": 0.03,
+      "description": "8-layer system at 0.005 per step. Screens flush. Buttons tactile (2 layers above surface)."
+    },
+
+    "springs": {
+      "presets": {
+        "snap":     { "stiffness": 600, "damping": 35, "mass": 0.8,  "use": "Toggles, instant detents, boolean snaps" },
+        "crisp":    { "stiffness": 450, "damping": 28, "mass": 1.0,  "use": "Dials, sliders, precise value controls" },
+        "smooth":   { "stiffness": 300, "damping": 25, "mass": 1.0,  "use": "Panel transitions, opacity fades, focus shifts" },
+        "bounce":   { "stiffness": 400, "damping": 18, "mass": 1.0,  "use": "Button press/release, card hover scale, playful elements" },
+        "heavy":    { "stiffness": 200, "damping": 30, "mass": 2.0,  "use": "Panel slide in/out, large element movements" },
+        "dramatic": { "stiffness": 120, "damping": 20, "mass": 3.0,  "use": "Mode transitions, celebration expansions, iris open/close" }
+      },
+      "overall_feel": "mechanical_satisfying",
+      "feel_description": "Moderate overshoot with audible thunk settle. Controls snap into place with physical feel. Sports car switches.",
+      "transition_duration_ms": 400,
+      "transition_easing": "ease-out-cubic"
+    },
+
+    "celebrations": {
+      "tiers": {
+        "minor": {
+          "triggers": ["xp_gain", "streak_tick", "game_progress"],
+          "led_behavior": "single pulse in accent color",
+          "bloom_peak": 0.5,
+          "hud_expansion": 1.05,
+          "confetti": false,
+          "camera_shake": false,
+          "duration_ms": 1500,
+          "description": "Quick acknowledgment. LED pulse + small bloom. Doesn't interrupt flow."
+        },
+        "major": {
+          "triggers": ["badge_earn", "game_complete", "quiz_perfect"],
+          "led_behavior": "gold sweep across 218-degree arc",
+          "bloom_peak": 0.8,
+          "hud_expansion": 1.3,
+          "confetti": true,
+          "confetti_count": 150,
+          "camera_shake": false,
+          "duration_ms": 3000,
+          "description": "Clear reward moment. Gold LEDs + HUD expansion + 3D confetti burst."
+        },
+        "epic": {
+          "triggers": ["level_up", "all_lab_complete", "streak_milestone_30", "all_games_complete"],
+          "led_behavior": "rapid gold flash across all 1500 LEDs",
+          "bloom_peak": 1.0,
+          "hud_expansion": 1.6,
+          "confetti": true,
+          "confetti_count": 500,
+          "camera_shake": true,
+          "shake_preset": "celebration",
+          "trophy_materialize": true,
+          "duration_ms": 4000,
+          "description": "Full spectacle. LEDs flash, HUD explodes outward, camera shakes, 3D trophies materialize, bloom peaks. Maximum dopamine."
+        }
+      }
+    },
+
+    "emissive": {
+      "levels": {
+        "off":      { "intensity": 0.0,  "use": "Truly dark/dead: locked badges, disabled controls" },
+        "dormant":  { "intensity": 0.15, "use": "Background elements: panel seams, structural LED traces" },
+        "dim":      { "intensity": 0.4,  "use": "Inactive indicators, ghost placeholders" },
+        "medium":   { "intensity": 0.8,  "use": "Idle buttons, ready controls, powered-on feel" },
+        "bright":   { "intensity": 1.5,  "use": "Active/hovered elements, focused controls" },
+        "blazing":  { "intensity": 2.5,  "use": "LED peaks, celebration spikes, critical alerts" }
+      },
+      "idle_button": 0.8,
+      "idle_indicator": 0.5,
+      "hover_multiplier": 1.8,
+      "led_multiplier": 1.5,
+      "led_toneMapped": false,
+      "description": "LEDs are 1.5x brighter than controls. Hover boosts by 1.8x. LEDs act as ambient light sources."
+    },
+
+    "mode_atmosphere": {
+      "surface_tint_blend": 0.05,
+      "surface_tint_description": "5% whisper tint. Barely perceptible. Color comes from LEDs and accents only.",
+      "chrome_behavior": "neutral",
+      "chrome_color": "#a8b5c8",
+      "chrome_description": "Silver always. Chrome is a constant visual anchor across all modes.",
+      "fill_light": {
+        "dashboard":   { "color": "#00E5FF", "intensity": 0.3  },
+        "labs":        { "color": "#00E5FF", "intensity": 0.35 },
+        "lab_detail":  { "color": "dynamic_lab_color", "intensity": 0.35 },
+        "game":        { "color": "dynamic_lab_color", "intensity": 0.15 },
+        "profile":     { "color": "#AA66FF", "intensity": 0.3  },
+        "settings":    { "color": "#FFAA44", "intensity": 0.25 },
+        "celebration": { "color": "#FFD700", "intensity": 0.6  },
+        "parent":      { "color": "#FFAA44", "intensity": 0.2  }
+      },
+      "particles": {
+        "color_source": "led_color",
+        "crossfade_duration_s": 1.5,
+        "description": "Particles shift to mode LED color with 1.5s crossfade."
+      }
+    },
+
+    "component_states": {
+      "states": ["idle", "hover", "pressed", "active", "disabled", "loading"],
+      "idle": {
+        "emissive": "medium",
+        "scale": 1.0,
+        "z_offset": "high_raise",
+        "border_glow": 0.0
+      },
+      "hover": {
+        "emissive": "bright",
+        "scale": 1.05,
+        "z_offset": "high_raise",
+        "border_glow": 1.0,
+        "cursor": "pointer",
+        "transition": "bounce"
+      },
+      "pressed": {
+        "emissive": "blazing",
+        "scale": 1.0,
+        "z_offset": "low_raise",
+        "border_glow": 1.0,
+        "press_depth": 0.03,
+        "transition": "snap"
+      },
+      "active": {
+        "emissive": "bright",
+        "scale": 1.0,
+        "z_offset": "low_raise",
+        "border_glow": 0.8,
+        "description": "Glow hold — maintains hover-level brightness permanently."
+      },
+      "disabled": {
+        "emissive": "off",
+        "scale": 1.0,
+        "z_offset": "high_raise",
+        "border_glow": 0.0,
+        "opacity": 0.4,
+        "saturation": 0.0,
+        "hover_response": false,
+        "description": "Desaturated + dim. Grayscale, 40% opacity. Powered off."
+      },
+      "loading": {
+        "emissive": "dim",
+        "scale": 1.0,
+        "z_offset": "high_raise",
+        "border_glow": 0.5,
+        "pulse_speed_s": 0.8,
+        "description": "Pulsing dim glow. Async operation in progress."
+      }
+    },
+
+    "surface_detail": {
+      "panel_seams": {
+        "width_px": 0.5,
+        "opacity": 0.10,
+        "color": "#000000",
+        "description": "Subtle thin dark lines at logical panel break points. Visible on close inspection."
+      },
+      "micro_texture": {
+        "type": "fine_grain",
+        "noise_intensity": 0.02,
+        "description": "2% noise intensity. Brushed metal feel, only visible up close. Unconscious realism."
+      },
+      "wear": "none",
+      "wear_description": "Factory fresh. Pristine materials, no scratches, no wear. Brand-new space station.",
+      "accent_lines": {
+        "coverage": "full_trace",
+        "emissive_level": "dormant",
+        "color_source": "mode_led_color",
+        "opacity": 0.25,
+        "width": 0.002,
+        "description": "Dim accent lines along ALL panel borders, structural ribs, console edges, floor channels. Cockpit skeleton outlined in light."
+      }
+    },
+
+    "focus_zones": {
+      "strategy": "brightness_and_dof",
+      "priority_brightness": 1.0,
+      "non_priority_brightness": 0.7,
+      "dof_blur_non_priority": true,
+      "dof_blur_amount": 0.003,
+      "per_mode_focus": {
+        "dashboard":  { "primary": ["center"], "secondary": ["left", "right"] },
+        "labs":       { "primary": ["center"], "secondary": ["left", "right"] },
+        "lab_detail": { "primary": ["center"], "secondary": ["left", "right"] },
+        "arcade":     { "primary": ["center"], "secondary": ["left", "right"] },
+        "game":       { "primary": ["center"], "secondary": [] },
+        "profile":    { "primary": ["center", "left"], "secondary": ["right"] },
+        "settings":   { "primary": ["center", "right"], "secondary": ["left"] },
+        "parent":     { "primary": ["center"], "secondary": ["left", "right"] }
+      },
+      "first_look": "primary_cta",
+      "first_look_description": "Main action button is brightest element on page load. Action-oriented."
+    },
+
+    "information_density": {
+      "max_visible_items": {
+        "activity_log": 5,
+        "game_grid": 12,
+        "badge_gallery": 9,
+        "trophy_display": 3,
+        "gauges": 4,
+        "description": "Balanced density. Works for full 7-16 age range."
+      },
+      "whitespace_ratio": 0.40,
+      "whitespace_description": "Element gaps = 40% of element size. Comfortable, organized. Car dashboard feel.",
+      "overflow": {
+        "strategy": "paginate",
+        "description": "No scroll. Content splits into pages with next/prev HolographicButton controls. All content on a page is fully visible."
+      },
+      "empty_state": {
+        "style": "ghost_placeholders",
+        "placeholder_opacity": 0.10,
+        "description": "Dim outlines at 10% opacity showing what WILL be there. Motivating — fill these up!"
+      }
+    },
+
+    "feedback_chains": {
+      "chain_speed": {
+        "type": "ripple",
+        "total_duration_ms": 300,
+        "offsets": {
+          "source_element": 0,
+          "led_rim": 50,
+          "status_bar": 100,
+          "hud": 150,
+          "side_panels": 200,
+          "center_content": 300
+        },
+        "description": "Energy propagates outward from click source. Cockpit feels like energy rippling through it."
+      },
+      "chain_completeness": {
+        "type": "sector_response",
+        "always_respond": ["led_rim", "status_bar"],
+        "sector_respond": "clicked element's quadrant only",
+        "description": "Local quadrant responds fully + LED rim + StatusBar always. Other quadrants stay still."
+      },
+      "audio_visual_sync": "simultaneous",
+      "dampening": {
+        "type": "diminishing",
+        "window_ms": 500,
+        "first_click": 1.0,
+        "second_click": 0.6,
+        "third_plus": 0.3,
+        "description": "Prevents visual overload on rapid clicks while staying responsive."
+      }
+    },
+
+    "spatial_audio": {
+      "distance_falloff": "flat",
+      "distance_description": "All zones at defined volume. No distance attenuation. Consistent presence.",
+      "mechanical_density_default": 0.5,
+      "density_thresholds": {
+        "0.0_to_0.3": "Only clicks, toggles, navigation produce sound",
+        "0.3_to_0.5": "Add dial rotation, scroll ticks",
+        "0.5_to_0.7": "Add hover hum on buttons, activity log pings",
+        "0.7_to_1.0": "Add hover on all elements, ambient creaks, breathing sounds"
+      },
+      "priority_system": {
+        "type": "ducking",
+        "duck_volume": 0.4,
+        "priority_order": ["celebration", "navigation", "button_press", "dial_rotate", "hover", "ambient"],
+        "description": "Highest-priority at full volume. Concurrent lower-priority sounds duck to 40%."
+      },
+      "lab_crossfade": {
+        "type": "hard_cut",
+        "description": "Instant switch to new lab soundscape. Clean break. New room feel."
+      }
+    }
   }
 }
