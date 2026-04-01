@@ -1,0 +1,157 @@
+# SparkForge Design Token Decisions Log
+
+**Created:** April 1, 2026
+**Status:** IN PROGRESS — 12 system-level sections locked, component-level design pending
+**Purpose:** Record all design decisions for JSON spec extension + TS token generation
+
+---
+
+## SYSTEM-LEVEL DESIGN TOKENS (12 Sections — ALL LOCKED)
+
+### Section 1: TYPOGRAPHY SCALE
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 1.1 Type Levels | **7 levels** | display, h1, h2, h3, body, label, caption |
+| 1.2 Size Scale | **Standard** | body 0.032, display 0.07 (balanced readability) |
+| 1.3 Font Assignments | **Data everywhere** | Orbitron for ALL numeric values (XP, levels, %, counts, timers) |
+| 1.4 Text Color Hierarchy | **Accent-aware 4-tier** | Primary #F0F0F4, Secondary 80%, Muted 50%, Dim 25% + section headers use mode accent color |
+
+### Section 2: EDGE CATALOG
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 2.1 Bevel Style | **Rounded+chamfer hybrid** | Structural=chamfer (hard cuts), interactive=rounded (inviting), display=sharp (clean screens) |
+| 2.2 Border Radius | **Soft technical** | 4px/8px/12px (small/medium/large). Modern, Tesla-like. |
+| 2.3 Chrome Thickness | **Bold frame** | 2px border with slight glow. Chrome is a defining visual feature. |
+| 2.4 Edge Glow | **Pulse trace** | Line traces border AND pulses brightness (0.6→1.0→0.6 over 1.5s). Cockpit breathes. |
+
+### Section 3: DEPTH LAYERS
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 3.1 Layer Count | **8 layers** | deep-recess, recess, surface, low-raise, high-raise, content, glow, overlay |
+| 3.2 Magnitude | **Moderate** | 0.005 per layer step. Visible depth at cockpit distance (1 foot). |
+| 3.3 Screens | **Flush** | Screens level with panel surface. Clean, modern (tablet-in-desk). |
+| 3.4 Buttons | **Tactile** | 2 layers above surface. Clearly pressable, visible sides. |
+
+### Section 4: SPRING PRESETS
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 4.1 Presets | **6 presets** | snap, crisp, smooth, bounce, heavy, dramatic |
+| 4.2 Feel | **Mechanical satisfying** | Moderate overshoot, audible "thunk" settle. Sports car switches. |
+| 4.3 Transitions | **Balanced** | 400ms crossfade, ease-out-cubic |
+| 4.4 Celebrations | **Full spectacle, 3 tiers** | Minor (LED pulse, 1.5s) / Major (gold sweep+confetti, 3s) / Epic (full explosion+camera shake, 4s) |
+
+### Section 5: EMISSIVE SCALE
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 5.1 Levels | **6 levels** | off (0), dormant (0.15), dim (0.4), medium (0.8), bright (1.5), blazing (2.5) |
+| 5.2 Idle | **Medium** | Buttons 0.8, indicators 0.5. Powered-on instrument panel feel. |
+| 5.3 Hover Boost | **Clear 1.8x** | Obvious visual feedback. User always knows what they'll click. |
+| 5.4 LED vs Controls | **LEDs 1.5x brighter** | Layered lighting — LEDs illuminate, controls respond. |
+
+### Section 6: MODE COLOR TEMPERATURE
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 6.1 Surface Tint | **Whisper 5%** | Barely perceptible panel tint. Color from LEDs/accents only. |
+| 6.2 Chrome | **Neutral silver** | #a8b5c8 always. Chrome is a constant anchor. |
+| 6.3 Fill Light | **Mode-matched + intensity** | Color AND brightness change per mode. Dashboard blue 0.3, game dim 0.15, celebration gold 0.6. |
+| 6.4 Particles | **Mode-colored** | Particles shift to LED color with 1.5s crossfade. |
+
+### Section 7: COMPONENT STATE MACHINES
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 7.1 States | **6 states** | idle, hover, pressed, active, disabled, loading |
+| 7.2 Active | **Glow hold** | Active elements maintain hover-level brightness permanently. |
+| 7.3 Disabled | **Desaturated + dim** | Grayscale, 40% opacity, no hover response. Looks "powered off." |
+| 7.4 Press Depth | **Standard 0.03** | Clear physical movement. Button visibly pushes in. |
+
+### Section 8: SURFACE DETAIL
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 8.1 Seams | **Subtle** | Thin dark lines (0.5px, 10% opacity) at logical panel break points. |
+| 8.2 Texture | **Fine grain** | 2% noise intensity. Brushed metal feel, only visible up close. |
+| 8.3 Wear | **Factory fresh** | Pristine. No scratches, no wear. Brand-new space station. |
+| 8.4 Accent Lines | **Full trace** | Skeleton outlined in dim light along all edges, ribs, floor channels. |
+
+### Section A: FOCUS & READABILITY ZONES
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| A.1 Strategy | **Brightness + DOF** | Priority quadrant full brightness + sharp. Others dim 70% + subtle blur. |
+| A.2 Targets | **Mode-aware** | Dashboard/labs/arcade/game→center. Profile→center+left. Settings→center+right. |
+| A.3 First Look | **Primary CTA** | Main action button is brightest element on page load. Action-oriented. |
+
+### Section B: INFORMATION DENSITY
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| B.1 Max Items | **Balanced** | Activity: 5, Game grid: 12, Badges: 9, Trophies: 3, Gauges: 4 |
+| B.2 Whitespace | **Comfortable 40%** | Element gaps = 40% of element size. Organized, room to breathe. |
+| B.3 Overflow | **Paginate** | No scroll. Content splits into pages with next/prev controls. |
+| B.4 Empty States | **Ghost placeholders** | Dim outlines at 10% opacity. Shows potential. "Fill these up!" |
+
+### Section C: INTERACTION FEEDBACK CHAIN
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| C.1 Speed | **Ripple 0-300ms** | Energy propagates outward from click source. |
+| C.2 Completeness | **Sector response** | Local quadrant + LED rim + StatusBar. Other quadrants stay still. |
+| C.3 Audio Sync | **Simultaneous** | Sound and visual fire at frame 0. |
+| C.4 Dampening | **Diminishing** | 1st click: 100%. 2nd within 500ms: 60%. 3rd+: 30%. |
+
+### Section D: SPATIAL AUDIO
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| D.1 Falloff | **Flat** | All zones at defined volume. No distance attenuation. Consistent. |
+| D.2 Density Default | **Moderate 0.5** | Clicks/toggles/dials have sound. Hover hum on buttons only. |
+| D.3 Priority | **Ducking** | Highest-priority full volume. Others duck to 40%. |
+| D.4 Lab Crossfade | **Hard cut** | Instant switch to new soundscape. Clean break. |
+
+---
+
+## COMPONENT-LEVEL DESIGN (PENDING)
+
+The following individual cockpit components need visual design review before implementation:
+
+### Structural Components
+- [ ] CockpitPanels (main hull curvature, rivet pattern, seam placement)
+- [ ] SidePanels (left/right console shape, mounting style)
+- [ ] CockpitFloor3D (grating pattern, sub-floor visibility)
+- [ ] CockpitStructuralDetail (cable routing, vent patterns)
+- [ ] CenterViewportScreen (screen bezel, curvature, frame treatment)
+
+### HUD & Status
+- [ ] HolographicHUD (ring count, ring styles, data arc format, reticle design)
+- [ ] LEDRim (capsule shape, spacing, pulse wave style)
+- [ ] StatusBar3D (speedometer style, flame design, lab indicator shape)
+
+### Interactive Controls
+- [ ] HolographicButton (shape, bezel, press animation, ripple style)
+- [ ] RadialDial3D (knob shape, tick mark style, value arc, needle design)
+- [ ] ToggleSwitch3D (lever style, plate shape, LED indicator)
+- [ ] NavigationButtonGrid (button shape, layout, active state, label placement)
+- [ ] VariableDialCluster (cluster housing, dial arrangement, label display)
+
+### Content Displays
+- [ ] HolographicLabMap (node shape, connection style, geodesic shells, data highways)
+- [ ] HolographicCard (card shape, content layout, hover effect)
+- [ ] HolographicPanel (panel curvature, section dividers, content zones)
+
+### Panel Content (Phase 2 panels)
+- [ ] DashboardLeft (avatar viewport, guide hologram, trophy pedestals, gauge arrangement)
+- [ ] DashboardRight (settings cluster, activity log cards, quick action layout)
+- [ ] DashboardCenter (stats header, CTA button placement)
+- [ ] LabsCenter (lab info overlay style)
+- [ ] ArcadePanel (tile grid layout, filter button row)
+- [ ] ProfileCenter (trophy room layout, avatar expansion, badge pedestals)
+- [ ] SettingsPanel (section grouping, control spacing)
+- [ ] ParentPanel (child card style, action button layout)
+- [ ] LabDetailPanel (orbital card ring, lab structure display)
+
+### Effects & Transitions
+- [ ] MechanicalIris (blade count, rotation style, aperture shape)
+- [ ] CeremonyFX (confetti style, trophy materialization, HUD expansion pattern)
+- [ ] AuroraBackground (ribbon count, color gradient, movement speed)
+- [ ] AmbientParticles (particle shape, trail style, density distribution)
+- [ ] WormholeTransition (tunnel shape, energy wall style, speed lines)
+
+---
+
+*This log will be updated as component-level design decisions are made.*
+*All decisions are final unless explicitly reopened by user.*
