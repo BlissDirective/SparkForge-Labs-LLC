@@ -165,7 +165,14 @@ The following individual cockpit components need visual design review before imp
 | 1.5 Active Indicator | **Depressed + illuminated ring** | Active button stays physically pressed (0.015 units) AND has bright accent ring around chrome housing. Maximum clarity. |
 | 1.6 Mounting | **Shared console plate** | All 5 on a single curved carbon composite plate with chrome border. Integrated into cockpit hull. |
 
-### Component 2: HolographicButton — PENDING
+### Component 2: HolographicButton — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 2.1 Button Shape | **Chamfered rectangle** | Rectangular with 45-degree corner cuts. Fighter jet MFD soft key. Angular, technical. |
+| 2.2 Surface | **Dual-layer** | Solid dark carbon base + floating translucent emissive layer (0.003 gap). Gap catches light. Premium holographic-over-chassis. |
+| 2.3 Ripple | **Ring expansion** | Single ring expands outward and fades on click. Classic, simple. |
+| 2.4 Sizes | **3 sizes** | Small: 0.08×0.035 (filter pills). Medium: 0.12×0.05 (standard CTAs). Large: 0.18×0.06 (primary CTAs). |
+| 2.5 Text | **Inset text** | Engraved INTO surface (recessed 0.001), backlit by emissive. Consistent with nav button engraved style. |
 
 ### Component 3: RadialDial3D — PENDING
 
