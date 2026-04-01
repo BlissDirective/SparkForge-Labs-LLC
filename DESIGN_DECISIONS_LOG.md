@@ -153,5 +153,37 @@ The following individual cockpit components need visual design review before imp
 
 ---
 
+## COMPONENT-LEVEL DESIGN DECISIONS (10 Hero Components)
+
+### Component 1: NavigationButtonGrid — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 1.1 Button Shape | **Beveled square** | Square with chamfered edges, slightly concave top (thumb rests in it). Chrome frame. Military/aerospace. |
+| 1.2 Layout | **Pentagon cluster** | ARCADE in center, HOME/LABS angled back-left, SETTINGS/PROFILE angled back-right. Radial pattern. |
+| 1.3 Size | **Standard** | 0.12 × 0.05 units. Clear, readable, good click target. |
+| 1.4 Label Style | **Backlit engraved** | Text engraved/embossed into button surface, lit from behind by accent color. No icons. Premium, mechanical. |
+| 1.5 Active Indicator | **Depressed + illuminated ring** | Active button stays physically pressed (0.015 units) AND has bright accent ring around chrome housing. Maximum clarity. |
+| 1.6 Mounting | **Shared console plate** | All 5 on a single curved carbon composite plate with chrome border. Integrated into cockpit hull. |
+
+### Component 2: HolographicButton — PENDING
+
+### Component 3: RadialDial3D — PENDING
+
+### Component 4: ToggleSwitch3D — PENDING
+
+### Component 5: HolographicLabMap — PENDING
+
+### Component 6: HolographicHUD — PENDING
+
+### Component 7: LEDRim — PENDING
+
+### Component 8: StatusBar3D — PENDING
+
+### Component 9: CenterViewportScreen — PENDING
+
+### Component 10: MechanicalIris — PENDING
+
+---
+
 *This log will be updated as component-level design decisions are made.*
 *All decisions are final unless explicitly reopened by user.*
