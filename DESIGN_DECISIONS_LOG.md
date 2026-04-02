@@ -178,12 +178,12 @@ The following individual cockpit components need visual design review before imp
 - [x] DashboardLeft — LOCKED (Component 22)
 - [x] DashboardRight — LOCKED (Component 23)
 - [x] DashboardCenter — LOCKED (Component 24)
-- [ ] LabsCenter (Component 25)
-- [ ] ArcadePanel (Component 26)
-- [ ] ProfileCenter (Component 27)
-- [ ] SettingsPanel (Component 28)
-- [ ] ParentPanel (Component 29)
-- [ ] LabDetailPanel (Component 30)
+- [x] LabsCenter — LOCKED (Component 25)
+- [x] ArcadePanel — LOCKED (Component 26)
+- [x] ProfileCenter — LOCKED (Component 27)
+- [x] SettingsPanel — LOCKED (Component 28)
+- [x] ParentPanel — LOCKED (Component 29)
+- [x] LabDetailPanel — LOCKED (Component 30)
 
 ### Component 22: DashboardLeft — LOCKED
 | Detail | Choice | Description |
@@ -333,7 +333,50 @@ The following individual cockpit components need visual design review before imp
 | 10.4 Light Effect | **Light rays** | 4 volumetric light ray cones project from center gap as iris opens. Game world shines through before full reveal. |
 | 10.5 Sound | **Servo whir** | Continuous mechanical servo motor. Technical, realistic. Camera lens feel. Plays from center_screen zone. |
 
+### Component 25: LabsCenter — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 25.1 Lab Info | **Floating info card** | HolographicCard materializes next to focused lab node. Shows name, completion %, game count. Contextual positioning. |
+| 25.2 Enter Action | **Both** | Double-click node works AND explicit "Enter Lab" HolographicButton appears on info card. Maximum accessibility. |
+
+### Component 26: ArcadePanel — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 26.1 Tile Layout | **Curved grid** | Tiles follow cylindrical concave screen surface. Wrap horizontally. Immersive, tiles feel "on" the screen. Paginated (12 per page). |
+| 26.2 Filter Position | **Integrated in HUD frame** | Lab filter buttons render inside top segment of peripheral HUD frame. Frees center viewport entirely for game tiles. |
+| 26.3 Tile Content | **Name + tier + completion** | Game name, small tier indicator (F/FL/S), completion dot (filled=done, hollow=not). Informative without clutter. |
+
+### Component 27: ProfileCenter — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 27.1 Trophy Room | **Pedestal grid** | 3×3 grid of badge pedestals (9 categories). Latest badge per category. Earned=glowing, locked=dim chrome desaturated. |
+| 27.2 Avatar Size | **Expanded 1.5x** | Avatar scales up 50% on profile page. Visual centerpiece. Per JSON spec enlarged avatar on profile. |
+
+### Component 28: SettingsPanel — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 28.1 Organization | **Column layout** | Audio left half, Visual right half, Skin gallery full-width below. Balanced two-column for controls. |
+| 28.2 Skin Selector | **Preview cards** | 5 HolographicCards with visual preview of each skin's color scheme. Click to apply. See what you're choosing. |
+
+### Component 29: ParentPanel — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 29.1 Child Cards | **Profile cards** | Each child as HolographicCard with avatar, name, level, XP bar, last active time. Rich, visual. |
+| 29.2 Actions | **Side panel** | Action buttons in vertical column on right side of center content. Always visible alongside child data. |
+
+### Component 30: LabDetailPanel — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 30.1 Game Display | **Radial fan** | Games fanned in semicircle below lab structure like a hand of cards. Slightly overlapping. Unique, visually striking. |
+| 30.2 Lab Structure | **Full 3D model** | Existing LabStructure3D renders lab diorama. Rich, immersive. Full triangle budget. |
+
 ---
 
-*This log will be updated as component-level design decisions are made.*
+## DESIGN COMPLETE
+
+**Total decisions: 48 system tokens + 83 component details = 131 design decisions locked.**
+
+All 30 components designed. All 12 system-level token sections locked.
+Ready for implementation.
+
 *All decisions are final unless explicitly reopened by user.*
