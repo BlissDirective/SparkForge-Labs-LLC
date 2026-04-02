@@ -16,7 +16,17 @@
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Float, Html } from '@react-three/drei';
+import { Float, Text } from '@react-three/drei';
+import {
+  CHROME_BORDER,
+  EMISSIVE_LED_MULTIPLIER,
+  EMISSIVE_IDLE_INDICATOR,
+  ACCENT_LINES,
+  TYPE_SCALE,
+  NUMERIC_FONT,
+  NUMERIC_FONT_FAMILY,
+  TEXT_COLORS,
+} from '@/lib/3d/cockpitDesignTokens';
 import {
   BackSide,
   BoxGeometry,
@@ -126,6 +136,7 @@ function ConnectionBeam({
       ),
       new Vector3(...end),
     ]);
+    // Beam radius: visible at 0.015 (ACCENT_LINES.width=0.002 is for fine trim lines)
     const geo = new TubeGeometry(curve, 12, 0.015, 4, false);
     const mat = new MeshBasicMaterial({
       color: new Color(color),
@@ -146,8 +157,9 @@ function ConnectionBeam({
 
   useFrame(() => {
     if (material) {
-      // Animated pulsing opacity
-      material.opacity = 0.15 + Math.sin(time * 3) * 0.08;
+      // Animated pulsing opacity — peak brightness from design token
+      const peak = EMISSIVE_LED_MULTIPLIER; // 1.5
+      material.opacity = 0.15 + Math.sin(time * 3) * 0.08 * peak;
     }
   });
 
@@ -194,7 +206,7 @@ function DataHighways({
         const mat = new MeshStandardMaterial({
           color: new Color(color).multiplyScalar(0.4),
           emissive: new Color(color),
-          emissiveIntensity: 0.3,
+          emissiveIntensity: EMISSIVE_IDLE_INDICATOR,
           transparent: true,
           opacity: 0.2,
           depthWrite: false,
@@ -484,11 +496,11 @@ function HolographicCore({
     []
   );
 
-  // Grid floor shader material uniforms
+  // Grid floor shader material uniforms — base color from CHROME_BORDER token
   const gridUniforms = useMemo(() => ({
-    uColor: { value: new Color(color) },
+    uColor: { value: new Color(CHROME_BORDER.colorHex) },
     uTime: { value: 0 },
-  }), [color]);
+  }), []);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -568,10 +580,9 @@ function HolographicCore({
       dataPointsRef.current.instanceMatrix.needsUpdate = true;
     }
 
-    // Update grid shader time
+    // Update grid shader time — color stays at CHROME_BORDER token value
     if (gridMatRef.current) {
       gridMatRef.current.uniforms.uTime.value = t;
-      gridMatRef.current.uniforms.uColor.value.set(color);
     }
   });
 
@@ -935,6 +946,7 @@ export function HolographicLabMap({
         if (!pos) return null;
         const labColor = LAB_COLORS[lab.id] || '#00BBFF';
         const completionPct = Math.round((labCompletions[lab.id] ?? 0) * 100);
+        const isDimmed = hoveredLabId !== null && hoveredLabId !== lab.id;
         return (
           <group key={lab.id} position={pos}>
             <LabStructure3D
@@ -950,27 +962,36 @@ export function HolographicLabMap({
               onPointerEnter={() => onLabHover(lab.id)}
               onPointerLeave={() => onLabHover(null)}
             />
+            {/* Isolate + spotlight: dim non-hovered labs to ~30% via dark overlay */}
+            {isDimmed && (
+              <mesh position={[0, 0.5, 0]}>
+                <sphereGeometry args={[0.8, 16, 16]} />
+                <meshBasicMaterial color="#000000" transparent opacity={0.6} depthWrite={false} />
+              </mesh>
+            )}
+            {/* 3D Text tooltip on hovered lab */}
             {hoveredLabId === lab.id && (
-              <Html
-                position={[0, 1.2, 0]}
-                distanceFactor={8}
-                occlude="blending"
-                className="pointer-events-none select-none"
-                center
-              >
-                <div
-                  className="bg-[#111118]/90 backdrop-blur-md border rounded-lg px-3 py-2 shadow-lg shadow-black/40 min-w-[120px] text-center"
-                  style={{ borderColor: labColor + '40' }}
+              <group position={[0, 1.4, 0]}>
+                <Text
+                  fontSize={TYPE_SCALE.label.fontSize}
+                  color={TEXT_COLORS.primary.hex}
+                  font={TYPE_SCALE.label.fontPath}
+                  anchorX="center"
+                  anchorY="bottom"
                 >
-                  <p className="font-display text-xs font-bold text-white/90">{lab.title}</p>
-                  <p className="font-data text-[10px] text-white/60 mt-0.5">
-                    {completionPct}% Complete
-                  </p>
-                  <p className="font-body text-[9px] text-white/40 mt-0.5">
-                    {lab.games.length} {lab.games.length === 1 ? 'game' : 'games'}
-                  </p>
-                </div>
-              </Html>
+                  {lab.title}
+                </Text>
+                <Text
+                  position={[0, -0.03, 0]}
+                  fontSize={TYPE_SCALE.caption.fontSize}
+                  color={labColor}
+                  font={NUMERIC_FONT}
+                  anchorX="center"
+                  anchorY="top"
+                >
+                  {completionPct}%
+                </Text>
+              </group>
             )}
           </group>
         );
@@ -978,3 +999,5 @@ export function HolographicLabMap({
     </group>
   );
 }
+
+export default HolographicLabMap;
