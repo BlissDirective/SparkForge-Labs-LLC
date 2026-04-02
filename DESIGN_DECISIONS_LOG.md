@@ -183,7 +183,13 @@ The following individual cockpit components need visual design review before imp
 | 3.4 Drag Feedback | **Smooth rotation** | Dial rotates smoothly following mouse. Arc updates continuously. Clean and direct. |
 | 3.5 Gauge vs Control | **Visual distinction (glass cover)** | Read-only gauges have sealed translucent dome over dial face, no knob protrusion. Interactive dials have exposed knobs. |
 
-### Component 4: ToggleSwitch3D — PENDING
+### Component 4: ToggleSwitch3D — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 4.1 Switch Style | **Paddle switch** | Flat paddle flips up (ON) / down (OFF) on horizontal axis. Aircraft overhead panel. Clean, professional. |
+| 4.2 ON/OFF Indicator | **LED strip** | Thin accent-colored LED strip along mounting plate edge. Fully lit=ON, off=OFF. Ties into cockpit accent line system. |
+| 4.3 Snap Feel | **Hard snap** | Instant 45° rotation, no overshoot. Clean mechanical click. Quality electrical switch. |
+| 4.4 Mounting | **Grouped panel** | Multiple toggles share single recessed panel section with label header ("AUDIO CONTROLS"). Organized, professional. |
 
 ### Component 5: HolographicLabMap — PENDING
 
