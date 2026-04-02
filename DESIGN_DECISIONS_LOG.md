@@ -236,7 +236,14 @@ The following individual cockpit components need visual design review before imp
 | 9.3 Surface | **Scan lines** | Dark background with subtle horizontal scan line effect (CRT). Retro-futuristic. Screen feels like a display, not a void. |
 | 9.4 Transition | **Wipe sweep** | Bright line sweeps left-to-right revealing new content (400ms). Scanner pass. Technical, dramatic. |
 
-### Component 10: MechanicalIris — PENDING
+### Component 10: MechanicalIris — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 10.1 Blade Count | **8 blades** | Octagonal aperture. Smooth, mechanical. Classic camera iris. |
+| 10.2 Blade Material | **Carbon composite** | Same #0A0F1F as cockpit panels. Iris looks like cockpit hull splitting open. Integrated, cohesive. |
+| 10.3 Opening | **Staggered spiral** | Blades open one at a time (50ms apart). Spiral opening pattern. Each blade catches previous. Organic, mesmerizing. |
+| 10.4 Light Effect | **Light rays** | 4 volumetric light ray cones project from center gap as iris opens. Game world shines through before full reveal. |
+| 10.5 Sound | **Servo whir** | Continuous mechanical servo motor. Technical, realistic. Camera lens feel. Plays from center_screen zone. |
 
 ---
 
