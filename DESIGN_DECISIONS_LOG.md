@@ -191,7 +191,14 @@ The following individual cockpit components need visual design review before imp
 | 4.3 Snap Feel | **Hard snap** | Instant 45° rotation, no overshoot. Clean mechanical click. Quality electrical switch. |
 | 4.4 Mounting | **Grouped panel** | Multiple toggles share single recessed panel section with label header ("AUDIO CONTROLS"). Organized, professional. |
 
-### Component 5: HolographicLabMap — PENDING
+### Component 5: HolographicLabMap — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 5.1 Node Shape | **Geodesic sphere** | Multi-shell icosahedron with concentric transparent layers. Holographic data orb. ~100K tris/node. |
+| 5.2 Connections | **Beam lines** | Thin laser-like lines connecting adjacent labs. Energy pulses flow between nodes. Minimal geometry, elegant. |
+| 5.3 Completion | **Shell layers** | Inner shells reveal as completion increases. 0%=outer only. 100%=all 4 shells glow, dense bright core. Premium visual reward. |
+| 5.4 Map Base | **Grid floor** | Holographic grid plane with raised intersection points. Sci-fi tactical map. |
+| 5.5 Hover | **Isolate + spotlight** | Hovered node brightens, all others dim to 30%. Spotlight centers on hovered lab. Dramatic focus. |
 
 ### Component 6: HolographicHUD — PENDING
 
