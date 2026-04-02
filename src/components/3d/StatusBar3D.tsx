@@ -326,35 +326,32 @@ function LabMiniArcs({
     []
   );
 
-  // 10 arcs of ~20 deg each, total ~200 deg, with ~2 deg gaps
-  const arcDeg = 20;
-  const gapDeg = 2;
-  const totalSpan = 10 * arcDeg + 9 * gapDeg; // 218 deg
-  const startAngle = -totalSpan / 2; // center the ring
+  // 10 mini arc segments: ~20° (0.349 rad) each with 2° (0.035 rad) gap (Decision 8.3)
+  const arcSweep = 0.349; // ~20 degrees in radians
+  const gapSweep = 0.035; // ~2 degrees in radians
+  const totalSpanRad = 10 * arcSweep + 9 * gapSweep; // total angular span
+  const startAngleRad = -totalSpanRad / 2; // center the ring
 
-  // Per-lab completion: labs 0..(done-1) are 100%, lab at index done is partial, rest 0%
-  // For simplicity: done = number of fully completed labs
+  // Per-lab completion: labs 0..(done-1) are 100%, rest 0%
   const getLabCompletion = (index: number): number => {
     if (index < labProgress.done) return 1.0;
     return 0;
   };
 
-  // Build arc geometries
+  // Build arc geometries (inner 0.35, outer 0.42)
   const arcData = useMemo(() => {
     const data: { trackGeo: RingGeometry; fillGeo: RingGeometry | null; startRad: number; sweepRad: number; color: Color }[] = [];
-    const outerR = 0.85;
-    const innerR = 0.65;
-    const arcSweep = MathUtils.degToRad(arcDeg);
+    const innerR = 0.35;
+    const outerR = 0.42;
 
     for (let i = 0; i < 10; i++) {
-      const angleDeg = startAngle + i * (arcDeg + gapDeg);
-      const angleRad = MathUtils.degToRad(angleDeg);
+      const angleRad = startAngleRad + i * (arcSweep + gapSweep);
       const completion = getLabCompletion(i);
 
-      // Track (background — always full arc)
+      // Track (dim background — always full arc)
       const trackGeo = new RingGeometry(innerR, outerR, Math.max(segments / 4, 8), 1, angleRad, arcSweep);
 
-      // Fill (proportional)
+      // Fill (proportional, lab-colored)
       let fillGeo: RingGeometry | null = null;
       if (completion > 0) {
         fillGeo = new RingGeometry(innerR, outerR, Math.max(segments / 4, 8), 1, angleRad, arcSweep * completion);
