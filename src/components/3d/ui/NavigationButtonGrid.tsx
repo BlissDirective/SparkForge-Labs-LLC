@@ -6,13 +6,13 @@
 // 5 beveled-square buttons in a pentagon cluster on a shared
 // curved carbon-composite console plate with chrome border.
 //
-// Layout (pentagon):
-//   ARCADE center-front, HOME left, LABS back-left,
-//   SETTINGS back-right, PROFILE right.
-//
-// Each button: ExtrudeGeometry chamfered square (0.12 x 0.05),
-// chrome bezel frame, backlit engraved label (no icons),
-// spring-animated depress/hover, active ring indicator.
+// Design Decisions:
+//   1.1 Button Shape: Beveled square — chamfered edges, concave top, chrome frame
+//   1.2 Layout: Pentagon cluster — ARCADE center-front, HOME/LABS back-left, SETTINGS/PROFILE back-right
+//   1.3 Size: Standard — 0.12 x 0.05 units per button
+//   1.4 Label Style: Backlit engraved — text engraved into surface, lit from behind (NO icons)
+//   1.5 Active Indicator: Depressed + illuminated ring — 0.015 depress + bright accent ring
+//   1.6 Mounting: Shared console plate — single curved carbon composite plate with chrome border
 //
 // Press -> cockpit state transition via cockpitBroadcastStore.
 // ~1M triangles total (5 buttons + console plate + chrome frames).
@@ -28,6 +28,7 @@ import {
   Shape,
   ExtrudeGeometry,
   MeshStandardMaterial,
+  MeshPhongMaterial,
   MeshBasicMaterial,
   RingGeometry,
   AdditiveBlending,
@@ -47,7 +48,7 @@ import {
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ════════════════════════════════════════════════════
-// NAV BUTTON CONFIG — Pentagon cluster layout
+// NAV BUTTON CONFIG — Pentagon cluster layout (Decision 1.2)
 // ════════════════════════════════════════════════════
 
 interface NavButtonConfig {
@@ -59,33 +60,34 @@ interface NavButtonConfig {
 }
 
 const NAV_BUTTONS: NavButtonConfig[] = [
-  { id: 'nav-arcade',   label: 'ARCADE',   color: '#00FF88', route: '/arcade',   position: [0, 0, 0.04] as const },
-  { id: 'nav-home',     label: 'HOME',     color: '#00BBFF', route: '/home',     position: [-0.13, 0, 0] as const },
-  { id: 'nav-labs',     label: 'LABS',     color: '#AA66FF', route: '/labs',     position: [-0.08, 0, -0.09] as const },
-  { id: 'nav-settings', label: 'SETTINGS', color: '#FFAA44', route: '/settings', position: [0.08, 0, -0.09] as const },
-  { id: 'nav-profile',  label: 'PROFILE',  color: '#FF66AA', route: '/profile',  position: [0.13, 0, 0] as const },
+  { id: 'nav-arcade',   label: 'ARCADE',   color: '#00FF88', route: '/arcade',   position: [0, 0, 0.04] as const },      // center front
+  { id: 'nav-home',     label: 'HOME',     color: '#00BBFF', route: '/home',     position: [-0.13, 0, 0] as const },     // left
+  { id: 'nav-labs',     label: 'LABS',     color: '#AA66FF', route: '/labs',     position: [-0.08, 0, -0.09] as const }, // back-left
+  { id: 'nav-settings', label: 'SETTINGS', color: '#FFAA44', route: '/settings', position: [0.08, 0, -0.09] as const }, // back-right
+  { id: 'nav-profile',  label: 'PROFILE',  color: '#FF66AA', route: '/profile',  position: [0.13, 0, 0] as const },     // right
 ];
 
 // ════════════════════════════════════════════════════
-// BUTTON DIMENSIONS
+// BUTTON DIMENSIONS (Decisions 1.1, 1.3, 1.5)
 // ════════════════════════════════════════════════════
 
 const BUTTON_WIDTH = 0.12;
 const BUTTON_HEIGHT = 0.05;
 const BUTTON_DEPTH = 0.018;
 const CHAMFER = 0.006;
-const ACTIVE_DEPRESS = 0.015;
+const ACTIVE_DEPRESS = 0.015; // Decision 1.5: active stays depressed 0.015 units
+const ACTIVE_RING_EMISSIVE = 2.5; // Decision 1.5: bright accent ring emissive
 const RING_INNER = 0.068;
 const RING_OUTER = 0.074;
 
-// Console plate dimensions
+// Console plate dimensions (Decision 1.6)
 const PLATE_WIDTH = 0.40;
 const PLATE_HEIGHT = 0.25;
 const PLATE_DEPTH = 0.008;
 const PLATE_CHAMFER = 0.012;
 
 // ════════════════════════════════════════════════════
-// GEOMETRY BUILDERS (memoized outside render)
+// GEOMETRY BUILDERS
 // ════════════════════════════════════════════════════
 
 function createChamferedSquareShape(
@@ -110,7 +112,7 @@ function createChamferedSquareShape(
 }
 
 // ════════════════════════════════════════════════════
-// SPRING HELPER
+// SPRING HELPER — per-frame physics integration
 // ════════════════════════════════════════════════════
 
 function springLerp(
@@ -129,8 +131,11 @@ function springLerp(
 }
 
 // ════════════════════════════════════════════════════
-// NavButtonMesh — Single navigation button
+// NavButtonMesh — Single beveled-square navigation button
 // ════════════════════════════════════════════════════
+// Custom geometry per Decision 1.1 (NOT HolographicButton).
+// Each button: ExtrudeGeometry chamfered square, chrome bezel,
+// backlit engraved Text label, active ring indicator, spring physics.
 
 interface NavButtonMeshProps {
   config: NavButtonConfig;
@@ -143,12 +148,11 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
   const meshRef = useRef<Mesh>(null);
   const bezelRef = useRef<Mesh>(null);
   const ringRef = useRef<Mesh>(null);
-  const textRef = useRef<Mesh>(null);
 
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
-  // Spring state stored in refs for per-frame updates
+  // Spring state stored in refs for per-frame updates (no re-renders)
   const springState = useRef({
     depressY: 0,
     depressVel: 0,
@@ -157,10 +161,10 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
     emissiveVal: EMISSIVE_IDLE_BUTTON,
   });
 
-  // Color objects (memoized)
+  // Accent color (memoized)
   const accentColor = useMemo(() => new Color(config.color), [config.color]);
 
-  // Button shape geometry (memoized)
+  // Button body geometry — beveled square, slightly concave top (Decision 1.1)
   const buttonGeometry = useMemo(() => {
     const shape = createChamferedSquareShape(BUTTON_WIDTH, BUTTON_HEIGHT, CHAMFER);
     return new ExtrudeGeometry(shape, {
@@ -172,9 +176,9 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
     });
   }, []);
 
-  // Chrome bezel geometry — slightly larger than button
+  // Chrome bezel frame — slightly larger than button body (Decision 1.1)
   const bezelGeometry = useMemo(() => {
-    const bezelPad = 0.005;
+    const bezelPad = CHROME_BORDER.width * 0.0025; // scale border width token to 3D units
     const shape = createChamferedSquareShape(
       BUTTON_WIDTH + bezelPad * 2,
       BUTTON_HEIGHT + bezelPad * 2,
@@ -189,30 +193,31 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
     });
   }, []);
 
-  // Active ring geometry
-  const ringGeo = useMemo(
+  // Active indicator ring geometry (Decision 1.5)
+  const ringGeometry = useMemo(
     () => new RingGeometry(RING_INNER, RING_OUTER, 32),
     [],
   );
 
-  // Spring config
-  const spring = SPRING_PRESETS.snap;
+  // Spring configs from design tokens
+  const snapSpring = SPRING_PRESETS.snap;
+  const bounceSpring = SPRING_PRESETS.bounce;
 
   useFrame((_, delta) => {
     const dt = Math.min(delta, 0.05); // Cap delta for stability
     const s = springState.current;
 
-    // Compute target depress
+    // Target depress: pressed > active > idle
     const targetDepress = pressed
       ? -PRESS_DEPTH
       : active
         ? -ACTIVE_DEPRESS
         : 0;
 
-    // Compute target scale
+    // Target scale: hover expands slightly
     const targetScale = hovered && !pressed ? 1.05 : 1.0;
 
-    // Compute target emissive
+    // Target emissive: pressed > hover > active > idle
     const targetEmissive = pressed
       ? EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER * 1.2
       : hovered
@@ -221,47 +226,50 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
           ? EMISSIVE_IDLE_BUTTON * 1.3
           : EMISSIVE_IDLE_BUTTON;
 
-    // Spring depress
+    // Spring depress (snap for crisp tactile feel)
     [s.depressY, s.depressVel] = springLerp(
-      s.depressY, targetDepress, s.depressVel, dt, spring,
+      s.depressY, targetDepress, s.depressVel, dt, snapSpring,
     );
 
-    // Spring scale
+    // Spring scale (bounce for playful hover)
     [s.scaleVal, s.scaleVel] = springLerp(
-      s.scaleVal, targetScale, s.scaleVel, dt, SPRING_PRESETS.bounce,
+      s.scaleVal, targetScale, s.scaleVel, dt, bounceSpring,
     );
 
-    // Smooth emissive
+    // Smooth emissive transition
     s.emissiveVal += (targetEmissive - s.emissiveVal) * Math.min(dt * 8, 1);
 
-    // Apply to group
+    // Apply transforms to group
     if (groupRef.current) {
       groupRef.current.position.y = s.depressY;
       groupRef.current.scale.setScalar(s.scaleVal);
     }
 
-    // Apply emissive to button material
+    // Apply emissive intensity to button material
     if (meshRef.current) {
       const mat = meshRef.current.material as MeshStandardMaterial;
-      if (mat.emissive) {
+      if (mat.emissiveIntensity !== undefined) {
         mat.emissiveIntensity = s.emissiveVal;
       }
     }
 
-    // Active ring pulse
+    // Active ring pulse (Decision 1.5: pulses per HOVER_GLOW timing)
     if (ringRef.current) {
       ringRef.current.visible = active;
       if (active) {
         const pulse =
           HOVER_GLOW.pulseMin +
           (HOVER_GLOW.pulseMax - HOVER_GLOW.pulseMin) *
-            (0.5 + 0.5 * Math.sin(Date.now() * 0.001 * (2 * Math.PI / HOVER_GLOW.pulsePeriodS)));
+            (0.5 + 0.5 * Math.sin(
+              Date.now() * 0.001 * (2 * Math.PI / HOVER_GLOW.pulsePeriodS),
+            ));
         const ringMat = ringRef.current.material as MeshBasicMaterial;
         ringMat.opacity = pulse;
       }
     }
   });
 
+  // Pointer handlers
   const handlePointerDown = useCallback(() => setPressed(true), []);
   const handlePointerUp = useCallback(() => {
     setPressed(false);
@@ -276,7 +284,7 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
   return (
     <group position={[config.position[0], config.position[1], config.position[2]]}>
       <group ref={groupRef}>
-        {/* Chrome bezel frame — sits behind button */}
+        {/* Chrome bezel frame — sits behind button (Decision 1.1) */}
         <mesh
           ref={bezelRef}
           geometry={bezelGeometry}
@@ -291,7 +299,7 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
           />
         </mesh>
 
-        {/* Button body — beveled square, concave top */}
+        {/* Button body — beveled square with concave top (Decision 1.1) */}
         <mesh
           ref={meshRef}
           geometry={buttonGeometry}
@@ -310,9 +318,8 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
           />
         </mesh>
 
-        {/* Backlit engraved label */}
+        {/* Backlit engraved label — no icons (Decision 1.4) */}
         <Text
-          ref={textRef}
           position={[0, BUTTON_DEPTH + 0.002, 0]}
           rotation={[-Math.PI / 2, 0, 0]}
           fontSize={TYPE_SCALE.caption.fontSize}
@@ -332,10 +339,10 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
           />
         </Text>
 
-        {/* Active indicator ring — visible only when active */}
+        {/* Active indicator ring — visible only when active (Decision 1.5) */}
         <mesh
           ref={ringRef}
-          geometry={ringGeo}
+          geometry={ringGeometry}
           rotation={[-Math.PI / 2, 0, 0]}
           position={[0, BUTTON_DEPTH + 0.004, 0]}
           visible={false}
@@ -355,11 +362,15 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
 }
 
 // ════════════════════════════════════════════════════
-// CONSOLE PLATE GEOMETRY
+// CONSOLE PLATE — Shared carbon composite mounting (Decision 1.6)
 // ════════════════════════════════════════════════════
+// Material: MeshStandardMaterial color #0A0F1F, metalness 0.85, roughness 0.35
+// Chrome border edge (thin frame around plate)
+// Size: ~0.4 x 0.25 units with slight curve
 
 function ConsolePlate() {
-  const geometry = useMemo(() => {
+  // Carbon composite plate geometry
+  const plateGeometry = useMemo(() => {
     const shape = createChamferedSquareShape(PLATE_WIDTH, PLATE_HEIGHT, PLATE_CHAMFER);
     return new ExtrudeGeometry(shape, {
       depth: PLATE_DEPTH,
@@ -370,6 +381,7 @@ function ConsolePlate() {
     });
   }, []);
 
+  // Chrome border frame — slightly larger than plate
   const borderGeometry = useMemo(() => {
     const pad = 0.004;
     const shape = createChamferedSquareShape(
@@ -402,9 +414,9 @@ function ConsolePlate() {
         />
       </mesh>
 
-      {/* Carbon composite plate */}
+      {/* Carbon composite plate surface */}
       <mesh
-        geometry={geometry}
+        geometry={plateGeometry}
         rotation={[-Math.PI / 2, 0, 0]}
       >
         <meshStandardMaterial
@@ -420,6 +432,9 @@ function ConsolePlate() {
 // ════════════════════════════════════════════════════
 // NavigationButtonGrid — Main export
 // ════════════════════════════════════════════════════
+// Renders the console plate + 5 NavButtonMesh instances
+// in a pentagon cluster layout. Handles route matching
+// and cockpit broadcast on navigation.
 
 interface NavigationButtonGridProps {
   /** Position of the entire grid in cockpit space */
@@ -469,10 +484,10 @@ export function NavigationButtonGrid({
 
   return (
     <group position={position} scale={scale}>
-      {/* Shared console plate with chrome border */}
+      {/* Shared console plate with chrome border (Decision 1.6) */}
       <ConsolePlate />
 
-      {/* 5 nav buttons in pentagon cluster */}
+      {/* 5 nav buttons in pentagon cluster (Decision 1.2) */}
       {NAV_BUTTONS.map((button) => (
         <NavButtonMesh
           key={button.id}

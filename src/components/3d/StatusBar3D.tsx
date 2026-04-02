@@ -171,26 +171,26 @@ function XPSpeedometer({
 
       {/* Digital XP number in center — Orbitron (Decision 8.1) */}
       <Text
-        position={[0, 0.05, 0.03]}
-        fontSize={0.32}
-        font={NUMERIC_FONT}
-        color={TEXT_COLORS.primary.hex}
+        position={[0, 0, 0.03]}
+        fontSize={0.18}
+        color={labColor}
+        font="/fonts/Orbitron-Bold.woff2"
         anchorX="center"
         anchorY="middle"
         fillOpacity={opacity}
       >
-        {xp.toLocaleString()}
+        {xp}
       </Text>
 
-      {/* "XP" label below number — Sora caption */}
+      {/* "XP" label below number */}
       <Text
-        position={[0, -0.22, 0.03]}
-        fontSize={TYPE_SCALE.caption.fontSize * 10} // scale up for local group scale
-        font={TYPE_SCALE.caption.fontPath}
-        color={TEXT_COLORS.muted.hex}
+        position={[0, -0.25, 0.03]}
+        fontSize={0.07}
+        color="#88aacc"
+        font="/fonts/Sora-Regular.woff2"
         anchorX="center"
         anchorY="middle"
-        fillOpacity={opacity * TEXT_COLORS.muted.opacity}
+        fillOpacity={opacity}
       >
         XP
       </Text>
@@ -236,30 +236,24 @@ function StreakPulseRing({
 }) {
   const ringRef = useRef<Mesh>(null);
 
-  // Determine pulse parameters based on streak count
+  // Determine pulse parameters based on streak count (Decision 8.2)
   const { pulsePeriod, emissiveLevel } = useMemo(() => {
     if (streak >= 30) {
-      return { pulsePeriod: 0.5, emissiveLevel: getEmissive('bright') };   // 1.5
+      return { pulsePeriod: 0.5, emissiveLevel: 1.5 };
     } else if (streak >= 7) {
-      return { pulsePeriod: 1.5, emissiveLevel: getEmissive('medium') };   // 0.8
+      return { pulsePeriod: 1.5, emissiveLevel: 0.8 };
     } else {
-      return { pulsePeriod: 3.0, emissiveLevel: getEmissive('dim') };      // 0.4
+      return { pulsePeriod: 3.0, emissiveLevel: 0.4 };
     }
   }, [streak]);
 
   // Accent color — orange for streaks
   const streakColor = useMemo(() => new Color('#FF6644'), []);
 
-  // Ring geometry
+  // Pulse ring geometry (Decision 8.2: inner 0.12, outer 0.18, 32 segments)
   const ringGeo = useMemo(
-    () => new RingGeometry(0.55, 0.68, segments, 1),
-    [segments]
-  );
-
-  // Inner ring (thinner, decorative)
-  const innerRingGeo = useMemo(
-    () => new RingGeometry(0.42, 0.48, segments, 1),
-    [segments]
+    () => new RingGeometry(0.12, 0.18, 32, 1),
+    []
   );
 
   useFrame(() => {
@@ -277,29 +271,16 @@ function StreakPulseRing({
 
   return (
     <group>
-      {/* Base pedestal */}
-      <mesh position={[0, -0.45, 0]}>
-        <cylinderGeometry args={[0.5, 0.55, 0.1, segments]} />
-        <meshStandardMaterial
-          color="#1a1822"
-          metalness={0.85}
-          roughness={0.2}
-          transparent
-          opacity={opacity * 0.8}
-        />
-      </mesh>
-
-      {/* Outer pulse ring */}
+      {/* Pulse ring (Decision 8.2) */}
       <mesh
         ref={ringRef}
         geometry={ringGeo}
         position={[0, 0, 0.01]}
-        rotation={[0, 0, 0]}
       >
         <meshStandardMaterial
           color="#000000"
           emissive={streakColor}
-          emissiveIntensity={streak > 0 ? emissiveLevel : getEmissive('dormant')}
+          emissiveIntensity={streak > 0 ? emissiveLevel : 0.15}
           transparent
           opacity={opacity * 0.85}
           toneMapped={false}
@@ -308,57 +289,18 @@ function StreakPulseRing({
         />
       </mesh>
 
-      {/* Inner decorative ring */}
-      <mesh geometry={innerRingGeo} position={[0, 0, 0.005]}>
-        <meshStandardMaterial
-          color="#1a1e2e"
-          emissive={streakColor}
-          emissiveIntensity={streak > 0 ? EMISSIVE_IDLE_INDICATOR : 0}
-          transparent
-          opacity={opacity * 0.5}
-          toneMapped={false}
-          side={DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-
-      {/* Streak count — Orbitron numeric in center */}
+      {/* Streak count number in center — Orbitron */}
       <Text
-        position={[0, 0.05, 0.02]}
-        fontSize={0.28}
-        font={NUMERIC_FONT}
-        color={TEXT_COLORS.primary.hex}
+        position={[0, 0, 0.02]}
+        fontSize={0.08}
+        font="/fonts/Orbitron-Bold.woff2"
+        color="#FF6644"
         anchorX="center"
         anchorY="middle"
         fillOpacity={opacity}
       >
         {streak}
       </Text>
-
-      {/* "STREAK" label — Sora caption */}
-      <Text
-        position={[0, -0.18, 0.02]}
-        fontSize={TYPE_SCALE.caption.fontSize * 8}
-        font={TYPE_SCALE.caption.fontPath}
-        color={TEXT_COLORS.muted.hex}
-        anchorX="center"
-        anchorY="middle"
-        fillOpacity={opacity * TEXT_COLORS.muted.opacity}
-      >
-        STREAK
-      </Text>
-
-      {/* Chrome bezel around ring */}
-      <mesh position={[0, 0, 0.005]}>
-        <torusGeometry args={[0.72, 0.025, 12, 48]} />
-        <meshStandardMaterial
-          color={CHROME_BORDER.colorHex}
-          metalness={0.95}
-          roughness={0.08}
-          transparent
-          opacity={opacity * 0.8}
-        />
-      </mesh>
     </group>
   );
 }
