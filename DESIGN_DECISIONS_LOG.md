@@ -219,7 +219,14 @@ The following individual cockpit components need visual design review before imp
 | 7.4 Brightness | **Prominent strip** | 2.5x emissive, toneMapped: false. Genuine light sources with bloom bleed. The rim is a visual feature. |
 | 7.5 Data Mode | **No data** | Pure mood lighting. Color and pulse only. Simple, clean role. |
 
-### Component 8: StatusBar3D — PENDING
+### Component 8: StatusBar3D — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 8.1 Speedometer | **Arc bar** | Colored arc fills proportionally (radial progress bar). Digital number in center (Orbitron). No needle. Clean, modern. |
+| 8.2 Streak | **Pulse ring** | Ring pulses with streak intensity. 1-day=slow faint. 30-day=rapid bright. Abstract, clean, less visual noise than flames. |
+| 8.3 Lab Indicators | **Mini arcs** | 10 tiny arc segments forming a ring (~20° each). Each fills proportionally to lab completion. Segmented donut chart. |
+| 8.4 Dividers | **Chrome pillars** | Thin vertical chrome bars between sections. Classic instrument panel dividers. |
+| 8.5 Profile | **Curved strip** | Follows cockpit hull curvature. Wraps slightly around pilot. Immersive, integrated into shell. |
 
 ### Component 9: CenterViewportScreen — PENDING
 
