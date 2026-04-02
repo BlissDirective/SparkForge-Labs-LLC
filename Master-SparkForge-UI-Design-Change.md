@@ -280,5 +280,82 @@ Removing HTML and rendering all UI in 3D eliminates this split entirely. The coc
 
 ---
 
-*Master SparkForge UI Design Change v1.0 — March 31, 2026*
-*Companion spec: SparkForge-Full-ControlScreen.json*
+## 15. IMPLEMENTATION PROGRESS
+
+### Phase 1: Infrastructure — COMPLETE (April 1, 2026)
+| Batch | Files | Status |
+|-------|-------|--------|
+| A: Mode presets + useCockpitScene hook + cockpitStore updates | 3 files | DONE |
+| B: CockpitText + CockpitContainer + CockpitScrollPanel | 3 files | DONE |
+| C: CockpitInput + CockpitTooltip | 2 files | DONE |
+| D: CockpitUILayer + CockpitCanvas wiring | 2 files | DONE |
+
+**Key files created:**
+- `src/lib/3d/cockpitModePresets.ts` — 8 modes × 14 atmosphere properties
+- `src/hooks/useCockpitScene.ts` — Page-level mode controller hook
+- `src/lib/3d/cockpitDesignTokens.ts` — 131 design tokens (system + component)
+- `src/stores/cockpitUIStore.ts` — Center content routing store
+- `src/components/3d/CockpitUILayer.tsx` — Master quadrant orchestrator
+- 5 UI primitives in `src/components/3d/ui/` (Text, Container, ScrollPanel, Input, Tooltip)
+
+### Phase 2: Dashboard — COMPLETE (April 1, 2026)
+| Batch | Files | Status |
+|-------|-------|--------|
+| A: cockpitUIStore + layout strip + 6 page descriptors + 9 panel stubs | 18 files | DONE |
+| B: DashboardLeft + DashboardRight (fixed quadrants) | 2 files | DONE |
+| C: DashboardCenter + LabsCenter + SettingsPanel | 3 files | DONE |
+| D: LabDetailPanel + ArcadePanel + ProfileCenter + ParentPanel | 4 files | DONE |
+
+**Key changes:**
+- Dashboard layout stripped of HTML content layer (AnimatePresence, CelebrationOverlay, etc.)
+- 6 dashboard pages converted to thin scene descriptors (sr-only ARIA HTML only)
+- 9 panel components in `src/components/3d/panels/` rendering inside CockpitUILayer
+
+### Design Tokens — COMPLETE (April 1-2, 2026)
+- 12 system-level sections (typography, edges, depth, springs, celebrations, emissive, mode atmosphere, states, surface detail, focus zones, density, feedback chains, audio)
+- 30 component-level designs (10 hero + 4 structural + 3 interactive/display + 4 effects + 9 panels)
+- **131 total locked design decisions**
+- JSON spec extended to ~1,800 lines
+- TypeScript tokens file: `src/lib/3d/cockpitDesignTokens.ts` (~340 lines)
+- Full decision log: `DESIGN_DECISIONS_LOG.md`
+
+### Phases Remaining
+| Phase | Scope | Status |
+|-------|-------|--------|
+| **3: Auth + Forms** | Login/signup 3D, chat panel, search | NOT STARTED |
+| **4: Gamification** | Celebration, XP popup, streak → 3D | NOT STARTED |
+| **5: Flagship Games** | 6 game UIs → 3D panels | NOT STARTED |
+| **6: Standard Games** | 29 game UIs via 4 shared templates | NOT STARTED |
+| **7: Marketing** | 3D hero section, enhanced CSS | NOT STARTED |
+| **Component Rebuild** | Update 10 hero components to match design tokens | NOT STARTED |
+
+### Architecture After Phase 2
+```
+Route → page.tsx (thin descriptor, sr-only HTML)
+         ↓ useCockpitScene(mode)
+         ↓ setCenterContent(key)
+         ↓
+cockpitUIStore → CockpitUILayer → CenterContentRouter
+                    ├── Left:  DashboardLeft (avatar, guide, trophies, gauges)
+                    ├── Center: [per-page panel component]
+                    ├── Right: DashboardRight (settings, activity, quick actions)
+                    └── Bottom: (instruments in CockpitCanvas)
+```
+
+---
+
+## 16. COMPANION FILES
+
+| File | Purpose |
+|------|---------|
+| `SparkForge-Full-ControlScreen.json` | Master spec — ~1,800 lines, 11 original sections + design_tokens + component_designs |
+| `DESIGN_DECISIONS_LOG.md` | All 131 design decisions with rationale |
+| `src/lib/3d/cockpitDesignTokens.ts` | TypeScript constants consumed by all 3D components |
+| `src/lib/3d/cockpitModePresets.ts` | 8 mode presets with route mapping |
+| `SESSION_REFERENCE.md` | Continuity note for next development session |
+
+---
+
+*Master SparkForge UI Design Change v1.1 — April 2, 2026*
+*Phase 1+2 complete. Design tokens locked (131 decisions). Phases 3-7 + component rebuild pending.*
+*Companion spec: SparkForge-Full-ControlScreen.json (~1,800 lines)*
