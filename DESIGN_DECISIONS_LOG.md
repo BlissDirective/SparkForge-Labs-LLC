@@ -109,12 +109,32 @@
 
 The following individual cockpit components need visual design review before implementation:
 
-### Structural Components
-- [ ] CockpitPanels (main hull curvature, rivet pattern, seam placement)
-- [ ] SidePanels (left/right console shape, mounting style)
-- [ ] CockpitFloor3D (grating pattern, sub-floor visibility)
-- [ ] CockpitStructuralDetail (cable routing, vent patterns)
-- [ ] CenterViewportScreen (screen bezel, curvature, frame treatment)
+### Component 11: CockpitPanels — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 11.1 Surface | **Smooth carbon** | Clean matte with 2% fine grain texture. Modern spacecraft. No plate segmentation. |
+| 11.2 Rivets | **No rivets** | Clean surface, seam lines only. Ultra-modern. Accent lines provide structural definition. |
+| 11.3 Color | **Accent-traced panels** | Standard dark #0A0F1F with full-trace accent lines along every rib and seam. Hull skeleton glows faintly. |
+
+### Component 12: SidePanels — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 12.1 Shape | **Curved wing** | Gently curved surface following hull curvature. Flows naturally from main hull. Organic, integrated. |
+| 12.2 Border | **Segmented chrome** | Chrome edge segments with gaps, matching CenterViewportScreen and HUD frame language. Visual consistency. |
+
+### Component 13: CockpitFloor3D — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 13.1 Grating | **Hexagonal grid** | Honeycomb pattern grating. Futuristic, strong, matches geometric cockpit language. |
+| 13.2 Sub-Floor | **Energy channels** | Glowing energy channels beneath grating in current mode LED color. Floor pulses faintly with power. Cockpit alive from below. |
+| 13.3 Extent | **Full semicircle** | Floor extends across full 218-degree cockpit arc. Complete ground plane. Strong spatial anchor. |
+
+### Component 14: CockpitStructuralDetail — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 14.1 Cables | **Hidden cables** | Cables inside recessed channels with panel covers. Visible covers, hidden cables. Tidy, premium. |
+| 14.2 Vents | **Perforated circles** | Circular hole patterns in vent panels. Decorative, aerospace. |
+| 14.3 Accent Lighting | **Key intersections** | Accent lighting only where structural elements meet (rib-to-panel, cable-to-rib joints). Highlights connections. Elegant. |
 
 ### HUD & Status
 - [ ] HolographicHUD (ring count, ring styles, data arc format, reticle design)
