@@ -210,7 +210,14 @@ The following individual cockpit components need visual design review before imp
 | 6.4 Celebration | **Color cascade** | Gold chasing light sweeps around frame perimeter. 1 revolution=minor, 3 revolutions=epic. Dramatic but contained to edges. |
 | 6.5 Visibility | **Present (20-30%)** | Clearly visible architectural element. Defines viewport boundary. Sets instrument panel tone without competing with content. |
 
-### Component 7: LEDRim — PENDING
+### Component 7: LEDRim — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 7.1 LED Shape | **Rectangular blocks** | Small flat rectangles in continuous strip. Angular, technical. Airport runway lights feel. |
+| 7.2 Pulse Wave | **Outward burst** | Pulse starts from center of arc, radiates outward both directions simultaneously (300ms). Centered, symmetrical energy. |
+| 7.3 Color Transition | **Sequential fill** | New color fills center→outward, replacing old color LED by LED over 400ms. Liquid filling a channel. |
+| 7.4 Brightness | **Prominent strip** | 2.5x emissive, toneMapped: false. Genuine light sources with bloom bleed. The rim is a visual feature. |
+| 7.5 Data Mode | **No data** | Pure mood lighting. Color and pulse only. Simple, clean role. |
 
 ### Component 8: StatusBar3D — PENDING
 
