@@ -200,7 +200,15 @@ The following individual cockpit components need visual design review before imp
 | 5.4 Map Base | **Grid floor** | Holographic grid plane with raised intersection points. Sci-fi tactical map. |
 | 5.5 Hover | **Isolate + spotlight** | Hovered node brightens, all others dim to 30%. Spotlight centers on hovered lab. Dramatic focus. |
 
-### Component 6: HolographicHUD — PENDING
+### Component 6: HolographicHUD — LOCKED (REPOSITIONED: peripheral frame, not overhead overlay)
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 6.0 Position | **Peripheral frame** | Moved from overhead [0,2.05,-3.4] to viewport perimeter. Wraps AROUND content as instrument bezel. Eliminates distraction and bloom bleed into content area. |
+| 6.1 Ring Style | **Segmented arc frame** | 4 arc segments (top, bottom, left, right) frame viewport edges. Tick marks and graduated markings. Instrument bezel. |
+| 6.2 Data Display | **Corner data readouts** | 4 corners: top-left=time, top-right=XP, bottom-left=mode name, bottom-right=child name/level. Useful without clutter. |
+| 6.3 Motion | **Breathing pulse** | Segments pulse brightness on 4-second cycle. Cockpit heartbeat. Organic, calming, no distracting motion. |
+| 6.4 Celebration | **Color cascade** | Gold chasing light sweeps around frame perimeter. 1 revolution=minor, 3 revolutions=epic. Dramatic but contained to edges. |
+| 6.5 Visibility | **Present (20-30%)** | Clearly visible architectural element. Defines viewport boundary. Sets instrument panel tone without competing with content. |
 
 ### Component 7: LEDRim — PENDING
 
