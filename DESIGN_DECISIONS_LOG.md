@@ -228,7 +228,13 @@ The following individual cockpit components need visual design review before imp
 | 8.4 Dividers | **Chrome pillars** | Thin vertical chrome bars between sections. Classic instrument panel dividers. |
 | 8.5 Profile | **Curved strip** | Follows cockpit hull curvature. Wraps slightly around pilot. Immersive, integrated into shell. |
 
-### Component 9: CenterViewportScreen — PENDING
+### Component 9: CenterViewportScreen — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 9.1 Screen Shape | **Cylindrical concave** | Curved cylinder section. Wraps horizontally, flat vertically. Widescreen curved monitor. Best for text readability and grids. |
+| 9.2 Bezel Frame | **Segmented frame** | Chrome frame divided into sections with small gaps at corners. Matches HUD segmented arc design. Visual cohesion. |
+| 9.3 Surface | **Scan lines** | Dark background with subtle horizontal scan line effect (CRT). Retro-futuristic. Screen feels like a display, not a void. |
+| 9.4 Transition | **Wipe sweep** | Bright line sweeps left-to-right revealing new content (400ms). Scanner pass. Technical, dramatic. |
 
 ### Component 10: MechanicalIris — PENDING
 
