@@ -175,15 +175,36 @@ The following individual cockpit components need visual design review before imp
 | 17.3 Spacing | **Per density tokens** | 40% whitespace ratio, paginate overflow, ghost placeholders for empty states. System-level consistency. |
 
 ### Panel Content (Phase 2 panels)
-- [ ] DashboardLeft (avatar viewport, guide hologram, trophy pedestals, gauge arrangement)
-- [ ] DashboardRight (settings cluster, activity log cards, quick action layout)
-- [ ] DashboardCenter (stats header, CTA button placement)
-- [ ] LabsCenter (lab info overlay style)
-- [ ] ArcadePanel (tile grid layout, filter button row)
-- [ ] ProfileCenter (trophy room layout, avatar expansion, badge pedestals)
-- [ ] SettingsPanel (section grouping, control spacing)
-- [ ] ParentPanel (child card style, action button layout)
-- [ ] LabDetailPanel (orbital card ring, lab structure display)
+- [x] DashboardLeft — LOCKED (Component 22)
+- [x] DashboardRight — LOCKED (Component 23)
+- [x] DashboardCenter — LOCKED (Component 24)
+- [ ] LabsCenter (Component 25)
+- [ ] ArcadePanel (Component 26)
+- [ ] ProfileCenter (Component 27)
+- [ ] SettingsPanel (Component 28)
+- [ ] ParentPanel (Component 29)
+- [ ] LabDetailPanel (Component 30)
+
+### Component 22: DashboardLeft — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 22.1 Avatar Frame | **Hexagonal frame** | Chrome-bordered hexagonal frame. Matches floor grid hexagons. Geometric consistency. |
+| 22.2 Gauge Layout | **Vertical stack** | 4 gauges stacked vertically along left edge. Like a car's side instrument cluster. Each gauge wide/horizontal. |
+| 22.3 Trophy Count | **5 recent** | Shows last 5 earned badges in a row. Maximum reward visibility. |
+
+### Component 23: DashboardRight — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 23.1 Activity Log | **Mini cards** | Each activity is a small card with icon + text + timestamp. Chrome border. Structured, readable. |
+| 23.2 Quick Actions | **Horizontal row** | 4 buttons in single horizontal row below activity log. Compact, neat. |
+| 23.3 Settings | **Collapsed header** | Compact header bar ("CONTROLS ▸") expands on click to reveal 4 controls. Saves space for activity log. |
+
+### Component 24: DashboardCenter — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 24.1 Header | **Floating above lab map** | Welcome text floats in 3D slightly above/in front of holographic lab map. Integrated with scene. |
+| 24.2 Stats | **No center stats** | Stats shown in left panel gauges only. Center = CTA + lab map. Zero duplication. Cleanest. |
+| 24.3 CTA | **Bottom of viewport** | "Continue Learning" button at bottom of center content, below lab map. Natural endpoint. |
 
 ### Effects & Transitions
 - [x] MechanicalIris — LOCKED (Component 10)
