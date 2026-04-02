@@ -142,16 +142,37 @@ The following individual cockpit components need visual design review before imp
 - [ ] StatusBar3D (speedometer style, flame design, lab indicator shape)
 
 ### Interactive Controls
-- [ ] HolographicButton (shape, bezel, press animation, ripple style)
-- [ ] RadialDial3D (knob shape, tick mark style, value arc, needle design)
-- [ ] ToggleSwitch3D (lever style, plate shape, LED indicator)
-- [ ] NavigationButtonGrid (button shape, layout, active state, label placement)
-- [ ] VariableDialCluster (cluster housing, dial arrangement, label display)
+- [x] HolographicButton — LOCKED (Component 2)
+- [x] RadialDial3D — LOCKED (Component 3)
+- [x] ToggleSwitch3D — LOCKED (Component 4)
+- [x] NavigationButtonGrid — LOCKED (Component 1)
+- [x] VariableDialCluster — LOCKED (Component 15)
 
 ### Content Displays
-- [ ] HolographicLabMap (node shape, connection style, geodesic shells, data highways)
-- [ ] HolographicCard (card shape, content layout, hover effect)
-- [ ] HolographicPanel (panel curvature, section dividers, content zones)
+- [x] HolographicLabMap — LOCKED (Component 5)
+- [x] HolographicCard — LOCKED (Component 16)
+- [x] HolographicPanel — LOCKED (Component 17)
+
+### Component 15: VariableDialCluster — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 15.1 Housing | **Individual pods** | Each dial has own circular mounting pod connected by thin chrome rails. Modular, industrial lab equipment feel. |
+| 15.2 Arrangement | **Arc row** | 3 dials following cockpit hull curvature. Each angled slightly toward camera. Integrated, immersive. |
+| 15.3 Label Transition | **Instant swap** | Labels change immediately on page switch. Clean, no animation. |
+
+### Component 16: HolographicCard — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 16.1 Shape | **Chamfered rectangle** | 45-degree corner cuts matching HolographicButton. Visual consistency — buttons and cards share angular language. |
+| 16.2 Surface | **Layered** | Solid carbon base with floating translucent accent-colored top edge strip. Readable body + holographic accent. Matches button dual-layer. |
+| 16.3 Hover | **Edge trace + lift** | Card lifts slightly AND chrome border does pulse trace effect (Section 2 decision). Physical + luminous feedback. |
+
+### Component 17: HolographicPanel — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 17.1 Style | **Raised platform** | Panel raised 1 depth layer above surrounding surface. Content on elevated platform with chrome edge rail. Raised console section. |
+| 17.2 Headers | **Chrome divider bar** | Header text (Exo 2, h2) with horizontal chrome bar extending to right edge. Professional, clean separation. |
+| 17.3 Spacing | **Per density tokens** | 40% whitespace ratio, paginate overflow, ghost placeholders for empty states. System-level consistency. |
 
 ### Panel Content (Phase 2 panels)
 - [ ] DashboardLeft (avatar viewport, guide hologram, trophy pedestals, gauge arrangement)
