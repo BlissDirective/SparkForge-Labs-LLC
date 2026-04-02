@@ -186,11 +186,37 @@ The following individual cockpit components need visual design review before imp
 - [ ] LabDetailPanel (orbital card ring, lab structure display)
 
 ### Effects & Transitions
-- [ ] MechanicalIris (blade count, rotation style, aperture shape)
-- [ ] CeremonyFX (confetti style, trophy materialization, HUD expansion pattern)
-- [ ] AuroraBackground (ribbon count, color gradient, movement speed)
-- [ ] AmbientParticles (particle shape, trail style, density distribution)
-- [ ] WormholeTransition (tunnel shape, energy wall style, speed lines)
+- [x] MechanicalIris — LOCKED (Component 10)
+- [x] CeremonyFX — LOCKED (Component 18)
+- [x] AuroraBackground — LOCKED (Component 19)
+- [x] AmbientParticles — REMOVED (Component 20)
+- [x] WormholeTransition — LOCKED (Component 21)
+
+### Component 18: CeremonyFX — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 18.1 Confetti | **Metallic shards** | Small chrome and gold metallic pieces that catch light as they tumble. Premium, reflective. Awards show feel. |
+| 18.2 Trophy | **Particle assembly** | Trophy assembles from scattered particles converging to final shape. "3D printed" from light. Dramatic, futuristic. |
+| 18.3 Bloom | **Pulsing** | Bloom pulses 2-3 times at peak intensity (heartbeat) before decaying. Rhythmic, dramatic. |
+
+### Component 19: AuroraBackground — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 19.1 Ribbons | **3 ribbons** | Three overlapping ribbons at different depths. Full aurora effect. Rich atmosphere. |
+| 19.2 Color | **Mode-tinted** | Ribbons shift toward mode LED color (per particle crossfade decision). Subtle atmospheric change per page. |
+| 19.3 Speed | **Gentle flow (0.6)** | Visible flowing motion. Aurora feels alive. Natural, atmospheric. Non-distracting. |
+
+### Component 20: AmbientParticles — REMOVED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 20.0 Decision | **NO PARTICLES** | Ambient particles removed from cockpit entirely. Cleaner visual, less noise. Structural accent lines + LED rim provide sufficient atmosphere. |
+
+### Component 21: WormholeTransition — LOCKED
+| Detail | Choice | Description |
+|--------|--------|-------------|
+| 21.1 Tunnel | **Twisted helix** | Tunnel walls spiral like DNA helix. Complex, unique, mesmerizing. Most sci-fi. |
+| 21.2 Walls | **Energy grid** | Flowing grid pattern in destination lab color on tunnel walls. Technical, digital. |
+| 21.3 Duration | **Quick (500ms)** | Fast, snappy. Brief glimpse of tunnel. Prioritizes speed over spectacle. |
 
 ---
 
