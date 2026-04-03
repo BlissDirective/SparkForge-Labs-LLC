@@ -31,6 +31,13 @@ import {
   TorusGeometry,
   Vector3,
 } from 'three';
+import {
+  CHROME_BORDER,
+  ACCENT_LINES,
+  EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_SCALE,
+  type EmissiveLevel,
+} from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Props ■■
 
@@ -76,9 +83,9 @@ const COCKPIT_HEIGHT = 3.0;
 const COCKPIT_Y_MIN = -1.2;
 const COCKPIT_Y_MAX = COCKPIT_Y_MIN + COCKPIT_HEIGHT;
 
-// Chrome surface color
-const CHROME_COLOR = 0x1a1822;
-const _CHROME_DARK = 0x111118;
+// Surface colors — design token aligned
+const CHROME_COLOR = CHROME_BORDER.color; // #a8b5c8 alloy chrome
+const CARBON_COMPOSITE = 0x0a0f1f; // Dark carbon composite for panels/covers
 
 // ■■ Seeded RNG for deterministic placement ■■
 
@@ -131,61 +138,57 @@ function generateCablePaths(count: number): CatmullRomCurve3[] {
 }
 
 // ■■ Cable Bundles Sub-Component ■■
+// Design Decision 14.1: Hidden cables — cables run inside recessed channels
+// with carbon composite panel covers. The cables themselves are hidden behind
+// cover geometry; only the tidy cover panels are visible.
 
 function CableBundles({
   count,
   tubularSegments,
   chromeMaterial,
+  coverMaterial,
 }: {
   count: number;
   tubularSegments: number;
   chromeMaterial: MeshStandardMaterial;
+  coverMaterial: MeshStandardMaterial;
 }) {
-  const meshRef = useRef<InstancedMesh>(null!);
+  const cableMeshRef = useRef<InstancedMesh>(null!);
+  const coverMeshRef = useRef<InstancedMesh>(null!);
 
-  const { geometry, totalInstances } = useMemo(() => {
+  const { cableGeo, coverGeo, totalInstances } = useMemo(() => {
     const curves = generateCablePaths(count);
-    const _tempMatrix = new Matrix4();
-    const matrices: Matrix4[] = [];
-
-    // We create a single representative tube geometry and instance it.
-    // Each cable segment is a stretched cylinder instance placed along the path.
     const segmentsPerCable = Math.min(tubularSegments, 16);
+
+    // Hidden cable geometry — thin cylinder segments (recessed behind covers)
     const segGeo = new CylinderGeometry(0.008, 0.008, 1, 4, 1);
-    // Rotate cylinder so its length axis is along Z for easier orientation
     segGeo.rotateX(Math.PI / 2);
 
+    // Panel cover geometry — flat rectangular cover over cable channel
+    const panelGeo = new BoxGeometry(0.028, 0.006, 1);
+    panelGeo.rotateX(Math.PI / 2);
+
+    let instanceCount = 0;
     for (const curve of curves) {
       const pts = curve.getSpacedPoints(segmentsPerCable);
-      for (let s = 0; s < pts.length - 1; s++) {
-        const start = pts[s];
-        const end = pts[s + 1];
-        const mid = new Vector3().addVectors(start, end).multiplyScalar(0.5);
-        const dir = new Vector3().subVectors(end, start);
-        const len = dir.length();
-
-        const mat = new Matrix4();
-        const _up = new Vector3(0, 1, 0);
-        const quat = new Quaternion();
-        quat.setFromUnitVectors(new Vector3(0, 0, 1), dir.normalize());
-        mat.compose(mid, quat, new Vector3(1, 1, len));
-        matrices.push(mat.clone());
-      }
+      instanceCount += pts.length - 1;
     }
 
-    return { geometry: segGeo, totalInstances: matrices.length };
+    return { cableGeo: segGeo, coverGeo: panelGeo, totalInstances: instanceCount };
   }, [count, tubularSegments]);
 
-  // Set instance matrices
+  // Set instance matrices for both cables (recessed) and covers (visible)
   useMemo(() => {
-    if (!meshRef.current) return;
+    if (!cableMeshRef.current || !coverMeshRef.current) return;
     const curves = generateCablePaths(count);
     const segmentsPerCable = Math.min(tubularSegments, 16);
     let idx = 0;
     const mat4 = new Matrix4();
+    const coverMat4 = new Matrix4();
     const quat = new Quaternion();
     const dir = new Vector3();
     const mid = new Vector3();
+    const coverMid = new Vector3();
     const forward = new Vector3(0, 0, 1);
 
     for (const curve of curves) {
@@ -195,22 +198,41 @@ function CableBundles({
         dir.subVectors(pts[s + 1], pts[s]);
         const len = dir.length();
         quat.setFromUnitVectors(forward, dir.normalize());
-        mat4.compose(mid, quat, new Vector3(1, 1, len));
-        meshRef.current.setMatrixAt(idx, mat4);
+
+        // Cable: slightly recessed inward (hidden behind cover)
+        const inwardOffset = dir.clone().normalize().cross(new Vector3(0, 1, 0)).normalize().multiplyScalar(-0.005);
+        coverMid.copy(mid);
+        mat4.compose(mid.clone().add(inwardOffset), quat, new Vector3(1, 1, len));
+        cableMeshRef.current.setMatrixAt(idx, mat4);
+
+        // Cover panel: at the cable position, facing outward
+        coverMat4.compose(coverMid, quat, new Vector3(1, 1, len));
+        coverMeshRef.current.setMatrixAt(idx, coverMat4);
         idx++;
       }
     }
-    meshRef.current.instanceMatrix.needsUpdate = true;
+    cableMeshRef.current.instanceMatrix.needsUpdate = true;
+    coverMeshRef.current.instanceMatrix.needsUpdate = true;
   }, [count, tubularSegments]);
 
   if (totalInstances === 0) return null;
 
   return (
-    <instancedMesh
-      ref={meshRef}
-      args={[geometry, chromeMaterial, totalInstances]}
-      frustumCulled={false}
-    />
+    <group>
+      {/* Hidden cables — recessed behind cover panels */}
+      <instancedMesh
+        ref={cableMeshRef}
+        args={[cableGeo, chromeMaterial, totalInstances]}
+        frustumCulled={false}
+        visible={false} // Cables hidden behind covers per Decision 14.1
+      />
+      {/* Carbon composite panel covers — visible, tidy, premium */}
+      <instancedMesh
+        ref={coverMeshRef}
+        args={[coverGeo, coverMaterial, totalInstances]}
+        frustumCulled={false}
+      />
+    </group>
   );
 }
 
@@ -297,13 +319,16 @@ function ConduitPipes({
 }
 
 // ■■ Ventilation Panels Sub-Component ■■
+// Design Decision 14.2: Perforated circles — circular hole patterns in vent
+// panels for a decorative aerospace aesthetic. Each vent panel is a carbon
+// composite surface with instanced circular perforations arranged in a grid.
 
 function VentilationPanels({
   slatsPerPanel,
-  chromeMaterial,
+  ventMaterial,
 }: {
   slatsPerPanel: number;
-  chromeMaterial: MeshStandardMaterial;
+  ventMaterial: MeshStandardMaterial;
 }) {
   const meshRef = useRef<InstancedMesh>(null!);
 
@@ -318,11 +343,16 @@ function VentilationPanels({
     []
   );
 
-  const totalSlats = panelConfigs.length * slatsPerPanel;
-  const slatGeo = useMemo(
-    () => new BoxGeometry(0.22, 0.004, 0.005),
+  // Perforated circle geometry: small cylinder representing each circular hole rim
+  const perforationGeo = useMemo(
+    () => new CylinderGeometry(0.004, 0.004, 0.005, 8, 1),
     []
   );
+
+  // Grid of circular perforations per panel (rows x cols derived from slatsPerPanel)
+  const cols = 6;
+  const rows = slatsPerPanel;
+  const totalPerforations = panelConfigs.length * rows * cols;
 
   useMemo(() => {
     if (!meshRef.current) return;
@@ -337,22 +367,29 @@ function VentilationPanels({
       const baseX = Math.sin(panel.angle) * r;
       const baseZ = -Math.cos(panel.angle) * r;
 
-      for (let s = 0; s < slatsPerPanel; s++) {
-        const slatY = panel.y + s * 0.012;
-        pos.set(baseX, slatY, baseZ);
-        quat.setFromEuler(new Euler(0, -panel.angle, 0.25));
-        mat4.compose(pos, quat, scale);
-        meshRef.current.setMatrixAt(idx, mat4);
-        idx++;
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const perfY = panel.y + row * 0.012;
+          // Offset every other row for honeycomb-like circular pattern
+          const colOffset = row % 2 === 0 ? 0 : 0.005;
+          const lateralAngle = panel.angle + (col - cols / 2) * 0.008 + colOffset;
+          const px = Math.sin(lateralAngle) * r;
+          const pz = -Math.cos(lateralAngle) * r;
+          pos.set(px, perfY, pz);
+          quat.setFromEuler(new Euler(Math.PI / 2, -panel.angle, 0));
+          mat4.compose(pos, quat, scale);
+          meshRef.current.setMatrixAt(idx, mat4);
+          idx++;
+        }
       }
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
-  }, [panelConfigs, slatsPerPanel]);
+  }, [panelConfigs, rows]);
 
   return (
     <instancedMesh
       ref={meshRef}
-      args={[slatGeo, chromeMaterial, totalSlats]}
+      args={[perforationGeo, ventMaterial, totalPerforations]}
       frustumCulled={false}
     />
   );
