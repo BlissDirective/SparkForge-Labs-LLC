@@ -223,6 +223,7 @@ export function SortToyBoxGame() {
       );
     }
     return () => setGameSceneContent(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, shapes, groupCount, selectedShape, aiCriterion, setGameSceneContent]);
 
   // Complete game when reaching complete phase

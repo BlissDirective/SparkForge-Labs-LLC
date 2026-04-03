@@ -306,11 +306,13 @@ export function MyFirstAiAppGame() {
       if (next) setBuildStep(next);
       game.advanceRound();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buildStep, stepIdx, innovationScore, game]);
 
   const goBack = useCallback(() => {
     const prev = BUILD_STEPS[stepIdx - 1];
     if (prev) setBuildStep(prev);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIdx]);
 
   const pseudoCode = useMemo(() => {
@@ -356,6 +358,7 @@ export function MyFirstAiAppGame() {
     } else {
       setGameSceneContent(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, stepIdx, powerOrbs3D, maxPowers, currentTheme, currentCategory, appName, innovationScore, setGameSceneContent]);
 
   return (

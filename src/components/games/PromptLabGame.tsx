@@ -970,6 +970,7 @@ export function PromptLabGame() {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [input, loading, activeChild, messages, temperature, game, activeChallenge, systemPrompt, ageBand]);
 
   function handleTemplateSelect(text: string) {
