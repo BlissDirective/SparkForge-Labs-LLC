@@ -102,7 +102,7 @@ export default function ProfileCenter() {
           const row = Math.floor(i / 3);
           const color = CATEGORY_COLORS[cat] ?? '#00BBFF';
           // Check if any earned badge matches this category
-          const earned = badges?.some((b: { category?: string }) => b.category === cat) ?? false;
+          const earned = badges?.some((b) => b.badge?.category === cat) ?? false;
 
           return (
             <group key={cat} position={[col * 0.22, -row * 0.18, 0]}>

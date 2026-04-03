@@ -45,6 +45,8 @@ const ArcadePanel = lazy(() => import('./panels/ArcadePanel'));
 const ProfileCenter = lazy(() => import('./panels/ProfileCenter'));
 const SettingsPanel = lazy(() => import('./panels/SettingsPanel'));
 const ParentPanel = lazy(() => import('./panels/ParentPanel'));
+const ChatPanel3D = lazy(() => import('./panels/ChatPanel3D'));
+const CelebrationPanel3D = lazy(() => import('./panels/CelebrationPanel3D'));
 const DashboardLeft = lazy(() => import('./panels/DashboardLeft'));
 const DashboardRight = lazy(() => import('./panels/DashboardRight'));
 
@@ -66,6 +68,10 @@ function CenterContentRouter({ contentKey }: { contentKey: CenterContentKey }) {
       return <SettingsPanel />;
     case 'parent':
       return <ParentPanel />;
+    case 'chat':
+      return <ChatPanel3D />;
+    case 'celebration':
+      return <CelebrationPanel3D />;
     case 'game':
       // Game mode — no center panel, game scene fills via SceneRouter
       return null;
