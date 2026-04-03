@@ -14,7 +14,6 @@
 //
 // Dynamic import with ssr: false required.
 
-import { useMemo } from 'react';
 import { Sparkles } from '@react-three/drei';
 import PetCreature3D from './PetCreature3D';
 import PetTrainerEnvironment from './environments/PetTrainerEnvironment';

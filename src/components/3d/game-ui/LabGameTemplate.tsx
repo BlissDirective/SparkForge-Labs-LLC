@@ -29,7 +29,7 @@ import {
   TYPE_SCALE,
   TEXT_COLORS,
   NUMERIC_FONT,
-  EMISSIVE_SCALE,
+  EMISSIVE_SCALE as _EMISSIVE_SCALE,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════

@@ -34,7 +34,7 @@ import {
 import {
   CHROME_BORDER,
   ACCENT_LINES,
-  EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_IDLE_INDICATOR: _EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_SCALE,
   type EmissiveLevel,
 } from '@/lib/3d/cockpitDesignTokens';
@@ -364,8 +364,8 @@ function VentilationPanels({
 
     for (const panel of panelConfigs) {
       const r = COCKPIT_RADIUS - 0.04;
-      const baseX = Math.sin(panel.angle) * r;
-      const baseZ = -Math.cos(panel.angle) * r;
+      const _baseX = Math.sin(panel.angle) * r;
+      const _baseZ = -Math.cos(panel.angle) * r;
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -733,7 +733,7 @@ export function CockpitStructuralDetail({
   opacity,
   labColor,
 }: CockpitStructuralDetailProps) {
-  const counts = useMemo(() => getScaledCounts('ultra'), ['ultra']);
+  const counts = useMemo(() => getScaledCounts('ultra'), []);
 
   // Chrome material — uses CHROME_BORDER design token (#a8b5c8)
   const chromeMaterial = useMemo(

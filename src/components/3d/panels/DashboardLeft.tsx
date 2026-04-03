@@ -12,7 +12,6 @@
 
 import { useMemo } from 'react';
 import { Text } from '@react-three/drei';
-import { Color } from 'three';
 import { RadialDial3D } from '../ui/RadialDial3D';
 import { useChildStore } from '@/stores/childStore';
 import {

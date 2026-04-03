@@ -149,7 +149,6 @@ function buildTerrainGeometry(
 // ---------------------------------------------------------------------------
 
 function GridFloorOverlay({ theme, tierConfig }: ProceduralTerrainProps) {
-  const gridColor = new Color(theme.terrainColor);
   const lineCount = 24;
   const size = tierConfig.terrainSize;
   const spacing = size / lineCount;
@@ -162,16 +161,18 @@ function GridFloorOverlay({ theme, tierConfig }: ProceduralTerrainProps) {
   );
 
   const material = useMemo(
-    () =>
-      new MeshStandardMaterial({
+    () => {
+      const gridColor = new Color(theme.terrainColor);
+      return new MeshStandardMaterial({
         color: gridColor,
         emissive: gridColor,
         emissiveIntensity: 0.4,
         transparent: true,
         opacity: 0.2,
         depthWrite: false,
-      }),
-    [gridColor],
+      });
+    },
+    [theme.terrainColor],
   );
 
   const lines = useMemo(() => {

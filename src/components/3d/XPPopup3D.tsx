@@ -14,16 +14,16 @@
 //
 // Usage: Place inside CockpitCanvas. Reads from xpPopup3DStore.
 
-import { useRef, useMemo, useState, useCallback, createContext, useContext } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
-import { Color, Group } from 'three';
+import { Group } from 'three';
 import { create } from 'zustand';
 import {
   TYPE_SCALE,
   NUMERIC_FONT,
-  NUMERIC_FONT_FAMILY,
-  SPRING_PRESETS,
+  NUMERIC_FONT_FAMILY as _NUMERIC_FONT_FAMILY,
+  SPRING_PRESETS as _SPRING_PRESETS,
 } from '@/lib/3d/cockpitDesignTokens';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 
@@ -76,7 +76,7 @@ const POPUP_DURATION = 1.8; // seconds
 const RISE_DISTANCE = 0.4;
 const BASE_Y = 0.2;
 const GOLD_COLOR = '#FFD700';
-const FIRE_COLOR = '#FF6644';
+const _FIRE_COLOR = '#FF6644';
 const COMBO_COLORS = ['#F59E0B', '#F97316', '#EF4444', '#DC2626'];
 
 // ═══════════════════════════════════════════════════════════════
@@ -92,7 +92,7 @@ function XPEventBubble({ event }: { event: XPEvent3D }) {
   const textColor = event.color || GOLD_COLOR;
   const isCombo = event.combo && event.combo >= 2;
   const isFire = event.combo && event.combo >= 3;
-  const isLegendary = event.combo && event.combo >= 7;
+  const _isLegendary = event.combo && event.combo >= 7;
 
   const comboText = useMemo(() => {
     if (!event.combo || event.combo < 2) return '';

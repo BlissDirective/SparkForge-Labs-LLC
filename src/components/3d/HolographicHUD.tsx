@@ -16,13 +16,12 @@
 //
 // Triangle budget: ~500,000 tris (4 arcs + tick marks + text)
 
-import { useRef, useMemo, useCallback, useState } from 'react';
+import { useRef, useMemo, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   BoxGeometry,
   Color,
   DoubleSide,
-  Group,
   InstancedMesh,
   MathUtils,
   Matrix4,
@@ -37,12 +36,12 @@ import {
   CHROME_BORDER,
   EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_LED_MULTIPLIER,
-  HOVER_GLOW,
+  HOVER_GLOW as _HOVER_GLOW,
   TYPE_SCALE,
   NUMERIC_FONT,
   TEXT_COLORS,
   CELEBRATION_TIERS,
-  getEmissive,
+  getEmissive as _getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════
@@ -208,7 +207,7 @@ export function HolographicHUD({
   const lastTimeUpdateRef = useRef(0);
 
   const hudColor = useMemo(() => new Color(color), [color]);
-  const chromeColor = useMemo(() => new Color(CHROME_BORDER.color), []);
+  const _chromeColor = useMemo(() => new Color(CHROME_BORDER.color), []);
 
   // Arc ring geometries — thin ring arcs
   const arcGeometries = useMemo(() => {

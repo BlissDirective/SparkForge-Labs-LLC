@@ -379,6 +379,7 @@ function SafetyRatings() {
     }
     lightsRef.current.instanceMatrix.needsUpdate = true;
     if (lightsRef.current.instanceColor) lightsRef.current.instanceColor.needsUpdate = true;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count]);
 
   useFrame((_, delta) => {

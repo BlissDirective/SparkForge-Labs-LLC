@@ -27,10 +27,10 @@ import {
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import {
   CHROME_BORDER,
-  EMISSIVE_IDLE_INDICATOR,
+  _EMISSIVE_IDLE_INDICATOR,
   HOVER_GLOW,
   TRANSITION_DURATION_MS,
-  getEmissive,
+  _getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Constants ■■

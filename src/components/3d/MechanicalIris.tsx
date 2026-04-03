@@ -52,9 +52,9 @@ import { useSceneStore } from '@/stores/sceneStore';
 import {
   CHROME_BORDER,
   EMISSIVE_LED_MULTIPLIER,
-  SPRING_PRESETS,
-  TRANSITION_DURATION_MS,
-  getEmissive,
+  SPRING_PRESETS as _SPRING_PRESETS,
+  TRANSITION_DURATION_MS as _TRANSITION_DURATION_MS,
+  getEmissive as _getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Types ■■

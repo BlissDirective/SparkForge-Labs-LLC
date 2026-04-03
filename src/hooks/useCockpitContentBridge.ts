@@ -6,7 +6,7 @@
 // Runs as a hook in CockpitCanvas or dashboard layout
 // ════════════════════════════════════════════════════
 
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useChildStore } from '@/stores/childStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useTrendingContent, useDailyChallenge, useLatestContent } from '@/hooks/useContent';

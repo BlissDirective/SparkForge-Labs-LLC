@@ -17,7 +17,7 @@
 
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
-import { Sparkles, Gamepad2, Award, Zap, Trophy } from 'lucide-react';
+import { Sparkles, Gamepad2, Award } from 'lucide-react';
 
 // Lazy-load 3D cockpit preview — SSR disabled
 const CockpitPreview3D = dynamic(
@@ -37,7 +37,7 @@ const STATS = [
 ];
 
 // ---- Deterministic mock lab cards (avoid Math.random in render) ----
-const MOCK_LABS = [
+const _MOCK_LABS = [
   { color: '#00BBFF', label: 'Code', progress: 72 },
   { color: '#AA66FF', label: 'Data', progress: 55 },
   { color: '#FF66AA', label: 'Neural', progress: 40 },
@@ -46,7 +46,7 @@ const MOCK_LABS = [
 ];
 
 // ---- Deterministic mini bar heights ----
-const MINI_BARS = [10, 14, 8, 18, 12];
+const _MINI_BARS = [10, 14, 8, 18, 12];
 
 export function StationPreview() {
   return (

@@ -6,10 +6,10 @@
 // ════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion } from 'motion/react';
 import {
-  MessageCircle, X, Minimize2, Send, Mic, MicOff,
-  Volume2, VolumeX, ChevronDown, Sparkles,
+  X, Minimize2, Send, Mic, MicOff,
+  Volume2, VolumeX, Sparkles,
 } from 'lucide-react';
 import { useGuideStore, type GuideMessage } from '@/stores/guideStore';
 import { useChildStore } from '@/stores/childStore';
@@ -24,7 +24,7 @@ export default function GuideChatPanel() {
   const {
     visible, minimized, messages, isStreaming, streamingContent,
     voiceEnabled, conversationId, context, labId, gameId,
-    show, hide, minimize, toggle,
+    show, hide, minimize, toggle: _toggle,
     addMessage, setStreaming, setStreamingContent, appendStreamingContent,
     setConversationId, setVisualState, incrementTurns,
   } = useGuideStore();

@@ -178,7 +178,7 @@ export default function AdminReviewPage() {
   // Phase 7: Search, type filter, analytics
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [_showCreateModal, setShowCreateModal] = useState(false);
 
   const addToast = useToastStore((s) => s.addToast);
   const modalRef = useRef<HTMLDivElement>(null);

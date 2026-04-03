@@ -165,7 +165,7 @@ function ConfettiBurst({
     }
 
     return { positions, velocities, rotations, rotSpeeds, colors };
-  }, [count, labColor]);
+  }, [count]);
 
   useFrame(() => {
     const mesh = meshRef.current;

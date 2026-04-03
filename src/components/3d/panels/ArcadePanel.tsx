@@ -86,7 +86,7 @@ function SearchField3D({
 }
 
 const COLS = 4;
-const ROWS = 3;
+const _ROWS = 3;
 const PAGE_SIZE = MAX_VISIBLE_ITEMS.gameGrid; // 12
 const GAP_X = 0.22;
 const GAP_Y = 0.12;

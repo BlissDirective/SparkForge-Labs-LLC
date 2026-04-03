@@ -23,12 +23,10 @@ import {
   InstancedMesh,
   MeshPhongMaterial,
   MeshStandardMaterial,
-  MeshBasicMaterial,
   Object3D,
   SphereGeometry,
   BoxGeometry,
   DoubleSide,
-  Matrix4,
 } from 'three';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
@@ -297,8 +295,8 @@ export function RadialDial3D({
   });
 
   // Emissive intensities for LED materials
-  const activeLEDEmissive = EMISSIVE_LED_MULTIPLIER * EMISSIVE_IDLE_INDICATOR;
-  const dormantEmissive = getEmissive('dormant');
+  const _activeLEDEmissive = EMISSIVE_LED_MULTIPLIER * EMISSIVE_IDLE_INDICATOR;
+  const _dormantEmissive = getEmissive('dormant');
 
   return (
     <group ref={groupRef} position={position} scale={scale}>

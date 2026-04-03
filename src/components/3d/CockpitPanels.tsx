@@ -34,13 +34,12 @@ import {
   Side,
 } from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
-import { createAlloyFrameMaterial, createControlPanelMaterial, createHolographicMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 import {
   CHROME_BORDER,
   ACCENT_LINES,
-  MICRO_TEXTURE,
-  PANEL_SEAMS,
+  MICRO_TEXTURE: _MICRO_TEXTURE,
+  PANEL_SEAMS: _PANEL_SEAMS,
   EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 
@@ -430,7 +429,7 @@ interface StructuralRibsProps {
   panelRadius: number;
 }
 
-function StructuralRibs({ ribGeo, opacity, arcRad, panelRadius }: StructuralRibsProps) {
+function StructuralRibs({ ribGeo, opacity: _opacity, arcRad, panelRadius }: StructuralRibsProps) {
   const ribData = useMemo(() => {
     const ribs: { angle: number; x: number; z: number }[] = [];
     for (let i = 0; i < RIB_COUNT; i++) {

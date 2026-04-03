@@ -18,18 +18,16 @@
 // - Gentle camera drift
 // All at LOW triangle count (~50K) for fast marketing page load.
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
 import {
   Color,
   Group,
   Mesh,
-  MeshStandardMaterial,
   MeshBasicMaterial,
   AdditiveBlending,
   DoubleSide,
-  MathUtils,
 } from 'three';
 
 // ═══════════════════════════════════════════════════════════════
@@ -40,8 +38,8 @@ const CHROME = '#a8b5c8';
 const CARBON = '#0A0F1F';
 const LED_BLUE = '#00BBFF';
 const LED_PURPLE = '#AA66FF';
-const LED_GREEN = '#00FF88';
-const ACCENT_ORANGE = '#FFAA44';
+const _LED_GREEN = '#00FF88';
+const _ACCENT_ORANGE = '#FFAA44';
 
 // Lab colors for the mini holographic nodes
 const MINI_LAB_COLORS = [
@@ -54,7 +52,7 @@ const MINI_LAB_COLORS = [
 // ═══════════════════════════════════════════════════════════════
 
 function MiniHull() {
-  const hullRef = useRef<Mesh>(null);
+  const _hullRef = useRef<Mesh>(null);
 
   return (
     <group>

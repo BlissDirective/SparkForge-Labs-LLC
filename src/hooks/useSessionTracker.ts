@@ -66,5 +66,5 @@ export function useSessionTracker() {
       endSession();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [activeChildId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeChildId]);
 }

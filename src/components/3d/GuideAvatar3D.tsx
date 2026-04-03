@@ -10,7 +10,7 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import * as THREE from 'three';
-import { useGuideStore, type AvatarConcept } from '@/stores/guideStore';
+import { useGuideStore } from '@/stores/guideStore';
 
 interface GuideAvatar3DProps {
   position?: [number, number, number];
@@ -51,7 +51,7 @@ interface AvatarProps {
 }
 
 // ── Concept A: Orb Sentinel ──
-function OrbAvatar({ labColor, audioLevel, visualState }: AvatarProps) {
+function OrbAvatar({ labColor, audioLevel, visualState: _visualState }: AvatarProps) {
   const shellRef = useRef<THREE.Mesh>(null);
   const coreRef = useRef<THREE.Mesh>(null);
   const ring1Ref = useRef<THREE.Mesh>(null);

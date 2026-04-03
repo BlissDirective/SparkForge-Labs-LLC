@@ -13,7 +13,7 @@
 // Per JSON spec UI-8: 75% viewport takeover during game mode.
 // These panels render centered in the game viewport area.
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import {
@@ -224,7 +224,7 @@ export function GameCompletePanel3D({
   title,
   score,
   maxScore,
-  color,
+  color: _color,
   tier = 'bronze',
   xpAwarded = 50,
   onContinue,

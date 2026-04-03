@@ -6,7 +6,6 @@
 // Decision 27.1: Pedestal grid — 3×3 badge pedestals (9 categories), earned=glow, locked=dim
 // Decision 27.2: Expanded 1.5x avatar on profile page
 
-import { useMemo } from 'react';
 import { Text } from '@react-three/drei';
 import { useChildStore } from '@/stores/childStore';
 import {
@@ -16,7 +15,7 @@ import {
   NUMERIC_FONT,
   EMISSIVE_IDLE_INDICATOR,
   GHOST_PLACEHOLDER_OPACITY,
-  MAX_VISIBLE_ITEMS,
+  _MAX_VISIBLE_ITEMS,
 } from '@/lib/3d/cockpitDesignTokens';
 
 const BADGE_CATEGORIES = [

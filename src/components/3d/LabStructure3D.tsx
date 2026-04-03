@@ -399,7 +399,7 @@ function Lab3Structure({
       new Float32BufferAttribute(points, 3)
     );
     return geo;
-  }, [neuronPositions]);
+  }, [neuronPositions, connections]);
 
   useFrame((state) => {
     const t = state.clock.elapsedTime;

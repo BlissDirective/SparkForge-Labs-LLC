@@ -323,7 +323,7 @@ export default function PromptHistoryPage() {
           </motion.div>
         ) : (
           <motion.div key="list" className="space-y-3">
-            {paginated.map((entry, idx) => (
+            {paginated.map((entry, _idx) => (
               <motion.div
                 key={entry.id}
                 variants={staggerItem}

@@ -13,11 +13,11 @@ import { RadialDial3D } from '../ui/RadialDial3D';
 import { HolographicButton } from '../ui/HolographicButton';
 import { HolographicCard } from '../ui/HolographicCard';
 import { useUIStore } from '@/stores/uiStore';
-import { useCockpitStore, SKIN_UNLOCK_CONDITIONS } from '@/stores/cockpitStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 import type { CockpitSkin } from '@/types';
 import {
   TYPE_SCALE,
-  TEXT_COLORS,
+  TEXT_COLORS as _TEXT_COLORS,
   CHROME_BORDER,
 } from '@/lib/3d/cockpitDesignTokens';
 
