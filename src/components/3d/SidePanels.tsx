@@ -28,6 +28,12 @@ import {
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
 import { createAlloyFrameMaterial, createControlPanelMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
+import {
+  CHROME_BORDER,
+  ACCENT_LINES,
+  EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_SCALE,
+} from '@/lib/3d/cockpitDesignTokens';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 
 // ════════════════════════════════════════════════════════════════
@@ -64,11 +70,16 @@ const DATA_COLUMN_COUNT = 24;
 const DATA_ROW_COUNT = 32;
 const TOTAL_BARS = DATA_COLUMN_COUNT * DATA_ROW_COUNT; // 768 instanced bars
 
-// v3: Chrome material params upgraded per cockpitMaterials.ts
-const CHROME_COLOR = COCKPIT_MATERIAL_COLORS.alloyFrame;  // #a8b5c8 (was #2a2e3e)
+// v3.1: Chrome material params from cockpitDesignTokens (was cockpitMaterials)
+const CHROME_COLOR = CHROME_BORDER.colorHex;  // #a8b5c8 — design token source of truth
 const CHROME_METALNESS = 0.98;   // v3: higher metalness (was 0.92)
 const CHROME_ROUGHNESS = 0.12;   // v3: smoother chrome (was 0.18)
-const PANEL_FACE_COLOR = COCKPIT_MATERIAL_COLORS.panelSurface;  // #0a1625 (was #0d1018)
+const PANEL_FACE_COLOR = '#0A0F1F';  // v3.1: design token panel surface (was #0a1625)
+const PANEL_FACE_METALNESS = 0.85;   // v3.1: from design spec
+const PANEL_FACE_ROUGHNESS = 0.35;   // v3.1: from design spec
+const ACCENT_EMISSIVE = EMISSIVE_SCALE[ACCENT_LINES.emissiveLevel]; // dormant 0.15
+// Segmented chrome gap: small gap at each corner to break continuous border
+const SEGMENT_GAP = 0.04;
 
 // ════════════════════════════════════════════════════════════════
 // Sub-component: Chrome Bezel Frame
@@ -91,49 +102,57 @@ function ChromeBezelFrame({
 
   return (
     <group>
-      {/* Main frame — 4 edges */}
-      {/* Top edge */}
+      {/* Main frame — 4 segmented chrome edges (gaps at corners for segmented look) */}
+      {/* Top edge — shortened by SEGMENT_GAP on each end */}
       <mesh position={[0, height / 2 + bezel / 2, 0]}>
-        <boxGeometry args={[width + bezel * 2, bezel, depth]} />
+        <boxGeometry args={[width + bezel * 2 - SEGMENT_GAP * 2, bezel, depth]} />
         <meshStandardMaterial
           color={CHROME_COLOR}
           metalness={CHROME_METALNESS}
           roughness={CHROME_ROUGHNESS}
           transparent
           opacity={opacity}
+          emissive={CHROME_COLOR}
+          emissiveIntensity={ACCENT_EMISSIVE}
         />
       </mesh>
-      {/* Bottom edge */}
+      {/* Bottom edge — shortened by SEGMENT_GAP on each end */}
       <mesh position={[0, -height / 2 - bezel / 2, 0]}>
-        <boxGeometry args={[width + bezel * 2, bezel, depth]} />
+        <boxGeometry args={[width + bezel * 2 - SEGMENT_GAP * 2, bezel, depth]} />
         <meshStandardMaterial
           color={CHROME_COLOR}
           metalness={CHROME_METALNESS}
           roughness={CHROME_ROUGHNESS}
           transparent
           opacity={opacity}
+          emissive={CHROME_COLOR}
+          emissiveIntensity={ACCENT_EMISSIVE}
         />
       </mesh>
-      {/* Left edge */}
+      {/* Left edge — shortened by SEGMENT_GAP on each end */}
       <mesh position={[-width / 2 - bezel / 2, 0, 0]}>
-        <boxGeometry args={[bezel, height, depth]} />
+        <boxGeometry args={[bezel, height - SEGMENT_GAP * 2, depth]} />
         <meshStandardMaterial
           color={CHROME_COLOR}
           metalness={CHROME_METALNESS}
           roughness={CHROME_ROUGHNESS}
           transparent
           opacity={opacity}
+          emissive={CHROME_COLOR}
+          emissiveIntensity={ACCENT_EMISSIVE}
         />
       </mesh>
-      {/* Right edge */}
+      {/* Right edge — shortened by SEGMENT_GAP on each end */}
       <mesh position={[width / 2 + bezel / 2, 0, 0]}>
-        <boxGeometry args={[bezel, height, depth]} />
+        <boxGeometry args={[bezel, height - SEGMENT_GAP * 2, depth]} />
         <meshStandardMaterial
           color={CHROME_COLOR}
           metalness={CHROME_METALNESS}
           roughness={CHROME_ROUGHNESS}
           transparent
           opacity={opacity}
+          emissive={CHROME_COLOR}
+          emissiveIntensity={ACCENT_EMISSIVE}
         />
       </mesh>
 
@@ -165,6 +184,8 @@ function ChromeBezelFrame({
               roughness={0.12}
               transparent
               opacity={opacity * 0.9}
+              emissive={CHROME_COLOR}
+              emissiveIntensity={ACCENT_EMISSIVE}
             />
           </RoundedBox>
         </group>
@@ -235,7 +256,7 @@ function MountingArm({
           transparent
           opacity={opacity}
           emissive="#00BBFF"
-          emissiveIntensity={0.05}
+          emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
         />
       </mesh>
 
@@ -279,6 +300,8 @@ function MountingArm({
               roughness={0.1}
               transparent
               opacity={opacity * 0.8}
+              emissive={CHROME_COLOR}
+              emissiveIntensity={ACCENT_EMISSIVE}
             />
           </mesh>
           <mesh
@@ -294,6 +317,8 @@ function MountingArm({
               roughness={0.1}
               transparent
               opacity={opacity * 0.8}
+              emissive={CHROME_COLOR}
+              emissiveIntensity={ACCENT_EMISSIVE}
             />
           </mesh>
         </>
@@ -413,8 +438,8 @@ function RadarPanel({
         <boxGeometry args={[PANEL_WIDTH, PANEL_HEIGHT, PANEL_DEPTH]} />
         <meshStandardMaterial
           color={PANEL_FACE_COLOR}
-          metalness={0.8}
-          roughness={0.3}
+          metalness={PANEL_FACE_METALNESS}
+          roughness={PANEL_FACE_ROUGHNESS}
           transparent
           opacity={opacity * 0.85}
         />
@@ -724,8 +749,8 @@ function TerminalPanel({
         <boxGeometry args={[PANEL_WIDTH, PANEL_HEIGHT, PANEL_DEPTH]} />
         <meshStandardMaterial
           color={PANEL_FACE_COLOR}
-          metalness={0.8}
-          roughness={0.3}
+          metalness={PANEL_FACE_METALNESS}
+          roughness={PANEL_FACE_ROUGHNESS}
           transparent
           opacity={opacity * 0.85}
         />
