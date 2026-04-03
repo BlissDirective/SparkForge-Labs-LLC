@@ -1,6 +1,6 @@
 # Master SparkForge UI Design Change
 
-**Version:** 1.5 | **Date:** April 3, 2026 | **Status:** Phase 1+2+3+4+5 COMPLETE — Ready for Phase 6
+**Version:** 1.6 | **Date:** April 3, 2026 | **Status:** Phase 1-6 COMPLETE — Ready for Phase 7 (Marketing)
 **Source of Truth:** `SparkForge-Full-ControlScreen.json` (1,081 lines, 11 sections)
 **Branch:** `claude/review-cockpit-interface-7zfku`
 
@@ -378,10 +378,20 @@ All 30 designed components rebuilt to consume `cockpitDesignTokens.ts`.
 
 **Key architectural change:** GameShell registers `GameHUD3D` in `sceneStore.gameHUDContent`. CockpitCanvas renders it above game scenes. All 35 games get the 3D HUD automatically.
 
+### Phase 6: Standard Games — COMPLETE (April 3, 2026)
+| Section | Files | Status |
+|---------|-------|--------|
+| 1: QuizGameTemplate + ChoiceButton3D | 2 new | DONE |
+| 2: BuilderGameTemplate + ExplorerGameTemplate | 2 new | DONE |
+| 3: LabGameTemplate + GameLearnCards3D | 2 new | DONE |
+| 4: Barrel export + build verification | 1 modified | DONE |
+
+**4 template patterns cover all 29 non-flagship games:**
+- Quiz (~12 games), Builder (~7 games), Explorer (~6 games), Lab (~6 games)
+
 ### Phases Remaining
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **6: Standard Games** | 29 game UIs via 4 shared templates | NOT STARTED |
 | **7: Marketing** | 3D hero section, enhanced CSS | NOT STARTED |
 
 ### Architecture After Phase 2
@@ -411,6 +421,6 @@ cockpitUIStore → CockpitUILayer → CenterContentRouter
 
 ---
 
-*Master SparkForge UI Design Change v1.5 — April 3, 2026*
-*Phase 1-5 complete. 131 design decisions locked. 30 cockpit components + 4 auth panels + 3 gamification + 4 game UI = 41 components. Phases 6-7 pending.*
+*Master SparkForge UI Design Change v1.6 — April 3, 2026*
+*Phase 1-6 complete. 131 design decisions locked. 47 total components. Build PASSING. Phase 7 (Marketing) pending.*
 *Companion spec: SparkForge-Full-ControlScreen.json (~1,800 lines)*
