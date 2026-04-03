@@ -34,7 +34,7 @@ import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
 
 // 3D Components — Station Shell
 import { AuroraBackground } from './AuroraBackground';
-import { AmbientParticles } from './AmbientParticles';
+// AmbientParticles REMOVED (Decision 20.0) — structural accent lines + LED rim provide sufficient atmosphere
 import { CockpitPanels } from './CockpitPanels';
 import { LEDRim } from './LEDRim';
 import { SidePanels } from './SidePanels';
@@ -368,10 +368,7 @@ export function CockpitCanvas({
                   color3="#06B6D4"
                 />
 
-                <AmbientParticles
-                  intensity={particleIntensity}
-                  color={effectiveLabColor}
-                />
+                {/* AmbientParticles REMOVED (Decision 20.0) */}
 
                 <CockpitPanels
                   curvature={panelCurvature}
