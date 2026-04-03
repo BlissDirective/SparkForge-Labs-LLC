@@ -1,6 +1,6 @@
 # Master SparkForge UI Design Change
 
-**Version:** 1.2 | **Date:** April 3, 2026 | **Status:** Phase 1+2 + Component Rebuild COMPLETE — Ready for Phase 3
+**Version:** 1.3 | **Date:** April 3, 2026 | **Status:** Phase 1+2+3 COMPLETE — Ready for Phase 4
 **Source of Truth:** `SparkForge-Full-ControlScreen.json` (1,081 lines, 11 sections)
 **Branch:** `claude/review-cockpit-interface-7zfku`
 
@@ -338,10 +338,28 @@ All 30 designed components rebuilt to consume `cockpitDesignTokens.ts`.
 - RadialDial3D: new `readOnly` prop with glass cover
 - ArcadePanel: paginated (12/page) with prev/next controls
 
+### Phase 3: Auth + Forms — COMPLETE (April 3, 2026)
+| Batch | Files | Status |
+|-------|-------|--------|
+| A: LoginPanel3D + auth layout + login page | 3 files | DONE |
+| B: SignupPanel3D + ResetPasswordPanel3D + pages | 4 files | DONE |
+| C: ChatPanel3D + ArcadePanel search + CockpitUILayer wiring | 4 files | DONE |
+
+**Key files created:**
+- `src/components/3d/panels/LoginPanel3D.tsx` — 3D login form (hidden HTML proxy pattern)
+- `src/components/3d/panels/SignupPanel3D.tsx` — 4-step 3D signup wizard
+- `src/components/3d/panels/ResetPasswordPanel3D.tsx` — 3D password reset
+- `src/components/3d/panels/ChatPanel3D.tsx` — AI Guide 3D chat panel
+
+**Key architectural changes:**
+- Auth layout renders children as R3F groups inside Canvas (not HTML overlay)
+- All auth pages are now thin scene descriptors (zero HTML UI)
+- ArcadePanel gained SearchField3D with text search + hidden HTML proxy
+- CockpitUILayer routes 'chat' content key to ChatPanel3D
+
 ### Phases Remaining
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **3: Auth + Forms** | Login/signup 3D, chat panel, search | NOT STARTED |
 | **4: Gamification** | Celebration, XP popup, streak → 3D | NOT STARTED |
 | **5: Flagship Games** | 6 game UIs → 3D panels | NOT STARTED |
 | **6: Standard Games** | 29 game UIs via 4 shared templates | NOT STARTED |
@@ -374,6 +392,6 @@ cockpitUIStore → CockpitUILayer → CenterContentRouter
 
 ---
 
-*Master SparkForge UI Design Change v1.2 — April 3, 2026*
-*Phase 1+2 complete. Design tokens locked (131 decisions). All 30 components rebuilt. Phases 3-7 pending.*
+*Master SparkForge UI Design Change v1.3 — April 3, 2026*
+*Phase 1+2+3 complete. Design tokens locked (131 decisions). 30 components rebuilt + 4 auth/chat panels. Phases 4-7 pending.*
 *Companion spec: SparkForge-Full-ControlScreen.json (~1,800 lines)*
