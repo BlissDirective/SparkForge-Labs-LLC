@@ -717,11 +717,56 @@ body[data-scanlines="off"] .scanline-overlay {
 }
 
 /* Respect reduced motion for all moved keyframes */
+/* ═══ Phase 7: Marketing CSS Enhancements ═══ */
+
+/* Discrete LED dot pulse — individual dots glow in sequence */
+.led-dot-pulse {
+  animation: ledDotPulse 2s ease-in-out infinite;
+  opacity: 0.5;
+}
+@keyframes ledDotPulse {
+  0%, 100% { opacity: 0.3; filter: brightness(1); }
+  50% { opacity: 0.9; filter: brightness(1.8); }
+}
+
+/* Chromatic text — subtle color-shifted shadow for data numbers */
+.chromatic-text {
+  text-shadow:
+    -1px 0 0.5px var(--chromatic-color, #00BBFF),
+    1px 0 0.5px var(--chromatic-color, #AA66FF);
+  filter: brightness(1.05);
+}
+
+/* Feature card entrance — fade up on scroll (used by ScrollJourney) */
+.feature-card-enter {
+  animation: featureCardEnter 0.6s ease-out both;
+}
+@keyframes featureCardEnter {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Act transition — fade between ScrollJourney acts */
+.act-transition {
+  animation: actFade 0.4s ease-out both;
+}
+@keyframes actFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .badge-pulse,
   .led-rim-pulse,
+  .led-dot-pulse,
   .holographic-sweep-bg,
-  .scanline-overlay {
+  .scanline-overlay,
+  .feature-card-enter,
+  .act-transition {
     animation: none;
+  }
+  .chromatic-text {
+    text-shadow: none;
+    filter: none;
   }
 }
