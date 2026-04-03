@@ -133,8 +133,8 @@ const SCENARIOS: Scenario[] = [
 export default function FutureForgeGame() {
   const game = useGameStore();
   const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
-  const { data: dynamicContent } = useGameContent('future-forge', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('future-forge', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [round, setRound] = useState(1);

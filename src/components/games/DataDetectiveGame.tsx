@@ -118,8 +118,8 @@ export function DataDetectiveGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('data-detective', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('data-detective', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);

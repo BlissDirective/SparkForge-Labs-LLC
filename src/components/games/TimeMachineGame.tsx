@@ -8,7 +8,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
@@ -80,8 +80,8 @@ export function TimeMachineGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('time-machine', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('time-machine', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');

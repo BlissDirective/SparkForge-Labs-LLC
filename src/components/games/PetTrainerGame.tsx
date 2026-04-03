@@ -326,8 +326,8 @@ export function PetTrainerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('pet-trainer', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('pet-trainer', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   // === Core state ===
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -351,7 +351,7 @@ export function PetTrainerGame() {
 
   // P2: Audio integration
   const audio = usePetTrainerAudio();
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled] = useState(false);
 
   // === Particles ===
   const particles = useMemo(() =>

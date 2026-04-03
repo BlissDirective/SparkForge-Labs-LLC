@@ -319,9 +319,9 @@ export function CodeBlocksGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('code-blocks', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
-  const isDesktop = useIsDesktop();
+  const { data: _dynamicContent } = useGameContent('code-blocks', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const _isDesktop = useIsDesktop();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [challengeIdx, setChallengeIdx] = useState(0);

@@ -84,8 +84,8 @@ export function PixelInvestigatorGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('pixel-investigator', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('pixel-investigator', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [ri, setRi] = useState(0);

@@ -715,8 +715,8 @@ export function PromptLabGame() {
   const { activeChild } = useChildStore();
   const game = useGameStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('prompt-lab', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('prompt-lab', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   // --- Core state ---
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -794,7 +794,7 @@ export function PromptLabGame() {
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   // P2: Audio integration
   const promptAudio = usePromptLabAudio();
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled] = useState(false);
   // P4: CeremonyFX milestones
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
