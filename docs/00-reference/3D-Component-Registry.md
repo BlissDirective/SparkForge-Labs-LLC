@@ -1,11 +1,10 @@
 # SPARKFORGE — 3D Component Registry
 
-**Version:** 2.3 | **Date:** March 28, 2026
-**Extracted from:** CLAUDE.md v5.7 Section 9
-**Cross-reference:** CLAUDE.md Section 9.1 (LOD rules), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
-**Last updated:** Stage 8 3D Cockpit Enhancements — 3 new components (ParentStatHologram3D, ParentDashboardBridge, OnboardingCrystal3D). Previous: Stage 5 Gamification 3D — 7 gamification components.
-
-> **NOTE (March 30, 2026):** This registry needs a v3.0 refresh. The D3D Desktop-First Overhaul (CLAUDE.md v6.0, March 24, 2026) added significant new components including SceneRouter, MechanicalIris, PostProcessingStack, 3D UI Components (HolographicButton, RadialDial3D, ToggleSwitch3D, etc.), cockpitMaterials, cockpitBroadcastStore, and camera utilities (cameraShake, interactiveSurfaceConfig). The authoritative component list is now in **CLAUDE.md Section 9** (93 components). LOD/mobile references in this file are outdated per D3D-1/D3D-2. Triangle budgets were updated to Flagship 20M, FL-Lite 10M, Standard 5M (D3D-3), System 50M.
+**Version:** 3.0 | **Date:** April 3, 2026
+**Extracted from:** CLAUDE.md v6.2 Section 9
+**Cross-reference:** CLAUDE.md Section 9.1 (desktop-ultra rendering), Section 9.2 (tier definitions), Section 9.3 (Cockpit Suite)
+**Last updated:** Full 3D UI Migration (April 3, 2026) — 49 components built/rebuilt across 7 phases. AmbientParticles REMOVED (Decision 20.0). HolographicHUD REPOSITIONED to peripheral frame (Decision 6.0). 13 new 3D panels, 10 game-ui components, 5 UI primitives, 3 infrastructure files, 1 marketing preview added.
+**Design authority:** `DESIGN_DECISIONS_LOG.md` (150 decisions), `SparkForge-Full-ControlScreen.json` v1.2, `cockpitDesignTokens.ts`
 
 ---
 
@@ -22,10 +21,10 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 | StationFrame.tsx | 3 v3 | Dashboard chrome frame |
 | HeroAnimation.tsx | 3 v3 | 8-phase 19s cinematic hero sequence (1B+ particles, WebGPU TSL compute, Voronoi shatter → cockpit materialization). Replaces CrystalShatter (archived to `_SUPERSEDED/`). See `Implementation_Plan_Hero_Page_Animation_v2.0.md`. |
 | AuroraBackground.tsx | 3 v3 | Dashboard ambient |
-| AmbientParticles.tsx | 3 v3 | Dashboard floating particles |
+| ~~AmbientParticles.tsx~~ | ~~3 v3~~ | **REMOVED (Decision 20.0)** — Ambient particles removed from cockpit entirely |
 | GameParticles3D.tsx | 5 v3 | R3F particles (5 flagships) |
-| GenericGameParticles.tsx | 7 Shared v3 | CSS particles (23 standard) |
-| LODWrapper.tsx | — | Mandatory LOD container for all 3D scenes |
+| ~~GenericGameParticles.tsx~~ | ~~7 Shared v3~~ | Removed (D3D-1: desktop-only, no CSS fallbacks) |
+| ~~LODWrapper.tsx~~ | ~~—~~ | Removed (D3D-2: all geometry at max quality) |
 | XPVortex.tsx | 5 v3 | 100-particle instanced spiral for XP celebrations (2.0s auto-unmount) |
 | LevelUpExplosion.tsx | 5 v3 | 200-particle instanced cube burst for level-up celebrations |
 | BadgePedestal3D.tsx | 5 v3 | 5-tier PBR pedestals (common→legendary) with Float + Sparkles |
@@ -138,11 +137,11 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 | CockpitCanvas.tsx | 20M | Single persistent R3F Canvas (CPA2-1), hero+cockpit+spatial groups |
 | CockpitPanels.tsx | 20M | 256-seg curved hull, multi-layer, instanced rivets (~2M tris) |
 | SidePanels.tsx | 20M | Left radar dish + right terminal with data columns (~1.5M tris) |
-| HolographicHUD.tsx | 20M | 8 concentric rings, scan beams, reticle system (~1M tris) |
-| StatusBar3D.tsx | 20M | 3D console strip, XP speedometer, flame sculpture (~1M tris) |
-| LEDRim.tsx | 20M | 1000+ instanced LED capsules, data viz mode (~200K tris) |
-| AuroraBackground.tsx | 20M | 6 layered shader planes + 3 volumetric ribbons (~50K tris) |
-| AmbientParticles.tsx | 20M | Instanced icosahedron particles + trails + halos (~200K tris) |
+| HolographicHUD.tsx | 20M | **REPOSITIONED (Decision 6.0):** peripheral viewport frame — 4 arc segments, corner data readouts (time/XP/mode/child), breathing pulse 4s cycle (~1M tris) |
+| StatusBar3D.tsx | 20M | Arc bar XP (no needle), pulse ring streak (no flame), 10 mini arc lab indicators, chrome pillar dividers (~1M tris) |
+| LEDRim.tsx | 20M | 1500 rectangular LED blocks, center-outward burst, sequential color fill, emissive 2.5x, pure mood lighting (~500K tris) |
+| AuroraBackground.tsx | 20M | 3 mode-tinted ribbons at different depths, gentle flow 0.6 speed (~50K tris) |
+| ~~AmbientParticles.tsx~~ | ~~20M~~ | **REMOVED (Decision 20.0)** |
 | CockpitSkinManager.tsx | 20M | 5 skin soundscapes, increased particle counts |
 | CockpitStructuralDetail.tsx | 20M | Cable bundles, conduits, vents, ribs, LEDs (~1.5M tris) |
 | VolumetricFog3D.tsx | 20M | Fog volumes, god ray cones, density layers (~500K tris) |
@@ -150,6 +149,105 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 | CeremonyFX.tsx | 20M | Confetti, fireworks, trophies, HUD ring expansion (~500K tris) |
 | WormholeTransition.tsx | 20M | Lab entrance tunnel, speed lines, portal rings (~300K tris) |
 | MiniMapOverlay3D.tsx | 20M | Persistent 3D minimap of lab ring (~250K tris) |
+
+---
+
+## 3D UI Components (UI Migration — April 3, 2026)
+
+Located in `src/components/3d/ui/`. All consume `cockpitDesignTokens.ts`. 150 design decisions locked.
+
+| Component | Description |
+|-----------|-------------|
+| HolographicButton.tsx | Chamfered rectangle (ExtrudeGeometry), dual-layer surface, 3 sizes (sm/md/lg), inset backlit text |
+| NavigationButtonGrid.tsx | Pentagon cluster layout (5 buttons: HOME/LABS/ARCADE/SETTINGS/PROFILE), beveled square buttons, console plate |
+| RadialDial3D.tsx | Knurled cylinder, 24 LED ring, illuminated tick dots, glass cover for read-only gauges |
+| ToggleSwitch3D.tsx | Paddle switch, LED strip indicator, hard snap (SPRING_PRESETS.snap), grouped panel mounting |
+| VariableDialCluster.tsx | 3 dials in individual pods, arc row arrangement, instant label swap on page switch |
+| HolographicCard.tsx | 45° chamfered rectangle, layered surface (carbon base + accent top strip), edge trace + lift hover |
+| HolographicPanel.tsx | Raised platform (1 depth layer above), chrome divider bar headers, density token spacing |
+| CenterViewportScreen.tsx | Cylindrical concave surface, segmented chrome bezel, CRT scan lines, wipe sweep transition |
+| CockpitText.tsx | 3D text primitive using troika-three-text, design token typography levels |
+| CockpitContainer.tsx | 3D container primitive with chrome borders and depth layers |
+| CockpitScrollPanel.tsx | Paginated 3D scroll panel (no scroll — paginate per Decision B.3) |
+| CockpitInput.tsx | 3D text input with hidden HTML proxy (P3-2), caret animation, border glow |
+| CockpitTooltip.tsx | Floating 3D tooltip with chrome edge, auto-positioning |
+| index.ts | Barrel export for all UI components |
+
+---
+
+## 3D Panel Components (UI Migration — April 3, 2026)
+
+Located in `src/components/3d/panels/`. Dashboard pages converted to 3D panel architecture.
+
+### Dashboard Panels (Phase 2)
+
+| Component | Description |
+|-----------|-------------|
+| DashboardLeft.tsx | Player identity hub: hexagonal avatar frame, 4 vertical gauge stack, 5 recent badges |
+| DashboardRight.tsx | Control & monitoring: mini card activity log, 4 horizontal quick action buttons, collapsed settings |
+| DashboardCenter.tsx | Floating welcome text above lab map, "Continue Learning" CTA at bottom, no center stats (Decision 24.2) |
+| LabsCenter.tsx | Floating info card on hover, double-click + explicit "Enter Lab" button (Decision 25.2) |
+| ArcadePanel.tsx | Curved grid tiles (12/page), lab filter in HUD frame, inline SearchField3D |
+| ProfileCenter.tsx | 3×3 badge pedestal grid, 1.5x enlarged avatar |
+| SettingsPanel.tsx | Column layout (audio left, visual right), skin selector preview cards |
+| ParentPanel.tsx | Child profile HolographicCards, side panel action buttons |
+| LabDetailPanel.tsx | Radial game fan, full 3D lab structure diorama |
+
+### Auth Panels (Phase 3)
+
+| Component | Description |
+|-----------|-------------|
+| LoginPanel3D.tsx | 3D login form with hidden HTML input proxies, demo login flow |
+| SignupPanel3D.tsx | 4-step wizard (Account→Verify→Consent→Profile), age slider, COPPA |
+| ResetPasswordPanel3D.tsx | 2-state email/confirmation panel |
+| ChatPanel3D.tsx | AI Guide chat, message bubbles, paginated history, streaming |
+
+### Gamification (Phase 4)
+
+| Component | Description |
+|-----------|-------------|
+| CelebrationPanel3D.tsx | Badge/level/streak/lab celebration display, center panel |
+| XPPopup3D.tsx | Floating 3D "+X XP" with spring rise, combo multiplier, bloom light |
+
+---
+
+## 3D Game UI Components (UI Migration — Phases 5-6)
+
+Located in `src/components/3d/game-ui/`. Auto-registered via GameShell (P5-1).
+
+| Component | Description |
+|-----------|-------------|
+| GameHUD3D.tsx | Score arc, round counter, hint pips, timer, chrome bar — auto-registered via GameShell |
+| GameTimerBar3D.tsx | Countdown/elapsed bar with urgent pulse |
+| GamePhaseOverlay3D.tsx | Welcome panel + complete panel (tier badge: gold/silver/bronze, score, XP) |
+| ChoiceButton3D.tsx | 4 feedback states: none, correct (#00FF88), incorrect (#FF6644), selected (#00BBFF) |
+| QuizGameTemplate.tsx | Template for ~12 quiz-style games (AI Spy, Word Predictor, etc.) |
+| BuilderGameTemplate.tsx | Template for ~7 builder-style games (Code Blocks, Token Chopper, etc.) |
+| ExplorerGameTemplate.tsx | Template for ~6 explorer-style games (Data Detective, Camera Quest, etc.) |
+| LabGameTemplate.tsx | Template for ~6 lab-style games (Sentiment Scanner, Robot Vacuum, etc.) |
+| GameLearnCards3D.tsx | Paginated single-card carousel with progress dots, shared across all templates |
+| index.ts | Barrel export for all game UI components |
+
+---
+
+## 3D Infrastructure (UI Migration — Phase 1)
+
+| Component | Location | Description |
+|-----------|----------|-------------|
+| CockpitUILayer.tsx | `src/components/3d/` | Master quadrant orchestrator (left/center/right/bottom), lazy-loads 11 panel types |
+| cockpitModePresets.ts | `src/lib/3d/` | 8 cockpit modes × 14 atmosphere properties (dashboard, labs, lab-detail, game, profile, settings, celebration, parent) |
+| cockpitDesignTokens.ts | `src/lib/3d/` | TypeScript design tokens — 131 decisions encoded (typography, edges, depth, springs, emissive, states, etc.) |
+| cockpitUIStore.ts | `src/stores/` | Center content routing for 3D panel architecture (9 route types) |
+| useCockpitScene.ts | `src/hooks/` | Hook that pages call to set cockpit mode |
+| useCelebration3D.ts | `src/hooks/` | Celebration orchestration: mode switch → CeremonyFX → XP popup → panel → auto-dismiss |
+
+---
+
+## 3D Marketing (UI Migration — Phase 7)
+
+| Component | Description |
+|-----------|-------------|
+| CockpitPreview3D.tsx | Mini cockpit teaser (~50K tris): hull section, LED rim, HUD arcs, lab nodes. Used on landing page. |
 
 ---
 
@@ -169,16 +267,25 @@ All R3F/Three.js components live in `src/components/3d/`. All must use `dynamic(
 
 | Category | Count | Notes |
 |----------|-------|-------|
-| System / Dashboard | 17 | StationFrame, HeroAnimation, AuroraBackground, AmbientParticles, GameParticles3D, GenericGameParticles, LODWrapper, XPVortex, LevelUpExplosion, BadgePedestal3D, AvatarPreview3D, StreakFlame3D, CeremonyFXBridge, BadgePedestalBridge, **ParentStatHologram3D**, **ParentDashboardBridge**, **OnboardingCrystal3D** |
+| System / Dashboard | 14 | StationFrame, HeroAnimation, AuroraBackground, GameParticles3D, XPVortex, LevelUpExplosion, BadgePedestal3D, AvatarPreview3D, StreakFlame3D, CeremonyFXBridge, BadgePedestalBridge, ParentStatHologram3D, ParentDashboardBridge, OnboardingCrystal3D |
 | Flagship (games + environments) | 12 | 6 game components + 6 environment components |
 | FL-Lite (games + environments) | 19 | 9 game components + 10 environment components |
 | Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
-| Cockpit / Enhancement | 24 | Includes 8 new components from 20M upgrade (March 20, 2026) |
+| Cockpit / Enhancement | 22 | CockpitCanvas through MiniMapOverlay3D (AmbientParticles removed) |
+| 3D UI Components | 14 | 8 interactive + 5 primitives + index (in `ui/`) |
+| 3D Panels (Dashboard) | 9 | DashboardLeft/Right/Center, LabsCenter, ArcadePanel, ProfileCenter, SettingsPanel, ParentPanel, LabDetailPanel |
+| 3D Panels (Auth) | 4 | LoginPanel3D, SignupPanel3D, ResetPasswordPanel3D, ChatPanel3D |
+| 3D Gamification | 2 | XPPopup3D, CelebrationPanel3D |
+| 3D Game UI | 10 | GameHUD3D, GameTimerBar3D, GamePhaseOverlay3D, ChoiceButton3D, 4 templates, GameLearnCards3D, index |
+| 3D Marketing | 1 | CockpitPreview3D |
+| 3D Infrastructure | 6 | CockpitUILayer, cockpitModePresets, cockpitDesignTokens, cockpitUIStore, useCockpitScene, useCelebration3D |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
-| **Total rows** | **95** | |
+| Procedural Environment | 7 | ProceduralEnvironmentGenerator + 5 sub-components + index |
+| Creatures | 7 | CreatureBase + 5 creature types + index |
+| **Total unique files** | **~172** | Across `src/components/3d/` + supporting stores/hooks/lib |
 
-> **Note:** `AuroraBackground.tsx` and `AmbientParticles.tsx` appear in both System/Dashboard and Cockpit/Enhancement sections — they serve dual roles (standalone dashboard use + integrated cockpit use). Unique file count: **93**.
+> **Note:** AuroraBackground.tsx appears in both System/Dashboard and Cockpit/Enhancement sections (dual role). AmbientParticles, GenericGameParticles, and LODWrapper have been removed per D3D decisions.
 
 ---
 
-*End of 3D Component Registry v2.2 | Extracted from CLAUDE.md v5.7 | Updated March 27, 2026 — Stage 5 Gamification 3D (7 new components)*
+*End of 3D Component Registry v3.0 | Extracted from CLAUDE.md v6.2 | Updated April 3, 2026 — Full 3D UI Migration (49 components built/rebuilt, 150 design decisions)*

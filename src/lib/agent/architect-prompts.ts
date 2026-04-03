@@ -24,7 +24,7 @@ TRIANGLE BUDGETS:
 - System (cockpit): 30M triangles
 
 EXISTING REUSABLE COMPONENTS:
-- AuroraBackground, AmbientParticles — background effects
+- AuroraBackground — background aurora effect (AmbientParticles removed per Decision 20.0)
 - StandardEnvironmentBase — base for standard game environments
 - ProceduralEnvironmentGenerator — procedural terrain/sky/fog
 - CeremonyFX — celebration effects

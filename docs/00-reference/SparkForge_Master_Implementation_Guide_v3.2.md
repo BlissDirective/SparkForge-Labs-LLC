@@ -1,6 +1,7 @@
 # SPARKFORGE — MASTER IMPLEMENTATION GUIDE
 
-**Version:** 4.0 | **Date:** March 29, 2026 | **For:** Claude Code (Local Terminal + Remote Mobile)
+**Version:** 4.1 | **Date:** April 3, 2026 | **For:** Claude Code (Local Terminal + Remote Mobile)
+**Supersedes:** Master Implementation Guide v4.0 (March 29, 2026) — Full 3D UI Migration complete (7 phases, 49 components, 150 design decisions). AmbientParticles removed (Decision 20.0). 3D component count updated to ~172. Stores updated to 15 (added cockpitUIStore, extended sceneStore). Added 4 new UI migration reference documents.
 **Supersedes:** Master Implementation Guide v3.3 (March 23, 2026) — Complete overhaul: Added comprehensive Document-to-Code Map (Section 3) linking every stage .md to every /src file. Added Complete Source Code Registry (Section 4) mapping all 409 src files to stage origins. Added Enhancement & Undocumented Files Map (Section 5) identifying 100+ files created during audit/enhancement cycles. Updated all registries (13 stores, 35 hooks, 93 3D components). Added 30-day commit log (50 commits). Added Known Gaps section. Aligned with CLAUDE.md v6.0 and D3D Desktop-First Overhaul (20 decision locks).
 
 **Purpose:** Single entry point for building SparkForge from stage documents. This v4.0 is the **ultra-comprehensive edition** — every document and every source file in the repo is mapped, indexed, and linked to its stage of origin. Use this as your development GPS.
@@ -50,7 +51,7 @@
 - **Language:** TypeScript strict mode
 - **Styling:** Tailwind CSS 4 (Oxide engine)
 - **3D:** React Three Fiber v9 + drei + postprocessing (Three.js r183+, TSL, WebGPU/WebGL2)
-- **State:** Zustand (13 stores) + Jotai (3D atoms)
+- **State:** Zustand (15 stores) + Jotai (3D atoms)
 - **Testing:** Vitest + Playwright + MSW
 - **Deployment:** Vercel
 
@@ -62,8 +63,8 @@
 | Documentation files (`/docs/`) | 128 |
 | Root config/doc files | 25+ |
 | Games (all functional) | 35 |
-| 3D components | 140 |
-| Stores | 13 |
+| 3D components | ~172 |
+| Stores | 15 |
 | Hooks | 35 |
 | API routes | 32 |
 | Shaders (TSL + GLSL) | 24 |
@@ -77,6 +78,10 @@
 ## Code Audit Status (March 30, 2026)
 
 A comprehensive full-repo code audit was completed on March 30, 2026, covering all 497 source files, 127 docs, and 18 SQL files. **154 issues found and fixed** (21 Critical, 42 High, 52 Medium, 39 Low).
+
+### Full 3D UI Migration Status (April 3, 2026)
+
+The Full 3D UI Migration is **complete** — 7 phases, 49 components, 150 design decisions. All dashboard UI now renders in 3D via the persistent CockpitCanvas. AmbientParticles removed (Decision 20.0). 3D component count increased from ~140 to ~172. Store count increased from 13 to 15 (added cockpitUIStore; sceneStore extended with gameHUDContent).
 
 ### Key Architecture Updates Applied During Audit
 - **D3D-1 Compliance**: All `useIsMobile()`, `GenericGameParticles`, CSS fallback code removed from source and stage docs
@@ -115,7 +120,7 @@ Every documentation file in the repo, organized by location. **Status** indicate
 | `Feature-Workflow-Test.md` | Build-test-integrate cycle, feature sizing | ACTIVE | All stages |
 | `database-patterns.md` | Supabase/RLS patterns, schema design | ACTIVE | Stages 2, 8, 9 |
 
-### 2.2 Reference Documents — `docs/00-reference/` (17 active + 1 superseded)
+### 2.2 Reference Documents — `docs/00-reference/` (21 active + 1 superseded)
 
 | File | Version | Purpose | Status | Used By |
 |------|---------|---------|--------|---------|
@@ -136,6 +141,10 @@ Every documentation file in the repo, organized by location. **Status** indicate
 | `MOBILE_3D_ENHANCEMENT_PLAN_PartB.md` | current | Mobile 3D options (superseded by D3D desktop-first) | REF | — |
 | `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md` | current | 20M cockpit upgrade changelog | REF | Stage 3-Cockpit |
 | `README.md` | current | Reference folder index | REF | — |
+| `Master-SparkForge-UI-Design-Change.md` | v1.2 | Full 3D UI migration spec — 7 phases, 49 components, 150 decisions | ACTIVE | 3D UI Migration |
+| `SparkForge-Full-ControlScreen.json` | v1.2 | Complete cockpit control screen layout definition (1,081 lines, 11 sections) | ACTIVE | 3D UI Migration |
+| `DESIGN_DECISIONS_LOG.md` | current | Design decisions log for 3D UI migration (150 decisions) | ACTIVE | 3D UI Migration |
+| `SESSION_REFERENCE.md` | current | Session reference for 3D UI migration phases and implementation notes | ACTIVE | 3D UI Migration |
 | `_SUPERSEDED/COCKPIT_PANORAMIC_ARCHITECTURE_v1.md` | v1.0 | Original cockpit spec (replaced by v2.0) | SUPERSEDED | — |
 
 ### 2.3 Decision Documents — `docs/01-decisions/`
@@ -487,7 +496,7 @@ Legend: **C** = Creates new file | **M** = Modifies existing file | **R** = Repl
 | C | `src/components/3d/StationFrame.tsx` |
 | C | `src/components/3d/CrystalHero.tsx` |
 | C | `src/components/3d/AuroraBackground.tsx` |
-| C | `src/components/3d/AmbientParticles.tsx` |
+| C | `src/components/3d/AmbientParticles.tsx` | **REMOVED (Decision 20.0)** |
 | C | `src/components/3d/LEDRim.tsx` |
 | C | `src/components/providers/PageTransitionProvider.tsx` |
 | C | `src/lib/3d/materials.ts` |
@@ -982,7 +991,7 @@ Every file in `/src/` organized by directory, with its stage of origin. Files cr
 | `api/agent/trending/route.ts` | Enh: S9 Phase 1 | Trending research |
 | `api/agent/game-generator/route.ts` | Enh: S9 Phase 1 | Game generator |
 
-### 4.2 Stores — `src/stores/` (13 files)
+### 4.2 Stores — `src/stores/` (15 files)
 
 | File | Stage Origin | Key State |
 |------|-------------|-----------|
@@ -990,15 +999,16 @@ Every file in `/src/` organized by directory, with its stage of origin. Files cr
 | `childStore.ts` | Stage 1 P2 | children[], activeChild, xp, level, badges |
 | `gameStore.ts` | Stage 1 P2 | currentGame, phase, score, rounds |
 | `toastStore.ts` | Stage 1 P2 | toasts[], addToast/removeToast |
-| `uiStore.ts` | Stage 1 P2 / Hero | sidebar, celebration, labColor, skipIntroAnimation |
+| `uiStore.ts` | Stage 1 P2 / Hero | sidebar, celebration, labColor, skipIntroAnimation, cockpitMode |
 | `deviceStore.ts` | Stage 1 P2 / Hero | gpuTier, stripeCount, desktop-ultra hardcoded |
-| `cockpitStore.ts` | Stage 1 P2 / CPA2 | spatialView, focusedLabId, heroPhase, cockpitSkin |
+| `cockpitStore.ts` | Stage 1 P2 / CPA2 | spatialView, focusedLabId, heroPhase, cockpitSkin, spatialAudioVolume, eventAudioVolume, mechanicalAudioDensity, labAudioEnabled |
 | `cockpitAtoms.ts` | Stage 3 (Phase 1-3) | Jotai atoms for cockpit 3D state |
 | `parentStore.ts` | Stage 8 P1 | subscription, children, timeLimit |
 | `accessibilityStore.ts` | Stage 10 P1 | fontSize, contrast, reducedMotion |
-| `sceneStore.ts` | Enh: D3D Part A | activeScene, activeGameId, transition state |
+| `sceneStore.ts` | Enh: D3D Part A | activeScene, activeGameId, transition state, gameHUDContent, centerContentType, centerContentProps |
 | `guideStore.ts` | Enh: S9 Batch 1 | AI Guide avatar state |
 | `cockpitBroadcastStore.ts` | Enh: S1 Batch A | Cross-panel event bus, 16 event types |
+| `cockpitUIStore.ts` | 3D UI Migration | Cockpit UI panel state, quadrant layout, panel visibility, 3D UI interaction state |
 
 ### 4.3 Hooks — `src/hooks/` (35 files)
 
@@ -1408,7 +1418,7 @@ Full registry in `docs/00-reference/3D-Component-Registry.md`. Summary below.
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio | Part of system |
 | Audio | 3 | cockpitAudio, heroAudio, irisAudio | — |
 | TSL Shaders | 22 | 10 lab patterns + 9 effect shaders + shared + indices | — |
-| **Total** | **~140** | | **50M system budget** |
+| **Total** | **~172** | | **50M system budget** |
 
 ### 8.2 Desktop-Ultra Profile (D3D-1)
 
@@ -1643,11 +1653,11 @@ SparkForge is migrating from a **split architecture** (3D cockpit at z-index 0 +
 
 #### What Does NOT Change
 
-- **140 existing 3D components** (cockpit, environments, game scenes, hero animation)
+- **~172 3D components** (cockpit, environments, game scenes, hero animation, 3D UI migration)
 - **8 existing 3D UI primitives** (HolographicButton, RadialDial3D, ToggleSwitch3D, NavigationButtonGrid, etc.)
 - **37 custom hooks** (React Query data layer)
 - **31 API routes** (backend unchanged)
-- **13 Zustand stores** (cockpitStore gets 4 new audio fields only)
+- **15 Zustand stores** (13 existing + cockpitUIStore new; sceneStore extended with gameHUDContent)
 - **47 shader files** (GLSL + TSL)
 - **35 game 3D environments**
 - **cockpitBroadcastStore** (16 events already defined)
@@ -2191,7 +2201,7 @@ All 18 decisions from `Master-SparkForge-UI-Design-Change.md` Section 4 become l
 
 ---
 
-*End of Master Implementation Guide v4.0 | SparkForge | Laboratory Control Station*
-*414 source files | 128 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 13 stores | 35 hooks | 140 3D components | 84 decision locks + 18 UI decisions | 50 commits (30 days) | 3 resolved gaps | Aligned with CLAUDE.md v6.0 + Master UI Design Change v1.0 | March 31, 2026*
+*End of Master Implementation Guide v4.1 | SparkForge | Laboratory Control Station*
+*414 source files | 132 documentation files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 35 hooks | ~172 3D components | 84 decision locks + 18 UI decisions + 150 design decisions | Full 3D UI Migration complete (7 phases, 49 components) | Aligned with CLAUDE.md v6.0 + Master UI Design Change v1.2 | April 3, 2026*
 
 *This is a living document. Updated after each delivery session. GCUD V10.2 is the canonical source for game content tracking. Master Directory v1.2 is the canonical source for file registry and build flow.*

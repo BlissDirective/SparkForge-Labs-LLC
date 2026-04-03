@@ -5,6 +5,8 @@
 
 ---
 
+> **NOTE (April 3, 2026):** Dashboard pages created in this document have been converted to thin scene descriptors by the 3D UI Migration (Phase 2). Each page now calls `useCockpitScene()` to set the cockpit mode and delegates rendering to 3D panel components (DashboardCenter, LabsCenter, ArcadePanel, ProfileCenter, SettingsPanel, ParentPanel) in `src/components/3d/panels/`. The HTML content described here has been replaced by 3D panel architecture (~861 lines HTML removed). The route structure and data hooks remain valid.
+
 ## PART 1 (4A) COVERS
 
 - React Query hooks for children, content, progress, gamification

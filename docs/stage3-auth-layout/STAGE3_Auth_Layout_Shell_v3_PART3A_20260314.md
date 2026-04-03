@@ -2085,7 +2085,7 @@ The Stage 1 placeholder root page was deleted to avoid route conflict with the `
 | `src/components/3d/StationFrame.tsx` | 374 | ✓ COMPLETE — Full CPA v1.0 with postprocessing stack |
 | `src/components/3d/CrystalShatter.tsx` | 431 | ✓ COMPLETE — All 5 phases, decisions 1.1–1.7. **SUPERSEDED** by `HeroAnimation.tsx` (8-phase, 19s). Archived to `src/components/3d/_SUPERSEDED/`. |
 | `src/components/3d/AuroraBackground.tsx` | 75 | ✓ COMPLETE — Shader-based aurora with simplex3D |
-| `src/components/3d/AmbientParticles.tsx` | 187 | ✓ COMPLETE — Intensity presets, connection lines |
+| ~~`src/components/3d/AmbientParticles.tsx`~~ | ~~187~~ | ~~✓ COMPLETE — Intensity presets, connection lines~~ **REMOVED** by Design Decision 20.0 (April 3, 2026). File deleted from codebase. |
 | `src/components/3d/LEDRimLight.tsx` | 177 | ✓ COMPLETE — CPA v1.0 curved arc, spike animations |
 | `src/lib/3d/materials.ts` | 194 | ✓ COMPLETE — 7+ material presets with CPA extensions |
 | `src/shaders/index.ts` | 790 | ✓ COMPLETE — 10 shader pairs + noiseGLSL library |

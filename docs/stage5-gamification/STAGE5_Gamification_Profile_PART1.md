@@ -5,6 +5,8 @@
 **Prerequisites:** Stage 4 complete
 **Validation:** `npm run build` PASS, `npx tsc --noEmit` PASS, `npm run lint` PASS
 
+> **NOTE (April 3, 2026):** XP celebrations and badge displays created here have been enhanced by the 3D UI Migration (Phase 4). New 3D components: `XPPopup3D` (floating 3D "+X XP" with spring rise), `CelebrationPanel3D` (badge/level/streak display in cockpit center), `useCelebration3D` hook (orchestration: mode switch → CeremonyFX → XP popup → panel → auto-dismiss). The HTML gamification components described here remain as fallbacks.
+
 ---
 
 ## Overview

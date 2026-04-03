@@ -2,7 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 6.1 | **Date:** March 30, 2026 | **Vision:** Laboratory Control Station
+**Version:** 6.2 | **Date:** April 3, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v6.1 (March 30, 2026) — Full 3D UI Migration: 7 phases complete, 49 components built/rebuilt, 150 design decisions locked (131 design + 19 implementation). All dashboard pages converted to 3D panel architecture. Auth forms migrated to 3D. Game HUD/templates migrated. AmbientParticles removed (Decision 20.0). HolographicHUD repositioned to peripheral viewport frame (Decision 6.0). cockpitUIStore added (15th store). cockpitDesignTokens.ts established as design token source of truth.
 **Supersedes:** CLAUDE.md v6.0 (March 24, 2026) — Full Code Audit: 154 issues found and fixed (21C/42H/52M/39L). D3D compliance enforced across source + docs. SQL merged. Tailwind v4 migrated. Security hardened. 2 parent pages created. Lab config centralized. Stage docs updated.
 **Supersedes:** CLAUDE.md v5.9 (March 23, 2026) — D3D Desktop-First Overhaul: Removed mobile/LOD/CSS fallback architecture (D3D-1/2). Added desktop-ultra rendering (50M triangle budget). Added sceneStore, SceneRouter, MechanicalIris, PostProcessingStack. Updated Sections 7, 9, 9.1, 9.2, 9.3, 11, 14. Added 20 D3D decision locks (D3D-1–9, D3D-B1–6, D3D-C1–5). Version footer updated.
 
@@ -20,7 +21,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 | Language | TypeScript (strict mode) | Type safety |
 | Styling | Tailwind CSS 4 (Oxide engine) | Utility-first CSS |
 | Database | Supabase (PostgreSQL + Auth + Storage) | All persistent data |
-| State | Zustand (13 stores) + Jotai (3D atoms) | Client state |
+| State | Zustand (15 stores) + Jotai (3D atoms) | Client state |
 | Data Fetching | React Query (@tanstack/react-query) | Server state + caching |
 | Validation | Zod | Schema validation |
 | Payments | Stripe | Subscriptions (Free/Plus/Forge) |
@@ -35,10 +36,12 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 
 ### Current State
 
-- **Documentation:** COMPLETE — 128 documentation files (80+ active stage docs)
+- **Documentation:** COMPLETE — 131+ documentation files (80+ active stage docs)
 - **v3-FINAL patches:** 16 documents (38 part files), 64 locked decisions (48 core + 4 OD + 12 CPA2)
+- **3D UI Migration:** COMPLETE — 7 phases, 49 components built/rebuilt, 150 design decisions (131 design + 19 implementation)
 - **Games:** 35 total — 6 Flagship (full 3D, 20M tris), 9 FL-Lite (immersive 3D, 10M tris), 20 Standard (themed 3D, 5M tris)
-- **Code written:** ~70% — Stages 1-7 code-complete, audited
+- **Code written:** ~80% — Stages 1-7 code-complete, audited. Full 3D UI migration complete (dashboard, auth, game HUD, templates, marketing).
+- **Key UI migration docs:** `Master-SparkForge-UI-Design-Change.md` v1.2, `SparkForge-Full-ControlScreen.json` v1.2, `DESIGN_DECISIONS_LOG.md`, `SESSION_REFERENCE.md`
 
 ---
 
@@ -123,6 +126,10 @@ Claude Code should reference these documents in this priority order:
 | 16 | **Error Handling & Auto-Fix Guide** | `docs/00-reference/` | Build/TS/import error patterns and auto-fix strategies |
 | 17 | **Quick Reference: 35 Games** | `docs/00-reference/` | Full game table (extracted from CLAUDE.md, canonical in GCUD V10.2) |
 | 18 | **Enhancement Blueprint v1.0** | Repo root | 12-section visionary upgrade plan (Enh 1.0–1.2+) |
+| 19 | **Master UI Design Change v1.2** | Repo root | Full 3D UI migration spec — 7 phases, quadrant layout, 8 mode presets, audio architecture |
+| 20 | **SparkForge Full ControlScreen v1.2** | Repo root (JSON) | Complete cockpit spec (~1,800 lines) — materials, lighting, interaction model, design tokens, component designs |
+| 21 | **Design Decisions Log** | Repo root | 131 design decisions + 19 implementation decisions = 150 total. System tokens + component designs + phase 3-7 choices |
+| 22 | **Session Reference** | Repo root | Full rebuild summary — 49 components, key changes per component, file inventory, verification results |
 
 ### Build Strategy: Read File Prior to Usage. Certain v2 documents need to be developed prior to v3, and certain v3 should be developed before their v2 counterparts. 
 
@@ -554,7 +561,7 @@ const Component3D = dynamic(
 
 ### 3D Component Registry
 
-**Full registry (~140 components):** `docs/00-reference/3D-Component-Registry.md`
+**Full registry (~172 files):** `docs/00-reference/3D-Component-Registry.md`
 
 | Category | Count | Key Components |
 |----------|-------|----------------|
@@ -565,10 +572,17 @@ const Component3D = dynamic(
 | Procedural Environment | 7 | ProceduralEnvironmentGenerator, ProceduralTerrain, ProceduralSkyDome, ProceduralFog, ProceduralLighting, ProceduralProps, proceduralConfig |
 | Cockpit/Enhancement | 24 | CockpitCanvas, CameraSystem, SpatialDashboard, HolographicLabMap, CockpitPanels, SidePanels, StatusBar3D, HolographicHUD, LEDRim, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitSkinManager, CockpitAudioEngine |
 | **3D UI Components (v3.0)** | **8** | **HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard, HolographicPanel, NavigationButtonGrid, VariableDialCluster, CenterViewportScreen** |
+| **3D UI Primitives** | **5** | **CockpitText, CockpitContainer, CockpitScrollPanel, CockpitInput, CockpitTooltip** |
+| **3D Panels (Dashboard)** | **9** | **DashboardLeft, DashboardRight, DashboardCenter, LabsCenter, ArcadePanel, ProfileCenter, SettingsPanel, ParentPanel, LabDetailPanel** |
+| **3D Panels (Auth)** | **4** | **LoginPanel3D, SignupPanel3D, ResetPasswordPanel3D, ChatPanel3D** |
+| **3D Game UI** | **10** | **GameHUD3D, GameTimerBar3D, GamePhaseOverlay3D, ChoiceButton3D, QuizGameTemplate, BuilderGameTemplate, ExplorerGameTemplate, LabGameTemplate, GameLearnCards3D** |
+| **3D Gamification** | **3** | **XPPopup3D, CelebrationPanel3D, useCelebration3D** |
+| **3D Marketing** | **1** | **CockpitPreview3D (mini cockpit teaser ~50K tris)** |
+| **3D UI Infrastructure** | **3** | **CockpitUILayer.tsx (quadrant orchestrator), cockpitModePresets.ts (8 modes), cockpitDesignTokens.ts (131 token system)** |
 | **3D UI Materials** | **1** | **cockpitMaterials.ts (7 factories: alloyFrame, controlPanel, holographic, button, bezel, console, LED)** |
-| **3D UI Stores** | **1** | **cockpitBroadcastStore.ts (cross-panel event bus, 16 event types, pulse decay)** |
+| **3D UI Stores** | **2** | **cockpitBroadcastStore.ts (cross-panel event bus, 16 event types), cockpitUIStore.ts (center content routing)** |
 | Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
-| Hooks (D3D) | 2 | useParallaxMouse, useInteractiveSurface |
+| Hooks (D3D) | 3 | useParallaxMouse, useInteractiveSurface, useCockpitScene |
 | Audio (D3D) | 1 | irisAudioEngine (+ LAB_COLOR_AUDIO_PROFILES for per-lab sound variations) |
 | Stores (D3D) | 1 | sceneStore |
 | TSL Shaders (Section 4.1-A) | 12 | 10 lab pattern TSL ports + shared.ts + index.ts (WebGPU-compatible) |
@@ -622,7 +636,7 @@ The **Cockpit Panoramic Architecture v2.0** (`docs/00-reference/3D_PANORAMIC_COC
 - **Single `<CockpitCanvas>`** wraps the entire app — R3F Canvas persists across all routes (no remount, no canvas swap)
 - **WebGPU primary** renderer via `WebGPURenderer` (async init), **WebGL2 fallback** automatic via TSL compilation
 - **Hero Animation** seamlessly transitions INTO the live cockpit — final animation frame IS the first interactive frame
-- **Dashboard HTML** renders as z-index overlay on top of the live cockpit scene
+- **Dashboard content** renders as 3D panels inside the cockpit (all HTML dashboard pages converted to 3D panel architecture via CockpitUILayer quadrant system)
 - **All cockpit geometry** materializes from shattered logo shards (Phase 6 migration → Phase 7 crystallization)
 
 #### Enhancement Phases
@@ -670,9 +684,9 @@ Note: WormholeTransition is retained for lab-to-lab transitions within the spati
 | InteractiveConsole3D (4) | 3,000,000 | 750K/console: multi-part housing, projector base, instrument cluster |
 | AmbientNPCs (8 bots) | 2,000,000 | 250K/bot: articulated body, facial animation, finger grippers |
 | DynamicEnvironment | 3,000,000 | Volumetric fog, environmental props, weather effects |
-| HolographicHUD | 1,000,000 | 8 concentric rings, data arcs, reticle, volumetric scan beams |
-| StatusBar3D | 1,000,000 | XP speedometer, streak flame, 10 lab indicators (at [0,-1.25,-1.95]) |
-| LEDRim | 500,000 | 1500 LED capsules (was 1000), emissive 3.0, data viz mode |
+| HolographicHUD | 1,000,000 | **REPOSITIONED (Decision 6.0):** peripheral viewport frame (4 arc segments, corner readouts), NOT overhead rings. Breathing pulse on 4s cycle. |
+| StatusBar3D | 1,000,000 | XP arc bar (no needle), pulse ring (no flame), 10 mini arc lab indicators (at [0,-1.25,-1.95]) |
+| LEDRim | 500,000 | 1500 rectangular LED blocks, emissive 2.5x, center-outward burst, pure mood lighting (no data mode — Decision 7.5) |
 | CockpitStructuralDetail | 2,000,000 | 60 cable bundles, 16 vent panels, ribs, LED indicator strips |
 | CockpitFloor3D | 1,000,000 | Grated floor, sub-floor piping, energy conduits, LED channels |
 | VolumetricFog3D | 500,000 | Fog volumes, god ray cones, density layers with FBM noise |
@@ -680,11 +694,11 @@ Note: WormholeTransition is retained for lab-to-lab transitions within the spati
 | WormholeTransition | 300,000 | Tunnel interior, swirling energy walls, speed lines, portal rings |
 | MiniMapOverlay3D | 250,000 | Miniature lab ring, player indicator, completion color-coding |
 | AuroraBackground | 50,000 | Volumetric aurora layers, 3 ribbon TubeGeometry paths |
-| AmbientParticles | 200,000 | Instanced icosahedron particles with trails and halos |
+| ~~AmbientParticles~~ | ~~200,000~~ | **REMOVED (Decision 20.0)** — Ambient particles removed from cockpit. Structural accent lines + LED rim provide sufficient atmosphere. |
 | **NEW: 3D UI Components** | 5,000,000 | HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard/Panel |
 | **NEW: NavigationButtonGrid** | 1,000,000 | 5 physical cockpit nav buttons (HOME/LABS/ARCADE/SETTINGS/PROFILE) |
 | **NEW: VariableDialCluster** | 1,500,000 | 3 center-console dials, per-page auto-reconfigure |
-| **NEW: CenterViewportScreen** | 3,000,000 | Spherical panoramic screen (r=3.9, 144×72 segs, BackSide) |
+| **NEW: CenterViewportScreen** | 3,000,000 | Cylindrical concave screen (Decision 9.1), segmented chrome bezel, CRT scan lines, wipe sweep transition |
 | **Cockpit Total** | **~37,800,000** | System 50M budget with ~12M game headroom |
 
 #### Desktop-Only Rendering (D3D-1)
@@ -741,6 +755,11 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | D3D-LOD-REMOVED | LOD system (`useLOD`, `LODWrapper`) removed | **RESOLVED** by D3D-2: All geometry at max quality. `deviceStore` hardcoded to desktop-ultra. | D3D Part A |
 | D3D-MOBILE-REMOVED | Mobile detection and CSS fallbacks removed | **RESOLVED** by D3D-1: 401 `isMobile` occurrences removed. Desktop-only rendering. | D3D Part A |
 | D3D-POSTFX-UPGRADE | Only 3 post-processing effects (Bloom, Vignette, BarrelDistortion) | **RESOLVED** by D3D-5/C1: 7 effects always-on with scene-reactive multipliers. | D3D Part C |
+| UI-MIG-AMBIENT-PARTICLES | AmbientParticles.tsx existed but was design-removed | **RESOLVED (April 3, 2026)** — Decision 20.0: Ambient particles removed from cockpit entirely. File deleted. Structural accent lines + LED rim provide sufficient atmosphere. | UI Migration |
+| UI-MIG-HUD-REPOSITION | HolographicHUD positioned overhead at [0,2.05,-3.4] blocking content | **RESOLVED (April 3, 2026)** — Decision 6.0: Repositioned to peripheral viewport frame (4 arc segments wrapping viewport edges). Corner data readouts (time, XP, mode, child). | UI Migration |
+| UI-MIG-HTML-DASHBOARD | Dashboard pages rendered as HTML z-index overlay on 3D canvas | **RESOLVED (April 3, 2026)** — Phase 2: All 6 dashboard pages (home, labs, arcade, profile, settings, parent) converted to thin scene descriptors. 9 3D panel components created. ~861 lines HTML removed. | UI Migration |
+| UI-MIG-AUTH-3D | Login/signup/reset pages were flat HTML forms | **RESOLVED (April 3, 2026)** — Phase 3: LoginPanel3D, SignupPanel3D, ResetPasswordPanel3D, ChatPanel3D created. Auth pages use own Canvas (P3-1). Hidden HTML input proxy pattern (P3-2). | UI Migration |
+| UI-MIG-GAME-HUD | Game HUD was HTML-only, no 3D chrome | **RESOLVED (April 3, 2026)** — Phase 5: GameHUD3D, GameTimerBar3D, GamePhaseOverlay3D. Auto-registered via GameShell (P5-1). 4 game templates (Quiz, Builder, Explorer, Lab) for 29 standard games. | UI Migration |
 
 ### Game Code Agent — COMPLETED
 
@@ -787,7 +806,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-## 14. STORES (13 total)
+## 14. STORES (15 total)
 
 | Store | Stage | Key State |
 |-------|-------|-----------|
@@ -799,13 +818,14 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader. Exported as `useA11yStore`. |
 | parentStore | 8 | subscription, children, timeLimit, contentFilter |
 | **deviceStore** | — | D3D-1/3: Hardcoded desktop-ultra. 50M total budget. No device selection. gpuTier, stripeCount. |
-| **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
-| **sceneStore** | D3D Part B | `activeScene`, `activeGameId`, `activeGameLabColor`, `transition`, `isTransitioning`, `cockpitOpacityTarget`. Actions: `enterGame`/`exitGame`/`enterSpatial`/`exitSpatial`/`setHeroActive`/`completeHero`/`updateTransitionProgress`/`completeTransition`. |
+| **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. **Extended (UI Migration):** +audioVolumes, +brightness, +activeMode (8 cockpit modes). Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
+| **cockpitUIStore** | UI Migration Phase 1 | Center content routing for 3D panel architecture. Routes: `home`\|`labs`\|`arcade`\|`profile`\|`settings`\|`parent`\|`chat`\|`celebration`\|`game`. Maps route → panel component for CockpitUILayer quadrant system. |
+| **sceneStore** | D3D Part B | `activeScene`, `activeGameId`, `activeGameLabColor`, `transition`, `isTransitioning`, `cockpitOpacityTarget`. **Extended (UI Migration):** +`gameHUDContent` (React element for GameHUD3D auto-registration via GameShell). Actions: `enterGame`/`exitGame`/`enterSpatial`/`exitSpatial`/`setHeroActive`/`completeHero`/`updateTransitionProgress`/`completeTransition`/`setGameHUDContent`. |
 | **cockpitBroadcastStore** | Stage 4 v3.0 | Cross-panel event bus. 16 event types (`dial-rotate`, `button-press`, `page-navigate`, `lab-select`, `xp-change`, etc.). Pulse decay system with per-event intensity mapping. All 3D UI components broadcast here; all cockpit elements subscribe. |
 | **guideStore** | 5/Phase5 | visible, minimized, context, labId, gameId, mood, messages, isStreaming, voiceEnabled, avatarConcept |
 | **cockpitAtoms** | CPA v2.0 | Jotai atoms for fine-grained cockpit 3D reactive state (labHover, panelFocus, etc.) |
 
 ---
 
-*End of CLAUDE.md v6.0 — SparkForge Autonomous Development Playbook*
-*128 doc files | 409 src files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | ~140 3D components | 13 stores | 84 decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | Tech Stack 8.1 APPLIED | March 30, 2026*
+*End of CLAUDE.md v6.2 — SparkForge Autonomous Development Playbook*
+*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | April 3, 2026*
