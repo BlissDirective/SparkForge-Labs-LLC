@@ -22,6 +22,7 @@ export type CenterContentKey =
   | 'parent'        // ParentPanel
   | 'game'          // Game takeover (no center panel — game scene fills)
   | 'chat'          // ChatPanel3D (AI Guide chat)
+  | 'celebration'   // CelebrationPanel3D (badge/level/streak/lab-complete)
   | 'onboarding';   // OnboardingPanel (future)
 
 // ■■ Data passed from pages to 3D panels ■■
