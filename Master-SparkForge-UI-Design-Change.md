@@ -1,6 +1,6 @@
 # Master SparkForge UI Design Change
 
-**Version:** 1.0 | **Date:** March 31, 2026 | **Status:** APPROVED — Ready for Implementation
+**Version:** 1.2 | **Date:** April 3, 2026 | **Status:** Phase 1+2 + Component Rebuild COMPLETE — Ready for Phase 3
 **Source of Truth:** `SparkForge-Full-ControlScreen.json` (1,081 lines, 11 sections)
 **Branch:** `claude/review-cockpit-interface-7zfku`
 
@@ -319,6 +319,25 @@ Removing HTML and rendering all UI in 3D eliminates this split entirely. The coc
 - TypeScript tokens file: `src/lib/3d/cockpitDesignTokens.ts` (~340 lines)
 - Full decision log: `DESIGN_DECISIONS_LOG.md`
 
+### Component Rebuild — ALL 30 COMPLETE (April 3, 2026)
+All 30 designed components rebuilt to consume `cockpitDesignTokens.ts`.
+
+| Group | Components | Status |
+|-------|-----------|--------|
+| 10 Hero | Button, NavGrid, Dial, Toggle, LabMap, HUD, LEDRim, StatusBar, Viewport, Iris | DONE |
+| 4 Structural | CockpitPanels, SidePanels, Floor, StructuralDetail | DONE |
+| 3 Interactive | DialCluster, Card, Panel | DONE |
+| 3 Effects | CeremonyFX, Aurora, Wormhole (+ AmbientParticles REMOVED) | DONE |
+| 9 Panels | DashboardLeft/Right/Center, LabsCenter, Arcade, Profile, Settings, Parent, LabDetail | DONE |
+
+**Key architectural changes during rebuild:**
+- HolographicHUD: overhead rings → peripheral viewport frame
+- All `<Html>` usage removed from cards/panels → drei `<Text>`
+- HolographicButton: `width`/`height` props → `size` (sm/md/lg)
+- CockpitPanels: 768 rivets removed (clean surface)
+- RadialDial3D: new `readOnly` prop with glass cover
+- ArcadePanel: paginated (12/page) with prev/next controls
+
 ### Phases Remaining
 | Phase | Scope | Status |
 |-------|-------|--------|
@@ -327,7 +346,6 @@ Removing HTML and rendering all UI in 3D eliminates this split entirely. The coc
 | **5: Flagship Games** | 6 game UIs → 3D panels | NOT STARTED |
 | **6: Standard Games** | 29 game UIs via 4 shared templates | NOT STARTED |
 | **7: Marketing** | 3D hero section, enhanced CSS | NOT STARTED |
-| **Component Rebuild** | Update 10 hero components to match design tokens | NOT STARTED |
 
 ### Architecture After Phase 2
 ```
@@ -356,6 +374,6 @@ cockpitUIStore → CockpitUILayer → CenterContentRouter
 
 ---
 
-*Master SparkForge UI Design Change v1.1 — April 2, 2026*
-*Phase 1+2 complete. Design tokens locked (131 decisions). Phases 3-7 + component rebuild pending.*
+*Master SparkForge UI Design Change v1.2 — April 3, 2026*
+*Phase 1+2 complete. Design tokens locked (131 decisions). All 30 components rebuilt. Phases 3-7 pending.*
 *Companion spec: SparkForge-Full-ControlScreen.json (~1,800 lines)*

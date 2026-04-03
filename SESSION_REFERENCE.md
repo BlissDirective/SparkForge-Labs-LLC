@@ -1,14 +1,14 @@
 # SESSION REFERENCE — SparkForge UI Design Change
 
-**Last Session:** April 2, 2026
-**Branch:** `claude/sparkforge-ui-design-8rpef`
-**Status:** Phase 1+2 complete, design tokens locked, ready for component rebuild + Phase 3
+**Last Session:** April 3, 2026
+**Branch:** `claude/review-design-phase-planning-IOZy4`
+**Status:** Phase 1+2 complete, design tokens locked, ALL 30 components rebuilt. Ready for Phase 3.
 
 ---
 
 ## WHAT WAS ACCOMPLISHED
 
-### 1. Phase 1: Infrastructure (COMPLETE)
+### 1. Phase 1: Infrastructure (COMPLETE — April 1, 2026)
 Built the foundation for the full 3D cockpit UI migration:
 - `src/lib/3d/cockpitModePresets.ts` — 8 cockpit modes × 14 atmosphere properties
 - `src/hooks/useCockpitScene.ts` — Hook that pages call to set cockpit mode
@@ -17,77 +17,100 @@ Built the foundation for the full 3D cockpit UI migration:
 - `src/components/3d/CockpitUILayer.tsx` — Master quadrant orchestrator (left/center/right/bottom)
 - 5 UI primitives: CockpitText, CockpitContainer, CockpitScrollPanel, CockpitInput, CockpitTooltip
 
-### 2. Phase 2: Dashboard (COMPLETE)
+### 2. Phase 2: Dashboard (COMPLETE — April 1, 2026)
 Stripped 6 HTML dashboard pages and replaced with 3D panel architecture:
 - Dashboard layout.tsx stripped of HTML content layer, wired to useCockpitScene
 - 6 pages (home, labs, arcade, profile, settings, parent) converted to thin scene descriptors
-- 9 panel components created in `src/components/3d/panels/`:
-  - DashboardLeft, DashboardRight (fixed side quadrants)
-  - DashboardCenter, LabsCenter, SettingsPanel (Batch C)
-  - LabDetailPanel, ArcadePanel, ProfileCenter, ParentPanel (Batch D)
+- 9 panel components created in `src/components/3d/panels/`
 - Net reduction: ~861 lines of HTML removed
 
-### 3. Design Token System (COMPLETE — 131 decisions locked)
+### 3. Design Token System (COMPLETE — April 1-2, 2026 — 131 decisions locked)
 Created a comprehensive design language to prevent visual chaos:
 
 **System-level tokens (12 sections, 48 decisions):**
-- Typography: 7 levels, Orbitron for all numbers, accent-aware 4-tier colors
-- Edges: rounded+chamfer hybrid, soft technical radii (4/8/12px), bold 2px chrome, pulse trace hover
-- Depth: 8 layers (0.005/step), flush screens, tactile buttons
-- Springs: 6 presets, mechanical satisfying feel, 400ms transitions
-- Celebrations: 3 tiers (minor 1.5s / major 3s / epic 4s with camera shake)
-- Emissive: 6 levels, medium idle (0.8), 1.8x hover boost, LEDs 1.5x brighter
-- Mode atmosphere: whisper 5% tint, neutral chrome, mode-matched fill light + particles
-- States: 6 states including loading, glow hold active, desaturated disabled
-- Surface: subtle seams, fine grain, factory fresh, full trace accent lines
-- Focus: brightness+DOF, mode-aware targets, primary CTA first-look
-- Density: balanced items (5/12/9/3/4), comfortable 40% whitespace, paginate overflow
-- Feedback: ripple 300ms, sector response, simultaneous audio, diminishing dampening
-- Audio: flat falloff, moderate 0.5 density, priority ducking, hard cut crossfade
+- Typography, Edges, Depth, Springs, Celebrations, Emissive, Mode Atmosphere, States, Surface, Focus, Density, Feedback, Audio
 
 **Component-level designs (30 components, 83 decisions):**
-- 10 hero components fully designed (NavigationButtonGrid, HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicLabMap, HolographicHUD, LEDRim, StatusBar3D, CenterViewportScreen, MechanicalIris)
-- 4 structural components (CockpitPanels, SidePanels, CockpitFloor3D, CockpitStructuralDetail)
-- 3 interactive/display (VariableDialCluster, HolographicCard, HolographicPanel)
-- 4 effects (CeremonyFX, AuroraBackground, AmbientParticles=REMOVED, WormholeTransition)
-- 9 panel layouts (all dashboard panels)
+- 10 hero + 4 structural + 3 interactive/display + 4 effects + 9 panel layouts
 
-**Key design file locations:**
-- `SparkForge-Full-ControlScreen.json` — Master JSON spec (~1,800 lines)
-- `DESIGN_DECISIONS_LOG.md` — All 131 decisions with rationale
-- `src/lib/3d/cockpitDesignTokens.ts` — TypeScript constants for code consumption
-- `Master-SparkForge-UI-Design-Change.md` — Overview + progress tracking
+### 4. Component Rebuild — ALL 30 COMPLETE (April 3, 2026)
+Every designed component has been rebuilt to consume `cockpitDesignTokens.ts` and match the 131 locked design decisions.
 
-### Notable Design Decisions
-- **HolographicHUD repositioned** from overhead overlay to peripheral frame (eliminates content distraction)
-- **AmbientParticles REMOVED** from cockpit (cleaner visual, accent lines provide atmosphere)
-- **NavigationButtonGrid** uses pentagon cluster layout with ARCADE center
-- **All chrome stays neutral silver** — mode atmosphere comes from fill light + particles + LEDs only
-- **Paginate, not scroll** for overflow content (no scroll in 3D, next/prev buttons)
+**10 Hero Components:**
+| Component | Key Changes |
+|-----------|-------------|
+| HolographicButton | Chamfered rect (ExtrudeGeometry), dual-layer, 3 sizes (sm/md/lg), inset text |
+| NavigationButtonGrid | Pentagon cluster layout, beveled square buttons, console plate, no icons |
+| RadialDial3D | Knurled cylinder, 24 LED ring, illuminated tick dots, glass cover readOnly |
+| ToggleSwitch3D | Paddle switch, LED strip, hard snap (SPRING_PRESETS.snap) |
+| HolographicLabMap | 3D Text tooltips (Html removed), isolate+spotlight hover dimming |
+| HolographicHUD | **MAJOR: overhead rings → peripheral viewport frame** (4 arc segments, corner readouts) |
+| LEDRim | Rectangular blocks, center-outward burst, sequential color fill, 2.5x emissive |
+| StatusBar3D | Arc bar (no needle), pulse ring (no flame), 10 mini arc lab indicators |
+| CenterViewportScreen | Cylindrical concave (not spherical), segmented bezel, CRT scan lines, wipe sweep |
+| MechanicalIris | Carbon composite blades (#0A0F1F), staggered spiral opening, geometry disposal |
+
+**4 Structural Components:**
+| Component | Key Changes |
+|-----------|-------------|
+| CockpitPanels | Smooth carbon, 768 rivets removed, accent-traced panels |
+| SidePanels | Carbon composite #0A0F1F, segmented chrome with corner gaps |
+| CockpitFloor3D | Hexagonal honeycomb offsets, pulsing energy channels, HOVER_GLOW timing |
+| CockpitStructuralDetail | Hidden cables with covers, perforated circle vents, intersection-only accent lighting |
+
+**3 Interactive/Display Components:**
+| Component | Key Changes |
+|-----------|-------------|
+| VariableDialCluster | Individual circular pods with chrome rims, arc row, chrome rails, readOnly on non-settings |
+| HolographicCard | Chamfered rect, dual-layer (carbon base + accent top strip), edge trace hover, Html→Text |
+| HolographicPanel | Raised platform, chrome divider bar headers, density tokens, Html removed |
+
+**4 Effects (3 rebuilt, 1 removed):**
+| Component | Key Changes |
+|-----------|-------------|
+| CeremonyFX | Metallic chrome/gold shards, particle assembly trophy, pulsing bloom heartbeat, CELEBRATION_TIERS |
+| AuroraBackground | Mode-tinted ribbons (SURFACE_TINT_BLEND), gentle flow 0.6, PARTICLE_CROSSFADE_S |
+| AmbientParticles | **REMOVED** by design decision |
+| WormholeTransition | Twisted helix tunnel, wireframe energy grid walls, 500ms duration |
+
+**9 Panel Layouts:**
+| Component | Key Changes |
+|-----------|-------------|
+| DashboardLeft | Hexagonal chrome avatar frame, vertical gauge stack, 5 recent badges with ghost placeholders |
+| DashboardRight | Mini cards with chrome border, horizontal quick action row, collapsed settings header |
+| DashboardCenter | Floating header above lab map, no center stats, bottom CTA (size="lg") |
+| LabsCenter | Floating HolographicCard info, explicit "Enter Lab" button |
+| ArcadePanel | Paginated grid (12/page), HolographicCard tiles with tier (F/FL/S), prev/next controls |
+| ProfileCenter | 3×3 pedestal grid (earned=glow, locked=dim ghost), 1.5x hexagonal avatar |
+| SettingsPanel | Column layout (audio left, visual right), 5 skin preview HolographicCards |
+| ParentPanel | Child profile HolographicCards, vertical action button column (right side) |
+| LabDetailPanel | Radial fan semicircle game cards with tier indicators |
+
+### Notable Design Decisions Applied
+- **HolographicHUD repositioned** from overhead overlay to peripheral frame
+- **AmbientParticles REMOVED** from cockpit
+- **NavigationButtonGrid** pentagon cluster with ARCADE center
+- **All chrome stays neutral silver** — mode atmosphere from fill light + particles + LEDs
+- **Paginate, not scroll** — ArcadePanel uses prev/next, no scroll in 3D
+- **Html removed from all components** — replaced with drei `<Text>` throughout
+- **readOnly gauges** — VariableDialCluster uses glass cover on non-settings pages
 
 ---
 
 ## WHAT COMES NEXT
 
-### Immediate Priority Options:
-1. **Update 10 hero component implementations** — Rewrite existing NavigationButtonGrid, HolographicButton, RadialDial3D, ToggleSwitch3D, etc. to match their new design specs and consume cockpitDesignTokens.ts
-2. **Phase 3: Auth + Forms** — Login/signup 3D panels, chat panel, search (4 new files, 4 modified)
-3. **Phase 4: Gamification** — Celebration system, XP popup, streak → 3D (4 new files, 5 modified)
+### Phase 3: Auth + Forms (NOT STARTED)
+- Login/signup 3D panels, chat panel, search
+- ~4 new files, ~4 modified files
 
-### Recommended order: Update hero components FIRST
-The 10 hero components (especially HolographicButton and RadialDial3D) are used by every panel. Updating them to consume design tokens means all panels automatically get the correct visual treatment.
+### Phase 4: Gamification (NOT STARTED)
+- Celebration system integration, XP popup, streak → 3D
+- ~4 new files, ~5 modified files
 
-### Files that need component rebuild:
-- `src/components/3d/ui/NavigationButtonGrid.tsx` — pentagon cluster, beveled square, backlit engraved
-- `src/components/3d/ui/HolographicButton.tsx` — chamfered rect, dual-layer, 3 sizes, inset text
-- `src/components/3d/ui/RadialDial3D.tsx` — knurled cylinder, LED ring, glass cover for read-only
-- `src/components/3d/ui/ToggleSwitch3D.tsx` — paddle switch, LED strip, grouped panel
-- `src/components/3d/HolographicLabMap.tsx` — beam lines, shell-layer completion, isolate hover
-- `src/components/3d/HolographicHUD.tsx` — MAJOR: reposition to peripheral frame
-- `src/components/3d/LEDRim.tsx` — rectangular blocks, outward burst, sequential fill
-- `src/components/3d/StatusBar3D.tsx` — arc bar, pulse ring, mini arcs, curved strip
-- `src/components/3d/ui/CenterViewportScreen.tsx` — cylindrical concave, segmented frame, scan lines
-- `src/components/3d/MechanicalIris.tsx` — staggered spiral, carbon composite blades
+### Phase 5-7: Games + Marketing (NOT STARTED)
+- 6 flagship game UIs → 3D panels
+- 29 standard game UIs via 4 shared templates
+- 3D marketing hero section
 
 ---
 
@@ -96,17 +119,19 @@ The 10 hero components (especially HolographicButton and RadialDial3D) are used 
 | File | What it contains |
 |------|-----------------|
 | `CLAUDE.md` | Project architecture, autonomy rules, all stage docs |
-| `Master-SparkForge-UI-Design-Change.md` | UI migration overview + implementation progress |
-| `SparkForge-Full-ControlScreen.json` | Complete cockpit spec (layout + design tokens + component designs) |
-| `DESIGN_DECISIONS_LOG.md` | All 131 design decisions with tables |
-| `src/lib/3d/cockpitDesignTokens.ts` | TypeScript design tokens (consumed by components) |
+| `Master-SparkForge-UI-Design-Change.md` | UI migration overview + implementation progress (v1.2) |
+| `SparkForge-Full-ControlScreen.json` | Complete cockpit spec (~1,800 lines) |
+| `DESIGN_DECISIONS_LOG.md` | All 131 design decisions with tables + implementation status |
+| `src/lib/3d/cockpitDesignTokens.ts` | TypeScript design tokens (consumed by all 30 components) |
 | `src/lib/3d/cockpitModePresets.ts` | 8 mode definitions + route mapping |
 | `src/hooks/useCockpitScene.ts` | Page-level cockpit mode controller |
 | `src/stores/cockpitUIStore.ts` | Center content routing store |
 | `src/components/3d/CockpitUILayer.tsx` | Master quadrant orchestrator |
-| `src/components/3d/panels/*.tsx` | 9 panel components (center content per page) |
+| `src/components/3d/panels/*.tsx` | 9 panel components (all rebuilt to design tokens) |
+| `src/components/3d/ui/*.tsx` | 7 UI components (Button, Card, Panel, Dial, Toggle, NavGrid, DialCluster) |
+| `src/components/3d/*.tsx` | 12 cockpit components (HUD, LEDRim, StatusBar, Floor, Panels, etc.) |
 
 ---
 
 *To continue: Read this file + DESIGN_DECISIONS_LOG.md + Master-SparkForge-UI-Design-Change.md for full context.*
-*Branch: claude/sparkforge-ui-design-8rpef*
+*Branch: claude/review-design-phase-planning-IOZy4*
