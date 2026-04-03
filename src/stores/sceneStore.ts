@@ -26,6 +26,10 @@ interface SceneState {
   gameSceneContent: ReactNode | null;
   setGameSceneContent: (content: ReactNode | null) => void;
 
+  // Game HUD 3D content — registered by GameShell, rendered above game scene (Phase 5)
+  gameHUDContent: ReactNode | null;
+  setGameHUDContent: (content: ReactNode | null) => void;
+
   enterGame: (gameId: string, labColor: string) => void;
   exitGame: () => void;
   enterSpatial: () => void;
@@ -49,6 +53,9 @@ export const useSceneStore = create<SceneState>((set, get) => ({
 
   gameSceneContent: null,
   setGameSceneContent: (content) => set({ gameSceneContent: content }),
+
+  gameHUDContent: null,
+  setGameHUDContent: (content) => set({ gameHUDContent: content }),
 
   enterGame: (gameId, labColor) => {
     set({
@@ -76,6 +83,7 @@ export const useSceneStore = create<SceneState>((set, get) => ({
       isTransitioning: true,
       cockpitOpacityTarget: 1.0,
       gameSceneContent: null,
+      gameHUDContent: null,
       transition: {
         from: 'game',
         to: 'cockpit',
@@ -143,3 +151,4 @@ export const selectIsTransitioning = (s: SceneState) => s.isTransitioning;
 export const selectActiveGameId = (s: SceneState) => s.activeGameId;
 export const selectCockpitOpacity = (s: SceneState) => s.cockpitOpacityTarget;
 export const selectGameSceneContent = (s: SceneState) => s.gameSceneContent;
+export const selectGameHUDContent = (s: SceneState) => s.gameHUDContent;

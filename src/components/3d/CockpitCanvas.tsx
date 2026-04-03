@@ -277,6 +277,8 @@ export function CockpitCanvas({
   // Game 3D scene content — registered by games via sceneStore (D3D-B3)
   const storeGameSceneContent = useSceneStore((s) => s.gameSceneContent);
   const resolvedGameSceneContent = gameSceneContent ?? storeGameSceneContent;
+  // Game HUD 3D content — registered by GameShell (Phase 5)
+  const gameHUDContent = useSceneStore((s) => s.gameHUDContent);
 
   // Per-game camera preset lookup (Section 4.1-B)
   const gameCameraPreset = useMemo(() => {
@@ -436,7 +438,13 @@ export function CockpitCanvas({
                 />
               </>
             }
-            gameContent={resolvedGameSceneContent}
+            gameContent={
+              <>
+                {resolvedGameSceneContent}
+                {/* Game HUD renders above game scene (Phase 5) */}
+                {gameHUDContent}
+              </>
+            }
             irisContent={<MechanicalIris labColor={effectiveLabColor} />}
           />
 
