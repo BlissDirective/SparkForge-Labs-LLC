@@ -7,8 +7,10 @@
 // Decision 26.2: Filter in HUD frame — lab filters in top segment of peripheral HUD
 // Decision 26.3: Tile content — name + tier indicator (F/FL/S) + completion dot
 
-import { useMemo, useState } from 'react';
-import { Text } from '@react-three/drei';
+import { useMemo, useState, useRef, useEffect } from 'react';
+import { useFrame } from '@react-three/fiber';
+import { Text, Html } from '@react-three/drei';
+import { Color, Mesh, MeshStandardMaterial } from 'three';
 import { HolographicButton } from '../ui/HolographicButton';
 import { HolographicCard } from '../ui/HolographicCard';
 import { GAME_REGISTRY, type GameRegistryEntry } from '@/config/gameRegistry';
@@ -20,6 +22,68 @@ import {
   MAX_VISIBLE_ITEMS,
   NUMERIC_FONT,
 } from '@/lib/3d/cockpitDesignTokens';
+
+// ═══ Search Field sub-component ═══════════════════════════════
+
+const SEARCH_WIDTH = 0.6;
+const SEARCH_HEIGHT = 0.06;
+const SEARCH_ACCENT = '#00BBFF';
+
+function SearchField3D({
+  value, onChange, focused, onFocus,
+}: {
+  value: string; onChange: (v: string) => void; focused: boolean; onFocus: () => void;
+}) {
+  const meshRef = useRef<Mesh>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const accentC = useMemo(() => new Color(SEARCH_ACCENT), []);
+  const chromeC = useMemo(() => new Color('#a8b5c8'), []);
+
+  useFrame(() => {
+    if (meshRef.current) {
+      const mat = meshRef.current.material as MeshStandardMaterial;
+      mat.emissive = focused ? accentC : chromeC;
+      mat.emissiveIntensity = focused ? 0.35 : 0.1;
+    }
+  });
+
+  useEffect(() => {
+    if (focused && inputRef.current) inputRef.current.focus();
+  }, [focused]);
+
+  return (
+    <group position={[0.2, 0.62, 0.3]}>
+      {/* Border */}
+      <mesh ref={meshRef} onClick={onFocus}>
+        <boxGeometry args={[SEARCH_WIDTH + 0.004, SEARCH_HEIGHT + 0.004, 0.002]} />
+        <meshStandardMaterial color={chromeC} metalness={0.95} roughness={0.1} emissive={chromeC} emissiveIntensity={0.1} />
+      </mesh>
+      {/* Background */}
+      <mesh position={[0, 0, 0.001]} onClick={onFocus}>
+        <boxGeometry args={[SEARCH_WIDTH, SEARCH_HEIGHT, 0.002]} />
+        <meshStandardMaterial color={new Color('#0a1625')} metalness={0.3} roughness={0.6} />
+      </mesh>
+      {/* Text */}
+      <Text
+        position={[-SEARCH_WIDTH / 2 + 0.03, 0, 0.003]}
+        fontSize={TYPE_SCALE.caption.fontSize}
+        color={value ? TEXT_COLORS.primary.hex : TEXT_COLORS.dim.hex}
+        anchorX="left" anchorY="middle"
+        font={TYPE_SCALE.caption.fontPath}
+        fillOpacity={value ? 1.0 : 0.3}
+        maxWidth={SEARCH_WIDTH - 0.06}
+      >{value || 'Search games...'}</Text>
+      {/* Hidden proxy */}
+      <Html position={[0, 0, -10]} style={{ opacity: 0, position: 'absolute', pointerEvents: focused ? 'auto' : 'none' }}>
+        <input ref={inputRef} type="text" value={value}
+          onChange={(e) => onChange(e.target.value)}
+          style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }}
+          onBlur={() => { if (focused) inputRef.current?.focus(); }}
+        />
+      </Html>
+    </group>
+  );
+}
 
 const COLS = 4;
 const ROWS = 3;
@@ -36,13 +100,20 @@ const TIER_LABEL: Record<string, string> = {
 
 export default function ArcadePanel() {
   const [filterLab, setFilterLab] = useState<number | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchFocused, setSearchFocused] = useState(false);
   const [page, setPage] = useState(0);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
 
   const filteredGames = useMemo(() => {
-    if (filterLab === null) return GAME_REGISTRY;
-    return GAME_REGISTRY.filter((g) => g.lab === filterLab);
-  }, [filterLab]);
+    let games = GAME_REGISTRY;
+    if (filterLab !== null) games = games.filter((g) => g.lab === filterLab);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      games = games.filter((g) => g.name.toLowerCase().includes(q) || g.slug.toLowerCase().includes(q));
+    }
+    return games;
+  }, [filterLab, searchQuery]);
 
   const totalPages = Math.ceil(filteredGames.length / PAGE_SIZE);
   const pagedGames = filteredGames.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
@@ -106,6 +177,14 @@ export default function ArcadePanel() {
           />
         ))}
       </group>
+
+      {/* ═══ Search Field — 3D input for game filtering ═══ */}
+      <SearchField3D
+        value={searchQuery}
+        onChange={(v) => { setSearchQuery(v); setPage(0); }}
+        focused={searchFocused}
+        onFocus={() => setSearchFocused(true)}
+      />
 
       {/* ═══ Game Grid — Paginated 12/page (Decision 26.1) ═══ */}
       <group position={[-0.33, 0.4, 0.3]}>
