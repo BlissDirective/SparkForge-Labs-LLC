@@ -34,10 +34,6 @@ import {
   TYPE_SCALE,
   TEXT_COLORS,
   EMISSIVE_IDLE_BUTTON,
-  _EMISSIVE_HOVER_MULTIPLIER,
-  _SPRING_PRESETS,
-  _PRESS_DEPTH,
-  _MAX_VISIBLE_ITEMS,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════

@@ -28,7 +28,6 @@ import {
   HOVER_GLOW,
   TYPE_SCALE,
   TEXT_COLORS,
-  EMISSIVE_IDLE_INDICATOR as _EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════

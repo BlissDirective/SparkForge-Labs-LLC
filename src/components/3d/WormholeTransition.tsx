@@ -35,7 +35,6 @@ import {
 import {
   CHROME_BORDER,
   EMISSIVE_LED_MULTIPLIER,
-  TRANSITION_DURATION_MS as _TRANSITION_DURATION_MS,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Props ■■

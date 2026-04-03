@@ -15,7 +15,6 @@ import { LAB_COLORS, LAB_NAMES } from '@/config/labs';
 import {
   TYPE_SCALE,
   TEXT_COLORS,
-  NUMERIC_FONT as _NUMERIC_FONT,
 } from '@/lib/3d/cockpitDesignTokens';
 
 export default function LabsCenter() {

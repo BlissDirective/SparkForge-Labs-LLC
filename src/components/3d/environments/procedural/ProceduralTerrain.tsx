@@ -215,6 +215,7 @@ export default function ProceduralTerrain({ theme, tierConfig }: ProceduralTerra
 
   const geometry = useMemo(
     () => buildTerrainGeometry(theme, tierConfig),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       theme.seed,
       tierConfig.segments,

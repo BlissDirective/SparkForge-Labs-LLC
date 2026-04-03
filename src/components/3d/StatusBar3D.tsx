@@ -35,8 +35,6 @@ import {
   TYPE_SCALE,
   NUMERIC_FONT,
   TEXT_COLORS,
-  HOVER_GLOW as _HOVER_GLOW,
-  getEmissive as _getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Lab colors for 10 indicators ■■

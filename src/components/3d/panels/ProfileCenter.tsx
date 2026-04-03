@@ -15,7 +15,6 @@ import {
   NUMERIC_FONT,
   EMISSIVE_IDLE_INDICATOR,
   GHOST_PLACEHOLDER_OPACITY,
-  _MAX_VISIBLE_ITEMS,
 } from '@/lib/3d/cockpitDesignTokens';
 
 const BADGE_CATEGORIES = [

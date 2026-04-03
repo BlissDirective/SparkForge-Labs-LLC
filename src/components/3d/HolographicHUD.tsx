@@ -36,12 +36,10 @@ import {
   CHROME_BORDER,
   EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_LED_MULTIPLIER,
-  HOVER_GLOW as _HOVER_GLOW,
   TYPE_SCALE,
   NUMERIC_FONT,
   TEXT_COLORS,
   CELEBRATION_TIERS,
-  getEmissive as _getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════

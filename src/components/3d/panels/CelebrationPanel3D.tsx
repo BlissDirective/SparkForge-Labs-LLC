@@ -30,11 +30,9 @@ import {
 import { useCockpitUIStore } from '@/stores/cockpitUIStore';
 import {
   CHROME_BORDER,
-  _HOVER_GLOW,
   TYPE_SCALE,
   TEXT_COLORS,
   NUMERIC_FONT,
-  _CELEBRATION_TIERS,
   EMISSIVE_SCALE,
 } from '@/lib/3d/cockpitDesignTokens';
 import type { CelebrationTier } from '@/lib/3d/cockpitDesignTokens';

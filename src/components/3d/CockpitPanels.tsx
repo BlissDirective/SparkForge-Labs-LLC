@@ -38,8 +38,6 @@ import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
 import {
   CHROME_BORDER,
   ACCENT_LINES,
-  MICRO_TEXTURE: _MICRO_TEXTURE,
-  PANEL_SEAMS: _PANEL_SEAMS,
   EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 

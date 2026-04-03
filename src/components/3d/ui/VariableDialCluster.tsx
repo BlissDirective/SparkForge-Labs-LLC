@@ -31,7 +31,6 @@ import {
   CHROME_BORDER,
   TYPE_SCALE,
   TEXT_COLORS,
-  _EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 
 interface DialConfig {

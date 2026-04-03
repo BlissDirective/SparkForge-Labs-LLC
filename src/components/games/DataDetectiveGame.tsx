@@ -127,7 +127,7 @@ export function DataDetectiveGame() {
   const [_investigating, setInvestigating] = useState(false);
 
   const currentCase = CASES[caseIdx];
-  const maxBar = useMemo(() => Math.max(...currentCase.data.map(d => d.value)), [caseIdx, currentCase.data]);
+  const maxBar = useMemo(() => Math.max(...currentCase.data.map(d => d.value)), [currentCase.data]);
 
   const handleSelect = useCallback((idx: number) => {
     if (showResult) return;

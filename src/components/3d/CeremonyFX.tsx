@@ -119,7 +119,7 @@ interface ConfettiData {
 function ConfettiBurst({
   elapsed,
   count,
-  labColor,
+  labColor: _labColor,
   duration,
 }: {
   elapsed: number;

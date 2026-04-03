@@ -17,7 +17,6 @@ import { useCockpitStore } from '@/stores/cockpitStore';
 import type { CockpitSkin } from '@/types';
 import {
   TYPE_SCALE,
-  TEXT_COLORS as _TEXT_COLORS,
   CHROME_BORDER,
 } from '@/lib/3d/cockpitDesignTokens';
 

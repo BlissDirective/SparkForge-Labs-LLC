@@ -13,7 +13,6 @@ import { useChildStore } from '@/stores/childStore';
 import {
   TYPE_SCALE,
   TEXT_COLORS,
-  NUMERIC_FONT as _NUMERIC_FONT,
 } from '@/lib/3d/cockpitDesignTokens';
 
 export default function ParentPanel() {

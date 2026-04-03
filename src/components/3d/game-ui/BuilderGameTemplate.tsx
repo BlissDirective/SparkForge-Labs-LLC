@@ -26,7 +26,6 @@ import {
   HOVER_GLOW,
   TYPE_SCALE,
   TEXT_COLORS,
-  _EMISSIVE_IDLE_INDICATOR,
   NUMERIC_FONT,
 } from '@/lib/3d/cockpitDesignTokens';
 

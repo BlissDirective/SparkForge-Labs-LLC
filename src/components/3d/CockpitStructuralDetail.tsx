@@ -34,7 +34,6 @@ import {
 import {
   CHROME_BORDER,
   ACCENT_LINES,
-  EMISSIVE_IDLE_INDICATOR: _EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_SCALE,
   type EmissiveLevel,
 } from '@/lib/3d/cockpitDesignTokens';

@@ -22,8 +22,6 @@ import { create } from 'zustand';
 import {
   TYPE_SCALE,
   NUMERIC_FONT,
-  NUMERIC_FONT_FAMILY as _NUMERIC_FONT_FAMILY,
-  SPRING_PRESETS as _SPRING_PRESETS,
 } from '@/lib/3d/cockpitDesignTokens';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 
