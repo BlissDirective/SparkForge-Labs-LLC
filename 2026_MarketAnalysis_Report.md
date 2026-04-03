@@ -421,6 +421,265 @@ The macroeconomic and policy environment strongly favors SparkForge's mission:
 | S28 | Federal Trade Commission | "COPPA Enforcement Actions and Guidelines" (2024) |
 | S29 | OECD | "AI and the Future of Skills: OECD AI Education Framework" (2024) |
 
+---
+
+# 4. SparkForge Platform Assessment
+
+## 4.1 Technical Architecture Overview
+
+SparkForge is built on a modern, production-grade technology stack designed for performance, scalability, and immersive user experience. The architecture reflects enterprise-level engineering decisions uncommon at the startup stage.
+
+### 4.1.1 Technology Stack
+
+| Layer | Technology | Version | Purpose |
+|-------|-----------|---------|---------|
+| **Framework** | Next.js (App Router) | 15.2 | Full-stack React 19, Turbopack, SSR/SSG |
+| **Language** | TypeScript | 5.x (strict mode) | End-to-end type safety |
+| **Styling** | Tailwind CSS (Oxide engine) | 4.2 | Utility-first, dark-mode-only theming |
+| **Database** | Supabase (PostgreSQL + Auth) | Latest | All persistent data, RLS policies, OAuth |
+| **State Management** | Zustand (13 stores) + Jotai (3D atoms) | 5.0 / 2.12 | Client state architecture |
+| **Data Fetching** | React Query | 5.90 | Server state, caching, optimistic updates |
+| **Validation** | Zod | 3.25 | Schema validation across all API boundaries |
+| **Payments** | Stripe | 20.4 | Subscription billing (Free/Plus/Forge) |
+| **AI Engine** | Anthropic Claude API | SDK 0.78 | Prompt Lab + Content Agent pipeline |
+| **2D Animation** | Motion (Framer Motion) + GSAP | 12.34 / 3.14 | Transitions, scroll effects, micro-interactions |
+| **3D Rendering** | React Three Fiber + drei + postprocessing | 9.5 | Immersive 3D environments, shaders |
+| **3D Advanced** | Three.js r183+ (TSL, WebGPU/WebGL2) | 0.183 | Shader language, GPU compute |
+| **3D Geometry** | three-mesh-bvh + three-bvh-csg | Latest | Advanced geometry operations |
+| **3D Text** | troika-three-text | 0.52 | SDF-based 3D text rendering |
+| **3D Animation** | Theatre.js | 0.7 | Cinematic keyframe animation |
+| **Charts** | Nivo (line, bar, radar) | 0.99 | Parent dashboard data visualization |
+| **Audio** | Tone.js | 15.1 | Spatial audio, game feedback, synth |
+| **Monitoring** | Sentry | 9.47 | Error tracking, performance, PII scrubbing |
+| **UI Components** | Radix UI (8 primitives) | Latest | Accessible dialog, dropdown, tabs, tooltip |
+| **Deployment** | Vercel | Production | Auto-CI/CD, edge functions, CDN |
+
+**Total dependencies:** 53 production + 22 development packages.
+
+### 4.1.2 Architecture Principles
+
+The platform follows a **5-layer architecture:**
+
+1. **Routing Layer** — Next.js 15 App Router with file-system routing, Suspense boundaries, error boundaries, and route groups (`(auth)`, `(dashboard)`, `(marketing)`)
+2. **Component Layer** — 400+ React components organized by domain across 25+ directories
+3. **State Layer** — 13 Zustand stores + 3 Jotai atoms for fine-grained 3D reactivity
+4. **Service Layer** — API routes, data fetching hooks, Supabase client/server utilities
+5. **Infrastructure Layer** — Validation, rate limiting, device detection, audio, helpers
+
+## 4.2 Codebase Metrics
+
+### 4.2.1 Scale & Complexity
+
+| Metric | Count | Assessment |
+|--------|-------|-----------|
+| **Total source files** | 501 | Substantial, well-organized codebase |
+| **TypeScript/TSX files** | 428 | Full type coverage |
+| **Lines of code (src/)** | ~117,632 | Equivalent to a mid-stage startup with 4-6 engineers |
+| **React components** | 400+ | Comprehensive UI coverage |
+| **API routes** | 31 | Full REST API layer across 13 modules |
+| **Custom hooks** | 36 | Domain-specific logic extraction |
+| **Zustand stores** | 13 | Well-partitioned state management |
+| **Game components** | 35 | All games fully implemented |
+| **3D components** | 136 | Extensive 3D rendering system |
+| **3D environments** | 45 | Per-game themed environments |
+| **SQL schema files** | 16 | Full database schema with migrations |
+| **Documentation files** | 127 | Institutional-grade documentation |
+| **Shader files** | 12+ | Custom GLSL + TSL shaders |
+
+### 4.2.2 Code Quality Assessment
+
+| Dimension | Rating | Evidence |
+|-----------|--------|---------|
+| **Type Safety** | 5/5 | Strict mode, Zod validation on all APIs, comprehensive interfaces |
+| **Security** | 5/5 | RLS policies, rate limiting, COPPA compliance, Sentry PII scrubbing |
+| **Modularity** | 5/5 | Clear separation of concerns, domain-driven folders, reusable hooks |
+| **Error Handling** | 4/5 | Try-catch on critical paths, graceful API fallbacks, error boundaries |
+| **Performance** | 4/5 | Turbopack, dynamic imports, lazy loading, 3D budget system, React Query caching |
+| **Accessibility** | 3/5 | ARIA labels on games, keyboard nav, a11y store — some gaps remain |
+| **Testing** | 3/5 | Framework configured (Vitest + Playwright + MSW) — test coverage still building |
+| **Documentation** | 5/5 | 127 doc files, autonomous development playbook, stage-by-stage guides |
+
+**Recent Audit Results (March 30, 2026):** 154 issues identified, 147 fixed (95.5% resolution rate). Remaining 7 items are low-priority polish items. Critical and high-severity issues are fully resolved.
+
+## 4.3 Feature Inventory
+
+### 4.3.1 Games — 35 Total (Complete)
+
+SparkForge's core product is its library of 35 interactive AI-concept games, organized into three tiers:
+
+| Tier | Count | 3D Triangle Budget | Characteristics |
+|------|-------|-------------------|-----------------|
+| **Flagship** | 6 | 20,000,000 | Full immersive 3D scenes, all effects, hero games |
+| **FL-Lite** | 9 | 10,000,000 | Immersive 3D with themed environments |
+| **Standard** | 20 | 5,000,000 | Themed 3D environments with game-specific scenes |
+| **Total** | **35** | — | **Across 10 labs, 3 age bands** |
+
+**Games by Lab:**
+
+| Lab | Theme | Games | Sample Titles |
+|-----|-------|-------|---------------|
+| 1 | What IS AI? | 4 | AI Spy, Human vs Machine, Real or Fake, Fool the AI |
+| 2 | Teaching Machines | 4 | Sort Toy Box, Pet Trainer, Treat Trainer, Build Classifier |
+| 3 | The Brain Inside | 3 | Neural Builder, Neuron Relay, Prediction Market |
+| 4 | AI That Creates | 3 | Prompt Lab, AI Art Detective, Pixel Investigator |
+| 5 | AI Helpers | 4 | Robot Vacuum, Chatbot Builder, Tool Picker, My First AI App |
+| 6 | AI & Ethics | 3 | Bias Detective, Ethics Courtroom, Data Shield |
+| 7 | Computer Vision | 3 | Camera Quest, AI or Not, Emoji Decoder |
+| 8 | Words & Language | 4 | Word Predictor, Token Chopper, Sentiment Scanner, Lost in Translation |
+| 9 | Build Your AI | 4 | Code Blocks, Agent Architect, API Explorer, Future Forge |
+| 10 | AI Futures | 3 | Time Machine, Career Explorer, Data Detective |
+
+**Each game includes:**
+- Full game logic with phase progression (welcome → learn → play → complete)
+- Age-band differentiated content (Band A: 7-10, Band B: 11-13, Band C: 14-16)
+- Dedicated 3D environment component
+- Chrome bezel UI framing with LED rim
+- Audio design (Tone.js)
+- ARIA labels for accessibility
+- Integration with game store, progress tracking, XP system
+- 12-15 lab-colored particles
+
+### 4.3.2 3D Rendering System — 136 Components
+
+SparkForge's 3D system is its most technically impressive differentiator:
+
+| Category | Components | Key Elements |
+|----------|-----------|-------------|
+| **Cockpit/System** | 24 | CockpitCanvas, CameraSystem, CockpitPanels (4M tris), SidePanels (3M), HolographicHUD (1M), StatusBar3D (1M), LEDRim (500K), VolumetricFog3D |
+| **Game 3D Scenes** | 12 | Pet3DScene, NeuralNetwork3D, PromptBubble3D, AgentPipeline3D, BiasScales3D, SortScene3D + environments |
+| **Game Environments** | 45 | StandardEnvironmentBase + 20 game-specific + FL-Lite environments |
+| **3D UI Components** | 8 | HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard/Panel, NavigationButtonGrid |
+| **Procedural Creatures** | 6 | 5 species (Byteling, Sparkpaw, Voltkit, Cogsworth, Pixie) with 6 evolution stages |
+| **Hero Animation** | 5 | 8-phase cinematic entry sequence with particle compute, voronoi fracture, spline paths |
+| **Effects** | 10+ | PostProcessingStack (Bloom, SSAO, DOF, Vignette, Film Grain, Chromatic Aberration) |
+
+**System Triangle Budget:**
+
+| Component | Triangles | Percentage |
+|-----------|-----------|-----------|
+| Cockpit total | ~37,800,000 | 75.6% of 50M budget |
+| Game headroom | ~12,200,000 | 24.4% |
+| **Total system budget** | **50,000,000** | **100%** |
+
+**Technical highlights:**
+- **Single persistent Canvas** (CPA2-1) — R3F Canvas never unmounts across route transitions
+- **WebGPU primary / WebGL2 fallback** — Future-proofed rendering pipeline
+- **TSL (Three Shader Language)** — 10 lab pattern shaders + 2 shared modules, auto-compiles to WGSL/GLSL
+- **Mechanical iris transitions** — Cockpit-to-game scene changes
+- **Scene routing** — Centralized visibility control via sceneStore
+- **Desktop-ultra rendering** — 60fps target, native pixel ratio, all effects always-on
+
+### 4.3.3 Authentication & User Management
+
+| Feature | Implementation | Status |
+|---------|---------------|--------|
+| Email/password signup | Supabase Auth | Complete |
+| OAuth support | Magic link, social providers | Complete |
+| COPPA parental consent | 3-step verified consent flow | Complete |
+| Demo mode | 15-minute timer, no data persistence | Complete |
+| Session management | requireAuth middleware | Complete |
+| Rate limiting | 5 req/min on auth endpoints | Complete |
+| Privacy policy + Terms | Marketing route pages | Complete |
+
+### 4.3.4 Gamification System
+
+| Feature | Detail | Status |
+|---------|--------|--------|
+| XP system | Earned per game completion, displayed in dashboard | Complete |
+| Level progression | 10 levels (0-100 XP per level) | Complete |
+| Badges | 68 total across 10 labs + achievement categories | Complete |
+| Daily streaks | pg_cron job resets at midnight UTC | Complete |
+| Leaderboard | Plus/Forge tiers only (privacy-first, parent-approved) | Complete |
+| Celebrations | 3D particle effects, animation sequences, trophy displays | Complete |
+| Pet companion | 5 AI-themed species, 6 evolution stages, mood system | Complete |
+
+### 4.3.5 Monetization Infrastructure
+
+| Component | Detail | Status |
+|-----------|--------|--------|
+| Stripe checkout | Session creation, customer sync | Complete |
+| Webhook listener | Subscription event processing | Complete |
+| Customer portal | Self-service cancel/update | Complete |
+| Tier gating | Lab access, game limits, prompt limits | Complete |
+| Graceful fallback | 503 error if Stripe keys missing | Complete |
+
+**Current Pricing:**
+
+| Tier | Monthly | Yearly | Savings |
+|------|---------|--------|---------|
+| Spark Free | $0 | $0 | — |
+| Spark Plus | $7.99 | $79.99 | 17% |
+| Spark Forge | $14.99 | $149.99 | 17% |
+
+### 4.3.6 AI Integration
+
+| Component | Technology | Function |
+|-----------|-----------|----------|
+| **Prompt Lab Game** | Claude API (claude-3-5-sonnet) | Interactive AI tutoring with age-band prompts |
+| **Content Agent** | Claude API | Automated content generation pipeline |
+| **Moderation Layer** | Custom filters | Kid-safe response filtering |
+| **Admin Approval** | Workflow engine | Human review before AI content publishes |
+| **Rate Limiting** | Tier-based | 5 (Free) / 50 (Plus) / 200 (Forge) prompts/day |
+
+## 4.4 Platform Readiness Assessment
+
+### 4.4.1 Build Status
+
+| Check | Status | Detail |
+|-------|--------|--------|
+| `npm run build` | PASS | 55 pages pre-rendered, 37.7s compile |
+| `npx tsc --noEmit` | PASS | 0 TypeScript errors (strict mode) |
+| ESLint | ~90 warnings | Non-blocking (mostly unused vars) |
+| Dev server | PASS | Hot reload functional at localhost:3000 |
+
+### 4.4.2 Stage Completion
+
+| Stage | Scope | Completion | Status |
+|-------|-------|-----------|--------|
+| 1 — Foundation | Config, types, stores, theme | 100% | Code-complete, audited |
+| 2 — Database/API | 16 SQL files, 31 API routes | 100% | Code-complete, audited |
+| 3 — Auth/Layout | Auth flow, layout shell, StationFrame | 100% | Code-complete, audited |
+| 3-Hero — Hero Animation | 8-phase cinematic sequence | 100% | Code-complete, audited |
+| 3-Cockpit — CPA2 | 3D panoramic cockpit architecture | 100% | Code-complete, audited |
+| 3-Login3D — Login Enhancement | 3D portal, demo login | 100% | Code-complete, audited |
+| 4 — Core Pages | Dashboard, labs, arcade, profile | 100% | Code-complete, audited |
+| 5 — Gamification | XP, badges, celebrations, pet | ~95% | Integration finalization pending |
+| 6 — Flagship Games | 6 hero games | 100% | Code-complete |
+| 7 — Remaining Games | 29 additional games | 100% | Code-complete |
+| 8 — Parent Dashboard | Pricing, subscription, reports | ~90% | Flow integration pending |
+| 9 — Content Agent | AI pipeline, moderation | ~85% | Seed flow pending |
+| 10 — Polish/Deploy | SEO, a11y, CSP, PWA | ~60% | Final checks needed |
+
+**Overall completion: ~92%** — Feature-complete with integration and polish work remaining.
+
+### 4.4.3 Application Routes
+
+SparkForge implements 24 pages across 4 route groups:
+
+| Group | Routes | Pages |
+|-------|--------|-------|
+| `(auth)` | login, signup, reset-password | 3 |
+| `(dashboard)` | home, labs/[labId], arcade, arcade/[gameSlug], profile, settings, onboarding, parent/*, admin/content, content/[slug] | 14 |
+| `(marketing)` | landing, pricing, privacy, terms | 4 |
+| Utility | offline | 1 |
+| API | 31 routes across 13 modules | — |
+
+## 4.5 Technical Differentiation Summary
+
+SparkForge's technical architecture provides **five defensible competitive advantages:**
+
+1. **3D Immersion Moat** — 136 components, 37.8M-triangle cockpit, WebGPU-ready. No EdTech competitor has anything comparable. Replication cost: 12-18 months of specialized 3D engineering.
+
+2. **Content Library Moat** — 35 fully-implemented games with age-band differentiation. Each game averages ~300-500 lines of game logic + 200-400 lines of 3D environment code. Total game content: ~25,000+ lines of hand-crafted educational game code.
+
+3. **AI Integration Moat** — Production Claude API integration with moderation layer, content generation pipeline, and admin approval workflow. Not a ChatGPT wrapper — a purpose-built AI education engine.
+
+4. **Architecture Moat** — Modern stack (Next.js 15, React 19, TypeScript strict, Zustand, React Query) with clean separation of concerns. The codebase is maintainable and extensible by additional engineers.
+
+5. **Compliance Moat** — COPPA-compliant from day one. Competitors adding AI to existing platforms face costly retrofitting of privacy flows. SparkForge was designed for children's privacy from inception.
+
+---
+
 | # | Source | Citation |
 |---|--------|----------|
 | S1 | McKinsey Global Institute | "The Economic Potential of Generative AI: The Next Productivity Frontier" (June 2023) |
