@@ -27,16 +27,11 @@ import {
   DoubleSide,
   ExtrudeGeometry,
   Group,
-  InstancedMesh,
-  Matrix4,
   Mesh,
   MeshStandardMaterial,
-  Quaternion,
   RingGeometry,
   Shape,
   Side,
-  SphereGeometry,
-  Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
 import { createAlloyFrameMaterial, createControlPanelMaterial, createHolographicMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
@@ -63,7 +58,6 @@ interface CockpitPanelsProps {
 const HEXES_PER_CLUSTER = 6;
 
 const RIB_COUNT = 12;           // v3: more ribs across wider 218° arc (was 8)
-const RIVET_COUNT = 0;          // Decision 11.2: No rivets — clean surface, seam lines only
 
 const BEVEL_SETTINGS = {
   bevelEnabled: true,
@@ -150,7 +144,6 @@ interface PanelGeometries {
   needleGeo: CylinderGeometry;
   needleDialGeo: RingGeometry;
   ribGeo: CylinderGeometry;
-  rivetGeo: SphereGeometry;
   subPanelGeo: ExtrudeGeometry;
 }
 
@@ -264,10 +257,7 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
     segments.structuralDetail ? 12 : 6
   );
 
-  // Rivet geometry (shared by instanced mesh)
-  const rivetGeo = new SphereGeometry(
-    0.015, 6, 4
-  );
+  // Decision 11.2: Rivets removed — clean surface
 
   // Animated sub-panel (beveled rectangle)
   const subPanelShape = createBeveledPanelShape(0.5, 0.3, panelEdgeBevel * 3);
@@ -283,55 +273,8 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
     innerLeftGeo, innerRightGeo,
     hexGeo, hexInsetGeo,
     needleGeo, needleDialGeo,
-    ribGeo, rivetGeo, subPanelGeo,
+    ribGeo, subPanelGeo,
   };
-}
-
-// ■■ Rivet Instance Matrix Builder ■■
-
-function buildRivetMatrices(
-  count: number,
-  panelRadius: number,
-  arcRad: number
-): Float32Array {
-  const matrix = new Matrix4();
-  const position = new Vector3();
-  const quaternion = new Quaternion();
-  const scale = new Vector3(1, 1, 1);
-  const arr = new Float32Array(count * 16);
-
-  for (let i = 0; i < count; i++) {
-    // Distribute rivets along the curved hull edges
-    const t = i / count;
-    const row = Math.floor(t * 8); // 8 rows of rivets
-    const col = i % Math.ceil(count / 8);
-    const colCount = Math.ceil(count / 8);
-    const colT = col / colCount;
-
-    const angle = -arcRad / 2 + colT * arcRad;
-    const yOffset = (row - 3.5) * 0.85; // spread across height
-
-    position.set(
-      Math.sin(angle) * (panelRadius + 0.005),
-      yOffset,
-      -Math.cos(angle) * (panelRadius + 0.005)
-    );
-
-    // Orient rivet outward (normal to hull)
-    quaternion.setFromAxisAngle(
-      new Vector3(0, 1, 0),
-      angle
-    );
-
-    // Slight size variation
-    const s = 0.8 + Math.random() * 0.4;
-    scale.set(s, s, s);
-
-    matrix.compose(position, quaternion, scale);
-    matrix.toArray(arr, i * 16);
-  }
-
-  return arr;
 }
 
 // ■■ Hex Cluster Component ■■
@@ -396,11 +339,11 @@ function HexCluster({
     <group position={[mirror * 3.2, -2.5, -COCKPIT_GEOMETRY.panelRadius + 0.5]}>
       {hexPositions.map(([x, y], i) => (
         <group key={`hex-${side}-${i}`} position={[x, y, 0]}>
-          {/* Hex outer shell (beveled) */}
+          {/* Hex outer shell (beveled) — Decision 11.3: carbon composite */}
           <mesh geometry={hexGeo}>
             <meshStandardMaterial
-              color="#8a9098"
-              metalness={0.95}
+              color="#0A0F1F"
+              metalness={0.85}
               roughness={0.35}
               transparent
               opacity={opacity}
@@ -415,9 +358,9 @@ function HexCluster({
               position={[0, 0, hexDepth * 0.3]}
             >
               <meshStandardMaterial
-                color="#050810"
-                metalness={0.6}
-                roughness={0.8}
+                color="#060A14"
+                metalness={0.75}
+                roughness={0.5}
                 transparent
                 opacity={opacity * 0.95}
               />
@@ -431,9 +374,9 @@ function HexCluster({
               position={[0, 0, hexDepth + 0.005]}
             >
               <meshStandardMaterial
-                color="#3a4050"
-                metalness={0.8}
-                roughness={0.4}
+                color={CHROME_BORDER.colorHex}
+                metalness={0.85}
+                roughness={0.35}
                 transparent
                 opacity={opacity * 0.7}
               />
@@ -466,7 +409,7 @@ function HexCluster({
             <meshStandardMaterial
               color="#000000"
               emissive={labColorObj}
-              emissiveIntensity={0.4}
+              emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
               transparent
               opacity={opacity * 0.8}
               toneMapped={false}
@@ -512,62 +455,17 @@ function StructuralRibs({ ribGeo, opacity, arcRad, panelRadius }: StructuralRibs
           rotation={[0, rib.angle, 0]}
         >
           <meshStandardMaterial
-            color="#2a2e3e"
+            color={CHROME_BORDER.colorHex}
             metalness={0.92}
             roughness={0.3}
+            emissive={CHROME_BORDER.colorHex}
+            emissiveIntensity={ACCENT_LINES.emissiveLevel === 'dormant' ? 0.15 : 0}
             transparent
-            opacity={opacity * 0.9}
+            opacity={ACCENT_LINES.opacity}
           />
         </mesh>
       ))}
     </group>
-  );
-}
-
-// ■■ Instanced Rivets Component ■■
-
-interface InstancedRivetsProps {
-  rivetGeo: SphereGeometry;
-  opacity: number;
-  panelRadius: number;
-  arcRad: number;
-}
-
-function InstancedRivets({ rivetGeo, opacity, panelRadius, arcRad }: InstancedRivetsProps) {
-  const meshRef = useRef<InstancedMesh>(null);
-
-  const matrices = useMemo(
-    () => buildRivetMatrices(RIVET_COUNT, panelRadius, arcRad),
-    [panelRadius, arcRad]
-  );
-
-  // Apply instance matrices on mount
-  useEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-
-    const mat4 = new Matrix4();
-    for (let i = 0; i < RIVET_COUNT; i++) {
-      mat4.fromArray(matrices, i * 16);
-      mesh.setMatrixAt(i, mat4);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-  }, [matrices]);
-
-  return (
-    <instancedMesh
-      ref={meshRef}
-      args={[rivetGeo, undefined, RIVET_COUNT]}
-      frustumCulled
-    >
-      <meshStandardMaterial
-        color="#6a7080"
-        metalness={0.98}
-        roughness={0.25}
-        transparent
-        opacity={opacity * 0.85}
-      />
-    </instancedMesh>
   );
 }
 
@@ -636,9 +534,9 @@ function AnimatedSubPanels({
             <group ref={(el) => { panelRefs.current[i] = el; }}>
               <mesh geometry={subPanelGeo}>
                 <meshStandardMaterial
-                  color="#1e2230"
-                  metalness={0.88}
-                  roughness={0.3}
+                  color="#0A0F1F"
+                  metalness={0.85}
+                  roughness={0.35}
                   transparent
                   opacity={opacity * 0.9}
                 />
@@ -649,7 +547,7 @@ function AnimatedSubPanels({
                 <meshStandardMaterial
                   color="#000000"
                   emissive={labColorObj}
-                  emissiveIntensity={0.5}
+                  emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
                   transparent
                   opacity={opacity * 0.7}
                   toneMapped={false}
@@ -786,10 +684,10 @@ export function CockpitPanels({
 
   const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
-  // Shared material props
+  // Shared material props — Decision 11.1/11.3: carbon composite #0A0F1F
   const outerPanelMaterial = useMemo(
     () => ({
-      color: '#1a1e2e',
+      color: '#0A0F1F',
       metalness: 0.85,
       roughness: 0.35,
       transparent: true as const,
@@ -802,7 +700,7 @@ export function CockpitPanels({
 
   const innerPanelMaterial = useMemo(
     () => ({
-      color: '#0e1118',
+      color: '#060A14',
       metalness: 0.75,
       roughness: 0.5,
       transparent: true as const,
@@ -885,9 +783,9 @@ export function CockpitPanels({
         rotation={[Math.PI / 2, 0, 0]}
       >
         <meshStandardMaterial
-          color="#0e1118"
-          metalness={0.7}
-          roughness={0.6}
+          color="#0A0F1F"
+          metalness={0.85}
+          roughness={0.35}
           transparent
           opacity={opacity}
           side={DoubleSide}
@@ -902,9 +800,9 @@ export function CockpitPanels({
         rotation={[Math.PI / 2, 0, 0]}
       >
         <meshStandardMaterial
-          color="#060810"
-          metalness={0.65}
-          roughness={0.7}
+          color="#060A14"
+          metalness={0.75}
+          roughness={0.5}
           transparent
           opacity={opacity * 0.8}
           side={BackSide}
@@ -922,15 +820,7 @@ export function CockpitPanels({
         />
       )}
 
-      {/* ─── Instanced Rivets / Bolts ─── */}
-      {segments.structuralDetail && (
-        <InstancedRivets
-          rivetGeo={geometries.rivetGeo}
-          opacity={opacity}
-          panelRadius={panelRadius}
-          arcRad={arcRad}
-        />
-      )}
+      {/* ─── Decision 11.2: Rivets removed — clean surface, seam lines only ─── */}
 
       {/* ─── Animated Sub-Panels (slide/rotate on top bar) ─── */}
       {segments.structuralDetail && (
