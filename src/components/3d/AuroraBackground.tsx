@@ -180,8 +180,8 @@ export function AuroraBackground({
   const ribbonMaterialRefs = useRef<MeshBasicMaterial[]>([]);
 
   // Update all layer uniforms each frame + crossfade ribbon colors
-  useFrame(({ clock, delta }) => {
-    const t = clock.elapsedTime;
+  useFrame((state, delta) => {
+    const t = state.clock.elapsedTime;
 
     // Smoothly crossfade toward target colors (PARTICLE_CROSSFADE_S duration)
     const lerpFactor = MathUtils.clamp(delta / PARTICLE_CROSSFADE_S, 0, 1);

@@ -203,7 +203,7 @@ export default function ChatPanel3D() {
 
     // Reset to latest page
     setPage(0);
-  }, [inputValue, isStreaming, sendMessage, broadcast]);
+  }, [inputValue, isStreaming, addMessage, broadcast]);
 
   useEffect(() => {
     if (focused && inputRef.current) inputRef.current.focus();

@@ -396,8 +396,6 @@ export function CockpitCanvas({
                 <HolographicHUD
                   opacity={hudOpacity}
                   color={effectiveLabColor}
-                  rotationSpeed={hudRotationSpeed}
-                  pulseIntensity={hudPulseIntensity}
                   active={hudOpacity > 0}
                 />
 
