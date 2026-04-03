@@ -2,7 +2,7 @@
 
 **Last Session:** April 3, 2026
 **Branch:** `claude/phase-3-component-rebuild-JfEOP`
-**Status:** Phase 1-6 complete. 47 components total. Build PASSING. Ready for Phase 7 (Marketing).
+**Status:** ALL 7 PHASES COMPLETE. 49 components total. Build PASSING. Dev server clean. Full UI migration done.
 
 ---
 
@@ -187,9 +187,23 @@ Created 4 shared game layout templates + 2 shared components:
 
 ---
 
-## WHAT COMES NEXT
+### 9. Phase 7: Marketing — COMPLETE (April 3, 2026)
+3D cockpit preview for landing page + CSS enhancements:
 
-### Phase 7: Marketing (NOT STARTED)
+**1 New File:**
+| Component | Description |
+|-----------|-------------|
+| CockpitPreview3D | Mini 3D cockpit teaser (~50K tris): curved hull, LED rim, HUD arcs, rotating lab nodes |
+
+**2 Modified Files:**
+| File | Change |
+|------|--------|
+| StationPreview.tsx | Replaced CSS mockup with CockpitPreview3D R3F Canvas, discrete LED dots |
+| globals.css | Added led-dot-pulse, chromatic-text, feature-card-enter, act-transition |
+
+---
+
+## ALL PHASES COMPLETE
 - 6 flagship game UIs → 3D panels
 - 29 standard game UIs via 4 shared templates
 - 3D marketing hero section
