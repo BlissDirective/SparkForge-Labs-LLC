@@ -11,7 +11,9 @@
 // - 288-segment curved hull for wider arc
 // - Metallic alloy frame (#a8b5c8, metalness 0.98)
 // - Curved control panel (#0a1625, emissive #00bbff @ 0.85)
-// - Tighter rivet spacing (0.12) for close-up camera detail
+// - Decision 11.1: Smooth carbon surface (2% fine grain, no plate segmentation)
+// - Decision 11.2: No rivets — clean surface, seam lines only
+// - Decision 11.3: Accent-traced panels (#0A0F1F with full-trace accent lines)
 //
 // All geometry dims/retracts in game mode (Decision 3.4).
 
@@ -39,6 +41,13 @@ import {
 import { COCKPIT_GEOMETRY, COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
 import { createAlloyFrameMaterial, createControlPanelMaterial, createHolographicMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
+import {
+  CHROME_BORDER,
+  ACCENT_LINES,
+  MICRO_TEXTURE,
+  PANEL_SEAMS,
+  EMISSIVE_IDLE_INDICATOR,
+} from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Props ■■
 
@@ -54,7 +63,7 @@ interface CockpitPanelsProps {
 const HEXES_PER_CLUSTER = 6;
 
 const RIB_COUNT = 12;           // v3: more ribs across wider 218° arc (was 8)
-const RIVET_COUNT = 768;        // v3: tighter spacing (0.12) = more rivets (was 512)
+const RIVET_COUNT = 0;          // Decision 11.2: No rivets — clean surface, seam lines only
 
 const BEVEL_SETTINGS = {
   bevelEnabled: true,
