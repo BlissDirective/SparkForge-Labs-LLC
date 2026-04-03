@@ -1,6 +1,6 @@
 # Master SparkForge UI Design Change
 
-**Version:** 1.4 | **Date:** April 3, 2026 | **Status:** Phase 1+2+3+4 COMPLETE — Ready for Phase 5
+**Version:** 1.5 | **Date:** April 3, 2026 | **Status:** Phase 1+2+3+4+5 COMPLETE — Ready for Phase 6
 **Source of Truth:** `SparkForge-Full-ControlScreen.json` (1,081 lines, 11 sections)
 **Branch:** `claude/review-cockpit-interface-7zfku`
 
@@ -369,10 +369,18 @@ All 30 designed components rebuilt to consume `cockpitDesignTokens.ts`.
 - `src/components/3d/panels/CelebrationPanel3D.tsx` — Badge/level/streak/lab celebration display
 - `src/hooks/useCelebration3D.ts` — Full celebration orchestration hook
 
+### Phase 5: Flagship Games — COMPLETE (April 3, 2026)
+| Batch | Files | Status |
+|-------|-------|--------|
+| A: GameHUD3D + GameTimerBar3D | 2 new | DONE |
+| B: GamePhaseOverlay3D (welcome + complete) | 1 new + barrel | DONE |
+| C: GameShell + sceneStore + CockpitCanvas integration | 3 modified | DONE |
+
+**Key architectural change:** GameShell registers `GameHUD3D` in `sceneStore.gameHUDContent`. CockpitCanvas renders it above game scenes. All 35 games get the 3D HUD automatically.
+
 ### Phases Remaining
 | Phase | Scope | Status |
 |-------|-------|--------|
-| **5: Flagship Games** | 6 game UIs → 3D panels | NOT STARTED |
 | **6: Standard Games** | 29 game UIs via 4 shared templates | NOT STARTED |
 | **7: Marketing** | 3D hero section, enhanced CSS | NOT STARTED |
 
@@ -403,6 +411,6 @@ cockpitUIStore → CockpitUILayer → CenterContentRouter
 
 ---
 
-*Master SparkForge UI Design Change v1.4 — April 3, 2026*
-*Phase 1+2+3+4 complete. Design tokens locked (131 decisions). 30 components rebuilt + 4 auth/chat panels + 3 gamification components. Phases 5-7 pending.*
+*Master SparkForge UI Design Change v1.5 — April 3, 2026*
+*Phase 1-5 complete. 131 design decisions locked. 30 cockpit components + 4 auth panels + 3 gamification + 4 game UI = 41 components. Phases 6-7 pending.*
 *Companion spec: SparkForge-Full-ControlScreen.json (~1,800 lines)*

@@ -2,7 +2,7 @@
 
 **Last Session:** April 3, 2026
 **Branch:** `claude/phase-3-component-rebuild-JfEOP`
-**Status:** Phase 1+2+3+4 complete, design tokens locked, ALL 30 components rebuilt, auth/forms + gamification migrated to 3D. Ready for Phase 5.
+**Status:** Phase 1+2+3+4+5 complete. ALL 30 cockpit components rebuilt + 4 auth + 3 gamification + 4 game UI. Ready for Phase 6.
 
 ---
 
@@ -146,9 +146,29 @@ Migrated HTML gamification overlays to 3D cockpit rendering:
 
 ---
 
+### 7. Phase 5: Flagship Game UI — COMPLETE (April 3, 2026)
+Created shared 3D game HUD components integrated via GameShell:
+
+**4 New Files:**
+| Component | Description |
+|-----------|-------------|
+| GameHUD3D | Score arc, round counter, hint pips, optional timer, chrome bar |
+| GameTimerBar3D | Countdown/elapsed bar with urgent pulse at <20% |
+| GamePhaseOverlay3D | Welcome panel (start CTA) + complete panel (tier badge, score, XP, continue) |
+| game-ui/index.ts | Barrel export |
+
+**3 Modified Files:**
+| File | Change |
+|------|--------|
+| GameShell.tsx | Registers GameHUD3D in sceneStore.gameHUDContent — all 35 games get HUD automatically |
+| sceneStore.ts | Added gameHUDContent field + setGameHUDContent + selector |
+| CockpitCanvas.tsx | Renders gameHUDContent above game scene content |
+
+---
+
 ## WHAT COMES NEXT
 
-### Phase 5-7: Games + Marketing (NOT STARTED)
+### Phase 6-7: Standard Games + Marketing (NOT STARTED)
 - 6 flagship game UIs → 3D panels
 - 29 standard game UIs via 4 shared templates
 - 3D marketing hero section
