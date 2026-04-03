@@ -7,11 +7,15 @@
 // Renders an animated wormhole tunnel when transitioning
 
 //
-// Animation phases (2s total):
-//   0.0–0.5s  Entry portal ring grows, tunnel fades in
-//   0.5–1.5s  Speed lines stream through tunnel
-//   1.5–2.0s  Exit portal grows, tunnel fades out
-//   2.0s      onComplete callback fires
+// Design decision 21.1: Twisted helix tunnel (DNA-like spiral)
+// Design decision 21.2: Energy grid walls (wireframe in destination lab color)
+// Design decision 21.3: Quick 500ms transition (fast, snappy)
+//
+// Animation phases (0.5s total):
+//   0.0–0.125s  Entry portal ring grows, tunnel fades in
+//   0.125–0.375s  Speed lines stream through tunnel
+//   0.375–0.5s  Exit portal grows, tunnel fades out
+//   0.5s      onComplete callback fires
 //
 // direction='exit' reverses the entire sequence.
 
@@ -28,6 +32,11 @@ import {
   MeshBasicMaterial,
   Object3D,
 } from 'three';
+import {
+  CHROME_BORDER,
+  EMISSIVE_LED_MULTIPLIER,
+  TRANSITION_DURATION_MS,
+} from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Props ■■
 interface WormholeTransitionProps {
@@ -40,10 +49,15 @@ interface WormholeTransitionProps {
 // ■■ Constants ■■
 const TUNNEL_LENGTH = 20;
 const TUNNEL_RADIUS = 4;
-const DURATION = 2.0;
+// Design decision 21.3: Quick 500ms transition (TRANSITION_DURATION_MS is 400ms; wormhole is slightly longer)
+const DURATION = 0.5;
 const SPEED_LINE_LENGTH = 3;
 const SPEED_LINE_RADIUS = 0.015;
 const DESTINATION_SPHERE_MAX_RADIUS = 1.2;
+// Design decision 21.1: Helix twist rate (radians per unit length along tunnel)
+const HELIX_TWIST_RATE = Math.PI * 2.5;
+// Portal ring chrome color from design tokens
+const PORTAL_RING_COLOR = new Color(CHROME_BORDER.colorHex);
 
 // ■■ Speed Line Data ■■
 interface SpeedLineData {
@@ -178,14 +192,18 @@ export function WormholeTransition({
       mat.opacity = tunnelAlpha * 0.3;
     }
 
-    // ── Swirling Energy Walls ──
+    // ── Swirling Energy Walls (21.1: helix twist + 21.2: energy grid) ──
     const walls = [wallLayer1Ref.current, wallLayer2Ref.current, wallLayer3Ref.current];
     const rotSpeeds = [0.4, -0.6, 0.8];
+    // Helix twist increases over time for dynamic spiral effect
+    const helixPhase = newElapsed * HELIX_TWIST_RATE;
     walls.forEach((wall, i) => {
       if (!wall) return;
+      // Combine rotational swirl with helix twist offset per layer
       wall.rotation.z += rotSpeeds[i] * delta;
+      wall.rotation.y = helixPhase * (0.6 + i * 0.2);
       const mat = wall.material as MeshBasicMaterial;
-      mat.opacity = tunnelAlpha * (0.08 + i * 0.03);
+      mat.opacity = tunnelAlpha * (0.12 + i * 0.04) * EMISSIVE_LED_MULTIPLIER;
     });
 
     // ── Speed Lines (InstancedMesh) ──
@@ -262,7 +280,7 @@ export function WormholeTransition({
         />
       </mesh>
 
-      {/* ── Swirling Energy Wall Layer 1 ── */}
+      {/* ── Energy Grid Wall Layer 1 (21.2: wireframe grid pattern) ── */}
       <mesh
         ref={wallLayer1Ref}
         position={[0, 0, -TUNNEL_LENGTH / 2]}
@@ -274,13 +292,14 @@ export function WormholeTransition({
             TUNNEL_RADIUS * 0.95,
             TUNNEL_LENGTH,
             cylSegments,
-            1,
+            8,
             true,
           ]}
         />
         <meshBasicMaterial
           color={color}
           side={BackSide}
+          wireframe
           transparent
           opacity={0}
           depthWrite={false}
@@ -289,7 +308,7 @@ export function WormholeTransition({
         />
       </mesh>
 
-      {/* ── Swirling Energy Wall Layer 2 ── */}
+      {/* ── Energy Grid Wall Layer 2 (21.2: wireframe grid pattern) ── */}
       <mesh
         ref={wallLayer2Ref}
         position={[0, 0, -TUNNEL_LENGTH / 2]}
@@ -301,13 +320,14 @@ export function WormholeTransition({
             TUNNEL_RADIUS * 0.88,
             TUNNEL_LENGTH,
             cylSegments,
-            1,
+            8,
             true,
           ]}
         />
         <meshBasicMaterial
           color={color}
           side={BackSide}
+          wireframe
           transparent
           opacity={0}
           depthWrite={false}
@@ -316,7 +336,7 @@ export function WormholeTransition({
         />
       </mesh>
 
-      {/* ── Swirling Energy Wall Layer 3 ── */}
+      {/* ── Energy Grid Wall Layer 3 (21.2: wireframe grid pattern) ── */}
       <mesh
         ref={wallLayer3Ref}
         position={[0, 0, -TUNNEL_LENGTH / 2]}
@@ -328,13 +348,14 @@ export function WormholeTransition({
             TUNNEL_RADIUS * 0.80,
             TUNNEL_LENGTH,
             cylSegments,
-            1,
+            8,
             true,
           ]}
         />
         <meshBasicMaterial
           color={color}
           side={BackSide}
+          wireframe
           transparent
           opacity={0}
           depthWrite={false}
@@ -343,7 +364,7 @@ export function WormholeTransition({
         />
       </mesh>
 
-      {/* ── Entry Portal Ring (z=0) ── */}
+      {/* ── Entry Portal Ring (z=0) — chrome frame per design tokens ── */}
       <mesh ref={entryRingRef} position={[0, 0, 0]} rotation={[0, 0, 0]}>
         <torusGeometry
           args={[
@@ -354,7 +375,7 @@ export function WormholeTransition({
           ]}
         />
         <meshBasicMaterial
-          color={color}
+          color={PORTAL_RING_COLOR}
           transparent
           opacity={0}
           depthWrite={false}
@@ -363,7 +384,7 @@ export function WormholeTransition({
         />
       </mesh>
 
-      {/* ── Exit Portal Ring (z=-20) ── */}
+      {/* ── Exit Portal Ring (z=-20) — chrome frame per design tokens ── */}
       <mesh ref={exitRingRef} position={[0, 0, -TUNNEL_LENGTH]} rotation={[0, 0, 0]}>
         <torusGeometry
           args={[
@@ -374,7 +395,7 @@ export function WormholeTransition({
           ]}
         />
         <meshBasicMaterial
-          color={color}
+          color={PORTAL_RING_COLOR}
           transparent
           opacity={0}
           depthWrite={false}

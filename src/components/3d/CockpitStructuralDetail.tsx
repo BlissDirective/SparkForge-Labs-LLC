@@ -512,55 +512,91 @@ function AccessHatches({
 }
 
 // ■■ LED Indicator Strips Sub-Component (Animated) ■■
+// Design Decision 14.3: Accent lighting at key intersections only — emissive
+// glow applied where structural elements meet (rib-to-panel joints,
+// cable-to-rib junction points). Dormant emissive level (0.15) per ACCENT_LINES.
+
+// Derive dormant emissive intensity from design tokens
+const ACCENT_EMISSIVE_INTENSITY = EMISSIVE_SCALE[ACCENT_LINES.emissiveLevel as EmissiveLevel]; // 0.15
 
 function LEDIndicatorStrips({
   count,
   labColor,
   opacity,
+  ribAngles,
 }: {
   count: number;
   labColor: string;
   opacity: number;
+  ribAngles: number[];
 }) {
   const meshRef = useRef<InstancedMesh>(null!);
   const emissiveColor = useMemo(() => new Color(labColor), [labColor]);
   const timeRef = useRef(0);
 
-  // Pre-compute LED positions along cable routes
+  // Pre-compute LED positions at structural intersection points only:
+  // - Rib-to-panel joints (where ribs meet the cockpit shell)
+  // - Cable-to-rib crossings (where cable channels cross rib positions)
   const ledPositions = useMemo(() => {
     const gen = seededRandom(777);
     const positions: { pos: Vector3; phaseOffset: number }[] = [];
 
-    // Distribute LEDs along the cockpit arc at various heights
-    for (let i = 0; i < count; i++) {
-      const t = i / count;
-      const angle = ARC_START + t * ARC_RAD;
-      const r = COCKPIT_RADIUS - 0.06 - gen() * 0.12;
-      // Several horizontal bands with some variation
-      const band = Math.floor(gen() * 5);
-      const baseY = COCKPIT_Y_MIN + 0.2 + band * (COCKPIT_HEIGHT / 5);
-      const y = baseY + (gen() - 0.5) * 0.15;
+    // Place LEDs at rib-to-panel intersections along each rib
+    for (let ri = 0; ri < ribAngles.length; ri++) {
+      const ribAngle = ribAngles[ri];
+      const r = COCKPIT_RADIUS - 0.04;
 
+      // LEDs at top and bottom rib-panel joints, plus mid-height cable crossings
+      const junctionYs = [
+        COCKPIT_Y_MIN + 0.1,  // bottom rib-panel joint
+        COCKPIT_Y_MIN + COCKPIT_HEIGHT * 0.25, // lower cable-rib crossing
+        COCKPIT_Y_MIN + COCKPIT_HEIGHT * 0.5,  // mid cable-rib crossing
+        COCKPIT_Y_MIN + COCKPIT_HEIGHT * 0.75, // upper cable-rib crossing
+        COCKPIT_Y_MAX - 0.1,  // top rib-panel joint
+      ];
+
+      for (let j = 0; j < junctionYs.length; j++) {
+        if (positions.length >= count) break;
+        const y = junctionYs[j] + (gen() - 0.5) * 0.04;
+        positions.push({
+          pos: new Vector3(
+            Math.sin(ribAngle) * r,
+            y,
+            -Math.cos(ribAngle) * r
+          ),
+          phaseOffset: ri * 1.2 + j * 0.8,
+        });
+      }
+    }
+
+    // Fill remaining budget with cable-to-rib junction highlights
+    while (positions.length < count) {
+      const ri = Math.floor(gen() * ribAngles.length);
+      const ribAngle = ribAngles[ri] + (gen() - 0.5) * 0.03;
+      const r = COCKPIT_RADIUS - 0.06 - gen() * 0.08;
+      const y = COCKPIT_Y_MIN + 0.2 + gen() * (COCKPIT_HEIGHT - 0.4);
       positions.push({
         pos: new Vector3(
-          Math.sin(angle) * r,
+          Math.sin(ribAngle) * r,
           y,
-          -Math.cos(angle) * r
+          -Math.cos(ribAngle) * r
         ),
-        phaseOffset: t * Math.PI * 6 + band * 1.2,
+        phaseOffset: positions.length * 0.5,
       });
     }
-    return positions;
-  }, [count]);
+
+    return positions.slice(0, count);
+  }, [count, ribAngles]);
 
   const ledGeo = useMemo(() => new BoxGeometry(0.012, 0.006, 0.006), []);
 
+  // Dormant emissive level from ACCENT_LINES token (0.15)
   const ledMaterial = useMemo(
     () =>
       new MeshStandardMaterial({
         color: emissiveColor,
         emissive: emissiveColor,
-        emissiveIntensity: 2.0,
+        emissiveIntensity: ACCENT_EMISSIVE_INTENSITY,
         transparent: true,
         opacity,
         toneMapped: false,
@@ -585,7 +621,7 @@ function LEDIndicatorStrips({
     meshRef.current.instanceMatrix.needsUpdate = true;
   }, [ledPositions]);
 
-  // Animate: gentle phase-offset sine pulse
+  // Animate: subtle phase-offset sine pulse at intersection points
   useFrame((_, delta) => {
     if (!meshRef.current) return;
     timeRef.current += delta;
@@ -607,8 +643,8 @@ function LEDIndicatorStrips({
     }
     meshRef.current.instanceMatrix.needsUpdate = true;
 
-    // Update emissive intensity for global pulse
-    const globalPulse = 1.5 + 0.5 * Math.sin(t * 1.8);
+    // Gentle pulse around the dormant emissive baseline
+    const globalPulse = ACCENT_EMISSIVE_INTENSITY * (0.85 + 0.15 * Math.sin(t * 1.8));
     ledMaterial.emissiveIntensity = globalPulse;
     ledMaterial.opacity = opacity;
   });
@@ -699,7 +735,7 @@ export function CockpitStructuralDetail({
 }: CockpitStructuralDetailProps) {
   const counts = useMemo(() => getScaledCounts('ultra'), ['ultra']);
 
-  // Shared chrome material for structural elements
+  // Chrome material — uses CHROME_BORDER design token (#a8b5c8)
   const chromeMaterial = useMemo(
     () =>
       new MeshStandardMaterial({
@@ -712,22 +748,43 @@ export function CockpitStructuralDetail({
     [opacity]
   );
 
-  // Update opacity reactively
+  // Carbon composite material — #0A0F1F dark surface for panels/covers
+  const carbonMaterial = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: CARBON_COMPOSITE,
+        metalness: 0.3,
+        roughness: 0.7,
+        transparent: true,
+        opacity,
+      }),
+    [opacity]
+  );
+
+  // Update opacity reactively for all shared materials
   useFrame(() => {
     if (chromeMaterial.opacity !== opacity) {
       chromeMaterial.opacity = opacity;
     }
+    if (carbonMaterial.opacity !== opacity) {
+      carbonMaterial.opacity = opacity;
+    }
   });
 
-  // At billboard LOD, skip rendering entirely
+  // Pre-compute rib angles for LED intersection placement (Decision 14.3)
+  const ribAngles = useMemo(() => {
+    const step = ARC_RAD / (counts.ribs + 1);
+    return Array.from({ length: counts.ribs }, (_, i) => ARC_START + step * (i + 1));
+  }, [counts.ribs]);
 
   return (
     <group name="cockpit-structural-detail">
-      {/* Cable Bundles — 50+ TubeGeometry splines along ceiling/walls */}
+      {/* Cable Bundles — hidden inside recessed channels with panel covers (Decision 14.1) */}
       <CableBundles
         count={counts.cables}
         tubularSegments={64}
         chromeMaterial={chromeMaterial}
+        coverMaterial={carbonMaterial}
       />
 
       {/* Conduit Pipes — horizontal pipes with junction boxes */}
@@ -737,10 +794,10 @@ export function CockpitStructuralDetail({
         chromeMaterial={chromeMaterial}
       />
 
-      {/* Ventilation Panels — 4 grille panels with instanced slats */}
+      {/* Ventilation Panels — perforated circular hole pattern, aerospace aesthetic (Decision 14.2) */}
       <VentilationPanels
         slatsPerPanel={counts.ventSlatsPerPanel}
-        chromeMaterial={chromeMaterial}
+        ventMaterial={carbonMaterial}
       />
 
       {/* Structural Ribs — arc-shaped ribs evenly spaced */}
@@ -756,11 +813,12 @@ export function CockpitStructuralDetail({
         chromeMaterial={chromeMaterial}
       />
 
-      {/* LED Indicator Strips — emissive boxes along cable routes */}
+      {/* LED Accent Strips — emissive at key intersections only (Decision 14.3) */}
       <LEDIndicatorStrips
         count={counts.leds}
         labColor={labColor}
         opacity={opacity}
+        ribAngles={ribAngles}
       />
 
       {/* Warning Signage — emissive plane markers */}
