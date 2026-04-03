@@ -16,6 +16,11 @@ import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import {
+  CHROME_BORDER,
+  CELEBRATION_TIERS,
+  EMISSIVE_LED_MULTIPLIER,
+} from '@/lib/3d/cockpitDesignTokens';
+import {
   Color,
   DoubleSide,
   Euler,
@@ -123,8 +128,9 @@ function ConfettiBurst({
       rotSpeeds[i3 + 1] = (Math.random() - 0.5) * 8;
       rotSpeeds[i3 + 2] = (Math.random() - 0.5) * 8;
 
-      // Mix lab color with confetti palette
-      const palette = i % 3 === 0 ? labColor : CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+      // Decision 18.1: Metallic shards — chrome (#a8b5c8) and gold (#FFD700) alternating
+      const isChrome = i % 2 === 0;
+      const palette = isChrome ? CHROME_BORDER.colorHex : '#FFD700';
       colors.push(new Color(palette));
     }
 
@@ -166,7 +172,8 @@ function ConfettiBurst({
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial transparent opacity={0.9} roughness={0.4} metalness={0.3} />
+      {/* Decision 18.1: Metallic shards — chrome + gold, reflective, premium */}
+      <meshStandardMaterial transparent opacity={0.95} roughness={0.1} metalness={0.95} />
     </instancedMesh>
   );
 }
@@ -298,12 +305,13 @@ function TrophyPopup({ elapsed }: { elapsed: number }) {
       {/* Pedestal — cylinder */}
       <mesh position={[0, -0.3, 0]}>
         <cylinderGeometry args={[0.2, 0.3, 0.4, 12]} />
-        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} metalness={0.8} roughness={0.2} />
+        {/* Decision 18.2: Trophy materializes from light — high emissive, premium gold */}
+        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={EMISSIVE_LED_MULTIPLIER * 0.5} metalness={0.95} roughness={0.08} toneMapped={false} />
       </mesh>
       {/* Cup body — cylinder */}
       <mesh position={[0, 0.15, 0]}>
         <cylinderGeometry args={[0.25, 0.15, 0.5, 12]} />
-        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} metalness={0.8} roughness={0.2} />
+        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={EMISSIVE_LED_MULTIPLIER * 0.5} metalness={0.95} roughness={0.08} toneMapped={false} />
       </mesh>
       {/* Top sphere — shiny ball */}
       <mesh position={[0, 0.55, 0]}>
