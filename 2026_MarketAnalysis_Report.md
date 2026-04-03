@@ -191,11 +191,235 @@ The AI market represents one of the largest economic opportunities in history, w
 
 ---
 
-*Section 2 continues in next update...*
+---
+
+# 3. Economic & Socio-Political Impacts
+
+## 3.1 AI's Macroeconomic Impact
+
+### 3.1.1 Contribution to Global GDP
+
+Artificial intelligence is projected to be the single largest driver of economic growth over the next decade. Multiple authoritative economic analyses converge on this conclusion:
+
+| Source | Projected AI Contribution | Timeline | Methodology |
+|--------|--------------------------|----------|-------------|
+| McKinsey Global Institute (2023) [S1] | $13-22 trillion annually | By 2030 | Sector-by-sector productivity analysis |
+| PwC Global AI Study (2023) [S4] | $15.7 trillion total | By 2030 | GDP modeling across 21 economies |
+| Goldman Sachs (2023) [S3] | $7 trillion (GenAI alone) | Over 10 years | Labor productivity modeling |
+| Accenture (2024) [S19] | $14 trillion in additional output | By 2035 | Industry output modeling |
+
+**Key drivers of GDP impact:**
+- **Labor productivity gains:** AI automation and augmentation increasing output per worker by 10-40% in knowledge work sectors (McKinsey, 2023)
+- **New product/service creation:** Entirely new market categories enabled by AI (estimated $2-4 trillion in new markets by 2030)
+- **Supply chain optimization:** 15-30% efficiency improvements in logistics, manufacturing, and distribution (Accenture, 2024)
+- **Healthcare acceleration:** Drug discovery timelines compressed by 40-60%, diagnostic accuracy improved by 20-30% (Nature Medicine, 2024)
+
+### 3.1.2 AI Investment Flows
+
+Global investment in AI has reached historic levels, with capital concentration intensifying around frontier capabilities:
+
+**Venture Capital in AI:**
+
+| Year | Global AI VC Funding | Notable Trend |
+|------|---------------------|--------------|
+| 2021 | ~$75B (peak) | Broad AI hype cycle |
+| 2022 | ~$50B | Correction begins |
+| 2023 | ~$50B | Concentrated in fewer, larger deals |
+| 2024 | ~$65-80B | GenAI rebound, 40% of all tech VC |
+| 2025 | ~$80-100B (est.) | AI-native premium emerges |
+
+*Source: Crunchbase Annual Reports (2022-2024) [S10]; CB Insights State of AI Report (2024) [S20]*
+
+**Landmark AI Investments (2023-2025):**
+
+| Company | Investor(s) | Amount | Context |
+|---------|------------|--------|---------|
+| OpenAI | Microsoft | $13B cumulative | Largest AI investment in history |
+| Anthropic | Amazon, Google | $6B+ cumulative | Safety-focused AI leader |
+| xAI | Various | $6B (single round) | Late 2024, Elon Musk's AI venture |
+| Inflection AI | Microsoft (talent acq.) | $1.3B raised pre-acquisition | Talent absorbed into Microsoft AI |
+| Mistral AI | Various | $415M+ | European AI champion |
+| Databricks | Various | $500M at $43B valuation | AI/data infrastructure |
+
+### 3.1.3 EdTech AI Investment Specifically
+
+The EdTech AI investment landscape has stabilized after the 2021-2022 correction and is showing AI-driven recovery:
+
+| Year | Global EdTech VC Funding | AI-Specific EdTech | Key Trend |
+|------|------------------------|-------------------|-----------|
+| 2021 | ~$20.8B (peak) | ~$2B | Pandemic-driven peak |
+| 2022 | ~$10.6B | ~$1.5B | Sharp correction |
+| 2023 | ~$4-5B | ~$1-1.5B | Bottom of cycle |
+| 2024 | ~$4-6B | ~$2-3B | AI-driven rebound |
+| 2025 | ~$6-8B (est.) | ~$3-4B (est.) | AI-native premium |
+
+*Source: HolonIQ EdTech Venture Capital Report (2024) [S8]; Crunchbase [S10]*
+
+**Notable EdTech AI Deals (2023-2025):**
+
+| Company | Stage | Amount | Investors | Focus |
+|---------|-------|--------|-----------|-------|
+| Synthesis | Series A | $16M | a16z | AI tutoring for kids |
+| MagicSchool AI | Series A | $15M | Owl Ventures | AI tools for teachers |
+| SchoolAI | Seed | $3.3M | Reach Capital | AI classroom assistant |
+| Sizzle AI | Seed | $7.5M | Lightspeed | AI homework help |
+| Photomath | Acquisition | ~$300M | Google | AI math solving |
+| Brilliant.org | Series C | $40M | Greenoaks | STEM + AI learning |
+
+*Sources: Crunchbase (2024) [S10]; TechCrunch EdTech coverage (2023-2025) [S21]*
+
+## 3.2 Labor Market Transformation
+
+### 3.2.1 Job Displacement vs. Creation
+
+AI's impact on employment is nuanced — simultaneously displacing routine tasks while creating entirely new job categories:
+
+| Metric | Data Point | Source |
+|--------|-----------|--------|
+| Jobs displaced by AI/automation (by 2025) | ~85 million | WEF Future of Jobs Report (2023) [S11] |
+| New jobs created by AI/automation (by 2025) | ~97 million | WEF Future of Jobs Report (2023) [S11] |
+| Net new jobs | +12 million | WEF [S11] |
+| Global jobs exposed to AI | 40% of all employment | IMF (2024) [S12] |
+| Advanced economy exposure | ~60% of jobs | IMF (2024) [S12] |
+| Jobs that benefit from AI augmentation | ~50% of exposed jobs | IMF (2024) [S12] |
+
+### 3.2.2 Emerging AI Job Categories
+
+New roles directly relevant to SparkForge's educational mission:
+
+| Role | Demand Trend | Relevance to SparkForge |
+|------|-------------|------------------------|
+| AI/ML Engineer | +74% job postings (2023-2024) | Validates demand for AI literacy |
+| Prompt Engineer | Emerging (40K+ open roles) | SparkForge's Prompt Lab teaches this directly |
+| AI Safety Researcher | +200% growth (2023-2025) | Ethics Lab aligns with career pathway |
+| AI Ethics Officer | Rapidly growing | SparkForge's Lab 6 teaches AI ethics |
+| AI-Assisted Educator | Emerging category | SparkForge creates future AI educators |
+| Data Scientist | Sustained top-10 role | SparkForge's Data Lab builds foundations |
+| AI Product Manager | +90% growth | Understanding AI concepts is prerequisite |
+
+*Sources: LinkedIn Workforce Report (2024) [S22]; Indeed Hiring Trends (2024) [S23]; WEF [S11]*
+
+> **Strategic insight for SparkForge:** The labor market data validates SparkForge's core thesis — **AI literacy is becoming a fundamental career competency**. Children who learn AI concepts today (ages 7-16) will enter the workforce between 2032-2042, precisely when AI integration will be ubiquitous across all industries. SparkForge is training the first generation of AI-native workers.
+
+## 3.3 Regulatory & Policy Landscape
+
+### 3.3.1 AI Regulation — Global Overview
+
+The regulatory environment for AI is rapidly evolving, with significant implications for AI education platforms:
+
+**European Union — AI Act:**
+- **Adopted:** March 2024; **Entered into force:** August 1, 2024 [S24]
+- **Phased implementation:** Prohibited practices (Feb 2025) → High-risk requirements (Aug 2025) → Full enforcement (Aug 2026)
+- **Risk classification:** Unacceptable → High → Limited → Minimal risk
+- **Critical for SparkForge:** AI systems used in education are classified as **HIGH RISK**, requiring conformity assessments, human oversight, transparency, and data governance
+- **Compliance cost estimate:** $50K-200K for initial assessment; ongoing monitoring required
+
+**United States:**
+- **Executive Order on AI Safety (October 2023):** Required safety testing/reporting for powerful AI models; directed NIST to develop standards [S25]
+- **State-level regulation:** 15+ states passed or proposed AI regulation bills (2024-2025), including California, Colorado, Connecticut [S26]
+- **KIDS Online Safety Act (KOSA):** Passed Senate in 2024; targets harmful online content including AI-generated content for children [S27]
+- **No comprehensive federal AI law** as of Q1 2026, but significant bipartisan activity
+- **FTC enforcement:** Increased scrutiny of AI claims, particularly regarding children's products [S28]
+
+**Global Landscape:**
+
+| Jurisdiction | Key Action | Status | SparkForge Impact |
+|-------------|-----------|--------|------------------|
+| EU | AI Act | In force (phased) | HIGH RISK classification for education AI |
+| UK | AI Safety Institute | Active | Voluntary compliance framework |
+| China | GenAI regulations | Effective Aug 2023 | Relevant for future expansion |
+| Canada | AIDA (AI & Data Act) | Proposed | Awaiting passage |
+| G7 | Hiroshima AI Process | Voluntary code | Benchmark standards |
+| UN | AI Advisory Body | Interim report issued | Global governance framework emerging |
+
+### 3.3.2 Children's Data Privacy — Critical for SparkForge
+
+Children's data privacy represents the most operationally significant regulatory area for SparkForge:
+
+**COPPA (Children's Online Privacy Protection Act — US):**
+- Requires **verifiable parental consent** for data collection from children under 13 [S28]
+- FTC enforcement has intensified: $170M+ in COPPA fines since 2019 [S28]
+- SparkForge's target age range (7-16) straddles the COPPA boundary — **children 7-12 require full COPPA compliance**
+- SparkForge **already implements** verifiable parental consent flow and COPPA-compliant architecture
+
+**COPPA 2.0 (Proposed):**
+- Would extend protections to **age 16** [S27]
+- Additional data minimization requirements
+- If passed, **all SparkForge users** would fall under COPPA protections
+- SparkForge's current architecture is proactively aligned with COPPA 2.0 requirements
+
+**International Children's Privacy:**
+
+| Regulation | Jurisdiction | Key Requirement | SparkForge Status |
+|-----------|-------------|-----------------|-------------------|
+| COPPA | US | Parental consent <13 | Implemented |
+| GDPR (children) | EU | Parental consent <16 (varies by member state) | Architecture ready |
+| Age Appropriate Design Code | UK | 15 standards for children's services | Partially aligned |
+| PIPEDA | Canada | Meaningful consent | Architecture ready |
+
+### 3.3.3 AI in Education Policy
+
+There is growing global consensus that AI literacy should be a core educational competency:
+
+| Policy Signal | Detail | Source |
+|--------------|--------|--------|
+| UNESCO recommendation (2023) | Governments should regulate AI in education; minimum age 13 for independent AI tool use | UNESCO [S13] |
+| US DOE report (2023) | "AI and the Future of Teaching and Learning" — recognized opportunities and risks | US DOE [S14] |
+| 15+ countries mandate AI in K-12 | Including Singapore, China, UK, Finland, South Korea, India, Estonia | Various national education policies |
+| OECD AI education framework | Recommends AI literacy across all grade levels | OECD (2024) [S29] |
+
+> **Regulatory tailwind for SparkForge:** The global push to mandate AI literacy in schools creates a structural demand driver. SparkForge can position as a **compliance-ready solution** for school districts that need to implement AI curricula but lack internal expertise. The platform's COPPA compliance, age-band differentiation, and parent dashboard address every major regulatory concern.
+
+## 3.4 Societal & Ethical Considerations
+
+### 3.4.1 AI Safety & Alignment
+
+The AI safety landscape directly impacts SparkForge's choice of API partner and platform design:
+
+| Concern | Current Status | SparkForge Mitigation |
+|---------|---------------|----------------------|
+| AI hallucination | All models exhibit; improving with RLHF | Content Agent uses admin approval pipeline |
+| Bias in AI outputs | Active area of research; bias benchmarks improving | Lab 6 teaches bias detection; Claude API has strong safety | 
+| Age-inappropriate content | Risk in any AI interaction | Moderation layer on all Claude API responses |
+| Data privacy | Growing regulation | Minimal data collection, no profiling, Sentry PII scrubbing |
+| AI addiction/overuse | Screen time concerns | Parent dashboard with time controls |
+
+### 3.4.2 Digital Equity & Access
+
+| Issue | Impact | SparkForge Response |
+|-------|--------|-------------------|
+| Digital divide | Not all children have high-performance devices | WebGL2 fallback; free tier eliminates cost barrier |
+| School Chromebook dominance | K-12 devices are often low-powered | Future consideration: progressive rendering for lower-spec devices |
+| Global language access | English-only limits reach | Internationalization architecture available in Next.js |
+| Neurodiversity | Different learning needs | Age-band system + accessibility store + reduced motion support |
+
+## 3.5 Section Summary
+
+The macroeconomic and policy environment strongly favors SparkForge's mission:
+
+1. **Economic:** AI will add $13-22T to global GDP by 2030, making AI literacy a fundamental economic competency
+2. **Labor:** 40% of jobs are exposed to AI; children who learn AI concepts now will be the best-prepared workforce
+3. **Regulatory:** Global push toward AI education mandates creates structural demand; COPPA compliance is table-stakes (SparkForge already implements it)
+4. **Investment:** EdTech AI funding is rebounding with AI-native premium valuations (2-3x over traditional EdTech)
+5. **Policy:** UNESCO, OECD, and 15+ national governments recommend or mandate AI literacy in K-12 — a direct market-creation signal
 
 ---
 
-## Source Index — Section 1 & 2
+## Source Index — Section 3 (Additions)
+
+| # | Source | Citation |
+|---|--------|----------|
+| S19 | Accenture | "Technology Vision 2024: Human by Design" (2024) |
+| S20 | CB Insights | "State of AI Report" (2024) |
+| S21 | TechCrunch | EdTech funding coverage (2023-2025) |
+| S22 | LinkedIn | "Workforce Report: AI Talent Demand" (2024) |
+| S23 | Indeed | "AI Jobs & Hiring Trends Report" (2024) |
+| S24 | European Commission | "EU AI Act — Regulation (EU) 2024/1689" (2024) |
+| S25 | White House | "Executive Order on Safe, Secure, and Trustworthy AI" (October 2023) |
+| S26 | National Conference of State Legislatures | "AI State Legislation Tracker" (2024-2025) |
+| S27 | US Congress | "Kids Online Safety Act (KOSA)" (2024) |
+| S28 | Federal Trade Commission | "COPPA Enforcement Actions and Guidelines" (2024) |
+| S29 | OECD | "AI and the Future of Skills: OECD AI Education Framework" (2024) |
 
 | # | Source | Citation |
 |---|--------|----------|
