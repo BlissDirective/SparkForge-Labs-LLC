@@ -51,7 +51,7 @@
 - **Language:** TypeScript strict mode
 - **Styling:** Tailwind CSS 4 (Oxide engine)
 - **3D:** React Three Fiber v9 + drei + postprocessing (Three.js r183+, TSL, WebGPU/WebGL2)
-- **State:** Zustand (13 stores) + Jotai (3D atoms)
+- **State:** Zustand (15 stores) + Jotai (3D atoms)
 - **Testing:** Vitest + Playwright + MSW
 - **Deployment:** Vercel
 
