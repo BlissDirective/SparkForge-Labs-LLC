@@ -20,6 +20,7 @@ import {
   CELEBRATION_TIERS,
   EMISSIVE_LED_MULTIPLIER,
 } from '@/lib/3d/cockpitDesignTokens';
+import type { CelebrationTier } from '@/lib/3d/cockpitDesignTokens';
 import {
   Color,
   DoubleSide,
@@ -60,6 +61,45 @@ const CEREMONY_CONFIG: Record<
   labComplete:     { confetti: true,  fireworks: true,  trophy: false, hudRings: true,  shower: false },
   streakMilestone: { confetti: false, fireworks: false, trophy: false, hudRings: true,  shower: true  },
 };
+
+// ■■ Map ceremony types to celebration tiers from design tokens ■■
+const CEREMONY_TIER_MAP: Record<CeremonyFXProps['type'], CelebrationTier> = {
+  levelUp:         'epic',
+  badgeEarn:       'major',
+  labComplete:     'epic',
+  streakMilestone: 'minor',
+};
+
+/** Resolve ceremony duration from CELEBRATION_TIERS token (seconds) */
+function getCeremonyDuration(type: CeremonyFXProps['type']): number {
+  const tier = CEREMONY_TIER_MAP[type];
+  return CELEBRATION_TIERS[tier].durationMs / 1000;
+}
+
+/** Decision 18.3: Pulsing bloom — heartbeat pattern (2-3 peaks) before decay.
+ *  Returns a bloom intensity multiplier [0..1] for the current elapsed time. */
+function getBloomPulse(elapsed: number, duration: number, bloomPeak: number): number {
+  const normalised = elapsed / duration;
+  // Heartbeat zone: 10%–60% of ceremony duration — 3 quick pulses
+  const heartbeatStart = 0.1;
+  const heartbeatEnd = 0.6;
+  // Decay zone: 60%–100% — smooth falloff
+  if (normalised < heartbeatStart) {
+    // Ramp in
+    return bloomPeak * (normalised / heartbeatStart);
+  }
+  if (normalised < heartbeatEnd) {
+    // 3 pulses across the heartbeat zone
+    const hbProgress = (normalised - heartbeatStart) / (heartbeatEnd - heartbeatStart);
+    const pulseFreq = 3; // 3 full beats
+    const pulse = Math.pow(Math.sin(hbProgress * pulseFreq * Math.PI), 2);
+    // Minimum 40% between beats so it never fully disappears
+    return bloomPeak * (0.4 + 0.6 * pulse);
+  }
+  // Decay from heartbeatEnd to 1.0
+  const decayProgress = (normalised - heartbeatEnd) / (1.0 - heartbeatEnd);
+  return bloomPeak * Math.max(0, 1 - decayProgress);
+}
 
 // ■■ Ceremony Label Map ■■
 const CEREMONY_LABELS: Record<CeremonyFXProps['type'], { title: string; subtitle: string }> = {
