@@ -32,12 +32,10 @@ import {
 } from 'three';
 import {
   CHROME_BORDER,
-  DEPTH_LAYERS,
   BEVEL_STYLE,
   HOVER_GLOW,
   TYPE_SCALE,
   TEXT_COLORS,
-  EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_IDLE_BUTTON,
   EMISSIVE_HOVER_MULTIPLIER,
   SPRING_PRESETS,
@@ -63,7 +61,7 @@ interface LoginPanel3DProps {
 // GEOMETRY HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-const PANEL_CHAMFER = BEVEL_STYLE.structural.value;
+const _PANEL_CHAMFER = BEVEL_STYLE.structural.value;
 
 function createChamferedRect(w: number, h: number, chamfer: number): Shape {
   const s = new Shape();
@@ -80,7 +78,7 @@ function createChamferedRect(w: number, h: number, chamfer: number): Shape {
   return s;
 }
 
-function createChamferedGeometry(w: number, h: number, depth: number, chamfer: number) {
+function _createChamferedGeometry(w: number, h: number, depth: number, chamfer: number) {
   return new ExtrudeGeometry(createChamferedRect(w, h, chamfer), {
     depth,
     bevelEnabled: false,
@@ -99,7 +97,7 @@ const INPUT_WIDTH = 1.2;
 const INPUT_HEIGHT = 0.12;
 const INPUT_BG = '#0a1625';
 const INPUT_BORDER = '#a8b5c8';
-const INPUT_RADIUS = 0.006;
+const _INPUT_RADIUS = 0.006;
 const BUTTON_WIDTH = 1.2;
 const BUTTON_HEIGHT = 0.14;
 const BUTTON_DEPTH = 0.012;
@@ -394,7 +392,7 @@ export default function LoginPanel3D({
     onLogin(email, password);
   }, [email, password, loading, onLogin]);
 
-  const handleDemoClick = useCallback(() => {
+  const _handleDemoClick = useCallback(() => {
     if (showDemoConfirm) {
       onDemoStart();
     } else {

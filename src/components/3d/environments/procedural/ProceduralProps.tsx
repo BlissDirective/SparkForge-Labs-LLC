@@ -166,7 +166,7 @@ function InstancedPropGroup({
   // Apply initial transforms (runs once)
   useMemo(() => {
     initialised.current = false;
-  }, [placements]);
+  }, []);
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;

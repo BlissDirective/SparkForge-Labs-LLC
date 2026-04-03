@@ -28,7 +28,6 @@ import {
   Shape,
   ExtrudeGeometry,
   MeshStandardMaterial,
-  MeshPhongMaterial,
   MeshBasicMaterial,
   RingGeometry,
   AdditiveBlending,
@@ -76,7 +75,7 @@ const BUTTON_HEIGHT = 0.05;
 const BUTTON_DEPTH = 0.018;
 const CHAMFER = 0.006;
 const ACTIVE_DEPRESS = 0.015; // Decision 1.5: active stays depressed 0.015 units
-const ACTIVE_RING_EMISSIVE = 2.5; // Decision 1.5: bright accent ring emissive
+const _ACTIVE_RING_EMISSIVE = 2.5; // Decision 1.5: bright accent ring emissive
 const RING_INNER = 0.068;
 const RING_OUTER = 0.074;
 

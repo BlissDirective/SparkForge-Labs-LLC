@@ -23,7 +23,7 @@
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
@@ -239,8 +239,8 @@ export function MyFirstAiAppGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('my-first-ai-app', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('my-first-ai-app', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -306,11 +306,13 @@ export function MyFirstAiAppGame() {
       if (next) setBuildStep(next);
       game.advanceRound();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buildStep, stepIdx, innovationScore, game]);
 
   const goBack = useCallback(() => {
     const prev = BUILD_STEPS[stepIdx - 1];
     if (prev) setBuildStep(prev);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIdx]);
 
   const pseudoCode = useMemo(() => {
@@ -356,6 +358,7 @@ export function MyFirstAiAppGame() {
     } else {
       setGameSceneContent(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, stepIdx, powerOrbs3D, maxPowers, currentTheme, currentCategory, appName, innovationScore, setGameSceneContent]);
 
   return (

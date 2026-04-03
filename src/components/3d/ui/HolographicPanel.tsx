@@ -44,8 +44,6 @@ import {
   HOVER_GLOW,
   TYPE_SCALE,
   TEXT_COLORS,
-  WHITESPACE_RATIO,
-  GHOST_PLACEHOLDER_OPACITY,
   EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 

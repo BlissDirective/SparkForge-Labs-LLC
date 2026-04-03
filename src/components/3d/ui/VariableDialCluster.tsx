@@ -23,7 +23,6 @@ import { usePathname } from 'next/navigation';
 import { Text } from '@react-three/drei';
 import {
   Color,
-  CylinderGeometry,
   MeshStandardMaterial,
 } from 'three';
 import { RadialDial3D } from './RadialDial3D';
@@ -32,7 +31,6 @@ import {
   CHROME_BORDER,
   TYPE_SCALE,
   TEXT_COLORS,
-  EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 
 interface DialConfig {
@@ -178,7 +176,7 @@ export function VariableDialCluster({
       </Text>
 
       {/* 3 dials with individual pods in arc row */}
-      {dialEntries.map(({ config: dc, layout, value }, index) => (
+      {dialEntries.map(({ config: dc, layout, value }, _index) => (
         <group key={dc.id} position={layout.pos} rotation={[0, layout.rotY, 0]}>
           {/* Individual circular mounting pod (Decision 15.1) */}
           <mesh material={podMaterial} position={[0, -0.035, 0]} rotation={[-Math.PI / 2, 0, 0]}>

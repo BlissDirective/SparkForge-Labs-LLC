@@ -12,7 +12,7 @@ import {
   buildGameGenerationContext,
 } from './game-generator-prompts';
 import { COPPA_SECURITY_AUDIT_PROMPT } from './architect-prompts';
-import type { PipelineGateStatus, PipelineGate, NewGameBlueprint } from '@/types';
+import type { PipelineGateStatus, PipelineGate } from '@/types';
 
 // ── Types ──
 
@@ -70,7 +70,6 @@ let _client: { messages: { create: (p: Record<string, unknown>) => Promise<{ con
 function getClient() {
   if (!process.env.ANTHROPIC_API_KEY) return null;
   if (!_client) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Anthropic = require('@anthropic-ai/sdk');
     _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   }

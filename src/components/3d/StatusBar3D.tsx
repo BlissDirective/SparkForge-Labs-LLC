@@ -35,8 +35,6 @@ import {
   TYPE_SCALE,
   NUMERIC_FONT,
   TEXT_COLORS,
-  HOVER_GLOW,
-  getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Lab colors for 10 indicators ■■
@@ -94,7 +92,6 @@ function XPSpeedometer({
   // Initial fill arc geometry (animated via useFrame below)
   const fillArcGeo = useMemo(
     () => new RingGeometry(0.7, 0.85, segments, 1, arcStart, arcTotal * Math.max(xpRatio, 0.001)),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [segments, arcStart, arcTotal, xpRatio]
   );
 
@@ -228,7 +225,7 @@ function XPSpeedometer({
 function StreakPulseRing({
   streak,
   opacity,
-  segments,
+  segments: _segments,
 }: {
   streak: number;
   opacity: number;

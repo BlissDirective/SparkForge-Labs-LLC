@@ -27,7 +27,6 @@ import {
   TYPE_SCALE,
   TEXT_COLORS,
   NUMERIC_FONT,
-  EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════

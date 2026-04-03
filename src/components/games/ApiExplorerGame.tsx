@@ -327,8 +327,8 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
 export function ApiExplorerGame() {
   const game = useGameStore();
   const ageBand = 'C' as const;
-  const { data: dynamicContent } = useGameContent('api-explorer', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('api-explorer', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);

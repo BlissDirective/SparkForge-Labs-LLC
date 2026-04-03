@@ -10,8 +10,8 @@
 //
 // Per SparkForge-Full-ControlScreen.json §interaction_model.text_input
 
-import { useCallback, type ComponentPropsWithoutRef } from 'react';
-import { Input, type InputProperties } from '@react-three/uikit';
+import { useCallback } from 'react';
+import { Input } from '@react-three/uikit';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 
 // ── Design tokens ──────────────────────────────────

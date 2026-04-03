@@ -11,7 +11,7 @@ import { apiError, requireAuth, verifyChildOwnership, applyRateLimit } from '@/l
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { MODELS } from '@/lib/agent/prompts';
 import { assembleGuidePrompt } from '@/lib/guide/prompts';
-import { TIER_CONFIG } from '@/lib/tier-config';
+
 
 export const runtime = 'nodejs';
 

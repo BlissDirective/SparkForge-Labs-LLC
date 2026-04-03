@@ -249,8 +249,8 @@ export function NeuralBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('neural-builder', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('neural-builder', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   // --- Phase ---
   const [phase, setPhase] = useState<Phase>('welcome');

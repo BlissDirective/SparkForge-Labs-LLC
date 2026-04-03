@@ -19,7 +19,6 @@
 import { useEffect, useRef, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useCockpitStore } from '@/stores/cockpitStore';
-import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   COCKPIT_MODE_PRESETS,

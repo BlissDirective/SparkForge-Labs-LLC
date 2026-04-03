@@ -119,7 +119,7 @@ interface ConfettiData {
 function ConfettiBurst({
   elapsed,
   count,
-  labColor,
+  labColor: _labColor,
   duration,
 }: {
   elapsed: number;
@@ -165,7 +165,7 @@ function ConfettiBurst({
     }
 
     return { positions, velocities, rotations, rotSpeeds, colors };
-  }, [count, labColor]);
+  }, [count]);
 
   useFrame(() => {
     const mesh = meshRef.current;

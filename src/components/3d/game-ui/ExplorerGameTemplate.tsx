@@ -179,7 +179,7 @@ export function ExplorerGameTemplate({
   });
 
   const cardCols = Math.min(infoCards.length, 4);
-  const cardRows = Math.ceil(infoCards.length / cardCols);
+  const _cardRows = Math.ceil(infoCards.length / cardCols);
 
   return (
     <group name="explorer-game-template" position={[0, 0, PANEL_Z]}>

@@ -33,6 +33,9 @@ export default tseslint.config(
         },
       ],
 
+      // False positive for App Router — fonts in layout.tsx load globally
+      '@next/next/no-page-custom-font': 'off',
+
       // React hooks
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',

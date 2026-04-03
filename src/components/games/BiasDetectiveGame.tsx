@@ -539,8 +539,8 @@ export function BiasDetectiveGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('bias-detective', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('bias-detective', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   // Phase state
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -655,7 +655,7 @@ export function BiasDetectiveGame() {
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   // P2: Audio integration
   const biasAudio = useBiasDetectiveAudio();
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled] = useState(false);
   // P4: CeremonyFX milestones
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 

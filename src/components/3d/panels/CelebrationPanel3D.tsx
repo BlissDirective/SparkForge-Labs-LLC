@@ -30,11 +30,9 @@ import {
 import { useCockpitUIStore } from '@/stores/cockpitUIStore';
 import {
   CHROME_BORDER,
-  HOVER_GLOW,
   TYPE_SCALE,
   TEXT_COLORS,
   NUMERIC_FONT,
-  CELEBRATION_TIERS,
   EMISSIVE_SCALE,
 } from '@/lib/3d/cockpitDesignTokens';
 import type { CelebrationTier } from '@/lib/3d/cockpitDesignTokens';
@@ -260,7 +258,7 @@ export default function CelebrationPanel3D() {
 
   const celebrationType = centerData?.celebrationType;
   const celebrationData = (centerData?.celebrationData || {}) as Record<string, unknown>;
-  const tier = centerData?.tier || 'minor';
+  const _tier = centerData?.tier || 'minor';
 
   const goldColor = useMemo(() => new Color(GOLD), []);
   const chromeColor = useMemo(() => new Color(CHROME_BORDER.colorHex), []);

@@ -120,8 +120,6 @@ function getAnthropicClient() {
   if (!process.env.ANTHROPIC_API_KEY) return null;
 
   if (!_anthropic) {
-    // Dynamic import alternative: use eslint-disable for require
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Anthropic = require('@anthropic-ai/sdk').default;
     _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   }

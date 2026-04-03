@@ -233,7 +233,7 @@ function SkillOrb({
   index,
   isSelected,
   totalSkills,
-  onSelected,
+  onSelected: _onSelected,
 }: {
   skill: SkillData;
   index: number;

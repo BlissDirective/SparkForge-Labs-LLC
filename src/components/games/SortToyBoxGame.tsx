@@ -22,7 +22,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSortAudio } from '@/hooks/useSortAudio';
-import { Plus, Boxes, Brain, ChevronRight, GraduationCap, Sparkles } from 'lucide-react';
+import { Plus, Brain, ChevronRight, GraduationCap, Sparkles } from 'lucide-react';
 import dynamic from 'next/dynamic';
 
 // Lazy-load 3D scene (desktop only)
@@ -170,8 +170,8 @@ export function SortToyBoxGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('sort-toy-box', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('sort-toy-box', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -184,7 +184,7 @@ export function SortToyBoxGame() {
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   // P2: Audio integration
   const audio = useSortAudio();
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled] = useState(false);
   // P4: CeremonyFX milestones
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
@@ -223,6 +223,7 @@ export function SortToyBoxGame() {
       );
     }
     return () => setGameSceneContent(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, shapes, groupCount, selectedShape, aiCriterion, setGameSceneContent]);
 
   // Complete game when reaching complete phase

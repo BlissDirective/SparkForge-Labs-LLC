@@ -23,7 +23,6 @@ import {
   DoubleSide,
   InstancedMesh,
   Object3D,
-  Matrix4,
 } from 'three';
 
 interface OnboardingCrystal3DProps {

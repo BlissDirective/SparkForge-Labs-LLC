@@ -8,7 +8,7 @@
 // Renders in CockpitCanvas alongside PromptBubble3DScene.
 // ================================================================
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Color, Group } from 'three';
 

@@ -25,7 +25,6 @@ import {
   Line,
   LineBasicMaterial,
   MathUtils,
-  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,

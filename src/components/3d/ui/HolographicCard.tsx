@@ -29,7 +29,6 @@ import {
 import {
   CHROME_BORDER,
   EMISSIVE_IDLE_BUTTON,
-  EMISSIVE_HOVER_MULTIPLIER,
   SPRING_PRESETS,
   HOVER_GLOW,
   BEVEL_STYLE,
@@ -134,7 +133,7 @@ export function HolographicCard({
   active = false,
   onClick,
   scale = 1,
-  children,
+  children: _children,
   title,
   subtitle,
   completion,

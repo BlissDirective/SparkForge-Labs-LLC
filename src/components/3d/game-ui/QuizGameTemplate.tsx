@@ -28,7 +28,6 @@ import {
   HOVER_GLOW,
   TYPE_SCALE,
   TEXT_COLORS,
-  EMISSIVE_IDLE_INDICATOR,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════
@@ -89,7 +88,7 @@ export function QuizGameTemplate({
   questionSubtitle,
   choices,
   feedback = {},
-  selectedId,
+  selectedId: _selectedId,
   onSelect,
   explanation,
   questionHtml,
@@ -123,7 +122,7 @@ export function QuizGameTemplate({
   // Auto-calculate columns
   const cols = columns ?? (choices.length <= 2 ? 1 : choices.length <= 4 ? 2 : 3);
   const choiceW = cols === 1 ? CHOICE_WIDTH * 2 : cols === 2 ? CHOICE_WIDTH * 1.1 : CHOICE_WIDTH * 0.75;
-  const rows = Math.ceil(choices.length / cols);
+  const _rows = Math.ceil(choices.length / cols);
 
   return (
     <group name="quiz-game-template" position={[0, 0, PANEL_Z]}>

@@ -1,7 +1,7 @@
 // POST /api/auth/logout — Sign out
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
-import { apiSuccess, apiError } from '@/lib/api-helpers';
+import { apiError } from '@/lib/api-helpers';
 
 export async function POST(_req: NextRequest) {
   const supabase = await createServerSupabase();

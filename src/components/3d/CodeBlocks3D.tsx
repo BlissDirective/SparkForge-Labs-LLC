@@ -360,7 +360,7 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
 
   // ENH: Error state — if not running and blocks exist, blocks are idle;
   // simulate error on the last block only as a visual demo (no error prop from parent yet)
-  const hasError = !running && blocks.length > 0;
+  const _hasError = !running && blocks.length > 0;
 
   return (
     <>

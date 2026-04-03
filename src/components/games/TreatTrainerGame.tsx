@@ -37,11 +37,12 @@ export function TreatTrainerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('treat-trainer', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('treat-trainer', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   // Initialize game store
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { game.startGame("treat-trainer", TOTAL_EPISODES); }, []);
 
   const [phase, setPhase] = useState<Phase>('welcome');

@@ -27,7 +27,6 @@ import {
 } from 'three';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
-import { createAlloyFrameMaterial, createControlPanelMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
 import {
   CHROME_BORDER,
   ACCENT_LINES,
@@ -657,7 +656,7 @@ function TerminalPanel({
   // Instanced bar count scaled by LOD
   const barCount = useMemo(() => {
     return Math.min(TOTAL_BARS, 5000);
-  }, [5000]);
+  }, []);
 
   const graphBarCount = 48;
 

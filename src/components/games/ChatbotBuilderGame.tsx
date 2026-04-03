@@ -34,7 +34,7 @@ import {
   Plus, RotateCcw, Bot, Settings2,
   BookOpen, Smartphone,
 } from "lucide-react";
-import { Canvas3DErrorBoundary } from "@/components/3d/Canvas3DErrorBoundary";
+
 
 // [v3] Dynamic import for 3D conversation tree (no SSR)
 const ChatbotNodes3D = dynamic(
@@ -292,8 +292,8 @@ export function ChatbotBuilderGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";
-  const { data: dynamicContent } = useGameContent('chatbot-builder', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('chatbot-builder', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
   const [learnIdx, setLearnIdx] = useState(0);

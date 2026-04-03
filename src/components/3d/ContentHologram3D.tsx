@@ -6,7 +6,7 @@
 // Positioned near InteractiveConsole3D area
 // ════════════════════════════════════════════════════
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html, Float } from '@react-three/drei';
 import * as THREE from 'three';
@@ -22,7 +22,7 @@ export default function ContentHologram3D({
   visible = true,
 }: ContentHologram3DProps) {
   const ringRef = useRef<THREE.Mesh>(null);
-  const { dailyChallenge, trendingTopics, recommendation, npcTip } = useCockpitContentBridge();
+  const { dailyChallenge, trendingTopics, recommendation, npcTip: _npcTip } = useCockpitContentBridge();
 
   useFrame((_, delta) => {
     if (ringRef.current) {

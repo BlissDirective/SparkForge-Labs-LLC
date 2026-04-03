@@ -59,7 +59,7 @@ function getMaterialConfig(rarity: Rarity, active: boolean): MaterialConfig {
 
 export default function BadgePedestal3D({
   rarity,
-  icon,
+  icon: _icon,
   active = true,
   position = [0, 0, 0],
 }: BadgePedestal3DProps) {

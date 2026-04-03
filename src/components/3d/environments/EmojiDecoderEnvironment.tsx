@@ -413,7 +413,7 @@ function SentimentWaves({ decodedCount }: { decodedCount: number }) {
   const geometry = useMemo(() => {
     const segs = 64;
     return new PlaneGeometry(14, 14, segs, segs);
-  }, ['ultra']);
+  }, []);
 
   useFrame((_, delta) => {
     timeRef.current += delta;

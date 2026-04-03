@@ -15,7 +15,7 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
-import { Color, Group, Mesh, MeshStandardMaterial } from 'three';
+import { Color, Mesh, MeshStandardMaterial } from 'three';
 import { useGameStore } from '@/stores/gameStore';
 import {
   CHROME_BORDER,
@@ -114,7 +114,7 @@ function ScoreArc({
 function RoundCounter({
   current,
   total,
-  color,
+  color: _color,
   position,
 }: {
   current: number;

@@ -20,7 +20,6 @@ import { useFrame } from '@react-three/fiber';
 import { Text, Html } from '@react-three/drei';
 import {
   Color,
-  Group,
   Mesh,
   MeshStandardMaterial,
   MeshBasicMaterial,
@@ -35,10 +34,6 @@ import {
   TYPE_SCALE,
   TEXT_COLORS,
   EMISSIVE_IDLE_BUTTON,
-  EMISSIVE_HOVER_MULTIPLIER,
-  SPRING_PRESETS,
-  PRESS_DEPTH,
-  MAX_VISIBLE_ITEMS,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ═══════════════════════════════════════════════════════════════

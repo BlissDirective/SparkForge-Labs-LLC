@@ -36,9 +36,7 @@ import {
   SPRING_PRESETS,
   HOVER_GLOW,
   STATE_MACHINE,
-  BEVEL_STYLE,
   TYPE_SCALE,
-  RIPPLE_OFFSETS_MS,
   DAMPENING,
   getEmissive,
   getEmissiveHover,
@@ -232,7 +230,7 @@ export function HolographicButton({
     rippleTimeRef.current = 0;
 
     // Spring push with snap preset
-    const snap = SPRING_PRESETS.snap;
+    const _snap = SPRING_PRESETS.snap;
     velocityRef.current = -2.0 * intensity;
 
     broadcast({

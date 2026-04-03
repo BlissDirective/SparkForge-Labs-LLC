@@ -73,8 +73,8 @@ const PADDLE_DEPTH = 0.018;
 const LED_STRIP_WIDTH = PLATE_WIDTH * 0.8;
 const LED_STRIP_HEIGHT = 0.003;
 const LED_STRIP_DEPTH = 0.004;
-const LED_ON_INTENSITY = EMISSIVE_LED_MULTIPLIER * EMISSIVE_IDLE_INDICATOR; // 0.75
-const LED_OFF_INTENSITY = getEmissive('off'); // 0.0
+const _LED_ON_INTENSITY = EMISSIVE_LED_MULTIPLIER * EMISSIVE_IDLE_INDICATOR; // 0.75
+const _LED_OFF_INTENSITY = getEmissive('off'); // 0.0
 
 // Spring config from tokens
 const { stiffness: SNAP_STIFFNESS, damping: SNAP_DAMPING, mass: SNAP_MASS } = SPRING_PRESETS.snap;

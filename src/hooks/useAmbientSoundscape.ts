@@ -925,7 +925,7 @@ export function useAmbientSoundscape(
 
       setIsPlaying(true);
     },
-    [createForLab, disposeActive, disposeFadingOut]
+    [createForLab, disposeFadingOut]
   );
 
   // ── Public API ──────────────────────────────────────────────

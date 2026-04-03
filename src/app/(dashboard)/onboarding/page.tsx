@@ -22,7 +22,7 @@ import { useUIStore } from '@/stores/uiStore';
 // v3: OnboardingCrystal3D — progressive crystal formation (C1)
 
 // Dynamic import for 3D crystal (ssr: false required for R3F)
-const OnboardingCrystal3D = dynamic(
+const _OnboardingCrystal3D = dynamic(
   () => import('@/components/3d/OnboardingCrystal3D'),
   { ssr: false, loading: () => null }
 );

@@ -35,12 +35,7 @@ import {
   Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
-import { createLEDMaterial, createAlloyFrameMaterial } from '@/lib/3d/cockpitMaterials';
 import {
-  EMISSIVE_SCALE,
-  EMISSIVE_LED_MULTIPLIER,
-  HOVER_GLOW,
-  CHROME_BORDER,
   getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
