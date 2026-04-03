@@ -64,7 +64,7 @@ Part 3B delivers the **full R3F (React Three Fiber) 3D layer** for the Laborator
 | 4 | `src/shaders/index.ts` | Created (**CPA: +3 shader exports: radarSweep, dataStream, holographicRing**) |
 | 5 | `src/lib/3d/materials.ts` | Created (**CPA: +4 presets, +transmission fields, +createPhysicalMaterial update**) |
 | 6 | `src/components/3d/AuroraBackground.tsx` | Created |
-| 7 | `src/components/3d/AmbientParticles.tsx` | Created |
+| 7 | ~~`src/components/3d/AmbientParticles.tsx`~~ | ~~Created~~ — **REMOVED** by Design Decision 20.0 (April 3, 2026). File deleted from codebase. |
 | 8 | `src/components/3d/LEDRim.tsx` | Created (**CPA: curved arc via TubeGeometry + CatmullRomCurve3**) |
 | 9 | `src/components/3d/StationFrame.tsx` | Replaced (**CPA v2.0: refactored to scene group — delegates to CockpitCanvas**) |
 | 10 | `src/components/3d/CrystalShatter.tsx` | Created — **SUPERSEDED** by `HeroAnimation.tsx` (archived to `_SUPERSEDED/`) |
@@ -337,7 +337,7 @@ All 19 GLSL shaders (listed in Stage 1 Part 2 Step 20h) are migrated **gradually
 
 ### Compute Shaders for Particles (Enhancement 8.2)
 
-When WebGPU is available, particle systems (AmbientParticles, GameParticles3D, CeremonyFX) can use **compute shaders** for GPU-accelerated particle updates:
+When WebGPU is available, particle systems (~~AmbientParticles~~ *(removed by Decision 20.0)*, GameParticles3D, CeremonyFX) can use **compute shaders** for GPU-accelerated particle updates:
 
 - **10K+ particles** without CPU overhead (vs current 50-200 CPU-updated particles)
 - **GPU-accelerated physics** for Sort Toy Box drag interactions and Robot Vacuum pathfinding
@@ -804,6 +804,8 @@ Key characteristics:
 
 ## Step 7 — `src/components/3d/AmbientParticles.tsx`
 
+> **NOTE (April 3, 2026):** AmbientParticles has been REMOVED from the cockpit by Design Decision 20.0. This code is preserved for reference only. The file has been deleted from the codebase.
+
 **GPU-instanced particles with connection lines**, 4 intensity presets. The "living data streams" that float around the station frame.
 
 ```typescript
@@ -1043,7 +1045,7 @@ Key characteristics:
 // Architecture:
 // z-index 0: R3F Canvas (fixed position, full viewport)
 //   - Aurora background shader (distant, behind frame)
-//   - Ambient particles (mid-depth, around frame)
+//   - Ambient particles (mid-depth, around frame) — REMOVED by Decision 20.0
 //   - Chrome bezel frame geometry (foreground)
 //   - LED rim emissive mesh (on frame)
 // z-index 10: HTML content layer (positioned above)
@@ -1053,7 +1055,8 @@ import { Canvas } from '@react-three/fiber';
 import { Environment, AdaptiveDpr } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { AuroraBackground } from './AuroraBackground';
-import { AmbientParticles } from './AmbientParticles';
+// NOTE (April 3, 2026): AmbientParticles REMOVED by Design Decision 20.0. Import deleted from codebase.
+// import { AmbientParticles } from './AmbientParticles';
 import { LEDRim } from './LEDRim';
 import { HDR_FALLBACK_PRESET } from '@/lib/3d/materials';
 
@@ -1156,12 +1159,12 @@ export function StationFrame({
             color3="#06B6D4"
           />
 
-          {/* Ambient particles */}
-          <AmbientParticles
+          {/* NOTE (April 3, 2026): AmbientParticles REMOVED by Design Decision 20.0. */}
+          {/* <AmbientParticles
             intensity={particleIntensity}
             color={activeLabColor}
             isMobile={isMobile}
-          />
+          /> */}
 
           {/* LED status rim */}
           <LEDRim
@@ -1215,7 +1218,7 @@ export function StationFrame({
 **Architecture layers (z-order):**
 1. z-0: R3F Canvas (fixed, full viewport, pointer-events-none)
    - Aurora background shader (z=-10)
-   - Ambient particles (z=-6 region)
+   - ~~Ambient particles (z=-6 region)~~ *(removed by Decision 20.0)*
    - LED rim (top edge, z=-4)
    - Bloom post-processing (desktop only)
    - Environment map (drei 'night' preset, upgradeable to custom HDR)
@@ -1223,7 +1226,7 @@ export function StationFrame({
 3. z-10: HTML content layer (positioned above via dashboard layout)
 
 **WebGL detection:** Falls back to CSS-only `station-frame-css` class if no WebGL context available.
-**Mobile adaptation:** DPR 1, no antialiasing, no Bloom, reduced particles (via AmbientParticles `isMobile` prop).
+**Mobile adaptation:** DPR 1, no antialiasing, no Bloom, reduced particles. *(Note: AmbientParticles removed by Decision 20.0.)*
 **Performance:** `frameloop="demand"` — only renders when R3F detects changes. `AdaptiveDpr` auto-scales.
 
 ---

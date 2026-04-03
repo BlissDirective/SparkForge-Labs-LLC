@@ -6,6 +6,8 @@
 
 ---
 
+> **NOTE (April 3, 2026):** The cockpit broadcast store and 3D UI components described here have been rebuilt per 150 locked design decisions (see `DESIGN_DECISIONS_LOG.md`). All components now consume `cockpitDesignTokens.ts` for consistent styling. The architectural patterns remain valid.
+
 ## DECISIONS IMPLEMENTED
 
 - [x] Decision 3.2 — All 10 labs get unique patterns — in `labPatterns/*.glsl` (this Part A)

@@ -1,5 +1,7 @@
 # LOGIN_3D_v3FINAL_PartB — Enhanced Login Page, Demo Guards & Integration
 
+> **NOTE (April 3, 2026):** The auth layout has been further enhanced by the 3D UI Migration (Phase 3). Login, signup, and reset pages now render as fully 3D panels (LoginPanel3D, SignupPanel3D, ResetPasswordPanel3D) inside their own R3F Canvas (Decision P3-1). The code in this document remains valid as the foundation — the 3D panel architecture layers on top.
+
 **Stage:** 3 (Auth/Layout) — Login Enhancement
 **Phase:** Post-Part A (builds on LOGIN_3D_v3FINAL_PartA.md)
 **Version:** v3-FINAL | **Date:** March 23, 2026

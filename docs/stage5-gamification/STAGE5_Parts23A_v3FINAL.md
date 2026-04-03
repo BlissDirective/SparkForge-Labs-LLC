@@ -5,6 +5,8 @@
 **Prerequisites:** Stage 5 Part 1 complete, Stage 3 Part 3 v3-FINAL (noise.glsl, shaders/index.ts), Stage 4 Part 2 v3-FINAL
 **Validation:** `npm run build` PASS, `npx tsc --noEmit` PASS, `npm run lint` PASS
 
+> **NOTE (April 3, 2026):** The 3D gamification components (XPVortex, LevelUpExplosion, BadgePedestal3D, etc.) described here have been augmented by the 3D UI Migration (Phase 4) with XPPopup3D and CelebrationPanel3D. The existing components remain valid and are used by the new celebration orchestration system.
+
 ---
 
 ## Overview
