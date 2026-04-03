@@ -3,19 +3,26 @@
 // ════════════════════════════════════════════════════════════════
 // DashboardLeft — Player Identity Hub (Left Quadrant, FIXED)
 // ════════════════════════════════════════════════════════════════
-// Per SparkForge-Full-ControlScreen.json §left_quadrant:
-//   - Avatar viewport (placeholder sphere)
-//   - AI Guide avatar (floating hologram placeholder)
-//   - Trophy display (3 most recent badges)
-//   - 4 radial gauges: XP, Level, Streak, Progress
+// Decision 22.1: Hexagonal avatar frame (chrome-bordered, matches floor hexagons)
+// Decision 22.2: Vertical gauge stack (4 gauges stacked vertically, car instrument cluster)
+// Decision 22.3: 5 recent badges in a row
 //
 // Always visible. Content is always about WHO YOU ARE.
 // Position/rotation handled by CockpitUILayer parent group.
 
 import { useMemo } from 'react';
 import { Text } from '@react-three/drei';
+import { Color } from 'three';
 import { RadialDial3D } from '../ui/RadialDial3D';
 import { useChildStore } from '@/stores/childStore';
+import {
+  CHROME_BORDER,
+  TYPE_SCALE,
+  TEXT_COLORS,
+  NUMERIC_FONT,
+  EMISSIVE_IDLE_INDICATOR,
+  GHOST_PLACEHOLDER_OPACITY,
+} from '@/lib/3d/cockpitDesignTokens';
 
 export default function DashboardLeft() {
   const child = useChildStore((s) => s.activeChild);
@@ -26,33 +33,60 @@ export default function DashboardLeft() {
   const level = child?.level ?? 1;
   const streak = child?.streak_count ?? 0;
 
+  // Decision 22.3: 5 recent badges
   const recentBadges = useMemo(() => {
     if (!badges || badges.length === 0) return [];
-    return badges.slice(-3).reverse();
+    return badges.slice(-5).reverse();
   }, [badges]);
+
+  // Ghost placeholders for empty badge slots
+  const emptySlots = Math.max(0, 5 - recentBadges.length);
 
   return (
     <group name="dashboard-left">
-      {/* ═══ Avatar Viewport ═══ */}
+      {/* ═══ Avatar — Hexagonal Frame (Decision 22.1) ═══ */}
       <group position={[0.15, 0.55, 0.15]}>
-        <mesh>
-          <sphereGeometry args={[0.12, 32, 32]} />
+        {/* Chrome hexagonal border */}
+        <mesh rotation={[0, 0, Math.PI / 6]}>
+          <cylinderGeometry args={[0.14, 0.14, 0.015, 6]} />
           <meshStandardMaterial
-            color="#1a1e2e"
+            color={CHROME_BORDER.colorHex}
+            metalness={0.95}
+            roughness={0.15}
+            emissive="#223344"
+            emissiveIntensity={CHROME_BORDER.glowIntensity}
+          />
+        </mesh>
+        {/* Inner avatar surface (hexagonal) */}
+        <mesh rotation={[0, 0, Math.PI / 6]} position={[0, 0.001, 0]}>
+          <cylinderGeometry args={[0.12, 0.12, 0.012, 6]} />
+          <meshStandardMaterial
+            color="#0A0F1F"
             metalness={0.6}
             roughness={0.4}
             emissive="#00BBFF"
             emissiveIntensity={0.3}
           />
         </mesh>
+        {/* Player name */}
         <Text
-          position={[0, -0.18, 0.01]}
-          fontSize={0.035}
-          color="#F0F0F4"
+          position={[0, -0.19, 0.01]}
+          fontSize={TYPE_SCALE.label.fontSize}
+          color={TEXT_COLORS.primary.hex}
           anchorX="center"
-          font="/fonts/Sora-Regular.woff2"
+          font={TYPE_SCALE.label.fontPath}
         >
           {child?.display_name ?? 'Explorer'}
+        </Text>
+        {/* Level badge */}
+        <Text
+          position={[0, -0.22, 0.01]}
+          fontSize={TYPE_SCALE.caption.fontSize}
+          color="#AA66FF"
+          anchorX="center"
+          font={NUMERIC_FONT}
+        >
+          {`LV ${level}`}
         </Text>
       </group>
 
@@ -65,49 +99,66 @@ export default function DashboardLeft() {
             transparent
             opacity={0.6}
             emissive="#AA66FF"
-            emissiveIntensity={0.8}
+            emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
           />
         </mesh>
         <Text
           position={[0, -0.1, 0.01]}
-          fontSize={0.022}
+          fontSize={TYPE_SCALE.caption.fontSize}
           color="#AA66FF"
           anchorX="center"
-          font="/fonts/Sora-Regular.woff2"
+          font={TYPE_SCALE.caption.fontPath}
         >
           AI Guide
         </Text>
       </group>
 
-      {/* ═══ Trophy Display (3 recent) ═══ */}
-      <group position={[0.35, 0, -0.15]}>
+      {/* ═══ Trophy Display — 5 Recent Badges (Decision 22.3) ═══ */}
+      <group position={[0.15, -0.05, 0]}>
         <Text
           position={[0, 0.1, 0]}
-          fontSize={0.02}
-          color="#F0F0F480"
+          fontSize={TYPE_SCALE.caption.fontSize}
+          color={TEXT_COLORS.muted.hex}
           anchorX="center"
-          font="/fonts/Sora-Regular.woff2"
+          font={TYPE_SCALE.caption.fontPath}
+          fillOpacity={TEXT_COLORS.muted.opacity}
         >
           RECENT BADGES
         </Text>
+        {/* Earned badges */}
         {recentBadges.map((_badge: unknown, i: number) => (
-          <group key={i} position={[(i - 1) * 0.1, -0.02, 0]}>
+          <group key={i} position={[(i - 2) * 0.08, -0.02, 0]}>
             <mesh>
               <cylinderGeometry args={[0.025, 0.03, 0.015, 6]} />
               <meshStandardMaterial
-                color="#a8b5c8"
+                color={CHROME_BORDER.colorHex}
                 metalness={0.95}
                 roughness={0.1}
                 emissive="#FFAA44"
-                emissiveIntensity={0.5}
+                emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
+              />
+            </mesh>
+          </group>
+        ))}
+        {/* Ghost placeholders for empty slots */}
+        {Array.from({ length: emptySlots }, (_, i) => (
+          <group key={`ghost-${i}`} position={[(recentBadges.length + i - 2) * 0.08, -0.02, 0]}>
+            <mesh>
+              <cylinderGeometry args={[0.025, 0.03, 0.015, 6]} />
+              <meshStandardMaterial
+                color="#1a1e2e"
+                metalness={0.5}
+                roughness={0.5}
+                transparent
+                opacity={GHOST_PLACEHOLDER_OPACITY}
               />
             </mesh>
           </group>
         ))}
       </group>
 
-      {/* ═══ 4 Radial Gauges ═══ */}
-      <group position={[-0.3, -0.55, 0]}>
+      {/* ═══ 4 Radial Gauges — Vertical Stack (Decision 22.2) ═══ */}
+      <group position={[-0.3, -0.15, 0]}>
         <RadialDial3D
           id="xp_gauge"
           label="XP"
@@ -115,8 +166,9 @@ export default function DashboardLeft() {
           max={xpMax}
           onChange={() => {}}
           color="#00BBFF"
-          position={[0, 0, 0]}
-          scale={0.7}
+          position={[0, 0.33, 0]}
+          scale={0.6}
+          readOnly
         />
         <RadialDial3D
           id="level_gauge"
@@ -125,8 +177,9 @@ export default function DashboardLeft() {
           max={100}
           onChange={() => {}}
           color="#AA66FF"
-          position={[0.22, 0, 0]}
-          scale={0.7}
+          position={[0, 0.11, 0]}
+          scale={0.6}
+          readOnly
         />
         <RadialDial3D
           id="streak_gauge"
@@ -135,8 +188,9 @@ export default function DashboardLeft() {
           max={365}
           onChange={() => {}}
           color="#FF6644"
-          position={[0.44, 0, 0]}
-          scale={0.7}
+          position={[0, -0.11, 0]}
+          scale={0.6}
+          readOnly
         />
         <RadialDial3D
           id="progress_gauge"
@@ -145,8 +199,9 @@ export default function DashboardLeft() {
           max={100}
           onChange={() => {}}
           color="#00FF88"
-          position={[0.66, 0, 0]}
-          scale={0.7}
+          position={[0, -0.33, 0]}
+          scale={0.6}
+          readOnly
           formatValue={(v) => `${v}%`}
         />
       </group>

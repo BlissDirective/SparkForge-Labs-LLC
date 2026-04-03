@@ -3,36 +3,66 @@
 // ════════════════════════════════════════════════════
 // HolographicButton — 3D Interactive Cockpit Button
 // ════════════════════════════════════════════════════
-// Per cockpit-architecture.json: "press-to-depress with metallic click
-// animation; triggers full cockpit state change with holographic pop-up
-// mapping and camera movement"
+// Decision 2.1: Chamfered rectangle (45° corner cuts, fighter jet MFD soft key)
+// Decision 2.2: Dual-layer — solid dark carbon base + floating translucent emissive
+// Decision 2.3: Ring expansion ripple on click
+// Decision 2.4: Three sizes (sm/md/lg)
+// Decision 2.5: Inset text — engraved into surface, backlit by emissive
 //
-// Features:
-// - Chrome bezel frame (alloyFrame material, metalness 0.98)
-// - Inner emissive panel (lightedButton material, emissive 1.8)
-// - Press: depress 0.03 units on Z + spring bounce-back
-// - Holographic ripple: radial ring expansion from press point
-// - Hover: scale 1.05 + glow intensify + cursor pointer
-// - Active state: stays depressed with pulsing glow
-// - Broadcasts to cockpitBroadcastStore on every interaction
-//
-// ~100K triangles per button
+// Uses cockpitDesignTokens for all visual constants.
+// Broadcasts to cockpitBroadcastStore on every interaction.
 
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text, RoundedBox } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import {
   Color,
   Group,
   Mesh,
   MeshPhongMaterial,
   MeshStandardMaterial,
-  RingGeometry,
   MeshBasicMaterial,
   AdditiveBlending,
   DoubleSide,
+  Shape,
+  ExtrudeGeometry,
 } from 'three';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import {
+  CHROME_BORDER,
+  PRESS_DEPTH,
+  EMISSIVE_IDLE_BUTTON,
+  EMISSIVE_HOVER_MULTIPLIER,
+  SPRING_PRESETS,
+  HOVER_GLOW,
+  STATE_MACHINE,
+  BEVEL_STYLE,
+  TYPE_SCALE,
+  RIPPLE_OFFSETS_MS,
+  DAMPENING,
+  getEmissive,
+  getEmissiveHover,
+} from '@/lib/3d/cockpitDesignTokens';
+
+// ■■ Size definitions ■■
+const SIZE_MAP = {
+  sm: { width: 0.08, height: 0.035 },
+  md: { width: 0.12, height: 0.05 },
+  lg: { width: 0.18, height: 0.06 },
+} as const;
+
+// ■■ Constants ■■
+const BEZEL_PADDING = 0.01;
+const BEZEL_DEPTH = 0.015;
+const BASE_DEPTH = 0.012;
+const EMISSIVE_LAYER_OFFSET = 0.003;
+const EMISSIVE_LAYER_DEPTH = 0.002;
+const BEZEL_CHAMFER = 0.008;
+const BUTTON_CHAMFER = 0.006;
+const RIPPLE_DURATION = 0.6;
+const RIPPLE_MAX_RADIUS = 0.15;
+const HOVER_EMISSIVE = EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER; // 1.44
+const CARBON_BASE_COLOR = '#0A0F1F';
 
 interface HolographicButtonProps {
   /** Unique ID for broadcast events */
@@ -45,25 +75,45 @@ interface HolographicButtonProps {
   position?: [number, number, number];
   /** Scale multiplier */
   scale?: number;
+  /** Button size: sm (filter pills), md (standard CTAs), lg (primary CTAs) */
+  size?: 'sm' | 'md' | 'lg';
   /** Whether this button is currently active/selected */
   active?: boolean;
+  /** Whether button is disabled */
+  disabled?: boolean;
   /** Click handler */
   onClick?: () => void;
-  /** Icon character (emoji or single char) */
-  icon?: string;
-  /** Width of button */
-  width?: number;
-  /** Height of button */
-  height?: number;
 }
 
-// ■■ Spring physics constants ■■
-const SPRING_STIFFNESS = 300;
-const SPRING_DAMPING = 25;
-const DEPRESS_DEPTH = 0.03;
-const HOVER_SCALE = 1.05;
-const RIPPLE_DURATION = 0.6;  // seconds
-const RIPPLE_MAX_RADIUS = 0.15;
+// ■■ Chamfered rectangle shape (45° corner cuts) ■■
+function createChamferedRect(w: number, h: number, chamfer: number): Shape {
+  const s = new Shape();
+  const hw = w / 2, hh = h / 2, c = chamfer;
+  s.moveTo(-hw + c, -hh);
+  s.lineTo(hw - c, -hh);
+  s.lineTo(hw, -hh + c);
+  s.lineTo(hw, hh - c);
+  s.lineTo(hw - c, hh);
+  s.lineTo(-hw + c, hh);
+  s.lineTo(-hw, hh - c);
+  s.lineTo(-hw, -hh + c);
+  s.closePath();
+  return s;
+}
+
+// ■■ Memoized geometry factory ■■
+function createChamferedGeometry(
+  w: number,
+  h: number,
+  depth: number,
+  chamfer: number,
+): ExtrudeGeometry {
+  const shape = createChamferedRect(w, h, chamfer);
+  return new ExtrudeGeometry(shape, {
+    depth,
+    bevelEnabled: false,
+  });
+}
 
 export function HolographicButton({
   id,
@@ -71,64 +121,120 @@ export function HolographicButton({
   color = '#00ffcc',
   position = [0, 0, 0],
   scale = 1,
+  size = 'md',
   active = false,
+  disabled = false,
   onClick,
-  icon,
-  width = 0.22,
-  height = 0.08,
 }: HolographicButtonProps) {
   const groupRef = useRef<Group>(null);
-  const buttonRef = useRef<Mesh>(null);
-  const glowRef = useRef<Mesh>(null);
+  const buttonGroupRef = useRef<Group>(null);
   const rippleRef = useRef<Mesh>(null);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
 
   // Interaction state
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
-  const pressTimeRef = useRef(0);
-  const rippleTimeRef = useRef(-1);  // -1 = no ripple
+  const rippleTimeRef = useRef(-1);
 
   // Spring physics state
   const depthRef = useRef(0);
   const velocityRef = useRef(0);
   const scaleRef = useRef(1);
 
-  // Materials (memoized)
-  const buttonColor = useMemo(() => new Color(color), [color]);
+  // Click dampening state
+  const clickHistoryRef = useRef<number[]>([]);
+
+  // Resolve dimensions from size
+  const { width, height } = SIZE_MAP[size];
+
+  // Colors
+  const accentColor = useMemo(() => new Color(color), [color]);
+  const bezelColor = useMemo(() => new Color(CHROME_BORDER.colorHex), []);
+  const carbonColor = useMemo(() => new Color(CARBON_BASE_COLOR), []);
+
+  // ■■ Geometries (memoized per size) ■■
+  const bezelGeometry = useMemo(
+    () => createChamferedGeometry(
+      width + BEZEL_PADDING * 2,
+      height + BEZEL_PADDING * 2,
+      BEZEL_DEPTH,
+      BEZEL_CHAMFER,
+    ),
+    [width, height],
+  );
+
+  const baseGeometry = useMemo(
+    () => createChamferedGeometry(width, height, BASE_DEPTH, BUTTON_CHAMFER),
+    [width, height],
+  );
+
+  const emissiveGeometry = useMemo(
+    () => createChamferedGeometry(width, height, EMISSIVE_LAYER_DEPTH, BUTTON_CHAMFER),
+    [width, height],
+  );
+
+  // ■■ Materials (memoized) ■■
   const bezelMaterial = useMemo(() => new MeshStandardMaterial({
-    color: new Color('#a8b5c8'),
+    color: bezelColor,
     metalness: 0.98,
     roughness: 0.12,
     emissive: new Color('#223344'),
-    emissiveIntensity: 0.5,
-  }), []);
+    emissiveIntensity: CHROME_BORDER.glowIntensity,
+  }), [bezelColor]);
 
-  const buttonMaterial = useMemo(() => new MeshPhongMaterial({
-    color: buttonColor,
-    emissive: buttonColor,
-    emissiveIntensity: 1.8,
+  const baseMaterial = useMemo(() => new MeshStandardMaterial({
+    color: carbonColor,
+    metalness: 0.85,
+    roughness: 0.35,
+  }), [carbonColor]);
+
+  const emissiveMaterial = useMemo(() => new MeshPhongMaterial({
+    color: accentColor,
+    emissive: accentColor,
+    emissiveIntensity: EMISSIVE_IDLE_BUTTON,
+    transparent: true,
+    opacity: 0.4,
     shininess: 120,
-  }), [buttonColor]);
+  }), [accentColor]);
 
   const rippleMaterial = useMemo(() => new MeshBasicMaterial({
-    color: buttonColor,
+    color: accentColor,
     transparent: true,
     opacity: 0,
     side: DoubleSide,
     blending: AdditiveBlending,
     depthWrite: false,
     toneMapped: false,
-  }), [buttonColor]);
+  }), [accentColor]);
+
+  // ■■ Click dampening ■■
+  const getDampenedIntensity = useCallback((): number => {
+    const now = performance.now();
+    // Prune clicks outside window
+    clickHistoryRef.current = clickHistoryRef.current.filter(
+      (t) => now - t < DAMPENING.windowMs,
+    );
+    const count = clickHistoryRef.current.length;
+    clickHistoryRef.current.push(now);
+
+    if (count === 0) return DAMPENING.firstClick;
+    if (count === 1) return DAMPENING.secondClick;
+    return DAMPENING.thirdPlus;
+  }, []);
 
   // ■■ Click handler ■■
   const handleClick = useCallback(() => {
-    setPressed(true);
-    pressTimeRef.current = performance.now();
-    rippleTimeRef.current = 0;  // Start ripple
-    velocityRef.current = -2.0; // Push down
+    if (disabled) return;
 
-    // Broadcast to cockpit
+    const intensity = getDampenedIntensity();
+
+    setPressed(true);
+    rippleTimeRef.current = 0;
+
+    // Spring push with snap preset
+    const snap = SPRING_PRESETS.snap;
+    velocityRef.current = -2.0 * intensity;
+
     broadcast({
       type: 'button-press',
       source: id,
@@ -138,138 +244,137 @@ export function HolographicButton({
 
     onClick?.();
 
-    // Release after spring settles
     setTimeout(() => setPressed(false), 200);
-  }, [id, color, label, broadcast, onClick]);
+  }, [id, color, label, broadcast, onClick, disabled, getDampenedIntensity]);
 
   // ■■ Hover handlers ■■
   const handlePointerOver = useCallback(() => {
+    if (disabled) return;
     setHovered(true);
     document.body.style.cursor = 'pointer';
-  }, []);
+  }, [disabled]);
 
   const handlePointerOut = useCallback(() => {
     setHovered(false);
     document.body.style.cursor = 'default';
   }, []);
 
+  // ■■ Resolve current spring preset ■■
+  const activeSpring = pressed
+    ? SPRING_PRESETS.snap
+    : hovered
+      ? SPRING_PRESETS.bounce
+      : SPRING_PRESETS.smooth;
+
   // ■■ Per-frame animation ■■
   useFrame((_, delta) => {
-    if (!groupRef.current || !buttonRef.current) return;
+    if (!groupRef.current || !buttonGroupRef.current) return;
+
+    // Disabled state — dim and no animation
+    if (disabled) {
+      const disabledVisuals = STATE_MACHINE.disabled;
+      emissiveMaterial.emissiveIntensity = getEmissive('off');
+      emissiveMaterial.opacity = disabledVisuals.opacity ?? 0.4;
+      groupRef.current.scale.setScalar(scale);
+      return;
+    }
 
     // Spring physics for depress
-    const targetDepth = (pressed || active) ? DEPRESS_DEPTH : 0;
-    const springForce = SPRING_STIFFNESS * (targetDepth - depthRef.current);
-    const dampingForce = -SPRING_DAMPING * velocityRef.current;
-    velocityRef.current += (springForce + dampingForce) * delta;
+    const targetDepth = (pressed || active) ? PRESS_DEPTH : 0;
+    const springForce = activeSpring.stiffness * (targetDepth - depthRef.current);
+    const dampingForce = -activeSpring.damping * velocityRef.current;
+    const accel = (springForce + dampingForce) / activeSpring.mass;
+    velocityRef.current += accel * delta;
     depthRef.current += velocityRef.current * delta;
-    buttonRef.current.position.z = -depthRef.current;
+    buttonGroupRef.current.position.z = -depthRef.current;
 
-    // Hover scale
-    const targetScale = hovered ? HOVER_SCALE : 1.0;
+    // Hover scale (bounce spring for hover)
+    const targetScale = hovered ? STATE_MACHINE.hover.scale : STATE_MACHINE.idle.scale;
     scaleRef.current += (targetScale - scaleRef.current) * delta * 10;
     groupRef.current.scale.setScalar(scale * scaleRef.current);
 
-    // Button emissive pulse
-    const basePulse = active ? 2.5 : (hovered ? 2.2 : 1.8);
-    const pulse = basePulse + Math.sin(performance.now() * 0.004) * (active ? 0.4 : 0.15);
-    buttonMaterial.emissiveIntensity = pulse;
+    // Emissive pulse on the translucent layer
+    const baseEmissive = active
+      ? getEmissiveHover('bright')
+      : hovered
+        ? HOVER_EMISSIVE
+        : EMISSIVE_IDLE_BUTTON;
 
-    // Glow ring pulse
-    if (glowRef.current) {
-      const glowMat = glowRef.current.material as MeshBasicMaterial;
-      glowMat.opacity = (active ? 0.6 : hovered ? 0.4 : 0.2) + Math.sin(performance.now() * 0.003) * 0.1;
-    }
+    // Subtle pulse per HOVER_GLOW token
+    const t = performance.now() / 1000;
+    const pulseRange = HOVER_GLOW.pulseMax - HOVER_GLOW.pulseMin;
+    const pulse = HOVER_GLOW.pulseMin + (Math.sin(t * (Math.PI * 2 / HOVER_GLOW.pulsePeriodS)) * 0.5 + 0.5) * pulseRange;
+    emissiveMaterial.emissiveIntensity = baseEmissive * (active || hovered ? pulse : 1.0);
+    emissiveMaterial.opacity = active ? 0.55 : hovered ? 0.5 : 0.4;
 
     // Ripple animation
     if (rippleTimeRef.current >= 0 && rippleRef.current) {
       rippleTimeRef.current += delta;
-      const t = rippleTimeRef.current / RIPPLE_DURATION;
+      const rt = rippleTimeRef.current / RIPPLE_DURATION;
 
-      if (t >= 1) {
+      if (rt >= 1) {
         rippleTimeRef.current = -1;
         rippleMaterial.opacity = 0;
         rippleRef.current.scale.set(0.01, 0.01, 1);
       } else {
-        const rippleScale = t * RIPPLE_MAX_RADIUS * 2;
+        const rippleScale = rt * RIPPLE_MAX_RADIUS * 2;
         rippleRef.current.scale.set(rippleScale, rippleScale, 1);
-        rippleMaterial.opacity = (1 - t) * 0.8;
+        rippleMaterial.opacity = (1 - rt) * 0.8;
       }
     }
   });
 
+  // Label font from design tokens
+  const labelType = TYPE_SCALE.label;
+
   return (
     <group ref={groupRef} position={position}>
-      {/* Chrome bezel frame */}
-      <RoundedBox
-        args={[width + 0.02, height + 0.02, 0.015]}
-        radius={0.008}
-        smoothness={4}
-        material={bezelMaterial}
-      />
+      {/* Chrome bezel frame — chamfered rectangle */}
+      <mesh geometry={bezelGeometry} material={bezelMaterial} position={[0, 0, -BEZEL_DEPTH / 2]} />
 
-      {/* Inner button surface */}
-      <RoundedBox
-        ref={buttonRef}
-        args={[width, height, 0.012]}
-        radius={0.006}
-        smoothness={4}
-        material={buttonMaterial}
-        onClick={handleClick}
-        onPointerOver={handlePointerOver}
-        onPointerOut={handlePointerOut}
-      />
-
-      {/* Glow ring (always visible, pulses) */}
-      <mesh ref={glowRef} position={[0, 0, 0.008]}>
-        <ringGeometry args={[
-          Math.max(width, height) * 0.55,
-          Math.max(width, height) * 0.65,
-          32,
-        ]} />
-        <meshBasicMaterial
-          color={buttonColor}
-          transparent
-          opacity={0.2}
-          side={DoubleSide}
-          blending={AdditiveBlending}
-          depthWrite={false}
-          toneMapped={false}
+      {/* Interactive button group (depresses on press) */}
+      <group ref={buttonGroupRef}>
+        {/* Bottom layer: dark carbon base */}
+        <mesh
+          geometry={baseGeometry}
+          material={baseMaterial}
+          position={[0, 0, -BASE_DEPTH / 2]}
+          onClick={handleClick}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
         />
-      </mesh>
 
-      {/* Ripple effect (appears on click) */}
-      <mesh ref={rippleRef} position={[0, 0, 0.01]} scale={[0.01, 0.01, 1]}>
-        <ringGeometry args={[0.8, 1.0, 32]} />
-        <primitive object={rippleMaterial} />
-      </mesh>
+        {/* Top layer: floating translucent emissive (0.003 above base) */}
+        <mesh
+          geometry={emissiveGeometry}
+          material={emissiveMaterial}
+          position={[0, 0, EMISSIVE_LAYER_OFFSET - EMISSIVE_LAYER_DEPTH / 2]}
+          onClick={handleClick}
+          onPointerOver={handlePointerOver}
+          onPointerOut={handlePointerOut}
+        />
 
-      {/* Label text */}
-      <Text
-        position={[icon ? 0.02 : 0, 0, 0.01]}
-        fontSize={0.018}
-        color={active ? '#ffffff' : color}
-        anchorX="center"
-        anchorY="middle"
-        font="/fonts/Exo2-Bold.woff"
-        outlineWidth={0.001}
-        outlineColor="#000000"
-      >
-        {label}
-      </Text>
+        {/* Ripple effect (ring expansion on click) */}
+        <mesh ref={rippleRef} position={[0, 0, EMISSIVE_LAYER_OFFSET + 0.002]} scale={[0.01, 0.01, 1]}>
+          <ringGeometry args={[0.8, 1.0, 32]} />
+          <primitive object={rippleMaterial} />
+        </mesh>
 
-      {/* Icon (if provided) */}
-      {icon && (
+        {/* Inset label text — engraved into surface (z = -0.001 relative to surface) */}
         <Text
-          position={[-width * 0.35, 0, 0.01]}
-          fontSize={0.024}
-          color={color}
+          position={[0, 0, -0.001]}
+          fontSize={labelType.fontSize}
+          color={disabled ? '#555566' : active ? '#ffffff' : color}
           anchorX="center"
           anchorY="middle"
+          font={labelType.fontPath}
+          outlineWidth={0.0008}
+          outlineColor="#000000"
+          maxWidth={width * 0.85}
         >
-          {icon}
+          {label}
         </Text>
-      )}
+      </group>
     </group>
   );
 }

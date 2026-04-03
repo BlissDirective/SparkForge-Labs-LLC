@@ -3,16 +3,16 @@
 // ================================================================
 // SparkForge LEDRim — Ultra-Bright Emissive Status Strip (CPA v3.0)
 // ================================================================
-// v3: 500K tri budget (was 200K), 1500 LEDs (was 1000),
-// emissiveIntensity 3.0 (was ~0.3), RingGeometry 288 segs,
-// wider arc (218°) per cockpit-architecture.json vision spec
+// v3.1: Design token integration, outward burst pulse, sequential
+// color fill, removed data viz mode, desktop-only (no flat fallback)
 //
 // Features:
-//   - 1500 instanced LED capsules (ultra) across wider 218° arc
+//   - 1500 instanced LED rectangular blocks across 218° arc
 //   - Multi-layer: inner core tube, outer diffuser shell, mounting brackets
-//   - Data visualization: LEDs light sequentially for progress/XP display
+//   - Outward burst pulse from center (300ms cycle)
+//   - Sequential color fill center→outward (400ms transition)
+//   - Ultra-bright emissive (blazing = 2.5) via design tokens
 //   - Secondary accent rims at offset y-positions
-//   - Ultra-bright emissive (3.0) — 10x brighter than v2
 //
 // Color = current lab accent (default #00BBFF on dashboard)
 // Pulses gently, spikes on events (XP gain, badge earn, level up)
@@ -36,28 +36,24 @@ import {
 } from 'three';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import { createLEDMaterial, createAlloyFrameMaterial } from '@/lib/3d/cockpitMaterials';
+import {
+  EMISSIVE_SCALE,
+  EMISSIVE_LED_MULTIPLIER,
+  HOVER_GLOW,
+  CHROME_BORDER,
+  getEmissive,
+} from '@/lib/3d/cockpitDesignTokens';
 
-// ■■ Props Interface (preserved from original) ■■
+// ■■ Props Interface ■■
 interface LEDRimProps {
   color?: string;
   intensity?: number;
   spikeActive?: boolean;
   curved?: boolean;
-  /** 0..1 progress fill for data visualization mode */
-  progress?: number;
-  /** Enable sequential LED data visualization */
-  dataVizMode?: boolean;
 }
 
-// ■■ LED count per LOD level ■■
-// v3: Increased LED counts for wider 218° arc + closer camera
-const LED_COUNTS: Record<string, number> = {
-  ultra: 1500,      // v3: +500 for wider arc (was 1000)
-  high: 750,        // v3: proportional (was 500)
-  medium: 300,      // v3: proportional (was 200)
-  low: 72,          // v3: proportional (was 48)
-  billboard: 36,    // v3: proportional (was 24)
-};
+// ■■ Single LED count — desktop-ultra, no LOD tiers ■■
+const LED_COUNT = 1500;
 
 // ■■ Accent rim config ■■
 const ACCENT_RIMS = [
@@ -106,8 +102,6 @@ function LEDStrip({
   color,
   pulseBase,
   spikeVal,
-  progress,
-  dataVizMode,
   enableEffects,
 }: {
   curve: CatmullRomCurve3;
@@ -116,13 +110,13 @@ function LEDStrip({
   color: string;
   pulseBase: React.MutableRefObject<number>;
   spikeVal: React.MutableRefObject<number>;
-  progress: number;
-  dataVizMode: boolean;
   enableEffects: boolean;
 }) {
   const meshRef = useRef<InstancedMesh>(null);
   const colorRef = useRef(new Color(color));
-  const dimColor = useRef(new Color('#050508'));
+  const prevColorRef = useRef(new Color(color));
+  const targetColorRef = useRef(new Color(color));
+  const transitionRef = useRef(0); // 0 = complete, >0 = in progress
 
   // Pre-compute positions and orientations along curve
   const transforms = useMemo(() => {
@@ -157,41 +151,62 @@ function LEDStrip({
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [transforms, ledCount, color]);
 
-  // Per-frame: update instance colors for pulse, spike, and data viz
-  useFrame(({ clock }) => {
+  // Per-frame: update instance colors for pulse, spike, outward burst, and color transition
+  useFrame(({ clock }, delta) => {
     const mesh = meshRef.current;
     if (!mesh) return;
-
-    colorRef.current.set(color);
-    dimColor.current.set('#050508');
 
     const time = clock.elapsedTime;
     const pulse = pulseBase.current;
     const spike = spikeVal.current;
 
+    // Detect color change and start sequential fill transition
+    const currentTargetColor = new Color(color);
+    if (!targetColorRef.current.equals(currentTargetColor)) {
+      prevColorRef.current.copy(targetColorRef.current);
+      targetColorRef.current.copy(currentTargetColor);
+      transitionRef.current = 1.0; // start transition
+    }
+
+    // Decay transition: 400ms = delta * 2.5
+    if (transitionRef.current > 0) {
+      transitionRef.current = Math.max(0, transitionRef.current - delta * 2.5);
+    }
+
+    const inTransition = transitionRef.current > 0;
+    // How far from center the new color has spread (0..1)
+    const transitionThreshold = (1.0 - transitionRef.current);
+
     for (let i = 0; i < ledCount; i++) {
       const t = i / (ledCount - 1);
 
-      // Data viz: LEDs beyond progress are dimmed
-      if (dataVizMode && t > progress) {
-        mesh.setColorAt(i, dimColor.current);
-        continue;
-      }
+      // Distance from center (0 at center, 1 at edges)
+      const centerDist = Math.abs(t - 0.5) * 2;
 
       // Compute per-LED intensity
       let ledIntensity = pulse + spike;
 
       if (enableEffects) {
-        // Traveling wave: subtle brightness shimmer along the strip
-        const wave = Math.sin(time * 3.0 - t * Math.PI * 4) * 0.12;
-        ledIntensity += wave;
+        // Outward burst: pulse radiates from center (t=0.5) outward both directions
+        const burstPhase = (time * 3.33) % 1.0; // ~300ms cycle
+        const burstWave = 1.0 - Math.abs(centerDist - burstPhase);
+        const burstIntensity = Math.max(0, burstWave) * 0.3;
+        ledIntensity += burstIntensity;
       }
 
       // Clamp and apply
       ledIntensity = Math.max(0.2, Math.min(ledIntensity, 2.0));
 
-      const c = colorRef.current.clone().multiplyScalar(ledIntensity);
-      mesh.setColorAt(i, c);
+      // Sequential color fill: center LEDs get new color first
+      let ledColor: Color;
+      if (inTransition && centerDist > transitionThreshold) {
+        // This LED still shows old color
+        ledColor = prevColorRef.current.clone().multiplyScalar(ledIntensity);
+      } else {
+        ledColor = targetColorRef.current.clone().multiplyScalar(ledIntensity);
+      }
+
+      mesh.setColorAt(i, ledColor);
     }
 
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
@@ -206,7 +221,7 @@ function LEDStrip({
       <boxGeometry args={ledSize} />
       <meshStandardMaterial
         emissive={color}
-        emissiveIntensity={1.5}
+        emissiveIntensity={getEmissive('blazing')}
         toneMapped={false}
         transparent
         opacity={0.95}
@@ -429,8 +444,6 @@ export function LEDRim({
   intensity = 1.0,
   spikeActive = false,
   curved = true,
-  progress = 1.0,
-  dataVizMode = false,
 }: LEDRimProps) {
   const { viewport } = useThree();
 
@@ -457,14 +470,14 @@ export function LEDRim({
     }
   });
 
-  // Resolve LED count from LOD
-  const ledCount = LED_COUNTS['ultra'] ?? 48;
+  // Fixed LED count — desktop-ultra, no LOD
+  const ledCount = LED_COUNT;
 
-  // ■■ Geometry parameters scaled by LOD ■■
+  // ■■ Geometry parameters ■■
   const coreRadius = 0.035;
   const diffuserRadius = 0.065;
   const glowRadius = 0.25;
-  const ledSize: [number, number, number] = [0.012, 0.012, 0.005];
+  const ledSize: [number, number, number] = [0.014, 0.006, 0.004]; // Flat rectangular blocks (runway lights)
   const bracketSize: [number, number, number] = [0.025, 0.06, 0.015];
 
   const coreTubularSegs = 128;
@@ -506,163 +519,127 @@ export function LEDRim({
   // Position at top of cockpit frame
   const yPos = viewport.height * 0.48;
 
-  // ■■ Curved rendering (CPA mode) ■■
-  if (curved && mainCurve) {
-    return (
-      <group position={[0, yPos, 0]}>
-        {/* === PRIMARY RIM === */}
-        {/* Inner core tube — metallic spine */}
-        <CoreTube
+  // ■■ Curved rendering (CPA mode) — desktop-only, no flat fallback ■■
+  if (!curved || !mainCurve) return null;
+
+  return (
+    <group position={[0, yPos, 0]}>
+      {/* === PRIMARY RIM === */}
+      {/* Inner core tube — metallic spine */}
+      <CoreTube
+        curve={mainCurve}
+        tubularSegments={coreTubularSegs}
+        radialSegments={coreRadialSegs}
+        radius={coreRadius}
+        color={color}
+        pulseRef={pulseRef}
+        spikeRef={spikeRef}
+      />
+
+      {/* LED strip — instanced rectangular blocks along arc */}
+      <LEDStrip
+        curve={mainCurve}
+        ledCount={ledCount}
+        ledSize={ledSize}
+        color={color}
+        pulseBase={pulseRef}
+        spikeVal={spikeRef}
+        enableEffects={enableEffects}
+      />
+
+      {/* Outer diffuser shell — frosted transmission envelope */}
+      {enableDiffuser && (
+        <DiffuserShell
           curve={mainCurve}
-          tubularSegments={coreTubularSegs}
-          radialSegments={coreRadialSegs}
-          radius={coreRadius}
+          tubularSegments={diffuserTubularSegs}
+          radialSegments={diffuserRadialSegs}
+          radius={diffuserRadius}
+          color={color}
+          pulseRef={pulseRef}
+        />
+      )}
+
+      {/* Soft glow halo — additive bloom layer */}
+      {enableGlow && (
+        <GlowHalo
+          curve={mainCurve}
+          tubularSegments={glowTubularSegs}
+          radius={glowRadius}
           color={color}
           pulseRef={pulseRef}
           spikeRef={spikeRef}
         />
+      )}
 
-        {/* LED strip — instanced capsules along arc */}
-        <LEDStrip
-          curve={mainCurve}
-          ledCount={ledCount}
-          ledSize={ledSize}
-          color={color}
-          pulseBase={pulseRef}
-          spikeVal={spikeRef}
-          progress={progress}
-          dataVizMode={dataVizMode}
-          enableEffects={enableEffects}
-        />
+      {/* Mounting brackets — connect rim to panel surface */}
+      <MountingBrackets
+        curve={mainCurve}
+        bracketCount={bracketCount}
+        bracketSize={bracketSize}
+        color={color}
+      />
 
-        {/* Outer diffuser shell — frosted transmission envelope */}
-        {enableDiffuser && (
-          <DiffuserShell
-            curve={mainCurve}
-            tubularSegments={diffuserTubularSegs}
-            radialSegments={diffuserRadialSegs}
-            radius={diffuserRadius}
-            color={color}
-            pulseRef={pulseRef}
-          />
-        )}
+      {/* === SECONDARY ACCENT RIMS === */}
+      {accentCurves.map(({ curve: ac, config: cfg }, idx) => {
+        const accentLedCount = Math.max(
+          Math.round(ledCount * cfg.ledFraction),
+          16,
+        );
+        const accentBracketCount = Math.max(
+          2,
+          Math.floor(accentLedCount / (BRACKET_INTERVAL * 2)),
+        );
+        const accentCoreTubSegs = Math.round(coreTubularSegs * 0.6);
+        const accentCoreRadSegs = Math.max(coreRadialSegs - 2, 4);
+        const accentLedSize: [number, number, number] = [0.008, 0.004, 0.003]; // Proportionally flatter for accents
+        const accentBracketSz: [number, number, number] = [0.018, 0.04, 0.012];
 
-        {/* Soft glow halo — additive bloom layer */}
-        {enableGlow && (
-          <GlowHalo
-            curve={mainCurve}
-            tubularSegments={glowTubularSegs}
-            radius={glowRadius}
-            color={color}
-            pulseRef={pulseRef}
-            spikeRef={spikeRef}
-          />
-        )}
+        return (
+          <group key={idx}>
+            {/* Accent core tube */}
+            <CoreTube
+              curve={ac}
+              tubularSegments={accentCoreTubSegs}
+              radialSegments={accentCoreRadSegs}
+              radius={coreRadius * 0.7}
+              color={color}
+              pulseRef={pulseRef}
+              spikeRef={spikeRef}
+            />
 
-        {/* Mounting brackets — connect rim to panel surface */}
-        <MountingBrackets
-          curve={mainCurve}
-          bracketCount={bracketCount}
-          bracketSize={bracketSize}
-          color={color}
-        />
+            {/* Accent LED strip */}
+            <LEDStrip
+              curve={ac}
+              ledCount={accentLedCount}
+              ledSize={accentLedSize}
+              color={color}
+              pulseBase={pulseRef}
+              spikeVal={spikeRef}
+              enableEffects={enableEffects}
+            />
 
-        {/* === SECONDARY ACCENT RIMS === */}
-        {accentCurves.map(({ curve: ac, config: cfg }, idx) => {
-          const accentLedCount = Math.max(
-            Math.round(ledCount * cfg.ledFraction),
-            16,
-          );
-          const accentBracketCount = Math.max(
-            2,
-            Math.floor(accentLedCount / (BRACKET_INTERVAL * 2)),
-          );
-          const accentCoreTubSegs = Math.round(coreTubularSegs * 0.6);
-          const accentCoreRadSegs = Math.max(coreRadialSegs - 2, 4);
-          const accentLedSize: [number, number, number] = [0.008, 0.008, 0.004];
-          const accentBracketSz: [number, number, number] = [0.018, 0.04, 0.012];
-
-          return (
-            <group key={idx}>
-              {/* Accent core tube */}
-              <CoreTube
+            {/* Accent diffuser */}
+            {enableDiffuser && (
+              <DiffuserShell
                 curve={ac}
-                tubularSegments={accentCoreTubSegs}
-                radialSegments={accentCoreRadSegs}
-                radius={coreRadius * 0.7}
+                tubularSegments={Math.round(diffuserTubularSegs * 0.6)}
+                radialSegments={Math.max(diffuserRadialSegs - 1, 3)}
+                radius={diffuserRadius * 0.7}
                 color={color}
                 pulseRef={pulseRef}
-                spikeRef={spikeRef}
               />
+            )}
 
-              {/* Accent LED strip */}
-              <LEDStrip
-                curve={ac}
-                ledCount={accentLedCount}
-                ledSize={accentLedSize}
-                color={color}
-                pulseBase={pulseRef}
-                spikeVal={spikeRef}
-                progress={progress}
-                dataVizMode={dataVizMode}
-                enableEffects={enableEffects}
-              />
-
-              {/* Accent diffuser */}
-              {enableDiffuser && (
-                <DiffuserShell
-                  curve={ac}
-                  tubularSegments={Math.round(diffuserTubularSegs * 0.6)}
-                  radialSegments={Math.max(diffuserRadialSegs - 1, 3)}
-                  radius={diffuserRadius * 0.7}
-                  color={color}
-                  pulseRef={pulseRef}
-                />
-              )}
-
-              {/* Accent mounting brackets */}
-              <MountingBrackets
-                curve={ac}
-                bracketCount={accentBracketCount}
-                bracketSize={accentBracketSz}
-                color={color}
-              />
-            </group>
-          );
-        })}
-      </group>
-    );
-  }
-
-  // ■■ Flat fallback (pre-CPA behavior) ■■
-  const rimWidth = Math.min(18, viewport.width * 1.8);
-
-  return (
-    <group position={[0, yPos, -4]}>
-      <mesh>
-        <planeGeometry args={[rimWidth, 0.08]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={0.85}
-          toneMapped={false}
-          depthWrite={false}
-          side={DoubleSide}
-        />
-      </mesh>
-
-      <mesh position={[0, 0, -0.1]}>
-        <planeGeometry args={[rimWidth, 0.48]} />
-        <meshBasicMaterial
-          color={color}
-          transparent
-          opacity={0.15}
-          toneMapped={false}
-          depthWrite={false}
-          blending={AdditiveBlending}
-          side={DoubleSide}
-        />
-      </mesh>
+            {/* Accent mounting brackets */}
+            <MountingBrackets
+              curve={ac}
+              bracketCount={accentBracketCount}
+              bracketSize={accentBracketSz}
+              color={color}
+            />
+          </group>
+        );
+      })}
     </group>
   );
 }

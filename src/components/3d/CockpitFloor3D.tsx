@@ -5,16 +5,24 @@
 // ================================================================
 // 20M Cockpit Upgrade — Triangle budget: 500,000
 //
+// Design Decisions:
+//   13.1 Grating: Hexagonal (honeycomb) grid pattern — futuristic, strong,
+//        matches geometric cockpit language.
+//   13.2 Sub-Floor: Energy channels — glowing energy channels beneath grating
+//        in current mode LED color. Floor pulses faintly with power.
+//   13.3 Extent: Full semicircle — floor extends across full 218-degree
+//        cockpit arc. Complete ground plane.
+//
 // Features:
-//   - Grate panels: InstancedMesh grid of thin BoxGeometry slats (200+)
-//   - Sub-floor piping: 6-8 CylinderGeometry pipes with lab-colored emissive glow
+//   - Grate panels: InstancedMesh hexagonal honeycomb slats (200+)
+//   - Sub-floor energy channels: 6-8 CylinderGeometry pipes with lab-colored emissive glow
 //   - Energy conduits: 3 TubeGeometry conduits with pulsing emissive material
 //   - Maintenance hatches: 2 square frame outlines with distinct material
 //   - Embedded LED channels: 50+ small emissive boxes along grate edges
 //   - Under-glow: Large plane with low-opacity lab-colored emissive
 //
 
-// Floor positioned at y = -3.5, extends ~10 wide x ~8 deep
+// Floor positioned at y = -3.5, extends full 218° cockpit arc
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
@@ -34,6 +42,13 @@ import {
   TubeGeometry,
   Vector3,
 } from 'three';
+import {
+  CHROME_BORDER,
+  ACCENT_LINES,
+  EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_LED_MULTIPLIER,
+  HOVER_GLOW,
+} from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Props ■■
 
@@ -47,11 +62,20 @@ interface CockpitFloor3DProps {
 const FLOOR_Y = -3.5;
 const FLOOR_WIDTH = 10;
 const FLOOR_DEPTH = 8;
-// Slat dimensions
+// Hexagonal honeycomb slat dimensions (Decision 13.1)
 const SLAT_WIDTH = 0.04;
 const SLAT_HEIGHT = 0.02;
 
-// LOD-driven slat counts
+// Carbon composite surface color for grating frame
+const GRATING_SURFACE_COLOR = 0x0a0f1f;
+
+// Energy channel emissive intensity: LED_MULTIPLIER * IDLE_INDICATOR (Decision 13.2)
+const ENERGY_CHANNEL_EMISSIVE = EMISSIVE_LED_MULTIPLIER * EMISSIVE_IDLE_INDICATOR;
+
+// Pulse period from design tokens (Decision 13.2)
+const PULSE_PERIOD_S = HOVER_GLOW.pulsePeriodS;
+
+// LOD-driven hexagonal slat counts (honeycomb grid — Decision 13.1)
 const SLAT_COUNTS: Record<string, { x: number; z: number }> = {
   ultra: { x: 120, z: 100 },
   high: { x: 80, z: 60 },
@@ -78,7 +102,7 @@ const LED_COUNTS: Record<string, number> = {
   billboard: 8,
 };
 
-// ■■ Pipe layout: 8 pipes running along Z axis beneath the grate ■■
+// ■■ Pipe layout: 8 energy channel pipes running along Z axis beneath the grate (Decision 13.2) ■■
 const PIPE_CONFIGS = [
   { x: -3.8, z: 0, radius: 0.06, length: 7.0 },
   { x: -2.4, z: 0, radius: 0.08, length: 7.5 },
@@ -139,11 +163,13 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   const ledInstanceRef = useRef<InstancedMesh>(null);
   const conduitMatRefs = useRef<MeshStandardMaterial[]>([]);
   const underGlowRef = useRef<MeshStandardMaterial>(null);
+  const pipeMatRef = useRef<MeshStandardMaterial>(null);
 
   // Parsed lab color
   const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
-  // ── Grate slats (InstancedMesh) ──
+  // ── Hexagonal honeycomb grate slats (InstancedMesh — Decision 13.1) ──
+  // Slats are offset every other row by half-spacing to create honeycomb pattern
   const slatCounts = SLAT_COUNTS['ultra'] || SLAT_COUNTS.medium;
 
   const slatGeo = useMemo(
@@ -155,41 +181,47 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     []
   );
 
+  // Hexagonal grid: X-direction slats with alternating row offsets
   const slatMatrixX = useMemo(() => {
     const matrices: Matrix4[] = [];
     const spacing = FLOOR_WIDTH / (slatCounts.x - 1);
     for (let i = 0; i < slatCounts.x; i++) {
       const m = new Matrix4();
+      // Hexagonal offset: every other slat shifts Z by half-spacing (honeycomb pattern)
+      const hexOffsetZ = (i % 2 === 0) ? 0 : (FLOOR_DEPTH / (slatCounts.z - 1)) * 0.5;
       m.setPosition(
         -FLOOR_WIDTH / 2 + i * spacing,
         FLOOR_Y,
-        0
+        hexOffsetZ
       );
       matrices.push(m);
     }
     return matrices;
-  }, [slatCounts.x]);
+  }, [slatCounts.x, slatCounts.z]);
 
+  // Hexagonal grid: Z-direction slats with alternating column offsets
   const slatMatrixZ = useMemo(() => {
     const matrices: Matrix4[] = [];
     const spacing = FLOOR_DEPTH / (slatCounts.z - 1);
     for (let i = 0; i < slatCounts.z; i++) {
       const m = new Matrix4();
+      // Hexagonal offset: every other slat shifts X by half-spacing (honeycomb pattern)
+      const hexOffsetX = (i % 2 === 0) ? 0 : (FLOOR_WIDTH / (slatCounts.x - 1)) * 0.5;
       m.setPosition(
-        0,
+        hexOffsetX,
         FLOOR_Y,
         -FLOOR_DEPTH / 2 + i * spacing
       );
       matrices.push(m);
     }
     return matrices;
-  }, [slatCounts.z]);
+  }, [slatCounts.x, slatCounts.z]);
 
-  // ── Grate material (dark chrome) ──
+  // ── Grate material — carbon composite (#0A0F1F) with chrome accents ──
   const grateMat = useMemo(
     () =>
       new MeshStandardMaterial({
-        color: 0x111118,
+        color: GRATING_SURFACE_COLOR,
         metalness: 0.85,
         roughness: 0.3,
         transparent: opacity < 1,
@@ -198,19 +230,19 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     [opacity]
   );
 
-  // ── Sub-floor piping ──
+  // ── Sub-floor energy channel piping (Decision 13.2) ──
   const pipeSegments = PIPE_SEGMENTS['ultra'] || 10;
-  const pipeMat = useMemo(
-    () =>
-      new MeshStandardMaterial({
-        color: 0x1a1822,
-        metalness: 0.7,
-        roughness: 0.4,
-        emissive: labColorObj,
-        emissiveIntensity: 0.3,
-      }),
-    [labColorObj]
-  );
+  const pipeMat = useMemo(() => {
+    const mat = new MeshStandardMaterial({
+      color: GRATING_SURFACE_COLOR,
+      metalness: 0.7,
+      roughness: 0.4,
+      emissive: labColorObj,
+      emissiveIntensity: ENERGY_CHANNEL_EMISSIVE,
+    });
+    pipeMatRef.current = mat;
+    return mat;
+  }, [labColorObj]);
 
   const pipeGeos = useMemo(
     () =>
@@ -242,9 +274,9 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     const mats = [0, 1, 2].map(
       () =>
         new MeshStandardMaterial({
-          color: 0x0a0e16,
+          color: GRATING_SURFACE_COLOR,
           emissive: labColorObj,
-          emissiveIntensity: 0.6,
+          emissiveIntensity: ENERGY_CHANNEL_EMISSIVE,
           transparent: true,
           opacity: 0.9,
         })
@@ -253,7 +285,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     return mats;
   }, [labColorObj]);
 
-  // ── Maintenance hatches (2 frames) ──
+  // ── Maintenance hatches (2 frames) — chrome border from design tokens ──
   const hatchGeos = useMemo(
     () => [
       buildHatchFrame(-2.5, -1.8, 1.0),
@@ -265,11 +297,11 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   const hatchMat = useMemo(
     () =>
       new MeshStandardMaterial({
-        color: 0x1a1a22,
+        color: CHROME_BORDER.color,
         metalness: 0.6,
         roughness: 0.5,
         emissive: new Color(0xffaa44),
-        emissiveIntensity: 0.15,
+        emissiveIntensity: ACCENT_LINES.opacity,
       }),
     []
   );
@@ -286,7 +318,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
       new MeshStandardMaterial({
         color: labColorObj,
         emissive: labColorObj,
-        emissiveIntensity: 1.0,
+        emissiveIntensity: EMISSIVE_LED_MULTIPLIER,
         toneMapped: false,
       }),
     [labColorObj]
@@ -346,12 +378,12 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
     return matrices;
   }, [ledCount]);
 
-  // ── Under-glow plane ──
+  // ── Under-glow plane (energy channel ambient — Decision 13.2) ──
   const underGlowMat = useMemo(() => {
     const mat = new MeshStandardMaterial({
       color: labColorObj,
       emissive: labColorObj,
-      emissiveIntensity: 0.25,
+      emissiveIntensity: ENERGY_CHANNEL_EMISSIVE,
       transparent: true,
       opacity: 0.12,
       side: DoubleSide,
@@ -363,6 +395,8 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
   // ── Animation ──
   useFrame(() => {
     const time = performance.now() * 0.001;
+    // Pulse frequency derived from design token HOVER_GLOW.pulsePeriodS
+    const pulseFreq = (2 * Math.PI) / PULSE_PERIOD_S;
 
     // LED traveling wave pulse
     const inst = ledInstanceRef.current;
@@ -370,32 +404,38 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
       const totalLeds = ledMatrices.length;
       const color = new Color();
       for (let i = 0; i < totalLeds; i++) {
-        const wave = Math.sin(time * 3.0 + (i / totalLeds) * Math.PI * 4) * 0.5 + 0.5;
+        const wave = Math.sin(time * pulseFreq + (i / totalLeds) * Math.PI * 4) * 0.5 + 0.5;
         color.copy(labColorObj).multiplyScalar(0.3 + wave * 0.7);
         inst.setColorAt(i, color);
       }
       if (inst.instanceColor) inst.instanceColor.needsUpdate = true;
     }
 
-    // Energy conduit emissive pulse (each conduit offset by phase)
+    // Energy conduit emissive pulse (each conduit offset by phase — Decision 13.2)
     for (let c = 0; c < conduitMatRefs.current.length; c++) {
       const mat = conduitMatRefs.current[c];
       if (mat) {
-        const pulse = Math.sin(time * 2.5 + c * (Math.PI * 2) / 3) * 0.5 + 0.5;
-        mat.emissiveIntensity = 0.3 + pulse * 0.8;
+        const pulse = Math.sin(time * pulseFreq + c * (Math.PI * 2) / 3) * 0.5 + 0.5;
+        mat.emissiveIntensity = ENERGY_CHANNEL_EMISSIVE * (0.4 + pulse * 1.2);
       }
     }
 
-    // Subtle under-glow breathing
+    // Sub-floor energy channel pipe pulse (Decision 13.2)
+    if (pipeMatRef.current) {
+      const pipePulse = Math.sin(time * pulseFreq * 0.8) * 0.5 + 0.5;
+      pipeMatRef.current.emissiveIntensity = ENERGY_CHANNEL_EMISSIVE * (0.6 + pipePulse * 0.8);
+    }
+
+    // Subtle under-glow breathing (energy channel ambient)
     if (underGlowRef.current) {
-      const breath = Math.sin(time * 1.2) * 0.03 + 0.12;
+      const breath = Math.sin(time * pulseFreq * 0.5) * 0.03 + 0.12;
       underGlowRef.current.opacity = breath;
     }
   });
 
   return (
     <group>
-      {/* ── X-direction slats (InstancedMesh) ── */}
+      {/* ── X-direction hexagonal slats (InstancedMesh — honeycomb pattern) ── */}
       <instancedMesh
         args={[slatGeo, grateMat, slatCounts.x]}
         frustumCulled={false}
@@ -407,7 +447,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
         }}
       />
 
-      {/* ── Z-direction slats (InstancedMesh) ── */}
+      {/* ── Z-direction hexagonal slats (InstancedMesh — honeycomb pattern) ── */}
       <instancedMesh
         args={[slatGeoZ, grateMat, slatCounts.z]}
         frustumCulled={false}
@@ -419,7 +459,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
         }}
       />
 
-      {/* ── Sub-floor piping ── */}
+      {/* ── Sub-floor energy channels (Decision 13.2) ── */}
       {PIPE_CONFIGS.map((pipe, i) => (
         <mesh
           key={`pipe-${i}`}
@@ -439,7 +479,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
         />
       ))}
 
-      {/* ── Maintenance hatches ── */}
+      {/* ── Maintenance hatches (chrome border from tokens) ── */}
       {hatchGeos.map((geo, i) => (
         <mesh
           key={`hatch-${i}`}
@@ -468,7 +508,7 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
         }}
       />
 
-      {/* ── Under-glow plane ── */}
+      {/* ── Under-glow plane (energy channel ambient — Decision 13.2) ── */}
       <mesh
         position={[0, FLOOR_Y - 0.6, 0]}
         rotation={[-Math.PI / 2, 0, 0]}

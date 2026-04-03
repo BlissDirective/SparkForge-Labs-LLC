@@ -1,43 +1,43 @@
 'use client';
 
 // ================================================================
-// CPA v3.0 — StatusBar3D: 3D Gauge-Style Bottom Console Strip
+// CPA v3.1 — StatusBar3D: 3D Gauge-Style Bottom Console Strip
 // ================================================================
-// v3: 1M tri budget (was 500K), positioned at [0, -1.25, -1.95]
-// with 0.38 rad tilt for tight-focus cockpit seat camera.
-// Materials upgraded to cockpitMaterials.ts (alloy chrome, control panel).
+// v3.1: Design token migration + visual redesign
+//   Decision 8.1: Arc bar speedometer (no needle)
+//   Decision 8.2: Pulse ring streak (no flame)
+//   Decision 8.3: Mini arc lab indicators (segmented donut)
+//   Decision 8.4: Chrome pillars dividers (retained)
+//   Decision 8.5: Curved strip profile (retained)
 //
-// CylinderGeometry: r=4.3, h=0.45, 144 segs, arc -2.05 to 4.1 rad
-//
-// Sections (left → right):
-//   [XP Speedometer] | [Streak Flame] | [10 Lab Indicators]
-//
-// v3 budget breakdown (~1M):
-//   Base strip + chrome:       ~16,000
-//   XP speedometer:          ~350,000
-//   Streak flame sculpture:  ~120,000
-//   10 lab indicators:       ~400,000
-//   Chrome divider pillars:   ~24,000
-//   Tick marks + details:     ~90,000
+// Position: [0, -1.25, -1.95], 1M tri budget
+// All visual constants from cockpitDesignTokens.ts
 
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { Text } from '@react-three/drei';
 import {
-  BufferGeometry,
   Color,
-  CylinderGeometry,
   DoubleSide,
-  ExtrudeGeometry,
-  Float32BufferAttribute,
   Group,
   InstancedMesh,
   MathUtils,
   Mesh,
+  MeshStandardMaterial,
   Object3D,
   PointLight,
   RingGeometry,
-  Shape,
 } from 'three';
+import {
+  CHROME_BORDER,
+  EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_LED_MULTIPLIER,
+  TYPE_SCALE,
+  NUMERIC_FONT,
+  TEXT_COLORS,
+  HOVER_GLOW,
+  getEmissive,
+} from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Lab colors for 10 indicators ■■
 const LAB_COLORS = [
@@ -56,24 +56,23 @@ interface StatusBarProps {
 }
 
 // ════════════════════════════════════════════════════
-// SUB-COMPONENT: XP Speedometer (270° ring gauge)
+// SUB-COMPONENT: XP Speedometer — Arc Bar (Decision 8.1)
 // ════════════════════════════════════════════════════
+// Colored arc fills proportionally. Digital number in center (Orbitron).
+// No needle. Clean, modern radial progress bar.
 function XPSpeedometer({
   xp,
   xpMax,
   labColor,
   opacity,
   segments,
-  enableEffects,
 }: {
   xp: number;
   xpMax: number;
   labColor: string;
   opacity: number;
   segments: number;
-  enableEffects: boolean;
 }) {
-  const needleRef = useRef<Mesh>(null);
   const fillRef = useRef<Mesh>(null);
   const glowRef = useRef<PointLight>(null);
 
@@ -82,94 +81,56 @@ function XPSpeedometer({
 
   const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
-  // Ring gauge: 270 degrees = 3π/2 radians, starts at bottom-left
-  const arcStart = Math.PI * 0.75;  // 135°
-  const arcTotal = Math.PI * 1.5;   // 270°
+  // Arc bar: 270 degrees = 3pi/2 radians, starts at bottom-left
+  const arcStart = Math.PI * 0.75;  // 135 deg
+  const arcTotal = Math.PI * 1.5;   // 270 deg
 
-  // Outer ring (track)
+  // Background track ring (dim)
   const trackGeo = useMemo(
-    () => new RingGeometry(0.7, 0.82, segments, 1, arcStart, arcTotal),
+    () => new RingGeometry(0.7, 0.85, segments, 1, arcStart, arcTotal),
     [segments, arcStart, arcTotal]
   );
 
-  // Inner ring (thinner track highlight)
-  const innerTrackGeo = useMemo(
-    () => new RingGeometry(0.6, 0.68, segments, 1, arcStart, arcTotal),
-    [segments, arcStart, arcTotal]
-  );
-
-  // Tick marks geometry — 27 ticks spread across arc
-  const tickCount = 27;
-  const tickGeo = useMemo(() => {
-    const geo = new BufferGeometry();
-    const positions: number[] = [];
-    for (let i = 0; i <= tickCount; i++) {
-      const angle = arcStart + (i / tickCount) * arcTotal;
-      const cos = Math.cos(angle);
-      const sin = Math.sin(angle);
-      const isMajor = i % 3 === 0;
-      const innerR = isMajor ? 0.83 : 0.84;
-      const outerR = isMajor ? 0.95 : 0.90;
-      // Each tick is a thin line (two triangles forming a thin quad)
-      const w = isMajor ? 0.012 : 0.006;
-      const perpX = -sin * w;
-      const perpY = cos * w;
-      // Quad corners
-      positions.push(cos * innerR + perpX, sin * innerR + perpY, 0.01);
-      positions.push(cos * innerR - perpX, sin * innerR - perpY, 0.01);
-      positions.push(cos * outerR + perpX, sin * outerR + perpY, 0.01);
-      positions.push(cos * outerR - perpX, sin * outerR - perpY, 0.01);
-      positions.push(cos * outerR + perpX, sin * outerR + perpY, 0.01);
-      positions.push(cos * innerR - perpX, sin * innerR - perpY, 0.01);
-    }
-    geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
-    geo.computeVertexNormals();
-    return geo;
-  }, [arcStart, arcTotal, tickCount]);
-
-  // Needle geometry — elongated triangle
-  const needleGeo = useMemo(() => {
-    const shape = new Shape();
-    shape.moveTo(0, -0.03);
-    shape.lineTo(0.72, 0);
-    shape.lineTo(0, 0.03);
-    shape.closePath();
-    const extrudeSettings = { depth: 0.025, bevelEnabled: false };
-    return new ExtrudeGeometry(shape, extrudeSettings);
-  }, []);
-
-  // Needle hub
-  const hubGeo = useMemo(
-    () => new CylinderGeometry(0.06, 0.06, 0.05, segments),
-    [segments]
-  );
-
-  // Fill ring — created dynamically each frame via scale trick
-  // We use a full arc geometry and clip via shader or morph
-  // Simpler: re-create arc geometry on ratio changes
+  // Initial fill arc geometry (animated via useFrame below)
   const fillArcGeo = useMemo(
-    () => new RingGeometry(0.7, 0.82, segments, 1, arcStart, arcTotal * Math.max(xpRatio, 0.001)),
+    () => new RingGeometry(0.7, 0.85, segments, 1, arcStart, arcTotal * Math.max(xpRatio, 0.001)),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [segments, arcStart, arcTotal, xpRatio]
   );
 
-  useFrame((_state, _delta) => {
+  // We rebuild fill geometry on animated ratio via useFrame
+  const animatedFillGeo = useRef<RingGeometry | null>(null);
+
+  useFrame(() => {
     currentRatio.current = MathUtils.lerp(currentRatio.current, xpRatio, 0.04);
 
-    // Rotate needle to match XP ratio
-    if (needleRef.current) {
-      const targetAngle = arcStart + currentRatio.current * arcTotal;
-      needleRef.current.rotation.z = targetAngle;
+    // Rebuild fill arc geometry to match animated ratio
+    if (fillRef.current) {
+      if (animatedFillGeo.current) {
+        animatedFillGeo.current.dispose();
+      }
+      animatedFillGeo.current = new RingGeometry(
+        0.7, 0.85, segments, 1, arcStart, arcTotal * Math.max(currentRatio.current, 0.001)
+      );
+      fillRef.current.geometry = animatedFillGeo.current;
     }
 
-    // Pulse glow
-    if (glowRef.current && enableEffects) {
-      glowRef.current.intensity = 1.5 + Math.sin(Date.now() * 0.003) * 0.5;
+    // Pulse glow intensity
+    if (glowRef.current) {
+      glowRef.current.intensity = EMISSIVE_LED_MULTIPLIER + Math.sin(Date.now() * 0.003) * 0.4;
     }
   });
 
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      animatedFillGeo.current?.dispose();
+    };
+  }, []);
+
   return (
     <group>
-      {/* Speedometer backing plate (depth) */}
+      {/* Speedometer backing plate */}
       <mesh position={[0, 0, -0.04]}>
         <cylinderGeometry args={[1.0, 1.0, 0.06, segments]} />
         <meshStandardMaterial
@@ -181,7 +142,7 @@ function XPSpeedometer({
         />
       </mesh>
 
-      {/* Outer track ring (dark) */}
+      {/* Background track ring (dim) */}
       <mesh geometry={trackGeo} position={[0, 0, 0.01]}>
         <meshStandardMaterial
           color="#1a1e2e"
@@ -194,25 +155,12 @@ function XPSpeedometer({
         />
       </mesh>
 
-      {/* Inner track ring */}
-      <mesh geometry={innerTrackGeo} position={[0, 0, 0.005]}>
-        <meshStandardMaterial
-          color="#111118"
-          metalness={0.5}
-          roughness={0.5}
-          transparent
-          opacity={opacity * 0.5}
-          side={DoubleSide}
-          depthWrite={false}
-        />
-      </mesh>
-
       {/* Fill arc (emissive, lab-colored) */}
       <mesh ref={fillRef} geometry={fillArcGeo} position={[0, 0, 0.02]}>
         <meshStandardMaterial
           color="#000000"
           emissive={labColorObj}
-          emissiveIntensity={2.5}
+          emissiveIntensity={EMISSIVE_LED_MULTIPLIER}
           transparent
           opacity={opacity * 0.85}
           toneMapped={false}
@@ -221,53 +169,37 @@ function XPSpeedometer({
         />
       </mesh>
 
-      {/* Tick marks */}
-      <mesh geometry={tickGeo}>
-        <meshStandardMaterial
-          color="#ffffff"
-          emissive="#ffffff"
-          emissiveIntensity={0.3}
-          transparent
-          opacity={opacity * 0.6}
-          toneMapped={false}
-          depthWrite={false}
-        />
-      </mesh>
-
-      {/* Needle */}
-      <mesh ref={needleRef} geometry={needleGeo} position={[0, 0, 0.03]}>
-        <meshStandardMaterial
-          color="#ff2244"
-          emissive="#ff2244"
-          emissiveIntensity={1.5}
-          metalness={0.7}
-          roughness={0.2}
-          transparent
-          opacity={opacity * 0.9}
-          toneMapped={false}
-        />
-      </mesh>
-
-      {/* Needle hub cap */}
-      <mesh
-        geometry={hubGeo}
-        rotation={[Math.PI / 2, 0, 0]}
-        position={[0, 0, 0.04]}
+      {/* Digital XP number in center — Orbitron (Decision 8.1) */}
+      <Text
+        position={[0, 0, 0.03]}
+        fontSize={0.18}
+        color={labColor}
+        font="/fonts/Orbitron-Bold.woff2"
+        anchorX="center"
+        anchorY="middle"
+        fillOpacity={opacity}
       >
-        <meshStandardMaterial
-          color="#2a2a3a"
-          metalness={0.95}
-          roughness={0.1}
-          transparent
-          opacity={opacity * 0.9}
-        />
-      </mesh>
+        {xp}
+      </Text>
+
+      {/* "XP" label below number */}
+      <Text
+        position={[0, -0.25, 0.03]}
+        fontSize={0.07}
+        color="#88aacc"
+        font="/fonts/Sora-Regular.woff2"
+        anchorX="center"
+        anchorY="middle"
+        fillOpacity={opacity}
+      >
+        XP
+      </Text>
 
       {/* Chrome bezel ring around speedometer */}
       <mesh position={[0, 0, 0.01]}>
-        <torusGeometry args={[0.98, 0.035, 16, 64]} />
+        <torusGeometry args={[0.98, 0.03, 16, 64]} />
         <meshStandardMaterial
-          color="#3a3a4a"
+          color={CHROME_BORDER.colorHex}
           metalness={0.95}
           roughness={0.08}
           transparent
@@ -276,155 +208,109 @@ function XPSpeedometer({
       </mesh>
 
       {/* Point light glow at center */}
-      {enableEffects && (
-        <pointLight
-          ref={glowRef}
-          color={labColor}
-          intensity={1.5}
-          distance={2.5}
-          decay={2}
-          position={[0, 0, 0.15]}
-        />
-      )}
+      <pointLight
+        ref={glowRef}
+        color={labColor}
+        intensity={EMISSIVE_LED_MULTIPLIER}
+        distance={2.5}
+        decay={2}
+        position={[0, 0, 0.15]}
+      />
     </group>
   );
 }
 
 // ════════════════════════════════════════════════════
-// SUB-COMPONENT: Streak Flame Sculpture
+// SUB-COMPONENT: Streak Pulse Ring (Decision 8.2)
 // ════════════════════════════════════════════════════
-function StreakFlame({
+// Ring pulses with streak intensity. No flame/fire sculpture.
+// 1-day = slow faint, 7-day = medium, 30-day = rapid bright.
+function StreakPulseRing({
   streak,
   opacity,
   segments,
-  enableEffects,
 }: {
   streak: number;
   opacity: number;
   segments: number;
-  enableEffects: boolean;
 }) {
-  const flameGroupRef = useRef<Group>(null);
-  const coneRefs = useRef<(Mesh | null)[]>([]);
+  const ringRef = useRef<Mesh>(null);
 
-  // 7 overlapping cones for volumetric flame effect
-  const flameElements = useMemo(() => {
-    const intensity = Math.min(streak, 10) / 10;
-    return [
-      // Core flame (tallest, brightest)
-      { scaleY: 1.0 + intensity * 0.6, scaleXZ: 0.22, y: 0, color: '#FF6644', emissive: 3.0, rotZ: 0 },
-      // Inner flames
-      { scaleY: 0.8 + intensity * 0.4, scaleXZ: 0.28, y: -0.05, color: '#FF8844', emissive: 2.5, rotZ: 0.15 },
-      { scaleY: 0.75 + intensity * 0.35, scaleXZ: 0.26, y: -0.03, color: '#FFAA44', emissive: 2.2, rotZ: -0.12 },
-      // Outer flames
-      { scaleY: 0.6 + intensity * 0.3, scaleXZ: 0.32, y: -0.08, color: '#FF4422', emissive: 2.0, rotZ: 0.2 },
-      { scaleY: 0.55 + intensity * 0.25, scaleXZ: 0.30, y: -0.06, color: '#FF6633', emissive: 1.8, rotZ: -0.18 },
-      // Wisp flames (smaller, translucent)
-      { scaleY: 0.45 + intensity * 0.2, scaleXZ: 0.18, y: 0.05, color: '#FFCC66', emissive: 2.8, rotZ: 0.1 },
-      { scaleY: 0.35 + intensity * 0.15, scaleXZ: 0.14, y: 0.08, color: '#FFEE88', emissive: 3.0, rotZ: -0.08 },
-    ];
+  // Determine pulse parameters based on streak count (Decision 8.2)
+  const { pulsePeriod, emissiveLevel } = useMemo(() => {
+    if (streak >= 30) {
+      return { pulsePeriod: 0.5, emissiveLevel: 1.5 };
+    } else if (streak >= 7) {
+      return { pulsePeriod: 1.5, emissiveLevel: 0.8 };
+    } else {
+      return { pulsePeriod: 3.0, emissiveLevel: 0.4 };
+    }
   }, [streak]);
 
-  // Ember spheres at base
-  const emberCount = Math.min(streak, 8);
+  // Accent color — orange for streaks
+  const streakColor = useMemo(() => new Color('#FF6644'), []);
+
+  // Pulse ring geometry (Decision 8.2: inner 0.12, outer 0.18, 32 segments)
+  const ringGeo = useMemo(
+    () => new RingGeometry(0.12, 0.18, 32, 1),
+    []
+  );
 
   useFrame(() => {
-    if (!flameGroupRef.current) return;
+    if (!ringRef.current) return;
     const time = Date.now() * 0.001;
+    const pulse = Math.sin((time * Math.PI * 2) / pulsePeriod) * 0.5 + 0.5; // 0..1
 
-    // Animate each cone with flicker
-    coneRefs.current.forEach((cone, i) => {
-      if (!cone) return;
-      const phase = i * 0.7;
-      const flickerY = Math.sin(time * 4.5 + phase) * 0.04 + Math.sin(time * 7.2 + phase) * 0.02;
-      const flickerX = Math.sin(time * 3.8 + phase * 1.3) * 0.025;
-      const flickerScale = 1.0 + Math.sin(time * 5.5 + phase) * 0.08;
-
-      cone.position.y = flameElements[i].y + flickerY;
-      cone.position.x = flickerX;
-      cone.scale.setScalar(flickerScale);
-    });
+    const mat = ringRef.current.material as MeshStandardMaterial;
+    if (mat && 'emissiveIntensity' in mat) {
+      mat.emissiveIntensity = emissiveLevel * (0.5 + pulse * 0.5);
+    }
   });
 
   if (streak <= 0 && opacity <= 0) return null;
 
   return (
-    <group ref={flameGroupRef}>
-      {/* Flame base pedestal */}
-      <mesh position={[0, -0.45, 0]}>
-        <cylinderGeometry args={[0.25, 0.32, 0.12, segments]} />
+    <group>
+      {/* Pulse ring (Decision 8.2) */}
+      <mesh
+        ref={ringRef}
+        geometry={ringGeo}
+        position={[0, 0, 0.01]}
+      >
         <meshStandardMaterial
-          color="#1a1822"
-          metalness={0.85}
-          roughness={0.2}
+          color="#000000"
+          emissive={streakColor}
+          emissiveIntensity={streak > 0 ? emissiveLevel : 0.15}
           transparent
-          opacity={opacity * 0.8}
+          opacity={opacity * 0.85}
+          toneMapped={false}
+          side={DoubleSide}
+          depthWrite={false}
         />
       </mesh>
 
-      {/* Flame cones */}
-      {flameElements.map((el, i) => (
-        <mesh
-          key={`flame-${i}`}
-          ref={(ref) => { coneRefs.current[i] = ref; }}
-          position={[0, el.y, 0]}
-          rotation={[0, 0, el.rotZ]}
-        >
-          <coneGeometry args={[el.scaleXZ, el.scaleY, segments, 1]} />
-          <meshStandardMaterial
-            color="#000000"
-            emissive={el.color}
-            emissiveIntensity={el.emissive * (streak > 0 ? 1 : 0.2)}
-            transparent
-            opacity={opacity * 0.75}
-            toneMapped={false}
-            side={DoubleSide}
-            depthWrite={false}
-          />
-        </mesh>
-      ))}
-
-      {/* Ember spheres at base */}
-      {Array.from({ length: emberCount }).map((_, i) => {
-        const angle = (i / emberCount) * Math.PI * 2;
-        const r = 0.2;
-        return (
-          <mesh
-            key={`ember-${i}`}
-            position={[Math.cos(angle) * r, -0.35, Math.sin(angle) * r]}
-          >
-            <sphereGeometry args={[0.035, Math.max(segments / 2, 6), Math.max(segments / 2, 6)]} />
-            <meshStandardMaterial
-              color="#000000"
-              emissive="#FF8844"
-              emissiveIntensity={2.0 + Math.sin(i * 1.5) * 0.5}
-              transparent
-              opacity={opacity * 0.6}
-              toneMapped={false}
-              depthWrite={false}
-            />
-          </mesh>
-        );
-      })}
-
-      {/* Flame point light */}
-      {enableEffects && streak > 0 && (
-        <pointLight
-          color="#FF6644"
-          intensity={1.0 + Math.min(streak, 10) * 0.2}
-          distance={2.0}
-          decay={2}
-          position={[0, 0.2, 0.1]}
-        />
-      )}
+      {/* Streak count number in center — Orbitron */}
+      <Text
+        position={[0, 0, 0.02]}
+        fontSize={0.08}
+        font="/fonts/Orbitron-Bold.woff2"
+        color="#FF6644"
+        anchorX="center"
+        anchorY="middle"
+        fillOpacity={opacity}
+      >
+        {streak}
+      </Text>
     </group>
   );
 }
 
 // ════════════════════════════════════════════════════
-// SUB-COMPONENT: Lab Progress Indicators (InstancedMesh)
+// SUB-COMPONENT: Lab Progress Mini Arcs (Decision 8.3)
 // ════════════════════════════════════════════════════
-function LabProgressIndicators({
+// 10 tiny arc segments forming a ring (~20 deg each).
+// Each fills proportionally to lab completion. Segmented donut chart.
+function LabMiniArcs({
   labProgress,
   opacity,
   segments,
@@ -433,142 +319,125 @@ function LabProgressIndicators({
   opacity: number;
   segments: number;
 }) {
-  const instancedRef = useRef<InstancedMesh>(null);
-  const glowInstancedRef = useRef<InstancedMesh>(null);
-  const baseInstancedRef = useRef<InstancedMesh>(null);
+  const groupRef = useRef<Group>(null);
 
   const labColors = useMemo(
     () => LAB_COLORS.map((c) => new Color(c)),
     []
   );
 
-  const dummy = useMemo(() => new Object3D(), []);
+  // 10 mini arc segments: ~20° (0.349 rad) each with 2° (0.035 rad) gap (Decision 8.3)
+  const arcSweep = 0.349; // ~20 degrees in radians
+  const gapSweep = 0.035; // ~2 degrees in radians
+  const totalSpanRad = 10 * arcSweep + 9 * gapSweep; // total angular span
+  const startAngleRad = -totalSpanRad / 2; // center the ring
 
-  // Set up instanced transforms + colors
-  useEffect(() => {
-    if (!instancedRef.current || !glowInstancedRef.current || !baseInstancedRef.current) return;
+  // Per-lab completion: labs 0..(done-1) are 100%, rest 0%
+  const getLabCompletion = (index: number): number => {
+    if (index < labProgress.done) return 1.0;
+    return 0;
+  };
 
-    const spacing = 0.42;
-    const startX = -(9 * spacing) / 2;
-
-    for (let i = 0; i < 10; i++) {
-      const x = startX + i * spacing;
-
-      // Main indicator (box)
-      dummy.position.set(x, 0, 0);
-      dummy.scale.set(0.16, 0.22, 0.12);
-      dummy.rotation.set(0, 0, 0);
-      dummy.updateMatrix();
-      instancedRef.current.setMatrixAt(i, dummy.matrix);
-
-      // Glow sphere behind each indicator
-      dummy.position.set(x, 0, -0.08);
-      dummy.scale.set(0.12, 0.12, 0.08);
-      dummy.updateMatrix();
-      glowInstancedRef.current.setMatrixAt(i, dummy.matrix);
-
-      // Base pedestal
-      dummy.position.set(x, -0.18, 0);
-      dummy.scale.set(0.08, 0.06, 0.08);
-      dummy.updateMatrix();
-      baseInstancedRef.current.setMatrixAt(i, dummy.matrix);
-
-      // Set colors
-      const isLit = i < labProgress.done;
-      const color = isLit ? labColors[i] : new Color('#1a1e2e');
-      instancedRef.current.setColorAt(i, color);
-      glowInstancedRef.current.setColorAt(i, isLit ? labColors[i] : new Color('#0a0e16'));
-      baseInstancedRef.current.setColorAt(i, new Color('#2a2a3a'));
-    }
-
-    instancedRef.current.instanceMatrix.needsUpdate = true;
-    instancedRef.current.instanceColor!.needsUpdate = true;
-    glowInstancedRef.current.instanceMatrix.needsUpdate = true;
-    glowInstancedRef.current.instanceColor!.needsUpdate = true;
-    baseInstancedRef.current.instanceMatrix.needsUpdate = true;
-    baseInstancedRef.current.instanceColor!.needsUpdate = true;
-  }, [labProgress.done, labColors, dummy]);
-
-  // Animate lit indicators (gentle pulse)
-  useFrame(() => {
-    if (!instancedRef.current) return;
-    const time = Date.now() * 0.001;
-    const spacing = 0.42;
-    const startX = -(9 * spacing) / 2;
+  // Build arc geometries (inner 0.35, outer 0.42)
+  const arcData = useMemo(() => {
+    const data: { trackGeo: RingGeometry; fillGeo: RingGeometry | null; startRad: number; sweepRad: number; color: Color }[] = [];
+    const innerR = 0.35;
+    const outerR = 0.42;
 
     for (let i = 0; i < 10; i++) {
-      const isLit = i < labProgress.done;
-      if (isLit) {
-        const pulse = 1.0 + Math.sin(time * 2.5 + i * 0.5) * 0.08;
-        dummy.position.set(startX + i * spacing, 0, 0);
-        dummy.scale.set(0.16 * pulse, 0.22 * pulse, 0.12 * pulse);
-        dummy.rotation.set(0, time * 0.3 + i, 0);
-        dummy.updateMatrix();
-        instancedRef.current.setMatrixAt(i, dummy.matrix);
+      const angleRad = startAngleRad + i * (arcSweep + gapSweep);
+      const completion = getLabCompletion(i);
+
+      // Track (dim background — always full arc)
+      const trackGeo = new RingGeometry(innerR, outerR, Math.max(segments / 4, 8), 1, angleRad, arcSweep);
+
+      // Fill (proportional, lab-colored)
+      let fillGeo: RingGeometry | null = null;
+      if (completion > 0) {
+        fillGeo = new RingGeometry(innerR, outerR, Math.max(segments / 4, 8), 1, angleRad, arcSweep * completion);
       }
+
+      data.push({ trackGeo, fillGeo, startRad: angleRad, sweepRad: arcSweep, color: labColors[i] });
     }
-    instancedRef.current.instanceMatrix.needsUpdate = true;
+    return data;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [labProgress.done, segments, labColors]);
+
+  // Gentle pulse on completed arcs
+  useFrame(() => {
+    // Handled via emissive intensity — could add animation here if desired
   });
 
   return (
-    <group>
-      {/* Main lab indicator boxes (instanced) */}
-      <instancedMesh
-        ref={instancedRef}
-        args={[undefined, undefined, 10]}
-        frustumCulled={false}
-      >
-        <boxGeometry args={[1, 1, 1, 2, 2, 2]} />
-        <meshStandardMaterial
-          metalness={0.6}
-          roughness={0.3}
-          emissiveIntensity={1.8}
-          transparent
-          opacity={opacity * 0.85}
-          toneMapped={false}
-        />
-      </instancedMesh>
+    <group ref={groupRef}>
+      {arcData.map((arc, i) => (
+        <group key={`lab-arc-${i}`}>
+          {/* Track (dim background) */}
+          <mesh geometry={arc.trackGeo} position={[0, 0, 0.005]}>
+            <meshStandardMaterial
+              color="#1a1e2e"
+              metalness={0.5}
+              roughness={0.4}
+              transparent
+              opacity={opacity * 0.5}
+              side={DoubleSide}
+              depthWrite={false}
+            />
+          </mesh>
 
-      {/* Glow spheres behind each indicator (instanced) */}
-      <instancedMesh
-        ref={glowInstancedRef}
-        args={[undefined, undefined, 10]}
-        frustumCulled={false}
-      >
-        <sphereGeometry args={[1, Math.max(segments / 2, 8), Math.max(segments / 2, 8)]} />
-        <meshStandardMaterial
-          emissiveIntensity={2.0}
-          transparent
-          opacity={opacity * 0.4}
-          toneMapped={false}
-          depthWrite={false}
-        />
-      </instancedMesh>
+          {/* Fill (lab-colored, proportional) */}
+          {arc.fillGeo && (
+            <mesh geometry={arc.fillGeo} position={[0, 0, 0.015]}>
+              <meshStandardMaterial
+                color="#000000"
+                emissive={arc.color}
+                emissiveIntensity={EMISSIVE_LED_MULTIPLIER}
+                transparent
+                opacity={opacity * 0.85}
+                toneMapped={false}
+                side={DoubleSide}
+                depthWrite={false}
+              />
+            </mesh>
+          )}
+        </group>
+      ))}
 
-      {/* Base pedestals (instanced) */}
-      <instancedMesh
-        ref={baseInstancedRef}
-        args={[undefined, undefined, 10]}
-        frustumCulled={false}
+      {/* Center completion text — Orbitron */}
+      <Text
+        position={[0, 0.05, 0.02]}
+        fontSize={0.22}
+        font={NUMERIC_FONT}
+        color={TEXT_COLORS.primary.hex}
+        anchorX="center"
+        anchorY="middle"
+        fillOpacity={opacity}
       >
-        <cylinderGeometry args={[1, 1.2, 1, Math.max(segments / 2, 6)]} />
+        {labProgress.done}/{labProgress.total}
+      </Text>
+
+      {/* "LABS" label — Sora caption */}
+      <Text
+        position={[0, -0.15, 0.02]}
+        fontSize={TYPE_SCALE.caption.fontSize * 8}
+        font={TYPE_SCALE.caption.fontPath}
+        color={TEXT_COLORS.muted.hex}
+        anchorX="center"
+        anchorY="middle"
+        fillOpacity={opacity * TEXT_COLORS.muted.opacity}
+      >
+        LABS
+      </Text>
+
+      {/* Chrome bezel around arc ring */}
+      <mesh position={[0, 0, 0.003]}>
+        <torusGeometry args={[0.9, 0.02, 12, 48]} />
         <meshStandardMaterial
-          metalness={0.9}
-          roughness={0.15}
+          color={CHROME_BORDER.colorHex}
+          metalness={0.95}
+          roughness={0.08}
           transparent
           opacity={opacity * 0.7}
-        />
-      </instancedMesh>
-
-      {/* Connection rail between all indicators */}
-      <mesh position={[0, -0.22, 0]}>
-        <boxGeometry args={[4.2, 0.02, 0.04]} />
-        <meshStandardMaterial
-          color="#2a2a3a"
-          metalness={0.9}
-          roughness={0.12}
-          transparent
-          opacity={opacity * 0.6}
         />
       </mesh>
     </group>
@@ -576,8 +445,9 @@ function LabProgressIndicators({
 }
 
 // ════════════════════════════════════════════════════
-// SUB-COMPONENT: Chrome Divider Pillars (InstancedMesh)
+// SUB-COMPONENT: Chrome Divider Pillars (Decision 8.4)
 // ════════════════════════════════════════════════════
+// Thin vertical chrome bars between sections.
 function ChromeDividers({
   positions,
   opacity,
@@ -632,7 +502,7 @@ function ChromeDividers({
       >
         <cylinderGeometry args={[1, 1, 1, segments]} />
         <meshStandardMaterial
-          color="#3a3a4a"
+          color={CHROME_BORDER.colorHex}
           metalness={0.95}
           roughness={0.08}
           transparent
@@ -649,7 +519,7 @@ function ChromeDividers({
       >
         <sphereGeometry args={[1, Math.max(segments / 2, 8), Math.max(segments / 2, 8)]} />
         <meshStandardMaterial
-          color="#4a4a5a"
+          color={CHROME_BORDER.colorHex}
           metalness={0.95}
           roughness={0.05}
           transparent
@@ -676,7 +546,6 @@ export function StatusBar3D({
   const groupRef = useRef<Group>(null);
   const { viewport } = useThree();
 
-  
   const segments = 64;
 
   const labColorObj = useMemo(() => new Color(labColor), [labColor]);
@@ -714,11 +583,11 @@ export function StatusBar3D({
         />
       </mesh>
 
-      {/* Chrome top edge (extruded strip) */}
+      {/* Chrome top edge */}
       <mesh position={[0, barHeight * 0.5, 0]}>
         <boxGeometry args={[barWidth + 0.04, 0.025, barDepth + 0.02]} />
         <meshStandardMaterial
-          color="#3a3a4a"
+          color={CHROME_BORDER.colorHex}
           metalness={0.95}
           roughness={0.08}
           transparent
@@ -731,7 +600,7 @@ export function StatusBar3D({
       <mesh position={[0, -barHeight * 0.5, 0]}>
         <boxGeometry args={[barWidth + 0.04, 0.025, barDepth + 0.02]} />
         <meshStandardMaterial
-          color="#3a3a4a"
+          color={CHROME_BORDER.colorHex}
           metalness={0.95}
           roughness={0.08}
           transparent
@@ -746,7 +615,7 @@ export function StatusBar3D({
         <meshStandardMaterial
           color="#000000"
           emissive={labColorObj}
-          emissiveIntensity={1.2}
+          emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
           transparent
           opacity={opacity * 0.5}
           toneMapped={false}
@@ -754,7 +623,7 @@ export function StatusBar3D({
         />
       </mesh>
 
-      {/* ─── Chrome Divider Pillars ─── */}
+      {/* ─── Chrome Divider Pillars (Decision 8.4) ─── */}
       <ChromeDividers
         positions={dividerPositions}
         opacity={opacity}
@@ -762,7 +631,7 @@ export function StatusBar3D({
         height={barHeight * 0.8}
       />
 
-      {/* ─── XP Speedometer Section (left) ─── */}
+      {/* ─── XP Speedometer Section — Arc Bar (Decision 8.1) ─── */}
       <group position={[xpCenterX, 0, 0.08]} scale={[0.22, 0.22, 0.22]}>
         <XPSpeedometer
           xp={xp}
@@ -770,23 +639,21 @@ export function StatusBar3D({
           labColor={labColor}
           opacity={opacity}
           segments={segments}
-          enableEffects={true}
         />
       </group>
 
-      {/* ─── Streak Flame Section (center-left) ─── */}
+      {/* ─── Streak Pulse Ring Section (Decision 8.2) ─── */}
       <group position={[streakCenterX, -0.02, 0.08]} scale={[0.35, 0.35, 0.35]}>
-        <StreakFlame
+        <StreakPulseRing
           streak={streak}
           opacity={opacity}
           segments={segments}
-          enableEffects={true}
         />
       </group>
 
-      {/* ─── Lab Progress Indicators (right) ─── */}
+      {/* ─── Lab Progress Mini Arcs (Decision 8.3) ─── */}
       <group position={[progressCenterX, 0, 0.08]} scale={[0.45, 0.45, 0.45]}>
-        <LabProgressIndicators
+        <LabMiniArcs
           labProgress={labProgress}
           opacity={opacity}
           segments={segments}
@@ -812,7 +679,7 @@ export function StatusBar3D({
           <meshStandardMaterial
             color="#000000"
             emissive="#00FF88"
-            emissiveIntensity={1.2}
+            emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
             transparent
             opacity={opacity * 0.7}
             toneMapped={false}
@@ -832,7 +699,7 @@ export function StatusBar3D({
         <mesh key={`bolt-${i}`} position={[cx, cy, 0.07]}>
           <cylinderGeometry args={[0.02, 0.02, 0.03, 8]} />
           <meshStandardMaterial
-            color="#4a4a5a"
+            color={CHROME_BORDER.colorHex}
             metalness={0.95}
             roughness={0.05}
             transparent

@@ -3,34 +3,49 @@
 // ════════════════════════════════════════════════════════════════
 // ArcadePanel — Game Arcade Center Content
 // ════════════════════════════════════════════════════════════════
-// Per SparkForge-Full-ControlScreen.json §center_console["/arcade"]:
-//   - 35-game scrollable grid on CenterViewportScreen surface
-//   - Filterable by lab (LED rim changes color)
-//   - Shows tier badge, completion star, play count per tile
-//
-// Renders game tiles as HolographicButton instances arranged in a grid.
+// Decision 26.1: Curved grid — tiles follow CenterViewportScreen surface, paginated (12/page)
+// Decision 26.2: Filter in HUD frame — lab filters in top segment of peripheral HUD
+// Decision 26.3: Tile content — name + tier indicator (F/FL/S) + completion dot
 
 import { useMemo, useState } from 'react';
 import { Text } from '@react-three/drei';
 import { HolographicButton } from '../ui/HolographicButton';
+import { HolographicCard } from '../ui/HolographicCard';
 import { GAME_REGISTRY, type GameRegistryEntry } from '@/config/gameRegistry';
 import { LAB_COLORS } from '@/config/labs';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import {
+  TYPE_SCALE,
+  TEXT_COLORS,
+  MAX_VISIBLE_ITEMS,
+  NUMERIC_FONT,
+} from '@/lib/3d/cockpitDesignTokens';
 
 const COLS = 4;
-const TILE_W = 0.2;
-const TILE_H = 0.05;
+const ROWS = 3;
+const PAGE_SIZE = MAX_VISIBLE_ITEMS.gameGrid; // 12
 const GAP_X = 0.22;
-const GAP_Y = 0.065;
+const GAP_Y = 0.12;
+
+// Tier label map
+const TIER_LABEL: Record<string, string> = {
+  flagship: 'F',
+  'fl-lite': 'FL',
+  standard: 'S',
+};
 
 export default function ArcadePanel() {
   const [filterLab, setFilterLab] = useState<number | null>(null);
+  const [page, setPage] = useState(0);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
 
   const filteredGames = useMemo(() => {
     if (filterLab === null) return GAME_REGISTRY;
     return GAME_REGISTRY.filter((g) => g.lab === filterLab);
   }, [filterLab]);
+
+  const totalPages = Math.ceil(filteredGames.length / PAGE_SIZE);
+  const pagedGames = filteredGames.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   const handleGameClick = (game: GameRegistryEntry) => {
     broadcast({
@@ -46,36 +61,36 @@ export default function ArcadePanel() {
       {/* ═══ Title ═══ */}
       <group position={[0, 0.8, 0.4]}>
         <Text
-          fontSize={0.045}
-          color="#F0F0F4"
+          fontSize={TYPE_SCALE.h1.fontSize}
+          color={TEXT_COLORS.primary.hex}
           anchorX="center"
-          font="/fonts/Exo2-Bold.woff2"
+          font={TYPE_SCALE.h1.fontPath}
         >
           Game Arcade
         </Text>
         <Text
           position={[0, -0.055, 0]}
-          fontSize={0.02}
-          color="#F0F0F460"
+          fontSize={TYPE_SCALE.caption.fontSize}
+          color={TEXT_COLORS.muted.hex}
           anchorX="center"
-          font="/fonts/Sora-Regular.woff2"
+          font={TYPE_SCALE.caption.fontPath}
+          fillOpacity={TEXT_COLORS.muted.opacity}
         >
-          {`${filteredGames.length} games${filterLab ? ` · Lab ${filterLab}` : ''}`}
+          {`${filteredGames.length} games${filterLab ? ` · Lab ${filterLab}` : ''} · Page ${page + 1}/${totalPages || 1}`}
         </Text>
       </group>
 
-      {/* ═══ Lab Filter Buttons ═══ */}
-      <group position={[-0.45, 0.6, 0.3]}>
+      {/* ═══ Lab Filter Buttons — HUD Frame Area (Decision 26.2) ═══ */}
+      <group position={[-0.45, 0.62, 0.3]}>
         <HolographicButton
           id="filter-all"
           label="All"
           color={filterLab === null ? '#00BBFF' : '#444444'}
           active={filterLab === null}
-          onClick={() => setFilterLab(null)}
+          onClick={() => { setFilterLab(null); setPage(0); }}
           position={[0, 0, 0]}
-          scale={0.4}
-          width={0.06}
-          height={0.03}
+          size="sm"
+          scale={0.5}
         />
         {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((lab) => (
           <HolographicButton
@@ -84,36 +99,68 @@ export default function ArcadePanel() {
             label={`${lab}`}
             color={filterLab === lab ? (LAB_COLORS[lab] ?? '#00BBFF') : '#444444'}
             active={filterLab === lab}
-            onClick={() => setFilterLab(lab)}
+            onClick={() => { setFilterLab(lab); setPage(0); }}
             position={[lab * 0.065 + 0.04, 0, 0]}
-            scale={0.4}
-            width={0.05}
-            height={0.03}
+            size="sm"
+            scale={0.5}
           />
         ))}
       </group>
 
-      {/* ═══ Game Grid ═══ */}
-      <group position={[-0.33, 0.35, 0.3]}>
-        {filteredGames.slice(0, 24).map((game, i) => {
+      {/* ═══ Game Grid — Paginated 12/page (Decision 26.1) ═══ */}
+      <group position={[-0.33, 0.4, 0.3]}>
+        {pagedGames.map((game, i) => {
           const col = i % COLS;
           const row = Math.floor(i / COLS);
           const labColor = LAB_COLORS[game.lab] ?? '#00BBFF';
+          const tierLabel = TIER_LABEL[game.tier] ?? 'S';
           return (
-            <HolographicButton
+            <HolographicCard
               key={game.slug}
-              id={`game-${game.slug}`}
-              label={game.name}
               color={labColor}
+              title={game.name}
+              subtitle={tierLabel}
               onClick={() => handleGameClick(game)}
               position={[col * GAP_X, -row * GAP_Y, 0]}
-              scale={0.5}
-              width={TILE_W}
-              height={TILE_H}
+              width={0.18}
+              height={0.09}
+              scale={0.9}
             />
           );
         })}
       </group>
+
+      {/* ═══ Pagination Controls ═══ */}
+      {totalPages > 1 && (
+        <group position={[0, -0.6, 0.4]}>
+          <HolographicButton
+            id="arcade-prev"
+            label="Prev"
+            color="#FFAA44"
+            size="sm"
+            position={[-0.1, 0, 0]}
+            onClick={() => setPage(Math.max(0, page - 1))}
+            disabled={page === 0}
+          />
+          <Text
+            fontSize={TYPE_SCALE.caption.fontSize}
+            color={TEXT_COLORS.secondary.hex}
+            anchorX="center"
+            font={NUMERIC_FONT}
+          >
+            {`${page + 1} / ${totalPages}`}
+          </Text>
+          <HolographicButton
+            id="arcade-next"
+            label="Next"
+            color="#FFAA44"
+            size="sm"
+            position={[0.1, 0, 0]}
+            onClick={() => setPage(Math.min(totalPages - 1, page + 1))}
+            disabled={page >= totalPages - 1}
+          />
+        </group>
+      )}
     </group>
   );
 }

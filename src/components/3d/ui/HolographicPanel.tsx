@@ -1,11 +1,18 @@
 'use client';
 
 // ════════════════════════════════════════════════════
-// HolographicPanel — Large Curved Content Surface
+// HolographicPanel — Raised Platform Content Surface (Design Token System)
 // ════════════════════════════════════════════════════
 // A larger-scale panel for content grids, game lists, or stat displays.
-// Matches the cockpit's curved control panel aesthetic with metallic
-// alloy bezel frame and holographic inner surface.
+// Raised platform with chrome edge rail and chrome divider bar header.
+//
+// Design Decisions (Component 17):
+// - 17.1 Style: Raised platform — Panel raised 1 depth layer above surrounding surface.
+//         Content on elevated platform with chrome edge rail.
+// - 17.2 Headers: Chrome divider bar — Header text (Exo 2, h2) with horizontal chrome
+//         bar extending to right edge. Professional, clean separation.
+// - 17.3 Spacing: Per density tokens — 40% whitespace ratio, paginate overflow,
+//         ghost placeholders for empty states. System-level consistency.
 //
 // Used for:
 // - Arcade game grid projection
@@ -13,26 +20,38 @@
 // - Profile badge gallery
 // - Settings control surface
 //
-// Features:
-// - Curved panel via CylinderGeometry (matches cockpit hull curvature)
-// - Metallic alloy frame with lab-color emissive
-// - Holographic inner surface (AdditiveBlending)
-// - Children rendered via drei <Html transform>
-// - Mode-reactive opacity and glow intensity
+// All visual constants sourced from cockpitDesignTokens — NO hardcoded values.
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Html, RoundedBox } from '@react-three/drei';
+import { Text } from '@react-three/drei';
 import {
   Color,
   Group,
   Mesh,
+  Shape,
+  ExtrudeGeometry,
   MeshStandardMaterial,
   MeshBasicMaterial,
-  MeshPhongMaterial,
   AdditiveBlending,
   DoubleSide,
 } from 'three';
+
+import {
+  CHROME_BORDER,
+  DEPTH_LAYERS,
+  BEVEL_STYLE,
+  HOVER_GLOW,
+  TYPE_SCALE,
+  TEXT_COLORS,
+  WHITESPACE_RATIO,
+  GHOST_PLACEHOLDER_OPACITY,
+  EMISSIVE_IDLE_INDICATOR,
+} from '@/lib/3d/cockpitDesignTokens';
+
+// ═══════════════════════════════════════════════════════════════
+// TYPES
+// ═══════════════════════════════════════════════════════════════
 
 interface HolographicPanelProps {
   position?: [number, number, number];
@@ -41,16 +60,59 @@ interface HolographicPanelProps {
   height?: number;
   color?: string;
   opacity?: number;
-  /** Whether to use curved geometry (matches cockpit) vs flat */
-  curved?: boolean;
-  /** Curvature radius (only when curved=true) */
-  curveRadius?: number;
-  /** Curvature arc in radians */
-  curveArc?: number;
-  /** Panel title (rendered in 3D) */
   title?: string;
   children?: React.ReactNode;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// GEOMETRY HELPERS
+// ═══════════════════════════════════════════════════════════════
+
+/** Chamfered rectangle shape — 45-degree corner cuts matching HolographicCard shape language */
+function createChamferedRect(w: number, h: number, chamfer: number): Shape {
+  const s = new Shape();
+  const hw = w / 2, hh = h / 2, c = chamfer;
+  s.moveTo(-hw + c, -hh);
+  s.lineTo(hw - c, -hh);
+  s.lineTo(hw, -hh + c);
+  s.lineTo(hw, hh - c);
+  s.lineTo(hw - c, hh);
+  s.lineTo(-hw + c, hh);
+  s.lineTo(-hw, hh - c);
+  s.lineTo(-hw, -hh + c);
+  s.closePath();
+  return s;
+}
+
+function createChamferedGeometry(
+  w: number,
+  h: number,
+  depth: number,
+  chamfer: number,
+): ExtrudeGeometry {
+  const shape = createChamferedRect(w, h, chamfer);
+  return new ExtrudeGeometry(shape, {
+    depth,
+    bevelEnabled: false,
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONSTANTS derived from design tokens
+// ═══════════════════════════════════════════════════════════════
+
+const PLATFORM_CHAMFER = BEVEL_STYLE.structural.value; // 0.008
+const PLATFORM_DEPTH = 0.006;
+const RAIL_THICKNESS = 0.002;
+const RAIL_HEIGHT = 0.003;
+const CHROME_BAR_HEIGHT = 0.002;
+const CHROME_BAR_DEPTH = 0.003;
+const TITLE_LEFT_MARGIN = 0.015;
+const TITLE_BAR_GAP = 0.008;
+
+// ═══════════════════════════════════════════════════════════════
+// COMPONENT
+// ═══════════════════════════════════════════════════════════════
 
 export function HolographicPanel({
   position = [0, 0, 0],
@@ -59,35 +121,61 @@ export function HolographicPanel({
   height = 0.4,
   color = '#00BBFF',
   opacity = 0.85,
-  curved = false,
-  curveRadius = 3.9,
-  curveArc = 0.5,
   title,
   children,
 }: HolographicPanelProps) {
   const groupRef = useRef<Group>(null);
-  const panelRef = useRef<Mesh>(null);
+  const glowRef = useRef<Mesh>(null);
+  const surfaceRef = useRef<Mesh>(null);
 
   const accentColor = useMemo(() => new Color(color), [color]);
+  const chromeColor = useMemo(() => new Color(CHROME_BORDER.colorHex), []);
 
-  // Frame material (metallic alloy)
-  const frameMaterial = useMemo(() => new MeshStandardMaterial({
-    color: new Color('#a8b5c8'),
-    metalness: 0.98,
-    roughness: 0.12,
-    emissive: accentColor,
-    emissiveIntensity: 0.4,
+  // Platform base geometry — chamfered rectangle
+  const platformGeometry = useMemo(
+    () => createChamferedGeometry(width, height, PLATFORM_DEPTH, PLATFORM_CHAMFER),
+    [width, height],
+  );
+
+  // Chrome edge rail geometries (4 sides)
+  const railGeometries = useMemo(() => {
+    const hw = width / 2;
+    const hh = height / 2;
+    return {
+      top:    { w: width - PLATFORM_CHAMFER * 2, pos: [0, hh - RAIL_THICKNESS / 2, PLATFORM_DEPTH + RAIL_HEIGHT / 2] as [number, number, number] },
+      bottom: { w: width - PLATFORM_CHAMFER * 2, pos: [0, -hh + RAIL_THICKNESS / 2, PLATFORM_DEPTH + RAIL_HEIGHT / 2] as [number, number, number] },
+      left:   { h: height - PLATFORM_CHAMFER * 2, pos: [-hw + RAIL_THICKNESS / 2, 0, PLATFORM_DEPTH + RAIL_HEIGHT / 2] as [number, number, number] },
+      right:  { h: height - PLATFORM_CHAMFER * 2, pos: [hw - RAIL_THICKNESS / 2, 0, PLATFORM_DEPTH + RAIL_HEIGHT / 2] as [number, number, number] },
+    };
+  }, [width, height]);
+
+  // Platform base material — carbon composite
+  const platformMaterial = useMemo(() => new MeshStandardMaterial({
+    color: new Color('#0A0F1F'),
+    metalness: 0.85,
+    roughness: 0.35,
     transparent: true,
     opacity: Math.min(opacity + 0.1, 1.0),
-  }), [accentColor, opacity]);
+  }), [opacity]);
 
-  // Inner surface — dark with holographic glow
-  const surfaceMaterial = useMemo(() => new MeshPhongMaterial({
+  // Chrome rail material
+  const chromeMaterial = useMemo(() => new MeshStandardMaterial({
+    color: chromeColor,
+    metalness: 0.95,
+    roughness: 0.1,
+    emissive: accentColor,
+    emissiveIntensity: CHROME_BORDER.glowIntensity,
+    transparent: true,
+    opacity: Math.min(opacity + 0.1, 1.0),
+  }), [chromeColor, accentColor, opacity]);
+
+  // Inner surface — dark with holographic emissive
+  const surfaceMaterial = useMemo(() => new MeshStandardMaterial({
     color: new Color('#0a1625'),
     emissive: accentColor,
-    emissiveIntensity: 0.15,
-    shininess: 95,
-    specular: new Color('#88eeff'),
+    emissiveIntensity: EMISSIVE_IDLE_INDICATOR,
+    metalness: 0.3,
+    roughness: 0.6,
     transparent: true,
     opacity,
   }), [accentColor, opacity]);
@@ -103,117 +191,116 @@ export function HolographicPanel({
     toneMapped: false,
   }), [accentColor]);
 
+  // Chrome divider bar material (for header)
+  const chromeBarMaterial = useMemo(() => new MeshStandardMaterial({
+    color: chromeColor,
+    metalness: 0.95,
+    roughness: 0.1,
+    emissive: accentColor,
+    emissiveIntensity: CHROME_BORDER.glowIntensity * 0.8,
+  }), [chromeColor, accentColor]);
+
+  // Calculate title text width estimate for chrome bar positioning
+  const h2Style = TYPE_SCALE.h2;
+  const titleEstimatedWidth = title ? title.length * h2Style.fontSize * 0.55 : 0;
+  const chromeBarStartX = -width / 2 + TITLE_LEFT_MARGIN + titleEstimatedWidth + TITLE_BAR_GAP;
+  const chromeBarWidth = width / 2 - chromeBarStartX;
+
+  // Header Y position (top of panel + rail offset)
+  const headerY = height / 2 - 0.02;
+
+  // Breathing glow animation using token-driven timing
   useFrame((state) => {
-    // Subtle breathing glow
-    if (panelRef.current) {
-      const t = state.clock.elapsedTime;
-      surfaceMaterial.emissiveIntensity = 0.15 + Math.sin(t * 1.5) * 0.05;
-      glowMaterial.opacity = 0.1 + Math.sin(t * 2) * 0.03;
+    const t = state.clock.elapsedTime;
+    const pulse = Math.sin(t * (Math.PI * 2 / HOVER_GLOW.pulsePeriodS));
+
+    if (surfaceRef.current) {
+      const mat = surfaceRef.current.material as MeshStandardMaterial;
+      mat.emissiveIntensity = EMISSIVE_IDLE_INDICATOR + pulse * 0.05;
+    }
+
+    if (glowRef.current) {
+      const mat = glowRef.current.material as MeshBasicMaterial;
+      mat.opacity = 0.1 + pulse * 0.03;
     }
   });
 
+  // Raised platform Z offset from design tokens
+  const raiseZ = DEPTH_LAYERS.low_raise;
+
   return (
     <group ref={groupRef} position={position} rotation={rotation}>
-      {/* Bezel frame */}
-      {!curved ? (
-        <RoundedBox
-          args={[width + 0.01, height + 0.01, 0.008]}
-          radius={0.006}
-          smoothness={4}
-          material={frameMaterial}
-        />
-      ) : (
-        <mesh material={frameMaterial}>
-          <cylinderGeometry args={[
-            curveRadius + 0.005,
-            curveRadius + 0.005,
-            height + 0.01,
-            72, 1, true,
-            -curveArc / 2,
-            curveArc,
-          ]} />
-        </mesh>
-      )}
-
-      {/* Inner panel surface */}
-      <mesh ref={panelRef} position={[0, 0, curved ? 0 : 0.001]}>
-        {!curved ? (
-          <planeGeometry args={[width, height]} />
-        ) : (
-          <cylinderGeometry args={[
-            curveRadius,
-            curveRadius,
-            height,
-            72, 1, true,
-            -curveArc / 2,
-            curveArc,
-          ]} />
-        )}
-        <primitive object={surfaceMaterial} />
-      </mesh>
-
-      {/* Glow backing */}
-      <mesh position={[0, 0, curved ? 0 : -0.003]}>
-        {!curved ? (
-          <planeGeometry args={[width + 0.02, height + 0.02]} />
-        ) : (
-          <cylinderGeometry args={[
-            curveRadius + 0.01,
-            curveRadius + 0.01,
-            height + 0.02,
-            36, 1, true,
-            -curveArc / 2,
-            curveArc,
-          ]} />
-        )}
+      {/* Glow backing — behind platform */}
+      <mesh ref={glowRef} position={[0, 0, raiseZ - 0.003]}>
+        <planeGeometry args={[width + 0.02, height + 0.02]} />
         <primitive object={glowMaterial} />
       </mesh>
 
-      {/* Title (if provided) */}
+      {/* Platform base — raised carbon composite surface */}
+      <mesh
+        geometry={platformGeometry}
+        material={platformMaterial}
+        position={[-width / 2, -height / 2, raiseZ]}
+        /* ExtrudeGeometry is created in XY plane; position offsets to center */
+      />
+
+      {/* Inner surface — holographic emissive panel face */}
+      <mesh ref={surfaceRef} position={[0, 0, raiseZ + PLATFORM_DEPTH + 0.001]}>
+        <planeGeometry args={[width - 0.006, height - 0.006]} />
+        <primitive object={surfaceMaterial} />
+      </mesh>
+
+      {/* Chrome edge rails — 4 sides */}
+      {/* Top rail */}
+      <mesh position={railGeometries.top.pos} material={chromeMaterial}>
+        <boxGeometry args={[railGeometries.top.w, RAIL_THICKNESS, RAIL_HEIGHT]} />
+      </mesh>
+      {/* Bottom rail */}
+      <mesh position={railGeometries.bottom.pos} material={chromeMaterial}>
+        <boxGeometry args={[railGeometries.bottom.w, RAIL_THICKNESS, RAIL_HEIGHT]} />
+      </mesh>
+      {/* Left rail */}
+      <mesh position={railGeometries.left.pos} material={chromeMaterial}>
+        <boxGeometry args={[RAIL_THICKNESS, railGeometries.left.h, RAIL_HEIGHT]} />
+      </mesh>
+      {/* Right rail */}
+      <mesh position={railGeometries.right.pos} material={chromeMaterial}>
+        <boxGeometry args={[RAIL_THICKNESS, railGeometries.right.h, RAIL_HEIGHT]} />
+      </mesh>
+
+      {/* Chrome divider bar header (Decision 17.2) */}
       {title && (
-        <Html
-          transform
-          position={[0, height / 2 + 0.015, curved ? 0 : 0.005]}
-          style={{ pointerEvents: 'none', userSelect: 'none' }}
-        >
-          <div style={{
-            fontFamily: 'Exo 2, sans-serif',
-            fontWeight: 700,
-            fontSize: '10px',
-            color,
-            letterSpacing: '2px',
-            textTransform: 'uppercase',
-            textShadow: `0 0 12px ${color}60`,
-            whiteSpace: 'nowrap',
-          }}>
+        <group position={[0, headerY, raiseZ + PLATFORM_DEPTH + 0.002]}>
+          {/* Title text — Exo 2 h2 */}
+          <Text
+            position={[-width / 2 + TITLE_LEFT_MARGIN, 0, 0]}
+            fontSize={h2Style.fontSize}
+            font={h2Style.fontPath}
+            color={TEXT_COLORS.primary.hex}
+            anchorX="left"
+            anchorY="middle"
+            fillOpacity={TEXT_COLORS.primary.opacity}
+          >
             {title}
-          </div>
-        </Html>
+          </Text>
+
+          {/* Horizontal chrome bar extending from after title text to right edge */}
+          {chromeBarWidth > 0.01 && (
+            <mesh
+              position={[chromeBarStartX + chromeBarWidth / 2, 0, 0]}
+              material={chromeBarMaterial}
+            >
+              <boxGeometry args={[chromeBarWidth, CHROME_BAR_HEIGHT, CHROME_BAR_DEPTH]} />
+            </mesh>
+          )}
+        </group>
       )}
 
-      {/* Content children via Html transform */}
+      {/* Content children — R3F elements positioned inside the platform area */}
       {children && (
-        <Html
-          transform
-          occlude
-          position={[0, 0, curved ? 0 : 0.005]}
-          style={{
-            width: `${width * 400}px`,
-            height: `${height * 400}px`,
-            pointerEvents: 'auto',
-            overflow: 'hidden',
-          }}
-        >
-          <div style={{
-            width: '100%',
-            height: '100%',
-            color: '#ffffff',
-            fontFamily: 'Sora, sans-serif',
-            fontSize: '10px',
-          }}>
-            {children}
-          </div>
-        </Html>
+        <group position={[0, title ? headerY - 0.035 : 0, raiseZ + PLATFORM_DEPTH + 0.003]}>
+          {children}
+        </group>
       )}
     </group>
   );

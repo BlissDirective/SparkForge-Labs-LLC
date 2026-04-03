@@ -3,18 +3,25 @@
 // ════════════════════════════════════════════════════════════════
 // LabDetailPanel — Individual Lab Detail Center Content
 // ════════════════════════════════════════════════════════════════
-// Per SparkForge-Full-ControlScreen.json §center_console["/labs/[labId]"]:
-//   - LabStructure3D (focused single lab with interior)
-//   - Orbiting game cards (HolographicCard array)
-//
-// Reads labId from cockpitUIStore.centerData or cockpitStore.focusedLabId.
+// Decision 30.1: Radial fan — games fanned in semicircle below lab structure
+// Decision 30.2: Full 3D lab model — LabStructure3D renders lab diorama
 
 import { Text } from '@react-three/drei';
-import { HolographicButton } from '../ui/HolographicButton';
+import { HolographicCard } from '../ui/HolographicCard';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { useCockpitUIStore } from '@/stores/cockpitUIStore';
 import { LAB_COLORS, LAB_NAMES } from '@/config/labs';
 import { getGamesByLab } from '@/config/gameRegistry';
+import {
+  TYPE_SCALE,
+  TEXT_COLORS,
+  NUMERIC_FONT,
+} from '@/lib/3d/cockpitDesignTokens';
+
+// Tier label
+const TIER_LABEL: Record<string, string> = {
+  flagship: 'F', 'fl-lite': 'FL', standard: 'S',
+};
 
 export default function LabDetailPanel() {
   const focusedLabId = useCockpitStore((s) => s.focusedLabId);
@@ -30,42 +37,49 @@ export default function LabDetailPanel() {
       {/* ═══ Lab Title ═══ */}
       <group position={[0, 0.75, 0.4]}>
         <Text
-          fontSize={0.05}
+          fontSize={TYPE_SCALE.h1.fontSize}
           color={labColor}
           anchorX="center"
-          font="/fonts/Exo2-Bold.woff2"
+          font={TYPE_SCALE.h1.fontPath}
         >
           {`Lab ${labId}: ${labName}`}
         </Text>
         <Text
           position={[0, -0.06, 0]}
-          fontSize={0.022}
-          color="#F0F0F460"
+          fontSize={TYPE_SCALE.caption.fontSize}
+          color={TEXT_COLORS.muted.hex}
           anchorX="center"
-          font="/fonts/Sora-Regular.woff2"
+          font={NUMERIC_FONT}
+          fillOpacity={TEXT_COLORS.muted.opacity}
         >
           {`${games.length} games`}
         </Text>
       </group>
 
-      {/* ═══ Game Cards (orbital ring placeholder) ═══ */}
-      <group position={[0, 0, 0]}>
-        {games.slice(0, 8).map((game, i) => {
-          const angle = (i / Math.min(games.length, 8)) * Math.PI * 2 - Math.PI / 2;
-          const radius = 0.6;
-          const x = Math.cos(angle) * radius;
-          const y = Math.sin(angle) * radius * 0.4;
+      {/* ═══ Game Cards — Radial Fan Semicircle (Decision 30.1) ═══ */}
+      <group position={[0, -0.15, 0.2]}>
+        {games.map((game, i) => {
+          const totalGames = games.length;
+          // Fan games in semicircle below center (180° arc)
+          const arcSpan = Math.PI * 0.8; // 144° arc
+          const startAngle = -arcSpan / 2;
+          const angle = startAngle + (i / Math.max(totalGames - 1, 1)) * arcSpan;
+          const radius = 0.55;
+          const x = Math.sin(angle) * radius;
+          const y = -Math.cos(angle) * radius * 0.3 - 0.1;
+          const tierLabel = TIER_LABEL[game.tier] ?? 'S';
+
           return (
-            <group key={game.slug} position={[x, y, 0.2]}>
-              <HolographicButton
-                id={`game-${game.slug}`}
-                label={game.name}
-                color={labColor}
-                scale={0.5}
-                width={0.18}
-                height={0.04}
-              />
-            </group>
+            <HolographicCard
+              key={game.slug}
+              title={game.name}
+              subtitle={tierLabel}
+              color={labColor}
+              position={[x, y, i * 0.01]}
+              width={0.14}
+              height={0.07}
+              scale={0.8}
+            />
           );
         })}
       </group>
