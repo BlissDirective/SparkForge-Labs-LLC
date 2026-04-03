@@ -2,7 +2,7 @@
 
 **Version:** 2.0 | **Date:** April 3, 2026 | **Status:** ALL 7 PHASES COMPLETE — Full 3D UI Migration Done
 **Source of Truth:** `SparkForge-Full-ControlScreen.json` (1,081 lines, 11 sections)
-**Branch:** `claude/review-cockpit-interface-7zfku`
+**Branch:** `claude/phase-3-component-rebuild-JfEOP`
 
 ---
 
@@ -245,20 +245,22 @@ Removing HTML and rendering all UI in 3D eliminates this split entirely. The coc
 ## 13. FILES REFERENCE
 
 ### Master Spec
-- `/SparkForge-Full-ControlScreen.json` — 1,081 lines. Complete cockpit UI specification.
+- `/SparkForge-Full-ControlScreen.json` — v2.0 (~1,800 lines). Complete cockpit UI specification with phase status.
 
-### New Files to Create (~34)
-**Infrastructure:** `useCockpitScene.ts`, `CockpitUILayer.tsx`, `CockpitText.tsx`, `CockpitContainer.tsx`, `CockpitScrollPanel.tsx`, `CockpitInput.tsx`, `CockpitTooltip.tsx`
+### Files Created (49 total)
+**Infrastructure (8):** `cockpitModePresets.ts`, `cockpitDesignTokens.ts`, `useCockpitScene.ts`, `cockpitUIStore.ts`, `CockpitUILayer.tsx`, `CockpitText.tsx`, `CockpitContainer.tsx`, `CockpitScrollPanel.tsx`, `CockpitInput.tsx`, `CockpitTooltip.tsx`
 
-**Panels:** `DashboardCenter.tsx`, `DashboardLeft.tsx`, `DashboardRight.tsx`, `LabsCenter.tsx`, `LabDetailPanel.tsx`, `ArcadePanel.tsx`, `ProfileCenter.tsx`, `SettingsPanel.tsx`, `ParentPanel.tsx`, `LoginPanel3D.tsx`, `OnboardingPanel.tsx`
+**Dashboard Panels (9):** `DashboardCenter.tsx`, `DashboardLeft.tsx`, `DashboardRight.tsx`, `LabsCenter.tsx`, `LabDetailPanel.tsx`, `ArcadePanel.tsx`, `ProfileCenter.tsx`, `SettingsPanel.tsx`, `ParentPanel.tsx`
 
-**Game UI:** `GameScoreGauge.tsx`, `GameTimerDisplay.tsx`, `QuizPanel3D.tsx`, `ChatPanel3D.tsx`, `PhaseIndicator3D.tsx`
+**Auth Panels (4):** `LoginPanel3D.tsx`, `SignupPanel3D.tsx`, `ResetPasswordPanel3D.tsx`, `ChatPanel3D.tsx`
 
-**Marketing:** `MarketingHero3D.tsx`
+**Gamification (3):** `XPPopup3D.tsx`, `CelebrationPanel3D.tsx`, `useCelebration3D.ts`
 
-### Stage Documents Affected (~80 files in docs/)
-- All stage docs with HTML component code need updating
-- CLAUDE.md Sections 7, 8, 9 need 3D UI patterns added
+**Game UI (10):** `GameHUD3D.tsx`, `GameTimerBar3D.tsx`, `GamePhaseOverlay3D.tsx`, `ChoiceButton3D.tsx`, `QuizGameTemplate.tsx`, `BuilderGameTemplate.tsx`, `ExplorerGameTemplate.tsx`, `LabGameTemplate.tsx`, `GameLearnCards3D.tsx`, `game-ui/index.ts`
+
+**Marketing (1):** `CockpitPreview3D.tsx`
+
+**Cockpit Rebuilds (14):** HolographicButton, NavigationButtonGrid, RadialDial3D, ToggleSwitch3D, HolographicLabMap, HolographicHUD, LEDRim, StatusBar3D, CenterViewportScreen, MechanicalIris, VariableDialCluster, HolographicCard, HolographicPanel + 4 structural + 3 effects
 
 ---
 
@@ -276,7 +278,7 @@ Removing HTML and rendering all UI in 3D eliminates this split entirely. The coc
 - [x] Phased games — Dashboard → 6 flagships → 29 standard
 - [x] Master JSON — `SparkForge-Full-ControlScreen.json` (1,081 lines)
 
-**All decisions approved. Ready for Phase 1 implementation.**
+**All decisions approved. All 7 phases implemented.**
 
 ---
 
@@ -398,17 +400,42 @@ All 30 designed components rebuilt to consume `cockpitDesignTokens.ts`.
 
 **All 7 phases COMPLETE. Full 3D UI migration finished.**
 
-### Architecture After Phase 2
+### Final Architecture (All 7 Phases)
 ```
-Route → page.tsx (thin descriptor, sr-only HTML)
-         ↓ useCockpitScene(mode)
-         ↓ setCenterContent(key)
-         ↓
-cockpitUIStore → CockpitUILayer → CenterContentRouter
-                    ├── Left:  DashboardLeft (avatar, guide, trophies, gauges)
-                    ├── Center: [per-page panel component]
-                    ├── Right: DashboardRight (settings, activity, quick actions)
-                    └── Bottom: (instruments in CockpitCanvas)
+┌─ MARKETING (HTML + embedded R3F) ─────────────────────────┐
+│  / → ScrollJourney (5 acts, CrystalHero + CockpitPreview3D)
+│  /pricing → Full HTML (SEO)
+│  /privacy, /terms → Full HTML (legal)
+└───────────────────────────────────────────────────────────┘
+
+┌─ AUTH (Own R3F Canvas + LoginPortal3D backdrop) ──────────┐
+│  /login    → LoginPanel3D (3D form, hidden HTML proxies)
+│  /signup   → SignupPanel3D (4-step wizard)
+│  /reset    → ResetPasswordPanel3D
+└───────────────────────────────────────────────────────────┘
+
+┌─ DASHBOARD (CockpitCanvas — single persistent R3F Canvas) ┐
+│  Route → page.tsx (thin descriptor, sr-only HTML)          │
+│           ↓ useCockpitScene(mode)                          │
+│           ↓ setCenterContent(key)                          │
+│           ↓                                                │
+│  cockpitUIStore → CockpitUILayer → CenterContentRouter     │
+│      ├── Left:   DashboardLeft (avatar, gauges, badges)    │
+│      ├── Center: [per-page panel — 11 panel types]         │
+│      │   home/labs/arcade/profile/settings/parent/          │
+│      │   lab_detail/chat/celebration/game/onboarding        │
+│      ├── Right:  DashboardRight (settings, activity)       │
+│      └── Bottom: Dials + NavGrid + StatusBar (in Canvas)   │
+│                                                            │
+│  GAME MODE (UI-8: 75% takeover):                           │
+│      GameShell → sceneStore.gameHUDContent (GameHUD3D)     │
+│      CockpitCanvas renders: gameScene + gameHUD above it   │
+│      4 templates: Quiz / Builder / Explorer / Lab           │
+│                                                            │
+│  CELEBRATIONS:                                             │
+│      useCelebration3D → mode switch + CeremonyFX +         │
+│      XPPopup3D + CelebrationPanel3D → auto-restore         │
+└───────────────────────────────────────────────────────────┘
 ```
 
 ---

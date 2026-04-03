@@ -375,9 +375,11 @@ The following individual cockpit components need visual design review before imp
 ## DESIGN COMPLETE — ALL IMPLEMENTED
 
 **Total decisions: 48 system tokens + 83 component details = 131 design decisions locked.**
+**Phase 3–7 added 19 implementation decisions (see below).**
 
 All 30 components designed. All 12 system-level token sections locked.
 **All 29 components rebuilt (1 removed by design). Implementation complete as of April 3, 2026.**
+**Phases 3–7 (Auth, Gamification, Games, Templates, Marketing) complete as of April 3, 2026.**
 
 ### Implementation Status
 
@@ -414,4 +416,57 @@ All 30 components designed. All 12 system-level token sections locked.
 | 29 | ParentPanel | 29.1–29.2 | REBUILT | April 3, 2026 |
 | 30 | LabDetailPanel | 30.1–30.2 | REBUILT | April 3, 2026 |
 
-*All decisions are final unless explicitly reopened by user.*
+---
+
+## PHASE 3–7 IMPLEMENTATION DECISIONS (19 decisions — April 3, 2026)
+
+These decisions were made during Phase 3–7 implementation. They extend the 131 locked design decisions with architectural choices for auth, gamification, game UI, and marketing.
+
+### Phase 3: Auth + Forms
+
+| # | Decision | Detail |
+|---|----------|--------|
+| P3-1 | Auth pages keep own Canvas | Auth pages render in separate R3F Canvas (not CockpitCanvas) since user isn't authenticated yet. Portal backdrop + 3D form panels in same Canvas. |
+| P3-2 | Hidden HTML input proxy pattern | All 3D text inputs use `drei <Html>` with a hidden `<input>` element for keyboard/paste/autocomplete. 3D visual (caret, border glow) reflects state. |
+| P3-3 | Auth pages = thin scene descriptors | login/signup/reset pages contain zero HTML UI. All rendering delegated to 3D panel components. sr-only HTML for accessibility. |
+| P3-4 | ChatPanel3D reads guideStore | Chat panel reads `messages`/`isStreaming`/`streamingContent` from guideStore. User messages added via `addMessage`. |
+| P3-5 | ArcadePanel search = inline SearchField3D | Search field embedded directly in ArcadePanel (not separate component). Filters by game name/slug. |
+
+### Phase 4: Gamification
+
+| # | Decision | Detail |
+|---|----------|--------|
+| P4-1 | XPPopup3D via Zustand store | `useXPPopup3DStore` manages active XP events. Auto-removes after 2s. Multiple events stack vertically. |
+| P4-2 | Celebration mode orchestration | `useCelebration3D` hook: saves mode → switches to 'celebration' → triggers CeremonyFX → shows XP popup → shows CelebrationPanel3D → auto-restores after tier duration. |
+| P4-3 | Celebration tier mapping | xp=minor (1.5s), badge=major (3s), level=epic (4s), streak=minor (1.5s), confetti=major (3s). Only major/epic switch cockpit mode and show center panel. |
+| P4-4 | CelebrationPanel3D per-type display | Badge: hexagonal icon + rarity color + name. Level: large number + title. Streak: count + tier label. Lab complete: lab name + color. |
+
+### Phase 5: Flagship Game UI
+
+| # | Decision | Detail |
+|---|----------|--------|
+| P5-1 | GameHUD3D auto-registered via GameShell | GameShell calls `setGameHUDContent(React.createElement(GameHUD3D, {...}))`. All 35 games get HUD without modification. |
+| P5-2 | sceneStore.gameHUDContent | New field in sceneStore. CockpitCanvas renders it above `gameSceneContent`. Cleared on `exitGame()`. |
+| P5-3 | HUD + Chrome migration (not full conversion) | Game-specific content (quizzes, learning text) stays as HTML via `drei <Html>`. Only HUD chrome (score, rounds, timer, phase panels) migrated to 3D. |
+| P5-4 | Tier system for complete panel | gold (3 stars), silver (2 stars), bronze (1 star). Colors: #FFD700, #C0C0C0, #CD7F32. |
+
+### Phase 6: Standard Game Templates
+
+| # | Decision | Detail |
+|---|----------|--------|
+| P6-1 | 4 template patterns | Quiz (~12 games), Builder (~7 games), Explorer (~6 games), Lab (~6 games). Templates are composable — games plug in content via props. |
+| P6-2 | ChoiceButton3D feedback states | 4 states: none (default), correct (#00FF88), incorrect (#FF6644), selected (#00BBFF). Chrome border glows with feedback color. |
+| P6-3 | Templates use drei <Html> for rich content | Question text rendered via `<Text>`, but images/diagrams/complex layouts use `<Html>` overlay. Hybrid approach balances aesthetic with practicality. |
+| P6-4 | GameLearnCards3D shared across all templates | Paginated single-card carousel with progress dots. Used by all 4 templates for their learn phase. Not template-specific. |
+
+### Phase 7: Marketing
+
+| # | Decision | Detail |
+|---|----------|--------|
+| P7-1 | CockpitPreview3D replaces CSS mockup | StationPreview Act 4 now renders a real R3F Canvas with simplified cockpit (~50K tris) instead of CSS placeholder. Suspense fallback shows aurora gradients during load. |
+| P7-2 | CSS enhancements additive | New CSS classes (led-dot-pulse, chromatic-text, feature-card-enter, act-transition) added to globals.css. All respect prefers-reduced-motion. No existing styles broken. |
+
+---
+
+*All 131 design decisions + 19 implementation decisions are final unless explicitly reopened by user.*
+*Total: 150 documented decisions across the full UI migration.*
