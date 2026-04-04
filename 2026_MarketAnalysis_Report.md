@@ -680,6 +680,355 @@ SparkForge's technical architecture provides **five defensible competitive advan
 
 ---
 
+# 5. Competitive Landscape
+
+## 5.1 Market Positioning
+
+SparkForge operates at the intersection of three distinct market categories:
+
+1. **AI Education Platforms** — Platforms that teach AI/ML concepts
+2. **Gamified Learning Platforms** — Platforms using game mechanics for education
+3. **Children's EdTech** — Platforms specifically designed for K-12 learners
+
+No existing competitor operates at the center of all three categories with SparkForge's depth. This intersection defines SparkForge's **unique market position** and its primary competitive advantage.
+
+```
+                    AI Education
+                        /\
+                       /  \
+                      /    \
+                     / SPARK \
+                    / FORGE   \
+                   /____________\
+    Gamified      /              \     Children's
+    Learning    /________________\    EdTech
+```
+
+## 5.2 Direct Competitors — AI/ML Education for Children
+
+These platforms specifically teach AI concepts to children and represent the closest competitive threat:
+
+### 5.2.1 Machine Learning for Kids (machinelearningforkids.co.uk)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 7-16 |
+| **What It Teaches** | Practical ML — training classifiers (text, images, numbers, sound) |
+| **Gamification** | Minimal — project-based, no XP/levels/badges |
+| **AI Tutor** | None |
+| **3D/Immersive** | None — simple web UI |
+| **Pricing** | Free (open-source, created by IBM engineer Dale Lane) |
+| **User Base** | Thousands of schools worldwide, strong UK presence |
+| **Funding** | Open-source / IBM-affiliated |
+
+**Competitive Assessment:**
+- *Strengths vs SparkForge:* Free, real ML training (not simulated), Scratch integration, strong teacher resources
+- *Weaknesses vs SparkForge:* No gamification, no 3D, no age-band differentiation, plain UI, no progression system, no subscription revenue potential
+- **Threat Level: LOW** — Different market positioning (tool vs platform)
+
+### 5.2.2 ReadyAI (readyai.org)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | K-12 (focus elementary/middle) |
+| **What It Teaches** | AI concepts using Cozmo/Vector robots + curriculum |
+| **Gamification** | Limited — project milestones |
+| **AI Tutor** | None |
+| **3D/Immersive** | Physical robots provide tangible interaction |
+| **Pricing** | School licensing: $500-2,000+ per classroom |
+| **User Base** | 1,000+ schools (primarily US) |
+| **Funding** | Grants, Carnegie Mellon partnership |
+
+**Competitive Assessment:**
+- *Strengths:* CMU academic credibility, physical robot engagement, structured teacher PD
+- *Weaknesses:* Requires hardware, expensive, not consumer-direct, not scalable online
+- **Threat Level: LOW** — Hardware dependency limits scale; different distribution model
+
+### 5.2.3 AI4ALL (ai-4all.org)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 14-18 (high school focus) |
+| **What It Teaches** | AI ethics, applications, introductory ML |
+| **Gamification** | None — workshop/camp model |
+| **Pricing** | Free (non-profit, grant-funded) |
+| **User Base** | ~25,000 alumni across partner universities |
+| **Funding** | Google, Melinda French Gates Foundation |
+
+**Competitive Assessment:**
+- *Strengths:* Diversity focus, university partnerships, strong brand in AI ethics
+- *Weaknesses:* Older age range only, no self-paced platform, camp format limits scale
+- **Threat Level: LOW** — Non-overlapping age range, non-commercial model
+
+### 5.2.4 Google Teachable Machine (teachablemachine.withgoogle.com)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | Not specifically kids (widely used in K-12) |
+| **What It Teaches** | Training image/sound/pose classifiers — no-code ML |
+| **Gamification** | None |
+| **Pricing** | Free |
+| **User Base** | Millions (Google distribution) |
+
+**Competitive Assessment:**
+- *Strengths:* Google brand, genuinely trains real models, zero setup, TensorFlow export
+- *Weaknesses:* Not designed for kids, no curriculum, no gamification, tool not platform
+- **Threat Level: MEDIUM** — Google could expand this into a full kids platform (see Section 5.6)
+
+### 5.2.5 Cognimates (cognimates.me)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 7-12 |
+| **What It Teaches** | AI concepts via Scratch extension — classifiers, chatbots |
+| **Gamification** | Minimal — project-based |
+| **Pricing** | Free (MIT Media Lab research project) |
+| **User Base** | Research project scale (thousands) |
+
+**Competitive Assessment:**
+- *Strengths:* Right age range, genuine AI training, Scratch familiarity
+- *Weaknesses:* Research project (not commercial product), no gamification, uncertain maintenance
+- **Threat Level: LOW** — Academic project, not commercial competitor
+
+## 5.3 Adjacent Competitors — Coding/STEM with Gamification
+
+These platforms don't teach AI as a core subject but represent competitive pressure through adjacency and potential expansion:
+
+### 5.3.1 Scratch (scratch.mit.edu)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 8-16 |
+| **Focus** | Block-based programming, computational thinking |
+| **AI Content** | Scratch extensions for ML (via Machine Learning for Kids integration) |
+| **Gamification** | Community sharing/remixing — no XP/levels |
+| **3D** | None — 2D stage-based |
+| **Pricing** | Free (MIT Media Lab) |
+| **User Base** | **100M+ registered users**, 1B+ projects |
+
+**Threat Level: LOW-MEDIUM** — Massive user base but fundamentally a creative tool, not a structured learning platform. No AI curriculum, no gamification loop.
+
+### 5.3.2 Code.org
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 4-18 |
+| **Focus** | Computer science fundamentals |
+| **AI Content** | 1 "AI and Machine Learning" module — conceptual, not hands-on |
+| **Gamification** | Certificates, Hour of Code events |
+| **3D** | None |
+| **Pricing** | Free (non-profit, $100M+ funding from Microsoft, Google, Amazon) |
+| **User Base** | **80M+ students**, 2M+ teachers, 50% of US schools |
+
+**Threat Level: MEDIUM** — Enormous institutional distribution. If Code.org adds serious AI games, they would reach half of US schools instantly. Their AI content is currently surface-level.
+
+### 5.3.3 Tynker (tynker.com)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 5-17 |
+| **Focus** | Block/text coding, game design, Minecraft modding |
+| **AI Content** | "AI and Machine Learning" course track added — conceptual + some Python ML |
+| **Gamification** | XP, badges, coding puzzles, Minecraft integration |
+| **AI Tutor** | Basic AI-powered hints |
+| **3D** | Minecraft mod creation provides 3D context |
+| **Pricing** | Free tier + $10/mo per child premium; school licenses |
+| **User Base** | **60M+ students**, 150,000+ schools |
+| **Funding** | ~$10M+ raised |
+
+**Threat Level: MEDIUM-HIGH** — Closest adjacent competitor with gamification + AI content + school distribution. However, AI content is bolt-on (not core), and no immersive 3D native to platform.
+
+### 5.3.4 CodeCombat / Ozaria (codecombat.com)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 9-18 |
+| **Focus** | Python/JavaScript through RPG gameplay |
+| **AI Content** | Limited — "AI League" competitive coding |
+| **Gamification** | **Full RPG** — heroes, gear, levels, multiplayer arenas, narrative campaign |
+| **AI Tutor** | AI-powered code hints and debugging |
+| **3D** | 2.5D isometric — visually engaging but not 3D |
+| **Pricing** | Free tier, $10/mo premium, school licenses |
+| **User Base** | **20M+ students** |
+| **Funding** | $10M+ (Y Combinator alumnus) |
+
+**Threat Level: MEDIUM** — Deepest gamification of any coding platform, but focused on coding (not AI concepts). No true 3D.
+
+### 5.3.5 Brilliant.org
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 13+ (teens to adults) |
+| **Focus** | Math, science, CS, dedicated AI/ML courses |
+| **AI Content** | **Strong** — full courses on neural networks, LLMs, computer vision, RL |
+| **Gamification** | Streak tracking, XP-like system, daily challenges |
+| **3D** | Interactive visualizations (not 3D environments) |
+| **Pricing** | ~$25/mo or $150/year |
+| **User Base** | **10M+ learners** |
+| **Funding** | $92M raised, valued at ~$750M+ |
+
+**Threat Level: MEDIUM** — Deep AI content quality but targets older learners. Too advanced for ages 7-12. No game-based learning, no immersive 3D.
+
+### 5.3.6 Duolingo (DUOL)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | All ages (including kids) |
+| **Focus** | Language learning (expanding to math) |
+| **AI Content** | None as subject; AI-powered under the hood |
+| **Gamification** | **Gold standard** — streaks, XP, leagues, hearts, gems, characters |
+| **Pricing** | Free + Super ($7.99/mo) + Family ($9.99/mo) + Max ($14/mo) |
+| **User Base** | **97M+ MAU**, 8% paid conversion |
+| **Market Cap** | ~$9-12B |
+
+**Threat Level: LOW** (direct) / **HIGH** (benchmark) — Not a competitor in AI education, but the definitive benchmark for gamified learning monetization. SparkForge should study and adapt Duolingo's engagement mechanics.
+
+## 5.4 Emerging Competitors
+
+### 5.4.1 Khanmigo (Khan Academy AI)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | K-18 |
+| **Focus** | All subjects via GPT-4 powered Socratic AI tutor |
+| **AI Content** | "Powered by AI" — not "teaching AI" |
+| **Gamification** | Khan Academy's points/badges/energy system |
+| **AI Tutor** | **Best-in-class** — GPT-4 Socratic tutor |
+| **Pricing** | $4/mo student, $9/mo individual, free for teachers |
+| **User Base** | Khan Academy: **150M+ registered users** |
+| **Funding** | Non-profit; Microsoft partnership for Khanmigo |
+
+**Threat Level: HIGH** — Massive distribution. If Khanmigo adds AI-as-subject curriculum (teaching AI concepts, not just using AI), it would reach millions instantly at low price points. Currently does not teach AI concepts.
+
+### 5.4.2 Synthesis (synthesis.is)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | 6-14 |
+| **Focus** | AI-powered collaborative problem-solving, math |
+| **Gamification** | Game-based, competitive teams |
+| **AI Tutor** | Yes — AI-driven adaptive difficulty |
+| **Pricing** | ~$149/mo (premium positioning) |
+| **Funding** | $16M Series A from a16z (2024) |
+
+**Threat Level: MEDIUM** — Similar age range, a16z backing, but focused on math/problem-solving, not AI concepts. Premium pricing limits market reach.
+
+### 5.4.3 MagicSchool AI (magicschool.ai)
+
+| Attribute | Detail |
+|-----------|--------|
+| **Target Age** | K-12 (teacher-focused) |
+| **Focus** | AI tools for teachers (lesson planning, assessment, differentiation) |
+| **Gamification** | None |
+| **Pricing** | Freemium + school licensing |
+| **Funding** | $15M Series A from Owl Ventures (2024) |
+
+**Threat Level: LOW** (different segment) — Teacher tool, not student-facing. Could become a distribution partner rather than competitor.
+
+## 5.5 Enterprise / School-Focused Platforms
+
+| Platform | AI Content | Gamification | 3D | Pricing | User Base | Threat |
+|----------|-----------|-------------|-----|---------|----------|--------|
+| Google CS First | Surface-level AI modules | Video-led, minimal | None | Free | Millions | MEDIUM |
+| Microsoft MakeCode | Very limited | Arcade game creation | Minecraft tie-in | Free | Millions | LOW |
+| Apple Swift Playgrounds | None | 3D puzzle navigation | **YES — true 3D** | Free (Apple only) | Millions | LOW |
+| Amazon Future Engineer | AI Ready initiative | None | None | Free | School partnerships | LOW |
+
+> **Notable:** Apple Swift Playgrounds is the only platform with true 3D environments in education. However, it teaches Swift coding (not AI), is Apple-ecosystem locked, and has no web access. SparkForge's cross-platform web-based 3D is a significant advantage.
+
+## 5.6 Threat Analysis
+
+### Tier 1: High Threat
+
+| Threat | Scenario | Likelihood | Impact | Mitigation |
+|--------|----------|-----------|--------|-----------|
+| **Khan Academy adds AI curriculum** | Khanmigo expands to teach AI concepts with 150M user distribution | Medium-High | Critical | Speed to market; deeper gamification and 3D differentiation |
+| **Google launches AI-for-kids platform** | Leveraging Teachable Machine, CS First, DeepMind expertise | Medium | Critical | Content depth moat (35 games vs likely 5-10 from Google); first-mover brand |
+| **Code.org expands AI modules** | Serious AI games added to 50% US school penetration | Medium | High | Superior engagement (3D + gamification); premium positioning vs free |
+
+### Tier 2: Medium Threat
+
+| Threat | Scenario | Likelihood | Impact | Mitigation |
+|--------|----------|-----------|--------|-----------|
+| **Microsoft AI in Minecraft Education** | AI concepts in Minecraft would reach SparkForge's exact demo | Medium | High | Different experience (SparkForge = dedicated AI lab vs Minecraft = sandbox) |
+| **Tynker deepens AI track** | Already has 60M students + school distribution | Medium | Medium | SparkForge's AI depth (35 games vs 1 course track) |
+| **Roblox Education adds AI content** | Would reach SparkForge's exact demographic | Low-Medium | High | Quality-controlled curriculum vs UGC |
+| **Well-funded EdTech AI startups** | New entrants with VC backing | High | Medium | Technical moat (3D + 35 games = 12-18 month replication barrier) |
+
+### Tier 3: Low Threat
+
+| Threat | Scenario | Likelihood | Impact |
+|--------|----------|-----------|--------|
+| Open-source SparkForge clones | Replicate concept without polish | Low | Low |
+| Schools building own AI curricula | Using free tools | Medium | Low |
+| Apple adding AI to Swift Playgrounds | Apple-only, no web | Low | Low |
+
+## 5.7 Competitive Comparison Matrix
+
+| Feature | SparkForge | Code.org | Tynker | CodeCombat | Brilliant | Scratch | ML4Kids | Khanmigo |
+|---------|-----------|---------|--------|-----------|----------|---------|---------|----------|
+| **AI Concepts (core)** | 35 games | 1 module | 1 track | None | 5+ courses | None | Core | None |
+| **Target Age** | 7-16 | 4-18 | 5-17 | 9-18 | 13+ | 8-16 | 7-16 | K-18 |
+| **Gamification Depth** | Deep (XP/badges/streaks/trophies/pets) | Certificates | XP/badges | Full RPG | Streaks | Community | None | Points/badges |
+| **3D Immersion** | Full R3F (50M tris) | None | Minecraft | 2.5D iso | None | None | None | None |
+| **Age Differentiation** | 3 bands (A/B/C) | Grade bands | Age tracks | Difficulty | Single | Single | Limited | AI-adaptive |
+| **AI Tutor** | Claude API | None | Basic hints | Code hints | None | None | None | GPT-4 |
+| **Content Generation** | Agent pipeline | None | None | None | None | None | None | None |
+| **Parent Dashboard** | Full (progress, controls) | None | Basic | Basic | None | None | None | None |
+| **Pricing** | Freemium 3-tier | Free | $10/mo | $10/mo | $25/mo | Free | Free | $4-9/mo |
+| **School Licensing** | Planned | Yes | Yes | Yes | Yes | N/A | N/A | Yes |
+| **COPPA Compliant** | Yes (built-in) | Yes | Yes | Partial | N/A | Yes | N/A | Yes |
+
+## 5.8 Market Gaps SparkForge Fills
+
+### Gap 1: No Dedicated AI Learning Game Platform for Kids Exists
+The single largest gap in the market. Platforms either teach **coding** (not AI) or teach **AI at adult level** (Brilliant, Inspirit). No competitor offers 35 dedicated AI concept games for ages 7-16. SparkForge is **first-to-market** in this specific niche.
+
+### Gap 2: 3D Immersive EdTech is Nearly Nonexistent
+Only Apple Swift Playgrounds offers true 3D in children's education, and it's Apple-only with no AI content. SparkForge's R3F cockpit with 37.8M-triangle budget and WebGPU rendering is **orders of magnitude more ambitious** than anything in the EdTech space.
+
+### Gap 3: Age-Band Content Differentiation Within Games
+Most platforms offer different courses by age. SparkForge's approach — the same 35 games with 3 difficulty/content bands (A: 7-10, B: 11-13, C: 14-16) — is unique. It creates content efficiency while maximizing engagement across a wide age range.
+
+### Gap 4: AI Concept Breadth
+No platform covers the breadth of AI topics SparkForge does across 10 labs (AI basics, data science, ML, NLP, computer vision, ethics, robotics, creative AI, applications, futures). Most competitors cover 2-3 topics at best.
+
+### Gap 5: Parent Dashboard for AI Education
+No competitor offers a parent-facing dashboard specifically for monitoring children's AI learning progress with subscription tier gating and content controls.
+
+### Gap 6: AI-Powered Content Pipeline
+SparkForge's Content Agent (Claude API-driven content generation with admin approval workflow) enables faster content scaling than competitors relying on manual curriculum development. This becomes a significant advantage as the content library expands.
+
+## 5.9 Section Summary
+
+SparkForge occupies a **genuinely uncontested market position** at the intersection of gamified learning, AI education, and immersive 3D experiences for children. The competitive analysis reveals:
+
+1. **No direct competitor** matches SparkForge's combination of features
+2. **Adjacent competitors** (Code.org, Tynker, CodeCombat) have distribution advantage but lack AI depth and 3D immersion
+3. **Highest threats** come from platform expansion by Khan Academy, Google, or Code.org — mitigated by first-mover advantage and technical moat
+4. **6 identifiable market gaps** that SparkForge uniquely fills
+5. **12-18 month replication barrier** — the 3D cockpit, 35 games, and AI integration represent substantial engineering investment that cannot be quickly replicated
+
+**Strategic imperative:** Speed to market matters most. The window for establishing first-mover position in gamified AI education for kids is open now but will close as larger players recognize the opportunity.
+
+---
+
+## Source Index — Section 5 (Additions)
+
+| # | Source | Citation |
+|---|--------|----------|
+| S30 | Machine Learning for Kids | Platform analysis, machinelearningforkids.co.uk (2024-2025) |
+| S31 | Khan Academy | "Khanmigo: AI in Education" announcement and product documentation (2023-2025) |
+| S32 | Duolingo Inc. | SEC Filings, 10-K Annual Report FY2024, investor presentations |
+| S33 | Brilliant.org | "About Brilliant" — company overview, Crunchbase profile (2024) |
+| S34 | CodeCombat Inc. | Product documentation, Y Combinator profile, Crunchbase (2024) |
+| S35 | Tynker (Neuron Fuel Inc.) | Product overview, school licensing documentation (2024) |
+| S36 | Code.org | "AI and Machine Learning Module" curriculum documentation (2024) |
+| S37 | Synthesis AI | a16z investment announcement, product overview (2024) |
+| S38 | Apple Inc. | "Swift Playgrounds" product documentation (2024) |
+| S39 | Google for Education | "CS First" and "Teachable Machine" documentation (2024) |
+| S40 | MagicSchool AI | Owl Ventures Series A announcement (2024) |
+
 | # | Source | Citation |
 |---|--------|----------|
 | S1 | McKinsey Global Institute | "The Economic Potential of Generative AI: The Next Productivity Frontier" (June 2023) |
