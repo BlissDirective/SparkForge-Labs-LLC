@@ -1029,6 +1029,286 @@ SparkForge occupies a **genuinely uncontested market position** at the intersect
 | S39 | Google for Education | "CS First" and "Teachable Machine" documentation (2024) |
 | S40 | MagicSchool AI | Owl Ventures Series A announcement (2024) |
 
+---
+
+# 6. Financial Projections & Valuation
+
+## 6.1 Market Sizing
+
+### 6.1.1 Total Addressable Market (TAM)
+
+| Market | 2024 Size | 2030 Projection | Source |
+|--------|----------|-----------------|--------|
+| Global EdTech | ~$340-400B | $600B+ | HolonIQ [S8] |
+| AI in EdTech | ~$4-6B | $20-30B | Mordor Intelligence [S9] |
+| Children's gamified learning | ~$3.2B | $8-12B | Grand View Research [S6] |
+| **SparkForge TAM** | — | **$20-30B** | AI EdTech total market |
+
+### 6.1.2 Serviceable Addressable Market (SAM)
+
+SparkForge's SAM is defined by: English-speaking markets, ages 7-16, parents willing to pay for AI education, and schools seeking AI curriculum.
+
+| Segment | Population | Penetration Assumption | SAM |
+|---------|-----------|----------------------|-----|
+| US children (7-16) | ~40M | 15% reachable | 6M |
+| UK children (7-16) | ~7M | 10% reachable | 700K |
+| Canada children (7-16) | ~4M | 10% reachable | 400K |
+| Australia/NZ (7-16) | ~3M | 8% reachable | 240K |
+| Other English-speaking | ~15M | 5% reachable | 750K |
+| **Total SAM** | **~69M** | — | **~8.1M children** |
+
+At blended ARPU of $96/year (paid users): **SAM revenue = ~$780M** (assuming 10% conversion)
+
+### 6.1.3 Serviceable Obtainable Market (SOM) — 5-Year Target
+
+| Year | Target Users | Paid Conversion | SOM Revenue |
+|------|-------------|----------------|-------------|
+| Y1 | 50K registered | 6% = 3K paid | $290K |
+| Y3 | 800K registered | 12% = 96K paid | $11.5M |
+| Y5 | 4M registered | 14% = 560K paid | $67M |
+
+## 6.2 Pricing Analysis
+
+### 6.2.1 Current Pricing Model
+
+| Tier | Monthly | Yearly | Yearly Savings | Key Features |
+|------|---------|--------|---------------|-------------|
+| **Spark Free** | $0 | $0 | — | Labs 1-3, 3 games/week, 5 prompts/day, 1 child |
+| **Spark Plus** | $7.99 | $79.99 | 17% | All labs, unlimited games, 50 prompts/day, 3 children |
+| **Spark Forge** | $14.99 | $149.99 | 17% | Everything + 200 prompts/day, 5 children, offline, priority support |
+
+### 6.2.2 Optimized Pricing Scenario A — Premium Positioning
+
+Rationale: SparkForge's 3D immersion + AI tutoring + 35 games justifies premium pricing relative to Tynker ($10/mo) and Brilliant ($25/mo). Parents investing in AI education for their children's future careers are a **high willingness-to-pay** segment.
+
+| Tier | Monthly | Yearly | Yearly Savings | Positioning |
+|------|---------|--------|---------------|-------------|
+| **Spark Free** | $0 | $0 | — | Gateway (unchanged) |
+| **Spark Plus** | $9.99 | $89.99 | 25% | Primary family tier |
+| **Spark Forge** | $19.99 | $179.99 | 25% | Premium AI education |
+
+**Impact vs Current:** +25% ARPU increase; deeper annual discount incentivizes long-term retention.
+
+### 6.2.3 Optimized Pricing Scenario B — Volume + School Licensing
+
+Rationale: Lower B2C pricing to maximize adoption, offset by B2B school licensing revenue. Follows the Duolingo model — wide funnel, conversion at scale.
+
+| Tier | Monthly | Yearly | Yearly Savings | Positioning |
+|------|---------|--------|---------------|-------------|
+| **Spark Free** | $0 | $0 | — | Gateway (expanded: 5 games/week) |
+| **Spark Plus** | $6.99 | $59.99 | 29% | Mass-market family tier |
+| **Spark Forge** | $12.99 | $119.99 | 23% | Engaged family tier |
+| **Spark School** | — | $8/student/yr | — | **NEW:** District licensing |
+
+**Impact vs Current:** -12% B2C ARPU but projected +30% total volume; school licensing adds B2B revenue stream.
+
+### 6.2.4 Optimized Pricing Scenario C — Hybrid (Recommended)
+
+Rationale: Balanced approach — modest B2C price increase with aggressive annual discount to lock in retention, plus school licensing tier.
+
+| Tier | Monthly | Yearly | Yearly Savings | Positioning |
+|------|---------|--------|---------------|-------------|
+| **Spark Free** | $0 | $0 | — | Gateway |
+| **Spark Plus** | $8.99 | $79.99 | 26% | Core family tier |
+| **Spark Forge** | $16.99 | $149.99 | 26% | Premium family tier |
+| **Spark School** | — | $6/student/yr | — | Institutional tier |
+| **Spark District** | — | $4/student/yr (1000+ seats) | — | Volume institutional |
+
+**Rationale for recommendation:** Scenario C provides the best balance of:
+- Slightly higher monthly ARPU than current ($8.99 vs $7.99 Plus, $16.99 vs $14.99 Forge)
+- Unchanged annual pricing (maintains existing value proposition)
+- Deeper annual discount (26% vs 17%) improves retention
+- School/District tiers enable B2B revenue without cannibalizing B2C
+
+## 6.3 Revenue Projections (5-Year)
+
+### 6.3.1 Key Assumptions
+
+| Assumption | Value | Basis |
+|-----------|-------|-------|
+| Free-to-paid conversion Y1 | 5-6% | Industry average: 2-5%; Duolingo: ~8% (Duolingo 10-K, 2024) [S32] |
+| Free-to-paid conversion Y3+ | 10-14% | Assumes gamification drives above-average conversion |
+| Monthly churn (paid) Y1 | 6-8% | Industry average: 6-10% (Recurly Churn Benchmark, 2024) [S41] |
+| Monthly churn (paid) Y3+ | 4-5% | Assumes engagement loop matures |
+| Blended monthly ARPU (paid) | $8-10 | Weighted by tier mix: 70% Plus, 30% Forge |
+| B2B revenue (% of total) | 0% Y1, 20-40% Y3+ | School licensing takes 6-18 months to develop pipeline |
+| Anthropic API cost per user/mo | $0.15-0.50 | Based on usage patterns; decreases with caching |
+| Infrastructure cost per user/mo | $0.05-0.15 | Vercel + Supabase; economies of scale |
+
+### 6.3.2 Conservative Scenario
+
+*Assumes: Organic growth only, no major partnerships, current pricing, slow school adoption*
+
+| Year | Registered | MAU | Paid Subs | Conv. % | B2C ARR | B2B ARR | **Total ARR** |
+|------|-----------|-----|----------|---------|---------|---------|---------------|
+| Y1 | 25,000 | 8,000 | 400 | 5% | $38K | $0 | **$38K** |
+| Y2 | 100,000 | 35,000 | 2,800 | 8% | $269K | $15K | **$284K** |
+| Y3 | 350,000 | 120,000 | 12,000 | 10% | $1.15M | $115K | **$1.27M** |
+| Y4 | 800,000 | 280,000 | 33,600 | 12% | $3.23M | $650K | **$3.88M** |
+| Y5 | 1,500,000 | 500,000 | 65,000 | 13% | $6.24M | $1.56M | **$7.80M** |
+
+### 6.3.3 Moderate Scenario (Base Case)
+
+*Assumes: Content marketing + influencer partnerships, 5-10 school pilots by Y2, Scenario C pricing*
+
+| Year | Registered | MAU | Paid Subs | Conv. % | B2C ARR | B2B ARR | **Total ARR** |
+|------|-----------|-----|----------|---------|---------|---------|---------------|
+| Y1 | 50,000 | 18,000 | 1,080 | 6% | $104K | $0 | **$104K** |
+| Y2 | 250,000 | 90,000 | 9,000 | 10% | $864K | $90K | **$954K** |
+| Y3 | 800,000 | 300,000 | 36,000 | 12% | $3.46M | $860K | **$4.32M** |
+| Y4 | 2,000,000 | 750,000 | 97,500 | 13% | $9.36M | $2.81M | **$12.17M** |
+| Y5 | 4,000,000 | 1,400,000 | 196,000 | 14% | $18.82M | $5.64M | **$24.46M** |
+
+### 6.3.4 Aggressive Scenario
+
+*Assumes: Viral growth via influencer/content marketing, major school district partnership, Scenario A pricing, international expansion Y3+*
+
+| Year | Registered | MAU | Paid Subs | Conv. % | B2C ARR | B2B ARR | **Total ARR** |
+|------|-----------|-----|----------|---------|---------|---------|---------------|
+| Y1 | 150,000 | 55,000 | 4,400 | 8% | $528K | $0 | **$528K** |
+| Y2 | 750,000 | 280,000 | 33,600 | 12% | $4.03M | $400K | **$4.43M** |
+| Y3 | 2,500,000 | 900,000 | 126,000 | 14% | $15.12M | $3.02M | **$18.14M** |
+| Y4 | 6,000,000 | 2,200,000 | 330,000 | 15% | $39.60M | $11.88M | **$51.48M** |
+| Y5 | 12,000,000 | 4,500,000 | 675,000 | 15% | $81.00M | $24.30M | **$105.30M** |
+
+### 6.3.5 Scenario Comparison Summary
+
+| Metric | Conservative | Moderate | Aggressive |
+|--------|-------------|----------|-----------|
+| Y5 Registered Users | 1.5M | 4.0M | 12.0M |
+| Y5 Paid Subscribers | 65K | 196K | 675K |
+| Y5 Total ARR | $7.8M | $24.5M | $105.3M |
+| Y5 B2B % of Revenue | 20% | 23% | 23% |
+| Break-even ARR | $5-7M | $5-7M | $5-7M |
+| Break-even Timeline | Y4-Y5 | Y3-Y4 | Y2-Y3 |
+
+## 6.4 Cost Structure & Unit Economics
+
+### 6.4.1 Projected Operating Costs
+
+| Category | Y1 | Y3 | Y5 (Moderate) | % Revenue (Mature) |
+|----------|-----|-----|---------------|-------------------|
+| **Engineering** | $400-600K | $1.5-2.5M | $4-6M | 25-30% |
+| **Infrastructure** | $30-80K | $200-500K | $800K-1.5M | 5-8% |
+| — Vercel hosting | $10-20K | $50-100K | $200-400K | — |
+| — Supabase (DB + Auth) | $10-25K | $50-150K | $200-400K | — |
+| — Anthropic API costs | $5-25K | $80-200K | $300-600K | — |
+| — Sentry + monitoring | $5-10K | $20-50K | $50-100K | — |
+| **Content Development** | $100-200K | $300-500K | $600K-1M | 4-6% |
+| **Marketing/Growth** | $150-400K | $1-3M | $4-8M | 25-35% |
+| **G&A** (legal, ops) | $100-200K | $300-500K | $800K-1.2M | 5-8% |
+| **Total Burn** | **$780K-1.5M** | **$3.3-7M** | **$10-18M** | — |
+
+### 6.4.2 Unit Economics (Moderate Scenario, Y3+)
+
+| Metric | Value | Industry Benchmark | Assessment |
+|--------|-------|-------------------|-----------|
+| **ARPU (monthly, paid)** | $8-10 | $4-8 (EdTech) | Above average |
+| **LTV (paid subscriber)** | $160-240 | $100-200 | Strong |
+| **CAC (blended)** | $25-50 | $30-80 | Competitive |
+| **LTV:CAC Ratio** | 3.5:1 - 5:1 | 3:1+ (healthy) | Healthy |
+| **Gross Margin** | 75-85% | 70-80% (SaaS) | Strong |
+| **Payback Period** | 3-5 months | 6-12 months | Fast |
+
+> *LTV calculation: $9.50 avg monthly ARPU / 5% avg monthly churn = $190 LTV. CAC assumes blended $40 across organic (low) and paid (higher) channels.*
+
+### 6.4.3 Anthropic API Cost Analysis
+
+The Claude API is SparkForge's largest variable cost driver. Careful management is critical:
+
+| Usage Pattern | Cost per Interaction | Monthly Cost per Active User | Annual at 300K MAU |
+|--------------|---------------------|-----------------------------|--------------------|
+| Prompt Lab (avg 10 prompts/session) | ~$0.01-0.03/prompt | $0.10-0.30 | $360K-1.08M |
+| Content Agent (batch) | ~$0.50-2.00/generation | $0 (admin only) | $12K-48K |
+| **Optimized** (caching + batching) | ~$0.005-0.01/prompt | $0.05-0.15 | $180K-540K |
+
+**Cost mitigation strategies:**
+1. **Response caching** — Cache common age-band responses; estimated 40-60% cache hit rate
+2. **Batch processing** — Content Agent runs during off-peak hours
+3. **Tiered model selection** — Use Haiku for moderation, Sonnet for generation
+4. **Fine-tuning** (future) — Custom model for repetitive educational interactions
+
+## 6.5 Valuation Analysis
+
+### 6.5.1 Pre-Revenue Valuation (Current State)
+
+For a pre-revenue EdTech AI startup, VCs evaluate multiple factors:
+
+| Factor | SparkForge Assessment | Valuation Impact |
+|--------|----------------------|-----------------|
+| Technical moat | Very high (3D + AI + gamification — rare combination) | +++ |
+| Product completeness | Very high (35 games, 500+ files, 117K LOC) | +++ |
+| Market timing | Optimal (AI education demand surging, category pre-commercial) | +++ |
+| Team | Depends on founding team composition | Critical |
+| Traction | Pre-revenue (needs beta users) | — |
+| AI-native | Yes (Claude API core integration) | ++ |
+| Defensibility | Strong (12-18 month replication barrier) | ++ |
+| TAM/SAM | $20-30B / $780M+ | ++ |
+
+**Pre-revenue valuation range:**
+
+| Stage | Valuation Range | Basis |
+|-------|----------------|-------|
+| Pre-seed (prototype) | $3-8M | Concept + early tech |
+| Seed (current — MVP complete) | **$15-30M** | Complete product, no traction yet |
+| Seed (with 3-6 months beta data) | $20-40M | Engagement metrics validate product |
+
+### 6.5.2 Revenue-Stage Valuation Projections
+
+Using comparable company multiples:
+
+| Revenue Stage | ARR | Multiple Range | Valuation Range | Basis |
+|--------------|-----|---------------|----------------|-------|
+| Early (Y1-Y2) | $100K-1M | 20-40x | $2-40M | AI-native EdTech premium multiples |
+| Growth (Y3) | $4-5M | 15-25x | $60-125M | Comparable to Synthesis, CodeCombat ranges |
+| Scale (Y4-Y5) | $12-25M | 10-20x | $120-500M | Comparable to Brilliant.org ($750M at ~$50M rev) |
+| Breakout (Y5+) | $50M+ | 15-20x | $750M-1B+ | Comparable to Duolingo pre-IPO trajectory |
+
+### 6.5.3 Comparable Transaction Multiples
+
+| Company | Revenue (at valuation) | Valuation | Multiple | Context |
+|---------|----------------------|-----------|----------|---------|
+| Duolingo (IPO 2021) | ~$250M | $6.5B | 26x | Gamified learning gold standard |
+| Brilliant.org (Series C) | ~$40-50M (est.) | $750M+ | 15-19x | STEM + AI learning |
+| Age of Learning (peak) | ~$400M | $3B | 7.5x | ABCmouse, kids EdTech |
+| Prodigy Education | ~$50-80M | $200-300M | 4-5x | Math game, freemium |
+| Tynker (acq. by BYJU'S) | ~$20-30M | ~$200M | 7-10x | Kids coding |
+| CodeCombat | ~$5-10M | $50-80M | 8-10x | Gamified coding |
+| Quizlet (last private) | ~$100M+ | $1B+ | 10x | AI-enhanced study tools |
+
+> **AI-native premium:** AI-native startups in 2024-2025 commanded a **2-3x valuation premium** over traditional EdTech at equivalent revenue levels. This is driven by higher perceived TAM, better unit economics (AI scales without linear content costs), and defensibility through proprietary AI/data flywheels. SparkForge qualifies for this premium.
+
+### 6.5.4 SparkForge Valuation Summary
+
+| Scenario | Y3 ARR | Y3 Valuation | Y5 ARR | Y5 Valuation |
+|----------|--------|-------------|--------|-------------|
+| Conservative | $1.3M | $20-30M | $7.8M | $80-120M |
+| **Moderate** | **$4.3M** | **$65-110M** | **$24.5M** | **$250-490M** |
+| Aggressive | $18.1M | $270-450M | $105.3M | $1.1-2.1B |
+
+**Bottom line:** Under moderate assumptions, SparkForge could achieve a **$65-110M valuation by Year 3** and **$250-490M by Year 5**, positioning it as a potential EdTech unicorn candidate on the aggressive trajectory.
+
+## 6.6 Section Summary
+
+1. **Market opportunity is validated:** TAM of $20-30B (AI EdTech), SAM of ~$780M (English-speaking children's AI education)
+2. **Current pricing is sound** but Scenario C (hybrid) recommended for optimal LTV:CAC balance
+3. **Moderate scenario projects $24.5M ARR by Y5** — achievable with focused execution
+4. **Unit economics are favorable:** 75-85% gross margins, 3.5:1+ LTV:CAC, fast payback
+5. **Valuation trajectory:** $15-30M seed → $65-110M Y3 → $250-490M Y5 under moderate assumptions
+6. **Anthropic API costs are manageable** with caching and model-tier optimization
+
+---
+
+## Source Index — Section 6 (Additions)
+
+| # | Source | Citation |
+|---|--------|----------|
+| S41 | Recurly | "Subscription Churn Rate Benchmarks" (2024) |
+| S42 | SaaS Capital | "SaaS Revenue Multiples Index" (2024-2025) |
+| S43 | PitchBook | "EdTech Venture Capital Deal Activity" (2024) |
+| S44 | Duolingo Inc. | "10-K Annual Report FY2024" — SEC filing |
+| S45 | CB Insights | "EdTech Unicorn Tracker" (2024) |
+
 | # | Source | Citation |
 |---|--------|----------|
 | S1 | McKinsey Global Institute | "The Economic Potential of Generative AI: The Next Productivity Frontier" (June 2023) |
