@@ -1287,6 +1287,163 @@ Which 5 games should be the first VR launch set?
 
 ---
 
-*End of SparkForge-VR-Update.md v1.0*  
-*8 sections | ~5,200 lines of analysis | 35 games assessed | 28+ sources cited*  
-*Prepared: April 5, 2026 | Branch: claude/sparkforge-vr-assessment-v0DQ3*
+---
+
+## 9. Research Validation & Corrections (Post-Agent Review)
+
+*This section incorporates findings from a dedicated VR research sweep completed April 5, 2026, using live documentation, GitHub release notes, and primary browser support tables. Where the research differs from earlier estimates, the research-validated figure takes precedence.*
+
+---
+
+### 9.1 @react-three/xr — Correct Version
+
+**Correction to Section 4.1:** The current production release of `@react-three/xr` is **v6.6.29**, not v6.0.0.
+
+```bash
+npm install @react-three/xr@^6.6.29
+```
+
+v6.6.29 introduced the `createXRStore()` pattern (replacing the older `<VRButton>` approach) and is the version all code examples in this document target.
+
+**Source:** [@react-three/xr npm — reintroducing @react-three/xr (pmnd.rs blog)](https://pmnd.rs/blog/reintroducing-react-three-xr), [GitHub pmndrs/xr releases](https://github.com/pmndrs/xr/releases)
+
+---
+
+### 9.2 Triangle Budget Correction — Critical
+
+**Correction to Sections 3.7 and 6.3:** The VR triangle budget estimates in earlier sections were overstated. Research-validated figures from Meta's WebXR performance documentation and real-world Quest deployments are significantly lower:
+
+| Headset | Practical Triangle Budget @ 90fps | Earlier Estimate (incorrect) |
+|---|---|---|
+| Meta Quest 2 | **50,000–100,000** | 3–5M |
+| Meta Quest 3 / 3S | **100,000–200,000** | 3–5M |
+| PCVR (RTX 3080+) | **500,000–1,000,000** | N/A |
+
+**Why so much lower:** Mobile VR has two compounding constraints not present in desktop web — the scene renders **twice per frame** (once per eye) and the GPU has **no active cooling** (thermal throttling at sustained load). The Adreno 740 in Quest 3 delivers approximately 2.5 TFLOPS FP32 but must maintain thermal headroom for a 2+ hour session. Sustained real-world throughput for 90fps is approximately **100–200K triangles total** (entire scene, both eyes combined).
+
+**Revised VR Cockpit Budget (Quest 3 Target):**
+
+| Component | Revised VR Budget | Notes |
+|---|---|---|
+| VR Cockpit Shell (all panels) | 60,000 | Simplified baked geometry |
+| Active Game Environment | 80,000 | Simple meshes, few lights |
+| UI Panels (@react-three/uikit) | 10,000 | Extremely efficient instanced quads |
+| NPCs (reduced to 2–3 in VR) | 15,000 | 5K/bot |
+| Particles / FX | 5,000 | Minimal in VR |
+| Controller models + XR overhead | 10,000 | Auto-loaded by @react-three/xr |
+| **TOTAL** | **~180,000** | ✅ Within Quest 3 budget |
+
+**Practical implication:** VR cockpit geometry must be **99.5% simpler** than desktop (not 97% as stated in Section 3.7). The VR cockpit will look significantly more abstract/stylized than the desktop version — this is normal and expected for all Quest WebXR experiences.
+
+**Source:** [Meta Quest WebXR Performance Optimization Workflow](https://developers.meta.com/horizon/documentation/web/webxr-perf-workflow/), [Toji.dev — WebXR Scene Optimization](https://toji.dev/webxr-scene-optimization/), [VR Browser Games: WebXR Guide 2026](https://www.seeles.ai/resources/blogs/vr-browser-games-webxr-guide-2026)
+
+---
+
+### 9.3 frameloop Setting — Critical Implementation Note
+
+**Addition to Section 4.1 (CockpitCanvas):** The R3F Canvas `frameloop` prop must be set to `'never'` when in VR mode. This prevents a dual render loop conflict between R3F's `requestAnimationFrame` and WebXR's `gl.setAnimationLoop()`.
+
+```tsx
+// CockpitCanvas.tsx — critical frameloop change in VR
+<Canvas
+  frameloop={isXRPresenting ? 'never' : 'always'}
+  ...
+>
+```
+
+Without this, both loops run simultaneously, causing 2x GPU load and potential frame corruption. This is a known compatibility issue documented in the @react-three/xr v6 migration guide.
+
+**Source:** [@react-three/xr — Convert to XR docs](https://pmndrs.github.io/xr/docs/getting-started/convert-to-xr)
+
+---
+
+### 9.4 Apple Vision Pro — Updated Status
+
+**Correction to Section 2.2:** As of **visionOS 2**, Apple Vision Pro supports WebXR **by default** (no longer behind a flag). This changes the Vision Pro assessment from "Partial" to a more viable secondary target.
+
+| Feature | visionOS 1 | visionOS 2 (current) |
+|---|---|---|
+| WebXR enabled | Behind Safari flag | **Default-on** |
+| Input model | Gaze + pinch only | Natural input (spatial gestures) |
+| immersive-vr | Not supported | ✅ Supported |
+| immersive-ar | Not supported | Not supported (windowed AR only) |
+| Hand tracking in WebXR | Not exposed | Not exposed (native APIs only) |
+
+Vision Pro remains a secondary target (very small install base, high device cost), but its WebXR support is now production-grade.
+
+**Source:** [WebKit Blog — Introducing Natural Input for WebXR in Apple Vision Pro](https://webkit.org/blog/15162/introducing-natural-input-for-webxr-in-apple-vision-pro/), [Upload VR — visionOS 2 WebXR Default](https://www.uploadvr.com/visionos-2-apple-vision-pro-webxr/)
+
+---
+
+### 9.5 Hand Tracking — Quest 2 vs Quest 3
+
+**Addition to Section 4.3:** Hand tracking availability differs by hardware:
+
+| Headset | Hand Tracking | Notes |
+|---|---|---|
+| Quest 2 | Optional (external camera required) | Graceful fallback to controllers |
+| Quest 3 | Native (built-in, no extra hardware) | Best tracking quality |
+| Quest 3S | Native | Improved fidelity vs Quest 3 |
+| Quest Pro | Native + eye tracking | Eye tracking not exposed to WebXR |
+
+**For SparkForge:** Design all VR interactions to work with **controllers as primary** and **hand tracking as an enhancement**. Never require hand tracking for core gameplay.
+
+**Source:** [Meta Horizon — WebXR Hands](https://developers.meta.com/horizon/documentation/web/webxr-hands/), [Meta SDK v62 — Hand Tracking](https://developers.meta.com/horizon/blog/hand-tracking-available-sdk-v62/)
+
+---
+
+### 9.6 Child Safety — Additional Medical Sources
+
+**Addition to Section 7.2:** Research agent surfaced a peer-reviewed systematic review:
+
+- **PMC — "Could virtual reality applications pose real risks to children and adolescents?"** (2021, updated 2024): Review of 32 studies. Findings: Short VR sessions (<15 min) show no measurable negative effects on visuomotor function in children 10+. Risk increases with session length >30 min and fast locomotion.
+- **AAP (American Academy of Pediatrics) — VR position (2025):** Children under 6: avoid immersive VR. Ages 6–12: 10–15 minute sessions maximum. Ages 13+: similar to adults, sessions up to 30 minutes with breaks.
+
+**Source:** [PMC — VR Risks for Children Systematic Review](https://pmc.ncbi.nlm.nih.gov/articles/PMC8328811/), [AAP — Virtual Reality Use and Children](https://www.aap.org/en/patient-care/media-and-children/center-of-excellence-on-social-media-and-youth-mental-health/qa-portal/qa-portal-library/qa-portal-library-questions/virtual-reality-use-and-children/)
+
+---
+
+### 9.7 Effort Estimate Validation
+
+The research agent's independent estimate for a "VR Mode Toggle" (Phase VR-0 through VR-1 equivalent):
+
+| Phase | Research Agent Estimate | This Document's Estimate |
+|---|---|---|
+| Basic VR toggle + input | 80–120 hours | 50–74 hours (VR-0 + VR-1) |
+| Enhanced VR (locomotion, UI) | 100–150 hours | 58–87 hours (VR-2) |
+| VR game variants (first wave) | 150–200 hours | 100–150 hours (VR-3) |
+| **Total to full VR** | **330–470 hours** | **~523–809 hours** |
+
+**Reconciliation:** The research agent's lower estimate reflects a minimal-scope WebXR mode. This document's higher estimate includes VR geometry variants for all cockpit components (VR-2), full child safety infrastructure (VR-4), and all 35 games (VR-5). Both estimates are valid for their respective scopes. A realistic **first-wave VR mode** (dashboard + 5 games + safety) aligns with approximately **250–350 hours**.
+
+---
+
+### 9.8 Additional Sources (from Research Agent)
+
+The following sources supplement the Section 8.8 reference list:
+
+| Source | URL |
+|---|---|
+| @react-three/xr npm (v6.6.29) | https://www.npmjs.com/package/@react-three/xr |
+| pmndrs — Reintroducing @react-three/xr | https://pmnd.rs/blog/reintroducing-react-three-xr |
+| Convert to XR — @react-three/xr docs | https://pmndrs.github.io/xr/docs/getting-started/convert-to-xr |
+| WebXR Device API — Can I Use | https://caniuse.com/webxr |
+| Meta WebXR Performance Optimization | https://developers.meta.com/horizon/documentation/web/webxr-perf-workflow/ |
+| Toji.dev — WebXR Scene Optimization | https://toji.dev/webxr-scene-optimization/ |
+| Meta Horizon — WebXR Hands | https://developers.meta.com/horizon/documentation/web/webxr-hands/ |
+| WebKit — Natural Input for WebXR (Vision Pro) | https://webkit.org/blog/15162/introducing-natural-input-for-webxr-in-apple-vision-pro/ |
+| Upload VR — visionOS 2 WebXR Default | https://www.uploadvr.com/visionos-2-apple-vision-pro-webxr/ |
+| Three.js — XRHandModelFactory | https://threejs.org/docs/pages/XRHandModelFactory.html |
+| Three.js — XRControllerModelFactory | https://threejs.org/docs/pages/XRControllerModelFactory.html |
+| PMC — VR Risks for Children (Systematic Review) | https://pmc.ncbi.nlm.nih.gov/articles/PMC8328811/ |
+| AAP — VR Use and Children | https://www.aap.org/en/patient-care/media-and-children/center-of-excellence-on-social-media-and-youth-mental-health/qa-portal/qa-portal-library/qa-portal-library-questions/virtual-reality-use-and-children/ |
+| @react-three/uikit GitHub | https://github.com/pmndrs/uikit |
+| Troika Three Text | https://protectwise.github.io/troika/troika-three-text/ |
+| VR Browser Games WebXR 2026 | https://www.seeles.ai/resources/blogs/vr-browser-games-webxr-guide-2026 |
+| Meta Family Center — Parental Controls | https://familycenter.meta.com/our-products/horizon-and-quest/ |
+
+---
+
+*End of SparkForge-VR-Update.md v1.1*  
+*9 sections | 35 games assessed | 40+ sources cited | Research-validated April 5, 2026*  
+*Branch: claude/sparkforge-vr-assessment-v0DQ3*
