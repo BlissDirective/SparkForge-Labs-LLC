@@ -643,3 +643,105 @@ This store would be read by: `CameraSystem`, `PostProcessingStack`, `deviceStore
 ---
 
 *Section 4 of 8 — continues in next section.*
+
+---
+
+## 5. Game-by-Game VR Adaptation Strategy
+
+SparkForge has 35 games across 3 tiers. VR adaptation requirements vary significantly by game type. Games are classified into 4 VR adaptation categories:
+
+- **VR-Native:** Minimal changes — the game's mechanics are naturally suited to VR interaction
+- **VR-Enhanced:** Moderate changes — core mechanic works, interaction model improves with VR
+- **VR-Adapted:** Significant changes — game works in VR with modified UX to suit controller/spatial input
+- **VR-Redesign:** Major changes — game mechanic is fundamentally 2D/pointer-based and needs VR-native reimagining
+
+---
+
+### 5.1 Flagship Games (6 games — 20M tri budget desktop)
+
+| # | Game | File | VR Category | VR Interaction | Notes |
+|---|---|---|---|---|---|
+| 1 | **Pet Trainer** | `PetTrainerGame.tsx` | VR-Native | Reach out and pet/feed the 3D creature with hand tracking | `Pet3DScene.tsx` renders a full 3D creature — hand tracking creates a magical "reach out and touch" moment |
+| 2 | **Neural Builder** | `NeuralBuilderGame.tsx` | VR-Native | Grab and connect floating neural network nodes with controllers | `NeuralNetwork3D.tsx` nodes already float in 3D space — controller grab maps directly |
+| 3 | **Prompt Lab** | `PromptLabGame.tsx` | VR-Adapted | VR keyboard for text input, 3D preview of prompt results | Text-heavy game; requires VR keyboard overlay — Quest Browser handles this natively |
+| 4 | **Agent Architect** | `AgentArchitectGame.tsx` | VR-Native | Pick up and arrange agent pipeline blocks in 3D space | `AgentPipeline3D.tsx` — spatial block arrangement is ideal for 6DOF controllers |
+| 5 | **Bias Detective** | `BiasDetectiveGame.tsx` | VR-Enhanced | Point controller at decision cards to flip/reveal bias | `BiasScales3D.tsx` and `BiasDecisionTree3D.tsx` — scales tipping in VR is compelling |
+| 6 | **Sort Toy Box** | `SortToyBoxGame.tsx` | VR-Native | Physically pick up objects and drop in the correct bin | `SortScene3D.tsx` and `SortFeatureViz3D.tsx` — drag-and-drop becomes physical grabbing in VR |
+
+**Flagship VR Highlight:** Pet Trainer + Neural Builder + Sort Toy Box offer the most transformative VR experiences — reaching out to touch/grab 3D objects is the core "wow moment" of VR for children.
+
+---
+
+### 5.2 FL-Lite Games (9 games — 10M tri budget desktop)
+
+| # | Game | File | VR Category | VR Interaction | Notes |
+|---|---|---|---|---|---|
+| 7 | **Code Blocks** | `CodeBlocksGame.tsx` | VR-Enhanced | Grab and stack code blocks in physical space | `CodeBlocks3D.tsx` — block stacking in 3D is a natural VR mechanic |
+| 8 | **Chatbot Builder** | `ChatbotBuilderGame.tsx` | VR-Adapted | Connect conversation nodes floating in space | `ChatbotNodes3D.tsx` — node graph interaction with controllers |
+| 9 | **Data Detective** | `DataDetectiveGame.tsx` | VR-Enhanced | Walk up to evidence boards, pick clues | `DataDetective3D.tsx` — spatial investigation feels immersive |
+| 10 | **Robot Vacuum** | `RobotVacuumGame.tsx` | VR-Native | Physically guide a virtual robot around the room | `RobotVacuum3D.tsx` — steering a virtual robot in VR is excellent for children |
+| 11 | **Camera Quest** | `CameraQuestGame.tsx` | VR-Native | Hold the virtual camera and frame scenes with controllers | `CameraQuest3D.tsx` — holding a virtual camera in VR is intuitive |
+| 12 | **Future Forge** | `FutureForgeGame.tsx` | VR-Enhanced | Build future-tech items in 3D workshop space | `FutureForge3D.tsx` — assembly mechanic benefits from 3D manipulation |
+| 13 | **My First AI App** | `MyFirstAiAppGame.tsx` | VR-Adapted | Touch UI panels floating in VR cockpit | `MyFirstAiApp3D.tsx` — app-building panels work in VR space |
+| 14 | **Emoji Decoder** | `EmojiDecoderGame.tsx` | VR-Adapted | Choose from floating emoji options with controller ray | `EmojiDecoder3D.tsx` — selector UI works with XR rays |
+| 15 | **AI or Not** | `AiOrNotGame.tsx` | VR-Enhanced | Physically walk to "AI" or "Human" zones to vote | `AiOrNot3D.tsx` — binary choice game becomes a physical movement in VR |
+
+---
+
+### 5.3 Standard Games (20 games — 5M tri budget desktop)
+
+Standard games use the `StandardEnvironmentBase` + procedural environments. VR adaptation is primarily about the environment becoming immersive rather than the game mechanic changing significantly.
+
+| Game | File | VR Category | Primary Change |
+|---|---|---|---|
+| **AI Spy** | `AiSpyGame.tsx` | VR-Enhanced | "I spy" scanning the environment with head movement |
+| **AI Art Detective** | `AiArtDetectiveGame.tsx` | VR-Enhanced | Examine artwork up close by walking to canvases |
+| **API Explorer** | `ApiExplorerGame.tsx` | VR-Adapted | Floating API request panels, select with ray |
+| **Build Classifier** | `BuildClassifierGame.tsx` | VR-Adapted | Card sorting with controller grab |
+| **Career Explorer** | `CareerExplorerGame.tsx` | VR-Adapted | Walk-around career showcase environment |
+| **Data Shield** | `DataShieldGame.tsx` | VR-Enhanced | Physically block incoming data threats |
+| **Ethics Courtroom** | `EthicsCourtroomGame.tsx` | VR-Native | Sit in courtroom, argue cases in VR space |
+| **Fool the AI** | `FoolTheAiGame.tsx` | VR-Adapted | Input panel in VR, see AI responses on floating screen |
+| **Human vs Machine** | `HumanVsMachineGame.tsx` | VR-Enhanced | Head-to-head competition visualization in 3D arena |
+| **Lost in Translation** | `LostInTranslationGame.tsx` | VR-Adapted | Choose translation tiles floating in space |
+| **Neuron Relay** | `NeuronRelayGame.tsx` | VR-Enhanced | Physically connect neurons floating around user |
+| **Pixel Investigator** | `PixelInvestigatorGame.tsx` | VR-Enhanced | Examine images up-close, zoom in by leaning forward |
+| **Prediction Market** | `PredictionMarketGame.tsx` | VR-Adapted | Floating stock-ticker style panels |
+| **Real or Fake** | `RealOrFakeGame.tsx` | VR-Enhanced | Reach out and flip cards to reveal real/fake |
+| **Sentiment Scanner** | `SentimentScannerGame.tsx` | VR-Adapted | Emoji/slider UI in VR panel |
+| **Time Machine** | `TimeMachineGame.tsx` | VR-Native | Physical time-travel cockpit lever — perfect for VR |
+| **Token Chopper** | `TokenChopperGame.tsx` | VR-Enhanced | "Chop" tokens out of text with virtual hands |
+| **Tool Picker** | `ToolPickerGame.tsx` | VR-Adapted | Grab floating tool cards |
+| **Treat Trainer** | `TreatTrainerGame.tsx` | VR-Enhanced | Hold treat out to train virtual creature |
+| **Word Predictor** | `WordPredictorGame.tsx` | VR-Adapted | Select next-word tiles from floating panel |
+
+---
+
+### 5.4 VR Adaptation Summary
+
+| Category | Count | % of Library | Avg Effort |
+|---|---|---|---|
+| **VR-Native** | 10 | 29% | Low — mostly XR grab + existing 3D |
+| **VR-Enhanced** | 13 | 37% | Medium — environment immersion + minor interaction |
+| **VR-Adapted** | 11 | 31% | Medium-High — UI panels + controller input |
+| **VR-Redesign** | 1 | 3% | High — Prompt Lab text input (VR keyboard required) |
+
+**Key finding:** 66% of SparkForge's 35 games are either VR-Native or VR-Enhanced with minimal re-engineering. Only Prompt Lab requires significant input model work (and even there, Meta Quest's built-in VR keyboard handles the hard part).
+
+---
+
+### 5.5 Priority VR Launch Games (Recommended First Wave)
+
+If building a VR mode incrementally, these 5 games offer the highest VR impact with the lowest implementation effort:
+
+1. **Pet Trainer** — Hand tracking + creature interaction = highest "wow" factor for ages 7–10
+2. **Sort Toy Box** — Physical grab-and-sort = intuitive for all ages, demonstrates 6DOF naturally
+3. **Neural Builder** — Node connection in space = compelling for ages 11–16
+4. **Robot Vacuum** — Steering a physical robot = great for younger children
+5. **Ethics Courtroom** — Seated immersive environment = natural VR without locomotion
+
+These 5 games span all age bands (A/B/C), include both Flagship and Standard tiers, and cover all 3 game mechanic types (build/sort, explore, argue/decide).
+
+---
+
+*Section 5 of 8 — continues in next section.*
