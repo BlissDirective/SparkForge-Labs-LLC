@@ -313,3 +313,96 @@ Learning progress in Celestial Nexus is written in the stars — literally. Each
 - **Scales with mastery:** Early visits show a mostly dark dome (mysterious, inviting). Mid-journey shows scattered bright constellations (encouraging). Late-stage shows a nearly complete sky (pride, anticipation). The environment itself tells a story of growth without a single word of UI copy.
 
 ---
+
+## Concept 5: "Abstract Playground" — Low-Poly Minimalism Meets Splatter
+
+**Rendering:** Low-poly 3D (flat/toon shading, minimal geometry, abstract forms)  
+**Metaphor:** A pristine white gallery where every tap of curiosity flings paint across the walls — learning is the act of making your mark.
+
+### Visual Language
+
+| Property | Value |
+|----------|-------|
+| **Base surface** | Matte white and warm gray volumes with soft bevel edges, subtly rounded like cast resin art toys. Surfaces feel touchable — somewhere between porcelain and foam. |
+| **Background** | Off-white `#F5F2ED` with a faint 2% noise grain, shifting to soft warm gray `#E8E4DE` at depth. No harsh pure whites. Feels like thick cotton paper. |
+| **Accent strategy** | 90/10 rule — 90% clean neutral canvas, 10% explosive saturated color delivered through interaction feedback, progress markers, and splatter decals. Color is *earned*, never ambient. |
+| **Materials** | `MeshToonMaterial` with 3-step ramp for geometry. Paint splatters use alpha-masked decal planes with emissive bloom at 0.3 intensity. Ink drips use animated UV-scroll on ribbon geometry. |
+| **Geometry style** | Faceted low-poly with visible edge structure. Soft chamfered edges on UI surfaces, sharp crystalline facets on decorative elements. No smoothing groups — every triangle face is intentional and legible. |
+| **Signature effect** | "Splatter Burst" — completing any action triggers a procedural paint explosion that leaves persistent color decals on nearby white surfaces. Over time, your workspace becomes your painting. |
+
+### Color Palette
+
+| Role | Color | Notes |
+|------|-------|-------|
+| Canvas White | `#F5F2ED` | Primary surface — warm, not clinical |
+| Stone Gray | `#C8C3BA` | Secondary surfaces, inactive states, shadows |
+| Charcoal | `#2D2A26` | Text, icons, structural lines |
+| Splatter Magenta | `#FF2D6B` | Primary action color — paint burst, XP gains |
+| Splatter Cyan | `#00D4FF` | Secondary action — discoveries, unlocks |
+| Splatter Yellow | `#FFD426` | Celebration — streaks, completions, badges |
+| Splatter Violet | `#8B5CF6` | AI/intelligence theme — Prompt Lab, advanced concepts |
+| Ink Black | `#1A1816` | Drip transitions, calligraphic accents, dramatic contrast |
+
+### Typography
+
+| Role | Font | Rationale |
+|------|------|-----------|
+| Headings | **Space Grotesk** | Geometric sans-serif with personality — clean enough for Apple-level layouts but quirky enough for a kids' platform. Slightly squared letterforms echo low-poly geometry. |
+| Body | **Inter** | Maximum legibility at all sizes. Neutral enough to disappear against the clean canvas. Variable weight for precise hierarchy control. |
+| Numbers/Data | **IBM Plex Mono** | Monospaced with warmth. Feels like a museum placard label — informational but designed. Perfect for scores, timers, XP counters. |
+
+### Layout & Navigation
+
+- **Gallery Grid:** Content arranges on a clean 12-column grid with generous 32px gutters. Cards float as low-poly 3D slabs (slight Y-rotation, drop shadow) on the white canvas — like artwork hung in a gallery with breathing room between pieces.
+- **Landmark Objects:** Each of the 10 Labs is represented by a single abstract 3D sculpture (200–400 triangles each) — a faceted sphere for Neural Networks, a stepped pyramid for Data Science, a twisted ribbon for Ethics. These sit on round pedestals and serve as navigation anchors.
+- **Splatter Trail:** A subtle paint-drip breadcrumb trail connects visited areas. The nav path literally colors itself in as kids explore — unvisited routes remain white/gray.
+- **Floating Toolbar:** Primary navigation is a horizontal pill-shaped bar (frosted white, 8px radius) hovering at screen bottom with 5 icon buttons. On hover, each icon sheds a tiny colored paint drop downward.
+- **Whitespace as Feature:** Minimum 40% of any screen is intentional empty space. The emptiness is the canvas — it exists to be filled by interaction splatters and progress decals.
+
+### Interaction Model
+
+- **Paint Burst on Tap:** Every button press, card selection, or answer submission triggers a radial paint splatter (8–12 alpha-blended decal planes) in the Lab's accent color. The splatter persists on the background surface for the session, building a unique abstract painting per visit.
+- **Ink Drip Page Transitions:** Navigating between pages triggers a top-down ink drip wipe — thick black `#1A1816` ink ribbons cascade down, then dissolve to reveal the next view. Takes 600ms. Feels like a calligraphy stroke.
+- **Confetti Pop on Completion:** Finishing a game phase launches a confetti burst of tiny low-poly triangles and circles in 3–4 splatter colors. Particles use simple gravity with slight spin — no physics engine, just `sin(t)` wobble.
+- **Hover Ripple:** Hovering interactive elements creates a subtle white ripple ring expanding outward (like dropping a pebble in milk). Clean and minimal — the calm before the splatter storm.
+- **Drag Paint Streak:** Dragging items (in builder/sorting games) leaves a temporary color streak behind the cursor — a wet paint trail that fades over 2 seconds. Makes every drag feel expressive.
+- **Idle Drip:** After 8 seconds of inactivity, a single slow paint drop falls from the top of the screen in a random accent color, landing with a tiny splat. A gentle nudge that the canvas wants more marks.
+
+### 3D Component Design (Low-Poly Budget)
+
+| Component | Triangles | Notes |
+|-----------|-----------|-------|
+| Gallery Frame (main shell) | 400,000 | Clean white environment box with chamfered edges, subtle floor grid lines, pedestal platforms for Lab sculptures |
+| Lab Sculptures (10) | 300,000 | 30K each — abstract faceted forms. Icosahedron variants, twisted extrusions, stacked primitives. Each unique silhouette. |
+| Navigation Bar 3D | 80,000 | Frosted pill slab with 5 recessed icon bays. Icons are flat extruded shapes (star, flask, gear, trophy, home). |
+| Game Stage Platform | 250,000 | Hexagonal raised platform where active game content sits. Chamfered edges, subtle step-down ring. Rotates 0.5 deg/s. |
+| Splatter Decal System | 500,000 | Pool of 200 reusable alpha-masked quad planes for paint splatters. Instanced rendering. Each splat 4–8 tris. |
+| Progress Sculpture (per-user) | 150,000 | Evolving abstract form at gallery center — starts as white sphere, grows faceted protrusions and color patches as XP accrues. |
+| Confetti Particle Pool | 100,000 | 2,000 instanced low-poly shapes (triangles, circles, squares). Shader-driven position. Reusable across all celebrations. |
+| Ink Transition Ribbons | 60,000 | 12 ribbon geometries with UV-animated ink flow. Screen-space overlay for page transitions. |
+| Card Slabs (grid items) | 800,000 | Up to 20 visible cards at 40K each — extruded rounded rectangles with slight bevel. Toon-shaded with Lab accent edge glow. |
+| Ambient Shapes (decorative) | 200,000 | Slowly tumbling low-poly shapes (octahedra, tori, cones) floating at canvas edges. Subtle parallax on scroll. |
+| **Total** | **~2,840,000** | **Deliberately lightweight — leaves massive headroom for splatter effects and smooth 60fps on integrated GPUs** |
+
+### Material & Shader Approach
+
+- **Three-Step Toon Ramp:** All geometry uses `MeshToonMaterial` with a custom 3-band gradient map — white highlight (`#FFFFFF`), warm mid (`#E8E4DE`), soft shadow (`#C8C3BA`). No specular. The look is matte, tactile, almost papercraft.
+- **Splatter Decal Shader:** Paint splatters are screen-space decals projected onto scene geometry. Each uses a randomized alpha mask from a pool of 16 hand-painted splatter textures (256x256). Color is passed as a uniform. Slight emissive bloom (0.2–0.4) makes fresh splatters glow momentarily before settling to flat color.
+- **Ink Flow Shader:** Page transitions use a custom fragment shader with UV-scrolling noise (FBM with 3 octaves) masked against a vertical gradient. The ink leading edge uses `smoothstep` for a wet-paint softness. A subtle chromatic split (2px) at the drip edge sells the wet-ink illusion.
+- **Edge Outline Pass:** A post-processing outline pass (Sobel filter on depth buffer, 1.5px width, `#2D2A26`) gives all geometry a subtle hand-drawn quality — like architectural sketches. Reinforces the "art on paper" feeling without requiring wireframe geometry.
+- **Color Bloom Isolation:** Only splatter-colored elements receive bloom post-processing (via render layers). The white canvas stays perfectly clean and matte while paint explosions glow with energy. This separation is critical to the clean-meets-chaotic duality.
+
+### Progress Metaphor
+
+When a child first enters SparkForge, their gallery is pristine — all white surfaces, gray inactive Lab sculptures, an empty central pedestal. As they complete games and earn XP, the world transforms: Lab sculptures gain color (the Neural Network icosahedron shifts from stone gray to splatter cyan as games are completed), paint splatters accumulate on gallery walls like an evolving mural, and the central Progress Sculpture grows from a simple white sphere into a wild, colorful, faceted abstract form unique to each learner. Completing an entire Lab triggers a "Gallery Opening" celebration — the Lab's sculpture lifts off its pedestal, spins, and shatters into a spectacular splatter that permanently colors an entire wall section. A child who has mastered all 10 Labs has a gallery that looks like a Pollock canvas — riotous with color, every splash representing a concept learned. The journey from blank canvas to living artwork makes progress feel deeply personal and visually undeniable.
+
+### Why It Works for Kids
+
+- **Zero intimidation factor:** The clean white starting state feels approachable and calm — no dark sci-fi cockpits, no overwhelming chrome. It looks like a place to play, not a place to perform.
+- **Every action leaves a visible mark:** Paint splatters and color accumulation give children immediate, tangible proof that their interactions matter. The world literally changes because they touched it.
+- **Personalization without configuration:** No avatar builders or settings menus — each child's gallery becomes unique organically through their learning path. Two kids with the same XP will have completely different splatter patterns.
+- **Sensory reward calibration:** The 90/10 clean-to-color ratio means every burst of color feels special and celebratory. If everything were colorful, nothing would be. The restraint makes the explosions land harder.
+- **Low-poly runs everywhere:** At under 3M triangles with toon shading, this renders at 60fps on school Chromebooks, older iPads, and budget laptops — the exact hardware most kids actually use. No GPU gatekeeping.
+- **Art-positive framing:** Positions AI learning inside an art/creativity context rather than a military/tech context. The gallery metaphor says "you are an artist exploring ideas" rather than "you are an operator commanding systems." More inclusive across interests and temperaments.
+
+---
