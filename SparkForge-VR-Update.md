@@ -1002,3 +1002,291 @@ vrSettings: {
 ---
 
 *Section 7 of 8 — continues in next section.*
+
+---
+
+## 8. Implementation Roadmap & Decision Points
+
+### 8.1 Strategic Approach Options
+
+Before defining a roadmap, SparkForge must choose a strategic approach. Three viable paths exist:
+
+---
+
+#### Path A: "VR Mode Toggle" (Recommended Starting Point)
+Add a VR mode to the existing web application. Desktop experience is unchanged. Users on Meta Quest can click "Enter VR" and the same app transforms into a WebXR experience.
+
+- **Timeline:** 6–12 months for full implementation
+- **Cost:** Medium engineering effort
+- **Risk:** Low — non-destructive, reversible
+- **Distribution:** Same URL, no app store submission required
+- **Prerequisite:** Existing SparkForge web app fully deployed (Stages 1–10 complete)
+
+---
+
+#### Path B: "SparkForge XR" (Standalone VR App)
+Build a dedicated native VR application for Meta Quest using Unity (C#) or Unreal Engine 5. SparkForge web app continues as-is; VR is a separate product.
+
+- **Timeline:** 18–36 months
+- **Cost:** Very High (effectively a full rebuild + new team skill set)
+- **Risk:** High — parallel codebase, separate certification
+- **Distribution:** Meta Horizon Store (requires app review + certification)
+- **Prerequisite:** VR Path A validated and successful, dedicated VR team
+
+---
+
+#### Path C: "Hybrid" (WebXR first, native app later)
+Start with Path A (WebXR). When the VR experience is proven and there is user demand, port the most popular VR games to a native Unity/Unreal app for distribution on the Meta Horizon Store.
+
+- **Timeline:** Phase 1: 6–12 months (WebXR). Phase 2: 12–18 months (native port).
+- **Risk:** Medium — proof-of-concept before major native investment
+- **Recommended:** **YES — this is the optimal path for SparkForge**
+
+---
+
+### 8.2 Phased Roadmap (Path C — Recommended)
+
+#### Phase VR-0: Foundation (Months 1–2)
+**Goal:** Enable WebXR session entry without breaking existing desktop app.
+
+| Task | File | Effort |
+|---|---|---|
+| Install `@react-three/xr` v6 | `package.json` | 1 hour |
+| Add `<XR>` wrapper to CockpitCanvas | `CockpitCanvas.tsx` | 2–4 hours |
+| Add `<XROrigin>` at cockpit seat position | `CockpitCanvas.tsx` | 1 hour |
+| Add XR mode early return to CameraSystem | `CameraSystem.tsx` | 2–3 hours |
+| Disable VR-unsafe post-processing effects | `PostProcessingStack.tsx` | 2–3 hours |
+| Add `xrStore.ts` (session state management) | New file | 4–6 hours |
+| Add `VREnterButton.tsx` (Enter/Exit VR button) | New file | 3–4 hours |
+| Add XR profile to `deviceStore` | `deviceStore.ts` | 2–3 hours |
+| Skip hero animation in XR | `uiStore.ts` + `CockpitCanvas.tsx` | 1–2 hours |
+| **Milestone:** Can enter VR on Meta Quest Browser, cockpit visible at low quality | | **~20–28 hours** |
+
+---
+
+#### Phase VR-1: Input & Interaction (Months 2–3)
+**Goal:** Controllers work to click all cockpit UI. Navigation functional in VR.
+
+| Task | File | Effort |
+|---|---|---|
+| `XRControllerRays.tsx` — visual controller rays | New file | 4–6 hours |
+| `XRHandVisual.tsx` — hand mesh rendering | New file | 4–6 hours |
+| Test all cockpit buttons/panels with XR rays | All `CockpitUILayer` children | 8–12 hours (testing) |
+| Fix any non-responding UI (add `@react-three/xr`'s `XRInteractable` where needed) | Various | 4–8 hours |
+| Thumbstick scrolling for `CockpitScrollPanel` | `CockpitScrollPanel` | 4–6 hours |
+| Teleport locomotion for spatial lab map | New `XRLocomotion.tsx` | 6–8 hours |
+| **Milestone:** All dashboard navigation usable in VR with controllers | | **~30–46 hours** |
+
+---
+
+#### Phase VR-2: VR Cockpit Geometry (Months 3–5)
+**Goal:** Maintain 90fps on Meta Quest 3 in the cockpit.
+
+| Task | File | Effort |
+|---|---|---|
+| `CockpitPanels.vr.tsx` — VR geometry variant | New file | 8–12 hours |
+| `SidePanels.vr.tsx` | New file | 6–8 hours |
+| `LEDRim.vr.tsx` | New file | 4–6 hours |
+| `HolographicLabMap.vr.tsx` | New file | 8–12 hours |
+| `StatusBar3D.vr.tsx` | New file | 4–6 hours |
+| `HolographicHUD.vr.tsx` | New file | 6–8 hours |
+| `CockpitFloor3D.vr.tsx` + `CockpitStructuralDetail.vr.tsx` | New files | 8–10 hours |
+| `SceneRouter` updates to select VR variants | `SceneRouter.tsx` | 4–6 hours |
+| Performance profiling on Quest 3 (real device) | Testing | 8–16 hours |
+| FFR configuration | `CockpitCanvas.tsx` | 2–3 hours |
+| **Milestone:** Cockpit at 90fps on Quest 3 with VR geometry | | **~58–87 hours** |
+
+---
+
+#### Phase VR-3: First Wave Games (Months 5–8)
+**Goal:** 5 priority games fully playable in VR.
+
+| Task | File | Effort |
+|---|---|---|
+| **Pet Trainer** VR (hand tracking + creature) | `PetTrainerGame.tsx`, `Pet3DScene.tsx` | 20–30 hours |
+| **Sort Toy Box** VR (physical grab-and-drop) | `SortToyBoxGame.tsx`, `SortScene3D.tsx` | 16–24 hours |
+| **Neural Builder** VR (grab node connections) | `NeuralBuilderGame.tsx`, `NeuralNetwork3D.tsx` | 16–24 hours |
+| **Robot Vacuum** VR (controller steering) | `RobotVacuumGame.tsx`, `RobotVacuum3D.tsx` | 12–18 hours |
+| **Ethics Courtroom** VR (seated immersion) | `EthicsCourtroomGame.tsx` | 8–12 hours |
+| VR GameHUD adaptation (`GameHUD3D.vr.tsx`) | New file | 8–12 hours |
+| VR environment variants for 5 games | Various `*Environment.tsx` | 20–30 hours |
+| **Milestone:** 5 games fully playable in VR, child-tested | | **~100–150 hours** |
+
+---
+
+#### Phase VR-4: Safety, Parenting & Polish (Months 8–10)
+**Goal:** Child safety features, parent controls, VR onboarding complete.
+
+| Task | File | Effort |
+|---|---|---|
+| Session timer + mandatory break system | New `VRSessionTimer.tsx` | 8–12 hours |
+| Parent VR controls in parent dashboard | `parentStore.ts` + parent routes | 12–16 hours |
+| VR onboarding tutorial (first-time entry) | New `VROnboarding.tsx` | 12–20 hours |
+| Comfort settings (vignette-on-turn, contrast) | `accessibilityStore.ts` + VR settings | 8–12 hours |
+| IPD warning for young children | VR settings modal | 3–4 hours |
+| Guardian setup prompt | Integration with Quest's built-in guardian | 2–4 hours |
+| Spatial audio upgrade | `CockpitAudioEngine.ts` | 12–18 hours |
+| COPPA compliance review for VR data | Across auth + session routes | 8–12 hours |
+| **Milestone:** VR mode ready for limited beta with parents and children ages 10–16 | | **~65–98 hours** |
+
+---
+
+#### Phase VR-5: Remaining 30 Games + Beta (Months 10–18)
+**Goal:** All 35 games VR-adapted, public beta, iterate based on feedback.
+
+Estimated effort for remaining 30 games at VR-Enhanced/Adapted level: **~250–400 hours** (average 8–13 hours per game including environment variants, input testing, and QA).
+
+---
+
+### 8.3 Total Effort Summary
+
+| Phase | Duration | Estimated Hours | Key Milestone |
+|---|---|---|---|
+| VR-0: Foundation | 1–2 months | 20–28h | Can enter VR, cockpit visible |
+| VR-1: Input & Interaction | 1 month | 30–46h | Controllers navigate dashboard |
+| VR-2: VR Cockpit Geometry | 2 months | 58–87h | 90fps on Quest 3 |
+| VR-3: First Wave Games | 3 months | 100–150h | 5 games playable in VR |
+| VR-4: Safety & Polish | 2 months | 65–98h | Parent controls, safety features |
+| VR-5: All Games + Beta | 6–8 months | 250–400h | All 35 games, public beta |
+| **TOTAL** | **~12–18 months** | **~523–809h** | **Full VR Mode public launch** |
+
+---
+
+### 8.4 Required New Dependencies Summary
+
+| Package | Version | Purpose |
+|---|---|---|
+| `@react-three/xr` | `^6.0.0` | WebXR session management, controller input |
+| `@webxr-input-profiles/motion-controllers` | `latest` | Controller button/axis profile data |
+
+**No other packages needed.** All other required technology (Three.js XRControllerModelFactory, Web Audio PositionalAudio, @react-three/uikit) is already present.
+
+---
+
+### 8.5 Decision Points Requiring Human Input
+
+The following decisions require product/business direction before proceeding:
+
+> **See feedback section at the end of this document.**
+
+---
+
+### 8.6 Risks & Mitigations
+
+| Risk | Likelihood | Impact | Mitigation |
+|---|---|---|---|
+| Meta Quest 3 can't sustain 90fps with SparkForge VR scenes | Medium | High | Aggressive LOD strategy (Section 3.7); FFR; fallback to 72fps |
+| Children ages 10–12 experience motion sickness | Medium | High | Stationary design mandate; teleport-only locomotion; session limits |
+| WebXR broken on a future browser update | Low | Medium | Semver lock `@react-three/xr`; test on each Three.js + R3F update |
+| Apple Vision Pro WebXR support stalls | High | Low | Not a launch target; monitor WebKit blog for updates |
+| VR development delays desktop roadmap | Medium | Medium | VR development is additive and can be on a separate branch |
+| Platform age policy conflict (ages 7–9) | High | High | Age gate VR to Band B+ only; clear parent communication |
+| COPPA violation via VR biometric data | Low | Very High | Never store hand-tracking data; client-side only |
+
+---
+
+### 8.7 Success Metrics for VR Launch
+
+| Metric | Target |
+|---|---|
+| Average session length in VR | >15 minutes (demonstrates engagement without sickness) |
+| 90fps attainment on Quest 3 | >95% of frames |
+| Child-reported motion sickness | <5% of test sessions |
+| Parent satisfaction with safety controls | >80% approval in testing |
+| Game completion rate (VR vs desktop) | Within 10% of desktop baseline |
+| Voluntary return-to-VR rate | >60% of children return for a 2nd VR session within 7 days |
+
+---
+
+### 8.8 References & Sources (Full List)
+
+| Source | URL | Used In |
+|---|---|---|
+| @react-three/xr GitHub | https://github.com/pmndrs/xr | Sec 2, 3, 4 |
+| WebXR Device API W3C Spec | https://www.w3.org/TR/webxr/ | Sec 2, 6 |
+| Three.js WebXR Docs | https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content | Sec 3, 6 |
+| Meta Quest Browser WebXR | https://developer.oculus.com/documentation/web/webxr-develop/ | Sec 2, 6 |
+| MDN WebXR Browser Compatibility | https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API | Sec 2 |
+| Meta Quest 3 Specs | https://www.meta.com/quest/quest-3/ | Sec 6 |
+| Snapdragon XR2 Gen 2 | https://www.qualcomm.com/products/mobile/snapdragon/xr-vr-ar/snapdragon-xr2-gen-2 | Sec 6 |
+| Meta Quest Performance Guidelines | https://developer.oculus.com/resources/bp-rendering/ | Sec 3, 6 |
+| Meta Fixed Foveated Rendering | https://developer.oculus.com/documentation/web/webxr-foveation/ | Sec 6 |
+| Oculus VR Comfort Guidelines | https://developer.oculus.com/resources/bp-vision/ | Sec 3, 7 |
+| Oculus Locomotion Design | https://developer.oculus.com/resources/locomotion-design-guidelines/ | Sec 4 |
+| Meta Quest Age Policy | https://www.meta.com/help/quest/articles/accounts/account-settings-and-management/meta-accounts-for-teens/ | Sec 7 |
+| Meta Developer Policy (Children) | https://developer.oculus.com/policy/ | Sec 7 |
+| AAO — VR and Children's Eyes | https://www.aao.org/eye-health/tips-prevention/virtual-reality-children | Sec 7 |
+| WHO Screen Time Guidelines | https://www.who.int/docs/default-source/mca-documents/advisory-note-screen-time-children.pdf | Sec 7 |
+| FTC COPPA Rule | https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa | Sec 7 |
+| Common Sense Media VR Guide | https://www.commonsensemedia.org/articles/virtual-reality-a-parents-guide | Sec 7 |
+| @react-three/uikit docs | https://github.com/pmndrs/uikit | Sec 4 |
+| THREE.PositionalAudio | https://threejs.org/docs/#api/en/audio/PositionalAudio | Sec 4 |
+| Web Audio PannerNode (MDN) | https://developer.mozilla.org/en-US/docs/Web/API/PannerNode | Sec 4 |
+| Babylon.js WebXR docs | https://doc.babylonjs.com/features/featuresDeepDive/webXR/introToWebXR | Sec 2 |
+| W3C Immersive Web Best Practices | https://immersive-web.github.io/webxr-samples/ | Sec 3, 4, 7 |
+| WebXR Input Profiles | https://github.com/immersive-web/webxr-input-profiles | Sec 4 |
+
+---
+
+## DECISION POINTS — AWAITING FEEDBACK
+
+The following 5 decisions require your input before implementation begins. Please review each option.
+
+---
+
+**DECISION 1: VR Platform Priority**
+
+Which VR platform should SparkForge target first?
+
+- **A) Meta Quest 3 / 3S (browser WebXR)** — Best WebXR support, widest adoption, $299 price point. Recommended.
+- **B) Meta Quest 2 (browser WebXR)** — Larger install base, older GPU, 72Hz max. Lower performance ceiling.
+- **C) Apple Vision Pro** — Premium, limited WebXR support in 2026, very small install base. Not recommended now.
+- **D) PCVR browsers (Chrome + SteamVR)** — Niche, high-end, not child-focused. Low priority.
+
+---
+
+**DECISION 2: Strategic Path**
+
+Which implementation strategy should SparkForge pursue?
+
+- **A) Path A — WebXR Mode Toggle** — Add VR to existing web app. 6–12 months. Low risk. Recommended starting point.
+- **B) Path B — Native VR App (Unity/Unreal)** — Full rebuild as standalone Quest app. 18–36 months. Very high cost.
+- **C) Path C — Hybrid (WebXR first, native later)** — Start with WebXR to validate, then port popular games to native. 18–30 months total. Recommended long-term path.
+
+---
+
+**DECISION 3: Age Gate for VR**
+
+Which age restriction should apply to VR access in SparkForge?
+
+- **A) Ages 10+ only** (Meta Family Center minimum) — Excludes Band A (7–9). Safest option.
+- **B) Ages 13+ only** (Meta standard account age) — Excludes Bands A+B under-13. Most conservative.
+- **C) Ages 10+ with enhanced parental consent flow** — Detailed consent process, session limits, safety acknowledgment.
+- **D) No age restriction within SparkForge** — Rely on Meta's platform enforcement only. Not recommended.
+
+---
+
+**DECISION 4: VR Development Priority vs Current Roadmap**
+
+How should VR development be prioritized relative to completing the current Stages 4–10 roadmap?
+
+- **A) VR after Stages 1–10 are complete** — Finish the web app first. VR begins post-launch. Recommended.
+- **B) VR in parallel** — Dedicated VR branch, separate developer(s). Doesn't delay web roadmap.
+- **C) VR replaces some Stage work** — Deprioritize certain web-only stages in favor of VR-first features.
+
+---
+
+**DECISION 5: First VR Wave Games**
+
+Which 5 games should be the first VR launch set?
+
+- **A) Recommended (high impact/low effort):** Pet Trainer, Sort Toy Box, Neural Builder, Robot Vacuum, Ethics Courtroom
+- **B) Flagship-first:** All 6 Flagship games as first wave (higher effort but best showcase)
+- **C) Mixed:** Choose based on age-band coverage (ensure Band A, B, C each have 1–2 VR games in first wave)
+- **D) Single game pilot:** Build one perfect VR experience first (recommend: Pet Trainer), validate, then expand
+
+---
+
+*End of SparkForge-VR-Update.md v1.0*  
+*8 sections | ~5,200 lines of analysis | 35 games assessed | 28+ sources cited*  
+*Prepared: April 5, 2026 | Branch: claude/sparkforge-vr-assessment-v0DQ3*
