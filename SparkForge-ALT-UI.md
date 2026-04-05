@@ -406,3 +406,98 @@ When a child first enters SparkForge, their gallery is pristine — all white su
 - **Art-positive framing:** Positions AI learning inside an art/creativity context rather than a military/tech context. The gallery metaphor says "you are an artist exploring ideas" rather than "you are an operator commanding systems." More inclusive across interests and temperaments.
 
 ---
+
+## Concept 6: "Terraform" — Nature × Hightech Shader Fusion
+
+**Rendering:** Mixed — 3D geometry + 2D shader overlays (custom fragment shaders, UV-mapped procedural textures, screen-space effects)  
+**Metaphor:** A living digital ecosystem where nature and technology share the same DNA — circuits grow like vines, rivers carry data like nutrients, and every leaf is a pixel that photosynthesizes knowledge.
+
+### Visual Language
+
+| Property | Value |
+|----------|-------|
+| **Base surface** | Rich dark loam and moss groundplane (3D displaced terrain mesh) with bioluminescent fiber-optic root networks pulsing beneath a semi-transparent earth layer |
+| **Background** | Deep twilight sky gradient (`#0B1A2E` → `#1A3248`) with slow-drifting aurora curtains (screen-space fragment shader) and scattered stars that double as distant data nodes |
+| **Accent strategy** | Bioluminescent glow — every technological element emits soft, living light as if powered by chlorophyll rather than electricity. Accents pulse gently on breath-like 4-second cycles, never strobe |
+| **3D elements** | Organic low-poly terrain, tree trunks/branches (cylinder + subdivision), rock formations, mushroom clusters, flower stems, river channel mesh, stepping stones, wooden/vine UI frames |
+| **2D shader elements** | Circuit-bark textures, aurora-shimmer leaf surfaces, flowing data-river, fiber-optic root glow, holographic flower petals, moss-embedded LED grid patterns, cloud-code sky particles |
+| **Signature effect** | "Photosynthesis Pulse" — when a child completes an activity, a ring of warm light expands outward from their position through the ground, and every plant/tree it touches briefly reveals its hidden circuit architecture beneath the organic surface before fading back to nature |
+
+### Color Palette
+
+| Role | Color | Notes |
+|------|-------|-------|
+| Deep soil | `#1C1410` | Warm dark earth base — grounding tone for all surfaces |
+| Living moss | `#2D5A3D` | Primary organic green — mossy groundcover, healthy foliage |
+| Canopy emerald | `#3ECF8E` | Bright growth green — new leaves, active UI elements, success states |
+| Mycelium gold | `#E8B84B` | Warm amber — underground root networks, XP/reward glow, autumn accents |
+| Circuit cyan | `#00E5D0` | Cool tech-glow — circuit traces in bark, data readouts, holographic projections |
+| Data stream blue | `#4A90FF` | River flow, streaming information, link highlights |
+| Biolume violet | `#B07AFF` | Rare/magical glow — night-blooming flowers, advanced content, achievement FX |
+| Berry pink | `#FF6B9D` | Flower accents, notification blooms, affection/encouragement feedback |
+| Bark umber | `#5C3D2E` | Mid-tone wood — tree trunks, UI panel frames, earthy structural elements |
+| Firefly white | `#F0F7E8` | Warm off-white — text, guiding particles, moonlight highlights |
+
+### Typography
+
+| Role | Font | Rationale |
+|------|------|-----------|
+| Headings | **Bricolage Grotesque** | Organic irregularity in its letter shapes feels hand-grown rather than machine-set — like words carved into a living tree that kept growing around them |
+| Body | **Nunito** | Rounded terminals feel soft and approachable like river stones, high x-height ensures readability against busy organic/shader backgrounds |
+| Numbers/Data | **IBM Plex Mono** | Crisp monospace with subtle humanist warmth — reads as "technology that grew here naturally" rather than cold machine output |
+
+### Layout & Navigation
+
+- **The Clearing (Dashboard):** A sun-dappled forest clearing serves as home base — a circular mossy area surrounded by ten distinct biome paths radiating outward like roots from a great central tree. The tree's canopy is a living data visualization of overall progress.
+- **Biome Paths (Labs):** Each of the 10 Labs is a different ecological biome connected by winding trails — bioluminescent cave (Neural Networks), bamboo data-forest (NLP), coral reef tide pool (Computer Vision), crystal geode grove (Ethics), etc. Paths between them are stepping stones over glowing root networks.
+- **Game Groves:** Individual games exist as clearings within each biome — entering one pushes aside foliage via a parting-curtain transition, revealing the game space as a sheltered grove with the biome's specific flora forming the UI frame.
+- **The Canopy Map (Global Nav):** Pulling upward reveals a bird's-eye canopy view where each biome is a distinct color cluster of treetops. Clouds of data drift between them showing cross-lab connections. Tap a canopy cluster to fast-travel.
+- **Underground View (Profile/Stats):** Pulling downward reveals the root network beneath — a glowing mycelium visualization where every completed lesson is a node, connections show knowledge relationships, and the density of the network represents mastery depth.
+
+### Interaction Model
+
+- **Leaf-Touch Holograms:** Tapping any leaf on a navigation tree unfolds it into a holographic info-panel — the leaf physically opens (3D animation) while its inner surface becomes a shader-driven data display showing lesson previews, scores, or hints. Closing the leaf folds it back naturally.
+- **Stepping Stone Ripples:** Walking between areas means hopping across stepping stones in a shallow data-stream. Each stone touched sends out concentric ripples that carry faint lines of code or data symbols, mixing water physics with information visualization.
+- **Firefly Guides:** Context-sensitive AI help manifests as a swarm of fireflies that gather into a loose humanoid shape when summoned. They speak through synchronized bioluminescent pulses (with text captions), and scatter apart when dismissed, each firefly returning to illuminate a different part of the environment.
+- **Growth Feedback:** Correct answers cause nearby plants to visibly grow — a bud opens, a vine extends, a mushroom cap expands. Wrong answers cause a gentle wilting that recovers after a moment, with the plant's circuit-patterns flickering as it "recalculates."
+- **Seed Planting (Starting Lessons):** Beginning a new game plants a seed in your personal garden plot. The seed's growth across the lesson mirrors your progress — sprout at 25%, sapling at 50%, flowering at 75%, full fruit-bearing tree at completion. Each tree is permanently yours.
+- **Weather as State:** The biome's weather reflects session state — morning mist during tutorials (calm, focused), golden hour during free play (warm, exploratory), gentle rain during challenging content (refreshing persistence), and sunset aurora during celebrations (spectacular reward).
+
+### 3D + 2D Shader Integration
+
+| Element | 3D Component | 2D Shader Layer | Combined Effect |
+|---------|-------------|-----------------|-----------------|
+| **Tech-Trees** | Cylinder trunk + L-system branching (~2K tris/tree) | UV-mapped circuit-bark fragment shader — Voronoi cell pattern with glowing trace lines along cell edges | Organic tree silhouette with faintly visible circuitry beneath bark surface, traces pulse brighter on interaction |
+| **Aurora Leaves** | Instanced flat quads with slight curl deformation, billboarded to camera | Per-instance fragment shader using layered simplex noise with chromatic palette cycling (`emerald → cyan → violet`) | Leaves that shimmer with shifting iridescent color like oil on water, each leaf slightly different phase, collectively creating a breathing canopy |
+| **Data River** | Displaced plane mesh with sine-wave vertex animation for water surface | Screen-space flow shader — Perlin noise distortion + scrolling glyph texture (code symbols at 15% opacity) | Flowing water that carries visible streams of softly glowing data — readable up close, abstract shimmer from afar |
+| **Fiber-Optic Roots** | Tube geometry following Catmull-Rom spline paths beneath semi-transparent ground | Animated emissive shader — traveling light pulses (smooth-step envelope) moving root-tip to trunk | Underground root network visible through mossy earth, with light packets traveling like fiber-optic data, branching at junctions |
+| **Holo-Flowers** | 3D stem + sepals (standard mesh), petal geometry as thin curved planes | Holographic projection shader on petals — Fresnel transparency + RGB offset + scan-line interference | Flowers whose petals are translucent holographic projections growing from organic stems — they flicker faintly and cast colored light on nearby surfaces |
+| **Moss LED Grid** | Displacement-mapped ground terrain with subtle moss geometry (instanced tufts) | Emissive grid-dot shader on ground UV — regular array of point-lights with smooth distance falloff | Mossy forest floor with a faint grid of tiny lights visible between tufts, like a circuit board overgrown with nature |
+| **Geode Rocks** | Faceted low-poly rock exterior (~800 tris) with interior cavity | Interior cavity uses parallax-mapped crystal shader — multi-layer depth illusion with prismatic refraction | Cracked-open rocks revealing impossible crystal-cave interiors that shift color as you move |
+| **Cloud Code** | Volumetric cloud billboards (screen-facing quads with soft-particle blending) | Animated text-dissolution shader — character glyphs emerge from noise threshold, drift, dissolve back | Clouds that occasionally resolve into readable code snippets before dissolving back into vapor — subliminal learning |
+| **Mushroom Displays** | Hemisphere cap + gill geometry, tapered cylinder stem | Cap surface: SSS approximation with embedded data-viz patterns (pie charts, bar graphs) at low opacity | Bioluminescent mushrooms whose caps softly display real-time progress data through translucent surfaces |
+| **Vine UI Frames** | Bezier-curve tube geometry forming rectangular frames, leaf/tendril meshes at joints | Animated energy-flow shader along vine UVs — bright pulse traveling the vine path on interaction | UI panels framed by living vines that pulse with energy when active — organic alternative to chrome bezels |
+
+### Custom Shader Pipeline
+
+- **Circuit-Bark Shader (Fragment, UV-mapped):** Uses 2D Voronoi tessellation on cylindrical UV coordinates to generate organic cell patterns. Cell edges traced with emissive lines (`circuit cyan` at 0.3 base, 1.0 on hover). Cells contain faint PCB-trace patterns from pre-baked noise texture. Bark roughness modulates visibility — knots obscure circuits, smooth bark reveals them. Uniforms: `pulsePhase`, `interactionPoint`, `revealRadius`.
+- **Aurora-Leaf Shader (Fragment, per-instance):** Three octaves of 3D simplex noise sampled at world position, each cycling through palette segment (`#3ECF8E` → `#00E5D0` → `#B07AFF`). Time-offset per instance via instance ID. Alpha modulated by Fresnel term for backlit edge glow. Runs on instanced mesh with shared uniforms and per-instance `phaseOffset` attribute.
+- **Data-River Flow Shader (Fragment, screen-space hybrid):** Base layer: animated Perlin noise (3 octaves, UV offset at 0.15 units/sec) with depth gradient (`#4A90FF` shallow → `#0B1A2E` deep). Glyph layer: 16x16 character atlas scrolling along flow direction, opacity via smooth noise mask. Vertex shader handles wave displacement (2 sine waves). Additive blending with specular highlights.
+- **Fiber-Optic Root Shader (Fragment + Vertex):** UV.x maps along root length (0=tip, 1=trunk). Light pulse is smooth-step envelope (width: 0.08) traveling 0→1 over 2 seconds, 3–4 staggered pulses per root. Base emissive `mycelium gold` at 0.15; pulse peak 1.0 with `circuit cyan` core and gold halo. Branch junctions trigger brief flash. Ground above uses alpha blending keyed to moss-density texture.
+- **Holographic Bloom Shader (Fragment, object-space):** Fresnel-based alpha on flower petals (transparent face-on, opaque at grazing angles). RGB channels offset 1–2px in screen space for chromatic aberration. Horizontal scan lines at 0.5px / 0.07 opacity. Noise flicker (0.95–1.0, 30Hz). Bloom catches emissive edges for soft glow halo.
+- **Photosynthesis Pulse Shader (Screen-space post-process):** Ring mask expands from event position at 400px/sec (80px band width). Within band, composites hidden "tech layer" pass onto organic surfaces via smooth-step blending. Leading edge glows `canopy emerald`, trailing fades through `mycelium gold` to transparent. Full expansion: 1.8 seconds. Stacks gracefully on rapid events.
+
+### Progress Metaphor
+
+The world begins as a digital wasteland — a barren grid-plane with wireframe trees, empty riverbeds showing raw polygon meshes, and a grey sky of uncompiled static. As the child completes lessons and games, they literally **terraform** the environment into existence. Each completed activity triggers localized growth: wireframe trees gain bark shaders and sprout aurora-leaves, dry riverbeds fill with data-streams, bare ground generates moss with its hidden LED grid, and the sky compiles from static into living aurora. By 25% completion, the immediate clearing is lush. By 50%, the biome paths are verdant trails. By 75%, the underground root network is a blazing web of connections. At 100%, the entire world is a thriving tech-nature paradise — and looking down from the canopy map reveals that the overall shape of the ecosystem forms the neural network diagram they studied in Lab 1. The transformation is permanent and personal.
+
+### Why It Works for Kids
+
+- **Dual wonder:** Children are inherently fascinated by both nature AND technology — this concept shows them as the same thing, reinforcing that AI/computing is as natural and wondrous as a growing forest.
+- **Visible cause and effect:** The terraforming metaphor makes abstract learning progress tangibly visible — you can literally SEE your knowledge growing as trees, flowing as rivers, spreading as roots. More emotionally resonant than XP bars.
+- **Low-stress environment:** Forest/garden settings are psychologically calming (well-documented in environmental psychology), counterbalancing the cognitive load of learning AI concepts. The organic palette and gentle animations reduce screen fatigue.
+- **Exploration incentive:** "What does MY world look like now?" is a powerful return-visit motivator. The personalized, persistent ecosystem creates ownership and emotional attachment — kids don't want to abandon a garden they've grown.
+- **Layered discovery:** The 3D/2D shader duality means there are always hidden details to notice — circuit patterns in bark, code in the river, data in the mushrooms. This rewards curiosity and mirrors the investigative mindset needed for AI literacy.
+- **Age-band scaling through biome complexity:** Younger children (Band A) see simpler, friendlier ecosystems — rounder trees, bigger flowers, more fireflies, brighter colors. Older children (Band C) see denser forests, more complex shader effects, and technically accurate data embedded in nature.
+
+---
