@@ -609,3 +609,342 @@ Pre-revenue at seed stage is standard. Reframe it:
 | No distribution strategy | "We'll go viral" isn't a plan | Content marketing → influencers → school pilots → institutional B2B |
 | Competing with free | Khan Academy, Scratch are free | "Free platforms teach coding, not AI. No free platform offers 35 gamified AI games with 3D immersion." |
 | Solo technical founder | VCs want domain + technical | Compensate with advisory board (educators, AI researchers, child development) |
+
+---
+
+# 5. The Fundraising Process
+
+## 5.1 End-to-End Timeline
+
+| Phase | Duration | Activities | Success Metrics |
+|-------|----------|------------|----------------|
+| **Preparation** | Weeks 1-8 | Finalize deck, data room, financial model, demo polish, build waitlist, launch beta, secure advisor intros | Deck reviewed by 3+ mentors, beta live, waitlist >2K |
+| **Outreach sprint** | Weeks 9-12 | Send 40-60 targeted emails/intros, schedule first meetings. Compress into 2-3 weeks for FOMO. | 20-30 first meetings scheduled |
+| **First meetings** | Weeks 10-16 | 30-minute intro calls. Goal: advance to partner meeting. | 5-8 advance to partner meeting |
+| **Partner meetings** | Weeks 14-20 | Deep dives, live demos, team evaluation. Due diligence begins. | 2-3 term sheet conversations |
+| **Term sheet negotiation** | Weeks 18-22 | Lead investor issues term sheet. Use competing interest as leverage. | Signed term sheet |
+| **Due diligence & close** | Weeks 20-26 | Legal docs, technical DD, background checks, reference calls. Wire transfer. | Money in bank |
+| **Total** | **~4-6 months** | From first outreach to funds received | |
+
+**Pro tip:** Run a "sprint" fundraise — compress outreach into 2-3 weeks so meetings cluster together. This creates competitive tension and FOMO among VCs.
+
+## 5.2 Warm Intros vs. Cold Outreach
+
+| Method | Response Rate | Meeting Rate | Best For |
+|--------|-------------|-------------|----------|
+| Warm intro from portfolio founder | 60-80% | 40-50% | Tier 1 targets |
+| Warm intro from mutual connection | 40-60% | 20-30% | All targets |
+| Well-crafted cold email | 5-15% | 3-8% | Tier 2-3 targets |
+| Cold LinkedIn/X DM | 2-5% | 1-3% | Last resort |
+| VC website application form | 1-3% | <1% | Only for open-application firms (YC, Khosla, a16z) |
+
+### How to Generate Warm Intros
+
+1. **Map your network.** Every advisor, mentor, colleague, fellow founder — who do they know at target firms?
+2. **LinkedIn mapping.** For each target VC partner, find mutual connections who can intro.
+3. **Attend events.** ASU+GSV Summit (EdTech), ISTE (education), GDC (gaming), NeurIPS (AI).
+4. **Accelerator networks.** YC, Techstars alumni can provide intros to hundreds of VCs.
+5. **Forwardable email.** Write a 5-sentence blurb your intro source can forward: one-liner, key metric, why now, the ask.
+
+### Cold Email Template (When Warm Isn't Available)
+
+```
+Subject: AI literacy platform for kids — 35 games, immersive 3D, pre-revenue
+
+Hi [Partner Name],
+
+I noticed [firm] backed [relevant portfolio company] — SparkForge sits at a 
+similar intersection of [education/AI/gaming].
+
+We've built a gamified AI learning platform for ages 7-16: 35 interactive games, 
+immersive 3D environments (WebGPU), and Anthropic Claude integration. 124K lines 
+of production TypeScript. No direct competitor at equivalent depth.
+
+Raising a $3-5M seed. Would 25 minutes next week work for a quick walkthrough?
+
+[Link to demo / landing page]
+
+Best,
+[Name]
+```
+
+**Rules:** 5 sentences max. ONE compelling data point. Link, don't attach. Follow up exactly once at 5-7 days.
+
+## 5.3 Due Diligence — What VCs Will Examine
+
+### Product & Technical DD
+
+| Area | What They Check | SparkForge Readiness |
+|------|----------------|---------------------|
+| Live demo | Does the product work? | Demo Login feature (1-hour, no signup) is ideal |
+| Code quality | TypeScript strict mode, testing, architecture | 464 files, strict TS, Vitest + Playwright, clean architecture |
+| Scalability | Can it handle 100K+ users? | Vercel (auto-scaling), Supabase (managed PostgreSQL), CDN-served 3D assets |
+| AI integration | How is Claude API used? Cost per user? | Content Agent (batch) + Prompt Lab game (interactive). Estimated $0.05-0.15/user/mo with caching |
+| Security | Auth, data protection, injection risks | Supabase Auth + RLS, Sentry monitoring, OWASP-aware development |
+
+### Market & Regulatory DD
+
+| Area | What They Check | SparkForge Readiness |
+|------|----------------|---------------------|
+| Market size | Are TAM/SAM/SOM credible? | Bottom-up calculation documented in market analysis report |
+| Competitors | Who else is doing this? | Detailed competitive analysis with 15+ comparisons |
+| COPPA compliance | Under-13 data collection | Parent consent flow, age verification, data minimization plan needed |
+| FERPA (schools) | Student data in school context | Architecture supports school-mode data isolation |
+| Content safety | AI outputs to children | Claude API with content filtering, age-appropriate response boundaries |
+
+### Team & Financial DD
+
+| Area | What They Check |
+|------|----------------|
+| Founder backgrounds | Track record, domain expertise, references |
+| Cap table | Clean? Any prior investors? Option pool? |
+| Financial model | Are assumptions reasonable? Burn rate realistic? |
+| Use of funds | Specific allocation across engineering, marketing, content, infrastructure |
+
+## 5.4 Term Sheet Essentials — $3-5M Seed
+
+### Expected Terms
+
+| Term | Typical Range | Notes |
+|------|--------------|-------|
+| **Round size** | $3-5M | SparkForge target |
+| **Pre-money valuation** | $12-20M | Pre-revenue EdTech with strong product: $15-20M achievable |
+| **Instrument** | Series Seed Preferred Stock or SAFE | Priced round more common at $3M+; SAFEs more common under $3M |
+| **Lead investor** | 1 firm takes 50-70% of round | Lead sets terms; others follow on same terms |
+| **Board composition** | 2 founders + 1 investor + 1-2 independents | Lead gets 1 board seat |
+| **Liquidation preference** | 1x non-participating | Standard, founder-friendly. Avoid >1x or participating preferred. |
+| **Anti-dilution** | Broad-based weighted average | Standard. Avoid full ratchet. |
+| **Pro-rata rights** | Standard for lead | Right to invest proportionally in future rounds |
+| **Vesting** | 4-year with 1-year cliff | Applied to any unvested founder shares |
+| **Option pool** | 10-15% post-money | VCs will push for pre-money creation (dilutes founders, not investors) |
+| **Information rights** | Monthly or quarterly updates | Financial statements, KPIs, board materials |
+
+### Dilution Scenarios
+
+| Scenario | Pre-Money Val | Round Size | Post-Money Val | Investor Equity | Founder Equity (post-pool) |
+|----------|-------------|-----------|---------------|----------------|--------------------------|
+| Conservative | $12M | $3M | $15M | 20.0% | 65-70% |
+| **Mid-range** | **$16M** | **$4M** | **$20M** | **20.0%** | **65-70%** |
+| Strong position | $20M | $5M | $25M | 20.0% | 65-70% |
+
+*Assumes 10-15% option pool. Founder equity range depends on prior angel/SAFE dilution.*
+
+### Key Negotiation Points
+
+1. **Push for higher pre-money** by creating competitive tension (multiple term sheets simultaneously)
+2. **Resist participating preferred** — insist on non-participating liquidation preference
+3. **Negotiate option pool size** — 10% vs 15% is significant dilution difference
+4. **Board composition** — maintain founder majority (2:1 or 3:2) at seed stage
+5. **Protective provisions** — limit investor blocking rights to truly major decisions (sale, dissolution, new fundraise)
+
+## 5.5 Comparable Seed Rounds (EdTech / AI-Education)
+
+| Company | Year | Seed Size | What They Emphasized | Outcome |
+|---------|------|-----------|---------------------|---------|
+| **Duolingo** | 2011 | $3.3M | Founder credibility (reCAPTCHA inventor), 300K users, gamification thesis | $9-12B market cap |
+| **Brilliant.org** | 2012 | Undisclosed | Interactive STEM learning, problem-solving over lectures | $750M+ valuation |
+| **Prodigy Math** | 2013 | Small seed | RPG math game, kids played voluntarily, teacher adoption | $159M total raised, 50M+ students |
+| **Synthesis** | 2022 | $12M | Elon Musk school (Ad Astra) pedigree, collaborative learning, leadership games | Rapid scale |
+| **Sparkli** | 2025 | $5M pre-seed | Ex-Google founders, generative AI for kids, interactive learning | Pre-launch |
+| **Outschool** | 2017 | $1.4M | Marketplace model, teacher supply-side traction | $3B+ peak valuation |
+| **CodeCombat** | 2013 | ~$2M | RPG coding, Y Combinator, deepest gamification in coding EdTech | $50-80M valuation |
+
+**Common pattern:** Every successful EdTech seed was raised on engagement metrics and/or founder credibility — not revenue. SparkForge's product completeness (35 games, 124K LOC) exceeds most of these at their respective seed stages.
+
+---
+
+# 6. Preliminary Seed Proposal Design
+
+This section provides a complete framework for SparkForge's investment proposal. It can serve as the basis for a formal pitch deck, investor memo, or data room.
+
+## 6.1 Proposal Structure Overview
+
+A complete SparkForge seed proposal consists of three deliverables:
+
+| Deliverable | Format | Audience | Purpose |
+|-------------|--------|----------|---------|
+| **Pitch Deck** | 12-slide PDF/Keynote | First meetings | Hook interest, secure partner meeting |
+| **Investor Memo** | 5-8 page document | Due diligence | Detailed thesis, financials, technical architecture |
+| **Data Room** | Shared folder (Google Drive / Notion) | Post-term-sheet | Full documentation for legal and technical DD |
+
+## 6.2 Investor Memo — Full Draft Framework
+
+### Cover Page
+
+```
+SPARKFORGE — CONFIDENTIAL INVESTOR MEMO
+Gamified AI Learning Platform for Children Ages 7-16
+
+Raising: $3-5M Seed Round
+Projected Use: 18-24 months to Series A milestones
+
+[Date]
+[Founder name(s) and contact]
+```
+
+### Section A: The Opportunity
+
+**Opening paragraph (punch line first):**
+
+> Artificial intelligence will reshape every industry, yet the generation entering the workforce in 2035-2040 has no structured way to learn what AI is, how it works, or how to use it responsibly. SparkForge is the first platform to teach AI literacy to children ages 7-16 through 35 immersive, gamified experiences — not coding exercises, not textbook modules, but the kind of 3D interactive games that make kids choose learning over entertainment.
+
+**Market sizing (bottom-up):**
+
+| Layer | Calculation | Size |
+|-------|------------|------|
+| Global children 7-16 with internet | ~800M | — |
+| English-speaking markets (US/UK/CA/AU/NZ) | ~65M | — |
+| Families willing to pay for EdTech | ~30% = 19.5M | — |
+| At $100/year ARPU | 19.5M x $100 | **$1.95B SAM** |
+| SparkForge capture at 1% (Y5) | 196K subscribers | **$24.5M ARR** |
+
+**Policy tailwinds:**
+- Multiple US states introducing AI literacy curriculum requirements (California, Virginia)
+- EU AI Act includes education provisions
+- UNESCO published K-12 AI education framework (September 2023)
+- US Department of Education report: "AI and the Future of Teaching and Learning" (May 2023)
+
+### Section B: The Product
+
+**Product summary with metrics:**
+
+| Metric | Value |
+|--------|-------|
+| Games | 35 (6 Flagship + 9 FL-Lite + 20 Standard) |
+| AI Topics | 10 themed Labs (neural networks, NLP, computer vision, bias, RL, etc.) |
+| Age bands | 3 tiers: A (7-9), B (10-12), C (13-16) |
+| 3D components | 84 React Three Fiber components |
+| Codebase | 464 files, 124,272 lines of TypeScript |
+| Triangle budget | 37.8M (cockpit) + 12.2M (game headroom) = 50M total |
+| AI integration | Anthropic Claude API (Prompt Lab game + Content Agent) |
+| Monetization | Free / Plus ($8.99/mo) / Forge ($16.99/mo) + School licensing |
+| Infrastructure | Next.js 15, Supabase, Stripe, Vercel, Sentry |
+| Compliance | COPPA-aware architecture, parent dashboard, age verification |
+
+**Technical moat statement:**
+
+> SparkForge's WebGPU-rendered 3D cockpit environment (37.8 million triangles), custom TSL shader pipeline, and deep Claude API integration create a 12-18 month replication barrier. Building 35 AI education games with immersive 3D environments, age-band differentiation, and COPPA-compliant architecture from scratch requires both specialized engineering talent and deep pedagogical design — a combination no current competitor possesses.
+
+### Section C: Business Model & Unit Economics
+
+**Revenue model:**
+
+| Tier | Price | Target Audience | Features |
+|------|-------|----------------|----------|
+| **Free** | $0 | Gateway / school access | 3 games per lab, basic progression |
+| **Plus** | $8.99/mo ($79.99/yr) | Core families | All 35 games, full progression, parent dashboard |
+| **Forge** | $16.99/mo ($149.99/yr) | Premium families | All Plus + AI tutor, advanced 3D, multi-child |
+| **School** | $6-8/student/yr | Institutional | Classroom management, curriculum alignment, bulk licensing |
+
+**Projected unit economics (Y3+):**
+
+| Metric | Value |
+|--------|-------|
+| Blended monthly ARPU (paid) | $8-10 |
+| Free-to-paid conversion | 10-14% (gamification drives above average) |
+| Monthly churn (paid) | 4-5% |
+| LTV | $160-240 |
+| CAC (blended) | $25-50 |
+| LTV:CAC | 3.5:1 – 5:1 |
+| Gross margin | 75-85% |
+| Payback period | 3-5 months |
+
+### Section D: Competitive Landscape
+
+**Positioning matrix:**
+
+```
+                    HIGH AI Content Depth
+                          │
+        Brilliant.org     │  ★ SPARKFORGE
+        (older audience)  │  (35 games, 3D, ages 7-16)
+                          │
+   ─────────────────────────────────────────── HIGH Gamification
+                          │
+        Khan Academy      │  Tynker / CodeCombat
+        (broad, not       │  (coding focus, bolt-on AI)
+         gamified)        │
+                          │
+                    LOW AI Content Depth
+```
+
+**Key insight:** SparkForge is alone in the top-right quadrant — deep AI content with deep gamification. Competitors are either AI-deep but not gamified (Brilliant), or gamified but not AI-focused (Tynker, CodeCombat), or broad but shallow on both (Khan Academy).
+
+### Section E: Go-to-Market Strategy
+
+**Phase 1 (Months 1-6): Consumer Launch**
+- Content marketing: AI education blog, YouTube explainers, parent community building
+- Influencer partnerships: EdTech YouTubers, parent bloggers, homeschool communities
+- Waitlist conversion: 5,000+ pre-launch signups → beta testers → paid subscribers
+- Referral program: Free month for referring families
+
+**Phase 2 (Months 6-12): School Pilots**
+- 5-10 school pilot programs (initially free/discounted)
+- Curriculum alignment mapping (ISTE, CSTA standards)
+- Teacher resources and classroom management tools
+- Case studies from pilot schools
+
+**Phase 3 (Months 12-18): Institutional Scale**
+- District-level sales (1,000+ seat licenses)
+- Conference presence (ISTE, ASU+GSV)
+- International expansion (UK, Canada, Australia)
+- B2B revenue target: 20-40% of total ARR by Y3
+
+### Section F: The Team
+
+*[To be completed with actual founder/team details]*
+
+**Required roles for seed stage:**
+- CEO / Education Domain Lead — EdTech experience, vision, fundraising
+- CTO / Technical Lead — Full-stack + 3D/WebGPU expertise
+- Head of Content / Pedagogy — Curriculum design, child development
+- Advisory Board — AI researchers, educators, child safety experts, EdTech operators
+
+### Section G: Financial Projections (18-Month)
+
+**Use of $4M seed (mid-range scenario):**
+
+| Category | Allocation | Amount | Key Hires/Spend |
+|----------|-----------|--------|----------------|
+| Engineering | 40% | $1.6M | 3-4 engineers (full-stack, 3D, backend) |
+| Marketing/Growth | 25% | $1.0M | Head of marketing, content creators, paid acquisition |
+| Content Development | 15% | $600K | Curriculum designers, game designers, QA |
+| Infrastructure | 10% | $400K | Vercel, Supabase, Anthropic API, Sentry, tools |
+| G&A | 10% | $400K | Legal (COPPA), ops, office, insurance |
+| **Total** | **100%** | **$4.0M** | **18-24 month runway** |
+
+**Series A readiness milestones (18 months):**
+
+| Milestone | Target | Purpose |
+|-----------|--------|---------|
+| Registered users | 250,000+ | Market demand validation |
+| Paid subscribers | 5,000-10,000 | Revenue traction |
+| ARR | $500K-1M | Fundable at Series A |
+| School pilots | 10+ active | B2B proof of concept |
+| D30 retention | >20% | Engagement loop validated |
+| NPS | 50+ | Product-market fit signal |
+
+### Section H: The Ask
+
+> **SparkForge is raising $3-5M in seed funding** to:
+>
+> 1. **Launch publicly** — Complete remaining 20% of development, beta test, and launch to consumers
+> 2. **Prove unit economics** — Demonstrate free-to-paid conversion, retention, and LTV in market
+> 3. **Establish B2B pipeline** — Secure 10+ school pilot programs and first institutional revenue
+> 4. **Reach Series A readiness** — $500K-1M ARR within 18 months
+>
+> The $3-5M range provides 18-24 months of runway at projected burn rate, sufficient to hit all milestones above with margin of safety.
+
+## 6.3 Data Room Checklist
+
+Prepare these documents before first VC meeting:
+
+| Category | Documents |
+|----------|----------|
+| **Corporate** | Certificate of incorporation, operating agreement, cap table, stock purchase agreements |
+| **Financial** | 18-month financial model (Excel), burn rate projection, bank statements |
+| **Product** | Live demo access (Demo Login link), product roadmap, technical architecture diagram |
+| **Market** | Market analysis report (`2026_MarketAnalysis_Report.md`), competitive landscape, customer research |
+| **Legal** | COPPA compliance plan, privacy policy draft, terms of service draft, IP assignment agreements |
+| **Team** | Founder bios, advisor agreements, org chart, key hire plan |
+| **Metrics** | Beta engagement data (when available), waitlist growth, NPS surveys |
