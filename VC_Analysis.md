@@ -948,3 +948,180 @@ Prepare these documents before first VC meeting:
 | **Legal** | COPPA compliance plan, privacy policy draft, terms of service draft, IP assignment agreements |
 | **Team** | Founder bios, advisor agreements, org chart, key hire plan |
 | **Metrics** | Beta engagement data (when available), waitlist growth, NPS surveys |
+
+---
+
+# 7. Action Plan, Timeline & Appendices
+
+## 7.1 Pre-Fundraise Checklist (Complete Before First VC Meeting)
+
+### Critical Path Items
+
+| # | Action | Priority | Timeline | Status |
+|---|--------|----------|----------|--------|
+| 1 | **Complete product to launch-ready state** (~20% remaining) | CRITICAL | 4-6 weeks | Pending |
+| 2 | **Launch closed beta** with 200-500 families | CRITICAL | 2-4 weeks post-completion | Pending |
+| 3 | **Build waitlist landing page** featuring CockpitPreview3D component | HIGH | 1 week | Pending |
+| 4 | **Collect 4-8 weeks of beta engagement data** (retention, session length, completion rates) | CRITICAL | 4-8 weeks | Pending |
+| 5 | **Secure 3-5 school pilot LOIs** (even unpaid) on school letterhead | HIGH | 4-8 weeks | Pending |
+| 6 | **Finalize 12-slide pitch deck** per Section 4.2 structure | CRITICAL | 2 weeks | Pending |
+| 7 | **Create 90-second product video** (cockpit → game → XP → celebration) | HIGH | 1-2 weeks | Pending |
+| 8 | **Build financial model** (18-month Excel with scenarios) | CRITICAL | 1 week | Pending |
+| 9 | **Document COPPA compliance plan** | HIGH | 1 week | Pending |
+| 10 | **Assemble advisory board** (educator, AI researcher, child safety expert, EdTech operator) | HIGH | 4-8 weeks | Pending |
+| 11 | **Polish Demo Login flow** — must be bulletproof for VC demos | HIGH | 1 week | Pending |
+| 12 | **Prepare data room** per Section 6.3 checklist | MEDIUM | 2 weeks | Pending |
+| 13 | **Get pitch deck reviewed** by 3+ mentors or EdTech founders | HIGH | 1-2 weeks | Pending |
+| 14 | **Apply to NVIDIA Inception** (non-dilutive, immediate) | LOW | 1 day | Pending |
+
+### Waitlist Target: 5,000+ Signups
+
+**Channels to build waitlist before fundraise:**
+- Landing page with CockpitPreview3D (50K triangle teaser) + email capture
+- Social media: short video clips of the 3D cockpit and games
+- Parent communities: Reddit (r/parenting, r/homeschool), Facebook groups
+- Education forums and teacher communities
+- Product Hunt pre-launch page
+- Content marketing: "Why Your Child Needs to Understand AI" blog posts
+
+## 7.2 Fundraise Execution Timeline (26-Week Plan)
+
+```
+WEEK:  1──2──3──4──5──6──7──8──9──10──11──12──13──14──15──16──17──18──19──20──21──22──23──24──25──26
+       │                       │                                │                    │              │
+       ├── PREPARATION ────────┤                                │                    │              │
+       │  Deck, model, demo,   │                                │                    │              │
+       │  beta data, advisors  │                                │                    │              │
+       │                       ├── OUTREACH SPRINT ─────────────┤                    │              │
+       │                       │  40-60 intros, first meetings  │                    │              │
+       │                       │  Cluster for competitive tension│                   │              │
+       │                       │                                ├── DEEP MEETINGS ───┤              │
+       │                       │                                │  Partner meetings,  │              │
+       │                       │                                │  demos, diligence   │              │
+       │                       │                                │                    ├── CLOSE ─────┤
+       │                       │                                │                    │  Term sheet,  │
+       │                       │                                │                    │  legal, wire  │
+```
+
+## 7.3 Key Conferences & Events Calendar
+
+| Event | When | Where | Value | Action |
+|-------|------|-------|-------|--------|
+| **ASU+GSV Summit** | April (annually) | San Diego, CA | #1 EdTech investor event. Reach, Owl, GSV attend. | Submit to GSV Cup pitch competition. Attend. |
+| **ISTE** | June (annually) | Various US cities | Education technology, school buyers + investors | Demo booth, teacher/admin networking |
+| **KidScreen Summit** | February (annually) | Miami, FL | Children's media/entertainment investors | LEGO Ventures, children's brand VCs attend |
+| **GDC** | March (annually) | San Francisco, CA | Gaming VCs (Konvoy, a16z GAMES) | Demo the 3D cockpit, network with gaming investors |
+| **NeurIPS** | December (annually) | Various | AI researchers and AI VCs (Radical, Lux) | Present SparkForge's AI architecture |
+| **Sandbox Summit** | Various | Various | Children's digital play | LEGO Ventures accessible here |
+| **TechCrunch Disrupt** | October (annually) | San Francisco, CA | Generalist tech VCs | Startup Battlefield competition |
+
+## 7.4 Risk Register & Mitigations
+
+| Risk | Severity | Probability | Mitigation |
+|------|----------|------------|------------|
+| **No traction at beta** | HIGH | Medium | Iterate on game design, adjust age targeting, A/B test onboarding flows |
+| **COPPA compliance costs** | MEDIUM | High | Budget $50-100K for legal review. Partner with specialized EdTech counsel (e.g., Future of Privacy Forum) |
+| **Large player enters market** | MEDIUM | Medium | Speed is the defense. First mover with 35 games + 3D has 12-18 month head start. Google/Apple would likely acquire rather than build. |
+| **Claude API cost escalation** | LOW | Low | Response caching (40-60% hit rate), tiered model selection (Haiku for moderation, Sonnet for generation), batched Content Agent |
+| **Founder-market fit questioned** | MEDIUM | Varies | Advisory board with education credentials. Early school pilots demonstrate institutional credibility. |
+| **Fundraise takes too long** | MEDIUM | Medium | Keep burn minimal pre-raise. Have bridge financing plan (angel SAFEs). Compress outreach sprint. |
+| **EdTech market sentiment dip** | LOW | Low | Frame as AI-native, not just EdTech. Pitch to AI VCs and gaming VCs as alternatives. |
+
+## 7.5 Post-Raise 90-Day Plan
+
+If the seed round closes successfully, the first 90 days should focus on:
+
+| Days | Focus | Key Actions |
+|------|-------|-------------|
+| **1-30** | Team & infrastructure | Hire first 2-3 engineers. Set up CI/CD pipeline. Finalize COPPA legal review. Launch marketing website. |
+| **31-60** | Public beta | Launch open beta with free tier. Begin content marketing. Activate influencer partnerships. Start collecting engagement data. |
+| **61-90** | Monetization | Introduce Plus tier ($8.99/mo). Measure free-to-paid conversion. Onboard first 3 school pilots. Set up analytics (Amplitude/Mixpanel). |
+
+---
+
+# Appendix A: Comparable Company Reference Table
+
+| Company | Category | Revenue Stage | Last Valuation | Multiple | Relevance to SparkForge |
+|---------|----------|--------------|---------------|----------|------------------------|
+| Duolingo | Gamified learning | $531M rev (2024) | $9-12B (public) | ~18-22x | Gold standard for gamified learning monetization |
+| Brilliant.org | STEM/AI learning | ~$40-50M (est.) | $750M+ | 15-19x | Closest in AI education content depth |
+| Age of Learning | Kids EdTech | ~$400M (peak) | $3B (peak) | 7.5x | ABCmouse proves parents pay for kids' digital learning |
+| Prodigy Education | Gamified math | ~$50-80M | $200-300M | 4-5x | Game-first education, freemium model |
+| Tynker | Kids coding | ~$20-30M | ~$200M (acq.) | 7-10x | Gamified coding for kids, school distribution |
+| CodeCombat | RPG coding | ~$5-10M | $50-80M | 8-10x | Deepest gamification in coding EdTech, YC alumnus |
+| Quizlet | AI-enhanced study | ~$100M+ | $1B+ | ~10x | AI-enhanced learning tools |
+
+**AI-native premium:** AI-native startups command 2-3x valuation premium over traditional EdTech at equivalent revenue.
+
+# Appendix B: SparkForge Technical Architecture Summary (For Investor Appendix)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    SPARKFORGE ARCHITECTURE                    │
+├─────────────────────────────────────────────────────────────┤
+│                                                              │
+│  FRONTEND                          3D ENGINE                 │
+│  ├─ Next.js 15 (App Router)        ├─ React Three Fiber v9   │
+│  ├─ React 19                       ├─ Three.js r183+ (TSL)   │
+│  ├─ TypeScript (strict)            ├─ WebGPU primary          │
+│  ├─ Tailwind CSS 4                 ├─ WebGL2 fallback         │
+│  └─ Zustand (15 stores)           ├─ 50M triangle budget     │
+│     + Jotai (3D atoms)            └─ Custom TSL shaders      │
+│                                                              │
+│  BACKEND                           AI LAYER                  │
+│  ├─ Next.js API Routes             ├─ Anthropic Claude API    │
+│  ├─ Supabase PostgreSQL            ├─ Content Agent (batch)   │
+│  ├─ Supabase Auth + RLS            ├─ Prompt Lab (interactive)│
+│  ├─ Stripe (subscriptions)         └─ Age-appropriate filters │
+│  └─ Sentry (monitoring)                                      │
+│                                                              │
+│  CONTENT                           DEPLOYMENT                │
+│  ├─ 35 games (10 Labs)             ├─ Vercel (auto-scaling)   │
+│  ├─ 3 age bands (A/B/C)           ├─ CDN-served 3D assets    │
+│  ├─ 84 3D components              └─ CI/CD pipeline           │
+│  └─ 10 GLSL + 12 TSL shaders                                │
+│                                                              │
+│  METRICS: 464 files | 124,272 LOC | ~80% complete            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+# Appendix C: Key Contacts & Application Links
+
+| Firm | Contact Method | Link/Email |
+|------|---------------|------------|
+| Reach Capital | Website application | reachcapital.com |
+| Owl Ventures | Warm intro preferred | owlvc.com |
+| GSV Ventures | Website + ASU+GSV Summit | gsvventures.com |
+| Learn Capital | Warm intro preferred | learncapital.com |
+| NewSchools | Open application cycles | newschools.org |
+| Imaginable Futures | Inbound accepted | imaginablefutures.com |
+| AI Fund | Website submission | aifund.ai |
+| Lux Capital | Direct email | pitch@luxcapital.com |
+| Radical Ventures | Website submission | radicalventures.com |
+| Coatue | Warm intro preferred | coatue.com |
+| Khosla Ventures | Open pitch form | khoslaventures.com |
+| Lightspeed | Website + scouts | lsvp.com |
+| Konvoy Ventures | Website pitch form | konvoy.vc |
+| a16z | Formal pitch form | a16z.com/pitch |
+| LEGO Ventures | Application form | legoventures.com |
+| Y Combinator | Batch application | ycombinator.com/apply |
+| NVIDIA Inception | Program application | nvidia.com/inception |
+
+---
+
+# Appendix D: Document Cross-References
+
+| Related Document | Location | Relevance |
+|-----------------|----------|-----------|
+| Market Analysis Report | `2026_MarketAnalysis_Report.md` | Full market sizing, financial projections, competitive landscape (Sections 2-6) |
+| Competitive Analysis | `docs/00-reference/MARKET_RESEARCH_COMPETITIVE_ANALYSIS.md` | Detailed competitor profiles and pricing analysis |
+| Enhancement Blueprint | `ENHANCEMENT_BLUEPRINT_v1.0.md` | Post-seed product roadmap (12 enhancement sections) |
+| CLAUDE.md | `CLAUDE.md` | Technical architecture reference, game registry, store inventory |
+| Design Decisions Log | `DESIGN_DECISIONS_LOG.md` | 150 locked design decisions (architectural reference for DD) |
+| GCUD V10.2 | `docs/00-reference/GCUD_V10.2.md` | Complete game content reference (35 games, all specs) |
+
+---
+
+*End of SparkForge VC Analysis v1.0*
+*18 target VC firms | 12-slide pitch deck framework | Full proposal design | 26-week fundraise timeline | $3-5M seed target*
+*April 2026*
