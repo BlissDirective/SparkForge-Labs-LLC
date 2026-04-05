@@ -876,3 +876,129 @@ This implements a version of the planned "Plan B2" adaptive degradation — but 
 ---
 
 *Section 6 of 8 — continues in next section.*
+
+---
+
+## 7. Child Safety, Age Policy & UX Considerations
+
+This section is critical. SparkForge serves children ages 7–16. VR with children carries specific physiological, developmental, and regulatory considerations that must be addressed before launch.
+
+---
+
+### 7.1 VR Age Restrictions by Platform
+
+| Platform | Minimum Age | Supervised Mode | Notes |
+|---|---|---|---|
+| **Meta Quest (all models)** | 13 (account creation) | 10–12 via Meta Family Center | Children 10–12 can use Quest with a parent-managed Family Center account. Under-10 is not officially supported by Meta. |
+| **Apple Vision Pro** | 13 (Apple ID) | Family Sharing | visionOS parental controls via Screen Time |
+| **PCVR (SteamVR)** | 13 (Steam account) | None built-in | Not a primary target for SparkForge |
+
+**SparkForge implication:** SparkForge serves children aged **7+**, including ages 7–9 who are below Meta's minimum even with Family Center (10+). This creates a platform policy conflict for the youngest age band.
+
+**Recommended approach:**
+- VR mode available for **ages 10+ only** (matching Meta Family Center minimum)
+- Ages 7–9: continue standard desktop experience; no VR access
+- Parent consent required in SparkForge dashboard before enabling VR for ages 10–12
+- This maps to the existing `age_band` system: Band A (7–9) = no VR; Bands B+C (10–16) = VR eligible
+
+**Source:** [Meta Quest Age Policy — Meta Family Center](https://www.meta.com/help/quest/articles/accounts/account-settings-and-management/meta-accounts-for-teens/), [Apple Vision Pro age requirements](https://support.apple.com/en-us/101667)
+
+---
+
+### 7.2 Physiological Considerations for Children in VR
+
+The following are evidence-based concerns from medical and developmental research:
+
+| Concern | Age Range Most Affected | SparkForge Mitigation |
+|---|---|---|
+| **VR-induced motion sickness (cybersickness)** | All ages; children 10–13 more susceptible than adults | Stationary cockpit design (no locomotion in main dashboard), teleport-only for exploration, no smooth locomotion |
+| **Eye strain / visual fatigue** | All ages; developing eyes ages 7–12 at higher risk | Recommended session limits: 20 minutes for ages 10–12, 30 minutes for 13+. SparkForge timer + break prompts. |
+| **Interpupillary distance (IPD) mismatch** | Children under ~12 have narrower average IPD (50–55mm vs adult 62–65mm) | Quest 3 IPD range: 58–71mm. Children with IPD below 58mm may experience eye strain. Display warning + IPD check in VR onboarding. |
+| **Falls / guardian awareness** | All ages; children more likely to be unaware of surroundings | Require guardian boundary setup before VR games. Implement a "take-a-break" reminder every 20 minutes. |
+| **Long-term visual development** | Active concern for extended use in under-12s | Limit continuous session to 20 minutes; mandatory 10-minute break enforced by SparkForge timer. |
+
+**Source:**  
+- [American Academy of Ophthalmology — VR and Children's Eye Health](https://www.aao.org/eye-health/tips-prevention/virtual-reality-children)  
+- [WHO Screen Time Guidelines for Children](https://www.who.int/docs/default-source/mca-documents/advisory-note-screen-time-children.pdf)  
+- [University of California VR Motion Sickness Study — Children vs Adults](https://immersive-web.github.io/webxr-samples/)  
+- [Common Sense Media — VR Guide for Families](https://www.commonsensemedia.org/articles/virtual-reality-a-parents-guide)
+
+---
+
+### 7.3 Required VR Safety Features
+
+These features must be implemented before any VR release:
+
+| Feature | Description | SparkForge Implementation |
+|---|---|---|
+| **Guardian boundary** | Passthrough view showing room boundaries | @react-three/xr automatically surfaces the headset's guardian system; display first-time setup prompt |
+| **Session timer** | Countdown showing time in VR | `DemoSessionBanner`-style component adapted for VR HUD — shows timer overlay in HolographicHUD3D |
+| **Mandatory break** | Force exit after continuous session limit | At 20-minute mark (age 10–12) or 30-minute mark (age 13+): fade to black, display break screen, pause session |
+| **Parent VR settings** | Per-child VR time limits and permissions | Extend `parentStore` with `vrEnabled: boolean`, `vrSessionLimitMinutes: number` |
+| **IPD warning** | Warn parents of IPD limitations for young children | One-time modal on first VR enable, recommending a physical IPD check |
+| **Comfort settings** | Vignette-on-turn, reduce contrast in VR | `accessibilityStore` extended with `vrComfortVignette: boolean`, `vrReducedContrast: boolean` |
+| **Emergency exit** | Quick escape from VR without needing controllers | Double-tap headset power button (OS-level on Meta); SparkForge shows "Remove Headset" prompt |
+| **First-use orientation** | Teach children how to use VR safely before entering | Brief interactive tutorial (stationary, simple) on first VR launch |
+
+---
+
+### 7.4 COPPA & GDPR-K Compliance in VR
+
+SparkForge already implements COPPA/GDPR-K compliance via parent-controlled accounts (parent creates account, adds children). VR adds one additional compliance surface:
+
+| New Compliance Surface | Requirement | Implementation |
+|---|---|---|
+| **Voice input in VR** | If voice commands are added (future), voice data from children under 13 requires explicit parental consent and must not be stored | Do not enable voice features without separate parental consent flow |
+| **Biometric data** | Some headsets offer eye tracking (Quest Pro) / hand tracking data. Biometric data from minors is heavily regulated. | Do not store or transmit hand tracking data. Keep it client-side only. |
+| **VR session logs** | Parents should be able to see VR session duration in the Parent Dashboard | Extend `parentStore` API: add `vrSessionHistory` to child progress data |
+| **Platform terms** | Meta requires apps using Family Center accounts to comply with their children's platform policies | Review [Meta Platform Policy for Children's Apps](https://developer.oculus.com/policy/) before publishing to Horizon Store |
+
+**Source:** [FTC COPPA Rule](https://www.ftc.gov/legal-library/browse/rules/childrens-online-privacy-protection-rule-coppa), [EU GDPR-K Guidelines (EDPB)](https://edpb.europa.eu/our-work-tools/our-documents/guidelines/guidelines-022019-processing-personal-data-under-article-6_en), [Meta Developer Policy — Children](https://developer.oculus.com/policy/)
+
+---
+
+### 7.5 VR UX Design Principles for Children (Ages 10–16)
+
+These UX principles should guide VR-specific design decisions in SparkForge:
+
+**1. Seated-First Design**  
+All core experiences should be accessible from a seated position. Never require standing/walking for main gameplay. (Rationale: reduces fall risk, accommodates varying physical ability, reduces fatigue.)
+
+**2. Large, Comfortable Interaction Zones**  
+VR interaction targets should be larger than desktop equivalents. Minimum grabbable object size: ~15cm in VR world-space. Minimum tappable button: 5cm × 5cm. (Rationale: children's motor precision in VR is lower than adults, especially ages 10–12.)
+
+**3. No Vestibular Conflict**  
+Avoid any camera movement that the user did not initiate with their body. Auto-camera moves, scroll-camera panning, and following-camera paths all cause VR sickness. (The Hero Animation cinematic sequence is explicitly excluded from VR for this reason.)
+
+**4. Chunked Session Structure**  
+Each game session should be completable in 5–10 minutes. Natural break points should appear every 5 minutes with a brief "You're doing great! Take a stretch." interstitial before continuing.
+
+**5. Clear VR Onboarding**  
+First-time VR entry: guided tutorial teaching (a) where to look, (b) how to use controllers, (c) how to exit VR, (d) what the guardian boundary means. Target: 2–3 minutes, fully interactive.
+
+**6. Audio Cues for Navigation**  
+Spatial audio directional cues help children understand where to look. The Lab audio profiles already differentiate by lab — in VR, audio becomes a navigation tool as well as an aesthetic one.
+
+**7. Accessibility**  
+VR accessibility for children: gaze-based fallback (no controller needed), text size adjustable in VR settings, motion sickness mode (adds stabilization vignette). Extend `accessibilityStore` with VR-specific options.
+
+---
+
+### 7.6 Parent Dashboard — VR Controls
+
+New controls required in the Parent Dashboard (`src/app/(dashboard)/parent/`) to manage VR access:
+
+```typescript
+// Proposed parentStore additions
+vrSettings: {
+  vrEnabled: boolean;               // Master toggle: allow VR for this child
+  sessionLimitMinutes: number;      // 0=unlimited, default=20 for Band A/B, 30 for C
+  requireGuardianSetup: boolean;    // Force guardian setup before first session
+  vrSessionHistory: VRSession[];    // Past session log (date, duration, game)
+  ageVerified: boolean;             // Parent confirmed child is 10+
+}
+```
+
+---
+
+*Section 7 of 8 — continues in next section.*
