@@ -84,3 +84,125 @@ A VR mode is achievable as a **non-destructive, additive layer** on top of the e
 ---
 
 *Section 1 of 8 — continues in next section.*
+
+---
+
+## 2. VR Technology Options & Platform Targets
+
+### 2.1 Recommended Primary Path: WebXR via @react-three/xr
+
+**`@react-three/xr`** is the official WebXR integration layer for React Three Fiber. It wraps the browser's [WebXR Device API](https://www.w3.org/TR/webxr/) and provides React-native components for XR sessions, controllers, hands, and hit-testing.
+
+**Why this is the right choice for SparkForge:**
+- SparkForge is already built on R3F v9 + Three.js r183 — `@react-three/xr` v6 is a first-class peer
+- Requires **zero renderer change** — same WebGL2/WebGPU canvas, same Three.js scene graph
+- Non-destructive: VR mode can be toggled without breaking the existing desktop experience
+- Open source, MIT license, actively maintained by the pmndrs ecosystem (same team as R3F)
+
+#### How it works
+
+```
+WebXR Device API (browser spec)
+  └── @react-three/xr (React wrapper)
+        └── R3F Canvas (existing CockpitCanvas.tsx)
+              └── Three.js r183 (existing scene graph)
+```
+
+When a user clicks "Enter VR", `@react-three/xr` calls `navigator.xr.requestSession('immersive-vr')`. The browser takes over the rendering loop, providing a per-frame head pose (position + orientation) for each eye. The existing R3F useFrame loop continues to run — but now renders twice per frame (once per eye) into the headset's displays.
+
+**Sources:**
+- [@react-three/xr GitHub — pmndrs/xr](https://github.com/pmndrs/xr) — v6 release notes, API docs
+- [WebXR Device API W3C Spec](https://www.w3.org/TR/webxr/) — browser standard
+- [Three.js WebXR Docs](https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content) — Three.js built-in XR manager
+
+---
+
+### 2.2 Platform Compatibility Matrix
+
+| Platform | Browser | WebXR Support | Notes |
+|---|---|---|---|
+| **Meta Quest 2** | Meta Quest Browser (Chromium) | Full — `immersive-vr` + `immersive-ar` | 72Hz / 90Hz. WebXR is the recommended developer path for browser games. |
+| **Meta Quest 3 / 3S** | Meta Quest Browser | Full — includes hand tracking v2.1 | 90Hz / 120Hz. Color passthrough AR. Best price/performance for children. |
+| **Meta Quest Pro** | Meta Quest Browser | Full | 90Hz. Eye tracking available (WebXR eye input not yet widely supported). |
+| **Apple Vision Pro** | Safari / visionOS | Partial — `immersive-vr` mode not yet supported (2026) | Apple supports `inline` and `immersive-ar` (windowed) only. Full VR blocked pending WebXR convergence. |
+| **PCVR (Valve Index, HP Reverb G2)** | Chrome / Edge + SteamVR | Full via OpenXR runtime | High-end PCVR. Not a target for a children's educational app. |
+| **Chrome Desktop** | Chrome 79+ | `inline` mode only (no headset) | Useful for desktop VR preview/testing without a headset. |
+| **Firefox** | Firefox 98+ | Partial — `immersive-vr` behind flag | Not recommended as primary target. |
+| **Samsung Galaxy XR** | Samsung Internet / Chrome | WebXR via Android XR | Emerging 2025–2026. Android XR headsets (Samsung Project Moohan) support Chrome WebXR. |
+
+**Recommended primary target: Meta Quest 3 / Quest 3S**  
+Reason: Most widely adopted consumer VR headset, best WebXR support, age-appropriate pricing (~$299 Quest 3S), and parental controls via Meta Family Center.
+
+**Sources:**
+- [Meta Quest Browser WebXR Support](https://developer.oculus.com/documentation/web/webxr-develop/) — Meta developer docs (2025)
+- [WebXR Browser Compatibility — MDN](https://developer.mozilla.org/en-US/docs/Web/API/WebXR_Device_API#browser_compatibility)
+- [Apple Vision Pro visionOS WebXR status](https://webkit.org/blog/15169/webkit-features-in-safari-17-4/) — WebKit blog
+
+---
+
+### 2.3 Alternative Technology Paths (Evaluated & Compared)
+
+#### Option A: WebXR via @react-three/xr *(Recommended)*
+| | |
+|---|---|
+| **Stack change** | Additive only — install `@react-three/xr` |
+| **Effort** | Medium (6–12 months for full VR mode) |
+| **Preserves** | All 77 existing 3D components, all 35 games, Next.js stack |
+| **Platform** | Browser-based — works on Meta Quest Browser, PCVR browsers |
+| **Risk** | Performance on Quest hardware (triangle budget reduction required) |
+| **Best for** | "VR Mode" toggle inside the existing SparkForge web app |
+
+#### Option B: Native Meta Quest App (React Native + Unity or Unreal Engine 5)
+| | |
+|---|---|
+| **Stack change** | Full rewrite — Unity (C#) or Unreal Engine 5 (C++/Blueprints) |
+| **Effort** | Very High (18–36 months) |
+| **Preserves** | Game concept and design only. Zero code reuse. |
+| **Platform** | Meta Quest store (app distribution) or sideloading |
+| **Risk** | Full rebuild cost, new platform certification, separate codebase maintenance |
+| **Best for** | Long-term standalone native VR app (SparkForge XR Edition) |
+
+#### Option C: Babylon.js Migration
+| | |
+|---|---|
+| **Stack change** | Full renderer migration from Three.js/R3F to Babylon.js |
+| **Effort** | Very High (12–24 months, migrate all 77 3D components) |
+| **Preserves** | TypeScript, React, Next.js routing |
+| **Platform** | Browser WebXR (Babylon has excellent built-in XR support) |
+| **Risk** | Massive migration cost with marginal WebXR benefit over @react-three/xr |
+| **Best for** | Not recommended — solution already achievable with existing stack |
+
+#### Option D: A-Frame Wrapper Layer
+| | |
+|---|---|
+| **Stack change** | Layer A-Frame on top of existing Three.js scenes |
+| **Effort** | Medium-High — architectural conflict with R3F |
+| **Preserves** | Some Three.js geometry |
+| **Platform** | Browser WebXR |
+| **Risk** | A-Frame and R3F conflict at the renderer level; not compatible |
+| **Best for** | Not recommended for SparkForge architecture |
+
+**Sources:**
+- [Babylon.js WebXR Documentation](https://doc.babylonjs.com/features/featuresDeepDive/webXR/introToWebXR) — Babylon.js docs
+- [A-Frame WebXR](https://aframe.io/docs/1.6.0/introduction/vr-headsets-and-webvr-browsers.html) — A-Frame docs
+- [Unity WebGL vs Native VR](https://unity.com/features/vr) — Unity VR documentation
+- [pmndrs/xr — @react-three/xr v6](https://github.com/pmndrs/xr/releases/tag/v6.0.0)
+
+---
+
+### 2.4 Deployment Model: WebXR vs App Store
+
+| Factor | WebXR (Browser) | Native App (Store) |
+|---|---|---|
+| **Distribution** | URL — no install required | App Store download (Meta Horizon, Apple App Store) |
+| **Update cycle** | Instant — same as web deploys | App store review cycle (days to weeks) |
+| **Subscription integration** | Direct — Stripe already integrated | 30% platform cut on in-app purchases |
+| **Code sharing** | 100% code shared with web | Zero code sharing |
+| **Performance** | ~60–80% of native | Full native GPU access |
+| **Offline support** | PWA caching (already planned) | Full offline |
+| **Child accounts** | Supabase auth (existing) | Meta Family Center / Apple Family Sharing required |
+| **Recommendation** | **START HERE** — additive VR mode | Long-term expansion (SparkForge XR Edition v2) |
+
+---
+
+*Section 2 of 8 — continues in next section.*
