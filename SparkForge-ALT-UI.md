@@ -501,3 +501,38 @@ The world begins as a digital wasteland — a barren grid-plane with wireframe t
 - **Age-band scaling through biome complexity:** Younger children (Band A) see simpler, friendlier ecosystems — rounder trees, bigger flowers, more fireflies, brighter colors. Older children (Band C) see denser forests, more complex shader effects, and technically accurate data embedded in nature.
 
 ---
+
+## Comparison Matrix
+
+### All 6 Concepts at a Glance
+
+| Dimension | Current (Cockpit) | 1: Living Lab | 2: Sketchbook | 3: Neon City | 4: Celestial Nexus | 5: Abstract Playground | 6: Terraform |
+|---|---|---|---|---|---|---|---|
+| **Visual tone** | Industrial military | Organic magical | Handcrafted personal | Retro-future playful | Ancient-future wonder | Premium minimalist | Nature-tech symbiosis |
+| **Rendering** | High PBR 3D | Medium SSS 3D | Low 2D + SVG | Medium flat 3D | High PBR 3D | Low toon 3D | Mixed 3D + 2D shaders |
+| **Triangle budget** | ~37.8M | ~15–20M | ~0.5M (mostly 2D) | ~8–12M | ~37.5M | ~2.8M | ~15–25M |
+| **Primary palette** | Chrome + neon blue | Ocean black + cyan | Cream paper + markers | Navy + neon tubes | Obsidian + gold | White + splatter pops | Earth + bioluminescent |
+| **Age sweet spot** | 12–16 | 7–13 | 7–12 | 8–16 | 7–16 (broadest) | 7–14 | 8–15 |
+| **Navigation model** | Fixed quadrant panels | Radial neural hub | Notebook tabs | Isometric city walk | Orrery + telescope | Gallery grid + sculptures | Forest paths + canopy map |
+| **Progress metaphor** | XP numbers + badges | Organism growth | Sticker collection | City construction | Star constellation ignition | Gallery fills with art | Wasteland terraforming |
+| **Emotional register** | "I'm a pilot" | "I'm a scientist" | "I'm a creator" | "I'm an explorer" | "I'm a stargazer" | "I'm an artist" | "I'm a gardener" |
+| **Interaction feel** | Mechanical, spring-driven | Warm, breathing | Tactile, paper-craft | Walk-and-build | Wonder, celestial chimes | Clean tap → color explosion | Organic growth + data pulses |
+| **GPU accessibility** | Desktop-only (50M budget) | Mid-range + up | Any device | Mid-range + up | Desktop-only (50M budget) | Any device (< 3M tris) | Mid-range + up |
+| **Sound design** | Metallic clicks, hum | Underwater, bubbles | Pencil, paper, stickers | Lo-fi city, arcade | Chimes, orchestral swells | Ink splats, pops | Forest ambience, data flow |
+| **Uniqueness in edtech** | Common (sci-fi dashboard) | Very unique | Extremely unique | Unique | Unique (planetarium) | Very unique (art gallery) | Extremely unique (nature-tech) |
+| **Key font pairing** | Exo 2 / Sora / Orbitron | Baloo 2 / Nunito / Space Mono | Caveat / DM Sans / Indie Flower | Press Start 2P / Outfit / Chakra Petch | Cinzel / Nunito / Space Mono | Space Grotesk / Inter / IBM Plex Mono | Bricolage Grotesque / Nunito / IBM Plex Mono |
+| **Celebration style** | LED burst + confetti | Organism evolution | Sticker peel + doodle burst | Building construction | Star ignition in dome | Paint splatter explosion | Photosynthesis pulse wave |
+
+### Recommended Pairings (if combining elements)
+
+| Pairing | What to Combine | Why |
+|---------|----------------|-----|
+| **4 + 6** | Celestial Nexus observatory shell + Terraform's shader-driven nature inside each lab space | High-fidelity dome exterior with unique biome interiors per lab — maximum visual variety |
+| **5 + 3** | Abstract Playground's clean base + Neon City's building progression | Clean gallery that builds colorful city dioramas as progress — minimalism meets tangible construction |
+| **1 + 6** | Living Lab's organic forms + Terraform's tech-nature shader integration | Fully organic with hidden tech layers revealed through interaction — deepest nature-tech fusion |
+| **4 + 5** | Celestial Nexus's warm gold/crystal + Abstract Playground's paint-on-white interactions | Observatory with a pristine white dome that fills with color splatters as constellations ignite |
+
+---
+
+*SparkForge Alternative UI/UX Concepts v1.0 — April 5, 2026*  
+*6 concepts | 4 rendering tiers | Triangle budgets from 0.5M to 37.8M | Ages 7–16*
