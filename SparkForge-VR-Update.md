@@ -427,3 +427,219 @@ const XR_QUEST3_PROFILE: PerformanceProfile = {
 ---
 
 *Section 3 of 8 — continues in next section.*
+
+---
+
+## 4. Per-System Conversion Plan
+
+Detailed implementation plan for each subsystem, with specific file targets, new packages, and code patterns.
+
+---
+
+### 4.1 Package Installation
+
+**New packages required for VR mode:**
+
+```bash
+npm install @react-three/xr@^6.0.0
+```
+
+`@react-three/xr` v6 is the only required new package. Everything else (Three.js XRControllerModelFactory, XRHandModelFactory) ships inside `three` which is already installed at r183.
+
+**Optional (recommended):**
+```bash
+npm install @webxr-input-profiles/motion-controllers  # controller button/axis profiles
+```
+
+**What is NOT needed:**
+- Babylon.js — no renderer change
+- A-Frame — conflicts with R3F
+- `webxr-polyfill` — Meta Quest Browser supports WebXR natively; polyfill only needed for non-supporting browsers (currently unnecessary for target platform)
+
+**Source:** [@react-three/xr npm](https://www.npmjs.com/package/@react-three/xr), [WebXR Input Profiles](https://github.com/immersive-web/webxr-input-profiles)
+
+---
+
+### 4.2 Camera System Conversion Plan
+
+**File:** `src/components/3d/CameraSystem.tsx`
+
+**Current:** Modes `hero | station | spatial | game`. All modes use `useFrame` to LERP camera position/lookAt/FOV.
+
+**VR Changes:**
+
+| Step | Action | Lines affected |
+|---|---|---|
+| 1 | Import `useXR` from `@react-three/xr` | +1 import |
+| 2 | Read `isPresenting` from XR store | +1 hook call |
+| 3 | Add early return in `useFrame` when `isPresenting === true` | +3 lines in useFrame |
+| 4 | Add `'xr'` to `CameraMode` type | +1 type union |
+| 5 | In XR mode, set camera to cockpit seat position via `<XROrigin>` in CockpitCanvas | Separate component |
+
+**Estimated effort:** 2–4 hours. Minimal changes to existing file.
+
+**XR Origin placement:**
+```tsx
+// In CockpitCanvas.tsx — cockpit seat is the XR floor origin
+<XROrigin position={[0, -0.65, 0]} />
+// Offsets XR origin so head height (1.6m average) lands at camera [0, 0.65, 1.1]
+```
+
+**Hero Animation in VR:**  
+The 8-phase hero animation (19-second cinematic) is **not suitable for VR** — extended camera movement sequences cause motion sickness. Recommendation: detect XR session at app start and skip hero animation, entering cockpit directly. `uiStore.skipIntroAnimation` already supports this behavior.
+
+---
+
+### 4.3 Input Conversion Plan
+
+**Files to modify:** `CockpitCanvas.tsx`, all cockpit UI components
+
+**Files to create:** `src/components/3d/xr/XRControllerRays.tsx`, `src/components/3d/xr/XRHandVisual.tsx`, `src/components/3d/xr/VREnterButton.tsx`
+
+#### How XR Input Works with Existing R3F Components
+
+`@react-three/xr` v6 uses a **ray-casting system** that fires from each controller's tip. This system hooks into R3F's existing `onPointerDown`/`onPointerUp` event bubbling. Result: **existing cockpit buttons, lab map, consoles, and game UI respond to VR controller input without code changes.**
+
+This is the key advantage over building a custom input system.
+
+**What does need explicit XR support:**
+- Scroll interactions in `CockpitScrollPanel` — XR joystick thumbstick maps to scroll
+- Drag-and-drop in sort-based games (SortToyBoxGame, etc.) — XR grab requires `<XRInteractable>` with `selectstart`/`selectend` events
+- Text input (`CockpitInput`) — VR keyboard overlay must be triggered (browser handles this on Meta Quest)
+
+**Controller visual feedback:**
+```tsx
+// src/components/3d/xr/XRControllerRays.tsx
+import { XRControllerModel, useXRControllerLocomotion } from '@react-three/xr';
+
+export function XRControllerRays() {
+  return (
+    <IfInSessionMode allow="immersive-vr">
+      <XRControllerModel hand="left" />
+      <XRControllerModel hand="right" />
+    </IfInSessionMode>
+  );
+}
+```
+
+**Source:** [@react-three/xr — Interactions docs](https://github.com/pmndrs/xr#interactions), [Meta Quest Hand Tracking API](https://developer.oculus.com/documentation/web/webxr-hand-tracking/)
+
+---
+
+### 4.4 UI Layer Conversion Plan
+
+**Current:** `CockpitUILayer.tsx` — quadrant orchestrator rendering 9 panel components (DashboardLeft, DashboardRight, DashboardCenter, etc.) as 3D geometry inside the persistent canvas.
+
+**Good news:** Because SparkForge completed its full 3D UI migration (149 HTML lines removed, all panels converted to world-space 3D geometry), the UI is already in the correct form for VR. No HTML overlay issue exists.
+
+**VR-specific UI concerns:**
+
+| Issue | Current | VR Fix |
+|---|---|---|
+| Panel distances | Panels at Z=-1.95 to Z=-3.4 | Comfortable VR reading: 1.5–3m from user. Current distances are fine. |
+| Text size | Troika text at existing scale | Verify minimum 0.06 world units (≈ ~12mm at arm's length) for legibility |
+| Grab/touch zones | Mouse hover highlight | Add XR proximity highlight via `onPointerEnter` (already exists in R3F) |
+| Curved panel arc | 218° arc, radius 4.8 | Excellent for VR — peripheral panels visible with natural head turns, not just mouse look |
+| @react-three/uikit | Installed (v1.0.64) but not yet primary UI system | Already provides `<Root>`, `<Container>`, `<Text>`, `<Input>` for fully VR-compatible UI |
+
+**@react-three/uikit** is already installed in `package.json`. It is the pmndrs ecosystem's official world-space UI library for R3F, built specifically for VR-compatible interfaces. The existing 3D panel components can progressively adopt uikit patterns for panels that need scroll, text input, or complex layouts.
+
+**Source:** [@react-three/uikit docs](https://github.com/pmndrs/uikit), [Immersive Web — UI guidelines](https://immersive-web.github.io/webxr-samples/)
+
+---
+
+### 4.5 Audio Conversion Plan
+
+**Current:** `CockpitAudioEngine.ts`, `heroAudio.ts` — Tone.js synthesis + Web Audio API. Mono audio positioning. Per-lab audio profiles in `irisAudioEngine`.
+
+**What Changes for VR:**
+
+Spatial (positional) audio is one of the most impactful VR enhancements. When sound sources are positioned in 3D space and tracked to the user's head orientation, presence dramatically increases.
+
+**Three.js Positional Audio:** Three.js provides `THREE.PositionalAudio` which wraps `PannerNode` from the Web Audio API. It automatically applies HRTF (Head-Related Transfer Function) spatialization — the same technology used in professional VR audio.
+
+**Implementation:**
+```typescript
+// Upgrade CockpitAudioEngine.ts — add spatial audio support
+import { PositionalAudio, AudioListener } from 'three';
+
+// AudioListener attaches to the XR camera (head position)
+// PositionalAudio attaches to 3D scene objects (consoles, labs, NPCs)
+
+const listener = new THREE.AudioListener();
+camera.add(listener); // follows head in VR
+
+const consoleAudio = new THREE.PositionalAudio(listener);
+consoleAudio.setRefDistance(2); // audible radius: 2m
+consoleAudio.setRolloffFactor(2);
+interactiveConsole.add(consoleAudio); // audio emits from console position
+```
+
+**Per-lab spatial audio:** When a child looks at Lab 3 (Pink Lab `#FF66AA`), the lab's audio theme should emit from the direction of Lab 3 in the scene. `LAB_COLOR_AUDIO_PROFILES` already defines per-lab audio — spatial positioning just adds a world-space origin.
+
+**NPC audio:** `AmbientNPCs.tsx` (8 bots) — each NPC gets a `PositionalAudio` component. When a child hears an NPC talking, it comes from the NPC's actual position in the cockpit.
+
+**Source:** [THREE.PositionalAudio docs](https://threejs.org/docs/#api/en/audio/PositionalAudio), [Web Audio API — PannerNode (MDN)](https://developer.mozilla.org/en-US/docs/Web/API/PannerNode)
+
+---
+
+### 4.6 Locomotion Plan
+
+**Current:** No locomotion — camera is stationary in seated cockpit.
+
+**VR Locomotion Options:**
+
+| Type | Description | Comfort | Recommended For |
+|---|---|---|---|
+| **Stationary (seated)** | No movement — cockpit is fixed, user stays put | Excellent (no sickness) | Dashboard/home cockpit experience |
+| **Teleport** | Point controller at floor, click to jump to location | Good | Spatial dashboard lab exploration |
+| **Smooth locomotion** | Thumbstick walk — moves camera continuously | Poor for sensitive users | Not recommended for children |
+| **Gaze-based selection** | Look at an object for 1–2s to select/navigate | Excellent | Fallback for users without controllers |
+
+**Recommendation for SparkForge:**
+- Cockpit home/dashboard: **Stationary seated** — no locomotion needed, the cockpit wraps around the user
+- Lab spatial map exploration: **Teleport locomotion** to walk between lab stations
+- Games: **Stationary** — game environments are compact, designed for seat-based play
+
+**Implementation:**
+```tsx
+// Teleport implementation via @react-three/xr
+import { XRControllerLocomotion } from '@react-three/xr';
+
+<IfInSessionMode allow="immersive-vr">
+  <XRControllerLocomotion
+    mode="teleport"
+    teleportTargets={LAB_FLOOR_POSITIONS} // pre-defined safe landing spots
+  />
+</IfInSessionMode>
+```
+
+**Source:** [@react-three/xr Locomotion](https://github.com/pmndrs/xr#locomotion), [Oculus Locomotion Design Guidelines](https://developer.oculus.com/resources/locomotion-design-guidelines/)
+
+---
+
+### 4.7 New Store: `xrStore.ts`
+
+A new Zustand store is needed to manage XR session state cleanly, avoiding prop-drilling XR state into every component.
+
+**Proposed shape:**
+```typescript
+interface XRState {
+  isPresenting: boolean;           // in active XR session
+  xrProfile: 'quest2'|'quest3'|'pcvr'|null;
+  handTrackingAvailable: boolean;
+  dominantHand: 'left'|'right';
+  vrComfortLevel: 'standard'|'reduced-motion';
+  
+  // Actions
+  enterXR: () => void;
+  exitXR: () => void;
+  setXRProfile: (profile: XRState['xrProfile']) => void;
+}
+```
+
+This store would be read by: `CameraSystem`, `PostProcessingStack`, `deviceStore`, `sceneStore`, `CockpitUILayer`, all game components.
+
+---
+
+*Section 4 of 8 — continues in next section.*
