@@ -206,3 +206,224 @@ Reason: Most widely adopted consumer VR headset, best WebXR support, age-appropr
 ---
 
 *Section 2 of 8 — continues in next section.*
+
+---
+
+## 3. Architecture Changes Required
+
+This section maps each existing SparkForge system to what must change, stay the same, or be added for VR. Changes are classified by impact level: **CRITICAL** (blocks VR), **HIGH** (required for quality), **MEDIUM** (significant improvement), **LOW** (polish).
+
+---
+
+### 3.1 Canvas & Renderer Layer
+
+**Current:** `CockpitCanvas.tsx` — single `<Canvas>` from `@react-three/fiber`, desktop-only, WebGL2/WebGPU.
+
+**What Changes:**
+- Wrap `<Canvas>` with `<XR>` from `@react-three/xr` to enable WebXR session management
+- Add `<XROrigin>` or `<IfInSessionMode>` components to conditionally render VR-specific content
+- Add an "Enter VR" button (`<XRButton>`) that triggers `navigator.xr.requestSession('immersive-vr')`
+- The core `<Canvas>` itself does NOT change — it continues to host the same Three.js scene
+
+**Code Sketch (additive, not a replacement):**
+```tsx
+// CockpitCanvas.tsx — proposed VR wrapper addition
+import { XR, createXRStore } from '@react-three/xr';
+
+const vrStore = createXRStore(); // singleton VR session store
+
+<XR store={vrStore}>
+  <Canvas ...existingProps>
+    {/* All existing scene content — UNCHANGED */}
+    <SceneRouter ... />
+    <CockpitPanels ... />
+    {/* etc. */}
+  </Canvas>
+</XR>
+```
+
+**Impact:** CRITICAL — enables XR session. Additive: ~20 lines of change to `CockpitCanvas.tsx`.
+
+**Source:** [@react-three/xr — Getting Started](https://github.com/pmndrs/xr#getting-started)
+
+---
+
+### 3.2 Camera System
+
+**Current:** `CameraSystem.tsx` — 4 modes (hero/station/spatial/game), controlled by `useCockpitStore`. Uses `useFrame` to interpolate camera position/lookAt. Fixed `PerspectiveCamera` built into the R3F `<Canvas>`.
+
+**What Changes:**
+- In VR, the WebXR API **owns** the camera. SparkForge's `CameraSystem` must **yield** camera control when an XR session is active
+- XR provides the camera pose (position + rotation) from the headset's IMU each frame — cannot be overridden
+- `CameraSystem` needs a new mode: `'xr'` — in this mode, skip all lerp/GSAP logic and let WebXR drive
+- The camera **origin** (floor-level position of the player in the scene) is set via `<XROrigin>` — must be placed at the cockpit seat position `[0, 0, 0]`
+
+**Code Sketch:**
+```tsx
+// CameraSystem.tsx — add XR mode branch
+import { useXR } from '@react-three/xr';
+
+const isPresenting = useXR((state) => state.isPresenting);
+
+useFrame(({ camera }) => {
+  if (isPresenting) return; // XR drives camera — CameraSystem yields
+  // ... existing lerp/GSAP logic unchanged
+});
+```
+
+**Impact:** CRITICAL — without this, XR camera and CameraSystem fight each other.
+
+**Source:** [@react-three/xr — XROrigin, useXR hook](https://github.com/pmndrs/xr#xrorigin)
+
+---
+
+### 3.3 Input System
+
+**Current:** Mouse pointer events on 3D meshes via R3F `onPointerDown`/`onPointerUp`. `useParallaxMouse` hook for depth movement. NavigationButtonGrid and all cockpit UI buttons receive pointer events.
+
+**What Must Change:**
+- In VR, there is no mouse cursor — input comes from **XR controllers** (joysticks + triggers) or **hand tracking**
+- `@react-three/xr` provides `<XRInteractable>` which intercepts XR ray events and forwards them as standard `onPointerDown`/`onPointerUp` events — **existing R3F pointer handlers work without changes**
+- `useParallaxMouse` becomes inactive in XR (no mouse movement) — no change needed, just inactive
+
+**New Components Required:**
+- `XRControllerRay.tsx` — visual laser ray from each controller to help users see where they are pointing
+- `XRHandVisualizer.tsx` — optional hand mesh rendering using `XRHandModelFactory`
+- `VRPointerCursor.tsx` — floating dot/ring at the XR ray intersection point (replaces mouse cursor)
+
+**Code Sketch:**
+```tsx
+// In CockpitCanvas.tsx — add XR ray controllers
+import { XRControllerModel } from '@react-three/xr';
+import { IfInSessionMode } from '@react-three/xr';
+
+<IfInSessionMode allow="immersive-vr">
+  <XRControllerModel hand="left" />
+  <XRControllerModel hand="right" />
+</IfInSessionMode>
+```
+
+**What Stays The Same:**
+- All R3F `onPointerDown`/`onPointerUp` handlers on 3D UI components — XR rays trigger these natively
+- All `useGameStore` game interaction logic — games receive "click" events, not knowing if from mouse or controller
+
+**Impact:** CRITICAL for usability. Partially handled automatically by @react-three/xr.
+
+**Source:** [@react-three/xr — Interactions](https://github.com/pmndrs/xr#interactions), [Three.js XRControllerModelFactory](https://threejs.org/docs/#examples/en/webxr/XRControllerModelFactory)
+
+---
+
+### 3.4 Post-Processing Stack
+
+**Current:** `PostProcessingStack.tsx` — 9 effects always-on: N8AO, Bloom, ChromaticAberration, DepthOfField, Noise, HueSaturation, BrightnessContrast, Vignette, BarrelDistortion.
+
+**VR Problem:**
+- **ChromaticAberration** — simulates lens color fringing. In VR, this doubles the effect of the headset's own optical aberration, causing visual discomfort and headaches.
+- **DepthOfField** — blurs distant/near objects. In VR, your eyes naturally re-focus at any depth — DOF fights this and causes eye strain.
+- **BarrelDistortion** — the headset already applies barrel distortion via its optics correction pipeline. Stacking two barrel distortions produces severe warping.
+- **Vignette** — slightly darkens edges. In VR, this can create a "tunnel vision" effect that causes disorientation.
+- **N8AO (SSAO)** — computationally expensive and must render twice (once per eye) — performance impact doubles.
+
+**What Changes:**
+- Add a `vrMode: boolean` prop to `PostProcessingStack.tsx`
+- In VR mode: disable ChromaticAberration, DepthOfField, BarrelDistortion. Reduce Vignette to 0. Keep Bloom (VR-safe), HueSaturation (VR-safe), BrightnessContrast (VR-safe). Reduce N8AO intensity or disable entirely.
+
+**Code Sketch:**
+```tsx
+// PostProcessingStack.tsx
+const isPresenting = useXR((state) => state.isPresenting);
+
+{!isPresenting && <ChromaticAberration ... />}
+{!isPresenting && <DepthOfField ... />}
+{!isPresenting && <BarrelDistortion ... />}
+<Bloom intensity={isPresenting ? bloomIntensity * 0.6 : bloomIntensity} ... />
+```
+
+**Impact:** HIGH — VR comfort and headset safety.
+
+**Source:** [WebXR Best Practices — Comfort Guidelines (W3C Immersive Web Working Group)](https://immersive-web.github.io/webxr-samples/), [Oculus VR Comfort Guidelines](https://developer.oculus.com/resources/bp-vision/)
+
+---
+
+### 3.5 Device Store & Performance Profiles
+
+**Current:** `deviceStore.ts` — hardcoded `DESKTOP_ULTRA_PROFILE` with 50M triangle budget, 60fps target, all effects on.
+
+**What Changes:**
+- Add `'xr-quest-3'` and `'xr-quest-2'` performance profiles to `deviceStore`
+- Set XR profile in `setGpuTier()` when an XR session is detected
+- XR profiles reduce `maxTriangles` to ~5M total, target 90fps, disable expensive effects
+
+**New Profiles:**
+```typescript
+const XR_QUEST3_PROFILE: PerformanceProfile = {
+  targetFPS: 90,          // Quest 3 native refresh rate
+  maxTriangles: 5_000_000, // 2.5M per eye
+  bloomEnabled: true,
+  postProcessingEnabled: true, // reduced set
+  shadowsEnabled: false,   // shadows too expensive in stereo
+  maxLights: 8,
+  instancedMeshLimit: 2_000,
+  sphereSegments: 16,     // reduced from 64
+  antialias: false,        // MSAA handled by headset hardware
+  pixelRatio: 1.0,         // headset manages resolution
+};
+```
+
+**Impact:** CRITICAL — without a VR performance profile, the app will not maintain 72Hz minimum.
+
+**Source:** [Meta Quest Performance Guidelines](https://developer.oculus.com/resources/bp-rendering/), [WebXR Rendering Best Practices — Immersive Web](https://immersive-web.github.io/webxr-samples/)
+
+---
+
+### 3.6 Scene Store & sceneStore
+
+**Current:** `sceneStore.ts` — manages `activeScene` ('hero'|'cockpit'|'game'|'spatial'), `isTransitioning`, `cockpitOpacityTarget`.
+
+**What Changes:**
+- Add `isXRPresenting: boolean` and `xrProfile: 'quest2'|'quest3'|'pcvr'|null` to sceneStore
+- When XR session starts: trigger cockpit geometry LOD switch, disable expensive components, activate VR locomotion
+- Hero animation (`activeScene === 'hero'`) should be **skipped** in XR — users enter directly into cockpit
+- Game transitions: MechanicalIris transition may need simplification in VR (fast cuts work better than slow transitions in VR to prevent motion sickness)
+
+**Impact:** HIGH — drives VR-aware scene behavior throughout the app.
+
+---
+
+### 3.7 Cockpit Geometry (Triangle Budget Reduction)
+
+**Current:** ~37.8M triangles in cockpit shell (CockpitPanels 4M, SidePanels 3M, LEDRim 500K, etc.)
+
+**Required:** ~3–5M total for Meta Quest 3 at 90fps.
+
+**Approach — VR LOD variants:**
+- Do NOT modify existing desktop cockpit geometry
+- Create `CockpitPanels.vr.tsx`, `SidePanels.vr.tsx`, etc. — VR-optimized versions at 10–20% of desktop poly count
+- `SceneRouter` selects VR variants when `isXRPresenting === true`
+- This preserves the desktop 50M-triangle experience while enabling VR
+
+**Triangle Budget — VR Cockpit Target:**
+
+| Component | Desktop | VR Target | Reduction |
+|---|---|---|---|
+| CockpitPanels | 4,000,000 | 200,000 | 95% |
+| SidePanels | 3,000,000 | 150,000 | 95% |
+| HolographicLabMap | 1,000,000 | 80,000 | 92% |
+| LEDRim | 500,000 | 20,000 | 96% |
+| StatusBar3D | 1,000,000 | 50,000 | 95% |
+| HolographicHUD | 1,000,000 | 60,000 | 94% |
+| CockpitStructuralDetail | 2,000,000 | 100,000 | 95% |
+| CockpitFloor3D | 1,000,000 | 50,000 | 95% |
+| DynamicEnvironment | 3,000,000 | 200,000 | 93% |
+| Other components | ~21,300,000 | ~90,000 | ~99% |
+| **TOTAL** | **~37,800,000** | **~1,000,000** | **~97%** |
+
+**Plus game environments:** 1M–4M per game (existing, mostly usable in VR with minor reduction)
+
+**Impact:** CRITICAL for performance. Significant art/engineering work.
+
+**Source:** [Meta Quest Developer Docs — GPU Performance](https://developer.oculus.com/resources/bp-rendering/), [Three.js WebXR Examples — Performance](https://threejs.org/examples/?q=webxr)
+
+---
+
+*Section 3 of 8 — continues in next section.*
