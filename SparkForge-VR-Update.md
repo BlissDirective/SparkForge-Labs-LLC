@@ -745,3 +745,134 @@ These 5 games span all age bands (A/B/C), include both Flagship and Standard tie
 ---
 
 *Section 5 of 8 — continues in next section.*
+
+---
+
+## 6. Performance & Hardware Targets
+
+### 6.1 VR Performance Requirements (Non-Negotiable)
+
+VR rendering has far stricter performance requirements than desktop rendering. Dropping below the headset's target refresh rate causes **judder** — a strobing effect that rapidly induces nausea, especially in children. This is not an aesthetic problem; it is a safety and comfort issue.
+
+| Headset | Minimum Refresh | Target Refresh | Maximum Frame Budget |
+|---|---|---|---|
+| Meta Quest 2 | 72 Hz | 90 Hz | **11.1ms** per frame |
+| Meta Quest 3 / 3S | 90 Hz | 120 Hz | **8.3ms** per frame |
+| Meta Quest Pro | 90 Hz | 90 Hz | **11.1ms** per frame |
+| Apple Vision Pro | 90 Hz | 96 Hz | **10.4ms** per frame |
+| PCVR (SteamVR) | 90 Hz | 90–144 Hz | **11.1–6.9ms** |
+
+**SparkForge current desktop target:** 60fps (16.7ms frame budget)
+
+**Required:** VR must achieve 90fps (11.1ms frame budget) on Quest 3 — a **33% reduction in frame budget** compared to desktop.
+
+**Critical constraint:** In VR, the scene is rendered **twice** (once per eye) in the same frame budget. This effectively **halves** the rendering throughput available per eye.
+
+**Source:** [Meta Quest Performance Guidelines](https://developer.oculus.com/resources/bp-rendering/), [W3C WebXR Spec — Frame timing](https://www.w3.org/TR/webxr/#dom-xrsession-requestanimationframe)
+
+---
+
+### 6.2 Meta Quest 3 Hardware Specs (Primary Target)
+
+| Component | Spec | Impact on SparkForge VR |
+|---|---|---|
+| **SoC** | Snapdragon XR2 Gen 2 | ~50% faster than Quest 2. Can handle moderate Three.js scenes. |
+| **GPU** | Adreno 740 | ~2.5 TFLOPS FP32. Capable of 5M triangles at 90fps with basic shading. |
+| **RAM** | 8 GB | Full Three.js scene + WebXR overhead fits comfortably. |
+| **Display** | 2064×2208 per eye | Pixel-dense — requires sharp textures, no aliasing |
+| **Refresh** | 72/80/90/120 Hz | Target 90Hz for smooth experience |
+| **Foveated Rendering** | Fixed Foveated Rendering (FFR) | Center renders at full res; periphery at ~50% — saves ~30% GPU cost |
+| **Passthrough** | Full color video (AR mode) | Enables mixed reality (SparkForge AR future) |
+| **Hand Tracking** | Version 2.1 — pinch, grasp, point | Enables controller-free interaction |
+| **Battery (untethered)** | ~2.5–3 hours continuous | Session time limits for children (see Section 7) |
+
+**Source:** [Meta Quest 3 Specs — Meta Horizon](https://www.meta.com/quest/quest-3/), [Snapdragon XR2 Gen 2 Specs — Qualcomm](https://www.qualcomm.com/products/mobile/snapdragon/xr-vr-ar/snapdragon-xr2-gen-2)
+
+---
+
+### 6.3 VR Triangle Budget — SparkForge Targets
+
+**Formula:** Target FPS × 2 eyes × milliseconds per draw call × GPU throughput = max triangles
+
+For Quest 3 at 90fps with simple material shading:
+- Sustainable triangle budget: **~3–5 million per frame** (entire scene, both eyes combined)
+- With Fixed Foveated Rendering: can stretch to **~5–7 million**
+
+**SparkForge VR Budget Allocation:**
+
+| Scene | Desktop Budget | VR Target | Notes |
+|---|---|---|---|
+| **VR Cockpit Shell** | 37,800,000 | 1,000,000 | VR LOD variants (see Section 3.7) |
+| **Flagship Game Env** | 20,000,000 | 2,000,000 | Per-game VR environment variants |
+| **FL-Lite Game Env** | 10,000,000 | 1,500,000 | Simplified environments |
+| **Standard Game Env** | 5,000,000 | 800,000 | Minimal environments |
+| **UI Panels** | 5,000,000 | 200,000 | @react-three/uikit is efficient |
+| **NPCs (8 bots)** | 2,000,000 | 400,000 | 50K/bot in VR |
+| **Particles / FX** | ~1,000,000 | 100,000 | Reduced particle count |
+| **Overhead (XR runtime)** | N/A | ~500,000 | Controller models, XR compositing |
+
+**Cockpit + Dashboard (idle):** ~1M triangles ✓  
+**Cockpit + Active Flagship Game:** ~3M triangles ✓  
+**Target: 3–4M total in all VR scenes** — achievable with VR LOD variants.
+
+---
+
+### 6.4 Shader & Material Strategy for VR
+
+**Current desktop shaders (problematic in VR):**
+- `N8AO (SSAO)` — screen-space ambient occlusion. Must render per-eye in VR, doubling cost. **Disable in VR.**
+- `DepthOfField` — bokeh calculation is expensive and harmful in VR. **Disable in VR.**
+- Custom GLSL `.vert` / `.frag` shaders — work fine in VR, but must run per-eye. Keep simple.
+- TSL shaders (labPatterns, heroParticles) — WebGPU TSL compiles to WGSL; Quest 3 supports WebGPU experimentally. **Target WebGL2 path for VR until WebGPU on Quest is stable.**
+
+**VR-safe materials (use these for VR geometry):**
+- `MeshToonMaterial` — fast, stylized, one draw call — ideal for VR characters/pets
+- `MeshBasicMaterial` — no lighting calculation — use for background geometry
+- `MeshStandardMaterial` — with reduced light count (max 4 lights in VR vs 24 on desktop)
+- Avoid: `MeshPhysicalMaterial`, complex GLSL with per-pixel lighting in loops
+
+**Texture strategy:**
+- Desktop: Full-res textures (2K–4K)
+- VR: 1K textures maximum. Quest 3's 2064×2208 per-eye display is dense but GPU bandwidth is limited.
+- Use texture atlases to minimize draw calls (critical in VR — each draw call costs ~0.1ms)
+
+**Source:** [Three.js WebXR Rendering Notes](https://threejs.org/docs/#manual/en/introduction/How-to-create-VR-content), [Oculus WebXR Best Practices](https://developer.oculus.com/resources/bp-rendering/), [Meta Fixed Foveated Rendering docs](https://developer.oculus.com/documentation/web/webxr-foveation/)
+
+---
+
+### 6.5 Fixed Foveated Rendering (FFR)
+
+Meta Quest 3 supports **Fixed Foveated Rendering (FFR)** in WebXR. FFR renders the center of each eye at full resolution and the edges at 50% resolution. For most gameplay, users don't perceive the quality reduction at the periphery.
+
+**Enabling in @react-three/xr:**
+```typescript
+// In XR session request
+const session = await navigator.xr.requestSession('immersive-vr', {
+  requiredFeatures: ['local-floor'],
+  optionalFeatures: ['foveation-scale-hint']
+});
+
+// Request aggressive foveation for performance
+session.updateRenderState({
+  foveation: 0.8 // 0=none, 1=maximum foveation
+});
+```
+
+**Performance gain from FFR:** Approximately 20–35% reduction in GPU cost with foveation level 0.8. This is essentially free performance on Quest 3.
+
+**Source:** [Meta WebXR Foveation API](https://developer.oculus.com/documentation/web/webxr-foveation/), [WebXR Layers API (W3C)](https://www.w3.org/TR/webxrlayers-1/)
+
+---
+
+### 6.6 Performance Monitoring in VR
+
+The existing `useFrameTimeMonitor` hook (Plan B1, Audit Section 4.4) monitors frame time in dev mode. For VR, this should be extended to:
+- Log per-frame time in the XR render loop
+- Alert if frame time exceeds 9ms (90fps threshold) for more than 10 consecutive frames
+- Auto-reduce triangle count via `xrStore.setQualityLevel('reduced')` if sustained drops occur
+
+This implements a version of the planned "Plan B2" adaptive degradation — but targeted specifically at VR session quality maintenance.
+
+---
+
+*Section 6 of 8 — continues in next section.*
