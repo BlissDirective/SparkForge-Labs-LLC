@@ -1447,3 +1447,194 @@ The following sources supplement the Section 8.8 reference list:
 *End of SparkForge-VR-Update.md v1.1*  
 *9 sections | 35 games assessed | 40+ sources cited | Research-validated April 5, 2026*  
 *Branch: claude/sparkforge-vr-assessment-v0DQ3*
+
+---
+
+## 10. Locked Decisions & Revised Roadmap
+
+**Date locked:** April 5, 2026  
+**Decision authority:** Product Owner
+
+---
+
+### 10.1 Decision Log
+
+| # | Decision | Selected | Rationale |
+|---|---|---|---|
+| **D1** | Primary VR Platform | **Meta Quest 3 / Quest 3S** | Best WebXR support, 90fps, native hand tracking, child-accessible price point (~$299 Quest 3S) |
+| **D2** | Strategic Path | **Path C — Hybrid** | WebXR first to validate, native Unity/Unreal port later for top-performing games once user demand is proven |
+| **D3** | Age Gate | **Ages 10+ with enhanced parental consent flow** | Balances safety and inclusivity. Band A (7–9) excluded from VR. Band B/C (10–16) eligible with explicit parent consent, safety acknowledgment, and configurable session limits |
+| **D4** | Development Priority | **VR in parallel on dedicated branch** | VR development does not block or delay the Stages 1–10 web roadmap. Dedicated VR branch: `feature/vr-mode` |
+| **D5** | First VR Wave | **All 6 Flagship games** | Highest showcase value. 6 Flagship games cover all age bands (A/B/C) and represent the platform's best 3D work |
+
+---
+
+### 10.2 Revised Roadmap — Hybrid Path, All Flagship Games
+
+#### Phase VR-0: Foundation (Months 1–2, parallel to Stage 4–5 web work)
+**Goal:** WebXR session entry. Cockpit visible in Quest 3 browser. No gameplay yet.
+
+| Task | File | Est. Hours |
+|---|---|---|
+| Install `@react-three/xr@^6.6.29` | `package.json` | 1h |
+| `<XR>` wrapper + `createXRStore()` in CockpitCanvas | `CockpitCanvas.tsx` | 3h |
+| `frameloop='never'` switch in XR mode | `CockpitCanvas.tsx` | 1h |
+| `<XROrigin>` at cockpit seat position | `CockpitCanvas.tsx` | 1h |
+| CameraSystem `'xr'` mode (yield to headset) | `CameraSystem.tsx` | 3h |
+| Skip hero animation when XR presenting | `uiStore.ts` | 1h |
+| VR-safe post-processing flags | `PostProcessingStack.tsx` | 3h |
+| `xrStore.ts` — new XR session state store | `src/stores/xrStore.ts` | 6h |
+| `VREnterButton.tsx` — Enter/Exit VR button | `src/components/3d/xr/VREnterButton.tsx` | 4h |
+| XR performance profile in `deviceStore` | `deviceStore.ts` | 3h |
+| **Milestone:** Quest 3 browser shows SparkForge cockpit in VR | | **~26h** |
+
+---
+
+#### Phase VR-1: Input & Navigation (Month 2–3)
+**Goal:** Full dashboard navigation via controllers. All cockpit UI responds to XR rays.
+
+| Task | File | Est. Hours |
+|---|---|---|
+| `XRControllerRays.tsx` — visual controller rays | `src/components/3d/xr/XRControllerRays.tsx` | 6h |
+| `XRHandVisual.tsx` — hand mesh (Quest 3 only) | `src/components/3d/xr/XRHandVisual.tsx` | 6h |
+| Test + fix all cockpit UI pointer events with XR | All CockpitUILayer children | 12h |
+| Thumbstick scroll for `CockpitScrollPanel` | `CockpitScrollPanel.tsx` | 5h |
+| Teleport locomotion for spatial lab map | `src/components/3d/xr/XRLocomotion.tsx` | 8h |
+| `VROnboarding.tsx` — first-time VR tutorial | `src/components/3d/xr/VROnboarding.tsx` | 16h |
+| **Milestone:** All 10 Labs navigable via controller in VR | | **~53h** |
+
+---
+
+#### Phase VR-2: VR Cockpit Geometry (Month 3–5)
+**Goal:** Maintain 90fps on Quest 3. VR cockpit at ~180K triangles total.
+
+| Task | File | Est. Hours |
+|---|---|---|
+| `CockpitPanels.vr.tsx` | `src/components/3d/CockpitPanels.vr.tsx` | 10h |
+| `SidePanels.vr.tsx` | `src/components/3d/SidePanels.vr.tsx` | 8h |
+| `LEDRim.vr.tsx` | `src/components/3d/LEDRim.vr.tsx` | 5h |
+| `HolographicLabMap.vr.tsx` | `src/components/3d/HolographicLabMap.vr.tsx` | 10h |
+| `StatusBar3D.vr.tsx` | `src/components/3d/StatusBar3D.vr.tsx` | 5h |
+| `HolographicHUD.vr.tsx` | `src/components/3d/HolographicHUD.vr.tsx` | 6h |
+| `CockpitFloor3D.vr.tsx` + `CockpitStructuralDetail.vr.tsx` | New files | 8h |
+| SceneRouter VR variant switching | `SceneRouter.tsx` | 5h |
+| Quest 3 performance profiling (real device required) | Testing | 16h |
+| Fixed Foveated Rendering config | `CockpitCanvas.tsx` | 3h |
+| `THREE.PositionalAudio` spatial audio upgrade | `CockpitAudioEngine.ts` | 14h |
+| **Milestone:** Cockpit at 90fps, spatial audio active | | **~90h** |
+
+---
+
+#### Phase VR-3: Child Safety Infrastructure (Month 4–5, parallel to VR-2)
+**Goal:** Parent consent flow, session limits, mandatory breaks — required before any child testing.
+
+| Task | File | Est. Hours |
+|---|---|---|
+| Enhanced parental consent flow for VR (ages 10–12) | `src/app/(dashboard)/parent/` | 14h |
+| `vrSettings` additions to `parentStore` | `src/stores/parentStore.ts` | 6h |
+| `VRSessionTimer.tsx` — 20/30-min limit with countdown | `src/components/3d/xr/VRSessionTimer.tsx` | 10h |
+| Mandatory break screen (pause + 10-min rest prompt) | `src/components/3d/xr/VRBreakScreen.tsx` | 8h |
+| IPD warning modal for ages 10–12 | VR settings | 4h |
+| Guardian setup prompt on first VR launch | `VROnboarding.tsx` | 3h |
+| VR session history logging (parent dashboard view) | API + parentStore | 10h |
+| Comfort settings (vignette-on-turn, contrast reduce) | `accessibilityStore.ts` | 6h |
+| COPPA compliance review: no hand-tracking data stored | Audit across auth/session routes | 8h |
+| **Milestone:** Parent can enable VR for child ages 10+, review session history | | **~69h** |
+
+---
+
+#### Phase VR-4: All 6 Flagship Games (Month 5–9)
+**Goal:** All 6 Flagship games fully playable in VR on Quest 3.
+
+| Game | Primary VR Mechanic | New Files | Est. Hours |
+|---|---|---|---|
+| **Pet Trainer** | Hand tracking — reach out and feed/pet creature | `PetTrainerGame.vr.tsx`, env variant | 28h |
+| **Neural Builder** | Controller grab — connect floating neural nodes | `NeuralBuilderGame.vr.tsx`, env variant | 24h |
+| **Prompt Lab** | VR keyboard input + floating prompt response preview | `PromptLabGame.vr.tsx` | 20h |
+| **Agent Architect** | 6DOF grab — arrange agent pipeline blocks in 3D | `AgentArchitectGame.vr.tsx`, env variant | 22h |
+| **Bias Detective** | Controller point — flip cards, tip the scales | `BiasDetectiveGame.vr.tsx`, env variant | 18h |
+| **Sort Toy Box** | Physical grab-and-drop — pick up and sort objects | `SortToyBoxGame.vr.tsx`, env variant | 24h |
+| `GameHUD3D.vr.tsx` — VR game HUD adaptation | Shared across all 6 games | `src/components/3d/game-ui/GameHUD3D.vr.tsx` | 12h |
+| **Milestone:** 6 Flagship games playable in VR, child-tested | | **~148h** |
+
+---
+
+#### Phase VR-5: Native Port (Month 12–24, after WebXR validated)
+**Goal:** Port top-performing Flagship games to Unity for Meta Horizon Store distribution.
+
+This phase begins only after WebXR analytics confirm VR engagement metrics meet targets (Section 8.7). It runs as a separate project/team.
+
+| Task | Est. Months |
+|---|---|
+| Unity project setup + Meta XR SDK integration | 1 month |
+| Port 2–3 top WebXR games to Unity C# | 3–4 months |
+| Art asset upscaling (mobile VR → native quality) | 2 months |
+| Meta Horizon Store submission + certification | 1–2 months |
+| **Total Phase VR-5** | **~8–10 months** |
+
+---
+
+### 10.3 Revised Total Effort (Decisions Applied)
+
+| Phase | Duration | Est. Hours | Parallel To |
+|---|---|---|---|
+| VR-0: Foundation | 1–2 months | ~26h | Stages 4–5 |
+| VR-1: Input & Navigation | 1 month | ~53h | Stage 5–6 |
+| VR-2: VR Cockpit Geometry | 2 months | ~90h | Stages 6–7 |
+| VR-3: Child Safety | 1 month (parallel to VR-2) | ~69h | Stages 6–7 |
+| VR-4: All 6 Flagship Games | 4 months | ~148h | Stages 7–8 |
+| **WebXR Total** | **~9 months** | **~386h** | **Stages 4–10** |
+| VR-5: Native Unity Port | 8–10 months (later) | ~400–600h | Post-launch |
+
+**Dedicated VR branch:** `feature/vr-mode`  
+**Merge strategy:** VR-0 and VR-1 merge to main after Stage 5 completion; VR-2 through VR-4 merge after Stage 10 visual approval.
+
+---
+
+### 10.4 New Files Summary (Complete List)
+
+**New stores (1):**
+- `src/stores/xrStore.ts`
+
+**New XR components (5):**
+- `src/components/3d/xr/VREnterButton.tsx`
+- `src/components/3d/xr/XRControllerRays.tsx`
+- `src/components/3d/xr/XRHandVisual.tsx`
+- `src/components/3d/xr/XRLocomotion.tsx`
+- `src/components/3d/xr/VROnboarding.tsx`
+- `src/components/3d/xr/VRSessionTimer.tsx`
+- `src/components/3d/xr/VRBreakScreen.tsx`
+
+**VR cockpit geometry variants (7):**
+- `src/components/3d/CockpitPanels.vr.tsx`
+- `src/components/3d/SidePanels.vr.tsx`
+- `src/components/3d/LEDRim.vr.tsx`
+- `src/components/3d/HolographicLabMap.vr.tsx`
+- `src/components/3d/StatusBar3D.vr.tsx`
+- `src/components/3d/HolographicHUD.vr.tsx`
+- `src/components/3d/CockpitFloor3D.vr.tsx` *(updated)*
+
+**VR game variants (6 + 1 shared HUD):**
+- `src/components/games/PetTrainerGame.vr.tsx`
+- `src/components/games/NeuralBuilderGame.vr.tsx`
+- `src/components/games/PromptLabGame.vr.tsx`
+- `src/components/games/AgentArchitectGame.vr.tsx`
+- `src/components/games/BiasDetectiveGame.vr.tsx`
+- `src/components/games/SortToyBoxGame.vr.tsx`
+- `src/components/3d/game-ui/GameHUD3D.vr.tsx`
+
+**Modified files (7):**
+- `src/components/3d/CockpitCanvas.tsx` — XR wrapper, frameloop, XROrigin
+- `src/components/3d/CameraSystem.tsx` — XR mode
+- `src/components/3d/PostProcessingStack.tsx` — VR-safe effect flags
+- `src/components/3d/SceneRouter.tsx` — VR variant routing
+- `src/stores/deviceStore.ts` — XR performance profile
+- `src/stores/uiStore.ts` — skip hero in XR
+- `src/stores/parentStore.ts` — vrSettings
+
+**Total new/modified files: ~29**
+
+---
+
+*SparkForge-VR-Update.md v1.2 — DECISIONS LOCKED*  
+*10 sections | 35 games assessed | 40+ sources | April 5, 2026*
