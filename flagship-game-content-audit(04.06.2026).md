@@ -1600,3 +1600,79 @@ Cache Hierarchy:
 | **Total per user session** | **6–12** | **~3,500** | **~$0.024** |
 
 At 1,000 daily active users × 2 sessions/day = ~$48/day, $1,440/month. Well within typical API budget for an educational platform.
+
+---
+
+## 7. Educational Impact Assessment
+
+### 7.1 AI Concepts Taught Per Game
+
+| Game | Primary AI Concept | Secondary Concepts | Real-World Connection |
+|------|-------------------|-------------------|----------------------|
+| **Pet Trainer** | Supervised learning, classification, training data | Overfitting, data quality, generalization, transfer learning | Image classifiers, spam filters, recommendation systems |
+| **Sort Toy Box** | Clustering, unsupervised learning, feature extraction | Distance metrics, dimensionality, multi-criteria classification | Customer segmentation, search engines, medical diagnosis grouping |
+| **Neural Builder** | Neural network architecture, training, backpropagation | Layers, neurons, weights, activation functions, loss functions | Self-driving cars, speech recognition, medical imaging |
+| **Prompt Lab** | Prompt engineering, human-AI interaction | Temperature, context, constraints, multi-step reasoning | ChatGPT, Copilot, AI writing assistants, content creation |
+| **Agent Architect** | AI agents, pipelines, decision trees, orchestration | Parallel processing, memory, error recovery, human-in-the-loop | Personal assistants, automated customer service, workflow automation |
+| **Bias Detective** | Algorithmic bias, fairness, ethical AI | Data bias, proxy variables, feedback loops, stakeholder impact | Hiring algorithms, credit scoring, facial recognition, content moderation |
+
+### 7.2 Bloom's Taxonomy Mapping
+
+Each game targets specific cognitive levels. The expansion aims to push all games toward higher-order thinking.
+
+| Level | Pet Trainer | Sort Toy Box | Neural Builder | Prompt Lab | Agent Architect | Bias Detective |
+|-------|------------|-------------|---------------|------------|-----------------|----------------|
+| **Remember** | Name pet moods, list categories | Name shapes and properties | Recall layer terminology | Remember prompt patterns | Name block types | Recall bias types |
+| **Understand** | Explain why training data matters | Explain sorting criteria | Explain how layers process data | Explain temperature effects | Explain pipeline flow | Explain how bias occurs |
+| **Apply** | Label items correctly for training | Sort shapes by given criteria | Build network matching specs | Write prompts for tasks | Assemble pipeline for mission | Identify evidence in cases |
+| **Analyze** | Analyze overfitting patterns | Analyze AI sorting logic | Analyze training curves | Analyze prompt score dimensions | Analyze pipeline efficiency | Analyze bias root causes |
+| **Evaluate** | Judge training data quality | Evaluate AI vs. own sorting | Evaluate architecture tradeoffs | Evaluate prompt effectiveness | Evaluate agent design tradeoffs | Evaluate fix options |
+| **Create** | Design custom training sets | Create own sorting rules | Design novel architectures | Craft original prompts | Build agents from scratch | Write bias audit reports |
+
+**Current coverage:** Most games reach Apply/Analyze. Expansion pushes all to Evaluate/Create.
+
+#### Expansion Impact on Bloom's
+
+| Game | Current Ceiling | Post-Expansion Ceiling | Key Addition |
+|------|----------------|----------------------|-------------|
+| Pet Trainer | Apply (labeling) | Evaluate (overfitting lab, transfer test) | Overfitting Lab requires evaluating data quality |
+| Sort Toy Box | Apply (sorting) | Create (Discovery Mode — invent sorting rules) | Discovery Mode + multi-criteria push to Create |
+| Neural Builder | Analyze (training curves) | Create (Beat the Benchmark — novel architectures) | Competition mode + hyperparameter tuning = Create |
+| Prompt Lab | Create (sandbox) | Create+ (recipes, battle) | Already at Create; recipes add composition depth |
+| Agent Architect | Apply (follow missions) | Create (sandbox, debug, multi-agent) | Sandbox + debug mode reach full Create level |
+| Bias Detective | Evaluate (fix selection) | Create (bias reports, custom datasets) | Report writing + custom datasets = Create level |
+
+### 7.3 Learning Outcome Gaps
+
+| Gap | Description | Affected Games | Fix |
+|-----|-------------|---------------|-----|
+| **No cross-game conceptual threading** | Games teach concepts in isolation — no explicit connection between supervised learning (Pet Trainer) and neural networks (Neural Builder) | All | Add "Concept Map" in post-game report showing how this game's concepts connect to other labs |
+| **Limited reflection** | Most games end with a score screen, not a reflection prompt | All except Bias Detective | Add "What did you learn?" prompt in report phase with AI-generated reflection questions |
+| **No spaced repetition** | Concepts seen once are never revisited | All | Suggest "revisit this game" prompts after 3/7/14 days via dashboard notifications |
+| **Sort Toy Box lacks ML vocabulary** | Terms like "feature," "cluster," "distance" are used informally | Sort Toy Box | AI reveal should introduce formal vocabulary with age-band definitions |
+| **Neural Builder skips backpropagation** | The most important training mechanism is invisible | Neural Builder | Add optional "peek inside training" mode showing weight updates flowing backward |
+| **Agent Architect doesn't connect to LLMs** | Agents are abstract — no connection to how tools like ChatGPT actually use agents | Agent Architect | Add "Real AI Agents" comparison panel showing how real-world agents work similarly |
+
+### 7.4 Pedagogical Approach Assessment
+
+| Game | Approach | Strength | Risk |
+|------|----------|----------|------|
+| Pet Trainer | Learning-by-metaphor (pet = ML model) | Emotional engagement drives motivation | Risk of anthropomorphizing AI — pet "wants" to learn vs. model optimizes |
+| Sort Toy Box | Discovery learning (sort first, see AI second) | Builds intuition before explanation | Without multi-round progression, discovery is too shallow |
+| Neural Builder | Constructionism (build a network) | Hands-on building creates deep understanding | Random training simulation undermines the core lesson (BUG-NB1) |
+| Prompt Lab | Experiential learning (write → observe → refine) | Real AI responses create authentic feedback loops | Open-endedness can overwhelm younger children without scaffolding |
+| Agent Architect | Project-based learning (complete missions) | Structured goals with creative solutions | Mission-only mode limits free exploration |
+| Bias Detective | Case-based learning (investigate real scenarios) | Real-world relevance creates meaning | 6 cases are too few for deep pattern recognition across bias types |
+
+### 7.5 Educational Depth Ratings (Post-Expansion)
+
+| Game | Current Rating | Post-Expansion | Rationale |
+|------|---------------|----------------|-----------|
+| Pet Trainer | 6/10 | 8/10 | Overfitting lab + transfer test add genuine ML depth |
+| Sort Toy Box | 5/10 | 8/10 | Multi-round + multi-criteria + animated reveal teach real clustering |
+| Neural Builder | 7/10 | 9/10 | Band A access + hyperparameters + competition create full learning arc |
+| Prompt Lab | 9/10 | 10/10 | Already excellent; recipes + battle add composition mastery |
+| Agent Architect | 7/10 | 9/10 | Debug mode + multi-agent teach real agent engineering |
+| Bias Detective | 8/10 | 10/10 | Custom datasets + A/B testing + reports reach professional audit quality |
+
+---
