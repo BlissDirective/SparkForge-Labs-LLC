@@ -761,3 +761,700 @@ Each game is scored across 5 dimensions (1–10 scale):
 3. **Sort Toy Box** stands out negatively — it looks and feels like a Standard-tier game, not a flagship.
 4. **All flagships lack onboarding tooltips** — first-time players get a learn phase but no contextual UI hints during gameplay.
 5. **Accessibility is uniformly strong** — ARIA labels, role regions, and keyboard navigation are consistent across all 6 games. This is a credit to the template architecture.
+
+---
+
+## 5. Content Expansion Plan (2–3x Seed Content Increase)
+
+### Design Philosophy
+
+Every flagship game should deliver **5–12+ hours of unique content** before exhaustion. The expansion strategy for each game follows three principles:
+
+1. **More Content** — More scenarios, rounds, items, challenges, and configurations
+2. **More Modes** — New ways to play the same core mechanics (timed, sandbox, competitive, cooperative)
+3. **More Depth** — Deeper interactions within existing phases (mini-games, customization, advanced options)
+
+Content is designed to be **age-band adaptive** — Band A gets simplified/visual versions, Band B gets the standard experience, Band C gets advanced features and deeper mechanics.
+
+---
+
+### 5.1 AI Pet Trainer — 2.5x Expansion (2–4 hrs → 5–8 hrs)
+
+**Current State:** 5 pets, 4 category sets, 6 evolution stages, 6 moods
+
+#### 5.1.1 New Pet Species (5 → 8)
+
+| # | Pet | Visual Concept | Personality Trait | Unlock Condition |
+|---|-----|---------------|-------------------|-----------------|
+| 1–5 | Existing (Sparkbit, Neuralink, Datadog, Bytebun, Circucat) | Unchanged | Unchanged | Available at start |
+| 6 | **Glitchfox** | Fox with pixelated tail that "glitches" between states | Mischievous — sometimes mislabels on purpose, teaches error correction | Complete 3 training sessions |
+| 7 | **Datawing** | Dragonfly with translucent data-stream wings | Precise — learns faster but fragile (accuracy drops if overfed bad data) | Reach "Kid" evolution with any pet |
+| 8 | **Neurohound** | Mechanical hound with neural-pathway markings that glow during training | Loyal — retains categories better across sessions, teaches memory/retention | Reach "Genius" evolution with any pet |
+
+Each new pet has unique toon-shaded R3F model variants, mood animations, and evolution visual progressions.
+
+#### 5.1.2 Training Categories (4 → 10)
+
+| # | Category | Items (8 each) | Visual Style | Difficulty |
+|---|----------|----------------|-------------|------------|
+| 1–4 | Existing (Shapes, Fruits, Animals, Vehicles) | Unchanged | Unchanged | Easy–Medium |
+| 5 | **Instruments** | Guitar, Piano, Drums, Violin, Flute, Trumpet, Harp, Saxophone | Silhouette outlines | Medium |
+| 6 | **Weather** | Sun, Rain, Snow, Wind, Lightning, Fog, Hail, Rainbow | Animated icons | Easy |
+| 7 | **Emotions** | Happy, Sad, Angry, Surprised, Scared, Confused, Proud, Sleepy | Expressive faces | Medium |
+| 8 | **Foods** | Pizza, Sushi, Taco, Burger, Salad, Pasta, Soup, Sandwich | Cartoon illustrations | Easy |
+| 9 | **Clothing** | Hat, Shirt, Pants, Shoes, Dress, Jacket, Scarf, Gloves | Flat design icons | Medium |
+| 10 | **Vehicles (Advanced)** | Submarine, Helicopter, Rocket, Sailboat, Train, Bicycle, Segway, Hovercraft | Technical drawings | Hard |
+
+#### 5.1.3 Evolution Stages (6 → 8)
+
+| Stage | Name | Visual Change | Requirement |
+|-------|------|---------------|-------------|
+| 1–6 | Existing (Egg → Baby → Toddler → Kid → Teen → Genius) | Unchanged | Unchanged |
+| 7 | **Specialist** | Pet gains a visual "badge" or accessory matching its best-trained category (e.g., music notes for Instruments) | Train 3+ categories to 90%+ accuracy |
+| 8 | **Master** | Full visual overhaul — glowing aura, unique idle animation, crown/halo effect | Train 6+ categories to 95%+ accuracy |
+
+#### 5.1.4 New Training Mini-Games (3 new modes)
+
+**Speed Drill** — Rapid-Fire Labeling
+- 30-second timer, items flash on screen for 2 seconds each
+- Player must label correctly before time runs out
+- Teaches: batch processing, speed vs. accuracy tradeoff
+- Scoring: correct = +3 pts, wrong = -1 pt, skip = 0 pts
+- Band A: 4-second timer per item, Band C: 1.5-second timer
+
+**Noise Challenge** — Filtering Bad Data
+- Mix of correctly and intentionally mislabeled items presented to pet
+- Player must identify and reject the bad labels before feeding to pet
+- Teaches: data quality, noise in training data, garbage-in-garbage-out
+- Scoring: correctly identified noise = +5 pts, missed noise = -3 pts
+- Band A: obvious noise (cat labeled "car"), Band C: subtle noise (tabby cat labeled "dog")
+
+**Transfer Test** — Cross-Category Generalization
+- Train pet on one category (e.g., Fruits), then test on related category (e.g., Foods)
+- Pet must generalize learned features to new domain
+- Teaches: transfer learning, feature generalization, domain adaptation
+- Scoring: based on pet's accuracy on the unseen category
+- Band A: closely related categories, Band C: distant categories
+
+#### 5.1.5 Pet Mood System (6 → 10)
+
+| # | Mood | Trigger | Visual | Learning Effect |
+|---|------|---------|--------|-----------------|
+| 1–6 | Existing (sleeping, confused, learning, smart, genius, celebrating) | Unchanged | Unchanged | Unchanged |
+| 7 | **Frustrated** | 3+ consecutive wrong labels | Furrowed brow, small sparks | Learning rate -20% until soothed (correct label) |
+| 8 | **Curious** | New category introduced | Wide eyes, tilted head, question marks | Learning rate +30% for first 5 items |
+| 9 | **Proud** | Reached new evolution stage | Puffed chest, sparkle effect | Bonus XP for next 3 correct labels |
+| 10 | **Sleepy** | 15+ items without a break | Drooping eyes, yawn animation | Learning rate -40%, signals player to take a break |
+
+#### 5.1.6 Overfitting Lab (New Phase)
+
+A dedicated phase inserted between "train" and "test" where children intentionally overtrain on one category:
+- Player feeds pet 20+ items from a single category (e.g., only Fruits)
+- Pet reaches 99% accuracy on Fruits but then fails on other categories
+- Visual: pet's "brain" glows one color intensely while others dim
+- Player then balances training data and watches accuracy equalize
+- Teaches: overfitting, data balance, generalization — a critical ML concept
+- Band A: guided with prompts ("Oh no, your pet only knows fruits!"), Band C: student must diagnose independently
+
+#### 5.1.7 Pet Customization (New System)
+
+Accessories unlocked through training milestones:
+
+| Milestone | Reward | Category |
+|-----------|--------|----------|
+| First evolution | Basic hat (3 colors) | Headwear |
+| 50 correct labels | Collar/necklace (5 styles) | Accessories |
+| Complete Speed Drill | Speed goggles | Special |
+| Complete Noise Challenge | Noise-canceling headphones | Special |
+| Complete Transfer Test | Professor glasses | Special |
+| Reach Specialist | Category-themed badge | Badges |
+| Reach Master | Crown + aura effect | Prestige |
+
+Accessories are purely cosmetic but visible in the 3D pet scene, providing tangible rewards for training effort.
+
+#### 5.1.8 Expansion Impact Summary
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Pets | 5 | 8 | +60% |
+| Categories | 4 | 10 | +150% |
+| Evolution stages | 6 | 8 | +33% |
+| Training modes | 1 (labeling) | 4 (label + speed + noise + transfer) | +300% |
+| Moods | 6 | 10 | +67% |
+| Unique combinations | 120 | 640+ | +433% |
+| Estimated depth | 2–4 hrs | 5–8 hrs | **~2.5x** |
+
+---
+
+### 5.2 Sort Toy Box — 3x Expansion (30–60 min → 3–5 hrs) **[MAJOR OVERHAUL]**
+
+**Current State:** 12 shapes, 1 round, 3 criteria, no progression
+
+This is the most significant expansion — Sort Toy Box goes from the weakest flagship to a fully-featured multi-round sorting experience.
+
+#### 5.2.1 Five-Round Progressive System
+
+| Round | Name | Shapes | Sorting Dimensions | Groups | Time Limit | Band A | Band C |
+|-------|------|--------|--------------------|--------|------------|--------|--------|
+| 1 | **Basic Shapes** | Circle, Square, Triangle, Star, Pentagon, Hexagon | 1 (shape only) | 3 | None | Guided tutorial | Self-directed |
+| 2 | **Colors & Sizes** | R1 shapes + Diamond, Oval, Heart | 2 (shape + color OR shape + size) | 4 | None | Choose 1 dimension | Both dimensions required |
+| 3 | **3D Polyhedra** | Cube, Sphere, Pyramid, Cylinder, Torus, Cone, Prism, Dodecahedron | 2 (shape + faces/edges OR shape + volume class) | 4 | 90 sec | Visual cues | Count faces/edges |
+| 4 | **Patterns & Textures** | Striped, Dotted, Checkered, Gradient, Solid, Metallic, Wooden, Glass | 3 (pattern + color + opacity) | 5 | 75 sec | Match visible pattern | Describe abstract features |
+| 5 | **Mixed Challenge** | Random selection from all rounds | AI picks 2-3 from any dimension | 6 | 60 sec | AI hints | No hints, full difficulty |
+
+**Progression gates:** Round N+1 unlocks when Round N is completed with ≥60% match accuracy.
+
+#### 5.2.2 Expanded Shape Library (12 → 30+)
+
+**Round 1 — 2D Basic (6 shapes):**
+Circle, Square, Triangle, Star, Pentagon, Hexagon
+- 3 sizes (small, medium, large)
+- 5 colors (red, blue, green, yellow, purple)
+
+**Round 2 — 2D Extended (4 new, 10 total):**
+Add: Diamond, Oval, Heart, Arrow
+- 3 sizes × 5 colors × 10 shapes = 150 possible items
+
+**Round 3 — 3D Polyhedra (8 new, 18 total):**
+Add: Cube, Sphere, Pyramid, Cylinder, Torus, Cone, Prism, Dodecahedron
+- Properties: faces (4–12), edges (6–30), vertices (4–20), volume class (small/medium/large)
+- Rendered as actual 3D objects in the R3F SortScene3D
+
+**Round 4 — Textured (8 new patterns applied to any shape, 26+ total):**
+Patterns: Striped, Dotted, Checkered, Gradient, Solid, Metallic, Wooden, Glass
+- Applied to Round 1–3 shapes, creating hundreds of unique combinations
+
+**Round 5 — Mixed (all shapes, all properties, AI-selected criteria):**
+Full pool of 30+ base shapes with all property dimensions active
+
+#### 5.2.3 Expanded Sorting Criteria (3 → 8)
+
+| # | Criterion | Type | Description | Round Introduced |
+|---|-----------|------|-------------|-----------------|
+| 1 | Shape | Categorical | Group by geometric shape | Round 1 |
+| 2 | Color | Categorical | Group by color family | Round 1 |
+| 3 | Size | Ordinal | Group by small/medium/large | Round 1 |
+| 4 | **Pattern** | Categorical | Group by surface pattern (striped, dotted, etc.) | Round 4 |
+| 5 | **Texture** | Categorical | Group by material appearance (metallic, glass, etc.) | Round 4 |
+| 6 | **Weight** | Ordinal | Inferred from size + material (metal > wood > glass) | Round 3 |
+| 7 | **Symmetry** | Binary | Symmetrical vs. asymmetrical shapes | Round 2 |
+| 8 | **Edge Count** | Numerical | Group by number of edges (0, 3, 4, 5, 6+) | Round 3 |
+
+AI may combine 1–3 criteria simultaneously in later rounds.
+
+#### 5.2.4 Group Mechanics (max 4 → 6)
+
+**New interactions:**
+- **Merge Groups:** Drag one group onto another to combine them (teaches cluster merging)
+- **Split Groups:** Long-press a group to split it into two sub-groups (teaches hierarchical clustering)
+- **Group Labels:** Players can name their groups (Band C: typed labels; Band A: emoji labels)
+- **Group Confidence:** Visual indicator showing how "sure" the AI would be about each group assignment
+
+#### 5.2.5 AI Reveal Enhancement
+
+Replace the instant reveal with a **3-phase animated reveal**:
+
+**Phase 1 — Feature Extraction (3 seconds):**
+- Each shape gets a "scan" animation (light bar sweeps across)
+- Extracted features appear as floating tags next to each shape
+- Teaches: AI doesn't see shapes like humans do — it extracts numerical features
+
+**Phase 2 — Distance Calculation (3 seconds):**
+- Lines draw between similar shapes, thickness = similarity score
+- Dissimilar shapes have thin/faded lines, similar shapes have bright/thick lines
+- Numerical similarity scores appear on hover
+- Teaches: AI measures "distance" between items in feature space
+
+**Phase 3 — Cluster Formation (4 seconds):**
+- Shapes animate into AI-determined groups with spring physics
+- Each group gets a label and a "centroid" marker
+- Player's groups shown side-by-side for comparison
+- Match percentage calculated and displayed
+- Teaches: clustering algorithms group by minimizing within-group distance
+
+#### 5.2.6 New Game Modes (3 additions)
+
+**Challenge Mode — Timed Sorting Races:**
+- Fixed shape set, countdown timer (30/60/90 seconds)
+- Score = shapes correctly sorted × time bonus
+- Leaderboard per round (personal best tracking)
+- Combo multiplier: 3 correct in a row = 2x, 5 = 3x, 10 = 5x
+- Band A: 90 sec with hints, Band C: 30 sec no hints
+
+**Discovery Mode — Free-Play Sandbox:**
+- Unlimited shapes, unlimited groups, no timer, no scoring
+- Player creates their own sorting rules
+- "Teach the AI" prompt: player explains their rule in text, AI tries to follow it
+- Teaches: the challenge of formalizing human intuition into algorithmic rules
+- Band A: guided prompts ("Try sorting by color!"), Band C: open-ended
+
+**Multi-Criteria Mode — Dimension Stacking (Band B/C only):**
+- Sort by 2–3 criteria simultaneously
+- Visual: shapes exist in a 2D or 3D feature space grid
+- Player must create groups that satisfy all criteria
+- Teaches: multi-dimensional clustering, the curse of dimensionality
+- Band C gets a scatter plot visualization of the feature space
+
+#### 5.2.7 Scoring Overhaul
+
+| Action | Old Points | New Points | Rationale |
+|--------|-----------|------------|-----------|
+| Correct sort (per shape) | 2 | 5 | Primary action should be primary reward |
+| Combo bonus (3+ streak) | — | +2 per shape | Rewards consistent accuracy |
+| AI reveal click | 20 | 5 | Reduce passive reward |
+| Match accuracy bonus | — | 0–30 (scaled) | High match % = high bonus |
+| Round completion | — | 10 | Progression reward |
+| All 5 rounds complete | — | 50 | Milestone bonus |
+| **Max possible (Round 1)** | **44** | **~75** | **Effort-weighted** |
+| **Max possible (all rounds)** | **44** | **~500+** | **Deep progression** |
+
+#### 5.2.8 Expansion Impact Summary
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Rounds | 1 | 5 | +400% |
+| Shapes | 12 | 30+ | +150% |
+| Criteria | 3 | 8 | +167% |
+| Max groups | 4 | 6 | +50% |
+| Game modes | 1 | 4 (standard + challenge + discovery + multi-criteria) | +300% |
+| AI reveal steps | 1 (instant) | 3 (animated) | +200% |
+| Max score | 44 | 500+ | +1000% |
+| Estimated depth | 30–60 min | 3–5 hrs | **~3x** |
+
+---
+
+### 5.3 Neural Builder — 2.5x Expansion (2–3 hrs → 5–8 hrs)
+
+**Current State:** 3 challenges, 4 architecture tests, Band B/C only, no hyperparameter exposure
+
+#### 5.3.1 Band A Content (New — Ages 7–9)
+
+Band A uses a completely simplified "brain building" metaphor with no numbers, no math, and guided tutorials.
+
+**3 Band A Challenges:**
+
+| # | Challenge | Concept | Interaction |
+|---|-----------|---------|-------------|
+| 1 | **Connect the Dots** | Neurons connect to form a network | Drag colorful "brain cells" between dots to create paths. More paths = smarter brain. |
+| 2 | **Build a Simple Brain** | Layers of a neural network | Stack 2–4 layers of brain cells. Each layer has 2–6 cells. Animated "thoughts" flow through. |
+| 3 | **Color Sorter** | Input→output mapping | Feed colored balls into the brain, watch them travel through layers, come out sorted. |
+
+**Band A UI Adaptations:**
+- Large touch targets (60px minimum)
+- Animated helper character ("Sparky") with speech bubbles providing guidance
+- No numerical displays — use visual size metaphors (bigger = more neurons)
+- Simplified training: "Feed your brain!" button instead of "Train Network"
+- Results shown as star rating (1–5 stars) instead of accuracy percentage
+- 3D network uses larger, rounder nodes with bright colors
+
+#### 5.3.2 Expanded Challenges (3 → 8)
+
+| # | Challenge | Input | Output | Optimal Architecture | Difficulty |
+|---|-----------|-------|--------|---------------------|------------|
+| 1–3 | Existing (Digit Reader, Color Classifier, Shape Sorter) | Unchanged | Unchanged | Unchanged | Medium |
+| 4 | **Sound Recognizer** | Audio waveform visualization | Instrument identification (4 classes) | 3 layers: 8→12→4 | Medium |
+| 5 | **Emotion Detector** | Emoji face images | Emotion label (6 classes) | 4 layers: 10→8→8→6 | Hard |
+| 6 | **Animal Identifier** | Animal silhouettes | Species group (5 classes) | 3 layers: 8→10→5 | Medium |
+| 7 | **Text Classifier** | Short text snippets (visual) | Category (4 classes: question/statement/exclamation/command) | 4 layers: 12→8→6→4 | Hard |
+| 8 | **Weather Predictor** | Temperature + humidity + wind data points | Weather type (5 classes: sunny/rain/snow/cloudy/storm) | 3 layers: 3→8→5 | Hard |
+
+Each challenge includes unique learn cards, test items, and optimal architecture hints.
+
+#### 5.3.3 Architecture Tests (4 → 8)
+
+| # | Test | Description | What It Teaches | Band |
+|---|------|-------------|-----------------|------|
+| 1–4 | Existing (Minimalist, Shallow Master, Deep Thinker, Efficiency Expert) | Unchanged | Unchanged | B/C |
+| 5 | **Overfitter** | Build the largest possible network (max layers, max neurons) | Large networks memorize but don't generalize — accuracy drops on test set | B/C |
+| 6 | **Underfitter** | Build the smallest possible network (1 layer, 2 neurons) | Too-small networks can't capture patterns — low accuracy on everything | B/C |
+| 7 | **Speed Demon** | Achieve 80%+ accuracy with the fewest total neurons | Efficiency matters — smaller networks are faster to train and deploy | C |
+| 8 | **Memory Master** | Achieve highest accuracy on the most complex challenge (Weather Predictor) | Some problems need more capacity — matching architecture to problem complexity | C |
+
+#### 5.3.4 Band C Advanced Features
+
+**Activation Function Selector:**
+- Dropdown per layer: ReLU (default), Sigmoid, Tanh
+- Visual: each function shown as an animated graph overlay on the layer
+- Impact: affects training curve shape and convergence speed
+- ReLU: fast convergence, risk of "dead neurons"
+- Sigmoid: smooth but slow, vanishing gradient on deep networks
+- Tanh: centered output, better for balanced tasks
+
+**Dropout Layer Toggle:**
+- Toggle per layer: Off (default), 25%, 50%
+- Visual: random neurons "dim" during training (dropped out)
+- Impact: reduces overfitting, improves generalization
+- Learn card explains regularization concept
+
+**Learning Rate Slider:**
+- Range: 0.001 → 0.1 (currently hardcoded at 0.2)
+- Visual: controls "step size" in loss landscape animation
+- High LR: fast but unstable (oscillating loss curve)
+- Low LR: stable but slow (barely moving loss curve)
+- Optimal: smooth descent to minimum
+
+**Batch Size Selector (Band C only):**
+- Options: 1 (SGD), 8, 32, 128
+- Visual: shows how many items are processed before updating weights
+- Small batch: noisy updates, good generalization
+- Large batch: smooth updates, risk of overfitting
+
+#### 5.3.5 Competition Mode: "Beat the Benchmark"
+
+Each challenge has a benchmark accuracy set by a "standard" architecture:
+- Player must design an architecture that beats the benchmark
+- Leaderboard tracks: best accuracy, fewest neurons, fastest convergence
+- Bronze/Silver/Gold tiers: Beat benchmark / Beat by 5% / Beat by 10%
+- Unlocks special network visual themes (neon, fire, ice, galaxy)
+
+#### 5.3.6 Expansion Impact Summary
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Challenges | 3 | 8 | +167% |
+| Architecture tests | 4 | 8 | +100% |
+| Age bands | B/C | A/B/C | +Band A |
+| Hyperparameters exposed | 0 | 4 (activation, dropout, LR, batch) | New |
+| Game modes | 1 | 2 (standard + competition) | +100% |
+| Unique play paths | 12 | 64+ | +433% |
+| Estimated depth | 2–3 hrs | 5–8 hrs | **~2.5x** |
+
+---
+
+### 5.4 Prompt Lab — 2.5x Expansion (5–10 hrs → 12–20+ hrs)
+
+**Current State:** 5 challenges, 8 templates, 5 scoring dimensions, live Claude API sandbox
+
+Prompt Lab is already the deepest flagship thanks to live AI interaction. The expansion focuses on structured content, new modes, and real-world scenarios.
+
+#### 5.4.1 Expanded Challenges (5 → 12)
+
+| # | Challenge | Goal | Scoring Focus | Band |
+|---|-----------|------|---------------|------|
+| 1–5 | Existing (Sharpshooter, Actor, Creative, Ethics Debater, Template Master) | Unchanged | Unchanged | A/B/C |
+| 6 | **Storyteller** | Write a prompt that generates a complete 3-act story with character arcs | Creativity + structure + length control | A/B/C |
+| 7 | **Code Helper** | Write a prompt that helps debug a code snippet (pre-set buggy code shown) | Specificity + technique + output-formatting | B/C |
+| 8 | **Translator** | Write a prompt that translates AND adapts a message for a different culture | Context-awareness + constraints + clarity | B/C |
+| 9 | **Summarizer** | Write a prompt that compresses a 500-word article into exactly 3 bullet points | Constraints + specificity + output-formatting | A/B/C |
+| 10 | **Fact Checker** | Write a prompt that evaluates a claim and provides sourced reasoning | Technique + clarity + context-awareness | B/C |
+| 11 | **Persuader** | Write a prompt that generates a convincing argument for a given position | Creativity + technique + constraints | C |
+| 12 | **Teacher** | Write a prompt that explains a complex concept at a specified reading level | Context-awareness + clarity + specificity | B/C |
+
+Each challenge includes: introduction text, pre-set context/input, scoring rubric with dimension weights, 3 star thresholds, and an "expert example" prompt revealed after completion.
+
+#### 5.4.2 Expanded Templates (8 → 15)
+
+| # | Template | Pattern | Slot Count | Band |
+|---|----------|---------|------------|------|
+| 1–8 | Existing templates | Unchanged | Unchanged | A/B/C |
+| 9 | **Role-Play** | "You are a [ROLE] who [CONTEXT]. When I say [INPUT], respond as [BEHAVIOR]." | 4 | A/B/C |
+| 10 | **Debate Format** | "Present [N] arguments for [POSITION] and [N] against. Evaluate each on [CRITERIA]." | 4 | B/C |
+| 11 | **Compare/Contrast** | "Compare [THING_A] and [THING_B] across these dimensions: [DIMS]. Format as a table." | 4 | B/C |
+| 12 | **Q&A Generator** | "Generate [N] questions about [TOPIC] at [DIFFICULTY] level. Include answers." | 4 | A/B/C |
+| 13 | **Story Arc** | "Write a story about [CHARACTER] who [CONFLICT]. Include: setup, rising action, climax, resolution." | 3 | A/B/C |
+| 14 | **Structured Output** | "Analyze [INPUT] and return results as [FORMAT: JSON/table/list] with fields: [FIELDS]." | 4 | C |
+| 15 | **Multi-Turn** | "First, [STEP_1]. Based on that result, [STEP_2]. Finally, [STEP_3]." | 3 | B/C |
+
+#### 5.4.3 Scoring Dimensions (5 → 7)
+
+| # | Dimension | Weight | Description |
+|---|-----------|--------|-------------|
+| 1–5 | Existing (Specificity, Clarity, Creativity, Constraints, Technique) | Unchanged | Unchanged |
+| 6 | **Context-Awareness** | 10% | Does the prompt provide sufficient background for the AI to respond accurately? Measures role-setting, audience definition, domain specification. |
+| 7 | **Output-Formatting** | 10% | Does the prompt specify how the response should be structured? Measures format requests (JSON, table, bullets), length constraints, section headers. |
+
+Existing dimensions reweighted to accommodate: Specificity 20%, Clarity 15%, Creativity 15%, Constraints 15%, Technique 15%, Context-Awareness 10%, Output-Formatting 10%.
+
+#### 5.4.4 New Modes
+
+**Prompt Battle — Side-by-Side Comparison:**
+- Write 2 prompts for the same task
+- Both sent to Claude API simultaneously
+- Responses shown side-by-side with scoring comparison
+- Player picks the winner, then sees AI's scoring breakdown
+- Teaches: iteration, A/B testing, prompt refinement
+- Band A: pre-written prompt A vs. player's prompt B; Band C: both written by player
+
+**Prompt History — Session Archive:**
+- All prompts and responses saved to a scrollable timeline
+- Each entry shows: prompt text, response preview, score, timestamp
+- "Replay" button re-sends prompt for comparison (shows if different response)
+- "Improve" button copies prompt to sandbox with improvement suggestions highlighted
+- Export to clipboard for sharing
+
+**Prompt Recipes — Multi-Step Chains:**
+- Build a sequence of 2–4 prompts where each prompt's output feeds into the next
+- Visual: flowchart showing prompt chain with data flowing between steps
+- Example recipe: Brainstorm → Outline → Draft → Review
+- Teaches: agent-like behavior, multi-step reasoning, decomposition
+- Band A: 2-step recipes with guided slots; Band C: 4-step custom chains
+
+#### 5.4.5 Real-World Scenario Packs (5 packs, 3 scenarios each)
+
+| Pack | Theme | Scenarios |
+|------|-------|-----------|
+| **Homework Helper** | Academic support | Essay outline generator, Math word problem solver, Study guide creator |
+| **Creative Writing** | Storytelling | Character creator, Plot twist generator, Dialogue writer |
+| **Science Explorer** | Scientific inquiry | Experiment designer, Hypothesis evaluator, Data interpreter |
+| **Debate Prep** | Argumentation | Argument builder, Counter-argument finder, Opening statement writer |
+| **Code Review** | Programming | Bug finder, Code explainer, Refactoring advisor |
+
+Each scenario provides: context setup, pre-loaded data/text, specific goal, scoring rubric, expert example.
+
+#### 5.4.6 Expansion Impact Summary
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Challenges | 5 | 12 | +140% |
+| Templates | 8 | 15 | +88% |
+| Scoring dimensions | 5 | 7 | +40% |
+| Game modes | 1 (sandbox) | 4 (sandbox + battle + history + recipes) | +300% |
+| Scenario packs | 0 | 5 (15 scenarios) | New |
+| Estimated depth | 5–10 hrs | 12–20+ hrs | **~2.5x** |
+
+---
+
+### 5.5 Agent Architect — 2.5x Expansion (3–5 hrs → 8–12 hrs)
+
+**Current State:** 8 missions, 10 block types, 4 phases, cinema mode execution
+
+#### 5.5.1 Expanded Block Types (10 → 15)
+
+| # | Block | Icon | Description | Unlocked At |
+|---|-------|------|-------------|-------------|
+| 1–10 | Existing (Goal, Search, Tool, Decide, Check, Loop, Memory, Parallel, Human, Done) | Unchanged | Unchanged | Missions 1–8 |
+| 11 | **Filter** | Funnel | Filters data based on criteria before passing to next block | Mission 9 |
+| 12 | **Transform** | Gear | Modifies data format/structure (e.g., text→list, JSON→table) | Mission 10 |
+| 13 | **API-Call** | Cloud | Makes external API request with configurable endpoint + params | Mission 12 |
+| 14 | **Validate** | Checkmark | Verifies data meets quality/format requirements before proceeding | Mission 14 |
+| 15 | **Notify** | Bell | Sends alert/notification to user or another agent | Mission 16 |
+
+#### 5.5.2 Expanded Missions (8 → 18)
+
+**Beginner Tier (Missions 1–5) — Sequential Pipelines:**
+
+| # | Mission | Goal | Required Blocks | Stars |
+|---|---------|------|-----------------|-------|
+| 1–3 | Existing beginner missions | Unchanged | Unchanged | Unchanged |
+| 4 | **Recipe Finder** | Agent searches for recipes matching user's ingredients | Goal→Search→Filter→Done | 1–3 |
+| 5 | **Daily Briefing** | Agent gathers news + weather + calendar and presents summary | Goal→Search→Search→Search→Transform→Done | 1–3 |
+
+**Intermediate Tier (Missions 6–11) — Branching + Loops:**
+
+| # | Mission | Goal | Key Blocks | Stars |
+|---|---------|------|------------|-------|
+| 6–8 | Existing intermediate missions | Unchanged | Unchanged | Unchanged |
+| 9 | **Smart Shopper** | Agent compares prices across stores, filters by budget, recommends best deal | Goal→Search→Filter→Decide→Done | 1–3 |
+| 10 | **Study Planner** | Agent reviews subject list, transforms into schedule, loops until all subjects covered | Goal→Tool→Transform→Loop→Check→Done | 1–3 |
+| 11 | **Bug Hunter** | Agent reads error log, searches for solutions, validates fix works | Goal→Tool→Search→Validate→Decide→Done | 1–3 |
+
+**Advanced Tier (Missions 12–15) — Parallel + Memory:**
+
+| # | Mission | Goal | Key Blocks | Stars |
+|---|---------|------|------------|-------|
+| 12 | **Travel Planner** | Agent books flights + hotels + activities in parallel, remembers preferences | Goal→Parallel(API-Call×3)→Memory→Transform→Done | 1–3 |
+| 13 | **Content Creator** | Agent researches topic, drafts content, self-reviews, iterates until quality threshold met | Goal→Search→Tool→Check→Loop→Validate→Done | 1–3 |
+| 14 | **Customer Support** | Agent triages request, searches knowledge base, validates answer, escalates to human if unsure | Goal→Decide→Search→Validate→Human→Notify→Done | 1–3 |
+| 15 | **Data Pipeline** | Agent fetches data from 3 sources, transforms each, merges, validates output format | Goal→Parallel(API-Call×3)→Transform×3→Filter→Validate→Done | 1–3 |
+
+**Expert Tier (Missions 16–18) — Multi-Agent + Error Recovery:**
+
+| # | Mission | Goal | Key Blocks | Stars |
+|---|---------|------|------------|-------|
+| 16 | **Agent Team** | Design 2 agents that coordinate: one researches, one writes, they exchange data | 2× (Goal→...→Done) with Notify cross-links | 1–3 |
+| 17 | **Error Recovery** | Agent must handle API failures gracefully — retry, fallback, alert human | Goal→API-Call→Check→Loop→Decide→Human→Notify→Done | 1–3 |
+| 18 | **Autonomous Assistant** | Full personal assistant: handles email triage, calendar management, task prioritization, and user notifications | Goal→Parallel(Search, Tool, Memory)→Decide→Loop→Validate→Notify→Done | 1–3 |
+
+#### 5.5.3 Themed Mission Packs (5 packs)
+
+Each pack provides 3 related missions with shared context and progressive difficulty:
+
+| Pack | Theme | Missions | Concept Taught |
+|------|-------|----------|----------------|
+| **Kitchen Helper** | Meal planning + cooking | Ingredient checker → Recipe finder → Meal planner | Sequential reasoning |
+| **Homework Assistant** | Academic support | Question identifier → Research agent → Summary writer | Information retrieval |
+| **Game Designer** | Simple game creation | Rule definer → Score tracker → Win condition checker | Logic flows |
+| **Weather Reporter** | Data journalism | Data gatherer → Analyzer → Report formatter | Data pipelines |
+| **Pet Sitter** | Virtual pet care | Status monitor → Need responder → Schedule planner | Event-driven agents |
+
+#### 5.5.4 New Modes
+
+**Sandbox Mode — Free Build:**
+- No mission constraints — any blocks, any connections
+- Test with custom text inputs typed by the player
+- "Share Pipeline" button generates a text description of the agent
+- Band A: guided sandbox with suggested blocks; Band C: fully open
+
+**Debug Mode — Fix Broken Pipelines:**
+- Pre-built pipelines with intentional errors (missing connections, wrong block order, infinite loops)
+- Player must identify and fix the issue
+- 10 debug challenges across difficulty tiers
+- Teaches: debugging, testing, error identification
+- Visual: broken connections shown as red dashed lines, error blocks pulse red
+
+**Execution Replay — Step-by-Step Debugging:**
+- After cinema mode execution, player can step through frame-by-frame
+- Each step shows: current block, input data, output data, decision made
+- "Variable Inspector" panel shows data state at each node
+- Teaches: tracing execution flow, understanding intermediate state
+- Band C: includes pseudocode view alongside visual replay
+
+#### 5.5.5 Band C: Multi-Agent + Personality
+
+**Multi-Agent Coordination:**
+- Design 2 agents on a split canvas
+- Connect them via Notify blocks (message passing)
+- Agent A can "call" Agent B as a sub-routine
+- Teaches: microservices, API design, delegation
+- Visual: two separate pipeline canvases side-by-side with data flow arrows between them
+
+**Agent Personality Configuration:**
+- Per-agent personality slider: Formal ↔ Casual, Detailed ↔ Concise, Creative ↔ Factual
+- Affects the pseudocode generation style and cinema mode narration tone
+- Teaches: prompt engineering for agent behavior, system prompts
+
+#### 5.5.6 Expansion Impact Summary
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Block types | 10 | 15 | +50% |
+| Missions | 8 | 18 | +125% |
+| Mission packs | 0 | 5 (15 missions) | New |
+| Game modes | 1 (mission) | 4 (mission + sandbox + debug + replay) | +300% |
+| Debug challenges | 0 | 10 | New |
+| Multi-agent support | No | Yes (Band C) | New |
+| Estimated depth | 3–5 hrs | 8–12 hrs | **~2.5x** |
+
+---
+
+### 5.6 Bias Detective — 2.5x Expansion (3–5 hrs → 8–12 hrs)
+
+**Current State:** 6 cases, 3 evidence categories, 5 detective ranks, preset test lab
+
+#### 5.6.1 Expanded Cases (6 → 14)
+
+| # | Case | Domain | Bias Type | Real-World Inspiration | Band |
+|---|------|--------|-----------|----------------------|------|
+| 1–6 | Existing (Hiring Bot, Photo Filter, Loan Bot, School Predictor, Music Recommender, Medical AI) | Unchanged | Unchanged | Unchanged | A/B/C |
+| 7 | **Social Media Feed** | Content curation | Engagement bias — algorithm promotes outrage over accuracy | Facebook/Twitter algorithmic feeds | A/B/C |
+| 8 | **Criminal Justice AI** | Sentencing/risk | Racial bias in recidivism prediction models | COMPAS algorithm | B/C |
+| 9 | **Insurance Pricing** | Financial services | Proxy discrimination — zip code correlates with race/income | Algorithmic redlining | B/C |
+| 10 | **Voice Assistant** | Speech recognition | Accent bias — lower accuracy for non-standard accents | Smart speaker dialect gaps | A/B/C |
+| 11 | **Ad Targeting** | Advertising | Gender/age stereotyping in ad delivery | Housing/job ad discrimination | B/C |
+| 12 | **Translation Bias** | Language | Gender-default assumptions in translation (e.g., "doctor" → male) | Google Translate gender defaults | A/B/C |
+| 13 | **Facial Recognition** | Surveillance | Demographic accuracy disparities — higher error for darker skin tones | MIT Gender Shades study | B/C |
+| 14 | **Content Moderation** | Online safety | Differential enforcement — flagging dialects/slang as "toxic" more than standard language | Social media moderation bias | C |
+
+Each case includes: narrative setup, 4–6 evidence items, 2–3 test lab scenarios, 3 fix options (1 best, 1 partial, 1 wrong), and a real-world case study reference.
+
+#### 5.6.2 Evidence Categories (3 → 5)
+
+| # | Category | Icon | Description | Example |
+|---|----------|------|-------------|---------|
+| 1–3 | Existing (Data Bias, Outcome Disparity, Pattern Recognition) | Unchanged | Unchanged | Unchanged |
+| 4 | **Feedback Loop** | Circular arrows | The system's outputs reinforce its biases over time | Predictive policing: more arrests → more data → more predictions → more arrests in same area |
+| 5 | **Historical Bias** | Clock/history | Training data reflects historical inequities that the model perpetuates | Hiring AI trained on 10 years of (biased) hiring decisions |
+
+#### 5.6.3 Detective Ranks (5 → 8)
+
+| Rank | Name | Cases Required | Reward |
+|------|------|---------------|--------|
+| 1–5 | Existing (Rookie → Senior Detective) | Unchanged | Unchanged |
+| 6 | **Chief Inspector** | Complete 8 cases with strong arguments | Gold detective badge + "bias radar" visual overlay on future cases |
+| 7 | **Bias Commissioner** | Complete 11 cases, identify all 5 evidence types | Platinum badge + access to expert-level case details |
+| 8 | **Ethics Board Chair** | Complete all 14 cases with 80%+ accuracy on fixes | Diamond badge + ability to design custom cases (see 5.6.6) |
+
+#### 5.6.4 Test Lab Expansion
+
+**Custom Dataset Builder (New):**
+- Player creates a test dataset by selecting demographic attributes (age, gender, region, income bracket)
+- Set the sample size (10–1000)
+- Choose the bias scenario to test (hiring, lending, etc.)
+- Run the AI model on the custom dataset and observe disparate outcomes
+- Teaches: experimental design, controlled testing, variable isolation
+- Band A: simplified with 2 attributes, pre-set sizes; Band C: full control
+
+**A/B Testing Mode (New):**
+- Run the same test on two models side-by-side: biased model vs. debiased model
+- Compare outcomes across demographics in a split-view dashboard
+- Metrics displayed: accuracy per group, approval rate per group, false positive/negative rates
+- Teaches: model comparison, the impact of debiasing interventions
+- Visual: two bias scales side by side, one tilted, one balanced
+
+**Bias Metric Dashboard (New — Band B/C):**
+- Interactive dashboard showing quantitative bias metrics:
+  - **Disparate Impact Ratio:** (favorable rate for protected group) / (favorable rate for privileged group). Fair ≥ 0.8
+  - **Equal Opportunity Difference:** |TPR_protected - TPR_privileged|. Fair ≤ 0.1
+  - **Demographic Parity:** difference in positive prediction rates across groups
+- Slider to adjust fairness threshold and watch model behavior change
+- Teaches: mathematical definitions of fairness, tradeoffs between fairness metrics
+
+#### 5.6.5 Fix Phase Expansion
+
+**Data Rebalancing Workshop (New):**
+- Visual: bar chart showing training data distribution across demographics
+- Player drags sliders to rebalance data (add/remove samples per group)
+- Retrain button shows accuracy impact of rebalancing
+- Teaches: data augmentation, resampling, representational harm
+
+**Feature Removal Experiment (New):**
+- List of features the model uses (age, zip code, name, credit score, etc.)
+- Player toggles features on/off
+- Model retrains and shows: accuracy change + bias change
+- Teaches: proxy variables, feature selection, accuracy-fairness tradeoff
+- Key insight: removing "race" doesn't remove racial bias if zip code is a proxy
+
+**Fairness Constraint Tuning (New — Band C):**
+- Slider: Accuracy ↔ Fairness tradeoff
+- At max accuracy: model is biased but performs well overall
+- At max fairness: model is fair but overall accuracy drops
+- Sweet spot: balanced performance with acceptable fairness
+- Teaches: Pareto optimality, there is no "free lunch" in fairness
+
+#### 5.6.6 New Features
+
+**Real-World Timeline (Interactive):**
+- Scrollable timeline of 15+ famous AI bias incidents (2015–2026)
+- Each entry: year, title, description, bias type, outcome, lesson learned
+- Clickable entries expand to full case study with images and data
+- Connected to relevant in-game cases via "See related case" links
+
+**Bias Report Generator:**
+- After completing a case, player writes a structured bias audit report
+- Sections: Executive Summary, Evidence Found, Tests Conducted, Fixes Recommended, Remaining Risks
+- AI-assisted writing (Band B/C): Claude provides sentence starters and feedback
+- Export as formatted text (copy to clipboard)
+- Teaches: professional communication, technical writing, accountability
+
+**Stakeholder Interviews (Simulated):**
+- Per case: 3 simulated interviews with affected parties
+- Example (Hiring Bot): rejected applicant, hiring manager, AI developer
+- Each interview reveals unique perspective and evidence
+- Player must synthesize multiple viewpoints into their investigation
+- Band A: pre-written interview summaries; Band C: interactive dialogue trees
+
+#### 5.6.7 Expansion Impact Summary
+
+| Metric | Before | After | Change |
+|--------|--------|-------|--------|
+| Cases | 6 | 14 | +133% |
+| Evidence categories | 3 | 5 | +67% |
+| Detective ranks | 5 | 8 | +60% |
+| Test lab modes | 1 (preset) | 4 (preset + custom dataset + A/B + metrics) | +300% |
+| Fix phase tools | 1 (option select) | 4 (option + rebalance + feature removal + fairness tuning) | +300% |
+| New features | 0 | 3 (timeline + reports + interviews) | New |
+| Estimated depth | 3–5 hrs | 8–12 hrs | **~2.5x** |
+
+---
+
+### 5.7 Cross-Game Expansion Summary
+
+| Game | Before (Depth) | After (Depth) | Multiplier | Key Additions |
+|------|---------------|--------------|------------|---------------|
+| Pet Trainer | 2–4 hrs | 5–8 hrs | 2.5x | +3 pets, +6 categories, +3 mini-games, +overfitting lab, +customization |
+| Sort Toy Box | 30–60 min | 3–5 hrs | 3x | +5 rounds, +18 shapes, +5 criteria, +3 modes, +animated reveal |
+| Neural Builder | 2–3 hrs | 5–8 hrs | 2.5x | +Band A, +5 challenges, +4 tests, +4 hyperparams, +competition |
+| Prompt Lab | 5–10 hrs | 12–20+ hrs | 2.5x | +7 challenges, +7 templates, +3 modes, +5 scenario packs |
+| Agent Architect | 3–5 hrs | 8–12 hrs | 2.5x | +5 blocks, +10 missions, +5 packs, +3 modes, +multi-agent |
+| Bias Detective | 3–5 hrs | 8–12 hrs | 2.5x | +8 cases, +2 evidence types, +3 test tools, +3 fix tools, +3 features |
+| **Combined** | **~16–27 hrs** | **~41–65 hrs** | **~2.5x avg** | **Platform flagship content nearly tripled** |
