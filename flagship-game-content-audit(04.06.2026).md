@@ -623,3 +623,141 @@ The shapes array is generated once via `useMemo` with empty deps. On replay (wit
 - 8 bugs in Neural Builder (most buggy flagship)
 - 4 bugs in Sort Toy Box
 - 0 bugs found in Prompt Lab, Agent Architect, Bias Detective, Pet Trainer
+
+---
+
+## 4. UI/UX Audit
+
+### Evaluation Criteria
+
+Each game is scored across 5 dimensions (1–10 scale):
+
+| Dimension | What It Measures |
+|-----------|-----------------|
+| **Visual Cohesion** | Consistency with Frost-Prismatic design system (chrome bezels, neon accents, dark mode, lab colors) |
+| **Interactivity** | Input variety, response feedback, animation quality, engagement hooks |
+| **Information Architecture** | Phase flow clarity, progress indicators, status visibility |
+| **Accessibility** | ARIA labels, keyboard navigation, screen reader support, color contrast |
+| **3D Integration** | How well the 3D scene enhances (not distracts from) gameplay |
+
+### Per-Game UI/UX Scores
+
+#### 4.1 AI Pet Trainer — 8/10
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Visual Cohesion | 9 | Purple (#8B5CF6) chrome bezel + LED rim consistent throughout. Toon-shaded pets are visually distinctive. |
+| Interactivity | 7 | Pet selection, naming, labeling, and evolution are engaging. Training is pure button clicks — no drag-and-drop, no gestures. |
+| Info Architecture | 8 | 7-phase flow with clear progression. Evolution stage indicator provides satisfying progress visualization. |
+| Accessibility | 9 | Full ARIA labels, role regions, keyboard-navigable buttons. Mood descriptions accessible. |
+| 3D Integration | 8 | Pet3DScene with mood-reactive animations enhances emotional connection. PetDataLab3D bar chart is useful. |
+
+**Strengths:** Strongest emotional hook of all flagships. Pet moods and evolution create attachment. Purple theme is visually warm.
+**Weaknesses:** Training phase is repetitive (click label, click label, click label). No drag interaction. Data lab visualization is informative but passive.
+**Recommendations:** Add drag-and-drop labeling. Add pet interaction animations (feeding, playing). Add pet customization panel.
+
+---
+
+#### 4.2 Sort Toy Box — 6/10 **[WEAKEST UI]**
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Visual Cohesion | 7 | Purple (#AA66FF) particles and gradient buttons are present but minimal. Less chrome bezel detail than other flagships. |
+| Interactivity | 5 | Shape selection + group assignment is the only interaction. No progression indicators, no feedback animations, no celebration milestones. |
+| Info Architecture | 4 | Single round with no phase progression visible to the user. No round counter, no difficulty indicator, no achievement markers. |
+| Accessibility | 8 | ARIA labels present, role regions defined, progress indicators with spoken descriptions. |
+| 3D Integration | 7 | SortScene3D provides spatial sorting visualization. SortFeatureViz3D is useful for reveal phase. |
+
+**Strengths:** Clean, simple concept — easy to understand for all ages. 3D shape visualization is intuitive.
+**Weaknesses:** 
+- **No progression system** — game feels like a single-screen toy, not a multi-phase game
+- **No feedback loops** — no celebration when shapes are grouped correctly
+- **No difficulty indication** — no visual cue about challenge level
+- **Shortest gameplay** — 8-10 minutes feels more like a demo than a flagship
+- **Score display is misleading** — HUD shows max 120 but real max is 44
+**Recommendations:** Complete UI overhaul with multi-round progression bar, per-round difficulty badges, combo multiplier display, sorting streak counter, AI reveal step-by-step animation panel.
+
+---
+
+#### 4.3 Neural Builder — 9/10
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Visual Cohesion | 9 | Pink (#EC4899) theme with particle background. Chrome bezel consistent. Loss curve charts (Nivo) are polished. |
+| Interactivity | 9 | Add/remove layers, adjust neurons, weight sliders, drawing canvas, train button, architecture challenges. Most interactive flagship. |
+| Info Architecture | 8 | 6-phase flow with clear progression. Epoch counter and accuracy meter provide real-time feedback. Loss curve graph shows history. |
+| Accessibility | 8 | ARIA labels on all controls. Layer/neuron count announced. Training progress described. Canvas drawing has no screen reader support (inherent limitation). |
+| 3D Integration | 9 | NeuralNetwork3D with orbit controls, hover inspection, connection sparks, and heartbeat animation is the best 3D-gameplay integration of all flagships. |
+
+**Strengths:** Richest input variety — buttons, sliders, canvas drawing, 3D orbit interaction. Real-time training visualization with charts is compelling. Audio feedback via Tone.js adds multisensory depth.
+**Weaknesses:** No Band A adaptation — no simplified UI mode for ages 7–9. Weight slider interaction requires fine motor control. Canvas drawing is small (200×200px).
+**Recommendations:** Add Band A simplified mode with larger touch targets, guided tutorials, and visual-only (no numeric) interface. Enlarge canvas. Add undo/redo for drawing.
+
+---
+
+#### 4.4 Prompt Lab — 9/10
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Visual Cohesion | 10 | Amber theme with holographic UI is the most visually polished flagship. Chrome bezel + LED rim at highest detail. Markdown rendering is clean. |
+| Interactivity | 9 | Text input, creativity dial, template selection, challenge progression, copy/paste, X-Ray analysis. Rich input variety. |
+| Info Architecture | 8 | 5-phase flow with sandbox freedom. Multi-dimensional scoring provides clear feedback. Template library organized by category. |
+| Accessibility | 8 | ARIA labels on all controls. Text input accessible. Dial slider has screen reader description. Response text is selectable. |
+| 3D Integration | 8 | PromptBubble3D thought bubbles are playful. PromptScore3D radar chart is informative. Neither blocks content — additive only. |
+
+**Strengths:** Best visual polish. Holographic aesthetic feels premium. Live AI responses create genuine surprise and discovery. Creativity dial is an intuitive metaphor for temperature.
+**Weaknesses:** Template slots are fill-in-the-blank text only — no visual template builder. No prompt history view. Long AI responses scroll off-screen without a scroll indicator.
+**Recommendations:** Add prompt history panel. Add visual template builder. Add scroll position indicator for long responses. Add prompt comparison side-by-side view.
+
+---
+
+#### 4.5 Agent Architect — 8/10
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Visual Cohesion | 8 | Green (#10B981) theme is consistent. Block palette color-coding by category is intuitive. Connection paths are clean. |
+| Interactivity | 8 | Block placement, connection drawing, configuration panels, cinema mode execution. Good variety but lacks drag-and-drop for positioning. |
+| Info Architecture | 8 | 4-phase flow with mission progression. Star rating per mission provides clear goals. Block unlocking creates advancement feeling. |
+| Accessibility | 8 | ARIA labels on blocks and buttons. Mission descriptions accessible. Cinema mode narration provides audio track. |
+| 3D Integration | 8 | AgentPipeline3D with data packet animation and spotlight tracking is visually engaging. Doesn't interfere with block building UI. |
+
+**Strengths:** Mission structure provides clear goals. Cinema mode execution is unique and engaging — children watch their agent "run" with narration. Star rating drives replay. Pseudocode generation (Band C) bridges visual-to-code.
+**Weaknesses:** Block placement uses click-to-add, not drag-and-drop. No free-build sandbox outside missions. Configuration panels are text-only — could use visual selectors.
+**Recommendations:** Add drag-and-drop block positioning on canvas. Add sandbox mode. Add visual configuration selectors (dropdowns, sliders) instead of text-only. Add step-by-step debug mode.
+
+---
+
+#### 4.6 Bias Detective — 8/10
+
+| Dimension | Score | Notes |
+|-----------|-------|-------|
+| Visual Cohesion | 8 | Red (#EF4444) theme with evidence board aesthetic. Chrome bezel present. Scale visualization is on-theme. |
+| Interactivity | 7 | Evidence checkbox selection, custom test input, fix option selection. Fewer input types than other flagships. |
+| Info Architecture | 9 | 7-phase flow is the most structured — each phase has a clear purpose and builds on the previous. Detective rank progression visible. |
+| Accessibility | 9 | Full ARIA labels. Evidence categories labeled. Bias scale descriptions accessible. Argument strength clearly communicated via text + color. |
+| 3D Integration | 7 | BiasScales3D with spring physics is thematic but largely decorative. BiasDecisionTree3D adds value in fix phase. |
+
+**Strengths:** Best information architecture — 7 phases create a compelling investigation arc. Real-world case grounding makes content feel important. Evidence collection mechanic is engaging.
+**Weaknesses:** Evidence selection is checkbox-only — no evidence "board" visualization with connecting threads. Test lab is preset-only — no freeform testing. Fix phase could show more visual impact of fixes.
+**Recommendations:** Add visual evidence board with connecting threads. Add custom dataset builder in test lab. Add before/after visualization for fix phase. Add bias metric dashboard with real numbers.
+
+---
+
+### UI/UX Comparative Summary
+
+| Game | Cohesion | Interact. | Info Arch | A11y | 3D | **Overall** |
+|------|----------|-----------|-----------|------|----|-------------|
+| Prompt Lab | 10 | 9 | 8 | 8 | 8 | **9/10** |
+| Neural Builder | 9 | 9 | 8 | 8 | 9 | **9/10** |
+| Pet Trainer | 9 | 7 | 8 | 9 | 8 | **8/10** |
+| Agent Architect | 8 | 8 | 8 | 8 | 8 | **8/10** |
+| Bias Detective | 8 | 7 | 9 | 9 | 7 | **8/10** |
+| **Sort Toy Box** | 7 | 5 | 4 | 8 | 7 | **6/10** |
+
+### Cross-Cutting UI Issues
+
+1. **No unified achievement/milestone UI** — each game handles completion differently. No shared trophy animation, no "personal best" indicator, no cross-game progress.
+2. **Score display inconsistency** — GameShell HUD assumes `totalRounds × 10` for all games. Needs per-game maxScore.
+3. **Sort Toy Box** stands out negatively — it looks and feels like a Standard-tier game, not a flagship.
+4. **All flagships lack onboarding tooltips** — first-time players get a learn phase but no contextual UI hints during gameplay.
+5. **Accessibility is uniformly strong** — ARIA labels, role regions, and keyboard navigation are consistent across all 6 games. This is a credit to the template architecture.
