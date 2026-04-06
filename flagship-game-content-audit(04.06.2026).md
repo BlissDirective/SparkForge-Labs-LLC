@@ -306,3 +306,320 @@ Each game was evaluated across four dimensions:
 3. **No flagship has AI-generated content** except Prompt Lab — all others are static/finite
 4. **Pet Trainer** has the best emotional hook (pet evolution) but the least content variety
 5. **All flagships** lack cross-session persistence — progress resets each play
+
+---
+
+## 3. Bug Audit
+
+### Methodology
+
+All 6 flagship game files, the shared `gameStore.ts`, and `GameShell.tsx` were read line-by-line. Bugs are classified by severity:
+
+- **CRITICAL** — Breaks core gameplay, produces incorrect learning outcomes, or causes significant performance issues
+- **HIGH** — Causes confusing behavior, data loss, or degraded experience
+- **MEDIUM** — UX issues, dead code, or edge cases that affect quality
+
+### 3.1 Shared Infrastructure Bugs (Affect ALL 35 Games)
+
+#### BUG-GS1: `updateScore()` Makes `maxScore` Meaningless [CRITICAL]
+
+**File:** `src/stores/gameStore.ts` — Line 41
+```typescript
+updateScore: (points) => set((s) => ({ score: s.score + points, maxScore: s.maxScore + points })),
+```
+
+**Problem:** `maxScore` increments in lockstep with `score`. They are always equal. The `maxScore` field is supposed to represent the maximum *possible* score, but it actually just mirrors the current score. This makes percentage-based calculations (completion tier, HUD progress bar) meaningless.
+
+**Impact:** GameShell.tsx line 102 calculates `scorePercent = score / (totalRounds * 10) * 100` which is independent of `maxScore`, but any component reading `maxScore` gets incorrect data. The CeremonyFX tier (bronze/silver/gold) may fire incorrectly.
+
+**Fix Options:**
+- **Option A (Recommended):** Remove `maxScore` from `updateScore`. Add separate `setMaxScore(points)` action. Each game sets max possible score at start via `setMaxScore()`.
+- **Option B:** Rename `maxScore` to `totalPointsEarned` and accept the dual-tracking semantic. Add a new `possibleScore` field set by games.
+- **Option C:** Remove `maxScore` entirely from the store. Let each game compute its own maximum internally and pass it as a prop.
+
+---
+
+#### BUG-GS2: `advanceRound()` Off-By-One [HIGH]
+
+**File:** `src/stores/gameStore.ts` — Lines 42–45
+```typescript
+advanceRound: () => {
+  const s = get();
+  if (s.currentRound >= s.totalRounds) { set({ isComplete: true }); }
+  else { set({ currentRound: s.currentRound + 1 }); }
+},
+```
+
+**Problem:** When `currentRound === totalRounds`, calling `advanceRound()` sets `isComplete: true` but doesn't actually advance the round counter. The game appears to jump from "playing round N" to "complete" without showing the final round's result. Additionally, `startGame` initializes `currentRound: 1`, so a game with `totalRounds: 4` goes 1→2→3→4→complete, which is correct in count but the `>=` check means calling `advanceRound` when already at round 4 immediately completes — potentially before the round's gameplay finishes if called prematurely.
+
+**Impact:** Games that call `advanceRound()` at the *start* of each round (rather than after) will skip the last round entirely.
+
+**Fix Options:**
+- **Option A (Recommended):** Change to `>` comparison: `if (s.currentRound > s.totalRounds)`. Advance first, then check.
+- **Option B:** Split into two actions: `nextRound()` (always increments) and `checkComplete()` (checks if done). Games call both explicitly.
+
+---
+
+#### BUG-GS3: `resetGame()` Partial State Reset [HIGH]
+
+**File:** `src/stores/gameStore.ts` — Line 51
+```typescript
+resetGame: () => set({ currentRound: 1, score: 0, maxScore: 0, isComplete: false, isPaused: false, timeElapsed: 0, gameData: {} }),
+```
+
+**Problem:** Does not clear `currentGame`, `totalRounds`, or `hintsRemaining`. After `resetGame()`, the store retains stale references to the previous game ID and round configuration. If a new game starts without calling `startGame()` first, it inherits the old game's metadata.
+
+**Impact:** GameShell calls `resetGame()` in its cleanup effect (line 90). If the next game mounts before `startGame()` fires, it reads stale `currentGame` and `totalRounds`.
+
+**Fix Options:**
+- **Option A (Recommended):** Reset ALL fields: add `currentGame: null, totalRounds: 0, hintsRemaining: 3` to the reset object.
+- **Option B:** Remove `resetGame()` entirely. Games always call `startGame()` which already resets everything.
+
+---
+
+#### BUG-GS4: Hardcoded `maxScore` in GameShell HUD [CRITICAL]
+
+**File:** `src/components/game/GameShell.tsx` — Line 83
+```typescript
+maxScore: totalRounds * 10,
+```
+
+**Problem:** The GameHUD3D progress bar assumes every game awards exactly 10 points per round. But actual scoring varies wildly:
+- **Sort Toy Box:** 2 pts/shape × 12 shapes + 20 reveal = 44 pts (but HUD shows max 120)
+- **Neural Builder:** `Math.round(maxAcc / 10) * 5` = variable (0–49 pts, HUD shows max 200)
+- **Bias Detective:** 10 base + 5/strong arg per case = variable
+
+**Impact:** HUD progress bar shows incorrect percentages. A fully-completed Sort Toy Box shows ~36% on the progress bar. CeremonyFX tier calculation (line 102) uses the same `totalRounds * 10` divisor, so bronze/silver/gold thresholds are wrong for every game.
+
+**Fix Options:**
+- **Option A (Recommended):** Accept `maxScore` as a GameShell prop. Each game passes its actual maximum. Default to `totalRounds * 10` for backwards compatibility.
+- **Option B:** Remove maxScore from HUD entirely. Show raw score only.
+
+---
+
+#### BUG-GS5: Reward Pipeline Has No Error Handling [HIGH]
+
+**File:** `src/components/game/GameShell.tsx` — Lines 97–99
+```typescript
+if (!isComplete || hasRewarded.current || !activeChild?.id) return;
+hasRewarded.current = true;
+completeAndReward(activeChild.id, gameId, xpReward, 'game', score);
+```
+
+**Problem:** `hasRewarded.current = true` is set *before* the async `completeAndReward()` call. If the API call fails (network error, server timeout), the reward is permanently lost for that session — `hasRewarded.current` prevents retry even after reconnection.
+
+**Impact:** Intermittent network failures cause permanent XP/streak/badge loss. Children complete a game successfully but receive no reward.
+
+**Fix Options:**
+- **Option A (Recommended):** Wrap in try/catch. On failure, reset `hasRewarded.current = false` and show a retry toast.
+- **Option B:** Move `hasRewarded.current = true` into the `.then()` callback of the promise chain, so it only marks as rewarded on success.
+
+---
+
+### 3.2 Neural Builder Bugs
+
+#### BUG-NB1: Training Simulation Ignores Network Architecture [CRITICAL]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — Lines 464–468
+```typescript
+const acc = Math.min(
+  maxAcc,
+  (e / epochs) * maxAcc + Math.random() * 5
+);
+```
+
+**Problem:** Accuracy is primarily determined by `(e / epochs) * maxAcc` — a linear ramp from 0 to `maxAcc` over 20 epochs, plus up to 5% random noise. While `maxAcc` is influenced by `optimalMatch`, the per-epoch accuracy progression is effectively predetermined. A student who builds a terrible architecture sees the same smooth curve as one who builds an optimal one — just capped at a slightly different maximum.
+
+**Impact:** This is the most educationally damaging bug. The entire premise of Neural Builder is "architecture matters." But the training visualization tells children that **any architecture produces similar results** — contradicting the core learning objective. Architecture challenges become luck-based rather than skill-based.
+
+**Fix:** Make accuracy progression architecture-dependent:
+- Good architectures: fast convergence, high plateau, low noise
+- Bad architectures: slow start, lower plateau, high variance, potential divergence
+- Overly deep networks: show vanishing gradient effect (accuracy plateau mid-training)
+
+---
+
+#### BUG-NB2: `optimalMatch` Divisor Bug [HIGH]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — Lines 454–460
+```typescript
+const optimalMatch =
+  layerSizes.length === challenge.optimalLayers.length
+    ? layerSizes.reduce(
+        (sum, s, i) => sum + Math.abs(s - challenge.optimalLayers[i]),
+        0
+      ) / totalNeurons
+    : 0.5;
+```
+
+**Problem:** Dividing the sum of absolute differences by `totalNeurons` produces inconsistent scaling. For a 4-8-8-4 network (24 neurons) vs. optimal 4-6-6-4 (20 neurons): diff = |4-4|+|8-6|+|8-6|+|4-4| = 4, result = 4/24 = 0.17. But for 100-100-100-100 (400 neurons) vs. same optimal: diff = |100-4|+|100-6|+|100-6|+|100-4| = 380, result = 380/400 = 0.95. The penalty scales non-linearly with network size.
+
+**Fix:** Normalize by `challenge.optimalLayers.reduce((a,b) => a+b, 0)` (sum of optimal neurons) instead of `totalNeurons`.
+
+---
+
+#### BUG-NB3: `sparkIntensity` Calculated After Clamping [HIGH]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — Lines 490–497
+```typescript
+const newWeight = parseFloat(
+  (c.weight + (Math.random() - 0.5) * learningRate * 2).toFixed(2)
+);
+return {
+  ...c,
+  weight: Math.max(-1, Math.min(1, newWeight)),
+  sparkIntensity: Math.abs(newWeight - c.weight),
+};
+```
+
+**Problem:** `sparkIntensity` is calculated as `|newWeight - c.weight|`, but `newWeight` is already clamped to [-1, 1] on the line above. If the unclamped value would have been 1.5 but gets clamped to 1.0, and `c.weight` is 0.9, sparkIntensity = |1.0 - 0.9| = 0.1 (small spark). But the actual change was much larger (0.6), which should produce a big spark.
+
+**Fix:** Calculate sparkIntensity from the unclamped delta: `sparkIntensity: Math.abs(rawDelta)` where `rawDelta = (Math.random() - 0.5) * learningRate * 2`.
+
+---
+
+#### BUG-NB4: Duplicate 3D Network Rendering [CRITICAL]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — Lines 304–324 AND Lines 1073–1089
+
+The `NeuralNetwork3D` component is rendered in two places simultaneously:
+1. **Line 305:** Registered in `sceneStore.setGameSceneContent()` — renders inside CockpitCanvas
+2. **Line 1074:** Rendered inline in the build phase JSX — renders in the DOM
+
+Both receive identical props and both render a full 3D R3F scene. This doubles GPU memory usage, draw calls, and frame computation.
+
+**Fix:** Remove the inline rendering at lines 1073–1089. Keep only the sceneStore registration (lines 304–324) which renders inside the persistent CockpitCanvas per D3D-B1 architecture.
+
+---
+
+#### BUG-NB5: setTimeout Persists After Unmount [MEDIUM]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — Lines 611–614
+```typescript
+setTimeout(() => {
+  setPhase('report');
+  game.completeGame();
+}, 1500);
+```
+
+**Problem:** If the component unmounts during the 1500ms delay (user navigates away, tab switches), the callback fires on an unmounted component. `setPhase` and `game.completeGame()` execute against stale state, potentially triggering the reward pipeline in GameShell.
+
+**Fix:** Store the timeout ID in a ref and clear it in a useEffect cleanup: `const timeoutRef = useRef<NodeJS.Timeout>(); ... return () => clearTimeout(timeoutRef.current);`
+
+---
+
+#### BUG-NB6: Heartbeat Stops During Training [MEDIUM]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — Lines 352–358
+```typescript
+useEffect(() => {
+  if (isTraining || phase !== 'build') return;
+  const interval = setInterval(() => {
+    setHeartbeatPhase((prev) => (prev + 0.015) % 1);
+  }, 50);
+  return () => clearInterval(interval);
+}, [isTraining, phase]);
+```
+
+**Problem:** The heartbeat animation returns early when `isTraining` is true. During the 12-second training loop, the 3D network appears completely frozen — no visual indication that training is occurring beyond the text-based epoch counter.
+
+**Fix:** Continue heartbeat during training but at increased speed: `const speed = isTraining ? 0.04 : 0.015;`
+
+---
+
+#### BUG-NB7: Audio Queuing During Training [MEDIUM]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — Lines 503–507
+
+Audio plays on every epoch (20 times) plus activation sounds every 3rd epoch (~7 more). If a user triggers training multiple times in rapid succession, 27+ audio events queue from each run, causing distortion and audio overlap.
+
+**Fix:** Add audio stream management — cancel previous playback before starting new, or use a semaphore to limit concurrent audio events.
+
+---
+
+#### BUG-NB8: Canvas Not Cleared on Challenge Switch [MEDIUM]
+
+**File:** `src/components/games/NeuralBuilderGame.tsx` — `selectChallenge()` function (line ~430)
+
+When switching challenges, the drawing canvas retains its previous content. The `initCanvas()` function (line 548) clears to black, but it's only called when the canvas mounts, not when challenges change.
+
+**Fix:** Call `initCanvas()` inside `selectChallenge()` after resetting state.
+
+---
+
+### 3.3 Sort Toy Box Bugs
+
+#### BUG-ST1: Score Distribution Inverted [MEDIUM]
+
+**File:** `src/components/games/SortToyBoxGame.tsx` — Lines ~283, ~301
+
+- Sorting effort: 12 shapes × 2 pts each = 24 pts
+- AI reveal click: +20 pts (single button click)
+- Reveal is worth 83% as much as the entire interactive sorting phase
+
+**Problem:** The incentive structure rewards clicking "reveal" more than doing the sorting. A child could ignore sorting entirely and still get 45% of the score from the reveal bonus.
+
+**Fix:** Invert the ratio — sorting effort should be the primary score driver. Consider: 5 pts/shape (60 total) + 5 reveal bonus, or scoring based on how close the player's groups match the AI's answer.
+
+---
+
+#### BUG-ST2: Dead `useGameContent` Hook [MEDIUM]
+
+**File:** `src/components/games/SortToyBoxGame.tsx` — Line ~173
+```typescript
+const { data: _dynamicContent } = useGameContent('sort-toy-box', ageBand);
+```
+
+Imported but never used (underscore prefix). Wastes a React Query fetch cycle and network request.
+
+**Fix:** Remove the hook call entirely until AI content generation is implemented.
+
+---
+
+#### BUG-ST3: AI Reveal is Instant [MEDIUM]
+
+**File:** `src/components/games/SortToyBoxGame.tsx` — Lines ~291–299
+
+The AI "sorts" all shapes instantly with no animation, no thinking simulation, and no step-by-step explanation. The UI suggests the AI is analyzing data, but the result appears immediately.
+
+**Fix:** Add a multi-step reveal animation: (1) feature extraction highlight, (2) similarity calculation display, (3) animated group formation over 2-3 seconds.
+
+---
+
+#### BUG-ST4: Stale Shapes on Replay [MEDIUM]
+
+**File:** `src/components/games/SortToyBoxGame.tsx`
+
+The shapes array is generated once via `useMemo` with empty deps. On replay (within the same session), shapes are not regenerated — the player sees the exact same 12 items with the same properties.
+
+**Fix:** Add a `replayCount` state variable to the useMemo dependency array. Increment on replay to force regeneration.
+
+---
+
+### 3.4 Bug Summary Table
+
+| ID | File | Line(s) | Severity | Description | Scope |
+|----|------|---------|----------|-------------|-------|
+| BUG-GS1 | gameStore.ts | 41 | CRITICAL | maxScore mirrors score, always equal | All 35 games |
+| BUG-GS2 | gameStore.ts | 42–45 | HIGH | advanceRound off-by-one | All 35 games |
+| BUG-GS3 | gameStore.ts | 51 | HIGH | resetGame doesn't clear all state | All 35 games |
+| BUG-GS4 | GameShell.tsx | 83 | CRITICAL | Hardcoded maxScore = totalRounds × 10 | All 35 games |
+| BUG-GS5 | GameShell.tsx | 97–99 | HIGH | Reward pipeline no error handling | All 35 games |
+| BUG-NB1 | NeuralBuilderGame.tsx | 464–468 | CRITICAL | Training ignores architecture | Neural Builder |
+| BUG-NB2 | NeuralBuilderGame.tsx | 454–460 | HIGH | optimalMatch divisor wrong | Neural Builder |
+| BUG-NB3 | NeuralBuilderGame.tsx | 490–497 | HIGH | sparkIntensity post-clamp calc | Neural Builder |
+| BUG-NB4 | NeuralBuilderGame.tsx | 304+1074 | CRITICAL | Duplicate 3D rendering | Neural Builder |
+| BUG-NB5 | NeuralBuilderGame.tsx | 611–614 | MEDIUM | setTimeout persists on unmount | Neural Builder |
+| BUG-NB6 | NeuralBuilderGame.tsx | 352–358 | MEDIUM | Heartbeat stops during training | Neural Builder |
+| BUG-NB7 | NeuralBuilderGame.tsx | 503–507 | MEDIUM | Audio queuing/distortion | Neural Builder |
+| BUG-NB8 | NeuralBuilderGame.tsx | ~430 | MEDIUM | Canvas not cleared on switch | Neural Builder |
+| BUG-ST1 | SortToyBoxGame.tsx | ~283, ~301 | MEDIUM | Score distribution inverted | Sort Toy Box |
+| BUG-ST2 | SortToyBoxGame.tsx | ~173 | MEDIUM | Dead useGameContent hook | Sort Toy Box |
+| BUG-ST3 | SortToyBoxGame.tsx | ~291–299 | MEDIUM | AI reveal is instant | Sort Toy Box |
+| BUG-ST4 | SortToyBoxGame.tsx | useMemo | MEDIUM | Stale shapes on replay | Sort Toy Box |
+
+**Totals: 5 Critical, 5 High, 7 Medium = 17 confirmed bugs**
+- 5 shared infrastructure bugs affect all 35 games
+- 8 bugs in Neural Builder (most buggy flagship)
+- 4 bugs in Sort Toy Box
+- 0 bugs found in Prompt Lab, Agent Architect, Bias Detective, Pet Trainer
