@@ -1458,3 +1458,145 @@ Each case includes: narrative setup, 4–6 evidence items, 2–3 test lab scenar
 | Agent Architect | 3–5 hrs | 8–12 hrs | 2.5x | +5 blocks, +10 missions, +5 packs, +3 modes, +multi-agent |
 | Bias Detective | 3–5 hrs | 8–12 hrs | 2.5x | +8 cases, +2 evidence types, +3 test tools, +3 fix tools, +3 features |
 | **Combined** | **~16–27 hrs** | **~41–65 hrs** | **~2.5x avg** | **Platform flagship content nearly tripled** |
+
+---
+
+## 6. AI Content Generation Strategy
+
+### Overview
+
+Currently, only **Prompt Lab** uses the Claude API for live content. The remaining 5 flagships rely entirely on static seed data — once a child has seen all scenarios, replay value drops to zero. AI content generation transforms every flagship into an **infinite-content** experience by dynamically generating new challenges, scenarios, and training data.
+
+### 6.1 Architecture
+
+#### Shared Utility: `src/lib/ai-content-generator.ts`
+
+```
+┌─────────────────┐     ┌──────────────────────┐     ┌─────────────┐
+│  Game Component  │────▶│  useAIContent() hook  │────▶│  API Route   │
+│  (client)        │     │  (client)             │     │  /api/ai/    │
+│                  │◀────│  merge + cache        │◀────│  generate    │
+└─────────────────┘     └──────────────────────┘     └──────┬──────┘
+                                                            │
+                                                     ┌──────▼──────┐
+                                                     │  Claude API  │
+                                                     │  (Anthropic) │
+                                                     └─────────────┘
+```
+
+**Key design decisions:**
+1. **Server-side only** — Claude API calls happen in the Next.js API route, never client-side (API key security)
+2. **Static-first fallback** — AI content merges with static content; if API fails, static content is always available
+3. **Session caching** — Generated content cached in `localStorage` keyed by `gameId:ageBand:contentType:hash`
+4. **Rate limiting** — Max 5 generation requests per game per session, 30-second cooldown between requests
+5. **Age-band prompting** — Every prompt includes age-band context to ensure appropriate content
+
+#### API Route: `src/app/api/ai/generate-content/route.ts`
+
+```typescript
+// POST /api/ai/generate-content
+// Body: { gameId, contentType, ageBand, context?: object }
+// Returns: { content: T, cached: boolean, generatedAt: string }
+```
+
+- Validates request with Zod schema
+- Routes to game-specific prompt templates
+- Calls Claude API with structured output instructions
+- Validates response matches expected schema
+- Returns typed content matching game-specific interfaces
+
+#### Client Hook: `useAIContent(gameId, contentType, ageBand)`
+
+```typescript
+// Returns: { data: T | null, isLoading, error, generate: () => void }
+// - Auto-checks localStorage cache first
+// - Shows static content immediately, merges AI content when ready
+// - "generate" can be called manually for on-demand content
+```
+
+### 6.2 Per-Game Integration
+
+#### Pet Trainer — AI-Generated Categories + Items
+
+| Content Type | Prompt Strategy | Example Output | Rate |
+|-------------|-----------------|----------------|------|
+| Training Category | "Generate a set of 8 items in the category [X] suitable for ages [band]. Each item needs: name, emoji, 2 distinguishing features." | `{ category: "Ocean Life", items: [{name: "Dolphin", emoji: "🐬", features: ["mammal", "fins"]}, ...] }` | 1 per session |
+| Novel Category Set | "Invent a new training category not in this list: [existing]. Make it visual, concrete, and sortable." | `{ category: "Musical Instruments", items: [...] }` | 1 per session |
+
+**Integration point:** "Surprise me!" button in category selection phase generates a novel category.
+
+#### Sort Toy Box — AI-Generated Criteria + Configurations
+
+| Content Type | Prompt Strategy | Example Output | Rate |
+|-------------|-----------------|----------------|------|
+| Sorting Criterion | "Create a sorting rule for [N] shapes with properties [list]. The rule should be non-obvious but learnable for a [band] child." | `{ criterion: "Sort by how many right angles", groups: 3 }` | 1 per round |
+| Shape Configuration | "Design 12 shapes for a sorting exercise. Each shape has: name, color, size, pattern, symmetry, edgeCount." | `{ shapes: [...] }` | 1 per session |
+
+**Integration point:** Round 5 (Mixed Challenge) uses AI-generated criteria beyond the static 8.
+
+#### Neural Builder — AI-Generated Challenges + Datasets
+
+| Content Type | Prompt Strategy | Example Output | Rate |
+|-------------|-----------------|----------------|------|
+| Architecture Challenge | "Create a neural network challenge for [band]. Include: task description, input type, output classes, optimal architecture hint." | `{ name: "Mood Classifier", inputs: "emoji faces", outputs: ["happy","sad","angry","neutral"], optimal: [4,8,6,4] }` | 1 per session |
+| Test Dataset | "Generate 8 test items for [challenge]. Each item: visual description, correct class, difficulty." | `{ items: [{desc: "smiling face with tears", answer: 0, difficulty: "hard"}, ...] }` | Per challenge |
+
+**Integration point:** "Random Challenge" button generates a novel challenge with unique test items.
+
+#### Agent Architect — AI-Generated Missions
+
+| Content Type | Prompt Strategy | Example Output | Rate |
+|-------------|-----------------|----------------|------|
+| Mission Brief | "Create an agent mission for [band] using blocks: [available]. Include: story context, goal, required blocks, validation rules, 3-star criteria." | `{ title: "Library Helper", story: "...", requiredBlocks: ["Goal","Search","Filter","Done"], starCriteria: {...} }` | 2 per session |
+| Themed Pack | "Create 3 related missions about [theme] with increasing complexity for [band]." | `{ theme: "Space Station", missions: [...] }` | 1 per session |
+
+**Integration point:** "Generate Mission" button in sandbox mode, and "New Pack" option in mission selection.
+
+#### Bias Detective — AI-Generated Cases
+
+| Content Type | Prompt Strategy | Example Output | Rate |
+|-------------|-----------------|----------------|------|
+| Bias Case | "Create an AI bias case study for [band]. Include: scenario title, domain, AI system description, 4 evidence items (across data/outcome/pattern/feedback/historical categories), 3 fix options (1 best, 1 partial, 1 wrong), and a real-world parallel." | `{ title: "Delivery Route AI", domain: "logistics", ...evidence, ...fixes }` | 1 per session |
+| Stakeholder Interview | "Write a 5-exchange interview with [role] affected by [bias case]. Include emotional responses and unique perspective." | `{ role: "Delivery Driver", exchanges: [...] }` | Per case |
+
+**Integration point:** "New Case" button after completing all 14 static cases. Stakeholder interviews generated on-demand.
+
+### 6.3 Content Safety
+
+All AI-generated content passes through a safety layer:
+
+| Check | Implementation | Failure Action |
+|-------|---------------|----------------|
+| Age appropriateness | System prompt specifies age band + forbidden topics | Regenerate with stricter prompt |
+| No real names | Post-generation regex check for common names + public figures | Strip and replace with fictional names |
+| No violence/harm | System prompt excludes violence, weapons, substance use | Regenerate |
+| No PII generation | Post-check for email, phone, address patterns | Strip matched content |
+| Bias case sensitivity | Bias Detective cases reviewed for not stereotyping the groups they discuss | System prompt includes anti-stereotyping instructions |
+| Schema validation | Zod validation of response structure | Fallback to static content |
+
+### 6.4 Caching Strategy
+
+```
+Cache Hierarchy:
+1. localStorage (per-session, per-game, per-band)
+   Key: `sf:ai:{gameId}:{contentType}:{ageBand}:{hash}`
+   TTL: Session duration (cleared on logout)
+   
+2. Supabase Storage (optional, future)
+   Curated AI content promoted to permanent storage
+   Admin review dashboard for quality control
+   Shared across all users (community content)
+```
+
+### 6.5 Cost Estimation
+
+| Game | Calls/Session | Tokens/Call (avg) | Cost/Session (est.) |
+|------|--------------|-------------------|---------------------|
+| Pet Trainer | 1–2 | ~500 | ~$0.003 |
+| Sort Toy Box | 1–3 | ~400 | ~$0.003 |
+| Neural Builder | 1–2 | ~600 | ~$0.004 |
+| Agent Architect | 2–3 | ~800 | ~$0.006 |
+| Bias Detective | 1–2 | ~1,200 | ~$0.008 |
+| **Total per user session** | **6–12** | **~3,500** | **~$0.024** |
+
+At 1,000 daily active users × 2 sessions/day = ~$48/day, $1,440/month. Well within typical API budget for an educational platform.
