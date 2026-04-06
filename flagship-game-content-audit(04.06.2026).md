@@ -1676,3 +1676,142 @@ Each game targets specific cognitive levels. The expansion aims to push all game
 | Bias Detective | 8/10 | 10/10 | Custom datasets + A/B testing + reports reach professional audit quality |
 
 ---
+
+## 8. Implementation Roadmap
+
+### Phase Overview
+
+Implementation is divided into 6 phases, ordered by priority (critical bugs first, then content expansion, then AI integration).
+
+| Phase | Name | Scope | Priority | Dependencies |
+|-------|------|-------|----------|--------------|
+| **A** | GameStore + GameShell Bug Fixes | 2 files, 5 bugs | CRITICAL | None — blocks all other work |
+| **B** | Neural Builder Critical Fixes | 1 file, 8 bugs | CRITICAL | Phase A (gameStore fixes) |
+| **C** | Sort Toy Box Major Expansion | 1 file, 652→1,500+ lines | HIGH | Phase A (gameStore fixes) |
+| **D** | Neural Builder Band A + Content | 1 file, +5 challenges, +Band A | HIGH | Phase B (NB bug fixes) |
+| **D2** | Remaining Flagship Expansions | 4 files (Pet/Prompt/Agent/Bias) | HIGH | Phase A (gameStore fixes) |
+| **E** | AI Content Generation Infra | 2 new files + 1 new route | MEDIUM | Phase A |
+| **F** | Per-Game AI Integration | 5 files modified | MEDIUM | Phase E (infrastructure) |
+
+### Phase A: GameStore + GameShell Bug Fixes
+
+**Files:** `src/stores/gameStore.ts`, `src/components/game/GameShell.tsx`
+**Bugs fixed:** BUG-GS1, BUG-GS2, BUG-GS3, BUG-GS4, BUG-GS5
+**Impact:** All 35 games
+
+| Bug | Fix Summary |
+|-----|------------|
+| BUG-GS1 | Separate `score` and `maxScore`. Add `setMaxScore(points)` action. `updateScore` only modifies `score`. |
+| BUG-GS2 | Change `>=` to `>` in advanceRound comparison. Advance round first, then check completion. |
+| BUG-GS3 | Add `currentGame: null, totalRounds: 0, hintsRemaining: 3` to resetGame object. |
+| BUG-GS4 | Accept `maxScore` as GameShell prop. Pass through to GameHUD3D. Default `totalRounds * 10`. |
+| BUG-GS5 | Wrap `completeAndReward` in try/catch. Reset `hasRewarded.current` on failure. Show retry toast. |
+
+**Verification:** `npm run build` + manual test of start/complete cycle on 2-3 games.
+
+### Phase B: Neural Builder Critical Fixes
+
+**File:** `src/components/games/NeuralBuilderGame.tsx`
+**Bugs fixed:** BUG-NB1 through BUG-NB8
+
+| Bug | Fix Summary |
+|-----|------------|
+| BUG-NB1 | Make training accuracy architecture-dependent. Good arch = fast convergence + high plateau. Bad arch = slow + noisy + potential divergence. |
+| BUG-NB2 | Normalize optimalMatch by `challenge.optimalLayers.reduce((a,b)=>a+b,0)` instead of `totalNeurons`. |
+| BUG-NB3 | Calculate sparkIntensity from raw delta before clamping: `Math.abs((Math.random()-0.5)*learningRate*2)`. |
+| BUG-NB4 | Remove inline `<NeuralNetwork3D>` at line ~1074. Keep only sceneStore registration (line ~305). |
+| BUG-NB5 | Store setTimeout in ref. Clear in useEffect cleanup. |
+| BUG-NB6 | Continue heartbeat during training at increased speed: `isTraining ? 0.04 : 0.015`. |
+| BUG-NB7 | Add audio semaphore — cancel previous playback before starting new. Max 3 concurrent audio events. |
+| BUG-NB8 | Call `initCanvas()` inside `selectChallenge()` after state reset. |
+
+**Verification:** `npm run build` + test training simulation produces architecture-correlated results.
+
+### Phase C: Sort Toy Box Major Expansion
+
+**File:** `src/components/games/SortToyBoxGame.tsx` (652 → ~1,500+ lines)
+
+| Step | Content | Estimated Lines Added |
+|------|---------|----------------------|
+| C1 | Round system (5 rounds, progression gates, round counter UI) | +150 |
+| C2 | Expanded shape library (30+ shapes with all properties) | +200 |
+| C3 | Expanded criteria (8 criteria with combination logic) | +80 |
+| C4 | Group mechanics (merge, split, labels, 6 max) | +100 |
+| C5 | AI reveal animation (3-phase: extract → distance → cluster) | +150 |
+| C6 | Challenge Mode (timer, combo multiplier, leaderboard) | +100 |
+| C7 | Discovery Mode (free-play, custom rules, AI rule matching) | +100 |
+| C8 | Scoring overhaul (effort-weighted, per-round, milestones) | +50 |
+| C9 | Bug fixes (BUG-ST1 through BUG-ST4) | Net 0 (refactor) |
+
+**Also fixes:** BUG-ST1 (score inversion), BUG-ST2 (dead hook), BUG-ST3 (instant reveal), BUG-ST4 (stale shapes)
+
+### Phase D: Neural Builder Band A + Content Expansion
+
+**File:** `src/components/games/NeuralBuilderGame.tsx`
+
+| Step | Content |
+|------|---------|
+| D1 | Band A challenge data (3 challenges: Connect the Dots, Build a Simple Brain, Color Sorter) |
+| D2 | Band A simplified UI (large targets, visual-only, guided tutorial, star ratings) |
+| D3 | New challenges data (5 additional: Sound Recognizer, Emotion Detector, Animal Identifier, Text Classifier, Weather Predictor) |
+| D4 | New architecture tests (4 additional: Overfitter, Underfitter, Speed Demon, Memory Master) |
+| D5 | Band C advanced features (activation selector, dropout toggle, learning rate slider, batch size) |
+| D6 | Competition mode ("Beat the Benchmark" with tiers and unlockables) |
+
+### Phase D2: Remaining Flagship Seed Content Expansions
+
+| Game | File | Key Additions | Estimated Lines Added |
+|------|------|---------------|----------------------|
+| Pet Trainer | `PetTrainerGame.tsx` | +3 pets, +6 categories, +3 mini-games, +4 moods, overfitting lab, customization system | +400–500 |
+| Prompt Lab | `PromptLabGame.tsx` | +7 challenges, +7 templates, +2 scoring dims, Prompt Battle, Prompt Recipes, Prompt History, 5 scenario packs | +500–600 |
+| Agent Architect | `AgentArchitectGame.tsx` | +5 blocks, +10 missions, 5 themed packs, Sandbox, Debug, Replay modes, multi-agent (Band C) | +500–600 |
+| Bias Detective | `BiasDetectiveGame.tsx` | +8 cases, +2 evidence types, +3 ranks, custom dataset builder, A/B testing, fairness tuning, timeline, reports, interviews | +600–700 |
+
+### Phase E: AI Content Generation Infrastructure
+
+| File | Type | Content |
+|------|------|---------|
+| `src/lib/ai-content-generator.ts` | New | Shared utility: content type definitions, age-band prompt templates, caching layer, rate limiting, safety filtering |
+| `src/app/api/ai/generate-content/route.ts` | New | API route: request validation (Zod), game-specific prompt routing, Claude API call, response validation |
+| `src/hooks/useAIContent.ts` | New | Client hook: cache check → static fallback → API call → merge → return typed content |
+
+### Phase F: Per-Game AI Integration
+
+| Game | Integration Point | Content Type |
+|------|------------------|-------------|
+| Pet Trainer | "Surprise me!" button in category selection | Novel training categories + items |
+| Sort Toy Box | Round 5 mixed challenge | AI-generated sorting criteria + shape configs |
+| Neural Builder | "Random Challenge" button | Novel architecture challenges + test datasets |
+| Agent Architect | "Generate Mission" in sandbox | AI-generated missions with story context |
+| Bias Detective | "New Case" after completing static cases | AI-generated bias case studies |
+
+### Dependency Graph
+
+```
+Phase A (gameStore/GameShell fixes)
+├── Phase B (Neural Builder fixes) ──── Phase D (NB expansion)
+├── Phase C (Sort Toy Box expansion)
+├── Phase D2 (Pet/Prompt/Agent/Bias expansions)
+└── Phase E (AI infra) ──── Phase F (per-game AI integration)
+```
+
+Phases B, C, D2, and E can run in parallel after Phase A completes.
+
+### Verification Checklist
+
+After all phases:
+- [ ] `npm run build` passes clean
+- [ ] `npx tsc --noEmit` — zero TypeScript errors
+- [ ] All 6 flagship games complete full phase cycle (welcome → ... → complete)
+- [ ] GameStore `score` and `maxScore` are independent
+- [ ] Neural Builder training accuracy correlates with architecture
+- [ ] Sort Toy Box has 5 playable rounds with progression
+- [ ] Neural Builder Band A mode works for ages 7–9
+- [ ] AI content generation returns valid typed content for all 5 games
+- [ ] Static fallback works when API is unavailable
+- [ ] All ARIA labels present, keyboard navigation functional
+
+---
+
+*End of Flagship Games Playability & Interactivity Audit v1.0*
+*April 6, 2026 — 8 sections, 17 bugs documented, 6 games analyzed, 2.5x average content expansion planned*
