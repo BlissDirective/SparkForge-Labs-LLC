@@ -282,10 +282,15 @@ export function NeuralBuilderGame() {
   // --- Canvas ---
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
+  // BUG-NB5: timeout ref for cleanup on unmount
+  const testTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // --- Audio (V2 Enhancement) ---
   const audio = useNetworkAudio();
   const [soundEnabled, setSoundEnabled] = useState(false);
+  // BUG-NB7: limit concurrent audio events to prevent distortion
+  const activeAudioCount = useRef(0);
+  const MAX_CONCURRENT_AUDIO = 3;
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
@@ -349,14 +354,23 @@ export function NeuralBuilderGame() {
   const complexity = Math.min(1, totalNeurons / 40);
   const trainingProgress = accuracy / 100;
 
-  // --- Heartbeat idle animation (V2 Enhancement) ---
+  // --- Heartbeat animation (V2 Enhancement) ---
+  // BUG-NB6 fix: continue heartbeat during training at increased speed
   useEffect(() => {
-    if (isTraining || phase !== 'build') return;
+    if (phase !== 'build' && phase !== 'train') return;
+    const speed = isTraining ? 0.04 : 0.015;
     const interval = setInterval(() => {
-      setHeartbeatPhase((prev) => (prev + 0.015) % 1);
+      setHeartbeatPhase((prev) => (prev + speed) % 1);
     }, 50);
     return () => clearInterval(interval);
   }, [isTraining, phase]);
+
+  // BUG-NB5: cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (testTimeoutRef.current) clearTimeout(testTimeoutRef.current);
+    };
+  }, []);
 
   // --- Sound toggle (V2 Enhancement) ---
   const toggleSound = useCallback(async () => {
@@ -397,6 +411,8 @@ export function NeuralBuilderGame() {
     const ch = CHALLENGES.find((c) => c.id === id);
     if (!ch) return;
     setChallengeId(id);
+    // BUG-NB8 fix: clear canvas when switching challenges
+    clearCanvas();
     setLayerSizes([...ch.startLayers]);
     setNetwork(buildNetwork(ch.startLayers));
     setAccuracy(0);
@@ -451,25 +467,36 @@ export function NeuralBuilderGame() {
     setLossHistory([]);
 
     const epochs = 20;
+    // BUG-NB2 fix: normalize by sum of optimal neurons, not totalNeurons
+    const optimalNeuronSum = challenge.optimalLayers.reduce((a, b) => a + b, 0);
     const optimalMatch =
       layerSizes.length === challenge.optimalLayers.length
         ? layerSizes.reduce(
             (sum, s, i) => sum + Math.abs(s - challenge.optimalLayers[i]),
             0
-          ) / totalNeurons
+          ) / optimalNeuronSum
         : 0.5;
-    const maxAcc = Math.min(98, 60 + (1 - optimalMatch) * 38);
+    // BUG-NB1 fix: architecture-dependent training curve
+    const archQuality = 1 - Math.min(1, optimalMatch);
+    const maxAcc = Math.min(98, 60 + archQuality * 38);
+    // Good arch: fast convergence, low noise. Bad arch: slow start, high noise, possible divergence.
+    const convergenceRate = 0.5 + archQuality * 0.5; // 0.5 (bad) to 1.0 (good)
+    const noiseLevel = 2 + (1 - archQuality) * 8; // 2 (good) to 10 (bad)
+    const plateauEpoch = Math.floor(epochs * (0.3 + archQuality * 0.5)); // early plateau for bad arch
 
     let prevAcc = 0;
     for (let e = 1; e <= epochs; e++) {
       await new Promise((r) => setTimeout(r, 600));
-      const acc = Math.min(
-        maxAcc,
-        (e / epochs) * maxAcc + Math.random() * 5
-      );
+      // BUG-NB1 fix: architecture-dependent convergence curve
+      const progress = e / epochs;
+      const curvedProgress = e <= plateauEpoch
+        ? Math.pow(progress / (plateauEpoch / epochs), convergenceRate)
+        : 1.0;
+      const noise = (Math.random() - 0.5) * noiseLevel;
+      const acc = Math.min(maxAcc, Math.max(0, curvedProgress * maxAcc + noise));
       const loss = Math.max(
         0.01,
-        2.0 - (e / epochs) * 1.9 + Math.random() * 0.2
+        2.0 - curvedProgress * 1.9 + (Math.random() - 0.5) * (1 - archQuality) * 0.5
       );
 
       setTrainEpoch(e);
@@ -487,24 +514,29 @@ export function NeuralBuilderGame() {
           activation: Math.random() * 0.3 + (acc / 100) * 0.7,
         })),
         connections: prev.connections.map((c) => {
+          // BUG-NB3 fix: calculate sparkIntensity from raw delta before clamping
+          const rawDelta = (Math.random() - 0.5) * learningRate * 2;
           const newWeight = parseFloat(
-            (c.weight + (Math.random() - 0.5) * learningRate * 2).toFixed(2)
+            (c.weight + rawDelta).toFixed(2)
           );
           return {
             ...c,
             prevWeight: c.weight,
             weight: Math.max(-1, Math.min(1, newWeight)),
-            sparkIntensity: Math.abs(newWeight - c.weight),
+            sparkIntensity: Math.abs(rawDelta),
           };
         }),
       }));
 
       // Sound feedback (V2 Enhancement)
-      if (soundEnabled) {
+      // BUG-NB7 fix: limit concurrent audio to prevent queuing/distortion
+      if (soundEnabled && activeAudioCount.current < MAX_CONCURRENT_AUDIO) {
+        activeAudioCount.current++;
         audio.playEpochChord(e, epochs, acc);
         if (e % 3 === 0) {
           audio.playActivation(e % layerSizes.length, layerSizes.length);
         }
+        setTimeout(() => { activeAudioCount.current = Math.max(0, activeAudioCount.current - 1); }, 400);
       }
       // P1: Broadcast training progress to cockpit
       if (e % 5 === 0) {
@@ -608,7 +640,8 @@ export function NeuralBuilderGame() {
     if (testIdx + 1 < challenge.testItems.length) {
       setTestIdx(testIdx + 1);
     } else {
-      setTimeout(() => {
+      // BUG-NB5 fix: store timeout ref for cleanup on unmount
+      testTimeoutRef.current = setTimeout(() => {
         setPhase('report');
         game.completeGame();
       }, 1500);
@@ -1070,23 +1103,8 @@ export function NeuralBuilderGame() {
                   </div>
                 </div>
 
-                {/* === [v3] 3D NETWORK VISUALIZATION === */}
-                <NeuralNetwork3D
-                  layerSizes={layerSizes}
-                  network={network}
-                  isTraining={isTraining}
-                  trainEpoch={trainEpoch}
-                  accuracy={accuracy}
-                  complexity={complexity}
-                  trainingProgress={trainingProgress}
-                  dataFlowActive={dataFlowActive}
-                  heartbeatPhase={heartbeatPhase}
-                  selectedConnection={selectedConnection}
-                  inspectedNode={inspectedNode}
-                  onSelectConnection={setSelectedConnection}
-                  onInspectNode={setInspectedNode}
-                  labColor="#EC4899"
-                />
+                {/* BUG-NB4 fix: Removed duplicate inline NeuralNetwork3D.
+                   3D network renders via sceneStore registration (line ~305) inside CockpitCanvas per D3D-B1. */}
 
                 {/* Node inspection panel */}
                 {inspectedNodeData && (
