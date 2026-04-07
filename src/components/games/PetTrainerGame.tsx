@@ -508,13 +508,13 @@ const EVOLUTION_LABELS = [
 ];
 
 // Phase D2: Mood effects on learning
-const MOOD_EFFECTS: Record<string, number> = {
+const _MOOD_EFFECTS: Record<string, number> = {
   sleeping: 0, confused: 0.7, learning: 1, smart: 1.2, genius: 1.5, celebrating: 1.3,
   frustrated: 0.8, curious: 1.3, proud: 1.1, sleepy: 0.6,
 };
 
 // Phase D2: Pet customization accessories
-const ACCESSORIES = [
+const _ACCESSORIES = [
   { id: 'basic-hat', label: 'Basic Hat', emoji: '\u{1F3A9}', unlock: 'First evolution' },
   { id: 'collar', label: 'Collar', emoji: '\u{1F4BF}', unlock: '50 correct labels' },
   { id: 'speed-goggles', label: 'Speed Goggles', emoji: '\u{1F97D}', unlock: 'Complete Speed Drill' },
@@ -572,15 +572,15 @@ export function PetTrainerGame() {
   const [petThinking, setPetThinking] = useState(false);
 
   // Phase D2: Training mode state
-  const [trainingMode, setTrainingMode] = useState<TrainingMode>('label');
-  const [speedDrillTimer, setSpeedDrillTimer] = useState(30);
-  const [speedDrillActive, setSpeedDrillActive] = useState(false);
-  const [noiseItems, setNoiseItems] = useState<{ item: TrainingItem; isNoise: boolean }[]>([]);
-  const [transferSourceCategory, setTransferSourceCategory] = useState<string | null>(null);
-  const [unlockedAccessories, setUnlockedAccessories] = useState<string[]>([]);
-  const [equippedAccessory, setEquippedAccessory] = useState<string | null>(null);
-  const [categoriesCompleted, setCategoriesCompleted] = useState<string[]>([]);
-  const speedDrillRef = useRef<NodeJS.Timeout | null>(null);
+  const [_trainingMode, _setTrainingMode] = useState<TrainingMode>('label');
+  const [_speedDrillTimer, _setSpeedDrillTimer] = useState(30);
+  const [_speedDrillActive, _setSpeedDrillActive] = useState(false);
+  const [_noiseItems, _setNoiseItems] = useState<{ item: TrainingItem; isNoise: boolean }[]>([]);
+  const [_transferSourceCategory, _setTransferSourceCategory] = useState<string | null>(null);
+  const [_unlockedAccessories, _setUnlockedAccessories] = useState<string[]>([]);
+  const [_equippedAccessory, _setEquippedAccessory] = useState<string | null>(null);
+  const [_categoriesCompleted, _setCategoriesCompleted] = useState<string[]>([]);
+  const _speedDrillRef = useRef<NodeJS.Timeout | null>(null);
 
   // P2: Audio integration
   const audio = usePetTrainerAudio();
@@ -604,7 +604,7 @@ export function PetTrainerGame() {
   );
   const accuracy = totalLabeled > 0 ? Math.round((correctCount / totalLabeled) * 100) : 0;
   const mood = getPetMood(accuracy, phase, streak, totalLabeled);
-  const evolutionStage = getEvolutionStage(correctCount, categoriesCompleted.length);
+  const evolutionStage = getEvolutionStage(correctCount, _categoriesCompleted.length);
   // Map new moods to original 6 for Pet3DScene compatibility
   const mood3D: 'sleeping' | 'confused' | 'learning' | 'smart' | 'genius' | 'celebrating' =
     mood === 'frustrated' ? 'confused' : mood === 'curious' ? 'learning'
@@ -669,7 +669,7 @@ export function PetTrainerGame() {
     );
     setGameSceneContent(sceneContent);
     return () => setGameSceneContent(null);
-  }, [pet, mood, evolutionStage, phase, dataLabBars, totalLabeled, isOverfit, setGameSceneContent]);
+  }, [pet, mood3D, evolutionStage, phase, dataLabBars, totalLabeled, isOverfit, setGameSceneContent]);
 
   // === Random pet reaction ===
   function getPetReaction(correct: boolean): string {

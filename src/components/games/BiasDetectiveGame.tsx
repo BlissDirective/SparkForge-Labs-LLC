@@ -602,7 +602,7 @@ const CASES: BiasCase[] = [
 ];
 
 // Phase D2: Expanded evidence categories
-const EVIDENCE_CATEGORY_LABELS: Record<string, { label: string; emoji: string; description: string }> = {
+const _EVIDENCE_CATEGORY_LABELS: Record<string, { label: string; emoji: string; description: string }> = {
   data: { label: 'Data Bias', emoji: '\ud83d\udcca', description: 'Problems in the training data' },
   outcome: { label: 'Outcome Disparity', emoji: '\u26a0\uFE0F', description: 'Unfair results across groups' },
   pattern: { label: 'Pattern Recognition', emoji: '\ud83d\udd0d', description: 'Systematic bias patterns' },
@@ -611,7 +611,7 @@ const EVIDENCE_CATEGORY_LABELS: Record<string, { label: string; emoji: string; d
 };
 
 // Phase D2: Expanded detective ranks (5 → 8)
-const EXPANDED_RANKS = [
+const _EXPANDED_RANKS = [
   { title: 'Rookie Detective', label: '[ROOKIE]', minCases: 0, color: '#6B7280' },
   { title: 'Bias Spotter', label: '[SPOTTER]', minCases: 1, color: '#3B82F6' },
   { title: 'Ethics Expert', label: '[EXPERT]', minCases: 3, color: '#8B5CF6' },
@@ -629,7 +629,7 @@ type TestLabMode = 'preset' | 'custom-dataset' | 'ab-testing' | 'metrics';
 type FixTool = 'option-select' | 'data-rebalance' | 'feature-removal' | 'fairness-tuning';
 
 // Phase D2: Real-world timeline entries
-const BIAS_TIMELINE = [
+const _BIAS_TIMELINE = [
   { year: '2015', title: 'Google Photos labels Black people as "gorillas"', type: 'classification' },
   { year: '2016', title: 'ProPublica COMPAS investigation', type: 'criminal justice' },
   { year: '2017', title: 'Amazon scraps AI recruiting tool for gender bias', type: 'hiring' },
@@ -671,24 +671,24 @@ export function BiasDetectiveGame() {
   const [showRealWorld, setShowRealWorld] = useState(false);
 
   // Phase F: AI-generated bias case
-  const aiCase = useAIContent('bias-detective', 'bias-case', ageBand);
+  const _aiCase = useAIContent('bias-detective', 'bias-case', ageBand);
 
   // Phase D2: Extended state
-  const [testLabMode, setTestLabMode] = useState<TestLabMode>('preset');
-  const [activeFix, setActiveFix] = useState<FixTool>('option-select');
-  const [showTimeline, setShowTimeline] = useState(false);
-  const [biasReport, setBiasReport] = useState('');
-  const [showReport, setShowReport] = useState(false);
+  const [_testLabMode, _setTestLabMode] = useState<TestLabMode>('preset');
+  const [_activeFix, _setActiveFix] = useState<FixTool>('option-select');
+  const [_showTimeline, _setShowTimeline] = useState(false);
+  const [_biasReport, _setBiasReport] = useState('');
+  const [_showReport, _setShowReport] = useState(false);
   // Custom dataset builder state
-  const [datasetSize, setDatasetSize] = useState(100);
-  const [datasetAttributes, setDatasetAttributes] = useState<Record<string, number>>({ age: 50, gender: 50, region: 50 });
+  const [_datasetSize, _setDatasetSize] = useState(100);
+  const [_datasetAttributes, _setDatasetAttributes] = useState<Record<string, number>>({ age: 50, gender: 50, region: 50 });
   // A/B testing state
-  const [abTestRunning, setAbTestRunning] = useState(false);
-  const [abTestResults, setAbTestResults] = useState<{ biased: number; debiased: number } | null>(null);
+  const [_abTestRunning, _setAbTestRunning] = useState(false);
+  const [_abTestResults, _setAbTestResults] = useState<{ biased: number; debiased: number } | null>(null);
   // Feature removal state
-  const [removedFeatures, setRemovedFeatures] = useState<string[]>([]);
+  const [_removedFeatures, _setRemovedFeatures] = useState<string[]>([]);
   // Fairness tuning state (Band C)
-  const [fairnessSlider, setFairnessSlider] = useState(50); // 0=max accuracy, 100=max fairness
+  const [_fairnessSlider, _setFairnessSlider] = useState(50); // 0=max accuracy, 100=max fairness
 
   // Red background particles
   const particles = useMemo(() =>

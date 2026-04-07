@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const parsed = await parseBody(req, AIContentRequestSchema);
   if (!parsed.success) return parsed.response;
 
-  const { gameId, contentType, ageBand, context } = parsed.data;
+  const { gameId: _gameId, contentType, ageBand, context } = parsed.data;
 
   try {
     // Build the prompt from game-specific templates

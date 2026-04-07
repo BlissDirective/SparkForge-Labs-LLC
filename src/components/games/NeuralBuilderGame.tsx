@@ -26,7 +26,7 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
-import { useGameContent } from '@/hooks/useContent';
+
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -439,7 +439,7 @@ export function NeuralBuilderGame() {
   const availableChallenges = ageBand === 'A' ? BAND_A_CHALLENGES : CHALLENGES;
 
   // Phase F: AI-generated random challenge
-  const aiChallenge = useAIContent('neural-builder', 'neural-challenge', ageBand);
+  const _aiChallenge = useAIContent('neural-builder', 'neural-challenge', ageBand);
 
   // --- Phase ---
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -552,8 +552,8 @@ export function NeuralBuilderGame() {
     ageBand === 'C' ? challenge.descriptionC : challenge.description;
   const totalNeurons = layerSizes.reduce((a, b) => a + b, 0);
   const totalConnections = network.connections.length;
-  const complexity = Math.min(1, totalNeurons / 40);
-  const trainingProgress = accuracy / 100;
+  const _complexity = Math.min(1, totalNeurons / 40);
+  const _trainingProgress = accuracy / 100;
 
   // --- Heartbeat animation (V2 Enhancement) ---
   // BUG-NB6 fix: continue heartbeat during training at increased speed

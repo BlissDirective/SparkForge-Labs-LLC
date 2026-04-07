@@ -59,14 +59,14 @@
 
 | Metric | Count |
 |--------|-------|
-| Source files (`/src/`) | 409 |
+| Source files (`/src/`) | 412 |
 | Documentation files (`/docs/`) | 128 |
 | Root config/doc files | 25+ |
 | Games (all functional) | 35 |
 | 3D components | ~172 |
 | Stores | 15 |
-| Hooks | 35 |
-| API routes | 32 |
+| Hooks | 36 |
+| API routes | 33 |
 | Shaders (TSL + GLSL) | 24 |
 | Stage documents (active) | 80+ |
 | Superseded documents | 8 |
@@ -82,6 +82,27 @@ A comprehensive full-repo code audit was completed on March 30, 2026, covering a
 ### Full 3D UI Migration Status (April 3, 2026)
 
 The Full 3D UI Migration is **complete** — 7 phases, 49 components, 150 design decisions. All dashboard UI now renders in 3D via the persistent CockpitCanvas. AmbientParticles removed (Decision 20.0). 3D component count increased from ~140 to ~172. Store count increased from 13 to 15 (added cockpitUIStore; sceneStore extended with gameHUDContent).
+
+### Flagship Game Audit (April 7, 2026)
+
+A comprehensive playability/interactivity audit of all 6 flagship games was completed on April 7, 2026. **17 bugs fixed** (5 Critical, 5 High, 7 Medium), **all 6 flagships expanded 2-3x content depth**, and **AI content generation infrastructure** added.
+
+| Phase | Scope | Files |
+|-------|-------|-------|
+| **A** | 5 gameStore/GameShell bugs (all 35 games) | `gameStore.ts`, `GameShell.tsx` |
+| **B** | 8 Neural Builder bugs | `NeuralBuilderGame.tsx` |
+| **C** | Sort Toy Box expansion (652→1,122 lines) | `SortToyBoxGame.tsx` |
+| **D** | Neural Builder Band A + content (1,531→1,863 lines) | `NeuralBuilderGame.tsx` |
+| **D2** | 4 flagship expansions (Pet/Prompt/Agent/Bias) | 4 game files |
+| **E** | AI content generation (3 new files) | `ai-content-generator.ts`, `generate-content/route.ts`, `useAIContent.ts` |
+| **F** | Per-game AI integration | 5 game files |
+
+**Key changes:**
+- `gameStore.ts`: `setMaxScore()` action added, `advanceRound()` off-by-one fixed, `resetGame()` clears all state
+- `GameShell.tsx`: Reward pipeline wrapped in try/catch with auto-retry
+- All 6 flagship games: 2-3x seed content expansion (new challenges, modes, categories, cases)
+- New files: `src/lib/ai-content-generator.ts`, `src/app/api/ai/generate-content/route.ts`, `src/hooks/useAIContent.ts`
+- Source: `flagship-game-content-audit(04.06.2026).md`
 
 ### Key Architecture Updates Applied During Audit
 - **D3D-1 Compliance**: All `useIsMobile()`, `GenericGameParticles`, CSS fallback code removed from source and stage docs

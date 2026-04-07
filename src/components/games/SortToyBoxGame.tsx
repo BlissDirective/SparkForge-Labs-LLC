@@ -303,7 +303,7 @@ export function SortToyBoxGame() {
 
   // Scoring
   const [comboStreak, setComboStreak] = useState(0);
-  const [roundScores, setRoundScores] = useState<number[]>([]);
+  const [_roundScores, _setRoundScores] = useState<number[]>([]);
 
   // AI Reveal animation (BUG-ST3 fix: animated instead of instant)
   const [revealStep, setRevealStep] = useState<RevealStep>('extracting');
@@ -317,7 +317,7 @@ export function SortToyBoxGame() {
   const [discoveryFeedback, setDiscoveryFeedback] = useState<string | null>(null);
 
   // Phase F: AI-generated content for Round 5 mixed challenge
-  const aiCriteria = useAIContent('sort-toy-box', 'sort-criterion', ageBand);
+  const _aiCriteria = useAIContent('sort-toy-box', 'sort-criterion', ageBand);
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
@@ -545,7 +545,7 @@ export function SortToyBoxGame() {
 
         // Track round score and check progression
         const roundScore = game.score;
-        setRoundScores((prev) => [...prev, roundScore]);
+        _setRoundScores((prev) => [...prev, roundScore]);
 
         // Unlock next round if match >= 60%
         if (matchAcc >= 60 && currentRound < 5) {

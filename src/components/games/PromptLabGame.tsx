@@ -674,7 +674,7 @@ interface PromptRecipeStep {
 }
 
 // Real-world scenario packs
-const SCENARIO_PACKS = [
+const _SCENARIO_PACKS = [
   {
     id: 'homework', title: 'Homework Helper', emoji: '\u{1F4DA}',
     scenarios: [
@@ -930,13 +930,13 @@ export function PromptLabGame() {
   const [challengeResults, setChallengeResults] = useState<Record<string, { passed: boolean; feedback: string }>>({});
 
   // Phase D2: Extended mode state
-  const [labMode, setLabMode] = useState<PromptLabMode>('sandbox');
-  const [promptHistory, setPromptHistory] = useState<PromptHistoryEntry[]>([]);
-  const [battlePromptA, setBattlePromptA] = useState('');
-  const [battlePromptB, setBattlePromptB] = useState('');
-  const [battleResults, setBattleResults] = useState<{ a: string; b: string; scoreA: number; scoreB: number } | null>(null);
-  const [recipeSteps, setRecipeSteps] = useState<PromptRecipeStep[]>([{ id: 1, prompt: '', response: null }]);
-  const [activeScenarioPack, setActiveScenarioPack] = useState<string | null>(null);
+  const [_labMode, _setLabMode] = useState<PromptLabMode>('sandbox');
+  const [_promptHistory, _setPromptHistory] = useState<PromptHistoryEntry[]>([]);
+  const [_battlePromptA, _setBattlePromptA] = useState('');
+  const [_battlePromptB, _setBattlePromptB] = useState('');
+  const [_battleResults, _setBattleResults] = useState<{ a: string; b: string; scoreA: number; scoreB: number } | null>(null);
+  const [_recipeSteps, _setRecipeSteps] = useState<PromptRecipeStep[]>([{ id: 1, prompt: '', response: null }]);
+  const [_activeScenarioPack, _setActiveScenarioPack] = useState<string | null>(null);
 
   // --- X-Ray & Explainer ---
   const [showXRay, setShowXRay] = useState<number | null>(null);

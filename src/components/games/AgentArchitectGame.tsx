@@ -296,7 +296,7 @@ const MISSIONS: Mission[] = [
 
 type AgentGameMode = 'mission' | 'sandbox' | 'debug' | 'replay';
 
-const MISSION_PACKS = [
+const _MISSION_PACKS = [
   { id: 'kitchen', title: 'Kitchen Helper', emoji: '\ud83c\udf73',
     missions: ['m9'], description: 'Meal planning + cooking agent', concept: 'Sequential reasoning' },
   { id: 'homework', title: 'Homework Assistant', emoji: '\ud83d\udcda',
@@ -310,7 +310,7 @@ const MISSION_PACKS = [
 ];
 
 // Debug mode: pre-built broken pipelines
-const DEBUG_CHALLENGES = [
+const _DEBUG_CHALLENGES = [
   { id: 'dbg1', title: 'Missing Connection', description: 'Goal has no output \u2014 the pipeline is broken!', difficulty: 'easy' },
   { id: 'dbg2', title: 'Infinite Loop', description: 'Loop has no exit condition \u2014 runs forever!', difficulty: 'medium' },
   { id: 'dbg3', title: 'Wrong Order', description: 'Search comes after Done \u2014 it never executes!', difficulty: 'easy' },
@@ -489,15 +489,15 @@ export function AgentArchitectGame() {
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
 
   // Phase D2: Game mode + sandbox/debug/replay state
-  const [gameMode, setGameMode] = useState<AgentGameMode>('mission');
+  const [_gameMode, _setGameMode] = useState<AgentGameMode>('mission');
 
   // Phase F: AI-generated mission
-  const aiMission = useAIContent('agent-architect', 'agent-mission', ageBand);
-  const [activeDebugChallenge, setActiveDebugChallenge] = useState<string | null>(null);
-  const [replayStep, setReplayStep] = useState(0);
-  const [replayPlaying, setReplayPlaying] = useState(false);
-  const [sandboxTestInput, setSandboxTestInput] = useState('');
-  const [activePack, setActivePack] = useState<string | null>(null);
+  const _aiMission = useAIContent('agent-architect', 'agent-mission', ageBand);
+  const [_activeDebugChallenge, _setActiveDebugChallenge] = useState<string | null>(null);
+  const [_replayStep, _setReplayStep] = useState(0);
+  const [_replayPlaying, _setReplayPlaying] = useState(false);
+  const [_sandboxTestInput, _setSandboxTestInput] = useState('');
+  const [_activePack, _setActivePack] = useState<string | null>(null);
 
   // Canvas state
   const [blocks, setBlocks] = useState<PlacedBlock[]>([]);
