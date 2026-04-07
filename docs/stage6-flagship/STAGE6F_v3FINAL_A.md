@@ -33,8 +33,8 @@
 ### v2 FEATURES PRESERVED (in Parts B + C):
 
 - [x] 7-phase game flow (welcome, learn, cases, investigate, testlab, fix, report)
-- [x] 6 bias cases with SVG bar/pie charts, evidence board, test lab, fix mechanic
-- [x] Detective rank progression (5 levels), real-world case studies
+- [x] 14 bias cases (+8 from April 7 audit) with SVG bar/pie charts, evidence board, test lab, fix mechanic
+- [x] Detective rank progression (8 levels, +3 from April 7 audit), real-world case studies
 - [x] Chrome bezel, red LED rim, particle background, glass panels
 - [x] Age-band differentiation (A=guided, B=full, C=technical)
 - [x] All ARIA labels and keyboard navigation

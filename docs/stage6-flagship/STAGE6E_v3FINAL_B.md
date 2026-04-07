@@ -23,7 +23,7 @@
 
 This document contains **Section 1** of the complete standalone `AgentArchitectGame.tsx`. It includes:
 
-- Imports, types, all data definitions (10 block types, 8 missions, 4 learn cards, tool/search options)
+- Imports, types, all data definitions (15 block types, 18 missions, 4 learn cards, tool/search options, 5 mission packs, 10 debug challenges)
 - Pseudocode generator (Band C feature)
 - Helper functions (narration builder)
 - Component state declarations
@@ -40,15 +40,27 @@ This document contains **Section 1** of the complete standalone `AgentArchitectG
 
 ### v2 Features Preserved (All 45 truncations reconstructed)
 
-- 10 configurable block types (7 base + 3 advanced) with progressive unlock
-- 8 structured missions with star ratings, difficulty levels, block requirements
+- 15 configurable block types (10 base + 5 new: Filter, Transform, API Call, Validate, Notify) with progressive unlock
+- 18 structured missions with star ratings, difficulty levels, block requirements
 - 5-phase game flow: welcome -> learn -> missions -> build -> report
 - Cinema mode execution with spotlight, narration bar, emoji trail
 - Block configuration panels (goal text, search targets, tool selection, conditions)
 - Live pseudocode generation (Band C) with auto-generated if/else, while, Promise.all
 - Chrome bezel, LED rim, emerald particle background, glass panels
 - All ARIA labels and accessibility features
-- Age-band differentiation: A (guided, 5 blocks), B (all, 7 blocks), C (+ code, 10 blocks)
+- Age-band differentiation: A (guided, 5 blocks), B (all, 10 blocks), C (+ code, 15 blocks)
+
+### Flagship Game Audit Enhancements (April 7, 2026)
+
+| Feature | Before | After |
+|---------|--------|-------|
+| Block types | 10 | 15 (+Filter, Transform, API Call, Validate, Notify) |
+| Missions | 8 | 18 (+Recipe Finder, Daily Briefing, Smart Shopper, Study Planner, Bug Hunter, Travel Planner, Content Creator, Customer Support, Error Recovery, Autonomous Assistant) |
+| Mission packs | 0 | 5 (Kitchen Helper, Homework Assistant, Game Designer, Weather Reporter, Pet Sitter) |
+| Debug challenges | 0 | 10 (fix broken pipelines) |
+| Game modes | 1 (mission) | 4 (+sandbox, debug, replay) |
+| AI integration | None | useAIContent hook for "Generate Mission" in sandbox mode |
+| File size | ~1,217 lines | ~1,339 lines |
 
 ---
 
@@ -85,8 +97,9 @@ This document contains **Section 1** of the complete standalone `AgentArchitectG
 // AGENT ARCHITECT V3-FINAL — Lab 5 Flagship (Complete Standalone)
 // ================================================================
 // Decision 6.4: Full 3D pipeline platform replaces 2D canvas.
-// All v2 features: 10 blocks, 8 missions, cinema, pseudocode,
-// block unlock, age-band differentiation.
+// All v2 features + April 7 audit expansion: 15 blocks (+5), 18 missions (+10),
+// 5 mission packs, 10 debug challenges, 4 game modes, cinema, pseudocode,
+// block unlock, age-band differentiation, AI content generation integration.
 // v2 Source: STAGE6E_Flagship_AgentArchitect.pdf (~1,300 lines)
 // v3 Additions: 3D integration, mobile fallback (~200 lines)
 // ================================================================
@@ -717,7 +730,7 @@ export function AgentArchitectGame() {
 **Contents summary:**
 - Imports (React, Motion, lucide-react, GameShell, stores, dynamic 3D import)
 - Types: Phase, BlockType, BlockConfig, PlacedBlock, Arrow, Mission, RunStep
-- Data: 10 block types, 6 tool options, 4 search targets, 8 missions, 4 learn cards
+- Data: 15 block types, 6 tool options, 4 search targets, 18 missions, 4 learn cards, 5 mission packs, 10 debug challenges
 - Pseudocode generator (Band C feature)
 - Narration builder helper
 - Main component with all state declarations and handlers
@@ -739,8 +752,8 @@ export function AgentArchitectGame() {
 - [x] `activeChild?.age_band` matches Child type definition (`age_band: AgeBand`)
 - [x] `BAND_ORDER` typed as `Record<'A' | 'B' | 'C', number>` for type safety
 - [x] LEARN_CARDS `bodyC` fields fully reconstructed (not truncated)
-- [x] All 10 block types present with correct colors matching GCUD
-- [x] All 8 missions present with correct band minimums and requirements
+- [x] All 15 block types present with correct colors matching GCUD (10 original + 5 from April 7 audit)
+- [x] All 18 missions present with correct band minimums and requirements (8 original + 10 from April 7 audit)
 - [x] Font stack: No Fredoka/Nunito references (BUG-10F compliant)
 - [x] `'use client'` directive present at top
 - [x] No unused imports (all lucide icons used in Part C JSX)

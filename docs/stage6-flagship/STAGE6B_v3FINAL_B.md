@@ -33,11 +33,24 @@ This document contains the full PetTrainerGame.tsx game component — a complete
 ### v2 Enhancements Preserved
 
 - Complete 7-phase game flow with all phase handlers
-- 6 pets, 4 category sets, all training/test items
+- 8 pets, 10 category sets, all training/test items (expanded April 7, 2026)
 - Chrome bezel, LED rim, particle background
 - Streak system, combo multiplier, overfitting detection
 - Confusion matrix (Band C), What You Learned cards
 - All ARIA labels and accessibility features
+
+### Flagship Game Audit Enhancements (April 7, 2026)
+
+| Feature | Before | After |
+|---------|--------|-------|
+| Pets | 5 | 8 (+Glitchfox, Datawing, Neurohound) |
+| Categories | 4 | 10 (+Instruments, Weather, Emotions, Foods, Clothing, Vehicles Advanced) |
+| Evolution stages | 6 | 8 (+Specialist, Master) |
+| Moods | 6 | 10 (+frustrated, curious, proud, sleepy) |
+| Training modes | 1 (label) | 4 (+speed-drill, noise-challenge, transfer-test) |
+| Customization | None | 7 accessories with unlock milestones |
+| Mood effects | None | Learning rate modifiers per mood |
+| AI integration | None | useAIContent hook for "Surprise me!" novel categories |
 
 ### Files Created / Modified
 
@@ -61,7 +74,7 @@ This document contains the full PetTrainerGame.tsx game component — a complete
 
 | # | Severity | Issue | Fix Applied |
 |---|----------|-------|-------------|
-| 1 | CRITICAL | All emoji characters corrupted to `■` (black squares) — ~100+ instances across 6 pets, 4 category sets, evolution labels, UI elements | Reconstructed all emoji using Unicode escape sequences (`\u{XXXX}`) to prevent encoding issues |
+| 1 | CRITICAL | All emoji characters corrupted to `■` (black squares) — ~100+ instances across 8 pets, 10 category sets, evolution labels, UI elements | Reconstructed all emoji using Unicode escape sequences (`\u{XXXX}`) to prevent encoding issues |
 | 2 | CRITICAL | Alien pet `wrongReactions` array has unclosed string: `'Does not compute on my planet..` — missing closing quote and bracket | Completed string with `... \u{1F4E1}']` |
 | 3 | CRITICAL | Animals `descriptionC` string truncated mid-sentence | Completed: `'...changes decision boundaries and increases error rates.'` |
 | 4 | CRITICAL | Vehicles `descriptionC` string truncated mid-sentence | Completed: `'...some vehicles fit multiple categories.'` |
@@ -88,30 +101,38 @@ This document contains the full PetTrainerGame.tsx game component — a complete
 6. **Test** — Unknown items, pet thinking animation, correct/wrong feedback, progress dots
 7. **Report** — Dual score rings (SVG), evolution label, confusion matrix (Band C), What You Learned
 
-**6 Pets:**
-| ID | Emoji | Name | Personality |
-|----|-------|------|-------------|
-| dog | 🐶 | Buddy | Eager, enthusiastic |
-| cat | 🐱 | Whiskers | Cool, calculating |
-| owl | 🦉 | Newton | Wise, methodical |
-| robot | 🤖 | Sparky | Precise, literal |
-| dragon | 🐉 | Ember | Fiery, dramatic |
-| alien | 👽 | Zyx | Curious visitor |
+**8 Pets:**
+| ID | Emoji | Name | Personality | Unlock |
+|----|-------|------|-------------|--------|
+| byteling | 🟦 | Byteling | Logical, precise, loves organizing | Start |
+| sparkpaw | 🟣 | Sparkpaw | Curious, social, makes connections | Start |
+| voltkit | ⚡ | Voltkit | Energetic, fast, loves speed | Start |
+| cogsworth | ⚙️ | Cogsworth | Methodical, creative, builds | Start |
+| pixie | 👁️ | Pixie | Observant, discovers patterns | Start |
+| glitchfox | 🦊 | Glitchfox | Mischievous, teaches error correction | 3 sessions |
+| datawing | 🧚 | Datawing | Precise but fragile (accuracy drops with bad data) | Reach "Kid" |
+| neurohound | 🐕 | Neurohound | Loyal, retains categories better | Reach "Genius" |
 
-**4 Category Sets (Age-Band Filtered):**
+**10 Category Sets (Age-Band Filtered):**
 | Set | Band Min | Categories | Training Items | Test Items |
 |-----|----------|------------|---------------|------------|
 | Shapes | A | 2 (Circle, Square) | 12 | 4 |
 | Fruits | A | 2 (Apple, Banana) | 12 | 4 |
+| Weather | A | 3 (Sunny, Rainy, Snowy) | 8 | 3 |
+| Foods | A | 3 (Italian, Japanese, Mexican) | 8 | 3 |
 | Animals | B | 3 (Cat, Dog, Bird) | 16 | 6 |
+| Instruments | B | 3 (String, Wind, Percussion) | 8 | 3 |
+| Emotions | B | 3 (Happy, Sad, Angry) | 8 | 3 |
+| Clothing | B | 3 (Head, Body, Feet) | 8 | 3 |
 | Vehicles | C | 4 (Land, Water, Air, Space) | 16 | 6 |
+| Vehicles (Advanced) | C | 4 (Land, Water, Air, Space) | 8 | 4 |
 
 **GameStore Integration:**
 - `game.updateScore(points)` — awards XP for correct labels (5 base + 3 streak bonus)
 - `game.advanceRound()` — advances round counter after each label
 - `game.completeGame()` — marks game complete after test phase
 
-**Evolution System:**
+**Evolution System (8 stages):**
 | Correct | Stage | Label |
 |---------|-------|-------|
 | 0-2 | 0 | Egg 🥚 |
@@ -119,7 +140,23 @@ This document contains the full PetTrainerGame.tsx game component — a complete
 | 6-9 | 2 | Toddler 👶 |
 | 10-14 | 3 | Kid 🧒 |
 | 15-19 | 4 | Teen 🧑‍💻 |
-| 20+ | 5 | Genius 🧠 |
+| 20-29 | 5 | Genius 🧠 |
+| 30+ (3+ categories) | 6 | Specialist 🎯 |
+| 30+ (6+ categories) | 7 | Master 👑 |
+
+**Mood System (10 moods):**
+| Mood | Trigger | Learning Rate Effect |
+|------|---------|---------------------|
+| sleeping | Welcome/adopt phase | 0x |
+| confused | Accuracy < 25% | 0.7x |
+| learning | Accuracy 25-50% | 1.0x |
+| smart | Accuracy 50-75% | 1.2x |
+| genius | Accuracy 90%+ | 1.5x |
+| celebrating | Report phase | 1.3x |
+| frustrated | 3+ consecutive wrong | 0.8x |
+| curious | New category introduced | 1.3x |
+| proud | Evolution stage reached | 1.1x |
+| sleepy | 15+ items without break | 0.6x |
 
 ---
 
@@ -141,7 +178,7 @@ After implementing Part A + Part B:
 
 ### Phase Flow (preserved from v2)
 - [ ] Welcome: 3D egg, topic tags, "Hatch Your Pet" CTA
-- [ ] Adopt: 6 pets with personalities, name input, adopt button
+- [ ] Adopt: 8 pets with personalities, name input, adopt button (5 base + 3 unlockable)
 - [ ] Teach: category set selector (filtered by age band), description
 - [ ] Train: item display, category buckets, accuracy bar, streak counter, pet speech bubbles
 - [ ] Data Lab: label distribution chart, stats, overfitting warning (if applicable)

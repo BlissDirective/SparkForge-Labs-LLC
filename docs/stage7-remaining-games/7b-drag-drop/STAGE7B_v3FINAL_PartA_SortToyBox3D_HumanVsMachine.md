@@ -4,7 +4,7 @@
 
 > **AUDIT FIXES APPLIED (March 27, 2026):**
 > - **S6-CRIT-002:** `SortScene3D.tsx` refactored from standalone `<Canvas>` to `<group>` (D3D-B1). OrthographicCamera retained (game-specific overhead view).
-> - **S6-CRIT-003:** Removed redundant `game.startGame("sort-toy-box", 1)` — GameShell calls with correct `totalRounds=12`.
+> - **S6-CRIT-003:** Removed redundant `game.startGame("sort-toy-box", 1)` — GameShell calls with correct `totalRounds=5` (5 progressive rounds, updated April 7 audit).
 > - **S6-HIGH-001:** Full ARIA labels on all interactive elements (buttons, regions, progress dots).
 > - **S6-HIGH-002:** Added `learn` phase (3 lesson cards per age band) + `complete` phase (stats, summary, `game.completeGame()`).
 > - **S6-HIGH-004:** Created `SortToyBoxEnvironment.tsx` (240 lines, Lab 2 purple #AA66FF theme). Wired into SortScene3D group.
@@ -12,6 +12,18 @@
 > - **S6-WARN-002/003/005:** Removed dead code, redundant checks, fixed dependency array.
 > - **sceneStore integration:** SortToyBoxGame registers SortScene3D via `setGameSceneContent()` during sort phase.
 > - **Expansion:** SortToyBoxGame grew from 420 to 610 lines — now at flagship quality level.
+>
+> **FLAGSHIP GAME AUDIT (April 7, 2026):**
+> - **Phase C major expansion:** SortToyBoxGame expanded from 652 → 1,122 lines
+> - **5-round progressive system** with progression gates (≥60% match to unlock next round)
+> - **30+ shapes** across 5 round pools (Basic, Colors & Sizes, 3D Polyhedra, Patterns & Textures, Mixed)
+> - **8 sorting criteria** (shape, color, size, pattern, texture, weight, symmetry, edgeCount)
+> - **3 game modes:** Standard (5 rounds), Challenge (timed), Discovery (free-play with static AI rule matching)
+> - **3-phase animated AI reveal:** feature extraction (2s) → distance calculation (2s) → cluster formation (3s)
+> - **Scoring overhaul:** 5pts/sort + combo bonus + match accuracy bonus + round/milestone bonuses
+> - **4 bugs fixed:** BUG-ST1 (inverted scoring), BUG-ST2 (dead hook), BUG-ST3 (instant reveal), BUG-ST4 (stale shapes)
+> - **AI integration:** useAIContent hook for Round 5 AI-generated criteria
+> - **GameShell totalRounds:** Changed from 12 to 5 (now round-based, not shape-based)
 >
 > **ENHANCEMENTS APPLIED (March 28, 2026):**
 > - **P0:** SortToyBoxEnvironment expanded 251 → 622 lines. 7 new sub-components (RoboticSortArms, BinaryDecisionTree, ClusterSpheres, WarehouseShelving, DataFlowTubes, FeatureScanner, HolographicLabels). Reactive props. 6 useFrame hooks. Wow: 4/5 (was 2/5).

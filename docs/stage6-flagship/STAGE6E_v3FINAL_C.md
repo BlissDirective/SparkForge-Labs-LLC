@@ -38,7 +38,7 @@ This document contains **Section 2** of the complete standalone `AgentArchitectG
 
 | ID | Issue | Severity | Fix Applied |
 |----|-------|----------|-------------|
-| CR-6E-C1 | `GameShell` missing required `totalRounds` prop | **TS Error** | Added `totalRounds={8}` (8 missions) |
+| CR-6E-C1 | `GameShell` missing required `totalRounds` prop | **TS Error** | Added `totalRounds={18}` (18 missions, expanded April 7 audit from original 8) |
 | CR-6E-C2 | HTML entities throughout (`&gt;`, `&lt;`, `&amp;`) | **Encoding** | All decoded to proper JSX/TypeScript |
 | CR-6E-C3 | Welcome tags `.map` truncated: `{t` at end of line | **Syntax Error** | Corrected to `{tag}` with proper closing |
 | CR-6E-C4 | Block palette button class truncated: `disab` | **Syntax Error** | Completed to `disabled:opacity-30` |
@@ -808,7 +808,7 @@ This document contains **Section 2** of the complete standalone `AgentArchitectG
 ### Phase Flow
 - [ ] Welcome: Lab 5 badge, 4 topic tags, enter button with aria-label
 - [ ] Learn: 4 cards with Band B/C bodyC variants, skip option
-- [ ] Missions: 8 missions grid, difficulty badges, completion marks, lock indicators
+- [ ] Missions: 18 missions grid, difficulty badges, completion marks, lock indicators
 - [ ] Build: Block palette, 3D workspace (desktop) / 2D workspace (mobile), config panel, run button, narration bar
 - [ ] Report: Stars (1-3), path/block/efficiency stats, mission log, tips, unlock notifications
 
@@ -823,7 +823,7 @@ This document contains **Section 2** of the complete standalone `AgentArchitectG
 - [ ] Done/Parallel: no config panel (configurable: false)
 
 ### Mission System
-- [ ] 8 missions (3 beginner, 3 intermediate, 2 advanced)
+- [ ] 18 missions (5 beginner, 6 intermediate, 5 advanced, 2 expert-level advanced)
 - [ ] Required block types enforced during validation
 - [ ] Star rating: pathLen<=optimal + meetsReqs + blockCount<=minBlocks+2
 - [ ] Progressive unlock tracked; advanced locked until 4+ completions
@@ -874,4 +874,4 @@ git commit -m "Stage 6E v3-FINAL Parts B+C: Agent Architect game (Decision 6.4)"
 
 ## END OF STAGE 6E v3-FINAL (Parts A + B + C)
 
-Stage 6E v3-FINAL complete. Agent Architect upgraded from CSS isometric to full R3F 3D pipeline (Decision 6.4). All v2 features preserved: 10 block types, 8 missions, cinema mode, pseudocode (Band C), progressive unlock. Mobile 2D fallback. ~400 lines new (3D) + ~1,500 lines replaced (game). 45 v2 PDF truncations reconstructed and verified.
+Stage 6E v3-FINAL complete. Agent Architect upgraded from CSS isometric to full R3F 3D pipeline (Decision 6.4). All v2 features preserved and expanded (April 7, 2026 audit): 15 block types (+5), 18 missions (+10), 5 themed mission packs, 10 debug challenges, 4 game modes (mission/sandbox/debug/replay), cinema mode, pseudocode (Band C), progressive unlock. Desktop-only (D3D-1). ~400 lines new (3D) + ~1,339 lines game file. 45 v2 PDF truncations reconstructed and verified.

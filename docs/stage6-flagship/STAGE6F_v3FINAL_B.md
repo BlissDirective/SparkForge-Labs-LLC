@@ -16,9 +16,23 @@
 
 **Date:** February 28, 2026 | **GCUD:** V9 | **Lab:** 6 (Red) | **Bands:** A+B+C
 
-Section 1 of the complete standalone `BiasDetectiveGame.tsx`. Contains imports, types, all data definitions (6 bias cases with evidence, tests, fixes, real-world studies), detective ranks, learn cards, component state, all handlers, and SVG chart helpers.
+Section 1 of the complete standalone `BiasDetectiveGame.tsx`. Contains imports, types, all data definitions (14 bias cases with evidence, tests, fixes, real-world studies), detective ranks (8 levels), learn cards, component state, all handlers, and SVG chart helpers.
 
 **Part C** contains the JSX render.
+
+### Flagship Game Audit Enhancements (April 7, 2026)
+
+| Feature | Before | After |
+|---------|--------|-------|
+| Cases | 6 | 14 (+Social Media Feed, Voice Assistant, Translation Bias, Ad Targeting, Criminal Justice AI, Facial Recognition, Insurance Pricing, Content Moderation) |
+| Evidence categories | 3 (data, outcome, pattern) | 5 (+Feedback Loop, Historical Bias) |
+| Detective ranks | 6 | 8 (+Chief Inspector, Bias Commissioner, Ethics Board Chair) |
+| Test lab modes | 1 (preset) | 4 (+custom-dataset, ab-testing, metrics) |
+| Fix phase tools | 1 (option-select) | 4 (+data-rebalance, feature-removal, fairness-tuning) |
+| AI bias timeline | None | 15 entries (2015-2025) |
+| Band C features | Basic | +Fairness tuning slider (accuracy vs fairness tradeoff) |
+| AI integration | None | useAIContent hook for new AI-generated cases |
+| File size | ~1,623 lines | ~1,761 lines |
 
 **File:** `src/components/games/BiasDetectiveGame.tsx` (REPLACE ENTIRE FILE)
 
@@ -54,9 +68,10 @@ Paste Part B code first, then append Part C code immediately after (same file, c
 // Decision 6.2.5: BiasScales3D with spring physics, brushed brass.
 // Decision 5.3: Flagship custom particles (red).
 //
-// All v2 features: 6 cases, 7 phases, evidence board, SVG charts,
-// test lab, "Fix the AI" bonus, detective rank progression,
-// real-world case studies, age-band differentiation.
+// All v2 features + April 7 audit expansion: 14 cases (+8), 7 phases,
+// evidence board (5 categories), SVG charts, 4 test lab modes,
+// 4 fix tools, 8 detective ranks, real-world timeline (15 entries),
+// age-band differentiation, AI content generation integration.
 //
 // v2 Source: STAGE6F_Flagship_BiasDetective.pdf (~1,350 lines)
 // v3 Additions: 3D integration, mobile fallback (~200 lines)
