@@ -34,6 +34,7 @@ import {
   CheckCircle2, XCircle, RotateCcw, Eye,
   AlertTriangle, FlaskConical, GraduationCap,
 } from 'lucide-react';
+import { useAIContent } from '@/hooks/useAIContent';
 
 // === Dynamic import for 3D pet (no SSR) ===
 
@@ -527,6 +528,22 @@ const ACCESSORIES = [
 // MAIN COMPONENT
 // ================================================================
 
+// Phase F: AI-generated category button
+function SurpriseMeButton({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
+  const ai = useAIContent('pet-trainer', 'pet-novel-category', ageBand);
+  return (
+    <button
+      onClick={() => ai.generate({ existing: 'Shapes, Fruits, Animals, Vehicles, Instruments, Weather, Emotions, Foods, Clothing, Vehicles Advanced' })}
+      disabled={ai.isLoading}
+      className="w-full py-2 rounded-xl bg-gradient-to-r from-yellow-500/10 to-amber-500/10 border border-yellow-500/20 font-display text-xs text-yellow-300 hover:text-yellow-200 disabled:opacity-40"
+      aria-label="Generate a surprise AI category"
+    >
+      {ai.isLoading ? 'Generating...' : ai.data ? `AI Category: ${JSON.stringify(ai.data).slice(0, 40)}...` : '\u{2728} Surprise Me! (AI Category)'}
+      {ai.error && <span className="block text-2xs text-red-400 mt-1">{ai.error}</span>}
+    </button>
+  );
+}
+
 export function PetTrainerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -955,6 +972,8 @@ export function PetTrainerGame() {
                         </motion.button>
                       ))}
                     </div>
+                    {/* Phase F: AI-generated "Surprise me!" category */}
+                    <SurpriseMeButton ageBand={ageBand} />
                     <div className="glass-card rounded-xl p-3 text-left">
                       <p className="font-body text-xs text-white/50">{description}</p>
                     </div>

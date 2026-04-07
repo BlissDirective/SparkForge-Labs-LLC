@@ -25,6 +25,7 @@ import {
   GraduationCap, Target, Award, Star,
   Settings2, Code2, CheckCircle2, Cpu,
 } from 'lucide-react';
+import { useAIContent } from '@/hooks/useAIContent';
 
 // [v3] Dynamic import for 3D pipeline (no SSR)
 import dynamic from 'next/dynamic';
@@ -489,6 +490,9 @@ export function AgentArchitectGame() {
 
   // Phase D2: Game mode + sandbox/debug/replay state
   const [gameMode, setGameMode] = useState<AgentGameMode>('mission');
+
+  // Phase F: AI-generated mission
+  const aiMission = useAIContent('agent-architect', 'agent-mission', ageBand);
   const [activeDebugChallenge, setActiveDebugChallenge] = useState<string | null>(null);
   const [replayStep, setReplayStep] = useState(0);
   const [replayPlaying, setReplayPlaying] = useState(false);

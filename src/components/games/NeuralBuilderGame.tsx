@@ -35,6 +35,7 @@ import {
   Brain, Zap, ChevronRight, Plus, Minus, Play,
   RotateCcw, GraduationCap, Target, Volume2, VolumeX,
 } from 'lucide-react';
+import { useAIContent } from '@/hooks/useAIContent';
 import { ResponsiveLine } from '@nivo/line';
 
 // === [v3] Dynamic import for 3D network (no SSR) ===
@@ -436,6 +437,9 @@ export function NeuralBuilderGame() {
 
   // Band A uses simplified challenges; B/C use full challenges
   const availableChallenges = ageBand === 'A' ? BAND_A_CHALLENGES : CHALLENGES;
+
+  // Phase F: AI-generated random challenge
+  const aiChallenge = useAIContent('neural-builder', 'neural-challenge', ageBand);
 
   // --- Phase ---
   const [phase, setPhase] = useState<Phase>('welcome');

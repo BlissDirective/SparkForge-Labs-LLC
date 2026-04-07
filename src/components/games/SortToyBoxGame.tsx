@@ -23,6 +23,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useSortAudio } from '@/hooks/useSortAudio';
 import { Plus, Brain, ChevronRight, GraduationCap, Sparkles, Timer, Trophy, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { useAIContent } from '@/hooks/useAIContent';
 
 // Lazy-load 3D scene (desktop only)
 const SortScene3D = dynamic(
@@ -314,6 +315,9 @@ export function SortToyBoxGame() {
   // Discovery mode
   const [discoveryRule, setDiscoveryRule] = useState('');
   const [discoveryFeedback, setDiscoveryFeedback] = useState<string | null>(null);
+
+  // Phase F: AI-generated content for Round 5 mixed challenge
+  const aiCriteria = useAIContent('sort-toy-box', 'sort-criterion', ageBand);
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);

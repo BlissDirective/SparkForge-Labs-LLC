@@ -31,6 +31,7 @@ import {
   FileText, FlaskConical, Wrench,
   BookOpen,
 } from 'lucide-react';
+import { useAIContent } from '@/hooks/useAIContent';
 
 // [v3] Dynamic import for 3D scales (no SSR)
 import dynamic from 'next/dynamic';
@@ -668,6 +669,9 @@ export function BiasDetectiveGame() {
   const [customInput, setCustomInput] = useState('');
   const [selectedFixes, setSelectedFixes] = useState<string[]>([]);
   const [showRealWorld, setShowRealWorld] = useState(false);
+
+  // Phase F: AI-generated bias case
+  const aiCase = useAIContent('bias-detective', 'bias-case', ageBand);
 
   // Phase D2: Extended state
   const [testLabMode, setTestLabMode] = useState<TestLabMode>('preset');
