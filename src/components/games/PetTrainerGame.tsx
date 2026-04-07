@@ -56,7 +56,9 @@ const PetDataLab3D = dynamic(() => import('@/components/3d/PetDataLab3D'), {
 // ================================================================
 
 type Phase = 'welcome' | 'adopt' | 'teach' | 'train' | 'data-lab' | 'test' | 'report';
-type PetMood = 'sleeping' | 'confused' | 'learning' | 'smart' | 'genius' | 'celebrating';
+type TrainingMode = 'label' | 'speed-drill' | 'noise-challenge' | 'transfer-test';
+type PetMood = 'sleeping' | 'confused' | 'learning' | 'smart' | 'genius' | 'celebrating'
+  | 'frustrated' | 'curious' | 'proud' | 'sleepy';
 
 interface PetConfig {
   id: string;
@@ -129,6 +131,28 @@ const PETS: PetConfig[] = [
     correctReactions: ['Spotted it! \u{1F441}\u{FE0F}', '*lens focuses*', 'Pattern detected! \u{1F50D}', 'Crystal clear! \u{2728}'],
     wrongReactions: ['Blurry... \u{1F635}\u{200D}\u{1F4AB}', '*refocusing*', 'Out of focus...', 'Need another look... \u{1F50E}'],
     thinkingPhrases: ['*scanning...*', '*analyzing pixels...*', '*focusing lens...*', '*detecting patterns...*'],
+  },
+  // === NEW PETS (Phase D2 expansion) ===
+  {
+    id: 'glitchfox', speciesId: 'pixie' as PetConfig['speciesId'], emoji: '\u{1F98A}', name: 'Glitchfox',
+    personality: 'Mischievous — sometimes mislabels on purpose, teaches error correction.',
+    correctReactions: ['*wink* Got it! \u{1F609}', 'Even I can\u2019t trick that! \u{1F98A}', '*tail wags*', 'Too easy! \u{2728}'],
+    wrongReactions: ['Hehe, fooled ya! \u{1F92D}', '*pixelates*', 'Oops... or was that on purpose? \u{1F98A}', '*glitches*'],
+    thinkingPhrases: ['*scheming...*', '*plotting mischief...*', '*tail flickers...*', '*calculating trick...*'],
+  },
+  {
+    id: 'datawing', speciesId: 'voltkit' as PetConfig['speciesId'], emoji: '\u{1F9DA}', name: 'Datawing',
+    personality: 'Precise — learns faster but fragile (accuracy drops with bad data).',
+    correctReactions: ['Wings shimmer! \u{2728}', 'Data stream clear! \u{1F4A0}', '*flies higher*', 'Perfect signal! \u{1F4E1}'],
+    wrongReactions: ['Wings dim... \u{1F614}', '*flutter weakens*', 'Corrupted data...', '*lands softly*'],
+    thinkingPhrases: ['*wings processing...*', '*data streaming...*', '*signal analyzing...*', '*hovering...*'],
+  },
+  {
+    id: 'neurohound', speciesId: 'cogsworth' as PetConfig['speciesId'], emoji: '\u{1F415}', name: 'Neurohound',
+    personality: 'Loyal — retains categories better, teaches memory/retention.',
+    correctReactions: ['*bark bark!* \u{1F415}', 'Fetched the answer! \u{1F9E0}', '*tail wags fast*', 'Good boy knows! \u{1F31F}'],
+    wrongReactions: ['*whimper* \u{1F43E}', '*tilts head*', 'Lost the scent...', '*sniffs confused*'],
+    thinkingPhrases: ['*sniffing data...*', '*tracking pattern...*', '*ears perked...*', '*nose twitching...*'],
   },
 ];
 
@@ -283,6 +307,159 @@ const CATEGORY_SETS: CategorySet[] = [
       { id: 'vt6', emoji: '\u{1F6E1}\u{FE0F}', label: 'land', features: ['tank', 'treads'], difficulty: 'tricky' },
     ],
   },
+  // === NEW CATEGORIES (Phase D2 expansion) ===
+  {
+    id: 'instruments', title: 'Instruments', bandMin: 'B',
+    description: 'Teach your pet to recognize musical instruments by their shape and sound!',
+    descriptionC: 'Multi-class classification of instruments by acoustic and visual features. Tests feature selection across modalities.',
+    categories: [
+      { id: 'string', label: 'String', emoji: '\u{1F3B8}', color: '#F59E0B' },
+      { id: 'wind', label: 'Wind', emoji: '\u{1F3BA}', color: '#06B6D4' },
+      { id: 'percussion', label: 'Percussion', emoji: '\u{1F941}', color: '#EF4444' },
+    ],
+    training: [
+      { id: 'in1', emoji: '\u{1F3B8}', label: 'string', features: ['plucked', 'frets', 'resonance'], difficulty: 'easy' },
+      { id: 'in2', emoji: '\u{1F3BB}', label: 'string', features: ['bowed', 'strings', 'wood'], difficulty: 'easy' },
+      { id: 'in3', emoji: '\u{1F3BA}', label: 'wind', features: ['brass', 'valves', 'blown'], difficulty: 'easy' },
+      { id: 'in4', emoji: '\u{1F3B7}', label: 'wind', features: ['reed', 'keys', 'woodwind'], difficulty: 'medium' },
+      { id: 'in5', emoji: '\u{1F941}', label: 'percussion', features: ['struck', 'sticks', 'membrane'], difficulty: 'easy' },
+      { id: 'in6', emoji: '\u{1F3B9}', label: 'string', features: ['keys', 'hammers', 'strings inside'], difficulty: 'tricky' },
+      { id: 'in7', emoji: '\u{1FA97}', label: 'wind', features: ['blown', 'holes', 'wood'], difficulty: 'medium' },
+      { id: 'in8', emoji: '\u{1FA87}', label: 'percussion', features: ['shaken', 'metal', 'bell'], difficulty: 'medium' },
+    ],
+    test: [
+      { id: 'int1', emoji: '\u{1FA95}', label: 'string', features: ['plucked', 'small'], difficulty: 'medium' },
+      { id: 'int2', emoji: '\u{1F3BA}', label: 'wind', features: ['brass', 'long'], difficulty: 'easy' },
+      { id: 'int3', emoji: '\u{1F941}', label: 'percussion', features: ['hit', 'skin'], difficulty: 'easy' },
+    ],
+  },
+  {
+    id: 'weather', title: 'Weather', bandMin: 'A',
+    description: 'Is it sunny or rainy? Teach your pet about weather!',
+    descriptionC: 'Multi-class classification of meteorological phenomena from visual and sensor features.',
+    categories: [
+      { id: 'sunny', label: 'Sunny', emoji: '\u2600\uFE0F', color: '#F59E0B' },
+      { id: 'rainy', label: 'Rainy', emoji: '\u{1F327}\uFE0F', color: '#3B82F6' },
+      { id: 'snowy', label: 'Snowy', emoji: '\u2744\uFE0F', color: '#E5E7EB' },
+    ],
+    training: [
+      { id: 'w1', emoji: '\u2600\uFE0F', label: 'sunny', features: ['bright', 'warm', 'clear sky'], difficulty: 'easy' },
+      { id: 'w2', emoji: '\u{1F327}\uFE0F', label: 'rainy', features: ['wet', 'clouds', 'drops'], difficulty: 'easy' },
+      { id: 'w3', emoji: '\u2744\uFE0F', label: 'snowy', features: ['cold', 'white', 'flakes'], difficulty: 'easy' },
+      { id: 'w4', emoji: '\u{1F31E}', label: 'sunny', features: ['hot', 'no clouds'], difficulty: 'easy' },
+      { id: 'w5', emoji: '\u{1F326}\uFE0F', label: 'rainy', features: ['partly cloudy', 'drizzle'], difficulty: 'medium' },
+      { id: 'w6', emoji: '\u26C4', label: 'snowy', features: ['freezing', 'snowman'], difficulty: 'easy' },
+      { id: 'w7', emoji: '\u{1F324}\uFE0F', label: 'sunny', features: ['few clouds', 'warm breeze'], difficulty: 'medium' },
+      { id: 'w8', emoji: '\u26C8\uFE0F', label: 'rainy', features: ['thunder', 'lightning', 'storm'], difficulty: 'tricky' },
+    ],
+    test: [
+      { id: 'wt1', emoji: '\u{1F305}', label: 'sunny', features: ['sunrise', 'warm'], difficulty: 'medium' },
+      { id: 'wt2', emoji: '\u{1F302}', label: 'rainy', features: ['umbrella', 'wet'], difficulty: 'easy' },
+      { id: 'wt3', emoji: '\u{1F328}\uFE0F', label: 'snowy', features: ['blizzard', 'heavy snow'], difficulty: 'medium' },
+    ],
+  },
+  {
+    id: 'emotions', title: 'Emotions', bandMin: 'B',
+    description: 'Teach your pet to recognize feelings from facial expressions!',
+    descriptionC: 'Facial expression classification — a real-world computer vision task. Tests ability to distinguish subtle feature variations.',
+    categories: [
+      { id: 'happy', label: 'Happy', emoji: '\u{1F60A}', color: '#F59E0B' },
+      { id: 'sad', label: 'Sad', emoji: '\u{1F622}', color: '#3B82F6' },
+      { id: 'angry', label: 'Angry', emoji: '\u{1F620}', color: '#EF4444' },
+    ],
+    training: [
+      { id: 'em1', emoji: '\u{1F60A}', label: 'happy', features: ['smile', 'bright eyes', 'relaxed'], difficulty: 'easy' },
+      { id: 'em2', emoji: '\u{1F622}', label: 'sad', features: ['tears', 'downturned', 'droopy'], difficulty: 'easy' },
+      { id: 'em3', emoji: '\u{1F620}', label: 'angry', features: ['frown', 'furrowed brow', 'tense'], difficulty: 'easy' },
+      { id: 'em4', emoji: '\u{1F604}', label: 'happy', features: ['grinning', 'open mouth', 'joy'], difficulty: 'easy' },
+      { id: 'em5', emoji: '\u{1F62D}', label: 'sad', features: ['crying loudly', 'distress'], difficulty: 'easy' },
+      { id: 'em6', emoji: '\u{1F624}', label: 'angry', features: ['steam', 'frustrated', 'red face'], difficulty: 'medium' },
+      { id: 'em7', emoji: '\u{1F970}', label: 'happy', features: ['hearts', 'loving', 'warmth'], difficulty: 'medium' },
+      { id: 'em8', emoji: '\u{1F625}', label: 'sad', features: ['disappointed', 'cold sweat'], difficulty: 'medium' },
+    ],
+    test: [
+      { id: 'emt1', emoji: '\u{1F642}', label: 'happy', features: ['slight smile'], difficulty: 'tricky' },
+      { id: 'emt2', emoji: '\u{1F61E}', label: 'sad', features: ['disappointed'], difficulty: 'medium' },
+      { id: 'emt3', emoji: '\u{1F621}', label: 'angry', features: ['pouting', 'red'], difficulty: 'easy' },
+    ],
+  },
+  {
+    id: 'foods', title: 'Foods', bandMin: 'A',
+    description: 'Pizza or sushi? Teach your pet to sort yummy foods!',
+    descriptionC: 'Multi-class food classification with visual similarity challenges between categories.',
+    categories: [
+      { id: 'pizza', label: 'Italian', emoji: '\u{1F355}', color: '#EF4444' },
+      { id: 'sushi', label: 'Japanese', emoji: '\u{1F363}', color: '#10B981' },
+      { id: 'taco', label: 'Mexican', emoji: '\u{1F32E}', color: '#F59E0B' },
+    ],
+    training: [
+      { id: 'fd1', emoji: '\u{1F355}', label: 'pizza', features: ['round', 'cheese', 'tomato'], difficulty: 'easy' },
+      { id: 'fd2', emoji: '\u{1F363}', label: 'sushi', features: ['rice', 'fish', 'seaweed'], difficulty: 'easy' },
+      { id: 'fd3', emoji: '\u{1F32E}', label: 'taco', features: ['shell', 'meat', 'salsa'], difficulty: 'easy' },
+      { id: 'fd4', emoji: '\u{1F35D}', label: 'pizza', features: ['pasta', 'sauce', 'Italian'], difficulty: 'medium' },
+      { id: 'fd5', emoji: '\u{1F371}', label: 'sushi', features: ['bento', 'rice', 'Japanese'], difficulty: 'medium' },
+      { id: 'fd6', emoji: '\u{1F32F}', label: 'taco', features: ['wrap', 'beans', 'Mexican'], difficulty: 'easy' },
+      { id: 'fd7', emoji: '\u{1F9C0}', label: 'pizza', features: ['cheese', 'Italian'], difficulty: 'tricky' },
+      { id: 'fd8', emoji: '\u{1F961}', label: 'sushi', features: ['chopsticks', 'Japanese'], difficulty: 'medium' },
+    ],
+    test: [
+      { id: 'fdt1', emoji: '\u{1F372}', label: 'pizza', features: ['stew', 'Italian'], difficulty: 'tricky' },
+      { id: 'fdt2', emoji: '\u{1F365}', label: 'sushi', features: ['fish cake', 'Japanese'], difficulty: 'medium' },
+      { id: 'fdt3', emoji: '\u{1FAD4}', label: 'taco', features: ['tamale', 'Mexican'], difficulty: 'medium' },
+    ],
+  },
+  {
+    id: 'clothing', title: 'Clothing', bandMin: 'B',
+    description: 'Teach your pet to sort clothes by what part of the body they go on!',
+    descriptionC: 'Hierarchical classification by body region — tests grouping by functional rather than visual features.',
+    categories: [
+      { id: 'head', label: 'Head', emoji: '\u{1F3A9}', color: '#8B5CF6' },
+      { id: 'body', label: 'Body', emoji: '\u{1F455}', color: '#3B82F6' },
+      { id: 'feet', label: 'Feet', emoji: '\u{1F45F}', color: '#10B981' },
+    ],
+    training: [
+      { id: 'cl1', emoji: '\u{1F3A9}', label: 'head', features: ['hat', 'top', 'shade'], difficulty: 'easy' },
+      { id: 'cl2', emoji: '\u{1F455}', label: 'body', features: ['shirt', 'torso', 'sleeves'], difficulty: 'easy' },
+      { id: 'cl3', emoji: '\u{1F45F}', label: 'feet', features: ['shoe', 'sole', 'laces'], difficulty: 'easy' },
+      { id: 'cl4', emoji: '\u{1F9E2}', label: 'head', features: ['cap', 'brim', 'adjustable'], difficulty: 'easy' },
+      { id: 'cl5', emoji: '\u{1F457}', label: 'body', features: ['dress', 'full body', 'fabric'], difficulty: 'easy' },
+      { id: 'cl6', emoji: '\u{1F462}', label: 'feet', features: ['boot', 'heel', 'leather'], difficulty: 'easy' },
+      { id: 'cl7', emoji: '\u{1F576}\uFE0F', label: 'head', features: ['glasses', 'eyes', 'lenses'], difficulty: 'medium' },
+      { id: 'cl8', emoji: '\u{1F9E5}', label: 'body', features: ['coat', 'warm', 'outer'], difficulty: 'medium' },
+    ],
+    test: [
+      { id: 'clt1', emoji: '\u{1F451}', label: 'head', features: ['crown', 'royal'], difficulty: 'easy' },
+      { id: 'clt2', emoji: '\u{1F9E3}', label: 'body', features: ['scarf', 'neck'], difficulty: 'tricky' },
+      { id: 'clt3', emoji: '\u{1FA74}', label: 'feet', features: ['flip-flop', 'beach'], difficulty: 'easy' },
+    ],
+  },
+  {
+    id: 'vehicles-advanced', title: 'Vehicles (Advanced)', bandMin: 'C',
+    description: 'Sort unusual vehicles your pet has never seen before!',
+    descriptionC: 'Transfer learning test — classify novel vehicle types using features learned from the basic Vehicles category.',
+    categories: [
+      { id: 'land', label: 'Land', emoji: '\u{1F698}', color: '#10B981' },
+      { id: 'water', label: 'Water', emoji: '\u{1F6A2}', color: '#3B82F6' },
+      { id: 'air', label: 'Air', emoji: '\u{2708}\u{FE0F}', color: '#F59E0B' },
+      { id: 'space', label: 'Space', emoji: '\u{1F680}', color: '#8B5CF6' },
+    ],
+    training: [
+      { id: 'va1', emoji: '\u{1F6F5}', label: 'land', features: ['scooter', '2 wheels', 'motor'], difficulty: 'easy' },
+      { id: 'va2', emoji: '\u{1F6F6}', label: 'water', features: ['canoe', 'paddle', 'river'], difficulty: 'easy' },
+      { id: 'va3', emoji: '\u{1F6A1}', label: 'air', features: ['cable car', 'suspended', 'wire'], difficulty: 'medium' },
+      { id: 'va4', emoji: '\u{1F6F8}', label: 'space', features: ['UFO', 'hovering', 'unknown'], difficulty: 'tricky' },
+      { id: 'va5', emoji: '\u{1F6FA}', label: 'land', features: ['auto-rickshaw', '3 wheels'], difficulty: 'medium' },
+      { id: 'va6', emoji: '\u{26F5}', label: 'water', features: ['sailboat', 'wind', 'hull'], difficulty: 'easy' },
+      { id: 'va7', emoji: '\u{1F6EB}', label: 'air', features: ['jet', 'takeoff', 'thrust'], difficulty: 'easy' },
+      { id: 'va8', emoji: '\u{1F6F0}\uFE0F', label: 'space', features: ['satellite', 'orbit', 'solar'], difficulty: 'medium' },
+    ],
+    test: [
+      { id: 'vat1', emoji: '\u{1F6B2}', label: 'land', features: ['bicycle', 'pedals'], difficulty: 'easy' },
+      { id: 'vat2', emoji: '\u{1F6F3}\uFE0F', label: 'water', features: ['cruise', 'large'], difficulty: 'easy' },
+      { id: 'vat3', emoji: '\u{1F3A0}', label: 'air', features: ['hot air balloon'], difficulty: 'tricky' },
+      { id: 'vat4', emoji: '\u{1F680}', label: 'space', features: ['rocket', 'launch'], difficulty: 'easy' },
+    ],
+  },
 ];
 
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
@@ -291,22 +468,31 @@ const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 // HELPER FUNCTIONS
 // ================================================================
 
-function getPetMood(accuracy: number, phase: Phase): PetMood {
+function getPetMood(accuracy: number, phase: Phase, streak: number, totalLabeled: number): PetMood {
   if (phase === 'welcome' || phase === 'adopt') return 'sleeping';
   if (phase === 'report') return 'celebrating';
-  if (accuracy < 25) return 'confused';
-  if (accuracy <= 50) return 'learning';
-  if (accuracy <= 75) return 'smart';
-  return 'genius';
+  // Phase D2: new mood triggers
+  if (totalLabeled > 15 && accuracy < 40) return 'sleepy'; // 15+ items without break, low accuracy
+  if (streak < 0 && Math.abs(streak) >= 3) return 'frustrated'; // 3+ consecutive wrong
+  if (totalLabeled === 0 && phase === 'teach') return 'curious'; // new category introduced
+  if (accuracy >= 90) return 'genius';
+  if (accuracy >= 75) return 'smart';
+  if (accuracy >= 50) return 'learning';
+  if (accuracy >= 25) return 'confused';
+  return 'confused';
 }
 
-function getEvolutionStage(totalCorrect: number): number {
+function getEvolutionStage(totalCorrect: number, categoriesCompleted: number): number {
   if (totalCorrect < 3) return 0; // Egg
   if (totalCorrect < 6) return 1; // Baby
   if (totalCorrect < 10) return 2; // Toddler
   if (totalCorrect < 15) return 3; // Kid
   if (totalCorrect < 20) return 4; // Teen
-  return 5; // Genius
+  if (totalCorrect < 30) return 5; // Genius
+  // Phase D2: new evolution stages
+  if (categoriesCompleted >= 3) return 6; // Specialist
+  if (categoriesCompleted >= 6) return 7; // Master
+  return 5; // Genius (default high)
 }
 
 const EVOLUTION_LABELS = [
@@ -316,6 +502,25 @@ const EVOLUTION_LABELS = [
   'Kid \u{1F9D2}',
   'Teen \u{1F9D1}\u{200D}\u{1F4BB}',
   'Genius \u{1F9E0}',
+  'Specialist \u{1F3AF}',    // Phase D2: 3+ categories at 90%+ accuracy
+  'Master \u{1F451}',         // Phase D2: 6+ categories at 95%+ accuracy
+];
+
+// Phase D2: Mood effects on learning
+const MOOD_EFFECTS: Record<string, number> = {
+  sleeping: 0, confused: 0.7, learning: 1, smart: 1.2, genius: 1.5, celebrating: 1.3,
+  frustrated: 0.8, curious: 1.3, proud: 1.1, sleepy: 0.6,
+};
+
+// Phase D2: Pet customization accessories
+const ACCESSORIES = [
+  { id: 'basic-hat', label: 'Basic Hat', emoji: '\u{1F3A9}', unlock: 'First evolution' },
+  { id: 'collar', label: 'Collar', emoji: '\u{1F4BF}', unlock: '50 correct labels' },
+  { id: 'speed-goggles', label: 'Speed Goggles', emoji: '\u{1F97D}', unlock: 'Complete Speed Drill' },
+  { id: 'noise-headphones', label: 'Noise Headphones', emoji: '\u{1F3A7}', unlock: 'Complete Noise Challenge' },
+  { id: 'professor-glasses', label: 'Professor Glasses', emoji: '\u{1F453}', unlock: 'Complete Transfer Test' },
+  { id: 'category-badge', label: 'Category Badge', emoji: '\u{1F3C5}', unlock: 'Reach Specialist' },
+  { id: 'crown', label: 'Crown & Aura', emoji: '\u{1F451}', unlock: 'Reach Master' },
 ];
 
 // ================================================================
@@ -349,6 +554,17 @@ export function PetTrainerGame() {
   const [testResults, setTestResults] = useState<{ correct: boolean; predicted: string; actual: string }[]>([]);
   const [petThinking, setPetThinking] = useState(false);
 
+  // Phase D2: Training mode state
+  const [trainingMode, setTrainingMode] = useState<TrainingMode>('label');
+  const [speedDrillTimer, setSpeedDrillTimer] = useState(30);
+  const [speedDrillActive, setSpeedDrillActive] = useState(false);
+  const [noiseItems, setNoiseItems] = useState<{ item: TrainingItem; isNoise: boolean }[]>([]);
+  const [transferSourceCategory, setTransferSourceCategory] = useState<string | null>(null);
+  const [unlockedAccessories, setUnlockedAccessories] = useState<string[]>([]);
+  const [equippedAccessory, setEquippedAccessory] = useState<string | null>(null);
+  const [categoriesCompleted, setCategoriesCompleted] = useState<string[]>([]);
+  const speedDrillRef = useRef<NodeJS.Timeout | null>(null);
+
   // P2: Audio integration
   const audio = usePetTrainerAudio();
   const [soundEnabled] = useState(false);
@@ -370,8 +586,12 @@ export function PetTrainerGame() {
     [categorySetId]
   );
   const accuracy = totalLabeled > 0 ? Math.round((correctCount / totalLabeled) * 100) : 0;
-  const mood = getPetMood(accuracy, phase);
-  const evolutionStage = getEvolutionStage(correctCount);
+  const mood = getPetMood(accuracy, phase, streak, totalLabeled);
+  const evolutionStage = getEvolutionStage(correctCount, categoriesCompleted.length);
+  // Map new moods to original 6 for Pet3DScene compatibility
+  const mood3D: 'sleeping' | 'confused' | 'learning' | 'smart' | 'genius' | 'celebrating' =
+    mood === 'frustrated' ? 'confused' : mood === 'curious' ? 'learning'
+      : mood === 'proud' ? 'smart' : mood === 'sleepy' ? 'sleeping' : mood;
 
   // P1: Cockpit broadcast integration
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
@@ -416,7 +636,7 @@ export function PetTrainerGame() {
         <Pet3DScene
           emoji={pet.emoji}
           speciesId={pet.speciesId}
-          mood={mood}
+          mood={mood3D}
           evolutionStage={evolutionStage}
           labColor="#8B5CF6"
         />
@@ -756,7 +976,7 @@ export function PetTrainerGame() {
                     {/* Pet + mood display */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood={mood} evolutionStage={evolutionStage} size="sm" showSparkles={mood === 'genius'} />
+                        <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood={mood3D} evolutionStage={evolutionStage} size="sm" showSparkles={mood === 'genius'} />
                         <div className="text-left">
                           <p className="font-display text-xs font-bold text-white">{petName}</p>
                           <p className="font-body text-2xs text-white/30">{EVOLUTION_LABELS[evolutionStage]}</p>
