@@ -6,6 +6,20 @@
 
 ---
 
+### Flagship Game Audit — Phase D2: Remaining Flagship Expansions (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 4 flagship games expanded with new content, modes, and features
+
+- [x] **Pet Trainer** (1,123→1,343): +3 pets, +6 categories, +4 moods, +2 evolution stages, customization, training modes
+- [x] **Prompt Lab** (2,127→2,323): +7 challenges, +7 templates, 5 scenario packs, battle/history/recipes modes
+- [x] **Agent Architect** (1,217→1,335): +5 blocks, +10 missions, 5 packs, 10 debug challenges, sandbox/debug/replay modes
+- [x] **Bias Detective** (1,623→1,757): +8 cases, +2 evidence types, +3 ranks, 15-entry timeline, test lab/fix tools
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
 ### Flagship Game Audit — Phase D: Neural Builder Band A + Content Expansion (April 7, 2026)
 
 **Status:** COMPLETE
