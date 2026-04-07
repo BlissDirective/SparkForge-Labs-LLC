@@ -6,6 +6,24 @@
 
 ---
 
+### Flagship Game Audit — Phase D: Neural Builder Band A + Content Expansion (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** Band A support + 5 new challenges + 4 arch tests + Band C hyperparameters + competition mode (1,531 → 1,859 lines)
+
+- [x] Band A: 3 simplified challenges (Connect the Dots, Build a Simple Brain, Color Sorter)
+- [x] Band A: Visual-only UI with star ratings, "Feed Your Brain!" button, guided text
+- [x] 5 new B/C challenges: Sound Recognizer, Emotion Detector, Animal Identifier, Text Classifier, Weather Predictor
+- [x] 4 new architecture tests: Overfitter, Underfitter, Speed Demon, Memory Master
+- [x] Band C: Activation function selector (ReLU/Sigmoid/Tanh)
+- [x] Band C: Dropout toggle (off/25%/50%), learning rate slider, batch size selector
+- [x] Competition mode: Beat the Benchmark with bronze/silver/gold tiers
+- [x] Hyperparameters affect training curves (convergence rate, noise level)
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
 ### Flagship Game Audit — Phase C: Sort Toy Box Major Expansion (April 7, 2026)
 
 **Status:** COMPLETE
