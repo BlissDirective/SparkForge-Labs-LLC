@@ -6,6 +6,26 @@
 
 ---
 
+### Flagship Game Audit — Phase B: Neural Builder Critical Fixes (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 8 bugs in NeuralBuilderGame.tsx (2 Critical, 3 High, 3 Medium)
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+
+- [x] BUG-NB1 (CRITICAL): Training accuracy now architecture-dependent (convergence rate, noise, plateau)
+- [x] BUG-NB2 (HIGH): optimalMatch normalized by optimal neuron sum, not totalNeurons
+- [x] BUG-NB3 (HIGH): sparkIntensity uses raw delta before weight clamping
+- [x] BUG-NB4 (CRITICAL): Removed duplicate inline NeuralNetwork3D (kept sceneStore registration)
+- [x] BUG-NB5 (MEDIUM): setTimeout in ref, cleared on unmount
+- [x] BUG-NB6 (MEDIUM): Heartbeat continues during training at 2.7x speed
+- [x] BUG-NB7 (MEDIUM): Audio concurrency limited to 3 (prevents distortion)
+- [x] BUG-NB8 (MEDIUM): Canvas cleared on challenge switch
+
+**Files modified:** `src/components/games/NeuralBuilderGame.tsx`
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
 ### Flagship Game Audit — Phase A: GameStore + GameShell Bug Fixes (April 7, 2026)
 
 **Status:** COMPLETE

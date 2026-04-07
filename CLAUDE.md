@@ -770,6 +770,14 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | BUG-GS3 | `resetGame()` doesn't clear `currentGame`, `totalRounds`, `hintsRemaining` | **RESOLVED (April 7, 2026)** — All fields now reset: `currentGame: null, totalRounds: 0, hintsRemaining: 3`. | Audit Phase A |
 | BUG-GS4 | GameShell HUD hardcodes `maxScore = totalRounds × 10` | **RESOLVED (April 7, 2026)** — Kept `maxScore` in HUD using `totalRounds * 10` for ceremony tier (bronze/silver/gold). | Audit Phase A |
 | BUG-GS5 | Reward pipeline sets `hasRewarded` before async call — lost on failure | **RESOLVED (April 7, 2026)** — Wrapped in try/catch. `hasRewarded.current` resets on failure for auto-retry. | Audit Phase A |
+| BUG-NB1 | Training simulation ignores network architecture — accuracy is predetermined | **RESOLVED (April 7, 2026)** — Architecture-dependent convergence: good arch = fast convergence + low noise, bad arch = slow + high noise + early plateau. | Audit Phase B |
+| BUG-NB2 | `optimalMatch` divisor scales non-linearly with network size | **RESOLVED (April 7, 2026)** — Normalized by sum of optimal neurons instead of totalNeurons. | Audit Phase B |
+| BUG-NB3 | `sparkIntensity` calculated after weight clamping — understates visual change | **RESOLVED (April 7, 2026)** — Uses raw delta before clamping: `Math.abs(rawDelta)`. | Audit Phase B |
+| BUG-NB4 | Duplicate 3D NeuralNetwork3D rendering (sceneStore + inline) doubles GPU load | **RESOLVED (April 7, 2026)** — Removed inline rendering. Kept sceneStore registration per D3D-B1. | Audit Phase B |
+| BUG-NB5 | setTimeout persists after component unmount | **RESOLVED (April 7, 2026)** — Stored in ref, cleared in useEffect cleanup. | Audit Phase B |
+| BUG-NB6 | Heartbeat animation stops during training (network appears frozen) | **RESOLVED (April 7, 2026)** — Continues at 2.7x speed during training instead of stopping. | Audit Phase B |
+| BUG-NB7 | Audio queuing during training causes distortion | **RESOLVED (April 7, 2026)** — Concurrent audio capped at 3 events with 400ms decay. | Audit Phase B |
+| BUG-NB8 | Canvas drawing persists across challenge switches | **RESOLVED (April 7, 2026)** — `clearCanvas()` called in `selectChallenge()`. | Audit Phase B |
 
 ### Game Code Agent — COMPLETED
 
