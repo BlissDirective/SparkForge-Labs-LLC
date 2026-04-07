@@ -104,6 +104,63 @@ interface ArchChallenge {
 // DATA: Challenge Tasks
 // ================================================================
 
+// ================================================================
+// DATA: Band A Challenges (Ages 7–9 — simplified brain-building)
+// ================================================================
+
+const BAND_A_CHALLENGES: Challenge[] = [
+  {
+    id: 'connect-dots',
+    title: 'Connect the Dots',
+    emoji: '\u{1F9E0}',
+    description: 'Connect colorful brain cells to make a thinking path! More connections make a smarter brain!',
+    descriptionC: '',
+    inputLabels: ['Start', 'Start'],
+    outputLabels: ['End', 'End'],
+    startLayers: [2, 3, 2],
+    optimalLayers: [2, 4, 2],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u{2B50}', answer: 0, label: 'Path A' },
+      { emoji: '\u{1F31F}', answer: 1, label: 'Path B' },
+    ],
+  },
+  {
+    id: 'simple-brain',
+    title: 'Build a Simple Brain',
+    emoji: '\u{1F9E9}',
+    description: 'Stack layers of brain cells to build a thinking machine! More layers help it think harder!',
+    descriptionC: '',
+    inputLabels: ['Eye', 'Ear'],
+    outputLabels: ['Happy', 'Sad', 'Surprised'],
+    startLayers: [2, 3, 3],
+    optimalLayers: [2, 4, 3],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u{1F60A}', answer: 0, label: 'Happy Face' },
+      { emoji: '\u{1F622}', answer: 1, label: 'Sad Face' },
+      { emoji: '\u{1F632}', answer: 2, label: 'Surprised Face' },
+    ],
+  },
+  {
+    id: 'color-sorter',
+    title: 'Color Sorter',
+    emoji: '\u{1F308}',
+    description: 'Feed colored balls into your brain and watch them come out sorted! Can your brain learn which color goes where?',
+    descriptionC: '',
+    inputLabels: ['Color In'],
+    outputLabels: ['\u{1F534} Red', '\u{1F535} Blue', '\u{1F7E2} Green'],
+    startLayers: [1, 3, 3],
+    optimalLayers: [1, 4, 3],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u{1F534}', answer: 0, label: 'Red Ball' },
+      { emoji: '\u{1F535}', answer: 1, label: 'Blue Ball' },
+      { emoji: '\u{1F7E2}', answer: 2, label: 'Green Ball' },
+    ],
+  },
+];
+
 const CHALLENGES: Challenge[] = [
   {
     id: 'digits',
@@ -170,6 +227,101 @@ const CHALLENGES: Challenge[] = [
       { emoji: '\u2B21', answer: 3, label: 'Hexagon' },
     ],
   },
+  // === NEW CHALLENGES (Phase D expansion) ===
+  {
+    id: 'sounds',
+    title: 'Sound Recognizer',
+    emoji: '\u{1F3B5}',
+    description: 'Build a network that recognizes musical instruments from their sound waves!',
+    descriptionC: 'Audio waveform classification. Input features represent frequency-domain spectral coefficients (MFCCs). The network maps acoustic features to instrument categories.',
+    inputLabels: ['Freq 1', 'Freq 2', 'Freq 3', 'Freq 4', 'Freq 5', 'Freq 6', 'Freq 7', 'Freq 8'],
+    outputLabels: ['\u{1F3B8} Guitar', '\u{1F3B9} Piano', '\u{1F941} Drums', '\u{1F3BB} Violin'],
+    startLayers: [8, 6, 4],
+    optimalLayers: [8, 12, 4],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u{1F3B8}', answer: 0, label: 'Guitar strum' },
+      { emoji: '\u{1F3B9}', answer: 1, label: 'Piano chord' },
+      { emoji: '\u{1F941}', answer: 2, label: 'Drum beat' },
+      { emoji: '\u{1F3BB}', answer: 3, label: 'Violin note' },
+    ],
+  },
+  {
+    id: 'emotions',
+    title: 'Emotion Detector',
+    emoji: '\u{1F60A}',
+    description: 'Build a network that reads facial expressions and identifies emotions!',
+    descriptionC: 'Facial expression classification with 6 emotion classes. Input features represent facial landmarks (brow angle, mouth curvature, eye openness). Deeper architectures capture subtle expression combinations.',
+    inputLabels: ['Brow', 'Eyes', 'Mouth', 'Cheeks', 'Nose', 'Forehead', 'Jaw', 'L-Eye', 'R-Eye', 'Chin'],
+    outputLabels: ['\u{1F60A} Happy', '\u{1F622} Sad', '\u{1F620} Angry', '\u{1F632} Surprised', '\u{1F628} Scared', '\u{1F914} Confused'],
+    startLayers: [10, 6, 6],
+    optimalLayers: [10, 8, 8, 6],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u{1F60A}', answer: 0, label: 'Smiling face' },
+      { emoji: '\u{1F622}', answer: 1, label: 'Crying face' },
+      { emoji: '\u{1F620}', answer: 2, label: 'Frowning face' },
+      { emoji: '\u{1F632}', answer: 3, label: 'Wide-eyed face' },
+      { emoji: '\u{1F628}', answer: 4, label: 'Fearful face' },
+      { emoji: '\u{1F914}', answer: 5, label: 'Puzzled face' },
+    ],
+  },
+  {
+    id: 'animals',
+    title: 'Animal Identifier',
+    emoji: '\u{1F43E}',
+    description: 'Build a network that identifies animals from their silhouettes!',
+    descriptionC: 'Silhouette-based species classification. Input features encode boundary shape descriptors (Fourier descriptors, aspect ratio, compactness, symmetry).',
+    inputLabels: ['Shape 1', 'Shape 2', 'Shape 3', 'Shape 4', 'Ratio', 'Sym', 'Compact', 'Size'],
+    outputLabels: ['\u{1F431} Cat', '\u{1F436} Dog', '\u{1F426} Bird', '\u{1F41F} Fish', '\u{1F40D} Snake'],
+    startLayers: [8, 6, 5],
+    optimalLayers: [8, 10, 5],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u{1F431}', answer: 0, label: 'Cat silhouette' },
+      { emoji: '\u{1F436}', answer: 1, label: 'Dog silhouette' },
+      { emoji: '\u{1F426}', answer: 2, label: 'Bird silhouette' },
+      { emoji: '\u{1F41F}', answer: 3, label: 'Fish silhouette' },
+      { emoji: '\u{1F40D}', answer: 4, label: 'Snake silhouette' },
+    ],
+  },
+  {
+    id: 'text',
+    title: 'Text Classifier',
+    emoji: '\u{1F4DD}',
+    description: 'Build a network that classifies sentences by their type — questions, statements, exclamations, and commands!',
+    descriptionC: 'Sentence-type classification from syntactic features. Input encodes punctuation type, word count, first-word POS tag, verb mood, and token statistics. Requires deeper architecture for nuanced classification.',
+    inputLabels: ['Punct', 'Words', 'POS-1', 'Verb', 'Cap', 'Len', 'Q-word', 'Subj', 'Has-!', 'Has-?', 'Imp', 'Tone'],
+    outputLabels: ['\u2753 Question', '\u{1F4AC} Statement', '\u2757 Exclamation', '\u{1F449} Command'],
+    startLayers: [12, 6, 4],
+    optimalLayers: [12, 8, 6, 4],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u2753', answer: 0, label: '"What is AI?"' },
+      { emoji: '\u{1F4AC}', answer: 1, label: '"AI learns from data."' },
+      { emoji: '\u2757', answer: 2, label: '"Wow, that\'s amazing!"' },
+      { emoji: '\u{1F449}', answer: 3, label: '"Train the model now."' },
+    ],
+  },
+  {
+    id: 'weather',
+    title: 'Weather Predictor',
+    emoji: '\u26C5',
+    description: 'Build a network that predicts weather from temperature, humidity, and wind data!',
+    descriptionC: 'Multi-variate regression/classification from meteorological features. Three continuous inputs mapped to 5 weather classes. Demonstrates how simple features combine for complex predictions.',
+    inputLabels: ['Temp', 'Humidity', 'Wind'],
+    outputLabels: ['\u2600\uFE0F Sunny', '\u{1F327}\uFE0F Rain', '\u2744\uFE0F Snow', '\u2601\uFE0F Cloudy', '\u26C8\uFE0F Storm'],
+    startLayers: [3, 4, 5],
+    optimalLayers: [3, 8, 5],
+    drawMode: false,
+    testItems: [
+      { emoji: '\u2600\uFE0F', answer: 0, label: 'Hot & dry' },
+      { emoji: '\u{1F327}\uFE0F', answer: 1, label: 'Warm & humid' },
+      { emoji: '\u2744\uFE0F', answer: 2, label: 'Cold & wet' },
+      { emoji: '\u2601\uFE0F', answer: 3, label: 'Cool & calm' },
+      { emoji: '\u26C8\uFE0F', answer: 4, label: 'Hot & windy' },
+    ],
+  },
 ];
 
 // ================================================================
@@ -208,6 +360,38 @@ const ARCH_CHALLENGES: ArchChallenge[] = [
     targetAcc: 90,
     maxNeurons: 15,
     maxLayers: 3,
+  },
+  // === NEW ARCHITECTURE TESTS (Phase D expansion) ===
+  {
+    id: 'overfitter',
+    title: 'The Overfitter',
+    description: 'Build the LARGEST network possible (max layers, max neurons) and observe overfitting',
+    requireChallenge: 'shapes',
+    targetAcc: 70,
+  },
+  {
+    id: 'underfitter',
+    title: 'The Underfitter',
+    description: 'Build the SMALLEST network (1 hidden layer, 2 neurons) and see what happens',
+    requireChallenge: 'colors',
+    targetAcc: 50,
+    maxNeurons: 5,
+    maxLayers: 2,
+  },
+  {
+    id: 'speed-demon',
+    title: 'Speed Demon',
+    description: 'Reach 80%+ accuracy with the FEWEST total neurons possible',
+    requireChallenge: 'digits',
+    targetAcc: 80,
+    maxNeurons: 20,
+  },
+  {
+    id: 'memory-master',
+    title: 'Memory Master',
+    description: 'Achieve the highest accuracy on Weather Predictor — the most complex challenge',
+    requireChallenge: 'weather',
+    targetAcc: 92,
   },
 ];
 
@@ -248,13 +432,14 @@ function buildNetwork(sizes: number[]): NetworkData {
 export function NeuralBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
-  const ageBand = (activeChild?.age_band || 'B') as 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('neural-builder', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+
+  // Band A uses simplified challenges; B/C use full challenges
+  const availableChallenges = ageBand === 'A' ? BAND_A_CHALLENGES : CHALLENGES;
 
   // --- Phase ---
   const [phase, setPhase] = useState<Phase>('welcome');
-  const [challengeId, setChallengeId] = useState('digits');
+  const [challengeId, setChallengeId] = useState(ageBand === 'A' ? 'connect-dots' : 'digits');
 
   // --- Network state ---
   const [layerSizes, setLayerSizes] = useState<number[]>([4, 6, 10]);
@@ -271,6 +456,18 @@ export function NeuralBuilderGame() {
   >([]);
   const [learningRate, setLearningRate] = useState(0.01);
   const [dataFlowActive, setDataFlowActive] = useState(false);
+
+  // Band C advanced hyperparameters (Phase D expansion)
+  const [activationFn, setActivationFn] = useState<'relu' | 'sigmoid' | 'tanh'>('relu');
+  const [dropoutRate, setDropoutRate] = useState(0);
+  const [batchSize, setBatchSize] = useState(32);
+
+  // Competition mode (Phase D expansion)
+  const [competitionMode, setCompetitionMode] = useState(false);
+  const [bestAccuracy, setBestAccuracy] = useState(0);
+
+  // Band A star rating (visual-only, no percentage)
+  const starRating = ageBand === 'A' ? Math.min(5, Math.max(1, Math.round(accuracy / 20))) : 0;
 
   // --- Test state ---
   const [testIdx, setTestIdx] = useState(0);
@@ -344,8 +541,8 @@ export function NeuralBuilderGame() {
 
   // --- Derived ---
   const challenge = useMemo(
-    () => CHALLENGES.find((c) => c.id === challengeId) || CHALLENGES[0],
-    [challengeId]
+    () => availableChallenges.find((c) => c.id === challengeId) || availableChallenges[0],
+    [challengeId, availableChallenges]
   );
   const description =
     ageBand === 'C' ? challenge.descriptionC : challenge.description;
@@ -408,7 +605,7 @@ export function NeuralBuilderGame() {
 
   // --- Challenge selection ---
   function selectChallenge(id: string) {
-    const ch = CHALLENGES.find((c) => c.id === id);
+    const ch = availableChallenges.find((c) => c.id === id) || CHALLENGES.find((c) => c.id === id);
     if (!ch) return;
     setChallengeId(id);
     // BUG-NB8 fix: clear canvas when switching challenges
@@ -480,9 +677,20 @@ export function NeuralBuilderGame() {
     const archQuality = 1 - Math.min(1, optimalMatch);
     const maxAcc = Math.min(98, 60 + archQuality * 38);
     // Good arch: fast convergence, low noise. Bad arch: slow start, high noise, possible divergence.
-    const convergenceRate = 0.5 + archQuality * 0.5; // 0.5 (bad) to 1.0 (good)
-    const noiseLevel = 2 + (1 - archQuality) * 8; // 2 (good) to 10 (bad)
+    let convergenceRate = 0.5 + archQuality * 0.5; // 0.5 (bad) to 1.0 (good)
+    let noiseLevel = 2 + (1 - archQuality) * 8; // 2 (good) to 10 (bad)
     const plateauEpoch = Math.floor(epochs * (0.3 + archQuality * 0.5)); // early plateau for bad arch
+
+    // Band C hyperparameter effects on training curve
+    if (ageBand === 'C') {
+      // Activation function affects convergence
+      if (activationFn === 'sigmoid') { convergenceRate *= 0.75; noiseLevel *= 0.8; } // smooth but slow
+      else if (activationFn === 'tanh') { convergenceRate *= 0.9; noiseLevel *= 0.9; } // balanced
+      // Dropout reduces overfitting, adds noise
+      if (dropoutRate > 0) { noiseLevel *= (1 + dropoutRate * 0.3); }
+      // Batch size: small = noisy, large = smooth
+      if (batchSize <= 8) { noiseLevel *= 1.3; } else if (batchSize >= 128) { noiseLevel *= 0.6; }
+    }
 
     let prevAcc = 0;
     for (let e = 1; e <= epochs; e++) {
@@ -555,6 +763,8 @@ export function NeuralBuilderGame() {
     setIsTraining(false);
     setDataFlowActive(false);
     game.updateScore(Math.round(maxAcc / 10) * 5);
+    // Track best accuracy for competition mode
+    if (accuracy > bestAccuracy) setBestAccuracy(Math.round(maxAcc));
   }
 
   // --- Weight slider ---
@@ -771,22 +981,42 @@ export function NeuralBuilderGame() {
                   Neural Network Builder
                 </h2>
                 <p className="font-body text-sm text-white/60">
-                  {ageBand === 'C'
-                    ? 'Design neural network architectures, configure hyperparameters, train on classification tasks, and analyze convergence behavior.'
-                    : 'Build your own brain-like network! Add layers and neurons, train it on challenges, and watch it learn.'}
+                  {ageBand === 'A'
+                    ? 'Build a thinking brain! Stack colorful brain cells and watch your creation learn!'
+                    : ageBand === 'C'
+                      ? 'Design neural network architectures, configure hyperparameters, train on classification tasks, and analyze convergence behavior.'
+                      : 'Build your own brain-like network! Add layers and neurons, train it on challenges, and watch it learn.'}
                 </p>
                 <div className="flex flex-wrap gap-2 justify-center">
-                  {['Layers', 'Neurons', 'Weights', 'Training', 'Accuracy'].map(
-                    (tag) => (
-                      <span
-                        key={tag}
-                        className="px-3 py-1 rounded-full text-xs font-body bg-pink-500/10 text-pink-300 border border-pink-500/20"
-                      >
-                        {tag}
-                      </span>
-                    )
-                  )}
+                  {(ageBand === 'A'
+                    ? ['Brain Cells', 'Connections', 'Learning', 'Stars']
+                    : ['Layers', 'Neurons', 'Weights', 'Training', 'Accuracy']
+                  ).map((tag) => (
+                    <span
+                      key={tag}
+                      className="px-3 py-1 rounded-full text-xs font-body bg-pink-500/10 text-pink-300 border border-pink-500/20"
+                    >
+                      {tag}
+                    </span>
+                  ))}
                 </div>
+
+                {/* Competition mode toggle (Band B/C only) */}
+                {ageBand !== 'A' && (
+                  <button
+                    onClick={() => setCompetitionMode(!competitionMode)}
+                    className={`px-4 py-2 rounded-lg font-display text-xs border transition-colors ${
+                      competitionMode
+                        ? 'bg-yellow-500/10 border-yellow-400/30 text-yellow-300'
+                        : 'bg-white/[0.02] border-white/10 text-white/30 hover:text-white/50'
+                    }`}
+                    aria-label={`Competition mode: ${competitionMode ? 'on' : 'off'}. Beat the benchmark for bronze/silver/gold tiers.`}
+                    aria-pressed={competitionMode}
+                  >
+                    {'\u{1F3C6}'} Beat the Benchmark {competitionMode ? '(ON)' : '(OFF)'}
+                  </button>
+                )}
+
                 <motion.button
                   onClick={() => setPhase('learn')}
                   className="px-8 py-3 rounded-xl font-display font-bold text-white bg-gradient-to-r from-pink-500 to-pink-600 shadow-lg shadow-pink-500/25"
@@ -794,7 +1024,7 @@ export function NeuralBuilderGame() {
                   whileTap={{ scale: 0.95 }}
                   aria-label="Start building neural networks"
                 >
-                  Start Building{' '}
+                  {ageBand === 'A' ? 'Build a Brain!' : 'Start Building'}{' '}
                   <ChevronRight className="inline w-4 h-4 ml-1" />
                 </motion.button>
               </motion.div>
@@ -810,19 +1040,23 @@ export function NeuralBuilderGame() {
                 className="max-w-lg mx-auto space-y-6 py-4"
               >
                 <h3 className="font-display text-lg font-bold text-white text-center">
-                  {ageBand === 'C'
-                    ? 'Neural Network Architecture'
-                    : 'What is a Neural Network?'}
+                  {ageBand === 'A'
+                    ? 'How Does a Brain Work?'
+                    : ageBand === 'C'
+                      ? 'Neural Network Architecture'
+                      : 'What is a Neural Network?'}
                 </h3>
 
                 {[
                   {
                     icon: '\u{1F4E5}',
-                    title: ageBand === 'C' ? 'Input Layer' : 'Inputs',
+                    title: ageBand === 'A' ? 'Eyes & Ears' : ageBand === 'C' ? 'Input Layer' : 'Inputs',
                     text:
-                      ageBand === 'C'
-                        ? 'Receives raw feature vectors. Dimensionality matches the input space.'
-                        : 'Data goes in here \u2014 like pixels from a picture or numbers describing a color.',
+                      ageBand === 'A'
+                        ? 'Your brain gets information through your eyes and ears. Our brain machine gets info the same way!'
+                        : ageBand === 'C'
+                          ? 'Receives raw feature vectors. Dimensionality matches the input space.'
+                          : 'Data goes in here \u2014 like pixels from a picture or numbers describing a color.',
                   },
                   {
                     icon: '\u{1F9F1}',
@@ -1205,15 +1439,91 @@ export function NeuralBuilderGame() {
                   >
                     {isTraining ? (
                       <span>
-                        Training... Epoch {trainEpoch}/20 &mdash; {accuracy}%
+                        {ageBand === 'A'
+                          ? `Feeding brain... ${'\u2B50}'.repeat(starRating)}`
+                          : `Training... Epoch ${trainEpoch}/20 \u2014 ${accuracy}%`}
                       </span>
                     ) : (
                       <span>
-                        <Play className="inline w-4 h-4 mr-1" /> Train Network
+                        <Play className="inline w-4 h-4 mr-1" /> {ageBand === 'A' ? 'Feed Your Brain!' : 'Train Network'}
                       </span>
                     )}
                   </motion.button>
                 </div>
+
+                {/* Band C: Hyperparameter controls (Phase D expansion) */}
+                {ageBand === 'C' && !isTraining && (
+                  <div className="grid grid-cols-2 gap-2 mt-3" role="group" aria-label="Hyperparameter controls">
+                    <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
+                      <p className="font-body text-2xs text-white/30 mb-1">Activation Function</p>
+                      <select
+                        value={activationFn}
+                        onChange={(e) => setActivationFn(e.target.value as 'relu' | 'sigmoid' | 'tanh')}
+                        className="w-full bg-black/30 text-white text-xs rounded px-2 py-1 border border-white/10 outline-none"
+                        aria-label="Select activation function"
+                      >
+                        <option value="relu">ReLU (fast)</option>
+                        <option value="sigmoid">Sigmoid (smooth)</option>
+                        <option value="tanh">Tanh (centered)</option>
+                      </select>
+                    </div>
+                    <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
+                      <p className="font-body text-2xs text-white/30 mb-1">Dropout</p>
+                      <select
+                        value={dropoutRate}
+                        onChange={(e) => setDropoutRate(Number(e.target.value))}
+                        className="w-full bg-black/30 text-white text-xs rounded px-2 py-1 border border-white/10 outline-none"
+                        aria-label="Select dropout rate"
+                      >
+                        <option value={0}>Off</option>
+                        <option value={0.25}>25%</option>
+                        <option value={0.5}>50%</option>
+                      </select>
+                    </div>
+                    <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
+                      <p className="font-body text-2xs text-white/30 mb-1">Learning Rate</p>
+                      <input
+                        type="range"
+                        min={0.001}
+                        max={0.1}
+                        step={0.001}
+                        value={learningRate}
+                        onChange={(e) => setLearningRate(Number(e.target.value))}
+                        className="w-full accent-pink-400"
+                        aria-label={`Learning rate: ${learningRate}`}
+                      />
+                      <p className="font-data text-2xs text-pink-300 text-center">{learningRate.toFixed(3)}</p>
+                    </div>
+                    <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
+                      <p className="font-body text-2xs text-white/30 mb-1">Batch Size</p>
+                      <select
+                        value={batchSize}
+                        onChange={(e) => setBatchSize(Number(e.target.value))}
+                        className="w-full bg-black/30 text-white text-xs rounded px-2 py-1 border border-white/10 outline-none"
+                        aria-label="Select batch size"
+                      >
+                        <option value={1}>1 (SGD)</option>
+                        <option value={8}>8</option>
+                        <option value={32}>32</option>
+                        <option value={128}>128</option>
+                      </select>
+                    </div>
+                  </div>
+                )}
+
+                {/* Competition mode benchmark display */}
+                {competitionMode && !isTraining && accuracy > 0 && (
+                  <div className="mt-2 rounded-lg p-2 bg-yellow-500/5 border border-yellow-500/20 text-center">
+                    <p className="font-body text-xs text-yellow-300">
+                      {'\u{1F3C6}'} Benchmark: {challenge.optimalLayers.length <= 3 ? '85%' : '80%'} |
+                      Your best: {bestAccuracy}% |
+                      {bestAccuracy >= (challenge.optimalLayers.length <= 3 ? 95 : 90) ? ' \u{1F947} Gold!'
+                        : bestAccuracy >= (challenge.optimalLayers.length <= 3 ? 90 : 85) ? ' \u{1F948} Silver!'
+                          : bestAccuracy >= (challenge.optimalLayers.length <= 3 ? 85 : 80) ? ' \u{1F949} Bronze!'
+                            : ' Keep training!'}
+                    </p>
+                  </div>
+                )}
 
                 {/* Training progress */}
                 {isTraining && (
