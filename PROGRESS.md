@@ -6,6 +6,21 @@
 
 ---
 
+### Flagship Game Audit — Phase F: Per-Game AI Integration (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** AI content hooks integrated into all 5 flagship games
+
+- [x] Pet Trainer: `useAIContent` + `SurpriseMeButton` for novel categories
+- [x] Sort Toy Box: `useAIContent` for Round 5 AI-generated criteria
+- [x] Neural Builder: `useAIContent` for random challenge generation
+- [x] Agent Architect: `useAIContent` for sandbox mission generation
+- [x] Bias Detective: `useAIContent` for new case generation
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
 ### Flagship Game Audit — Phase E: AI Content Generation Infrastructure (April 7, 2026)
 
 **Status:** COMPLETE
