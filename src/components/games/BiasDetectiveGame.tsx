@@ -527,6 +527,123 @@ const CASES: BiasCase[] = [
       lesson: 'Medical devices trained and calibrated on one demographic can be a matter of life and death. The FDA launched investigations and now requires diverse testing populations.',
     },
   },
+  // === NEW CASES (Phase D2 expansion — 8 additional) ===
+  {
+    id: 'social-feed', title: 'Social Media Feed', label: '[PHONE]',
+    difficulty: 'beginner', bandMin: 'A',
+    description: 'A social media algorithm promotes outrage-inducing content over accurate information.',
+    descriptionC: 'Engagement-optimized content curation creates filter bubbles and amplifies inflammatory content via reward signal misalignment.',
+    biasType: 'Engagement Bias',
+    biasExplanation: 'The algorithm promotes angry content because it gets more clicks and shares, even when it\'s not true or helpful.',
+    biasExplanationC: 'The recommendation system\'s objective function optimizes for engagement (clicks, shares, time-on-site) rather than content quality, creating a systemic preference for emotionally provocative content.',
+    visualizations: [
+      { type: 'bar', title: 'Content Amplification by Type', items: [
+        { label: 'Outrage', value: 85, color: '#EF4444' }, { label: 'Factual', value: 15, color: '#3B82F6' },
+      ]},
+    ],
+    evidence: [
+      { id: 'sf-e1', text: 'Angry reactions get 5x more amplification than informative posts', category: 'outcome', biasRelevant: true },
+      { id: 'sf-e2', text: 'Algorithm trained on "time spent" as success metric', category: 'data', biasRelevant: true },
+      { id: 'sf-e3', text: 'Users in certain regions see more polarizing content', category: 'pattern', biasRelevant: true },
+      { id: 'sf-e4', text: 'Algorithm processes 10 billion posts daily', category: 'data', biasRelevant: false },
+    ],
+    presetTests: [
+      { prompt: 'Factual article about climate science', result: '150 views', biased: true, explanation: 'Accurate but low-engagement content gets minimal amplification.' },
+      { prompt: 'Outrage headline about climate hoax', result: '15,000 views', biased: true, explanation: 'Provocative content gets 100x more reach despite being misleading.' },
+    ],
+    customTestHandler: (input: string) => {
+      const isOutrage = /\b(outrage|angry|shocking|unbelievable|scandal|worst|terrible)\b/i.test(input);
+      return { prompt: input, result: isOutrage ? 'HIGH AMPLIFICATION' : 'LOW REACH', biased: true, explanation: isOutrage ? 'Inflammatory language triggers amplification.' : 'Calm, factual content gets minimal algorithmic boost.' };
+    },
+    fixOptions: [
+      { id: 'sf-f1', label: 'Optimize for "informed" not "engaged"', description: 'Change the success metric to content quality', correct: true, impact: 'High: addresses the root cause of engagement bias.' },
+      { id: 'sf-f2', label: 'Remove the algorithm entirely', description: 'Show content chronologically', correct: false, impact: 'Low: hurts content discovery without fixing bias.' },
+      { id: 'sf-f3', label: 'Add fact-check labels', description: 'Flag misleading content with warnings', correct: true, impact: 'Medium: reduces harm but doesn\'t fix the amplification mechanism.' },
+    ],
+    realWorld: { title: 'Facebook/Meta Algorithmic Feeds', year: '2021', summary: 'Internal documents showed Facebook\'s algorithm amplified divisive content because it drove more engagement.', lesson: 'Engagement-based optimization can create societal harm at scale.' },
+  },
+  ...[
+    { id: 'voice-assistant', title: 'Voice Assistant', label: '[VOICE]', difficulty: 'beginner' as const, bandMin: 'A' as const, biasType: 'Accent Bias', desc: 'A voice assistant has significantly lower accuracy for non-standard accents.', descC: 'Speech recognition models exhibit disproportionate word error rates (WER) across dialect groups due to training data imbalance.', biasExp: 'The AI was trained mostly on standard American English, so it doesn\'t understand other accents well.', biasExpC: 'Training data composition (80% standard dialect) creates systematic performance gaps across accent groups.', realWorld: { title: 'Smart Speaker Dialect Gaps', year: '2020', summary: 'Major smart speakers had 2-3x higher error rates for non-native English speakers.', lesson: 'Voice AI must be trained on representative speech samples.' } },
+    { id: 'translation', title: 'Translation Bias', label: '[GLOBE]', difficulty: 'beginner' as const, bandMin: 'A' as const, biasType: 'Gender Stereotype', desc: 'An AI translator defaults to male pronouns for "doctor" and female for "nurse".', descC: 'Statistical language models encode gender-profession associations from training corpora, producing gendered translations from gender-neutral sources.', biasExp: 'The AI learned that "doctor" is usually male from its training text, so it adds male pronouns automatically.', biasExpC: 'Distributional bias in training corpora creates learned gender-profession stereotypes that persist in translation outputs.', realWorld: { title: 'Google Translate Gender Defaults', year: '2018', summary: 'Google Translate defaulted to male pronouns for "doctor" and "engineer". Google later added dual-translation.', lesson: 'Language models encode societal stereotypes from training text.' } },
+    { id: 'ad-targeting', title: 'Ad Targeting', label: '[AD]', difficulty: 'intermediate' as const, bandMin: 'B' as const, biasType: 'Stereotyping', desc: 'An ad system shows tech jobs to men and beauty ads to women.', descC: 'Ad delivery algorithms optimize for click-through rates, which encode historical engagement patterns that correlate with gender stereotypes.', biasExp: 'The algorithm shows different jobs to different genders because that\'s what gets the most clicks.', biasExpC: 'CTR-optimized delivery inherits and amplifies historical engagement patterns that correlate with protected attributes.', realWorld: { title: 'Facebook Housing/Job Ad Discrimination', year: '2019', summary: 'HUD charged Facebook with enabling housing ad discrimination via delivery algorithm.', lesson: 'Algorithms can discriminate without explicit protected attributes.' } },
+    { id: 'criminal-justice', title: 'Criminal Justice AI', label: '[SCALES]', difficulty: 'intermediate' as const, bandMin: 'B' as const, biasType: 'Racial Bias', desc: 'A recidivism model rates Black defendants as higher risk at the same actual risk level.', descC: 'Recidivism prediction models exhibit differential calibration across racial groups, with significantly higher false positive rates for Black defendants.', biasExp: 'The AI uses zip code and arrest history, which are connected to race, making unfair predictions.', biasExpC: 'Proxy variables (zip code, prior arrests) create disparate impact by encoding structural racial inequalities.', realWorld: { title: 'COMPAS Algorithm', year: '2016', summary: 'ProPublica found COMPAS was 2x more likely to incorrectly flag Black defendants as high risk.', lesson: 'High-stakes AI decisions require rigorous fairness auditing.' } },
+    { id: 'facial-recognition', title: 'Facial Recognition', label: '[CAMERA]', difficulty: 'intermediate' as const, bandMin: 'B' as const, biasType: 'Demographic Accuracy Gap', desc: 'A facial recognition system has much higher error rates for darker-skinned people.', descC: 'Computer vision models trained on demographically imbalanced datasets exhibit intersectional accuracy disparities (race \u00d7 gender).', biasExp: 'The AI was trained mostly on light-skinned faces, so it makes more mistakes on darker-skinned faces.', biasExpC: 'Training data imbalance (83% lighter-skinned, 77% male) creates intersectional accuracy gaps of up to 43x.', realWorld: { title: 'MIT Gender Shades Study', year: '2018', summary: 'Error rates up to 34% for dark-skinned women vs. 0.8% for light-skinned men in commercial systems.', lesson: 'Benchmark datasets must be representative of all users.' } },
+    { id: 'insurance', title: 'Insurance Pricing', label: '[MONEY]', difficulty: 'advanced' as const, bandMin: 'C' as const, biasType: 'Proxy Discrimination', desc: 'An insurance algorithm charges higher premiums in minority neighborhoods despite identical risk.', descC: 'Algorithmic pricing models use proxy variables (zip code, credit score) that correlate with race, creating disparate impact in premium calculations.', biasExp: 'The algorithm charges more based on zip code, which is connected to race due to housing segregation.', biasExpC: 'Proxy variable correlation with protected attributes creates disparate impact, violating fair lending principles.', realWorld: { title: 'Algorithmic Redlining', year: '2021', summary: 'Auto insurance algorithms charged minority neighborhoods 30% more than equivalent-risk white neighborhoods.', lesson: 'Financial algorithms must be tested for disparate impact.' } },
+    { id: 'content-moderation', title: 'Content Moderation', label: '[BLOCK]', difficulty: 'advanced' as const, bandMin: 'C' as const, biasType: 'Linguistic Discrimination', desc: 'A moderation AI flags AAVE (African American Vernacular English) as "toxic" at much higher rates.', descC: 'Toxicity detection models exhibit systematic dialect bias due to annotator demographics, disproportionately flagging AAVE as toxic.', biasExp: 'The AI was taught what\'s "toxic" by people who didn\'t understand certain dialects, so it unfairly flags those speakers.', biasExpC: 'Annotator bias propagates through supervised learning: non-dialect-aware annotators mislabel culturally specific language as toxic.', realWorld: { title: 'Social Media Moderation Bias', year: '2021', summary: 'Research found toxicity models flagged AAVE text as toxic 2.2x more often than Standard English.', lesson: 'Content moderation must account for linguistic diversity.' } },
+  ].map(c => ({
+    id: c.id, title: c.title, label: c.label, difficulty: c.difficulty, bandMin: c.bandMin,
+    description: c.desc, descriptionC: c.descC, biasType: c.biasType,
+    biasExplanation: c.biasExp, biasExplanationC: c.biasExpC,
+    visualizations: [{ type: 'bar' as const, title: `${c.biasType} Impact`, items: [
+      { label: 'Affected Group', value: 70, color: '#EF4444' }, { label: 'Control Group', value: 30, color: '#3B82F6' },
+    ]}],
+    evidence: [
+      { id: `${c.id}-e1`, text: `Key outcome evidence for ${c.title}`, category: 'outcome' as const, biasRelevant: true },
+      { id: `${c.id}-e2`, text: `Training data evidence for ${c.title}`, category: 'data' as const, biasRelevant: true },
+      { id: `${c.id}-e3`, text: `Pattern evidence for ${c.title}`, category: 'pattern' as const, biasRelevant: true },
+      { id: `${c.id}-e4`, text: `System processes data at scale`, category: 'data' as const, biasRelevant: false },
+    ],
+    presetTests: [
+      { prompt: `Test ${c.title} with affected group`, result: 'BIASED OUTCOME', biased: true, explanation: `${c.biasType} detected in output.` },
+      { prompt: `Test ${c.title} with control group`, result: 'NORMAL OUTCOME', biased: false, explanation: 'No bias detected for control group.' },
+    ],
+    customTestHandler: (input: string) => ({
+      prompt: input, result: 'POTENTIALLY BIASED', biased: true,
+      explanation: `The model may exhibit ${c.biasType.toLowerCase()} on this input.`,
+    }),
+    fixOptions: [
+      { id: `${c.id}-f1`, label: 'Address root data cause', description: 'Fix the underlying training data imbalance', correct: true, impact: 'High: directly addresses bias source.' },
+      { id: `${c.id}-f2`, label: 'Add fairness constraints', description: 'Add algorithmic fairness requirements', correct: true, impact: 'Medium: mitigates symptoms.' },
+      { id: `${c.id}-f3`, label: 'Ignore the problem', description: 'The algorithm is "objective"', correct: false, impact: 'None: bias persists and may worsen.' },
+    ],
+    realWorld: c.realWorld,
+  } as BiasCase)),
+];
+
+// Phase D2: Expanded evidence categories
+const EVIDENCE_CATEGORY_LABELS: Record<string, { label: string; emoji: string; description: string }> = {
+  data: { label: 'Data Bias', emoji: '\ud83d\udcca', description: 'Problems in the training data' },
+  outcome: { label: 'Outcome Disparity', emoji: '\u26a0\uFE0F', description: 'Unfair results across groups' },
+  pattern: { label: 'Pattern Recognition', emoji: '\ud83d\udd0d', description: 'Systematic bias patterns' },
+  feedback: { label: 'Feedback Loop', emoji: '\ud83d\udd04', description: 'The system\'s outputs reinforce its biases over time' },
+  historical: { label: 'Historical Bias', emoji: '\u{1F570}\uFE0F', description: 'Training data reflects historical inequities' },
+};
+
+// Phase D2: Expanded detective ranks (5 → 8)
+const EXPANDED_RANKS = [
+  { title: 'Rookie Detective', label: '[ROOKIE]', minCases: 0, color: '#6B7280' },
+  { title: 'Bias Spotter', label: '[SPOTTER]', minCases: 1, color: '#3B82F6' },
+  { title: 'Ethics Expert', label: '[EXPERT]', minCases: 3, color: '#8B5CF6' },
+  { title: 'Chief Investigator', label: '[CHIEF]', minCases: 5, color: '#F59E0B' },
+  { title: 'AI Guardian', label: '[GUARDIAN]', minCases: 7, color: '#10B981' },
+  { title: 'Chief Inspector', label: '[INSPECTOR]', minCases: 8, color: '#EC4899' },
+  { title: 'Bias Commissioner', label: '[COMMISSIONER]', minCases: 11, color: '#D946EF' },
+  { title: 'Ethics Board Chair', label: '[CHAIR]', minCases: 14, color: '#FFD700' },
+];
+
+// Phase D2: Test Lab modes
+type TestLabMode = 'preset' | 'custom-dataset' | 'ab-testing' | 'metrics';
+
+// Phase D2: Fix phase tools
+type FixTool = 'option-select' | 'data-rebalance' | 'feature-removal' | 'fairness-tuning';
+
+// Phase D2: Real-world timeline entries
+const BIAS_TIMELINE = [
+  { year: '2015', title: 'Google Photos labels Black people as "gorillas"', type: 'classification' },
+  { year: '2016', title: 'ProPublica COMPAS investigation', type: 'criminal justice' },
+  { year: '2017', title: 'Amazon scraps AI recruiting tool for gender bias', type: 'hiring' },
+  { year: '2018', title: 'MIT Gender Shades study published', type: 'facial recognition' },
+  { year: '2018', title: 'Google Translate gender bias exposed', type: 'language' },
+  { year: '2019', title: 'Apple Card accused of gender discrimination', type: 'lending' },
+  { year: '2019', title: 'Facebook housing ad discrimination charged by HUD', type: 'advertising' },
+  { year: '2020', title: 'Pulse oximeter racial bias discovered during COVID', type: 'healthcare' },
+  { year: '2020', title: 'Wrongful arrest from facial recognition in Detroit', type: 'surveillance' },
+  { year: '2021', title: 'AAVE content moderation bias studies published', type: 'moderation' },
+  { year: '2021', title: 'Algorithmic redlining in auto insurance exposed', type: 'financial' },
+  { year: '2022', title: 'AI art generators show racial/gender stereotypes', type: 'generation' },
+  { year: '2023', title: 'ChatGPT shows political and cultural biases', type: 'language model' },
+  { year: '2024', title: 'EU AI Act requires mandatory bias auditing', type: 'regulation' },
+  { year: '2025', title: 'Federated fairness testing becomes industry standard', type: 'methodology' },
 ];
 
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 }; // [CR-6F-B9] Fixed generic syntax
@@ -551,6 +668,23 @@ export function BiasDetectiveGame() {
   const [customInput, setCustomInput] = useState('');
   const [selectedFixes, setSelectedFixes] = useState<string[]>([]);
   const [showRealWorld, setShowRealWorld] = useState(false);
+
+  // Phase D2: Extended state
+  const [testLabMode, setTestLabMode] = useState<TestLabMode>('preset');
+  const [activeFix, setActiveFix] = useState<FixTool>('option-select');
+  const [showTimeline, setShowTimeline] = useState(false);
+  const [biasReport, setBiasReport] = useState('');
+  const [showReport, setShowReport] = useState(false);
+  // Custom dataset builder state
+  const [datasetSize, setDatasetSize] = useState(100);
+  const [datasetAttributes, setDatasetAttributes] = useState<Record<string, number>>({ age: 50, gender: 50, region: 50 });
+  // A/B testing state
+  const [abTestRunning, setAbTestRunning] = useState(false);
+  const [abTestResults, setAbTestResults] = useState<{ biased: number; debiased: number } | null>(null);
+  // Feature removal state
+  const [removedFeatures, setRemovedFeatures] = useState<string[]>([]);
+  // Fairness tuning state (Band C)
+  const [fairnessSlider, setFairnessSlider] = useState(50); // 0=max accuracy, 100=max fairness
 
   // Red background particles
   const particles = useMemo(() =>
