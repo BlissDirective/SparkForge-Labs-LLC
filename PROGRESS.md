@@ -6,6 +6,26 @@
 
 ---
 
+### Flagship Game Audit — Phase C: Sort Toy Box Major Expansion (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** Major expansion from 652 → 1,117 lines. 4 bugs fixed (ST1-ST4).
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+
+- [x] 5-round progressive system with progression gates (≥60% match to unlock)
+- [x] Expanded shape library: 12 → 30+ shapes across 5 round pools
+- [x] Expanded criteria: 3 → 8 (shape, color, size, pattern, texture, weight, symmetry, edgeCount)
+- [x] 3 game modes: Standard, Challenge (timed), Discovery (free-play with static AI rule matching)
+- [x] Animated 3-phase AI reveal (BUG-ST3): feature extraction → distance → clustering
+- [x] Scoring overhaul (BUG-ST1): 5pts/sort + combo bonus + match accuracy + round bonuses
+- [x] Removed unused useGameContent hook (BUG-ST2)
+- [x] replayCount forces shape regeneration on replay (BUG-ST4)
+
+**Files modified:** `src/components/games/SortToyBoxGame.tsx`
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
 ### Flagship Game Audit — Phase B: Neural Builder Critical Fixes (April 7, 2026)
 
 **Status:** COMPLETE
