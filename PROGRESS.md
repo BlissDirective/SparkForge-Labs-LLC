@@ -1,8 +1,29 @@
 # SparkForge Build Progress
 
-## Current Phase: 3D UI Migration
-## Status: COMPLETE
-## Last Updated: 2026-04-03
+## Current Phase: Flagship Game Audit Implementation
+## Status: IN PROGRESS
+## Last Updated: 2026-04-07
+
+---
+
+### Flagship Game Audit — Phase A: GameStore + GameShell Bug Fixes (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 5 critical/high bugs in shared game infrastructure (affects all 35 games)
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+**Source:** `flagship-game-content-audit(04.06.2026).md` — Section 3 (Bug Audit), Section 8 (Implementation Roadmap)
+
+- [x] BUG-GS1 (CRITICAL): Decoupled `updateScore()` from `maxScore`. Added `setMaxScore()` action. Score and maxScore are now independent.
+- [x] BUG-GS2 (HIGH): Fixed `advanceRound()` off-by-one. Changed `>=` to `>`, advance-then-check pattern.
+- [x] BUG-GS3 (HIGH): `resetGame()` now clears all fields: `currentGame`, `totalRounds`, `hintsRemaining` added to reset.
+- [x] BUG-GS4 (CRITICAL): Kept `maxScore` in HUD using `totalRounds * 10`. Ceremony tier calculation preserved.
+- [x] BUG-GS5 (HIGH): Wrapped `completeAndReward` in try/catch. `hasRewarded.current` resets on failure for auto-retry.
+
+**Files modified:**
+- `src/stores/gameStore.ts` — 3 bug fixes + 1 new action
+- `src/components/game/GameShell.tsx` — 2 bug fixes (reward pipeline + maxScore)
+
+**Verification:** `npx tsc --noEmit` — PASS (zero type errors)
 
 ---
 

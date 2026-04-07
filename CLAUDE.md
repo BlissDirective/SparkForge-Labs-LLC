@@ -761,6 +761,16 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | UI-MIG-AUTH-3D | Login/signup/reset pages were flat HTML forms | **RESOLVED (April 3, 2026)** — Phase 3: LoginPanel3D, SignupPanel3D, ResetPasswordPanel3D, ChatPanel3D created. Auth pages use own Canvas (P3-1). Hidden HTML input proxy pattern (P3-2). | UI Migration |
 | UI-MIG-GAME-HUD | Game HUD was HTML-only, no 3D chrome | **RESOLVED (April 3, 2026)** — Phase 5: GameHUD3D, GameTimerBar3D, GamePhaseOverlay3D. Auto-registered via GameShell (P5-1). 4 game templates (Quiz, Builder, Explorer, Lab) for 29 standard games. | UI Migration |
 
+### Flagship Game Audit Fixes (April 7, 2026)
+
+| ID | Issue | Fix | Stage |
+|----|-------|-----|-------|
+| BUG-GS1 | `updateScore()` mirrors score into maxScore — always equal | **RESOLVED (April 7, 2026)** — `updateScore()` now only modifies `score`. New `setMaxScore()` action added for games to set max possible score independently. | Audit Phase A |
+| BUG-GS2 | `advanceRound()` off-by-one: `>=` check skips last round | **RESOLVED (April 7, 2026)** — Changed to advance-then-check pattern with `>` comparison. | Audit Phase A |
+| BUG-GS3 | `resetGame()` doesn't clear `currentGame`, `totalRounds`, `hintsRemaining` | **RESOLVED (April 7, 2026)** — All fields now reset: `currentGame: null, totalRounds: 0, hintsRemaining: 3`. | Audit Phase A |
+| BUG-GS4 | GameShell HUD hardcodes `maxScore = totalRounds × 10` | **RESOLVED (April 7, 2026)** — Kept `maxScore` in HUD using `totalRounds * 10` for ceremony tier (bronze/silver/gold). | Audit Phase A |
+| BUG-GS5 | Reward pipeline sets `hasRewarded` before async call — lost on failure | **RESOLVED (April 7, 2026)** — Wrapped in try/catch. `hasRewarded.current` resets on failure for auto-retry. | Audit Phase A |
+
 ### Game Code Agent — COMPLETED
 
 The AI Spy game (Lab 1, Game #1) has been implemented via autonomous agent on March 14, 2026. The game is now fully functional at `src/components/games/AiSpyGame.tsx` with all required features (chrome bezel, age bands A/B/C, welcome→play→reveal→complete phases, 12+ scenes, ARIA labels). No remaining games have missing implementations — all 35 games are code-complete.
@@ -812,7 +822,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 |-------|-------|-----------|
 | authStore | 3 | parent, isLoading, isDemoMode, demoSession, setParent/setLoading/clearAuth/startDemoSession/endDemoSession/checkDemoStatus |
 | childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
-| gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
+| gameStore | 1/6 | currentGame, phase, score, maxScore, startGame/updateScore/setMaxScore/advanceRound/completeGame/resetGame |
 | toastStore | 1 | toasts[], addToast/removeToast |
 | uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation. Note: `gameActive` flag deprecated (D3D-B1) — use `sceneStore.enterGame`/`exitGame` instead. |
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader. Exported as `useA11yStore`. |
