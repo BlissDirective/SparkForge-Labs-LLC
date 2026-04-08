@@ -36,7 +36,8 @@ interface Finding {
 
 interface GeneratedContent {
   title: string;
-  type: 'lesson' | 'quiz' | 'spark_fact' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson';
+  type: 'lesson' | 'quiz' | 'spark_fact' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson'
+    | 'flagship_pet_category' | 'flagship_sort_criterion' | 'flagship_neural_challenge' | 'flagship_agent_mission' | 'flagship_bias_case';
   target_age_band: 'A' | 'B' | 'C';
   world: number;
   difficulty: 'beginner' | 'intermediate' | 'advanced';

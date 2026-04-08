@@ -38,6 +38,7 @@ export interface AIContentResponse<T = unknown> {
   content: T;
   cached: boolean;
   generatedAt: string;
+  queueId?: string; // Present when saveToQueue=true and content saved to admin review pipeline
 }
 
 // ================================================================
