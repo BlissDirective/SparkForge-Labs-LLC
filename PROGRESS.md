@@ -1,8 +1,129 @@
 # SparkForge Build Progress
 
-## Current Phase: 3D UI Migration
-## Status: COMPLETE
-## Last Updated: 2026-04-03
+## Current Phase: Flagship Game Audit Implementation
+## Status: IN PROGRESS
+## Last Updated: 2026-04-07
+
+---
+
+### Flagship Game Audit — Phase F: Per-Game AI Integration (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** AI content hooks integrated into all 5 flagship games
+
+- [x] Pet Trainer: `useAIContent` + `SurpriseMeButton` for novel categories
+- [x] Sort Toy Box: `useAIContent` for Round 5 AI-generated criteria
+- [x] Neural Builder: `useAIContent` for random challenge generation
+- [x] Agent Architect: `useAIContent` for sandbox mission generation
+- [x] Bias Detective: `useAIContent` for new case generation
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase E: AI Content Generation Infrastructure (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 3 new files — shared utility, API route, client hook
+
+- [x] `src/lib/ai-content-generator.ts` — Types, Zod validation, 10 prompt templates, safety filters, rate limiting, caching
+- [x] `src/app/api/ai/generate-content/route.ts` — POST route with auth, Claude API call, JSON parsing, safety check
+- [x] `src/hooks/useAIContent.ts` — Client hook with localStorage cache, rate limiting, concurrent request prevention
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase D2: Remaining Flagship Expansions (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 4 flagship games expanded with new content, modes, and features
+
+- [x] **Pet Trainer** (1,123→1,343): +3 pets, +6 categories, +4 moods, +2 evolution stages, customization, training modes
+- [x] **Prompt Lab** (2,127→2,323): +7 challenges, +7 templates, 5 scenario packs, battle/history/recipes modes
+- [x] **Agent Architect** (1,217→1,335): +5 blocks, +10 missions, 5 packs, 10 debug challenges, sandbox/debug/replay modes
+- [x] **Bias Detective** (1,623→1,757): +8 cases, +2 evidence types, +3 ranks, 15-entry timeline, test lab/fix tools
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase D: Neural Builder Band A + Content Expansion (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** Band A support + 5 new challenges + 4 arch tests + Band C hyperparameters + competition mode (1,531 → 1,859 lines)
+
+- [x] Band A: 3 simplified challenges (Connect the Dots, Build a Simple Brain, Color Sorter)
+- [x] Band A: Visual-only UI with star ratings, "Feed Your Brain!" button, guided text
+- [x] 5 new B/C challenges: Sound Recognizer, Emotion Detector, Animal Identifier, Text Classifier, Weather Predictor
+- [x] 4 new architecture tests: Overfitter, Underfitter, Speed Demon, Memory Master
+- [x] Band C: Activation function selector (ReLU/Sigmoid/Tanh)
+- [x] Band C: Dropout toggle (off/25%/50%), learning rate slider, batch size selector
+- [x] Competition mode: Beat the Benchmark with bronze/silver/gold tiers
+- [x] Hyperparameters affect training curves (convergence rate, noise level)
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase C: Sort Toy Box Major Expansion (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** Major expansion from 652 → 1,117 lines. 4 bugs fixed (ST1-ST4).
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+
+- [x] 5-round progressive system with progression gates (≥60% match to unlock)
+- [x] Expanded shape library: 12 → 30+ shapes across 5 round pools
+- [x] Expanded criteria: 3 → 8 (shape, color, size, pattern, texture, weight, symmetry, edgeCount)
+- [x] 3 game modes: Standard, Challenge (timed), Discovery (free-play with static AI rule matching)
+- [x] Animated 3-phase AI reveal (BUG-ST3): feature extraction → distance → clustering
+- [x] Scoring overhaul (BUG-ST1): 5pts/sort + combo bonus + match accuracy + round bonuses
+- [x] Removed unused useGameContent hook (BUG-ST2)
+- [x] replayCount forces shape regeneration on replay (BUG-ST4)
+
+**Files modified:** `src/components/games/SortToyBoxGame.tsx`
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase B: Neural Builder Critical Fixes (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 8 bugs in NeuralBuilderGame.tsx (2 Critical, 3 High, 3 Medium)
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+
+- [x] BUG-NB1 (CRITICAL): Training accuracy now architecture-dependent (convergence rate, noise, plateau)
+- [x] BUG-NB2 (HIGH): optimalMatch normalized by optimal neuron sum, not totalNeurons
+- [x] BUG-NB3 (HIGH): sparkIntensity uses raw delta before weight clamping
+- [x] BUG-NB4 (CRITICAL): Removed duplicate inline NeuralNetwork3D (kept sceneStore registration)
+- [x] BUG-NB5 (MEDIUM): setTimeout in ref, cleared on unmount
+- [x] BUG-NB6 (MEDIUM): Heartbeat continues during training at 2.7x speed
+- [x] BUG-NB7 (MEDIUM): Audio concurrency limited to 3 (prevents distortion)
+- [x] BUG-NB8 (MEDIUM): Canvas cleared on challenge switch
+
+**Files modified:** `src/components/games/NeuralBuilderGame.tsx`
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase A: GameStore + GameShell Bug Fixes (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 5 critical/high bugs in shared game infrastructure (affects all 35 games)
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+**Source:** `flagship-game-content-audit(04.06.2026).md` — Section 3 (Bug Audit), Section 8 (Implementation Roadmap)
+
+- [x] BUG-GS1 (CRITICAL): Decoupled `updateScore()` from `maxScore`. Added `setMaxScore()` action. Score and maxScore are now independent.
+- [x] BUG-GS2 (HIGH): Fixed `advanceRound()` off-by-one. Changed `>=` to `>`, advance-then-check pattern.
+- [x] BUG-GS3 (HIGH): `resetGame()` now clears all fields: `currentGame`, `totalRounds`, `hintsRemaining` added to reset.
+- [x] BUG-GS4 (CRITICAL): Kept `maxScore` in HUD using `totalRounds * 10`. Ceremony tier calculation preserved.
+- [x] BUG-GS5 (HIGH): Wrapped `completeAndReward` in try/catch. `hasRewarded.current` resets on failure for auto-retry.
+
+**Files modified:**
+- `src/stores/gameStore.ts` — 3 bug fixes + 1 new action
+- `src/components/game/GameShell.tsx` — 2 bug fixes (reward pipeline + maxScore)
+
+**Verification:** `npx tsc --noEmit` — PASS (zero type errors)
 
 ---
 

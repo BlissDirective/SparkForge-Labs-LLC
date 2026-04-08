@@ -25,6 +25,7 @@ import {
   GraduationCap, Target, Award, Star,
   Settings2, Code2, CheckCircle2, Cpu,
 } from 'lucide-react';
+import { useAIContent } from '@/hooks/useAIContent';
 
 // [v3] Dynamic import for 3D pipeline (no SSR)
 import dynamic from 'next/dynamic';
@@ -129,6 +130,22 @@ const ALL_BLOCK_TYPES: BlockType[] = [
   { id: 'human', label: 'Human', emoji: '\ud83d\ude4b', color: '#F43F5E',
     outputs: 2, category: 'advanced', unlockAfter: 6,
     description: 'Ask a human for approval or input', configurable: true },
+  // === NEW BLOCK TYPES (Phase D2 expansion) ===
+  { id: 'filter', label: 'Filter', emoji: '\ud83e\uddea', color: '#14B8A6',
+    outputs: 1, category: 'logic', unlockAfter: 8,
+    description: 'Filter data based on criteria before passing to next block', configurable: true },
+  { id: 'transform', label: 'Transform', emoji: '\u2699\uFE0F', color: '#A78BFA',
+    outputs: 1, category: 'logic', unlockAfter: 9,
+    description: 'Modify data format/structure (text\u2192list, JSON\u2192table)', configurable: true },
+  { id: 'api-call', label: 'API Call', emoji: '\u2601\uFE0F', color: '#38BDF8',
+    outputs: 1, category: 'advanced', unlockAfter: 11,
+    description: 'Make external API request with configurable endpoint', configurable: true },
+  { id: 'validate', label: 'Validate', emoji: '\u2705', color: '#22C55E',
+    outputs: 2, category: 'logic', unlockAfter: 13,
+    description: 'Verify data meets quality/format requirements', configurable: true },
+  { id: 'notify', label: 'Notify', emoji: '\ud83d\udd14', color: '#FB923C',
+    outputs: 1, category: 'advanced', unlockAfter: 15,
+    description: 'Send alert/notification to user or another agent', configurable: true },
 ];
 
 const TOOL_OPTIONS = [
@@ -210,6 +227,100 @@ const MISSIONS: Mission[] = [
       'Test it (Check)', 'Fix bugs (Loop)', 'Get human review'],
     requiredBlockTypes: ['goal', 'tool', 'check', 'loop', 'human', 'done'],
     minBlocks: 8, optimalBlocks: 10 },
+  // === NEW MISSIONS (Phase D2 expansion) ===
+  { id: 'm9', title: 'Recipe Finder', emoji: '\ud83c\udf73',
+    difficulty: 'beginner', bandMin: 'A',
+    description: 'Agent searches for recipes matching user\'s ingredients.',
+    requirements: ['Set ingredient goal', 'Search recipes', 'Filter by ingredients', 'Return results'],
+    requiredBlockTypes: ['goal', 'search', 'filter', 'done'],
+    minBlocks: 4, optimalBlocks: 5 },
+  { id: 'm10', title: 'Daily Briefing', emoji: '\ud83d\udcf0',
+    difficulty: 'beginner', bandMin: 'A',
+    description: 'Agent gathers news + weather + calendar and presents a summary.',
+    requirements: ['Set briefing goal', 'Search 3 sources', 'Transform into summary', 'Present'],
+    requiredBlockTypes: ['goal', 'search', 'transform', 'done'],
+    minBlocks: 5, optimalBlocks: 7 },
+  { id: 'm11', title: 'Smart Shopper', emoji: '\ud83d\uded2',
+    difficulty: 'intermediate', bandMin: 'B',
+    description: 'Agent compares prices across stores, filters by budget, recommends best deal.',
+    requirements: ['Search prices', 'Filter by budget', 'Decide best deal'],
+    requiredBlockTypes: ['goal', 'search', 'filter', 'decide', 'done'],
+    minBlocks: 6, optimalBlocks: 7 },
+  { id: 'm12', title: 'Study Planner', emoji: '\ud83d\udcda',
+    difficulty: 'intermediate', bandMin: 'B',
+    description: 'Agent reviews subjects, transforms into schedule, loops until complete.',
+    requirements: ['List subjects', 'Transform to schedule', 'Loop until all covered', 'Verify'],
+    requiredBlockTypes: ['goal', 'tool', 'transform', 'loop', 'check', 'done'],
+    minBlocks: 7, optimalBlocks: 8 },
+  { id: 'm13', title: 'Bug Hunter', emoji: '\ud83d\udc1b',
+    difficulty: 'intermediate', bandMin: 'B',
+    description: 'Agent reads error log, searches solutions, validates fix works.',
+    requirements: ['Read errors', 'Search solutions', 'Validate fix', 'Report'],
+    requiredBlockTypes: ['goal', 'tool', 'search', 'validate', 'decide', 'done'],
+    minBlocks: 7, optimalBlocks: 8 },
+  { id: 'm14', title: 'Travel Planner', emoji: '\u2708\uFE0F',
+    difficulty: 'advanced', bandMin: 'B',
+    description: 'Agent books flights + hotels + activities in parallel, remembers preferences.',
+    requirements: ['Set destination', 'Parallel search flights/hotels/activities', 'Remember preferences', 'Transform into itinerary'],
+    requiredBlockTypes: ['goal', 'parallel', 'api-call', 'memory', 'transform', 'done'],
+    minBlocks: 8, optimalBlocks: 10 },
+  { id: 'm15', title: 'Content Creator', emoji: '\u270d\uFE0F',
+    difficulty: 'advanced', bandMin: 'B',
+    description: 'Agent researches, drafts, self-reviews, iterates until quality threshold met.',
+    requirements: ['Research topic', 'Draft content', 'Check quality', 'Loop until good', 'Validate format'],
+    requiredBlockTypes: ['goal', 'search', 'tool', 'check', 'loop', 'validate', 'done'],
+    minBlocks: 8, optimalBlocks: 10 },
+  { id: 'm16', title: 'Customer Support', emoji: '\ud83d\udcde',
+    difficulty: 'advanced', bandMin: 'C',
+    description: 'Agent triages request, searches KB, validates answer, escalates to human if unsure.',
+    requirements: ['Triage request', 'Search knowledge base', 'Validate answer', 'Escalate if needed', 'Notify user'],
+    requiredBlockTypes: ['goal', 'decide', 'search', 'validate', 'human', 'notify', 'done'],
+    minBlocks: 9, optimalBlocks: 11 },
+  { id: 'm17', title: 'Error Recovery', emoji: '\u26a0\uFE0F',
+    difficulty: 'advanced', bandMin: 'C',
+    description: 'Agent must handle API failures gracefully \u2014 retry, fallback, alert human.',
+    requirements: ['Make API call', 'Check for error', 'Loop for retry', 'Decide to escalate', 'Human fallback', 'Notify result'],
+    requiredBlockTypes: ['goal', 'api-call', 'check', 'loop', 'decide', 'human', 'notify', 'done'],
+    minBlocks: 10, optimalBlocks: 12 },
+  { id: 'm18', title: 'Autonomous Assistant', emoji: '\ud83e\udd16',
+    difficulty: 'advanced', bandMin: 'C',
+    description: 'Full personal assistant: email triage, calendar, task prioritization, notifications.',
+    requirements: ['Handle multiple inputs', 'Parallel processing', 'Memory for context', 'Validation', 'User notifications'],
+    requiredBlockTypes: ['goal', 'parallel', 'search', 'tool', 'memory', 'decide', 'loop', 'validate', 'notify', 'done'],
+    minBlocks: 12, optimalBlocks: 15 },
+];
+
+// ================================================================
+// Phase D2: Themed Mission Packs + Game Modes
+// ================================================================
+
+type AgentGameMode = 'mission' | 'sandbox' | 'debug' | 'replay';
+
+const _MISSION_PACKS = [
+  { id: 'kitchen', title: 'Kitchen Helper', emoji: '\ud83c\udf73',
+    missions: ['m9'], description: 'Meal planning + cooking agent', concept: 'Sequential reasoning' },
+  { id: 'homework', title: 'Homework Assistant', emoji: '\ud83d\udcda',
+    missions: ['m12'], description: 'Academic support agent', concept: 'Information retrieval' },
+  { id: 'game-designer', title: 'Game Designer', emoji: '\ud83c\udfae',
+    missions: ['m11'], description: 'Simple game creation', concept: 'Logic flows' },
+  { id: 'weather-reporter', title: 'Weather Reporter', emoji: '\u26c5',
+    missions: ['m10'], description: 'Data journalism agent', concept: 'Data pipelines' },
+  { id: 'pet-sitter', title: 'Pet Sitter', emoji: '\ud83d\udc3e',
+    missions: ['m13'], description: 'Virtual pet care agent', concept: 'Event-driven agents' },
+];
+
+// Debug mode: pre-built broken pipelines
+const _DEBUG_CHALLENGES = [
+  { id: 'dbg1', title: 'Missing Connection', description: 'Goal has no output \u2014 the pipeline is broken!', difficulty: 'easy' },
+  { id: 'dbg2', title: 'Infinite Loop', description: 'Loop has no exit condition \u2014 runs forever!', difficulty: 'medium' },
+  { id: 'dbg3', title: 'Wrong Order', description: 'Search comes after Done \u2014 it never executes!', difficulty: 'easy' },
+  { id: 'dbg4', title: 'Dead Branch', description: 'One Decide path leads nowhere.', difficulty: 'medium' },
+  { id: 'dbg5', title: 'Missing Validation', description: 'API result used without checking if it succeeded.', difficulty: 'hard' },
+  { id: 'dbg6', title: 'Memory Leak', description: 'Memory block stores but never reads \u2014 wasted work!', difficulty: 'medium' },
+  { id: 'dbg7', title: 'Parallel Deadlock', description: 'Two parallel paths depend on each other.', difficulty: 'hard' },
+  { id: 'dbg8', title: 'No Error Handling', description: 'API call with no Check/Decide for failures.', difficulty: 'medium' },
+  { id: 'dbg9', title: 'Orphan Blocks', description: 'Three blocks are not connected to anything.', difficulty: 'easy' },
+  { id: 'dbg10', title: 'Wrong Goal', description: 'Goal says one thing but pipeline does another.', difficulty: 'hard' },
 ];
 
 // ================================================================
@@ -376,6 +487,17 @@ export function AgentArchitectGame() {
   const [learnIdx, setLearnIdx] = useState(0);
   const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
+
+  // Phase D2: Game mode + sandbox/debug/replay state
+  const [_gameMode, _setGameMode] = useState<AgentGameMode>('mission');
+
+  // Phase F: AI-generated mission
+  const _aiMission = useAIContent('agent-architect', 'agent-mission', ageBand);
+  const [_activeDebugChallenge, _setActiveDebugChallenge] = useState<string | null>(null);
+  const [_replayStep, _setReplayStep] = useState(0);
+  const [_replayPlaying, _setReplayPlaying] = useState(false);
+  const [_sandboxTestInput, _setSandboxTestInput] = useState('');
+  const [_activePack, _setActivePack] = useState<string | null>(null);
 
   // Canvas state
   const [blocks, setBlocks] = useState<PlacedBlock[]>([]);

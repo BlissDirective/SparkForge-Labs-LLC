@@ -936,6 +936,6 @@ git commit -m "Stage 6F v3-FINAL: Bias Detective - 3D justice scales (Decision 6
 
 ## END OF STAGE 6F v3-FINAL (Parts A + B + C)
 
-Stage 6F v3-FINAL complete. Bias Detective upgraded with 3D justice scales (Decision 6.6, 6.2.5). Brushed brass MeshStandardMaterial with spring physics tilt, golden glow when balanced, red warning particles when severely unbalanced. All age bands (A, B, C). Mobile CSS fallback with Motion. ~280 lines new (BiasScales3D.tsx) + ~1,400 lines replaced (BiasDetectiveGame.tsx with v3 integration). All v2 features preserved: 6 cases with SVG charts, evidence board, test lab, Fix the AI mechanic, detective rank progression (5 levels), real-world case studies, age-band differentiation, ARIA labels.
+Stage 6F v3-FINAL complete. Bias Detective upgraded with 3D justice scales (Decision 6.6, 6.2.5). Brushed brass MeshStandardMaterial with spring physics tilt, golden glow when balanced, red warning particles when severely unbalanced. All age bands (A, B, C). Desktop-only (D3D-1). ~280 lines new (BiasScales3D.tsx) + ~1,761 lines game file. All v2 features preserved and expanded (April 7, 2026 audit): 14 cases (+8), 5 evidence categories (+2), 8 detective ranks (+3), 4 test lab modes, 4 fix phase tools, 15-entry AI bias timeline (2015-2025), real-world case studies, age-band differentiation, ARIA labels.
 
 **SUPERSEDES:** `STAGE6F_Flagship_BiasDetective.pdf`

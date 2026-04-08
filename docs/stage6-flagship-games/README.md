@@ -45,10 +45,19 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 | `STAGE6F_v3FINAL_B.pdf` | 6.5b | Bias Detective full game file |  |
 | `STAGE6F_v3FINAL_C.pdf` | 6.5c | Bias Detective verification |  |
 
+## Flagship Game Audit (April 7, 2026)
+
+All 6 flagship games received a comprehensive playability/interactivity audit:
+- **17 bugs fixed** (5 Critical, 5 High, 7 Medium) across gameStore, GameShell, Neural Builder, Sort Toy Box
+- **All 6 flagships expanded 2-3x content depth** (new challenges, modes, categories, cases, blocks)
+- **AI content generation infrastructure** added (3 new files: ai-content-generator.ts, generate-content route, useAIContent hook)
+- **Per-game AI integration** for infinite replay content
+- Source: `flagship-game-content-audit(04.06.2026).md`
+
 ## Validation
 
-- All 5 flagships playable: full phase cycle (welcome → learn → play → complete)
-- 3D visible on desktop, CSS fallback on mobile
+- All 6 flagships playable: full phase cycle (welcome → learn → play → complete)
+- 3D visible on desktop (D3D-1: desktop-only rendering)
 
 ## Commit
 

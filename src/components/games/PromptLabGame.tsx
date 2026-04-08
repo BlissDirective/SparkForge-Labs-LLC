@@ -599,7 +599,123 @@ const TEMPLATES: Record<string, TemplateCategory> = {
       { text: 'What are foundation models and why are they considered a paradigm shift in AI?', techniques: ['specific'] },
     ],
   },
+  // === NEW TEMPLATE CATEGORIES (Phase D2 expansion) ===
+  'Role-Play': {
+    emoji: '\u{1F3AD}', bandMin: 'A',
+    prompts: [
+      { text: 'You are a pirate captain. Explain how GPS navigation works in pirate language.', techniques: ['persona', 'specific'] },
+      { text: 'You are a detective solving the case of the missing semicolon in a JavaScript program.', techniques: ['persona', 'specific'] },
+      { text: 'You are a cooking robot. Describe how you would make the perfect sandwich, step by step.', techniques: ['persona', 'chain'] },
+    ],
+  },
+  'Debate': {
+    emoji: '\u{2696}\u{FE0F}', bandMin: 'B',
+    prompts: [
+      { text: 'Present 3 arguments for and 3 against using AI in schools. Evaluate each fairly.', techniques: ['constraints', 'specific'] },
+      { text: 'Debate whether AI art counts as "real" art. Give both sides equally.', techniques: ['specific'] },
+      { text: 'Should self-driving cars make ethical decisions? Argue both perspectives.', techniques: ['specific', 'constraints'] },
+    ],
+  },
+  'Compare': {
+    emoji: '\u{1F4CA}', bandMin: 'B',
+    prompts: [
+      { text: 'Compare how humans learn vs. how AI learns. Format as a 3-column table.', techniques: ['specific', 'constraints'] },
+      { text: 'Compare a smartphone and a human brain across: memory, speed, creativity, learning.', techniques: ['specific', 'constraints'] },
+    ],
+  },
+  'Q&A Generator': {
+    emoji: '\u{2753}', bandMin: 'A',
+    prompts: [
+      { text: 'Generate 5 quiz questions about AI for a 10-year-old. Include answers.', techniques: ['constraints', 'specific'] },
+      { text: 'Create 3 true/false questions about machine learning with explanations.', techniques: ['constraints'] },
+    ],
+  },
+  'Story Arc': {
+    emoji: '\u{1F3AC}', bandMin: 'A',
+    prompts: [
+      { text: 'Write a story about an AI that develops a conscience. Include: setup, rising action, climax, resolution.', techniques: ['specific', 'constraints'] },
+      { text: 'Create a 4-act story where a robot and a child must work together to save a forest.', techniques: ['specific', 'constraints'] },
+    ],
+  },
+  'Structured Output': {
+    emoji: '\u{1F4CB}', bandMin: 'C',
+    prompts: [
+      { text: 'Analyze the pros and cons of GPT models. Return as JSON with fields: category, pros[], cons[], verdict.', techniques: ['constraints', 'specific'] },
+      { text: 'List 5 AI applications in healthcare as a markdown table with columns: Application, How It Works, Benefit, Risk.', techniques: ['constraints', 'specific'] },
+    ],
+  },
+  'Multi-Turn': {
+    emoji: '\u{1F504}', bandMin: 'B',
+    prompts: [
+      { text: 'First, brainstorm 5 topics about AI ethics. Then pick the most important one. Finally, write a 100-word essay on it.', techniques: ['chain', 'constraints'] },
+      { text: 'Step 1: List 3 ways AI helps the environment. Step 2: For each, give a real example. Step 3: Rank them by impact.', techniques: ['chain', 'constraints'] },
+    ],
+  },
 };
+
+// ================================================================
+// Phase D2: Prompt Lab Modes + Scenario Packs
+// ================================================================
+
+type PromptLabMode = 'sandbox' | 'challenge' | 'battle' | 'history' | 'recipes';
+
+interface PromptHistoryEntry {
+  id: string;
+  prompt: string;
+  response: string;
+  score: number;
+  timestamp: number;
+}
+
+interface PromptRecipeStep {
+  id: number;
+  prompt: string;
+  response: string | null;
+}
+
+// Real-world scenario packs
+const _SCENARIO_PACKS = [
+  {
+    id: 'homework', title: 'Homework Helper', emoji: '\u{1F4DA}',
+    scenarios: [
+      { id: 'essay', title: 'Essay Outline Generator', context: 'You need to write a 500-word essay about climate change.' },
+      { id: 'math', title: 'Math Word Problem Solver', context: 'A train leaves station A at 60mph...' },
+      { id: 'study', title: 'Study Guide Creator', context: 'You have a science test on the solar system tomorrow.' },
+    ],
+  },
+  {
+    id: 'creative', title: 'Creative Writing', emoji: '\u{270D}\u{FE0F}',
+    scenarios: [
+      { id: 'character', title: 'Character Creator', context: 'Design an interesting character for a sci-fi novel.' },
+      { id: 'twist', title: 'Plot Twist Generator', context: 'A detective story where the detective IS the culprit.' },
+      { id: 'dialogue', title: 'Dialogue Writer', context: 'Two AIs meeting each other for the first time.' },
+    ],
+  },
+  {
+    id: 'science', title: 'Science Explorer', emoji: '\u{1F52C}',
+    scenarios: [
+      { id: 'experiment', title: 'Experiment Designer', context: 'Design an experiment to test if plants grow better with music.' },
+      { id: 'hypothesis', title: 'Hypothesis Evaluator', context: 'Hypothesis: AI can predict earthquakes better than traditional methods.' },
+      { id: 'data', title: 'Data Interpreter', context: 'Given this data table, what conclusions can you draw?' },
+    ],
+  },
+  {
+    id: 'debate-pack', title: 'Debate Prep', emoji: '\u{1F3C6}',
+    scenarios: [
+      { id: 'argument', title: 'Argument Builder', context: 'Build a case for: "AI should be used in courtrooms."' },
+      { id: 'counter', title: 'Counter-argument Finder', context: 'Find weaknesses in: "AI will replace all jobs."' },
+      { id: 'opening', title: 'Opening Statement Writer', context: 'Write an opening statement for a debate on AI in schools.' },
+    ],
+  },
+  {
+    id: 'code-pack', title: 'Code Review', emoji: '\u{1F4BB}',
+    scenarios: [
+      { id: 'bugfinder', title: 'Bug Finder', context: 'This function should return the sum but returns NaN.' },
+      { id: 'explainer', title: 'Code Explainer', context: 'Explain this recursive function to a beginner.' },
+      { id: 'refactor', title: 'Refactoring Advisor', context: 'This 50-line function does too many things. How to split it?' },
+    ],
+  },
+];
 
 // ================================================================
 // PROMPT CHALLENGES — Guided goals
@@ -703,6 +819,77 @@ const CHALLENGES: PromptChallenge[] = [
       };
     },
   },
+  // === NEW CHALLENGES (Phase D2 expansion) ===
+  {
+    id: 'storyteller', title: 'The Storyteller', emoji: '\u{1F4D6}', bandMin: 'A' as const,
+    description: 'Write a prompt that generates a complete 3-act story with character arcs.',
+    goal: 'Get the AI to write a story with a beginning, middle, and end.',
+    hint: 'Try: "Write a story about [character] who [conflict]. Include setup, rising action, climax, and resolution."',
+    checkFn: (_response: string, prompt: string) => {
+      const hasStoryElements = /\b(story|character|beginning|middle|end|plot|climax)\b/i.test(prompt);
+      return { passed: hasStoryElements && prompt.length > 30, feedback: hasStoryElements ? 'Great storytelling prompt!' : 'Include story structure words like "beginning, middle, end" or "character, plot".' };
+    },
+  },
+  {
+    id: 'code-helper', title: 'The Code Helper', emoji: '\u{1F4BB}', bandMin: 'B' as const,
+    description: 'Write a prompt that helps debug a code snippet.',
+    goal: 'Get the AI to find and fix a bug in pre-set code.',
+    hint: 'Try: "Find the bug in this code and explain the fix step by step: [code]"',
+    checkFn: (_response: string, prompt: string) => {
+      const hasTechnical = /\b(bug|fix|debug|error|code|function|variable)\b/i.test(prompt);
+      return { passed: hasTechnical, feedback: hasTechnical ? 'Nice technical prompt!' : 'Include technical terms like "bug", "fix", or "debug".' };
+    },
+  },
+  {
+    id: 'translator', title: 'The Translator', emoji: '\u{1F30D}', bandMin: 'B' as const,
+    description: 'Write a prompt that translates AND adapts a message for a different culture.',
+    goal: 'Get the AI to translate while considering cultural context.',
+    hint: 'Try: "Translate this message to [language], adapting cultural references for a [country] audience."',
+    checkFn: (_response: string, prompt: string) => {
+      const hasTranslation = /\b(translate|language|adapt|culture|audience)\b/i.test(prompt);
+      return { passed: hasTranslation, feedback: hasTranslation ? 'Great cross-cultural prompt!' : 'Include words like "translate", "adapt", or "culture".' };
+    },
+  },
+  {
+    id: 'summarizer', title: 'The Summarizer', emoji: '\u{1F4CB}', bandMin: 'A' as const,
+    description: 'Write a prompt that compresses information into exactly 3 bullet points.',
+    goal: 'Get the AI to produce a concise, structured summary.',
+    hint: 'Try: "Summarize [topic] in exactly 3 bullet points, each one sentence long."',
+    checkFn: (_response: string, prompt: string) => {
+      const hasConstraint = /\b(3 bullet|three bullet|3 points|bullet points|summarize)\b/i.test(prompt);
+      return { passed: hasConstraint, feedback: hasConstraint ? 'Excellent constraint-based prompt!' : 'Include "3 bullet points" or "summarize" in your prompt.' };
+    },
+  },
+  {
+    id: 'fact-checker', title: 'The Fact Checker', emoji: '\u{1F50D}', bandMin: 'B' as const,
+    description: 'Write a prompt that evaluates a claim and provides sourced reasoning.',
+    goal: 'Get the AI to analyze whether a claim is true or false with evidence.',
+    hint: 'Try: "Evaluate this claim: [claim]. Provide 3 pieces of evidence for and against."',
+    checkFn: (_response: string, prompt: string) => {
+      const hasEvaluation = /\b(evaluate|claim|evidence|true|false|verify|check|source)\b/i.test(prompt);
+      return { passed: hasEvaluation, feedback: hasEvaluation ? 'Strong analytical prompt!' : 'Include "evaluate", "claim", or "evidence" in your prompt.' };
+    },
+  },
+  {
+    id: 'persuader', title: 'The Persuader', emoji: '\u{1F4E2}', bandMin: 'C' as const,
+    description: 'Write a prompt that generates a convincing argument for a given position.',
+    goal: 'Get the AI to build a structured persuasive argument.',
+    hint: 'Try: "Make a compelling argument for [position] using 3 supporting points and 1 counterargument."',
+    checkFn: (_response: string, prompt: string) => {
+      const hasPersuasion = /\b(argument|convince|persuade|position|support|counter)\b/i.test(prompt);
+      return { passed: hasPersuasion, feedback: hasPersuasion ? 'Great persuasion prompt!' : 'Include "argument", "convince", or "position".' };
+    },
+  },
+  {
+    id: 'teacher-prompt', title: 'The Explainer', emoji: '\u{1F468}\u{200D}\u{1F3EB}', bandMin: 'B' as const,
+    description: 'Write a prompt that explains a complex concept at a specified reading level.',
+    goal: 'Get the AI to adjust its explanation complexity based on the audience.',
+    hint: 'Try: "Explain [complex topic] as if I\'m [age] years old, using analogies and no jargon."',
+    checkFn: (_response: string, prompt: string) => {
+      const hasLevelSetting = /\b(explain|years old|grade|level|simple|analogy|jargon)\b/i.test(prompt);
+      return { passed: hasLevelSetting, feedback: hasLevelSetting ? 'Smart audience-aware prompt!' : 'Include age/level targeting like "as if I\'m 10 years old".' };
+    },
+  },
 ];
 
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
@@ -741,6 +928,15 @@ export function PromptLabGame() {
   // --- Challenge state ---
   const [activeChallengeId, setActiveChallengeId] = useState<string | null>(null);
   const [challengeResults, setChallengeResults] = useState<Record<string, { passed: boolean; feedback: string }>>({});
+
+  // Phase D2: Extended mode state
+  const [_labMode, _setLabMode] = useState<PromptLabMode>('sandbox');
+  const [_promptHistory, _setPromptHistory] = useState<PromptHistoryEntry[]>([]);
+  const [_battlePromptA, _setBattlePromptA] = useState('');
+  const [_battlePromptB, _setBattlePromptB] = useState('');
+  const [_battleResults, _setBattleResults] = useState<{ a: string; b: string; scoreA: number; scoreB: number } | null>(null);
+  const [_recipeSteps, _setRecipeSteps] = useState<PromptRecipeStep[]>([{ id: 1, prompt: '', response: null }]);
+  const [_activeScenarioPack, _setActiveScenarioPack] = useState<string | null>(null);
 
   // --- X-Ray & Explainer ---
   const [showXRay, setShowXRay] = useState<number | null>(null);

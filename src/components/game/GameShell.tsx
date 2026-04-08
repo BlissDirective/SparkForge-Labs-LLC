@@ -96,13 +96,24 @@ export function GameShell({
   useEffect(() => {
     if (!isComplete || hasRewarded.current || !activeChild?.id) return;
     hasRewarded.current = true;
-    completeAndReward(activeChild.id, gameId, xpReward, 'game', score);
 
-    // Trigger cockpit CeremonyFX based on completion tier
-    const scorePercent = totalRounds > 0 ? (score / (totalRounds * 10)) * 100 : 50;
-    const tier = getCompletionTier(scorePercent);
-    const celebrationType = tier === 'gold' ? 'level' : tier === 'silver' ? 'confetti' : 'xp';
-    useUIStore.getState().triggerCelebration(celebrationType);
+    const rewardAsync = async () => {
+      try {
+        await completeAndReward(activeChild.id, gameId, xpReward, 'game', score);
+      } catch {
+        // Reset so the reward can be retried on next render cycle
+        hasRewarded.current = false;
+        return;
+      }
+
+      // Trigger cockpit CeremonyFX based on completion tier
+      const scorePercent = totalRounds > 0 ? (score / (totalRounds * 10)) * 100 : 50;
+      const tier = getCompletionTier(scorePercent);
+      const celebrationType = tier === 'gold' ? 'level' : tier === 'silver' ? 'confetti' : 'xp';
+      useUIStore.getState().triggerCelebration(celebrationType);
+    };
+
+    rewardAsync();
   }, [isComplete, activeChild?.id, gameId, xpReward, score, totalRounds, completeAndReward]);
 
   return (

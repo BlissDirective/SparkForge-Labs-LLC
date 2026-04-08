@@ -41,6 +41,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 - **3D UI Migration:** COMPLETE — 7 phases, 49 components built/rebuilt, 150 design decisions (131 design + 19 implementation)
 - **Games:** 35 total — 6 Flagship (full 3D, 20M tris), 9 FL-Lite (immersive 3D, 10M tris), 20 Standard (themed 3D, 5M tris)
 - **Code written:** ~80% — Stages 1-7 code-complete, audited. Full 3D UI migration complete (dashboard, auth, game HUD, templates, marketing).
+- **Flagship Game Audit (April 7, 2026):** COMPLETE — 17 bugs fixed (5C/5H/7M), all 6 flagships expanded 2-3x content depth, AI content generation infrastructure added (3 files), per-game AI integration complete.
 - **Key UI migration docs:** `Master-SparkForge-UI-Design-Change.md` v1.2, `SparkForge-Full-ControlScreen.json` v1.2, `DESIGN_DECISIONS_LOG.md`, `SESSION_REFERENCE.md`
 
 ---
@@ -761,6 +762,28 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | UI-MIG-AUTH-3D | Login/signup/reset pages were flat HTML forms | **RESOLVED (April 3, 2026)** — Phase 3: LoginPanel3D, SignupPanel3D, ResetPasswordPanel3D, ChatPanel3D created. Auth pages use own Canvas (P3-1). Hidden HTML input proxy pattern (P3-2). | UI Migration |
 | UI-MIG-GAME-HUD | Game HUD was HTML-only, no 3D chrome | **RESOLVED (April 3, 2026)** — Phase 5: GameHUD3D, GameTimerBar3D, GamePhaseOverlay3D. Auto-registered via GameShell (P5-1). 4 game templates (Quiz, Builder, Explorer, Lab) for 29 standard games. | UI Migration |
 
+### Flagship Game Audit Fixes (April 7, 2026)
+
+| ID | Issue | Fix | Stage |
+|----|-------|-----|-------|
+| BUG-GS1 | `updateScore()` mirrors score into maxScore — always equal | **RESOLVED (April 7, 2026)** — `updateScore()` now only modifies `score`. New `setMaxScore()` action added for games to set max possible score independently. | Audit Phase A |
+| BUG-GS2 | `advanceRound()` off-by-one: `>=` check skips last round | **RESOLVED (April 7, 2026)** — Changed to advance-then-check pattern with `>` comparison. | Audit Phase A |
+| BUG-GS3 | `resetGame()` doesn't clear `currentGame`, `totalRounds`, `hintsRemaining` | **RESOLVED (April 7, 2026)** — All fields now reset: `currentGame: null, totalRounds: 0, hintsRemaining: 3`. | Audit Phase A |
+| BUG-GS4 | GameShell HUD hardcodes `maxScore = totalRounds × 10` | **RESOLVED (April 7, 2026)** — Kept `maxScore` in HUD using `totalRounds * 10` for ceremony tier (bronze/silver/gold). | Audit Phase A |
+| BUG-GS5 | Reward pipeline sets `hasRewarded` before async call — lost on failure | **RESOLVED (April 7, 2026)** — Wrapped in try/catch. `hasRewarded.current` resets on failure for auto-retry. | Audit Phase A |
+| BUG-NB1 | Training simulation ignores network architecture — accuracy is predetermined | **RESOLVED (April 7, 2026)** — Architecture-dependent convergence: good arch = fast convergence + low noise, bad arch = slow + high noise + early plateau. | Audit Phase B |
+| BUG-NB2 | `optimalMatch` divisor scales non-linearly with network size | **RESOLVED (April 7, 2026)** — Normalized by sum of optimal neurons instead of totalNeurons. | Audit Phase B |
+| BUG-NB3 | `sparkIntensity` calculated after weight clamping — understates visual change | **RESOLVED (April 7, 2026)** — Uses raw delta before clamping: `Math.abs(rawDelta)`. | Audit Phase B |
+| BUG-NB4 | Duplicate 3D NeuralNetwork3D rendering (sceneStore + inline) doubles GPU load | **RESOLVED (April 7, 2026)** — Removed inline rendering. Kept sceneStore registration per D3D-B1. | Audit Phase B |
+| BUG-NB5 | setTimeout persists after component unmount | **RESOLVED (April 7, 2026)** — Stored in ref, cleared in useEffect cleanup. | Audit Phase B |
+| BUG-NB6 | Heartbeat animation stops during training (network appears frozen) | **RESOLVED (April 7, 2026)** — Continues at 2.7x speed during training instead of stopping. | Audit Phase B |
+| BUG-NB7 | Audio queuing during training causes distortion | **RESOLVED (April 7, 2026)** — Concurrent audio capped at 3 events with 400ms decay. | Audit Phase B |
+| BUG-NB8 | Canvas drawing persists across challenge switches | **RESOLVED (April 7, 2026)** — `clearCanvas()` called in `selectChallenge()`. | Audit Phase B |
+| BUG-ST1 | Sort Toy Box score distribution inverted (reveal bonus > sorting effort) | **RESOLVED (April 7, 2026)** — Scoring overhauled: 5pts/sort + combo bonus, reveal reduced to 5pts. | Audit Phase C |
+| BUG-ST2 | Dead `useGameContent` hook call in SortToyBoxGame | **RESOLVED (April 7, 2026)** — Removed unused import and hook call. | Audit Phase C |
+| BUG-ST3 | AI reveal is instant with no animation or step-by-step explanation | **RESOLVED (April 7, 2026)** — 3-phase animated reveal: feature extraction (2s) → distance calculation (2s) → cluster formation (3s). | Audit Phase C |
+| BUG-ST4 | Stale shapes on replay — `useMemo` with empty deps prevents regeneration | **RESOLVED (April 7, 2026)** — `replayCount` state added to force shape regeneration on replay. | Audit Phase C |
+
 ### Game Code Agent — COMPLETED
 
 The AI Spy game (Lab 1, Game #1) has been implemented via autonomous agent on March 14, 2026. The game is now fully functional at `src/components/games/AiSpyGame.tsx` with all required features (chrome bezel, age bands A/B/C, welcome→play→reveal→complete phases, 12+ scenes, ARIA labels). No remaining games have missing implementations — all 35 games are code-complete.
@@ -812,7 +835,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 |-------|-------|-----------|
 | authStore | 3 | parent, isLoading, isDemoMode, demoSession, setParent/setLoading/clearAuth/startDemoSession/endDemoSession/checkDemoStatus |
 | childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
-| gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
+| gameStore | 1/6 | currentGame, phase, score, maxScore, startGame/updateScore/setMaxScore/advanceRound/completeGame/resetGame |
 | toastStore | 1 | toasts[], addToast/removeToast |
 | uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation. Note: `gameActive` flag deprecated (D3D-B1) — use `sceneStore.enterGame`/`exitGame` instead. |
 | accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader. Exported as `useA11yStore`. |
@@ -827,5 +850,5 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-*End of CLAUDE.md v6.2 — SparkForge Autonomous Development Playbook*
-*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | April 3, 2026*
+*End of CLAUDE.md v6.3 — SparkForge Autonomous Development Playbook*
+*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | April 7, 2026*

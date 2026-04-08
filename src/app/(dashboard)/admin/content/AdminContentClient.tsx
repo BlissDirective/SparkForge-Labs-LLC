@@ -131,6 +131,17 @@ function TypeIcon({ type }: { type: string }) {
       return <TrendingUp className="w-4 h-4 text-cyan-400" />;
     case 'branching_lesson':
       return <GitBranch className="w-4 h-4 text-pink-400" />;
+    // Flagship game AI content types (Phase E+ integration)
+    case 'flagship_pet_category':
+      return <Sparkles className="w-4 h-4 text-purple-400" />;
+    case 'flagship_sort_criterion':
+      return <BarChart3 className="w-4 h-4 text-purple-400" />;
+    case 'flagship_neural_challenge':
+      return <Zap className="w-4 h-4 text-pink-400" />;
+    case 'flagship_agent_mission':
+      return <Gamepad2 className="w-4 h-4 text-emerald-400" />;
+    case 'flagship_bias_case':
+      return <Shield className="w-4 h-4 text-red-400" />;
     default:
       return <FileText className="w-4 h-4 text-white/40" />;
   }
@@ -612,6 +623,11 @@ export default function AdminReviewPage() {
               <option value="game_challenge">Game Challenges</option>
               <option value="trending_topic">Trending Topics</option>
               <option value="branching_lesson">Branching Lessons</option>
+              <option value="flagship_pet_category">Flagship: Pet Categories</option>
+              <option value="flagship_sort_criterion">Flagship: Sort Criteria</option>
+              <option value="flagship_neural_challenge">Flagship: Neural Challenges</option>
+              <option value="flagship_agent_mission">Flagship: Agent Missions</option>
+              <option value="flagship_bias_case">Flagship: Bias Cases</option>
             </select>
 
             {/* Manual create button */}

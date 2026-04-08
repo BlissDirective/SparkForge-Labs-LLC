@@ -22,12 +22,26 @@
 
 ## v2 ENHANCEMENTS PRESERVED
 
-All v2 features remain unchanged:
+All v2 features remain unchanged plus Flagship Game Audit expansions:
 - 5-phase game flow (welcome > learn > sandbox > challenge > report)
-- 8-category template library (40 prompts), technique tags, age-band filtering
-- Multi-dimensional prompt scoring (5 axes), 6 technique tutorials
-- 5 challenges with auto-eval, Prompt X-Ray, Explainer, Patterns, AI Thinking
+- 15-category template library (~60+ prompts), technique tags, age-band filtering
+- Multi-dimensional prompt scoring (7 axes incl. Context-Awareness + Output-Formatting), 6 technique tutorials
+- 12 challenges with auto-eval, Prompt X-Ray, Explainer, Patterns, AI Thinking
 - System Prompt Sandbox (Band C), Chrome bezel + LED rim, ARIA labels
+
+### Flagship Game Audit Enhancements (April 7, 2026)
+
+| Feature | Before | After |
+|---------|--------|-------|
+| Challenges | 5 | 12 (+Storyteller, Code Helper, Translator, Summarizer, Fact Checker, Persuader, Explainer) |
+| Template categories | 8 | 15 (+Role-Play, Debate, Compare, Q&A Generator, Story Arc, Structured Output, Multi-Turn) |
+| Scoring dimensions | 5 | 7 (+Context-Awareness, Output-Formatting) |
+| Scenario packs | 0 | 5 (Homework Helper, Creative Writing, Science Explorer, Debate Prep, Code Review — 15 scenarios total) |
+| Lab modes | 1 (sandbox) | 5 (+challenge, battle, history, recipes) |
+| Prompt Battle | None | Side-by-side prompt comparison with scoring |
+| Prompt History | None | Session archive with replay capability |
+| Prompt Recipes | None | Multi-step chains (2-4 prompts) |
+| File size | ~2,127 lines | ~2,323 lines |
 
 ---
 
