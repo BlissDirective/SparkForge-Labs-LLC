@@ -1,5 +1,8 @@
 import * as Sentry from '@sentry/nextjs';
 
+// Sentry v9 + Next.js 15.5: instrument client-side navigations
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
+
 // CRIT-003: Strip child PII fields from Sentry events (COPPA compliance)
 const CHILD_PII_KEYS = [
   'display_name', 'displayName', 'child_name', 'childName',
@@ -22,6 +25,7 @@ function stripChildPII(obj: Record<string, unknown>): Record<string, unknown> {
   return cleaned;
 }
 
+// Client-side Sentry initialization (replaces sentry.client.config.ts)
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
 

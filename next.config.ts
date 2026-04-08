@@ -82,14 +82,14 @@ const nextConfig: NextConfig = {
       '@nivo/line',
       '@nivo/bar',
     ],
-    // Next.js 15: Turbopack is stable and used by default in dev
-    turbo: {
-      rules: {
-        // Handle GLSL shader imports via Turbopack
-        '*.glsl': { loaders: ['raw-loader'], as: '*.js' },
-        '*.vert': { loaders: ['raw-loader'], as: '*.js' },
-        '*.frag': { loaders: ['raw-loader'], as: '*.js' },
-      },
+  },
+  // Next.js 15.5+: turbo moved from experimental.turbo to top-level turbopack
+  turbopack: {
+    rules: {
+      // Handle GLSL shader imports via Turbopack
+      '*.glsl': { loaders: ['raw-loader'], as: '*.js' },
+      '*.vert': { loaders: ['raw-loader'], as: '*.js' },
+      '*.frag': { loaders: ['raw-loader'], as: '*.js' },
     },
   },
   webpack: (config, { isServer }) => {

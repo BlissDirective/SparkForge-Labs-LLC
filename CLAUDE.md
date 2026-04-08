@@ -2,7 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 6.2 | **Date:** April 3, 2026 | **Vision:** Laboratory Control Station
+**Version:** 6.3 | **Date:** April 7, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v6.2 (April 3, 2026) — Flagship Game Audit complete (17 bugs fixed, 6 games expanded 2-3x, AI content infra added). Audit cleanup: dead cockpitConfig values removed, experimental.turbo migrated to turbopack, Sentry migrated to instrumentation.ts, deprecated uiStore.gameActive removed.
 **Supersedes:** CLAUDE.md v6.1 (March 30, 2026) — Full 3D UI Migration: 7 phases complete, 49 components built/rebuilt, 150 design decisions locked (131 design + 19 implementation). All dashboard pages converted to 3D panel architecture. Auth forms migrated to 3D. Game HUD/templates migrated. AmbientParticles removed (Decision 20.0). HolographicHUD repositioned to peripheral viewport frame (Decision 6.0). cockpitUIStore added (15th store). cockpitDesignTokens.ts established as design token source of truth.
 **Supersedes:** CLAUDE.md v6.0 (March 24, 2026) — Full Code Audit: 154 issues found and fixed (21C/42H/52M/39L). D3D compliance enforced across source + docs. SQL merged. Tailwind v4 migrated. Security hardened. 2 parent pages created. Lab config centralized. Stage docs updated.
 **Supersedes:** CLAUDE.md v5.9 (March 23, 2026) — D3D Desktop-First Overhaul: Removed mobile/LOD/CSS fallback architecture (D3D-1/2). Added desktop-ultra rendering (50M triangle budget). Added sceneStore, SceneRouter, MechanicalIris, PostProcessingStack. Updated Sections 7, 9, 9.1, 9.2, 9.3, 11, 14. Added 20 D3D decision locks (D3D-1–9, D3D-B1–6, D3D-C1–5). Version footer updated.

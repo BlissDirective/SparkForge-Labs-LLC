@@ -15,10 +15,6 @@ interface UIState {
    *  Default: false. Toggled in Settings page (Stage 4 Part 3).
    *  When true, HeroAnimation renders Phase 8 final state immediately. */
   skipIntroAnimation: boolean;
-  /** @deprecated D3D-B1: gameActive moved to sceneStore.enterGame/exitGame.
-   *  Retained for backward compatibility — will be removed in next cleanup. */
-  gameActive: boolean;
-  setGameActive: (active: boolean) => void;
   setSkipIntroAnimation: (skip: boolean) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
@@ -42,8 +38,7 @@ export const useUIStore = create<UIState>((set) => ({
   dailyChallengeCompleted: false,
   particleIntensity: 'medium',
   skipIntroAnimation: false,
-  gameActive: false,
-  setGameActive: (gameActive) => set({ gameActive }),
+  // gameActive/setGameActive removed — D3D-B1: use sceneStore.enterGame/exitGame
   setSkipIntroAnimation: (skipIntroAnimation) => set({ skipIntroAnimation }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),

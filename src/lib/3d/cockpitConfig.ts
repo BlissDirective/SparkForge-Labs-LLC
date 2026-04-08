@@ -50,18 +50,16 @@ export const COCKPIT_GEOMETRY = {
   centerViewportRadius: 3.9,
   centerViewportPosition: [0, 0.35, -3.3] as const,
 
-  // v3: HUD position
-  hudPosition: [0, 2.05, -3.4] as const,
-  hudRotation: [-0.55, 0, 0] as const,
+  // HUD position: Now defined locally in HolographicHUD.tsx as FRAME_ARCS
+  // (Decision 6.0: repositioned from overhead rings to peripheral viewport frame)
 } as const;
 
 // ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■
 // v3: Adaptive curvature updated for wider hull
+// D3D-1: tablet/cssFallback removed — desktop-only platform
 export const ADAPTIVE_CURVATURE = {
   ultraWide: { minWidth: 1920, arc: 230, radius: 5.0 },
   desktop:   { minWidth: 1440, arc: 218, radius: 4.8 },
-  tablet:    { minWidth: 1024, arc: 180, radius: 4.2 },
-  cssFallback: { minWidth: 0, arc: 0, radius: 0 },
 } as const;
 
 // ■■ Bloom Presets — Mode-Dependent (CPA-7) ■■
@@ -246,7 +244,7 @@ export const TRIANGLE_BUDGET_V2 = {
     holographicHUD:     1_000_000,
     statusBar3D:        1_000_000,
     auroraBackground:   50_000,
-    ambientParticles:   200_000,
+    // ambientParticles removed (Decision 20.0)
   },
   spatialContent: {
     holographicLabMap:   1_000_000,
