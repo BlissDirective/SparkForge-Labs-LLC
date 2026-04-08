@@ -1,18 +1,13 @@
-import { FlatCompat } from '@eslint/eslintrc';
+import nextPlugin from '@next/eslint-plugin-next';
+import reactHooksPlugin from 'eslint-plugin-react-hooks';
 import tseslint from 'typescript-eslint';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
 
 export default tseslint.config(
-  // Next.js recommended config (includes react, react-hooks, @next/next)
-  ...compat.extends('next/core-web-vitals'),
+  // Next.js core-web-vitals (native flat config — detected by Next.js build)
+  nextPlugin.flatConfig.coreWebVitals,
+
+  // React hooks
+  reactHooksPlugin.configs['recommended-latest'],
 
   // TypeScript-aware rules
   ...tseslint.configs.recommended,
@@ -73,8 +68,7 @@ export default tseslint.config(
       'public/',
       'tools/',
       '*.config.js',
-      '*.config.mjs',
-      'postcss.config.js',
+      '*.config.cjs',
     ],
   },
 );
