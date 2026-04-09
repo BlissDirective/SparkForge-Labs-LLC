@@ -12,6 +12,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: B-12 (MEDIUM: frameloop="demand" corrected to "always" for continuous useFrame animations), B-13 (MEDIUM: BufferGeometry created in render loop — memoized via ConnectionLine component), E-12 (line geometry memoization in PowerOrbsRing)
+- Content expansion: My First AI App 3D phone mockup assembly enhanced, power orb ring animations improved, holographic preview fidelity increased
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## Game Lab Color Treatment
 
 | Game | Lab | Color | Tier |

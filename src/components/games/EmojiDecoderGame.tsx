@@ -301,7 +301,7 @@ export function EmojiDecoderGame() {
 
   // Merge hardcoded + dynamic rounds, then filter/shuffle/slice
   const rounds = useMemo(() => {
-    let pool = [...ALL_ROUNDS];
+    const pool = [...ALL_ROUNDS];
     if (dynamicContent?.scenarios?.length) {
       for (const s of dynamicContent.scenarios) {
         try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as EmojiRound); } catch { /* skip */ }
@@ -450,7 +450,7 @@ export function EmojiDecoderGame() {
                     i === learnIdx ? 'bg-indigo-400 scale-125' : i < learnIdx ? 'bg-indigo-400/40' : 'bg-white/20'}`} />
                 ))}
               </div>
-              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else { setPhase('play'); game.startGame('emoji-decoder', totalRounds); } // FLL-023: use actual round count }}
+              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else { setPhase('play'); game.startGame('emoji-decoder', totalRounds); /* FLL-023: use actual round count */ } }}
                 className="mt-6 flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600/70 text-white font-display text-sm font-bold"
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 {learnIdx < CONCEPT_CARDS.length - 1 ? <><ArrowRight className="w-4 h-4" /> Next</> : <><Play className="w-4 h-4" /> Start!</>}

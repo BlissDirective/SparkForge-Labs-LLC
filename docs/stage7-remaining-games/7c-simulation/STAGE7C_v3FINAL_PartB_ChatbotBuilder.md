@@ -5,6 +5,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: BUG-AUDIT-4 (stale closure in completedChallenges), store API corrected (addScore->updateScore, nextRound->advanceRound per superseded v2 fixes), BUG-10F (font stack)
+- Content expansion: Chatbot Builder templates expanded, personality system deepened, challenge mode content increased
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## DECISIONS IMPLEMENTED
 
 - [x] Decision 6.5 — ChatbotNodes3D dynamic import integrated into ChatbotBuilderGame.tsx

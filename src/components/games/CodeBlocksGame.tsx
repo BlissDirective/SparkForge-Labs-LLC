@@ -611,7 +611,7 @@ export function CodeBlocksGame() {
 
   // Merge hardcoded + dynamic challenges, filter by age band
   const challenges = useMemo(() => {
-    let pool = [...ALL_CHALLENGES];
+    const pool = [...ALL_CHALLENGES];
     if (dynamicContent?.scenarios?.length) {
       for (const s of dynamicContent.scenarios) {
         try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as Challenge); } catch { /* skip */ }

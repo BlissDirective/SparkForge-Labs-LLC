@@ -11,6 +11,12 @@
 **New Files:** `src/components/3d/CodeBlocks3D.tsx`
 **Modified Files:** `src/components/games/CodeBlocksGame.tsx`
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: FLL-028 (CRITICAL: star calc off-by-one), FLL-029 (CRITICAL: useEffect missing cleanup + over-triggering), FLL-030 (MEDIUM: timeout memory leak risk), FLL-031 (LOW: grid layout fragile on tablet), FLL-032 (LOW: hint penalty not warned)
+- Content expansion: Code Blocks challenges expanded from 10 to 25, learn cards from 4 to 12, block types from 12 to 20, robot poses from 20 to 40
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
 ---
 
 ## V3 ENHANCEMENT SUMMARY

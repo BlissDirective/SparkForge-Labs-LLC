@@ -199,7 +199,7 @@ export function AiOrNotGame() {
 
   // Merge hardcoded + dynamic scenarios, filter/shuffle/slice
   const rounds = useMemo(() => {
-    let pool = [...ALL_SCENARIOS];
+    const pool = [...ALL_SCENARIOS];
     if (dynamicContent?.scenarios?.length) {
       for (const s of dynamicContent.scenarios) {
         try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as Scenario); } catch { /* skip */ }

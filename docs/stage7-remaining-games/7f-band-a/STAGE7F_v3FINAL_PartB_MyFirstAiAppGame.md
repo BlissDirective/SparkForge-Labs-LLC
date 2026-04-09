@@ -12,6 +12,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: B-7 (CRITICAL: game.addScore->updateScore), B-9 (CRITICAL: game.nextRound->advanceRound), B-8 (MEDIUM: completeGame() called before preview — moved to preview->complete), F-4 (HIGH: game.startGame() never called — added at learn->build), F-5 (MEDIUM: xpReward={30} missing from GameShell)
+- Content expansion: My First AI App wizard steps expanded, AI power cards catalog deepened, innovation scoring refined
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## PART B COVERS
 
 1. **MyFirstAiAppGame.tsx** — Full standalone replacement with v3 3D integration (~700 lines)

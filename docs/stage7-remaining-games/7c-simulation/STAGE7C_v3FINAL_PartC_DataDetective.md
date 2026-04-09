@@ -5,6 +5,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: Store API corrected (addScore->updateScore, nextRound->advanceRound per superseded v2 fixes), BUG-10F (font stack)
+- Content expansion: Data Detective case files expanded, severity heatmap enhanced, detective rank system deepened with additional datasets
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## DECISIONS IMPLEMENTED
 
 - [x] Decision 6.5 — DataDetective3D dynamic import integrated into DataDetectiveGame.tsx

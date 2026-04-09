@@ -7,6 +7,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: Store API corrected (addScore->updateScore x2, nextRound->advanceRound x2), missing totalRounds prop added to GameShell for both games, broken JSX reconstructed (PDF corruption in both files), orphaned LED div moved inside component tree, truncated strings/classNames completed (6+ instances)
+- Content expansion: Robot Vacuum rooms expanded with new rule complexity, Camera Quest item catalog increased with additional confidence calibration scenarios
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## Overview
 
 Two complete standalone game file replacements with v3 3D integration:
