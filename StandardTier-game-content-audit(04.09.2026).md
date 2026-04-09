@@ -470,3 +470,381 @@ This audit evaluates all 20 Standard tier games across seven dimensions:
 - **Band coverage:** A: 10 basic tasks, B: +5 nuanced, C: same as B with technical explanations — missing C-specific content
 
 #### Content Expansion Target: 15 → 45 tasks (3x) + AI task generation
+
+---
+
+### 2.11 Data Shield (Lab 6 — AI & Ethics)
+
+**File:** `src/components/games/DataShieldGame.tsx` | **Lines:** 289 | **Phases:** welcome, play, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Scenarios | 6 | Game Sign-Up, Quiz, Chat, Survey, Social Media, Smart Speaker |
+| Data points | 24 | 4 per scenario with shouldProtect boolean |
+| Explanations | 48 | reason (A/B) + reasonC per data point |
+| **Total unique items** | **78** | |
+
+**Play duration:** 4-6 min | **Replay value:** Low | **Depth rating:** 5/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-DS1 | Medium | 140 | `setTimeout` (2500ms feedback) no cleanup — memory leak on unmount |
+| STD-DS2 | Medium | 153 | `totalRounds=6` (scenarios) but max score is 24x10=240 — **HUD shows maxScore=60** |
+| STD-DS3 | Low | 114 | DifficultySelector rendered but `tier` never used |
+| STD-DS4 | Low | 84-85 | Scene content cleanup may be overridden by setTimeout firing after unmount |
+
+#### UI/UX Assessment: 7/10
+- **Strengths:** Clear Shield/Share binary choice, privacy meter visual, severity indicators, feedback explanations
+- **Issues:** No learn/tips phase, no end summary of protections, score/HUD mismatch
+- **Enhancement plan:** Add privacy learn cards, end-game protection report card, fix HUD scoring
+
+#### Educational Value
+- **Concepts:** Data privacy, PII, personal data protection, phishing/scam awareness
+- **Band coverage:** A/B share same reason text (could simplify further for A), C gets technical explanations
+
+#### Content Expansion Target: 6 → 18 scenarios (3x, 72 data points) + AI generation
+
+---
+
+### 2.12 Real or Fake (Lab 6 — AI & Ethics)
+
+**File:** `src/components/games/RealOrFakeGame.tsx` | **Lines:** 262 | **Phases:** welcome, tips, play, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Content rounds | 12 | 4 text, 3 headlines, 3 reviews, 2 social posts |
+| Detection tips | 4 | Tips/learn phase |
+| Clues | 24 | Standard + technical per round |
+| **Total unique items** | **40** | |
+
+**Play duration:** 5-9 min | **Replay value:** Low | **Depth rating:** 5/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-RF1 | Medium | 103-107 | `setTimeout` (3500ms feedback) no cleanup — memory leak |
+| STD-RF2 | Medium | 84-86 | Scene content useEffect **missing cleanup return entirely** — stale 3D content |
+| STD-RF3 | Medium | 111 | Scoring: 12pts/correct but HUD uses `totalRounds * 10` — **score/HUD mismatch** |
+| STD-RF4 | Low | 76 | DifficultySelector non-functional |
+| STD-RF5 | Low | 74 | Local `score` state duplicates `gameStore.score` — redundant state |
+
+#### UI/UX Assessment: 8/10
+- **Strengths:** Tips phase before play is excellent, content type labels, flip animation, balanced real/fake mix, "Skip tips"
+- **Issues:** No content type filtering, no streak/combo mechanics, non-functional difficulty
+- **Enhancement plan:** Add streak mechanics, content category filter, more content types (audio, video descriptions)
+
+#### Educational Value
+- **Concepts:** Deepfakes, misinformation, media literacy, critical thinking, AI-generated content detection
+- **Band coverage:** Good — A gets simpler clues, C gets technical references to studies
+
+#### Content Expansion Target: 12 → 36 rounds (3x) + AI fake content generation
+
+---
+
+### 2.13 Ethics Courtroom (Lab 6 — AI & Ethics)
+
+**File:** `src/components/games/EthicsCourtroomGame.tsx` | **Lines:** 952 | **Phases:** welcome, learn, trial (4 sub-steps), complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Ethics cases | 4 | Self-Driving, AI Interview, Student Detector, Health AI |
+| Perspectives | 12 | 3 per case |
+| Arguments | 36 | 3 per perspective, with strength ratings |
+| Learn cards | 4 | Ethics fundamentals |
+| **Total unique items** | **56** | |
+
+**Play duration:** 10-18 min | **Replay value:** Medium (81 perspective combos) | **Depth rating:** 8/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-EC1 | **High** | 521-523 | `completeGame()` never auto-called — **XP only awarded if user clicks "Finish!"** |
+| STD-EC2 | Medium | 934 | "Finish!" button has no double-click prevention — potential double reward |
+| STD-EC3 | Low | 465 | DifficultySelector non-functional |
+| STD-EC4 | Low | 464 | `casesDebated` stores titles as strings — fragile index-emoji mapping |
+
+#### UI/UX Assessment: 9/10
+- **Strengths:** Multi-step trial flow (case→perspective→argue→verdict), argument strength indicators, "no right answer" philosophy, shows other perspectives after verdict
+- **Issues:** No visual jury animation, no scoring breakdown, abrupt complete phase
+- **Enhancement plan:** Add jury deliberation animation, argument strength summary, verdict comparison across replays
+
+#### Educational Value: **Highest of all Standard games**
+- **Concepts:** AI ethics, trolley problem, algorithmic bias, AI detection false positives, predictive health AI, consequentialism vs deontology, stakeholder analysis
+- **Band coverage:** Outstanding — B gets accessible scenarios, C gets Bayes' theorem, disparate impact, GINA, EU AI Act
+
+#### Content Expansion Target: 4 → 12 cases (3x) + AI case generation
+
+---
+
+### 2.14 Fool the AI (Lab 7 — Computer Vision)
+
+**File:** `src/components/games/FoolTheAiGame.tsx` | **Lines:** 374 | **Phases:** welcome, play, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Items | 14 | 7 correctly labeled, 7 wrongly labeled |
+| Challenges | 4 | Find wrong, low-confidence, correct, high-confidence |
+| Explanations | 28 | Standard + technical per item |
+| **Total unique items** | **46** | |
+
+**Play duration:** 4-6 min | **Replay value:** Low-Medium | **Depth rating:** 5/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-FA1 | Medium | 167 | `setTimeout` for streak flash (600ms) no cleanup |
+| STD-FA2 | Medium | 172-186 | `setTimeout` (2200ms advance) no cleanup — unmount risk |
+| STD-FA3 | Low | 130 | DifficultySelector non-functional |
+
+#### UI/UX Assessment: 8/10
+- **Strengths:** Animated confidence bars, streak/combo mechanics, fooled counter, green pulse/red shake animations
+- **Issues:** No learn/tips phase, no hint system for struggling players
+- **Enhancement plan:** Add learn phase on adversarial examples, hint system, more items with nuanced confidence
+
+#### Educational Value
+- **Concepts:** Image classification, confidence scores, softmax, misclassification, adversarial examples
+- **Band coverage:** Good — A/B simple explanations, C gets softmax, convolutional filters, ImageNet details
+
+#### Content Expansion Target: 14 → 42 items (3x) + AI adversarial scenario generation
+
+---
+
+### 2.15 Build Classifier (Lab 7 — Computer Vision)
+
+**File:** `src/components/games/BuildClassifierGame.tsx` | **Lines:** 800 | **Phases:** welcome, learn, collect, train, test, results, complete (7 phases)
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Training images | 18 | 6 Animal, 6 Food, 6 Vehicle |
+| Test images | 9 | 3 per category |
+| Trick tests (Band C) | 3 | Ambiguous items |
+| Learn cards | 4 | ML pipeline concepts |
+| Categories | 3 | Animal, Food, Vehicle |
+| **Total unique items** | **34** | |
+
+**Play duration:** 7-12 min | **Replay value:** Medium | **Depth rating:** 7/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-BC1 | **Critical** | 196-200 | Async training loop has **no cleanup/cancellation** — 21 sequential timeouts fire on unmount |
+| STD-BC2 | **High** | 211-216 | `advanceRound()` triggers `isComplete` before results phase — **XP reward fires prematurely** |
+| STD-BC3 | **High** | 220-225 | Bonus score from `finishGame()` added **after** reward pipeline already calculated XP |
+| STD-BC4 | Medium | 104 | Trick test: cactus labeled as "Food" (`trueLabel: 'Food'`) — factually incorrect |
+| STD-BC5 | Low | 465 | DifficultySelector non-functional |
+
+#### UI/UX Assessment: 6/10 (bugs drag score down)
+- **Strengths:** Full ML pipeline simulation (collect→train→test→results), training progress visualization, confusion matrix (Band C), data balance warnings
+- **Issues:** Training simulation is purely visual (no actual relationship to labeling quality), critical bugs in completion flow
+- **Enhancement plan:** Fix completion pipeline, connect training quality to test accuracy, add more categories
+
+#### Educational Value: **Excellent**
+- **Concepts:** ML pipeline, training data, labeling, data balance, overfitting (Band C), confusion matrix, classification
+- **Band coverage:** Good — C gets trick items + confusion matrix, A/B gets full pipeline without advanced metrics
+
+#### Content Expansion Target: 30 → 90 images (3x, more categories) + AI training set generation
+
+---
+
+### 2.16 Prediction Market (Lab 7 — Computer Vision)
+
+**File:** `src/components/games/PredictionMarketGame.tsx` | **Lines:** 341 | **Phases:** welcome, play, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Predictions | 8 | Band A: 4, Band B: +1, Band C: +3 |
+| Mock results | 8 | Static yes/no/maybe percentages |
+| Analysis texts | 16 | Standard + advanced per prediction |
+| **Total unique items** | **32** | |
+
+**Play duration:** 3-5 min | **Replay value:** Very Low | **Depth rating:** 4/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-PM1 | Medium | 149 | `advanceRound()` only called for non-final predictions — inconsistent round tracking |
+| STD-PM2 | Medium | 95-151 | No explicit `startGame()` call — relies entirely on GameShell |
+| STD-PM3 | Medium | 299 | Incorrect aria-label: "Next prediction, 9 of 8" on final prediction |
+| STD-PM4 | Low | 101 | Scene content useEffect missing cleanup return |
+
+#### UI/UX Assessment: 7/10
+- **Strengths:** Animated voting bars with spring physics, gold glow for majority match, expert analysis toggle, time horizon badges
+- **Issues:** No learn phase, static mock results, no crowd comparison, DifficultySelector decorative
+- **Enhancement plan:** Add learn phase on AI forecasting, dynamic crowd results, peer comparison mode
+
+#### Educational Value
+- **Concepts:** AI prediction/forecasting, uncertainty, time horizons, critical thinking about AI futures
+- **Band coverage:** Good — A gets simple analysis, C references real research (AlphaFold, Chinese Room argument)
+
+#### Content Expansion Target: 8 → 24 predictions (3x) + AI prediction generation
+
+---
+
+### 2.17 Sentiment Scanner (Lab 8 — Words & Language)
+
+**File:** `src/components/games/SentimentScannerGame.tsx` | **Lines:** 245 | **Phases:** welcome, play, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Challenges | 5 | Write happy, sad, neutral, mixed, count-3 |
+| Positive keywords | 15 | Sentiment vocabulary |
+| Negative keywords | 15 | Sentiment vocabulary |
+| **Total unique items** | **35** | |
+
+**Play duration:** 4-6 min | **Replay value:** Medium (sandbox) | **Depth rating:** 5/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-SS1 | **High** | 88-95 | `setTimeout` (1500ms) no cleanup — **memory leak on unmount** (same pattern as FLL-001) |
+| STD-SS2 | Medium | 82-96 | **No feedback for failed check** — button silently does nothing on wrong answer |
+| STD-SS3 | Medium | 42 | `Math.sqrt(words.length)` normalization creates non-intuitive scoring |
+| STD-SS4 | Medium | 98 | Complete phase uses `bg-[#FF66AA]` — **Lab 3 pink, not Lab 8 indigo (`#818CF8`)** |
+| STD-SS5 | Low | 87-88 | No explicit `startGame()` call |
+
+#### UI/UX Assessment: 7/10
+- **Strengths:** Real-time mood meter with spring animation, word highlighting, creative writing engagement
+- **Issues:** No feedback on failure (silent), limited vocabulary (30 words), no learn phase, wrong lab color
+- **Enhancement plan:** Add failure feedback, expand vocabulary 3x, add learn phase on NLP, fix color to Lab 8
+
+#### Educational Value
+- **Concepts:** Sentiment analysis, polarity scoring, keyword matching, NLP basics
+- **Band coverage:** Minimal — only welcome text and stats display change between bands
+
+#### Content Expansion Target: 5 → 15 challenges (3x) + expanded vocabulary to 90 words + AI generation
+
+---
+
+### 2.18 Lost in Translation (Lab 8 — Words & Language)
+
+**File:** `src/components/games/LostInTranslationGame.tsx` | **Lines:** 412 | **Phases:** welcome, play, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Rounds | 7 | Band A: 3, Band B: +2, Band C: +2 |
+| Translation steps | 21 | 3 per round with flags |
+| Explanations | 14 | Standard + advanced per round |
+| **Total unique items** | **42** | |
+
+**Play duration:** 3-5 min | **Replay value:** Very Low | **Depth rating:** 4/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-LT1 | Medium | 163-166 | Score awarded just for clicking through — **no comprehension check, purely passive** |
+| STD-LT2 | Medium | 41 | `useAnimatedCounter` stale closure with eslint-disable |
+| STD-LT3 | Low | 145 | Animated counter runs during play phase (unnecessary computation) |
+
+#### UI/UX Assessment: 8/10
+- **Strengths:** Excellent step-by-step reveal, flag bounce animations, degradation meter, side-by-side comparison
+- **Issues:** Entirely passive (no choices), no learn phase, no interactivity beyond "reveal" clicking
+- **Enhancement plan:** Add prediction quiz ("What will the translation become?"), learn phase, more idioms
+
+#### Educational Value
+- **Concepts:** Machine translation, idiom handling, cross-lingual meaning loss, NLP challenges
+- **Band coverage:** Excellent — A gets simple explanations, C gets compositional semantics, polysemy, pragmatic context
+
+#### Content Expansion Target: 7 → 21 rounds (3x) + AI idiom chain generation
+
+---
+
+### 2.19 Career Explorer (Lab 9 — Build Your AI)
+
+**File:** `src/components/games/CareerExplorerGame.tsx` | **Lines:** 597 | **Phases:** welcome, learn, play, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Learn cards | 3 | AI Is Everywhere, Many Roles, Skills Matter |
+| Careers | 8 | ML Eng, Data Sci, Ethics, Robotics, NLP, CV, PM, Content |
+| Skills/distractors | 48 | 3 correct + 3 distractor per career |
+| **Total unique items** | **59** | |
+
+**Play duration:** 5-8 min | **Replay value:** Medium | **Depth rating:** 6/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-CE1 | **High** | 136 | Age band typed as `'B' | 'C'` only — **Band A children (7-9) excluded entirely** |
+| STD-CE2 | **High** | 162 | `Math.random() - 0.5` sort — **biased shuffle (not Fisher-Yates)** |
+| STD-CE3 | Medium | 199-204 | Wrong answers give 3 points — scoring doesn't differentiate skill |
+| STD-CE4 | Medium | 213-217 | `completeGame()` not auto-called — requires "Complete!" button click for XP |
+| STD-CE5 | Medium | 148 | Local `score` state shadows `game.score` — dual score tracking, potential divergence |
+
+#### UI/UX Assessment: 8/10
+- **Strengths:** Full 4-phase cycle, clear skill matching, green/red feedback, round progress dots, career summary grid
+- **Issues:** No Band A content, biased shuffle, no hint system, same career order every time
+- **Enhancement plan:** Add full Band A content (simplified careers), Fisher-Yates shuffle, hints, career randomization
+
+#### Educational Value
+- **Concepts:** AI career paths, skill requirements, breadth of AI industry
+- **Band coverage:** **Missing Band A entirely** — only B and C. Must add simplified career descriptions for ages 7-9
+
+#### Content Expansion Target: 8 → 24 careers (3x, including Band A) + AI career generation
+
+---
+
+### 2.20 API Explorer (Lab 9 — Build Your AI)
+
+**File:** `src/components/games/ApiExplorerGame.tsx` | **Lines:** 848 | **Phases:** welcome, learn, explore, complete
+
+#### Seed Content Baseline
+
+| Content Type | Count | Details |
+|-------------|-------|---------|
+| Learn cards | 4 | APIs, Request/Response, JSON, Status Codes |
+| API endpoints | 5 | classify, generate, translate, sentiment, chat |
+| Status codes | 4 | 200, 400, 429, 500 |
+| Response variants | 12 | 3 generation + 6 translation + 3 chat |
+| **Total unique items** | **25** | |
+
+**Play duration:** 8-15 min | **Replay value:** High (sandbox) | **Depth rating:** 7/10
+
+#### Bugs Found
+
+| ID | Severity | Line | Description |
+|----|----------|------|-------------|
+| STD-AE1 | **High** | 331 | `ageBand` hardcoded to `'C'` — **all children see advanced content, no Band A/B** |
+| STD-AE2 | Medium | 401 | `setTimeout` (400ms) in sendRequest no cleanup |
+| STD-AE3 | Medium | 459 | `setTimeout` (2000ms) for completion no cleanup — `completeGame()` fires on stale state |
+| STD-AE4 | Medium | 408-410 | Rate limiting tracks all requests globally, not per-endpoint — **false rate limits** |
+| STD-AE5 | Medium | 586 | Learn phase hardcodes `learnIdx < 3` instead of `LEARN_CARDS.length - 1` |
+| STD-AE6 | Low | 283-327 | `JsonViewer` recursive component has no depth limit |
+
+#### UI/UX Assessment: 8.5/10
+- **Strengths:** Excellent sandbox, real API simulation, JSON syntax highlighting, typewriter effect, HTTP method badges, request history, rate limiting simulation, teaching notes
+- **Issues:** Band C only (excludes 7-12 year olds), dense UI, no guided tour, overwhelming for new users
+- **Enhancement plan:** Add Band A/B simplified modes, guided endpoint tour, progressive complexity unlock
+
+#### Educational Value: **Excellent**
+- **Concepts:** REST APIs, HTTP methods, JSON, request/response, status codes, rate limiting, AI service endpoints
+- **Band coverage:** **Band C only** — must add Band A (visual API explorer) and Band B (guided mode)
+
+#### Content Expansion Target: 5 → 15 endpoints (3x, with Band A/B) + AI endpoint simulation
