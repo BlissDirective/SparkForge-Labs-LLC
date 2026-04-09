@@ -9,7 +9,7 @@
 // 4. Terminal-style output — green monospace + typewriter
 // 5. Block indentation — colored left border bars
 // 6. Star rating — 1-3 stars per challenge
-// 7. 10 challenges across 4 categories, age-band filtered
+// 7. 50 challenges across 5 categories, age-band filtered
 // 8. Chrome bezel, welcome phase, learn phase
 // 9. Desktop: CodeBlocks3D for 3D visualization (Decision 6.5)
 // ================================================================
@@ -52,7 +52,7 @@ interface Challenge {
   title: string;
   description: string;
   descriptionC: string;
-  category: 'sequence' | 'conditional' | 'loop' | 'function';
+  category: 'sequence' | 'conditional' | 'loop' | 'function' | 'algorithm';
   palette: Block[];
   correctSequence: string[];
   output: string;
@@ -80,7 +80,7 @@ const BLOCK_SHAPES: Record<BlockType, string> = {
   function: '\u2b21',
 };
 
-// --- All 10 Challenges ---
+// --- All 50 Challenges ---
 const ALL_CHALLENGES: Challenge[] = [
   // --- SEQUENCE ---
   {
