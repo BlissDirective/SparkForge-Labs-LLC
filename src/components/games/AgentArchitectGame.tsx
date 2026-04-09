@@ -26,6 +26,8 @@ import {
   Settings2, Code2, CheckCircle2, Cpu,
 } from 'lucide-react';
 import { useAIContent } from '@/hooks/useAIContent';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D pipeline (no SSR)
 import dynamic from 'next/dynamic';
@@ -487,6 +489,7 @@ export function AgentArchitectGame() {
   const [learnIdx, setLearnIdx] = useState(0);
   const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   // Phase D2: Game mode + sandbox/debug/replay state
   const [_gameMode, _setGameMode] = useState<AgentGameMode>('mission');
@@ -914,6 +917,11 @@ export function AgentArchitectGame() {
                   <motion.div key="missions" initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="p-4 md:p-6 space-y-4">
+
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={completedMissions.length} total={availableMissions.length} labColor="#00FF88" />
+                    </div>
 
                     <div className="text-center">
                       <Target className="w-6 h-6 text-emerald-400 mx-auto mb-2" />

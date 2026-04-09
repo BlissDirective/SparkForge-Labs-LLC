@@ -17,6 +17,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Clock } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ENH: Animated score counter hook
 function useAnimatedCounter(target: number, duration = 600) {
@@ -90,6 +92,7 @@ export function TimeMachineGame() {
   const [feedback, setFeedback] = useState<{ id: string; correct: boolean } | null>(null);
   const [streak, setStreak] = useState(0);
   const [celebrateSlot, setCelebrateSlot] = useState<number | null>(null);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const animatedScore = useAnimatedCounter(game.score);
 
   const milestones = useMemo(
@@ -249,6 +252,10 @@ export function TimeMachineGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={placed.size} total={milestones.length} labColor="#00BBFF" />
+                    </div>
                     {/* ENH: Visual progress bar */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">

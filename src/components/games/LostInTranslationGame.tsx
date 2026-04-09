@@ -17,6 +17,8 @@ import { useGameContent } from '@/hooks/useContent';
 import { Languages, ArrowDown } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ENH: Animated score counter hook
 function useAnimatedCounter(target: number, duration = 600) {
@@ -137,6 +139,7 @@ export function LostInTranslationGame() {
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(-1);
   const animatedScore = useAnimatedCounter(game.score);
@@ -251,6 +254,10 @@ export function LostInTranslationGame() {
                 {/* PLAY */}
                 {phase === 'play' && round && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-md">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={idx + 1} total={rounds.length} labColor="#818CF8" />
+                    </div>
                     <p className="font-body text-xs text-white/20 text-center mb-3">{idx + 1}/{rounds.length}</p>
 
                     {/* Original */}

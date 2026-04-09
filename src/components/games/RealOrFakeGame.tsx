@@ -16,6 +16,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Fingerprint, CheckCircle2, XCircle, BookOpen } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const RealOrFakeEnvironment = dynamic(
@@ -71,6 +73,7 @@ export function RealOrFakeGame() {
   const [feedback, setFeedback] = useState<{ correct: boolean; clue: string } | null>(null);
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [tipIdx, setTipIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const rounds = useMemo(
     () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
@@ -177,6 +180,10 @@ export function RealOrFakeGame() {
 
                 {phase === 'play' && round && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-md space-y-2">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={rounds.length} labColor="#FF6644" />
+                    </div>
                     {/* Round info */}
                     <div className="flex items-center justify-center gap-3 mb-3">
                       <span className="font-body text-xs text-white/30">{round.typeLabel}</span>

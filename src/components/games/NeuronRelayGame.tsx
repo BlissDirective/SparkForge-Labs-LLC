@@ -17,6 +17,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Zap, BrainCircuit } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ENH: Animated score counter hook
 function useAnimatedCounter(target: number, duration = 600) {
@@ -78,6 +80,7 @@ export function NeuronRelayGame() {
   const [streak, setStreak] = useState(0);
   const [firingNeurons, setFiringNeurons] = useState<Set<number>>(new Set());
   const animatedScore = useAnimatedCounter(game.score);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const signal = neurons.reduce((s, n) => s + (n.on ? n.vol * 0.2 : 0), 0);
 
@@ -204,6 +207,10 @@ export function NeuronRelayGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-md">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={pi + 1} total={PUZZLES.length} labColor="#FF66AA" />
+                    </div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-body text-xs text-white/30">
                         {ageBand === 'C' ? `Puzzle ${pi + 1}/${PUZZLES.length} \u2014 Target: [${puzzle.target[0]}, ${puzzle.target[1]}]`

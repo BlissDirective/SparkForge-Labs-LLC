@@ -27,6 +27,8 @@ import {
   Play, Plus, Trash2, RotateCcw, BookOpen, Zap,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
 const RobotVacuum3D = dynamic(
@@ -468,6 +470,7 @@ export function RobotVacuumGame() {
   }, [ageBand, dynamicContent?.scenarios]);
 
   const [roomIdx, setRoomIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [running, setRunning] = useState(false);
   const [vacPos, setVacPos] = useState<[number, number]>([0, 0]);
   const [vacDir, setVacDir] = useState(0);
@@ -807,6 +810,10 @@ export function RobotVacuumGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roomIdx + 1} total={rooms.length} labColor="#00FF88" />
+                    </div>
                     {/* Room header */}
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-lg">{room.emoji}</span>

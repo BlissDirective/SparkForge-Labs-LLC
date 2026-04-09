@@ -28,6 +28,8 @@ import {
   Star, ChevronRight, Terminal,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // Lazy-load 3D visualization (desktop only)
 const CodeBlocks3D = dynamic(
@@ -607,6 +609,7 @@ export function CodeBlocksGame() {
   const [attempts, setAttempts] = useState(0);
   const [stars, setStars] = useState<number[]>([]);
   const [learnIdx, setLearnIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const terminalRef = useRef<HTMLDivElement>(null);
 
   // Merge hardcoded + dynamic challenges, filter by age band
@@ -804,6 +807,10 @@ export function CodeBlocksGame() {
                 {phase === 'play' && challenge && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={challengeIdx + 1} total={challenges.length} labColor="#F97316" />
+                    </div>
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div>

@@ -29,6 +29,8 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { extractKeywords } from '@/components/3d/PromptBubble3D';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] SSR-safe dynamic import for 3D thought bubble scene
 const PromptBubble3DScene = dynamic(
@@ -948,6 +950,7 @@ export function PromptLabGame() {
   // --- System prompt sandbox (Band C) ---
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   // [v3] 3D thought bubble state
   const [bubbleKeywords, setBubbleKeywords] = useState<string[]>([]);
@@ -1416,6 +1419,10 @@ export function PromptLabGame() {
                   exit={{ opacity: 0 }}
                   className="flex-1 flex flex-col min-h-0 relative"
                 >
+                  <div className="flex items-center gap-3 mb-3 px-4">
+                    <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                    <GameProgressTracker current={completedChallenges} total={availableChallenges.length} labColor="#FFAA44" />
+                  </div>
                   {/* [v3] 3D Thought Bubbles */}
                   {showBubbles && (phase === 'sandbox' || phase === 'challenge') && (
                     <div

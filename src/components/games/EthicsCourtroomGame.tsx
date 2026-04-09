@@ -26,6 +26,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { Scale, Users, MessageSquare, Award } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const EthicsCourtroomEnvironment = dynamic(
@@ -460,6 +462,7 @@ export function EthicsCourtroomGame() {
   const [chosenPerspective, setChosenPerspective] = useState<number | null>(null);
   const [selectedArgs, setSelectedArgs] = useState<Set<number>>(new Set());
   const [casesDebated, setCasesDebated] = useState<string[]>([]);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const currentCase = CASES[caseIdx];
 
@@ -661,6 +664,10 @@ export function EthicsCourtroomGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={caseIdx + 1} total={CASES.length} labColor="#FF6644" />
+                    </div>
                     {/* Case header */}
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-xl">{currentCase.emoji}</span>

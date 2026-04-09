@@ -15,6 +15,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Search, AlertTriangle, CheckCircle } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 import dynamic from 'next/dynamic';
 
 // 3D scene content — rendered inside CockpitCanvas via sceneStore (D3D-B3)
@@ -455,6 +457,7 @@ export function DataDetectiveGame() {
   const { data: dynamicContent } = useGameContent('data-detective', ageBand);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const investigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -586,6 +589,10 @@ export function DataDetectiveGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-lg">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={caseIdx + 1} total={cases.length} labColor="#AA66FF" />
+                    </div>
                     {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* Case header */}

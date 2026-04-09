@@ -34,6 +34,8 @@ import {
   Plus, RotateCcw, Bot, Settings2,
   BookOpen, Smartphone,
 } from "lucide-react";
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 
 // [v3] Dynamic import for 3D conversation tree (no SSR)
@@ -730,6 +732,7 @@ export function ChatbotBuilderGame() {
   }, [dynamicContent?.scenarios]);
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [learnIdx, setLearnIdx] = useState(0);
   const [nodes, setNodes] = useState<BotNode[]>(TEMPLATES["Pizza Bot"].nodes);
   const [activeTemplate, setActiveTemplate] = useState("Pizza Bot");
@@ -921,6 +924,10 @@ export function ChatbotBuilderGame() {
                 {/* === BUILD / GRAPH / TEST === */}
                 {phase === "build" && (
                   <motion.div key="build" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col overflow-hidden">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={completedChallenges.size} total={CHALLENGES.length} labColor="#818CF8" />
+                    </div>
                     {/* -- Toolbar -- */}
                     <div className="flex items-center gap-1 px-2 py-1.5 border-b border-white/5 overflow-x-auto">
                       {Object.entries(allTemplates).map(([name, t]) => (

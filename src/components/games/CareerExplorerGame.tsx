@@ -25,6 +25,8 @@ import { useGameContent } from '@/hooks/useContent';
 import { BookOpen, Briefcase, CheckCircle2, XCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const CareerExplorerEnvironment = dynamic(
@@ -143,6 +145,7 @@ export default function CareerExplorerGame() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [wasCorrect, setWasCorrect] = useState(false);
   const [score, setScore] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const careers = CAREERS_B;
   const currentCareer = careers[round];
@@ -367,6 +370,10 @@ export default function CareerExplorerGame() {
                     exit={{ opacity: 0 }}
                     className="flex-1 flex flex-col items-center justify-center space-y-3"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={round + 1} total={totalRounds} labColor="#F97316" />
+                    </div>
                     {/* Round indicator */}
                     <div className="flex items-center gap-1 mb-1">
                       {Array.from({ length: totalRounds }, (_, i) => (

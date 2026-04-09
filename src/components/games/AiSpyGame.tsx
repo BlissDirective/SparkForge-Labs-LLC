@@ -17,6 +17,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment — rendered inside CockpitCanvas via SceneRouter (D3D-B3)
 const AiSpyEnvironment = dynamic(
@@ -200,6 +202,7 @@ export function AiSpyGame() {
   const [sceneIdx, setSceneIdx] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const scene = scenes[sceneIdx];
   const totalAI = scene?.items.filter(i => i.usesAI).length ?? 0;
@@ -348,6 +351,10 @@ export function AiSpyGame() {
                     exit={{ opacity: 0, y: -20 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={sceneIdx + 1} total={scenes.length} labColor="#00BBFF" />
+                    </div>
                     {/* Round counter + Score */}
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-mono text-2xs text-white/30">

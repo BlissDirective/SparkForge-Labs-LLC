@@ -34,6 +34,8 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const BuildClassifierEnvironment = dynamic(
@@ -134,6 +136,7 @@ export function BuildClassifierGame() {
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [learnIdx, setLearnIdx] = useState(0);
 
   // Collect phase
@@ -559,6 +562,10 @@ export function BuildClassifierGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col items-center justify-center"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={testIdx + 1} total={allTests.length} labColor="#06B6D4" />
+                    </div>
                     {/* Pipeline progress */}
                     <div className="flex items-center gap-1 mb-3">
                       {['Collect', 'Train', 'Test'].map((s, i) => (

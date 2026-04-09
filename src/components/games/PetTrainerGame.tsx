@@ -35,6 +35,8 @@ import {
   AlertTriangle, FlaskConical, GraduationCap,
 } from 'lucide-react';
 import { useAIContent } from '@/hooks/useAIContent';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // === Dynamic import for 3D pet (no SSR) ===
 
@@ -553,6 +555,7 @@ export function PetTrainerGame() {
 
   // === Core state ===
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [pet, setPet] = useState(PETS[0]);
   const [petName, setPetName] = useState('');
   const [categorySetId, setCategorySetId] = useState('fruits');
@@ -992,6 +995,10 @@ export function PetTrainerGame() {
                 {phase === 'train' && currentItem < categorySet.training.length && (
                   <motion.div key="train" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="max-w-md mx-auto text-center space-y-4">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={currentItem + 1} total={categorySet.training.length} labColor="#AA66FF" />
+                    </div>
                     {/* Pet + mood display */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">

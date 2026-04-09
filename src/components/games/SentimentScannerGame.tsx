@@ -16,6 +16,8 @@ import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { ScanLine } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const SentimentScannerEnvironment = dynamic(
@@ -58,6 +60,7 @@ export function SentimentScannerGame() {
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [text, setText] = useState('');
   const [ci, setCi] = useState(0);
   const [done, setDone] = useState<Set<number>>(new Set());
@@ -142,6 +145,10 @@ export function SentimentScannerGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-md">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={ci + 1} total={CHALLENGES.length} labColor="#818CF8" />
+                    </div>
                     {/* Challenge */}
                     <div className="rounded-xl p-3 mb-3 border border-indigo-500/20 bg-indigo-500/5 text-center">
                       <p className="font-display text-sm font-bold text-indigo-400">{'\u{1F3AF}'} {CHALLENGES[ci].text}</p>

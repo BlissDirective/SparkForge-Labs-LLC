@@ -32,6 +32,8 @@ import {
   Play, BookOpen, Sparkles, Zap, ArrowRight,
   Brain, Lightbulb, Award, Send
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ──── Types ────
 type Phase = 'welcome' | 'learn' | 'play' | 'lab' | 'complete';
@@ -294,6 +296,7 @@ export function EmojiDecoderGame() {
   const [labSubmitted, setLabSubmitted] = useState(false);
   const [labPromptIdx] = useState(() => Math.floor(Math.random() * LAB_PROMPTS.length));
   const [emojiPulse, setEmojiPulse] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // B-10: Clean up timer on unmount to prevent firing on unmounted component
@@ -462,6 +465,10 @@ export function EmojiDecoderGame() {
           {phase === 'play' && round && (
             <motion.div key="play" className="flex-1 flex flex-col p-4 overflow-y-auto"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-center gap-3 mb-3 px-4">
+                <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                <GameProgressTracker current={roundIdx + 1} total={totalRounds} labColor="#818CF8" />
+              </div>
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <span className="font-mono text-xs text-indigo-400/60">ROUND {roundIdx + 1} / {totalRounds}</span>

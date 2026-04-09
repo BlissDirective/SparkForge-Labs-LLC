@@ -35,6 +35,8 @@ import {
   Play, BookOpen, Sparkles, Star, ArrowRight, ArrowLeft,
   Award, Rocket
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D component — SSR disabled, desktop only
 const MyFirstAiApp3D = dynamic(
@@ -293,6 +295,7 @@ export function MyFirstAiAppGame() {
   const [selectedTheme, setSelectedTheme] = useState<string>('neon');
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showCodePeek, setShowCodePeek] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   // Merge hardcoded + dynamic categories
   const categories = useMemo(() => {
@@ -485,6 +488,10 @@ export function MyFirstAiAppGame() {
           {phase === 'build' && (
             <motion.div key="build" className="flex-1 flex flex-col p-4 overflow-y-auto"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-center gap-3 mb-3 px-4">
+                <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                <GameProgressTracker current={stepIdx + 1} total={5} labColor="#F97316" />
+              </div>
               {/* Step indicator */}
               <div className="flex items-center justify-center gap-1 mb-4">
                 {BUILD_STEPS.map((s, i) => (

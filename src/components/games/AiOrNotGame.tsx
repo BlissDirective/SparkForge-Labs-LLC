@@ -18,6 +18,8 @@ const AiOrNot3D = dynamic(
   { ssr: false }
 );
 import { Play, BookOpen, ArrowRight, Lightbulb, Award, Rocket, Clock, Send, Brain, CheckCircle } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 type Phase = 'welcome' | 'learn' | 'play' | 'predict' | 'complete';
 type TimeCategory = 'now' | 'soon' | 'scifi';
@@ -196,6 +198,7 @@ export function AiOrNotGame() {
   const [history, setHistory] = useState<{ scenario: Scenario; guess: TimeCategory; correct: boolean }[]>([]);
   const [predictionText, setPredictionText] = useState('');
   const [predictionSubmitted, setPredictionSubmitted] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   // Merge hardcoded + dynamic scenarios, filter/shuffle/slice
   const rounds = useMemo(() => {
@@ -339,6 +342,10 @@ export function AiOrNotGame() {
           {phase === 'play' && round && (
             <motion.div key="play" className="flex-1 flex flex-col p-4 overflow-y-auto"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-center gap-3 mb-3 px-4">
+                <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                <GameProgressTracker current={roundIdx + 1} total={totalRounds} labColor="#D946EF" />
+              </div>
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <span className="font-mono text-xs text-fuchsia-400/60">ROUND {roundIdx + 1} / {totalRounds}</span>

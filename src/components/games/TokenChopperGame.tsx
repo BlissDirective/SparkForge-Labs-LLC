@@ -17,6 +17,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Scissors, Fuel } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ENH: Animated score counter hook
 function useAnimatedCounter(target: number, duration = 600) {
@@ -103,6 +105,7 @@ export function TokenChopperGame() {
   const [showHint, setShowHint] = useState(false);
   const [challengePassed, setChallengePassed] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const tokens = useMemo(() => tokenize(text), [text]);
   const cost = (tokens.length * 0.00001).toFixed(5);
@@ -247,6 +250,10 @@ export function TokenChopperGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={challengeIdx + 1} total={CHALLENGES.length} labColor="#FFAA44" />
+                    </div>
                     {/* ENH: Progress bar for challenges */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">

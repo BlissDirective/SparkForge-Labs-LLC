@@ -18,6 +18,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Palette, Eye } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const AiArtDetectiveEnvironment = dynamic(
@@ -184,6 +186,7 @@ export function AiArtDetectiveGame() {
   const [correctCount, setCorrectCount] = useState(0);
   // ENH: Detective badge earned after 3+ correct
   const [showDetectiveBadge, setShowDetectiveBadge] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
@@ -366,6 +369,10 @@ export function AiArtDetectiveGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-lg mx-auto"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={ROUNDS.length} labColor="#FFAA44" />
+                    </div>
                     {/* Confidence meter */}
                     {roundIdx > 0 && (
                       <div className="mb-3 max-w-xs mx-auto" role="status" aria-label={`Detection confidence: ${confidencePct}%`}>

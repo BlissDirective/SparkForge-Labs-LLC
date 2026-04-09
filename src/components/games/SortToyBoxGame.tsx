@@ -24,6 +24,8 @@ import { useSortAudio } from '@/hooks/useSortAudio';
 import { Plus, Brain, ChevronRight, GraduationCap, Sparkles, Timer, Trophy, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useAIContent } from '@/hooks/useAIContent';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // Lazy-load 3D scene (desktop only)
 const SortScene3D = dynamic(
@@ -286,6 +288,7 @@ export function SortToyBoxGame() {
   // BUG-ST2 fix: useGameContent hook removed (was unused)
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [learnIdx, setLearnIdx] = useState(0);
   const [gameMode, setGameMode] = useState<GameMode>('standard');
 
@@ -802,6 +805,10 @@ export function SortToyBoxGame() {
                     role="region"
                     aria-label={`Sort shapes into groups — Round ${currentRound} of 5`}
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={currentRound} total={5} labColor="#AA66FF" />
+                    </div>
                     {/* Round indicator + timer */}
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">

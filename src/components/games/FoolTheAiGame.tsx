@@ -31,6 +31,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { AlertTriangle, CheckCircle2, Target } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const FoolTheAiEnvironment = dynamic(
@@ -125,6 +127,7 @@ export function FoolTheAiGame() {
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<{ idx: number; hit: boolean } | null>(null);
@@ -233,6 +236,10 @@ export function FoolTheAiGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={ci + 1} total={CHALLENGES.length} labColor="#06B6D4" />
+                    </div>
                     {/* Challenge header + ENH: fooled counter */}
                     <div className="rounded-xl p-3 mb-3 text-center" role="status" aria-label={`Challenge: ${challenge.text} Progress: ${matchCount} of ${challenge.target}`}
                       style={{ backgroundColor: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
