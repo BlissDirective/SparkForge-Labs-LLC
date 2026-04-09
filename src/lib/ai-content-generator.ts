@@ -12,7 +12,9 @@ import { z } from 'zod';
 // TYPES
 // ================================================================
 
-export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-architect' | 'bias-detective';
+export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-architect' | 'bias-detective'
+  | 'data-detective' | 'robot-vacuum' | 'camera-quest' | 'chatbot-builder' | 'emoji-decoder'
+  | 'code-blocks' | 'my-first-ai-app' | 'future-forge' | 'ai-or-not';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -25,7 +27,26 @@ export type ContentType =
   // Agent Architect
   | 'agent-mission' | 'agent-themed-pack'
   // Bias Detective
-  | 'bias-case' | 'bias-stakeholder-interview';
+  | 'bias-case' | 'bias-stakeholder-interview'
+  // ═══ FL-Lite Games (27 new content types) ═══
+  // Data Detective
+  | 'dataset-scenario' | 'anomaly-explanation' | 'data-concept-card'
+  // Robot Vacuum
+  | 'room-layout' | 'rule-challenge' | 'vacuum-learn-card'
+  // Camera Quest
+  | 'hunt-item' | 'cv-concept-explanation' | 'hunt-theme'
+  // Chatbot Builder
+  | 'conversation-template' | 'personality-script' | 'chatbot-challenge'
+  // Emoji Decoder
+  | 'emoji-puzzle' | 'nlp-fun-fact' | 'emoji-cultural-variant'
+  // Code Blocks
+  | 'programming-challenge' | 'code-hint' | 'code-solution-feedback'
+  // My First AI App
+  | 'app-category' | 'app-power-description' | 'app-idea'
+  // Future Forge
+  | 'world-scenario' | 'capability-mapping' | 'impact-narrative'
+  // AI or Not
+  | 'capability-scenario' | 'timeline-assessment' | 'evidence-explanation';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -46,13 +67,27 @@ export interface AIContentResponse<T = unknown> {
 // ================================================================
 
 export const AIContentRequestSchema = z.object({
-  gameId: z.enum(['pet-trainer', 'sort-toy-box', 'neural-builder', 'agent-architect', 'bias-detective']),
+  gameId: z.enum([
+    'pet-trainer', 'sort-toy-box', 'neural-builder', 'agent-architect', 'bias-detective',
+    'data-detective', 'robot-vacuum', 'camera-quest', 'chatbot-builder', 'emoji-decoder',
+    'code-blocks', 'my-first-ai-app', 'future-forge', 'ai-or-not',
+  ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
     'sort-criterion', 'sort-shape-config',
     'neural-challenge', 'neural-test-dataset',
     'agent-mission', 'agent-themed-pack',
     'bias-case', 'bias-stakeholder-interview',
+    // FL-Lite
+    'dataset-scenario', 'anomaly-explanation', 'data-concept-card',
+    'room-layout', 'rule-challenge', 'vacuum-learn-card',
+    'hunt-item', 'cv-concept-explanation', 'hunt-theme',
+    'conversation-template', 'personality-script', 'chatbot-challenge',
+    'emoji-puzzle', 'nlp-fun-fact', 'emoji-cultural-variant',
+    'programming-challenge', 'code-hint', 'code-solution-feedback',
+    'app-category', 'app-power-description', 'app-idea',
+    'world-scenario', 'capability-mapping', 'impact-narrative',
+    'capability-scenario', 'timeline-assessment', 'evidence-explanation',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -137,6 +172,173 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
     `Write a 5-exchange interview with a ${ctx?.role || 'affected person'} about the AI bias case: "${ctx?.caseTitle || 'an AI system'}". ` +
     `Include emotional but appropriate responses and unique perspective. ` +
     `Return as JSON: { "role": "...", "exchanges": [{ "question": "...", "answer": "..." }] }`,
+
+  // ═══════ FL-LITE GAME PROMPT TEMPLATES (27 new) ═══════
+
+  // Data Detective
+  'dataset-scenario': (ageBand) =>
+    `Create a data investigation case for a data detective game. Include: title, description, 5 data items (label + numeric value), ` +
+    `one flagged data point (anomaly/bias/error), question asking which data point is suspicious, ` +
+    `correctIndex (0-4), explanation, and explanationKids (for younger learners). ` +
+    `Anomaly types: outlier, bias, measurement error, fabricated data, survivorship bias, correlation error. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "description": "...", "data": [{ "label": "...", "value": N, "flagged": bool }], "question": "...", "correctIndex": N, "explanation": "...", "explanationKids": "..." }`,
+
+  'anomaly-explanation': (ageBand, ctx) =>
+    `Explain why the data anomaly "${ctx?.anomalyType || 'outlier'}" in the dataset "${ctx?.title || 'data'}" is problematic for AI training. ` +
+    `Provide an explanation and a simplified version for younger learners. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "explanation": "...", "explanationKids": "...", "realWorldExample": "..." }`,
+
+  'data-concept-card': (ageBand) =>
+    `Create a learn card about a data quality concept for kids. Topics: anomaly detection, bias, sampling, correlation vs causation, survivorship bias, Simpson's paradox. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "emoji": "...", "description": "...", "example": "..." }`,
+
+  // Robot Vacuum
+  'room-layout': (ageBand) =>
+    `Design a 6x6 grid room for a robot vacuum game. Include: title, emoji, walls (blocked cells as [row,col] pairs), ` +
+    `furniture (position + emoji), dirt spots (cells to clean), charger position, and optimal step count. ` +
+    `Room difficulty should match age band: A=simple with few obstacles, B=moderate, C=complex maze-like. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "emoji": "...", "walls": [[r,c],...], "furniture": [{"pos":[r,c],"emoji":"..."},...], "dirt": [[r,c],...], "charger": [r,c], "optimalSteps": N }`,
+
+  'rule-challenge': (ageBand) =>
+    `Create a challenge goal for a robot vacuum rule-building game. The robot uses IF-THEN rules with conditions (See dirt, See wall, Battery low, Path clear, At charger, Dirt nearby) ` +
+    `and actions (Move forward, Turn left, Turn right, Clean, Go to charger, Turn around). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "goal": "...", "constraints": "...", "hint": "...", "difficulty": "easy|medium|hard" }`,
+
+  'vacuum-learn-card': (ageBand) =>
+    `Create a learn card about AI agent concepts for a robot vacuum game. Topics: IF-THEN rules, sensor types, rule priority, coverage algorithms, efficiency metrics. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Camera Quest
+  'hunt-item': (ageBand) =>
+    `Create a scavenger hunt item for a computer vision game. Include: text description of what to find, emoji, category (color|shape|abstract), ` +
+    `difficulty (1-3), simulated AI confidence (0-100), hintA (for kids), hintC (technical CV concept). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "text": "Something ...", "emoji": "...", "category": "...", "difficulty": N, "simConfidence": N, "hintA": "...", "hintC": "..." }`,
+
+  'cv-concept-explanation': (ageBand, ctx) =>
+    `Explain the computer vision concept "${ctx?.concept || 'object detection'}" for a children's educational game. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "concept": "...", "explanation": "...", "realWorldUse": "...", "funFact": "..." }`,
+
+  'hunt-theme': (ageBand, ctx) =>
+    `Create a themed scavenger hunt session called "${ctx?.theme || 'Nature Walk'}" with 8 hunt items for a CV game. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "theme": "...", "description": "...", "items": [{ "text": "...", "emoji": "...", "category": "...", "difficulty": N, "simConfidence": N, "hintA": "...", "hintC": "..." }] }`,
+
+  // Chatbot Builder
+  'conversation-template': (ageBand, ctx) =>
+    `Create a chatbot conversation template about "${ctx?.topic || 'customer service'}". Include 6-10 nodes forming a conversation tree. ` +
+    `Each node: id, text (bot message), responses array (label + nextId). Terminal nodes have empty responses. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "name": "...", "emoji": "...", "description": "...", "nodes": [{ "id": "...", "text": "...", "responses": [{ "label": "...", "nextId": "..." }] }] }`,
+
+  'personality-script': (ageBand) =>
+    `Create a chatbot personality with a unique voice. Include: name, emoji, style description, example greetings (3), and response tone rules. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "name": "...", "emoji": "...", "style": "...", "greetings": ["..."], "rules": ["..."] }`,
+
+  'chatbot-challenge': (ageBand) =>
+    `Create a chatbot building challenge. Include: title, description, check criteria (what the bot structure must have), and reward points. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "description": "...", "descriptionC": "...", "criteria": "...", "reward": N }`,
+
+  // Emoji Decoder
+  'emoji-puzzle': (ageBand) =>
+    `Create an emoji decoding puzzle. Include: emoji sequence (3-5 emojis with +/=/→ connectors), correct answer, 2 wrong answers, ` +
+    `AI interpretation (funny literal reading), funFact (for young learners), funFactB (NLP detail for older). ` +
+    `Difficulty: easy (concrete) | medium (abstract) | tricky (idioms/culture). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "emojis": "...", "difficulty": "...", "category": "...", "correctAnswer": "...", "wrongAnswers": ["..."], "aiInterpretation": "...", "funFact": "...", "funFactB": "..." }`,
+
+  'nlp-fun-fact': (ageBand, ctx) =>
+    `Create an NLP fun fact related to the topic "${ctx?.topic || 'language processing'}". ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "fact": "...", "factB": "...", "topic": "..." }`,
+
+  'emoji-cultural-variant': (ageBand) =>
+    `Create a cross-cultural emoji interpretation challenge. Show how the same emoji means different things in different cultures. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "emoji": "...", "meaning1": { "culture": "...", "meaning": "..." }, "meaning2": { "culture": "...", "meaning": "..." }, "nlpLesson": "..." }`,
+
+  // Code Blocks
+  'programming-challenge': (ageBand) =>
+    `Create a visual block programming challenge. Include: title, category (sequence|conditional|loop|function|algorithm), ` +
+    `description, palette blocks (id, type, label), correct block sequence, output steps, and pseudocode. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "category": "...", "description": "...", "palette": [{ "id": "...", "type": "...", "label": "..." }], "correctSequence": ["..."], "outputSteps": ["..."], "pseudocode": "..." }`,
+
+  'code-hint': (_ageBand, ctx) =>
+    `Create a 3-level progressive hint for the programming challenge "${ctx?.challengeTitle || 'challenge'}". ` +
+    `Level 1: vague nudge. Level 2: structural hint. Level 3: near-answer. ` +
+    `Return as JSON: { "hints": ["...", "...", "..."] }`,
+
+  'code-solution-feedback': (ageBand, ctx) =>
+    `Generate feedback for a ${ctx?.correct ? 'correct' : 'incorrect'} solution to "${ctx?.challengeTitle || 'challenge'}". ` +
+    `If correct: celebrate and explain why it works. If incorrect: explain what went wrong without giving the answer. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "message": "...", "explanation": "...", "tip": "..." }`,
+
+  // My First AI App
+  'app-category': (ageBand) =>
+    `Create a new AI app category for a "build your first AI app" game. Include: title, emoji, descriptions for 3 age bands, and a color hex. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "emoji": "...", "description": "...", "descriptionB": "...", "descriptionC": "...", "color": "#..." }`,
+
+  'app-power-description': (ageBand, ctx) =>
+    `Create an AI capability/power for an app builder game. Power: "${ctx?.powerName || 'new capability'}". ` +
+    `Include descriptions for 3 age bands and a technical label. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "emoji": "...", "description": "...", "descriptionB": "...", "descriptionC": "...", "techLabel": "..." }`,
+
+  'app-idea': (ageBand, ctx) =>
+    `Generate a creative AI app concept that uses the capabilities: ${ctx?.powers || 'Computer Vision, NLP'}. ` +
+    `Target audience: ${ctx?.audience || 'kids'}. Category: ${ctx?.category || 'helper'}. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "name": "...", "tagline": "...", "description": "...", "howItWorks": "..." }`,
+
+  // Future Forge
+  'world-scenario': (ageBand) =>
+    `Create a real-world AI problem scenario for a "design the future" game. Include: title, problem description (normal + simple), ` +
+    `correct AI capabilities needed (from: vision, language, robotics, prediction, processing, safety), bonus capability, ` +
+    `and impact text (normal + simple). Topic should be current and relevant. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "problem": "...", "problemSimple": "...", "correctCapabilities": ["..."], "bonusCapability": "...", "impactText": "...", "impactTextSimple": "..." }`,
+
+  'capability-mapping': (ageBand, ctx) =>
+    `Explain why the AI capabilities ${ctx?.capabilities || '["vision", "robotics"]'} are needed for the scenario "${ctx?.scenario || 'ocean cleanup'}". ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "explanations": [{ "capability": "...", "why": "..." }], "synergy": "..." }`,
+
+  'impact-narrative': (ageBand, ctx) =>
+    `Write a short narrative (3-4 sentences) about the positive impact of using AI capabilities ${ctx?.capabilities || '["vision"]'} for "${ctx?.scenario || 'problem'}". ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "narrative": "...", "statistic": "...", "timeframe": "..." }`,
+
+  // AI or Not
+  'capability-scenario': (ageBand) =>
+    `Create a "Can AI do this?" scenario. Include: title, emoji, description (normal + B-band), ` +
+    `answer (now|soon|scifi), explanation (normal + B-band), and fun fact. ` +
+    `Balance realism — don't make all scenarios "now". Include genuine "soon" and "scifi" items. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "emoji": "...", "description": "...", "descriptionB": "...", "answer": "now|soon|scifi", "explanation": "...", "explanationB": "...", "funFact": "..." }`,
+
+  'timeline-assessment': (ageBand) =>
+    `Create an AI technology timeline challenge. Pick a specific AI capability and place it on a timeline: ` +
+    `"possible now" / "5-10 years" / "20+ years" / "unlikely ever". Include evidence for the placement. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "capability": "...", "timeline": "...", "evidence": ["..."], "currentState": "..." }`,
+
+  'evidence-explanation': (ageBand, ctx) =>
+    `Explain why AI ${ctx?.canDo ? 'CAN' : 'CANNOT'} "${ctx?.capability || 'do this task'}". ` +
+    `Provide 3 evidence points and a conclusion. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "conclusion": "...", "evidence": ["...", "...", "..."], "nuance": "..." }`,
 };
 
 // ================================================================
@@ -178,7 +380,7 @@ export function hashContext(context?: Record<string, unknown>): string {
 const RATE_STATE: Record<string, { count: number; lastRequest: number }> = {};
 
 export const RATE_LIMITS = {
-  maxPerGamePerSession: 5,
+  maxPerGamePerSession: 15, // Increased from 5 for FL-Lite multi-round games
   cooldownMs: 30000, // 30 seconds
 };
 
