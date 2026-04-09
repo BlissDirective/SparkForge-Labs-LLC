@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -124,18 +124,21 @@ export function DataDetectiveGame() {
   const [caseIdx, setCaseIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [_investigating, setInvestigating] = useState(false);
+  const investigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const currentCase = CASES[caseIdx];
   const maxBar = useMemo(() => Math.max(...currentCase.data.map(d => d.value)), [currentCase.data]);
 
+  // Cleanup investigate timer on unmount (FLL-001 fix)
+  useEffect(() => () => {
+    if (investigateTimerRef.current) clearTimeout(investigateTimerRef.current);
+  }, []);
+
   const handleSelect = useCallback((idx: number) => {
     if (showResult) return;
     setSelected(idx);
-    setInvestigating(true);
 
-    setTimeout(() => {
-      setInvestigating(false);
+    investigateTimerRef.current = setTimeout(() => {
       setShowResult(true);
 
       if (idx === currentCase.correctIndex) {

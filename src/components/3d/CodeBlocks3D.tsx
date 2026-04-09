@@ -300,7 +300,7 @@ function Scene({ blocks, runIdx, tracerY, running }: CodeBlocks3DProps) {
       snapParticlesRef.current.push(...sparks);
     }
     prevBlockCount.current = blocks.length;
-  }, [blocks.length, blocks]);
+  }, [blocks.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useFrame((state, delta) => {
     // ENH: Animate snap pop scales back to 1.0

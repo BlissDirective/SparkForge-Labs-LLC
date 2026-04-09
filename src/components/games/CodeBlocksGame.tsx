@@ -397,7 +397,7 @@ export function CodeBlocksGame() {
         await new Promise((r) => setTimeout(r, 450));
       }
       setRobotPose('correct');
-      const starCount = !showHint && attempts === 0 ? 3 : !showHint ? 2 : 1;
+      const starCount = !showHint && attempts === 1 ? 3 : !showHint ? 2 : 1;
       setStars((prev) => [...prev, starCount]);
       game.updateScore(starCount * 10);
     } else {

@@ -245,8 +245,9 @@ function computeMetrics(nodes: BotNode[]) {
     const node = nodes.find((n) => n.id === id);
     if (!node || v.has(id)) return 0;
     v.add(id);
-    if (node.responses.length === 0) return 1;
-    return 1 + Math.max(...node.responses.filter((r) => r.nextId).map((r) => depth(r.nextId!, new Set(v))));
+    const linked = node.responses.filter((r) => r.nextId);
+    if (linked.length === 0) return 1;
+    return 1 + Math.max(...linked.map((r) => depth(r.nextId!, new Set(v))));
   }
   return { nodeCount: nodes.length, edges, terminals, maxBranch, maxDepth: depth("root", new Set()) };
 }

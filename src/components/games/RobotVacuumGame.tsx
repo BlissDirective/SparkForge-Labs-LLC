@@ -293,6 +293,16 @@ export function RobotVacuumGame() {
           else if (rule.action === 'Turn around') dir = (dir + 2) % 4;
           else if (rule.action === 'Clean' && onDirt)
             cl.add(`${pos[0]},${pos[1]}`);
+          else if (rule.action === 'Go to charger') {
+            // Move one step toward charger (FLL-005 fix)
+            const dr = Math.sign(room.charger[0] - pos[0]);
+            const dc = Math.sign(room.charger[1] - pos[1]);
+            const nextR = pos[0] + dr;
+            const nextC = pos[1] + dc;
+            if (nextR >= 0 && nextR < GRID && nextC >= 0 && nextC < GRID && !isWall(nextR, nextC)) {
+              pos = [nextR, nextC];
+            }
+          }
           acted = true;
           break;
         }
