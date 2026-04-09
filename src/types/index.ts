@@ -1,6 +1,9 @@
 export type AgeBand = 'A' | 'B' | 'C';
 export type SubscriptionTier = 'free' | 'plus' | 'forge';
-export type ContentType = 'lesson' | 'quiz' | 'game' | 'spark_fact' | 'activity' | 'sandbox' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson';
+export type ContentType = 'lesson' | 'quiz' | 'game' | 'spark_fact' | 'activity' | 'sandbox' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson'
+  | 'flagship_pet_category' | 'flagship_sort_criterion' | 'flagship_neural_challenge' | 'flagship_agent_mission' | 'flagship_bias_case'
+  | 'fll_data_detective' | 'fll_robot_vacuum' | 'fll_camera_quest' | 'fll_chatbot_builder' | 'fll_emoji_decoder'
+  | 'fll_code_blocks' | 'fll_my_first_ai_app' | 'fll_future_forge' | 'fll_ai_or_not';
 export type ContentStatus = 'published' | 'pending_review' | 'needs_human_review' | 'rejected' | 'draft';
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 export type BadgeCategory = 'progress' | 'streak' | 'lab' | 'game_master' | 'knowledge' | 'explorer' | 'creator' | 'secret' | 'prestige';
@@ -467,6 +470,11 @@ export const GAME_LIMITS: Record<SubscriptionTier, number> = { free: 3, plus: 99
 export const CONTENT_TYPE_ICONS: Record<ContentType, string> = {
   lesson: '📚', quiz: '❓', game: '🎮', spark_fact: '⚡', activity: '🎯', sandbox: '🏖️',
   game_scenario: '🎲', game_challenge: '🏆', trending_topic: '📡', branching_lesson: '🌳',
+  flagship_pet_category: '🐾', flagship_sort_criterion: '📊', flagship_neural_challenge: '🧠',
+  flagship_agent_mission: '🤖', flagship_bias_case: '⚖️',
+  fll_data_detective: '🔍', fll_robot_vacuum: '🧹', fll_camera_quest: '📷',
+  fll_chatbot_builder: '💬', fll_emoji_decoder: '😀', fll_code_blocks: '🧩',
+  fll_my_first_ai_app: '📱', fll_future_forge: '🔮', fll_ai_or_not: '🤔',
 };
 
 export const RARITY_COLORS: Record<BadgeRarity, string> = {

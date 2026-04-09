@@ -1,7 +1,8 @@
-// POST /api/ai/generate-content — AI content generation for flagship games
+// POST /api/ai/generate-content — AI content generation for flagship + FL-Lite games
 // Phase E: Server-side Claude API calls for dynamic game content.
 // Phase E+: Integrated with admin content_queue for review/approval pipeline.
-// See: flagship-game-content-audit(04.06.2026).md Section 6
+// Phase F+: Extended for 9 FL-Lite games (27 content types, 9 world mappings).
+// See: flagship-game-content-audit(04.06.2026).md, flagship-lite-game-content-audit(04.08.2026).md
 import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 import { apiSuccess, apiError, parseBody, requireAuth, applyRateLimit } from '@/lib/api-helpers';
@@ -23,8 +24,9 @@ const ExtendedRequestSchema = AIContentRequestSchema.extend({
   saveToQueue: z.boolean().optional().default(false),
 });
 
-// Map flagship contentType → pipeline content type for content_queue
-const FLAGSHIP_TYPE_MAP: Record<string, string> = {
+// Map contentType → pipeline content type for content_queue
+const CONTENT_TYPE_MAP: Record<string, string> = {
+  // Flagship games
   'pet-training-category': 'flagship_pet_category',
   'pet-novel-category': 'flagship_pet_category',
   'sort-criterion': 'flagship_sort_criterion',
@@ -35,16 +37,55 @@ const FLAGSHIP_TYPE_MAP: Record<string, string> = {
   'agent-themed-pack': 'flagship_agent_mission',
   'bias-case': 'flagship_bias_case',
   'bias-stakeholder-interview': 'flagship_bias_case',
+  // FL-Lite games
+  'dataset-scenario': 'fll_data_detective',
+  'anomaly-explanation': 'fll_data_detective',
+  'data-concept-card': 'fll_data_detective',
+  'room-layout': 'fll_robot_vacuum',
+  'rule-challenge': 'fll_robot_vacuum',
+  'vacuum-learn-card': 'fll_robot_vacuum',
+  'hunt-item': 'fll_camera_quest',
+  'cv-concept-explanation': 'fll_camera_quest',
+  'hunt-theme': 'fll_camera_quest',
+  'conversation-template': 'fll_chatbot_builder',
+  'personality-script': 'fll_chatbot_builder',
+  'chatbot-challenge': 'fll_chatbot_builder',
+  'emoji-puzzle': 'fll_emoji_decoder',
+  'nlp-fun-fact': 'fll_emoji_decoder',
+  'emoji-cultural-variant': 'fll_emoji_decoder',
+  'programming-challenge': 'fll_code_blocks',
+  'code-hint': 'fll_code_blocks',
+  'code-solution-feedback': 'fll_code_blocks',
+  'app-category': 'fll_my_first_ai_app',
+  'app-power-description': 'fll_my_first_ai_app',
+  'app-idea': 'fll_my_first_ai_app',
+  'world-scenario': 'fll_future_forge',
+  'capability-mapping': 'fll_future_forge',
+  'impact-narrative': 'fll_future_forge',
+  'capability-scenario': 'fll_ai_or_not',
+  'timeline-assessment': 'fll_ai_or_not',
+  'evidence-explanation': 'fll_ai_or_not',
 };
 
 // Map gameId → world number for content_queue
 const GAME_WORLD_MAP: Record<string, number> = {
+  // Flagship games
   'pet-trainer': 2,
   'sort-toy-box': 2,
   'neural-builder': 3,
   'prompt-lab': 4,
   'agent-architect': 5,
   'bias-detective': 6,
+  // FL-Lite games
+  'data-detective': 2,
+  'robot-vacuum': 5,
+  'camera-quest': 7,
+  'chatbot-builder': 8,
+  'emoji-decoder': 8,
+  'code-blocks': 9,
+  'my-first-ai-app': 9,
+  'future-forge': 10,
+  'ai-or-not': 10,
 };
 
 export async function POST(req: NextRequest) {
@@ -118,7 +159,7 @@ export async function POST(req: NextRequest) {
     if (saveToQueue) {
       try {
         const supabase = await createServerSupabase();
-        const pipelineType = FLAGSHIP_TYPE_MAP[contentType] || 'game_scenario';
+        const pipelineType = CONTENT_TYPE_MAP[contentType] || 'game_scenario';
         const world = GAME_WORLD_MAP[gameId] || 1;
         const title = typeof sanitized === 'object' && sanitized !== null && 'title' in sanitized
           ? String((sanitized as Record<string, unknown>).title)
