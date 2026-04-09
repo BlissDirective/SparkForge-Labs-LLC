@@ -16,6 +16,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Wrench } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const ToolPickerEnvironment = dynamic(
@@ -82,6 +84,7 @@ export function ToolPickerGame() {
   const [timer, setTimer] = useState(6);
   const [streak, setStreak] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; why: string } | null>(null);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const tasks = useMemo(
@@ -185,6 +188,10 @@ export function ToolPickerGame() {
 
                 {phase === 'play' && task && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-md space-y-2">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={tasks.length} labColor="#00FF88" />
+                    </div>
                     {/* Timer + Streak */}
                     <div className="flex items-center justify-center gap-4 mb-4">
                       <motion.div className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm ${timer <= 2 ? 'bg-red-500/20 text-orange-400' : 'bg-green-400/10 text-green-400'}`}

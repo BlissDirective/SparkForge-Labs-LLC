@@ -28,6 +28,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Eye, Search, Zap } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const PixelInvestigatorEnvironment = dynamic(
@@ -95,6 +97,7 @@ export function PixelInvestigatorGame() {
   const [showHint, setShowHint] = useState(false);
   const [streak, setStreak] = useState(0);
   const [, setTotalEarned] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   // Filter by age band: A gets easy+medium, B gets all, C gets all
   const rounds = useMemo(() => {
@@ -194,6 +197,10 @@ export function PixelInvestigatorGame() {
                 {phase === 'play' && round && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col items-center justify-center">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={ri + 1} total={rounds.length} labColor="#FF66AA" />
+                    </div>
                     {/* Header */}
                     <div className="flex items-center gap-2 mb-2 w-full max-w-md">
                       <span className="px-2 py-0.5 rounded bg-pink-500/10 font-body text-2xs text-pink-400">{round.category}</span>

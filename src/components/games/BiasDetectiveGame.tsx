@@ -32,6 +32,8 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { useAIContent } from '@/hooks/useAIContent';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D scales (no SSR)
 import dynamic from 'next/dynamic';
@@ -664,6 +666,7 @@ export function BiasDetectiveGame() {
   const [learnIdx, setLearnIdx] = useState(0);
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
   const [completedCases, setCompletedCases] = useState<string[]>([]);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [collectedEvidence, setCollectedEvidence] = useState<string[]>([]);
   const [testResults, setTestResults] = useState<TestInput[]>([]);
   const [customInput, setCustomInput] = useState('');
@@ -1126,6 +1129,11 @@ export function BiasDetectiveGame() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
                     className="space-y-4">
+
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={completedCases.length} total={availableCases.length} labColor="#FF6644" />
+                    </div>
 
                     <div className="text-center">
                       <FileText className="w-6 h-6 text-red-400

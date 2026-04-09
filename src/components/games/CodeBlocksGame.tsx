@@ -28,6 +28,8 @@ import {
   Star, ChevronRight, Terminal,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // Lazy-load 3D visualization (desktop only)
 const CodeBlocks3D = dynamic(
@@ -61,6 +63,7 @@ interface Challenge {
   pseudocode: string;
   hint: string;
   band: 'A' | 'B' | 'C';
+  isAI?: boolean;
 }
 
 // --- Constants ---
@@ -589,8 +592,7 @@ export function CodeBlocksGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('code-blocks', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('code-blocks', ageBand);
   const _isDesktop = useIsDesktop();
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -607,12 +609,19 @@ export function CodeBlocksGame() {
   const [attempts, setAttempts] = useState(0);
   const [stars, setStars] = useState<number[]>([]);
   const [learnIdx, setLearnIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const terminalRef = useRef<HTMLDivElement>(null);
 
-  const challenges = useMemo(
-    () => ALL_CHALLENGES.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  // Merge hardcoded + dynamic challenges, filter by age band
+  const challenges = useMemo(() => {
+    const pool = [...ALL_CHALLENGES];
+    if (dynamicContent?.scenarios?.length) {
+      for (const s of dynamicContent.scenarios) {
+        try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as Challenge); } catch { /* skip */ }
+      }
+    }
+    return pool.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]);
+  }, [ageBand, dynamicContent?.scenarios]);
   const challenge = challenges[challengeIdx];
 
   const particles = useMemo(
@@ -798,6 +807,10 @@ export function CodeBlocksGame() {
                 {phase === 'play' && challenge && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={challengeIdx + 1} total={challenges.length} labColor="#F97316" />
+                    </div>
                     {/* Header */}
                     <div className="flex items-center justify-between mb-3">
                       <div>

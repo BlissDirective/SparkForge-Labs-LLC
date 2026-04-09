@@ -22,6 +22,8 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { Swords, User, Bot } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 import { useSceneStore } from '@/stores/sceneStore';
 
 // 3D Environment (no SSR)
@@ -169,6 +171,7 @@ export function HumanVsMachineGame() {
   const [submitted, setSubmitted] = useState(false);
   const [aiRevealed, setAiRevealed] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   // ENH: Track scores for comparison bars and advantage indicator
   const [humanTotal, setHumanTotal] = useState(0);
   const [machineTotal, setMachineTotal] = useState(0);
@@ -325,6 +328,10 @@ export function HumanVsMachineGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-lg space-y-4"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={challenges.length} labColor="#00BBFF" />
+                    </div>
                     {/* ENH: Animated score comparison bars (human vs machine) */}
                     <div className="flex items-center gap-3 mb-3 max-w-xs mx-auto">
                       <div className="flex-1">

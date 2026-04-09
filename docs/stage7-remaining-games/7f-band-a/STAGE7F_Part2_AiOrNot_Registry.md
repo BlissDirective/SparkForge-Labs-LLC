@@ -6,6 +6,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: B-4/B-6 (CRITICAL: game.addScore->updateScore x2), B-5 (CRITICAL: game.nextRound->advanceRound), F-2 (HIGH: no complete phase rendered — blank screen after game end), E-2 (complete phase UI added), E-8 (confidence slider emoji feedback added)
+- Content expansion: AI or Not scenarios expanded, confidence calibration deepened, prediction bonus round enhanced with richer feedback
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## GAME 3: AI OR NOT?
 
 **File:** `src/components/games/AiOrNotGame.tsx`

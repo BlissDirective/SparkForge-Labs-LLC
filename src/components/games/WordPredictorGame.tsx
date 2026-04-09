@@ -17,6 +17,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Brain, Zap } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ENH: Animated score counter hook
 function useAnimatedCounter(target: number, duration = 600) {
@@ -203,6 +205,7 @@ export function WordPredictorGame() {
   const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [isPredicting, setIsPredicting] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const rounds = useMemo(
     () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
@@ -350,6 +353,10 @@ export function WordPredictorGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-md mx-auto space-y-4"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={rounds.length} labColor="#FFAA44" />
+                    </div>
                     {/* ENH: Streak flame that grows with consecutive correct guesses */}
                     {streak >= 2 && (
                       <motion.div

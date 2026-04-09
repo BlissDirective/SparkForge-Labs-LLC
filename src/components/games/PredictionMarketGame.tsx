@@ -18,6 +18,8 @@ import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { TrendingUp, MessageSquare } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const PredictionMarketEnvironment = dynamic(
@@ -99,6 +101,7 @@ export function PredictionMarketGame() {
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [predIdx, setPredIdx] = useState(0);
   const [voted, setVoted] = useState(false);
   const [myVote, setMyVote] = useState<string | null>(null);
@@ -192,6 +195,10 @@ export function PredictionMarketGame() {
                 {phase === 'play' && pred && (
                   <motion.div key={predIdx} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }}
                     exit={{ opacity: 0, x: -50 }} className="max-w-md w-full text-center">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={predIdx + 1} total={predictions.length} labColor="#D946EF" />
+                    </div>
                     {/* Time horizon badge */}
                     <span className="px-2 py-0.5 rounded bg-fuchsia-500/10 font-mono text-2xs text-fuchsia-400 mb-2 inline-block" aria-label={`Prediction horizon: by ${pred.horizon}`}>by {pred.horizon}</span>
                     <span className="text-4xl block mb-3">{pred.emoji}</span>

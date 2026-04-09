@@ -15,6 +15,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Search, AlertTriangle, CheckCircle } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 import dynamic from 'next/dynamic';
 
 // 3D scene content — rendered inside CockpitCanvas via sceneStore (D3D-B3)
@@ -36,6 +38,7 @@ interface DataCase {
   correctIndex: number;
   explanation: string;
   explanationKids: string;
+  isAI?: boolean;
 }
 
 const CASES: DataCase[] = [
@@ -451,10 +454,10 @@ export function DataDetectiveGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('data-detective', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('data-detective', ageBand);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const investigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -466,7 +469,15 @@ export function DataDetectiveGame() {
     if (ageBand === 'B') return ['easy', 'medium'];
     return ['easy', 'medium', 'hard', 'expert'];
   }, [ageBand]);
-  const cases = useMemo(() => CASES.filter(c => allowedDifficulties.includes(c.difficulty)), [allowedDifficulties]);
+  // Merge hardcoded + dynamic content from admin curation pipeline
+  const cases = useMemo(() => {
+    const hardcoded = CASES.filter(c => allowedDifficulties.includes(c.difficulty));
+    if (!dynamicContent?.scenarios?.length) return hardcoded;
+    const dynamic: DataCase[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as DataCase; } catch { return null; } })
+      .filter((c): c is DataCase => c !== null && allowedDifficulties.includes(c.difficulty));
+    return [...hardcoded, ...dynamic];
+  }, [allowedDifficulties, dynamicContent?.scenarios]);
 
   const currentCase = cases[caseIdx];
   const maxBar = useMemo(() => Math.max(...currentCase.data.map(d => d.value)), [currentCase.data]);
@@ -578,6 +589,10 @@ export function DataDetectiveGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-lg">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={caseIdx + 1} total={cases.length} labColor="#AA66FF" />
+                    </div>
                     {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* Case header */}

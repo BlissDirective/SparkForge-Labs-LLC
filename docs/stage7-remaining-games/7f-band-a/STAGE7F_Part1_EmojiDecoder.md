@@ -5,6 +5,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: B-1/B-3 (CRITICAL: game.addScore->updateScore x2), B-2 (CRITICAL: game.nextRound->advanceRound), B-10 (LOW: timer ref not cleaned up on unmount), F-1 (HIGH: no complete phase rendered — blank screen after game end), E-6 (streak visual multiplier missing animated COMBO text)
+- Content expansion: Emoji Decoder puzzles expanded, AI vs Human interpretation comparisons deepened, Emoji Lab bonus round enhanced
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## GAME 1: EMOJI DECODER
 
 **File:** `src/components/games/EmojiDecoderGame.tsx`

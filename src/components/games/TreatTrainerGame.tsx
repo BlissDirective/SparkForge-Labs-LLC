@@ -16,6 +16,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Play, Dog } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const TreatTrainerEnvironment = dynamic(
@@ -46,6 +48,7 @@ export function TreatTrainerGame() {
   useEffect(() => { game.startGame("treat-trainer", TOTAL_EPISODES); }, []);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [rewards, setRewards] = useState({ toward: 3, away: -2, wall: -5, goal: 10 });
   const [episode, setEpisode] = useState(0);
   const [path, setPath] = useState<[number, number][]>([]);
@@ -158,6 +161,10 @@ export function TreatTrainerGame() {
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={episode} total={TOTAL_EPISODES} labColor="#AA66FF" />
+                    </div>
                     <p className="font-body text-xs text-white/40 text-center mb-2">
                       {ageBand === 'C' ? `Episode ${episode + 1}/10 — Tune the reward function and observe convergence.`
                         : `Episode ${episode + 1}/10 — Adjust rewards and run!`}

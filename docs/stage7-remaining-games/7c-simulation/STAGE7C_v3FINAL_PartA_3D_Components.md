@@ -9,6 +9,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: BUG-M1 (per-frame vector allocation GC pressure), BUG-M3 (GPU memory leak on geometry unmount), BUG-M4 (dead particles not moved offscreen), BUG-10F (font stack corrected)
+- Content expansion: ChatbotNodes3D node cap raised, DataDetective3D evidence card depth enhanced, Canvas3DErrorBoundary added for graceful R3F failures
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## DECISIONS IMPLEMENTED IN THIS DOCUMENT
 
 - [x] Decision 6.5 — Tier 2 Enhanced 3D for Chatbot Builder: 3D conversation tree nodes with glowing connections

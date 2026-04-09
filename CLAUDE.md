@@ -785,6 +785,41 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 | BUG-ST3 | AI reveal is instant with no animation or step-by-step explanation | **RESOLVED (April 7, 2026)** — 3-phase animated reveal: feature extraction (2s) → distance calculation (2s) → cluster formation (3s). | Audit Phase C |
 | BUG-ST4 | Stale shapes on replay — `useMemo` with empty deps prevents regeneration | **RESOLVED (April 7, 2026)** — `replayCount` state added to force shape regeneration on replay. | Audit Phase C |
 
+### FL-Lite Game Content Audit Fixes (April 8-9, 2026)
+
+| ID | Issue | Fix | Stage |
+|----|-------|-----|-------|
+| FLL-001 | Data Detective: setTimeout without cleanup — memory leak on unmount | **RESOLVED (April 9, 2026)** — Wrapped in useRef, cleared in useEffect cleanup. | Audit Phase 1a |
+| FLL-005 | Robot Vacuum: "Go to charger" action exists but no simulation handler | **RESOLVED (April 9, 2026)** — Added pathfinding handler in runSim. | Audit Phase 1a |
+| FLL-018 | Chatbot Builder: Math.max on empty array returns -Infinity in depth calc | **RESOLVED (April 9, 2026)** — Added `\|\| 0` fallback for empty responses. | Audit Phase 1a |
+| FLL-028 | Code Blocks: Star calc off-by-one — perfect run never gets 3 stars | **RESOLVED (April 9, 2026)** — Changed `attempts === 0` to `attempts === 1`. | Audit Phase 1a |
+| FLL-029 | Code Blocks: useEffect missing cleanup, over-triggering on blocks array | **RESOLVED (April 9, 2026)** — Depend only on `blocks.length`, added cleanup return. | Audit Phase 1a |
+| FLL-002 | Data Detective: Score 20pts/correct vs GameShell maxScore=50 | **RESOLVED (April 9, 2026)** — Aligned scoring to 10pts/correct. | Audit Phase 1b |
+| FLL-006 | Robot Vacuum: Same points regardless of steps used | **RESOLVED (April 9, 2026)** — Added efficiency multiplier. | Audit Phase 1b |
+| FLL-007 | Robot Vacuum: Keyboard navigation missing (WCAG) | **RESOLVED (April 9, 2026)** — Added tabIndex + keyboard handlers. | Audit Phase 1b |
+| FLL-008 | Robot Vacuum: Color contrast failures (WCAG) | **RESOLVED (April 9, 2026)** — Increased text opacity. | Audit Phase 1b |
+| FLL-011 | Camera Quest: Null check missing in capture() | **RESOLVED (April 9, 2026)** — Added streamRef guard. | Audit Phase 1b |
+| FLL-012 | Camera Quest: Age Band A filter shows abstract items to 7-9 year olds | **RESOLVED (April 9, 2026)** — Filter `difficulty <= 1` for Band A. | Audit Phase 1b |
+| FLL-013 | Camera Quest: Simulated confidence labeled "AI Confidence" | **RESOLVED (April 9, 2026)** — Renamed to "Expected AI Confidence". | Audit Phase 1b |
+| FLL-023 | Emoji Decoder: startGame hardcodes 25 rounds vs actual 8-10 | **RESOLVED (April 9, 2026)** — Uses totalRounds variable. | Audit Phase 1b |
+| FLL-033 | My First AI App: Particle respawning memory leak in OrbDataStream | **RESOLVED (April 9, 2026)** — Debounce + ref-based pool. | Audit Phase 1b |
+| FLL-034 | My First AI App: Continuous state update in useFrame | **RESOLVED (April 9, 2026)** — Guard: `if (launchOffset !== 0)`. | Audit Phase 1b |
+| FLL-038 | Future Forge: 3D re-renders on every capability selection | **RESOLVED (April 9, 2026)** — Separated 3D update effect from selection effect. | Audit Phase 1b |
+| FLL-043 | AI or Not: Verdict particle calc misaligned | **RESOLVED (April 9, 2026)** — Fixed multiplier ratio. | Audit Phase 1b |
+| FLL-003 | Data Detective: Double-click race on completion | **RESOLVED (April 9, 2026)** — Added transitioning guard flag. | Audit Phase 1c |
+| FLL-014 | Camera Quest: Video srcObject not nullified on unmount | **RESOLVED (April 9, 2026)** — Added cleanup. | Audit Phase 1c |
+| FLL-035 | My First AI App: Missing aria-pressed on power toggles | **RESOLVED (April 9, 2026)** — Added `aria-pressed={isSelected}`. | Audit Phase 1c |
+| FLL-040 | Future Forge: No 3D cleanup between rounds | **RESOLVED (April 9, 2026)** — Added cleanup return in useEffect. | Audit Phase 1c |
+| FLL-044 | AI or Not: Missing useEffect cleanup for scene content | **RESOLVED (April 9, 2026)** — Added cleanup. | Audit Phase 1c |
+
+### FL-Lite Content & AI Integration (April 9, 2026)
+
+- **Content expansion:** 9 games expanded from ~163 to ~500+ items (~3x avg). Difficulty tiers + age-band filtering added to all games.
+- **AI prompt templates:** 27 new content types in `ai-content-generator.ts` (3 per FL-Lite game). Rate limit 5→15.
+- **Admin curation pipeline:** Extended for FL-Lite — `CONTENT_TYPE_MAP`, `GAME_WORLD_MAP`, `AdminContentClient` filter/icons, SQL migration.
+- **useGameContent() integration:** All 9 games now consume dynamic content from admin curation pipeline, blending with hardcoded content.
+- **UI components:** `DifficultySelector.tsx`, `GameProgressTracker.tsx`, `AIContentBadge.tsx` created in `src/components/games/`.
+
 ### Game Code Agent — COMPLETED
 
 The AI Spy game (Lab 1, Game #1) has been implemented via autonomous agent on March 14, 2026. The game is now fully functional at `src/components/games/AiSpyGame.tsx` with all required features (chrome bezel, age bands A/B/C, welcome→play→reveal→complete phases, 12+ scenes, ARIA labels). No remaining games have missing implementations — all 35 games are code-complete.

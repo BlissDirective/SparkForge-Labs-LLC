@@ -16,6 +16,8 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { Shield, Eye, Lock, AlertTriangle } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const DataShieldEnvironment = dynamic(
@@ -109,6 +111,7 @@ export function DataShieldGame() {
   const [pointIdx, setPointIdx] = useState(0);
   const [privacyScore, setPrivacyScore] = useState(100);
   const [feedback, setFeedback] = useState<{ correct: boolean; reason: string } | null>(null);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const scenario = SCENARIOS[scenarioIdx];
   const point = scenario?.dataPoints[pointIdx];
@@ -189,6 +192,10 @@ export function DataShieldGame() {
 
                 {phase === 'play' && scenario && point && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-md space-y-2">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={scenarioIdx + 1} total={SCENARIOS.length} labColor="#FF6644" />
+                    </div>
                     {/* Privacy meter */}
                     <div className="mb-4">
                       <div className="flex justify-between mb-1">

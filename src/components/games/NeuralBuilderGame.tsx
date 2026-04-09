@@ -37,6 +37,8 @@ import {
 } from 'lucide-react';
 import { useAIContent } from '@/hooks/useAIContent';
 import { ResponsiveLine } from '@nivo/line';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // === [v3] Dynamic import for 3D network (no SSR) ===
 const NeuralNetwork3D = dynamic(
@@ -504,6 +506,7 @@ export function NeuralBuilderGame() {
 
   // --- Heartbeat (V2 Enhancement) ---
   const [heartbeatPhase, setHeartbeatPhase] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -1135,6 +1138,10 @@ export function NeuralBuilderGame() {
                 exit={{ opacity: 0, y: -20 }}
                 className="space-y-4"
               >
+                <div className="flex items-center gap-3 mb-3 px-4">
+                  <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                  <GameProgressTracker current={trainEpoch} total={20} labColor="#FF66AA" />
+                </div>
                 {/* Challenge selector */}
                 <div className="flex gap-2 justify-center flex-wrap">
                   {CHALLENGES.map((ch) => (

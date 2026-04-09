@@ -32,6 +32,8 @@ import {
   Play, BookOpen, Sparkles, Zap, ArrowRight,
   Brain, Lightbulb, Award, Send
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ──── Types ────
 type Phase = 'welcome' | 'learn' | 'play' | 'lab' | 'complete';
@@ -48,6 +50,7 @@ interface EmojiRound {
   difficulty: Difficulty;
   category: string;
   bandMin: 'A' | 'B';
+  isAI?: boolean;
 }
 
 interface ConceptCard {
@@ -278,8 +281,7 @@ export function EmojiDecoderGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('emoji-decoder', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('emoji-decoder', ageBand);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -294,15 +296,23 @@ export function EmojiDecoderGame() {
   const [labSubmitted, setLabSubmitted] = useState(false);
   const [labPromptIdx] = useState(() => Math.floor(Math.random() * LAB_PROMPTS.length));
   const [emojiPulse, setEmojiPulse] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // B-10: Clean up timer on unmount to prevent firing on unmounted component
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
+  // Merge hardcoded + dynamic rounds, then filter/shuffle/slice
   const rounds = useMemo(() => {
-    const filtered = ALL_ROUNDS.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
+    const pool = [...ALL_ROUNDS];
+    if (dynamicContent?.scenarios?.length) {
+      for (const s of dynamicContent.scenarios) {
+        try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as EmojiRound); } catch { /* skip */ }
+      }
+    }
+    const filtered = pool.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
     return [...filtered].sort(() => Math.random() - 0.5).slice(0, ageBand === 'A' ? 8 : 10);
-  }, [ageBand]);
+  }, [ageBand, dynamicContent?.scenarios]);
 
   const round = rounds[roundIdx];
   const totalRounds = rounds.length;
@@ -443,7 +453,7 @@ export function EmojiDecoderGame() {
                     i === learnIdx ? 'bg-indigo-400 scale-125' : i < learnIdx ? 'bg-indigo-400/40' : 'bg-white/20'}`} />
                 ))}
               </div>
-              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else { setPhase('play'); game.startGame('emoji-decoder', totalRounds); } // FLL-023: use actual round count }}
+              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else { setPhase('play'); game.startGame('emoji-decoder', totalRounds); /* FLL-023: use actual round count */ } }}
                 className="mt-6 flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600/70 text-white font-display text-sm font-bold"
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 {learnIdx < CONCEPT_CARDS.length - 1 ? <><ArrowRight className="w-4 h-4" /> Next</> : <><Play className="w-4 h-4" /> Start!</>}
@@ -455,6 +465,10 @@ export function EmojiDecoderGame() {
           {phase === 'play' && round && (
             <motion.div key="play" className="flex-1 flex flex-col p-4 overflow-y-auto"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-center gap-3 mb-3 px-4">
+                <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                <GameProgressTracker current={roundIdx + 1} total={totalRounds} labColor="#818CF8" />
+              </div>
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
                 <span className="font-mono text-xs text-indigo-400/60">ROUND {roundIdx + 1} / {totalRounds}</span>

@@ -26,6 +26,8 @@ import {
   Camera, Check, X, Eye, Lock, Star,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
 const CameraQuest3D = dynamic(
@@ -50,6 +52,7 @@ interface HuntItem {
   hintA: string;
   hintC: string;
   simConfidence: number;
+  isAI?: boolean;
 }
 
 const HUNT_ITEMS: HuntItem[] = [
@@ -220,10 +223,10 @@ export function CameraQuestGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('camera-quest', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('camera-quest', ageBand);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [learnIdx, setLearnIdx] = useState(0);
   const [ci, setCi] = useState(0);
   const [cameraActive, setCameraActive] = useState(false);
@@ -234,11 +237,16 @@ export function CameraQuestGame() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Filter items by age band
+  // Filter items by age band — merge dynamic content
   const items = useMemo(() => {
-    if (ageBand === 'A') return HUNT_ITEMS.filter((i) => i.difficulty <= 1); // FLL-012: Band A sees colors+shapes only, no abstract
-    return HUNT_ITEMS;
-  }, [ageBand]);
+    const maxDiff = ageBand === 'A' ? 1 : 3; // FLL-012: Band A sees colors+shapes only
+    const hardcoded = HUNT_ITEMS.filter((i) => i.difficulty <= maxDiff);
+    if (!dynamicContent?.scenarios?.length) return hardcoded;
+    const dynamic: HuntItem[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as HuntItem; } catch { return null; } })
+      .filter((i): i is HuntItem => i !== null && i.difficulty <= maxDiff);
+    return [...hardcoded, ...dynamic];
+  }, [ageBand, dynamicContent?.scenarios]);
 
   const item = items[ci];
 
@@ -474,6 +482,10 @@ export function CameraQuestGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col items-center justify-center"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={ci + 1} total={items.length} labColor="#06B6D4" />
+                    </div>
                     {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
                     {/* Collection progress */}

@@ -142,6 +142,25 @@ function TypeIcon({ type }: { type: string }) {
       return <Gamepad2 className="w-4 h-4 text-emerald-400" />;
     case 'flagship_bias_case':
       return <Shield className="w-4 h-4 text-red-400" />;
+    // FL-Lite game AI content types (Phase F+ integration)
+    case 'fll_data_detective':
+      return <Search className="w-4 h-4 text-purple-300" />;
+    case 'fll_robot_vacuum':
+      return <Gamepad2 className="w-4 h-4 text-green-300" />;
+    case 'fll_camera_quest':
+      return <Eye className="w-4 h-4 text-cyan-300" />;
+    case 'fll_chatbot_builder':
+      return <Mail className="w-4 h-4 text-indigo-300" />;
+    case 'fll_emoji_decoder':
+      return <Sparkles className="w-4 h-4 text-indigo-300" />;
+    case 'fll_code_blocks':
+      return <FileText className="w-4 h-4 text-orange-300" />;
+    case 'fll_my_first_ai_app':
+      return <Zap className="w-4 h-4 text-orange-300" />;
+    case 'fll_future_forge':
+      return <TrendingUp className="w-4 h-4 text-fuchsia-300" />;
+    case 'fll_ai_or_not':
+      return <HelpCircle className="w-4 h-4 text-fuchsia-300" />;
     default:
       return <FileText className="w-4 h-4 text-white/40" />;
   }
@@ -628,6 +647,15 @@ export default function AdminReviewPage() {
               <option value="flagship_neural_challenge">Flagship: Neural Challenges</option>
               <option value="flagship_agent_mission">Flagship: Agent Missions</option>
               <option value="flagship_bias_case">Flagship: Bias Cases</option>
+              <option value="fll_data_detective">FL-Lite: Data Detective</option>
+              <option value="fll_robot_vacuum">FL-Lite: Robot Vacuum</option>
+              <option value="fll_camera_quest">FL-Lite: Camera Quest</option>
+              <option value="fll_chatbot_builder">FL-Lite: Chatbot Builder</option>
+              <option value="fll_emoji_decoder">FL-Lite: Emoji Decoder</option>
+              <option value="fll_code_blocks">FL-Lite: Code Blocks</option>
+              <option value="fll_my_first_ai_app">FL-Lite: My First AI App</option>
+              <option value="fll_future_forge">FL-Lite: Future Forge</option>
+              <option value="fll_ai_or_not">FL-Lite: AI or Not?</option>
             </select>
 
             {/* Manual create button */}

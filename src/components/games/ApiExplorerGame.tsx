@@ -37,6 +37,8 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const ApiExplorerEnvironment = dynamic(
@@ -345,6 +347,7 @@ export function ApiExplorerGame() {
   const [typewriterDone, setTypewriterDone] = useState(false);
   // ENH: Track request animation state
   const [requestSent, setRequestSent] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
@@ -606,6 +609,10 @@ export function ApiExplorerGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col space-y-2"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={endpointsUsed.size} total={ENDPOINTS.length} labColor="#F97316" />
+                    </div>
                     {/* Endpoint tabs */}
                     <div className="flex gap-1 mb-2 overflow-x-auto pb-1">
                       {ENDPOINTS.map((ep, i) => (

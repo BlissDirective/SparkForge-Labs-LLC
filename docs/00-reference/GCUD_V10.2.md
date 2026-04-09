@@ -120,13 +120,13 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 | 26 | Sentiment Scanner | 8 | sentiment-scanner | Std | A,B,C | 7C | — |
 | 27 | Chatbot Builder | 8 | chatbot-builder | FL-L | B,C | 7C | Enh |
 | 28 | Lost in Translation | 8 | lost-in-translation | Std | A,B,C | 7C | — |
-| 29 | Emoji Decoder | 8 | emoji-decoder | Enh | A,B | 7F | — |
+| 29 | Emoji Decoder | 8 | emoji-decoder | FL-L | A,B | 7F | Enh |
 | 30 | Code Blocks | 9 | code-blocks | FL-L | A,B,C | 7B | Enh |
 | 31 | Career Explorer | 9 | career-explorer | Std | B,C | 7B | — |
 | 32 | API Explorer | 9 | api-explorer | Std | C | 7E | — |
 | 33 | My First AI App | 9 | my-first-ai-app | FL-L | A,B,C | 7F | Enh |
 | 34 | Future Forge | 10 | future-forge | FL-L | A,B,C | 7D | Enh |
-| 35 | AI or Not? | 10 | ai-or-not | Enh | A,B | 7F | — |
+| 35 | AI or Not? | 10 | ai-or-not | FL-L | A,B | 7F | Enh |
 
 **Tiers:** 6 Flagship Full 3D (20M) + 9 FL-Lite Immersive 3D (10M) + 20 Standard (5M) = **35 games**.
 
@@ -139,6 +139,26 @@ Triple-column tracking: v2 Docs = base copy-paste-ready. v3-FINAL = Lab Control 
 | Standard (Immersive 3D) | 20 | 5M (5,000,000) | AI Spy, Time Machine, Human vs Machine, Treat Trainer, Neuron Relay, Pixel Investigator, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Ethics Courtroom, Fool the AI, Build Classifier, Prediction Market, Sentiment Scanner, Lost in Translation, Career Explorer, API Explorer |
 
 > **Note:** All 35 games now have dedicated 3D environments with full R3F scenes. Standard tier upgraded to 5M budget (D3D-3 overhaul) with 20 individual environment files and StandardEnvironmentBase. FL-Lite upgraded to 10M budget. Flagship upgraded to 20M budget. The "CSS-only" and "Enhanced Standard" tiers have been eliminated.
+
+### FL-Lite Content Detail (Updated April 8-9, 2026 — Post-Audit)
+
+Content counts reflect 3x expansion from FL-Lite audit. All 9 FL-Lite games now use `useGameContent()` with AI-generated content pipeline.
+
+| Game | Content | Pre-Audit | Post-Audit | AI Integration |
+|------|---------|-----------|------------|----------------|
+| Data Detective | Cases | 5 | 25 | useGameContent() ACTIVE |
+| Robot Vacuum | Rooms | 4 | 20 | useGameContent() ACTIVE |
+| Camera Quest | Items | 10 | 40+ | useGameContent() ACTIVE |
+| Emoji Decoder | Rounds | 16 | 56 | useGameContent() ACTIVE |
+| Chatbot Builder | Templates / Challenges | 4 / 3 | 20 / 15 | useGameContent() ACTIVE |
+| Code Blocks | Challenges | 10 | 25 | useGameContent() ACTIVE |
+| My First AI App | Categories | 7 | 15 | useGameContent() ACTIVE |
+| Future Forge | Scenarios | 8 | 24 | useGameContent() ACTIVE |
+| AI or Not? | Scenarios | 12 | 36 | useGameContent() ACTIVE |
+
+**AI Content Infrastructure (all 9 FL-Lite games):** 27 prompt templates, admin curation pipeline ACTIVE, per-game AI integration complete via `useGameContent()` hook.
+
+> **FL-Lite Audit Summary (April 8-9, 2026):** 43 bugs found, 21 fixed (5 Critical + 11 High + 5 Medium). Content expanded ~3x across all 9 games. AI content generation pipeline integrated with 27 prompt templates and admin curation workflow. Remaining 22 issues (medium/low) tracked for future passes.
 
 ### Games Per Stage
 
@@ -236,6 +256,8 @@ All unchanged from V9 except CC10 (No 3D) now RESOLVED. 13 issues total, 10 reso
 | 2026-03-01 | V10.1 | **CORRECTION: Game count 31 → 35. Tier breakdown: 20 Standard (not 16). Stage 7A: 9 games (not 8). Stage 7 total: 30 games (not 26). GenericGameParticles serves 29 games (not 23). Added per-tier and per-stage breakdowns for verification.** |
 | 2026-03-18 | V10.1+ | **BUGFIX: FIX-DUAL-CANVAS v2** — `gameActive` state moved to Zustand `uiStore` (was broken local `useState` in `useStationMode`). GameShell now calls `setGameActive(true/false)` on mount/unmount. **LODWrapper** integrated into GameShell for all 35 games (auto-resolves tier from `gameRegistry`). **Mobile particle fallback** added to GameShell via `GenericGameParticles`. Files: `uiStore.ts`, `useStationMode.ts`, `GameShell.tsx`. Docs: `CLAUDE.md` bug registry, `STAGE 7 SHARED SYSTEMS.md` addendum. |
 
+| 2026-04-09 | V10.2+ | **FL-Lite Audit Update:** 9 FL-Lite game content counts updated to reflect 3x expansion (April 8-9, 2026 audit). AI integration status added — all 9 FL-Lite games: `useGameContent()` ACTIVE, 27 prompt templates, admin curation pipeline ACTIVE. Audit summary: 43 bugs found, 21 fixed (5C+11H+5M). Tier labels corrected for Emoji Decoder and AI or Not? (Enh → FL-L). |
+
 ### NEXT STEPS
 
 1. Continue Stage 8 build (Stages 1-7 code-complete)
@@ -259,4 +281,4 @@ All unchanged from V9 except CC10 (No 3D) now RESOLVED. 13 issues total, 10 reso
 
 ---
 
-*End of GCUD V10.2 | 92 files | 35 games (6+9+20) | 64 decisions | 14 v3-FINAL docs | March 19, 2026*
+*End of GCUD V10.2 | 92 files | 35 games (6+9+20) | 64 decisions | 14 v3-FINAL docs | March 19, 2026 | FL-Lite audit update April 9, 2026*

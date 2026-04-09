@@ -19,6 +19,8 @@ import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Rocket, Zap, Eye, MessageSquare, Cpu, Bot, Shield, Sparkles, CheckCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 const FutureForge3D = dynamic(
   () => import('@/components/3d/FutureForge3D'),
@@ -44,6 +46,7 @@ interface Scenario {
   bonusCapability?: string;
   impactText: string;
   impactTextSimple: string;
+  isAI?: boolean;
 }
 
 const CAPABILITIES: Capability[] = [
@@ -278,17 +281,25 @@ const SCENARIOS: Scenario[] = [
 export default function FutureForgeGame() {
   const game = useGameStore();
   const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
-  const { data: _dynamicContent } = useGameContent('future-forge', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('future-forge', ageBand);
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [round, setRound] = useState(1);
   const totalRounds = 8;
 
-  const scenario = useMemo(() => SCENARIOS[(round - 1) % SCENARIOS.length], [round]);
+  // Merge hardcoded + dynamic scenarios
+  const allScenarios = useMemo(() => {
+    if (!dynamicContent?.scenarios?.length) return SCENARIOS;
+    const dynamic: Scenario[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as Scenario; } catch { return null; } })
+      .filter((s): s is Scenario => s !== null);
+    return [...SCENARIOS, ...dynamic];
+  }, [dynamicContent?.scenarios]);
+  const scenario = useMemo(() => allScenarios[(round - 1) % allScenarios.length], [round, allScenarios]);
   const [selected, setSelected] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [roundScore, setRoundScore] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
   // Register 3D scene content — only update on round change or submission (FLL-038 fix)
   useEffect(() => {
@@ -432,6 +443,10 @@ export default function FutureForgeGame() {
         {phase === 'play' && (
           <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex flex-col gap-4 p-4 w-full max-w-4xl mx-auto">
+            <div className="flex items-center gap-3 mb-3 px-4">
+              <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+              <GameProgressTracker current={round} total={totalRounds} labColor="#D946EF" />
+            </div>
             {/* Header */}
             <div className="flex items-center justify-between">
               <span className="font-display text-sm text-white/60">Round {round}/{totalRounds}</span>

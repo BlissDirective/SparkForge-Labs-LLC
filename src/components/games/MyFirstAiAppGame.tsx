@@ -35,6 +35,8 @@ import {
   Play, BookOpen, Sparkles, Star, ArrowRight, ArrowLeft,
   Award, Rocket
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D component — SSR disabled, desktop only
 const MyFirstAiApp3D = dynamic(
@@ -51,6 +53,7 @@ interface AppCategory {
   id: string; title: string; emoji: string;
   description: string; descriptionB: string; descriptionC: string;
   color: string; bandMin: 'A' | 'B' | 'C';
+  isAI?: boolean;
 }
 
 interface AIPower {
@@ -280,8 +283,7 @@ export function MyFirstAiAppGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('my-first-ai-app', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('my-first-ai-app', ageBand);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -293,11 +295,17 @@ export function MyFirstAiAppGame() {
   const [selectedTheme, setSelectedTheme] = useState<string>('neon');
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showCodePeek, setShowCodePeek] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
 
-  const categories = useMemo(
-    () => ALL_CATEGORIES.filter(c => BAND_ORDER[c.bandMin] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  // Merge hardcoded + dynamic categories
+  const categories = useMemo(() => {
+    const hardcoded = ALL_CATEGORIES.filter(c => BAND_ORDER[c.bandMin] <= BAND_ORDER[ageBand]);
+    if (!dynamicContent?.scenarios?.length) return hardcoded;
+    const dynamic: AppCategory[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as AppCategory; } catch { return null; } })
+      .filter((c): c is AppCategory => c !== null && BAND_ORDER[c.bandMin] <= BAND_ORDER[ageBand]);
+    return [...hardcoded, ...dynamic];
+  }, [ageBand, dynamicContent?.scenarios]);
   const powers = useMemo(
     () => ALL_POWERS.filter(p => BAND_ORDER[p.bandMin] <= BAND_ORDER[ageBand]),
     [ageBand]
@@ -480,6 +488,10 @@ export function MyFirstAiAppGame() {
           {phase === 'build' && (
             <motion.div key="build" className="flex-1 flex flex-col p-4 overflow-y-auto"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-center gap-3 mb-3 px-4">
+                <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                <GameProgressTracker current={stepIdx + 1} total={5} labColor="#F97316" />
+              </div>
               {/* Step indicator */}
               <div className="flex items-center justify-center gap-1 mb-4">
                 {BUILD_STEPS.map((s, i) => (
