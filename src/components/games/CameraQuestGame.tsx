@@ -267,6 +267,7 @@ export function CameraQuestGame() {
   useEffect(() => {
     return () => {
       streamRef.current?.getTracks().forEach((t) => t.stop());
+      if (videoRef.current) videoRef.current.srcObject = null; // FLL-014: clear srcObject
     };
   }, []);
 

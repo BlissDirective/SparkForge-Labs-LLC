@@ -161,6 +161,7 @@ export default function FutureForgeGame() {
     } else {
       setGameSceneContent(null);
     }
+    return () => setGameSceneContent(null); // FLL-040: cleanup on unmount
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, round, roundScore, setGameSceneContent]);
 

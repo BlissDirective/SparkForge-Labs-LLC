@@ -195,6 +195,7 @@ export function AiOrNotGame() {
     } else {
       setGameSceneContent(null);
     }
+    return () => setGameSceneContent(null); // FLL-044: cleanup on unmount
   }, [phase, round, guess, showResult, totalCorrect, history.length, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({

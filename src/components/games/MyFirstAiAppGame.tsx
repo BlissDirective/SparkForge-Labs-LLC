@@ -514,7 +514,8 @@ export function MyFirstAiAppGame() {
                             className={`text-left p-3 rounded-xl border transition-all duration-200 ${
                               isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'}`}
                             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                            aria-label={`${isSelected ? 'Remove' : 'Add'} ${pow.title} power`}>
+                            aria-label={`${isSelected ? 'Remove' : 'Add'} ${pow.title} power`}
+                            aria-pressed={isSelected}>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{pow.emoji}</span>
                               <span className="font-display text-xs font-bold text-white">{pow.title}</span>

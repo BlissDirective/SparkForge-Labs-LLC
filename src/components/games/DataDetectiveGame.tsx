@@ -125,6 +125,7 @@ export function DataDetectiveGame() {
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const investigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const hasCompleted = useRef(false);
 
   const currentCase = CASES[caseIdx];
   const maxBar = useMemo(() => Math.max(...currentCase.data.map(d => d.value)), [currentCase.data]);
@@ -153,7 +154,8 @@ export function DataDetectiveGame() {
       setCaseIdx(i => i + 1);
       setSelected(null);
       setShowResult(false);
-    } else {
+    } else if (!hasCompleted.current) {
+      hasCompleted.current = true; // FLL-003: prevent double-click race
       setPhase('complete');
       game.completeGame();
     }
