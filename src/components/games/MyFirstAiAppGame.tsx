@@ -141,6 +141,47 @@ const ALL_CATEGORIES: AppCategory[] = [
     descriptionB: 'An AI business tool for data analysis, customer service automation, or workflow optimization.',
     descriptionC: 'An enterprise AI solution combining analytics dashboards, NLP-powered customer support, and predictive operations.',
     color: '#6366F1', bandMin: 'C' },
+  // ═══════ 5x CONTENT EXPANSION (8 new categories) ═══════
+  { id: 'safety', title: 'Safety App', emoji: '\u{1F6E1}\uFE0F',
+    description: 'An app that keeps people safe from dangers!',
+    descriptionB: 'An AI safety app for emergency detection, danger alerts, or protective monitoring.',
+    descriptionC: 'A safety application using anomaly detection, geofencing, and real-time risk assessment models.',
+    color: '#DC2626', bandMin: 'A' },
+  { id: 'nature', title: 'Nature Explorer', emoji: '\u{1F33F}',
+    description: 'An app that helps you learn about plants, animals, and nature!',
+    descriptionB: 'An AI nature app that identifies species, tracks wildlife, or teaches ecology.',
+    descriptionC: 'A biodiversity application using image classification (iNaturalist models), species distribution modeling, and ecological network analysis.',
+    color: '#16A34A', bandMin: 'A' },
+  { id: 'music', title: 'Music Maker', emoji: '\u{1F3B5}',
+    description: 'An app that creates, mixes, or teaches music with AI!',
+    descriptionB: 'An AI music app for composition, instrument learning, or audio production.',
+    descriptionC: 'A music technology application using neural audio synthesis, MIDI generation, and audio source separation.',
+    color: '#E11D48', bandMin: 'A' },
+  { id: 'pet', title: 'Pet Companion', emoji: '\u{1F436}',
+    description: 'An app that helps take care of your pets!',
+    descriptionB: 'An AI pet care app for health monitoring, training guidance, or behavior analysis.',
+    descriptionC: 'A veterinary AI application using symptom classification, activity pattern analysis, and breed-specific health prediction models.',
+    color: '#B45309', bandMin: 'A' },
+  { id: 'space', title: 'Space Explorer', emoji: '\u{1F680}',
+    description: 'An app that explores space and discovers new things!',
+    descriptionB: 'An AI space app for star identification, mission planning, or astronomical discovery.',
+    descriptionC: 'An astrophysics application using image segmentation for galaxy classification, orbital mechanics simulation, and spectral analysis.',
+    color: '#1E40AF', bandMin: 'B' },
+  { id: 'food', title: 'Food & Cooking', emoji: '\u{1F373}',
+    description: 'An app that helps cook meals and plan what to eat!',
+    descriptionB: 'An AI cooking app for recipe generation, meal planning, or nutrition tracking.',
+    descriptionC: 'A culinary AI application using ingredient recognition, constraint-based recipe generation, and nutritional optimization algorithms.',
+    color: '#CA8A04', bandMin: 'B' },
+  { id: 'sports', title: 'Sports Coach', emoji: '\u26BD',
+    description: 'An app that helps athletes train and improve!',
+    descriptionB: 'An AI sports app for performance analysis, training optimization, or injury prevention.',
+    descriptionC: 'A sports analytics application using pose estimation, biomechanical analysis, and performance prediction models.',
+    color: '#059669', bandMin: 'B' },
+  { id: 'accessibility', title: 'Accessibility Tool', emoji: '\u267F',
+    description: 'An app that helps people with disabilities do more!',
+    descriptionB: 'An AI accessibility app for screen reading, sign language translation, or adaptive interfaces.',
+    descriptionC: 'An assistive technology application using real-time captioning, gesture recognition, and adaptive UI generation.',
+    color: '#7C3AED', bandMin: 'C' },
 ];
 
 // ■■■■ AI Powers ■■■■
@@ -514,7 +555,8 @@ export function MyFirstAiAppGame() {
                             className={`text-left p-3 rounded-xl border transition-all duration-200 ${
                               isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'}`}
                             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                            aria-label={`${isSelected ? 'Remove' : 'Add'} ${pow.title} power`}>
+                            aria-label={`${isSelected ? 'Remove' : 'Add'} ${pow.title} power`}
+                            aria-pressed={isSelected}>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{pow.emoji}</span>
                               <span className="font-display text-xs font-bold text-white">{pow.title}</span>

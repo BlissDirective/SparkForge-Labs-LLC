@@ -128,6 +128,151 @@ const SCENARIOS: Scenario[] = [
     impactText: 'AI-coordinated disaster response could reduce emergency response times by 70%.',
     impactTextSimple: 'Your AI could help rescue people much faster when bad things happen!',
   },
+  // ═══════ 5x CONTENT EXPANSION (16 new scenarios) ═══════
+  {
+    id: 's9', title: 'Clean Water',
+    problem: 'Billions lack access to clean water. Design an AI system to detect contamination and optimize purification.',
+    problemSimple: 'Some people don\'t have clean water. Build an AI that finds dirty water and cleans it!',
+    correctCapabilities: ['vision', 'processing', 'prediction'],
+    bonusCapability: 'robotics',
+    impactText: 'AI water monitoring could provide clean water access to 2 billion more people globally.',
+    impactTextSimple: 'Your AI could help give clean water to billions of people around the world!',
+  },
+  {
+    id: 's10', title: 'Wildlife Guardian',
+    problem: 'Endangered species face extinction. Design an AI system to monitor and protect wildlife populations.',
+    problemSimple: 'Animals are in danger! Build an AI that watches over endangered animals and keeps them safe!',
+    correctCapabilities: ['vision', 'prediction', 'safety'],
+    bonusCapability: 'processing',
+    impactText: 'AI wildlife monitoring could reduce poaching incidents by 80% in protected areas.',
+    impactTextSimple: 'Your AI guardian could protect animals from hunters and help them survive!',
+  },
+  {
+    id: 's11', title: 'Recycling Sorter',
+    problem: 'Only 9% of plastic gets recycled. Design an AI system that automatically sorts recyclable materials.',
+    problemSimple: 'Most trash doesn\'t get recycled. Build an AI that sorts trash into the right bins!',
+    correctCapabilities: ['vision', 'robotics'],
+    bonusCapability: 'processing',
+    impactText: 'AI sorting could triple recycling rates, diverting 500M tons from landfills annually.',
+    impactTextSimple: 'Your AI sorter could recycle three times more stuff than we do now!',
+  },
+  {
+    id: 's12', title: 'Earthquake Alert',
+    problem: 'Earthquakes strike without warning. Design an AI early warning system using seismic sensor networks.',
+    problemSimple: 'Earthquakes surprise people. Build an AI that warns everyone before the shaking starts!',
+    correctCapabilities: ['prediction', 'processing', 'safety'],
+    bonusCapability: 'language',
+    impactText: 'AI seismic analysis could provide 30-60 seconds of early warning, saving thousands of lives.',
+    impactTextSimple: 'Your AI could give people a warning before earthquakes hit!',
+  },
+  {
+    id: 's13', title: 'Fake News Detector',
+    problem: 'Misinformation spreads rapidly online. Design an AI system to identify and flag false information.',
+    problemSimple: 'Some news online is fake! Build an AI that can tell real news from made-up stories!',
+    correctCapabilities: ['language', 'processing'],
+    bonusCapability: 'prediction',
+    impactText: 'AI fact-checking could reduce misinformation spread by 65% on social platforms.',
+    impactTextSimple: 'Your AI could help people know which news stories are real and which are fake!',
+  },
+  {
+    id: 's14', title: 'Accessibility Helper',
+    problem: 'Millions of people with disabilities face daily barriers. Design an AI assistant for universal accessibility.',
+    problemSimple: 'Some people can\'t see, hear, or move easily. Build an AI that helps them do everyday things!',
+    correctCapabilities: ['vision', 'language', 'robotics'],
+    bonusCapability: 'safety',
+    impactText: 'AI accessibility tools could improve independence for 1.3 billion people with disabilities.',
+    impactTextSimple: 'Your AI helper could make the world easier for everyone!',
+  },
+  {
+    id: 's15', title: 'Energy Grid',
+    problem: 'Power grids waste energy and cause blackouts. Design an AI to optimize energy distribution.',
+    problemSimple: 'Sometimes the lights go out! Build an AI that keeps the electricity flowing everywhere!',
+    correctCapabilities: ['prediction', 'processing', 'safety'],
+    bonusCapability: 'vision',
+    impactText: 'AI grid management could reduce energy waste by 20% and prevent 90% of blackouts.',
+    impactTextSimple: 'Your AI could save electricity and stop blackouts from happening!',
+  },
+  {
+    id: 's16', title: 'Food Waste Fighter',
+    problem: '1/3 of all food is wasted. Design an AI to optimize food supply chains and reduce waste.',
+    problemSimple: 'We throw away too much food! Build an AI that helps stores and restaurants waste less!',
+    correctCapabilities: ['prediction', 'processing'],
+    bonusCapability: 'vision',
+    impactText: 'AI supply chain optimization could reduce food waste by 50%, feeding 500M more people.',
+    impactTextSimple: 'Your AI could save enough food to feed half a billion people!',
+  },
+  {
+    id: 's17', title: 'Mental Health Buddy',
+    problem: 'Many young people struggle with mental health. Design an AI wellness companion that provides support.',
+    problemSimple: 'Sometimes kids feel sad or worried. Build a kind AI friend that listens and helps!',
+    correctCapabilities: ['language', 'prediction'],
+    bonusCapability: 'safety',
+    impactText: 'AI wellness tools could provide initial mental health support to 60% of underserved youth.',
+    impactTextSimple: 'Your AI buddy could help lots of kids feel better when they\'re sad or stressed!',
+  },
+  {
+    id: 's18', title: 'Coral Reef Restorer',
+    problem: 'Coral reefs are dying from climate change. Design an AI system to monitor and restore reef ecosystems.',
+    problemSimple: 'Beautiful coral reefs are getting sick. Build an AI that helps coral grow back!',
+    correctCapabilities: ['vision', 'robotics', 'prediction'],
+    bonusCapability: 'processing',
+    impactText: 'AI-guided reef restoration could recover 40% of damaged coral ecosystems within a decade.',
+    impactTextSimple: 'Your AI could help bring colorful coral reefs back to life!',
+  },
+  {
+    id: 's19', title: 'Homework Helper',
+    problem: 'Students struggle with personalized learning. Design an AI tutor that adapts to each student\'s needs.',
+    problemSimple: 'Every kid learns differently. Build an AI teacher that helps each student in their own way!',
+    correctCapabilities: ['language', 'prediction', 'processing'],
+    bonusCapability: 'vision',
+    impactText: 'AI tutoring could improve learning outcomes by 30% through personalized instruction.',
+    impactTextSimple: 'Your AI tutor could help every student learn better and have more fun doing it!',
+  },
+  {
+    id: 's20', title: 'Autonomous Delivery',
+    problem: 'Last-mile delivery is expensive and polluting. Design an AI drone delivery network.',
+    problemSimple: 'Delivery trucks cause pollution. Build an AI drone that delivers packages without pollution!',
+    correctCapabilities: ['vision', 'robotics', 'safety'],
+    bonusCapability: 'prediction',
+    impactText: 'AI drone delivery could reduce last-mile emissions by 80% and delivery costs by 40%.',
+    impactTextSimple: 'Your AI drones could deliver packages faster and without polluting the air!',
+  },
+  {
+    id: 's21', title: 'Music Composer',
+    problem: 'Creating original music is time-intensive. Design an AI that composes music in any style.',
+    problemSimple: 'Making music takes a long time. Build an AI that creates cool songs!',
+    correctCapabilities: ['language', 'processing'],
+    bonusCapability: 'prediction',
+    impactText: 'AI music tools could enable anyone to create professional-quality compositions.',
+    impactTextSimple: 'Your AI could help anyone make amazing music, even if they can\'t play instruments!',
+  },
+  {
+    id: 's22', title: 'Sleep Doctor',
+    problem: 'Sleep disorders affect billions. Design an AI system that monitors and improves sleep quality.',
+    problemSimple: 'Lots of people don\'t sleep well. Build an AI that helps people get better sleep!',
+    correctCapabilities: ['prediction', 'processing'],
+    bonusCapability: 'language',
+    impactText: 'AI sleep optimization could improve sleep quality for 45% of chronic insomnia sufferers.',
+    impactTextSimple: 'Your AI could help people fall asleep faster and wake up feeling great!',
+  },
+  {
+    id: 's23', title: 'City Planner',
+    problem: 'Cities are growing fast and need smart infrastructure. Design an AI urban planning assistant.',
+    problemSimple: 'Cities are getting bigger! Build an AI that helps design better cities for everyone!',
+    correctCapabilities: ['vision', 'prediction', 'processing'],
+    bonusCapability: 'safety',
+    impactText: 'AI urban planning could reduce infrastructure costs by 25% while improving livability.',
+    impactTextSimple: 'Your AI could help build cities that are fun, safe, and good for the planet!',
+  },
+  {
+    id: 's24', title: 'Ancient Language Decoder',
+    problem: 'Many ancient scripts remain undeciphered. Design an AI to decode lost languages from artifacts.',
+    problemSimple: 'Old civilizations wrote in languages we can\'t read. Build an AI that figures out what they said!',
+    correctCapabilities: ['vision', 'language', 'processing'],
+    bonusCapability: 'prediction',
+    impactText: 'AI pattern analysis could decode undeciphered scripts, unlocking thousands of years of history.',
+    impactTextSimple: 'Your AI could read messages from people who lived thousands of years ago!',
+  },
 ];
 
 export default function FutureForgeGame() {
@@ -145,7 +290,7 @@ export default function FutureForgeGame() {
   const [submitted, setSubmitted] = useState(false);
   const [roundScore, setRoundScore] = useState(0);
 
-  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3)
+  // Register 3D scene content — only update on round change or submission (FLL-038 fix)
   useEffect(() => {
     if (phase === 'play') {
       setGameSceneContent(
@@ -161,7 +306,9 @@ export default function FutureForgeGame() {
     } else {
       setGameSceneContent(null);
     }
-  }, [phase, round, selected, scenario, roundScore, setGameSceneContent]);
+    return () => setGameSceneContent(null); // FLL-040: cleanup on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, round, roundScore, setGameSceneContent]);
 
   const toggleCapability = useCallback((id: string) => {
     if (submitted) return;

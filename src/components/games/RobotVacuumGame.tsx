@@ -48,9 +48,12 @@ interface Rule {
   action: string;
 }
 
+type RoomDifficulty = 'easy' | 'medium' | 'hard' | 'expert';
+
 interface Room {
   title: string;
   emoji: string;
+  difficulty: RoomDifficulty;
   walls: [number, number][];
   furniture: { pos: [number, number]; emoji: string }[];
   dirt: [number, number][];
@@ -82,6 +85,7 @@ const ROOMS: Room[] = [
   {
     title: 'Living Room',
     emoji: '\u{1F6CB}',
+    difficulty: 'easy',
     walls: [[0, 2], [1, 2], [3, 0], [3, 1]],
     furniture: [
       { pos: [0, 2], emoji: '\u{1F6CB}' },
@@ -96,6 +100,7 @@ const ROOMS: Room[] = [
   {
     title: 'Kitchen',
     emoji: '\u{1F373}',
+    difficulty: 'easy',
     walls: [[1, 1], [1, 3], [3, 3], [4, 1]],
     furniture: [
       { pos: [1, 1], emoji: '\u{1F373}' },
@@ -110,6 +115,7 @@ const ROOMS: Room[] = [
   {
     title: 'Bedroom',
     emoji: '\u{1F6CF}',
+    difficulty: 'medium',
     walls: [[2, 0], [2, 1], [2, 3], [4, 4]],
     furniture: [
       { pos: [2, 0], emoji: '\u{1F6CF}' },
@@ -124,6 +130,7 @@ const ROOMS: Room[] = [
   {
     title: 'Office',
     emoji: '\u{1F4BB}',
+    difficulty: 'medium',
     walls: [[1, 0], [1, 4], [3, 2], [4, 2], [4, 4]],
     furniture: [
       { pos: [1, 0], emoji: '\u{1F4BB}' },
@@ -135,6 +142,272 @@ const ROOMS: Room[] = [
     dirt: [[0, 2], [0, 5], [2, 1], [2, 4], [3, 5], [5, 0], [5, 3]],
     charger: [0, 0],
     optimalSteps: 30,
+  },
+  // ═══════ 5x CONTENT EXPANSION (16 new rooms) ═══════
+  // --- EASY TIER (3 new rooms) ---
+  {
+    title: 'Playroom',
+    emoji: '\u{1F9F8}',
+    difficulty: 'easy',
+    walls: [[2, 0], [2, 1]],
+    furniture: [
+      { pos: [2, 0], emoji: '\u{1F9F8}' },
+      { pos: [2, 1], emoji: '\u{1F3AE}' },
+    ],
+    dirt: [[0, 3], [1, 1], [3, 4], [4, 2]],
+    charger: [0, 0],
+    optimalSteps: 16,
+  },
+  {
+    title: 'Hallway',
+    emoji: '\u{1F6AA}',
+    difficulty: 'easy',
+    walls: [[0, 2], [1, 2], [2, 2], [3, 2], [4, 2]],
+    furniture: [
+      { pos: [0, 2], emoji: '\u{1F5BC}' },
+      { pos: [2, 2], emoji: '\u{1F6AA}' },
+      { pos: [4, 2], emoji: '\u{1F5BC}' },
+    ],
+    dirt: [[0, 0], [2, 0], [4, 0], [1, 4], [3, 5]],
+    charger: [5, 0],
+    optimalSteps: 20,
+  },
+  {
+    title: 'Garage',
+    emoji: '\u{1F697}',
+    difficulty: 'easy',
+    walls: [[0, 0], [0, 1], [5, 4], [5, 5]],
+    furniture: [
+      { pos: [0, 0], emoji: '\u{1F697}' },
+      { pos: [0, 1], emoji: '\u{1F697}' },
+      { pos: [5, 4], emoji: '\u{1F9F0}' },
+      { pos: [5, 5], emoji: '\u{1F9F0}' },
+    ],
+    dirt: [[1, 3], [2, 1], [3, 4], [4, 2]],
+    charger: [5, 0],
+    optimalSteps: 17,
+  },
+  // --- MEDIUM TIER (5 new rooms) ---
+  {
+    title: 'Dining Room',
+    emoji: '\u{1F37D}',
+    difficulty: 'medium',
+    walls: [[1, 1], [1, 2], [1, 3], [1, 4]],
+    furniture: [
+      { pos: [1, 1], emoji: '\u{1FA91}' },
+      { pos: [1, 2], emoji: '\u{1F37D}' },
+      { pos: [1, 3], emoji: '\u{1F37D}' },
+      { pos: [1, 4], emoji: '\u{1FA91}' },
+    ],
+    dirt: [[0, 0], [0, 5], [2, 2], [3, 1], [3, 4], [4, 3]],
+    charger: [5, 5],
+    optimalSteps: 24,
+  },
+  {
+    title: 'Bathroom',
+    emoji: '\u{1F6C1}',
+    difficulty: 'medium',
+    walls: [[0, 3], [0, 4], [0, 5], [3, 0], [3, 1]],
+    furniture: [
+      { pos: [0, 3], emoji: '\u{1F6C1}' },
+      { pos: [0, 4], emoji: '\u{1F6BF}' },
+      { pos: [0, 5], emoji: '\u{1FAA5}' },
+      { pos: [3, 0], emoji: '\u{1FAA5}' },
+      { pos: [3, 1], emoji: '\u{1F9F4}' },
+    ],
+    dirt: [[1, 0], [1, 5], [2, 2], [4, 1], [4, 4], [5, 3]],
+    charger: [5, 5],
+    optimalSteps: 25,
+  },
+  {
+    title: 'Studio',
+    emoji: '\u{1F3A8}',
+    difficulty: 'medium',
+    walls: [[2, 2], [2, 3], [3, 2], [3, 3]],
+    furniture: [
+      { pos: [2, 2], emoji: '\u{1F3A8}' },
+      { pos: [2, 3], emoji: '\u{1F58C}' },
+      { pos: [3, 2], emoji: '\u{1F5BC}' },
+      { pos: [3, 3], emoji: '\u{1F3A8}' },
+    ],
+    dirt: [[0, 0], [0, 5], [1, 3], [4, 1], [4, 5], [5, 2]],
+    charger: [0, 0],
+    optimalSteps: 26,
+  },
+  {
+    title: 'Music Room',
+    emoji: '\u{1F3B5}',
+    difficulty: 'medium',
+    walls: [[0, 3], [1, 3], [4, 1], [4, 2]],
+    furniture: [
+      { pos: [0, 3], emoji: '\u{1F3B9}' },
+      { pos: [1, 3], emoji: '\u{1F3B8}' },
+      { pos: [4, 1], emoji: '\u{1F941}' },
+      { pos: [4, 2], emoji: '\u{1F3B7}' },
+    ],
+    dirt: [[0, 0], [1, 5], [2, 2], [3, 4], [5, 1], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 24,
+  },
+  {
+    title: 'Laundry Room',
+    emoji: '\u{1F9FA}',
+    difficulty: 'medium',
+    walls: [[1, 0], [1, 1], [3, 4], [3, 5]],
+    furniture: [
+      { pos: [1, 0], emoji: '\u{1F9FA}' },
+      { pos: [1, 1], emoji: '\u{1F9FA}' },
+      { pos: [3, 4], emoji: '\u{1F9F9}' },
+      { pos: [3, 5], emoji: '\u{1F9F4}' },
+    ],
+    dirt: [[0, 3], [0, 5], [2, 2], [2, 4], [4, 0], [4, 3], [5, 5]],
+    charger: [5, 0],
+    optimalSteps: 28,
+  },
+  // --- HARD TIER (5 new rooms) ---
+  {
+    title: 'Lab',
+    emoji: '\u{1F52C}',
+    difficulty: 'hard',
+    walls: [[0, 2], [0, 3], [2, 0], [2, 5], [4, 2], [4, 3]],
+    furniture: [
+      { pos: [0, 2], emoji: '\u{1F52C}' },
+      { pos: [0, 3], emoji: '\u{1F9EA}' },
+      { pos: [2, 0], emoji: '\u{1F9EB}' },
+      { pos: [2, 5], emoji: '\u{1F52C}' },
+      { pos: [4, 2], emoji: '\u{1F9EA}' },
+      { pos: [4, 3], emoji: '\u{1F9EB}' },
+    ],
+    dirt: [[1, 1], [1, 4], [3, 1], [3, 4], [5, 0], [5, 2], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 32,
+  },
+  {
+    title: 'Gym',
+    emoji: '\u{1F3CB}',
+    difficulty: 'hard',
+    walls: [[1, 1], [1, 4], [3, 0], [3, 5], [5, 2], [5, 3]],
+    furniture: [
+      { pos: [1, 1], emoji: '\u{1F3CB}' },
+      { pos: [1, 4], emoji: '\u{1F3CB}' },
+      { pos: [3, 0], emoji: '\u{1F6B4}' },
+      { pos: [3, 5], emoji: '\u{1F6B4}' },
+      { pos: [5, 2], emoji: '\u{1F3CB}' },
+      { pos: [5, 3], emoji: '\u{1F3CB}' },
+    ],
+    dirt: [[0, 0], [0, 3], [0, 5], [2, 2], [4, 1], [4, 4], [5, 0], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 35,
+  },
+  {
+    title: 'Library',
+    emoji: '\u{1F4DA}',
+    difficulty: 'hard',
+    walls: [[0, 1], [1, 1], [2, 1], [0, 4], [1, 4], [2, 4]],
+    furniture: [
+      { pos: [0, 1], emoji: '\u{1F4DA}' },
+      { pos: [1, 1], emoji: '\u{1F4DA}' },
+      { pos: [2, 1], emoji: '\u{1F4DA}' },
+      { pos: [0, 4], emoji: '\u{1F4DA}' },
+      { pos: [1, 4], emoji: '\u{1F4DA}' },
+      { pos: [2, 4], emoji: '\u{1F4DA}' },
+    ],
+    dirt: [[0, 0], [0, 5], [3, 0], [3, 3], [3, 5], [4, 2], [5, 1], [5, 4]],
+    charger: [5, 5],
+    optimalSteps: 34,
+  },
+  {
+    title: 'Warehouse',
+    emoji: '\u{1F4E6}',
+    difficulty: 'hard',
+    walls: [[1, 0], [1, 2], [1, 4], [3, 1], [3, 3], [3, 5]],
+    furniture: [
+      { pos: [1, 0], emoji: '\u{1F4E6}' },
+      { pos: [1, 2], emoji: '\u{1F4E6}' },
+      { pos: [1, 4], emoji: '\u{1F4E6}' },
+      { pos: [3, 1], emoji: '\u{1F4E6}' },
+      { pos: [3, 3], emoji: '\u{1F4E6}' },
+      { pos: [3, 5], emoji: '\u{1F4E6}' },
+    ],
+    dirt: [[0, 1], [0, 5], [2, 1], [2, 3], [2, 5], [4, 0], [4, 2], [4, 4], [5, 3]],
+    charger: [0, 0],
+    optimalSteps: 38,
+  },
+  {
+    title: 'Hospital Wing',
+    emoji: '\u{1F3E5}',
+    difficulty: 'hard',
+    walls: [[0, 2], [1, 2], [3, 2], [4, 2], [2, 4], [2, 5]],
+    furniture: [
+      { pos: [0, 2], emoji: '\u{1F6CF}' },
+      { pos: [1, 2], emoji: '\u{1F6CF}' },
+      { pos: [3, 2], emoji: '\u{1F6CF}' },
+      { pos: [4, 2], emoji: '\u{1F6CF}' },
+      { pos: [2, 4], emoji: '\u{1FA7A}' },
+      { pos: [2, 5], emoji: '\u{1FA7A}' },
+    ],
+    dirt: [[0, 0], [0, 4], [1, 5], [3, 0], [3, 5], [4, 4], [5, 1], [5, 3]],
+    charger: [5, 5],
+    optimalSteps: 36,
+  },
+  // --- EXPERT TIER (3 new rooms) ---
+  {
+    title: 'Maze',
+    emoji: '\u{1F9E9}',
+    difficulty: 'expert',
+    walls: [[0, 1], [1, 3], [2, 1], [2, 5], [3, 3], [4, 1], [4, 5], [5, 3]],
+    furniture: [
+      { pos: [0, 1], emoji: '\u{1F9F1}' },
+      { pos: [1, 3], emoji: '\u{1F9F1}' },
+      { pos: [2, 1], emoji: '\u{1F9F1}' },
+      { pos: [2, 5], emoji: '\u{1F9F1}' },
+      { pos: [3, 3], emoji: '\u{1F9F1}' },
+      { pos: [4, 1], emoji: '\u{1F9F1}' },
+      { pos: [4, 5], emoji: '\u{1F9F1}' },
+      { pos: [5, 3], emoji: '\u{1F9F1}' },
+    ],
+    dirt: [[0, 4], [1, 0], [1, 5], [2, 3], [3, 0], [3, 5], [4, 3], [5, 0], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 42,
+  },
+  {
+    title: 'Server Room',
+    emoji: '\u{1F5A5}',
+    difficulty: 'expert',
+    walls: [[0, 1], [0, 3], [0, 5], [2, 0], [2, 2], [2, 4], [4, 1], [4, 3], [4, 5]],
+    furniture: [
+      { pos: [0, 1], emoji: '\u{1F5A5}' },
+      { pos: [0, 3], emoji: '\u{1F5A5}' },
+      { pos: [0, 5], emoji: '\u{1F5A5}' },
+      { pos: [2, 0], emoji: '\u{1F5A5}' },
+      { pos: [2, 2], emoji: '\u{1F5A5}' },
+      { pos: [2, 4], emoji: '\u{1F5A5}' },
+      { pos: [4, 1], emoji: '\u{1F5A5}' },
+      { pos: [4, 3], emoji: '\u{1F5A5}' },
+      { pos: [4, 5], emoji: '\u{1F5A5}' },
+    ],
+    dirt: [[1, 0], [1, 2], [1, 4], [3, 1], [3, 3], [3, 5], [5, 0], [5, 2], [5, 4]],
+    charger: [0, 0],
+    optimalSteps: 45,
+  },
+  {
+    title: 'Space Station',
+    emoji: '\u{1F680}',
+    difficulty: 'expert',
+    walls: [[0, 0], [0, 5], [2, 2], [2, 3], [3, 2], [3, 3], [5, 0], [5, 5]],
+    furniture: [
+      { pos: [0, 0], emoji: '\u{1F680}' },
+      { pos: [0, 5], emoji: '\u{1F6F0}' },
+      { pos: [2, 2], emoji: '\u{1F52D}' },
+      { pos: [2, 3], emoji: '\u{1F52D}' },
+      { pos: [3, 2], emoji: '\u{1FA90}' },
+      { pos: [3, 3], emoji: '\u{1FA90}' },
+      { pos: [5, 0], emoji: '\u{1F6F0}' },
+      { pos: [5, 5], emoji: '\u{1F680}' },
+    ],
+    dirt: [[0, 2], [0, 3], [1, 0], [1, 5], [4, 0], [4, 5], [5, 2], [5, 3], [1, 3], [4, 2]],
+    charger: [3, 0],
+    optimalSteps: 48,
   },
 ];
 
@@ -183,6 +456,12 @@ export function RobotVacuumGame() {
     { condition: 'Path clear', action: 'Move forward' },
     { condition: 'See wall ahead', action: 'Turn right' },
   ]);
+  // Filter rooms by age band: A=easy, B=easy+medium, C=all tiers
+  const rooms = useMemo(() => {
+    const allowed: RoomDifficulty[] = ageBand === 'A' ? ['easy'] : ageBand === 'B' ? ['easy', 'medium'] : ['easy', 'medium', 'hard', 'expert'];
+    return ROOMS.filter(r => allowed.includes(r.difficulty));
+  }, [ageBand]);
+
   const [roomIdx, setRoomIdx] = useState(0);
   const [running, setRunning] = useState(false);
   const [vacPos, setVacPos] = useState<[number, number]>([0, 0]);
@@ -192,7 +471,7 @@ export function RobotVacuumGame() {
   const [showResults, setShowResults] = useState(false);
   const [trail, setTrail] = useState<string[]>([]);
 
-  const room = ROOMS[roomIdx];
+  const room = rooms[roomIdx];
 
   const isWall = (r: number, c: number) =>
     room.walls.some(([wr, wc]) => wr === r && wc === c);
@@ -293,6 +572,16 @@ export function RobotVacuumGame() {
           else if (rule.action === 'Turn around') dir = (dir + 2) % 4;
           else if (rule.action === 'Clean' && onDirt)
             cl.add(`${pos[0]},${pos[1]}`);
+          else if (rule.action === 'Go to charger') {
+            // Move one step toward charger (FLL-005 fix)
+            const dr = Math.sign(room.charger[0] - pos[0]);
+            const dc = Math.sign(room.charger[1] - pos[1]);
+            const nextR = pos[0] + dr;
+            const nextC = pos[1] + dc;
+            if (nextR >= 0 && nextR < GRID && nextC >= 0 && nextC < GRID && !isWall(nextR, nextC)) {
+              pos = [nextR, nextC];
+            }
+          }
           acted = true;
           break;
         }
@@ -304,18 +593,22 @@ export function RobotVacuumGame() {
     }
 
     setShowResults(true);
-    const pts = cl.size * 4;
+    // FLL-006: Efficiency-based scoring — reward fewer steps
+    const coverageBase = cl.size * 4;
+    const stepsTaken = tr.length || 1;
+    const efficiencyBonus = cl.size === totalDirt ? Math.max(0, Math.round((room.optimalSteps / stepsTaken) * 10)) : 0;
+    const pts = coverageBase + efficiencyBonus;
     game.updateScore(pts);
     setRunning(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rules, room, roomIdx, game, totalDirt]);
 
   function nextRoom() {
-    if (roomIdx < ROOMS.length - 1) {
+    if (roomIdx < rooms.length - 1) {
       const next = roomIdx + 1;
       setRoomIdx(next);
       setCleaned(new Set());
-      setVacPos([ROOMS[next].charger[0], ROOMS[next].charger[1]]);
+      setVacPos([rooms[next].charger[0], rooms[next].charger[1]]);
       setVacDir(0);
       setStepCount(0);
       setShowResults(false);
@@ -353,7 +646,7 @@ export function RobotVacuumGame() {
       worldNumber={5}
       worldColor="#10B981"
       xpReward={25}
-      totalRounds={ROOMS.length}
+      totalRounds={rooms.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
@@ -493,7 +786,7 @@ export function RobotVacuumGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/50 hover:text-white/40"
                       aria-label="Skip tutorial"
                     >
                       Skip tutorial
@@ -515,8 +808,8 @@ export function RobotVacuumGame() {
                       <h3 className="font-display text-sm font-bold text-white flex-1">
                         {room.title}
                       </h3>
-                      <span className="font-mono text-2xs text-white/20">
-                        Room {roomIdx + 1}/{ROOMS.length}
+                      <span className="font-mono text-2xs text-white/50">
+                        Room {roomIdx + 1}/{rooms.length}
                       </span>
                     </div>
 
@@ -629,7 +922,7 @@ export function RobotVacuumGame() {
                             );
                           })}
                         </div>
-                        <p className="font-mono text-2xs text-white/15 text-center mt-1">
+                        <p className="font-mono text-2xs text-white/50 text-center mt-1">
                           Steps: {stepCount}
                         </p>
                       </div>
@@ -645,7 +938,7 @@ export function RobotVacuumGame() {
                               key={i}
                               className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.02]"
                             >
-                              <span className="font-mono text-2xs text-white/15 w-3">
+                              <span className="font-mono text-2xs text-white/50 w-3">
                                 {i + 1}
                               </span>
                               <select
@@ -662,7 +955,7 @@ export function RobotVacuumGame() {
                                   </option>
                                 ))}
                               </select>
-                              <span className="font-mono text-2xs text-white/15">
+                              <span className="font-mono text-2xs text-white/50">
                                 {'\u2192'}
                               </span>
                               <select
@@ -694,7 +987,7 @@ export function RobotVacuumGame() {
                         {!running && rules.length < 8 && (
                           <button
                             onClick={addRule}
-                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/20 font-body text-2xs flex items-center justify-center gap-1"
+                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/50 font-body text-2xs flex items-center justify-center gap-1"
                             aria-label="Add a new rule"
                           >
                             <Plus className="w-2.5 h-2.5" /> Add Rule
@@ -827,9 +1120,9 @@ export function RobotVacuumGame() {
                               'linear-gradient(135deg, #10B981, #059669)',
                           }}
                           whileTap={{ scale: 0.98 }}
-                          aria-label={roomIdx < ROOMS.length - 1 ? 'Go to next room' : 'Complete the game'}
+                          aria-label={roomIdx < rooms.length - 1 ? 'Go to next room' : 'Complete the game'}
                         >
-                          {roomIdx < ROOMS.length - 1
+                          {roomIdx < rooms.length - 1
                             ? 'Next Room \u2192'
                             : 'Complete! \u{1F389}'}
                         </motion.button>

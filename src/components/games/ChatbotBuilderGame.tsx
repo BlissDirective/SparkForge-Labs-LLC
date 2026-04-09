@@ -155,6 +155,312 @@ const TEMPLATES: Record<string, { emoji: string; description: string; nodes: Bot
       { id: "root", text: "Hello! How can I help?", responses: [{ label: "Option 1", nextId: null }] },
     ],
   },
+  // ═══════ 5x CONTENT EXPANSION (16 new templates) ═══════
+  "Weather Bot": {
+    emoji: "\u26C5", description: "A weather information chatbot",
+    nodes: [
+      { id: "root", text: "Hi! I'm WeatherBot! \u2600\uFE0F What do you need?", responses: [
+        { label: "Today's weather", nextId: "today" }, { label: "Weekly forecast", nextId: "week" }, { label: "Storm alerts", nextId: "storm" }
+      ]},
+      { id: "today", text: "It's 72\u00B0F and sunny! \u2600\uFE0F", responses: [
+        { label: "Will it rain?", nextId: "rain" }, { label: "Thanks!", nextId: "bye" }
+      ]},
+      { id: "week", text: "This week: Mon-Wed sunny, Thu-Fri rain expected.", responses: [
+        { label: "Weekend?", nextId: "weekend" }, { label: "Got it!", nextId: "bye" }
+      ]},
+      { id: "storm", text: "\u26A0\uFE0F No active storm alerts in your area.", responses: [
+        { label: "Check another area", nextId: "root" }, { label: "Okay!", nextId: "bye" }
+      ]},
+      { id: "rain", text: "30% chance of rain after 5 PM. Bring an umbrella just in case!", responses: [] },
+      { id: "weekend", text: "Saturday: cloudy. Sunday: clear skies! \uD83C\uDF24\uFE0F", responses: [] },
+      { id: "bye", text: "Stay dry! See you next time! \uD83D\uDE0A", responses: [] },
+    ],
+  },
+  "Study Buddy": {
+    emoji: "\uD83D\uDCDA", description: "A homework help chatbot",
+    nodes: [
+      { id: "root", text: "Hey! Need help studying? \uD83E\uDDD0 Pick a subject!", responses: [
+        { label: "Math", nextId: "math" }, { label: "Science", nextId: "science" }, { label: "History", nextId: "history" }
+      ]},
+      { id: "math", text: "What math topic?", responses: [
+        { label: "Fractions", nextId: "fractions" }, { label: "Geometry", nextId: "geometry" }
+      ]},
+      { id: "science", text: "What science topic?", responses: [
+        { label: "Space", nextId: "space" }, { label: "Animals", nextId: "animals" }
+      ]},
+      { id: "history", text: "What time period?", responses: [
+        { label: "Ancient", nextId: "ancient" }, { label: "Modern", nextId: "modern" }
+      ]},
+      { id: "fractions", text: "Tip: think of fractions like pizza slices! \uD83C\uDF55 1/2 = half a pizza!", responses: [] },
+      { id: "geometry", text: "Remember: area of a rectangle = length \u00D7 width!", responses: [] },
+      { id: "space", text: "Fun fact: the Sun is 109x wider than Earth! \u2600\uFE0F", responses: [] },
+      { id: "animals", text: "Mammals are warm-blooded and feed milk to babies! \uD83D\uDC2E", responses: [] },
+      { id: "ancient", text: "The Egyptian pyramids are over 4,500 years old! \uD83C\uDFDB\uFE0F", responses: [] },
+      { id: "modern", text: "The internet was invented in 1983! \uD83C\uDF10", responses: [] },
+    ],
+  },
+  "Pet Care Bot": {
+    emoji: "\uD83D\uDC36", description: "A pet care advice chatbot",
+    nodes: [
+      { id: "root", text: "Welcome to PetCare! \uD83D\uDC3E What pet do you have?", responses: [
+        { label: "Dog", nextId: "dog" }, { label: "Cat", nextId: "cat" }, { label: "Fish", nextId: "fish" }
+      ]},
+      { id: "dog", text: "Dogs need walks, food, and love! What help do you need?", responses: [
+        { label: "Feeding tips", nextId: "dog-feed" }, { label: "Training help", nextId: "dog-train" }
+      ]},
+      { id: "cat", text: "Cats are independent but still need care! What's up?", responses: [
+        { label: "Feeding tips", nextId: "cat-feed" }, { label: "Why does my cat purr?", nextId: "cat-purr" }
+      ]},
+      { id: "fish", text: "Fish need clean water and proper food!", responses: [
+        { label: "How often to feed?", nextId: "fish-feed" }
+      ]},
+      { id: "dog-feed", text: "Feed adult dogs twice a day. Fresh water always available! \uD83D\uDCA7", responses: [] },
+      { id: "dog-train", text: "Use treats and positive words! Never yell. \uD83C\uDF56", responses: [] },
+      { id: "cat-feed", text: "Cats eat 2-3 small meals a day. Avoid milk \u2014 most cats are lactose intolerant!", responses: [] },
+      { id: "cat-purr", text: "Purring means they're happy! (Sometimes it means they're nervous too.)", responses: [] },
+      { id: "fish-feed", text: "Once or twice daily. Only as much as they can eat in 2 minutes!", responses: [] },
+    ],
+  },
+  "Quiz Master": {
+    emoji: "\u2753", description: "A trivia quiz chatbot",
+    nodes: [
+      { id: "root", text: "Welcome to QuizBot! \uD83E\uDDE0 Ready for a question?", responses: [
+        { label: "Yes!", nextId: "q1" }, { label: "Not yet", nextId: "bye" }
+      ]},
+      { id: "q1", text: "What planet is closest to the Sun?", responses: [
+        { label: "Mercury", nextId: "correct1" }, { label: "Venus", nextId: "wrong1" }, { label: "Mars", nextId: "wrong1" }
+      ]},
+      { id: "correct1", text: "\u2705 Correct! Mercury is the closest planet!", responses: [
+        { label: "Next question!", nextId: "q2" }
+      ]},
+      { id: "wrong1", text: "\u274C Not quite! It's Mercury. Want to try another?", responses: [
+        { label: "Yes!", nextId: "q2" }, { label: "No", nextId: "bye" }
+      ]},
+      { id: "q2", text: "How many legs does a spider have?", responses: [
+        { label: "6", nextId: "wrong2" }, { label: "8", nextId: "correct2" }
+      ]},
+      { id: "correct2", text: "\u2705 Right! Spiders have 8 legs! Great job! \uD83C\uDF89", responses: [] },
+      { id: "wrong2", text: "\u274C Close! Spiders have 8 legs (insects have 6).", responses: [] },
+      { id: "bye", text: "Come back anytime for more trivia! \uD83D\uDC4B", responses: [] },
+    ],
+  },
+  "Story Bot": {
+    emoji: "\uD83D\uDCDC", description: "An interactive story chatbot",
+    nodes: [
+      { id: "root", text: "Once upon a time, you found a mysterious door... \uD83D\uDEAA", responses: [
+        { label: "Open it!", nextId: "open" }, { label: "Walk away", nextId: "walk" }
+      ]},
+      { id: "open", text: "Inside is a glowing crystal! \uD83D\uDD2E Do you...", responses: [
+        { label: "Touch it", nextId: "touch" }, { label: "Leave it", nextId: "leave" }
+      ]},
+      { id: "walk", text: "You walk away, but hear a voice calling... \uD83D\uDDE3\uFE0F", responses: [
+        { label: "Go back", nextId: "open" }, { label: "Keep walking", nextId: "end-safe" }
+      ]},
+      { id: "touch", text: "The crystal grants you a superpower! \u2728 You can fly!", responses: [] },
+      { id: "leave", text: "Smart choice. The crystal was a trap! You escaped safely. \uD83C\uDFC3", responses: [] },
+      { id: "end-safe", text: "You made it home safely. But you always wonder... what was behind that door?", responses: [] },
+    ],
+  },
+  "Fitness Coach": {
+    emoji: "\uD83C\uDFCB\uFE0F", description: "A workout planning chatbot",
+    nodes: [
+      { id: "root", text: "Let's get moving! \uD83D\uDCAA What type of workout?", responses: [
+        { label: "Quick (5 min)", nextId: "quick" }, { label: "Full (15 min)", nextId: "full" }
+      ]},
+      { id: "quick", text: "Try: 10 jumping jacks, 10 squats, 10 arm circles! \u23F1\uFE0F", responses: [
+        { label: "Done!", nextId: "done" }, { label: "Too easy!", nextId: "full" }
+      ]},
+      { id: "full", text: "Warm up first! 2 min light jogging in place.", responses: [
+        { label: "Ready for more!", nextId: "main" }
+      ]},
+      { id: "main", text: "Now: 15 push-ups, 20 squats, 30s plank, 15 lunges!", responses: [
+        { label: "Finished!", nextId: "done" }
+      ]},
+      { id: "done", text: "Amazing work! \uD83C\uDF1F Remember to stretch and drink water! \uD83D\uDCA7", responses: [] },
+    ],
+  },
+  "Eco Helper": {
+    emoji: "\u267B\uFE0F", description: "A recycling and environment chatbot",
+    nodes: [
+      { id: "root", text: "Hi! I'm EcoBot! \uD83C\uDF0D What do you want to recycle?", responses: [
+        { label: "Plastic", nextId: "plastic" }, { label: "Paper", nextId: "paper" }, { label: "Glass", nextId: "glass" }, { label: "Electronics", nextId: "ewaste" }
+      ]},
+      { id: "plastic", text: "Check the number! #1 and #2 are recyclable almost everywhere.", responses: [
+        { label: "What about bags?", nextId: "bags" }, { label: "Thanks!", nextId: "bye" }
+      ]},
+      { id: "paper", text: "Most paper is recyclable! But NOT if it has food grease on it. \uD83C\uDF55\u274C", responses: [] },
+      { id: "glass", text: "Glass is 100% recyclable, infinite times! \u2728", responses: [] },
+      { id: "ewaste", text: "Electronics need special recycling! Find a drop-off center near you.", responses: [] },
+      { id: "bags", text: "Plastic bags usually can't go in regular recycling. Return them to grocery stores!", responses: [] },
+      { id: "bye", text: "Every small action helps! \uD83C\uDF31 Thanks for caring about Earth!", responses: [] },
+    ],
+  },
+  "Music Recommender": {
+    emoji: "\uD83C\uDFB5", description: "A music recommendation chatbot",
+    nodes: [
+      { id: "root", text: "What mood are you in? \uD83C\uDFB6", responses: [
+        { label: "Happy", nextId: "happy" }, { label: "Chill", nextId: "chill" }, { label: "Energetic", nextId: "energy" }
+      ]},
+      { id: "happy", text: "Try upbeat pop or dance music! \uD83D\uDD7A", responses: [
+        { label: "Got a genre?", nextId: "pop" }, { label: "Surprise me!", nextId: "surprise" }
+      ]},
+      { id: "chill", text: "Lo-fi beats or acoustic songs are perfect for relaxing.", responses: [] },
+      { id: "energy", text: "Rock, EDM, or hip-hop will get you pumped! \uD83D\uDD25", responses: [] },
+      { id: "pop", text: "Pop playlist loaded! Enjoy the vibes! \uD83C\uDFA7", responses: [] },
+      { id: "surprise", text: "How about some jazz? It's happy AND sophisticated! \uD83C\uDFB7", responses: [] },
+    ],
+  },
+  "Safety Bot": {
+    emoji: "\uD83D\uDEE1\uFE0F", description: "An internet safety advisor chatbot",
+    nodes: [
+      { id: "root", text: "Stay safe online! \uD83D\uDD12 What do you need help with?", responses: [
+        { label: "Password tips", nextId: "password" }, { label: "Stranger danger", nextId: "stranger" }, { label: "Cyberbullying", nextId: "bully" }
+      ]},
+      { id: "password", text: "Use 12+ characters with numbers, symbols, and capitals. Never share passwords!", responses: [
+        { label: "Example?", nextId: "pass-example" }
+      ]},
+      { id: "stranger", text: "Never share personal info with strangers online. Tell a trusted adult if someone makes you uncomfortable.", responses: [] },
+      { id: "bully", text: "Don't respond to bullies. Screenshot evidence and tell a trusted adult immediately.", responses: [
+        { label: "What if it's anonymous?", nextId: "anon" }
+      ]},
+      { id: "pass-example", text: "Try: MyDog$Loves2Run! (easy to remember, hard to guess!)", responses: [] },
+      { id: "anon", text: "Block the account and report it to the platform. Most sites can trace anonymous accounts.", responses: [] },
+    ],
+  },
+  "Travel Guide": {
+    emoji: "\u2708\uFE0F", description: "A travel planning chatbot",
+    nodes: [
+      { id: "root", text: "Where would you like to explore? \uD83C\uDF0D", responses: [
+        { label: "Beach", nextId: "beach" }, { label: "Mountains", nextId: "mountain" }, { label: "City", nextId: "city" }
+      ]},
+      { id: "beach", text: "Pack sunscreen, swimsuit, and a good book! \uD83C\uDFD6\uFE0F", responses: [
+        { label: "Activities?", nextId: "beach-act" }
+      ]},
+      { id: "mountain", text: "Bring layers, hiking boots, and a water bottle! \u26F0\uFE0F", responses: [
+        { label: "Activities?", nextId: "mt-act" }
+      ]},
+      { id: "city", text: "Comfortable shoes are a must! \uD83C\uDFD9\uFE0F", responses: [
+        { label: "Activities?", nextId: "city-act" }
+      ]},
+      { id: "beach-act", text: "Swimming, surfing, snorkeling, or just relaxing! \uD83C\uDFC4", responses: [] },
+      { id: "mt-act", text: "Hiking, rock climbing, camping, or stargazing! \u2B50", responses: [] },
+      { id: "city-act", text: "Museums, food tours, shopping, or sightseeing! \uD83C\uDFDB\uFE0F", responses: [] },
+    ],
+  },
+  "Mood Checker": {
+    emoji: "\uD83D\uDE0A", description: "A feelings and wellness chatbot",
+    nodes: [
+      { id: "root", text: "How are you feeling today? \uD83D\uDE0A", responses: [
+        { label: "Great!", nextId: "great" }, { label: "Okay", nextId: "okay" }, { label: "Not good", nextId: "sad" }
+      ]},
+      { id: "great", text: "That's wonderful! Keep spreading positivity! \u2728 What made your day good?", responses: [
+        { label: "Friends", nextId: "friends" }, { label: "Achievement", nextId: "achieve" }
+      ]},
+      { id: "okay", text: "Okay is okay! Want to try something to boost your mood?", responses: [
+        { label: "Sure!", nextId: "boost" }, { label: "Nah", nextId: "bye" }
+      ]},
+      { id: "sad", text: "I'm sorry to hear that. Remember: feelings are temporary. Want to talk about it?", responses: [
+        { label: "Yes", nextId: "talk" }, { label: "Just cheer me up", nextId: "boost" }
+      ]},
+      { id: "friends", text: "Friends make everything better! \uD83E\uDD1D", responses: [] },
+      { id: "achieve", text: "You should be proud of yourself! \uD83C\uDFC6", responses: [] },
+      { id: "boost", text: "Try this: take 5 deep breaths, then think of 3 things you're grateful for! \uD83C\uDF3F", responses: [] },
+      { id: "talk", text: "I'm here to listen. If it's serious, please talk to a trusted adult too. \u2764\uFE0F", responses: [] },
+      { id: "bye", text: "Take care of yourself! \uD83D\uDC9A", responses: [] },
+    ],
+  },
+  "Space Explorer": {
+    emoji: "\uD83D\uDE80", description: "A space facts and exploration chatbot",
+    nodes: [
+      { id: "root", text: "Welcome aboard the Space Station! \uD83D\uDE80 What interests you?", responses: [
+        { label: "Planets", nextId: "planets" }, { label: "Stars", nextId: "stars" }, { label: "Black holes", nextId: "blackhole" }
+      ]},
+      { id: "planets", text: "Our solar system has 8 planets! Which one?", responses: [
+        { label: "Mars", nextId: "mars" }, { label: "Jupiter", nextId: "jupiter" }, { label: "Saturn", nextId: "saturn" }
+      ]},
+      { id: "stars", text: "Stars are giant balls of burning gas! Our Sun is a medium-sized star.", responses: [
+        { label: "How many stars?", nextId: "howmany" }
+      ]},
+      { id: "blackhole", text: "Black holes have gravity so strong that even light can't escape! \uD83C\uDF11", responses: [] },
+      { id: "mars", text: "Mars is called the Red Planet! NASA wants to send people there by 2040! \uD83D\uDFE5", responses: [] },
+      { id: "jupiter", text: "Jupiter is the BIGGEST planet \u2014 1,300 Earths could fit inside it!", responses: [] },
+      { id: "saturn", text: "Saturn's rings are made of ice and rock! They're 282,000 km wide! \uD83D\uDCAB", responses: [] },
+      { id: "howmany", text: "About 200 billion stars in our galaxy alone! And there are billions of galaxies! \uD83E\uDD2F", responses: [] },
+    ],
+  },
+  "Language Teacher": {
+    emoji: "\uD83C\uDF0E", description: "A basic language learning chatbot",
+    nodes: [
+      { id: "root", text: "Want to learn a greeting in another language? \uD83C\uDF10", responses: [
+        { label: "Spanish", nextId: "spanish" }, { label: "Japanese", nextId: "japanese" }, { label: "French", nextId: "french" }
+      ]},
+      { id: "spanish", text: "\u00A1Hola! (OH-lah) means Hello in Spanish! \uD83C\uDDEA\uD83C\uDDF8", responses: [
+        { label: "How to say goodbye?", nextId: "sp-bye" }
+      ]},
+      { id: "japanese", text: "\u3053\u3093\u306B\u3061\u306F (Konnichiwa) means Hello in Japanese! \uD83C\uDDEF\uD83C\uDDF5", responses: [
+        { label: "How to say thank you?", nextId: "jp-thanks" }
+      ]},
+      { id: "french", text: "Bonjour! (bon-ZHOOR) means Hello in French! \uD83C\uDDEB\uD83C\uDDF7", responses: [
+        { label: "How to say thank you?", nextId: "fr-thanks" }
+      ]},
+      { id: "sp-bye", text: "\u00A1Adi\u00F3s! (ah-dee-OHS) means Goodbye!", responses: [] },
+      { id: "jp-thanks", text: "\u3042\u308A\u304C\u3068\u3046 (Arigatou) means Thank you!", responses: [] },
+      { id: "fr-thanks", text: "Merci! (mair-SEE) means Thank you!", responses: [] },
+    ],
+  },
+  "Game Guide": {
+    emoji: "\uD83C\uDFAE", description: "A video game tips chatbot",
+    nodes: [
+      { id: "root", text: "Welcome, gamer! \uD83C\uDFAE Need tips?", responses: [
+        { label: "I'm stuck!", nextId: "stuck" }, { label: "Beginner tips", nextId: "beginner" }, { label: "Advanced", nextId: "advanced" }
+      ]},
+      { id: "stuck", text: "Where are you stuck?", responses: [
+        { label: "Boss fight", nextId: "boss" }, { label: "Puzzle", nextId: "puzzle" }
+      ]},
+      { id: "beginner", text: "Tip #1: Save often! Tip #2: Explore everywhere! Tip #3: Read tutorials!", responses: [] },
+      { id: "advanced", text: "Try speedrunning, find Easter eggs, or play on hardest difficulty! \uD83D\uDD25", responses: [] },
+      { id: "boss", text: "Study the pattern! Most bosses attack in 3-hit combos. Dodge, then counter!", responses: [] },
+      { id: "puzzle", text: "Look at the environment for clues. Try every interaction. Write down symbols!", responses: [] },
+    ],
+  },
+  "News Reporter": {
+    emoji: "\uD83D\uDCF0", description: "A news summary chatbot",
+    nodes: [
+      { id: "root", text: "Good morning! \uD83D\uDCF0 What news interests you?", responses: [
+        { label: "Science", nextId: "sci" }, { label: "Sports", nextId: "sports" }, { label: "Tech", nextId: "tech" }
+      ]},
+      { id: "sci", text: "Scientists discovered a new species of deep-sea fish! \uD83D\uDC20", responses: [
+        { label: "Tell me more", nextId: "sci-more" }, { label: "Other news", nextId: "root" }
+      ]},
+      { id: "sports", text: "The soccer World Cup qualifiers are underway! \u26BD", responses: [
+        { label: "Scores?", nextId: "scores" }
+      ]},
+      { id: "tech", text: "A new AI can translate 200 languages in real-time! \uD83E\uDD16", responses: [
+        { label: "How?", nextId: "tech-how" }
+      ]},
+      { id: "sci-more", text: "The fish was found 8,000 meters deep and glows in the dark! \uD83C\uDF1F", responses: [] },
+      { id: "scores", text: "Brazil 2-1 Argentina, Germany 3-0 France (practice matches)", responses: [] },
+      { id: "tech-how", text: "It uses transformer architecture trained on multilingual datasets! \uD83E\uDDE0", responses: [] },
+    ],
+  },
+  "Debate Bot": {
+    emoji: "\uD83E\uDD14", description: "A debate and critical thinking chatbot",
+    nodes: [
+      { id: "root", text: "Let's debate! \uD83E\uDD14 Pick a topic:", responses: [
+        { label: "Should AI do homework?", nextId: "homework" }, { label: "Are video games good?", nextId: "games" }
+      ]},
+      { id: "homework", text: "Some say AI saves time. Others say students don't learn. What do you think?", responses: [
+        { label: "AI should help", nextId: "ai-yes" }, { label: "Students should do it", nextId: "ai-no" }
+      ]},
+      { id: "games", text: "Games can teach problem-solving, but too much can be unhealthy. Your view?", responses: [
+        { label: "Games are good", nextId: "game-yes" }, { label: "Limit screen time", nextId: "game-no" }
+      ]},
+      { id: "ai-yes", text: "Good point! AI as a tutor helps explain concepts. But should it write the answers? That's where it gets tricky!", responses: [] },
+      { id: "ai-no", text: "True! Doing the work yourself builds understanding. Maybe AI can check your work instead of doing it?", responses: [] },
+      { id: "game-yes", text: "Agreed! Games teach strategy, teamwork, and creativity. The key is balance! \u2696\uFE0F", responses: [] },
+      { id: "game-no", text: "Smart thinking! Setting limits keeps gaming fun without hurting school, sleep, or health!", responses: [] },
+    ],
+  },
 };
 
 const CHALLENGES: Challenge[] = [
@@ -187,6 +493,120 @@ const CHALLENGES: Challenge[] = [
     descriptionC: "Include a node with branching factor >=3.",
     check: (nodes) => nodes.some((n) => n.responses.length >= 3),
     reward: 15,
+  },
+  // ═══════ 5x CONTENT EXPANSION (12 new challenges) ═══════
+  {
+    id: "ch4", title: "Balanced Branches",
+    description: "Every choice node should have at least 2 options.",
+    descriptionC: "All non-terminal nodes must have branching factor >= 2.",
+    check: (nodes) => nodes.filter((n) => n.responses.length > 0).every((n) => n.responses.length >= 2),
+    reward: 20,
+  },
+  {
+    id: "ch5", title: "Quick Escape",
+    description: "Add a way for users to end the conversation from any level.",
+    descriptionC: "Every non-terminal node should have a path to a terminal within 2 hops.",
+    check: (nodes) => {
+      const terminals = new Set(nodes.filter(n => n.responses.length === 0).map(n => n.id));
+      return nodes.filter(n => n.responses.length > 0).every(n =>
+        n.responses.some(r => r.nextId && (terminals.has(r.nextId) || nodes.find(nn => nn.id === r.nextId)?.responses.some(rr => rr.nextId && terminals.has(rr.nextId))))
+      );
+    },
+    reward: 25,
+  },
+  {
+    id: "ch6", title: "Big Bot",
+    description: "Build a chatbot with at least 8 nodes total!",
+    descriptionC: "Graph size >= 8 nodes demonstrates conversation complexity.",
+    check: (nodes) => nodes.length >= 8,
+    reward: 20,
+  },
+  {
+    id: "ch7", title: "No Dead Links",
+    description: "Make sure every response button leads somewhere.",
+    descriptionC: "All response edges must reference existing node IDs (no null nextId).",
+    check: (nodes) => {
+      const ids = new Set(nodes.map(n => n.id));
+      return nodes.every(n => n.responses.every(r => r.nextId === null || ids.has(r.nextId)));
+    },
+    reward: 15,
+  },
+  {
+    id: "ch8", title: "Welcome & Goodbye",
+    description: "Start with a greeting and end with a farewell!",
+    descriptionC: "Root node contains greeting and all terminals contain farewell-type text.",
+    check: (nodes) => {
+      const root = nodes.find(n => n.id === 'root');
+      const terminals = nodes.filter(n => n.responses.length === 0);
+      return !!root && root.text.length > 5 && terminals.length > 0 && terminals.every(t => t.text.length > 5);
+    },
+    reward: 15,
+  },
+  {
+    id: "ch9", title: "Loop Back",
+    description: "Add a 'Go back to start' option somewhere in your bot.",
+    descriptionC: "At least one non-root node has a response linking back to 'root' (creating a cycle).",
+    check: (nodes) => nodes.some(n => n.id !== 'root' && n.responses.some(r => r.nextId === 'root')),
+    reward: 20,
+  },
+  {
+    id: "ch10", title: "Super Deep",
+    description: "Create a conversation path 6 messages deep!",
+    descriptionC: "Longest path from root to terminal >= 6 nodes.",
+    check: (nodes) => {
+      function maxDepth(id: string, visited: Set<string>): number {
+        const node = nodes.find((n) => n.id === id);
+        if (!node || visited.has(id)) return 0;
+        visited.add(id);
+        if (node.responses.length === 0) return 1;
+        const depths = node.responses.filter(r => r.nextId).map(r => maxDepth(r.nextId!, new Set(visited)));
+        return 1 + Math.max(0, ...depths);
+      }
+      return maxDepth("root", new Set()) >= 6;
+    },
+    reward: 30,
+  },
+  {
+    id: "ch11", title: "Five Endings",
+    description: "Build a bot with 5 different ways to end the conversation!",
+    descriptionC: "Graph has >= 5 terminal nodes (leaf nodes with no outgoing edges).",
+    check: (nodes) => nodes.filter(n => n.responses.length === 0).length >= 5,
+    reward: 25,
+  },
+  {
+    id: "ch12", title: "Menu Master",
+    description: "Have one node with 4 or more response options!",
+    descriptionC: "At least one node with branching factor >= 4.",
+    check: (nodes) => nodes.some(n => n.responses.length >= 4),
+    reward: 20,
+  },
+  {
+    id: "ch13", title: "Topic Expert",
+    description: "Create a bot with 10+ nodes — you're a real conversation designer!",
+    descriptionC: "Graph size >= 10 nodes with connected structure.",
+    check: (nodes) => nodes.length >= 10,
+    reward: 30,
+  },
+  {
+    id: "ch14", title: "Helpful Bot",
+    description: "Every ending should have a helpful message (at least 10 characters).",
+    descriptionC: "All terminal nodes contain substantive text (>= 10 chars), not just 'bye'.",
+    check: (nodes) => {
+      const terminals = nodes.filter(n => n.responses.length === 0);
+      return terminals.length > 0 && terminals.every(t => t.text.length >= 10);
+    },
+    reward: 15,
+  },
+  {
+    id: "ch15", title: "Conversation Web",
+    description: "Build a bot where at least 2 different paths lead to the same node!",
+    descriptionC: "Graph contains a merge point (node with in-degree >= 2).",
+    check: (nodes) => {
+      const inDegree: Record<string, number> = {};
+      nodes.forEach(n => n.responses.forEach(r => { if (r.nextId) inDegree[r.nextId] = (inDegree[r.nextId] || 0) + 1; }));
+      return Object.values(inDegree).some(d => d >= 2);
+    },
+    reward: 25,
   },
 ];
 
@@ -245,8 +665,9 @@ function computeMetrics(nodes: BotNode[]) {
     const node = nodes.find((n) => n.id === id);
     if (!node || v.has(id)) return 0;
     v.add(id);
-    if (node.responses.length === 0) return 1;
-    return 1 + Math.max(...node.responses.filter((r) => r.nextId).map((r) => depth(r.nextId!, new Set(v))));
+    const linked = node.responses.filter((r) => r.nextId);
+    if (linked.length === 0) return 1;
+    return 1 + Math.max(...linked.map((r) => depth(r.nextId!, new Set(v))));
   }
   return { nodeCount: nodes.length, edges, terminals, maxBranch, maxDepth: depth("root", new Set()) };
 }
