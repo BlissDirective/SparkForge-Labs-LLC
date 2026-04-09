@@ -92,7 +92,7 @@ const PERSONALITIES: Personality[] = [
   },
 ];
 
-const TEMPLATES: Record<string, { emoji: string; description: string; nodes: BotNode[] }> = {
+const TEMPLATES: Record<string, { emoji: string; description: string; nodes: BotNode[]; isAI?: boolean }> = {
   "Pizza Bot": {
     emoji: "\uD83C\uDF55", description: "A pizza ordering chatbot",
     nodes: [
@@ -713,8 +713,21 @@ export function ChatbotBuilderGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";
-  const { data: _dynamicContent } = useGameContent('chatbot-builder', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('chatbot-builder', ageBand);
+  // Dynamic templates from admin curation pipeline (merged below)
+  const allTemplates = useMemo(() => {
+    if (!dynamicContent?.scenarios?.length) return TEMPLATES;
+    const merged = { ...TEMPLATES };
+    for (const s of dynamicContent.scenarios) {
+      try {
+        const parsed = JSON.parse(s.content_body) as { name: string; emoji: string; description: string; nodes: BotNode[] };
+        if (parsed.name && parsed.nodes?.length) {
+          merged[parsed.name] = { emoji: parsed.emoji || '🤖', description: parsed.description || '', nodes: parsed.nodes, isAI: true };
+        }
+      } catch { /* skip malformed */ }
+    }
+    return merged;
+  }, [dynamicContent?.scenarios]);
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
   const [learnIdx, setLearnIdx] = useState(0);
@@ -756,7 +769,7 @@ export function ChatbotBuilderGame() {
 
   // --- Actions ---
   function loadTemplate(name: string) {
-    setNodes(TEMPLATES[name]?.nodes || TEMPLATES["Blank"].nodes);
+    setNodes(allTemplates[name]?.nodes || allTemplates["Blank"].nodes);
     setActiveTemplate(name); setViewMode("tree"); setTestPath(["root"]);
   }
 
@@ -910,7 +923,7 @@ export function ChatbotBuilderGame() {
                   <motion.div key="build" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col overflow-hidden">
                     {/* -- Toolbar -- */}
                     <div className="flex items-center gap-1 px-2 py-1.5 border-b border-white/5 overflow-x-auto">
-                      {Object.entries(TEMPLATES).map(([name, t]) => (
+                      {Object.entries(allTemplates).map(([name, t]) => (
                         <button key={name} onClick={() => loadTemplate(name)}
                           className={`px-2 py-1 rounded-lg font-body whitespace-nowrap border text-2xs ${activeTemplate === name ? "text-white" : "text-white/30"}`}
                           style={activeTemplate === name ? { borderColor: pers.colors.border, backgroundColor: pers.colors.bg } : {}}>

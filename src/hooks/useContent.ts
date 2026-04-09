@@ -51,20 +51,38 @@ export function useDailyChallenge(ageBand: string) {
 
 // ═══ Phase 1: Enhanced Content Hooks ═══
 
-// Fetch game-specific dynamic content (scenarios + challenges) for a game
+// Map FL-Lite game slugs → their content_queue type for fetching curated content
+const FLL_TYPE_MAP: Record<string, string> = {
+  'data-detective': 'fll_data_detective',
+  'robot-vacuum': 'fll_robot_vacuum',
+  'camera-quest': 'fll_camera_quest',
+  'chatbot-builder': 'fll_chatbot_builder',
+  'emoji-decoder': 'fll_emoji_decoder',
+  'code-blocks': 'fll_code_blocks',
+  'my-first-ai-app': 'fll_my_first_ai_app',
+  'future-forge': 'fll_future_forge',
+  'ai-or-not': 'fll_ai_or_not',
+};
+
+// Fetch game-specific dynamic content (scenarios + challenges + FL-Lite curated) for a game
 export function useGameContent(gameSlug: string, ageBand: string) {
+  const fllType = FLL_TYPE_MAP[gameSlug];
+  const types = fllType
+    ? `game_scenario,game_challenge,${fllType}`
+    : 'game_scenario,game_challenge';
+
   return useQuery({
     queryKey: ['content', 'game', gameSlug, ageBand],
     queryFn: () =>
       apiFetch(
-        `/api/content?ageBand=${ageBand}&type=game_scenario,game_challenge&gameSlug=${gameSlug}&limit=10`
+        `/api/content?ageBand=${ageBand}&type=${types}&gameSlug=${gameSlug}&limit=20`
       ) as Promise<{ items?: Content[] }>,
     enabled: !!gameSlug && !!ageBand,
     staleTime: 5 * 60 * 1000, // 5 minutes — game content refreshes more often
     select: (data) => {
       const items = (data?.items || []) as Content[];
       return {
-        scenarios: items.filter((i) => i.type === 'game_scenario'),
+        scenarios: items.filter((i) => i.type === 'game_scenario' || (fllType && i.type === fllType)),
         challenges: items.filter((i) => i.type === 'game_challenge'),
       };
     },

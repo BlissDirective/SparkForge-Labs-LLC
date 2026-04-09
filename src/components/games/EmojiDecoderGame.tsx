@@ -48,6 +48,7 @@ interface EmojiRound {
   difficulty: Difficulty;
   category: string;
   bandMin: 'A' | 'B';
+  isAI?: boolean;
 }
 
 interface ConceptCard {
@@ -278,8 +279,7 @@ export function EmojiDecoderGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('emoji-decoder', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('emoji-decoder', ageBand);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -299,10 +299,17 @@ export function EmojiDecoderGame() {
   // B-10: Clean up timer on unmount to prevent firing on unmounted component
   useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
 
+  // Merge hardcoded + dynamic rounds, then filter/shuffle/slice
   const rounds = useMemo(() => {
-    const filtered = ALL_ROUNDS.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
+    let pool = [...ALL_ROUNDS];
+    if (dynamicContent?.scenarios?.length) {
+      for (const s of dynamicContent.scenarios) {
+        try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as EmojiRound); } catch { /* skip */ }
+      }
+    }
+    const filtered = pool.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
     return [...filtered].sort(() => Math.random() - 0.5).slice(0, ageBand === 'A' ? 8 : 10);
-  }, [ageBand]);
+  }, [ageBand, dynamicContent?.scenarios]);
 
   const round = rounds[roundIdx];
   const totalRounds = rounds.length;

@@ -61,6 +61,7 @@ interface Challenge {
   pseudocode: string;
   hint: string;
   band: 'A' | 'B' | 'C';
+  isAI?: boolean;
 }
 
 // --- Constants ---
@@ -589,8 +590,7 @@ export function CodeBlocksGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('code-blocks', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('code-blocks', ageBand);
   const _isDesktop = useIsDesktop();
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -609,10 +609,16 @@ export function CodeBlocksGame() {
   const [learnIdx, setLearnIdx] = useState(0);
   const terminalRef = useRef<HTMLDivElement>(null);
 
-  const challenges = useMemo(
-    () => ALL_CHALLENGES.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  // Merge hardcoded + dynamic challenges, filter by age band
+  const challenges = useMemo(() => {
+    let pool = [...ALL_CHALLENGES];
+    if (dynamicContent?.scenarios?.length) {
+      for (const s of dynamicContent.scenarios) {
+        try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as Challenge); } catch { /* skip */ }
+      }
+    }
+    return pool.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]);
+  }, [ageBand, dynamicContent?.scenarios]);
   const challenge = challenges[challengeIdx];
 
   const particles = useMemo(

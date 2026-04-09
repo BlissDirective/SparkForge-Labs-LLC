@@ -44,6 +44,7 @@ interface Scenario {
   bonusCapability?: string;
   impactText: string;
   impactTextSimple: string;
+  isAI?: boolean;
 }
 
 const CAPABILITIES: Capability[] = [
@@ -278,14 +279,21 @@ const SCENARIOS: Scenario[] = [
 export default function FutureForgeGame() {
   const game = useGameStore();
   const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
-  const { data: _dynamicContent } = useGameContent('future-forge', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('future-forge', ageBand);
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [round, setRound] = useState(1);
   const totalRounds = 8;
 
-  const scenario = useMemo(() => SCENARIOS[(round - 1) % SCENARIOS.length], [round]);
+  // Merge hardcoded + dynamic scenarios
+  const allScenarios = useMemo(() => {
+    if (!dynamicContent?.scenarios?.length) return SCENARIOS;
+    const dynamic: Scenario[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as Scenario; } catch { return null; } })
+      .filter((s): s is Scenario => s !== null);
+    return [...SCENARIOS, ...dynamic];
+  }, [dynamicContent?.scenarios]);
+  const scenario = useMemo(() => allScenarios[(round - 1) % allScenarios.length], [round, allScenarios]);
   const [selected, setSelected] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [roundScore, setRoundScore] = useState(0);

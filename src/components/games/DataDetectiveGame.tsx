@@ -36,6 +36,7 @@ interface DataCase {
   correctIndex: number;
   explanation: string;
   explanationKids: string;
+  isAI?: boolean;
 }
 
 const CASES: DataCase[] = [
@@ -451,8 +452,7 @@ export function DataDetectiveGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('data-detective', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('data-detective', ageBand);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -466,7 +466,15 @@ export function DataDetectiveGame() {
     if (ageBand === 'B') return ['easy', 'medium'];
     return ['easy', 'medium', 'hard', 'expert'];
   }, [ageBand]);
-  const cases = useMemo(() => CASES.filter(c => allowedDifficulties.includes(c.difficulty)), [allowedDifficulties]);
+  // Merge hardcoded + dynamic content from admin curation pipeline
+  const cases = useMemo(() => {
+    const hardcoded = CASES.filter(c => allowedDifficulties.includes(c.difficulty));
+    if (!dynamicContent?.scenarios?.length) return hardcoded;
+    const dynamic: DataCase[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as DataCase; } catch { return null; } })
+      .filter((c): c is DataCase => c !== null && allowedDifficulties.includes(c.difficulty));
+    return [...hardcoded, ...dynamic];
+  }, [allowedDifficulties, dynamicContent?.scenarios]);
 
   const currentCase = cases[caseIdx];
   const maxBar = useMemo(() => Math.max(...currentCase.data.map(d => d.value)), [currentCase.data]);

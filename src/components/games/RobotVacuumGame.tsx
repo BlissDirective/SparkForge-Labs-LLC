@@ -59,6 +59,7 @@ interface Room {
   dirt: [number, number][];
   charger: [number, number];
   optimalSteps: number;
+  isAI?: boolean;
 }
 
 const CONDITIONS = [
@@ -446,8 +447,7 @@ export function RobotVacuumGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('robot-vacuum', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('robot-vacuum', ageBand);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -456,11 +456,16 @@ export function RobotVacuumGame() {
     { condition: 'Path clear', action: 'Move forward' },
     { condition: 'See wall ahead', action: 'Turn right' },
   ]);
-  // Filter rooms by age band: A=easy, B=easy+medium, C=all tiers
+  // Filter rooms by age band: A=easy, B=easy+medium, C=all tiers — merge dynamic content
   const rooms = useMemo(() => {
     const allowed: RoomDifficulty[] = ageBand === 'A' ? ['easy'] : ageBand === 'B' ? ['easy', 'medium'] : ['easy', 'medium', 'hard', 'expert'];
-    return ROOMS.filter(r => allowed.includes(r.difficulty));
-  }, [ageBand]);
+    const hardcoded = ROOMS.filter(r => allowed.includes(r.difficulty));
+    if (!dynamicContent?.scenarios?.length) return hardcoded;
+    const dynamic: Room[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as Room; } catch { return null; } })
+      .filter((r): r is Room => r !== null && allowed.includes(r.difficulty));
+    return [...hardcoded, ...dynamic];
+  }, [ageBand, dynamicContent?.scenarios]);
 
   const [roomIdx, setRoomIdx] = useState(0);
   const [running, setRunning] = useState(false);

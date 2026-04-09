@@ -27,6 +27,7 @@ interface Scenario {
   description: string; descriptionB: string;
   answer: TimeCategory; explanation: string; explanationB: string;
   funFact: string; year?: string; bandMin: 'A' | 'B';
+  isAI?: boolean;
 }
 
 interface ConceptCard {
@@ -183,8 +184,7 @@ export function AiOrNotGame() {
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
-  const { data: _dynamicContent } = useGameContent('ai-or-not', ageBand);
-  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { data: dynamicContent } = useGameContent('ai-or-not', ageBand);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -197,10 +197,17 @@ export function AiOrNotGame() {
   const [predictionText, setPredictionText] = useState('');
   const [predictionSubmitted, setPredictionSubmitted] = useState(false);
 
+  // Merge hardcoded + dynamic scenarios, filter/shuffle/slice
   const rounds = useMemo(() => {
-    const filtered = ALL_SCENARIOS.filter(s => BAND_ORDER[s.bandMin] <= BAND_ORDER[ageBand]);
+    let pool = [...ALL_SCENARIOS];
+    if (dynamicContent?.scenarios?.length) {
+      for (const s of dynamicContent.scenarios) {
+        try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as Scenario); } catch { /* skip */ }
+      }
+    }
+    const filtered = pool.filter(s => BAND_ORDER[s.bandMin] <= BAND_ORDER[ageBand]);
     return [...filtered].sort(() => Math.random() - 0.5).slice(0, ageBand === 'A' ? 8 : 10);
-  }, [ageBand]);
+  }, [ageBand, dynamicContent?.scenarios]);
 
   const round = rounds[roundIdx];
   const totalRounds = rounds.length;
