@@ -1052,3 +1052,258 @@ AI Spy, Time Machine, Human vs Machine, Treat Trainer, Neuron Relay, Pixel Inves
 - **Hard tier:** 10 pts/correct, -3 pts for wrong (penalty)
 - **Expert tier:** 10 pts/correct, -5 pts for wrong (strict)
 - Set `maxScore` via `game.setMaxScore()` accurately per game
+
+---
+
+## 5. Content Expansion Plan (~11x)
+
+### 5.1 Strategy Overview
+
+Matching the FL-Lite content expansion pattern, each Standard tier game receives a three-layer content expansion:
+
+```
+Layer 1: 3x Hardcoded Seed Content (in .tsx files)
+Layer 2: 3x AI Admin Curation (Claude API → content_queue → admin review)
+Layer 3: 3x AI Live Templates (real-time via useAIContent hook)
+─────────────────────────────────────────────────────
+Total:  ~11x content pool per game
+```
+
+### 5.2 Per-Game Expansion Targets
+
+| # | Game | Current Items | 3x Target | New Items | Post-Expansion Play Time |
+|---|------|-------------|-----------|-----------|-------------------------|
+| 1 | AI Spy | 56 | 168 | +112 scenes/items | 25-40 min |
+| 2 | Time Machine | 14 | 42 | +28 milestones | 15-30 min |
+| 3 | Human vs Machine | 32 | 96 | +64 challenges | 15-25 min |
+| 4 | Treat Trainer | 1 maze | 6 mazes | +5 mazes + param sets | 20-35 min |
+| 5 | Neuron Relay | 16 | 48 | +32 puzzles | 15-25 min |
+| 6 | Pixel Investigator | 12 | 36 | +24 rounds | 10-15 min |
+| 7 | Word Predictor | 78 | 234 | +156 sentences/predictions | 15-25 min |
+| 8 | Token Chopper | 10 | 30 | +20 challenges | 12-20 min |
+| 9 | AI Art Detective | 34 | 102 | +68 rounds/tips | 15-25 min |
+| 10 | Tool Picker | 51 | 153 | +102 tasks/tools | 10-20 min |
+| 11 | Data Shield | 78 | 234 | +156 scenarios/data points | 12-20 min |
+| 12 | Real or Fake | 40 | 120 | +80 rounds/tips | 15-25 min |
+| 13 | Ethics Courtroom | 56 | 168 | +112 cases/perspectives/args | 30-50 min |
+| 14 | Fool the AI | 46 | 138 | +92 items/challenges | 12-20 min |
+| 15 | Build Classifier | 34 | 102 | +68 images/categories | 20-35 min |
+| 16 | Prediction Market | 32 | 96 | +64 predictions/analysis | 10-18 min |
+| 17 | Sentiment Scanner | 35 | 105 | +70 challenges/vocab | 12-20 min |
+| 18 | Lost in Translation | 42 | 126 | +84 idiom rounds | 10-18 min |
+| 19 | Career Explorer | 59 | 177 | +118 careers/skills (+ Band A) | 15-25 min |
+| 20 | API Explorer | 25 | 75 | +50 endpoints (+ Band A/B) | 20-35 min |
+| | **Totals** | **696** | **2,088** | **+1,392** | **~5-8 hrs total** |
+
+### 5.3 Difficulty-Tagged Content Structure
+
+All expanded content must include difficulty tags for the new DifficultySelector:
+
+```typescript
+interface GameContentItem {
+  id: string;
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
+  ageBand: 'A' | 'B' | 'C';
+  // ... game-specific fields
+}
+```
+
+**Difficulty distribution per game (3x target):**
+
+| Difficulty | % of Content | Available To | Scoring Mode |
+|-----------|-------------|-------------|-------------|
+| Easy | 30% | A, B, C | Participation (10 correct, +3 wrong) |
+| Medium | 35% | A, B, C | Standard (10 correct, 0 wrong) |
+| Hard | 25% | B, C | Strict (10 correct, -3 wrong) |
+| Expert | 10% | C only | Challenge (10 correct, -5 wrong) |
+
+### 5.4 Game-Specific Expansion Details
+
+#### AI Spy — 56 → 168 items
+- **Add 20 new scenes** (8 Band A, 7 Band B, 5 Band C) across 4 difficulty tiers
+- New scene categories: Healthcare AI, Transportation AI, Entertainment AI, Financial AI, Agricultural AI
+- Each scene: 4-6 items with dual explanations (simple + technical)
+- Add "hidden AI" scenes where seemingly non-tech items use AI (e.g., supply chain, HVAC)
+
+#### Time Machine — 14 → 42 milestones
+- **Add 28 new milestones** spanning 1943-2026
+- Include international AI history (Chinese AI, EU regulations, African AI initiatives)
+- Add "future milestones" category for Band C (speculative, marked as such)
+- Difficulty: Easy = major milestones (widely known), Expert = obscure/technical
+
+#### Treat Trainer — 1 → 6 mazes
+- **Add 5 new maze layouts** with increasing complexity:
+  - Maze 2: 7x7, 12 walls, 2 goals (multi-objective)
+  - Maze 3: 9x9, 15 walls, obstacles that move
+  - Maze 4: 7x7, 10 walls, negative reward zones
+  - Maze 5: 9x9, sparse rewards, delayed gratification
+  - Maze 6: 11x11, complex maze, full RL challenge (Expert)
+- Add new reward parameters: curiosity bonus, risk aversion, energy cost
+
+#### Ethics Courtroom — 4 → 12 cases
+- **Add 8 new ethics cases:**
+  - Autonomous Weapons Decision (B,C)
+  - AI in Criminal Sentencing (B,C)
+  - Deepfake Legislation (A,B,C)
+  - AI Content Moderation (A,B,C)
+  - Genetic AI Predictions (C)
+  - AI Teacher Replacement (A,B,C)
+  - Social Credit Scoring (B,C)
+  - AI Environmental Impact (A,B,C)
+- Each with 3 perspectives x 3 arguments = 72 new argument items
+
+#### Build Classifier — 30 → 90 images
+- **Add 4 new categories:** Weather, Emotion, Music Genre, Plant Species
+- 60 new training/test images across 7 total categories
+- Band C gets: more trick tests, data poisoning scenarios, class imbalance challenges
+- Add "Build Your Own Category" mode for Expert tier
+
+#### Career Explorer — 8 → 24 careers (+ Band A)
+- **Add 16 new careers** including 8 Band A careers:
+  - Band A: AI Artist, Robot Helper, Data Collector, Smart Toy Designer, AI Music Maker, Animal AI Tracker, Weather AI Helper, Space AI Explorer
+  - Band B: AI Trainer, Prompt Engineer, AI Safety Researcher, Autonomous Vehicle Engineer
+  - Band C: ML Infrastructure Engineer, AI Research Scientist, Computational Linguist, AI Hardware Designer
+
+#### API Explorer — 5 → 15 endpoints (+ Band A/B)
+- **Band A mode:** Visual API builder with drag-and-drop blocks (no JSON required)
+- **Band B mode:** Guided form-based requests with step-by-step tutorials
+- **Band C mode:** Full code-level exploration (current behavior)
+- **10 new endpoints:** summarize, image-describe, recommend, compare, moderate, transcribe, detect-objects, predict-next, embed, fine-tune
+
+---
+
+## 6. AI Content Generation Strategy
+
+### 6.1 Architecture
+
+```
+┌─────────────────┐     ┌──────────────────────┐     ┌─────────────┐
+│  Game Component  │────▶│  useAIContent() hook  │────▶│  API Route   │
+│  (20 Standard)   │     │  (client-side cache)  │     │  /api/ai/    │
+│                  │◀────│  merge + validate     │◀────│  generate    │
+└─────────────────┘     └──────────────────────┘     └──────┬──────┘
+                                                            │
+                                                     ┌──────▼──────┐
+                                                     │  Claude API  │
+                                                     │  (Anthropic) │
+                                                     └─────────────┘
+```
+
+### 6.2 New GameIds (20 additions to ai-content-generator.ts)
+
+```typescript
+export type GameId = 
+  // ... existing Flagship (5) + FL-Lite (9) ...
+  // ═══ Standard Games (20 new GameIds) ═══
+  | 'ai-spy' | 'time-machine' | 'human-vs-machine'
+  | 'treat-trainer' | 'neuron-relay' | 'pixel-investigator'
+  | 'word-predictor' | 'token-chopper' | 'ai-art-detective'
+  | 'tool-picker' | 'data-shield' | 'real-or-fake'
+  | 'ethics-courtroom' | 'fool-the-ai' | 'build-classifier'
+  | 'prediction-market' | 'sentiment-scanner' | 'lost-in-translation'
+  | 'career-explorer' | 'api-explorer';
+```
+
+### 6.3 New Content Types (60 additions — 3 per game)
+
+| # | Game | Content Type 1 | Content Type 2 | Content Type 3 |
+|---|------|---------------|---------------|---------------|
+| 1 | AI Spy | `spy-scene` | `spy-item-set` | `spy-explanation` |
+| 2 | Time Machine | `timeline-milestone` | `era-challenge` | `ai-history-card` |
+| 3 | Human vs Machine | `hvm-challenge` | `hvm-comparison` | `hvm-concept-card` |
+| 4 | Treat Trainer | `rl-maze` | `reward-challenge` | `rl-learn-card` |
+| 5 | Neuron Relay | `neuron-puzzle` | `network-challenge` | `neural-concept-card` |
+| 6 | Pixel Investigator | `pixel-image` | `reveal-challenge` | `cnn-learn-card` |
+| 7 | Word Predictor | `prediction-sentence` | `probability-challenge` | `llm-concept-card` |
+| 8 | Token Chopper | `token-challenge` | `tokenizer-puzzle` | `token-learn-card` |
+| 9 | AI Art Detective | `art-comparison` | `detection-challenge` | `genai-learn-card` |
+| 10 | Tool Picker | `tool-task` | `multi-tool-scenario` | `ai-tool-card` |
+| 11 | Data Shield | `privacy-scenario` | `data-dilemma` | `privacy-learn-card` |
+| 12 | Real or Fake | `fake-content` | `detection-tip` | `misinfo-learn-card` |
+| 13 | Ethics Courtroom | `ethics-case` | `stakeholder-perspective` | `ethics-framework-card` |
+| 14 | Fool the AI | `classification-item` | `adversarial-challenge` | `cv-learn-card` |
+| 15 | Build Classifier | `training-image-set` | `test-challenge` | `ml-pipeline-card` |
+| 16 | Prediction Market | `ai-prediction` | `forecast-analysis` | `futures-learn-card` |
+| 17 | Sentiment Scanner | `sentiment-challenge` | `emotion-text` | `nlp-learn-card` |
+| 18 | Lost in Translation | `translation-chain` | `idiom-challenge` | `mt-learn-card` |
+| 19 | Career Explorer | `ai-career` | `skill-matching` | `career-learn-card` |
+| 20 | API Explorer | `api-endpoint` | `request-challenge` | `api-concept-card` |
+
+### 6.4 Sample Prompt Templates
+
+#### AI Spy — `spy-scene` prompt
+```
+Generate an AI Spy scene for SparkForge educational game.
+Age band: {ageBand} ({AGE_BAND_CONTEXT})
+Difficulty: {difficulty}
+
+Create a scene set in {context.setting} containing 4-6 items.
+Each item needs:
+- name: short item name
+- isAI: boolean (is this AI-powered?)
+- simpleExplanation: 1-2 sentences for ages 7-12
+- technicalExplanation: 1-2 sentences for ages 13-16
+
+Ensure a mix of AI and non-AI items (roughly 50/50).
+AI items should use real AI techniques (recommendations, NLP, computer vision, etc.)
+Non-AI items should be plausible distractors.
+```
+
+#### Ethics Courtroom — `ethics-case` prompt
+```
+Generate an AI ethics case for SparkForge Ethics Courtroom game.
+Age band: {ageBand} ({AGE_BAND_CONTEXT})
+Difficulty: {difficulty}
+
+Create a realistic AI ethics dilemma with:
+- title: case name (3-5 words)
+- emoji: relevant emoji
+- scenario: 2-3 paragraph description (age-appropriate)
+- scenarioC: advanced version with technical/legal details
+- question: the core ethical question
+- perspectives: array of 3 different viewpoints, each with:
+  - name: perspective label
+  - emoji: viewpoint emoji
+  - arguments: array of 3 arguments with strength rating (1-3) and explanation
+
+Topics to explore: algorithmic fairness, privacy, autonomy, transparency,
+accountability, environmental impact, labor displacement, creative rights.
+Avoid: violence, explicit content, real named individuals.
+```
+
+### 6.5 Admin Curation Pipeline Extension
+
+Extend the existing admin content pipeline (from FL-Lite audit) for Standard tier:
+
+| Component | Change | File |
+|-----------|--------|------|
+| `CONTENT_TYPE_MAP` | +60 new content type labels | `src/lib/ai-content-generator.ts` |
+| `GAME_WORLD_MAP` | +20 new game→lab mappings | `src/lib/ai-content-generator.ts` |
+| `AdminContentClient` | +20 game filter options, new icons | `src/components/admin/AdminContentClient.tsx` |
+| SQL migration | +20 game enum values in content_queue | `supabase/migrations/` |
+| Rate limits | Maintain 15 requests/game/session | `src/hooks/useAIContent.ts` |
+
+### 6.6 Cost Estimation (Standard Tier)
+
+| Metric | Value |
+|--------|-------|
+| API calls per session | ~4-8 (fewer than FL-Lite due to simpler content) |
+| Tokens per call | ~800-1,500 |
+| Cost per session | ~$0.012-0.018 |
+| 1,000 DAU x 2 sessions | ~$24-36/day |
+| Monthly (Standard tier) | ~$720-1,080 |
+| localStorage cache hit rate | ~75-85% |
+| Post-cache cost/session | ~$0.003-0.006 |
+
+### 6.7 Content Safety Pipeline
+
+Identical to Flagship/FL-Lite (from ai-content-generator.ts):
+
+| Check | Implementation | Failure Action |
+|-------|---------------|----------------|
+| Age appropriateness | System prompt per age band + forbidden topics | Regenerate with stricter prompt |
+| No real names | Post-generation regex for public figures | Strip and replace |
+| No violence/harm | System prompt excludes violence, weapons, substance | Regenerate |
+| No PII | Email/phone/address pattern matching | Strip matched content |
+| Bias sensitivity | Anti-stereotyping instructions | Regenerate |
+| Schema validation | Zod validation of JSON response | Fallback to static content |
