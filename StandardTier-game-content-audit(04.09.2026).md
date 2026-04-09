@@ -1307,3 +1307,277 @@ Identical to Flagship/FL-Lite (from ai-content-generator.ts):
 | No PII | Email/phone/address pattern matching | Strip matched content |
 | Bias sensitivity | Anti-stereotyping instructions | Regenerate |
 | Schema validation | Zod validation of JSON response | Fallback to static content |
+
+---
+
+## 7. Educational Impact Assessment
+
+### 7.1 Bloom's Taxonomy Mapping
+
+| Level | Description | Games Covering | Coverage | Post-Expansion Target |
+|-------|-------------|---------------|----------|----------------------|
+| **Remember** | Recall facts/terms | 16/20 (80%) | Good | 20/20 (100%) |
+| **Understand** | Explain concepts | 18/20 (90%) | Good | 20/20 (100%) |
+| **Apply** | Use knowledge in new situations | 12/20 (60%) | Moderate | 18/20 (90%) |
+| **Analyze** | Break down, examine patterns | 8/20 (40%) | Weak | 15/20 (75%) |
+| **Evaluate** | Judge, justify decisions | 3/20 (15%) | Very Weak | 10/20 (50%) |
+| **Create** | Generate novel output | 2/20 (10%) | Very Weak | 8/20 (40%) |
+
+### 7.2 Per-Game Bloom's Coverage
+
+| Game | Remember | Understand | Apply | Analyze | Evaluate | Create | Primary Level |
+|------|----------|-----------|-------|---------|----------|--------|--------------|
+| AI Spy | Y | Y | Y | N | N | N | Apply |
+| Time Machine | Y | Y | N | N | N | N | Remember |
+| Human vs Machine | Y | Y | Y | N | Y | Y | Evaluate |
+| Treat Trainer | Y | Y | Y | Y | N | N | Apply |
+| Neuron Relay | Y | Y | Y | Y | N | N | Apply |
+| Pixel Investigator | Y | Y | Y | Y | N | N | Analyze |
+| Word Predictor | Y | Y | Y | Y | N | N | Analyze |
+| Token Chopper | Y | Y | Y | N | N | Y | Create |
+| AI Art Detective | Y | Y | Y | Y | N | N | Analyze |
+| Tool Picker | Y | Y | Y | N | N | N | Apply |
+| Data Shield | Y | Y | Y | N | Y | N | Evaluate |
+| Real or Fake | Y | Y | Y | Y | Y | N | Evaluate |
+| Ethics Courtroom | Y | Y | Y | Y | Y | N | Evaluate |
+| Fool the AI | Y | Y | Y | Y | N | N | Analyze |
+| Build Classifier | Y | Y | Y | Y | N | N | Apply |
+| Prediction Market | Y | Y | N | Y | Y | N | Evaluate |
+| Sentiment Scanner | Y | Y | Y | N | N | Y | Create |
+| Lost in Translation | Y | Y | N | N | N | N | Understand |
+| Career Explorer | Y | Y | Y | N | N | N | Apply |
+| API Explorer | Y | Y | Y | Y | N | Y | Create |
+
+### 7.3 Learning Outcome Gaps
+
+#### Gap 1: Passive Consumption (4 games)
+**Games:** Time Machine, Lost in Translation, Prediction Market, AI Art Detective
+**Issue:** Players click through content without making meaningful decisions. No comprehension check.
+**Fix:** Add prediction quizzes ("What year was this?"), comparison tasks, or recall challenges after each round.
+
+#### Gap 2: No Band A Content (2 games)
+**Games:** Career Explorer, API Explorer
+**Issue:** 7-9 year olds receive content designed for 10-16 year olds.
+**Fix:** Create age-appropriate Band A content:
+- Career Explorer: Simplified career cards with visual skill icons, "What does this person do?" format
+- API Explorer: Visual block-based API builder, no JSON required, picture-to-action metaphor
+
+#### Gap 3: Weak Analysis/Evaluation Coverage
+**Issue:** Only 8/20 games reach Analyze level, only 3/20 reach Evaluate.
+**Fix (via content expansion):**
+- Add "Why?" follow-up questions after correct answers (promotes Analyze)
+- Add "What would you do?" decision scenarios (promotes Evaluate)
+- Add "Design your own..." challenges for Expert tier (promotes Create)
+
+#### Gap 4: Minimal Metacognition
+**Issue:** Most games don't ask players to reflect on their learning process.
+**Fix:** Add post-game reflection prompts to complete phase:
+- "What surprised you most?"
+- "How would you explain [concept] to a friend?"
+- "What questions do you still have?"
+
+### 7.4 AI Concept Coverage Matrix
+
+| AI Concept | Games Teaching It | Depth | Gap? |
+|-----------|------------------|-------|------|
+| AI in daily life | AI Spy, Tool Picker | Good | No |
+| AI history | Time Machine | Moderate | Needs more milestones |
+| Human vs AI capabilities | Human vs Machine | Good | No |
+| Reinforcement learning | Treat Trainer | Moderate | Needs more mazes |
+| Neural networks | Neuron Relay | Good | No |
+| Computer vision / CNNs | Pixel Investigator, Fool the AI, Build Classifier | Strong | No |
+| Language models / NLP | Word Predictor, Sentiment Scanner, Lost in Translation | Strong | No |
+| Tokenization | Token Chopper | Moderate | Tokenizer accuracy issue |
+| Generative AI | AI Art Detective | Weak | CSS gradients limit learning |
+| AI ethics | Data Shield, Real or Fake, Ethics Courtroom | **Excellent** | No |
+| Machine learning pipeline | Build Classifier | Good | No |
+| AI futures/predictions | Prediction Market | Moderate | Static mock data |
+| AI careers | Career Explorer | Good | Needs Band A |
+| APIs/developer tools | API Explorer | Excellent | Needs Band A/B |
+| Classification/labeling | Build Classifier, Fool the AI | Good | No |
+| Data privacy | Data Shield | Good | No |
+| Misinformation | Real or Fake | Good | No |
+| Translation/localization | Lost in Translation | Good | No |
+
+### 7.5 Age-Band Appropriateness Assessment
+
+| Band | Age Range | Games Fully Serving | Games Partially Serving | Games Excluding |
+|------|-----------|--------------------|-----------------------|----------------|
+| A | 7-9 | 14 | 4 (text-only differentiation) | **2** (Career Explorer, API Explorer) |
+| B | 10-12 | 18 | 2 | 0 |
+| C | 13-16 | 20 | 0 | 0 |
+
+**Post-expansion target:** All 20 games fully serve all 3 bands (with Band A content additions for Career Explorer and API Explorer).
+
+---
+
+## 8. Implementation Roadmap
+
+### 8.1 Phase Overview
+
+| Phase | Name | Scope | Priority | Est. Files Changed |
+|-------|------|-------|----------|-------------------|
+| A | **Critical Bug Fixes** | 3 Critical + 12 High severity bugs | P0 | 12 game files + 1 shared hook |
+| B | **Shared Infrastructure** | `useSafeTimeout`, `useAnimatedCounter` extraction, DifficultySelector wiring | P0 | 22 files (20 games + 2 hooks) |
+| C | **Learn Phase Addition** | Add learn cards to 12 games | P1 | 12 game files |
+| D | **Content Expansion (3x Hardcoded)** | Triple seed content in all 20 games | P1 | 20 game files |
+| E | **AI Content Integration** | 60 content types, 20 GameIds, admin pipeline | P2 | 5 infrastructure files + 20 game files |
+| F | **Scoring & UI Polish** | Tiered scoring, HUD fixes, color corrections, accessibility | P2 | 20 game files |
+
+### 8.2 Phase A — Critical Bug Fixes (Priority 0)
+
+**Scope:** 15 bugs (3 Critical + 12 High) across 12 game files
+**Estimated impact:** 12 files modified
+
+| Bug ID | Game | Fix Description |
+|--------|------|----------------|
+| STD-TT1 | Treat Trainer | Remove redundant `useEffect` startGame call |
+| STD-BC1 | Build Classifier | Add `mountedRef` guard + AbortController to training loop |
+| STD-BC2/BC3 | Build Classifier | Restructure completion: advanceRound n-2 times, call completeGame after results |
+| STD-TM1 | Time Machine | Store setTimeout ID in ref, clear in cleanup |
+| STD-HM1 | Human vs Machine | Store AI thinking timeout in ref, clear in cleanup |
+| STD-TT2/TT3 | Treat Trainer | Add AbortController to maze animation, fix episode closure |
+| STD-WP1 | Word Predictor | Use useSafeTimeout for nested timeouts |
+| STD-TP1/TP2 | Tool Picker | Fix timer race condition, store inner timeout ref |
+| STD-EC1 | Ethics Courtroom | Auto-call completeGame() in nextCase() transition |
+| STD-SS1 | Sentiment Scanner | Store timeout in ref, add cleanup |
+| STD-CE1 | Career Explorer | Add CAREERS_A array with 8 simplified careers |
+| STD-CE2 | Career Explorer | Replace Math.random()-0.5 sort with Fisher-Yates |
+| STD-AE1 | API Explorer | Add useChildStore, create Band A/B modes |
+
+### 8.3 Phase B — Shared Infrastructure (Priority 0)
+
+**Scope:** Create shared hooks, wire DifficultySelector
+**Files created:**
+- `src/hooks/useSafeTimeout.ts` — Shared timeout/interval hook with auto-cleanup
+- Move `useAnimatedCounter` to `src/hooks/useAnimatedCounter.ts` (deduplicate from 6 games)
+
+**DifficultySelector wiring (all 20 games):**
+```typescript
+// Each game's content filtering pattern:
+const filteredContent = useMemo(() => {
+  return allContent.filter(item => {
+    if (tier === 'all') return true;
+    return item.difficulty === tier;
+  }).filter(item => {
+    return BAND_ORDER[item.ageBand] <= BAND_ORDER[ageBand];
+  });
+}, [allContent, tier, ageBand]);
+
+// Parameter adjustments per tier:
+const gameParams = useMemo(() => ({
+  timer: tier === 'expert' ? 4 : tier === 'hard' ? 5 : 6,
+  hintsAvailable: tier === 'expert' ? 0 : tier === 'hard' ? 1 : 3,
+  scoreCorrect: 10,
+  scoreWrong: tier === 'easy' ? 3 : tier === 'medium' ? 0 : tier === 'hard' ? -3 : -5,
+}), [tier]);
+```
+
+### 8.4 Phase C — Learn Phase Addition (Priority 1)
+
+**Scope:** Add 3-4 learn cards to 12 games missing them
+**Total new content:** ~40-48 learn cards
+
+| Game | Learn Card 1 | Learn Card 2 | Learn Card 3 |
+|------|-------------|-------------|-------------|
+| AI Spy | "What is AI?" | "AI is Everywhere" | "Spotting AI in Action" |
+| Time Machine | "The Story of AI" | "Key Moments" | "AI Keeps Growing" |
+| Human vs Machine | "Humans AND Machines" | "What Humans Do Best" | "What AI Does Best" |
+| Treat Trainer | "What is Reinforcement Learning?" | "Rewards Shape Behavior" | "How Agents Learn" |
+| Neuron Relay | "What is a Neuron?" | "Signals and Weights" | "Networks Work Together" |
+| Pixel Investigator | "How Computers See" | "Pixels to Patterns" | "Layers of Understanding" |
+| Tool Picker | "AI Has Many Tools" | "The Right Tool for the Job" | "AI Specialization" |
+| Data Shield | "Your Data Matters" | "What is Personal Data?" | "Shield Your Information" |
+| Fool the AI | "How AI Classifies" | "Confidence Scores" | "When AI Gets Fooled" |
+| Prediction Market | "AI Predictions" | "Uncertainty is Normal" | "Thinking About the Future" |
+| Sentiment Scanner | "Reading Emotions in Text" | "Positive, Negative, Neutral" | "How NLP Works" |
+| Lost in Translation | "Machine Translation" | "Why Idioms Are Hard" | "Lost in the Chain" |
+
+### 8.5 Phase D — Content Expansion (Priority 1)
+
+**Scope:** Triple seed content in all 20 game files
+**Total new items:** ~1,392 content items across 20 games
+
+**Batch organization (by stage):**
+
+| Batch | Games | Stage | Items Added |
+|-------|-------|-------|-------------|
+| D1 | AI Spy, Time Machine, Word Predictor, Token Chopper, AI Art Detective, Tool Picker, Data Shield, Real or Fake, Prediction Market | 7A | ~740 |
+| D2 | Human vs Machine, Career Explorer | 7B | ~182 |
+| D3 | Treat Trainer, Neuron Relay, Sentiment Scanner, Lost in Translation | 7C | ~186 |
+| D4 | Pixel Investigator, Fool the AI | 7D | ~116 |
+| D5 | Ethics Courtroom, Build Classifier, API Explorer | 7E | ~168 |
+
+### 8.6 Phase E — AI Content Integration (Priority 2)
+
+**Scope:** 60 new content types, admin pipeline extension
+**Files modified:**
+
+| File | Changes |
+|------|---------|
+| `src/lib/ai-content-generator.ts` | +20 GameIds, +60 ContentTypes, +60 prompt templates, +20 CONTENT_TYPE_MAP entries, +20 GAME_WORLD_MAP entries |
+| `src/hooks/useAIContent.ts` | No changes needed (generic hook) |
+| `src/hooks/useGameContent.ts` | Verify Standard game content blending works |
+| `src/components/admin/AdminContentClient.tsx` | +20 game filter options with icons |
+| `supabase/migrations/` | New migration: +20 game enum values in content_queue |
+| 20 game files | Add `useAIContent` import + integration in play phase |
+
+### 8.7 Phase F — Scoring & UI Polish (Priority 2)
+
+**Scope:** Tiered scoring, HUD fixes, color corrections, accessibility
+**Changes per game:**
+
+| Category | Change | Games Affected |
+|----------|--------|---------------|
+| Tiered scoring | Wire scoreCorrect/scoreWrong to difficulty tier | All 20 |
+| HUD fix | Call `game.setMaxScore()` with accurate values | 5 (TM, DS, RF, PI, SS) |
+| Color fix | Correct `worldColor` to match CLAUDE.md Lab colors | 2 (TT, SS) |
+| aria-live regions | Add `role="status"` / `aria-live="polite"` to feedback displays | All 20 |
+| Focus management | Manage keyboard focus after phase transitions and feedback | All 20 |
+| Scene cleanup | Add `return () => setGameSceneContent(null)` to all useEffect | 8 games |
+
+### 8.8 Verification Checklist
+
+After each phase, verify:
+
+- [ ] `npm run build` passes with zero errors
+- [ ] `npx tsc --noEmit` passes with zero errors
+- [ ] All 20 Standard games load without console errors
+- [ ] DifficultySelector filters content correctly per tier
+- [ ] Learn phases display correctly with proper card count
+- [ ] Score/HUD alignment accurate for all games
+- [ ] AI content generates, validates, and displays correctly
+- [ ] Band A children see age-appropriate content in all 20 games
+- [ ] Tiered scoring applies correctly (Easy=participation, Expert=strict)
+- [ ] setTimeout cleanup: no React "state update on unmounted component" warnings
+
+### 8.9 Stage Document Updates Required
+
+| Document | Updates |
+|----------|---------|
+| `CLAUDE.md` | Section 11: Add Standard Tier Audit fixes (like Flagship/FL-Lite sections) |
+| `CLAUDE.md` | Section 13: Update game depth ratings post-expansion |
+| `SparkForge_Master_Implementation_Guide_v3.2.md` | Add Phase 7-Standard content expansion to implementation timeline |
+| Stage 7A-7F docs | Update game file code with bug fixes, new content, AI integration |
+| `ai-content-generator.ts` | 20 new GameIds + 60 new ContentTypes + prompt templates |
+| `GCUD V10.2` | Update seed content counts, play duration estimates, depth ratings |
+
+---
+
+## Appendix A: Files Modified Summary
+
+| Category | Files | Count |
+|----------|-------|-------|
+| Game components | `src/components/games/*.tsx` | 20 |
+| New shared hooks | `src/hooks/useSafeTimeout.ts`, `src/hooks/useAnimatedCounter.ts` | 2 |
+| AI infrastructure | `src/lib/ai-content-generator.ts` | 1 |
+| Admin UI | `src/components/admin/AdminContentClient.tsx` | 1 |
+| Game UI components | `src/components/games/DifficultySelector.tsx` | 1 |
+| Database | `supabase/migrations/` | 1 |
+| Documentation | CLAUDE.md, Implementation Guide, GCUD, Stage 7 docs | 8+ |
+| **Total** | | **34+ files** |
+
+---
+
+*End of Standard Tier Games Audit Report v1.0 — April 9, 2026*
+*20 games audited | 76 bugs found | ~11x content expansion planned | 60 AI content types | 6 implementation phases*
