@@ -314,7 +314,11 @@ export function RobotVacuumGame() {
     }
 
     setShowResults(true);
-    const pts = cl.size * 4;
+    // FLL-006: Efficiency-based scoring — reward fewer steps
+    const coverageBase = cl.size * 4;
+    const stepsTaken = tr.length || 1;
+    const efficiencyBonus = cl.size === totalDirt ? Math.max(0, Math.round((room.optimalSteps / stepsTaken) * 10)) : 0;
+    const pts = coverageBase + efficiencyBonus;
     game.updateScore(pts);
     setRunning(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -503,7 +507,7 @@ export function RobotVacuumGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/50 hover:text-white/40"
                       aria-label="Skip tutorial"
                     >
                       Skip tutorial
@@ -525,7 +529,7 @@ export function RobotVacuumGame() {
                       <h3 className="font-display text-sm font-bold text-white flex-1">
                         {room.title}
                       </h3>
-                      <span className="font-mono text-2xs text-white/20">
+                      <span className="font-mono text-2xs text-white/50">
                         Room {roomIdx + 1}/{ROOMS.length}
                       </span>
                     </div>
@@ -639,7 +643,7 @@ export function RobotVacuumGame() {
                             );
                           })}
                         </div>
-                        <p className="font-mono text-2xs text-white/15 text-center mt-1">
+                        <p className="font-mono text-2xs text-white/50 text-center mt-1">
                           Steps: {stepCount}
                         </p>
                       </div>
@@ -655,7 +659,7 @@ export function RobotVacuumGame() {
                               key={i}
                               className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.02]"
                             >
-                              <span className="font-mono text-2xs text-white/15 w-3">
+                              <span className="font-mono text-2xs text-white/50 w-3">
                                 {i + 1}
                               </span>
                               <select
@@ -672,7 +676,7 @@ export function RobotVacuumGame() {
                                   </option>
                                 ))}
                               </select>
-                              <span className="font-mono text-2xs text-white/15">
+                              <span className="font-mono text-2xs text-white/50">
                                 {'\u2192'}
                               </span>
                               <select
@@ -704,7 +708,7 @@ export function RobotVacuumGame() {
                         {!running && rules.length < 8 && (
                           <button
                             onClick={addRule}
-                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/20 font-body text-2xs flex items-center justify-center gap-1"
+                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/50 font-body text-2xs flex items-center justify-center gap-1"
                             aria-label="Add a new rule"
                           >
                             <Plus className="w-2.5 h-2.5" /> Add Rule

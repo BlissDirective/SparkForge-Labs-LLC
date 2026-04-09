@@ -142,7 +142,7 @@ export function DataDetectiveGame() {
       setShowResult(true);
 
       if (idx === currentCase.correctIndex) {
-        game.updateScore(20);
+        game.updateScore(10); // FLL-002: Align with GameShell maxScore = totalRounds * 10
         game.advanceRound();
       }
     }, 800);

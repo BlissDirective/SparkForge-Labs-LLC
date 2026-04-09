@@ -345,7 +345,7 @@ function VerdictParticles({ correctCount }: { correctCount: number }) {
       z: (Math.random() - 0.5) * 12,
       speed: 0.15 + Math.random() * 0.35,
       phase: Math.random() * Math.PI * 2,
-      isCorrect: i < Math.min(correctCount * 3, count),
+      isCorrect: i < Math.min(Math.round(count * (correctCount / 10)), count), // FLL-043: proportional ratio (max ~10 correct)
     })),
   [count, correctCount]);
 

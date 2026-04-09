@@ -145,7 +145,7 @@ export default function FutureForgeGame() {
   const [submitted, setSubmitted] = useState(false);
   const [roundScore, setRoundScore] = useState(0);
 
-  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3)
+  // Register 3D scene content — only update on round change or submission (FLL-038 fix)
   useEffect(() => {
     if (phase === 'play') {
       setGameSceneContent(
@@ -161,7 +161,8 @@ export default function FutureForgeGame() {
     } else {
       setGameSceneContent(null);
     }
-  }, [phase, round, selected, scenario, roundScore, setGameSceneContent]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, round, roundScore, setGameSceneContent]);
 
   const toggleCapability = useCallback((id: string) => {
     if (submitted) return;

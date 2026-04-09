@@ -201,7 +201,7 @@ export function CameraQuestGame() {
 
   // Filter items by age band
   const items = useMemo(() => {
-    if (ageBand === 'A') return HUNT_ITEMS.filter((i) => i.difficulty <= 2);
+    if (ageBand === 'A') return HUNT_ITEMS.filter((i) => i.difficulty <= 1); // FLL-012: Band A sees colors+shapes only, no abstract
     return HUNT_ITEMS;
   }, [ageBand]);
 
@@ -556,7 +556,7 @@ export function CameraQuestGame() {
                         {showConfidence && (
                           <div className="mb-3 rounded-xl p-3 border border-cyan-500/15 bg-cyan-500/[0.03]">
                             <p className="font-body text-2xs text-white/30 mb-1">
-                              AI Confidence:
+                              Expected AI Confidence:
                             </p>
                             <div className="h-3 rounded-full bg-white/5 overflow-hidden mb-1">
                               <motion.div
