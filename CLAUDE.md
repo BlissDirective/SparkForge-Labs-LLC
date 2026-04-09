@@ -2,7 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 6.3 | **Date:** April 7, 2026 | **Vision:** Laboratory Control Station
+**Version:** 6.4 | **Date:** April 9, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v6.3 (April 7, 2026) — Standard Tier Games Audit complete (76 bugs found across 20 games: 3C/12H/38M/23L). ~11x content expansion planned (696→2,088+ items). 60 AI content types added (3 per game). DifficultySelector activation planned. Learn phases for 12 games. Shared useSafeTimeout hook. Tiered scoring system. Band A content for Career Explorer and API Explorer.
 **Supersedes:** CLAUDE.md v6.2 (April 3, 2026) — Flagship Game Audit complete (17 bugs fixed, 6 games expanded 2-3x, AI content infra added). Audit cleanup: dead cockpitConfig values removed, experimental.turbo migrated to turbopack, Sentry migrated to instrumentation.ts, deprecated uiStore.gameActive removed.
 **Supersedes:** CLAUDE.md v6.1 (March 30, 2026) — Full 3D UI Migration: 7 phases complete, 49 components built/rebuilt, 150 design decisions locked (131 design + 19 implementation). All dashboard pages converted to 3D panel architecture. Auth forms migrated to 3D. Game HUD/templates migrated. AmbientParticles removed (Decision 20.0). HolographicHUD repositioned to peripheral viewport frame (Decision 6.0). cockpitUIStore added (15th store). cockpitDesignTokens.ts established as design token source of truth.
 **Supersedes:** CLAUDE.md v6.0 (March 24, 2026) — Full Code Audit: 154 issues found and fixed (21C/42H/52M/39L). D3D compliance enforced across source + docs. SQL merged. Tailwind v4 migrated. Security hardened. 2 parent pages created. Lab config centralized. Stage docs updated.
@@ -43,6 +44,8 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 - **Games:** 35 total — 6 Flagship (full 3D, 20M tris), 9 FL-Lite (immersive 3D, 10M tris), 20 Standard (themed 3D, 5M tris)
 - **Code written:** ~80% — Stages 1-7 code-complete, audited. Full 3D UI migration complete (dashboard, auth, game HUD, templates, marketing).
 - **Flagship Game Audit (April 7, 2026):** COMPLETE — 17 bugs fixed (5C/5H/7M), all 6 flagships expanded 2-3x content depth, AI content generation infrastructure added (3 files), per-game AI integration complete.
+- **FL-Lite Game Audit (April 8-9, 2026):** COMPLETE — 43 bugs found, 9 games expanded ~11x content, 27 AI content types added, difficulty tiers + age-band filtering.
+- **Standard Tier Game Audit (April 9, 2026):** COMPLETE — 76 bugs found (3C/12H/38M/23L) across 20 games, ~11x content expansion planned (696→2,088+ items), 60 AI content types planned, 6-phase implementation roadmap. Full report: `StandardTier-game-content-audit(04.09.2026).md`.
 - **Key UI migration docs:** `Master-SparkForge-UI-Design-Change.md` v1.2, `SparkForge-Full-ControlScreen.json` v1.2, `DESIGN_DECISIONS_LOG.md`, `SESSION_REFERENCE.md`
 
 ---
@@ -132,6 +135,7 @@ Claude Code should reference these documents in this priority order:
 | 20 | **SparkForge Full ControlScreen v1.2** | Repo root (JSON) | Complete cockpit spec (~1,800 lines) — materials, lighting, interaction model, design tokens, component designs |
 | 21 | **Design Decisions Log** | Repo root | 131 design decisions + 19 implementation decisions = 150 total. System tokens + component designs + phase 3-7 choices |
 | 22 | **Session Reference** | Repo root | Full rebuild summary — 49 components, key changes per component, file inventory, verification results |
+| 23 | **Standard Tier Game Audit** | Repo root | 20-game audit: 76 bugs, ~11x content expansion, 60 AI content types, 6-phase roadmap |
 
 ### Build Strategy: Read File Prior to Usage. Certain v2 documents need to be developed prior to v3, and certain v3 should be developed before their v2 counterparts. 
 
@@ -820,6 +824,35 @@ These bugs are already documented. Apply the fix when you reach the indicated st
 - **useGameContent() integration:** All 9 games now consume dynamic content from admin curation pipeline, blending with hardcoded content.
 - **UI components:** `DifficultySelector.tsx`, `GameProgressTracker.tsx`, `AIContentBadge.tsx` created in `src/components/games/`.
 
+### Standard Tier Game Audit Fixes (April 9, 2026)
+
+| ID | Issue | Fix | Stage |
+|----|-------|-----|-------|
+| STD-TT1 | Treat Trainer: `startGame()` called twice (useEffect + GameShell) | **PENDING** — Remove redundant useEffect call | Audit Phase A |
+| STD-BC1 | Build Classifier: Async training loop (21 timeouts) no cleanup | **PENDING** — Add mountedRef guard + AbortController | Audit Phase A |
+| STD-BC2 | Build Classifier: advanceRound triggers isComplete before results | **PENDING** — Restructure completion: advanceRound n-2 times | Audit Phase A |
+| STD-BC3 | Build Classifier: Bonus score added after reward pipeline fired | **PENDING** — Add bonus before setting isComplete | Audit Phase A |
+| STD-EC1 | Ethics Courtroom: completeGame() never auto-called, XP lost | **PENDING** — Auto-call in nextCase() transition | Audit Phase A |
+| STD-CE1 | Career Explorer: Band A (ages 7-9) excluded entirely | **PENDING** — Add CAREERS_A with 8 simplified careers | Audit Phase A |
+| STD-CE2 | Career Explorer: Math.random()-0.5 sort (biased shuffle) | **PENDING** — Replace with Fisher-Yates shuffle | Audit Phase A |
+| STD-AE1 | API Explorer: ageBand hardcoded to 'C', no Band A/B | **PENDING** — Add useChildStore, create Band A/B modes | Audit Phase A |
+| STD-SYS1 | 18/20 games: setTimeout without cleanup (memory leaks) | **PENDING** — Create shared `useSafeTimeout` hook, apply to all | Audit Phase B |
+| STD-SYS2 | 20/20 games: DifficultySelector non-functional (decorative) | **PENDING** — Wire tier to content filtering + parameter adjustment | Audit Phase B |
+| STD-SYS3 | 12/20 games: Missing learn phase | **PENDING** — Add 3-4 learn cards to each missing game | Audit Phase C |
+| STD-SYS4 | 20/20 games: No AI content integration | **PENDING** — Add 60 content types, 20 GameIds to ai-content-generator | Audit Phase E |
+| STD-SYS5 | 5 games: Score/HUD mismatches | **PENDING** — Normalize scoring with setMaxScore(), tiered scoring | Audit Phase F |
+
+### Standard Tier Content & AI Integration (April 9, 2026)
+
+- **Content expansion:** 20 games targeted for ~11x content increase (696 → 2,088+ items via 3x hardcoded + 3x AI admin + 3x live AI).
+- **AI prompt templates:** 60 new content types in `ai-content-generator.ts` (3 per Standard game). Rate limit maintained at 15/game/session.
+- **Admin curation pipeline:** Extended for Standard tier — +20 GameIds, +60 CONTENT_TYPE_MAP entries, +20 GAME_WORLD_MAP entries, SQL migration.
+- **Difficulty tiers:** DifficultySelector wired to content filtering (easy/medium/hard/expert) + parameter adjustment (timers, hints, scoring).
+- **Learn phases:** 12 games receive 3-4 learn cards each (~40-48 total cards).
+- **Tiered scoring:** Easy = participation (10 correct, +3 wrong), Medium = standard (10/0), Hard = strict (10/-3), Expert = challenge (10/-5).
+- **Shared infrastructure:** `useSafeTimeout` hook (timeout/interval cleanup), `useAnimatedCounter` extracted to shared hook.
+- **Full audit report:** `StandardTier-game-content-audit(04.09.2026).md` — 8 sections, 76 bugs, 6-phase roadmap.
+
 ### Game Code Agent — COMPLETED
 
 The AI Spy game (Lab 1, Game #1) has been implemented via autonomous agent on March 14, 2026. The game is now fully functional at `src/components/games/AiSpyGame.tsx` with all required features (chrome bezel, age bands A/B/C, welcome→play→reveal→complete phases, 12+ scenes, ARIA labels). No remaining games have missing implementations — all 35 games are code-complete.
@@ -886,5 +919,5 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-*End of CLAUDE.md v6.3 — SparkForge Autonomous Development Playbook*
-*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | April 7, 2026*
+*End of CLAUDE.md v6.4 — SparkForge Autonomous Development Playbook*
+*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | FL-Lite Game Audit COMPLETE (43 bugs found, 9 games expanded ~11x, 27 AI content types) | Standard Tier Game Audit COMPLETE (76 bugs found, 20 games planned ~11x expansion, 60 AI content types, 6-phase roadmap) | April 9, 2026*
