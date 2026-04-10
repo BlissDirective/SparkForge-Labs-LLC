@@ -99,6 +99,7 @@ export function SentimentScannerGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(CHALLENGES, tier, ageBand);
   const [text, setText] = useState('');
   const [ci, setCi] = useState(0);
   const [done, setDone] = useState<Set<number>>(new Set());

@@ -310,6 +310,7 @@ export function WordPredictorGame() {
   const [isPredicting, setIsPredicting] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
 
   const rounds = useMemo(
     () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),

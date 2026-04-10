@@ -281,6 +281,7 @@ export function AiArtDetectiveGame() {
   // ENH: Detective badge earned after 3+ correct
   const [showDetectiveBadge, setShowDetectiveBadge] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRounds = useFilteredContent(ROUNDS, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);

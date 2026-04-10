@@ -228,6 +228,7 @@ export function CameraQuestGame() {
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredItems = useFilteredContent(HUNT_ITEMS as any[], tier, ageBand) as typeof HUNT_ITEMS;
   const [learnIdx, setLearnIdx] = useState(0);
   const [ci, setCi] = useState(0);
   const [cameraActive, setCameraActive] = useState(false);

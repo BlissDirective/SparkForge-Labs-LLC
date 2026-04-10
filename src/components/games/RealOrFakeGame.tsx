@@ -88,6 +88,7 @@ export function RealOrFakeGame() {
   // STD-RF5: Removed local score state — use game.score from gameStore instead
   const [tipIdx, setTipIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const rounds = useMemo(

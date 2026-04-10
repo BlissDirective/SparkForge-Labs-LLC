@@ -475,6 +475,7 @@ export function ApiExplorerGame() {
   // ENH: Track request animation state
   const [requestSent, setRequestSent] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredEndpoints = useFilteredContent(ENDPOINTS as any[], tier, ageBand) as typeof ENDPOINTS;
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 

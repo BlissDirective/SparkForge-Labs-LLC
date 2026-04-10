@@ -96,6 +96,7 @@ export function TimeMachineGame() {
   const [streak, setStreak] = useState(0);
   const [celebrateSlot, setCelebrateSlot] = useState<number | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredMilestones = useFilteredContent(ALL_MILESTONES, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
   const animatedScore = useAnimatedCounter(game.score);
 

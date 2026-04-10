@@ -114,6 +114,7 @@ export function ToolPickerGame() {
   const [streak, setStreak] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; why: string } | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredTasks = useFilteredContent(ALL_TASKS, tier, ageBand);
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const tasks = useMemo(

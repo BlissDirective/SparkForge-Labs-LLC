@@ -508,6 +508,7 @@ export function NeuralBuilderGame() {
   // --- Heartbeat (V2 Enhancement) ---
   const [heartbeatPhase, setHeartbeatPhase] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(CHALLENGES as any[], tier, ageBand) as typeof CHALLENGES;
 
   // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);

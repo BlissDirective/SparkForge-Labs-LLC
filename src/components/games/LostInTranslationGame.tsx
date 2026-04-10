@@ -183,6 +183,7 @@ export function LostInTranslationGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(-1);
   const animatedScore = useAnimatedCounter(game.score);

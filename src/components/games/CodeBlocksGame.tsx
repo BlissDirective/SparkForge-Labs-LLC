@@ -611,6 +611,7 @@ export function CodeBlocksGame() {
   const [stars, setStars] = useState<number[]>([]);
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(ALL_CHALLENGES, tier, ageBand);
   const terminalRef = useRef<HTMLDivElement>(null);
 
   // Merge hardcoded + dynamic challenges, filter by age band

@@ -668,6 +668,7 @@ export function BiasDetectiveGame() {
   const [activeCaseId, setActiveCaseId] = useState<string | null>(null);
   const [completedCases, setCompletedCases] = useState<string[]>([]);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCases = useFilteredContent(CASES as any[], tier, ageBand) as typeof CASES;
   const [collectedEvidence, setCollectedEvidence] = useState<string[]>([]);
   const [testResults, setTestResults] = useState<TestInput[]>([]);
   const [customInput, setCustomInput] = useState('');

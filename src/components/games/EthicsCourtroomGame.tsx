@@ -808,6 +808,7 @@ export function EthicsCourtroomGame() {
   const [selectedArgs, setSelectedArgs] = useState<Set<number>>(new Set());
   const [casesDebated, setCasesDebated] = useState<string[]>([]);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCases = useFilteredContent(CASES, tier, ageBand);
   const [hasFinished, setHasFinished] = useState(false);
 
   const currentCase = CASES[caseIdx];

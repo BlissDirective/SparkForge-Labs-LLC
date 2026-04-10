@@ -557,6 +557,7 @@ export function PetTrainerGame() {
   // === Core state ===
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCategorySets = useFilteredContent(CATEGORY_SETS as any[], tier, ageBand) as typeof CATEGORY_SETS;
   const [pet, setPet] = useState(PETS[0]);
   const [petName, setPetName] = useState('');
   const [categorySetId, setCategorySetId] = useState('fruits');

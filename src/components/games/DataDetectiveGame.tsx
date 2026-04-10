@@ -459,6 +459,7 @@ export function DataDetectiveGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCases = useFilteredContent(CASES, tier, ageBand);
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const investigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

@@ -101,6 +101,7 @@ export function TokenChopperGame() {
   const [challengePassed, setChallengePassed] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(CHALLENGES, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const tokens = useMemo(() => tokenize(text), [text]);

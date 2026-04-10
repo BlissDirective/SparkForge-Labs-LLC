@@ -200,6 +200,7 @@ export function AiOrNotGame() {
   const [predictionText, setPredictionText] = useState('');
   const [predictionSubmitted, setPredictionSubmitted] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredScenarios = useFilteredContent(ALL_SCENARIOS as any[], tier, ageBand) as typeof ALL_SCENARIOS;
 
   // Merge hardcoded + dynamic scenarios, filter/shuffle/slice
   const rounds = useMemo(() => {

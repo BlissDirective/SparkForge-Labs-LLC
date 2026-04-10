@@ -66,6 +66,7 @@ export function TreatTrainerGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredMazes = useFilteredContent(MAZES, tier, ageBand);
   const [mazeIdx, setMazeIdx] = useState(0);
   const maze = MAZES[mazeIdx];
   const isWall = useCallback((r: number, c: number) => maze.walls.some(([wr, wc]) => wr === r && wc === c), [maze.walls]);

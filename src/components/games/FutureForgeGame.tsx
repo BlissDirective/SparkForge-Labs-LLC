@@ -301,6 +301,7 @@ export default function FutureForgeGame() {
   const [submitted, setSubmitted] = useState(false);
   const [roundScore, setRoundScore] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredScenarios = useFilteredContent(SCENARIOS as any[], tier, ageBand) as typeof SCENARIOS;
 
   // Register 3D scene content — only update on round change or submission (FLL-038 fix)
   useEffect(() => {

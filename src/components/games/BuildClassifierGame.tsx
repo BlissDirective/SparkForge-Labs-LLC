@@ -159,6 +159,7 @@ export function BuildClassifierGame() {
   const mountedRef = useRef(true);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredPool = useFilteredContent(TRAINING_POOL as any[], tier, ageBand) as typeof TRAINING_POOL;
   const [learnIdx, setLearnIdx] = useState(0);
 
   // Collect phase

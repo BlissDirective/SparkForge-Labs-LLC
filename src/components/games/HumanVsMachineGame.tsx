@@ -286,6 +286,7 @@ export function HumanVsMachineGame() {
   const [aiRevealed, setAiRevealed] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(ALL_CHALLENGES, tier, ageBand);
   // ENH: Track scores for comparison bars and advantage indicator
   const [humanTotal, setHumanTotal] = useState(0);
   const [machineTotal, setMachineTotal] = useState(0);

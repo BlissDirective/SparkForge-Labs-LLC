@@ -491,6 +491,7 @@ export function AgentArchitectGame() {
   const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredMissions = useFilteredContent(MISSIONS as any[], tier, ageBand) as typeof MISSIONS;
 
   // Phase D2: Game mode + sandbox/debug/replay state
   const [_gameMode, _setGameMode] = useState<AgentGameMode>('mission');

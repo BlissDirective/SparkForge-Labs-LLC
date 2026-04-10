@@ -472,6 +472,7 @@ export function RobotVacuumGame() {
 
   const [roomIdx, setRoomIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRooms = useFilteredContent(ROOMS, tier, ageBand);
   const [running, setRunning] = useState(false);
   const [vacPos, setVacPos] = useState<[number, number]>([0, 0]);
   const [vacDir, setVacDir] = useState(0);

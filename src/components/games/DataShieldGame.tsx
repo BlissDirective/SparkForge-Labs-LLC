@@ -175,6 +175,7 @@ export function DataShieldGame() {
   const [privacyScore, setPrivacyScore] = useState(100);
   const [feedback, setFeedback] = useState<{ correct: boolean; reason: string } | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredScenarios = useFilteredContent(SCENARIOS as any[], tier, ageBand) as typeof SCENARIOS;
   const { safeTimeout } = useSafeTimeout();
 
   const scenario = SCENARIOS[scenarioIdx];

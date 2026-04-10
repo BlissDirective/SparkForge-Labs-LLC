@@ -297,6 +297,7 @@ export function MyFirstAiAppGame() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showCodePeek, setShowCodePeek] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCategories = useFilteredContent(ALL_CATEGORIES as any[], tier, ageBand) as typeof ALL_CATEGORIES;
 
   // Merge hardcoded + dynamic categories
   const categories = useMemo(() => {

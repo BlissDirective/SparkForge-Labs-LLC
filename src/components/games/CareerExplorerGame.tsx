@@ -190,6 +190,7 @@ export default function CareerExplorerGame() {
   const [wasCorrect, setWasCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCareers = useFilteredContent((ageBand === 'A' ? CAREERS_A : CAREERS_B) as any[], tier, ageBand) as typeof CAREERS_B;
 
   const careers = ageBand === 'A' ? CAREERS_A : CAREERS_B;
   const currentCareer = careers[round];
