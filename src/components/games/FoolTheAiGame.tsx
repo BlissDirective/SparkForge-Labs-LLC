@@ -31,6 +31,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { AlertTriangle, CheckCircle2, Target } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
@@ -40,7 +41,7 @@ const FoolTheAiEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Item {
   emoji: string;
@@ -58,6 +59,12 @@ interface Challenge {
   check: (item: Item) => boolean;
   descC: string;
 }
+
+const LEARN_CARDS = [
+  { title: 'How AI Classifies', emoji: '🏷️', desc: 'AI image classifiers look at pictures and try to identify what\'s in them. They assign labels like "dog", "car", or "pizza" with a confidence score.' },
+  { title: 'Confidence Scores', emoji: '📊', desc: 'When AI classifies an image, it gives a confidence percentage. 95% means it\'s very sure. 30% means it\'s just guessing!' },
+  { title: 'When AI Gets Fooled', emoji: '🃏', desc: 'Sometimes AI gets confused by unusual angles, lighting, or objects that look similar. Finding these mistakes helps researchers make AI better!' },
+];
 
 const ITEMS: Item[] = [
   { emoji: '\u{1F34E}', aiLabel: 'Apple', confidence: 95, isWrong: false,
@@ -127,6 +134,7 @@ export function FoolTheAiGame() {
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
@@ -136,6 +144,7 @@ export function FoolTheAiGame() {
   const [fooledCount, setFooledCount] = useState(0);
   // ENH: Track streak for visual streak indicator
   const [streakFlash, setStreakFlash] = useState(false);
+  const { safeTimeout } = useSafeTimeout();
 
   const challenge = CHALLENGES[ci];
   const matchCount = Array.from(found).filter(idx => challenge.check(ITEMS[idx])).length;
@@ -164,12 +173,12 @@ export function FoolTheAiGame() {
       // ENH: Increment fooled counter when AI was wrong and player found it
       if (item.isWrong) setFooledCount(c => c + 1);
       // ENH: Flash streak indicator on consecutive hits
-      if (consecutiveHits >= 1) { setStreakFlash(true); setTimeout(() => setStreakFlash(false), 600); }
+      if (consecutiveHits >= 1) { setStreakFlash(true); safeTimeout(() => setStreakFlash(false), 600); }
     } else {
       setConsecutiveHits(0);
     }
 
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
       const newMatch = matchCount + (hit ? 1 : 0);
       if (newMatch >= challenge.target) {
@@ -223,13 +232,38 @@ export function FoolTheAiGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-body text-2xs text-cyan-400">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       aria-label="Start investigating AI classifications">
                       Start Investigating! <Target className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#06B6D4]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

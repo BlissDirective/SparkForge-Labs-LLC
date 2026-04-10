@@ -26,7 +26,7 @@ const AiSpyEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'reveal' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface SceneItem {
   id: string;
@@ -183,6 +183,12 @@ const ALL_SCENES: Scene[] = [
   },
 ];
 
+const LEARN_CARDS = [
+  { title: 'What is AI?', emoji: '🤖', desc: 'AI (Artificial Intelligence) is when computers learn to do things that usually need human thinking — like recognizing faces, understanding speech, or making recommendations.' },
+  { title: 'AI is Everywhere', emoji: '🌍', desc: 'AI helps filter your email, suggests videos you might like, powers voice assistants, and even helps doctors find diseases. It\'s in more places than you think!' },
+  { title: 'Spotting AI in Action', emoji: '🔍', desc: 'In this game, you\'ll explore different scenes and figure out which items use AI and which don\'t. Look for things that learn, predict, or make smart decisions!' },
+];
+
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
 export function AiSpyGame() {
@@ -199,6 +205,7 @@ export function AiSpyGame() {
   );
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [sceneIdx, setSceneIdx] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState(false);
@@ -212,6 +219,7 @@ export function AiSpyGame() {
     setGameSceneContent(
       <AiSpyEnvironment sceneIndex={sceneIdx} isScanning={!revealed} />
     );
+    return () => setGameSceneContent(null);
   }, [sceneIdx, revealed, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
@@ -330,7 +338,7 @@ export function AiSpyGame() {
                       ))}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('play')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                       whileHover={{ scale: 1.02 }}
@@ -339,6 +347,32 @@ export function AiSpyGame() {
                     >
                       Start Spying! <Eye className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {/* ── Learn Phase ── */}
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00BBFF]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0088CC)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

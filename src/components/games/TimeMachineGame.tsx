@@ -28,7 +28,7 @@ const TimeMachineEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Milestone {
   id: string;
@@ -56,6 +56,12 @@ const ALL_MILESTONES: Milestone[] = [
   { id: 'm14', year: 2024, label: 'Claude', desc: 'Anthropic\'s helpful and harmless AI', descC: 'Claude demonstrates constitutional AI alignment with RLHF + CAI training.', band: 'C' },
 ];
 
+const LEARN_CARDS = [
+  { title: 'The Story of AI', emoji: '📖', desc: 'Artificial Intelligence has been a dream of scientists for over 70 years! From the first computer programs to today\'s chatbots, AI has come a long way.' },
+  { title: 'Key Moments', emoji: '⭐', desc: 'Some moments changed everything — like when a computer first beat a chess champion, or when deep learning made machines see and speak.' },
+  { title: 'AI Keeps Growing', emoji: '🚀', desc: 'Every year, AI gets smarter and more useful. In this game, you\'ll place important AI milestones on a timeline to see how it all unfolded!' },
+];
+
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
 export function TimeMachineGame() {
@@ -67,6 +73,7 @@ export function TimeMachineGame() {
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [placed, setPlaced] = useState<Map<string, number>>(new Map());
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ id: string; correct: boolean } | null>(null);
@@ -214,7 +221,7 @@ export function TimeMachineGame() {
                       ))}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('play')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                       whileHover={{ scale: 1.02 }}
@@ -223,6 +230,31 @@ export function TimeMachineGame() {
                     >
                       Start the Time Machine! <Clock className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00BBFF]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0088CC)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

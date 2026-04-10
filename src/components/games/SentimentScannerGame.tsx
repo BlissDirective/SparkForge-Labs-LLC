@@ -26,7 +26,13 @@ const SentimentScannerEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
+
+const LEARN_CARDS = [
+  { title: 'Reading Emotions in Text', emoji: '💬', desc: 'Sentiment analysis is how AI figures out the emotion behind words. Is a review happy, angry, or neutral? AI can tell!' },
+  { title: 'Positive, Negative, Neutral', emoji: '😊', desc: 'AI looks for keywords and patterns to score text. Words like "amazing" and "love" are positive, while "terrible" and "hate" are negative.' },
+  { title: 'How NLP Works', emoji: '🧠', desc: 'Natural Language Processing (NLP) helps computers understand human language. In this game, you\'ll write text and watch AI analyze its sentiment in real-time!' },
+];
 
 const POS = ['happy','joy','love','great','amazing','wonderful','beautiful','fantastic','excellent','awesome','brilliant','delightful','cheerful','kind','friendly'];
 const NEG = ['sad','angry','hate','terrible','awful','horrible','bad','worst','ugly','stupid','mean','boring','scary','cruel','lonely'];
@@ -62,6 +68,7 @@ export function SentimentScannerGame() {
   const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [text, setText] = useState('');
   const [ci, setCi] = useState(0);
@@ -134,13 +141,38 @@ export function SentimentScannerGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 font-body text-2xs text-indigo-300">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       aria-label="Start sentiment scanning game">
                       Start Scanning! <ScanLine className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#818CF8]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #818CF8, #6366F1)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

@@ -16,6 +16,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { Shield, Eye, Lock, AlertTriangle } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
@@ -25,7 +26,7 @@ const DataShieldEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface DataPoint {
   label: string;
@@ -41,6 +42,12 @@ interface Scenario {
   context: string;
   dataPoints: DataPoint[];
 }
+
+const LEARN_CARDS = [
+  { title: 'Your Data Matters', emoji: '🛡️', desc: 'Every time you use an app or website, you share data. Some data is fine to share, but some is personal and should be protected!' },
+  { title: 'What is Personal Data?', emoji: '🔐', desc: 'Personal data includes your name, address, phone number, photos, and even your location. This information can be used to identify you.' },
+  { title: 'Shield Your Information', emoji: '🏰', desc: 'In this game, you\'ll decide which data to protect and which is safe to share. Think carefully — some requests seem innocent but aren\'t!' },
+];
 
 const SCENARIOS: Scenario[] = [
   {
@@ -107,11 +114,13 @@ export function DataShieldGame() {
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [scenarioIdx, setScenarioIdx] = useState(0);
   const [pointIdx, setPointIdx] = useState(0);
   const [privacyScore, setPrivacyScore] = useState(100);
   const [feedback, setFeedback] = useState<{ correct: boolean; reason: string } | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const { safeTimeout } = useSafeTimeout();
 
   const scenario = SCENARIOS[scenarioIdx];
   const point = scenario?.dataPoints[pointIdx];
@@ -137,7 +146,7 @@ export function DataShieldGame() {
     if (!correct) setPrivacyScore(s => Math.max(0, s - 12));
     if (correct) game.updateScore(10);
     setFeedback({ correct, reason: ageBand === 'C' ? point.reasonC : point.reason });
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
       const next = pointIdx + 1;
       if (next < scenario.dataPoints.length) { setPointIdx(next); }
@@ -181,12 +190,37 @@ export function DataShieldGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs font-body text-orange-400">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       Activate Shield! <Shield className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#FF6644]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #FF6644, #CC4422)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

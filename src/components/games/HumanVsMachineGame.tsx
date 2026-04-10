@@ -33,7 +33,7 @@ const HumanVsMachineEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Challenge {
   title: string;
@@ -156,6 +156,12 @@ const ALL_CHALLENGES: Challenge[] = [
   },
 ];
 
+const LEARN_CARDS = [
+  { title: 'Humans AND Machines', emoji: '🤝', desc: 'Humans and AI are each amazing at different things. The best results often come when they work together!' },
+  { title: 'What Humans Do Best', emoji: '💡', desc: 'Humans excel at creativity, empathy, humor, and understanding context. We can think about things we\'ve never seen before!' },
+  { title: 'What AI Does Best', emoji: '⚡', desc: 'AI is incredible at speed, pattern recognition, processing huge amounts of data, and never getting tired. It can analyze millions of items in seconds!' },
+];
+
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
 export function HumanVsMachineGame() {
@@ -167,6 +173,7 @@ export function HumanVsMachineGame() {
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [roundIdx, setRoundIdx] = useState(0);
   const [humanAnswer, setHumanAnswer] = useState('');
   const [submitted, setSubmitted] = useState(false);
@@ -309,7 +316,7 @@ export function HumanVsMachineGame() {
                       )}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('play')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{
                         background: 'linear-gradient(135deg, #00BBFF, #0099DD)',
@@ -321,6 +328,31 @@ export function HumanVsMachineGame() {
                       Challenge the AI!{' '}
                       <Swords className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00BBFF]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0088CC)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

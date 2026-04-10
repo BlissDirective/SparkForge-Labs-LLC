@@ -18,6 +18,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Palette, Eye } from 'lucide-react';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
@@ -187,6 +188,7 @@ export function AiArtDetectiveGame() {
   // ENH: Detective badge earned after 3+ correct
   const [showDetectiveBadge, setShowDetectiveBadge] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const { safeTimeout } = useSafeTimeout();
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
@@ -218,12 +220,12 @@ export function AiArtDetectiveGame() {
       setCorrectCount(newCount);
       game.updateScore(12 + streak * 2);
       // ENH: Award detective badge after 3 correct detections
-      if (newCount === 3) { setShowDetectiveBadge(true); setTimeout(() => setShowDetectiveBadge(false), 2500); }
+      if (newCount === 3) { setShowDetectiveBadge(true); safeTimeout(() => setShowDetectiveBadge(false), 2500); }
     } else {
       setStreak(0);
       game.updateScore(3);
     }
-    setTimeout(() => {
+    safeTimeout(() => {
       setShowResult(null);
       if (roundIdx < ROUNDS.length - 1) {
         setRoundIdx(i => i + 1);

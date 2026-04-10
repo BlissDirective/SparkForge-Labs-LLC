@@ -26,7 +26,7 @@ const ToolPickerEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Tool {
   id: string;
@@ -42,6 +42,12 @@ interface Task {
   whyC: string;
   band: 'A' | 'B' | 'C';
 }
+
+const LEARN_CARDS = [
+  { title: 'AI Has Many Tools', emoji: '🧰', desc: 'Just like a toolbox has different tools for different jobs, AI has many specialized tools — some write, some calculate, some create images, and some translate!' },
+  { title: 'The Right Tool for the Job', emoji: '🎯', desc: 'Choosing the right AI tool matters. A calculator AI is great for math but terrible at writing poetry. Knowing which tool to pick is a real skill!' },
+  { title: 'AI Specialization', emoji: '⚙️', desc: 'Each AI tool is trained for specific tasks. In this game, you\'ll race against the clock to match tasks with the perfect AI tool!' },
+];
 
 const TOOLS: Tool[] = [
   { id: 'calc', emoji: '🧮', label: 'Calculator', description: 'Math and numbers' },
@@ -82,6 +88,7 @@ export function ToolPickerGame() {
   const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [roundIdx, setRoundIdx] = useState(0);
   const [timer, setTimer] = useState(6);
   const [streak, setStreak] = useState(0);
@@ -182,13 +189,38 @@ export function ToolPickerGame() {
                     <div className="flex flex-wrap gap-2 justify-center">
                       {TOOLS.map(t => <span key={t.id} className="px-2 py-1 rounded-lg bg-green-400/10 border border-green-400/20 text-xs font-body text-green-400">{t.emoji} {t.label}</span>)}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #00FF88, #00CC66)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       aria-label="Start the Tool Picker game">
                       Start Picking! <Wrench className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00FF88]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00FF88, #00CC66)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

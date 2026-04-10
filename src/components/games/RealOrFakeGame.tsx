@@ -16,6 +16,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Fingerprint, CheckCircle2, XCircle, BookOpen } from 'lucide-react';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
@@ -74,6 +75,7 @@ export function RealOrFakeGame() {
   const [score, setScore] = useState({ correct: 0, total: 0 });
   const [tipIdx, setTipIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const { safeTimeout } = useSafeTimeout();
 
   const rounds = useMemo(
     () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
@@ -100,7 +102,7 @@ export function RealOrFakeGame() {
     setScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
     if (correct) game.updateScore(12);
     setFeedback({ correct, clue: ageBand === 'C' ? round.clueC : round.clue });
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
       if (roundIdx < rounds.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
       else { setPhase('complete'); game.completeGame(); }
