@@ -43,6 +43,7 @@ interface Scene {
   emoji: string;
   items: SceneItem[];
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_SCENES: Scene[] = [

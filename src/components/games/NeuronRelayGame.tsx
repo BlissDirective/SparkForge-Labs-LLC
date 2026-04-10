@@ -39,14 +39,34 @@ const LEARN_CARDS = [
 interface Neuron { id: number; on: boolean; vol: number; }
 
 const PUZZLES = [
-  { n: 3, target: [40, 60], hint: 'Try turning on 2 neurons at medium volume.' },
-  { n: 3, target: [70, 90], hint: 'All 3 neurons on, but adjust their volumes.' },
-  { n: 4, target: [20, 35], hint: 'Just 1-2 neurons at low volume should work.' },
-  { n: 4, target: [50, 65], hint: 'About half the neurons at moderate levels.' },
-  { n: 5, target: [30, 45], hint: 'Fewer neurons, lower volumes.' },
-  { n: 5, target: [75, 95], hint: 'Most neurons on with high volumes.' },
-  { n: 6, target: [40, 55], hint: 'Balance the activation across several neurons.' },
-  { n: 6, target: [85, 100], hint: 'Nearly all neurons firing at high intensity!' },
+  // Easy — 3 neurons, wide targets
+  { n: 3, target: [40, 60], hint: 'Try turning on 2 neurons at medium volume.', difficulty: 'easy' as const },
+  { n: 3, target: [70, 90], hint: 'All 3 neurons on, but adjust their volumes.', difficulty: 'easy' as const },
+  { n: 3, target: [10, 25], hint: 'Just 1 neuron at low volume should do it.', difficulty: 'easy' as const },
+  { n: 3, target: [50, 70], hint: 'Two neurons at moderate volume.', difficulty: 'easy' as const },
+  { n: 3, target: [0, 10], hint: 'Keep everything very quiet — barely any signal.', difficulty: 'easy' as const },
+  { n: 3, target: [55, 65], hint: 'All on but keep volumes balanced.', difficulty: 'easy' as const },
+  // Medium — 4 neurons, moderate targets
+  { n: 4, target: [20, 35], hint: 'Just 1-2 neurons at low volume should work.', difficulty: 'medium' as const },
+  { n: 4, target: [50, 65], hint: 'About half the neurons at moderate levels.', difficulty: 'medium' as const },
+  { n: 4, target: [35, 48], hint: 'Two neurons at medium-high volume.', difficulty: 'medium' as const },
+  { n: 4, target: [60, 75], hint: 'Three neurons on, vary the volumes.', difficulty: 'medium' as const },
+  { n: 4, target: [15, 25], hint: 'One neuron on low, rest off.', difficulty: 'medium' as const },
+  { n: 4, target: [70, 80], hint: 'Most neurons on at high intensity.', difficulty: 'medium' as const },
+  // Hard — 5-6 neurons, narrow targets
+  { n: 5, target: [30, 45], hint: 'Fewer neurons, lower volumes.', difficulty: 'hard' as const },
+  { n: 5, target: [75, 95], hint: 'Most neurons on with high volumes.', difficulty: 'hard' as const },
+  { n: 5, target: [50, 58], hint: 'Precisely half the signal — balance carefully.', difficulty: 'hard' as const },
+  { n: 5, target: [22, 32], hint: 'Two neurons at specific volumes.', difficulty: 'hard' as const },
+  { n: 5, target: [88, 100], hint: 'Nearly maxed out — all five firing strong.', difficulty: 'hard' as const },
+  { n: 6, target: [40, 55], hint: 'Balance the activation across several neurons.', difficulty: 'hard' as const },
+  // Expert — 6-8 neurons, very narrow targets
+  { n: 6, target: [85, 100], hint: 'Nearly all neurons firing at high intensity!', difficulty: 'expert' as const },
+  { n: 6, target: [33, 40], hint: 'Fine-tune three neurons to a narrow band.', difficulty: 'expert' as const },
+  { n: 7, target: [60, 68], hint: 'Activate about half at varied volumes.', difficulty: 'expert' as const },
+  { n: 7, target: [45, 52], hint: 'Precise mid-range with many neurons to manage.', difficulty: 'expert' as const },
+  { n: 8, target: [70, 78], hint: 'Many neurons — find the right combination.', difficulty: 'expert' as const },
+  { n: 8, target: [55, 62], hint: 'Eight neurons, narrow target — master challenge!', difficulty: 'expert' as const },
 ];
 
 export function NeuronRelayGame() {

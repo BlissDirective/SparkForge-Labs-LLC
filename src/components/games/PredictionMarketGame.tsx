@@ -43,56 +43,152 @@ interface Prediction {
   analysis: string;
   analysisC: string;
   band: 'A' | 'B' | 'C';
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_PREDICTIONS: Prediction[] = [
+  // ── Band A — accessible to ages 7-9 ─────────────────
   {
-    question: 'Will AI write a #1 hit song by 2030?', emoji: '🎵', horizon: '2030', band: 'A',
+    question: 'Will AI write a #1 hit song by 2030?', emoji: '🎵', horizon: '2030', band: 'A', difficulty: 'easy',
     mockResults: { yes: 45, no: 30, maybe: 25 },
     analysis: 'AI can already compose music, but writing a song people LOVE enough to be #1 is really hard. Music isn\'t just notes — it\'s emotion, culture, and timing!',
     analysisC: 'Current models generate coherent audio but struggle with the cultural resonance and emotional specificity that drives chart success. Music virality depends on parasocial factors, zeitgeist alignment, and memetic propagation — all poorly modeled by current architectures.',
   },
   {
-    question: 'Will most homework be done with AI help by 2028?', emoji: '📚', horizon: '2028', band: 'A',
+    question: 'Will most homework be done with AI help by 2028?', emoji: '📚', horizon: '2028', band: 'A', difficulty: 'easy',
     mockResults: { yes: 62, no: 18, maybe: 20 },
     analysis: 'Many students already use AI for homework. The question is whether schools will adapt or try to ban it. Most experts think adaptation will win!',
     analysisC: 'Adoption is rapid but regulatory response from educational institutions will shape outcomes. The equilibrium likely involves AI-assisted pedagogy rather than prohibition — similar to calculator adoption in mathematics education during the 1970s-80s.',
   },
   {
-    question: 'Will self-driving cars be common in cities by 2030?', emoji: '🚗', horizon: '2030', band: 'A',
+    question: 'Will self-driving cars be common in cities by 2030?', emoji: '🚗', horizon: '2030', band: 'A', difficulty: 'easy',
     mockResults: { yes: 38, no: 35, maybe: 27 },
     analysis: 'Self-driving taxis exist in some cities, but "common" everywhere is a big challenge. Weather, different road rules, and unexpected situations make it really hard!',
     analysisC: 'Level 4 autonomy is deployed in geofenced areas (Waymo, Cruise). Full urban deployment requires solving the long tail of edge cases — adverse weather perception, construction zone navigation, and multi-agent interaction in unstructured environments. Regulatory fragmentation across jurisdictions adds non-technical barriers.',
   },
   {
-    question: 'Will AI help cure a major disease by 2030?', emoji: '🧬', horizon: '2030', band: 'A',
+    question: 'Will AI help cure a major disease by 2030?', emoji: '🧬', horizon: '2030', band: 'A', difficulty: 'easy',
     mockResults: { yes: 55, no: 15, maybe: 30 },
     analysis: 'AI already helps discover new drugs! AlphaFold solved protein folding — a huge deal for medicine. A cure is possible but takes years of testing even after discovery.',
     analysisC: 'AlphaFold revolutionized structural biology. AI-assisted drug discovery pipelines (Insilico Medicine, Recursion) have candidates in Phase I/II trials. However, "cure" requires successful Phase III trials, FDA approval, and manufacturing scale-up — a 5-10 year pipeline from discovery.',
   },
   {
-    question: 'Will AI create a movie that wins an Oscar by 2035?', emoji: '🎬', horizon: '2035', band: 'B',
+    question: 'Will AI tutors help every student learn at their own speed by 2030?', emoji: '🎓', horizon: '2030', band: 'A', difficulty: 'easy',
+    mockResults: { yes: 58, no: 17, maybe: 25 },
+    analysis: 'AI tutors already exist! They can explain things in different ways and go at your pace. The hard part is making sure every school has access to the technology.',
+    analysisC: 'Adaptive learning platforms (Khan Academy, Duolingo) demonstrate personalization at scale. Key barriers are infrastructure (device access, bandwidth) and pedagogical integration. Equity gaps may widen before narrowing as adoption is correlated with socioeconomic status.',
+  },
+  {
+    question: 'Will AI be able to translate every language perfectly by 2032?', emoji: '🌍', horizon: '2032', band: 'A', difficulty: 'medium',
+    mockResults: { yes: 30, no: 38, maybe: 32 },
+    analysis: 'AI translation is already pretty good for common languages, but "perfectly" is very hard. Jokes, slang, and cultural meaning are tricky for AI!',
+    analysisC: 'Neural machine translation excels at high-resource language pairs. Low-resource languages (< 10K parallel sentences) remain challenging. Pragmatic and cultural context, idioms, and humor represent fundamental limitations of current sequence-to-sequence architectures.',
+  },
+  {
+    question: 'Will robots powered by AI do household chores by 2030?', emoji: '🤖', horizon: '2030', band: 'A', difficulty: 'medium',
+    mockResults: { yes: 42, no: 28, maybe: 30 },
+    analysis: 'Robot vacuums exist, but a robot that can do laundry, cook, AND clean? That needs much better hands and movement. It might start with simple tasks first!',
+    analysisC: 'Manipulation in unstructured environments remains an open challenge. Current humanoid robots (Tesla Optimus, Figure) demonstrate basic mobility but lack the dexterity for diverse household tasks. Sim-to-real transfer for fine motor control is a primary bottleneck.',
+  },
+  {
+    question: 'Will AI help predict natural disasters a week before they happen by 2032?', emoji: '🌊', horizon: '2032', band: 'A', difficulty: 'medium',
+    mockResults: { yes: 35, no: 30, maybe: 35 },
+    analysis: 'AI is getting better at weather prediction. Earthquakes are still very hard to predict, but floods, hurricanes, and wildfires could be predicted much earlier with AI help!',
+    analysisC: 'GraphCast and Pangu-Weather demonstrate AI superiority over traditional numerical weather prediction at 7-day horizons. Seismological prediction remains fundamentally limited by chaotic dynamics. AI excels at pattern detection in precursor signals for floods and tropical cyclones.',
+  },
+
+  // ── Band B — accessible to ages 10-12 ───────────────
+  {
+    question: 'Will AI create a movie that wins an Oscar by 2035?', emoji: '🎬', horizon: '2035', band: 'B', difficulty: 'medium',
     mockResults: { yes: 32, no: 40, maybe: 28 },
     analysis: 'AI can help make movies, but Oscar voters value human creativity and storytelling. Maybe AI will be a tool used in an Oscar-winning film, but fully AI-made? That\'s harder.',
     analysisC: 'Current generative video models lack narrative coherence. Academy voting favors auteur vision and emotional authenticity. The more likely path is AI as a production tool (VFX, editing, scoring) in human-directed films — similar to how CGI enabled films without replacing directors.',
   },
   {
-    question: 'Will AI replace most customer service agents by 2028?', emoji: '🤖', horizon: '2028', band: 'B',
+    question: 'Will AI replace most customer service agents by 2028?', emoji: '🤖', horizon: '2028', band: 'B', difficulty: 'medium',
     mockResults: { yes: 52, no: 25, maybe: 23 },
     analysis: 'AI chatbots handle simple questions well, but complex issues still need humans. Expect AI to handle 80% of easy cases while humans focus on the tricky 20%.',
     analysisC: 'LLM-powered agents handle Tier 1 support effectively. Complex escalation and emotional labor remain human domains. The likely outcome is augmentation — AI handling routine queries (password resets, order tracking) while human agents focus on high-empathy and edge-case interactions.',
   },
   {
-    question: 'Will we have AI that truly "understands" like humans by 2035?', emoji: '🧠', horizon: '2035', band: 'C',
+    question: 'Will AI coaches help athletes improve faster than human coaches by 2030?', emoji: '🏅', horizon: '2030', band: 'B', difficulty: 'medium',
+    mockResults: { yes: 40, no: 32, maybe: 28 },
+    analysis: 'AI can analyze player movement and strategy really well, but motivation, teamwork, and mental coaching still need humans. AI will probably work alongside human coaches!',
+    analysisC: 'Computer vision-based motion analysis and biomechanical optimization are already deployed in elite sports. However, coaching encompasses psychological support, team dynamics, and real-time tactical adaptation — areas requiring emotional intelligence and contextual judgment.',
+  },
+  {
+    question: 'Will AI design new materials that make buildings earthquake-proof by 2035?', emoji: '🏗️', horizon: '2035', band: 'B', difficulty: 'hard',
+    mockResults: { yes: 45, no: 22, maybe: 33 },
+    analysis: 'AI is already helping scientists discover new materials faster. Making buildings totally earthquake-proof is hard, but AI could find materials that absorb shocks much better!',
+    analysisC: 'Generative design and materials informatics have accelerated the discovery of metamaterials with negative Poisson ratios and programmable stiffness. Full earthquake-proofing also requires structural engineering innovation — AI assists but cannot solve alone.',
+  },
+  {
+    question: 'Will AI-powered drones deliver most packages in cities by 2032?', emoji: '📦', horizon: '2032', band: 'B', difficulty: 'hard',
+    mockResults: { yes: 35, no: 38, maybe: 27 },
+    analysis: 'Drone delivery is already being tested in some areas! But "most packages" in busy cities has lots of obstacles: buildings, people, weather, and rules about where drones can fly.',
+    analysisC: 'Urban air mobility faces regulatory, safety, and scalability challenges. Last-mile delivery economics favor ground-based autonomous vehicles in dense urban areas. Drones may dominate suburban/rural delivery but face density-limited throughput in cities.',
+  },
+  {
+    question: 'Will AI help create personalized medicine based on your DNA by 2030?', emoji: '💊', horizon: '2030', band: 'B', difficulty: 'hard',
+    mockResults: { yes: 50, no: 18, maybe: 32 },
+    analysis: 'Your DNA makes you unique, and AI can help doctors create treatments just for you. Some personalized treatments already exist for cancer!',
+    analysisC: 'Pharmacogenomics is already influencing oncology treatment selection. AI accelerates biomarker discovery and drug-gene interaction prediction. However, cost, data privacy, and clinical validation pipelines limit widespread deployment to specialized conditions initially.',
+  },
+  {
+    question: 'Will AI help explore the ocean floor better than humans by 2030?', emoji: '🌊', horizon: '2030', band: 'B', difficulty: 'hard',
+    mockResults: { yes: 60, no: 15, maybe: 25 },
+    analysis: 'We have explored less than 20% of the ocean floor! AI-powered submarines could explore the deep sea without risking human lives and map everything much faster.',
+    analysisC: 'Autonomous underwater vehicles (AUVs) with ML-based navigation and real-time bathymetric mapping are operational. AI excels at processing sonar data and identifying geological features. The Seabed 2030 project aims for full ocean floor mapping with AI-assisted processing.',
+  },
+
+  // ── Band C — accessible to ages 13-16 ───────────────
+  {
+    question: 'Will we have AI that truly "understands" like humans by 2035?', emoji: '🧠', horizon: '2035', band: 'C', difficulty: 'hard',
     mockResults: { yes: 28, no: 42, maybe: 30 },
     analysis: 'This is one of the biggest debates in AI! We\'re not sure what "understanding" even means. AI can seem very smart without actually understanding anything.',
     analysisC: 'The Chinese Room argument remains unresolved. Current systems exhibit behavioral competence without verified comprehension. Whether artificial general understanding requires embodiment, causal reasoning, or entirely new architectures is an open question in cognitive science and AI research.',
   },
   {
-    question: 'Will AI-generated art be legally copyrightable by 2030?', emoji: '🎨', horizon: '2030', band: 'C',
+    question: 'Will AI-generated art be legally copyrightable by 2030?', emoji: '🎨', horizon: '2030', band: 'C', difficulty: 'hard',
     mockResults: { yes: 40, no: 35, maybe: 25 },
     analysis: 'Courts are still figuring this out. The law hasn\'t caught up with the technology yet. Different countries might have different rules!',
     analysisC: 'Current US Copyright Office position requires human authorship. EU AI Act may establish sui generis rights for AI outputs. The legal landscape is evolving — Thaler v. Perlmutter (2023) denied copyright for fully autonomous AI art, but the threshold of human creative contribution needed remains undefined.',
+  },
+  {
+    question: 'Will AI be used to write and enforce laws by 2035?', emoji: '⚖️', horizon: '2035', band: 'C', difficulty: 'expert',
+    mockResults: { yes: 22, no: 48, maybe: 30 },
+    analysis: 'AI could help analyze laws and find problems, but actually writing and enforcing laws involves values, fairness, and democracy — things that are very hard to automate!',
+    analysisC: 'Legal NLP for contract analysis and regulatory compliance is mature. However, legislation requires normative judgments, political negotiation, and democratic legitimacy. AI-assisted legal drafting (identifying conflicts, precedents) is more plausible than autonomous lawmaking. Algorithmic enforcement risks constitutional due process violations.',
+  },
+  {
+    question: 'Will AI discover a new fundamental law of physics by 2035?', emoji: '⚛️', horizon: '2035', band: 'C', difficulty: 'expert',
+    mockResults: { yes: 25, no: 40, maybe: 35 },
+    analysis: 'AI has found new math proofs and protein structures. Discovering a new law of physics would be groundbreaking — but physics requires deep conceptual understanding, not just pattern matching.',
+    analysisC: 'Symbolic regression (AI Feynman) has rediscovered known physical laws from data. Novel discovery requires identifying anomalies in experimental data AND formulating explanatory theories — the latter demands causal reasoning and conceptual abstraction beyond current architectures. AI will likely assist human physicists rather than discover independently.',
+  },
+  {
+    question: 'Will AI systems need legal rights by 2040?', emoji: '📜', horizon: '2040', band: 'C', difficulty: 'expert',
+    mockResults: { yes: 20, no: 50, maybe: 30 },
+    analysis: 'If AI ever becomes truly conscious, should it have rights? Most experts say current AI is not conscious, but this question gets harder as AI gets more advanced.',
+    analysisC: 'Legal personhood has precedent (corporations, rivers). The harder question is moral status — whether AI systems could have subjective experience warranting rights. Current consensus in philosophy of mind is that transformer-based systems lack consciousness, but integrated information theory and global workspace theory offer frameworks for future evaluation.',
+  },
+  {
+    question: 'Will AI be able to write novel scientific hypotheses better than researchers by 2035?', emoji: '🔬', horizon: '2035', band: 'C', difficulty: 'expert',
+    mockResults: { yes: 30, no: 35, maybe: 35 },
+    analysis: 'AI can spot patterns in data that humans miss. But forming a hypothesis needs creativity, intuition, and understanding of what matters — science is more than data crunching!',
+    analysisC: 'LLMs can generate plausible hypotheses by interpolating training data patterns. Truly novel hypotheses require abductive reasoning, analogy across domains, and intuition about which questions are worth pursuing. Current AI excels at literature synthesis and computational experiment design but lacks the serendipitous insight that drives paradigm shifts.',
+  },
+  {
+    question: 'Will AI replace human artists in the creative industry by 2035?', emoji: '🖌️', horizon: '2035', band: 'C', difficulty: 'expert',
+    mockResults: { yes: 18, no: 52, maybe: 30 },
+    analysis: 'AI can make impressive art, but human artists bring lived experience, cultural context, and intentional meaning. The creative industry values authenticity and personal expression.',
+    analysisC: 'Generative models produce high-fidelity outputs but lack intentionality and authentic lived experience. Markets may bifurcate: AI-generated commodity content (stock images, background music) coexisting with premium human-created work valued for provenance and meaning. The Turing test for art involves cultural judgment, not just perceptual quality.',
+  },
+  {
+    question: 'Will countries agree on international AI safety regulations by 2030?', emoji: '🏛️', horizon: '2030', band: 'C', difficulty: 'expert',
+    mockResults: { yes: 22, no: 45, maybe: 33 },
+    analysis: 'Many countries have different ideas about AI. Getting everyone to agree on rules is like getting everyone to agree on climate policy — important but very difficult!',
+    analysisC: 'The Bletchley Declaration (2023) and subsequent AI Safety Summits demonstrate nascent multilateral coordination. However, geopolitical competition (US-China AI race), divergent regulatory philosophies (EU precautionary principle vs US innovation-first), and enforcement mechanisms remain unresolved. Analogies to nuclear non-proliferation and climate accords suggest partial agreements are more likely than comprehensive frameworks.',
   },
 ];
 

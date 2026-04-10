@@ -40,12 +40,14 @@ type TrialStep = 'case' | 'perspective' | 'argue' | 'verdict';
 
 interface Argument {
   text: string;
+  textC?: string;
   strength: 'strong' | 'moderate' | 'weak';
-  explanation: string;
+  explanation?: string;
 }
 
 interface Perspective {
   role: string;
+  name?: string;
   emoji: string;
   stance: string;
   arguments: Argument[];
@@ -60,12 +62,16 @@ interface EthicsCase {
   perspectives: Perspective[];
   verdictNote: string;
   verdictNoteC: string;
+  band?: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const CASES: EthicsCase[] = [
   {
     title: 'The Self-Driving Decision',
     emoji: '🚗',
+    band: 'A',
+    difficulty: 'medium',
     scenario:
       'A self-driving car is about to crash. It can swerve left (hitting 1 person) or go straight (hitting 3 people). The AI must decide in milliseconds. What should it do?',
     scenarioC:
@@ -156,6 +162,8 @@ const CASES: EthicsCase[] = [
   {
     title: 'The AI Job Interview',
     emoji: '💼',
+    band: 'A',
+    difficulty: 'medium',
     scenario:
       'A company uses AI to screen job applications. The AI rejects more women and minorities than expected. The company says the AI is just finding "the best candidates" based on past hiring data.',
     scenarioC:
@@ -246,6 +254,8 @@ const CASES: EthicsCase[] = [
   {
     title: 'The Student AI Detector',
     emoji: '📝',
+    band: 'A',
+    difficulty: 'easy',
     scenario:
       'A school uses AI to detect if students used ChatGPT to write their essays. The detector flags 20% of original essays as "AI-written" by mistake. A student who wrote their own essay gets accused of cheating.',
     scenarioC:
@@ -336,6 +346,8 @@ const CASES: EthicsCase[] = [
   {
     title: 'The Health AI',
     emoji: '🏥',
+    band: 'B',
+    difficulty: 'medium',
     scenario:
       'An AI can predict who might get sick in the future using health data. Insurance companies want to use it to set prices — people likely to get sick would pay more.',
     scenarioC:

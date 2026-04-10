@@ -41,6 +41,7 @@ interface Task {
   why: string;
   whyC: string;
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const LEARN_CARDS = [

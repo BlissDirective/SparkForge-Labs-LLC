@@ -34,8 +34,22 @@ const LEARN_CARDS = [
   { title: 'How NLP Works', emoji: '🧠', desc: 'Natural Language Processing (NLP) helps computers understand human language. In this game, you\'ll write text and watch AI analyze its sentiment in real-time!' },
 ];
 
-const POS = ['happy','joy','love','great','amazing','wonderful','beautiful','fantastic','excellent','awesome','brilliant','delightful','cheerful','kind','friendly'];
-const NEG = ['sad','angry','hate','terrible','awful','horrible','bad','worst','ugly','stupid','mean','boring','scary','cruel','lonely'];
+const POS = [
+  'happy','joy','love','great','amazing','wonderful','beautiful','fantastic','excellent','awesome',
+  'brilliant','delightful','cheerful','kind','friendly',
+  'thrilled','grateful','magnificent','superb','glorious','marvelous','splendid','radiant','vibrant','blissful',
+  'enchanting','heartwarming','inspiring','uplifting','triumphant',
+  'generous','gracious','harmonious','peaceful','serene','tender','charming','dazzling','lively','majestic',
+  'noble','pleasant','proud','refreshing','victorious',
+];
+const NEG = [
+  'sad','angry','hate','terrible','awful','horrible','bad','worst','ugly','stupid',
+  'mean','boring','scary','cruel','lonely',
+  'miserable','dreadful','disgusting','painful','frightening','depressing','annoying','frustrating','heartbreaking','devastating',
+  'gloomy','wretched','pathetic','worthless','hopeless',
+  'bitter','resentful','hostile','toxic','vicious','hideous','unbearable','tragic','dismal','dreary',
+  'ghastly','rotten','wicked','harsh','ruthless',
+];
 
 function analyze(text: string) {
   const words = text.toLowerCase().split(/\s+/);
@@ -51,11 +65,25 @@ function analyze(text: string) {
 }
 
 const CHALLENGES = [
-  { text: 'Write the HAPPIEST sentence you can!', target: 'happy', check: (s: number) => s > 0.5 },
-  { text: 'Write the SADDEST sentence you can!', target: 'sad', check: (s: number) => s < -0.5 },
-  { text: 'Write a perfectly NEUTRAL sentence!', target: 'neutral', check: (s: number, wc: number) => Math.abs(s) < 0.15 && wc >= 4 },
-  { text: 'Write something MIXED \u2014 both happy AND sad!', target: 'mixed', check: (s: number, _wc: number, hl: { pol: number }[]) => hl.some(h => h.pol > 0) && hl.some(h => h.pol < 0) },
-  { text: 'Use exactly 3 emotional words in one sentence!', target: 'count3', check: (_s: number, _wc: number, hl: { pol: number }[]) => hl.length === 3 },
+  // Easy
+  { text: 'Write the HAPPIEST sentence you can!', target: 'happy', difficulty: 'easy' as const, check: (s: number) => s > 0.5 },
+  { text: 'Write the SADDEST sentence you can!', target: 'sad', difficulty: 'easy' as const, check: (s: number) => s < -0.5 },
+  { text: 'Write a COMPLIMENT for someone you like!', target: 'compliment', difficulty: 'easy' as const, check: (s: number, wc: number) => s > 0.3 && wc >= 3 },
+  // Medium
+  { text: 'Write a perfectly NEUTRAL sentence!', target: 'neutral', difficulty: 'medium' as const, check: (s: number, wc: number) => Math.abs(s) < 0.15 && wc >= 4 },
+  { text: 'Write something MIXED \u2014 both happy AND sad!', target: 'mixed', difficulty: 'medium' as const, check: (s: number, _wc: number, hl: { pol: number }[]) => hl.some(h => h.pol > 0) && hl.some(h => h.pol < 0) },
+  { text: 'Use exactly 3 emotional words in one sentence!', target: 'count3', difficulty: 'medium' as const, check: (_s: number, _wc: number, hl: { pol: number }[]) => hl.length === 3 },
+  { text: 'Write a PRODUCT REVIEW that sounds positive!', target: 'review', difficulty: 'medium' as const, check: (s: number, wc: number) => s > 0.3 && wc >= 5 },
+  { text: 'Write a sentence with EXACTLY 2 negative words!', target: 'neg2', difficulty: 'medium' as const, check: (_s: number, _wc: number, hl: { pol: number }[]) => hl.filter(h => h.pol < 0).length === 2 },
+  // Hard
+  { text: 'Write a SARCASTIC sentence that uses positive words but sounds negative!', target: 'sarcasm', difficulty: 'hard' as const, check: (s: number, wc: number, hl: { pol: number }[]) => s > 0.2 && wc >= 5 && hl.filter(h => h.pol > 0).length >= 2 },
+  { text: 'Write CONSTRUCTIVE CRITICISM \u2014 use both positive and negative words!', target: 'constructive', difficulty: 'hard' as const, check: (_s: number, wc: number, hl: { pol: number }[]) => hl.some(h => h.pol > 0) && hl.some(h => h.pol < 0) && wc >= 6 },
+  { text: 'Write a sentence WITHOUT any emotional words (but at least 6 words)!', target: 'noemotion', difficulty: 'hard' as const, check: (_s: number, wc: number, hl: { pol: number }[]) => hl.length === 0 && wc >= 6 },
+  { text: 'Write a sentence with EXACTLY 5 emotional words!', target: 'count5', difficulty: 'hard' as const, check: (_s: number, _wc: number, hl: { pol: number }[]) => hl.length === 5 },
+  // Expert
+  { text: 'Write a sentence that scores EXACTLY neutral (score near 0) but uses 4+ emotional words!', target: 'balanced4', difficulty: 'expert' as const, check: (s: number, _wc: number, hl: { pol: number }[]) => Math.abs(s) < 0.15 && hl.length >= 4 },
+  { text: 'Write a sentence with MORE negative words than positive, but an overall POSITIVE score!', target: 'inverseNeg', difficulty: 'expert' as const, check: (s: number, _wc: number, hl: { pol: number }[]) => { const pos = hl.filter(h => h.pol > 0).length; const neg = hl.filter(h => h.pol < 0).length; return neg > pos && s > 0 && hl.length >= 3; } },
+  { text: 'Write a sentence using at least 7 emotional words in 12+ words total!', target: 'emotionDense', difficulty: 'expert' as const, check: (_s: number, wc: number, hl: { pol: number }[]) => hl.length >= 7 && wc >= 12 },
 ];
 
 export function SentimentScannerGame() {

@@ -14,7 +14,15 @@ import { z } from 'zod';
 
 export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-architect' | 'bias-detective'
   | 'data-detective' | 'robot-vacuum' | 'camera-quest' | 'chatbot-builder' | 'emoji-decoder'
-  | 'code-blocks' | 'my-first-ai-app' | 'future-forge' | 'ai-or-not';
+  | 'code-blocks' | 'my-first-ai-app' | 'future-forge' | 'ai-or-not'
+  // ═══ Standard Games (20 new GameIds) ═══
+  | 'ai-spy' | 'time-machine' | 'human-vs-machine'
+  | 'treat-trainer' | 'neuron-relay' | 'pixel-investigator'
+  | 'word-predictor' | 'token-chopper' | 'ai-art-detective'
+  | 'tool-picker' | 'data-shield' | 'real-or-fake'
+  | 'ethics-courtroom' | 'fool-the-ai' | 'build-classifier'
+  | 'prediction-market' | 'sentiment-scanner' | 'lost-in-translation'
+  | 'career-explorer' | 'api-explorer';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -46,7 +54,48 @@ export type ContentType =
   // Future Forge
   | 'world-scenario' | 'capability-mapping' | 'impact-narrative'
   // AI or Not
-  | 'capability-scenario' | 'timeline-assessment' | 'evidence-explanation';
+  | 'capability-scenario' | 'timeline-assessment' | 'evidence-explanation'
+  // ═══ Standard Games (60 new content types — 3 per game) ═══
+  // AI Spy
+  | 'spy-scene' | 'spy-item-set' | 'spy-explanation'
+  // Time Machine
+  | 'timeline-milestone' | 'era-challenge' | 'ai-history-card'
+  // Human vs Machine
+  | 'hvm-challenge' | 'hvm-comparison' | 'hvm-concept-card'
+  // Treat Trainer
+  | 'rl-maze' | 'reward-challenge' | 'rl-learn-card'
+  // Neuron Relay
+  | 'neuron-puzzle' | 'network-challenge' | 'neural-concept-card'
+  // Pixel Investigator
+  | 'pixel-image' | 'reveal-challenge' | 'cnn-learn-card'
+  // Word Predictor
+  | 'prediction-sentence' | 'probability-challenge' | 'llm-concept-card'
+  // Token Chopper
+  | 'token-challenge' | 'tokenizer-puzzle' | 'token-learn-card'
+  // AI Art Detective
+  | 'art-comparison' | 'detection-challenge' | 'genai-learn-card'
+  // Tool Picker
+  | 'tool-task' | 'multi-tool-scenario' | 'ai-tool-card'
+  // Data Shield
+  | 'privacy-scenario' | 'data-dilemma' | 'privacy-learn-card'
+  // Real or Fake
+  | 'fake-content' | 'detection-tip' | 'misinfo-learn-card'
+  // Ethics Courtroom
+  | 'ethics-case' | 'stakeholder-perspective' | 'ethics-framework-card'
+  // Fool the AI
+  | 'classification-item' | 'adversarial-challenge' | 'cv-learn-card'
+  // Build Classifier
+  | 'training-image-set' | 'test-challenge' | 'ml-pipeline-card'
+  // Prediction Market
+  | 'ai-prediction' | 'forecast-analysis' | 'futures-learn-card'
+  // Sentiment Scanner
+  | 'sentiment-challenge' | 'emotion-text' | 'nlp-learn-card'
+  // Lost in Translation
+  | 'translation-chain' | 'idiom-challenge' | 'mt-learn-card'
+  // Career Explorer
+  | 'ai-career' | 'skill-matching' | 'career-learn-card'
+  // API Explorer
+  | 'api-endpoint' | 'request-challenge' | 'api-concept-card';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -71,6 +120,12 @@ export const AIContentRequestSchema = z.object({
     'pet-trainer', 'sort-toy-box', 'neural-builder', 'agent-architect', 'bias-detective',
     'data-detective', 'robot-vacuum', 'camera-quest', 'chatbot-builder', 'emoji-decoder',
     'code-blocks', 'my-first-ai-app', 'future-forge', 'ai-or-not',
+    // Standard Games
+    'ai-spy', 'time-machine', 'human-vs-machine', 'treat-trainer', 'neuron-relay',
+    'pixel-investigator', 'word-predictor', 'token-chopper', 'ai-art-detective',
+    'tool-picker', 'data-shield', 'real-or-fake', 'ethics-courtroom', 'fool-the-ai',
+    'build-classifier', 'prediction-market', 'sentiment-scanner', 'lost-in-translation',
+    'career-explorer', 'api-explorer',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -88,6 +143,27 @@ export const AIContentRequestSchema = z.object({
     'app-category', 'app-power-description', 'app-idea',
     'world-scenario', 'capability-mapping', 'impact-narrative',
     'capability-scenario', 'timeline-assessment', 'evidence-explanation',
+    // Standard Games
+    'spy-scene', 'spy-item-set', 'spy-explanation',
+    'timeline-milestone', 'era-challenge', 'ai-history-card',
+    'hvm-challenge', 'hvm-comparison', 'hvm-concept-card',
+    'rl-maze', 'reward-challenge', 'rl-learn-card',
+    'neuron-puzzle', 'network-challenge', 'neural-concept-card',
+    'pixel-image', 'reveal-challenge', 'cnn-learn-card',
+    'prediction-sentence', 'probability-challenge', 'llm-concept-card',
+    'token-challenge', 'tokenizer-puzzle', 'token-learn-card',
+    'art-comparison', 'detection-challenge', 'genai-learn-card',
+    'tool-task', 'multi-tool-scenario', 'ai-tool-card',
+    'privacy-scenario', 'data-dilemma', 'privacy-learn-card',
+    'fake-content', 'detection-tip', 'misinfo-learn-card',
+    'ethics-case', 'stakeholder-perspective', 'ethics-framework-card',
+    'classification-item', 'adversarial-challenge', 'cv-learn-card',
+    'training-image-set', 'test-challenge', 'ml-pipeline-card',
+    'ai-prediction', 'forecast-analysis', 'futures-learn-card',
+    'sentiment-challenge', 'emotion-text', 'nlp-learn-card',
+    'translation-chain', 'idiom-challenge', 'mt-learn-card',
+    'ai-career', 'skill-matching', 'career-learn-card',
+    'api-endpoint', 'request-challenge', 'api-concept-card',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -339,6 +415,271 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
     `Provide 3 evidence points and a conclusion. ` +
     `${AGE_BAND_CONTEXT[ageBand]} ` +
     `Return as JSON: { "conclusion": "...", "evidence": ["...", "...", "..."], "nuance": "..." }`,
+
+  // ═══════ STANDARD GAME PROMPT TEMPLATES (60 new) ═══════
+
+  // AI Spy
+  'spy-scene': (ageBand, ctx) =>
+    `Generate an AI Spy scene for SparkForge educational game. Create a scene set in ${ctx?.setting || 'a modern home'} containing 4-6 items. ` +
+    `Each item: name, isAI (boolean), simpleExplanation (1-2 sentences), technicalExplanation (1-2 sentences). Mix of AI and non-AI items (~50/50). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "emoji": "...", "items": [{ "name": "...", "isAI": true/false, "simpleExplanation": "...", "technicalExplanation": "..." }] }`,
+
+  'spy-item-set': (ageBand) =>
+    `Generate 6 items for an AI spy game — 3 that use AI and 3 that don't. Each: name, emoji, isAI, simpleExplanation, technicalExplanation. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "items": [...] }`,
+
+  'spy-explanation': (ageBand, ctx) =>
+    `Explain how "${ctx?.item || 'a smart speaker'}" uses AI technology. Give a simple and technical version. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "simple": "...", "technical": "..." }`,
+
+  // Time Machine
+  'timeline-milestone': (ageBand) =>
+    `Generate an AI history milestone. Include: year, title, description (simple + technical), and significance. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "year": N, "title": "...", "desc": "...", "descC": "...", "significance": "..." }`,
+
+  'era-challenge': (ageBand, ctx) =>
+    `Create a quiz about AI developments in the ${ctx?.era || '2010s'}. 3 questions with 4 options each. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "era": "...", "questions": [{ "question": "...", "options": ["..."], "answer": N, "explanation": "..." }] }`,
+
+  'ai-history-card': (ageBand) =>
+    `Create a learn card about an AI history topic: pioneers, breakthroughs, milestones, or future directions. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "...", "funFact": "..." }`,
+
+  // Human vs Machine
+  'hvm-challenge': (ageBand) =>
+    `Create a human vs AI challenge. Include: prompt, type (math|creativity|empathy|speed|pattern|humor), AI answer, AI thinking time (ms), ` +
+    `humanAdvantage, aiAdvantage. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON with full challenge structure.`,
+
+  'hvm-comparison': (ageBand, ctx) =>
+    `Compare human and AI abilities for the task: "${ctx?.task || 'writing poetry'}". ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "task": "...", "humanStrength": "...", "aiStrength": "...", "winner": "human|ai|tie", "explanation": "..." }`,
+
+  'hvm-concept-card': (ageBand) =>
+    `Create a learn card about human-AI collaboration. Topics: complementary strengths, augmentation, automation, creativity, judgment. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Treat Trainer
+  'rl-maze': (ageBand) =>
+    `Design a grid maze for a reinforcement learning game. Include: size (7-11), walls (as [row,col] pairs), start, goal, difficulty, description. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "name": "...", "size": N, "walls": [[r,c],...], "start": [r,c], "goal": [r,c], "difficulty": "..." }`,
+
+  'reward-challenge': (ageBand) =>
+    `Create a reward function challenge for RL. Describe a scenario where the agent needs specific reward tuning to succeed. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "scenario": "...", "optimalRewards": { "toward": N, "away": N, "wall": N, "goal": N }, "explanation": "..." }`,
+
+  'rl-learn-card': (ageBand) =>
+    `Create a learn card about reinforcement learning: agents, rewards, policies, exploration, convergence. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Neuron Relay
+  'neuron-puzzle': (ageBand) =>
+    `Create a neural network puzzle. Include: neuron count (3-8), connections, target activation zone, optimal weights, hint. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "neurons": N, "target": [min, max], "optimalWeights": [...], "hint": "...", "difficulty": "..." }`,
+
+  'network-challenge': (ageBand) =>
+    `Create a challenge about neural network behavior: pattern recognition, signal propagation, or weight adjustment. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "description": "...", "question": "...", "answer": "...", "explanation": "..." }`,
+
+  'neural-concept-card': (ageBand) =>
+    `Create a learn card about neural networks: neurons, weights, activation functions, layers, training. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Pixel Investigator
+  'pixel-image': (ageBand) =>
+    `Create an image guessing round. Include: emoji representation, 3 multiple-choice options, correct answer, 5 reveal levels with clues. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "emoji": "...", "choices": ["..."], "answer": "...", "reveals": [{ "level": N, "clue": "..." }], "difficulty": "..." }`,
+
+  'reveal-challenge': (ageBand) =>
+    `Create a challenge about how CNNs process images at different resolutions. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "question": "...", "answer": "...", "explanation": "..." }`,
+
+  'cnn-learn-card': (ageBand) =>
+    `Create a learn card about CNNs: convolution, pooling, feature maps, classification layers. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Word Predictor
+  'prediction-sentence': (ageBand) =>
+    `Create a next-word prediction round. Include: sentence with blank, 4-6 prediction options with confidence %, correct answer, explanation. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "sentence": "...", "options": [{ "word": "...", "confidence": N }], "answer": "...", "explanation": "...", "explanationC": "..." }`,
+
+  'probability-challenge': (ageBand) =>
+    `Create a challenge about probability distributions in language models. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "question": "...", "answer": "...", "explanation": "..." }`,
+
+  'llm-concept-card': (ageBand) =>
+    `Create a learn card about language models: tokens, prediction, transformers, attention, training data. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Token Chopper
+  'token-challenge': (ageBand) =>
+    `Create a tokenization challenge. Include: input text, challenge description, expected token count, hint, validation criteria. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "text": "...", "challenge": "...", "expectedTokens": N, "hint": "...", "difficulty": "..." }`,
+
+  'tokenizer-puzzle': (ageBand) =>
+    `Create a puzzle about how tokenizers split text. Show surprising tokenization results. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "input": "...", "tokens": ["..."], "surprise": "...", "explanation": "..." }`,
+
+  'token-learn-card': (ageBand) =>
+    `Create a learn card about tokenization: BPE, subword splitting, vocabulary, token costs. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // AI Art Detective
+  'art-comparison': (ageBand) =>
+    `Create an AI vs human art detection round. Include: art description, isAI boolean, style, detection clue (simple + technical). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "description": "...", "isAI": true/false, "style": "...", "clue": "...", "clueC": "..." }`,
+
+  'detection-challenge': (ageBand) =>
+    `Create a challenge about identifying AI-generated art. Focus on telltale signs. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "question": "...", "answer": "...", "explanation": "..." }`,
+
+  'genai-learn-card': (ageBand) =>
+    `Create a learn card about generative AI: diffusion models, GANs, style transfer, prompt engineering. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Tool Picker
+  'tool-task': (ageBand) =>
+    `Create a task scenario for an AI tool matching game. Include: task description, correct tool (calculator|search|code|writer|translator|image-gen), explanation. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "text": "...", "correctTool": "...", "why": "...", "whyC": "..." }`,
+
+  'multi-tool-scenario': (ageBand) =>
+    `Create a scenario requiring multiple AI tools in sequence. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "scenario": "...", "tools": ["..."], "order": ["..."], "explanation": "..." }`,
+
+  'ai-tool-card': (ageBand) =>
+    `Create a learn card about AI tools: specialization, selection, limitations, combination. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Data Shield
+  'privacy-scenario': (ageBand) =>
+    `Create a data privacy scenario. Include: title, description, 4 data points (name, shouldProtect boolean, reason, reasonC). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "dataPoints": [{ "name": "...", "shouldProtect": true/false, "reason": "...", "reasonC": "..." }] }`,
+
+  'data-dilemma': (ageBand) =>
+    `Create a data privacy dilemma with no clear right answer. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "scenario": "...", "options": [{ "choice": "...", "pros": "...", "cons": "..." }] }`,
+
+  'privacy-learn-card': (ageBand) =>
+    `Create a learn card about data privacy: PII, consent, data minimization, encryption, rights. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Real or Fake
+  'fake-content': (ageBand) =>
+    `Create a real vs AI-generated content detection round. Include: content text, type (article|review|post|email), isAI, clue, clueC. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "content": "...", "type": "...", "isAI": true/false, "clue": "...", "clueC": "..." }`,
+
+  'detection-tip': (ageBand) =>
+    `Create a tip for detecting AI-generated content. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "tip": "...", "example": "...", "technique": "..." }`,
+
+  'misinfo-learn-card': (ageBand) =>
+    `Create a learn card about misinformation: deepfakes, synthetic media, fact-checking, media literacy. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Ethics Courtroom
+  'ethics-case': (ageBand) =>
+    `Create an AI ethics case. Include: title, emoji, scenario (simple + advanced), question, 3 perspectives each with 3 arguments and strength ratings. ` +
+    `Topics: fairness, privacy, autonomy, transparency, accountability. Avoid: violence, real individuals. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON with full case structure.`,
+
+  'stakeholder-perspective': (ageBand, ctx) =>
+    `Write a stakeholder perspective on the AI ethics case: "${ctx?.caseTitle || 'AI system'}". ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "name": "...", "emoji": "...", "arguments": [{ "text": "...", "textC": "...", "strength": "weak|moderate|strong" }] }`,
+
+  'ethics-framework-card': (ageBand) =>
+    `Create a learn card about an ethical framework: utilitarianism, deontology, virtue ethics, care ethics, justice theory. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "...", "example": "..." }`,
+
+  // Fool the AI
+  'classification-item': (ageBand) =>
+    `Create an item for an AI classification game. Include: emoji, AI label, confidence %, whether the label is wrong, and explanations. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "emoji": "...", "aiLabel": "...", "confidence": N, "isWrong": true/false, "explanation": "...", "explanationC": "..." }`,
+
+  'adversarial-challenge': (ageBand) =>
+    `Create an adversarial example challenge: an item that looks like one thing but should be classified differently. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "item": "...", "looksLike": "...", "actuallyIs": "...", "whyConfusing": "..." }`,
+
+  'cv-learn-card': (ageBand) =>
+    `Create a learn card about computer vision: classification, object detection, adversarial examples, confidence calibration. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Build Classifier
+  'training-image-set': (ageBand, ctx) =>
+    `Create a set of 6 training items for the category "${ctx?.category || 'Nature'}". Each: emoji, label, 2 features. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "category": "...", "items": [{ "emoji": "...", "label": "...", "features": ["...", "..."] }] }`,
+
+  'test-challenge': (ageBand) =>
+    `Create 3 tricky test items that could confuse a classifier. Each: emoji, trueLabel, whyTricky. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "items": [{ "emoji": "...", "trueLabel": "...", "whyTricky": "..." }] }`,
+
+  'ml-pipeline-card': (ageBand) =>
+    `Create a learn card about ML pipelines: data collection, labeling, training, validation, testing, deployment. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Prediction Market
+  'ai-prediction': (ageBand) =>
+    `Create an AI future prediction for a voting game. Include: question, emoji, time horizon, mock crowd results (yes/no/maybe %), analysis (simple + advanced). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "question": "...", "emoji": "...", "horizon": "...", "mockResults": { "yes": N, "no": N, "maybe": N }, "analysis": "...", "analysisC": "..." }`,
+
+  'forecast-analysis': (ageBand, ctx) =>
+    `Analyze the AI prediction: "${ctx?.prediction || 'Will AI replace doctors?'}". Provide evidence for and against. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "prediction": "...", "forEvidence": ["..."], "againstEvidence": ["..."], "expertConsensus": "..." }`,
+
+  'futures-learn-card': (ageBand) =>
+    `Create a learn card about AI forecasting: prediction markets, uncertainty, expert disagreement, trend analysis. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Sentiment Scanner
+  'sentiment-challenge': (ageBand) =>
+    `Create a sentiment analysis writing challenge. Include: instruction, target sentiment, check criteria, difficulty. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "text": "...", "target": "...", "difficulty": "...", "hint": "..." }`,
+
+  'emotion-text': (ageBand) =>
+    `Generate a text sample with specific sentiment for analysis practice. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "text": "...", "sentiment": "positive|negative|neutral|mixed", "keywords": ["..."], "score": N }`,
+
+  'nlp-learn-card': (ageBand) =>
+    `Create a learn card about NLP: sentiment analysis, tokenization, word embeddings, transformers. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Lost in Translation
+  'translation-chain': (ageBand) =>
+    `Create a translation telephone round. Include: original phrase/idiom, 3 intermediate translations with language flags, final back-translation, why it changed, technical explanation. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "original": "...", "steps": ["..."], "final": "...", "why": "...", "whyC": "..." }`,
+
+  'idiom-challenge': (ageBand) =>
+    `Create a challenge about predicting how an idiom will change through translation. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "idiom": "...", "prediction": "...", "actual": "...", "explanation": "..." }`,
+
+  'mt-learn-card': (ageBand) =>
+    `Create a learn card about machine translation: neural MT, encoder-decoder, attention, multilingual models. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // Career Explorer
+  'ai-career': (ageBand) =>
+    `Create an AI career for a career exploration game. Include: title, emoji, description (simple + technical), 3 required skills, 3 distractors. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "...", "descriptionC": "...", "skills": ["..."], "distractors": ["..."] }`,
+
+  'skill-matching': (ageBand, ctx) =>
+    `Create a skill-matching quiz for the AI career "${ctx?.career || 'ML Engineer'}". ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "career": "...", "questions": [{ "skill": "...", "isRequired": true/false, "explanation": "..." }] }`,
+
+  'career-learn-card': (ageBand) =>
+    `Create a learn card about AI careers: paths, skills, education, industry sectors, emerging roles. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // API Explorer
+  'api-endpoint': (ageBand) =>
+    `Create a simulated AI API endpoint for an API explorer game. Include: name, HTTP method, path, description, parameters, sample response. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "name": "...", "method": "GET|POST", "path": "/api/ai/...", "description": "...", "params": [...], "sampleResponse": {...} }`,
+
+  'request-challenge': (ageBand) =>
+    `Create an API challenge: construct the right request to get a specific response from an AI endpoint. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "endpoint": "...", "goal": "...", "correctParams": {...}, "explanation": "..." }`,
+
+  'api-concept-card': (ageBand) =>
+    `Create a learn card about APIs: REST, HTTP methods, JSON, status codes, authentication, rate limiting. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
 };
 
 // ================================================================

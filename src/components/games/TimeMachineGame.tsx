@@ -37,6 +37,7 @@ interface Milestone {
   desc: string;
   descC: string;
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_MILESTONES: Milestone[] = [

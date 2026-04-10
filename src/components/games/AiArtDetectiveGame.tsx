@@ -34,8 +34,10 @@ interface ArtRound {
   leftGradient: string;
   rightGradient: string;
   aiSide: 'left' | 'right';
+  title?: string;
   clue: string;
   clueC: string;
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
   leftShapes: { x: number; y: number; size: number; type: 'circle' | 'square'; opacity: number }[];
   rightShapes: { x: number; y: number; size: number; type: 'circle' | 'square'; opacity: number }[];
 }

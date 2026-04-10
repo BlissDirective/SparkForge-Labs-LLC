@@ -52,38 +52,89 @@ interface ImageRound {
   choices: string[];
   category: string;
   tier: 'easy' | 'medium' | 'hard';
+  difficulty: 'easy' | 'medium' | 'hard' | 'expert';
   hintA: string;
   hintC: string;
 }
 
 const IMAGES: ImageRound[] = [
-  // Easy tier — distinct shapes
-  { emoji: '\u{1F431}', answer: 'Cat', choices: ['Cat', 'Dog', 'Rabbit'], category: 'Animals', tier: 'easy',
+  // ── Easy tier — distinct shapes ──────────────────────
+  { emoji: '\u{1F431}', answer: 'Cat', choices: ['Cat', 'Dog', 'Rabbit'], category: 'Animals', tier: 'easy', difficulty: 'easy',
     hintA: 'It has whiskers and pointy ears!', hintC: 'High-frequency features: ear triangles + whisker lines distinguish from similar quadrupeds.' },
-  { emoji: '\u{1F680}', answer: 'Rocket', choices: ['Rocket', 'Airplane', 'Firework'], category: 'Vehicles', tier: 'easy',
+  { emoji: '\u{1F680}', answer: 'Rocket', choices: ['Rocket', 'Airplane', 'Firework'], category: 'Vehicles', tier: 'easy', difficulty: 'easy',
     hintA: 'It points up and goes to space!', hintC: 'Vertical axis symmetry with tapered top — distinct from airplane wing profile.' },
-  { emoji: '\u{1F33B}', answer: 'Sunflower', choices: ['Sunflower', 'Daisy', 'Rose'], category: 'Nature', tier: 'easy',
+  { emoji: '\u{1F33B}', answer: 'Sunflower', choices: ['Sunflower', 'Daisy', 'Rose'], category: 'Nature', tier: 'easy', difficulty: 'easy',
     hintA: "It's big and yellow!", hintC: 'Yellow radial pattern. Fibonacci spiral in seed arrangement is a distinguishing feature.' },
-  { emoji: '\u{1F3B8}', answer: 'Guitar', choices: ['Guitar', 'Violin', 'Banjo'], category: 'Music', tier: 'easy',
+  { emoji: '\u{1F3B8}', answer: 'Guitar', choices: ['Guitar', 'Violin', 'Banjo'], category: 'Music', tier: 'easy', difficulty: 'easy',
     hintA: 'It has strings and a long neck!', hintC: 'Figure-8 body contour + narrow neck. String count and fret pattern distinguish from violin.' },
-  // Medium tier — similar shapes
-  { emoji: '\u{1F418}', answer: 'Elephant', choices: ['Elephant', 'Hippo', 'Rhino'], category: 'Animals', tier: 'medium',
+  { emoji: '\u{1F436}', answer: 'Dog', choices: ['Dog', 'Wolf', 'Bear'], category: 'Animals', tier: 'easy', difficulty: 'easy',
+    hintA: 'It barks and wags its tail!', hintC: 'Floppy ears and shorter muzzle distinguish domestic dog from wolf at low resolution.' },
+  { emoji: '\u{1F697}', answer: 'Car', choices: ['Car', 'Bus', 'Truck'], category: 'Vehicles', tier: 'easy', difficulty: 'easy',
+    hintA: 'It has four wheels and fits your family!', hintC: 'Compact aspect ratio distinguishes sedan from elongated bus or tall truck profile.' },
+  { emoji: '\u{1F34E}', answer: 'Apple', choices: ['Apple', 'Cherry', 'Tomato'], category: 'Food', tier: 'easy', difficulty: 'easy',
+    hintA: 'It has a small stem on top!', hintC: 'Spherical with stem. Leaf presence and size ratio differentiate from cherry and tomato.' },
+  { emoji: '\u{2B50}', answer: 'Star', choices: ['Star', 'Sun', 'Sparkle'], category: 'Nature', tier: 'easy', difficulty: 'easy',
+    hintA: 'It twinkles in the night sky!', hintC: 'Five-pointed radial symmetry. Sun has rays emanating outward; sparkle has four points.' },
+  { emoji: '\u{26BD}', answer: 'Soccer Ball', choices: ['Soccer Ball', 'Basketball', 'Globe'], category: 'Sports', tier: 'easy', difficulty: 'easy',
+    hintA: 'You kick this round ball!', hintC: 'Pentagon/hexagon pattern on sphere surface. Basketball has curved lines; globe has landmass shapes.' },
+  { emoji: '\u{1F4BB}', answer: 'Laptop', choices: ['Laptop', 'Tablet', 'TV'], category: 'Technology', tier: 'easy', difficulty: 'easy',
+    hintA: 'It folds open and has a keyboard!', hintC: 'Hinge joint between screen and keyboard base. Clamshell form factor distinguishes from flat tablet.' },
+  { emoji: '\u{1F40B}', answer: 'Whale', choices: ['Whale', 'Shark', 'Dolphin'], category: 'Animals', tier: 'easy', difficulty: 'easy',
+    hintA: 'It is the biggest animal in the ocean!', hintC: 'Massive body with baleen plates. Horizontal tail fluke distinguishes from vertical shark tail.' },
+  { emoji: '\u{1F3A4}', answer: 'Microphone', choices: ['Microphone', 'Flashlight', 'Lollipop'], category: 'Music', tier: 'easy', difficulty: 'easy',
+    hintA: 'You sing into this!', hintC: 'Spherical mesh head on cylindrical handle. Distinct silhouette from flashlight lens or lollipop disc.' },
+
+  // ── Medium tier — similar shapes ─────────────────────
+  { emoji: '\u{1F418}', answer: 'Elephant', choices: ['Elephant', 'Hippo', 'Rhino'], category: 'Animals', tier: 'medium', difficulty: 'medium',
     hintA: "It's the biggest land animal with a long trunk!", hintC: 'Trunk is the key distinguishing feature. Gray color shared with rhino — need shape analysis.' },
-  { emoji: '\u{1F98B}', answer: 'Butterfly', choices: ['Butterfly', 'Dragonfly', 'Moth'], category: 'Nature', tier: 'medium',
+  { emoji: '\u{1F98B}', answer: 'Butterfly', choices: ['Butterfly', 'Dragonfly', 'Moth'], category: 'Nature', tier: 'medium', difficulty: 'medium',
     hintA: 'It has colorful wings that spread wide!', hintC: 'Bilateral wing symmetry with broad wing area. Dragonfly has narrow elongated wings.' },
-  { emoji: '\u{1F382}', answer: 'Cake', choices: ['Cake', 'Pie', 'Muffin'], category: 'Food', tier: 'medium',
+  { emoji: '\u{1F382}', answer: 'Cake', choices: ['Cake', 'Pie', 'Muffin'], category: 'Food', tier: 'medium', difficulty: 'medium',
     hintA: 'It usually has candles on top!', hintC: 'Cylindrical layered structure with frosting texture. Candles add vertical line features.' },
-  { emoji: '\u{1F3E0}', answer: 'House', choices: ['House', 'Castle', 'Barn'], category: 'Buildings', tier: 'medium',
+  { emoji: '\u{1F3E0}', answer: 'House', choices: ['House', 'Castle', 'Barn'], category: 'Buildings', tier: 'medium', difficulty: 'medium',
     hintA: 'It has a triangle roof and a door!', hintC: 'Triangular roof + rectangular base. Castle has turrets; barn has gambrel roof.' },
-  // Hard tier — tricky distinctions
-  { emoji: '\u{1F43A}', answer: 'Wolf', choices: ['Wolf', 'Dog', 'Fox'], category: 'Animals', tier: 'hard',
+  { emoji: '\u{1F40A}', answer: 'Crocodile', choices: ['Crocodile', 'Lizard', 'Alligator'], category: 'Animals', tier: 'medium', difficulty: 'medium',
+    hintA: 'It has a long snout and lives near water!', hintC: 'V-shaped snout distinguishes from U-shaped alligator. Body length and scale pattern differ from lizard.' },
+  { emoji: '\u{1F6F4}', answer: 'Scooter', choices: ['Scooter', 'Bicycle', 'Skateboard'], category: 'Vehicles', tier: 'medium', difficulty: 'medium',
+    hintA: 'You stand on it and push with one foot!', hintC: 'Handlebar + deck + two inline wheels. Bicycle has seat + pedals; skateboard lacks handlebars.' },
+  { emoji: '\u{1F352}', answer: 'Cherry', choices: ['Cherry', 'Grape', 'Plum'], category: 'Food', tier: 'medium', difficulty: 'medium',
+    hintA: 'It comes in pairs on a stem!', hintC: 'Twin spheres with forked stem. Grape clusters in bunches; plum is single and larger.' },
+  { emoji: '\u{1F3D4}', answer: 'Mountain', choices: ['Mountain', 'Pyramid', 'Volcano'], category: 'Nature', tier: 'medium', difficulty: 'medium',
+    hintA: 'It has a snowy peak and is very tall!', hintC: 'Irregular triangular profile with snow cap. Pyramid has straight edges; volcano has crater at summit.' },
+  { emoji: '\u{1F3BE}', answer: 'Tennis', choices: ['Tennis', 'Badminton', 'Ping Pong'], category: 'Sports', tier: 'medium', difficulty: 'medium',
+    hintA: 'You hit a fuzzy green ball with a racket!', hintC: 'Oval racket head with string pattern. Badminton shuttlecock shape differs; ping pong paddle is smaller and solid.' },
+  { emoji: '\u{1F4F7}', answer: 'Camera', choices: ['Camera', 'Binoculars', 'Projector'], category: 'Technology', tier: 'medium', difficulty: 'medium',
+    hintA: 'It takes pictures with a click!', hintC: 'Rectangular body with protruding lens cylinder. Binoculars have dual tubes; projector has single wide lens.' },
+  { emoji: '\u{1F3B5}', answer: 'Music Note', choices: ['Music Note', 'Treble Clef', 'Headphones'], category: 'Music', tier: 'medium', difficulty: 'medium',
+    hintA: 'You see these on sheet music!', hintC: 'Filled oval head with vertical stem and optional flag. Treble clef has spiral; headphones have arc shape.' },
+  { emoji: '\u{1F681}', answer: 'Helicopter', choices: ['Helicopter', 'Airplane', 'Drone'], category: 'Vehicles', tier: 'medium', difficulty: 'medium',
+    hintA: 'It has spinning blades on top!', hintC: 'Top rotor + tail boom distinguishes from fixed-wing airplane and multi-rotor drone configurations.' },
+
+  // ── Hard tier — tricky distinctions ──────────────────
+  { emoji: '\u{1F43A}', answer: 'Wolf', choices: ['Wolf', 'Dog', 'Fox'], category: 'Animals', tier: 'hard', difficulty: 'hard',
     hintA: 'It lives in the forest and howls at the moon!', hintC: 'Very similar to dog class — fine-grained classification. Muzzle length and ear angle are discriminative features.' },
-  { emoji: '\u{1F34A}', answer: 'Orange', choices: ['Orange', 'Peach', 'Tangerine'], category: 'Food', tier: 'hard',
+  { emoji: '\u{1F34A}', answer: 'Orange', choices: ['Orange', 'Peach', 'Tangerine'], category: 'Food', tier: 'hard', difficulty: 'hard',
     hintA: "It's round, orange, and juicy!", hintC: 'Color and shape nearly identical to tangerine. Texture (pore size) is the discriminative feature at high resolution.' },
-  { emoji: '\u{1F3BB}', answer: 'Violin', choices: ['Violin', 'Cello', 'Guitar'], category: 'Music', tier: 'hard',
+  { emoji: '\u{1F3BB}', answer: 'Violin', choices: ['Violin', 'Cello', 'Guitar'], category: 'Music', tier: 'hard', difficulty: 'hard',
     hintA: "It's played with a bow!", hintC: 'Same body shape as cello at different scale. Without size reference, need fine details like chin rest.' },
-  { emoji: '\u{1F985}', answer: 'Eagle', choices: ['Eagle', 'Hawk', 'Falcon'], category: 'Nature', tier: 'hard',
+  { emoji: '\u{1F985}', answer: 'Eagle', choices: ['Eagle', 'Hawk', 'Falcon'], category: 'Nature', tier: 'hard', difficulty: 'hard',
     hintA: "It's a big bird with sharp eyes!", hintC: 'Fine-grained classification problem. Beak curvature, head coloring, and wingspan ratios are key discriminators.' },
+  { emoji: '\u{1F98E}', answer: 'Lizard', choices: ['Lizard', 'Salamander', 'Gecko'], category: 'Animals', tier: 'hard', difficulty: 'hard',
+    hintA: 'It has scaly skin and can lose its tail!', hintC: 'Dry scales vs salamander moist skin. Gecko has toe pads; lizard has clawed toes — subtle at low resolution.' },
+  { emoji: '\u{1F345}', answer: 'Tomato', choices: ['Tomato', 'Apple', 'Pepper'], category: 'Food', tier: 'hard', difficulty: 'hard',
+    hintA: 'It grows in gardens and goes on pizza!', hintC: 'Red spherical fruit. Calyx (green star top) distinguishes from apple stem. Very similar color/shape to red apple at low res.' },
+  { emoji: '\u{1F3B7}', answer: 'Saxophone', choices: ['Saxophone', 'Trumpet', 'Clarinet'], category: 'Music', tier: 'hard', difficulty: 'hard',
+    hintA: 'It curves up at the end and plays jazz!', hintC: 'J-shaped body with flared bell. Trumpet has compact loops; clarinet is straight cylinder.' },
+  { emoji: '\u{1F42C}', answer: 'Dolphin', choices: ['Dolphin', 'Whale', 'Porpoise'], category: 'Animals', tier: 'hard', difficulty: 'hard',
+    hintA: 'It jumps out of the water and is very smart!', hintC: 'Elongated snout distinguishes from rounded porpoise head. Size much smaller than whale — hard without scale reference.' },
+  { emoji: '\u{1F3C2}', answer: 'Snowboarder', choices: ['Snowboarder', 'Skier', 'Surfer'], category: 'Sports', tier: 'hard', difficulty: 'expert',
+    hintA: 'They ride sideways down a snowy mountain!', hintC: 'Single wide board vs two narrow skis. Body orientation perpendicular to travel direction unlike surfer stance.' },
+  { emoji: '\u{1F4F1}', answer: 'Phone', choices: ['Phone', 'Tablet', 'Calculator'], category: 'Technology', tier: 'hard', difficulty: 'expert',
+    hintA: 'You hold it in one hand and make calls!', hintC: 'Narrow rectangular aspect ratio. Tablet is wider; calculator has distinct button grid. At low-res all appear as rectangles.' },
+  { emoji: '\u{1F99C}', answer: 'Parrot', choices: ['Parrot', 'Toucan', 'Peacock'], category: 'Animals', tier: 'hard', difficulty: 'expert',
+    hintA: 'It can talk and has bright feathers!', hintC: 'Curved beak + upright perching posture. Toucan has oversized beak; peacock has trailing tail plumage.' },
+  { emoji: '\u{1F336}', answer: 'Hot Pepper', choices: ['Hot Pepper', 'Banana', 'Eggplant'], category: 'Food', tier: 'hard', difficulty: 'expert',
+    hintA: 'It is spicy and red and pointy!', hintC: 'Tapered point with curved body. Banana has uniform curve + yellow; eggplant is wider with purple hue. Color is key discriminator.' },
 ];
 
 const REVEAL_LABELS = ['Extremely blurry', 'Very blurry', 'Blurry', 'Slightly blurry', 'Clear'];
