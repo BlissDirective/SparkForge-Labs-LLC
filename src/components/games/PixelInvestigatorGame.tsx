@@ -10,7 +10,7 @@
 // - Particle background
 // - Welcome phase with concept intro
 // - Age-band explanations (C: feature extraction, receptive fields)
-// - 12 images across 3 difficulty tiers
+// - 48 images across 3 difficulty tiers
 // - Confidence meter showing "how sure are you?"
 // - Reveal stages visualized as resolution layers
 // - Points breakdown with multiplier for early guesses
@@ -135,6 +135,44 @@ const IMAGES: ImageRound[] = [
     hintA: 'It can talk and has bright feathers!', hintC: 'Curved beak + upright perching posture. Toucan has oversized beak; peacock has trailing tail plumage.' },
   { emoji: '\u{1F336}', answer: 'Hot Pepper', choices: ['Hot Pepper', 'Banana', 'Eggplant'], category: 'Food', tier: 'hard', difficulty: 'expert',
     hintA: 'It is spicy and red and pointy!', hintC: 'Tapered point with curved body. Banana has uniform curve + yellow; eggplant is wider with purple hue. Color is key discriminator.' },
+
+  // ── Expansion batch (12 rounds): sports, technology, nature, music, space, art ──
+
+  // Sports items
+  { emoji: '\u{1F3D3}', answer: 'Table Tennis', choices: ['Table Tennis', 'Tennis', 'Badminton'], category: 'Sports', tier: 'medium', difficulty: 'medium',
+    hintA: 'You hit a tiny ball across a small table!', hintC: 'Small solid paddle vs strung racket. Scale ambiguity makes this a medium difficulty — aspect ratio is the discriminator.' },
+  { emoji: '\u{1F94A}', answer: 'Boxing Glove', choices: ['Boxing Glove', 'Mitten', 'Oven Mitt'], category: 'Sports', tier: 'hard', difficulty: 'hard',
+    hintA: 'Fighters wear these on their hands!', hintC: 'Padded fist shape with wrist cuff. Mitten has thumb separation; oven mitt is longer. At low-res all appear as rounded hand coverings.' },
+
+  // Technology items
+  { emoji: '\u{1F579}\uFE0F', answer: 'Joystick', choices: ['Joystick', 'Gear Shift', 'Microphone'], category: 'Technology', tier: 'medium', difficulty: 'medium',
+    hintA: 'You use this to play video games with one hand!', hintC: 'Vertical stick on a base platform. Gear shift has similar profile but automotive context. Button clusters on base are a key feature.' },
+  { emoji: '\u{1F4E1}', answer: 'Satellite Dish', choices: ['Satellite Dish', 'Umbrella', 'Wok'], category: 'Technology', tier: 'hard', difficulty: 'hard',
+    hintA: 'It sits on rooftops and catches signals from space!', hintC: 'Concave parabolic reflector with central feedhorn. Umbrella has radial ribs; wok has handle. Orientation and mounting are discriminators.' },
+
+  // Nature items
+  { emoji: '\u{1F335}', answer: 'Cactus', choices: ['Cactus', 'Tree', 'Broccoli'], category: 'Nature', tier: 'easy', difficulty: 'easy',
+    hintA: 'It lives in the desert and has spines instead of leaves!', hintC: 'Columnar green form with spines. Lacks branching canopy of tree and floret structure of broccoli. Distinctive saguaro silhouette.' },
+  { emoji: '\u{1F30B}', answer: 'Volcano', choices: ['Volcano', 'Mountain', 'Hill'], category: 'Nature', tier: 'hard', difficulty: 'hard',
+    hintA: 'It erupts with hot lava and smoke!', hintC: 'Conical profile with crater opening. Very similar to mountain at low-res — smoke plume and crater are the discriminative high-frequency features.' },
+
+  // Music items
+  { emoji: '\u{1FA97}', answer: 'Accordion', choices: ['Accordion', 'Piano', 'Organ'], category: 'Music', tier: 'medium', difficulty: 'medium',
+    hintA: 'It squeezes in and out and has buttons and keys!', hintC: 'Bellows structure between two box panels. Piano has horizontal keyboard; organ has pipes. Zigzag bellows pattern is a unique feature.' },
+  { emoji: '\u{1F941}', answer: 'Drum', choices: ['Drum', 'Bucket', 'Tambourine'], category: 'Music', tier: 'easy', difficulty: 'easy',
+    hintA: 'You hit it to make a beat!', hintC: 'Cylindrical body with stretched membrane top. Drumstick interaction area. Bucket lacks membrane; tambourine is flat with jingles.' },
+
+  // Space items
+  { emoji: '\u{1FA90}', answer: 'Ringed Planet', choices: ['Ringed Planet', 'UFO', 'Atom'], category: 'Space', tier: 'medium', difficulty: 'medium',
+    hintA: 'It has a beautiful ring around it — like Saturn!', hintC: 'Sphere with encircling elliptical ring. UFO has dome shape; atom has electron orbit lines. Ring tilt angle varies classification confidence.' },
+  { emoji: '\u{1F30C}', answer: 'Galaxy', choices: ['Galaxy', 'Hurricane', 'Whirlpool'], category: 'Space', tier: 'hard', difficulty: 'expert',
+    hintA: 'It is a huge swirl of billions of stars!', hintC: 'Spiral arm structure from above. Identical morphology to hurricane at different scales. Without contextual cues (stars vs clouds), shape alone is ambiguous.' },
+
+  // Art items
+  { emoji: '\u{1F3A8}', answer: 'Art Palette', choices: ['Art Palette', 'Shield', 'Pan'], category: 'Art', tier: 'easy', difficulty: 'easy',
+    hintA: 'Artists hold this and mix paint colors on it!', hintC: 'Kidney-shaped board with thumb hole and color spots. Unique form factor with high inter-class distance from shield and pan shapes.' },
+  { emoji: '\u{1F5FF}', answer: 'Moai Statue', choices: ['Moai Statue', 'Chess Piece', 'Trophy'], category: 'Art', tier: 'hard', difficulty: 'expert',
+    hintA: 'These stone heads are found on Easter Island!', hintC: 'Elongated rectangular head with prominent brow and nose. At low resolution similar to chess king or trophy silhouette. Cultural context needed for disambiguation.' },
 ];
 
 const REVEAL_LABELS = ['Extremely blurry', 'Very blurry', 'Blurry', 'Slightly blurry', 'Clear'];

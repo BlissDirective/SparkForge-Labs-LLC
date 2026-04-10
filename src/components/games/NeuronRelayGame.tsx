@@ -2,7 +2,7 @@
 // NEURON RELAY V2 — Lab 3 (Neural Networks)
 // Toggle neurons on/off, adjust volume, hit target signal.
 // Enhanced: chrome bezel, welcome phase, visual signal meter,
-// neuron labels, age-band explanations, 8 puzzles.
+// neuron labels, age-band explanations, 32 puzzles.
 // ENH: Signal pulse flow + toggle animation + animated meter + target zone
 // ════════════════════════════════════════════════════
 
@@ -67,6 +67,18 @@ const PUZZLES = [
   { n: 7, target: [45, 52], hint: 'Precise mid-range with many neurons to manage.', difficulty: 'expert' as const },
   { n: 8, target: [70, 78], hint: 'Many neurons — find the right combination.', difficulty: 'expert' as const },
   { n: 8, target: [55, 62], hint: 'Eight neurons, narrow target — master challenge!', difficulty: 'expert' as const },
+  // ── Expansion batch (8 puzzles, increasing complexity) ──────────────────────
+  // Medium+ — 4 neurons, narrower targets
+  { n: 4, target: [42, 50], hint: 'Two neurons at fairly high volume should get you there.', difficulty: 'medium' as const },
+  { n: 4, target: [28, 36], hint: 'One neuron on high, one on low — experiment!', difficulty: 'medium' as const },
+  // Hard+ — 5-6 neurons, tight targets
+  { n: 5, target: [63, 72], hint: 'Three or four neurons at varying levels.', difficulty: 'hard' as const },
+  { n: 6, target: [18, 26], hint: 'Just one or two neurons on very low — precision matters.', difficulty: 'hard' as const },
+  { n: 6, target: [72, 80], hint: 'Most neurons on but carefully calibrated.', difficulty: 'hard' as const },
+  // Expert+ — 7-9 neurons, very tight targets
+  { n: 7, target: [38, 44], hint: 'Activate three neurons and fine-tune their volumes.', difficulty: 'expert' as const },
+  { n: 8, target: [82, 88], hint: 'Nearly all neurons firing — but not quite at max.', difficulty: 'expert' as const },
+  { n: 9, target: [48, 54], hint: 'Nine neurons, narrow band — the ultimate relay challenge!', difficulty: 'expert' as const },
 ];
 
 export function NeuronRelayGame() {
@@ -370,7 +382,7 @@ export function NeuronRelayGame() {
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Neuron Relay Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
-                      You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across 8 puzzles.
+                      You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across {PUZZLES.length} puzzles.
                     </p>
                     {/* ENH: Animated score counter */}
                     <motion.div

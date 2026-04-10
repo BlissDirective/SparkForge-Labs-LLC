@@ -246,7 +246,7 @@ export function AiSpyGame() {
     if (revealed || !scene) return;
     setRevealed(true);
 
-    // Score: +10 for each correct identification, -5 for each wrong
+    // Score: +10 for each correct identification, no penalty for wrong answers
     let roundScore = 0;
     scene.items.forEach(item => {
       const playerSaidAI = selected.has(item.id);
@@ -529,6 +529,14 @@ export function AiSpyGame() {
                     <div className="rounded-xl px-6 py-3 bg-sky-400/10 border border-sky-400/20">
                       <p className="font-data text-2xl text-sky-400">{game.score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                        <li>• AI is all around us — from voice assistants to recommendation systems</li>
+                        <li>• Not everything smart uses AI — some things just follow simple rules</li>
+                        <li>• AI works by learning patterns from data, not by being programmed for every situation</li>
+                      </ul>
                     </div>
                   </motion.div>
                 )}

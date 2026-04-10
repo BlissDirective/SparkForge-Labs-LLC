@@ -217,15 +217,15 @@ export function AiArtDetectiveGame() {
     const correct = side === round.aiSide;
     setShowResult(correct ? 'correct' : 'wrong');
     if (correct) {
-      setStreak(s => s + 1);
+      const newStreak = streak + 1;
+      setStreak(newStreak);
       const newCount = correctCount + 1;
       setCorrectCount(newCount);
-      game.updateScore(12 + streak * 2);
+      game.updateScore(12 + newStreak * 2);
       // ENH: Award detective badge after 3 correct detections
       if (newCount === 3) { setShowDetectiveBadge(true); safeTimeout(() => setShowDetectiveBadge(false), 2500); }
     } else {
       setStreak(0);
-      game.updateScore(3);
     }
     safeTimeout(() => {
       setShowResult(null);

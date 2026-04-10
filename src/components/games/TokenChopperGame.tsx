@@ -121,7 +121,7 @@ export function TokenChopperGame() {
   function checkChallenge() {
     const c = CHALLENGES[challengeIdx];
     let passed = false;
-    if (c.target === 'single' && tokens.some(t => t.type === 'word' && t.token.length === 4)) passed = true;
+    if (c.target === 'single' && tokens.length === 1 && tokens[0].type === 'word' && tokens[0].token.length === 4) passed = true;
     if (c.target === 'anyword' && tokens.some(t => t.type === 'subword')) passed = true;
     if (c.target === 'tiny' && tokens.length >= 1 && tokens.some(t => t.type === 'word' && t.token.length <= 3)) passed = true;
     if (c.target === 'twospaces' && tokens.filter(t => t.type === 'space').length >= 1 && tokens.filter(t => t.type === 'word').length >= 2) passed = true;
