@@ -72,7 +72,7 @@ export function RealOrFakeGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; clue: string } | null>(null);
-  const [score, setScore] = useState({ correct: 0, total: 0 });
+  // STD-RF5: Removed local score state — use game.score from gameStore instead
   const [tipIdx, setTipIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const { safeTimeout } = useSafeTimeout();
@@ -83,9 +83,11 @@ export function RealOrFakeGame() {
   );
   const round = rounds[roundIdx];
 
+  // STD-RF2: Added cleanup return for scene content
   useEffect(() => {
-    setGameSceneContent(<RealOrFakeEnvironment verified={score.correct} isChecking={!!feedback} />);
-  }, [score.correct, feedback, setGameSceneContent]);
+    setGameSceneContent(<RealOrFakeEnvironment verified={Math.floor(game.score / 10)} isChecking={!!feedback} />);
+    return () => setGameSceneContent(null);
+  }, [game.score, feedback, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -99,8 +101,7 @@ export function RealOrFakeGame() {
   function handleGuess(guessedFake: boolean) {
     if (feedback) return;
     const correct = guessedFake === round.isFake;
-    setScore(s => ({ correct: s.correct + (correct ? 1 : 0), total: s.total + 1 }));
-    if (correct) game.updateScore(12);
+    if (correct) game.updateScore(10);
     setFeedback({ correct, clue: ageBand === 'C' ? round.clueC : round.clue });
     safeTimeout(() => {
       setFeedback(null);
@@ -189,7 +190,7 @@ export function RealOrFakeGame() {
                     {/* Round info */}
                     <div className="flex items-center justify-center gap-3 mb-3">
                       <span className="font-body text-xs text-white/30">{round.typeLabel}</span>
-                      <span className="font-data text-2xs text-white/15" role="status" aria-label={`Score: ${score.correct} correct out of ${score.total}`}>{score.correct}/{score.total}</span>
+                      <span className="font-data text-2xs text-white/15" role="status" aria-label={`Round ${roundIdx + 1} of ${rounds.length}`}>{roundIdx + 1}/{rounds.length}</span>
                     </div>
 
                     {/* Content card with flip animation */}

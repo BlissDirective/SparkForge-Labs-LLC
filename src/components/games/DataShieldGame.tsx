@@ -124,7 +124,13 @@ export function DataShieldGame() {
 
   const scenario = SCENARIOS[scenarioIdx];
   const point = scenario?.dataPoints[pointIdx];
+  const totalDataPoints = SCENARIOS.reduce((sum, s) => sum + s.dataPoints.length, 0);
   const meterColor = privacyScore > 70 ? '#10B981' : privacyScore > 40 ? '#F59E0B' : '#EF4444';
+
+  // STD-DS2: Set maxScore to total data points * 10 (not scenarios * 10)
+  useEffect(() => {
+    game.setMaxScore(totalDataPoints * 10);
+  }, [totalDataPoints]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,

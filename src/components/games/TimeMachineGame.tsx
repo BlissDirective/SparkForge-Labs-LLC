@@ -102,6 +102,7 @@ export function TimeMachineGame() {
 
   useEffect(() => {
     setGameSceneContent(<TimeMachineEnvironment currentYear={slots[placed.size] || 2024} isPlacing={selectedCard !== null} />);
+    return () => setGameSceneContent(null);
   }, [placed.size, selectedCard, slots, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
@@ -133,7 +134,7 @@ export function TimeMachineGame() {
         }
         return remaining;
       });
-      game.updateScore(12);
+      game.updateScore(10);
       game.advanceRound();
     } else {
       setStreak(0);

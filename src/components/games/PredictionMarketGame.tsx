@@ -222,6 +222,7 @@ export function PredictionMarketGame() {
 
   useEffect(() => {
     setGameSceneContent(<PredictionMarketEnvironment predictions={predIdx} confidence={voted ? 0.8 : 0.5} />);
+    return () => setGameSceneContent(null);
   }, [predIdx, voted, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
@@ -249,7 +250,8 @@ export function PredictionMarketGame() {
 
   function nextPrediction() {
     setVoted(false); setMyVote(null); setShowAnalysis(false);
-    if (predIdx < predictions.length - 1) { setPredIdx(i => i + 1); game.advanceRound(); }
+    game.advanceRound(); // STD-PM1: Always advance round, including final prediction
+    if (predIdx < predictions.length - 1) { setPredIdx(i => i + 1); }
     else { setPhase('complete'); game.completeGame(); }
   }
 
@@ -424,7 +426,7 @@ export function PredictionMarketGame() {
                           className="w-full max-w-xs mx-auto py-3 rounded-xl font-display font-bold text-white"
                           style={{ background: 'linear-gradient(135deg, #D946EF, #A855F7)' }}
                           whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                          aria-label={`Next prediction, ${predIdx + 2} of ${predictions.length}`}>
+                          aria-label={predIdx < predictions.length - 1 ? `Next prediction, ${predIdx + 2} of ${predictions.length}` : 'See results'}>
                           Next Prediction →
                         </motion.button>
                       </motion.div>

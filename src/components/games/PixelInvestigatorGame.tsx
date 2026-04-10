@@ -155,7 +155,7 @@ export function PixelInvestigatorGame() {
   const [wasCorrect, setWasCorrect] = useState(false);
   const [showHint, setShowHint] = useState(false);
   const [streak, setStreak] = useState(0);
-  const [, setTotalEarned] = useState(0);
+  // STD-PI2: Removed dead totalEarned state
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const { safeTimeout } = useSafeTimeout();
 
@@ -171,6 +171,7 @@ export function PixelInvestigatorGame() {
 
   useEffect(() => {
     setGameSceneContent(<PixelInvestigatorEnvironment zoomLevel={revealLevel} isAnalyzing={phase === 'play' && !answered} />);
+    return () => setGameSceneContent(null);
   }, [revealLevel, phase, answered, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
@@ -191,7 +192,6 @@ export function PixelInvestigatorGame() {
     if (correct) {
       const earned = pts + (streak >= 2 ? 5 : 0);
       game.updateScore(earned);
-      setTotalEarned(t => t + earned);
       setStreak(s => s + 1);
     } else {
       setStreak(0);
@@ -336,7 +336,7 @@ export function PixelInvestigatorGame() {
                         <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
                           className={`mb-3 px-4 py-2 rounded-xl text-center ${wasCorrect ? 'bg-green-500/10 border border-green-500/30' : 'bg-red-500/10 border border-red-500/30'}`}>
                           <p className={`font-display text-sm font-bold ${wasCorrect ? 'text-green-400' : 'text-red-400'}`}>
-                            {wasCorrect ? `\u2713 +${pts + (streak >= 2 ? 5 : 0)} pts!` : `\u2717 It was ${round.answer}`}
+                            {wasCorrect ? `\u2713 +${pts + (streak >= 3 ? 5 : 0)} pts!` : `\u2717 It was ${round.answer}`}
                           </p>
                           {wasCorrect && revealLevel <= 1 && (
                             <p className="font-body text-2xs text-green-400/60 mt-0.5">Eagle eye! Early guess bonus!</p>
