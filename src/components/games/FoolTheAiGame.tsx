@@ -34,6 +34,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const FoolTheAiEnvironment = dynamic(
@@ -50,6 +51,8 @@ interface Item {
   isWrong: boolean;
   explanation: string;
   explanationC: string;
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
+  band?: 'A' | 'B' | 'C';
 }
 
 interface Challenge {
@@ -179,6 +182,7 @@ export function FoolTheAiGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredItems = useFilteredContent(ITEMS, tier, ageBand);
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<{ idx: number; hit: boolean } | null>(null);

@@ -20,6 +20,7 @@ import { TrendingUp, MessageSquare } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const PredictionMarketEnvironment = dynamic(
@@ -214,10 +215,7 @@ export function PredictionMarketGame() {
   const [totalVotes, setTotalVotes] = useState(0);
   const [matchedMajority, setMatchedMajority] = useState(false);
 
-  const predictions = useMemo(
-    () => ALL_PREDICTIONS.filter(p => BAND_ORDER[p.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  const predictions = useFilteredContent(ALL_PREDICTIONS, tier, ageBand);
   const pred = predictions[predIdx];
 
   useEffect(() => {

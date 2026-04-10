@@ -21,6 +21,7 @@ import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const NeuronRelayEnvironment = dynamic(
@@ -100,6 +101,7 @@ export function NeuronRelayGame() {
   const [firingNeurons, setFiringNeurons] = useState<Set<number>>(new Set());
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredPuzzles = useFilteredContent(PUZZLES, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const signal = neurons.reduce((s, n) => s + (n.on ? n.vol * 0.2 : 0), 0);

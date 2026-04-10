@@ -31,6 +31,7 @@ import { Eye, Search, Zap } from 'lucide-react';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const PixelInvestigatorEnvironment = dynamic(
@@ -197,11 +198,8 @@ export function PixelInvestigatorGame() {
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const { safeTimeout } = useSafeTimeout();
 
-  // Filter by age band: A gets easy+medium, B gets all, C gets all
-  const rounds = useMemo(() => {
-    if (ageBand === 'A') return IMAGES.filter(i => i.tier !== 'hard');
-    return IMAGES;
-  }, [ageBand]);
+  // Filter by difficulty tier and age band
+  const rounds = useFilteredContent(IMAGES, tier, ageBand);
 
   const round = rounds[ri];
   const blur = Math.max(0, 24 - revealLevel * 6);
