@@ -23,6 +23,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { Swords, User, Bot } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';

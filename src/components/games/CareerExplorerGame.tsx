@@ -26,6 +26,7 @@ import { BookOpen, Briefcase, CheckCircle2, XCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)

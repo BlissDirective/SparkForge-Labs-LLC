@@ -21,6 +21,7 @@ import { Palette, Eye } from 'lucide-react';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const AiArtDetectiveEnvironment = dynamic(

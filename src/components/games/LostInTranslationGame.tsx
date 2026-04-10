@@ -19,6 +19,7 @@ import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ENH: Compute simple degradation score (how different original vs final are)

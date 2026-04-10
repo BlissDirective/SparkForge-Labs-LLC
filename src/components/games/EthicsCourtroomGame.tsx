@@ -27,6 +27,7 @@ import { useGameContent } from '@/hooks/useContent';
 import { Scale, Users, MessageSquare, Award } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)

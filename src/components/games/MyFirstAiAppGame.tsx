@@ -36,6 +36,7 @@ import {
   Award, Rocket
 } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D component — SSR disabled, desktop only

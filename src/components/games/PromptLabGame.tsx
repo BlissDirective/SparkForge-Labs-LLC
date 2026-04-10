@@ -30,6 +30,7 @@ import {
 import dynamic from 'next/dynamic';
 import { extractKeywords } from '@/components/3d/PromptBubble3D';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] SSR-safe dynamic import for 3D thought bubble scene

@@ -19,6 +19,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { Eye, CheckCircle2, XCircle } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment — rendered inside CockpitCanvas via SceneRouter (D3D-B3)
 const AiSpyEnvironment = dynamic(
@@ -304,6 +305,7 @@ export function AiSpyGame() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredScenes = useFilteredContent(ALL_SCENES, tier, ageBand);
 
   const scene = scenes[sceneIdx];
   const totalAI = scene?.items.filter(i => i.usesAI).length ?? 0;

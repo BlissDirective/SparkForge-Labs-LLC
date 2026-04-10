@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // Lazy-load 3D visualization (desktop only)

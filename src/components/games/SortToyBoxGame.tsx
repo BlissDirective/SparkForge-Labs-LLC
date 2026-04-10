@@ -25,6 +25,7 @@ import { Plus, Brain, ChevronRight, GraduationCap, Sparkles, Timer, Trophy, Ligh
 import dynamic from 'next/dynamic';
 import { useAIContent } from '@/hooks/useAIContent';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // Lazy-load 3D scene (desktop only)

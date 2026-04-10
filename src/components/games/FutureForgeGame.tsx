@@ -20,6 +20,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { Rocket, Zap, Eye, MessageSquare, Cpu, Bot, Shield, Sparkles, CheckCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 const FutureForge3D = dynamic(

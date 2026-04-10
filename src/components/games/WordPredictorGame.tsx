@@ -20,6 +20,7 @@ import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Brain, Zap } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)

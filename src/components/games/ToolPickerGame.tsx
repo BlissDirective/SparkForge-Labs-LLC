@@ -18,6 +18,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Wrench } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)

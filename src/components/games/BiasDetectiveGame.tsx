@@ -33,6 +33,7 @@ import {
 } from 'lucide-react';
 import { useAIContent } from '@/hooks/useAIContent';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D scales (no SSR)

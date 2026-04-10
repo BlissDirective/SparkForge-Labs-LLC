@@ -19,6 +19,7 @@ const AiOrNot3D = dynamic(
 );
 import { Play, BookOpen, ArrowRight, Lightbulb, Award, Rocket, Clock, Send, Brain, CheckCircle } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 type Phase = 'welcome' | 'learn' | 'play' | 'predict' | 'complete';
