@@ -14,6 +14,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { ScanLine } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
@@ -58,6 +59,7 @@ export function SentimentScannerGame() {
   const { data: _dynamicContent } = useGameContent('sentiment-scanner', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
@@ -87,7 +89,7 @@ export function SentimentScannerGame() {
       game.updateScore(15);
       game.advanceRound();
       setShowSuccess(true);
-      setTimeout(() => {
+      safeTimeout(() => {
         setShowSuccess(false);
         if (ci < CHALLENGES.length - 1) { setCi(i => i + 1); setText(''); }
         else { setPhase('complete'); game.completeGame(); }
@@ -217,8 +219,8 @@ export function SentimentScannerGame() {
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Sentiment Scanner Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You mastered sentiment analysis by writing sentences that triggered specific emotional responses — the same technique AI uses to understand opinions online!</p>
-                    <div className="rounded-xl px-6 py-3 bg-[#FF66AA]/10 border border-[#FF66AA]/20">
-                      <p className="font-data text-2xl" style={{ color: '#FF66AA' }}>{game.score}</p>
+                    <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
+                      <p className="font-data text-2xl" style={{ color: '#818CF8' }}>{game.score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">

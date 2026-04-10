@@ -17,7 +17,7 @@
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
@@ -101,7 +101,7 @@ const TEST_IMAGES: TestImage[] = [
 // Tricky items — ambiguous to simulate classifier errors
 const TRICK_TESTS: TestImage[] = [
   { emoji: '🐴', trueLabel: 'Animal' }, // horse — might confuse with vehicle (horsepower?)
-  { emoji: '🌵', trueLabel: 'Food' }, // cactus — not food but might confuse
+  { emoji: '🧸', trueLabel: 'Animal' }, // teddy bear — looks like animal but isn't
   { emoji: '🛒', trueLabel: 'Vehicle' }, // shopping cart — has wheels but...
 ];
 
@@ -135,6 +135,7 @@ export function BuildClassifierGame() {
   const { data: _dynamicContent } = useGameContent('build-classifier', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const mountedRef = useRef(true);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -195,9 +196,11 @@ export function BuildClassifierGame() {
   async function startTraining() {
     setIsTraining(true);
     for (let i = 0; i <= 100; i += 5) {
+      if (!mountedRef.current) return; // STD-BC1: abort if unmounted
       setTrainingProgress(i);
       await new Promise((r) => setTimeout(r, 80));
     }
+    if (!mountedRef.current) return; // STD-BC1: abort if unmounted
     setIsTraining(false);
     setPhase('test');
   }
@@ -209,19 +212,21 @@ export function BuildClassifierGame() {
 
     if (correct) game.updateScore(8);
 
+    // STD-BC2: Track progress internally instead of calling game.advanceRound()
+    // which triggers isComplete prematurely when rounds run out.
     if (testIdx < allTests.length - 1) {
       setTestIdx((i) => i + 1);
-      game.advanceRound();
     } else {
       setTimeout(() => setPhase('results'), 500);
     }
   }
 
   function finishGame() {
+    // STD-BC3: Add bonus score BEFORE completeGame() so reward pipeline sees final score
     const correctCount = testResults.filter((r) => r.correct).length;
     game.updateScore(correctCount >= allTests.length * 0.8 ? 15 : 5);
-    setPhase('complete');
     game.completeGame();
+    setPhase('complete');
   }
 
   // Confusion matrix for results
@@ -250,6 +255,11 @@ export function BuildClassifierGame() {
     setGameSceneContent(<BuildClassifierEnvironment accuracy={accuracy} itemsSorted={testResults.length} />);
     return () => setGameSceneContent(null);
   }, [accuracy, testResults.length, setGameSceneContent]);
+
+  // STD-BC1: Cleanup mountedRef on unmount to cancel async training loop
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
 
   return (
     <GameShell

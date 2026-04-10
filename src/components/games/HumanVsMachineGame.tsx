@@ -25,6 +25,7 @@ import { Swords, User, Bot } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 
 // 3D Environment (no SSR)
 const HumanVsMachineEnvironment = dynamic(
@@ -177,6 +178,7 @@ export function HumanVsMachineGame() {
   const [machineTotal, setMachineTotal] = useState(0);
   // ENH: Verdict reveal animation trigger
   const [verdictType, setVerdictType] = useState<'human' | 'machine' | null>(null);
+  const { safeTimeout } = useSafeTimeout();
 
   const challenges = useMemo(
     () => ALL_CHALLENGES.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]),
@@ -209,7 +211,7 @@ export function HumanVsMachineGame() {
     game.updateScore(10);
     // ENH: Update score comparison bars
     setHumanTotal(h => h + 10);
-    setTimeout(() => {
+    safeTimeout(() => {
       setAiThinking(false);
       setAiRevealed(true);
       // ENH: Determine verdict and update machine score
@@ -217,7 +219,7 @@ export function HumanVsMachineGame() {
       setMachineTotal(m => m + aiScore);
       setVerdictType(challenge.type === 'opinion' ? 'human' : challenge.type === 'math' ? 'machine' : 'human');
     }, challenge.aiTime);
-  }, [humanAnswer, challenge, game]);
+  }, [humanAnswer, challenge, game, safeTimeout]);
 
   function nextRound() {
     setHumanAnswer('');
@@ -314,6 +316,7 @@ export function HumanVsMachineGame() {
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Start the Human vs Machine challenge"
                     >
                       Challenge the AI!{' '}
                       <Swords className="inline w-4 h-4 ml-1" />

@@ -25,6 +25,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
+import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import {
   Send,
@@ -280,8 +281,10 @@ const LEARN_CARDS = [
   },
 ];
 
-function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
+function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: number; maxDepth?: number }) {
   const indent = '  '.repeat(depth);
+
+  if (depth > maxDepth) return <span className="text-white/30">...</span>;
 
   if (data === null) return <span className="text-orange-400">null</span>;
   if (typeof data === 'boolean') return <span className="text-orange-400">{String(data)}</span>;
@@ -295,7 +298,7 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
         {'[\n'}
         {data.map((v, i) => (
           <span key={i}>
-            {indent}  <JsonViewer data={v} depth={depth + 1} />
+            {indent}  <JsonViewer data={v} depth={depth + 1} maxDepth={maxDepth} />
             {i < data.length - 1 ? ',\n' : '\n'}
           </span>
         ))}
@@ -313,7 +316,7 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
         {entries.map(([k, v], i) => (
           <span key={k}>
             {indent}  <span className="text-purple-400">&quot;{k}&quot;</span>:{' '}
-            <JsonViewer data={v} depth={depth + 1} />
+            <JsonViewer data={v} depth={depth + 1} maxDepth={maxDepth} />
             {i < entries.length - 1 ? ',\n' : '\n'}
           </span>
         ))}
@@ -328,7 +331,8 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
 
 export function ApiExplorerGame() {
   const game = useGameStore();
-  const ageBand = 'C' as const;
+  const { activeChild } = useChildStore();
+  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('api-explorer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
@@ -411,7 +415,7 @@ export function ApiExplorerGame() {
 
     let result: { status: number; body: object; latency: number };
 
-    if (recentSame.length >= 2) {
+    if (recentSame.length >= 4) {
       // Rate limited
       result = {
         status: 429,
@@ -583,14 +587,14 @@ export function ApiExplorerGame() {
                     </AnimatePresence>
                     <motion.button
                       onClick={() => {
-                        if (learnIdx < 3) setLearnIdx((i) => i + 1);
+                        if (learnIdx < LEARN_CARDS.length - 1) setLearnIdx((i) => i + 1);
                         else setPhase('explore');
                       }}
                       className="w-full max-w-md py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      {learnIdx < 3 ? 'Next →' : 'Start Exploring! 🔌'}
+                      {learnIdx < LEARN_CARDS.length - 1 ? 'Next →' : 'Start Exploring! 🔌'}
                     </motion.button>
                     <button
                       onClick={() => setPhase('explore')}

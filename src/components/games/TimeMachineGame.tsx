@@ -19,28 +19,8 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { Clock } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
 
 // 3D Environment (no SSR)
 const TimeMachineEnvironment = dynamic(
@@ -93,6 +73,7 @@ export function TimeMachineGame() {
   const [streak, setStreak] = useState(0);
   const [celebrateSlot, setCelebrateSlot] = useState<number | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const { safeTimeout } = useSafeTimeout();
   const animatedScore = useAnimatedCounter(game.score);
 
   const milestones = useMemo(
@@ -135,12 +116,12 @@ export function TimeMachineGame() {
     if (correct) {
       setStreak(s => s + 1);
       setCelebrateSlot(slotYear);
-      setTimeout(() => setCelebrateSlot(null), 800);
+      safeTimeout(() => setCelebrateSlot(null), 800);
       setPlaced(prev => new Map(prev).set(card.id, slotYear));
       setTrayCards(prev => {
         const remaining = prev.filter(c => c.id !== card.id);
         if (remaining.length === 0) {
-          setTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
+          safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
         }
         return remaining;
       });
@@ -151,7 +132,7 @@ export function TimeMachineGame() {
     }
     setSelectedCard(null);
 
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
     }, 2000);
   }

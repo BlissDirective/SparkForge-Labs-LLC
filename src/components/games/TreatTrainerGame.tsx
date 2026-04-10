@@ -7,7 +7,7 @@
 
 'use client';
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
@@ -37,15 +37,12 @@ const isWall = (r: number, c: number) => WALLS.some(([wr, wc]) => wr === r && wc
 
 export function TreatTrainerGame() {
   const game = useGameStore();
+  const { updateScore, advanceRound, completeGame } = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('treat-trainer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
-
-  // Initialize game store
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { game.startGame("treat-trainer", TOTAL_EPISODES); }, []);
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
@@ -55,6 +52,13 @@ export function TreatTrainerGame() {
   const [robotPos, setRobotPos] = useState<[number, number]>(START);
   const [running, setRunning] = useState(false);
   const [history, setHistory] = useState<number[]>([]);
+  const episodeRef = useRef(0);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
 
   useEffect(() => {
     setGameSceneContent(<TreatTrainerEnvironment treatCount={episode} isTraining={phase === 'play'} />);
@@ -71,8 +75,10 @@ export function TreatTrainerGame() {
     const trail: [number, number][] = [[...pos]];
     const visited = new Set<string>();
     let steps = 0;
+    const currentEpisode = episodeRef.current;
 
     for (let s = 0; s < 50; s++) {
+      if (!mountedRef.current) return;
       steps++;
       const moves = ([[0,1],[0,-1],[1,0],[-1,0]] as [number, number][]).filter(([dr, dc]) => {
         const nr = pos[0] + dr, nc = pos[1] + dc;
@@ -88,7 +94,7 @@ export function TreatTrainerGame() {
         sc += dA < dB ? rewards.toward : rewards.away;
         if (nr === GOAL[0] && nc === GOAL[1]) sc += rewards.goal;
         if (visited.has(`${nr},${nc}`)) sc -= 1;
-        sc += (Math.random() - 0.5) * Math.max(1, 6 - episode);
+        sc += (Math.random() - 0.5) * Math.max(1, 6 - currentEpisode);
         return { dr, dc, sc };
       });
       scored.sort((a, b) => b.sc - a.sc);
@@ -96,6 +102,7 @@ export function TreatTrainerGame() {
       pos = [pos[0] + scored[0].dr, pos[1] + scored[0].dc];
       visited.add(`${pos[0]},${pos[1]}`);
       trail.push([...pos]);
+      if (!mountedRef.current) return;
       setRobotPos([...pos]);
       setPath([...trail]);
 
@@ -103,16 +110,18 @@ export function TreatTrainerGame() {
       if (pos[0] === GOAL[0] && pos[1] === GOAL[1]) break;
     }
 
+    if (!mountedRef.current) return;
     setHistory(prev => [...prev, steps]);
+    episodeRef.current += 1;
     setEpisode(e => e + 1);
-    game.updateScore(5);
-    game.advanceRound();
+    updateScore(5);
+    advanceRound();
     setRunning(false);
-    if (episode >= 9) { setPhase('complete'); game.completeGame(); }
-  }, [rewards, episode, game]);
+    if (episodeRef.current >= 10) { setPhase('complete'); completeGame(); }
+  }, [rewards, updateScore, advanceRound, completeGame]);
 
   return (
-    <GameShell gameId="treat-trainer" title="Treat Trainer" worldNumber={2} worldColor="#8B5CF6" totalRounds={TOTAL_EPISODES}>
+    <GameShell gameId="treat-trainer" title="Treat Trainer" worldNumber={2} worldColor="#AA66FF" totalRounds={TOTAL_EPISODES}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

@@ -16,31 +16,11 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Brain, Zap } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
 
 // 3D Environment (no SSR)
 const WordPredictorEnvironment = dynamic(
@@ -196,6 +176,7 @@ export function WordPredictorGame() {
   const { data: _dynamicContent } = useGameContent('word-predictor', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -231,7 +212,7 @@ export function WordPredictorGame() {
     if (!guess.trim()) return;
     // ENH: Brain thinking pulse before reveal
     setIsPredicting(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setIsPredicting(false);
       setShowResult(true);
       if (matched) {
@@ -243,8 +224,8 @@ export function WordPredictorGame() {
         setAnswerFeedback('wrong');
         game.updateScore(5);
       }
-      setTimeout(() => setAnswerFeedback(null), 1000);
-      setTimeout(() => {
+      safeTimeout(() => setAnswerFeedback(null), 1000);
+      safeTimeout(() => {
         setShowResult(false);
         setGuess('');
         if (roundIdx < rounds.length - 1) {

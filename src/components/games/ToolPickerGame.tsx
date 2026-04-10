@@ -15,6 +15,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Wrench } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
@@ -78,6 +79,7 @@ export function ToolPickerGame() {
   const { data: _dynamicContent } = useGameContent('tool-picker', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -117,7 +119,7 @@ export function ToolPickerGame() {
           clearInterval(timerRef.current);
           setFeedback({ correct: false, why: 'Time\'s up! The correct tool was ' + TOOLS.find(tl => tl.id === currentTask.correctTool)?.label + '.' });
           setStreak(0);
-          setTimeout(() => {
+          safeTimeout(() => {
             setFeedback(null);
             if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
             else { setPhase('complete'); game.completeGame(); }
@@ -138,8 +140,12 @@ export function ToolPickerGame() {
       ? (ageBand === 'C' ? task.whyC : task.why)
       : `The best tool was ${TOOLS.find(t => t.id === task.correctTool)?.label}. ${task.why}`;
     setFeedback({ correct, why });
-    if (correct) { setStreak(s => s + 1); game.updateScore(10 * multiplier); } else { setStreak(0); }
-    setTimeout(() => {
+    if (correct) {
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      game.updateScore(10 * (newStreak >= 5 ? 3 : newStreak >= 3 ? 2 : 1));
+    } else { setStreak(0); }
+    safeTimeout(() => {
       setFeedback(null);
       if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
       else { setPhase('complete'); game.completeGame(); }

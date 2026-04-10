@@ -463,6 +463,7 @@ export function EthicsCourtroomGame() {
   const [selectedArgs, setSelectedArgs] = useState<Set<number>>(new Set());
   const [casesDebated, setCasesDebated] = useState<string[]>([]);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const [hasFinished, setHasFinished] = useState(false);
 
   const currentCase = CASES[caseIdx];
 
@@ -520,6 +521,7 @@ export function EthicsCourtroomGame() {
       game.advanceRound();
     } else {
       setPhase('complete');
+      game.completeGame();
     }
   }
 
@@ -931,7 +933,11 @@ export function EthicsCourtroomGame() {
                     </p>
 
                     <motion.button
-                      onClick={() => game.completeGame()}
+                      onClick={() => {
+                        if (hasFinished) return;
+                        setHasFinished(true);
+                        game.completeGame();
+                      }}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
                       whileTap={{ scale: 0.98 }}
