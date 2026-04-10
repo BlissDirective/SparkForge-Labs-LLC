@@ -435,6 +435,338 @@ const CASES: EthicsCase[] = [
     verdictNoteC:
       'GINA (US) prohibits genetic discrimination in health insurance. EU GDPR requires explicit consent for health data processing. The tension between actuarial fairness and social justice remains a core challenge in health AI policy.',
   },
+  {
+    title: 'AI Content Moderation',
+    emoji: '🔇',
+    band: 'A',
+    difficulty: 'medium',
+    scenario:
+      'A social media company uses AI to automatically remove posts it thinks are harmful. But the AI sometimes removes harmless posts and misses actually harmful ones. Should AI decide what content gets removed?',
+    scenarioC:
+      'An automated content moderation system processes 500M posts daily with a 5% false positive rate (25M wrongful removals) and 15% false negative rate. The system disproportionately flags minority dialects and political satire. Manual review at this scale is economically infeasible.',
+    question: 'Should AI decide what content gets removed from social media?',
+    perspectives: [
+      {
+        role: 'Platform Executive',
+        emoji: '💻',
+        stance: 'AI moderation is necessary at scale',
+        arguments: [
+          {
+            text: 'Humans cannot review billions of posts per day',
+            textC: 'At 500M daily posts, human review would require 2M+ moderators working full-time — economically impossible.',
+            strength: 'strong',
+          },
+          {
+            text: 'AI catches harmful content before it spreads',
+            textC: 'Real-time classification enables sub-second removal, preventing viral amplification of harmful content.',
+            strength: 'strong',
+          },
+          {
+            text: 'We can improve the AI over time with better training data',
+            textC: 'Continuous learning from appeal outcomes creates a feedback loop that improves precision and recall iteratively.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Free Speech Advocate',
+        emoji: '📢',
+        stance: 'AI censorship threatens free expression',
+        arguments: [
+          {
+            text: 'AI cannot understand sarcasm, humor, or cultural context',
+            textC: 'Pragmatic language features like irony, satire, and code-switching systematically evade classifier detection.',
+            strength: 'strong',
+          },
+          {
+            text: 'Wrongful removal silences important voices',
+            textC: 'False positives disproportionately affect marginalized communities whose dialects diverge from training data norms.',
+            strength: 'strong',
+          },
+          {
+            text: 'There is no easy way to appeal an AI decision',
+            textC: 'Automated appeal systems create recursive loops where AI reviews AI decisions, undermining due process.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Digital Safety Researcher',
+        emoji: '🛡️',
+        stance: 'Use AI to flag, but let humans decide',
+        arguments: [
+          {
+            text: 'AI should assist human moderators, not replace them',
+            textC: 'Human-in-the-loop architectures combine AI throughput with human contextual judgment for high-stakes decisions.',
+            strength: 'strong',
+          },
+          {
+            text: 'Transparent rules help people understand what is allowed',
+            textC: 'Publicly documented classification taxonomies enable community oversight and reduce perceived arbitrariness.',
+            strength: 'strong',
+          },
+          {
+            text: 'Regular audits can catch bias in the system',
+            textC: 'Third-party algorithmic audits measuring disparate impact across demographic groups are essential for accountability.',
+            strength: 'moderate',
+          },
+        ],
+      },
+    ],
+    verdictNote:
+      'Most experts agree AI is needed to handle the huge volume of content, but it works best when humans make the final call on tough decisions. Transparency and appeals processes are key.',
+    verdictNoteC:
+      'The Santa Clara Principles on Transparency and Accountability in Content Moderation recommend publishing enforcement data, providing notice to affected users, and offering meaningful appeals. The DSA (EU) mandates algorithmic transparency for very large platforms.',
+  },
+  {
+    title: 'Deepfake Legislation',
+    emoji: '🎭',
+    band: 'A',
+    difficulty: 'hard',
+    scenario:
+      'New AI tools can create incredibly realistic fake videos of real people saying things they never said. Some people use them for fun or art, but others use them to spread lies or hurt people.',
+    scenarioC:
+      'Generative adversarial networks and diffusion models can now produce photorealistic synthetic media indistinguishable from authentic footage. Applications range from entertainment and education to electoral manipulation and non-consensual intimate imagery.',
+    question: 'Should creating realistic deepfakes be illegal?',
+    perspectives: [
+      {
+        role: 'Lawmaker',
+        emoji: '🏛️',
+        stance: 'Yes — deepfakes cause real harm and must be banned',
+        arguments: [
+          {
+            text: 'Fake videos can destroy someone\'s reputation overnight',
+            textC: 'Deepfakes weaponize trust in visual evidence, causing irreversible reputational damage before debunking occurs.',
+            strength: 'strong',
+          },
+          {
+            text: 'Deepfakes can be used to interfere with elections',
+            textC: 'Synthetic media of political figures making fabricated statements can influence voter behavior at scale with no time for correction.',
+            strength: 'strong',
+          },
+          {
+            text: 'People have a right to control their own likeness',
+            textC: 'Personality rights and bodily autonomy extend to digital representations — unauthorized synthesis violates both.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Digital Artist',
+        emoji: '🎨',
+        stance: 'No — banning the technology kills creative innovation',
+        arguments: [
+          {
+            text: 'Deepfake tech is used in movies, education, and accessibility',
+            textC: 'Synthetic media enables de-aging in films, historical figure recreation for education, and voice synthesis for ALS patients.',
+            strength: 'strong',
+          },
+          {
+            text: 'We should punish misuse, not ban the tool itself',
+            textC: 'Technology-neutral regulation targeting harmful outcomes is more effective than blanket prohibition of dual-use tools.',
+            strength: 'strong',
+          },
+          {
+            text: 'A ban would be impossible to enforce globally',
+            textC: 'Open-source model weights are already widely distributed — enforcement requires international cooperation that does not exist.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Technology Ethicist',
+        emoji: '🔬',
+        stance: 'Require labeling and detection, not outright bans',
+        arguments: [
+          {
+            text: 'All AI-generated content should be clearly labeled',
+            textC: 'Mandatory watermarking via C2PA provenance standards enables downstream detection without restricting creation.',
+            strength: 'strong',
+          },
+          {
+            text: 'Invest in detection tools that keep pace with creation tools',
+            textC: 'Adversarial co-evolution between generators and detectors maintains equilibrium when funded proportionally.',
+            strength: 'strong',
+          },
+          {
+            text: 'Education helps people become better at spotting fakes',
+            textC: 'Media literacy programs reduce susceptibility to synthetic media by 30-50% in controlled studies.',
+            strength: 'moderate',
+          },
+        ],
+      },
+    ],
+    verdictNote:
+      'Most experts say we need a mix: strong laws against harmful deepfakes, labeling requirements for all AI content, and better detection tools. Banning the technology entirely would also block many positive uses.',
+    verdictNoteC:
+      'The EU AI Act classifies deepfakes as limited-risk, requiring transparency obligations (disclosure of synthetic origin). The US DEEPFAKES Accountability Act proposes mandatory watermarking. China requires consent for likeness synthesis. No jurisdiction has imposed a total creation ban.',
+  },
+  {
+    title: 'AI Teacher',
+    emoji: '👩‍🏫',
+    band: 'A',
+    difficulty: 'medium',
+    scenario:
+      'A school district wants to replace some human teachers with AI tutors that can give every student personalized lessons 24/7. The AI is cheaper and always patient, but some parents and teachers are worried.',
+    scenarioC:
+      'An adaptive AI tutoring system demonstrates 1.5 standard deviation improvement in standardized test scores compared to traditional instruction, at 20% of the cost. However, longitudinal studies show reduced social-emotional development and increased screen dependency in AI-only cohorts.',
+    question: 'Should AI teachers replace human teachers in schools?',
+    perspectives: [
+      {
+        role: 'School Board Member',
+        emoji: '📊',
+        stance: 'Yes — AI tutors deliver better academic results',
+        arguments: [
+          {
+            text: 'Every student gets a personal tutor who adapts to their pace',
+            textC: 'Adaptive learning algorithms optimize spaced repetition and difficulty progression per-student, impossible at scale with human teachers.',
+            strength: 'strong',
+          },
+          {
+            text: 'AI tutors are available 24/7 and never get frustrated',
+            textC: 'Asynchronous availability eliminates scheduling constraints and removes negative emotional feedback loops.',
+            strength: 'strong',
+          },
+          {
+            text: 'It saves money that can be spent on other school needs',
+            textC: 'At 20% cost, savings could fund arts, sports, counseling, and infrastructure — areas currently underfunded.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Parent',
+        emoji: '👨‍👩‍👧',
+        stance: 'No — children need human connection to learn',
+        arguments: [
+          {
+            text: 'Teachers are role models who inspire and care about students',
+            textC: 'Mentorship, emotional validation, and modeling of social behavior are irreplaceable functions of human educators.',
+            strength: 'strong',
+          },
+          {
+            text: 'Kids already spend too much time on screens',
+            textC: 'Meta-analyses link excessive screen time in children to reduced attention span, sleep disruption, and social skill deficits.',
+            strength: 'strong',
+          },
+          {
+            text: 'AI cannot handle bullying, anxiety, or family problems',
+            textC: 'Social-emotional learning and pastoral care require empathy, situational judgment, and mandatory reporting obligations that AI cannot fulfill.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Education Researcher',
+        emoji: '🔬',
+        stance: 'Use AI to assist teachers, not replace them',
+        arguments: [
+          {
+            text: 'AI handles drills and practice, humans handle inspiration and mentoring',
+            textC: 'Blended models where AI manages formative assessment and humans facilitate Socratic discussion optimize both efficiency and depth.',
+            strength: 'strong',
+          },
+          {
+            text: 'Teachers freed from grading can spend more time with struggling students',
+            textC: 'Automating routine assessment reclaims 30-40% of teacher time for high-impact individualized instruction.',
+            strength: 'strong',
+          },
+          {
+            text: 'The best outcomes come from humans and AI working together',
+            textC: 'Studies show AI-augmented instruction outperforms both AI-only and human-only conditions by 0.4 standard deviations.',
+            strength: 'moderate',
+          },
+        ],
+      },
+    ],
+    verdictNote:
+      'Most education experts say the best approach is AI AND human teachers working together. AI handles personalized practice while humans provide mentorship, creativity, and emotional support.',
+    verdictNoteC:
+      'The UNESCO Recommendation on AI in Education (2021) emphasizes human oversight, teacher empowerment, and equitable access. Research consistently shows blended instruction models outperform replacement models across all measured outcomes.',
+  },
+  {
+    title: 'AI Environmental Cost',
+    emoji: '🌍',
+    band: 'A',
+    difficulty: 'hard',
+    scenario:
+      'Training one large AI model uses as much energy as five cars use in their entire lifetime. AI data centers need huge amounts of water for cooling. As AI gets more popular, its environmental impact keeps growing.',
+    scenarioC:
+      'Training GPT-4-scale models emits approximately 300 tonnes of CO2 equivalent. Global AI compute demand doubles every 6-10 months. Data centers consumed 1-2% of global electricity in 2024, projected to reach 3-4% by 2027, with significant water consumption for cooling.',
+    question: 'Is AI technology worth its massive energy consumption?',
+    perspectives: [
+      {
+        role: 'AI Company Executive',
+        emoji: '🏢',
+        stance: 'Yes — AI benefits far outweigh environmental costs',
+        arguments: [
+          {
+            text: 'AI helps fight climate change by optimizing energy grids and predicting weather',
+            textC: 'DeepMind reduced Google data center cooling energy by 40%. AI-optimized power grids prevent 2.6 gigatonnes of CO2 annually.',
+            strength: 'strong',
+          },
+          {
+            text: 'We are investing heavily in renewable energy for data centers',
+            textC: 'Major AI companies have committed to 100% renewable energy by 2030, with power purchase agreements already covering 60-80%.',
+            strength: 'strong',
+          },
+          {
+            text: 'AI makes many other industries more efficient, reducing overall waste',
+            textC: 'AI-driven efficiency gains across transportation, agriculture, and manufacturing could reduce global emissions by 5-10%.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Environmental Scientist',
+        emoji: '🌱',
+        stance: 'No — we cannot ignore the growing environmental damage',
+        arguments: [
+          {
+            text: 'AI energy use is growing faster than renewable energy can keep up',
+            textC: 'AI compute demand doubles every 6-10 months while global renewable capacity grows at 10-15% annually — the gap is widening.',
+            strength: 'strong',
+          },
+          {
+            text: 'Data centers use millions of gallons of water in drought-prone areas',
+            textC: 'A single large data center can consume 5 million gallons of water daily for cooling, competing with agricultural and municipal needs.',
+            strength: 'strong',
+          },
+          {
+            text: 'Most AI applications are not solving critical problems — they are generating cat pictures and chatbots',
+            textC: 'Analysis shows less than 5% of AI compute is directed at climate, health, or sustainability applications — the majority serves advertising and entertainment.',
+            strength: 'moderate',
+          },
+        ],
+      },
+      {
+        role: 'Policy Advisor',
+        emoji: '📜',
+        stance: 'Regulate AI energy use and require transparency',
+        arguments: [
+          {
+            text: 'Companies should report how much energy their AI models use',
+            textC: 'Mandatory carbon disclosure for model training and inference enables market-based incentives for efficiency.',
+            strength: 'strong',
+          },
+          {
+            text: 'Tax carbon-heavy AI and fund green AI research',
+            textC: 'Pigouvian taxation internalizes environmental externalities while redirecting revenue toward energy-efficient architectures.',
+            strength: 'strong',
+          },
+          {
+            text: 'Set efficiency standards — reward companies that do more with less energy',
+            textC: 'Performance-per-watt benchmarks like MLPerf Green encourage algorithmic efficiency improvements alongside hardware advances.',
+            strength: 'moderate',
+          },
+        ],
+      },
+    ],
+    verdictNote:
+      'This is one of the biggest challenges facing AI today. Most experts say we need AI to be part of solving climate change, but the AI industry must also clean up its own environmental footprint.',
+    verdictNoteC:
+      'The IEA projects data centers could consume 1,000 TWh by 2026 (doubling from 2022). The tension between AI\'s potential to accelerate decarbonization and its own carbon footprint requires lifecycle analysis, not just training-time metrics. Sparse models, distillation, and efficient architectures offer 10-100x compute reduction.',
+  },
 ];
 
 const LEARN_CARDS = [

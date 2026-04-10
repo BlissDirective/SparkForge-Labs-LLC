@@ -104,6 +104,60 @@ const SCENARIOS: Scenario[] = [
       { label: 'Wi-Fi network name', shouldProtect: false, reason: 'Your Wi-Fi name is already visible to nearby devices — it\'s not secret!', reasonC: 'SSIDs are broadcast publicly by design (802.11 beacon frames). While they can approximate geolocation via wardriving databases, they\'re already exposed by the protocol itself.', severity: 'safe' },
     ],
   },
+  {
+    title: 'Online Shopping', emoji: '🛒', context: 'An online store wants:',
+    dataPoints: [
+      { label: 'Delivery address', shouldProtect: true, reason: 'Only share with trusted stores — and always with a parent!', reasonC: 'Physical address for commerce is a necessary disclosure, but should be shared only with verified merchants over encrypted connections with clear data retention policies.', severity: 'warning' },
+      { label: 'Wishlist items', shouldProtect: false, reason: 'What you want to buy is just a preference — safe to share!', reasonC: 'Purchase intent data has low re-identification risk and enables useful personalization. It becomes concerning only when combined with other identifiers.', severity: 'safe' },
+      { label: 'Parent\'s bank details', shouldProtect: true, reason: 'Financial info should only go through secure checkout with parents!', reasonC: 'Financial credentials must only traverse PCI-DSS compliant payment processors. Direct collection by merchants violates payment security standards.', severity: 'danger' },
+      { label: 'Clothing size', shouldProtect: false, reason: 'Size info helps get the right fit — no privacy concern!', reasonC: 'Anthropometric data at category level (S/M/L) has negligible re-identification potential and serves a clear functional purpose.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'Fitness App', emoji: '🏃', context: 'A fitness tracker app requests:',
+    dataPoints: [
+      { label: 'Heart rate data', shouldProtect: true, reason: 'Health data is very personal!', reasonC: 'Biometric health data is classified as sensitive personal data under GDPR Article 9. Heart rate patterns can reveal medical conditions and emotional states.', severity: 'warning' },
+      { label: 'Exercise type', shouldProtect: false, reason: 'What sport you do is fine to share with a fitness app!', reasonC: 'Activity type is low-sensitivity behavioral data that directly serves the app\'s purpose. Minimal privacy risk when not combined with location data.', severity: 'safe' },
+      { label: 'GPS running route', shouldProtect: true, reason: 'Your running route shows where you live and go regularly!', reasonC: 'GPS traces reveal home location, daily patterns, and frequented areas. Strava\'s heat map incident (2018) demonstrated how aggregate fitness data can expose sensitive facilities.', severity: 'danger' },
+      { label: 'Step count goal', shouldProtect: false, reason: 'A fitness goal is just a number — totally safe!', reasonC: 'Numeric fitness targets are non-identifying preference data with clear functional utility and negligible privacy impact.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'School Portal', emoji: '🏫', context: 'Your school\'s online portal asks for:',
+    dataPoints: [
+      { label: 'Student ID number', shouldProtect: true, reason: 'Your student ID is linked to your school records — keep it private!', reasonC: 'Student IDs are persistent institutional identifiers that can be used to access academic records, attendance data, and disciplinary history under FERPA protections.', severity: 'warning' },
+      { label: 'Favorite subject', shouldProtect: false, reason: 'Which subject you like is just an interest — safe!', reasonC: 'Academic preferences are low-sensitivity data that can improve personalized learning experiences without meaningful privacy risk.', severity: 'safe' },
+      { label: 'Parent contact info', shouldProtect: true, reason: 'Only share through official school forms, not random online portals!', reasonC: 'Parental contact details should only be collected through verified institutional channels with clear data governance policies under FERPA and state privacy laws.', severity: 'danger' },
+      { label: 'Class schedule', shouldProtect: true, reason: 'Your schedule shows where you are at specific times!', reasonC: 'Temporal location data for minors creates safety risks. Class schedules enable prediction of a child\'s physical location at any given time.', severity: 'warning' },
+    ],
+  },
+  {
+    title: 'AI Chatbot', emoji: '🤖', context: 'An AI assistant chatbot asks:',
+    dataPoints: [
+      { label: 'Your question/prompt', shouldProtect: false, reason: 'Asking questions is what chatbots are for — that\'s fine!', reasonC: 'Query data serves the primary purpose of the service. Privacy risk depends on query content, but general questions have low sensitivity.', severity: 'safe' },
+      { label: 'Your real name', shouldProtect: true, reason: 'You can chat without giving your real name!', reasonC: 'Name disclosure to AI systems creates training data that may be retained indefinitely. Pseudonymous interaction preserves functionality without PII exposure.', severity: 'warning' },
+      { label: 'Your feelings/emotions', shouldProtect: true, reason: 'Emotional data is very personal. AI companies might use it to target you!', reasonC: 'Affective data is sensitive personal information that can be used for psychological profiling, emotional manipulation, and targeted advertising based on emotional vulnerability.', severity: 'warning' },
+      { label: 'What language you speak', shouldProtect: false, reason: 'Language preference helps the chatbot respond in your language!', reasonC: 'Language preference is a functional setting with low uniqueness. While it narrows demographic segments, it cannot identify individuals alone.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'Photo Sharing App', emoji: '📸', context: 'A photo app wants access to:',
+    dataPoints: [
+      { label: 'All your photos', shouldProtect: true, reason: 'Only share specific photos — not your entire library!', reasonC: 'Blanket photo library access violates least privilege. Photos contain embedded EXIF metadata (GPS, timestamps, device info) creating comprehensive surveillance profiles.', severity: 'danger' },
+      { label: 'Photo filters used', shouldProtect: false, reason: 'Which filters you like is just a preference!', reasonC: 'Filter preference data is non-identifying behavioral metadata with clear product improvement utility and negligible privacy impact.', severity: 'safe' },
+      { label: 'Face recognition data', shouldProtect: true, reason: 'Face data is like a fingerprint — once shared, you can\'t take it back!', reasonC: 'Facial biometrics are irrevocable identifiers regulated under BIPA and GDPR. Template extraction enables persistent cross-platform tracking without consent.', severity: 'danger' },
+      { label: 'Caption text', shouldProtect: false, reason: 'Captions you write are up to you — keep them general and they\'re fine!', reasonC: 'Self-authored captions are voluntary disclosures where the user controls content. Risk scales with specificity of disclosed information.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'Gaming Platform', emoji: '🎮', context: 'An online gaming platform requests:',
+    dataPoints: [
+      { label: 'Voice chat recordings', shouldProtect: true, reason: 'Voice recordings capture everything you say — keep them off!', reasonC: 'Voice data is biometric (voiceprint) and conversational content may include inadvertent PII disclosure. Persistent recording creates surveillance risks.', severity: 'danger' },
+      { label: 'Game achievements', shouldProtect: false, reason: 'Your gaming stats are just for fun — safe to share!', reasonC: 'In-game achievement data is platform-specific behavioral metadata with clear social utility and minimal cross-platform re-identification risk.', severity: 'safe' },
+      { label: 'Friends\' real names', shouldProtect: true, reason: 'Don\'t share your friends\' info — that\'s their choice!', reasonC: 'Third-party PII disclosure without consent violates fundamental privacy principles. You have no authority to share others\' identifying information.', severity: 'danger' },
+      { label: 'Preferred game genre', shouldProtect: false, reason: 'What games you enjoy is just a preference!', reasonC: 'Entertainment preferences are low-sensitivity categorical data useful for recommendations with negligible re-identification risk.', severity: 'safe' },
+    ],
+  },
 ];
 
 export function DataShieldGame() {

@@ -139,6 +139,38 @@ const CAREERS_B: Career[] = [
     skills: ['Creativity', 'Prompt Engineering', 'Design'],
     distractors: ['Plumbing', 'Farming', 'Mining'],
   },
+  {
+    title: 'Prompt Engineer',
+    emoji: '✍️',
+    description: 'Writes instructions for AI to get the best results.',
+    descriptionC: 'Designs and optimizes prompts for large language models to maximize output quality and reliability.',
+    skills: ['Writing', 'Creativity', 'Testing'],
+    distractors: ['Welding', 'Plumbing', 'Carpentry'],
+  },
+  {
+    title: 'AI Safety Researcher',
+    emoji: '🛡️',
+    description: 'Makes sure AI systems are safe and don\'t cause harm.',
+    descriptionC: 'Studies alignment, robustness, and interpretability to ensure AI systems behave as intended under all conditions.',
+    skills: ['Research', 'Critical Thinking', 'Ethics'],
+    distractors: ['Surfing', 'Skating', 'Climbing'],
+  },
+  {
+    title: 'AI Trainer',
+    emoji: '🏋️',
+    description: 'Teaches AI by labeling data and giving it feedback.',
+    descriptionC: 'Provides RLHF annotations, creates training datasets, and evaluates model outputs for quality and accuracy.',
+    skills: ['Attention to Detail', 'Patience', 'Communication'],
+    distractors: ['Magic', 'Juggling', 'Pottery'],
+  },
+  {
+    title: 'Autonomous Vehicle Engineer',
+    emoji: '🚗',
+    description: 'Builds self-driving cars that use AI to navigate safely.',
+    descriptionC: 'Develops perception, planning, and control systems for autonomous vehicles using sensor fusion and deep learning.',
+    skills: ['Engineering', 'Problem Solving', 'Safety'],
+    distractors: ['Cooking', 'Singing', 'Painting'],
+  },
 ];
 
 export default function CareerExplorerGame() {

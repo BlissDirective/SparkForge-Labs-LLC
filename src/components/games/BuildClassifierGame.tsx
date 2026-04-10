@@ -57,12 +57,14 @@ interface TestImage {
   correct?: boolean;
 }
 
-const CATEGORIES = ['Animal', 'Food', 'Vehicle'];
+const CATEGORIES = ['Animal', 'Food', 'Vehicle', 'Weather', 'Emotion'];
 
 const CATEGORY_COLORS: Record<string, string> = {
   Animal: '#10B981',
   Food: '#F59E0B',
   Vehicle: '#3B82F6',
+  Weather: '#60A5FA',
+  Emotion: '#F472B6',
 };
 
 const TRAINING_POOL: TrainingImage[] = [
@@ -84,6 +86,18 @@ const TRAINING_POOL: TrainingImage[] = [
   { emoji: '🚲', label: 'Vehicle' },
   { emoji: '🚢', label: 'Vehicle' },
   { emoji: '🚁', label: 'Vehicle' },
+  { emoji: '☀️', label: 'Weather' },
+  { emoji: '🌧️', label: 'Weather' },
+  { emoji: '⛈️', label: 'Weather' },
+  { emoji: '❄️', label: 'Weather' },
+  { emoji: '🌪️', label: 'Weather' },
+  { emoji: '🌈', label: 'Weather' },
+  { emoji: '😊', label: 'Emotion' },
+  { emoji: '😢', label: 'Emotion' },
+  { emoji: '😠', label: 'Emotion' },
+  { emoji: '😮', label: 'Emotion' },
+  { emoji: '😴', label: 'Emotion' },
+  { emoji: '😍', label: 'Emotion' },
 ];
 
 const TEST_IMAGES: TestImage[] = [
@@ -96,6 +110,12 @@ const TEST_IMAGES: TestImage[] = [
   { emoji: '🚂', trueLabel: 'Vehicle' },
   { emoji: '🛵', trueLabel: 'Vehicle' },
   { emoji: '🚤', trueLabel: 'Vehicle' },
+  { emoji: '🌤️', trueLabel: 'Weather' },
+  { emoji: '🌊', trueLabel: 'Weather' },
+  { emoji: '🌫️', trueLabel: 'Weather' },
+  { emoji: '🤔', trueLabel: 'Emotion' },
+  { emoji: '😱', trueLabel: 'Emotion' },
+  { emoji: '🥳', trueLabel: 'Emotion' },
 ];
 
 // Tricky items — ambiguous to simulate classifier errors
