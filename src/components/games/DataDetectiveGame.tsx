@@ -16,6 +16,7 @@ import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Search, AlertTriangle, CheckCircle } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 import dynamic from 'next/dynamic';
 
@@ -458,6 +459,7 @@ export function DataDetectiveGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [caseIdx, setCaseIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCases = useFilteredContent(CASES, tier, ageBand);
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const investigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

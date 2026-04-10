@@ -10,7 +10,7 @@
 // - Particle background
 // - Welcome phase with concept intro
 // - Age-band explanations (C: softmax confidence, adversarial examples)
-// - 14 items with richer explanations
+// - 28 items with richer explanations
 // - Animated confidence bar with color coding
 // - 4 challenge rounds (up from 3)
 // - Feedback panel with "why AI got confused" explanations
@@ -31,8 +31,10 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { AlertTriangle, CheckCircle2, Target } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const FoolTheAiEnvironment = dynamic(
@@ -40,7 +42,7 @@ const FoolTheAiEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Item {
   emoji: string;
@@ -49,6 +51,8 @@ interface Item {
   isWrong: boolean;
   explanation: string;
   explanationC: string;
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
+  band?: 'A' | 'B' | 'C';
 }
 
 interface Challenge {
@@ -58,6 +62,12 @@ interface Challenge {
   check: (item: Item) => boolean;
   descC: string;
 }
+
+const LEARN_CARDS = [
+  { title: 'How AI Classifies', emoji: '🏷️', desc: 'AI image classifiers look at pictures and try to identify what\'s in them. They assign labels like "dog", "car", or "pizza" with a confidence score.' },
+  { title: 'Confidence Scores', emoji: '📊', desc: 'When AI classifies an image, it gives a confidence percentage. 95% means it\'s very sure. 30% means it\'s just guessing!' },
+  { title: 'When AI Gets Fooled', emoji: '🃏', desc: 'Sometimes AI gets confused by unusual angles, lighting, or objects that look similar. Finding these mistakes helps researchers make AI better!' },
+];
 
 const ITEMS: Item[] = [
   { emoji: '\u{1F34E}', aiLabel: 'Apple', confidence: 95, isWrong: false,
@@ -102,6 +112,49 @@ const ITEMS: Item[] = [
   { emoji: '\u{1F95D}', aiLabel: 'Coconut', confidence: 40, isWrong: true,
     explanation: "It's a kiwi! The fuzzy brown exterior confused the AI.",
     explanationC: 'Texture confusion: both have rough brown exterior. Cross-section would disambiguate but single-view limits accuracy.' },
+  // ── Expansion batch (14 items) ──────────────────────
+  { emoji: '\u{1F98A}', aiLabel: 'Dog', confidence: 68, isWrong: true,
+    explanation: 'AI confused a fox with a dog \u2014 they look similar!',
+    explanationC: 'Foxes share morphological features with canids. The model\'s training data likely has more dog images, biasing classification toward the more common class.' },
+  { emoji: '\u{1F345}', aiLabel: 'Tomato', confidence: 89, isWrong: false,
+    explanation: 'AI got it right! Tomatoes are easy to identify.',
+    explanationC: 'Distinctive color + shape gives high confidence. Round red objects cluster tightly in the model\'s learned feature space.' },
+  { emoji: '\u{1F319}', aiLabel: 'Banana', confidence: 31, isWrong: true,
+    explanation: 'AI thought the moon was a banana because of the crescent shape!',
+    explanationC: 'Shape-based feature matching without context: crescent shapes have high cosine similarity to banana representations in the embedding space.' },
+  { emoji: '\u{1F3B8}', aiLabel: 'Guitar', confidence: 94, isWrong: false,
+    explanation: 'Very confident and correct! The shape is distinctive.',
+    explanationC: 'Musical instruments have unique silhouettes with low inter-class similarity, enabling high-confidence classification.' },
+  { emoji: '\u{1F98E}', aiLabel: 'Snake', confidence: 45, isWrong: true,
+    explanation: 'A lizard isn\'t a snake! The AI missed the legs.',
+    explanationC: 'Reptile subclasses share texture and color features. The model\'s attention mechanism may focus on scales over limb presence.' },
+  { emoji: '\u{1F9CA}', aiLabel: 'Ice Cube', confidence: 82, isWrong: false,
+    explanation: 'Correct! The translucent cube shape is clear.',
+    explanationC: 'Geometric regularity + transparency cues provide strong classification signal for crystalline objects.' },
+  { emoji: '\u{1F3AD}', aiLabel: 'Sunglasses', confidence: 28, isWrong: true,
+    explanation: 'Theater masks aren\'t sunglasses! AI was confused by the face shape.',
+    explanationC: 'Face-adjacent objects trigger facial feature detectors. The model partially activates eyewear classifiers due to the eye-region overlap.' },
+  { emoji: '\u{1F9A2}', aiLabel: 'Swan', confidence: 91, isWrong: false,
+    explanation: 'AI is very confident \u2014 swans have a very unique look!',
+    explanationC: 'Long curved neck + white body create a near-unique feature combination in bird classification with minimal confusion pairs.' },
+  { emoji: '\u{1F33A}', aiLabel: 'Pizza', confidence: 22, isWrong: true,
+    explanation: 'A flower isn\'t pizza! The AI saw the circular shape and got confused.',
+    explanationC: 'Radial symmetry triggers circular object classifiers. Without color/texture discrimination, round objects have higher confusion rates.' },
+  { emoji: '\u{1F3AA}', aiLabel: 'Tent', confidence: 73, isWrong: false,
+    explanation: 'Close enough! A circus tent is still a tent.',
+    explanationC: 'Hierarchical classification: circus tent is a subclass of tent. The model correctly identifies the superclass even if the specific variant isn\'t in training data.' },
+  { emoji: '\u{1F991}', aiLabel: 'Octopus', confidence: 55, isWrong: true,
+    explanation: 'A squid has 10 arms, an octopus has 8 \u2014 AI can\'t count tentacles!',
+    explanationC: 'Fine-grained classification failure: squid and octopus share the cephalopod body plan. Tentacle counting requires spatial reasoning beyond standard CNNs.' },
+  { emoji: '\u{1F3D4}\uFE0F', aiLabel: 'Mountain', confidence: 97, isWrong: false,
+    explanation: 'AI is extremely confident \u2014 mountains are unmistakable!',
+    explanationC: 'Landscape features have high variance but mountains have distinctive triangular profiles that are well-represented in training data.' },
+  { emoji: '\u{1F9F2}', aiLabel: 'Horseshoe', confidence: 41, isWrong: true,
+    explanation: 'A magnet isn\'t a horseshoe! Same shape but very different use.',
+    explanationC: 'U-shaped objects cluster together in feature space. Without material/context cues, shape-based classification produces systematic errors.' },
+  { emoji: '\u{1F99C}', aiLabel: 'Parrot', confidence: 88, isWrong: false,
+    explanation: 'Correct! The colorful feathers make parrots easy to spot.',
+    explanationC: 'Polychromatic plumage creates a distinctive multi-channel feature signature that separates parrots from other bird species with high accuracy.' },
 ];
 
 const CHALLENGES: Challenge[] = [
@@ -127,7 +180,9 @@ export function FoolTheAiGame() {
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredItems = useFilteredContent(ITEMS, tier, ageBand);
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<{ idx: number; hit: boolean } | null>(null);
@@ -136,6 +191,7 @@ export function FoolTheAiGame() {
   const [fooledCount, setFooledCount] = useState(0);
   // ENH: Track streak for visual streak indicator
   const [streakFlash, setStreakFlash] = useState(false);
+  const { safeTimeout } = useSafeTimeout();
 
   const challenge = CHALLENGES[ci];
   const matchCount = Array.from(found).filter(idx => challenge.check(ITEMS[idx])).length;
@@ -164,12 +220,12 @@ export function FoolTheAiGame() {
       // ENH: Increment fooled counter when AI was wrong and player found it
       if (item.isWrong) setFooledCount(c => c + 1);
       // ENH: Flash streak indicator on consecutive hits
-      if (consecutiveHits >= 1) { setStreakFlash(true); setTimeout(() => setStreakFlash(false), 600); }
+      if (consecutiveHits >= 1) { setStreakFlash(true); safeTimeout(() => setStreakFlash(false), 600); }
     } else {
       setConsecutiveHits(0);
     }
 
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
       const newMatch = matchCount + (hit ? 1 : 0);
       if (newMatch >= challenge.target) {
@@ -223,13 +279,38 @@ export function FoolTheAiGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-body text-2xs text-cyan-400">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       aria-label="Start investigating AI classifications">
                       Start Investigating! <Target className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#06B6D4]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 

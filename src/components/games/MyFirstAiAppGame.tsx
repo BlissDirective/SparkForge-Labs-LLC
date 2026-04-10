@@ -36,6 +36,7 @@ import {
   Award, Rocket
 } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D component — SSR disabled, desktop only
@@ -296,6 +297,7 @@ export function MyFirstAiAppGame() {
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showCodePeek, setShowCodePeek] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCategories = useFilteredContent(ALL_CATEGORIES as any[], tier, ageBand) as typeof ALL_CATEGORIES;
 
   // Merge hardcoded + dynamic categories
   const categories = useMemo(() => {

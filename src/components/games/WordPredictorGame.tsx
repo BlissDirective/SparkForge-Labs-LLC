@@ -16,31 +16,12 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Brain, Zap } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
 
 // 3D Environment (no SSR)
 const WordPredictorEnvironment = dynamic(
@@ -56,6 +37,7 @@ interface Round {
   explanation: string;
   explanationC: string;
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_ROUNDS: Round[] = [
@@ -185,6 +167,127 @@ const ALL_ROUNDS: Round[] = [
     explanationC: 'Speculative contexts produce high-entropy distributions. The model cannot predict the future but reflects training data biases about AI narratives.',
     band: 'B',
   },
+  {
+    sentence: 'The cat sat on the ___',
+    predictions: [
+      { word: 'mat', confidence: 45 },
+      { word: 'chair', confidence: 25 },
+      { word: 'floor', confidence: 18 },
+      { word: 'bed', confidence: 12 },
+    ],
+    explanation: '"The cat sat on the mat" is a classic sentence! AI remembers common phrases.',
+    explanationC: 'Highly frequent n-gram in training data. The idiom "cat sat on the mat" creates strong statistical bias toward "mat" despite other valid completions.',
+    band: 'A',
+  },
+  {
+    sentence: 'Water boils at 100 degrees ___',
+    predictions: [
+      { word: 'Celsius', confidence: 75 },
+      { word: 'Fahrenheit', confidence: 12 },
+      { word: 'centigrade', confidence: 8 },
+      { word: 'hot', confidence: 5 },
+    ],
+    explanation: 'AI knows science facts! Water boils at 100 degrees Celsius.',
+    explanationC: 'Factual grounding produces a peaked distribution. The model has high certainty from encyclopedic knowledge encoded during pre-training.',
+    band: 'A',
+  },
+  {
+    sentence: 'The astronaut floated in ___',
+    predictions: [
+      { word: 'space', confidence: 55 },
+      { word: 'zero', confidence: 20 },
+      { word: 'the', confidence: 15 },
+      { word: 'air', confidence: 10 },
+    ],
+    explanation: 'Astronauts float in space! AI connects "astronaut" and "floating" to space.',
+    explanationC: 'Strong semantic priming from co-occurrence of "astronaut" and "space" in training data creates high conditional probability.',
+    band: 'A',
+  },
+  {
+    sentence: 'The musician played a beautiful ___',
+    predictions: [
+      { word: 'song', confidence: 40 },
+      { word: 'melody', confidence: 30 },
+      { word: 'piece', confidence: 18 },
+      { word: 'tune', confidence: 12 },
+    ],
+    explanation: 'All these words fit! AI spreads probability across musical terms.',
+    explanationC: 'Near-synonyms in the same semantic field create a moderately flat distribution with gradual probability decay.',
+    band: 'A',
+  },
+  {
+    sentence: 'The detective found a clue in the ___',
+    predictions: [
+      { word: 'room', confidence: 28 },
+      { word: 'house', confidence: 22 },
+      { word: 'garden', confidence: 18 },
+      { word: 'library', confidence: 16 },
+      { word: 'basement', confidence: 16 },
+    ],
+    explanation: 'Detectives find clues everywhere! AI considers many locations equally likely.',
+    explanationC: 'Location nouns following "in the" are relatively interchangeable in detective narratives, producing a uniform distribution.',
+    band: 'B',
+  },
+  {
+    sentence: 'Machine learning models need lots of ___',
+    predictions: [
+      { word: 'data', confidence: 65 },
+      { word: 'training', confidence: 18 },
+      { word: 'time', confidence: 10 },
+      { word: 'compute', confidence: 7 },
+    ],
+    explanation: 'Data is the fuel for machine learning! AI knows this from its own training.',
+    explanationC: '"Data" dominates due to the extremely common collocation "lots of data" in ML literature and educational content.',
+    band: 'B',
+  },
+  {
+    sentence: 'The self-driving car uses sensors to ___',
+    predictions: [
+      { word: 'detect', confidence: 35 },
+      { word: 'navigate', confidence: 30 },
+      { word: 'see', confidence: 20 },
+      { word: 'avoid', confidence: 15 },
+    ],
+    explanation: 'Sensors help self-driving cars understand the world around them!',
+    explanationC: 'Multiple valid verb completions create a moderately peaked distribution with "detect" and "navigate" as primary actions in autonomous vehicle literature.',
+    band: 'B',
+  },
+  {
+    sentence: 'GPT stands for Generative Pre-trained ___',
+    predictions: [
+      { word: 'Transformer', confidence: 92 },
+      { word: 'Technology', confidence: 4 },
+      { word: 'Tool', confidence: 3 },
+      { word: 'Text', confidence: 1 },
+    ],
+    explanation: 'Very high confidence! GPT stands for Generative Pre-trained Transformer.',
+    explanationC: 'Near-deterministic distribution. The acronym expansion is a fixed fact with extremely strong co-occurrence in the training corpus.',
+    band: 'C',
+  },
+  {
+    sentence: 'Overfitting occurs when a model memorizes the ___',
+    predictions: [
+      { word: 'training', confidence: 60 },
+      { word: 'data', confidence: 25 },
+      { word: 'noise', confidence: 10 },
+      { word: 'examples', confidence: 5 },
+    ],
+    explanation: 'Overfitting means the AI memorizes training data instead of learning patterns!',
+    explanationC: '"Training data" is the canonical phrase in ML. "Noise" is technically more precise but less frequent in introductory contexts.',
+    band: 'C',
+  },
+  {
+    sentence: 'The attention mechanism allows models to focus on ___',
+    predictions: [
+      { word: 'relevant', confidence: 50 },
+      { word: 'important', confidence: 25 },
+      { word: 'specific', confidence: 15 },
+      { word: 'different', confidence: 10 },
+    ],
+    explanation: 'Attention helps AI focus on the most important parts of the input!',
+    explanationC: '"Relevant" collocates strongly with attention mechanism descriptions. The mechanism computes dynamic weighted averages over input positions.',
+    band: 'C',
+  },
 ];
 
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
@@ -196,6 +299,7 @@ export function WordPredictorGame() {
   const { data: _dynamicContent } = useGameContent('word-predictor', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -206,6 +310,7 @@ export function WordPredictorGame() {
   const [isPredicting, setIsPredicting] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
 
   const rounds = useMemo(
     () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
@@ -231,7 +336,7 @@ export function WordPredictorGame() {
     if (!guess.trim()) return;
     // ENH: Brain thinking pulse before reveal
     setIsPredicting(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setIsPredicting(false);
       setShowResult(true);
       if (matched) {
@@ -243,8 +348,8 @@ export function WordPredictorGame() {
         setAnswerFeedback('wrong');
         game.updateScore(5);
       }
-      setTimeout(() => setAnswerFeedback(null), 1000);
-      setTimeout(() => {
+      safeTimeout(() => setAnswerFeedback(null), 1000);
+      safeTimeout(() => {
         setShowResult(false);
         setGuess('');
         if (roundIdx < rounds.length - 1) {

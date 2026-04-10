@@ -2,7 +2,7 @@
 // NEURON RELAY V2 — Lab 3 (Neural Networks)
 // Toggle neurons on/off, adjust volume, hit target signal.
 // Enhanced: chrome bezel, welcome phase, visual signal meter,
-// neuron labels, age-band explanations, 8 puzzles.
+// neuron labels, age-band explanations, 32 puzzles.
 // ENH: Signal pulse flow + toggle animation + animated meter + target zone
 // ════════════════════════════════════════════════════
 
@@ -17,30 +17,11 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Zap, BrainCircuit } from 'lucide-react';
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const NeuronRelayEnvironment = dynamic(
@@ -48,19 +29,57 @@ const NeuronRelayEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
+
+const LEARN_CARDS = [
+  { title: 'What is a Neuron?', emoji: '🧬', desc: 'A neuron is a tiny processor in a neural network. Just like brain cells, artificial neurons receive signals, process them, and pass them along.' },
+  { title: 'Signals and Weights', emoji: '📡', desc: 'Each connection between neurons has a weight — like a volume knob. Adjusting these weights is how neural networks learn!' },
+  { title: 'Networks Work Together', emoji: '🕸️', desc: 'When many neurons work together in layers, they can recognize patterns, make decisions, and solve complex problems. That\'s the power of neural networks!' },
+];
 
 interface Neuron { id: number; on: boolean; vol: number; }
 
 const PUZZLES = [
-  { n: 3, target: [40, 60], hint: 'Try turning on 2 neurons at medium volume.' },
-  { n: 3, target: [70, 90], hint: 'All 3 neurons on, but adjust their volumes.' },
-  { n: 4, target: [20, 35], hint: 'Just 1-2 neurons at low volume should work.' },
-  { n: 4, target: [50, 65], hint: 'About half the neurons at moderate levels.' },
-  { n: 5, target: [30, 45], hint: 'Fewer neurons, lower volumes.' },
-  { n: 5, target: [75, 95], hint: 'Most neurons on with high volumes.' },
-  { n: 6, target: [40, 55], hint: 'Balance the activation across several neurons.' },
-  { n: 6, target: [85, 100], hint: 'Nearly all neurons firing at high intensity!' },
+  // Easy — 3 neurons, wide targets
+  { n: 3, target: [40, 60], hint: 'Try turning on 2 neurons at medium volume.', difficulty: 'easy' as const },
+  { n: 3, target: [70, 90], hint: 'All 3 neurons on, but adjust their volumes.', difficulty: 'easy' as const },
+  { n: 3, target: [10, 25], hint: 'Just 1 neuron at low volume should do it.', difficulty: 'easy' as const },
+  { n: 3, target: [50, 70], hint: 'Two neurons at moderate volume.', difficulty: 'easy' as const },
+  { n: 3, target: [0, 10], hint: 'Keep everything very quiet — barely any signal.', difficulty: 'easy' as const },
+  { n: 3, target: [55, 65], hint: 'All on but keep volumes balanced.', difficulty: 'easy' as const },
+  // Medium — 4 neurons, moderate targets
+  { n: 4, target: [20, 35], hint: 'Just 1-2 neurons at low volume should work.', difficulty: 'medium' as const },
+  { n: 4, target: [50, 65], hint: 'About half the neurons at moderate levels.', difficulty: 'medium' as const },
+  { n: 4, target: [35, 48], hint: 'Two neurons at medium-high volume.', difficulty: 'medium' as const },
+  { n: 4, target: [60, 75], hint: 'Three neurons on, vary the volumes.', difficulty: 'medium' as const },
+  { n: 4, target: [15, 25], hint: 'One neuron on low, rest off.', difficulty: 'medium' as const },
+  { n: 4, target: [70, 80], hint: 'Most neurons on at high intensity.', difficulty: 'medium' as const },
+  // Hard — 5-6 neurons, narrow targets
+  { n: 5, target: [30, 45], hint: 'Fewer neurons, lower volumes.', difficulty: 'hard' as const },
+  { n: 5, target: [75, 95], hint: 'Most neurons on with high volumes.', difficulty: 'hard' as const },
+  { n: 5, target: [50, 58], hint: 'Precisely half the signal — balance carefully.', difficulty: 'hard' as const },
+  { n: 5, target: [22, 32], hint: 'Two neurons at specific volumes.', difficulty: 'hard' as const },
+  { n: 5, target: [88, 100], hint: 'Nearly maxed out — all five firing strong.', difficulty: 'hard' as const },
+  { n: 6, target: [40, 55], hint: 'Balance the activation across several neurons.', difficulty: 'hard' as const },
+  // Expert — 6-8 neurons, very narrow targets
+  { n: 6, target: [85, 100], hint: 'Nearly all neurons firing at high intensity!', difficulty: 'expert' as const },
+  { n: 6, target: [33, 40], hint: 'Fine-tune three neurons to a narrow band.', difficulty: 'expert' as const },
+  { n: 7, target: [60, 68], hint: 'Activate about half at varied volumes.', difficulty: 'expert' as const },
+  { n: 7, target: [45, 52], hint: 'Precise mid-range with many neurons to manage.', difficulty: 'expert' as const },
+  { n: 8, target: [70, 78], hint: 'Many neurons — find the right combination.', difficulty: 'expert' as const },
+  { n: 8, target: [55, 62], hint: 'Eight neurons, narrow target — master challenge!', difficulty: 'expert' as const },
+  // ── Expansion batch (8 puzzles, increasing complexity) ──────────────────────
+  // Medium+ — 4 neurons, narrower targets
+  { n: 4, target: [42, 50], hint: 'Two neurons at fairly high volume should get you there.', difficulty: 'medium' as const },
+  { n: 4, target: [28, 36], hint: 'One neuron on high, one on low — experiment!', difficulty: 'medium' as const },
+  // Hard+ — 5-6 neurons, tight targets
+  { n: 5, target: [63, 72], hint: 'Three or four neurons at varying levels.', difficulty: 'hard' as const },
+  { n: 6, target: [18, 26], hint: 'Just one or two neurons on very low — precision matters.', difficulty: 'hard' as const },
+  { n: 6, target: [72, 80], hint: 'Most neurons on but carefully calibrated.', difficulty: 'hard' as const },
+  // Expert+ — 7-9 neurons, very tight targets
+  { n: 7, target: [38, 44], hint: 'Activate three neurons and fine-tune their volumes.', difficulty: 'expert' as const },
+  { n: 8, target: [82, 88], hint: 'Nearly all neurons firing — but not quite at max.', difficulty: 'expert' as const },
+  { n: 9, target: [48, 54], hint: 'Nine neurons, narrow band — the ultimate relay challenge!', difficulty: 'expert' as const },
 ];
 
 export function NeuronRelayGame() {
@@ -72,6 +91,7 @@ export function NeuronRelayGame() {
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [pi, setPi] = useState(0);
   const puzzle = PUZZLES[pi];
   const [neurons, setNeurons] = useState<Neuron[]>(() => Array.from({ length: puzzle.n }, (_, i) => ({ id: i, on: false, vol: 50 })));
@@ -81,6 +101,8 @@ export function NeuronRelayGame() {
   const [firingNeurons, setFiringNeurons] = useState<Set<number>>(new Set());
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredPuzzles = useFilteredContent(PUZZLES, tier, ageBand);
+  const { safeTimeout } = useSafeTimeout();
 
   const signal = neurons.reduce((s, n) => s + (n.on ? n.vol * 0.2 : 0), 0);
 
@@ -98,7 +120,7 @@ export function NeuronRelayGame() {
     setNeurons(prev => prev.map(n => n.id === id ? { ...n, on: !n.on } : n));
     // ENH: Show firing pulse on toggle
     setFiringNeurons(prev => { const next = new Set(prev); next.add(id); return next; });
-    setTimeout(() => setFiringNeurons(prev => { const next = new Set(prev); next.delete(id); return next; }), 600);
+    safeTimeout(() => setFiringNeurons(prev => { const next = new Set(prev); next.delete(id); return next; }), 600);
   }
   function setVol(id: number, v: number) { setNeurons(prev => prev.map(n => n.id === id ? { ...n, vol: v } : n)); }
 
@@ -107,7 +129,7 @@ export function NeuronRelayGame() {
     if (inRange) {
       setStreak(s => s + 1);
       game.updateScore(10);
-      setTimeout(() => {
+      safeTimeout(() => {
         if (pi < PUZZLES.length - 1) {
           const next = pi + 1;
           setPi(next);
@@ -194,13 +216,39 @@ export function NeuronRelayGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-pink-500/10 border border-pink-500/20 font-body text-2xs text-pink-300">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #EC4899, #DB2777)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       aria-label="Start neuron relay game">
                       Fire Neurons! <BrainCircuit className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {/* LEARN */}
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#FF66AA]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #FF66AA, #DD4488)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 
@@ -336,7 +384,7 @@ export function NeuronRelayGame() {
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Neuron Relay Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
-                      You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across 8 puzzles.
+                      You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across {PUZZLES.length} puzzles.
                     </p>
                     {/* ENH: Animated score counter */}
                     <motion.div

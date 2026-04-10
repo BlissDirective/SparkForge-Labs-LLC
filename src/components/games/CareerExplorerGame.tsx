@@ -26,6 +26,7 @@ import { BookOpen, Briefcase, CheckCircle2, XCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
@@ -61,6 +62,17 @@ const LEARN_CARDS = [
     emoji: '🧩',
     desc: 'Each AI career requires a unique mix of skills. Can you match the right skills to the right job?',
   },
+];
+
+const CAREERS_A: Career[] = [
+  { title: 'AI Artist', emoji: '🎨', description: 'Makes pictures and art using AI tools.', descriptionC: 'Uses generative AI models to create digital artwork.', skills: ['Creativity', 'Drawing', 'Imagination'], distractors: ['Cooking', 'Swimming', 'Driving'] },
+  { title: 'Robot Helper', emoji: '🤖', description: 'Builds and programs friendly robots that help people.', descriptionC: 'Designs and programs robotic systems for human assistance.', skills: ['Building', 'Problem Solving', 'Teamwork'], distractors: ['Singing', 'Dancing', 'Painting'] },
+  { title: 'Data Collector', emoji: '📊', description: 'Gathers information to help AI learn new things.', descriptionC: 'Curates training datasets for machine learning systems.', skills: ['Organizing', 'Attention to Detail', 'Research'], distractors: ['Juggling', 'Skateboarding', 'Fishing'] },
+  { title: 'Smart Toy Designer', emoji: '🧸', description: 'Creates fun toys that use AI to play and learn with kids.', descriptionC: 'Designs AI-powered interactive educational toys.', skills: ['Creativity', 'Fun Ideas', 'Technology'], distractors: ['Gardening', 'Hiking', 'Surfing'] },
+  { title: 'AI Music Maker', emoji: '🎵', description: 'Uses AI to create and mix music.', descriptionC: 'Leverages AI composition tools for music production.', skills: ['Music', 'Creativity', 'Listening'], distractors: ['Carpentry', 'Knitting', 'Archery'] },
+  { title: 'Animal AI Tracker', emoji: '🐾', description: 'Uses AI cameras to watch and protect wild animals.', descriptionC: 'Deploys computer vision systems for wildlife monitoring.', skills: ['Nature', 'Observation', 'Patience'], distractors: ['Racing', 'Boxing', 'Fencing'] },
+  { title: 'Weather AI Helper', emoji: '🌤️', description: 'Uses AI to predict the weather and keep people safe.', descriptionC: 'Applies ML models to meteorological prediction systems.', skills: ['Science', 'Math', 'Curiosity'], distractors: ['Acting', 'Pottery', 'Karate'] },
+  { title: 'Space AI Explorer', emoji: '🚀', description: 'Uses AI to explore space and find new planets.', descriptionC: 'Applies AI to astronomical data analysis and space exploration.', skills: ['Science', 'Exploring', 'Bravery'], distractors: ['Baking', 'Weaving', 'Golf'] },
 ];
 
 const CAREERS_B: Career[] = [
@@ -128,12 +140,44 @@ const CAREERS_B: Career[] = [
     skills: ['Creativity', 'Prompt Engineering', 'Design'],
     distractors: ['Plumbing', 'Farming', 'Mining'],
   },
+  {
+    title: 'Prompt Engineer',
+    emoji: '✍️',
+    description: 'Writes instructions for AI to get the best results.',
+    descriptionC: 'Designs and optimizes prompts for large language models to maximize output quality and reliability.',
+    skills: ['Writing', 'Creativity', 'Testing'],
+    distractors: ['Welding', 'Plumbing', 'Carpentry'],
+  },
+  {
+    title: 'AI Safety Researcher',
+    emoji: '🛡️',
+    description: 'Makes sure AI systems are safe and don\'t cause harm.',
+    descriptionC: 'Studies alignment, robustness, and interpretability to ensure AI systems behave as intended under all conditions.',
+    skills: ['Research', 'Critical Thinking', 'Ethics'],
+    distractors: ['Surfing', 'Skating', 'Climbing'],
+  },
+  {
+    title: 'AI Trainer',
+    emoji: '🏋️',
+    description: 'Teaches AI by labeling data and giving it feedback.',
+    descriptionC: 'Provides RLHF annotations, creates training datasets, and evaluates model outputs for quality and accuracy.',
+    skills: ['Attention to Detail', 'Patience', 'Communication'],
+    distractors: ['Magic', 'Juggling', 'Pottery'],
+  },
+  {
+    title: 'Autonomous Vehicle Engineer',
+    emoji: '🚗',
+    description: 'Builds self-driving cars that use AI to navigate safely.',
+    descriptionC: 'Develops perception, planning, and control systems for autonomous vehicles using sensor fusion and deep learning.',
+    skills: ['Engineering', 'Problem Solving', 'Safety'],
+    distractors: ['Cooking', 'Singing', 'Painting'],
+  },
 ];
 
 export default function CareerExplorerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
-  const ageBand = (activeChild?.age_band || 'B') as 'B' | 'C';
+  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('career-explorer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
@@ -146,8 +190,9 @@ export default function CareerExplorerGame() {
   const [wasCorrect, setWasCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCareers = useFilteredContent((ageBand === 'A' ? CAREERS_A : CAREERS_B) as any[], tier, ageBand) as typeof CAREERS_B;
 
-  const careers = CAREERS_B;
+  const careers = ageBand === 'A' ? CAREERS_A : CAREERS_B;
   const currentCareer = careers[round];
   const totalRounds = 8;
 
@@ -159,7 +204,12 @@ export default function CareerExplorerGame() {
   const shuffledOptions = useMemo(() => {
     if (!currentCareer) return [];
     const all = [...currentCareer.skills, ...currentCareer.distractors];
-    return all.sort(() => Math.random() - 0.5);
+    // Fisher-Yates shuffle
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
+    return all;
   }, [currentCareer]);
 
   const particles = useMemo(
@@ -214,6 +264,7 @@ export default function CareerExplorerGame() {
       setRound((r) => r + 1);
     } else {
       setPhase('complete');
+      game.completeGame();
     }
   }
 

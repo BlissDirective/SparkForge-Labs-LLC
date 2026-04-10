@@ -30,6 +30,7 @@ import {
 import dynamic from 'next/dynamic';
 import { extractKeywords } from '@/components/3d/PromptBubble3D';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] SSR-safe dynamic import for 3D thought bubble scene
@@ -951,6 +952,7 @@ export function PromptLabGame() {
   const [systemPrompt, setSystemPrompt] = useState('');
   const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(CHALLENGES as any[], tier, ageBand) as typeof CHALLENGES;
 
   // [v3] 3D thought bubble state
   const [bubbleKeywords, setBubbleKeywords] = useState<string[]>([]);

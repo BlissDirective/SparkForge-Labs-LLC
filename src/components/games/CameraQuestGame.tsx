@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
@@ -227,6 +228,7 @@ export function CameraQuestGame() {
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredItems = useFilteredContent(HUNT_ITEMS as any[], tier, ageBand) as typeof HUNT_ITEMS;
   const [learnIdx, setLearnIdx] = useState(0);
   const [ci, setCi] = useState(0);
   const [cameraActive, setCameraActive] = useState(false);

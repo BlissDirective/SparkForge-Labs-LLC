@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // Lazy-load 3D visualization (desktop only)
@@ -610,6 +611,7 @@ export function CodeBlocksGame() {
   const [stars, setStars] = useState<number[]>([]);
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(ALL_CHALLENGES, tier, ageBand);
   const terminalRef = useRef<HTMLDivElement>(null);
 
   // Merge hardcoded + dynamic challenges, filter by age band

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
@@ -471,6 +472,7 @@ export function RobotVacuumGame() {
 
   const [roomIdx, setRoomIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRooms = useFilteredContent(ROOMS, tier, ageBand);
   const [running, setRunning] = useState(false);
   const [vacPos, setVacPos] = useState<[number, number]>([0, 0]);
   const [vacDir, setVacDir] = useState(0);

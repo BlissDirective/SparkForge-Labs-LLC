@@ -17,30 +17,11 @@ import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Scissors, Fuel } from 'lucide-react';
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
 
 // 3D Environment (no SSR)
 const TokenChopperEnvironment = dynamic(
@@ -82,12 +63,26 @@ const TYPE_COLORS: Record<string, { bg: string; border: string }> = {
   space: { bg: 'rgba(255,255,255,0.05)', border: 'rgba(255,255,255,0.1)' },
 };
 
-const CHALLENGES = [
-  { text: 'Type a 4-letter word that stays as one token!', target: 'single', hint: 'Short common words like "play" or "code" stay as one token.' },
-  { text: 'Find a word that splits into 3+ tokens!', target: 'split3', hint: 'Try longer words like "understanding" or "extraordinary".' },
-  { text: 'Write a sentence with exactly 10 tokens!', target: 'exact10', hint: 'Count words + spaces + punctuation. A 5-word sentence is usually about right.' },
-  { text: 'Use punctuation to create 5+ punctuation tokens!', target: 'punct5', hint: 'Try: "Hello! How are you? Fine, thanks!!!"' },
-  { text: 'Write something that costs over $0.00005!', target: 'expensive', hint: 'More tokens = more cost. Write a longer paragraph!' },
+const CHALLENGES: { text: string; target: string; hint: string; difficulty: 'easy' | 'medium' | 'hard' | 'expert' }[] = [
+  // Easy (~30%)
+  { text: 'Type a 4-letter word that stays as one token!', target: 'single', hint: 'Short common words like "play" or "code" stay as one token.', difficulty: 'easy' },
+  { text: 'Type any word and see it get chopped!', target: 'anyword', hint: 'Just type a word with 5 or more letters and watch it split.', difficulty: 'easy' },
+  { text: 'Type a 3-letter word — does it stay whole?', target: 'tiny', hint: 'Try "cat", "dog", or "run" — super short words are usually one token.', difficulty: 'easy' },
+  { text: 'Type two short words separated by a space!', target: 'twospaces', hint: 'Something like "hi there" — notice the space becomes a token too!', difficulty: 'easy' },
+  // Medium (~35%)
+  { text: 'Find a word that splits into 3+ tokens!', target: 'split3', hint: 'Try longer words like "understanding" or "extraordinary".', difficulty: 'medium' },
+  { text: 'Write a sentence with exactly 10 tokens!', target: 'exact10', hint: 'Count words + spaces + punctuation. A 5-word sentence is usually about right.', difficulty: 'medium' },
+  { text: 'Use punctuation to create 5+ punctuation tokens!', target: 'punct5', hint: 'Try: "Hello! How are you? Fine, thanks!!!"', difficulty: 'medium' },
+  { text: 'Write a sentence where every word is a single token!', target: 'allsingle', hint: 'Use only short, common words like "I like to play with my dog".', difficulty: 'medium' },
+  { text: 'Create exactly 3 subword tokens in one word!', target: 'sub3', hint: 'Words like "extraordinary" or "unbelievable" split into subword pieces.', difficulty: 'medium' },
+  // Hard (~25%)
+  { text: 'Write something that costs over $0.00005!', target: 'expensive', hint: 'More tokens = more cost. Write a longer paragraph!', difficulty: 'hard' },
+  { text: 'Write a sentence with more subwords than whole words!', target: 'moresub', hint: 'Use lots of long, uncommon words like "internationalization" and "electromagnetic".', difficulty: 'hard' },
+  { text: 'Get exactly 20 tokens — no more, no less!', target: 'exact20', hint: 'A sentence of about 8-10 words with some punctuation should get you close.', difficulty: 'hard' },
+  { text: 'Write a sentence with zero subword tokens!', target: 'nosub', hint: 'Use only very short words (4 letters or fewer). "I am on my bed" has no subwords.', difficulty: 'hard' },
+  // Expert (~10%)
+  { text: 'Make a single word create 5+ tokens!', target: 'megasplit', hint: 'Try extremely long words like "antidisestablishmentarianism" or compound technical terms.', difficulty: 'expert' },
+  { text: 'Write something that costs exactly $0.00003!', target: 'exactcost', hint: 'You need exactly 3 tokens. A single short word might do it!', difficulty: 'expert' },
 ];
 
 export function TokenChopperGame() {
@@ -106,6 +101,8 @@ export function TokenChopperGame() {
   const [challengePassed, setChallengePassed] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(CHALLENGES, tier, ageBand);
+  const { safeTimeout } = useSafeTimeout();
 
   const tokens = useMemo(() => tokenize(text), [text]);
   const cost = (tokens.length * 0.00001).toFixed(5);
@@ -126,14 +123,30 @@ export function TokenChopperGame() {
   function checkChallenge() {
     const c = CHALLENGES[challengeIdx];
     let passed = false;
-    if (c.target === 'single' && tokens.some(t => t.type === 'word' && t.token.length === 4)) passed = true;
+    if (c.target === 'single' && tokens.length === 1 && tokens[0].type === 'word' && tokens[0].token.length === 4) passed = true;
+    if (c.target === 'anyword' && tokens.some(t => t.type === 'subword')) passed = true;
+    if (c.target === 'tiny' && tokens.length >= 1 && tokens.some(t => t.type === 'word' && t.token.length <= 3)) passed = true;
+    if (c.target === 'twospaces' && tokens.filter(t => t.type === 'space').length >= 1 && tokens.filter(t => t.type === 'word').length >= 2) passed = true;
     if (c.target === 'split3') {
       const words = text.split(/\s+/);
       passed = words.some(w => tokenize(w).length >= 3);
     }
     if (c.target === 'exact10' && tokens.length === 10) passed = true;
     if (c.target === 'punct5' && tokens.filter(t => t.type === 'punct').length >= 5) passed = true;
+    if (c.target === 'allsingle' && tokens.length >= 5 && tokens.filter(t => t.type === 'word').length >= 3 && tokens.every(t => t.type !== 'subword')) passed = true;
+    if (c.target === 'sub3') {
+      const words = text.split(/\s+/);
+      passed = words.some(w => tokenize(w).filter(t => t.type === 'subword').length >= 3);
+    }
     if (c.target === 'expensive' && parseFloat(cost) > 0.00005) passed = true;
+    if (c.target === 'moresub' && tokens.filter(t => t.type === 'subword').length > tokens.filter(t => t.type === 'word').length) passed = true;
+    if (c.target === 'exact20' && tokens.length === 20) passed = true;
+    if (c.target === 'nosub' && tokens.length >= 5 && tokens.every(t => t.type !== 'subword')) passed = true;
+    if (c.target === 'megasplit') {
+      const words = text.split(/\s+/);
+      passed = words.some(w => tokenize(w).length >= 5);
+    }
+    if (c.target === 'exactcost' && cost === '0.00003') passed = true;
 
     if (passed && !completed.has(challengeIdx)) {
       setCompleted(prev => new Set(prev).add(challengeIdx));
@@ -142,13 +155,13 @@ export function TokenChopperGame() {
       game.advanceRound();
       setShowHint(false);
       if (challengeIdx < CHALLENGES.length - 1) {
-        setTimeout(() => {
+        safeTimeout(() => {
           setChallengeIdx(i => i + 1);
           setText('');
           setChallengePassed(false);
         }, 1500);
       } else {
-        setTimeout(() => { setPhase('complete'); game.completeGame(); }, 1500);
+        safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 1500);
       }
     }
   }

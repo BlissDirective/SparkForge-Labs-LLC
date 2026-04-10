@@ -25,6 +25,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
+import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import {
   Send,
@@ -38,6 +39,7 @@ import {
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
@@ -248,6 +250,128 @@ const ENDPOINTS: Endpoint[] = [
     teachingNote:
       'Chat APIs use a messages array with roles (user, assistant, system). The system prompt sets the AI personality and behavior constraints.',
   },
+  {
+    path: '/api/v1/summarize',
+    method: 'POST',
+    description: 'Summarize a long text into key points',
+    params: [
+      { name: 'text', type: 'text', placeholder: 'e.g., "Paste a long article here..."', required: true },
+      { name: 'max_length', type: 'number', placeholder: '100', required: false },
+      { name: 'style', type: 'text', placeholder: 'bullets or paragraph', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.text ? 200 : 400,
+      latency: 300 + Math.floor(Math.random() * 200),
+      body: p.text
+        ? {
+            summary: 'Key points extracted from your text. The AI identified the main ideas and condensed them into a shorter form.',
+            key_points: ['Main idea identified', 'Supporting details extracted', 'Conclusion preserved'],
+            compression_ratio: Number((0.15 + Math.random() * 0.2).toFixed(2)),
+            tokens_used: Math.floor(Math.random() * 100) + 30,
+            model: 'summarize-v2',
+          }
+        : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Summarization APIs compress long text while preserving meaning. The compression ratio shows how much shorter the summary is compared to the original.',
+  },
+  {
+    path: '/api/v1/moderate',
+    method: 'POST',
+    description: 'Check text for harmful or inappropriate content',
+    params: [
+      { name: 'text', type: 'text', placeholder: 'e.g., "Check this message for safety"', required: true },
+    ],
+    exampleResponse: (p) => ({
+      status: p.text ? 200 : 400,
+      latency: 50 + Math.floor(Math.random() * 40),
+      body: p.text
+        ? {
+            flagged: false,
+            categories: { hate: false, violence: false, self_harm: false, sexual: false, harassment: false },
+            scores: { hate: Number((Math.random() * 0.05).toFixed(4)), violence: Number((Math.random() * 0.03).toFixed(4)), harassment: Number((Math.random() * 0.04).toFixed(4)) },
+            model: 'moderation-v1',
+          }
+        : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Content moderation APIs scan text for harmful content. They return scores for different harm categories — platforms use these to filter dangerous content automatically.',
+  },
+  {
+    path: '/api/v1/embed',
+    method: 'POST',
+    description: 'Convert text into a numerical vector (embedding)',
+    params: [
+      { name: 'text', type: 'text', placeholder: 'e.g., "artificial intelligence"', required: true },
+      { name: 'model', type: 'text', placeholder: 'embed-v2', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.text ? 200 : 400,
+      latency: 60 + Math.floor(Math.random() * 30),
+      body: p.text
+        ? {
+            embedding: Array.from({ length: 8 }, () => Number((Math.random() * 2 - 1).toFixed(4))),
+            dimensions: 1536,
+            model: p.model || 'embed-v2',
+            tokens_used: Math.floor(Math.random() * 20) + 5,
+            note: 'Showing first 8 of 1536 dimensions',
+          }
+        : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Embedding APIs convert text into numbers that capture meaning. Similar texts produce similar vectors — this powers search, recommendations, and clustering.',
+  },
+  {
+    path: '/api/v1/image-describe',
+    method: 'POST',
+    description: 'Describe what is in an image',
+    params: [
+      { name: 'image_url', type: 'text', placeholder: 'e.g., "https://example.com/photo.jpg"', required: true },
+      { name: 'detail', type: 'text', placeholder: 'brief or detailed', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.image_url ? 200 : 400,
+      latency: 400 + Math.floor(Math.random() * 300),
+      body: p.image_url
+        ? {
+            description: 'A colorful scene showing objects arranged in an interesting composition. The image contains natural and man-made elements.',
+            tags: ['outdoor', 'colorful', 'natural', 'landscape'],
+            objects_detected: [{ label: 'tree', confidence: 0.92 }, { label: 'sky', confidence: 0.98 }],
+            model: 'vision-v3',
+            tokens_used: Math.floor(Math.random() * 100) + 50,
+          }
+        : { error: 'Missing required parameter: image_url', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Vision APIs use multimodal models that understand both text and images. They can describe scenes, detect objects, and answer questions about images.',
+  },
+  {
+    path: '/api/v1/detect-objects',
+    method: 'POST',
+    description: 'Detect and locate objects in an image',
+    params: [
+      { name: 'image_url', type: 'text', placeholder: 'e.g., "https://example.com/photo.jpg"', required: true },
+      { name: 'threshold', type: 'number', placeholder: '0.5', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.image_url ? 200 : 400,
+      latency: 250 + Math.floor(Math.random() * 150),
+      body: p.image_url
+        ? {
+            objects: [
+              { label: 'person', confidence: 0.95, bbox: [120, 80, 280, 420] },
+              { label: 'car', confidence: 0.87, bbox: [350, 200, 580, 380] },
+              { label: 'tree', confidence: 0.72, bbox: [50, 10, 150, 300] },
+            ],
+            total_detected: 3,
+            model: 'detection-v2',
+            processing_time_ms: 180,
+          }
+        : { error: 'Missing required parameter: image_url', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Object detection APIs find objects in images and draw boxes around them (bounding boxes). Each detection includes a label, confidence score, and coordinates.',
+  },
 ];
 
 const STATUS_INFO: Record<number, { label: string; color: string; desc: string }> = {
@@ -280,8 +404,10 @@ const LEARN_CARDS = [
   },
 ];
 
-function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
+function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: number; maxDepth?: number }) {
   const indent = '  '.repeat(depth);
+
+  if (depth > maxDepth) return <span className="text-white/30">...</span>;
 
   if (data === null) return <span className="text-orange-400">null</span>;
   if (typeof data === 'boolean') return <span className="text-orange-400">{String(data)}</span>;
@@ -295,7 +421,7 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
         {'[\n'}
         {data.map((v, i) => (
           <span key={i}>
-            {indent}  <JsonViewer data={v} depth={depth + 1} />
+            {indent}  <JsonViewer data={v} depth={depth + 1} maxDepth={maxDepth} />
             {i < data.length - 1 ? ',\n' : '\n'}
           </span>
         ))}
@@ -313,7 +439,7 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
         {entries.map(([k, v], i) => (
           <span key={k}>
             {indent}  <span className="text-purple-400">&quot;{k}&quot;</span>:{' '}
-            <JsonViewer data={v} depth={depth + 1} />
+            <JsonViewer data={v} depth={depth + 1} maxDepth={maxDepth} />
             {i < entries.length - 1 ? ',\n' : '\n'}
           </span>
         ))}
@@ -328,7 +454,8 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
 
 export function ApiExplorerGame() {
   const game = useGameStore();
-  const ageBand = 'C' as const;
+  const { activeChild } = useChildStore();
+  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('api-explorer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
@@ -348,6 +475,7 @@ export function ApiExplorerGame() {
   // ENH: Track request animation state
   const [requestSent, setRequestSent] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredEndpoints = useFilteredContent(ENDPOINTS as any[], tier, ageBand) as typeof ENDPOINTS;
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
@@ -411,7 +539,7 @@ export function ApiExplorerGame() {
 
     let result: { status: number; body: object; latency: number };
 
-    if (recentSame.length >= 2) {
+    if (recentSame.length >= 4) {
       // Rate limited
       result = {
         status: 429,
@@ -583,14 +711,14 @@ export function ApiExplorerGame() {
                     </AnimatePresence>
                     <motion.button
                       onClick={() => {
-                        if (learnIdx < 3) setLearnIdx((i) => i + 1);
+                        if (learnIdx < LEARN_CARDS.length - 1) setLearnIdx((i) => i + 1);
                         else setPhase('explore');
                       }}
                       className="w-full max-w-md py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      {learnIdx < 3 ? 'Next →' : 'Start Exploring! 🔌'}
+                      {learnIdx < LEARN_CARDS.length - 1 ? 'Next →' : 'Start Exploring! 🔌'}
                     </motion.button>
                     <button
                       onClick={() => setPhase('explore')}

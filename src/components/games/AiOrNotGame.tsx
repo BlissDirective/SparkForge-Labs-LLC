@@ -19,6 +19,7 @@ const AiOrNot3D = dynamic(
 );
 import { Play, BookOpen, ArrowRight, Lightbulb, Award, Rocket, Clock, Send, Brain, CheckCircle } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 type Phase = 'welcome' | 'learn' | 'play' | 'predict' | 'complete';
@@ -199,6 +200,7 @@ export function AiOrNotGame() {
   const [predictionText, setPredictionText] = useState('');
   const [predictionSubmitted, setPredictionSubmitted] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredScenarios = useFilteredContent(ALL_SCENARIOS as any[], tier, ageBand) as typeof ALL_SCENARIOS;
 
   // Merge hardcoded + dynamic scenarios, filter/shuffle/slice
   const rounds = useMemo(() => {

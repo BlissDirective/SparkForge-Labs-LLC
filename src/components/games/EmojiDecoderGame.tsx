@@ -33,6 +33,7 @@ import {
   Brain, Lightbulb, Award, Send
 } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ──── Types ────
@@ -297,6 +298,7 @@ export function EmojiDecoderGame() {
   const [labPromptIdx] = useState(() => Math.floor(Math.random() * LAB_PROMPTS.length));
   const [emojiPulse, setEmojiPulse] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRounds = useFilteredContent(ALL_ROUNDS as any[], tier, ageBand) as typeof ALL_ROUNDS;
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // B-10: Clean up timer on unmount to prevent firing on unmounted component

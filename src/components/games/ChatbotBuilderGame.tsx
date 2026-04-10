@@ -35,6 +35,7 @@ import {
   BookOpen, Smartphone,
 } from "lucide-react";
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 
@@ -733,6 +734,7 @@ export function ChatbotBuilderGame() {
   // State
   const [phase, setPhase] = useState<Phase>("welcome");
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredChallenges = useFilteredContent(CHALLENGES as any[], tier, ageBand) as typeof CHALLENGES;
   const [learnIdx, setLearnIdx] = useState(0);
   const [nodes, setNodes] = useState<BotNode[]>(TEMPLATES["Pizza Bot"].nodes);
   const [activeTemplate, setActiveTemplate] = useState("Pizza Bot");

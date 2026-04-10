@@ -15,8 +15,10 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Wrench } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
@@ -25,7 +27,7 @@ const ToolPickerEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Tool {
   id: string;
@@ -40,7 +42,14 @@ interface Task {
   why: string;
   whyC: string;
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
+
+const LEARN_CARDS = [
+  { title: 'AI Has Many Tools', emoji: '🧰', desc: 'Just like a toolbox has different tools for different jobs, AI has many specialized tools — some write, some calculate, some create images, and some translate!' },
+  { title: 'The Right Tool for the Job', emoji: '🎯', desc: 'Choosing the right AI tool matters. A calculator AI is great for math but terrible at writing poetry. Knowing which tool to pick is a real skill!' },
+  { title: 'AI Specialization', emoji: '⚙️', desc: 'Each AI tool is trained for specific tasks. In this game, you\'ll race against the clock to match tasks with the perfect AI tool!' },
+];
 
 const TOOLS: Tool[] = [
   { id: 'calc', emoji: '🧮', label: 'Calculator', description: 'Math and numbers' },
@@ -67,6 +76,24 @@ const ALL_TASKS: Task[] = [
   { text: 'Make a graph from sales data', correctTool: 'code', why: 'Code can turn data into beautiful charts!', whyC: 'Data visualization requires rendering libraries (D3.js, Chart.js) that transform numerical arrays into SVG/Canvas elements — a computational task, not generative.', band: 'B' },
   { text: 'Translate a French news article', correctTool: 'translate', why: 'Translators handle full documents accurately!', whyC: 'Document-level translation requires maintaining context, terminology consistency, and grammatical agreement across paragraphs — specialized MT models outperform general LLMs here.', band: 'B' },
   { text: 'Generate a fantasy landscape image', correctTool: 'image', why: 'Image AI creates pictures from your imagination!', whyC: 'Text-to-image diffusion models iteratively denoise latent representations conditioned on CLIP embeddings of the text prompt — producing novel visual compositions.', band: 'A' },
+  // --- Band A tasks (simple, obvious tool choices) ---
+  { text: 'How much is 999 + 1?', correctTool: 'calc', why: 'Even simple math is faster with a calculator!', whyC: 'Trivial arithmetic benefits from deterministic ALU operations — zero chance of off-by-one errors that humans and LLMs occasionally make.', band: 'A' },
+  { text: 'Write a birthday card message for Grandma', correctTool: 'writer', why: 'AI writers help you find the perfect words!', whyC: 'Language models leverage large corpora of greeting card text to produce warm, contextually appropriate messages with appropriate sentiment.', band: 'A' },
+  { text: 'What does "gato" mean in English?', correctTool: 'translate', why: 'Translators instantly know words in every language!', whyC: 'Neural machine translation models encode cross-lingual embeddings that map "gato" to "cat" via learned bilingual alignment — faster and more reliable than dictionary lookup.', band: 'A' },
+  { text: 'Draw a picture of a robot eating pizza', correctTool: 'image', why: 'Image generators turn fun ideas into pictures!', whyC: 'Text-to-image models compose novel visual concepts ("robot" + "eating pizza") through compositional understanding of CLIP-space embeddings.', band: 'A' },
+  { text: 'What is the tallest building in the world right now?', correctTool: 'search', why: 'Search engines always have the latest facts!', whyC: 'Real-time search indexes are updated continuously — LLM training data has a cutoff date and may not reflect recent construction completions or records.', band: 'A' },
+  // --- Band B tasks (moderate complexity) ---
+  { text: 'Fix a bug in my Python script that crashes on line 42', correctTool: 'code', why: 'Code tools can analyze and debug programs!', whyC: 'Static analysis and runtime debugging require code execution environments — IDE-integrated AI can trace stack frames, inspect variables, and suggest fixes contextually.', band: 'B' },
+  { text: 'Translate a 3-page Spanish contract into English', correctTool: 'translate', why: 'Translators handle full documents with proper legal terms!', whyC: 'Document-level neural MT preserves cross-sentence coherence and domain-specific terminology — critical for legal translation where a single mistranslation can alter contractual obligations.', band: 'B' },
+  { text: 'Create a presentation with charts from quarterly sales data', correctTool: 'code', why: 'Code tools can generate charts and slides from data!', whyC: 'Presentation generation from data requires computational pipelines — data parsing, aggregation, chart rendering (e.g., matplotlib/D3), and slide formatting are all programmatic tasks.', band: 'B' },
+  { text: 'Calculate the monthly payment on a $250,000 mortgage at 6.5% for 30 years', correctTool: 'calc', why: 'Financial formulas need precise calculations!', whyC: 'Amortization calculations use the formula M = P[r(1+r)^n]/[(1+r)^n-1] — deterministic computation guarantees exact results critical for financial planning.', band: 'B' },
+  { text: 'Write a product description for a new wireless headphone', correctTool: 'writer', why: 'AI writers craft persuasive marketing copy!', whyC: 'Marketing copy generation leverages persuasive writing patterns, benefit-focused framing, and SEO keyword integration — core strengths of fine-tuned language models.', band: 'B' },
+  // --- Band C tasks (advanced: RAG, fine-tuning, multi-modal) ---
+  { text: 'Search our company\'s internal documents to answer a customer question', correctTool: 'search', why: 'Search tools can find answers in private databases using RAG!', whyC: 'Retrieval-Augmented Generation (RAG) combines vector search over private document embeddings with LLM generation — the search tool retrieves relevant chunks that ground the model\'s response in factual company data.', band: 'C' },
+  { text: 'Build an API endpoint that validates user input and stores it in a database', correctTool: 'code', why: 'Backend development requires real executable code!', whyC: 'API development involves schema validation (Zod/Joi), database ORM queries, authentication middleware, and error handling — all requiring executable runtime environments, not generative text.', band: 'C' },
+  { text: 'Create a detailed architectural blueprint from a text description', correctTool: 'image', why: 'Image generation AI can visualize complex structures from descriptions!', whyC: 'Multi-modal image models fine-tuned on architectural datasets can generate floor plans and 3D renders from textual specifications — combining spatial reasoning with generative diffusion.', band: 'C' },
+  { text: 'Analyze customer reviews in 12 languages to find common complaints', correctTool: 'translate', why: 'Translators can process many languages at once before analysis!', whyC: 'Multilingual NLP pipelines first normalize text via translation or cross-lingual embeddings (XLM-R), then apply sentiment analysis and topic modeling — the translation step is the critical bottleneck for polyglot corpora.', band: 'C' },
+  { text: 'Write a 5000-word research paper synthesizing 20 academic sources with proper citations', correctTool: 'writer', why: 'AI writers can synthesize multiple sources into coherent long-form text!', whyC: 'Long-form academic synthesis requires RAG over source documents, citation graph traversal, argument structuring, and stylistic consistency — tasks where large-context language models excel when grounded with retrieved evidence.', band: 'C' },
 ];
 
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
@@ -78,13 +105,16 @@ export function ToolPickerGame() {
   const { data: _dynamicContent } = useGameContent('tool-picker', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [roundIdx, setRoundIdx] = useState(0);
   const [timer, setTimer] = useState(6);
   const [streak, setStreak] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; why: string } | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredTasks = useFilteredContent(ALL_TASKS, tier, ageBand);
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
   const tasks = useMemo(
@@ -117,7 +147,7 @@ export function ToolPickerGame() {
           clearInterval(timerRef.current);
           setFeedback({ correct: false, why: 'Time\'s up! The correct tool was ' + TOOLS.find(tl => tl.id === currentTask.correctTool)?.label + '.' });
           setStreak(0);
-          setTimeout(() => {
+          safeTimeout(() => {
             setFeedback(null);
             if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
             else { setPhase('complete'); game.completeGame(); }
@@ -138,8 +168,12 @@ export function ToolPickerGame() {
       ? (ageBand === 'C' ? task.whyC : task.why)
       : `The best tool was ${TOOLS.find(t => t.id === task.correctTool)?.label}. ${task.why}`;
     setFeedback({ correct, why });
-    if (correct) { setStreak(s => s + 1); game.updateScore(10 * multiplier); } else { setStreak(0); }
-    setTimeout(() => {
+    if (correct) {
+      const newStreak = streak + 1;
+      setStreak(newStreak);
+      game.updateScore(10 * (newStreak >= 5 ? 3 : newStreak >= 3 ? 2 : 1));
+    } else { setStreak(0); }
+    safeTimeout(() => {
       setFeedback(null);
       if (roundIdx < tasks.length - 1) { setRoundIdx(i => i + 1); game.advanceRound(); }
       else { setPhase('complete'); game.completeGame(); }
@@ -176,13 +210,38 @@ export function ToolPickerGame() {
                     <div className="flex flex-wrap gap-2 justify-center">
                       {TOOLS.map(t => <span key={t.id} className="px-2 py-1 rounded-lg bg-green-400/10 border border-green-400/20 text-xs font-body text-green-400">{t.emoji} {t.label}</span>)}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #00FF88, #00CC66)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                       aria-label="Start the Tool Picker game">
                       Start Picking! <Wrench className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00FF88]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00FF88, #00CC66)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 
