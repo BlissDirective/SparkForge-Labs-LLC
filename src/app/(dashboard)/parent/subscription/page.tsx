@@ -23,6 +23,7 @@ import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { TrialBanner } from '@/components/parent/TrialBanner';
 import { DowngradeConfirmModal } from '@/components/parent/DowngradeConfirmModal';
+import { UsageDashboard } from '@/components/parent/UsageDashboard';
 import { isDowngrade } from '@/lib/tier-config';
 
 const TIER_ICONS: Record<SubscriptionTier, typeof Sparkles> = {
@@ -164,6 +165,11 @@ function SubscriptionContent() {
 
       {/* v3 Gap 2: Active trial countdown (inline variant) */}
       <TrialBanner variant="inline" />
+
+      {/* v3 Gap 4: Current usage so upgrade narrative is self-evident */}
+      <motion.div variants={staggerItem} className="mb-6">
+        <UsageDashboard variant="card" showUpgradeCTA={false} defaultExpanded={false} />
+      </motion.div>
 
       {/* Success/canceled banners */}
       {showSuccess && (
