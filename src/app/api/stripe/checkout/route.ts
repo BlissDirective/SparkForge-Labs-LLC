@@ -6,10 +6,11 @@
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
-import { STRIPE_PRICES } from '@/lib/tier-config';
+import { STRIPE_PRICES, TRIAL_DAYS } from '@/lib/tier-config';
 import { apiSuccess, apiError, requireAuth, parseBody } from '@/lib/api-helpers';
 import { CheckoutSchema } from '@/lib/validations';
 import { getStripe } from '@/lib/stripe';
+import type Stripe from 'stripe';
 
 export const runtime = 'nodejs';
 
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createServerSupabase();
   const { data: parent } = await supabase
     .from('parents')
-    .select('stripe_customer_id, email')
+    .select('stripe_customer_id, stripe_subscription_id, email')
     .eq('id', auth.user.id)
     .single();
 
@@ -68,6 +69,22 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
+  // v3 Gap 2: Only grant trial days to first-time subscribers.
+  // If stripe_subscription_id is already set, this parent has
+  // subscribed before — no trial (prevents trial abuse).
+  const isFirstTimeSubscriber = !parent?.stripe_subscription_id;
+  const trialDays = isFirstTimeSubscriber ? TRIAL_DAYS[tier] ?? 0 : 0;
+
+  const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+    metadata: {
+      supabase_id: auth.user.id,
+      tier,
+    },
+  };
+  if (trialDays > 0) {
+    subscriptionData.trial_period_days = trialDays;
+  }
+
   // Create Checkout Session
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
@@ -79,6 +96,7 @@ export async function POST(req: NextRequest) {
       supabase_id: auth.user.id,
       tier,
     },
+    subscription_data: subscriptionData,
   });
 
   return apiSuccess({ url: session.url });

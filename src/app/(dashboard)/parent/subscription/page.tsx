@@ -21,6 +21,7 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
+import { TrialBanner } from '@/components/parent/TrialBanner';
 
 const TIER_ICONS: Record<SubscriptionTier, typeof Sparkles> = {
   free: Sparkles,
@@ -137,11 +138,14 @@ function SubscriptionContent() {
       {/* Header */}
       <motion.div variants={staggerItem}>
         <h1 className="font-display text-2xl font-bold text-white mb-2">Subscription</h1>
-        <p className="font-body text-sm text-white/40 mb-8">
+        <p className="font-body text-sm text-white/40 mb-6">
           Current plan:{' '}
           <span className="text-spark-blue font-semibold">{TIER_DISPLAY[tier].name}</span>
         </p>
       </motion.div>
+
+      {/* v3 Gap 2: Active trial countdown (inline variant) */}
+      <TrialBanner variant="inline" />
 
       {/* Success/canceled banners */}
       {showSuccess && (
