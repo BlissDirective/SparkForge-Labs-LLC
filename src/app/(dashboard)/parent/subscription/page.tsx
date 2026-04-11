@@ -22,6 +22,8 @@ import { toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { TrialBanner } from '@/components/parent/TrialBanner';
+import { DowngradeConfirmModal } from '@/components/parent/DowngradeConfirmModal';
+import { isDowngrade } from '@/lib/tier-config';
 
 const TIER_ICONS: Record<SubscriptionTier, typeof Sparkles> = {
   free: Sparkles,
@@ -51,6 +53,9 @@ function SubscriptionContent() {
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
+  // v3 Gap 3: Downgrade/change modal
+  const [downgradeTarget, setDowngradeTarget] = useState<SubscriptionTier | null>(null);
+
   const showSuccess = searchParams.get('success') === 'true';
   const showCanceled = searchParams.get('canceled') === 'true';
 
@@ -78,8 +83,21 @@ function SubscriptionContent() {
     }
   }, [showSuccess, broadcast, triggerCelebration]);
 
-  async function handleUpgrade(targetTier: SubscriptionTier) {
-    if (targetTier === 'free' || targetTier === tier) return;
+  // v3 Gap 3: Two flows — (a) brand new checkout from free, (b) in-app
+  // plan swap for existing paid users via DowngradeConfirmModal.
+  async function handlePlanChange(targetTier: SubscriptionTier) {
+    if (targetTier === tier) return;
+
+    // Existing paid user → any non-same tier → route through modal
+    // (covers plus↔forge and any→free). Modal handles confirmation,
+    // feature delta, child archive selection, and the change endpoint.
+    if (tier !== 'free') {
+      setDowngradeTarget(targetTier);
+      return;
+    }
+
+    // Free → paid: start a fresh Stripe Checkout session
+    if (targetTier === 'free') return;
 
     const interval = billing === 'monthly' ? 'month' : 'year';
 
@@ -289,7 +307,7 @@ function SubscriptionContent() {
                   >
                     Current Plan
                   </button>
-                ) : slug === 'free' ? (
+                ) : slug === 'free' && tier === 'free' ? (
                   <button
                     disabled
                     className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/30 font-display text-sm cursor-not-allowed"
@@ -298,12 +316,20 @@ function SubscriptionContent() {
                   </button>
                 ) : (
                   <motion.button
-                    onClick={() => handleUpgrade(slug)}
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-spark-blue to-blue-600 text-white font-display text-sm font-bold"
+                    onClick={() => handlePlanChange(slug)}
+                    className={`w-full py-3 rounded-xl font-display text-sm font-bold ${
+                      isDowngrade(tier, slug)
+                        ? 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10'
+                        : 'bg-gradient-to-r from-spark-blue to-blue-600 text-white'
+                    }`}
                     whileTap={{ scale: 0.98 }}
-                    aria-label={`Upgrade to ${t.name}`}
+                    aria-label={
+                      isDowngrade(tier, slug)
+                        ? `Downgrade to ${t.name}`
+                        : `Upgrade to ${t.name}`
+                    }
                   >
-                    Upgrade to {t.name}
+                    {isDowngrade(tier, slug) ? 'Downgrade to' : 'Upgrade to'} {t.name}
                   </motion.button>
                 )}
               </div>
@@ -323,6 +349,15 @@ function SubscriptionContent() {
           </button>
         </motion.div>
       )}
+
+      {/* v3 Gap 3: In-app downgrade/change flow */}
+      <DowngradeConfirmModal
+        isOpen={downgradeTarget !== null}
+        onClose={() => setDowngradeTarget(null)}
+        currentTier={tier}
+        targetTier={downgradeTarget ?? 'free'}
+        interval={billing === 'monthly' ? 'month' : 'year'}
+      />
     </motion.div>
   );
 }
