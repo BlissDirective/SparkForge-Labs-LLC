@@ -54,7 +54,7 @@ export const TIER_CONFIG: Record<SubscriptionTier, TierLimits> = {
       leaderboard: true,
       avatarShop: true,
       exportProgress: true,
-      offlineMode: false,
+      offlineMode: true,
       prioritySupport: false,
     },
   },
