@@ -131,7 +131,6 @@ export async function POST(req: NextRequest) {
 
   try {
     let result;
-    const currentPeriodEnd = null as number | null;
 
     if (targetTier === 'free') {
       // Cancel at period end — user keeps access until then
@@ -141,7 +140,7 @@ export async function POST(req: NextRequest) {
     } else {
       // Swap price on the existing subscription item
       const tierPrices = STRIPE_PRICES[targetTier as 'plus' | 'forge'];
-      const newPriceId = tierPrices?.[interval];
+      const newPriceId = tierPrices?.[interval as keyof typeof tierPrices];
       if (!newPriceId || newPriceId.startsWith('price_placeholder')) {
         return apiError(
           'Stripe price IDs not configured. Contact support.',
@@ -161,14 +160,17 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // Stripe API 2026-02-25+: current_period_end is now on SubscriptionItem
+    const periodEndUnix = result.items.data[0]?.current_period_end;
+
     return apiSuccess({
       action: targetTier === 'free' ? 'cancel_scheduled' : 'plan_changed',
       subscriptionId: result.id,
       status: result.status,
       targetTier,
-      currentPeriodEnd: result.current_period_end
-        ? new Date(result.current_period_end * 1000).toISOString()
-        : currentPeriodEnd,
+      currentPeriodEnd: periodEndUnix
+        ? new Date(periodEndUnix * 1000).toISOString()
+        : null,
       cancelAtPeriodEnd: result.cancel_at_period_end,
       archivedChildCount: archiveChildIds?.length ?? 0,
     });

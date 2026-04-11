@@ -29,7 +29,6 @@ export function queuePendingCelebration(
   try {
     const payload: PendingCelebration = { ...data, queuedAt: Date.now() };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
-    // eslint-disable-next-line no-console
     console.info('[celebration] queued:', payload.reason);
   } catch {
     /* quota / privacy mode — non-fatal */
@@ -46,7 +45,6 @@ export function consumePendingCelebration(): PendingCelebration | null {
     const parsed = JSON.parse(raw) as PendingCelebration;
     if (!parsed || typeof parsed !== 'object') return null;
     if (Date.now() - parsed.queuedAt > MAX_AGE_MS) {
-      // eslint-disable-next-line no-console
       console.info('[celebration] dropping stale pending:', parsed.reason);
       return null;
     }
@@ -90,7 +88,6 @@ export function usePendingCelebration(
     if (!ready) return;
     const pending = consumePendingCelebration();
     if (pending) {
-      // eslint-disable-next-line no-console
       console.info('[celebration] dispatching pending:', pending.reason);
       onReady(pending);
     }

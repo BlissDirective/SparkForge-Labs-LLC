@@ -79,8 +79,10 @@ async function main() {
 
       const sub = subs.data[0];
       const trialEndsAt = sub.trial_end ? new Date(sub.trial_end * 1000).toISOString() : null;
-      const periodEnd = sub.current_period_end
-        ? new Date(sub.current_period_end * 1000).toISOString()
+      // Stripe API 2026-02-25+: current_period_end moved to SubscriptionItem
+      const periodEndUnix = sub.items.data[0]?.current_period_end;
+      const periodEnd = periodEndUnix
+        ? new Date(periodEndUnix * 1000).toISOString()
         : null;
 
       console.log(

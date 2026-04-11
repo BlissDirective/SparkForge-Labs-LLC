@@ -103,7 +103,6 @@ function SubscriptionContent() {
       color: '#FFD700',
     });
 
-    // eslint-disable-next-line no-console
     console.info('[celebration] HTML banner shown + sessionStorage queued');
   }, [showSuccess]);
 
@@ -118,7 +117,6 @@ function SubscriptionContent() {
       label: pending.label ?? 'Subscription Active!',
     });
     triggerCelebration('confetti', { reason: pending.reason });
-    // eslint-disable-next-line no-console
     console.info('[celebration] 3D dispatched after cockpitReady');
   });
 

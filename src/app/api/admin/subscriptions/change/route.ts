@@ -73,8 +73,8 @@ export async function POST(req: NextRequest) {
       });
     } else {
       // Change plan — swap the price on the existing subscription item
-      const tierPrices = STRIPE_PRICES[targetTier];
-      const newPriceId = tierPrices?.[interval];
+      const tierPrices = STRIPE_PRICES[targetTier as 'plus' | 'forge'];
+      const newPriceId = tierPrices?.[interval as keyof typeof tierPrices];
       if (!newPriceId || newPriceId.startsWith('price_placeholder')) {
         return apiError(
           'Stripe price IDs not configured. Create products in Stripe Dashboard first.',
@@ -111,12 +111,15 @@ export async function POST(req: NextRequest) {
       },
     });
 
+    // Stripe API 2026-02-25+: current_period_end lives on SubscriptionItem
+    const periodEndUnix = result.items.data[0]?.current_period_end ?? null;
+
     return apiSuccess({
       subscriptionId: result.id,
       status: result.status,
       targetTier,
       cancelAtPeriodEnd: result.cancel_at_period_end,
-      currentPeriodEnd: result.current_period_end,
+      currentPeriodEnd: periodEndUnix,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';

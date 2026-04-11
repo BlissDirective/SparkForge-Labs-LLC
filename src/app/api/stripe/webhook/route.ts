@@ -21,6 +21,13 @@ function toIso(unixSeconds: number | null | undefined): string | null {
   return new Date(unixSeconds * 1000).toISOString();
 }
 
+// Stripe API 2026-02-25+: current_period_end moved from Subscription
+// to SubscriptionItem. Read it from the first item (all items on a
+// single subscription share the same period window).
+function getPeriodEnd(sub: Stripe.Subscription): number | null | undefined {
+  return sub.items.data[0]?.current_period_end;
+}
+
 // Map Stripe statuses to application statuses (S8-WARN-002 fix)
 const STRIPE_STATUS_MAP: Record<string, string> = {
   active: 'active',
@@ -123,7 +130,7 @@ export async function POST(req: NextRequest) {
           try {
             const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
             trialEndsAt = toIso(sub.trial_end);
-            periodEnd = toIso(sub.current_period_end);
+            periodEnd = toIso(getPeriodEnd(sub));
           } catch (err) {
             console.error('[webhook] Failed to retrieve subscription:', err);
           }
@@ -165,7 +172,7 @@ export async function POST(req: NextRequest) {
         subscription_status: status,
         stripe_subscription_id: sub.id,
         trial_ends_at: toIso(sub.trial_end),
-        subscription_period_end: toIso(sub.current_period_end),
+        subscription_period_end: toIso(getPeriodEnd(sub)),
       };
 
       // Only overwrite tier if we can derive it from the active price.

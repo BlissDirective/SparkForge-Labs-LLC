@@ -96,7 +96,6 @@ export function DowngradeConfirmModal({
 
   const delta = getFeatureDelta(currentTier, targetTier);
   const goingDown = isDowngrade(currentTier, targetTier);
-  const currentLimits = TIER_CONFIG[currentTier];
   const targetLimits = TIER_CONFIG[targetTier];
   const overLimit = Math.max(0, children.length - targetLimits.maxChildren);
   const effectiveDate = formatEffectiveDate(me?.subscriptionPeriodEnd ?? null);
