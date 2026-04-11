@@ -24,7 +24,14 @@ import { useUIStore } from '@/stores/uiStore';
 import { TrialBanner } from '@/components/parent/TrialBanner';
 import { DowngradeConfirmModal } from '@/components/parent/DowngradeConfirmModal';
 import { UsageDashboard } from '@/components/parent/UsageDashboard';
+import { CelebrationBanner } from '@/components/parent/CelebrationBanner';
 import { isDowngrade } from '@/lib/tier-config';
+import { useCockpitStore } from '@/stores/cockpitStore';
+import {
+  queuePendingCelebration,
+  usePendingCelebration,
+  peekPendingCelebration,
+} from '@/hooks/usePendingCelebration';
 
 const TIER_ICONS: Record<SubscriptionTier, typeof Sparkles> = {
   free: Sparkles,
@@ -52,10 +59,15 @@ function SubscriptionContent() {
   const searchParams = useSearchParams();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);
+  const cockpitReady = useCockpitStore((s) => s.cockpitReady);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
   // v3 Gap 3: Downgrade/change modal
   const [downgradeTarget, setDowngradeTarget] = useState<SubscriptionTier | null>(null);
+
+  // v3 Gap 5: Guaranteed celebration state — drives the HTML
+  // CelebrationBanner independently of the 3D cockpit.
+  const [showCelebrationBanner, setShowCelebrationBanner] = useState(false);
 
   const showSuccess = searchParams.get('success') === 'true';
   const showCanceled = searchParams.get('canceled') === 'true';
@@ -71,18 +83,53 @@ function SubscriptionContent() {
     });
   }, [broadcast]);
 
-  // B1: CeremonyFX on successful subscription return
+  // v3 Gap 5: Robust cross-platform celebration dispatch
+  //
+  // Three layers of delivery, all firing independently so at least one
+  // always reaches the user:
+  //   1. HTML CelebrationBanner (mobile + desktop + no-cockpit fallback)
+  //   2. sessionStorage bridge (survives Stripe redirect full reload)
+  //   3. 3D broadcast + CeremonyFX (fires once cockpitReady === true)
   useEffect(() => {
-    if (showSuccess) {
-      broadcast({
-        type: 'celebration-start',
-        source: 'subscription-upgrade',
-        color: '#FFD700',
-        label: 'Subscription Active!',
-      });
-      triggerCelebration('confetti', { reason: 'subscription-upgrade' });
-    }
-  }, [showSuccess, broadcast, triggerCelebration]);
+    if (!showSuccess) return;
+
+    // [Layer 1] Always render the HTML banner immediately
+    setShowCelebrationBanner(true);
+
+    // [Layer 2] Queue for any subsequent navigation/reload
+    queuePendingCelebration({
+      reason: 'subscription-upgrade',
+      label: 'Subscription Active!',
+      color: '#FFD700',
+    });
+
+    // eslint-disable-next-line no-console
+    console.info('[celebration] HTML banner shown + sessionStorage queued');
+  }, [showSuccess]);
+
+  // [Layer 3] Wait for cockpit to be ready before dispatching the 3D
+  // celebration. This handles the race where the subscription page
+  // mounts faster than the cockpit canvas (WebGPU async init).
+  usePendingCelebration(cockpitReady, (pending) => {
+    broadcast({
+      type: 'celebration-start',
+      source: 'subscription-upgrade',
+      color: pending.color ?? '#FFD700',
+      label: pending.label ?? 'Subscription Active!',
+    });
+    triggerCelebration('confetti', { reason: pending.reason });
+    // eslint-disable-next-line no-console
+    console.info('[celebration] 3D dispatched after cockpitReady');
+  });
+
+  // On cold mount we may also be landing here from a prior session
+  // where the banner was queued but never consumed (e.g. user closed
+  // the tab mid-celebration). Show the HTML banner so they don't miss it.
+  useEffect(() => {
+    if (showSuccess) return; // handled above
+    const pending = peekPendingCelebration();
+    if (pending) setShowCelebrationBanner(true);
+  }, [showSuccess]);
 
   // v3 Gap 3: Two flows — (a) brand new checkout from free, (b) in-app
   // plan swap for existing paid users via DowngradeConfirmModal.
@@ -363,6 +410,17 @@ function SubscriptionContent() {
         currentTier={tier}
         targetTier={downgradeTarget ?? 'free'}
         interval={billing === 'monthly' ? 'month' : 'year'}
+      />
+
+      {/* v3 Gap 5: Guaranteed HTML celebration — fires regardless of
+          mobile/desktop, cockpit state, or WebGPU availability. */}
+      <CelebrationBanner
+        show={showCelebrationBanner}
+        title={`Welcome to ${TIER_DISPLAY[tier].name}!`}
+        subtitle="Your subscription is active."
+        color="#FFD700"
+        duration={6000}
+        onDismiss={() => setShowCelebrationBanner(false)}
       />
     </motion.div>
   );
