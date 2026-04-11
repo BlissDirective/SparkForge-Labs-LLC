@@ -196,3 +196,141 @@ export function getYearlySavingsPercent(tier: SubscriptionTier): number {
   const monthlyTotal = display.monthlyPrice * 12;
   return Math.round(((monthlyTotal - display.yearlyPrice) / monthlyTotal) * 100);
 }
+
+// ═══════════════════════════════════════════════════════
+// v3 Gap 2 — TRIAL CONFIGURATION
+// Days of free trial offered on each paid tier's first
+// subscription. Set to 0 to disable the trial for that tier.
+// Change here — no other file edits needed.
+// ═══════════════════════════════════════════════════════
+
+export const TRIAL_DAYS: Record<Exclude<SubscriptionTier, 'free'>, number> = {
+  plus: 7,
+  forge: 7,
+};
+
+/** Whether a parent is currently within a trial window. */
+export function isInTrial(parent: {
+  trial_ends_at?: string | null;
+  subscription_status?: string | null;
+}): boolean {
+  if (!parent.trial_ends_at) return false;
+  const ends = new Date(parent.trial_ends_at).getTime();
+  if (Number.isNaN(ends)) return false;
+  return ends > Date.now();
+}
+
+/** Whole days remaining in a trial (rounded up). Zero if not in trial. */
+export function getTrialDaysRemaining(
+  trialEndsAt: string | null | undefined
+): number {
+  if (!trialEndsAt) return 0;
+  const ms = new Date(trialEndsAt).getTime() - Date.now();
+  if (Number.isNaN(ms) || ms <= 0) return 0;
+  return Math.ceil(ms / (24 * 60 * 60 * 1000));
+}
+
+/** Milliseconds remaining in a trial. Zero if not in trial. */
+export function getTrialMsRemaining(
+  trialEndsAt: string | null | undefined
+): number {
+  if (!trialEndsAt) return 0;
+  const ms = new Date(trialEndsAt).getTime() - Date.now();
+  if (Number.isNaN(ms) || ms <= 0) return 0;
+  return ms;
+}
+
+// ═══════════════════════════════════════════════════════
+// v3 Gap 3 — FEATURE DELTA (for downgrade confirmation)
+// Returns human-readable lists of what a parent gains or
+// loses when switching between two tiers. Used by the
+// DowngradeConfirmModal to show transparent upgrade/downgrade
+// consequences.
+// ═══════════════════════════════════════════════════════
+
+const FEATURE_LABELS: Record<keyof TierLimits['features'], string> = {
+  promptLab: 'Prompt Lab',
+  dailyChallenge: 'Daily Challenge',
+  leaderboard: 'Leaderboard',
+  avatarShop: 'Avatar Shop',
+  exportProgress: 'Progress export',
+  offlineMode: 'Offline content access',
+  prioritySupport: 'Priority support',
+};
+
+export interface FeatureDelta {
+  lost: string[];
+  gained: string[];
+}
+
+export function getFeatureDelta(
+  from: SubscriptionTier,
+  to: SubscriptionTier
+): FeatureDelta {
+  const fromLimits = TIER_CONFIG[from];
+  const toLimits = TIER_CONFIG[to];
+  const lost: string[] = [];
+  const gained: string[] = [];
+
+  // ── Child profile limit ──
+  if (fromLimits.maxChildren > toLimits.maxChildren) {
+    lost.push(
+      `Child profiles reduced to ${toLimits.maxChildren} (from ${fromLimits.maxChildren})`
+    );
+  } else if (fromLimits.maxChildren < toLimits.maxChildren) {
+    gained.push(
+      `Child profiles increased to ${toLimits.maxChildren} (from ${fromLimits.maxChildren})`
+    );
+  }
+
+  // ── Prompt Lab daily quota ──
+  if (fromLimits.promptsPerDay > toLimits.promptsPerDay) {
+    lost.push(
+      `Prompt Lab reduced to ${toLimits.promptsPerDay}/day (from ${fromLimits.promptsPerDay})`
+    );
+  } else if (fromLimits.promptsPerDay < toLimits.promptsPerDay) {
+    gained.push(
+      `Prompt Lab increased to ${toLimits.promptsPerDay}/day (from ${fromLimits.promptsPerDay})`
+    );
+  }
+
+  // ── Games per week ──
+  const fromGames = fromLimits.gamesPerWeek;
+  const toGames = toLimits.gamesPerWeek;
+  if (fromGames === null && toGames !== null) {
+    lost.push(`Games limited to ${toGames}/week (was unlimited)`);
+  } else if (fromGames !== null && toGames === null) {
+    gained.push('Unlimited games per week');
+  } else if (fromGames !== null && toGames !== null && fromGames > toGames) {
+    lost.push(`Games reduced to ${toGames}/week (from ${fromGames})`);
+  } else if (fromGames !== null && toGames !== null && fromGames < toGames) {
+    gained.push(`Games increased to ${toGames}/week (from ${fromGames})`);
+  }
+
+  // ── Labs (full-access count) ──
+  const fromLabs = fromLimits.freeLabsAccess.length;
+  const toLabs = toLimits.freeLabsAccess.length;
+  if (fromLabs > toLabs) {
+    lost.push(`Full access to ${fromLabs - toLabs} labs`);
+  } else if (fromLabs < toLabs) {
+    gained.push(`Full access to ${toLabs - fromLabs} more labs`);
+  }
+
+  // ── Boolean features ──
+  for (const [key, fromVal] of Object.entries(fromLimits.features) as Array<
+    [keyof TierLimits['features'], boolean]
+  >) {
+    const toVal = toLimits.features[key];
+    if (fromVal && !toVal) lost.push(FEATURE_LABELS[key]);
+    if (!fromVal && toVal) gained.push(FEATURE_LABELS[key]);
+  }
+
+  return { lost, gained };
+}
+
+/** True if moving from -> to is a downgrade (fewer features/limits). */
+export function isDowngrade(from: SubscriptionTier, to: SubscriptionTier): boolean {
+  if (from === to) return false;
+  const order: Record<SubscriptionTier, number> = { free: 0, plus: 1, forge: 2 };
+  return order[to] < order[from];
+}

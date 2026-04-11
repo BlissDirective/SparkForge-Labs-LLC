@@ -44,9 +44,11 @@ export interface Parent {
   email: string;
   full_name?: string;
   stripe_customer_id?: string;
+  stripe_subscription_id?: string | null;
   subscription_tier: SubscriptionTier;
   subscription_status: string;
-  subscription_period_end?: string;
+  subscription_period_end?: string | null;
+  trial_ends_at?: string | null;
   is_admin: boolean;
   onboarding_complete: boolean;
   coppa_consent_at: string;
