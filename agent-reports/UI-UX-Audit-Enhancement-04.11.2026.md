@@ -182,4 +182,86 @@
 
 ---
 
-*Sections 3-8 follow below. Each section is committed individually.*
+## 3. 3D Cockpit & Layering
+
+### 3.1 Text Readability in 3D Space
+
+#### COCK-01 [P0] — HUD corner text nearly invisible
+- **Location:** `HolographicHUD.tsx:438-496`, `cockpitDesignTokens.ts:30`
+- **Issue:** Caption text (TIME, MODE, CHILD NAME labels) uses `fontSize: 0.016` world units. With camera at FOV 58 and Z=-2.45, this renders at ~14px virtual screen space. Crucially, `fillOpacity = TEXT_COLORS.muted.opacity * opacity` = `0.5 * 0.12 = 0.06` — **6% opacity text**. Combined with outline width of only `0.003`, these readouts are effectively invisible.
+- **Impact:** Users cannot read time, mode, or child name in the HUD corners
+- **Fix:** Increase `caption` fontSize to `0.024`+ in `cockpitDesignTokens.ts:30`. Set muted opacity multiplier to `0.8` minimum. Increase outline width to `0.005`+.
+
+#### COCK-02 [P1] — HUD corner positions clip on narrow viewports
+- **Location:** `HolographicHUD.tsx:113-118`
+- **Issue:** Corner readouts hardcoded at `[-1.8, 1.5, -2.45]` (top-left) and `[1.8, 1.5, -2.45]` (top-right). These assume 16:9 aspect ratio. On narrower viewports (<1440px wide), content clips outside the visible frustum.
+- **Fix:** Derive X positions from `useThree().viewport.aspect` — scale by `aspect / 1.78` to maintain safe margins
+
+#### COCK-03 [P1] — Muted 3D text color fails WCAG
+- **Location:** `cockpitDesignTokens.ts:37-43`
+- **Issue:** `TEXT_COLORS.muted` = `#F0F0F4` at `0.5` opacity on dark panel backgrounds (#0A0F1F). Effective contrast ~1.5:1. Used extensively in HolographicHUD labels.
+- **Fix:** Increase muted opacity to `0.7`+ or use `TEXT_COLORS.secondary` for all readable content
+
+#### COCK-04 [P2] — CockpitText uses rasterized text, not SDF
+- **Location:** `CockpitText.tsx:19-24`
+- **Issue:** Uses `@react-three/uikit Text` with WOFF2 fonts. No SDF (signed-distance field) text via troika-three-text. Text below 0.02 world units aliases/blurs at any rotation or scale.
+- **Impact:** Small labels throughout cockpit appear fuzzy
+- **Enhancement option:** See Section 7, ENH-TEXT-01
+
+### 3.2 Panel Occlusion & Collision
+
+#### COCK-05 [P0] — Center panel can scale into HUD z-depth
+- **Location:** `CockpitUILayer.tsx:34, 51, 108-119`, `CockpitCanvas.tsx:316-320`
+- **Issue:** Center panel renders at `[0, 0.35, -3.3]` with dynamic scale 1.0-1.75 in game mode. HolographicHUD arcs sit at Z=-2.5. At 1.75x scale, the center panel extends to Z=-1.89, **overlapping the HUD arcs by 0.6 world units**. Camera near plane at 0.1 doesn't prevent visual z-fighting.
+- **Fix:** Either clamp center panel scale to max 1.4 OR push HUD arcs further forward to Z=-1.8 OR apply explicit `renderOrder` separation
+
+#### COCK-06 [P1] — Side panel positions create narrow safe zone
+- **Location:** `cockpitConfig.ts:40-43`
+- **Issue:** Left/right panels at `[+-2.35, 0.25, -1.65]` with rotation +-0.85rad. At FOV 58, the viewport width at Z=-1.65 is ~2.8 world units. Panels at +-2.35 sit beyond this boundary — they work because they're rotated inward, but no bounding box validation prevents future changes from creating intersection.
+- **Fix:** Document and enforce min/max panel safe zones in `cockpitConfig.ts`
+
+#### COCK-07 [P2] — Game mode panel expansion lacks Z offset
+- **Location:** `CockpitUILayer.tsx:121-149`, `cockpitModePresets.ts:134-135`
+- **Issue:** `panelOffset` drives X/Y translation (0.3 in game mode) but no Z adjustment. Expanding center panel (1.75x scale) may visually clip fixed side panels since only lateral spread is considered.
+- **Fix:** Add Z-offset `0.2` to side panels during game mode
+
+### 3.3 Orphan & Unwired Components
+
+#### COCK-08 [P1] — NavigationButtonGrid and VariableDialCluster orphaned from scene routing
+- **Location:** `CockpitCanvas.tsx:411-415` (comment: "INT-1: Wire orphaned components")
+- **Issue:** Both components render directly in CockpitCanvas at `[0,-0.6,-1.85]` and `[0,-0.3,-1.4]`, bypassing CockpitUILayer. They have no scene routing or mode-based visibility. `CockpitUILayer.tsx:189-192` has a `RESERVED` bottom quadrant for these but it's unpopulated.
+- **Fix:** Either integrate into CockpitUILayer bottom quadrant or document the direct-Canvas rationale and close INT-1
+
+#### COCK-09 [P2] — DashboardLeft/Right use `lazy()` but always render
+- **Location:** `CockpitUILayer.tsx:41-51, 161-163, 184-187`
+- **Issue:** Side panels are `React.lazy()` loaded but render in fixed groups with no conditional visibility. The lazy boundary serves no purpose since they're always mounted, and the `Suspense` fallback is `null` creating a potential content flash.
+- **Fix:** Either remove `lazy()` wrapping (they always render) or add mode-based conditional rendering
+
+### 3.4 3D Button Accessibility
+
+#### COCK-10 [P0] — 3D buttons have zero keyboard accessibility
+- **Location:** `HolographicButton.tsx:65-84`
+- **Issue:** No `tabIndex`, `onKeyDown`, `role`, or ARIA attributes on 3D mesh buttons. R3F mesh objects aren't part of the tab order. The NavigationButtonGrid (HOME/LABS/ARCADE/SETTINGS/PROFILE) cannot be reached via keyboard — the only keyboard fallback is the sr-only Sidebar.
+- **Impact:** Keyboard-only users rely entirely on the Sidebar for navigation. 3D buttons, dials, and toggles are mouse/touch-only.
+- **Fix:** For critical nav buttons, add HTML overlay proxy buttons (similar to hidden input proxy pattern in auth). For 3D-only controls (dials, toggles), ensure equivalent functionality is available via Sidebar or Settings page.
+
+#### COCK-11 [P2] — No haptic feedback for 3D touch interactions
+- **Location:** `HolographicButton.tsx:246-254`
+- **Issue:** `onPointerDown/Up` handlers have no `navigator.vibrate()` call. On tablets/touch devices, pressing 3D buttons gives no tactile confirmation.
+- **Fix:** Add `navigator.vibrate?.([20])` on successful click
+
+### 3.5 Geometry & Performance
+
+#### COCK-12 [P2] — Cockpit geometry disposal timing
+- **Location:** `CockpitPanels.tsx:604-634`
+- **Issue:** Geometry disposal on `useMemo` swap rather than `useEffect` cleanup. Per existing AUDIT_REPORT.md Finding #7, this was noted but mitigated. Current approach works but is fragile — if `useMemo` triggers before disposal, old geometry leaks one frame.
+- **Fix:** Migrate disposal to `useEffect` cleanup for guaranteed lifecycle ordering
+
+#### COCK-13 [P3] — No performance budget enforcement in CockpitCanvas
+- **Location:** `CockpitCanvas.tsx`
+- **Issue:** `useFrameTimeMonitor` provides dev-only warnings but no runtime triangle counting. The 37.8M cockpit budget is documented but not enforced.
+- **Future:** Plan B2 (adaptive degradation) from CLAUDE.md Section 9.1 remains unimplemented
+
+---
+
+*Sections 4-8 follow below. Each section is committed individually.*
