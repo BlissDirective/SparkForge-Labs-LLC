@@ -539,4 +539,82 @@ Specific bugs and UX issues found in individual game components, organized by ti
 
 ---
 
-*Sections 6-8 follow below. Each section is committed individually.*
+## 6. Master-Design-Agent Conflict Cross-Reference
+
+This section maps every Master-Design-Agent (MDA) anti-pattern rule against SparkForge's Frost-Prismatic design system. Each conflict is categorized as:
+
+- **INTENTIONAL** — SparkForge violates the rule deliberately as part of its locked aesthetic. Documented rationale exists.
+- **ACTIONABLE** — The rule applies. SparkForge violates it without clear justification. Should be fixed.
+- **SELECTABLE** — The rule partially applies. Both the current approach and the MDA recommendation have merit. Enhancement option offered in Section 7.
+
+### Color Anti-Patterns (MDA Section 1)
+
+| MDA Rule | SparkForge Status | Verdict | Notes |
+|----------|------------------|---------|-------|
+| "NEVER use cyan-on-dark" | Primary `#00BBFF` on `#0A0E16` | **INTENTIONAL** | Core brand identity. Frost-Prismatic is explicitly a cyan-dominant dark palette. |
+| "NEVER use purple-to-blue gradients" | `frost-gradient` uses `rgba(0,187,255,0.08)` to `rgba(170,102,255,0.05)` | **INTENTIONAL** | Low-opacity brand gradient. Not the typical "AI gradient" — it's subtle. |
+| "NEVER use neon accents on dark backgrounds" | 5 neon accent colors on `#0A0E16` | **INTENTIONAL** | Entire design language. These are lab-coded educational colors, not decorative neon. |
+| "NEVER default to dark mode with glowing accents" | Dark-mode only with `emissive-glow` system | **INTENTIONAL** | Laboratory Control Station aesthetic requires this. Not a default — it's the concept. |
+| "NEVER use gradient text for impact" | Not found in codebase | **COMPLIANT** | No gradient text usage detected. |
+| "NEVER use pure black (#000) or pure white (#fff)" | `#000` in skip-link, `#000000/#ffffff` in 50+ 3D files | **ACTIONABLE** (DES-04, DES-05) | Pure black/white used where tinted alternatives would be better. Brand-tint to `#0A0E16` and `#F0F0F4`. |
+| "NEVER use gray text on colored backgrounds" | `--text-muted` (0.3 opacity) on neon backgrounds possible | **ACTIONABLE** (DES-01) | Muted text on any colored surface fails contrast. |
+
+### Typography Anti-Patterns (MDA Section 1 & 4)
+
+| MDA Rule | SparkForge Status | Verdict | Notes |
+|----------|------------------|---------|-------|
+| "NEVER use overused fonts: Inter, Roboto, Arial..." | Uses Exo 2, Sora, Orbitron, JetBrains Mono | **COMPLIANT** | Distinctive, on-brand fonts. None on the banned list. |
+| "NEVER converge on the same font across generations" | N/A (single product) | **COMPLIANT** | Not applicable to a single-product codebase. |
+| "NEVER use monospace as lazy shorthand for technical" | Orbitron (data) + JetBrains Mono (code) used appropriately | **COMPLIANT** | Both serve specific functional roles (data display vs code). |
+
+### Layout Anti-Patterns (MDA Section 1 & 6)
+
+| MDA Rule | SparkForge Status | Verdict | Notes |
+|----------|------------------|---------|-------|
+| "NEVER wrap everything in cards" | Chrome bezel frames wrap most content | **SELECTABLE** (ENH-LAYOUT-01) | Chrome frames serve the Laboratory aesthetic, but game content *within* frames sometimes nests card-like containers. |
+| "NEVER nest cards inside cards" | Some game UIs nest `glass-card` inside `chrome-frame` | **ACTIONABLE** | Audit found ~8 games with nested container patterns. Should flatten. |
+| "NEVER use identical card grids" | Lab map uses uniform grid tiles | **INTENTIONAL** | Lab tiles are intentionally uniform — they represent physical laboratory rooms in the cockpit. Differentiation is via color + 3D models, not card layout variation. |
+| "NEVER center everything" | Dashboard content left-aligned within 3D panels | **COMPLIANT** | 3D panel architecture naturally creates asymmetric layout. |
+
+### Visual Effects Anti-Patterns (MDA Section 1)
+
+| MDA Rule | SparkForge Status | Verdict | Notes |
+|----------|------------------|---------|-------|
+| "NEVER use glassmorphism everywhere" | `glass-card`, `glass-surface`, `backdrop-blur` used across auth + games | **SELECTABLE** (ENH-GLASS-01) | Glassmorphism is thematic (lab glass, holographic surfaces), but it's used on nearly every surface. Consider reserving for focal elements only. |
+| "NEVER use sparklines as decoration" | Not found | **COMPLIANT** | No decorative sparklines. |
+| "NEVER use modals unless there's truly no better alternative" | PaywallModal, DemoExpiredModal, ConfirmationDialogs | **SELECTABLE** (ENH-MODAL-01) | Paywalls and confirmations are valid modal use cases. Demo expiry could use inline banner instead. |
+
+### Motion Anti-Patterns (MDA Section 1 & 7)
+
+| MDA Rule | SparkForge Status | Verdict | Notes |
+|----------|------------------|---------|-------|
+| "NEVER use bounce or elastic easing" | `badge-unlock` uses `cubic-bezier(0.34, 1.56, 0.64, 1)` | **ACTIONABLE** (DES-10) | Elastic overshoot. Replace with `ease-out-quart`. |
+| "NEVER animate layout properties" | Only `transform`/`opacity` animated | **COMPLIANT** | Clean implementation. No width/height/margin animations found. |
+
+### Responsive Anti-Patterns (MDA Section 9)
+
+| MDA Rule | SparkForge Status | Verdict | Notes |
+|----------|------------------|---------|-------|
+| "Start with base styles for mobile, use min-width" | Desktop-first (D3D-1 decision) | **INTENTIONAL** | SparkForge is explicitly desktop-only. Mobile support planned as future R3F-native LOD, not CSS mobile-first. This is a locked architecture decision. |
+| "Touch targets >= 44px" | No enforcement | **ACTIONABLE** (DES-14) | Even desktop-first, tablets access via browser. Need minimum sizes. |
+
+### UX Writing Anti-Patterns (MDA Section 10)
+
+| MDA Rule | SparkForge Status | Verdict | Notes |
+|----------|------------------|---------|-------|
+| "NEVER use OK, Submit, Yes/No" | No instances found | **COMPLIANT** | All buttons use specific verb+object patterns. |
+| "Error messages: what + why + how to fix" | Auth errors are generic strings | **SELECTABLE** (ENH-ERROR-01) | Add-child and login errors show generic messages. Could provide specific guidance. |
+
+### Summary
+
+| Verdict | Count |
+|---------|-------|
+| **COMPLIANT** | 10 |
+| **INTENTIONAL** (locked, no action needed) | 6 |
+| **ACTIONABLE** (should fix) | 5 |
+| **SELECTABLE** (enhancement offered) | 5 |
+| **TOTAL rules evaluated** | **26** |
+
+---
+
+*Sections 7-8 follow below. Each section is committed individually.*
