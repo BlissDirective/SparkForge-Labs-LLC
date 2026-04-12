@@ -20,7 +20,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
-import { Shield, FileText, CreditCard, ChevronRight } from 'lucide-react';
+import { Shield, FileText, CreditCard, Archive, ChevronRight } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 
@@ -43,6 +43,12 @@ const ADMIN_ROUTES: AdminRoute[] = [
     label: 'Subscriptions',
     icon: CreditCard,
     color: '#FFAA44',
+  },
+  {
+    href: '/admin/archived-children',
+    label: 'Archived Children',
+    icon: Archive,
+    color: '#AA66FF',
   },
 ];
 

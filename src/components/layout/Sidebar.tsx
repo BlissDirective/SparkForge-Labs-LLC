@@ -31,6 +31,7 @@ const BASE_NAV_ITEMS = [
 const ADMIN_NAV_ITEMS = [
   { href: '/admin/content', label: 'Admin — Content Queue' },
   { href: '/admin/subscriptions', label: 'Admin — Subscriptions' },
+  { href: '/admin/archived-children', label: 'Admin — Archived Children' },
 ];
 
 export function Sidebar() {

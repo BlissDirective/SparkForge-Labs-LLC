@@ -75,15 +75,33 @@ WHERE table_name = 'children' AND column_name = 'deactivated_at';
 
 Must return 1 row (post Gap 3 archive migration).
 
-## 1.3 Create First Admin User (optional but recommended)
+## 1.3 Create First Admin User (recommended)
 
-Sign up once through the app (`/signup`), then promote to admin:
+Sign up once through the app (`/signup`), then promote to admin in the SQL Editor:
 
 ```sql
+-- Promote a parent account to admin
 UPDATE parents SET is_admin = true WHERE email = 'your-email@example.com';
+
+-- Verify the promotion
+SELECT email, is_admin FROM parents WHERE email = 'your-email@example.com';
 ```
 
-Admins can access `/admin/subscriptions` and `/admin/content`.
+To **revoke** admin access later:
+
+```sql
+UPDATE parents SET is_admin = false WHERE email = 'your-email@example.com';
+```
+
+Admin users see a floating **AdminNavDock** (bottom-left) on every dashboard page with links to:
+
+| Admin Page | URL | Purpose |
+|---|---|---|
+| Content Queue | `/admin/content` | Review + approve AI-generated content |
+| Subscriptions | `/admin/subscriptions` | Cancel/change any user's plan |
+| Archived Children | `/admin/archived-children` | Restore soft-archived child profiles |
+
+Admin pages are also reachable via keyboard navigation (sr-only Sidebar).
 
 ---
 
@@ -147,6 +165,30 @@ Admins can access `/admin/subscriptions` and `/admin/content`.
 - [ ] **Settings → Auth Tokens → Create Token** → scope: `project:releases`, `org:read` → `SENTRY_AUTH_TOKEN`
 - [ ] Record org + project slugs → `SENTRY_ORG`, `SENTRY_PROJECT`
 
+## 3.3 Resend (for trial reminder emails)
+
+Transactional email is used for trial-ending reminders (48h and 24h before expiry). The codebase uses Resend's REST API directly (no npm dependency) and degrades gracefully if unconfigured — the cron returns `{ skipped: true }` and the app runs normally without email.
+
+- [ ] [resend.com](https://resend.com) → sign up → **API Keys → Create API Key**
+- [ ] Copy → `RESEND_API_KEY` (starts `re_…`)
+- [ ] **Domains → Add Domain** → verify your sending domain (DNS records)
+- [ ] Optionally set `EMAIL_FROM` (default: `SparkForge <noreply@sparkforge.app>`)
+
+> You can launch without Resend and add it later. Trial reminders simply won't send. All other subscription features (checkout, webhook, downgrade, admin tools) work without email.
+
+### Test the email template (requires admin)
+
+After deploy, send a test reminder to yourself:
+
+```bash
+curl -X POST https://<domain>/api/admin/trial-reminders/test \
+  -H "Cookie: <your-session-cookie>" \
+  -H "Content-Type: application/json" \
+  -d '{"to":"your-email@example.com","window":"48h","tier":"plus"}'
+```
+
+Or use the admin test endpoint via the browser console after logging in as admin.
+
 ---
 
 # Phase 4 — Vercel
@@ -185,6 +227,8 @@ Add these to **Project Settings → Environment Variables**. Paste values from t
 | Variable | Purpose |
 |---|---|
 | `ANTHROPIC_API_KEY` | Prompt Lab + Content Agent (returns 503 if missing) |
+| `RESEND_API_KEY` | Trial reminder emails (cron skips gracefully if missing) |
+| `EMAIL_FROM` | Sender address — default `SparkForge <noreply@sparkforge.app>` |
 | `NEXT_PUBLIC_SENTRY_DSN` | Client-side error tracking |
 | `SENTRY_DSN` | Server-side error tracking |
 | `SENTRY_ORG` / `SENTRY_PROJECT` / `SENTRY_AUTH_TOKEN` | Sentry source map uploads |
@@ -195,10 +239,13 @@ Add these to **Project Settings → Environment Variables**. Paste values from t
 
 Already defined in `vercel.json` — no action needed. Vercel auto-registers:
 
-- `/api/agent/schedule` — daily at 06:00 UTC (content generation)
-- `/api/agent/trending` — weekly Monday 08:00 UTC (trending topics)
+| Cron Path | Schedule | Purpose |
+|---|---|---|
+| `/api/agent/schedule` | Daily 06:00 UTC | Content generation pipeline |
+| `/api/agent/trending` | Monday 08:00 UTC | Trending topics scan |
+| `/api/cron/trial-reminders` | Daily 10:00 UTC | Trial expiry emails (48h + 24h window) |
 
-Both cron endpoints require the `CRON_SECRET` header to execute. Vercel injects this automatically for cron invocations.
+All cron endpoints require the `CRON_SECRET` bearer token. Vercel injects this automatically for cron invocations. The trial-reminders cron gracefully skips if `RESEND_API_KEY` is missing.
 
 ## 4.4 Deploy
 
@@ -277,6 +324,71 @@ It will:
 - [ ] Click **Confirm Downgrade**
 - [ ] Check toast: "Your plan will switch to Spark Free on [date]"
 - [ ] Verify Supabase `parents.subscription_status='active'` but a Stripe portal check shows `cancel_at_period_end=true`
+
+## 5.6 Archived Children Restore Check
+
+- [ ] As admin, navigate to `/admin/archived-children`
+- [ ] Confirm any children archived in 5.5 appear in the table
+- [ ] Verify the "At limit" badge appears if the parent has no room to restore
+- [ ] Click **Restore** on one archived child → confirm modal shows impact summary
+- [ ] Type an optional reason → click **Confirm Restore**
+- [ ] Verify success toast + child disappears from the archived list
+- [ ] Confirm the child reappears in `/api/children` (parent's active profile list)
+- [ ] Query Supabase to verify `deactivated_at` is now NULL:
+
+```sql
+SELECT display_name, deactivated_at
+FROM children WHERE parent_id = '<your-parent-id>';
+```
+
+## 5.7 Trial Reminder Email Check (requires Resend)
+
+Skip this section if `RESEND_API_KEY` is not configured.
+
+- [ ] As admin, send a test reminder:
+
+```bash
+curl -X POST https://<domain>/api/admin/trial-reminders/test \
+  -H "Cookie: <session-cookie>" \
+  -H "Content-Type: application/json" \
+  -d '{"to":"your-email@example.com","window":"48h","tier":"plus"}'
+```
+
+- [ ] Check your inbox for the `[TEST] Your Spark Plus trial ends in 2 days` email
+- [ ] Verify dark-themed HTML renders correctly (Frost-Prismatic colors)
+- [ ] Verify the "Manage Subscription" button links to `/parent/subscription`
+- [ ] Verify plain-text fallback is readable
+
+> The daily cron (`/api/cron/trial-reminders`) auto-sends real reminders at 10:00 UTC. Each parent receives at most one 48h reminder and one 24h reminder per trial (deduplicated via `subscription_events`).
+
+## 5.8 Unit + Integration Test Suite
+
+Run the full test suite locally to verify everything compiles and passes:
+
+```bash
+# Unit tests (fast, no network, no DB)
+npm test
+
+# Expected output:
+#   Test Files  3 passed (3)
+#   Tests       23 passed (23)
+#   Duration    ~6s
+```
+
+**Test breakdown:**
+
+| Test File | Tests | What it covers |
+|---|---|---|
+| `tests/unit/webhook-signature.test.ts` | 6 | HMAC signing, round-trip via `constructEvent`, tampering rejection |
+| `tests/unit/webhook-handler.test.ts` | 17 | Full handler: checkout, sub update/delete, invoice failed, tier derivation, status mapping, audit trail, idempotency |
+
+```bash
+# TypeScript type-check (no emit)
+npx tsc --noEmit
+
+# Production build (catches ESLint + type errors across all routes)
+npm run build
+```
 
 ---
 
@@ -444,6 +556,241 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...
 
 ---
 
+# Appendix D — Admin API Endpoints Reference
+
+All admin endpoints require `parents.is_admin = true` via the `requireAdmin()` middleware.
+
+| Method | Endpoint | Purpose |
+|---|---|---|
+| `GET` | `/api/admin/subscriptions` | List all parent subscriptions (500 max) |
+| `POST` | `/api/admin/subscriptions/cancel` | Cancel a parent's subscription via Stripe |
+| `POST` | `/api/admin/subscriptions/change` | Change a parent's plan/interval via Stripe |
+| `GET` | `/api/admin/children/archived` | List all soft-archived children with parent info + tier limit status |
+| `POST` | `/api/admin/children/:childId/restore` | Restore a single archived child (checks tier limit first) |
+| `POST` | `/api/admin/trial-reminders/test` | Send a test trial reminder email to any address |
+
+### Restore endpoint details
+
+```
+POST /api/admin/children/<childId>/restore
+Body: { "reason": "optional audit note" }
+
+Success: { childId, parentId, parentEmail, displayName, activeCountAfter, maxChildren }
+Errors:
+  404 — Child not found
+  400 — Child is already active
+  400 — CHILDREN_OVER_LIMIT (parent is at tier max — archive another first or upgrade)
+  500 — DB update failed (missing migration?)
+```
+
+### Trial test endpoint details
+
+```
+POST /api/admin/trial-reminders/test
+Body: { "to": "email@example.com", "window": "48h|24h|final", "tier": "plus|forge" }
+
+Success: { to, window, tier, subject, resendId }
+Errors:
+  503 — EMAIL_NOT_CONFIGURED (RESEND_API_KEY missing)
+  500 — Resend API rejected the send
+```
+
+---
+
+# Appendix E — Admin Operations Guide
+
+## Daily operations
+
+| Task | How | Frequency |
+|---|---|---|
+| Review AI content | `/admin/content` → approve/reject queued items | Daily |
+| Check subscription health | `/admin/subscriptions` → filter by `past_due` | Daily |
+| Verify cron ran | Vercel dashboard → **Cron Jobs** tab → check green status | Daily |
+
+## Weekly operations
+
+| Task | How | Frequency |
+|---|---|---|
+| Review archived children | `/admin/archived-children` → restore any incorrectly archived | Weekly |
+| Check trial conversions | SQL: `SELECT COUNT(*) FROM parents WHERE trial_ends_at < NOW() AND subscription_tier != 'free'` | Weekly |
+| Review subscription events | SQL: `SELECT event_type, COUNT(*) FROM subscription_events GROUP BY event_type ORDER BY count DESC` | Weekly |
+
+## Common admin SQL queries
+
+```sql
+-- List all admins
+SELECT email, full_name FROM parents WHERE is_admin = true;
+
+-- Promote an admin
+UPDATE parents SET is_admin = true WHERE email = 'your-email@example.com';
+
+-- Revoke admin
+UPDATE parents SET is_admin = false WHERE email = 'your-email@example.com';
+
+-- Count active vs archived children per parent
+SELECT
+  p.email,
+  p.subscription_tier,
+  COUNT(*) FILTER (WHERE c.deactivated_at IS NULL) AS active,
+  COUNT(*) FILTER (WHERE c.deactivated_at IS NOT NULL) AS archived
+FROM parents p
+LEFT JOIN children c ON c.parent_id = p.id
+GROUP BY p.id, p.email, p.subscription_tier
+ORDER BY archived DESC;
+
+-- Find parents with trials ending in the next 48 hours
+SELECT email, subscription_tier, trial_ends_at,
+  EXTRACT(EPOCH FROM (trial_ends_at - NOW())) / 3600 AS hours_remaining
+FROM parents
+WHERE trial_ends_at IS NOT NULL
+  AND trial_ends_at > NOW()
+  AND trial_ends_at <= NOW() + INTERVAL '48 hours';
+
+-- Audit trail for a specific parent
+SELECT stripe_event_id, event_type, created_at, data
+FROM subscription_events
+WHERE parent_id = '<parent-uuid>'
+ORDER BY created_at DESC
+LIMIT 20;
+
+-- Find all trial reminder emails sent
+SELECT parent_id, data->>'window' AS window, data->>'sent_at' AS sent_at
+FROM subscription_events
+WHERE event_type = 'trial.reminder.sent'
+ORDER BY created_at DESC;
+
+-- Find all admin child restores
+SELECT
+  parent_id,
+  data->>'child_name' AS child_name,
+  data->>'admin_email' AS restored_by,
+  data->>'reason' AS reason,
+  data->>'restored_at' AS restored_at
+FROM subscription_events
+WHERE event_type = 'admin.child.restored'
+ORDER BY created_at DESC;
+```
+
+## Emergency procedures
+
+### Force-downgrade a parent (bypass Stripe)
+
+If a parent's Stripe state is out of sync with Supabase:
+
+```sql
+-- Nuclear option: reset to free tier in DB only
+-- (Stripe subscription may still be active — check dashboard)
+UPDATE parents SET
+  subscription_tier = 'free',
+  subscription_status = 'canceled',
+  stripe_subscription_id = NULL,
+  trial_ends_at = NULL,
+  subscription_period_end = NULL
+WHERE email = 'problem-user@example.com';
+```
+
+### Restore ALL archived children for a parent
+
+```sql
+UPDATE children SET deactivated_at = NULL
+WHERE parent_id = '<parent-uuid>' AND deactivated_at IS NOT NULL;
+```
+
+> Warning: this may put the parent over their tier's child limit. Check their tier first.
+
+### Re-sync a parent from Stripe
+
+If the webhook missed an event, the backfill script can re-sync:
+
+```bash
+npx tsx scripts/backfill-stripe-subs.ts --commit
+```
+
+### Manually trigger trial reminders
+
+```bash
+# Local dev
+curl http://localhost:3000/api/cron/trial-reminders \
+  -H "Authorization: Bearer $CRON_SECRET"
+
+# Production (via Vercel, use the cron tab to trigger manually)
+```
+
+---
+
+# Appendix F — Full Test Suite Reference
+
+## Test pyramid
+
+```
+┌────────────────────────┐
+│   E2E (Playwright)     │  ← Not in this branch (future)
+├────────────────────────┤
+│   Smoke (scripts/)     │  ← Live dev server, real DB
+├────────────────────────┤
+│   Unit (vitest)        │  ← Mocked, fast, CI-safe
+└────────────────────────┘
+```
+
+## Running tests
+
+```bash
+# All unit tests (CI-safe, no network)
+npm test
+
+# With coverage report
+npm test -- --coverage
+
+# Run a specific test file
+npm test -- tests/unit/webhook-handler.test.ts
+
+# Watch mode (re-runs on file change)
+npx vitest watch
+```
+
+## Test inventory
+
+| File | Tests | Layer | Dependencies |
+|---|---|---|---|
+| `tests/unit/webhook-signature.test.ts` | 6 | Unit | `stripe` (real SDK, no network) |
+| `tests/unit/webhook-handler.test.ts` | 17 | Unit | Mocked Supabase + Stripe |
+| `scripts/smoke-test-webhook.ts` | 1 | Smoke | Live dev server + Supabase |
+
+### webhook-signature.test.ts (6 tests)
+
+| # | Test | Verifies |
+|---|---|---|
+| 1 | Signature format | `t=<unix>,v1=<hex64>` pattern |
+| 2 | Timestamp freshness | Within 5 seconds of now |
+| 3 | Round-trip verify | `constructEvent()` accepts our signed payload |
+| 4 | Tampered body rejected | Modified body fails verification |
+| 5 | Wrong secret rejected | Mismatched HMAC key fails |
+| 6 | Empty signature rejected | No signature header fails |
+
+### webhook-handler.test.ts (17 tests)
+
+| # | Test | Verifies |
+|---|---|---|
+| 1 | Stripe not configured → 503 | `getStripe()` returns null |
+| 2 | Missing signature → 503 | No `stripe-signature` header |
+| 3 | Missing webhook secret → 503 | `STRIPE_WEBHOOK_SECRET` unset |
+| 4 | Invalid signature → 400 | `constructEvent` throws |
+| 5 | checkout.session.completed | Writes all Gap 1+2 fields to parents |
+| 6 | Checkout defaults tier to plus | Missing metadata.tier → 'plus' |
+| 7 | Checkout skips without supabase_id | No parents update attempted |
+| 8 | sub.updated + Plus price → tier=plus | Price ID → tier derivation |
+| 9 | sub.updated + Forge price → tier=forge | Price ID → tier derivation |
+| 10 | sub.updated + unknown price | No tier overwrite |
+| 11 | sub.updated 'trialing' → 'active' | Status mapping |
+| 12 | sub.updated 'past_due' → 'past_due' | Status mapping |
+| 13 | sub.updated trial_end → ISO | Unix seconds → ISO conversion |
+| 14 | sub.deleted → free + clear fields | Downgrade + null stripe_subscription_id |
+| 15 | invoice.payment_failed → past_due | Only status updated |
+| 16 | Audit upsert with idempotency | onConflict + ignoreDuplicates |
+| 17 | Unknown event → 200 + no parents update | Graceful passthrough |
+
+---
+
 # Troubleshooting
 
 ## "Stripe price IDs not configured"
@@ -478,7 +825,45 @@ Fix: Run Phase 1.2 step 13. Re-downgrade to trigger the archive flow.
 ## Admin nav dock not visible
 
 Cause: `parents.is_admin` is `false` for your user.
-Fix: Run the `UPDATE parents SET is_admin = true WHERE email = '…'` command in SQL Editor, then refresh the page.
+Fix: Run the promote-admin SQL from Phase 1.3:
+
+```sql
+UPDATE parents SET is_admin = true WHERE email = 'your-email@example.com';
+```
+
+Then refresh the page. The dock appears at bottom-left on every dashboard page.
+
+## Trial reminder emails not sending
+
+Cause 1: `RESEND_API_KEY` not set → cron returns `{ skipped: true }` (by design).
+Fix: Add the key per Phase 3.3.
+
+Cause 2: No parents have `trial_ends_at` in the next 48 hours.
+Fix: Check with the SQL query from Appendix E ("Find parents with trials ending in next 48 hours").
+
+Cause 3: Reminder already sent (deduplicated).
+Fix: Check `subscription_events` for existing `trial.reminder.sent` rows for that parent.
+
+## Restore button disabled on archived children page
+
+Cause: The parent's current active child count equals their tier's maximum.
+Fix: Either archive a different active child first, or upgrade the parent's tier via `/admin/subscriptions`, then retry the restore.
+
+## Tests failing locally
+
+Cause: Missing or outdated dependencies.
+Fix:
+```bash
+npm install
+npm test
+```
+
+If `webhook-handler.test.ts` fails with import errors, ensure `vitest.config.ts` has the `@` alias pointing to `./src`.
+
+## Cron endpoint returns 401
+
+Cause: `CRON_SECRET` mismatch between environment and request.
+Fix: Ensure the same secret is in both your `.env.local` and the `Authorization: Bearer <secret>` header. Vercel injects this automatically for scheduled crons.
 
 ---
 
@@ -486,9 +871,14 @@ Fix: Run the `UPDATE parents SET is_admin = true WHERE email = '…'` command in
 
 - [ ] **Phase 1 — Supabase:** project created, 14 SQL files run in order, first admin user promoted
 - [ ] **Phase 2 — Stripe:** 4 prices created, webhook endpoint added with 5 events, customer portal enabled
-- [ ] **Phase 3 — Optional services:** Anthropic + Sentry keys collected (skip if launching without)
-- [ ] **Phase 4 — Vercel:** project imported, 13+ required env vars set, deployed, webhook URL updated
-- [ ] **Phase 5 — Verification:** 5 smoke tests passing
+- [ ] **Phase 3 — Optional services:** Anthropic + Sentry + Resend keys collected (skip any to launch without)
+- [ ] **Phase 4 — Vercel:** project imported, 13+ required env vars set, 3 crons registered, deployed, webhook URL updated
+- [ ] **Phase 5.1–5.3:** Health + Stripe + webhook smoke tests passing
+- [ ] **Phase 5.4:** Admin dock visible, `/admin/subscriptions` loads
+- [ ] **Phase 5.5:** In-app downgrade flow works end-to-end
+- [ ] **Phase 5.6:** Archived children restore flow works (admin tool)
+- [ ] **Phase 5.7:** Trial reminder email received and renders correctly (if Resend configured)
+- [ ] **Phase 5.8:** `npm test` passes (23 tests across 2 files)
 - [ ] **Post-launch:** backfill script run (if any pre-existing paid users)
 
-Once all checkboxes are green, SparkForge is fully operational with Stripe, Supabase, Vercel, and the Gap 1–5 subscription features enabled.
+Once all checkboxes are green, SparkForge is fully operational with Stripe, Supabase, Vercel, email reminders, admin tooling, and the Gap 1–5 subscription features enabled.
