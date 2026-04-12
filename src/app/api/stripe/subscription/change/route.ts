@@ -81,11 +81,14 @@ export async function POST(req: NextRequest) {
   }
 
   // ── Over-limit children check ──
+  // v3 Gap 3: Only count ACTIVE children. Previously-archived profiles
+  // from an earlier downgrade don't count against the new target limit.
   const targetLimits = TIER_CONFIG[targetTier as SubscriptionTier];
   const { count: childCount } = await supabase
     .from('children')
     .select('id', { count: 'exact', head: true })
-    .eq('parent_id', auth.user.id);
+    .eq('parent_id', auth.user.id)
+    .is('deactivated_at', null);
 
   const currentChildCount = childCount ?? 0;
   const overLimit = currentChildCount - targetLimits.maxChildren;
@@ -99,32 +102,35 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify the provided children belong to this parent
+    // Verify the provided children belong to this parent AND are
+    // currently active (can't archive something that's already archived).
     const { data: ownedChildren } = await supabase
       .from('children')
       .select('id')
       .eq('parent_id', auth.user.id)
+      .is('deactivated_at', null)
       .in('id', archiveChildIds);
 
     if (!ownedChildren || ownedChildren.length !== archiveChildIds.length) {
-      return apiError('One or more child IDs do not belong to your account.', 403);
+      return apiError(
+        'One or more selected profiles do not belong to your account or are already archived.',
+        403
+      );
     }
 
-    // Soft-archive: we intentionally do NOT delete rows. Admin can restore
-    // later. This uses a deactivated_at column; if that column does not
-    // exist in your schema, this write will fail — add it to the children
-    // table first.
+    // v3 Gap 3: Soft-archive via the deactivated_at column from
+    // sql/schema-stage8-patch-children-archive.sql. The column is required
+    // for this branch — if missing, run that migration in Supabase first.
     const { error: archiveError } = await supabase
       .from('children')
       .update({ deactivated_at: new Date().toISOString() })
       .in('id', archiveChildIds);
 
     if (archiveError) {
-      // Fallback: column may not exist. Log but continue the subscription
-      // change so billing isn't blocked. Admin can sort children after.
-      console.error(
-        '[subscription/change] Failed to soft-archive children (column may be missing):',
-        archiveError
+      console.error('[subscription/change] Failed to soft-archive children:', archiveError);
+      return apiError(
+        'Unable to archive the selected profiles. Ensure schema-stage8-patch-children-archive.sql has been applied.',
+        500
       );
     }
   }

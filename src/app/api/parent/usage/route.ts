@@ -52,11 +52,14 @@ export async function GET(req: NextRequest) {
   const supabase = await createServerSupabase();
   const limits = getTierLimits(auth.user.tier);
 
-  // Fetch all children for this parent
+  // Fetch all active (non-archived) children for this parent.
+  // v3 Gap 3: deactivated_at filter keeps usage meters in sync with what
+  // the parent actually sees in their dashboard child list.
   const { data: children, error: childError } = await supabase
     .from('children')
     .select('id, display_name, age_band')
-    .eq('parent_id', auth.user.id);
+    .eq('parent_id', auth.user.id)
+    .is('deactivated_at', null);
 
   if (childError) {
     console.error('[parent/usage] children query failed:', childError);

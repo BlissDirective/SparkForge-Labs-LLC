@@ -77,10 +77,14 @@ export async function checkChildLimit(
   const limits = getTierLimits(tier);
 
   const supabase = await createServerSupabase();
+  // v3 Gap 3: Only count active (non-archived) children against the tier limit.
+  // Archived children (deactivated_at set) preserve their data but don't
+  // block creating a new profile after a downgrade.
   const { count } = await supabase
     .from('children')
     .select('*', { count: 'exact', head: true })
-    .eq('parent_id', parentId);
+    .eq('parent_id', parentId)
+    .is('deactivated_at', null);
 
   return {
     allowed: (count ?? 0) < limits.maxChildren,
