@@ -4,6 +4,7 @@ import { useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useAuthStore } from '@/stores/authStore';
 
 // Sidebar — Accessibility-Only Navigation (Q2:B)
 // ════════════════════════════════════════════════════
@@ -18,7 +19,7 @@ import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 // The 3D NavigationButtonGrid (src/components/3d/ui/NavigationButtonGrid.tsx)
 // renders 5 physical cockpit buttons: HOME, LABS, ARCADE, SETTINGS, PROFILE
 
-const navItems = [
+const BASE_NAV_ITEMS = [
   { href: '/home', label: 'Home' },
   { href: '/labs', label: 'Labs' },
   { href: '/arcade', label: 'Arcade' },
@@ -26,10 +27,21 @@ const navItems = [
   { href: '/parent', label: 'Parent' },
 ];
 
+// v3 Gap 1/3: Admin-only nav items (hidden from non-admins via is_admin check)
+const ADMIN_NAV_ITEMS = [
+  { href: '/admin/content', label: 'Admin — Content Queue' },
+  { href: '/admin/subscriptions', label: 'Admin — Subscriptions' },
+  { href: '/admin/archived-children', label: 'Admin — Archived Children' },
+];
+
 export function Sidebar() {
   const pathname = usePathname();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  const isAdmin = useAuthStore((s) => s.parent?.is_admin);
   const navRef = useRef<HTMLElement>(null);
+
+  // Merge admin items after the base list when the user is an admin
+  const navItems = isAdmin ? [...BASE_NAV_ITEMS, ...ADMIN_NAV_ITEMS] : BASE_NAV_ITEMS;
 
   // Keyboard navigation — arrow keys cycle items, Enter activates
   const handleKeyDown = useCallback(

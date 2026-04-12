@@ -27,6 +27,11 @@ export async function GET(_req: NextRequest) {
     fullName: parent.full_name,
     subscriptionTier: parent.subscription_tier,
     subscriptionStatus: parent.subscription_status,
+    // v3 Gap 1 + Gap 2: expose stripe IDs and trial fields for client UX
+    stripeCustomerId: parent.stripe_customer_id ?? null,
+    stripeSubscriptionId: parent.stripe_subscription_id ?? null,
+    trialEndsAt: parent.trial_ends_at ?? null,
+    subscriptionPeriodEnd: parent.subscription_period_end ?? null,
     onboardingComplete: parent.onboarding_complete,
     isAdmin: parent.is_admin,
     createdAt: parent.created_at,

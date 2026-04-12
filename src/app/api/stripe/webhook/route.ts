@@ -3,14 +3,60 @@
 // v2: Graceful fallback if STRIPE_SECRET_KEY missing (ENH-8A)
 // v2: Logs events to subscription_events table
 // v2: Uses createAdminClient for webhook (no user auth)
+// v3 (Gap 1): Persists stripe_subscription_id for programmatic control
+// v3 (Gap 2): Persists trial_ends_at + subscription_period_end
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe';
+import type { SubscriptionTier } from '@/lib/tier-config';
 
 // Disable body parsing — Stripe needs raw body for signature verification
 export const runtime = 'nodejs';
+
+// Convert Stripe's unix-seconds timestamp to ISO 8601 string (or null)
+function toIso(unixSeconds: number | null | undefined): string | null {
+  if (!unixSeconds) return null;
+  return new Date(unixSeconds * 1000).toISOString();
+}
+
+// Stripe API 2026-02-25+: current_period_end moved from Subscription
+// to SubscriptionItem. Read it from the first item (all items on a
+// single subscription share the same period window).
+function getPeriodEnd(sub: Stripe.Subscription): number | null | undefined {
+  return sub.items.data[0]?.current_period_end;
+}
+
+// Map Stripe statuses to application statuses (S8-WARN-002 fix)
+const STRIPE_STATUS_MAP: Record<string, string> = {
+  active: 'active',
+  trialing: 'active',
+  past_due: 'past_due',
+  unpaid: 'canceled',
+  canceled: 'canceled',
+  incomplete: 'active',
+  incomplete_expired: 'canceled',
+  paused: 'paused',
+};
+
+// Map a Stripe Price ID back to the app's tier slug by comparing against env.
+function tierFromPriceId(priceId: string | null | undefined): SubscriptionTier | null {
+  if (!priceId) return null;
+  if (
+    priceId === process.env.STRIPE_PLUS_MONTHLY_ID ||
+    priceId === process.env.STRIPE_PLUS_YEARLY_ID
+  ) {
+    return 'plus';
+  }
+  if (
+    priceId === process.env.STRIPE_FORGE_MONTHLY_ID ||
+    priceId === process.env.STRIPE_FORGE_YEARLY_ID
+  ) {
+    return 'forge';
+  }
+  return null;
+}
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe();
@@ -70,12 +116,35 @@ export async function POST(req: NextRequest) {
       const tier = session.metadata?.tier ?? 'plus';
 
       if (supabaseId) {
+        // v3 Gap 1: Retrieve the full subscription to capture ID + trial info
+        let stripeSubscriptionId: string | null = null;
+        let trialEndsAt: string | null = null;
+        let periodEnd: string | null = null;
+
+        if (session.subscription) {
+          stripeSubscriptionId =
+            typeof session.subscription === 'string'
+              ? session.subscription
+              : session.subscription.id;
+
+          try {
+            const sub = await stripe.subscriptions.retrieve(stripeSubscriptionId);
+            trialEndsAt = toIso(sub.trial_end);
+            periodEnd = toIso(getPeriodEnd(sub));
+          } catch (err) {
+            console.error('[webhook] Failed to retrieve subscription:', err);
+          }
+        }
+
         await supabase
           .from('parents')
           .update({
             subscription_tier: tier,
             subscription_status: 'active',
             stripe_customer_id: session.customer as string,
+            stripe_subscription_id: stripeSubscriptionId,
+            trial_ends_at: trialEndsAt,
+            subscription_period_end: periodEnd,
           })
           .eq('id', supabaseId);
 
@@ -88,36 +157,49 @@ export async function POST(req: NextRequest) {
       break;
     }
 
+    case 'customer.subscription.created':
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription;
       const customerId = sub.customer as string;
-      // Map Stripe statuses to application statuses (S8-WARN-002 fix)
-      const STRIPE_STATUS_MAP: Record<string, string> = {
-        active: 'active',
-        trialing: 'active',
-        past_due: 'past_due',
-        unpaid: 'canceled',
-        canceled: 'canceled',
-        incomplete: 'active',
-        incomplete_expired: 'canceled',
-        paused: 'paused',
-      };
       const status = STRIPE_STATUS_MAP[sub.status] ?? 'active';
+
+      // v3 Gap 1+2: persist subscription ID, trial end, period end, and
+      // derive tier from the price if metadata drifted.
+      const priceId = sub.items.data[0]?.price.id;
+      const derivedTier = tierFromPriceId(priceId);
+
+      const updates: Record<string, unknown> = {
+        subscription_status: status,
+        stripe_subscription_id: sub.id,
+        trial_ends_at: toIso(sub.trial_end),
+        subscription_period_end: toIso(getPeriodEnd(sub)),
+      };
+
+      // Only overwrite tier if we can derive it from the active price.
+      // (Avoids clobbering on transient events that don't change the plan.)
+      if (derivedTier) {
+        updates.subscription_tier = derivedTier;
+      }
 
       await supabase
         .from('parents')
-        .update({ subscription_status: status })
+        .update(updates)
         .eq('stripe_customer_id', customerId);
       break;
     }
 
     case 'customer.subscription.deleted': {
       const sub = event.data.object as Stripe.Subscription;
+      // v3 Gap 1: Clear stripe_subscription_id so a re-subscribe creates a
+      // fresh row without tripping the UNIQUE constraint.
       await supabase
         .from('parents')
         .update({
           subscription_tier: 'free',
           subscription_status: 'canceled',
+          stripe_subscription_id: null,
+          trial_ends_at: null,
+          subscription_period_end: null,
         })
         .eq('stripe_customer_id', sub.customer as string);
       break;

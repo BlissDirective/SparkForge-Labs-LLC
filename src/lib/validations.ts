@@ -159,6 +159,29 @@ export const PortalSchema = z.object({
   returnUrl: z.string().url().optional(),
 });
 
+// v3 Gap 3: User-initiated plan change / downgrade
+export const ChangeSubscriptionSchema = z.object({
+  targetTier: z.enum(['free', 'plus', 'forge']),
+  interval: z.enum(['month', 'year']).default('month'),
+  // Optional — children the user agrees to archive when the new tier's
+  // maxChildren is lower than the current count.
+  archiveChildIds: z.array(z.string().uuid()).optional(),
+});
+
+// v3 Gap 1: Admin subscription actions
+export const AdminCancelSubscriptionSchema = z.object({
+  parentId: z.string().uuid(),
+  immediate: z.boolean().default(false),
+  reason: z.string().max(500).optional(),
+});
+
+export const AdminChangeSubscriptionSchema = z.object({
+  parentId: z.string().uuid(),
+  targetTier: z.enum(['free', 'plus', 'forge']),
+  interval: z.enum(['month', 'year']).default('month'),
+  reason: z.string().max(500).optional(),
+});
+
 // ═══ CONTENT AGENT SCHEMAS ═══
 
 export const AgentRunSchema = z.object({
