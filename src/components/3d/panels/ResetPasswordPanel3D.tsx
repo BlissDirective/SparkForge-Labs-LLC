@@ -280,12 +280,20 @@ export default function ResetPasswordPanel3D({ onReset, onNavigateLogin }: Reset
             >Back to login</Text>
 
             <Html position={[0, 0, -10]} style={{ opacity: 0, position: 'absolute', pointerEvents: focused ? 'auto' : 'none' }}>
-              <input ref={emailRef} type="email" value={email}
+              <input ref={emailRef} id="reset-email" name="email" type="email" value={email}
                 onChange={(e) => setEmail(e.target.value)} autoComplete="email"
+                aria-label="Email address"
+                aria-describedby={error ? 'reset-email-error' : undefined}
+                aria-invalid={error ? true : undefined}
                 style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }}
                 onKeyDown={(e) => { if (e.key === 'Enter') handleReset(); }}
                 onBlur={() => { if (focused) emailRef.current?.focus(); }}
               />
+              {error && (
+                <div id="reset-email-error" role="alert" aria-live="polite" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+                  {error}
+                </div>
+              )}
             </Html>
           </>
         )}

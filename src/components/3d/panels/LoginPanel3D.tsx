@@ -662,6 +662,10 @@ export default function LoginPanel3D({
         focused={focusedField === 'email'}
         type="email"
         autoComplete="email"
+        ariaLabel="Email address"
+        fieldId="login-email"
+        fieldName="email"
+        errorMessage={error || undefined}
         onEnter={() => {
           setFocusedField('password');
           passwordInputRef.current?.focus();
@@ -674,6 +678,10 @@ export default function LoginPanel3D({
         focused={focusedField === 'password'}
         type="password"
         autoComplete="current-password"
+        ariaLabel="Password"
+        fieldId="login-password"
+        fieldName="password"
+        errorMessage={error || undefined}
         onEnter={handleLogin}
       />
     </group>
@@ -695,6 +703,10 @@ function HiddenInputProxy({
   type = 'text',
   autoComplete,
   onEnter,
+  ariaLabel,
+  fieldId,
+  fieldName,
+  errorMessage,
 }: {
   inputRef: React.MutableRefObject<HTMLInputElement | null>;
   value: string;
@@ -703,6 +715,10 @@ function HiddenInputProxy({
   type?: string;
   autoComplete?: string;
   onEnter?: () => void;
+  ariaLabel: string;
+  fieldId: string;
+  fieldName: string;
+  errorMessage?: string;
 }) {
   useEffect(() => {
     if (focused && inputRef.current) {
@@ -710,14 +726,21 @@ function HiddenInputProxy({
     }
   }, [focused, inputRef]);
 
+  const errorId = `${fieldId}-error`;
+
   return (
     <Html position={[0, 0, -10]} style={{ opacity: 0, position: 'absolute', pointerEvents: focused ? 'auto' : 'none' }}>
       <input
         ref={inputRef}
+        id={fieldId}
+        name={fieldName}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoComplete={autoComplete}
+        aria-label={ariaLabel}
+        aria-describedby={errorMessage ? errorId : undefined}
+        aria-invalid={errorMessage ? true : undefined}
         style={{
           position: 'absolute',
           width: '1px',
@@ -733,6 +756,11 @@ function HiddenInputProxy({
           if (focused) inputRef.current?.focus();
         }}
       />
+      {errorMessage && (
+        <div id={errorId} role="alert" aria-live="polite" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+          {errorMessage}
+        </div>
+      )}
     </Html>
   );
 }
