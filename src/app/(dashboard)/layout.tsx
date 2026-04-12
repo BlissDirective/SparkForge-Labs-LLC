@@ -26,6 +26,7 @@ import { useCockpitUIStore, modeToCenterContent } from '@/stores/cockpitUIStore'
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
+import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
 
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
@@ -121,6 +122,11 @@ export default function DashboardLayout({
 
         {/* Guide chat panel — HTML overlay for text input (Phase 3: migrate to uikit) */}
         <GuideChatPanel />
+
+        {/* v3 Gap 1/3: Admin tools dock — only rendered when parent.is_admin.
+            Floats bottom-left so it coexists with TrialBanner/DemoBanner at top
+            and the parent UsageDashboard at top-right. */}
+        <AdminNavDock />
 
         {/* Page children — thin scene descriptors that set mode + feed data.
             These render NO visible HTML. They only call hooks. */}
