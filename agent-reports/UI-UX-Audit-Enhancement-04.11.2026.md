@@ -86,4 +86,100 @@
 
 ---
 
-*Sections 2-8 follow below. Each section is committed individually.*
+## 2. Design System & Tokens
+
+### 2.1 Color System
+
+**Current:** All colors defined in HEX/RGBA. No OKLCH adoption.
+
+| Token | Value | Location |
+|-------|-------|----------|
+| `--neon-blue` | `#00BBFF` | `globals.css:22`, `tailwind.config.ts:13` |
+| `--surface-base` | `#0A0E16` | `globals.css:29`, `tailwind.config.ts:33` |
+| `--text-primary` | `#F0F0F4` | `globals.css:35` |
+| `--text-secondary` | `rgba(255,255,255,0.55)` | `globals.css:36` |
+| `--text-muted` | `rgba(255,255,255,0.3)` | `globals.css:37` |
+| `--text-dim` | `rgba(255,255,255,0.15)` | `globals.css:38` |
+
+#### DES-01 [P0] — `--text-muted` fails WCAG AA for body text
+- **Contrast:** `rgba(255,255,255,0.3)` on `#0A0E16` = ~3.2:1. **Requires 4.5:1 for AA body text.**
+- **Used in:** HolographicHUD corner readouts, muted labels across dashboard
+- **Fix:** Increase to `rgba(255,255,255,0.50)` minimum (~4.7:1) or `0.55` to match `--text-secondary`
+
+#### DES-02 [P0] — `--text-dim` fails WCAG AA and AAA entirely
+- **Contrast:** `rgba(255,255,255,0.15)` on `#0A0E16` = ~1.8:1. **Fails every WCAG tier.**
+- **Used for:** Decorative labels, watermarks, faint dividers
+- **Fix:** If used for text: raise to `0.3` minimum. If purely decorative: add `aria-hidden="true"` wherever used
+
+#### DES-03 [P1] — No OKLCH adoption (perceptual uniformity gap)
+- **Issue:** Entire palette is HEX. Neon accents at equal HSL saturation look different brightnesses (e.g., `#00FF88` green appears brighter than `#AA66FF` purple at identical opacity)
+- **Impact:** Inconsistent perceived brightness across lab colors
+- **Enhancement option:** See Section 7, ENH-COLOR-01
+
+#### DES-04 [P1] — Pure `#000` in skip-link text
+- **Location:** `globals.css:61` — `.skip-to-content { color: #000; }`
+- **Issue:** Pure black text on `#00BBFF` background. Meets contrast (13.8:1) but pure black appears harsh and creates an "AI-slop tell" per Master-Design-Agent
+- **Fix:** Use `#0A0E16` (surface-base) for brand-consistent contrast
+
+#### DES-05 [P1] — Hardcoded `#000000` / `#ffffff` across 3D layer
+- **Locations:** `cockpitDesignTokens.ts:289` (panel seams), `materials.ts:105,113,121` (CrystalGlass, CartoonMatte), 50+ occurrences in `src/components/3d/`
+- **Issue:** Raw black/white literals bypass the token system
+- **Fix:** Replace with design token references (`DEPTH_LAYERS.deep` for black, `TEXT_COLORS.primary.hex` for white)
+
+### 2.2 Typography
+
+#### DES-06 [P3] — Font loading via `<link>` instead of `next/font`
+- **Location:** `layout.tsx:99-105`
+- **Issue:** Google Fonts loaded via external `<link>`, acknowledged in comment as intentional (build-time internet not available in all CI). Performance penalty: extra DNS + connection vs self-hosted
+- **Impact:** Minor CLS risk on slow connections. `font-display: swap` mitigates flash but not shift
+- **Enhancement option:** See Section 7, ENH-FONT-01
+
+#### DES-07 [P2] — No fallback font metrics defined
+- **Issue:** No `size-adjust`, `ascent-override`, `descent-override` for Sora/Exo 2 fallbacks. System-ui fallback will have different metrics, causing layout shift during font swap
+- **Fix:** Add `@font-face` with metric overrides for system-ui fallback (per Master-Design-Agent Section 4)
+
+### 2.3 Spacing System
+
+#### DES-08 [P2] — No semantic spacing scale
+- **Issue:** Tailwind config defines zero custom spacing tokens. All spacing uses default Tailwind numeric classes (`p-4`, `gap-6`, `mt-8`) which map to a 4px base (correct), but no semantic naming (`--space-sm`, `--space-section`)
+- **Impact:** Consistency relies on developer discipline rather than token enforcement
+- **Enhancement option:** See Section 7, ENH-SPACE-01
+
+#### DES-09 [P2] — Hardcoded pixel values in globals.css
+- **Locations:** `globals.css:59` (`padding: 12px 24px`), `globals.css:65` (`border-radius: 0 0 12px 12px`), multiple locations
+- **Issue:** Skip-link and chrome-frame use raw pixel values instead of `rem` or token references
+- **Fix:** Convert to `rem` units (`0.75rem 1.5rem`)
+
+### 2.4 Motion & Easing
+
+#### DES-10 [P1] — Elastic overshoot on badge-unlock animation
+- **Location:** `tailwind.config.ts:146`
+- **Code:** `cubic-bezier(0.34, 1.56, 0.64, 1)` — Y value 1.56 creates elastic bounce
+- **Issue:** Violates Master-Design-Agent "NEVER use bounce or elastic easing" (Section 7). Also not caught by `prefers-reduced-motion` handler since it uses `animation-duration: 0.01ms` (badge still renders in final keyframe position with overshoot frozen)
+- **Fix:** Replace with `cubic-bezier(0.25, 1, 0.5, 1)` (ease-out-quart) for confident deceleration
+
+#### DES-11 [P2] — `emissive-glow-pulse` not covered by reduced-motion
+- **Location:** `globals.css:470-487` — defines `emissivePulse` keyframe
+- **Issue:** The `@media (prefers-reduced-motion: reduce)` block at line 394-407 catches `*` animations via duration, but `emissive-glow-pulse` uses `box-shadow` which still shifts visually even at 0.01ms if animation-fill-mode applies
+- **Fix:** Add explicit `.emissive-glow-pulse { animation: none; }` inside the reduced-motion block
+
+### 2.5 Z-Index System
+
+#### DES-12 [P2] — Arbitrary z-index: 9999 on skip-link
+- **Location:** `globals.css:58`
+- **Issue:** Skip-to-content uses `z-index: 9999` while all other z-indices are single digits (cockpit-viewport: 10, scanlines: 5, vignette: 4). This 1000x jump is unnecessary
+- **Fix:** Use `z-index: 100` (consistent with conventional dropdown/overlay scale)
+
+#### DES-13 [P3] — No z-index token scale defined
+- **Issue:** No centralized z-index scale. 3D layer uses `renderOrder`, HTML layer uses ad-hoc integers
+- **Enhancement option:** Define semantic z-index tokens per Master-Design-Agent Section 6
+
+### 2.6 Touch Targets
+
+#### DES-14 [P2] — No 44px minimum touch target enforcement
+- **Issue:** No CSS utility, design token, or component constraint enforces the 44x44px WCAG minimum for touch targets. While SparkForge is desktop-first (D3D-1), it still loads on tablets via browser
+- **Fix:** Add `.touch-target { min-width: 44px; min-height: 44px; }` utility or enforce via component props
+
+---
+
+*Sections 3-8 follow below. Each section is committed individually.*
