@@ -189,21 +189,29 @@ async function main() {
   if (needsSupabase) {
     supabase = createClient(supabaseUrl!, supabaseKey!);
     console.log(c.cyan('→'), 'Looking up parent row…');
-    const { data: parent, error } = await supabase
+    const { data, error } = await supabase
       .from('parents')
       .select('id, stripe_customer_id, subscription_tier')
       .eq('email', flags.email!)
       .single();
 
-    if (error || !parent) {
+    if (error || !data) {
       die(
         `Could not find parent with email="${flags.email}". Sign up as this email in the app first, or pass --no-db-check.`,
         1
       );
     }
 
-    parentId = parent.id as string;
-    stripeCustomerId = (parent.stripe_customer_id as string) || stripeCustomerId;
+    // Supabase-js returns `unknown` without a generic schema; assert
+    // to the shape we selected above.
+    const parent = data as {
+      id: string;
+      stripe_customer_id: string | null;
+      subscription_tier: string;
+    };
+
+    parentId = parent.id;
+    stripeCustomerId = parent.stripe_customer_id || stripeCustomerId;
     console.log(c.green('  ✓'), `parent.id = ${parentId}`);
     console.log(c.green('  ✓'), `parent.subscription_tier (before) = ${parent.subscription_tier}`);
     console.log(c.green('  ✓'), `parent.stripe_customer_id = ${stripeCustomerId}`);
@@ -277,31 +285,42 @@ async function main() {
 
   // Check subscription_events row was created
   console.log(c.cyan('→'), 'Verifying subscription_events row…');
-  const { data: eventRow, error: eventErr } = await supabase
+  const { data: eventRowData, error: eventErr } = await supabase
     .from('subscription_events')
     .select('stripe_event_id, event_type, parent_id')
     .eq('stripe_event_id', eventId)
     .single();
 
-  if (eventErr || !eventRow) {
+  if (eventErr || !eventRowData) {
     console.log(c.red('  ✗'), `subscription_events row NOT found for ${eventId}`);
     if (eventErr) console.log(c.red('    Error:'), eventErr.message);
     die('DB verification failed (subscription_events)', 1);
   }
+  const eventRow = eventRowData as {
+    stripe_event_id: string;
+    event_type: string;
+    parent_id: string | null;
+  };
   console.log(c.green('  ✓'), `subscription_events.event_type = ${eventRow.event_type}`);
   console.log(c.green('  ✓'), `subscription_events.parent_id = ${eventRow.parent_id}`);
 
   // Check parents row was updated
   console.log(c.cyan('→'), 'Verifying parents row was updated…');
-  const { data: updatedParent, error: parentErr } = await supabase
+  const { data: updatedParentData, error: parentErr } = await supabase
     .from('parents')
     .select('subscription_tier, subscription_status, stripe_customer_id')
     .eq('id', parentId)
     .single();
 
-  if (parentErr || !updatedParent) {
+  if (parentErr || !updatedParentData) {
     die(`Failed to re-query parent after webhook: ${parentErr?.message}`, 1);
   }
+
+  const updatedParent = updatedParentData as {
+    subscription_tier: string;
+    subscription_status: string;
+    stripe_customer_id: string | null;
+  };
 
   let ok = true;
   if (updatedParent.subscription_tier !== flags.tier) {
