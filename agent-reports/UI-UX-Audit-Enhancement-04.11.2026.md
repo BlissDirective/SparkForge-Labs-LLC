@@ -381,4 +381,75 @@
 
 ---
 
-*Sections 5a-8 follow below. Each section is committed individually.*
+## 5a. Game Shell Audit
+
+The `GameShell` component (`src/components/game/GameShell.tsx`) is the universal wrapper for all 35 games. It manages phase lifecycle, HUD rendering, scene routing, and the reward pipeline. Issues here affect every game.
+
+### 5a.1 Phase Lifecycle
+
+#### GAME-01 [P0] — GameShell does not enforce phase ordering
+- **Location:** `GameShell.tsx:70-117`
+- **Issue:** `startGame()` fires on mount (line 73), but there is no state guard preventing `completeGame()` from being called before `learn` or `play` phases execute. Games can skip phases entirely:
+  - `DataDetectiveGame.tsx:496` — Timer fires `setShowResult()` and advances round without explicit phase check
+  - `CodeBlocksGame.tsx:678` — Jumps from `play` to `complete` without cleanup
+  - `ApiExplorerGame.tsx:587` — `setPhase('complete')` fires before `game.completeGame()`
+- **Impact:** Reward pipeline races, double-completion possible, XP awarded for incomplete games
+- **Fix:** Add phase invariant guard in `useCompleteAndReward`:
+  ```typescript
+  if (game.phase !== 'play') {
+    console.warn(`completeGame called during ${game.phase}, not play`);
+    return;
+  }
+  ```
+
+#### GAME-02 [P0] — setTimeout leaks across 18/35 games
+- **Pattern:** `setTimeout()` or `setInterval()` called without `useRef` tracking and `useEffect` cleanup
+- **Affected files (sample):**
+  - `AgentArchitectGame.tsx:698` — validation message timeout, no cleanup
+  - `AgentArchitectGame.tsx:786` — phase transition timeout, no cleanup
+  - `ApiExplorerGame.tsx:513-533` — typewriter `setInterval`, closure-based clear
+  - `EmojiDecoderGame.tsx:353, 370` — two timeouts, only one tracked in ref
+  - `NeuralBuilderGame.tsx:756` — event handler timeout, no ref
+- **Correct pattern (DataDetectiveGame.tsx:465-490):**
+  ```typescript
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  }, []);
+  ```
+- **Fix:** Apply `useSafeTimeout` hook (already exists per CLAUDE.md Standard Tier audit) to all 18 affected games. The hook was created but only applied to 12 Standard tier games — 6 FL-Lite/Flagship games still need migration.
+
+### 5a.2 Scoring & HUD
+
+#### GAME-03 [P1] — GameHUD3D overlaps game content on narrow viewports
+- **Location:** `GameHUD3D.tsx:34-39`
+- **Issue:** HUD positioned at fixed `HUD_Y = 0.85`, `HUD_Z = -2.8`. No viewport-responsive positioning. On tablets in portrait orientation (narrow viewport), HUD occludes top portion of game content area.
+- **Fix:** Tie HUD Y position to `useThree().viewport.height` — shift upward on narrow viewports
+
+#### GAME-04 [P1] — DifficultySelector is decorative-only across 20 Standard games
+- **Location:** All 20 Standard tier game files
+- **Issue:** `DifficultySelector.tsx` component rendered during phase setup but selected difficulty never filters content or adjusts game parameters. Per CLAUDE.md STD-SYS2: "Difficulty field added to content interfaces; tier state available for filtering" — but no game reads the field.
+- **Impact:** UI implies a feature that doesn't work. Children select "Hard" but get the same content as "Easy."
+- **Fix:** Wire `selectedDifficulty` state to content filtering in each game's content loader
+
+#### GAME-05 [P1] — Unused `useGameContent()` hooks in 9 FL-Lite + 20 Standard games
+- **Locations:** `DataDetectiveGame.tsx:~176`, `RobotVacuumGame.tsx:~176`, etc.
+- **Issue:** Dynamic content pipeline hooks are imported but never called. Admin curation pipeline generates content that never reaches games.
+- **Fix:** Integrate `useGameContent(gameId)` into each game's content initialization, blending with hardcoded content
+
+### 5a.3 Accessibility in Games
+
+#### GAME-06 [P2] — No `prefers-reduced-motion` checks in any game
+- **Scope:** All 35 games
+- **Issue:** Every game uses `motion/react` AnimatePresence for phase transitions, particle effects, and celebrations without checking `useReducedMotion()`. The global CSS handler reduces durations to 0.01ms, but Framer Motion runs its own animation loop independent of CSS — meaning JS-driven animations still fire.
+- **Fix:** Wrap `<AnimatePresence>` blocks in reduced-motion checks or use Motion's built-in `useReducedMotion` hook
+
+#### GAME-07 [P2] — Missing learn phase in 12/20 Standard games
+- **Games:** TimeMachine, HumanVsMachine, NeuronRelay, PixelInvestigator, TokenChopper, AiArtDetective, ToolPicker, DataShield, RealOrFake, FoolTheAi, PredictionMarket, CareerExplorer
+- **Issue:** Per CLAUDE.md STD-SYS3, learn cards were "added to each of 12 games (36 total cards)." However, per the games audit, these games still skip from `welcome` directly to `play`.
+- **Impact:** Band A children (ages 7-9) miss educational scaffolding before gameplay
+- **Fix:** Verify learn phase wiring in each game; ensure `setPhase('learn')` is called after welcome
+
+---
+
+*Sections 5b-8 follow below. Each section is committed individually.*
