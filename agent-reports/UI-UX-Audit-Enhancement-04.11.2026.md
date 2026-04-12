@@ -452,4 +452,91 @@ The `GameShell` component (`src/components/game/GameShell.tsx`) is the universal
 
 ---
 
-*Sections 5b-8 follow below. Each section is committed individually.*
+## 5b. Individual Game Findings
+
+Specific bugs and UX issues found in individual game components, organized by tier.
+
+### Flagship Tier (6 games)
+
+#### IND-01 [P1] — NeuralBuilderGame re-render storm on message list
+- **Location:** `NeuralBuilderGame.tsx` (~1,872 lines)
+- **Issue:** Network graph calculation (force simulation, ~20K particles) recalculates on render. Message list items not wrapped in `React.memo`. Each new training event re-renders the full graph + all previous messages.
+- **Impact:** Potential 60fps -> 30fps drop on slower machines during training simulation
+- **Fix:** Extract message list into memoized sub-component. Memoize force simulation with `useMemo` keyed on network topology changes only.
+
+#### IND-02 [P1] — PromptLabGame re-renders entire message history
+- **Location:** `PromptLabGame.tsx` (~2,332 lines, largest game file)
+- **Issue:** Inline `.map()` renders all message components without memoization. Each new AI response triggers full re-render of conversation history.
+- **Fix:** Wrap individual message components in `React.memo`. Virtualize if history exceeds 50 messages.
+
+#### IND-03 [P2] — AiSpyGame scoring inconsistency
+- **Location:** `AiSpyGame.tsx:241-248`
+- **Issue:** Code comments say "-5 for wrong guess" but no score subtraction is implemented. Incorrect guesses have zero penalty, making score inflation easy.
+- **Fix:** Implement `game.updateScore(game.score - 5)` on wrong guess OR remove the comment to match behavior
+
+### FL-Lite Tier (9 games)
+
+#### IND-04 [P0] — RobotVacuum "Go to charger" action non-functional
+- **Location:** `RobotVacuumGame.tsx:70-77` (action defined), `RobotVacuumGame.tsx:289-297` (handler missing)
+- **Issue:** ACTIONS array includes `{ id: 'charger', label: 'Go to charger', ... }` but `runSim()` has no handler for this action ID. The button renders and can be added to a rule sequence, but executing the sequence silently skips this action.
+- **Impact:** Core game mechanic broken — children build rules using a non-functional action
+- **Fix:** Add pathfinding handler in `runSim()` that navigates the vacuum to the nearest charger tile
+
+#### IND-05 [P1] — RobotVacuum keyboard navigation missing (WCAG)
+- **Location:** `RobotVacuumGame.tsx:~651-681`
+- **Issue:** Rule builder buttons lack `tabIndex`, `onKeyDown` handlers, and `role="button"`. Keyboard-only users cannot interact with the rule builder interface.
+- **Fix:** Add `tabIndex={0}`, `onKeyDown` for Space/Enter, `role="button"` on all interactive rule elements
+
+#### IND-06 [P1] — RobotVacuum color contrast failures
+- **Location:** `RobotVacuumGame.tsx:540, 613, 632`
+- **Issue:** Text with `text-white/20` (20% opacity white on dark) fails WCAG 4.5:1 minimum
+- **Fix:** Increase to `text-white/60` or use `--text-secondary`
+
+#### IND-07 [P1] — CameraQuest null check missing (crash risk)
+- **Location:** `CameraQuestGame.tsx:~239`
+- **Issue:** `capture()` accesses `streamRef.current` without null guard. If camera permissions denied or not yet granted, this crashes.
+- **Fix:** Add `if (!streamRef.current) return;` guard
+
+#### IND-08 [P2] — CameraQuest Band A filter shows abstract items to 7-9 year olds
+- **Location:** `CameraQuestGame.tsx:~204`
+- **Issue:** Filter uses `i.difficulty <= 1` which includes difficulty 1 (abstract). Band A (ages 7-9) should only see difficulty 0 (concrete).
+- **Fix:** Change to `i.difficulty === 0` for Band A
+
+#### IND-09 [P2] — CameraQuest video stream not cleaned up on unmount
+- **Location:** `CameraQuestGame.tsx:267-271`
+- **Issue:** `videoRef.current.srcObject` not nullified on component unmount. Camera stream continues running in background.
+- **Fix:** Add cleanup in `useEffect` return: `videoRef.current.srcObject = null; stream.getTracks().forEach(t => t.stop())`
+
+#### IND-10 [P2] — ChatbotBuilderGame `Math.max` on empty array returns -Infinity
+- **Location:** `ChatbotBuilderGame.tsx` (depth calculation)
+- **Issue:** `Math.max(...responses.map(r => r.depth))` returns `-Infinity` when responses is empty. Per FLL-018 fix, `|| 0` fallback was noted as resolved — verify in code.
+- **Fix:** Confirm `|| 0` fallback is present; add guard if missing
+
+### Standard Tier (20 games)
+
+#### IND-11 [P2] — Score/HUD mismatches in 5 games
+- **Games:** DataShield (`setMaxScore(240)` vs HUD expecting `totalRounds * 10`), RealOrFake (duplicate state management), TimeMachine (non-10pt scoring), PixelInvestigator (dead state), SentimentScanner (vocabulary mismatch)
+- **Issue:** Per STD-SYS5, scoring was normalized to 10pts/correct but HUD still calculates `maxScore = totalRounds * 10` in some games where actual max differs.
+- **Fix:** Ensure all games call `game.setMaxScore(actualMax)` after `startGame()`
+
+#### IND-12 [P3] — SortToyBoxGame missing chrome bezel
+- **Location:** `SortToyBoxGame.tsx`
+- **Issue:** Per AUDIT_REPORT_03.29.2026.md finding DRIFT-13: SortToyBox doesn't use `chrome-frame` wrapper that all other games use.
+- **Fix:** Wrap game content in `<div className="chrome-frame">...</div>`
+
+### Cross-Tier Findings (from prior audits — unresolved)
+
+#### IND-13 [P1] — Lab color returns `#00BBFF` for ALL games
+- **Location:** `src/types/index.ts`
+- **Issue:** Per AUDIT_REPORT_03.29.2026.md finding W-02: `getLabColor()` or equivalent always returns blue regardless of which lab the game belongs to.
+- **Impact:** All 35 games show the same blue accent instead of their lab-specific color
+- **Fix:** Ensure `worldToLabColor()` correctly maps world/lab number to the lab color palette
+
+#### IND-14 [P1] — Lab 9 color wrong (#10B981 vs #F97316)
+- **Location:** `src/hooks/useStationMode.ts:78`
+- **Issue:** Per W-03: Lab 9 returns green (`#10B981`) instead of correct orange (`#F97316`). Tailwind config correctly defines `lab-9: '#F97316'` but the hook has the wrong value.
+- **Fix:** Correct the hardcoded value in `useStationMode.ts:78`
+
+---
+
+*Sections 6-8 follow below. Each section is committed individually.*
