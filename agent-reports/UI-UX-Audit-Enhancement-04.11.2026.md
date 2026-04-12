@@ -753,4 +753,136 @@ Each enhancement below offers **two or three options**. Select which to adopt (o
 
 ---
 
-*Section 8 follows below.*
+## 8. Implementation Roadmap
+
+### Sprint 0 — Immediate P0 Fixes (Critical Path)
+
+These **12 P0 findings** should be fixed before any other work. Estimated effort: **1-2 days**.
+
+| ID | Fix | Files | Est. |
+|----|-----|-------|------|
+| AUTH-01 | Add ARIA attrs to hidden input proxies | `LoginPanel3D.tsx`, `SignupPanel3D.tsx`, `ResetPasswordPanel3D.tsx` | 1h |
+| AUTH-02 | Link error messages via `aria-describedby` | Same 3 files | 30m |
+| COCK-01 | Increase HUD caption font size to 0.024+, fix opacity to 0.8+ | `cockpitDesignTokens.ts`, `HolographicHUD.tsx` | 30m |
+| COCK-05 | Add `renderOrder` separation OR clamp center panel scale | `CockpitUILayer.tsx` | 30m |
+| COCK-10 | Add HTML proxy buttons for critical 3D nav OR verify Sidebar covers all routes | `Sidebar.tsx`, `NavigationButtonGrid.tsx` | 1h |
+| DES-01 | Raise `--text-muted` opacity to 0.50+ | `globals.css:37` | 5m |
+| DES-02 | Raise `--text-dim` to 0.30+ or add `aria-hidden` where decorative | `globals.css:38` | 15m |
+| DASH-01 | Delete empty `/badges` directory OR create minimal page | `src/app/(dashboard)/badges/` | 15m |
+| DASH-03 | Convert onboarding to thin scene descriptor | `onboarding/page.tsx` | 2h |
+| GAME-01 | Add phase guard in `completeGame()` | `GameShell.tsx` OR `gameStore.ts` | 30m |
+| GAME-02 | Apply `useSafeTimeout` to remaining 6 games | 6 game files | 1h |
+| IND-04 | Add "Go to charger" handler in RobotVacuum | `RobotVacuumGame.tsx` | 1h |
+
+**Total Sprint 0:** ~8-9 hours
+
+### Sprint 1 — P1 High-Priority Fixes
+
+**23 P1 findings**. These are serious UX degradation, misleading UI, and accessibility gaps. Estimated effort: **3-4 days**.
+
+| Priority Group | IDs | Scope | Est. |
+|----------------|-----|-------|------|
+| **Accessibility** | COCK-02, COCK-03, DASH-02, DASH-09, IND-05, IND-06, IND-07 | HUD viewport clipping, sidebar nav gaps, keyboard a11y, contrast | 6h |
+| **Functional** | AUTH-03, AUTH-04, DASH-04, GAME-04, GAME-05 | Demo handler cleanup, content page architecture, DifficultySelector wiring, content pipeline | 8h |
+| **Performance** | IND-01, IND-02, GAME-03 | NeuralBuilder + PromptLab memoization, GameHUD3D responsive positioning | 4h |
+| **Design system** | DES-03, DES-04, DES-05, DES-10 | OKLCH (if chosen), pure black/white cleanup, elastic easing fix | 4h |
+| **Data integrity** | IND-13, IND-14 | Lab color always-blue fix, Lab 9 color correction | 1h |
+| **Orphan components** | COCK-08 | Wire NavigationButtonGrid + VariableDialCluster to CockpitUILayer | 2h |
+
+**Total Sprint 1:** ~25 hours
+
+### Sprint 2 — P2 Medium-Priority Polish
+
+**27 P2 findings**. Polish, minor a11y, consistency, and performance improvements. Estimated effort: **3-4 days**.
+
+| Category | IDs | Est. |
+|----------|-----|------|
+| Token & spacing cleanup | DES-07, DES-08, DES-09, DES-11, DES-12, DES-14 | 4h |
+| Cockpit refinement | COCK-04, COCK-06, COCK-07, COCK-09, COCK-11, COCK-12 | 6h |
+| Dashboard polish | DASH-05, DASH-06, DASH-07, DASH-08, DASH-10, DASH-11 | 5h |
+| Game polish | GAME-06, GAME-07, IND-03, IND-08, IND-09, IND-10, IND-11 | 6h |
+
+**Total Sprint 2:** ~21 hours
+
+### Sprint 3 — P3 Low-Priority Nits + Enhancements
+
+**13 P3 findings** + any selected enhancements from Section 7.
+
+| Category | IDs | Est. |
+|----------|-----|------|
+| Dead code cleanup | AUTH-06, DASH-12, DES-06, IND-12 | 1h |
+| Verification | DASH-13, COCK-13, DES-13 | 2h |
+| Selected enhancements | ENH-* (per user choice) | Variable |
+
+**Total Sprint 3:** 3h + enhancement effort
+
+### Dependency Graph
+
+```
+Sprint 0 (P0 critical)
+  ├── AUTH-01 + AUTH-02 (auth a11y) — no deps
+  ├── COCK-01 (HUD text) — no deps
+  ├── COCK-05 (panel z-fighting) → unlocks Sprint 1 cockpit work
+  ├── DES-01 + DES-02 (text contrast) — no deps
+  ├── DASH-01 (badges route) — no deps
+  ├── DASH-03 (onboarding) → may require OnboardingPanel3D creation
+  ├── GAME-01 (phase guard) → unlocks Sprint 1 game fixes
+  ├── GAME-02 (useSafeTimeout) — no deps
+  └── IND-04 (RobotVacuum charger) — no deps
+
+Sprint 1 (P1 high)
+  ├── GAME-04 (DifficultySelector) → depends on content interface types
+  ├── GAME-05 (useGameContent) → depends on admin curation pipeline
+  ├── IND-13 + IND-14 (lab colors) → affects all 35 games visually
+  └── COCK-08 (orphan wiring) → depends on COCK-05 panel fixes
+
+Sprint 2 (P2 medium) — all independent of Sprint 1
+
+Sprint 3 (P3 + enhancements) — all independent
+```
+
+### Effort Summary
+
+| Sprint | Findings | Est. Hours | Priority |
+|--------|----------|------------|----------|
+| 0 | 12 P0 | 8-9h | **Immediate** |
+| 1 | 23 P1 | 25h | Before release |
+| 2 | 27 P2 | 21h | Next cycle |
+| 3 | 13 P3 + ENH | 3h + variable | When convenient |
+| **Total** | **75 + 10 ENH** | **~57h + enhancements** | |
+
+---
+
+## Appendix A — Files Referenced
+
+| File | Findings |
+|------|----------|
+| `src/app/globals.css` | DES-01, DES-02, DES-04, DES-09, DES-11, DES-12 |
+| `tailwind.config.ts` | DES-08, DES-10 |
+| `src/app/layout.tsx` | DES-06, DASH-06 |
+| `src/lib/3d/cockpitDesignTokens.ts` | COCK-01, COCK-03, DES-05 |
+| `src/components/3d/HolographicHUD.tsx` | COCK-01, COCK-02, COCK-03 |
+| `src/components/3d/CockpitUILayer.tsx` | COCK-05, COCK-07, COCK-08, COCK-09 |
+| `src/components/3d/CockpitCanvas.tsx` | COCK-05, COCK-08, COCK-13 |
+| `src/components/3d/ui/HolographicButton.tsx` | COCK-10, COCK-11 |
+| `src/components/3d/CockpitPanels.tsx` | COCK-12 |
+| `src/components/3d/panels/LoginPanel3D.tsx` | AUTH-01, AUTH-02, AUTH-03, AUTH-04 |
+| `src/components/3d/panels/SignupPanel3D.tsx` | AUTH-01, AUTH-02 |
+| `src/components/3d/panels/ResetPasswordPanel3D.tsx` | AUTH-01, AUTH-02 |
+| `src/components/auth/DemoSessionBanner.tsx` | AUTH-04, AUTH-05 |
+| `src/components/layout/Sidebar.tsx` | DASH-02 |
+| `src/app/(dashboard)/onboarding/page.tsx` | DASH-03, DASH-05, DASH-12 |
+| `src/app/(dashboard)/content/[slug]/page.tsx` | DASH-04 |
+| `src/components/game/GameShell.tsx` | GAME-01, GAME-03 |
+| `src/stores/gameStore.ts` | GAME-01 |
+| `src/components/games/RobotVacuumGame.tsx` | IND-04, IND-05, IND-06 |
+| `src/components/games/NeuralBuilderGame.tsx` | IND-01, GAME-02 |
+| `src/components/games/PromptLabGame.tsx` | IND-02 |
+| `src/hooks/useStationMode.ts` | IND-14 |
+| `src/types/index.ts` | IND-13 |
+
+---
+
+*End of UI/UX Design Audit & Enhancement Report v1.0*
+*75 findings (12 P0, 23 P1, 27 P2, 13 P3) + 10 selectable enhancements + 26 anti-pattern evaluations*
+*Generated: April 11, 2026 | Auditor: Claude Code (Opus 4.6)*
