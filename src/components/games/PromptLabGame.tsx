@@ -20,6 +20,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { usePromptLabAudio } from '@/hooks/usePromptLabAudio';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Send, BookOpen, Star, AlertTriangle,
   ChevronRight, Lightbulb, GraduationCap,
@@ -907,6 +908,7 @@ export function PromptLabGame() {
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('prompt-lab', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { safeTimeout } = useSafeTimeout();
 
   // --- Core state ---
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -1162,7 +1164,7 @@ export function PromptLabGame() {
       }
 
       // [v3] Clear bubble keywords after pop animation
-      setTimeout(() => {
+      safeTimeout(() => {
         setBubbleKeywords([]);
         setShowBubbles(false);
       }, 1000);
@@ -1191,7 +1193,7 @@ export function PromptLabGame() {
     if (msg) {
       navigator.clipboard.writeText(msg.content).catch(() => {});
       setCopiedIdx(idx);
-      setTimeout(() => setCopiedIdx(null), 2000);
+      safeTimeout(() => setCopiedIdx(null), 2000);
     }
   }
 

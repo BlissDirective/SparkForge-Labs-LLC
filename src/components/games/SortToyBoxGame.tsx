@@ -12,7 +12,7 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -21,6 +21,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useSortAudio } from '@/hooks/useSortAudio';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Plus, Brain, ChevronRight, GraduationCap, Sparkles, Timer, Trophy, Lightbulb } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useAIContent } from '@/hooks/useAIContent';
@@ -286,6 +287,7 @@ export function SortToyBoxGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const { safeTimeout } = useSafeTimeout();
   // BUG-ST2 fix: useGameContent hook removed (was unused)
 
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -314,7 +316,6 @@ export function SortToyBoxGame() {
 
   // Timer (Challenge mode)
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Discovery mode
   const [discoveryRule, setDiscoveryRule] = useState('');
@@ -342,15 +343,9 @@ export function SortToyBoxGame() {
       revealAI();
       return;
     }
-    timerRef.current = setTimeout(() => setTimeRemaining((t) => (t !== null ? t - 1 : null)), 1000);
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+    safeTimeout(() => setTimeRemaining((t) => (t !== null ? t - 1 : null)), 1000);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timeRemaining, phase, gameMode]);
-
-  // Cleanup timer on unmount
-  useEffect(() => {
-    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
-  }, []);
 
   // Start a round
   function startRound(roundNum: number) {
@@ -461,7 +456,7 @@ export function SortToyBoxGame() {
     const comboBonus = newStreak >= 3 ? 2 : 0;
     game.updateScore(5 + comboBonus);
     broadcast({ type: 'button-press', source: 'sort-toy-box', value: 1, color: '#AA66FF' });
-    if (soundEnabled) { audio.playThrow(); setTimeout(() => audio.playLand(binId), 400); }
+    if (soundEnabled) { audio.playThrow(); safeTimeout(() => audio.playLand(binId), 400); }
   }
 
   // Sort shapes by AI criterion
@@ -531,17 +526,17 @@ export function SortToyBoxGame() {
     setPhase('reveal');
 
     // Phase 1: Feature extraction (2s)
-    setTimeout(() => setRevealStep('calculating'), 2000);
+    safeTimeout(() => setRevealStep('calculating'), 2000);
 
     // Phase 2: Distance calculation (2s)
-    setTimeout(() => {
+    safeTimeout(() => {
       setRevealStep('clustering');
       // Phase 3: Cluster formation (3s) — actually sort and score
       const playerShapes = [...shapes];
       const aiSorted = sortByCriterion(pick, shapes);
       const matchAcc = calculateMatchAccuracy(playerShapes, aiSorted);
 
-      setTimeout(() => {
+      safeTimeout(() => {
         setShapes(aiSorted);
         // Scoring: reveal bonus (5 pts) + match accuracy bonus (0-30)
         const matchBonus = Math.round((matchAcc / 100) * 30);

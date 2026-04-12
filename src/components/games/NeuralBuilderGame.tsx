@@ -26,6 +26,7 @@ import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
@@ -437,6 +438,7 @@ export function NeuralBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const { safeTimeout, safeInterval } = useSafeTimeout();
 
   // Band A uses simplified challenges; B/C use full challenges
   const availableChallenges = ageBand === 'A' ? BAND_A_CHALLENGES : CHALLENGES;
@@ -486,8 +488,6 @@ export function NeuralBuilderGame() {
   // --- Canvas ---
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const drawingRef = useRef(false);
-  // BUG-NB5: timeout ref for cleanup on unmount
-  const testTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // --- Audio (V2 Enhancement) ---
   const audio = useNetworkAudio();
@@ -565,18 +565,11 @@ export function NeuralBuilderGame() {
   useEffect(() => {
     if (phase !== 'build' && phase !== 'train') return;
     const speed = isTraining ? 0.04 : 0.015;
-    const interval = setInterval(() => {
+    const id = safeInterval(() => {
       setHeartbeatPhase((prev) => (prev + speed) % 1);
     }, 50);
-    return () => clearInterval(interval);
-  }, [isTraining, phase]);
-
-  // BUG-NB5: cleanup timeout on unmount
-  useEffect(() => {
-    return () => {
-      if (testTimeoutRef.current) clearTimeout(testTimeoutRef.current);
-    };
-  }, []);
+    return () => clearInterval(id);
+  }, [isTraining, phase, safeInterval]);
 
   // --- Sound toggle (V2 Enhancement) ---
   const toggleSound = useCallback(async () => {
@@ -703,7 +696,7 @@ export function NeuralBuilderGame() {
 
     let prevAcc = 0;
     for (let e = 1; e <= epochs; e++) {
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => safeTimeout(r, 600));
       // BUG-NB1 fix: architecture-dependent convergence curve
       const progress = e / epochs;
       const curvedProgress = e <= plateauEpoch
@@ -753,7 +746,7 @@ export function NeuralBuilderGame() {
         if (e % 3 === 0) {
           audio.playActivation(e % layerSizes.length, layerSizes.length);
         }
-        setTimeout(() => { activeAudioCount.current = Math.max(0, activeAudioCount.current - 1); }, 400);
+        safeTimeout(() => { activeAudioCount.current = Math.max(0, activeAudioCount.current - 1); }, 400);
       }
       // P1: Broadcast training progress to cockpit
       if (e % 5 === 0) {
@@ -859,8 +852,8 @@ export function NeuralBuilderGame() {
     if (testIdx + 1 < challenge.testItems.length) {
       setTestIdx(testIdx + 1);
     } else {
-      // BUG-NB5 fix: store timeout ref for cleanup on unmount
-      testTimeoutRef.current = setTimeout(() => {
+      // BUG-NB5 fix: safeTimeout auto-clears on unmount
+      safeTimeout(() => {
         setPhase('report');
         game.completeGame();
       }, 1500);

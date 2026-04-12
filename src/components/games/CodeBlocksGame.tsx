@@ -23,6 +23,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Play, RotateCcw, Code2, Bug, GraduationCap,
   Star, ChevronRight, Terminal,
@@ -592,6 +593,7 @@ export function CodeBlocksGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: dynamicContent } = useGameContent('code-blocks', ageBand);
   const _isDesktop = useIsDesktop();
@@ -663,7 +665,7 @@ export function CodeBlocksGame() {
     for (let i = 0; i < placed.length; i++) {
       setRunIdx(i);
       setTracerY(i);
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise<void>((r) => safeTimeout(r, 600));
     }
 
     const seq = placed.map((b) => b.id);
@@ -675,7 +677,7 @@ export function CodeBlocksGame() {
         setOutputLines((prev) => [...prev, challenge.outputSteps[i]]);
         if (challenge.robotSequence[i])
           setRobotPose(challenge.robotSequence[i]);
-        await new Promise((r) => setTimeout(r, 450));
+        await new Promise((r) => safeTimeout(r, 450));
       }
       setRobotPose('correct');
       const starCount = !showHint && attempts === 1 ? 3 : !showHint ? 2 : 1;

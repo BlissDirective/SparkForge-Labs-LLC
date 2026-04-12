@@ -22,6 +22,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 
 // 3D scene content — rendered inside CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
 const EmojiDecoder3D = dynamic(
@@ -278,6 +279,7 @@ const DIFF_POINTS: Record<Difficulty, number> = { easy: 10, medium: 15, tricky: 
 
 // ──── Component ────
 export function EmojiDecoderGame() {
+  const { safeTimeout } = useSafeTimeout();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -299,10 +301,7 @@ export function EmojiDecoderGame() {
   const [emojiPulse, setEmojiPulse] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const filteredRounds = useFilteredContent(ALL_ROUNDS as any[], tier, ageBand) as typeof ALL_ROUNDS;
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  // B-10: Clean up timer on unmount to prevent firing on unmounted component
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  const timerRef = useRef<number | null>(null);
 
   // Merge hardcoded + dynamic rounds, then filter/shuffle/slice
   const rounds = useMemo(() => {
@@ -350,10 +349,9 @@ export function EmojiDecoderGame() {
   useEffect(() => {
     if (phase === 'play') {
       setEmojiPulse(true);
-      const t = setTimeout(() => setEmojiPulse(false), 800);
-      return () => clearTimeout(t);
+      safeTimeout(() => setEmojiPulse(false), 800);
     }
-  }, [roundIdx, phase]);
+  }, [roundIdx, phase, safeTimeout]);
 
   const handleAnswer = useCallback((answer: string) => {
     if (showResult || !round) return;
@@ -367,7 +365,7 @@ export function EmojiDecoderGame() {
       setBestStreak(b => Math.max(b, streak + 1));
       setTotalCorrect(c => c + 1);
     } else { setStreak(0); }
-    timerRef.current = setTimeout(() => setShowAI(true), 1200);
+    timerRef.current = safeTimeout(() => setShowAI(true), 1200);
   }, [showResult, round, streak, game]);
 
   const nextRound = useCallback(() => {
