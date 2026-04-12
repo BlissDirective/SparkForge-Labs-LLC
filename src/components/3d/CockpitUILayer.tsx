@@ -168,6 +168,7 @@ export function CockpitUILayer() {
         ref={centerRef}
         name="quadrant-center"
         position={CENTER_POSITION}
+        renderOrder={5}
       >
         <Suspense fallback={null}>
           <CenterContentRouter contentKey={centerContent} />
