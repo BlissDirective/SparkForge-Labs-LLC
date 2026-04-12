@@ -264,4 +264,121 @@
 
 ---
 
-*Sections 4-8 follow below. Each section is committed individually.*
+## 4. Auth & Dashboard Pages
+
+### 4.1 Auth Forms — Hidden Input Proxy (P3-2 Pattern)
+
+#### AUTH-01 [P0] — Hidden input proxies have ZERO ARIA attributes
+- **Locations:** `LoginPanel3D.tsx:690-738`, `SignupPanel3D.tsx:202-223`, `ResetPasswordPanel3D.tsx:282-289`
+- **Issue:** The P3-2 hidden input proxy pattern renders `<input>` elements with `opacity: 0` and `pointerEvents: none` behind the 3D scene. These inputs have **no `aria-label`, `aria-describedby`, `id`, or `name` attributes**. Screen readers encounter invisible, unlabeled form fields.
+- **Impact:** WCAG 2.1 Level A failure. Users relying on screen readers cannot fill in login, signup, or password reset forms.
+- **Fix:** Add `aria-label="Email address"`, `id="email"`, `name="email"` (etc.) to each hidden proxy input. Associate labels via `aria-labelledby` pointing to 3D-rendered label text IDs.
+
+#### AUTH-02 [P0] — Form error messages not associated with fields
+- **Locations:** `LoginPanel3D.tsx:491-514`, `SignupPanel3D.tsx:430-440`, `ResetPasswordPanel3D.tsx:257-267`
+- **Issue:** Error messages render as 3D text groups but have no `aria-describedby` linkage to the relevant input field. Screen reader users hear errors but can't determine which field is affected.
+- **Fix:** Add `aria-describedby="email-error"` on input, `id="email-error"` on error container, and `role="alert"` on error text
+
+#### AUTH-03 [P1] — Demo Login handler naming suggests incomplete refactor
+- **Location:** `LoginPanel3D.tsx:395-401`
+- **Issue:** `_handleDemoClick` is prefixed with `_` (convention for unused/disabled). The "TRY DEMO" button at line 587 sets `showDemoConfirm(true)`, and the "START DEMO" button at line 619 calls `onDemoStart` — but `_handleDemoClick` is never called. Suggests an incomplete refactor.
+- **Impact:** Demo flow appears to work via the two-step confirm path, but dead handler adds confusion.
+- **Fix:** Remove `_handleDemoClick` or rename to `handleDemoClick` and wire correctly.
+
+#### AUTH-04 [P1] — Triple demo session handler duplication
+- **Locations:** `LoginPanel3D.tsx:62-80`, `DemoLoginButton.tsx:15-38`, `DemoSessionBanner.tsx:29-54`
+- **Issue:** Three separate components implement demo session start/end logic with duplicated API calls. If the demo API contract changes, all 3 must be updated.
+- **Fix:** Extract shared `useDemoSession()` hook (already exists at `src/hooks/useDemoSession.ts`) and ensure all 3 components consume it.
+
+#### AUTH-05 [P2] — Demo expired modal not keyboard-dismissible
+- **Location:** `DemoSessionBanner.tsx:107-161`
+- **Issue:** Close button (X) present but no `Escape` key handler on modal overlay. Users without mouse cannot dismiss the expiry modal.
+- **Fix:** Add `onKeyDown={(e) => e.key === 'Escape' && handleExitDemo()}` on modal wrapper
+
+#### AUTH-06 [P3] — LoginFormCard.tsx unused
+- **Location:** `src/components/auth/LoginFormCard.tsx`
+- **Issue:** HTML fallback login form exists but all auth pages use 3D panels exclusively. Dead code.
+- **Fix:** Delete or mark with `_SUPERSEDED` prefix if kept for fallback reference
+
+### 4.2 Dashboard Route Issues
+
+#### DASH-01 [P0] — `/badges` route is empty
+- **Location:** `src/app/(dashboard)/badges/` — contains only `.gitkeep`, no `page.tsx`
+- **Issue:** Directory exists as a route but has no page component. If linked to (or accessed via URL), this would 404 or render the `not-found.tsx` fallback.
+- **Impact:** Currently no nav links point here (confirmed via grep), but the empty dir is a trap for future devs.
+- **Fix:** Option A: Delete directory. Option B: Create minimal page that displays earned badges (API at `/api/gamification/badges` already exists).
+
+#### DASH-02 [P1] — Sidebar sr-only nav missing 8 routes
+- **Location:** `Sidebar.tsx:21-27`
+- **Issue:** `navItems` only includes: `/home`, `/labs`, `/arcade`, `/profile`, `/parent`. Missing:
+  - `/settings` — accessible only via 3D cockpit button
+  - `/onboarding` — no navigation path for screen readers
+  - `/admin/content` — admin panel unreachable
+  - `/parent/subscription` — billing page unreachable
+  - `/parent/add-child` — child creation unreachable
+  - `/parent/export` — data export unreachable
+  - `/parent/prompt-history` — audit log unreachable
+  - `/badges` — (if implemented)
+- **Fix:** Add all dashboard routes to `navItems` array with appropriate `aria-label` context
+
+#### DASH-03 [P0] — Onboarding page renders full HTML in 3D dashboard
+- **Location:** `src/app/(dashboard)/onboarding/page.tsx:96-347`
+- **Issue:** Renders a full glass-card UI with forms, sliders, buttons as HTML (`<div className="min-h-screen flex...">`) — **not a thin scene descriptor**. This violates the architecture contract documented in `layout.tsx:6` ("Zero HTML dashboard UI"). The full HTML page will render on top of the 3D cockpit, creating z-index layering conflicts.
+- **Fix:** Convert to thin scene descriptor pattern (call `useCockpitScene('onboarding')`, route content to an `OnboardingPanel3D` component) or wrap in a portal above the canvas
+
+#### DASH-04 [P1] — Content/[slug] page renders HTML components directly
+- **Location:** `src/app/(dashboard)/content/[slug]/page.tsx:12-46`
+- **Issue:** Renders `LessonViewer`, `QuizEngine`, and other HTML components directly inside the 3D dashboard layout. Same architecture violation as DASH-03.
+- **Fix:** Either render via HTML overlay portal (explicitly above canvas z-index) or create `ContentPanel3D` wrapper
+
+#### DASH-05 [P2] — Onboarding progress not persisted
+- **Location:** `src/app/(dashboard)/onboarding/page.tsx:77-122`
+- **Issue:** Step state (1, 2, 3) is React `useState` — local only. Closing the browser mid-onboarding loses all progress.
+- **Fix:** Persist step to `localStorage` or Supabase profile
+
+#### DASH-06 [P2] — Skip-to-content link target mismatch
+- **Location:** `layout.tsx:113` (`<a href="#main-content">`) → `layout.tsx:121` (`<main id="main-content">`)
+- **Issue:** Root layout has `<main id="main-content">`, but dashboard layout doesn't re-define this ID. The dashboard wrapper renders `{children}` inside a `<div>` — skip link jumps to root `<main>` which wraps everything (including the 3D canvas), not to the meaningful content area.
+- **Impact:** Skip link technically works but doesn't skip to useful content in dashboard context.
+- **Fix:** Add `id="main-content"` to the ARIA live region or a more specific landmark in the dashboard layout
+
+#### DASH-07 [P2] — Arcade page uses wrong cockpit mode
+- **Location:** `src/app/(dashboard)/arcade/page.tsx:14`
+- **Issue:** Sets `useCockpitScene('dashboard')` instead of an arcade-specific mode. Arcade UI inherits home dashboard panel layout, positions, and scales.
+- **Fix:** Add `'arcade'` mode to `cockpitModePresets.ts` or document that dashboard mode is intentionally shared
+
+#### DASH-08 [P2] — Add-child form error messages are generic
+- **Location:** `src/app/(dashboard)/parent/add-child/page.tsx:60-94`
+- **Issue:** API error response parsed as generic "Failed to create profile" — doesn't distinguish tier limit errors from validation errors. Parent sees unhelpful message.
+- **Fix:** Parse error code; show tier-specific message with upgrade link if tier limit reached
+
+### 4.3 Subscription & Parent Pages
+
+#### DASH-09 [P1] — Subscription billing toggle not announced
+- **Location:** `parent/subscription/page.tsx:171-205`
+- **Issue:** Monthly/Yearly toggle has `aria-pressed` but no `aria-label`. Screen readers say "button pressed" without context.
+- **Fix:** Add `aria-label={`Billing cycle: ${isYearly ? 'yearly' : 'monthly'}`}`
+
+#### DASH-10 [P2] — PaywallModal progress ring lacks ARIA
+- **Location:** `PaywallModal.tsx:96-147`
+- **Issue:** SVG progress ring shows usage visually but has no `role="progressbar"`, `aria-valuenow`, `aria-valuemin`, `aria-valuemax`.
+- **Fix:** Add ARIA attributes to SVG wrapper
+
+#### DASH-11 [P2] — Export/Prompt History generate mock data on every mount
+- **Locations:** `parent/export/page.tsx:70-210`, `parent/prompt-history/page.tsx:33-82`
+- **Issue:** Large mock datasets generated fresh on every mount without `useMemo`. For 10 children with 100+ entries each, this is ~1000 objects per render.
+- **Fix:** Wrap in `useMemo` or fetch from API
+
+#### DASH-12 [P3] — Onboarding 3D crystal import dead code
+- **Location:** `onboarding/page.tsx:24-28`
+- **Issue:** `const _OnboardingCrystal3D = dynamic(...)` — prefixed with `_` and never rendered. Dead import.
+- **Fix:** Remove
+
+#### DASH-13 [P3] — Settings page wiring incomplete
+- **Location:** `src/app/(dashboard)/settings/page.tsx`
+- **Issue:** Page calls `useCockpitScene('settings')` and `setCenterContent('settings')` but the actual `SettingsPanel3D` may not have functional volume sliders, theme toggles, or cockpit skin selectors wired to stores.
+- **Fix:** Verify SettingsPanel3D reads/writes uiStore, cockpitStore, and accessibilityStore
+
+---
+
+*Sections 5a-8 follow below. Each section is committed individually.*
