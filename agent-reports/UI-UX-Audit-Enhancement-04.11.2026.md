@@ -617,4 +617,140 @@ This section maps every Master-Design-Agent (MDA) anti-pattern rule against Spar
 
 ---
 
-*Sections 7-8 follow below. Each section is committed individually.*
+## 7. Selectable Enhancement Options
+
+Each enhancement below offers **two or three options**. Select which to adopt (or skip). These are non-critical improvements — the platform functions without them — but each would measurably improve design quality, accessibility, or performance.
+
+> **How to use:** Reply with your choices (e.g., "ENH-COLOR-01: B, ENH-FONT-01: A, ENH-TEXT-01: skip"). Any unmarked items will be deferred.
+
+---
+
+### ENH-COLOR-01 — Migrate color palette to OKLCH
+
+**Current:** HEX/RGBA palette (`#00BBFF`, `rgba(255,255,255,0.55)`, etc.)
+**Issue:** Neon accents have inconsistent perceived brightness. `#00FF88` (green) appears significantly brighter than `#AA66FF` (purple) at identical opacity.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Full OKLCH migration** | Convert all CSS custom properties to OKLCH. Generate consistent-lightness neon accents. Update Tailwind config. ~2 hours. | Medium | High — perceptually uniform palette across all 10 labs |
+| **B. OKLCH for accents only** | Keep surfaces/text as HEX. Convert only the 5 neon accents + 10 lab colors to OKLCH for perceptual uniformity. ~45 min. | Low | Medium — fixes the primary visual inconsistency |
+| **C. Skip** | Keep HEX palette. No perceptual change. | None | None |
+
+---
+
+### ENH-FONT-01 — Self-host fonts via next/font/local
+
+**Current:** Google Fonts CDN via `<link>` in layout.tsx
+**Issue:** External dependency, extra DNS lookup, privacy exposure (Google receives visitor IPs)
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Self-host with next/font/local** | Download woff2 files to `public/fonts/`, use `next/font/local` with metric overrides. Eliminates CDN dependency. ~1 hour. | Medium | High — faster TTFB, zero FOUT, privacy-safe |
+| **B. Add fallback metrics only** | Keep CDN, but add `@font-face` with `size-adjust`/`ascent-override` for Sora and Exo 2 fallbacks. ~30 min. | Low | Medium — reduces CLS during font swap |
+| **C. Skip** | Keep current CDN loading. `display=swap` already mitigates worst case. | None | None |
+
+---
+
+### ENH-TEXT-01 — Upgrade 3D text to SDF rendering (troika-three-text)
+
+**Current:** `@react-three/uikit Text` with WOFF2 rasterization
+**Issue:** Text below 0.02 world units aliases/blurs. Cockpit caption text at 0.016 units is fuzzy.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Full troika-three-text migration** | Replace CockpitText internals with troika-three-text SDF renderer. Crisp text at any size/rotation. ~3 hours. | High | High — all 3D text becomes resolution-independent |
+| **B. Increase minimum font sizes** | Keep current renderer, raise caption minimum to 0.024, body to 0.04. Quick fix. ~30 min. | Low | Medium — readable but still rasterized |
+| **C. Skip** | Accept current rendering quality. | None | None |
+
+---
+
+### ENH-SPACE-01 — Add semantic spacing tokens
+
+**Current:** Raw Tailwind numeric classes (`p-4`, `gap-6`, `mt-8`)
+**Issue:** No semantic spacing scale. Consistency relies on developer discipline.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Full semantic token layer** | Add `--space-xs` through `--space-section` tokens in globals.css, mapped to Tailwind `spacing` config. Document usage in DESIGN.md. ~1 hour. | Medium | Medium — enforces consistency |
+| **B. Skip** | Tailwind's default 4px scale is already functional. | None | None |
+
+---
+
+### ENH-LAYOUT-01 — Reduce chrome-frame nesting in games
+
+**Current:** Some games nest `glass-card` inside `chrome-frame`, creating visual noise.
+**Issue:** MDA "NEVER nest cards inside cards" — double borders, double shadows, visual clutter.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Flatten all nested containers** | Audit all 35 games, remove inner `glass-card` where outer `chrome-frame` suffices. ~2 hours. | Medium | Medium — cleaner game UIs |
+| **B. Keep intentional nesting, fix accidental** | Only flatten where nesting is clearly unintentional (same border radius, redundant shadow). ~1 hour. | Low | Low |
+| **C. Skip** | Keep current nesting. | None | None |
+
+---
+
+### ENH-GLASS-01 — Reserve glassmorphism for focal elements
+
+**Current:** `glass-card`, `glass-surface`, `backdrop-blur` used on most surfaces.
+**Issue:** MDA "NEVER use glassmorphism everywhere" — when everything is glass, nothing is elevated.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Reduce glass to focal elements only** | Use solid `surface-card`/`surface-elevated` for secondary panels. Reserve `glass-card` + `backdrop-blur` for modals, tooltips, active selections. ~3 hours. | High | High — stronger visual hierarchy |
+| **B. Reduce blur intensity** | Keep glass everywhere but lower blur from 12px to 4px on non-focal elements. Subtler effect. ~30 min. | Low | Low |
+| **C. Skip** | Glass-everywhere is part of the Lab aesthetic. | None | None |
+
+---
+
+### ENH-MODAL-01 — Replace demo expiry modal with inline banner
+
+**Current:** `DemoSessionBanner.tsx:107-161` shows a modal overlay on expiry.
+**Issue:** MDA prefers undo/inline over modals. Expiry is expected, not an error — inline degradation is more user-friendly.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Convert to inline expired state** | Replace modal with persistent banner that expands in-place: "Demo expired — [Create account] or [Return to login]". No overlay. ~1 hour. | Medium | Medium — less jarring expiry UX |
+| **B. Keep modal, add keyboard dismiss** | Retain modal but add Escape key handling + focus trap. ~20 min. | Low | Low — fixes a11y, keeps modal pattern |
+| **C. Skip** | Modal works. Most users will create accounts. | None | None |
+
+---
+
+### ENH-ERROR-01 — Upgrade error messages to what/why/fix pattern
+
+**Current:** Auth and form errors show generic strings ("Failed to create profile", "Invalid credentials").
+**Issue:** MDA formula: (1) What happened (2) Why (3) How to fix.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Full error message upgrade** | Rewrite all API error responses with structured messages. Parse error codes in UI to show specific guidance. ~2 hours. | Medium | High — significantly better error UX |
+| **B. Add "how to fix" hints to top-3 errors** | Target login failure, add-child tier limit, and password reset — the highest-frequency errors. ~45 min. | Low | Medium |
+| **C. Skip** | Generic messages work. Users figure it out. | None | None |
+
+---
+
+### ENH-ZINDEX-01 — Establish z-index token scale
+
+**Current:** Ad-hoc z-index values (4, 5, 10, 9999). No semantic scale.
+**Issue:** MDA recommends semantic z-index scale: dropdown(100), sticky(200), modal(300), toast(500), tooltip(600).
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Define z-index tokens** | Add `--z-base`, `--z-overlay`, `--z-modal`, `--z-toast`, `--z-skip` to globals.css. Replace all hardcoded values. ~1 hour. | Low | Medium — prevents future stacking bugs |
+| **B. Skip** | Current values work. 3D layer manages its own depth via `renderOrder`. | None | None |
+
+---
+
+### ENH-DESIGNMD-01 — Create DESIGN.md for SparkForge
+
+**Current:** Design system documented across CLAUDE.md, cockpitDesignTokens.ts, globals.css, and various audit files. No single DESIGN.md.
+**Issue:** MDA Section 12 recommends a standardized DESIGN.md (Google Stitch format) that any AI agent can read for consistent UI generation.
+
+| Option | Description | Effort | Impact |
+|--------|-------------|--------|--------|
+| **A. Full DESIGN.md creation** | Synthesize Frost-Prismatic system into a 9-section DESIGN.md at repo root (visual theme, palette, typography, components, layout, depth, do/don't, responsive, agent prompts). ~2 hours. | Medium | High — any future AI agent can generate on-brand UI |
+| **B. Lightweight .impeccable.md** | Create minimal design context file with audience, brand personality, aesthetic direction, key tokens. ~30 min. | Low | Medium |
+| **C. Skip** | CLAUDE.md Section 6 covers design system. | None | None |
+
+---
+
+*Section 8 follows below.*
