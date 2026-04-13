@@ -47,6 +47,7 @@ const SettingsPanel = lazy(() => import('./panels/SettingsPanel'));
 const ParentPanel = lazy(() => import('./panels/ParentPanel'));
 const ChatPanel3D = lazy(() => import('./panels/ChatPanel3D'));
 const CelebrationPanel3D = lazy(() => import('./panels/CelebrationPanel3D'));
+const OnboardingPanel = lazy(() => import('./panels/OnboardingPanel'));
 const DashboardLeft = lazy(() => import('./panels/DashboardLeft'));
 const DashboardRight = lazy(() => import('./panels/DashboardRight'));
 
@@ -72,6 +73,8 @@ function CenterContentRouter({ contentKey }: { contentKey: CenterContentKey }) {
       return <ChatPanel3D />;
     case 'celebration':
       return <CelebrationPanel3D />;
+    case 'onboarding':
+      return <OnboardingPanel />;
     case 'game':
       // Game mode — no center panel, game scene fills via SceneRouter
       return null;
@@ -168,6 +171,7 @@ export function CockpitUILayer() {
         ref={centerRef}
         name="quadrant-center"
         position={CENTER_POSITION}
+        renderOrder={5}
       >
         <Suspense fallback={null}>
           <CenterContentRouter contentKey={centerContent} />

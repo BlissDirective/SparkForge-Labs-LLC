@@ -14,6 +14,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Search, AlertTriangle, CheckCircle } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { useFilteredContent } from '@/hooks/useFilteredContent';
@@ -454,6 +455,7 @@ export function DataDetectiveGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: dynamicContent } = useGameContent('data-detective', ageBand);
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -462,7 +464,7 @@ export function DataDetectiveGame() {
   const filteredCases = useFilteredContent(CASES, tier, ageBand);
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const investigateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const investigateTimerRef = useRef<number | null>(null);
   const hasCompleted = useRef(false);
 
   // Filter cases by age band: A=easy, B=easy+medium, C=all tiers
@@ -484,16 +486,11 @@ export function DataDetectiveGame() {
   const currentCase = cases[caseIdx];
   const maxBar = useMemo(() => Math.max(...currentCase.data.map(d => d.value)), [currentCase.data]);
 
-  // Cleanup investigate timer on unmount (FLL-001 fix)
-  useEffect(() => () => {
-    if (investigateTimerRef.current) clearTimeout(investigateTimerRef.current);
-  }, []);
-
   const handleSelect = useCallback((idx: number) => {
     if (showResult) return;
     setSelected(idx);
 
-    investigateTimerRef.current = setTimeout(() => {
+    investigateTimerRef.current = safeTimeout(() => {
       setShowResult(true);
 
       if (idx === currentCase.correctIndex) {

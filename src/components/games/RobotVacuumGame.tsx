@@ -23,6 +23,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Play, Plus, Trash2, RotateCcw, BookOpen, Zap,
 } from 'lucide-react';
@@ -449,6 +450,7 @@ export function RobotVacuumGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: dynamicContent } = useGameContent('robot-vacuum', ageBand);
 
@@ -598,7 +600,7 @@ export function RobotVacuumGame() {
       }
 
       setCleaned(new Set(cl));
-      await new Promise((r) => setTimeout(r, 200));
+      await new Promise((r) => safeTimeout(r, 200));
       if (cl.size === totalDirt || !acted) break;
     }
 

@@ -201,23 +201,35 @@ function ActionButton3D({
 
 function HiddenInputProxy({
   inputRef, value, onChange, focused, type = 'text', autoComplete, onEnter,
+  ariaLabel, fieldId, fieldName, errorMessage,
 }: {
   inputRef: React.MutableRefObject<HTMLInputElement | null>;
   value: string; onChange: (v: string) => void; focused: boolean;
   type?: string; autoComplete?: string; onEnter?: () => void;
+  ariaLabel: string; fieldId: string; fieldName: string; errorMessage?: string;
 }) {
   useEffect(() => {
     if (focused && inputRef.current) inputRef.current.focus();
   }, [focused, inputRef]);
 
+  const errorId = `${fieldId}-error`;
+
   return (
     <Html position={[0, 0, -10]} style={{ opacity: 0, position: 'absolute', pointerEvents: focused ? 'auto' : 'none' }}>
-      <input ref={inputRef} type={type} value={value}
+      <input ref={inputRef} id={fieldId} name={fieldName} type={type} value={value}
         onChange={(e) => onChange(e.target.value)} autoComplete={autoComplete}
+        aria-label={ariaLabel}
+        aria-describedby={errorMessage ? errorId : undefined}
+        aria-invalid={errorMessage ? true : undefined}
         style={{ position: 'absolute', width: '1px', height: '1px', opacity: 0, pointerEvents: 'none' }}
         onKeyDown={(e) => { if (e.key === 'Enter') onEnter?.(); }}
         onBlur={() => { if (focused) inputRef.current?.focus(); }}
       />
+      {errorMessage && (
+        <div id={errorId} role="alert" aria-live="polite" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
+          {errorMessage}
+        </div>
+      )}
     </Html>
   );
 }
@@ -486,9 +498,13 @@ export default function SignupPanel3D({
 
             <HiddenInputProxy inputRef={emailRef} value={email} onChange={setEmail}
               focused={focusedField === 'email'} type="email" autoComplete="email"
+              ariaLabel="Email address" fieldId="signup-email" fieldName="email"
+              errorMessage={error || undefined}
               onEnter={() => { setFocusedField('password'); passRef.current?.focus(); }} />
             <HiddenInputProxy inputRef={passRef} value={password} onChange={setPassword}
               focused={focusedField === 'password'} type="password" autoComplete="new-password"
+              ariaLabel="Password" fieldId="signup-password" fieldName="password"
+              errorMessage={error || undefined}
               onEnter={handleStep1} />
           </group>
         )}
@@ -647,6 +663,8 @@ export default function SignupPanel3D({
             <HiddenInputProxy inputRef={nameRef} value={displayName}
               onChange={(v) => setDisplayName(v.slice(0, 20))}
               focused={focusedField === 'name'} type="text" autoComplete="off"
+              ariaLabel="Display name" fieldId="signup-displayname" fieldName="displayName"
+              errorMessage={error || undefined}
               onEnter={handleStep4} />
           </group>
         )}

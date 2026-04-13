@@ -27,7 +27,7 @@ export const TYPE_SCALE: Record<TypeLevel, TypeStyle> = {
   h3:      { fontSize: 0.032, font: 'Exo2-Bold',       fontPath: '/fonts/Exo2-Bold.woff2',           weight: 'bold' },
   body:    { fontSize: 0.032, font: 'Sora-Regular',     fontPath: '/fonts/Sora-Regular.woff2',        weight: 'regular' },
   label:   { fontSize: 0.022, font: 'Sora-Regular',     fontPath: '/fonts/Sora-Regular.woff2',        weight: 'regular' },
-  caption: { fontSize: 0.016, font: 'Sora-Regular',     fontPath: '/fonts/Sora-Regular.woff2',        weight: 'regular' },
+  caption: { fontSize: 0.024, font: 'Sora-Regular',     fontPath: '/fonts/Sora-Regular.woff2',        weight: 'regular' },
 } as const;
 
 /** Orbitron for ALL numeric values — XP, levels, percentages, counts, timers, scores */
@@ -37,8 +37,8 @@ export const NUMERIC_FONT_FAMILY = 'Orbitron-Bold';
 export const TEXT_COLORS = {
   primary:   { hex: '#F0F0F4', opacity: 1.0 },
   secondary: { hex: '#F0F0F4', opacity: 0.8 },
-  muted:     { hex: '#F0F0F4', opacity: 0.5 },
-  dim:       { hex: '#F0F0F4', opacity: 0.25 },
+  muted:     { hex: '#F0F0F4', opacity: 0.55 },
+  dim:       { hex: '#F0F0F4', opacity: 0.35 },
   // accent: uses dynamic mode color — resolved at render time
 } as const;
 

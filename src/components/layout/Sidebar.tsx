@@ -24,7 +24,13 @@ const BASE_NAV_ITEMS = [
   { href: '/labs', label: 'Labs' },
   { href: '/arcade', label: 'Arcade' },
   { href: '/profile', label: 'Profile' },
-  { href: '/parent', label: 'Parent' },
+  { href: '/settings', label: 'Settings' },
+  { href: '/parent', label: 'Parent Dashboard' },
+  { href: '/parent/subscription', label: 'Parent — Subscription & Billing' },
+  { href: '/parent/add-child', label: 'Parent — Add Child' },
+  { href: '/parent/export', label: 'Parent — Export Data' },
+  { href: '/parent/prompt-history', label: 'Parent — Prompt History' },
+  { href: '/onboarding', label: 'Onboarding' },
 ];
 
 // v3 Gap 1/3: Admin-only nav items (hidden from non-admins via is_admin check)

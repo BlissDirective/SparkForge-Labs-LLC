@@ -29,6 +29,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { usePetTrainerAudio } from '@/hooks/usePetTrainerAudio';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Heart, Sparkles, Brain, Zap, ChevronRight, BarChart3,
   CheckCircle2, XCircle, RotateCcw, Eye,
@@ -553,6 +554,7 @@ export function PetTrainerGame() {
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('pet-trainer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
+  const { safeTimeout } = useSafeTimeout();
 
   // === Core state ===
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -733,7 +735,7 @@ export function PetTrainerGame() {
     if (accuracy > 0 && accuracy % 25 === 0) {
       broadcast({ type: 'dial-rotate', source: 'pet-trainer', value: accuracy / 100, color: '#8B5CF6' });
     }
-    setTimeout(() => {
+    safeTimeout(() => {
       setShowFeedback(null);
       const next = currentItem + 1;
       setCurrentItem(next);
@@ -753,7 +755,7 @@ export function PetTrainerGame() {
   function handleTest() {
     if (testIndex >= categorySet.test.length) return;
     setPetThinking(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       const testItem = categorySet.test[testIndex];
       // Pet's guess is influenced by training accuracy + a small random factor
       const guessChance = accuracy / 100;
@@ -767,7 +769,7 @@ export function PetTrainerGame() {
       const nextIdx = testIndex + 1;
       setTestIndex(nextIdx);
       if (nextIdx >= categorySet.test.length) {
-        setTimeout(() => {
+        safeTimeout(() => {
           setPhase('report');
           game.completeGame();
         }, 1500);

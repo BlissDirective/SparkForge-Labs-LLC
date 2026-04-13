@@ -15,6 +15,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Play, Dog } from 'lucide-react';
 import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
 import { useFilteredContent } from '@/hooks/useFilteredContent';
@@ -58,6 +59,7 @@ export function TreatTrainerGame() {
   const game = useGameStore();
   const { updateScore, advanceRound, completeGame } = useGameStore();
   const { activeChild } = useChildStore();
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('treat-trainer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
@@ -135,7 +137,7 @@ export function TreatTrainerGame() {
       setRobotPos([...pos]);
       setPath([...trail]);
 
-      await new Promise(r => setTimeout(r, 100));
+      await new Promise(r => safeTimeout(r, 100));
       if (pos[0] === curGoal[0] && pos[1] === curGoal[1]) break;
     }
 

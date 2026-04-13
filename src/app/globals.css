@@ -34,8 +34,8 @@
   /* ── Text Variables ── */
   --text-primary: #F0F0F4;
   --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-muted: rgba(255, 255, 255, 0.3);
-  --text-dim: rgba(255, 255, 255, 0.15);
+  --text-muted: rgba(255, 255, 255, 0.55);
+  --text-dim: rgba(255, 255, 255, 0.35);
 
   /* ── Chrome Bezel Variables ── */
   --chrome-edge: rgba(255, 255, 255, 0.06);

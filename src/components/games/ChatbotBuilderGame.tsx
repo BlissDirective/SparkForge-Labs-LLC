@@ -28,6 +28,7 @@ import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
 import { useGameStore } from "@/stores/gameStore";
 import { useChildStore } from "@/stores/childStore";
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from "@/stores/sceneStore";
 import {
@@ -679,17 +680,18 @@ function computeMetrics(nodes: BotNode[]) {
 function useTypingAnimation(text: string, enabled: boolean, speed = 30) {
   const [displayed, setDisplayed] = useState("");
   const [done, setDone] = useState(false);
+  const { safeInterval } = useSafeTimeout();
   useEffect(() => {
     if (!enabled) { setDisplayed(text); setDone(true); return; }
     setDisplayed(""); setDone(false);
     let i = 0;
-    const interval = setInterval(() => {
+    const interval = safeInterval(() => {
       i++;
       setDisplayed(text.slice(0, i));
       if (i >= text.length) { clearInterval(interval); setDone(true); }
     }, speed);
     return () => clearInterval(interval);
-  }, [text, enabled, speed]);
+  }, [text, enabled, speed, safeInterval]);
   return { displayed, done };
 }
 
@@ -715,6 +717,7 @@ export function ChatbotBuilderGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";
   const { data: dynamicContent } = useGameContent('chatbot-builder', ageBand);
   // Dynamic templates from admin curation pipeline (merged below)
@@ -833,14 +836,11 @@ export function ChatbotBuilderGame() {
 
   useEffect(() => { if (phase === "build") checkChallenges(); }, [nodes, phase, checkChallenges]);
 
-  const deployTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   function deployBot() {
     setShowDeploy(true);
     game.updateScore(30);
-    deployTimerRef.current = setTimeout(() => { setPhase('complete'); game.completeGame(); }, 3000);
+    safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 3000);
   }
-  // Cleanup deploy timer on unmount (LOW-4 fix)
-  useEffect(() => () => { if (deployTimerRef.current) clearTimeout(deployTimerRef.current); }, []);
 
   return (
     <GameShell gameId="chatbot-builder" title="Chatbot Builder" worldNumber={8} worldColor="#6366F1" totalRounds={CHALLENGES.length}>

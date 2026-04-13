@@ -27,6 +27,7 @@ import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Send,
   Server,
@@ -455,6 +456,7 @@ function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: 
 export function ApiExplorerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const { safeTimeout, safeInterval } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('api-explorer', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
@@ -510,7 +512,7 @@ export function ApiExplorerGame() {
     let idx = 0;
     setTypewriterText('');
     setTypewriterDone(false);
-    const interval = setInterval(() => {
+    const interval = safeInterval(() => {
       idx += 3; // 3 chars at a time for speed
       if (idx >= fullText.length) {
         setTypewriterText(fullText);
@@ -521,16 +523,16 @@ export function ApiExplorerGame() {
       }
     }, 12);
     return () => clearInterval(interval);
-  }, [response]);
+  }, [response, safeInterval]);
 
   async function sendRequest() {
     // ENH: Trigger request send animation
     setRequestSent(true);
-    setTimeout(() => setRequestSent(false), 400);
+    safeTimeout(() => setRequestSent(false), 400);
     setSending(true);
     setResponse(null);
 
-    await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
+    await new Promise((r) => safeTimeout(r, 600 + Math.random() * 400));
 
     // Check for rate limiting: 3+ requests to the same endpoint in rapid succession
     const now = Date.now();
@@ -584,7 +586,7 @@ export function ApiExplorerGame() {
 
     const totalUsed = isNew ? endpointsUsed.size + 1 : endpointsUsed.size;
     if (totalUsed >= ENDPOINTS.length) {
-      setTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
+      safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
     }
   }
 

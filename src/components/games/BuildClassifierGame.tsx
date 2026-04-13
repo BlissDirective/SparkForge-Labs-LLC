@@ -25,6 +25,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   BookOpen,
   Database,
@@ -152,6 +153,7 @@ const LEARN_CARDS = [
 export function BuildClassifierGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('build-classifier', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
@@ -220,7 +222,7 @@ export function BuildClassifierGame() {
     for (let i = 0; i <= 100; i += 5) {
       if (!mountedRef.current) return; // STD-BC1: abort if unmounted
       setTrainingProgress(i);
-      await new Promise((r) => setTimeout(r, 80));
+      await new Promise((r) => safeTimeout(r, 80));
     }
     if (!mountedRef.current) return; // STD-BC1: abort if unmounted
     setIsTraining(false);
@@ -239,7 +241,7 @@ export function BuildClassifierGame() {
     if (testIdx < allTests.length - 1) {
       setTestIdx((i) => i + 1);
     } else {
-      setTimeout(() => setPhase('results'), 500);
+      safeTimeout(() => setPhase('results'), 500);
     }
   }
 

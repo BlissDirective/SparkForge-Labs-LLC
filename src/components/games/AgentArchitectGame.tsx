@@ -20,6 +20,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAgentAudio } from '@/hooks/useAgentAudio';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Play, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
@@ -484,6 +485,7 @@ export function AgentArchitectGame() {
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('agent-architect', ageBand);
+  const { safeTimeout } = useSafeTimeout();
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   // Core state
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -695,7 +697,7 @@ export function AgentArchitectGame() {
     const err = validate();
     if (err) {
       setValidationMsg(err);
-      setTimeout(() => setValidationMsg(null), 3000);
+      safeTimeout(() => setValidationMsg(null), 3000);
       return;
     }
 
@@ -722,7 +724,7 @@ export function AgentArchitectGame() {
       steps.push({ blockId: current, narration });
       setRunSteps([...steps]);
 
-      await new Promise(r => setTimeout(r, 1800));
+      await new Promise(r => safeTimeout(r, 1800));
 
       visited.add(current);
       const outgoing = arrows.filter(a => a.fromId === current);
@@ -745,7 +747,7 @@ export function AgentArchitectGame() {
 
     setActiveRunBlock(current);
     setRunPath([...path]);
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => safeTimeout(r, 1200));
 
     // Report calculation
     const pathLen = path.length;
@@ -783,7 +785,7 @@ export function AgentArchitectGame() {
     game.completeGame();
     setIsRunning(false);
     setSpotlightPos(null);
-    setTimeout(() => setPhase('report'), 1500);
+    safeTimeout(() => setPhase('report'), 1500);
   }
 
   function resetCanvas() {

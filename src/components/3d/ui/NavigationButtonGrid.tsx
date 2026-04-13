@@ -19,7 +19,7 @@
 
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
+import { Text, Html } from '@react-three/drei';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Group,
@@ -495,6 +495,62 @@ export function NavigationButtonGrid({
           onPress={() => handleNavigation(button)}
         />
       ))}
+
+      {/* ═══ Keyboard-accessible HTML overlay proxies (COCK-10 fix) ═══ */}
+      {/* Invisible buttons that receive keyboard focus, enabling Tab + Enter
+          navigation to mirror the 3D button grid. Visible only on :focus-visible. */}
+      <Html
+        position={[0, 0.02, 0.06]}
+        style={{ pointerEvents: 'none' }}
+        zIndexRange={[0, 0]}
+      >
+        <div
+          role="toolbar"
+          aria-label="Cockpit navigation buttons"
+          style={{
+            display: 'flex',
+            gap: '4px',
+            position: 'absolute',
+            transform: 'translate(-50%, -50%)',
+            pointerEvents: 'auto',
+          }}
+        >
+          {NAV_BUTTONS.map((button) => (
+            <button
+              key={button.id}
+              onClick={() => handleNavigation(button)}
+              aria-label={`Navigate to ${button.label}`}
+              aria-current={activeRoute === button.route ? 'page' : undefined}
+              style={{
+                width: '44px',
+                height: '44px',
+                background: 'transparent',
+                border: 'none',
+                color: 'transparent',
+                cursor: 'pointer',
+                borderRadius: '6px',
+                fontSize: '0',
+                outline: 'none',
+              }}
+              onFocus={(e) => {
+                e.currentTarget.style.outline = `2px solid ${button.color}`;
+                e.currentTarget.style.outlineOffset = '2px';
+                e.currentTarget.style.background = 'rgba(255,255,255,0.08)';
+                e.currentTarget.style.color = '#F0F0F4';
+                e.currentTarget.style.fontSize = '10px';
+              }}
+              onBlur={(e) => {
+                e.currentTarget.style.outline = 'none';
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'transparent';
+                e.currentTarget.style.fontSize = '0';
+              }}
+            >
+              {button.label}
+            </button>
+          ))}
+        </div>
+      </Html>
     </group>
   );
 }

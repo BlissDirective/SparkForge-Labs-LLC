@@ -371,8 +371,8 @@ export function HolographicHUD({
 
   const labelStyle = TYPE_SCALE.label;
   const captionStyle = TYPE_SCALE.caption;
-  const textFill = TEXT_COLORS.secondary.opacity * opacity;
-  const textMutedFill = TEXT_COLORS.muted.opacity * opacity;
+  const textFill = Math.max(0.4, TEXT_COLORS.secondary.opacity * opacity);
+  const textMutedFill = Math.max(0.4, TEXT_COLORS.muted.opacity * opacity);
 
   // Format readout strings
   const xpText = `XP: ${xp.toLocaleString()}`;
@@ -384,7 +384,7 @@ export function HolographicHUD({
     : '';
 
   return (
-    <group>
+    <group renderOrder={10}>
       {/* ════════ 4 Arc Segments (Viewport Frame) ════════ */}
       {FRAME_ARCS.map((arc, i) => (
         <group
@@ -473,7 +473,7 @@ export function HolographicHUD({
         anchorY="bottom"
         font={labelStyle.fontPath}
         fillOpacity={textMutedFill}
-        outlineWidth={0.002}
+        outlineWidth={0.005}
         outlineColor="#000000"
       >
         {modeText}
@@ -489,7 +489,7 @@ export function HolographicHUD({
           anchorY="bottom"
           font={labelStyle.fontPath}
           fillOpacity={textMutedFill}
-          outlineWidth={0.002}
+          outlineWidth={0.005}
           outlineColor="#000000"
         >
           {childText}
