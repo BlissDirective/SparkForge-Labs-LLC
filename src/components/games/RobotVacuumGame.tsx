@@ -945,7 +945,7 @@ export function RobotVacuumGame() {
 
                       {/* Rules panel */}
                       <div className="flex-1 flex flex-col min-w-0">
-                        <p className="font-display text-2xs font-bold text-white/30 mb-1">
+                        <p className="font-display text-2xs font-bold text-white/60 mb-1">
                           Rules (priority order):
                         </p>
                         <div className="flex-1 overflow-auto space-y-1">
@@ -991,7 +991,7 @@ export function RobotVacuumGame() {
                               {!running && rules.length > 1 && (
                                 <button
                                   onClick={() => removeRule(i)}
-                                  className="text-white/10 hover:text-red-400"
+                                  className="text-white/60 hover:text-red-400"
                                   aria-label={`Remove rule ${i + 1}`}
                                 >
                                   <Trash2 className="w-2.5 h-2.5" />
@@ -1032,7 +1032,7 @@ export function RobotVacuumGame() {
                               >
                                 {coverage}%
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Coverage
                               </p>
                             </div>
@@ -1040,7 +1040,7 @@ export function RobotVacuumGame() {
                               <p className="font-display text-lg font-black text-white">
                                 {stepCount}
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Steps
                               </p>
                             </div>
@@ -1048,7 +1048,7 @@ export function RobotVacuumGame() {
                               <p className="font-display text-lg font-black text-blue-400">
                                 {room.optimalSteps}
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Optimal
                               </p>
                             </div>
@@ -1069,13 +1069,13 @@ export function RobotVacuumGame() {
                                   : 0}
                                 %
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Efficiency
                               </p>
                             </div>
                           </div>
                           {ageBand === 'C' && (
-                            <p className="font-body text-2xs text-white/25 mt-1 text-center">
+                            <p className="font-body text-2xs text-white/60 mt-1 text-center">
                               Rule evaluation: {rules.length} production rules,
                               first-match semantics. Efficiency = optimal/actual
                               steps.
@@ -1105,7 +1105,7 @@ export function RobotVacuumGame() {
                       <button
                         onClick={resetRoom}
                         disabled={running}
-                        className="px-3 py-2 rounded-xl border border-white/10 text-white/25 font-body text-xs flex items-center gap-1 hover:border-white/20"
+                        className="px-3 py-2 rounded-xl border border-white/10 text-white/60 font-body text-xs flex items-center gap-1 hover:border-white/20"
                         aria-label="Reset room"
                       >
                         <RotateCcw className="w-3 h-3" /> Reset
@@ -1159,7 +1159,7 @@ export function RobotVacuumGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You programmed an intelligent agent using IF/THEN rules to navigate rooms and clean efficiently — just like real robot vacuums use rule-based AI!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#10B981]/10 border border-[#10B981]/20">
                       <p className="font-data text-2xl" style={{ color: '#10B981' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
