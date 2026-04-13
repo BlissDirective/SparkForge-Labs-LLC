@@ -137,7 +137,7 @@ export function TreatTrainerGame() {
       setRobotPos([...pos]);
       setPath([...trail]);
 
-      await new Promise(r => safeTimeout(r, 100));
+      await new Promise<void>(r => safeTimeout(r, 100));
       if (pos[0] === curGoal[0] && pos[1] === curGoal[1]) break;
     }
 

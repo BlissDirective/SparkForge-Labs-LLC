@@ -185,6 +185,7 @@ export default function OnboardingPanel() {
 
           {/* Next button */}
           <HolographicButton
+            id="onboarding-next-1"
             label="NEXT"
             color="#AA66FF"
             position={[0, -0.1, 0]}
@@ -253,6 +254,7 @@ export default function OnboardingPanel() {
 
           {/* Back / Next buttons */}
           <HolographicButton
+            id="onboarding-back-2"
             label="BACK"
             color="#555566"
             position={[-0.12, -0.25, 0]}
@@ -260,6 +262,7 @@ export default function OnboardingPanel() {
             onClick={() => setStep(1)}
           />
           <HolographicButton
+            id="onboarding-next-2"
             label="NEXT"
             color="#AA66FF"
             position={[0.12, -0.25, 0]}
@@ -309,6 +312,7 @@ export default function OnboardingPanel() {
 
           {/* Back / Launch buttons */}
           <HolographicButton
+            id="onboarding-back-3"
             label="BACK"
             color="#555566"
             position={[-0.12, -0.1, 0]}
@@ -316,6 +320,7 @@ export default function OnboardingPanel() {
             onClick={() => setStep(2)}
           />
           <HolographicButton
+            id="onboarding-launch"
             label={loading ? 'LAUNCHING...' : 'LAUNCH!'}
             color={selectedLabColor}
             position={[0.12, -0.1, 0]}

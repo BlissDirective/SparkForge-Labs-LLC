@@ -222,7 +222,7 @@ export function BuildClassifierGame() {
     for (let i = 0; i <= 100; i += 5) {
       if (!mountedRef.current) return; // STD-BC1: abort if unmounted
       setTrainingProgress(i);
-      await new Promise((r) => safeTimeout(r, 80));
+      await new Promise<void>((r) => safeTimeout(r, 80));
     }
     if (!mountedRef.current) return; // STD-BC1: abort if unmounted
     setIsTraining(false);

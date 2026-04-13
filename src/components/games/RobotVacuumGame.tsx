@@ -600,7 +600,7 @@ export function RobotVacuumGame() {
       }
 
       setCleaned(new Set(cl));
-      await new Promise((r) => safeTimeout(r, 200));
+      await new Promise<void>((r) => safeTimeout(r, 200));
       if (cl.size === totalDirt || !acted) break;
     }
 

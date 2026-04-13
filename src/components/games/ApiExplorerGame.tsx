@@ -532,7 +532,7 @@ export function ApiExplorerGame() {
     setSending(true);
     setResponse(null);
 
-    await new Promise((r) => safeTimeout(r, 600 + Math.random() * 400));
+    await new Promise<void>((r) => safeTimeout(r, 600 + Math.random() * 400));
 
     // Check for rate limiting: 3+ requests to the same endpoint in rapid succession
     const now = Date.now();

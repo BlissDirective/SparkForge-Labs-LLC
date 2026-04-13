@@ -677,7 +677,7 @@ export function CodeBlocksGame() {
         setOutputLines((prev) => [...prev, challenge.outputSteps[i]]);
         if (challenge.robotSequence[i])
           setRobotPose(challenge.robotSequence[i]);
-        await new Promise((r) => safeTimeout(r, 450));
+        await new Promise<void>((r) => safeTimeout(r, 450));
       }
       setRobotPose('correct');
       const starCount = !showHint && attempts === 1 ? 3 : !showHint ? 2 : 1;

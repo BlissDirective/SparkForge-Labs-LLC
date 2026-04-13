@@ -696,7 +696,7 @@ export function NeuralBuilderGame() {
 
     let prevAcc = 0;
     for (let e = 1; e <= epochs; e++) {
-      await new Promise((r) => safeTimeout(r, 600));
+      await new Promise<void>((r) => safeTimeout(r, 600));
       // BUG-NB1 fix: architecture-dependent convergence curve
       const progress = e / epochs;
       const curvedProgress = e <= plateauEpoch
