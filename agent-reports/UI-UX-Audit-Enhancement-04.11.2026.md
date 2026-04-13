@@ -1160,5 +1160,65 @@ All 23 P1 findings resolved. 3 were already resolved from prior fixes. 20 receiv
 #### DASH-06 — Skip-link target RESOLVED
 - id="main-content" added to dashboard ARIA live region.
 
-### Sprint 2 Second Half Remaining (13 findings)
-DASH-07, DASH-08, DASH-10, DASH-11, GAME-06, GAME-07, IND-03, IND-08, IND-09, IND-10, IND-11
+### Sprint 2 Second Half (13 findings) — COMPLETE
+
+---
+
+## Appendix F — Sprint 2 Second-Half Implementation Log (April 13, 2026)
+
+> **Session:** `claude/resolve-uiux-conflicts-dWyAO`
+> **Completed by:** Claude Code (Opus 4.6)
+> **Date:** April 13, 2026
+> **Status:** ALL 27 P2 FINDINGS RESOLVED (Sprint 2 complete)
+
+### Commit Log
+
+| # | Commit | Finding(s) | Files | Description |
+|---|--------|-----------|-------|-------------|
+| 13 | `f1bf9d3` | DASH-08/10/11, IND-11 | 4 | Error msgs, ARIA ring, useMemo, scoring |
+| 14 | `806b3f2` | DASH-07, GAME-06, GAME-07 | 9 | Arcade mode, reduced-motion, learn phases |
+| 15 | `0598f8f` | GAME-07, DASH-07 (extras) | 3 | RealOrFake tips→learn, arcade audio+tokens |
+
+### Finding-by-Finding Detail
+
+#### DASH-07 — Arcade-specific cockpit mode (Option B) RESOLVED
+- Full arcade mode: CockpitMode type, all 8 preset maps, useStationMode pathname detection, cockpitUIStore center content, cockpitAudio frequency, cockpitDesignTokens fill light + focus targets. LED #88CC44 (green-amber), FOV 60, 500 particles, centerScale 1.05.
+
+#### DASH-08 — Tier-specific error messages RESOLVED
+- Add-child page parses error codes (TIER_LIMIT, VALIDATION_ERROR) with specific guidance.
+
+#### DASH-10 — PaywallModal ARIA RESOLVED
+- SVG progress ring: role="progressbar", aria-valuenow/min/max, aria-label.
+
+#### DASH-11 — Mock data useMemo RESOLVED
+- Prompt History generateMockPrompts wrapped in useMemo keyed on children.
+
+#### GAME-06 — Reduced-motion in GameShell (Option A) RESOLVED
+- useReducedMotion from motion/react. data-reduced-motion attribute on wrapper div. All 35 games inherit.
+
+#### GAME-07 — Learn phases (Option A) RESOLVED
+- TokenChopper: learn phase added (Phase type + 3 LEARN_CARDS + JSX + transitions)
+- AiArtDetective: 'tips' → 'learn' renamed (Phase type + all references)
+- RealOrFake: 'tips' → 'learn' renamed (same pattern)
+- Remaining 6 verified: ToolPicker, DataShield, FoolTheAi, PredictionMarket, CareerExplorer all have 'learn'. All 20 Standard games now have welcome→learn→play→complete flow.
+
+#### IND-03, IND-08, IND-09, IND-10 — ALREADY RESOLVED
+- AiSpy scoring: comment and code consistent (no penalty for wrong)
+- CameraQuest Band A: FLL-012 fix in place (maxDiff=1)
+- CameraQuest video: FLL-014 cleanup in place (srcObject nullified)
+- ChatbotBuilder Math.max: Math.max(0, ...depths) prevents -Infinity
+
+#### IND-11 — SentimentScanner scoring RESOLVED
+- setMaxScore(challenges.length * 15) added. HUD arc now fills accurately.
+
+### Sprint Status
+
+| Sprint | Findings | Status |
+|--------|----------|--------|
+| **Sprint 0** | 12 P0 | **COMPLETE** |
+| **Sprint 1** | 23 P1 | **COMPLETE** |
+| **Sprint 2** | 27 P2 | **COMPLETE** |
+| Sprint 3 | 13 P3 + ENH | Pending |
+
+### Build Status
+- **npm run build:** PASS
