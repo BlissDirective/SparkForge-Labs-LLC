@@ -286,7 +286,7 @@ export const STATE_MACHINE: Record<ComponentState, StateVisuals> = {
 export const PANEL_SEAMS = {
   widthPx: 0.5,
   opacity: 0.10,
-  color: '#000000',
+  color: '#0A0E16',
 } as const;
 
 export const MICRO_TEXTURE = {

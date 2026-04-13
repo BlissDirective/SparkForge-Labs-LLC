@@ -143,7 +143,7 @@ const config: Config = {
         'chrome-shimmer': 'chrome-shimmer 3s linear infinite',
         'connection-pulse': 'connection-pulse 4s ease-in-out infinite',
         'hex-appear': 'hex-appear 0.4s ease both',
-        'badge-unlock': 'badge-unlock 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+        'badge-unlock': 'badge-unlock 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards',
         'confetti-fall': 'confetti-fall 3s ease-in forwards',
         'slide-up': 'slide-up-spring 0.5s ease-out forwards',
         'scale-bounce': 'scale-bounce 0.5s ease-out forwards',

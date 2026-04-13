@@ -58,7 +58,7 @@
   z-index: 9999;
   padding: 12px 24px;
   background: var(--neon-blue);
-  color: #000;
+  color: #0A0E16;
   font-family: 'Sora', sans-serif;
   font-weight: 700;
   font-size: 14px;
@@ -69,7 +69,7 @@
 
 .skip-to-content:focus {
   top: 0;
-  outline: 3px solid white;
+  outline: 3px solid #F0F0F4;
   outline-offset: 2px;
 }
 
