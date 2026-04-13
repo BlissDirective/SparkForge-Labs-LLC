@@ -1101,9 +1101,64 @@ All 23 P1 findings resolved. 3 were already resolved from prior fixes. 20 receiv
 |--------|----------|--------|
 | **Sprint 0** | 12 P0 | **COMPLETE** |
 | **Sprint 1** | 23 P1 | **COMPLETE** (12 first half + 11 second half) |
-| Sprint 2 | 27 P2 | Pending |
+| **Sprint 2** | 27 P2 | **14/27 COMPLETE** (first half) |
 | Sprint 3 | 13 P3 + ENH | Pending |
 
 ### Build Status
 
 - **npm run build:** PASS (warnings only — pre-existing unused vars and hook dependency warnings)
+
+---
+
+## Appendix E — Sprint 2 First-Half Implementation Log (April 13, 2026)
+
+> **Session:** `claude/resolve-uiux-conflicts-dWyAO`
+> **Completed by:** Claude Code (Opus 4.6)
+> **Date:** April 13, 2026
+> **Status:** 14 OF 27 P2 FINDINGS RESOLVED
+
+### Commit Log
+
+| # | Commit | Finding(s) | Files | Description |
+|---|--------|-----------|-------|-------------|
+| 11 | `a6adadf` | DES-07/08/09/11/12/14 | 2 | Font metrics, spacing, rem, z-index, touch targets |
+| 12 | `b5110b8` | COCK-04/07/09/11/12, DASH-05/06 | 6 | Troika SDF text, cockpit verified, onboarding persist, skip-link |
+
+### Finding-by-Finding Detail
+
+#### DES-07 — Font fallback metrics RESOLVED
+- @font-face with size-adjust/ascent-override for 'Sora Fallback' and 'Exo 2 Fallback'. Reduces CLS on font swap.
+
+#### DES-08 — Semantic spacing tokens RESOLVED
+- --space-xs through --space-section in :root. Mapped to Tailwind spacing config (p-sm, gap-lg, mt-section).
+
+#### DES-09 — Hardcoded px → rem RESOLVED
+- Skip-link padding/font-size/border-radius converted to rem units.
+
+#### DES-11 — Emissive glow reduced-motion ALREADY RESOLVED
+- `.emissive-glow-pulse { animation: none; }` already in reduced-motion block.
+
+#### DES-12 — z-index 9999 → 100 RESOLVED
+- Skip-link z-index normalized.
+
+#### DES-14 — Touch target utility RESOLVED
+- `.touch-target { min-width: 44px; min-height: 44px; }` added.
+
+#### AUTH-05 — Demo modal keyboard ALREADY RESOLVED (Sprint 1)
+
+#### COCK-04 — Full troika SDF migration RESOLVED
+- CockpitText.tsx: @react-three/uikit Text → @react-three/drei Text (troika-three-text SDF). Crisp at any size/rotation. Font sizes aligned to TYPE_SCALE tokens. Zero consumer breakage.
+
+#### COCK-07 — Game mode Z offset ALREADY IMPLEMENTED
+#### COCK-09 — Lazy() removed from side panels ALREADY IMPLEMENTED
+#### COCK-11 — Haptic feedback ALREADY IMPLEMENTED
+#### COCK-12 — Geometry disposal ALREADY IMPLEMENTED
+
+#### DASH-05 — Onboarding persistence RESOLVED
+- Step + selectedLab saved to localStorage. Restored on mount.
+
+#### DASH-06 — Skip-link target RESOLVED
+- id="main-content" added to dashboard ARIA live region.
+
+### Sprint 2 Second Half Remaining (13 findings)
+DASH-07, DASH-08, DASH-10, DASH-11, GAME-06, GAME-07, IND-03, IND-08, IND-09, IND-10, IND-11
