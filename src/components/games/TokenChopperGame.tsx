@@ -101,7 +101,7 @@ export function TokenChopperGame() {
   const [challengePassed, setChallengePassed] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredChallenges = useFilteredContent(CHALLENGES, tier, ageBand);
+  const challenges = useFilteredContent(CHALLENGES, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const tokens = useMemo(() => tokenize(text), [text]);
@@ -121,7 +121,7 @@ export function TokenChopperGame() {
   })), []);
 
   function checkChallenge() {
-    const c = CHALLENGES[challengeIdx];
+    const c = challenges[challengeIdx];
     let passed = false;
     if (c.target === 'single' && tokens.length === 1 && tokens[0].type === 'word' && tokens[0].token.length === 4) passed = true;
     if (c.target === 'anyword' && tokens.some(t => t.type === 'subword')) passed = true;
@@ -154,7 +154,7 @@ export function TokenChopperGame() {
       game.updateScore(15);
       game.advanceRound();
       setShowHint(false);
-      if (challengeIdx < CHALLENGES.length - 1) {
+      if (challengeIdx < challenges.length - 1) {
         safeTimeout(() => {
           setChallengeIdx(i => i + 1);
           setText('');
@@ -167,7 +167,7 @@ export function TokenChopperGame() {
   }
 
   return (
-    <GameShell gameId="token-chopper" title="Token Chopper" worldNumber={4} worldColor="#FFAA44" totalRounds={CHALLENGES.length}>
+    <GameShell gameId="token-chopper" title="Token Chopper" worldNumber={4} worldColor="#D9A430" totalRounds={challenges.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -265,13 +265,13 @@ export function TokenChopperGame() {
                   >
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={challengeIdx + 1} total={CHALLENGES.length} labColor="#FFAA44" />
+                      <GameProgressTracker current={challengeIdx + 1} total={challenges.length} labColor="#FFAA44" />
                     </div>
                     {/* ENH: Progress bar for challenges */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${completed.size} of ${CHALLENGES.length} challenges completed`}>
-                          {completed.size}/{CHALLENGES.length} challenges
+                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${completed.size} of ${challenges.length} challenges completed`}>
+                          {completed.size}/{challenges.length} challenges
                         </span>
                         <span className="font-data text-2xs text-orange-400" role="status" aria-label={`Score: ${animatedScore} points`}>{animatedScore} pts</span>
                       </div>
@@ -279,7 +279,7 @@ export function TokenChopperGame() {
                         <motion.div
                           className="h-full rounded-full"
                           style={{ background: 'linear-gradient(90deg, #FFAA44, #FF8822)' }}
-                          animate={{ width: `${(completed.size / CHALLENGES.length) * 100}%` }}
+                          animate={{ width: `${(completed.size / challenges.length) * 100}%` }}
                           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                         />
                       </div>
@@ -295,11 +295,11 @@ export function TokenChopperGame() {
                       transition={{ duration: 0.8 }}
                     >
                       <p className="font-display text-sm font-bold text-orange-400">
-                        {CHALLENGES[challengeIdx].text}
+                        {challenges[challengeIdx].text}
                       </p>
                       {showHint && (
                         <p className="font-body text-2xs text-white/30 mt-1">
-                          {CHALLENGES[challengeIdx].hint}
+                          {challenges[challengeIdx].hint}
                         </p>
                       )}
                       {!showHint && (

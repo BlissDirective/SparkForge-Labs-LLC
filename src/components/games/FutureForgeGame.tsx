@@ -381,7 +381,7 @@ export default function FutureForgeGame() {
   })), []);
 
   return (
-    <GameShell gameId="future-forge" title="Future Forge" worldNumber={10} worldColor="#D946EF" totalRounds={totalRounds}>
+    <GameShell gameId="future-forge" title="Future Forge" worldNumber={10} worldColor="#DE5AEA" totalRounds={totalRounds}>
       {/* Chrome bezel */}
       <div className="relative rounded-2xl border border-white/[0.06] bg-surface-base overflow-hidden"
         style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)' }}>

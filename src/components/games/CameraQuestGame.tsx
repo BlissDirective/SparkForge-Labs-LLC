@@ -331,7 +331,7 @@ export function CameraQuestGame() {
       gameId="camera-quest"
       title="Camera Quest"
       worldNumber={7}
-      worldColor="#06B6D4"
+      worldColor="#10BAD2"
       xpReward={25}
       totalRounds={items.length}
     >

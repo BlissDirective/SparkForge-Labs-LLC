@@ -603,7 +603,7 @@ export function ApiExplorerGame() {
       gameId="api-explorer"
       title="API Explorer"
       worldNumber={9}
-      worldColor="#F97316"
+      worldColor="#E68E28"
       totalRounds={ENDPOINTS.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">

@@ -281,12 +281,12 @@ export function AiArtDetectiveGame() {
   // ENH: Detective badge earned after 3+ correct
   const [showDetectiveBadge, setShowDetectiveBadge] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredRounds = useFilteredContent(ROUNDS, tier, ageBand);
+  const rounds = useFilteredContent(ROUNDS, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
-  const round = ROUNDS[roundIdx];
+  const round = rounds[roundIdx];
   const confidencePct = roundIdx > 0 ? Math.round((correctCount / roundIdx) * 100) : 0;
   const confidenceColor = confidencePct >= 70 ? '#00FF88' : confidencePct >= 40 ? '#FFAA44' : '#FF6644';
 
@@ -321,7 +321,7 @@ export function AiArtDetectiveGame() {
     }
     safeTimeout(() => {
       setShowResult(null);
-      if (roundIdx < ROUNDS.length - 1) {
+      if (roundIdx < rounds.length - 1) {
         setRoundIdx(i => i + 1);
         game.advanceRound();
       } else {
@@ -332,7 +332,7 @@ export function AiArtDetectiveGame() {
   }
 
   return (
-    <GameShell gameId="ai-art-detective" title="AI Art Detective" worldNumber={4} worldColor="#FFAA44" totalRounds={ROUNDS.length}>
+    <GameShell gameId="ai-art-detective" title="AI Art Detective" worldNumber={4} worldColor="#D9A430" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -467,7 +467,7 @@ export function AiArtDetectiveGame() {
                   >
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={roundIdx + 1} total={ROUNDS.length} labColor="#FFAA44" />
+                      <GameProgressTracker current={roundIdx + 1} total={rounds.length} labColor="#FFAA44" />
                     </div>
                     {/* Confidence meter */}
                     {roundIdx > 0 && (
@@ -495,7 +495,7 @@ export function AiArtDetectiveGame() {
                       </p>
                     )}
                     <p className="font-body text-sm text-white/50 mb-3">
-                      Which one was made by AI? Round {roundIdx + 1}/{ROUNDS.length}
+                      Which one was made by AI? Round {roundIdx + 1}/{rounds.length}
                     </p>
 
                     {/* ENH: Detective badge animation overlay */}
@@ -540,7 +540,7 @@ export function AiArtDetectiveGame() {
                           // ENH: Zoom lens hover effect — scale 1.05 with shadow lift
                           whileHover={!showResult ? { scale: 1.05, boxShadow: '0 8px 30px rgba(0,0,0,0.4)' } : {}}
                           whileTap={!showResult ? { scale: 0.97 } : {}}
-                          aria-label={`Select ${side} artwork as AI-generated, round ${roundIdx + 1} of ${ROUNDS.length}`}
+                          aria-label={`Select ${side} artwork as AI-generated, round ${roundIdx + 1} of ${rounds.length}`}
                         >
                           <div className="absolute inset-0">
                             {(side === 'left' ? round.leftShapes : round.rightShapes).map((s, i) => (

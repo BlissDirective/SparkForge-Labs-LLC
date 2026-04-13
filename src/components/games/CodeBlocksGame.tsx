@@ -574,8 +574,6 @@ const ROBOT_POSES: Record<string, { emoji: string; label: string }> = {
   skip:     { emoji: '\ud83e\udd16', label: '' },
 };
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 // --- Hook: detect desktop ---
 function useIsDesktop() {
   const [isDesktop, setIsDesktop] = useState(false);
@@ -616,16 +614,16 @@ export function CodeBlocksGame() {
   const filteredChallenges = useFilteredContent(ALL_CHALLENGES, tier, ageBand);
   const terminalRef = useRef<HTMLDivElement>(null);
 
-  // Merge hardcoded + dynamic challenges, filter by age band
+  // Merge hardcoded (filtered by tier + band) + dynamic challenges
   const challenges = useMemo(() => {
-    const pool = [...ALL_CHALLENGES];
+    const pool = [...filteredChallenges];
     if (dynamicContent?.scenarios?.length) {
       for (const s of dynamicContent.scenarios) {
         try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as Challenge); } catch { /* skip */ }
       }
     }
-    return pool.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]);
-  }, [ageBand, dynamicContent?.scenarios]);
+    return pool;
+  }, [filteredChallenges, dynamicContent?.scenarios]);
   const challenge = challenges[challengeIdx];
 
   const particles = useMemo(
@@ -722,7 +720,7 @@ export function CodeBlocksGame() {
 
   // --- JSX ---
   return (
-    <GameShell gameId="code-blocks" title="Code Blocks" worldNumber={9} worldColor="#F97316" totalRounds={challenges.length}>
+    <GameShell gameId="code-blocks" title="Code Blocks" worldNumber={9} worldColor="#E68E28" totalRounds={challenges.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none">

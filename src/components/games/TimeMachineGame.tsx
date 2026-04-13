@@ -78,8 +78,6 @@ const LEARN_CARDS = [
   { title: 'AI Keeps Growing', emoji: '🚀', desc: 'Every year, AI gets smarter and more useful. In this game, you\'ll place important AI milestones on a timeline to see how it all unfolded!' },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function TimeMachineGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -101,8 +99,8 @@ export function TimeMachineGame() {
   const animatedScore = useAnimatedCounter(game.score);
 
   const milestones = useMemo(
-    () => ALL_MILESTONES.filter(m => BAND_ORDER[m.band] <= BAND_ORDER[ageBand]).sort((a, b) => a.year - b.year),
-    [ageBand]
+    () => [...filteredMilestones].sort((a, b) => a.year - b.year),
+    [filteredMilestones]
   );
 
   const [trayCards, setTrayCards] = useState<Milestone[]>(() => {
@@ -163,7 +161,7 @@ export function TimeMachineGame() {
   }
 
   return (
-    <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#00BBFF" totalRounds={milestones.length}>
+    <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#0FB8FA" totalRounds={milestones.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

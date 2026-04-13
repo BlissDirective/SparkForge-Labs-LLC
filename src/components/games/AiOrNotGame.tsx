@@ -202,9 +202,9 @@ export function AiOrNotGame() {
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const filteredScenarios = useFilteredContent(ALL_SCENARIOS as any[], tier, ageBand) as typeof ALL_SCENARIOS;
 
-  // Merge hardcoded + dynamic scenarios, filter/shuffle/slice
+  // Merge filtered hardcoded + dynamic scenarios, filter by bandMin/shuffle/slice
   const rounds = useMemo(() => {
-    const pool = [...ALL_SCENARIOS];
+    const pool = [...filteredScenarios];
     if (dynamicContent?.scenarios?.length) {
       for (const s of dynamicContent.scenarios) {
         try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as Scenario); } catch { /* skip */ }
@@ -212,7 +212,7 @@ export function AiOrNotGame() {
     }
     const filtered = pool.filter(s => BAND_ORDER[s.bandMin] <= BAND_ORDER[ageBand]);
     return [...filtered].sort(() => Math.random() - 0.5).slice(0, ageBand === 'A' ? 8 : 10);
-  }, [ageBand, dynamicContent?.scenarios]);
+  }, [filteredScenarios, ageBand, dynamicContent?.scenarios]);
 
   const round = rounds[roundIdx];
   const totalRounds = rounds.length;
@@ -266,7 +266,7 @@ export function AiOrNotGame() {
   const finishGame = useCallback(() => { game.completeGame(); setPhase('complete'); }, [game]);
 
   return (
-    <GameShell gameId="ai-or-not" title="AI or Not?" worldNumber={10} worldColor="#D946EF" xpReward={25} totalRounds={totalRounds}>
+    <GameShell gameId="ai-or-not" title="AI or Not?" worldNumber={10} worldColor="#DE5AEA" xpReward={25} totalRounds={totalRounds}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         {particles.map(p => (

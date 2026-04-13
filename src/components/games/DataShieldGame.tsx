@@ -175,12 +175,12 @@ export function DataShieldGame() {
   const [privacyScore, setPrivacyScore] = useState(100);
   const [feedback, setFeedback] = useState<{ correct: boolean; reason: string } | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredScenarios = useFilteredContent(SCENARIOS as any[], tier, ageBand) as typeof SCENARIOS;
+  const scenarios = useFilteredContent(SCENARIOS as any[], tier, ageBand) as typeof SCENARIOS;
   const { safeTimeout } = useSafeTimeout();
 
-  const scenario = SCENARIOS[scenarioIdx];
+  const scenario = scenarios[scenarioIdx];
   const point = scenario?.dataPoints[pointIdx];
-  const totalDataPoints = SCENARIOS.reduce((sum, s) => sum + s.dataPoints.length, 0);
+  const totalDataPoints = scenarios.reduce((sum, s) => sum + s.dataPoints.length, 0);
   const meterColor = privacyScore > 70 ? '#10B981' : privacyScore > 40 ? '#F59E0B' : '#EF4444';
 
   // STD-DS2: Set maxScore to total data points * 10 (not scenarios * 10)
@@ -214,14 +214,14 @@ export function DataShieldGame() {
       if (next < scenario.dataPoints.length) { setPointIdx(next); }
       else {
         const nextS = scenarioIdx + 1;
-        if (nextS < SCENARIOS.length) { setScenarioIdx(nextS); setPointIdx(0); game.advanceRound(); }
+        if (nextS < scenarios.length) { setScenarioIdx(nextS); setPointIdx(0); game.advanceRound(); }
         else { setPhase('complete'); game.completeGame(); }
       }
     }, 2500);
   }
 
   return (
-    <GameShell gameId="data-shield" title="Data Shield" worldNumber={6} worldColor="#FF6644" totalRounds={SCENARIOS.length}>
+    <GameShell gameId="data-shield" title="Data Shield" worldNumber={6} worldColor="#FF7050" totalRounds={scenarios.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -290,7 +290,7 @@ export function DataShieldGame() {
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-md space-y-2">
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={scenarioIdx + 1} total={SCENARIOS.length} labColor="#FF6644" />
+                      <GameProgressTracker current={scenarioIdx + 1} total={scenarios.length} labColor="#FF6644" />
                     </div>
                     {/* Privacy meter */}
                     <div className="mb-4">

@@ -797,7 +797,7 @@ export function PetTrainerGame() {
       gameId="pet-trainer"
       title="AI Pet Trainer"
       worldNumber={2}
-      worldColor="#AA66FF"
+      worldColor="#B67BFF"
       xpReward={30}
       totalRounds={categorySet.training.length}
       hints={3}

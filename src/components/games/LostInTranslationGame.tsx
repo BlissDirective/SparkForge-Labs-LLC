@@ -170,8 +170,6 @@ const ALL_ROUNDS: Round[] = [
   },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function LostInTranslationGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -183,12 +181,10 @@ export function LostInTranslationGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
+  const rounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(-1);
   const animatedScore = useAnimatedCounter(game.score);
-
-  const rounds = useMemo(() => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]), [ageBand]);
 
   const round = rounds[idx];
   const allRevealed = step >= (round?.steps.length ?? 0);
@@ -212,7 +208,7 @@ export function LostInTranslationGame() {
   }
 
   return (
-    <GameShell gameId="lost-in-translation" title="Lost in Translation" worldNumber={8} worldColor="#818CF8" totalRounds={rounds.length}>
+    <GameShell gameId="lost-in-translation" title="Lost in Translation" worldNumber={8} worldColor="#8F96FA" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

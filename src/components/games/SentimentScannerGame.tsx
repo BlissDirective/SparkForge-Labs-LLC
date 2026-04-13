@@ -99,7 +99,7 @@ export function SentimentScannerGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredChallenges = useFilteredContent(CHALLENGES, tier, ageBand);
+  const challenges = useFilteredContent(CHALLENGES, tier, ageBand);
   const [text, setText] = useState('');
   const [ci, setCi] = useState(0);
   const [done, setDone] = useState<Set<number>>(new Set());
@@ -119,7 +119,7 @@ export function SentimentScannerGame() {
   })), []);
 
   function check() {
-    const c = CHALLENGES[ci];
+    const c = challenges[ci];
     const ok = c.check(score, wordCount, hl);
     if (ok && !done.has(ci)) {
       setDone(p => new Set(p).add(ci));
@@ -128,14 +128,14 @@ export function SentimentScannerGame() {
       setShowSuccess(true);
       safeTimeout(() => {
         setShowSuccess(false);
-        if (ci < CHALLENGES.length - 1) { setCi(i => i + 1); setText(''); }
+        if (ci < challenges.length - 1) { setCi(i => i + 1); setText(''); }
         else { setPhase('complete'); game.completeGame(); }
       }, 1500);
     }
   }
 
   return (
-    <GameShell gameId="sentiment-scanner" title="Sentiment Scanner" worldNumber={8} worldColor="#818CF8" totalRounds={CHALLENGES.length}>
+    <GameShell gameId="sentiment-scanner" title="Sentiment Scanner" worldNumber={8} worldColor="#8F96FA" totalRounds={challenges.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -211,11 +211,11 @@ export function SentimentScannerGame() {
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-md">
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={ci + 1} total={CHALLENGES.length} labColor="#818CF8" />
+                      <GameProgressTracker current={ci + 1} total={challenges.length} labColor="#818CF8" />
                     </div>
                     {/* Challenge */}
                     <div className="rounded-xl p-3 mb-3 border border-indigo-500/20 bg-indigo-500/5 text-center">
-                      <p className="font-display text-sm font-bold text-indigo-400">{'\u{1F3AF}'} {CHALLENGES[ci].text}</p>
+                      <p className="font-display text-sm font-bold text-indigo-400">{'\u{1F3AF}'} {challenges[ci].text}</p>
                     </div>
 
                     {/* Mood meter */}

@@ -608,7 +608,7 @@ export function SortToyBoxGame() {
       gameId="sort-toy-box"
       title="Sort the Toy Box"
       worldNumber={2}
-      worldColor="#AA66FF"
+      worldColor="#B67BFF"
       totalRounds={5}
     >
       <div className="h-full flex flex-col relative overflow-hidden">

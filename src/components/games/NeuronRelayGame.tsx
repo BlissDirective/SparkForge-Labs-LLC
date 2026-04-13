@@ -93,15 +93,15 @@ export function NeuronRelayGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [pi, setPi] = useState(0);
-  const puzzle = PUZZLES[pi];
-  const [neurons, setNeurons] = useState<Neuron[]>(() => Array.from({ length: puzzle.n }, (_, i) => ({ id: i, on: false, vol: 50 })));
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const puzzles = useFilteredContent(PUZZLES, tier, ageBand);
+  const puzzle = puzzles[pi];
+  const [neurons, setNeurons] = useState<Neuron[]>(() => Array.from({ length: PUZZLES[0].n }, (_, i) => ({ id: i, on: false, vol: 50 })));
   const [result, setResult] = useState<'none' | 'pass' | 'fail'>('none');
   const [showHint, setShowHint] = useState(false);
   const [streak, setStreak] = useState(0);
   const [firingNeurons, setFiringNeurons] = useState<Set<number>>(new Set());
   const animatedScore = useAnimatedCounter(game.score);
-  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredPuzzles = useFilteredContent(PUZZLES, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const signal = neurons.reduce((s, n) => s + (n.on ? n.vol * 0.2 : 0), 0);
@@ -130,10 +130,10 @@ export function NeuronRelayGame() {
       setStreak(s => s + 1);
       game.updateScore(10);
       safeTimeout(() => {
-        if (pi < PUZZLES.length - 1) {
+        if (pi < puzzles.length - 1) {
           const next = pi + 1;
           setPi(next);
-          setNeurons(Array.from({ length: PUZZLES[next].n }, (_, i) => ({ id: i, on: false, vol: 50 })));
+          setNeurons(Array.from({ length: puzzles[next].n }, (_, i) => ({ id: i, on: false, vol: 50 })));
           setResult('none'); setShowHint(false);
           game.advanceRound();
         } else { setPhase('complete'); game.completeGame(); }
@@ -144,7 +144,7 @@ export function NeuronRelayGame() {
   }
 
   return (
-    <GameShell gameId="neuron-relay" title="Neuron Relay" worldNumber={3} worldColor="#FF66AA" totalRounds={PUZZLES.length}>
+    <GameShell gameId="neuron-relay" title="Neuron Relay" worldNumber={3} worldColor="#FF70AF" totalRounds={puzzles.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -257,12 +257,12 @@ export function NeuronRelayGame() {
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-md">
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={pi + 1} total={PUZZLES.length} labColor="#FF66AA" />
+                      <GameProgressTracker current={pi + 1} total={puzzles.length} labColor="#FF66AA" />
                     </div>
                     <div className="flex items-center justify-between mb-2">
                       <p className="font-body text-xs text-white/30">
-                        {ageBand === 'C' ? `Puzzle ${pi + 1}/${PUZZLES.length} \u2014 Target: [${puzzle.target[0]}, ${puzzle.target[1]}]`
-                          : `Puzzle ${pi + 1}/${PUZZLES.length} \u2014 Hit the green zone!`}
+                        {ageBand === 'C' ? `Puzzle ${pi + 1}/${puzzles.length} \u2014 Target: [${puzzle.target[0]}, ${puzzle.target[1]}]`
+                          : `Puzzle ${pi + 1}/${puzzles.length} \u2014 Hit the green zone!`}
                       </p>
                       {/* ENH: Streak display */}
                       {streak >= 2 && (
@@ -384,7 +384,7 @@ export function NeuronRelayGame() {
                     <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Neuron Relay Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
-                      You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across {PUZZLES.length} puzzles.
+                      You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across {puzzles.length} puzzles.
                     </p>
                     {/* ENH: Animated score counter */}
                     <motion.div

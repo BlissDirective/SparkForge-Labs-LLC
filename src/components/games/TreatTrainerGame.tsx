@@ -68,9 +68,9 @@ export function TreatTrainerGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredMazes = useFilteredContent(MAZES, tier, ageBand);
+  const mazes = useFilteredContent(MAZES, tier, ageBand);
   const [mazeIdx, setMazeIdx] = useState(0);
-  const maze = MAZES[mazeIdx];
+  const maze = mazes[mazeIdx];
   const isWall = useCallback((r: number, c: number) => maze.walls.some(([wr, wc]) => wr === r && wc === c), [maze.walls]);
   const [rewards, setRewards] = useState({ toward: 3, away: -2, wall: -5, goal: 10 });
   const [episode, setEpisode] = useState(0);
@@ -97,7 +97,7 @@ export function TreatTrainerGame() {
 
   const runEpisode = useCallback(async () => {
     setRunning(true);
-    const curMaze = MAZES[mazeIdx];
+    const curMaze = mazes[mazeIdx];
     const curSize = curMaze.size;
     const curGoal = curMaze.goal;
     const curStart = curMaze.start;
@@ -152,7 +152,7 @@ export function TreatTrainerGame() {
   }, [rewards, mazeIdx, updateScore, advanceRound, completeGame]);
 
   return (
-    <GameShell gameId="treat-trainer" title="Treat Trainer" worldNumber={2} worldColor="#AA66FF" totalRounds={TOTAL_EPISODES}>
+    <GameShell gameId="treat-trainer" title="Treat Trainer" worldNumber={2} worldColor="#B67BFF" totalRounds={TOTAL_EPISODES}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -258,8 +258,8 @@ export function TreatTrainerGame() {
                     {/* Maze selector */}
                     <div className="flex items-center gap-2 mb-2 justify-center">
                       <span className="font-body text-2xs text-white/30">Maze:</span>
-                      {MAZES.map((m, idx) => (
-                        <button key={idx} onClick={() => { if (!running && episode === 0) { setMazeIdx(idx); setRobotPos(MAZES[idx].start); setPath([]); setHistory([]); episodeRef.current = 0; setEpisode(0); } }}
+                      {mazes.map((m, idx) => (
+                        <button key={idx} onClick={() => { if (!running && episode === 0) { setMazeIdx(idx); setRobotPos(mazes[idx].start); setPath([]); setHistory([]); episodeRef.current = 0; setEpisode(0); } }}
                           className={`px-2 py-0.5 rounded text-2xs font-body transition-colors ${idx === mazeIdx ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-white/20 hover:text-white/40 border border-transparent'}`}
                           disabled={running || episode > 0}
                           aria-label={`Select maze: ${m.name} (${m.difficulty})`}>

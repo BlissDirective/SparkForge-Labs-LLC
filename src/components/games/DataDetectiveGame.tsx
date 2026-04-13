@@ -522,7 +522,7 @@ export function DataDetectiveGame() {
           fixedRows={new Set<number>()}
           deletedRows={new Set<number>()}
           lastFixedRow={showResult && selected === currentCase.correctIndex ? selected : null}
-          worldColor="#AA66FF"
+          worldColor="#B67BFF"
         />
       );
     } else {
@@ -536,7 +536,7 @@ export function DataDetectiveGame() {
   })), []);
 
   return (
-    <GameShell gameId="data-detective" title="Data Detective" worldNumber={2} worldColor="#AA66FF" totalRounds={cases.length}>
+    <GameShell gameId="data-detective" title="Data Detective" worldNumber={2} worldColor="#B67BFF" totalRounds={cases.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

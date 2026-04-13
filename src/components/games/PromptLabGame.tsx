@@ -1427,7 +1427,7 @@ export function PromptLabGame() {
       gameId="prompt-lab"
       title="Prompt Lab"
       worldNumber={4}
-      worldColor="#FFAA44"
+      worldColor="#D9A430"
       totalRounds={10}
     >
       <div className="h-full flex flex-col relative overflow-hidden">

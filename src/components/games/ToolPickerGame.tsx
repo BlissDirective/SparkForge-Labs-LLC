@@ -96,8 +96,6 @@ const ALL_TASKS: Task[] = [
   { text: 'Write a 5000-word research paper synthesizing 20 academic sources with proper citations', correctTool: 'writer', why: 'AI writers can synthesize multiple sources into coherent long-form text!', whyC: 'Long-form academic synthesis requires RAG over source documents, citation graph traversal, argument structuring, and stylistic consistency — tasks where large-context language models excel when grounded with retrieved evidence.', band: 'C' },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function ToolPickerGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -114,13 +112,9 @@ export function ToolPickerGame() {
   const [streak, setStreak] = useState(0);
   const [feedback, setFeedback] = useState<{ correct: boolean; why: string } | null>(null);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredTasks = useFilteredContent(ALL_TASKS, tier, ageBand);
+  const tasks = useFilteredContent(ALL_TASKS, tier, ageBand);
   const timerRef = useRef<ReturnType<typeof setInterval>>(undefined);
 
-  const tasks = useMemo(
-    () => ALL_TASKS.filter(t => BAND_ORDER[t.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
   const task = tasks[roundIdx];
   const multiplier = streak >= 5 ? 3 : streak >= 3 ? 2 : 1;
 
@@ -181,7 +175,7 @@ export function ToolPickerGame() {
   }
 
   return (
-    <GameShell gameId="tool-picker" title="Tool Picker" worldNumber={5} worldColor="#00FF88" totalRounds={tasks.length}>
+    <GameShell gameId="tool-picker" title="Tool Picker" worldNumber={5} worldColor="#00D17A" totalRounds={tasks.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

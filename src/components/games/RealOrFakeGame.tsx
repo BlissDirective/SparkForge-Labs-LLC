@@ -73,8 +73,6 @@ const ALL_ROUNDS: RFRound[] = [
   { type: 'headline', typeLabel: '📰 News Headline', content: 'Octopus DNA Is So Unique That Scientists Joked It Could Be Alien — Turns Out Their Genome Really Is Extraordinary', isFake: false, clue: 'Real! Octopus genomes have features found in no other animals, including massive RNA editing capabilities.', clueC: 'The 2015 octopus genome sequencing (Nature) revealed 33,000 protein-coding genes, extensive transposon expansion, and unprecedented RNA editing in neural tissue. Their "alien DNA" nickname reflects genuine genomic uniqueness among metazoans.', band: 'C' },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function RealOrFakeGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -88,13 +86,9 @@ export function RealOrFakeGame() {
   // STD-RF5: Removed local score state — use game.score from gameStore instead
   const [tipIdx, setTipIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
+  const rounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
-  const rounds = useMemo(
-    () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
   const round = rounds[roundIdx];
 
   // STD-RF2: Added cleanup return for scene content
@@ -125,7 +119,7 @@ export function RealOrFakeGame() {
   }
 
   return (
-    <GameShell gameId="real-or-fake" title="Real or Fake?" worldNumber={6} worldColor="#FF6644" totalRounds={rounds.length}>
+    <GameShell gameId="real-or-fake" title="Real or Fake?" worldNumber={6} worldColor="#FF7050" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
