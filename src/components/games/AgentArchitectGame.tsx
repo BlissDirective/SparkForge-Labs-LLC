@@ -803,7 +803,7 @@ export function AgentArchitectGame() {
 
   return (
     <GameShell gameId="agent-architect" title="Agent Architect"
-      worldNumber={5} worldColor="#10B981" totalRounds={8}>
+      worldNumber={5} worldColor="#00FF88" totalRounds={8}>
       <div className="h-full flex flex-col relative overflow-hidden">
 
         {/* Particle Background */}

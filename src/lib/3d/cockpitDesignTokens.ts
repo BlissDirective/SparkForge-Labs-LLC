@@ -37,7 +37,7 @@ export const NUMERIC_FONT_FAMILY = 'Orbitron-Bold';
 export const TEXT_COLORS = {
   primary:   { hex: '#F0F0F4', opacity: 1.0 },
   secondary: { hex: '#F0F0F4', opacity: 0.8 },
-  muted:     { hex: '#F0F0F4', opacity: 0.55 },
+  muted:     { hex: '#F0F0F4', opacity: 0.65 },
   dim:       { hex: '#F0F0F4', opacity: 0.35 },
   // accent: uses dynamic mode color — resolved at render time
 } as const;

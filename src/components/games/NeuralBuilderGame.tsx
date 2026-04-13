@@ -913,7 +913,7 @@ export function NeuralBuilderGame() {
       gameId="neural-builder"
       title="Neural Network Builder"
       worldNumber={3}
-      worldColor="#EC4899"
+      worldColor="#FF66AA"
       totalRounds={1}
     >
       {/* Chrome bezel + particles */}

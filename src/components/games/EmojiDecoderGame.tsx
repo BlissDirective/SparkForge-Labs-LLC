@@ -384,7 +384,7 @@ export function EmojiDecoderGame() {
   const finishGame = useCallback(() => { game.completeGame(); setPhase('complete'); }, [game]);
 
   return (
-    <GameShell gameId="emoji-decoder" title="Emoji Decoder" worldNumber={8} worldColor="#6366F1" xpReward={25} totalRounds={totalRounds}>
+    <GameShell gameId="emoji-decoder" title="Emoji Decoder" worldNumber={8} worldColor="#818CF8" xpReward={25} totalRounds={totalRounds}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         {particles.map(p => (

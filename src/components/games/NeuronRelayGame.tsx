@@ -144,7 +144,7 @@ export function NeuronRelayGame() {
   }
 
   return (
-    <GameShell gameId="neuron-relay" title="Neuron Relay" worldNumber={3} worldColor="#EC4899" totalRounds={PUZZLES.length}>
+    <GameShell gameId="neuron-relay" title="Neuron Relay" worldNumber={3} worldColor="#FF66AA" totalRounds={PUZZLES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

@@ -656,7 +656,7 @@ export function RobotVacuumGame() {
       gameId="robot-vacuum"
       title="Robot Vacuum"
       worldNumber={5}
-      worldColor="#10B981"
+      worldColor="#00FF88"
       xpReward={25}
       totalRounds={rooms.length}
     >
