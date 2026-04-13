@@ -118,7 +118,8 @@ export default function DashboardLayout({
         <Sidebar />
 
         {/* ARIA live region — screen reader announcements for 3D state changes */}
-        <div aria-live="polite" aria-atomic="true" className="sr-only" id="cockpit-announcer" />
+        {/* DASH-06: id="main-content" makes skip-link land here (meaningful content) */}
+        <div aria-live="polite" aria-atomic="true" className="sr-only" id="main-content" role="region" aria-label="Dashboard content" />
 
         {/* Guide chat panel — HTML overlay for text input (Phase 3: migrate to uikit) */}
         <GuideChatPanel />

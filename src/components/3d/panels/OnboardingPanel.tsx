@@ -43,9 +43,25 @@ export default function OnboardingPanel() {
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);
   const { safeTimeout } = useSafeTimeout();
 
-  const [step, setStep] = useState(1);
-  const [selectedLab, setSelectedLab] = useState<number>(1);
+  // DASH-05: Restore onboarding progress from localStorage
+  const [step, setStep] = useState(() => {
+    if (typeof window === 'undefined') return 1;
+    const saved = localStorage.getItem('sparkforge-onboarding');
+    if (!saved) return 1;
+    try { return JSON.parse(saved).step || 1; } catch { return 1; }
+  });
+  const [selectedLab, setSelectedLab] = useState<number>(() => {
+    if (typeof window === 'undefined') return 1;
+    const saved = localStorage.getItem('sparkforge-onboarding');
+    if (!saved) return 1;
+    try { return JSON.parse(saved).selectedLab || 1; } catch { return 1; }
+  });
   const [loading, setLoading] = useState(false);
+
+  // DASH-05: Persist progress on step/lab changes
+  useEffect(() => {
+    localStorage.setItem('sparkforge-onboarding', JSON.stringify({ step, selectedLab }));
+  }, [step, selectedLab]);
 
   const childName = activeChild?.display_name || 'Explorer';
   const selectedLabColor = FREE_LABS.find((l) => l.id === selectedLab)?.color || '#AA66FF';
