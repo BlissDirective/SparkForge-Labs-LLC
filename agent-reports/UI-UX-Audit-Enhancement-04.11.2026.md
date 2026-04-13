@@ -959,8 +959,75 @@ All 12 P0 critical findings from Sprint 0 have been resolved across 7 commits an
 | Sprint | Findings | Priority | Status |
 |--------|----------|----------|--------|
 | **Sprint 0** | 12 P0 | Critical | **COMPLETE** |
-| Sprint 1 | 23 P1 | High | Pending |
+| **Sprint 1** | 23 P1 | High | **12/23 COMPLETE** (first half) |
 | Sprint 2 | 27 P2 | Medium | Pending |
 | Sprint 3 | 13 P3 + ENH | Low | Pending |
 
-Sprint 1 covers: HUD viewport clipping (COCK-02), muted 3D text contrast (COCK-03), sidebar nav gaps (DASH-02 — partially addressed), subscription toggle a11y (DASH-09), RobotVacuum keyboard/contrast (IND-05/06), CameraQuest null crash (IND-07), demo handler cleanup (AUTH-03/04), content page architecture (DASH-04), DifficultySelector wiring (GAME-04), content pipeline (GAME-05), NeuralBuilder/PromptLab memoization (IND-01/02), GameHUD3D responsive (GAME-03), OKLCH/pure black cleanup (DES-03/04/05), elastic easing (DES-10), lab color bugs (IND-13/14), orphan wiring (COCK-08).
+Sprint 1 first half (12 findings resolved April 13, 2026): DES-04, DES-05, DES-10, COCK-02, COCK-03, IND-13, IND-14, AUTH-03, AUTH-04, DASH-09, IND-05, IND-06.
+
+Sprint 1 remaining (11 findings): DASH-02, DASH-04, GAME-03, GAME-04, GAME-05, IND-01, IND-02, IND-07, COCK-08, DES-03 (OKLCH — if chosen), COCK-06.
+
+---
+
+## Appendix C — Sprint 1 First-Half Implementation Log (April 13, 2026)
+
+> **Session:** `claude/resolve-uiux-conflicts-dWyAO`
+> **Completed by:** Claude Code (Opus 4.6)
+> **Date:** April 13, 2026
+> **Status:** 12 OF 23 P1 FINDINGS RESOLVED
+
+### Commit Log
+
+| # | Commit | Finding(s) | Files Changed | Description |
+|---|--------|-----------|---------------|-------------|
+| 1 | `d61192a` | DES-04, DES-05, DES-10 | 4 | Brand-tint pure black/white, replace elastic easing |
+| 2 | `4b5999a` | COCK-02, COCK-03, IND-13, IND-14 | 11 | Viewport-responsive HUD, muted opacity fix, 9 game lab colors corrected |
+| 3 | `5c062b2` | AUTH-03, AUTH-04, DASH-09, IND-05, IND-06 | 4 | Demo handler cleanup, billing a11y, RobotVacuum contrast |
+| 4 | `374e97f` | (build fixes) | 8 | OnboardingPanel id props + safeTimeout Promise<void> types |
+
+### Finding-by-Finding Detail
+
+#### DES-04 [P1] — Pure `#000` in skip-link text (Option A) RESOLVED
+- **Fix:** `globals.css` — `color: #000` → `#0A0E16`, `outline: 3px solid white` → `#F0F0F4`. On-brand contrast maintained.
+
+#### DES-05 [P1] — Hardcoded #000000/#ffffff across 3D layer (Option B — core files) RESOLVED
+- **Fix:** `materials.ts` — CrystalGlass/CartoonMatte `#ffffff` → `#F0F0F4`, EmissiveGlow `#000000` → `#0A0E16`, fallback `#ffffff` → `#F0F0F4`. `cockpitDesignTokens.ts` — PANEL_SEAMS `#000000` → `#0A0E16`. `HolographicHUD.tsx` — outlineColor `#000000` → `#0A0E16` (4 instances).
+
+#### DES-10 [P1] — Elastic overshoot on badge-unlock (Option A) RESOLVED
+- **Fix:** `tailwind.config.ts` — `cubic-bezier(0.34, 1.56, 0.64, 1)` → `cubic-bezier(0.25, 1, 0.5, 1)` (ease-out-quart).
+
+#### COCK-02 [P1] — HUD corners clip on narrow viewports (Option A) RESOLVED
+- **Fix:** `HolographicHUD.tsx` — Added `useThree().viewport.aspect` scaling. Corner X positions now scale by `Math.min(1, aspect / 1.778)`, keeping corners within frustum at any aspect ratio.
+
+#### COCK-03 [P1] — Muted 3D text color fails WCAG (Option B) RESOLVED
+- **Fix:** `cockpitDesignTokens.ts` — `TEXT_COLORS.muted.opacity` 0.55 → 0.65. `HolographicHUD.tsx` — Bottom corner readouts (mode, child name) upgraded from muted to secondary opacity (0.8) for critical-label readability.
+
+#### IND-13 [P1] — Lab color wrong in 9 games (Option A) RESOLVED
+- **Fix:** 9 games corrected from Tailwind defaults to canonical Frost-Prismatic colors: PetTrainer `#8B5CF6`→`#AA66FF`, NeuralBuilder `#EC4899`→`#FF66AA`, NeuronRelay `#EC4899`→`#FF66AA`, PromptLab `#F59E0B`→`#FFAA44`, AgentArchitect `#10B981`→`#00FF88`, RobotVacuum `#10B981`→`#00FF88`, BiasDetective `#EF4444`→`#FF6644`, EmojiDecoder `#6366F1`→`#818CF8`, ChatbotBuilder `#6366F1`→`#818CF8`.
+
+#### IND-14 [P1] — Lab 9 color wrong (Option A — verified) RESOLVED
+- **Status:** Lab 9 color is already correct `#F97316` in `config/labs.ts` and all 4 Lab 9 games. No changes needed.
+
+#### AUTH-03 [P1] — Dead `_handleDemoClick` in LoginPanel3D (Option A) RESOLVED
+- **Fix:** Removed dead `_handleDemoClick` callback. Demo flow uses direct `setShowDemoConfirm(true)` and `onDemoStart` paths.
+
+#### AUTH-04 [P1] — Triple demo session handler duplication (Option A) RESOLVED
+- **Fix:** Refactored `DemoSessionBanner` to use shared `useDemoSession()` hook. Eliminated duplicated timer/urgent/expiry logic. Added Escape key handler to expired modal (bonus AUTH-05 fix).
+
+#### DASH-09 [P1] — Subscription billing toggle not announced (Option A) RESOLVED
+- **Fix:** Added `aria-label="Switch to monthly/yearly billing"` to each button, wrapped in `role="group"` with `aria-label="Billing cycle"`.
+
+#### IND-05 [P1] — RobotVacuum keyboard navigation (Option A — verified) RESOLVED
+- **Status:** All interactive elements are native `<button>`/`<select>` elements with built-in keyboard support. No div-based click handlers found.
+
+#### IND-06 [P1] — RobotVacuum color contrast failures (Option A) RESOLVED
+- **Fix:** 9 instances of low-opacity text fixed: `text-white/10`→`/60`, `text-white/25`→`/60`, `text-white/30`→`/60`. All now achieve ~6.8:1 contrast ratio.
+
+### Build Fix Notes
+
+- `OnboardingPanel.tsx` — 5 `HolographicButton` instances were missing required `id` prop (created in Sprint 0 DASH-03 fix).
+- 7 games — `new Promise(r => safeTimeout(r, ms))` needed `Promise<void>` type annotation for TypeScript strict mode compatibility.
+
+### Build Status
+
+- **npm run build:** PASS (warnings only — pre-existing unused vars and hook dependency warnings from prior audit phases)
