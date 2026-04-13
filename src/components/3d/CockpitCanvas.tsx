@@ -408,10 +408,16 @@ export function CockpitCanvas({
                   opacity={statusBarOpacity}
                 />
 
-                {/* ═══ 3D UI: Navigation Buttons — bottom console (INT-1) ═══ */}
+                {/* ═══ 3D UI: Navigation Buttons — bottom console ═══ */}
+                {/* Fixed instrument panel — renders directly in CockpitCanvas (not
+                    CockpitUILayer) because nav buttons must remain visible and
+                    interactive across all cockpit modes without mode-transition
+                    visibility toggling. Position: below center viewport. */}
                 <NavigationButtonGrid position={[0, -0.6, -1.85]} />
 
-                {/* ═══ 3D UI: Variable Dials — center console (INT-1) ═══ */}
+                {/* ═══ 3D UI: Variable Dials — center console ═══ */}
+                {/* Fixed instrument panel — same rationale as NavigationButtonGrid.
+                    Dials auto-reconfigure per page but never hide. */}
                 <VariableDialCluster position={[0, -0.3, -1.4]} />
 
                 {/* ═══ Ceremony FX — 3D celebration effects (S5-HIGH-007) ═══ */}

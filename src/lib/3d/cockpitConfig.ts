@@ -54,6 +54,57 @@ export const COCKPIT_GEOMETRY = {
   // (Decision 6.0: repositioned from overhead rings to peripheral viewport frame)
 } as const;
 
+// ■■ Panel Safe Zone Boundaries (COCK-06) ■■
+// Side panels at [±2.35, 0.25, -1.65] with rotation ±0.85rad work because
+// the inward rotation compensates for the X offset beyond the FOV 58 frustum
+// width (~2.8 units at Z=-1.65). The panel face projects back within the
+// viewport after rotation. These safe zone limits prevent future position
+// changes from creating panel-to-panel intersection or frustum clipping.
+export const PANEL_SAFE_ZONE = {
+  /** Maximum absolute X for side panels before frustum clipping occurs */
+  maxAbsX: 2.6,
+  /** Minimum absolute X to prevent side panels overlapping center content */
+  minAbsX: 1.8,
+  /** Maximum Z (closest to camera) before side panels occlude center viewport */
+  maxZ: -1.2,
+  /** Minimum Z (farthest) before side panels become too small to read */
+  minZ: -2.5,
+  /** Y range for side panels */
+  minY: -0.5,
+  maxY: 1.0,
+  /** Center panel Z at 1.75x scale extends to ~Z=-1.89; side panels must stay behind */
+  gameModeMinZ: -1.9,
+} as const;
+
+/** Validate and clamp a panel position within safe zone boundaries.
+ *  Returns clamped [x, y, z] tuple. Logs warning in dev if clamping occurs. */
+export function clampPanelPosition(
+  pos: readonly [number, number, number],
+  side: 'left' | 'right' | 'center'
+): [number, number, number] {
+  let [x, y, z] = pos;
+  const sz = PANEL_SAFE_ZONE;
+
+  if (side === 'left' || side === 'right') {
+    const absX = Math.abs(x);
+    const clampedAbsX = Math.max(sz.minAbsX, Math.min(sz.maxAbsX, absX));
+    x = side === 'left' ? -clampedAbsX : clampedAbsX;
+    y = Math.max(sz.minY, Math.min(sz.maxY, y));
+    z = Math.max(sz.minZ, Math.min(sz.maxZ, z));
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    const [ox, oy, oz] = pos;
+    if (x !== ox || y !== oy || z !== oz) {
+      console.warn(
+        `[cockpitConfig] Panel position clamped: [${ox},${oy},${oz}] → [${x},${y},${z}] (${side})`
+      );
+    }
+  }
+
+  return [x, y, z];
+}
+
 // ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■
 // v3: Adaptive curvature updated for wider hull
 // D3D-1: tablet/cssFallback removed — desktop-only platform
