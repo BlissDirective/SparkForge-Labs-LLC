@@ -100,6 +100,11 @@ export function SentimentScannerGame() {
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
   const challenges = useFilteredContent(CHALLENGES, tier, ageBand);
+
+  // IND-11: Set maxScore to match 15pts/challenge (not default 10pts)
+  useEffect(() => {
+    if (challenges.length > 0) game.setMaxScore(challenges.length * 15);
+  }, [challenges.length, game]);
   const [text, setText] = useState('');
   const [ci, setCi] = useState(0);
   const [done, setDone] = useState<Set<number>>(new Set());

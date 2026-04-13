@@ -112,7 +112,16 @@ function ProgressRing({
 
   return (
     <div className="relative inline-flex items-center justify-center">
-      <svg width={size} height={size} className="-rotate-90">
+      <svg
+        width={size}
+        height={size}
+        className="-rotate-90"
+        role="progressbar"
+        aria-valuenow={current}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-label={`Usage: ${current} of ${max}`}
+      >
         {/* Background circle */}
         <circle
           cx={size / 2}

@@ -98,12 +98,16 @@ export default function PromptHistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Generate mock data once children load
+  // DASH-11: Generate mock data once (memoized on children identity)
+  const generatedData = useMemo(
+    () => children.length > 0 ? generateMockPrompts(children) : [],
+    [children]
+  );
   useEffect(() => {
-    if (children.length > 0 && mockData.length === 0) {
-      setMockData(generateMockPrompts(children));
+    if (generatedData.length > 0 && mockData.length === 0) {
+      setMockData(generatedData);
     }
-  }, [children, mockData.length]);
+  }, [generatedData, mockData.length]);
 
   // Filtered data
   const filtered = useMemo(() => {

@@ -77,7 +77,15 @@ export default function AddChildPage() {
       const result = await res.json();
 
       if (!res.ok) {
-        setError(result.error || 'Failed to create profile');
+        // DASH-08: Parse error codes for tier-specific messages
+        const errorMsg = result.error || 'Failed to create profile';
+        if (result.code === 'TIER_LIMIT' || errorMsg.toLowerCase().includes('limit')) {
+          setError('Your current plan has reached its child profile limit. Upgrade to add more profiles.');
+        } else if (result.code === 'VALIDATION_ERROR' || res.status === 422) {
+          setError(result.error || 'Please check the form fields and try again.');
+        } else {
+          setError(errorMsg);
+        }
         setSaving(false);
       } else {
         // ENH #4: Show confetti, then navigate
