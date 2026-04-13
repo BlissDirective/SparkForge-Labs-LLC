@@ -205,6 +205,7 @@ export const SURFACE_TINT_BLEND = 0.05;
 
 export const MODE_FILL_LIGHT: Record<CockpitMode, { color: string; intensity: number }> = {
   dashboard:   { color: '#00E5FF', intensity: 0.3 },
+  arcade:      { color: '#88CC44', intensity: 0.35 },
   labs:        { color: '#00E5FF', intensity: 0.35 },
   lab_detail:  { color: 'dynamic', intensity: 0.35 },
   game:        { color: 'dynamic', intensity: 0.15 },
@@ -316,6 +317,7 @@ export const FOCUS_CONFIG = {
 
 export const MODE_FOCUS_TARGETS: Record<CockpitMode, { primary: Quadrant[]; secondary: Quadrant[] }> = {
   dashboard:   { primary: ['center'],           secondary: ['left', 'right'] },
+  arcade:      { primary: ['center'],           secondary: ['left', 'right'] },
   labs:        { primary: ['center'],           secondary: ['left', 'right'] },
   lab_detail:  { primary: ['center'],           secondary: ['left', 'right'] },
   game:        { primary: ['center'],           secondary: [] },

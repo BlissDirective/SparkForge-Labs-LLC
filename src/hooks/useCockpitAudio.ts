@@ -35,6 +35,7 @@ export type CockpitSoundEvent =
 // Frequency maps for mode transitions
 const MODE_FREQUENCIES: Record<StationMode, number> = {
   dashboard: 80,
+  arcade: 110,
   labmap: 100,
   lab: 120,
   game: 60,

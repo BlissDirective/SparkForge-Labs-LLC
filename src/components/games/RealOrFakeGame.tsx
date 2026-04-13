@@ -154,7 +154,7 @@ export function RealOrFakeGame() {
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                      aria-label="Learn detection tips before playing">
+                      aria-label="Learn detection tips before playing the game">
                       Learn Detection Tips! <BookOpen className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
@@ -183,8 +183,8 @@ export function RealOrFakeGame() {
                       {tipIdx < DETECTION_TIPS.length - 1 ? 'Next Tip →' : 'Start Detecting! 🔍'}
                     </motion.button>
                     <button onClick={() => setPhase('play')} className="font-body text-xs text-white/20 hover:text-white/40"
-                      aria-label="Skip tips and start playing">
-                      Skip tips →
+                      aria-label="Skip learn cards and start playing">
+                      Skip to game →
                     </button>
                   </motion.div>
                 )}
