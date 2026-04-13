@@ -51,10 +51,20 @@ const config: Config = {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }], // 10px — minimum sub-scale size
       },
       fontFamily: {
-        display: ['var(--font-display)', 'Exo 2', 'system-ui', 'sans-serif'],
-        body: ['var(--font-body)', 'Sora', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Exo 2', 'Exo 2 Fallback', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)', 'Sora', 'Sora Fallback', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
         data: ['var(--font-data)', 'Orbitron', 'monospace'],
+      },
+      // DES-08: Semantic spacing tokens (maps to CSS --space-* variables)
+      spacing: {
+        'xs': 'var(--space-xs)',       //  4px
+        'sm': 'var(--space-sm)',       //  8px
+        'md': 'var(--space-md)',       // 16px
+        'lg': 'var(--space-lg)',       // 24px
+        'xl': 'var(--space-xl)',       // 32px
+        '2xl': 'var(--space-2xl)',     // 48px
+        'section': 'var(--space-section)', // 64px
       },
       boxShadow: {
         'glow-blue': '0 0 20px rgba(0,187,255,0.25)',

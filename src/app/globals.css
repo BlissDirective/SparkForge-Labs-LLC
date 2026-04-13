@@ -13,8 +13,9 @@
 
 :root {
   /* ── Font Variables (mapped by Tailwind fontFamily) ── */
-  --font-display: 'Exo 2', system-ui, sans-serif;
-  --font-body: 'Sora', system-ui, sans-serif;
+  /* DES-07: Fallback fonts with metric overrides reduce CLS during font swap */
+  --font-display: 'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif;
+  --font-body: 'Sora', 'Sora Fallback', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-data: 'Orbitron', monospace;
 
@@ -45,6 +46,44 @@
   /* ── Dynamic Lab Color (set by JS per-lab) ── */
   --lab-color: oklch(0.75 0.17 225);
   --lab-glow: oklch(0.75 0.17 225 / 0.2);
+
+  /* ── Semantic Spacing Scale (DES-08) — based on 4px grid ── */
+  --space-xs: 0.25rem;    /*  4px — tight inner padding */
+  --space-sm: 0.5rem;     /*  8px — compact gaps */
+  --space-md: 1rem;       /* 16px — standard padding */
+  --space-lg: 1.5rem;     /* 24px — section padding */
+  --space-xl: 2rem;       /* 32px — large section gaps */
+  --space-2xl: 3rem;      /* 48px — page-level spacing */
+  --space-section: 4rem;  /* 64px — between major sections */
+}
+
+/* ═══ Font Fallback Metrics (DES-07) ═══
+   Matches system-ui fallback dimensions to Sora/Exo 2 to prevent
+   layout shift (CLS) during font swap. Values measured from font
+   metrics tables (ascent, descent, line-gap, units-per-em). */
+@font-face {
+  font-family: 'Sora Fallback';
+  src: local('system-ui'), local('BlinkMacSystemFont'), local('Segoe UI');
+  size-adjust: 101%;
+  ascent-override: 95%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: 'Exo 2 Fallback';
+  src: local('system-ui'), local('BlinkMacSystemFont'), local('Segoe UI');
+  size-adjust: 103%;
+  ascent-override: 92%;
+  descent-override: 24%;
+  line-gap-override: 0%;
+}
+
+/* ═══ Touch Target Utility (DES-14) ═══
+   WCAG 2.5.5 minimum touch target. Apply to interactive elements
+   that may be tapped on tablets accessing SparkForge via browser. */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* ═══ Skip To Content (v2 accessibility) ═══
@@ -55,14 +94,14 @@
   top: -100%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
-  padding: 12px 24px;
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
   background: var(--neon-blue);
   color: #0A0E16;
   font-family: 'Sora', sans-serif;
   font-weight: 700;
-  font-size: 14px;
-  border-radius: 0 0 12px 12px;
+  font-size: 0.875rem;
+  border-radius: 0 0 0.75rem 0.75rem;
   text-decoration: none;
   transition: top 0.2s ease;
 }
