@@ -27,7 +27,7 @@ const RealOrFakeEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'tips' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 const DETECTION_TIPS = [
   { title: 'Vague vs Specific', emoji: '🔎', tip: 'Fake content is often vague and uses general praise. Real content includes specific details, measurements, and nuanced opinions.' },
@@ -150,7 +150,7 @@ export function RealOrFakeGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs font-body text-orange-400">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('tips')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -160,8 +160,8 @@ export function RealOrFakeGame() {
                   </motion.div>
                 )}
 
-                {phase === 'tips' && (
-                  <motion.div key="tips" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }} className="text-center space-y-4 max-w-sm">
                     <Fingerprint className="w-6 h-6 text-orange-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Detection Strategies</h3>

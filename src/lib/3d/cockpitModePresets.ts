@@ -16,6 +16,7 @@ export type CockpitMode =
   | 'dashboard'    // /home
   | 'labs'         // /labs
   | 'lab_detail'   // /labs/[labId]
+  | 'arcade'       // /arcade (game browser grid)
   | 'game'         // /arcade/[gameSlug]
   | 'profile'      // /profile
   | 'settings'     // /settings
@@ -86,6 +87,22 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     centerScale: 1.0,
     panelOffset: 0,
     particles: 'medium',
+    ambientAudio: 'cockpit_hum',
+    transition: { type: 'crossfade', durationMs: 400, easing: 'ease-out-cubic' },
+  },
+
+  arcade: {
+    ledColor: '#88CC44',           // Green-amber blend — game browser energy
+    bloom: { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
+    camera: { fov: 60, distortion: 0.02 },
+    vignette: { darkness: 0.45, offset: 0.3 },
+    hud: { opacity: 0.16, rotationSpeed: 0.12, pulseIntensity: 0.35, dataMode: 'minimap' },
+    panels: { curvature: 0.85, opacity: 1.0 },
+    sidePanels: { opacity: 0.65, leftContent: 'radar', rightContent: 'stats' },
+    statusBar: { opacity: 1.0 },
+    centerScale: 1.05,
+    panelOffset: 0,
+    particles: 'high',
     ambientAudio: 'cockpit_hum',
     transition: { type: 'crossfade', durationMs: 400, easing: 'ease-out-cubic' },
   },
@@ -206,6 +223,7 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
 // ■■ Variable Dial Cluster — per-page dial labels ■■
 export const DIAL_CONFIGS: Record<CockpitMode, [string, string, string]> = {
   dashboard:  ['XP Rate', 'Streak Days', 'Lab Progress %'],
+  arcade:     ['Games Played', 'Top Score', 'Favorites'],
   labs:       ['Completion %', 'Games Played', 'Quiz Average %'],
   lab_detail: ['Completion %', 'Games Played', 'Quiz Average %'],
   game:       ['Difficulty', 'Game Count', 'Time Played'],
@@ -220,10 +238,11 @@ export const DIAL_CONFIGS: Record<CockpitMode, [string, string, string]> = {
 export function routeToCockpitMode(pathname: string): CockpitMode {
   if (pathname.startsWith('/arcade/') && pathname.split('/').length > 2) return 'game';
   if (pathname.startsWith('/labs/') && pathname.split('/').length > 2) return 'lab_detail';
+  if (pathname === '/arcade') return 'arcade';
   if (pathname === '/labs') return 'labs';
   if (pathname === '/profile') return 'profile';
   if (pathname === '/settings') return 'settings';
   if (pathname === '/parent') return 'parent';
-  // /home or /arcade (grid view) both use dashboard mode
+  // /home falls through to dashboard mode
   return 'dashboard';
 }

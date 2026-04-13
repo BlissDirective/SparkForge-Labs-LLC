@@ -51,6 +51,7 @@ interface CockpitUIState {
 export function modeToCenterContent(mode: CockpitMode): CenterContentKey {
   switch (mode) {
     case 'dashboard': return 'home';
+    case 'arcade': return 'arcade';
     case 'labs': return 'labs';
     case 'lab_detail': return 'lab_detail';
     case 'game': return 'game';

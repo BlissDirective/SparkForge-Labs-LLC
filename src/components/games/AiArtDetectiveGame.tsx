@@ -29,7 +29,7 @@ const AiArtDetectiveEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'tips' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface ArtRound {
   leftGradient: string;
@@ -387,21 +387,21 @@ export function AiArtDetectiveGame() {
                       ))}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('tips')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      aria-label="Learn detection tips before playing"
+                      aria-label="Learn detection tips before playing the game"
                     >
                       Learn Detection Tips! <Eye className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
                 )}
 
-                {phase === 'tips' && (
+                {phase === 'learn' && (
                   <motion.div
-                    key="tips"
+                    key="learn"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -451,9 +451,9 @@ export function AiArtDetectiveGame() {
                     <button
                       onClick={() => setPhase('play')}
                       className="font-body text-xs text-white/20 hover:text-white/40"
-                      aria-label="Skip tips and start playing"
+                      aria-label="Skip learn cards and start playing"
                     >
-                      Skip tips {'\u2192'}
+                      Skip to game {'\u2192'}
                     </button>
                   </motion.div>
                 )}
