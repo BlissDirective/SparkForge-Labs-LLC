@@ -10,7 +10,7 @@
 
 'use client';
 
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useChildStore } from '@/stores/childStore';
@@ -899,6 +899,208 @@ const CHALLENGES: PromptChallenge[] = [
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
 // ================================================================
+// MEMOIZED MESSAGE BUBBLE (IND-02 perf fix)
+// ================================================================
+
+interface MessageBubbleProps {
+  msg: Message;
+  index: number;
+  isLastMessage: boolean;
+  prevMessage: Message | undefined;
+  copiedIdx: number | null;
+  showXRay: number | null;
+  showExplainer: number | null;
+  onCopy: (idx: number) => void;
+  onToggleXRay: (idx: number | null) => void;
+  onToggleExplainer: (idx: number | null) => void;
+}
+
+const MessageBubble = memo(function MessageBubble({
+  msg,
+  index,
+  isLastMessage,
+  prevMessage,
+  copiedIdx,
+  showXRay,
+  showExplainer,
+  onCopy,
+  onToggleXRay,
+  onToggleExplainer,
+}: MessageBubbleProps) {
+  const i = index;
+
+  return (
+    <div>
+      <motion.div
+        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+      >
+        <div
+          className={`max-w-[82%] relative group ${
+            msg.role === 'user'
+              ? 'rounded-2xl rounded-br-md px-4 py-3 border'
+              : 'rounded-2xl rounded-bl-md px-4 py-3 border'
+          }`}
+          style={
+            msg.role === 'user'
+              ? {
+                  background: 'rgba(245,158,11,0.08)',
+                  borderColor: 'rgba(245,158,11,0.2)',
+                }
+              : {
+                  background:
+                    'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(168,85,247,0.04))',
+                  borderColor: 'rgba(139,92,246,0.15)',
+                }
+          }
+        >
+          {msg.role === 'assistant' && (
+            <span className="text-2xs font-display font-bold text-purple-400/60 block mb-1">
+              {'\u{1F916}'} Sparky
+            </span>
+          )}
+          <p className="font-body text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
+            {msg.content}
+          </p>
+          {/* Copy button */}
+          <button
+            onClick={() => onCopy(i)}
+            className="absolute -top-2 -right-2 p-1 rounded-md bg-white/5 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+            aria-label="Copy message"
+          >
+            {copiedIdx === i ? (
+              <Check className="w-3 h-3 text-spark-green" />
+            ) : (
+              <Copy className="w-3 h-3 text-white/30" />
+            )}
+          </button>
+          {/* User prompt score (inline) */}
+          {msg.role === 'user' && msg.score && (
+            <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-white/5">
+              {Array.from({ length: 5 }).map((_, s) => (
+                <Star
+                  key={s}
+                  className={`w-2.5 h-2.5 ${
+                    s < Math.round(msg.score!.total / 5)
+                      ? 'text-amber-400 fill-amber-400'
+                      : 'text-white/10'
+                  }`}
+                />
+              ))}
+              <span className="font-mono text-2xs text-white/20 ml-1">
+                {msg.score.total}/25
+              </span>
+            </div>
+          )}
+        </div>
+      </motion.div>
+
+      {/* Prompt X-Ray toggle (user messages only) */}
+      {msg.role === 'user' && !isLastMessage && (
+        <div className="flex justify-end mt-1">
+          <button
+            onClick={() => onToggleXRay(showXRay === i ? null : i)}
+            className="flex items-center gap-1 font-body text-2xs text-amber-400/40 hover:text-amber-400/70 transition-colors"
+            aria-label="Toggle prompt X-ray"
+          >
+            <Eye className="w-3 h-3" /> X-Ray
+          </button>
+        </div>
+      )}
+
+      {/* X-Ray analysis panel */}
+      {msg.role === 'user' && showXRay === i && !isLastMessage && (() => {
+        const highlights = analyzePromptXRay(msg.content);
+        if (highlights.length === 0) return null;
+        return (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mx-4 my-1 rounded-lg p-2.5 border border-amber-500/15"
+            style={{ background: 'rgba(245,158,11,0.03)' }}
+          >
+            <p className="font-data text-2xs text-amber-400 uppercase tracking-wider flex items-center gap-1 mb-1.5">
+              <Eye className="w-3 h-3" /> Prompt X-Ray
+            </p>
+            <div className="space-y-1">
+              {highlights.map((h, hi) => (
+                <div key={hi} className="flex items-center gap-2">
+                  <span
+                    className="px-1.5 py-0.5 rounded font-mono text-2xs"
+                    style={{ backgroundColor: `${h.color}15`, color: h.color, border: `1px solid ${h.color}30` }}
+                  >
+                    {'\u201C'}{h.keyword}{'\u201D'}
+                  </span>
+                  <ArrowRight className="w-3 h-3 text-white/15 flex-shrink-0" />
+                  <span className="font-body text-2xs text-white/40">{h.responseEffect}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-2 p-2 rounded bg-white/[0.02] border border-white/5">
+              <p className="font-body text-2xs text-white/20 mb-1">Your prompt signals:</p>
+              <p className="font-body text-xs text-white/50 leading-relaxed">
+                {msg.content}
+              </p>
+              <p className="font-body text-2xs text-white/15 mt-1 italic">
+                {highlights.length} prompt signal{highlights.length !== 1 ? 's' : ''} detected
+              </p>
+            </div>
+          </motion.div>
+        );
+      })()}
+
+      {/* "Why did the AI say that?" toggle */}
+      {msg.role === 'assistant' && i > 0 && (
+        <div className="flex justify-start mt-1">
+          <button
+            onClick={() => onToggleExplainer(showExplainer === i ? null : i)}
+            className="flex items-center gap-1 font-body text-2xs text-purple-400/40 hover:text-purple-400/70 transition-colors"
+            aria-label="Explain this response"
+          >
+            <Lightbulb className="w-3 h-3" /> Why did the AI say that?
+          </button>
+        </div>
+      )}
+
+      {/* Response explainer panel */}
+      {msg.role === 'assistant' && showExplainer === i && i > 0 && (() => {
+        if (!prevMessage) return null;
+        const insights = analyzeResponse(prevMessage.content, msg.content);
+        return (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="mx-4 my-1 rounded-lg p-2.5 border border-purple-500/15"
+            style={{ background: 'rgba(139,92,246,0.03)' }}
+          >
+            <p className="font-data text-2xs text-purple-400 uppercase tracking-wider flex items-center gap-1 mb-1.5">
+              <Lightbulb className="w-3 h-3" /> Response Analysis
+            </p>
+            <div className="space-y-1.5">
+              {insights.map((ins, ii) => (
+                <div key={ii} className="flex items-start gap-2">
+                  <span className="text-sm flex-shrink-0">{ins.emoji}</span>
+                  <div>
+                    <p className="font-body text-xs text-white/60">{ins.observation}</p>
+                    <p className="font-body text-2xs text-white/30">{'\u21B3'} Because: {ins.because}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="font-body text-2xs text-purple-400/40 mt-2 italic">
+              Tip: The more specific signals your prompt has, the more predictable the response.
+            </p>
+          </motion.div>
+        );
+      })()}
+    </div>
+  );
+});
+
+// ================================================================
 // MAIN COMPONENT
 // ================================================================
 
@@ -1188,14 +1390,33 @@ export function PromptLabGame() {
     setPhase('sandbox');
   }
 
-  function copyMessage(idx: number) {
+  const copyMessage = useCallback(function copyMessage(idx: number) {
     const msg = messages[idx];
     if (msg) {
       navigator.clipboard.writeText(msg.content).catch(() => {});
       setCopiedIdx(idx);
       safeTimeout(() => setCopiedIdx(null), 2000);
     }
-  }
+  }, [messages, safeTimeout]);
+
+  // IND-02: Virtualize at 50+ messages to keep DOM lightweight
+  const visibleMessages = useMemo(() => {
+    if (messages.length <= 50) return messages;
+    return messages.slice(messages.length - 50);
+  }, [messages]);
+
+  // Offset to map visibleMessages local index back to original messages index
+  const visibleMessagesOffset = messages.length - visibleMessages.length;
+
+  // IND-02: Stable callbacks for memoized MessageBubble
+  const handleToggleXRay = useCallback(
+    (idx: number | null) => setShowXRay(idx),
+    []
+  );
+  const handleToggleExplainer = useCallback(
+    (idx: number | null) => setShowExplainer(idx),
+    []
+  );
 
   // ================================================================
   // RENDER
@@ -1532,176 +1753,24 @@ export function PromptLabGame() {
                       </div>
                     )}
 
-                    {messages.map((msg, i) => (
-                      <div key={i}>
-                        <motion.div
-                          className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                        >
-                          <div
-                            className={`max-w-[82%] relative group ${
-                              msg.role === 'user'
-                                ? 'rounded-2xl rounded-br-md px-4 py-3 border'
-                                : 'rounded-2xl rounded-bl-md px-4 py-3 border'
-                            }`}
-                            style={
-                              msg.role === 'user'
-                                ? {
-                                    background: 'rgba(245,158,11,0.08)',
-                                    borderColor: 'rgba(245,158,11,0.2)',
-                                  }
-                                : {
-                                    background:
-                                      'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(168,85,247,0.04))',
-                                    borderColor: 'rgba(139,92,246,0.15)',
-                                  }
-                            }
-                          >
-                            {msg.role === 'assistant' && (
-                              <span className="text-2xs font-display font-bold text-purple-400/60 block mb-1">
-                                {'\u{1F916}'} Sparky
-                              </span>
-                            )}
-                            <p className="font-body text-sm text-white/80 leading-relaxed whitespace-pre-wrap">
-                              {msg.content}
-                            </p>
-                            {/* Copy button */}
-                            <button
-                              onClick={() => copyMessage(i)}
-                              className="absolute -top-2 -right-2 p-1 rounded-md bg-white/5 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
-                              aria-label="Copy message"
-                            >
-                              {copiedIdx === i ? (
-                                <Check className="w-3 h-3 text-spark-green" />
-                              ) : (
-                                <Copy className="w-3 h-3 text-white/30" />
-                              )}
-                            </button>
-                            {/* User prompt score (inline) */}
-                            {msg.role === 'user' && msg.score && (
-                              <div className="flex items-center gap-1 mt-1.5 pt-1.5 border-t border-white/5">
-                                {Array.from({ length: 5 }).map((_, s) => (
-                                  <Star
-                                    key={s}
-                                    className={`w-2.5 h-2.5 ${
-                                      s < Math.round(msg.score!.total / 5)
-                                        ? 'text-amber-400 fill-amber-400'
-                                        : 'text-white/10'
-                                    }`}
-                                  />
-                                ))}
-                                <span className="font-mono text-2xs text-white/20 ml-1">
-                                  {msg.score.total}/25
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                        </motion.div>
-
-                        {/* Prompt X-Ray toggle (user messages only) */}
-                        {msg.role === 'user' && i < messages.length - 1 && (
-                          <div className="flex justify-end mt-1">
-                            <button
-                              onClick={() => setShowXRay(showXRay === i ? null : i)}
-                              className="flex items-center gap-1 font-body text-2xs text-amber-400/40 hover:text-amber-400/70 transition-colors"
-                              aria-label="Toggle prompt X-ray"
-                            >
-                              <Eye className="w-3 h-3" /> X-Ray
-                            </button>
-                          </div>
-                        )}
-
-                        {/* X-Ray analysis panel */}
-                        {msg.role === 'user' && showXRay === i && i < messages.length - 1 && (() => {
-                          const highlights = analyzePromptXRay(msg.content);
-                          if (highlights.length === 0) return null;
-                          return (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="mx-4 my-1 rounded-lg p-2.5 border border-amber-500/15"
-                              style={{ background: 'rgba(245,158,11,0.03)' }}
-                            >
-                              <p className="font-data text-2xs text-amber-400 uppercase tracking-wider flex items-center gap-1 mb-1.5">
-                                <Eye className="w-3 h-3" /> Prompt X-Ray
-                              </p>
-                              <div className="space-y-1">
-                                {highlights.map((h, hi) => (
-                                  <div key={hi} className="flex items-center gap-2">
-                                    <span
-                                      className="px-1.5 py-0.5 rounded font-mono text-2xs"
-                                      style={{ backgroundColor: `${h.color}15`, color: h.color, border: `1px solid ${h.color}30` }}
-                                    >
-                                      {'\u201C'}{h.keyword}{'\u201D'}
-                                    </span>
-                                    <ArrowRight className="w-3 h-3 text-white/15 flex-shrink-0" />
-                                    <span className="font-body text-2xs text-white/40">{h.responseEffect}</span>
-                                  </div>
-                                ))}
-                              </div>
-                              <div className="mt-2 p-2 rounded bg-white/[0.02] border border-white/5">
-                                <p className="font-body text-2xs text-white/20 mb-1">Your prompt signals:</p>
-                                <p className="font-body text-xs text-white/50 leading-relaxed">
-                                  {msg.content}
-                                </p>
-                                <p className="font-body text-2xs text-white/15 mt-1 italic">
-                                  {highlights.length} prompt signal{highlights.length !== 1 ? 's' : ''} detected
-                                </p>
-                              </div>
-                            </motion.div>
-                          );
-                        })()}
-
-                        {/* "Why did the AI say that?" toggle */}
-                        {msg.role === 'assistant' && i > 0 && (
-                          <div className="flex justify-start mt-1">
-                            <button
-                              onClick={() => setShowExplainer(showExplainer === i ? null : i)}
-                              className="flex items-center gap-1 font-body text-2xs text-purple-400/40 hover:text-purple-400/70 transition-colors"
-                              aria-label="Explain this response"
-                            >
-                              <Lightbulb className="w-3 h-3" /> Why did the AI say that?
-                            </button>
-                          </div>
-                        )}
-
-                        {/* Response explainer panel */}
-                        {msg.role === 'assistant' && showExplainer === i && i > 0 && (() => {
-                          const userMsg = messages[i - 1];
-                          if (!userMsg) return null;
-                          const insights = analyzeResponse(userMsg.content, msg.content);
-                          return (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: 'auto' }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="mx-4 my-1 rounded-lg p-2.5 border border-purple-500/15"
-                              style={{ background: 'rgba(139,92,246,0.03)' }}
-                            >
-                              <p className="font-data text-2xs text-purple-400 uppercase tracking-wider flex items-center gap-1 mb-1.5">
-                                <Lightbulb className="w-3 h-3" /> Response Analysis
-                              </p>
-                              <div className="space-y-1.5">
-                                {insights.map((ins, ii) => (
-                                  <div key={ii} className="flex items-start gap-2">
-                                    <span className="text-sm flex-shrink-0">{ins.emoji}</span>
-                                    <div>
-                                      <p className="font-body text-xs text-white/60">{ins.observation}</p>
-                                      <p className="font-body text-2xs text-white/30">{'\u21B3'} Because: {ins.because}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              <p className="font-body text-2xs text-purple-400/40 mt-2 italic">
-                                Tip: The more specific signals your prompt has, the more predictable the response.
-                              </p>
-                            </motion.div>
-                          );
-                        })()}
-                      </div>
-                    ))}
+                    {visibleMessages.map((msg, localIdx) => {
+                      const originalIdx = visibleMessagesOffset + localIdx;
+                      return (
+                        <MessageBubble
+                          key={originalIdx}
+                          msg={msg}
+                          index={originalIdx}
+                          isLastMessage={originalIdx === messages.length - 1}
+                          prevMessage={messages[originalIdx - 1]}
+                          copiedIdx={copiedIdx}
+                          showXRay={showXRay}
+                          showExplainer={showExplainer}
+                          onCopy={copyMessage}
+                          onToggleXRay={handleToggleXRay}
+                          onToggleExplainer={handleToggleExplainer}
+                        />
+                      );
+                    })}
 
                     {/* Challenge result feedback */}
                     {activeChallenge && challengeResults[activeChallenge.id] && (

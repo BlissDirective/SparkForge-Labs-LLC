@@ -208,10 +208,10 @@ export const MODE_FILL_LIGHT: Record<CockpitMode, { color: string; intensity: nu
   labs:        { color: '#00E5FF', intensity: 0.35 },
   lab_detail:  { color: 'dynamic', intensity: 0.35 },
   game:        { color: 'dynamic', intensity: 0.15 },
-  profile:     { color: '#AA66FF', intensity: 0.3 },
-  settings:    { color: '#FFAA44', intensity: 0.25 },
+  profile:     { color: '#B67BFF', intensity: 0.3 },
+  settings:    { color: '#D9A430', intensity: 0.25 },
   celebration: { color: '#FFD700', intensity: 0.6 },
-  parent:      { color: '#FFAA44', intensity: 0.2 },
+  parent:      { color: '#D9A430', intensity: 0.2 },
 } as const;
 
 export const PARTICLE_CROSSFADE_S = 1.5;

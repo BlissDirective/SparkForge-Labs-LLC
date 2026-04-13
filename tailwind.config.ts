@@ -8,45 +8,43 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ═══ Frost-Prismatic Neon Accents (60% blue / 40% pops) ═══
+        // ═══ Frost-Prismatic Neon Accents — OKLCH L=0.75 (DES-03) ═══
         neon: {
-          blue: { DEFAULT: '#00BBFF', dim: '#00BBFF40', glow: '#00BBFF25' },
-          green: { DEFAULT: '#00FF88', dim: '#00FF8840', glow: '#00FF8825' },
-          purple: { DEFAULT: '#AA66FF', dim: '#AA66FF40', glow: '#AA66FF25' },
-          orange: { DEFAULT: '#FF6644', dim: '#FF664440', glow: '#FF664425' },
-          amber: { DEFAULT: '#FFAA44', dim: '#FFAA4440', glow: '#FFAA4425' },
+          blue: { DEFAULT: 'oklch(0.75 0.17 225)', dim: 'oklch(0.75 0.17 225 / 0.25)', glow: 'oklch(0.75 0.17 225 / 0.15)' },
+          green: { DEFAULT: 'oklch(0.75 0.19 155)', dim: 'oklch(0.75 0.19 155 / 0.25)', glow: 'oklch(0.75 0.19 155 / 0.15)' },
+          purple: { DEFAULT: 'oklch(0.75 0.19 295)', dim: 'oklch(0.75 0.19 295 / 0.25)', glow: 'oklch(0.75 0.19 295 / 0.15)' },
+          orange: { DEFAULT: 'oklch(0.75 0.20 25)', dim: 'oklch(0.75 0.20 25 / 0.25)', glow: 'oklch(0.75 0.20 25 / 0.15)' },
+          amber: { DEFAULT: 'oklch(0.75 0.17 75)', dim: 'oklch(0.75 0.17 75 / 0.25)', glow: 'oklch(0.75 0.17 75 / 0.15)' },
         },
-        // ═══ spark-* ALIASES — backward compatibility ═══
-        // These point to the same values as neon-* so both work.
-        // Code written with spark-blue or neon-blue both compile.
+        // ═══ spark-* ALIASES — OKLCH (backward compatibility) ═══
         spark: {
-          blue: '#00BBFF',
-          purple: '#AA66FF',
-          green: '#00FF88',
-          orange: '#FF6644',
-          coral: '#FF6644',
-          amber: '#FFAA44',
+          blue: 'oklch(0.75 0.17 225)',
+          purple: 'oklch(0.75 0.19 295)',
+          green: 'oklch(0.75 0.19 155)',
+          orange: 'oklch(0.75 0.20 25)',
+          coral: 'oklch(0.75 0.20 25)',
+          amber: 'oklch(0.75 0.17 75)',
         },
-        // ═══ Surface Colors (dark mode) ═══
+        // ═══ Surface Colors — OKLCH (dark mode) ═══
         surface: {
-          base: '#0A0E16',
-          deep: '#0A0E16',
-          card: '#111118',
-          elevated: '#1A1822',
-          border: 'rgba(255, 255, 255, 0.06)',
+          base: 'oklch(0.13 0.02 260)',
+          deep: 'oklch(0.13 0.02 260)',
+          card: 'oklch(0.16 0.02 280)',
+          elevated: 'oklch(0.19 0.02 290)',
+          border: 'oklch(1.0 0 0 / 0.06)',
         },
-        // ═══ Lab Accent Colors (1-10) ═══
+        // ═══ Lab Accent Colors (1-10) — OKLCH L=0.75 ═══
         lab: {
-          1: '#00BBFF',  // What IS AI?
-          2: '#AA66FF',  // Teaching Machines
-          3: '#FF66AA',  // The Brain Inside
-          4: '#FFAA44',  // AI That Creates
-          5: '#00FF88',  // AI Helpers
-          6: '#FF6644',  // AI & Ethics
-          7: '#06B6D4',  // Computer Vision
-          8: '#818CF8',  // Words & Language
-          9: '#F97316',  // Build with AI
-          10: '#D946EF', // AI's Future
+          1: 'oklch(0.75 0.17 225)',   // What IS AI? — Blue
+          2: 'oklch(0.75 0.19 295)',   // Teaching Machines — Purple
+          3: 'oklch(0.75 0.19 345)',   // The Brain Inside — Pink
+          4: 'oklch(0.75 0.17 75)',    // AI That Creates — Amber
+          5: 'oklch(0.75 0.19 155)',   // AI Helpers — Green
+          6: 'oklch(0.75 0.20 25)',    // AI & Ethics — Red-Orange
+          7: 'oklch(0.75 0.14 195)',   // Computer Vision — Cyan
+          8: 'oklch(0.75 0.15 275)',   // Words & Language — Violet
+          9: 'oklch(0.75 0.18 50)',    // Build Your AI — Orange
+          10: 'oklch(0.75 0.19 325)',  // AI Futures — Fuchsia
         },
       },
       fontSize: {
