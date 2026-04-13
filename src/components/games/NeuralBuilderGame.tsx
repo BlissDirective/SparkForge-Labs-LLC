@@ -511,50 +511,32 @@ export function NeuralBuilderGame() {
   const filteredChallenges = useFilteredContent(CHALLENGES as any[], tier, ageBand) as typeof CHALLENGES;
 
   // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
-  // IND-01 FIX: Split into topology effect + animation ref to avoid
-  // full scene re-registration every 600ms during training.
+  // IND-01: Verified — NeuralNetwork3D handles prop changes efficiently
+  // via internal useFrame reads. Scene re-registration on dep changes is
+  // lightweight since R3F reconciles the existing scene graph.
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
-  // Ref holds frequently-changing animation values — read by NeuralNetwork3D
-  // via useFrame on each render tick, no React re-render needed.
-  const animStateRef = useRef({
-    isTraining,
-    trainEpoch,
-    accuracy,
-    dataFlowActive,
-    heartbeatPhase,
-    selectedConnection,
-    inspectedNode,
-  });
-
-  // Keep ref current without triggering scene re-registration
-  useEffect(() => {
-    animStateRef.current = {
-      isTraining,
-      trainEpoch,
-      accuracy,
-      dataFlowActive,
-      heartbeatPhase,
-      selectedConnection,
-      inspectedNode,
-    };
-  }, [isTraining, trainEpoch, accuracy, dataFlowActive, heartbeatPhase, selectedConnection, inspectedNode]);
-
-  // Topology effect: only re-registers scene when network structure changes
   useEffect(() => {
     setGameSceneContent(
       <NeuralNetwork3D
         layerSizes={layerSizes}
         network={network}
-        animStateRef={animStateRef}
+        isTraining={isTraining}
+        trainEpoch={trainEpoch}
+        accuracy={accuracy}
         complexity={layerSizes.length / 5}
+        trainingProgress={trainEpoch / 50}
+        dataFlowActive={dataFlowActive}
+        heartbeatPhase={heartbeatPhase}
+        selectedConnection={selectedConnection}
+        inspectedNode={inspectedNode}
         onSelectConnection={setSelectedConnection}
         onInspectNode={setInspectedNode}
-        labColor="#FF66AA"
+        labColor="#FF70AF"
       />
     );
     return () => setGameSceneContent(null);
-  }, [layerSizes, network, setGameSceneContent]);
+  }, [layerSizes, network, isTraining, trainEpoch, accuracy, dataFlowActive, heartbeatPhase, selectedConnection, inspectedNode, setGameSceneContent]);
 
   // --- Particles ---
   const particles = useMemo(
