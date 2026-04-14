@@ -156,7 +156,7 @@ export default function AddChildPage() {
       </AnimatePresence>
 
       <motion.div
-        className="glass-card rounded-2xl p-8 max-w-md w-full"
+        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-8 max-w-md w-full"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
