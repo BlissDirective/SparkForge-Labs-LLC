@@ -19,6 +19,7 @@ import {
   CHROME_BORDER,
   CELEBRATION_TIERS,
   EMISSIVE_LED_MULTIPLIER,
+  getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 import type { CelebrationTier } from '@/lib/3d/cockpitDesignTokens';
 import {
@@ -297,7 +298,8 @@ function FireworkBursts({
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, totalCount]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
-      <meshStandardMaterial emissive="#ffffff" emissiveIntensity={1.5} transparent opacity={0.9} />
+      {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
+      <meshStandardMaterial emissive="#ffffff" emissiveIntensity={getEmissive('bright')} transparent opacity={0.9} />
     </instancedMesh>
   );
 }

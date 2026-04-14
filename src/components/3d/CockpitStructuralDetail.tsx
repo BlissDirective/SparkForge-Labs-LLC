@@ -35,6 +35,7 @@ import {
   CHROME_BORDER,
   ACCENT_LINES,
   EMISSIVE_SCALE,
+  getEmissive,
   type EmissiveLevel,
 } from '@/lib/3d/cockpitDesignTokens';
 
@@ -680,7 +681,8 @@ function WarningSigns({
       new MeshStandardMaterial({
         color: 0xff6644,
         emissive: new Color(0xff6644),
-        emissiveIntensity: 0.8,
+        // Phase 2 audit fix (Section 7.1): Design token adoption
+        emissiveIntensity: getEmissive('medium'),
         transparent: true,
         opacity: 0.9,
         toneMapped: false,

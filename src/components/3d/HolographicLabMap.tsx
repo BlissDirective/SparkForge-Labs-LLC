@@ -24,6 +24,7 @@ import {
   TYPE_SCALE,
   NUMERIC_FONT,
   TEXT_COLORS,
+  getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 import {
   BackSide,
@@ -406,10 +407,11 @@ function ProjectorPedestal({
       {pedestalRings.map((ring, i) => (
         <mesh key={i} position={[0, ring.y, 0]}>
           <cylinderGeometry args={[ring.radius, ring.radius * 1.05, ring.height, segments]} />
+          {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
           <meshStandardMaterial
             color={i % 2 === 0 ? color : '#1A1822'}
             emissive={i % 2 === 0 ? color : '#000000'}
-            emissiveIntensity={0.4}
+            emissiveIntensity={getEmissive('dim')}
             metalness={0.9}
             roughness={0.2}
             transparent
@@ -637,10 +639,11 @@ function HolographicCore({
       {/* Solid inner energy sphere */}
       <mesh ref={innerRef}>
         <sphereGeometry args={[0.25, segments, segments]} />
+        {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.8}
+          emissiveIntensity={getEmissive('medium')}
           transparent
           opacity={0.85}
           roughness={0.1}
