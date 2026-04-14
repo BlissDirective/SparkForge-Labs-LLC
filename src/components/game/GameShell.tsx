@@ -26,6 +26,7 @@ import { useReducedMotion } from 'motion/react';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useCompleteAndReward } from '@/hooks/useGamification';
@@ -71,10 +72,18 @@ export function GameShell({
   const hasRewarded = useRef(false);
 
   // Scene + game initialization
+  // Phase 1 audit fix (Section 3.3): Activate 'game' cockpit mode preset
+  // (FOV 72, centerScale 1.75, panel opacity 0.4, panelOffset 0.3)
+  const setActiveMode = useCockpitStore((s) => s.setActiveMode);
+  const previousModeRef = useRef(useCockpitStore.getState().activeMode);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   useEffect(() => {
+    // Capture mode before entering game for restoration on exit
+    previousModeRef.current = useCockpitStore.getState().activeMode;
+
     startGame(gameId, totalRounds, hints);
     enterGame(gameId, worldColor);
+    setActiveMode('game');
     broadcast({ type: 'game-enter', source: gameId, value: 1.0 });
 
     // Register 3D HUD in sceneStore — renders inside CockpitCanvas (Phase 5)
@@ -89,11 +98,12 @@ export function GameShell({
 
     return () => {
       broadcast({ type: 'game-exit', source: gameId, value: 1.0 });
+      setActiveMode(previousModeRef.current);
       exitGame(); // Also clears gameHUDContent
       resetGame();
       hasRewarded.current = false;
     };
-  }, [gameId, totalRounds, hints, worldColor, title, showTimer, startGame, resetGame, enterGame, exitGame, setGameHUDContent, broadcast]);
+  }, [gameId, totalRounds, hints, worldColor, title, showTimer, startGame, resetGame, enterGame, exitGame, setGameHUDContent, setActiveMode, broadcast]);
 
   // Reward pipeline: fires once when game completes
   useEffect(() => {

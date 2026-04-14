@@ -266,12 +266,16 @@ export const MODE_TRANSITIONS = {
 } as const;
 
 // ■■ Ceremony FX Intensity per Type (CPA2-10) ■■
-export const CEREMONY_INTENSITY = {
-  xp:              { bloomPeak: 0.6, particleCount: 50,  hudExpansion: 1.1, duration: 1500 },
-  badge:           { bloomPeak: 0.8, particleCount: 100, hudExpansion: 1.3, duration: 2000 },
-  levelUp:         { bloomPeak: 1.0, particleCount: 200, hudExpansion: 1.5, duration: 3000 },
-  gameComplete:    { bloomPeak: 0.9, particleCount: 150, hudExpansion: 1.4, duration: 2500 },
-  streakMilestone: { bloomPeak: 0.7, particleCount: 80,  hudExpansion: 1.2, duration: 2000 },
+// Keys aligned with CelebrationType from @/types (Phase 1 audit fix: Section 3.2)
+// Legacy CeremonyType mapping: levelUp→level, streakMilestone→streak, gameComplete→confetti
+import type { CelebrationType } from '@/types';
+
+export const CEREMONY_INTENSITY: Record<CelebrationType, { bloomPeak: number; particleCount: number; hudExpansion: number; duration: number }> = {
+  xp:       { bloomPeak: 0.6, particleCount: 50,  hudExpansion: 1.1, duration: 1500 },
+  badge:    { bloomPeak: 0.8, particleCount: 100, hudExpansion: 1.3, duration: 2000 },
+  level:    { bloomPeak: 1.0, particleCount: 200, hudExpansion: 1.5, duration: 3000 },
+  confetti: { bloomPeak: 0.9, particleCount: 150, hudExpansion: 1.4, duration: 2500 },
+  streak:   { bloomPeak: 0.7, particleCount: 80,  hudExpansion: 1.2, duration: 2000 },
 } as const;
 
 // AUDIT-A6: COCKPIT_LOD removed per D3D-2 (no LOD system — all geometry at max quality)
