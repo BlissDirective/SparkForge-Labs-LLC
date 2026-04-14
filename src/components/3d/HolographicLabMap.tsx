@@ -437,10 +437,11 @@ function ProjectorPedestal({
       {/* Lens sphere — sits at top of pedestal, below core */}
       <mesh ref={lensRef} position={[0, -0.42, 0]}>
         <sphereGeometry args={[0.12, segments, segments]} />
+        {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.5}
+          emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
           transparent
           opacity={0.7}
           roughness={0.1}
