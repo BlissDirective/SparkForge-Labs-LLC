@@ -113,6 +113,11 @@ function LEDStrip({
   const targetColorRef = useRef(new Color(color));
   const transitionRef = useRef(0); // 0 = complete, >0 = in progress
 
+  // Phase 2 audit fix (Section 4.3): Scratch Color pool + HSL interp + burst 0.3→0.6
+  // Pre-allocated scratch Color avoids per-frame GC pressure from .clone()
+  const scratchColor = useMemo(() => new Color(), []);
+  const blendedColor = useMemo(() => new Color(), []);
+
   // Pre-compute positions and orientations along curve
   const transforms = useMemo(() => {
     const positions: Matrix4[] = [];
@@ -185,7 +190,8 @@ function LEDStrip({
         // Outward burst: pulse radiates from center (t=0.5) outward both directions
         const burstPhase = (time * 3.33) % 1.0; // ~300ms cycle
         const burstWave = 1.0 - Math.abs(centerDist - burstPhase);
-        const burstIntensity = Math.max(0, burstWave) * 0.3;
+        // Phase 2 audit fix (Section 4.3): Burst intensity 0.3 → 0.6 for brighter burst
+        const burstIntensity = Math.max(0, burstWave) * 0.6;
         ledIntensity += burstIntensity;
       }
 
@@ -193,15 +199,31 @@ function LEDStrip({
       ledIntensity = Math.max(0.2, Math.min(ledIntensity, 2.0));
 
       // Sequential color fill: center LEDs get new color first
-      let ledColor: Color;
-      if (inTransition && centerDist > transitionThreshold) {
-        // This LED still shows old color
-        ledColor = prevColorRef.current.clone().multiplyScalar(ledIntensity);
+      // Phase 2 audit fix (Section 4.3): Scratch Color pool + HSL interp
+      // Replaces per-frame .clone() with pre-allocated scratchColor.
+      // Uses lerpHSL for richer transitions at the color-fill boundary.
+      if (inTransition) {
+        if (centerDist > transitionThreshold) {
+          // This LED still shows old color
+          scratchColor.copy(prevColorRef.current).multiplyScalar(ledIntensity);
+        } else {
+          // Near the transition boundary, blend old→new in HSL space
+          // for richer color transitions (avoids muddy RGB interpolation)
+          const edgeDist = transitionThreshold - centerDist;
+          const blendBand = 0.15;
+          if (edgeDist < blendBand) {
+            const blendT = edgeDist / blendBand; // 0 at boundary, 1 fully new
+            blendedColor.copy(prevColorRef.current).lerpHSL(targetColorRef.current, blendT);
+            scratchColor.copy(blendedColor).multiplyScalar(ledIntensity);
+          } else {
+            scratchColor.copy(targetColorRef.current).multiplyScalar(ledIntensity);
+          }
+        }
       } else {
-        ledColor = targetColorRef.current.clone().multiplyScalar(ledIntensity);
+        scratchColor.copy(targetColorRef.current).multiplyScalar(ledIntensity);
       }
 
-      mesh.setColorAt(i, ledColor);
+      mesh.setColorAt(i, scratchColor);
     }
 
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;

@@ -26,6 +26,7 @@ import {
   CylinderGeometry,
   DoubleSide,
   ExtrudeGeometry,
+  Float32BufferAttribute,
   Group,
   Mesh,
   MeshStandardMaterial,
@@ -418,6 +419,59 @@ function HexCluster({
   );
 }
 
+// ■■ Accent Lines Component ■■
+// Phase 2 audit fix (Section 4.1): Accent line emissive overlay — Decision 11.3
+// Traces 12 vertical seam lines along rib positions on the 218° arc at r=4.8.
+// Uses LineSegments (lightweight — effectively ~0 triangles, well within 500K budget).
+
+interface AccentLinesProps {
+  arcRad: number;
+  panelRadius: number;
+  accentColor: string;
+  opacity: number;
+}
+
+function AccentLines({ arcRad, panelRadius, accentColor, opacity }: AccentLinesProps) {
+  const lineGeometry = useMemo(() => {
+    const positions: number[] = [];
+    // Vertical seam lines at each rib theta — from console desk (y=-3.2) to top bar (y=3.5)
+    const yTop = 3.5;
+    const yBottom = -3.2;
+    // Slight inset so the lines sit just outside the panel surface
+    const r = panelRadius - 0.02;
+    for (let i = 0; i < RIB_COUNT; i++) {
+      const t = i / (RIB_COUNT - 1);
+      const angle = -arcRad / 2 + t * arcRad;
+      const x = Math.sin(angle) * r;
+      const z = -Math.cos(angle) * r;
+      // LineSegments needs pairs of points (start, end) per line
+      positions.push(x, yBottom, z);
+      positions.push(x, yTop, z);
+    }
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
+    return geo;
+  }, [arcRad, panelRadius]);
+
+  useEffect(() => {
+    return () => {
+      lineGeometry.dispose();
+    };
+  }, [lineGeometry]);
+
+  return (
+    <lineSegments geometry={lineGeometry}>
+      <lineBasicMaterial
+        color={accentColor}
+        transparent
+        opacity={opacity * 0.4}
+        toneMapped={false}
+        depthWrite={false}
+      />
+    </lineSegments>
+  );
+}
+
 // ■■ Structural Ribs Component ■■
 
 interface StructuralRibsProps {
@@ -798,6 +852,14 @@ export function CockpitPanels({
           panelRadius={panelRadius}
         />
       )}
+
+      {/* ─── Accent Line Overlay (Phase 2 audit fix Section 4.1 — Decision 11.3) ─── */}
+      <AccentLines
+        arcRad={arcRad}
+        panelRadius={panelRadius}
+        accentColor={labColor}
+        opacity={opacity}
+      />
 
       {/* ─── Decision 11.2: Rivets removed — clean surface, seam lines only ─── */}
 

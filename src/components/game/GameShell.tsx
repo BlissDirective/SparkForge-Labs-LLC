@@ -78,14 +78,38 @@ export function GameShell({
   const setActiveMode = useCockpitStore((s) => s.setActiveMode);
   const previousModeRef = useRef(useCockpitStore.getState().activeMode);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // Phase 2 audit fix (Section 5.7): 400ms game entry anticipation sequence
+  // Ref to track anticipation timeout so it can be cleared on unmount
+  const anticipationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
     // Capture mode before entering game for restoration on exit
     previousModeRef.current = useCockpitStore.getState().activeMode;
 
+    // Start game state immediately so GameHUD content renders
     startGame(gameId, totalRounds, hints);
-    enterGame(gameId, worldColor);
-    setActiveMode('game');
-    broadcast({ type: 'game-enter', source: gameId, value: 1.0 });
+
+    // Phase 2 audit fix (Section 5.7): 400ms game entry anticipation sequence
+    // (1) Broadcast anticipation start — LEDs ramp, HUD dims, audio engines can build tone
+    // (2) Broadcast particle-converge via reused event channel (fire-and-forget)
+    // (3) After 400ms, broadcast anticipation end + run normal enterGame flow
+    broadcast({
+      type: 'game-anticipation-start',
+      source: gameId,
+      color: worldColor,
+      value: 1.0,
+    });
+
+    anticipationTimeoutRef.current = setTimeout(() => {
+      broadcast({
+        type: 'game-anticipation-end',
+        source: gameId,
+        color: worldColor,
+        value: 1.0,
+      });
+      enterGame(gameId, worldColor);
+      setActiveMode('game');
+      broadcast({ type: 'game-enter', source: gameId, value: 1.0 });
+    }, 400);
 
     // Register 3D HUD in sceneStore — renders inside CockpitCanvas (Phase 5)
     setGameHUDContent(
@@ -98,6 +122,11 @@ export function GameShell({
     );
 
     return () => {
+      // Clean up anticipation timeout if unmount happens mid-sequence
+      if (anticipationTimeoutRef.current) {
+        clearTimeout(anticipationTimeoutRef.current);
+        anticipationTimeoutRef.current = null;
+      }
       broadcast({ type: 'game-exit', source: gameId, value: 1.0 });
       setActiveMode(previousModeRef.current);
       exitGame(); // Also clears gameHUDContent

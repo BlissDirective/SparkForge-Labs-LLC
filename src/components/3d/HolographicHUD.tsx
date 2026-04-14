@@ -122,7 +122,9 @@ const BASE_ASPECT = 16 / 9; // 1.778 — design reference aspect ratio
 // ═══════════════════════════════════════════════════════════════
 
 interface HolographicHUDProps {
-  opacity: number;              // 0.0-1.0, driven by station mode (default 0.25)
+  // Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+  // Baseline opacity bumped from 0.25 to 0.35 for readability
+  opacity: number;              // 0.0-1.0, driven by station mode (default 0.35)
   color: string;                // Lab accent color
   active: boolean;              // false = return null (game mode)
   modeName?: string;            // Current mode name for bottom-left readout
@@ -234,7 +236,9 @@ export function HolographicHUD({
   }, []);
 
   // Tick mark geometry (small box)
-  const tickGeo = useMemo(() => new BoxGeometry(0.015, 0.06, 0.005), []);
+  // Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+  // Scaled up from (0.015, 0.06) → (0.025, 0.08) for readability
+  const tickGeo = useMemo(() => new BoxGeometry(0.025, 0.08, 0.005), []);
 
   // Per-arc tick matrices
   const allTickMatrices = useMemo(() => {
@@ -384,8 +388,10 @@ export function HolographicHUD({
 
   const labelStyle = TYPE_SCALE.label;
   const captionStyle = TYPE_SCALE.caption;
-  const textFill = Math.max(0.4, TEXT_COLORS.secondary.opacity * opacity);
-  const textMutedFill = Math.max(0.4, TEXT_COLORS.muted.opacity * opacity);
+  // Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+  // Fill opacity floor raised 0.4 → 0.5 for readability boost
+  const textFill = Math.max(0.5, TEXT_COLORS.secondary.opacity * opacity);
+  const textMutedFill = Math.max(0.5, TEXT_COLORS.muted.opacity * opacity);
 
   // Format readout strings
   const xpText = `XP: ${xp.toLocaleString()}`;
@@ -446,67 +452,97 @@ export function HolographicHUD({
       ))}
 
       {/* ════════ Corner Data Readouts ════════ */}
+      {/* Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+          Added background plates, thicker outlines for readability */}
 
       {/* Top-left: Current time (HH:MM) */}
-      <Text
-        position={cornerPositions.topLeft}
-        fontSize={labelStyle.fontSize}
-        color={TEXT_COLORS.secondary.hex}
-        anchorX="left"
-        anchorY="top"
-        font={NUMERIC_FONT}
-        fillOpacity={textFill}
-        outlineWidth={0.003}
-        outlineColor="#0A0E16"
-      >
-        {displayTime}
-      </Text>
+      <group position={cornerPositions.topLeft}>
+        <mesh position={[0.06, -0.03, -0.001]}>
+          <planeGeometry args={[0.18, 0.09]} />
+          <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
+        <Text
+          fontSize={labelStyle.fontSize}
+          color={TEXT_COLORS.secondary.hex}
+          anchorX="left"
+          anchorY="top"
+          font={NUMERIC_FONT}
+          fillOpacity={textFill}
+          outlineWidth={0.006}
+          outlineColor="#0A0E16"
+          strokeWidth={0.001}
+          strokeColor="#0A0E16"
+        >
+          {displayTime}
+        </Text>
+      </group>
 
       {/* Top-right: XP value */}
-      <Text
-        position={cornerPositions.topRight}
-        fontSize={labelStyle.fontSize}
-        color={TEXT_COLORS.secondary.hex}
-        anchorX="right"
-        anchorY="top"
-        font={NUMERIC_FONT}
-        fillOpacity={textFill}
-        outlineWidth={0.003}
-        outlineColor="#0A0E16"
-      >
-        {xpText}
-      </Text>
-
-      {/* Bottom-left: Mode name — COCK-03: use secondary opacity for readability */}
-      <Text
-        position={cornerPositions.bottomLeft}
-        fontSize={captionStyle.fontSize}
-        color={color}
-        anchorX="left"
-        anchorY="bottom"
-        font={labelStyle.fontPath}
-        fillOpacity={textFill}
-        outlineWidth={0.005}
-        outlineColor="#0A0E16"
-      >
-        {modeText}
-      </Text>
-
-      {/* Bottom-right: Child name / level — COCK-03: use secondary opacity */}
-      {childText && (
+      <group position={cornerPositions.topRight}>
+        <mesh position={[-0.15, -0.03, -0.001]}>
+          <planeGeometry args={[0.36, 0.09]} />
+          <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
         <Text
-          position={cornerPositions.bottomRight}
-          fontSize={captionStyle.fontSize}
+          fontSize={labelStyle.fontSize}
           color={TEXT_COLORS.secondary.hex}
           anchorX="right"
+          anchorY="top"
+          font={NUMERIC_FONT}
+          fillOpacity={textFill}
+          outlineWidth={0.006}
+          outlineColor="#0A0E16"
+          strokeWidth={0.001}
+          strokeColor="#0A0E16"
+        >
+          {xpText}
+        </Text>
+      </group>
+
+      {/* Bottom-left: Mode name — COCK-03: use secondary opacity for readability */}
+      <group position={cornerPositions.bottomLeft}>
+        <mesh position={[0.12, 0.03, -0.001]}>
+          <planeGeometry args={[0.3, 0.09]} />
+          <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
+        <Text
+          fontSize={captionStyle.fontSize}
+          color={color}
+          anchorX="left"
           anchorY="bottom"
           font={labelStyle.fontPath}
           fillOpacity={textFill}
-          outlineWidth={0.005}
+          outlineWidth={0.008}
           outlineColor="#0A0E16"
+          strokeWidth={0.001}
+          strokeColor="#0A0E16"
         >
-          {childText}
+          {modeText}
         </Text>
+      </group>
+
+      {/* Bottom-right: Child name / level — COCK-03: use secondary opacity */}
+      {childText && (
+        <group position={cornerPositions.bottomRight}>
+          <mesh position={[-0.18, 0.03, -0.001]}>
+            <planeGeometry args={[0.42, 0.09]} />
+            <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
+          </mesh>
+          <Text
+            fontSize={captionStyle.fontSize}
+            color={TEXT_COLORS.secondary.hex}
+            anchorX="right"
+            anchorY="bottom"
+            font={labelStyle.fontPath}
+            fillOpacity={textFill}
+            outlineWidth={0.008}
+            outlineColor="#0A0E16"
+            strokeWidth={0.001}
+            strokeColor="#0A0E16"
+          >
+            {childText}
+          </Text>
+        </group>
       )}
     </group>
   );

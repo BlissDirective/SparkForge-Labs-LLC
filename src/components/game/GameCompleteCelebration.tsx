@@ -9,6 +9,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import FocusTrap from 'focus-trap-react';
 import { Trophy, Star, Zap, ArrowRight } from 'lucide-react';
+// Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
+import { ConfettiEngine } from '@/components/shared/ConfettiEngine';
 
 interface CelebrationProps {
   show: boolean;
@@ -23,34 +25,17 @@ interface CelebrationProps {
   onContinue: () => void;
 }
 
-interface Confetto {
-  id: number;
-  x: number;
-  delay: number;
-  rotation: number;
-  color: string;
-  size: number;
-  drift: number;
-}
-
 export function GameCompleteCelebration({
   show, score, totalRounds, roundsCompleted, xpReward,
   worldColor, gameTitle, badge, personalBest, onContinue,
 }: CelebrationProps) {
   const [phase, setPhase] = useState<'burst' | 'stats' | 'badge'>('burst');
 
-  // Generate confetti
-  // TODO: Consider consolidating with CelebrationOverlay confetti system (src/components/shared/CelebrationOverlay.tsx)
-  const confetti = useMemo<Confetto[]>(() =>
-    Array.from({ length: 60 }, (_, i) => ({
-      id: i,
-      x: (i * 37 + 13) % 100,
-      delay: (i * 0.013) % 0.8,
-      rotation: (i * 47 % 720) - 360,
-      color: [worldColor, '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6'][i % 6],
-      size: (i * 3 % 8) + 4,
-      drift: ((i * 17 % 40) - 20),
-    })), [worldColor]
+  // Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
+  // Palette preserves the legacy per-game worldColor + rainbow mix.
+  const confettiColors = useMemo(
+    () => [worldColor, '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6'],
+    [worldColor]
   );
 
   // Phase progression
@@ -87,34 +72,13 @@ export function GameCompleteCelebration({
           animate={{ opacity: 1 }}
         />
 
-        {/* Confetti layer */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {confetti.map(c => (
-            <motion.div
-              key={c.id}
-              className="absolute rounded-sm"
-              style={{
-                left: `${c.x}%`,
-                top: -20,
-                width: c.size,
-                height: c.size * 0.6,
-                backgroundColor: c.color,
-              }}
-              initial={{ y: -20, rotate: 0, opacity: 1 }}
-              animate={{
-                y: 900,
-                rotate: c.rotation,
-                x: c.drift,
-                opacity: [1, 1, 0.8, 0],
-              }}
-              transition={{
-                duration: 3 + (c.id % 3),
-                delay: c.delay,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
-            />
-          ))}
-        </div>
+        {/* Confetti layer — Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine */}
+        <ConfettiEngine
+          count={60}
+          colors={confettiColors}
+          duration={3000}
+          show={show}
+        />
 
         {/* Content */}
         <motion.div
