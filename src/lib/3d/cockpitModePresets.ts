@@ -12,6 +12,8 @@ import type { HUDDataMode, SidePanelContent } from './cockpitConfig';
 
 // ■■ Mode Identifiers ■■
 // Maps to Next.js routes — pages call useCockpitScene(mode) to activate
+// Phase 2 Section 7 (Solution D): Unified mode type. Absorbs former StationMode.
+// `onboarding` and `admin` were merged from the legacy StationMode union.
 export type CockpitMode =
   | 'dashboard'    // /home
   | 'labs'         // /labs
@@ -21,7 +23,9 @@ export type CockpitMode =
   | 'profile'      // /profile
   | 'settings'     // /settings
   | 'celebration'  // triggered by XP/badge/level events
-  | 'parent';      // /parent
+  | 'parent'       // /parent
+  | 'onboarding'   // /onboarding (merged from legacy StationMode)
+  | 'admin';       // /admin (merged from legacy StationMode)
 
 // ■■ Particle Intensity ■■
 export type ParticleLevel = 'off' | 'low' | 'medium' | 'high' | 'max';
@@ -218,6 +222,42 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     ambientAudio: 'cockpit_hum_subdued',
     transition: { type: 'crossfade', durationMs: 400, easing: 'ease-out-cubic' },
   },
+
+  // Phase 2 Section 7: Merged from legacy StationMode. Uses dashboard preset as
+  // a base with amber LED tint for welcoming-onboarding vibe.
+  onboarding: {
+    ledColor: '#FFAA44',
+    bloom: { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
+    camera: { fov: 52, distortion: 0.01 },
+    vignette: { darkness: 0.4, offset: 0.35 },
+    hud: { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'tutorial' },
+    panels: { curvature: 0.7, opacity: 0.8 },
+    sidePanels: { opacity: 0.3, leftContent: 'radar', rightContent: 'stats' },
+    statusBar: { opacity: 0.6 },
+    centerScale: 1.0,
+    panelOffset: 0,
+    particles: 'medium',
+    ambientAudio: 'cockpit_hum',
+    transition: { type: 'crossfade', durationMs: 400, easing: 'ease-out-cubic' },
+  },
+
+  // Phase 2 Section 7: Merged from legacy StationMode. Uses dashboard preset as
+  // a base with red LED tint and slightly dimmed panels for admin/ops context.
+  admin: {
+    ledColor: '#FF4444',
+    bloom: { intensity: 0.25, threshold: 0.75, smoothing: 0.95 },
+    camera: { fov: 52, distortion: 0.0 },
+    vignette: { darkness: 0.4, offset: 0.3 },
+    hud: { opacity: 0.06, rotationSpeed: 0.03, pulseIntensity: 0.05, dataMode: 'stats' },
+    panels: { curvature: 0.5, opacity: 0.9 },
+    sidePanels: { opacity: 0.2, leftContent: 'terminal', rightContent: 'stats' },
+    statusBar: { opacity: 0.5 },
+    centerScale: 1.0,
+    panelOffset: 0,
+    particles: 'low',
+    ambientAudio: 'cockpit_hum_subdued',
+    transition: { type: 'crossfade', durationMs: 400, easing: 'ease-out-cubic' },
+  },
 } as const;
 
 // ■■ Variable Dial Cluster — per-page dial labels ■■
@@ -231,6 +271,8 @@ export const DIAL_CONFIGS: Record<CockpitMode, [string, string, string]> = {
   settings:   ['Volume %', 'Brightness %', 'Particles %'],
   celebration:['Total XP', 'Level', 'Badges Earned'],
   parent:     ['Screen Time', 'XP Today', 'Games Played'],
+  onboarding: ['Progress %', 'Step', 'Time'],
+  admin:      ['Queue', 'Pending', 'Approved'],
 };
 
 // ■■ Route → Mode mapping ■■
@@ -243,6 +285,8 @@ export function routeToCockpitMode(pathname: string): CockpitMode {
   if (pathname === '/profile') return 'profile';
   if (pathname === '/settings') return 'settings';
   if (pathname === '/parent') return 'parent';
+  if (pathname.startsWith('/onboarding')) return 'onboarding';
+  if (pathname.startsWith('/admin')) return 'admin';
   // /home falls through to dashboard mode
   return 'dashboard';
 }

@@ -20,7 +20,6 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
-import { useUIStore } from '@/stores/uiStore';
 import { TrialBanner } from '@/components/parent/TrialBanner';
 import { DowngradeConfirmModal } from '@/components/parent/DowngradeConfirmModal';
 import { UsageDashboard } from '@/components/parent/UsageDashboard';
@@ -29,7 +28,7 @@ import { isDowngrade } from '@/lib/tier-config';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import {
   queuePendingCelebration,
-  usePendingCelebration,
+  useAutoDispatchPendingCelebration,
   peekPendingCelebration,
 } from '@/hooks/usePendingCelebration';
 
@@ -58,7 +57,10 @@ function SubscriptionContent() {
   const { tier } = useParentStore();
   const searchParams = useSearchParams();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
-  const triggerCelebration = useUIStore((s) => s.triggerCelebration);
+  // Phase 2 audit fix (Section 3.5): Unified celebration state flow —
+  // celebrations now dispatch through useAutoDispatchPendingCelebration
+  // → uiStore.triggerCelebration (single entry point). Broadcast +
+  // CeremonyFX + mode switch + auto-dismiss all flow from that.
   const cockpitReady = useCockpitStore((s) => s.cockpitReady);
   const [billing, setBilling] = useState<'monthly' | 'yearly'>('monthly');
 
@@ -106,19 +108,14 @@ function SubscriptionContent() {
     console.info('[celebration] HTML banner shown + sessionStorage queued');
   }, [showSuccess]);
 
-  // [Layer 3] Wait for cockpit to be ready before dispatching the 3D
-  // celebration. This handles the race where the subscription page
-  // mounts faster than the cockpit canvas (WebGPU async init).
-  usePendingCelebration(cockpitReady, (pending) => {
-    broadcast({
-      type: 'celebration-start',
-      source: 'subscription-upgrade',
-      color: pending.color ?? '#FFD700',
-      label: pending.label ?? 'Subscription Active!',
-    });
-    triggerCelebration('confetti', { reason: pending.reason });
-    console.info('[celebration] 3D dispatched after cockpitReady');
-  });
+  // [Layer 3] Phase 2 audit fix (Section 3.5): Unified celebration
+  // state flow. Wait for cockpit to be ready, then auto-dispatch the
+  // pending celebration through the single uiStore entry point. From
+  // there, useCelebration3D handles mode switch, CeremonyFXBridge
+  // renders the 3D effect, broadcast fires celebration-start for LED/
+  // HUD reactions, and dismiss is owned solely by useCelebration3D
+  // (no double-dismiss race).
+  useAutoDispatchPendingCelebration(cockpitReady);
 
   // On cold mount we may also be landing here from a prior session
   // where the banner was queued but never consumed (e.g. user closed

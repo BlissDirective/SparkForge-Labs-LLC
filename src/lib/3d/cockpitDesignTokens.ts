@@ -213,6 +213,9 @@ export const MODE_FILL_LIGHT: Record<CockpitMode, { color: string; intensity: nu
   settings:    { color: '#D9A430', intensity: 0.25 },
   celebration: { color: '#FFD700', intensity: 0.6 },
   parent:      { color: '#D9A430', intensity: 0.2 },
+  // Phase 2 Section 7: merged from legacy StationMode
+  onboarding:  { color: '#FFAA44', intensity: 0.3 },
+  admin:       { color: '#FF4444', intensity: 0.2 },
 } as const;
 
 export const PARTICLE_CROSSFADE_S = 1.5;
@@ -325,6 +328,9 @@ export const MODE_FOCUS_TARGETS: Record<CockpitMode, { primary: Quadrant[]; seco
   settings:    { primary: ['center', 'right'],  secondary: ['left'] },
   celebration: { primary: ['center'],           secondary: ['left', 'right'] },
   parent:      { primary: ['center'],           secondary: ['left', 'right'] },
+  // Phase 2 Section 7: merged from legacy StationMode
+  onboarding:  { primary: ['center'],           secondary: ['left', 'right'] },
+  admin:       { primary: ['center'],           secondary: ['left'] },
 } as const;
 
 // ═══════════════════════════════════════════════════════════════

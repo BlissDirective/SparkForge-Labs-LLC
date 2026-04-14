@@ -2,59 +2,31 @@
 // Mode Resolver — Unified Mode Type Bridge
 // ════════════════════════════════════════════════════
 // Phase 1 audit fix (Section 3.4, Solution B): Provides explicit
-// mapping between the three overlapping mode type systems:
+// mapping between the overlapping mode type systems.
+// Phase 2 Section 7 (Solution D): StationMode atomic cutover — the former
+// StationMode union is now an alias of CockpitMode (labmap→labs,
+// lab→lab_detail, onboarding/admin absorbed). The cockpit↔station bridge
+// functions are now identity and remain exported only for backward compat
+// with Phase 1 callers.
 //
-//   CockpitMode (9 values)  — atmosphere presets, design tokens
-//   StationMode (10 values) — legacy audio, cockpit config
-//   ActiveScene (5 values)  — scene graph routing
-//
-// Instead of deprecating StationMode (risky: used in 5+ files + audio),
-// this utility provides a clean bridge so each system stays stable
-// while consumers can convert between them as needed.
+//   CockpitMode (11 values) — unified mode type (was 9; now absorbs onboarding, admin)
+//   StationMode             — alias of CockpitMode (deprecated name)
+//   ActiveScene (5 values)  — scene graph routing (orthogonal axis, retained)
 
 import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
 import type { StationMode } from '@/hooks/useStationMode';
 import type { ActiveScene } from '@/stores/sceneStore';
 
 // ═══════════════════════════════════════════════════════════════
-// COCKPIT MODE → STATION MODE
+// COCKPIT MODE ↔ STATION MODE — identity after Phase 2 Section 7
 // ═══════════════════════════════════════════════════════════════
-
-const COCKPIT_TO_STATION: Record<CockpitMode, StationMode> = {
-  dashboard:   'dashboard',
-  labs:        'labmap',
-  lab_detail:  'lab',
-  arcade:      'arcade',
-  game:        'game',
-  profile:     'profile',
-  settings:    'dashboard',  // Settings has no StationMode equivalent → dashboard
-  celebration: 'celebration',
-  parent:      'parent',
-};
 
 export function cockpitToStation(mode: CockpitMode): StationMode {
-  return COCKPIT_TO_STATION[mode] ?? 'dashboard';
+  return mode;
 }
 
-// ═══════════════════════════════════════════════════════════════
-// STATION MODE → COCKPIT MODE
-// ═══════════════════════════════════════════════════════════════
-
-const STATION_TO_COCKPIT: Record<StationMode, CockpitMode> = {
-  dashboard:   'dashboard',
-  arcade:      'arcade',
-  labmap:      'labs',
-  lab:         'lab_detail',
-  game:        'game',
-  profile:     'profile',
-  celebration: 'celebration',
-  onboarding:  'dashboard',  // No cockpit preset for onboarding → dashboard
-  parent:      'parent',
-  admin:       'dashboard',  // No cockpit preset for admin → dashboard
-};
-
 export function stationToCockpit(mode: StationMode): CockpitMode {
-  return STATION_TO_COCKPIT[mode] ?? 'dashboard';
+  return mode;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -77,19 +49,11 @@ export function sceneToCockpit(scene: ActiveScene): CockpitMode {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// ACTIVE SCENE → STATION MODE
+// ACTIVE SCENE → STATION MODE (identity with sceneToCockpit after cutover)
 // ═══════════════════════════════════════════════════════════════
 
-const SCENE_TO_STATION: Record<ActiveScene, StationMode> = {
-  hero:          'dashboard',
-  cockpit:       'dashboard',
-  spatial:       'labmap',
-  game:          'game',
-  transitioning: 'game',
-};
-
 export function sceneToStation(scene: ActiveScene): StationMode {
-  return SCENE_TO_STATION[scene] ?? 'dashboard';
+  return sceneToCockpit(scene);
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -109,9 +73,6 @@ export interface ResolvedMode {
  * Usage:
  *   const resolved = resolveMode({ cockpit: 'game' });
  *   // → { cockpit: 'game', station: 'game', scene: 'game' }
- *
- *   const resolved = resolveMode({ station: 'labmap' });
- *   // → { cockpit: 'labs', station: 'labmap', scene: 'spatial' }
  */
 export function resolveMode(
   input: Partial<ResolvedMode>,
@@ -119,17 +80,16 @@ export function resolveMode(
   if (input.cockpit) {
     return {
       cockpit: input.cockpit,
-      station: cockpitToStation(input.cockpit),
+      station: input.cockpit,
       scene: input.scene ?? (input.cockpit === 'game' ? 'game' : 'cockpit'),
     };
   }
 
   if (input.station) {
-    const cockpit = stationToCockpit(input.station);
     return {
-      cockpit,
+      cockpit: input.station,
       station: input.station,
-      scene: input.scene ?? (input.station === 'game' ? 'game' : input.station === 'labmap' || input.station === 'lab' ? 'spatial' : 'cockpit'),
+      scene: input.scene ?? (input.station === 'game' ? 'game' : input.station === 'labs' || input.station === 'lab_detail' ? 'spatial' : 'cockpit'),
     };
   }
 

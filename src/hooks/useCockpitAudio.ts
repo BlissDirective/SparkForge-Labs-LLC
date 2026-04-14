@@ -33,17 +33,20 @@ export type CockpitSoundEvent =
   | 'panel-ambient-stop';
 
 // Frequency maps for mode transitions
+// Phase 2 Section 7 (Solution D): keys aligned with unified CockpitMode
+// (labmap→labs, lab→lab_detail; added settings).
 const MODE_FREQUENCIES: Record<StationMode, number> = {
-  dashboard: 80,
-  arcade: 110,
-  labmap: 100,
-  lab: 120,
-  game: 60,
-  profile: 90,
+  dashboard:   80,
+  arcade:      110,
+  labs:        100,
+  lab_detail:  120,
+  game:        60,
+  profile:     90,
+  settings:    95,
   celebration: 150,
-  onboarding: 70,
-  parent: 85,
-  admin: 95,
+  onboarding:  70,
+  parent:      85,
+  admin:       95,
 };
 
 // ── Helper: legacy Web Audio synthesis (kept for v1 compat) ────
