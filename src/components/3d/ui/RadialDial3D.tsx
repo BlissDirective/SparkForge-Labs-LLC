@@ -76,8 +76,14 @@ const CHROME_COLOR = new Color(CHROME_BORDER.color);
 
 // Spring config for smooth drag interpolation
 const SMOOTH_SPRING = SPRING_PRESETS.smooth;
+const BOUNCE_SPRING = SPRING_PRESETS.bounce;
 // Derive a lerp factor from spring stiffness/damping
 const SPRING_LERP_FACTOR = SMOOTH_SPRING.stiffness / (SMOOTH_SPRING.stiffness + SMOOTH_SPRING.damping * 10);
+const BOUNCE_LERP_FACTOR = BOUNCE_SPRING.stiffness / (BOUNCE_SPRING.stiffness + BOUNCE_SPRING.damping * 10);
+
+// Phase 2 audit fix (Section 5.2): Release overshoot for mechanical satisfying feel
+const OVERSHOOT_RAD = (2 * Math.PI) / 180; // 2 degrees
+const OVERSHOOT_DURATION = 0.2;
 
 // Glow pulse timing from design tokens
 const GLOW_PULSE_PERIOD = HOVER_GLOW.pulsePeriodS;
@@ -264,17 +270,38 @@ export function RadialDial3D({
     [dragging, readOnly, min, max, onChange, broadcast, id, color, label],
   );
 
+  // Phase 2 audit fix (Section 5.2): Spring overshoot on release for mechanical feel
+  const overshootTimeRef = useRef(-1);
+  const releaseValueRef = useRef(normalizedValue);
+
   const handlePointerUp = useCallback(() => {
     setDragging(false);
-  }, []);
+    // Trigger overshoot animation on release
+    overshootTimeRef.current = 0;
+    releaseValueRef.current = normalizedValue;
+  }, [normalizedValue]);
 
   // ■■ Per-frame animation ■■
   useFrame((_, delta) => {
     if (!knobRef.current) return;
 
-    // Smooth spring-interpolated rotation towards target
-    const targetRotation = -ARC_START - normalizedValue * VALUE_ARC;
-    const lerpSpeed = SPRING_LERP_FACTOR * delta * 60; // Normalize to ~60fps
+    // Compute target rotation — with overshoot on release (Phase 2 audit fix: Section 5.2)
+    let targetRotation = -ARC_START - normalizedValue * VALUE_ARC;
+    let lerpSpeed = SPRING_LERP_FACTOR * delta * 60;
+
+    if (overshootTimeRef.current >= 0) {
+      overshootTimeRef.current += delta;
+      const ot = overshootTimeRef.current / OVERSHOOT_DURATION;
+      if (ot >= 1) {
+        overshootTimeRef.current = -1;
+      } else {
+        // Sine-curve overshoot: +2° at peak, decaying to 0
+        const overshootAmount = Math.sin(ot * Math.PI) * OVERSHOOT_RAD * (1 - ot);
+        targetRotation += overshootAmount;
+        lerpSpeed = BOUNCE_LERP_FACTOR * delta * 60; // Bouncier lerp during overshoot
+      }
+    }
+
     knobRef.current.rotation.y += (targetRotation - knobRef.current.rotation.y) * Math.min(lerpSpeed, 1);
 
     // Glow pulse decay using design token period

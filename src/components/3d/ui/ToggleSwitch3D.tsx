@@ -167,10 +167,18 @@ export function ToggleSwitch3D({
     emissiveIntensity: 0.2,
   }), []);
 
+  // Phase 2 audit fix (Section 5.3): LED pulse on state change
+  // Pulses brightness from 1.0 → 2.5 → 1.5 over 300ms (brighter LED flash)
+  const ledPulseRef = useRef(-1);
+  const LED_PULSE_DURATION = 0.3;
+
   // ■■ Click handler ■■
   const handleClick = useCallback(() => {
     const newValue = !value;
     onChange(newValue);
+
+    // Trigger LED pulse on toggle
+    ledPulseRef.current = 0;
 
     broadcast({
       type: 'toggle-switch',
@@ -210,6 +218,21 @@ export function ToggleSwitch3D({
     const ledMat = ledRef.current.material as MeshBasicMaterial;
     const targetColor = value ? onColor : offColor;
     ledMat.color.lerp(targetColor, Math.min(dt * 12, 1));
+
+    // Phase 2 audit fix (Section 5.3): LED pulse brightness on toggle state change
+    if (ledPulseRef.current >= 0) {
+      ledPulseRef.current += dt;
+      const pt = ledPulseRef.current / LED_PULSE_DURATION;
+      if (pt >= 1) {
+        ledPulseRef.current = -1;
+      } else {
+        // Curve: 1.0 → 2.5 (at pt=0.3) → 1.5 (settle)
+        const pulseMultiplier = pt < 0.3
+          ? 1.0 + (1.5 * pt / 0.3)       // 1.0 → 2.5
+          : 2.5 - (1.0 * (pt - 0.3) / 0.7); // 2.5 → 1.5
+        ledMat.color.multiplyScalar(pulseMultiplier);
+      }
+    }
   });
 
   // Caption style from design tokens

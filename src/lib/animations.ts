@@ -167,9 +167,11 @@ export const skeletonPulse: Variants = {
 };
 
 // ═══ GAMIFICATION ═══
+// Phase 2 audit fix (Section 5.5): XP float uses deceleration keyframes
+// [0, -40, -58, -70] for natural gravity-curve feel instead of linear rise
 export const xpFloat: Variants = {
   initial: { opacity: 0, y: 0, scale: 0.5 },
-  animate: { opacity: [0, 1, 1, 0], y: [0, -30, -50, -70], scale: [0.5, 1.2, 1, 0.8], transition: { duration: 1.5, times: [0, 0.2, 0.7, 1] } },
+  animate: { opacity: [0, 1, 1, 0], y: [0, -40, -58, -70], scale: [0.5, 1.2, 1, 0.8], transition: { duration: 1.5, times: [0, 0.3, 0.7, 1] } },
 };
 
 export const streakFlame: Variants = {
