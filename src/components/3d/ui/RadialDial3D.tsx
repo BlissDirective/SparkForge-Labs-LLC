@@ -37,6 +37,7 @@ import {
   EMISSIVE_LED_MULTIPLIER,
   SPRING_PRESETS,
   HOVER_GLOW,
+  STATE_MACHINE,
   TYPE_SCALE,
   NUMERIC_FONT,
   getEmissive,
@@ -314,9 +315,12 @@ export function RadialDial3D({
 
     // Hover emissive boost
     if (hovered && !dragging && !readOnly) {
+      // Phase 2 audit fix (Section 7.1): Design token adoption
+      // Previous: EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER * 0.3 = 0.8 * 1.8 * 0.3 = 0.432
+      // Now:      getEmissive(STATE_MACHINE.hover.emissive) * 0.3 = 1.5 * 0.3 = 0.45 (~4% above legacy)
       knobMaterial.emissiveIntensity = Math.max(
         knobMaterial.emissiveIntensity,
-        EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER * 0.3,
+        getEmissive(STATE_MACHINE.hover.emissive) * 0.3,
       );
     }
   });

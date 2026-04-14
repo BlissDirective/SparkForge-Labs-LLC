@@ -46,6 +46,7 @@ import {
   TEXT_COLORS,
   WHITESPACE_RATIO,
   GHOST_PLACEHOLDER_OPACITY,
+  getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // Phase 2 audit fix (Section 4.6): holographicTSL applied — Decision 4.3
@@ -214,7 +215,8 @@ export function HolographicCard({
     metalness: 0.85,
     roughness: 0.35,
     emissive: new Color('#000000'),
-    emissiveIntensity: 0,
+    // Phase 2 audit fix (Section 7.1): Design token adoption — 0 === getEmissive('off')
+    emissiveIntensity: getEmissive('off'),
     transparent: false,
   }), []);
 
@@ -264,7 +266,8 @@ export function HolographicCard({
     currentLift.current += velocityLift.current * dt;
 
     // Spring-driven scale
-    const targetScale = hovered ? HOVER_SCALE : 1.0;
+    // Phase 2 audit fix (Section 7.1): Design token adoption — 1.0 === STATE_MACHINE.idle.scale
+    const targetScale = hovered ? HOVER_SCALE : STATE_MACHINE.idle.scale;
     const forceScale = -SPRING.stiffness * (currentScale.current - targetScale);
     const dampScale = -SPRING.damping * velocityScale.current;
     velocityScale.current += (forceScale + dampScale) / SPRING.mass * dt;
