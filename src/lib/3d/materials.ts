@@ -102,7 +102,7 @@ export const MATERIAL_PRESETS: Record<string, MaterialPreset> = {
     metalness: 0.0,
     roughness: 0.1,
     envMapIntensity: 1.0,
-    color: '#ffffff',
+    color: '#F0F0F4',
     special: 'Legendary pedestals + hero crystal — MeshTransmissionMaterial',
   },
   CartoonMatte: {
@@ -110,7 +110,7 @@ export const MATERIAL_PRESETS: Record<string, MaterialPreset> = {
     metalness: 0.0,
     roughness: 0.9,
     envMapIntensity: 0.0,
-    color: '#ffffff',
+    color: '#F0F0F4',
     special: 'Pet Trainer creature — MeshToonMaterial, 3-step gradientMap',
   },
   EmissiveGlow: {
@@ -118,7 +118,7 @@ export const MATERIAL_PRESETS: Record<string, MaterialPreset> = {
     metalness: 0.0,
     roughness: 0.5,
     envMapIntensity: 0.0,
-    color: '#000000',
+    color: '#0A0E16',
     emissive: '#00BBFF',
     emissiveIntensity: 2.0,
     special: 'LED rim + active indicators',
@@ -177,7 +177,7 @@ export function createPhysicalMaterial(
   if (!preset) throw new Error(`Unknown material preset: ${presetName}`);
 
   return new MeshPhysicalMaterial({
-    color: new Color(preset.color || '#ffffff'),
+    color: new Color(preset.color || '#F0F0F4'),
     metalness: preset.metalness,
     roughness: preset.roughness,
     envMap: envMap || null,

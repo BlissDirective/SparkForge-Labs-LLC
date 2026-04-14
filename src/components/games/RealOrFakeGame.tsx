@@ -27,7 +27,7 @@ const RealOrFakeEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'tips' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 const DETECTION_TIPS = [
   { title: 'Vague vs Specific', emoji: '🔎', tip: 'Fake content is often vague and uses general praise. Real content includes specific details, measurements, and nuanced opinions.' },
@@ -73,8 +73,6 @@ const ALL_ROUNDS: RFRound[] = [
   { type: 'headline', typeLabel: '📰 News Headline', content: 'Octopus DNA Is So Unique That Scientists Joked It Could Be Alien — Turns Out Their Genome Really Is Extraordinary', isFake: false, clue: 'Real! Octopus genomes have features found in no other animals, including massive RNA editing capabilities.', clueC: 'The 2015 octopus genome sequencing (Nature) revealed 33,000 protein-coding genes, extensive transposon expansion, and unprecedented RNA editing in neural tissue. Their "alien DNA" nickname reflects genuine genomic uniqueness among metazoans.', band: 'C' },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function RealOrFakeGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -88,13 +86,9 @@ export function RealOrFakeGame() {
   // STD-RF5: Removed local score state — use game.score from gameStore instead
   const [tipIdx, setTipIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
+  const rounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
-  const rounds = useMemo(
-    () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
   const round = rounds[roundIdx];
 
   // STD-RF2: Added cleanup return for scene content
@@ -125,7 +119,7 @@ export function RealOrFakeGame() {
   }
 
   return (
-    <GameShell gameId="real-or-fake" title="Real or Fake?" worldNumber={6} worldColor="#FF6644" totalRounds={rounds.length}>
+    <GameShell gameId="real-or-fake" title="Real or Fake?" worldNumber={6} worldColor="#FF7050" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -156,18 +150,18 @@ export function RealOrFakeGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs font-body text-orange-400">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('tips')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                      aria-label="Learn detection tips before playing">
+                      aria-label="Learn detection tips before playing the game">
                       Learn Detection Tips! <BookOpen className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
                 )}
 
-                {phase === 'tips' && (
-                  <motion.div key="tips" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }} className="text-center space-y-4 max-w-sm">
                     <Fingerprint className="w-6 h-6 text-orange-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Detection Strategies</h3>
@@ -189,8 +183,8 @@ export function RealOrFakeGame() {
                       {tipIdx < DETECTION_TIPS.length - 1 ? 'Next Tip →' : 'Start Detecting! 🔍'}
                     </motion.button>
                     <button onClick={() => setPhase('play')} className="font-body text-xs text-white/20 hover:text-white/40"
-                      aria-label="Skip tips and start playing">
-                      Skip tips →
+                      aria-label="Skip learn cards and start playing">
+                      Skip to game →
                     </button>
                   </motion.div>
                 )}

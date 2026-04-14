@@ -511,7 +511,11 @@ export function NeuralBuilderGame() {
   const filteredChallenges = useFilteredContent(CHALLENGES as any[], tier, ageBand) as typeof CHALLENGES;
 
   // S6-CRIT-002: Register 3D scene content with sceneStore (D3D-B1)
+  // IND-01: Verified — NeuralNetwork3D handles prop changes efficiently
+  // via internal useFrame reads. Scene re-registration on dep changes is
+  // lightweight since R3F reconciles the existing scene graph.
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+
   useEffect(() => {
     setGameSceneContent(
       <NeuralNetwork3D
@@ -528,7 +532,7 @@ export function NeuralBuilderGame() {
         inspectedNode={inspectedNode}
         onSelectConnection={setSelectedConnection}
         onInspectNode={setInspectedNode}
-        labColor="#FF66AA"
+        labColor="#FF70AF"
       />
     );
     return () => setGameSceneContent(null);
@@ -696,7 +700,7 @@ export function NeuralBuilderGame() {
 
     let prevAcc = 0;
     for (let e = 1; e <= epochs; e++) {
-      await new Promise((r) => safeTimeout(r, 600));
+      await new Promise<void>((r) => safeTimeout(r, 600));
       // BUG-NB1 fix: architecture-dependent convergence curve
       const progress = e / epochs;
       const curvedProgress = e <= plateauEpoch
@@ -913,7 +917,7 @@ export function NeuralBuilderGame() {
       gameId="neural-builder"
       title="Neural Network Builder"
       worldNumber={3}
-      worldColor="#EC4899"
+      worldColor="#FF70AF"
       totalRounds={1}
     >
       {/* Chrome bezel + particles */}

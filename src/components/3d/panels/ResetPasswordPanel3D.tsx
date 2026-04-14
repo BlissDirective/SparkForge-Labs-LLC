@@ -186,7 +186,7 @@ export default function ResetPasswordPanel3D({ onReset, onNavigateLogin }: Reset
 
   const handleReset = useCallback(async () => {
     setError('');
-    if (!email.includes('@')) { setError('Please enter a valid email address'); return; }
+    if (!email.includes('@')) { setError('Invalid email — Please enter a valid email address.'); return; }
     setLoading(true);
     const result = await onReset(email);
     setLoading(false);

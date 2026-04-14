@@ -42,7 +42,7 @@ export function UsageDashboard({
 
   if (isLoading) {
     return (
-      <div className="glass-card rounded-2xl p-4">
+      <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-4">
         <div className="flex items-center gap-2 text-white/40">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="font-body text-xs">Loading usage…</span>
@@ -53,7 +53,7 @@ export function UsageDashboard({
 
   if (error || !usage) {
     return (
-      <div className="glass-card rounded-2xl p-4 border-red-500/20 bg-red-500/5">
+      <div className="bg-[var(--surface-card)] border border-red-500/20 rounded-2xl p-4 bg-red-500/5">
         <div className="flex items-center gap-2 text-red-300">
           <AlertCircle className="w-4 h-4" />
           <span className="font-body text-xs">Unable to load usage data</span>
@@ -92,7 +92,7 @@ export function UsageDashboard({
 
   return (
     <motion.div
-      className={variant === 'card' ? 'glass-card rounded-2xl p-5' : ''}
+      className={variant === 'card' ? 'bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-5' : ''}
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}

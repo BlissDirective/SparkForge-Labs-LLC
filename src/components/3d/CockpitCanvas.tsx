@@ -68,6 +68,9 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
 // Frame-time monitoring (Audit Section 4.4, Plan B1: non-invasive, dev-only)
 import { useFrameTimeMonitor } from '@/hooks/useFrameTimeMonitor';
+// Triangle counter overlay (COCK-13: dev-only + admin toggle)
+import { TriangleStatsCollector, PerformanceOverlayHTML } from './PerformanceOverlay';
+import { useUIStore } from '@/stores/uiStore';
 // Note: Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
 // Game registry (Section 4.1-B: per-game camera presets)
@@ -303,6 +306,10 @@ export function CockpitCanvas({
   const parallaxRef = useParallaxMouse({ smoothing: 0.05, intensity: 1.0 });
   // Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
+  // Performance overlay (COCK-13): dev always, production admin-toggle
+  const showPerfStats = useUIStore((s) => s.showPerfStats);
+  const perfOverlayEnabled = process.env.NODE_ENV === 'development' || showPerfStats;
+
   // ── Single Persistent R3F Canvas (D3D-B1: NEVER unmounts) ──
   return (
     <div
@@ -340,6 +347,9 @@ export function CockpitCanvas({
             </Suspense>
           )}
           <FrameTimeMonitorInner />
+
+          {/* Triangle counter stats collector (COCK-13) — writes to shared ref */}
+          <TriangleStatsCollector enabled={perfOverlayEnabled} />
 
           {/* Unified Camera System (D3D-C4: parallax, Section 4.1-B: per-game presets) */}
           <CameraSystem
@@ -408,10 +418,16 @@ export function CockpitCanvas({
                   opacity={statusBarOpacity}
                 />
 
-                {/* ═══ 3D UI: Navigation Buttons — bottom console (INT-1) ═══ */}
+                {/* ═══ 3D UI: Navigation Buttons — bottom console ═══ */}
+                {/* Fixed instrument panel — renders directly in CockpitCanvas (not
+                    CockpitUILayer) because nav buttons must remain visible and
+                    interactive across all cockpit modes without mode-transition
+                    visibility toggling. Position: below center viewport. */}
                 <NavigationButtonGrid position={[0, -0.6, -1.85]} />
 
-                {/* ═══ 3D UI: Variable Dials — center console (INT-1) ═══ */}
+                {/* ═══ 3D UI: Variable Dials — center console ═══ */}
+                {/* Fixed instrument panel — same rationale as NavigationButtonGrid.
+                    Dials auto-reconfigure per page but never hide. */}
                 <VariableDialCluster position={[0, -0.3, -1.4]} />
 
                 {/* ═══ Ceremony FX — 3D celebration effects (S5-HIGH-007) ═══ */}
@@ -460,6 +476,9 @@ export function CockpitCanvas({
       {/* CSS overlays */}
       {scanlineEnabled && <div className="scanline-overlay" style={{ opacity: 0.03 }} aria-hidden="true" />}
       <div className="vignette-overlay" aria-hidden="true" />
+
+      {/* Performance overlay — DOM layer outside Canvas (COCK-13) */}
+      <PerformanceOverlayHTML enabled={perfOverlayEnabled} />
     </div>
   );
 }

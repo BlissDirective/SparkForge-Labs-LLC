@@ -413,7 +413,7 @@ export function MyFirstAiAppGame() {
   }, [phase, stepIdx, powerOrbs3D, maxPowers, currentTheme, currentCategory, appName, innovationScore, setGameSceneContent]);
 
   return (
-    <GameShell gameId="my-first-ai-app" title="My First AI App" worldNumber={9} worldColor="#F97316" xpReward={30} totalRounds={BUILD_STEPS.length}>
+    <GameShell gameId="my-first-ai-app" title="My First AI App" worldNumber={9} worldColor="#E68E28" xpReward={30} totalRounds={BUILD_STEPS.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         {particles.map(p => (

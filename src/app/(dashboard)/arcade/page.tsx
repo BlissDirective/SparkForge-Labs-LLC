@@ -3,7 +3,7 @@
 // ════════════════════════════════════════════════════════════════
 // ARCADE — Thin Scene Descriptor (UI Design Change)
 // ════════════════════════════════════════════════════════════════
-// Sets cockpit to 'dashboard' mode (arcade uses dashboard atmosphere).
+// Sets cockpit to 'arcade' mode — energetic game browser atmosphere.
 // All visible UI renders in 3D via ArcadePanel inside CockpitUILayer.
 
 import { useEffect } from 'react';
@@ -11,7 +11,7 @@ import { useCockpitScene } from '@/hooks/useCockpitScene';
 import { useCockpitUIStore } from '@/stores/cockpitUIStore';
 
 export default function ArcadePage() {
-  useCockpitScene('dashboard');
+  useCockpitScene('arcade');
 
   const setCenterContent = useCockpitUIStore((s) => s.setCenterContent);
   useEffect(() => {

@@ -54,6 +54,57 @@ export const COCKPIT_GEOMETRY = {
   // (Decision 6.0: repositioned from overhead rings to peripheral viewport frame)
 } as const;
 
+// ■■ Panel Safe Zone Boundaries (COCK-06) ■■
+// Side panels at [±2.35, 0.25, -1.65] with rotation ±0.85rad work because
+// the inward rotation compensates for the X offset beyond the FOV 58 frustum
+// width (~2.8 units at Z=-1.65). The panel face projects back within the
+// viewport after rotation. These safe zone limits prevent future position
+// changes from creating panel-to-panel intersection or frustum clipping.
+export const PANEL_SAFE_ZONE = {
+  /** Maximum absolute X for side panels before frustum clipping occurs */
+  maxAbsX: 2.6,
+  /** Minimum absolute X to prevent side panels overlapping center content */
+  minAbsX: 1.8,
+  /** Maximum Z (closest to camera) before side panels occlude center viewport */
+  maxZ: -1.2,
+  /** Minimum Z (farthest) before side panels become too small to read */
+  minZ: -2.5,
+  /** Y range for side panels */
+  minY: -0.5,
+  maxY: 1.0,
+  /** Center panel Z at 1.75x scale extends to ~Z=-1.89; side panels must stay behind */
+  gameModeMinZ: -1.9,
+} as const;
+
+/** Validate and clamp a panel position within safe zone boundaries.
+ *  Returns clamped [x, y, z] tuple. Logs warning in dev if clamping occurs. */
+export function clampPanelPosition(
+  pos: readonly [number, number, number],
+  side: 'left' | 'right' | 'center'
+): [number, number, number] {
+  let [x, y, z] = pos;
+  const sz = PANEL_SAFE_ZONE;
+
+  if (side === 'left' || side === 'right') {
+    const absX = Math.abs(x);
+    const clampedAbsX = Math.max(sz.minAbsX, Math.min(sz.maxAbsX, absX));
+    x = side === 'left' ? -clampedAbsX : clampedAbsX;
+    y = Math.max(sz.minY, Math.min(sz.maxY, y));
+    z = Math.max(sz.minZ, Math.min(sz.maxZ, z));
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    const [ox, oy, oz] = pos;
+    if (x !== ox || y !== oy || z !== oz) {
+      console.warn(
+        `[cockpitConfig] Panel position clamped: [${ox},${oy},${oz}] → [${x},${y},${z}] (${side})`
+      );
+    }
+  }
+
+  return [x, y, z];
+}
+
 // ■■ Viewport-Adaptive Curvature Thresholds (CPA2-2) ■■
 // v3: Adaptive curvature updated for wider hull
 // D3D-1: tablet/cssFallback removed — desktop-only platform
@@ -65,6 +116,7 @@ export const ADAPTIVE_CURVATURE = {
 // ■■ Bloom Presets — Mode-Dependent (CPA-7) ■■
 export const BLOOM_PRESETS = {
   dashboard:     { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
+  arcade:        { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
   labmap:        { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
   lab:           { intensity: 0.5, threshold: 0.5, smoothing: 0.85 },
   game:          { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
@@ -79,6 +131,7 @@ export const BLOOM_PRESETS = {
 // ■■ Camera Presets — FOV + Barrel Distortion (v3: tight-focus cockpit seat) ■■
 export const CAMERA_PRESETS = {
   dashboard:   { fov: 58, distortion: 0.025 },    // v3: wider FOV for immersion
+  arcade:      { fov: 60, distortion: 0.02 },     // slightly wider than dashboard for game browser
   labmap:      { fov: 62, distortion: 0.02 },     // v3: widest for spatial map
   lab:         { fov: 55, distortion: 0.02 },
   game:        { fov: 52, distortion: 0.0 },
@@ -93,6 +146,7 @@ export const CAMERA_PRESETS = {
 // ■■ Vignette Presets — R3F Postprocessing (CPA-8) ■■
 export const VIGNETTE_PRESETS = {
   dashboard:   { darkness: 0.5, offset: 0.3 },
+  arcade:      { darkness: 0.45, offset: 0.3 },
   labmap:      { darkness: 0.4, offset: 0.3 },
   lab:         { darkness: 0.5, offset: 0.3 },
   game:        { darkness: 0.6, offset: 0.25 },
@@ -106,6 +160,7 @@ export const VIGNETTE_PRESETS = {
 // ■■ HUD Presets v2 — Data-Driven Holographic HUD (CPA2-3) ■■
 export const HUD_PRESETS = {
   dashboard:     { opacity: 0.15, rotationSpeed: 0.1,  pulseIntensity: 0.3, dataMode: 'minimap' as const },
+  arcade:        { opacity: 0.16, rotationSpeed: 0.12, pulseIntensity: 0.35, dataMode: 'minimap' as const },
   labmap:        { opacity: 0.18, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' as const },
   lab:           { opacity: 0.20, rotationSpeed: 0.2,  pulseIntensity: 0.5, dataMode: 'labfocus' as const },
   game:          { opacity: 0.0,  rotationSpeed: 0,    pulseIntensity: 0,   dataMode: 'hidden' as const },
@@ -120,6 +175,7 @@ export const HUD_PRESETS = {
 // ■■ Side Panel Presets (CPA-6) ■■
 export const SIDE_PANEL_PRESETS = {
   dashboard:   { opacity: 0.6, leftContent: 'radar' as const, rightContent: 'stats' as const },
+  arcade:      { opacity: 0.65, leftContent: 'radar' as const, rightContent: 'stats' as const },
   labmap:      { opacity: 0.7, leftContent: 'labNav' as const, rightContent: 'stats' as const },
   lab:         { opacity: 0.5, leftContent: 'labNav' as const, rightContent: 'stats' as const },
   game:        { opacity: 0.0, leftContent: 'radar' as const, rightContent: 'stats' as const },
@@ -133,6 +189,7 @@ export const SIDE_PANEL_PRESETS = {
 // ■■ Panel Curvature per Mode ■■
 export const PANEL_CURVATURE_PRESETS = {
   dashboard:   0.85,
+  arcade:      0.85,
   labmap:      0.85,
   lab:         0.85,
   game:        0.3,     // Retracted during games (Decision 3.4)
@@ -146,6 +203,7 @@ export const PANEL_CURVATURE_PRESETS = {
 // ■■ Panel Opacity per Mode ■■
 export const PANEL_OPACITY_PRESETS = {
   dashboard:   1.0,
+  arcade:      1.0,
   labmap:      1.0,
   lab:         1.0,
   game:        0.2,     // Dimmed during games
@@ -159,6 +217,7 @@ export const PANEL_OPACITY_PRESETS = {
 // ■■ Status Bar Opacity per Mode ■■
 export const STATUS_BAR_PRESETS = {
   dashboard:   { opacity: 1.0 },
+  arcade:      { opacity: 1.0 },
   labmap:      { opacity: 1.0 },
   lab:         { opacity: 1.0 },
   game:        { opacity: 0.15 },  // Minimal, non-distracting

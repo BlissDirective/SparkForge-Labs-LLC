@@ -593,7 +593,7 @@ export default function AdminReviewPage() {
             ].map((s) => (
               <div
                 key={s.label}
-                className="glass-card rounded-xl p-3 text-center"
+                className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-3 text-center"
               >
                 <motion.p
                   className="font-display text-2xl font-bold"
@@ -778,7 +778,7 @@ export default function AdminReviewPage() {
                 {filteredItems.map((item) => (
                   <motion.div
                     key={item.id}
-                    className={`glass-card rounded-xl p-4 flex items-center gap-3 transition-all ${
+                    className={`bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 flex items-center gap-3 transition-all ${
                       selected.has(item.id)
                         ? 'border-spark-blue/40 bg-spark-blue/5'
                         : ''
@@ -909,7 +909,7 @@ export default function AdminReviewPage() {
           ) : (
             <div className="space-y-3">
               {runs.map((run) => (
-                <div key={run.id} className="glass-card rounded-xl p-4">
+                <div key={run.id} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-white/30" />
@@ -1097,7 +1097,7 @@ export default function AdminReviewPage() {
               </div>
 
               {/* Content body */}
-              <div className="glass-card rounded-xl p-4 mb-4">
+              <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4">
                 <h3 className="font-display text-xs font-bold text-white/40 mb-2">
                   Content
                 </h3>
@@ -1109,7 +1109,7 @@ export default function AdminReviewPage() {
               {/* Quiz questions */}
               {preview.content_json?.quiz_questions &&
                 preview.content_json.quiz_questions.length > 0 && (
-                  <div className="glass-card rounded-xl p-4 mb-4">
+                  <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4">
                     <h3 className="font-display text-xs font-bold text-white/40 mb-2">
                       Quiz Questions (
                       {preview.content_json.quiz_questions.length})
@@ -1141,7 +1141,7 @@ export default function AdminReviewPage() {
                 preview.content_json?.estimated_duration_minutes) && (
                 <div className="flex gap-3 mb-4">
                   {preview.content_json?.xp_reward && (
-                    <div className="glass-card rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+                    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
                       <Sparkles className="w-3 h-3 text-spark-orange" />
                       <span className="font-data text-xs text-spark-orange">
                         {preview.content_json.xp_reward} XP
@@ -1149,7 +1149,7 @@ export default function AdminReviewPage() {
                     </div>
                   )}
                   {preview.content_json?.estimated_duration_minutes && (
-                    <div className="glass-card rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+                    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
                       <Clock className="w-3 h-3 text-white/40" />
                       <span className="font-body text-xs text-white/40">
                         ~{preview.content_json.estimated_duration_minutes} min
@@ -1322,26 +1322,26 @@ export default function AdminReviewPage() {
 
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-spark-blue">{analytics.totalItems}</p>
               <p className="font-body text-xs text-white/30">Total in Queue</p>
             </div>
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-green-400">{Object.keys(analytics.byType).length}</p>
               <p className="font-body text-xs text-white/30">Content Types</p>
             </div>
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-amber-400">{Object.keys(analytics.byWorld).length}</p>
               <p className="font-body text-xs text-white/30">Labs Covered</p>
             </div>
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-purple-400">{Object.keys(analytics.byBand).length}</p>
               <p className="font-body text-xs text-white/30">Age Bands</p>
             </div>
           </div>
 
           {/* By Type breakdown */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
             <h4 className="font-display text-sm text-white/60 mb-3">By Content Type</h4>
             <div className="space-y-2">
               {Object.entries(analytics.byType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
@@ -1361,7 +1361,7 @@ export default function AdminReviewPage() {
           </div>
 
           {/* By Lab breakdown */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
             <h4 className="font-display text-sm text-white/60 mb-3">By Lab</h4>
             <div className="grid grid-cols-5 gap-2">
               {Array.from({ length: 10 }, (_, i) => i + 1).map(labId => (
@@ -1374,7 +1374,7 @@ export default function AdminReviewPage() {
           </div>
 
           {/* By Age Band */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
             <h4 className="font-display text-sm text-white/60 mb-3">By Age Band</h4>
             <div className="grid grid-cols-3 gap-3">
               {(['A', 'B', 'C'] as const).map(band => (

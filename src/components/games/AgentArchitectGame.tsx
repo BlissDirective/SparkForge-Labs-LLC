@@ -724,7 +724,7 @@ export function AgentArchitectGame() {
       steps.push({ blockId: current, narration });
       setRunSteps([...steps]);
 
-      await new Promise(r => safeTimeout(r, 1800));
+      await new Promise<void>(r => safeTimeout(r, 1800));
 
       visited.add(current);
       const outgoing = arrows.filter(a => a.fromId === current);
@@ -747,7 +747,7 @@ export function AgentArchitectGame() {
 
     setActiveRunBlock(current);
     setRunPath([...path]);
-    await new Promise(r => safeTimeout(r, 1200));
+    await new Promise<void>(r => safeTimeout(r, 1200));
 
     // Report calculation
     const pathLen = path.length;
@@ -803,7 +803,7 @@ export function AgentArchitectGame() {
 
   return (
     <GameShell gameId="agent-architect" title="Agent Architect"
-      worldNumber={5} worldColor="#10B981" totalRounds={8}>
+      worldNumber={5} worldColor="#00D17A" totalRounds={8}>
       <div className="h-full flex flex-col relative overflow-hidden">
 
         {/* Particle Background */}

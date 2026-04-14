@@ -178,7 +178,7 @@ export default function AdminArchivedChildrenClient() {
   if (isAdmin === false) {
     return (
       <div className="min-h-screen p-6 max-w-4xl mx-auto">
-        <div className="glass-card rounded-2xl p-8 text-center">
+        <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-8 text-center">
           <AlertTriangle className="w-8 h-8 text-spark-orange mx-auto mb-4" />
           <h2 className="font-display text-xl font-bold text-white mb-2">
             Admin access required
@@ -236,7 +236,7 @@ export default function AdminArchivedChildrenClient() {
       {/* ── Filters ── */}
       <motion.div
         variants={staggerItem}
-        className="glass-card rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3"
+        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3"
       >
         <div className="relative flex-1 min-w-[220px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
@@ -264,7 +264,7 @@ export default function AdminArchivedChildrenClient() {
       </motion.div>
 
       {/* ── Table ── */}
-      <motion.div variants={staggerItem} className="glass-card rounded-2xl overflow-hidden">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-white/5">

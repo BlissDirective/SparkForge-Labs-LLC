@@ -32,7 +32,7 @@ export default function LoginPage() {
     setLoading(true);
 
     if (!email || !password) {
-      setError('Please enter your email and password');
+      setError('Missing fields — Please enter both your email and password to log in.');
       setLoading(false);
       return;
     }
@@ -46,14 +46,19 @@ export default function LoginPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || 'Invalid email or password');
+        const serverError = (data.error || '').toLowerCase();
+        if (serverError.includes('invalid') || serverError.includes('credentials') || serverError.includes('password')) {
+          setError('Login failed — The email or password doesn\'t match our records. Double-check both and try again.');
+        } else {
+          setError('Something went wrong — Please try again in a moment. If this keeps happening, try resetting your password.');
+        }
         setLoading(false);
         return;
       }
 
       router.push('/home');
     } catch {
-      setError('Network error. Please check your connection.');
+      setError('Connection error — Please check your internet connection and try again.');
     } finally {
       setLoading(false);
     }

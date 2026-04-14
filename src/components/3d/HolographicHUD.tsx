@@ -17,7 +17,7 @@
 // Triangle budget: ~500,000 tris (4 arcs + tick marks + text)
 
 import { useRef, useMemo, useState } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   BoxGeometry,
   Color,
@@ -110,12 +110,12 @@ const GOLD_COLOR = new Color('#FFD700');
 // CORNER READOUT POSITIONS
 // ═══════════════════════════════════════════════════════════════
 
-const CORNER_POSITIONS = {
-  topLeft:     [-1.8, 1.5, -2.45] as [number, number, number],
-  topRight:    [1.8, 1.5, -2.45] as [number, number, number],
-  bottomLeft:  [-1.8, -1.1, -2.45] as [number, number, number],
-  bottomRight: [1.8, -1.1, -2.45] as [number, number, number],
-};
+// Base corner layout — scaled by viewport aspect ratio at render time (COCK-02)
+const BASE_CORNER_X = 1.8;
+const CORNER_Y_TOP = 1.5;
+const CORNER_Y_BOTTOM = -1.1;
+const CORNER_Z = -2.45;
+const BASE_ASPECT = 16 / 9; // 1.778 — design reference aspect ratio
 
 // ═══════════════════════════════════════════════════════════════
 // PROPS
@@ -203,6 +203,19 @@ export function HolographicHUD({
   // Time display — update every frame would be wasteful, update every ~second
   const [displayTime, setDisplayTime] = useState(getCurrentTime);
   const lastTimeUpdateRef = useRef(0);
+
+  // COCK-02: Viewport-responsive corner positions — scale X by aspect ratio
+  const { viewport } = useThree();
+  const cornerPositions = useMemo(() => {
+    const aspectScale = Math.min(1, viewport.aspect / BASE_ASPECT);
+    const x = BASE_CORNER_X * aspectScale;
+    return {
+      topLeft: [-x, CORNER_Y_TOP, CORNER_Z] as [number, number, number],
+      topRight: [x, CORNER_Y_TOP, CORNER_Z] as [number, number, number],
+      bottomLeft: [-x, CORNER_Y_BOTTOM, CORNER_Z] as [number, number, number],
+      bottomRight: [x, CORNER_Y_BOTTOM, CORNER_Z] as [number, number, number],
+    };
+  }, [viewport.aspect]);
 
   const hudColor = useMemo(() => new Color(color), [color]);
   const _chromeColor = useMemo(() => new Color(CHROME_BORDER.color), []);
@@ -436,7 +449,7 @@ export function HolographicHUD({
 
       {/* Top-left: Current time (HH:MM) */}
       <Text
-        position={CORNER_POSITIONS.topLeft}
+        position={cornerPositions.topLeft}
         fontSize={labelStyle.fontSize}
         color={TEXT_COLORS.secondary.hex}
         anchorX="left"
@@ -444,14 +457,14 @@ export function HolographicHUD({
         font={NUMERIC_FONT}
         fillOpacity={textFill}
         outlineWidth={0.003}
-        outlineColor="#000000"
+        outlineColor="#0A0E16"
       >
         {displayTime}
       </Text>
 
       {/* Top-right: XP value */}
       <Text
-        position={CORNER_POSITIONS.topRight}
+        position={cornerPositions.topRight}
         fontSize={labelStyle.fontSize}
         color={TEXT_COLORS.secondary.hex}
         anchorX="right"
@@ -459,38 +472,38 @@ export function HolographicHUD({
         font={NUMERIC_FONT}
         fillOpacity={textFill}
         outlineWidth={0.003}
-        outlineColor="#000000"
+        outlineColor="#0A0E16"
       >
         {xpText}
       </Text>
 
-      {/* Bottom-left: Mode name */}
+      {/* Bottom-left: Mode name — COCK-03: use secondary opacity for readability */}
       <Text
-        position={CORNER_POSITIONS.bottomLeft}
+        position={cornerPositions.bottomLeft}
         fontSize={captionStyle.fontSize}
         color={color}
         anchorX="left"
         anchorY="bottom"
         font={labelStyle.fontPath}
-        fillOpacity={textMutedFill}
+        fillOpacity={textFill}
         outlineWidth={0.005}
-        outlineColor="#000000"
+        outlineColor="#0A0E16"
       >
         {modeText}
       </Text>
 
-      {/* Bottom-right: Child name / level */}
+      {/* Bottom-right: Child name / level — COCK-03: use secondary opacity */}
       {childText && (
         <Text
-          position={CORNER_POSITIONS.bottomRight}
+          position={cornerPositions.bottomRight}
           fontSize={captionStyle.fontSize}
           color={TEXT_COLORS.secondary.hex}
           anchorX="right"
           anchorY="bottom"
           font={labelStyle.fontPath}
-          fillOpacity={textMutedFill}
+          fillOpacity={textFill}
           outlineWidth={0.005}
-          outlineColor="#000000"
+          outlineColor="#0A0E16"
         >
           {childText}
         </Text>

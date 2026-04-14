@@ -22,6 +22,7 @@
 // ADDED (Phase5): GameHUD3D registered via sceneStore.setGameHUDContent
 
 import React, { useEffect, useRef, type ReactNode } from 'react';
+import { useReducedMotion } from 'motion/react';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -56,6 +57,8 @@ export function GameShell({
   showTimer = false,
   children,
 }: GameShellProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   const startGame = useGameStore((s) => s.startGame);
   const resetGame = useGameStore((s) => s.resetGame);
   const isComplete = useGameStore((s) => s.isComplete);
@@ -123,6 +126,7 @@ export function GameShell({
         data-game-id={gameId}
         data-world={worldNumber}
         data-world-color={worldColor}
+        data-reduced-motion={prefersReducedMotion || undefined}
         role="region"
         aria-label={`${title} game`}
       >

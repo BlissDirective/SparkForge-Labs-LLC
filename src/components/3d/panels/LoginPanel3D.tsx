@@ -392,14 +392,6 @@ export default function LoginPanel3D({
     onLogin(email, password);
   }, [email, password, loading, onLogin]);
 
-  const _handleDemoClick = useCallback(() => {
-    if (showDemoConfirm) {
-      onDemoStart();
-    } else {
-      setShowDemoConfirm(true);
-    }
-  }, [showDemoConfirm, onDemoStart]);
-
   return (
     <group ref={groupRef} position={[0, 0, 0.5]}>
       {/* ═══ Panel glow backing ═══ */}

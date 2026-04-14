@@ -224,6 +224,9 @@ export function HolographicButton({
   const handleClick = useCallback(() => {
     if (disabled) return;
 
+    // COCK-11: Haptic feedback for tablet devices (no-op if unsupported)
+    navigator.vibrate?.([20]);
+
     const intensity = getDampenedIntensity();
 
     setPressed(true);

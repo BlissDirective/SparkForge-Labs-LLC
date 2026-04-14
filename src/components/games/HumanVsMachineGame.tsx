@@ -268,8 +268,6 @@ const LEARN_CARDS = [
   { title: 'What AI Does Best', emoji: '⚡', desc: 'AI is incredible at speed, pattern recognition, processing huge amounts of data, and never getting tired. It can analyze millions of items in seconds!' },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function HumanVsMachineGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -286,7 +284,7 @@ export function HumanVsMachineGame() {
   const [aiRevealed, setAiRevealed] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredChallenges = useFilteredContent(ALL_CHALLENGES, tier, ageBand);
+  const challenges = useFilteredContent(ALL_CHALLENGES, tier, ageBand);
   // ENH: Track scores for comparison bars and advantage indicator
   const [humanTotal, setHumanTotal] = useState(0);
   const [machineTotal, setMachineTotal] = useState(0);
@@ -294,10 +292,6 @@ export function HumanVsMachineGame() {
   const [verdictType, setVerdictType] = useState<'human' | 'machine' | null>(null);
   const { safeTimeout } = useSafeTimeout();
 
-  const challenges = useMemo(
-    () => ALL_CHALLENGES.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
   const challenge = challenges[roundIdx];
 
   const particles = useMemo(
@@ -354,7 +348,7 @@ export function HumanVsMachineGame() {
       gameId="human-vs-machine"
       title="Human vs Machine"
       worldNumber={1}
-      worldColor="#00BBFF"
+      worldColor="#0FB8FA"
       totalRounds={challenges.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">

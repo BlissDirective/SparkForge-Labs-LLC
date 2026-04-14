@@ -190,9 +190,7 @@ export default function CareerExplorerGame() {
   const [wasCorrect, setWasCorrect] = useState(false);
   const [score, setScore] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredCareers = useFilteredContent((ageBand === 'A' ? CAREERS_A : CAREERS_B) as any[], tier, ageBand) as typeof CAREERS_B;
-
-  const careers = ageBand === 'A' ? CAREERS_A : CAREERS_B;
+  const careers = useFilteredContent((ageBand === 'A' ? CAREERS_A : CAREERS_B) as any[], tier, ageBand) as typeof CAREERS_B;
   const currentCareer = careers[round];
   const totalRounds = 8;
 
@@ -277,7 +275,7 @@ export default function CareerExplorerGame() {
       gameId="career-explorer"
       title="Career Explorer"
       worldNumber={9}
-      worldColor="#F97316"
+      worldColor="#E68E28"
       totalRounds={totalRounds}
     >
       <div className="h-full flex flex-col relative overflow-hidden">

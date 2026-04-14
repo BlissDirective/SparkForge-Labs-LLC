@@ -14,6 +14,7 @@ import { HolographicButton } from '../ui/HolographicButton';
 import { HolographicCard } from '../ui/HolographicCard';
 import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
+import { useAuthStore } from '@/stores/authStore';
 import type { CockpitSkin } from '@/types';
 import {
   TYPE_SCALE,
@@ -38,6 +39,8 @@ export default function SettingsPanel() {
   const setSkipIntroAnimation = useUIStore((s) => s.setSkipIntroAnimation);
   const particleIntensity = useUIStore((s) => s.particleIntensity);
   const setParticleIntensity = useUIStore((s) => s.setParticleIntensity);
+  const showPerfStats = useUIStore((s) => s.showPerfStats);
+  const setShowPerfStats = useUIStore((s) => s.setShowPerfStats);
 
   const cockpitAudioEnabled = useCockpitStore((s) => s.cockpitAudioEnabled);
   const setCockpitAudio = useCockpitStore((s) => s.setCockpitAudio);
@@ -46,6 +49,8 @@ export default function SettingsPanel() {
   const cockpitSkin = useCockpitStore((s) => s.cockpitSkin);
   const setCockpitSkin = useCockpitStore((s) => s.setCockpitSkin);
   const unlockedSkins = useCockpitStore((s) => s.unlockedSkins);
+
+  const isAdmin = useAuthStore((s) => s.parent?.is_admin);
 
   const handleSoundToggle = useCallback((_v: boolean) => toggleSound(), [toggleSound]);
   const handleSkipToggle = useCallback((v: boolean) => setSkipIntroAnimation(v), [setSkipIntroAnimation]);
@@ -149,6 +154,33 @@ export default function SettingsPanel() {
           );
         })}
       </group>
+
+      {/* ═══ Admin-Only: Performance Stats Toggle (COCK-13) ═══ */}
+      {isAdmin && (
+        <group position={[-0.35, -0.48, 0]}>
+          <Text
+            position={[0.12, 0.12, 0]}
+            fontSize={TYPE_SCALE.h3.fontSize}
+            color="#FF6644"
+            anchorX="center"
+            font={TYPE_SCALE.h3.fontPath}
+          >
+            Admin
+          </Text>
+          <mesh position={[0.3, 0.1, 0]}>
+            <boxGeometry args={[0.25, 0.002, 0.003]} />
+            <meshStandardMaterial color={CHROME_BORDER.colorHex} metalness={0.95} roughness={0.15} />
+          </mesh>
+
+          <ToggleSwitch3D
+            id="perf-stats"
+            label="Perf Stats"
+            value={showPerfStats}
+            onChange={(v) => setShowPerfStats(v)}
+            position={[0, 0, 0]}
+          />
+        </group>
+      )}
     </group>
   );
 }

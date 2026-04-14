@@ -161,7 +161,7 @@ export function BuildClassifierGame() {
   const mountedRef = useRef(true);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredPool = useFilteredContent(TRAINING_POOL as any[], tier, ageBand) as typeof TRAINING_POOL;
+  const trainingPool = useFilteredContent(TRAINING_POOL as any[], tier, ageBand) as typeof TRAINING_POOL;
   const [learnIdx, setLearnIdx] = useState(0);
 
   // Collect phase
@@ -196,7 +196,7 @@ export function BuildClassifierGame() {
     []
   );
 
-  const currentImage = TRAINING_POOL[currentPoolIdx];
+  const currentImage = trainingPool[currentPoolIdx];
 
   const dataBalance = CATEGORIES.map((c) => ({
     cat: c,
@@ -208,12 +208,12 @@ export function BuildClassifierGame() {
       ...prev,
       { emoji: currentImage.emoji, assignedLabel: category },
     ]);
-    if (currentPoolIdx < TRAINING_POOL.length - 1) setCurrentPoolIdx((i) => i + 1);
+    if (currentPoolIdx < trainingPool.length - 1) setCurrentPoolIdx((i) => i + 1);
     else setPhase('train');
   }
 
   function skipImage() {
-    if (currentPoolIdx < TRAINING_POOL.length - 1) setCurrentPoolIdx((i) => i + 1);
+    if (currentPoolIdx < trainingPool.length - 1) setCurrentPoolIdx((i) => i + 1);
     else if (labeledData.length >= 9) setPhase('train');
   }
 
@@ -222,7 +222,7 @@ export function BuildClassifierGame() {
     for (let i = 0; i <= 100; i += 5) {
       if (!mountedRef.current) return; // STD-BC1: abort if unmounted
       setTrainingProgress(i);
-      await new Promise((r) => safeTimeout(r, 80));
+      await new Promise<void>((r) => safeTimeout(r, 80));
     }
     if (!mountedRef.current) return; // STD-BC1: abort if unmounted
     setIsTraining(false);
@@ -290,7 +290,7 @@ export function BuildClassifierGame() {
       gameId="build-classifier"
       title="Build a Classifier"
       worldNumber={7}
-      worldColor="#06B6D4"
+      worldColor="#10BAD2"
       totalRounds={allTests.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
@@ -478,7 +478,7 @@ export function BuildClassifierGame() {
                     </motion.div>
 
                     <p className="font-body text-2xs text-white/30 mb-3">
-                      Image {currentPoolIdx + 1}/{TRAINING_POOL.length}
+                      Image {currentPoolIdx + 1}/{trainingPool.length}
                     </p>
 
                     {/* Category buttons */}

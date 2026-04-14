@@ -77,7 +77,15 @@ export default function AddChildPage() {
       const result = await res.json();
 
       if (!res.ok) {
-        setError(result.error || 'Failed to create profile');
+        // DASH-08: Parse error codes for tier-specific messages
+        const errorMsg = result.error || 'Failed to create profile';
+        if (result.code === 'TIER_LIMIT' || errorMsg.toLowerCase().includes('limit')) {
+          setError('Your current plan has reached its child profile limit. Upgrade to add more profiles.');
+        } else if (result.code === 'VALIDATION_ERROR' || res.status === 422) {
+          setError(result.error || 'Please check the form fields and try again.');
+        } else {
+          setError(errorMsg);
+        }
         setSaving(false);
       } else {
         // ENH #4: Show confetti, then navigate
@@ -148,7 +156,7 @@ export default function AddChildPage() {
       </AnimatePresence>
 
       <motion.div
-        className="glass-card rounded-2xl p-8 max-w-md w-full"
+        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-8 max-w-md w-full"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >

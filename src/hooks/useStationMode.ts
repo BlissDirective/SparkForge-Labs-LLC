@@ -24,6 +24,7 @@ import { LAB_COLORS, LAB_NAMES, DEFAULT_LED_COLOR } from '@/config/labs';
 
 export type StationMode =
   | 'dashboard'
+  | 'arcade'
   | 'labmap'
   | 'lab'
   | 'game'
@@ -87,6 +88,7 @@ export function useStationMode(): StationModeState & {
     if (pathname.startsWith('/admin')) return 'admin';
     if (pathname.startsWith('/parent')) return 'parent';
     if (pathname.startsWith('/profile')) return 'profile';
+    if (pathname === '/arcade') return 'arcade';
     if (pathname === '/labs') return 'labmap';
     if (pathname.startsWith('/labs/')) return 'lab';
     if (pathname.startsWith('/home')) return 'dashboard';
@@ -157,6 +159,20 @@ export function useStationMode(): StationModeState & {
           frameDimmed: false,
           activeLabId: null,
           activeLabColor: DEFAULT_LED_COLOR,
+          activeLabName: '',
+          ...cpa,
+        };
+      case 'arcade':
+        return {
+          mode: 'arcade',
+          ledColor: '#88CC44',       // Green-amber blend — game browser energy
+          bgIntensity: 0.2,
+          particleCount: 500,
+          particleSpeed: 0.6,
+          frameGlow: 0.6,
+          frameDimmed: false,
+          activeLabId: null,
+          activeLabColor: '#88CC44',
           activeLabName: '',
           ...cpa,
         };

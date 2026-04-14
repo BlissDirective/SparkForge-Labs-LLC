@@ -284,8 +284,6 @@ const LEARN_CARDS = [
   { title: 'Spotting AI in Action', emoji: '🔍', desc: 'In this game, you\'ll explore different scenes and figure out which items use AI and which don\'t. Look for things that learn, predict, or make smart decisions!' },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function AiSpyGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -294,18 +292,13 @@ export function AiSpyGame() {
   const { data: _dynamicContent } = useGameContent('ai-spy', ageBand);
   // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
-  const scenes = useMemo(
-    () => ALL_SCENES.filter(s => BAND_ORDER[s.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
-
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [sceneIdx, setSceneIdx] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState(false);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredScenes = useFilteredContent(ALL_SCENES, tier, ageBand);
+  const scenes = useFilteredContent(ALL_SCENES, tier, ageBand);
 
   const scene = scenes[sceneIdx];
   const totalAI = scene?.items.filter(i => i.usesAI).length ?? 0;
@@ -374,7 +367,7 @@ export function AiSpyGame() {
   }
 
   return (
-    <GameShell gameId="ai-spy" title="AI Spy" worldNumber={1} worldColor="#00BBFF" totalRounds={scenes.length}>
+    <GameShell gameId="ai-spy" title="AI Spy" worldNumber={1} worldColor="#0FB8FA" totalRounds={scenes.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment renders inside CockpitCanvas via SceneRouter (D3D-B3) */}
 

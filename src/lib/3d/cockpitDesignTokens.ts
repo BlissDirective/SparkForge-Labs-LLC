@@ -37,7 +37,7 @@ export const NUMERIC_FONT_FAMILY = 'Orbitron-Bold';
 export const TEXT_COLORS = {
   primary:   { hex: '#F0F0F4', opacity: 1.0 },
   secondary: { hex: '#F0F0F4', opacity: 0.8 },
-  muted:     { hex: '#F0F0F4', opacity: 0.55 },
+  muted:     { hex: '#F0F0F4', opacity: 0.65 },
   dim:       { hex: '#F0F0F4', opacity: 0.35 },
   // accent: uses dynamic mode color — resolved at render time
 } as const;
@@ -205,13 +205,14 @@ export const SURFACE_TINT_BLEND = 0.05;
 
 export const MODE_FILL_LIGHT: Record<CockpitMode, { color: string; intensity: number }> = {
   dashboard:   { color: '#00E5FF', intensity: 0.3 },
+  arcade:      { color: '#88CC44', intensity: 0.35 },
   labs:        { color: '#00E5FF', intensity: 0.35 },
   lab_detail:  { color: 'dynamic', intensity: 0.35 },
   game:        { color: 'dynamic', intensity: 0.15 },
-  profile:     { color: '#AA66FF', intensity: 0.3 },
-  settings:    { color: '#FFAA44', intensity: 0.25 },
+  profile:     { color: '#B67BFF', intensity: 0.3 },
+  settings:    { color: '#D9A430', intensity: 0.25 },
   celebration: { color: '#FFD700', intensity: 0.6 },
-  parent:      { color: '#FFAA44', intensity: 0.2 },
+  parent:      { color: '#D9A430', intensity: 0.2 },
 } as const;
 
 export const PARTICLE_CROSSFADE_S = 1.5;
@@ -286,7 +287,7 @@ export const STATE_MACHINE: Record<ComponentState, StateVisuals> = {
 export const PANEL_SEAMS = {
   widthPx: 0.5,
   opacity: 0.10,
-  color: '#000000',
+  color: '#0A0E16',
 } as const;
 
 export const MICRO_TEXTURE = {
@@ -316,6 +317,7 @@ export const FOCUS_CONFIG = {
 
 export const MODE_FOCUS_TARGETS: Record<CockpitMode, { primary: Quadrant[]; secondary: Quadrant[] }> = {
   dashboard:   { primary: ['center'],           secondary: ['left', 'right'] },
+  arcade:      { primary: ['center'],           secondary: ['left', 'right'] },
   labs:        { primary: ['center'],           secondary: ['left', 'right'] },
   lab_detail:  { primary: ['center'],           secondary: ['left', 'right'] },
   game:        { primary: ['center'],           secondary: [] },

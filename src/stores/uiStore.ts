@@ -16,6 +16,11 @@ interface UIState {
    *  When true, HeroAnimation renders Phase 8 final state immediately. */
   skipIntroAnimation: boolean;
   setSkipIntroAnimation: (skip: boolean) => void;
+  /** Show performance stats overlay (triangle counter, FPS, draw calls).
+   *  Default: false. Always shown in development mode regardless.
+   *  In production, toggleable by admin users in Settings panel (COCK-13). */
+  showPerfStats: boolean;
+  setShowPerfStats: (show: boolean) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   triggerCelebration: (type: CelebrationType, data?: Record<string, unknown>) => void;
@@ -38,8 +43,10 @@ export const useUIStore = create<UIState>((set) => ({
   dailyChallengeCompleted: false,
   particleIntensity: 'medium',
   skipIntroAnimation: false,
+  showPerfStats: false,
   // gameActive/setGameActive removed — D3D-B1: use sceneStore.enterGame/exitGame
   setSkipIntroAnimation: (skipIntroAnimation) => set({ skipIntroAnimation }),
+  setShowPerfStats: (showPerfStats) => set({ showPerfStats }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   triggerCelebration: (type, data = {}) => set({ showCelebration: true, celebrationType: type, celebrationData: data }),

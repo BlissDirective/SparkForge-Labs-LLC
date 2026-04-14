@@ -98,12 +98,16 @@ export default function PromptHistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Generate mock data once children load
+  // DASH-11: Generate mock data once (memoized on children identity)
+  const generatedData = useMemo(
+    () => children.length > 0 ? generateMockPrompts(children) : [],
+    [children]
+  );
   useEffect(() => {
-    if (children.length > 0 && mockData.length === 0) {
-      setMockData(generateMockPrompts(children));
+    if (generatedData.length > 0 && mockData.length === 0) {
+      setMockData(generatedData);
     }
-  }, [children, mockData.length]);
+  }, [generatedData, mockData.length]);
 
   // Filtered data
   const filtered = useMemo(() => {
@@ -217,7 +221,7 @@ export default function PromptHistoryPage() {
       </motion.div>
 
       {/* Filters */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-4 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-6">
         <div className="flex items-center gap-2 mb-3">
           <Filter className="w-4 h-4 text-spark-blue" />
           <span className="font-display text-sm font-bold text-white">Filters</span>
@@ -329,7 +333,7 @@ export default function PromptHistoryPage() {
                 variants={staggerItem}
                 initial="initial"
                 animate="animate"
-                className="glass-card rounded-xl overflow-hidden"
+                className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl overflow-hidden"
               >
                 <button
                   onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}

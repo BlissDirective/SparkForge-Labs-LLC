@@ -2,6 +2,8 @@
 // ROOT LAYOUT — SEO, a11y, error boundary, PWA
 // Stage 10 Part 2 — REPLACES Stage 1 layout
 // BUG-10F: Exo 2/Sora/Orbitron — NEVER Fredoka/Nunito
+// DES-06: Fonts via Google Fonts CDN (next/font/google requires
+//         build-time internet, unavailable in some CI environments)
 // ════════════════════════════════════════════════════
 
 import type { Metadata, Viewport } from 'next';
@@ -15,11 +17,8 @@ import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 
 // ── Fonts ──
 // Loaded via Google Fonts CDN with preconnect + display=swap for performance.
-// next/font/google requires build-time internet (not available in all CI envs).
-// FUTURE: Migrate to next/font/local with self-hosted woff2 files in public/fonts/
-// for zero-latency loading and no third-party privacy exposure.
-// CSS variables (--font-display, --font-body, --font-mono, --font-data)
-// are set in globals.css so Tailwind fontFamily can reference them.
+// DES-07 fallback metrics defined in globals.css prevent CLS during font swap.
+// CSS variables (--font-display, --font-body, --font-mono, --font-data) set in :root.
 
 // ── SEO Metadata ──────────────────────────────────
 
@@ -96,7 +95,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* Google Fonts — Exo 2, Sora, JetBrains Mono, Orbitron (BUG-10F) */}
+        {/* Google Fonts — CDN with preconnect + display=swap */}
+        {/* DES-06: next/font/google requires build-time internet (unavailable in CI).
+            Using CDN <link> approach. DES-07 fallback metrics in globals.css prevent CLS. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

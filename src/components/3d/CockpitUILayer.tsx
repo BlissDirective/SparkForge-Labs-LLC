@@ -34,9 +34,13 @@ const RIGHT_ROTATION = COCKPIT_GEOMETRY.rightConsoleRotation;
 const CENTER_POSITION: [number, number, number] = [0, 0.35, -3.3];
 const BOTTOM_POSITION: [number, number, number] = [0, -0.6, -1.85];
 
+// ── Direct-loaded panel components (always visible) ──
+// COCK-09: DashboardLeft/Right always render — no benefit from lazy()
+import DashboardLeft from './panels/DashboardLeft';
+import DashboardRight from './panels/DashboardRight';
+
 // ── Lazy-loaded panel components ──────────────────
-// Each center panel is lazy-loaded to keep initial bundle lean.
-// Left/Right are always loaded (fixed, always visible).
+// Center panels are lazy-loaded (conditionally rendered per route).
 
 const DashboardCenter = lazy(() => import('./panels/DashboardCenter'));
 const LabsCenter = lazy(() => import('./panels/LabsCenter'));
@@ -48,8 +52,6 @@ const ParentPanel = lazy(() => import('./panels/ParentPanel'));
 const ChatPanel3D = lazy(() => import('./panels/ChatPanel3D'));
 const CelebrationPanel3D = lazy(() => import('./panels/CelebrationPanel3D'));
 const OnboardingPanel = lazy(() => import('./panels/OnboardingPanel'));
-const DashboardLeft = lazy(() => import('./panels/DashboardLeft'));
-const DashboardRight = lazy(() => import('./panels/DashboardRight'));
 
 // ── Center content router ─────────────────────────
 
@@ -121,7 +123,7 @@ export function CockpitUILayer() {
       cs.z = MathUtils.lerp(cs.z, t, lerpSpeed);
     }
 
-    // Left panel: slide outward by panelOffset
+    // Left panel: slide outward by panelOffset + push back in Z during game mode
     if (leftRef.current) {
       const offset = targets.panelOffset;
       leftRef.current.position.x = MathUtils.lerp(
@@ -129,14 +131,28 @@ export function CockpitUILayer() {
         LEFT_POSITION[0] - offset * 0.8,
         lerpSpeed,
       );
+      // COCK-07: Push side panels back in Z during game mode (offset > 0)
+      const leftZOffset = offset > 0 ? -0.2 : 0;
+      leftRef.current.position.z = MathUtils.lerp(
+        leftRef.current.position.z,
+        LEFT_POSITION[2] + leftZOffset,
+        lerpSpeed,
+      );
     }
 
-    // Right panel: slide outward by panelOffset
+    // Right panel: slide outward by panelOffset + push back in Z during game mode
     if (rightRef.current) {
       const offset = targets.panelOffset;
       rightRef.current.position.x = MathUtils.lerp(
         rightRef.current.position.x,
         RIGHT_POSITION[0] + offset * 0.8,
+        lerpSpeed,
+      );
+      // COCK-07: Push side panels back in Z during game mode (offset > 0)
+      const rightZOffset = offset > 0 ? -0.2 : 0;
+      rightRef.current.position.z = MathUtils.lerp(
+        rightRef.current.position.z,
+        RIGHT_POSITION[2] + rightZOffset,
         lerpSpeed,
       );
     }
@@ -161,9 +177,7 @@ export function CockpitUILayer() {
         position={[LEFT_POSITION[0], LEFT_POSITION[1], LEFT_POSITION[2]]}
         rotation={[LEFT_ROTATION[0], LEFT_ROTATION[1], LEFT_ROTATION[2]]}
       >
-        <Suspense fallback={null}>
-          <DashboardLeft />
-        </Suspense>
+        <DashboardLeft />
       </group>
 
       {/* ═══ CENTER QUADRANT — Swaps per page ═══ */}
@@ -185,9 +199,7 @@ export function CockpitUILayer() {
         position={[RIGHT_POSITION[0], RIGHT_POSITION[1], RIGHT_POSITION[2]]}
         rotation={[RIGHT_ROTATION[0], RIGHT_ROTATION[1], RIGHT_ROTATION[2]]}
       >
-        <Suspense fallback={null}>
-          <DashboardRight />
-        </Suspense>
+        <DashboardRight />
       </group>
 
       {/* ═══ BOTTOM QUADRANT — Fixed Instruments ═══ */}

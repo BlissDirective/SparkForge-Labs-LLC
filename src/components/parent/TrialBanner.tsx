@@ -44,7 +44,7 @@ export function TrialBanner({ variant = 'fixed', dismissible = true }: TrialBann
   if (variant === 'inline') {
     return (
       <motion.div
-        className={`glass-card rounded-xl p-4 mb-4 border ${
+        className={`bg-[var(--surface-card)] rounded-xl p-4 mb-4 border ${
           isUrgent
             ? 'border-red-500/30 bg-red-500/5'
             : 'border-spark-blue/20 bg-spark-blue/5'

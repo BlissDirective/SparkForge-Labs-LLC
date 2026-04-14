@@ -21,7 +21,7 @@ export default function MarketingLoading() {
       {/* Feature cards */}
       <div className="max-w-6xl mx-auto px-4 grid grid-cols-1 md:grid-cols-3 gap-6 mt-12">
         {Array.from({ length: 3 }).map((_, i) => (
-          <div key={i} className="glass-card rounded-2xl p-6 space-y-3">
+          <div key={i} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-6 space-y-3">
             <Skeleton className="w-12 h-12 rounded-xl" />
             <Skeleton className="h-5 w-2/3" />
             <Skeleton className="h-3 w-full" />

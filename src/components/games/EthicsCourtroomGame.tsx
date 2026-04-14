@@ -808,10 +808,10 @@ export function EthicsCourtroomGame() {
   const [selectedArgs, setSelectedArgs] = useState<Set<number>>(new Set());
   const [casesDebated, setCasesDebated] = useState<string[]>([]);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredCases = useFilteredContent(CASES, tier, ageBand);
+  const cases = useFilteredContent(CASES, tier, ageBand);
   const [hasFinished, setHasFinished] = useState(false);
 
-  const currentCase = CASES[caseIdx];
+  const currentCase = cases[caseIdx];
 
   const particles = useMemo(
     () =>
@@ -862,7 +862,7 @@ export function EthicsCourtroomGame() {
     setChosenPerspective(null);
     setSelectedArgs(new Set());
     setTrialStep('case');
-    if (caseIdx < CASES.length - 1) {
+    if (caseIdx < cases.length - 1) {
       setCaseIdx((i) => i + 1);
       game.advanceRound();
     } else {
@@ -876,8 +876,8 @@ export function EthicsCourtroomGame() {
       gameId="ethics-courtroom"
       title="Ethics Courtroom"
       worldNumber={6}
-      worldColor="#FF6644"
-      totalRounds={CASES.length}
+      worldColor="#FF7050"
+      totalRounds={cases.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particle background */}
@@ -1014,7 +1014,7 @@ export function EthicsCourtroomGame() {
                   >
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={caseIdx + 1} total={CASES.length} labColor="#FF6644" />
+                      <GameProgressTracker current={caseIdx + 1} total={cases.length} labColor="#FF6644" />
                     </div>
                     {/* Case header */}
                     <div className="flex items-center gap-2 mb-2">
@@ -1023,7 +1023,7 @@ export function EthicsCourtroomGame() {
                         {currentCase.title}
                       </h3>
                       <span className="font-mono text-2xs text-white/20">
-                        Case {caseIdx + 1}/{CASES.length}
+                        Case {caseIdx + 1}/{cases.length}
                       </span>
                     </div>
 
@@ -1228,7 +1228,7 @@ export function EthicsCourtroomGame() {
                           style={{ background: 'linear-gradient(135deg, #EF4444, #DC2626)' }}
                           whileTap={{ scale: 0.98 }}
                         >
-                          {caseIdx < CASES.length - 1 ? 'Next Case →' : 'Complete! ⚖️'}
+                          {caseIdx < cases.length - 1 ? 'Next Case →' : 'Complete! ⚖️'}
                         </motion.button>
                       </motion.div>
                     )}
@@ -1259,7 +1259,7 @@ export function EthicsCourtroomGame() {
                     <div className="w-full rounded-xl p-3 border border-red-500/15 bg-red-500/5 text-left space-y-1">
                       {casesDebated.map((title, i) => (
                         <div key={i} className="flex items-center gap-2">
-                          <span className="text-sm">{CASES[i]?.emoji}</span>
+                          <span className="text-sm">{cases[i]?.emoji}</span>
                           <p className="font-body text-xs text-white/50">{title}</p>
                         </div>
                       ))}

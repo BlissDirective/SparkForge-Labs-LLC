@@ -29,7 +29,13 @@ const TokenChopperEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
+
+const LEARN_CARDS = [
+  { emoji: '\u2702\uFE0F', title: 'What is Tokenization?', desc: 'AI breaks text into small pieces called tokens \u2014 words, parts of words, or even single characters.' },
+  { emoji: '\uD83E\uDDE9', title: 'Why Tokens Matter', desc: 'AI reads tokens, not sentences. How text is split into tokens affects how well AI understands it.' },
+  { emoji: '\uD83C\uDFAF', title: 'Your Mission', desc: 'Split sentences into tokens the same way AI does. Match the AI\'s tokenization to score points!' },
+];
 
 function tokenize(text: string): { token: string; type: 'word' | 'subword' | 'punct' | 'space' }[] {
   if (!text.trim()) return [];
@@ -94,6 +100,7 @@ export function TokenChopperGame() {
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [text, setText] = useState('');
   const [challengeIdx, setChallengeIdx] = useState(0);
   const [completed, setCompleted] = useState<Set<number>>(new Set());
@@ -101,7 +108,7 @@ export function TokenChopperGame() {
   const [challengePassed, setChallengePassed] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredChallenges = useFilteredContent(CHALLENGES, tier, ageBand);
+  const challenges = useFilteredContent(CHALLENGES, tier, ageBand);
   const { safeTimeout } = useSafeTimeout();
 
   const tokens = useMemo(() => tokenize(text), [text]);
@@ -121,7 +128,7 @@ export function TokenChopperGame() {
   })), []);
 
   function checkChallenge() {
-    const c = CHALLENGES[challengeIdx];
+    const c = challenges[challengeIdx];
     let passed = false;
     if (c.target === 'single' && tokens.length === 1 && tokens[0].type === 'word' && tokens[0].token.length === 4) passed = true;
     if (c.target === 'anyword' && tokens.some(t => t.type === 'subword')) passed = true;
@@ -154,7 +161,7 @@ export function TokenChopperGame() {
       game.updateScore(15);
       game.advanceRound();
       setShowHint(false);
-      if (challengeIdx < CHALLENGES.length - 1) {
+      if (challengeIdx < challenges.length - 1) {
         safeTimeout(() => {
           setChallengeIdx(i => i + 1);
           setText('');
@@ -167,7 +174,7 @@ export function TokenChopperGame() {
   }
 
   return (
-    <GameShell gameId="token-chopper" title="Token Chopper" worldNumber={4} worldColor="#FFAA44" totalRounds={CHALLENGES.length}>
+    <GameShell gameId="token-chopper" title="Token Chopper" worldNumber={4} worldColor="#D9A430" totalRounds={challenges.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -244,15 +251,68 @@ export function TokenChopperGame() {
                       ))}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('play')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      aria-label="Start the Token Chopper game"
+                      aria-label="Learn about tokenization"
                     >
-                      Start Chopping! <Scissors className="inline w-4 h-4 ml-1" />
+                      Learn About Tokens! <Scissors className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div
+                    key="learn"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 max-w-sm mx-auto"
+                  >
+                    <Scissors className="w-6 h-6 text-orange-400" />
+                    <h3 className="font-display text-lg font-bold text-white">How Tokenization Works</h3>
+                    <p className="font-body text-xs text-white/40">
+                      {learnIdx + 1} of {LEARN_CARDS.length}
+                    </p>
+                    <AnimatePresence mode="wait">
+                      <motion.div
+                        key={learnIdx}
+                        initial={{ opacity: 0, x: 30 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: -30 }}
+                        className="rounded-xl p-4 border border-orange-400/20 bg-orange-400/5"
+                      >
+                        <span className="text-3xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                        <h4 className="font-display text-sm font-bold text-orange-300 mt-2">
+                          {LEARN_CARDS[learnIdx].title}
+                        </h4>
+                        <p className="font-body text-xs text-white/50 mt-1">
+                          {LEARN_CARDS[learnIdx].desc}
+                        </p>
+                      </motion.div>
+                    </AnimatePresence>
+                    <motion.button
+                      onClick={() => {
+                        if (learnIdx < LEARN_CARDS.length - 1) setLearnIdx(i => i + 1);
+                        else setPhase('play');
+                      }}
+                      className="w-full py-3 rounded-xl font-display font-bold text-sm text-white"
+                      style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      aria-label={learnIdx < LEARN_CARDS.length - 1 ? `Next card, ${learnIdx + 2} of ${LEARN_CARDS.length}` : 'Start chopping'}
+                    >
+                      {learnIdx < LEARN_CARDS.length - 1 ? 'Next \u2192' : 'Start Chopping! \u2702\uFE0F'}
+                    </motion.button>
+                    <button
+                      onClick={() => setPhase('play')}
+                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      aria-label="Skip learn cards and start playing"
+                    >
+                      Skip to game {'\u2192'}
+                    </button>
                   </motion.div>
                 )}
 
@@ -265,13 +325,13 @@ export function TokenChopperGame() {
                   >
                     <div className="flex items-center gap-3 mb-3 px-4">
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
-                      <GameProgressTracker current={challengeIdx + 1} total={CHALLENGES.length} labColor="#FFAA44" />
+                      <GameProgressTracker current={challengeIdx + 1} total={challenges.length} labColor="#FFAA44" />
                     </div>
                     {/* ENH: Progress bar for challenges */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${completed.size} of ${CHALLENGES.length} challenges completed`}>
-                          {completed.size}/{CHALLENGES.length} challenges
+                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${completed.size} of ${challenges.length} challenges completed`}>
+                          {completed.size}/{challenges.length} challenges
                         </span>
                         <span className="font-data text-2xs text-orange-400" role="status" aria-label={`Score: ${animatedScore} points`}>{animatedScore} pts</span>
                       </div>
@@ -279,7 +339,7 @@ export function TokenChopperGame() {
                         <motion.div
                           className="h-full rounded-full"
                           style={{ background: 'linear-gradient(90deg, #FFAA44, #FF8822)' }}
-                          animate={{ width: `${(completed.size / CHALLENGES.length) * 100}%` }}
+                          animate={{ width: `${(completed.size / challenges.length) * 100}%` }}
                           transition={{ type: 'spring', stiffness: 200, damping: 20 }}
                         />
                       </div>
@@ -295,11 +355,11 @@ export function TokenChopperGame() {
                       transition={{ duration: 0.8 }}
                     >
                       <p className="font-display text-sm font-bold text-orange-400">
-                        {CHALLENGES[challengeIdx].text}
+                        {challenges[challengeIdx].text}
                       </p>
                       {showHint && (
                         <p className="font-body text-2xs text-white/30 mt-1">
-                          {CHALLENGES[challengeIdx].hint}
+                          {challenges[challengeIdx].hint}
                         </p>
                       )}
                       {!showHint && (

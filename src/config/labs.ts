@@ -1,18 +1,20 @@
 // SparkForge Lab Configuration — Single Source of Truth
-// Canonical lab colors from CLAUDE.md Section 6 (Frost-Prismatic palette)
+// DES-03: OKLCH-derived HEX values for perceptual uniformity (L=0.75)
+// CSS layer uses oklch() directly; JS/3D layer uses these HEX approximations
+// since Three.js Color() does not parse oklch() strings.
 
-/** Canonical lab accent colors (CLAUDE.md Section 6) */
+/** Canonical lab accent colors — OKLCH L=0.75 (HEX approximations for JS/3D) */
 export const LAB_COLORS: Record<number, string> = {
-  1: '#00BBFF', // What IS AI? — Blue
-  2: '#AA66FF', // Teaching Machines — Purple
-  3: '#FF66AA', // The Brain Inside — Pink
-  4: '#FFAA44', // AI That Creates — Amber
-  5: '#00FF88', // AI Helpers — Emerald
-  6: '#FF6644', // AI & Ethics — Red
-  7: '#06B6D4', // Computer Vision — Cyan
-  8: '#818CF8', // Words & Language — Violet
-  9: '#F97316', // Build Your AI — Orange
-  10: '#D946EF', // AI Futures — Fuchsia
+  1: '#0FB8FA',  // What IS AI? — Blue       oklch(0.75 0.17 225)
+  2: '#B67BFF',  // Teaching Machines — Purple oklch(0.75 0.19 295)
+  3: '#FF70AF',  // The Brain Inside — Pink   oklch(0.75 0.19 345)
+  4: '#D9A430',  // AI That Creates — Amber   oklch(0.75 0.17 75)
+  5: '#00D17A',  // AI Helpers — Green        oklch(0.75 0.19 155)
+  6: '#FF7050',  // AI & Ethics — Red-Orange  oklch(0.75 0.20 25)
+  7: '#10BAD2',  // Computer Vision — Cyan    oklch(0.75 0.14 195)
+  8: '#8F96FA',  // Words & Language — Violet oklch(0.75 0.15 275)
+  9: '#E68E28',  // Build Your AI — Orange    oklch(0.75 0.18 50)
+  10: '#DE5AEA', // AI Futures — Fuchsia      oklch(0.75 0.19 325)
 };
 
 /** Canonical lab display names */
@@ -43,5 +45,5 @@ export const LAB_ICONS: Record<number, string> = {
   10: '\uD83D\uDE80', // 🚀
 };
 
-/** Default LED color (Frost-Prismatic primary blue) */
-export const DEFAULT_LED_COLOR = '#00BBFF';
+/** Default LED color — OKLCH primary blue (HEX for Three.js) */
+export const DEFAULT_LED_COLOR = '#0FB8FA';

@@ -797,7 +797,7 @@ export function PetTrainerGame() {
       gameId="pet-trainer"
       title="AI Pet Trainer"
       worldNumber={2}
-      worldColor="#8B5CF6"
+      worldColor="#B67BFF"
       xpReward={30}
       totalRounds={categorySet.training.length}
       hints={3}
@@ -913,7 +913,7 @@ export function PetTrainerGame() {
                     {/* Selected pet personality */}
                     <AnimatePresence mode="wait">
                       <motion.div key={pet.id} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                        className="glass-card rounded-xl p-3 text-left">
+                        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-3 text-left">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-lg">{pet.emoji}</span>
                           <span className="font-display text-sm font-bold text-white">{pet.name}</span>
@@ -981,7 +981,7 @@ export function PetTrainerGame() {
                     </div>
                     {/* Phase F: AI-generated "Surprise me!" category */}
                     <SurpriseMeButton ageBand={ageBand} />
-                    <div className="glass-card rounded-xl p-3 text-left">
+                    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-3 text-left">
                       <p className="font-body text-xs text-white/50">{description}</p>
                     </div>
                     <motion.button onClick={handleStartTraining}
@@ -1105,7 +1105,7 @@ export function PetTrainerGame() {
                     <p className="font-body text-xs text-white/40">{"Let's look at your training data before testing!"}</p>
 
                     {/* Data balance chart */}
-                    <div className="glass-card rounded-xl p-4 space-y-3">
+                    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 space-y-3">
                       <p className="font-display text-xs font-bold text-white/50 uppercase tracking-wider">Label Distribution</p>
                       {categorySet.categories.map(cat => {
                         const count = labelCounts[cat.id] || 0;
@@ -1168,7 +1168,7 @@ export function PetTrainerGame() {
                     )}
 
                     {/* Teaching card */}
-                    <div className="glass-card rounded-xl p-4 text-left">
+                    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-left">
                       <div className="flex items-center gap-2 mb-2">
                         <GraduationCap className="w-4 h-4 text-purple-400" />
                         <span className="font-display text-xs font-bold text-purple-400">Training vs Testing</span>
@@ -1294,7 +1294,7 @@ export function PetTrainerGame() {
 
                     {/* Confusion matrix for Band C */}
                     {ageBand === 'C' && testResults.length > 0 && (
-                      <div className="glass-card rounded-xl p-4 text-left">
+                      <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-left">
                         <p className="font-display text-xs font-bold text-white/50 uppercase tracking-wider mb-2">Confusion Matrix</p>
                         <div className="grid gap-1" style={{ gridTemplateColumns: `auto ${categorySet.categories.map(() => '1fr').join(' ')}` }}>
                           <div /> {/* empty corner */}

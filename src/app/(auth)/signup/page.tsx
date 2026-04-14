@@ -31,10 +31,19 @@ export default function SignupPage() {
         }),
       });
       const data = await res.json();
-      if (!res.ok) return { success: false, error: data.error || 'Something went wrong' };
+      if (!res.ok) {
+        const serverError = (data.error || '').toLowerCase();
+        if (serverError.includes('already') || serverError.includes('exists') || serverError.includes('registered') || serverError.includes('duplicate')) {
+          return { success: false, error: 'Account exists — This email already has a SparkForge account. Try logging in instead, or reset your password.' };
+        }
+        if (serverError.includes('password') && (serverError.includes('short') || serverError.includes('weak') || serverError.includes('length'))) {
+          return { success: false, error: 'Password too short — Use at least 8 characters for security.' };
+        }
+        return { success: false, error: 'Something went wrong — Please try again in a moment.' };
+      }
       return { success: true };
     } catch {
-      return { success: false, error: 'Network error. Please check your connection.' };
+      return { success: false, error: 'Connection error — Please check your internet connection and try again.' };
     }
   }, []);
 
@@ -47,11 +56,11 @@ export default function SignupPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        return { success: false, error: data.error || 'Failed to record consent' };
+        return { success: false, error: data.error || 'Consent failed — We couldn\'t record your consent. Please try again.' };
       }
       return { success: true };
     } catch {
-      return { success: false, error: 'Network error. Please check your connection.' };
+      return { success: false, error: 'Connection error — Please check your internet connection and try again.' };
     }
   }, []);
 
@@ -69,7 +78,7 @@ export default function SignupPage() {
         body: JSON.stringify({ email, password }),
       });
       if (!loginRes.ok) {
-        return { success: false, error: 'Please verify your email, then try again' };
+        return { success: false, error: 'Email not verified — Please check your inbox for the verification link, then try again.' };
       }
 
       // Create child profile
@@ -85,7 +94,7 @@ export default function SignupPage() {
       });
       const childData = await childRes.json();
       if (!childRes.ok) {
-        return { success: false, error: childData.error || 'Failed to create profile' };
+        return { success: false, error: childData.error || 'Profile creation failed — We couldn\'t set up the child profile. Please try again.' };
       }
 
       router.push('/home');

@@ -290,8 +290,6 @@ const ALL_ROUNDS: Round[] = [
   },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function WordPredictorGame() {
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -310,12 +308,7 @@ export function WordPredictorGame() {
   const [isPredicting, setIsPredicting] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredRounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
-
-  const rounds = useMemo(
-    () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  const rounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const round = rounds[roundIdx];
   const matched = round?.predictions.find(p => p.word.toLowerCase() === guess.trim().toLowerCase());
 
@@ -364,7 +357,7 @@ export function WordPredictorGame() {
   }
 
   return (
-    <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#FFAA44" totalRounds={rounds.length}>
+    <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#D9A430" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (

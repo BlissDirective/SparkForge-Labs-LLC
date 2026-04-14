@@ -31,7 +31,7 @@ export function ContinueBanner() {
         exit={{ opacity: 0, y: -10 }}
         className="mb-4"
       >
-        <div className="glass-card rounded-2xl p-4 flex items-center gap-4">
+        <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-4 flex items-center gap-4">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
             style={{ backgroundColor: `${lastLab.color}20` }}

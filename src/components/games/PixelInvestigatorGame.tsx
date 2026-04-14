@@ -244,7 +244,7 @@ export function PixelInvestigatorGame() {
   }
 
   return (
-    <GameShell gameId="pixel-investigator" title="Pixel Investigator" worldNumber={3} worldColor="#FF66AA" xpReward={20} totalRounds={rounds.length}>
+    <GameShell gameId="pixel-investigator" title="Pixel Investigator" worldNumber={3} worldColor="#FF70AF" xpReward={20} totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">

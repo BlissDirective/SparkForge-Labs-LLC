@@ -8,12 +8,13 @@
 //
 // Reads directly from gameStore — no props needed for core data.
 // Positioned at the top of the game viewport area.
+// GAME-03: Viewport-responsive Y + scale via useThree().viewport
 //
 // Per JSON spec UI-8: Game = 75% viewport takeover. HUD floats
 // at the top edge of the expanded center viewport.
 
 import { useMemo, useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import { Color, Mesh, MeshStandardMaterial } from 'three';
 import { useGameStore } from '@/stores/gameStore';
@@ -34,8 +35,9 @@ import {
 const HUD_WIDTH = 1.8;
 const HUD_HEIGHT = 0.12;
 const HUD_DEPTH = 0.004;
-const HUD_Y = 0.85;     // Top of game viewport
-const HUD_Z = -2.8;     // In front of center viewport screen
+const BASE_HUD_Y = 0.85;   // Top of game viewport (16:9 baseline)
+const HUD_Z = -2.8;        // In front of center viewport screen
+const BASE_ASPECT = 16 / 9; // 1.778 — design reference
 const CARBON_BG = '#0A0F1F';
 const CHROME_HEX = CHROME_BORDER.colorHex;
 
@@ -239,6 +241,11 @@ export function GameHUD3D({
   const chromeColor = useMemo(() => new Color(CHROME_HEX), []);
   const accentColor = useMemo(() => new Color(color), [color]);
 
+  // GAME-03: Viewport-responsive Y position + scale
+  const { viewport } = useThree();
+  const hudY = useMemo(() => Math.min(BASE_HUD_Y, viewport.height * 0.42), [viewport.height]);
+  const hudScale = useMemo(() => Math.min(1, viewport.aspect / 1.5), [viewport.aspect]);
+
   const computedMaxScore = maxScore || totalRounds * 10;
 
   // Format time
@@ -256,7 +263,7 @@ export function GameHUD3D({
   });
 
   return (
-    <group name="game-hud-3d" position={[0, HUD_Y, HUD_Z]}>
+    <group name="game-hud-3d" position={[0, hudY, HUD_Z]} scale={[hudScale, hudScale, 1]}>
       {/* ═══ HUD Bar Background ═══ */}
       <mesh ref={glowRef}>
         <boxGeometry args={[HUD_WIDTH, HUD_HEIGHT, HUD_DEPTH]} />

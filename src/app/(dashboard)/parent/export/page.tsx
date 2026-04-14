@@ -362,7 +362,7 @@ export default function ExportPage() {
       {/* COPPA notice */}
       <motion.div
         variants={staggerItem}
-        className="glass-card rounded-xl p-4 mb-6 border-l-2 border-l-spark-blue/40"
+        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-6 border-l-2 border-l-spark-blue/40"
       >
         <div className="flex items-start gap-3">
           <Info className="w-4 h-4 text-spark-blue flex-shrink-0 mt-0.5" />
@@ -377,7 +377,7 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 1: Select children */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-3 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-blue/20 text-spark-blue font-data text-xs flex items-center justify-center">1</span>
           Select Children
@@ -438,7 +438,7 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 2: Select export types */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-green/20 text-spark-green font-data text-xs flex items-center justify-center">2</span>
           Choose Export Types
@@ -488,7 +488,7 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 3: Date range (optional) */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-3 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-orange/20 text-spark-orange font-data text-xs flex items-center justify-center">3</span>
           Date Range
@@ -534,7 +534,7 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Preview & Download */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-purple/20 text-spark-purple font-data text-xs flex items-center justify-center">4</span>
           Preview &amp; Download

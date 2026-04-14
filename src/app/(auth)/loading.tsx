@@ -10,7 +10,7 @@ export default function AuthLoading() {
           <Skeleton className="h-4 w-56 mx-auto" />
         </div>
         {/* Form card */}
-        <div className="glass-card rounded-2xl p-8 space-y-4">
+        <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-8 space-y-4">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="h-11 w-full rounded-xl" />
           <Skeleton className="h-5 w-24" />

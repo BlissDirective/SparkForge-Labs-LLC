@@ -182,7 +182,7 @@ export function FoolTheAiGame() {
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
-  const filteredItems = useFilteredContent(ITEMS, tier, ageBand);
+  const items = useFilteredContent(ITEMS, tier, ageBand);
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<{ idx: number; hit: boolean } | null>(null);
@@ -194,7 +194,7 @@ export function FoolTheAiGame() {
   const { safeTimeout } = useSafeTimeout();
 
   const challenge = CHALLENGES[ci];
-  const matchCount = Array.from(found).filter(idx => challenge.check(ITEMS[idx])).length;
+  const matchCount = Array.from(found).filter(idx => challenge.check(items[idx])).length;
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
     id: i, x: Math.random() * 100, y: Math.random() * 100, size: Math.random() * 2 + 1,
@@ -208,7 +208,7 @@ export function FoolTheAiGame() {
 
   function tap(idx: number) {
     if (found.has(idx) || feedback) return;
-    const item = ITEMS[idx];
+    const item = items[idx];
     const hit = challenge.check(item);
     setFound(prev => new Set(prev).add(idx));
     setFeedback({ idx, hit });
@@ -243,7 +243,7 @@ export function FoolTheAiGame() {
   }
 
   return (
-    <GameShell gameId="fool-the-ai" title="Fool the AI" worldNumber={7} worldColor="#06B6D4" xpReward={20} totalRounds={CHALLENGES.length}>
+    <GameShell gameId="fool-the-ai" title="Fool the AI" worldNumber={7} worldColor="#10BAD2" xpReward={20} totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -362,7 +362,7 @@ export function FoolTheAiGame() {
 
                     {/* Item grid */}
                     <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 gap-2 content-start">
-                      {ITEMS.map((item, i) => {
+                      {items.map((item, i) => {
                         const tapped = found.has(i);
                         const isFeedback = feedback?.idx === i;
                         const confColor = item.confidence > 80 ? '#10B981' : item.confidence > 50 ? '#F59E0B' : '#EF4444';
@@ -411,7 +411,7 @@ export function FoolTheAiGame() {
                             </p>
                           </div>
                           <p className="font-body text-2xs text-white/40">
-                            {ageBand === 'C' ? ITEMS[feedback.idx].explanationC : ITEMS[feedback.idx].explanation}
+                            {ageBand === 'C' ? items[feedback.idx].explanationC : items[feedback.idx].explanation}
                           </p>
                         </motion.div>
                       )}

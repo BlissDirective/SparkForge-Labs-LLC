@@ -940,7 +940,7 @@ export function BiasDetectiveGame() {
   // FULL JSX RENDER — All 7 phases
   return (
     <GameShell gameId="bias-detective" title="Bias Detective"
-      worldNumber={6} worldColor="#EF4444" totalRounds={6}>
+      worldNumber={6} worldColor="#FF7050" totalRounds={6}>
       <div className="h-full flex flex-col relative overflow-hidden">
 
         {/* Red Particle Background */}

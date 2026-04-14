@@ -240,8 +240,8 @@ function SubscriptionContent() {
         </motion.div>
       )}
 
-      {/* Billing toggle */}
-      <motion.div variants={staggerItem} className="flex items-center justify-center gap-3 mb-8">
+      {/* Billing toggle — DASH-09: added aria-labels + role group */}
+      <motion.div variants={staggerItem} className="flex items-center justify-center gap-3 mb-8" role="group" aria-label="Billing cycle">
         <button
           onClick={() => {
             setBilling('monthly');
@@ -253,6 +253,7 @@ function SubscriptionContent() {
               : 'text-white/40 hover:text-white/60'
           }`}
           aria-pressed={billing === 'monthly'}
+          aria-label="Switch to monthly billing"
         >
           Monthly
         </button>
@@ -267,6 +268,7 @@ function SubscriptionContent() {
               : 'text-white/40 hover:text-white/60'
           }`}
           aria-pressed={billing === 'yearly'}
+          aria-label="Switch to yearly billing"
         >
           Yearly
           {yearlySavings > 0 && (

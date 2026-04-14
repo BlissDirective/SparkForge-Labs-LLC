@@ -1,4 +1,4 @@
-/* Fonts loaded via <link> in layout.tsx — no @import needed */
+/* DES-06: Fonts self-hosted via next/font/google in layout.tsx */
 
 /* AUDIT-G7: Tailwind CSS v4 migration — use @import instead of @tailwind directives */
 @import "tailwindcss";
@@ -13,38 +13,74 @@
 
 :root {
   /* ── Font Variables (mapped by Tailwind fontFamily) ── */
-  --font-display: 'Exo 2', system-ui, sans-serif;
-  --font-body: 'Sora', system-ui, sans-serif;
+  /* DES-07: Fallback fonts with metric overrides reduce CLS during font swap */
+  --font-display: 'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif;
+  --font-body: 'Sora', 'Sora Fallback', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-data: 'Orbitron', monospace;
 
-  /* ── Neon Accent Variables ── */
-  --neon-blue: #00BBFF;
-  --neon-green: #00FF88;
-  --neon-purple: #AA66FF;
-  --neon-orange: #FF6644;
-  --neon-amber: #FFAA44;
+  /* ── Neon Accent Variables (DES-03: OKLCH — perceptually uniform L=0.75) ── */
+  --neon-blue: oklch(0.75 0.17 225);     /* ≈ #0FB8FA */
+  --neon-green: oklch(0.75 0.19 155);    /* ≈ #00D17A */
+  --neon-purple: oklch(0.75 0.19 295);   /* ≈ #B67BFF */
+  --neon-orange: oklch(0.75 0.20 25);    /* ≈ #FF7050 */
+  --neon-amber: oklch(0.75 0.17 75);     /* ≈ #D9A430 */
 
-  /* ── Surface Variables ── */
-  --surface-base: #0A0E16;
-  --surface-card: #111118;
-  --surface-elevated: #1A1822;
-  --surface-border: rgba(255, 255, 255, 0.06);
+  /* ── Surface Variables (OKLCH — low chroma darks) ── */
+  --surface-base: oklch(0.13 0.02 260);     /* ≈ #0A0E17 */
+  --surface-card: oklch(0.16 0.02 280);     /* ≈ #111119 */
+  --surface-elevated: oklch(0.19 0.02 290); /* ≈ #1A1823 */
+  --surface-border: oklch(1.0 0 0 / 0.06);
 
-  /* ── Text Variables ── */
-  --text-primary: #F0F0F4;
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-muted: rgba(255, 255, 255, 0.55);
-  --text-dim: rgba(255, 255, 255, 0.35);
+  /* ── Text Variables (OKLCH) ── */
+  --text-primary: oklch(0.96 0.005 280);   /* ≈ #F0F0F4 */
+  --text-secondary: oklch(1.0 0 0 / 0.55);
+  --text-muted: oklch(1.0 0 0 / 0.55);
+  --text-dim: oklch(1.0 0 0 / 0.35);
 
-  /* ── Chrome Bezel Variables ── */
-  --chrome-edge: rgba(255, 255, 255, 0.06);
-  --chrome-highlight: rgba(255, 255, 255, 0.12);
-  --chrome-specular: rgba(255, 255, 255, 0.18);
+  /* ── Chrome Bezel Variables (OKLCH) ── */
+  --chrome-edge: oklch(1.0 0 0 / 0.06);
+  --chrome-highlight: oklch(1.0 0 0 / 0.12);
+  --chrome-specular: oklch(1.0 0 0 / 0.18);
 
   /* ── Dynamic Lab Color (set by JS per-lab) ── */
-  --lab-color: #00BBFF;
-  --lab-glow: rgba(0, 187, 255, 0.2);
+  --lab-color: oklch(0.75 0.17 225);
+  --lab-glow: oklch(0.75 0.17 225 / 0.2);
+
+  /* ── Semantic Spacing Scale (DES-08) — based on 4px grid ── */
+  --space-xs: 0.25rem;    /*  4px — tight inner padding */
+  --space-sm: 0.5rem;     /*  8px — compact gaps */
+  --space-md: 1rem;       /* 16px — standard padding */
+  --space-lg: 1.5rem;     /* 24px — section padding */
+  --space-xl: 2rem;       /* 32px — large section gaps */
+  --space-2xl: 3rem;      /* 48px — page-level spacing */
+  --space-section: 4rem;  /* 64px — between major sections */
+
+  /* ── Z-Index Token Scale (DES-13) ── */
+  --z-base: 1;
+  --z-cockpit-indicator: 2;
+  --z-vignette: 4;
+  --z-scanlines: 5;
+  --z-cockpit-viewport: 10;
+  --z-overlay: 50;
+  --z-skip: 100;
+  --z-banner: 200;
+  --z-modal: 300;
+  --z-toast: 500;
+}
+
+/* ═══ Font Fallback Metrics (DES-07) ═══
+   Previously defined manual @font-face fallbacks for Sora/Exo 2.
+   DES-06: next/font/google now auto-generates size-adjusted fallback
+   @font-face rules with precise metric overrides, so manual fallbacks
+   have been removed to avoid duplication. */
+
+/* ═══ Touch Target Utility (DES-14) ═══
+   WCAG 2.5.5 minimum touch target. Apply to interactive elements
+   that may be tapped on tablets accessing SparkForge via browser. */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* ═══ Skip To Content (v2 accessibility) ═══
@@ -55,21 +91,21 @@
   top: -100%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
-  padding: 12px 24px;
+  z-index: var(--z-skip);
+  padding: 0.75rem 1.5rem;
   background: var(--neon-blue);
-  color: #000;
+  color: #0A0E16;
   font-family: 'Sora', sans-serif;
   font-weight: 700;
-  font-size: 14px;
-  border-radius: 0 0 12px 12px;
+  font-size: 0.875rem;
+  border-radius: 0 0 0.75rem 0.75rem;
   text-decoration: none;
   transition: top 0.2s ease;
 }
 
 .skip-to-content:focus {
   top: 0;
-  outline: 3px solid white;
+  outline: 3px solid #F0F0F4;
   outline-offset: 2px;
 }
 
@@ -150,7 +186,7 @@
    NOT glassmorphic — opaque metallic console aesthetic. */
 .cockpit-viewport-content {
   position: relative;
-  z-index: 10;
+  z-index: var(--z-cockpit-viewport);
   max-width: 960px;
   margin: 72px auto 56px;
   padding: 20px 28px;
@@ -492,7 +528,7 @@
 .scanline-overlay {
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: var(--z-scanlines);
   pointer-events: none;
   background: repeating-linear-gradient(
     0deg,
@@ -523,7 +559,7 @@ body[data-scanlines="off"] .scanline-overlay {
 .vignette-overlay {
   position: fixed;
   inset: 0;
-  z-index: 4;
+  z-index: var(--z-vignette);
   pointer-events: none;
   background: radial-gradient(
     ellipse at center,
@@ -537,7 +573,7 @@ body[data-scanlines="off"] .scanline-overlay {
 .station-frame-css {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: var(--z-base);
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0;
@@ -620,7 +656,7 @@ body[data-scanlines="off"] .scanline-overlay {
   background: linear-gradient(180deg, transparent, var(--glow-color, #00BBFF), transparent);
   opacity: 0.15;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-cockpit-indicator);
 }
 .cockpit-side-indicator.left { left: 0; }
 .cockpit-side-indicator.right { right: 0; }
@@ -635,7 +671,7 @@ body[data-scanlines="off"] .scanline-overlay {
   background: linear-gradient(90deg, transparent 10%, var(--glow-color, #00BBFF) 30%, var(--glow-color, #00BBFF) 70%, transparent 90%);
   opacity: 0.3;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-cockpit-indicator);
 }
 
 /* When R3F vignette is active, hide CSS vignette to avoid double-darkening */

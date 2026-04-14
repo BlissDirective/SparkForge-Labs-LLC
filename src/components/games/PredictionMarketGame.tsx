@@ -254,7 +254,7 @@ export function PredictionMarketGame() {
   }
 
   return (
-    <GameShell gameId="prediction-market" title="Prediction Market" worldNumber={10} worldColor="#D946EF" totalRounds={predictions.length}>
+    <GameShell gameId="prediction-market" title="Prediction Market" worldNumber={10} worldColor="#DE5AEA" totalRounds={predictions.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
