@@ -31,7 +31,6 @@ import {
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   CHROME_BORDER,
-  EMISSIVE_IDLE_BUTTON,
   EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_HOVER_MULTIPLIER,
   EMISSIVE_LED_MULTIPLIER,
@@ -144,7 +143,9 @@ export function RadialDial3D({
         metalness: 0.95,
         roughness: 0.2,
         emissive: dialColor.clone(),
-        emissiveIntensity: EMISSIVE_IDLE_BUTTON * 0.25,
+        // Phase 2 audit fix (Section 7.1): Design token adoption
+        // 25% of STATE_MACHINE.idle.emissive ('medium' === EMISSIVE_SCALE.medium === 0.8) = 0.2
+        emissiveIntensity: getEmissive(STATE_MACHINE.idle.emissive) * 0.25,
       }),
     [dialColor],
   );
@@ -309,15 +310,19 @@ export function RadialDial3D({
     if (glowPulseRef.current > 0) {
       const decayRate = 1 / GLOW_PULSE_PERIOD;
       glowPulseRef.current = Math.max(0, glowPulseRef.current - delta * decayRate);
+      // Phase 2 audit fix (Section 7.1): Design token adoption
+      // Base = 25% of medium idle button emissive (STATE_MACHINE.idle.emissive === 'medium' === 0.8)
+      // Pulse peak adds up to 0.9 (EMISSIVE_HOVER_MULTIPLIER 1.8 * 0.5), summing to ~1.1 at crest
       knobMaterial.emissiveIntensity =
-        EMISSIVE_IDLE_BUTTON * 0.25 + glowPulseRef.current * EMISSIVE_HOVER_MULTIPLIER * 0.5;
+        getEmissive(STATE_MACHINE.idle.emissive) * 0.25
+        + glowPulseRef.current * EMISSIVE_HOVER_MULTIPLIER * 0.5;
     }
 
     // Hover emissive boost
     if (hovered && !dragging && !readOnly) {
       // Phase 2 audit fix (Section 7.1): Design token adoption
-      // Previous: EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER * 0.3 = 0.8 * 1.8 * 0.3 = 0.432
-      // Now:      getEmissive(STATE_MACHINE.hover.emissive) * 0.3 = 1.5 * 0.3 = 0.45 (~4% above legacy)
+      // Previous (legacy): idle-button emissive * HOVER_MULTIPLIER * 0.3 = 0.8 * 1.8 * 0.3 = 0.432
+      // Now:               getEmissive(STATE_MACHINE.hover.emissive) * 0.3 = 1.5 * 0.3 = 0.45 (~4% above legacy)
       knobMaterial.emissiveIntensity = Math.max(
         knobMaterial.emissiveIntensity,
         getEmissive(STATE_MACHINE.hover.emissive) * 0.3,

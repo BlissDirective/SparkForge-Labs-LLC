@@ -32,6 +32,7 @@ import {
   CHROME_BORDER,
   EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_LED_MULTIPLIER,
+  EMISSIVE_SCALE,
   TYPE_SCALE,
   NUMERIC_FONT,
   TEXT_COLORS,
@@ -269,13 +270,14 @@ function StreakPulseRing({
   const ringRef = useRef<Mesh>(null);
 
   // Determine pulse parameters based on streak count (Decision 8.2)
+  // Phase 2 audit fix (Section 7.1): Design token adoption — emissive values mapped to EMISSIVE_SCALE
   const { pulsePeriod, emissiveLevel } = useMemo(() => {
     if (streak >= 30) {
-      return { pulsePeriod: 0.5, emissiveLevel: 1.5 };
+      return { pulsePeriod: 0.5, emissiveLevel: EMISSIVE_SCALE.bright };   // 1.5
     } else if (streak >= 7) {
-      return { pulsePeriod: 1.5, emissiveLevel: 0.8 };
+      return { pulsePeriod: 1.5, emissiveLevel: EMISSIVE_SCALE.medium };   // 0.8
     } else {
-      return { pulsePeriod: 3.0, emissiveLevel: 0.4 };
+      return { pulsePeriod: 3.0, emissiveLevel: EMISSIVE_SCALE.dim };      // 0.4
     }
   }, [streak]);
 
@@ -313,7 +315,8 @@ function StreakPulseRing({
         <meshStandardMaterial
           color="#000000"
           emissive={streakColor}
-          emissiveIntensity={streak > 0 ? emissiveLevel : 0.15}
+          // Phase 2 audit fix (Section 7.1): Design token adoption — 0.15 === EMISSIVE_SCALE.dormant
+          emissiveIntensity={streak > 0 ? emissiveLevel : EMISSIVE_SCALE.dormant}
           transparent
           opacity={opacity * 0.85}
           toneMapped={false}
