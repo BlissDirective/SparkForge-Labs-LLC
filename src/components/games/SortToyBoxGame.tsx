@@ -611,7 +611,8 @@ export function SortToyBoxGame() {
       worldColor="#B67BFF"
       totalRounds={5}
     >
-      <div className="h-full flex flex-col relative overflow-hidden">
+      <div className="chrome-frame h-full">
+        <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particle background */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
           {particles.map((p) => (
@@ -1117,6 +1118,7 @@ export function SortToyBoxGame() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </GameShell>
   );

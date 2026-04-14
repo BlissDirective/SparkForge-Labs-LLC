@@ -1,4 +1,4 @@
-/* Fonts loaded via <link> in layout.tsx — no @import needed */
+/* DES-06: Fonts self-hosted via next/font/google in layout.tsx */
 
 /* AUDIT-G7: Tailwind CSS v4 migration — use @import instead of @tailwind directives */
 @import "tailwindcss";
@@ -13,9 +13,11 @@
 
 :root {
   /* ── Font Variables (mapped by Tailwind fontFamily) ── */
-  /* DES-07: Fallback fonts with metric overrides reduce CLS during font swap */
-  --font-display: 'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif;
-  --font-body: 'Sora', 'Sora Fallback', system-ui, sans-serif;
+  /* DES-06: next/font/google injects --font-display, --font-body, --font-mono,
+     --font-data on <body> with auto-generated fallback metrics.
+     These :root values serve as ultimate fallbacks if next/font hasn't loaded. */
+  --font-display: 'Exo 2', system-ui, sans-serif;
+  --font-body: 'Sora', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-data: 'Orbitron', monospace;
 
@@ -55,28 +57,25 @@
   --space-xl: 2rem;       /* 32px — large section gaps */
   --space-2xl: 3rem;      /* 48px — page-level spacing */
   --space-section: 4rem;  /* 64px — between major sections */
+
+  /* ── Z-Index Token Scale (DES-13) ── */
+  --z-base: 1;
+  --z-cockpit-indicator: 2;
+  --z-vignette: 4;
+  --z-scanlines: 5;
+  --z-cockpit-viewport: 10;
+  --z-overlay: 50;
+  --z-skip: 100;
+  --z-banner: 200;
+  --z-modal: 300;
+  --z-toast: 500;
 }
 
 /* ═══ Font Fallback Metrics (DES-07) ═══
-   Matches system-ui fallback dimensions to Sora/Exo 2 to prevent
-   layout shift (CLS) during font swap. Values measured from font
-   metrics tables (ascent, descent, line-gap, units-per-em). */
-@font-face {
-  font-family: 'Sora Fallback';
-  src: local('system-ui'), local('BlinkMacSystemFont'), local('Segoe UI');
-  size-adjust: 101%;
-  ascent-override: 95%;
-  descent-override: 25%;
-  line-gap-override: 0%;
-}
-@font-face {
-  font-family: 'Exo 2 Fallback';
-  src: local('system-ui'), local('BlinkMacSystemFont'), local('Segoe UI');
-  size-adjust: 103%;
-  ascent-override: 92%;
-  descent-override: 24%;
-  line-gap-override: 0%;
-}
+   Previously defined manual @font-face fallbacks for Sora/Exo 2.
+   DES-06: next/font/google now auto-generates size-adjusted fallback
+   @font-face rules with precise metric overrides, so manual fallbacks
+   have been removed to avoid duplication. */
 
 /* ═══ Touch Target Utility (DES-14) ═══
    WCAG 2.5.5 minimum touch target. Apply to interactive elements
@@ -94,7 +93,7 @@
   top: -100%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 100;
+  z-index: var(--z-skip);
   padding: 0.75rem 1.5rem;
   background: var(--neon-blue);
   color: #0A0E16;
@@ -189,7 +188,7 @@
    NOT glassmorphic — opaque metallic console aesthetic. */
 .cockpit-viewport-content {
   position: relative;
-  z-index: 10;
+  z-index: var(--z-cockpit-viewport);
   max-width: 960px;
   margin: 72px auto 56px;
   padding: 20px 28px;
@@ -531,7 +530,7 @@
 .scanline-overlay {
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: var(--z-scanlines);
   pointer-events: none;
   background: repeating-linear-gradient(
     0deg,
@@ -562,7 +561,7 @@ body[data-scanlines="off"] .scanline-overlay {
 .vignette-overlay {
   position: fixed;
   inset: 0;
-  z-index: 4;
+  z-index: var(--z-vignette);
   pointer-events: none;
   background: radial-gradient(
     ellipse at center,
@@ -576,7 +575,7 @@ body[data-scanlines="off"] .scanline-overlay {
 .station-frame-css {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: var(--z-base);
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0;
@@ -659,7 +658,7 @@ body[data-scanlines="off"] .scanline-overlay {
   background: linear-gradient(180deg, transparent, var(--glow-color, #00BBFF), transparent);
   opacity: 0.15;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-cockpit-indicator);
 }
 .cockpit-side-indicator.left { left: 0; }
 .cockpit-side-indicator.right { right: 0; }
@@ -674,7 +673,7 @@ body[data-scanlines="off"] .scanline-overlay {
   background: linear-gradient(90deg, transparent 10%, var(--glow-color, #00BBFF) 30%, var(--glow-color, #00BBFF) 70%, transparent 90%);
   opacity: 0.3;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-cockpit-indicator);
 }
 
 /* When R3F vignette is active, hide CSS vignette to avoid double-darkening */
