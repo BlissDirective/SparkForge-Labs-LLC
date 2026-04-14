@@ -40,6 +40,7 @@ import {
   CHROME_BORDER,
   ACCENT_LINES,
   EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_SCALE,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Props ■■
@@ -510,7 +511,8 @@ function StructuralRibs({ ribGeo, opacity: _opacity, arcRad, panelRadius }: Stru
             metalness={0.92}
             roughness={0.3}
             emissive={CHROME_BORDER.colorHex}
-            emissiveIntensity={ACCENT_LINES.emissiveLevel === 'dormant' ? 0.15 : 0}
+            // Phase 2 audit fix (Section 7.1): Design token adoption — 0.15 === EMISSIVE_SCALE.dormant
+            emissiveIntensity={ACCENT_LINES.emissiveLevel === 'dormant' ? EMISSIVE_SCALE.dormant : 0}
             transparent
             opacity={ACCENT_LINES.opacity}
           />
@@ -710,7 +712,8 @@ export function CockpitPanels({
 
     // Hex emissive pulse (4s period, dashboard mode only) + hover boost
     if (hexEmissiveRef.current && !frameDimmed) {
-      const pulse = Math.sin(clock.elapsedTime * 1.5708) * 0.1 + 0.4;
+      // Phase 2 audit fix (Section 7.1): Design token adoption — base 0.4 === EMISSIVE_SCALE.dim
+      const pulse = Math.sin(clock.elapsedTime * 1.5708) * 0.1 + EMISSIVE_SCALE.dim;
       hexEmissiveRef.current.emissiveIntensity = pulse + hoverProgressRef.current * 0.2;
     }
   });

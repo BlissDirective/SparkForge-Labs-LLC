@@ -25,6 +25,7 @@ import {
   TEXT_COLORS,
   EMISSIVE_IDLE_BUTTON,
   EMISSIVE_HOVER_MULTIPLIER,
+  EMISSIVE_SCALE,
   SPRING_PRESETS,
   PRESS_DEPTH,
 } from '@/lib/3d/cockpitDesignTokens';
@@ -67,7 +68,8 @@ function InputField3D({
     if (meshRef.current) {
       const mat = meshRef.current.material as MeshStandardMaterial;
       mat.emissive = focused ? accentC : chromeC;
-      mat.emissiveIntensity = focused ? 0.4 : CHROME_BORDER.glowIntensity;
+      // Phase 2 audit fix (Section 7.1): Design token adoption — 0.4 === EMISSIVE_SCALE.dim
+      mat.emissiveIntensity = focused ? EMISSIVE_SCALE.dim : CHROME_BORDER.glowIntensity;
     }
   });
 

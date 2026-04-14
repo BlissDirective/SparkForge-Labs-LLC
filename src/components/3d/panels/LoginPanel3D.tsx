@@ -38,6 +38,7 @@ import {
   TEXT_COLORS,
   EMISSIVE_IDLE_BUTTON,
   EMISSIVE_HOVER_MULTIPLIER,
+  EMISSIVE_SCALE,
   SPRING_PRESETS,
   PRESS_DEPTH,
 } from '@/lib/3d/cockpitDesignTokens';
@@ -133,7 +134,8 @@ function InputField3D({
     metalness: 0.95,
     roughness: 0.1,
     emissive: focused ? accentColor : chromeColor,
-    emissiveIntensity: focused ? 0.4 : CHROME_BORDER.glowIntensity,
+    // Phase 2 audit fix (Section 7.1): Design token adoption — 0.4 === EMISSIVE_SCALE.dim
+    emissiveIntensity: focused ? EMISSIVE_SCALE.dim : CHROME_BORDER.glowIntensity,
   }), [chromeColor, accentColor, focused]);
 
   const bgMat = useMemo(() => new MeshStandardMaterial({
@@ -152,7 +154,8 @@ function InputField3D({
     if (meshRef.current) {
       const mat = meshRef.current.material as MeshStandardMaterial;
       mat.emissive = focused ? accentColor : chromeColor;
-      mat.emissiveIntensity = focused ? 0.4 : CHROME_BORDER.glowIntensity;
+      // Phase 2 audit fix (Section 7.1): Design token adoption — 0.4 === EMISSIVE_SCALE.dim
+      mat.emissiveIntensity = focused ? EMISSIVE_SCALE.dim : CHROME_BORDER.glowIntensity;
     }
   });
 
