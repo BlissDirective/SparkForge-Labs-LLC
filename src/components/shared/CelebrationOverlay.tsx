@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import FocusTrap from 'focus-trap-react';
 import { useUIStore } from '@/stores/uiStore';
 import { useA11yStore } from '@/stores/accessibilityStore';
 
@@ -250,79 +251,86 @@ export function CelebrationOverlay() {
         )}
 
         {/* Badge Earned Modal — S5-HIGH-005: role="dialog", aria-modal, aria-label */}
+        {/* Phase 1 audit fix (Section 8.1): FocusTrap + Escape key dismiss */}
         {celebrationType === 'badge' && celebrationData && (
-          <motion.div
-            className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
-            variants={modalBackdrop}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            onClick={dismissCelebration}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Badge earned notification"
-          >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <FocusTrap focusTrapOptions={{ escapeDeactivates: true, onDeactivate: dismissCelebration, allowOutsideClick: true }}>
             <motion.div
-              className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
-              variants={activeModalContent}
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={dismissCelebration}
+              onKeyDown={(e) => { if (e.key === 'Escape') dismissCelebration(); }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="badge-celebration-title"
             >
-              {reduceMotion ? (
-                <div className="text-6xl mb-4">
-                  {(celebrationData.icon as string) || '🏅'}
-                </div>
-              ) : (
-                <motion.div
-                  className="text-6xl mb-4"
-                  variants={badgeFlip}
-                  initial="initial"
-                  animate="animate"
-                >
-                  {(celebrationData.icon as string) || '🏅'}
-                </motion.div>
-              )}
-              <h2 className="font-display text-2xl font-bold text-white mb-2">
-                Badge Earned!
-              </h2>
-              <p className="font-display text-lg text-spark-purple font-semibold mb-1">
-                {(celebrationData.name as string) || 'Achievement Unlocked'}
-              </p>
-              <p className="font-body text-white/50 text-sm mb-6">
-                {(celebrationData.description as string) || 'You earned a new badge!'}
-              </p>
-              <button
-                onClick={dismissCelebration}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-spark-purple to-spark-blue text-white font-display font-bold text-sm emissive-glow"
-                style={
-                  { '--glow-color': '#8B5CF6' } as React.CSSProperties
-                }
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+              <motion.div
+                className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
+                variants={activeModalContent}
+                onClick={(e) => e.stopPropagation()}
               >
-                Awesome!
-              </button>
+                {reduceMotion ? (
+                  <div className="text-6xl mb-4">
+                    {(celebrationData.icon as string) || '🏅'}
+                  </div>
+                ) : (
+                  <motion.div
+                    className="text-6xl mb-4"
+                    variants={badgeFlip}
+                    initial="initial"
+                    animate="animate"
+                  >
+                    {(celebrationData.icon as string) || '🏅'}
+                  </motion.div>
+                )}
+                <h2 id="badge-celebration-title" className="font-display text-2xl font-bold text-white mb-2">
+                  Badge Earned!
+                </h2>
+                <p className="font-display text-lg text-spark-purple font-semibold mb-1">
+                  {(celebrationData.name as string) || 'Achievement Unlocked'}
+                </p>
+                <p className="font-body text-white/50 text-sm mb-6">
+                  {(celebrationData.description as string) || 'You earned a new badge!'}
+                </p>
+                <button
+                  onClick={dismissCelebration}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-spark-purple to-spark-blue text-white font-display font-bold text-sm emissive-glow"
+                  style={
+                    { '--glow-color': '#8B5CF6' } as React.CSSProperties
+                  }
+                >
+                  Awesome!
+                </button>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </FocusTrap>
         )}
 
         {/* Level Up Modal — S5-HIGH-005: role="dialog", aria-modal, aria-label */}
+        {/* Phase 1 audit fix (Section 8.1): FocusTrap + Escape key dismiss */}
         {celebrationType === 'level' && (
-          <motion.div
-            className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
-            variants={modalBackdrop}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            onClick={dismissCelebration}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Level up notification"
-          >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <FocusTrap focusTrapOptions={{ escapeDeactivates: true, onDeactivate: dismissCelebration, allowOutsideClick: true }}>
             <motion.div
-              className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
-              variants={activeModalContent}
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={dismissCelebration}
+              onKeyDown={(e) => { if (e.key === 'Escape') dismissCelebration(); }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="levelup-celebration-title"
             >
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+              <motion.div
+                className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
+                variants={activeModalContent}
+                onClick={(e) => e.stopPropagation()}
+              >
               {reduceMotion ? (
                 <div className="text-7xl mb-4">⭐</div>
               ) : (
@@ -337,7 +345,7 @@ export function CelebrationOverlay() {
                   ⭐
                 </motion.div>
               )}
-              <h2 className="font-display text-3xl font-bold text-white mb-2">
+              <h2 id="levelup-celebration-title" className="font-display text-3xl font-bold text-white mb-2">
                 Level Up!
               </h2>
               <p className="font-display text-xl text-spark-purple font-semibold mb-1">
@@ -362,6 +370,7 @@ export function CelebrationOverlay() {
               </button>
             </motion.div>
           </motion.div>
+          </FocusTrap>
         )}
 
         {/* XP Gain Toast — S5-HIGH-003: auto-dismiss 3s, S5-HIGH-005: role="status" */}

@@ -49,6 +49,7 @@
     "@theatre/studio": "^0.7.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "focus-trap-react": "^12.0.0",
     "gsap": "^3.14.2",
     "jotai": "^2.12.0",
     "lucide-react": "^0.575.0",

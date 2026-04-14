@@ -14,7 +14,7 @@
 
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
+import { Text, Html } from '@react-three/drei';
 import {
   Color,
   Group,
@@ -376,6 +376,41 @@ export function HolographicButton({
           {label}
         </Text>
       </group>
+
+      {/* Phase 1 audit fix (Section 8.3): Hidden HTML proxy for keyboard accessibility.
+          Invisible button captures Tab focus + Enter/Space activation.
+          Uses the existing P3-2 hidden HTML input proxy pattern from auth panels. */}
+      <Html
+        center
+        position={[0, 0, 0.01]}
+        style={{ pointerEvents: 'none', opacity: 0, width: 0, height: 0, overflow: 'visible' }}
+      >
+        <button
+          aria-label={label}
+          disabled={disabled}
+          tabIndex={disabled ? -1 : 0}
+          onClick={handleClick}
+          onFocus={() => { if (!disabled) setHovered(true); }}
+          onBlur={() => setHovered(false)}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+              e.preventDefault();
+              handleClick();
+            }
+          }}
+          style={{
+            position: 'absolute',
+            width: '1px',
+            height: '1px',
+            padding: 0,
+            margin: '-1px',
+            overflow: 'hidden',
+            clip: 'rect(0,0,0,0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+        />
+      </Html>
     </group>
   );
 }

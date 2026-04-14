@@ -28,6 +28,7 @@ import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
 import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
+import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
@@ -120,6 +121,9 @@ export default function DashboardLayout({
         {/* ARIA live region — screen reader announcements for 3D state changes */}
         {/* DASH-06: id="main-content" makes skip-link land here (meaningful content) */}
         <div aria-live="polite" aria-atomic="true" className="sr-only" id="main-content" role="region" aria-label="Dashboard content" />
+
+        {/* Phase 1 audit fix (Section 8.2): A11yAnnouncer for score/XP/badge/streak */}
+        <A11yAnnouncer />
 
         {/* Guide chat panel — HTML overlay for text input (Phase 3: migrate to uikit) */}
         <GuideChatPanel />

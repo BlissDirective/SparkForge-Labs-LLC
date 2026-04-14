@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import FocusTrap from 'focus-trap-react';
 import { Trophy, Star, Zap, ArrowRight } from 'lucide-react';
 
 interface CelebrationProps {
@@ -67,10 +68,14 @@ export function GameCompleteCelebration({
 
   return (
     <AnimatePresence>
+      {/* Phase 1 audit fix (Section 8.1): FocusTrap + Escape key dismiss */}
+      <FocusTrap focusTrapOptions={{ escapeDeactivates: true, onDeactivate: onContinue, allowOutsideClick: true }}>
       <motion.div
         className="fixed inset-0 z-[100] flex items-center justify-center"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="game-complete-title"
+        onKeyDown={(e) => { if (e.key === 'Escape') onContinue(); }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -146,6 +151,7 @@ export function GameCompleteCelebration({
 
               {/* Title */}
               <motion.h2
+                id="game-complete-title"
                 className="font-display text-2xl font-black text-white mb-1"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -257,6 +263,7 @@ export function GameCompleteCelebration({
           </div>
         </motion.div>
       </motion.div>
+      </FocusTrap>
     </AnimatePresence>
   );
 }
