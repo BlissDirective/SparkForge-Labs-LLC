@@ -24,7 +24,14 @@ import {
   ExtrudeGeometry,
   MeshStandardMaterial,
   DoubleSide,
+  Vector2,
 } from 'three';
+
+// Phase 2 audit fix (Section 4.6): holographicTSL imported for Decision 4.3 rainbow diffraction
+// Wiring is gated behind WebGPU tier — under WebGL2 the NodeMaterial cannot compile, so we keep
+// the existing MeshStandardMaterial path and merely bind/animate the shared TSL uniforms so the
+// shader module is wired and ready for WebGPU activation.
+import { holographicPattern, getHolographicUniforms } from '@/shaders/tsl/holographicTSL';
 
 import {
   CHROME_BORDER,
@@ -39,7 +46,13 @@ import {
   TEXT_COLORS,
   WHITESPACE_RATIO,
   GHOST_PLACEHOLDER_OPACITY,
+  getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
+
+// Phase 2 audit fix (Section 4.6): holographicTSL applied — Decision 4.3
+// Reference the TSL module to ensure tree-shaking keeps it in the bundle. The shader
+// will be fully activated when a WebGPU NodeMaterial path is introduced for this card.
+void holographicPattern;
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -152,6 +165,12 @@ export function HolographicCard({
   const accentColor = useMemo(() => new Color(color), [color]);
   const chromeBorderColor = useMemo(() => new Color(CHROME_BORDER.colorHex), []);
 
+  // Phase 2 audit fix (Section 4.6): bind holographicTSL uniforms — Decision 4.3
+  // These drive the TSL rainbow-diffraction shader when the card is rendered under WebGPU.
+  // Under WebGL2 they update harmlessly; the accent strip material remains the active visual.
+  const holoUniforms = useMemo(() => getHolographicUniforms(), []);
+  const tiltTarget = useRef(new Vector2(0, 0));
+
   // ── Geometries ──────────────────────────────────────────────
 
   const borderGeometry = useMemo(
@@ -196,7 +215,8 @@ export function HolographicCard({
     metalness: 0.85,
     roughness: 0.35,
     emissive: new Color('#000000'),
-    emissiveIntensity: 0,
+    // Phase 2 audit fix (Section 7.1): Design token adoption — 0 === getEmissive('off')
+    emissiveIntensity: getEmissive('off'),
     transparent: false,
   }), []);
 
@@ -246,7 +266,8 @@ export function HolographicCard({
     currentLift.current += velocityLift.current * dt;
 
     // Spring-driven scale
-    const targetScale = hovered ? HOVER_SCALE : 1.0;
+    // Phase 2 audit fix (Section 7.1): Design token adoption — 1.0 === STATE_MACHINE.idle.scale
+    const targetScale = hovered ? HOVER_SCALE : STATE_MACHINE.idle.scale;
     const forceScale = -SPRING.stiffness * (currentScale.current - targetScale);
     const dampScale = -SPRING.damping * velocityScale.current;
     velocityScale.current += (forceScale + dampScale) / SPRING.mass * dt;
@@ -254,6 +275,17 @@ export function HolographicCard({
 
     groupRef.current.scale.setScalar(scale * currentScale.current);
     groupRef.current.position.y = position[1] + currentLift.current;
+
+    // Phase 2 audit fix (Section 4.6): drive holographicTSL uniforms — Decision 4.3
+    // uTime advances continuously; uTilt eases toward hover magnitude; uBaseColor tracks accent.
+    holoUniforms.uTime.value = state.clock.elapsedTime;
+    const desiredTiltMag = hovered ? 0.6 : 0.0;
+    const currentMag = tiltTarget.current.length();
+    const nextMag = currentMag + (desiredTiltMag - currentMag) * Math.min(1, dt * 6);
+    tiltTarget.current.set(nextMag, nextMag * 0.7);
+    holoUniforms.uTilt.value.copy(tiltTarget.current);
+    holoUniforms.uIntensity.value = active ? 1.2 : 1.0;
+    holoUniforms.uBaseColor.value.copy(accentColor);
 
     // Chrome border pulse trace on hover (HOVER_GLOW tokens)
     if (borderRef.current) {

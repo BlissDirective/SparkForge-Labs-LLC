@@ -39,6 +39,7 @@ import {
   CHROME_BORDER,
   EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_LED_MULTIPLIER,
+  EMISSIVE_SCALE,
   SPRING_PRESETS,
   TYPE_SCALE,
   ACCENT_LINES,
@@ -167,10 +168,23 @@ export function ToggleSwitch3D({
     emissiveIntensity: 0.2,
   }), []);
 
+  // Phase 2 audit fix (Section 5.3): LED pulse on state change
+  // Pulses brightness from 1.0 → 2.5 → 1.5 over 300ms (brighter LED flash)
+  // Phase 2 audit fix (Section 7.1): Design token adoption
+  // 2.5 === EMISSIVE_SCALE.blazing, 1.5 === EMISSIVE_SCALE.bright
+  const ledPulseRef = useRef(-1);
+  const LED_PULSE_DURATION = 0.3;
+  const LED_PULSE_PEAK = EMISSIVE_SCALE.blazing; // 2.5
+  const LED_PULSE_SETTLE = EMISSIVE_SCALE.bright; // 1.5
+  const LED_PULSE_BASE = 1.0;
+
   // ■■ Click handler ■■
   const handleClick = useCallback(() => {
     const newValue = !value;
     onChange(newValue);
+
+    // Trigger LED pulse on toggle
+    ledPulseRef.current = 0;
 
     broadcast({
       type: 'toggle-switch',
@@ -210,6 +224,23 @@ export function ToggleSwitch3D({
     const ledMat = ledRef.current.material as MeshBasicMaterial;
     const targetColor = value ? onColor : offColor;
     ledMat.color.lerp(targetColor, Math.min(dt * 12, 1));
+
+    // Phase 2 audit fix (Section 5.3): LED pulse brightness on toggle state change
+    // Phase 2 audit fix (Section 7.1): Design token adoption — peak = EMISSIVE_SCALE.blazing (2.5),
+    // settle = EMISSIVE_SCALE.bright (1.5).
+    if (ledPulseRef.current >= 0) {
+      ledPulseRef.current += dt;
+      const pt = ledPulseRef.current / LED_PULSE_DURATION;
+      if (pt >= 1) {
+        ledPulseRef.current = -1;
+      } else {
+        // Curve: LED_PULSE_BASE → LED_PULSE_PEAK (at pt=0.3) → LED_PULSE_SETTLE
+        const pulseMultiplier = pt < 0.3
+          ? LED_PULSE_BASE + ((LED_PULSE_PEAK - LED_PULSE_BASE) * pt / 0.3)         // 1.0 → 2.5
+          : LED_PULSE_PEAK - ((LED_PULSE_PEAK - LED_PULSE_SETTLE) * (pt - 0.3) / 0.7); // 2.5 → 1.5
+        ledMat.color.multiplyScalar(pulseMultiplier);
+      }
+    }
   });
 
   // Caption style from design tokens

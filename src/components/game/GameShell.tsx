@@ -26,10 +26,12 @@ import { useReducedMotion } from 'motion/react';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { XPPopupProvider } from '@/components/game/XPPopup';
+import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
 import { getCompletionTier } from '@/lib/3d/gameParticles';
 import { GameHUD3D } from '@/components/3d/game-ui/GameHUD3D';
 
@@ -71,11 +73,43 @@ export function GameShell({
   const hasRewarded = useRef(false);
 
   // Scene + game initialization
+  // Phase 1 audit fix (Section 3.3): Activate 'game' cockpit mode preset
+  // (FOV 72, centerScale 1.75, panel opacity 0.4, panelOffset 0.3)
+  const setActiveMode = useCockpitStore((s) => s.setActiveMode);
+  const previousModeRef = useRef(useCockpitStore.getState().activeMode);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  // Phase 2 audit fix (Section 5.7): 400ms game entry anticipation sequence
+  // Ref to track anticipation timeout so it can be cleared on unmount
+  const anticipationTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
+    // Capture mode before entering game for restoration on exit
+    previousModeRef.current = useCockpitStore.getState().activeMode;
+
+    // Start game state immediately so GameHUD content renders
     startGame(gameId, totalRounds, hints);
-    enterGame(gameId, worldColor);
-    broadcast({ type: 'game-enter', source: gameId, value: 1.0 });
+
+    // Phase 2 audit fix (Section 5.7): 400ms game entry anticipation sequence
+    // (1) Broadcast anticipation start — LEDs ramp, HUD dims, audio engines can build tone
+    // (2) Broadcast particle-converge via reused event channel (fire-and-forget)
+    // (3) After 400ms, broadcast anticipation end + run normal enterGame flow
+    broadcast({
+      type: 'game-anticipation-start',
+      source: gameId,
+      color: worldColor,
+      value: 1.0,
+    });
+
+    anticipationTimeoutRef.current = setTimeout(() => {
+      broadcast({
+        type: 'game-anticipation-end',
+        source: gameId,
+        color: worldColor,
+        value: 1.0,
+      });
+      enterGame(gameId, worldColor);
+      setActiveMode('game');
+      broadcast({ type: 'game-enter', source: gameId, value: 1.0 });
+    }, 400);
 
     // Register 3D HUD in sceneStore — renders inside CockpitCanvas (Phase 5)
     setGameHUDContent(
@@ -88,12 +122,18 @@ export function GameShell({
     );
 
     return () => {
+      // Clean up anticipation timeout if unmount happens mid-sequence
+      if (anticipationTimeoutRef.current) {
+        clearTimeout(anticipationTimeoutRef.current);
+        anticipationTimeoutRef.current = null;
+      }
       broadcast({ type: 'game-exit', source: gameId, value: 1.0 });
+      setActiveMode(previousModeRef.current);
       exitGame(); // Also clears gameHUDContent
       resetGame();
       hasRewarded.current = false;
     };
-  }, [gameId, totalRounds, hints, worldColor, title, showTimer, startGame, resetGame, enterGame, exitGame, setGameHUDContent, broadcast]);
+  }, [gameId, totalRounds, hints, worldColor, title, showTimer, startGame, resetGame, enterGame, exitGame, setGameHUDContent, setActiveMode, broadcast]);
 
   // Reward pipeline: fires once when game completes
   useEffect(() => {
@@ -121,17 +161,20 @@ export function GameShell({
 
   return (
     <XPPopupProvider>
-      <div
-        className="h-full w-full"
-        data-game-id={gameId}
-        data-world={worldNumber}
-        data-world-color={worldColor}
-        data-reduced-motion={prefersReducedMotion || undefined}
-        role="region"
-        aria-label={`${title} game`}
-      >
-        {children}
-      </div>
+      {/* Phase 1 audit fix (Section 8.7): GameErrorBoundary wraps all 35 games */}
+      <GameErrorBoundary gameId={gameId} gameTitle={title} worldColor={worldColor}>
+        <div
+          className="h-full w-full"
+          data-game-id={gameId}
+          data-world={worldNumber}
+          data-world-color={worldColor}
+          data-reduced-motion={prefersReducedMotion || undefined}
+          role="region"
+          aria-label={`${title} game`}
+        >
+          {children}
+        </div>
+      </GameErrorBoundary>
     </XPPopupProvider>
   );
 }

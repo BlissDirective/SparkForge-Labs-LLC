@@ -114,15 +114,18 @@ export const ADAPTIVE_CURVATURE = {
 } as const;
 
 // ■■ Bloom Presets — Mode-Dependent (CPA-7) ■■
+// Phase 2 Section 7: Keys aligned with CockpitMode (labmap→labs, lab→lab_detail).
+// Added `settings` entry. Retained `gameComplete` transient state preset.
 export const BLOOM_PRESETS = {
   dashboard:     { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
   arcade:        { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
-  labmap:        { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
-  lab:           { intensity: 0.5, threshold: 0.5, smoothing: 0.85 },
+  labs:          { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
+  lab_detail:    { intensity: 0.5, threshold: 0.5, smoothing: 0.85 },
   game:          { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
   celebration:   { intensity: 0.8, threshold: 0.3, smoothing: 0.7 },
   gameComplete:  { intensity: 1.0, threshold: 0.2, smoothing: 0.6 },
   profile:       { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
+  settings:      { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
   onboarding:    { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
   parent:        { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
   admin:         { intensity: 0.25, threshold: 0.75, smoothing: 0.95 },
@@ -132,8 +135,8 @@ export const BLOOM_PRESETS = {
 export const CAMERA_PRESETS = {
   dashboard:   { fov: 58, distortion: 0.025 },    // v3: wider FOV for immersion
   arcade:      { fov: 60, distortion: 0.02 },     // slightly wider than dashboard for game browser
-  labmap:      { fov: 62, distortion: 0.02 },     // v3: widest for spatial map
-  lab:         { fov: 55, distortion: 0.02 },
+  labs:        { fov: 62, distortion: 0.02 },     // v3: widest for spatial map
+  lab_detail:  { fov: 55, distortion: 0.02 },
   game:        { fov: 52, distortion: 0.0 },
   celebration: { fov: 62, distortion: 0.03 },     // v3: dramatic wide during celebrations
   profile:     { fov: 56, distortion: 0.015 },    // v3: right console focus
@@ -147,11 +150,12 @@ export const CAMERA_PRESETS = {
 export const VIGNETTE_PRESETS = {
   dashboard:   { darkness: 0.5, offset: 0.3 },
   arcade:      { darkness: 0.45, offset: 0.3 },
-  labmap:      { darkness: 0.4, offset: 0.3 },
-  lab:         { darkness: 0.5, offset: 0.3 },
+  labs:        { darkness: 0.4, offset: 0.3 },
+  lab_detail:  { darkness: 0.5, offset: 0.3 },
   game:        { darkness: 0.6, offset: 0.25 },
   celebration: { darkness: 0.3, offset: 0.4 },
   profile:     { darkness: 0.5, offset: 0.3 },
+  settings:    { darkness: 0.5, offset: 0.3 },
   onboarding:  { darkness: 0.4, offset: 0.35 },
   parent:      { darkness: 0.45, offset: 0.3 },
   admin:       { darkness: 0.4, offset: 0.3 },
@@ -161,12 +165,13 @@ export const VIGNETTE_PRESETS = {
 export const HUD_PRESETS = {
   dashboard:     { opacity: 0.15, rotationSpeed: 0.1,  pulseIntensity: 0.3, dataMode: 'minimap' as const },
   arcade:        { opacity: 0.16, rotationSpeed: 0.12, pulseIntensity: 0.35, dataMode: 'minimap' as const },
-  labmap:        { opacity: 0.18, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' as const },
-  lab:           { opacity: 0.20, rotationSpeed: 0.2,  pulseIntensity: 0.5, dataMode: 'labfocus' as const },
+  labs:          { opacity: 0.18, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' as const },
+  lab_detail:    { opacity: 0.20, rotationSpeed: 0.2,  pulseIntensity: 0.5, dataMode: 'labfocus' as const },
   game:          { opacity: 0.0,  rotationSpeed: 0,    pulseIntensity: 0,   dataMode: 'hidden' as const },
   celebration:   { opacity: 0.85, rotationSpeed: 0.4,  pulseIntensity: 1.0, dataMode: 'burst' as const },
   gameComplete:  { opacity: 1.0,  rotationSpeed: 0.5,  pulseIntensity: 1.0, dataMode: 'burst' as const },
   profile:       { opacity: 0.12, rotationSpeed: 0.08, pulseIntensity: 0.2, dataMode: 'stats' as const },
+  settings:      { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'stats' as const },
   onboarding:    { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'tutorial' as const },
   parent:        { opacity: 0.08, rotationSpeed: 0.05, pulseIntensity: 0.1,  dataMode: 'stats' as const },
   admin:         { opacity: 0.06, rotationSpeed: 0.03, pulseIntensity: 0.05, dataMode: 'stats' as const },
@@ -176,11 +181,12 @@ export const HUD_PRESETS = {
 export const SIDE_PANEL_PRESETS = {
   dashboard:   { opacity: 0.6, leftContent: 'radar' as const, rightContent: 'stats' as const },
   arcade:      { opacity: 0.65, leftContent: 'radar' as const, rightContent: 'stats' as const },
-  labmap:      { opacity: 0.7, leftContent: 'labNav' as const, rightContent: 'stats' as const },
-  lab:         { opacity: 0.5, leftContent: 'labNav' as const, rightContent: 'stats' as const },
+  labs:        { opacity: 0.7, leftContent: 'labNav' as const, rightContent: 'stats' as const },
+  lab_detail:  { opacity: 0.5, leftContent: 'labNav' as const, rightContent: 'stats' as const },
   game:        { opacity: 0.0, leftContent: 'radar' as const, rightContent: 'stats' as const },
   celebration: { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'terminal' as const },
   profile:     { opacity: 0.4, leftContent: 'radar' as const, rightContent: 'stats' as const },
+  settings:    { opacity: 0.4, leftContent: 'radar' as const, rightContent: 'stats' as const },
   onboarding:  { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'stats' as const },
   parent:      { opacity: 0.3, leftContent: 'stats' as const, rightContent: 'stats' as const },
   admin:       { opacity: 0.2, leftContent: 'terminal' as const, rightContent: 'stats' as const },
@@ -190,11 +196,12 @@ export const SIDE_PANEL_PRESETS = {
 export const PANEL_CURVATURE_PRESETS = {
   dashboard:   0.85,
   arcade:      0.85,
-  labmap:      0.85,
-  lab:         0.85,
+  labs:        0.85,
+  lab_detail:  0.85,
   game:        0.3,     // Retracted during games (Decision 3.4)
   celebration: 0.85,
   profile:     0.85,
+  settings:    0.85,
   onboarding:  0.7,
   parent:      0.6,
   admin:       0.5,
@@ -204,11 +211,12 @@ export const PANEL_CURVATURE_PRESETS = {
 export const PANEL_OPACITY_PRESETS = {
   dashboard:   1.0,
   arcade:      1.0,
-  labmap:      1.0,
-  lab:         1.0,
+  labs:        1.0,
+  lab_detail:  1.0,
   game:        0.2,     // Dimmed during games
   celebration: 1.0,
   profile:     1.0,
+  settings:    1.0,
   onboarding:  0.8,
   parent:      0.7,
   admin:       0.6,
@@ -218,11 +226,12 @@ export const PANEL_OPACITY_PRESETS = {
 export const STATUS_BAR_PRESETS = {
   dashboard:   { opacity: 1.0 },
   arcade:      { opacity: 1.0 },
-  labmap:      { opacity: 1.0 },
-  lab:         { opacity: 1.0 },
+  labs:        { opacity: 1.0 },
+  lab_detail:  { opacity: 1.0 },
   game:        { opacity: 0.15 },  // Minimal, non-distracting
   celebration: { opacity: 1.0 },
   profile:     { opacity: 1.0 },
+  settings:    { opacity: 1.0 },
   onboarding:  { opacity: 0.6 },
   parent:      { opacity: 0.7 },
   admin:       { opacity: 0.5 },
@@ -266,12 +275,16 @@ export const MODE_TRANSITIONS = {
 } as const;
 
 // ■■ Ceremony FX Intensity per Type (CPA2-10) ■■
-export const CEREMONY_INTENSITY = {
-  xp:              { bloomPeak: 0.6, particleCount: 50,  hudExpansion: 1.1, duration: 1500 },
-  badge:           { bloomPeak: 0.8, particleCount: 100, hudExpansion: 1.3, duration: 2000 },
-  levelUp:         { bloomPeak: 1.0, particleCount: 200, hudExpansion: 1.5, duration: 3000 },
-  gameComplete:    { bloomPeak: 0.9, particleCount: 150, hudExpansion: 1.4, duration: 2500 },
-  streakMilestone: { bloomPeak: 0.7, particleCount: 80,  hudExpansion: 1.2, duration: 2000 },
+// Keys aligned with CelebrationType from @/types (Phase 1 audit fix: Section 3.2)
+// Legacy CeremonyType mapping: levelUp→level, streakMilestone→streak, gameComplete→confetti
+import type { CelebrationType } from '@/types';
+
+export const CEREMONY_INTENSITY: Record<CelebrationType, { bloomPeak: number; particleCount: number; hudExpansion: number; duration: number }> = {
+  xp:       { bloomPeak: 0.6, particleCount: 50,  hudExpansion: 1.1, duration: 1500 },
+  badge:    { bloomPeak: 0.8, particleCount: 100, hudExpansion: 1.3, duration: 2000 },
+  level:    { bloomPeak: 1.0, particleCount: 200, hudExpansion: 1.5, duration: 3000 },
+  confetti: { bloomPeak: 0.9, particleCount: 150, hudExpansion: 1.4, duration: 2500 },
+  streak:   { bloomPeak: 0.7, particleCount: 80,  hudExpansion: 1.2, duration: 2000 },
 } as const;
 
 // AUDIT-A6: COCKPIT_LOD removed per D3D-2 (no LOD system — all geometry at max quality)
@@ -336,6 +349,10 @@ export const TRIANGLE_BUDGET_V2 = {
 // Plan B1 (useFrameTimeMonitor) handles dev-only performance logging without degradation.
 
 // ■■ Type exports for consumers ■■
+// Phase 2 Section 7: StationModeKey is now a backward-compat alias.
+// New code should use CockpitMode from @/lib/3d/cockpitModePresets.
+// The preset maps above cover all CockpitMode values plus `gameComplete`
+// (a transient state, not a navigable mode).
 export type StationModeKey = keyof typeof BLOOM_PRESETS;
 export type SidePanelContent = 'radar' | 'labNav' | 'terminal' | 'stats';
 export type HUDDataMode = 'minimap' | 'labfocus' | 'hidden' | 'burst' | 'stats' | 'tutorial';

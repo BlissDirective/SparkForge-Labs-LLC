@@ -14,7 +14,7 @@
 
 import { useRef, useState, useCallback, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Text } from '@react-three/drei';
+import { Text, Html } from '@react-three/drei';
 import {
   Color,
   Group,
@@ -32,7 +32,6 @@ import {
   CHROME_BORDER,
   PRESS_DEPTH,
   EMISSIVE_IDLE_BUTTON,
-  EMISSIVE_HOVER_MULTIPLIER,
   SPRING_PRESETS,
   HOVER_GLOW,
   STATE_MACHINE,
@@ -57,9 +56,15 @@ const EMISSIVE_LAYER_OFFSET = 0.003;
 const EMISSIVE_LAYER_DEPTH = 0.002;
 const BEZEL_CHAMFER = 0.008;
 const BUTTON_CHAMFER = 0.006;
+// Phase 2 audit fix (Section 5.1): Larger ripple with dual concentric rings for "burst" illusion
 const RIPPLE_DURATION = 0.6;
-const RIPPLE_MAX_RADIUS = 0.15;
-const HOVER_EMISSIVE = EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER; // 1.44
+const RIPPLE_MAX_RADIUS = 0.25;
+const RIPPLE_INNER_MAX_RADIUS = 0.15;
+const RIPPLE_INNER_DURATION = 0.35;
+// Phase 2 audit fix (Section 7.1): Design token adoption
+// HOVER_EMISSIVE now aligns with STATE_MACHINE.hover.emissive (= 'bright' = EMISSIVE_SCALE.bright = 1.5)
+// Previous: EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER = 0.8 * 1.8 = 1.44 (~4% below token).
+const HOVER_EMISSIVE = getEmissive(STATE_MACHINE.hover.emissive); // 1.5
 const CARBON_BASE_COLOR = '#0A0F1F';
 
 interface HolographicButtonProps {
@@ -127,6 +132,7 @@ export function HolographicButton({
   const groupRef = useRef<Group>(null);
   const buttonGroupRef = useRef<Group>(null);
   const rippleRef = useRef<Mesh>(null);
+  const rippleInnerRef = useRef<Mesh>(null);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
 
   // Interaction state
@@ -196,6 +202,17 @@ export function HolographicButton({
   }), [accentColor]);
 
   const rippleMaterial = useMemo(() => new MeshBasicMaterial({
+    color: accentColor,
+    transparent: true,
+    opacity: 0,
+    side: DoubleSide,
+    blending: AdditiveBlending,
+    depthWrite: false,
+    toneMapped: false,
+  }), [accentColor]);
+
+  // Phase 2 audit fix (Section 5.1): Second ring with faster decay for "burst" illusion
+  const rippleInnerMaterial = useMemo(() => new MeshBasicMaterial({
     color: accentColor,
     transparent: true,
     opacity: 0,
@@ -308,7 +325,7 @@ export function HolographicButton({
     emissiveMaterial.emissiveIntensity = baseEmissive * (active || hovered ? pulse : 1.0);
     emissiveMaterial.opacity = active ? 0.55 : hovered ? 0.5 : 0.4;
 
-    // Ripple animation
+    // Ripple animation — dual-ring burst (Phase 2 audit fix: Section 5.1)
     if (rippleTimeRef.current >= 0 && rippleRef.current) {
       rippleTimeRef.current += delta;
       const rt = rippleTimeRef.current / RIPPLE_DURATION;
@@ -317,10 +334,23 @@ export function HolographicButton({
         rippleTimeRef.current = -1;
         rippleMaterial.opacity = 0;
         rippleRef.current.scale.set(0.01, 0.01, 1);
+        if (rippleInnerRef.current) {
+          rippleInnerMaterial.opacity = 0;
+          rippleInnerRef.current.scale.set(0.01, 0.01, 1);
+        }
       } else {
+        // Outer ring — slow expansion, larger radius
         const rippleScale = rt * RIPPLE_MAX_RADIUS * 2;
         rippleRef.current.scale.set(rippleScale, rippleScale, 1);
         rippleMaterial.opacity = (1 - rt) * 0.8;
+
+        // Inner ring — fast decay for burst illusion
+        if (rippleInnerRef.current) {
+          const innerT = Math.min(rippleTimeRef.current / RIPPLE_INNER_DURATION, 1);
+          const innerScale = innerT * RIPPLE_INNER_MAX_RADIUS * 2;
+          rippleInnerRef.current.scale.set(innerScale, innerScale, 1);
+          rippleInnerMaterial.opacity = (1 - innerT) * 0.95;
+        }
       }
     }
   });
@@ -355,10 +385,14 @@ export function HolographicButton({
           onPointerOut={handlePointerOut}
         />
 
-        {/* Ripple effect (ring expansion on click) */}
+        {/* Ripple effect — dual-ring burst (Phase 2 audit fix: Section 5.1) */}
         <mesh ref={rippleRef} position={[0, 0, EMISSIVE_LAYER_OFFSET + 0.002]} scale={[0.01, 0.01, 1]}>
           <ringGeometry args={[0.8, 1.0, 32]} />
           <primitive object={rippleMaterial} />
+        </mesh>
+        <mesh ref={rippleInnerRef} position={[0, 0, EMISSIVE_LAYER_OFFSET + 0.003]} scale={[0.01, 0.01, 1]}>
+          <ringGeometry args={[0.7, 1.0, 32]} />
+          <primitive object={rippleInnerMaterial} />
         </mesh>
 
         {/* Inset label text — engraved into surface (z = -0.001 relative to surface) */}
@@ -376,6 +410,41 @@ export function HolographicButton({
           {label}
         </Text>
       </group>
+
+      {/* Phase 1 audit fix (Section 8.3): Hidden HTML proxy for keyboard accessibility.
+          Invisible button captures Tab focus + Enter/Space activation.
+          Uses the existing P3-2 hidden HTML input proxy pattern from auth panels. */}
+      <Html
+        center
+        position={[0, 0, 0.01]}
+        style={{ pointerEvents: 'none', opacity: 0, width: 0, height: 0, overflow: 'visible' }}
+      >
+        <button
+          aria-label={label}
+          disabled={disabled}
+          tabIndex={disabled ? -1 : 0}
+          onClick={handleClick}
+          onFocus={() => { if (!disabled) setHovered(true); }}
+          onBlur={() => setHovered(false)}
+          onKeyDown={(e) => {
+            if ((e.key === 'Enter' || e.key === ' ') && !disabled) {
+              e.preventDefault();
+              handleClick();
+            }
+          }}
+          style={{
+            position: 'absolute',
+            width: '1px',
+            height: '1px',
+            padding: 0,
+            margin: '-1px',
+            overflow: 'hidden',
+            clip: 'rect(0,0,0,0)',
+            whiteSpace: 'nowrap',
+            border: 0,
+          }}
+        />
+      </Html>
     </group>
   );
 }

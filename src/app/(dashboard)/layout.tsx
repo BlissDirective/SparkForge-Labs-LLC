@@ -22,12 +22,20 @@ import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
 import { useCockpitAudio } from '@/hooks/useCockpitAudio';
 import { useCockpitScene } from '@/hooks/useCockpitScene';
+// Phase 2 audit fix (Section 3.5): Unified celebration state flow
+// Mount the celebration orchestrator at the dashboard layout level so its
+// timer + dismiss pipeline runs for the entire authenticated app lifecycle.
+// Without this mount, uiStore.showCelebration would be set to true by
+// triggerCelebration() but never cleared, leaving the cockpit stuck in
+// celebration mode. useCelebration3D is the sole owner of dismissCelebration().
+import { useCelebration3D } from '@/hooks/useCelebration3D';
 import { useCockpitUIStore, modeToCenterContent } from '@/stores/cockpitUIStore';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
 import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
+import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
@@ -73,6 +81,14 @@ export default function DashboardLayout({
 
   // Auto-track play sessions
   useSessionTracker();
+
+  // Phase 2 audit fix (Section 3.5): Unified celebration state flow
+  // Activate the 3D celebration orchestrator. It watches uiStore.showCelebration,
+  // switches cockpit mode, shows XP popups, broadcasts celebration-start/end,
+  // and dismisses after CELEBRATION_TIERS[tier].durationMs. This is the single
+  // owner of dismissCelebration() — CeremonyFXBridge intentionally does NOT
+  // call it, avoiding the previous double-dismiss race.
+  useCelebration3D();
 
   // Auto-detect guide context from route/scene
   useGuideContext();
@@ -120,6 +136,9 @@ export default function DashboardLayout({
         {/* ARIA live region — screen reader announcements for 3D state changes */}
         {/* DASH-06: id="main-content" makes skip-link land here (meaningful content) */}
         <div aria-live="polite" aria-atomic="true" className="sr-only" id="main-content" role="region" aria-label="Dashboard content" />
+
+        {/* Phase 1 audit fix (Section 8.2): A11yAnnouncer for score/XP/badge/streak */}
+        <A11yAnnouncer />
 
         {/* Guide chat panel — HTML overlay for text input (Phase 3: migrate to uikit) */}
         <GuideChatPanel />

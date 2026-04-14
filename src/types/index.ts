@@ -14,7 +14,9 @@ export type CelebrationType = 'xp' | 'badge' | 'level' | 'streak' | 'confetti';
 export type CockpitSkin = 'default' | 'cyberpunk' | 'space' | 'underwater' | 'crystal';
 export type SpatialView = 'overview' | 'lab-focus' | 'console' | 'orbit';
 export type ConsoleType = 'xp' | 'badges' | 'streak' | 'progress';
-export type CeremonyType = 'xp' | 'badge' | 'levelUp' | 'gameComplete' | 'streakMilestone';
+// Aligned with CelebrationType (Phase 1 audit fix: Section 3.2)
+// Legacy mapping: levelUp→level, gameComplete→confetti, streakMilestone→streak
+export type CeremonyType = CelebrationType;
 export type HUDDataMode = 'minimap' | 'labfocus' | 'hidden' | 'burst' | 'stats' | 'tutorial';
 
 export interface CameraTarget {

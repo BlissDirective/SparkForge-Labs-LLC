@@ -496,7 +496,8 @@ function RadarPanel({
             <meshStandardMaterial
               color={`#${labColor.getHexString()}`}
               emissive={labColor}
-              emissiveIntensity={0.8 * intensity}
+              // Phase 2 audit fix (Section 7.1): Design token adoption — 0.8 === EMISSIVE_SCALE.medium
+              emissiveIntensity={EMISSIVE_SCALE.medium * intensity}
               transparent
               opacity={opacity * 0.9 * intensity}
             />
@@ -766,7 +767,8 @@ function TerminalPanel({
           transparent
           opacity={opacity * 0.8 * intensity}
           emissive={labColor}
-          emissiveIntensity={0.4 * intensity}
+          // Phase 2 audit fix (Section 7.1): Design token adoption — 0.4 === EMISSIVE_SCALE.dim
+          emissiveIntensity={EMISSIVE_SCALE.dim * intensity}
           toneMapped={false}
         />
       </instancedMesh>
@@ -782,7 +784,8 @@ function TerminalPanel({
           transparent
           opacity={opacity * 0.7 * intensity}
           emissive={labColor}
-          emissiveIntensity={0.5 * intensity}
+          // Phase 2 audit fix (Section 7.1): Design token adoption — 0.5 === EMISSIVE_IDLE_INDICATOR
+          emissiveIntensity={EMISSIVE_IDLE_INDICATOR * intensity}
           toneMapped={false}
         />
       </instancedMesh>

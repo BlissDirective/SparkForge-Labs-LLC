@@ -8,6 +8,8 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useUIStore } from '@/stores/uiStore';
+import type { CelebrationType } from '@/types';
 
 const STORAGE_KEY = 'sparkforge:pendingCelebration';
 
@@ -15,6 +17,12 @@ export interface PendingCelebration {
   reason: string;
   label?: string;
   color?: string;
+  /**
+   * Celebration type forwarded to uiStore.triggerCelebration when
+   * auto-dispatched. Defaults to 'confetti' if omitted.
+   * Phase 2 audit fix (Section 3.5): Unified celebration state flow
+   */
+  type?: CelebrationType;
   /** When the celebration was enqueued (unix ms). Used to age out stale entries. */
   queuedAt: number;
 }
@@ -93,5 +101,45 @@ export function usePendingCelebration(
     }
     // onReady intentionally excluded so we don't re-fire on ref change
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready]);
+}
+
+/**
+ * Phase 2 audit fix (Section 3.5): Unified celebration state flow
+ *
+ * Auto-dispatches any pending celebration through the single unified
+ * entry point — `uiStore.triggerCelebration()`. All downstream effects
+ * (CeremonyFXBridge, useCelebration3D, broadcast, LED reactions) then
+ * flow from that single state change, and `useCelebration3D` remains
+ * the sole owner of `dismissCelebration()`.
+ *
+ * Prefer this over the generic `usePendingCelebration(ready, onReady)`
+ * pattern when the caller's only job is to fire the uiStore celebration.
+ * This eliminates the previous bug where the hook existed but was never
+ * wired to uiStore, so queued celebrations never fired after Stripe
+ * redirect.
+ *
+ * Typical use: pass `useCockpitStore(s => s.cockpitReady)` as `ready`.
+ */
+export function useAutoDispatchPendingCelebration(ready: boolean): void {
+  // Phase 2 audit fix (Section 3.5): Unified celebration state flow
+  useEffect(() => {
+    if (!ready) return;
+    const pending = consumePendingCelebration();
+    if (!pending) return;
+
+    const triggerCelebration = useUIStore.getState().triggerCelebration;
+    const type: CelebrationType = pending.type ?? 'confetti';
+
+    console.info(
+      '[celebration] auto-dispatching pending via uiStore.triggerCelebration:',
+      pending.reason,
+    );
+
+    triggerCelebration(type, {
+      reason: pending.reason,
+      label: pending.label,
+      color: pending.color,
+    });
   }, [ready]);
 }

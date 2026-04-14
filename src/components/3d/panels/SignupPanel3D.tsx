@@ -30,7 +30,9 @@ import {
   TYPE_SCALE,
   TEXT_COLORS,
   EMISSIVE_IDLE_BUTTON,
+  EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_HOVER_MULTIPLIER,
+  EMISSIVE_SCALE,
   SPRING_PRESETS,
   PRESS_DEPTH,
   NUMERIC_FONT,
@@ -92,7 +94,8 @@ function InputField3D({
     if (meshRef.current) {
       const mat = meshRef.current.material as MeshStandardMaterial;
       mat.emissive = focused ? accentC : chromeC;
-      mat.emissiveIntensity = focused ? 0.4 : CHROME_BORDER.glowIntensity;
+      // Phase 2 audit fix (Section 7.1): Design token adoption — 0.4 === EMISSIVE_SCALE.dim
+      mat.emissiveIntensity = focused ? EMISSIVE_SCALE.dim : CHROME_BORDER.glowIntensity;
     }
   });
 
@@ -252,7 +255,8 @@ function Checkbox3D({
         <meshStandardMaterial
           color={checked ? new Color(GREEN_COLOR) : new Color('#1A1822')}
           emissive={checked ? new Color(GREEN_COLOR) : new Color(hovered ? '#333' : '#111')}
-          emissiveIntensity={checked ? 0.5 : 0.1}
+          // Phase 2 audit fix (Section 7.1): Design token adoption — 0.5 === EMISSIVE_IDLE_INDICATOR
+          emissiveIntensity={checked ? EMISSIVE_IDLE_INDICATOR : 0.1}
           metalness={0.5} roughness={0.3}
         />
       </mesh>
@@ -282,7 +286,8 @@ function StepIndicator3D({ step, position }: { step: SignupStep; position: [numb
               <meshStandardMaterial
                 color={isComplete ? new Color(GREEN_COLOR) : isActive ? new Color(ACCENT_COLOR) : new Color('#333')}
                 emissive={isComplete ? new Color(GREEN_COLOR) : isActive ? new Color(ACCENT_COLOR) : new Color('#111')}
-                emissiveIntensity={isComplete || isActive ? 0.5 : 0.05}
+                // Phase 2 audit fix (Section 7.1): Design token adoption — 0.5 === EMISSIVE_IDLE_INDICATOR
+                emissiveIntensity={isComplete || isActive ? EMISSIVE_IDLE_INDICATOR : 0.05}
               />
             </mesh>
             <Text position={[0, -0.035, 0]} fontSize={TYPE_SCALE.caption.fontSize * 0.8}
@@ -628,7 +633,8 @@ export default function SignupPanel3D({
                     <meshStandardMaterial
                       color={isSelected ? new Color(ageBandColor) : new Color('#1A1822')}
                       emissive={isSelected ? new Color(ageBandColor) : new Color('#222')}
-                      emissiveIntensity={isSelected ? 0.5 : 0.05}
+                      // Phase 2 audit fix (Section 7.1): Design token adoption — 0.5 === EMISSIVE_IDLE_INDICATOR
+                      emissiveIntensity={isSelected ? EMISSIVE_IDLE_INDICATOR : 0.05}
                       metalness={0.5} roughness={0.4}
                     />
                   </mesh>

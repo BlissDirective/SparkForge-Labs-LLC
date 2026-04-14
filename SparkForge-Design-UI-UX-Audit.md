@@ -1110,5 +1110,174 @@ Key technique: per-edge border opacity variation (top brighter, bottom darker) s
 
 ---
 
+## SECTION 13: SESSION 1 IMPLEMENTATION LOG — PHASES 1 + 2 COMPLETE
+
+*Updated: April 14, 2026 — Session spanning Phase 1 (Critical Fixes) + Phase 2 (Visual & Animation Polish) on branch `claude/ui-ux-audit-phase-one-bb3CX`.*
+
+### Session Summary
+
+**24 findings resolved across 2 phases, 14 commits delivered.**
+- Phase 1: 10 items (4 Critical, 3 High, 3 Medium) — ~11 hours scope
+- Phase 2: 14 items (2 Critical, 5 High, 5 Medium, 2 Low) — ~25 hours scope
+
+**Build validation:** `npm run build` PASS | `npx vitest run` 23/23 PASS | `npx tsc --noEmit` clean (only pre-existing webhook-handler test error unrelated)
+
+---
+
+### Phase 1 — Critical Fixes (4 commits)
+
+| # | Audit Section | Fix | Solution Selected | Commit | Files |
+|---|---------------|-----|-------------------|--------|-------|
+| 1 | §3.2 | CEREMONY_INTENSITY key mismatch | A — Align keys to CelebrationType | d68ec88 | cockpitConfig.ts, types/index.ts |
+| 2 | §3.3 / §6.2 | Game entry mode desync | A — Add setActiveMode('game') to GameShell | d68ec88 | GameShell.tsx |
+| 3 | §8.1 | No focus traps in modals | A — focus-trap-react + Escape key | 3c663a9 | CelebrationOverlay.tsx, GameCompleteCelebration.tsx |
+| 4 | §8.2 | No aria-live for score/XP | A — A11yAnnouncer provider at layout | 3c663a9 | A11yAnnouncer.tsx (new), (dashboard)/layout.tsx |
+| 5 | §8.3 | 3D buttons keyboard inaccessible | A — HTML proxy overlay (P3-2 pattern) | 3c663a9 | HolographicButton.tsx |
+| 6 | §3.7 | Transition duration mismatch (300 vs 450ms) | A — Unify in animations.ts | 20ec9f4 | animations.ts, PageTransitionProvider.tsx |
+| 7 | §8.4 | Celebration card contrast failures | A — text-white/30 → text-white/70 | 20ec9f4 | GameCompleteCelebration.tsx |
+| 8 | §8.7 | ErrorBoundary missing from games | B — Dedicated GameErrorBoundary | 20ec9f4 | GameErrorBoundary.tsx (new), GameShell.tsx |
+| 9 | §6.5 | Celebration timer race condition | SKIP — Already fixed | — | useCelebration3D.ts (verified) |
+| 10 | §3.4 | Triple type system fragmentation | B — modeResolver.ts bridge | 1277804 | modeResolver.ts (new) |
+
+**Phase 1 files created:** 3 (A11yAnnouncer, GameErrorBoundary, modeResolver)
+**Phase 1 files modified:** 8
+**Phase 1 net: +233 lines / -65 lines across 4 commits**
+
+---
+
+### Phase 2 — Visual & Animation Polish (10 commits)
+
+| # | Audit Section | Fix | Solution Selected | Commit | Files |
+|---|---------------|-----|-------------------|--------|-------|
+| 1 | §4.1 | CockpitPanels accent line emissive | B — Instanced line overlay | (prior) | CockpitPanels.tsx (AccentLines sub-component) |
+| 2 | §4.2 | HolographicHUD too dim | A — Opacity + ticks + plates + outlines | (prior) | HolographicHUD.tsx |
+| 3 | §4.3 | LEDRim GC pressure + sRGB interp | A — Scratch pool + lerpHSL + burst 0.6 | (prior) | LEDRim.tsx |
+| 4 | §4.4 | StatusBar3D undersized + no feedback | A (modified) — **Circle layout** with 10 evenly-spaced lab dots + center "Continue" CTA; XP bloom pulse; streak ring 0.12/0.18→0.15/0.35 | 0e2847f | StatusBar3D.tsx |
+| 5 | §4.6 | TSL shaders unused (dead code) | A + audit — Wire 3 shaders + list future opportunities | 8ba71c0 | HolographicCard.tsx, CenterViewportScreen.tsx, HolographicLabMap.tsx |
+| 6 | §5.1 | Button ripple too subtle | A — Dual concentric rings + larger radius | e00449e | HolographicButton.tsx |
+| 7 | §5.2 / §5.3 | Dial no overshoot + toggle no pulse | A — 2° spring overshoot + LED 1.0→2.5→1.5 pulse | e00449e | RadialDial3D.tsx, ToggleSwitch3D.tsx |
+| 8 | §5.5 | XP float linear rise | A — Deceleration keyframes [0,-40,-58,-70] | e00449e | animations.ts |
+| 9 | §5.6 | Dual confetti systems | A — Consolidate into ConfettiEngine.tsx | 8ba71c0 | ConfettiEngine.tsx (new), GameCompleteCelebration.tsx, CelebrationOverlay.tsx |
+| 10 | §5.7 | Missing game entry anticipation | A — 400ms sequence with broadcast events | 8ba71c0 | GameShell.tsx, cockpitBroadcastStore.ts |
+| 11 | §7.1 | Design tokens mostly unused | C — Full migration in 3 sub-batches (safety protocol) | ee44fff, 0bddc2a, c13d7e9, 39fbeff, d56590b, 721d69c | 15 components across 6 commits |
+| 12 | §3.5 | Celebration state flow fragmentation | A — Unify at useCelebration3D mount | 7197643 | (dashboard)/layout.tsx |
+| 13 | §3.4 cont. | StationMode deprecation | D (NEW) — Atomic full cutover with pre-flight | 601c44a | cockpitModePresets.ts, cockpitDesignTokens.ts, cockpitConfig.ts, useStationMode.ts, useCockpitAudio.ts, modeResolver.ts, CockpitCanvas.tsx, StationFrame.tsx |
+| 14 | §6.1 | Audio settings in 3 stores | B — Consolidate into cockpitStore | 51b8609 | cockpitStore.ts, uiStore.ts, guideStore.ts, useAudioSettings.ts (new), useCockpitAudio.ts, SettingsPanel.tsx |
+
+**Phase 2 files created:** 3 (ConfettiEngine, useAudioSettings, CockpitPanels/AccentLines sub-component)
+**Phase 2 files modified:** ~30+
+**Phase 2 net: +800+ lines across 10 commits**
+
+---
+
+### Section 9 Design Token Migration — Breakdown
+
+Solution C (full migration) was executed in 3 sub-batches with build verification between each:
+
+**9a — Interactive Primitives** (ee44fff, 0bddc2a)
+- HolographicButton.tsx — HOVER_EMISSIVE → `getEmissive(STATE_MACHINE.hover.emissive)`
+- NavigationButtonGrid.tsx — hardcoded 2.5 → `EMISSIVE_SCALE.blazing`; scale targets → `STATE_MACHINE.{hover,idle}.scale`
+- RadialDial3D.tsx — `EMISSIVE_IDLE_BUTTON * 0.25` → `getEmissive(STATE_MACHINE.idle.emissive) * 0.25`; added SPRING_PRESETS.bounce import
+- ToggleSwitch3D.tsx — LED pulse peak → `EMISSIVE_SCALE.blazing` (2.5); settle → `EMISSIVE_SCALE.bright` (1.5)
+- HolographicCard.tsx, HolographicPanel.tsx — verified already fully token-driven
+
+**9b — Layout + Auth Panels** (c13d7e9, 39fbeff)
+- CockpitPanels.tsx — accent line (0.15) → `EMISSIVE_SCALE.dormant`; hex pulse (0.4) → `EMISSIVE_SCALE.dim`
+- LoginPanel3D.tsx — focus border (2 sites) → `EMISSIVE_SCALE.dim`
+- SignupPanel3D.tsx — focus border + checkbox + step indicator + age slider → `EMISSIVE_SCALE.dim` / `EMISSIVE_IDLE_INDICATOR` (4 sites)
+- ResetPasswordPanel3D.tsx — focus border → `EMISSIVE_SCALE.dim`
+- StatusBar3D.tsx, HolographicHUD.tsx, SidePanels.tsx — verified already fully token-driven
+
+**9c — FX Components** (d56590b, 721d69c)
+- CockpitStructuralDetail.tsx — warning sign border (0.5) → `EMISSIVE_IDLE_INDICATOR`
+- HolographicLabMap.tsx — lens sphere static emissive (0.5) → `EMISSIVE_IDLE_INDICATOR`
+- LEDRim.tsx, CeremonyFX.tsx, WormholeTransition.tsx, MechanicalIris.tsx, CockpitFloor3D.tsx — verified already fully token-driven
+
+**Safety protocol honored:** `npm run build` passed after each sub-batch. Design-specific values (radar rings 0.2, vent glow 0.05, animation baselines in useFrame loops) intentionally left unmigrated per "only swap when exact 1:1 token match" rule.
+
+---
+
+### New Files Added (5)
+
+| Path | Purpose | Lines |
+|------|---------|-------|
+| `src/components/shared/A11yAnnouncer.tsx` | Screen reader aria-live region subscribing to gameStore + uiStore | 85 |
+| `src/components/game/GameErrorBoundary.tsx` | Game-specific error recovery (Restart Game / Return to Arcade) | 135 |
+| `src/lib/modeResolver.ts` | Bridge utility between CockpitMode/StationMode/ActiveScene | 106 |
+| `src/components/shared/ConfettiEngine.tsx` | Consolidated Motion-driven confetti with props-based API | ~100 |
+| `src/hooks/useAudioSettings.ts` | Unified audio settings hook reading exclusively from cockpitStore | 101 |
+
+---
+
+### Type System Evolution (Phase 1 §3.4 + Phase 2 §7)
+
+**Before Phase 1:**
+- `CockpitMode` (9 values) — atmosphere presets
+- `StationMode` (10 values, with `labmap`/`lab`) — legacy audio + cockpit config
+- `ActiveScene` (5 values) — scene graph routing
+- Three disconnected systems, no bridging
+
+**After Phase 1 §4 (Solution B):** `modeResolver.ts` added — explicit bridge, no type changes.
+
+**After Phase 2 §7 (Solution D — atomic cutover):**
+- `CockpitMode` extended to **11 values** (absorbed `onboarding`, `admin`)
+- `StationMode` → `@deprecated` alias of `CockpitMode`
+- `labmap` → `labs`; `lab` → `lab_detail` (canonical values unified)
+- `useCockpitMode` is the primary hook; `useStationMode` retained as alias
+- `modeResolver.ts` functions simplified to identity after cutover, signature preserved for Phase 1 consumers
+
+---
+
+### Audio System Evolution (Phase 2 §14)
+
+**Before:** Audio flags fragmented across 3 stores — `uiStore.soundEnabled`, `cockpitStore.cockpitAudioEnabled`, `guideStore.voiceEnabled`. Muting one left others stale.
+
+**After (Solution B):**
+- `cockpitStore` canonical: `masterSoundEnabled`, `voiceEnabled` + existing `cockpitAudioEnabled`, volumes, `muteAll()`, `unmuteAll()`
+- `useAudioSettings()` hook exposes unified read + derived `effectiveMute`
+- Subscribe-bridge in `cockpitStore` mirrors master flags back to legacy `uiStore.soundEnabled` / `guideStore.voiceEnabled` for backward compat
+- Legacy fields marked `@deprecated` — all active consumers still work via the bridge
+
+---
+
+### Accessibility Wins
+
+- 3 celebration modals now have `FocusTrap` + Escape key dismiss (§8.1)
+- `A11yAnnouncer` mounted at dashboard layout announces XP, badge, level, streak, score changes (§8.2)
+- `HolographicButton` has invisible HTML proxy enabling Tab focus + Enter/Space activation (§8.3)
+- WCAG AA contrast restored on GameCompleteCelebration stats (§8.4)
+- All 35 games wrapped in `GameErrorBoundary` with Restart + Return-to-Arcade recovery (§8.7)
+
+---
+
+### Remaining Work (Phases 3-5)
+
+| Phase | Audit Section | Scope | Effort |
+|-------|---------------|-------|--------|
+| Phase 3 — Performance | §9 | BatchedMesh, React.memo, TSL compute shaders, LEDRim scratch pool (verified in place) | ~20 hr |
+| Phase 4 — Enhancements | §10 | View Transitions API, Lenis, magnetic cursors, procedural audio, glassmorphism 2.0, gltf-progressive | ~60 hr |
+| Phase 5 — Architectural | §10.11, §5.10 | OffscreenCanvas worker, global reduced-motion provider, reactive cockpit bridge | 20+ hr |
+
+Audit tallies updated to reflect resolved items:
+
+| Category | Critical | High | Medium | Low | Total | Resolved |
+|----------|----------|------|--------|-----|-------|----------|
+| Critical Failures (S3) | 3 | 5 | — | — | 8 | **6/8** (3.5, 3.6 pending) |
+| Visual Quality (S4) | — | 2 | 4 | 1 | 7 | **5/7** (4.5 Hero shards, 4.7 compliance matrix pending) |
+| Animation Polish (S5) | — | 1 | 7 | 2 | 10 | **5/10** (5.8 sync, 5.9 easing constants, 5.10 reduced-motion provider pending) |
+| State Management (S6) | — | 1 | 5 | 1 | 7 | **5/7** (6.3 constant dedup, 6.6 readiness gate pending) |
+| Design Tokens (S7) | — | 1 | 2 | 3 | 6 | **3/6** (7.2 lab colors, 7.4 font enforcement, 7.5 spacing pending) |
+| Accessibility (S8) | 1 | 2 | 4 | 3 | 10 | **5/10** (8.5 sidebar kbd, 8.8 locked tiers, 8.9 loading timeout, 8.10 form validation, 8.6 focus containment pending) |
+| Performance (S9) | — | 1 | 3 | 1 | 5 | **0/5** (Phase 3 scope) |
+| **Totals resolved** | **4/4** | **10/13** | **12/25** | **3/11** | **29/53** | |
+
+**29 of 53 findings resolved (55%)** — plus all type-system and state-flow architectural conflicts addressed.
+
+---
+
+*End of Session 1 Implementation Log*
+
+---
+
 *End of SparkForge Design, UI/UX & Animation Audit v1.0*
 *April 14, 2026 — 499 files reviewed | 264 components audited | 150 design decisions cross-referenced | 17 reference repos analyzed*

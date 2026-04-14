@@ -8,6 +8,11 @@ interface UIState {
   celebrationData: Record<string, unknown> | null;
   labColor: string;
   labTint: string;
+  /**
+   * @deprecated Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+   * Use `cockpitStore.masterSoundEnabled` instead. This field remains as a backward-compat
+   * mirror — the cockpitStore subscribe-bridge keeps it in sync.
+   */
   soundEnabled: boolean;
   dailyChallengeCompleted: boolean;
   particleIntensity: 'off' | 'low' | 'medium' | 'high';
@@ -26,6 +31,10 @@ interface UIState {
   triggerCelebration: (type: CelebrationType, data?: Record<string, unknown>) => void;
   dismissCelebration: () => void;
   setLabColor: (color: string, tint?: string) => void;
+  /**
+   * @deprecated Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+   * Use `cockpitStore.setMasterSoundEnabled(value)` or `cockpitStore.muteAll()/unmuteAll()`.
+   */
   toggleSound: () => void;
   markDailyChallengeComplete: () => void;
   resetDailyChallenge: () => void;

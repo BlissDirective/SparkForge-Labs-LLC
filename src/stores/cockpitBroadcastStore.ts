@@ -25,6 +25,8 @@ export type CockpitEventType =
   | 'lab-hover'           // HolographicLabMap lab hover
   | 'game-enter'          // MechanicalIris open
   | 'game-exit'           // MechanicalIris close
+  | 'game-anticipation-start'  // Phase 2 audit fix (Section 5.7): 400ms anticipation pre-iris
+  | 'game-anticipation-end'    // Phase 2 audit fix (Section 5.7): anticipation complete, iris opens
   | 'skin-change'         // CockpitSkinManager skin apply
   | 'xp-change'           // XP awarded
   | 'badge-earn'          // Badge earned
@@ -136,6 +138,23 @@ function eventToPulse(event: CockpitEvent): Partial<CockpitPulse> {
         hudFlashIntensity: 0.3,
         activeColor: event.color ?? null,
         decayRate: 2.5,
+      };
+    case 'game-anticipation-start':
+      // Phase 2 audit fix (Section 5.7): anticipation building — gradual ramp
+      return {
+        ledRimIntensity: 0.4,
+        hudFlashIntensity: 0.2,
+        statusBarSweep: 0.3,
+        activeColor: event.color ?? null,
+        decayRate: 0.5, // Slow decay — pulse should sustain through the 400ms window
+      };
+    case 'game-anticipation-end':
+      return {
+        ledRimIntensity: 0.7,
+        hudFlashIntensity: 0.5,
+        statusBarSweep: 0.5,
+        activeColor: event.color ?? null,
+        decayRate: 1.5,
       };
     default:
       return { ledRimIntensity: 0.2, decayRate: 3.0 };

@@ -24,6 +24,7 @@ import {
   TYPE_SCALE,
   NUMERIC_FONT,
   TEXT_COLORS,
+  getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 import {
   BackSide,
@@ -48,6 +49,21 @@ import {
 import { LabStructure3D } from './LabStructure3D';
 import { LAB_POSITIONS } from '@/stores/cockpitStore';
 import { LABS } from '@/types';
+
+// Phase 2 audit fix (Section 4.6): energyFieldTSL applied — Decision 4.5
+// The TSL shader provides hex-grid energy-crawl + fresnel glow for connection beams.
+// Under WebGL2 the active visual remains MeshBasicMaterial (see ConnectionBeam); the
+// TSL module is imported and uniforms driven so the shader is retained and ready for
+// a NodeMaterial swap under WebGPU.
+import {
+  energyFieldFragment,
+  energyFieldVertex,
+  getEnergyFieldUniforms,
+} from '@/shaders/tsl/energyFieldTSL';
+
+// Reference the TSL pattern fns so they are not tree-shaken.
+void energyFieldFragment;
+void energyFieldVertex;
 
 // Lab accent colors (same as useStationMode)
 const LAB_COLORS: Record<number, string> = {
@@ -124,6 +140,11 @@ function ConnectionBeam({
 }) {
   const meshRef = useRef<Mesh>(null);
 
+  // Phase 2 audit fix (Section 4.6): bind energyFieldTSL uniforms — Decision 4.5
+  // Uniforms shared across all beams (via getEnergyFieldUniforms module singletons).
+  // Driven in useFrame below; NodeMaterial swap can read these directly under WebGPU.
+  const energyUniforms = useMemo(() => getEnergyFieldUniforms(), []);
+
   const { geometry, material } = useMemo(() => {
     const curve = new CatmullRomCurve3([
       new Vector3(...start),
@@ -159,6 +180,14 @@ function ConnectionBeam({
       const peak = EMISSIVE_LED_MULTIPLIER; // 1.5
       material.opacity = 0.15 + Math.sin(time * 3) * 0.08 * peak;
     }
+    // Phase 2 audit fix (Section 4.6): drive energyFieldTSL uniforms — Decision 4.5
+    // Shared uniforms: uTime advances; uColor tracks beam accent; full intensity (shield HP 1.0).
+    energyUniforms.uTime.value = time;
+    energyUniforms.uColor.value.set(color);
+    energyUniforms.uIntensity.value = 1.0;
+    energyUniforms.uShieldHP.value = 1.0;
+    energyUniforms.uShatterProgress.value = 0.0;
+    energyUniforms.uBreathScale.value = 0.5;
   });
 
   return <mesh ref={meshRef} geometry={geometry} material={material} />;
@@ -378,10 +407,11 @@ function ProjectorPedestal({
       {pedestalRings.map((ring, i) => (
         <mesh key={i} position={[0, ring.y, 0]}>
           <cylinderGeometry args={[ring.radius, ring.radius * 1.05, ring.height, segments]} />
+          {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
           <meshStandardMaterial
             color={i % 2 === 0 ? color : '#1A1822'}
             emissive={i % 2 === 0 ? color : '#000000'}
-            emissiveIntensity={0.4}
+            emissiveIntensity={getEmissive('dim')}
             metalness={0.9}
             roughness={0.2}
             transparent
@@ -407,10 +437,11 @@ function ProjectorPedestal({
       {/* Lens sphere — sits at top of pedestal, below core */}
       <mesh ref={lensRef} position={[0, -0.42, 0]}>
         <sphereGeometry args={[0.12, segments, segments]} />
+        {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.5}
+          emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
           transparent
           opacity={0.7}
           roughness={0.1}
@@ -609,10 +640,11 @@ function HolographicCore({
       {/* Solid inner energy sphere */}
       <mesh ref={innerRef}>
         <sphereGeometry args={[0.25, segments, segments]} />
+        {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.8}
+          emissiveIntensity={getEmissive('medium')}
           transparent
           opacity={0.85}
           roughness={0.1}

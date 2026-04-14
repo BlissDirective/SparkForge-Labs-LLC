@@ -31,12 +31,12 @@ import {
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   CHROME_BORDER,
-  EMISSIVE_IDLE_BUTTON,
   EMISSIVE_IDLE_INDICATOR,
   EMISSIVE_HOVER_MULTIPLIER,
   EMISSIVE_LED_MULTIPLIER,
   SPRING_PRESETS,
   HOVER_GLOW,
+  STATE_MACHINE,
   TYPE_SCALE,
   NUMERIC_FONT,
   getEmissive,
@@ -76,8 +76,14 @@ const CHROME_COLOR = new Color(CHROME_BORDER.color);
 
 // Spring config for smooth drag interpolation
 const SMOOTH_SPRING = SPRING_PRESETS.smooth;
+const BOUNCE_SPRING = SPRING_PRESETS.bounce;
 // Derive a lerp factor from spring stiffness/damping
 const SPRING_LERP_FACTOR = SMOOTH_SPRING.stiffness / (SMOOTH_SPRING.stiffness + SMOOTH_SPRING.damping * 10);
+const BOUNCE_LERP_FACTOR = BOUNCE_SPRING.stiffness / (BOUNCE_SPRING.stiffness + BOUNCE_SPRING.damping * 10);
+
+// Phase 2 audit fix (Section 5.2): Release overshoot for mechanical satisfying feel
+const OVERSHOOT_RAD = (2 * Math.PI) / 180; // 2 degrees
+const OVERSHOOT_DURATION = 0.2;
 
 // Glow pulse timing from design tokens
 const GLOW_PULSE_PERIOD = HOVER_GLOW.pulsePeriodS;
@@ -137,7 +143,9 @@ export function RadialDial3D({
         metalness: 0.95,
         roughness: 0.2,
         emissive: dialColor.clone(),
-        emissiveIntensity: EMISSIVE_IDLE_BUTTON * 0.25,
+        // Phase 2 audit fix (Section 7.1): Design token adoption
+        // 25% of STATE_MACHINE.idle.emissive ('medium' === EMISSIVE_SCALE.medium === 0.8) = 0.2
+        emissiveIntensity: getEmissive(STATE_MACHINE.idle.emissive) * 0.25,
       }),
     [dialColor],
   );
@@ -264,32 +272,60 @@ export function RadialDial3D({
     [dragging, readOnly, min, max, onChange, broadcast, id, color, label],
   );
 
+  // Phase 2 audit fix (Section 5.2): Spring overshoot on release for mechanical feel
+  const overshootTimeRef = useRef(-1);
+  const releaseValueRef = useRef(normalizedValue);
+
   const handlePointerUp = useCallback(() => {
     setDragging(false);
-  }, []);
+    // Trigger overshoot animation on release
+    overshootTimeRef.current = 0;
+    releaseValueRef.current = normalizedValue;
+  }, [normalizedValue]);
 
   // ■■ Per-frame animation ■■
   useFrame((_, delta) => {
     if (!knobRef.current) return;
 
-    // Smooth spring-interpolated rotation towards target
-    const targetRotation = -ARC_START - normalizedValue * VALUE_ARC;
-    const lerpSpeed = SPRING_LERP_FACTOR * delta * 60; // Normalize to ~60fps
+    // Compute target rotation — with overshoot on release (Phase 2 audit fix: Section 5.2)
+    let targetRotation = -ARC_START - normalizedValue * VALUE_ARC;
+    let lerpSpeed = SPRING_LERP_FACTOR * delta * 60;
+
+    if (overshootTimeRef.current >= 0) {
+      overshootTimeRef.current += delta;
+      const ot = overshootTimeRef.current / OVERSHOOT_DURATION;
+      if (ot >= 1) {
+        overshootTimeRef.current = -1;
+      } else {
+        // Sine-curve overshoot: +2° at peak, decaying to 0
+        const overshootAmount = Math.sin(ot * Math.PI) * OVERSHOOT_RAD * (1 - ot);
+        targetRotation += overshootAmount;
+        lerpSpeed = BOUNCE_LERP_FACTOR * delta * 60; // Bouncier lerp during overshoot
+      }
+    }
+
     knobRef.current.rotation.y += (targetRotation - knobRef.current.rotation.y) * Math.min(lerpSpeed, 1);
 
     // Glow pulse decay using design token period
     if (glowPulseRef.current > 0) {
       const decayRate = 1 / GLOW_PULSE_PERIOD;
       glowPulseRef.current = Math.max(0, glowPulseRef.current - delta * decayRate);
+      // Phase 2 audit fix (Section 7.1): Design token adoption
+      // Base = 25% of medium idle button emissive (STATE_MACHINE.idle.emissive === 'medium' === 0.8)
+      // Pulse peak adds up to 0.9 (EMISSIVE_HOVER_MULTIPLIER 1.8 * 0.5), summing to ~1.1 at crest
       knobMaterial.emissiveIntensity =
-        EMISSIVE_IDLE_BUTTON * 0.25 + glowPulseRef.current * EMISSIVE_HOVER_MULTIPLIER * 0.5;
+        getEmissive(STATE_MACHINE.idle.emissive) * 0.25
+        + glowPulseRef.current * EMISSIVE_HOVER_MULTIPLIER * 0.5;
     }
 
     // Hover emissive boost
     if (hovered && !dragging && !readOnly) {
+      // Phase 2 audit fix (Section 7.1): Design token adoption
+      // Previous (legacy): idle-button emissive * HOVER_MULTIPLIER * 0.3 = 0.8 * 1.8 * 0.3 = 0.432
+      // Now:               getEmissive(STATE_MACHINE.hover.emissive) * 0.3 = 1.5 * 0.3 = 0.45 (~4% above legacy)
       knobMaterial.emissiveIntensity = Math.max(
         knobMaterial.emissiveIntensity,
-        EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER * 0.3,
+        getEmissive(STATE_MACHINE.hover.emissive) * 0.3,
       );
     }
   });

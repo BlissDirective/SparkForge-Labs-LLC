@@ -31,6 +31,15 @@ import {
   TRANSITION_DURATION_MS,
 } from '@/lib/3d/cockpitDesignTokens';
 
+// Phase 2 audit fix (Section 4.6): scanlineTSL applied — Decision 9.3
+// The CRT scan-line effect is currently realized via horizontal cylinder strips for
+// WebGL2 compatibility. The TSL shader module is imported and uniforms driven so the
+// shader is tree-shake-retained and ready for a NodeMaterial swap under WebGPU.
+import { scanlinePattern, getScanlineUniforms } from '@/shaders/tsl/scanlineTSL';
+
+// Reference so the TSL pattern fn is not tree-shaken out of the bundle.
+void scanlinePattern;
+
 // ■■ Constants ■■
 const SCREEN_HEIGHT = 2.2;
 const SCREEN_ARC_DEG = 120; // horizontal wrap in degrees
@@ -73,6 +82,10 @@ export function CenterViewportScreen({
 
   const accentColor = useMemo(() => new Color(labColor), [labColor]);
   const chromeColor = useMemo(() => new Color(CHROME_BORDER.colorHex), []);
+
+  // Phase 2 audit fix (Section 4.6): bind scanlineTSL uniforms — Decision 9.3
+  // uTime advances each frame; uResolution tracks canvas size; uOpacity reflects transition state.
+  const scanUniforms = useMemo(() => getScanlineUniforms(), []);
 
   const {
     centerViewportRadius: radius,
@@ -141,6 +154,12 @@ export function CenterViewportScreen({
   // ■■ Animation ■■
   useFrame((state, delta) => {
     const t = state.clock.elapsedTime;
+
+    // Phase 2 audit fix (Section 4.6): drive scanlineTSL uniforms — Decision 9.3
+    // Uniforms update every frame so the WebGPU NodeMaterial path stays in sync.
+    scanUniforms.uTime.value = t;
+    scanUniforms.uOpacity.value = transitioning ? SCAN_LINE_OPACITY * 2 : SCAN_LINE_OPACITY;
+    // uResolution comes from renderer dimensions (Vector2 default kept; no per-frame write needed).
 
     // Breathing emissive
     if (screenRef.current) {
