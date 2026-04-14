@@ -54,10 +54,18 @@ export const fadeSlideDown: Variants = {
   exit: { opacity: 0, y: 8, transition: { duration: 0.2 } },
 };
 
+// ═══ PAGE TRANSITION DURATIONS (Phase 1 audit fix: Section 3.7 — single source of truth) ═══
+// Consumed by PageTransitionProvider and all transition-aware components
+export const TRANSITION_DURATIONS = {
+  page: 400,  // ms — standard page crossfade (was 300 provider / 450 animation — unified to 400)
+  lab: 800,   // ms — lab reconfiguration (matches Decision 3.5)
+  game: 600,  // ms — mechanical iris (matches D3D-B2 IRIS_DURATION)
+} as const;
+
 // ═══ PAGE TRANSITIONS ═══
 export const pageTransition: Variants = {
   initial: { opacity: 0, y: 20, filter: 'blur(4px)' },
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: TRANSITION_DURATIONS.page / 1000, ease: EASING.SMOOTH } },
   exit: { opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.25 } },
 };
 

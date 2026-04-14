@@ -27,6 +27,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'motion/react';
 import { useSceneStore } from '@/stores/sceneStore';
+// Phase 1 audit fix (Section 3.7): Import durations from single source of truth
+import { TRANSITION_DURATIONS } from '@/lib/animations';
 
 // ────────────────────────────────────────
 // Types
@@ -51,16 +53,6 @@ interface PageTransitionContextValue extends PageTransitionState {
 // ────────────────────────────────────────
 
 const PageTransitionContext = createContext<PageTransitionContextValue | null>(null);
-
-// ────────────────────────────────────────
-// Constants
-// ────────────────────────────────────────
-
-const TRANSITION_DURATIONS: Record<TransitionType, number> = {
-  lab: 800,   // 0.8s — matches LabReconfiguration (Decision 3.5)
-  game: 600,  // 0.6s — matches MechanicalIris duration (D3D-B2)
-  page: 300,  // 0.3s — quick DOM crossfade
-};
 
 const OVERLAY_VARIANTS = {
   initial: { opacity: 0 },

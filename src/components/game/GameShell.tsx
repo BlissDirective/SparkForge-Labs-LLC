@@ -31,6 +31,7 @@ import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { XPPopupProvider } from '@/components/game/XPPopup';
+import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
 import { getCompletionTier } from '@/lib/3d/gameParticles';
 import { GameHUD3D } from '@/components/3d/game-ui/GameHUD3D';
 
@@ -131,17 +132,20 @@ export function GameShell({
 
   return (
     <XPPopupProvider>
-      <div
-        className="h-full w-full"
-        data-game-id={gameId}
-        data-world={worldNumber}
-        data-world-color={worldColor}
-        data-reduced-motion={prefersReducedMotion || undefined}
-        role="region"
-        aria-label={`${title} game`}
-      >
-        {children}
-      </div>
+      {/* Phase 1 audit fix (Section 8.7): GameErrorBoundary wraps all 35 games */}
+      <GameErrorBoundary gameId={gameId} gameTitle={title} worldColor={worldColor}>
+        <div
+          className="h-full w-full"
+          data-game-id={gameId}
+          data-world={worldNumber}
+          data-world-color={worldColor}
+          data-reduced-motion={prefersReducedMotion || undefined}
+          role="region"
+          aria-label={`${title} game`}
+        >
+          {children}
+        </div>
+      </GameErrorBoundary>
     </XPPopupProvider>
   );
 }
