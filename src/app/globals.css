@@ -13,11 +13,9 @@
 
 :root {
   /* ── Font Variables (mapped by Tailwind fontFamily) ── */
-  /* DES-06: next/font/google injects --font-display, --font-body, --font-mono,
-     --font-data on <body> with auto-generated fallback metrics.
-     These :root values serve as ultimate fallbacks if next/font hasn't loaded. */
-  --font-display: 'Exo 2', system-ui, sans-serif;
-  --font-body: 'Sora', system-ui, sans-serif;
+  /* DES-07: Fallback fonts with metric overrides reduce CLS during font swap */
+  --font-display: 'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif;
+  --font-body: 'Sora', 'Sora Fallback', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-data: 'Orbitron', monospace;
 

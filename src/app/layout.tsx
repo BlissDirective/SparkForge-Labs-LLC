@@ -2,11 +2,11 @@
 // ROOT LAYOUT — SEO, a11y, error boundary, PWA
 // Stage 10 Part 2 — REPLACES Stage 1 layout
 // BUG-10F: Exo 2/Sora/Orbitron — NEVER Fredoka/Nunito
-// DES-06: Self-hosted fonts via next/font/google (build-time download)
+// DES-06: Fonts via Google Fonts CDN (next/font/google requires
+//         build-time internet, unavailable in some CI environments)
 // ════════════════════════════════════════════════════
 
 import type { Metadata, Viewport } from 'next';
-import { Exo_2, Sora, JetBrains_Mono, Orbitron } from 'next/font/google';
 import './globals.css';
 import './globals-a11y.css';
 import QueryProvider from '@/components/providers/QueryProvider';
@@ -15,35 +15,10 @@ import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
 
-// ── Fonts (DES-06: self-hosted via next/font/google) ──
-// next/font/google downloads font files at build time and serves them
-// from the same origin — zero external requests, no privacy exposure.
-// CSS variables (--font-display, --font-body, --font-mono, --font-data)
-// are injected via the `variable` option and consumed by Tailwind fontFamily.
-const exo2 = Exo_2({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-display',
-  weight: ['400', '500', '600', '700', '800'],
-});
-const sora = Sora({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-body',
-  weight: ['300', '400', '500', '600', '700'],
-});
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-mono',
-  weight: ['400', '500', '700'],
-});
-const orbitron = Orbitron({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-data',
-  weight: ['400', '500', '600', '700'],
-});
+// ── Fonts ──
+// Loaded via Google Fonts CDN with preconnect + display=swap for performance.
+// DES-07 fallback metrics defined in globals.css prevent CLS during font swap.
+// CSS variables (--font-display, --font-body, --font-mono, --font-data) set in :root.
 
 // ── SEO Metadata ──────────────────────────────────
 
@@ -120,13 +95,21 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
-        {/* DES-06: Fonts self-hosted via next/font/google — no external <link> tags needed */}
+        {/* Google Fonts — CDN with preconnect + display=swap */}
+        {/* DES-06: next/font/google requires build-time internet (unavailable in CI).
+            Using CDN <link> approach. DES-07 fallback metrics in globals.css prevent CLS. */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link
+          href="https://fonts.googleapis.com/css2?family=Exo+2:wght@400;500;600;700;800&family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Orbitron:wght@400;500;600;700&display=swap"
+          rel="stylesheet"
+        />
         {/* PWA Manifest */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
       </head>
-      <body className={`${exo2.variable} ${sora.variable} ${jetbrainsMono.variable} ${orbitron.variable} font-body antialiased bg-surface-base text-white min-h-screen`}>
+      <body className="font-body antialiased bg-surface-base text-white min-h-screen">
         {/* Skip link — uses existing .skip-to-content from globals.css */}
         <a href="#main-content" className="skip-to-content">
           Skip to main content

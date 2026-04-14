@@ -371,9 +371,9 @@ export default function SignupPanel3D({
 
   const handleStep1 = useCallback(async () => {
     setError('');
-    if (!email.includes('@')) { setError('Please enter a valid email address'); return; }
-    if (password.length < 8) { setError('Password must be at least 8 characters'); return; }
-    if (!passChecks.every(Boolean)) { setError('Password needs uppercase, lowercase, and number'); return; }
+    if (!email.includes('@')) { setError('Invalid email — Please enter a valid email address.'); return; }
+    if (password.length < 8) { setError('Password too short — Use at least 8 characters for security.'); return; }
+    if (!passChecks.every(Boolean)) { setError('Weak password — Include at least one uppercase letter, one lowercase letter, and one number.'); return; }
     setLoading(true);
     const result = await onStep1(email, password);
     setLoading(false);
@@ -382,7 +382,7 @@ export default function SignupPanel3D({
   }, [email, password, passChecks, onStep1]);
 
   const handleStep3 = useCallback(async () => {
-    if (!coppaChecked) { setError('Please confirm you are 18 or older'); return; }
+    if (!coppaChecked) { setError('Consent required — Please confirm you are 18 or older to continue.'); return; }
     setError('');
     setLoading(true);
     const result = await onStep3(email);
@@ -392,8 +392,8 @@ export default function SignupPanel3D({
   }, [coppaChecked, email, onStep3]);
 
   const handleStep4 = useCallback(async () => {
-    if (!displayName.trim()) { setError('Please enter a display name'); return; }
-    if (displayName.length > 20) { setError('Display name must be 20 characters or less'); return; }
+    if (!displayName.trim()) { setError('Name required — Please enter a display name for your child.'); return; }
+    if (displayName.length > 20) { setError('Name too long — Display name must be 20 characters or less.'); return; }
     setError('');
     setLoading(true);
     const result = await onStep4(email, password, displayName.trim(), childAge);
