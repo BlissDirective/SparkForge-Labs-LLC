@@ -44,6 +44,8 @@ import {
   HOVER_GLOW,
   TYPE_SCALE,
   BEVEL_STYLE,
+  STATE_MACHINE,
+  EMISSIVE_SCALE,
 } from '@/lib/3d/cockpitDesignTokens';
 
 // ════════════════════════════════════════════════════
@@ -75,7 +77,8 @@ const BUTTON_HEIGHT = 0.05;
 const BUTTON_DEPTH = 0.018;
 const CHAMFER = 0.006;
 const ACTIVE_DEPRESS = 0.015; // Decision 1.5: active stays depressed 0.015 units
-const _ACTIVE_RING_EMISSIVE = 2.5; // Decision 1.5: bright accent ring emissive
+// Phase 2 audit fix (Section 7.1): Design token adoption — EMISSIVE_SCALE.blazing === 2.5
+const _ACTIVE_RING_EMISSIVE = EMISSIVE_SCALE.blazing; // Decision 1.5: bright accent ring emissive
 const RING_INNER = 0.068;
 const RING_OUTER = 0.074;
 
@@ -214,7 +217,8 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
         : 0;
 
     // Target scale: hover expands slightly
-    const targetScale = hovered && !pressed ? 1.05 : 1.0;
+    // Phase 2 audit fix (Section 7.1): Design token adoption — STATE_MACHINE.hover.scale === 1.05
+    const targetScale = hovered && !pressed ? STATE_MACHINE.hover.scale : STATE_MACHINE.idle.scale;
 
     // Target emissive: pressed > hover > active > idle
     const targetEmissive = pressed

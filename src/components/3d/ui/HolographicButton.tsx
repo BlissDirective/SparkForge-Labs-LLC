@@ -32,7 +32,6 @@ import {
   CHROME_BORDER,
   PRESS_DEPTH,
   EMISSIVE_IDLE_BUTTON,
-  EMISSIVE_HOVER_MULTIPLIER,
   SPRING_PRESETS,
   HOVER_GLOW,
   STATE_MACHINE,
@@ -62,7 +61,10 @@ const RIPPLE_DURATION = 0.6;
 const RIPPLE_MAX_RADIUS = 0.25;
 const RIPPLE_INNER_MAX_RADIUS = 0.15;
 const RIPPLE_INNER_DURATION = 0.35;
-const HOVER_EMISSIVE = EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER; // 1.44
+// Phase 2 audit fix (Section 7.1): Design token adoption
+// HOVER_EMISSIVE now aligns with STATE_MACHINE.hover.emissive (= 'bright' = EMISSIVE_SCALE.bright = 1.5)
+// Previous: EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER = 0.8 * 1.8 = 1.44 (~4% below token).
+const HOVER_EMISSIVE = getEmissive(STATE_MACHINE.hover.emissive); // 1.5
 const CARBON_BASE_COLOR = '#0A0F1F';
 
 interface HolographicButtonProps {
