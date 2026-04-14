@@ -11,11 +11,14 @@
 //   - Event sound dispatching
 //   - Skin-reactive soundscape transitions
 //   - Lab-specific ambient shifts
-//   - Volume respects uiStore.soundEnabled + reducedMotion
+//   - Volume respects cockpitStore.masterSoundEnabled + reducedMotion
 //   - Backwards-compatible with v1.0 play() + onModeChange() API
+//
+// Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+// Reads the master mute flag from cockpitStore.masterSoundEnabled (canonical
+// source) instead of the deprecated uiStore.soundEnabled.
 
 import { useCallback, useRef, useEffect, useState } from 'react';
-import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore, type CockpitSkin } from '@/stores/cockpitStore';
 import { cockpitAudioEngine, type CockpitAudioEvent } from '@/lib/audio/cockpitAudio';
 import type { StationMode } from './useStationMode';
@@ -244,15 +247,16 @@ export function useCockpitAudio() {
     }
   }, [cockpitSkin]);
 
-  // React to sound toggle
-  const soundEnabled = useUIStore((s) => s.soundEnabled);
+  // React to master sound toggle
+  // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+  const masterSoundEnabled = useCockpitStore((s) => s.masterSoundEnabled);
   useEffect(() => {
-    if (soundEnabled) {
+    if (masterSoundEnabled) {
       cockpitAudioEngine.unmute();
     } else {
       cockpitAudioEngine.mute();
     }
-  }, [soundEnabled]);
+  }, [masterSoundEnabled]);
 
   // Legacy play function (v1 compat)
   const play = useCallback(
@@ -260,7 +264,8 @@ export function useCockpitAudio() {
       event: CockpitSoundEvent,
       options?: { fromMode?: StationMode; toMode?: StationMode; fillPercent?: number }
     ) => {
-      const { soundEnabled: snd } = useUIStore.getState();
+      // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+      const { masterSoundEnabled: snd } = useCockpitStore.getState();
       if (!snd) return;
 
       let volumeScale = 1.0;
@@ -283,7 +288,8 @@ export function useCockpitAudio() {
   // v2 event play (delegates to engine)
   const playEvent = useCallback(
     (event: CockpitAudioEvent) => {
-      const { soundEnabled: snd } = useUIStore.getState();
+      // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+      const { masterSoundEnabled: snd } = useCockpitStore.getState();
       if (!snd) return;
       ensureEngine();
       cockpitAudioEngine.playEvent(event);
@@ -294,7 +300,8 @@ export function useCockpitAudio() {
   // Start ambient drone
   const startAmbient = useCallback(
     (skin?: CockpitSkin) => {
-      const { soundEnabled: snd } = useUIStore.getState();
+      // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+      const { masterSoundEnabled: snd } = useCockpitStore.getState();
       if (!snd) return;
       ensureEngine();
       cockpitAudioEngine.startAmbient(skin || cockpitSkin);

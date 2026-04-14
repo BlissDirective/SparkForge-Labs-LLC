@@ -15,6 +15,8 @@ import { HolographicCard } from '../ui/HolographicCard';
 import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { useAuthStore } from '@/stores/authStore';
+// Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+import { useAudioSettings } from '@/hooks/useAudioSettings';
 import type { CockpitSkin } from '@/types';
 import {
   TYPE_SCALE,
@@ -33,8 +35,6 @@ const SKIN_COLORS: Record<string, string> = {
 };
 
 export default function SettingsPanel() {
-  const soundEnabled = useUIStore((s) => s.soundEnabled);
-  const toggleSound = useUIStore((s) => s.toggleSound);
   const skipIntroAnimation = useUIStore((s) => s.skipIntroAnimation);
   const setSkipIntroAnimation = useUIStore((s) => s.setSkipIntroAnimation);
   const particleIntensity = useUIStore((s) => s.particleIntensity);
@@ -42,17 +42,20 @@ export default function SettingsPanel() {
   const showPerfStats = useUIStore((s) => s.showPerfStats);
   const setShowPerfStats = useUIStore((s) => s.setShowPerfStats);
 
-  const cockpitAudioEnabled = useCockpitStore((s) => s.cockpitAudioEnabled);
-  const setCockpitAudio = useCockpitStore((s) => s.setCockpitAudio);
-  const ambientVolume = useCockpitStore((s) => s.ambientVolume);
-  const setAmbientVolume = useCockpitStore((s) => s.setAmbientVolume);
+  // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+  // Read all audio state via the unified useAudioSettings() hook.
+  const audio = useAudioSettings();
+
   const cockpitSkin = useCockpitStore((s) => s.cockpitSkin);
   const setCockpitSkin = useCockpitStore((s) => s.setCockpitSkin);
   const unlockedSkins = useCockpitStore((s) => s.unlockedSkins);
 
   const isAdmin = useAuthStore((s) => s.parent?.is_admin);
 
-  const handleSoundToggle = useCallback((_v: boolean) => toggleSound(), [toggleSound]);
+  const handleSoundToggle = useCallback(
+    (v: boolean) => audio.setMasterSoundEnabled(v),
+    [audio]
+  );
   const handleSkipToggle = useCallback((v: boolean) => setSkipIntroAnimation(v), [setSkipIntroAnimation]);
 
   return (
@@ -74,9 +77,9 @@ export default function SettingsPanel() {
           <meshStandardMaterial color={CHROME_BORDER.colorHex} metalness={0.95} roughness={0.15} />
         </mesh>
 
-        <ToggleSwitch3D id="master-audio" label="Master" value={soundEnabled} onChange={handleSoundToggle} position={[0, 0, 0]} />
-        <ToggleSwitch3D id="cockpit-ambient" label="Ambient" value={cockpitAudioEnabled} onChange={(v) => setCockpitAudio(v)} position={[0, -0.08, 0]} />
-        <RadialDial3D id="volume" label="VOL" value={ambientVolume} min={0} max={1} onChange={setAmbientVolume} color="#FFAA44" position={[0.12, -0.2, 0]} scale={0.7} />
+        <ToggleSwitch3D id="master-audio" label="Master" value={audio.masterSoundEnabled} onChange={handleSoundToggle} position={[0, 0, 0]} />
+        <ToggleSwitch3D id="cockpit-ambient" label="Ambient" value={audio.cockpitAudioEnabled} onChange={(v) => audio.setCockpitAudio(v)} position={[0, -0.08, 0]} />
+        <RadialDial3D id="volume" label="VOL" value={audio.ambientVolume} min={0} max={1} onChange={audio.setAmbientVolume} color="#FFAA44" position={[0.12, -0.2, 0]} scale={0.7} />
       </group>
 
       {/* ═══ Right Column: Visual Controls (Decision 28.1) ═══ */}

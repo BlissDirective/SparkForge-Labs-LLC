@@ -129,6 +129,11 @@ interface CockpitState {
   eventAudioVolume: number;
   mechanicalAudioDensity: number;
   labAudioEnabled: boolean;
+  // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+  // masterSoundEnabled is the global mute flag (replaces uiStore.soundEnabled).
+  // voiceEnabled is the guide TTS flag (replaces guideStore.voiceEnabled).
+  masterSoundEnabled: boolean;
+  voiceEnabled: boolean;
 
   // UI Design Change — visual control
   brightness: number;
@@ -171,6 +176,11 @@ interface CockpitState {
   setEventAudioVolume: (volume: number) => void;
   setMechanicalAudioDensity: (density: number) => void;
   setLabAudioEnabled: (enabled: boolean) => void;
+  // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+  setMasterSoundEnabled: (value: boolean) => void;
+  setVoiceEnabled: (value: boolean) => void;
+  muteAll: () => void;
+  unmuteAll: () => void;
   setBrightness: (brightness: number) => void;
   setActiveMode: (mode: CockpitMode) => void;
   toggleMiniMap: () => void;
@@ -199,6 +209,9 @@ export const useCockpitStore = create<CockpitState>()(
       eventAudioVolume: 0.5,
       mechanicalAudioDensity: 0.7,
       labAudioEnabled: true,
+      // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+      masterSoundEnabled: true,
+      voiceEnabled: true,
       brightness: 1.0,
       activeMode: 'dashboard' as CockpitMode,
       previousMode: null as CockpitMode | null,
@@ -327,6 +340,22 @@ export const useCockpitStore = create<CockpitState>()(
 
       setLabAudioEnabled: (labAudioEnabled) => set({ labAudioEnabled }),
 
+      // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+      setMasterSoundEnabled: (masterSoundEnabled) => set({ masterSoundEnabled }),
+      setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
+      muteAll: () => set({
+        masterSoundEnabled: false,
+        voiceEnabled: false,
+        cockpitAudioEnabled: false,
+        labAudioEnabled: false,
+      }),
+      unmuteAll: () => set({
+        masterSoundEnabled: true,
+        voiceEnabled: true,
+        cockpitAudioEnabled: true,
+        labAudioEnabled: true,
+      }),
+
       setBrightness: (brightness) => set({ brightness }),
 
       setActiveMode: (mode) => set((s) => ({
@@ -354,7 +383,44 @@ export const useCockpitStore = create<CockpitState>()(
         labAudioEnabled: state.labAudioEnabled,
         brightness: state.brightness,
         miniMapVisible: state.miniMapVisible,
+        // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+        masterSoundEnabled: state.masterSoundEnabled,
+        voiceEnabled: state.voiceEnabled,
       }),
     }
   )
 );
+
+// ════════════════════════════════════════════════════════════════
+// Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+// Subscribe-bridge: keep deprecated uiStore.soundEnabled and guideStore.voiceEnabled
+// in sync with the canonical cockpitStore values so legacy consumers continue to
+// behave correctly during the deprecation transition.
+// ════════════════════════════════════════════════════════════════
+if (typeof window !== 'undefined') {
+  let prevMasterSound = useCockpitStore.getState().masterSoundEnabled;
+  let prevVoice = useCockpitStore.getState().voiceEnabled;
+
+  useCockpitStore.subscribe((state) => {
+    if (state.masterSoundEnabled !== prevMasterSound) {
+      prevMasterSound = state.masterSoundEnabled;
+      // Lazy import to avoid circular dependency at module init time
+      void import('@/stores/uiStore').then(({ useUIStore }) => {
+        const ui = useUIStore.getState();
+        if (ui.soundEnabled !== state.masterSoundEnabled) {
+          // useUIStore exposes toggleSound, not setSoundEnabled — set directly
+          useUIStore.setState({ soundEnabled: state.masterSoundEnabled });
+        }
+      });
+    }
+    if (state.voiceEnabled !== prevVoice) {
+      prevVoice = state.voiceEnabled;
+      void import('@/stores/guideStore').then(({ useGuideStore }) => {
+        const guide = useGuideStore.getState();
+        if (guide.voiceEnabled !== state.voiceEnabled) {
+          guide.setVoiceEnabled?.(state.voiceEnabled);
+        }
+      });
+    }
+  });
+}

@@ -38,6 +38,11 @@ interface GuideState {
   conversationId: string | null;
 
   // Voice
+  /**
+   * @deprecated Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+   * Use `cockpitStore.voiceEnabled` instead. This field remains as a backward-compat mirror —
+   * the cockpitStore subscribe-bridge keeps it in sync.
+   */
   voiceEnabled: boolean;
   voiceInputActive: boolean;
   ttsPlaying: boolean;
@@ -67,6 +72,10 @@ interface GuideState {
   setStreamingContent: (content: string) => void;
   appendStreamingContent: (delta: string) => void;
   setConversationId: (id: string | null) => void;
+  /**
+   * @deprecated Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+   * Use `cockpitStore.setVoiceEnabled(value)`.
+   */
   setVoiceEnabled: (enabled: boolean) => void;
   setVoiceInputActive: (active: boolean) => void;
   setTtsPlaying: (playing: boolean) => void;
