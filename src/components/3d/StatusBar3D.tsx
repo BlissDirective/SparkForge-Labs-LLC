@@ -13,7 +13,7 @@
 // Position: [0, -1.25, -1.95], 1M tri budget
 // All visual constants from cockpitDesignTokens.ts
 
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useEffect, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Text } from '@react-three/drei';
 import {
@@ -36,6 +36,8 @@ import {
   NUMERIC_FONT,
   TEXT_COLORS,
 } from '@/lib/3d/cockpitDesignTokens';
+import { HolographicButton } from '@/components/3d/ui/HolographicButton';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 
 // ■■ Lab colors for 10 indicators ■■
 const LAB_COLORS = [
@@ -77,6 +79,18 @@ function XPSpeedometer({
   const xpRatio = xpMax > 0 ? Math.min(xp / xpMax, 1.0) : 0;
   const currentRatio = useRef(xpRatio);
 
+  // Phase 2 audit fix (Section 4.4): Emissive bloom pulse on XP change
+  const prevXpRef = useRef(xp);
+  const pulseTimeRef = useRef(-1);
+  const PULSE_DURATION = 0.6;
+
+  useEffect(() => {
+    if (xp !== prevXpRef.current) {
+      pulseTimeRef.current = 0;
+      prevXpRef.current = xp;
+    }
+  }, [xp]);
+
   const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
   // Arc bar: 270 degrees = 3pi/2 radians, starts at bottom-left
@@ -98,7 +112,7 @@ function XPSpeedometer({
   // We rebuild fill geometry on animated ratio via useFrame
   const animatedFillGeo = useRef<RingGeometry | null>(null);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     currentRatio.current = MathUtils.lerp(currentRatio.current, xpRatio, 0.04);
 
     // Rebuild fill arc geometry to match animated ratio
@@ -112,9 +126,30 @@ function XPSpeedometer({
       fillRef.current.geometry = animatedFillGeo.current;
     }
 
-    // Pulse glow intensity
+    // Phase 2 audit fix (Section 4.4): Emissive pulse spike on XP change
+    // Curve: 0.3 → 0.8 (peak at pulse=0.3) → 0.3 (settle)
+    let pulseBoost = 0;
+    if (pulseTimeRef.current >= 0) {
+      pulseTimeRef.current += delta;
+      const pt = pulseTimeRef.current / PULSE_DURATION;
+      if (pt >= 1) {
+        pulseTimeRef.current = -1;
+      } else {
+        pulseBoost = Math.sin(pt * Math.PI) * 0.5;
+      }
+    }
+
+    // Pulse glow intensity (ambient + spike on XP change)
     if (glowRef.current) {
-      glowRef.current.intensity = EMISSIVE_LED_MULTIPLIER + Math.sin(Date.now() * 0.003) * 0.4;
+      glowRef.current.intensity = EMISSIVE_LED_MULTIPLIER + Math.sin(Date.now() * 0.003) * 0.4 + pulseBoost * 1.5;
+    }
+
+    // Apply emissive spike to fill arc material
+    if (fillRef.current) {
+      const mat = fillRef.current.material as MeshStandardMaterial;
+      if (mat && 'emissiveIntensity' in mat) {
+        mat.emissiveIntensity = EMISSIVE_LED_MULTIPLIER + pulseBoost;
+      }
     }
   });
 
@@ -248,8 +283,9 @@ function StreakPulseRing({
   const streakColor = useMemo(() => new Color('#FF6644'), []);
 
   // Pulse ring geometry (Decision 8.2: inner 0.12, outer 0.18, 32 segments)
+  // Phase 2 audit fix (Section 4.4): Scale up to 0.15 / 0.35 for visual weight
   const ringGeo = useMemo(
-    () => new RingGeometry(0.12, 0.18, 32, 1),
+    () => new RingGeometry(0.15, 0.35, 32, 1),
     []
   );
 
@@ -303,140 +339,145 @@ function StreakPulseRing({
 }
 
 // ════════════════════════════════════════════════════
-// SUB-COMPONENT: Lab Progress Mini Arcs (Decision 8.3)
+// SUB-COMPONENT: Lab Circle With Center CTA (Phase 2 audit fix Section 4.4)
 // ════════════════════════════════════════════════════
-// 10 tiny arc segments forming a ring (~20 deg each).
-// Each fills proportionally to lab completion. Segmented donut chart.
-function LabMiniArcs({
+// 10 lab indicator DOTS evenly spaced around a 360° circle (36° each).
+// Firm lab order: labs 1→10 from labs.ts config, starting at top (12 o'clock),
+// proceeding clockwise. Completed labs glow with their lab color; incomplete
+// labs show a dim chrome dot.
+// Center space hosts an interactive "Continue" CTA HolographicButton that
+// broadcasts a page-navigate event (consumed by cockpit broadcast store).
+// Positioned separately from DashboardCenter's main "Continue Learning" CTA
+// at world [0, -0.75, 0.5] — this CTA is inside the bottom status strip at
+// world [~3.5, -2.75, -1.85], so no overlap.
+function LabCircleWithCTA({
   labProgress,
   opacity,
-  segments,
 }: {
   labProgress: { done: number; total: number };
   opacity: number;
-  segments: number;
 }) {
   const groupRef = useRef<Group>(null);
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
 
   const labColors = useMemo(
     () => LAB_COLORS.map((c) => new Color(c)),
     []
   );
 
-  // 10 mini arc segments: ~20° (0.349 rad) each with 2° (0.035 rad) gap (Decision 8.3)
-  const arcSweep = 0.349; // ~20 degrees in radians
-  const gapSweep = 0.035; // ~2 degrees in radians
-  const totalSpanRad = 10 * arcSweep + 9 * gapSweep; // total angular span
-  const startAngleRad = -totalSpanRad / 2; // center the ring
+  // Circle radius for dot placement — fits inside the status bar lab section
+  const RING_RADIUS = 0.45;
+  const DOT_RADIUS = 0.055;
+  const DOT_INNER = 0.04;
 
-  // Per-lab completion: labs 0..(done-1) are 100%, rest 0%
-  const getLabCompletion = (index: number): number => {
-    if (index < labProgress.done) return 1.0;
-    return 0;
-  };
-
-  // Build arc geometries (inner 0.35, outer 0.42)
-  const arcData = useMemo(() => {
-    const data: { trackGeo: RingGeometry; fillGeo: RingGeometry | null; startRad: number; sweepRad: number; color: Color }[] = [];
-    const innerR = 0.35;
-    const outerR = 0.42;
-
+  // Firm lab order: 0→9 mapped to labs 1→10, starting at 12 o'clock clockwise
+  const labDotData = useMemo(() => {
+    const data: { x: number; y: number; completion: number; color: Color; labId: number }[] = [];
     for (let i = 0; i < 10; i++) {
-      const angleRad = startAngleRad + i * (arcSweep + gapSweep);
-      const completion = getLabCompletion(i);
-
-      // Track (dim background — always full arc)
-      const trackGeo = new RingGeometry(innerR, outerR, Math.max(segments / 4, 8), 1, angleRad, arcSweep);
-
-      // Fill (proportional, lab-colored)
-      let fillGeo: RingGeometry | null = null;
-      if (completion > 0) {
-        fillGeo = new RingGeometry(innerR, outerR, Math.max(segments / 4, 8), 1, angleRad, arcSweep * completion);
-      }
-
-      data.push({ trackGeo, fillGeo, startRad: angleRad, sweepRad: arcSweep, color: labColors[i] });
+      // Start at top (12 o'clock = -π/2) and go clockwise
+      const angle = -Math.PI / 2 + (i / 10) * Math.PI * 2;
+      const x = Math.cos(angle) * RING_RADIUS;
+      const y = Math.sin(angle) * RING_RADIUS;
+      const completion = i < labProgress.done ? 1.0 : 0;
+      data.push({ x, y, completion, color: labColors[i], labId: i + 1 });
     }
     return data;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [labProgress.done, segments, labColors]);
+  }, [labProgress.done, labColors]);
 
-  // Gentle pulse on completed arcs
-  useFrame(() => {
-    // Handled via emissive intensity — could add animation here if desired
-  });
+  // CTA handler — broadcast "continue" navigation intent
+  const handleContinue = useCallback(() => {
+    broadcast({
+      type: 'page-navigate',
+      source: 'statusbar-continue-cta',
+      color: '#00BBFF',
+      label: 'Continue',
+      targetPage: '/labs',
+    });
+  }, [broadcast]);
 
   return (
     <group ref={groupRef}>
-      {arcData.map((arc, i) => (
-        <group key={`lab-arc-${i}`}>
-          {/* Track (dim background) */}
-          <mesh geometry={arc.trackGeo} position={[0, 0, 0.005]}>
+      {/* 10 lab indicator dots — evenly spaced in full 360° circle */}
+      {labDotData.map((dot, i) => (
+        <group key={`lab-dot-${i}`} position={[dot.x, dot.y, 0.005]}>
+          {/* Outer chrome bezel ring */}
+          <mesh>
+            <ringGeometry args={[DOT_INNER, DOT_RADIUS, 24]} />
             <meshStandardMaterial
-              color="#1a1e2e"
-              metalness={0.5}
-              roughness={0.4}
+              color={CHROME_BORDER.colorHex}
+              metalness={0.95}
+              roughness={0.08}
               transparent
-              opacity={opacity * 0.5}
+              opacity={opacity * 0.7}
               side={DoubleSide}
               depthWrite={false}
             />
           </mesh>
-
-          {/* Fill (lab-colored, proportional) */}
-          {arc.fillGeo && (
-            <mesh geometry={arc.fillGeo} position={[0, 0, 0.015]}>
+          {/* Inner fill — lit if completed, dim if not */}
+          <mesh position={[0, 0, 0.002]}>
+            <circleGeometry args={[DOT_INNER, 24]} />
+            {dot.completion > 0 ? (
               <meshStandardMaterial
                 color="#000000"
-                emissive={arc.color}
+                emissive={dot.color}
                 emissiveIntensity={EMISSIVE_LED_MULTIPLIER}
                 transparent
-                opacity={opacity * 0.85}
+                opacity={opacity * 0.95}
                 toneMapped={false}
                 side={DoubleSide}
                 depthWrite={false}
               />
-            </mesh>
-          )}
+            ) : (
+              <meshStandardMaterial
+                color="#1a1e2e"
+                metalness={0.5}
+                roughness={0.4}
+                transparent
+                opacity={opacity * 0.6}
+                side={DoubleSide}
+                depthWrite={false}
+              />
+            )}
+          </mesh>
         </group>
       ))}
 
-      {/* Center completion text — Orbitron */}
-      <Text
-        position={[0, 0.05, 0.02]}
-        fontSize={0.22}
-        font={NUMERIC_FONT}
-        color={TEXT_COLORS.primary.hex}
-        anchorX="center"
-        anchorY="middle"
-        fillOpacity={opacity}
-      >
-        {labProgress.done}/{labProgress.total}
-      </Text>
-
-      {/* "LABS" label — Sora caption */}
-      <Text
-        position={[0, -0.15, 0.02]}
-        fontSize={TYPE_SCALE.caption.fontSize * 8}
-        font={TYPE_SCALE.caption.fontPath}
-        color={TEXT_COLORS.muted.hex}
-        anchorX="center"
-        anchorY="middle"
-        fillOpacity={opacity * TEXT_COLORS.muted.opacity}
-      >
-        LABS
-      </Text>
-
-      {/* Chrome bezel around arc ring */}
+      {/* Chrome bezel ring circumscribing the lab dot circle */}
       <mesh position={[0, 0, 0.003]}>
-        <torusGeometry args={[0.9, 0.02, 12, 48]} />
+        <torusGeometry args={[RING_RADIUS, 0.012, 12, 64]} />
         <meshStandardMaterial
           color={CHROME_BORDER.colorHex}
           metalness={0.95}
           roughness={0.08}
           transparent
-          opacity={opacity * 0.7}
+          opacity={opacity * 0.45}
         />
       </mesh>
+
+      {/* Progress count text — tiny, positioned just below CTA */}
+      <Text
+        position={[0, -0.18, 0.02]}
+        fontSize={0.065}
+        font={NUMERIC_FONT}
+        color={TEXT_COLORS.muted.hex}
+        anchorX="center"
+        anchorY="middle"
+        fillOpacity={opacity * TEXT_COLORS.muted.opacity}
+      >
+        {`${labProgress.done}/${labProgress.total} LABS`}
+      </Text>
+
+      {/* Center CTA button — "Continue" for next action */}
+      {/* Uses HolographicButton small size; scaled down to fit center hollow */}
+      <group position={[0, 0.04, 0.03]} scale={[1.4, 1.4, 1.4]}>
+        <HolographicButton
+          id="statusbar-continue-cta"
+          label="Continue"
+          color="#00BBFF"
+          size="sm"
+          onClick={handleContinue}
+        />
+      </group>
     </group>
   );
 }
@@ -648,12 +689,11 @@ export function StatusBar3D({
         />
       </group>
 
-      {/* ─── Lab Progress Mini Arcs (Decision 8.3) ─── */}
+      {/* ─── Lab Circle With Center CTA (Phase 2 audit fix Section 4.4) ─── */}
       <group position={[progressCenterX, 0, 0.08]} scale={[0.45, 0.45, 0.45]}>
-        <LabMiniArcs
+        <LabCircleWithCTA
           labProgress={labProgress}
           opacity={opacity}
-          segments={segments}
         />
       </group>
 
