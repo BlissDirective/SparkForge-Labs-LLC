@@ -21,17 +21,59 @@ const TIERS: { id: DifficultyTier | 'all'; label: string; emoji: string; color: 
 
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
+// Phase 5 P.6-MIN (§8.8): Per-tier unlock messaging for locked chips.
+// Keyed to the Band the player needs to progress to in order to unlock.
+const UNLOCK_MESSAGE: Record<'A' | 'B' | 'C', string> = {
+  A: 'Unlocked from the start',
+  B: 'Available at age 10-12 (Band B)',
+  C: 'Available at age 13-16 (Band C)',
+};
+
 /**
  * Difficulty tier selector with age-band gating.
- * Band A: Easy + Medium, Band B: +Hard, Band C: +Expert
+ *
+ * Band A: Easy + Medium, Band B: +Hard, Band C: +Expert.
+ *
+ * Phase 5 P.6-MIN (§8.8): Locked tiers now RENDER as disabled chips with
+ * a tooltip explaining when the tier unlocks. Previously locked tiers were
+ * filtered out entirely, leaving users wondering if "Expert" existed.
+ * ARIA: `aria-disabled="true"` + descriptive `aria-label`.
  */
 export function DifficultySelector({ value, onChange, ageBand, className = '' }: DifficultySelectorProps) {
-  const available = TIERS.filter(t => BAND_ORDER[t.minBand] <= BAND_ORDER[ageBand]);
-
   return (
     <div className={`flex flex-wrap gap-1.5 ${className}`} role="radiogroup" aria-label="Difficulty level">
-      {available.map(tier => {
+      {TIERS.map(tier => {
         const isActive = value === tier.id;
+        const isLocked = BAND_ORDER[tier.minBand] > BAND_ORDER[ageBand];
+        const unlockMessage = UNLOCK_MESSAGE[tier.minBand];
+
+        if (isLocked) {
+          return (
+            <button
+              key={tier.id}
+              type="button"
+              disabled
+              aria-disabled="true"
+              aria-label={`${tier.label} difficulty — locked, ${unlockMessage.toLowerCase()}`}
+              title={unlockMessage}
+              role="radio"
+              aria-checked={false}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg font-display text-xs border border-white/6 bg-white/2 text-white/25 cursor-not-allowed relative group"
+            >
+              <span className="text-sm grayscale opacity-60">{tier.emoji}</span>
+              <span className="line-through decoration-white/20">{tier.label}</span>
+              <span aria-hidden="true" className="text-white/40 ml-0.5">🔒</span>
+              {/* Custom hover tooltip (in addition to `title` for screen-readers) */}
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-md bg-surface-elevated/95 backdrop-blur-sm px-2 py-1 text-[10px] font-body text-white/85 border border-white/10 opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity shadow-lg"
+              >
+                {unlockMessage}
+              </span>
+            </button>
+          );
+        }
+
         return (
           <motion.button
             key={tier.id}

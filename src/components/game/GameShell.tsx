@@ -22,6 +22,7 @@
 // ADDED (Phase5): GameHUD3D registered via sceneStore.setGameHUDContent
 
 import React, { useEffect, useRef, type ReactNode } from 'react';
+import FocusTrap from 'focus-trap-react';
 import { useReducedMotion } from 'motion/react';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -204,17 +205,37 @@ export function GameShell({
     <XPPopupProvider>
       {/* Phase 1 audit fix (Section 8.7): GameErrorBoundary wraps all 35 games */}
       <GameErrorBoundary gameId={gameId} gameTitle={title} worldColor={worldColor}>
-        <div
-          className="h-full w-full"
-          data-game-id={gameId}
-          data-world={worldNumber}
-          data-world-color={worldColor}
-          data-reduced-motion={prefersReducedMotion || undefined}
-          role="region"
-          aria-label={`${title} game`}
+        {/* Phase 5 O.6-MIN (§8.6): Focus trap contains Tab navigation within
+            the game region during gameplay so keyboard users don't wander
+            into the cockpit chrome. Released on unmount (game exit).
+            allowOutsideClick so mouse users aren't blocked; clickOutsideDeactivates
+            false so clicking background 3D doesn't break the trap. */}
+        <FocusTrap
+          active={!isComplete}
+          focusTrapOptions={{
+            allowOutsideClick: true,
+            clickOutsideDeactivates: false,
+            escapeDeactivates: false,
+            returnFocusOnDeactivate: true,
+            // Don't force initial focus — let the game component decide where
+            // focus starts (e.g., first answer button).
+            initialFocus: false,
+            fallbackFocus: `[data-game-id="${gameId}"]`,
+          }}
         >
-          {children}
-        </div>
+          <div
+            className="h-full w-full"
+            data-game-id={gameId}
+            data-world={worldNumber}
+            data-world-color={worldColor}
+            data-reduced-motion={prefersReducedMotion || undefined}
+            role="region"
+            aria-label={`${title} game`}
+            tabIndex={-1}
+          >
+            {children}
+          </div>
+        </FocusTrap>
       </GameErrorBoundary>
     </XPPopupProvider>
   );
