@@ -10,6 +10,8 @@ import { useCallback } from 'react';
 import { Text } from '@react-three/drei';
 import { ToggleSwitch3D } from '../ui/ToggleSwitch3D';
 import { RadialDial3D } from '../ui/RadialDial3D';
+import { ThemePickerChipRow } from '../ui/ThemePickerChipRow';
+import { ThemePickerDial } from '../ui/ThemePickerDial';
 import { HolographicButton } from '../ui/HolographicButton';
 import { HolographicCard } from '../ui/HolographicCard';
 import { useUIStore } from '@/stores/uiStore';
@@ -156,6 +158,18 @@ export default function SettingsPanel() {
             />
           );
         })}
+      </group>
+
+      {/* ═══ Phase 5 N.2-MAX + Theme-AB: Cockpit Theme Picker ═══ */}
+      {/* Belt-and-suspenders picker: dial (left) + chip row (center).
+          Dial offers in-cockpit feel with haptic snap; chip row offers
+          discoverable settings UI. Both drive the same cockpitStore
+          theme state — changes reflect instantly via useCockpitCanvasProps. */}
+      <group position={[-0.42, -0.36, 0]}>
+        <ThemePickerDial position={[0, 0, 0]} scale={0.7} />
+      </group>
+      <group position={[0.15, -0.34, 0]}>
+        <ThemePickerChipRow position={[0, 0, 0]} scale={0.85} />
       </group>
 
       {/* ═══ Admin-Only: Performance Stats Toggle (COCK-13) ═══ */}

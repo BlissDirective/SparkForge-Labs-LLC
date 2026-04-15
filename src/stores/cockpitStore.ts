@@ -13,6 +13,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { CockpitSkin, SpatialView, CeremonyType } from '@/types';
+import type { ThemeId } from '@/lib/3d/cockpitThemes';
 import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
 
 // Re-export types so consumers can import from either @/types or @/stores/cockpitStore
@@ -115,6 +116,10 @@ interface CockpitState {
   unlockedSkins: CockpitSkin[];
   skinPreviewActive: boolean;
 
+  // Phase 5 N.2-MAX (§3.6): User-selectable cockpit theme — independent
+  // of the achievement-gated `cockpitSkin` system. Always-unlocked.
+  cockpitTheme: ThemeId;
+
   // NPC state
   npcsVisible: boolean;
 
@@ -164,6 +169,9 @@ interface CockpitState {
   setCockpitSkin: (skin: CockpitSkin) => void;
   unlockSkin: (skin: CockpitSkin) => void;
   setSkinPreview: (active: boolean) => void;
+
+  // Phase 5 N.2-MAX (§3.6)
+  setCockpitTheme: (theme: ThemeId) => void;
   setTransitioning: (transitioning: boolean) => void;
   setOrbitSpeed: (speed: number) => void;
   toggleNPCs: () => void;
@@ -201,6 +209,9 @@ export const useCockpitStore = create<CockpitState>()(
       cockpitSkin: 'default',
       unlockedSkins: ['default'] as CockpitSkin[],
       skinPreviewActive: false,
+
+      // Phase 5 N.2-MAX (§3.6): User-selectable theme
+      cockpitTheme: 'default' as ThemeId,
       npcsVisible: true,
       ceremonyQueue: [] as CeremonyQueueItem[],
       cockpitAudioEnabled: true,
@@ -292,6 +303,9 @@ export const useCockpitStore = create<CockpitState>()(
         }
       },
 
+      // Phase 5 N.2-MAX (§3.6): No unlock gate — all 4 themes always available
+      setCockpitTheme: (cockpitTheme) => set({ cockpitTheme }),
+
       unlockSkin: (skin) => {
         set((s) => ({
           unlockedSkins: s.unlockedSkins.includes(skin)
@@ -373,6 +387,8 @@ export const useCockpitStore = create<CockpitState>()(
       partialize: (state) => ({
         cockpitSkin: state.cockpitSkin,
         unlockedSkins: state.unlockedSkins,
+        // Phase 5 N.2-MAX (§3.6): Persist theme selection across sessions
+        cockpitTheme: state.cockpitTheme,
         focusedLabId: state.focusedLabId,
         npcsVisible: state.npcsVisible,
         cockpitAudioEnabled: state.cockpitAudioEnabled,
