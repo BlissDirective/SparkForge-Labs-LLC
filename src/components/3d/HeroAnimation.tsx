@@ -359,13 +359,17 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
   });
 
   // ── Voronoi shards ──
-  useEffect(() => {
-    if (state.shouldSkip) return;
+  // Audit §9.3 fix (Phase 3 Task 2A): Geometry + spline timings generated
+  // in useMemo instead of useEffect, so unrelated re-renders don't re-run
+  // the expensive CPU-side Voronoi fracture + shard assignment. Memoized
+  // result is keyed to [shardCount, shouldSkip] — exactly the dependencies
+  // that invalidate the shard set.
+  const shardData = useMemo(() => {
+    if (state.shouldSkip) return null;
 
     const logoGeometry = new BoxGeometry(6, 1.5, 0.5, 4, 4, 4);
     const clampedShardCount = Math.min(shardCount, 500);
     const shards = generateVoronoiShards(logoGeometry, clampedShardCount, 42);
-    shardGeo.current = shards;
 
     const targets = [
       { name: 'panel' as const, positions: [new Vector3(-3, 4, 0), new Vector3(3, 4, 0)], weight: 0.3 },
@@ -377,10 +381,21 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
     ];
     const assignments = assignShardsToTargets(shards, targets);
     const timings = generateSplineTimings(assignments.length, 42);
-    splineTimings.current = timings;
 
     logoGeometry.dispose();
+    return { shards, timings };
   }, [shardCount, state.shouldSkip]);
+
+  // Sync memoized shard data into refs + dispose GPU memory on invalidation
+  useEffect(() => {
+    if (!shardData) return;
+    shardGeo.current = shardData.shards;
+    splineTimings.current = shardData.timings;
+    return () => {
+      // Dispose BufferGeometry instances on unmount or shardData change
+      shardData.shards.forEach((g) => g.dispose());
+    };
+  }, [shardData]);
 
   // ── Ambient particles ──
   const particlePositions = useMemo(() => {

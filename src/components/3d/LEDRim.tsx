@@ -115,8 +115,11 @@ function LEDStrip({
 
   // Phase 2 audit fix (Section 4.3): Scratch Color pool + HSL interp + burst 0.3→0.6
   // Pre-allocated scratch Color avoids per-frame GC pressure from .clone()
+  // Phase 3 audit fix (Section 9.2): Added targetScratch to eliminate remaining
+  // per-frame `new Color(color)` allocation in the useFrame diff check.
   const scratchColor = useMemo(() => new Color(), []);
   const blendedColor = useMemo(() => new Color(), []);
+  const targetScratch = useMemo(() => new Color(), []);
 
   // Pre-compute positions and orientations along curve
   const transforms = useMemo(() => {
@@ -161,10 +164,11 @@ function LEDStrip({
     const spike = spikeVal.current;
 
     // Detect color change and start sequential fill transition
-    const currentTargetColor = new Color(color);
-    if (!targetColorRef.current.equals(currentTargetColor)) {
+    // Phase 3 audit fix (Section 9.2): reuse targetScratch instead of new Color()
+    targetScratch.set(color);
+    if (!targetColorRef.current.equals(targetScratch)) {
       prevColorRef.current.copy(targetColorRef.current);
-      targetColorRef.current.copy(currentTargetColor);
+      targetColorRef.current.copy(targetScratch);
       transitionRef.current = 1.0; // start transition
     }
 

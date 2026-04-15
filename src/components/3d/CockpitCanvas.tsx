@@ -237,8 +237,14 @@ function FrameTimeMonitorInner() {
 // ════════════════════════════════════════════════════════════════
 // CockpitCanvas — Main Export (D3D-B1: Persistent, never unmounts)
 // ════════════════════════════════════════════════════════════════
+// Audit §9.4 fix (Phase 3 Task 1A): Wrapped in React.memo with default
+// shallow prop comparison. The canvas receives 21+ props from parent and
+// manages a 37.8M-triangle scene — unnecessary re-renders are expensive.
+// Shallow comparison is correct here because all props are primitives,
+// stable references, or memoized React nodes (heroSceneContent /
+// gameSceneContent).
 
-export function CockpitCanvas({
+function CockpitCanvasImpl({
   ledColor = '#00BBFF',
   bgIntensity = 0.15,
   activeLabColor = '#00BBFF',
@@ -482,3 +488,8 @@ export function CockpitCanvas({
     </div>
   );
 }
+
+// Memoized export — shallow prop comparison skips re-renders when
+// parents re-render without prop changes.
+export const CockpitCanvas = React.memo(CockpitCanvasImpl);
+CockpitCanvas.displayName = 'CockpitCanvas';
