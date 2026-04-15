@@ -11,7 +11,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -481,6 +481,7 @@ function buildNarration(block: PlacedBlock): string {
 // ================================================================
 
 export function AgentArchitectGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -816,8 +817,8 @@ export function AgentArchitectGame() {
                 width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(16,185,129,${0.15 + p.size * 0.06}) 0%, transparent 70%)`,
               }}
-              animate={{ y: [0, -12 - p.size * 4, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12 - p.size * 4, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
             />
           ))}
         </div>
@@ -843,8 +844,8 @@ export function AgentArchitectGame() {
                     className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-5">
 
                     <motion.div
-                      animate={{ boxShadow: ['0 0 20px rgba(16,185,129,0.15)', '0 0 40px rgba(16,185,129,0.3)', '0 0 20px rgba(16,185,129,0.15)'] }}
-                      transition={{ duration: 3, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { boxShadow: ['0 0 20px rgba(16,185,129,0.15)', '0 0 40px rgba(16,185,129,0.3)', '0 0 20px rgba(16,185,129,0.15)'] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/20"
                       style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02))' }}>
                       <Cpu className="w-4 h-4 text-emerald-400" />

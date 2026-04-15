@@ -26,8 +26,10 @@ import {
   DoubleSide,
   Shape,
   ExtrudeGeometry,
+  Vector3,
 } from 'three';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { useMagneticCursor } from '@/hooks/useMagneticCursor';
 import {
   CHROME_BORDER,
   PRESS_DEPTH,
@@ -86,6 +88,14 @@ interface HolographicButtonProps {
   disabled?: boolean;
   /** Click handler */
   onClick?: () => void;
+  /**
+   * Phase 4 §10.3: Enable magnetic-cursor attraction. When true, the button
+   * subtly pulls toward the cursor when the cursor enters a configurable
+   * radius, using spring physics. Reinforces the physical console metaphor.
+   * Defaults to false — opt-in per call site so existing buttons don't
+   * change behavior unintentionally.
+   */
+  magnetic?: boolean;
 }
 
 // ■■ Chamfered rectangle shape (45° corner cuts) ■■
@@ -128,12 +138,20 @@ export function HolographicButton({
   active = false,
   disabled = false,
   onClick,
+  magnetic = false,
 }: HolographicButtonProps) {
   const groupRef = useRef<Group>(null);
   const buttonGroupRef = useRef<Group>(null);
   const rippleRef = useRef<Mesh>(null);
   const rippleInnerRef = useRef<Mesh>(null);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+
+  // Phase 4 §10.3: Magnetic cursor spring state (only active when `magnetic=true`)
+  const magnetic_ = useMagneticCursor({ radius: 0.6, strength: 0.12 });
+  const restPosition = useMemo(
+    () => new Vector3(position[0], position[1], position[2]),
+    [position]
+  );
 
   // Interaction state
   const [hovered, setHovered] = useState(false);
@@ -305,6 +323,20 @@ export function HolographicButton({
     velocityRef.current += accel * delta;
     depthRef.current += velocityRef.current * delta;
     buttonGroupRef.current.position.z = -depthRef.current;
+
+    // Phase 4 §10.3: Magnetic cursor offset (opt-in via `magnetic` prop).
+    // When hovered, pull the whole button group toward cursor via spring
+    // physics. When not hovered, offset relaxes back to zero. Uses the
+    // hovered flag as a proxy for "cursor in magnetic radius" — when the
+    // cursor enters the button's pointer-event region, hover fires and
+    // magnetism activates.
+    if (magnetic) {
+      const cursorPos = hovered ? restPosition : null;
+      magnetic_.update(restPosition, cursorPos, delta);
+      groupRef.current.position.x = restPosition.x + magnetic_.state.current.offset.x;
+      groupRef.current.position.y = restPosition.y + magnetic_.state.current.offset.y;
+      groupRef.current.position.z = restPosition.z + magnetic_.state.current.offset.z;
+    }
 
     // Hover scale (bounce spring for hover)
     const targetScale = hovered ? STATE_MACHINE.hover.scale : STATE_MACHINE.idle.scale;

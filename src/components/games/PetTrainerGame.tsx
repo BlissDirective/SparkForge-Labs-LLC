@@ -19,7 +19,7 @@
 // ================================================================
 
 import { useState, useMemo, useEffect, useRef, Fragment } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -549,6 +549,7 @@ function SurpriseMeButton({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
 }
 
 export function PetTrainerGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -813,8 +814,8 @@ export function PetTrainerGame() {
                 background: `radial-gradient(circle, rgba(139,92,246,${0.2 + p.size * 0.08}), transparent)`,
                 boxShadow: `0 0 ${p.size * 3}px rgba(139,92,246,0.12)`,
               }}
-              animate={{ y: [0, -20 - p.size * 6, 0], opacity: [0.15, 0.5, 0.15] }}
-              transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -20 - p.size * 6, 0], opacity: [0.15, 0.5, 0.15] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }} />
           ))}
         </div>
         <div className="absolute inset-0 opacity-[0.02]"
@@ -839,8 +840,8 @@ export function PetTrainerGame() {
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="max-w-md mx-auto text-center space-y-5 py-4">
                     <motion.div
-                      animate={{ boxShadow: ['0 0 20px rgba(139,92,246,0.15)', '0 0 40px rgba(139,92,246,0.25)', '0 0 20px rgba(139,92,246,0.15)'] }}
-                      transition={{ duration: 3, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { boxShadow: ['0 0 20px rgba(139,92,246,0.15)', '0 0 40px rgba(139,92,246,0.25)', '0 0 20px rgba(139,92,246,0.15)'] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-purple-500/20"
                       style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(139,92,246,0.02))' }}>
                       <Heart className="w-4 h-4 text-purple-400" />
@@ -1212,8 +1213,8 @@ export function PetTrainerGame() {
 
                         {petThinking ? (
                           <motion.div className="flex flex-col items-center gap-2"
-                            animate={{ opacity: [0.5, 1, 0.5] }}
-                            transition={{ duration: 2, repeat: Infinity }}>
+                            animate={prefersReducedMotion ? {} : { opacity: [0.5, 1, 0.5] }}
+                            transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                             <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood="learning" evolutionStage={evolutionStage} size="sm" />
                             <p className="font-body text-sm text-white/50 italic">&ldquo;{getPetThinking()}&rdquo;</p>
                           </motion.div>

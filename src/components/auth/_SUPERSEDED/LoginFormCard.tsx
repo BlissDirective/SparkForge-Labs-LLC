@@ -57,7 +57,7 @@ export function LoginFormCard({ onHoverChange }: LoginFormCardProps) {
 
   return (
     <motion.div
-      className="glass-card rounded-2xl p-8 relative overflow-hidden"
+      className="glass-card-v2 p-8 relative overflow-hidden"
       onMouseEnter={() => onHoverChange?.(true)}
       onMouseLeave={() => onHoverChange?.(false)}
       initial={{ opacity: 0, y: 20 }}

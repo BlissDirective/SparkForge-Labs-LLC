@@ -1019,7 +1019,7 @@ export default function AdminReviewPage() {
             <motion.div
               ref={modalRef}
               tabIndex={-1}
-              className="relative glass-card rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 outline-none"
+              className="relative glass-card-v2-elevated w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 outline-none"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -1275,7 +1275,7 @@ export default function AdminReviewPage() {
             <motion.div
               ref={rejectDialogRef}
               tabIndex={-1}
-              className="relative glass-card rounded-2xl w-full max-w-sm p-6 outline-none"
+              className="relative glass-card-v2-elevated w-full max-w-sm p-6 outline-none"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}

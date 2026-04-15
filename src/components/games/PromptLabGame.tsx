@@ -11,7 +11,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
@@ -1105,6 +1105,7 @@ const MessageBubble = memo(function MessageBubble({
 // ================================================================
 
 export function PromptLabGame() {
+  const prefersReducedMotion = useReducedMotion();
   const { activeChild } = useChildStore();
   const game = useGameStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -1446,8 +1447,8 @@ export function PromptLabGame() {
                 background: `radial-gradient(circle, rgba(245,158,11,${0.15 + p.size * 0.06}) 0%, transparent 70%)`,
                 boxShadow: `0 0 ${p.size * 3}px rgba(245,158,11,0.1)`,
               }}
-              animate={{ y: [0, -12 - p.size * 4, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{
+              animate={prefersReducedMotion ? {} : { y: [0, -12 - p.size * 4, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.duration,
                 delay: p.delay,
                 repeat: Infinity,
@@ -1480,14 +1481,14 @@ export function PromptLabGame() {
                   className="flex-1 flex flex-col items-center justify-center p-6 text-center space-y-5"
                 >
                   <motion.div
-                    animate={{
+                    animate={prefersReducedMotion ? {} : {
                       boxShadow: [
                         '0 0 20px rgba(245,158,11,0.15)',
                         '0 0 40px rgba(245,158,11,0.25)',
                         '0 0 20px rgba(245,158,11,0.15)',
                       ],
                     }}
-                    transition={{ duration: 3, repeat: Infinity }}
+                    transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}
                     className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-amber-500/20"
                     style={{
                       background:

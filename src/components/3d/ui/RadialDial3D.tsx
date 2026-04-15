@@ -21,7 +21,7 @@ import {
   Color,
   Group,
   InstancedMesh,
-  MeshPhongMaterial,
+  MeshPhysicalMaterial,
   MeshStandardMaterial,
   Object3D,
   SphereGeometry,
@@ -29,6 +29,7 @@ import {
   DoubleSide,
 } from 'three';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { fireHaptic } from '@/lib/haptic/hapticSim';
 import {
   CHROME_BORDER,
   EMISSIVE_IDLE_INDICATOR,
@@ -150,13 +151,19 @@ export function RadialDial3D({
     [dialColor],
   );
 
+  // Phase 5 P.1-MAX (§3.5): Use MeshPhysicalMaterial with transmission for a
+  // true glass dome on read-only gauge dials (replaces old Phong proxy).
+  // Transmission 0.9 + thickness 0.05 + ior 1.5 gives a convincing sealed lens.
   const glassMaterial = useMemo(
     () =>
-      new MeshPhongMaterial({
+      new MeshPhysicalMaterial({
         color: new Color('#88aacc'),
         transparent: true,
-        opacity: 0.15,
-        shininess: 200,
+        opacity: 0.3,
+        transmission: 0.9,
+        thickness: 0.05,
+        roughness: 0.05,
+        ior: 1.5,
         side: DoubleSide,
         depthWrite: false,
       }),
@@ -281,6 +288,10 @@ export function RadialDial3D({
     // Trigger overshoot animation on release
     overshootTimeRef.current = 0;
     releaseValueRef.current = normalizedValue;
+    // Phase 4 §10.14 (J-A): Fire snapToGrid haptic on dial release —
+    // micro camera shake + click complements the existing spring
+    // overshoot, giving the "landing" moment real tactile weight.
+    fireHaptic('snapToGrid');
   }, [normalizedValue]);
 
   // ■■ Per-frame animation ■■
@@ -405,11 +416,12 @@ export function RadialDial3D({
       </group>
 
       {/* Read-only glass dome cover */}
+      {/* Phase 5 P.1-MAX (§3.5): Hemisphere sits above the dial face (no flip rotation)
+          — phiStart=0/phiLength=PI/2 already produces a top-half sphere, so rotating by
+          Math.PI was flipping it beneath the dial. Now positioned just above the
+          reduced-height readOnly knob (0.3 * DIAL_HEIGHT) with glass transmission. */}
       {readOnly && (
-        <mesh
-          position={[0, DIAL_HEIGHT * 0.15 + 0.002, 0]}
-          rotation={[Math.PI, 0, 0]}
-        >
+        <mesh position={[0, DIAL_HEIGHT * 0.15 + 0.004, 0]}>
           <sphereGeometry args={[DIAL_RADIUS * 1.05, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
           <primitive object={glassMaterial} />
         </mesh>

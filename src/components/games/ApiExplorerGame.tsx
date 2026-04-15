@@ -22,7 +22,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -454,6 +454,7 @@ function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: 
 }
 
 export function ApiExplorerGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const { safeTimeout, safeInterval } = useSafeTimeout();
@@ -620,8 +621,8 @@ export function ApiExplorerGame() {
                 height: p.size,
                 background: 'radial-gradient(circle, rgba(249,115,22,0.15), transparent)',
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -650,8 +651,8 @@ export function ApiExplorerGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { y: [0, -8, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                     >
                       🔌
                     </motion.span>
@@ -838,8 +839,8 @@ export function ApiExplorerGame() {
                       >
                         {sending ? (
                           <motion.span
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            animate={prefersReducedMotion ? {} : { rotate: 360 }}
+                            transition={prefersReducedMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, ease: 'linear' }}
                           >
                             <Server className="w-3 h-3" />
                           </motion.span>
@@ -896,7 +897,7 @@ export function ApiExplorerGame() {
                               {typewriterDone ? (
                                 <JsonViewer data={response.body} />
                               ) : (
-                                <span className="text-green-400/70">{typewriterText}<motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-orange-400">|</motion.span></span>
+                                <span className="text-green-400/70">{typewriterText}<motion.span animate={prefersReducedMotion ? {} : { opacity: [1, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, repeat: Infinity }} className="text-orange-400">|</motion.span></span>
                               )}
                             </pre>
                           </div>
@@ -950,7 +951,7 @@ export function ApiExplorerGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">API Explorer Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored real AI service endpoints, sent requests with parameters, and read JSON responses — this is exactly how developers integrate AI into their applications!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">

@@ -25,7 +25,7 @@
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -280,6 +280,7 @@ function calcInnovationScore(
 // ■■■■ Component ■■■■
 
 export function MyFirstAiAppGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -420,8 +421,8 @@ export function MyFirstAiAppGame() {
           <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
             style={{ width: p.size, height: p.size, left: `${p.x}%`, top: `${p.y}%`,
               background: 'radial-gradient(circle, rgba(249,115,22,0.4), transparent)' }}
-            animate={{ y: [0, -25, 0], opacity: [0.15, 0.5, 0.15] }}
-            transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }} />
+            animate={prefersReducedMotion ? {} : { y: [0, -25, 0], opacity: [0.15, 0.5, 0.15] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }} />
         ))}
 
         {/* Chrome Bezel */}
@@ -436,8 +437,8 @@ export function MyFirstAiAppGame() {
           {phase === 'welcome' && (
             <motion.div key="welcome" className="flex-1 flex flex-col items-center justify-center p-6 gap-2"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F4F1}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F4F1}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">My First AI App</h2>
               <p className="font-body text-sm text-white/60 mb-1">Lab 9 — Build with AI</p>
               <p className="font-body text-sm text-white/50 max-w-sm mb-6">
@@ -467,7 +468,7 @@ export function MyFirstAiAppGame() {
                     border: `1px solid ${CONCEPT_CARDS[learnIdx].color}33` }}
                   initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 25 }}>
-                  <motion.span className="text-4xl block mb-3" animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <motion.span className="text-4xl block mb-3" animate={prefersReducedMotion ? {} : { y: [0, -6, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                     {CONCEPT_CARDS[learnIdx].emoji}</motion.span>
                   <h3 className="font-display text-lg font-bold text-white mb-2">{CONCEPT_CARDS[learnIdx].title}</h3>
                   <p className="font-body text-sm text-white/70 leading-relaxed">{getDesc(CONCEPT_CARDS[learnIdx])}</p>
@@ -669,7 +670,7 @@ export function MyFirstAiAppGame() {
               <motion.div className={`w-full max-w-xs rounded-3xl p-5 bg-gradient-to-br ${currentTheme.bgGradient} border border-white/10`}
                 initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.5, type: 'spring' }}>
                 <div className="text-center">
-                  <motion.div className="text-5xl mb-2" animate={{ y: [0, -5, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <motion.div className="text-5xl mb-2" animate={prefersReducedMotion ? {} : { y: [0, -5, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                     {currentCategory?.emoji || '\u{1F4F1}'}</motion.div>
                   <h3 className="font-display text-xl font-bold mb-1" style={{ color: currentTheme.textColor }}>{appName}</h3>
                   <p className="font-body text-xs mb-3" style={{ color: `${currentTheme.textColor}99` }}>
@@ -761,8 +762,8 @@ export function MyFirstAiAppGame() {
           {phase === 'complete' && (
             <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
-              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F680}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F680}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">App Developer!</h2>
               <p className="font-body text-sm text-white/60 mb-4">You designed your very own AI-powered app!</p>
 

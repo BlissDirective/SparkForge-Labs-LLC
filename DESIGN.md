@@ -86,6 +86,33 @@ All colors target **L=0.75** for neon accents (equal perceived brightness across
 
 **Font loading:** Self-hosted via `next/font/google` with `display: 'swap'`. Fallback fonts have metric overrides (`size-adjust`, `ascent-override`) to prevent layout shift.
 
+### Numeric Data Enforcement (Phase 5 P.4-MAX)
+
+All numeric data displays (scores, XP, timers, levels, counts, percentages) **MUST** render in Orbitron (`font-data`). Use the `<DataNumber>` component from `src/components/ui/DataNumber.tsx`:
+
+```tsx
+import { DataNumber } from '@/components/ui/DataNumber';
+
+// Score display
+<DataNumber value={score} format="integer" suffix=" XP" />
+
+// Percentage
+<DataNumber value={accuracy} format="percentage" />
+
+// Timer
+<DataNumber value={secondsElapsed} format="time" />
+
+// Compact large number
+<DataNumber value={1234567} format="compact" /> // → "1.2M"
+```
+
+If you need inline control (rare), use `font-data tabular-nums` classes directly. The ESLint rule `no-restricted-syntax` warns when `font-body` or `font-mono` are applied to elements with purely-numeric text children.
+
+**DO NOT use `<DataNumber>` for:**
+- Numbers embedded in prose ("Chapter 2: The Brain Inside")
+- Version strings ("v1.2.3")
+- List item numbers ("Step 1: ...")
+
 ---
 
 ## 4. Components

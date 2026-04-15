@@ -81,9 +81,13 @@ function XPSpeedometer({
   const currentRatio = useRef(xpRatio);
 
   // Phase 2 audit fix (Section 4.4): Emissive bloom pulse on XP change
+  // Phase 5 P.1-MAX (§8.1): Strengthen glow feedback — 400ms snap flash
+  // (baseline 0.5 → peak 2.0 → baseline 0.5) tied to XP prop change only.
   const prevXpRef = useRef(xp);
   const pulseTimeRef = useRef(-1);
-  const PULSE_DURATION = 0.6;
+  const PULSE_DURATION = 0.4;
+  const PULSE_BASELINE = 0.5;
+  const PULSE_PEAK = 2.0;
 
   useEffect(() => {
     if (xp !== prevXpRef.current) {
@@ -104,48 +108,55 @@ function XPSpeedometer({
     [segments, arcStart, arcTotal]
   );
 
-  // Initial fill arc geometry (animated via useFrame below)
+  // Full-arc fill geometry built ONCE at max ratio — we progressively reveal
+  // slices of it via setDrawRange() instead of rebuilding each frame.
+  // Phase 3 audit fix (Section 9.2): was allocating new RingGeometry every
+  // frame during XP animation (60 geoms/sec GC churn). Now zero allocation.
   const fillArcGeo = useMemo(
-    () => new RingGeometry(0.7, 0.85, segments, 1, arcStart, arcTotal * Math.max(xpRatio, 0.001)),
-    [segments, arcStart, arcTotal, xpRatio]
+    () => new RingGeometry(0.7, 0.85, segments, 1, arcStart, arcTotal),
+    [segments, arcStart, arcTotal]
   );
 
-  // We rebuild fill geometry on animated ratio via useFrame
-  const animatedFillGeo = useRef<RingGeometry | null>(null);
+  // Total index count for RingGeometry(innerRadius, outerRadius, thetaSegs, phiSegs, ...)
+  // equals thetaSegments × phiSegments × 6 (two triangles per segment × 3 indices).
+  // Partial fill = draw the first N indices out of this total.
+  const totalFillIndices = useMemo(() => segments * 1 * 6, [segments]);
 
   useFrame((_, delta) => {
     currentRatio.current = MathUtils.lerp(currentRatio.current, xpRatio, 0.04);
 
-    // Rebuild fill arc geometry to match animated ratio
-    if (fillRef.current) {
-      if (animatedFillGeo.current) {
-        animatedFillGeo.current.dispose();
-      }
-      animatedFillGeo.current = new RingGeometry(
-        0.7, 0.85, segments, 1, arcStart, arcTotal * Math.max(currentRatio.current, 0.001)
+    // Reveal proportional slice of the pre-built ring via setDrawRange
+    if (fillRef.current && fillRef.current.geometry) {
+      const revealCount = Math.floor(
+        totalFillIndices * Math.max(currentRatio.current, 0.001)
       );
-      fillRef.current.geometry = animatedFillGeo.current;
+      // Round to a multiple of 6 so we never leave a half-triangle mid-arc
+      const safeCount = Math.max(0, Math.floor(revealCount / 6) * 6);
+      fillRef.current.geometry.setDrawRange(0, safeCount);
     }
 
-    // Phase 2 audit fix (Section 4.4): Emissive pulse spike on XP change
-    // Curve: 0.3 → 0.8 (peak at pulse=0.3) → 0.3 (settle)
-    let pulseBoost = 0;
+    // Phase 5 P.1-MAX (§8.1): Strong 400ms XP change flash — baseline 0.5 → peak 2.0 → 0.5
+    // Computed as half-sine through PULSE_DURATION (0.4s). This replaces the
+    // previous softer Section 4.4 pulse, giving XP gain real visual punch.
+    let pulseIntensity = PULSE_BASELINE;
     if (pulseTimeRef.current >= 0) {
       pulseTimeRef.current += delta;
       const pt = pulseTimeRef.current / PULSE_DURATION;
       if (pt >= 1) {
         pulseTimeRef.current = -1;
       } else {
-        pulseBoost = Math.sin(pt * Math.PI) * 0.5;
+        // Half-sine from baseline to peak and back
+        pulseIntensity = PULSE_BASELINE + Math.sin(pt * Math.PI) * (PULSE_PEAK - PULSE_BASELINE);
       }
     }
+    const pulseBoost = pulseIntensity - PULSE_BASELINE;
 
     // Pulse glow intensity (ambient + spike on XP change)
     if (glowRef.current) {
       glowRef.current.intensity = EMISSIVE_LED_MULTIPLIER + Math.sin(Date.now() * 0.003) * 0.4 + pulseBoost * 1.5;
     }
 
-    // Apply emissive spike to fill arc material
+    // Apply emissive spike to fill arc material (Phase 5 P.1-MAX §8.1)
     if (fillRef.current) {
       const mat = fillRef.current.material as MeshStandardMaterial;
       if (mat && 'emissiveIntensity' in mat) {
@@ -154,12 +165,15 @@ function XPSpeedometer({
     }
   });
 
-  // Cleanup on unmount
+  // Dispose memoized geometries on unmount or when segments/arc params change.
+  // The per-frame allocation pattern (animatedFillGeo) was eliminated in the
+  // Phase 3 Section 9.2 fix above — now only these two memoized geometries exist.
   useEffect(() => {
     return () => {
-      animatedFillGeo.current?.dispose();
+      trackGeo.dispose();
+      fillArcGeo.dispose();
     };
-  }, []);
+  }, [trackGeo, fillArcGeo]);
 
   return (
     <group>

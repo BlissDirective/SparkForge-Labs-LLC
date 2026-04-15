@@ -17,7 +17,7 @@
 'use client';
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -588,6 +588,7 @@ function useIsDesktop() {
 
 // --- Main Component ---
 export function CodeBlocksGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -728,8 +729,8 @@ export function CodeBlocksGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(249,115,22,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -986,8 +987,8 @@ export function CodeBlocksGame() {
                               )}
                               {running && (
                                 <motion.span className="font-mono text-2xs text-green-400"
-                                  animate={{ opacity: [1, 0] }}
-                                  transition={{ repeat: Infinity, duration: 0.6 }}>
+                                  animate={prefersReducedMotion ? {} : { opacity: [1, 0] }}
+                                  transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 0.6 }}>
                                   _
                                 </motion.span>
                               )}
@@ -1027,7 +1028,7 @@ export function CodeBlocksGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Code Blocks Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You arranged code blocks to solve programming challenges, learning how algorithms execute step-by-step — the foundation of all software!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">

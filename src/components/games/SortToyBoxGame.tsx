@@ -13,7 +13,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -284,6 +284,7 @@ function generateShapesForRound(round: RoundConfig, _replayCount: number): Shape
 }
 
 export function SortToyBoxGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -628,8 +629,8 @@ export function SortToyBoxGame() {
                   0.15 + p.size * 0.06
                 }), transparent)`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.dur,
                 delay: p.delay,
                 repeat: Infinity,
@@ -936,7 +937,7 @@ export function SortToyBoxGame() {
                     {/* Animated reveal steps */}
                     {revealStep === 'extracting' && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                        <motion.div animate={{ rotate: 360 }} transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}>
+                        <motion.div animate={prefersReducedMotion ? {} : { rotate: 360 }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'linear' }}>
                           <Brain className="w-10 h-10 text-purple-400 mx-auto" />
                         </motion.div>
                         <h3 className="font-display text-lg font-bold text-white">Extracting Features...</h3>
@@ -948,7 +949,7 @@ export function SortToyBoxGame() {
 
                     {revealStep === 'calculating' && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                        <motion.div animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 1.5, repeat: Infinity }}>
+                        <motion.div animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>
                           <Sparkles className="w-10 h-10 text-purple-400 mx-auto" />
                         </motion.div>
                         <h3 className="font-display text-lg font-bold text-white">Calculating Distances...</h3>
@@ -960,7 +961,7 @@ export function SortToyBoxGame() {
 
                     {revealStep === 'clustering' && (
                       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                        <motion.div animate={{ y: [0, -5, 0] }} transition={{ duration: 1, repeat: Infinity }}>
+                        <motion.div animate={prefersReducedMotion ? {} : { y: [0, -5, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1, repeat: Infinity }}>
                           <Brain className="w-10 h-10 text-yellow-400 mx-auto" />
                         </motion.div>
                         <h3 className="font-display text-lg font-bold text-white">Forming Clusters...</h3>

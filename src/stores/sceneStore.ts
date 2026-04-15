@@ -95,14 +95,37 @@ export const useSceneStore = create<SceneState>((set, get) => ({
     });
   },
 
+  // Phase 5 O.1-MAX (§5.8): Spatial transitions now animate via the
+  // shared transition state machine so the 2D PageTransitionProvider
+  // overlay and the 3D cockpit-to-spatial transition run on a single
+  // timeline. Previously these were instant state flips with no 3D
+  // animation, causing the lab-entry to feel abrupt.
   enterSpatial: () => set({
     previousScene: get().activeScene,
-    activeScene: 'spatial',
+    activeScene: 'transitioning',
+    isTransitioning: true,
+    transition: {
+      from: 'cockpit',
+      to: 'spatial',
+      type: 'cockpit-to-spatial',
+      progress: 0,
+      duration: 800,
+      startedAt: Date.now(),
+    },
   }),
 
   exitSpatial: () => set({
     previousScene: 'spatial',
-    activeScene: 'cockpit',
+    activeScene: 'transitioning',
+    isTransitioning: true,
+    transition: {
+      from: 'spatial',
+      to: 'cockpit',
+      type: 'cockpit-to-spatial',
+      progress: 0,
+      duration: 600,
+      startedAt: Date.now(),
+    },
   }),
 
   setHeroActive: () => set({ activeScene: 'hero', previousScene: null }),

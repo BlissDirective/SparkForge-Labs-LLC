@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 
 interface GameProgressTrackerProps {
   current: number;
@@ -21,6 +21,7 @@ export function GameProgressTracker({
   className = '',
   labColor = '#00BBFF',
 }: GameProgressTrackerProps) {
+  const prefersReducedMotion = useReducedMotion();
   const progress = total > 0 ? Math.min((current / total) * 100, 100) : 0;
 
   return (
@@ -34,9 +35,9 @@ export function GameProgressTracker({
         <motion.div
           className="h-full rounded-full"
           style={{ backgroundColor: labColor }}
-          initial={{ width: 0 }}
+          initial={prefersReducedMotion ? { width: `${progress}%` } : { width: 0 }}
           animate={{ width: `${progress}%` }}
-          transition={{ duration: 0.4, ease: 'easeOut' }}
+          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: 'easeOut' }}
         />
       </div>
       <span className="text-[10px] font-data text-white/40 tabular-nums min-w-[3ch] text-right">

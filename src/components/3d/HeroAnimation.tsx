@@ -41,7 +41,7 @@ import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { detectGPUTier } from '@/lib/webgpuDetection';
 import { generateVoronoiShards, assignShardsToTargets, SHARD_COUNTS } from '@/lib/3d/voronoiFracture';
-import { generateSplineTimings } from '@/lib/3d/heroSplines';
+import { generateSplineTimings, seededRandom } from '@/lib/3d/heroSplines';
 import { HeroAudioTimeline } from '@/lib/audio/heroAudio';
 
 // ── Props ────────────────────────────────────────────────────────
@@ -102,6 +102,21 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
   const logoMaterialRef = useRef<MeshPhysicalMaterial | null>(null);
   const emissiveIntensity = useRef(0);
   const shakeIntensity = useRef(0);
+
+  // Phase 4 §4.5: Per-shard physics state (parallel to shardGeo.current).
+  // Initialized once per shardData generation. Integrated per-frame during
+  // shatter (10.0-11.5s) + regroup (11.5-14.0s) window — shards burst
+  // outward from origin, tumble with angular velocity, fall under gravity,
+  // and fade to invisible by t=14.0s.
+  const shardPhysics = useRef<
+    { velocity: Vector3; angularVelocity: Vector3 }[]
+  >([]);
+  // Bloom flash emitter at shatter moment (10.0s peak, decays over 1s)
+  const heroBloomFlashRef = useRef<Mesh>(null);
+  const heroBloomMatRef = useRef<MeshPhysicalMaterial | null>(null);
+  // Track last timeline time so we can compute true frame delta within the
+  // GSAP paused timeline (since useFrame delta includes audio latency etc.)
+  const prevTlTime = useRef(0);
 
   const gpuTier = state.gpuTier;
   const shardCount = useMemo(() => {
@@ -356,16 +371,89 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
     if (logoMaterialRef.current) {
       logoMaterialRef.current.emissiveIntensity = emissiveIntensity.current;
     }
+
+    // Phase 4 §4.5: Per-shard physics + bloom flash during shatter→regroup.
+    // Shatter starts at 10.0s (PHASE_LABELS.shatter). Shards burst outward
+    // from origin, tumble under angular velocity, fall under light gravity,
+    // and fade opacity to 0 by t=14.0s. Bloom flash sphere spikes at 10.0
+    // and decays over 1s — reads through the existing post-processing
+    // bloom pass as a visible impact burst.
+    const tlTime = currentTime;
+    const dt = Math.max(0, Math.min(0.05, tlTime - prevTlTime.current));
+    prevTlTime.current = tlTime;
+
+    if (tlTime >= 10.0 && tlTime < 14.0) {
+      // Fade: full opacity 10.0-12.0, then linear fade to 0 by 14.0
+      const fadeOut =
+        tlTime > 12.0 ? Math.max(0, 1 - (tlTime - 12.0) / 2.0) : 1;
+      const GRAVITY = -4.5; // gentler than real-world for artistic drift
+      const DAMPING = 0.985;
+      const ANGULAR_DAMPING = 0.99;
+
+      for (let i = 0; i < shardMeshRefs.current.length; i++) {
+        const mesh = shardMeshRefs.current[i];
+        const phys = shardPhysics.current[i];
+        if (!mesh || !phys) continue;
+
+        mesh.visible = true;
+
+        // Physics integration
+        phys.velocity.y += GRAVITY * dt;
+        phys.velocity.multiplyScalar(DAMPING);
+        phys.angularVelocity.multiplyScalar(ANGULAR_DAMPING);
+
+        mesh.position.addScaledVector(phys.velocity, dt);
+        mesh.rotation.x += phys.angularVelocity.x * dt;
+        mesh.rotation.y += phys.angularVelocity.y * dt;
+        mesh.rotation.z += phys.angularVelocity.z * dt;
+
+        // Fade opacity via material
+        const mat = mesh.material as MeshPhysicalMaterial;
+        if (mat) {
+          mat.opacity = fadeOut;
+          // Emissive tracks fade — dimmer shards at end
+          mat.emissiveIntensity = fadeOut * 1.5;
+        }
+      }
+
+      // Bloom flash at shatter moment (10.0-11.0s): spike to 4.0, decay to 0
+      if (heroBloomMatRef.current && heroBloomFlashRef.current) {
+        if (tlTime < 11.0) {
+          const bloomT = (tlTime - 10.0) / 1.0; // 0..1 over 1s
+          const intensity = Math.max(0, (1 - bloomT) * 4.0);
+          heroBloomMatRef.current.emissiveIntensity = intensity;
+          heroBloomMatRef.current.opacity = Math.min(intensity * 0.5, 0.7);
+          heroBloomFlashRef.current.visible = intensity > 0.05;
+          // Brief outward scale pulse during the flash (1.0→1.8)
+          const s = 1.0 + (1 - bloomT) * 0.8;
+          heroBloomFlashRef.current.scale.setScalar(s);
+        } else {
+          heroBloomFlashRef.current.visible = false;
+          heroBloomMatRef.current.emissiveIntensity = 0;
+          heroBloomMatRef.current.opacity = 0;
+        }
+      }
+    } else if (tlTime >= 14.0) {
+      // Ensure shards hidden after regroup ends (bloom flash already off)
+      for (const mesh of shardMeshRefs.current) {
+        if (mesh) mesh.visible = false;
+      }
+      if (heroBloomFlashRef.current) heroBloomFlashRef.current.visible = false;
+    }
   });
 
   // ── Voronoi shards ──
-  useEffect(() => {
-    if (state.shouldSkip) return;
+  // Audit §9.3 fix (Phase 3 Task 2A): Geometry + spline timings generated
+  // in useMemo instead of useEffect, so unrelated re-renders don't re-run
+  // the expensive CPU-side Voronoi fracture + shard assignment. Memoized
+  // result is keyed to [shardCount, shouldSkip] — exactly the dependencies
+  // that invalidate the shard set.
+  const shardData = useMemo(() => {
+    if (state.shouldSkip) return null;
 
     const logoGeometry = new BoxGeometry(6, 1.5, 0.5, 4, 4, 4);
     const clampedShardCount = Math.min(shardCount, 500);
     const shards = generateVoronoiShards(logoGeometry, clampedShardCount, 42);
-    shardGeo.current = shards;
 
     const targets = [
       { name: 'panel' as const, positions: [new Vector3(-3, 4, 0), new Vector3(3, 4, 0)], weight: 0.3 },
@@ -377,10 +465,44 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
     ];
     const assignments = assignShardsToTargets(shards, targets);
     const timings = generateSplineTimings(assignments.length, 42);
-    splineTimings.current = timings;
 
     logoGeometry.dispose();
+    return { shards, timings };
   }, [shardCount, state.shouldSkip]);
+
+  // Sync memoized shard data into refs + dispose GPU memory on invalidation
+  useEffect(() => {
+    if (!shardData) return;
+    shardGeo.current = shardData.shards;
+    splineTimings.current = shardData.timings;
+
+    // Phase 4 §4.5: Initialize per-shard physics once per shardData cycle.
+    // Each shard gets a random outward velocity (biased upward) + angular
+    // velocity for natural tumbling motion during shatter→regroup window.
+    const rng = seededRandom(42);
+    shardPhysics.current = shardData.shards.map(() => {
+      const speed = 2.5 + rng() * 3.5; // 2.5-6.0 units/sec outward
+      const theta = rng() * Math.PI * 2;
+      const phi = (rng() - 0.35) * Math.PI * 0.9; // slight upward bias
+      return {
+        velocity: new Vector3(
+          Math.sin(theta) * Math.cos(phi) * speed,
+          Math.sin(phi) * speed + 1.5, // upward bias
+          Math.cos(theta) * Math.cos(phi) * speed
+        ),
+        angularVelocity: new Vector3(
+          (rng() - 0.5) * 6,
+          (rng() - 0.5) * 6,
+          (rng() - 0.5) * 6
+        ),
+      };
+    });
+
+    return () => {
+      // Dispose BufferGeometry instances on unmount or shardData change
+      shardData.shards.forEach((g) => g.dispose());
+    };
+  }, [shardData]);
 
   // ── Ambient particles ──
   const particlePositions = useMemo(() => {
@@ -440,6 +562,24 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
           />
         </mesh>
       ))}
+
+      {/* Phase 4 §4.5: Bloom flash emitter at shatter moment.
+          Hidden by default; spikes to emissiveIntensity 4.0 at t=10.0
+          and decays to 0 by t=11.0. Reads through the cockpit's bloom
+          post-processing pass as a visible impact burst. */}
+      <mesh ref={heroBloomFlashRef} visible={false}>
+        <sphereGeometry args={[0.9, 16, 16]} />
+        <meshPhysicalMaterial
+          ref={heroBloomMatRef}
+          color="#00BBFF"
+          emissive="#00BBFF"
+          emissiveIntensity={0}
+          transparent
+          opacity={0}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
 
       <points>
         <bufferGeometry>

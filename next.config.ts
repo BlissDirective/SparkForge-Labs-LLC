@@ -73,6 +73,12 @@ const nextConfig: NextConfig = {
   // Next.js 15: serverExternalPackages replaces experimental.serverComponentsExternalPackages
   serverExternalPackages: ['three', '@react-three/fiber', '@react-three/drei'],
   experimental: {
+    // Phase 4 §10.1: View Transitions API — native browser route morphing.
+    // Works alongside MechanicalIris for 3D transitions (D3D-B2) as
+    // progressive enhancement on 2D route-level surfaces (dashboard ↔
+    // auth ↔ marketing). Zero dependency cost, no-op in non-supporting
+    // browsers. See src/components/providers/ViewTransitionProvider.tsx.
+    viewTransition: true,
     optimizePackageImports: [
       'lucide-react',
       '@radix-ui/react-dialog',

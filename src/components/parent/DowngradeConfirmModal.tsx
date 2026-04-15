@@ -5,7 +5,7 @@
 //   Step 2 (optional): Child archive selection if new tier's
 //          maxChildren is less than the current count
 //
-// Matches PaywallModal pattern: glass-card + motion + AnimatePresence
+// Matches PaywallModal pattern: glass-card-v2-elevated + motion + AnimatePresence
 // ════════════════════════════════════════════════════
 'use client';
 
@@ -185,7 +185,7 @@ export function DowngradeConfirmModal({
           />
 
           <motion.div
-            className="relative glass-card rounded-2xl w-full max-w-lg p-6 overflow-hidden max-h-[90vh] overflow-y-auto"
+            className="relative glass-card-v2-elevated w-full max-w-lg p-6 overflow-hidden max-h-[90vh] overflow-y-auto"
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{
               opacity: 1,

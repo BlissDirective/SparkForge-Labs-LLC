@@ -11,6 +11,7 @@ import './globals.css';
 import './globals-a11y.css';
 import QueryProvider from '@/components/providers/QueryProvider';
 import { A11yProvider } from '@/components/accessibility/A11yProvider';
+import { LenisProvider } from '@/components/providers/LenisProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
@@ -118,8 +119,12 @@ export default function RootLayout({
         <A11yProvider>
           <ErrorBoundary>
             <QueryProvider>
-              <OfflineBanner />
-              <main id="main-content">{children}</main>
+              {/* Phase 4 §10.4: Lenis smooth scroll provider. Momentum-based
+                  scrolling for all scrollable views. Respects prefers-reduced-motion. */}
+              <LenisProvider>
+                <OfflineBanner />
+                <main id="main-content">{children}</main>
+              </LenisProvider>
             </QueryProvider>
           </ErrorBoundary>
         </A11yProvider>

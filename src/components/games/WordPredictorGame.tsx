@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -291,6 +291,7 @@ const ALL_ROUNDS: Round[] = [
 ];
 
 export function WordPredictorGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -371,8 +372,8 @@ export function WordPredictorGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(255,170,68,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -405,16 +406,16 @@ export function WordPredictorGame() {
                     >
                       <motion.span
                         className="text-5xl inline-block"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         🔮
                       </motion.span>
                       <motion.div
                         className="absolute -inset-3 rounded-full"
                         style={{ background: 'radial-gradient(circle, rgba(255,170,68,0.15), transparent)' }}
-                        animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       />
                     </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Word Predictor welcome phase">Word Predictor</h2>
@@ -466,8 +467,8 @@ export function WordPredictorGame() {
                         <motion.span
                           className="inline-block"
                           style={{ fontSize: `${Math.min(12 + streak * 3, 28)}px` }}
-                          animate={{ scale: [1, 1.2, 1], rotate: [0, -5, 5, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 0.5 }}
+                          animate={prefersReducedMotion ? {} : { scale: [1, 1.2, 1], rotate: [0, -5, 5, 0] }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, repeat: Infinity, repeatDelay: 0.5 }}
                         >
                           {streak >= 5 ? '\uD83D\uDD25\uD83D\uDD25' : '\uD83D\uDD25'}
                         </motion.span>
@@ -498,8 +499,8 @@ export function WordPredictorGame() {
                             animate={{ opacity: 1 }}
                           >
                             <motion.div
-                              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-                              transition={{ duration: 0.6, repeat: Infinity }}
+                              animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+                              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, repeat: Infinity }}
                             >
                               <Brain className="w-6 h-6 text-orange-400" />
                             </motion.div>
@@ -621,7 +622,7 @@ export function WordPredictorGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Word Predictor complete phase">Word Predictor Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You explored how language models predict the next word by analyzing context and assigning probabilities to possible completions.
@@ -637,8 +638,8 @@ export function WordPredictorGame() {
                     >
                       <motion.p
                         className="font-data text-2xl text-[#FFAA44]"
-                        animate={{ textShadow: ['0 0 0px rgba(255,170,68,0)', '0 0 12px rgba(255,170,68,0.5)', '0 0 0px rgba(255,170,68,0)'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { textShadow: ['0 0 0px rgba(255,170,68,0)', '0 0 12px rgba(255,170,68,0.5)', '0 0 0px rgba(255,170,68,0)'] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         {animatedScore}
                       </motion.p>

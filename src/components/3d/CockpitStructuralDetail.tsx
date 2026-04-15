@@ -27,6 +27,7 @@ import {
   InstancedMesh,
   Matrix4,
   MeshStandardMaterial,
+  PlaneGeometry,
   Quaternion,
   TorusGeometry,
   Vector3,
@@ -407,11 +408,13 @@ function StructuralRibs({
   segments: number;
   chromeMaterial: MeshStandardMaterial;
 }) {
-  const ribs = useMemo(() => {
-    const result: { angle: number }[] = [];
+  const meshRef = useRef<InstancedMesh>(null);
+
+  const ribAngles = useMemo(() => {
+    const result: number[] = [];
     const step = ARC_RAD / (count + 1);
     for (let i = 1; i <= count; i++) {
-      result.push({ angle: ARC_START + step * i });
+      result.push(ARC_START + step * i);
     }
     return result;
   }, [count]);
@@ -428,22 +431,50 @@ function StructuralRibs({
     return geo;
   }, [segments]);
 
+  // Phase 3 audit fix (Task 4A, §9.1/§10.7): 12 ribs → 1 InstancedMesh.
+  // Identical geometry + material with per-instance position + rotation.
+  // Saves 11 draw calls. Zero visual change — positions/rotations unchanged.
+  useMemo(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const euler = new Euler();
+    const centerY = (COCKPIT_Y_MIN + COCKPIT_Y_MAX) / 2;
+    const scale = new Vector3(1, 1, 1);
+    const position = new Vector3(0, centerY, 0);
+    for (let i = 0; i < ribAngles.length; i++) {
+      euler.set(0, -ribAngles[i], Math.PI / 2);
+      quat.setFromEuler(euler);
+      mat4.compose(position, quat, scale);
+      mesh.setMatrixAt(i, mat4);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  }, [ribAngles]);
+
   return (
-    <group>
-      {ribs.map((rib, i) => (
-        <mesh
-          key={`rib-${i}`}
-          geometry={ribGeo}
-          material={chromeMaterial}
-          position={[
-            Math.sin(rib.angle) * 0,
-            (COCKPIT_Y_MIN + COCKPIT_Y_MAX) / 2,
-            0,
-          ]}
-          rotation={[0, -rib.angle, Math.PI / 2]}
-        />
-      ))}
-    </group>
+    <instancedMesh
+      ref={(node) => {
+        meshRef.current = node;
+        if (!node) return;
+        // Apply matrices when ref is set (before first render)
+        const mat4 = new Matrix4();
+        const quat = new Quaternion();
+        const euler = new Euler();
+        const centerY = (COCKPIT_Y_MIN + COCKPIT_Y_MAX) / 2;
+        const scale = new Vector3(1, 1, 1);
+        const position = new Vector3(0, centerY, 0);
+        for (let i = 0; i < ribAngles.length; i++) {
+          euler.set(0, -ribAngles[i], Math.PI / 2);
+          quat.setFromEuler(euler);
+          mat4.compose(position, quat, scale);
+          node.setMatrixAt(i, mat4);
+        }
+        node.instanceMatrix.needsUpdate = true;
+      }}
+      args={[ribGeo, chromeMaterial, ribAngles.length]}
+      frustumCulled={false}
+    />
   );
 }
 
@@ -668,6 +699,9 @@ function WarningSigns({
 }: {
   count: number;
 }) {
+  const bgMeshRef = useRef<InstancedMesh>(null);
+  const borderMeshRef = useRef<InstancedMesh>(null);
+
   const signs = useMemo(() => {
     const configs: { angle: number; y: number; label: string }[] = [
       { angle: ARC_START + ARC_RAD * 0.12, y: COCKPIT_Y_MIN + 0.6, label: 'CAUTION' },
@@ -705,27 +739,78 @@ function WarningSigns({
     []
   );
 
+  // Phase 3 audit fix (Task 4A, §9.1/§10.7): 6 sign meshes → 2 InstancedMesh.
+  // One instanced mesh per plane type (background vs border), 3 instances each.
+  // Saves 4 draw calls. Zero visual change — per-instance position/rotation
+  // reproduces the original <group position> / <group rotation> transforms.
+  const bgGeo = useMemo(() => new PlaneGeometry(0.12, 0.04), []);
+  const borderGeo = useMemo(() => new PlaneGeometry(0.13, 0.05), []);
+
+  // Write instance matrices as soon as each InstancedMesh ref binds
+  const setBgRef = (node: InstancedMesh | null) => {
+    bgMeshRef.current = node;
+    if (!node) return;
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const euler = new Euler();
+    const scale = new Vector3(1, 1, 1);
+    const position = new Vector3();
+    const r = COCKPIT_RADIUS - 0.02;
+    for (let i = 0; i < signs.length; i++) {
+      const sign = signs[i];
+      position.set(Math.sin(sign.angle) * r, sign.y, -Math.cos(sign.angle) * r);
+      euler.set(0, -sign.angle, 0);
+      quat.setFromEuler(euler);
+      mat4.compose(position, quat, scale);
+      node.setMatrixAt(i, mat4);
+    }
+    node.instanceMatrix.needsUpdate = true;
+  };
+
+  const setBorderRef = (node: InstancedMesh | null) => {
+    borderMeshRef.current = node;
+    if (!node) return;
+    // Border sits 0.001 units behind the sign background — bake that offset
+    // into the instance transform rather than duplicating it per-sign.
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const euler = new Euler();
+    const scale = new Vector3(1, 1, 1);
+    const localPos = new Vector3();
+    const offsetLocal = new Vector3(0, 0, -0.001);
+    const offsetWorld = new Vector3();
+    const r = COCKPIT_RADIUS - 0.02;
+    for (let i = 0; i < signs.length; i++) {
+      const sign = signs[i];
+      euler.set(0, -sign.angle, 0);
+      quat.setFromEuler(euler);
+      // Rotate the local -Z offset into world space to preserve depth separation
+      offsetWorld.copy(offsetLocal).applyQuaternion(quat);
+      localPos.set(
+        Math.sin(sign.angle) * r + offsetWorld.x,
+        sign.y + offsetWorld.y,
+        -Math.cos(sign.angle) * r + offsetWorld.z
+      );
+      mat4.compose(localPos, quat, scale);
+      node.setMatrixAt(i, mat4);
+    }
+    node.instanceMatrix.needsUpdate = true;
+  };
+
+  if (signs.length === 0) return null;
+
   return (
     <group>
-      {signs.map((sign, i) => {
-        const r = COCKPIT_RADIUS - 0.02;
-        const x = Math.sin(sign.angle) * r;
-        const z = -Math.cos(sign.angle) * r;
-        const rotY = -sign.angle;
-
-        return (
-          <group key={`sign-${i}`} position={[x, sign.y, z]} rotation={[0, rotY, 0]}>
-            {/* Sign background */}
-            <mesh material={signMaterial}>
-              <planeGeometry args={[0.12, 0.04]} />
-            </mesh>
-            {/* Border frame */}
-            <mesh position={[0, 0, -0.001]} material={borderMaterial}>
-              <planeGeometry args={[0.13, 0.05]} />
-            </mesh>
-          </group>
-        );
-      })}
+      <instancedMesh
+        ref={setBgRef}
+        args={[bgGeo, signMaterial, signs.length]}
+        frustumCulled={false}
+      />
+      <instancedMesh
+        ref={setBorderRef}
+        args={[borderGeo, borderMaterial, signs.length]}
+        frustumCulled={false}
+      />
     </group>
   );
 }

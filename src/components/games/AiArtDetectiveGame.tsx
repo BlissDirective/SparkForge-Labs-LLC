@@ -10,7 +10,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -267,6 +267,7 @@ const DETECTION_TIPS = [
 ];
 
 export function AiArtDetectiveGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -346,8 +347,8 @@ export function AiArtDetectiveGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(255,170,68,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -423,8 +424,8 @@ export function AiArtDetectiveGame() {
                         {/* ENH: Pulsing highlight on tip card */}
                         <motion.div
                           className="absolute inset-0 rounded-xl pointer-events-none"
-                          animate={{ boxShadow: ['inset 0 0 0px rgba(255,170,68,0)', 'inset 0 0 20px rgba(255,170,68,0.15)', 'inset 0 0 0px rgba(255,170,68,0)'] }}
-                          transition={{ duration: 2, repeat: Infinity }}
+                          animate={prefersReducedMotion ? {} : { boxShadow: ['inset 0 0 0px rgba(255,170,68,0)', 'inset 0 0 20px rgba(255,170,68,0.15)', 'inset 0 0 0px rgba(255,170,68,0)'] }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                         />
                         <span className="text-3xl">{DETECTION_TIPS[tipIdx].emoji}</span>
                         <h4 className="font-display text-sm font-bold text-orange-300 mt-2">
@@ -611,7 +612,7 @@ export function AiArtDetectiveGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="AI Art Detective game complete">AI Art Detective Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You trained your eye to distinguish AI-generated art from human creations — a crucial skill in the age of generative AI.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#FFAA44]/10 border border-[#FFAA44]/20" role="status" aria-label={`Total score: ${game.score} points`}>

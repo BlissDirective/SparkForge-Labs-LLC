@@ -154,9 +154,14 @@
   overflow: hidden;
 }
 
-/* ═══ Glass Card — Glassmorphism (ENHANCED v2) ═══
+/* ═══ Glass Card — Glassmorphism (LEGACY, Phase 4 §10.15 superseded) ═══
+   DEPRECATED — prefer `.glass-card-v2` (base) or `.glass-card-v2-elevated`
+   (primary modals) which have richer backdrop-filter + per-edge border
+   gradient. This class is retained for backwards-compatibility only —
+   all in-tree usages migrated to -v2 on 2026-04-15.
+
    Semi-transparent card with backdrop blur and subtle borders.
-   v2: Added inner edge highlight for depth perception. */
+   Added inner edge highlight for depth perception. */
 .glass-card {
   background: rgba(17, 17, 24, 0.75);
   backdrop-filter: blur(16px);
@@ -177,6 +182,98 @@
   box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* ═══ Glassmorphism 2.0 — Phase 4 §10.15 ═══
+   2026 best-practice glass surfaces for auth pages and marketing cards.
+   Key differentiator vs .glass-card: per-edge border opacity variation
+   (top brighter, bottom darker) simulating light catching glass edges.
+   Saturate + brightness boost enriches blurred content.
+
+   Apply to: login card, signup card, reset-password card, pricing cards,
+   feature showcase cards, testimonial cards. Pair with .glow-border for
+   animated gradient accent on the most prominent cards (primary CTA). */
+.glass-card-v2 {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(28, 32, 48, 0.62) 0%,
+    rgba(17, 17, 28, 0.78) 100%
+  );
+  backdrop-filter: blur(10px) saturate(180%) brightness(1.08);
+  -webkit-backdrop-filter: blur(10px) saturate(180%) brightness(1.08);
+  /* Uniform fallback border */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+/* Per-edge border opacity — top edge brighter (light catching), bottom
+   darker (shadowed). Overlays the uniform border above using a linear
+   gradient clipped to a 1px inset. */
+.glass-card-v2::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  /* Mask technique: only the 1px padding border remains visible */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Elevated variant for primary CTAs (pricing "Plus" card, hero login) */
+.glass-card-v2-elevated {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(35, 40, 60, 0.68) 0%,
+    rgba(20, 20, 32, 0.82) 100%
+  );
+  backdrop-filter: blur(12px) saturate(200%) brightness(1.12);
+  -webkit-backdrop-filter: blur(12px) saturate(200%) brightness(1.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 16px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+}
+.glass-card-v2-elevated::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
 }
 
 /* ═══ Cockpit Viewport Content Zone ═══
@@ -804,5 +901,78 @@ body[data-scanlines="off"] .scanline-overlay {
   .chromatic-text {
     text-shadow: none;
     filter: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
+ * Phase 4 §10.1 — View Transitions API (Next.js 15)
+ *
+ * Styles applied to the native browser view-transition pseudo-elements.
+ * Works alongside MechanicalIris (D3D-B2) for 3D cockpit-to-game
+ * transitions — View Transitions handles 2D route-level morphing only.
+ *
+ * Duration tuned to TRANSITION_DURATIONS.page (400ms) from
+ * src/lib/animations.ts so 2D surface morph matches existing timing.
+ * ─────────────────────────────────────────────────────────────── */
+::view-transition-group(root) {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: sparkforge-view-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: sparkforge-view-fade-in;
+}
+
+@keyframes sparkforge-view-fade-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.98); }
+}
+
+@keyframes sparkforge-view-fade-in {
+  from { opacity: 0; transform: scale(1.02); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Named transitions for morph targets (lab cards → lab detail, etc.).
+ * Components opt in by setting `view-transition-name: <name>` inline
+ * via style prop — e.g. a lab card sets `view-transition-name: lab-3`
+ * and the lab detail page's hero sets the same name. Browser morphs
+ * automatically between them. */
+.view-transition-target {
+  view-transition-name: var(--vt-name, none);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 1ms;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
+ * Phase 4 §10.5 — React Bits / Magic UI keyframes
+ * Used by src/components/effects/ShinyText.tsx + GradientText.tsx
+ * ─────────────────────────────────────────────────────────────── */
+@keyframes sparkforge-shiny-sweep {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@keyframes sparkforge-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable shine + gradient animations for users who prefer reduced motion */
+  [style*="sparkforge-shiny-sweep"],
+  [style*="sparkforge-gradient-shift"] {
+    animation: none !important;
   }
 }

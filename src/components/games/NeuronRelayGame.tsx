@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -83,6 +83,7 @@ const PUZZLES = [
 ];
 
 export function NeuronRelayGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -152,8 +153,8 @@ export function NeuronRelayGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(236,72,153,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -180,16 +181,16 @@ export function NeuronRelayGame() {
                         className="text-5xl inline-block"
                         role="img"
                         aria-label="brain"
-                        animate={{ scale: [1, 1.15, 1] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.15, 1] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                       >
                         {'\u{1F9E0}'}
                       </motion.span>
                       <motion.div
                         className="absolute -inset-4 rounded-full"
                         style={{ background: 'radial-gradient(circle, rgba(236,72,153,0.2), transparent)' }}
-                        animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.5, 1], opacity: [0.6, 0, 0.6] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                       />
                       {/* ENH: Orbiting signal dots */}
                       {[0, 1, 2].map(i => (
@@ -197,12 +198,12 @@ export function NeuronRelayGame() {
                           key={i}
                           className="absolute w-2 h-2 rounded-full bg-pink-400"
                           style={{ top: '50%', left: '50%' }}
-                          animate={{
+                          animate={prefersReducedMotion ? {} : {
                             x: [Math.cos((i * 2 * Math.PI) / 3) * 28, Math.cos((i * 2 * Math.PI) / 3 + Math.PI) * 28],
                             y: [Math.sin((i * 2 * Math.PI) / 3) * 28, Math.sin((i * 2 * Math.PI) / 3 + Math.PI) * 28],
                             opacity: [0.8, 0.3, 0.8],
                           }}
-                          transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, delay: i * 0.3 }}
                         />
                       ))}
                     </motion.div>
@@ -291,12 +292,12 @@ export function NeuronRelayGame() {
                           borderTop: '2px solid rgba(74,222,128,0.4)',
                           borderBottom: '2px solid rgba(74,222,128,0.4)',
                         }}
-                        animate={{
+                        animate={prefersReducedMotion ? {} : {
                           boxShadow: inRange
                             ? ['0 0 0px rgba(74,222,128,0)', '0 0 12px rgba(74,222,128,0.4)', '0 0 0px rgba(74,222,128,0)']
                             : 'none',
                         }}
-                        transition={{ duration: 1.5, repeat: Infinity }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                       />
                       {/* Target zone labels */}
                       <span className="absolute text-[9px] font-mono text-green-400/40" style={{ left: `${puzzle.target[0]}%`, top: '-14px' }}>{puzzle.target[0]}</span>
@@ -381,7 +382,7 @@ export function NeuronRelayGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Neuron Relay Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You mastered neural signal processing by toggling neurons and adjusting their weights to hit precise target outputs across {puzzles.length} puzzles.
@@ -395,8 +396,8 @@ export function NeuronRelayGame() {
                     >
                       <motion.p
                         className="font-data text-2xl text-[#EC4899]"
-                        animate={{ textShadow: ['0 0 0px rgba(236,72,153,0)', '0 0 12px rgba(236,72,153,0.5)', '0 0 0px rgba(236,72,153,0)'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { textShadow: ['0 0 0px rgba(236,72,153,0)', '0 0 12px rgba(236,72,153,0.5)', '0 0 0px rgba(236,72,153,0)'] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         {animatedScore}
                       </motion.p>

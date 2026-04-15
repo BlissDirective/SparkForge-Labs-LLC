@@ -191,7 +191,7 @@ export function PaywallModal({
 
           {/* Content */}
           <motion.div
-            className="relative glass-card rounded-2xl w-full max-w-sm p-6 text-center overflow-hidden"
+            className="relative glass-card-v2-elevated w-full max-w-sm p-6 text-center overflow-hidden"
             variants={modalContent}
           >
             {/* Close button */}

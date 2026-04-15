@@ -21,7 +21,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -435,6 +435,7 @@ function buildNetwork(sizes: number[]): NetworkData {
 // ================================================================
 
 export function NeuralBuilderGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -940,8 +941,8 @@ export function NeuralBuilderGame() {
                 left: `${p.x}%`,
                 top: `${p.y}%`,
               }}
-              animate={{ y: [0, -30, 0], opacity: [0.2, 0.6, 0.2] }}
-              transition={{
+              animate={prefersReducedMotion ? {} : { y: [0, -30, 0], opacity: [0.2, 0.6, 0.2] }}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.duration,
                 delay: p.delay,
                 repeat: Infinity,

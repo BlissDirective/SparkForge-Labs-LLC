@@ -4,7 +4,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -183,6 +183,7 @@ const CATEGORY_CONFIG: Record<TimeCategory, { label: string; emoji: string; colo
 const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
 
 export function AiOrNotGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -273,8 +274,8 @@ export function AiOrNotGame() {
           <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
             style={{ width: p.size, height: p.size, left: `${p.x}%`, top: `${p.y}%`,
               background: 'radial-gradient(circle, rgba(217,70,239,0.4), transparent)' }}
-            animate={{ y: [0, -30, 0], opacity: [0.15, 0.5, 0.15] }}
-            transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+            animate={prefersReducedMotion ? {} : { y: [0, -30, 0], opacity: [0.15, 0.5, 0.15] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
           />
         ))}
 
@@ -289,8 +290,8 @@ export function AiOrNotGame() {
           {phase === 'welcome' && (
             <motion.div key="welcome" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <motion.div className="text-6xl mb-4" animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity }}>{'\u{1F52E}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}>{'\u{1F52E}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">AI or Not?</h2>
               <p className="font-body text-sm text-white/60 mb-1">Lab 10 — AI&#39;s Future</p>
               <p className="font-body text-sm text-white/50 max-w-sm mb-6">Can AI really do that? Sort amazing scenarios into NOW, SOON, or SCI-FI!</p>
@@ -318,7 +319,7 @@ export function AiOrNotGame() {
                     border: `1px solid ${CONCEPT_CARDS[learnIdx].color}30` }}
                   initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 25 }}>
-                  <motion.span className="text-4xl block mb-3" animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <motion.span className="text-4xl block mb-3" animate={prefersReducedMotion ? {} : { y: [0, -6, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                     {CONCEPT_CARDS[learnIdx].emoji}
                   </motion.span>
                   <h3 className="font-display text-lg font-bold text-white mb-2">{CONCEPT_CARDS[learnIdx].title}</h3>
@@ -350,16 +351,24 @@ export function AiOrNotGame() {
               </div>
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-xs text-fuchsia-400/60">ROUND {roundIdx + 1} / {totalRounds}</span>
-                <span className="font-mono text-xs text-white/30">Reality: {realityScore}%</span>
+                <span className="text-xs text-fuchsia-400/60">
+                  <span className="font-body">ROUND </span>
+                  <span className="font-data tabular-nums">{roundIdx + 1}</span>
+                  <span className="font-body"> / </span>
+                  <span className="font-data tabular-nums">{totalRounds}</span>
+                </span>
+                <span className="text-xs text-white/30">
+                  <span className="font-body">Reality: </span>
+                  <span className="font-data tabular-nums">{realityScore}%</span>
+                </span>
               </div>
 
               {/* Scenario Card */}
               <motion.div className="w-full max-w-md mx-auto rounded-2xl p-5 mb-4 text-center border border-fuchsia-500/20 bg-fuchsia-500/[0.05]"
                 initial={{ opacity: 0, y: 20, rotateX: 15 }} animate={{ opacity: 1, y: 0, rotateX: 0 }}
                 transition={{ type: 'spring', stiffness: 200 }}>
-                <motion.span className="text-5xl block mb-3" animate={{ y: [0, -8, 0] }}
-                  transition={{ duration: 2, repeat: Infinity }}>{round.emoji}</motion.span>
+                <motion.span className="text-5xl block mb-3" animate={prefersReducedMotion ? {} : { y: [0, -8, 0] }}
+                  transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{round.emoji}</motion.span>
                 <h3 className="font-display text-lg font-bold text-white mb-2">{round.title}</h3>
                 <p className="font-body text-sm text-white/60 leading-relaxed">
                   {ageBand === 'B' || ageBand === 'C' ? round.descriptionB : round.description}
@@ -497,8 +506,8 @@ export function AiOrNotGame() {
           {phase === 'predict' && (
             <motion.div key="predict" className="flex-1 flex flex-col items-center justify-center p-6"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <motion.div className="text-4xl mb-3" animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F52E}'}</motion.div>
+              <motion.div className="text-4xl mb-3" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F52E}'}</motion.div>
               <h3 className="font-display text-xl font-bold text-white mb-1">Your Prediction!</h3>
               <p className="font-body text-sm text-white/50 mb-4">Bonus Round — What will AI do in the future?</p>
 
@@ -565,8 +574,8 @@ export function AiOrNotGame() {
           {phase === 'complete' && (
             <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
-              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F52E}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F52E}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">AI Future Expert!</h2>
               <p className="font-body text-sm text-white/60 mb-4">You sorted AI&#39;s past, present, and future!</p>
 

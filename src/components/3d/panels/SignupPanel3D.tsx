@@ -37,6 +37,11 @@ import {
   PRESS_DEPTH,
   NUMERIC_FONT,
 } from '@/lib/3d/cockpitDesignTokens';
+import {
+  signupSchema,
+  childProfileSchema,
+  validateForm,
+} from '@/lib/validation/authSchemas';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -374,20 +379,26 @@ export default function SignupPanel3D({
     /[0-9]/.test(password),
   ], [password]);
 
+  // Phase 5 P.8-MAX (§8.10): Zod schemas replace inline string validation.
+  // See src/lib/validation/authSchemas.ts. Error messages are sourced from
+  // the schema definitions so they stay consistent across all auth surfaces.
   const handleStep1 = useCallback(async () => {
     setError('');
-    if (!email.includes('@')) { setError('Invalid email — Please enter a valid email address.'); return; }
-    if (password.length < 8) { setError('Password too short — Use at least 8 characters for security.'); return; }
-    if (!passChecks.every(Boolean)) { setError('Weak password — Include at least one uppercase letter, one lowercase letter, and one number.'); return; }
+    const validation = validateForm(signupSchema, { email, password });
+    if (validation) {
+      // First field error wins — show the email error if present, else password
+      setError(validation.email || validation.password || 'Invalid input');
+      return;
+    }
     setLoading(true);
     const result = await onStep1(email, password);
     setLoading(false);
     if (result.success) setStep(2);
     else setError(result.error || 'Something went wrong');
-  }, [email, password, passChecks, onStep1]);
+  }, [email, password, onStep1]);
 
   const handleStep3 = useCallback(async () => {
-    if (!coppaChecked) { setError('Consent required — Please confirm you are 18 or older to continue.'); return; }
+    if (!coppaChecked) { setError('Please confirm you are 18 or older to continue.'); return; }
     setError('');
     setLoading(true);
     const result = await onStep3(email);
@@ -397,9 +408,12 @@ export default function SignupPanel3D({
   }, [coppaChecked, email, onStep3]);
 
   const handleStep4 = useCallback(async () => {
-    if (!displayName.trim()) { setError('Name required — Please enter a display name for your child.'); return; }
-    if (displayName.length > 20) { setError('Name too long — Display name must be 20 characters or less.'); return; }
     setError('');
+    const validation = validateForm(childProfileSchema, { displayName: displayName.trim() });
+    if (validation) {
+      setError(validation.displayName || 'Invalid input');
+      return;
+    }
     setLoading(true);
     const result = await onStep4(email, password, displayName.trim(), childAge);
     setLoading(false);

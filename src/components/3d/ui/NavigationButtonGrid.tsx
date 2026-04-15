@@ -32,7 +32,10 @@ import {
   RingGeometry,
   AdditiveBlending,
   DoubleSide,
+  Vector3,
 } from 'three';
+import { useMagneticCursor } from '@/hooks/useMagneticCursor';
+import { fireHaptic } from '@/lib/haptic/hapticSim';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import {
@@ -154,6 +157,13 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
   const [hovered, setHovered] = useState(false);
   const [pressed, setPressed] = useState(false);
 
+  // Phase 4 §10.3: Magnetic cursor pull on nav buttons
+  const magnetic = useMagneticCursor({ radius: 0.08, strength: 0.18, maxOffset: 0.015 });
+  const restPos = useMemo(
+    () => new Vector3(config.position[0], config.position[1], config.position[2]),
+    [config.position]
+  );
+
   // Spring state stored in refs for per-frame updates (no re-renders)
   const springState = useRef({
     depressY: 0,
@@ -242,9 +252,14 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
     // Smooth emissive transition
     s.emissiveVal += (targetEmissive - s.emissiveVal) * Math.min(dt * 8, 1);
 
-    // Apply transforms to group
+    // Apply transforms to group + Phase 4 §10.3 magnetic offset
     if (groupRef.current) {
-      groupRef.current.position.y = s.depressY;
+      const cursorPos = hovered ? restPos : null;
+      magnetic.update(restPos, cursorPos, dt);
+      const magOff = magnetic.state.current.offset;
+      groupRef.current.position.x = magOff.x;
+      groupRef.current.position.y = s.depressY + magOff.y;
+      groupRef.current.position.z = magOff.z;
       groupRef.current.scale.setScalar(s.scaleVal);
     }
 
@@ -273,7 +288,12 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
   });
 
   // Pointer handlers
-  const handlePointerDown = useCallback(() => setPressed(true), []);
+  const handlePointerDown = useCallback(() => {
+    setPressed(true);
+    // Phase 4 §10.14 (J-A): Fire haptic on nav press — camera shake
+    // intensity 0.015 (subtle), click audio layer handled by audio hook.
+    fireHaptic('buttonPress');
+  }, []);
   const handlePointerUp = useCallback(() => {
     setPressed(false);
     onPress();

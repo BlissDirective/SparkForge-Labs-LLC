@@ -22,6 +22,7 @@
 // ADDED (Phase5): GameHUD3D registered via sceneStore.setGameHUDContent
 
 import React, { useEffect, useRef, type ReactNode } from 'react';
+import FocusTrap from 'focus-trap-react';
 import { useReducedMotion } from 'motion/react';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -30,6 +31,7 @@ import { useCockpitStore } from '@/stores/cockpitStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useCompleteAndReward } from '@/hooks/useGamification';
+import { useGameSounds } from '@/hooks/useGameSounds';
 import { XPPopupProvider } from '@/components/game/XPPopup';
 import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
 import { getCompletionTier } from '@/lib/3d/gameParticles';
@@ -65,6 +67,46 @@ export function GameShell({
   const resetGame = useGameStore((s) => s.resetGame);
   const isComplete = useGameStore((s) => s.isComplete);
   const score = useGameStore((s) => s.score);
+  const currentRound = useGameStore((s) => s.currentRound);
+
+  // Phase 4 §10.6 (H-B): Auto-play correct/wrong chime on score changes.
+  // Every game that calls `updateScore(+N)` on a correct answer now gets
+  // the canonical child-safe correct/wrong audio for free — no per-game
+  // wiring required. Tracks score delta between renders. Positive delta
+  // (normal case: +10 for correct) triggers playCorrect; a stale-round
+  // advance WITHOUT a delta is a no-op (most games increment round on
+  // both correct and wrong — we rely on score delta as the signal).
+  // Games that need more granular control (Pet Trainer, Agent Architect,
+  // Neural Builder, Bias Detective, Sort Toy Box, Prompt Lab) still use
+  // their bespoke per-game audio hooks and can call sfx.playWrong()
+  // directly when they detect a wrong answer.
+  const sfx = useGameSounds();
+  const prevScoreRef = useRef(0);
+  const prevRoundRef = useRef(0);
+  useEffect(() => {
+    // Reset tracking when a new game mounts
+    prevScoreRef.current = 0;
+    prevRoundRef.current = 0;
+  }, [gameId]);
+  useEffect(() => {
+    if (score > prevScoreRef.current) {
+      // Score went up — correct answer
+      const delta = score - prevScoreRef.current;
+      sfx.playCorrect();
+      // Combo pitch-climb on consecutive correct rounds (no round reset
+      // between). Use currentRound - prevRound as a simple streak proxy.
+      const roundsAdvanced = currentRound - prevRoundRef.current;
+      if (delta > 0 && roundsAdvanced <= 1 && currentRound >= 3) {
+        sfx.playCombo(currentRound);
+      }
+    } else if (currentRound > prevRoundRef.current && !isComplete) {
+      // Round advanced with no score change — typically means wrong answer.
+      // Skip if isComplete (end-of-game ceremony handles its own audio).
+      sfx.playWrong();
+    }
+    prevScoreRef.current = score;
+    prevRoundRef.current = currentRound;
+  }, [score, currentRound, isComplete, sfx]);
   const enterGame = useSceneStore((s) => s.enterGame);
   const exitGame = useSceneStore((s) => s.exitGame);
   const setGameHUDContent = useSceneStore((s) => s.setGameHUDContent);
@@ -163,17 +205,37 @@ export function GameShell({
     <XPPopupProvider>
       {/* Phase 1 audit fix (Section 8.7): GameErrorBoundary wraps all 35 games */}
       <GameErrorBoundary gameId={gameId} gameTitle={title} worldColor={worldColor}>
-        <div
-          className="h-full w-full"
-          data-game-id={gameId}
-          data-world={worldNumber}
-          data-world-color={worldColor}
-          data-reduced-motion={prefersReducedMotion || undefined}
-          role="region"
-          aria-label={`${title} game`}
+        {/* Phase 5 O.6-MIN (§8.6): Focus trap contains Tab navigation within
+            the game region during gameplay so keyboard users don't wander
+            into the cockpit chrome. Released on unmount (game exit).
+            allowOutsideClick so mouse users aren't blocked; clickOutsideDeactivates
+            false so clicking background 3D doesn't break the trap. */}
+        <FocusTrap
+          active={!isComplete}
+          focusTrapOptions={{
+            allowOutsideClick: true,
+            clickOutsideDeactivates: false,
+            escapeDeactivates: false,
+            returnFocusOnDeactivate: true,
+            // Don't force initial focus — let the game component decide where
+            // focus starts (e.g., first answer button).
+            initialFocus: false,
+            fallbackFocus: `[data-game-id="${gameId}"]`,
+          }}
         >
-          {children}
-        </div>
+          <div
+            className="h-full w-full"
+            data-game-id={gameId}
+            data-world={worldNumber}
+            data-world-color={worldColor}
+            data-reduced-motion={prefersReducedMotion || undefined}
+            role="region"
+            aria-label={`${title} game`}
+            tabIndex={-1}
+          >
+            {children}
+          </div>
+        </FocusTrap>
       </GameErrorBoundary>
     </XPPopupProvider>
   );

@@ -1,35 +1,22 @@
-// SparkForge Lab Configuration — Single Source of Truth
-// DES-03: OKLCH-derived HEX values for perceptual uniformity (L=0.75)
-// CSS layer uses oklch() directly; JS/3D layer uses these HEX approximations
-// since Three.js Color() does not parse oklch() strings.
+// SparkForge Lab Configuration
+//
+// Phase 5 P.3-MAX (§7.2): LAB_COLORS + LAB_NAMES are now derived from
+// src/config/labColors.ts, the single authoritative source for lab
+// accents. Both runtime JS/3D code and the Tailwind config import from
+// the same table — no more parallel OKLCH-in-Tailwind vs HEX-in-labs
+// drift. See `labColors.ts` for the full table including OKLCH values.
 
-/** Canonical lab accent colors — OKLCH L=0.75 (HEX approximations for JS/3D) */
-export const LAB_COLORS: Record<number, string> = {
-  1: '#0FB8FA',  // What IS AI? — Blue       oklch(0.75 0.17 225)
-  2: '#B67BFF',  // Teaching Machines — Purple oklch(0.75 0.19 295)
-  3: '#FF70AF',  // The Brain Inside — Pink   oklch(0.75 0.19 345)
-  4: '#D9A430',  // AI That Creates — Amber   oklch(0.75 0.17 75)
-  5: '#00D17A',  // AI Helpers — Green        oklch(0.75 0.19 155)
-  6: '#FF7050',  // AI & Ethics — Red-Orange  oklch(0.75 0.20 25)
-  7: '#10BAD2',  // Computer Vision — Cyan    oklch(0.75 0.14 195)
-  8: '#8F96FA',  // Words & Language — Violet oklch(0.75 0.15 275)
-  9: '#E68E28',  // Build Your AI — Orange    oklch(0.75 0.18 50)
-  10: '#DE5AEA', // AI Futures — Fuchsia      oklch(0.75 0.19 325)
-};
+import {
+  LAB_COLORS_HEX,
+  LAB_NAMES_MAP,
+  DEFAULT_LED_COLOR_HEX,
+} from './labColors';
 
-/** Canonical lab display names */
-export const LAB_NAMES: Record<number, string> = {
-  1: 'What IS AI?',
-  2: 'Teaching Machines',
-  3: 'The Brain Inside',
-  4: 'AI That Creates',
-  5: 'AI Helpers',
-  6: 'AI & Ethics',
-  7: 'Computer Vision',
-  8: 'Words & Language',
-  9: 'Build Your AI',
-  10: 'AI Futures',
-};
+/** Canonical lab accent colors — HEX for JS/3D consumers. Derived from labColors.ts. */
+export const LAB_COLORS: Record<number, string> = LAB_COLORS_HEX;
+
+/** Canonical lab display names. Derived from labColors.ts. */
+export const LAB_NAMES: Record<number, string> = LAB_NAMES_MAP;
 
 /** Canonical lab icons (emoji) */
 export const LAB_ICONS: Record<number, string> = {
@@ -46,4 +33,5 @@ export const LAB_ICONS: Record<number, string> = {
 };
 
 /** Default LED color — OKLCH primary blue (HEX for Three.js) */
-export const DEFAULT_LED_COLOR = '#0FB8FA';
+/** Default LED color — derived from labColors.ts (matches lab 1). */
+export const DEFAULT_LED_COLOR = DEFAULT_LED_COLOR_HEX;

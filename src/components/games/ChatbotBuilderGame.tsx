@@ -23,7 +23,7 @@
 // ================================================================
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
 import { useGameStore } from "@/stores/gameStore";
@@ -697,13 +697,14 @@ function useTypingAnimation(text: string, enabled: boolean, speed = 30) {
 
 // --- Typing Message Sub-component ---
 function TypingMessage({ text, isLatest, speed }: { text: string; isLatest: boolean; speed: number }) {
+  const prefersReducedMotion = useReducedMotion();
   const { displayed, done } = useTypingAnimation(text, isLatest, speed);
   return (
     <p className="font-body text-sm text-white/80">
       {displayed}
       {isLatest && !done && (
         <motion.span className="inline-block w-0.5 h-4 bg-white/50 ml-0.5"
-          animate={{ opacity: [1, 0] }} transition={{ repeat: Infinity, duration: 0.6 }} />
+          animate={prefersReducedMotion ? {} : { opacity: [1, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 0.6 }} />
       )}
     </p>
   );
@@ -714,6 +715,7 @@ function TypingMessage({ text, isLatest, speed }: { text: string; isLatest: bool
 // ================================================================
 
 export function ChatbotBuilderGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -855,8 +857,8 @@ export function ChatbotBuilderGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, ${pers.colors.primary}20, transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -870,7 +872,7 @@ export function ChatbotBuilderGame() {
                 {phase === "welcome" && (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="flex-1 flex flex-col items-center justify-center text-center p-6 space-y-4">
-                    <motion.span className="text-6xl block" animate={{ rotate: [0, 5, -5, 0] }} transition={{ repeat: Infinity, duration: 3 }}>
+                    <motion.span className="text-6xl block" animate={prefersReducedMotion ? {} : { rotate: [0, 5, -5, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 3 }}>
                       {"\uD83E\uDD16"}
                     </motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Chatbot Builder</h2>
@@ -1162,7 +1164,7 @@ export function ChatbotBuilderGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4 p-6"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Chatbot Builder Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You designed a conversation flow with branching dialog paths and deployed your own chatbot — real chatbot developers use the same graph-based approach!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
@@ -1197,8 +1199,8 @@ export function ChatbotBuilderGame() {
                     <div className="w-12 h-1.5 rounded-full bg-white/10" />
                   </div>
                   <div className="flex-1 flex items-center justify-center">
-                    <motion.span className="text-4xl" animate={{ scale: [1, 1.2, 1] }}
-                      transition={{ repeat: Infinity, duration: 1.5 }}>
+                    <motion.span className="text-4xl" animate={prefersReducedMotion ? {} : { scale: [1, 1.2, 1] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 1.5 }}>
                       {"\uD83E\uDD16"}
                     </motion.span>
                   </div>

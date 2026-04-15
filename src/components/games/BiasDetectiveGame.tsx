@@ -16,7 +16,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -657,6 +657,7 @@ const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 }; // [CR-6F-B9] F
 // ================================================================
 
 export function BiasDetectiveGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -955,11 +956,11 @@ export function BiasDetectiveGame() {
                 background: `radial-gradient(circle,
                   rgba(239,68,68,${0.15 + p.size * 0.06}), transparent)`,
               }}
-              animate={{
+              animate={prefersReducedMotion ? {} : {
                 y: [0, -12 - p.size * 4, 0],
                 opacity: [0.1, 0.35, 0.1],
               }}
-              transition={{
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.duration, delay: p.delay,
                 repeat: Infinity, ease: 'easeInOut',
               }}
@@ -991,14 +992,14 @@ export function BiasDetectiveGame() {
                       justify-center text-center space-y-5">
 
                     <motion.div
-                      animate={{
+                      animate={prefersReducedMotion ? {} : {
                         boxShadow: [
                           '0 0 20px rgba(239,68,68,0.15)',
                           '0 0 40px rgba(239,68,68,0.25)',
                           '0 0 20px rgba(239,68,68,0.15)',
                         ],
                       }}
-                      transition={{ duration: 3, repeat: Infinity }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}
                       className="inline-flex items-center gap-2 px-4 py-2
                         rounded-full border border-red-500/20"
                       style={{

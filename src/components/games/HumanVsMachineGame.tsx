@@ -15,7 +15,7 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -269,6 +269,7 @@ const LEARN_CARDS = [
 ];
 
 export function HumanVsMachineGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -366,8 +367,8 @@ export function HumanVsMachineGame() {
                   0.15 + p.size * 0.06
                 }), transparent)`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.dur,
                 delay: p.delay,
                 repeat: Infinity,
@@ -550,14 +551,14 @@ export function HumanVsMachineGame() {
                               <motion.div
                                 key={dot}
                                 className="w-2 h-2 rounded-full bg-amber-400/60"
-                                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.9, 0.3] }}
-                                transition={{ repeat: Infinity, duration: 0.8, delay: dot * 0.2 }}
+                                animate={prefersReducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.3, 0.9, 0.3] }}
+                                transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 0.8, delay: dot * 0.2 }}
                               />
                             ))}
                             <motion.span
                               className="font-body text-xs text-white/30 ml-1"
-                              animate={{ opacity: [0.3, 0.8, 0.3] }}
-                              transition={{ repeat: Infinity, duration: 1 }}
+                              animate={prefersReducedMotion ? {} : { opacity: [0.3, 0.8, 0.3] }}
+                              transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 1 }}
                             >
                               Processing...
                             </motion.span>
@@ -662,7 +663,7 @@ export function HumanVsMachineGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Human vs Machine Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You went head-to-head with AI across multiple challenges, discovering where humans and machines each have unique strengths.

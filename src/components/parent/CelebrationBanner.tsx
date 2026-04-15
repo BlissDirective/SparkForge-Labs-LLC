@@ -107,7 +107,7 @@ export function CelebrationBanner({
 
           {/* Chrome-bezel card */}
           <div
-            className="relative glass-card rounded-2xl px-6 py-4 min-w-[280px] max-w-[480px] overflow-hidden"
+            className="relative glass-card-v2 px-6 py-4 min-w-[280px] max-w-[480px] overflow-hidden"
             style={{
               boxShadow: `0 0 32px ${color}40, 0 0 64px ${color}20, inset 0 1px 0 rgba(255,255,255,0.08)`,
             }}

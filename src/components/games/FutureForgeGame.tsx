@@ -11,7 +11,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -280,6 +280,7 @@ const SCENARIOS: Scenario[] = [
 ];
 
 export default function FutureForgeGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
   const { data: dynamicContent } = useGameContent('future-forge', ageBand);
@@ -392,8 +393,8 @@ export default function FutureForgeGame() {
         {particles.map(p => (
           <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
             style={{ left: p.left, top: p.top, width: p.size, height: p.size, backgroundColor: '#D946EF' }}
-            animate={{ opacity: [0.15, 0.5, 0.15], y: [0, -15, 0] }}
-            transition={{ repeat: Infinity, duration: p.duration, delay: p.delay, ease: 'easeInOut' }}
+            animate={prefersReducedMotion ? {} : { opacity: [0.15, 0.5, 0.15], y: [0, -15, 0] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: p.duration, delay: p.delay, ease: 'easeInOut' }}
           />
         ))}
 
@@ -401,7 +402,7 @@ export default function FutureForgeGame() {
         {phase === 'welcome' && (
           <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="flex flex-col items-center justify-center gap-6 p-8 text-center">
-            <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
+            <motion.div animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 2 }}>
               <Rocket className="w-16 h-16 text-lab-10" />
             </motion.div>
             <h2 className="font-display text-3xl text-white">Future Forge</h2>
