@@ -30,6 +30,7 @@ import { useCockpitStore } from '@/stores/cockpitStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useCompleteAndReward } from '@/hooks/useGamification';
+import { useGameSounds } from '@/hooks/useGameSounds';
 import { XPPopupProvider } from '@/components/game/XPPopup';
 import { GameErrorBoundary } from '@/components/game/GameErrorBoundary';
 import { getCompletionTier } from '@/lib/3d/gameParticles';
@@ -65,6 +66,46 @@ export function GameShell({
   const resetGame = useGameStore((s) => s.resetGame);
   const isComplete = useGameStore((s) => s.isComplete);
   const score = useGameStore((s) => s.score);
+  const currentRound = useGameStore((s) => s.currentRound);
+
+  // Phase 4 §10.6 (H-B): Auto-play correct/wrong chime on score changes.
+  // Every game that calls `updateScore(+N)` on a correct answer now gets
+  // the canonical child-safe correct/wrong audio for free — no per-game
+  // wiring required. Tracks score delta between renders. Positive delta
+  // (normal case: +10 for correct) triggers playCorrect; a stale-round
+  // advance WITHOUT a delta is a no-op (most games increment round on
+  // both correct and wrong — we rely on score delta as the signal).
+  // Games that need more granular control (Pet Trainer, Agent Architect,
+  // Neural Builder, Bias Detective, Sort Toy Box, Prompt Lab) still use
+  // their bespoke per-game audio hooks and can call sfx.playWrong()
+  // directly when they detect a wrong answer.
+  const sfx = useGameSounds();
+  const prevScoreRef = useRef(0);
+  const prevRoundRef = useRef(0);
+  useEffect(() => {
+    // Reset tracking when a new game mounts
+    prevScoreRef.current = 0;
+    prevRoundRef.current = 0;
+  }, [gameId]);
+  useEffect(() => {
+    if (score > prevScoreRef.current) {
+      // Score went up — correct answer
+      const delta = score - prevScoreRef.current;
+      sfx.playCorrect();
+      // Combo pitch-climb on consecutive correct rounds (no round reset
+      // between). Use currentRound - prevRound as a simple streak proxy.
+      const roundsAdvanced = currentRound - prevRoundRef.current;
+      if (delta > 0 && roundsAdvanced <= 1 && currentRound >= 3) {
+        sfx.playCombo(currentRound);
+      }
+    } else if (currentRound > prevRoundRef.current && !isComplete) {
+      // Round advanced with no score change — typically means wrong answer.
+      // Skip if isComplete (end-of-game ceremony handles its own audio).
+      sfx.playWrong();
+    }
+    prevScoreRef.current = score;
+    prevRoundRef.current = currentRound;
+  }, [score, currentRound, isComplete, sfx]);
   const enterGame = useSceneStore((s) => s.enterGame);
   const exitGame = useSceneStore((s) => s.exitGame);
   const setGameHUDContent = useSceneStore((s) => s.setGameHUDContent);
