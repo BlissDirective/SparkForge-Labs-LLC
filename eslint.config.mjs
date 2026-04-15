@@ -40,6 +40,20 @@ export default tseslint.config(
 
       // Allow require() in config files (tailwind, postcss)
       '@typescript-eslint/no-require-imports': 'off',
+
+      // Phase 5 P.4-MAX (§7.4): Font hierarchy enforcement.
+      // Warn when a JSX element uses font-body or font-mono together with
+      // direct numeric text children — those MUST use font-data (Orbitron)
+      // or the DataNumber component. See src/components/ui/DataNumber.tsx.
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector:
+            "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/font-body|font-mono/] ~ JSXText[value=/^\\s*[+\\-]?[0-9]+[.,0-9]*\\s*$/]",
+          message:
+            'Numeric data should render in font-data (Orbitron) or via <DataNumber>. Do not use font-body / font-mono for numeric values.',
+        },
+      ],
     },
   },
 

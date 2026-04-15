@@ -472,7 +472,12 @@ export function EmojiDecoderGame() {
               </div>
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-xs text-indigo-400/60">ROUND {roundIdx + 1} / {totalRounds}</span>
+                <span className="text-xs text-indigo-400/60">
+                  <span className="font-body">ROUND </span>
+                  <span className="font-data tabular-nums">{roundIdx + 1}</span>
+                  <span className="font-body"> / </span>
+                  <span className="font-data tabular-nums">{totalRounds}</span>
+                </span>
                 <div className="flex items-center gap-3">
                   {streak >= 2 && (
                     <motion.div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/20"

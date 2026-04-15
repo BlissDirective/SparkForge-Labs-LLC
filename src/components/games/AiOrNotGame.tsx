@@ -351,8 +351,16 @@ export function AiOrNotGame() {
               </div>
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-xs text-fuchsia-400/60">ROUND {roundIdx + 1} / {totalRounds}</span>
-                <span className="font-mono text-xs text-white/30">Reality: {realityScore}%</span>
+                <span className="text-xs text-fuchsia-400/60">
+                  <span className="font-body">ROUND </span>
+                  <span className="font-data tabular-nums">{roundIdx + 1}</span>
+                  <span className="font-body"> / </span>
+                  <span className="font-data tabular-nums">{totalRounds}</span>
+                </span>
+                <span className="text-xs text-white/30">
+                  <span className="font-body">Reality: </span>
+                  <span className="font-data tabular-nums">{realityScore}%</span>
+                </span>
               </div>
 
               {/* Scenario Card */}
