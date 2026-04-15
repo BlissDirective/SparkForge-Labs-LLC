@@ -9,7 +9,7 @@
 //
 // Device scaling: Desktop 8 bots, Tablet 4 bots, Mobile 0.
 
-import React, { useRef, useMemo, useState, useCallback } from 'react';
+import React, { useRef, useMemo, useCallback, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import { BackSide, Group, MeshBasicMaterial, MeshStandardMaterial } from 'three';
@@ -274,14 +274,19 @@ function PersonalityAccessory({ type, color, seg }: { type: PersonalityType; col
 
 function ArticulatedBot({
   botState,
-  time,
-  focusedLabPosition,
-  visibleSince,
+  focusedLabPositionRef,
+  visibleSinceRef,
 }: {
   botState: BotState;
-  time: number;
-  focusedLabPosition: [number, number, number] | null;
-  visibleSince: number | null;
+  /**
+   * Phase 3 Task 4C-fidelity: was a frozen `time: number` prop. Now each bot
+   * reads `state.clock.elapsedTime` directly inside useFrame, so we no longer
+   * trigger a React re-render of the entire bot subtree on every frame.
+   * The 8× per-frame React re-render cascade (was driven by setCurrentTime
+   * in the parent AmbientNPCs) is eliminated.
+   */
+  focusedLabPositionRef: RefObject<[number, number, number] | null>;
+  visibleSinceRef: RefObject<number | null>;
 }) {
   const groupRef    = useRef<Group>(null);
   const headRef     = useRef<Group>(null);
@@ -310,9 +315,9 @@ function ArticulatedBot({
   const prevPos = useRef<[number, number, number]>([0, 0, 0]);
   const facingRef = useRef(0);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (!groupRef.current) return;
-    const t = time;
+    const t = clock.elapsedTime;
     const s = pathSeed;
 
     const noiseX = noise2D(t * speed * 0.15 + s * 10, s * 3.7) * 6;
@@ -337,6 +342,7 @@ function ArticulatedBot({
     groupRef.current.position.set(x, y, z);
     // Staggered entrance: scale from 0→1 over 0.5s after per-bot delay (Finding E)
     let entranceScale = 1;
+    const visibleSince = visibleSinceRef.current;
     if (visibleSince !== null) {
       const elapsed = t - visibleSince - botState.staggerDelay;
       entranceScale = elapsed < 0 ? 0 : Math.min(elapsed / 0.5, 1);
@@ -351,6 +357,7 @@ function ArticulatedBot({
     const mspd = Math.sqrt(dx * dx + dz * dz);
     let targetFacing = facingRef.current;
     if (mspd > 0.001) targetFacing = Math.atan2(dx, dz);
+    const focusedLabPosition = focusedLabPositionRef.current;
     if (focusedLabPosition) {
       const fdx = focusedLabPosition[0] - x, fdz = focusedLabPosition[2] - z;
       if (Math.sqrt(fdx * fdx + fdz * fdz) < 4) targetFacing = Math.atan2(fdx, fdz);
@@ -709,10 +716,16 @@ function ArticulatedBot({
 
 export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLabPosition }: AmbientNPCsProps) {
   const botsRef = useRef<Group>(null);
-  const [currentTime, setCurrentTime] = useState(0);
   const _profile = useDeviceStore((s) => s.profile);
   // Track when visibility began for staggered entrance (Finding E)
   const visibleSinceRef = useRef<number | null>(null);
+  // Phase 3 Task 4C-fidelity: hold focusedLabPosition in a ref so bots can
+  // read it inside useFrame without triggering React re-renders when the
+  // prop changes every dashboard navigation.
+  const focusedLabPositionRef = useRef<[number, number, number] | null>(
+    focusedLabPosition
+  );
+  focusedLabPositionRef.current = focusedLabPosition;
 
   const botCount = 8; // D3D-1: Always max bots (desktop-ultra)
 
@@ -734,6 +747,11 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
     });
   }, [botCount]);
 
+  // Phase 3 Task 4C-fidelity: This useFrame now ONLY tracks visibility
+  // onset — it no longer calls setCurrentTime on every frame. That eliminates
+  // the per-frame React re-render cascade across all 8 bots (previously each
+  // of 8 bot subtrees re-rendered 60 times per second). Bots read the clock
+  // directly inside their own useFrame via state.clock.elapsedTime.
   useFrame(({ clock }) => {
     if (!visible) {
       visibleSinceRef.current = null;
@@ -742,7 +760,6 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
     if (visibleSinceRef.current === null) {
       visibleSinceRef.current = clock.elapsedTime;
     }
-    setCurrentTime(clock.elapsedTime);
   });
 
   if (!visible) return null;
@@ -753,9 +770,8 @@ export const AmbientNPCs = React.memo(function AmbientNPCs({ visible, focusedLab
         <ArticulatedBot
           key={bot.id}
           botState={bot}
-          time={currentTime}
-          focusedLabPosition={focusedLabPosition}
-          visibleSince={visibleSinceRef.current}
+          focusedLabPositionRef={focusedLabPositionRef}
+          visibleSinceRef={visibleSinceRef}
         />
       ))}
     </group>
