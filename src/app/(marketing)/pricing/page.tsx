@@ -425,10 +425,16 @@ export default function PricingPage() {
             return (
               <motion.div
                 key={slug}
-                className={`relative rounded-2xl p-8 border bg-white/[0.02] backdrop-blur-sm ${
+                className={`relative p-8 ${
+                  /* Phase 4 §10.15: Glassmorphism 2.0 — popular tier uses
+                     elevated variant with richer saturate + brighter top
+                     edge. Non-popular tiers use base v2 with per-edge
+                     border gradient. */
+                  isPopular ? 'glass-card-v2-elevated ring-1 ring-[#3B82F6]/20 md:scale-105' : 'glass-card-v2'
+                } border-0 ${
                   isPopular
-                    ? 'border-[#3B82F6]/30 ring-1 ring-[#3B82F6]/10 md:scale-105'
-                    : 'border-white/[0.06]'
+                    ? ''
+                    : ''
                 }`}
                 // [ENH-1] Disable hover lift when reduced motion preferred
                 whileHover={prefersReducedMotion ? undefined : { y: -4 }}
@@ -525,7 +531,8 @@ export default function PricingPage() {
           </h2>
 
           {/* [v3] Chrome bezel styling on table + [ENH-5] scanline overlay */}
-          <div className="rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm relative">
+          {/* Phase 4 §10.15: Glassmorphism 2.0 */}
+          <div className="overflow-hidden glass-card-v2 relative">
             {/* [ENH-5] Scanline overlay — station CRT aesthetic */}
             <div
               className="absolute inset-0 scanline-overlay pointer-events-none z-10"
@@ -577,7 +584,8 @@ export default function PricingPage() {
         {/* FOR SCHOOLS CTA                                    */}
         {/* ═══════════════════════════════════════════════════ */}
         <motion.div variants={safeStaggerItem} className="mb-16">
-          <div className="rounded-2xl p-8 md:p-12 relative overflow-hidden border border-white/[0.06] bg-white/[0.02] backdrop-blur-sm">
+          {/* Phase 4 §10.15: Glassmorphism 2.0 */}
+          <div className="p-8 md:p-12 relative overflow-hidden glass-card-v2">
             {/* Background accent */}
             <div
               className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-emerald-500/[0.06] blur-[60px]"
