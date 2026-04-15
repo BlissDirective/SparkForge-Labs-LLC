@@ -22,17 +22,22 @@ import { useFrame } from '@react-three/fiber';
 import {
   BackSide,
   BufferGeometry,
+  CircleGeometry,
   Color,
   CylinderGeometry,
   DoubleSide,
+  Euler,
   ExtrudeGeometry,
   Float32BufferAttribute,
   Group,
-  Mesh,
+  InstancedMesh,
+  Matrix4,
   MeshStandardMaterial,
+  Quaternion,
   RingGeometry,
   Shape,
   Side,
+  Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
@@ -292,6 +297,20 @@ interface HexClusterProps {
   showDetail: boolean;
 }
 
+// Phase 3 audit fix (Task 4A, §9.1/§10.7):
+//
+// OLD: 6 hexes × up to 5 meshes each = up to 30 meshes per cluster (60 total).
+// NEW: Up to 5 InstancedMesh per cluster (10 total). Savings: up to 50 draw
+// calls with zero visual change. Needle animation fully preserved via
+// per-instance matrix updates (each needle keeps its unique speed/phase).
+//
+// Instanced groups:
+//   1) Hex shells (6 instances, always rendered)
+//   2) Hex insets (6 instances, only when showSubPanels)
+//   3) Dial rings (6 instances, only when showDetail)
+//   4) Needles   (6 instances, only when showDetail — ANIMATED per frame)
+//   5) Indicator circles (6 instances, always rendered)
+
 function HexCluster({
   side,
   hexGeo,
@@ -305,23 +324,14 @@ function HexCluster({
   showSubPanels,
   showDetail,
 }: HexClusterProps) {
-  const needleRefs = useRef<(Mesh | null)[]>([]);
+  const shellRef = useRef<InstancedMesh>(null);
+  const insetRef = useRef<InstancedMesh>(null);
+  const dialRef = useRef<InstancedMesh>(null);
+  const needleRef = useRef<InstancedMesh>(null);
+  const indicatorRef = useRef<InstancedMesh>(null);
   const mirror = side === 'left' ? -1 : 1;
 
-  // Animate gauge needles
-  useFrame(({ clock }) => {
-    for (let i = 0; i < HEXES_PER_CLUSTER; i++) {
-      const needle = needleRefs.current[i];
-      if (!needle) continue;
-      // Each needle sweeps at a unique rate + phase offset
-      const speed = 0.4 + i * 0.15;
-      const phase = i * 1.2;
-      const angle = Math.sin(clock.elapsedTime * speed + phase) * 1.2 - 0.6;
-      needle.rotation.z = angle;
-    }
-  });
-
-  // Hex grid layout: 2 columns x 3 rows, offset like a honeycomb
+  // Hex grid layout: 2 columns × 3 rows, offset like a honeycomb
   const hexPositions = useMemo(() => {
     const positions: [number, number][] = [];
     for (let row = 0; row < 3; row++) {
@@ -334,88 +344,186 @@ function HexCluster({
     return positions;
   }, [hexRadius, mirror]);
 
+  // Shared materials — one per sub-type (identical per hex within cluster)
+  const shellMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#0A0F1F',
+        metalness: 0.85,
+        roughness: 0.35,
+        transparent: true,
+        opacity,
+        side: DoubleSide,
+      }),
+    [opacity]
+  );
+  const insetMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#060A14',
+        metalness: 0.75,
+        roughness: 0.5,
+        transparent: true,
+        opacity: opacity * 0.95,
+      }),
+    [opacity]
+  );
+  const dialMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: CHROME_BORDER.colorHex,
+        metalness: 0.85,
+        roughness: 0.35,
+        transparent: true,
+        opacity: opacity * 0.7,
+      }),
+    [opacity]
+  );
+  const needleMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#ff3333',
+        emissive: '#ff2222',
+        emissiveIntensity: 0.6,
+        metalness: 0.9,
+        roughness: 0.2,
+        transparent: true,
+        opacity,
+      }),
+    [opacity]
+  );
+  const indicatorMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#000000',
+        emissive: labColorObj,
+        emissiveIntensity: EMISSIVE_IDLE_INDICATOR,
+        transparent: true,
+        opacity: opacity * 0.8,
+        toneMapped: false,
+      }),
+    [labColorObj, opacity]
+  );
+
+  // Per-hex indicator circle geometry — shared by indicator InstancedMesh
+  const indicatorGeo = useMemo(
+    () => new CircleGeometry(hexRadius * 0.2, 6),
+    [hexRadius]
+  );
+
+  // Write static instance matrices (shells / insets / dials / indicators).
+  // Needle matrices are updated per-frame in useFrame below.
+  useEffect(() => {
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const euler = new Euler();
+    const scale = new Vector3(1, 1, 1);
+    const pos = new Vector3();
+    const identityQuat = new Quaternion();
+
+    const writeMatrices = (
+      ref: InstancedMesh | null,
+      zOffset: number,
+      rotation?: Euler
+    ) => {
+      if (!ref) return;
+      const q = rotation ? quat.setFromEuler(rotation) : identityQuat;
+      for (let i = 0; i < hexPositions.length; i++) {
+        const [x, y] = hexPositions[i];
+        pos.set(x, y, zOffset);
+        mat4.compose(pos, q, scale);
+        ref.setMatrixAt(i, mat4);
+      }
+      ref.instanceMatrix.needsUpdate = true;
+    };
+
+    writeMatrices(shellRef.current, 0);
+    writeMatrices(insetRef.current, hexDepth * 0.3);
+    writeMatrices(dialRef.current, hexDepth + 0.005);
+    writeMatrices(indicatorRef.current, hexDepth + 0.015);
+  }, [hexPositions, hexDepth]);
+
+  // Animate needles per-instance — preserves the original per-hex
+  // (speed = 0.4 + i * 0.15, phase = i * 1.2) sweep formula exactly.
+  const needleFrameState = useMemo(
+    () => ({
+      mat4: new Matrix4(),
+      quat: new Quaternion(),
+      baseEuler: new Euler(Math.PI / 2, 0, 0),
+      animatedEuler: new Euler(),
+      scale: new Vector3(1, 1, 1),
+      pos: new Vector3(),
+    }),
+    []
+  );
+
+  useFrame(({ clock }) => {
+    const mesh = needleRef.current;
+    if (!mesh) return;
+    const { mat4, quat, animatedEuler, scale, pos } = needleFrameState;
+    const t = clock.elapsedTime;
+
+    for (let i = 0; i < hexPositions.length; i++) {
+      const [x, y] = hexPositions[i];
+      const speed = 0.4 + i * 0.15;
+      const phase = i * 1.2;
+      const angle = Math.sin(t * speed + phase) * 1.2 - 0.6;
+      // Compose local rotation: base [PI/2, 0, 0] × animated [0, 0, angle]
+      // The original mesh had rotation=[PI/2, 0, 0] and the per-frame update
+      // only touched .rotation.z. Replicate the same final orientation.
+      animatedEuler.set(Math.PI / 2, 0, angle);
+      quat.setFromEuler(animatedEuler);
+      pos.set(x, y, hexDepth + 0.01);
+      mat4.compose(pos, quat, scale);
+      mesh.setMatrixAt(i, mat4);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+
+  const count = hexPositions.length;
+
   return (
     <group position={[mirror * 3.2, -2.5, -COCKPIT_GEOMETRY.panelRadius + 0.5]}>
-      {hexPositions.map(([x, y], i) => (
-        <group key={`hex-${side}-${i}`} position={[x, y, 0]}>
-          {/* Hex outer shell (beveled) — Decision 11.3: carbon composite */}
-          <mesh geometry={hexGeo}>
-            <meshStandardMaterial
-              color="#0A0F1F"
-              metalness={0.85}
-              roughness={0.35}
-              transparent
-              opacity={opacity}
-              side={DoubleSide}
-            />
-          </mesh>
+      {/* 1) Hex outer shells (always) */}
+      <instancedMesh
+        ref={shellRef}
+        args={[hexGeo, shellMat, count]}
+        frustumCulled={false}
+      />
 
-          {/* Hex inner inset (gauge face) — only at detail LOD */}
-          {showSubPanels && (
-            <mesh
-              geometry={hexInsetGeo}
-              position={[0, 0, hexDepth * 0.3]}
-            >
-              <meshStandardMaterial
-                color="#060A14"
-                metalness={0.75}
-                roughness={0.5}
-                transparent
-                opacity={opacity * 0.95}
-              />
-            </mesh>
-          )}
+      {/* 2) Hex inner insets (gauge face) — only at detail LOD */}
+      {showSubPanels && (
+        <instancedMesh
+          ref={insetRef}
+          args={[hexInsetGeo, insetMat, count]}
+          frustumCulled={false}
+        />
+      )}
 
-          {/* Gauge dial ring */}
-          {showDetail && (
-            <mesh
-              geometry={needleDialGeo}
-              position={[0, 0, hexDepth + 0.005]}
-            >
-              <meshStandardMaterial
-                color={CHROME_BORDER.colorHex}
-                metalness={0.85}
-                roughness={0.35}
-                transparent
-                opacity={opacity * 0.7}
-              />
-            </mesh>
-          )}
+      {/* 3) Gauge dial rings */}
+      {showDetail && (
+        <instancedMesh
+          ref={dialRef}
+          args={[needleDialGeo, dialMat, count]}
+          frustumCulled={false}
+        />
+      )}
 
-          {/* Gauge needle */}
-          {showDetail && (
-            <mesh
-              ref={(el) => { needleRefs.current[i] = el; }}
-              geometry={needleGeo}
-              position={[0, 0, hexDepth + 0.01]}
-              rotation={[Math.PI / 2, 0, 0]}
-            >
-              <meshStandardMaterial
-                color="#ff3333"
-                emissive="#ff2222"
-                emissiveIntensity={0.6}
-                metalness={0.9}
-                roughness={0.2}
-                transparent
-                opacity={opacity}
-              />
-            </mesh>
-          )}
+      {/* 4) Gauge needles (per-instance animated rotation) */}
+      {showDetail && (
+        <instancedMesh
+          ref={needleRef}
+          args={[needleGeo, needleMat, count]}
+          frustumCulled={false}
+        />
+      )}
 
-          {/* Hex emissive indicator (per hex) */}
-          <mesh position={[0, 0, hexDepth + 0.015]}>
-            <circleGeometry args={[hexRadius * 0.2, 6]} />
-            <meshStandardMaterial
-              color="#000000"
-              emissive={labColorObj}
-              emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
-              transparent
-              opacity={opacity * 0.8}
-              toneMapped={false}
-            />
-          </mesh>
-        </group>
-      ))}
+      {/* 5) Hex emissive indicators */}
+      <instancedMesh
+        ref={indicatorRef}
+        args={[indicatorGeo, indicatorMat, count]}
+        frustumCulled={false}
+      />
     </group>
   );
 }
