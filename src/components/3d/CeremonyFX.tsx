@@ -12,7 +12,7 @@
 //   labComplete     — confetti + fireworks + HUD rings
 //   streakMilestone — particle shower + HUD rings
 
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import {
@@ -118,12 +118,14 @@ interface ConfettiData {
 }
 
 function ConfettiBurst({
-  elapsed,
+  elapsedRef,
   count,
   labColor: _labColor,
   duration,
 }: {
-  elapsed: number;
+  /** Phase 3 Task 5C: elapsed is now passed via ref, not prop, so the
+   *  parent no longer re-renders this subtree every frame. */
+  elapsedRef: RefObject<number>;
   count: number;
   labColor: string;
   duration: number;
@@ -172,7 +174,7 @@ function ConfettiBurst({
     const mesh = meshRef.current;
     if (!mesh) return;
 
-    const t = elapsed;
+    const t = elapsedRef.current;
     const fadeStart = duration * 0.7;
     const opacity = t > fadeStart ? 1 - (t - fadeStart) / (duration - fadeStart) : 1;
 
@@ -220,11 +222,11 @@ interface BurstData {
 }
 
 function FireworkBursts({
-  elapsed,
+  elapsedRef,
   particlesPerBurst,
   labColor,
 }: {
-  elapsed: number;
+  elapsedRef: RefObject<number>;
   particlesPerBurst: number;
   labColor: string;
 }) {
@@ -261,6 +263,7 @@ function FireworkBursts({
     const mesh = meshRef.current;
     if (!mesh) return;
 
+    const elapsed = elapsedRef.current;
     let idx = 0;
     for (const burst of bursts) {
       const burstT = elapsed - burst.delay;
@@ -356,7 +359,7 @@ function sampleTrophyTargets(count: number): Float32Array {
   return targets;
 }
 
-function TrophyPopup({ elapsed, duration }: { elapsed: number; duration: number }) {
+function TrophyPopup({ elapsedRef, duration }: { elapsedRef: RefObject<number>; duration: number }) {
   const meshRef = useRef<InstancedMesh>(null);
   const groupRef = useRef<Group>(null);
 
@@ -381,6 +384,7 @@ function TrophyPopup({ elapsed, duration }: { elapsed: number; duration: number 
     const group = groupRef.current;
     if (!mesh || !group) return;
 
+    const elapsed = elapsedRef.current;
     // Convergence progress: 0 → 1 over TROPHY_CONVERGE_TIME
     const convergeT = Math.min(elapsed / TROPHY_CONVERGE_TIME, 1);
     // Ease-in-out cubic for smooth convergence
@@ -451,7 +455,7 @@ function TrophyPopup({ elapsed, duration }: { elapsed: number; duration: number 
 // ════════════════════════════════════════════════════
 // Sub-component: HUD Ring Expansion
 // ════════════════════════════════════════════════════
-function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) {
+function HUDRings({ elapsedRef, labColor }: { elapsedRef: RefObject<number>; labColor: string }) {
   const ringsRef = useRef<Group>(null);
   const ringCount = 3;
 
@@ -475,6 +479,7 @@ function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) 
     const group = ringsRef.current;
     if (!group) return;
 
+    const elapsed = elapsedRef.current;
     for (let i = 0; i < ringCount; i++) {
       const ring = group.children[i] as Mesh;
       if (!ring) continue;
@@ -516,12 +521,12 @@ function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) 
 // Sub-component: Particle Shower
 // ════════════════════════════════════════════════════
 function ParticleShower({
-  elapsed,
+  elapsedRef,
   count,
   labColor,
   duration,
 }: {
-  elapsed: number;
+  elapsedRef: RefObject<number>;
   count: number;
   labColor: string;
   duration: number;
@@ -551,6 +556,7 @@ function ParticleShower({
     const mesh = meshRef.current;
     if (!mesh) return;
 
+    const elapsed = elapsedRef.current;
     const fadeOut = elapsed > duration - 1.0
       ? 1 - (elapsed - (duration - 1.0))
       : 1;
@@ -599,9 +605,17 @@ export function CeremonyFX({
   labColor = '#00BBFF',
   onComplete,
 }: CeremonyFXProps) {
-  const [elapsed, setElapsed] = useState(0);
+  // Phase 3 Task 5C (§10.8): Replaced `useState(elapsed)` + `useState(bloomIntensity)`
+  // with refs so the parent no longer re-renders the entire ceremony tree every
+  // frame. The previous pattern triggered a full React re-render of 5 particle
+  // sub-components (ConfettiBurst, FireworkBursts, TrophyPopup, HUDRings,
+  // ParticleShower) at 60fps during celebrations. Each sub-component now reads
+  // `elapsedRef.current` directly inside its own useFrame. Zero visual change —
+  // particle physics, bloom pulse, and completion timing are all preserved.
+  const elapsedRef = useRef(0);
   const [completed, setCompleted] = useState(false);
-  const [bloomIntensity, setBloomIntensity] = useState(0);
+  const bloomMeshRef = useRef<Mesh>(null);
+  const bloomMatRef = useRef<MeshStandardMaterial>(null);
   const startTimeRef = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
@@ -614,14 +628,18 @@ export function CeremonyFX({
   // Reset when active changes
   useEffect(() => {
     if (active) {
-      setElapsed(0);
+      elapsedRef.current = 0;
       setCompleted(false);
-      setBloomIntensity(0);
+      if (bloomMatRef.current) {
+        bloomMatRef.current.emissiveIntensity = 0;
+        bloomMatRef.current.opacity = 0;
+      }
+      if (bloomMeshRef.current) bloomMeshRef.current.visible = false;
       startTimeRef.current = null;
     }
   }, [active]);
 
-  // Drive elapsed timer + bloom pulse via useFrame
+  // Drive elapsed timer + bloom pulse via useFrame (NO per-frame setState)
   useFrame((_, delta) => {
     if (!active || completed) return;
 
@@ -630,16 +648,28 @@ export function CeremonyFX({
     }
 
     startTimeRef.current += delta;
-    const newElapsed = startTimeRef.current;
-    setElapsed(newElapsed);
+    elapsedRef.current = startTimeRef.current;
+    const newElapsed = elapsedRef.current;
 
-    // Decision 18.3: Pulsing bloom — heartbeat pattern before decay
+    // Decision 18.3: Pulsing bloom — heartbeat pattern before decay.
+    // Direct material mutation (no setState) — changes apply on the NEXT
+    // render pass of Three.js, same visual result, no React re-render cost.
     const bloom = getBloomPulse(newElapsed, duration, tierConfig.bloomPeak);
-    setBloomIntensity(bloom);
+    if (bloomMatRef.current) {
+      bloomMatRef.current.emissiveIntensity = bloom * EMISSIVE_LED_MULTIPLIER * 3;
+      bloomMatRef.current.opacity = bloom * 0.35;
+    }
+    if (bloomMeshRef.current) {
+      bloomMeshRef.current.visible = bloom > 0.01;
+    }
 
     if (newElapsed >= duration) {
       setCompleted(true);
-      setBloomIntensity(0);
+      if (bloomMatRef.current) {
+        bloomMatRef.current.emissiveIntensity = 0;
+        bloomMatRef.current.opacity = 0;
+      }
+      if (bloomMeshRef.current) bloomMeshRef.current.visible = false;
       onCompleteRef.current?.();
     }
   });
@@ -656,26 +686,27 @@ export function CeremonyFX({
   return (
     <group>
       {config.confetti && (
-        <ConfettiBurst elapsed={elapsed} count={confettiCount} labColor={labColor} duration={duration} />
+        <ConfettiBurst elapsedRef={elapsedRef} count={confettiCount} labColor={labColor} duration={duration} />
       )}
       {config.fireworks && (
-        <FireworkBursts elapsed={elapsed} particlesPerBurst={fireworkPerBurst} labColor={labColor} />
+        <FireworkBursts elapsedRef={elapsedRef} particlesPerBurst={fireworkPerBurst} labColor={labColor} />
       )}
-      {config.trophy && <TrophyPopup elapsed={elapsed} duration={duration} />}
-      {config.hudRings && <HUDRings elapsed={elapsed} labColor={labColor} />}
+      {config.trophy && <TrophyPopup elapsedRef={elapsedRef} duration={duration} />}
+      {config.hudRings && <HUDRings elapsedRef={elapsedRef} labColor={labColor} />}
       {config.shower && (
-        <ParticleShower elapsed={elapsed} count={showerCount} labColor={labColor} duration={duration} />
+        <ParticleShower elapsedRef={elapsedRef} count={showerCount} labColor={labColor} duration={duration} />
       )}
 
       {/* Decision 18.3: Bloom pulse emitter — a central glow sphere driven by heartbeat rhythm */}
-      <mesh position={[0, 1.0, 0]} visible={bloomIntensity > 0.01}>
+      <mesh ref={bloomMeshRef} position={[0, 1.0, 0]} visible={false}>
         <sphereGeometry args={[0.6, 8, 8]} />
         <meshStandardMaterial
+          ref={bloomMatRef}
           color={labColor}
           emissive={labColor}
-          emissiveIntensity={bloomIntensity * EMISSIVE_LED_MULTIPLIER * 3}
+          emissiveIntensity={0}
           transparent
-          opacity={bloomIntensity * 0.35}
+          opacity={0}
           depthWrite={false}
           toneMapped={false}
         />
