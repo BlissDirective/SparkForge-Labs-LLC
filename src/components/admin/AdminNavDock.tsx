@@ -80,7 +80,7 @@ export function AdminNavDock() {
         onMouseEnter={() => setExpanded(true)}
         aria-expanded={expanded}
         aria-label={expanded ? 'Collapse admin tools' : 'Expand admin tools'}
-        className="flex items-center gap-2 glass-card rounded-xl px-3 py-2 border border-spark-green/20 hover:border-spark-green/40 transition-colors"
+        className="flex items-center gap-2 glass-card-v2 rounded-xl px-3 py-2 border border-spark-green/20 hover:border-spark-green/40 transition-colors"
         style={{
           boxShadow: '0 0 16px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(255,255,255,0.08)',
         }}
@@ -124,7 +124,7 @@ export function AdminNavDock() {
             }}
           >
             <div
-              className="glass-card rounded-2xl p-2 border border-spark-green/20"
+              className="glass-card-v2 p-2 border border-spark-green/20"
               style={{
                 boxShadow: '0 0 32px rgba(0, 255, 136, 0.15), inset 0 1px 0 rgba(255,255,255,0.08)',
               }}

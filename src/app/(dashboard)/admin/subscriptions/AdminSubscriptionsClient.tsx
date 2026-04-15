@@ -409,7 +409,7 @@ export default function AdminSubscriptionsClient() {
             />
 
             <motion.div
-              className="relative glass-card rounded-2xl w-full max-w-md p-6"
+              className="relative glass-card-v2-elevated w-full max-w-md p-6"
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}

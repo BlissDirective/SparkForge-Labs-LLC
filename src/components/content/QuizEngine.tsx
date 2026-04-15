@@ -112,7 +112,7 @@ export function QuizEngine({ content }: { content: Content }) {
     return (
       <div className="max-w-lg mx-auto">
         <motion.div
-          className="glass-card rounded-2xl p-8 md:p-10 text-center"
+          className="glass-card-v2 p-8 md:p-10 text-center"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -267,7 +267,7 @@ export function QuizEngine({ content }: { content: Content }) {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
-          className="glass-card rounded-2xl p-6 md:p-8"
+          className="glass-card-v2 p-6 md:p-8"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -30 }}

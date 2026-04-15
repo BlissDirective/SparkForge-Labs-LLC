@@ -49,7 +49,7 @@ export function SparkFactViewer({ content }: { content: Content }) {
       </Link>
 
       <motion.div
-        className="glass-card rounded-2xl p-8 md:p-10 text-center"
+        className="glass-card-v2 p-8 md:p-10 text-center"
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
       >

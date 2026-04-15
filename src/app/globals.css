@@ -154,9 +154,14 @@
   overflow: hidden;
 }
 
-/* ═══ Glass Card — Glassmorphism (ENHANCED v2) ═══
+/* ═══ Glass Card — Glassmorphism (LEGACY, Phase 4 §10.15 superseded) ═══
+   DEPRECATED — prefer `.glass-card-v2` (base) or `.glass-card-v2-elevated`
+   (primary modals) which have richer backdrop-filter + per-edge border
+   gradient. This class is retained for backwards-compatibility only —
+   all in-tree usages migrated to -v2 on 2026-04-15.
+
    Semi-transparent card with backdrop blur and subtle borders.
-   v2: Added inner edge highlight for depth perception. */
+   Added inner edge highlight for depth perception. */
 .glass-card {
   background: rgba(17, 17, 24, 0.75);
   backdrop-filter: blur(16px);

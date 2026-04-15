@@ -153,7 +153,7 @@ export function CelebrationOverlay() {
             >
               <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
               <motion.div
-                className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
+                className="relative glass-card-v2-elevated rounded-3xl p-8 max-w-sm mx-4 text-center"
                 variants={activeModalContent}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -212,7 +212,7 @@ export function CelebrationOverlay() {
             >
               <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
               <motion.div
-                className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
+                className="relative glass-card-v2-elevated rounded-3xl p-8 max-w-sm mx-4 text-center"
                 variants={activeModalContent}
                 onClick={(e) => e.stopPropagation()}
               >
@@ -268,7 +268,7 @@ export function CelebrationOverlay() {
             role="status"
             aria-live="polite"
           >
-            <div className="glass-card rounded-2xl px-5 py-3 flex items-center gap-3">
+            <div className="glass-card-v2 px-5 py-3 flex items-center gap-3">
               <span className="text-2xl">✨</span>
               <div>
                 <p className="font-display text-lg font-bold text-white">
@@ -293,7 +293,7 @@ export function CelebrationOverlay() {
             role="status"
             aria-live="polite"
           >
-            <div className="glass-card rounded-2xl px-6 py-4 flex items-center gap-4 border border-orange-500/20">
+            <div className="glass-card-v2 px-6 py-4 flex items-center gap-4 border border-orange-500/20">
               {reduceMotion ? (
                 <span className="text-3xl">🔥</span>
               ) : (
@@ -327,7 +327,7 @@ export function CelebrationOverlay() {
             role="status"
             aria-live="polite"
           >
-            <div className="glass-card rounded-2xl px-5 py-3">
+            <div className="glass-card-v2 px-5 py-3">
               <p className="font-display text-sm font-bold text-white">
                 🎉 Celebration!
               </p>

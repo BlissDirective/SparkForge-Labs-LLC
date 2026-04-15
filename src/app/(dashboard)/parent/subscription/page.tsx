@@ -310,7 +310,7 @@ function SubscriptionContent() {
               )}
 
               <div
-                className={`glass-card rounded-2xl p-6 relative ${
+                className={`glass-card-v2 p-6 relative ${
                   isPopular ? '' : ''
                 } ${TIER_GLOW[slug]}`}
               >
