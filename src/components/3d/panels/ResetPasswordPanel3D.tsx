@@ -29,6 +29,10 @@ import {
   SPRING_PRESETS,
   PRESS_DEPTH,
 } from '@/lib/3d/cockpitDesignTokens';
+import {
+  resetPasswordSchema,
+  validateForm,
+} from '@/lib/validation/authSchemas';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES & CONSTANTS
@@ -188,7 +192,12 @@ export default function ResetPasswordPanel3D({ onReset, onNavigateLogin }: Reset
 
   const handleReset = useCallback(async () => {
     setError('');
-    if (!email.includes('@')) { setError('Invalid email — Please enter a valid email address.'); return; }
+    // Phase 5 P.8-MAX (§8.10): Zod validation from authSchemas
+    const validation = validateForm(resetPasswordSchema, { email });
+    if (validation) {
+      setError(validation.email || 'Please check your email address');
+      return;
+    }
     setLoading(true);
     const result = await onReset(email);
     setLoading(false);

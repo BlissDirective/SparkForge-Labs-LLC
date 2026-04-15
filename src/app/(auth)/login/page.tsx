@@ -10,6 +10,8 @@ import { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useAuthStore } from '@/stores/authStore';
+// Phase 5 P.8-MAX (§8.10): Zod client-side validation
+import { loginSchema, validateForm } from '@/lib/validation/authSchemas';
 
 const LoginPanel3D = dynamic(
   () => import('@/components/3d/panels/LoginPanel3D'),
@@ -31,8 +33,10 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    if (!email || !password) {
-      setError('Missing fields — Please enter both your email and password to log in.');
+    // Phase 5 P.8-MAX: Zod validation with per-field error messaging
+    const validation = validateForm(loginSchema, { email, password });
+    if (validation) {
+      setError(validation.email || validation.password || 'Please check your login details');
       setLoading(false);
       return;
     }
