@@ -1369,5 +1369,145 @@ InstancedMesh conversion for the ~100 sub-meshes per bot remains as a further op
 
 ---
 
+## SECTION 15: SESSION 3 IMPLEMENTATION LOG — PHASE 4 ENHANCEMENTS
+
+Session 3 delivered Phase 4 (Enhancements) per the user-selected solution bundle. 8 of 13 roadmap items landed; 5 were skipped per user decision or deferred for architectural reasons (see below).
+
+### Phase 4 Section E — Tier 1 quick wins (commit `282a416`)
+
+| Task | Scope |
+|------|-------|
+| §10.1 — View Transitions API | `experimental.viewTransition: true` in `next.config.ts` + `::view-transition-*` CSS in `globals.css` (400ms cubic-bezier tuned to `TRANSITION_DURATIONS.page`); `.view-transition-target` utility class; `prefers-reduced-motion` clamps to 1ms. Progressive enhancement — no-op in non-supporting browsers. |
+| §10.3 — Magnetic cursor | New `src/hooks/useMagneticCursor.ts` — spring-physics pull with pre-allocated scratch `Vector3` (Phase 3 pattern, zero GC). Opt-in `magnetic` prop added to `HolographicButton`; wired into the 5 cockpit nav buttons in `NavigationButtonGrid` with tuned tight-magnet zone (radius 0.08, strength 0.18, maxOffset 0.015). |
+| §10.4 — Lenis smooth scroll | Install `lenis@^1.3.23`; new `src/components/providers/LenisProvider.tsx` (autoRaf mode, 1.2s duration, ease-out exponential). Integrated at root layout. `prefers-reduced-motion` disables smoothing entirely. |
+| §10.15 — Glassmorphism 2.0 | New `.glass-card-v2` + `.glass-card-v2-elevated` CSS classes with per-edge border gradient + saturate(180%) + brightness(1.08). Initially applied to pricing page only. **Globally migrated in later commit `b273e88`.** |
+
+### Phase 4 Section F — React Bits / Magic UI patterns (commit `7a5aaf6`)
+
+5 reusable animation primitives at `src/components/effects/`:
+- **ShinyText** — shine-sweep text via background-clip + moving linear-gradient
+- **GradientText** — animated multi-stop gradient text (Frost-Prismatic default palette)
+- **BlurText** — staggered word-by-word blur-to-focus entrance (motion/react)
+- **TiltCard3D** — perspective-based hover tilt + glare (motion/react springs)
+- **SpotlightCard** — mouse-tracking radial spotlight via CSS custom properties
+
+Zero existing code touched — pure authoring-time infrastructure. Shared keyframes (`sparkforge-shiny-sweep`, `sparkforge-gradient-shift`) added to `globals.css`. All respect `prefers-reduced-motion`.
+
+### Phase 4 housekeeping (commit `3888e4c`)
+
+Per user selections after evaluation:
+- **§10.2 revert** — Removed the 4 CSS scroll-driven utilities added as initial Section G infrastructure. User confirmed GSAP ScrollTrigger remains the single source of truth for all scroll-linked animation.
+- **§10.9 skip + uninstall** — Removed `@needle-tools/gltf-progressive@^4.0.0-alpha.1` from dependencies. User concern about "loading in a lagging manner or out of sync" is precisely the trade-off progressive loading makes — not aligned with SparkForge where the cockpit is procedural (not GLB) and pet models are small.
+- **§10.12 DESIGN.md** — Verified existing comprehensive `DESIGN.md v1.0` at repo root (OKLCH palette, 10 lab colors, typography, components, layout, z-index tokens, triangle budgets, do/don't rules, AI agent prompt templates). No action needed.
+
+### Phase 4 §10.15 global glassmorphism v2 migration (commit `b273e88`)
+
+Migrated all 17 `.glass-card` usages across 12 files to the richer `.glass-card-v2` (base) or `.glass-card-v2-elevated` (primary modals) classes. Deprecated `.glass-card` in `globals.css` (retained for backwards-compatibility only).
+
+- **Elevated variant:** `CelebrationOverlay` badge-earned + level-up modals (rounded-3xl kept), `PaywallModal`, `DowngradeConfirmModal`, all 4 admin modals (subscriptions, archived children, content ×2).
+- **Base v2 variant:** `SparkFactViewer`, `QuizEngine` (×2), parent tier cards, `CelebrationBanner`, `AdminNavDock` (rounded-xl kept on pill), `CelebrationOverlay` info chips (orange border kept on streak chip), superseded `LoginFormCard`.
+
+Auth pages (login/signup/reset-password) were NOT migrated — they render entirely via 3D panels (`LoginPanel3D`, `SignupPanel3D`, `ResetPasswordPanel3D`) using `cockpitMaterials.ts` alloy/chrome shaders. No HTML glass to migrate there.
+
+Verified: zero `glass-card` occurrences without the `-v2` suffix remain in `src/` (ripgrep regex `glass-card(?!-v2)` returns 0 matches).
+
+### Phase 4 §4.5 hero shard physics + bloom sync (commit `d4ed045`)
+
+The 8-phase hero animation previously created Voronoi shard geometries but left them permanently invisible. The 10.0s shatter moment was visually empty save for the logo's scale-to-zero. This commit wires the shatter→regroup window to a full physics + bloom pass.
+
+- **Per-shard physics state** — `shardPhysics` ref parallel to `shardGeo.current`. Each shard gets a random outward velocity (2.5-6.0 units/sec, upward bias) + angular velocity (±6 rad/sec on all axes). Deterministic via `seededRandom(42)`.
+- **Per-frame integration** — Active window 10.0 ≤ `tl.time()` < 14.0. Gravity -4.5 (softer than real 9.8 for artistic drift), 0.985 linear damping, 0.99 angular damping, Euler integration with proper frame delta tracking via `prevTlTime` ref.
+- **Opacity fade** — Full 10.0-12.0, linear ramp to 0 by 14.0. Emissive tracks fade (dimmer shards read as "dying embers").
+- **Bloom flash emitter** — New `<mesh>` sphere at origin (radius 0.9). Spike pattern: `emissiveIntensity` 0 → 4.0 at 10.0s, decay to 0 by 11.0s. Scale pulses 1.0 → 1.8. Reads through the cockpit's existing bloom post-pass as a visible impact burst. `depthWrite: false`, `toneMapped: false`.
+
+### Phase 4 §10.6 procedural audio full migration (commit `479285c`)
+
+Survey revealed SparkForge had **zero static audio files** — all audio was already procedural. But 6 flagship games had bespoke Tone.js hooks while the other **29 games had ZERO per-action audio** (only end-of-game ceremony fanfare). The real "full migration" value is filling that gap.
+
+New hook: `src/hooks/useGameSounds.ts` — 7 canonical child-safe sounds, all Tone.js, all routed through `cockpitStore.masterSoundEnabled` + `eventAudioVolume` channel:
+
+| Sound | Technique |
+|-------|-----------|
+| `playCorrect()` | Rising C-E-G major chord (sine synth, ~400ms) |
+| `playWrong()` | Gentle F#4 → E4 triangle descent (NOT harsh) |
+| `playCombo(n)` | Pitch climbs +50 cents per streak step, capped at 10; octave shimmer ≥5 |
+| `playTimerWarning(s)` | Accelerating MembraneSynth ticks (600ms→150ms), pitch rises C3→E3 |
+| `playSelect()` | Soft pink-noise bandpass click (800Hz) |
+| `playHint()` | Descending perfect 4th PolySynth bell ring |
+| `playUnlock()` | Rising crystal arpeggio C5-E5-G5-C6 (80ms stagger) |
+
+**GameShell integration** — score/round subscription auto-fires `playCorrect` on any score increase and `playWrong` on any round advance without score change (while `!isComplete`). The 29 previously-silent games now have correct/wrong/combo feedback for free — no per-game wiring required. Flagship games continue to use their bespoke audio hooks and can optionally layer `useGameSounds` calls.
+
+Ceremony fanfares in `cockpitAudio.ts` (raw Web Audio for levelUp / badgeEarn / labComplete) retained — equivalent sound output to Tone.js, no user-facing benefit to converting.
+
+### Phase 4 §10.14 multimodal haptic simulation (commit `479285c` → Section J)
+
+New module: `src/lib/haptic/hapticSim.ts` — 4 presets combining visual + audio + motion:
+
+| Preset | Scope | Cues |
+|--------|-------|------|
+| `buttonPress` | 5 cockpit nav buttons only | intensity 0.015 shake + click audio + scale -0.02 |
+| `dragResistance` | `RadialDial3D` drag | friction audio only (no shake — continuous control) |
+| `snapToGrid` | `RadialDial3D` release | intensity 0.008 shake + snap audio + scale +0.03 (120ms) |
+| `impactBurst` | `CeremonyFX` mount, epic tier only | intensity 0.18 shake + bass thump + scale +0.06 (240ms) |
+
+Integrations:
+- **`NavigationButtonGrid`** — `handlePointerDown` fires `buttonPress` haptic (5 cockpit nav buttons only; existing per-button emissive pulse + magnetic cursor unchanged)
+- **`RadialDial3D`** — `handlePointerUp` fires `snapToGrid` haptic to complement the existing spring-overshoot release animation
+- **`CeremonyFX`** — epic-tier reset effect (levelUp + labComplete) fires `impactBurst` haptic. badgeEarn (major tier) and streakMilestone (minor tier) intentionally skip camera shake to avoid over-stimulation on frequent events.
+
+**NOT wired** (per user spec to avoid over-stimulation): every `HolographicButton`, every page navigation, lab card hovers, XP popups, game-internal interactions.
+
+### Phase 4 deferred / skipped
+
+| Item | Status | Reason |
+|------|--------|--------|
+| §10.2 CSS scroll-driven | **Skipped** (user decision) | GSAP ScrollTrigger remains source of truth for all scroll-linked animation |
+| §10.9 Progressive 3D loading | **Skipped + package uninstalled** | Trade-off (low-quality first → 3-5s detail fill-in) conflicts with user's "load efficiently and quickly" principle; cockpit is procedural (not GLB) so benefit is near-zero |
+| §10.10 Theatre.js visual editor | **Deferred** | `@theatre/r3f` requires R3F v8; SparkForge is on v9. Writing a custom binding layer around `@theatre/core` adds complexity for author-tooling-only benefit (users don't see a difference) |
+| §10.12 DESIGN.md | **Already existed** | `/DESIGN.md` v1.0 (April 13, 2026) already comprehensive — OKLCH palette, 10 lab colors, typography, component library, layout system, z-index tokens, triangle budgets, do/don't rules, AI agent prompt templates |
+| §10.13 Rapier physics celebrations | **Skipped** (user decision) | Existing CeremonyFX CPU-driven physics is sufficient; Rapier adds dependency weight for polish-only gain |
+
+### Phase 4 Totals
+
+| Section | Commit | Focus |
+|---------|--------|-------|
+| E | `282a416` | Tier 1 quick wins (View Transitions, Magnetic, Lenis, Glass 2.0) |
+| F | `7a5aaf6` | React Bits / Magic UI patterns (5 reusable primitives) |
+| Housekeeping | `3888e4c` | Revert CSS scroll utilities, uninstall gltf-progressive |
+| §10.15 global | `b273e88` | Glassmorphism v2 migration across 12 files |
+| §4.5 | `d4ed045` | Hero shard physics + bloom flash sync |
+| §10.6 | `479285c` | Unified procedural game audio (useGameSounds for 35 games) |
+| §10.14 | (Section J commit) | Multimodal haptic module + 4 targeted wires |
+
+**Cumulative Phase 4 wins:**
+- View Transitions API enabled (opt-in progressive enhancement)
+- Magnetic cursor attraction on 5 cockpit nav buttons
+- Lenis momentum scrolling across entire app
+- Richer glassmorphism on all modals, cards, and celebrations
+- 5 reusable animation primitives available for future UI work
+- Visible shatter physics in hero animation (was silently invisible)
+- Audio feedback for the 29 previously-silent games (correct/wrong/combo)
+- Tactile haptic simulation on nav presses, dial releases, epic celebrations
+
+**Build:** `npm run build` PASS on every section. `vitest` 23/23 PASS throughout.
+
+### Remaining work after Phase 4
+
+Carryover tracked in `/PHASE_4_UNRESOLVED_CARRYOVER.md`. Items grouped:
+
+1. **HIGH severity** — §3.5 (celebration state-flow fragmentation), §3.6 (reactive cockpit bridge)
+2. **MEDIUM severity** — §5.8, §5.9, §6.3, §6.6, §8.5, §8.6
+3. **LOW severity** — §4.7, §5.10, §7.2, §7.4, §7.5, §8.8, §8.9, §8.10
+4. **ENHANCEMENT / Phase 5 architectural** — §10.8 (TSL compute for ceremony physics), §10.10 (Theatre.js when R3F v9 supported), §10.11 (OffscreenCanvas worker rendering)
+
+Total: 17 carryover items + 3 enhancements. Next session will sweep §3.5/§3.6 HIGH items first, then work down the severity list.
+
+---
+
+*End of Session 3 Implementation Log — Phase 4 (Enhancements) complete*
+
+---
+
 *End of SparkForge Design, UI/UX & Animation Audit v1.0*
-*April 14, 2026 — 499 files reviewed | 264 components audited | 150 design decisions cross-referenced | 17 reference repos analyzed*
+*April 15, 2026 — 499 files reviewed | 264 components audited | 150 design decisions cross-referenced | 17 reference repos analyzed | Sessions 1-3: 37 of 53 findings resolved (70%) + 8 of 15 enhancement proposals landed*

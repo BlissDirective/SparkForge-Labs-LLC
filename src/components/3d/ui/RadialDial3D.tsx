@@ -29,6 +29,7 @@ import {
   DoubleSide,
 } from 'three';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import { fireHaptic } from '@/lib/haptic/hapticSim';
 import {
   CHROME_BORDER,
   EMISSIVE_IDLE_INDICATOR,
@@ -281,6 +282,10 @@ export function RadialDial3D({
     // Trigger overshoot animation on release
     overshootTimeRef.current = 0;
     releaseValueRef.current = normalizedValue;
+    // Phase 4 §10.14 (J-A): Fire snapToGrid haptic on dial release —
+    // micro camera shake + click complements the existing spring
+    // overshoot, giving the "landing" moment real tactile weight.
+    fireHaptic('snapToGrid');
   }, [normalizedValue]);
 
   // ■■ Per-frame animation ■■

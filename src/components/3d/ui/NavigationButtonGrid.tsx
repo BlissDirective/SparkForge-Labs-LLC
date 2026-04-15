@@ -35,6 +35,7 @@ import {
   Vector3,
 } from 'three';
 import { useMagneticCursor } from '@/hooks/useMagneticCursor';
+import { fireHaptic } from '@/lib/haptic/hapticSim';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import {
@@ -287,7 +288,12 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
   });
 
   // Pointer handlers
-  const handlePointerDown = useCallback(() => setPressed(true), []);
+  const handlePointerDown = useCallback(() => {
+    setPressed(true);
+    // Phase 4 §10.14 (J-A): Fire haptic on nav press — camera shake
+    // intensity 0.015 (subtle), click audio layer handled by audio hook.
+    fireHaptic('buttonPress');
+  }, []);
   const handlePointerUp = useCallback(() => {
     setPressed(false);
     onPress();

@@ -22,6 +22,7 @@ import {
   getEmissive,
 } from '@/lib/3d/cockpitDesignTokens';
 import type { CelebrationTier } from '@/lib/3d/cockpitDesignTokens';
+import { fireHaptic } from '@/lib/haptic/hapticSim';
 import {
   Color,
   DoubleSide,
@@ -636,8 +637,17 @@ export function CeremonyFX({
       }
       if (bloomMeshRef.current) bloomMeshRef.current.visible = false;
       startTimeRef.current = null;
+
+      // Phase 4 §10.14 (J-A): Fire impactBurst haptic ONLY for epic-tier
+      // celebrations (levelUp + labComplete — the biggest moments in the
+      // child's journey). Badge earn (major tier) + streak milestone
+      // (minor tier) intentionally skip the camera shake to avoid
+      // over-stimulation on frequent events.
+      if (tier === 'epic') {
+        fireHaptic('impactBurst');
+      }
     }
-  }, [active]);
+  }, [active, tier]);
 
   // Drive elapsed timer + bloom pulse via useFrame (NO per-frame setState)
   useFrame((_, delta) => {
