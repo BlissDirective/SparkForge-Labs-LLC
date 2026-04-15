@@ -3,17 +3,13 @@
 import { useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSceneStore } from '@/stores/sceneStore';
-import {
-  BLOOM_PRESETS,
-  CAMERA_PRESETS,
-  VIGNETTE_PRESETS,
-  HUD_PRESETS,
-  SIDE_PANEL_PRESETS,
-  PANEL_CURVATURE_PRESETS,
-  PANEL_OPACITY_PRESETS,
-  STATUS_BAR_PRESETS,
-} from '@/lib/3d/cockpitConfig';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
+// Phase 5 §6.3 / O.3-MAX: Source CPA fields from the unified
+// COCKPIT_MODE_PRESETS instead of the 8 fragmented preset objects that
+// previously lived in cockpitConfig.ts. Game-mode FOV is now authoritatively
+// 72 (was 52 in the deleted CAMERA_PRESETS, which never matched what the
+// renderer actually used via useCockpitScene).
+import { COCKPIT_MODE_PRESETS } from '@/lib/3d/cockpitModePresets';
 import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
 import { LAB_COLORS, LAB_NAMES, DEFAULT_LED_COLOR } from '@/config/labs';
 
@@ -110,34 +106,32 @@ export function useCockpitMode(): StationModeState & {
     ? LAB_NAMES[activeLabId] || ''
     : '';
 
-  // Helper: build CPA fields from presets for a given mode key
+  // Helper: build CPA fields from the unified COCKPIT_MODE_PRESETS.
+  // Phase 5 §6.3 / O.3-MAX: This replaces 8 separate fragmented preset
+  // objects (BLOOM_PRESETS, CAMERA_PRESETS, etc.) with reads against the
+  // single authoritative preset dictionary. Identical output shape —
+  // every downstream consumer (dashboard layout, cockpit canvas props)
+  // sees the same CPA fields.
   const buildCPAFields = useCallback((modeKey: CockpitMode) => {
-    const bloom = BLOOM_PRESETS[modeKey] || BLOOM_PRESETS.dashboard;
-    const camera = CAMERA_PRESETS[modeKey] || CAMERA_PRESETS.dashboard;
-    const vignette = VIGNETTE_PRESETS[modeKey] || VIGNETTE_PRESETS.dashboard;
-    const hud = HUD_PRESETS[modeKey] || HUD_PRESETS.dashboard;
-    const sidePanel = SIDE_PANEL_PRESETS[modeKey] || SIDE_PANEL_PRESETS.dashboard;
-    const statusBar = STATUS_BAR_PRESETS[modeKey] || STATUS_BAR_PRESETS.dashboard;
-    const panelCurvature = PANEL_CURVATURE_PRESETS[modeKey] ?? PANEL_CURVATURE_PRESETS.dashboard;
-    const panelOpacity = PANEL_OPACITY_PRESETS[modeKey] ?? PANEL_OPACITY_PRESETS.dashboard;
+    const preset = COCKPIT_MODE_PRESETS[modeKey] || COCKPIT_MODE_PRESETS.dashboard;
 
     return {
-      bloomIntensity: bloom.intensity,
-      bloomThreshold: bloom.threshold,
-      bloomSmoothing: bloom.smoothing,
-      vignetteDarkness: vignette.darkness,
-      vignetteOffset: vignette.offset,
-      cameraFov: camera.fov,
-      barrelDistortion: camera.distortion,
-      hudOpacity: hud.opacity,
-      hudRotationSpeed: hud.rotationSpeed,
-      hudPulseIntensity: hud.pulseIntensity,
-      sidePanelOpacity: sidePanel.opacity,
-      sidePanelLeftContent: sidePanel.leftContent as SidePanelContent,
-      sidePanelRightContent: sidePanel.rightContent as SidePanelContent,
-      statusBarOpacity: statusBar.opacity,
-      panelCurvature,
-      panelOpacity,
+      bloomIntensity: preset.bloom.intensity,
+      bloomThreshold: preset.bloom.threshold,
+      bloomSmoothing: preset.bloom.smoothing,
+      vignetteDarkness: preset.vignette.darkness,
+      vignetteOffset: preset.vignette.offset,
+      cameraFov: preset.camera.fov,
+      barrelDistortion: preset.camera.distortion,
+      hudOpacity: preset.hud.opacity,
+      hudRotationSpeed: preset.hud.rotationSpeed,
+      hudPulseIntensity: preset.hud.pulseIntensity,
+      sidePanelOpacity: preset.sidePanels.opacity,
+      sidePanelLeftContent: preset.sidePanels.leftContent as SidePanelContent,
+      sidePanelRightContent: preset.sidePanels.rightContent as SidePanelContent,
+      statusBarOpacity: preset.statusBar.opacity,
+      panelCurvature: preset.panels.curvature,
+      panelOpacity: preset.panels.opacity,
     };
   }, []);
 

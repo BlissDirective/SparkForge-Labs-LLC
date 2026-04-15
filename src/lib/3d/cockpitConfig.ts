@@ -113,129 +113,21 @@ export const ADAPTIVE_CURVATURE = {
   desktop:   { minWidth: 1440, arc: 218, radius: 4.8 },
 } as const;
 
-// ■■ Bloom Presets — Mode-Dependent (CPA-7) ■■
-// Phase 2 Section 7: Keys aligned with CockpitMode (labmap→labs, lab→lab_detail).
-// Added `settings` entry. Retained `gameComplete` transient state preset.
-export const BLOOM_PRESETS = {
-  dashboard:     { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
-  arcade:        { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
-  labs:          { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
-  lab_detail:    { intensity: 0.5, threshold: 0.5, smoothing: 0.85 },
-  game:          { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
-  celebration:   { intensity: 0.8, threshold: 0.3, smoothing: 0.7 },
-  gameComplete:  { intensity: 1.0, threshold: 0.2, smoothing: 0.6 },
-  profile:       { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
-  settings:      { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
-  onboarding:    { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
-  parent:        { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
-  admin:         { intensity: 0.25, threshold: 0.75, smoothing: 0.95 },
-} as const;
-
-// ■■ Camera Presets — FOV + Barrel Distortion (v3: tight-focus cockpit seat) ■■
-export const CAMERA_PRESETS = {
-  dashboard:   { fov: 58, distortion: 0.025 },    // v3: wider FOV for immersion
-  arcade:      { fov: 60, distortion: 0.02 },     // slightly wider than dashboard for game browser
-  labs:        { fov: 62, distortion: 0.02 },     // v3: widest for spatial map
-  lab_detail:  { fov: 55, distortion: 0.02 },
-  game:        { fov: 52, distortion: 0.0 },
-  celebration: { fov: 62, distortion: 0.03 },     // v3: dramatic wide during celebrations
-  profile:     { fov: 56, distortion: 0.015 },    // v3: right console focus
-  settings:    { fov: 56, distortion: 0.015 },    // v3: left console focus
-  onboarding:  { fov: 52, distortion: 0.01 },
-  parent:      { fov: 54, distortion: 0.01 },
-  admin:       { fov: 52, distortion: 0.0 },
-} as const;
-
-// ■■ Vignette Presets — R3F Postprocessing (CPA-8) ■■
-export const VIGNETTE_PRESETS = {
-  dashboard:   { darkness: 0.5, offset: 0.3 },
-  arcade:      { darkness: 0.45, offset: 0.3 },
-  labs:        { darkness: 0.4, offset: 0.3 },
-  lab_detail:  { darkness: 0.5, offset: 0.3 },
-  game:        { darkness: 0.6, offset: 0.25 },
-  celebration: { darkness: 0.3, offset: 0.4 },
-  profile:     { darkness: 0.5, offset: 0.3 },
-  settings:    { darkness: 0.5, offset: 0.3 },
-  onboarding:  { darkness: 0.4, offset: 0.35 },
-  parent:      { darkness: 0.45, offset: 0.3 },
-  admin:       { darkness: 0.4, offset: 0.3 },
-} as const;
-
-// ■■ HUD Presets v2 — Data-Driven Holographic HUD (CPA2-3) ■■
-export const HUD_PRESETS = {
-  dashboard:     { opacity: 0.15, rotationSpeed: 0.1,  pulseIntensity: 0.3, dataMode: 'minimap' as const },
-  arcade:        { opacity: 0.16, rotationSpeed: 0.12, pulseIntensity: 0.35, dataMode: 'minimap' as const },
-  labs:          { opacity: 0.18, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' as const },
-  lab_detail:    { opacity: 0.20, rotationSpeed: 0.2,  pulseIntensity: 0.5, dataMode: 'labfocus' as const },
-  game:          { opacity: 0.0,  rotationSpeed: 0,    pulseIntensity: 0,   dataMode: 'hidden' as const },
-  celebration:   { opacity: 0.85, rotationSpeed: 0.4,  pulseIntensity: 1.0, dataMode: 'burst' as const },
-  gameComplete:  { opacity: 1.0,  rotationSpeed: 0.5,  pulseIntensity: 1.0, dataMode: 'burst' as const },
-  profile:       { opacity: 0.12, rotationSpeed: 0.08, pulseIntensity: 0.2, dataMode: 'stats' as const },
-  settings:      { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'stats' as const },
-  onboarding:    { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'tutorial' as const },
-  parent:        { opacity: 0.08, rotationSpeed: 0.05, pulseIntensity: 0.1,  dataMode: 'stats' as const },
-  admin:         { opacity: 0.06, rotationSpeed: 0.03, pulseIntensity: 0.05, dataMode: 'stats' as const },
-} as const;
-
-// ■■ Side Panel Presets (CPA-6) ■■
-export const SIDE_PANEL_PRESETS = {
-  dashboard:   { opacity: 0.6, leftContent: 'radar' as const, rightContent: 'stats' as const },
-  arcade:      { opacity: 0.65, leftContent: 'radar' as const, rightContent: 'stats' as const },
-  labs:        { opacity: 0.7, leftContent: 'labNav' as const, rightContent: 'stats' as const },
-  lab_detail:  { opacity: 0.5, leftContent: 'labNav' as const, rightContent: 'stats' as const },
-  game:        { opacity: 0.0, leftContent: 'radar' as const, rightContent: 'stats' as const },
-  celebration: { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'terminal' as const },
-  profile:     { opacity: 0.4, leftContent: 'radar' as const, rightContent: 'stats' as const },
-  settings:    { opacity: 0.4, leftContent: 'radar' as const, rightContent: 'stats' as const },
-  onboarding:  { opacity: 0.3, leftContent: 'radar' as const, rightContent: 'stats' as const },
-  parent:      { opacity: 0.3, leftContent: 'stats' as const, rightContent: 'stats' as const },
-  admin:       { opacity: 0.2, leftContent: 'terminal' as const, rightContent: 'stats' as const },
-} as const;
-
-// ■■ Panel Curvature per Mode ■■
-export const PANEL_CURVATURE_PRESETS = {
-  dashboard:   0.85,
-  arcade:      0.85,
-  labs:        0.85,
-  lab_detail:  0.85,
-  game:        0.3,     // Retracted during games (Decision 3.4)
-  celebration: 0.85,
-  profile:     0.85,
-  settings:    0.85,
-  onboarding:  0.7,
-  parent:      0.6,
-  admin:       0.5,
-} as const;
-
-// ■■ Panel Opacity per Mode ■■
-export const PANEL_OPACITY_PRESETS = {
-  dashboard:   1.0,
-  arcade:      1.0,
-  labs:        1.0,
-  lab_detail:  1.0,
-  game:        0.2,     // Dimmed during games
-  celebration: 1.0,
-  profile:     1.0,
-  settings:    1.0,
-  onboarding:  0.8,
-  parent:      0.7,
-  admin:       0.6,
-} as const;
-
-// ■■ Status Bar Opacity per Mode ■■
-export const STATUS_BAR_PRESETS = {
-  dashboard:   { opacity: 1.0 },
-  arcade:      { opacity: 1.0 },
-  labs:        { opacity: 1.0 },
-  lab_detail:  { opacity: 1.0 },
-  game:        { opacity: 0.15 },  // Minimal, non-distracting
-  celebration: { opacity: 1.0 },
-  profile:     { opacity: 1.0 },
-  settings:    { opacity: 1.0 },
-  onboarding:  { opacity: 0.6 },
-  parent:      { opacity: 0.7 },
-  admin:       { opacity: 0.5 },
-} as const;
+// ──────────────────────────────────────────────────────────────────
+// Phase 5 §6.3 / O.3-MAX: 8 fragmented mode preset objects REMOVED
+// ──────────────────────────────────────────────────────────────────
+// Previously this file exported BLOOM_PRESETS, CAMERA_PRESETS,
+// VIGNETTE_PRESETS, HUD_PRESETS, SIDE_PANEL_PRESETS,
+// PANEL_CURVATURE_PRESETS, PANEL_OPACITY_PRESETS, STATUS_BAR_PRESETS —
+// a parallel fragmented configuration that duplicated COCKPIT_MODE_PRESETS
+// in cockpitModePresets.ts. They have been removed in favor of the
+// unified preset dictionary. The game-mode camera FOV conflict
+// (52 here vs 72 in cockpitModePresets) is resolved — 72 was the
+// value actually rendered via useCockpitScene.
+//
+// If you need mode-dependent atmospherics, import COCKPIT_MODE_PRESETS
+// from '@/lib/3d/cockpitModePresets' — it's the single source of truth.
+// ──────────────────────────────────────────────────────────────────
 
 // ■■ Skin-Reactive Panel Materials (CPA2-5) ■■
 export const SKIN_PANEL_TINTS: Record<string, {
@@ -350,9 +242,22 @@ export const TRIANGLE_BUDGET_V2 = {
 
 // ■■ Type exports for consumers ■■
 // Phase 2 Section 7: StationModeKey is now a backward-compat alias.
+// Phase 5 §6.3: StationModeKey now derived from CockpitMode + the
+// transient 'gameComplete' state that was in the deleted presets but
+// isn't a navigable mode in COCKPIT_MODE_PRESETS.
 // New code should use CockpitMode from @/lib/3d/cockpitModePresets.
-// The preset maps above cover all CockpitMode values plus `gameComplete`
-// (a transient state, not a navigable mode).
-export type StationModeKey = keyof typeof BLOOM_PRESETS;
+export type StationModeKey =
+  | 'dashboard'
+  | 'arcade'
+  | 'labs'
+  | 'lab_detail'
+  | 'game'
+  | 'celebration'
+  | 'gameComplete'
+  | 'profile'
+  | 'settings'
+  | 'onboarding'
+  | 'parent'
+  | 'admin';
 export type SidePanelContent = 'radar' | 'labNav' | 'terminal' | 'stats';
 export type HUDDataMode = 'minimap' | 'labfocus' | 'hidden' | 'burst' | 'stats' | 'tutorial';
