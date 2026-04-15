@@ -7,6 +7,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { MotionConfig } from 'motion/react';
 import { useA11yStore } from '@/stores/accessibilityStore';
 
 export function A11yProvider({ children }: { children: React.ReactNode }) {
@@ -71,5 +72,14 @@ export function A11yProvider({ children }: { children: React.ReactNode }) {
     html.classList.toggle('high-contrast', highContrast);
   }, [mounted, darkMode, fontSize, dyslexiaFont, reduceMotion, highContrast]);
 
-  return <>{children}</>;
+  // Phase 5 P.2-REC: Global MotionConfig respects reduce-motion.
+  // - When manual a11y store toggle is on → force `reducedMotion="always"`.
+  // - Otherwise → use `"user"` so Motion reads OS-level
+  //   `prefers-reduced-motion: reduce` media query and automatically
+  //   simplifies animations for all motion children in the tree.
+  return (
+    <MotionConfig reducedMotion={reduceMotion ? 'always' : 'user'}>
+      {children}
+    </MotionConfig>
+  );
 }

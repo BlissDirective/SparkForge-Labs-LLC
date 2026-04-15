@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { Check } from 'lucide-react';
 
 interface StepIndicatorProps {
@@ -10,6 +10,7 @@ interface StepIndicatorProps {
 }
 
 export function StepIndicator({ currentStep, totalSteps, labels }: StepIndicatorProps) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <div
       className="flex items-center justify-center gap-2 mb-8"
@@ -33,8 +34,8 @@ export function StepIndicator({ currentStep, totalSteps, labels }: StepIndicator
                     ? 'bg-gradient-to-r from-spark-purple to-spark-blue text-white shadow-glow-purple'
                     : 'bg-white/10 text-white/40'
               }`}
-              animate={isActive ? { scale: [1, 1.1, 1] } : {}}
-              transition={{ duration: 0.5 }}
+              animate={isActive && !prefersReducedMotion ? { scale: [1, 1.1, 1] } : {}}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}
               aria-label={labels ? `Step ${stepNum}: ${labels[i]}` : `Step ${stepNum}`}
             >
               {isCompleted ? <Check className="w-4 h-4" /> : stepNum}

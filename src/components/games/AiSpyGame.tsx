@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -285,6 +285,7 @@ const LEARN_CARDS = [
 ];
 
 export function AiSpyGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -384,8 +385,8 @@ export function AiSpyGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(0,187,255,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
             />
           ))}
         </div>
@@ -605,8 +606,8 @@ export function AiSpyGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                     >
                       🏆
                     </motion.span>

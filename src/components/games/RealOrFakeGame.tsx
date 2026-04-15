@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -74,6 +74,7 @@ const ALL_ROUNDS: RFRound[] = [
 ];
 
 export function RealOrFakeGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -127,8 +128,8 @@ export function RealOrFakeGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(255,102,68,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -243,7 +244,7 @@ export function RealOrFakeGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Real or Fake game complete">Real or Fake Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You sharpened your media literacy skills and can now spot deepfakes and AI-generated content with confidence.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20" role="status" aria-label={`Total score: ${game.score} points`}>

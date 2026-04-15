@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -452,6 +452,7 @@ const CASES: DataCase[] = [
 ];
 
 export function DataDetectiveGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -544,8 +545,8 @@ export function DataDetectiveGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(170,102,255,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 

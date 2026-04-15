@@ -8,7 +8,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -97,6 +97,7 @@ const ALL_TASKS: Task[] = [
 ];
 
 export function ToolPickerGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -183,8 +184,8 @@ export function ToolPickerGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(0,255,136,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -248,7 +249,7 @@ export function ToolPickerGame() {
                     {/* Timer + Streak */}
                     <div className="flex items-center justify-center gap-4 mb-4">
                       <motion.div className={`w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-sm ${timer <= 2 ? 'bg-red-500/20 text-orange-400' : 'bg-green-400/10 text-green-400'}`}
-                        animate={timer <= 2 ? { scale: [1, 1.1, 1] } : {}} transition={{ duration: 0.5, repeat: Infinity }}
+                        animate={prefersReducedMotion || timer > 2 ? {} : { scale: [1, 1.1, 1] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, repeat: Infinity }}
                         role="status" aria-label={`${timer} seconds remaining`}>
                         {timer}
                       </motion.div>
@@ -301,7 +302,7 @@ export function ToolPickerGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Tool Picker complete phase">Tool Picker Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You mastered the art of choosing the right AI tool for every task — knowing when to use each tool is a superpower.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#00FF88]/10 border border-[#00FF88]/20" role="status" aria-label={`Final score: ${game.score} points`}>

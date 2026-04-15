@@ -17,7 +17,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -175,6 +175,7 @@ const CAREERS_B: Career[] = [
 ];
 
 export default function CareerExplorerGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -292,8 +293,8 @@ export default function CareerExplorerGame() {
                 height: p.size,
                 background: 'radial-gradient(circle, rgba(249,115,22,0.15), transparent)',
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -322,8 +323,8 @@ export default function CareerExplorerGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                     >
                       🚀
                     </motion.span>
@@ -586,8 +587,8 @@ export default function CareerExplorerGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto"
                   >
                     <motion.div
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                     >
                       <Star className="w-12 h-12 text-orange-400" />
                     </motion.div>

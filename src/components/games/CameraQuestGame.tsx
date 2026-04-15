@@ -16,7 +16,7 @@
 // ================================================================
 
 import { useState, useRef, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -220,6 +220,7 @@ const LEARN_CARDS = [
 ];
 
 export function CameraQuestGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
@@ -351,8 +352,8 @@ export function CameraQuestGame() {
                   0.12 + p.size * 0.05
                 }), transparent)`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.dur,
                 delay: p.delay,
                 repeat: Infinity,
@@ -383,8 +384,8 @@ export function CameraQuestGame() {
                   >
                     <motion.span
                       className="text-6xl block"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                     >
                       {'\u{1F4F7}'}
                     </motion.span>
@@ -682,7 +683,7 @@ export function CameraQuestGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Camera Quest Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored how computer vision works by hunting for objects with different levels of difficulty — from simple colors to abstract concepts AI struggles with!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">

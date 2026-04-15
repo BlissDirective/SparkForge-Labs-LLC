@@ -15,7 +15,7 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -279,6 +279,7 @@ const DIFF_POINTS: Record<Difficulty, number> = { easy: 10, medium: 15, tricky: 
 
 // ──── Component ────
 export function EmojiDecoderGame() {
+  const prefersReducedMotion = useReducedMotion();
   const { safeTimeout } = useSafeTimeout();
   const game = useGameStore();
   const { activeChild } = useChildStore();
@@ -391,8 +392,8 @@ export function EmojiDecoderGame() {
           <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
             style={{ width: p.size, height: p.size, left: `${p.x}%`, top: `${p.y}%`,
               background: 'radial-gradient(circle, rgba(129,140,248,0.5), transparent)' }}
-            animate={{ y: [0, -30, 0], opacity: [0.2, 0.6, 0.2] }}
-            transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+            animate={prefersReducedMotion ? {} : { y: [0, -30, 0], opacity: [0.2, 0.6, 0.2] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
           />
         ))}
 
@@ -407,8 +408,8 @@ export function EmojiDecoderGame() {
           {phase === 'welcome' && (
             <motion.div key="welcome" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <motion.div className="text-6xl mb-4" animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F524}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F524}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">Emoji Decoder</h2>
               <p className="font-body text-sm text-white/60 mb-1">Lab 8 — Words & Language</p>
               <p className="font-body text-sm text-white/50 max-w-sm mb-6">
@@ -438,7 +439,7 @@ export function EmojiDecoderGame() {
                     border: `1px solid ${CONCEPT_CARDS[learnIdx].color}30` }}
                   initial={{ opacity: 0, x: 40, rotateY: 15 }} animate={{ opacity: 1, x: 0, rotateY: 0 }}
                   exit={{ opacity: 0, x: -40, rotateY: -15 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}>
-                  <motion.span className="text-4xl block mb-3" animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <motion.span className="text-4xl block mb-3" animate={prefersReducedMotion ? {} : { y: [0, -6, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                     {CONCEPT_CARDS[learnIdx].emoji}
                   </motion.span>
                   <h3 className="font-display text-lg font-bold text-white mb-2">{CONCEPT_CARDS[learnIdx].title}</h3>
@@ -597,8 +598,8 @@ export function EmojiDecoderGame() {
           {phase === 'lab' && (
             <motion.div key="lab" className="flex-1 flex flex-col items-center justify-center p-6"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <motion.div className="text-4xl mb-3" animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F9EA}'}</motion.div>
+              <motion.div className="text-4xl mb-3" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F9EA}'}</motion.div>
               <h3 className="font-display text-xl font-bold text-white mb-1">Emoji Lab</h3>
               <p className="font-body text-sm text-white/50 mb-4">Bonus Round — Create your own emoji message!</p>
 
@@ -646,8 +647,8 @@ export function EmojiDecoderGame() {
           {phase === 'complete' && (
             <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
-              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F3C6}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F3C6}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">Emoji Master!</h2>
               <p className="font-body text-sm text-white/60 mb-4">You cracked the emoji code!</p>
 

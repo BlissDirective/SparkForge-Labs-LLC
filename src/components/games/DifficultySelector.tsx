@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 
 export type DifficultyTier = 'easy' | 'medium' | 'hard' | 'expert';
 
@@ -40,6 +40,7 @@ const UNLOCK_MESSAGE: Record<'A' | 'B' | 'C', string> = {
  * ARIA: `aria-disabled="true"` + descriptive `aria-label`.
  */
 export function DifficultySelector({ value, onChange, ageBand, className = '' }: DifficultySelectorProps) {
+  const prefersReducedMotion = useReducedMotion();
   return (
     <div className={`flex flex-wrap gap-1.5 ${className}`} role="radiogroup" aria-label="Difficulty level">
       {TIERS.map(tier => {
@@ -78,8 +79,8 @@ export function DifficultySelector({ value, onChange, ageBand, className = '' }:
           <motion.button
             key={tier.id}
             onClick={() => onChange(tier.id)}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+            whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
+            whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
             className={`
               flex items-center gap-1 px-3 py-1.5 rounded-lg font-display text-xs transition-all
               border ${isActive

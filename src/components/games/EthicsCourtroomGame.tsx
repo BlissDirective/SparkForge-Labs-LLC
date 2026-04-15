@@ -18,7 +18,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -794,6 +794,7 @@ const LEARN_CARDS = [
 ];
 
 export function EthicsCourtroomGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -893,8 +894,8 @@ export function EthicsCourtroomGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(239,68,68,${0.12 + p.size * 0.05}), transparent)`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -923,8 +924,8 @@ export function EthicsCourtroomGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ rotate: [0, -5, 5, 0] }}
-                      transition={{ duration: 3, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { rotate: [0, -5, 5, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}
                     >
                       ⚖️
                     </motion.span>
@@ -1244,8 +1245,8 @@ export function EthicsCourtroomGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ scale: [1, 1.15, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { scale: [1, 1.15, 1] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                     >
                       🏛️
                     </motion.span>

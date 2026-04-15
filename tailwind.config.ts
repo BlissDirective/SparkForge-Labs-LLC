@@ -1,5 +1,10 @@
 import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
+// Phase 5 P.3-MAX (§7.2): Lab color single source. Tailwind imports the
+// same color table used by runtime JS/3D consumers so the two layers
+// can never drift. Change a lab color in labColors.ts and both Tailwind
+// utilities (bg-lab-3, text-lab-5) AND Three.js materials update together.
+import { buildTailwindLabColors } from './src/config/labColors';
 
 // AUDIT-G7: Tailwind v4 uses @import "tailwindcss" in CSS — darkMode:'class' removed (v4 uses @custom-variant)
 // Content detection is automatic in v4 but kept for compatibility mode
@@ -34,18 +39,10 @@ const config: Config = {
           border: 'oklch(1.0 0 0 / 0.06)',
         },
         // ═══ Lab Accent Colors (1-10) — OKLCH L=0.75 ═══
-        lab: {
-          1: 'oklch(0.75 0.17 225)',   // What IS AI? — Blue
-          2: 'oklch(0.75 0.19 295)',   // Teaching Machines — Purple
-          3: 'oklch(0.75 0.19 345)',   // The Brain Inside — Pink
-          4: 'oklch(0.75 0.17 75)',    // AI That Creates — Amber
-          5: 'oklch(0.75 0.19 155)',   // AI Helpers — Green
-          6: 'oklch(0.75 0.20 25)',    // AI & Ethics — Red-Orange
-          7: 'oklch(0.75 0.14 195)',   // Computer Vision — Cyan
-          8: 'oklch(0.75 0.15 275)',   // Words & Language — Violet
-          9: 'oklch(0.75 0.18 50)',    // Build Your AI — Orange
-          10: 'oklch(0.75 0.19 325)',  // AI Futures — Fuchsia
-        },
+        // Phase 5 P.3-MAX: Generated from src/config/labColors.ts — the
+        // single canonical lab color table. Both tailwind utilities AND
+        // runtime JS/3D materials read from that file now.
+        lab: buildTailwindLabColors(),
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }], // 10px — minimum sub-scale size

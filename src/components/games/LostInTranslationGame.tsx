@@ -9,7 +9,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
@@ -171,6 +171,7 @@ const ALL_ROUNDS: Round[] = [
 ];
 
 export function LostInTranslationGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -216,8 +217,8 @@ export function LostInTranslationGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(99,102,241,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -244,16 +245,16 @@ export function LostInTranslationGame() {
                         className="text-5xl inline-block"
                         role="img"
                         aria-label="globe"
-                        animate={{ rotate: [0, 360] }}
-                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                        animate={prefersReducedMotion ? {} : { rotate: [0, 360] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 20, repeat: Infinity, ease: 'linear' }}
                       >
                         {'\u{1F30D}'}
                       </motion.span>
                       <motion.div
                         className="absolute -inset-3 rounded-full"
                         style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent)' }}
-                        animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       />
                       {/* ENH: Bouncing flag emojis around the globe */}
                       {['\u{1F1EB}\u{1F1F7}', '\u{1F1EF}\u{1F1F5}', '\u{1F1E9}\u{1F1EA}', '\u{1F1EA}\u{1F1F8}'].map((flag, i) => (
@@ -261,12 +262,12 @@ export function LostInTranslationGame() {
                           key={i}
                           className="absolute text-lg"
                           style={{ top: '50%', left: '50%' }}
-                          animate={{
+                          animate={prefersReducedMotion ? {} : {
                             x: [Math.cos((i * Math.PI) / 2) * 36, Math.cos((i * Math.PI) / 2 + Math.PI) * 36],
                             y: [Math.sin((i * Math.PI) / 2) * 36, Math.sin((i * Math.PI) / 2 + Math.PI) * 36],
                             scale: [1, 1.2, 1],
                           }}
-                          transition={{ duration: 3, repeat: Infinity, delay: i * 0.4 }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, delay: i * 0.4 }}
                         >
                           {flag}
                         </motion.span>
@@ -433,7 +434,7 @@ export function LostInTranslationGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Lost in Translation Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You discovered how meaning gets lost when AI translates through multiple languages — idioms, metaphors, and cultural expressions are still a big challenge for machine translation!</p>
                     {/* ENH: Animated score counter */}
@@ -446,8 +447,8 @@ export function LostInTranslationGame() {
                       <motion.p
                         className="font-data text-2xl"
                         style={{ color: '#818CF8' }}
-                        animate={{ textShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 12px rgba(99,102,241,0.5)', '0 0 0px rgba(99,102,241,0)'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { textShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 12px rgba(99,102,241,0.5)', '0 0 0px rgba(99,102,241,0)'] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         {animatedScore}
                       </motion.p>

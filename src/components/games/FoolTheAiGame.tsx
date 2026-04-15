@@ -23,7 +23,7 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
@@ -173,6 +173,7 @@ const CHALLENGES: Challenge[] = [
 ];
 
 export function FoolTheAiGame() {
+  const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -251,8 +252,8 @@ export function FoolTheAiGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(6,182,212,${0.12 + p.size * 0.05}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -266,8 +267,8 @@ export function FoolTheAiGame() {
                 {phase === 'welcome' && (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
-                    <motion.span className="text-6xl block" animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}>{'\u{1F916}'}</motion.span>
+                    <motion.span className="text-6xl block" animate={prefersReducedMotion ? {} : { rotate: [0, 5, -5, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F916}'}</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Fool the AI welcome screen">Fool the AI</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C'
@@ -427,7 +428,7 @@ export function FoolTheAiGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Fool the AI game complete">Fool the AI Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored how AI can be tricked and why understanding its weaknesses makes AI systems stronger and more reliable.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20" role="status" aria-label={`Total score: ${game.score} points`}>
