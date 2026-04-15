@@ -72,6 +72,8 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
   const router = useRouter();
   const enterSpatial = useSceneStore((s) => s.enterSpatial);
   const enterGame = useSceneStore((s) => s.enterGame);
+  const updateSceneProgress = useSceneStore((s) => s.updateTransitionProgress);
+  const completeSceneTransition = useSceneStore((s) => s.completeTransition);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
 
   const [state, setState] = useState<PageTransitionState>({
@@ -130,7 +132,11 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
         enterGame(gameId, labColor);
       }
 
-      // Animate progress from 0 to 1 over the duration
+      // Phase 5 O.1-MAX (§5.8): TransitionOrchestrator unified timeline.
+      // A single RAF-paced timer drives BOTH the DOM overlay progress
+      // AND sceneStore.updateTransitionProgress so any 3D cockpit or
+      // iris transition runs on the same timeline as the 2D fade.
+      // Eliminates the drift between page overlay and 3D scene swap.
       const startTime = Date.now();
       const tickInterval = 16; // ~60fps
 
@@ -141,11 +147,20 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
 
         setState((prev: PageTransitionState) => ({ ...prev, progress }));
 
+        // Drive the 3D scene-store transition from the same clock.
+        // Types 'lab' and 'game' have an active sceneStore transition;
+        // 'page' type has no 3D transition so this is a no-op (sceneStore
+        // ignores progress updates when `transition` is null).
+        if (type === 'lab' || type === 'game') {
+          updateSceneProgress(progress);
+        }
+
         if (progress >= 1) {
           clearProgressTimer();
-
-          // Navigate at the halfway point has already happened;
-          // now finalize
+          // Atomically advance sceneStore to its target state
+          if (type === 'lab' || type === 'game') {
+            completeSceneTransition();
+          }
           completeTransition();
         }
       }, tickInterval);
@@ -157,7 +172,7 @@ export function PageTransitionProvider({ children }: PageTransitionProviderProps
         router.push(targetRoute);
       }, navigateDelay);
     },
-    [router, enterSpatial, enterGame, activeGameLabColor, clearProgressTimer, completeTransition]
+    [router, enterSpatial, enterGame, activeGameLabColor, clearProgressTimer, completeTransition, updateSceneProgress, completeSceneTransition]
   );
 
   const contextValue: PageTransitionContextValue = {
@@ -235,4 +250,29 @@ export function usePageTransition(): PageTransitionContextValue {
     );
   }
   return context;
+}
+
+// ────────────────────────────────────────
+// Phase 5 O.1-MAX: Unified progress subscription
+// ────────────────────────────────────────
+// Any component can subscribe to the current transition's progress
+// (0..1) without caring which type is active. Returns 0 when no
+// transition is in flight.
+//
+// Useful for custom 3D elements that want to sync their own animation
+// curves to the master transition clock.
+export function useTransitionProgress(): {
+  progress: number;
+  type: TransitionType | null;
+  isTransitioning: boolean;
+} {
+  const ctx = useContext(PageTransitionContext);
+  if (!ctx) {
+    return { progress: 0, type: null, isTransitioning: false };
+  }
+  return {
+    progress: ctx.progress,
+    type: ctx.transitionType,
+    isTransitioning: ctx.isTransitioning,
+  };
 }
