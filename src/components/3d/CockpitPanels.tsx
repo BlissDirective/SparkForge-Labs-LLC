@@ -570,10 +570,13 @@ function AccentLines({ arcRad, panelRadius, accentColor, opacity }: AccentLinesP
 
   return (
     <lineSegments geometry={lineGeometry}>
+      {/* Phase 5 P.1-MAX (§11.3): Bumped opacity multiplier 0.4 → 0.65 and depthTest=false
+          so accent seam lines read as glowing against the dark carbon panels.
+          toneMapped=false preserves emissive-like burnthrough under bloom. */}
       <lineBasicMaterial
         color={accentColor}
         transparent
-        opacity={opacity * 0.4}
+        opacity={opacity * 0.65}
         toneMapped={false}
         depthWrite={false}
       />

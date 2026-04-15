@@ -176,9 +176,11 @@ function ConnectionBeam({
 
   useFrame(() => {
     if (material) {
-      // Animated pulsing opacity — peak brightness from design token
+      // Phase 5 P.1-MAX (§5.3): Connection beam peak opacity +30%, fade-in slowed ~30%.
+      // Base 0.15 → 0.20, swing 0.08 → 0.104, slower frequency (time * 3 → time * 2.1)
+      // so beams stay visible longer per oscillation. Peak now ~0.356 (was ~0.27).
       const peak = EMISSIVE_LED_MULTIPLIER; // 1.5
-      material.opacity = 0.15 + Math.sin(time * 3) * 0.08 * peak;
+      material.opacity = 0.20 + Math.sin(time * 2.1) * 0.104 * peak;
     }
     // Phase 2 audit fix (Section 4.6): drive energyFieldTSL uniforms — Decision 4.5
     // Shared uniforms: uTime advances; uColor tracks beam accent; full intensity (shield HP 1.0).

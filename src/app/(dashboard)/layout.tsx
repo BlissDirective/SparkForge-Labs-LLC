@@ -29,6 +29,11 @@ import { useCockpitScene } from '@/hooks/useCockpitScene';
 // triggerCelebration() but never cleared, leaving the cockpit stuck in
 // celebration mode. useCelebration3D is the sole owner of dismissCelebration().
 import { useCelebration3D } from '@/hooks/useCelebration3D';
+// Phase 5 O.4-MAX (§6.6): Atomic hero→cockpit transition gate. Fires
+// sceneStore.completeHero() only when BOTH heroPhase AND cockpitReady
+// are set, eliminating the brief "interactive cockpit with hero still
+// visible" race on fast machines and skip-intro paths.
+import { useAtomicHeroToCockpit } from '@/hooks/useIsFullyReady';
 import { useCockpitUIStore, modeToCenterContent } from '@/stores/cockpitUIStore';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
@@ -89,6 +94,11 @@ export default function DashboardLayout({
   // owner of dismissCelebration() — CeremonyFXBridge intentionally does NOT
   // call it, avoiding the previous double-dismiss race.
   useCelebration3D();
+
+  // Phase 5 O.4-MAX (§6.6): Fires sceneStore.completeHero() atomically
+  // once heroPhase=complete AND cockpitReady=true. Eliminates the fast-
+  // machine race where cockpit was interactive while hero still visible.
+  useAtomicHeroToCockpit();
 
   // Auto-detect guide context from route/scene
   useGuideContext();

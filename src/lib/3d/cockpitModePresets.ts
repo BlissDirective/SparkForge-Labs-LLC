@@ -84,7 +84,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
     camera: { fov: 58, distortion: 0.025 },
     vignette: { darkness: 0.5, offset: 0.3 },
-    hud: { opacity: 0.15, rotationSpeed: 0.1, pulseIntensity: 0.3, dataMode: 'minimap' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.15 → 0.25 for readable corner readouts
+    hud: { opacity: 0.25, rotationSpeed: 0.1, pulseIntensity: 0.3, dataMode: 'minimap' },
     panels: { curvature: 0.85, opacity: 1.0 },
     sidePanels: { opacity: 0.6, leftContent: 'radar', rightContent: 'stats' },
     statusBar: { opacity: 1.0 },
@@ -100,7 +101,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
     camera: { fov: 60, distortion: 0.02 },
     vignette: { darkness: 0.45, offset: 0.3 },
-    hud: { opacity: 0.16, rotationSpeed: 0.12, pulseIntensity: 0.35, dataMode: 'minimap' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.16 → 0.26 for readable corner readouts
+    hud: { opacity: 0.26, rotationSpeed: 0.12, pulseIntensity: 0.35, dataMode: 'minimap' },
     panels: { curvature: 0.85, opacity: 1.0 },
     sidePanels: { opacity: 0.65, leftContent: 'radar', rightContent: 'stats' },
     statusBar: { opacity: 1.0 },
@@ -116,7 +118,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.5, threshold: 0.55, smoothing: 0.85 },
     camera: { fov: 62, distortion: 0.02 },
     vignette: { darkness: 0.4, offset: 0.3 },
-    hud: { opacity: 0.18, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.18 → 0.28 for readable corner readouts
+    hud: { opacity: 0.28, rotationSpeed: 0.15, pulseIntensity: 0.4, dataMode: 'minimap' },
     panels: { curvature: 0.85, opacity: 1.0 },
     sidePanels: { opacity: 0.7, leftContent: 'labNav', rightContent: 'stats' },
     statusBar: { opacity: 1.0 },
@@ -132,7 +135,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.5, threshold: 0.5, smoothing: 0.85 },
     camera: { fov: 55, distortion: 0.02 },
     vignette: { darkness: 0.5, offset: 0.3 },
-    hud: { opacity: 0.20, rotationSpeed: 0.2, pulseIntensity: 0.5, dataMode: 'labfocus' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.20 → 0.32 for readable corner readouts
+    hud: { opacity: 0.32, rotationSpeed: 0.2, pulseIntensity: 0.5, dataMode: 'labfocus' },
     panels: { curvature: 0.85, opacity: 1.0 },
     sidePanels: { opacity: 0.5, leftContent: 'labNav', rightContent: 'stats' },
     statusBar: { opacity: 1.0 },
@@ -164,7 +168,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.4, threshold: 0.6, smoothing: 0.9 },
     camera: { fov: 56, distortion: 0.015 },
     vignette: { darkness: 0.5, offset: 0.3 },
-    hud: { opacity: 0.12, rotationSpeed: 0.08, pulseIntensity: 0.2, dataMode: 'stats' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.12 → 0.22 for readable corner readouts
+    hud: { opacity: 0.22, rotationSpeed: 0.08, pulseIntensity: 0.2, dataMode: 'stats' },
     panels: { curvature: 0.85, opacity: 1.0 },
     sidePanels: { opacity: 0.4, leftContent: 'radar', rightContent: 'stats' },
     statusBar: { opacity: 1.0 },
@@ -180,7 +185,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
     camera: { fov: 56, distortion: 0.015 },
     vignette: { darkness: 0.5, offset: 0.3 },
-    hud: { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'stats' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.10 → 0.20 for readable corner readouts
+    hud: { opacity: 0.20, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'stats' },
     panels: { curvature: 0.85, opacity: 1.0 },
     sidePanels: { opacity: 0.4, leftContent: 'radar', rightContent: 'stats' },
     statusBar: { opacity: 1.0 },
@@ -212,7 +218,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.3, threshold: 0.7, smoothing: 0.95 },
     camera: { fov: 54, distortion: 0.01 },
     vignette: { darkness: 0.45, offset: 0.3 },
-    hud: { opacity: 0.08, rotationSpeed: 0.05, pulseIntensity: 0.1, dataMode: 'stats' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.08 → 0.18 for readable corner readouts
+    hud: { opacity: 0.18, rotationSpeed: 0.05, pulseIntensity: 0.1, dataMode: 'stats' },
     panels: { curvature: 0.6, opacity: 0.7 },
     sidePanels: { opacity: 0.3, leftContent: 'stats', rightContent: 'stats' },
     statusBar: { opacity: 0.7 },
@@ -230,7 +237,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.35, threshold: 0.65, smoothing: 0.9 },
     camera: { fov: 52, distortion: 0.01 },
     vignette: { darkness: 0.4, offset: 0.35 },
-    hud: { opacity: 0.10, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'tutorial' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.10 → 0.20 for readable corner readouts
+    hud: { opacity: 0.20, rotationSpeed: 0.05, pulseIntensity: 0.15, dataMode: 'tutorial' },
     panels: { curvature: 0.7, opacity: 0.8 },
     sidePanels: { opacity: 0.3, leftContent: 'radar', rightContent: 'stats' },
     statusBar: { opacity: 0.6 },
@@ -248,7 +256,8 @@ export const COCKPIT_MODE_PRESETS: Record<CockpitMode, CockpitModePreset> = {
     bloom: { intensity: 0.25, threshold: 0.75, smoothing: 0.95 },
     camera: { fov: 52, distortion: 0.0 },
     vignette: { darkness: 0.4, offset: 0.3 },
-    hud: { opacity: 0.06, rotationSpeed: 0.03, pulseIntensity: 0.05, dataMode: 'stats' },
+    // Phase 5 P.1-MAX (§6.5): HUD baseline opacity 0.06 → 0.16 for readable corner readouts
+    hud: { opacity: 0.16, rotationSpeed: 0.03, pulseIntensity: 0.05, dataMode: 'stats' },
     panels: { curvature: 0.5, opacity: 0.9 },
     sidePanels: { opacity: 0.2, leftContent: 'terminal', rightContent: 'stats' },
     statusBar: { opacity: 0.5 },

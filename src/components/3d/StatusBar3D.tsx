@@ -81,9 +81,13 @@ function XPSpeedometer({
   const currentRatio = useRef(xpRatio);
 
   // Phase 2 audit fix (Section 4.4): Emissive bloom pulse on XP change
+  // Phase 5 P.1-MAX (§8.1): Strengthen glow feedback — 400ms snap flash
+  // (baseline 0.5 → peak 2.0 → baseline 0.5) tied to XP prop change only.
   const prevXpRef = useRef(xp);
   const pulseTimeRef = useRef(-1);
-  const PULSE_DURATION = 0.6;
+  const PULSE_DURATION = 0.4;
+  const PULSE_BASELINE = 0.5;
+  const PULSE_PEAK = 2.0;
 
   useEffect(() => {
     if (xp !== prevXpRef.current) {
@@ -131,25 +135,28 @@ function XPSpeedometer({
       fillRef.current.geometry.setDrawRange(0, safeCount);
     }
 
-    // Phase 2 audit fix (Section 4.4): Emissive pulse spike on XP change
-    // Curve: 0.3 → 0.8 (peak at pulse=0.3) → 0.3 (settle)
-    let pulseBoost = 0;
+    // Phase 5 P.1-MAX (§8.1): Strong 400ms XP change flash — baseline 0.5 → peak 2.0 → 0.5
+    // Computed as half-sine through PULSE_DURATION (0.4s). This replaces the
+    // previous softer Section 4.4 pulse, giving XP gain real visual punch.
+    let pulseIntensity = PULSE_BASELINE;
     if (pulseTimeRef.current >= 0) {
       pulseTimeRef.current += delta;
       const pt = pulseTimeRef.current / PULSE_DURATION;
       if (pt >= 1) {
         pulseTimeRef.current = -1;
       } else {
-        pulseBoost = Math.sin(pt * Math.PI) * 0.5;
+        // Half-sine from baseline to peak and back
+        pulseIntensity = PULSE_BASELINE + Math.sin(pt * Math.PI) * (PULSE_PEAK - PULSE_BASELINE);
       }
     }
+    const pulseBoost = pulseIntensity - PULSE_BASELINE;
 
     // Pulse glow intensity (ambient + spike on XP change)
     if (glowRef.current) {
       glowRef.current.intensity = EMISSIVE_LED_MULTIPLIER + Math.sin(Date.now() * 0.003) * 0.4 + pulseBoost * 1.5;
     }
 
-    // Apply emissive spike to fill arc material
+    // Apply emissive spike to fill arc material (Phase 5 P.1-MAX §8.1)
     if (fillRef.current) {
       const mat = fillRef.current.material as MeshStandardMaterial;
       if (mat && 'emissiveIntensity' in mat) {
