@@ -316,3 +316,97 @@ const { data: authData } = await supabase.auth.admin.createUser({
 - **Option B (Recommended):** Call `supabase.auth.admin.signOut(userId, 'global')` from the server to invalidate all sessions for the user, not just the current one.
 
 ---
+
+### 2b. Game-Changing Auth Enhancements (7)
+
+---
+
+#### AUTH-ENH-001: Passkey / WebAuthn Support
+
+**Category:** Security + UX | **Effort:** Medium | **Impact:** High
+
+Passkeys (FIDO2/WebAuthn) are phishing-resistant, cryptographically bound to your domain, and supported natively on all major platforms in 2026. For a children's platform, passkeys dramatically simplify the parent login experience — no passwords to remember, no phishing risk.
+
+**Options:**
+- **Option A (Quick):** Enable Supabase Auth's built-in WebAuthn support (available since late 2025). Add a "Sign in with Passkey" button to the login page. ~2 hours of work.
+- **Option B (Recommended):** Option A + add passkey enrollment in Settings panel. Show passkey as primary login method with email/password as fallback. Add `navigator.credentials.create()` flow during onboarding.
+- **Option C (Comprehensive):** Option B + implement device-bound passkeys for child profiles (using parent's device biometric). Children tap a face/fingerprint to switch profiles instead of needing parent intervention.
+
+---
+
+#### AUTH-ENH-002: Session Activity Dashboard for Parents
+
+**Category:** Security + Trust | **Effort:** Medium | **Impact:** Medium
+
+Parents of children ages 7-16 need visibility into account activity. Show active sessions, last login timestamps, and device info.
+
+**Options:**
+- **Option A:** Add a "Security" tab in parent Settings showing `last_sign_in_at` from Supabase Auth metadata and active session count.
+- **Option B (Recommended):** Full session management panel: list all active sessions with device/browser info, "Sign out all devices" button, login history (last 30 days) from `auth.sessions` table.
+- **Option C:** Option B + email notifications on new device login, with one-click "Not me? Lock account" link.
+
+---
+
+#### AUTH-ENH-003: OAuth Social Login (Google / Apple)
+
+**Category:** UX + Conversion | **Effort:** Low | **Impact:** High
+
+Reduce signup friction dramatically. Google and Apple sign-in are expected by parents in 2026. Supabase Auth supports both out of the box.
+
+**Options:**
+- **Option A:** Add Google OAuth only — highest market share, lowest friction. Configure in Supabase dashboard, add button to login/signup pages.
+- **Option B (Recommended):** Add both Google and Apple OAuth. Apple is required for iOS App Store if you ever ship a native app. Use Supabase's built-in providers.
+- **Option C:** Option B + "Sign in with Clever" for schools/institutional deployments (Clever is the dominant K-12 SSO platform).
+
+---
+
+#### AUTH-ENH-004: Refresh Token Rotation
+
+**Category:** Security | **Effort:** Low | **Impact:** Medium
+
+Enable Supabase Auth's refresh token rotation so each token can only be used once. If a token is reused (indicating theft), all sessions for that user are invalidated.
+
+**Options:**
+- **Option A (Recommended):** Enable `GOTRUE_SECURITY_REFRESH_TOKEN_REUSE_INTERVAL=0` in Supabase Auth config. Zero code changes, pure config.
+- **Option B:** Option A + add client-side handling for the `TOKEN_REFRESH_FAILED` event in AuthProvider to redirect to login with a "Session expired" message.
+
+---
+
+#### AUTH-ENH-005: Data Access Layer (DAL) Pattern
+
+**Category:** Architecture + Security | **Effort:** High | **Impact:** High
+
+Next.js official recommendation (2026): create a dedicated Data Access Layer that centralizes all database access with built-in auth checks. This eliminates the risk of forgetting `requireAuth()` in a route handler.
+
+**Options:**
+- **Option A:** Create `src/lib/dal/` with typed functions like `dal.getChildren(parentId)`, `dal.awardXP(parentId, childId, amount)`. Each function includes auth verification internally.
+- **Option B (Recommended):** Option A + generate functions from Zod schemas. Each DAL function validates input, checks auth, queries Supabase, and returns typed DTOs. Route handlers become thin wrappers.
+- **Option C:** Option B + add query-level RLS verification tests that confirm every DAL function respects row-level security by testing cross-user access attempts.
+
+---
+
+#### AUTH-ENH-006: Multi-Factor Authentication (MFA) for Parents
+
+**Category:** Security + Compliance | **Effort:** Medium | **Impact:** Medium
+
+For a platform handling children's data, MFA adds critical defense against account takeover. Supabase Auth supports TOTP-based MFA.
+
+**Options:**
+- **Option A:** Enable optional TOTP MFA via Supabase Auth. Add MFA setup flow in parent Settings. Show QR code for authenticator apps.
+- **Option B (Recommended):** Option A + require MFA for admin accounts (is_admin=true). Make MFA optional for regular parents but prominently encouraged.
+- **Option C:** Option B + SMS-based MFA as alternative for parents who don't use authenticator apps. Use Supabase's phone auth provider.
+
+---
+
+#### AUTH-ENH-007: Signed Demo Session Tokens with Server-Side Validation
+
+**Category:** Security | **Effort:** Medium | **Impact:** High
+
+Replace the trivially-forgeable `'1'` cookie value with a proper signed token that encodes demo capabilities and expiry, validated server-side.
+
+**Options:**
+- **Option A:** Use `jose` library to create a signed JWT for demo sessions with claims: `{ demoId, expiresAt, permissions: ['read:content', 'play:games'] }`. Validate signature in middleware.
+- **Option B (Recommended):** Use Supabase anonymous auth (`signInAnonymously()`) to create a real but limited session. Demo users get proper JWTs, and RLS policies can enforce read-only access via a custom claim.
+- **Option C:** Option B + auto-convert demo sessions to real accounts: "You've been exploring for 30 minutes — create a free account to save your progress!" with one-click signup that preserves demo state.
+
+---
