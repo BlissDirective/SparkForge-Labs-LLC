@@ -1285,3 +1285,129 @@ If webhook processing fails (DB down, timeout), the event is lost. Add a queue w
 - **Option B:** Add an "Export as PDF" button on the parent dashboard that generates a clean, printable progress report.
 
 ---
+
+### 6b. Game-Changing UI/UX Enhancements (10)
+
+---
+
+#### UX-ENH-001: Magnetic Cursor Effects on Interactive Elements
+
+**Category:** Delight + Polish | **Effort:** Low | **Impact:** Medium
+
+Add a subtle magnetic pull effect where interactive elements attract the cursor when it enters a proximity zone. Elevates the premium feel of the Frost-Prismatic design.
+
+**Options:**
+- **Option A:** Use GSAP (already in stack) to animate elements toward the cursor within a 50px radius. Apply to main navigation buttons and game action buttons.
+- **Option B (Recommended):** Create a `useMagneticCursor` hook using Motion (already in stack) with `useMotionValue` and `useTransform`. Apply selectively to CTA buttons and cockpit nav.
+
+---
+
+#### UX-ENH-002: View Transitions API for Route Changes
+
+**Category:** Polish + Performance | **Effort:** Low | **Impact:** High
+
+`next.config.ts` already has `viewTransition: true` enabled. But no components use `document.startViewTransition()` or the `::view-transition-*` CSS pseudo-elements. Enable this zero-dependency native browser feature.
+
+**Options:**
+- **Option A:** Add `::view-transition-old(root)` and `::view-transition-new(root)` CSS rules in globals.css for crossfade transitions between pages.
+- **Option B (Recommended):** Option A + add `view-transition-name` to key elements (sidebar, main content, header) for per-element morphing animations between routes. The cockpit stays stable while content panels transition.
+
+---
+
+#### UX-ENH-003: Lenis Smooth Scrolling for Marketing Pages
+
+**Category:** Polish | **Effort:** Low | **Impact:** Medium
+
+The marketing/landing page uses scroll-based animations (ScrollJourney). Add Lenis smooth scrolling for buttery-smooth scroll physics.
+
+**Options:**
+- **Option A:** Install `lenis` (~3KB). Add `<ReactLenis>` wrapper to the marketing layout only. Configure `duration: 1.2, smoothWheel: true`.
+- **Option B (Recommended):** Option A + integrate with GSAP ScrollTrigger (already used) for synchronized smooth scrolling and scroll-triggered animations.
+
+---
+
+#### UX-ENH-004: Animated Page Transitions with Shared Layout
+
+**Category:** Polish + Continuity | **Effort:** Medium | **Impact:** High
+
+Use Motion's `AnimatePresence` + `layoutId` for shared element transitions between pages. When navigating from Labs list to a specific Lab, the lab card morphs into the lab header.
+
+**Options:**
+- **Option A:** Add `AnimatePresence` to the dashboard layout with fade in/out transitions for page content.
+- **Option B (Recommended):** Use `layoutId` on lab cards, game cards, and profile elements so they animate continuously between list and detail views.
+- **Option C:** Option B + combine with the 3D MechanicalIris transition for a coordinated 2D+3D route change animation.
+
+---
+
+#### UX-ENH-005: Accessibility Preference Persistence
+
+**Category:** Accessibility + UX | **Effort:** Low | **Impact:** High
+
+The `accessibilityStore` exists but accessibility preferences (font size, contrast, reduced motion, dyslexia font) should persist per-child and sync across devices.
+
+**Options:**
+- **Option A:** Store accessibility preferences in the child's `preferences` JSONB column. Load on child profile switch.
+- **Option B (Recommended):** Option A + add quick-access keyboard shortcuts: `Ctrl+Plus` for font size up, `Ctrl+M` for reduce motion toggle. Show current settings in a floating accessibility indicator.
+
+---
+
+#### UX-ENH-006: Contextual Help System with AI Sparky Guide
+
+**Category:** UX + Engagement | **Effort:** Medium | **Impact:** High
+
+The `guideStore` exists with mood, messages, and voice fields. Bring the Sparky guide to life as a contextual help system that proactively offers assistance.
+
+**Options:**
+- **Option A:** Show context-sensitive help tooltips from Sparky based on the current page/game. Use static messages, no AI needed.
+- **Option B (Recommended):** Use the existing Claude API integration to power Sparky's contextual help. When a child is stuck on a game (no progress for 30+ seconds), Sparky offers a hint. System prompt scoped to the current game's concepts.
+
+---
+
+#### UX-ENH-007: Achievement Notification System
+
+**Category:** Engagement + Gamification | **Effort:** Medium | **Impact:** High
+
+Create a polished notification system for badges, level-ups, and streaks that interrupts with delight at the right moments.
+
+**Options:**
+- **Option A:** Use the existing toast system with enhanced styling: full-width banner for level-ups, card toast for badges, subtle notification for streaks.
+- **Option B (Recommended):** Create a tiered notification system: Level-ups trigger the full CeremonyFX 3D celebration. Badge unlocks show a modal with the badge spinning in 3D. Streaks show a fire animation toast. Daily challenges show a gentle slide-in.
+
+---
+
+#### UX-ENH-008: Parent Real-Time Activity Feed
+
+**Category:** Trust + Engagement | **Effort:** Medium | **Impact:** Medium
+
+Show parents a live feed of their children's activity: games played, XP earned, badges unlocked, time spent — with timestamps.
+
+**Options:**
+- **Option A:** Create an activity timeline component on the parent dashboard showing the last 50 events from progress, child_badges, and sessions tables.
+- **Option B (Recommended):** Option A + use Supabase Realtime (DB-ENH-002) to make the feed update live. Parents see "Alex earned 15 XP from AI Spy" appear in real-time.
+
+---
+
+#### UX-ENH-009: Micro-Interactions on All UI Elements
+
+**Category:** Polish + Delight | **Effort:** Medium | **Impact:** Medium
+
+Add subtle micro-interactions to elevate the premium feel: button press effects, toggle switches with physics, hover states with glow.
+
+**Options:**
+- **Option A:** Add Motion `whileHover` and `whileTap` variants to all interactive elements. Scale(0.97) on tap, scale(1.02) on hover. Use spring physics.
+- **Option B (Recommended):** Create a library of Frost-Prismatic interaction presets: `glowHover` (neon glow intensifies), `chromePress` (chrome reflection shifts), `sparkleClick` (particle burst). Apply consistently via a `InteractiveWrapper` component.
+
+---
+
+#### UX-ENH-010: Internationalization (i18n) Foundation
+
+**Category:** Growth + Accessibility | **Effort:** High | **Impact:** High
+
+Prepare the platform for international markets. Even for English-only launch, extracting strings now prevents a painful retrofit.
+
+**Options:**
+- **Option A:** Use `next-intl` to extract all user-facing strings into message files. Start with English. Structure enables future translations.
+- **Option B (Recommended):** Option A + add RTL layout support for Arabic/Hebrew markets. Use Tailwind's `rtl:` prefix. Add language selector in settings.
+- **Option C:** Option B + implement age-band-specific string variants so the same game uses simpler language for Band A children.
+
+---
