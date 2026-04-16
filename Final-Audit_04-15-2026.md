@@ -1986,3 +1986,68 @@ Document what to do when things break: database corruption, Stripe webhook failu
 - **Option B:** Option A + add auto-dismiss with configurable duration (default 5s, error 8s, success 3s).
 
 ---
+
+### 9b. Game-Changing State Management Enhancements (5)
+
+---
+
+#### STATE-ENH-001: React Query for All Server State
+
+**Category:** Architecture | **Effort:** High | **Impact:** Critical
+
+Migrate all server-fetched data (parent profile, children, progress, content, badges) from Zustand stores to React Query. Zustand keeps only client-only UI state (sidebar open, active child selection, 3D scene state).
+
+**Options:**
+- **Option A:** Create React Query hooks for the 5 most critical data types: `useParentProfile()`, `useChildren()`, `useChildProgress(childId)`, `useContent()`, `useBadges()`. Keep existing stores but make them read from React Query cache.
+- **Option B (Recommended):** Full migration: all API data managed by React Query with `staleTime` and `refetchOnWindowFocus`. Reduce Zustand stores from 15 to ~8 (remove stores that only cache server data). Use React Query's `invalidateQueries` for cross-component cache busting.
+- **Option C:** Option B + add React Query devtools in dev mode. Configure garbage collection times per query type.
+
+---
+
+#### STATE-ENH-002: Zustand Devtools and Persist Middleware
+
+**Category:** DX + Reliability | **Effort:** Low | **Impact:** Medium
+
+Add Zustand middleware for better debugging and data persistence.
+
+**Options:**
+- **Option A:** Add `devtools` middleware to all stores in development mode. Enables Redux DevTools inspection of all Zustand state.
+- **Option B (Recommended):** Option A + add `persist` middleware to `accessibilityStore` and `uiStore` for settings that should survive page reloads (sound preferences, sidebar state, skip intro animation). Use `localStorage` adapter.
+
+---
+
+#### STATE-ENH-003: Event Bus for Cross-Store Communication
+
+**Category:** Architecture | **Effort:** Medium | **Impact:** Medium
+
+Replace implicit store cross-references with an explicit event bus. When a game completes, it emits a `game:complete` event. The celebration system, XP system, and progress tracker all subscribe independently.
+
+**Options:**
+- **Option A:** Use the existing `cockpitBroadcastStore` pattern (16 event types) and extend it to cover game events, auth events, and notification events.
+- **Option B (Recommended):** Create a lightweight `eventBus.ts` using native `EventTarget` or a tiny library like `mitt` (~200B). Stores subscribe to events in their initializers. Components emit events via hooks.
+
+---
+
+#### STATE-ENH-004: Computed/Derived State with Zustand Selectors
+
+**Category:** Performance | **Effort:** Low | **Impact:** Medium
+
+Replace frequently recomputed values with memoized Zustand selectors. For example, "child's current level title" is derived from XP but recalculated on every render.
+
+**Options:**
+- **Option A:** Create computed selectors using `useMemo` inside custom hooks: `useChildLevel()` returns `{ level, title, progress, xpToNext }` derived from `childStore.xp`.
+- **Option B (Recommended):** Use Zustand's `subscribe` with `equalityFn` to create derived stores that only update when their inputs change. E.g., `levelStore` subscribes to `childStore.xp` and recomputes level data.
+
+---
+
+#### STATE-ENH-005: State Machine for Complex Flows
+
+**Category:** Reliability | **Effort:** Medium | **Impact:** Medium
+
+Use XState or a simple state machine pattern for complex multi-step flows: onboarding, subscription upgrade, game lifecycle.
+
+**Options:**
+- **Option A:** Create simple state machines using Zustand with explicit transitions: `type GamePhase = 'idle' | 'welcome' | 'learn' | 'play' | 'complete'` (already exists in gameStore). Add transition validation: `play → complete` is valid, `idle → complete` is not.
+- **Option B (Recommended):** Use XState for the 3 most complex flows (onboarding, subscription management, game lifecycle). XState visualizer lets you see and verify all possible state transitions. Keep simple stores as Zustand.
+
+---
