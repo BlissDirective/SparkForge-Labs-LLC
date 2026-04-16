@@ -2051,3 +2051,124 @@ Use XState or a simple state machine pattern for complex multi-step flows: onboa
 - **Option B (Recommended):** Use XState for the 3 most complex flows (onboarding, subscription management, game lifecycle). XState visualizer lets you see and verify all possible state transitions. Keep simple stores as Zustand.
 
 ---
+
+## 10. IMPLEMENTATION ROADMAP
+
+### Phase 1: Critical Security (Must Fix Before Launch)
+**Estimated items: 13 Critical bugs**
+**Priority: IMMEDIATE**
+
+| ID | Finding | Section | Est. Effort |
+|----|---------|---------|-------------|
+| AUTH-CRIT-001 | Remove access token from login response | Auth | 15 min |
+| AUTH-CRIT-002 | Fix demo session auth bypass | Auth | 2 hrs |
+| AUTH-CRIT-003 | Fix callback open redirect | Auth | 30 min |
+| DB-CRIT-001 | Add RLS to subscription_events | Database | 30 min |
+| DB-CRIT-002 | Audit & patch all migration tables for RLS | Database | 2 hrs |
+| PAY-CRIT-001 | Add webhook idempotency guard | Payments | 1 hr |
+| API-CRIT-001 | Replace admin client in health endpoint | API | 15 min |
+| API-CRIT-002 | Centralize agent admin check | API | 30 min |
+| UX-CRIT-001 | Add global keyboard focus indicators | UI/UX | 30 min |
+| PERF-CRIT-001 | Fix tree-shaking (named imports) | Performance | 4 hrs |
+| PERF-CRIT-002 | Fix geometry/material memory leaks | Performance | 3 hrs |
+| DEPLOY-CRIT-001 | Add secret scanning to CI | Deployment | 1 hr |
+| STATE-CRIT-001 | Fix game store child-switch corruption | State | 1 hr |
+
+### Phase 2: High-Priority Fixes (Before Launch or Day-1 Patch)
+**Estimated items: 28 High bugs**
+**Priority: Before launch week**
+
+| Category | Count | Key Items |
+|----------|-------|-----------|
+| Auth | 4 | Placeholder creds, middleware API bypass, rate limiter fix, email verification |
+| Database | 3 | Admin RLS scope, audit logging, counter reset via cron |
+| Payments | 3 | Replay window, type guards, checkout success verification |
+| API Security | 4 | Avatar schema, dedup fix, XP daily cap, CSRF protection |
+| UI/UX | 5 | Skip nav, 3D keyboard nav, error recovery, loading states, color contrast |
+| Performance | 3 | Store selectors, texture compression, setInterval cleanup |
+| Deployment | 3 | Staging env, CSP nonces, health monitoring |
+| State | 3 | Auth tab sync, optimistic XP, store documentation |
+
+### Phase 3: Medium-Priority Polish (First Month Post-Launch)
+**Estimated items: 29 Medium bugs**
+**Priority: First 2-4 weeks post-launch**
+
+Focus areas: password policy, COPPA enforcement, missing indexes, form validation, onboarding tutorial, code splitting, database backups, cache invalidation.
+
+### Phase 4: Enhancements — Security & Architecture (Month 1-2)
+**Estimated items: 18 enhancements**
+
+| Enhancement | Impact |
+|-------------|--------|
+| Passkeys/WebAuthn (AUTH-ENH-001) | Eliminates password phishing |
+| Upstash Redis rate limiting (AUTH-HIGH-003 fix) | Production-grade rate limiting |
+| Restricted Stripe API keys (PAY-ENH-001) | Reduced blast radius on key leak |
+| Server-authoritative scoring (API-ENH-001) | Eliminates client-side cheating |
+| React Query migration (STATE-ENH-001) | Fixes stale data across the board |
+| CI pipeline (DEPLOY-ENH-001) | Automated quality gates |
+| CSP nonces (DEPLOY-HIGH-002) | Real XSS protection |
+| Data Access Layer (AUTH-ENH-005) | Eliminates forgotten auth checks |
+
+### Phase 5: Enhancements — UX & Growth (Month 2-3)
+**Estimated items: 20 enhancements**
+
+| Enhancement | Impact |
+|-------------|--------|
+| Google/Apple OAuth (AUTH-ENH-003) | Reduces signup friction by ~50% |
+| Sparky AI guide (UX-ENH-006) | Increases engagement + reduces drop-off |
+| Achievement notifications (UX-ENH-007) | Stronger gamification loop |
+| View Transitions (UX-ENH-002) | Premium feel, zero dependency cost |
+| Service Worker offline (PERF-ENH-005) | Works on spotty school networks |
+| Promo codes & referrals (PAY-ENH-005) | Growth engine |
+| Dunning management (PAY-ENH-003) | Recovers failed payments |
+| i18n foundation (UX-ENH-010) | International market readiness |
+
+### Phase 6: Enhancements — Performance & Scale (Month 3+)
+**Estimated items: 14 enhancements**
+
+| Enhancement | Impact |
+|-------------|--------|
+| BatchedMesh cockpit (PERF-ENH-001) | 10x draw call reduction |
+| WebGPU compute particles (PERF-ENH-002) | 10x particle count |
+| Bundle budgets in CI (PERF-ENH-007) | Prevents size regressions |
+| Supabase Realtime (DB-ENH-002) | Live parent dashboard |
+| Database migrations via CLI (DB-ENH-003) | Safe schema changes |
+| Feature flags (DEPLOY-ENH-002) | Safe rollouts |
+| Subscription analytics (PAY-ENH-004) | Business intelligence |
+| Event bus architecture (STATE-ENH-003) | Cleaner store communication |
+
+---
+
+## APPENDIX A: Finding Index by Severity
+
+### Critical (13)
+AUTH-CRIT-001, AUTH-CRIT-002, AUTH-CRIT-003, DB-CRIT-001, DB-CRIT-002, PAY-CRIT-001, API-CRIT-001, API-CRIT-002, UX-CRIT-001, PERF-CRIT-001, PERF-CRIT-002, DEPLOY-CRIT-001, STATE-CRIT-001
+
+### High (28)
+AUTH-HIGH-001 through AUTH-HIGH-004, DB-HIGH-001 through DB-HIGH-003, PAY-HIGH-001 through PAY-HIGH-003, API-HIGH-001 through API-HIGH-004, UX-HIGH-001 through UX-HIGH-005, PERF-HIGH-001 through PERF-HIGH-003, DEPLOY-HIGH-001 through DEPLOY-HIGH-003, STATE-HIGH-001 through STATE-HIGH-003
+
+### Medium (29)
+AUTH-MED-001 through AUTH-MED-003, DB-MED-001 through DB-MED-004, PAY-MED-001 through PAY-MED-003, API-MED-001 through API-MED-003, UX-MED-001 through UX-MED-006, PERF-MED-001 through PERF-MED-004, DEPLOY-MED-001 through DEPLOY-MED-003, STATE-MED-001 through STATE-MED-003
+
+### Low (15)
+AUTH-LOW-001 through AUTH-LOW-002, DB-LOW-001 through DB-LOW-002, PAY-LOW-001, API-LOW-001 through API-LOW-002, UX-LOW-001 through UX-LOW-003, PERF-LOW-001 through PERF-LOW-002, DEPLOY-LOW-001 through DEPLOY-LOW-002, STATE-LOW-001
+
+---
+
+## APPENDIX B: Enhancement Index (52 total)
+
+AUTH-ENH-001 through AUTH-ENH-007 (7)
+DB-ENH-001 through DB-ENH-006 (6)
+PAY-ENH-001 through PAY-ENH-005 (5)
+API-ENH-001 through API-ENH-006 (6)
+UX-ENH-001 through UX-ENH-010 (10)
+PERF-ENH-001 through PERF-ENH-008 (8)
+DEPLOY-ENH-001 through DEPLOY-ENH-005 (5)
+STATE-ENH-001 through STATE-ENH-005 (5)
+
+---
+
+*End of Final Pre-Release Audit — SparkForge v1.0*
+*137 total items: 85 bugs (13C / 28H / 29M / 15L) + 52 enhancements*
+*Auditor: Claude Code (Opus 4.6) | Date: April 15, 2026*
+*Branch: `claude/sparkforge-final-audit-ftjfL`*
