@@ -1867,3 +1867,122 @@ Document what to do when things break: database corruption, Stripe webhook failu
 - **Option B (Recommended):** Option A + create automated recovery scripts: `scripts/replay-stripe-events.ts` (fetches and replays missed events), `scripts/rotate-secrets.ts` (generates new keys and updates Vercel env vars).
 
 ---
+
+## 9. STATE MANAGEMENT & DATA FLOW
+
+### Reference Sources
+- [Zustand](https://github.com/pmndrs/zustand) (50k stars) — Lightweight state management
+- [Jotai](https://github.com/pmndrs/jotai) (19k stars) — Atomic state for fine-grained reactivity
+- [TanStack Query](https://github.com/TanStack/query) (44k stars) — Server state + caching
+- Zustand 2026 Best Practices — Selector patterns, middleware, devtools
+- React 19 State Management Patterns — `use()`, Server Components, Actions
+
+### 9a. Bugs & Findings
+
+---
+
+#### STATE-CRIT-001: Game Store Shared Globally — Concurrent Game Sessions Corrupt State
+
+**Severity:** CRITICAL | **File:** `src/stores/gameStore.ts`
+
+**Issue:** `useGameStore` is a single global Zustand store. If two browser tabs are open (or if a demo session and a real session run simultaneously), both share the same game state. Starting a game in one tab resets the other tab's in-progress game. More practically: if a parent has two children taking turns, switching child profiles doesn't reset the game store — the new child sees the previous child's game-in-progress state.
+
+**Impact:** Data corruption — wrong child gets XP credited, game progress attributed to wrong profile, confusing UX when switching children.
+
+**Options:**
+- **Option A (Quick):** Call `resetGame()` in `childStore` whenever `activeChild` changes. This ensures a clean game state on child switch.
+- **Option B (Recommended):** Scope the game store per child using a key: `useGameStore` becomes a factory `createGameStore(childId)`. Use a `Map<childId, GameStore>` to maintain separate stores.
+- **Option C (Comprehensive):** Replace the global game store with a React context + `useReducer` scoped to the `GameShell` component. Each game gets its own isolated state. No global game store needed.
+
+---
+
+#### STATE-HIGH-001: Auth Store Doesn't Sync with Server on Tab Focus
+
+**Severity:** HIGH | **File:** `src/stores/authStore.ts`
+
+**Issue:** The `authStore` caches the parent profile in memory. If the parent's subscription is upgraded via Stripe (webhook), the auth store still shows the old tier until a full page reload. There's no mechanism to refetch the profile when the tab regains focus or when the user returns from Stripe Checkout.
+
+**Options:**
+- **Option A (Quick):** Add `visibilitychange` listener that calls `/api/auth/me` when tab becomes visible after being hidden for >60 seconds.
+- **Option B (Recommended):** Use React Query for the auth profile with `refetchOnWindowFocus: true` and `staleTime: 30000` (30s). Replace `authStore.parent` with a React Query cache entry.
+- **Option C:** Option B + subscribe to Supabase Realtime on the `parents` table for the current user ID. Instant updates on subscription changes.
+
+---
+
+#### STATE-HIGH-002: No Optimistic Updates on XP/Score Changes
+
+**Severity:** HIGH | **Files:** Game components, `childStore.ts`
+
+**Issue:** When a child earns XP, the flow is: client action → API call → wait for response → update store. During the API call (which can take 200-500ms), the UI shows stale XP. The celebration animation fires only after the API response, creating a noticeable delay between the game action and the reward feedback.
+
+**Impact:** The gamification loop feels sluggish. Children expect instant feedback. The delay between "I won!" and "XP pops up" breaks the reward cycle.
+
+**Options:**
+- **Option A (Quick):** Update `childStore.xp` optimistically before the API call. Roll back on failure.
+- **Option B (Recommended):** Use React Query mutations with `onMutate` optimistic updates. Immediately update the cache with the expected new XP value. On server response, reconcile. On error, roll back and show toast.
+- **Option C:** Option B + queue XP awards in a local buffer and batch-send to the server every 5 seconds. Provides instant UI feedback with eventual consistency. Reduces API calls during rapid gameplay.
+
+---
+
+#### STATE-HIGH-003: 15 Stores Create Complex Dependency Web
+
+**Severity:** HIGH | **Files:** All 14 stores in `src/stores/`
+
+**Issue:** With 14 Zustand stores + 1 Jotai atom store, there's no documented dependency graph. Stores cross-reference each other (e.g., `cockpitStore` reads from `sceneStore`, `gameStore` triggers `uiStore` celebrations, `childStore` affects `gameStore`). This creates implicit coupling and makes it hard to reason about state flow.
+
+**Impact:** Debugging state issues requires understanding all 15 stores and their interactions. New features risk creating circular dependencies or stale data.
+
+**Options:**
+- **Option A (Quick):** Document the store dependency graph in a `STATE_ARCHITECTURE.md` file. List which stores read/write to which other stores.
+- **Option B (Recommended):** Consolidate related stores: merge `cockpitStore` + `cockpitUIStore` + `cockpitBroadcastStore` into a single `cockpitStore` with namespaced slices. Reduce from 15 to ~10 stores.
+- **Option C:** Option A + add Zustand devtools middleware to all stores for time-travel debugging and state inspection.
+
+---
+
+#### STATE-MED-001: `childStore` Has No Cache Invalidation Strategy
+
+**Severity:** MEDIUM | **File:** `src/stores/childStore.ts`
+
+**Issue:** The child store caches children, XP, level, badges, and avatar data. But there's no TTL or invalidation mechanism. If a parent updates a child's display name in one tab, other tabs show the old name until page reload.
+
+**Options:**
+- **Option A:** Add a `lastFetched` timestamp and refetch if data is older than 60 seconds.
+- **Option B (Recommended):** Migrate child data fetching to React Query with `staleTime: 30000` and `refetchOnWindowFocus: true`. Keep the childStore for UI-only state (activeChild selection, form state).
+
+---
+
+#### STATE-MED-002: Demo Session State Split Between Store and localStorage
+
+**Severity:** MEDIUM | **Files:** `src/stores/authStore.ts`, `src/lib/demo-session.ts`
+
+**Issue:** Demo session state is split: `authStore` has `isDemoMode` and `demoSession`, while `demo-session.ts` manages localStorage directly. The two can go out of sync — if localStorage is cleared (browser settings, incognito), `authStore` still thinks it's in demo mode.
+
+**Options:**
+- **Option A (Quick):** Make `authStore` the single source of truth. On mount, check localStorage and sync to store. On store change, sync back to localStorage. Remove direct localStorage reads from components.
+- **Option B (Recommended):** Use Zustand's `persist` middleware for the demo session portion of authStore. Auto-syncs with localStorage, handles hydration.
+
+---
+
+#### STATE-MED-003: `sceneStore` Doesn't Reset Game HUD Content on Exit
+
+**Severity:** MEDIUM | **File:** `src/stores/sceneStore.ts`
+
+**Issue:** The `exitGame` action in sceneStore changes `activeScene` back to `'cockpit'` but may not clear `gameHUDContent` (a React element stored in the store). Stale HUD content from the previous game could flash briefly when entering a new game.
+
+**Options:**
+- **Option A (Quick):** Add `gameHUDContent: null` to the `exitGame` action.
+- **Option B (Recommended):** Option A + add a `cleanupGame()` action that resets all game-related state across `sceneStore`, `gameStore`, and `cockpitStore` in a single coordinated action.
+
+---
+
+#### STATE-LOW-001: Toast Store Has No Max Limit
+
+**Severity:** LOW | **File:** `src/stores/toastStore.ts`
+
+**Issue:** The toast store accumulates toasts with no cap. In pathological cases (rapid API errors, game bugs), dozens of toasts could stack up, obscuring the UI.
+
+**Options:**
+- **Option A:** Add a `MAX_TOASTS = 5` constant. In `addToast`, remove the oldest toast if the array exceeds the limit.
+- **Option B:** Option A + add auto-dismiss with configurable duration (default 5s, error 8s, success 3s).
+
+---
