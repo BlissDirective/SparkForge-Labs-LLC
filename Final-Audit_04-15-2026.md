@@ -1411,3 +1411,158 @@ Prepare the platform for international markets. Even for English-only launch, ex
 - **Option C:** Option B + implement age-band-specific string variants so the same game uses simpler language for Band A children.
 
 ---
+
+## 7. PERFORMANCE & 3D RENDERING
+
+### Reference Sources
+- [Three.js](https://github.com/mrdoob/three.js) (103k stars) — Core 3D library
+- [React Three Fiber](https://github.com/pmndrs/react-three-fiber) (28k stars) — React renderer for Three.js
+- Three.js 100 Performance Tips (2026) — Instancing, batching, WebGPU, memory management
+- [drei](https://github.com/pmndrs/drei) (8k stars) — R3F helpers and abstractions
+- Web Vitals (LCP, FID, CLS, INP) standards
+
+### 7a. Bugs & Findings
+
+---
+
+#### PERF-CRIT-001: `import * as THREE` in 103+ Files Prevents Tree-Shaking
+
+**Severity:** CRITICAL | **Files:** 103+ files (per AUDIT_REPORT.md)
+
+**Issue:** Over 100 files use `import * as THREE from 'three'` which imports the entire Three.js library (~600KB) into each bundle chunk. Three.js supports named imports for tree-shaking: `import { Vector3, MeshStandardMaterial } from 'three'`.
+
+**Impact:** Massively inflated client bundle size. Every route that loads a 3D component pulls in the full Three.js library regardless of how few classes are used.
+
+**Options:**
+- **Option A (Quick):** Automated codemod: `find src -name "*.ts*" | xargs sed 's/import \* as THREE from .three./import { ... } from "three"/'` — but requires manual per-file import list.
+- **Option B (Recommended):** Use ESLint rule `no-restricted-imports` to ban `import * as THREE` and enforce named imports. Run auto-fix across codebase: for each file, replace `THREE.Vector3` with `Vector3` and add to import list.
+- **Option C (Comprehensive):** Option B + add a bundle analysis step to CI using `@next/bundle-analyzer`. Set a max bundle size threshold. Alert on regressions.
+
+---
+
+#### PERF-CRIT-002: Geometry and Material Memory Leaks in Cockpit Components
+
+**Severity:** CRITICAL | **Files:** `SidePanels.tsx`, `HolographicLabMap.tsx`, `CockpitStructuralDetail.tsx`
+(Previously identified in AUDIT_REPORT.md — confirming still present)
+
+**Issue:** Multiple cockpit components create geometry and materials in `useMemo` without cleanup. `TubeGeometry`, `SphereGeometry`, and custom materials created per-render or per-mount leak VRAM when scenes remount. With the single persistent Canvas (D3D-B1), these components may mount/unmount during scene transitions.
+
+**Impact:** Progressive GPU memory leak. After extended sessions (children may play for 1+ hours), performance degrades and the browser may crash.
+
+**Options:**
+- **Option A (Quick):** Add `useEffect(() => () => { geometry.dispose(); material.dispose(); }, [])` cleanup to every component that creates geometries/materials imperatively.
+- **Option B (Recommended):** Create a `useDisposable` hook that tracks all Three.js objects created in a component and auto-disposes them on unmount. Apply to all 3D components.
+- **Option C (Comprehensive):** Option B + add a `MemoryMonitor` dev tool component that tracks total allocated geometries/materials and warns when counts exceed thresholds. Visible in dev mode only.
+
+---
+
+#### PERF-HIGH-001: Full Zustand Store Subscriptions in 3D Code Paths
+
+**Severity:** HIGH | **Files:** 27 files using `useCockpitStore`
+
+**Issue:** 27 files import `useCockpitStore`. Any that destructure without selectors (e.g., `const { spatialView, focusedLabId } = useCockpitStore()`) cause the component to re-render on ANY store property change, even unrelated ones. In R3F `useFrame` loops, this triggers unnecessary re-renders at 60fps.
+
+**Options:**
+- **Option A (Quick):** Audit all 27 usages. Replace destructuring with individual selectors: `const spatialView = useCockpitStore(s => s.spatialView)`.
+- **Option B (Recommended):** Use Zustand's `useShallow` for multi-value subscriptions: `const { spatialView, focusedLabId } = useCockpitStore(useShallow(s => ({ spatialView: s.spatialView, focusedLabId: s.focusedLabId })))`.
+- **Option C:** Add an ESLint rule that flags `useCockpitStore()` calls without selectors in files under `src/components/3d/`.
+
+---
+
+#### PERF-HIGH-002: No Texture Compression (KTX2/Basis)
+
+**Severity:** HIGH | **Files:** All 3D components loading textures
+
+**Issue:** The 37.8M triangle cockpit and game scenes use standard PNG/JPEG textures. For a 3D-heavy application, KTX2/Basis Universal compressed textures reduce GPU memory usage by 4-6x and load faster.
+
+**Options:**
+- **Option A:** Convert all textures to KTX2 format using `toktx` CLI. Add `<KTX2Loader>` from drei to load them. ~4x VRAM reduction.
+- **Option B (Recommended):** Option A + use Draco compression for all geometry assets. Add `DRACOLoader` configuration. Combined savings: 4-6x VRAM, 60-70% smaller downloads.
+- **Option C:** Option B + implement progressive texture loading: load 256x256 placeholder textures first, then swap to full-resolution when available.
+
+---
+
+#### PERF-HIGH-003: `setInterval` Cleanup Leak in Rate Limiter and Dedup Cache
+
+**Severity:** HIGH | **Files:** `src/lib/rate-limit.ts:15`, `src/lib/api-helpers.ts:202`
+
+**Issue:** Two `setInterval` calls at module scope run forever. In serverless environments, these may keep functions warm unnecessarily and leak across cold starts. The `typeof globalThis !== 'undefined'` guard runs on every import.
+
+**Options:**
+- **Option A (Quick):** Use `WeakRef` or `FinalizationRegistry` for auto-cleanup. Or simply remove the intervals — the in-memory stores are ephemeral on serverless anyway.
+- **Option B (Recommended):** Replace both in-memory stores with a Redis-based solution (Upstash). Eliminates the need for manual cleanup entirely and fixes the rate limiter effectiveness issue (AUTH-HIGH-003).
+
+---
+
+#### PERF-MED-001: No Code Splitting for Game Components
+
+**Severity:** MEDIUM | **Files:** Game route pages
+
+**Issue:** While 3D components use `dynamic(() => import(...), { ssr: false })`, the game components themselves (~35 games, each 300-600 lines) may all be included in the game route bundle if they're imported statically in a game registry or switch statement.
+
+**Options:**
+- **Option A:** Ensure every game component is loaded via `dynamic()` in the game route page. Only the active game is downloaded.
+- **Option B (Recommended):** Option A + use route-based code splitting: each game gets its own route (`/games/[gameId]`) with its own `loading.tsx`. Next.js automatically code-splits per route.
+
+---
+
+#### PERF-MED-002: No Image Optimization for Game Assets
+
+**Severity:** MEDIUM | **Files:** Game components using `<img>` tags
+
+**Issue:** Games may use standard `<img>` tags for illustrations and icons instead of Next.js `<Image>` component. This misses automatic WebP/AVIF conversion, responsive sizing, and lazy loading.
+
+**Options:**
+- **Option A:** Replace all `<img>` tags in game components with `<Image>` from `next/image`. Add `width`/`height` or `fill` props.
+- **Option B (Recommended):** Option A + add `sizes` prop to all images for responsive loading. Use `priority` prop only for above-the-fold images.
+
+---
+
+#### PERF-MED-003: PostProcessingStack Runs All 7 Effects Always
+
+**Severity:** MEDIUM | **File:** `src/components/3d/PostProcessingStack.tsx`
+
+**Issue:** Per D3D-5, all 7 post-processing effects are always-on (Bloom, SSAO, Chromatic Aberration, Depth of Field, Vignette, Barrel Distortion, Color Grading). This is by design, but the current `useFrameTimeMonitor` only warns in dev — it doesn't take action. On lower-end desktops, this causes sub-30fps rendering.
+
+**Options:**
+- **Option A:** Keep current behavior (D3D-5 honored). Add a user-facing "Performance" toggle in Settings that disables DOF and SSAO (the two most expensive effects).
+- **Option B (Recommended):** Implement Plan B2 from CLAUDE.md: measure initial 60 frames, if avg >20ms, disable DOF and reduce SSAO to quarter-res. User can override in Settings to force all effects on.
+- **Option C:** Add effect quality presets: "Ultra" (all on), "High" (no DOF), "Medium" (no DOF + half-res SSAO), "Performance" (bloom + vignette only).
+
+---
+
+#### PERF-MED-004: No Web Worker for Heavy Computations
+
+**Severity:** MEDIUM | **Files:** AI content generation, game scoring
+
+**Issue:** AI content processing, complex game scoring calculations, and content filtering run on the main thread. For games like Neural Builder with training simulations, this can cause frame drops.
+
+**Options:**
+- **Option A:** Move AI content filtering to a Web Worker using `Comlink` for ergonomic API.
+- **Option B (Recommended):** Use `scheduler.postTask()` (available in Chrome) or `requestIdleCallback` for non-urgent calculations. Reserve Web Workers for genuinely heavy operations (>50ms).
+
+---
+
+#### PERF-LOW-001: No Font Subsetting
+
+**Severity:** LOW | **Files:** `src/app/layout.tsx`
+
+**Issue:** Four fonts are loaded (Exo 2, Sora, JetBrains Mono, Orbitron). If loaded as full character sets, this adds significant download weight. Next.js font optimization helps but explicit subsetting could reduce further.
+
+**Options:**
+- **Option A:** Use `next/font` with explicit `subsets: ['latin']` for all 4 fonts. Verify this is already configured.
+- **Option B:** Option A + add `display: 'swap'` for all fonts to prevent FOIT (Flash of Invisible Text).
+
+---
+
+#### PERF-LOW-002: No Preloading of Critical 3D Assets
+
+**Severity:** LOW | **Files:** 3D components
+
+**Issue:** HDR environment map (`frost-prismatic.hdr`), critical textures, and shader files are loaded on demand. This causes visible pop-in on first render.
+
+**Options:**
+- **Option A:** Add `<link rel="preload">` tags in the root layout for the HDRI file and critical textures.
+- **Option B (Recommended):** Use drei's `useEnvironment` with `files` prop for HDRI preloading. Add a `PreloadManager` component that loads critical 3D assets during the hero animation.
+
+---
