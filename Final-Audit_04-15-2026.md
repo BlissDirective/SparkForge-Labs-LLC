@@ -998,3 +998,80 @@ Additionally, the error message leaks internal SQL instructions: `'Run: UPDATE p
 - **Option B:** Keep current structure but add `X-API-Version` response header for future reference. Plan versioning for v2 when needed.
 
 ---
+
+### 5b. Game-Changing API Enhancements (6)
+
+---
+
+#### API-ENH-001: Server-Authoritative Game Scoring
+
+**Category:** Security + Integrity | **Effort:** High | **Impact:** Critical
+
+Move scoring logic from client to server. Currently, the client calculates score and tells the server "award X points." A cheater can intercept this and award arbitrary points.
+
+**Options:**
+- **Option A:** Create a `/api/games/complete` endpoint that accepts `{ gameId, childId, answers: [...] }`. Server recalculates score from answers using game config. Client never sends a score number.
+- **Option B (Recommended):** Option A + implement a game session model: client starts a session (`/api/games/start`), server records start time. On complete, server validates: time elapsed is reasonable, answers are valid for the game config, and score is consistent. Award XP server-side.
+- **Option C:** Option B + record all game events in a `game_events` table for replay/verification. Flag suspicious patterns (perfect scores in <5 seconds) for admin review.
+
+---
+
+#### API-ENH-002: GraphQL or tRPC Layer
+
+**Category:** DX + Type Safety | **Effort:** High | **Impact:** Medium
+
+Replace 35+ REST route handlers with a type-safe API layer that eliminates the risk of mismatched types between client and server.
+
+**Options:**
+- **Option A:** Add tRPC with Zod schemas already in place. Create `src/server/routers/` with auth, children, games, progress, admin routers. Client gets end-to-end type inference.
+- **Option B:** Keep REST but generate an OpenAPI spec from Zod schemas. Use the spec for client SDK generation and API documentation.
+
+---
+
+#### API-ENH-003: Request Signing for Sensitive Operations
+
+**Category:** Security | **Effort:** Medium | **Impact:** Medium
+
+Add HMAC request signing for critical operations (XP awards, subscription changes, admin actions) to prevent request tampering.
+
+**Options:**
+- **Option A:** Generate a per-session signing key on login. Client signs mutation request bodies with HMAC-SHA256. Server validates before processing.
+- **Option B (Recommended):** Use a simpler approach: add a `X-Request-Timestamp` header + `X-Request-Signature` = HMAC(timestamp + path + body, session_secret). Reject requests older than 30 seconds.
+
+---
+
+#### API-ENH-004: OpenTelemetry Instrumentation
+
+**Category:** Observability | **Effort:** Medium | **Impact:** High
+
+Add distributed tracing to all API routes for performance monitoring and debugging.
+
+**Options:**
+- **Option A:** Use Vercel's built-in analytics + Sentry performance monitoring (already configured). Add custom spans for database queries and Stripe calls.
+- **Option B (Recommended):** Add `@vercel/otel` for OpenTelemetry traces. Instrument Supabase queries, Stripe API calls, and Anthropic API calls. View traces in Vercel dashboard.
+
+---
+
+#### API-ENH-005: API Response Caching with Stale-While-Revalidate
+
+**Category:** Performance | **Effort:** Low | **Impact:** Medium
+
+Add caching headers to read-heavy endpoints (content listing, badge definitions, lab progress).
+
+**Options:**
+- **Option A:** Add `Cache-Control: public, s-maxage=60, stale-while-revalidate=300` to content listing and badge definition endpoints.
+- **Option B (Recommended):** Option A + use React Query's stale-while-revalidate on the client side (already in stack). Configure per-endpoint cache times: content 5min, badges 1hr, progress 30s.
+
+---
+
+#### API-ENH-006: Webhook Event Queue with Dead Letter
+
+**Category:** Reliability | **Effort:** Medium | **Impact:** High
+
+If webhook processing fails (DB down, timeout), the event is lost. Add a queue with retry and dead-letter handling.
+
+**Options:**
+- **Option A:** On webhook handler failure, store the raw event in a `webhook_failures` table. Add a cron job that retries failed events every 5 minutes, up to 3 attempts.
+- **Option B (Recommended):** Use Vercel's Queue (or Inngest) to process webhook events asynchronously. The webhook handler immediately ACKs Stripe and enqueues the event. A background worker processes it with retries and exponential backoff.
+
+---
