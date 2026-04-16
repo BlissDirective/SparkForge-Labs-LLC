@@ -1566,3 +1566,104 @@ Prepare the platform for international markets. Even for English-only launch, ex
 - **Option B (Recommended):** Use drei's `useEnvironment` with `files` prop for HDRI preloading. Add a `PreloadManager` component that loads critical 3D assets during the hero animation.
 
 ---
+
+### 7b. Game-Changing Performance Enhancements (8)
+
+---
+
+#### PERF-ENH-001: Three.js BatchedMesh for Cockpit Geometry
+
+**Category:** 3D Performance | **Effort:** High | **Impact:** Critical
+
+Three.js r159+ `BatchedMesh` consolidates multiple meshes into a single draw call. The cockpit has hundreds of individual meshes (rivets, LEDs, cable bundles). Batching could reduce draw calls from 500+ to <50.
+
+**Options:**
+- **Option A:** Batch the 768 rivets in `CockpitPanels.tsx` into a single `BatchedMesh`. Also batch the 1500 LED blocks in `LEDRim.tsx`.
+- **Option B (Recommended):** Create a `CockpitBatchManager` that collects all static cockpit geometry at mount time and creates a single `BatchedMesh` per material type. Dynamic elements (LEDs, radar blips) use `InstancedMesh`.
+- **Option C:** Option B + use Three.js `MeshBVH` for spatial acceleration of raycasting on the batched geometry, maintaining click/hover interactivity.
+
+---
+
+#### PERF-ENH-002: WebGPU Compute Shaders for Particle Systems
+
+**Category:** 3D Performance | **Effort:** High | **Impact:** High
+
+The hero animation already uses TSL compute pipelines. Extend this to all particle systems (game celebrations, cockpit ambient effects, ceremony FX) for GPU-accelerated particle simulation.
+
+**Options:**
+- **Option A:** Port the `CeremonyFX` confetti system from CPU-side position updates to a TSL compute shader. ~10x particle count at same frame budget.
+- **Option B (Recommended):** Create a shared `GPUParticleSystem` class using TSL compute that's reusable across all particle effects. Input: spawn rate, lifetime, velocity function. Output: instanced mesh positions.
+
+---
+
+#### PERF-ENH-003: Offscreen Canvas for Heavy 3D Rendering
+
+**Category:** Performance | **Effort:** Medium | **Impact:** Medium
+
+Move the R3F Canvas to an OffscreenCanvas via a Web Worker. The main thread handles only DOM events and React state; all Three.js rendering happens off-thread.
+
+**Options:**
+- **Option A:** Use R3F's `frameloop="demand"` to render only when needed (on state change or animation), not every frame. Reduces CPU usage significantly when cockpit is idle.
+- **Option B (Recommended):** Option A + implement `OffscreenCanvas` for the cockpit render. R3F supports this via the `gl` canvas prop. Requires careful message passing for interactions.
+
+---
+
+#### PERF-ENH-004: Streaming SSR for Faster First Paint
+
+**Category:** Web Vitals | **Effort:** Low | **Impact:** High
+
+Use React 19's streaming SSR with Suspense boundaries to send the HTML shell immediately while data-dependent components stream in.
+
+**Options:**
+- **Option A:** Add `<Suspense>` boundaries around data-fetching components in dashboard pages. Next.js App Router automatically streams these.
+- **Option B (Recommended):** Option A + use `loading.tsx` files for every route group. Add skeleton UIs that match final layout dimensions (prevents CLS).
+
+---
+
+#### PERF-ENH-005: Service Worker for Offline Game Play
+
+**Category:** UX + Performance | **Effort:** Medium | **Impact:** High
+
+Cache game assets and hardcoded content for offline play. Children on spotty internet (school networks, travel) can still play games.
+
+**Options:**
+- **Option A:** Use `next-pwa` or `@ducanh2912/next-pwa` to add a service worker that caches static assets, game components, and the app shell.
+- **Option B (Recommended):** Option A + implement a "Download for offline" button per lab that pre-caches all game assets for that lab. Show download progress indicator.
+
+---
+
+#### PERF-ENH-006: Virtual Scrolling for Content-Heavy Pages
+
+**Category:** Performance | **Effort:** Low | **Impact:** Medium
+
+The arcade page lists 35 games, parent dashboard shows progress for multiple children, and admin panels show lists of subscriptions. Use virtual scrolling for large lists.
+
+**Options:**
+- **Option A:** Use `@tanstack/react-virtual` for lists longer than 20 items. Only render visible items in the DOM.
+- **Option B (Recommended):** Option A + add infinite scroll pagination to the content API and admin subscription list instead of loading 500 rows at once.
+
+---
+
+#### PERF-ENH-007: Bundle Analysis and Size Budgets
+
+**Category:** DevOps + Performance | **Effort:** Low | **Impact:** Medium
+
+Add automated bundle size tracking to prevent regressions.
+
+**Options:**
+- **Option A:** Add `@next/bundle-analyzer` and run `ANALYZE=true npm run build` in CI. Output report as build artifact.
+- **Option B (Recommended):** Option A + set size budgets: main JS < 200KB, per-page JS < 100KB, total first-load < 500KB. Fail CI on budget violations.
+
+---
+
+#### PERF-ENH-008: Edge Runtime for Lightweight API Routes
+
+**Category:** Latency | **Effort:** Low | **Impact:** Medium
+
+Move read-only, computation-light API routes to Edge Runtime for lower latency (runs on Vercel Edge Network, closer to users).
+
+**Options:**
+- **Option A:** Add `export const runtime = 'edge'` to: `/api/health`, `/api/content`, `/api/gamification/badges` (read-only endpoints).
+- **Option B (Recommended):** Option A + move the auth callback and static content endpoints to Edge. Keep Stripe webhook, admin, and AI endpoints on Node.js runtime (they need Node APIs).
+
+---
