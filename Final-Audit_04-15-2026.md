@@ -840,3 +840,161 @@ Stripe Checkout natively supports promotion codes. Enable them for launch campai
 - **Option B (Recommended):** Option A + implement a referral system: each parent gets a unique referral code. When a new parent signs up with the code, both get 1 month free. Track referrals in a `referrals` table.
 
 ---
+
+## 5. API SECURITY & INPUT VALIDATION
+
+### Reference Sources
+- [OWASP Top 10:2025](https://owasp.org/Top10/) — Global web security standard
+- [Zod](https://github.com/colinhacks/zod) (35k stars) — TypeScript-first schema validation
+- Next.js Official Data Security Guide (Server Actions, Route Handlers)
+- AccuKnox OWASP API Security Testing Checklist 2026
+- Next.js Security Advisory CVE-2025-29927 (middleware bypass)
+
+### 5a. Bugs & Findings
+
+---
+
+#### API-CRIT-001: Health Endpoint Uses Admin Client Without Authentication
+
+**Severity:** CRITICAL | **File:** `src/app/api/health/route.ts`
+**OWASP:** A01:2025 — Broken Access Control
+
+**Issue:** The health endpoint uses `createAdminClient()` (which has the service role key) to query the database. This bypasses all RLS policies. While the endpoint only counts badges, the pattern is dangerous — any future developer copying this pattern for other endpoints would create a full RLS bypass.
+
+**Options:**
+- **Option A (Quick):** Switch to `createServerSupabase()` with anon key for the health check. The badges table has a public SELECT policy, so it will work without admin privileges.
+- **Option B (Recommended):** Option A + add a comment explaining why admin client must NEVER be used in non-webhook, non-cron route handlers.
+- **Option C:** Create a dedicated `createHealthCheckClient()` that uses the anon key and can only query the `badges` table, enforcing least privilege.
+
+---
+
+#### API-CRIT-002: Agent Admin Check Duplicates `requireAdmin()` Logic
+
+**Severity:** CRITICAL | **File:** `src/app/api/agent/run/route.ts:29-49`
+
+**Issue:** The agent run endpoint manually checks admin status by querying `parents.is_admin` instead of using the centralized `requireAdmin()` helper from api-helpers. This creates two separate auth check implementations that can drift. If `requireAdmin()` is updated (e.g., to check COPPA consent or account status), the agent route won't benefit.
+
+Additionally, the error message leaks internal SQL instructions: `'Run: UPDATE parents SET is_admin = true WHERE email = ...'` — this tells attackers exactly how to escalate privileges if they gain database access.
+
+**Options:**
+- **Option A (Quick):** Replace manual admin check with `const auth = await requireAdmin(req); if (!auth.success) return auth.response;`. Remove the SQL instruction from the error message.
+- **Option B (Recommended):** Option A + audit all route handlers to ensure they use centralized auth helpers. No route should manually query `parents.is_admin`.
+
+---
+
+#### API-HIGH-001: `UpdateChildSchema` Accepts `z.record(z.unknown())` for Avatar Config
+
+**Severity:** HIGH | **File:** `src/lib/validations.ts:75`
+**OWASP:** A03:2025 — Injection
+
+**Issue:** `avatarConfig: z.record(z.unknown()).optional()` accepts ANY key-value pairs. An attacker can submit arbitrarily large JSON objects (memory exhaustion), deeply nested objects (prototype pollution via JSON parse), or inject unexpected fields that get stored in the JSONB column.
+
+**Options:**
+- **Option A (Quick):** Add `.refine(val => JSON.stringify(val).length < 5000, 'Avatar config too large')` to limit payload size.
+- **Option B (Recommended):** Replace `z.record(z.unknown())` with a properly typed schema matching `AvatarConfigSchema` but with all fields optional for partial updates: `AvatarConfigSchema.partial()`.
+- **Option C:** Option B + add a JSONB schema validation function in PostgreSQL that rejects avatar_config values with unexpected keys at the database level.
+
+---
+
+#### API-HIGH-002: Deduplication Key Uses Content-Length Only, Not Body Hash
+
+**Severity:** HIGH | **File:** `src/lib/api-helpers.ts:226`
+
+**Issue:** The dedup key is `${userId}:${req.method}:${req.nextUrl.pathname}:${body}` where `body` is `req.headers.get('content-length')`. Two different requests with the same content length will be treated as duplicates. For example, awarding 10 XP and 50 XP have different bodies but could have the same content length.
+
+**Options:**
+- **Option A (Quick):** Remove the dedup mechanism entirely — it provides minimal protection and the false-positive risk outweighs the benefit.
+- **Option B (Recommended):** Hash the actual request body: `const bodyText = await req.text(); const hash = crypto.createHash('sha256').update(bodyText).digest('hex');`. Use `${userId}:${method}:${path}:${hash}` as the key. Note: this requires cloning the request since body is consumed.
+- **Option C:** Use client-side idempotency keys: require an `X-Idempotency-Key` header on mutating requests. The client generates a UUID per action, and the server deduplicates on that key.
+
+---
+
+#### API-HIGH-003: XP Award Endpoint Lacks Maximum Daily Cap
+
+**Severity:** HIGH | **File:** `src/app/api/gamification/xp/route.ts`
+**OWASP:** A04:2025 — Insecure Design
+
+**Issue:** The XP endpoint validates `amount` between 1-500 per request and rate-limits at 60/min. But there's no daily cap. A malicious client could award 500 XP × 60 times/minute = 30,000 XP/minute, catapulting a child to max level in minutes. Even with legitimate use, there's no guard against a bug in game code that awards XP in a loop.
+
+**Options:**
+- **Option A (Quick):** Add a daily XP cap (e.g., 5,000 XP/day). Check total XP awarded today before allowing the operation.
+- **Option B (Recommended):** Option A + reduce per-request max from 500 to 100 (no single game action should award 500 XP). Add an `xp_transactions` table to track all awards with source and timestamp for auditing.
+- **Option C:** Option B + implement server-authoritative XP: the game client sends "game completed with score X" and the SERVER calculates XP based on game config, eliminating client-side XP amount entirely.
+
+---
+
+#### API-HIGH-004: No CSRF Protection on State-Mutating API Routes
+
+**Severity:** HIGH | **Files:** All POST/PATCH/DELETE API routes
+**OWASP:** A01:2025 — Broken Access Control
+
+**Issue:** While Next.js Server Actions include automatic CSRF protection (Origin header check), API route handlers do NOT get this protection. All state-mutating endpoints (login, signup, XP award, progress recording, subscription changes) accept POST requests without any CSRF token or Origin validation.
+
+**Impact:** An attacker can craft a malicious page that makes cross-origin POST requests to SparkForge API endpoints using the victim's browser cookies.
+
+**Options:**
+- **Option A (Quick):** Add Origin header validation in middleware: verify `request.headers.get('origin')` matches the app's origin for all POST/PATCH/DELETE to `/api/` routes.
+- **Option B (Recommended):** Use `@edge-csrf/nextjs` package in middleware for automatic CSRF token management. Adds a `_csrf` cookie and validates it against a header/body token on mutations.
+- **Option C:** Option A + set `SameSite=Strict` on all auth cookies (currently `Lax`). This prevents cookies from being sent on cross-site requests entirely, but may break OAuth callbacks.
+
+---
+
+#### API-MED-001: No Request Size Limits on API Routes
+
+**Severity:** MEDIUM | **Files:** All API routes
+
+**Issue:** There's no explicit body size limit on API routes. While Next.js has a default limit of 1MB for route handlers, this should be explicitly configured. Some endpoints (like prompt lab) should have much smaller limits.
+
+**Options:**
+- **Option A:** Add `export const config = { api: { bodyParser: { sizeLimit: '100kb' } } }` to each route. Use 10kb for auth, 100kb for game data, 1kb for XP awards.
+- **Option B (Recommended):** Add a middleware-level body size check based on route pattern. Auth routes: 10kb, Content routes: 500kb, Webhook: 5mb (Stripe events can be large).
+
+---
+
+#### API-MED-002: Error Messages Leak Internal Details in Development
+
+**Severity:** MEDIUM | **File:** `src/app/api/stripe/webhook/route.ts:92`, `src/app/api/agent/run/route.ts:62`
+
+**Issue:** Error responses include raw error messages: `Webhook Error: ${message}` and `Agent pipeline failed: ${message}`. In production, these can leak stack traces, file paths, or internal service details.
+
+**Options:**
+- **Option A (Quick):** In production, return generic messages: `'An internal error occurred'`. Log the detailed error server-side only.
+- **Option B (Recommended):** Create an error sanitizer: `const safeMessage = process.env.NODE_ENV === 'production' ? 'Internal error' : message`. Apply consistently across all error responses.
+
+---
+
+#### API-MED-003: Content API Allows Unauthenticated Access to Published Content
+
+**Severity:** MEDIUM | **File:** `src/app/api/content/route.ts`
+
+**Issue:** Middleware allows all `/api` routes through without auth (AUTH-HIGH-002). Content endpoints that serve published content may be intentionally public, but this should be explicit rather than relying on the blanket `/api` bypass.
+
+**Options:**
+- **Option A:** Add explicit `// PUBLIC ENDPOINT` comments and skip `requireAuth()` intentionally for content listing/detail.
+- **Option B (Recommended):** Use rate limiting on public content endpoints to prevent scraping. Add `applyRateLimit(req, 'content-read', undefined, { maxRequests: 100, windowMs: 60000 })`.
+
+---
+
+#### API-LOW-001: `parseQuery()` Uses `Object.fromEntries` — Loses Multi-Value Params
+
+**Severity:** LOW | **File:** `src/lib/api-helpers.ts:65`
+
+**Issue:** `Object.fromEntries(req.nextUrl.searchParams.entries())` collapses duplicate query params into single values. If a future endpoint needs array params (e.g., `?world=1&world=2`), this will silently drop values.
+
+**Options:**
+- **Option A:** Document the limitation with a comment.
+- **Option B:** Use `searchParams.getAll(key)` for known array params, or use a Zod transform that handles both string and array inputs.
+
+---
+
+#### API-LOW-002: No API Versioning Strategy
+
+**Severity:** LOW | **Files:** All API routes
+
+**Issue:** All routes are at `/api/`. No versioning prefix (`/api/v1/`) means breaking changes in route handlers affect all clients immediately. For a platform with potential mobile apps or third-party integrations, this makes backward compatibility impossible.
+
+**Options:**
+- **Option A:** Add `/api/v1/` prefix now. Create rewrite rules in `next.config.ts` to redirect bare `/api/` to `/api/v1/` for backward compatibility.
+- **Option B:** Keep current structure but add `X-API-Version` response header for future reference. Plan versioning for v2 when needed.
+
+---
