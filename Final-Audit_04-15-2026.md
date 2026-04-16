@@ -1667,3 +1667,138 @@ Move read-only, computation-light API routes to Edge Runtime for lower latency (
 - **Option B (Recommended):** Option A + move the auth callback and static content endpoints to Edge. Keep Stripe webhook, admin, and AI endpoints on Node.js runtime (they need Node APIs).
 
 ---
+
+## 8. DEPLOYMENT, INFRASTRUCTURE & DEVOPS
+
+### Reference Sources
+- [Next.js](https://github.com/vercel/next.js) (130k stars) — Security advisories and deployment docs
+- [Gitleaks](https://github.com/gitleaks/gitleaks) (18k stars) — Secret scanning for git repos
+- Vercel Deployment Best Practices 2026
+- Next.js Security Advisories (March 2026: CVE-2025-29927, disk cache, CSRF, DoS)
+- [Coolify](https://github.com/coollabsio/coolify) — Self-hosted deployment alternative
+
+### 8a. Bugs & Findings
+
+---
+
+#### DEPLOY-CRIT-001: No Secret Scanning in CI/CD Pipeline
+
+**Severity:** CRITICAL | **Files:** Repository-wide
+**OWASP:** A02:2025 — Security Misconfiguration
+
+**Issue:** There's no automated secret scanning. If a developer accidentally commits an API key, Supabase service role key, or Stripe secret to the repository, it won't be detected. The `.env.example` file lists all secret names, making it easy to accidentally commit `.env.local` instead.
+
+**Impact:** Leaked secrets grant full access to the database (service role key), payment system (Stripe key), or AI API (Anthropic key).
+
+**Options:**
+- **Option A (Quick):** Add `.env.local` and `.env` to `.gitignore` (verify it's there). Add a pre-commit hook using `husky` that rejects commits containing patterns like `sk_live_`, `supabase_service_role`, `sk-ant-`.
+- **Option B (Recommended):** Option A + add Gitleaks to the CI pipeline: `gitleaks detect --source . --config .gitleaks.toml`. Create a custom config that includes Supabase and Anthropic key patterns.
+- **Option C (Comprehensive):** Option B + enable GitHub's built-in secret scanning (free for public repos, available on GitHub Advanced Security for private). Configure custom patterns for Supabase keys.
+
+---
+
+#### DEPLOY-HIGH-001: No Staging Environment
+
+**Severity:** HIGH | **Files:** Deployment configuration
+
+**Issue:** There's no staging environment documented. All development goes directly to production. Database migrations are run manually in the Supabase SQL Editor with no rollback capability.
+
+**Impact:** Any broken migration, feature bug, or configuration error goes straight to production. No safe place to verify Stripe webhook integration or AI content generation.
+
+**Options:**
+- **Option A (Quick):** Create a Vercel Preview deployment linked to PRs. Use a separate Supabase project for preview builds (set env vars in Vercel project settings per branch).
+- **Option B (Recommended):** Option A + create a dedicated `staging` branch and Supabase project. CI deploys to staging automatically on merge to staging branch. Manual promotion to production.
+- **Option C:** Option B + use Supabase branching (in beta) to create ephemeral database instances for each PR.
+
+---
+
+#### DEPLOY-HIGH-002: CSP Allows `'unsafe-inline'` for Scripts
+
+**Severity:** HIGH | **File:** `next.config.ts:21`
+**OWASP:** A03:2025 — Injection
+
+**Issue:** The Content Security Policy includes `'unsafe-inline'` for `script-src`. This weakens CSP's protection against XSS because inline scripts (which an XSS payload would be) are allowed. Next.js requires this for its script injection, but there's a better approach using nonces.
+
+```typescript
+`script-src 'self' ${isProd ? '' : "'unsafe-eval'"} 'unsafe-inline' blob:`,
+```
+
+**Options:**
+- **Option A (Quick):** Keep `'unsafe-inline'` — it's required by Next.js without additional configuration. Document the trade-off.
+- **Option B (Recommended):** Implement CSP nonces using Next.js's built-in support: add `nonce` generation in middleware and pass to `<Script>` components. Replace `'unsafe-inline'` with `'nonce-{random}'`.
+- **Option C:** Option B + add `'strict-dynamic'` which allows scripts loaded by already-trusted scripts, enabling dynamic script loading without `unsafe-inline`.
+
+---
+
+#### DEPLOY-HIGH-003: No Health Check Integration with Monitoring
+
+**Severity:** HIGH | **File:** `src/app/api/health/route.ts`
+
+**Issue:** The health endpoint exists but isn't integrated with any uptime monitoring. If the app goes down, nobody gets alerted. The endpoint also doesn't check critical dependencies (Stripe connectivity, Anthropic API availability).
+
+**Options:**
+- **Option A (Quick):** Set up a free uptime monitor (UptimeRobot, Better Uptime) that pings `/api/health` every 60 seconds and alerts on failure.
+- **Option B (Recommended):** Option A + expand the health endpoint to check: Supabase connectivity, Stripe API reachability (`stripe.accounts.retrieve()`), and Anthropic API status. Return degraded status with detail on which service is down.
+- **Option C:** Option B + add Vercel's built-in monitoring and alerting. Configure Sentry (already in stack) for uptime checks and performance anomaly detection.
+
+---
+
+#### DEPLOY-MED-001: No Database Backup Strategy Documented
+
+**Severity:** MEDIUM | **Files:** Documentation
+
+**Issue:** The deployment guide doesn't mention database backups. Supabase provides automatic daily backups on Pro plan, but this should be explicitly configured and documented. Point-in-time recovery (PITR) should be enabled for production.
+
+**Options:**
+- **Option A:** Document that Supabase Pro plan includes daily backups with 7-day retention. Add a monthly manual backup verification step.
+- **Option B (Recommended):** Enable PITR (Point-in-Time Recovery) on the Supabase project. Document the recovery procedure. Test a recovery drill before launch.
+
+---
+
+#### DEPLOY-MED-002: No Environment-Specific Error Reporting
+
+**Severity:** MEDIUM | **Files:** Sentry configuration
+
+**Issue:** Sentry is configured but there's no evidence of environment tagging (`production`, `staging`, `development`), release tracking, or source map upload verification. Errors in production may be difficult to debug without source maps.
+
+**Options:**
+- **Option A:** Verify Sentry config includes `environment: process.env.NODE_ENV` and `release: process.env.VERCEL_GIT_COMMIT_SHA`. The `withSentryConfig` in next.config.ts handles source map upload.
+- **Option B (Recommended):** Option A + add Sentry performance monitoring with custom transactions for: Stripe webhook processing time, AI API response time, game completion time. Set performance budgets.
+
+---
+
+#### DEPLOY-MED-003: Cron Secret Not Validated in Trial Reminder Route
+
+**Severity:** MEDIUM | **File:** `src/app/api/cron/trial-reminders/route.ts`
+
+**Issue:** The `.env.example` mentions `CRON_SECRET` for cron authentication, but the cron route may not validate this secret. Vercel Cron Jobs use an `Authorization` header with the `CRON_SECRET`. Without validation, anyone can trigger the cron endpoint manually.
+
+**Options:**
+- **Option A (Quick):** Add header validation: `if (req.headers.get('authorization') !== \`Bearer ${process.env.CRON_SECRET}\`) return new Response('Unauthorized', { status: 401 });`
+- **Option B (Recommended):** Option A + use Vercel's `vercel.json` cron configuration with the built-in secret validation instead of manual checks.
+
+---
+
+#### DEPLOY-LOW-001: No Robots.txt or Sitemap Configuration
+
+**Severity:** LOW | **Files:** `src/app/` directory
+
+**Issue:** No `robots.txt` or `sitemap.xml` is generated. For SEO of the marketing/landing pages and to prevent search engines from indexing dashboard routes.
+
+**Options:**
+- **Option A:** Add `src/app/robots.ts` and `src/app/sitemap.ts` using Next.js metadata API. Disallow `/home`, `/labs`, `/arcade`, `/profile`, `/settings`, `/parent`, `/admin` routes.
+- **Option B (Recommended):** Option A + add OpenGraph images for marketing pages using `opengraph-image.tsx` convention.
+
+---
+
+#### DEPLOY-LOW-002: No Rate Limiting at Infrastructure Level
+
+**Severity:** LOW | **Files:** Deployment configuration
+
+**Issue:** Rate limiting is application-level only (and broken on serverless — AUTH-HIGH-003). No infrastructure-level rate limiting (Vercel WAF, Cloudflare) is configured.
+
+**Options:**
+- **Option A:** Enable Vercel's Firewall (WAF) on Pro plan. Configure rate limiting rules for `/api/auth/*` paths.
+- **Option B:** Add Cloudflare as a proxy in front of Vercel for DDoS protection and edge-level rate limiting.
+
+---
