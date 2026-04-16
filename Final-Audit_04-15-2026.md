@@ -581,3 +581,82 @@ Similarly, `games_played_this_week` (line 57-58) uses `date_trunc('week', CURREN
 - **Option B:** Option A + add `last_edited_by UUID REFERENCES parents(id)` to track who made the last change.
 
 ---
+
+### 3b. Game-Changing Database Enhancements (6)
+
+---
+
+#### DB-ENH-001: Row-Level Security Testing Suite
+
+**Category:** Security + CI | **Effort:** Medium | **Impact:** Critical
+
+Automated tests that verify RLS policies work correctly by attempting cross-user data access.
+
+**Options:**
+- **Option A:** Write a SQL verification script (`sql/verify_rls.sql`) that creates two test users, inserts data for each, and verifies neither can see the other's data across all 9+ tables.
+- **Option B (Recommended):** Use `pgTAP` (PostgreSQL testing framework) to write formal RLS tests. Integrate into CI: `SELECT plan(20); SELECT ok(NOT EXISTS(SELECT 1 FROM children WHERE parent_id != test_user_id), 'RLS blocks cross-user child access');`
+- **Option C:** Option B + add Playwright E2E tests that create two parent accounts and verify API-level data isolation end-to-end.
+
+---
+
+#### DB-ENH-002: Supabase Realtime for Live Progress Updates
+
+**Category:** UX + Architecture | **Effort:** Medium | **Impact:** High
+
+Enable Supabase Realtime subscriptions so parent dashboards update live when children complete games or earn XP, without polling.
+
+**Options:**
+- **Option A:** Subscribe to `children` table changes (xp, level, streak_count) on the parent dashboard. ~20 lines of client code using `supabase.channel('children-updates')`.
+- **Option B (Recommended):** Option A + subscribe to `progress` table for real-time game completion notifications. Show toast notifications: "Alex just completed AI Spy! +15 XP".
+- **Option C:** Option B + implement a `notifications` table with Realtime to power a full notification center (badge earned, streak milestone, content agent new items).
+
+---
+
+#### DB-ENH-003: Database Migrations via Supabase CLI
+
+**Category:** DevOps + Safety | **Effort:** Medium | **Impact:** High
+
+Replace manual SQL execution in Supabase SQL Editor with proper migration tooling.
+
+**Options:**
+- **Option A:** Use Supabase CLI `supabase migration new` / `supabase db push` workflow. Convert existing SQL files to numbered migrations.
+- **Option B (Recommended):** Option A + add `supabase db diff` to CI to detect schema drift between code and production. Add `supabase db reset` for clean test environments.
+- **Option C:** Option B + implement a staging environment with its own Supabase project. Migrations are tested on staging before production.
+
+---
+
+#### DB-ENH-004: Soft Delete Pattern for All User-Facing Tables
+
+**Category:** Data Safety | **Effort:** Low | **Impact:** Medium
+
+Add `deleted_at TIMESTAMPTZ` to children, content, and progress tables. Modify queries to filter `WHERE deleted_at IS NULL`. Enables undo functionality and data recovery.
+
+**Options:**
+- **Option A:** Add `deleted_at` column to `children` and `content` tables only. Update RLS policies to filter out soft-deleted rows.
+- **Option B (Recommended):** Option A + add to `progress` and `child_badges`. Create a `restore` API endpoint for each entity. Auto-purge soft-deleted rows after 90 days via cron.
+
+---
+
+#### DB-ENH-005: Read Replicas for Analytics Queries
+
+**Category:** Performance | **Effort:** Low (config) | **Impact:** Medium
+
+Parent dashboard queries (progress aggregation, XP history, time tracking) can be expensive. Route them to a read replica to avoid impacting game performance.
+
+**Options:**
+- **Option A (Recommended):** Enable Supabase Read Replicas (available on Pro plan). Create a separate Supabase client for analytics queries that connects to the replica.
+- **Option B:** Option A + use Supabase's `db_url` with `?target_session_attrs=any` for automatic read routing.
+
+---
+
+#### DB-ENH-006: Database-Level Input Sanitization Functions
+
+**Category:** Security | **Effort:** Low | **Impact:** Medium
+
+While Supabase client parameterizes queries, add database-level validation functions for defense-in-depth.
+
+**Options:**
+- **Option A:** Add CHECK constraints for text length limits on all user-input columns (display_name, full_name, content_body). Prevents oversized payloads even if API validation is bypassed.
+- **Option B (Recommended):** Option A + create a `sanitize_text(input TEXT)` function that strips HTML tags, null bytes, and control characters. Use as a trigger on INSERT/UPDATE for user-facing text columns.
+
+---
