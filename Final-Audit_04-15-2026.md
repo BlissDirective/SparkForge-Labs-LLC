@@ -775,3 +775,68 @@ While Supabase client parameterizes queries, add database-level validation funct
 - **Option B:** Keep the explicit version but add a comment with the upgrade process and a CI check that warns when the stripe package version doesn't match the API version string.
 
 ---
+
+### 4b. Game-Changing Payment Enhancements (5)
+
+---
+
+#### PAY-ENH-001: Restricted API Keys (RAKs)
+
+**Category:** Security | **Effort:** Low | **Impact:** High
+
+Replace the master `STRIPE_SECRET_KEY` with Restricted API Keys that only have the permissions the app actually needs (subscriptions, customers, checkout, billing portal). If the key leaks, damage is limited.
+
+**Options:**
+- **Option A (Recommended):** Create a RAK in Stripe Dashboard with: `Customers: Write`, `Subscriptions: Write`, `Checkout Sessions: Write`, `Billing Portal: Write`, `Webhook Endpoints: Read`. Deny all other resources.
+- **Option B:** Option A + create separate RAKs for different contexts: one for checkout (write), one for webhooks (read), one for admin operations.
+
+---
+
+#### PAY-ENH-002: Stripe Tax Automatic Calculation
+
+**Category:** Compliance + Revenue | **Effort:** Low | **Impact:** Medium
+
+Stripe Tax handles sales tax, VAT, and GST automatically based on customer location. Required for international sales.
+
+**Options:**
+- **Option A:** Enable Stripe Tax in the Dashboard. Add `automatic_tax: { enabled: true }` to the checkout session creation.
+- **Option B (Recommended):** Option A + collect customer billing address in checkout (required for accurate tax calculation): `billing_address_collection: 'required'` in the session.
+
+---
+
+#### PAY-ENH-003: Dunning Management & Grace Periods
+
+**Category:** Revenue Recovery | **Effort:** Medium | **Impact:** High
+
+When a payment fails, gracefully handle the dunning process instead of immediately canceling.
+
+**Options:**
+- **Option A:** Configure Stripe's Smart Retries in the Dashboard (automatic retry schedule). Update the webhook handler to distinguish `past_due` from `canceled` and show appropriate UI.
+- **Option B (Recommended):** Option A + add a 7-day grace period: when `invoice.payment_failed` fires, set `subscription_status = 'past_due'` but don't downgrade tier for 7 days. Send email reminders at day 1, 3, and 6. Only downgrade to free after 7 days of non-payment.
+- **Option C:** Option B + in-app banner for past_due parents: "Your payment failed. Update your card to keep Plus features." with deep link to Stripe billing portal.
+
+---
+
+#### PAY-ENH-004: Subscription Analytics Dashboard
+
+**Category:** Business Intelligence | **Effort:** Medium | **Impact:** Medium
+
+Leverage the `subscription_events` table to build an admin analytics view showing MRR, churn rate, trial conversion, and upgrade/downgrade trends.
+
+**Options:**
+- **Option A:** Add aggregate queries to the admin dashboard: total subscribers by tier, MRR calculation, churn rate (canceled/total per month).
+- **Option B (Recommended):** Option A + use Nivo charts (already in stack) to visualize trends. Add a `/api/admin/analytics` endpoint that returns time-series data from subscription_events.
+
+---
+
+#### PAY-ENH-005: Promo Codes & Referral Discounts
+
+**Category:** Growth | **Effort:** Low | **Impact:** High
+
+Stripe Checkout natively supports promotion codes. Enable them for launch campaigns and referral programs.
+
+**Options:**
+- **Option A:** Create promotion codes in Stripe Dashboard. Add `allow_promotion_codes: true` to checkout session. Zero code changes.
+- **Option B (Recommended):** Option A + implement a referral system: each parent gets a unique referral code. When a new parent signs up with the code, both get 1 month free. Track referrals in a `referrals` table.
+
+---
