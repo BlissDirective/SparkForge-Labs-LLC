@@ -660,3 +660,118 @@ While Supabase client parameterizes queries, add database-level validation funct
 - **Option B (Recommended):** Option A + create a `sanitize_text(input TEXT)` function that strips HTML tags, null bytes, and control characters. Use as a trigger on INSERT/UPDATE for user-facing text columns.
 
 ---
+
+## 4. PAYMENT PROCESSING (STRIPE)
+
+### Reference Sources
+- [Stripe Samples](https://github.com/stripe-samples) — Official integration examples (36 repos)
+- [Next.js SaaS Starter](https://github.com/nextjs/saas-starter) — Stripe + Next.js patterns
+- Stripe Security Best Practices 2026 (Restricted API Keys, TLS 1.3)
+- PCI DSS 4.0 Compliance Guide
+- Stripe Webhook Best Practices Documentation
+
+### 4a. Bugs & Findings
+
+---
+
+#### PAY-CRIT-001: Webhook Handler Missing Idempotency Guard for `checkout.session.completed`
+
+**Severity:** CRITICAL | **File:** `src/app/api/stripe/webhook/route.ts:112-158`
+
+**Issue:** The `checkout.session.completed` handler updates the parent's subscription tier directly. While `subscription_events` uses upsert with `ignoreDuplicates: true` for the event log, the actual business logic (updating `parents.subscription_tier`) runs every time the event is received. Stripe can deliver webhooks multiple times (retries, at-least-once delivery). If `checkout.session.completed` is delivered twice, the parent update runs twice — benign for the same data, but if the webhook is replayed after a downgrade, it could re-upgrade the parent.
+
+**Impact:** Possible subscription tier corruption on webhook replay. Potential revenue loss or unauthorized access to premium features.
+
+**Options:**
+- **Option A (Quick):** Check if the parent's `stripe_subscription_id` already matches before updating. Skip if already set: `if (parent.stripe_subscription_id === stripeSubscriptionId) return;`
+- **Option B (Recommended):** Wrap the entire webhook handler in an idempotency check: query `subscription_events` first — if the event ID already exists with `processed: true`, skip all business logic. Add a `processed BOOLEAN DEFAULT false` column to `subscription_events` and set it after business logic completes.
+- **Option C (Comprehensive):** Option B + implement Stripe's official idempotency pattern: use a transaction with `SELECT ... FOR UPDATE` on the event row to prevent concurrent processing of the same event.
+
+---
+
+#### PAY-HIGH-001: No Webhook Signature Replay Window Check
+
+**Severity:** HIGH | **File:** `src/app/api/stripe/webhook/route.ts:84-97`
+
+**Issue:** `stripe.webhooks.constructEvent()` verifies the signature but Stripe's default tolerance is 300 seconds (5 minutes). An attacker who captures a valid signed webhook payload has a 5-minute window to replay it. The handler should also check the event timestamp.
+
+**Options:**
+- **Option A (Quick):** Add timestamp validation: `if (Date.now() / 1000 - event.created > 120) return NextResponse.json({ error: 'Event too old' }, { status: 400 });`
+- **Option B (Recommended):** Reduce Stripe's tolerance to 60 seconds: `stripe.webhooks.constructEvent(body, sig, secret, 60)` (third param is tolerance in seconds). Combined with the event log dedup, this closes the replay window to 60s.
+
+---
+
+#### PAY-HIGH-002: Webhook Uses `customer as string` Without Type Guard
+
+**Severity:** HIGH | **File:** `src/app/api/stripe/webhook/route.ts:164,194,204,210`
+
+**Issue:** Multiple lines cast `sub.customer as string` and `invoice.customer as string`. In Stripe's API, `customer` can be a `string | Stripe.Customer | Stripe.DeletedCustomer | null`. If Stripe expands the customer object (which happens with certain API versions or expand parameters), this cast silently extracts the wrong value, and the `WHERE stripe_customer_id = [object Object]` query silently updates zero rows.
+
+**Options:**
+- **Option A (Quick):** Add a helper: `const getCustomerId = (c: string | Stripe.Customer | Stripe.DeletedCustomer | null): string | null => typeof c === 'string' ? c : c?.id ?? null;`
+- **Option B (Recommended):** Option A + add a null guard: if `customerId` is null, log a warning and skip the update rather than running a query that matches nothing.
+
+---
+
+#### PAY-HIGH-003: Checkout Session `success_url` Doesn't Verify Payment Completion
+
+**Severity:** HIGH | **File:** `src/app/api/stripe/checkout/route.ts:93-94`
+
+**Issue:** The `success_url` is `${appUrl}/parent/subscription?success=true`. The client likely reads this query param to show a success message. But the `?success=true` param is client-side only — anyone can navigate to this URL manually. The subscription page should verify the actual subscription status via API, not rely on the URL parameter.
+
+**Impact:** Users may see false "subscription active" UX before the webhook has processed. Conversely, if the webhook fails, they'll see "success" but have no actual subscription.
+
+**Options:**
+- **Option A (Quick):** On the subscription success page, always fetch fresh subscription status from `/api/auth/me` regardless of URL params. Use `?success=true` only to show a transient "Processing..." state.
+- **Option B (Recommended):** Use Stripe's `checkout.session.id` in the success URL: `success_url: ${appUrl}/parent/subscription?session_id={CHECKOUT_SESSION_ID}`. On the success page, verify the session server-side via `stripe.checkout.sessions.retrieve(sessionId)`.
+- **Option C:** Option B + implement a polling mechanism: if the webhook hasn't processed yet, poll every 2 seconds for up to 30 seconds until the subscription status updates in the DB.
+
+---
+
+#### PAY-MED-001: No Rate Limiting on Webhook Endpoint
+
+**Severity:** MEDIUM | **File:** `src/app/api/stripe/webhook/route.ts`
+
+**Issue:** The webhook endpoint has no rate limiting. While Stripe signs its webhooks (preventing unauthorized access), an attacker who obtains the webhook secret could flood the endpoint with valid-looking events. The signature verification is CPU-intensive.
+
+**Options:**
+- **Option A:** Add IP-based rate limiting. Stripe webhooks come from known IP ranges — allowlist them.
+- **Option B (Recommended):** Add rate limiting of 100 events/minute. Legitimate Stripe traffic rarely exceeds this. Log and alert on rate limit hits.
+
+---
+
+#### PAY-MED-002: Portal `return_url` Not Validated
+
+**Severity:** MEDIUM | **File:** `src/app/api/stripe/portal/route.ts:42`
+
+**Issue:** The portal return URL is hardcoded to `${appUrl}/parent/subscription` which is safe. However, if this is ever made configurable via request body (the `PortalSchema` in validations.ts accepts optional `returnUrl`), it could become an open redirect.
+
+**Options:**
+- **Option A (Quick):** Keep the hardcoded return URL. Remove `returnUrl` from `PortalSchema` since it's unused.
+- **Option B (Recommended):** If `returnUrl` is needed, validate it against an allowlist of internal paths before passing to Stripe.
+
+---
+
+#### PAY-MED-003: No Stripe Customer Deletion on Account Delete
+
+**Severity:** MEDIUM | **File:** Not implemented
+
+**Issue:** The database schema has `ON DELETE CASCADE` from `auth.users` to `parents`, but there's no mechanism to delete or deactivate the Stripe customer when a parent account is deleted. Orphaned Stripe customers accumulate.
+
+**Options:**
+- **Option A:** Add a Supabase database webhook (or Edge Function trigger) on `parents` DELETE that calls `stripe.customers.del(stripe_customer_id)`.
+- **Option B (Recommended):** Add a `/api/auth/delete-account` endpoint that: cancels any active subscription, deletes the Stripe customer, then deletes the Supabase auth user (which cascades to parents table).
+
+---
+
+#### PAY-LOW-001: Stripe API Version Hardcoded as String Literal
+
+**Severity:** LOW | **File:** `src/lib/stripe.ts:5`
+
+**Issue:** `STRIPE_API_VERSION = '2026-02-25.clover' as const` is a hardcoded string. When Stripe releases new API versions, this must be manually updated. The Stripe SDK already defaults to its built-in version.
+
+**Options:**
+- **Option A:** Remove the explicit `apiVersion` — let the Stripe SDK use its built-in default (which matches the installed version).
+- **Option B:** Keep the explicit version but add a comment with the upgrade process and a CI check that warns when the stripe package version doesn't match the API version string.
+
+---
