@@ -15,11 +15,33 @@ export async function createServerSupabase() {
     {
       cookies: {
         get(name: string) { return cookieStore.get(name)?.value; },
+        // AUTH-CRIT-001 (1B): Force httpOnly/Secure/SameSite=Lax on every
+        // Supabase-managed cookie regardless of defaults from @supabase/ssr.
+        // This is defense-in-depth — Supabase already sets these, but we
+        // enforce them explicitly so no future library change weakens it.
         set(name: string, value: string, options: CookieOptions) {
-          try { cookieStore.set({ name, value, ...options }); } catch { /* Server Component */ }
+          try {
+            cookieStore.set({
+              name,
+              value,
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+            });
+          } catch { /* Server Component */ }
         },
         remove(name: string, options: CookieOptions) {
-          try { cookieStore.set({ name, value: '', ...options }); } catch { /* Server Component */ }
+          try {
+            cookieStore.set({
+              name,
+              value: '',
+              ...options,
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+            });
+          } catch { /* Server Component */ }
         },
       },
     }
