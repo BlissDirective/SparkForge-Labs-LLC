@@ -1802,3 +1802,68 @@ Move read-only, computation-light API routes to Edge Runtime for lower latency (
 - **Option B:** Add Cloudflare as a proxy in front of Vercel for DDoS protection and edge-level rate limiting.
 
 ---
+
+### 8b. Game-Changing Deployment Enhancements (5)
+
+---
+
+#### DEPLOY-ENH-001: GitHub Actions CI Pipeline
+
+**Category:** DevOps | **Effort:** Medium | **Impact:** Critical
+
+Add a comprehensive CI pipeline that runs on every PR: type checking, linting, tests, bundle analysis, secret scanning, and RLS verification.
+
+**Options:**
+- **Option A:** Create `.github/workflows/ci.yml` with: `npm run build`, `npx tsc --noEmit`, `npm run lint`, `npm test`. Run on PR and push to main.
+- **Option B (Recommended):** Option A + add: Gitleaks secret scanning, bundle size check with budget, Playwright E2E smoke tests, and a PR comment with bundle size diff.
+- **Option C:** Option B + add automatic preview deployments with Vercel CLI, database migration dry-run against staging, and Lighthouse performance audit on preview URL.
+
+---
+
+#### DEPLOY-ENH-002: Feature Flags System
+
+**Category:** Release Safety | **Effort:** Low | **Impact:** High
+
+The `src/lib/feature-flags.ts` file exists. Implement a proper feature flag system for safe rollouts.
+
+**Options:**
+- **Option A:** Use the existing file with simple environment-variable-based flags. Good enough for binary on/off features.
+- **Option B (Recommended):** Integrate with a free feature flag service (LaunchDarkly free tier, Vercel Edge Config, or Statsig). Enables percentage rollouts, A/B tests, and kill switches.
+
+---
+
+#### DEPLOY-ENH-003: Automated Database Migration Verification
+
+**Category:** Safety | **Effort:** Medium | **Impact:** High
+
+Prevent database migration errors from reaching production.
+
+**Options:**
+- **Option A:** Create a `scripts/verify-migrations.sh` that applies all SQL files to a clean Supabase project and verifies table creation. Run in CI.
+- **Option B (Recommended):** Use Supabase CLI migrations with `supabase db push --dry-run` in CI. Add schema diff check between expected and actual.
+
+---
+
+#### DEPLOY-ENH-004: Canary Deployments
+
+**Category:** Release Safety | **Effort:** Low (Vercel native) | **Impact:** Medium
+
+Route a small percentage of traffic to new deployments before full rollout.
+
+**Options:**
+- **Option A:** Use Vercel's Skew Protection to serve old and new deployments simultaneously during rollout.
+- **Option B (Recommended):** Option A + use Edge Config to control canary percentage. Start at 5%, monitor Sentry for errors, ramp to 100% over 1 hour.
+
+---
+
+#### DEPLOY-ENH-005: Disaster Recovery Playbook
+
+**Category:** Operations | **Effort:** Low (documentation) | **Impact:** Critical
+
+Document what to do when things break: database corruption, Stripe webhook failures, Supabase outage, DNS issues.
+
+**Options:**
+- **Option A:** Create a `RUNBOOK.md` with emergency procedures for: database rollback, Stripe webhook replay, environment variable rotation, domain failover.
+- **Option B (Recommended):** Option A + create automated recovery scripts: `scripts/replay-stripe-events.ts` (fetches and replays missed events), `scripts/rotate-secrets.ts` (generates new keys and updates Vercel env vars).
+
+---
