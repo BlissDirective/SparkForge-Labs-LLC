@@ -410,3 +410,174 @@ Replace the trivially-forgeable `'1'` cookie value with a proper signed token th
 - **Option C:** Option B + auto-convert demo sessions to real accounts: "You've been exploring for 30 minutes — create a free account to save your progress!" with one-click signup that preserves demo state.
 
 ---
+
+## 3. DATABASE & SQL SECURITY
+
+### Reference Sources
+- [pgdsat](https://github.com/HexaCluster/pgdsat) — PostgreSQL Database Security Assessment Tool
+- [Supabase](https://github.com/supabase/supabase) (75k stars) — Official RLS/security patterns
+- Percona PostgreSQL Security Best Practices 2026
+- Bytebase Postgres Security Hardening Guide
+- [Database-Security-Audit](https://github.com/Jean-Francois-C/Database-Security-Audit) — Penetration testing patterns
+
+### 3a. Bugs & Findings
+
+---
+
+#### DB-CRIT-001: RLS Missing on `subscription_events` Table
+
+**Severity:** CRITICAL | **File:** `sql/002_rls.sql`, `sql/schema-stage8.sql`
+**OWASP:** A01:2025 — Broken Access Control
+
+**Issue:** The `subscription_events` table (created in `schema-stage8.sql`) stores all Stripe webhook event data including subscription IDs, payment info, and parent IDs. However, `002_rls.sql` contains **no RLS policy** for this table. If RLS is not enabled on it, the table is accessible to any authenticated user via Supabase's auto-generated REST API.
+
+**Impact:** Any authenticated user could query `subscription_events` and see all other users' payment events, subscription changes, and Stripe customer IDs.
+
+**Options:**
+- **Option A (Quick):** Add `ALTER TABLE subscription_events ENABLE ROW LEVEL SECURITY;` with admin-only policy: `CREATE POLICY sub_events_admin ON subscription_events FOR ALL USING (EXISTS (SELECT 1 FROM parents WHERE id = auth.uid() AND is_admin = true));`
+- **Option B (Recommended):** Option A + add a `SELECT` policy for parents to see their own events: `CREATE POLICY sub_events_own ON subscription_events FOR SELECT USING (parent_id = auth.uid());`
+- **Option C (Comprehensive):** Option B + move sensitive fields (full Stripe event JSON) to a separate `subscription_events_detail` table with admin-only access. Parent-facing table shows only event type + timestamp.
+
+---
+
+#### DB-CRIT-002: No RLS on Stage 8/9 Migration Tables
+
+**Severity:** CRITICAL | **Files:** `sql/schema-stage8.sql`, `sql/schema-stage9.sql`, `sql/schema-fll-content-types.sql`
+
+**Issue:** Multiple migration files create new tables or add columns but do not include RLS policies. Tables that may lack RLS include any table added by these migrations. The `002_rls.sql` file only covers the original 9 tables from `001_schema.sql`. Any table added later without explicit RLS is wide open.
+
+**Impact:** Data exposure via Supabase auto-generated REST API for any unprotected table.
+
+**Options:**
+- **Option A (Quick):** Audit all SQL files, compile a list of every `CREATE TABLE` statement, and verify each has a corresponding `ENABLE ROW LEVEL SECURITY` + policies. Create a single `007_rls_patch.sql` migration.
+- **Option B (Recommended):** Option A + add a Supabase database function that runs nightly and alerts if any table has `relrowsecurity = false` in `pg_class`. Add to the cron schedule.
+- **Option C (Comprehensive):** Option B + create a `sql/verify_rls.sql` script that's run in CI before every deployment. Fails the build if any user-facing table lacks RLS.
+
+---
+
+#### DB-HIGH-001: `content_admin_all` RLS Policy Uses Overly Broad `FOR ALL`
+
+**Severity:** HIGH | **File:** `sql/002_rls.sql:21-23`
+
+**Issue:** The admin content policy grants `FOR ALL` (SELECT, INSERT, UPDATE, DELETE) to any admin user. While admins need broad access, the `FOR ALL` permission on the content table means an admin can delete published content without an audit trail. There's no soft-delete or versioning.
+
+```sql
+CREATE POLICY content_admin_all ON content FOR ALL USING (
+  EXISTS (SELECT 1 FROM parents WHERE id = auth.uid() AND is_admin = true)
+);
+```
+
+**Options:**
+- **Option A (Quick):** Add a `deleted_at TIMESTAMPTZ` column to content table. Add trigger that sets `deleted_at` instead of physical delete. Admins can "delete" but data is preserved.
+- **Option B (Recommended):** Split admin policy into separate SELECT/INSERT/UPDATE policies. Remove DELETE entirely — admins can only change `status` to `'rejected'` or `'draft'`. Add `updated_by UUID` and `update_reason TEXT` audit columns.
+- **Option C:** Option B + implement content versioning: every update creates a new row in `content_versions` table preserving the previous state.
+
+---
+
+#### DB-HIGH-002: No Database-Level Audit Logging
+
+**Severity:** HIGH | **Files:** All SQL files
+**OWASP:** A09:2025 — Security Logging & Monitoring Failures
+
+**Issue:** There are no database triggers or audit tables that track who changed what and when. The `subscription_events` table logs Stripe events, but there's no general audit trail for data changes (child profile edits, content modifications, admin actions, XP awards).
+
+**Impact:** No forensic capability if data is modified maliciously or incorrectly. Required for COPPA compliance auditing.
+
+**Options:**
+- **Option A (Quick):** Add `updated_by UUID` and `updated_at TIMESTAMPTZ` columns to critical tables (parents, children, content). Add triggers to auto-set `updated_at = now()`.
+- **Option B (Recommended):** Create an `audit_log` table: `(id, table_name, row_id, action, old_data JSONB, new_data JSONB, performed_by UUID, performed_at TIMESTAMPTZ)`. Add generic trigger function that logs all INSERT/UPDATE/DELETE on critical tables.
+- **Option C (Comprehensive):** Option B + install [pgAudit](https://www.pgaudit.org/) extension for statement-level auditing. Export audit logs to an external service (e.g., Datadog, ELK stack).
+
+---
+
+#### DB-HIGH-003: `children.prompts_used_today` Reset Logic is Application-Level Only
+
+**Severity:** HIGH | **File:** `sql/001_schema.sql:55-56`, `src/app/api/ai/prompt-lab/route.ts:56`
+
+**Issue:** The prompt usage counter (`prompts_used_today`) resets based on application-level date comparison: `child.prompts_reset_date === today`. If the API server's timezone differs from the database, or if the reset check is bypassed (direct Supabase REST API call), the counter may not reset properly or could be manipulated.
+
+Similarly, `games_played_this_week` (line 57-58) uses `date_trunc('week', CURRENT_DATE)` in the default but is compared application-side.
+
+**Options:**
+- **Option A (Quick):** Add a PostgreSQL cron job (via `pg_cron`) that runs at midnight UTC: `UPDATE children SET prompts_used_today = 0, prompts_reset_date = CURRENT_DATE WHERE prompts_reset_date < CURRENT_DATE;`
+- **Option B (Recommended):** Option A + add weekly reset cron: `UPDATE children SET games_played_this_week = 0, games_reset_week = date_trunc('week', CURRENT_DATE)::date WHERE games_reset_week < date_trunc('week', CURRENT_DATE)::date;`. Remove application-level date comparison — counters are always current.
+- **Option C (Comprehensive):** Replace counter columns entirely with a `usage_tracking` table: `(child_id, resource_type, period_start, period_end, count)`. Query is always `WHERE NOW() BETWEEN period_start AND period_end`. No reset needed.
+
+---
+
+#### DB-MED-001: Missing Indexes on Frequently Joined Columns
+
+**Severity:** MEDIUM | **File:** `sql/001a_indexes.sql`
+
+**Issue:** While 14 indexes are defined, several frequently-queried patterns lack indexes:
+- `progress.completed_at` — used in weekly game count queries (`checkGameLimit`)
+- `prompt_history.created_at` — used in daily prompt count queries (`checkPromptLimit`)
+- `sessions.started_at` — used in daily time limit queries (`checkTimeLimit`)
+- `subscription_events.parent_id` — used in admin subscription management
+
+**Options:**
+- **Option A (Quick):** Add the 4 missing indexes in a new migration file.
+- **Option B (Recommended):** Option A + add composite indexes for the most common query patterns: `CREATE INDEX idx_progress_child_completed ON progress(child_id, completed_at DESC);`
+- **Option C:** Option B + add `EXPLAIN ANALYZE` tests for the 10 most critical queries to verify index usage.
+
+---
+
+#### DB-MED-002: No Foreign Key Constraint on `subscription_events.parent_id`
+
+**Severity:** MEDIUM | **File:** `sql/schema-stage8.sql`
+
+**Issue:** The `subscription_events` table likely has a `parent_id` column that's nullable and set after the event is logged, but without a foreign key constraint, orphaned records can accumulate if parents are deleted.
+
+**Options:**
+- **Option A:** Add `REFERENCES parents(id) ON DELETE SET NULL` constraint.
+- **Option B (Recommended):** Option A + add a periodic cleanup job that removes subscription_events for deleted parents.
+
+---
+
+#### DB-MED-003: `content.slug` Has UNIQUE Constraint but No NOT NULL
+
+**Severity:** MEDIUM | **File:** `sql/001_schema.sql:71`
+
+**Issue:** The `slug` column is `TEXT UNIQUE` but not `NOT NULL`. PostgreSQL allows multiple NULL values in a UNIQUE column, meaning content items without slugs can proliferate. The content API uses slugs for routing (`/api/content/[slug]`), so null slugs create unreachable content.
+
+**Options:**
+- **Option A:** Add `NOT NULL` constraint and generate slugs from titles for existing null rows.
+- **Option B (Recommended):** Add `NOT NULL DEFAULT ''` constraint + add a trigger that auto-generates slugs from the title on insert: `slugify(title) || '-' || substr(gen_random_uuid()::text, 1, 8)`.
+
+---
+
+#### DB-MED-004: No Database Connection Pooling Configuration
+
+**Severity:** MEDIUM | **File:** `src/lib/supabase/server.ts`
+
+**Issue:** Every API route call creates a new Supabase client. On high traffic, this can exhaust the Supabase connection pool (default 15 connections per project on free tier, 100 on Pro). There's no connection pooling or pgBouncer configuration documented.
+
+**Options:**
+- **Option A:** Enable Supabase's built-in PgBouncer (Supavisor) in transaction mode via the Supabase dashboard. Use port 6543 instead of 5432. Zero code changes.
+- **Option B (Recommended):** Option A + use the `supabase-js` client's built-in connection pooling by configuring a single shared client instance per server process with `global` option.
+
+---
+
+#### DB-LOW-001: No `ON DELETE CASCADE` on `child_badges`
+
+**Severity:** LOW | **File:** `sql/001_schema.sql`
+
+**Issue:** If a badge definition is deleted from the `badges` table, corresponding `child_badges` rows become orphaned (foreign key to a non-existent badge). While badge deletion is rare, it creates data inconsistency.
+
+**Options:**
+- **Option A:** Add `ON DELETE CASCADE` to the `child_badges.badge_id` foreign key.
+- **Option B:** Add `ON DELETE RESTRICT` to prevent accidental badge deletion. Add a soft-delete `retired_at` column to badges instead.
+
+---
+
+#### DB-LOW-002: Schema Doesn't Track Content Edit History
+
+**Severity:** LOW | **File:** `sql/001_schema.sql:67-92`
+
+**Issue:** The `content` table has `created_at` and `published_at` but no `updated_at`. When admin reviews or AI content generation modifies content, there's no record of when the last change occurred.
+
+**Options:**
+- **Option A:** Add `updated_at TIMESTAMPTZ NOT NULL DEFAULT now()` with an auto-update trigger.
+- **Option B:** Option A + add `last_edited_by UUID REFERENCES parents(id)` to track who made the last change.
+
+---
