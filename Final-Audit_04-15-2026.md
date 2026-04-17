@@ -2172,3 +2172,136 @@ STATE-ENH-001 through STATE-ENH-005 (5)
 *137 total items: 85 bugs (13C / 28H / 29M / 15L) + 52 enhancements*
 *Auditor: Claude Code (Opus 4.6) | Date: April 15, 2026*
 *Branch: `claude/sparkforge-final-audit-ftjfL`*
+
+---
+
+## PHASE 1 IMPLEMENTATION LOG — April 17, 2026
+
+**Branch:** `claude/audit-phase-one-planning-XUEJC`
+**Status:** All 13 Critical items resolved ✓
+**Implementer:** Claude Code (Opus 4.7)
+**CI run:** All 3 jobs passed (1 non-blocking tsc annotation + 3 Node 20 deprecation warnings — see "Carry-over to Phase 2" below)
+
+### Selection & Execution Summary
+
+User selected the following options during Phase 1 planning:
+
+| # | ID | Option | Commit |
+|---|----|----|----|
+| 1 | AUTH-CRIT-001 | B — Remove token from body + explicit httpOnly/Secure/SameSite=Lax | `3a36c9f` |
+| 2 | AUTH-CRIT-003 | C — Regex whitelist `/^\/[a-zA-Z0-9\-\/]*$/` + `//` rejection | `56c804f` |
+| 3 | API-CRIT-001 | B — Anon client + warning comment against admin-client misuse | `1f8a057` |
+| 4 | API-CRIT-002 | B — Centralized `requireAdmin()` + audit all routes | `1947bf3` |
+| 5 | PAY-CRIT-001 | B — `processed` boolean column + idempotency short-circuit | `622e794` |
+| 6 | DB-CRIT-001 | C — Split `subscription_events_detail` admin-only table | `4f1fb6b` |
+| 7 | DB-CRIT-002 | C — Full CI pipeline + `verify_rls.sql` gate | `e0561c4` + `befbf4e` |
+| 8 | STATE-CRIT-001 | B — Per-child game store factory (`Map<childId, StoreApi>`) | `7a15db5` |
+| 9 | AUTH-CRIT-002 | B — Supabase `signInAnonymously()` for demo sessions | `d3ac770` |
+| 10 | DEPLOY-CRIT-001 | B — Gitleaks v8.21.2 in CI with custom `.gitleaks.toml` | `1cd81c1` |
+| 11 | PERF-CRIT-002 | C — `useDisposable` hook + `MemoryMonitor` dev overlay | `c2f3412` |
+| 12 | PERF-CRIT-001 | C — Named Three.js imports + ESLint ban on wildcard + agent prompt update | `3579a1c` |
+| 13 | UX-CRIT-001 | C — Hardened `:focus-visible` with box-shadow + `FocusRing` wrapper | `765142b` |
+
+### Deliverables
+
+**New SQL migrations** (`sql/` — run in Supabase SQL Editor in this order):
+- `008_subscription_events_processed.sql` — webhook replay protection
+- `009_subscription_events_split.sql` — sensitive payload moved to admin-only detail table
+- `010_rls_belt_and_suspenders.sql` — defensive RLS re-assertion on all 12 tables
+- `verify_rls.sql` — CI gate (not a migration; runs via psql)
+- `ci-auth-stubs.sql` — minimal `auth` schema stub so vanilla Postgres in CI can apply our migrations
+
+**New application files:**
+- `src/lib/subscription-events.ts` — `logSubscriptionEvent()` helper; all 5 callers (webhook + 4 admin/cron) refactored to use it
+- `src/hooks/useDisposable.ts` — auto-disposing Three.js resource hook
+- `src/components/3d/dev/MemoryMonitor.tsx` — dev-only overlay warning on VRAM leak thresholds
+- `src/components/shared/FocusRing.tsx` — composable Frost-Prismatic focus ring wrapper
+
+**New / updated tests (49/49 pass, up from 17):**
+- `tests/unit/demo-session.test.ts` (NEW, 12 tests)
+- `tests/unit/game-store-per-child.test.ts` (NEW, 4 tests)
+- `tests/unit/useDisposable.test.ts` (NEW, 8 tests)
+- `tests/unit/webhook-handler.test.ts` (EXTENDED) — mock `.select().eq().single()` chain, 2 new tests for replay + dual-write
+
+**CI infrastructure:**
+- `.github/workflows/ci.yml` — 3 parallel jobs (secrets-scan, typecheck-test-build, rls-verify)
+- `.gitleaks.toml` — Supabase / Anthropic / Stripe / Resend custom patterns
+- `eslint.config.mjs` extension — `no-restricted-imports` blocks `import * as THREE`
+
+**Documentation:**
+- `SETUP_CHECKLIST.md` — added Phase 1 audit migrations section with verification queries
+- `sql/RUN_ORDER.md` — documented migrations 008–010 + verify_rls
+
+### Metrics
+
+| Metric | Before Phase 1 | After Phase 1 |
+|---|---|---|
+| Critical bugs | 13 | 0 |
+| Unit tests | 17 | 49 |
+| Test files | 2 | 5 |
+| CI jobs | 0 | 3 |
+| Three.js wildcard imports | 6 source files | 0 |
+| SQL migrations | 10 (with gaps in RLS for future tables) | 13 + verify script |
+| Exposed JWT in login response | yes | no |
+| Forgeable demo session | yes (`cookie == '1'`) | no (Supabase anon auth) |
+| Game store corruption across children | yes | isolated per-child |
+| Tracked VRAM disposals | 0 | automated via `useDisposable` |
+| Focus indicator visibility when `outline-none` | weak (border-only) | strong (`box-shadow` double ring, survives `outline-none`) |
+
+### Scope Clarifications vs. Original Audit
+
+The original audit over-counted in two places. Findings were still valid; numbers were off:
+
+- **PERF-CRIT-001** — audit said "103+ files" with `import * as THREE`. Actual grep: 6 source files + 2 agent-prompt files that reference the pattern as string literals. All 6 migrated + agent prompt updated.
+- **DB-CRIT-002** — audit said "Stage 8/9 migration tables lacking RLS." Actual audit: every table in every SQL file already has RLS + policies (`subscription_events` via schema-stage8.sql, `agent_runs` via schema-stage9.sql). No patch needed for correctness, but the defensive belt-and-suspenders migration + CI verify script were added as regression protection.
+
+### Operator Action Items
+
+1. **Supabase SQL Editor** (in order):
+   - `sql/008_subscription_events_processed.sql`
+   - `sql/009_subscription_events_split.sql`
+   - `sql/010_rls_belt_and_suspenders.sql`
+   - Optional verify: `sql/verify_rls.sql` (should emit `NOTICE` "verification PASSED")
+2. **Supabase Dashboard** — Anonymous Sign-Ins enabled by user on April 17 ✓
+
+### Carry-over to Phase 2
+
+#### CI Cleanup (Option B, planned for start of Phase 2 session)
+
+All 3 CI jobs pass but the GitHub Actions summary shows **1 non-blocking error annotation + 4 deprecation warnings**. Option B (selected 04-17) will resolve all of them in a single commit:
+
+1. **Fix the pre-existing `tests/unit/webhook-handler.test.ts:259` TS2352 error.**
+   Cast through `unknown` as TypeScript suggests:
+   ```ts
+   const auditEntry = upserts[0] as unknown as {
+     data: { stripe_event_id: string; event_type: string };
+   };
+   ```
+   This eliminates both the "Error" annotation and the `::warning::` emitted by the non-blocking tsc step.
+
+2. **Make the tsc step blocking.**
+   Remove the `|| echo "::warning::"` fallback from `.github/workflows/ci.yml` so any future TS regression fails CI instead of just annotating. Rationale: non-blocking typecheck provides no protection.
+
+3. **Bump GitHub Actions to `@v5`.**
+   Replace `actions/checkout@v4` and `actions/setup-node@v4` with `@v5` across all 3 jobs. Clears the 3 "Node.js 20 actions are deprecated" warnings. Node 20 is being forced off GitHub runners by June 2, 2026 → full removal Sept 16, 2026. `actions/checkout@v5` and `actions/setup-node@v5` run on Node 24.
+
+After Option B lands, CI should show 0 errors + 0 warnings on every PR.
+
+#### Phase 2 scope (28 High-severity findings)
+
+Grouped by area — user will review options per-finding at the start of the next session, same process as Phase 1:
+
+| Category | Count | Representative items |
+|----------|-------|----------------------|
+| Auth | 4 | `AUTH-HIGH-001..004` — placeholder creds, middleware API bypass, Upstash rate limiter, email verification |
+| Database | 3 | `DB-HIGH-001..003` — admin DELETE scope, audit log table, counter reset via pg_cron |
+| Payments | 3 | `PAY-HIGH-001..003` — 60s webhook tolerance, customer type guard, checkout session verification |
+| API | 4 | `API-HIGH-001..004` — avatar schema, body-hash dedup, daily XP cap, CSRF |
+| UX | 5 | `UX-HIGH-001..005` — skip-nav link, 3D cockpit keyboard nav, error recovery UX, loading states, purple contrast |
+| Performance | 3 | `PERF-HIGH-001..003` — Zustand selectors, KTX2/Draco textures, setInterval leaks |
+| Deployment | 3 | `DEPLOY-HIGH-001..003` — staging env, CSP nonces, health monitoring |
+| State | 3 | `STATE-HIGH-001..003` — auth focus sync, optimistic XP, store dependency graph |
+
+---
+
+*Phase 1 complete: April 17, 2026 | 14 commits on `claude/audit-phase-one-planning-XUEJC` | 49/49 tests green | CI pipeline live*
