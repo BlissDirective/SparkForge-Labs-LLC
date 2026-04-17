@@ -48,10 +48,13 @@ export async function middleware(request: NextRequest) {
   const isStatic = request.nextUrl.pathname.startsWith('/_next');
   const isAsset = request.nextUrl.pathname.match(/\.(ico|png|jpg|svg|woff2?)$/);
 
-  // S3-HIGH-002: Allow demo users to access dashboard routes
-  const isDemoSession = request.cookies.get('sparkforge-demo-active')?.value === '1';
+  // AUTH-CRIT-002 (2B): Demo users now have real Supabase anonymous
+  // sessions (user.is_anonymous === true), so the generic `!user` check
+  // below covers them without a separate forgeable cookie check. The
+  // previous `sparkforge-demo-active=1` cookie was trivially forgeable
+  // and has been removed.
 
-  if (!user && !isDemoSession && !isPublic && !isAPI && !isStatic && !isAsset) {
+  if (!user && !isPublic && !isAPI && !isStatic && !isAsset) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 

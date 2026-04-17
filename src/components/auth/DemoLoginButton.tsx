@@ -4,11 +4,10 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { Play, Loader2 } from 'lucide-react';
-import { useAuthStore } from '@/stores/authStore';
+import { createClient } from '@/lib/supabase/client';
 
 export function DemoLoginButton() {
   const router = useRouter();
-  const startDemoSession = useAuthStore((s) => s.startDemoSession);
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -16,7 +15,9 @@ export function DemoLoginButton() {
     setLoading(true);
 
     try {
-      // Call demo API to register session server-side
+      // AUTH-CRIT-002 (2B): The API route creates a Supabase anonymous
+      // session. Refresh the client-side session cache so AuthProvider
+      // detects the new anonymous user and hydrates demo state.
       const res = await fetch('/api/auth/demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -27,10 +28,9 @@ export function DemoLoginButton() {
         return;
       }
 
-      // Start client-side demo session
-      startDemoSession();
+      const supabase = createClient();
+      await supabase.auth.refreshSession();
 
-      // Navigate to dashboard
       router.push('/home');
     } catch {
       setLoading(false);

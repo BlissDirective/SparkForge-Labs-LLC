@@ -2,7 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
-import { getDemoTimeRemaining, formatTimeRemaining } from '@/lib/demo-session';
+import {
+  getDemoTimeRemaining,
+  formatTimeRemaining,
+  DEMO_DURATION_MS,
+} from '@/lib/demo-session';
 
 interface DemoSessionState {
   isDemoMode: boolean;
@@ -13,11 +17,9 @@ interface DemoSessionState {
   percentRemaining: number;
 }
 
-const DEMO_DURATION_MS = 60 * 60 * 1000; // 1 hour
-
 export function useDemoSession(): DemoSessionState {
   const isDemoMode = useAuthStore((s) => s.isDemoMode);
-  const checkDemoStatus = useAuthStore((s) => s.checkDemoStatus);
+  const demoSession = useAuthStore((s) => s.demoSession);
 
   const [state, setState] = useState<DemoSessionState>({
     isDemoMode: false,
@@ -29,26 +31,13 @@ export function useDemoSession(): DemoSessionState {
   });
 
   useEffect(() => {
-    if (!isDemoMode) {
+    if (!isDemoMode || !demoSession) {
       setState((prev) => ({ ...prev, isDemoMode: false }));
       return;
     }
 
     function update() {
-      const valid = checkDemoStatus();
-      if (!valid) {
-        setState({
-          isDemoMode: true,
-          timeRemaining: '0:00',
-          timeRemainingMs: 0,
-          isUrgent: true,
-          isExpired: true,
-          percentRemaining: 0,
-        });
-        return;
-      }
-
-      const remainingMs = getDemoTimeRemaining();
+      const remainingMs = getDemoTimeRemaining(demoSession);
       setState({
         isDemoMode: true,
         timeRemaining: formatTimeRemaining(remainingMs),
@@ -62,7 +51,7 @@ export function useDemoSession(): DemoSessionState {
     update();
     const interval = setInterval(update, 1000);
     return () => clearInterval(interval);
-  }, [isDemoMode, checkDemoStatus]);
+  }, [isDemoMode, demoSession]);
 
   return state;
 }

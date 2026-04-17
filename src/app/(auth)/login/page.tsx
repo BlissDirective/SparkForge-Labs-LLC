@@ -9,7 +9,7 @@
 import { useState, useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { useAuthStore } from '@/stores/authStore';
+import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 // Phase 5 P.8-MAX (§8.10): Zod client-side validation
 import { loginSchema, validateForm } from '@/lib/validation/authSchemas';
 
@@ -21,7 +21,6 @@ const LoginPanel3D = dynamic(
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const startDemoSession = useAuthStore((s) => s.startDemoSession);
 
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -71,6 +70,10 @@ export default function LoginPage() {
   const handleDemoStart = useCallback(async () => {
     setDemoLoading(true);
     try {
+      // AUTH-CRIT-002 (2B): Server route calls supabase.auth.signInAnonymously()
+      // and sets the session cookies. After it returns, pull the new session
+      // into the client-side supabase cache so AuthProvider's
+      // onAuthStateChange hydrates demo state before navigation.
       const res = await fetch('/api/auth/demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -81,12 +84,14 @@ export default function LoginPage() {
         return;
       }
 
-      startDemoSession();
+      const supabase = createSupabaseClient();
+      await supabase.auth.refreshSession();
+
       router.push('/home');
     } catch {
       setDemoLoading(false);
     }
-  }, [router, startDemoSession]);
+  }, [router]);
 
   return (
     <LoginPanel3D

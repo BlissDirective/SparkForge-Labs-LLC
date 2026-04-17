@@ -75,11 +75,18 @@ export function parseQuery<T>(
 
 // ═══ AUTHENTICATION ═══
 
+// AUTH-CRIT-002 (2B): Demo sessions are Supabase anonymous users capped at
+// 1 hour server-side. Client-side DemoGuard also enforces the limit, but
+// this is the authoritative gate.
+const DEMO_DURATION_MS = 60 * 60 * 1000;
+
 export interface AuthenticatedUser {
   id: string;
   email: string;
   tier: SubscriptionTier;
   isAdmin: boolean;
+  /** True when the session is a Supabase anonymous (demo) user. */
+  isDemo: boolean;
 }
 
 export async function requireAuth(
@@ -92,6 +99,30 @@ export async function requireAuth(
     return {
       success: false,
       response: apiError('Not authenticated', 401, ERROR_CODES.AUTH_REQUIRED),
+    };
+  }
+
+  // AUTH-CRIT-002 (2B): Enforce 1-hour cap on demo sessions server-side.
+  // Supabase anonymous sessions don't auto-expire; this is our cap.
+  if (user.is_anonymous) {
+    const createdAt = new Date(user.created_at).getTime();
+    if (Date.now() > createdAt + DEMO_DURATION_MS) {
+      // Invalidate the session so subsequent requests also fail.
+      await supabase.auth.signOut();
+      return {
+        success: false,
+        response: apiError('Demo session expired', 401, ERROR_CODES.AUTH_REQUIRED),
+      };
+    }
+    return {
+      success: true,
+      user: {
+        id: user.id,
+        email: user.email || '',
+        tier: 'free',
+        isAdmin: false,
+        isDemo: true,
+      },
     };
   }
 
@@ -108,6 +139,7 @@ export async function requireAuth(
       email: user.email || '',
       tier: (parent?.subscription_tier as SubscriptionTier) || 'free',
       isAdmin: parent?.is_admin || false,
+      isDemo: false,
     },
   };
 }

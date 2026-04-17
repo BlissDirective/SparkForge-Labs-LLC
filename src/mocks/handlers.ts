@@ -94,11 +94,16 @@ export const handlers = [
     HttpResponse.json(mockParent),
   ),
 
+  // AUTH-CRIT-002 (2B): Demo endpoint now wraps supabase.auth.signInAnonymously().
+  // In the mock, we return the apiSuccess envelope the real route emits.
   http.post(`${API}/auth/demo`, () =>
     HttpResponse.json({
-      demoId: 'demo-session-001',
-      expiresAt: new Date(Date.now() + 3600_000).toISOString(),
-      message: 'Demo session started',
+      success: true,
+      data: {
+        demoId: 'demo-session-001',
+        expiresAt: Date.now() + 3600_000,
+        message: 'Demo session started',
+      },
     }),
   ),
 
