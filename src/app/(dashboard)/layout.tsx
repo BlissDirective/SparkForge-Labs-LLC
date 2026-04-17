@@ -41,6 +41,7 @@ import { DemoGuard } from '@/components/auth/DemoGuard';
 import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
+import { MemoryMonitor } from '@/components/3d/dev/MemoryMonitor';
 
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
@@ -149,6 +150,11 @@ export default function DashboardLayout({
 
         {/* Phase 1 audit fix (Section 8.2): A11yAnnouncer for score/XP/badge/streak */}
         <A11yAnnouncer />
+
+        {/* PERF-CRIT-002 (11C): Dev-only Three.js allocation monitor.
+            Hidden unless localStorage.sparkforge_memory_monitor === '1'.
+            Stripped from production bundles via NODE_ENV guard inside. */}
+        <MemoryMonitor />
 
         {/* Guide chat panel — HTML overlay for text input (Phase 3: migrate to uikit) */}
         <GuideChatPanel />

@@ -43,12 +43,6 @@ const mockChild = {
   created_at: '2026-01-15T00:00:00Z',
 };
 
-const mockSession = {
-  accessToken: 'mock-jwt-token',
-  refreshToken: 'mock-refresh-token',
-  expiresAt: Date.now() + 3600_000,
-};
-
 const mockLabProgress = Array.from({ length: 10 }, (_, i) => ({
   labId: i + 1,
   totalItems: 3 + (i % 2),
@@ -83,9 +77,10 @@ export const handlers = [
   http.post(`${API}/auth/login`, async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     if (body.email === 'test@sparkforge.dev' && body.password === 'password123') {
+      // AUTH-CRIT-001 (1B): Mock mirrors real API — no token in body.
       return HttpResponse.json({
         user: { id: mockParent.id, email: mockParent.email },
-        session: mockSession,
+        authenticated: true,
       });
     }
     return HttpResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -99,11 +94,16 @@ export const handlers = [
     HttpResponse.json(mockParent),
   ),
 
+  // AUTH-CRIT-002 (2B): Demo endpoint now wraps supabase.auth.signInAnonymously().
+  // In the mock, we return the apiSuccess envelope the real route emits.
   http.post(`${API}/auth/demo`, () =>
     HttpResponse.json({
-      demoId: 'demo-session-001',
-      expiresAt: new Date(Date.now() + 3600_000).toISOString(),
-      message: 'Demo session started',
+      success: true,
+      data: {
+        demoId: 'demo-session-001',
+        expiresAt: Date.now() + 3600_000,
+        message: 'Demo session started',
+      },
     }),
   ),
 

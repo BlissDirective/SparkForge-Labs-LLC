@@ -3,7 +3,20 @@
 import { useRef, useMemo, useEffect, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Float } from '@react-three/drei';
-import * as THREE from 'three';
+// PERF-CRIT-001 (10C): use named imports for Three.js tree-shaking.
+import {
+  BoxGeometry,
+  BufferGeometry,
+  Color,
+  CylinderGeometry,
+  DodecahedronGeometry,
+  Group,
+  MathUtils,
+  Mesh,
+  MeshStandardMaterial,
+  OctahedronGeometry,
+  SphereGeometry,
+} from 'three';
 import { useA11yStore } from '@/stores/accessibilityStore';
 
 interface AvatarPreview3DProps {
@@ -15,13 +28,13 @@ interface AvatarPreview3DProps {
   position?: [number, number, number];
 }
 
-const SHAPE_FACTORIES: Array<() => THREE.BufferGeometry> = [
-  () => new THREE.SphereGeometry(0.4, 32, 32),
-  () => new THREE.CylinderGeometry(0.4, 0.4, 0.15, 6),
-  () => new THREE.OctahedronGeometry(0.4, 0),
-  () => new THREE.BoxGeometry(0.5, 0.6, 0.1, 1, 1, 1),
-  () => new THREE.DodecahedronGeometry(0.4, 0),
-  () => new THREE.CylinderGeometry(0.4, 0.4, 0.15, 5),
+const SHAPE_FACTORIES: Array<() => BufferGeometry> = [
+  () => new SphereGeometry(0.4, 32, 32),
+  () => new CylinderGeometry(0.4, 0.4, 0.15, 6),
+  () => new OctahedronGeometry(0.4, 0),
+  () => new BoxGeometry(0.5, 0.6, 0.1, 1, 1, 1),
+  () => new DodecahedronGeometry(0.4, 0),
+  () => new CylinderGeometry(0.4, 0.4, 0.15, 5),
 ];
 
 export default function AvatarPreview3D({
@@ -32,8 +45,8 @@ export default function AvatarPreview3D({
   active = true,
   position = [0, 0, 0],
 }: AvatarPreview3DProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const meshRef = useRef<THREE.Mesh>(null);
+  const groupRef = useRef<Group>(null);
+  const meshRef = useRef<Mesh>(null);
   const scaleRef = useRef(1);
   const [currentIndex, setCurrentIndex] = useState(shapeIndex);
   const [morphPhase, setMorphPhase] = useState<'idle' | 'shrink' | 'grow'>('idle');
@@ -47,11 +60,11 @@ export default function AvatarPreview3D({
   }, [safeIndex]);
 
   const material = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
+    return new MeshStandardMaterial({
       color,
       metalness: 0.6,
       roughness: 0.3,
-      emissive: new THREE.Color(color),
+      emissive: new Color(color),
       emissiveIntensity: 0.15,
     });
   }, [color]);
@@ -85,14 +98,14 @@ export default function AvatarPreview3D({
 
     // Morph animation
     if (morphPhase === 'shrink') {
-      scaleRef.current = THREE.MathUtils.lerp(scaleRef.current, 0, 8 * delta);
+      scaleRef.current = MathUtils.lerp(scaleRef.current, 0, 8 * delta);
       if (scaleRef.current < 0.02) {
         scaleRef.current = 0;
         setCurrentIndex(shapeIndex);
         setMorphPhase('grow');
       }
     } else if (morphPhase === 'grow') {
-      scaleRef.current = THREE.MathUtils.lerp(scaleRef.current, 1, 6 * delta);
+      scaleRef.current = MathUtils.lerp(scaleRef.current, 1, 6 * delta);
       if (scaleRef.current > 0.98) {
         scaleRef.current = 1;
         setMorphPhase('idle');

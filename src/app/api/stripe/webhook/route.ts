@@ -5,11 +5,19 @@
 // v2: Uses createAdminClient for webhook (no user auth)
 // v3 (Gap 1): Persists stripe_subscription_id for programmatic control
 // v3 (Gap 2): Persists trial_ends_at + subscription_period_end
+// PAY-CRIT-001 (6B): Idempotency guard via subscription_events.processed
+//   flag. Replayed events short-circuit before re-running business logic.
+//   Requires migration sql/008_subscription_events_processed.sql.
+// DB-CRIT-001 (4C): Sensitive Stripe payload lives in
+//   subscription_events_detail (admin-only). Metadata-only data in
+//   subscription_events is parent-readable.
+//   Requires migration sql/009_subscription_events_split.sql.
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getStripe } from '@/lib/stripe';
+import { logSubscriptionEvent } from '@/lib/subscription-events';
 import type { SubscriptionTier } from '@/lib/tier-config';
 
 // Disable body parsing — Stripe needs raw body for signature verification
@@ -98,16 +106,29 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  // Log all events to subscription_events table (upsert to handle replays)
-  await supabase.from('subscription_events').upsert(
-    {
-      stripe_event_id: event.id,
-      event_type: event.type,
-      data: event.data.object as unknown as Record<string, unknown>,
-      parent_id: null, // filled below if identifiable
-    },
-    { onConflict: 'stripe_event_id', ignoreDuplicates: true }
-  );
+  // DB-CRIT-001 (4C): Dual-write metadata + detail via centralized helper.
+  // Metadata in subscription_events (parent-readable via RLS), raw payload
+  // in subscription_events_detail (admin-only).
+  await logSubscriptionEvent(supabase, {
+    stripeEventId: event.id,
+    eventType: event.type,
+    parentId: null, // filled below if identifiable
+    data: event.data.object as unknown as Record<string, unknown>,
+  });
+
+  // PAY-CRIT-001 (6B): Idempotency guard. Stripe delivers webhooks at
+  // least once. Without this check, a replayed `checkout.session.completed`
+  // could re-upgrade a parent who has since downgraded. Stripe expects
+  // 2xx for replays — return 200 instead of erroring.
+  const { data: existingEvent } = await supabase
+    .from('subscription_events')
+    .select('processed')
+    .eq('stripe_event_id', event.id)
+    .single();
+
+  if (existingEvent?.processed === true) {
+    return NextResponse.json({ received: true, replay: true, skipped: true });
+  }
 
   switch (event.type) {
     case 'checkout.session.completed': {
@@ -214,6 +235,16 @@ export async function POST(req: NextRequest) {
       break;
     }
   }
+
+  // PAY-CRIT-001 (6B): Mark processed AFTER business logic completes.
+  // If any handler throws above, this UPDATE is skipped and the event
+  // remains processable on the next delivery attempt. Unknown event types
+  // are also marked processed to prevent indefinite Stripe retries on
+  // events we have no handler for.
+  await supabase
+    .from('subscription_events')
+    .update({ processed: true, processed_at: new Date().toISOString() })
+    .eq('stripe_event_id', event.id);
 
   return NextResponse.json({ received: true });
 }

@@ -9,7 +9,8 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
-import * as THREE from 'three';
+// PERF-CRIT-001 (10C): use named imports for Three.js tree-shaking.
+import { Color, DoubleSide, type Group, type Mesh } from 'three';
 import { useGuideStore } from '@/stores/guideStore';
 
 interface GuideAvatar3DProps {
@@ -52,12 +53,12 @@ interface AvatarProps {
 
 // ── Concept A: Orb Sentinel ──
 function OrbAvatar({ labColor, audioLevel, visualState: _visualState }: AvatarProps) {
-  const shellRef = useRef<THREE.Mesh>(null);
-  const coreRef = useRef<THREE.Mesh>(null);
-  const ring1Ref = useRef<THREE.Mesh>(null);
-  const ring2Ref = useRef<THREE.Mesh>(null);
+  const shellRef = useRef<Mesh>(null);
+  const coreRef = useRef<Mesh>(null);
+  const ring1Ref = useRef<Mesh>(null);
+  const ring2Ref = useRef<Mesh>(null);
 
-  const color = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const color = useMemo(() => new Color(labColor), [labColor]);
 
   useFrame((_, delta) => {
     if (shellRef.current) {
@@ -103,8 +104,8 @@ function OrbAvatar({ labColor, audioLevel, visualState: _visualState }: AvatarPr
 
 // ── Concept B: Prism Fox ──
 function FoxAvatar({ labColor, audioLevel, visualState }: AvatarProps) {
-  const bodyRef = useRef<THREE.Group>(null);
-  const color = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const bodyRef = useRef<Group>(null);
+  const color = useMemo(() => new Color(labColor), [labColor]);
 
   useFrame((_, delta) => {
     if (bodyRef.current) {
@@ -161,8 +162,8 @@ function FoxAvatar({ labColor, audioLevel, visualState }: AvatarProps) {
 
 // ── Concept C: Beacon Drone ──
 function DroneAvatar({ labColor, audioLevel }: AvatarProps) {
-  const bodyRef = useRef<THREE.Group>(null);
-  const color = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const bodyRef = useRef<Group>(null);
+  const color = useMemo(() => new Color(labColor), [labColor]);
 
   useFrame((_, delta) => {
     if (bodyRef.current) {
@@ -209,8 +210,8 @@ function DroneAvatar({ labColor, audioLevel }: AvatarProps) {
 
 // ── Concept D: Spark (Crystalline Companion) ──
 function SparkAvatar({ labColor, audioLevel }: AvatarProps) {
-  const ref = useRef<THREE.Mesh>(null);
-  const color = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const ref = useRef<Mesh>(null);
+  const color = useMemo(() => new Color(labColor), [labColor]);
 
   useFrame(() => {
     if (ref.current) {
@@ -242,8 +243,8 @@ function SparkAvatar({ labColor, audioLevel }: AvatarProps) {
 
 // ── Concept E: Nova (Holographic AI) ──
 function NovaAvatar({ labColor, audioLevel }: AvatarProps) {
-  const ringRef = useRef<THREE.Mesh>(null);
-  const color = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const ringRef = useRef<Mesh>(null);
+  const color = useMemo(() => new Color(labColor), [labColor]);
 
   useFrame((_, delta) => {
     if (ringRef.current) ringRef.current.rotation.z += delta * (0.5 + audioLevel);
@@ -265,7 +266,7 @@ function NovaAvatar({ labColor, audioLevel }: AvatarProps) {
       {[0, Math.PI / 3, -Math.PI / 3].map((rot, i) => (
         <mesh key={i} rotation={[rot, 0, 0]}>
           <ringGeometry args={[0.5, 0.55, 32]} />
-          <meshStandardMaterial color={color} transparent opacity={0.1 + audioLevel * 0.1} side={THREE.DoubleSide} />
+          <meshStandardMaterial color={color} transparent opacity={0.1 + audioLevel * 0.1} side={DoubleSide} />
         </mesh>
       ))}
       {/* Point light for glow */}

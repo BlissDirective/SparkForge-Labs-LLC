@@ -5,8 +5,7 @@
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createServerSupabase } from '@/lib/supabase/server';
-import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
+import { apiSuccess, apiError, applyRateLimit, requireAdmin } from '@/lib/api-helpers';
 import { runArchitectPipeline } from '@/lib/agent/architect-pipeline';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
@@ -28,18 +27,9 @@ export async function POST(req: NextRequest) {
     return apiError('Architect pipeline not configured. Add ANTHROPIC_API_KEY.', 503, 'AGENT_NOT_CONFIGURED');
   }
 
-  // Admin auth
-  const supabase = await createServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return apiError('Unauthorized', 401, 'AUTH_REQUIRED');
-
-  const { data: parent } = await supabase
-    .from('parents')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-
-  if (!parent?.is_admin) return apiError('Admin access required', 403, 'FORBIDDEN');
+  // API-CRIT-002 (8B): Centralized admin check via requireAdmin().
+  const auth = await requireAdmin(req);
+  if (!auth.success) return auth.response;
 
   // Parse body
   let body: z.infer<typeof ArchitectRequestSchema>;

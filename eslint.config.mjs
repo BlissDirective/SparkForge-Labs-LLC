@@ -41,6 +41,32 @@ export default tseslint.config(
       // Allow require() in config files (tailwind, postcss)
       '@typescript-eslint/no-require-imports': 'off',
 
+      // PERF-CRIT-001 (Phase 1 Task 12): Ban `import * as THREE` and the
+      // default wildcard import from 'three'. Tree-shaking requires named
+      // imports. Allow in agent pipeline files (they reference the pattern
+      // as a string literal for code generation detection).
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'three',
+              importNames: ['default'],
+              message:
+                'Do not default-import from "three". Use named imports (e.g. `import { Mesh, Color } from "three"`) so tree-shaking works.',
+            },
+          ],
+          patterns: [
+            {
+              group: ['three'],
+              importNamePattern: '^\\*$',
+              message:
+                'Do not use `import * as THREE from "three"`. Use named imports so tree-shaking works.',
+            },
+          ],
+        },
+      ],
+
       // Phase 5 P.4-MAX (§7.4): Font hierarchy enforcement.
       // Warn when a JSX element uses font-body or font-mono together with
       // direct numeric text children — those MUST use font-data (Orbitron)

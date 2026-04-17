@@ -17,8 +17,8 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { Group, Mesh, Color } from 'three';
+// PERF-CRIT-001 (10C): use named imports for Three.js tree-shaking.
+import { Group, Mesh, Color, type DataTexture } from 'three';
 import type { CreatureProps } from './CreatureBase';
 import type { MoodConfig } from '@/config/creatureConfig';
 import {
@@ -47,7 +47,7 @@ export default function PixieCreature({ speciesId, evolutionStage, mood }: Creat
 // ── Shared types for stage components ────────────────────────────
 
 interface StageProps {
-  gradientMap: THREE.DataTexture;
+  gradientMap: DataTexture;
   midColor: Color;
   emissiveColor: Color;
   moodCfg: MoodConfig;

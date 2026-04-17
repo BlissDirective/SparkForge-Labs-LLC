@@ -16,6 +16,7 @@ import {
 } from '@/lib/api-helpers';
 import { AdminCancelSubscriptionSchema } from '@/lib/validations';
 import { getStripe } from '@/lib/stripe';
+import { logSubscriptionEvent } from '@/lib/subscription-events';
 
 export const runtime = 'nodejs';
 
@@ -69,11 +70,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Log to subscription_events for audit trail
-    await supabase.from('subscription_events').insert({
-      parent_id: parentId,
-      stripe_event_id: `admin_cancel_${Date.now()}_${parentId}`,
-      event_type: 'admin.subscription.cancel',
+    // Audit log (DB-CRIT-001 4C: dual-write via centralized helper)
+    await logSubscriptionEvent(supabase, {
+      stripeEventId: `admin_cancel_${Date.now()}_${parentId}`,
+      eventType: 'admin.subscription.cancel',
+      parentId,
       data: {
         admin_id: auth.user.id,
         admin_email: auth.user.email,

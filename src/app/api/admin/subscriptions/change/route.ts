@@ -17,6 +17,7 @@ import {
 import { AdminChangeSubscriptionSchema } from '@/lib/validations';
 import { getStripe } from '@/lib/stripe';
 import { STRIPE_PRICES } from '@/lib/tier-config';
+import { logSubscriptionEvent } from '@/lib/subscription-events';
 
 export const runtime = 'nodejs';
 
@@ -95,11 +96,11 @@ export async function POST(req: NextRequest) {
       });
     }
 
-    // Audit log
-    await supabase.from('subscription_events').insert({
-      parent_id: parentId,
-      stripe_event_id: `admin_change_${Date.now()}_${parentId}`,
-      event_type: 'admin.subscription.change',
+    // Audit log (DB-CRIT-001 4C: dual-write via centralized helper)
+    await logSubscriptionEvent(supabase, {
+      stripeEventId: `admin_change_${Date.now()}_${parentId}`,
+      eventType: 'admin.subscription.change',
+      parentId,
       data: {
         admin_id: auth.user.id,
         admin_email: auth.user.email,

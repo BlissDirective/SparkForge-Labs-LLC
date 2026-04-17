@@ -51,6 +51,42 @@ Open **SQL Editor** in the Supabase dashboard and run these files **one at a tim
 | 12 | **`sql/schema-stage8-patch-admin-trials.sql`** (new) | **Gap 1+2: `stripe_subscription_id`, `trial_ends_at`, `subscription_period_end`** |
 | 13 | **`sql/schema-stage8-patch-children-archive.sql`** (new) | **Gap 3: `children.deactivated_at` for soft-archive on downgrade** |
 | 14 | `sql/stage9-seed-content.sql` | Seed agent-generated content samples |
+| 15 | **`sql/008_subscription_events_processed.sql`** (Phase 1 audit) | **PAY-CRIT-001: adds `processed` + `processed_at` on `subscription_events` for webhook replay protection. Backfills existing rows as processed.** |
+| 16 | **`sql/009_subscription_events_split.sql`** (Phase 1 audit) | **DB-CRIT-001: creates admin-only `subscription_events_detail` for raw Stripe payload; migrates and drops `data` from metadata table; adds parent SELECT policy. MUST run after 008.** |
+| 17 | **`sql/010_rls_belt_and_suspenders.sql`** (Phase 1 audit) | **DB-CRIT-002: defensive re-assertion of RLS on all 12 protected tables. Idempotent. Emits warnings on any unprotected `public` table.** |
+
+### Verify Phase 1 audit migrations (after running 008–010)
+
+```sql
+-- 008: processed flag exists on subscription_events
+SELECT column_name FROM information_schema.columns
+ WHERE table_name = 'subscription_events' AND column_name IN ('processed', 'processed_at');
+-- Expect 2 rows.
+
+-- 009: subscription_events_detail table exists + data column gone from metadata
+SELECT table_name FROM information_schema.tables
+ WHERE table_schema = 'public' AND table_name = 'subscription_events_detail';
+-- Expect 1 row.
+
+SELECT column_name FROM information_schema.columns
+ WHERE table_name = 'subscription_events' AND column_name = 'data';
+-- Expect 0 rows (column dropped).
+
+-- 010: every public table has RLS enabled
+SELECT tablename FROM pg_tables
+ WHERE schemaname = 'public' AND rowsecurity = false;
+-- Expect 0 rows. If any, run `sql/verify_rls.sql` for details.
+```
+
+A separate verification script `sql/verify_rls.sql` is also available — not a migration, but a hard gate used by CI. Run it from your machine with:
+
+```bash
+psql "$SUPABASE_DB_URL" -f sql/verify_rls.sql
+# or
+supabase db execute -f sql/verify_rls.sql
+```
+
+It raises an exception (non-zero exit) if any `public` table lacks RLS or has no policies.
 
 > The two **bold NEW** files are included in this branch. Their full SQL is provided in [Appendix A](#appendix-a--sql-code-blocks) for copy-paste without needing to clone the repo.
 

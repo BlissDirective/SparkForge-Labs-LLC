@@ -9,8 +9,8 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { Group, Mesh, Color } from 'three';
+// PERF-CRIT-001 (10C): use named imports for Three.js tree-shaking.
+import { Group, Mesh, Color, type MeshStandardMaterial } from 'three';
 import type { CreatureProps } from '../creatures/CreatureBase';
 import type { MoodConfig } from '@/config/creatureConfig';
 import {
@@ -39,7 +39,7 @@ function SteamPuff({ position }: { position: [number, number, number] }) {
     const t = state.clock.elapsedTime + phaseRef.current;
     const cycle = ((t * 0.4) % 1); // 0..1 repeating
     meshRef.current.scale.setScalar(0.02 + cycle * 0.12);
-    (meshRef.current.material as THREE.MeshStandardMaterial).opacity = 0.35 * (1 - cycle);
+    (meshRef.current.material as MeshStandardMaterial).opacity = 0.35 * (1 - cycle);
   });
 
   return (
@@ -244,7 +244,7 @@ function Dynamo({ gradientMap, emissiveColor, moodCfg }: StageProps) {
     }
     // Chest compartment pulses
     if (chestRef.current) {
-      (chestRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (chestRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.6 + Math.sin(t * 2.5) * 0.4;
     }
   });
@@ -345,7 +345,7 @@ function Fabricator({ gradientMap, emissiveColor, moodCfg }: StageProps) {
     if (arm4Ref.current) arm4Ref.current.rotation.z = 0.3 - Math.sin(t * 2.0 + 2) * 0.2;
     // Welding visor glow
     if (visorRef.current) {
-      (visorRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (visorRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.8 + Math.sin(t * 3) * 0.4;
     }
   });
@@ -428,7 +428,7 @@ function Archimedes({ gradientMap, emissiveColor, moodCfg }: StageProps) {
     const t = state.clock.elapsedTime;
     // Monocle lens glow
     if (monocleRef.current) {
-      (monocleRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (monocleRef.current.material as MeshStandardMaterial).emissiveIntensity =
         1.0 + Math.sin(t * 2) * 0.4;
     }
     // Gear satellites orbit
@@ -452,7 +452,7 @@ function Archimedes({ gradientMap, emissiveColor, moodCfg }: StageProps) {
     }
     // Blueprint flicker
     if (blueprintRef.current) {
-      (blueprintRef.current.material as THREE.MeshStandardMaterial).opacity =
+      (blueprintRef.current.material as MeshStandardMaterial).opacity =
         0.25 + Math.sin(t * 4) * 0.1;
     }
   });
