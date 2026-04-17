@@ -18,6 +18,7 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useDisposable } from '@/hooks/useDisposable';
 import {
   BoxGeometry,
   CatmullRomCurve3,
@@ -345,8 +346,9 @@ function VentilationPanels({
     []
   );
 
-  // Perforated circle geometry: small cylinder representing each circular hole rim
-  const perforationGeo = useMemo(
+  // Perforated circle geometry: small cylinder representing each circular hole rim.
+  // PERF-CRIT-002 (11C): useDisposable auto-frees on unmount.
+  const perforationGeo = useDisposable(
     () => new CylinderGeometry(0.004, 0.004, 0.005, 8, 1),
     []
   );
@@ -419,17 +421,19 @@ function StructuralRibs({
     return result;
   }, [count]);
 
-  // Each rib is a torus segment (partial arc in the Y plane)
-  const ribGeo = useMemo(() => {
-    const geo = new TorusGeometry(
-      COCKPIT_RADIUS - 0.02, // major radius matches cockpit shell
-      0.02,                   // tube radius — thin structural rib
-      6,                      // radial segments
-      segments,               // tubular segments
-      Math.PI * 0.55          // partial arc covering cockpit height
-    );
-    return geo;
-  }, [segments]);
+  // Each rib is a torus segment (partial arc in the Y plane).
+  // PERF-CRIT-002 (11C): useDisposable auto-frees on unmount + segments change.
+  const ribGeo = useDisposable(
+    () =>
+      new TorusGeometry(
+        COCKPIT_RADIUS - 0.02, // major radius matches cockpit shell
+        0.02,                   // tube radius — thin structural rib
+        6,                      // radial segments
+        segments,               // tubular segments
+        Math.PI * 0.55          // partial arc covering cockpit height
+      ),
+    [segments],
+  );
 
   // Phase 3 audit fix (Task 4A, §9.1/§10.7): 12 ribs → 1 InstancedMesh.
   // Identical geometry + material with per-instance position + rotation.
@@ -620,7 +624,8 @@ function LEDIndicatorStrips({
     return positions.slice(0, count);
   }, [count, ribAngles]);
 
-  const ledGeo = useMemo(() => new BoxGeometry(0.012, 0.006, 0.006), []);
+  // PERF-CRIT-002 (11C): useDisposable auto-frees on unmount.
+  const ledGeo = useDisposable(() => new BoxGeometry(0.012, 0.006, 0.006), []);
 
   // Dormant emissive level from ACCENT_LINES token (0.15)
   const ledMaterial = useMemo(
@@ -743,8 +748,9 @@ function WarningSigns({
   // One instanced mesh per plane type (background vs border), 3 instances each.
   // Saves 4 draw calls. Zero visual change — per-instance position/rotation
   // reproduces the original <group position> / <group rotation> transforms.
-  const bgGeo = useMemo(() => new PlaneGeometry(0.12, 0.04), []);
-  const borderGeo = useMemo(() => new PlaneGeometry(0.13, 0.05), []);
+  // PERF-CRIT-002 (11C): useDisposable auto-frees on unmount.
+  const bgGeo = useDisposable(() => new PlaneGeometry(0.12, 0.04), []);
+  const borderGeo = useDisposable(() => new PlaneGeometry(0.13, 0.05), []);
 
   // Write instance matrices as soon as each InstancedMesh ref binds
   const setBgRef = (node: InstancedMesh | null) => {

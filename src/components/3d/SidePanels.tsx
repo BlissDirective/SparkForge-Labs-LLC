@@ -13,6 +13,7 @@
 
 import React, { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useDisposable } from '@/hooks/useDisposable';
 import { Text, RoundedBox } from '@react-three/drei';
 import {
   BufferGeometry,
@@ -356,8 +357,9 @@ function RadarPanel({
     document.body.style.cursor = 'default';
   }, []);
 
-  // Radar sweep geometry (line from center outward)
-  const _sweepGeom = useMemo(() => {
+  // Radar sweep geometry (line from center outward).
+  // PERF-CRIT-002 (11C): useDisposable auto-frees on unmount.
+  const _sweepGeom = useDisposable(() => {
     const points = [new Vector3(0, 0, 0), new Vector3(0.95, 0, 0)];
     return new BufferGeometry().setFromPoints(points);
   }, []);
@@ -371,22 +373,20 @@ function RadarPanel({
   // Intensity factor
   const intensity = dimmed ? 0.15 : 1.0;
 
-  // Shared blip geometry + material (Critical Fix #1: avoid per-render material recreation)
-  const blipGeo = useMemo(() => new SphereGeometry(0.025, 64, 64), []);
-  const blipMat = useMemo(() => new MeshStandardMaterial({
-    color: labColor,
-    emissive: labColor,
-    transparent: true,
-    opacity: 1.0,
-  }), [labColor]);
-
-  // Dispose shared blip geometry/material on unmount or dependency change
-  useEffect(() => {
-    return () => {
-      blipGeo.dispose();
-      blipMat.dispose();
-    };
-  }, [blipGeo, blipMat]);
+  // Shared blip geometry + material (Critical Fix #1: avoid per-render material recreation).
+  // PERF-CRIT-002 (11C): useDisposable replaces the prior useMemo + explicit
+  // useEffect cleanup with a single tracked allocation.
+  const blipGeo = useDisposable(() => new SphereGeometry(0.025, 64, 64), []);
+  const blipMat = useDisposable(
+    () =>
+      new MeshStandardMaterial({
+        color: labColor,
+        emissive: labColor,
+        transparent: true,
+        opacity: 1.0,
+      }),
+    [labColor],
+  );
 
   useFrame(({ clock }, delta) => {
     const t = clock.elapsedTime;

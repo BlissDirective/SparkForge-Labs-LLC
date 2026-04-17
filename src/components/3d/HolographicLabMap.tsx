@@ -16,6 +16,7 @@
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { useDisposable } from '@/hooks/useDisposable';
 import { Float, Text } from '@react-three/drei';
 import {
   CHROME_BORDER,
@@ -145,7 +146,10 @@ function ConnectionBeam({
   // Driven in useFrame below; NodeMaterial swap can read these directly under WebGPU.
   const energyUniforms = useMemo(() => getEnergyFieldUniforms(), []);
 
-  const { geometry, material } = useMemo(() => {
+  // PERF-CRIT-002 (11C): useDisposable replaces useMemo + explicit cleanup.
+  // Both the TubeGeometry and MeshBasicMaterial are auto-disposed on
+  // unmount and whenever start/end/color change.
+  const { geometry, material } = useDisposable(() => {
     const curve = new CatmullRomCurve3([
       new Vector3(...start),
       new Vector3(
@@ -165,14 +169,6 @@ function ConnectionBeam({
     });
     return { geometry: geo, material: mat };
   }, [start, end, color]);
-
-  // Critical Fix #2: Dispose geometry + material on unmount to prevent VRAM leak
-  useEffect(() => {
-    return () => {
-      geometry.dispose();
-      material.dispose();
-    };
-  }, [geometry, material]);
 
   useFrame(() => {
     if (material) {
@@ -280,7 +276,9 @@ function GridIntersectionBoxes({
 }) {
   const meshRef = useRef<InstancedMesh>(null);
 
-  const { geometry, material, count } = useMemo(() => {
+  // PERF-CRIT-002 (11C): useDisposable replaces useMemo so the floor-grid
+  // BoxGeometry + MeshStandardMaterial are freed on unmount + prop change.
+  const { geometry, material, count } = useDisposable(() => {
     const boxGeo = new BoxGeometry(0.06, 0.04, 0.06);
     const boxMat = new MeshStandardMaterial({
       color: new Color(color),
