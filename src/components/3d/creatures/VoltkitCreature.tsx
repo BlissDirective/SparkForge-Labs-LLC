@@ -9,8 +9,8 @@
 
 import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
-import { Group, Mesh, Color } from 'three';
+// PERF-CRIT-001 (10C): use named imports for Three.js tree-shaking.
+import { Group, Mesh, Color, type MeshStandardMaterial, type MeshToonMaterial } from 'three';
 import type { CreatureProps } from '../creatures/CreatureBase';
 import type { MoodConfig } from '@/config/creatureConfig';
 import {
@@ -38,7 +38,7 @@ function SparkCell({ gradientMap, emissiveColor, moodCfg }: StageProps) {
     const t = state.clock.elapsedTime;
     if (shellRef.current) {
       shellRef.current.rotation.y = t * 0.4;
-      const mat = shellRef.current.material as THREE.MeshToonMaterial;
+      const mat = shellRef.current.material as MeshToonMaterial;
       mat.emissiveIntensity = (0.4 + Math.sin(t * 2.5) * 0.3) * moodCfg.intensity;
     }
     if (sparksRef.current) {
@@ -226,11 +226,11 @@ function Ampere({ gradientMap, emissiveColor, moodCfg }: StageProps) {
     // Crystal shoulders pulse emissive with sin(time * 3)
     const pulse = Math.sin(t * 3) * 0.5 + 0.5;
     if (crystalLeftRef.current) {
-      (crystalLeftRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (crystalLeftRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.5 + pulse * 1.5;
     }
     if (crystalRightRef.current) {
-      (crystalRightRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (crystalRightRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.5 + pulse * 1.5;
     }
   });
@@ -300,12 +300,12 @@ function Gigawatt({ gradientMap, emissiveColor, moodCfg }: StageProps) {
     // Fins trail with slight delay animation
     if (leftFinRef.current) {
       leftFinRef.current.rotation.z = -0.8 + Math.sin(t * 1.5) * 0.15;
-      (leftFinRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (leftFinRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.8 + Math.sin(t * 3) * 0.5;
     }
     if (rightFinRef.current) {
       rightFinRef.current.rotation.z = 0.8 - Math.sin(t * 1.5 + 0.4) * 0.15;
-      (rightFinRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity =
+      (rightFinRef.current.material as MeshStandardMaterial).emissiveIntensity =
         0.8 + Math.sin(t * 3 + 0.4) * 0.5;
     }
   });
@@ -388,7 +388,7 @@ function Exaflare({ gradientMap, emissiveColor, moodCfg }: StageProps) {
       crownRef.current.rotation.y = t * 0.3;
       crownRef.current.children.forEach((crystal, i) => {
         if ((crystal as Mesh).material) {
-          ((crystal as Mesh).material as THREE.MeshStandardMaterial).emissiveIntensity =
+          ((crystal as Mesh).material as MeshStandardMaterial).emissiveIntensity =
             1.0 + Math.sin(t * 3 + i * 1.25) * 0.8;
         }
       });
