@@ -512,11 +512,35 @@
 ::-webkit-scrollbar-thumb:hover { background: rgba(0, 187, 255, 0.4); }
 
 /* ═══ Focus Visible (Accessibility) ═══
-   Only shows focus outlines for keyboard navigation,
-   not mouse clicks. Uses lab color for theming. */
+   UX-CRIT-001 (9C, Phase 1 Task 13): Double-indicator focus ring that
+   survives Tailwind's `focus:outline-none` utility. Many interactive
+   components use `outline-none + border-color change` for a subtle
+   focus treatment — the border change alone fails WCAG 2.4.7 AA in
+   some themes. The box-shadow below is NOT suppressed by `outline-none`
+   so every keyboard-focused element gets a visible ring regardless of
+   component-level overrides.
+
+   Only shows focus outlines for keyboard navigation (not mouse clicks).
+   CSS variables --focus-ring-color and --focus-ring-thickness can be
+   overridden by a parent [data-focus-ring="on"] wrapper (see
+   src/components/shared/FocusRing.tsx). */
 *:focus-visible {
-  outline: 3px solid var(--lab-color, #00BBFF);
+  outline: var(--focus-ring-thickness, 3px) solid
+    var(--focus-ring-color, var(--lab-color, #00BBFF));
   outline-offset: 2px;
+  box-shadow:
+    0 0 0 4px
+      color-mix(
+        in srgb,
+        var(--focus-ring-color, var(--lab-color, #00BBFF)) 30%,
+        transparent
+      ),
+    0 0 12px 2px
+      color-mix(
+        in srgb,
+        var(--focus-ring-color, var(--lab-color, #00BBFF)) 40%,
+        transparent
+      );
   border-radius: 4px;
 }
 
