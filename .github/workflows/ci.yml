@@ -70,8 +70,8 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: TypeScript check (non-blocking — pre-existing baseUrl deprecation + test file issue)
-        run: npx tsc --noEmit || echo "::warning::TypeScript reported errors — see log"
+      - name: TypeScript check
+        run: npx tsc --noEmit
 
       - name: Unit tests
         run: npx vitest run
