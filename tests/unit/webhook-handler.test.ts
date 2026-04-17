@@ -256,7 +256,9 @@ describe('webhook handler — checkout.session.completed', () => {
     // 1. Event audit row upserted
     const upserts = calls.filter((c) => c.op === 'upsert' && c.table === 'subscription_events');
     expect(upserts).toHaveLength(1);
-    const auditEntry = upserts[0] as { data: { stripe_event_id: string; event_type: string } };
+    const auditEntry = upserts[0] as unknown as {
+      data: { stripe_event_id: string; event_type: string };
+    };
     expect(auditEntry.data.stripe_event_id).toBe('evt_checkout_123');
     expect(auditEntry.data.event_type).toBe('checkout.session.completed');
 
