@@ -30,6 +30,7 @@ import { apiSuccess, apiError } from '@/lib/api-helpers';
 import { createAdminClient } from '@/lib/supabase/server';
 import { sendEmail, isEmailConfigured } from '@/lib/email';
 import { renderTrialReminder } from '@/lib/email-templates/trial-reminder';
+import { logSubscriptionEvent } from '@/lib/subscription-events';
 import type { SubscriptionTier } from '@/lib/tier-config';
 
 export const runtime = 'nodejs';
@@ -212,11 +213,11 @@ export async function GET(req: NextRequest) {
       continue;
     }
 
-    // Audit log for dedup + history
-    await supabase.from('subscription_events').insert({
-      stripe_event_id: auditEventId,
-      event_type: 'trial.reminder.sent',
-      parent_id: row.id,
+    // Audit log for dedup + history (DB-CRIT-001 4C: dual-write helper)
+    await logSubscriptionEvent(supabase, {
+      stripeEventId: auditEventId,
+      eventType: 'trial.reminder.sent',
+      parentId: row.id,
       data: {
         window,
         tier: row.subscription_tier,

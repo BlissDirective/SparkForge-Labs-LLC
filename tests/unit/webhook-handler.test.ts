@@ -50,7 +50,15 @@ type Call =
   | { table: string; op: 'insert'; data: Record<string, unknown> }
   | { table: string; op: 'update'; data: Record<string, unknown>; filter?: { col: string; val: unknown } };
 
-function createMockSupabase() {
+interface MockSupabaseOpts {
+  // PAY-CRIT-001 (6B): Override the processed flag returned from
+  // SELECT processed FROM subscription_events. Default: false (event is
+  // unprocessed → webhook runs business logic). Set true to simulate a
+  // replay → webhook should short-circuit.
+  alreadyProcessed?: boolean;
+}
+
+function createMockSupabase(opts: MockSupabaseOpts = {}) {
   const calls: Call[] = [];
   const client = {
     from(table: string) {
@@ -70,6 +78,27 @@ function createMockSupabase() {
             eq(col: string, val: unknown) {
               (entry as { filter?: { col: string; val: unknown } }).filter = { col, val };
               return Promise.resolve({ data: null, error: null });
+            },
+          };
+        },
+        // PAY-CRIT-001 (6B): The webhook calls
+        //   supabase.from('subscription_events')
+        //     .select('processed')
+        //     .eq('stripe_event_id', event.id)
+        //     .single()
+        // for the idempotency guard. Mock returns a processed=false row by
+        // default so the handler proceeds to business logic.
+        select(_cols?: string) {
+          return {
+            eq(_col: string, _val: unknown) {
+              return {
+                single() {
+                  return Promise.resolve({
+                    data: { processed: opts.alreadyProcessed ?? false },
+                    error: null,
+                  });
+                },
+              };
             },
           };
         },
@@ -246,11 +275,23 @@ describe('webhook handler — checkout.session.completed', () => {
     expect(update.data.subscription_period_end).toBe(new Date(1802592000 * 1000).toISOString());
     expect(update.filter).toEqual({ col: 'id', val: 'parent-uuid-123' });
 
-    // 3. subscription_events audit row back-filled with parent_id
-    const auditBackfills = calls.filter(
-      (c) => c.op === 'update' && c.table === 'subscription_events'
+    // 3. subscription_events audit row back-filled with parent_id.
+    //    PAY-CRIT-001 (6B): A second update sets processed=true at the end
+    //    of the handler. Filter to the parent_id backfill specifically.
+    const parentIdBackfills = calls.filter(
+      (c) =>
+        c.op === 'update' &&
+        c.table === 'subscription_events' &&
+        'parent_id' in (c as { data: Record<string, unknown> }).data,
     );
-    expect(auditBackfills).toHaveLength(1);
+    expect(parentIdBackfills).toHaveLength(1);
+    const processedMarks = calls.filter(
+      (c) =>
+        c.op === 'update' &&
+        c.table === 'subscription_events' &&
+        'processed' in (c as { data: Record<string, unknown> }).data,
+    );
+    expect(processedMarks).toHaveLength(1);
   });
 
   it('defaults tier to plus when metadata.tier is missing', async () => {
@@ -509,5 +550,67 @@ describe('webhook handler — audit + idempotency', () => {
     expect(asParents(calls, 'update')).toHaveLength(0);
     // But audit row still upserted
     expect(calls.filter((c) => c.table === 'subscription_events' && c.op === 'upsert')).toHaveLength(1);
+  });
+
+  // PAY-CRIT-001 (6B): Idempotency guard short-circuits replays.
+  it('short-circuits when event is already processed (replay)', async () => {
+    const event = {
+      id: 'evt_replay',
+      type: 'invoice.payment_failed',
+      data: { object: { customer: 'cus_replay' } },
+    };
+    const stripe = createMockStripe({ event });
+    mockGetStripe.mockReturnValue(stripe as unknown as Stripe);
+    const { client, calls } = createMockSupabase({ alreadyProcessed: true });
+    mockCreateAdmin.mockReturnValue(client as unknown as ReturnType<typeof createAdminClient>);
+
+    const res = await POST(makeRequest(JSON.stringify(event), { 'stripe-signature': 'ok' }));
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as { received: boolean; replay?: boolean; skipped?: boolean };
+    expect(body.received).toBe(true);
+    expect(body.replay).toBe(true);
+    expect(body.skipped).toBe(true);
+
+    // Business logic must NOT run on replay
+    expect(asParents(calls, 'update')).toHaveLength(0);
+    // No processed=true write either (already processed)
+    const processedMarks = calls.filter(
+      (c) =>
+        c.op === 'update' &&
+        c.table === 'subscription_events' &&
+        'processed' in (c as { data: Record<string, unknown> }).data,
+    );
+    expect(processedMarks).toHaveLength(0);
+  });
+
+  // DB-CRIT-001 (4C): Dual-write splits sensitive payload to detail table.
+  it('writes raw payload to subscription_events_detail (admin-only)', async () => {
+    const event = {
+      id: 'evt_detail_test',
+      type: 'invoice.payment_failed',
+      data: { object: { customer: 'cus_detail', secret_field: 'never_expose_to_parents' } },
+    };
+    const stripe = createMockStripe({ event });
+    mockGetStripe.mockReturnValue(stripe as unknown as Stripe);
+    const { client, calls } = createMockSupabase();
+    mockCreateAdmin.mockReturnValue(client as unknown as ReturnType<typeof createAdminClient>);
+
+    await POST(makeRequest(JSON.stringify(event), { 'stripe-signature': 'ok' }));
+
+    // Detail table receives the raw payload
+    const detailUpsert = calls.find(
+      (c) => c.table === 'subscription_events_detail' && c.op === 'upsert',
+    ) as { data: { stripe_event_id: string; data: Record<string, unknown> } } | undefined;
+    expect(detailUpsert).toBeDefined();
+    expect(detailUpsert!.data.stripe_event_id).toBe('evt_detail_test');
+    expect(detailUpsert!.data.data).toMatchObject({ secret_field: 'never_expose_to_parents' });
+
+    // Metadata table does NOT carry the raw payload (no `data` key)
+    const metaUpsert = calls.find(
+      (c) => c.table === 'subscription_events' && c.op === 'upsert',
+    ) as { data: Record<string, unknown> } | undefined;
+    expect(metaUpsert).toBeDefined();
+    expect('data' in metaUpsert!.data).toBe(false);
+    expect(metaUpsert!.data.event_type).toBe('invoice.payment_failed');
   });
 });

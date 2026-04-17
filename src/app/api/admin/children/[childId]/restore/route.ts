@@ -18,6 +18,7 @@ import { NextRequest } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError, requireAdmin, parseBody } from '@/lib/api-helpers';
 import { TIER_CONFIG, type SubscriptionTier } from '@/lib/tier-config';
+import { logSubscriptionEvent } from '@/lib/subscription-events';
 import { z } from 'zod';
 
 export const runtime = 'nodejs';
@@ -118,10 +119,11 @@ export async function POST(
   // We use subscription_events as the audit log since it already
   // captures admin actions for the same parent. event_type is
   // namespaced so filtering in the admin dashboard is easy.
-  await supabase.from('subscription_events').insert({
-    stripe_event_id: `admin_restore_${childId}_${Date.now()}`,
-    event_type: 'admin.child.restored',
-    parent_id: parentRow.id,
+  // DB-CRIT-001 (4C): dual-write via centralized helper.
+  await logSubscriptionEvent(supabase, {
+    stripeEventId: `admin_restore_${childId}_${Date.now()}`,
+    eventType: 'admin.child.restored',
+    parentId: parentRow.id,
     data: {
       child_id: childId,
       child_name: archivedChild.display_name,
