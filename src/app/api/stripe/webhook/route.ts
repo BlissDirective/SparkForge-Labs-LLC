@@ -5,6 +5,9 @@
 // v2: Uses createAdminClient for webhook (no user auth)
 // v3 (Gap 1): Persists stripe_subscription_id for programmatic control
 // v3 (Gap 2): Persists trial_ends_at + subscription_period_end
+// PAY-CRIT-001 (6B): Idempotency guard via subscription_events.processed
+//   flag. Replayed events short-circuit before re-running business logic.
+//   Requires migration sql/008_subscription_events_processed.sql.
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
@@ -98,7 +101,9 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminClient();
 
-  // Log all events to subscription_events table (upsert to handle replays)
+  // Log all events to subscription_events table (upsert to handle replays).
+  // ignoreDuplicates: true means the existing row's `processed` flag is
+  // preserved on conflict — critical for the idempotency check below.
   await supabase.from('subscription_events').upsert(
     {
       stripe_event_id: event.id,
@@ -108,6 +113,20 @@ export async function POST(req: NextRequest) {
     },
     { onConflict: 'stripe_event_id', ignoreDuplicates: true }
   );
+
+  // PAY-CRIT-001 (6B): Idempotency guard. Stripe delivers webhooks at
+  // least once. Without this check, a replayed `checkout.session.completed`
+  // could re-upgrade a parent who has since downgraded. Stripe expects
+  // 2xx for replays — return 200 instead of erroring.
+  const { data: existingEvent } = await supabase
+    .from('subscription_events')
+    .select('processed')
+    .eq('stripe_event_id', event.id)
+    .single();
+
+  if (existingEvent?.processed === true) {
+    return NextResponse.json({ received: true, replay: true, skipped: true });
+  }
 
   switch (event.type) {
     case 'checkout.session.completed': {
@@ -214,6 +233,16 @@ export async function POST(req: NextRequest) {
       break;
     }
   }
+
+  // PAY-CRIT-001 (6B): Mark processed AFTER business logic completes.
+  // If any handler throws above, this UPDATE is skipped and the event
+  // remains processable on the next delivery attempt. Unknown event types
+  // are also marked processed to prevent indefinite Stripe retries on
+  // events we have no handler for.
+  await supabase
+    .from('subscription_events')
+    .update({ processed: true, processed_at: new Date().toISOString() })
+    .eq('stripe_event_id', event.id);
 
   return NextResponse.json({ received: true });
 }
