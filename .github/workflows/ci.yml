@@ -73,6 +73,9 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
+      - name: API auth audit (AUTH-HIGH-002 defense-in-depth)
+        run: bash scripts/audit-api-auth.sh
+
       - name: Unit tests
         run: npx vitest run
 

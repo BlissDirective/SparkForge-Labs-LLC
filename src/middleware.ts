@@ -1,6 +1,81 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// ────────────────────────────────────────────────────────────────────
+// AUTH-HIGH-002 (2B): Explicit public API allowlist.
+//
+// Previously, the middleware let every `/api/*` path through without any
+// auth check ("defense-in-depth gap"). The blanket bypass meant any new
+// API route that forgot to call `requireAuth()` was silently exposed.
+//
+// This allowlist inverts the default: `/api/*` requires a Supabase
+// session unless the route is explicitly listed as public or as a
+// cron-bearer-token route. Unauthed calls to other `/api/*` paths now
+// receive a 401 JSON response instead of reaching the handler.
+//
+// If you add a new public API route (e.g. a health check) you MUST add
+// it to one of these lists. A CI script (`scripts/audit-api-auth.sh`)
+// enforces that every route file either:
+//   1. Is listed here (public or cron), OR
+//   2. Contains `requireAuth` / `requireAdmin` in the handler, OR
+//   3. Verifies a webhook signature (Stripe `constructEvent`).
+// ────────────────────────────────────────────────────────────────────
+
+/** Fully public API endpoints (no auth, no bearer token). */
+const PUBLIC_API_PATHS: ReadonlySet<string> = new Set([
+  '/api/auth/callback',
+  '/api/auth/login',
+  '/api/auth/logout',
+  '/api/auth/signup',
+  '/api/auth/demo',
+  '/api/health',
+  '/api/stripe/webhook',
+]);
+
+/**
+ * Routes authenticated by a shared `CRON_SECRET` bearer token instead
+ * of a Supabase session. Middleware lets them through; the route
+ * handler validates the token. Add here when onboarding a new cron job.
+ */
+const CRON_API_PATHS: ReadonlySet<string> = new Set([
+  '/api/cron/trial-reminders',
+  '/api/agent/schedule',
+  '/api/agent/trending',
+]);
+
+function isPublicAPI(pathname: string): boolean {
+  return PUBLIC_API_PATHS.has(pathname) || CRON_API_PATHS.has(pathname);
+}
+
+// Frontend pages that render without a session.
+// S3-CRIT-001: /reset-password is public.
+const PUBLIC_PAGE_PATHS: ReadonlyArray<string> = [
+  '/', '/login', '/signup', '/reset-password',
+  '/pricing', '/about', '/privacy', '/terms',
+];
+
+function classify(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  return {
+    pathname,
+    isAPI: pathname.startsWith('/api'),
+    isPublicPage: PUBLIC_PAGE_PATHS.includes(pathname),
+    isPublicAPI: isPublicAPI(pathname),
+    isStatic: pathname.startsWith('/_next'),
+    isAsset: /\.(ico|png|jpg|svg|woff2?)$/.test(pathname),
+  };
+}
+
+function unauthedResponse(request: NextRequest, isAPI: boolean) {
+  if (isAPI) {
+    return NextResponse.json(
+      { error: 'AUTH_REQUIRED', message: 'Authentication required' },
+      { status: 401 },
+    );
+  }
+  return NextResponse.redirect(new URL('/login', request.url));
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
 
@@ -9,13 +84,16 @@ export async function middleware(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    // Allow public paths and static assets through without auth during setup
-    const publicPaths = ['/', '/login', '/signup', '/reset-password', '/pricing', '/about', '/privacy', '/terms'];
-    const isPublic = publicPaths.some(p => request.nextUrl.pathname === p);
-    const isAPI = request.nextUrl.pathname.startsWith('/api');
-    const isStatic = request.nextUrl.pathname.startsWith('/_next');
-    const isAsset = request.nextUrl.pathname.match(/\.(ico|png|jpg|svg|woff2?)$/);
-    if (isPublic || isAPI || isStatic || isAsset) return response;
+    const c = classify(request);
+    if (c.isPublicPage || c.isPublicAPI || c.isStatic || c.isAsset) return response;
+    // During setup (missing envs) we still block unauthed access to
+    // protected API routes rather than pretending everything is fine.
+    if (c.isAPI) {
+      return NextResponse.json(
+        { error: 'SETUP_REQUIRED', message: 'Supabase is not configured.' },
+        { status: 503 },
+      );
+    }
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
@@ -41,12 +119,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
 
-  // S3-CRIT-001: Added /reset-password to public paths
-  const publicPaths = ['/', '/login', '/signup', '/reset-password', '/pricing', '/about', '/privacy', '/terms'];
-  const isPublic = publicPaths.some(p => request.nextUrl.pathname === p);
-  const isAPI = request.nextUrl.pathname.startsWith('/api');
-  const isStatic = request.nextUrl.pathname.startsWith('/_next');
-  const isAsset = request.nextUrl.pathname.match(/\.(ico|png|jpg|svg|woff2?)$/);
+  const c = classify(request);
 
   // AUTH-CRIT-002 (2B): Demo users now have real Supabase anonymous
   // sessions (user.is_anonymous === true), so the generic `!user` check
@@ -54,8 +127,13 @@ export async function middleware(request: NextRequest) {
   // previous `sparkforge-demo-active=1` cookie was trivially forgeable
   // and has been removed.
 
-  if (!user && !isPublic && !isAPI && !isStatic && !isAsset) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  if (!user) {
+    // Allow anything explicitly whitelisted.
+    if (c.isPublicPage || c.isPublicAPI || c.isStatic || c.isAsset) {
+      return response;
+    }
+    // Everything else: 401 for API, redirect for pages.
+    return unauthedResponse(request, c.isAPI);
   }
 
   return response;
