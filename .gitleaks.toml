@@ -1,0 +1,100 @@
+# ════════════════════════════════════════════════════
+# Gitleaks configuration for SparkForge
+# Final-Audit 04-15-2026 finding DEPLOY-CRIT-001 (Option B)
+# ════════════════════════════════════════════════════
+# Rules detect committed secrets. Runs in CI on every PR and push.
+# Extends Gitleaks' default ruleset with SparkForge-specific patterns
+# (Supabase service role keys, Anthropic API keys, Stripe restricted
+# and live keys, Resend tokens).
+#
+# Test locally with:
+#   gitleaks detect --config .gitleaks.toml --verbose
+# ════════════════════════════════════════════════════
+
+title = "SparkForge Gitleaks Config"
+
+# Extend the built-in ruleset. Gitleaks ships with ~170 default rules for
+# AWS, GitHub, Slack, etc. We add provider-specific rules below.
+[extend]
+useDefault = true
+
+# ─── SparkForge-specific secret patterns ───────────────────────────
+[[rules]]
+id = "supabase-service-role"
+description = "Supabase service role JWT (bypasses RLS — critical)"
+# service role JWTs are eyJ... base64 tokens. We match the PII header pattern
+# for service_role specifically: the JWT's payload contains "role":"service_role"
+regex = '''eyJ[a-zA-Z0-9_-]{10,}\.eyJ[a-zA-Z0-9_-]*?"role":\s*"service_role"[a-zA-Z0-9_-]*?\.[a-zA-Z0-9_-]+'''
+tags = ["key", "supabase", "critical"]
+
+[[rules]]
+id = "supabase-url-with-project"
+description = "Supabase project URL — safe but flags env leakage"
+regex = '''https://[a-z0-9]{20}\.supabase\.co'''
+tags = ["url", "supabase"]
+# Downgrade: project URLs are not secrets, but useful signal.
+[rules.allowlist]
+paths = [
+  '''\.env\.example$''',
+  '''SETUP_CHECKLIST\.md$''',
+  '''.*\.md$''',
+]
+
+[[rules]]
+id = "anthropic-api-key"
+description = "Anthropic API key (sk-ant-...)"
+regex = '''sk-ant-[a-zA-Z0-9_-]{32,}'''
+tags = ["key", "anthropic", "critical"]
+
+[[rules]]
+id = "stripe-live-key"
+description = "Stripe LIVE secret key (sk_live_...) — critical"
+regex = '''sk_live_[a-zA-Z0-9]{24,}'''
+tags = ["key", "stripe", "critical"]
+
+[[rules]]
+id = "stripe-restricted-key"
+description = "Stripe restricted key (rk_live_ or rk_test_)"
+regex = '''rk_(live|test)_[a-zA-Z0-9]{24,}'''
+tags = ["key", "stripe"]
+
+[[rules]]
+id = "stripe-test-secret"
+description = "Stripe test secret key (sk_test_...)"
+regex = '''sk_test_[a-zA-Z0-9]{24,}'''
+tags = ["key", "stripe", "test"]
+
+[[rules]]
+id = "stripe-webhook-secret"
+description = "Stripe webhook signing secret (whsec_...)"
+regex = '''whsec_[a-zA-Z0-9]{32,}'''
+tags = ["key", "stripe"]
+
+[[rules]]
+id = "resend-api-key"
+description = "Resend email API key (re_...)"
+regex = '''re_[A-Za-z0-9]{8,}_[A-Za-z0-9]{24,}'''
+tags = ["key", "resend"]
+
+# ─── Global allowlist ──────────────────────────────────────────────
+[allowlist]
+description = "Paths and patterns excluded from scanning"
+paths = [
+  '''node_modules''',
+  '''\.next''',
+  '''package-lock\.json$''',
+  # Test/mock fixtures may contain obviously-fake credentials
+  '''src/mocks/''',
+  '''tests/''',
+  # Archived/superseded files stay in history but shouldn't block new PRs
+  '''_SUPERSEDED/''',
+  # Gitleaks own config file — don't match our own regexes
+  '''\.gitleaks\.toml$''',
+]
+# Regex allowlist for obviously-fake fixtures.
+regexes = [
+  '''mock-[a-zA-Z-]+-token''',
+  '''placeholder-[a-zA-Z-]+-key''',
+  '''whsec_test_secret''',
+  '''sk_test_(51[A-Za-z0-9]+|4eC39HqLyjWDarjtT1zdp7dc)''', # Stripe doc examples
+]
