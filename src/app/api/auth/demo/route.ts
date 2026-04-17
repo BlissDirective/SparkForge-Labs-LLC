@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
   // the in-memory limiter is ineffective on serverless (AUTH-HIGH-003,
   // Phase 2 item). Defense in depth: Supabase dashboard also has a
   // configurable anonymous-sign-in rate limit.
-  const limited = applyRateLimit(req, 'demo-session', undefined, {
+  const limited = await applyRateLimit(req, 'demo-session', undefined, {
     maxRequests: 3,
     windowMs: 3600000,
   });

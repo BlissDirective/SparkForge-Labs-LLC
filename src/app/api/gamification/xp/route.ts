@@ -10,7 +10,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 import { calculateLevel } from '@/lib/gamification';
 
 export async function POST(req: NextRequest) {
-  const limited = applyRateLimit(req, 'gamification-xp', undefined, RATE_LIMITS.general);
+  const limited = await applyRateLimit(req, 'gamification-xp', undefined, RATE_LIMITS.general);
   if (limited) return limited;
 
   const auth = await requireAuth(req);

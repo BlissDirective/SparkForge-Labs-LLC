@@ -201,7 +201,28 @@ Admin pages are also reachable via keyboard navigation (sr-only Sidebar).
 - [ ] **Settings → Auth Tokens → Create Token** → scope: `project:releases`, `org:read` → `SENTRY_AUTH_TOKEN`
 - [ ] Record org + project slugs → `SENTRY_ORG`, `SENTRY_PROJECT`
 
-## 3.3 Resend (for trial reminder emails)
+## 3.3 Upstash Redis (rate limiting — AUTH-HIGH-003)
+
+The app rate-limits the auth, signup, demo, and AI endpoints. Without a shared backend, limits reset to zero on every serverless cold-start, so attackers can bypass them by making requests fast enough to hit fresh isolates. Upstash provides a globally-replicated Redis counter at negligible latency. **Required for production.** Local dev and CI automatically fall back to an in-memory counter.
+
+- [ ] [console.upstash.com](https://console.upstash.com) → sign up → **Redis → Create database**
+  - Name: `sparkforge-prod` (anything is fine)
+  - Primary region: closest to your Vercel deployment region
+  - Eviction: leave default
+  - Type: **Free** tier handles up to 10K requests/day — plenty for the rate-limit check volume
+- [ ] On the database page, scroll to **REST API** → copy:
+  - **UPSTASH_REDIS_REST_URL** (the HTTPS URL ending in `.upstash.io`)
+  - **UPSTASH_REDIS_REST_TOKEN** (the long bearer token)
+- [ ] Add both to Vercel → Project Settings → Environment Variables (Production + Preview + Development)
+- [ ] Redeploy; confirm the one-time fallback-warning no longer appears in production logs
+
+### Verification
+
+After deploying with Upstash configured, hit `/api/auth/demo` 4× in under 1 hour from the same IP. The 4th call should return HTTP 429. Without Upstash, on Vercel you'd see the limit only rarely trigger because each request may land on a different isolate.
+
+> You can launch without Upstash — the app still boots and logs a one-time warning — but the rate limits are effectively unenforced. Treat this as a production must-have.
+
+## 3.4 Resend (for trial reminder emails)
 
 Transactional email is used for trial-ending reminders (48h and 24h before expiry). The codebase uses Resend's REST API directly (no npm dependency) and degrades gracefully if unconfigured — the cron returns `{ skipped: true }` and the app runs normally without email.
 
@@ -257,6 +278,8 @@ Add these to **Project Settings → Environment Variables**. Paste values from t
 | `NEXT_PUBLIC_URL` | set to `https://<domain>` | No |
 | `NEXT_PUBLIC_APP_URL` | set to `https://<domain>` | No |
 | `CRON_SECRET` | generate a random 32+ char string | **Yes** |
+| `UPSTASH_REDIS_REST_URL` | 3.3 (Upstash) — required for real rate limits | No |
+| `UPSTASH_REDIS_REST_TOKEN` | 3.3 (Upstash) — required for real rate limits | **Yes** |
 
 ### Optional (feature-gated)
 

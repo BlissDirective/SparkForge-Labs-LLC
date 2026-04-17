@@ -7,7 +7,7 @@ import { apiSuccess, apiError, parseBody, applyRateLimit } from '@/lib/api-helpe
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
-  const limited = applyRateLimit(req, 'auth-login', undefined, RATE_LIMITS.auth);
+  const limited = await applyRateLimit(req, 'auth-login', undefined, RATE_LIMITS.auth);
   if (limited) return limited;
 
   const parsed = await parseBody(req, LoginSchema);

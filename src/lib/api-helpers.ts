@@ -162,16 +162,18 @@ export async function requireAdmin(
 
 // ═══ RATE LIMITING MIDDLEWARE ═══
 
-export function applyRateLimit(
+// AUTH-HIGH-003: `checkRateLimit` is now async (Upstash-backed), so
+// `applyRateLimit` is async as well. All call sites `await` it.
+export async function applyRateLimit(
   req: NextRequest,
   prefix: string,
   userId?: string,
   config: { maxRequests: number; windowMs: number } = RATE_LIMITS.general
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const ip = getClientIP(req);
   const identifier = userId || ip;
   const key = rateLimitKey(prefix, identifier);
-  const result = checkRateLimit(key, config);
+  const result = await checkRateLimit(key, config);
 
   if (!result.allowed) {
     return NextResponse.json(

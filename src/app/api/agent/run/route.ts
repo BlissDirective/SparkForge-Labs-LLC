@@ -12,7 +12,7 @@ export const runtime = 'nodejs';
 
 export async function POST(req: NextRequest) {
   // v2 [S9-WARN-001]: Rate limit expensive pipeline runs (2/hr)
-  const limited = applyRateLimit(req, 'agent-run', undefined, RATE_LIMITS.contentAgent);
+  const limited = await applyRateLimit(req, 'agent-run', undefined, RATE_LIMITS.contentAgent);
   if (limited) return limited;
 
   // v2 [ENH-9A]: Check for API key before proceeding

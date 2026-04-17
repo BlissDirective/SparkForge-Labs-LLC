@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const limited = applyRateLimit(req, 'prompt-lab', undefined, RATE_LIMITS.promptLab);
+  const limited = await applyRateLimit(req, 'prompt-lab', undefined, RATE_LIMITS.promptLab);
   if (limited) return limited;
 
   const auth = await requireAuth(req);

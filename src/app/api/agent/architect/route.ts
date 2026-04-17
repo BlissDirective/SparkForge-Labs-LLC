@@ -20,7 +20,7 @@ const ArchitectRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   // Rate limit (shares contentAgent limit — 2/hr)
-  const limited = applyRateLimit(req, 'architect-run', undefined, RATE_LIMITS.contentAgent);
+  const limited = await applyRateLimit(req, 'architect-run', undefined, RATE_LIMITS.contentAgent);
   if (limited) return limited;
 
   if (!process.env.ANTHROPIC_API_KEY) {

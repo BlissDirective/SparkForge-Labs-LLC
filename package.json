@@ -48,6 +48,8 @@
     "@tanstack/react-query-devtools": "^5.91.3",
     "@theatre/core": "^0.7.2",
     "@theatre/studio": "^0.7.2",
+    "@upstash/ratelimit": "^2.0.8",
+    "@upstash/redis": "^1.37.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "focus-trap-react": "^12.0.0",

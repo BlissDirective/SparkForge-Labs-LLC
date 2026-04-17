@@ -9,7 +9,7 @@ import { RATE_LIMITS } from '@/lib/rate-limit';
 
 export async function POST(req: NextRequest) {
   // v2 [IMP-3]: Rate limit auth endpoints
-  const limited = applyRateLimit(req, 'auth-signup', undefined, RATE_LIMITS.auth);
+  const limited = await applyRateLimit(req, 'auth-signup', undefined, RATE_LIMITS.auth);
   if (limited) return limited;
 
   const parsed = await parseBody(req, SignupSchema);

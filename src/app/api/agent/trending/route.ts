@@ -13,7 +13,7 @@ export const runtime = 'nodejs';
 
 // POST: Admin-triggered trending research
 export async function POST(req: NextRequest) {
-  const limited = applyRateLimit(req, 'trending-run', undefined, RATE_LIMITS.contentAgent);
+  const limited = await applyRateLimit(req, 'trending-run', undefined, RATE_LIMITS.contentAgent);
   if (limited) return limited;
 
   if (!process.env.ANTHROPIC_API_KEY) {
