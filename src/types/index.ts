@@ -54,6 +54,9 @@ export interface Parent {
   is_admin: boolean;
   onboarding_complete: boolean;
   coppa_consent_at: string;
+  // AUTH-HIGH-004: nullable until user clicks Supabase email-confirm link.
+  // Stamped by /api/auth/callback on first successful exchange.
+  email_verified_at?: string | null;
   created_at: string;
 }
 

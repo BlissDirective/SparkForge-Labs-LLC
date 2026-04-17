@@ -30,6 +30,11 @@
   - [ ] `Project URL` → will become `NEXT_PUBLIC_SUPABASE_URL`
   - [ ] `anon` public key → will become `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - [ ] `service_role` secret key → will become `SUPABASE_SERVICE_ROLE_KEY` (⚠️ server-only)
+- [ ] **AUTH-HIGH-004 — Enable email confirmation** (required for signup to gate login behind email verification):
+  - [ ] In Supabase dashboard → **Authentication → Providers → Email** → toggle **"Confirm email" ON**
+  - [ ] In **Authentication → URL Configuration**, set:
+    - **Site URL** = `https://<your-prod-domain>` (or `http://localhost:3000` during dev)
+    - **Redirect URLs** includes `https://<your-prod-domain>/api/auth/callback` (and your dev variant)
 
 ## 1.2 Run SQL Migrations — IN ORDER
 
@@ -54,6 +59,7 @@ Open **SQL Editor** in the Supabase dashboard and run these files **one at a tim
 | 15 | **`sql/008_subscription_events_processed.sql`** (Phase 1 audit) | **PAY-CRIT-001: adds `processed` + `processed_at` on `subscription_events` for webhook replay protection. Backfills existing rows as processed.** |
 | 16 | **`sql/009_subscription_events_split.sql`** (Phase 1 audit) | **DB-CRIT-001: creates admin-only `subscription_events_detail` for raw Stripe payload; migrates and drops `data` from metadata table; adds parent SELECT policy. MUST run after 008.** |
 | 17 | **`sql/010_rls_belt_and_suspenders.sql`** (Phase 1 audit) | **DB-CRIT-002: defensive re-assertion of RLS on all 12 protected tables. Idempotent. Emits warnings on any unprotected `public` table.** |
+| 18 | **`sql/011_parents_email_verified_at.sql`** (Phase 2 audit) | **AUTH-HIGH-004: adds nullable `parents.email_verified_at` column + partial index on unverified rows. Stamped by `/api/auth/callback`. Consumed by Stripe checkout gate and EmailVerifyBanner.** |
 
 ### Verify Phase 1 audit migrations (after running 008–010)
 

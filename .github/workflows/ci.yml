@@ -154,6 +154,7 @@ jobs:
             sql/008_subscription_events_processed.sql
             sql/009_subscription_events_split.sql
             sql/010_rls_belt_and_suspenders.sql
+            sql/011_parents_email_verified_at.sql
           )
           for f in "${files[@]}"; do
             echo "═══ applying $f ═══"

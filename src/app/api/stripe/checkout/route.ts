@@ -47,9 +47,22 @@ export async function POST(req: NextRequest) {
   const supabase = await createServerSupabase();
   const { data: parent } = await supabase
     .from('parents')
-    .select('stripe_customer_id, stripe_subscription_id, email')
+    .select('stripe_customer_id, stripe_subscription_id, email, email_verified_at')
     .eq('id', auth.user.id)
     .single();
+
+  // AUTH-HIGH-004 (4A): Gate only the act of subscribing. Free and paid
+  // features elsewhere remain accessible; we only block the Stripe
+  // checkout until the parent confirms they own the email. This
+  // prevents someone from completing a purchase with an email they
+  // don't actually control.
+  if (!parent?.email_verified_at) {
+    return apiError(
+      'Please verify your email before subscribing. Check your inbox for the confirmation link.',
+      403,
+      'EMAIL_VERIFICATION_REQUIRED',
+    );
+  }
 
   let customerId = parent?.stripe_customer_id;
 

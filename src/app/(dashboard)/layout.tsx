@@ -38,6 +38,7 @@ import { useCockpitUIStore, modeToCenterContent } from '@/stores/cockpitUIStore'
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
+import { EmailVerifyBanner } from '@/components/auth/EmailVerifyBanner';
 import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
@@ -116,6 +117,10 @@ export default function DashboardLayout({
     <AuthProvider>
     <DemoGuard>
       <DemoSessionBanner />
+      {/* AUTH-HIGH-004 (4C): Dismissible (session-scope) reminder when
+          parents.email_verified_at is null. Renders nothing for verified
+          parents, demo users, or while auth is still loading. */}
+      <EmailVerifyBanner />
       <div className="min-h-screen bg-surface-deep relative overflow-hidden">
         {/* 3D Cockpit Canvas — the ENTIRE dashboard UI */}
         <StationFrame
