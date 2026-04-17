@@ -38,6 +38,17 @@ These add schema/data needed by specific stages. Run them **after** all core fil
 |------|---------|
 | `migrate_subscription_status.sql` | Consolidates subscription_status CHECK constraint (CRIT-004). Canonical values: none, active, past_due, canceled, trialing, paused. Default: 'none'. Run if upgrading from older schema. |
 
+## Phase 1 Audit Migrations (Final-Audit_04-15-2026.md)
+
+Run **in order** after the stage-specific files above. These resolve Critical security findings.
+
+| Order | File | Audit Finding | Description |
+|-------|------|---------------|-------------|
+| 13 | `008_subscription_events_processed.sql` | PAY-CRIT-001 (6B) | Adds `processed BOOLEAN` + `processed_at TIMESTAMPTZ` to `subscription_events`. Backfills existing rows as processed. Webhook uses these for replay protection. |
+| 14 | `009_subscription_events_split.sql` | DB-CRIT-001 (4C) | Creates `subscription_events_detail` (admin-only RLS) for raw Stripe payload. Migrates existing `data` column. Drops `data` from metadata table. Adds parent SELECT policy. **Must follow 008.** |
+| 15 | `010_rls_belt_and_suspenders.sql` | DB-CRIT-002 (5C) | Defensive: re-asserts `ENABLE ROW LEVEL SECURITY` on every protected table. Idempotent — safe to re-run. Emits warnings for any unprotected public table. |
+| n/a | `verify_rls.sql` | DB-CRIT-002 (5C) | Verification script (NOT a migration). Run via psql or `supabase db execute -f sql/verify_rls.sql` to confirm RLS coverage. Throws exception if any public table lacks RLS or has no policies. Invoked by CI on every PR. |
+
 ## Archived Files (Do NOT Run)
 
 These have been merged into canonical files above. Kept for historical reference only.
