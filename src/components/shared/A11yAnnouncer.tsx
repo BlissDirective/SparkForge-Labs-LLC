@@ -11,14 +11,23 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
+import { useChildStore } from '@/stores/childStore';
 import { useUIStore } from '@/stores/uiStore';
 
 export function A11yAnnouncer() {
   const [message, setMessage] = useState('');
   const prevScoreRef = useRef<number>(0);
+  // STATE-CRIT-001 (13B): gameStore is now scoped per child. When the
+  // active child changes, re-subscribe to the newly-active child's store
+  // so score announcements follow the active profile.
+  const activeChildId = useChildStore((s) => s.activeChild?.id);
 
   // Subscribe to score changes during gameplay
   useEffect(() => {
+    // Reset the baseline on child switch so the first score event on the
+    // new child isn't reported as a `+score` diff from the previous child.
+    prevScoreRef.current = useGameStore.getState().score;
+
     const unsubScore = useGameStore.subscribe((state) => {
       if (state.score !== prevScoreRef.current && state.currentGame) {
         const diff = state.score - prevScoreRef.current;
@@ -30,7 +39,7 @@ export function A11yAnnouncer() {
     });
 
     return unsubScore;
-  }, []);
+  }, [activeChildId]);
 
   // Subscribe to celebration triggers (XP, badges, level-ups, streaks)
   useEffect(() => {
