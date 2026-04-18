@@ -85,6 +85,32 @@ SELECT tablename FROM pg_tables
 -- Expect 0 rows. If any, run `sql/verify_rls.sql` for details.
 ```
 
+### Verify Phase 2 audit migrations (after running 011–012)
+
+```sql
+-- 011: parents.email_verified_at column + unverified partial index
+SELECT column_name, data_type FROM information_schema.columns
+ WHERE table_name = 'parents' AND column_name = 'email_verified_at';
+-- Expect 1 row, type `timestamp with time zone`.
+
+SELECT indexname FROM pg_indexes
+ WHERE tablename = 'parents' AND indexname = 'idx_parents_unverified';
+-- Expect 1 row.
+
+-- 012: children daily-XP counter columns + reset trigger
+SELECT column_name, data_type FROM information_schema.columns
+ WHERE table_name = 'children' AND column_name IN ('xp_awarded_today', 'xp_reset_date')
+ ORDER BY column_name;
+-- Expect 2 rows (xp_awarded_today = integer, xp_reset_date = date).
+
+SELECT tgname FROM pg_trigger
+ WHERE tgrelid = 'children'::regclass AND tgname = 'reset_daily_xp_trigger';
+-- Expect 1 row.
+
+SELECT proname FROM pg_proc WHERE proname = 'reset_daily_xp';
+-- Expect 1 row (the trigger function).
+```
+
 A separate verification script `sql/verify_rls.sql` is also available — not a migration, but a hard gate used by CI. Run it from your machine with:
 
 ```bash
@@ -108,15 +134,17 @@ WHERE table_name = 'parents'
 ORDER BY ordinal_position;
 ```
 
-Expected columns (post Gap 1+2):
-`id, email, full_name, stripe_customer_id, subscription_tier, subscription_status, onboarding_complete, coppa_consent_at, is_admin, stripe_subscription_id, trial_ends_at, subscription_period_end, created_at, updated_at`
+Expected columns (post Gap 1+2 + Phase 2 audit 011):
+`id, email, full_name, stripe_customer_id, subscription_tier, subscription_status, onboarding_complete, coppa_consent_at, is_admin, stripe_subscription_id, trial_ends_at, subscription_period_end, email_verified_at, created_at, updated_at`
 
 ```sql
 SELECT column_name FROM information_schema.columns
-WHERE table_name = 'children' AND column_name = 'deactivated_at';
+WHERE table_name = 'children' AND column_name IN (
+  'deactivated_at', 'xp_awarded_today', 'xp_reset_date'
+) ORDER BY column_name;
 ```
 
-Must return 1 row (post Gap 3 archive migration).
+Must return 3 rows (post Gap 3 archive migration + Phase 2 audit 012 daily-XP counters).
 
 ## 1.3 Create First Admin User (recommended)
 
@@ -229,7 +257,26 @@ After deploying with Upstash configured, hit `/api/auth/demo` 4× in under 1 hou
 
 > You can launch without Upstash — the app still boots and logs a one-time warning — but the rate limits are effectively unenforced. Treat this as a production must-have.
 
-## 3.4 Resend (for trial reminder emails)
+## 3.4 CSRF Secret (AUTH-HIGH-004 / API-HIGH-004)
+
+The app mints CSRF tokens via HMAC-SHA256 for the double-submit cookie pattern (see `src/lib/csrf.ts`). This requires a secret key.
+
+- [ ] Generate a 32+ character random string:
+  ```bash
+  openssl rand -hex 32
+  # or
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+- [ ] Add to Vercel → Project Settings → Environment Variables as **`CSRF_SECRET`** (Production + Preview + Development, secret)
+- [ ] Also add to local `.env.local`
+
+### Verification
+
+After deploy, open DevTools on any page → Application → Cookies. You should see a `sparkforge-csrf` cookie (`SameSite=Lax`, `Secure` in prod, NOT httpOnly — JS must read it). A `curl -X POST` without the cookie + header to any mutating endpoint should return `403 { "code": "CSRF_FAILED" }`.
+
+> If unset, `CSRF_SECRET` falls back to `SUPABASE_SERVICE_ROLE_KEY` for token HMACs. Usable but not ideal — rotating the service key would invalidate every session's CSRF cookie. Always set `CSRF_SECRET` explicitly in production.
+
+## 3.5 Resend (for trial reminder emails)
 
 Transactional email is used for trial-ending reminders (48h and 24h before expiry). The codebase uses Resend's REST API directly (no npm dependency) and degrades gracefully if unconfigured — the cron returns `{ skipped: true }` and the app runs normally without email.
 
