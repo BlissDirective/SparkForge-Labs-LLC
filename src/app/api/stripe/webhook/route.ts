@@ -90,10 +90,18 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
+    // PAY-HIGH-001 (B): Explicit 60s replay-tolerance window.
+    // Stripe defaults to 5 minutes, which combined with the
+    // `processed` idempotency column still leaves a 5-minute window
+    // where a captured payload could be resubmitted before the DB
+    // short-circuit fires. 60s matches Stripe's recommendation for
+    // high-security webhooks and is well within the handful of
+    // seconds that legitimate Stripe retries take.
     event = stripe.webhooks.constructEvent(
       body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET,
+      60,
     );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
