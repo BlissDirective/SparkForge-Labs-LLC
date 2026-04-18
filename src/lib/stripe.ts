@@ -13,3 +13,26 @@ export function getStripe(): Stripe | null {
   if (!key) return null;
   return new Stripe(key, { apiVersion: STRIPE_API_VERSION });
 }
+
+/**
+ * Normalize the many shapes Stripe uses for a `customer` reference into
+ * a plain customer-id string.
+ *
+ * PAY-HIGH-002 (B): Previous call sites did `customer as string`, which
+ * silently produced `'[object Object]'` if a handler was ever called
+ * with an expanded Customer object, or `'null'` if the customer was
+ * deleted. Those strings never match any `stripe_customer_id` column,
+ * so the downstream UPDATE silently affected zero rows and we dropped
+ * legitimate subscription events without noticing.
+ *
+ * Returns `null` for the null / DeletedCustomer case so callers can
+ * log + skip rather than run a useless query.
+ */
+export function getCustomerId(
+  customer: string | Stripe.Customer | Stripe.DeletedCustomer | null | undefined,
+): string | null {
+  if (!customer) return null;
+  if (typeof customer === 'string') return customer;
+  // Expanded Customer and DeletedCustomer both expose `.id`.
+  return customer.id ?? null;
+}

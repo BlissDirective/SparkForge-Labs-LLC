@@ -32,9 +32,16 @@ import type Stripe from 'stripe';
 vi.mock('@/lib/supabase/server', () => ({
   createAdminClient: vi.fn(),
 }));
-vi.mock('@/lib/stripe', () => ({
-  getStripe: vi.fn(),
-}));
+vi.mock('@/lib/stripe', async (importOriginal) => {
+  // PAY-HIGH-002: Keep the real `getCustomerId` helper (pure function)
+  // while mocking `getStripe`. Using importOriginal() propagates any
+  // future additions to the stripe-lib surface automatically.
+  const actual = await importOriginal<typeof import('@/lib/stripe')>();
+  return {
+    ...actual,
+    getStripe: vi.fn(),
+  };
+});
 
 // Now safe to import
 import { POST } from '@/app/api/stripe/webhook/route';
