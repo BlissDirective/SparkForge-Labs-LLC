@@ -132,10 +132,17 @@ export const CompleteContentSchema = z.object({
 
 // ═══ GAMIFICATION SCHEMAS ═══
 
+// API-HIGH-003 (C): Server-authoritative XP for `source === 'game'`.
+// - For games, client sends `gameId`; server looks up the canonical
+//   reward in game-xp-config.ts. `amount` is accepted for backwards
+//   compat but IGNORED by the route handler.
+// - For non-game sources (lessons, quizzes, spark facts), `amount`
+//   remains the request-level value (capped at 500).
 export const AwardXPSchema = z.object({
   childId: z.string().uuid(),
-  amount: z.number().int().min(1).max(500),
   source: z.enum(['lesson', 'quiz', 'game', 'daily_challenge', 'spark_fact', 'activity', 'bonus']),
+  gameId: z.string().min(1).max(64).optional(),
+  amount: z.number().int().min(1).max(500).optional(),
 });
 
 // ═══ PROMPT LAB SCHEMAS ═══

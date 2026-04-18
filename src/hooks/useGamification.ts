@@ -12,8 +12,23 @@ export function useAwardXP() {
   const { activeChild } = useChildStore();
 
   return useMutation({
-    mutationFn: (body: { childId: string; amount: number; source: string }) =>
-      apiFetch<{ xpAwarded?: number; amount?: number; leveledUp?: boolean; newLevel?: number; newTitle?: string }>('/api/gamification/xp', { method: 'POST', body: JSON.stringify(body) }),
+    // API-HIGH-003 (C): `gameId` is now the authoritative input for
+    // source === 'game'. `amount` is still accepted (and required for
+    // non-game sources), but the server ignores it for games.
+    mutationFn: (body: {
+      childId: string;
+      source: string;
+      gameId?: string;
+      amount?: number;
+    }) =>
+      apiFetch<{
+        xpAwarded?: number;
+        amount?: number;
+        leveledUp?: boolean;
+        newLevel?: number;
+        newTitle?: string;
+        capped?: boolean;
+      }>('/api/gamification/xp', { method: 'POST', body: JSON.stringify(body) }),
 
     // v2 [ENH]: Optimistic update — instantly show XP in sidebar
     onMutate: async (variables) => {
@@ -23,9 +38,14 @@ export function useAwardXP() {
       // Snapshot for rollback
       const previousChild = activeChild ? { ...activeChild } : null;
 
-      // Optimistically update local store
+      // Optimistically update local store. For source=game the real
+      // amount is server-computed, so we use an optimistic guess
+      // (variables.amount if provided, else a conservative 25) — the
+      // `onSettled` invalidation will reconcile with the authoritative
+      // server value. API-HIGH-003 (C).
       if (activeChild) {
-        useChildStore.getState().updateXP(variables.amount);
+        const optimistic = variables.amount ?? 25;
+        useChildStore.getState().updateXP(optimistic);
       }
 
       return { previousChild };
@@ -185,8 +205,17 @@ export function useCompleteAndReward() {
     // Step 1: Record completion
     await completeContent.mutateAsync({ childId, contentId, score });
 
-    // Step 2: Award XP (triggers celebration)
-    await awardXP.mutateAsync({ childId, amount: xpAmount, source });
+    // Step 2: Award XP (triggers celebration).
+    // API-HIGH-003 (C): for source='game' the server ignores `amount`
+    // and looks up the canonical reward from GAME_XP_REWARDS using
+    // `gameId`. We forward contentId as gameId since games identify
+    // themselves by their slug (e.g., 'ai-spy').
+    await awardXP.mutateAsync({
+      childId,
+      source,
+      gameId: source === 'game' ? contentId : undefined,
+      amount: source === 'game' ? undefined : xpAmount,
+    });
 
     // Step 3: Update streak
     await updateStreak.mutateAsync(childId);

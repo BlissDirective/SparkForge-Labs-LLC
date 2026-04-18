@@ -42,6 +42,13 @@ interface GameShellProps {
   title: string;
   worldNumber: number;
   worldColor: string;
+  /**
+   * @deprecated API-HIGH-003 (C): XP is now server-authoritative.
+   *   For source='game' the value is looked up from GAME_XP_REWARDS
+   *   in src/lib/game-xp-config.ts by the /api/gamification/xp route.
+   *   This prop is still accepted for backwards compat but the server
+   *   ignores any client-supplied amount when the source is 'game'.
+   */
   xpReward?: number;
   totalRounds: number;
   hints?: number;
