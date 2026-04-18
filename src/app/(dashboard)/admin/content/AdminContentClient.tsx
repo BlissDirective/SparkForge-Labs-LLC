@@ -8,6 +8,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
@@ -310,7 +311,7 @@ export default function AdminReviewPage() {
     try {
       const res = await fetch('/api/agent/review', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           action,
           ids,
@@ -349,7 +350,7 @@ export default function AdminReviewPage() {
     try {
       const res = await fetch('/api/agent/review', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           action,
           ids: [id],
@@ -383,7 +384,7 @@ export default function AdminReviewPage() {
   async function triggerAgent() {
     setAgentRunning(true);
     try {
-      const res = await fetch(`/api/agent/run?mode=${pipelineMode}`, { method: 'POST' });
+      const res = await fetch(`/api/agent/run?mode=${pipelineMode}`, { method: 'POST', headers: csrfHeader() });
       const result = await res.json();
 
       if (result.data?.success || result.success) {
@@ -501,7 +502,7 @@ export default function AdminReviewPage() {
               try {
                 const res = await fetch('/api/agent/game-generator', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json', ...csrfHeader() },
                   body: JSON.stringify({}),
                 });
                 const result = await res.json();
@@ -1220,7 +1221,7 @@ export default function AdminReviewPage() {
                   try {
                     const res = await fetch('/api/agent/architect', {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
+                      headers: { 'Content-Type': 'application/json', ...csrfHeader() },
                       body: JSON.stringify({
                         contentId: preview.id,
                         contentType: preview.type,

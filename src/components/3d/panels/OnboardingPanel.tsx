@@ -13,6 +13,7 @@
 // CockpitText) for full design-system compliance.
 
 import { useState, useEffect, useCallback } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { Text } from '@react-three/drei';
 import { Color } from 'three';
@@ -104,7 +105,7 @@ export default function OnboardingPanel() {
     try {
       await fetch('/api/auth/me', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({ onboardingComplete: true }),
       });
 

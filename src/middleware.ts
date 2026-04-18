@@ -1,5 +1,12 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
+import {
+  CSRF_COOKIE_NAME,
+  CSRF_HEADER_NAME,
+  generateCsrfToken,
+  isStateMutatingMethod,
+  verifyCsrfToken,
+} from '@/lib/csrf';
 
 // ────────────────────────────────────────────────────────────────────
 // AUTH-HIGH-002 (2B): Explicit public API allowlist.
@@ -47,6 +54,64 @@ function isPublicAPI(pathname: string): boolean {
   return PUBLIC_API_PATHS.has(pathname) || CRON_API_PATHS.has(pathname);
 }
 
+// API-HIGH-004 (A): Routes that should bypass CSRF validation because
+// they authenticate via a signed payload (Stripe webhook) or a shared
+// bearer token (cron secret), not via a user session.
+//
+// IMPORTANT: auth/login, auth/signup, and auth/demo are NOT listed
+// here. They still require CSRF — the middleware sets a fresh token
+// cookie on the preceding GET to /login (or wherever the form lives),
+// so the subsequent POST has the cookie + matching header available.
+const CSRF_BYPASS_PATHS: ReadonlySet<string> = new Set([
+  '/api/stripe/webhook',
+  '/api/cron/trial-reminders',
+  '/api/agent/schedule',
+  '/api/agent/trending',
+]);
+
+function shouldEnforceCsrf(request: NextRequest, pathname: string): boolean {
+  if (!isStateMutatingMethod(request.method)) return false;
+  if (!pathname.startsWith('/api/')) return false;
+  if (CSRF_BYPASS_PATHS.has(pathname)) return false;
+  return true;
+}
+
+function csrfFailure(): NextResponse {
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'CSRF validation failed. Refresh the page and try again.',
+      code: 'CSRF_FAILED',
+    },
+    { status: 403 },
+  );
+}
+
+async function validateCsrf(request: NextRequest): Promise<boolean> {
+  const cookieToken = request.cookies.get(CSRF_COOKIE_NAME)?.value;
+  const headerToken = request.headers.get(CSRF_HEADER_NAME);
+  if (!cookieToken || !headerToken) return false;
+  if (cookieToken !== headerToken) return false;
+  return await verifyCsrfToken(cookieToken);
+}
+
+/** Set a fresh CSRF cookie on `response` if the request didn't have one. */
+async function ensureCsrfCookie(
+  request: NextRequest,
+  response: NextResponse,
+): Promise<void> {
+  if (request.cookies.get(CSRF_COOKIE_NAME)) return;
+  const token = await generateCsrfToken();
+  response.cookies.set(CSRF_COOKIE_NAME, token, {
+    // httpOnly:false — client JS must read the cookie to set the
+    // x-csrf-token header (double-submit pattern).
+    httpOnly: false,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+    path: '/',
+  });
+}
+
 // Frontend pages that render without a session.
 // S3-CRIT-001: /reset-password is public.
 const PUBLIC_PAGE_PATHS: ReadonlyArray<string> = [
@@ -79,13 +144,27 @@ function unauthedResponse(request: NextRequest, isAPI: boolean) {
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
 
+  // AUTH-HIGH-004 (A): CSRF validation for state-mutating API requests.
+  // Runs before auth so a forged cross-site POST is rejected even if
+  // it would have passed auth via a stolen session cookie. Cron and
+  // webhook paths are bypassed (they authenticate via signed payload
+  // or bearer token).
+  const pathname = request.nextUrl.pathname;
+  if (shouldEnforceCsrf(request, pathname)) {
+    const ok = await validateCsrf(request);
+    if (!ok) return csrfFailure();
+  }
+
   // AUDIT-G4: Fail fast if Supabase env vars are missing instead of using silent placeholders
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
     const c = classify(request);
-    if (c.isPublicPage || c.isPublicAPI || c.isStatic || c.isAsset) return response;
+    if (c.isPublicPage || c.isPublicAPI || c.isStatic || c.isAsset) {
+      await ensureCsrfCookie(request, response);
+      return response;
+    }
     // During setup (missing envs) we still block unauthed access to
     // protected API routes rather than pretending everything is fine.
     if (c.isAPI) {
@@ -130,12 +209,14 @@ export async function middleware(request: NextRequest) {
   if (!user) {
     // Allow anything explicitly whitelisted.
     if (c.isPublicPage || c.isPublicAPI || c.isStatic || c.isAsset) {
+      await ensureCsrfCookie(request, response);
       return response;
     }
     // Everything else: 401 for API, redirect for pages.
     return unauthedResponse(request, c.isAPI);
   }
 
+  await ensureCsrfCookie(request, response);
   return response;
 }
 

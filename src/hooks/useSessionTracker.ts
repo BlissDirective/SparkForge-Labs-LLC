@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useChildStore } from '@/stores/childStore';
 
 // useSessionTracker — Automatic Play Session Tracking
@@ -20,7 +21,7 @@ export function useSessionTracker() {
       try {
         const res = await fetch('/api/sessions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...csrfHeader() },
           body: JSON.stringify({
             action: 'start',
             childId,
@@ -38,7 +39,7 @@ export function useSessionTracker() {
       try {
         await fetch('/api/sessions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...csrfHeader() },
           body: JSON.stringify({
             action: 'end',
             sessionId: sessionIdRef.current,

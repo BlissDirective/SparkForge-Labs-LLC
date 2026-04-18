@@ -16,6 +16,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { useState, useEffect, useCallback } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Mail, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
@@ -60,7 +61,7 @@ export function EmailVerifyBanner() {
     try {
       const res = await fetch('/api/auth/resend-verification', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({ email: parent.email }),
       });
       if (res.ok) {

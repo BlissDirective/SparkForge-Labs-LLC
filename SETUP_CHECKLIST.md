@@ -285,6 +285,7 @@ Add these to **Project Settings → Environment Variables**. Paste values from t
 | `NEXT_PUBLIC_URL` | set to `https://<domain>` | No |
 | `NEXT_PUBLIC_APP_URL` | set to `https://<domain>` | No |
 | `CRON_SECRET` | generate a random 32+ char string | **Yes** |
+| `CSRF_SECRET` | 32+ random chars; HMAC secret for CSRF tokens (AUTH-HIGH-004). Falls back to `SUPABASE_SERVICE_ROLE_KEY` if unset. | **Yes** |
 | `UPSTASH_REDIS_REST_URL` | 3.3 (Upstash) — required for real rate limits | No |
 | `UPSTASH_REDIS_REST_TOKEN` | 3.3 (Upstash) — required for real rate limits | **Yes** |
 

@@ -7,6 +7,7 @@
 // All visual rendering happens in 3D — this page has zero HTML UI.
 
 import { useState, useCallback } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { createClient as createSupabaseClient } from '@/lib/supabase/client';
@@ -43,7 +44,7 @@ export default function LoginPage() {
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({ email, password }),
       });
 
@@ -76,7 +77,7 @@ export default function LoginPage() {
       // onAuthStateChange hydrates demo state before navigation.
       const res = await fetch('/api/auth/demo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
       });
 
       if (!res.ok) {

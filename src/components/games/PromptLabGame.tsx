@@ -11,6 +11,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useChildStore } from '@/stores/childStore';
@@ -1319,7 +1320,7 @@ export function PromptLabGame() {
     try {
       const res = await fetch('/api/ai/prompt-lab', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           childId: activeChild.id,
           prompt: systemPrompt && ageBand === 'C'

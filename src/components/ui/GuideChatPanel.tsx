@@ -6,6 +6,7 @@
 // ════════════════════════════════════════════════════
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { motion } from 'motion/react';
 import {
   X, Minimize2, Send, Mic, MicOff,
@@ -66,7 +67,7 @@ export default function GuideChatPanel() {
     try {
       const res = await fetch('/api/ai/guide', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           childId: activeChild.id,
           message: text,

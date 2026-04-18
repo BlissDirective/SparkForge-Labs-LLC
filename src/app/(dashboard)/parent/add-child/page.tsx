@@ -6,6 +6,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { ArrowLeft, UserPlus } from 'lucide-react';
@@ -66,7 +67,7 @@ export default function AddChildPage() {
       // S8-WARN-005 fix: Route through API for server-side validation + tier limit enforcement
       const res = await fetch('/api/children', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           displayName: name.trim(),
           age,

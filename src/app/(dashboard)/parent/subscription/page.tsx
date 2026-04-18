@@ -8,6 +8,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { motion } from 'motion/react';
 import { useParentStore } from '@/stores/parentStore';
 import {
@@ -251,7 +252,7 @@ function SubscriptionContent() {
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({ tier: targetTier, interval }),
       });
       const data = await res.json();
@@ -268,7 +269,7 @@ function SubscriptionContent() {
 
   async function handleManage() {
     try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' });
+      const res = await fetch('/api/stripe/portal', { method: 'POST', headers: csrfHeader() });
       const data = await res.json();
 
       if (data.data?.url) {
