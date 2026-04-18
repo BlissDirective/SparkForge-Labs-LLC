@@ -103,7 +103,11 @@ export async function POST(req: NextRequest) {
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/parent/subscription?success=true`,
+    // PAY-HIGH-003 (B): Pass the Stripe checkout session id back on
+    // redirect. The success page calls GET /api/stripe/session-status
+    // to verify the session actually completed + is owned by the
+    // authed user, instead of trusting a forgeable ?success=true flag.
+    success_url: `${appUrl}/parent/subscription?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/parent/subscription?canceled=true`,
     metadata: {
       supabase_id: auth.user.id,
