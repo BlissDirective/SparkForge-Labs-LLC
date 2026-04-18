@@ -62,6 +62,7 @@ Open **SQL Editor** in the Supabase dashboard and run these files **one at a tim
 | 18 | **`sql/011_parents_email_verified_at.sql`** (Phase 2 audit) | **AUTH-HIGH-004: adds nullable `parents.email_verified_at` column + partial index on unverified rows. Stamped by `/api/auth/callback`. Consumed by Stripe checkout gate and EmailVerifyBanner.** |
 | 19 | **`sql/012_xp_daily_cap.sql`** (Phase 2 audit) | **API-HIGH-003: adds `children.xp_awarded_today` + `xp_reset_date` columns with a BEFORE UPDATE trigger `reset_daily_xp` that zeroes the counter at the start of each new day. Consumed by `/api/gamification/xp` to enforce `DAILY_XP_CAP = 10000` per child.** |
 | 20 | **`sql/013_content_admin_tighten.sql`** (Phase 2 audit) | **DB-HIGH-001: drops the overly broad `content_admin_all FOR ALL` policy and splits it into SELECT / INSERT / UPDATE (no DELETE so admins cannot hard-delete content). Adds `content.updated_by` + `content.update_reason` audit columns.** |
+| 21 | **`sql/014_audit_log.sql`** (Phase 2 audit) | **DB-HIGH-002: creates generic `audit_log` table + `audit_trigger()` SECURITY DEFINER function attached to `parents`, `children`, `content`, `content_queue`, `subscription_events` for INSERT/UPDATE/DELETE. Admin-read-only RLS. 90-day pg_cron retention job (`audit-log-retention`, 00:15 UTC).** |
 
 ### Verify Phase 1 audit migrations (after running 008–010)
 
@@ -110,6 +111,38 @@ SELECT tgname FROM pg_trigger
 
 SELECT proname FROM pg_proc WHERE proname = 'reset_daily_xp';
 -- Expect 1 row (the trigger function).
+
+-- 013: content admin policies split (no DELETE) + audit columns
+SELECT polname FROM pg_policy
+ WHERE polrelid = 'content'::regclass
+ ORDER BY polname;
+-- Expect rows including: content_admin_select, content_admin_insert,
+--   content_admin_update, content_read_published.
+-- MUST NOT include the old content_admin_all.
+
+SELECT column_name FROM information_schema.columns
+ WHERE table_name = 'content' AND column_name IN ('updated_by', 'update_reason')
+ ORDER BY column_name;
+-- Expect 2 rows.
+
+-- 014: audit_log table + triggers on 5 critical tables
+SELECT table_name FROM information_schema.tables
+ WHERE table_schema = 'public' AND table_name = 'audit_log';
+-- Expect 1 row.
+
+SELECT tgname, tgrelid::regclass::text AS target_table
+  FROM pg_trigger
+ WHERE tgname LIKE 'audit_trigger_%'
+ ORDER BY tgname;
+-- Expect 5 rows: parents, children, content, content_queue,
+--                subscription_events.
+
+SELECT proname FROM pg_proc WHERE proname = 'audit_trigger';
+-- Expect 1 row.
+
+-- Optional (Pro plans only): verify pg_cron retention job
+SELECT jobname FROM cron.job WHERE jobname = 'audit-log-retention';
+-- Expect 1 row on Supabase Pro; 0 rows on Free (no pg_cron).
 ```
 
 A separate verification script `sql/verify_rls.sql` is also available — not a migration, but a hard gate used by CI. Run it from your machine with:

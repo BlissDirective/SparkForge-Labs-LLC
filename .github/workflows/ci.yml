@@ -157,6 +157,7 @@ jobs:
             sql/011_parents_email_verified_at.sql
             sql/012_xp_daily_cap.sql
             sql/013_content_admin_tighten.sql
+            sql/014_audit_log.sql
           )
           for f in "${files[@]}"; do
             echo "═══ applying $f ═══"
