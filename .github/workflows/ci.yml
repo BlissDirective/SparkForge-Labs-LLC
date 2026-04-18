@@ -158,6 +158,7 @@ jobs:
             sql/012_xp_daily_cap.sql
             sql/013_content_admin_tighten.sql
             sql/014_audit_log.sql
+            sql/015_pg_cron_daily_resets.sql
           )
           for f in "${files[@]}"; do
             echo "═══ applying $f ═══"

@@ -63,6 +63,7 @@ Open **SQL Editor** in the Supabase dashboard and run these files **one at a tim
 | 19 | **`sql/012_xp_daily_cap.sql`** (Phase 2 audit) | **API-HIGH-003: adds `children.xp_awarded_today` + `xp_reset_date` columns with a BEFORE UPDATE trigger `reset_daily_xp` that zeroes the counter at the start of each new day. Consumed by `/api/gamification/xp` to enforce `DAILY_XP_CAP = 10000` per child.** |
 | 20 | **`sql/013_content_admin_tighten.sql`** (Phase 2 audit) | **DB-HIGH-001: drops the overly broad `content_admin_all FOR ALL` policy and splits it into SELECT / INSERT / UPDATE (no DELETE so admins cannot hard-delete content). Adds `content.updated_by` + `content.update_reason` audit columns.** |
 | 21 | **`sql/014_audit_log.sql`** (Phase 2 audit) | **DB-HIGH-002: creates generic `audit_log` table + `audit_trigger()` SECURITY DEFINER function attached to `parents`, `children`, `content`, `content_queue`, `subscription_events` for INSERT/UPDATE/DELETE. Admin-read-only RLS. 90-day pg_cron retention job (`audit-log-retention`, 00:15 UTC).** |
+| 22 | **`sql/015_pg_cron_daily_resets.sql`** (Phase 2 audit) | **DB-HIGH-003: schedules `daily-reset-prompts` (00:00 UTC), `daily-reset-xp` (00:02 UTC), and `weekly-reset-games` (Mon 00:04 UTC) pg_cron jobs that actively zero stale `children` counters. BEFORE UPDATE triggers + app-level `reset_date >= today` guards remain as defense-in-depth. Skips cleanly on Supabase Free (no pg_cron).** |
 
 ### Verify Phase 1 audit migrations (after running 008–010)
 
@@ -143,6 +144,12 @@ SELECT proname FROM pg_proc WHERE proname = 'audit_trigger';
 -- Optional (Pro plans only): verify pg_cron retention job
 SELECT jobname FROM cron.job WHERE jobname = 'audit-log-retention';
 -- Expect 1 row on Supabase Pro; 0 rows on Free (no pg_cron).
+
+-- 015: daily / weekly reset cron jobs
+SELECT jobname, schedule FROM cron.job
+ WHERE jobname IN ('daily-reset-prompts', 'daily-reset-xp', 'weekly-reset-games')
+ ORDER BY jobname;
+-- Expect 3 rows on Supabase Pro; 0 rows on Free.
 ```
 
 A separate verification script `sql/verify_rls.sql` is also available — not a migration, but a hard gate used by CI. Run it from your machine with:
