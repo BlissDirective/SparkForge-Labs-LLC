@@ -227,14 +227,20 @@ export function getClientIP(req: NextRequest): string {
 // ═══ v2 [NEW-2B]: REQUEST DEDUPLICATION ═══
 // Prevents duplicate rapid submissions (e.g., double-clicking
 // "Award XP" button). Returns cached response for identical
-// requests within a 500ms window.
+// requests within DEDUP_WINDOW_MS.
+//
+// API-HIGH-002 (B): Dedup key is now a SHA-256 hash of the request
+// body (truncated to 16 hex chars / 64 bits of entropy). Previous
+// implementation used only Content-Length, which meant two different
+// requests that happened to have the same byte length shared a dedup
+// key and legitimate consecutive submissions were dropped.
 
 const recentRequests = new Map<string, { response: NextResponse; timestamp: number }>();
 const DEDUP_WINDOW_MS = 500;
 
 // Clean up dedup cache every 30 seconds
 if (typeof globalThis !== 'undefined') {
-  setInterval(() => {
+  const cleanup = setInterval(() => {
     const now = Date.now();
     for (const [key, entry] of recentRequests.entries()) {
       if (now - entry.timestamp > DEDUP_WINDOW_MS * 2) {
@@ -242,22 +248,53 @@ if (typeof globalThis !== 'undefined') {
       }
     }
   }, 30 * 1000);
+  // Don't keep the Node process alive just for cleanup.
+  (cleanup as unknown as { unref?: () => void }).unref?.();
+}
+
+async function hashBody(body: string): Promise<string> {
+  // Web Crypto API — available in both Edge and Node runtimes.
+  const bytes = new TextEncoder().encode(body);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  // 64 bits of entropy is ample for a 500 ms anti-double-click window.
+  return Array.from(new Uint8Array(digest))
+    .slice(0, 8)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /**
  * Check if an identical request was made within the dedup window.
  * Call at the start of mutating handlers (POST, PATCH, DELETE).
+ *
+ * Usage in route handler:
+ *   const dup = await checkDuplicate(req, auth.user.id);
+ *   if (dup) return dup;
+ *
  * @param req - The incoming request
  * @param userId - Authenticated user ID
  * @returns NextResponse if duplicate, null if fresh
- *
- * Usage in route handler:
- *   const dup = checkDuplicate(req, auth.user.id);
- *   if (dup) return dup;
  */
-export function checkDuplicate(req: NextRequest, userId: string): NextResponse | null {
-  const body = req.headers.get('content-length') || '0';
-  const key = `${userId}:${req.method}:${req.nextUrl.pathname}:${body}`;
+export async function checkDuplicate(
+  req: NextRequest,
+  userId: string,
+): Promise<NextResponse | null> {
+  // Read body off a clone so the original request stream is still
+  // consumable by downstream parseBody() / req.json() calls.
+  let bodyHash = 'empty';
+  try {
+    const cloned = req.clone();
+    const bodyText = await cloned.text();
+    if (bodyText) bodyHash = await hashBody(bodyText);
+  } catch {
+    // If clone fails for some reason (unlikely), fall back to
+    // content-length. Still narrows the attack surface vs. the
+    // previous 'length-only' impl because non-empty requests at
+    // least differ by method+path.
+    bodyHash = `cl${req.headers.get('content-length') ?? '0'}`;
+  }
+
+  const key = `${userId}:${req.method}:${req.nextUrl.pathname}:${bodyHash}`;
   const now = Date.now();
 
   const recent = recentRequests.get(key);

@@ -16,8 +16,9 @@ export async function POST(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
 
-  // v2 [NEW-2B]: Dedup rapid clicks
-  const dup = checkDuplicate(req, auth.user.id);
+  // v2 [NEW-2B]: Dedup rapid clicks. API-HIGH-002 (B): checkDuplicate is
+  // async now (SHA-256 body hash on a cloned request).
+  const dup = await checkDuplicate(req, auth.user.id);
   if (dup) return dup;
 
   const parsed = await parseBody(req, AwardXPSchema);
