@@ -7,6 +7,7 @@ import {
   isStateMutatingMethod,
   verifyCsrfToken,
 } from '@/lib/csrf';
+import { CSP_NONCE_HEADER, buildCsp, generateCspNonce } from '@/lib/csp';
 
 // ────────────────────────────────────────────────────────────────────
 // AUTH-HIGH-002 (2B): Explicit public API allowlist.
@@ -141,8 +142,36 @@ function unauthedResponse(request: NextRequest, isAPI: boolean) {
   return NextResponse.redirect(new URL('/login', request.url));
 }
 
+/**
+ * DEPLOY-HIGH-002 (B): Set the CSP header on any outgoing response.
+ * Every `return` path in the middleware funnels through this so the
+ * header is present whether we passthrough, redirect, JSON-reject, or
+ * have the Supabase cookie callbacks rebuild the response object.
+ */
+function withCsp(response: NextResponse, cspValue: string): NextResponse {
+  response.headers.set('Content-Security-Policy', cspValue);
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request: { headers: request.headers } });
+  // DEPLOY-HIGH-002 (B): generate per-request CSP nonce and forward
+  // it to the app via the `x-nonce` request header. Next.js 15 reads
+  // this header and stamps it onto its own hydration inline scripts
+  // automatically. Response gets a matching Content-Security-Policy
+  // header.
+  const nonce = generateCspNonce();
+  const isProd = process.env.NODE_ENV === 'production';
+  const cspValue = buildCsp(nonce, isProd);
+
+  // Fork the request headers to forward the nonce downstream. This
+  // is what `request: { headers: ... }` does inside NextResponse.next.
+  const forwardedHeaders = new Headers(request.headers);
+  forwardedHeaders.set(CSP_NONCE_HEADER, nonce);
+
+  let response = withCsp(
+    NextResponse.next({ request: { headers: forwardedHeaders } }),
+    cspValue,
+  );
 
   // AUTH-HIGH-004 (A): CSRF validation for state-mutating API requests.
   // Runs before auth so a forged cross-site POST is rejected even if
@@ -152,7 +181,7 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   if (shouldEnforceCsrf(request, pathname)) {
     const ok = await validateCsrf(request);
-    if (!ok) return csrfFailure();
+    if (!ok) return withCsp(csrfFailure(), cspValue);
   }
 
   // AUDIT-G4: Fail fast if Supabase env vars are missing instead of using silent placeholders
@@ -168,12 +197,18 @@ export async function middleware(request: NextRequest) {
     // During setup (missing envs) we still block unauthed access to
     // protected API routes rather than pretending everything is fine.
     if (c.isAPI) {
-      return NextResponse.json(
-        { error: 'SETUP_REQUIRED', message: 'Supabase is not configured.' },
-        { status: 503 },
+      return withCsp(
+        NextResponse.json(
+          { error: 'SETUP_REQUIRED', message: 'Supabase is not configured.' },
+          { status: 503 },
+        ),
+        cspValue,
       );
     }
-    return NextResponse.redirect(new URL('/login', request.url));
+    return withCsp(
+      NextResponse.redirect(new URL('/login', request.url)),
+      cspValue,
+    );
   }
 
   const supabase = createServerClient(
@@ -184,12 +219,20 @@ export async function middleware(request: NextRequest) {
         get(name: string) { return request.cookies.get(name)?.value; },
         set(name: string, value: string, options: CookieOptions) {
           request.cookies.set({ name, value, ...options });
-          response = NextResponse.next({ request: { headers: request.headers } });
+          // Rebuild response; preserve the forwarded CSP nonce header
+          // and re-apply the CSP response header.
+          response = withCsp(
+            NextResponse.next({ request: { headers: forwardedHeaders } }),
+            cspValue,
+          );
           response.cookies.set({ name, value, ...options });
         },
         remove(name: string, options: CookieOptions) {
           request.cookies.set({ name, value: '', ...options });
-          response = NextResponse.next({ request: { headers: request.headers } });
+          response = withCsp(
+            NextResponse.next({ request: { headers: forwardedHeaders } }),
+            cspValue,
+          );
           response.cookies.set({ name, value: '', ...options });
         },
       },
@@ -213,7 +256,7 @@ export async function middleware(request: NextRequest) {
       return response;
     }
     // Everything else: 401 for API, redirect for pages.
-    return unauthedResponse(request, c.isAPI);
+    return withCsp(unauthedResponse(request, c.isAPI), cspValue);
   }
 
   await ensureCsrfCookie(request, response);
