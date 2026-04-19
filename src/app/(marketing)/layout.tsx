@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import { MarketingHeader } from '@/components/marketing/MarketingHeader';
 import { MarketingFooter } from '@/components/marketing/MarketingFooter';
+import { SkipLink } from '@/components/shared/SkipLink';
 
 // Marketing Layout — Public pages (landing, pricing, privacy, terms)
 // Shared header (fixed, glassmorphism) + footer + aurora background
@@ -18,6 +19,8 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="min-h-screen bg-surface-deep relative">
+      {/* UX-HIGH-001: WCAG 2.4.1 skip-link. Lands on the <main> below. */}
+      <SkipLink targetId="marketing-main" />
       {/* Aurora background — subtle animated gradient behind all marketing pages */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
@@ -32,7 +35,7 @@ export default function MarketingLayout({
       <MarketingHeader />
 
       {/* Page content — z-10 above aurora, pt-16 clears fixed header */}
-      <main className="relative z-10">
+      <main id="marketing-main" tabIndex={-1} className="relative z-10 focus:outline-none">
         {children}
       </main>
 

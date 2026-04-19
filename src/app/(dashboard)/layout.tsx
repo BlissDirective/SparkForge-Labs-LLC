@@ -39,6 +39,7 @@ import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
 import { EmailVerifyBanner } from '@/components/auth/EmailVerifyBanner';
+import { SkipLink } from '@/components/shared/SkipLink';
 import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
@@ -116,6 +117,10 @@ export default function DashboardLayout({
   return (
     <AuthProvider>
     <DemoGuard>
+      {/* UX-HIGH-001 (B): WCAG 2.4.1 skip-link. Jumps past the
+          cockpit/sidebar noise to the live-region announcer that
+          serves as the dashboard's canonical main-content anchor. */}
+      <SkipLink />
       <DemoSessionBanner />
       {/* AUTH-HIGH-004 (4C): Dismissible (session-scope) reminder when
           parents.email_verified_at is null. Renders nothing for verified
@@ -149,9 +154,19 @@ export default function DashboardLayout({
         {/* sr-only navigation for WCAG accessibility */}
         <Sidebar />
 
-        {/* ARIA live region — screen reader announcements for 3D state changes */}
-        {/* DASH-06: id="main-content" makes skip-link land here (meaningful content) */}
-        <div aria-live="polite" aria-atomic="true" className="sr-only" id="main-content" role="region" aria-label="Dashboard content" />
+        {/* ARIA live region + skip-link target. UX-HIGH-001 (B): tabIndex=-1
+            lets focus land here from the skip link without entering the
+            normal tab order. role="main" is more semantic than "region"
+            for the post-skip landing. */}
+        <div
+          id="main-content"
+          tabIndex={-1}
+          role="main"
+          aria-live="polite"
+          aria-atomic="true"
+          aria-label="Dashboard content"
+          className="sr-only focus:outline-none"
+        />
 
         {/* Phase 1 audit fix (Section 8.2): A11yAnnouncer for score/XP/badge/streak */}
         <A11yAnnouncer />
