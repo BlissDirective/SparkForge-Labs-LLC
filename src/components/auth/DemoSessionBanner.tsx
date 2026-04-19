@@ -56,7 +56,7 @@ export function DemoSessionBanner() {
               <span className={`font-data font-bold tabular-nums ${demo.isUrgent ? 'text-red-300' : 'text-spark-green'}`}>
                 {demo.timeRemaining}
               </span>
-              <span className={demo.isUrgent ? 'text-red-300/60' : 'text-white/40'}>remaining</span>
+              <span className={demo.isUrgent ? 'text-red-300/70' : 'text-white/60'}>remaining</span>
             </div>
 
             <div className="flex items-center gap-3">
@@ -70,7 +70,7 @@ export function DemoSessionBanner() {
               </button>
               <button
                 onClick={() => setDismissed(true)}
-                className="text-white/30 hover:text-white/60 transition-colors"
+                className="text-white/60 hover:text-white/90 transition-colors"
                 aria-label="Dismiss demo banner"
               >
                 <X className="w-4 h-4" />

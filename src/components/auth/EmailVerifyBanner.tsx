@@ -127,7 +127,7 @@ export function EmailVerifyBanner() {
             <button
               type="button"
               onClick={handleDismiss}
-              className="text-amber-200/50 hover:text-amber-100 transition-colors"
+              className="text-amber-200/80 hover:text-amber-100 transition-colors"
               aria-label="Dismiss email verification reminder for this session"
             >
               <X className="w-4 h-4" />
