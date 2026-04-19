@@ -8,6 +8,7 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { motion } from 'motion/react';
 import { useParentStore } from '@/stores/parentStore';
 import {
@@ -71,8 +72,28 @@ function SubscriptionContent() {
   // CelebrationBanner independently of the 3D cockpit.
   const [showCelebrationBanner, setShowCelebrationBanner] = useState(false);
 
-  const showSuccess = searchParams.get('success') === 'true';
+  // PAY-HIGH-003 (B): Stripe now redirects back with ?session_id=cs_…
+  // (instead of ?success=true). We call GET /api/stripe/session-status
+  // to verify the session actually completed + belongs to this user.
+  // While the webhook is still catching up, the page shows a
+  // "Finalizing subscription…" state and polls up to POLL_TIMEOUT_MS.
+  const sessionId = searchParams.get('session_id');
   const showCanceled = searchParams.get('canceled') === 'true';
+
+  type VerifyState =
+    | { status: 'idle' }
+    | { status: 'verifying' }
+    | { status: 'finalizing'; attempt: number }
+    | { status: 'success' }
+    | { status: 'failed'; reason: string };
+
+  const [verify, setVerify] = useState<VerifyState>(
+    sessionId ? { status: 'verifying' } : { status: 'idle' },
+  );
+  const showSuccess = verify.status === 'success';
+  const showFinalizing =
+    verify.status === 'verifying' || verify.status === 'finalizing';
+  const showFailed = verify.status === 'failed';
 
   // 3D cockpit broadcast: page-navigate on mount
   useEffect(() => {
@@ -84,6 +105,90 @@ function SubscriptionContent() {
       targetPage: '/parent/subscription',
     });
   }, [broadcast]);
+
+  // PAY-HIGH-003 (B): Verify the checkout session server-side, then
+  // poll until the webhook has marked the parent as active.
+  //
+  //   POLL_INTERVAL_MS   — 2 s between retries
+  //   MAX_POLL_ATTEMPTS  — 15 retries → 30 s total before giving up
+  //
+  // Outcomes:
+  //   - session unpaid / expired / not-owned → verify = failed
+  //   - paid + already active on first check → verify = success
+  //   - paid but webhook lagging → verify = finalizing, poll
+  //   - paid but webhook never arrives → verify = failed after timeout
+  useEffect(() => {
+    if (!sessionId) return;
+    const POLL_INTERVAL_MS = 2000;
+    const MAX_POLL_ATTEMPTS = 15;
+
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    async function fetchStatus(attempt: number): Promise<void> {
+      if (cancelled) return;
+      try {
+        const res = await fetch(
+          `/api/stripe/session-status?session_id=${encodeURIComponent(sessionId!)}`,
+        );
+        const json = await res.json();
+        const data = json?.data;
+
+        if (!res.ok || !data) {
+          setVerify({
+            status: 'failed',
+            reason:
+              json?.error ||
+              'We could not verify your checkout. If you were charged, please refresh in a moment.',
+          });
+          return;
+        }
+
+        // Unpaid session — treat as failure (user likely hit success_url
+        // manually or the checkout expired).
+        if (data.paymentStatus !== 'paid' && data.paymentStatus !== 'no_payment_required') {
+          setVerify({
+            status: 'failed',
+            reason:
+              data.status === 'expired'
+                ? 'This checkout session has expired.'
+                : 'Payment was not completed.',
+          });
+          return;
+        }
+
+        if (data.active) {
+          setVerify({ status: 'success' });
+          return;
+        }
+
+        // Paid but webhook hasn't updated the parents row yet.
+        if (attempt >= MAX_POLL_ATTEMPTS) {
+          setVerify({
+            status: 'failed',
+            reason:
+              'Payment received — we are still finalizing your subscription. Refresh in a moment or contact support if this persists.',
+          });
+          return;
+        }
+
+        setVerify({ status: 'finalizing', attempt });
+        timer = setTimeout(() => fetchStatus(attempt + 1), POLL_INTERVAL_MS);
+      } catch {
+        if (cancelled) return;
+        setVerify({
+          status: 'failed',
+          reason: 'Network error while verifying checkout. Please refresh.',
+        });
+      }
+    }
+
+    fetchStatus(0);
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, [sessionId]);
 
   // v3 Gap 5: Robust cross-platform celebration dispatch
   //
@@ -147,7 +252,7 @@ function SubscriptionContent() {
     try {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({ tier: targetTier, interval }),
       });
       const data = await res.json();
@@ -164,7 +269,7 @@ function SubscriptionContent() {
 
   async function handleManage() {
     try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' });
+      const res = await fetch('/api/stripe/portal', { method: 'POST', headers: csrfHeader() });
       const data = await res.json();
 
       if (data.data?.url) {
@@ -213,6 +318,40 @@ function SubscriptionContent() {
         <UsageDashboard variant="card" showUpgradeCTA={false} defaultExpanded={false} />
       </motion.div>
 
+      {/* PAY-HIGH-003 (B): Verification states from /api/stripe/session-status */}
+      {showFinalizing && (
+        <motion.div
+          className="mb-6 p-4 rounded-xl bg-spark-blue/10 border border-spark-blue/20 flex items-center gap-3"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          role="status"
+          aria-live="polite"
+        >
+          <div
+            className="w-4 h-4 rounded-full border-2 border-spark-blue border-t-transparent animate-spin"
+            aria-hidden="true"
+          />
+          <p className="font-body text-sm text-white/70">
+            Finalizing subscription…{' '}
+            {verify.status === 'finalizing' && verify.attempt > 2 && (
+              <span className="text-white/40 text-xs">
+                (this should only take a few seconds)
+              </span>
+            )}
+          </p>
+        </motion.div>
+      )}
+      {showFailed && verify.status === 'failed' && (
+        <motion.div
+          className="mb-6 p-4 rounded-xl bg-spark-orange/10 border border-spark-orange/20"
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          role="alert"
+          aria-live="assertive"
+        >
+          <p className="font-body text-sm text-white/80">{verify.reason}</p>
+        </motion.div>
+      )}
       {/* Success/canceled banners */}
       {showSuccess && (
         <motion.div

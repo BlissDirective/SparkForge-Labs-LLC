@@ -2,11 +2,38 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
-// AUDIT-FIX: Build-safe fallbacks — prevents crash during static generation
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+// AUTH-HIGH-001 (2B): fail-fast fallbacks.
+// `http://localhost:0` is a guaranteed connection-refused URL, so if a
+// misconfigured deploy slips through (no env vars set) we get a noisy
+// runtime error instead of silently routing real traffic to a domain
+// an attacker could register (the previous `placeholder.supabase.co`).
+// The empty-string key is similarly inert — Supabase will reject it.
+// Static `next build` never invokes these factories, so module-load
+// is still safe even when env vars are missing on CI.
+const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://localhost:0';
+const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+function assertSupabaseEnv(context: 'anon' | 'service') {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_URL is not configured. Add it to .env.local (see .env.local.example).'
+    );
+  }
+  if (context === 'anon' && !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+    throw new Error(
+      'NEXT_PUBLIC_SUPABASE_ANON_KEY is not configured. Add it to .env.local (see .env.local.example).'
+    );
+  }
+  if (context === 'service' && !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    throw new Error(
+      'SUPABASE_SERVICE_ROLE_KEY is not configured. This is required for admin/server-role operations. Add it to .env.local (never commit it).'
+    );
+  }
+}
 
 export async function createServerSupabase() {
+  assertSupabaseEnv('anon');
   const cookieStore = await cookies();
 
   return createServerClient(
@@ -49,8 +76,6 @@ export async function createServerSupabase() {
 }
 
 export function createAdminClient() {
-  return createSupabaseClient(
-    SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY || 'placeholder-service-key'
-  );
+  assertSupabaseEnv('service');
+  return createSupabaseClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 }

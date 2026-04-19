@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { Play, Loader2 } from 'lucide-react';
@@ -20,7 +21,7 @@ export function DemoLoginButton() {
       // detects the new anonymous user and hydrates demo state.
       const res = await fetch('/api/auth/demo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
       });
 
       if (!res.ok) {

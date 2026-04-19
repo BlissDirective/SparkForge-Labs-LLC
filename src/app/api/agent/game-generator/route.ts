@@ -18,7 +18,7 @@ const GameGeneratorSchema = z.object({
 
 export async function POST(req: NextRequest) {
   // Rate limit (2/hr — same as content agent)
-  const limited = applyRateLimit(req, 'game-generator', undefined, RATE_LIMITS.contentAgent);
+  const limited = await applyRateLimit(req, 'game-generator', undefined, RATE_LIMITS.contentAgent);
   if (limited) return limited;
 
   if (!process.env.ANTHROPIC_API_KEY) {

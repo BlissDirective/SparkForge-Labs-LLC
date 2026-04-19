@@ -71,6 +71,16 @@ export default tseslint.config(
       // Warn when a JSX element uses font-body or font-mono together with
       // direct numeric text children — those MUST use font-data (Orbitron)
       // or the DataNumber component. See src/components/ui/DataNumber.tsx.
+      //
+      // UX-HIGH-005 (C): Low-contrast regression guard.
+      // Flag `text-white/10`, `/20`, `/30`, `/40` in JSX className literals.
+      // WCAG 2.2 AA requires 4.5:1 contrast on normal text. White at 40%
+      // opacity on our dark surface-deep background tests at ~3.9:1.
+      // Existing offenders are allow-listed by the 'warn' severity — new
+      // usage surfaces as a CI warning. Use `/50`+ as the minimum for
+      // primary content; truly decorative watermark text that's safe to
+      // de-emphasize can add `// eslint-disable-next-line
+      // no-restricted-syntax` with a one-line justification.
       'no-restricted-syntax': [
         'warn',
         {
@@ -78,6 +88,23 @@ export default tseslint.config(
             "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/font-body|font-mono/] ~ JSXText[value=/^\\s*[+\\-]?[0-9]+[.,0-9]*\\s*$/]",
           message:
             'Numeric data should render in font-data (Orbitron) or via <DataNumber>. Do not use font-body / font-mono for numeric values.',
+        },
+        {
+          selector:
+            "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/(^|\\s)text-white\\/(10|20|30|40)(\\s|$)/]",
+          message:
+            'Low-contrast text (UX-HIGH-005): text-white/10-40 fails WCAG AA on dark backgrounds. Use text-white/50 or higher, or add an aria-label / eslint-disable comment for intentionally decorative cases.',
+        },
+        {
+          // PERF-HIGH-001 (C): Flag full-store subscriptions
+          // (`const x = use*Store()` with NO selector argument) in
+          // files inside a 3D render path or inside games/. Use a
+          // selector like `useGameStore(s => s.score)` or a bundled
+          // action hook (e.g. useGameActions) instead.
+          selector:
+            "VariableDeclarator[init.type='CallExpression'][init.callee.type='Identifier'][init.callee.name=/^use[A-Z]\\w*Store$/][init.arguments.length=0]",
+          message:
+            'Full store subscription (PERF-HIGH-001): `const x = use*Store()` without a selector triggers re-renders on every state change. Use `useStore(s => s.field)` or a bundled-action hook (e.g. useGameActions) instead.',
         },
       ],
     },

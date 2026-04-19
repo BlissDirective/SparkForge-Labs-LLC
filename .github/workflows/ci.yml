@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           # Full history needed for gitleaks to scan every commit.
           fetch-depth: 0
@@ -59,10 +59,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Node 20
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '20'
           cache: 'npm'
@@ -70,8 +70,11 @@ jobs:
       - name: Install deps
         run: npm ci
 
-      - name: TypeScript check (non-blocking — pre-existing baseUrl deprecation + test file issue)
-        run: npx tsc --noEmit || echo "::warning::TypeScript reported errors — see log"
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: API auth audit (AUTH-HIGH-002 defense-in-depth)
+        run: bash scripts/audit-api-auth.sh
 
       - name: Unit tests
         run: npx vitest run
@@ -114,7 +117,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install psql
         run: |
@@ -151,6 +154,11 @@ jobs:
             sql/008_subscription_events_processed.sql
             sql/009_subscription_events_split.sql
             sql/010_rls_belt_and_suspenders.sql
+            sql/011_parents_email_verified_at.sql
+            sql/012_xp_daily_cap.sql
+            sql/013_content_admin_tighten.sql
+            sql/014_audit_log.sql
+            sql/015_pg_cron_daily_resets.sql
           )
           for f in "${files[@]}"; do
             echo "═══ applying $f ═══"

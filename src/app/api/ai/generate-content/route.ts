@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Rate limit
-  const limited = applyRateLimit(req, 'ai-generate', undefined, RATE_LIMITS.promptLab);
+  const limited = await applyRateLimit(req, 'ai-generate', undefined, RATE_LIMITS.promptLab);
   if (limited) return limited;
 
   // Auth check

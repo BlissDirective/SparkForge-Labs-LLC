@@ -21,6 +21,7 @@ export type CockpitEventType =
   | 'button-release'      // HolographicButton release
   | 'toggle-switch'       // ToggleSwitch3D snap
   | 'page-navigate'       // NavigationButtonGrid page change
+  | 'nav-focus'           // UX-HIGH-002 (B): keyboard focus moved to a nav item
   | 'lab-select'          // HolographicLabMap lab click
   | 'lab-hover'           // HolographicLabMap lab hover
   | 'game-enter'          // MechanicalIris open

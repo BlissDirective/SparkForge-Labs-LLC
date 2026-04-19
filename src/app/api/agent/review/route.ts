@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
 // ── POST: Approve or reject ────────────────────────
 export async function POST(req: NextRequest) {
   // v2 [S9-WARN-002]: Rate limit bulk admin actions (60/min)
-  const limited = applyRateLimit(req, 'admin-review');
+  const limited = await applyRateLimit(req, 'admin-review');
   if (limited) return limited;
 
   const auth = await requireAdmin(req);

@@ -231,10 +231,21 @@ export const handlers = [
   ),
 
   http.post(`${API}/gamification/xp`, async ({ request }) => {
-    const body = (await request.json()) as Record<string, unknown>;
-    const amount = (body.amount as number) || 10;
+    // API-HIGH-003 (C): Mock mirrors the new server-authoritative flow.
+    // For source='game' we use a fixed mock award since the real
+    // GAME_XP_REWARDS table lives server-side. For non-game sources
+    // we echo the client amount (capped like the real route would).
+    const body = (await request.json()) as {
+      source?: string;
+      gameId?: string;
+      amount?: number;
+    };
+    const xpAwarded =
+      body.source === 'game'
+        ? 30 // mirrors pet-trainer/my-first-ai-app bracket — reasonable test default
+        : Math.min(body.amount ?? 10, 500);
     return HttpResponse.json({
-      xpAwarded: amount,
+      xpAwarded,
       multiplier: 1,
       newXP: 260,
       newLevel: 3,
@@ -242,6 +253,7 @@ export const handlers = [
       levelProgress: 0.6,
       leveledUp: false,
       coinsEarned: 0,
+      capped: false,
     });
   }),
 

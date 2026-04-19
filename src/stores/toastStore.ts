@@ -2,29 +2,56 @@ import { create } from 'zustand';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
+/**
+ * UX-HIGH-003 (B): Optional inline action (e.g., "Retry"). When
+ * present the ToastContainer renders a clickable button next to the
+ * dismiss X. The handler fires in addition to the toast auto-
+ * dismissing, so a retry can happen without manual dismissal.
+ */
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface Toast {
   id: string;
   type: ToastType;
   message: string;
   duration: number;
   createdAt: number;
+  action?: ToastAction;
+}
+
+export interface ToastOptions {
+  duration?: number;
+  action?: ToastAction;
 }
 
 interface ToastState {
   toasts: Toast[];
-  addToast: (type: ToastType, message: string, duration?: number) => void;
+  addToast: (type: ToastType, message: string, durationOrOptions?: number | ToastOptions) => void;
   removeToast: (id: string) => void;
   clearAll: () => void;
 }
 
 let toastCounter = 0;
 
+function resolveOptions(arg?: number | ToastOptions): { duration: number; action?: ToastAction } {
+  if (arg === undefined) return { duration: 4000 };
+  if (typeof arg === 'number') return { duration: arg };
+  return {
+    duration: arg.duration ?? 4000,
+    action: arg.action,
+  };
+}
+
 export const useToastStore = create<ToastState>((set) => ({
   toasts: [],
 
-  addToast: (type, message, duration = 4000) => {
+  addToast: (type, message, durationOrOptions) => {
+    const { duration, action } = resolveOptions(durationOrOptions);
     const id = `toast-${++toastCounter}-${Date.now()}`;
-    const toast: Toast = { id, type, message, duration, createdAt: Date.now() };
+    const toast: Toast = { id, type, message, duration, action, createdAt: Date.now() };
 
     set((state) => ({
       toasts: [...state.toasts.slice(-2), toast],
@@ -46,12 +73,12 @@ export const useToastStore = create<ToastState>((set) => ({
 
 // ═══ CONVENIENCE FUNCTIONS ═══
 export const toast = {
-  success: (message: string, duration?: number) =>
-    useToastStore.getState().addToast('success', message, duration),
-  error: (message: string, duration?: number) =>
-    useToastStore.getState().addToast('error', message, duration),
-  info: (message: string, duration?: number) =>
-    useToastStore.getState().addToast('info', message, duration),
-  warning: (message: string, duration?: number) =>
-    useToastStore.getState().addToast('warning', message, duration),
+  success: (message: string, arg?: number | ToastOptions) =>
+    useToastStore.getState().addToast('success', message, arg),
+  error: (message: string, arg?: number | ToastOptions) =>
+    useToastStore.getState().addToast('error', message, arg),
+  info: (message: string, arg?: number | ToastOptions) =>
+    useToastStore.getState().addToast('info', message, arg),
+  warning: (message: string, arg?: number | ToastOptions) =>
+    useToastStore.getState().addToast('warning', message, arg),
 };

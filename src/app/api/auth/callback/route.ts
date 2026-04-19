@@ -2,8 +2,13 @@
 // HIGH-009: This handler was missing — OAuth and magic link flows were broken.
 // AUTH-CRIT-003 (3C): `next` query param is validated against a strict
 // whitelist regex to prevent open-redirect phishing after successful auth.
+// AUTH-HIGH-004 (4C): Stamps `parents.email_verified_at` on the first
+// successful code exchange. Idempotent — if the user lands on this
+// handler again later (e.g., after a magic-link re-auth) we won't
+// overwrite the original timestamp because the UPDATE is guarded by
+// `.is('email_verified_at', null)`.
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
+import { createServerSupabase, createAdminClient } from '@/lib/supabase/server';
 
 // Internal-path whitelist: must start with '/' and contain only
 // letters, digits, hyphens, and additional slashes (covers all SparkForge
@@ -30,9 +35,27 @@ export async function GET(req: NextRequest) {
 
   if (code) {
     const supabase = await createServerSupabase();
-    const { error } = await supabase.auth.exchangeCodeForSession(code);
+    const { error, data } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error) {
+    if (!error && data?.user) {
+      // AUTH-HIGH-004 (4C): first-successful-verification stamp. We use
+      // the admin client because the parents row may pre-date RLS scope
+      // on the newly-minted session, and because the `.is(null)` guard
+      // makes this update a no-op on repeat visits.
+      try {
+        const admin = createAdminClient();
+        await admin
+          .from('parents')
+          .update({ email_verified_at: new Date().toISOString() })
+          .eq('id', data.user.id)
+          .is('email_verified_at', null);
+      } catch (stampErr) {
+        // Don't block sign-in if the stamp fails — log it and proceed.
+        // The banner + checkout gate will still nudge the user to verify
+        // if necessary.
+        console.error('[auth/callback] email_verified_at stamp failed:', stampErr);
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }

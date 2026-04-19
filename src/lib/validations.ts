@@ -70,11 +70,13 @@ export const CreateChildSchema = z.object({
   avatarConfig: AvatarConfigSchema.optional(),
 });
 
-// v2 [CONN-2]: avatarConfig accepts flexible record for partial updates
-// from avatar shop. Structured schema is for creation only.
+// API-HIGH-001 (B): Replace unbounded `z.record(z.unknown())` with a
+// properly-typed partial of the AvatarConfigSchema so updates are
+// constrained to the known avatar fields. Avoids clients writing
+// arbitrary keys or large payloads into children.avatar_config.
 export const UpdateChildSchema = z.object({
   displayName: z.string().min(1).max(20).regex(/^[a-zA-Z0-9_ -]+$/).optional(),
-  avatarConfig: z.record(z.unknown()).optional(),
+  avatarConfig: AvatarConfigSchema.partial().optional(),
   dailyTimeLimitMinutes: z.number().int().min(15).max(480).nullable().optional(),
   promptLabEnabled: z.boolean().optional(),
   preferences: z.object({
@@ -130,10 +132,17 @@ export const CompleteContentSchema = z.object({
 
 // ═══ GAMIFICATION SCHEMAS ═══
 
+// API-HIGH-003 (C): Server-authoritative XP for `source === 'game'`.
+// - For games, client sends `gameId`; server looks up the canonical
+//   reward in game-xp-config.ts. `amount` is accepted for backwards
+//   compat but IGNORED by the route handler.
+// - For non-game sources (lessons, quizzes, spark facts), `amount`
+//   remains the request-level value (capped at 500).
 export const AwardXPSchema = z.object({
   childId: z.string().uuid(),
-  amount: z.number().int().min(1).max(500),
   source: z.enum(['lesson', 'quiz', 'game', 'daily_challenge', 'spark_fact', 'activity', 'bonus']),
+  gameId: z.string().min(1).max(64).optional(),
+  amount: z.number().int().min(1).max(500).optional(),
 });
 
 // ═══ PROMPT LAB SCHEMAS ═══

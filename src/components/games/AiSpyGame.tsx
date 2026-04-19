@@ -12,7 +12,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGameActions, useGameScore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -286,7 +286,11 @@ const LEARN_CARDS = [
 
 export function AiSpyGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  // PERF-HIGH-001 (C): narrow selectors. Actions are stable refs so
+  // useGameActions never triggers re-render; useGameScore isolates
+  // the single reactive read this file makes.
+  const game = useGameActions();
+  const score = useGameScore();
   const { activeChild } = useChildStore();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -485,7 +489,7 @@ export function AiSpyGame() {
                         Scene {sceneIdx + 1} / {scenes.length}
                       </span>
                       <span className="font-mono text-2xs text-sky-400/60">
-                        Score: {game.score}
+                        Score: {score}
                       </span>
                     </div>
 
@@ -616,7 +620,7 @@ export function AiSpyGame() {
                       Great detective work! You explored {scenes.length} scenes and learned where AI hides in everyday life.
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-sky-400/10 border border-sky-400/20">
-                      <p className="font-data text-2xl text-sky-400">{game.score}</p>
+                      <p className="font-data text-2xl text-sky-400">{score}</p>
                       <p className="font-body text-2xs text-white/30">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">

@@ -30,6 +30,11 @@
   - [ ] `Project URL` → will become `NEXT_PUBLIC_SUPABASE_URL`
   - [ ] `anon` public key → will become `NEXT_PUBLIC_SUPABASE_ANON_KEY`
   - [ ] `service_role` secret key → will become `SUPABASE_SERVICE_ROLE_KEY` (⚠️ server-only)
+- [ ] **AUTH-HIGH-004 — Enable email confirmation** (required for signup to gate login behind email verification):
+  - [ ] In Supabase dashboard → **Authentication → Providers → Email** → toggle **"Confirm email" ON**
+  - [ ] In **Authentication → URL Configuration**, set:
+    - **Site URL** = `https://<your-prod-domain>` (or `http://localhost:3000` during dev)
+    - **Redirect URLs** includes `https://<your-prod-domain>/api/auth/callback` (and your dev variant)
 
 ## 1.2 Run SQL Migrations — IN ORDER
 
@@ -54,6 +59,11 @@ Open **SQL Editor** in the Supabase dashboard and run these files **one at a tim
 | 15 | **`sql/008_subscription_events_processed.sql`** (Phase 1 audit) | **PAY-CRIT-001: adds `processed` + `processed_at` on `subscription_events` for webhook replay protection. Backfills existing rows as processed.** |
 | 16 | **`sql/009_subscription_events_split.sql`** (Phase 1 audit) | **DB-CRIT-001: creates admin-only `subscription_events_detail` for raw Stripe payload; migrates and drops `data` from metadata table; adds parent SELECT policy. MUST run after 008.** |
 | 17 | **`sql/010_rls_belt_and_suspenders.sql`** (Phase 1 audit) | **DB-CRIT-002: defensive re-assertion of RLS on all 12 protected tables. Idempotent. Emits warnings on any unprotected `public` table.** |
+| 18 | **`sql/011_parents_email_verified_at.sql`** (Phase 2 audit) | **AUTH-HIGH-004: adds nullable `parents.email_verified_at` column + partial index on unverified rows. Stamped by `/api/auth/callback`. Consumed by Stripe checkout gate and EmailVerifyBanner.** |
+| 19 | **`sql/012_xp_daily_cap.sql`** (Phase 2 audit) | **API-HIGH-003: adds `children.xp_awarded_today` + `xp_reset_date` columns with a BEFORE UPDATE trigger `reset_daily_xp` that zeroes the counter at the start of each new day. Consumed by `/api/gamification/xp` to enforce `DAILY_XP_CAP = 10000` per child.** |
+| 20 | **`sql/013_content_admin_tighten.sql`** (Phase 2 audit) | **DB-HIGH-001: drops the overly broad `content_admin_all FOR ALL` policy and splits it into SELECT / INSERT / UPDATE (no DELETE so admins cannot hard-delete content). Adds `content.updated_by` + `content.update_reason` audit columns.** |
+| 21 | **`sql/014_audit_log.sql`** (Phase 2 audit) | **DB-HIGH-002: creates generic `audit_log` table + `audit_trigger()` SECURITY DEFINER function attached to `parents`, `children`, `content`, `content_queue`, `subscription_events` for INSERT/UPDATE/DELETE. Admin-read-only RLS. 90-day pg_cron retention job (`audit-log-retention`, 00:15 UTC).** |
+| 22 | **`sql/015_pg_cron_daily_resets.sql`** (Phase 2 audit) | **DB-HIGH-003: schedules `daily-reset-prompts` (00:00 UTC), `daily-reset-xp` (00:02 UTC), and `weekly-reset-games` (Mon 00:04 UTC) pg_cron jobs that actively zero stale `children` counters. BEFORE UPDATE triggers + app-level `reset_date >= today` guards remain as defense-in-depth. Skips cleanly on Supabase Free (no pg_cron).** |
 
 ### Verify Phase 1 audit migrations (after running 008–010)
 
@@ -76,6 +86,70 @@ SELECT column_name FROM information_schema.columns
 SELECT tablename FROM pg_tables
  WHERE schemaname = 'public' AND rowsecurity = false;
 -- Expect 0 rows. If any, run `sql/verify_rls.sql` for details.
+```
+
+### Verify Phase 2 audit migrations (after running 011–012)
+
+```sql
+-- 011: parents.email_verified_at column + unverified partial index
+SELECT column_name, data_type FROM information_schema.columns
+ WHERE table_name = 'parents' AND column_name = 'email_verified_at';
+-- Expect 1 row, type `timestamp with time zone`.
+
+SELECT indexname FROM pg_indexes
+ WHERE tablename = 'parents' AND indexname = 'idx_parents_unverified';
+-- Expect 1 row.
+
+-- 012: children daily-XP counter columns + reset trigger
+SELECT column_name, data_type FROM information_schema.columns
+ WHERE table_name = 'children' AND column_name IN ('xp_awarded_today', 'xp_reset_date')
+ ORDER BY column_name;
+-- Expect 2 rows (xp_awarded_today = integer, xp_reset_date = date).
+
+SELECT tgname FROM pg_trigger
+ WHERE tgrelid = 'children'::regclass AND tgname = 'reset_daily_xp_trigger';
+-- Expect 1 row.
+
+SELECT proname FROM pg_proc WHERE proname = 'reset_daily_xp';
+-- Expect 1 row (the trigger function).
+
+-- 013: content admin policies split (no DELETE) + audit columns
+SELECT polname FROM pg_policy
+ WHERE polrelid = 'content'::regclass
+ ORDER BY polname;
+-- Expect rows including: content_admin_select, content_admin_insert,
+--   content_admin_update, content_read_published.
+-- MUST NOT include the old content_admin_all.
+
+SELECT column_name FROM information_schema.columns
+ WHERE table_name = 'content' AND column_name IN ('updated_by', 'update_reason')
+ ORDER BY column_name;
+-- Expect 2 rows.
+
+-- 014: audit_log table + triggers on 5 critical tables
+SELECT table_name FROM information_schema.tables
+ WHERE table_schema = 'public' AND table_name = 'audit_log';
+-- Expect 1 row.
+
+SELECT tgname, tgrelid::regclass::text AS target_table
+  FROM pg_trigger
+ WHERE tgname LIKE 'audit_trigger_%'
+ ORDER BY tgname;
+-- Expect 5 rows: parents, children, content, content_queue,
+--                subscription_events.
+
+SELECT proname FROM pg_proc WHERE proname = 'audit_trigger';
+-- Expect 1 row.
+
+-- Optional (Pro plans only): verify pg_cron retention job
+SELECT jobname FROM cron.job WHERE jobname = 'audit-log-retention';
+-- Expect 1 row on Supabase Pro; 0 rows on Free (no pg_cron).
+
+-- 015: daily / weekly reset cron jobs
+SELECT jobname, schedule FROM cron.job
+ WHERE jobname IN ('daily-reset-prompts', 'daily-reset-xp', 'weekly-reset-games')
+ ORDER BY jobname;
+-- Expect 3 rows on Supabase Pro; 0 rows on Free.
 ```
 
 A separate verification script `sql/verify_rls.sql` is also available — not a migration, but a hard gate used by CI. Run it from your machine with:
@@ -101,15 +175,17 @@ WHERE table_name = 'parents'
 ORDER BY ordinal_position;
 ```
 
-Expected columns (post Gap 1+2):
-`id, email, full_name, stripe_customer_id, subscription_tier, subscription_status, onboarding_complete, coppa_consent_at, is_admin, stripe_subscription_id, trial_ends_at, subscription_period_end, created_at, updated_at`
+Expected columns (post Gap 1+2 + Phase 2 audit 011):
+`id, email, full_name, stripe_customer_id, subscription_tier, subscription_status, onboarding_complete, coppa_consent_at, is_admin, stripe_subscription_id, trial_ends_at, subscription_period_end, email_verified_at, created_at, updated_at`
 
 ```sql
 SELECT column_name FROM information_schema.columns
-WHERE table_name = 'children' AND column_name = 'deactivated_at';
+WHERE table_name = 'children' AND column_name IN (
+  'deactivated_at', 'xp_awarded_today', 'xp_reset_date'
+) ORDER BY column_name;
 ```
 
-Must return 1 row (post Gap 3 archive migration).
+Must return 3 rows (post Gap 3 archive migration + Phase 2 audit 012 daily-XP counters).
 
 ## 1.3 Create First Admin User (recommended)
 
@@ -201,7 +277,54 @@ Admin pages are also reachable via keyboard navigation (sr-only Sidebar).
 - [ ] **Settings → Auth Tokens → Create Token** → scope: `project:releases`, `org:read` → `SENTRY_AUTH_TOKEN`
 - [ ] Record org + project slugs → `SENTRY_ORG`, `SENTRY_PROJECT`
 
-## 3.3 Resend (for trial reminder emails)
+### Optional: Uptime monitor (DEPLOY-HIGH-003)
+
+The enriched `/api/health` endpoint returns HTTP 503 if Supabase is unreachable (hard dependency) and logs `{ overall, checks: { database, stripe, upstash } }` otherwise. Wire it into a monitor:
+
+- [ ] **Sentry Cron Monitors** (free tier OK): Sentry → Crons → Create. Slug = `sparkforge-health`. Schedule = every minute. Copy the slug → `SENTRY_HEALTH_MONITOR_SLUG` env var. Every successful `/api/health` hit reports as a check-in; missed check-ins trigger Sentry alerts.
+- [ ] **Or** an external service (Better Stack, UptimeRobot, Checkly): point it at `https://<domain>/api/health`, alert on non-200, and inspect the JSON body for per-dependency status. Free tiers handle 1-minute interval polling easily.
+
+## 3.3 Upstash Redis (rate limiting — AUTH-HIGH-003)
+
+The app rate-limits the auth, signup, demo, and AI endpoints. Without a shared backend, limits reset to zero on every serverless cold-start, so attackers can bypass them by making requests fast enough to hit fresh isolates. Upstash provides a globally-replicated Redis counter at negligible latency. **Required for production.** Local dev and CI automatically fall back to an in-memory counter.
+
+- [ ] [console.upstash.com](https://console.upstash.com) → sign up → **Redis → Create database**
+  - Name: `sparkforge-prod` (anything is fine)
+  - Primary region: closest to your Vercel deployment region
+  - Eviction: leave default
+  - Type: **Free** tier handles up to 10K requests/day — plenty for the rate-limit check volume
+- [ ] On the database page, scroll to **REST API** → copy:
+  - **UPSTASH_REDIS_REST_URL** (the HTTPS URL ending in `.upstash.io`)
+  - **UPSTASH_REDIS_REST_TOKEN** (the long bearer token)
+- [ ] Add both to Vercel → Project Settings → Environment Variables (Production + Preview + Development)
+- [ ] Redeploy; confirm the one-time fallback-warning no longer appears in production logs
+
+### Verification
+
+After deploying with Upstash configured, hit `/api/auth/demo` 4× in under 1 hour from the same IP. The 4th call should return HTTP 429. Without Upstash, on Vercel you'd see the limit only rarely trigger because each request may land on a different isolate.
+
+> You can launch without Upstash — the app still boots and logs a one-time warning — but the rate limits are effectively unenforced. Treat this as a production must-have.
+
+## 3.4 CSRF Secret (AUTH-HIGH-004 / API-HIGH-004)
+
+The app mints CSRF tokens via HMAC-SHA256 for the double-submit cookie pattern (see `src/lib/csrf.ts`). This requires a secret key.
+
+- [ ] Generate a 32+ character random string:
+  ```bash
+  openssl rand -hex 32
+  # or
+  node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+  ```
+- [ ] Add to Vercel → Project Settings → Environment Variables as **`CSRF_SECRET`** (Production + Preview + Development, secret)
+- [ ] Also add to local `.env.local`
+
+### Verification
+
+After deploy, open DevTools on any page → Application → Cookies. You should see a `sparkforge-csrf` cookie (`SameSite=Lax`, `Secure` in prod, NOT httpOnly — JS must read it). A `curl -X POST` without the cookie + header to any mutating endpoint should return `403 { "code": "CSRF_FAILED" }`.
+
+> If unset, `CSRF_SECRET` falls back to `SUPABASE_SERVICE_ROLE_KEY` for token HMACs. Usable but not ideal — rotating the service key would invalidate every session's CSRF cookie. Always set `CSRF_SECRET` explicitly in production.
+
+## 3.5 Resend (for trial reminder emails)
 
 Transactional email is used for trial-ending reminders (48h and 24h before expiry). The codebase uses Resend's REST API directly (no npm dependency) and degrades gracefully if unconfigured — the cron returns `{ skipped: true }` and the app runs normally without email.
 
@@ -257,6 +380,9 @@ Add these to **Project Settings → Environment Variables**. Paste values from t
 | `NEXT_PUBLIC_URL` | set to `https://<domain>` | No |
 | `NEXT_PUBLIC_APP_URL` | set to `https://<domain>` | No |
 | `CRON_SECRET` | generate a random 32+ char string | **Yes** |
+| `CSRF_SECRET` | 32+ random chars; HMAC secret for CSRF tokens (AUTH-HIGH-004). Falls back to `SUPABASE_SERVICE_ROLE_KEY` if unset. | **Yes** |
+| `UPSTASH_REDIS_REST_URL` | 3.3 (Upstash) — required for real rate limits | No |
+| `UPSTASH_REDIS_REST_TOKEN` | 3.3 (Upstash) — required for real rate limits | **Yes** |
 
 ### Optional (feature-gated)
 
@@ -293,6 +419,10 @@ All cron endpoints require the `CRON_SECRET` bearer token. Vercel injects this a
 ---
 
 # Phase 5 — Post-Deploy Verification
+
+> **Staging environment (optional but strongly recommended):** See [`STAGING_NOTES.md`](./STAGING_NOTES.md) for the full operator guide to running a preview-environment staging stack (separate Supabase project + Stripe restricted test-mode key + Upstash staging + preview-only CSRF secret). DEPLOY-HIGH-001 fix.
+
+> **Automated smoke checks:** `scripts/staging-smoke-test.sh` runs on every Vercel preview deploy via `.github/workflows/staging-smoke.yml`. It verifies `/api/health`, public HTML rendering, CSRF gate, middleware allowlist, and CSP headers — a failure blocks merges.
 
 ## 5.1 Health Smoke Tests
 

@@ -14,6 +14,7 @@ import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { AuthProvider } from '@/components/providers/AuthProvider';
+import { SkipLink } from '@/components/shared/SkipLink';
 
 // Dynamic 3D imports — SSR disabled
 const LoginPortal3D = dynamic(
@@ -34,7 +35,10 @@ const R3FCanvas = dynamic(
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
+      <SkipLink targetId="auth-main" />
       <div className="min-h-screen bg-surface-deep bg-cosmic-dark relative overflow-hidden">
+        {/* UX-HIGH-001: Skip-link target for auth pages. */}
+        <main id="auth-main" tabIndex={-1} className="sr-only">Authentication content</main>
         {/* Demo session banner — renders only when in demo mode */}
         <DemoSessionBanner />
 

@@ -11,7 +11,7 @@ import { checkRateLimit, RATE_LIMITS, rateLimitKey } from '@/lib/rate-limit';
 export async function POST(req: NextRequest) {
   // Rate limit: auth tier (5/min)
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown';
-  const rl = checkRateLimit(rateLimitKey('consent', ip), RATE_LIMITS.auth);
+  const rl = await checkRateLimit(rateLimitKey('consent', ip), RATE_LIMITS.auth);
   if (!rl.allowed) {
     return apiError('Too many requests. Try again later.', 429);
   }

@@ -2305,3 +2305,154 @@ Grouped by area — user will review options per-finding at the start of the nex
 ---
 
 *Phase 1 complete: April 17, 2026 | 14 commits on `claude/audit-phase-one-planning-XUEJC` | 49/49 tests green | CI pipeline live*
+
+---
+
+## PHASE 2 IMPLEMENTATION LOG — April 19, 2026
+
+**Branch:** `claude/phase-2-planning-Pon2W`
+**Status:** **All 28 High-severity items resolved** ✓ + CI Cleanup
+**Implementer:** Claude Code (Opus 4.7)
+**Test count:** 49 → **88 passing** (+39 new tests)
+**CI:** 3-job pipeline green on every push
+
+### Selection & Execution Summary
+
+| # | ID | Option | Commit |
+|---|---|---|---|
+| 0a | CI Cleanup 1.1 | cast-through-unknown | `7b5ad0d` |
+| 0b | CI Cleanup 1.2 | tsc step blocking | `34736a3` |
+| 0c | CI Cleanup 1.3 | actions @v5 bump | `b197baf` |
+| 1 | AUTH-HIGH-001 | B — localhost:0 + runtime guard | `5b66107` |
+| 2 | AUTH-HIGH-002 | B — middleware allowlist + CI grep | `948107f` |
+| 3 | AUTH-HIGH-003 | B — Upstash rate limiter (wrapped) | `a95089e` |
+| 4 | AUTH-HIGH-004 | **C** — signUp() + email_verified_at + banner + paid gate | `5e174f4` |
+| 5 | PAY-HIGH-001 | B — 60s constructEvent tolerance | `987824a` |
+| 6 | PAY-HIGH-002 | B — getCustomerId type-guard helper | `7ecbe7d` |
+| 7 | PAY-HIGH-003 | B — checkout verify + poll-for-webhook | `f0e1645` |
+| 8 | API-HIGH-001 | B — AvatarConfigSchema.partial() | `ed55ffa` |
+| 9 | API-HIGH-002 | B — SHA-256 body-hash dedup | `8b4b82b` |
+| 10 | API-HIGH-003 | **C** — server-authoritative XP + 35-game audit + DAILY_XP_CAP | `00e91e8` |
+| 11 | API-HIGH-004 | **B** (homebrew, dep deprecated) — HMAC double-submit CSRF | `6fdcec3` |
+| 12a | Docs audit | — | `805ca43` |
+| 13 | DB-HIGH-001 | B — content admin split RLS + audit cols | `94337e4` |
+| 14 | DB-HIGH-002 | B — audit_log + triggers + 90d retention | `7d78666` |
+| 15 | DB-HIGH-003 | B — pg_cron daily/weekly resets | `c6e88ab` |
+| 16 | DEPLOY-HIGH-001 | **C** — staging docs + preview smoke workflow | `6787e16` |
+| 17 | DEPLOY-HIGH-002 | B — nonce-based CSP (unsafe-inline removed) | `c55710c` |
+| 18 | DEPLOY-HIGH-003 | B — enriched /api/health + Sentry check-in | `c05fd63` |
+| 19 | UX-HIGH-001 | B — SkipLink on all layouts | `2711ba8` |
+| 20 | UX-HIGH-002 | **A + B** — HTML nav fallback + 3D arrow-key sync | `7bab6e7` |
+| 21 | UX-HIGH-003 | B — offline banner + retry toast pattern | `4cf8526` |
+| 22 | UX-HIGH-004 | **C** — route-level loading skeletons | `0cfd383` |
+| 23 | UX-HIGH-005 | **C** — contrast audit + ESLint regression guard | `b2cf12d` |
+| 24 | PERF-HIGH-001 | **C** — store selectors (5 flagships) + ESLint + profiling docs | `d984995` |
+| 25 | PERF-HIGH-002 | **C** — 3D asset pipeline (audit revealed zero textures today) | `95cad42` |
+| 26 | PERF-HIGH-003 | **C** — setInterval → lazy cleanup | `30cea89` |
+| 27 | STATE-HIGH-001 | **C** — focus/visibility revalidation + BroadcastChannel | `e1848d3` |
+| 28 | STATE-HIGH-002 | **C** — retry coverage across streak + badges | `65c6282` |
+| 29 | STATE-HIGH-003 | **C** (docs+audit only — refactor deferred) — state architecture doc + dep-graph script | `d80be34` |
+
+### Deliverables
+
+**New SQL migrations** (`sql/` — run in Supabase SQL Editor in this order):
+- `011_parents_email_verified_at.sql` — AUTH-HIGH-004 nullable column + partial index
+- `012_xp_daily_cap.sql` — API-HIGH-003 counter + trigger
+- `013_content_admin_tighten.sql` — DB-HIGH-001 split RLS policies + audit columns
+- `014_audit_log.sql` — DB-HIGH-002 generic audit_log + SECURITY DEFINER trigger + 90d retention
+- `015_pg_cron_daily_resets.sql` — DB-HIGH-003 daily / weekly cron jobs (no-op on Free plan)
+
+**New runtime modules:**
+- `src/lib/csrf.ts` — HMAC double-submit CSRF helpers (replaces deprecated @edge-csrf/nextjs)
+- `src/lib/csp.ts` — Nonce-based Content-Security-Policy builder
+- `src/lib/game-xp-config.ts` — Server-authoritative XP rewards + DAILY_XP_CAP
+- `src/lib/stripe.ts` — Added `getCustomerId` helper
+
+**New UI components:**
+- `src/components/shared/SkipLink.tsx` — WCAG 2.4.1
+- `src/components/shared/OfflineBanner.tsx` — UX-HIGH-003
+- `src/components/shared/Skeleton.tsx` — Loading-state primitives
+- `src/components/auth/EmailVerifyBanner.tsx` — AUTH-HIGH-004
+
+**Scripts:**
+- `scripts/staging-smoke-test.sh` — preview-deploy smoke tests
+- `scripts/compress-textures.sh` — KTX2 compression pipeline
+- `scripts/audit-store-deps.sh` — state architecture dep graph
+- `scripts/audit-api-auth.sh` — (existing) extended to 42 routes
+
+**CI workflows:**
+- `.github/workflows/staging-smoke.yml` — auto-runs on every Vercel preview deploy
+- `.github/workflows/ci.yml` — added 5 migrations + API auth audit step
+
+**Documentation added:**
+- `STAGING_NOTES.md` — full operator guide for staging environment
+- `docs/UX_CONTRAST_POLICY.md` — WCAG contrast rule + migration plan
+- `docs/3D_PERF_PROFILING.md` — r3f-perf + selector profiling guide
+- `docs/3D_ASSET_PIPELINE.md` — KTX2 / basisu / gltfpack workflow
+- `docs/STATE_ARCHITECTURE.md` — 14-store inventory + dep graph + refactor roadmap
+
+**Key architectural additions:**
+- Nonce-based CSP: `script-src 'unsafe-inline'` removed; per-request nonce + strict-dynamic
+- Homebrew HMAC CSRF: 100 LOC replaces deprecated @edge-csrf/nextjs
+- Server-authoritative XP: 35 games audited; client can no longer forge XP amounts
+- Middleware API allowlist: 41-route audit; protected endpoints return 401 not pass-through
+- Audit log: 5 tables (parents, children, content, content_queue, subscription_events) now emit INSERT/UPDATE/DELETE rows
+- Upstash Redis: rate limiter no longer resets per serverless isolate
+- Skip-link + keyboard nav: WCAG 2.4.1 + arrow-key 3D nav via nav-focus broadcast event
+- ESLint regression guards: low-contrast text, whole-store subscriptions, wildcard Three imports
+
+### Metrics
+
+| Metric | Phase 1 end | Phase 2 end |
+|---|---|---|
+| High bugs resolved | — | 28 |
+| Unit tests | 49 | **88** |
+| Test files | 5 | 12 |
+| CI workflows | 1 | 2 |
+| Custom ESLint rules | 1 | 4 (wildcard-three, font-numeric, contrast, store-sub) |
+| API routes audited | — | 43 |
+| SQL migrations | 10 + verify | 15 + verify |
+| Store files | 14 | 14 (dep graph documented; merges deferred) |
+| Three.js wildcard imports | 0 | 0 |
+| Deprecated dependencies (security) | Stale rate limit + CSRF | 0 — both replaced |
+
+### Operator Action Items
+
+1. **Supabase SQL Editor** (in order):
+   - `sql/011_parents_email_verified_at.sql`
+   - `sql/012_xp_daily_cap.sql`
+   - `sql/013_content_admin_tighten.sql`
+   - `sql/014_audit_log.sql`
+   - `sql/015_pg_cron_daily_resets.sql` (Pro plan only — no-op on Free)
+
+2. **Supabase Dashboard** (Authentication → Providers → Email):
+   - Enable "Confirm email" — AUTH-HIGH-004 requires this to actually gate login.
+   - URL Configuration → Site URL = production domain + Redirect URLs include `/api/auth/callback`.
+
+3. **Upstash** — provision free-tier Redis database, set `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` in Vercel (AUTH-HIGH-003).
+
+4. **Vercel env vars**:
+   - `CSRF_SECRET` = 32+ random chars (`openssl rand -hex 32`). AUTH-HIGH-004 / API-HIGH-004.
+   - `SENTRY_HEALTH_MONITOR_SLUG` = your Sentry Cron Monitor slug (optional, DEPLOY-HIGH-003).
+
+5. **Staging environment** — optional but strongly recommended. Follow `STAGING_NOTES.md` to stand up a preview-environment stack (separate Supabase project + Stripe test-mode restricted key + Upstash staging + preview-only CSRF_SECRET).
+
+6. **Sentry Cron Monitor** — optional. Create monitor `sparkforge-health`, set env var. DEPLOY-HIGH-003.
+
+### Intentional Deferrals — Phase 3 roadmap
+
+These were called out during Phase 2 Option C work as follow-ups best done in dedicated sessions rather than squeezed into this batch:
+
+- **R1 (STATE-HIGH-003):** Merge `cockpitUIStore` → `cockpitStore.ui` slice. Low-risk, 12-consumer rewrite.
+- **R2 (STATE-HIGH-003):** Merge `accessibilityStore` → `uiStore.a11y` slice. Low-risk, 11-consumer rewrite.
+- **UX-HIGH-005 backfill:** ~600 legacy `text-white/10-40` usages to migrate to `/50+` in batched component audits. ESLint rule currently `warn` to avoid blocking CI during backfill.
+- **PERF-HIGH-001 backfill:** 30 non-flagship game components still use `const game = useGameStore()`. ESLint warns on these. Migrate mechanically following the pattern established in 5 flagships.
+- **Deeper preview smoke tests:** Signup → child create → game complete → xp award → webhook user journey. Requires pre-provisioned test parent OR Playwright E2E suite.
+
+### Carry-over to Phase 3
+
+Phase 3 scope is **29 Medium-severity findings** across the 8 categories, plus the deferrals above. Recommended approach mirrors Phase 1/2: category-by-category option review with user selections, one commit per finding, push at category boundary.
+
+---
+
+*Phase 2 complete: April 19, 2026 | 33 commits on `claude/phase-2-planning-Pon2W` | 88/88 tests green | Pushed.*

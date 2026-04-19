@@ -16,7 +16,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { createAdminClient } from '@/lib/supabase/server';
-import { getStripe } from '@/lib/stripe';
+import { getStripe, getCustomerId } from '@/lib/stripe';
 import { logSubscriptionEvent } from '@/lib/subscription-events';
 import type { SubscriptionTier } from '@/lib/tier-config';
 
@@ -90,10 +90,18 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event;
   try {
+    // PAY-HIGH-001 (B): Explicit 60s replay-tolerance window.
+    // Stripe defaults to 5 minutes, which combined with the
+    // `processed` idempotency column still leaves a 5-minute window
+    // where a captured payload could be resubmitted before the DB
+    // short-circuit fires. 60s matches Stripe's recommendation for
+    // high-security webhooks and is well within the handful of
+    // seconds that legitimate Stripe retries take.
     event = stripe.webhooks.constructEvent(
       body,
       sig,
-      process.env.STRIPE_WEBHOOK_SECRET
+      process.env.STRIPE_WEBHOOK_SECRET,
+      60,
     );
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown error';
@@ -157,16 +165,32 @@ export async function POST(req: NextRequest) {
           }
         }
 
+        // PAY-HIGH-002 (B): defensive customer-id resolution. Falls
+        // back to the existing value on the parents row if the webhook
+        // payload somehow lacks a resolvable customer (deleted /
+        // expanded-but-null / string edge cases).
+        const resolvedCustomerId = getCustomerId(session.customer);
+        if (!resolvedCustomerId) {
+          console.warn(
+            '[webhook] checkout.session.completed missing customer id; event=%s',
+            event.id,
+          );
+        }
+
+        const checkoutUpdate: Record<string, unknown> = {
+          subscription_tier: tier,
+          subscription_status: 'active',
+          stripe_subscription_id: stripeSubscriptionId,
+          trial_ends_at: trialEndsAt,
+          subscription_period_end: periodEnd,
+        };
+        if (resolvedCustomerId) {
+          checkoutUpdate.stripe_customer_id = resolvedCustomerId;
+        }
+
         await supabase
           .from('parents')
-          .update({
-            subscription_tier: tier,
-            subscription_status: 'active',
-            stripe_customer_id: session.customer as string,
-            stripe_subscription_id: stripeSubscriptionId,
-            trial_ends_at: trialEndsAt,
-            subscription_period_end: periodEnd,
-          })
+          .update(checkoutUpdate)
           .eq('id', supabaseId);
 
         // Update event with parent_id for audit trail
@@ -181,7 +205,17 @@ export async function POST(req: NextRequest) {
     case 'customer.subscription.created':
     case 'customer.subscription.updated': {
       const sub = event.data.object as Stripe.Subscription;
-      const customerId = sub.customer as string;
+      // PAY-HIGH-002 (B): skip if customer can't be resolved rather
+      // than issuing an UPDATE against `'[object Object]'`.
+      const customerId = getCustomerId(sub.customer);
+      if (!customerId) {
+        console.warn(
+          '[webhook] %s missing customer id; event=%s',
+          event.type,
+          event.id,
+        );
+        break;
+      }
       const status = STRIPE_STATUS_MAP[sub.status] ?? 'active';
 
       // v3 Gap 1+2: persist subscription ID, trial end, period end, and
@@ -211,6 +245,15 @@ export async function POST(req: NextRequest) {
 
     case 'customer.subscription.deleted': {
       const sub = event.data.object as Stripe.Subscription;
+      // PAY-HIGH-002 (B): guard the customer-id lookup.
+      const deletedCustomerId = getCustomerId(sub.customer);
+      if (!deletedCustomerId) {
+        console.warn(
+          '[webhook] customer.subscription.deleted missing customer id; event=%s',
+          event.id,
+        );
+        break;
+      }
       // v3 Gap 1: Clear stripe_subscription_id so a re-subscribe creates a
       // fresh row without tripping the UNIQUE constraint.
       await supabase
@@ -222,16 +265,25 @@ export async function POST(req: NextRequest) {
           trial_ends_at: null,
           subscription_period_end: null,
         })
-        .eq('stripe_customer_id', sub.customer as string);
+        .eq('stripe_customer_id', deletedCustomerId);
       break;
     }
 
     case 'invoice.payment_failed': {
       const invoice = event.data.object as Stripe.Invoice;
+      // PAY-HIGH-002 (B): guard the customer-id lookup.
+      const invoiceCustomerId = getCustomerId(invoice.customer);
+      if (!invoiceCustomerId) {
+        console.warn(
+          '[webhook] invoice.payment_failed missing customer id; event=%s',
+          event.id,
+        );
+        break;
+      }
       await supabase
         .from('parents')
         .update({ subscription_status: 'past_due' })
-        .eq('stripe_customer_id', invoice.customer as string);
+        .eq('stripe_customer_id', invoiceCustomerId);
       break;
     }
   }

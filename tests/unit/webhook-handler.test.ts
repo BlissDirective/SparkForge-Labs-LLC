@@ -32,9 +32,16 @@ import type Stripe from 'stripe';
 vi.mock('@/lib/supabase/server', () => ({
   createAdminClient: vi.fn(),
 }));
-vi.mock('@/lib/stripe', () => ({
-  getStripe: vi.fn(),
-}));
+vi.mock('@/lib/stripe', async (importOriginal) => {
+  // PAY-HIGH-002: Keep the real `getCustomerId` helper (pure function)
+  // while mocking `getStripe`. Using importOriginal() propagates any
+  // future additions to the stripe-lib surface automatically.
+  const actual = await importOriginal<typeof import('@/lib/stripe')>();
+  return {
+    ...actual,
+    getStripe: vi.fn(),
+  };
+});
 
 // Now safe to import
 import { POST } from '@/app/api/stripe/webhook/route';
@@ -256,7 +263,9 @@ describe('webhook handler — checkout.session.completed', () => {
     // 1. Event audit row upserted
     const upserts = calls.filter((c) => c.op === 'upsert' && c.table === 'subscription_events');
     expect(upserts).toHaveLength(1);
-    const auditEntry = upserts[0] as { data: { stripe_event_id: string; event_type: string } };
+    const auditEntry = upserts[0] as unknown as {
+      data: { stripe_event_id: string; event_type: string };
+    };
     expect(auditEntry.data.stripe_event_id).toBe('evt_checkout_123');
     expect(auditEntry.data.event_type).toBe('checkout.session.completed');
 

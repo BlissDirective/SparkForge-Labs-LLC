@@ -145,10 +145,17 @@ function springLerp(
 interface NavButtonMeshProps {
   config: NavButtonConfig;
   active: boolean;
+  /**
+   * UX-HIGH-002 (B): Keyboard focus is on the Sidebar nav item that
+   * maps to this button. Renders an additional outline-style
+   * highlight ring so the keyboard user sees which 3D button would
+   * be activated on Enter — distinct from hover/press/active.
+   */
+  keyboardFocused?: boolean;
   onPress: () => void;
 }
 
-function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
+function NavButtonMesh({ config, active, keyboardFocused, onPress }: NavButtonMeshProps) {
   const groupRef = useRef<Group>(null);
   const meshRef = useRef<Mesh>(null);
   const bezelRef = useRef<Mesh>(null);
@@ -379,6 +386,29 @@ function NavButtonMesh({ config, active, onPress }: NavButtonMeshProps) {
             side={DoubleSide}
           />
         </mesh>
+
+        {/* UX-HIGH-002 (B): Keyboard-focus highlight ring. Rendered
+            slightly larger than the active ring and only when the
+            mapped Sidebar item currently has DOM focus. Provides the
+            "pre-activation" visual affordance so keyboard users can
+            see which 3D button Enter would fire. */}
+        {keyboardFocused && (
+          <mesh
+            geometry={ringGeometry}
+            rotation={[-Math.PI / 2, 0, 0]}
+            position={[0, BUTTON_DEPTH + 0.006, 0]}
+            scale={1.35}
+          >
+            <meshBasicMaterial
+              color="#ffffff"
+              transparent
+              opacity={0.85}
+              toneMapped={false}
+              blending={AdditiveBlending}
+              side={DoubleSide}
+            />
+          </mesh>
+        )}
       </group>
     </group>
   );
@@ -473,7 +503,18 @@ export function NavigationButtonGrid({
   const router = useRouter();
   const pathname = usePathname();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
+  const lastEvent = useCockpitBroadcast((s) => s.lastEvent);
   const setLabColor = useUIStore((s) => s.setLabColor);
+
+  // UX-HIGH-002 (B): derive keyboard-focused button id from the most
+  // recent `nav-focus` broadcast. The Sidebar emits this on every
+  // onFocus as the keyboard traverses HTML nav items; the matching
+  // in-canvas button renders a white outline ring until the user
+  // tabs elsewhere.
+  const keyboardFocusedId = useMemo(() => {
+    if (lastEvent?.type !== 'nav-focus') return null;
+    return lastEvent.source ?? null;
+  }, [lastEvent]);
 
   // Determine which button is active based on current route
   const activeRoute = useMemo(() => {
@@ -516,6 +557,7 @@ export function NavigationButtonGrid({
           key={button.id}
           config={button}
           active={activeRoute === button.route}
+          keyboardFocused={keyboardFocusedId === button.id}
           onPress={() => handleNavigation(button)}
         />
       ))}

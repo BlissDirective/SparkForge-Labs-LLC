@@ -162,16 +162,18 @@ export async function requireAdmin(
 
 // ═══ RATE LIMITING MIDDLEWARE ═══
 
-export function applyRateLimit(
+// AUTH-HIGH-003: `checkRateLimit` is now async (Upstash-backed), so
+// `applyRateLimit` is async as well. All call sites `await` it.
+export async function applyRateLimit(
   req: NextRequest,
   prefix: string,
   userId?: string,
   config: { maxRequests: number; windowMs: number } = RATE_LIMITS.general
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const ip = getClientIP(req);
   const identifier = userId || ip;
   const key = rateLimitKey(prefix, identifier);
-  const result = checkRateLimit(key, config);
+  const result = await checkRateLimit(key, config);
 
   if (!result.allowed) {
     return NextResponse.json(
@@ -225,38 +227,81 @@ export function getClientIP(req: NextRequest): string {
 // ═══ v2 [NEW-2B]: REQUEST DEDUPLICATION ═══
 // Prevents duplicate rapid submissions (e.g., double-clicking
 // "Award XP" button). Returns cached response for identical
-// requests within a 500ms window.
+// requests within DEDUP_WINDOW_MS.
+//
+// API-HIGH-002 (B): Dedup key is now a SHA-256 hash of the request
+// body (truncated to 16 hex chars / 64 bits of entropy). Previous
+// implementation used only Content-Length, which meant two different
+// requests that happened to have the same byte length shared a dedup
+// key and legitimate consecutive submissions were dropped.
 
 const recentRequests = new Map<string, { response: NextResponse; timestamp: number }>();
 const DEDUP_WINDOW_MS = 500;
 
-// Clean up dedup cache every 30 seconds
-if (typeof globalThis !== 'undefined') {
-  setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of recentRequests.entries()) {
-      if (now - entry.timestamp > DEDUP_WINDOW_MS * 2) {
-        recentRequests.delete(key);
-      }
+// PERF-HIGH-003 (C): Lazy dedup-cache cleanup. The prior 30-second
+// setInterval has been removed — even with .unref() it's a live
+// timer per serverless isolate and the Map is already bounded by
+// the DEDUP_WINDOW_MS expiry check at read time. We prune
+// probabilistically on each call (≈1/64 of calls pay the O(n)
+// scan, amortizing cost across traffic) so stale entries never
+// accumulate indefinitely on long-lived Node processes either.
+function maybePurgeRecentRequests(now: number): void {
+  if ((now & 0x3f) !== 0) return;
+  for (const [k, entry] of recentRequests.entries()) {
+    if (now - entry.timestamp > DEDUP_WINDOW_MS * 2) {
+      recentRequests.delete(k);
     }
-  }, 30 * 1000);
+  }
+}
+
+async function hashBody(body: string): Promise<string> {
+  // Web Crypto API — available in both Edge and Node runtimes.
+  const bytes = new TextEncoder().encode(body);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  // 64 bits of entropy is ample for a 500 ms anti-double-click window.
+  return Array.from(new Uint8Array(digest))
+    .slice(0, 8)
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
 }
 
 /**
  * Check if an identical request was made within the dedup window.
  * Call at the start of mutating handlers (POST, PATCH, DELETE).
+ *
+ * Usage in route handler:
+ *   const dup = await checkDuplicate(req, auth.user.id);
+ *   if (dup) return dup;
+ *
  * @param req - The incoming request
  * @param userId - Authenticated user ID
  * @returns NextResponse if duplicate, null if fresh
- *
- * Usage in route handler:
- *   const dup = checkDuplicate(req, auth.user.id);
- *   if (dup) return dup;
  */
-export function checkDuplicate(req: NextRequest, userId: string): NextResponse | null {
-  const body = req.headers.get('content-length') || '0';
-  const key = `${userId}:${req.method}:${req.nextUrl.pathname}:${body}`;
+export async function checkDuplicate(
+  req: NextRequest,
+  userId: string,
+): Promise<NextResponse | null> {
+  // Read body off a clone so the original request stream is still
+  // consumable by downstream parseBody() / req.json() calls.
+  let bodyHash = 'empty';
+  try {
+    const cloned = req.clone();
+    const bodyText = await cloned.text();
+    if (bodyText) bodyHash = await hashBody(bodyText);
+  } catch {
+    // If clone fails for some reason (unlikely), fall back to
+    // content-length. Still narrows the attack surface vs. the
+    // previous 'length-only' impl because non-empty requests at
+    // least differ by method+path.
+    bodyHash = `cl${req.headers.get('content-length') ?? '0'}`;
+  }
+
+  const key = `${userId}:${req.method}:${req.nextUrl.pathname}:${bodyHash}`;
   const now = Date.now();
+  // PERF-HIGH-003 (C): opportunistic lazy cleanup replaces the
+  // former setInterval. Amortized across traffic; no background
+  // timer, no .unref() to miss.
+  maybePurgeRecentRequests(now);
 
   const recent = recentRequests.get(key);
   if (recent && now - recent.timestamp < DEDUP_WINDOW_MS) {

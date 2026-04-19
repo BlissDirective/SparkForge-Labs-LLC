@@ -7,6 +7,7 @@
 // All logic handlers defined here; visual rendering in 3D panel.
 
 import { useCallback } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { ageToAgeBand } from '@/lib/utils';
@@ -23,7 +24,7 @@ export default function SignupPage() {
     try {
       const res = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           email,
           password,
@@ -51,7 +52,7 @@ export default function SignupPage() {
     try {
       const res = await fetch('/api/auth/consent', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({ email, coppaConsent: true }),
       });
       if (!res.ok) {
@@ -74,7 +75,7 @@ export default function SignupPage() {
       // Login first
       const loginRes = await fetch('/api/auth/login', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({ email, password }),
       });
       if (!loginRes.ok) {
@@ -85,7 +86,7 @@ export default function SignupPage() {
       const ageBand = ageToAgeBand(childAge);
       const childRes = await fetch('/api/children', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           displayName,
           ageBand,

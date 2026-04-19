@@ -115,6 +115,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } else if (event === 'SIGNED_OUT') {
           clearAuth();
           clearChild();
+          // STATE-HIGH-001 (C): Broadcast to other open tabs so they
+          // drop their cached session without waiting for their own
+          // storage-event or focus-revalidation pass.
+          broadcastAuthEvent('signed-out');
           router.push('/login');
         } else if (event === 'TOKEN_REFRESHED' && session?.user) {
           // Re-hydrate on token refresh to keep data fresh.
@@ -127,9 +131,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     );
 
+    // STATE-HIGH-001 (C): Focus + visibility revalidation.
+    // On tab focus (or tab becoming visible after minimize / app
+    // switch), ask Supabase to validate the cached session with the
+    // server via `auth.getUser()`. A 401 / missing user indicates
+    // the session was invalidated (signed out in another tab, token
+    // expired, revoked, etc.) — we then tear down the local store.
+    async function revalidateSession() {
+      if (!mounted) return;
+      try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data?.user) {
+          // Only clear if we THINK we have a parent; avoids spurious
+          // clears when the user was never signed in.
+          const hasParent = useAuthStore.getState().parent !== null;
+          if (hasParent) {
+            clearAuth();
+            clearChild();
+            broadcastAuthEvent('signed-out');
+            router.push('/login?reason=session-expired');
+          }
+        }
+      } catch {
+        /* network hiccup — surface via OfflineBanner, do not clear */
+      }
+    }
+
+    function handleFocus() { void revalidateSession(); }
+    function handleVisibilityChange() {
+      if (document.visibilityState === 'visible') void revalidateSession();
+    }
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // STATE-HIGH-001 (C): BroadcastChannel cross-tab. Supabase's
+    // localStorage-backed auth already fires storage events cross-
+    // tab; this is a belt-and-suspenders channel for setups where
+    // localStorage events don't propagate (e.g., some privacy modes,
+    // service-worker isolation).
+    const channel: BroadcastChannel | null =
+      typeof BroadcastChannel !== 'undefined'
+        ? new BroadcastChannel('sparkforge-auth')
+        : null;
+
+    channel?.addEventListener('message', (ev) => {
+      if (!mounted) return;
+      if (ev.data?.type === 'signed-out') {
+        clearAuth();
+        clearChild();
+        router.push('/login');
+      }
+    });
+
+    function broadcastAuthEvent(type: 'signed-out') {
+      channel?.postMessage({ type });
+    }
+
     return () => {
       mounted = false;
       subscription.unsubscribe();
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      channel?.close();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
