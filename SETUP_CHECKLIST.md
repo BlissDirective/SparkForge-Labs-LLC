@@ -413,6 +413,10 @@ All cron endpoints require the `CRON_SECRET` bearer token. Vercel injects this a
 
 # Phase 5 — Post-Deploy Verification
 
+> **Staging environment (optional but strongly recommended):** See [`STAGING_NOTES.md`](./STAGING_NOTES.md) for the full operator guide to running a preview-environment staging stack (separate Supabase project + Stripe restricted test-mode key + Upstash staging + preview-only CSRF secret). DEPLOY-HIGH-001 fix.
+
+> **Automated smoke checks:** `scripts/staging-smoke-test.sh` runs on every Vercel preview deploy via `.github/workflows/staging-smoke.yml`. It verifies `/api/health`, public HTML rendering, CSRF gate, middleware allowlist, and CSP headers — a failure blocks merges.
+
 ## 5.1 Health Smoke Tests
 
 ```bash
