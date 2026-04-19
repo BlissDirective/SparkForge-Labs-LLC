@@ -277,6 +277,13 @@ Admin pages are also reachable via keyboard navigation (sr-only Sidebar).
 - [ ] **Settings → Auth Tokens → Create Token** → scope: `project:releases`, `org:read` → `SENTRY_AUTH_TOKEN`
 - [ ] Record org + project slugs → `SENTRY_ORG`, `SENTRY_PROJECT`
 
+### Optional: Uptime monitor (DEPLOY-HIGH-003)
+
+The enriched `/api/health` endpoint returns HTTP 503 if Supabase is unreachable (hard dependency) and logs `{ overall, checks: { database, stripe, upstash } }` otherwise. Wire it into a monitor:
+
+- [ ] **Sentry Cron Monitors** (free tier OK): Sentry → Crons → Create. Slug = `sparkforge-health`. Schedule = every minute. Copy the slug → `SENTRY_HEALTH_MONITOR_SLUG` env var. Every successful `/api/health` hit reports as a check-in; missed check-ins trigger Sentry alerts.
+- [ ] **Or** an external service (Better Stack, UptimeRobot, Checkly): point it at `https://<domain>/api/health`, alert on non-200, and inspect the JSON body for per-dependency status. Free tiers handle 1-minute interval polling easily.
+
 ## 3.3 Upstash Redis (rate limiting — AUTH-HIGH-003)
 
 The app rate-limits the auth, signup, demo, and AI endpoints. Without a shared backend, limits reset to zero on every serverless cold-start, so attackers can bypass them by making requests fast enough to hit fresh isolates. Upstash provides a globally-replicated Redis counter at negligible latency. **Required for production.** Local dev and CI automatically fall back to an in-memory counter.

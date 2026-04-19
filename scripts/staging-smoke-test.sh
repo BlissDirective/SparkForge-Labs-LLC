@@ -58,8 +58,20 @@ health_json=$(printf '%s' "$health_body" | sed '$d')
 
 if [[ "$health_code" == "200" ]]; then
   pass "GET /api/health → 200"
+  # DEPLOY-HIGH-003: surface individual probe status lines.
+  if command -v jq >/dev/null 2>&1; then
+    overall=$(printf '%s' "$health_json" | jq -r '.overall // "?"' 2>/dev/null || echo '?')
+    printf '     overall = %s\n' "$overall"
+    printf '%s' "$health_json" | jq -r '
+      .checks // {} | to_entries[] |
+      "     \(.key) = \(.value.status)" +
+      (if .value.latencyMs then " (\(.value.latencyMs)ms)" else "" end) +
+      (if .value.error then " — \(.value.error)" else "" end) +
+      (if .value.reason then " — \(.value.reason)" else "" end)
+    ' 2>/dev/null || true
+  fi
 elif [[ "$health_code" == "503" ]]; then
-  fail '/api/health' "503 — one or more dependencies reporting unhealthy: $health_json"
+  fail '/api/health' "503 — unhealthy: $health_json"
 else
   fail '/api/health' "unexpected HTTP $health_code"
 fi
