@@ -133,21 +133,26 @@ interface MemEntry {
 }
 const memStore = new Map<string, MemEntry>();
 
-// Periodic cleanup of expired entries. Only install in non-edge
-// runtimes that support setInterval (avoids leaking on edge).
-if (typeof setInterval !== 'undefined' && !USE_UPSTASH) {
-  const interval = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of memStore.entries()) {
-      if (entry.resetAt < now) memStore.delete(key);
-    }
-  }, 5 * 60 * 1000);
-  // Don't keep the process alive just for cleanup (Node.js).
-  (interval as unknown as { unref?: () => void }).unref?.();
+// PERF-HIGH-003 (C): Lazy cleanup. Prior implementation ran a 5-min
+// setInterval — even with .unref() that's a live timer per isolate
+// and an unnecessary allocation on serverless. Primary backend is
+// Upstash (authoritative TTL server-side); the in-memory fallback
+// is only active locally / in CI, where per-request opportunistic
+// pruning keeps the Map bounded without any background work.
+//
+// Probability gate (~1/256) amortizes the O(n) scan across many
+// requests so no single call pays the full cost; on fallback
+// traffic that means a scan roughly every 250 calls.
+function maybeLazyCleanup(now: number): void {
+  if ((now & 0xff) !== 0) return;
+  for (const [k, entry] of memStore.entries()) {
+    if (entry.resetAt < now) memStore.delete(k);
+  }
 }
 
 function checkViaMemory(key: string, config: RateLimitConfig): RateLimitResult {
   const now = Date.now();
+  maybeLazyCleanup(now);
   const entry = memStore.get(key);
 
   if (!entry || entry.resetAt < now) {

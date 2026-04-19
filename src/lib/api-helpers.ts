@@ -238,18 +238,20 @@ export function getClientIP(req: NextRequest): string {
 const recentRequests = new Map<string, { response: NextResponse; timestamp: number }>();
 const DEDUP_WINDOW_MS = 500;
 
-// Clean up dedup cache every 30 seconds
-if (typeof globalThis !== 'undefined') {
-  const cleanup = setInterval(() => {
-    const now = Date.now();
-    for (const [key, entry] of recentRequests.entries()) {
-      if (now - entry.timestamp > DEDUP_WINDOW_MS * 2) {
-        recentRequests.delete(key);
-      }
+// PERF-HIGH-003 (C): Lazy dedup-cache cleanup. The prior 30-second
+// setInterval has been removed — even with .unref() it's a live
+// timer per serverless isolate and the Map is already bounded by
+// the DEDUP_WINDOW_MS expiry check at read time. We prune
+// probabilistically on each call (≈1/64 of calls pay the O(n)
+// scan, amortizing cost across traffic) so stale entries never
+// accumulate indefinitely on long-lived Node processes either.
+function maybePurgeRecentRequests(now: number): void {
+  if ((now & 0x3f) !== 0) return;
+  for (const [k, entry] of recentRequests.entries()) {
+    if (now - entry.timestamp > DEDUP_WINDOW_MS * 2) {
+      recentRequests.delete(k);
     }
-  }, 30 * 1000);
-  // Don't keep the Node process alive just for cleanup.
-  (cleanup as unknown as { unref?: () => void }).unref?.();
+  }
 }
 
 async function hashBody(body: string): Promise<string> {
@@ -296,6 +298,10 @@ export async function checkDuplicate(
 
   const key = `${userId}:${req.method}:${req.nextUrl.pathname}:${bodyHash}`;
   const now = Date.now();
+  // PERF-HIGH-003 (C): opportunistic lazy cleanup replaces the
+  // former setInterval. Amortized across traffic; no background
+  // timer, no .unref() to miss.
+  maybePurgeRecentRequests(now);
 
   const recent = recentRequests.get(key);
   if (recent && now - recent.timestamp < DEDUP_WINDOW_MS) {
