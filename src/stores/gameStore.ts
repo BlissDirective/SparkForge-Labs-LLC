@@ -29,6 +29,7 @@
 // ════════════════════════════════════════════════════
 
 import { createStore, useStore, type StoreApi } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 import { useChildStore } from '@/stores/childStore';
 
 type GamePhase = 'idle' | 'welcome' | 'learn' | 'play' | 'complete';
@@ -211,3 +212,52 @@ export const useGameStore: UseGameStoreCallable = Object.assign(
 );
 
 export type { GamePhase, GameState };
+
+// PERF-HIGH-001 (C): Stable-action selector. Actions never change
+// identity in Zustand, so subscribing to them via useShallow means
+// components only re-render when the bundle's composition changes
+// (never, in practice). Games should prefer this over
+// `const game = useGameStore()` which re-runs the subscriber on
+// every state field change.
+/** Narrow selector for the current score only. */
+export function useGameScore(): number {
+  return useGameStoreImpl((s: GameState) => s.score) as number;
+}
+
+/** Narrow selector for the current game phase only. */
+export function useGamePhase(): GamePhase {
+  return useGameStoreImpl((s: GameState) => s.phase) as GamePhase;
+}
+
+export function useGameActions() {
+  return useGameStoreImpl(
+    useShallow((s: GameState) => ({
+      startGame: s.startGame,
+      setPhase: s.setPhase,
+      updateScore: s.updateScore,
+      setMaxScore: s.setMaxScore,
+      advanceRound: s.advanceRound,
+      useHint: s.useHint,
+      pauseGame: s.pauseGame,
+      resumeGame: s.resumeGame,
+      completeGame: s.completeGame,
+      resetGame: s.resetGame,
+      setGameData: s.setGameData,
+      tick: s.tick,
+    })),
+  ) as Pick<
+    GameState,
+    | 'startGame'
+    | 'setPhase'
+    | 'updateScore'
+    | 'setMaxScore'
+    | 'advanceRound'
+    | 'useHint'
+    | 'pauseGame'
+    | 'resumeGame'
+    | 'completeGame'
+    | 'resetGame'
+    | 'setGameData'
+    | 'tick'
+  >;
+}

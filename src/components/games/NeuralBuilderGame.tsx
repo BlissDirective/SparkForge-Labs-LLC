@@ -24,7 +24,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGameActions } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 
@@ -436,7 +436,9 @@ function buildNetwork(sizes: number[]): NetworkData {
 
 export function NeuralBuilderGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  // PERF-HIGH-001 (C): useGameActions subscribes only to stable
+  // action references; avoids re-renders on score/phase/timer ticks.
+  const game = useGameActions();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { safeTimeout, safeInterval } = useSafeTimeout();

@@ -95,6 +95,17 @@ export default tseslint.config(
           message:
             'Low-contrast text (UX-HIGH-005): text-white/10-40 fails WCAG AA on dark backgrounds. Use text-white/50 or higher, or add an aria-label / eslint-disable comment for intentionally decorative cases.',
         },
+        {
+          // PERF-HIGH-001 (C): Flag full-store subscriptions
+          // (`const x = use*Store()` with NO selector argument) in
+          // files inside a 3D render path or inside games/. Use a
+          // selector like `useGameStore(s => s.score)` or a bundled
+          // action hook (e.g. useGameActions) instead.
+          selector:
+            "VariableDeclarator[init.type='CallExpression'][init.callee.type='Identifier'][init.callee.name=/^use[A-Z]\\w*Store$/][init.arguments.length=0]",
+          message:
+            'Full store subscription (PERF-HIGH-001): `const x = use*Store()` without a selector triggers re-renders on every state change. Use `useStore(s => s.field)` or a bundled-action hook (e.g. useGameActions) instead.',
+        },
       ],
     },
   },

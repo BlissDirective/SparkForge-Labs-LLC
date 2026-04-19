@@ -15,7 +15,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGameActions, useGameScore } from '@/stores/gameStore';
 import { useChildStore } from '@/stores/childStore';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
@@ -285,7 +285,11 @@ function generateShapesForRound(round: RoundConfig, _replayCount: number): Shape
 
 export function SortToyBoxGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  // PERF-HIGH-001 (C): narrow selectors. Actions are stable refs so
+  // useGameActions never triggers re-render; useGameScore isolates
+  // the single reactive read this file makes.
+  const game = useGameActions();
+  const score = useGameScore();
   const { activeChild } = useChildStore();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { safeTimeout } = useSafeTimeout();
@@ -544,7 +548,7 @@ export function SortToyBoxGame() {
         game.updateScore(5 + matchBonus + 10); // +10 for round completion
 
         // Track round score and check progression
-        const roundScore = game.score;
+        const roundScore = score;
         _setRoundScores((prev) => [...prev, roundScore]);
 
         // Unlock next round if match >= 60%
@@ -1042,7 +1046,7 @@ export function SortToyBoxGame() {
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-3 max-w-sm w-full">
                       <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <p className="font-data text-2xl text-purple-400">{game.score}</p>
+                        <p className="font-data text-2xl text-purple-400">{score}</p>
                         <p className="font-body text-2xs text-white/30">Points</p>
                       </div>
                       <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
