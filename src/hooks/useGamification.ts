@@ -1,9 +1,15 @@
+import { useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { useUIStore } from '@/stores/uiStore';
 import { useChildStore } from '@/stores/childStore';
-import { useToastStore } from '@/stores/toastStore';
+import { useToastStore, toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+
+// UX-HIGH-003 (B): helper for offline-vs-network-error copy
+function isOffline(): boolean {
+  return typeof navigator !== 'undefined' && navigator.onLine === false;
+}
 
 // v2 [ENH]: Optimistic XP update — shows instant feedback
 export function useAwardXP() {
@@ -11,7 +17,17 @@ export function useAwardXP() {
   const { triggerCelebration } = useUIStore();
   const { activeChild } = useChildStore();
 
-  return useMutation({
+  // UX-HIGH-003 (B): ref captures mutation.mutate so the retry toast
+  // action can invoke it without TDZ issues. Populated after
+  // useMutation returns.
+  const mutateRef = useRef<((vars: {
+    childId: string;
+    source: string;
+    gameId?: string;
+    amount?: number;
+  }) => void) | null>(null);
+
+  const mutation = useMutation({
     // API-HIGH-003 (C): `gameId` is now the authoritative input for
     // source === 'game'. `amount` is still accepted (and required for
     // non-game sources), but the server ignores it for games.
@@ -51,11 +67,26 @@ export function useAwardXP() {
       return { previousChild };
     },
 
-    onError: (_err, _variables, context) => {
+    onError: (_err, variables, context) => {
       // Rollback on error
       if (context?.previousChild) {
         useChildStore.getState().setActiveChild(context.previousChild);
       }
+      // UX-HIGH-003 (B): Retry toast. Offline copy is more optimistic
+      // because the user's connection — not the server — is the
+      // likely cause and Option B's OfflineBanner already tells them.
+      toast.error(
+        isOffline()
+          ? "You're offline — XP will save when you reconnect."
+          : "Couldn't save XP.",
+        {
+          duration: 8000,
+          action: {
+            label: 'Retry',
+            onClick: () => mutateRef.current?.(variables),
+          },
+        }
+      );
     },
 
     onSuccess: (result) => {
@@ -94,6 +125,12 @@ export function useAwardXP() {
       qc.invalidateQueries({ queryKey: ['progress'] });
     },
   });
+
+  // Populate the retry-ref so the toast action can re-mutate. React
+  // guarantees mutation.mutate is stable across renders.
+  mutateRef.current = mutation.mutate;
+
+  return mutation;
 }
 
 // v2 [ENH]: Optimistic streak update

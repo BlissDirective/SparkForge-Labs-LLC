@@ -40,6 +40,7 @@ import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
 import { EmailVerifyBanner } from '@/components/auth/EmailVerifyBanner';
 import { SkipLink } from '@/components/shared/SkipLink';
+import { OfflineBanner } from '@/components/shared/OfflineBanner';
 import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
@@ -121,6 +122,8 @@ export default function DashboardLayout({
           cockpit/sidebar noise to the live-region announcer that
           serves as the dashboard's canonical main-content anchor. */}
       <SkipLink />
+      {/* UX-HIGH-003 (B): Top-of-viewport offline indicator. */}
+      <OfflineBanner />
       <DemoSessionBanner />
       {/* AUTH-HIGH-004 (4C): Dismissible (session-scope) reminder when
           parents.email_verified_at is null. Renders nothing for verified

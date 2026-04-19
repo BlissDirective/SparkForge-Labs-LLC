@@ -41,9 +41,21 @@ export function ToastContainer() {
           >
             <div className="flex-shrink-0 mt-0.5">{TOAST_ICONS[t.type]}</div>
             <p className="font-body text-sm text-white/90 flex-1">{t.message}</p>
+            {/* UX-HIGH-003 (B): Optional inline action (e.g., "Retry"). */}
+            {t.action && (
+              <button
+                onClick={() => {
+                  t.action?.onClick();
+                  removeToast(t.id);
+                }}
+                className="flex-shrink-0 rounded-md border border-white/20 px-2 py-1 text-xs font-semibold text-white/85 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-spark-blue/60"
+              >
+                {t.action.label}
+              </button>
+            )}
             <button
               onClick={() => removeToast(t.id)}
-              className="flex-shrink-0 text-white/30 hover:text-white/60 transition-colors"
+              className="flex-shrink-0 text-white/40 hover:text-white/70 transition-colors"
               aria-label="Dismiss notification"
             >
               <X className="w-4 h-4" />
