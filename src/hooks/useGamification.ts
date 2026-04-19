@@ -134,11 +134,15 @@ export function useAwardXP() {
 }
 
 // v2 [ENH]: Optimistic streak update
+// STATE-HIGH-002 (C): Adds Retry-action toast on error in addition to
+// the pre-existing optimistic-update + rollback.
 export function useUpdateStreak() {
   const qc = useQueryClient();
   const { activeChild } = useChildStore();
 
-  return useMutation({
+  const mutateRef = useRef<((childId: string) => void) | null>(null);
+
+  const mutation = useMutation({
     mutationFn: (childId: string) =>
       apiFetch<{ shieldUsed?: boolean }>('/api/gamification/streak', { method: 'POST', body: JSON.stringify({ childId }) }),
 
@@ -156,10 +160,22 @@ export function useUpdateStreak() {
       return { previousChild };
     },
 
-    onError: (_err, _variables, context) => {
+    onError: (_err, variables, context) => {
       if (context?.previousChild) {
         useChildStore.getState().setActiveChild(context.previousChild);
       }
+      toast.error(
+        isOffline()
+          ? "You're offline — streak will save when you reconnect."
+          : "Couldn't update streak.",
+        {
+          duration: 8000,
+          action: {
+            label: 'Retry',
+            onClick: () => mutateRef.current?.(variables),
+          },
+        },
+      );
     },
 
     onSuccess: (result) => {
@@ -184,6 +200,9 @@ export function useUpdateStreak() {
       qc.invalidateQueries({ queryKey: ['progress'] });
     },
   });
+
+  mutateRef.current = mutation.mutate;
+  return mutation;
 }
 
 // Get badges for a child
@@ -197,11 +216,16 @@ export function useBadges(childId: string) {
 }
 
 // Check for new badges after an action
+// STATE-HIGH-002 (C): No optimistic update — badges are server-determined
+// (we don't know which will trigger). But we do surface errors via a
+// retry-action toast so a transient failure doesn't silently lose a
+// badge earn.
 export function useCheckBadges() {
   const qc = useQueryClient();
   const { triggerCelebration } = useUIStore();
+  const mutateRef = useRef<((childId: string) => void) | null>(null);
 
-  return useMutation({
+  const mutation = useMutation({
     mutationFn: (childId: string) =>
       apiFetch<{ newBadges: Array<{ id: string; name: string; icon: string; description: string; rarity: string; category: string }> }>('/api/gamification/badges', { method: 'POST', body: JSON.stringify({ childId }) }),
     onSuccess: (result) => {
@@ -221,7 +245,24 @@ export function useCheckBadges() {
       }
       qc.invalidateQueries({ queryKey: ['badges'] });
     },
+    onError: (_err, variables) => {
+      toast.error(
+        isOffline()
+          ? "You're offline — we'll check for new badges when you reconnect."
+          : "Couldn't check for new badges.",
+        {
+          duration: 8000,
+          action: {
+            label: 'Retry',
+            onClick: () => mutateRef.current?.(variables),
+          },
+        },
+      );
+    },
   });
+
+  mutateRef.current = mutation.mutate;
+  return mutation;
 }
 
 // COMBINED FLOW: complete content → award XP → update streak → check badges
