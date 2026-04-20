@@ -15,9 +15,11 @@
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import * as Sentry from '@sentry/nextjs';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getStripe, getCustomerId } from '@/lib/stripe';
 import { logSubscriptionEvent } from '@/lib/subscription-events';
+import { checkRateLimit, RATE_LIMITS, rateLimitKey } from '@/lib/rate-limit';
 import type { SubscriptionTier } from '@/lib/tier-config';
 
 // Disable body parsing — Stripe needs raw body for signature verification
@@ -72,6 +74,29 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: 'Stripe is not configured' },
       { status: 503 }
+    );
+  }
+
+  // PAY-MED-001 (B): Global 100/min throttle before signature
+  // verification. Stripe's legitimate delivery rate is well under this
+  // threshold; exceeding it almost certainly means a leaked webhook
+  // secret is being abused to flood the CPU-intensive constructEvent
+  // call. Single global key (no per-IP partition) so an attacker
+  // can't bypass by rotating sources.
+  const rlResult = await checkRateLimit(
+    rateLimitKey('stripe-webhook', 'global'),
+    RATE_LIMITS.stripeWebhook,
+  );
+  if (!rlResult.allowed) {
+    const msg = `[stripe-webhook] rate limit hit — ${RATE_LIMITS.stripeWebhook.maxRequests} req/min exceeded; retry after ${rlResult.retryAfterSeconds}s`;
+    console.warn(msg);
+    Sentry.captureMessage(msg, { level: 'warning' });
+    return NextResponse.json(
+      { error: 'Too many webhook events' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rlResult.retryAfterSeconds) },
+      },
     );
   }
 
