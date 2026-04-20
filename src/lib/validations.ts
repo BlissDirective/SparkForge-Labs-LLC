@@ -177,9 +177,13 @@ export const CheckoutSchema = z.object({
   interval: z.enum(['month', 'year']).default('month'),
 });
 
-export const PortalSchema = z.object({
-  returnUrl: z.string().url().optional(),
-});
+// PAY-MED-002 (A): PortalSchema removed. The portal route hardcodes
+// return_url to `${appUrl}/parent/subscription`; there is no reason to
+// let a client override it, and doing so is an open-redirect vector
+// waiting for a future change. If a future product needs a configurable
+// return destination, reintroduce this schema with a strict internal-
+// path allowlist (NOT z.string().url()) and update the route handler
+// to validate returnUrl starts with `/` and matches a known route.
 
 // v3 Gap 3: User-initiated plan change / downgrade
 export const ChangeSubscriptionSchema = z.object({
