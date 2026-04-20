@@ -13,7 +13,7 @@ import {
   Volume2, VolumeX, Sparkles,
 } from 'lucide-react';
 import { useGuideStore, type GuideMessage } from '@/stores/guideStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useVoiceOutput } from '@/hooks/useVoiceOutput';
 
@@ -30,7 +30,11 @@ export default function GuideChatPanel() {
     setConversationId, setVisualState, incrementTurns,
   } = useGuideStore();
 
-  const activeChild = useChildStore(s => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C2): AI Guide chat now sees fresh
+  // xp / level / streak / age_band from the React Query cache — a
+  // mid-session XP award propagates to the guide context on its
+  // next invalidation pass.
+  const activeChild = useActiveChild();
   const ageBand = activeChild?.age_band || 'B';
 
   const voice = useVoiceInput();

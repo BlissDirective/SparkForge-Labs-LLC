@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import { Text } from '@react-three/drei';
 import { RadialDial3D } from '../ui/RadialDial3D';
 import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import {
   CHROME_BORDER,
   TYPE_SCALE,
@@ -24,7 +25,11 @@ import {
 } from '@/lib/3d/cockpitDesignTokens';
 
 export default function DashboardLeft() {
-  const child = useChildStore((s) => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C2): child via React Query cache.
+  // `badges` is dead childStore field (always [] — setBadges is never
+  // called). Recent-badge strip always renders empty; post-T5c follow-up
+  // migrates to useBadges(childId).
+  const child = useActiveChild();
   const badges = useChildStore((s) => s.badges);
 
   const xp = child?.xp ?? 0;

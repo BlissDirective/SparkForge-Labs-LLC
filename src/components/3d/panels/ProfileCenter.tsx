@@ -8,6 +8,7 @@
 
 import { Text } from '@react-three/drei';
 import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import {
   CHROME_BORDER,
   TYPE_SCALE,
@@ -29,7 +30,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function ProfileCenter() {
-  const child = useChildStore((s) => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C2): child via React Query cache.
+  // `badges` is dead childStore field (always []). Post-T5c follow-up
+  // migrates to useBadges(childId).
+  const child = useActiveChild();
   const badges = useChildStore((s) => s.badges);
 
   const displayName = child?.display_name ?? 'Explorer';
