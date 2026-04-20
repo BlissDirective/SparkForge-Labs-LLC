@@ -81,6 +81,7 @@ import { useSceneStore } from '@/stores/sceneStore';
 // useDeviceStore available for future per-device tuning
 // import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
+import { useGameStore } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
 // Module-level asset preloading (Audit Section 4.5)
@@ -290,6 +291,11 @@ function CockpitCanvasImpl({
   const activeScene = useSceneStore((s) => s.activeScene);
   const activeGameId = useSceneStore((s) => s.activeGameId);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
+
+  // UX-MED-002 (T10b) Opt C: pause-aware LED rim dim. Narrow
+  // selector — CockpitCanvasImpl re-renders only when isPaused
+  // flips, not on every game state change.
+  const gamePaused = useGameStore((s) => s.isPaused);
   // Game 3D scene content — registered by games via sceneStore (D3D-B3)
   const storeGameSceneContent = useSceneStore((s) => s.gameSceneContent);
   const resolvedGameSceneContent = gameSceneContent ?? storeGameSceneContent;
@@ -400,9 +406,13 @@ function CockpitCanvasImpl({
                   frameDimmed={frameDimmed}
                 />
 
+                {/* UX-MED-002 (T10b) Opt C: LED rim dims to 40% of
+                    base intensity when the game is paused. Creates a
+                    clear "system is waiting" visual beat without
+                    requiring a full-screen overlay. */}
                 <LEDRim
                   color={ledColor}
-                  intensity={0.5}
+                  intensity={gamePaused ? 0.2 : 0.5}
                   spikeActive={spikeEvent}
                   curved
                 />
