@@ -189,6 +189,21 @@ export function GameShell({
     };
   }, [gameId, totalRounds, hints, worldColor, title, showTimer, startGame, enterGame, cleanupGame, setGameHUDContent, setActiveMode, broadcast]);
 
+  // UX-MED-002 (T10a): Escape key toggles pause. Active while the
+  // GameShell is mounted (i.e., during gameplay). Ignored once
+  // isComplete fires so Escape at the complete screen doesn't flip
+  // the pause flag mid-ceremony.
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== 'Escape') return;
+      if (useGameStore.getState().isComplete) return;
+      e.preventDefault();
+      useGameStore.getState().togglePause();
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Reward pipeline: fires once when game completes
   useEffect(() => {
     if (!isComplete || hasRewarded.current || !activeChild?.id) return;

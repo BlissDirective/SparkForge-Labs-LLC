@@ -65,6 +65,10 @@ interface GameState {
   setSaveState: (s: SaveState) => void;
   pauseGame: () => void;
   resumeGame: () => void;
+  /** UX-MED-002 (T10a): toggle between paused and playing. Prefer
+   *  this over pauseGame/resumeGame when the caller doesn't know
+   *  the current state (Escape handler, PauseButton3D click). */
+  togglePause: () => void;
   completeGame: () => void;
   resetGame: () => void;
   setGameData: (key: string, value: unknown) => void;
@@ -117,6 +121,7 @@ function createGameStore(): StoreApi<GameState> {
     useHint: () => set((s) => ({ hintsRemaining: Math.max(0, s.hintsRemaining - 1) })),
     pauseGame: () => set({ isPaused: true }),
     resumeGame: () => set({ isPaused: false }),
+    togglePause: () => set((s) => ({ isPaused: !s.isPaused })),
     completeGame: () => {
       const s = get();
       // Guard: only complete if a game is active and not already complete
@@ -255,6 +260,7 @@ export function useGameActions() {
       useHint: s.useHint,
       pauseGame: s.pauseGame,
       resumeGame: s.resumeGame,
+      togglePause: s.togglePause,
       completeGame: s.completeGame,
       resetGame: s.resetGame,
       setGameData: s.setGameData,
@@ -270,6 +276,7 @@ export function useGameActions() {
     | 'useHint'
     | 'pauseGame'
     | 'resumeGame'
+    | 'togglePause'
     | 'completeGame'
     | 'resetGame'
     | 'setGameData'
