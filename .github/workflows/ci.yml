@@ -160,6 +160,7 @@ jobs:
             sql/014_audit_log.sql
             sql/015_pg_cron_daily_resets.sql
             sql/016_perf_indexes.sql
+            sql/017_subscription_events_fk_cleanup.sql
           )
           for f in "${files[@]}"; do
             echo "═══ applying $f ═══"

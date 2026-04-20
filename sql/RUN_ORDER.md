@@ -56,6 +56,7 @@ Run after the Phase 2 migrations (011–015). These resolve Medium-severity find
 | Order | File | Audit Finding | Description |
 |-------|------|---------------|-------------|
 | 23 | `016_perf_indexes.sql` | DB-MED-001 (B) | Composite performance indexes matching actual query shapes in `tierCheck.ts`: `idx_prompt_history_child_created`, partial `idx_progress_child_completed_at` (WHERE completed=true), `idx_subscription_events_parent_created`. Idempotent. Ends with DO $$ verification block. |
+| 24 | `017_subscription_events_fk_cleanup.sql` | DB-MED-002 (B) | Replaces the implicit `ON DELETE NO ACTION` on `subscription_events.parent_id` with `ON DELETE SET NULL`, unblocking parent deletion (PAY-MED-003 flow) while preserving audit history. Adds `cleanup_orphaned_subscription_events()` SECURITY DEFINER function and a daily pg_cron job (00:20 UTC) that deletes NULL-parent rows older than 90 days. Skips cleanly on Supabase Free (no pg_cron). |
 
 ## Archived Files (Do NOT Run)
 
