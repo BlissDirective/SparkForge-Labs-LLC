@@ -196,6 +196,32 @@ WHERE table_name = 'children' AND column_name IN (
 
 Must return 3 rows (post Gap 3 archive migration + Phase 2 audit 012 daily-XP counters).
 
+## 1.2.1 Connection Pooling (DB-MED-004)
+
+SparkForge talks to Postgres exclusively through **`supabase-js`**, which
+goes via **PostgREST** over HTTPS — Supabase's hosted PostgREST instance
+has its own internal connection pool (15 conns on Free, 60 on Pro), so
+the app itself never opens raw Postgres connections. **No code change is
+required for DB-MED-004.**
+
+That said, Supabase offers **Supavisor** (its Supabase-flavoured
+PgBouncer) for any code path that needs a raw Postgres connection
+(migration scripts, one-off psql sessions, future backend services):
+
+| Port | Mode | When to use |
+|------|------|-------------|
+| 5432 | Direct session mode | Interactive psql, schema migrations, anything using `LISTEN` / `NOTIFY` / session-level `SET` |
+| **6543** | **Supavisor transaction mode (pgbouncer-style)** | **Default for any serverless / Lambda-style client — lightweight pooled connections. Cannot be used with `LISTEN`, prepared statements, or session-level GUCs (`SET LOCAL` in a txn is fine).** |
+
+Audit of the current codebase found **zero uses** of `LISTEN`, prepared
+statements, or session-mode GUCs in application code — only `supabase.rpc('...')` invocations which are single-SQL calls and pooler-safe. If
+you ever add a raw-pg client (e.g. `postgres.js`, `pg`, or `drizzle`), default to **port 6543** unless you know you need session mode.
+
+Verify your Supabase project's direct + pooled connection strings at:
+**Supabase Dashboard → Project Settings → Database → Connection string**.
+
+---
+
 ## 1.3 Create First Admin User (recommended)
 
 Sign up once through the app (`/signup`), then promote to admin in the SQL Editor:
