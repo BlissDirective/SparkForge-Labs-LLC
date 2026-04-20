@@ -11,7 +11,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
@@ -454,7 +454,7 @@ const CASES: DataCase[] = [
 export function DataDetectiveGame() {
   const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';

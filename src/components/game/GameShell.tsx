@@ -25,7 +25,7 @@ import React, { useEffect, useRef, type ReactNode } from 'react';
 import FocusTrap from 'focus-trap-react';
 import { useReducedMotion } from 'motion/react';
 import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
@@ -119,7 +119,7 @@ export function GameShell({
   // unmounts are safe.
   const cleanupGame = useSceneStore((s) => s.cleanupGame);
   const setGameHUDContent = useSceneStore((s) => s.setGameHUDContent);
-  const activeChild = useChildStore((s) => s.activeChild);
+  const activeChild = useActiveChild();
   const completeAndReward = useCompleteAndReward();
   const hasRewarded = useRef(false);
 

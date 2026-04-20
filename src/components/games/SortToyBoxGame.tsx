@@ -16,7 +16,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions, useGameScore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -290,7 +290,7 @@ export function SortToyBoxGame() {
   // the single reactive read this file makes.
   const game = useGameActions();
   const score = useGameScore();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { safeTimeout } = useSafeTimeout();
   // BUG-ST2 fix: useGameContent hook removed (was unused)

@@ -27,7 +27,7 @@ import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
 import { useGameStore } from "@/stores/gameStore";
-import { useChildStore } from "@/stores/childStore";
+import { useActiveChild } from '@/hooks/useChildren';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from "@/stores/sceneStore";
@@ -717,7 +717,7 @@ function TypingMessage({ text, isLatest, speed }: { text: string; isLatest: bool
 export function ChatbotBuilderGame() {
   const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || "B") as "A" | "B" | "C";

@@ -14,7 +14,7 @@ import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { csrfHeader } from '@/lib/api';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useGameActions, useGameScore } from '@/stores/gameStore';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -1107,7 +1107,7 @@ const MessageBubble = memo(function MessageBubble({
 
 export function PromptLabGame() {
   const prefersReducedMotion = useReducedMotion();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   // PERF-HIGH-001 (C): narrow selectors. Actions are stable refs so
   // useGameActions never triggers re-render; useGameScore isolates
   // the single reactive read this file makes.

@@ -25,7 +25,7 @@ import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 
 import { useSceneStore } from '@/stores/sceneStore';
@@ -439,7 +439,7 @@ export function NeuralBuilderGame() {
   // PERF-HIGH-001 (C): useGameActions subscribes only to stable
   // action references; avoids re-renders on score/phase/timer ticks.
   const game = useGameActions();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { safeTimeout, safeInterval } = useSafeTimeout();
 
