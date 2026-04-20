@@ -17,6 +17,9 @@ export const SignupSchema = z.object({
     .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)'),
   fullName: z.string().min(1, 'Name is required').max(100).optional(),
   timezone: z.string().max(50).default('UTC'),
+  // AUTH-MED-003 (B): optional CAPTCHA token; required only when
+  // Supabase dashboard has "Enable CAPTCHA protection" turned on.
+  captchaToken: z.string().max(4096).optional(),
 });
 
 // S3-HIGH-001: Separate COPPA consent schema — called in Step 3 AFTER user confirms
@@ -30,10 +33,14 @@ export const CoppaConsentSchema = z.object({
 export const LoginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
+  // AUTH-MED-003 (B): optional CAPTCHA token (see SignupSchema).
+  captchaToken: z.string().max(4096).optional(),
 });
 
 export const ResetPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
+  // AUTH-MED-003 (B): optional CAPTCHA token (see SignupSchema).
+  captchaToken: z.string().max(4096).optional(),
 });
 
 // AUTH-MED-001: Same complexity rules as SignupSchema for consistency.

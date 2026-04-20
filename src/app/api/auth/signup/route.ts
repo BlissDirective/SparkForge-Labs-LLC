@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   const parsed = await parseBody(req, SignupSchema);
   if (!parsed.success) return parsed.response;
 
-  const { email, password, fullName, timezone: _timezone } = parsed.data;
+  const { email, password, fullName, timezone: _timezone, captchaToken } = parsed.data;
 
   // AUTH-HIGH-004: Use user-facing signUp(), not admin.createUser().
   const supabase = await createServerSupabase();
@@ -47,6 +47,9 @@ export async function POST(req: NextRequest) {
       // sanitized and the stamping logic runs on successful exchange.
       emailRedirectTo: `${origin}/api/auth/callback?next=/onboarding`,
       data: fullName ? { full_name: fullName } : undefined,
+      // AUTH-MED-003 (B): forward optional CAPTCHA token. Supabase
+      // verifies against the configured hCaptcha / Turnstile secret.
+      ...(captchaToken ? { captchaToken } : {}),
     },
   });
 
@@ -61,6 +64,15 @@ export async function POST(req: NextRequest) {
       msg.includes('exists')
     ) {
       return apiError('An account with this email already exists', 409, 'EMAIL_EXISTS');
+    }
+    // AUTH-MED-003 (B): surface CAPTCHA errors so the client widget
+    // knows to render / re-render.
+    if (msg.includes('captcha')) {
+      return apiError(
+        'CAPTCHA verification required',
+        422,
+        'CAPTCHA_REQUIRED',
+      );
     }
     console.error('[signup] supabase.auth.signUp error:', authError);
     return apiError('Failed to create account. Please try again.', 500, 'AUTH_ERROR');

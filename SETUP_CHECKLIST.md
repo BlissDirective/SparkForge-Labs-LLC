@@ -35,6 +35,12 @@
   - [ ] In **Authentication → URL Configuration**, set:
     - **Site URL** = `https://<your-prod-domain>` (or `http://localhost:3000` during dev)
     - **Redirect URLs** includes `https://<your-prod-domain>/api/auth/callback` (and your dev variant)
+- [ ] **AUTH-MED-003 — Enable CAPTCHA** (adds a CAPTCHA after repeated failed login / signup attempts; mitigates account enumeration + credential stuffing):
+  - [ ] Pick a provider: **hCaptcha** (recommended — free tier, GDPR-friendly) or **Cloudflare Turnstile**
+  - [ ] Create a **site + secret key pair** in the provider dashboard
+  - [ ] Supabase dashboard → **Authentication → Settings → Attack Protection → Enable CAPTCHA protection** → choose provider → paste **secret key**
+  - [ ] Set env vars on Vercel: `NEXT_PUBLIC_CAPTCHA_PROVIDER=hcaptcha` (or `turnstile`) and `NEXT_PUBLIC_CAPTCHA_SITE_KEY=<site key>`
+  - [ ] The server routes already forward `captchaToken` to Supabase; when enabled without the widget rendered client-side, users will see a 422 CAPTCHA_REQUIRED error on login/signup. Phase 3 Part 2 / Phase 4 UX work will add the widget component.
 
 ## 1.2 Run SQL Migrations — IN ORDER
 
