@@ -23,6 +23,7 @@ import { toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { TrialBanner } from '@/components/parent/TrialBanner';
 import { DowngradeConfirmModal } from '@/components/parent/DowngradeConfirmModal';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { UsageDashboard } from '@/components/parent/UsageDashboard';
 import { CelebrationBanner } from '@/components/parent/CelebrationBanner';
 import { isDowngrade } from '@/lib/tier-config';
@@ -67,6 +68,36 @@ function SubscriptionContent() {
 
   // v3 Gap 3: Downgrade/change modal
   const [downgradeTarget, setDowngradeTarget] = useState<SubscriptionTier | null>(null);
+
+  // UX-MED-006 (A) + PAY-MED-003: Delete account flow state
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (deleteBusy) return;
+    setDeleteBusy(true);
+    try {
+      const res = await fetch('/api/auth/delete-account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+        body: JSON.stringify({ confirm: 'DELETE' }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        toast.error(body?.error || 'Account deletion failed. Please contact support.');
+        setDeleteBusy(false);
+        return;
+      }
+      // Success — server has deleted the user. Reload to the marketing
+      // home; AuthProvider will also catch the missing session and
+      // redirect to /login, but window.location is more reliable from
+      // a just-deleted session.
+      window.location.href = '/';
+    } catch {
+      toast.error('Network error. Please check your connection and try again.');
+      setDeleteBusy(false);
+    }
+  };
 
   // v3 Gap 5: Guaranteed celebration state — drives the HTML
   // CelebrationBanner independently of the 3D cockpit.
@@ -539,6 +570,27 @@ function SubscriptionContent() {
         </motion.div>
       )}
 
+      {/* UX-MED-006 (A) + PAY-MED-003: Delete account — irreversible
+          action gated by type-to-confirm ConfirmDialog. */}
+      <motion.div variants={staggerItem} className="mt-12 pt-8 border-t border-white/5">
+        <div className="max-w-xl mx-auto text-center">
+          <h3 className="font-display text-sm font-semibold text-white/60 mb-2">
+            Danger Zone
+          </h3>
+          <p className="font-body text-xs text-white/40 mb-4 leading-relaxed">
+            Permanently delete your account and all associated child profiles,
+            progress, and subscription data. This action cannot be undone.
+          </p>
+          <button
+            type="button"
+            onClick={() => setDeleteAccountOpen(true)}
+            className="font-body text-xs text-red-400/70 underline hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400/40 rounded-sm transition-colors"
+          >
+            Delete my account
+          </button>
+        </div>
+      </motion.div>
+
       {/* v3 Gap 3: In-app downgrade/change flow */}
       <DowngradeConfirmModal
         isOpen={downgradeTarget !== null}
@@ -546,6 +598,36 @@ function SubscriptionContent() {
         currentTier={tier}
         targetTier={downgradeTarget ?? 'free'}
         interval={billing === 'monthly' ? 'month' : 'year'}
+      />
+
+      {/* UX-MED-006 (A) + PAY-MED-003: Type-to-confirm delete-account */}
+      <ConfirmDialog
+        isOpen={deleteAccountOpen}
+        onCancel={() => setDeleteAccountOpen(false)}
+        onConfirm={handleDeleteAccount}
+        title="Delete your SparkForge account?"
+        message={
+          <div className="space-y-3">
+            <p>
+              This will <strong className="text-white">permanently</strong>:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-white/70 text-xs ml-1">
+              <li>Cancel any active subscription (no refund)</li>
+              <li>Delete all child profiles, XP, badges, and progress</li>
+              <li>Remove your Stripe customer record</li>
+              <li>Sign you out immediately</li>
+            </ul>
+            <p className="text-xs text-white/55">
+              You&apos;ll be signed out and redirected to the home page. Any
+              in-flight session data will be lost.
+            </p>
+          </div>
+        }
+        confirmLabel="Delete account permanently"
+        variant="danger"
+        requireType="DELETE"
+        lockOverlay
+        isBusy={deleteBusy}
       />
 
       {/* v3 Gap 5: Guaranteed HTML celebration — fires regardless of
