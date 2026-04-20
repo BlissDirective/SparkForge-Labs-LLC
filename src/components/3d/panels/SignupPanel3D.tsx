@@ -42,6 +42,7 @@ import {
   childProfileSchema,
   validateForm,
 } from '@/lib/validation/authSchemas';
+import { scorePassword } from '@/lib/validation/passwordStrength';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -371,13 +372,16 @@ export default function SignupPanel3D({
     }
   });
 
-  // Password validation
-  const passChecks = useMemo(() => [
-    password.length >= 8,
-    /[A-Z]/.test(password),
-    /[a-z]/.test(password),
-    /[0-9]/.test(password),
-  ], [password]);
+  // UX-MED-004 (A) + AUTH-MED-001: 5-rule password scoring via the
+  // shared `scorePassword()` helper. Keeps the rule list in lock-step
+  // with the server-side passwordSignupSchema (including the special-
+  // character requirement added in Phase 3 Part 1 AUTH-MED-001).
+  const passwordScore = useMemo(() => scorePassword(password), [password]);
+  const passChecks = useMemo(
+    () => passwordScore.rules.map((r) => r.satisfied),
+    [passwordScore],
+  );
+  const passwordIsValid = passwordScore.score === 5;
 
   // Phase 5 P.8-MAX (§8.10): Zod schemas replace inline string validation.
   // See src/lib/validation/authSchemas.ts. Error messages are sourced from
@@ -486,14 +490,16 @@ export default function SignupPanel3D({
 
             <InputField3D label="EMAIL" value={email} placeholder="parent@example.com"
               position={[0, 0.28, 0]} focused={focusedField === 'email'} onFocus={() => setFocusedField('email')} />
-            <InputField3D label="PASSWORD" value={password} placeholder="Min 8 chars, upper, lower, number"
+            <InputField3D label="PASSWORD" value={password} placeholder="Min 8 chars · upper · lower · number · special"
               position={[0, 0.02, 0]} focused={focusedField === 'password'} onFocus={() => setFocusedField('password')} type="password" />
 
-            {/* Password rules */}
+            {/* UX-MED-004 (A) + AUTH-MED-001: 5-rule password checklist
+                with live green checkmarks as each rule becomes satisfied.
+                Labels match scorePassword() output 1:1. */}
             <group position={[-INPUT_WIDTH / 2, -0.1, 0]}>
-              {['8+ chars', 'Uppercase', 'Lowercase', 'Number'].map((rule, i) => (
-                <Text key={rule} position={[i * 0.24 + 0.08, 0, 0]}
-                  fontSize={TYPE_SCALE.caption.fontSize * 0.85}
+              {['8+ chars', 'Upper', 'Lower', 'Number', 'Special'].map((rule, i) => (
+                <Text key={rule} position={[i * 0.19 + 0.06, 0, 0]}
+                  fontSize={TYPE_SCALE.caption.fontSize * 0.8}
                   color={passChecks[i] ? GREEN_COLOR : TEXT_COLORS.dim.hex}
                   anchorX="center" anchorY="middle" font={TYPE_SCALE.caption.fontPath}
                 >{passChecks[i] ? `✓ ${rule}` : rule}</Text>
@@ -501,7 +507,7 @@ export default function SignupPanel3D({
             </group>
 
             <ActionButton3D label="CONTINUE" color={ACCENT_COLOR} position={[0, -0.24, 0]}
-              onClick={handleStep1} disabled={loading || !email || password.length < 8} />
+              onClick={handleStep1} disabled={loading || !email || !passwordIsValid} />
 
             <group position={[0, -0.42, 0]}>
               <Text fontSize={TYPE_SCALE.caption.fontSize} color={TEXT_COLORS.dim.hex}
