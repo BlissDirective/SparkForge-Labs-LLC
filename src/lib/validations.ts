@@ -2,6 +2,9 @@ import { z } from 'zod';
 
 // ═══ AUTH SCHEMAS ═══
 
+// AUTH-MED-001: OWASP 2025 compliance — require one special character in
+// addition to upper/lower/number. Special set matches audit recommendation
+// and aligns with passwordSignupSchema in src/lib/validation/authSchemas.ts.
 export const SignupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z
@@ -10,7 +13,8 @@ export const SignupSchema = z.object({
     .max(72, 'Password cannot exceed 72 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)'),
   fullName: z.string().min(1, 'Name is required').max(100).optional(),
   timezone: z.string().max(50).default('UTC'),
 });
@@ -32,6 +36,7 @@ export const ResetPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
 });
 
+// AUTH-MED-001: Same complexity rules as SignupSchema for consistency.
 export const UpdatePasswordSchema = z.object({
   password: z
     .string()
@@ -39,7 +44,8 @@ export const UpdatePasswordSchema = z.object({
     .max(72)
     .regex(/[A-Z]/, 'Must contain an uppercase letter')
     .regex(/[a-z]/, 'Must contain a lowercase letter')
-    .regex(/[0-9]/, 'Must contain a number'),
+    .regex(/[0-9]/, 'Must contain a number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Must contain a special character'),
 });
 
 // ═══ CHILD SCHEMAS ═══
