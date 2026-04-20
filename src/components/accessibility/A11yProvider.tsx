@@ -8,12 +8,14 @@
 
 import { useEffect, useState } from 'react';
 import { MotionConfig } from 'motion/react';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 export function A11yProvider({ children }: { children: React.ReactNode }) {
+  const a11y = useUIStore((s) => s.a11y);
   const { darkMode, fontSize, dyslexiaFont, reduceMotion, highContrast } =
-    useA11yStore();
-  const toggleDarkMode = useA11yStore((s) => s.toggleDarkMode);
+    a11y;
+  const toggleDarkMode = useUIStore((s) => s.toggleDarkMode);
   const [mounted, setMounted] = useState(false);
 
   // [BUG-10A] Wait for client mount before applying classes
@@ -27,8 +29,14 @@ export function A11yProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    // [ENH-10E] On first visit, detect system preferences
-    const hasStoredPrefs = localStorage.getItem('sparkforge-a11y');
+    // [ENH-10E] On first visit, detect system preferences.
+    // R2: post-merge, the preferences live under `sparkforge-ui` key.
+    // `sparkforge-a11y` is the legacy key, automatically migrated by
+    // uiStore's onRehydrateStorage — so if it's still present here we
+    // don't treat it as "first visit".
+    const hasStoredPrefs =
+      localStorage.getItem('sparkforge-ui') ||
+      localStorage.getItem('sparkforge-a11y');
     if (!hasStoredPrefs) {
       const prefersDark = window.matchMedia(
         '(prefers-color-scheme: dark)'
@@ -43,7 +51,7 @@ export function A11yProvider({ children }: { children: React.ReactNode }) {
         '(prefers-reduced-motion: reduce)'
       ).matches;
       if (prefersReducedMotion) {
-        useA11yStore.getState().toggleReduceMotion();
+        useUIStore.getState().toggleReduceMotion();
       }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

@@ -3,7 +3,8 @@
 import { useMemo } from 'react';
 import { motion } from 'motion/react';
 import { calculateLevel, getLevelColor, getLevelTierName } from '@/lib/gamification';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 // ════════════════════════════════════════════════════
 // LEVEL PROGRESS — Circular SVG ring with tier info
@@ -23,7 +24,7 @@ const SIZE_CONFIG = {
 } as const;
 
 export function LevelProgress({ xp, size = 'md' }: LevelProgressProps) {
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
   const config = SIZE_CONFIG[size];
 
   const levelInfo = useMemo(() => calculateLevel(xp), [xp]);

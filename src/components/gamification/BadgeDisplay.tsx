@@ -2,7 +2,8 @@
 
 import { motion } from 'motion/react';
 import { getRarityColor, getRarityGlow, getRarityLabel } from '@/lib/gamification';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 import type { BadgeCategory, BadgeRarity } from '@/types';
 
 // ════════════════════════════════════════════════════
@@ -33,7 +34,7 @@ const SIZE_CONFIG = {
 } as const;
 
 export function BadgeDisplay({ badge, size = 'md' }: BadgeDisplayProps) {
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
   const config = SIZE_CONFIG[size];
   const rarityColor = getRarityColor(badge.rarity);
   const rarityGlow = getRarityGlow(badge.rarity);

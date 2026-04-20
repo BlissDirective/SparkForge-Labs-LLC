@@ -3,8 +3,8 @@
 import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import FocusTrap from 'focus-trap-react';
+// R2: a11y state merged into uiStore (was accessibilityStore)
 import { useUIStore } from '@/stores/uiStore';
-import { useA11yStore } from '@/stores/accessibilityStore';
 // Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
 import { ConfettiEngine } from '@/components/shared/ConfettiEngine';
 
@@ -68,7 +68,7 @@ function getStreakTier(count: number): string {
 
 export function CelebrationOverlay() {
   const { celebrationType, celebrationData, dismissCelebration } = useUIStore();
-  const { reduceMotion } = useA11yStore();
+  const { reduceMotion } = useUIStore((s) => s.a11y);
 
   // v2 [ENH]: Sound event hook points (actual audio in Stage 5)
   const playSound = useCallback((event: string) => {
