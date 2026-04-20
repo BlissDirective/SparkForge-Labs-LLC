@@ -15,7 +15,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useUIStore } from '@/stores/uiStore';
 import type { CelebrationType } from '@/types';
 import { useCockpitStore } from '@/stores/cockpitStore';
-import { useCockpitUIStore } from '@/stores/cockpitUIStore';
 import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useXPPopup3DStore } from '@/components/3d/XPPopup3D';
@@ -47,7 +46,7 @@ export function useCelebration3D() {
   const previousModeRef = useRef<string>('dashboard');
   const activeMode = useCockpitStore((s) => s.activeMode);
 
-  const setCenterContent = useCockpitUIStore((s) => s.setCenterContent);
+  const setCenterContent = useCockpitStore((s) => s.setCenterContent);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const showXP = useXPPopup3DStore((s) => s.showXP);
 

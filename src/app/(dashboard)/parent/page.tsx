@@ -12,14 +12,14 @@
 import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useCockpitScene } from '@/hooks/useCockpitScene';
-import { useCockpitUIStore } from '@/stores/cockpitUIStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 import { TrialBanner } from '@/components/parent/TrialBanner';
 import { UsageDashboard } from '@/components/parent/UsageDashboard';
 
 export default function ParentPage() {
   useCockpitScene('parent');
 
-  const setCenterContent = useCockpitUIStore((s) => s.setCenterContent);
+  const setCenterContent = useCockpitStore((s) => s.setCenterContent);
   useEffect(() => {
     setCenterContent('parent');
   }, [setCenterContent]);

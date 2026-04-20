@@ -12,7 +12,7 @@
 //   - Chrome bezel frame, carbon composite background
 //
 // Architecture: Renders as center content in CockpitUILayer when
-// the guide chat is opened (via cockpitUIStore 'chat' key).
+// the guide chat is opened (via cockpitStore.centerContent 'chat' key).
 // The GuideAvatar3D continues rendering in the left quadrant.
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';

@@ -12,7 +12,7 @@ import { useChildStore } from '@/stores/childStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAllLabsProgress } from '@/hooks/useProgress';
 import { useCockpitScene } from '@/hooks/useCockpitScene';
-import { useCockpitUIStore } from '@/stores/cockpitUIStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 
 export default function HomePage() {
   const { activeChild } = useChildStore();
@@ -22,8 +22,8 @@ export default function HomePage() {
   // Set cockpit mode
   useCockpitScene('dashboard');
 
-  // Feed data to 3D panel via cockpitUIStore
-  const setCenterContent = useCockpitUIStore((s) => s.setCenterContent);
+  // R1: UI routing now lives in cockpitStore (was cockpitUIStore)
+  const setCenterContent = useCockpitStore((s) => s.setCenterContent);
   useEffect(() => {
     setLabColor('#00BBFF');
     setCenterContent('home');

@@ -27,7 +27,7 @@ import {
   AdditiveBlending,
   DoubleSide,
 } from 'three';
-import { useCockpitUIStore } from '@/stores/cockpitUIStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 import {
   CHROME_BORDER,
   TYPE_SCALE,
@@ -253,7 +253,7 @@ function LabCompleteDisplay({ data }: { data: Record<string, unknown> }) {
 // ═══════════════════════════════════════════════════════════════
 
 export default function CelebrationPanel3D() {
-  const centerData = useCockpitUIStore((s) => s.centerData) as CelebrationDisplayData;
+  const centerData = useCockpitStore((s) => s.centerData) as CelebrationDisplayData;
   const glowRef = useRef<Mesh>(null);
 
   const celebrationType = centerData?.celebrationType;
