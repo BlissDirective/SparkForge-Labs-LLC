@@ -49,6 +49,14 @@ Run **in order** after the stage-specific files above. These resolve Critical se
 | 15 | `010_rls_belt_and_suspenders.sql` | DB-CRIT-002 (5C) | Defensive: re-asserts `ENABLE ROW LEVEL SECURITY` on every protected table. Idempotent — safe to re-run. Emits warnings for any unprotected public table. |
 | n/a | `verify_rls.sql` | DB-CRIT-002 (5C) | Verification script (NOT a migration). Run via psql or `supabase db execute -f sql/verify_rls.sql` to confirm RLS coverage. Throws exception if any public table lacks RLS or has no policies. Invoked by CI on every PR. |
 
+## Phase 3 Audit Migrations (Final-Audit_04-15-2026.md)
+
+Run after the Phase 2 migrations (011–015). These resolve Medium-severity findings.
+
+| Order | File | Audit Finding | Description |
+|-------|------|---------------|-------------|
+| 23 | `016_perf_indexes.sql` | DB-MED-001 (B) | Composite performance indexes matching actual query shapes in `tierCheck.ts`: `idx_prompt_history_child_created`, partial `idx_progress_child_completed_at` (WHERE completed=true), `idx_subscription_events_parent_created`. Idempotent. Ends with DO $$ verification block. |
+
 ## Archived Files (Do NOT Run)
 
 These have been merged into canonical files above. Kept for historical reference only.
