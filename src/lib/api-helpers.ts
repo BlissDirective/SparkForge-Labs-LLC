@@ -18,6 +18,9 @@ export const ERROR_CODES = {
   DUPLICATE_REQUEST: 'DUPLICATE_REQUEST',
   BAD_REQUEST: 'BAD_REQUEST',
   SERVER_ERROR: 'SERVER_ERROR',
+  // AUTH-MED-002 (B): parent is authenticated but hasn't recorded COPPA
+  // consent yet. Client interceptor routes to /onboarding/consent.
+  CONSENT_REQUIRED: 'CONSENT_REQUIRED',
 } as const;
 
 export type ErrorCode = typeof ERROR_CODES[keyof typeof ERROR_CODES];
@@ -87,6 +90,14 @@ export interface AuthenticatedUser {
   isAdmin: boolean;
   /** True when the session is a Supabase anonymous (demo) user. */
   isDemo: boolean;
+  /**
+   * AUTH-MED-002 (B): True once the parent has submitted COPPA consent
+   * (parents.coppa_consent_at IS NOT NULL). Demo users always read as
+   * `true` because demo sessions cannot create child profiles anyway.
+   * Admin users also read as `true` — admin tooling precedes parent
+   * onboarding and is not kid-facing.
+   */
+  hasCoppaConsent: boolean;
 }
 
 export async function requireAuth(
@@ -122,13 +133,16 @@ export async function requireAuth(
         tier: 'free',
         isAdmin: false,
         isDemo: true,
+        hasCoppaConsent: true,
       },
     };
   }
 
+  // AUTH-MED-002 (B): fetch coppa_consent_at alongside tier + admin so any
+  // caller can branch on hasCoppaConsent without a second round-trip.
   const { data: parent } = await supabase
     .from('parents')
-    .select('subscription_tier, is_admin')
+    .select('subscription_tier, is_admin, coppa_consent_at')
     .eq('id', user.id)
     .single();
 
@@ -140,8 +154,44 @@ export async function requireAuth(
       tier: (parent?.subscription_tier as SubscriptionTier) || 'free',
       isAdmin: parent?.is_admin || false,
       isDemo: false,
+      hasCoppaConsent:
+        parent?.is_admin === true || parent?.coppa_consent_at != null,
     },
   };
+}
+
+// ═══ AUTH-MED-002 (B): CONSENT-GATED AUTH ═══
+
+/**
+ * Same as `requireAuth`, plus rejects non-admin, non-demo parents who
+ * have not yet recorded COPPA consent. Use on routes that create or
+ * modify child-facing resources (child profiles, progress, XP, sessions,
+ * prompts, game content).
+ *
+ * Returns `CONSENT_REQUIRED` 403 when consent is missing — the client
+ * `apiFetch` interceptor (src/lib/api.ts) redirects to
+ * `/onboarding/consent` on this code.
+ *
+ * Admin and demo users bypass the check.
+ */
+export async function requireAuthWithConsent(
+  req: NextRequest,
+): Promise<{ success: true; user: AuthenticatedUser } | { success: false; response: NextResponse }> {
+  const auth = await requireAuth(req);
+  if (!auth.success) return auth;
+
+  if (!auth.user.hasCoppaConsent) {
+    return {
+      success: false,
+      response: apiError(
+        'Parental consent required. Please complete COPPA consent before using child profiles.',
+        403,
+        ERROR_CODES.CONSENT_REQUIRED,
+      ),
+    };
+  }
+
+  return auth;
 }
 
 export async function requireAdmin(
