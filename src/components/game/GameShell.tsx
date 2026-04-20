@@ -71,7 +71,6 @@ export function GameShell({
   const prefersReducedMotion = useReducedMotion();
 
   const startGame = useGameStore((s) => s.startGame);
-  const resetGame = useGameStore((s) => s.resetGame);
   const isComplete = useGameStore((s) => s.isComplete);
   const score = useGameStore((s) => s.score);
   const currentRound = useGameStore((s) => s.currentRound);
@@ -115,7 +114,10 @@ export function GameShell({
     prevRoundRef.current = currentRound;
   }, [score, currentRound, isComplete, sfx]);
   const enterGame = useSceneStore((s) => s.enterGame);
-  const exitGame = useSceneStore((s) => s.exitGame);
+  // STATE-MED-003 (B): single coordinated teardown replaces the previous
+  // exitGame() + resetGame() pair. Idempotent so StrictMode / concurrent
+  // unmounts are safe.
+  const cleanupGame = useSceneStore((s) => s.cleanupGame);
   const setGameHUDContent = useSceneStore((s) => s.setGameHUDContent);
   const activeChild = useChildStore((s) => s.activeChild);
   const completeAndReward = useCompleteAndReward();
@@ -178,11 +180,14 @@ export function GameShell({
       }
       broadcast({ type: 'game-exit', source: gameId, value: 1.0 });
       setActiveMode(previousModeRef.current);
-      exitGame(); // Also clears gameHUDContent
-      resetGame();
+      // STATE-MED-003 (B): cleanupGame sequences gameStore.resetGame()
+      // → exitGame (clears HUD + scene content + iris close) →
+      // activeGameLabColor reset. Replaces the previous
+      // exitGame() + resetGame() pair.
+      cleanupGame();
       hasRewarded.current = false;
     };
-  }, [gameId, totalRounds, hints, worldColor, title, showTimer, startGame, resetGame, enterGame, exitGame, setGameHUDContent, setActiveMode, broadcast]);
+  }, [gameId, totalRounds, hints, worldColor, title, showTimer, startGame, enterGame, cleanupGame, setGameHUDContent, setActiveMode, broadcast]);
 
   // Reward pipeline: fires once when game completes
   useEffect(() => {

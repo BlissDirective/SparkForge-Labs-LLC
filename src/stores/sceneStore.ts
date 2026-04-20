@@ -1,5 +1,6 @@
 import { type ReactNode } from 'react';
 import { create } from 'zustand';
+import { useGameStore } from '@/stores/gameStore';
 
 export type ActiveScene = 'hero' | 'cockpit' | 'spatial' | 'game' | 'transitioning';
 export type TransitionType = 'iris-open' | 'iris-close' | 'hero-to-cockpit' | 'cockpit-to-spatial' | 'none';
@@ -32,6 +33,23 @@ interface SceneState {
 
   enterGame: (gameId: string, labColor: string) => void;
   exitGame: () => void;
+  /**
+   * STATE-MED-003 (B): Single coordinated teardown across sceneStore,
+   * gameStore, and the game-level fields of sceneStore itself. Call
+   * from:
+   *   - GameShell unmount (after reward pipeline resolves)
+   *   - PauseMenu3D "Quit to Labs" action (Phase 2C)
+   *   - GameErrorBoundary fallback
+   *   - Demo expiry auto-pause (Phase 2C)
+   *
+   * Order is deliberate — gameStore.resetGame() first so downstream
+   * subscribers never observe a half-cleaned state (e.g., HUD gone
+   * but phase still 'complete').
+   *
+   * Idempotent: no-op when activeGameId is already null and we're
+   * not in a game scene.
+   */
+  cleanupGame: () => void;
   enterSpatial: () => void;
   exitSpatial: () => void;
   setHeroActive: () => void;
@@ -94,6 +112,40 @@ export const useSceneStore = create<SceneState>((set, get) => ({
       },
     });
   },
+
+  cleanupGame: () => {
+    const state = get();
+    // Idempotency: if no game is active and we're already back in the
+    // cockpit scene, skip. Guards against StrictMode double-invocation,
+    // React 18 concurrent unmount, and multiple call sites racing
+    // (GameShell unmount + PauseMenu Quit + ErrorBoundary fallback).
+    if (
+      state.activeScene === 'cockpit' &&
+      state.activeGameId === null &&
+      state.gameSceneContent === null &&
+      state.gameHUDContent === null
+    ) {
+      return;
+    }
+
+    // 1. Reset per-child gameStore BEFORE the iris animation begins so
+    //    the phase indicator in the HUD doesn't briefly flip to 'idle'
+    //    mid-animation. resetGame() clears:
+    //      currentGame, phase, currentRound, totalRounds, score,
+    //      maxScore, isComplete, isPaused, hintsRemaining,
+    //      timeElapsed, gameData
+    useGameStore.getState().resetGame();
+
+    // 2. Trigger the scene exit (already clears gameSceneContent,
+    //    gameHUDContent, and starts the iris-close transition).
+    get().exitGame();
+
+    // 3. Revert active game lab color to the default so the cockpit's
+    //    ambient lights return to lab-neutral glow. The real color is
+    //    re-set by enterGame() on the next game entry.
+    set({ activeGameLabColor: '#00BBFF' });
+  },
+
 
   // Phase 5 O.1-MAX (§5.8): Spatial transitions now animate via the
   // shared transition state machine so the 2D PageTransitionProvider
