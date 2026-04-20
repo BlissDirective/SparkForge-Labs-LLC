@@ -2456,3 +2456,171 @@ Phase 3 scope is **29 Medium-severity findings** across the 8 categories, plus t
 ---
 
 *Phase 2 complete: April 19, 2026 | 33 commits on `claude/phase-2-planning-Pon2W` | 88/88 tests green | Pushed.*
+
+---
+
+## PHASE 3 IMPLEMENTATION LOG — April 20, 2026 (in progress)
+
+**Branch:** `claude/phase-3-planning-6SHaq`
+**Status:** Part 1 COMPLETE ✓ · Part 2 IN PROGRESS (14 of 21 planned commits landed; 7 tasks remain: T11 UX, T12-T15b PERF, T16-T18 DEPLOY, T19-T20 backfills)
+**Implementer:** Claude Code (Opus 4.7)
+**Test count:** 88 → **187 passing** (+99 new tests)
+**Commits so far:** 30 on branch (13 Part 1 + 17 Part 2)
+**Remote:** All commits pushed
+
+### Part 1 — 13 Medium Findings RESOLVED
+
+User selected options per-finding during Phase 3 Part 1 planning. Executed with per-finding commit discipline.
+
+| # | ID | Option | Commit | Summary |
+|---|---|----|----|---|
+| 1 | AUTH-MED-001 | B | `aedbe21` | Special-char regex added to `SignupSchema`, `UpdatePasswordSchema`, `passwordSignupSchema` |
+| 2 | AUTH-MED-002 | B | `12f3a18` | `CONSENT_REQUIRED` error code + `requireAuthWithConsent()` helper + client interceptor redirect + `/onboarding/consent` page |
+| 3 | AUTH-MED-003 | B | `d2a14bc` | `captchaToken` plumbed through signup/login/reset + env var plumbing + SETUP_CHECKLIST docs |
+| 4 | DB-MED-001 | B | `b197c82` | `sql/016_perf_indexes.sql` — 3 composite indexes matching `tierCheck.ts` query shapes |
+| 5 | DB-MED-002 | B | `6d89317` | `sql/017_subscription_events_fk_cleanup.sql` — FK `ON DELETE SET NULL` + 90-day pg_cron cleanup |
+| 6 | DB-MED-003 | B | `07e1e92` | `sql/018_content_slug_enforce.sql` — NOT NULL + auto-slugify BEFORE INSERT trigger |
+| 7 | DB-MED-004 | A | `7981cf1` | Documented Supavisor transaction-mode pooler (port 6543); code audit confirmed zero `LISTEN`/prepared-statement usage |
+| 8 | PAY-MED-001 | B | `d9185f3` | Global 100 req/min Upstash rate-limit on Stripe webhook with Sentry alert |
+| 9 | PAY-MED-002 | A | `0a885d7` | Removed unused `PortalSchema.returnUrl` — eliminates open-redirect surface |
+| 10 | PAY-MED-003 | B | `4ccf0b4` | `DELETE /api/auth/delete-account` orchestrator (cancel sub → del customer → audit → auth user delete) |
+| 11 | API-MED-001 | B | `10486ab` | Middleware body-size guard by route pattern (auth 10KB, webhook 5MB, agent 500KB, default 100KB) |
+| 12 | API-MED-002 | B | `192d5d4` | `sanitizeErrorMessage()` helper + 8 call-site refactors (agent routes + AI content + webhook) |
+| 13 | API-MED-003 | B | `3836e18` | `RATE_LIMITS.contentRead` 100/min on `/api/content` + `/api/content/[slug]` |
+
+### Part 1 — New SQL migrations (run in Supabase SQL Editor)
+
+- `sql/016_perf_indexes.sql` — 3 composite indexes with DO$$ verification
+- `sql/017_subscription_events_fk_cleanup.sql` — FK cascade + `cleanup_orphaned_subscription_events()` + pg_cron
+- `sql/018_content_slug_enforce.sql` — `slugify()` helper + backfill + trigger + DO$$ verification
+
+### Part 1 — New application modules
+
+- `src/app/(dashboard)/onboarding/consent/page.tsx` — COPPA consent recovery UI
+- `src/app/api/auth/delete-account/route.ts` — DELETE orchestrator (+ 6 unit tests)
+- `src/lib/api-helpers.ts` extensions — `requireAuthWithConsent`, `sanitizeErrorMessage`, `CONSENT_REQUIRED` / `PAYLOAD_TOO_LARGE` codes, `hasCoppaConsent` on `AuthenticatedUser`
+
+### Part 1 — CI + operator docs
+
+- `.github/workflows/ci.yml` — applies 016 / 017 / 018 in the rls-verify job
+- `SETUP_CHECKLIST.md` — new entries for migrations 016-018 + §1.2.1 Supavisor pooler guidance + AUTH-MED-003 CAPTCHA setup
+- `sql/RUN_ORDER.md` — entries 23-25
+
+### Part 1 — Metrics
+
+| Metric | Phase 2 end | Phase 3 Part 1 end |
+|---|---|---|
+| Medium bugs resolved | — | 13 |
+| Unit tests | 88 | 115 |
+| Test files | 12 | 15 |
+| SQL migrations | 15 + verify | 18 + verify |
+| Body-size enforcement | none | 4-tier per-route |
+| Error-message sanitization | ad-hoc per route | centralized helper |
+| CAPTCHA provider plumbing | none | hCaptcha / Turnstile ready |
+| Account deletion API | none | full GDPR flow |
+
+---
+
+### Part 2 — In Progress (14 of 21 planned commits landed)
+
+User selected options during Part 2 planning. Split into 6 phases (2A–2F) per architectural dependency; executing phase-by-phase with mid-phase pushes every ~4 commits.
+
+#### Phase 2A — State foundation (4 commits · COMPLETE)
+
+| # | ID | Option | Commit |
+|---|---|----|----|
+| T1 | STATE-MED-003 | B | `670f8bd` — `sceneStore.cleanupGame()` coordinator; single-entry teardown across scene/game stores; idempotent |
+| T2 | STATE-MED-002 | B | `076afe7` — Zustand `persist` middleware on authStore demo slice (skipHydration + onRehydrateStorage); AuthProvider reconciles against Supabase |
+| T3 | R1 (Phase 2 deferral) | — | `e545a26` — `cockpitUIStore` merged into `cockpitStore` (UI-routing slice); 13 consumers migrated; store deleted |
+| T4 | R2 (Phase 2 deferral) | — | `11dd2d0` — `accessibilityStore` merged into `uiStore.a11y` slice with legacy-key persist migration; 11 consumers migrated; store deleted |
+
+**Stores count: 15 → 13** after R1/R2.
+
+#### Phase 2B — React Query migration (7 commits · COMPLETE)
+
+STATE-MED-001 selected **Opt B-full** (full migration, hard-cut). Split into T5a (foundation) + T5b (gamification) + T5c (childStore hard-cut, phased C1–C4 by consumer category).
+
+| # | Sub-task | Commit | Scope |
+|---|---|---|---|
+| T5a | RQ foundation + useActiveChild | `2228a95` | QueryProvider staleTime 5min→30s + refetchOnWindowFocus true; new `useActiveChild()` hook |
+| T5b | Gamification optimistic → RQ cache | `4e0c27d` | `useAwardXP` / `useUpdateStreak` mutate `['children']` cache instead of childStore; invalidate on settle |
+| T5c-C1 | Core hooks | `9d60b4e` | 3 hook files (`useCockpitContentBridge`, `useGameEnvironmentReactivity`, `useSessionTimer`) |
+| T5c-C2 | 3D panels + cockpit | `88a2630` | 8 files (CockpitCanvas, Dashboard*, Onboarding, Parent, Profile, VariableDialCluster, GuideChatPanel) |
+| T5c-C3 | Games | `439b1a7` | 36 files (GameShell + 35 game components) — mechanical sed-driven migration |
+| T5c-C4 | childStore hard-cut | `ba530ef` | Stripped childStore to `{ activeChildId, setActiveChildId, clearChild }`; AuthProvider pre-populates React Query cache; 18 final consumers migrated |
+
+**`childStore` is now UI-only.** React Query is the single source of truth for child data.
+
+#### Phase 2C — UX improvements (5 of 6 tasks COMPLETE; T11 PENDING)
+
+| # | ID | Option | Commit |
+|---|---|----|----|
+| T6 | UX-MED-005 | A | `eedb5ad` — Explicit `<html class="dark" colorScheme="dark">` + body-level `filter: brightness(var(--sf-brightness))` + `canvas { filter: none }` exclusion + `BrightnessEffect` subscriber |
+| T7 | UX-MED-006 | A | `e0a8f45` — Reusable `ConfirmDialog` (portal + focus-trap + WCAG alertdialog) + type-to-confirm + delete-account Danger Zone UI |
+| T8 | UX-MED-004 | A | `35c2a6c` — `scorePassword()` pure function + `PasswordStrengthMeter` HTML component + SignupPanel3D 5-rule 3D checklist (fixes the 4-rule UI vs 5-rule server mismatch from AUTH-MED-001) |
+| T9 | UX-MED-001 | A | `85baa94` — `gameStore.saveState` lifecycle + `SaveIndicator3D` 3D component + reward-pipeline wiring (saving → saved → auto-idle 1.5s later) |
+| T10a | UX-MED-002 | A | `f192cb6` — `gameStore.togglePause()` + `useSafePause` / `useSafePauseFrame` hooks + Escape-key handler in GameShell |
+| T10b | UX-MED-002 | A + Opt C | `96f0f85` — `PauseButton3D` (hex prism, P/Escape/click toggle, hidden HTML proxy for a11y) + LEDRim `intensity` drops 0.5→0.2 (40%) on pause |
+| T10c | UX-MED-002 | A | `ad8d693` — `DemoExpiryWarning` modal fires once at T-10min via sessionStorage gate; pauses active game; achievements summary; "from=demo" signup CTA |
+| T11 | UX-MED-003 | C | **PENDING** — Cockpit flythrough + per-button pulse + Help button |
+
+#### Phases 2D, 2E, 2F — PENDING (next session)
+
+| Phase | Tasks remaining |
+|---|---|
+| 2D Performance | T12 PERF-MED-004 (scheduler.postTask fallback, A+C), T13 PERF-MED-002 (next/Image), T14 PERF-MED-001 (route-based code-split), T15a+b PERF-MED-003 (adaptive post-processing, **D3D-5 relaxation authorized**) |
+| 2E Deployment | T16 DEPLOY-MED-002 (Sentry env tags + perf transactions + DB spans, A+B), T17 DEPLOY-MED-003 (verifyCronBearer extensive audit), T18 DEPLOY-MED-001 (Supabase PITR + recovery script, Opt B) |
+| 2F Backfills | T19 UX-HIGH-005 micro-batch contrast sweep (Opt B micro-tasks), T20 PERF-HIGH-001 30-game selector backfill with dev-run verification (Q4=B) |
+
+### Part 2 — Key architectural additions
+
+- **React Query is the source of truth** for all child data (profiles, XP, level, badges, streak). `childStore` holds `activeChildId` only.
+- **Unified dialog primitive** (`ConfirmDialog`) powers delete-account, demo-expiry warning, and is ready for future destructive flows.
+- **Unified pause infrastructure** (`gameStore.togglePause` + `useSafePause` + Escape handler + `PauseButton3D` + LED rim dim) available to all 35 games and the demo-expiry flow.
+- **SaveIndicator3D** gives child-facing confirmation of save success on every XP/progress/streak API call.
+- **Password strength UI** now matches server-side 5-rule enforcement exactly (closes the gap AUTH-MED-001 opened).
+- **Store count: 15 → 12** (`cockpitUIStore` + `accessibilityStore` + childStore-data all eliminated).
+
+### Part 2 — Metrics so far
+
+| Metric | Part 1 end | Part 2 so far |
+|---|---|---|
+| Medium bugs resolved | 13 | 20 (13 + STATE-MED-001/002/003 + UX-MED-001/004/005/006 + UX-MED-002) |
+| Unit tests | 115 | **187** |
+| Test files | 15 | 30 |
+| Stores | 15 | 12 |
+| Files touched by React Query migration | n/a | 63 |
+| 3D HUD primitives | 2 | 4 (+SaveIndicator3D, PauseButton3D) |
+| Generic modal primitives | 1 | 2 (+ConfirmDialog) |
+
+### Operator Action Items
+
+1. **Supabase SQL Editor** — run in order after Phase 2 migrations:
+   - `sql/016_perf_indexes.sql`
+   - `sql/017_subscription_events_fk_cleanup.sql`
+   - `sql/018_content_slug_enforce.sql`
+2. **Supabase Dashboard (optional) — CAPTCHA:**
+   - Authentication → Settings → Attack Protection → Enable CAPTCHA protection
+   - Paste hCaptcha or Cloudflare Turnstile secret
+   - Set `NEXT_PUBLIC_CAPTCHA_PROVIDER` + `NEXT_PUBLIC_CAPTCHA_SITE_KEY` on Vercel (client-side widget wiring deferred to future UX task)
+3. **Supabase Dashboard — PITR** (DEPLOY-MED-001 follow-up, T18 pending): Project Settings → Database → Point-in-Time Recovery → Enable (Pro plan)
+
+### Carry-over to next session
+
+Part 2 resumes at **T11 UX-MED-003 (Opt C)** — cockpit flythrough + per-button pulse + persistent Help button. Then:
+
+- T12 PERF-MED-004 (scheduler fallback chain with cross-browser compat)
+- T13 PERF-MED-002 (next/Image migration)
+- T14 PERF-MED-001 (per-game route code-split)
+- T15a+b PERF-MED-003 (adaptive post-processing + CLAUDE.md v6.5 D3D-5 relaxation)
+- T16 DEPLOY-MED-002 (Sentry env tags + 3 custom perf transactions + DB query spans)
+- T17 DEPLOY-MED-003 (verifyCronBearer helper + extensive cron audit)
+- T18 DEPLOY-MED-001 (Supabase backups + PITR + recovery script)
+- T19 UX-HIGH-005 backfill (`text-white` /10-40 → /50+ via micro-batched audits)
+- T20 PERF-HIGH-001 backfill (30 non-flagship games → selector hooks with dev-run verification)
+
+Final push at phase close.
+
+---
+
+*Phase 3 in progress | Branch `claude/phase-3-planning-6SHaq` | 30 commits / 187 tests green / all pushed | Part 1 complete · Phase 2A/2B/2C-except-T11 complete · Phase 2C T11 + 2D/2E/2F pending next session.*
