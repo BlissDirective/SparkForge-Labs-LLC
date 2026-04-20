@@ -17,7 +17,7 @@ import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { MathUtils } from 'three';
 import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 
 // ■■ Public interface ■■
 
@@ -84,8 +84,13 @@ export function useGameEnvironmentReactivity() {
   const totalRounds = useGameStore((s) => s.totalRounds);
   const isComplete = useGameStore((s) => s.isComplete);
 
-  const childLevel = useChildStore((s) => s.activeChild?.level ?? 1);
-  const childStreak = useChildStore((s) => s.activeChild?.streak_count ?? 0);
+  // STATE-MED-001 (B-full/T5c-C1): read from React Query cache via
+  // useActiveChild() so env reactivity reflects the latest server
+  // values (e.g., an XP award just reconciled from ['children']
+  // refetch won't require a childStore patch to propagate).
+  const activeChild = useActiveChild();
+  const childLevel = activeChild?.level ?? 1;
+  const childStreak = activeChild?.streak_count ?? 0;
 
   // ── Mutable values ref (read in useFrame, never triggers React render) ──
   const valuesRef = useRef<EnvironmentReactivityValues>({ ...DEFAULT_VALUES });
