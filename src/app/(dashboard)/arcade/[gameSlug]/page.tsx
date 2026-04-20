@@ -11,7 +11,7 @@
 import dynamic from 'next/dynamic';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { getGameBySlug } from '@/config/gameRegistry';
 
 function GameLoader() {
@@ -190,7 +190,7 @@ const GAME_MAP: Record<string, ReturnType<typeof dynamic>> = {
 
 export default function GamePage() {
   const { gameSlug } = useParams<{ gameSlug: string }>();
-  const activeChild = useChildStore((s) => s.activeChild);
+  const activeChild = useActiveChild();
 
   const GameComponent = GAME_MAP[gameSlug];
 

@@ -28,7 +28,7 @@ import type { Child } from '@/types';
  */
 function patchActiveChildInCache(
   qc: ReturnType<typeof useQueryClient>,
-  activeChildId: string | undefined,
+  activeChildId: string | null | undefined,
   patch: (child: Child) => Child,
 ): Child[] | undefined {
   if (!activeChildId) return undefined;
@@ -50,7 +50,7 @@ function isOffline(): boolean {
 export function useAwardXP() {
   const qc = useQueryClient();
   const { triggerCelebration } = useUIStore();
-  const activeChildId = useChildStore((s) => s.activeChild?.id);
+  const activeChildId = useChildStore((s) => s.activeChildId);
 
   const mutateRef = useRef<((vars: {
     childId: string;
@@ -171,7 +171,7 @@ export function useAwardXP() {
 // Query cache, NOT childStore.
 export function useUpdateStreak() {
   const qc = useQueryClient();
-  const activeChildId = useChildStore((s) => s.activeChild?.id);
+  const activeChildId = useChildStore((s) => s.activeChildId);
 
   const mutateRef = useRef<((childId: string) => void) | null>(null);
 

@@ -181,7 +181,7 @@ interface UseGameStoreCallable {
 const identitySelector = (s: GameState) => s;
 
 function useGameStoreImpl<T>(selector?: (s: GameState) => T): T | GameState {
-  const childId = useChildStore((s) => s.activeChild?.id);
+  const childId = useChildStore((s) => s.activeChildId);
   const key = resolveKey(childId);
   // Cache the resolved key for imperative access. Safe to write on every
   // render; reads happen outside React render cycles.

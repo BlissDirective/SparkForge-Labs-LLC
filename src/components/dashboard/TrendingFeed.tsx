@@ -9,7 +9,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { TrendingUp, ExternalLink, Gamepad2, Sparkles, ChevronRight } from 'lucide-react';
 import { useTrendingContent } from '@/hooks/useContent';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import type { Content } from '@/types';
 import Link from 'next/link';
 
@@ -19,7 +19,7 @@ interface TrendingFeedProps {
 }
 
 export default function TrendingFeed({ maxItems = 3, compact = false }: TrendingFeedProps) {
-  const ageBand = useChildStore((s) => s.activeChild?.age_band) || 'B';
+  const ageBand = useActiveChild()?.age_band || 'B';
   const { data, isLoading } = useTrendingContent(ageBand);
 
   const items = ((data as { items?: Content[] })?.items || []).slice(0, maxItems);

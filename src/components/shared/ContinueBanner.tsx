@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { ChevronRight, X } from 'lucide-react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { WORLDS } from '@/types';
 
 // ContinueBanner — "Pick up where you left off"
 // v2 [NEW-3D]: Contextual banner showing last activity
 
 export function ContinueBanner() {
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const [dismissed, setDismissed] = useState(false);
 
   // Show banner only if child has some progress data

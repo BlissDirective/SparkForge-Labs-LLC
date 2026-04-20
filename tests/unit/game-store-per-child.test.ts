@@ -14,23 +14,12 @@ import { useChildStore } from '@/stores/childStore';
 
 afterEach(() => {
   clearAllGameStores();
-  useChildStore.setState({ activeChild: null, children: [] });
+  // T5c-C4: childStore is UI-only now — just the activeChildId field.
+  useChildStore.setState({ activeChildId: null });
 });
 
-function setActiveChild(id: string, name = 'Test Child') {
-  useChildStore.setState({
-    activeChild: {
-      id,
-      parent_id: 'p1',
-      display_name: name,
-      age_band: 'B',
-      avatar_config: null,
-      xp: 0,
-      level: 1,
-      streak_count: 0,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
-  });
+function setActiveChild(id: string, _name = 'Test Child') {
+  useChildStore.setState({ activeChildId: id });
 }
 
 describe('gameStore — per-child isolation', () => {

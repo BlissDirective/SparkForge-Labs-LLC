@@ -57,21 +57,11 @@ function wrapper(client: QueryClient) {
 
 beforeEach(() => {
   vi.resetAllMocks();
-  useChildStore.setState({
-    activeChild: null,
-    children: [],
-    badges: [],
-    progress: [],
-  });
+  useChildStore.setState({ activeChildId: null });
 });
 
 afterEach(() => {
-  useChildStore.setState({
-    activeChild: null,
-    children: [],
-    badges: [],
-    progress: [],
-  });
+  useChildStore.setState({ activeChildId: null });
 });
 
 describe('useActiveChild — STATE-MED-001 (B-full)', () => {
@@ -95,10 +85,7 @@ describe('useActiveChild — STATE-MED-001 (B-full)', () => {
     );
 
     const childA = makeChild('a');
-    useChildStore.setState({
-      activeChild: childA,
-      children: [childA],
-    });
+    useChildStore.setState({ activeChildId: childA.id });
 
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -115,7 +102,7 @@ describe('useActiveChild — STATE-MED-001 (B-full)', () => {
     const b = makeChild('b', { xp: 999 });
     mockApiFetch.mockResolvedValueOnce([a, b] as never);
 
-    useChildStore.setState({ activeChild: a, children: [] });
+    useChildStore.setState({ activeChildId: a.id });
 
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -138,7 +125,7 @@ describe('useActiveChild — STATE-MED-001 (B-full)', () => {
     const a = makeChild('a', { xp: 100 });
     mockApiFetch.mockResolvedValue([a] as never);
 
-    useChildStore.setState({ activeChild: a });
+    useChildStore.setState({ activeChildId: a.id });
 
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -176,7 +163,7 @@ describe('useActiveChild — STATE-MED-001 (B-full)', () => {
     const real = makeChild('real-id');
     mockApiFetch.mockResolvedValueOnce([real] as never);
 
-    useChildStore.setState({ activeChild: ghost });
+    useChildStore.setState({ activeChildId: ghost.id });
 
     const client = new QueryClient({
       defaultOptions: { queries: { retry: false } },

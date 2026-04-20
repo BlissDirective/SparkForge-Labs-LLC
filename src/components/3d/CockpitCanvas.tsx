@@ -81,7 +81,6 @@ import { useSceneStore } from '@/stores/sceneStore';
 // useDeviceStore available for future per-device tuning
 // import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
-import { useChildStore } from '@/stores/childStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
 // Module-level asset preloading (Audit Section 4.5)
@@ -158,14 +157,15 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({
   const openConsole = useCockpitStore((s) => s.openConsole);
   const closeConsole = useCockpitStore((s) => s.closeConsole);
 
-  // STATE-MED-001 (B-full/T5c-C2): child now read from React Query
-  // cache via useActiveChild(). `badges` here is the legacy
-  // childStore field which is always [] (setBadges is never called).
-  // Dead read — badge count is always 0 in the HUD. Tracked for
-  // post-T5c cleanup: migrate to useBadges(childId) from
-  // useGamification and consume the React Query shape.
+  // STATE-MED-001 (B-full/T5c-C4): child from React Query cache.
+  // Badges previously read from childStore.badges which was always []
+  // (setBadges was never called). Now a typed empty stub preserves
+  // exact prior rendering (badgeCount: 0, recentBadge: undefined).
+  // Post-T5c follow-up: migrate to useBadges(childId) from
+  // useGamification (different shape — flat BadgeDto[], not
+  // ChildBadge[]) so the HUD actually shows badge data.
   const child = useActiveChild();
-  const badges = useChildStore((s) => s.badges);
+  const badges: Array<{ badge?: { name?: string } }> = [];
 
   const consoleData = useMemo(
     () => ({

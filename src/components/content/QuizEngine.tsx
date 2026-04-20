@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RotateCcw, ChevronRight, Lightbulb, Zap } from 'lucide-react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { WORLDS } from '@/types';
 import type { Content, QuizQuestion } from '@/types';
@@ -30,7 +30,7 @@ const ENCOURAGEMENTS_WRONG = [
 
 export function QuizEngine({ content }: { content: Content }) {
   const router = useRouter();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const completeAndReward = useCompleteAndReward();
 
   const questions: QuizQuestion[] = useMemo(

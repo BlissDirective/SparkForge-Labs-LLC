@@ -18,7 +18,7 @@ import { useEffect, useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { motion } from 'motion/react';
 import Link from 'next/link';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { useLabProgress } from '@/hooks/useProgress';
@@ -62,7 +62,7 @@ export default function LabDetailPage() {
   const labIdRaw = Array.isArray(params.labId) ? params.labId[0] : params.labId;
   const labId = parseInt(labIdRaw || '0', 10);
 
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const setLabColor = useUIStore((s) => s.setLabColor);
   const focusLab = useCockpitStore((s) => s.focusLab);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);

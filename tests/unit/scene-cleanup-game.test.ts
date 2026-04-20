@@ -30,19 +30,8 @@ import { useChildStore } from '@/stores/childStore';
 const SCENE_DEFAULTS = useSceneStore.getState();
 
 function setActiveChild(id: string) {
-  useChildStore.setState({
-    activeChild: {
-      id,
-      parent_id: 'p1',
-      display_name: 'Test',
-      age_band: 'B',
-      avatar_config: null,
-      xp: 0,
-      level: 1,
-      streak_count: 0,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any,
-  });
+  // T5c-C4: childStore is UI-only; set activeChildId only.
+  useChildStore.setState({ activeChildId: id });
 }
 
 beforeEach(() => {
@@ -64,7 +53,7 @@ beforeEach(() => {
 
 afterEach(() => {
   clearAllGameStores();
-  useChildStore.setState({ activeChild: null, children: [] });
+  useChildStore.setState({ activeChildId: null });
   useSceneStore.setState({
     activeScene: SCENE_DEFAULTS.activeScene,
     previousScene: null,

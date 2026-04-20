@@ -13,7 +13,6 @@
 import { useMemo } from 'react';
 import { Text } from '@react-three/drei';
 import { RadialDial3D } from '../ui/RadialDial3D';
-import { useChildStore } from '@/stores/childStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import {
   CHROME_BORDER,
@@ -29,8 +28,10 @@ export default function DashboardLeft() {
   // `badges` is dead childStore field (always [] — setBadges is never
   // called). Recent-badge strip always renders empty; post-T5c follow-up
   // migrates to useBadges(childId).
+  // T5c-C4: stubbed empty badges array preserves prior behavior
+  // (strip renders empty). Follow-up: useBadges(childId) integration.
   const child = useActiveChild();
-  const badges = useChildStore((s) => s.badges);
+  const badges: Array<{ badge?: { icon?: string; rarity?: string } }> = [];
 
   const xp = child?.xp ?? 0;
   const xpMax = 500;

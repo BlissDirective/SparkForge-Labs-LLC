@@ -2,19 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
 import { demoSessionFromUser } from '@/lib/demo-session';
 import { LoadingScreen } from '@/components/shared/LoadingScreen';
 import type { User } from '@supabase/supabase-js';
+import type { Child } from '@/types';
 
 const supabase = createClient();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const { setParent, setLoading: setAuthLoading, setDemoSession, clearAuth } = useAuthStore();
-  const { setChildren, setActiveChild, clearChild } = useChildStore();
+  // STATE-MED-001 (B-full/T5c-C4): childStore is UI-only. children
+  // list lives in React Query cache (['children']); AuthProvider
+  // pre-populates it during hydrateUserData so useChildren() sees
+  // data before its first network fetch resolves.
+  const setActiveChildId = useChildStore((s) => s.setActiveChildId);
+  const clearChild = useChildStore((s) => s.clearChild);
+  const qc = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -95,7 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Fetch children
+      // Fetch children + seed the React Query cache so useChildren()
+      // subscribers render immediately without a second network trip.
       const { data: kids } = await supabase
         .from('children')
         .select('*')
@@ -103,7 +112,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .order('created_at', { ascending: true });
 
       if (kids && mounted) {
-        setChildren(kids);
+        // T5c-C4: populate ['children'] cache (React Query owns the
+        // list). Any consumer of useChildren() / useActiveChild() will
+        // see this data on next render.
+        qc.setQueryData<Child[]>(['children'], kids as Child[]);
 
         // Auto-select first child if none selected
         if (kids.length > 0) {
@@ -113,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const activeChild = stored
             ? kids.find((k: { id: string }) => k.id === stored) || kids[0]
             : kids[0];
-          setActiveChild(activeChild);
+          setActiveChildId(activeChild.id);
         }
       }
     }

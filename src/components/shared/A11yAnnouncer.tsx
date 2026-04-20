@@ -20,7 +20,7 @@ export function A11yAnnouncer() {
   // STATE-CRIT-001 (13B): gameStore is now scoped per child. When the
   // active child changes, re-subscribe to the newly-active child's store
   // so score announcements follow the active profile.
-  const activeChildId = useChildStore((s) => s.activeChild?.id);
+  const activeChildId = useChildStore((s) => s.activeChildId);
 
   // Subscribe to score changes during gameplay
   useEffect(() => {

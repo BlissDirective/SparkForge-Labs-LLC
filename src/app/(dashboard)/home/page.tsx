@@ -8,14 +8,14 @@
 // Retained: sr-only ARIA stats for screen readers.
 
 import { useEffect, useMemo } from 'react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useUIStore } from '@/stores/uiStore';
 import { useAllLabsProgress } from '@/hooks/useProgress';
 import { useCockpitScene } from '@/hooks/useCockpitScene';
 import { useCockpitStore } from '@/stores/cockpitStore';
 
 export default function HomePage() {
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const setLabColor = useUIStore((s) => s.setLabColor);
   const childId = activeChild?.id || '';
 
