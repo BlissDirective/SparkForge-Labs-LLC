@@ -27,6 +27,8 @@ import {
   EMISSIVE_SCALE,
   HOVER_GLOW,
 } from '@/lib/3d/cockpitDesignTokens';
+// UX-MED-001 (A): auto-save indicator anchored to top-right of HUD band
+import { SaveIndicator3D } from '@/components/3d/game-ui/SaveIndicator3D';
 
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -382,6 +384,11 @@ export function GameHUD3D({
             </Text>
           </group>
         )}
+
+        {/* UX-MED-001 (A): Auto-save indicator. Sits just to the
+            right of the HUD band proper so it doesn't overlap score
+            or timer readouts. Hidden when idle. */}
+        <SaveIndicator3D position={[HUD_WIDTH / 2 + 0.12, 0, 0.003]} />
       </group>
     </group>
   );

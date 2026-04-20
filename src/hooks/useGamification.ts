@@ -299,6 +299,9 @@ export function useCheckBadges() {
 
 // COMBINED FLOW: complete content → award XP → update streak → check badges
 // This is the main function games and lessons call when a child finishes something.
+// UX-MED-001 (A): drives the gameStore.saveState lifecycle that
+// SaveIndicator3D renders. Sets 'saving' at start, 'saved' on
+// success (with 1500ms auto-fade to 'idle'), 'error' on any failure.
 export function useCompleteAndReward() {
   const completeContent = useCompleteContentInternal();
   const awardXP = useAwardXP();
@@ -312,26 +315,47 @@ export function useCompleteAndReward() {
     source: string,
     score?: number
   ) => {
-    // Step 1: Record completion
-    await completeContent.mutateAsync({ childId, contentId, score });
+    // Lazy import to avoid pulling gameStore into lesson/spark-fact
+    // non-game paths at module init. getState() is safe here.
+    const { useGameStore } = await import('@/stores/gameStore');
+    const setSaveState = useGameStore.getState().setSaveState;
 
-    // Step 2: Award XP (triggers celebration).
-    // API-HIGH-003 (C): for source='game' the server ignores `amount`
-    // and looks up the canonical reward from GAME_XP_REWARDS using
-    // `gameId`. We forward contentId as gameId since games identify
-    // themselves by their slug (e.g., 'ai-spy').
-    await awardXP.mutateAsync({
-      childId,
-      source,
-      gameId: source === 'game' ? contentId : undefined,
-      amount: source === 'game' ? undefined : xpAmount,
-    });
+    setSaveState('saving');
+    try {
+      // Step 1: Record completion
+      await completeContent.mutateAsync({ childId, contentId, score });
 
-    // Step 3: Update streak
-    await updateStreak.mutateAsync(childId);
+      // Step 2: Award XP (triggers celebration).
+      // API-HIGH-003 (C): for source='game' the server ignores `amount`
+      // and looks up the canonical reward from GAME_XP_REWARDS using
+      // `gameId`. We forward contentId as gameId since games identify
+      // themselves by their slug (e.g., 'ai-spy').
+      await awardXP.mutateAsync({
+        childId,
+        source,
+        gameId: source === 'game' ? contentId : undefined,
+        amount: source === 'game' ? undefined : xpAmount,
+      });
 
-    // Step 4: Check for new badges
-    await checkBadges.mutateAsync(childId);
+      // Step 3: Update streak
+      await updateStreak.mutateAsync(childId);
+
+      // Step 4: Check for new badges
+      await checkBadges.mutateAsync(childId);
+
+      // All four pipeline steps succeeded — flash 'saved' then fade.
+      setSaveState('saved');
+      setTimeout(() => {
+        // Guard: only reset if nothing else moved us into 'saving' or
+        // 'error' in the meantime (e.g. an immediate next mutation).
+        if (useGameStore.getState().saveState === 'saved') {
+          setSaveState('idle');
+        }
+      }, 1500);
+    } catch (err) {
+      setSaveState('error');
+      throw err;
+    }
   };
 }
 

@@ -34,6 +34,13 @@ import { useChildStore } from '@/stores/childStore';
 
 type GamePhase = 'idle' | 'welcome' | 'learn' | 'play' | 'complete';
 
+// UX-MED-001 (A): auto-save indicator lifecycle.
+//   'idle'   — nothing in flight, indicator hidden
+//   'saving' — a reward-pipeline API call is in flight
+//   'saved'  — last call succeeded; auto-fades back to 'idle' 1500ms later
+//   'error'  — last call failed; indicator flashes red until next attempt
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
 interface GameState {
   currentGame: string | null;
   phase: GamePhase;
@@ -46,12 +53,16 @@ interface GameState {
   hintsRemaining: number;
   timeElapsed: number;
   gameData: Record<string, unknown>;
+  /** UX-MED-001 (A): current save-indicator state. */
+  saveState: SaveState;
   startGame: (gameId: string, totalRounds: number, hints?: number) => void;
   setPhase: (phase: GamePhase) => void;
   updateScore: (points: number) => void;
   setMaxScore: (points: number) => void;
   advanceRound: () => void;
   useHint: () => void;
+  /** UX-MED-001 (A): update the auto-save indicator. */
+  setSaveState: (s: SaveState) => void;
   pauseGame: () => void;
   resumeGame: () => void;
   completeGame: () => void;
@@ -74,6 +85,7 @@ function createGameStore(): StoreApi<GameState> {
     hintsRemaining: 3,
     timeElapsed: 0,
     gameData: {},
+    saveState: 'idle' as SaveState,
     startGame: (gameId, totalRounds, hints = 3) =>
       set({
         currentGame: gameId,
@@ -87,7 +99,9 @@ function createGameStore(): StoreApi<GameState> {
         hintsRemaining: hints,
         timeElapsed: 0,
         gameData: {},
+        saveState: 'idle',
       }),
+    setSaveState: (saveState) => set({ saveState }),
     setPhase: (phase) => set({ phase }),
     updateScore: (points) => set((s) => ({ score: s.score + points })),
     setMaxScore: (points) => set({ maxScore: points }),
@@ -122,6 +136,7 @@ function createGameStore(): StoreApi<GameState> {
         hintsRemaining: 3,
         timeElapsed: 0,
         gameData: {},
+        saveState: 'idle',
       }),
     setGameData: (key, value) => set((s) => ({ gameData: { ...s.gameData, [key]: value } })),
     tick: () => set((s) => (s.isPaused ? {} : { timeElapsed: s.timeElapsed + 1 })),
