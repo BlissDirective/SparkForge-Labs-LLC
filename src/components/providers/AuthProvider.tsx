@@ -25,6 +25,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setAuthLoading(true);
 
+        // STATE-MED-002 (B): rehydrate the persisted demo slice FIRST
+        // so first-paint reflects the cached state. We then validate
+        // against Supabase and clear the cache if the session is gone.
+        // skipHydration=true in the store means this is an explicit
+        // call (no automatic rehydrate on module load).
+        await useAuthStore.persist.rehydrate();
+
         // AUTH-CRIT-002 (2B): Demo users now have real Supabase anonymous
         // sessions. `is_anonymous` is the authoritative signal; we no
         // longer read localStorage for demo state.
@@ -34,7 +41,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (session.user.is_anonymous) {
             await hydrateDemoSession(session.user);
           } else {
+            // STATE-MED-002 (B): non-anonymous session means any
+            // persisted demo cache is stale — clear it.
+            useAuthStore.getState().endDemoSession();
             await hydrateUserData(session.user.id);
+          }
+        } else if (mounted) {
+          // No Supabase session at all — clear any cached demo state
+          // so the login page doesn't show a phantom demo banner.
+          const { isDemoMode } = useAuthStore.getState();
+          if (isDemoMode) {
+            useAuthStore.getState().endDemoSession();
           }
         }
       } catch (error) {
