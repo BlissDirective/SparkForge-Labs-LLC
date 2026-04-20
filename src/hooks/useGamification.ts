@@ -5,6 +5,39 @@ import { useUIStore } from '@/stores/uiStore';
 import { useChildStore } from '@/stores/childStore';
 import { useToastStore, toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
+import type { Child } from '@/types';
+
+// ════════════════════════════════════════════════════════════════
+// STATE-MED-001 (B-full/T5b): Gamification optimistic updates now
+// mutate the React Query `['children']` cache instead of
+// childStore.activeChild. Previously, both stores held their own
+// copy of the XP/level/streak values and would desync after a
+// refetchOnWindowFocus (T5a tightened) pulled fresh server data
+// that didn't yet reflect the in-flight award.
+//
+// After T5b, the React Query cache is the single source of truth —
+// useActiveChild() reads from it, this hook writes to it, and the
+// server refetch reconciles. childStore is only touched on rollback
+// for back-compat until T5c strips it to UI-only.
+// ════════════════════════════════════════════════════════════════
+
+/**
+ * Apply a partial update to the active child in the React Query cache.
+ * Returns a snapshot of the previous children list so onError can
+ * roll back cleanly.
+ */
+function patchActiveChildInCache(
+  qc: ReturnType<typeof useQueryClient>,
+  activeChildId: string | undefined,
+  patch: (child: Child) => Child,
+): Child[] | undefined {
+  if (!activeChildId) return undefined;
+  const prev = qc.getQueryData<Child[]>(['children']);
+  if (!prev) return undefined;
+  const next = prev.map((c) => (c.id === activeChildId ? patch(c) : c));
+  qc.setQueryData<Child[]>(['children'], next);
+  return prev;
+}
 
 // UX-HIGH-003 (B): helper for offline-vs-network-error copy
 function isOffline(): boolean {
@@ -12,14 +45,13 @@ function isOffline(): boolean {
 }
 
 // v2 [ENH]: Optimistic XP update — shows instant feedback
+// STATE-MED-001 (B-full/T5b): Optimistic update mutates the React
+// Query cache, NOT childStore. See file header for rationale.
 export function useAwardXP() {
   const qc = useQueryClient();
   const { triggerCelebration } = useUIStore();
-  const { activeChild } = useChildStore();
+  const activeChildId = useChildStore((s) => s.activeChild?.id);
 
-  // UX-HIGH-003 (B): ref captures mutation.mutate so the retry toast
-  // action can invoke it without TDZ issues. Populated after
-  // useMutation returns.
   const mutateRef = useRef<((vars: {
     childId: string;
     source: string;
@@ -46,35 +78,30 @@ export function useAwardXP() {
         capped?: boolean;
       }>('/api/gamification/xp', { method: 'POST', body: JSON.stringify(body) }),
 
-    // v2 [ENH]: Optimistic update — instantly show XP in sidebar
+    // STATE-MED-001 (B-full/T5b): patch the React Query cache instead
+    // of childStore. onSettled invalidation reconciles with the
+    // authoritative server value.
     onMutate: async (variables) => {
-      // Cancel outgoing refetches
+      await qc.cancelQueries({ queryKey: ['children'] });
       await qc.cancelQueries({ queryKey: ['progress'] });
 
-      // Snapshot for rollback
-      const previousChild = activeChild ? { ...activeChild } : null;
+      const optimistic = variables.amount ?? 25;
+      const previousChildren = patchActiveChildInCache(
+        qc,
+        activeChildId,
+        (c) => ({ ...c, xp: c.xp + optimistic }),
+      );
 
-      // Optimistically update local store. For source=game the real
-      // amount is server-computed, so we use an optimistic guess
-      // (variables.amount if provided, else a conservative 25) — the
-      // `onSettled` invalidation will reconcile with the authoritative
-      // server value. API-HIGH-003 (C).
-      if (activeChild) {
-        const optimistic = variables.amount ?? 25;
-        useChildStore.getState().updateXP(optimistic);
-      }
-
-      return { previousChild };
+      return { previousChildren };
     },
 
     onError: (_err, variables, context) => {
-      // Rollback on error
-      if (context?.previousChild) {
-        useChildStore.getState().setActiveChild(context.previousChild);
+      // STATE-MED-001 (B-full/T5b): rollback by restoring the prior
+      // React Query cache snapshot.
+      if (context?.previousChildren) {
+        qc.setQueryData<Child[]>(['children'], context.previousChildren);
       }
-      // UX-HIGH-003 (B): Retry toast. Offline copy is more optimistic
-      // because the user's connection — not the server — is the
-      // likely cause and Option B's OfflineBanner already tells them.
+      // UX-HIGH-003 (B): Retry toast.
       toast.error(
         isOffline()
           ? "You're offline — XP will save when you reconnect."
@@ -121,7 +148,11 @@ export function useAwardXP() {
     },
 
     onSettled: () => {
-      // Always refetch to sync with server
+      // STATE-MED-001 (B-full/T5b): invalidate BOTH the children list
+      // (so React Query refetches fresh XP / level / streak) AND the
+      // progress list. Children invalidation is what propagates the
+      // server-authoritative XP back to all useActiveChild() consumers.
+      qc.invalidateQueries({ queryKey: ['children'] });
       qc.invalidateQueries({ queryKey: ['progress'] });
     },
   });
@@ -136,9 +167,11 @@ export function useAwardXP() {
 // v2 [ENH]: Optimistic streak update
 // STATE-HIGH-002 (C): Adds Retry-action toast on error in addition to
 // the pre-existing optimistic-update + rollback.
+// STATE-MED-001 (B-full/T5b): Optimistic update mutates the React
+// Query cache, NOT childStore.
 export function useUpdateStreak() {
   const qc = useQueryClient();
-  const { activeChild } = useChildStore();
+  const activeChildId = useChildStore((s) => s.activeChild?.id);
 
   const mutateRef = useRef<((childId: string) => void) | null>(null);
 
@@ -146,23 +179,19 @@ export function useUpdateStreak() {
     mutationFn: (childId: string) =>
       apiFetch<{ shieldUsed?: boolean }>('/api/gamification/streak', { method: 'POST', body: JSON.stringify({ childId }) }),
 
-    // v2 [ENH]: Optimistic streak increment
     onMutate: async () => {
-      const previousChild = activeChild ? { ...activeChild } : null;
-
-      if (activeChild) {
-        useChildStore.getState().setActiveChild({
-          ...activeChild,
-          streak_count: activeChild.streak_count + 1,
-        });
-      }
-
-      return { previousChild };
+      await qc.cancelQueries({ queryKey: ['children'] });
+      const previousChildren = patchActiveChildInCache(
+        qc,
+        activeChildId,
+        (c) => ({ ...c, streak_count: c.streak_count + 1 }),
+      );
+      return { previousChildren };
     },
 
     onError: (_err, variables, context) => {
-      if (context?.previousChild) {
-        useChildStore.getState().setActiveChild(context.previousChild);
+      if (context?.previousChildren) {
+        qc.setQueryData<Child[]>(['children'], context.previousChildren);
       }
       toast.error(
         isOffline()
@@ -197,6 +226,9 @@ export function useUpdateStreak() {
     },
 
     onSettled: () => {
+      // STATE-MED-001 (B-full/T5b): also invalidate ['children'] so
+      // useActiveChild() picks up the server-authoritative streak.
+      qc.invalidateQueries({ queryKey: ['children'] });
       qc.invalidateQueries({ queryKey: ['progress'] });
     },
   });
