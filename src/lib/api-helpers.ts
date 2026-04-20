@@ -38,6 +38,40 @@ export function apiError(message: string, status = 400, code?: string) {
   );
 }
 
+// ═══ API-MED-002 (B): ERROR MESSAGE SANITIZATION ═══
+
+/**
+ * Convert an arbitrary thrown value into a response-safe message.
+ *
+ * In production, ALWAYS returns `fallback` verbatim — raw error
+ * messages often leak stack frames, file paths, or internal service
+ * names. In development we append the raw message so debugging is
+ * still fast.
+ *
+ * Sentry / console.error still receive the full error server-side;
+ * this helper is only about what we ship in response bodies.
+ *
+ * @example
+ *   } catch (err) {
+ *     console.error('[agent] pipeline failed:', err);
+ *     return apiError(
+ *       sanitizeErrorMessage(err, 'Agent pipeline failed'),
+ *       500,
+ *       ERROR_CODES.SERVER_ERROR,
+ *     );
+ *   }
+ */
+export function sanitizeErrorMessage(err: unknown, fallback: string): string {
+  const raw =
+    err instanceof Error
+      ? err.message
+      : typeof err === 'string'
+        ? err
+        : '';
+  if (process.env.NODE_ENV === 'production') return fallback;
+  return raw ? `${fallback}: ${raw}` : fallback;
+}
+
 export function apiValidationError(error: ZodError) {
   const messages = error.errors.map((e) => `${e.path.join('.')}: ${e.message}`);
   return NextResponse.json(

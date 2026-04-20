@@ -129,11 +129,13 @@ export async function POST(req: NextRequest) {
       60,
     );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Webhook signature verification failed:', message);
+    // API-MED-002 (B): log full signature-verification error
+    // server-side, but DO NOT leak it in the 400 body — Stripe
+    // diagnostics can reveal timing / secret-comparison internals.
+    console.error('[stripe-webhook] signature verification failed:', err);
     return NextResponse.json(
-      { error: `Webhook Error: ${message}` },
-      { status: 400 }
+      { error: 'Webhook signature verification failed' },
+      { status: 400 },
     );
   }
 

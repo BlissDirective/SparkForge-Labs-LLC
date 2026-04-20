@@ -4,7 +4,13 @@
 // ════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError, applyRateLimit, requireAdmin } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  applyRateLimit,
+  requireAdmin,
+  sanitizeErrorMessage,
+} from '@/lib/api-helpers';
 import { runAgentPipeline, type PipelineMode } from '@/lib/agent/pipeline';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
@@ -41,7 +47,13 @@ export async function POST(req: NextRequest) {
     const result = await runAgentPipeline(pipelineMode);
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    return apiError(`Agent pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): log full error server-side, surface sanitized
+    // message to the client. Raw stack frames stay out of the response.
+    console.error('[agent/run] pipeline failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Agent pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }

@@ -6,7 +6,7 @@
 // ════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError } from '@/lib/api-helpers';
+import { apiSuccess, apiError, sanitizeErrorMessage } from '@/lib/api-helpers';
 import { runAgentPipeline, type PipelineMode } from '@/lib/agent/pipeline';
 
 export const runtime = 'nodejs';
@@ -47,8 +47,12 @@ export async function GET(req: NextRequest) {
     const result = await runAgentPipeline(mode);
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error('Cron agent run failed:', message);
-    return apiError(`Agent pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): log full error server-side; sanitize response.
+    console.error('[agent/schedule] pipeline failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Agent pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }
