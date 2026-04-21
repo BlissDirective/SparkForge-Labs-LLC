@@ -127,6 +127,29 @@ export default tseslint.config(
     },
   },
 
+  // P2 §5.9 — Easing tokens
+  //
+  // Raw cubic-bezier(...) strings and literal [x,y,x,y] bezier arrays
+  // must live in src/lib/easings.ts. Everywhere else, import a token.
+  // Keeps 2D / GSAP / CSS motion consistent.
+  //
+  // The easings.ts file itself is allow-listed below — it defines the
+  // canonical values.
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: ['src/lib/easings.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "Literal[value=/cubic-bezier\\s*\\(/]",
+          message:
+            'P2 §5.9: Do not use raw `cubic-bezier(...)` strings. Import a token from @/lib/easings (SF_EASE_STANDARD, SF_EASE_EMPHASIZED, etc.).',
+        },
+      ],
+    },
+  },
+
   // P2 §3.6 — Reactive cockpit settings bridge
   //
   // 3D components MUST subscribe to store state via selectors or
