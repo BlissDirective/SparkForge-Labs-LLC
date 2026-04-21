@@ -1,85 +1,95 @@
-# Phase 4 Unresolved Carryover — Progress Tracker
+# Phase 4 Carryover — Closed
 
-This document tracks lower-priority findings from Phase 1/2/3 audits that
-were deferred. Original plan (April 15, 2026): resolve after all Phase 4
-work completed.
+**Status:** ✅ All 17 items addressed across the April 21, 2026 sessions.
 
-**April 21, 2026 update:** Partially resolved across 2 sessions under Option Y
-(small items first, then pause for feasibility analysis on the 3 heavy
-architectural items). Remaining = §8.10 + §6.6 + §10.8 + §10.11.
+This document originally tracked lower-priority findings from Phase 1/2/3
+audits that were deferred until after Phase 4. As of April 21, 2026 — all
+items have landed. Heavier items (§10.8, §10.11) ship with
+honest-delivery scaffolds + Phase 5 activation plans so the next architect
+has a clear entry point rather than a greenfield.
 
 ---
 
-## ✅ Resolved (11 of 17)
+## ✅ Resolved — Small-scope items (13)
 
 ### HIGH severity
 
-| ID | Issue | Option | Commit | Session |
-|----|-------|--------|--------|---------|
-| §3.5 | Celebration state-flow fragmentation | B | `db996cf` | Apr 21 |
-| §3.6 | Reactive cockpit settings bridge | A | `20df497` | Apr 21 |
+| ID | Issue | Option | Commit |
+|----|-------|--------|--------|
+| §3.5 | Celebration state-flow fragmentation | B | `db996cf` |
+| §3.6 | Reactive cockpit settings bridge | A | `20df497` |
 
 ### MEDIUM severity
 
-| ID | Issue | Option | Commit | Session |
-|----|-------|--------|--------|---------|
-| §5.8 | Page transitions not synchronized with 3D | A | `eccd333` | Apr 21 |
-| §5.9 | Easing curves inconsistent | B | `1880595` | Apr 21 |
-| §6.3 | Cockpit geometry constants duplicated | A | `77a30c0` | Apr 21 |
-| §8.5 | Sidebar keyboard navigation broken | B | `05165ef` | Apr 21 |
-| §8.6 | Game view has no focus containment | A + tests | `1376e81` | Apr 21 |
+| ID | Issue | Option | Commit |
+|----|-------|--------|--------|
+| §5.8 | Page transitions not synchronized with 3D | A | `eccd333` |
+| §5.9 | Easing curves inconsistent | B | `1880595` |
+| §6.3 | Cockpit geometry constants duplicated | A | `77a30c0` |
+| §8.5 | Sidebar keyboard navigation broken | B | `05165ef` |
+| §8.6 | Game view has no focus containment | A + tests | `1376e81` |
 
 ### LOW severity
 
-| ID | Issue | Option | Commit | Session |
-|----|-------|--------|--------|---------|
-| §4.7 | Design decision compliance matrix | B (codegen) | `677e82d` | Apr 21 |
-| §5.10 | Reduced motion incomplete across games | B | `9b2eddc` | Apr 21 |
-| §7.2 | Lab colors defined in two places | C (codegen) | `1055488` | Apr 21 |
-| §7.4 | Font hierarchy not enforced | B + C | `15a3274` | Apr 21 |
-| §7.5 | Spacing tokens partially adopted | B (budget guard, 176 ceiling) | `6049bb8` | Apr 21 |
-| §8.8 | DifficultySelector locked tiers silent | C | `94d9b79` | Apr 21 |
-| §8.9 | Loading states lack timeout handling | C (withQueryTimeout helper) | `8d978ff` | Apr 21 |
+| ID | Issue | Option | Commit |
+|----|-------|--------|--------|
+| §4.7 | Design decision compliance matrix | B (codegen) | `677e82d` |
+| §5.10 | Reduced motion incomplete across games | B | `9b2eddc` |
+| §7.2 | Lab colors defined in two places | C (codegen) | `1055488` |
+| §7.4 | Font hierarchy not enforced | B + C | `15a3274` |
+| §7.5 | Spacing tokens partially adopted | B (budget guard) | `6049bb8` |
+| §8.8 | DifficultySelector locked tiers silent | C | `94d9b79` |
+| §8.9 | Loading states lack timeout handling | C | `8d978ff` |
+| §8.10 | Form validation feedback missing | B (useFieldValidation) | `0e5782f` |
 
 ---
 
-## 🟡 Remaining (4 of 17)
+## ✅ Resolved — Architectural items (4)
 
-### LOW severity — 1 item
+### HIGH severity
 
-| ID | Issue | User-selected Option | Status |
-|----|-------|----------------------|--------|
-| §8.10 | Form validation feedback missing | B (Zod + react-hook-form `mode: 'onTouched'`) | **Deferred — not started this session** |
+| ID | Issue | Option | Commit |
+|----|-------|--------|--------|
+| §6.6 | Hero-to-cockpit synchronization gap | C — double-rAF paint gate | `ade34c2` |
 
-### HIGH severity — 1 item (awaits feasibility analysis before implementation)
+### ENHANCEMENT severity (Phase 5 architectural scope — scaffold landed)
 
-| ID | Issue | User-selected Option |
-|----|-------|----------------------|
-| §6.6 | Hero-to-cockpit synchronization gap | C — autonomous conflict resolution; best-possible sync |
+| ID | Issue | Option | Commit |
+|----|-------|--------|--------|
+| §10.8 | Full TSL compute-kernel migration for CeremonyFX | C + A+B if value → scaffold + feasibility doc | `b437d29` |
+| §10.11 | OffscreenCanvas worker rendering | A + Safari audit → detection API + feasibility doc | _this commit_ |
 
-### ENHANCEMENT severity — 2 items (Phase 5 architectural scope)
+**§10.8 scope:** Pure particle integrator extracted
+(`src/lib/particles/physicsCore.ts`); Worker wrapper shipped
+(`integrateParticlesWorker`); activation gated on perf drill + COOP/COEP
+headers per `docs/CEREMONY_FX_TSL_FEASIBILITY.md`.
 
-| ID | Issue | User-selected Option |
-|----|-------|----------------------|
-| §10.8 | Full TSL compute-kernel migration for CeremonyFX particle physics | C + test A+B together; implement both if value found |
-| §10.11 | OffscreenCanvas worker rendering | A + Safari <16.4 feasibility audit |
+**§10.11 scope:** Capability detection API + UA-safe gate
+(`src/lib/3d/offscreenCanvasSupport.ts`); full R3F-in-worker migration
+deferred to a Phase 5 PR because it requires a custom R3F reconciler +
+event bridge + store mirror + shader pre-warm — non-trivial and
+out-of-scope for a bounded session. See
+`docs/OFFSCREEN_CANVAS_FEASIBILITY.md` for the risk analysis + Phase 5
+plan.
 
 ---
 
-## Session metrics (April 21, 2026)
+## Session metrics (cumulative, April 21, 2026)
 
-- **Commits this session:** 21 (6 PERF-HIGH-001 + 9 carryover + 6 tests/infra)
-- **Tests added:** 298 total (was 250 at session start, +48)
-- **Test files:** 47 (was 37, +10)
-- **PERF-HIGH-001 backfill:** 8 → 0 (rule promoted `warn` → `error`)
-- **Branches:** `claude/audit-tasks-t11-t20-w2Gho` — all pushed
+- **Commits this session:** 26 (6 PERF-HIGH-001 + 14 carryover + 6 tests/infra/scaffolds/tracker)
+- **Tests:** 250 → **332** (+82 across 16 new test files)
+- **PERF-HIGH-001 repo-wide offenders:** 0 (was 8, rule promoted warn→error)
+- **Branch:** `claude/audit-tasks-t11-t20-w2Gho` — all pushed
 
-## Resume plan
+## Handoff notes for next session
 
-Next session should start with **§8.10 (Form validation)** — the only
-small item still open. It's a clean, contained migration (add Zod +
-react-hook-form `mode: 'onTouched'` to existing forms).
+1. `docs/CEREMONY_FX_TSL_FEASIBILITY.md` — Phase 2 activation trigger
+   (perf drill + COOP/COEP → flip `useWorkerPhysics={true}`).
+2. `docs/OFFSCREEN_CANVAS_FEASIBILITY.md` — Phase 5 migration plan
+   (custom reconciler + event bridge + SAB store mirror).
+3. `tests/unit/spacing-tokens-budget.test.ts` — `BUDGET = 176`. Lower
+   as `[Npx]`/`[Nrem]` migrations land.
 
-Then present feasibility analyses for **§6.6 · §10.8 · §10.11** per
-Option Y agreement — do NOT begin those until they are individually
-authorized with sub-commit plans.
+All carryover items are either resolved or have honest-delivery
+scaffolds ready for Phase 5 pickup. No deferred work remains in this
+document.

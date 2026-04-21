@@ -56,7 +56,7 @@ beforeEach(() => {
   useSceneStore.setState({
     activeScene: 'hero',
     isTransitioning: false,
-    completeHero: completeHeroMock,
+    completeHero: completeHeroMock as unknown as () => void,
   });
   useCockpitStore.setState({ heroPhase: 'idle', cockpitReady: false });
 });
