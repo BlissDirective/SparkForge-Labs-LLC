@@ -13,6 +13,7 @@ import {
   sanitizeErrorMessage,
 } from '@/lib/api-helpers';
 import { runTrendingPipeline } from '@/lib/agent/pipeline';
+import { verifyCronBearer } from '@/lib/cron-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -50,16 +51,9 @@ export async function POST(req: NextRequest) {
 
 // GET: Cron-triggered trending research (weekly)
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret && process.env.NODE_ENV === 'production') {
-    return apiError('CRON_SECRET required in production', 500, 'CONFIG_ERROR');
-  }
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return apiError('Unauthorized', 401, 'AUTH_REQUIRED');
-  }
+  // T17 DEPLOY-MED-003: shared verifyCronBearer helper (timing-safe).
+  const denial = verifyCronBearer(req, { routeName: 'agent-trending' });
+  if (denial) return denial;
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return apiSuccess({ skipped: true, reason: 'ANTHROPIC_API_KEY not configured' });

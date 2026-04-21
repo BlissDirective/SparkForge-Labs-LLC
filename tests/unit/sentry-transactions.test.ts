@@ -46,7 +46,7 @@ afterEach(() => {
 
 describe('T16 — sentryReleaseEnv', () => {
   it('returns environment only when no SHA env vars exist', () => {
-    process.env.NODE_ENV = 'test';
+    (process.env as Record<string, string>).NODE_ENV = 'test';
     const res = sentryReleaseEnv();
     expect(res.environment).toBe('test');
     expect(res.release).toBeUndefined();
@@ -54,7 +54,7 @@ describe('T16 — sentryReleaseEnv', () => {
 
   it('populates release from VERCEL_GIT_COMMIT_SHA', () => {
     process.env.VERCEL_GIT_COMMIT_SHA = 'abc123';
-    process.env.NODE_ENV = 'production';
+    (process.env as Record<string, string>).NODE_ENV = 'production';
     const res = sentryReleaseEnv();
     expect(res.release).toBe('abc123');
     expect(res.environment).toBe('production');
@@ -68,12 +68,12 @@ describe('T16 — sentryReleaseEnv', () => {
 
   it('VERCEL_ENV takes precedence over NODE_ENV', () => {
     process.env.VERCEL_ENV = 'preview';
-    process.env.NODE_ENV = 'production';
+    (process.env as Record<string, string>).NODE_ENV = 'production';
     expect(sentryReleaseEnv().environment).toBe('preview');
   });
 
   it('falls back to "development" when nothing set', () => {
-    delete process.env.NODE_ENV;
+    delete (process.env as Record<string, string | undefined>).NODE_ENV;
     expect(sentryReleaseEnv().environment).toBe('development');
   });
 });
