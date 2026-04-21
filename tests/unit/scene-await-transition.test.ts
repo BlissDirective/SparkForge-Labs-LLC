@@ -39,7 +39,14 @@ describe('P2 §5.8 — awaitTransitionComplete', () => {
     // Simulate an in-flight transition.
     useSceneStore.setState({
       isTransitioning: true,
-      transition: { from: 'cockpit', to: 'game', progress: 0.3 },
+      transition: {
+        from: 'cockpit',
+        to: 'game',
+        type: 'iris-close',
+        progress: 0.3,
+        duration: 600,
+        startedAt: Date.now(),
+      },
     });
 
     const awaiter = useSceneStore.getState().awaitTransitionComplete();
@@ -53,7 +60,14 @@ describe('P2 §5.8 — awaitTransitionComplete', () => {
   it('all concurrent awaiters resolve on one completeTransition', async () => {
     useSceneStore.setState({
       isTransitioning: true,
-      transition: { from: 'cockpit', to: 'game', progress: 0.1 },
+      transition: {
+        from: 'cockpit',
+        to: 'game',
+        type: 'iris-close',
+        progress: 0.1,
+        duration: 600,
+        startedAt: Date.now(),
+      },
     });
 
     const [a, b, c] = [
