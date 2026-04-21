@@ -29,6 +29,7 @@ import {
   filterContentSafetyBatch,
   computeScoreBreakdown,
   hashStrings,
+  integrateParticlesWorker,
 } from './heavyCompute.worker';
 
 export type HeavyComputeClient =
@@ -55,6 +56,7 @@ function createClient(): HeavyComputeClient {
       filterContentSafetyBatch,
       computeScoreBreakdown,
       hashStrings,
+      integrateParticles: integrateParticlesWorker,
     };
   }
 
@@ -76,6 +78,7 @@ function createClient(): HeavyComputeClient {
       filterContentSafetyBatch,
       computeScoreBreakdown,
       hashStrings,
+      integrateParticles: integrateParticlesWorker,
     };
   }
 

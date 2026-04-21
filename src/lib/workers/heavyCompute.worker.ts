@@ -20,6 +20,10 @@
 // ════════════════════════════════════════════════════════════════
 
 import { expose } from 'comlink';
+import {
+  integrateParticles as integrateParticlesCore,
+  type ParticleForces,
+} from '../particles/physicsCore';
 
 const PII_PATTERN =
   /\b[\w.+-]+@[\w-]+\.[\w.]+\b|\b\d{3}[-.]?\d{3}[-.]?\d{4}\b|\b\d{1,5}\s\w+\s(?:St|Ave|Rd|Blvd|Dr|Ln|Ct)\b/gi;
@@ -132,12 +136,27 @@ export async function hashStrings(inputs: readonly string[]): Promise<string[]> 
   return Promise.all(inputs.map(sha256));
 }
 
+// ── Job: particle physics (P2 §10.8 scaffold) ────────────────────
+// Offload-candidate integrator — pure function wrapped so CeremonyFX
+// and other effect systems can opt in with `useWorkerPhysics={true}`
+// once a perf drill + COOP/COEP configuration justifies it. The
+// function is a 1:1 wrapper around physicsCore.integrateParticles
+// so correctness stays identical across main-thread and worker.
+export function integrateParticlesWorker(
+  state: Float32Array,
+  dt: number,
+  forces: ParticleForces,
+): { state: Float32Array; expired: number } {
+  return integrateParticlesCore(state, dt, forces);
+}
+
 // ── Comlink surface ───────────────────────────────────────────────
 export const HeavyComputeAPI = {
   filterContentSafety,
   filterContentSafetyBatch,
   computeScoreBreakdown,
   hashStrings,
+  integrateParticles: integrateParticlesWorker,
 };
 
 export type HeavyComputeAPIType = typeof HeavyComputeAPI;
