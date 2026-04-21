@@ -33,7 +33,6 @@ import {
 import { BlendFunction } from 'postprocessing';
 import { BarrelDistortion } from './BarrelDistortion';
 import { useSceneStore } from '@/stores/sceneStore';
-import { useCockpitStore } from '@/stores/cockpitStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Vector2 } from 'three';
 
@@ -78,8 +77,10 @@ export function PostProcessingStack({
   const activeScene = useSceneStore((s) => s.activeScene);
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
-  const ceremonyQueue = useCockpitStore((s) => s.ceremonyQueue);
-  const isCeremonyActive = ceremonyQueue.length > 0;
+  // §3.5 (P2 Apr 21 2026): read celebration state from uiStore —
+  // the single owner. Previously read from cockpitStore.ceremonyQueue
+  // which nothing ever enqueued, so isCeremonyActive was always false.
+  const isCeremonyActive = useUIStore((s) => s.showCelebration);
   // T15a PERF-MED-003 (Opt A): user-driven performance mode.
   // When enabled, the two most expensive effects (DepthOfField +
   // N8AO/SSAO) are skipped entirely. All other effects remain

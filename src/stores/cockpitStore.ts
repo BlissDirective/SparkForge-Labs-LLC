@@ -137,11 +137,10 @@ export const SKIN_UNLOCK_CONDITIONS: Record<CockpitSkin, { description: string; 
   crystal:    { description: 'Complete ALL 35 games at least once', badge: 'Crystal Commander' },
 };
 
-interface CeremonyQueueItem {
-  type: CeremonyType;
-  intensity: number;
-  labColor: string;
-}
+// §3.5 (P2 Apr 21 2026): CeremonyQueueItem interface removed — the
+// queue it described was never written to. If a ceremony queue is
+// reintroduced later, it should live in uiStore alongside
+// showCelebration so there's only one celebration-state owner.
 
 interface CockpitState {
   // Spatial navigation
@@ -167,8 +166,8 @@ interface CockpitState {
   // NPC state
   npcsVisible: boolean;
 
-  // CPA v2.0 — Ceremony queue (Decision CPA2-10)
-  ceremonyQueue: CeremonyQueueItem[];
+  // §3.5 (P2 Apr 21 2026): ceremonyQueue removed — was dead code.
+  // Celebration state lives in uiStore.showCelebration only.
 
   // CPA v2.0 — Audio preferences (Decision CPA2-8)
   cockpitAudioEnabled: boolean;
@@ -225,8 +224,10 @@ interface CockpitState {
   setOrbitSpeed: (speed: number) => void;
   toggleNPCs: () => void;
   returnToOverview: () => void;
-  enqueueCeremony: (item: CeremonyQueueItem) => void;
-  dequeueCeremony: () => void;
+  // §3.5 (P2 Apr 21 2026): ceremonyQueue was dead code — nothing
+  // enqueued to it so its only consumer (PostProcessingStack) always
+  // saw an empty array. Celebration state lives in
+  // uiStore.showCelebration; enqueue/dequeue removed.
   setCockpitAudio: (enabled: boolean) => void;
   setAmbientVolume: (volume: number) => void;
   setSpatialAudioVolume: (volume: number) => void;
@@ -265,7 +266,6 @@ export const useCockpitStore = create<CockpitState>()(
       // Phase 5 N.2-MAX (§3.6): User-selectable theme
       cockpitTheme: 'default' as ThemeId,
       npcsVisible: true,
-      ceremonyQueue: [] as CeremonyQueueItem[],
       cockpitAudioEnabled: true,
       ambientVolume: 0.15,
       spatialAudioVolume: 0.3,
@@ -394,11 +394,8 @@ export const useCockpitStore = create<CockpitState>()(
         });
       },
 
-      enqueueCeremony: (item) =>
-        set((s) => ({ ceremonyQueue: [...s.ceremonyQueue, item] })),
-
-      dequeueCeremony: () =>
-        set((s) => ({ ceremonyQueue: s.ceremonyQueue.slice(1) })),
+      // §3.5 (P2 Apr 21 2026): enqueue/dequeueCeremony removed —
+      // celebration state is owned by uiStore.showCelebration.
 
       setCockpitAudio: (cockpitAudioEnabled) => set({ cockpitAudioEnabled }),
 
