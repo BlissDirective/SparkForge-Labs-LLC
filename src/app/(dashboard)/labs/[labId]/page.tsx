@@ -33,10 +33,10 @@ const LAB_NAMES = [
   'Computer Vision', 'Words & Language', 'Build Your AI', "AI's Future",
 ] as const;
 
-const LAB_COLORS = [
-  '#00BBFF', '#AA66FF', '#FF66AA', '#FFAA44', '#00FF88',
-  '#FF6644', '#06B6D4', '#818CF8', '#F97316', '#D946EF',
-] as const;
+// P2 §7.2: derived from the canonical LAB_COLORS_TABLE (src/config/labColors.ts)
+// so cosmetic changes stay in one file. 0-indexed — `LAB_COLORS[labId - 1]`.
+import { LAB_COLORS_TABLE } from '@/config/labColors';
+const LAB_COLORS = LAB_COLORS_TABLE.map((l) => l.hex) as readonly string[];
 
 const LAB_DESCRIPTIONS = [
   'Discover what artificial intelligence is and how it shapes our world',
