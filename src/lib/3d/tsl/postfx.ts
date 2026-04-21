@@ -156,5 +156,32 @@ export function brightnessContrast(
   })() as unknown as ColorNode;
 }
 
+// ────────────────────────────────────────────────────────────────
+// BARREL DISTORTION (Sub 3c)
+// ────────────────────────────────────────────────────────────────
+
+/** Apply a barrel lens distortion. Matches the GLSL implementation in
+ *  `src/components/3d/BarrelDistortion.tsx`:
+ *    centered = uv - 0.5
+ *    dist = dot(centered, centered)
+ *    uv' = uv + centered * dist * strength
+ *  Then sample the input texture at uv'.
+ *
+ *  @param textureNode Input scene texture (from pass().getTextureNode()).
+ *  @param strength Distortion strength — Decision CPA-10: 0.02 default.
+ */
+export function barrelDistortion(
+  textureNode: { sample: (uv: Node<'vec2'>) => ColorNode },
+  strength: FloatArg = 0.02,
+): ColorNode {
+  const strengthN = f(strength);
+  return Fn(() => {
+    const centered = uv().sub(vec2(0.5, 0.5));
+    const distSq = dot(centered, centered);
+    const displaced = uv().add(centered.mul(distSq).mul(strengthN));
+    return textureNode.sample(displaced as unknown as Node<'vec2'>);
+  })() as unknown as ColorNode;
+}
+
 // Re-exports for convenience — callers can pull from this module alone
 export { Fn, float, vec2, vec3, vec4, uv, min, max, mix, dot, sub, abs, mul, add };
