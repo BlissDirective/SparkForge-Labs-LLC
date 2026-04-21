@@ -42,6 +42,7 @@ import {
   hash,
   sin,
   cos,
+  mix,
   PI,
 } from 'three/tsl';
 import { Color, Vector3 } from 'three';
@@ -456,7 +457,7 @@ export const stepTrophyKernel = (u: CeremonyUniforms, b: TrophyBuffers) => {
     const fadeOut = float(1).sub(fadeT).clamp(0, 1);
 
     // Lerp start → target
-    const newPos = start.mix(target, eased);
+    const newPos = mix(start, target, eased);
     b.positions.element(idx).assign(newPos);
     col.w.assign(float(0.95).mul(fadeOut));
   });
