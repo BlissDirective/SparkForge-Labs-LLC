@@ -44,7 +44,10 @@ function generateConfetti(count: number): ConfettiParticle[] {
 
 export default function AddChildPage() {
   const router = useRouter();
-  const { tier, children } = useParentStore();
+  // PERF-HIGH-001 (Opt A): narrow selectors — re-render only on the
+  // two fields this page actually reads.
+  const tier = useParentStore((s) => s.tier);
+  const children = useParentStore((s) => s.children);
   const limits = getTierLimits(tier);
 
   const [name, setName] = useState('');

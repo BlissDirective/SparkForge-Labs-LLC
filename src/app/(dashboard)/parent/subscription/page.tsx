@@ -56,7 +56,8 @@ const TIER_GLOW: Record<SubscriptionTier, string> = {
 
 // ENH #8: Inner component using useSearchParams wrapped in Suspense
 function SubscriptionContent() {
-  const { tier } = useParentStore();
+  // PERF-HIGH-001 (Opt A): narrow single-field selector.
+  const tier = useParentStore((s) => s.tier);
   const searchParams = useSearchParams();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   // Phase 2 audit fix (Section 3.5): Unified celebration state flow —
