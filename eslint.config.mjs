@@ -31,6 +31,13 @@ export default tseslint.config(
       // False positive for App Router — fonts in layout.tsx load globally
       '@next/next/no-page-custom-font': 'off',
 
+      // T13 PERF-MED-002 (Opt A): Ban raw <img> across the app.
+      // Use next/image (or the OptimizedImage wrapper) so images get
+      // WebP/AVIF conversion, responsive sizing, and lazy loading for
+      // free. Error (not warn) because the codebase audited clean on
+      // April 21, 2026 — we do not want to regress.
+      '@next/next/no-img-element': 'error',
+
       // React hooks
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
