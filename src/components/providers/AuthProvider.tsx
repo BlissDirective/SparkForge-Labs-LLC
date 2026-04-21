@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { useShallow } from 'zustand/react/shallow';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
@@ -15,7 +16,19 @@ const supabase = createClient();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
-  const { setParent, setLoading: setAuthLoading, setDemoSession, clearAuth } = useAuthStore();
+  // PERF-HIGH-001 (Opt B): useShallow keeps the 4-action destructure
+  // ergonomic while preventing re-renders on unrelated authStore writes
+  // (parent object, isDemoMode flag, hasHydratedDemoSlice, demoSession).
+  // Actions never change identity in Zustand → this bundle is effectively
+  // 0-render after initial mount.
+  const { setParent, setLoading: setAuthLoading, setDemoSession, clearAuth } = useAuthStore(
+    useShallow((s) => ({
+      setParent: s.setParent,
+      setLoading: s.setLoading,
+      setDemoSession: s.setDemoSession,
+      clearAuth: s.clearAuth,
+    })),
+  );
   // STATE-MED-001 (B-full/T5c-C4): childStore is UI-only. children
   // list lives in React Query cache (['children']); AuthProvider
   // pre-populates it during hydrateUserData so useChildren() sees
