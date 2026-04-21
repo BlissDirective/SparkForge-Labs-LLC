@@ -88,10 +88,13 @@ export default tseslint.config(
       // primary content; truly decorative watermark text that's safe to
       // de-emphasize can add `// eslint-disable-next-line
       // no-restricted-syntax` with a one-line justification.
-      // Historical no-restricted-syntax warnings (font-for-numbers,
-      // full-store subscriptions). These stay at warn pending T20.
+      // P1 C6 (April 21, 2026): After the full PERF-HIGH-001 sweep
+      // landed — 30 non-flagship games (T20) + 8 remaining sites
+      // (P1 C1–C5) — the repo is selector-clean. Promoted from warn
+      // to error so regressions fail CI. Font-for-numbers rule stays
+      // here under the same `error` severity (zero current offenders).
       'no-restricted-syntax': [
-        'warn',
+        'error',
         {
           selector:
             "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/font-body|font-mono/] ~ JSXText[value=/^\\s*[+\\-]?[0-9]+[.,0-9]*\\s*$/]",
