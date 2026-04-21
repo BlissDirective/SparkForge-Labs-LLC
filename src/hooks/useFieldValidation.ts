@@ -110,7 +110,8 @@ export function useFieldValidation<T>(
  * Call `forceValidateAll()` on submit so untouched-but-empty fields
  * light up errors instead of silently failing submission.
  */
-export function useFormValidation<F extends Record<string, FieldValidation<unknown>>>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- heterogeneous field types
+export function useFormValidation<F extends Record<string, FieldValidation<any>>>(
   fields: F,
 ): {
   isFormValid: boolean;
