@@ -2,7 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 6.4 | **Date:** April 9, 2026 | **Vision:** Laboratory Control Station
+**Version:** 6.5 | **Date:** April 21, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v6.4 (April 9, 2026) — Standard Tier Games Audit complete. T11–T20 Phase 2 completion adds: react-joyride cockpit tutorial (T11), cooperative scheduler + Web Worker (T12), next/image enforcement + OptimizedImage wrapper (T13), lazy game-loader factory (T14), Performance toggle with D3D-5 relaxation (T15a+b), Sentry environment/release tagging + perf transactions (T16), verifyCronBearer shared helper (T17), Supabase PITR runbook + recovery script (T18), text-white/10-40 → /50+ WCAG sweep (T19), 30 non-flagship games migrated to Zustand selectors (T20).
 **Supersedes:** CLAUDE.md v6.3 (April 7, 2026) — Standard Tier Games Audit complete (76 bugs found across 20 games: 3C/12H/38M/23L). ~11x content expansion planned (696→2,088+ items). 60 AI content types added (3 per game). DifficultySelector activation planned. Learn phases for 12 games. Shared useSafeTimeout hook. Tiered scoring system. Band A content for Career Explorer and API Explorer.
 **Supersedes:** CLAUDE.md v6.2 (April 3, 2026) — Flagship Game Audit complete (17 bugs fixed, 6 games expanded 2-3x, AI content infra added). Audit cleanup: dead cockpitConfig values removed, experimental.turbo migrated to turbopack, Sentry migrated to instrumentation.ts, deprecated uiStore.gameActive removed.
 **Supersedes:** CLAUDE.md v6.1 (March 30, 2026) — Full 3D UI Migration: 7 phases complete, 49 components built/rebuilt, 150 design decisions locked (131 design + 19 implementation). All dashboard pages converted to 3D panel architecture. Auth forms migrated to 3D. Game HUD/templates migrated. AmbientParticles removed (Decision 20.0). HolographicHUD repositioned to peripheral viewport frame (Decision 6.0). cockpitUIStore added (15th store). cockpitDesignTokens.ts established as design token source of truth.
@@ -556,6 +557,12 @@ const Component3D = dynamic(
 - `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
 - **Desktop-only rendering (D3D-1)** — no mobile/tablet code paths
 - **All effects always-on (D3D-5)** — no conditional postprocessing
+  - **D3D-5 Relaxation (v6.5 · T15a/T15b · April 21, 2026):** A user-facing
+    Performance toggle in Settings (`uiStore.performanceMode`) may omit the
+    two most expensive effects — DepthOfField + N8AO/SSAO. All other effects
+    stay on. The toggle is opt-in, defaults to `false`, and is persisted
+    per child in `sparkforge-ui`. Use only when the user elects to trade
+    subtle bokeh + occlusion for sustained 60 fps on lower-end GPUs.
 - **Single persistent Canvas (D3D-B1)** — CockpitCanvas never unmounts
 - **Scene management via sceneStore (D3D-B5)** — centralized visibility control
 - **Mechanical iris transitions (D3D-B2)** — cockpit-to-game via MechanicalIris
@@ -919,5 +926,5 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 ---
 
-*End of CLAUDE.md v6.4 — SparkForge Autonomous Development Playbook*
-*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | FL-Lite Game Audit COMPLETE (43 bugs found, 9 games expanded ~11x, 27 AI content types) | Standard Tier Game Audit COMPLETE (76 bugs found, 20 games planned ~11x expansion, 60 AI content types, 6-phase roadmap) | April 9, 2026*
+*End of CLAUDE.md v6.5 — SparkForge Autonomous Development Playbook*
+*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | FL-Lite Game Audit COMPLETE (43 bugs found, 9 games expanded ~11x, 27 AI content types) | Standard Tier Game Audit COMPLETE (76 bugs found, 20 games planned ~11x expansion, 60 AI content types, 6-phase roadmap) | **v6.5 (April 21, 2026): D3D-5 relaxation authorized — user-facing Performance toggle in Settings may omit DepthOfField + N8AO/SSAO (opt-in, persisted).** | April 21, 2026*
