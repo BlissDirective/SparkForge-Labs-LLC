@@ -18,7 +18,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -658,7 +658,7 @@ const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 }; // [CR-6F-B9] F
 
 export function BiasDetectiveGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('bias-detective', ageBand);
@@ -924,7 +924,7 @@ export function BiasDetectiveGame() {
               <div key={i} className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full"
                   style={{ backgroundColor: item.color }} />
-                <span className="font-body text-2xs text-white/40">
+                <span className="font-body text-2xs text-white/70">
                   {item.label}: {item.value}%
                 </span>
               </div>
@@ -1038,7 +1038,7 @@ export function BiasDetectiveGame() {
                         style={{ color: rank.color }}>
                         {rank.title}
                       </span>
-                      <span className="font-body text-2xs text-white/20">
+                      <span className="font-body text-2xs text-white/55">
                         ({completedCases.length}/{availableCases.length} cases)
                       </span>
                     </div>
@@ -1071,7 +1071,7 @@ export function BiasDetectiveGame() {
                       text-white">
                       Understanding AI Bias
                     </h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       {learnIdx + 1} of {LEARN_CARDS.length}
                     </p>
 
@@ -1118,8 +1118,8 @@ export function BiasDetectiveGame() {
                         ? 'Next' : 'Choose a Case!'}
                     </motion.button>
                     <button onClick={() => setPhase('cases')}
-                      className="font-body text-xs text-white/20
-                        hover:text-white/40">
+                      className="font-body text-xs text-white/55
+                        hover:text-white/70">
                       Skip intro
                     </button>
                   </motion.div>
@@ -1149,7 +1149,7 @@ export function BiasDetectiveGame() {
                           style={{ color: rank.color }}>
                           {rank.title}
                         </span>
-                        <span className="font-body text-2xs text-white/20">
+                        <span className="font-body text-2xs text-white/55">
                           {completedCases.length}/{availableCases.length} solved
                         </span>
                       </div>
@@ -1180,7 +1180,7 @@ export function BiasDetectiveGame() {
                                     className="w-3.5 h-3.5 text-red-400" />}
                                 </div>
                                 <p className="font-body text-xs
-                                  text-white/40 mt-0.5">
+                                  text-white/70 mt-0.5">
                                   {c.description.slice(0, 80)}...
                                 </p>
                               </div>
@@ -1218,7 +1218,7 @@ export function BiasDetectiveGame() {
                       <div className="flex-1">
                         <h3 className="font-display text-sm font-bold
                           text-white">{activeCase.title}</h3>
-                        <p className="font-body text-2xs text-white/30">
+                        <p className="font-body text-2xs text-white/60">
                           {ageBand === 'C'
                             ? activeCase.descriptionC
                             : activeCase.description}
@@ -1234,7 +1234,7 @@ export function BiasDetectiveGame() {
                     <div className="w-full h-32 md:h-40 rounded-xl overflow-hidden flex items-center justify-center"
                       style={{ background: 'rgba(0,0,0,0.2)' }}
                       aria-hidden="true">
-                      <p className="font-body text-2xs text-white/20">
+                      <p className="font-body text-2xs text-white/55">
                         {scaleWeights.isBalanced ? '\u2696\uFE0F Scales balanced' : '\u26A0\uFE0F Bias detected — check the 3D view'}
                       </p>
                     </div>
@@ -1289,7 +1289,7 @@ export function BiasDetectiveGame() {
                                   <p className={`font-body text-xs
                                     ${isCollected
                                     ? 'text-white/70'
-                                    : 'text-white/40'}`}>
+                                    : 'text-white/70'}`}>
                                     {ev.text}
                                   </p>
                                   {isCollected && (
@@ -1357,7 +1357,7 @@ export function BiasDetectiveGame() {
                         Test Lab: {activeCase.title}
                       </h3>
                     </div>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       Test the AI with different inputs to confirm bias.
                     </p>
 
@@ -1381,7 +1381,7 @@ export function BiasDetectiveGame() {
                             {t.result}
                           </p>
                           <p className="font-body text-2xs
-                            text-white/30 mt-0.5">
+                            text-white/60 mt-0.5">
                             {t.explanation}
                           </p>
                         </div>
@@ -1405,7 +1405,7 @@ export function BiasDetectiveGame() {
                           className="flex-1 px-3 py-2 rounded-lg
                             bg-white/5 border border-white/10
                             text-white text-sm font-body
-                            placeholder:text-white/20
+                            placeholder:text-white/55
                             focus:outline-none focus:border-red-500/30"
                           aria-label="Custom test input" />
                         <motion.button
@@ -1494,7 +1494,7 @@ export function BiasDetectiveGame() {
                       </p>
                     </div>
 
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       Select the best fix(es):
                     </p>
 
@@ -1527,7 +1527,7 @@ export function BiasDetectiveGame() {
                                 {fix.label}
                               </p>
                               <p className="font-body text-2xs
-                                text-white/30">
+                                text-white/60">
                                 {fix.description}
                               </p>
                             </div>
@@ -1616,7 +1616,7 @@ export function BiasDetectiveGame() {
                               {fix.label}
                             </p>
                             <p className="font-body text-2xs
-                              text-white/30">
+                              text-white/60">
                               {fix.impact}
                             </p>
                           </div>
@@ -1635,7 +1635,7 @@ export function BiasDetectiveGame() {
                             {relevantEvidenceCount}
                           </p>
                           <p className="font-body text-2xs
-                            text-white/30">Clues</p>
+                            text-white/60">Clues</p>
                         </div>
                         <div>
                           <p className="font-data text-lg font-bold
@@ -1644,7 +1644,7 @@ export function BiasDetectiveGame() {
                               + testResults.length}
                           </p>
                           <p className="font-body text-2xs
-                            text-white/30">Tests</p>
+                            text-white/60">Tests</p>
                         </div>
                         <div>
                           <p className="font-data text-lg font-bold
@@ -1655,7 +1655,7 @@ export function BiasDetectiveGame() {
                             ).length}
                           </p>
                           <p className="font-body text-2xs
-                            text-white/30">Good Fixes</p>
+                            text-white/60">Good Fixes</p>
                         </div>
                       </div>
                     </div>
@@ -1701,7 +1701,7 @@ export function BiasDetectiveGame() {
                         This Really Happened
                       </span>
                       <ChevronRight
-                        className={`w-3 h-3 text-white/20 ml-auto
+                        className={`w-3 h-3 text-white/55 ml-auto
                           transition-transform ${
                           showRealWorld ? 'rotate-90' : ''
                         }`} />
@@ -1726,7 +1726,7 @@ export function BiasDetectiveGame() {
                                 {activeCase.realWorld.title}
                               </span>
                               <span className="font-mono text-2xs
-                                text-white/20">
+                                text-white/55">
                                 {activeCase.realWorld.year}
                               </span>
                             </div>

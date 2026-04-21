@@ -32,7 +32,7 @@ export function StepIndicator({ currentStep, totalSteps, labels }: StepIndicator
                   ? 'bg-spark-green text-white'
                   : isActive
                     ? 'bg-gradient-to-r from-spark-purple to-spark-blue text-white shadow-glow-purple'
-                    : 'bg-white/10 text-white/40'
+                    : 'bg-white/10 text-white/70'
               }`}
               animate={isActive && !prefersReducedMotion ? { scale: [1, 1.1, 1] } : {}}
               transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5 }}

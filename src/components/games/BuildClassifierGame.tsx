@@ -21,7 +21,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -152,7 +152,7 @@ const LEARN_CARDS = [
 
 export function BuildClassifierGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -413,7 +413,7 @@ export function BuildClassifierGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('collect')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                     >
                       Skip intro →
                     </button>
@@ -436,14 +436,14 @@ export function BuildClassifierGame() {
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold ${
                               i === 0
                                 ? 'bg-cyan-500/30 text-cyan-300'
-                                : 'bg-white/5 text-white/20'
+                                : 'bg-white/5 text-white/55'
                             }`}
                           >
                             {i + 1}
                           </div>
                           <span
                             className={`font-body text-2xs ${
-                              i === 0 ? 'text-cyan-400' : 'text-white/20'
+                              i === 0 ? 'text-cyan-400' : 'text-white/55'
                             }`}
                           >
                             {s}
@@ -463,7 +463,7 @@ export function BuildClassifierGame() {
                           >
                             {d.count}
                           </p>
-                          <p className="font-body text-2xs text-white/30">{d.cat}</p>
+                          <p className="font-body text-2xs text-white/60">{d.cat}</p>
                         </div>
                       ))}
                     </div>
@@ -478,7 +478,7 @@ export function BuildClassifierGame() {
                       {currentImage.emoji}
                     </motion.div>
 
-                    <p className="font-body text-2xs text-white/30 mb-3">
+                    <p className="font-body text-2xs text-white/60 mb-3">
                       Image {currentPoolIdx + 1}/{trainingPool.length}
                     </p>
 
@@ -504,7 +504,7 @@ export function BuildClassifierGame() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={skipImage}
-                        className="font-body text-2xs text-white/20 hover:text-white/40"
+                        className="font-body text-2xs text-white/55 hover:text-white/70"
                       >
                         Skip →
                       </button>
@@ -537,7 +537,7 @@ export function BuildClassifierGame() {
                     <h3 className="font-display text-lg font-bold text-white">
                       Training Your Classifier
                     </h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       You labeled {labeledData.length} images across {CATEGORIES.length}{' '}
                       categories.
                     </p>
@@ -580,7 +580,7 @@ export function BuildClassifierGame() {
                     )}
 
                     {ageBand === 'C' && (
-                      <p className="font-body text-2xs text-white/20 max-w-sm">
+                      <p className="font-body text-2xs text-white/55 max-w-sm">
                         Training iterates over labeled data, adjusting weights to minimize
                         classification loss. More balanced data reduces overfitting to
                         majority classes.
@@ -627,7 +627,7 @@ export function BuildClassifierGame() {
                     </div>
 
                     <TestTube className="w-5 h-5 text-cyan-400 mb-2" />
-                    <p className="font-display text-xs font-bold text-white/40 mb-3">
+                    <p className="font-display text-xs font-bold text-white/70 mb-3">
                       Test {testIdx + 1}/{allTests.length}
                     </p>
 
@@ -734,7 +734,7 @@ export function BuildClassifierGame() {
                         <table className="w-full text-center">
                           <thead>
                             <tr>
-                              <th className="font-body text-2xs text-white/20 p-1">
+                              <th className="font-body text-2xs text-white/55 p-1">
                                 True ↓ / Pred →
                               </th>
                               {CATEGORIES.map((c) => (
@@ -776,7 +776,7 @@ export function BuildClassifierGame() {
 
                     {/* Training data insight */}
                     <div className="rounded-xl p-2 border border-white/5 bg-white/[0.02] text-center">
-                      <p className="font-body text-2xs text-white/30">
+                      <p className="font-body text-2xs text-white/60">
                         {accuracy >= 80
                           ? '🎯 Great dataset! Balanced training data leads to better accuracy.'
                           : accuracy >= 60
@@ -812,11 +812,11 @@ export function BuildClassifierGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You experienced the full ML pipeline — from collecting training data to testing your classifier and seeing how data quality impacts accuracy.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">
                       <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• ML classification requires labeled training data — the more balanced and accurate, the better the model performs</li>
                         <li>• Training data quality directly affects decision boundaries and prediction accuracy</li>
                         <li>• Testing on unseen data reveals whether a model truly learned patterns or just memorized examples</li>

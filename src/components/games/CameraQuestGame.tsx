@@ -18,7 +18,7 @@
 import { useState, useRef, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -221,7 +221,7 @@ const LEARN_CARDS = [
 
 export function CameraQuestGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -469,7 +469,7 @@ export function CameraQuestGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('hunt')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                       aria-label="Skip tutorial"
                     >
                       Skip tutorial
@@ -536,7 +536,7 @@ export function CameraQuestGame() {
                               className={`w-2.5 h-2.5 ${
                                 d <= item.difficulty
                                   ? 'text-amber-400 fill-amber-400'
-                                  : 'text-white/10'
+                                  : 'text-white/50'
                               }`}
                             />
                           ))}
@@ -546,7 +546,7 @@ export function CameraQuestGame() {
                       <h3 className="font-display text-xl font-bold text-white">
                         Find {item.text}
                       </h3>
-                      <p className="font-body text-2xs text-white/30 mt-1 max-w-sm">
+                      <p className="font-body text-2xs text-white/60 mt-1 max-w-sm">
                         {ageBand === 'C' ? item.hintC : item.hintA}
                       </p>
                     </motion.div>
@@ -567,7 +567,7 @@ export function CameraQuestGame() {
                         </motion.button>
                         <button
                           onClick={() => setCaptured(true)}
-                          className="w-full py-2 rounded-xl border border-white/10 text-white/30 font-body text-xs"
+                          className="w-full py-2 rounded-xl border border-white/10 text-white/60 font-body text-xs"
                           aria-label="Use manual mode without camera"
                         >
                           No camera? Use manual mode
@@ -606,7 +606,7 @@ export function CameraQuestGame() {
                         {/* Simulated confidence meter */}
                         {showConfidence && (
                           <div className="mb-3 rounded-xl p-3 border border-cyan-500/15 bg-cyan-500/[0.03]">
-                            <p className="font-body text-2xs text-white/30 mb-1">
+                            <p className="font-body text-2xs text-white/60 mb-1">
                               Expected AI Confidence:
                             </p>
                             <div className="h-3 rounded-full bg-white/5 overflow-hidden mb-1">
@@ -664,7 +664,7 @@ export function CameraQuestGame() {
                           </motion.button>
                           <motion.button
                             onClick={() => confirm(false)}
-                            className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/40 font-display text-sm font-bold flex items-center gap-1"
+                            className="px-6 py-3 rounded-xl bg-white/5 border border-white/10 text-white/70 font-display text-sm font-bold flex items-center gap-1"
                             whileTap={{ scale: 0.95 }}
                             aria-label="Skip this item"
                           >
@@ -688,11 +688,11 @@ export function CameraQuestGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored how computer vision works by hunting for objects with different levels of difficulty — from simple colors to abstract concepts AI struggles with!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">
                       <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Computer vision detects colors, shapes, and objects in images</li>
                         <li>• AI assigns confidence scores to show how certain it is</li>
                         <li>• Abstract concepts like &quot;soft&quot; or &quot;tall&quot; are much harder for AI to recognize</li>

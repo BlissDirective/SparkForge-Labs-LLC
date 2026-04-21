@@ -43,6 +43,9 @@ export default function SettingsPanel() {
   const setParticleIntensity = useUIStore((s) => s.setParticleIntensity);
   const showPerfStats = useUIStore((s) => s.showPerfStats);
   const setShowPerfStats = useUIStore((s) => s.setShowPerfStats);
+  // T15a PERF-MED-003 (Opt A): Performance mode — disables DOF + SSAO.
+  const performanceMode = useUIStore((s) => s.performanceMode);
+  const setPerformanceMode = useUIStore((s) => s.setPerformanceMode);
 
   // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
   // Read all audio state via the unified useAudioSettings() hook.
@@ -101,8 +104,17 @@ export default function SettingsPanel() {
         </mesh>
 
         <ToggleSwitch3D id="skip-hero" label="Skip Intro" value={skipIntroAnimation} onChange={handleSkipToggle} position={[0, 0, 0]} />
+        {/* T15a PERF-MED-003 (Opt A): Performance mode — turns off
+            DOF + SSAO. Other effects unchanged (D3D-5 relaxation). */}
+        <ToggleSwitch3D
+          id="performance-mode"
+          label="Performance"
+          value={performanceMode}
+          onChange={setPerformanceMode}
+          position={[0, -0.05, 0]}
+        />
 
-        <group position={[0, -0.1, 0]}>
+        <group position={[0, -0.14, 0]}>
           {PARTICLE_OPTIONS.map((opt, i) => {
             const mapped = PARTICLE_MAP[opt];
             return (

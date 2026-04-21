@@ -214,7 +214,7 @@ export function QuizEngine({ content }: { content: Content }) {
           )}
 
           <Link href={`/labs/${content.world}`} className="block mt-4">
-            <span className="font-body text-white/30 text-sm hover:text-white/50 transition-colors">
+            <span className="font-body text-white/60 text-sm hover:text-white/50 transition-colors">
               Back to {lab?.title || `Lab ${content.world}`}
             </span>
           </Link>

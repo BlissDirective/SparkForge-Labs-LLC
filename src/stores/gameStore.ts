@@ -283,3 +283,40 @@ export function useGameActions() {
     | 'tick'
   >;
 }
+
+/**
+ * T20 PERF-HIGH-001 (A): Drop-in replacement for
+ * `const game = useGameStore()` inside game components.
+ *
+ * Bundles the small set of fields games actually read / call via
+ * `useShallow`, so components stop re-rendering when unrelated
+ * state changes (most importantly `timeElapsed`, which ticks every
+ * second and previously caused a 1-Hz render storm in every
+ * mounted game).
+ *
+ * Subscribes to: score (read), plus the 5 action methods every game
+ * uses (startGame, updateScore, setMaxScore, advanceRound,
+ * completeGame). Does NOT subscribe to timeElapsed, gameData,
+ * isPaused, saveState, hintsRemaining, currentRound, totalRounds —
+ * games that need those must add a narrow selector explicitly.
+ */
+export function useGame() {
+  return useGameStoreImpl(
+    useShallow((s: GameState) => ({
+      score: s.score,
+      startGame: s.startGame,
+      updateScore: s.updateScore,
+      setMaxScore: s.setMaxScore,
+      advanceRound: s.advanceRound,
+      completeGame: s.completeGame,
+    })),
+  ) as Pick<
+    GameState,
+    | 'score'
+    | 'startGame'
+    | 'updateScore'
+    | 'setMaxScore'
+    | 'advanceRound'
+    | 'completeGame'
+  >;
+}

@@ -56,9 +56,31 @@ interface SceneState {
   completeHero: () => void;
   updateTransitionProgress: (progress: number) => void;
   completeTransition: () => void;
+  /**
+   * P2 §5.8 — resolves after the active transition (MechanicalIris,
+   * wormhole, hero→cockpit crossfade) hits `completeTransition()`.
+   * If no transition is in flight, resolves immediately.
+   * Consumers gate `router.push` on this so page content swaps
+   * after the cockpit iris finishes instead of mid-iris.
+   */
+  awaitTransitionComplete: () => Promise<void>;
 }
 
 const IRIS_DURATION = 600;
+
+// P2 §5.8 — Transition watchers.
+// A module-scope Set of resolver callbacks; `awaitTransitionComplete()`
+// pushes into it, `completeTransition()` drains it. Module-scope
+// (not store state) because subscriber count shouldn't trigger re-renders
+// and Zustand's shallow-equal comparisons don't handle Set membership
+// changes well.
+const transitionWatchers = new Set<() => void>();
+function notifyTransitionWatchers() {
+  if (transitionWatchers.size === 0) return;
+  const snapshot = Array.from(transitionWatchers);
+  transitionWatchers.clear();
+  for (const resolve of snapshot) resolve();
+}
 
 export const useSceneStore = create<SceneState>((set, get) => ({
   activeScene: 'cockpit',
@@ -216,6 +238,16 @@ export const useSceneStore = create<SceneState>((set, get) => ({
         activeGameId: transition.to === 'cockpit' ? null : get().activeGameId,
       });
     }
+    // P2 §5.8: notify anyone `awaiting` that the iris is done.
+    notifyTransitionWatchers();
+  },
+
+  awaitTransitionComplete: () => {
+    const { isTransitioning } = get();
+    if (!isTransitioning) return Promise.resolve();
+    return new Promise<void>((resolve) => {
+      transitionWatchers.add(resolve);
+    });
   },
 }));
 

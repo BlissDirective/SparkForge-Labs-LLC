@@ -19,6 +19,9 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useDisposable } from '@/hooks/useDisposable';
+// P2 §6.3: base counts come from cockpitConfig (single source of truth).
+// Lower tiers derive as fractions so there's no drift.
+import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import {
   BoxGeometry,
   CatmullRomCurve3,
@@ -61,16 +64,22 @@ interface ScaledCounts {
   signs: number;
 }
 
+// P2 §6.3: `ultra` = config baseline (single source of truth).
+// Lower tiers derive via scale factors so bumping cockpitConfig
+// cascades everywhere without hand-editing each tier.
+const CABLES_ULTRA = COCKPIT_GEOMETRY.cableBundleCount; // 60
+const VENT_PANELS_ULTRA = COCKPIT_GEOMETRY.ventPanelCount; // 16 — unused below but documents config link
+
 function getScaledCounts(level: string): ScaledCounts {
   switch (level) {
     case 'ultra':
-      return { cables: 60, ribs: 12, leds: 200, pipes: 8, ventSlatsPerPanel: 20, hatches: 4, signs: 3 };
+      return { cables: CABLES_ULTRA, ribs: 12, leds: 200, pipes: 8, ventSlatsPerPanel: 20, hatches: 4, signs: 3 };
     case 'high':
-      return { cables: 40, ribs: 12, leds: 120, pipes: 8, ventSlatsPerPanel: 14, hatches: 4, signs: 3 };
+      return { cables: Math.round(CABLES_ULTRA * 0.67), ribs: 12, leds: 120, pipes: 8, ventSlatsPerPanel: 14, hatches: 4, signs: 3 };
     case 'medium':
-      return { cables: 24, ribs: 8, leds: 60, pipes: 6, ventSlatsPerPanel: 10, hatches: 2, signs: 2 };
+      return { cables: Math.round(CABLES_ULTRA * 0.4), ribs: 8, leds: 60, pipes: 6, ventSlatsPerPanel: 10, hatches: 2, signs: 2 };
     case 'low':
-      return { cables: 12, ribs: 6, leds: 30, pipes: 4, ventSlatsPerPanel: 6, hatches: 2, signs: 1 };
+      return { cables: Math.round(CABLES_ULTRA * 0.2), ribs: 6, leds: 30, pipes: 4, ventSlatsPerPanel: 6, hatches: 2, signs: 1 };
     default:
       return { cables: 6, ribs: 4, leds: 10, pipes: 2, ventSlatsPerPanel: 4, hatches: 1, signs: 1 };
   }

@@ -19,7 +19,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { BookOpen, Briefcase, CheckCircle2, XCircle, Star } from 'lucide-react';
@@ -176,7 +176,7 @@ const CAREERS_B: Career[] = [
 
 export default function CareerExplorerGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('career-explorer', ageBand);
@@ -404,7 +404,7 @@ export default function CareerExplorerGame() {
                         game.startGame('career-explorer', totalRounds);
                         setPhase('play');
                       }}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                     >
                       Skip intro →
                     </button>
@@ -440,7 +440,7 @@ export default function CareerExplorerGame() {
                       ))}
                     </div>
 
-                    <p className="font-body text-2xs text-white/30">
+                    <p className="font-body text-2xs text-white/60">
                       Round {round + 1} of {totalRounds}
                     </p>
 
@@ -474,7 +474,7 @@ export default function CareerExplorerGame() {
                     </motion.div>
 
                     {/* Instruction */}
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       Select the <span className="text-orange-400 font-bold">3 skills</span> needed for this career:
                     </p>
 
@@ -610,7 +610,7 @@ export default function CareerExplorerGame() {
                           className="flex flex-col items-center p-2 rounded-lg bg-white/5 border border-white/5"
                         >
                           <span className="text-lg">{c.emoji}</span>
-                          <p className="font-body text-2xs text-white/30 mt-1 leading-tight text-center">
+                          <p className="font-body text-2xs text-white/60 mt-1 leading-tight text-center">
                             {c.title}
                           </p>
                         </motion.div>
@@ -618,7 +618,7 @@ export default function CareerExplorerGame() {
                     </div>
 
                     <div className="rounded-xl p-3 border border-orange-500/15 bg-orange-500/5 w-full">
-                      <p className="font-body text-xs text-white/40">
+                      <p className="font-body text-xs text-white/70">
                         {ageBand === 'C'
                           ? 'AI careers span research, engineering, product, ethics, and creative domains. Each requires a unique blend of technical and soft skills — the field is far broader than just coding!'
                           : 'AI has so many career paths! Whether you love art, science, writing, or building things — there\'s an AI career for you.'}

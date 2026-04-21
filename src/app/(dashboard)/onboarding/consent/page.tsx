@@ -112,7 +112,7 @@ export default function OnboardingConsentPage() {
           {submitting ? 'Recording consent…' : 'Continue to SparkForge'}
         </button>
 
-        <p className="mt-4 text-xs text-white/40 font-body text-center">
+        <p className="mt-4 text-xs text-white/70 font-body text-center">
           You can revoke consent anytime from Parent Dashboard → Settings.
         </p>
       </form>

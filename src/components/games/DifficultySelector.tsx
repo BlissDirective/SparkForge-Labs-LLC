@@ -63,7 +63,7 @@ export function DifficultySelector({ value, onChange, ageBand, className = '' }:
             >
               <span className="text-sm grayscale opacity-60">{tier.emoji}</span>
               <span className="line-through decoration-white/20">{tier.label}</span>
-              <span aria-hidden="true" className="text-white/40 ml-0.5">🔒</span>
+              <span aria-hidden="true" className="text-white/70 ml-0.5">🔒</span>
               {/* Custom hover tooltip (in addition to `title` for screen-readers) */}
               <span
                 aria-hidden="true"

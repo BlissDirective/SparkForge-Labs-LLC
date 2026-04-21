@@ -124,7 +124,7 @@ export function GameCompleteCelebration({
                 Game Complete!
               </motion.h2>
               <motion.p
-                className="font-body text-sm text-white/40 mb-4"
+                className="font-body text-sm text-white/70 mb-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
@@ -147,7 +147,7 @@ export function GameCompleteCelebration({
                     transition={{ type: 'spring', delay: 1.0 + s * 0.2 }}
                   >
                     <Star
-                      className={`w-8 h-8 ${s <= stars ? 'text-amber-400 fill-amber-400' : 'text-white/10'}`}
+                      className={`w-8 h-8 ${s <= stars ? 'text-amber-400 fill-amber-400' : 'text-white/50'}`}
                     />
                   </motion.div>
                 ))}
@@ -205,7 +205,7 @@ export function GameCompleteCelebration({
                   <p className="font-display text-xs font-bold" style={{ color: worldColor }}>
                     Badge Earned!
                   </p>
-                  <p className="font-body text-xs text-white/40">{badge.title}</p>
+                  <p className="font-body text-xs text-white/70">{badge.title}</p>
                 </motion.div>
               )}
 

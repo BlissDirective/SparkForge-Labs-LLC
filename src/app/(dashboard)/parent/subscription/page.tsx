@@ -56,7 +56,8 @@ const TIER_GLOW: Record<SubscriptionTier, string> = {
 
 // ENH #8: Inner component using useSearchParams wrapped in Suspense
 function SubscriptionContent() {
-  const { tier } = useParentStore();
+  // PERF-HIGH-001 (Opt A): narrow single-field selector.
+  const tier = useParentStore((s) => s.tier);
   const searchParams = useSearchParams();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   // Phase 2 audit fix (Section 3.5): Unified celebration state flow —
@@ -335,7 +336,7 @@ function SubscriptionContent() {
       {/* Header */}
       <motion.div variants={staggerItem}>
         <h1 className="font-display text-2xl font-bold text-white mb-2">Subscription</h1>
-        <p className="font-body text-sm text-white/40 mb-6">
+        <p className="font-body text-sm text-white/70 mb-6">
           Current plan:{' '}
           <span className="text-spark-blue font-semibold">{TIER_DISPLAY[tier].name}</span>
         </p>
@@ -365,7 +366,7 @@ function SubscriptionContent() {
           <p className="font-body text-sm text-white/70">
             Finalizing subscription…{' '}
             {verify.status === 'finalizing' && verify.attempt > 2 && (
-              <span className="text-white/40 text-xs">
+              <span className="text-white/70 text-xs">
                 (this should only take a few seconds)
               </span>
             )}
@@ -417,7 +418,7 @@ function SubscriptionContent() {
           className={`px-4 py-2 rounded-lg font-body text-sm transition-all ${
             billing === 'monthly'
               ? 'bg-white/10 text-white border border-white/20'
-              : 'text-white/40 hover:text-white/60'
+              : 'text-white/70 hover:text-white/60'
           }`}
           aria-pressed={billing === 'monthly'}
           aria-label="Switch to monthly billing"
@@ -432,7 +433,7 @@ function SubscriptionContent() {
           className={`px-4 py-2 rounded-lg font-body text-sm relative transition-all ${
             billing === 'yearly'
               ? 'bg-white/10 text-white border border-white/20'
-              : 'text-white/40 hover:text-white/60'
+              : 'text-white/70 hover:text-white/60'
           }`}
           aria-pressed={billing === 'yearly'}
           aria-label="Switch to yearly billing"
@@ -498,14 +499,14 @@ function SubscriptionContent() {
 
                 <Icon className="w-8 h-8 mb-3" style={{ color }} />
                 <h2 className="font-display text-lg font-bold text-white">{t.name}</h2>
-                <p className="font-body text-xs text-white/40 mb-3">{t.tagline}</p>
+                <p className="font-body text-xs text-white/70 mb-3">{t.tagline}</p>
 
                 <div className="mb-4">
                   <span className="font-display text-3xl font-bold text-white">
                     ${price === 0 ? '0' : price.toFixed(2)}
                   </span>
                   {price > 0 && (
-                    <span className="font-body text-sm text-white/30 ml-1">
+                    <span className="font-body text-sm text-white/60 ml-1">
                       /{billing === 'monthly' ? 'mo' : 'yr'}
                     </span>
                   )}
@@ -530,7 +531,7 @@ function SubscriptionContent() {
                 ) : slug === 'free' && tier === 'free' ? (
                   <button
                     disabled
-                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/30 font-display text-sm cursor-not-allowed"
+                    className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-white/60 font-display text-sm cursor-not-allowed"
                   >
                     Free Forever
                   </button>
@@ -563,7 +564,7 @@ function SubscriptionContent() {
         <motion.div variants={staggerItem} className="mt-8 text-center">
           <button
             onClick={handleManage}
-            className="font-body text-sm text-white/30 underline hover:text-white/50 transition-colors"
+            className="font-body text-sm text-white/60 underline hover:text-white/50 transition-colors"
           >
             Manage subscription via Stripe →
           </button>
@@ -577,7 +578,7 @@ function SubscriptionContent() {
           <h3 className="font-display text-sm font-semibold text-white/60 mb-2">
             Danger Zone
           </h3>
-          <p className="font-body text-xs text-white/40 mb-4 leading-relaxed">
+          <p className="font-body text-xs text-white/70 mb-4 leading-relaxed">
             Permanently delete your account and all associated child profiles,
             progress, and subscription data. This action cannot be undone.
           </p>

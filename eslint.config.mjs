@@ -31,6 +31,13 @@ export default tseslint.config(
       // False positive for App Router — fonts in layout.tsx load globally
       '@next/next/no-page-custom-font': 'off',
 
+      // T13 PERF-MED-002 (Opt A): Ban raw <img> across the app.
+      // Use next/image (or the OptimizedImage wrapper) so images get
+      // WebP/AVIF conversion, responsive sizing, and lazy loading for
+      // free. Error (not warn) because the codebase audited clean on
+      // April 21, 2026 — we do not want to regress.
+      '@next/next/no-img-element': 'error',
+
       // React hooks
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
@@ -81,19 +88,18 @@ export default tseslint.config(
       // primary content; truly decorative watermark text that's safe to
       // de-emphasize can add `// eslint-disable-next-line
       // no-restricted-syntax` with a one-line justification.
+      // P1 C6 (April 21, 2026): After the full PERF-HIGH-001 sweep
+      // landed — 30 non-flagship games (T20) + 8 remaining sites
+      // (P1 C1–C5) — the repo is selector-clean. Promoted from warn
+      // to error so regressions fail CI. Font-for-numbers rule stays
+      // here under the same `error` severity (zero current offenders).
       'no-restricted-syntax': [
-        'warn',
+        'error',
         {
           selector:
             "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/font-body|font-mono/] ~ JSXText[value=/^\\s*[+\\-]?[0-9]+[.,0-9]*\\s*$/]",
           message:
             'Numeric data should render in font-data (Orbitron) or via <DataNumber>. Do not use font-body / font-mono for numeric values.',
-        },
-        {
-          selector:
-            "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/(^|\\s)text-white\\/(10|20|30|40)(\\s|$)/]",
-          message:
-            'Low-contrast text (UX-HIGH-005): text-white/10-40 fails WCAG AA on dark backgrounds. Use text-white/50 or higher, or add an aria-label / eslint-disable comment for intentionally decorative cases.',
         },
         {
           // PERF-HIGH-001 (C): Flag full-store subscriptions
@@ -105,6 +111,66 @@ export default tseslint.config(
             "VariableDeclarator[init.type='CallExpression'][init.callee.type='Identifier'][init.callee.name=/^use[A-Z]\\w*Store$/][init.arguments.length=0]",
           message:
             'Full store subscription (PERF-HIGH-001): `const x = use*Store()` without a selector triggers re-renders on every state change. Use `useStore(s => s.field)` or a bundled-action hook (e.g. useGameActions) instead.',
+        },
+        {
+          // T19 UX-HIGH-005 (April 21, 2026): low-contrast text. After
+          // the full sweep, text-white/10-40 should be zero in src/.
+          // A vitest regression guard (tests/unit/no-low-contrast-text)
+          // fails CI if any reappear; this warning surfaces it during
+          // editing too.
+          selector:
+            "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/(^|\\s)text-white\\/(10|20|30|40)(\\s|$)/]",
+          message:
+            'Low-contrast text (UX-HIGH-005): text-white/10-40 fails WCAG AA on dark backgrounds. Use text-white/50 or higher, or add an aria-label / eslint-disable comment for intentionally decorative cases.',
+        },
+      ],
+    },
+  },
+
+  // P2 §5.9 — Easing tokens
+  //
+  // Raw cubic-bezier(...) strings and literal [x,y,x,y] bezier arrays
+  // must live in src/lib/easings.ts. Everywhere else, import a token.
+  // Keeps 2D / GSAP / CSS motion consistent.
+  //
+  // The easings.ts file itself is allow-listed below — it defines the
+  // canonical values.
+  {
+    files: ['src/**/*.ts', 'src/**/*.tsx'],
+    ignores: ['src/lib/easings.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'warn',
+        {
+          selector: "Literal[value=/cubic-bezier\\s*\\(/]",
+          message:
+            'P2 §5.9: Do not use raw `cubic-bezier(...)` strings. Import a token from @/lib/easings (SF_EASE_STANDARD, SF_EASE_EMPHASIZED, etc.).',
+        },
+      ],
+    },
+  },
+
+  // P2 §3.6 — Reactive cockpit settings bridge
+  //
+  // 3D components MUST subscribe to store state via selectors or
+  // useCockpitSettings(), NOT snapshot via `.getState()`. Snapshots
+  // captured at mount time don't react to later Settings-page toggles.
+  //
+  // Exception: `getState()` is correct inside event callbacks where
+  // you want the current value when the event fires (e.g. audio
+  // hooks reading masterSoundEnabled at play-time). Those callers
+  // live in hooks/ and should use eslint-disable with justification
+  // if they really need it there.
+  {
+    files: ['src/components/3d/**/*.tsx', 'src/components/3d/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.name=/^use[A-Z]\\w*Store$/][property.name='getState']",
+          message:
+            'P2 §3.6: Do not snapshot cockpit/ui/guide store state via .getState() inside 3D components. Use a selector (useCockpitStore(s => s.field)) or the useCockpitSettings() bundle so Settings-page toggles propagate reactively.',
         },
       ],
     },

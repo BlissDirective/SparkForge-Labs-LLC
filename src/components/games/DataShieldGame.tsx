@@ -11,7 +11,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { Shield, Eye, Lock, AlertTriangle } from 'lucide-react';
@@ -163,7 +163,7 @@ const SCENARIOS: Scenario[] = [
 
 export function DataShieldGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('data-shield', ageBand);
@@ -296,7 +296,7 @@ export function DataShieldGame() {
                     {/* Privacy meter */}
                     <div className="mb-4">
                       <div className="flex justify-between mb-1">
-                        <span className="font-body text-xs text-white/30 flex items-center gap-1"><Lock className="w-3 h-3" /> Privacy Score</span>
+                        <span className="font-body text-xs text-white/60 flex items-center gap-1"><Lock className="w-3 h-3" /> Privacy Score</span>
                         <span className="font-display text-xs font-bold" style={{ color: meterColor }}>{privacyScore}%</span>
                       </div>
                       <div className="h-3 rounded-full bg-white/10 overflow-hidden">
@@ -309,7 +309,7 @@ export function DataShieldGame() {
                     <div className="text-center mb-4">
                       <span className="text-3xl">{scenario.emoji}</span>
                       <h3 className="font-display text-base font-bold text-white mt-1">{scenario.title}</h3>
-                      <p className="font-body text-xs text-white/40">{scenario.context}</p>
+                      <p className="font-body text-xs text-white/70">{scenario.context}</p>
                     </div>
 
                     {/* Data point card */}
@@ -342,7 +342,7 @@ export function DataShieldGame() {
                           <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#00FF88' : '#EF4444' }}>
                             {feedback.correct ? '✅ Smart choice!' : '⚠️ Be careful!'}
                           </p>
-                          <p className="font-body text-2xs text-white/40 mt-1">{feedback.reason}</p>
+                          <p className="font-body text-2xs text-white/70 mt-1">{feedback.reason}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -361,11 +361,11 @@ export function DataShieldGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You proved you can protect your personal information from AI misuse and make smart privacy decisions online.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20">
                       <p className="font-data text-2xl" style={{ color: '#FF6644' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Personal data like addresses, phone numbers, and photos should be protected from apps and websites</li>
                         <li>• Not all data requests are necessary — always ask why an app needs your information</li>
                         <li>• Data privacy is a right, and understanding what to share keeps you safe from AI-powered misuse</li>

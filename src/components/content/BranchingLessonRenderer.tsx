@@ -96,7 +96,7 @@ export default function BranchingLessonRenderer({
       </AnimatePresence>
 
       {/* Path breadcrumbs */}
-      <div className="flex items-center gap-1 text-xs text-white/20 font-mono overflow-x-auto">
+      <div className="flex items-center gap-1 text-xs text-white/55 font-mono overflow-x-auto">
         {lesson.path.map((nodeId, i) => (
           <span key={nodeId} className="flex items-center gap-1 shrink-0">
             {i > 0 && <ChevronRight className="w-3 h-3" />}
@@ -132,7 +132,7 @@ function NodeRenderer({
       {/* Node type badge */}
       <div className="flex items-center gap-2">
         <NodeTypeIcon type={node.type} />
-        <span className="text-xs font-data text-white/40 uppercase tracking-wider">
+        <span className="text-xs font-data text-white/70 uppercase tracking-wider">
           {node.type === 'content' && 'Learn'}
           {node.type === 'choice' && 'Your Choice'}
           {node.type === 'outcome' && 'Outcome'}
@@ -165,7 +165,7 @@ function NodeRenderer({
       {/* Choice buttons */}
       {node.choices && node.choices.length > 0 && (
         <div className="space-y-3 pt-2">
-          <p className="text-xs text-white/40 font-body">What would you do?</p>
+          <p className="text-xs text-white/70 font-body">What would you do?</p>
           {node.choices.map((choice) => (
             <motion.button
               key={choice.next_node_id}
@@ -181,7 +181,7 @@ function NodeRenderer({
                 <ChevronRight className="w-4 h-4 text-pink-400/40 group-hover:text-pink-400 transition-colors" />
               </div>
               {choice.feedback && (
-                <p className="text-xs text-white/30 mt-1">{choice.feedback}</p>
+                <p className="text-xs text-white/60 mt-1">{choice.feedback}</p>
               )}
             </motion.button>
           ))}
@@ -209,7 +209,7 @@ function NodeRenderer({
           {/* Learning outcomes */}
           {learningOutcomes.length > 0 && (
             <div className="space-y-2">
-              <p className="text-xs text-white/40 font-body">What you learned:</p>
+              <p className="text-xs text-white/70 font-body">What you learned:</p>
               {learningOutcomes.map((outcome, i) => (
                 <div key={i} className="flex items-start gap-2">
                   <Lightbulb className="w-3.5 h-3.5 text-amber-400/60 mt-0.5 shrink-0" />
@@ -246,6 +246,6 @@ function NodeTypeIcon({ type }: { type: string }) {
     case 'interactive':
       return <Gamepad2 className="w-4 h-4 text-purple-400" />;
     default:
-      return <BookOpen className="w-4 h-4 text-white/40" />;
+      return <BookOpen className="w-4 h-4 text-white/70" />;
   }
 }

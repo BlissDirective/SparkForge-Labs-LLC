@@ -24,7 +24,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
@@ -408,7 +408,7 @@ const LEARN_CARDS = [
 function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: number; maxDepth?: number }) {
   const indent = '  '.repeat(depth);
 
-  if (depth > maxDepth) return <span className="text-white/30">...</span>;
+  if (depth > maxDepth) return <span className="text-white/60">...</span>;
 
   if (data === null) return <span className="text-orange-400">null</span>;
   if (typeof data === 'boolean') return <span className="text-orange-400">{String(data)}</span>;
@@ -455,7 +455,7 @@ function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: 
 
 export function ApiExplorerGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const { safeTimeout, safeInterval } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
@@ -725,7 +725,7 @@ export function ApiExplorerGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('explore')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                     >
                       Skip intro →
                     </button>
@@ -755,7 +755,7 @@ export function ApiExplorerGame() {
                               ? 'bg-orange-500/20 border border-orange-500/40 text-orange-300'
                               : endpointsUsed.has(i)
                                 ? 'bg-green-500/10 border border-green-500/20 text-green-400/60'
-                                : 'bg-white/[0.02] border border-white/10 text-white/30'
+                                : 'bg-white/[0.02] border border-white/10 text-white/60'
                           }`}
                           aria-label={`Select endpoint ${ep.path}`}
                         >
@@ -765,7 +765,7 @@ export function ApiExplorerGame() {
                       ))}
                       <button
                         onClick={() => setShowHistory(!showHistory)}
-                        className="flex-shrink-0 px-2 py-1 rounded-lg bg-white/[0.02] border border-white/10 text-white/20 font-mono text-2xs"
+                        className="flex-shrink-0 px-2 py-1 rounded-lg bg-white/[0.02] border border-white/10 text-white/55 font-mono text-2xs"
                         aria-label="Toggle request history"
                       >
                         <History className="inline w-2.5 h-2.5" /> {history.length}
@@ -798,7 +798,7 @@ export function ApiExplorerGame() {
                         </code>
                         <Globe className="w-3 h-3 text-white/15" />
                       </div>
-                      <p className="font-body text-2xs text-white/30 mb-2">
+                      <p className="font-body text-2xs text-white/60 mb-2">
                         {endpoint.description}
                       </p>
 
@@ -806,7 +806,7 @@ export function ApiExplorerGame() {
                       <div className="space-y-1.5">
                         {endpoint.params.map((p) => (
                           <div key={p.name} className="flex items-center gap-2">
-                            <label className="font-mono text-2xs text-white/40 w-24 text-right">
+                            <label className="font-mono text-2xs text-white/70 w-24 text-right">
                               {p.name}
                               {p.required && <span className="text-red-400">*</span>}
                             </label>
@@ -886,7 +886,7 @@ export function ApiExplorerGame() {
                             >
                               {statusInfo.label}
                             </motion.span>
-                            <span className="font-mono text-2xs text-white/20 ml-auto">
+                            <span className="font-mono text-2xs text-white/55 ml-auto">
                               {response.latency}ms
                             </span>
                           </motion.div>
@@ -956,11 +956,11 @@ export function ApiExplorerGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored real AI service endpoints, sent requests with parameters, and read JSON responses — this is exactly how developers integrate AI into their applications!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">
                       <p className="font-data text-2xl" style={{ color: '#F97316' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• APIs let programs communicate using structured requests and responses</li>
                         <li>• HTTP methods (GET, POST) and status codes (200, 400, 500) form the language of the web</li>
                         <li>• REST patterns and JSON data interchange are the backbone of modern AI services</li>

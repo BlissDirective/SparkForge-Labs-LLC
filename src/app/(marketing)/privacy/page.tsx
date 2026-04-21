@@ -27,7 +27,7 @@ export default function PrivacyPage() {
           <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
             Privacy Policy
           </h1>
-          <p className="text-white/40 font-body">
+          <p className="text-white/70 font-body">
             Effective Date: March 30, 2026 &middot; Last Updated: March 30, 2026
           </p>
         </div>
@@ -201,18 +201,18 @@ export default function PrivacyPage() {
                 <div key={service.name} className="p-4 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                   <h4 className="font-display text-sm font-semibold text-white/80 mb-2">{service.name}</h4>
                   <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs text-white/50">
-                    <span className="text-white/30">Data shared:</span>
+                    <span className="text-white/60">Data shared:</span>
                     <span>{service.data}</span>
-                    <span className="text-white/30">Purpose:</span>
+                    <span className="text-white/60">Purpose:</span>
                     <span>{service.purpose}</span>
-                    <span className="text-white/30">Security:</span>
+                    <span className="text-white/60">Security:</span>
                     <span>{service.security}</span>
                   </div>
                 </div>
               ))}
             </div>
 
-            <p className="mt-4 text-sm text-white/40">
+            <p className="mt-4 text-sm text-white/70">
               Parents may consent to our collection and use of a child&apos;s information without consenting to
               disclosure to third parties, except where disclosure is integral to the service (e.g., Supabase
               for data storage).
@@ -274,7 +274,7 @@ export default function PrivacyPage() {
               ].map((item) => (
                 <div key={item.right} className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                   <p className="text-sm font-display font-medium text-white/80">{item.right}</p>
-                  <p className="text-xs text-white/40 mt-1">{item.how}</p>
+                  <p className="text-xs text-white/70 mt-1">{item.how}</p>
                 </div>
               ))}
             </div>
@@ -404,7 +404,7 @@ export default function PrivacyPage() {
                 </tr>
               </tbody>
             </table>
-            <p className="mt-4 text-sm text-white/40">
+            <p className="mt-4 text-sm text-white/70">
               We do not use any analytics cookies, advertising pixels, or third-party tracking scripts.
             </p>
           </section>
@@ -471,7 +471,7 @@ export default function PrivacyPage() {
                 Email: <a href="mailto:privacy@sparkforge.app" className="text-spark-blue hover:underline">privacy@sparkforge.app</a><br />
                 Subject line: &quot;COPPA Privacy Request&quot; or &quot;Parental Rights Request&quot;
               </p>
-              <p className="text-xs text-white/40 mt-3">
+              <p className="text-xs text-white/70 mt-3">
                 We will respond to all parental rights requests within 10 business days. You may also file a complaint
                 with the Federal Trade Commission at{' '}
                 <a href="https://www.ftc.gov/complaint" className="text-spark-blue hover:underline" target="_blank" rel="noopener noreferrer">

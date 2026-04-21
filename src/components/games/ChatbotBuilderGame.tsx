@@ -26,7 +26,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
-import { useGameStore } from "@/stores/gameStore";
+import { useGame } from "@/stores/gameStore";
 import { useActiveChild } from '@/hooks/useChildren';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { useGameContent } from '@/hooks/useContent';
@@ -716,7 +716,7 @@ function TypingMessage({ text, isLatest, speed }: { text: string; isLatest: bool
 
 export function ChatbotBuilderGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const { safeTimeout } = useSafeTimeout();
@@ -903,7 +903,7 @@ export function ChatbotBuilderGame() {
                     className="flex-1 flex flex-col items-center justify-center p-6 space-y-4">
                     <Bot className="w-6 h-6" style={{ color: pers.colors.primary }} />
                     <h3 className="font-display text-lg font-bold text-white">Chatbot Concepts</h3>
-                    <p className="font-body text-xs text-white/40">{learnIdx + 1} / {LEARN_CARDS.length}</p>
+                    <p className="font-body text-xs text-white/70">{learnIdx + 1} / {LEARN_CARDS.length}</p>
                     <AnimatePresence mode="wait">
                       <motion.div key={learnIdx} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}
                         className="max-w-md w-full rounded-xl p-5 text-center"
@@ -921,7 +921,7 @@ export function ChatbotBuilderGame() {
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                       {learnIdx < LEARN_CARDS.length - 1 ? "Next \u2192" : "Start Building! \uD83D\uDE80"}
                     </motion.button>
-                    <button onClick={() => setPhase("build")} className="font-body text-xs text-white/20">Skip</button>
+                    <button onClick={() => setPhase("build")} className="font-body text-xs text-white/55">Skip</button>
                   </motion.div>
                 )}
 
@@ -936,7 +936,7 @@ export function ChatbotBuilderGame() {
                     <div className="flex items-center gap-1 px-2 py-1.5 border-b border-white/5 overflow-x-auto">
                       {Object.entries(allTemplates).map(([name, t]) => (
                         <button key={name} onClick={() => loadTemplate(name)}
-                          className={`px-2 py-1 rounded-lg font-body whitespace-nowrap border text-2xs ${activeTemplate === name ? "text-white" : "text-white/30"}`}
+                          className={`px-2 py-1 rounded-lg font-body whitespace-nowrap border text-2xs ${activeTemplate === name ? "text-white" : "text-white/60"}`}
                           style={activeTemplate === name ? { borderColor: pers.colors.border, backgroundColor: pers.colors.bg } : {}}>
                           {t.emoji} {name}
                         </button>
@@ -944,13 +944,13 @@ export function ChatbotBuilderGame() {
                       <div className="flex-1" />
                       {/* Personality toggle */}
                       <button onClick={() => setPersonality((p) => (p + 1) % PERSONALITIES.length)}
-                        className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-white/40 text-2xs">
+                        className="px-2 py-1 rounded-lg border border-white/10 bg-white/5 text-white/70 text-2xs">
                         <Settings2 className="w-3 h-3" /> {pers.emoji}
                       </button>
                       {/* View mode tabs */}
                       {(["tree", "graph", "test"] as const).map((mode) => (
                         <button key={mode} onClick={() => mode === "test" ? enterTestMode() : setViewMode(mode)}
-                          className={`px-2 py-1 rounded-lg font-display font-bold ${viewMode === mode ? "text-white" : "text-white/20"} text-2xs`}
+                          className={`px-2 py-1 rounded-lg font-display font-bold ${viewMode === mode ? "text-white" : "text-white/55"} text-2xs`}
                           style={viewMode === mode ? { backgroundColor: pers.colors.bg, color: pers.colors.primary } : {}}>
                           {mode === "tree" ? "\uD83C\uDF33" : mode === "graph" ? "\uD83D\uDD78\uFE0F" : "\u25B6\uFE0F"} {mode}
                         </button>
@@ -972,7 +972,7 @@ export function ChatbotBuilderGame() {
                                   : node.id === "root" ? pers.colors.primary
                                   : nodes.some((n) => n.responses.some((r) => r.nextId === node.id)) ? "#10B981" : "#EF4444",
                               }} />
-                              <span className="font-mono text-2xs text-white/20">{node.id}</span>
+                              <span className="font-mono text-2xs text-white/55">{node.id}</span>
                               {node.id === "root" && (
                                 <span className="px-1 py-0.5 rounded text-2xs font-bold"
                                   style={{ backgroundColor: pers.colors.bg, color: pers.colors.primary }}>START</span>
@@ -1002,20 +1002,20 @@ export function ChatbotBuilderGame() {
                                       style={{ color: pers.colors.primary }}
                                       aria-label={`Response label ${i + 1}`} />
                                     {"\u2192"} {r.nextId || "?"}
-                                    <button onClick={() => removeResponse(node.id, i)} className="ml-1 text-white/20 hover:text-red-400"
+                                    <button onClick={() => removeResponse(node.id, i)} className="ml-1 text-white/55 hover:text-red-400"
                                       aria-label={`Remove response ${r.label}`}>x</button>
                                   </span>
                                 ))}
                               </div>
                             )}
-                            <button onClick={() => addResponse(node.id)} className="mt-1.5 font-body text-2xs text-white/20 flex items-center gap-1"
+                            <button onClick={() => addResponse(node.id)} className="mt-1.5 font-body text-2xs text-white/55 flex items-center gap-1"
                               aria-label={`Add response to ${node.id}`}>
                               <Plus className="w-2.5 h-2.5" /> Add response
                             </button>
                           </motion.div>
                         ))}
                         <button onClick={addNode}
-                          className="w-full py-2 rounded-xl border border-dashed border-white/10 text-white/20 font-display text-xs flex items-center gap-1 justify-center"
+                          className="w-full py-2 rounded-xl border border-dashed border-white/10 text-white/55 font-display text-xs flex items-center gap-1 justify-center"
                           aria-label="Add new node">
                           <Plus className="w-3 h-3" /> Add Node
                         </button>
@@ -1115,10 +1115,10 @@ export function ChatbotBuilderGame() {
                         })}
                         {currentTestNode && currentTestNode.responses.length === 0 && (
                           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center p-4 space-y-2">
-                            <p className="font-body text-xs text-white/30">End of conversation reached.</p>
+                            <p className="font-body text-xs text-white/60">End of conversation reached.</p>
                             <div className="flex gap-2 justify-center">
                               <button onClick={() => setTestPath(["root"])}
-                                className="px-3 py-1.5 rounded-lg bg-white/5 text-white/40 font-display text-xs flex items-center gap-1">
+                                className="px-3 py-1.5 rounded-lg bg-white/5 text-white/70 font-display text-xs flex items-center gap-1">
                                 <RotateCcw className="w-3 h-3" /> Restart
                               </button>
                               <button onClick={deployBot}
@@ -1135,7 +1135,7 @@ export function ChatbotBuilderGame() {
                     {/* -- Bottom Bar: Challenges + Metrics -- */}
                     {viewMode !== "test" && (
                       <div className="border-t border-white/5 px-3 py-2">
-                        <div className="flex items-center gap-3 text-2xs text-white/30 font-body">
+                        <div className="flex items-center gap-3 text-2xs text-white/60 font-body">
                           <span>Nodes: {metrics.nodeCount}</span>
                           <span>Edges: {metrics.edges}</span>
                           <span>Depth: {metrics.maxDepth}</span>
@@ -1148,7 +1148,7 @@ export function ChatbotBuilderGame() {
                           ))}
                         </div>
                         {ageBand === "C" && (
-                          <p className="font-body text-2xs text-white/20 mt-1">
+                          <p className="font-body text-2xs text-white/55 mt-1">
                             Graph: {metrics.nodeCount} nodes, {metrics.edges} edges, max branch {metrics.maxBranch}, depth {metrics.maxDepth}
                           </p>
                         )}
@@ -1169,11 +1169,11 @@ export function ChatbotBuilderGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You designed a conversation flow with branching dialog paths and deployed your own chatbot — real chatbot developers use the same graph-based approach!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
                       <p className="font-data text-2xl" style={{ color: '#818CF8' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Conversation design maps out all possible dialog paths</li>
                         <li>• NLP intents help chatbots understand what users mean</li>
                         <li>• Chatbot architecture uses nodes and edges like a flowchart</li>

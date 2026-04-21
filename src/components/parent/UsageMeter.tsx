@@ -62,7 +62,7 @@ export function UsageMeter({
         </span>
         <div className="flex items-center gap-2">
           {hint && (
-            <span className="font-body text-2xs text-white/30">{hint}</span>
+            <span className="font-body text-2xs text-white/60">{hint}</span>
           )}
           <span
             className={`font-data tabular-nums ${
@@ -71,7 +71,7 @@ export function UsageMeter({
             style={{ color }}
           >
             {value}
-            <span className="text-white/30">/{valueText}</span>
+            <span className="text-white/60">/{valueText}</span>
           </span>
         </div>
       </div>

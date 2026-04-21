@@ -19,7 +19,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -448,7 +448,7 @@ const DIR_OFFSETS: [number, number][] = [
 
 export function RobotVacuumGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const { safeTimeout } = useSafeTimeout();
@@ -799,7 +799,7 @@ export function RobotVacuumGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
-                      className="font-body text-xs text-white/50 hover:text-white/40"
+                      className="font-body text-xs text-white/50 hover:text-white/70"
                       aria-label="Skip tutorial"
                     >
                       Skip tutorial
@@ -1164,7 +1164,7 @@ export function RobotVacuumGame() {
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Robot pathfinding uses rules to decide where to move next</li>
                         <li>• Rule priority order determines which action fires first</li>
                         <li>• Coverage optimization balances thoroughness with efficiency</li>

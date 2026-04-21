@@ -711,8 +711,8 @@ export function SortToyBoxGame() {
                           aria-checked={gameMode === mode}
                           aria-label={`${label}: ${desc}`}
                         >
-                          <Icon className={`w-4 h-4 mx-auto mb-1 ${gameMode === mode ? 'text-purple-400' : 'text-white/30'}`} />
-                          <p className={`font-display text-2xs font-bold ${gameMode === mode ? 'text-purple-300' : 'text-white/30'}`}>{label}</p>
+                          <Icon className={`w-4 h-4 mx-auto mb-1 ${gameMode === mode ? 'text-purple-400' : 'text-white/60'}`} />
+                          <p className={`font-display text-2xs font-bold ${gameMode === mode ? 'text-purple-300' : 'text-white/60'}`}>{label}</p>
                         </button>
                       ))}
                     </div>
@@ -789,7 +789,7 @@ export function SortToyBoxGame() {
                     </div>
                     <button
                       onClick={() => startRound(1)}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                       aria-label="Skip learning and start sorting"
                     >
                       Skip intro {'\u2192'}
@@ -823,15 +823,15 @@ export function SortToyBoxGame() {
                                 : r.id < currentRound
                                   ? 'bg-purple-500/10 text-purple-400/60'
                                   : r.id <= maxUnlockedRound
-                                    ? 'bg-white/5 text-white/20'
-                                    : 'bg-white/[0.02] text-white/10'
+                                    ? 'bg-white/5 text-white/55'
+                                    : 'bg-white/[0.02] text-white/50'
                             }`}
                             aria-label={`Round ${r.id}: ${r.name}${r.id === currentRound ? ' (current)' : r.id < currentRound ? ' (complete)' : ''}`}
                           >
                             {r.id}
                           </div>
                         ))}
-                        <span className="font-display text-xs text-white/40 ml-1">{roundConfig.name}</span>
+                        <span className="font-display text-xs text-white/70 ml-1">{roundConfig.name}</span>
                       </div>
                       {gameMode === 'challenge' && timeRemaining !== null && (
                         <div className={`flex items-center gap-1 font-data text-sm ${timeRemaining <= 10 ? 'text-red-400 animate-pulse' : 'text-purple-300'}`}
@@ -847,7 +847,7 @@ export function SortToyBoxGame() {
                       )}
                     </div>
 
-                    <p className="font-body text-xs text-white/30 mb-3 text-center">
+                    <p className="font-body text-xs text-white/60 mb-3 text-center">
                       {ageBand === 'A'
                         ? 'Tap a shape, then tap a group to put it there!'
                         : ageBand === 'B'
@@ -861,7 +861,7 @@ export function SortToyBoxGame() {
                       style={{ background: 'rgba(0,0,0,0.1)' }}
                       aria-label="3D sorting area — shapes visible in background"
                     >
-                      <p className="font-body text-2xs text-white/20">
+                      <p className="font-body text-2xs text-white/55">
                         {'\u{1F3AE}'} {shapes.filter((s) => s.group !== null).length}/{shapes.length} sorted
                       </p>
                     </div>
@@ -869,7 +869,7 @@ export function SortToyBoxGame() {
                     {/* Discovery mode: teach AI a rule */}
                     {gameMode === 'discovery' && (
                       <div className="mt-3 rounded-xl p-3 border border-purple-500/10 bg-purple-500/5">
-                        <p className="font-body text-xs text-white/40 mb-2">
+                        <p className="font-body text-xs text-white/70 mb-2">
                           <Lightbulb className="inline w-3 h-3 mr-1" />
                           Teach the AI your sorting rule:
                         </p>
@@ -879,7 +879,7 @@ export function SortToyBoxGame() {
                             value={discoveryRule}
                             onChange={(e) => setDiscoveryRule(e.target.value)}
                             placeholder={ageBand === 'A' ? 'e.g. "sort by color"' : 'e.g. "group by edge count"'}
-                            className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 font-body text-xs text-white placeholder:text-white/20 outline-none focus:border-purple-400/40"
+                            className="flex-1 px-3 py-2 rounded-lg bg-white/5 border border-white/10 font-body text-xs text-white placeholder:text-white/55 outline-none focus:border-purple-400/40"
                             aria-label="Type your sorting rule for the AI"
                           />
                           <button
@@ -902,7 +902,7 @@ export function SortToyBoxGame() {
                       {groupCount < roundConfig.maxGroups && (
                         <button
                           onClick={() => setGroupCount((c) => c + 1)}
-                          className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 font-display text-xs text-white/40 hover:text-white/60"
+                          className="flex-1 py-2 rounded-xl bg-white/5 border border-white/10 font-display text-xs text-white/70 hover:text-white/60"
                           aria-label={`Add group ${groupCount + 1}. Currently ${groupCount} groups. Max ${roundConfig.maxGroups}.`}
                         >
                           <Plus className="inline w-3 h-3 mr-1" /> Add Group
@@ -945,7 +945,7 @@ export function SortToyBoxGame() {
                           <Brain className="w-10 h-10 text-purple-400 mx-auto" />
                         </motion.div>
                         <h3 className="font-display text-lg font-bold text-white">Extracting Features...</h3>
-                        <p className="font-body text-xs text-white/40">
+                        <p className="font-body text-xs text-white/70">
                           {ageBand === 'A' ? 'The AI is looking at each shape carefully!' : 'Scanning shape properties: color, size, geometry...'}
                         </p>
                       </motion.div>
@@ -957,7 +957,7 @@ export function SortToyBoxGame() {
                           <Sparkles className="w-10 h-10 text-purple-400 mx-auto" />
                         </motion.div>
                         <h3 className="font-display text-lg font-bold text-white">Calculating Distances...</h3>
-                        <p className="font-body text-xs text-white/40">
+                        <p className="font-body text-xs text-white/70">
                           {ageBand === 'A' ? 'The AI is figuring out which shapes are most alike!' : 'Measuring similarity between objects in feature space...'}
                         </p>
                       </motion.div>
@@ -969,7 +969,7 @@ export function SortToyBoxGame() {
                           <Brain className="w-10 h-10 text-yellow-400 mx-auto" />
                         </motion.div>
                         <h3 className="font-display text-lg font-bold text-white">Forming Clusters...</h3>
-                        <p className="font-body text-xs text-white/40">
+                        <p className="font-body text-xs text-white/70">
                           {ageBand === 'A' ? 'The AI is grouping similar shapes together!' : 'Partitioning objects into clusters by minimizing within-group distance...'}
                         </p>
                       </motion.div>
@@ -985,7 +985,7 @@ export function SortToyBoxGame() {
                           {ageBand === 'A' ? aiCriterion.descA : ageBand === 'C' ? aiCriterion.descC : aiCriterion.desc}
                         </p>
                         <div className="rounded-xl p-3 border border-purple-500/20 bg-purple-500/5 max-w-sm">
-                          <p className="font-body text-xs text-white/40">
+                          <p className="font-body text-xs text-white/70">
                             {ageBand === 'A'
                               ? 'You and the AI might sort things differently \u2014 and that\'s okay!'
                               : ageBand === 'B'
@@ -1010,7 +1010,7 @@ export function SortToyBoxGame() {
                           </motion.button>
                           <button
                             onClick={handleReplay}
-                            className="px-4 py-3 rounded-xl font-display text-xs text-white/40 bg-white/5 border border-white/10 hover:text-white/60"
+                            className="px-4 py-3 rounded-xl font-display text-xs text-white/70 bg-white/5 border border-white/10 hover:text-white/60"
                             aria-label="Replay this round"
                           >
                             Replay Round
@@ -1047,15 +1047,15 @@ export function SortToyBoxGame() {
                     <div className="grid grid-cols-3 gap-3 max-w-sm w-full">
                       <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                         <p className="font-data text-2xl text-purple-400">{score}</p>
-                        <p className="font-body text-2xs text-white/30">Points</p>
+                        <p className="font-body text-2xs text-white/60">Points</p>
                       </div>
                       <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                         <p className="font-data text-2xl text-purple-400">{currentRound}</p>
-                        <p className="font-body text-2xs text-white/30">Rounds</p>
+                        <p className="font-body text-2xs text-white/60">Rounds</p>
                       </div>
                       <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                         <p className="font-data text-2xl text-purple-400">{maxUnlockedRound}</p>
-                        <p className="font-body text-2xs text-white/30">Unlocked</p>
+                        <p className="font-body text-2xs text-white/60">Unlocked</p>
                       </div>
                     </div>
 
@@ -1085,13 +1085,13 @@ export function SortToyBoxGame() {
                         What You Learned
                       </p>
                       <ul className="space-y-1.5 text-left">
-                        <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                        <li className="font-body text-xs text-white/70 flex items-start gap-2">
                           <span className="text-purple-400 mt-0.5" aria-hidden="true">{'\u2713'}</span>
                           {ageBand === 'A'
                             ? 'AI can sort things into groups just like you do'
                             : 'Unsupervised learning finds patterns without labeled data'}
                         </li>
-                        <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                        <li className="font-body text-xs text-white/70 flex items-start gap-2">
                           <span className="text-purple-400 mt-0.5" aria-hidden="true">{'\u2713'}</span>
                           {ageBand === 'A'
                             ? 'There are many ways to sort the same things'
@@ -1099,7 +1099,7 @@ export function SortToyBoxGame() {
                               ? 'Different features lead to different valid clusterings'
                               : 'Feature selection determines cluster boundaries and partition quality'}
                         </li>
-                        <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                        <li className="font-body text-xs text-white/70 flex items-start gap-2">
                           <span className="text-purple-400 mt-0.5" aria-hidden="true">{'\u2713'}</span>
                           {ageBand === 'A'
                             ? 'Features are the things you look at when sorting'
@@ -1108,7 +1108,7 @@ export function SortToyBoxGame() {
                               : 'Intra-cluster similarity vs inter-cluster distance defines clustering quality'}
                         </li>
                         {currentRound >= 3 && (
-                          <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                          <li className="font-body text-xs text-white/70 flex items-start gap-2">
                             <span className="text-purple-400 mt-0.5" aria-hidden="true">{'\u2713'}</span>
                             {ageBand === 'A'
                               ? 'Shapes have many different features to sort by!'

@@ -40,7 +40,7 @@ export function GameProgressTracker({
           transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.4, ease: 'easeOut' }}
         />
       </div>
-      <span className="text-[10px] font-data text-white/40 tabular-nums min-w-[3ch] text-right">
+      <span className="text-[10px] font-data text-white/70 tabular-nums min-w-[3ch] text-right">
         {current}/{total}
       </span>
     </div>

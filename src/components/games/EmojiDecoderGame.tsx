@@ -18,7 +18,7 @@ import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -281,7 +281,7 @@ const DIFF_POINTS: Record<Difficulty, number> = { easy: 10, medium: 15, tricky: 
 export function EmojiDecoderGame() {
   const prefersReducedMotion = useReducedMotion();
   const { safeTimeout } = useSafeTimeout();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
@@ -496,7 +496,7 @@ export function EmojiDecoderGame() {
                       </motion.span>
                     )}
                   </AnimatePresence>
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-xs text-white/30">{round.category}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-xs text-white/60">{round.category}</span>
                 </div>
               </div>
 
@@ -539,7 +539,7 @@ export function EmojiDecoderGame() {
                       initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
                       whileHover={!showResult ? { scale: 1.02 } : {}} whileTap={!showResult ? { scale: 0.98 } : {}}
                       aria-label={`Answer choice: ${ans}`}>
-                      <span className="mr-2 text-white/30 font-mono text-xs">{String.fromCharCode(65 + i)}.</span>
+                      <span className="mr-2 text-white/60 font-mono text-xs">{String.fromCharCode(65 + i)}.</span>
                       {ans}
                       {showColor && isCorrect && <span className="float-right">{'\u2705'}</span>}
                       {showColor && isSelected && !isCorrect && <span className="float-right">{'\u274C'}</span>}
@@ -586,7 +586,7 @@ export function EmojiDecoderGame() {
 
               {/* Progress */}
               <div className="mt-auto pt-2">
-                <div className="flex items-center justify-between text-xs font-mono text-white/30 mb-1">
+                <div className="flex items-center justify-between text-xs font-mono text-white/60 mb-1">
                   <span>{'\u{1F3AF}'} {totalCorrect} / {roundIdx + (showResult ? 1 : 0)}</span>
                   <span>{'\u{1F525}'} Best streak: {bestStreak}</span>
                 </div>
@@ -610,7 +610,7 @@ export function EmojiDecoderGame() {
 
               <div className="w-full max-w-sm rounded-2xl p-5 border border-indigo-500/20 bg-indigo-500/[0.03]">
                 <p className="font-body text-sm text-indigo-300 mb-2">{LAB_PROMPTS[labPromptIdx].prompt}</p>
-                <p className="font-mono text-xs text-white/30 mb-3">{'\u{1F4A1}'} {LAB_PROMPTS[labPromptIdx].hint}</p>
+                <p className="font-mono text-xs text-white/60 mb-3">{'\u{1F4A1}'} {LAB_PROMPTS[labPromptIdx].hint}</p>
 
                 {!labSubmitted ? (
                   <>
@@ -618,7 +618,7 @@ export function EmojiDecoderGame() {
                       placeholder="Type your emoji sentence here... \u{1F60A}"
                       className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm resize-none focus:outline-none focus:border-indigo-500/40 h-20"
                       maxLength={60} aria-label="Type your emoji sentence" />
-                    <p className="font-mono text-2xs text-white/20 mt-1">{labText.length}/60</p>
+                    <p className="font-mono text-2xs text-white/55 mt-1">{labText.length}/60</p>
                     <motion.button onClick={handleLabSubmit} disabled={labText.trim().length < 2}
                       className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-display text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-30"
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} aria-label="Submit emoji sentence">
@@ -682,7 +682,7 @@ export function EmojiDecoderGame() {
                 )}
               </div>
 
-              <p className="font-body text-xs text-white/30 max-w-xs">
+              <p className="font-body text-xs text-white/60 max-w-xs">
                 {ageBand === 'B' || ageBand === 'C'
                   ? 'You\'ve explored how NLP processes emoji sequences \u2014 a core challenge in natural language understanding!'
                   : 'You decoded emojis like a pro and saw how AI reads them differently!'}

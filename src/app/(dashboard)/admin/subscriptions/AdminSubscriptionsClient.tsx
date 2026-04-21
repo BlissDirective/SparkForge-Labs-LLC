@@ -54,8 +54,8 @@ const STATUS_COLORS: Record<string, string> = {
   active: 'text-spark-green bg-spark-green/10 border-spark-green/20',
   trialing: 'text-spark-blue bg-spark-blue/10 border-spark-blue/20',
   past_due: 'text-spark-orange bg-spark-orange/10 border-spark-orange/20',
-  canceled: 'text-white/40 bg-white/5 border-white/10',
-  none: 'text-white/40 bg-white/5 border-white/10',
+  canceled: 'text-white/70 bg-white/5 border-white/10',
+  none: 'text-white/70 bg-white/5 border-white/10',
   paused: 'text-spark-purple bg-spark-purple/10 border-spark-purple/20',
 };
 
@@ -231,7 +231,7 @@ export default function AdminSubscriptionsClient() {
           <h1 className="font-display text-2xl font-bold text-white mb-1">
             Subscription Management
           </h1>
-          <p className="font-body text-sm text-white/40">
+          <p className="font-body text-sm text-white/70">
             {rows.length} total accounts · {filtered.length} shown
           </p>
         </div>
@@ -251,13 +251,13 @@ export default function AdminSubscriptionsClient() {
         className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3"
       >
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search email, name, or customer ID…"
-            className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/30 focus:outline-none focus:border-spark-blue/50"
+            className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/60 focus:outline-none focus:border-spark-blue/50"
             aria-label="Search subscriptions"
           />
         </div>
@@ -295,7 +295,7 @@ export default function AdminSubscriptionsClient() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-white/5">
-              <tr className="text-left font-body text-xs text-white/40">
+              <tr className="text-left font-body text-xs text-white/70">
                 <th className="px-4 py-3 font-semibold">Parent</th>
                 <th className="px-4 py-3 font-semibold">Tier</th>
                 <th className="px-4 py-3 font-semibold">Status</th>
@@ -309,12 +309,12 @@ export default function AdminSubscriptionsClient() {
               {loading ? (
                 <tr>
                   <td colSpan={7} className="px-4 py-12 text-center">
-                    <RefreshCw className="w-6 h-6 text-white/30 animate-spin mx-auto" />
+                    <RefreshCw className="w-6 h-6 text-white/60 animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-4 py-12 text-center font-body text-sm text-white/40">
+                  <td colSpan={7} className="px-4 py-12 text-center font-body text-sm text-white/70">
                     No subscriptions match your filters
                   </td>
                 </tr>
@@ -331,7 +331,7 @@ export default function AdminSubscriptionsClient() {
                       <td className="px-4 py-3">
                         <div className="font-body text-sm text-white">{row.email}</div>
                         {row.fullName && (
-                          <div className="font-body text-xs text-white/40">{row.fullName}</div>
+                          <div className="font-body text-xs text-white/70">{row.fullName}</div>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -364,7 +364,7 @@ export default function AdminSubscriptionsClient() {
                       <td className="px-4 py-3 font-data text-xs text-white/60">
                         {formatDate(row.subscriptionPeriodEnd)}
                       </td>
-                      <td className="px-4 py-3 font-data text-xs text-white/30 max-w-[180px] truncate">
+                      <td className="px-4 py-3 font-data text-xs text-white/60 max-w-[180px] truncate">
                         {row.stripeSubscriptionId || '—'}
                       </td>
                       <td className="px-4 py-3">
@@ -418,7 +418,7 @@ export default function AdminSubscriptionsClient() {
               <button
                 onClick={closeModal}
                 disabled={submitting}
-                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all disabled:opacity-30"
+                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-30"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -427,7 +427,7 @@ export default function AdminSubscriptionsClient() {
               <h2 className="font-display text-lg font-bold text-white mb-1">
                 {modalMode === 'cancel' ? 'Cancel Subscription' : 'Change Plan'}
               </h2>
-              <p className="font-body text-xs text-white/40 mb-4">{modalRow.email}</p>
+              <p className="font-body text-xs text-white/70 mb-4">{modalRow.email}</p>
 
               {modalMode === 'cancel' ? (
                 <>
@@ -491,7 +491,7 @@ export default function AdminSubscriptionsClient() {
                         className={`flex-1 py-2 rounded-lg font-body text-xs ${
                           interval === 'month'
                             ? 'bg-white/10 text-white border border-white/20'
-                            : 'text-white/40 border border-white/5'
+                            : 'text-white/70 border border-white/5'
                         }`}
                       >
                         Monthly
@@ -501,7 +501,7 @@ export default function AdminSubscriptionsClient() {
                         className={`flex-1 py-2 rounded-lg font-body text-xs ${
                           interval === 'year'
                             ? 'bg-white/10 text-white border border-white/20'
-                            : 'text-white/40 border border-white/5'
+                            : 'text-white/70 border border-white/5'
                         }`}
                       >
                         Yearly
@@ -511,7 +511,7 @@ export default function AdminSubscriptionsClient() {
                 </>
               )}
 
-              <label className="block font-body text-xs text-white/40 mb-1">
+              <label className="block font-body text-xs text-white/70 mb-1">
                 Reason (optional — logged to audit trail)
               </label>
               <textarea
@@ -520,7 +520,7 @@ export default function AdminSubscriptionsClient() {
                 rows={2}
                 maxLength={500}
                 placeholder="e.g. User requested via support ticket #1234"
-                className="w-full mb-4 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/20 focus:outline-none focus:border-spark-blue/50 resize-none"
+                className="w-full mb-4 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/55 focus:outline-none focus:border-spark-blue/50 resize-none"
               />
 
               <div className="flex gap-2">

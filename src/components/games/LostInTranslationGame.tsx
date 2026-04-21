@@ -11,7 +11,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { Languages, ArrowDown } from 'lucide-react';
@@ -172,7 +172,7 @@ const ALL_ROUNDS: Round[] = [
 
 export function LostInTranslationGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('lost-in-translation', ageBand);
@@ -324,11 +324,11 @@ export function LostInTranslationGame() {
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
                       <GameProgressTracker current={idx + 1} total={rounds.length} labColor="#818CF8" />
                     </div>
-                    <p className="font-body text-xs text-white/20 text-center mb-3">{idx + 1}/{rounds.length}</p>
+                    <p className="font-body text-xs text-white/55 text-center mb-3">{idx + 1}/{rounds.length}</p>
 
                     {/* Original */}
                     <div className="rounded-xl p-4 mb-3 border border-indigo-500/20 bg-indigo-500/5 text-center">
-                      <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Original</p>
+                      <p className="font-body text-2xs text-white/60">{'\u{1F1EC}\u{1F1E7}'} Original</p>
                       <p className="font-display text-base font-bold text-white">&ldquo;{round.original}&rdquo;</p>
                     </div>
 
@@ -375,7 +375,7 @@ export function LostInTranslationGame() {
                           transition={{ delay: 0.2 }}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-body text-2xs text-white/30">Meaning degradation</span>
+                            <span className="font-body text-2xs text-white/60">Meaning degradation</span>
                             <span className="font-data text-2xs" style={{ color }}>{deg}%</span>
                           </div>
                           <div className="h-2 rounded-full bg-white/5 overflow-hidden">
@@ -395,7 +395,7 @@ export function LostInTranslationGame() {
                     {allRevealed && (
                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                         className="rounded-xl p-4 text-center border border-amber-500/30 bg-amber-500/5 mb-3">
-                        <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
+                        <p className="font-body text-2xs text-white/60">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
                         <p className="font-display text-base font-bold text-amber-400">&ldquo;{round.final}&rdquo;</p>
                         {/* ENH: Side-by-side comparison with highlight */}
                         <motion.div
@@ -413,7 +413,7 @@ export function LostInTranslationGame() {
                             <p className="font-body text-xs text-amber-400/80">{round.final}</p>
                           </div>
                         </motion.div>
-                        <p className="font-body text-2xs text-white/30 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
+                        <p className="font-body text-2xs text-white/60 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
                       </motion.div>
                     )}
 
@@ -452,11 +452,11 @@ export function LostInTranslationGame() {
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Machine translation works word-by-word but misses figurative meaning</li>
                         <li>• Language ambiguity means one phrase can have multiple interpretations</li>
                         <li>• Context is crucial in NLP — without it, AI takes everything literally</li>

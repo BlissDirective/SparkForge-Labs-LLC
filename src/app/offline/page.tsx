@@ -19,7 +19,7 @@ export default function OfflinePage() {
           It looks like your connection dropped. SparkForge needs the internet
           to load labs and sync your progress.
         </p>
-        <p className="font-body text-white/30 text-xs mb-8">
+        <p className="font-body text-white/60 text-xs mb-8">
           Check your Wi-Fi or cellular connection and try again.
         </p>
         <button

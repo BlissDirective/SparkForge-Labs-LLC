@@ -53,7 +53,7 @@ export class ErrorBoundary extends React.Component<Props, State> {
             <h1 className="font-display text-2xl font-bold text-white mb-2">
               Oops! Something went wrong
             </h1>
-            <p className="font-body text-sm text-white/40 mb-6">
+            <p className="font-body text-sm text-white/70 mb-6">
               Don&apos;t worry — this happens sometimes.
               Let&apos;s get you back on track!
             </p>

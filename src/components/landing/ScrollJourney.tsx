@@ -490,7 +490,7 @@ export function ScrollJourney() {
             transition={{ duration: 2, repeat: Infinity }}
             aria-hidden="true"
           >
-            <ArrowDown className="w-5 h-5 text-white/30" />
+            <ArrowDown className="w-5 h-5 text-white/60" />
           </motion.div>
         )}
       </section>
@@ -544,7 +544,7 @@ export function ScrollJourney() {
           </Link>
         </div>
 
-        <p className="font-body text-xs text-white/20 mt-6">
+        <p className="font-body text-xs text-white/55 mt-6">
           No credit card required. Free plan includes Labs 1-3.
         </p>
       </section>

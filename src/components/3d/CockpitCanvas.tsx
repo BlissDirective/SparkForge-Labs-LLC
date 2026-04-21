@@ -21,6 +21,14 @@
 //   Spatial Content Group — visible on dashboard routes
 //   Game Scene Group     — visible during gameplay
 //   Iris Overlay Group   — visible during transitions
+//
+// P2 §10.11 (April 21, 2026): Phase 5 OffscreenCanvas migration entry
+//   point. Current architecture renders on the main thread. When the
+//   Phase 5 spike is authorized, branch on
+//   `isOffscreenRenderSafe(navigator.userAgent)` from
+//   `@/lib/3d/offscreenCanvasSupport` to move the Canvas into a
+//   worker. See `docs/OFFSCREEN_CANVAS_FEASIBILITY.md` for the full
+//   migration plan + risks.
 
 import React, { Suspense, lazy, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';

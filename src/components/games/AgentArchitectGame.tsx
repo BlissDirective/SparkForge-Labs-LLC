@@ -887,7 +887,7 @@ export function AgentArchitectGame() {
 
                     <GraduationCap className="w-6 h-6 text-emerald-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">How AI Agents Work</h3>
-                    <p className="font-body text-xs text-white/40">{learnIdx + 1} of {LEARN_CARDS.length}</p>
+                    <p className="font-body text-xs text-white/70">{learnIdx + 1} of {LEARN_CARDS.length}</p>
 
                     <AnimatePresence mode="wait">
                       <motion.div key={learnIdx} initial={{ opacity: 0, x: 30 }}
@@ -913,7 +913,7 @@ export function AgentArchitectGame() {
                     </motion.button>
 
                     <button onClick={() => setPhase('missions')}
-                      className="font-body text-xs text-white/20 hover:text-white/40">
+                      className="font-body text-xs text-white/55 hover:text-white/70">
                       Skip to missions
                     </button>
                   </motion.div>
@@ -933,7 +933,7 @@ export function AgentArchitectGame() {
                     <div className="text-center">
                       <Target className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
                       <h3 className="font-display text-lg font-bold text-white">Choose Your Mission</h3>
-                      <p className="font-body text-xs text-white/40">
+                      <p className="font-body text-xs text-white/70">
                         {completedMissions.length} of {availableMissions.length} completed
                       </p>
                     </div>
@@ -959,12 +959,12 @@ export function AgentArchitectGame() {
                                   <p className="font-display text-sm font-bold text-white">{m.title}</p>
                                   {isComplete && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
                                   {isLocked && (
-                                    <span className="text-2xs text-white/20">
+                                    <span className="text-2xs text-white/55">
                                       {'\ud83d\udd12'} Complete 4 missions
                                     </span>
                                   )}
                                 </div>
-                                <p className="font-body text-xs text-white/40 mt-0.5">{m.description}</p>
+                                <p className="font-body text-xs text-white/70 mt-0.5">{m.description}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 mt-2">
@@ -975,7 +975,7 @@ export function AgentArchitectGame() {
                               }`}>
                                 {m.difficulty}
                               </span>
-                              <span className="font-body text-2xs text-white/20">
+                              <span className="font-body text-2xs text-white/55">
                                 {m.requirements.length} requirements
                               </span>
                             </div>
@@ -997,10 +997,10 @@ export function AgentArchitectGame() {
                         <span className="text-lg">{mission.emoji}</span>
                         <div className="flex-1">
                           <span className="font-display text-xs font-bold text-emerald-400">{mission.title}</span>
-                          <span className="font-body text-2xs text-white/30 ml-2">{mission.description}</span>
+                          <span className="font-body text-2xs text-white/60 ml-2">{mission.description}</span>
                         </div>
                         <button onClick={() => setPhase('missions')}
-                          className="font-body text-2xs text-white/20 hover:text-white/40">
+                          className="font-body text-2xs text-white/55 hover:text-white/70">
                           Back
                         </button>
                       </div>
@@ -1024,7 +1024,7 @@ export function AgentArchitectGame() {
                       {ageBand === 'C' && (
                         <button onClick={() => setShowCode(!showCode)}
                           className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-body text-xs ${
-                            showCode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-white/40'
+                            showCode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-white/70'
                           }`}
                           aria-label="Toggle pseudocode view">
                           <Code2 className="w-3 h-3" /> Code
@@ -1039,7 +1039,7 @@ export function AgentArchitectGame() {
                       </motion.button>
 
                       <button onClick={resetCanvas}
-                        className="text-white/20 hover:text-white/40 p-1.5"
+                        className="text-white/55 hover:text-white/70 p-1.5"
                         aria-label="Reset canvas">
                         <RotateCcw className="w-3.5 h-3.5" />
                       </button>
@@ -1062,7 +1062,7 @@ export function AgentArchitectGame() {
                         <span className="font-body text-xs text-blue-400">
                           Click a block to connect...{' '}
                           <button onClick={() => setConnecting(null)}
-                            className="ml-2 text-white/30 hover:text-white/50">
+                            className="ml-2 text-white/60 hover:text-white/50">
                             Cancel
                           </button>
                         </span>
@@ -1123,7 +1123,7 @@ export function AgentArchitectGame() {
                           className="mx-3 mb-2 overflow-hidden">
                           <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                             <div className="flex items-center gap-2 mb-2">
-                              <Settings2 className="w-3.5 h-3.5 text-white/40" />
+                              <Settings2 className="w-3.5 h-3.5 text-white/70" />
                               <span className="font-display text-xs font-bold text-white">
                                 Configure {selectedBlockData.type.label}
                               </span>
@@ -1155,7 +1155,7 @@ export function AgentArchitectGame() {
                                     className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
                                       selectedBlockData.config.tool === tool.id
                                         ? 'border-orange-500/30 bg-orange-500/10 text-orange-400'
-                                        : 'border-white/5 bg-white/[0.02] text-white/40 hover:bg-white/5'
+                                        : 'border-white/5 bg-white/[0.02] text-white/70 hover:bg-white/5'
                                     }`}>
                                     {tool.emoji} {tool.label}
                                   </button>
@@ -1172,7 +1172,7 @@ export function AgentArchitectGame() {
                                     className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
                                       selectedBlockData.config.searchTarget === target.id
                                         ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                                        : 'border-white/5 bg-white/[0.02] text-white/40 hover:bg-white/5'
+                                        : 'border-white/5 bg-white/[0.02] text-white/70 hover:bg-white/5'
                                     }`}>
                                     {target.emoji} {target.label}
                                   </button>
@@ -1225,7 +1225,7 @@ export function AgentArchitectGame() {
                     <Award className="w-8 h-8 text-emerald-400" />
                     <h3 className="font-display text-xl font-bold text-white">Mission Report</h3>
                     {mission && (
-                      <p className="font-body text-xs text-white/40">{mission.emoji} {mission.title}</p>
+                      <p className="font-body text-xs text-white/70">{mission.emoji} {mission.title}</p>
                     )}
 
                     {/* Stars */}
@@ -1234,7 +1234,7 @@ export function AgentArchitectGame() {
                         <Star key={i} className={`w-8 h-8 ${
                           i <= reportData.stars
                             ? 'text-amber-400 fill-amber-400'
-                            : 'text-white/10'
+                            : 'text-white/50'
                         }`} />
                       ))}
                     </div>
@@ -1243,11 +1243,11 @@ export function AgentArchitectGame() {
                     <div className="flex gap-4 text-center">
                       <div>
                         <p className="font-display text-2xl font-bold text-emerald-400">{reportData.pathLen}</p>
-                        <p className="font-body text-2xs text-white/30">Steps</p>
+                        <p className="font-body text-2xs text-white/60">Steps</p>
                       </div>
                       <div>
                         <p className="font-display text-2xl font-bold text-emerald-400">{blocks.length}</p>
-                        <p className="font-body text-2xs text-white/30">Blocks</p>
+                        <p className="font-body text-2xs text-white/60">Blocks</p>
                       </div>
                       <div>
                         <p className={`font-display text-sm font-bold ${
@@ -1257,7 +1257,7 @@ export function AgentArchitectGame() {
                         }`}>
                           {reportData.efficiency}
                         </p>
-                        <p className="font-body text-2xs text-white/30">Efficiency</p>
+                        <p className="font-body text-2xs text-white/60">Efficiency</p>
                       </div>
                     </div>
 
@@ -1268,7 +1268,7 @@ export function AgentArchitectGame() {
                         return (
                           <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.02]">
                             <span className="text-xs">{b?.type.emoji}</span>
-                            <span className="font-body text-2xs text-white/40 flex-1">{step.narration}</span>
+                            <span className="font-body text-2xs text-white/70 flex-1">{step.narration}</span>
                             {step.decision && (
                               <span className={`text-2xs font-bold ${
                                 step.decision === 'yes' ? 'text-green-400' : 'text-red-400'
@@ -1286,7 +1286,7 @@ export function AgentArchitectGame() {
                       <div className="max-w-sm w-full rounded-xl p-3 border border-amber-500/20 bg-amber-500/5">
                         <p className="font-display text-xs font-bold text-amber-400">{'\ud83d\udca1'} Tips</p>
                         {reportData.tips.map((tip, i) => (
-                          <p key={i} className="font-body text-2xs text-white/40">{'\u2022'} {tip}</p>
+                          <p key={i} className="font-body text-2xs text-white/70">{'\u2022'} {tip}</p>
                         ))}
                       </div>
                     )}

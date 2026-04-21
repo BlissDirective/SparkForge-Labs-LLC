@@ -163,7 +163,7 @@ function TypeIcon({ type }: { type: string }) {
     case 'fll_ai_or_not':
       return <HelpCircle className="w-4 h-4 text-fuchsia-300" />;
     default:
-      return <FileText className="w-4 h-4 text-white/40" />;
+      return <FileText className="w-4 h-4 text-white/70" />;
   }
 }
 
@@ -450,7 +450,7 @@ export default function AdminReviewPage() {
         <div className="flex items-center gap-3">
           <Link href="/parent">
             <motion.div
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 transition-colors"
+              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white/60 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -461,7 +461,7 @@ export default function AdminReviewPage() {
             <h1 className="font-display text-2xl font-bold text-white">
               Content Review
             </h1>
-            <p className="font-body text-xs text-white/30">
+            <p className="font-body text-xs text-white/60">
               Admin-only content management
             </p>
           </div>
@@ -474,7 +474,7 @@ export default function AdminReviewPage() {
               activeTab === 'review' ? loadQueue() : loadRuns()
             }
             disabled={loading}
-            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-colors disabled:opacity-50"
+            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white/60 hover:border-white/20 transition-colors disabled:opacity-50"
             whileTap={{ scale: 0.95 }}
             aria-label="Refresh data"
           >
@@ -557,7 +557,7 @@ export default function AdminReviewPage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-display text-sm transition-all ${
               activeTab === key
                 ? 'bg-spark-blue/20 text-spark-blue border border-spark-blue/30'
-                : 'text-white/30 bg-white/5 border border-white/10 hover:border-white/20'
+                : 'text-white/60 bg-white/5 border border-white/10 hover:border-white/20'
             }`}
             aria-pressed={activeTab === key}
           >
@@ -606,7 +606,7 @@ export default function AdminReviewPage() {
                 >
                   {s.value}
                 </motion.p>
-                <p className="font-body text-xs text-white/30">
+                <p className="font-body text-xs text-white/60">
                   {s.label}
                 </p>
               </div>
@@ -617,7 +617,7 @@ export default function AdminReviewPage() {
           <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-3 mb-4">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px] max-w-[320px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
               <input
                 type="text"
                 value={searchQuery}
@@ -689,7 +689,7 @@ export default function AdminReviewPage() {
                 className={`px-4 py-2 rounded-lg font-body text-xs transition-all ${
                   filter === f.key
                     ? 'bg-spark-blue/20 text-spark-blue border border-spark-blue/30'
-                    : 'text-white/30 bg-white/5 border border-white/10 hover:border-white/20'
+                    : 'text-white/60 bg-white/5 border border-white/10 hover:border-white/20'
                 }`}
                 aria-pressed={filter === f.key}
               >
@@ -707,7 +707,7 @@ export default function AdminReviewPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
               >
-                <span className="font-body text-xs text-white/40">
+                <span className="font-body text-xs text-white/70">
                   {selected.size} selected
                 </span>
                 <button
@@ -726,7 +726,7 @@ export default function AdminReviewPage() {
                 </button>
                 <button
                   onClick={() => setSelected(new Set())}
-                  className="font-body text-xs text-white/20 hover:text-white/40 ml-auto"
+                  className="font-body text-xs text-white/55 hover:text-white/70 ml-auto"
                 >
                   Clear
                 </button>
@@ -747,11 +747,11 @@ export default function AdminReviewPage() {
               </div>
             ) : items.length === 0 ? (
               <div className="text-center py-16">
-                <Mail className="w-10 h-10 text-white/10 mx-auto mb-3" />
-                <p className="font-body text-sm text-white/40">
+                <Mail className="w-10 h-10 text-white/50 mx-auto mb-3" />
+                <p className="font-body text-sm text-white/70">
                   No items in this queue
                 </p>
-                <p className="font-body text-xs text-white/20 mt-1">
+                <p className="font-body text-xs text-white/55 mt-1">
                   {filter === 'pending_review'
                     ? 'Run the agent to generate new content.'
                     : 'Items will appear here as they are processed.'}
@@ -763,7 +763,7 @@ export default function AdminReviewPage() {
                 {isActionableFilter && items.length > 1 && (
                   <button
                     onClick={selectAll}
-                    className="font-body text-xs text-white/20 hover:text-white/40 mb-1"
+                    className="font-body text-xs text-white/55 hover:text-white/70 mb-1"
                     aria-label={
                       selected.size === items.length
                         ? 'Deselect all items'
@@ -823,10 +823,10 @@ export default function AdminReviewPage() {
                         >
                           Band {item.target_age_band}
                         </span>
-                        <span className="font-body text-xs text-white/30">
+                        <span className="font-body text-xs text-white/60">
                           Lab {item.world}: {LAB_NAMES[item.world]}
                         </span>
-                        <span className="font-body text-xs text-white/20">
+                        <span className="font-body text-xs text-white/55">
                           {item.type} · {item.difficulty}
                         </span>
                         {!item.safety_check?.passed && (
@@ -842,7 +842,7 @@ export default function AdminReviewPage() {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={() => setPreview(item)}
-                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 transition-colors"
+                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white/60 transition-colors"
                         aria-label={`Preview ${item.title}`}
                       >
                         <Eye className="w-4 h-4" />
@@ -898,11 +898,11 @@ export default function AdminReviewPage() {
             </div>
           ) : runs.length === 0 ? (
             <div className="text-center py-16">
-              <History className="w-10 h-10 text-white/10 mx-auto mb-3" />
-              <p className="font-body text-sm text-white/40 mb-3">
+              <History className="w-10 h-10 text-white/50 mx-auto mb-3" />
+              <p className="font-body text-sm text-white/70 mb-3">
                 No agent runs yet
               </p>
-              <p className="font-body text-xs text-white/20">
+              <p className="font-body text-xs text-white/55">
                 Click &quot;Run Agent Now&quot; to trigger the first content
                 generation pipeline.
               </p>
@@ -913,17 +913,17 @@ export default function AdminReviewPage() {
                 <div key={run.id} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-white/30" />
+                      <Clock className="w-4 h-4 text-white/60" />
                       <p className="font-display text-sm font-bold text-white">
                         {new Date(run.created_at).toLocaleString()}
                       </p>
                       {run.duration_ms && (
-                        <span className="font-body text-xs text-white/20 bg-white/5 px-2 py-0.5 rounded">
+                        <span className="font-body text-xs text-white/55 bg-white/5 px-2 py-0.5 rounded">
                           {formatDuration(run.duration_ms)}
                         </span>
                       )}
                     </div>
-                    <span className="font-body text-xs text-white/20 font-mono">
+                    <span className="font-body text-xs text-white/55 font-mono">
                       {run.run_id}
                     </span>
                   </div>
@@ -963,7 +963,7 @@ export default function AdminReviewPage() {
                         >
                           {s.value}
                         </p>
-                        <p className="font-body text-2xs text-white/30">
+                        <p className="font-body text-2xs text-white/60">
                           {s.label}
                         </p>
                       </div>
@@ -1028,7 +1028,7 @@ export default function AdminReviewPage() {
               {/* Close button */}
               <button
                 onClick={() => setPreview(null)}
-                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 transition-colors"
+                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white/60 transition-colors"
                 aria-label="Close preview"
               >
                 <X className="w-4 h-4" />
@@ -1041,7 +1041,7 @@ export default function AdminReviewPage() {
                   <h2 className="font-display text-lg font-bold text-white">
                     {preview.title}
                   </h2>
-                  <p className="font-body text-xs text-white/40">
+                  <p className="font-body text-xs text-white/70">
                     {preview.type} · Band {preview.target_age_band} · Lab{' '}
                     {preview.world}: {LAB_NAMES[preview.world]}
                   </p>
@@ -1090,7 +1090,7 @@ export default function AdminReviewPage() {
                     )}
                   </ul>
                 )}
-                <p className="font-body text-xs text-white/30 mt-1">
+                <p className="font-body text-xs text-white/60 mt-1">
                   Reading level: grade{' '}
                   {preview.safety_check?.flesch_kincaid_grade || '?'} ·{' '}
                   {preview.safety_check?.recommendation || 'unknown'}
@@ -1099,7 +1099,7 @@ export default function AdminReviewPage() {
 
               {/* Content body */}
               <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4">
-                <h3 className="font-display text-xs font-bold text-white/40 mb-2">
+                <h3 className="font-display text-xs font-bold text-white/70 mb-2">
                   Content
                 </h3>
                 <div className="font-body text-sm text-white/70 whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
@@ -1111,7 +1111,7 @@ export default function AdminReviewPage() {
               {preview.content_json?.quiz_questions &&
                 preview.content_json.quiz_questions.length > 0 && (
                   <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4">
-                    <h3 className="font-display text-xs font-bold text-white/40 mb-2">
+                    <h3 className="font-display text-xs font-bold text-white/70 mb-2">
                       Quiz Questions (
                       {preview.content_json.quiz_questions.length})
                     </h3>
@@ -1126,7 +1126,7 @@ export default function AdminReviewPage() {
                               ✓ {q.options?.[q.correct_index]}
                             </p>
                             {q.hint && (
-                              <p className="font-body text-xs text-white/20 mt-0.5">
+                              <p className="font-body text-xs text-white/55 mt-0.5">
                                 Hint: {q.hint}
                               </p>
                             )}
@@ -1151,8 +1151,8 @@ export default function AdminReviewPage() {
                   )}
                   {preview.content_json?.estimated_duration_minutes && (
                     <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-                      <Clock className="w-3 h-3 text-white/40" />
-                      <span className="font-body text-xs text-white/40">
+                      <Clock className="w-3 h-3 text-white/70" />
+                      <span className="font-body text-xs text-white/70">
                         ~{preview.content_json.estimated_duration_minutes} min
                       </span>
                     </div>
@@ -1163,7 +1163,7 @@ export default function AdminReviewPage() {
               {/* Source URLs */}
               {preview.source_urls?.length > 0 && (
                 <div className="mb-4">
-                  <h3 className="font-display text-xs font-bold text-white/40 mb-1">
+                  <h3 className="font-display text-xs font-bold text-white/70 mb-1">
                     Sources
                   </h3>
                   {preview.source_urls.map((url: string, i: number) => (
@@ -1290,14 +1290,14 @@ export default function AdminReviewPage() {
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Rejection reason (optional)..."
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/20 focus:border-spark-blue/40 focus:outline-none mb-4 resize-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/55 focus:border-spark-blue/40 focus:outline-none mb-4 resize-none"
                 aria-label="Rejection reason"
               />
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowRejectDialog(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 font-display text-sm hover:bg-white/10 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 font-display text-sm hover:bg-white/10 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1325,19 +1325,19 @@ export default function AdminReviewPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-spark-blue">{analytics.totalItems}</p>
-              <p className="font-body text-xs text-white/30">Total in Queue</p>
+              <p className="font-body text-xs text-white/60">Total in Queue</p>
             </div>
             <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-green-400">{Object.keys(analytics.byType).length}</p>
-              <p className="font-body text-xs text-white/30">Content Types</p>
+              <p className="font-body text-xs text-white/60">Content Types</p>
             </div>
             <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-amber-400">{Object.keys(analytics.byWorld).length}</p>
-              <p className="font-body text-xs text-white/30">Labs Covered</p>
+              <p className="font-body text-xs text-white/60">Labs Covered</p>
             </div>
             <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-purple-400">{Object.keys(analytics.byBand).length}</p>
-              <p className="font-body text-xs text-white/30">Age Bands</p>
+              <p className="font-body text-xs text-white/60">Age Bands</p>
             </div>
           </div>
 
@@ -1355,7 +1355,7 @@ export default function AdminReviewPage() {
                       style={{ width: `${(count / analytics.totalItems) * 100}%` }}
                     />
                   </div>
-                  <span className="font-data text-xs text-white/40 w-8 text-right">{count}</span>
+                  <span className="font-data text-xs text-white/70 w-8 text-right">{count}</span>
                 </div>
               ))}
             </div>
@@ -1368,7 +1368,7 @@ export default function AdminReviewPage() {
               {Array.from({ length: 10 }, (_, i) => i + 1).map(labId => (
                 <div key={labId} className="text-center p-2 rounded-lg bg-white/5">
                   <p className="font-data text-lg text-white/80">{analytics.byWorld[labId] || 0}</p>
-                  <p className="font-body text-[10px] text-white/30">Lab {labId}</p>
+                  <p className="font-body text-[10px] text-white/60">Lab {labId}</p>
                 </div>
               ))}
             </div>
@@ -1381,7 +1381,7 @@ export default function AdminReviewPage() {
               {(['A', 'B', 'C'] as const).map(band => (
                 <div key={band} className="text-center p-3 rounded-lg bg-white/5">
                   <p className="font-data text-2xl text-white/80">{analytics.byBand[band] || 0}</p>
-                  <p className="font-body text-xs text-white/30">
+                  <p className="font-body text-xs text-white/60">
                     Band {band} ({band === 'A' ? '7-10' : band === 'B' ? '11-13' : '14-16'})
                   </p>
                 </div>

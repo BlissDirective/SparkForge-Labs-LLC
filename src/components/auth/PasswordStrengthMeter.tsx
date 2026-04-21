@@ -32,7 +32,7 @@ const STRENGTH_COLOR: Record<PasswordScore['strength'], string> = {
 };
 
 const STRENGTH_TEXT: Record<PasswordScore['strength'], string> = {
-  none: 'text-white/40',
+  none: 'text-white/70',
   weak: 'text-red-400',
   fair: 'text-amber-400',
   good: 'text-blue-400',
@@ -87,7 +87,7 @@ export function PasswordStrengthMeter({
       >
         <span>Password strength: {STRENGTH_LABEL[strength]}</span>
         <span
-          className="text-white/40"
+          className="text-white/70"
           aria-live="polite"
           aria-atomic="true"
         >
@@ -102,7 +102,7 @@ export function PasswordStrengthMeter({
             <li
               key={rule.id}
               className={`flex items-center gap-2 font-body text-xs transition-colors ${
-                rule.satisfied ? 'text-emerald-400' : 'text-white/40'
+                rule.satisfied ? 'text-emerald-400' : 'text-white/70'
               }`}
             >
               <span

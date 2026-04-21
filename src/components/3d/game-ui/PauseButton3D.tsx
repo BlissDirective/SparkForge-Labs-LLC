@@ -91,6 +91,10 @@ export function PauseButton3D({
           return;
         }
         e.preventDefault();
+        // P2 §3.6: invoking an action inside a keydown handler.
+        // .getState() is correct here — we want the current action
+        // reference, not a snapshot-read of state.
+        // eslint-disable-next-line no-restricted-syntax
         useGameStore.getState().togglePause();
       }
     }

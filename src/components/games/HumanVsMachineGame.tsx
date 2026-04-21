@@ -18,7 +18,7 @@ import { useState, useCallback, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { Swords, User, Bot } from 'lucide-react';
@@ -270,7 +270,7 @@ const LEARN_CARDS = [
 
 export function HumanVsMachineGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('human-vs-machine', ageBand);
@@ -480,7 +480,7 @@ export function HumanVsMachineGame() {
                           <motion.div className="h-full rounded-full bg-sky-500" animate={{ width: `${Math.min((humanTotal / Math.max(humanTotal + machineTotal, 1)) * 100, 100)}%` }} transition={{ type: 'spring', stiffness: 80, damping: 12 }} />
                         </div>
                       </div>
-                      <span className="font-display text-2xs text-white/20">vs</span>
+                      <span className="font-display text-2xs text-white/55">vs</span>
                       <div className="flex-1">
                         <div className="flex justify-between mb-0.5">
                           <span className="font-body text-2xs text-amber-400">AI</span>
@@ -500,7 +500,7 @@ export function HumanVsMachineGame() {
                       <p className="font-body text-sm text-white/50">
                         {challenge.prompt}
                       </p>
-                      <p className="font-body text-2xs text-white/20 mt-0.5">Round {roundIdx + 1}/{challenges.length}</p>
+                      <p className="font-body text-2xs text-white/55 mt-0.5">Round {roundIdx + 1}/{challenges.length}</p>
                     </div>
 
                     <div className="flex gap-3 mb-4">
@@ -530,7 +530,7 @@ export function HumanVsMachineGame() {
                               placeholder="Your answer..."
                               autoFocus
                               aria-label="Your answer"
-                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/20 focus:outline-none focus:border-sky-500/50"
+                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/55 focus:outline-none focus:border-sky-500/50"
                             />
                           </div>
                         ) : (
@@ -556,7 +556,7 @@ export function HumanVsMachineGame() {
                               />
                             ))}
                             <motion.span
-                              className="font-body text-xs text-white/30 ml-1"
+                              className="font-body text-xs text-white/60 ml-1"
                               animate={prefersReducedMotion ? {} : { opacity: [0.3, 0.8, 0.3] }}
                               transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 1 }}
                             >
@@ -568,7 +568,7 @@ export function HumanVsMachineGame() {
                             {challenge.aiAnswer}
                           </p>
                         ) : (
-                          <p className="font-body text-sm text-white/10">Waiting...</p>
+                          <p className="font-body text-sm text-white/50">Waiting...</p>
                         )}
                       </div>
                     </div>
@@ -670,11 +670,11 @@ export function HumanVsMachineGame() {
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-[#00BBFF]/10 border border-[#00BBFF]/20">
                       <p className="font-data text-2xl text-[#00BBFF]">{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI excels at speed, pattern matching, and processing large amounts of data instantly</li>
                         <li>• Humans have unique strengths in creativity, empathy, moral reasoning, and lived experience</li>
                         <li>• The best outcomes often come from humans and AI working together, combining their complementary abilities</li>

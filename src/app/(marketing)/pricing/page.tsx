@@ -351,7 +351,7 @@ export default function PricingPage() {
         <motion.div variants={safeStaggerItem} className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-white/30 hover:text-white/60 transition-colors font-body text-sm"
+            className="inline-flex items-center gap-1.5 text-white/60 hover:text-white/60 transition-colors font-body text-sm"
           >
             <ArrowLeft className="w-4 h-4" /> Back to SparkForge
           </Link>
@@ -369,7 +369,7 @@ export default function PricingPage() {
           <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-3 relative">
             Simple, Kid-Friendly Pricing
           </h1>
-          <p className="font-body text-base text-white/40 relative">
+          <p className="font-body text-base text-white/70 relative">
             Start free. Upgrade when your explorer is ready for more.
           </p>
         </motion.div>
@@ -383,7 +383,7 @@ export default function PricingPage() {
             className={`px-5 py-2 rounded-xl font-display text-sm font-bold transition-all ${
               billing === 'monthly'
                 ? 'bg-[#3B82F6]/15 text-[#3B82F6] border border-[#3B82F6]/25'
-                : 'text-white/40 hover:text-white/60'
+                : 'text-white/70 hover:text-white/60'
             }`}
             aria-pressed={billing === 'monthly'}
           >
@@ -394,7 +394,7 @@ export default function PricingPage() {
             className={`px-5 py-2 rounded-xl font-display text-sm font-bold relative transition-all ${
               billing === 'yearly'
                 ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/25'
-                : 'text-white/40 hover:text-white/60'
+                : 'text-white/70 hover:text-white/60'
             }`}
             aria-pressed={billing === 'yearly'}
           >
@@ -458,7 +458,7 @@ export default function PricingPage() {
 
                 <Icon className="w-10 h-10 mb-4" style={{ color }} />
                 <h2 className="font-display text-xl font-bold text-white">{t.name}</h2>
-                <p className="font-body text-sm text-white/40 mb-5">{t.tagline}</p>
+                <p className="font-body text-sm text-white/70 mb-5">{t.tagline}</p>
 
                 {/* Price display */}
                 {price === 0 ? (
@@ -468,7 +468,7 @@ export default function PricingPage() {
                     <span className="font-display text-4xl font-bold text-white">
                       ${price.toFixed(2)}
                     </span>
-                    <span className="font-body text-sm text-white/30 mb-1">
+                    <span className="font-body text-sm text-white/60 mb-1">
                       /{billing === 'monthly' ? 'mo' : 'yr'}
                     </span>
                   </div>
@@ -649,7 +649,7 @@ export default function PricingPage() {
                   <form onSubmit={handleSchoolSubmit} className="space-y-3" noValidate>
                     {/* [ENH-6] School Name with inline validation */}
                     <div>
-                      <label htmlFor="school-name" className="font-body text-xs text-white/40 block mb-1">
+                      <label htmlFor="school-name" className="font-body text-xs text-white/70 block mb-1">
                         School / District Name
                       </label>
                       <input
@@ -664,7 +664,7 @@ export default function PricingPage() {
                           }
                         }}
                         onBlur={() => handleFieldBlur('schoolName')}
-                        className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border text-white font-body text-sm focus:outline-none transition-all placeholder:text-white/20 ${
+                        className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border text-white font-body text-sm focus:outline-none transition-all placeholder:text-white/55 ${
                           formTouched.schoolName && formErrors.schoolName
                             ? 'border-red-500/50 focus:border-red-500/70 focus:ring-1 focus:ring-red-500/30'
                             : 'border-white/[0.08] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30'
@@ -683,7 +683,7 @@ export default function PricingPage() {
 
                     {/* [ENH-6] Contact Email with inline validation */}
                     <div>
-                      <label htmlFor="school-email" className="font-body text-xs text-white/40 block mb-1">
+                      <label htmlFor="school-email" className="font-body text-xs text-white/70 block mb-1">
                         Contact Email
                       </label>
                       <input
@@ -698,7 +698,7 @@ export default function PricingPage() {
                           }
                         }}
                         onBlur={() => handleFieldBlur('contactEmail')}
-                        className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border text-white font-body text-sm focus:outline-none transition-all placeholder:text-white/20 ${
+                        className={`w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border text-white font-body text-sm focus:outline-none transition-all placeholder:text-white/55 ${
                           formTouched.contactEmail && formErrors.contactEmail
                             ? 'border-red-500/50 focus:border-red-500/70 focus:ring-1 focus:ring-red-500/30'
                             : 'border-white/[0.08] focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30'
@@ -717,7 +717,7 @@ export default function PricingPage() {
 
                     {/* [ENH-6] Estimated Students with inline validation */}
                     <div>
-                      <label htmlFor="school-students" className="font-body text-xs text-white/40 block mb-1">
+                      <label htmlFor="school-students" className="font-body text-xs text-white/70 block mb-1">
                         Estimated Students
                       </label>
                       <select
@@ -755,7 +755,7 @@ export default function PricingPage() {
 
                     {/* Message (optional — no validation needed) */}
                     <div>
-                      <label htmlFor="school-message" className="font-body text-xs text-white/40 block mb-1">
+                      <label htmlFor="school-message" className="font-body text-xs text-white/70 block mb-1">
                         Message (optional)
                       </label>
                       <textarea
@@ -763,7 +763,7 @@ export default function PricingPage() {
                         rows={2}
                         value={schoolForm.message}
                         onChange={(e) => setSchoolForm({ ...schoolForm, message: e.target.value })}
-                        className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-body text-sm focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none transition-all resize-none placeholder:text-white/20"
+                        className="w-full px-4 py-2.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-white font-body text-sm focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/30 focus:outline-none transition-all resize-none placeholder:text-white/55"
                         placeholder="Tell us about your needs..."
                         aria-label="Optional message"
                       />
@@ -813,7 +813,7 @@ export default function PricingPage() {
                     animate={{ rotate: openFaq === i ? 180 : 0 }}
                     transition={{ duration: prefersReducedMotion ? 0 : 0.2 }}
                   >
-                    <ChevronDown className="w-4 h-4 text-white/30 flex-shrink-0" />
+                    <ChevronDown className="w-4 h-4 text-white/60 flex-shrink-0" />
                   </motion.div>
                 </button>
 
@@ -850,7 +850,7 @@ export default function PricingPage() {
           <h2 className="font-display text-2xl font-bold text-white mb-3 relative">
             Ready to spark your child&apos;s AI journey?
           </h2>
-          <p className="font-body text-sm text-white/40 mb-6 relative">
+          <p className="font-body text-sm text-white/70 mb-6 relative">
             No credit card required. Start exploring today.
           </p>
           <Link

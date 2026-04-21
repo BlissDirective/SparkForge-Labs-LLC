@@ -27,6 +27,7 @@
 // ════════════════════════════════════════════════════
 import { NextRequest } from 'next/server';
 import { apiSuccess, apiError } from '@/lib/api-helpers';
+import { verifyCronBearer } from '@/lib/cron-auth';
 import { createAdminClient } from '@/lib/supabase/server';
 import { sendEmail, isEmailConfigured } from '@/lib/email';
 import { renderTrialReminder } from '@/lib/email-templates/trial-reminder';
@@ -68,18 +69,9 @@ function buildAuditEventId(parentId: string, window: '48h' | '24h'): string {
 }
 
 export async function GET(req: NextRequest) {
-  // ── Auth ────────────────────────────────────────────
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret && process.env.NODE_ENV === 'production') {
-    console.error('[cron/trial-reminders] CRON_SECRET missing in production');
-    return apiError('CRON_SECRET required in production', 500, 'CONFIG_ERROR');
-  }
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return apiError('Unauthorized', 401, 'AUTH_REQUIRED');
-  }
+  // ── Auth (T17 DEPLOY-MED-003: shared verifyCronBearer helper) ──
+  const denial = verifyCronBearer(req, { routeName: 'trial-reminders' });
+  if (denial) return denial;
 
   // ── Email configured? ──────────────────────────────
   if (!isEmailConfigured()) {

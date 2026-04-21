@@ -95,7 +95,7 @@ export function BadgeDisplay({ badge, size = 'md' }: BadgeDisplayProps) {
       <span
         className={`
           ${config.name} font-display font-semibold text-center leading-tight
-          ${earned ? 'text-white' : 'text-white/40'}
+          ${earned ? 'text-white' : 'text-white/70'}
         `}
         style={{ color: earned ? rarityColor : undefined }}
       >
@@ -115,7 +115,7 @@ export function BadgeDisplay({ badge, size = 'md' }: BadgeDisplayProps) {
 
       {/* Locked label */}
       {!earned && (
-        <span className="text-[10px] font-body text-white/30 uppercase tracking-wider">
+        <span className="text-[10px] font-body text-white/60 uppercase tracking-wider">
           Locked
         </span>
       )}

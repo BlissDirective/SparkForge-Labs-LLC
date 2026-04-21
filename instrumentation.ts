@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
+import { sentryReleaseEnv } from '@/lib/sentry-transactions';
 
 // CRIT-003: Strip child PII fields from Sentry events (COPPA compliance)
 const CHILD_PII_KEYS = [
@@ -28,7 +29,10 @@ export async function register() {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      environment: process.env.NODE_ENV,
+      // T16 DEPLOY-MED-002 (Opt A): release + env tagging. `release`
+      // falls back to VERCEL_GIT_COMMIT_SHA so every event correlates
+      // to a deploy; `environment` honors VERCEL_ENV (preview/prod).
+      ...sentryReleaseEnv(),
       enabled: process.env.NODE_ENV === 'production',
 
       beforeSend(event) {
@@ -51,7 +55,10 @@ export async function register() {
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
       tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      environment: process.env.NODE_ENV,
+      // T16 DEPLOY-MED-002 (Opt A): release + env tagging. `release`
+      // falls back to VERCEL_GIT_COMMIT_SHA so every event correlates
+      // to a deploy; `environment` honors VERCEL_ENV (preview/prod).
+      ...sentryReleaseEnv(),
       enabled: process.env.NODE_ENV === 'production',
 
       beforeSend(event) {

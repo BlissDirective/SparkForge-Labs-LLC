@@ -19,7 +19,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -589,7 +589,7 @@ function useIsDesktop() {
 // --- Main Component ---
 export function CodeBlocksGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const { safeTimeout } = useSafeTimeout();
@@ -820,7 +820,7 @@ export function CodeBlocksGame() {
                         <h3 className="font-display text-sm font-bold text-white">
                           {challengeIdx + 1}/{challenges.length}: {challenge.title}
                         </h3>
-                        <p className="font-body text-2xs text-white/40">
+                        <p className="font-body text-2xs text-white/70">
                           {ageBand === 'C' ? challenge.descriptionC : challenge.description}
                         </p>
                       </div>
@@ -839,7 +839,7 @@ export function CodeBlocksGame() {
                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-3">
                       {/* COLUMN 1: Block Palette */}
                       <div className="space-y-1.5">
-                        <p className="font-display text-2xs text-white/20 uppercase">Palette</p>
+                        <p className="font-display text-2xs text-white/55 uppercase">Palette</p>
                         {challenge.palette.map((block) => {
                           const used = placed.find((b) => b.id === block.id);
                           return (
@@ -861,12 +861,12 @@ export function CodeBlocksGame() {
                         })}
                         <div className="flex gap-1 mt-2">
                           <button onClick={() => setShowHint(true)} disabled={showHint}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5"
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/60 hover:text-white/50 flex items-center justify-center gap-0.5"
                             aria-label="Show hint">
                             <Bug className="w-3 h-3" /> Hint
                           </button>
                           <button onClick={() => { setPlaced([]); setResult(null); setOutputLines([]); setRobotPose('idle'); }}
-                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/30 hover:text-white/50 flex items-center justify-center gap-0.5"
+                            className="flex-1 py-1.5 rounded-lg bg-white/5 font-body text-2xs text-white/60 hover:text-white/50 flex items-center justify-center gap-0.5"
                             aria-label="Reset workspace">
                             <RotateCcw className="w-3 h-3" /> Reset
                           </button>
@@ -875,7 +875,7 @@ export function CodeBlocksGame() {
 
                       {/* COLUMN 2: Workspace (placed blocks) */}
                       <div className="flex flex-col">
-                        <p className="font-display text-2xs text-white/20 uppercase mb-1">Workspace</p>
+                        <p className="font-display text-2xs text-white/55 uppercase mb-1">Workspace</p>
 
                         {/* 3D renders in CockpitCanvas via sceneStore (D3D-B3) */}
 
@@ -889,7 +889,7 @@ export function CodeBlocksGame() {
                           )}
 
                           {placed.length === 0 && (
-                            <p className="font-body text-2xs text-white/10 text-center mt-8">
+                            <p className="font-body text-2xs text-white/50 text-center mt-8">
                               Click blocks to add them here
                             </p>
                           )}
@@ -907,9 +907,9 @@ export function CodeBlocksGame() {
                               }}
                               onClick={() => removeBlock(i)}
                               aria-label={`Remove ${block.label}`}>
-                              <span className="font-mono text-2xs text-white/20">{BLOCK_SHAPES[block.type]}</span>
+                              <span className="font-mono text-2xs text-white/55">{BLOCK_SHAPES[block.type]}</span>
                               <span className="font-body text-2xs text-white/60 flex-1">{block.label}</span>
-                              {!running && <span className="text-white/10 text-2xs">&times;</span>}
+                              {!running && <span className="text-white/50 text-2xs">&times;</span>}
                             </motion.div>
                           ))}
                         </div>
@@ -962,12 +962,12 @@ export function CodeBlocksGame() {
                           className="flex-1 rounded-xl bg-black/40 border border-white/10 p-2 overflow-auto max-h-[200px]">
                           <div className="flex gap-1 mb-1">
                             <button onClick={() => setShowPseudo(false)}
-                              className={`font-mono text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/20'}`}
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded flex items-center gap-0.5 ${!showPseudo ? 'bg-green-500/20 text-green-400' : 'text-white/55'}`}
                               aria-label="Show output" aria-pressed={!showPseudo}>
                               <Terminal className="w-2.5 h-2.5" /> Out
                             </button>
                             <button onClick={() => setShowPseudo(true)}
-                              className={`font-mono text-2xs px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/20'}`}
+                              className={`font-mono text-2xs px-1.5 py-0.5 rounded ${showPseudo ? 'bg-purple-500/20 text-purple-400' : 'text-white/55'}`}
                               aria-label="Show pseudocode" aria-pressed={showPseudo}>
                               Pseudo
                             </button>
@@ -983,7 +983,7 @@ export function CodeBlocksGame() {
                                 </motion.p>
                               ))}
                               {outputLines.length === 0 && (
-                                <p className="font-mono text-2xs text-white/10">Awaiting code...</p>
+                                <p className="font-mono text-2xs text-white/50">Awaiting code...</p>
                               )}
                               {running && (
                                 <motion.span className="font-mono text-2xs text-green-400"
@@ -1033,11 +1033,11 @@ export function CodeBlocksGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You arranged code blocks to solve programming challenges, learning how algorithms execute step-by-step — the foundation of all software!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">
                       <p className="font-data text-2xl" style={{ color: '#F97316' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Sequential programming means instructions run in order, top to bottom</li>
                         <li>• Algorithm design is about choosing the right steps in the right sequence</li>
                         <li>• Debugging means finding and fixing mistakes in your code logic</li>

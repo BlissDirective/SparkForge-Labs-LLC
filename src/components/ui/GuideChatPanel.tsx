@@ -12,7 +12,7 @@ import {
   X, Minimize2, Send, Mic, MicOff,
   Volume2, VolumeX, Sparkles,
 } from 'lucide-react';
-import { useGuideStore, type GuideMessage } from '@/stores/guideStore';
+import { useGuideChat, useGuideStore, type GuideMessage } from '@/stores/guideStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useVoiceOutput } from '@/hooks/useVoiceOutput';
@@ -22,13 +22,17 @@ export default function GuideChatPanel() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // PERF-HIGH-001 (Opt C): named bundle via useGuideChat() — panel
+  // subscribes to exactly the 21 fields it renders/calls; unrelated
+  // guideStore writes (voiceInputActive, ttsPlaying, mood, audioLevel,
+  // etc.) no longer re-render the panel.
   const {
     visible, minimized, messages, isStreaming, streamingContent,
     voiceEnabled, conversationId, context, labId, gameId,
     show, hide, minimize, toggle: _toggle,
     addMessage, setStreaming, setStreamingContent, appendStreamingContent,
     setConversationId, setVisualState, incrementTurns,
-  } = useGuideStore();
+  } = useGuideChat();
 
   // STATE-MED-001 (B-full/T5c-C2): AI Guide chat now sees fresh
   // xp / level / streak / age_band from the React Query cache — a
@@ -198,14 +202,14 @@ export default function GuideChatPanel() {
         <div className="flex items-center gap-2">
           <Sparkles className="w-4 h-4 text-cyan-400" />
           <span className="font-display text-sm text-white">Spark</span>
-          <span className="text-xs text-white/30 font-mono">{context}</span>
+          <span className="text-xs text-white/60 font-mono">{context}</span>
         </div>
         <div className="flex items-center gap-1">
           <button onClick={() => minimize()} className="p-1.5 rounded-lg hover:bg-white/5" aria-label="Minimize">
-            <Minimize2 className="w-3.5 h-3.5 text-white/40" />
+            <Minimize2 className="w-3.5 h-3.5 text-white/70" />
           </button>
           <button onClick={hide} className="p-1.5 rounded-lg hover:bg-white/5" aria-label="Close">
-            <X className="w-3.5 h-3.5 text-white/40" />
+            <X className="w-3.5 h-3.5 text-white/70" />
           </button>
         </div>
       </div>
@@ -213,7 +217,7 @@ export default function GuideChatPanel() {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[400px]">
         {messages.length === 0 && !isStreaming && (
-          <div className="text-center text-white/30 text-sm font-body py-8">
+          <div className="text-center text-white/60 text-sm font-body py-8">
             <Sparkles className="w-8 h-8 mx-auto mb-2 text-cyan-400/30" />
             Hi! I&apos;m Spark, your AI guide.<br />Ask me anything about AI!
           </div>
@@ -263,7 +267,7 @@ export default function GuideChatPanel() {
           {/* Voice toggle */}
           <button
             onClick={() => useGuideStore.setState(s => ({ voiceEnabled: !s.voiceEnabled }))}
-            className={`p-2 rounded-lg transition-colors ${voiceEnabled ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-white/30'}`}
+            className={`p-2 rounded-lg transition-colors ${voiceEnabled ? 'bg-cyan-500/20 text-cyan-400' : 'bg-white/5 text-white/60'}`}
             aria-label={voiceEnabled ? 'Disable voice' : 'Enable voice'}
           >
             {voiceEnabled ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
@@ -273,7 +277,7 @@ export default function GuideChatPanel() {
           {voice.isSupported && voiceEnabled && (
             <button
               onClick={voice.isListening ? voice.stopListening : voice.startListening}
-              className={`p-2 rounded-lg transition-colors ${voice.isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/5 text-white/30'}`}
+              className={`p-2 rounded-lg transition-colors ${voice.isListening ? 'bg-red-500/20 text-red-400 animate-pulse' : 'bg-white/5 text-white/60'}`}
               aria-label={voice.isListening ? 'Stop listening' : 'Start voice input'}
             >
               {voice.isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}

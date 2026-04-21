@@ -10,7 +10,7 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -453,7 +453,7 @@ const CASES: DataCase[] = [
 
 export function DataDetectiveGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const { safeTimeout } = useSafeTimeout();
@@ -598,7 +598,7 @@ export function DataDetectiveGame() {
                     {/* Case header */}
                     <div className="rounded-xl p-3 mb-3 border border-purple-500/20 bg-purple-500/5 text-center">
                       <p className="font-display text-sm font-bold text-purple-400">{'\u{1F4CB}'} Case {caseIdx + 1}: {currentCase.title}</p>
-                      <p className="font-body text-xs text-white/40 mt-1">{currentCase.description}</p>
+                      <p className="font-body text-xs text-white/70 mt-1">{currentCase.description}</p>
                     </div>
 
                     {/* Data bars */}
@@ -626,7 +626,7 @@ export function DataDetectiveGame() {
                               animate={{ width: `${Math.min(100, (d.value / maxBar) * 100)}%` }}
                               transition={{ duration: 0.6, delay: i * 0.1 }} />
                           </div>
-                          <span className="font-data text-xs text-white/40 w-10 text-right">{d.value}</span>
+                          <span className="font-data text-xs text-white/70 w-10 text-right">{d.value}</span>
                           {showResult && d.flagged && <AlertTriangle className="w-4 h-4 text-orange-400" />}
                           {showResult && selected === i && i === currentCase.correctIndex && <CheckCircle className="w-4 h-4 text-green-400" />}
                         </motion.button>

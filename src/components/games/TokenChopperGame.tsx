@@ -12,7 +12,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -93,7 +93,7 @@ const CHALLENGES: { text: string; target: string; hint: string; difficulty: 'eas
 
 export function TokenChopperGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('token-chopper', ageBand);
@@ -274,7 +274,7 @@ export function TokenChopperGame() {
                   >
                     <Scissors className="w-6 h-6 text-orange-400" />
                     <h3 className="font-display text-lg font-bold text-white">How Tokenization Works</h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       {learnIdx + 1} of {LEARN_CARDS.length}
                     </p>
                     <AnimatePresence mode="wait">
@@ -309,7 +309,7 @@ export function TokenChopperGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                       aria-label="Skip learn cards and start playing"
                     >
                       Skip to game {'\u2192'}
@@ -331,7 +331,7 @@ export function TokenChopperGame() {
                     {/* ENH: Progress bar for challenges */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${completed.size} of ${challenges.length} challenges completed`}>
+                        <span className="font-body text-2xs text-white/60" role="status" aria-label={`${completed.size} of ${challenges.length} challenges completed`}>
                           {completed.size}/{challenges.length} challenges
                         </span>
                         <span className="font-data text-2xs text-orange-400" role="status" aria-label={`Score: ${animatedScore} points`}>{animatedScore} pts</span>
@@ -359,14 +359,14 @@ export function TokenChopperGame() {
                         {challenges[challengeIdx].text}
                       </p>
                       {showHint && (
-                        <p className="font-body text-2xs text-white/30 mt-1">
+                        <p className="font-body text-2xs text-white/60 mt-1">
                           {challenges[challengeIdx].hint}
                         </p>
                       )}
                       {!showHint && (
                         <button
                           onClick={() => setShowHint(true)}
-                          className="font-body text-2xs text-white/20 hover:text-white/40 mt-1"
+                          className="font-body text-2xs text-white/55 hover:text-white/70 mt-1"
                           aria-label="Show hint for current challenge"
                         >
                           Show hint
@@ -385,8 +385,8 @@ export function TokenChopperGame() {
 
                     {/* Stats bar */}
                     <div className="flex items-center gap-4 mb-2">
-                      <span className="font-data text-xs text-white/40" role="status" aria-label={`${tokens.length} tokens`}>{tokens.length} tokens</span>
-                      <span className="font-mono text-xs text-white/20" role="status" aria-label={`Estimated cost: $${cost}`}>{'\u2248'} ${cost}</span>
+                      <span className="font-data text-xs text-white/70" role="status" aria-label={`${tokens.length} tokens`}>{tokens.length} tokens</span>
+                      <span className="font-mono text-xs text-white/55" role="status" aria-label={`Estimated cost: $${cost}`}>{'\u2248'} ${cost}</span>
                       <div className="flex gap-2 ml-auto">
                         {[
                           { label: 'word', color: '#3B82F6' },
@@ -399,7 +399,7 @@ export function TokenChopperGame() {
                               className="w-2 h-2 rounded-full"
                               style={{ backgroundColor: c.color }}
                             />
-                            <span className="font-body text-2xs text-white/20">{c.label}</span>
+                            <span className="font-body text-2xs text-white/55">{c.label}</span>
                           </span>
                         ))}
                       </div>
@@ -408,7 +408,7 @@ export function TokenChopperGame() {
                     {/* ENH: Cost meter — fills like a fuel gauge */}
                     <div className="mb-3">
                       <div className="flex items-center gap-2">
-                        <Fuel className="w-3 h-3 text-white/20" />
+                        <Fuel className="w-3 h-3 text-white/55" />
                         <div className="flex-1 h-2.5 rounded-full bg-white/5 overflow-hidden">
                           <motion.div
                             className="h-full rounded-full"
@@ -423,7 +423,7 @@ export function TokenChopperGame() {
                             transition={{ type: 'spring', stiffness: 120, damping: 20 }}
                           />
                         </div>
-                        <span className="font-mono text-2xs text-white/20 w-16 text-right">${cost}</span>
+                        <span className="font-mono text-2xs text-white/55 w-16 text-right">${cost}</span>
                       </div>
                     </div>
 
@@ -496,11 +496,11 @@ export function TokenChopperGame() {
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Tokenization splits text into smaller pieces (tokens) that AI can understand — words, subwords, and punctuation</li>
                         <li>• Longer and rarer words get split into multiple subword tokens, while common short words stay as single tokens</li>
                         <li>• Every token has a cost — more tokens means more computation, which is why API pricing is based on token count</li>

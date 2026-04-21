@@ -23,12 +23,15 @@ import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
 import { useCockpitAudio } from '@/hooks/useCockpitAudio';
 import { useCockpitScene } from '@/hooks/useCockpitScene';
-// Phase 2 audit fix (Section 3.5): Unified celebration state flow
-// Mount the celebration orchestrator at the dashboard layout level so its
-// timer + dismiss pipeline runs for the entire authenticated app lifecycle.
-// Without this mount, uiStore.showCelebration would be set to true by
-// triggerCelebration() but never cleared, leaving the cockpit stuck in
-// celebration mode. useCelebration3D is the sole owner of dismissCelebration().
+// Phase 2 audit fix (Section 3.5) + P2 §3.5 (Apr 21 2026):
+// Unified celebration state flow. Single owner = uiStore.showCelebration.
+// Two legitimate dismiss callers:
+//   1. useCelebration3D — fires after CELEBRATION_TIERS[tier].durationMs
+//      (timer-based; mounted here at dashboard layout).
+//   2. CelebrationOverlay — fires on user action (click, Escape, outside-click
+//      via FocusTrap onDeactivate).
+// dismissCelebration() is idempotent — back-to-back calls are safe.
+// cockpitStore.ceremonyQueue was removed (was dead code).
 import { useCelebration3D } from '@/hooks/useCelebration3D';
 // Phase 5 O.4-MAX (§6.6): Atomic hero→cockpit transition gate. Fires
 // sceneStore.completeHero() only when BOTH heroPhase AND cockpitReady
@@ -46,10 +49,20 @@ import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 import { MemoryMonitor } from '@/components/3d/dev/MemoryMonitor';
+import { TutorialAnchors } from '@/components/onboarding/TutorialAnchors';
+import { CockpitHelpButton } from '@/components/onboarding/CockpitHelpButton';
 
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
   () => import('@/components/ui/GuideChatPanel'),
+  { ssr: false, loading: () => null }
+);
+
+// T11 UX-MED-003 (Opt A): Cockpit tutorial (react-joyride). Dynamic
+// import keeps joyride's ~70 kB payload out of the initial bundle;
+// it only loads when the dashboard mounts.
+const CockpitTutorial = dynamic(
+  () => import('@/components/onboarding/CockpitTutorial').then((m) => m.CockpitTutorial),
   { ssr: false, loading: () => null }
 );
 
@@ -92,12 +105,13 @@ export default function DashboardLayout({
   // Auto-track play sessions
   useSessionTracker();
 
-  // Phase 2 audit fix (Section 3.5): Unified celebration state flow
-  // Activate the 3D celebration orchestrator. It watches uiStore.showCelebration,
-  // switches cockpit mode, shows XP popups, broadcasts celebration-start/end,
-  // and dismisses after CELEBRATION_TIERS[tier].durationMs. This is the single
-  // owner of dismissCelebration() — CeremonyFXBridge intentionally does NOT
-  // call it, avoiding the previous double-dismiss race.
+  // Phase 2 + P2 §3.5: Celebration 3D orchestrator.
+  // Watches uiStore.showCelebration, switches cockpit mode, shows XP popups,
+  // broadcasts celebration-start/end, and dismisses after
+  // CELEBRATION_TIERS[tier].durationMs. CelebrationOverlay is the other
+  // legitimate dismiss caller (user action). dismissCelebration is
+  // idempotent, so back-to-back calls are safe. CeremonyFXBridge does
+  // NOT dismiss — it reacts only.
   useCelebration3D();
 
   // Phase 5 O.4-MAX (§6.6): Fires sceneStore.completeHero() atomically
@@ -191,6 +205,13 @@ export default function DashboardLayout({
         {/* Page children — thin scene descriptors that set mode + feed data.
             These render NO visible HTML. They only call hooks. */}
         {children}
+
+        {/* T11 UX-MED-003 (Opt A): Onboarding tour. Invisible anchors
+            target the 3D nav cluster on screen; the tour component
+            dynamically loads react-joyride and auto-runs once. */}
+        <TutorialAnchors />
+        <CockpitHelpButton />
+        <CockpitTutorial />
       </div>
     </DemoGuard>
     </AuthProvider>

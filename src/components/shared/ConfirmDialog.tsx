@@ -193,7 +193,7 @@ export function ConfirmDialog({
                     onClick={onCancel}
                     disabled={isBusy}
                     aria-label="Close"
-                    className="flex-shrink-0 -m-1 p-1 rounded-md text-white/40 hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:opacity-30"
+                    className="flex-shrink-0 -m-1 p-1 rounded-md text-white/70 hover:text-white/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/30 disabled:opacity-30"
                   >
                     <X className="w-4 h-4" />
                   </button>

@@ -973,7 +973,7 @@ const MessageBubble = memo(function MessageBubble({
             {copiedIdx === i ? (
               <Check className="w-3 h-3 text-spark-green" />
             ) : (
-              <Copy className="w-3 h-3 text-white/30" />
+              <Copy className="w-3 h-3 text-white/60" />
             )}
           </button>
           {/* User prompt score (inline) */}
@@ -985,11 +985,11 @@ const MessageBubble = memo(function MessageBubble({
                   className={`w-2.5 h-2.5 ${
                     s < Math.round(msg.score!.total / 5)
                       ? 'text-amber-400 fill-amber-400'
-                      : 'text-white/10'
+                      : 'text-white/50'
                   }`}
                 />
               ))}
-              <span className="font-mono text-2xs text-white/20 ml-1">
+              <span className="font-mono text-2xs text-white/55 ml-1">
                 {msg.score.total}/25
               </span>
             </div>
@@ -1035,12 +1035,12 @@ const MessageBubble = memo(function MessageBubble({
                     {'\u201C'}{h.keyword}{'\u201D'}
                   </span>
                   <ArrowRight className="w-3 h-3 text-white/15 flex-shrink-0" />
-                  <span className="font-body text-2xs text-white/40">{h.responseEffect}</span>
+                  <span className="font-body text-2xs text-white/70">{h.responseEffect}</span>
                 </div>
               ))}
             </div>
             <div className="mt-2 p-2 rounded bg-white/[0.02] border border-white/5">
-              <p className="font-body text-2xs text-white/20 mb-1">Your prompt signals:</p>
+              <p className="font-body text-2xs text-white/55 mb-1">Your prompt signals:</p>
               <p className="font-body text-xs text-white/50 leading-relaxed">
                 {msg.content}
               </p>
@@ -1086,7 +1086,7 @@ const MessageBubble = memo(function MessageBubble({
                   <span className="text-sm flex-shrink-0">{ins.emoji}</span>
                   <div>
                     <p className="font-body text-xs text-white/60">{ins.observation}</p>
-                    <p className="font-body text-2xs text-white/30">{'\u21B3'} Because: {ins.because}</p>
+                    <p className="font-body text-2xs text-white/60">{'\u21B3'} Because: {ins.because}</p>
                   </div>
                 </div>
               ))}
@@ -1564,7 +1564,7 @@ export function PromptLabGame() {
                     <h3 className="font-display text-lg font-bold text-white">
                       Prompt Engineering Tips
                     </h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       {learnIdx + 1} of {availableTechniques.length}
                     </p>
                   </div>
@@ -1634,7 +1634,7 @@ export function PromptLabGame() {
                   </div>
                   <button
                     onClick={() => setPhase('sandbox')}
-                    className="font-body text-xs text-white/20 hover:text-white/40"
+                    className="font-body text-xs text-white/55 hover:text-white/70"
                   >
                     Skip intro {'\u2192'}
                   </button>
@@ -1677,7 +1677,7 @@ export function PromptLabGame() {
                         <span className="font-display text-xs font-bold text-amber-400">
                           {activeChallenge.title}
                         </span>
-                        <span className="font-body text-2xs text-white/30 ml-2">
+                        <span className="font-body text-2xs text-white/60 ml-2">
                           {activeChallenge.goal}
                         </span>
                       </div>
@@ -1696,7 +1696,7 @@ export function PromptLabGame() {
                       )}
                       <button
                         onClick={() => setActiveChallengeId(null)}
-                        className="text-white/20 hover:text-white/40 text-xs"
+                        className="text-white/55 hover:text-white/70 text-xs"
                         aria-label="Close challenge"
                       >
                         {'\u2715'}
@@ -1712,7 +1712,7 @@ export function PromptLabGame() {
                         <p className="font-display text-base font-bold text-white">
                           Hi! I&apos;m Sparky!
                         </p>
-                        <p className="font-body text-sm text-white/40 max-w-sm mx-auto">
+                        <p className="font-body text-sm text-white/70 max-w-sm mx-auto">
                           Ask me anything about AI, science, math, or technology. The better your
                           prompt, the better my answer!
                         </p>
@@ -1858,7 +1858,7 @@ export function PromptLabGame() {
                         </span>
                       </div>
                     </div>
-                    <p className="font-body text-2xs text-white/20 mt-0.5">
+                    <p className="font-body text-2xs text-white/55 mt-0.5">
                       {currentCreativity.desc}
                     </p>
                   </div>
@@ -1877,11 +1877,11 @@ export function PromptLabGame() {
                             className={`w-3 h-3 ${
                               i < Math.round(promptScore.total / 5)
                                 ? 'text-amber-400 fill-amber-400'
-                                : 'text-white/10'
+                                : 'text-white/50'
                             }`}
                           />
                         ))}
-                        <span className="font-mono text-2xs text-white/20">
+                        <span className="font-mono text-2xs text-white/55">
                           {promptScore.total}/25
                         </span>
                         <ChevronRight
@@ -1916,7 +1916,7 @@ export function PromptLabGame() {
                                     animate={{ width: `${(d.value / 5) * 100}%` }}
                                   />
                                 </div>
-                                <span className="font-mono text-2xs text-white/20 w-4 text-right">
+                                <span className="font-mono text-2xs text-white/55 w-4 text-right">
                                   {d.value}
                                 </span>
                               </div>
@@ -1990,7 +1990,7 @@ export function PromptLabGame() {
                           className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                             showSystemPrompt || systemPrompt
                               ? 'bg-purple-500/20 text-purple-400'
-                              : 'bg-white/5 text-white/30'
+                              : 'bg-white/5 text-white/60'
                           }`}
                           whileTap={{ scale: 0.9 }}
                           aria-label="System prompt editor"
@@ -2003,7 +2003,7 @@ export function PromptLabGame() {
                         className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all ${
                           showTemplates
                             ? 'bg-amber-500/20 text-amber-400'
-                            : 'bg-white/5 text-white/30'
+                            : 'bg-white/5 text-white/60'
                         }`}
                         whileTap={{ scale: 0.9 }}
                         aria-label="Open template library"
@@ -2021,7 +2021,7 @@ export function PromptLabGame() {
                         }}
                         placeholder="Ask Sparky anything about AI..."
                         rows={1}
-                        className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 font-body text-sm resize-none focus:outline-none focus:border-amber-500/30 placeholder:text-white/20"
+                        className="flex-1 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 font-body text-sm resize-none focus:outline-none focus:border-amber-500/30 placeholder:text-white/55"
                         disabled={loading}
                         aria-label="Type your prompt"
                       />
@@ -2060,14 +2060,14 @@ export function PromptLabGame() {
                           </p>
                           <button
                             onClick={() => setShowTemplates(false)}
-                            className="text-white/20 hover:text-white/40 text-xs"
+                            className="text-white/55 hover:text-white/70 text-xs"
                           >
                             {'\u2715'}
                           </button>
                         </div>
                         {availableTemplates.map(([category, data]) => (
                           <div key={category} className="mb-3">
-                            <p className="font-body text-xs text-white/30 font-semibold mb-1.5">
+                            <p className="font-body text-xs text-white/60 font-semibold mb-1.5">
                               {data.emoji} {category}
                             </p>
                             <div className="space-y-1.5">
@@ -2118,7 +2118,7 @@ export function PromptLabGame() {
                           </p>
                           <button
                             onClick={() => setPhase('sandbox')}
-                            className="text-white/20 hover:text-white/40 text-xs"
+                            className="text-white/55 hover:text-white/70 text-xs"
                           >
                             {'\u2715'}
                           </button>
@@ -2146,7 +2146,7 @@ export function PromptLabGame() {
                                       <span className="text-spark-green text-2xs">{'\u2705'}</span>
                                     )}
                                   </div>
-                                  <p className="font-body text-2xs text-white/30">
+                                  <p className="font-body text-2xs text-white/60">
                                     {ch.description}
                                   </p>
                                 </div>
@@ -2180,7 +2180,7 @@ export function PromptLabGame() {
                           </p>
                           <button
                             onClick={() => setShowTechniques(false)}
-                            className="text-white/20 hover:text-white/40 text-xs"
+                            className="text-white/55 hover:text-white/70 text-xs"
                           >
                             {'\u2715'}
                           </button>
@@ -2193,14 +2193,14 @@ export function PromptLabGame() {
                             <p className="font-display text-xs font-bold text-white">
                               {t.emoji} {t.name}
                             </p>
-                            <p className="font-body text-2xs text-white/40 mt-0.5">
+                            <p className="font-body text-2xs text-white/70 mt-0.5">
                               {ageBand === 'C' ? t.descriptionC : t.description}
                             </p>
                             <div className="flex gap-2 mt-1.5">
                               <span className="flex-1 font-body text-2xs text-red-400/60 italic">
                                 &quot;{t.before}&quot;
                               </span>
-                              <ArrowRight className="w-3 h-3 text-white/10 flex-shrink-0" />
+                              <ArrowRight className="w-3 h-3 text-white/50 flex-shrink-0" />
                               <span className="flex-1 font-body text-2xs text-spark-green/60 italic">
                                 &quot;{t.after}&quot;
                               </span>
@@ -2230,7 +2230,7 @@ export function PromptLabGame() {
                           </p>
                           <button
                             onClick={() => { setShowPatterns(false); setActivePatternId(null); }}
-                            className="text-white/20 hover:text-white/40 text-xs"
+                            className="text-white/55 hover:text-white/70 text-xs"
                           >
                             {'\u2715'}
                           </button>
@@ -2238,7 +2238,7 @@ export function PromptLabGame() {
 
                         {!activePatternId ? (
                           <div className="space-y-2">
-                            <p className="font-body text-2xs text-white/30">
+                            <p className="font-body text-2xs text-white/60">
                               Patterns are reusable structures you can fill in. Learn the shape of a great prompt!
                             </p>
                             {availablePatterns.map((p) => (
@@ -2252,7 +2252,7 @@ export function PromptLabGame() {
                                   <span className="text-lg">{p.emoji}</span>
                                   <div>
                                     <p className="font-display text-xs font-bold text-white">{p.name}</p>
-                                    <p className="font-body text-2xs text-white/30">{p.description}</p>
+                                    <p className="font-body text-2xs text-white/60">{p.description}</p>
                                   </div>
                                 </div>
                                 <p className="font-mono text-2xs text-amber-400/40 mt-1">{p.template}</p>
@@ -2266,7 +2266,7 @@ export function PromptLabGame() {
                             <div className="space-y-3">
                               <button
                                 onClick={() => setActivePatternId(null)}
-                                className="font-body text-2xs text-white/30 hover:text-white/50"
+                                className="font-body text-2xs text-white/60 hover:text-white/50"
                               >
                                 {'\u2190'} Back to patterns
                               </button>
@@ -2276,13 +2276,13 @@ export function PromptLabGame() {
                               </div>
                               {/* Template preview */}
                               <div className="p-2.5 rounded-lg bg-white/[0.03] border border-white/5">
-                                <p className="font-data text-2xs text-white/20 uppercase tracking-wider mb-1">Template</p>
+                                <p className="font-data text-2xs text-white/55 uppercase tracking-wider mb-1">Template</p>
                                 <p className="font-mono text-xs text-amber-400/60">{pattern.template}</p>
                               </div>
                               {/* Slot inputs */}
                               {pattern.slots.map((slot) => (
                                 <div key={slot.key}>
-                                  <label className="font-body text-2xs text-white/40 block mb-1">
+                                  <label className="font-body text-2xs text-white/70 block mb-1">
                                     {slot.label}
                                   </label>
                                   <input
@@ -2297,7 +2297,7 @@ export function PromptLabGame() {
                                       <button
                                         key={ei}
                                         onClick={() => setPatternSlots((prev) => ({ ...prev, [slot.key]: ex }))}
-                                        className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/5 text-2xs text-white/30 hover:text-white/50 whitespace-nowrap"
+                                        className="px-2 py-0.5 rounded bg-white/[0.03] border border-white/5 text-2xs text-white/60 hover:text-white/50 whitespace-nowrap"
                                       >
                                         {ex}
                                       </button>
@@ -2360,15 +2360,15 @@ export function PromptLabGame() {
               <div className="grid grid-cols-3 gap-4 max-w-sm w-full">
                 <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                   <p className="font-data text-2xl text-amber-400">{messages.filter((m) => m.role === 'user').length}</p>
-                  <p className="font-body text-2xs text-white/30">Prompts Sent</p>
+                  <p className="font-body text-2xs text-white/60">Prompts Sent</p>
                 </div>
                 <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                   <p className="font-data text-2xl text-amber-400">{score}</p>
-                  <p className="font-body text-2xs text-white/30">Points Earned</p>
+                  <p className="font-body text-2xs text-white/60">Points Earned</p>
                 </div>
                 <div className="rounded-xl p-3 text-center" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                   <p className="font-data text-2xl text-spark-green">{completedChallenges}/{availableChallenges.length}</p>
-                  <p className="font-body text-2xs text-white/30">Challenges</p>
+                  <p className="font-body text-2xs text-white/60">Challenges</p>
                 </div>
               </div>
 
@@ -2376,22 +2376,22 @@ export function PromptLabGame() {
               <div className="max-w-sm w-full rounded-xl p-4" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <p className="font-display text-sm font-bold text-white mb-2">{'\u{1F4A1}'} What You Learned</p>
                 <ul className="space-y-1.5">
-                  <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                  <li className="font-body text-xs text-white/70 flex items-start gap-2">
                     <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
                     {ageBand === 'A' ? 'How to ask AI clear questions' : 'How to structure effective prompts'}
                   </li>
-                  <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                  <li className="font-body text-xs text-white/70 flex items-start gap-2">
                     <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
                     {ageBand === 'A' ? 'Being specific helps AI give better answers' : 'Prompt engineering techniques (specificity, examples, constraints)'}
                   </li>
                   {ageBand !== 'A' && (
-                    <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                    <li className="font-body text-xs text-white/70 flex items-start gap-2">
                       <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
                       Temperature controls how creative vs. predictable AI responses are
                     </li>
                   )}
                   {ageBand === 'C' && (
-                    <li className="font-body text-xs text-white/40 flex items-start gap-2">
+                    <li className="font-body text-xs text-white/70 flex items-start gap-2">
                       <span className="text-amber-400 mt-0.5">{'\u2713'}</span>
                       System prompts can shape AI behavior for specific tasks
                     </li>

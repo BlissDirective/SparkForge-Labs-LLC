@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import { useUIStore } from '@/stores/uiStore';
+import { useTriggerCelebration } from '@/stores/uiStore';
 import { useChildStore } from '@/stores/childStore';
 import { useToastStore, toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
@@ -49,7 +49,8 @@ function isOffline(): boolean {
 // Query cache, NOT childStore. See file header for rationale.
 export function useAwardXP() {
   const qc = useQueryClient();
-  const { triggerCelebration } = useUIStore();
+  // PERF-HIGH-001 (Opt A): narrow single-action selector.
+  const triggerCelebration = useTriggerCelebration();
   const activeChildId = useChildStore((s) => s.activeChildId);
 
   const mutateRef = useRef<((vars: {
@@ -254,7 +255,8 @@ export function useBadges(childId: string) {
 // badge earn.
 export function useCheckBadges() {
   const qc = useQueryClient();
-  const { triggerCelebration } = useUIStore();
+  // PERF-HIGH-001 (Opt A): narrow single-action selector.
+  const triggerCelebration = useTriggerCelebration();
   const mutateRef = useRef<((childId: string) => void) | null>(null);
 
   const mutation = useMutation({
@@ -320,8 +322,14 @@ export function useCompleteAndReward() {
     const { useGameStore } = await import('@/stores/gameStore');
     const setSaveState = useGameStore.getState().setSaveState;
 
+    // T16 DEPLOY-MED-002 (Opt B): wrap the 4-step reward pipeline in
+    // a Sentry performance transaction so dashboard-visible metrics
+    // cover completion → XP → streak → badges end-to-end.
+    const { traceGameCompletion } = await import('@/lib/sentry-transactions');
+
     setSaveState('saving');
     try {
+      await traceGameCompletion(source === 'game' ? contentId : source, childId, async () => {
       // Step 1: Record completion
       await completeContent.mutateAsync({ childId, contentId, score });
 
@@ -342,6 +350,7 @@ export function useCompleteAndReward() {
 
       // Step 4: Check for new badges
       await checkBadges.mutateAsync(childId);
+      });
 
       // All four pipeline steps succeeded — flash 'saved' then fade.
       setSaveState('saved');

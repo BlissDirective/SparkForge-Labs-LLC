@@ -128,6 +128,23 @@ Connect your GitHub repo in Vercel Dashboard:
 - **Database:** Monitor Supabase Dashboard → Database → Health
 - **Stripe:** Monitor Stripe Dashboard → Events for webhook failures
 
+## 8a. Backups & Disaster Recovery
+
+**T18 DEPLOY-MED-001 (Opt B)** — Supabase PITR + drilled recovery.
+
+- **Daily snapshots** — enabled by default on Supabase Pro (7-day
+  retention).
+- **Point-in-Time Recovery (PITR)** — MUST be enabled before launch:
+  Supabase Dashboard → Project Settings → Database → Point-in-Time
+  Recovery → Enable. RPO ≤ 2 min, RTO ~1 h.
+- **Recovery runbook** → [`docs/DISASTER_RECOVERY.md`](./docs/DISASTER_RECOVERY.md)
+  documents PITR drills, snapshot restores, total-region fallback, and
+  the monthly drill cadence.
+- **Operator script** → `scripts/disaster-recovery.sh` wraps the common
+  `pg_dump` / PITR operations so you aren't typing `psql` under
+  pressure. Commands: `snapshot`, `verify`, `pitr-drill`,
+  `dump-table`, `restore-table`, `reconcile`.
+
 ## 9. Troubleshooting
 
 | Issue | Solution |

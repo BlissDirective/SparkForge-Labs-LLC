@@ -11,7 +11,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -75,7 +75,7 @@ const ALL_ROUNDS: RFRound[] = [
 
 export function RealOrFakeGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('real-or-fake', ageBand);
@@ -166,7 +166,7 @@ export function RealOrFakeGame() {
                     exit={{ opacity: 0, y: -20 }} className="text-center space-y-4 max-w-sm">
                     <Fingerprint className="w-6 h-6 text-orange-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Detection Strategies</h3>
-                    <p className="font-body text-xs text-white/40">{tipIdx + 1} of {DETECTION_TIPS.length}</p>
+                    <p className="font-body text-xs text-white/70">{tipIdx + 1} of {DETECTION_TIPS.length}</p>
                     <AnimatePresence mode="wait">
                       <motion.div key={tipIdx} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -30 }} className="rounded-xl p-4 border border-orange-500/20 bg-orange-500/5">
@@ -183,7 +183,7 @@ export function RealOrFakeGame() {
                       aria-label={tipIdx < DETECTION_TIPS.length - 1 ? `Next tip, ${tipIdx + 2} of ${DETECTION_TIPS.length}` : 'Start detecting'}>
                       {tipIdx < DETECTION_TIPS.length - 1 ? 'Next Tip →' : 'Start Detecting! 🔍'}
                     </motion.button>
-                    <button onClick={() => setPhase('play')} className="font-body text-xs text-white/20 hover:text-white/40"
+                    <button onClick={() => setPhase('play')} className="font-body text-xs text-white/55 hover:text-white/70"
                       aria-label="Skip learn cards and start playing">
                       Skip to game →
                     </button>
@@ -198,7 +198,7 @@ export function RealOrFakeGame() {
                     </div>
                     {/* Round info */}
                     <div className="flex items-center justify-center gap-3 mb-3">
-                      <span className="font-body text-xs text-white/30">{round.typeLabel}</span>
+                      <span className="font-body text-xs text-white/60">{round.typeLabel}</span>
                       <span className="font-data text-2xs text-white/15" role="status" aria-label={`Round ${roundIdx + 1} of ${rounds.length}`}>{roundIdx + 1}/{rounds.length}</span>
                     </div>
 
@@ -230,7 +230,7 @@ export function RealOrFakeGame() {
                           <p className="font-display text-sm font-bold" style={{ color: feedback.correct ? '#10B981' : '#EF4444' }}>
                             {feedback.correct ? '✅ You spotted it!' : '❌ Tricky one!'}
                           </p>
-                          <p className="font-body text-2xs text-white/40 mt-1">{feedback.clue}</p>
+                          <p className="font-body text-2xs text-white/70 mt-1">{feedback.clue}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -249,11 +249,11 @@ export function RealOrFakeGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You sharpened your media literacy skills and can now spot deepfakes and AI-generated content with confidence.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#FF6644' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI-generated content often uses vague language, extreme claims, and excessive emotional triggers</li>
                         <li>• Real content includes specific details, balanced perspectives, and verifiable facts</li>
                         <li>• Media literacy and critical thinking are essential defenses against deepfakes and misinformation</li>

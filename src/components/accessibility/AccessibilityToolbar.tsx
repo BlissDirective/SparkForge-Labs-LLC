@@ -41,7 +41,7 @@ export function AccessibilityToolbar() {
 
       {/* Font Size */}
       <div className="flex items-center gap-3">
-        <Type className="w-4 h-4 text-white/40" aria-hidden="true" />
+        <Type className="w-4 h-4 text-white/70" aria-hidden="true" />
         <span className="font-body text-xs text-white/50 flex-1">
           Text Size
         </span>
@@ -53,7 +53,7 @@ export function AccessibilityToolbar() {
               className={`px-2.5 py-1 rounded-lg font-body font-bold transition-colors ${
                 fontSize === s
                   ? 'bg-neon-blue/20 text-neon-blue border border-neon-blue/30'
-                  : 'bg-white/5 text-white/30 border border-white/10 hover:bg-white/10'
+                  : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10'
               }`}
               style={{
                 fontSize: s === 'normal' ? '10px' : s === 'large' ? '12px' : '14px',
@@ -114,7 +114,7 @@ function ToggleRow({
       aria-checked={active}
       aria-label={label}
     >
-      <span className="text-white/40 group-hover:text-white/60 transition-colors">
+      <span className="text-white/70 group-hover:text-white/60 transition-colors">
         {icon}
       </span>
       <span className="font-body text-xs text-white/50 flex-1 text-left">

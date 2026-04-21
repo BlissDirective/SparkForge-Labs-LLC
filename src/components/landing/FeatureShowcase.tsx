@@ -145,7 +145,7 @@ export function FeatureShowcase() {
         <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">
           Built for Young Explorers
         </h2>
-        <p className="font-body text-base text-white/40 max-w-md mx-auto">
+        <p className="font-body text-base text-white/70 max-w-md mx-auto">
           Every feature is designed to make AI learning safe, fun,
           and genuinely educational.
         </p>

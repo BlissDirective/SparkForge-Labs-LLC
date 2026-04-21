@@ -12,7 +12,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -84,7 +84,7 @@ const PUZZLES = [
 
 export function NeuronRelayGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('neuron-relay', ageBand);
@@ -261,7 +261,7 @@ export function NeuronRelayGame() {
                       <GameProgressTracker current={pi + 1} total={puzzles.length} labColor="#FF66AA" />
                     </div>
                     <div className="flex items-center justify-between mb-2">
-                      <p className="font-body text-xs text-white/30">
+                      <p className="font-body text-xs text-white/60">
                         {ageBand === 'C' ? `Puzzle ${pi + 1}/${puzzles.length} \u2014 Target: [${puzzle.target[0]}, ${puzzle.target[1]}]`
                           : `Puzzle ${pi + 1}/${puzzles.length} \u2014 Hit the green zone!`}
                       </p>
@@ -358,13 +358,13 @@ export function NeuronRelayGame() {
 
                     <p className="font-mono text-sm text-center mb-3">
                       Signal: <span className={`font-bold ${inRange ? 'text-green-400' : 'text-white/60'}`}>{signal.toFixed(1)}</span>
-                      <span className="text-white/20"> / {puzzle.target[0]}\u2013{puzzle.target[1]}</span>
+                      <span className="text-white/55"> / {puzzle.target[0]}\u2013{puzzle.target[1]}</span>
                     </p>
 
                     {showHint && (
                       <p className="font-body text-2xs text-pink-300/50 text-center mb-2">{'\u{1F4A1}'} {puzzle.hint}</p>
                     )}
-                    {!showHint && <button onClick={() => setShowHint(true)} aria-label="Show hint for this puzzle" className="block mx-auto font-body text-2xs text-white/20 hover:text-white/40 mb-2">Need a hint?</button>}
+                    {!showHint && <button onClick={() => setShowHint(true)} aria-label="Show hint for this puzzle" className="block mx-auto font-body text-2xs text-white/55 hover:text-white/70 mb-2">Need a hint?</button>}
 
                     <motion.button onClick={test} aria-label="Test neural signal output"
                       className="w-full py-3 rounded-xl font-display font-bold text-sm text-white flex items-center justify-center gap-2"
@@ -401,11 +401,11 @@ export function NeuronRelayGame() {
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Neural networks process information by activating neurons that pass signals forward</li>
                         <li>• Each neuron has a weight (volume) that controls how strongly it contributes to the output</li>
                         <li>• Getting the right output requires balancing which neurons fire and at what intensity — just like real brain circuits</li>

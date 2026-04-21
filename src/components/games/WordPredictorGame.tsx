@@ -12,7 +12,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -292,7 +292,7 @@ const ALL_ROUNDS: Round[] = [
 
 export function WordPredictorGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('word-predictor', ageBand);
@@ -483,7 +483,7 @@ export function WordPredictorGame() {
                         </motion.span>
                       </motion.div>
                     )}
-                    <p className="font-body text-white/40 text-xs mb-4" role="status" aria-label={`Round ${roundIdx + 1} of ${rounds.length}`}>What word comes next?</p>
+                    <p className="font-body text-white/70 text-xs mb-4" role="status" aria-label={`Round ${roundIdx + 1} of ${rounds.length}`}>What word comes next?</p>
                     <p className="font-display text-xl font-bold text-white mb-6" aria-label={`Sentence to complete: ${round.sentence}`}>
                       {round.sentence.replace('___', '')}
                       <span className="inline-block w-20 border-b-2 border-orange-400/40 mx-1" />
@@ -566,7 +566,7 @@ export function WordPredictorGame() {
                         </motion.div>
                         {/* ENH: Spring-animated probability bars */}
                         <div className="space-y-2 max-w-xs mx-auto text-left">
-                          <p className="font-body text-xs text-white/30">AI&apos;s probability distribution:</p>
+                          <p className="font-body text-xs text-white/60">AI&apos;s probability distribution:</p>
                           {round.predictions.map((p, pIdx) => {
                             const isGuessed = p.word.toLowerCase() === guess.trim().toLowerCase();
                             return (
@@ -579,7 +579,7 @@ export function WordPredictorGame() {
                               >
                                 <span
                                   className={`font-body text-xs w-16 text-right ${
-                                    isGuessed ? 'text-orange-400 font-bold' : 'text-white/40'
+                                    isGuessed ? 'text-orange-400 font-bold' : 'text-white/70'
                                   }`}
                                 >
                                   {p.word}
@@ -600,7 +600,7 @@ export function WordPredictorGame() {
                                     transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.15 + pIdx * 0.12 }}
                                   />
                                 </div>
-                                <span className="font-mono text-2xs text-white/30 w-8">
+                                <span className="font-mono text-2xs text-white/60 w-8">
                                   {p.confidence}%
                                 </span>
                               </motion.div>
@@ -643,11 +643,11 @@ export function WordPredictorGame() {
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Language models predict the next word by calculating probability distributions over possible completions</li>
                         <li>• Context matters — the same word can have very different probabilities depending on the surrounding sentence</li>
                         <li>• High-confidence predictions happen when context strongly implies one answer, while ambiguous contexts spread probability across many words</li>

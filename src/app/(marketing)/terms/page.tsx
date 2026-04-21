@@ -26,7 +26,7 @@ export default function TermsPage() {
           <h1 className="font-display text-4xl font-bold mb-3 bg-gradient-to-r from-spark-blue to-spark-purple bg-clip-text text-transparent">
             Terms of Service
           </h1>
-          <p className="text-white/40 font-body">
+          <p className="text-white/70 font-body">
             Effective Date: March 30, 2026 &middot; Last Updated: March 30, 2026
           </p>
         </div>
@@ -314,7 +314,7 @@ export default function TermsPage() {
               negotiation. If negotiation fails, disputes shall be resolved through binding arbitration administered by
               JAMS under its Streamlined Arbitration Rules, conducted remotely (online or by phone).
             </p>
-            <p className="text-sm text-white/40">
+            <p className="text-sm text-white/70">
               Nothing in this section limits your right to file a complaint with the Federal Trade Commission or your
               state&apos;s attorney general regarding COPPA compliance.
             </p>
