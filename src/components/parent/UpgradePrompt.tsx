@@ -63,7 +63,7 @@ export function UpgradePrompt({
       </h3>
 
       {context && (
-        <p className="font-body text-sm text-white/40 mb-4">{context}</p>
+        <p className="font-body text-sm text-white/70 mb-4">{context}</p>
       )}
 
       <Link href="/parent/subscription">

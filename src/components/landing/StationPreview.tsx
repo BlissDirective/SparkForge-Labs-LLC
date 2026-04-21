@@ -59,7 +59,7 @@ export function StationPreview() {
         <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">
           The Laboratory Control Station
         </h2>
-        <p className="font-body text-base text-white/40 max-w-md mx-auto">
+        <p className="font-body text-base text-white/70 max-w-md mx-auto">
           A beautiful, immersive dashboard where every experiment
           comes to life.
         </p>
@@ -91,7 +91,7 @@ export function StationPreview() {
                     <div className="absolute top-[30%] right-[15%] w-48 h-48 rounded-full bg-[#AA66FF]/[0.04] blur-[50px]" />
                     <div className="absolute bottom-[20%] left-[40%] w-56 h-28 rounded-full bg-[#06B6D4]/[0.04] blur-[40px]" />
                   </div>
-                  <p className="font-display text-lg text-white/20 relative z-10">Loading cockpit...</p>
+                  <p className="font-display text-lg text-white/55 relative z-10">Loading cockpit...</p>
                 </div>
               }>
                 <R3FCanvas
@@ -169,7 +169,7 @@ export function StationPreview() {
               >
                 0{stat.suffix}
               </p>
-              <p className="font-body text-xs text-white/30 mt-1">{stat.label}</p>
+              <p className="font-body text-xs text-white/60 mt-1">{stat.label}</p>
             </div>
           );
         })}

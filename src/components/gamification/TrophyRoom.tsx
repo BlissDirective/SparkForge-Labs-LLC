@@ -262,7 +262,7 @@ function StatItem({
       <span className="font-data text-lg font-bold" style={{ color }}>
         {value}
       </span>
-      <span className="font-body text-[10px] text-white/40 uppercase tracking-wider">
+      <span className="font-body text-[10px] text-white/70 uppercase tracking-wider">
         {label}
       </span>
     </div>

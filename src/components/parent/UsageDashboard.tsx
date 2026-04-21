@@ -43,7 +43,7 @@ export function UsageDashboard({
   if (isLoading) {
     return (
       <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-4">
-        <div className="flex items-center gap-2 text-white/40">
+        <div className="flex items-center gap-2 text-white/70">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span className="font-body text-xs">Loading usage…</span>
         </div>
@@ -101,7 +101,7 @@ export function UsageDashboard({
         <div className="flex items-center justify-between mb-4">
           <div>
             <h3 className="font-display text-base font-bold text-white">Usage</h3>
-            <p className="font-body text-2xs text-white/40">
+            <p className="font-body text-2xs text-white/70">
               {tierName} · {totals.childrenCount} child profile
               {totals.childrenCount === 1 ? '' : 's'}
             </p>
@@ -186,7 +186,7 @@ export function UsageDashboard({
                     <span className="font-display text-sm font-semibold text-white">
                       {child.displayName}
                     </span>
-                    <span className="font-body text-2xs text-white/30">
+                    <span className="font-body text-2xs text-white/60">
                       Band {child.ageBand}
                     </span>
                   </div>

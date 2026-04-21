@@ -77,7 +77,7 @@ export function BadgeGrid({
 
   if (visibleCategories.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-white/40">
+      <div className="flex flex-col items-center justify-center py-16 text-white/70">
         <span className="text-4xl mb-3">{'\uD83C\uDFC6'}</span>
         <p className="font-body text-sm">No badges to display yet.</p>
         <p className="font-body text-xs mt-1">Keep exploring to earn your first badge!</p>
@@ -108,7 +108,7 @@ export function BadgeGrid({
               >
                 <span aria-hidden="true">{meta.emoji}</span>
                 {meta.label}
-                <span className="text-white/30 font-data text-xs ml-auto">
+                <span className="text-white/60 font-data text-xs ml-auto">
                   {categoryBadges.filter((b) => b.earned).length}/{categoryBadges.length}
                 </span>
               </h3>

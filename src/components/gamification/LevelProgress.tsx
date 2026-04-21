@@ -113,7 +113,7 @@ export function LevelProgress({ xp, size = 'md' }: LevelProgressProps) {
       </span>
 
       {/* XP remaining */}
-      <span className={`${config.xpFont} font-data text-white/40`}>
+      <span className={`${config.xpFont} font-data text-white/70`}>
         {xpRemaining > 0
           ? `${xpRemaining.toLocaleString()} XP to next level`
           : 'Max level reached!'

@@ -151,7 +151,7 @@ export function CelebrationBanner({
                   setVisible(false);
                   onDismiss?.();
                 }}
-                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all flex-shrink-0"
+                className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all flex-shrink-0"
                 aria-label="Dismiss celebration"
               >
                 <X className="w-4 h-4" />

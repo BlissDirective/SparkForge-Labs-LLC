@@ -113,7 +113,7 @@ export function TrialBanner({ variant = 'fixed', dismissible = true }: TrialBann
           <span className={`font-data font-bold tabular-nums ${isUrgent ? 'text-red-300' : 'text-spark-green'}`}>
             {remaining}
           </span>
-          <span className={isUrgent ? 'text-red-300/60' : 'text-white/40'}>remaining</span>
+          <span className={isUrgent ? 'text-red-300/60' : 'text-white/70'}>remaining</span>
         </div>
 
         <div className="flex items-center gap-3">
@@ -127,7 +127,7 @@ export function TrialBanner({ variant = 'fixed', dismissible = true }: TrialBann
           {dismissible && (
             <button
               onClick={() => setDismissed(true)}
-              className="text-white/30 hover:text-white/60 transition-colors"
+              className="text-white/60 hover:text-white/60 transition-colors"
               aria-label="Dismiss trial banner"
             >
               <X className="w-4 h-4" />

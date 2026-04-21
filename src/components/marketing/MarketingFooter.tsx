@@ -52,7 +52,7 @@ export function MarketingFooter() {
                 SparkForge
               </span>
             </Link>
-            <p className="text-sm font-body text-white/30 leading-relaxed">
+            <p className="text-sm font-body text-white/60 leading-relaxed">
               AI Learning Lab for curious minds ages 7&ndash;16. 10 labs, 35 games, built for the next generation.
             </p>
           </div>
@@ -68,7 +68,7 @@ export function MarketingFooter() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm font-body text-white/40 hover:text-white/70 transition-colors duration-200"
+                      className="text-sm font-body text-white/70 hover:text-white/70 transition-colors duration-200"
                     >
                       {link.label}
                     </Link>
@@ -81,10 +81,10 @@ export function MarketingFooter() {
 
         {/* Bottom bar */}
         <div className="mt-10 pt-6 border-t border-white/[0.04] flex items-center justify-between">
-          <p className="text-xs font-body text-white/20">
+          <p className="text-xs font-body text-white/55">
             &copy; {new Date().getFullYear()} BlissDirective. All rights reserved.
           </p>
-          <div className="flex items-center gap-4 text-xs font-body text-white/20">
+          <div className="flex items-center gap-4 text-xs font-body text-white/55">
             <span>COPPA Compliant</span>
             <span className="w-px h-3 bg-white/10" aria-hidden="true" />
             <span>No Ads &middot; No Tracking</span>

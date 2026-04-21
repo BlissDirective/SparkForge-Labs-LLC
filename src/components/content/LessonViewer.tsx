@@ -236,7 +236,7 @@ export function LessonViewer({ content }: { content: Content }) {
         <h1 className="font-display text-2xl md:text-3xl font-bold text-white mt-2">
           {content.title}
         </h1>
-        <div className="flex items-center gap-4 mt-3 text-white/30">
+        <div className="flex items-center gap-4 mt-3 text-white/60">
           <span className="flex items-center gap-1 text-xs font-body">
             <Clock className="w-3 h-3" /> {content.estimated_minutes}min
           </span>

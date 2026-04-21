@@ -198,7 +198,7 @@ export function DowngradeConfirmModal({
             <button
               onClick={onClose}
               disabled={step === 'submitting'}
-              className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all disabled:opacity-30"
+              className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-30"
               aria-label="Close"
             >
               <X className="w-4 h-4" />
@@ -219,7 +219,7 @@ export function DowngradeConfirmModal({
                 <h2 className="font-display text-lg font-bold text-white">
                   {goingDown ? 'Confirm Downgrade' : 'Confirm Plan Change'}
                 </h2>
-                <div className="flex items-center gap-1.5 font-body text-xs text-white/40">
+                <div className="flex items-center gap-1.5 font-body text-xs text-white/70">
                   <span>{TIER_DISPLAY[currentTier].name}</span>
                   <ArrowRight className="w-3 h-3" />
                   <span>{TIER_DISPLAY[targetTier].name}</span>
@@ -233,7 +233,7 @@ export function DowngradeConfirmModal({
                 <div className="mt-4 mb-4 p-3 rounded-lg bg-white/5 border border-white/10 flex items-center gap-2">
                   <Calendar className="w-4 h-4 text-spark-blue flex-shrink-0" />
                   <div>
-                    <div className="font-body text-xs text-white/40">
+                    <div className="font-body text-xs text-white/70">
                       Changes apply on
                     </div>
                     <div className="font-display text-sm text-white font-semibold">
@@ -245,7 +245,7 @@ export function DowngradeConfirmModal({
                 {/* ── Feature delta ── */}
                 {delta.lost.length > 0 && (
                   <div className="mb-4">
-                    <div className="font-body text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">
+                    <div className="font-body text-xs font-semibold text-white/70 uppercase tracking-wide mb-2">
                       What you&apos;ll lose
                     </div>
                     <ul className="space-y-1.5">
@@ -261,7 +261,7 @@ export function DowngradeConfirmModal({
 
                 {delta.gained.length > 0 && (
                   <div className="mb-4">
-                    <div className="font-body text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">
+                    <div className="font-body text-xs font-semibold text-white/70 uppercase tracking-wide mb-2">
                       What you&apos;ll gain
                     </div>
                     <ul className="space-y-1.5">
@@ -297,10 +297,10 @@ export function DowngradeConfirmModal({
             {step === 'archive' && (
               <>
                 <div className="mt-4 mb-2">
-                  <div className="font-body text-xs font-semibold text-white/40 uppercase tracking-wide mb-2">
+                  <div className="font-body text-xs font-semibold text-white/70 uppercase tracking-wide mb-2">
                     Select {overLimit} profile{overLimit === 1 ? '' : 's'} to archive
                   </div>
-                  <p className="font-body text-xs text-white/40 mb-3">
+                  <p className="font-body text-xs text-white/70 mb-3">
                     Archived profiles are paused — their progress is kept, but they
                     won&apos;t count toward your {TIER_DISPLAY[targetTier].name} limit.
                   </p>
@@ -336,7 +336,7 @@ export function DowngradeConfirmModal({
                           <div className="font-display text-sm text-white">
                             {child.display_name}
                           </div>
-                          <div className="font-body text-xs text-white/40">
+                          <div className="font-body text-xs text-white/70">
                             Age band {child.age_band} · Level {child.level} · {child.xp} XP
                           </div>
                         </div>

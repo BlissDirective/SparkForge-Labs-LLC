@@ -39,7 +39,7 @@ export function LabConnectionMap({ labsProgress }: LabConnectionMapProps) {
               >
                 {lab.icon}
               </div>
-              <span className="font-body text-2xs text-white/30 mt-1">{lab.id}</span>
+              <span className="font-body text-2xs text-white/60 mt-1">{lab.id}</span>
 
               {/* Progress dot between nodes */}
               {i < WORLDS.length - 1 && (

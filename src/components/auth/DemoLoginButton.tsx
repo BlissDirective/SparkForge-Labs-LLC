@@ -68,7 +68,7 @@ export function DemoLoginButton() {
               You&apos;ll get <span className="text-spark-green font-semibold">1 hour</span> to explore
               the full SparkForge experience — Hero Animation, 3D Cockpit, Labs, and Games.
             </p>
-            <p className="font-body text-xs text-white/40 text-center">
+            <p className="font-body text-xs text-white/70 text-center">
               No data is saved. Create an account anytime to keep your progress.
             </p>
             <div className="flex gap-2">
