@@ -103,7 +103,7 @@ export function AdminNavDock() {
           animate={{ rotate: expanded ? 90 : 0 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronRight className="w-3.5 h-3.5 text-white/30" />
+          <ChevronRight className="w-3.5 h-3.5 text-white/60" />
         </motion.div>
       </motion.button>
 

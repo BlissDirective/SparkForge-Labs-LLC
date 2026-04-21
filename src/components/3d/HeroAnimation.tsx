@@ -675,7 +675,7 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
           onClick={() => actions.fastForward()}
           className="pointer-events-auto fixed bottom-6 right-6 px-4 py-2 rounded-full
             backdrop-blur-md bg-white/5 border border-white/10
-            font-body text-sm text-white/40 hover:text-white/80
+            font-body text-sm text-white/70 hover:text-white/80
             transition-opacity duration-300 focus:outline-none
             focus:ring-2 focus:ring-[#00BBFF]/50"
           aria-label="Skip intro animation"

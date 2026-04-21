@@ -216,10 +216,10 @@ export default function AdminArchivedChildrenClient() {
               Archived Child Profiles
             </h1>
           </div>
-          <p className="font-body text-sm text-white/40">
+          <p className="font-body text-sm text-white/70">
             Soft-archived from tier downgrades. Click Restore to reactivate.
           </p>
-          <p className="font-body text-xs text-white/30 mt-1">
+          <p className="font-body text-xs text-white/60 mt-1">
             {rows.length} total archived · {filtered.length} shown
           </p>
         </div>
@@ -239,13 +239,13 @@ export default function AdminArchivedChildrenClient() {
         className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4 flex flex-wrap items-center gap-3"
       >
         <div className="relative flex-1 min-w-[220px]">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search child name, parent email, or parent name…"
-            className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/30 focus:outline-none focus:border-spark-blue/50"
+            className="w-full pl-10 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/60 focus:outline-none focus:border-spark-blue/50"
             aria-label="Search archived children"
           />
         </div>
@@ -268,7 +268,7 @@ export default function AdminArchivedChildrenClient() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="border-b border-white/5">
-              <tr className="text-left font-body text-xs text-white/40">
+              <tr className="text-left font-body text-xs text-white/70">
                 <th className="px-4 py-3 font-semibold">Child</th>
                 <th className="px-4 py-3 font-semibold">Parent</th>
                 <th className="px-4 py-3 font-semibold">Tier / Slots</th>
@@ -280,12 +280,12 @@ export default function AdminArchivedChildrenClient() {
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-4 py-12 text-center">
-                    <RefreshCw className="w-6 h-6 text-white/30 animate-spin mx-auto" />
+                    <RefreshCw className="w-6 h-6 text-white/60 animate-spin mx-auto" />
                   </td>
                 </tr>
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-4 py-12 text-center font-body text-sm text-white/40">
+                  <td colSpan={5} className="px-4 py-12 text-center font-body text-sm text-white/70">
                     {rows.length === 0
                       ? 'No archived children — everything is active!'
                       : 'No archived children match your filters'}
@@ -313,7 +313,7 @@ export default function AdminArchivedChildrenClient() {
                             <div className="font-body text-sm text-white">
                               {row.displayName}
                             </div>
-                            <div className="font-body text-xs text-white/40">
+                            <div className="font-body text-xs text-white/70">
                               age {row.age} · band {row.ageBand}
                             </div>
                           </div>
@@ -326,13 +326,13 @@ export default function AdminArchivedChildrenClient() {
                               {parent.email}
                             </div>
                             {parent.fullName && (
-                              <div className="font-body text-xs text-white/40">
+                              <div className="font-body text-xs text-white/70">
                                 {parent.fullName}
                               </div>
                             )}
                           </>
                         ) : (
-                          <span className="font-body text-xs text-white/30">orphaned</span>
+                          <span className="font-body text-xs text-white/60">orphaned</span>
                         )}
                       </td>
                       <td className="px-4 py-3">
@@ -347,7 +347,7 @@ export default function AdminArchivedChildrenClient() {
                             className={`font-data text-2xs ${
                               parent.activeChildCount >= parent.maxChildren
                                 ? 'text-spark-orange'
-                                : 'text-white/40'
+                                : 'text-white/70'
                             }`}
                           >
                             {parent.activeChildCount} / {parent.maxChildren} active
@@ -356,10 +356,10 @@ export default function AdminArchivedChildrenClient() {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1.5 font-data text-xs text-white/60">
-                          <Clock className="w-3 h-3 text-white/30" />
+                          <Clock className="w-3 h-3 text-white/60" />
                           <div>
                             <div>{formatRelative(row.deactivatedAt)}</div>
-                            <div className="text-2xs text-white/30">
+                            <div className="text-2xs text-white/60">
                               {formatDate(row.deactivatedAt)}
                             </div>
                           </div>
@@ -423,7 +423,7 @@ export default function AdminArchivedChildrenClient() {
               <button
                 onClick={closeModal}
                 disabled={submitting}
-                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all disabled:opacity-30"
+                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all disabled:opacity-30"
                 aria-label="Close"
               >
                 <X className="w-4 h-4" />
@@ -437,7 +437,7 @@ export default function AdminArchivedChildrenClient() {
                   <h2 className="font-display text-lg font-bold text-white">
                     Restore {modalRow.displayName}
                   </h2>
-                  <p className="font-body text-xs text-white/40">
+                  <p className="font-body text-xs text-white/70">
                     Reactivate this profile for {modalRow.parent?.email}
                   </p>
                 </div>
@@ -469,7 +469,7 @@ export default function AdminArchivedChildrenClient() {
                 </ul>
               </div>
 
-              <label className="block font-body text-xs text-white/40 mb-1">
+              <label className="block font-body text-xs text-white/70 mb-1">
                 Reason (optional — logged to audit trail)
               </label>
               <textarea
@@ -478,7 +478,7 @@ export default function AdminArchivedChildrenClient() {
                 rows={2}
                 maxLength={500}
                 placeholder="e.g. User requested via support ticket #1234"
-                className="w-full mb-4 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/20 focus:outline-none focus:border-spark-blue/50 resize-none"
+                className="w-full mb-4 px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/55 focus:outline-none focus:border-spark-blue/50 resize-none"
               />
 
               <div className="flex gap-2">

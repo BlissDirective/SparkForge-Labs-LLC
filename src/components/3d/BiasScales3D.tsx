@@ -455,7 +455,7 @@ export function BiasScalesFallback({
               {Math.round(biasWeight * 100)}%
             </span>
           </motion.div>
-          <span className="text-2xs text-white/30 mt-0.5">Bias</span>
+          <span className="text-2xs text-white/60 mt-0.5">Bias</span>
         </div>
 
         {/* Right pan (FAIR) */}
@@ -476,7 +476,7 @@ export function BiasScalesFallback({
               {Math.round(fairWeight * 100)}%
             </span>
           </motion.div>
-          <span className="text-2xs text-white/30 mt-0.5">Fair</span>
+          <span className="text-2xs text-white/60 mt-0.5">Fair</span>
         </div>
       </motion.div>
 

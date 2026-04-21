@@ -274,7 +274,7 @@ export function CelebrationOverlay() {
                 <p className="font-display text-lg font-bold text-white">
                   +{(celebrationData?.xp as number) || 0} XP
                 </p>
-                <p className="font-body text-white/40 text-xs">
+                <p className="font-body text-white/70 text-xs">
                   {(celebrationData?.reason as string) || 'Great work!'}
                 </p>
               </div>

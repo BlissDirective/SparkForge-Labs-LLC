@@ -178,7 +178,7 @@ export default function AddChildPage() {
           </div>
           <div>
             <h1 className="font-display text-xl font-bold text-white">Add Child Profile</h1>
-            <p className="font-body text-xs text-white/40">
+            <p className="font-body text-xs text-white/70">
               {children.length}/{limits.maxChildren} profiles used ({TIER_DISPLAY[tier].name})
             </p>
           </div>
@@ -187,11 +187,11 @@ export default function AddChildPage() {
         {atLimit ? (
           /* Tier limit reached */
           <div className="text-center py-8">
-            <UserPlus className="w-10 h-10 text-white/20 mx-auto mb-3" />
+            <UserPlus className="w-10 h-10 text-white/55 mx-auto mb-3" />
             <h2 className="font-display text-lg font-bold text-white mb-2">
               Profile Limit Reached
             </h2>
-            <p className="font-body text-sm text-white/40 mb-4">
+            <p className="font-body text-sm text-white/70 mb-4">
               Your {TIER_DISPLAY[tier].name} plan supports up to {limits.maxChildren} child
               profile{limits.maxChildren === 1 ? '' : 's'}.
             </p>
@@ -220,10 +220,10 @@ export default function AddChildPage() {
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., SparkKid"
                 maxLength={20}
-                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body placeholder:text-white/20 focus:border-spark-blue/50 focus:outline-none"
+                className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body placeholder:text-white/55 focus:border-spark-blue/50 focus:outline-none"
                 aria-label="Child display name"
               />
-              <p className="font-body text-xs text-white/20 mt-1">
+              <p className="font-body text-xs text-white/55 mt-1">
                 No real names — this is just a fun nickname
               </p>
             </div>
@@ -241,7 +241,7 @@ export default function AddChildPage() {
                     className={`w-10 h-10 rounded-lg border font-display text-sm font-bold transition-all ${
                       age === a
                         ? 'border-spark-blue/50 bg-spark-blue/20 text-spark-blue'
-                        : 'border-white/10 bg-white/5 text-white/40 hover:border-white/20'
+                        : 'border-white/10 bg-white/5 text-white/70 hover:border-white/20'
                     }`}
                     whileTap={{ scale: 0.95 }}
                     aria-label={`Age ${a}`}
@@ -257,7 +257,7 @@ export default function AddChildPage() {
             <div className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
               <span className="text-2xl">{bandInfo.emoji}</span>
               <div>
-                <p className="font-body text-xs text-white/40">Age Band</p>
+                <p className="font-body text-xs text-white/70">Age Band</p>
                 <p
                   className="font-display text-sm font-bold"
                   style={{ color: bandInfo.color }}

@@ -101,7 +101,7 @@ export function XPPopupProvider({ children }: { children: React.ReactNode }) {
 
                 {/* Custom label */}
                 {event.label && (
-                  <span className="font-body text-2xs text-white/40 mt-0.5">{event.label}</span>
+                  <span className="font-body text-2xs text-white/70 mt-0.5">{event.label}</span>
                 )}
 
                 {/* Sparkle particles */}

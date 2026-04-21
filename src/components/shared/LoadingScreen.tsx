@@ -150,7 +150,7 @@ export function LoadingScreen({
             >
               Try refreshing
             </button>
-            <p className="text-[10px] text-white/40 font-body">
+            <p className="text-[10px] text-white/70 font-body">
               If this keeps happening, check your internet connection or try again in a few minutes.
             </p>
           </motion.div>

@@ -54,7 +54,7 @@ export function ContinueBanner() {
           </Link>
           <button
             onClick={() => setDismissed(true)}
-            className="text-white/30 hover:text-white/50 transition-colors"
+            className="text-white/60 hover:text-white/50 transition-colors"
             aria-label="Dismiss continue banner"
           >
             <X className="w-4 h-4" />

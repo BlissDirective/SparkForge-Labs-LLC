@@ -82,7 +82,7 @@ class GameErrorBoundaryInner extends React.Component<
             <p className="font-body text-sm text-white/50 mb-1">
               {gameTitle} ran into an issue.
             </p>
-            <p className="font-body text-xs text-white/30 mb-6">
+            <p className="font-body text-xs text-white/60 mb-6">
               Don&apos;t worry — your progress is safe!
             </p>
 

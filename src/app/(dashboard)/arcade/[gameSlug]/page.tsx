@@ -33,7 +33,7 @@ function GameLoader() {
           className="w-10 h-10 mx-auto mb-4 rounded-full border-2 border-neon-blue border-t-transparent animate-spin"
           aria-hidden="true"
         />
-        <p className="font-display text-sm text-white/40">Loading game...</p>
+        <p className="font-display text-sm text-white/70">Loading game...</p>
       </div>
     </div>
   );
@@ -66,12 +66,12 @@ export default function GamePage() {
           <h2 className="font-display text-xl font-bold text-white mb-2">
             Age Restricted
           </h2>
-          <p className="font-body text-sm text-white/40 mb-2">
+          <p className="font-body text-sm text-white/70 mb-2">
             This game is designed for {gameConfig.ageBands.map(b =>
               b === 'A' ? 'ages 7-10' : b === 'B' ? 'ages 11-13' : 'ages 14-16'
             ).join(', ')}.
           </p>
-          <p className="font-body text-xs text-white/30 mb-6">
+          <p className="font-body text-xs text-white/60 mb-6">
             Check out other games in the Arcade that match your age group!
           </p>
           <Link
@@ -98,7 +98,7 @@ export default function GamePage() {
           <h2 className="font-display text-xl font-bold text-white mb-2">
             Game Not Found
           </h2>
-          <p className="font-body text-sm text-white/40 mb-6">
+          <p className="font-body text-sm text-white/70 mb-6">
             This game may have drifted into a black hole!
           </p>
           <Link

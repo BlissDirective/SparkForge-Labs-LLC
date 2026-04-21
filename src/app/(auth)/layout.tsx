@@ -83,7 +83,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* Footer */}
         <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-          <p className="text-white/20 text-xs font-body text-center">
+          <p className="text-white/55 text-xs font-body text-center">
             &copy; 2026 BlissDirective &middot; SparkForge
           </p>
         </div>
