@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 
 export type AvatarConcept = 'orb' | 'fox' | 'drone' | 'spark' | 'nova';
 export type GuideContext = 'cockpit' | 'lab' | 'game' | 'profile' | 'settings';
@@ -175,3 +176,41 @@ export const useGuideStore = create<GuideState>()(
     }
   )
 );
+
+// ═══ SELECTOR HOOKS (PERF-HIGH-001 Opt C) ═══
+//
+// Named bundle used by GuideChatPanel. Covers exactly the 16 fields
+// the panel renders / calls — anything added outside this bundle
+// won't trigger a panel re-render.
+//
+// NOTE: if a consumer needs a different subset, prefer a narrower
+// inline selector rather than extending this bundle. Keeping it
+// consumer-shaped avoids the "dumping ground" anti-pattern where
+// bundles grow until useShallow defeats its own purpose.
+export function useGuideChat() {
+  return useGuideStore(
+    useShallow((s) => ({
+      visible: s.visible,
+      minimized: s.minimized,
+      messages: s.messages,
+      isStreaming: s.isStreaming,
+      streamingContent: s.streamingContent,
+      voiceEnabled: s.voiceEnabled,
+      conversationId: s.conversationId,
+      context: s.context,
+      labId: s.labId,
+      gameId: s.gameId,
+      show: s.show,
+      hide: s.hide,
+      minimize: s.minimize,
+      toggle: s.toggle,
+      addMessage: s.addMessage,
+      setStreaming: s.setStreaming,
+      setStreamingContent: s.setStreamingContent,
+      appendStreamingContent: s.appendStreamingContent,
+      setConversationId: s.setConversationId,
+      setVisualState: s.setVisualState,
+      incrementTurns: s.incrementTurns,
+    })),
+  );
+}

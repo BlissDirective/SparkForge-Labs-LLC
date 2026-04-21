@@ -12,7 +12,7 @@ import {
   X, Minimize2, Send, Mic, MicOff,
   Volume2, VolumeX, Sparkles,
 } from 'lucide-react';
-import { useGuideStore, type GuideMessage } from '@/stores/guideStore';
+import { useGuideChat, useGuideStore, type GuideMessage } from '@/stores/guideStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useVoiceInput } from '@/hooks/useVoiceInput';
 import { useVoiceOutput } from '@/hooks/useVoiceOutput';
@@ -22,13 +22,17 @@ export default function GuideChatPanel() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // PERF-HIGH-001 (Opt C): named bundle via useGuideChat() — panel
+  // subscribes to exactly the 21 fields it renders/calls; unrelated
+  // guideStore writes (voiceInputActive, ttsPlaying, mood, audioLevel,
+  // etc.) no longer re-render the panel.
   const {
     visible, minimized, messages, isStreaming, streamingContent,
     voiceEnabled, conversationId, context, labId, gameId,
     show, hide, minimize, toggle: _toggle,
     addMessage, setStreaming, setStreamingContent, appendStreamingContent,
     setConversationId, setVisualState, incrementTurns,
-  } = useGuideStore();
+  } = useGuideChat();
 
   // STATE-MED-001 (B-full/T5c-C2): AI Guide chat now sees fresh
   // xp / level / streak / age_band from the React Query cache — a
