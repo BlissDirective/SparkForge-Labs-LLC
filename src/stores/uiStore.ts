@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import type { CelebrationType } from '@/types';
 
 // ════════════════════════════════════════════════════════════════
@@ -202,3 +203,24 @@ export const useUIStore = create<UIState>()(
     },
   ),
 );
+
+// ═══ SELECTOR HOOKS (PERF-HIGH-001 Opt C) ═══
+//
+// Narrow subscription to the celebration slice. Consumed by
+// CelebrationOverlay so it only re-renders when celebration state
+// actually changes (was previously re-rendering on every uiStore
+// write — sidebar toggle, labColor change, a11y toggles, etc.).
+export function useCelebration() {
+  return useUIStore(
+    useShallow((s) => ({
+      celebrationType: s.celebrationType,
+      celebrationData: s.celebrationData,
+      dismissCelebration: s.dismissCelebration,
+    })),
+  );
+}
+
+// Shared selector used in 2+ call sites for the reward pipeline.
+export function useTriggerCelebration() {
+  return useUIStore((s) => s.triggerCelebration);
+}

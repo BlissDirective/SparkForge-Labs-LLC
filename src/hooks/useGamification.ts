@@ -1,7 +1,7 @@
 import { useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
-import { useUIStore } from '@/stores/uiStore';
+import { useTriggerCelebration } from '@/stores/uiStore';
 import { useChildStore } from '@/stores/childStore';
 import { useToastStore, toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
@@ -49,7 +49,8 @@ function isOffline(): boolean {
 // Query cache, NOT childStore. See file header for rationale.
 export function useAwardXP() {
   const qc = useQueryClient();
-  const { triggerCelebration } = useUIStore();
+  // PERF-HIGH-001 (Opt A): narrow single-action selector.
+  const triggerCelebration = useTriggerCelebration();
   const activeChildId = useChildStore((s) => s.activeChildId);
 
   const mutateRef = useRef<((vars: {
@@ -254,7 +255,8 @@ export function useBadges(childId: string) {
 // badge earn.
 export function useCheckBadges() {
   const qc = useQueryClient();
-  const { triggerCelebration } = useUIStore();
+  // PERF-HIGH-001 (Opt A): narrow single-action selector.
+  const triggerCelebration = useTriggerCelebration();
   const mutateRef = useRef<((childId: string) => void) | null>(null);
 
   const mutation = useMutation({
