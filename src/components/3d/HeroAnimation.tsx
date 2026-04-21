@@ -612,6 +612,9 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
   useEffect(() => {
     const detect = async () => {
       const result = await detectGPUTier();
+      // P2 §3.6: calling a setter action, not snapshot-reading state.
+      // Safe because we write once after async detect — no reactivity needed.
+      // eslint-disable-next-line no-restricted-syntax
       useDeviceStore.getState().setGpuTier(result.tier, result.stripeCount);
     };
     detect();

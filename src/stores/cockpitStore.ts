@@ -12,6 +12,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import type { CockpitSkin, SpatialView, CeremonyType } from '@/types';
 import type { ThemeId } from '@/lib/3d/cockpitThemes';
 import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
@@ -503,4 +504,40 @@ if (typeof window !== 'undefined') {
       });
     }
   });
+}
+
+// ═══ SELECTOR HOOKS — P2 §3.6 Reactive Settings Bridge ═══════════
+//
+// `useCockpitSettings()` returns a shallow-stable bundle of every
+// settings field a 3D component or audio hook is likely to react
+// to. Consumers must NOT read these via `useCockpitStore.getState()`
+// snapshots — doing so freezes the value at mount, so a later
+// Settings-page toggle never propagates.
+//
+// ESLint rule `no-restricted-syntax` (see eslint.config.mjs) flags
+// `useCockpitStore.getState()` usage inside src/components/3d/**
+// so future 3D code is reactive-by-default.
+//
+// If you need just one field, prefer a narrow inline selector:
+//   const brightness = useCockpitStore(s => s.brightness);
+// `useCockpitSettings()` is for components that read 3+ settings
+// together (e.g. CockpitUILayer, audio controller bridges).
+export function useCockpitSettings() {
+  return useCockpitStore(
+    useShallow((s) => ({
+      activeMode: s.activeMode,
+      cockpitTheme: s.cockpitTheme,
+      brightness: s.brightness,
+      masterSoundEnabled: s.masterSoundEnabled,
+      cockpitAudioEnabled: s.cockpitAudioEnabled,
+      ambientVolume: s.ambientVolume,
+      spatialAudioVolume: s.spatialAudioVolume,
+      eventAudioVolume: s.eventAudioVolume,
+      mechanicalAudioDensity: s.mechanicalAudioDensity,
+      labAudioEnabled: s.labAudioEnabled,
+      voiceEnabled: s.voiceEnabled,
+      npcsVisible: s.npcsVisible,
+      cockpitSkin: s.cockpitSkin,
+    })),
+  );
 }

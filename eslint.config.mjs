@@ -127,6 +127,32 @@ export default tseslint.config(
     },
   },
 
+  // P2 §3.6 — Reactive cockpit settings bridge
+  //
+  // 3D components MUST subscribe to store state via selectors or
+  // useCockpitSettings(), NOT snapshot via `.getState()`. Snapshots
+  // captured at mount time don't react to later Settings-page toggles.
+  //
+  // Exception: `getState()` is correct inside event callbacks where
+  // you want the current value when the event fires (e.g. audio
+  // hooks reading masterSoundEnabled at play-time). Those callers
+  // live in hooks/ and should use eslint-disable with justification
+  // if they really need it there.
+  {
+    files: ['src/components/3d/**/*.tsx', 'src/components/3d/**/*.ts'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            "MemberExpression[object.name=/^use[A-Z]\\w*Store$/][property.name='getState']",
+          message:
+            'P2 §3.6: Do not snapshot cockpit/ui/guide store state via .getState() inside 3D components. Use a selector (useCockpitStore(s => s.field)) or the useCockpitSettings() bundle so Settings-page toggles propagate reactively.',
+        },
+      ],
+    },
+  },
+
   // TSL shader files — relax rules (Three.js TSL types are incomplete)
   {
     files: ['src/shaders/**/*.ts'],

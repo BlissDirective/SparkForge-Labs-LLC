@@ -27,11 +27,11 @@ describe('P2 §3.5 — celebration state ownership', () => {
   });
 
   it('triggerCelebration sets showCelebration + type + data', () => {
-    useUIStore.getState().triggerCelebration('xp-award', { amount: 50 });
+    useUIStore.getState().triggerCelebration('xp', { amount: 50 });
     const s = useUIStore.getState();
     expect(s.showCelebration).toBe(true);
-    expect(s.celebrationType).toBe('xp-award');
-    expect(s.celebrationData).toEqual({ amount: 50 });
+    expect(s.celebrationType).toBe('xp');
+    expect(s.celebrationData as Record<string, unknown>).toEqual({ amount: 50 });
   });
 
   it('dismissCelebration clears everything', () => {
@@ -44,7 +44,7 @@ describe('P2 §3.5 — celebration state ownership', () => {
   });
 
   it('dismissCelebration is idempotent (back-to-back safe)', () => {
-    useUIStore.getState().triggerCelebration('xp-award');
+    useUIStore.getState().triggerCelebration('xp');
     useUIStore.getState().dismissCelebration();
     // Second call, nothing to dismiss — MUST NOT throw.
     expect(() => useUIStore.getState().dismissCelebration()).not.toThrow();
@@ -52,7 +52,7 @@ describe('P2 §3.5 — celebration state ownership', () => {
   });
 
   it('cockpitStore no longer exposes ceremonyQueue / enqueueCeremony / dequeueCeremony', () => {
-    const s = useCockpitStore.getState() as Record<string, unknown>;
+    const s = useCockpitStore.getState() as unknown as Record<string, unknown>;
     expect(s.ceremonyQueue).toBeUndefined();
     expect(s.enqueueCeremony).toBeUndefined();
     expect(s.dequeueCeremony).toBeUndefined();
