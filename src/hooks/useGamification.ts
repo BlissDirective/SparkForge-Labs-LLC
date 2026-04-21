@@ -320,8 +320,14 @@ export function useCompleteAndReward() {
     const { useGameStore } = await import('@/stores/gameStore');
     const setSaveState = useGameStore.getState().setSaveState;
 
+    // T16 DEPLOY-MED-002 (Opt B): wrap the 4-step reward pipeline in
+    // a Sentry performance transaction so dashboard-visible metrics
+    // cover completion → XP → streak → badges end-to-end.
+    const { traceGameCompletion } = await import('@/lib/sentry-transactions');
+
     setSaveState('saving');
     try {
+      await traceGameCompletion(source === 'game' ? contentId : source, childId, async () => {
       // Step 1: Record completion
       await completeContent.mutateAsync({ childId, contentId, score });
 
@@ -342,6 +348,7 @@ export function useCompleteAndReward() {
 
       // Step 4: Check for new badges
       await checkBadges.mutateAsync(childId);
+      });
 
       // All four pipeline steps succeeded — flash 'saved' then fade.
       setSaveState('saved');

@@ -25,6 +25,10 @@ import {
   type ContentType,
 } from '@/lib/ai-content-generator';
 import { z } from 'zod';
+// T16 DEPLOY-MED-002 (Opt B): Sentry performance transaction for
+// AI calls. The span captures Anthropic API latency + payload size;
+// alerts fire from the Sentry dashboard when p95 drifts.
+import { traceAiApiCall } from '@/lib/sentry-transactions';
 
 // Extended schema: optional saveToQueue flag for admin curation
 const ExtendedRequestSchema = AIContentRequestSchema.extend({
@@ -124,14 +128,16 @@ export async function POST(req: NextRequest) {
     const userPrompt = buildPrompt(contentType as ContentType, ageBand, context);
     const systemPrompt = buildSystemPrompt(ageBand);
 
-    // Call Claude API
+    // Call Claude API (wrapped in Sentry transaction for latency tracking)
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
-    const message = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 2048,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
-    });
+    const message = await traceAiApiCall(contentType, gameId, () =>
+      anthropic.messages.create({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
+    );
 
     // Extract text response
     const textBlock = message.content.find((b) => b.type === 'text');

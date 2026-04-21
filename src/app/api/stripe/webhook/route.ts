@@ -20,6 +20,10 @@ import { createAdminClient } from '@/lib/supabase/server';
 import { getStripe, getCustomerId } from '@/lib/stripe';
 import { logSubscriptionEvent } from '@/lib/subscription-events';
 import { checkRateLimit, RATE_LIMITS, rateLimitKey } from '@/lib/rate-limit';
+// T16 DEPLOY-MED-002 (Opt B): wrap handler body in a Sentry span so
+// webhook processing time, event-type mix, and error rate show up in
+// the Performance dashboard.
+import { traceStripeWebhook } from '@/lib/sentry-transactions';
 import type { SubscriptionTier } from '@/lib/tier-config';
 
 // Disable body parsing — Stripe needs raw body for signature verification
@@ -165,6 +169,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ received: true, replay: true, skipped: true });
   }
 
+  return traceStripeWebhook(event.type, async () => {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session;
@@ -326,4 +331,5 @@ export async function POST(req: NextRequest) {
     .eq('stripe_event_id', event.id);
 
   return NextResponse.json({ received: true });
+  });
 }

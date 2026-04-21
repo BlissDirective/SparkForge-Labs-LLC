@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/nextjs';
+import { sentryReleaseEnv } from '@/lib/sentry-transactions';
 
 // Sentry v9 + Next.js 15.5: instrument client-side navigations
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
@@ -74,6 +75,7 @@ Sentry.init({
     /Loading chunk \d+ failed/,
   ],
 
-  environment: process.env.NODE_ENV,
+  // T16 DEPLOY-MED-002 (Opt A): release + env tagging.
+  ...sentryReleaseEnv(),
   enabled: process.env.NODE_ENV === 'production',
 });
