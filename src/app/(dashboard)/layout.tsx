@@ -46,10 +46,20 @@ import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 import { MemoryMonitor } from '@/components/3d/dev/MemoryMonitor';
+import { TutorialAnchors } from '@/components/onboarding/TutorialAnchors';
+import { CockpitHelpButton } from '@/components/onboarding/CockpitHelpButton';
 
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
   () => import('@/components/ui/GuideChatPanel'),
+  { ssr: false, loading: () => null }
+);
+
+// T11 UX-MED-003 (Opt A): Cockpit tutorial (react-joyride). Dynamic
+// import keeps joyride's ~70 kB payload out of the initial bundle;
+// it only loads when the dashboard mounts.
+const CockpitTutorial = dynamic(
+  () => import('@/components/onboarding/CockpitTutorial').then((m) => m.CockpitTutorial),
   { ssr: false, loading: () => null }
 );
 
@@ -191,6 +201,13 @@ export default function DashboardLayout({
         {/* Page children — thin scene descriptors that set mode + feed data.
             These render NO visible HTML. They only call hooks. */}
         {children}
+
+        {/* T11 UX-MED-003 (Opt A): Onboarding tour. Invisible anchors
+            target the 3D nav cluster on screen; the tour component
+            dynamically loads react-joyride and auto-runs once. */}
+        <TutorialAnchors />
+        <CockpitHelpButton />
+        <CockpitTutorial />
       </div>
     </DemoGuard>
     </AuthProvider>
