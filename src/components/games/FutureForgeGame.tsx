@@ -468,7 +468,7 @@ export default function FutureForgeGame() {
                     {ageBand === 'A' ? scenario.problemSimple : scenario.problem}
                   </p>
                   {!submitted && (
-                    <p className="font-body text-xs text-white/40 mt-2">Select up to 4 AI capabilities to solve this problem.</p>
+                    <p className="font-body text-xs text-white/70 mt-2">Select up to 4 AI capabilities to solve this problem.</p>
                   )}
                 </motion.div>
 
@@ -494,7 +494,7 @@ export default function FutureForgeGame() {
                         aria-pressed={isSelected}>
                         <Icon className="w-6 h-6" style={{ color: cap.color }} />
                         <span className="font-display text-xs text-white">{cap.name}</span>
-                        <span className="font-body text-2xs text-white/40">{cap.description}</span>
+                        <span className="font-body text-2xs text-white/70">{cap.description}</span>
                         {showBonus && <Star className="w-3 h-3 text-neon-amber absolute -top-1 -right-1" />}
                       </motion.button>
                     );

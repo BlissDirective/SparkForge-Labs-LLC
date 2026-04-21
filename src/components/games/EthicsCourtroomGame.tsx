@@ -998,7 +998,7 @@ export function EthicsCourtroomGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('trial')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                     >
                       Skip intro →
                     </button>
@@ -1023,7 +1023,7 @@ export function EthicsCourtroomGame() {
                       <h3 className="font-display text-sm font-bold text-white flex-1">
                         {currentCase.title}
                       </h3>
-                      <span className="font-mono text-2xs text-white/20">
+                      <span className="font-mono text-2xs text-white/55">
                         Case {caseIdx + 1}/{cases.length}
                       </span>
                     </div>
@@ -1064,7 +1064,7 @@ export function EthicsCourtroomGame() {
                         animate={{ opacity: 1 }}
                         className="flex-1 flex flex-col space-y-2"
                       >
-                        <p className="font-display text-xs font-bold text-white/40 text-center mb-1">
+                        <p className="font-display text-xs font-bold text-white/70 text-center mb-1">
                           Choose a perspective to argue:
                         </p>
                         {currentCase.perspectives.map((p, i) => (
@@ -1081,7 +1081,7 @@ export function EthicsCourtroomGame() {
                                 <p className="font-display text-sm font-bold text-white">
                                   {p.role}
                                 </p>
-                                <p className="font-body text-2xs text-white/40">
+                                <p className="font-body text-2xs text-white/70">
                                   {p.stance}
                                 </p>
                               </div>
@@ -1106,7 +1106,7 @@ export function EthicsCourtroomGame() {
                             Arguing as {currentCase.perspectives[chosenPerspective].role}
                           </p>
                         </div>
-                        <p className="font-body text-2xs text-white/30 mb-1">
+                        <p className="font-body text-2xs text-white/60 mb-1">
                           Select your strongest arguments:
                         </p>
                         {currentCase.perspectives[chosenPerspective].arguments.map((arg, i) => (
@@ -1187,7 +1187,7 @@ export function EthicsCourtroomGame() {
                                 <p className="font-body text-xs text-white/60">
                                   • {arg.text}
                                 </p>
-                                <p className="font-body text-2xs text-white/30 ml-3">
+                                <p className="font-body text-2xs text-white/60 ml-3">
                                   {arg.explanation}
                                 </p>
                               </div>
@@ -1216,7 +1216,7 @@ export function EthicsCourtroomGame() {
                           {currentCase.perspectives
                             .filter((_, i) => i !== chosenPerspective)
                             .map((p, i) => (
-                              <p key={i} className="font-body text-2xs text-white/40">
+                              <p key={i} className="font-body text-2xs text-white/70">
                                 {p.emoji}{' '}
                                 <span className="font-semibold">{p.role}:</span> {p.stance}
                               </p>

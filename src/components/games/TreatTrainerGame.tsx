@@ -232,7 +232,7 @@ export function TreatTrainerGame() {
                       <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
                       <GameProgressTracker current={episode} total={TOTAL_EPISODES} labColor="#AA66FF" />
                     </div>
-                    <p className="font-body text-xs text-white/40 text-center mb-2">
+                    <p className="font-body text-xs text-white/70 text-center mb-2">
                       {ageBand === 'C' ? `Episode ${episode + 1}/10 — Tune the reward function and observe convergence.`
                         : `Episode ${episode + 1}/10 — Adjust rewards and run!`}
                     </p>
@@ -246,7 +246,7 @@ export function TreatTrainerGame() {
                         { key: 'goal' as const, label: ageBand === 'C' ? 'R(goal)' : 'Reach goal', color: '#8B5CF6' },
                       ]).map(({ key, label, color }) => (
                         <div key={key} className="flex items-center gap-2">
-                          <span className="font-body text-2xs text-white/40 w-20 truncate">{label}</span>
+                          <span className="font-body text-2xs text-white/70 w-20 truncate">{label}</span>
                           <input type="range" min={-10} max={10} value={rewards[key]}
                             onChange={e => setRewards(r => ({ ...r, [key]: +e.target.value }))}
                             className="flex-1 h-1 accent-purple-500"
@@ -258,10 +258,10 @@ export function TreatTrainerGame() {
 
                     {/* Maze selector */}
                     <div className="flex items-center gap-2 mb-2 justify-center">
-                      <span className="font-body text-2xs text-white/30">Maze:</span>
+                      <span className="font-body text-2xs text-white/60">Maze:</span>
                       {mazes.map((m, idx) => (
                         <button key={idx} onClick={() => { if (!running && episode === 0) { setMazeIdx(idx); setRobotPos(mazes[idx].start); setPath([]); setHistory([]); episodeRef.current = 0; setEpisode(0); } }}
-                          className={`px-2 py-0.5 rounded text-2xs font-body transition-colors ${idx === mazeIdx ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-white/20 hover:text-white/40 border border-transparent'}`}
+                          className={`px-2 py-0.5 rounded text-2xs font-body transition-colors ${idx === mazeIdx ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'text-white/55 hover:text-white/70 border border-transparent'}`}
                           disabled={running || episode > 0}
                           aria-label={`Select maze: ${m.name} (${m.difficulty})`}>
                           {m.name}
@@ -292,14 +292,14 @@ export function TreatTrainerGame() {
                     {/* Steps chart */}
                     {history.length > 0 && (
                       <div className="mb-2">
-                        <p className="font-body text-2xs text-white/20 mb-1">
+                        <p className="font-body text-2xs text-white/55 mb-1">
                           {ageBand === 'C' ? 'Steps per episode (convergence)' : 'Steps taken'}
                         </p>
                         <div className="flex items-end gap-1 h-8 justify-center">
                           {history.map((s, i) => (
                             <motion.div key={i} className="w-3 bg-purple-500/50 rounded-t"
                               initial={{ height: 0 }} animate={{ height: `${Math.min(100, s * 2)}%` }}>
-                              <span className="font-mono text-2xs text-white/20 block text-center">{s}</span>
+                              <span className="font-mono text-2xs text-white/55 block text-center">{s}</span>
                             </motion.div>
                           ))}
                         </div>
@@ -330,11 +330,11 @@ export function TreatTrainerGame() {
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-[#8B5CF6]/10 border border-[#8B5CF6]/20">
                       <p className="font-data text-2xl text-[#8B5CF6]">{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Reinforcement learning uses rewards and penalties to teach AI agents how to behave</li>
                         <li>• Positive rewards encourage desired actions while negative rewards discourage bad ones</li>
                         <li>• Over many training episodes, the agent converges on better strategies — just like practice makes perfect</li>

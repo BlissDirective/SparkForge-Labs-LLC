@@ -289,7 +289,7 @@ export function TimeMachineGame() {
                     {/* ENH: Visual progress bar */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${placed.size} of ${milestones.length} milestones placed`}>
+                        <span className="font-body text-2xs text-white/60" role="status" aria-label={`${placed.size} of ${milestones.length} milestones placed`}>
                           {placed.size}/{milestones.length} placed
                         </span>
                         {streak >= 2 && (
@@ -317,7 +317,7 @@ export function TimeMachineGame() {
                         />
                       </div>
                     </div>
-                    <p className="font-body text-xs text-white/30 mb-3 text-center">
+                    <p className="font-body text-xs text-white/60 mb-3 text-center">
                       Select a card, then tap the correct year on the timeline
                     </p>
 
@@ -343,7 +343,7 @@ export function TimeMachineGame() {
                               transition={celebrateSlot === year ? { duration: 0.6 } : undefined}
                               aria-label={`Timeline slot: ${year}`}
                             >
-                              <span className="font-mono text-2xs text-white/30">{year}</span>
+                              <span className="font-mono text-2xs text-white/60">{year}</span>
                               {placedMilestone && (
                                 <motion.div
                                   initial={{ scale: 0 }}
@@ -386,7 +386,7 @@ export function TimeMachineGame() {
                           {feedback.correct && (() => {
                             const m = milestones.find(ml => ml.id === feedback.id);
                             return m ? (
-                              <p className="font-body text-2xs text-white/40 mt-0.5">
+                              <p className="font-body text-2xs text-white/70 mt-0.5">
                                 {ageBand === 'C' ? m.descC : m.desc}
                               </p>
                             ) : null;
@@ -397,7 +397,7 @@ export function TimeMachineGame() {
 
                     {/* Card tray */}
                     <div className="border-t border-white/5 pt-3">
-                      <p className="font-body text-2xs text-white/20 mb-2">Cards to place:</p>
+                      <p className="font-body text-2xs text-white/55 mb-2">Cards to place:</p>
                       <div className="flex flex-wrap gap-2">
                         {trayCards.map(card => (
                           <motion.button
@@ -412,7 +412,7 @@ export function TimeMachineGame() {
                             aria-label={`Milestone card: ${card.label}`}
                           >
                             <p className="font-display text-xs font-bold text-white">{card.label}</p>
-                            <p className="font-body text-2xs text-white/30 mt-0.5">
+                            <p className="font-body text-2xs text-white/60 mt-0.5">
                               {ageBand === 'C' ? card.descC : card.desc}
                             </p>
                           </motion.button>
@@ -458,11 +458,11 @@ export function TimeMachineGame() {
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI has a rich history spanning over 70 years of breakthroughs and setbacks</li>
                         <li>• Key milestones like the Turing Test, Deep Blue, and AlphaGo shaped how we think about machine intelligence</li>
                         <li>• Modern AI (transformers, large language models) builds on decades of earlier research and innovation</li>

@@ -485,7 +485,7 @@ export function AiSpyGame() {
                     </div>
                     {/* Round counter + Score */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-mono text-2xs text-white/30">
+                      <span className="font-mono text-2xs text-white/60">
                         Scene {sceneIdx + 1} / {scenes.length}
                       </span>
                       <span className="font-mono text-2xs text-sky-400/60">
@@ -501,7 +501,7 @@ export function AiSpyGame() {
                     >
                       <span className="text-3xl">{scene.emoji}</span>
                       <h3 className="font-display text-base font-bold text-white mt-2">{scene.title}</h3>
-                      <p className="font-body text-xs text-white/40 mt-1">{scene.description}</p>
+                      <p className="font-body text-xs text-white/70 mt-1">{scene.description}</p>
                       {!revealed && (
                         <p className="font-body text-2xs text-sky-400/60 mt-2">
                           Tap items you think use AI ({totalAI} hidden)
@@ -554,7 +554,7 @@ export function AiSpyGame() {
                               <motion.p
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="font-body text-2xs text-white/40 mt-1.5 leading-relaxed"
+                                className="font-body text-2xs text-white/70 mt-1.5 leading-relaxed"
                               >
                                 {item.usesAI && <span className="text-sky-400 font-bold">Uses AI: </span>}
                                 {ageBand === 'C' ? item.explanationC : item.explanation}
@@ -581,7 +581,7 @@ export function AiSpyGame() {
                       <div className="space-y-2">
                         {/* Score summary */}
                         <div className="rounded-xl px-4 py-2 bg-white/[0.03] border border-white/5 text-center">
-                          <p className="font-body text-2xs text-white/30">
+                          <p className="font-body text-2xs text-white/60">
                             {scene.items.filter(i => getItemStatus(i) === 'correct').length} / {scene.items.length} correct
                           </p>
                         </div>
@@ -621,11 +621,11 @@ export function AiSpyGame() {
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-sky-400/10 border border-sky-400/20">
                       <p className="font-data text-2xl text-sky-400">{score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI is all around us — from voice assistants to recommendation systems</li>
                         <li>• Not everything smart uses AI — some things just follow simple rules</li>
                         <li>• AI works by learning patterns from data, not by being programmed for every situation</li>

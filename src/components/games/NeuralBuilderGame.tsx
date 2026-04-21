@@ -1017,7 +1017,7 @@ export function NeuralBuilderGame() {
                     className={`px-4 py-2 rounded-lg font-display text-xs border transition-colors ${
                       competitionMode
                         ? 'bg-yellow-500/10 border-yellow-400/30 text-yellow-300'
-                        : 'bg-white/[0.02] border-white/10 text-white/30 hover:text-white/50'
+                        : 'bg-white/[0.02] border-white/10 text-white/60 hover:text-white/50'
                     }`}
                     aria-label={`Competition mode: ${competitionMode ? 'on' : 'off'}. Beat the benchmark for bronze/silver/gold tiers.`}
                     aria-pressed={competitionMode}
@@ -1213,7 +1213,7 @@ export function NeuralBuilderGame() {
                   </button>
                   {ageBand === 'C' && (
                     <div className="flex items-center gap-2">
-                      <label className="font-body text-2xs text-white/40">
+                      <label className="font-body text-2xs text-white/70">
                         LR:
                       </label>
                       <input
@@ -1255,7 +1255,7 @@ export function NeuralBuilderGame() {
                             <p className="font-display text-xs font-bold text-amber-300">
                               {ch.title}
                             </p>
-                            <p className="font-body text-2xs text-white/40 mt-0.5">
+                            <p className="font-body text-2xs text-white/70 mt-0.5">
                               {ch.description}
                             </p>
                           </button>
@@ -1277,7 +1277,7 @@ export function NeuralBuilderGame() {
                     </span>
                     <button
                       onClick={() => setActiveChallenge(null)}
-                      className="text-white/30 hover:text-white/60 text-xs"
+                      className="text-white/60 hover:text-white/60 text-xs"
                       aria-label="Cancel active challenge"
                     >
                       {'\u2715'}
@@ -1292,7 +1292,7 @@ export function NeuralBuilderGame() {
                       key={i}
                       className="flex flex-col items-center gap-1 p-2 rounded-lg bg-white/5"
                     >
-                      <span className="font-body text-2xs text-white/40">
+                      <span className="font-body text-2xs text-white/70">
                         {i === 0
                           ? 'In'
                           : i === layerSizes.length - 1
@@ -1328,7 +1328,7 @@ export function NeuralBuilderGame() {
                     <p className="font-mono text-lg text-white font-bold">
                       {totalNeurons}
                     </p>
-                    <p className="font-body text-2xs text-white/40">
+                    <p className="font-body text-2xs text-white/70">
                       Neurons
                     </p>
                   </div>
@@ -1336,7 +1336,7 @@ export function NeuralBuilderGame() {
                     <p className="font-mono text-lg text-white font-bold">
                       {totalConnections}
                     </p>
-                    <p className="font-body text-2xs text-white/40">
+                    <p className="font-body text-2xs text-white/70">
                       Connections
                     </p>
                   </div>
@@ -1344,7 +1344,7 @@ export function NeuralBuilderGame() {
                     <p className="font-mono text-lg text-white font-bold">
                       {layerSizes.length}
                     </p>
-                    <p className="font-body text-2xs text-white/40">
+                    <p className="font-body text-2xs text-white/70">
                       Layers
                     </p>
                   </div>
@@ -1374,7 +1374,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-sm text-pink-300">
                           {inspectedNodeData.activation.toFixed(2)}
                         </p>
-                        <p className="font-body text-2xs text-white/40">
+                        <p className="font-body text-2xs text-white/70">
                           Activation
                         </p>
                       </div>
@@ -1382,7 +1382,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-sm text-pink-300">
                           {inspectedNodeData.inputs}
                         </p>
-                        <p className="font-body text-2xs text-white/40">
+                        <p className="font-body text-2xs text-white/70">
                           Inputs
                         </p>
                       </div>
@@ -1390,7 +1390,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-sm text-pink-300">
                           {inspectedNodeData.outputs}
                         </p>
-                        <p className="font-body text-2xs text-white/40">
+                        <p className="font-body text-2xs text-white/70">
                           Outputs
                         </p>
                       </div>
@@ -1428,7 +1428,7 @@ export function NeuralBuilderGame() {
                     </p>
                     <button
                       onClick={() => setSelectedConnection(null)}
-                      className="mt-2 text-xs text-white/30 hover:text-white/60"
+                      className="mt-2 text-xs text-white/60 hover:text-white/60"
                       aria-label="Close weight editor"
                     >
                       Close
@@ -1468,7 +1468,7 @@ export function NeuralBuilderGame() {
                 {ageBand === 'C' && !isTraining && (
                   <div className="grid grid-cols-2 gap-2 mt-3" role="group" aria-label="Hyperparameter controls">
                     <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
-                      <p className="font-body text-2xs text-white/30 mb-1">Activation Function</p>
+                      <p className="font-body text-2xs text-white/60 mb-1">Activation Function</p>
                       <select
                         value={activationFn}
                         onChange={(e) => setActivationFn(e.target.value as 'relu' | 'sigmoid' | 'tanh')}
@@ -1481,7 +1481,7 @@ export function NeuralBuilderGame() {
                       </select>
                     </div>
                     <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
-                      <p className="font-body text-2xs text-white/30 mb-1">Dropout</p>
+                      <p className="font-body text-2xs text-white/60 mb-1">Dropout</p>
                       <select
                         value={dropoutRate}
                         onChange={(e) => setDropoutRate(Number(e.target.value))}
@@ -1494,7 +1494,7 @@ export function NeuralBuilderGame() {
                       </select>
                     </div>
                     <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
-                      <p className="font-body text-2xs text-white/30 mb-1">Learning Rate</p>
+                      <p className="font-body text-2xs text-white/60 mb-1">Learning Rate</p>
                       <input
                         type="range"
                         min={0.001}
@@ -1508,7 +1508,7 @@ export function NeuralBuilderGame() {
                       <p className="font-data text-2xs text-pink-300 text-center">{learningRate.toFixed(3)}</p>
                     </div>
                     <div className="rounded-lg p-2 bg-white/[0.02] border border-white/5">
-                      <p className="font-body text-2xs text-white/30 mb-1">Batch Size</p>
+                      <p className="font-body text-2xs text-white/60 mb-1">Batch Size</p>
                       <select
                         value={batchSize}
                         onChange={(e) => setBatchSize(Number(e.target.value))}
@@ -1757,7 +1757,7 @@ export function NeuralBuilderGame() {
                   ))}
                 </div>
 
-                <p className="font-body text-xs text-white/40 text-center">
+                <p className="font-body text-xs text-white/70 text-center">
                   {testIdx}/{challenge.testItems.length} tested &mdash;{' '}
                   {testAccuracy}% accuracy
                 </p>
@@ -1791,7 +1791,7 @@ export function NeuralBuilderGame() {
                         <p className="font-mono text-lg text-white font-bold">
                           {s}
                         </p>
-                        <p className="font-body text-2xs text-white/40">
+                        <p className="font-body text-2xs text-white/70">
                           {i === 0
                             ? 'In'
                             : i === layerSizes.length - 1
@@ -1810,7 +1810,7 @@ export function NeuralBuilderGame() {
                         {accuracy}%
                       </span>
                     </div>
-                    <p className="font-body text-xs text-white/40 mt-2">
+                    <p className="font-body text-xs text-white/70 mt-2">
                       Train Accuracy
                     </p>
                   </div>
@@ -1820,7 +1820,7 @@ export function NeuralBuilderGame() {
                         {testAccuracy}%
                       </span>
                     </div>
-                    <p className="font-body text-xs text-white/40 mt-2">
+                    <p className="font-body text-xs text-white/70 mt-2">
                       Test Accuracy
                     </p>
                   </div>

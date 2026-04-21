@@ -500,7 +500,7 @@ export function MyFirstAiAppGame() {
                 {BUILD_STEPS.map((s, i) => (
                   <div key={s} className="flex items-center">
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                      i < stepIdx ? 'bg-orange-500 text-white' : i === stepIdx ? 'bg-orange-500/30 text-orange-300 ring-1 ring-orange-500/50' : 'bg-white/5 text-white/20'}`}>
+                      i < stepIdx ? 'bg-orange-500 text-white' : i === stepIdx ? 'bg-orange-500/30 text-orange-300 ring-1 ring-orange-500/50' : 'bg-white/5 text-white/55'}`}>
                       {i + 1}</div>
                     {i < BUILD_STEPS.length - 1 && <div className={`w-6 h-0.5 ${i < stepIdx ? 'bg-orange-500' : 'bg-white/10'}`} />}
                   </div>
@@ -512,7 +512,7 @@ export function MyFirstAiAppGame() {
                 {buildStep === 'category' && (
                   <motion.div key="cat" className="flex-1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white text-center mb-1">What kind of app?</h3>
-                    <p className="font-body text-xs text-white/40 text-center mb-4">Pick the type of AI app you want to build!</p>
+                    <p className="font-body text-xs text-white/70 text-center mb-4">Pick the type of AI app you want to build!</p>
                     <div className="grid grid-cols-1 gap-2.5 max-w-sm mx-auto">
                       {categories.map(cat => (
                         <motion.button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
@@ -539,12 +539,12 @@ export function MyFirstAiAppGame() {
                     initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <div className="text-4xl mb-3">{currentCategory?.emoji || '\u{1F4F1}'}</div>
                     <h3 className="font-display text-lg font-bold text-white mb-1">Name your app!</h3>
-                    <p className="font-body text-xs text-white/40 mb-4">Give your {currentCategory?.title?.toLowerCase()} a cool name</p>
+                    <p className="font-body text-xs text-white/70 mb-4">Give your {currentCategory?.title?.toLowerCase()} a cool name</p>
                     <input type="text" value={appName} onChange={e => setAppName(e.target.value)}
                       placeholder="e.g. SuperBrain, ArtMagic, FunBot..." maxLength={24}
                       className="w-full max-w-xs px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-display text-center focus:outline-none focus:border-orange-500/50"
                       aria-label="Enter your app name" autoFocus />
-                    <p className="font-mono text-2xs text-white/20 mt-1">{appName.length}/24</p>
+                    <p className="font-mono text-2xs text-white/55 mt-1">{appName.length}/24</p>
                     {appName.length >= 2 && (
                       <motion.div className="mt-4 px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20"
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -558,10 +558,10 @@ export function MyFirstAiAppGame() {
                 {buildStep === 'powers' && (
                   <motion.div key="powers" className="flex-1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white text-center mb-1">Choose AI Powers!</h3>
-                    <p className="font-body text-xs text-white/40 text-center mb-1">
+                    <p className="font-body text-xs text-white/70 text-center mb-1">
                       Pick up to {maxPowers} powers for <strong className="text-orange-300">{appName || 'your app'}</strong>
                     </p>
-                    <p className="font-mono text-xs text-center text-white/30 mb-3">{selectedPowers.length} / {maxPowers} selected</p>
+                    <p className="font-mono text-xs text-center text-white/60 mb-3">{selectedPowers.length} / {maxPowers} selected</p>
                     <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
                       {powers.map(pow => {
                         const isSelected = selectedPowers.includes(pow.id);
@@ -576,7 +576,7 @@ export function MyFirstAiAppGame() {
                               <span className="text-lg">{pow.emoji}</span>
                               <span className="font-display text-xs font-bold text-white">{pow.title}</span>
                             </div>
-                            <p className="font-body text-2xs text-white/40 leading-snug">{getDesc(pow)}</p>
+                            <p className="font-body text-2xs text-white/70 leading-snug">{getDesc(pow)}</p>
                             {isSelected && (
                               <motion.div className="mt-1 h-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
                                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} />
@@ -593,7 +593,7 @@ export function MyFirstAiAppGame() {
                   <motion.div key="audience" className="flex-1 flex flex-col items-center justify-center gap-2"
                     initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white mb-1">Who is it for?</h3>
-                    <p className="font-body text-xs text-white/40 mb-4">Who will use <strong className="text-orange-300">{appName}</strong>?</p>
+                    <p className="font-body text-xs text-white/70 mb-4">Who will use <strong className="text-orange-300">{appName}</strong>?</p>
                     <div className="grid grid-cols-2 gap-2 max-w-sm">
                       {AUDIENCES.map(aud => (
                         <motion.button key={aud.id} onClick={() => setSelectedAudience(aud.id)}
@@ -613,7 +613,7 @@ export function MyFirstAiAppGame() {
                   <motion.div key="design" className="flex-1 flex flex-col items-center"
                     initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white mb-1">Pick a style!</h3>
-                    <p className="font-body text-xs text-white/40 mb-3">Choose the look for <strong className="text-orange-300">{appName}</strong></p>
+                    <p className="font-body text-xs text-white/70 mb-3">Choose the look for <strong className="text-orange-300">{appName}</strong></p>
                     <div className="grid grid-cols-3 gap-2 max-w-sm mb-4">
                       {DESIGN_THEMES.map(theme => (
                         <motion.button key={theme.id} onClick={() => setSelectedTheme(theme.id)}
@@ -714,18 +714,18 @@ export function MyFirstAiAppGame() {
                     <p className="font-mono text-2xs text-orange-400 mb-2">DATA FLOW:</p>
                     <div className="flex items-center gap-1 flex-wrap">
                       <span className="px-2 py-1 rounded bg-white/10 font-mono text-2xs text-white/60">Input</span>
-                      <span className="text-white/30">{'\u2192'}</span>
+                      <span className="text-white/60">{'\u2192'}</span>
                       {selectedPowers.map((id, i) => {
                         const p = ALL_POWERS.find(pw => pw.id === id);
                         return (
                           <span key={id} className="contents">
                             <span className="px-2 py-1 rounded font-mono text-2xs" style={{ background: `${p?.color}20`, color: p?.color }}>
                               {p?.techLabel}</span>
-                            {i < selectedPowers.length - 1 && <span className="text-white/30">{'\u2192'}</span>}
+                            {i < selectedPowers.length - 1 && <span className="text-white/60">{'\u2192'}</span>}
                           </span>
                         );
                       })}
-                      <span className="text-white/30">{'\u2192'}</span>
+                      <span className="text-white/60">{'\u2192'}</span>
                       <span className="px-2 py-1 rounded bg-emerald-500/20 font-mono text-2xs text-emerald-400">Output</span>
                     </div>
                   </motion.div>
@@ -772,7 +772,7 @@ export function MyFirstAiAppGame() {
                   <span className="text-3xl">{currentCategory?.emoji || '\u{1F4F1}'}</span>
                   <div className="text-left">
                     <p className="font-display text-lg font-bold text-white">{appName}</p>
-                    <p className="font-body text-xs text-white/40">{currentCategory?.title}</p>
+                    <p className="font-body text-xs text-white/70">{currentCategory?.title}</p>
                   </div>
                 </div>
 
@@ -804,7 +804,7 @@ export function MyFirstAiAppGame() {
                 <span className="font-mono text-sm text-amber-300">+{Math.floor(innovationScore * 0.4) + 10} XP earned!</span>
               </div>
 
-              <p className="font-body text-xs text-white/30 max-w-xs">
+              <p className="font-body text-xs text-white/60 max-w-xs">
                 {ageBand === 'C' ? 'Real AI startups follow this exact process: idea \u2192 capabilities \u2192 audience \u2192 design \u2192 build!' :
                  ageBand === 'B' ? 'Companies like Google and OpenAI all start with this same process \u2014 idea, powers, audience, design!' :
                  'You just did what real app builders do \u2014 amazing!'}

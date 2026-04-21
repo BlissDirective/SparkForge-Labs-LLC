@@ -889,7 +889,7 @@ export function PetTrainerGame() {
                     className="max-w-md mx-auto text-center space-y-5">
                     <Sparkles className="w-6 h-6 text-purple-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Choose Your AI Pet</h3>
-                    <p className="font-body text-xs text-white/40">Each pet has a unique personality!</p>
+                    <p className="font-body text-xs text-white/70">Each pet has a unique personality!</p>
 
                     {/* Pet grid */}
                     <div className="grid grid-cols-3 gap-3">
@@ -926,7 +926,7 @@ export function PetTrainerGame() {
                     {/* Name input */}
                     <input type="text" value={petName} onChange={e => setPetName(e.target.value.slice(0, 14))}
                       placeholder={`Name your ${pet.name}...`}
-                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-center text-base placeholder:text-white/20 focus:outline-none focus:border-purple-500/40"
+                      className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-center text-base placeholder:text-white/55 focus:outline-none focus:border-purple-500/40"
                       aria-label="Name your pet" />
 
                     <motion.button onClick={handleAdopt} disabled={!petName.trim()}
@@ -950,7 +950,7 @@ export function PetTrainerGame() {
                     </div>
                     <div>
                       <h3 className="font-display text-lg font-bold text-white">What should {petName} learn?</h3>
-                      <p className="font-body text-xs text-white/40 mt-1">Pick a training category</p>
+                      <p className="font-body text-xs text-white/70 mt-1">Pick a training category</p>
                     </div>
                     <div className="space-y-2">
                       {availableSets.map((set, i) => (
@@ -973,7 +973,7 @@ export function PetTrainerGame() {
                             </div>
                             <div className="flex-1">
                               <p className="font-display text-sm font-bold text-white group-hover:text-purple-300 transition-colors">{set.title}</p>
-                              <p className="font-body text-2xs text-white/30">{set.categories.length} categories &middot; {set.training.length} items</p>
+                              <p className="font-body text-2xs text-white/60">{set.categories.length} categories &middot; {set.training.length} items</p>
                             </div>
                             <ChevronRight className="w-4 h-4 text-white/15 group-hover:text-purple-400 transition-colors" />
                           </div>
@@ -1010,12 +1010,12 @@ export function PetTrainerGame() {
                         <Pet3DScene emoji={pet.emoji} speciesId={pet.speciesId} mood={mood3D} evolutionStage={evolutionStage} size="sm" showSparkles={mood === 'genius'} />
                         <div className="text-left">
                           <p className="font-display text-xs font-bold text-white">{petName}</p>
-                          <p className="font-body text-2xs text-white/30">{EVOLUTION_LABELS[evolutionStage]}</p>
+                          <p className="font-body text-2xs text-white/60">{EVOLUTION_LABELS[evolutionStage]}</p>
                         </div>
                       </div>
                       <div className="text-right">
                         <p className="font-data text-sm font-bold text-purple-400">{accuracy}%</p>
-                        <p className="font-body text-2xs text-white/30">accuracy</p>
+                        <p className="font-body text-2xs text-white/60">accuracy</p>
                       </div>
                     </div>
 
@@ -1046,12 +1046,12 @@ export function PetTrainerGame() {
                     {ageBand === 'C' && (
                       <div className="flex flex-wrap gap-1 justify-center">
                         {categorySet.training[currentItem]?.features.map(f => (
-                          <span key={f} className="px-2 py-0.5 rounded bg-white/5 font-mono text-2xs text-white/30">{f}</span>
+                          <span key={f} className="px-2 py-0.5 rounded bg-white/5 font-mono text-2xs text-white/60">{f}</span>
                         ))}
                       </div>
                     )}
 
-                    <p className="font-body text-sm text-white/40">
+                    <p className="font-body text-sm text-white/70">
                       Item {currentItem + 1}/{categorySet.training.length} &mdash; What is this?
                     </p>
 
@@ -1072,7 +1072,7 @@ export function PetTrainerGame() {
                           aria-label={`Label as ${cat.label}`}>
                           <span className="text-2xl block mb-1">{cat.emoji}</span>
                           <span className="font-display text-xs font-bold text-white">{cat.label}</span>
-                          <span className="block font-body text-2xs text-white/20 mt-0.5">{labelCounts[cat.id] || 0} labeled</span>
+                          <span className="block font-body text-2xs text-white/55 mt-0.5">{labelCounts[cat.id] || 0} labeled</span>
                         </motion.button>
                       ))}
                     </div>
@@ -1103,7 +1103,7 @@ export function PetTrainerGame() {
                     className="max-w-md mx-auto text-center space-y-5">
                     <BarChart3 className="w-6 h-6 text-purple-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Data Lab</h3>
-                    <p className="font-body text-xs text-white/40">{"Let's look at your training data before testing!"}</p>
+                    <p className="font-body text-xs text-white/70">{"Let's look at your training data before testing!"}</p>
 
                     {/* Data balance chart */}
                     <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 space-y-3">
@@ -1132,17 +1132,17 @@ export function PetTrainerGame() {
                     <div className="flex gap-4 justify-center">
                       <div className="text-center">
                         <p className="font-data text-xl font-bold text-purple-400">{accuracy}%</p>
-                        <p className="font-body text-2xs text-white/30">Training Accuracy</p>
+                        <p className="font-body text-2xs text-white/60">Training Accuracy</p>
                       </div>
                       <div className="w-px h-10 bg-white/10" />
                       <div className="text-center">
                         <p className="font-data text-xl font-bold text-amber-400">{bestStreak}</p>
-                        <p className="font-body text-2xs text-white/30">Best Streak</p>
+                        <p className="font-body text-2xs text-white/60">Best Streak</p>
                       </div>
                       <div className="w-px h-10 bg-white/10" />
                       <div className="text-center">
                         <p className="font-data text-xl font-bold text-white">{EVOLUTION_LABELS[evolutionStage].split(' ')[0]}</p>
-                        <p className="font-body text-2xs text-white/30">Evolution</p>
+                        <p className="font-body text-2xs text-white/60">Evolution</p>
                       </div>
                     </div>
 
@@ -1160,7 +1160,7 @@ export function PetTrainerGame() {
                           when AI memorizes patterns instead of truly learning them.
                         </p>
                         {ageBand === 'C' && (
-                          <p className="font-body text-xs text-white/40 mt-2 italic">
+                          <p className="font-body text-xs text-white/70 mt-2 italic">
                             In ML terms: the model has high variance and may fail to generalize to the test distribution.
                             Balanced training data produces more robust decision boundaries.
                           </p>
@@ -1198,7 +1198,7 @@ export function PetTrainerGame() {
                     className="max-w-md mx-auto text-center space-y-5">
                     <FlaskConical className="w-6 h-6 text-purple-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Testing {petName}!</h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       These are items {petName} has NEVER seen. Can it figure them out?
                     </p>
 
@@ -1267,7 +1267,7 @@ export function PetTrainerGame() {
                     <h2 className="font-display text-xl font-bold text-white">
                       {petName}&apos;s Report Card!
                     </h2>
-                    <p className="font-body text-xs text-white/40">Evolution: {EVOLUTION_LABELS[evolutionStage]}</p>
+                    <p className="font-body text-xs text-white/70">Evolution: {EVOLUTION_LABELS[evolutionStage]}</p>
 
                     {/* Score rings */}
                     <div className="flex justify-center gap-8">
@@ -1287,7 +1287,7 @@ export function PetTrainerGame() {
                           </svg>
                           <div className="absolute inset-0 flex flex-col items-center justify-center">
                             <span className="font-data text-lg font-bold text-white">{value}%</span>
-                            <span className="font-body text-2xs text-white/30">{label}</span>
+                            <span className="font-body text-2xs text-white/60">{label}</span>
                           </div>
                         </div>
                       ))}
@@ -1300,11 +1300,11 @@ export function PetTrainerGame() {
                         <div className="grid gap-1" style={{ gridTemplateColumns: `auto ${categorySet.categories.map(() => '1fr').join(' ')}` }}>
                           <div /> {/* empty corner */}
                           {categorySet.categories.map(c => (
-                            <div key={`col-${c.id}`} className="text-center font-mono text-2xs text-white/30 px-1">{c.label.slice(0, 4)}</div>
+                            <div key={`col-${c.id}`} className="text-center font-mono text-2xs text-white/60 px-1">{c.label.slice(0, 4)}</div>
                           ))}
                           {categorySet.categories.map(actual => (
                             <Fragment key={`row-${actual.id}`}>
-                              <div className="font-mono text-2xs text-white/30 flex items-center">{actual.label.slice(0, 4)}</div>
+                              <div className="font-mono text-2xs text-white/60 flex items-center">{actual.label.slice(0, 4)}</div>
                               {categorySet.categories.map(predicted => {
                                 const count = testResults.filter(r =>
                                   r.actual === actual.id && r.predicted === predicted.id
@@ -1322,7 +1322,7 @@ export function PetTrainerGame() {
                             </Fragment>
                           ))}
                         </div>
-                        <p className="font-body text-2xs text-white/20 mt-2 italic">Rows = actual, Columns = predicted</p>
+                        <p className="font-body text-2xs text-white/55 mt-2 italic">Rows = actual, Columns = predicted</p>
                       </div>
                     )}
 
@@ -1342,7 +1342,7 @@ export function PetTrainerGame() {
                         }
                       </p>
                       {ageBand === 'C' && (
-                        <p className="font-body text-xs text-white/40 mt-2 italic">
+                        <p className="font-body text-xs text-white/70 mt-2 italic">
                           Key ML concepts practiced: supervised classification, train/test split, label quality, dataset balance,
                           generalization, {isOverfit ? 'overfitting detection,' : ''} and accuracy evaluation.
                         </p>

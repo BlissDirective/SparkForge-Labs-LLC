@@ -333,7 +333,7 @@ export function FoolTheAiGame() {
                             animate={{ width: `${(matchCount / challenge.target) * 100}%` }}
                             transition={{ type: 'spring', stiffness: 120, damping: 20 }} />
                         </div>
-                        <span className="font-mono text-2xs text-white/30">{matchCount}/{challenge.target}</span>
+                        <span className="font-mono text-2xs text-white/60">{matchCount}/{challenge.target}</span>
                         <span className="font-body text-2xs text-white/15">Round {ci + 1}/{CHALLENGES.length}</span>
                         {/* ENH: Animated fooled counter */}
                         {fooledCount > 0 && (
@@ -387,7 +387,7 @@ export function FoolTheAiGame() {
                             whileTap={!tapped ? { scale: 0.95 } : {}}
                             aria-label={`${item.emoji} labeled as "${item.aiLabel}" with ${item.confidence}% confidence`}>
                             <span className="text-2xl block">{item.emoji}</span>
-                            <p className="font-body text-2xs text-white/40 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
+                            <p className="font-body text-2xs text-white/70 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
                             {/* ENH: Confidence bar with spring physics */}
                             <div className="mt-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
                               <motion.div className="h-full rounded-full" style={{ backgroundColor: confColor }}
@@ -411,7 +411,7 @@ export function FoolTheAiGame() {
                               {feedback.hit ? '\u2713 Good catch!' : "\u2717 Not what we're looking for"}
                             </p>
                           </div>
-                          <p className="font-body text-2xs text-white/40">
+                          <p className="font-body text-2xs text-white/70">
                             {ageBand === 'C' ? items[feedback.idx].explanationC : items[feedback.idx].explanation}
                           </p>
                         </motion.div>
@@ -433,11 +433,11 @@ export function FoolTheAiGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored how AI can be tricked and why understanding its weaknesses makes AI systems stronger and more reliable.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Adversarial examples can fool AI by exploiting weaknesses in how models interpret visual features</li>
                         <li>• AI confidence scores don&apos;t always mean the prediction is correct — high confidence can still be wrong</li>
                         <li>• Understanding AI robustness helps researchers build more reliable and trustworthy AI systems</li>

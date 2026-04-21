@@ -357,7 +357,7 @@ export function AiOrNotGame() {
                   <span className="font-body"> / </span>
                   <span className="font-data tabular-nums">{totalRounds}</span>
                 </span>
-                <span className="text-xs text-white/30">
+                <span className="text-xs text-white/60">
                   <span className="font-body">Reality: </span>
                   <span className="font-data tabular-nums">{realityScore}%</span>
                 </span>
@@ -378,7 +378,7 @@ export function AiOrNotGame() {
               {/* Confidence slider (before voting) — E-8: animated emoji face */}
               {!showResult && (
                 <div className="w-full max-w-md mx-auto mb-3">
-                  <div className="flex items-center justify-between text-xs font-mono text-white/30 mb-1">
+                  <div className="flex items-center justify-between text-xs font-mono text-white/60 mb-1">
                     <span>{confidence < 30 ? '\u{1F937}' : confidence < 60 ? '\u{1F914}' : confidence < 85 ? '\u{1F60F}' : '\u{1F4AA}'} {confidence < 30 ? 'Guessing' : confidence < 60 ? 'Thinking...' : confidence < 85 ? 'Pretty sure' : 'Confident!'}</span>
                     <span>Confidence: {confidence}%</span>
                   </div>
@@ -439,12 +439,12 @@ export function AiOrNotGame() {
                     {/* Your vote vs correct */}
                     <div className="flex items-center justify-center gap-4 mb-3">
                       <div className="text-center">
-                        <p className="font-mono text-2xs text-white/30 mb-1">YOU SAID</p>
+                        <p className="font-mono text-2xs text-white/60 mb-1">YOU SAID</p>
                         <span className="text-xl">{CATEGORY_CONFIG[guess].emoji}</span>
                       </div>
-                      <span className="text-white/20">{'\u2192'}</span>
+                      <span className="text-white/55">{'\u2192'}</span>
                       <div className="text-center">
-                        <p className="font-mono text-2xs text-white/30 mb-1">ANSWER</p>
+                        <p className="font-mono text-2xs text-white/60 mb-1">ANSWER</p>
                         <span className="text-xl">{CATEGORY_CONFIG[round.answer].emoji}</span>
                       </div>
                     </div>
@@ -470,7 +470,7 @@ export function AiOrNotGame() {
                     {/* Year tag */}
                     {round.year && (
                       <div className="flex justify-center mb-3">
-                        <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-2xs text-white/30 flex items-center gap-1">
+                        <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-2xs text-white/60 flex items-center gap-1">
                           <Clock className="w-3 h-3" /> {round.year}
                         </span>
                       </div>
@@ -489,7 +489,7 @@ export function AiOrNotGame() {
 
               {/* Progress bar */}
               <div className="mt-auto pt-2">
-                <div className="flex items-center justify-between text-xs font-mono text-white/30 mb-1">
+                <div className="flex items-center justify-between text-xs font-mono text-white/60 mb-1">
                   <span>{'\u{1F3AF}'} {totalCorrect} / {history.length}</span>
                   <span>{'\u{1F4CA}'} Reality Score: {realityScore}%</span>
                 </div>
@@ -521,7 +521,7 @@ export function AiOrNotGame() {
                       placeholder="I think AI will..."
                       className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm resize-none focus:outline-none focus:border-fuchsia-500/40 h-20"
                       maxLength={200} aria-label="Write your AI prediction" />
-                    <p className="font-mono text-2xs text-white/20 mt-1 mb-3">{predictionText.length}/200</p>
+                    <p className="font-mono text-2xs text-white/55 mt-1 mb-3">{predictionText.length}/200</p>
                     <motion.button onClick={handlePrediction} disabled={predictionText.trim().length < 5}
                       className="w-full py-2.5 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white font-display text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-30"
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
@@ -556,7 +556,7 @@ export function AiOrNotGame() {
                         })}
                       </div>
                       <div className="mt-2 pt-2 border-t border-white/5">
-                        <p className="font-mono text-xs text-white/40">Overall: <span className="text-fuchsia-400">{totalCorrect}/{history.length}</span> ({realityScore}%)</p>
+                        <p className="font-mono text-xs text-white/70">Overall: <span className="text-fuchsia-400">{totalCorrect}/{history.length}</span> ({realityScore}%)</p>
                       </div>
                     </div>
 
@@ -596,7 +596,7 @@ export function AiOrNotGame() {
                       <div key={cat} className="rounded-xl p-2 bg-white/[0.03] border border-white/10">
                         <span className="text-xl block">{cfg.emoji}</span>
                         <p className="font-mono text-xs mt-1" style={{ color: cfg.color }}>{count}/{total}</p>
-                        <p className="font-mono text-2xs text-white/30">{cat === 'now' ? 'NOW' : cat === 'soon' ? 'SOON' : 'SCI-FI'}</p>
+                        <p className="font-mono text-2xs text-white/60">{cat === 'now' ? 'NOW' : cat === 'soon' ? 'SOON' : 'SCI-FI'}</p>
                       </div>
                     );
                   })}
@@ -623,7 +623,7 @@ export function AiOrNotGame() {
                 )}
               </div>
 
-              <p className="font-body text-xs text-white/30 max-w-xs">
+              <p className="font-body text-xs text-white/60 max-w-xs">
                 {ageBand === 'B' || ageBand === 'C'
                   ? 'Critical evaluation of AI capabilities is essential for informed decisions about technology\'s role in society.'
                   : 'You know what AI can really do \u2014 and what\'s still science fiction!'}

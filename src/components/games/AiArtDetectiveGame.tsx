@@ -410,7 +410,7 @@ export function AiArtDetectiveGame() {
                   >
                     <Palette className="w-6 h-6 text-orange-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Detection Tips</h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       {tipIdx + 1} of {DETECTION_TIPS.length}
                     </p>
                     <AnimatePresence mode="wait">
@@ -451,7 +451,7 @@ export function AiArtDetectiveGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                       aria-label="Skip learn cards and start playing"
                     >
                       Skip to game {'\u2192'}
@@ -474,7 +474,7 @@ export function AiArtDetectiveGame() {
                     {roundIdx > 0 && (
                       <div className="mb-3 max-w-xs mx-auto" role="status" aria-label={`Detection confidence: ${confidencePct}%`}>
                         <div className="flex justify-between mb-1">
-                          <span className="font-body text-2xs text-white/30">Detection Confidence</span>
+                          <span className="font-body text-2xs text-white/60">Detection Confidence</span>
                           <span className="font-data text-2xs font-bold" style={{ color: confidenceColor }}>{confidencePct}%</span>
                         </div>
                         {/* ENH: Animated confidence slider with spring physics + thumb indicator */}
@@ -512,7 +512,7 @@ export function AiArtDetectiveGame() {
                           <div className="bg-black/60 backdrop-blur-sm rounded-2xl px-6 py-4 text-center border border-orange-400/30">
                             <motion.span className="text-4xl block" animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.6, repeat: 2 }}>{'\uD83D\uDD75\uFE0F'}</motion.span>
                             <p className="font-display text-sm font-bold text-orange-300 mt-1">Detective Badge Earned!</p>
-                            <p className="font-body text-2xs text-white/40">3 correct detections</p>
+                            <p className="font-body text-2xs text-white/70">3 correct detections</p>
                           </div>
                         </motion.div>
                       )}
@@ -617,11 +617,11 @@ export function AiArtDetectiveGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You trained your eye to distinguish AI-generated art from human creations — a crucial skill in the age of generative AI.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#FFAA44]/10 border border-[#FFAA44]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#FFAA44' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI-generated art often has unnaturally smooth gradients and perfect symmetry</li>
                         <li>• Style analysis clues like texture, brushstrokes, and imperfections help identify human art</li>
                         <li>• Verifying art provenance is becoming essential as generative AI improves</li>

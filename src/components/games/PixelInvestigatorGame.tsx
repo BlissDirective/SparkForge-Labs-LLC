@@ -333,7 +333,7 @@ export function PixelInvestigatorGame() {
                         {round.tier}
                       </span>
                       <div className="flex-1" />
-                      <span className="font-mono text-2xs text-white/20">{ri + 1}/{rounds.length}</span>
+                      <span className="font-mono text-2xs text-white/55">{ri + 1}/{rounds.length}</span>
                       {streak >= 2 && <span className="font-display text-2xs font-bold text-amber-400">{'\u{1F525}'} x{streak}</span>}
                     </div>
 
@@ -341,7 +341,7 @@ export function PixelInvestigatorGame() {
                     <div className="flex items-center gap-1 mb-3">
                       <Zap className="w-3 h-3 text-amber-400" />
                       <span className="font-display text-xs font-bold text-amber-400">{pts} pts</span>
-                      <span className="font-body text-2xs text-white/20">available</span>
+                      <span className="font-body text-2xs text-white/55">available</span>
                     </div>
 
                     {/* Image display */}
@@ -365,7 +365,7 @@ export function PixelInvestigatorGame() {
                           style={{ backgroundColor: level <= revealLevel ? '#EC4899' : 'rgba(255,255,255,0.1)' }} />
                       ))}
                     </div>
-                    <p className="font-body text-2xs text-white/20 mb-3">{REVEAL_LABELS[revealLevel]}</p>
+                    <p className="font-body text-2xs text-white/55 mb-3">{REVEAL_LABELS[revealLevel]}</p>
 
                     {/* Result feedback */}
                     <AnimatePresence>
@@ -440,11 +440,11 @@ export function PixelInvestigatorGame() {
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-[#FF66AA]/10 border border-[#FF66AA]/20">
                       <p className="font-data text-2xl text-[#FF66AA]">{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Computer vision processes images from low-resolution features (shapes, colors) to fine details (textures, edges)</li>
                         <li>• Early neural network layers detect broad patterns, while deeper layers recognize specific objects</li>
                         <li>• Some objects are harder to distinguish than others — fine-grained classification is a real challenge in AI</li>

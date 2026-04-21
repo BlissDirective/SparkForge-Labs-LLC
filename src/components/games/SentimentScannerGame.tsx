@@ -236,7 +236,7 @@ export function SentimentScannerGame() {
                       <span className="text-xl">{'\u{1F60A}'}</span>
                     </div>
 
-                    <p className="font-mono text-xs text-white/20 text-center mb-3">
+                    <p className="font-mono text-xs text-white/55 text-center mb-3">
                       {ageBand === 'C' ? `Polarity: ${score.toFixed(3)} | Words: ${wordCount} | Emotional: ${hl.length}`
                         : `Mood: ${score > 0.3 ? 'Happy!' : score < -0.3 ? 'Sad' : 'Neutral'}`}
                     </p>
@@ -289,11 +289,11 @@ export function SentimentScannerGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You mastered sentiment analysis by writing sentences that triggered specific emotional responses — the same technique AI uses to understand opinions online!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#818CF8]/10 border border-[#818CF8]/20">
                       <p className="font-data text-2xl" style={{ color: '#818CF8' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Sentiment analysis scores text from negative to positive</li>
                         <li>• Emotion detection identifies feelings like joy, anger, and surprise in words</li>
                         <li>• NLP keyword matching is a simple but powerful way to gauge tone</li>

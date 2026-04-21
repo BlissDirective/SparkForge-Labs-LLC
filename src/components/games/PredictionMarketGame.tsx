@@ -348,7 +348,7 @@ export function PredictionMarketGame() {
                       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-4">
                         {/* ENH: Accuracy counter with animated number */}
                         <div className="flex items-center justify-center gap-3">
-                          <p className="font-body text-xs text-white/30">How others voted:</p>
+                          <p className="font-body text-xs text-white/60">How others voted:</p>
                           {totalVotes > 0 && (
                             <motion.span
                               key={predictionAccuracy}
@@ -373,7 +373,7 @@ export function PredictionMarketGame() {
                         >
                           {[{ label: 'Yes', pct: pred.mockResults.yes, color: '#10B981' }, { label: 'No', pct: pred.mockResults.no, color: '#EF4444' }, { label: 'Maybe', pct: pred.mockResults.maybe, color: '#F59E0B' }].map((r, rIdx) => (
                             <div key={r.label} className="flex items-center gap-2">
-                              <span className={`font-body text-xs w-12 text-right ${myVote === r.label.toLowerCase() ? 'text-white font-bold' : 'text-white/30'}`}>{r.label}</span>
+                              <span className={`font-body text-xs w-12 text-right ${myVote === r.label.toLowerCase() ? 'text-white font-bold' : 'text-white/60'}`}>{r.label}</span>
                               <div className="flex-1 h-6 bg-white/5 rounded overflow-hidden">
                                 {/* ENH: Spring physics on voting bars */}
                                 <motion.div className="h-full rounded" style={{ backgroundColor: r.color }}
@@ -445,11 +445,11 @@ export function PredictionMarketGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You evaluated AI predictions with critical thinking and learned that forecasting the future requires understanding both technology and uncertainty.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#D946EF]/10 border border-[#D946EF]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#D946EF' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI prediction accuracy depends on data quality, model design, and the inherent uncertainty of future events</li>
                         <li>• Probability and confidence calibration help us understand how sure we should be about AI forecasts</li>
                         <li>• Critical thinking about AI predictions means weighing evidence, expert analysis, and real-world constraints</li>

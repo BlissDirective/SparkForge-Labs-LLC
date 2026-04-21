@@ -288,7 +288,7 @@ export function ToolPickerGame() {
                           <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#00FF88' : '#EF4444' }}>
                             {feedback.correct ? '✅ Perfect pick!' : '❌ Not quite!'}
                           </p>
-                          <p className="font-body text-2xs text-white/40 mt-1">{feedback.why}</p>
+                          <p className="font-body text-2xs text-white/70 mt-1">{feedback.why}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -307,11 +307,11 @@ export function ToolPickerGame() {
                     <p className="font-body text-sm text-white/50 max-w-sm">You mastered the art of choosing the right AI tool for every task — knowing when to use each tool is a superpower.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#00FF88]/10 border border-[#00FF88]/20" role="status" aria-label={`Final score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#00FF88' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Different AI tools are specialized for different tasks like math, writing, or translation</li>
                         <li>• Choosing the right tool saves time and produces better results than forcing one tool to do everything</li>
                         <li>• Understanding AI tool specialization helps you work smarter with technology</li>
