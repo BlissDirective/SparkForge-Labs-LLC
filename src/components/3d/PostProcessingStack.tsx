@@ -7,8 +7,13 @@
 // are always active. No conditional checks, no device-based
 // degradation. Maximum visual fidelity at all times.
 //
-// Effects (render order):
-//   1. N8AO (SSAO)          — Ambient occlusion for depth
+// Renderer routing (P5 §10.8 Sub 3e):
+//   - WebGLRenderer  → this component's EffectComposer path below.
+//   - WebGPURenderer → delegates to PostProcessingStackWebGPU which
+//                      composes the same effects via TSL RenderPipeline.
+//
+// Effects (render order — both paths):
+//   1. N8AO (SSAO)          — Ambient occlusion for depth [WebGPU: deferred]
 //   2. Bloom                — Luminance-based glow
 //   3. ChromaticAberration  — RGB offset for sci-fi aesthetic
 //   4. DepthOfField         — Subtle tilt-shift focus
@@ -19,6 +24,7 @@
 //   9. BarrelDistortion     — Lens distortion (optional strength)
 
 import { useRef, useMemo, type JSX } from 'react';
+import { useThree } from '@react-three/fiber';
 import {
   EffectComposer,
   Bloom,
@@ -32,6 +38,8 @@ import {
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { BarrelDistortion } from './BarrelDistortion';
+import { PostProcessingStackWebGPU } from './PostProcessingStackWebGPU';
+import { isWebGPURenderer } from '@/lib/3d/webgpuRenderer';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Vector2 } from 'three';
@@ -74,6 +82,30 @@ export function PostProcessingStack({
   noiseOpacity = 0.06,
   barrelDistortion: barrelDist = 0.02,
 }: PostProcessingStackProps) {
+  // P5 §10.8 Sub 3e: Route to WebGPU stack when Canvas uses WebGPURenderer.
+  // The early return below delegates; the rest of this component defines
+  // the WebGL path using @react-three/postprocessing.
+  const gl = useThree((s) => s.gl);
+  if (isWebGPURenderer(gl)) {
+    return (
+      <PostProcessingStackWebGPU
+        bloomIntensity={bloomIntensity}
+        bloomThreshold={bloomThreshold}
+        bloomSmoothing={bloomSmoothing}
+        vignetteDarkness={vignetteDarkness}
+        vignetteOffset={vignetteOffset}
+        chromaticOffset={chromaticOffset}
+        ssaoIntensity={ssaoIntensity}
+        ssaoRadius={ssaoRadius}
+        dofFocusDistance={dofFocusDistance}
+        dofFocalLength={dofFocalLength}
+        dofBokehScale={dofBokehScale}
+        noiseOpacity={noiseOpacity}
+        barrelDistortion={barrelDist}
+      />
+    );
+  }
+
   const activeScene = useSceneStore((s) => s.activeScene);
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
