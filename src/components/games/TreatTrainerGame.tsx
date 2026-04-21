@@ -11,7 +11,7 @@ import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame, useGameActions } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -57,8 +57,8 @@ const TOTAL_EPISODES = 10;
 
 export function TreatTrainerGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
-  const { updateScore, advanceRound, completeGame } = useGameStore();
+  const game = useGame();
+  const { updateScore, advanceRound, completeGame } = useGameActions();
   const activeChild = useActiveChild();
   const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';

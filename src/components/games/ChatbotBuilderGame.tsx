@@ -26,7 +26,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "motion/react";
 import dynamic from "next/dynamic";
 import { GameShell } from "@/components/game/GameShell";
-import { useGameStore } from "@/stores/gameStore";
+import { useGame } from "@/stores/gameStore";
 import { useActiveChild } from '@/hooks/useChildren';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { useGameContent } from '@/hooks/useContent';
@@ -716,7 +716,7 @@ function TypingMessage({ text, isLatest, speed }: { text: string; isLatest: bool
 
 export function ChatbotBuilderGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const { safeTimeout } = useSafeTimeout();

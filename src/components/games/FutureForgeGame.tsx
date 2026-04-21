@@ -13,7 +13,7 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
@@ -281,7 +281,7 @@ const SCENARIOS: Scenario[] = [
 
 export default function FutureForgeGame() {
   const prefersReducedMotion = useReducedMotion();
-  const game = useGameStore();
+  const game = useGame();
   const ageBand = useActiveChild()?.age_band || 'B';
   const { data: dynamicContent } = useGameContent('future-forge', ageBand);
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
