@@ -23,9 +23,12 @@
 import { WebGLRenderer, type WebGLRendererParameters } from 'three';
 import { useDeviceStore } from '@/stores/deviceStore';
 
-export type RendererFactoryProps = WebGLRendererParameters & {
-  canvas: HTMLCanvasElement | OffscreenCanvas;
-};
+// Loose structural type — R3F passes its own DefaultGLProps in (which
+// includes an OffscreenCanvas from lib.webworker, not lib.dom), so we
+// accept any object and cast at the call sites. This sidesteps the
+// "two unrelated OffscreenCanvas types" conflict when both lib.dom and
+// lib.webworker type declarations are in scope.
+export type RendererFactoryProps = Record<string, unknown>;
 
 /** Narrow guard — true only when the renderer is a WebGPURenderer instance. */
 export function isWebGPURenderer(renderer: unknown): boolean {
@@ -56,8 +59,8 @@ async function createWebGPURenderer(props: RendererFactoryProps) {
 
   const renderer = new WebGPURenderer({
     canvas: props.canvas as HTMLCanvasElement,
-    antialias: props.antialias ?? true,
-    alpha: props.alpha ?? true,
+    antialias: (props.antialias as boolean | undefined) ?? true,
+    alpha: (props.alpha as boolean | undefined) ?? true,
     // WebGPU prefers a forced device-pixel ratio; leave at 1 and let R3F
     // dpr prop take precedence (same as WebGL path).
     powerPreference: 'high-performance',
@@ -91,7 +94,7 @@ export async function createRenderer(
 ): Promise<WebGLRenderer | Awaited<ReturnType<typeof createWebGPURenderer>>> {
   // SSR guard — this function is only called client-side, but be defensive.
   if (typeof window === 'undefined') {
-    return new WebGLRenderer(props);
+    return new WebGLRenderer(props as WebGLRendererParameters);
   }
 
   const gpuTier = useDeviceStore.getState().gpuTier;
@@ -103,7 +106,7 @@ export async function createRenderer(
       // eslint-disable-next-line no-console
       console.info('[Renderer] Using WebGLRenderer (tier: webgl2)');
     }
-    return new WebGLRenderer(props);
+    return new WebGLRenderer(props as WebGLRendererParameters);
   }
 
   // WebGPU-tier device detected. Attempt GPU renderer with fallback.
@@ -114,6 +117,6 @@ export async function createRenderer(
       // eslint-disable-next-line no-console
       console.warn('[Renderer] WebGPU init failed, falling back to WebGLRenderer:', err);
     }
-    return new WebGLRenderer(props);
+    return new WebGLRenderer(props as WebGLRendererParameters);
   }
 }
