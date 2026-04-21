@@ -63,6 +63,12 @@ interface UIState {
    *  In production, toggleable by admin users in Settings panel (COCK-13). */
   showPerfStats: boolean;
   setShowPerfStats: (show: boolean) => void;
+  /** T15a PERF-MED-003 (Opt A): Performance mode disables the two most
+   *  expensive post-processing effects (DepthOfField + SSAO/N8AO). All
+   *  other effects stay on — D3D-5 is otherwise honored. Persists in
+   *  localStorage per child. Surfaced as a toggle in Settings. */
+  performanceMode: boolean;
+  setPerformanceMode: (enabled: boolean) => void;
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
   triggerCelebration: (type: CelebrationType, data?: Record<string, unknown>) => void;
@@ -104,9 +110,11 @@ export const useUIStore = create<UIState>()(
   particleIntensity: 'medium',
   skipIntroAnimation: false,
   showPerfStats: false,
+  performanceMode: false,
   // gameActive/setGameActive removed — D3D-B1: use sceneStore.enterGame/exitGame
   setSkipIntroAnimation: (skipIntroAnimation) => set({ skipIntroAnimation }),
   setShowPerfStats: (showPerfStats) => set({ showPerfStats }),
+  setPerformanceMode: (performanceMode) => set({ performanceMode }),
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   triggerCelebration: (type, data = {}) => set({ showCelebration: true, celebrationType: type, celebrationData: data }),
@@ -143,9 +151,13 @@ export const useUIStore = create<UIState>()(
       name: 'sparkforge-ui',
       version: 1,
       // Only persist the a11y slice (preserves parity with the old
-      // `sparkforge-a11y` store). sidebarOpen / celebration / labColor
-      // are transient UI state — reload should reset them.
-      partialize: (state) => ({ a11y: state.a11y }),
+      // `sparkforge-a11y` store) + performanceMode (T15a — a child
+      // on a weaker machine wants the choice to stick across reloads).
+      // sidebarOpen / celebration / labColor are transient UI state.
+      partialize: (state) => ({
+        a11y: state.a11y,
+        performanceMode: state.performanceMode,
+      }),
       storage: createJSONStorage(() => {
         if (typeof window === 'undefined') {
           return {
