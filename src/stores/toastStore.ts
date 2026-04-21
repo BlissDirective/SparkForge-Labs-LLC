@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { useShallow } from 'zustand/react/shallow';
 
 export type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -70,6 +71,25 @@ export const useToastStore = create<ToastState>((set) => ({
 
   clearAll: () => set({ toasts: [] }),
 }));
+
+// ═══ SELECTOR HOOKS (PERF-HIGH-001 Opt C) ═══
+// Narrow subscription to the `toasts` array only. Consumers that only
+// render the list (ToastContainer) subscribe here.
+export function useToasts(): Toast[] {
+  return useToastStore((s) => s.toasts);
+}
+
+// Shallow-stable bundle of the 3 action methods. Actions never change
+// identity in Zustand, so re-renders effectively never happen here.
+export function useToastActions() {
+  return useToastStore(
+    useShallow((s) => ({
+      addToast: s.addToast,
+      removeToast: s.removeToast,
+      clearAll: s.clearAll,
+    })),
+  ) as Pick<ToastState, 'addToast' | 'removeToast' | 'clearAll'>;
+}
 
 // ═══ CONVENIENCE FUNCTIONS ═══
 export const toast = {

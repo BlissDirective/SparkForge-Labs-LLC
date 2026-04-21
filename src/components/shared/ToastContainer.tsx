@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'motion/react';
-import { useToastStore, type ToastType } from '@/stores/toastStore';
+import { useToasts, useToastActions, type ToastType } from '@/stores/toastStore';
 import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react';
 
 const TOAST_ICONS: Record<ToastType, React.ReactNode> = {
@@ -19,7 +19,9 @@ const TOAST_BORDERS: Record<ToastType, string> = {
 };
 
 export function ToastContainer() {
-  const { toasts, removeToast } = useToastStore();
+  // PERF-HIGH-001 (Opt C): narrow list subscription + stable action bundle.
+  const toasts = useToasts();
+  const { removeToast } = useToastActions();
 
   return (
     <div
