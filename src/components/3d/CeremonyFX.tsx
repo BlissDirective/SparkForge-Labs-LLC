@@ -23,6 +23,16 @@ import {
 } from '@/lib/3d/cockpitDesignTokens';
 import type { CelebrationTier } from '@/lib/3d/cockpitDesignTokens';
 import { fireHaptic } from '@/lib/haptic/hapticSim';
+// P5 §10.8 Sub 6: GPU compute dispatch + GPU-rendered sub-components.
+// When the compute system returns non-null (WebGPU renderer), the GPU
+// variants below replace the CPU-driven ones.
+import { useCeremonyCompute } from '@/hooks/useCeremonyCompute';
+import {
+  GpuConfettiBurst,
+  GpuFireworkBursts,
+  GpuTrophyPopup,
+  GpuParticleShower,
+} from './CeremonyFXGpu';
 import {
   Color,
   DoubleSide,
@@ -684,8 +694,6 @@ export function CeremonyFX({
     }
   });
 
-  if (!active || completed) return null;
-
   const config = CEREMONY_CONFIG[type];
 
   // Particle counts from CELEBRATION_TIERS (desktop-ultra: full quality always)
@@ -693,19 +701,50 @@ export function CeremonyFX({
   const fireworkPerBurst = Math.round(60);
   const showerCount = Math.round(120);
 
+  // P5 §10.8 Sub 6: GPU compute dispatch. Non-null only when renderer
+  // is WebGPU AND ceremony is active — on WebGL2, gpuSystem stays
+  // null and the CPU branch below renders.
+  //
+  // Hook must run unconditionally (rules-of-hooks) — early return was
+  // moved below this call.
+  const gpuSystem = useCeremonyCompute({
+    active,
+    labColor,
+    duration,
+    elapsedRef,
+    archetypes: (['confetti', 'firework', 'trophy', 'shower'] as const).filter((a) => {
+      if (a === 'confetti') return config.confetti;
+      if (a === 'firework') return config.fireworks;
+      if (a === 'trophy') return config.trophy;
+      if (a === 'shower') return config.shower;
+      return false;
+    }) as ('confetti' | 'firework' | 'trophy' | 'shower')[],
+  });
+
+  if (!active || completed) return null;
+
   return (
     <group>
-      {config.confetti && (
+      {/* GPU path — only when renderer is WebGPU. Mounts nothing on WebGL2. */}
+      {gpuSystem && config.confetti && <GpuConfettiBurst system={gpuSystem} />}
+      {gpuSystem && config.fireworks && <GpuFireworkBursts system={gpuSystem} />}
+      {gpuSystem && config.trophy && <GpuTrophyPopup system={gpuSystem} />}
+      {gpuSystem && config.shower && <GpuParticleShower system={gpuSystem} />}
+
+      {/* CPU path — authoritative when renderer is WebGL2 (gpuSystem null) */}
+      {!gpuSystem && config.confetti && (
         <ConfettiBurst elapsedRef={elapsedRef} count={confettiCount} labColor={labColor} duration={duration} />
       )}
-      {config.fireworks && (
+      {!gpuSystem && config.fireworks && (
         <FireworkBursts elapsedRef={elapsedRef} particlesPerBurst={fireworkPerBurst} labColor={labColor} />
       )}
-      {config.trophy && <TrophyPopup elapsedRef={elapsedRef} duration={duration} />}
-      {config.hudRings && <HUDRings elapsedRef={elapsedRef} labColor={labColor} />}
-      {config.shower && (
+      {!gpuSystem && config.trophy && <TrophyPopup elapsedRef={elapsedRef} duration={duration} />}
+      {!gpuSystem && config.shower && (
         <ParticleShower elapsedRef={elapsedRef} count={showerCount} labColor={labColor} duration={duration} />
       )}
+
+      {/* HUD rings stay CPU on both paths — only 3 low-cost objects. */}
+      {config.hudRings && <HUDRings elapsedRef={elapsedRef} labColor={labColor} />}
 
       {/* Decision 18.3: Bloom pulse emitter — a central glow sphere driven by heartbeat rhythm */}
       <mesh ref={bloomMeshRef} position={[0, 1.0, 0]} visible={false}>
