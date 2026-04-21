@@ -27,6 +27,10 @@ import {
   EMISSIVE_SCALE,
   HOVER_GLOW,
 } from '@/lib/3d/cockpitDesignTokens';
+// UX-MED-001 (A): auto-save indicator anchored to top-right of HUD band
+import { SaveIndicator3D } from '@/components/3d/game-ui/SaveIndicator3D';
+// UX-MED-002 (T10b): pause button, top-center, above HUD band
+import { PauseButton3D } from '@/components/3d/game-ui/PauseButton3D';
 
 // ═══════════════════════════════════════════════════════════════
 // CONSTANTS
@@ -382,7 +386,20 @@ export function GameHUD3D({
             </Text>
           </group>
         )}
+
+        {/* UX-MED-001 (A): Auto-save indicator. Sits just to the
+            right of the HUD band proper so it doesn't overlap score
+            or timer readouts. Hidden when idle. */}
+        <SaveIndicator3D position={[HUD_WIDTH / 2 + 0.12, 0, 0.003]} />
       </group>
+
+      {/* UX-MED-002 (T10b): Pause button. Positioned ABOVE the HUD
+          band so its hex prism doesn't overlap score / round /
+          timer readouts. Coordinates are relative to the HUD's
+          parent group; the +0.4 Y offset places the button at
+          roughly top-of-viewport when the HUD is at its baseline
+          game position. */}
+      <PauseButton3D position={[0, 0.4, 0]} />
     </group>
   );
 }

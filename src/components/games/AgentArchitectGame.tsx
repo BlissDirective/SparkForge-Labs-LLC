@@ -14,7 +14,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameActions } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
@@ -485,7 +485,7 @@ export function AgentArchitectGame() {
   // PERF-HIGH-001 (C): useGameActions subscribes only to stable
   // action references; avoids re-renders on score/phase/timer ticks.
   const game = useGameActions();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('agent-architect', ageBand);
   const { safeTimeout } = useSafeTimeout();

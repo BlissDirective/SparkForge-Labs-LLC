@@ -49,6 +49,16 @@ Run **in order** after the stage-specific files above. These resolve Critical se
 | 15 | `010_rls_belt_and_suspenders.sql` | DB-CRIT-002 (5C) | Defensive: re-asserts `ENABLE ROW LEVEL SECURITY` on every protected table. Idempotent — safe to re-run. Emits warnings for any unprotected public table. |
 | n/a | `verify_rls.sql` | DB-CRIT-002 (5C) | Verification script (NOT a migration). Run via psql or `supabase db execute -f sql/verify_rls.sql` to confirm RLS coverage. Throws exception if any public table lacks RLS or has no policies. Invoked by CI on every PR. |
 
+## Phase 3 Audit Migrations (Final-Audit_04-15-2026.md)
+
+Run after the Phase 2 migrations (011–015). These resolve Medium-severity findings.
+
+| Order | File | Audit Finding | Description |
+|-------|------|---------------|-------------|
+| 23 | `016_perf_indexes.sql` | DB-MED-001 (B) | Composite performance indexes matching actual query shapes in `tierCheck.ts`: `idx_prompt_history_child_created`, partial `idx_progress_child_completed_at` (WHERE completed=true), `idx_subscription_events_parent_created`. Idempotent. Ends with DO $$ verification block. |
+| 24 | `017_subscription_events_fk_cleanup.sql` | DB-MED-002 (B) | Replaces the implicit `ON DELETE NO ACTION` on `subscription_events.parent_id` with `ON DELETE SET NULL`, unblocking parent deletion (PAY-MED-003 flow) while preserving audit history. Adds `cleanup_orphaned_subscription_events()` SECURITY DEFINER function and a daily pg_cron job (00:20 UTC) that deletes NULL-parent rows older than 90 days. Skips cleanly on Supabase Free (no pg_cron). |
+| 25 | `018_content_slug_enforce.sql` | DB-MED-003 (B) | Backfills NULL/empty slugs via a new `slugify(TEXT)` helper, then `ALTER COLUMN slug SET NOT NULL DEFAULT ''`. Adds a BEFORE INSERT trigger (`trg_content_auto_slug`) that auto-generates `slugify(title)||'-'||<8-hex>` when the caller omits slug. Idempotent. Post-apply DO block verifies 0 null/empty rows + NOT NULL + trigger installed. |
+
 ## Archived Files (Do NOT Run)
 
 These have been merged into canonical files above. Kept for historical reference only.

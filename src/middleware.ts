@@ -77,6 +77,107 @@ function shouldEnforceCsrf(request: NextRequest, pathname: string): boolean {
   return true;
 }
 
+// ────────────────────────────────────────────────────────────────────
+// API-MED-001 (B): Route-pattern request-body size limits.
+//
+// Next.js 15 App Router doesn't honour the old Pages-style
+// `config.api.bodyParser.sizeLimit`, so we enforce at the edge via the
+// `content-length` header. Content-Length can technically be lied
+// about, but Vercel's edge load balancer rejects mismatches and all
+// standard HTTP clients set it honestly — this is a cheap cap against
+// accidental or casually-malicious large payloads.
+//
+// Limits per route pattern:
+//   auth routes      → 10kb  (email + password + captcha token)
+//   webhook          → 5mb   (Stripe event bodies)
+//   content agent    → 500kb (AI-generated content blobs)
+//   default /api/*   → 100kb (game data, XP, progress, etc.)
+// ────────────────────────────────────────────────────────────────────
+
+const KB = 1024;
+const MB = 1024 * 1024;
+
+interface BodyLimitRule {
+  match: (pathname: string) => boolean;
+  maxBytes: number;
+  label: string;
+}
+
+const BODY_LIMIT_RULES: ReadonlyArray<BodyLimitRule> = [
+  // Webhook must allow full Stripe payloads (~800KB is common on
+  // expanded customer/subscription events).
+  {
+    match: (p) => p === '/api/stripe/webhook',
+    maxBytes: 5 * MB,
+    label: 'stripe-webhook-5mb',
+  },
+  // Auth routes carry only credentials + optional CAPTCHA token
+  // (<4kb). Cap tight so credential-stuffing floods with huge bodies
+  // are cheap to reject.
+  {
+    match: (p) => p.startsWith('/api/auth/'),
+    maxBytes: 10 * KB,
+    label: 'auth-10kb',
+  },
+  // Admin content and agent pipeline accept full prompt/content
+  // bodies. Bump to 500kb — larger than any legitimate AI-generated
+  // blob today, still well under the webhook cap.
+  {
+    match: (p) =>
+      p.startsWith('/api/agent/') ||
+      p.startsWith('/api/admin/content') ||
+      p.startsWith('/api/ai/'),
+    maxBytes: 500 * KB,
+    label: 'content-500kb',
+  },
+];
+
+const DEFAULT_API_BODY_LIMIT = 100 * KB;
+
+function bodyLimitFor(pathname: string): { maxBytes: number; label: string } {
+  for (const rule of BODY_LIMIT_RULES) {
+    if (rule.match(pathname)) {
+      return { maxBytes: rule.maxBytes, label: rule.label };
+    }
+  }
+  return { maxBytes: DEFAULT_API_BODY_LIMIT, label: 'api-default-100kb' };
+}
+
+function bodyTooLargeResponse(label: string, maxBytes: number): NextResponse {
+  return NextResponse.json(
+    {
+      success: false,
+      error: 'Request body exceeds the allowed size for this endpoint.',
+      code: 'PAYLOAD_TOO_LARGE',
+      limit: `${Math.round(maxBytes / 1024)}kb`,
+      policy: label,
+    },
+    { status: 413 },
+  );
+}
+
+/**
+ * Inspect the Content-Length header for state-mutating API requests
+ * and reject payloads larger than the route's configured ceiling.
+ * Returns a 413 response if over-limit, null otherwise.
+ */
+function checkBodySize(request: NextRequest): NextResponse | null {
+  const { pathname } = request.nextUrl;
+  if (!pathname.startsWith('/api/')) return null;
+  if (!isStateMutatingMethod(request.method)) return null;
+
+  const raw = request.headers.get('content-length');
+  if (!raw) return null; // GET with no body, or chunked encoding
+  const length = Number.parseInt(raw, 10);
+  if (Number.isNaN(length) || length < 0) return null;
+
+  const { maxBytes, label } = bodyLimitFor(pathname);
+  if (length > maxBytes) {
+    return bodyTooLargeResponse(label, maxBytes);
+  }
+  return null;
+}
+
 function csrfFailure(): NextResponse {
   return NextResponse.json(
     {
@@ -172,6 +273,13 @@ export async function middleware(request: NextRequest) {
     NextResponse.next({ request: { headers: forwardedHeaders } }),
     cspValue,
   );
+
+  // API-MED-001 (B): Reject over-sized request bodies before any
+  // further processing (auth, CSRF verification, body parsing).
+  // Runs first so a 5MB bogus payload doesn't cost us either a
+  // Supabase auth.getUser() round-trip or an HMAC CSRF verification.
+  const bodyLimitResp = checkBodySize(request);
+  if (bodyLimitResp) return withCsp(bodyLimitResp, cspValue);
 
   // AUTH-HIGH-004 (A): CSRF validation for state-mutating API requests.
   // Runs before auth so a forged cross-site POST is rejected even if

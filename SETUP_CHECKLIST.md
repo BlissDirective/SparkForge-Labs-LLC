@@ -35,6 +35,12 @@
   - [ ] In **Authentication → URL Configuration**, set:
     - **Site URL** = `https://<your-prod-domain>` (or `http://localhost:3000` during dev)
     - **Redirect URLs** includes `https://<your-prod-domain>/api/auth/callback` (and your dev variant)
+- [ ] **AUTH-MED-003 — Enable CAPTCHA** (adds a CAPTCHA after repeated failed login / signup attempts; mitigates account enumeration + credential stuffing):
+  - [ ] Pick a provider: **hCaptcha** (recommended — free tier, GDPR-friendly) or **Cloudflare Turnstile**
+  - [ ] Create a **site + secret key pair** in the provider dashboard
+  - [ ] Supabase dashboard → **Authentication → Settings → Attack Protection → Enable CAPTCHA protection** → choose provider → paste **secret key**
+  - [ ] Set env vars on Vercel: `NEXT_PUBLIC_CAPTCHA_PROVIDER=hcaptcha` (or `turnstile`) and `NEXT_PUBLIC_CAPTCHA_SITE_KEY=<site key>`
+  - [ ] The server routes already forward `captchaToken` to Supabase; when enabled without the widget rendered client-side, users will see a 422 CAPTCHA_REQUIRED error on login/signup. Phase 3 Part 2 / Phase 4 UX work will add the widget component.
 
 ## 1.2 Run SQL Migrations — IN ORDER
 
@@ -64,6 +70,9 @@ Open **SQL Editor** in the Supabase dashboard and run these files **one at a tim
 | 20 | **`sql/013_content_admin_tighten.sql`** (Phase 2 audit) | **DB-HIGH-001: drops the overly broad `content_admin_all FOR ALL` policy and splits it into SELECT / INSERT / UPDATE (no DELETE so admins cannot hard-delete content). Adds `content.updated_by` + `content.update_reason` audit columns.** |
 | 21 | **`sql/014_audit_log.sql`** (Phase 2 audit) | **DB-HIGH-002: creates generic `audit_log` table + `audit_trigger()` SECURITY DEFINER function attached to `parents`, `children`, `content`, `content_queue`, `subscription_events` for INSERT/UPDATE/DELETE. Admin-read-only RLS. 90-day pg_cron retention job (`audit-log-retention`, 00:15 UTC).** |
 | 22 | **`sql/015_pg_cron_daily_resets.sql`** (Phase 2 audit) | **DB-HIGH-003: schedules `daily-reset-prompts` (00:00 UTC), `daily-reset-xp` (00:02 UTC), and `weekly-reset-games` (Mon 00:04 UTC) pg_cron jobs that actively zero stale `children` counters. BEFORE UPDATE triggers + app-level `reset_date >= today` guards remain as defense-in-depth. Skips cleanly on Supabase Free (no pg_cron).** |
+| 23 | **`sql/016_perf_indexes.sql`** (Phase 3 audit) | **DB-MED-001: 3 composite indexes that match the exact query shapes emitted by `tierCheck.ts` (`checkPromptLimit`, `checkGameLimit`) and the admin subscription-events listing. Partial index on `progress(child_id, completed_at) WHERE completed = true` keeps the index tiny for Free-tier usage. Ends with a DO $$ verification block that fails loudly if any expected index is missing.** |
+| 24 | **`sql/017_subscription_events_fk_cleanup.sql`** (Phase 3 audit) | **DB-MED-002: switches `subscription_events.parent_id` FK to `ON DELETE SET NULL` (unblocks PAY-MED-003 delete-account flow, preserves audit history) and schedules a daily pg_cron job at 00:20 UTC that removes NULL-parent rows older than 90 days. Skips cleanup schedule on Supabase Free.** |
+| 25 | **`sql/018_content_slug_enforce.sql`** (Phase 3 audit) | **DB-MED-003: makes `content.slug` NOT NULL with `DEFAULT ''`, backfills existing NULL/empty slugs via a new immutable `slugify(TEXT)` helper, and installs a BEFORE INSERT trigger that auto-generates `slugify(title)||'-'||<8-hex>` when a caller omits slug. Prevents unreachable content rows that break `/api/content/[slug]` lookup.** |
 
 ### Verify Phase 1 audit migrations (after running 008–010)
 
@@ -186,6 +195,32 @@ WHERE table_name = 'children' AND column_name IN (
 ```
 
 Must return 3 rows (post Gap 3 archive migration + Phase 2 audit 012 daily-XP counters).
+
+## 1.2.1 Connection Pooling (DB-MED-004)
+
+SparkForge talks to Postgres exclusively through **`supabase-js`**, which
+goes via **PostgREST** over HTTPS — Supabase's hosted PostgREST instance
+has its own internal connection pool (15 conns on Free, 60 on Pro), so
+the app itself never opens raw Postgres connections. **No code change is
+required for DB-MED-004.**
+
+That said, Supabase offers **Supavisor** (its Supabase-flavoured
+PgBouncer) for any code path that needs a raw Postgres connection
+(migration scripts, one-off psql sessions, future backend services):
+
+| Port | Mode | When to use |
+|------|------|-------------|
+| 5432 | Direct session mode | Interactive psql, schema migrations, anything using `LISTEN` / `NOTIFY` / session-level `SET` |
+| **6543** | **Supavisor transaction mode (pgbouncer-style)** | **Default for any serverless / Lambda-style client — lightweight pooled connections. Cannot be used with `LISTEN`, prepared statements, or session-level GUCs (`SET LOCAL` in a txn is fine).** |
+
+Audit of the current codebase found **zero uses** of `LISTEN`, prepared
+statements, or session-mode GUCs in application code — only `supabase.rpc('...')` invocations which are single-SQL calls and pooler-safe. If
+you ever add a raw-pg client (e.g. `postgres.js`, `pg`, or `drizzle`), default to **port 6543** unless you know you need session mode.
+
+Verify your Supabase project's direct + pooled connection strings at:
+**Supabase Dashboard → Project Settings → Database → Connection string**.
+
+---
 
 ## 1.3 Create First Admin User (recommended)
 

@@ -92,6 +92,19 @@ export async function apiFetch<T>(
   const json: ApiResponse<T> = await res.json();
 
   if (!res.ok || !json.success) {
+    // AUTH-MED-002 (B): when the server returns CONSENT_REQUIRED, route
+    // the parent to the consent flow. Done pre-throw so the caller's
+    // error handler still runs (e.g., suppressing a transient toast)
+    // but the navigation is already queued — the throw below will
+    // typically unmount the caller before it surfaces the error.
+    if (
+      json.code === 'CONSENT_REQUIRED' &&
+      typeof window !== 'undefined' &&
+      !window.location.pathname.startsWith('/onboarding/consent') &&
+      !window.location.pathname.startsWith('/signup')
+    ) {
+      window.location.assign('/onboarding/consent');
+    }
     throw new ApiError(
       json.error || 'Something went wrong',
       json.code || 'UNKNOWN',

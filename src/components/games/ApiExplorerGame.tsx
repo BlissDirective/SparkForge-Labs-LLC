@@ -25,7 +25,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
@@ -456,7 +456,7 @@ function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: 
 export function ApiExplorerGame() {
   const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const { safeTimeout, safeInterval } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: _dynamicContent } = useGameContent('api-explorer', ageBand);

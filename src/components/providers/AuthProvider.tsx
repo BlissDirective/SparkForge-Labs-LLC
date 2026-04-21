@@ -2,19 +2,27 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { useQueryClient } from '@tanstack/react-query';
 import { createClient } from '@/lib/supabase/client';
 import { useAuthStore } from '@/stores/authStore';
 import { useChildStore } from '@/stores/childStore';
 import { demoSessionFromUser } from '@/lib/demo-session';
 import { LoadingScreen } from '@/components/shared/LoadingScreen';
 import type { User } from '@supabase/supabase-js';
+import type { Child } from '@/types';
 
 const supabase = createClient();
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   const { setParent, setLoading: setAuthLoading, setDemoSession, clearAuth } = useAuthStore();
-  const { setChildren, setActiveChild, clearChild } = useChildStore();
+  // STATE-MED-001 (B-full/T5c-C4): childStore is UI-only. children
+  // list lives in React Query cache (['children']); AuthProvider
+  // pre-populates it during hydrateUserData so useChildren() sees
+  // data before its first network fetch resolves.
+  const setActiveChildId = useChildStore((s) => s.setActiveChildId);
+  const clearChild = useChildStore((s) => s.clearChild);
+  const qc = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
 
@@ -25,6 +33,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         setAuthLoading(true);
 
+        // STATE-MED-002 (B): rehydrate the persisted demo slice FIRST
+        // so first-paint reflects the cached state. We then validate
+        // against Supabase and clear the cache if the session is gone.
+        // skipHydration=true in the store means this is an explicit
+        // call (no automatic rehydrate on module load).
+        await useAuthStore.persist.rehydrate();
+
         // AUTH-CRIT-002 (2B): Demo users now have real Supabase anonymous
         // sessions. `is_anonymous` is the authoritative signal; we no
         // longer read localStorage for demo state.
@@ -34,7 +49,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (session.user.is_anonymous) {
             await hydrateDemoSession(session.user);
           } else {
+            // STATE-MED-002 (B): non-anonymous session means any
+            // persisted demo cache is stale — clear it.
+            useAuthStore.getState().endDemoSession();
             await hydrateUserData(session.user.id);
+          }
+        } else if (mounted) {
+          // No Supabase session at all — clear any cached demo state
+          // so the login page doesn't show a phantom demo banner.
+          const { isDemoMode } = useAuthStore.getState();
+          if (isDemoMode) {
+            useAuthStore.getState().endDemoSession();
           }
         }
       } catch (error) {
@@ -78,7 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
 
-      // Fetch children
+      // Fetch children + seed the React Query cache so useChildren()
+      // subscribers render immediately without a second network trip.
       const { data: kids } = await supabase
         .from('children')
         .select('*')
@@ -86,7 +112,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .order('created_at', { ascending: true });
 
       if (kids && mounted) {
-        setChildren(kids);
+        // T5c-C4: populate ['children'] cache (React Query owns the
+        // list). Any consumer of useChildren() / useActiveChild() will
+        // see this data on next render.
+        qc.setQueryData<Child[]>(['children'], kids as Child[]);
 
         // Auto-select first child if none selected
         if (kids.length > 0) {
@@ -96,7 +125,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const activeChild = stored
             ? kids.find((k: { id: string }) => k.id === stored) || kids[0]
             : kids[0];
-          setActiveChild(activeChild);
+          setActiveChildId(activeChild.id);
         }
       }
     }

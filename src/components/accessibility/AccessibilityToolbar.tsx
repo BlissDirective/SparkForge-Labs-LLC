@@ -6,20 +6,18 @@
 'use client';
 
 import { motion } from 'motion/react';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 import { Moon, Type, Eye, Zap } from 'lucide-react';
 
 export function AccessibilityToolbar() {
-  const {
-    fontSize,
-    setFontSize,
-    dyslexiaFont,
-    toggleDyslexiaFont,
-    reduceMotion,
-    toggleReduceMotion,
-    highContrast,
-    toggleHighContrast,
-  } = useA11yStore();
+  const { fontSize, dyslexiaFont, reduceMotion, highContrast } = useUIStore(
+    (s) => s.a11y,
+  );
+  const setFontSize = useUIStore((s) => s.setFontSize);
+  const toggleDyslexiaFont = useUIStore((s) => s.toggleDyslexiaFont);
+  const toggleReduceMotion = useUIStore((s) => s.toggleReduceMotion);
+  const toggleHighContrast = useUIStore((s) => s.toggleHighContrast);
 
   return (
     <div className="space-y-4">

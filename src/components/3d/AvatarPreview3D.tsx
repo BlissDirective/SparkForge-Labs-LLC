@@ -17,7 +17,8 @@ import {
   OctahedronGeometry,
   SphereGeometry,
 } from 'three';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 interface AvatarPreview3DProps {
   shapeIndex: number;
@@ -50,7 +51,7 @@ export default function AvatarPreview3D({
   const scaleRef = useRef(1);
   const [currentIndex, setCurrentIndex] = useState(shapeIndex);
   const [morphPhase, setMorphPhase] = useState<'idle' | 'shrink' | 'grow'>('idle');
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
 
   // Clamp shape index to valid range
   const safeIndex = Math.max(0, Math.min(5, currentIndex));

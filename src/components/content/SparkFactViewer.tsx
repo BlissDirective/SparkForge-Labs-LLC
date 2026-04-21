@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Zap } from 'lucide-react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { WORLDS } from '@/types';
 import type { Content } from '@/types';
@@ -12,7 +12,7 @@ import { useState } from 'react';
 
 export function SparkFactViewer({ content }: { content: Content }) {
   const router = useRouter();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const completeAndReward = useCompleteAndReward();
   const [completing, setCompleting] = useState(false);
 

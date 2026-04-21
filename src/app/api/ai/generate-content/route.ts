@@ -5,7 +5,14 @@
 // See: flagship-game-content-audit(04.06.2026).md, flagship-lite-game-content-audit(04.08.2026).md
 import { NextRequest } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
-import { apiSuccess, apiError, parseBody, requireAuth, applyRateLimit } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  parseBody,
+  requireAuth,
+  applyRateLimit,
+  sanitizeErrorMessage,
+} from '@/lib/api-helpers';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 import { createServerSupabase } from '@/lib/supabase/server';
 import {
@@ -197,7 +204,13 @@ export async function POST(req: NextRequest) {
 
     return apiSuccess(response);
   } catch (err) {
-    const errMessage = err instanceof Error ? err.message : 'Unknown error';
-    return apiError(`AI generation failed: ${errMessage}`, 500, 'AI_GENERATION_ERROR');
+    // API-MED-002 (B): log full error; sanitize response so we don't
+    // leak Anthropic request IDs or prompt internals.
+    console.error('[ai/generate-content] failed:', err);
+    return apiError(
+      sanitizeErrorMessage(err, 'AI generation failed'),
+      500,
+      'AI_GENERATION_ERROR',
+    );
   }
 }

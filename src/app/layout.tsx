@@ -11,6 +11,7 @@ import './globals.css';
 import './globals-a11y.css';
 import QueryProvider from '@/components/providers/QueryProvider';
 import { A11yProvider } from '@/components/accessibility/A11yProvider';
+import { BrightnessEffect } from '@/components/accessibility/BrightnessEffect';
 import { LenisProvider } from '@/components/providers/LenisProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
@@ -94,7 +95,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html
+      lang="en"
+      className="dark"
+      style={{ colorScheme: 'dark' }}
+      suppressHydrationWarning
+    >
       <head>
         {/* Google Fonts — CDN with preconnect + display=swap */}
         {/* DES-06: next/font/google requires build-time internet (unavailable in CI).
@@ -119,6 +125,10 @@ export default function RootLayout({
         <A11yProvider>
           <ErrorBoundary>
             <QueryProvider>
+              {/* UX-MED-005 (A): mirror cockpitStore.brightness to
+                  --sf-brightness; read by body-level filter rule in
+                  globals.css (canvas elements excluded). */}
+              <BrightnessEffect />
               {/* Phase 4 §10.4: Lenis smooth scroll provider. Momentum-based
                   scrolling for all scrollable views. Respects prefers-reduced-motion. */}
               <LenisProvider>

@@ -4,7 +4,7 @@ import { motion } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Check, ChevronRight, Gamepad2, Zap } from 'lucide-react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { useChildProgress } from '@/hooks/useProgress';
 import { WORLDS } from '@/types';
@@ -182,7 +182,7 @@ function MarkdownContent({ markdown }: { markdown: string }) {
 
 export function LessonViewer({ content }: { content: Content }) {
   const router = useRouter();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const childId = activeChild?.id || '';
   const completeAndReward = useCompleteAndReward();
   const { data: allProgress } = useChildProgress(childId);

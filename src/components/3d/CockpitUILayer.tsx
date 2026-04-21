@@ -4,7 +4,8 @@
 // CockpitUILayer — Master 3D UI Orchestrator (Phase 2)
 // ════════════════════════════════════════════════════════════════
 // Renders Left, Center, Right, and Bottom UI quadrants inside the
-// cockpit scene. Reads cockpitUIStore to swap center content per route.
+// cockpit scene. Reads cockpitStore.centerContent (was cockpitUIStore —
+// merged in Phase 3 Part 2 R1) to swap center content per route.
 // Reacts to the active CockpitMode for opacity, scale, and offset.
 //
 // Per SparkForge-Full-ControlScreen.json §quadrant_layout:
@@ -20,8 +21,7 @@ import React, { useRef, Suspense, lazy } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Group } from 'three';
 import { MathUtils } from 'three';
-import { useCockpitStore } from '@/stores/cockpitStore';
-import { useCockpitUIStore, type CenterContentKey } from '@/stores/cockpitUIStore';
+import { useCockpitStore, type CenterContentKey } from '@/stores/cockpitStore';
 import { COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
 import { COCKPIT_MODE_PRESETS, type CockpitMode } from '@/lib/3d/cockpitModePresets';
 
@@ -107,7 +107,7 @@ export function CockpitUILayer() {
   const bottomRef = useRef<Group>(null);
 
   const activeMode = useCockpitStore((s) => s.activeMode);
-  const centerContent = useCockpitUIStore((s) => s.centerContent);
+  const centerContent = useCockpitStore((s) => s.centerContent);
 
   // Smoothly interpolate quadrant transforms per frame
   useFrame((_, delta) => {

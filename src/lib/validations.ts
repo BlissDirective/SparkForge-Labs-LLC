@@ -2,6 +2,9 @@ import { z } from 'zod';
 
 // ═══ AUTH SCHEMAS ═══
 
+// AUTH-MED-001: OWASP 2025 compliance — require one special character in
+// addition to upper/lower/number. Special set matches audit recommendation
+// and aligns with passwordSignupSchema in src/lib/validation/authSchemas.ts.
 export const SignupSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z
@@ -10,9 +13,13 @@ export const SignupSchema = z.object({
     .max(72, 'Password cannot exceed 72 characters')
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number'),
+    .regex(/[0-9]/, 'Password must contain at least one number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Password must contain at least one special character (!@#$%^&*(),.?":{}|<>)'),
   fullName: z.string().min(1, 'Name is required').max(100).optional(),
   timezone: z.string().max(50).default('UTC'),
+  // AUTH-MED-003 (B): optional CAPTCHA token; required only when
+  // Supabase dashboard has "Enable CAPTCHA protection" turned on.
+  captchaToken: z.string().max(4096).optional(),
 });
 
 // S3-HIGH-001: Separate COPPA consent schema — called in Step 3 AFTER user confirms
@@ -26,12 +33,17 @@ export const CoppaConsentSchema = z.object({
 export const LoginSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
   password: z.string().min(1, 'Password is required'),
+  // AUTH-MED-003 (B): optional CAPTCHA token (see SignupSchema).
+  captchaToken: z.string().max(4096).optional(),
 });
 
 export const ResetPasswordSchema = z.object({
   email: z.string().email('Please enter a valid email address'),
+  // AUTH-MED-003 (B): optional CAPTCHA token (see SignupSchema).
+  captchaToken: z.string().max(4096).optional(),
 });
 
+// AUTH-MED-001: Same complexity rules as SignupSchema for consistency.
 export const UpdatePasswordSchema = z.object({
   password: z
     .string()
@@ -39,7 +51,8 @@ export const UpdatePasswordSchema = z.object({
     .max(72)
     .regex(/[A-Z]/, 'Must contain an uppercase letter')
     .regex(/[a-z]/, 'Must contain a lowercase letter')
-    .regex(/[0-9]/, 'Must contain a number'),
+    .regex(/[0-9]/, 'Must contain a number')
+    .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Must contain a special character'),
 });
 
 // ═══ CHILD SCHEMAS ═══
@@ -164,9 +177,13 @@ export const CheckoutSchema = z.object({
   interval: z.enum(['month', 'year']).default('month'),
 });
 
-export const PortalSchema = z.object({
-  returnUrl: z.string().url().optional(),
-});
+// PAY-MED-002 (A): PortalSchema removed. The portal route hardcodes
+// return_url to `${appUrl}/parent/subscription`; there is no reason to
+// let a client override it, and doing so is an open-redirect vector
+// waiting for a future change. If a future product needs a configurable
+// return destination, reintroduce this schema with a strict internal-
+// path allowlist (NOT z.string().url()) and update the route handler
+// to validate returnUrl starts with `/` and matches a known route.
 
 // v3 Gap 3: User-initiated plan change / downgrade
 export const ChangeSubscriptionSchema = z.object({

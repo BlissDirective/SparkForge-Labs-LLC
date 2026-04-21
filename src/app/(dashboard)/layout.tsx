@@ -5,7 +5,8 @@
 // ════════════════════════════════════════════════════════════════
 // UI-1: Everything behind auth renders in 3D. Zero HTML dashboard UI.
 // Pages are thin scene descriptors — they call useCockpitScene() to
-// set cockpit mode + feed data to cockpitUIStore. All visible content
+// set cockpit mode + feed data to cockpitStore.centerContent (merged
+// from cockpitUIStore in Phase 3 Part 2 R1). All visible content
 // renders inside CockpitCanvas via CockpitUILayer quadrants.
 //
 // Retained HTML:
@@ -34,7 +35,7 @@ import { useCelebration3D } from '@/hooks/useCelebration3D';
 // are set, eliminating the brief "interactive cockpit with hero still
 // visible" race on fast machines and skip-intro paths.
 import { useAtomicHeroToCockpit } from '@/hooks/useIsFullyReady';
-import { useCockpitUIStore, modeToCenterContent } from '@/stores/cockpitUIStore';
+import { useCockpitStore, modeToCenterContent } from '@/stores/cockpitStore';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';
@@ -74,7 +75,7 @@ export default function DashboardLayout({
   const prevModeRef = useRef(stationMode.mode);
 
   // Sync center content key from cockpit scene mode
-  const setCenterContent = useCockpitUIStore((s) => s.setCenterContent);
+  const setCenterContent = useCockpitStore((s) => s.setCenterContent);
   useEffect(() => {
     setCenterContent(modeToCenterContent(scene.mode));
   }, [scene.mode, setCenterContent]);

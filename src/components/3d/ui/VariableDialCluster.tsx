@@ -26,7 +26,7 @@ import {
   MeshStandardMaterial,
 } from 'three';
 import { RadialDial3D } from './RadialDial3D';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import {
   CHROME_BORDER,
   TYPE_SCALE,
@@ -102,7 +102,10 @@ export function VariableDialCluster({
   scale = 1,
 }: VariableDialClusterProps) {
   const pathname = usePathname();
-  const activeChild = useChildStore((s) => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C2): read from React Query cache so
+  // dial values (xp / streak / level) reflect the latest server state
+  // after any mutation's ['children'] invalidation.
+  const activeChild = useActiveChild();
 
   // Determine page context from route (instant swap — Decision 15.3)
   const pageKey = useMemo(() => {

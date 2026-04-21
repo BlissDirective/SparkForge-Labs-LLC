@@ -9,7 +9,7 @@
 
 import { Text } from '@react-three/drei';
 import { HolographicButton } from '../ui/HolographicButton';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import {
   TYPE_SCALE,
@@ -17,7 +17,8 @@ import {
 } from '@/lib/3d/cockpitDesignTokens';
 
 export default function DashboardCenter() {
-  const child = useChildStore((s) => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C2): read from React Query cache
+  const child = useActiveChild();
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
 
   const displayName = child?.display_name ?? 'Explorer';

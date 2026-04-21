@@ -9,7 +9,6 @@
 import { Text } from '@react-three/drei';
 import { HolographicCard } from '../ui/HolographicCard';
 import { useCockpitStore } from '@/stores/cockpitStore';
-import { useCockpitUIStore } from '@/stores/cockpitUIStore';
 import { LAB_COLORS, LAB_NAMES } from '@/config/labs';
 import { getGamesByLab } from '@/config/gameRegistry';
 import {
@@ -25,7 +24,7 @@ const TIER_LABEL: Record<string, string> = {
 
 export default function LabDetailPanel() {
   const focusedLabId = useCockpitStore((s) => s.focusedLabId);
-  const centerData = useCockpitUIStore((s) => s.centerData);
+  const centerData = useCockpitStore((s) => s.centerData);
   const labId = (centerData.labId as number) ?? focusedLabId ?? 1;
 
   const labName = LAB_NAMES[labId] ?? `Lab ${labId}`;

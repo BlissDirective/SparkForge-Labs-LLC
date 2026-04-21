@@ -81,7 +81,8 @@ import { useSceneStore } from '@/stores/sceneStore';
 // useDeviceStore available for future per-device tuning
 // import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGameStore } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
 // Module-level asset preloading (Audit Section 4.5)
 import '@/lib/3d/preloadAssets';
@@ -157,8 +158,15 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({
   const openConsole = useCockpitStore((s) => s.openConsole);
   const closeConsole = useCockpitStore((s) => s.closeConsole);
 
-  const child = useChildStore((s) => s.activeChild);
-  const badges = useChildStore((s) => s.badges);
+  // STATE-MED-001 (B-full/T5c-C4): child from React Query cache.
+  // Badges previously read from childStore.badges which was always []
+  // (setBadges was never called). Now a typed empty stub preserves
+  // exact prior rendering (badgeCount: 0, recentBadge: undefined).
+  // Post-T5c follow-up: migrate to useBadges(childId) from
+  // useGamification (different shape — flat BadgeDto[], not
+  // ChildBadge[]) so the HUD actually shows badge data.
+  const child = useActiveChild();
+  const badges: Array<{ badge?: { name?: string } }> = [];
 
   const consoleData = useMemo(
     () => ({
@@ -283,6 +291,11 @@ function CockpitCanvasImpl({
   const activeScene = useSceneStore((s) => s.activeScene);
   const activeGameId = useSceneStore((s) => s.activeGameId);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
+
+  // UX-MED-002 (T10b) Opt C: pause-aware LED rim dim. Narrow
+  // selector — CockpitCanvasImpl re-renders only when isPaused
+  // flips, not on every game state change.
+  const gamePaused = useGameStore((s) => s.isPaused);
   // Game 3D scene content — registered by games via sceneStore (D3D-B3)
   const storeGameSceneContent = useSceneStore((s) => s.gameSceneContent);
   const resolvedGameSceneContent = gameSceneContent ?? storeGameSceneContent;
@@ -393,9 +406,13 @@ function CockpitCanvasImpl({
                   frameDimmed={frameDimmed}
                 />
 
+                {/* UX-MED-002 (T10b) Opt C: LED rim dims to 40% of
+                    base intensity when the game is paused. Creates a
+                    clear "system is waiting" visual beat without
+                    requiring a full-screen overlay. */}
                 <LEDRim
                   color={ledColor}
-                  intensity={0.5}
+                  intensity={gamePaused ? 0.2 : 0.5}
                   spikeActive={spikeEvent}
                   curved
                 />

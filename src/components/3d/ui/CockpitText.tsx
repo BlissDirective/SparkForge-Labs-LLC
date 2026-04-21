@@ -13,7 +13,8 @@
 
 import { type ComponentPropsWithoutRef } from 'react';
 import { Text } from '@react-three/drei';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 // ---------------------------------------------------------------------------
 // Font configuration per variant (matches Frost-Prismatic design system)
@@ -85,8 +86,8 @@ export function CockpitText({
   children,
   ...rest
 }: CockpitTextProps) {
-  const highContrast = useA11yStore((s) => s.highContrast);
-  const fontSizePref = useA11yStore((s) => s.fontSize);
+  const highContrast = useUIStore((s) => s.a11y.highContrast);
+  const fontSizePref = useUIStore((s) => s.a11y.fontSize);
 
   const multiplier = FONT_SIZE_MULTIPLIER[fontSizePref] ?? 1.0;
   const resolvedSize = (fontSize ?? BASE_SIZE_MAP[variant]) * multiplier;

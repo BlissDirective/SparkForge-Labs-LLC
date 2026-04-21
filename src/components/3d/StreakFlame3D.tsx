@@ -14,7 +14,8 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { AdditiveBlending, Color, DoubleSide, Group } from 'three';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 interface StreakFlame3DProps {
   streakDays: number;
@@ -43,7 +44,7 @@ export default function StreakFlame3D({
   position = [0, 0, 0],
 }: StreakFlame3DProps) {
   const groupRef = useRef<Group>(null);
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
 
   const flameColor = useMemo(() => new Color(color), [color]);
   const scale = useMemo(() => getStreakScale(streakDays), [streakDays]);

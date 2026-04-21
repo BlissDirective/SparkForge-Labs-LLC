@@ -14,7 +14,7 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Rocket, Zap, Eye, MessageSquare, Cpu, Bot, Shield, Sparkles, CheckCircle, Star } from 'lucide-react';
@@ -282,7 +282,7 @@ const SCENARIOS: Scenario[] = [
 export default function FutureForgeGame() {
   const prefersReducedMotion = useReducedMotion();
   const game = useGameStore();
-  const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
+  const ageBand = useActiveChild()?.age_band || 'B';
   const { data: dynamicContent } = useGameContent('future-forge', ageBand);
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');

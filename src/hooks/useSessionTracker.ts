@@ -9,7 +9,7 @@ import { useChildStore } from '@/stores/childStore';
 //   ends on unmount. Non-critical — all failures silent.
 
 export function useSessionTracker() {
-  const activeChildId = useChildStore((s) => s.activeChild?.id);
+  const activeChildId = useChildStore((s) => s.activeChildId);
   const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {

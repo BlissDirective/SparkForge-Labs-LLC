@@ -7,7 +7,7 @@
 // ════════════════════════════════════════════════════
 
 import { useEffect, useMemo } from 'react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useTrendingContent, useDailyChallenge, useLatestContent } from '@/hooks/useContent';
 import type { Content } from '@/types';
@@ -120,7 +120,11 @@ function computeRecommendation(
  * Call in CockpitCanvas or dashboard layout.
  */
 export function useCockpitContentBridge(): CockpitContentData {
-  const activeChild = useChildStore(s => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C1): read from React Query cache via
+  // useActiveChild() so xp / level / age_band are always fresh (within
+  // the 30s staleTime defaults). Previously read the stale
+  // childStore.activeChild snapshot.
+  const activeChild = useActiveChild();
   const ageBand = activeChild?.age_band || 'B';
   const broadcast = useCockpitBroadcast(s => s.broadcast);
 

@@ -19,7 +19,7 @@ import { Text } from '@react-three/drei';
 import { Color } from 'three';
 import { HolographicButton } from '../ui/HolographicButton';
 import { HolographicCard } from '../ui/HolographicCard';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useAuthStore } from '@/stores/authStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
@@ -38,7 +38,8 @@ const STEP_DOT_X = [-0.04, 0, 0.04];
 
 export default function OnboardingPanel() {
   const router = useRouter();
-  const activeChild = useChildStore((s) => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C2): read from React Query cache
+  const activeChild = useActiveChild();
   const parent = useAuthStore((s) => s.parent);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);

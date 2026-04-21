@@ -5,7 +5,13 @@
 // ════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError, applyRateLimit, requireAdmin } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  applyRateLimit,
+  requireAdmin,
+  sanitizeErrorMessage,
+} from '@/lib/api-helpers';
 import { runTrendingPipeline } from '@/lib/agent/pipeline';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
@@ -32,8 +38,13 @@ export async function POST(req: NextRequest) {
     const result = await runTrendingPipeline();
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    return apiError(`Trending pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): log full error; sanitize response.
+    console.error('[agent/trending] POST failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Trending pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }
 
@@ -62,8 +73,12 @@ export async function GET(req: NextRequest) {
     const result = await runTrendingPipeline();
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error('Trending cron failed:', message);
-    return apiError(`Trending pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): log full error; sanitize response.
+    console.error('[agent/trending] cron failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Trending pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }

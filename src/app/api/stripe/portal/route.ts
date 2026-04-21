@@ -36,6 +36,12 @@ export async function POST(req: NextRequest) {
     return apiError('No subscription found. Subscribe first to manage billing.', 404);
   }
 
+  // PAY-MED-002 (A): return_url is HARDCODED intentionally. Do NOT
+  // accept a client-provided URL here — the Stripe-hosted portal
+  // performs a full-page redirect to this value on exit, which would
+  // be an open-redirect vector. If the product ever needs multiple
+  // destinations, gate them through a server-side allowlist of
+  // internal paths.
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
   const session = await stripe.billingPortal.sessions.create({

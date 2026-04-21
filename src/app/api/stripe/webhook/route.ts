@@ -15,9 +15,11 @@
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
+import * as Sentry from '@sentry/nextjs';
 import { createAdminClient } from '@/lib/supabase/server';
 import { getStripe, getCustomerId } from '@/lib/stripe';
 import { logSubscriptionEvent } from '@/lib/subscription-events';
+import { checkRateLimit, RATE_LIMITS, rateLimitKey } from '@/lib/rate-limit';
 import type { SubscriptionTier } from '@/lib/tier-config';
 
 // Disable body parsing — Stripe needs raw body for signature verification
@@ -75,6 +77,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // PAY-MED-001 (B): Global 100/min throttle before signature
+  // verification. Stripe's legitimate delivery rate is well under this
+  // threshold; exceeding it almost certainly means a leaked webhook
+  // secret is being abused to flood the CPU-intensive constructEvent
+  // call. Single global key (no per-IP partition) so an attacker
+  // can't bypass by rotating sources.
+  const rlResult = await checkRateLimit(
+    rateLimitKey('stripe-webhook', 'global'),
+    RATE_LIMITS.stripeWebhook,
+  );
+  if (!rlResult.allowed) {
+    const msg = `[stripe-webhook] rate limit hit — ${RATE_LIMITS.stripeWebhook.maxRequests} req/min exceeded; retry after ${rlResult.retryAfterSeconds}s`;
+    console.warn(msg);
+    Sentry.captureMessage(msg, { level: 'warning' });
+    return NextResponse.json(
+      { error: 'Too many webhook events' },
+      {
+        status: 429,
+        headers: { 'Retry-After': String(rlResult.retryAfterSeconds) },
+      },
+    );
+  }
+
   const body = await req.text();
   const sig = req.headers.get('stripe-signature');
 
@@ -104,11 +129,13 @@ export async function POST(req: NextRequest) {
       60,
     );
   } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
-    console.error('Webhook signature verification failed:', message);
+    // API-MED-002 (B): log full signature-verification error
+    // server-side, but DO NOT leak it in the 400 body — Stripe
+    // diagnostics can reveal timing / secret-comparison internals.
+    console.error('[stripe-webhook] signature verification failed:', err);
     return NextResponse.json(
-      { error: `Webhook Error: ${message}` },
-      { status: 400 }
+      { error: 'Webhook signature verification failed' },
+      { status: 400 },
     );
   }
 

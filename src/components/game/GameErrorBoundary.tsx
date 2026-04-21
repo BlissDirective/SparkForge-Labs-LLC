@@ -123,8 +123,9 @@ export function GameErrorBoundary({ children, gameId, gameTitle, worldColor }: G
   }, []);
 
   const handleReturnToArcade = React.useCallback(() => {
-    useSceneStore.getState().exitGame();
-    useGameStore.getState().resetGame();
+    // STATE-MED-003 (B): single coordinated teardown replaces the
+    // previous exitGame() + resetGame() pair. Idempotent.
+    useSceneStore.getState().cleanupGame();
     // Use window.location for reliable navigation from error state
     window.location.href = '/arcade';
   }, []);

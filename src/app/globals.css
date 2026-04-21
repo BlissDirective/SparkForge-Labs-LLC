@@ -11,6 +11,36 @@
    Dark-mode only · Blue-dominant 60/40
    ═══════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════
+   UX-MED-005 (Opt A): Brightness control
+   ─────────────────────────────────────────────
+   Dark-mode enforcement + body-level filter
+   driven by --sf-brightness (set by
+   BrightnessEffect from cockpitStore.brightness,
+   range 0.7 – 1.0). Canvas elements are
+   explicitly untouched so WebGL fill-rate is
+   not impacted — the 3D cockpit reads its
+   brightness through its own PostProcessingStack
+   if needed.
+   ═══════════════════════════════════════════ */
+html,
+body {
+  color-scheme: dark;
+}
+
+body {
+  filter: brightness(var(--sf-brightness, 1));
+  transition: filter 200ms ease;
+  will-change: filter;
+}
+
+body canvas {
+  /* Hard exclusion — cockpit + game + auth portal canvases must
+     render at their authored brightness. filter: none cascades
+     correctly under CSS spec. */
+  filter: none !important;
+}
+
 :root {
   /* ── Font Variables (mapped by Tailwind fontFamily) ── */
   /* DES-07: Fallback fonts with metric overrides reduce CLS during font swap */

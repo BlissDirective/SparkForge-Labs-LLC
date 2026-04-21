@@ -8,12 +8,12 @@
 
 import { useEffect } from 'react';
 import { useCockpitScene } from '@/hooks/useCockpitScene';
-import { useCockpitUIStore } from '@/stores/cockpitUIStore';
+import { useCockpitStore } from '@/stores/cockpitStore';
 
 export default function ArcadePage() {
   useCockpitScene('arcade');
 
-  const setCenterContent = useCockpitUIStore((s) => s.setCenterContent);
+  const setCenterContent = useCockpitStore((s) => s.setCenterContent);
   useEffect(() => {
     setCenterContent('arcade');
   }, [setCenterContent]);

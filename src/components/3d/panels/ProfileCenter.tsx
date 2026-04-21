@@ -7,7 +7,7 @@
 // Decision 27.2: Expanded 1.5x avatar on profile page
 
 import { Text } from '@react-three/drei';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import {
   CHROME_BORDER,
   TYPE_SCALE,
@@ -29,8 +29,10 @@ const CATEGORY_COLORS: Record<string, string> = {
 };
 
 export default function ProfileCenter() {
-  const child = useChildStore((s) => s.activeChild);
-  const badges = useChildStore((s) => s.badges);
+  // T5c-C4: child via React Query cache; badges stubbed as empty
+  // until a follow-up migrates to useBadges(childId).
+  const child = useActiveChild();
+  const badges: Array<{ badge?: { category?: string } }> = [];
 
   const displayName = child?.display_name ?? 'Explorer';
   const level = child?.level ?? 1;

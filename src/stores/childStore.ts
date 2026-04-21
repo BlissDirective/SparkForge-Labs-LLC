@@ -1,62 +1,42 @@
+// ════════════════════════════════════════════════════════════════
+// childStore — UI-ONLY selection state (post T5c-C4)
+// ════════════════════════════════════════════════════════════════
+// STATE-MED-001 (B-full) final shape. Holds the active-child
+// *selection* only — the full Child row is served by React Query
+// (['children'] cache) via useActiveChild() / useChildren().
+//
+// Removed in T5c-C4:
+//   - activeChild: Child | null        → use useActiveChild()
+//   - children: Child[]                → use useChildren()
+//   - badges: ChildBadge[]             → use useBadges(childId) [dead-code was always []]
+//   - progress: Progress[]             → use useProgress*() hooks
+//   - setChildren / setBadges / setProgress
+//   - setActiveChild(child)            → use setActiveChildId(id)
+//   - updateXP / updateLevel / updateStreak / updateCoins /
+//     updateAvatarConfig                → React Query mutations handle these
+//
+// What remains:
+//   - activeChildId: string | null
+//   - setActiveChildId(id)
+//   - clearChild()
+// ════════════════════════════════════════════════════════════════
+
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Child, ChildBadge, Progress, AvatarConfig } from '@/types';
 
 interface ChildState {
-  activeChild: Child | null;
-  children: Child[];
-  badges: ChildBadge[];
-  progress: Progress[];
-  setActiveChild: (child: Child | null) => void;
-  setChildren: (children: Child[]) => void;
-  setBadges: (badges: ChildBadge[]) => void;
-  setProgress: (progress: Progress[]) => void;
-  updateXP: (xp: number) => void;
-  updateLevel: (level: number, title: string) => void;
-  updateStreak: (count: number) => void;
-  updateCoins: (coins: number) => void;
-  updateAvatarConfig: (config: Partial<AvatarConfig>) => void;
+  activeChildId: string | null;
+  setActiveChildId: (id: string | null) => void;
   clearChild: () => void;
 }
 
 export const useChildStore = create<ChildState>()(
   persist(
-    (set, get) => ({
-      activeChild: null,
-      children: [],
-      badges: [],
-      progress: [],
-      setActiveChild: (activeChild) => set({ activeChild }),
-      setChildren: (children) => set({ children }),
-      setBadges: (badges) => set({ badges }),
-      setProgress: (progress) => set({ progress }),
-      updateXP: (xpToAdd) => {
-        const child = get().activeChild;
-        if (!child) return;
-        set({ activeChild: { ...child, xp: child.xp + xpToAdd } });
-      },
-      updateLevel: (level, title) => {
-        const child = get().activeChild;
-        if (!child) return;
-        set({ activeChild: { ...child, level, level_title: title } });
-      },
-      updateStreak: (count) => {
-        const child = get().activeChild;
-        if (!child) return;
-        set({ activeChild: { ...child, streak_count: count } });
-      },
-      updateCoins: (coinsToAdd) => {
-        const child = get().activeChild;
-        if (!child) return;
-        set({ activeChild: { ...child, spark_coins: child.spark_coins + coinsToAdd } });
-      },
-      updateAvatarConfig: (config) => {
-        const child = get().activeChild;
-        if (!child) return;
-        set({ activeChild: { ...child, avatar_config: { ...child.avatar_config, ...config } } });
-      },
-      clearChild: () => set({ activeChild: null, children: [], badges: [], progress: [] }),
+    (set) => ({
+      activeChildId: null,
+      setActiveChildId: (activeChildId) => set({ activeChildId }),
+      clearChild: () => set({ activeChildId: null }),
     }),
-    { name: 'sparkforge-child', partialize: (state) => ({ activeChild: state.activeChild }) }
+    { name: 'sparkforge-child', partialize: (state) => ({ activeChildId: state.activeChildId }) }
   )
 );

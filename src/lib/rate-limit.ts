@@ -52,6 +52,15 @@ export const RATE_LIMITS = {
   auth: { maxRequests: 5, windowMs: 60 * 1000 },              // 5/min
   promptLab: { maxRequests: 20, windowMs: 60 * 60 * 1000 },   // 20/hr
   contentAgent: { maxRequests: 2, windowMs: 60 * 60 * 1000 }, // 2/hr
+  // PAY-MED-001 (B): cap at 100 events/min across the whole Stripe
+  // webhook endpoint (single global key, not per-IP). Legitimate
+  // traffic from Stripe rarely exceeds this; exceeding it almost
+  // certainly means a leaked secret is being abused.
+  stripeWebhook: { maxRequests: 100, windowMs: 60 * 1000 },   // 100/min
+  // API-MED-003 (B): public content endpoints cap. Non-authed reads
+  // of published content are legitimate (marketing crawl, lab
+  // preview), but anything past 100/min per IP is scraping behaviour.
+  contentRead: { maxRequests: 100, windowMs: 60 * 1000 },     // 100/min
 } as const;
 
 export interface RateLimitResult {

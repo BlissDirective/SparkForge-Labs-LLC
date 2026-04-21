@@ -5,7 +5,13 @@
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { apiSuccess, apiError, applyRateLimit, requireAdmin } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  applyRateLimit,
+  requireAdmin,
+  sanitizeErrorMessage,
+} from '@/lib/api-helpers';
 import { runArchitectPipeline } from '@/lib/agent/architect-pipeline';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
@@ -53,7 +59,12 @@ export async function POST(req: NextRequest) {
     );
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    return apiError(`Architect pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): sanitize response; log full error server-side.
+    console.error('[agent/architect] pipeline failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Architect pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }

@@ -2,6 +2,13 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 
+// DB-MED-004: We talk to Postgres exclusively through supabase-js, which
+// uses PostgREST over HTTPS — Supabase's managed PostgREST maintains
+// its own connection pool, so the app never opens raw PG connections.
+// No Supavisor wiring needed here. If you ever add a direct-PG client
+// (pg, postgres.js, drizzle, etc.), use the pooled connection string on
+// port 6543 by default — see SETUP_CHECKLIST.md §1.2.1.
+
 // AUTH-HIGH-001 (2B): fail-fast fallbacks.
 // `http://localhost:0` is a guaranteed connection-refused URL, so if a
 // misconfigured deploy slips through (no env vars set) we get a noisy

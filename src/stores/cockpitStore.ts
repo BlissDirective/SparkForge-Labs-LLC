@@ -16,6 +16,50 @@ import type { CockpitSkin, SpatialView, CeremonyType } from '@/types';
 import type { ThemeId } from '@/lib/3d/cockpitThemes';
 import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
 
+// ════════════════════════════════════════════════════════════════
+// R1 (Phase 3 Part 2): cockpitUIStore merged into cockpitStore.
+// The UI-routing slice (centerContent + centerData + setCenterContent
+// + modeToCenterContent) is now part of this single store so consumers
+// don't have to coordinate two subscriptions for every cockpit panel
+// render. Field names preserved so consumer migration is a 1-line
+// import swap.
+// ════════════════════════════════════════════════════════════════
+
+export type CenterContentKey =
+  | 'home'          // DashboardCenter
+  | 'labs'          // LabsCenter
+  | 'lab_detail'    // LabDetailPanel
+  | 'arcade'        // ArcadePanel
+  | 'profile'       // ProfileCenter
+  | 'settings'      // SettingsPanel
+  | 'parent'        // ParentPanel
+  | 'game'          // Game takeover (no center panel — game scene fills)
+  | 'chat'          // ChatPanel3D (AI Guide chat)
+  | 'celebration'   // CelebrationPanel3D
+  | 'onboarding';   // OnboardingPanel
+
+export interface CenterContentData {
+  labId?: number;
+  labColor?: string;
+  gameSlug?: string;
+  [key: string]: unknown;
+}
+
+export function modeToCenterContent(mode: CockpitMode): CenterContentKey {
+  switch (mode) {
+    case 'dashboard': return 'home';
+    case 'arcade': return 'arcade';
+    case 'labs': return 'labs';
+    case 'lab_detail': return 'lab_detail';
+    case 'game': return 'game';
+    case 'profile': return 'profile';
+    case 'settings': return 'settings';
+    case 'parent': return 'parent';
+    case 'celebration': return 'home';
+    default: return 'home';
+  }
+}
+
 // Re-export types so consumers can import from either @/types or @/stores/cockpitStore
 export type { CockpitSkin, SpatialView, CeremonyType };
 
@@ -154,6 +198,11 @@ interface CockpitState {
   heroPhase: HeroPhase;
   cockpitReady: boolean;        // true once cockpit geometry is fully materialized
 
+  // R1: UI-routing slice (merged from deprecated cockpitUIStore)
+  centerContent: CenterContentKey;
+  centerData: CenterContentData;
+  previousCenter: CenterContentKey | null;
+
   // Internal timeout IDs for transition cleanup (J5 fix)
   _spatialViewTimeout: ReturnType<typeof setTimeout> | null;
   _focusLabTimeout: ReturnType<typeof setTimeout> | null;
@@ -194,6 +243,9 @@ interface CockpitState {
   toggleMiniMap: () => void;
   setHeroPhase: (phase: HeroPhase) => void;
   setCockpitReady: (ready: boolean) => void;
+
+  // R1: UI-routing actions
+  setCenterContent: (key: CenterContentKey, data?: CenterContentData) => void;
 }
 
 export const useCockpitStore = create<CockpitState>()(
@@ -229,6 +281,12 @@ export const useCockpitStore = create<CockpitState>()(
       miniMapVisible: true,
       heroPhase: 'idle' as HeroPhase,
       cockpitReady: false,
+
+      // R1: UI-routing slice initial values
+      centerContent: 'home' as CenterContentKey,
+      centerData: {} as CenterContentData,
+      previousCenter: null as CenterContentKey | null,
+
       _spatialViewTimeout: null,
       _focusLabTimeout: null,
       _openConsoleTimeout: null,
@@ -381,6 +439,15 @@ export const useCockpitStore = create<CockpitState>()(
 
       setHeroPhase: (heroPhase) => set({ heroPhase }),
       setCockpitReady: (cockpitReady) => set({ cockpitReady }),
+
+      // R1: UI-routing action (merged from cockpitUIStore)
+      setCenterContent: (key, data = {}) =>
+        set((s) => ({
+          centerContent: key,
+          centerData: data,
+          previousCenter:
+            s.centerContent !== key ? s.centerContent : s.previousCenter,
+        })),
     }),
     {
       name: 'sparkforge-cockpit',

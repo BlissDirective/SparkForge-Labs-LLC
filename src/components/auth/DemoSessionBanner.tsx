@@ -6,6 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Clock, X, UserPlus } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { useDemoSession } from '@/hooks/useDemoSession';
+// UX-MED-002 (T10c): T-10min pre-warning modal; pauses active game +
+// surfaces achievements + signup CTA. Fires once per demo session.
+import { DemoExpiryWarning } from '@/components/auth/DemoExpiryWarning';
 
 export function DemoSessionBanner() {
   const router = useRouter();
@@ -34,6 +37,12 @@ export function DemoSessionBanner() {
 
   return (
     <>
+      {/* UX-MED-002 (T10c): pre-warning modal at T-10min. Fires once
+          per session; pauses active game; shows achievements +
+          signup CTA. Always rendered so it can trigger even when
+          the banner has been dismissed. */}
+      <DemoExpiryWarning />
+
       {/* Persistent demo banner — top of viewport */}
       <AnimatePresence>
         {demo.isDemoMode && !dismissed && (

@@ -1,9 +1,19 @@
 // GET /api/children — List parent's children
 // POST /api/children — Create a child profile
+//
+// AUTH-MED-002 (B): POST enforces COPPA consent via `requireAuthWithConsent`.
+// GET remains on `requireAuth` so the dashboard can still render (showing
+// zero children) while the consent prompt is displayed.
 import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { CreateChildSchema } from '@/lib/validations';
-import { apiSuccess, apiError, parseBody, requireAuth } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  parseBody,
+  requireAuth,
+  requireAuthWithConsent,
+} from '@/lib/api-helpers';
 import { canCreateChild } from '@/lib/tier-config';
 
 export async function GET(req: NextRequest) {
@@ -27,7 +37,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
+  // AUTH-MED-002 (B): must have COPPA consent to create child profiles.
+  const auth = await requireAuthWithConsent(req);
   if (!auth.success) return auth.response;
 
   const parsed = await parseBody(req, CreateChildSchema);

@@ -34,6 +34,13 @@ import { useChildStore } from '@/stores/childStore';
 
 type GamePhase = 'idle' | 'welcome' | 'learn' | 'play' | 'complete';
 
+// UX-MED-001 (A): auto-save indicator lifecycle.
+//   'idle'   — nothing in flight, indicator hidden
+//   'saving' — a reward-pipeline API call is in flight
+//   'saved'  — last call succeeded; auto-fades back to 'idle' 1500ms later
+//   'error'  — last call failed; indicator flashes red until next attempt
+type SaveState = 'idle' | 'saving' | 'saved' | 'error';
+
 interface GameState {
   currentGame: string | null;
   phase: GamePhase;
@@ -46,14 +53,22 @@ interface GameState {
   hintsRemaining: number;
   timeElapsed: number;
   gameData: Record<string, unknown>;
+  /** UX-MED-001 (A): current save-indicator state. */
+  saveState: SaveState;
   startGame: (gameId: string, totalRounds: number, hints?: number) => void;
   setPhase: (phase: GamePhase) => void;
   updateScore: (points: number) => void;
   setMaxScore: (points: number) => void;
   advanceRound: () => void;
   useHint: () => void;
+  /** UX-MED-001 (A): update the auto-save indicator. */
+  setSaveState: (s: SaveState) => void;
   pauseGame: () => void;
   resumeGame: () => void;
+  /** UX-MED-002 (T10a): toggle between paused and playing. Prefer
+   *  this over pauseGame/resumeGame when the caller doesn't know
+   *  the current state (Escape handler, PauseButton3D click). */
+  togglePause: () => void;
   completeGame: () => void;
   resetGame: () => void;
   setGameData: (key: string, value: unknown) => void;
@@ -74,6 +89,7 @@ function createGameStore(): StoreApi<GameState> {
     hintsRemaining: 3,
     timeElapsed: 0,
     gameData: {},
+    saveState: 'idle' as SaveState,
     startGame: (gameId, totalRounds, hints = 3) =>
       set({
         currentGame: gameId,
@@ -87,7 +103,9 @@ function createGameStore(): StoreApi<GameState> {
         hintsRemaining: hints,
         timeElapsed: 0,
         gameData: {},
+        saveState: 'idle',
       }),
+    setSaveState: (saveState) => set({ saveState }),
     setPhase: (phase) => set({ phase }),
     updateScore: (points) => set((s) => ({ score: s.score + points })),
     setMaxScore: (points) => set({ maxScore: points }),
@@ -103,6 +121,7 @@ function createGameStore(): StoreApi<GameState> {
     useHint: () => set((s) => ({ hintsRemaining: Math.max(0, s.hintsRemaining - 1) })),
     pauseGame: () => set({ isPaused: true }),
     resumeGame: () => set({ isPaused: false }),
+    togglePause: () => set((s) => ({ isPaused: !s.isPaused })),
     completeGame: () => {
       const s = get();
       // Guard: only complete if a game is active and not already complete
@@ -122,6 +141,7 @@ function createGameStore(): StoreApi<GameState> {
         hintsRemaining: 3,
         timeElapsed: 0,
         gameData: {},
+        saveState: 'idle',
       }),
     setGameData: (key, value) => set((s) => ({ gameData: { ...s.gameData, [key]: value } })),
     tick: () => set((s) => (s.isPaused ? {} : { timeElapsed: s.timeElapsed + 1 })),
@@ -181,7 +201,7 @@ interface UseGameStoreCallable {
 const identitySelector = (s: GameState) => s;
 
 function useGameStoreImpl<T>(selector?: (s: GameState) => T): T | GameState {
-  const childId = useChildStore((s) => s.activeChild?.id);
+  const childId = useChildStore((s) => s.activeChildId);
   const key = resolveKey(childId);
   // Cache the resolved key for imperative access. Safe to write on every
   // render; reads happen outside React render cycles.
@@ -240,6 +260,7 @@ export function useGameActions() {
       useHint: s.useHint,
       pauseGame: s.pauseGame,
       resumeGame: s.resumeGame,
+      togglePause: s.togglePause,
       completeGame: s.completeGame,
       resetGame: s.resetGame,
       setGameData: s.setGameData,
@@ -255,6 +276,7 @@ export function useGameActions() {
     | 'useHint'
     | 'pauseGame'
     | 'resumeGame'
+    | 'togglePause'
     | 'completeGame'
     | 'resetGame'
     | 'setGameData'

@@ -25,14 +25,18 @@ export const passwordLoginSchema = z
   .string()
   .min(1, 'Please enter your password');
 
-// Stricter password rules on signup: 8+ chars, 1 uppercase, 1 lowercase, 1 number.
-// No special-character requirement (friction for kids' parents).
+// AUTH-MED-001 (Phase 3): Stricter password rules on signup —
+// 8+ chars, 1 uppercase, 1 lowercase, 1 number, 1 special character.
+// OWASP 2025 alignment. Special set kept broad to avoid keyboard-layout
+// issues (e.g. German/French keyboards). Error copy is still child-
+// family-friendly (actionable, not jargon-heavy).
 export const passwordSignupSchema = z
   .string()
   .min(8, 'Use at least 8 characters for security')
   .regex(/[A-Z]/, 'Include at least one uppercase letter (A-Z)')
   .regex(/[a-z]/, 'Include at least one lowercase letter (a-z)')
-  .regex(/[0-9]/, 'Include at least one number (0-9)');
+  .regex(/[0-9]/, 'Include at least one number (0-9)')
+  .regex(/[!@#$%^&*(),.?":{}|<>]/, 'Include at least one special character (! @ # $ % etc.)');
 
 export const displayNameSchema = z
   .string()

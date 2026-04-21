@@ -9,14 +9,17 @@
 import { Text } from '@react-three/drei';
 import { HolographicButton } from '../ui/HolographicButton';
 import { HolographicCard } from '../ui/HolographicCard';
-import { useChildStore } from '@/stores/childStore';
+import { useChildren } from '@/hooks/useChildren';
 import {
   TYPE_SCALE,
   TEXT_COLORS,
 } from '@/lib/3d/cockpitDesignTokens';
 
 export default function ParentPanel() {
-  const children = useChildStore((s) => s.children);
+  // STATE-MED-001 (B-full/T5c-C2): children list now comes from React
+  // Query cache instead of childStore snapshot. Falls back to empty
+  // array during initial load.
+  const { data: children = [] } = useChildren();
 
   return (
     <group name="parent">

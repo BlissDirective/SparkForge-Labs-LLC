@@ -19,7 +19,8 @@ import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, Sparkles } from '@react-three/drei';
 import { Color, Mesh } from 'three';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 type Rarity = 'common' | 'uncommon' | 'rare' | 'epic' | 'legendary';
 
@@ -64,7 +65,7 @@ export default function BadgePedestal3D({
   position = [0, 0, 0],
 }: BadgePedestal3DProps) {
   const emblemRef = useRef<Mesh>(null);
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
   const material = useMemo(() => getMaterialConfig(rarity, active), [rarity, active]);
 
   const hasFloat = rarity === 'rare' || rarity === 'epic' || rarity === 'legendary';
