@@ -67,7 +67,36 @@ interface PostProcessingStackProps {
   barrelDistortion?: number;
 }
 
-export function PostProcessingStack({
+/**
+ * PostProcessingStack (P5 §10.8 Sub 3e) — router.
+ * Picks the WebGL or WebGPU postprocessing path based on the renderer
+ * type. Both paths accept the same props so callers don't branch.
+ */
+export function PostProcessingStack(props: PostProcessingStackProps) {
+  const gl = useThree((s) => s.gl);
+  if (isWebGPURenderer(gl)) {
+    return (
+      <PostProcessingStackWebGPU
+        bloomIntensity={props.bloomIntensity}
+        bloomThreshold={props.bloomThreshold}
+        bloomSmoothing={props.bloomSmoothing}
+        vignetteDarkness={props.vignetteDarkness}
+        vignetteOffset={props.vignetteOffset}
+        chromaticOffset={props.chromaticOffset}
+        ssaoIntensity={props.ssaoIntensity}
+        ssaoRadius={props.ssaoRadius}
+        dofFocusDistance={props.dofFocusDistance}
+        dofFocalLength={props.dofFocalLength}
+        dofBokehScale={props.dofBokehScale}
+        noiseOpacity={props.noiseOpacity}
+        barrelDistortion={props.barrelDistortion}
+      />
+    );
+  }
+  return <PostProcessingStackWebGL {...props} />;
+}
+
+function PostProcessingStackWebGL({
   bloomIntensity = 0.4,
   bloomThreshold = 0.6,
   bloomSmoothing = 0.9,
@@ -82,30 +111,6 @@ export function PostProcessingStack({
   noiseOpacity = 0.06,
   barrelDistortion: barrelDist = 0.02,
 }: PostProcessingStackProps) {
-  // P5 §10.8 Sub 3e: Route to WebGPU stack when Canvas uses WebGPURenderer.
-  // The early return below delegates; the rest of this component defines
-  // the WebGL path using @react-three/postprocessing.
-  const gl = useThree((s) => s.gl);
-  if (isWebGPURenderer(gl)) {
-    return (
-      <PostProcessingStackWebGPU
-        bloomIntensity={bloomIntensity}
-        bloomThreshold={bloomThreshold}
-        bloomSmoothing={bloomSmoothing}
-        vignetteDarkness={vignetteDarkness}
-        vignetteOffset={vignetteOffset}
-        chromaticOffset={chromaticOffset}
-        ssaoIntensity={ssaoIntensity}
-        ssaoRadius={ssaoRadius}
-        dofFocusDistance={dofFocusDistance}
-        dofFocalLength={dofFocalLength}
-        dofBokehScale={dofBokehScale}
-        noiseOpacity={noiseOpacity}
-        barrelDistortion={barrelDist}
-      />
-    );
-  }
-
   const activeScene = useSceneStore((s) => s.activeScene);
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);

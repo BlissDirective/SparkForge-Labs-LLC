@@ -76,7 +76,6 @@ async function createWebGPURenderer(props: RendererFactoryProps) {
   ]);
 
   if (shouldLog()) {
-    // eslint-disable-next-line no-console
     console.info('[Renderer] WebGPURenderer initialized successfully');
   }
 
