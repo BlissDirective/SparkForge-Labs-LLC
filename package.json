@@ -52,6 +52,7 @@
     "@upstash/redis": "^1.37.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "comlink": "^4.4.2",
     "focus-trap-react": "^12.0.0",
     "gsap": "^3.14.2",
     "jotai": "^2.12.0",

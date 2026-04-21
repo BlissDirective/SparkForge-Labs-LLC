@@ -701,6 +701,26 @@ export function validateContentSafety(content: unknown): { safe: boolean; reason
   return { safe: true };
 }
 
+/**
+ * Async worker-offloaded sibling of `validateContentSafety`.
+ * T12 PERF-MED-004 (Opt A): runs PII redaction + forbidden-topic
+ * scan off the main thread so the cockpit Canvas stays at 60 fps
+ * during bulk content validation (admin review, batch generation).
+ *
+ * Falls back to main-thread execution when Workers are unavailable.
+ * The API is async regardless — call sites never branch.
+ */
+export async function validateContentSafetyAsync(
+  content: unknown,
+): Promise<{ safe: boolean; reason?: string; sanitized: string }> {
+  const str = JSON.stringify(content);
+  // Import at call-site so this module stays tree-shakable on the
+  // server bundle (workers cannot run there).
+  const { getHeavyComputeClient } = await import('./workers/heavyCompute.client');
+  const api = getHeavyComputeClient();
+  return api.filterContentSafety(str);
+}
+
 // ================================================================
 // CACHE KEY GENERATION
 // ================================================================
