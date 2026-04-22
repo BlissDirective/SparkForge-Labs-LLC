@@ -42,9 +42,22 @@ ALTER TABLE mfa_backup_codes ENABLE ROW LEVEL SECURITY;
 -- Simpler variant for Recommended: block parent SELECT entirely;
 -- expose count through a SECURITY DEFINER RPC.
 
--- No SELECT/INSERT/UPDATE/DELETE policies → only service role writes
--- and reads, via the API routes that know the authenticated
--- parent_id from the session.
+-- No SELECT/INSERT/UPDATE/DELETE policies for anon/authenticated → only
+-- service role writes and reads, via the API routes that know the
+-- authenticated parent_id from the session. service_role BYPASSRLS is
+-- unaffected by any policy below.
+--
+-- We attach an explicit deny-all policy so (1) the intent is visible in
+-- pg_policies and (2) sql/verify_rls.sql's policyless-table check
+-- doesn't flag this as a migration regression. The behavior is the
+-- same as "no policy" (default deny), just documented explicitly.
+DROP POLICY IF EXISTS "deny_all_non_service" ON mfa_backup_codes;
+CREATE POLICY "deny_all_non_service"
+  ON mfa_backup_codes
+  FOR ALL
+  TO anon, authenticated
+  USING (false)
+  WITH CHECK (false);
 
 -- ─── Parent-visible count RPC ─────────────────────
 
