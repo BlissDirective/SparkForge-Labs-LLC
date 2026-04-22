@@ -40,6 +40,23 @@ export async function POST(req: NextRequest) {
     return apiError('Invalid email or password', 401, 'INVALID_CREDENTIALS');
   }
 
+  // AUTH-ENH-006 (Recommended): detect AAL1→AAL2 upgrade requirement.
+  // If the parent has a verified TOTP factor, the session is at aal1
+  // after password success and must elevate to aal2 via MFA challenge.
+  // We surface this to the client so the login page can route to
+  // /mfa-challenge instead of /home.
+  let mfaRequired = false;
+  try {
+    const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    mfaRequired =
+      aal.data?.currentLevel === 'aal1' && aal.data?.nextLevel === 'aal2';
+  } catch (err) {
+    console.error('[auth/login] AAL lookup failed:', err);
+    // If AAL lookup fails, err on the side of NOT blocking login — the
+    // downstream /mfa-challenge redirect is a UX polish; the password
+    // succeeded and the session is valid (at aal1).
+  }
+
   // AUTH-CRIT-001 (1B): Do not return access token in body. Supabase SSR
   // manages the session via httpOnly/Secure/SameSite=Lax cookies (set in
   // createServerSupabase). Exposing the JWT here would make it reachable to
@@ -47,5 +64,6 @@ export async function POST(req: NextRequest) {
   return apiSuccess({
     user: { id: data.user.id, email: data.user.email },
     authenticated: true,
+    mfaRequired,
   });
 }

@@ -64,7 +64,13 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/home');
+      // AUTH-ENH-006 (Recommended): MFA gate. If a verified TOTP factor
+      // exists the session is at aal1 and must elevate via challenge.
+      if (data?.data?.mfaRequired) {
+        router.push('/mfa-challenge');
+      } else {
+        router.push('/home');
+      }
     } catch {
       setError('Connection error — Please check your internet connection and try again.');
     } finally {

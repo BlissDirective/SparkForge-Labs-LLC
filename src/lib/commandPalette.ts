@@ -39,6 +39,7 @@ const NAV: PaletteItem[] = [
   { id: 'nav.settings', label: 'Settings', hint: 'Audio, visuals, a11y', group: 'Navigation', href: '/settings', keywords: 'preferences config options' },
   { id: 'nav.sessions', label: 'Active Sessions', hint: 'Manage signed-in devices', group: 'Navigation', href: '/settings/sessions', keywords: 'login device revoke security', parentOnly: true },
   { id: 'nav.linkedAccounts', label: 'Linked Accounts', hint: 'Google, Apple, Microsoft', group: 'Navigation', href: '/settings/linked-accounts', keywords: 'oauth google apple microsoft azure link unlink provider', parentOnly: true },
+  { id: 'nav.mfa', label: 'Two-Factor Authentication', hint: 'TOTP + backup codes', group: 'Navigation', href: '/settings/mfa', keywords: 'mfa 2fa totp authenticator security backup codes', parentOnly: true },
 ];
 
 const LABS: PaletteItem[] = [

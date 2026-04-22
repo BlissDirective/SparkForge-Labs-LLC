@@ -23,7 +23,11 @@ export type FeatureFlag =
   // Phase 5 task #8 — PAY-ENH Proration preview (Recommended).
   | 'PRORATION_PREVIEW'
   // Phase 5 task #10 — STATE-ENH Optimistic + IndexedDB offline cache (Max).
-  | 'OPTIMISTIC_OFFLINE_CACHE';
+  | 'OPTIMISTIC_OFFLINE_CACHE'
+  // Phase 5 Next-10 task #2 — AUTH-ENH-006 MFA/TOTP for parents (Recommended).
+  // Off by default; turn on to expose /settings/mfa and enforce AAL2
+  // on subsequent sign-ins.
+  | 'MFA_TOTP';
 
 const ALL_FLAGS: FeatureFlag[] = [
   'WELCOME_ACHIEVEMENT',
@@ -39,6 +43,7 @@ const ALL_FLAGS: FeatureFlag[] = [
   'COMMAND_PALETTE',
   'PRORATION_PREVIEW',
   'OPTIMISTIC_OFFLINE_CACHE',
+  'MFA_TOTP',
 ];
 
 function readFlag(flag: FeatureFlag): boolean {
