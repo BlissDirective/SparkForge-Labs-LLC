@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "SparkForge",
+    "tagline": "Learn AI by playing"
+  },
+  "nav": {
+    "home": "Home",
+    "labs": "Labs",
+    "arcade": "Arcade",
+    "profile": "Profile",
+    "settings": "Settings",
+    "parent": "Parent",
+    "signOut": "Sign out",
+    "signIn": "Sign in",
+    "signUp": "Sign up"
+  },
+  "common": {
+    "continue": "Continue",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "loading": "Loading…",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "ok": "OK"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "emailLabel": "Email",
+      "passwordLabel": "Password",
+      "submit": "Log in",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "orDivider": "OR",
+      "tryDemo": "Try demo (no account)"
+    },
+    "signup": {
+      "title": "Create your family account",
+      "submit": "Create account"
+    },
+    "oauth": {
+      "continueWith": "Continue with {provider}",
+      "google": "Google",
+      "apple": "Apple",
+      "microsoft": "Microsoft"
+    },
+    "mfa": {
+      "title": "Two-factor check",
+      "enterCode": "Enter the 6-digit code from your authenticator app.",
+      "useBackup": "Use a backup code instead",
+      "verify": "Verify",
+      "checking": "Checking…"
+    }
+  },
+  "game": {
+    "welcome": "Welcome",
+    "start": "Start",
+    "complete": "Great job!",
+    "nextRound": "Next round",
+    "playAgain": "Play again",
+    "score": "Score",
+    "time": "Time",
+    "xpEarned": "{xp} XP earned"
+  },
+  "settings": {
+    "title": "Settings",
+    "language": "Language",
+    "audio": "Audio",
+    "visual": "Visual",
+    "linkedAccounts": "Linked accounts",
+    "twoFactor": "Two-factor authentication",
+    "sessions": "Active sessions"
+  },
+  "guide": {
+    "askSparky": "Ask Sparky",
+    "dismiss": "Dismiss hint",
+    "openChat": "Open Sparky for more help"
+  }
+}

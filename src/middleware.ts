@@ -37,6 +37,8 @@ const PUBLIC_API_PATHS: ReadonlySet<string> = new Set([
   '/api/auth/signup',
   '/api/auth/demo',
   '/api/health',
+  // UX-ENH-010: locale cookie setter — no auth needed, just validates input.
+  '/api/i18n/locale',
   '/api/stripe/webhook',
 ]);
 

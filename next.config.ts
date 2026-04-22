@@ -1,5 +1,11 @@
 import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
+import createNextIntlPlugin from 'next-intl/plugin';
+
+// UX-ENH-010 (Recommended): next-intl plugin points at our
+// getRequestConfig at src/i18n/request.ts.
+const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
+
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
@@ -86,8 +92,12 @@ const nextConfig: NextConfig = {
   },
 };
 
+// Compose plugins: next-intl → Sentry. Sentry wraps last because its
+// config webhook needs to see the final Next.js config object.
+const withIntl = withNextIntl(nextConfig);
+
 // Sentry wraps the Next.js config for source maps + error tracking
-export default withSentryConfig(nextConfig, {
+export default withSentryConfig(withIntl, {
   // Sentry build options
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
