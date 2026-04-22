@@ -7,8 +7,14 @@
 // handler again later (e.g., after a magic-link re-auth) we won't
 // overwrite the original timestamp because the UPDATE is guarded by
 // `.is('email_verified_at', null)`.
+// AUTH-ENH-003 (Max): Detects OAuth-first-sign-in via provider token
+// in app_metadata and upserts a minimal `parents` row + logs an
+// `auth_events` entry. Parents signed up via email never hit this
+// path — they already have a row from /api/auth/signup.
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase, createAdminClient } from '@/lib/supabase/server';
+import { logAuthEvent } from '@/lib/auth/audit';
+import { isOAuthProvider } from '@/lib/auth/oauth';
 
 // Internal-path whitelist: must start with '/' and contain only
 // letters, digits, hyphens, and additional slashes (covers all SparkForge
@@ -38,23 +44,72 @@ export async function GET(req: NextRequest) {
     const { error, data } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error && data?.user) {
-      // AUTH-HIGH-004 (4C): first-successful-verification stamp. We use
-      // the admin client because the parents row may pre-date RLS scope
-      // on the newly-minted session, and because the `.is(null)` guard
-      // makes this update a no-op on repeat visits.
-      try {
-        const admin = createAdminClient();
-        await admin
-          .from('parents')
-          .update({ email_verified_at: new Date().toISOString() })
-          .eq('id', data.user.id)
-          .is('email_verified_at', null);
-      } catch (stampErr) {
-        // Don't block sign-in if the stamp fails — log it and proceed.
-        // The banner + checkout gate will still nudge the user to verify
-        // if necessary.
-        console.error('[auth/callback] email_verified_at stamp failed:', stampErr);
+      const user = data.user;
+      // AUTH-ENH-003: the provider token is stamped into
+      // app_metadata by Supabase. 'email' = password/magic-link,
+      // any other value = OAuth (google/apple/azure).
+      const provider = (user.app_metadata?.provider as string | undefined) || 'email';
+      const isOAuth = isOAuthProvider(provider);
+
+      const admin = createAdminClient();
+
+      // AUTH-ENH-003: OAuth-first-sign-in → ensure a parents row exists.
+      // OAuth users skip /signup entirely, so we upsert here. `onConflict`
+      // keeps this idempotent for repeat sign-ins. Auto-verify email
+      // because the provider has already validated it upstream.
+      if (isOAuth) {
+        const nowIso = new Date().toISOString();
+        const emailFromIdentity =
+          user.email ||
+          (user.identities?.[0]?.identity_data?.email as string | undefined) ||
+          '';
+        const fullName =
+          (user.user_metadata?.full_name as string | undefined) ||
+          (user.user_metadata?.name as string | undefined) ||
+          null;
+
+        try {
+          await admin.from('parents').upsert(
+            {
+              id: user.id,
+              email: emailFromIdentity,
+              full_name: fullName,
+              email_verified_at: nowIso,
+              oauth_last_provider: provider,
+              oauth_last_used_at: nowIso,
+            },
+            { onConflict: 'id', ignoreDuplicates: false },
+          );
+        } catch (upsertErr) {
+          console.error('[auth/callback] oauth parents upsert failed:', upsertErr);
+          // Don't block sign-in — the user has a valid session. They
+          // may hit a consent prompt or profile incompleteness downstream.
+        }
+      } else {
+        // AUTH-HIGH-004 (4C): first-successful-verification stamp for
+        // email/password accounts. Admin client because the parents row
+        // may pre-date RLS scope on the newly-minted session, and
+        // because `.is(null)` makes this a no-op on repeat visits.
+        try {
+          await admin
+            .from('parents')
+            .update({ email_verified_at: new Date().toISOString() })
+            .eq('id', user.id)
+            .is('email_verified_at', null);
+        } catch (stampErr) {
+          console.error('[auth/callback] email_verified_at stamp failed:', stampErr);
+        }
       }
+
+      // AUTH-ENH-003: log the sign-in event. OAuth events are the
+      // common case; we also log magic-link sign-ins as
+      // 'signin.password' since both use email as the trust anchor.
+      await logAuthEvent({
+        parentId: user.id,
+        eventType: isOAuth ? 'signin.oauth' : 'signin.password',
+        provider: isOAuth ? provider : null,
+        req,
+      });
 
       return NextResponse.redirect(`${origin}${next}`);
     }

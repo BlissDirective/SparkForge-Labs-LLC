@@ -38,6 +38,7 @@ const NAV: PaletteItem[] = [
   { id: 'nav.profile', label: 'Profile', hint: 'Your avatar + stats', group: 'Navigation', href: '/profile', keywords: 'me badges trophies' },
   { id: 'nav.settings', label: 'Settings', hint: 'Audio, visuals, a11y', group: 'Navigation', href: '/settings', keywords: 'preferences config options' },
   { id: 'nav.sessions', label: 'Active Sessions', hint: 'Manage signed-in devices', group: 'Navigation', href: '/settings/sessions', keywords: 'login device revoke security', parentOnly: true },
+  { id: 'nav.linkedAccounts', label: 'Linked Accounts', hint: 'Google, Apple, Microsoft', group: 'Navigation', href: '/settings/linked-accounts', keywords: 'oauth google apple microsoft azure link unlink provider', parentOnly: true },
 ];
 
 const LABS: PaletteItem[] = [
