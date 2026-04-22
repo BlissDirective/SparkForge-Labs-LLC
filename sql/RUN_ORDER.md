@@ -59,6 +59,14 @@ Run after the Phase 2 migrations (011–015). These resolve Medium-severity find
 | 24 | `017_subscription_events_fk_cleanup.sql` | DB-MED-002 (B) | Replaces the implicit `ON DELETE NO ACTION` on `subscription_events.parent_id` with `ON DELETE SET NULL`, unblocking parent deletion (PAY-MED-003 flow) while preserving audit history. Adds `cleanup_orphaned_subscription_events()` SECURITY DEFINER function and a daily pg_cron job (00:20 UTC) that deletes NULL-parent rows older than 90 days. Skips cleanly on Supabase Free (no pg_cron). |
 | 25 | `018_content_slug_enforce.sql` | DB-MED-003 (B) | Backfills NULL/empty slugs via a new `slugify(TEXT)` helper, then `ALTER COLUMN slug SET NOT NULL DEFAULT ''`. Adds a BEFORE INSERT trigger (`trg_content_auto_slug`) that auto-generates `slugify(title)||'-'||<8-hex>` when the caller omits slug. Idempotent. Post-apply DO block verifies 0 null/empty rows + NOT NULL + trigger installed. |
 
+## Phase 5 Audit Migrations (Final-Audit_04-15-2026.md)
+
+Phase 5 First 10 enhancements. Run after Phase 3 migrations (018).
+
+| Order | File | Task | Description |
+|-------|------|------|-------------|
+| 26 | `019_demo_role_rls.sql` | #2 AUTH-ENH Signed Demo Tokens (Max) | Adds RESTRICTIVE `demo_deny_*` RLS policies on all 9 user-facing tables + Stage 8/9 tables (subscription_events, subscription_events_detail, agent_runs, audit_log). Blocks ALL writes from anonymous JWT sessions (`auth.jwt() ->> 'is_anonymous' = 'true'`). Defense-in-depth alongside new `requireWriteAccess()` API helper. Idempotent. Post-apply DO block verifies every required table carries a `demo_deny_*` RESTRICTIVE policy. |
+
 ## Archived Files (Do NOT Run)
 
 These have been merged into canonical files above. Kept for historical reference only.
