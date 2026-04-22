@@ -66,6 +66,7 @@ Phase 5 First 10 enhancements. Run after Phase 3 migrations (018).
 | Order | File | Task | Description |
 |-------|------|------|-------------|
 | 26 | `019_demo_role_rls.sql` | #2 AUTH-ENH Signed Demo Tokens (Max) | Adds RESTRICTIVE `demo_deny_*` RLS policies on all 9 user-facing tables + Stage 8/9 tables (subscription_events, subscription_events_detail, agent_runs, audit_log). Blocks ALL writes from anonymous JWT sessions (`auth.jwt() ->> 'is_anonymous' = 'true'`). Defense-in-depth alongside new `requireWriteAccess()` API helper. Idempotent. Post-apply DO block verifies every required table carries a `demo_deny_*` RESTRICTIVE policy. |
+| 27 | `020_passkey_credentials.sql` | #3 AUTH-ENH Passkey / WebAuthn (Ultra) | Creates `passkey_credentials` + `passkey_challenges` tables for FIDO2/WebAuthn. RLS: SELECT-own for parents, RESTRICTIVE write-deny on both tables (writes done via SECURITY DEFINER server code only). `demo_deny_passkey_credentials` mirrors 019. `cleanup_expired_passkey_challenges()` SECURITY DEFINER function + pg_cron job every 10 min (skipped cleanly when pg_cron absent). |
 
 ## Archived Files (Do NOT Run)
 

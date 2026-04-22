@@ -38,6 +38,8 @@
     "@react-three/uikit": "^1.0.64",
     "@react-three/uikit-apfel": "^0.8.21",
     "@sentry/nextjs": "^9.47.1",
+    "@simplewebauthn/browser": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.0",
     "@splinetool/react-spline": "^4.1.0",
     "@splinetool/runtime": "^1.12.73",
     "@stripe/stripe-js": "^8.8.0",
