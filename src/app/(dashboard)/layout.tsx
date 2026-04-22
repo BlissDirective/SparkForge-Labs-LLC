@@ -47,6 +47,7 @@ import { SkipLink } from '@/components/shared/SkipLink';
 import { OfflineBanner } from '@/components/shared/OfflineBanner';
 import { AdminNavDock } from '@/components/admin/AdminNavDock';
 import { useGuideContext } from '@/hooks/useGuideContext';
+import { useContextualHints } from '@/hooks/useContextualHints';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 import { MemoryMonitor } from '@/components/3d/dev/MemoryMonitor';
 import { TutorialAnchors } from '@/components/onboarding/TutorialAnchors';
@@ -59,6 +60,13 @@ import { RealtimeChildrenBridge } from '@/components/providers/RealtimeChildrenB
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
   () => import('@/components/ui/GuideChatPanel'),
+  { ssr: false, loading: () => null }
+);
+
+// UX-ENH-006 (Max): Inline context-hint bubble. Small HTML overlay
+// that shows a one-sentence nudge when the child stalls.
+const GuideHintBubble = dynamic(
+  () => import('@/components/ui/GuideHintBubble'),
   { ssr: false, loading: () => null }
 );
 
@@ -125,6 +133,10 @@ export default function DashboardLayout({
 
   // Auto-detect guide context from route/scene
   useGuideContext();
+  // UX-ENH-006 (Max): Stall detector + /api/ai/guide call bridge.
+  // Fires a one-sentence inline hint when the child stalls on a lab
+  // or game for ~15s. Dedup'd by (context, labId, gameId).
+  useContextualHints();
 
   // Cockpit audio mode transitions (legacy bridge)
   useEffect(() => {
@@ -200,6 +212,10 @@ export default function DashboardLayout({
 
         {/* Guide chat panel — HTML overlay for text input (Phase 3: migrate to uikit) */}
         <GuideChatPanel />
+
+        {/* UX-ENH-006 (Max): Inline hint bubble — one-sentence nudge
+            driven by useContextualHints stall detector. */}
+        <GuideHintBubble />
 
         {/* v3 Gap 1/3: Admin tools dock — only rendered when parent.is_admin.
             Floats bottom-left so it coexists with TrialBanner/DemoBanner at top
