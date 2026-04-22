@@ -1,8 +1,34 @@
 # SparkForge Build Progress
 
-## Current Phase: Flagship Game Audit Implementation
-## Status: IN PROGRESS
-## Last Updated: 2026-04-07
+## Current Phase: Phase 5 — First 10 Enhancements (Final-Audit 04-15)
+## Status: IN PROGRESS — Task #1 complete, #2 next
+## Last Updated: 2026-04-22
+
+---
+
+## Phase 5 First 10 Enhancements — April 22, 2026
+
+**Branch:** `claude/phase-5-auth-enhancements-S5N0E` · **Scope:** 10 tier-locked enhancements selected in Final-Audit_04-15-2026.md §"Phase 5 First 10".
+
+### Task 1 — §10.11 OffscreenCanvas Worker Rendering (Ultra) — ✅ COMPLETE
+
+Shipped 7 sub-pieces across 5 commits. All infrastructure live under `src/lib/3d/offscreen/` + `src/workers/renderWorker.ts`. Opt-in behind `NEXT_PUBLIC_FF_OFFSCREEN_RENDER=true`.
+
+| Sub-piece | Files | Commit |
+|---|---|---|
+| 1. SAB store mirror + feature flags | `sabStoreMirror.ts`, `sabStoreBridge.ts`, `feature-flags.ts` | `46e338d` |
+| 2. Shader precompile manifest + precompiler | `shaderManifest.ts`, `shaderPrecompiler.ts` | `5d7dd79` |
+| 3-4. FPS telemetry + auto-quality policy | `fpsTelemetry.ts`, `autoQuality.ts` | `492d77e` |
+| 5. Synthetic event bridge | `eventBridge.ts` | `f38d5c3` |
+| 6-7. Worker protocol + client + host + render worker | `workerProtocol.ts`, `workerClient.ts`, `OffscreenCanvasGate.tsx`, `OffscreenCanvasWorkerHost.tsx`, `workers/renderWorker.ts` | `d72ea72` |
+| Lint fixes (named three imports) | 3 files | `101c2d3` |
+
+**Scope caveat (honest):** full R3F reconciler in worker is 3-5 eng-weeks per the audit. This ships:
+- Full infra suite that a reconciler will plug directly into (no throw-away).
+- A minimal worker render scene (cockpit ring + grid + stars) so the pipeline is live NOW and measurable.
+- Main-thread Canvas untouched — when flag off or browser unsupported, zero regression.
+
+Next: Task #2 — AUTH-ENH Signed Demo Tokens (Max).
 
 ---
 
