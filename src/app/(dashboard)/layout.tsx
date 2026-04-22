@@ -51,6 +51,10 @@ import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 import { MemoryMonitor } from '@/components/3d/dev/MemoryMonitor';
 import { TutorialAnchors } from '@/components/onboarding/TutorialAnchors';
 import { CockpitHelpButton } from '@/components/onboarding/CockpitHelpButton';
+// DB-ENH-002 (Recommended): Realtime progress + XP sync for all
+// children owned by the current parent. Invalidates React Query
+// caches on Supabase row-level changes — zero polling.
+import { RealtimeChildrenBridge } from '@/components/providers/RealtimeChildrenBridge';
 
 // Phase 5: Guide chat panel (HTML overlay — retained for text input compat)
 const GuideChatPanel = dynamic(
@@ -212,6 +216,11 @@ export default function DashboardLayout({
         <TutorialAnchors />
         <CockpitHelpButton />
         <CockpitTutorial />
+
+        {/* DB-ENH-002: renders nothing; opens Supabase Realtime channels
+            for this parent's children. Invalidates progress + XP caches
+            on row-level changes. */}
+        <RealtimeChildrenBridge />
       </div>
     </DemoGuard>
     </AuthProvider>
