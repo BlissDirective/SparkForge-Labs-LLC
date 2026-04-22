@@ -134,7 +134,7 @@ export function CommandPalette({ enabled }: CommandPaletteProps) {
               onValueChange={setQuery}
               placeholder="Search commands, labs, settings…"
               className="w-full bg-transparent border-0 border-b border-white/10
-                px-4 py-3 text-white/90 placeholder:text-white/40
+                px-4 py-3 text-white/90 placeholder:text-white/60
                 focus:outline-none focus:border-white/30"
               autoFocus
             />
@@ -172,7 +172,7 @@ export function CommandPalette({ enabled }: CommandPaletteProps) {
                 );
               })}
             </Command.List>
-            <div className="border-t border-white/10 px-3 py-2 flex items-center justify-between text-[11px] text-white/40">
+            <div className="border-t border-white/10 px-3 py-2 flex items-center justify-between text-[11px] text-white/60">
               <span>
                 <kbd className="px-1 py-0.5 rounded border border-white/15 bg-white/5">↑↓</kbd> nav
                 <span className="mx-1">·</span>
@@ -199,7 +199,7 @@ function PaletteRow({ item, onSelect }: { item: PaletteItem; onSelect: () => voi
         flex items-center justify-between gap-3"
     >
       <span className="truncate">{item.label}</span>
-      {item.hint && <span className="text-white/40 text-xs truncate">{item.hint}</span>}
+      {item.hint && <span className="text-white/60 text-xs truncate">{item.hint}</span>}
     </Command.Item>
   );
 }

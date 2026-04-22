@@ -10,6 +10,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { useCallback, useEffect, useState } from 'react';
+import Image from 'next/image';
 import { csrfHeader } from '@/lib/api';
 
 interface Factor {
@@ -210,10 +211,17 @@ export default function MfaSettingsPage() {
           <p className="text-sm text-white/60">
             Use Google Authenticator, 1Password, Authy, or any TOTP app.
           </p>
-          {/* Supabase returns the QR as an SVG data URL, rendered here as
-              an img — safe because data URLs can't exfiltrate the page context. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={qrSvg} alt="TOTP QR code" className="w-48 h-48 bg-white p-2 rounded" />
+          {/* Supabase returns the QR as an SVG data URL. next/image
+              supports data URLs via `unoptimized` (skipping the loader
+              pipeline). Safe because data URLs can't exfiltrate. */}
+          <Image
+            src={qrSvg}
+            alt="TOTP QR code"
+            width={192}
+            height={192}
+            unoptimized
+            className="bg-white p-2 rounded"
+          />
           {secret && (
             <details className="text-sm text-white/60">
               <summary className="cursor-pointer">Can't scan? Enter this secret manually</summary>

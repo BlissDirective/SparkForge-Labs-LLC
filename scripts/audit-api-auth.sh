@@ -23,18 +23,31 @@ set -euo pipefail
 
 # Paths must mirror src/middleware.ts PUBLIC_API_PATHS + CRON_API_PATHS.
 # Listed relative to src/app, so route.ts at src/app/api/foo/bar/route.ts
-# maps to the key "api/foo/bar".
+# maps to the key "api/foo/bar". Dynamic segments are kept in
+# bracketed form because `find` traverses the filesystem paths.
 PUBLIC_ALLOWLIST=(
   "api/auth/callback"
   "api/auth/login"
   "api/auth/logout"
   "api/auth/signup"
   "api/auth/demo"
+  # AUTH-ENH-003: OAuth initiation is intentionally public — no session
+  # exists when the user clicks "Continue with Google".
+  "api/auth/oauth/[provider]"
+  # AUTH-ENH Passkey: authentication + verification run pre-login.
+  # Feature-flagged via PASSKEY_AUTH; route-level isFeatureEnabled guard.
+  "api/auth/passkeys/authenticate-options"
+  "api/auth/passkeys/verify-authentication"
   "api/health"
+  # UX-ENH-010: locale cookie setter — no auth, input validated by Zod.
+  "api/i18n/locale"
   "api/stripe/webhook"
   "api/cron/trial-reminders"
+  "api/cron/dunning"
   "api/agent/schedule"
   "api/agent/trending"
+  # Public API spec — intentional read-only exposure.
+  "api/docs"
 )
 
 is_in_allowlist() {
@@ -59,10 +72,13 @@ while IFS= read -r -d '' file; do
   fi
 
   # Accepted auth patterns:
-  #   - requireAuth / requireAdmin    → centralized helpers
-  #   - supabase.auth.getUser()       → direct Supabase session check
-  #   - constructEvent                → Stripe webhook signature verify
-  if grep -qE 'requireAuth|requireAdmin|auth\.getUser\(|constructEvent' "$file"; then
+  #   - requireAuth / requireAdmin     → centralized helpers (api-helpers)
+  #   - requireAuthWithConsent         → consent-gated auth (AUTH-MED-002)
+  #   - requireWriteAccess             → authed + non-demo (AUTH-ENH-007)
+  #   - supabase.auth.getUser()        → direct Supabase session check
+  #   - constructEvent                 → Stripe webhook signature verify
+  #   - verifyCronBearer               → shared-secret cron auth
+  if grep -qE 'requireAuth|requireAdmin|requireAuthWithConsent|requireWriteAccess|auth\.getUser\(|constructEvent|verifyCronBearer' "$file"; then
     continue
   fi
 

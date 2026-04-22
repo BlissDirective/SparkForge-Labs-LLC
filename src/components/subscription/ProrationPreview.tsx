@@ -120,7 +120,7 @@ export function ProrationPreview({ targetPriceId, currencyOverride }: ProrationP
           <li key={i} className="flex items-baseline justify-between gap-4">
             <span className="text-white/70 truncate">
               {item.description || 'Subscription line'}
-              {item.proration && <span className="ml-2 text-white/40 text-xs">(prorated)</span>}
+              {item.proration && <span className="ml-2 text-white/60 text-xs">(prorated)</span>}
             </span>
             <span
               className={`font-mono text-xs shrink-0

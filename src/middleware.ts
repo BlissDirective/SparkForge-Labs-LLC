@@ -40,7 +40,23 @@ const PUBLIC_API_PATHS: ReadonlySet<string> = new Set([
   // UX-ENH-010: locale cookie setter — no auth needed, just validates input.
   '/api/i18n/locale',
   '/api/stripe/webhook',
+  // AUTH-ENH Passkey: pre-login flow (user proves identity via WebAuthn,
+  // route-level feature flag PASSKEY_AUTH gates the whole subsystem).
+  '/api/auth/passkeys/authenticate-options',
+  '/api/auth/passkeys/verify-authentication',
 ]);
+
+/**
+ * Public API prefixes. Matched via startsWith, so any path under
+ * these roots counts as public. Use sparingly — exact matches above
+ * are preferred.
+ */
+const PUBLIC_API_PREFIXES: readonly string[] = [
+  // AUTH-ENH-003: OAuth initiation for any provider. No session exists
+  // yet; the /api/auth/callback handler (also public above) exchanges
+  // the Supabase code for a session on return.
+  '/api/auth/oauth/',
+];
 
 /**
  * Routes authenticated by a shared `CRON_SECRET` bearer token instead
@@ -49,12 +65,18 @@ const PUBLIC_API_PATHS: ReadonlySet<string> = new Set([
  */
 const CRON_API_PATHS: ReadonlySet<string> = new Set([
   '/api/cron/trial-reminders',
+  '/api/cron/dunning',
   '/api/agent/schedule',
   '/api/agent/trending',
 ]);
 
 function isPublicAPI(pathname: string): boolean {
-  return PUBLIC_API_PATHS.has(pathname) || CRON_API_PATHS.has(pathname);
+  if (PUBLIC_API_PATHS.has(pathname)) return true;
+  if (CRON_API_PATHS.has(pathname)) return true;
+  for (const prefix of PUBLIC_API_PREFIXES) {
+    if (pathname.startsWith(prefix)) return true;
+  }
+  return false;
 }
 
 // API-HIGH-004 (A): Routes that should bypass CSRF validation because

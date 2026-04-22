@@ -512,8 +512,19 @@ describe('webhook handler — invoice.payment_failed', () => {
     const update = (asParents(calls, 'update') as Array<{ data: Record<string, unknown>; filter?: { col: string; val: unknown } }>)[0];
     expect(update.data.subscription_status).toBe('past_due');
     expect(update.filter).toEqual({ col: 'stripe_customer_id', val: 'cus_broke' });
-    // We only update status — nothing else
-    expect(Object.keys(update.data)).toEqual(['subscription_status']);
+    // PAY-ENH-003 (Ultra): webhook now also seeds the dunning sequence
+    // on first payment failure. Asserts the exact contract so future
+    // accidental field additions fail noisily.
+    expect(new Set(Object.keys(update.data))).toEqual(new Set([
+      'subscription_status',
+      'dunning_stage',
+      'dunning_started_at',
+      'dunning_last_sent_at',
+      'grace_period_ends_at',
+      'dunning_tier_before',
+    ]));
+    expect(update.data.dunning_stage).toBe(0);
+    expect(typeof update.data.grace_period_ends_at).toBe('string');
   });
 });
 

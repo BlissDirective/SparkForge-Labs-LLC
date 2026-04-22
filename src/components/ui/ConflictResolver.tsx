@@ -70,13 +70,13 @@ export function ConflictResolver() {
 
           <div className="grid grid-cols-2 gap-3 text-xs mb-5">
             <div className="rounded border border-white/10 bg-white/5 p-3">
-              <div className="uppercase text-white/40 mb-1 tracking-wide">Your change</div>
+              <div className="uppercase text-white/60 mb-1 tracking-wide">Your change</div>
               <pre className="text-white/80 whitespace-pre-wrap break-all">
                 {safeStringify(payload.predicted)}
               </pre>
             </div>
             <div className="rounded border border-white/10 bg-white/5 p-3">
-              <div className="uppercase text-white/40 mb-1 tracking-wide">Server</div>
+              <div className="uppercase text-white/60 mb-1 tracking-wide">Server</div>
               <pre className="text-white/80 whitespace-pre-wrap break-all">
                 {safeStringify(payload.actual)}
               </pre>
