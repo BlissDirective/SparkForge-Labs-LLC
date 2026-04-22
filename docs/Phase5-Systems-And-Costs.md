@@ -112,4 +112,94 @@ No Phase 5 feature introduces per-seat or per-user billing beyond Supabase Pro's
 
 ---
 
-*End of Phase 5 Systems & Costs document · April 22, 2026*
+## 6. Phase 5 Next-10 addendum (April 22, 2026)
+
+Second batch of 10 enhancements (tasks #11–#20 in CLAUDE.md). Tier
+selections per user: see individual task commits on branch
+`claude/phase-5-auth-enhancements-S5N0E`.
+
+### 6.1 Packages introduced (Next-10)
+
+| Task | Package | Version | Runtime / Build | Bundle impact |
+|---|---|---|---|---|
+| #15 | `@vercel/otel` | ^2.1 | Runtime (server) | Server-only |
+| #15 | `@opentelemetry/api` | ^1.9 | Runtime (server) | Server-only |
+| #17 | `next-intl` | ^4 | Runtime (client + server) | ~9 KB gzipped on pages using `useTranslations` |
+| #20 | `xstate` | ^5.30 | Runtime (client) | ~15 KB gzipped, tree-shaken per machine |
+| #20 | `@xstate/react` | ^6.1 | Runtime (client) | ~2 KB gzipped |
+
+**Net First-Load impact (Next-10 total):** +15-25 KB on pages that
+import the machines / useTranslations. No impact on other pages.
+
+### 6.2 Third-party services / tier uplifts (Next-10)
+
+| Task | Service | Change | Monthly cost delta |
+|---|---|---|---|
+| #11 | Supabase | Google / Apple / Azure OAuth providers enabled in Auth settings (free) | $0 |
+| #12 | Supabase | TOTP MFA factor is on all plans | $0 |
+| #13 | Supabase | Realtime is on all plans; delta = bandwidth of JSON change events | ~$0 at current MAU |
+| #14 | Stripe | Smart Retries is on all plans; win-back coupon inventory is flat | $0 |
+| #14 | Resend | Dunning sequence adds ~4 extra transactional emails per churned user | ~$0-$1/mo typical; $0.001/email over 3K free tier |
+| #15 | Vercel | OTLP endpoint is on all Vercel plans; Sentry receives OTel spans at current plan limits | $0 incremental |
+| #17 | Anthropic | Claude Haiku 4.5 translation runs ad-hoc (~$0.01 per full catalog translation) | Negligible (~$1/year at monthly run cadence) |
+| #18 | — | BatchedMesh is a Three.js feature; no service cost | $0 |
+| #19 | GitHub Actions | Added jobs: playwright (~2 min), lighthouse (~1.5 min), bundle-size (~30s) | Within free public-repo minutes; ~3 min/run against paid quotas |
+| #20 | — | XState is a local library | $0 |
+
+### 6.3 Prerequisite summary (Next-10)
+
+| Prereq | Status | Action needed |
+|---|---|---|
+| Google OAuth app | **REQUIRED** for #11 | Configure in Supabase dashboard + Google Cloud Console |
+| Apple Services ID | **REQUIRED** for #11 | Configure in Supabase + Apple Developer Portal |
+| Azure AD app registration | **REQUIRED** for #11 | Configure in Supabase + Azure Portal |
+| Stripe Smart Retries enabled | **REQUIRED** for #14 | Dashboard → Billing → Retry rules → set max retry window = 7d |
+| `CRON_SECRET` env | **REQUIRED** for #14 cron route | Present from Phase 1; reaffirmed |
+| `ANTHROPIC_API_KEY` | Optional for #17 | Only needed when running `npm run translate:i18n` to refresh non-English locales |
+| `SENTRY_DSN` or `OTEL_EXPORTER_OTLP_ENDPOINT` | Optional for #15 | OTel registration is skipped when neither is set |
+
+### 6.4 Infrastructure impact (Next-10)
+
+| File | Runtime cost | Blast radius |
+|---|---|---|
+| `sql/022_auth_events.sql` | 1 table + 3 indexes + 180d pg_cron retention job | Isolated (new table) |
+| `sql/023_mfa_backup_codes.sql` | 1 table + 1 SECURITY DEFINER RPC | Isolated |
+| `sql/024_realtime_progress.sql` | Adds `progress` + `children` to `supabase_realtime` publication + REPLICA IDENTITY FULL | Publication only; no schema change |
+| `sql/025_dunning.sql` | 5 new columns on `parents` + 2 partial indexes | Parents table — negligible row-size impact |
+
+New cron jobs:
+- `purge_auth_events_180d` — daily at 03:17 UTC (pg_cron)
+- `/api/cron/dunning` — daily at 10:15 UTC (Vercel Cron)
+
+New HTTP endpoints (feature-flagged where relevant):
+- `POST /api/auth/oauth/[provider]`, `GET /api/auth/identities`, `DELETE /api/auth/identities/[provider]` (#11)
+- `POST /api/auth/mfa/enroll`, `/verify-enrollment`, `GET /api/auth/mfa/factors`, `DELETE /api/auth/mfa/factors/[factorId]`, `POST /api/auth/mfa/challenge`, `POST /api/auth/mfa/verify` (#12, flag `MFA_TOTP`)
+- `POST /api/i18n/locale` (#17)
+- `GET /api/cron/dunning` (#14)
+
+### 6.5 Cost estimate summary (Next-10)
+
+| Scenario | Monthly delta |
+|---|---|
+| Minimum (all prereqs met, flags default-off) | **$0** |
+| Typical (OAuth providers live + MFA enabled + dunning active) | **$0** incremental — Supabase + Stripe are on existing tier |
+| Heavy i18n iteration (monthly en.json edit + re-translate) | **~$0.10/mo** Claude Haiku |
+| Lighthouse CI on 20+ PRs/mo | **$0** within GitHub free minutes |
+
+### 6.6 Risk posture (Next-10)
+
+| Item | Rollback path |
+|---|---|
+| OAuth disable | Unset providers in Supabase dashboard; existing email/password users unaffected |
+| MFA disable | Set `NEXT_PUBLIC_FF_MFA_TOTP=false`; existing enrolled factors become dormant until flag re-enabled |
+| Realtime disable | `ALTER PUBLICATION supabase_realtime DROP TABLE progress, children;` — one SQL statement |
+| Dunning disable | Set `dunning_stage = NULL` via SQL; remove cron from `vercel.json`; emails stop immediately |
+| OTel disable | Unset `SENTRY_DSN` + `OTEL_EXPORTER_OTLP_ENDPOINT` — `registerOTel` is skipped |
+| i18n disable | Clear `NEXT_LOCALE` cookie; users fall back to English |
+| BatchedMesh disable | `NEXT_PUBLIC_FF_BATCHED_COCKPIT=false` — legacy per-mesh path remains authoritative |
+| CI job failures | Individual jobs can be marked `continue-on-error: true` without affecting main gates |
+| XState disable | Each machine is opt-in via its hook; not importing the hook leaves games unchanged |
+
+---
+
+*End of Phase 5 Systems & Costs document · Next-10 added April 22, 2026*
