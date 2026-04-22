@@ -4,6 +4,7 @@ import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { CompleteContentSchema } from '@/lib/validations';
 import { apiSuccess, apiError, parseBody, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
+import { traceProgressWrite } from '@/lib/sentry-transactions';
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
@@ -39,21 +40,25 @@ export async function POST(req: NextRequest) {
 
   const supabase = await createServerSupabase();
 
-  const { data, error } = await supabase
-    .from('progress')
-    .upsert({
-      child_id: childId,
-      content_id: contentId,
-      completed: true,
-      score: score || null,
-      time_spent_seconds: timeSpentSeconds,
-      completed_at: new Date().toISOString(),
-      attempts: 1,
-    }, { onConflict: 'child_id,content_id' })
-    .select()
-    .single();
+  // API-ENH-004 (Recommended): Wrap the write path in a named span so
+  // we can track progress-upsert p95 latency in Sentry Performance.
+  return traceProgressWrite(childId, contentId, async () => {
+    const { data, error } = await supabase
+      .from('progress')
+      .upsert({
+        child_id: childId,
+        content_id: contentId,
+        completed: true,
+        score: score || null,
+        time_spent_seconds: timeSpentSeconds,
+        completed_at: new Date().toISOString(),
+        attempts: 1,
+      }, { onConflict: 'child_id,content_id' })
+      .select()
+      .single();
 
-  if (error) return apiError('Failed to record progress', 500);
+    if (error) return apiError('Failed to record progress', 500);
 
-  return apiSuccess(data, 201);
+    return apiSuccess(data, 201);
+  });
 }

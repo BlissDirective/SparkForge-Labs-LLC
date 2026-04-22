@@ -103,3 +103,34 @@ export async function withDbSpan<T>(
     'db.operation': description,
   });
 }
+
+// API-ENH-004 (Recommended): Progress write span. Wraps the
+// /api/progress POST handler's DB mutation so a single trace covers
+// the full "child completed content" latency path (auth → ownership
+// verify → upsert → XP award → realtime broadcast).
+export async function traceProgressWrite<T>(
+  childIdPrefix: string,
+  contentId: string,
+  fn: () => Promise<T> | T,
+): Promise<T> {
+  return withSpan('progress.write', 'progress.write', fn, {
+    'progress.content_id': contentId,
+    'user.id_prefix': childIdPrefix.slice(0, 8),
+  });
+}
+
+// API-ENH-004 (Recommended): Supabase RPC span. Use for named RPC
+// calls so the Sentry UI shows per-function latency instead of a
+// generic "postgres" bucket.
+export async function withSupabaseRpc<T>(
+  functionName: string,
+  fn: () => Promise<T> | T,
+  attrs: Record<string, string | number | boolean> = {},
+): Promise<T> {
+  return withSpan(`supabase.rpc.${functionName}`, 'db.query', fn, {
+    'db.system': 'postgresql',
+    'db.operation': 'rpc',
+    'db.rpc.function': functionName,
+    ...attrs,
+  });
+}

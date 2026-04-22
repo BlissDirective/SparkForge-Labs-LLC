@@ -1,5 +1,10 @@
 import * as Sentry from '@sentry/nextjs';
 import { sentryReleaseEnv } from '@/lib/sentry-transactions';
+// API-ENH-004 (Recommended): OpenTelemetry auto-instrumentation for
+// Node HTTP, fetch, and @supabase/supabase-js. @vercel/otel wires the
+// OTLP exporter to Vercel's trace collection and also makes OTel
+// spans visible to Sentry (which installs an OTel-compatible SDK).
+import { registerOTel } from '@vercel/otel';
 
 // CRIT-003: Strip child PII fields from Sentry events (COPPA compliance)
 const CHILD_PII_KEYS = [
@@ -25,6 +30,21 @@ function stripChildPII(obj: Record<string, unknown>): Record<string, unknown> {
 
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
+    // API-ENH-004 (Recommended): register OTel BEFORE Sentry so the
+    // Sentry SDK hooks into the pre-installed OTel context. This gives
+    // us automatic spans on:
+    //   - inbound HTTP (Next.js route handlers)
+    //   - outbound fetch (Stripe, Anthropic, Resend, Supabase REST)
+    //   - child spans created via withSpan / traceStripeWebhook etc.
+    // Skipped when SENTRY_DSN is unset (dev) so localhost stays quiet.
+    if (process.env.SENTRY_DSN || process.env.OTEL_EXPORTER_OTLP_ENDPOINT) {
+      registerOTel({
+        serviceName: 'sparkforge',
+        // Vercel injects OTEL_EXPORTER_OTLP_ENDPOINT on Pro plans. Sentry
+        // DSN also configures an OTLP-compatible receiver when present.
+      });
+    }
+
     // Server-side Sentry initialization (replaces sentry.server.config.ts)
     Sentry.init({
       dsn: process.env.SENTRY_DSN,
