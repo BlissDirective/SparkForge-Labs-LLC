@@ -74,6 +74,8 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Hooks (D3D-C4)
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
+// WebGPU async renderer factory (P5 §10.8 Sub 2)
+import { createRenderer } from '@/lib/3d/webgpuRenderer';
 // Frame-time monitoring (Audit Section 4.4, Plan B1: non-invasive, dev-only)
 import { useFrameTimeMonitor } from '@/hooks/useFrameTimeMonitor';
 // Triangle counter overlay (COCK-13: dev-only + admin toggle)
@@ -353,14 +355,21 @@ function CockpitCanvasImpl({
           near: 0.1,
           far: 200,
         }}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance',
-          stencil: false,
-          depth: true,
-          logarithmicDepthBuffer: true,
-        }}
+        // P5 §10.8 Sub 2b: async renderer factory — selects WebGPURenderer
+        // when deviceStore.gpuTier detects WebGPU capability, else falls back
+        // to WebGLRenderer. Downstream postprocessing stack branches on
+        // isWebGPURenderer() at Sub 3f.
+        gl={(props) =>
+          createRenderer({
+            ...props,
+            antialias: true,
+            alpha: true,
+            powerPreference: 'high-performance',
+            stencil: false,
+            depth: true,
+            logarithmicDepthBuffer: true,
+          })
+        }
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>

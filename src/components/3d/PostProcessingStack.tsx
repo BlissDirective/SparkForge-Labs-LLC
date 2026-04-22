@@ -7,8 +7,13 @@
 // are always active. No conditional checks, no device-based
 // degradation. Maximum visual fidelity at all times.
 //
-// Effects (render order):
-//   1. N8AO (SSAO)          — Ambient occlusion for depth
+// Renderer routing (P5 §10.8 Sub 3e):
+//   - WebGLRenderer  → this component's EffectComposer path below.
+//   - WebGPURenderer → delegates to PostProcessingStackWebGPU which
+//                      composes the same effects via TSL RenderPipeline.
+//
+// Effects (render order — both paths):
+//   1. N8AO (SSAO)          — Ambient occlusion for depth [WebGPU: deferred]
 //   2. Bloom                — Luminance-based glow
 //   3. ChromaticAberration  — RGB offset for sci-fi aesthetic
 //   4. DepthOfField         — Subtle tilt-shift focus
@@ -19,6 +24,7 @@
 //   9. BarrelDistortion     — Lens distortion (optional strength)
 
 import { useRef, useMemo, type JSX } from 'react';
+import { useThree } from '@react-three/fiber';
 import {
   EffectComposer,
   Bloom,
@@ -32,6 +38,8 @@ import {
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { BarrelDistortion } from './BarrelDistortion';
+import { PostProcessingStackWebGPU } from './PostProcessingStackWebGPU';
+import { isWebGPURenderer } from '@/lib/3d/webgpuRenderer';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useUIStore } from '@/stores/uiStore';
 import { Vector2 } from 'three';
@@ -59,7 +67,36 @@ interface PostProcessingStackProps {
   barrelDistortion?: number;
 }
 
-export function PostProcessingStack({
+/**
+ * PostProcessingStack (P5 §10.8 Sub 3e) — router.
+ * Picks the WebGL or WebGPU postprocessing path based on the renderer
+ * type. Both paths accept the same props so callers don't branch.
+ */
+export function PostProcessingStack(props: PostProcessingStackProps) {
+  const gl = useThree((s) => s.gl);
+  if (isWebGPURenderer(gl)) {
+    return (
+      <PostProcessingStackWebGPU
+        bloomIntensity={props.bloomIntensity}
+        bloomThreshold={props.bloomThreshold}
+        bloomSmoothing={props.bloomSmoothing}
+        vignetteDarkness={props.vignetteDarkness}
+        vignetteOffset={props.vignetteOffset}
+        chromaticOffset={props.chromaticOffset}
+        ssaoIntensity={props.ssaoIntensity}
+        ssaoRadius={props.ssaoRadius}
+        dofFocusDistance={props.dofFocusDistance}
+        dofFocalLength={props.dofFocalLength}
+        dofBokehScale={props.dofBokehScale}
+        noiseOpacity={props.noiseOpacity}
+        barrelDistortion={props.barrelDistortion}
+      />
+    );
+  }
+  return <PostProcessingStackWebGL {...props} />;
+}
+
+function PostProcessingStackWebGL({
   bloomIntensity = 0.4,
   bloomThreshold = 0.6,
   bloomSmoothing = 0.9,
