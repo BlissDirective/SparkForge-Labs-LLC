@@ -27,7 +27,11 @@ export type FeatureFlag =
   // Phase 5 Next-10 task #2 — AUTH-ENH-006 MFA/TOTP for parents (Recommended).
   // Off by default; turn on to expose /settings/mfa and enforce AAL2
   // on subsequent sign-ins.
-  | 'MFA_TOTP';
+  | 'MFA_TOTP'
+  // Phase 5 Next-10 task #8 — PERF-ENH-001 BatchedMesh cockpit (Ultra).
+  // Off by default; flip on after visual verification. Enables the
+  // zone-split BatchedMesh path for static cockpit chrome details.
+  | 'BATCHED_COCKPIT';
 
 const ALL_FLAGS: FeatureFlag[] = [
   'WELCOME_ACHIEVEMENT',
@@ -44,6 +48,7 @@ const ALL_FLAGS: FeatureFlag[] = [
   'PRORATION_PREVIEW',
   'OPTIMISTIC_OFFLINE_CACHE',
   'MFA_TOTP',
+  'BATCHED_COCKPIT',
 ];
 
 function readFlag(flag: FeatureFlag): boolean {
