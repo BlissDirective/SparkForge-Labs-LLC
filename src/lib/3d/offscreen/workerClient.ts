@@ -114,7 +114,6 @@ export function createWorkerClient(opts: WorkerClientOptions): WorkerClient {
   });
 
   // Transfer control of canvas to worker.
-  // @ts-expect-error — types fall behind on all browsers that ship this
   const offscreen: OffscreenCanvas = canvas.transferControlToOffscreen();
   const dpr = typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1;
 

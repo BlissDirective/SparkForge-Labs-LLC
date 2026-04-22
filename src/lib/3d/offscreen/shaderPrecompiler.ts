@@ -14,7 +14,32 @@
 // warmup set independent of runtime component mount order.
 // ════════════════════════════════════════════════════════════════
 
-import * as THREE from 'three';
+import {
+  AmbientLight,
+  BufferGeometry,
+  DirectionalLight,
+  HemisphereLight,
+  Light,
+  Line,
+  LineBasicMaterial,
+  Mesh,
+  MeshBasicMaterial,
+  MeshPhysicalMaterial,
+  MeshStandardMaterial,
+  OrthographicCamera,
+  PlaneGeometry,
+  PointLight,
+  Points,
+  PointsMaterial,
+  Scene,
+  ShaderMaterial,
+  SpotLight,
+  Sprite,
+  SpriteMaterial,
+  Vector3,
+  type Material,
+  type WebGLRenderer,
+} from 'three';
 import type { ShaderManifestEntry } from './shaderManifest';
 import { getManifestGroup, SHADER_MANIFEST } from './shaderManifest';
 
@@ -26,73 +51,74 @@ export interface PrecompileReport {
   byGroup: Record<string, { compiled: number; total: number; elapsedMs: number }>;
 }
 
-function buildProbe(entry: ShaderManifestEntry): THREE.Object3D {
-  const geom = new THREE.PlaneGeometry(1, 1);
+function buildProbe(entry: ShaderManifestEntry): Mesh | Line | Points | Sprite {
+  const geom = new PlaneGeometry(1, 1);
   const matOpts: Record<string, unknown> = {};
   if (entry.features?.transparent) matOpts.transparent = true;
   if (entry.features?.fog) matOpts.fog = true;
   if (entry.features?.clipping) matOpts.clippingPlanes = [];
 
-  let material: THREE.Material;
+  let material: Material;
   switch (entry.materialClass) {
     case 'MeshStandardMaterial':
-      material = new THREE.MeshStandardMaterial(matOpts);
+      material = new MeshStandardMaterial(matOpts);
       break;
     case 'MeshPhysicalMaterial':
-      material = new THREE.MeshPhysicalMaterial(matOpts);
+      material = new MeshPhysicalMaterial(matOpts);
       break;
     case 'MeshBasicMaterial':
-      material = new THREE.MeshBasicMaterial(matOpts);
+      material = new MeshBasicMaterial(matOpts);
       break;
     case 'LineBasicMaterial':
-      material = new THREE.LineBasicMaterial(matOpts);
-      return new THREE.Line(new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-        new THREE.Vector3(1, 0, 0),
-      ]), material);
+      material = new LineBasicMaterial(matOpts);
+      return new Line(
+        new BufferGeometry().setFromPoints([new Vector3(0, 0, 0), new Vector3(1, 0, 0)]),
+        material,
+      );
     case 'PointsMaterial':
-      material = new THREE.PointsMaterial({ size: 1, ...matOpts });
-      return new THREE.Points(new THREE.BufferGeometry().setFromPoints([
-        new THREE.Vector3(0, 0, 0),
-      ]), material);
+      material = new PointsMaterial({ size: 1, ...matOpts });
+      return new Points(
+        new BufferGeometry().setFromPoints([new Vector3(0, 0, 0)]),
+        material,
+      );
     case 'SpriteMaterial':
-      material = new THREE.SpriteMaterial(matOpts);
-      return new THREE.Sprite(material as THREE.SpriteMaterial);
+      material = new SpriteMaterial(matOpts);
+      return new Sprite(material as SpriteMaterial);
     case 'ShaderMaterial':
       // Minimal pass-through shader. Real shader sources are compiled
       // lazy on first real use because they vary per-component. The
       // probe exists purely to warm the ShaderMaterial pipeline branch.
-      material = new THREE.ShaderMaterial({
+      material = new ShaderMaterial({
         vertexShader: 'void main() { gl_Position = vec4(position, 1.0); }',
         fragmentShader: 'void main() { gl_FragColor = vec4(0.0); }',
         transparent: matOpts.transparent === true,
       });
       break;
     default:
-      material = new THREE.MeshBasicMaterial();
+      material = new MeshBasicMaterial();
   }
-  return new THREE.Mesh(geom, material);
+  return new Mesh(geom, material);
 }
 
-function buildProbeLights(entry: ShaderManifestEntry, scene: THREE.Scene): void {
+function buildProbeLights(entry: ShaderManifestEntry, scene: Scene): void {
   if (!entry.lights) return;
   for (const kind of entry.lights) {
-    let light: THREE.Light | null = null;
+    let light: Light | null = null;
     switch (kind) {
       case 'ambient':
-        light = new THREE.AmbientLight(0xffffff, 0.1);
+        light = new AmbientLight(0xffffff, 0.1);
         break;
       case 'directional':
-        light = new THREE.DirectionalLight(0xffffff, 0.5);
+        light = new DirectionalLight(0xffffff, 0.5);
         break;
       case 'point':
-        light = new THREE.PointLight(0xffffff, 0.5);
+        light = new PointLight(0xffffff, 0.5);
         break;
       case 'spot':
-        light = new THREE.SpotLight(0xffffff, 0.5);
+        light = new SpotLight(0xffffff, 0.5);
         break;
       case 'hemisphere':
-        light = new THREE.HemisphereLight(0xffffff, 0x000000, 0.5);
+        light = new HemisphereLight(0xffffff, 0x000000, 0.5);
         break;
     }
     if (light) scene.add(light);
@@ -109,7 +135,7 @@ function buildProbeLights(entry: ShaderManifestEntry, scene: THREE.Scene): void 
  *                  split across multiple idle callbacks.
  */
 export function precompileManifestGroups(
-  renderer: THREE.WebGLRenderer,
+  renderer: WebGLRenderer,
   groups: ShaderManifestEntry['group'][],
   _budgetMs = 16,
 ): PrecompileReport {
@@ -136,8 +162,8 @@ export function precompileManifestGroups(
     // Build a fresh scene + ortho camera per group so lights do not
     // leak between groups (a directional light left in the scene can
     // force every subsequent compile into a "with-lights" variant).
-    const scene = new THREE.Scene();
-    const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
+    const scene = new Scene();
+    const camera = new OrthographicCamera(-1, 1, 1, -1, 0.1, 10);
     camera.position.z = 2;
 
     for (const entry of entries) {
@@ -150,8 +176,8 @@ export function precompileManifestGroups(
         report.compiledCount += 1;
         // Dispose geometry — the program cache is what we care about.
         scene.remove(probe);
-        (probe as THREE.Mesh).geometry?.dispose?.();
-        const mat = (probe as THREE.Mesh).material as THREE.Material | undefined;
+        (probe as Mesh).geometry?.dispose?.();
+        const mat = (probe as Mesh).material as Material | undefined;
         mat?.dispose?.();
       } catch (err) {
         report.failures.push({
@@ -170,7 +196,7 @@ export function precompileManifestGroups(
     report.byGroup[group] = gReport;
     // Dispose all scene-level lights / helpers.
     scene.traverse((obj) => {
-      if (obj instanceof THREE.Light) obj.dispose?.();
+      if (obj instanceof Light) obj.dispose?.();
     });
   }
 

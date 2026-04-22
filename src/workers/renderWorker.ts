@@ -30,7 +30,25 @@
 
 /// <reference lib="webworker" />
 
-import * as THREE from 'three';
+import {
+  AmbientLight,
+  BufferAttribute,
+  BufferGeometry,
+  Color,
+  DirectionalLight,
+  FogExp2,
+  GridHelper,
+  Mesh,
+  MeshStandardMaterial,
+  PerspectiveCamera,
+  Points,
+  PointsMaterial,
+  Scene,
+  SRGBColorSpace,
+  TorusGeometry,
+  WebGLRenderer,
+  type Material,
+} from 'three';
 import {
   attachSabStoreView,
   SAB_SLOTS,
@@ -64,9 +82,9 @@ import type {
 declare const self: DedicatedWorkerGlobalScope;
 
 // ─── State held across messages ───────────────────────────────────
-let renderer: THREE.WebGLRenderer | null = null;
-let scene: THREE.Scene | null = null;
-let camera: THREE.PerspectiveCamera | null = null;
+let renderer: WebGLRenderer | null = null;
+let scene: Scene | null = null;
+let camera: PerspectiveCamera | null = null;
 let sab: SabStoreHandle | null = null;
 let tel: FpsTelemetry | null = null;
 let aq: AutoQuality | null = null;
@@ -85,43 +103,43 @@ function applyQuality(tier: QualityTier): void {
   renderer.shadowMap.enabled = tier !== 'low';
 }
 
-function buildMinimalScene(): { scene: THREE.Scene; camera: THREE.PerspectiveCamera } {
-  const s = new THREE.Scene();
-  s.background = new THREE.Color(0x06070e);
-  s.fog = new THREE.FogExp2(0x06070e, 0.02);
+function buildMinimalScene(): { scene: Scene; camera: PerspectiveCamera } {
+  const s = new Scene();
+  s.background = new Color(0x06070e);
+  s.fog = new FogExp2(0x06070e, 0.02);
 
-  const c = new THREE.PerspectiveCamera(60, 1, 0.1, 1000);
+  const c = new PerspectiveCamera(60, 1, 0.1, 1000);
   c.position.set(0, 1.5, 6);
   c.lookAt(0, 0, 0);
 
-  const amb = new THREE.AmbientLight(0x4a6cff, 0.45);
+  const amb = new AmbientLight(0x4a6cff, 0.45);
   s.add(amb);
-  const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+  const dir = new DirectionalLight(0xffffff, 0.9);
   dir.position.set(5, 10, 7);
   s.add(dir);
 
   // Chrome bezel ring — a placeholder geometry that represents the
   // cockpit rim. Real cockpit geometry mounts back on main thread.
-  const ringGeom = new THREE.TorusGeometry(2.0, 0.04, 12, 128);
-  const ringMat = new THREE.MeshStandardMaterial({
+  const ringGeom = new TorusGeometry(2.0, 0.04, 12, 128);
+  const ringMat = new MeshStandardMaterial({
     color: 0xe8ecff,
     metalness: 0.95,
     roughness: 0.15,
     emissive: 0x304080,
     emissiveIntensity: 0.2,
   });
-  const ring = new THREE.Mesh(ringGeom, ringMat);
+  const ring = new Mesh(ringGeom, ringMat);
   ring.rotation.x = Math.PI / 2;
   s.add(ring);
 
   // Holographic grid
-  const grid = new THREE.GridHelper(20, 40, 0x4a6cff, 0x1a2040);
-  (grid.material as THREE.Material).opacity = 0.35;
-  (grid.material as THREE.Material).transparent = true;
+  const grid = new GridHelper(20, 40, 0x4a6cff, 0x1a2040);
+  (grid.material as Material).opacity = 0.35;
+  (grid.material as Material).transparent = true;
   s.add(grid);
 
   // Star field
-  const starGeom = new THREE.BufferGeometry();
+  const starGeom = new BufferGeometry();
   const starCount = 1500;
   const positions = new Float32Array(starCount * 3);
   for (let i = 0; i < starCount; i++) {
@@ -129,14 +147,14 @@ function buildMinimalScene(): { scene: THREE.Scene; camera: THREE.PerspectiveCam
     positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
     positions[i * 3 + 2] = (Math.random() - 0.5) * 200;
   }
-  starGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const starMat = new THREE.PointsMaterial({
+  starGeom.setAttribute('position', new BufferAttribute(positions, 3));
+  const starMat = new PointsMaterial({
     color: 0xffffff,
     size: 0.05,
     transparent: true,
     opacity: 0.7,
   });
-  s.add(new THREE.Points(starGeom, starMat));
+  s.add(new Points(starGeom, starMat));
 
   return { scene: s, camera: c };
 }
@@ -150,7 +168,7 @@ function onInit(msg: Extract<WorkerInboundMessage, { kind: 'init' }>): void {
     sab = attachSabStoreView(msg.sab);
     router = createWorkerEventRouter();
 
-    renderer = new THREE.WebGLRenderer({
+    renderer = new WebGLRenderer({
       canvas: msg.canvas as unknown as HTMLCanvasElement,
       antialias: true,
       alpha: false,
@@ -158,7 +176,7 @@ function onInit(msg: Extract<WorkerInboundMessage, { kind: 'init' }>): void {
     });
     renderer.setPixelRatio(msg.dpr);
     renderer.setSize(msg.width, msg.height, false);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.outputColorSpace = SRGBColorSpace;
 
     const built = buildMinimalScene();
     scene = built.scene;
@@ -273,7 +291,7 @@ function startRenderLoop(): void {
         // Minimal scene — only animate stars, skip ring rotation.
       } else if (scene.children.length >= 3 && !reducedMotion) {
         // Gentle ring rotation representing cockpit activity.
-        const ring = scene.children[2] as THREE.Mesh | undefined;
+        const ring = scene.children[2] as Mesh | undefined;
         if (ring) ring.rotation.z += dt * 0.0001;
       }
     }
