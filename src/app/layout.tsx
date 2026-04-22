@@ -15,6 +15,7 @@ import { BrightnessEffect } from '@/components/accessibility/BrightnessEffect';
 import { LenisProvider } from '@/components/providers/LenisProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { CommandPalette } from '@/components/ui/CommandPalette';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
 
 // ── Fonts ──
@@ -134,6 +135,8 @@ export default function RootLayout({
               <LenisProvider>
                 <OfflineBanner />
                 <main id="main-content">{children}</main>
+                {/* Phase 5 #7 UX-ENH: ⌘K palette. Feature-flag gated. */}
+                <CommandPalette />
               </LenisProvider>
             </QueryProvider>
           </ErrorBoundary>
