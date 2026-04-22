@@ -2736,3 +2736,210 @@ All 52 enhancements from APPENDIX B remain available. Grouped for planning:
 ---
 
 *Final Audit v1.0 · All 85 bugs resolved through Phase 4 · 52 enhancements + 2 architectural spikes queued for Phase 5 · Branch `claude/audit-tasks-t11-t20-w2Gho` · 32 commits · 332 tests passing · Build clean · April 21, 2026*
+
+---
+
+## PHASE 5 PLANNING LOG — April 22, 2026
+
+**Branch:** `claude/gpu-compute-shader-implementation-LDHcy` · **Session scope:** §10.8 architectural spike completed + Phase 5 first-10 planning.
+
+### §10.8 CeremonyFX TSL GPU Migration — COMPLETE (Option A1)
+
+User selected **Option A1 — full commitment: renderer migration + postprocessing rewrite in this branch.** Scope escalated mid-implementation when WebGPURenderer incompatibility with `@react-three/postprocessing` was discovered; user then selected **X2** (fullscreen-quad render-target path via TSL RenderPipeline) to preserve post-FX visual parity.
+
+**13 commits shipped + pushed:**
+
+| # | Commit | Sub | Summary |
+|---|--------|-----|---------|
+| 1 | `45f0ef8` | 1 | TSL compute kernel foundation (`ceremonyFXCompute.ts`) — 4 archetype-specialized kernels (confetti, firework, trophy, shower), shared uniform block, hash-seeded particle init |
+| 2 | `fce1055` | 2a | `webgpuRenderer.ts` — async gl factory with 3s init timeout; `mix()` kernel fix |
+| 3 | `6eec353` | 2b | CockpitCanvas wired to async factory |
+| 4 | `b9fd3a7` | 3b | Custom TSL effects: `vignette` + `hueSaturation` + `brightnessContrast` (YIQ-space rotation, luminance-preserving) |
+| 5 | `cb39ca2` | 3c | Custom TSL: `barrelDistortion` (ported from GLSL) |
+| 6 | `2b6799d` | 3d | `PostProcessingStackWebGPU.tsx` — composes 8 effects via TSL RenderPipeline, dynamic import keeps three/webgpu bundle off WebGL path |
+| 7 | `c9348d0` | 3e | Router PostProcessingStack picks WebGPU vs WebGL based on renderer |
+| 8 | `9847580` | 3f | Rules-of-hooks split fix (WebGL path extracted into PostProcessingStackWebGL) |
+| 9 | `d67c822` | 4 | `useCeremonyCompute` hook — lifecycle, tier-gate, per-frame dispatch |
+| 10 | `592a4aa` | 5 | `CeremonyFXGpu.tsx` — 4 GPU-rendered variants using `MeshBasicNodeMaterial` with positionNode/colorNode bound to storage buffers |
+| 11 | `4f967bd` | 6 | CeremonyFX wires GPU + CPU paths with conditional render (WebGPU→Gpu\*, WebGL2→CPU) |
+| 12 | `c414644` | 7 | 13 parity tests in `tests/unit/ceremony-fx-compute.test.ts` + `docs/CEREMONY_FX_TSL_FEASIBILITY.md` flipped to v2.0 ACTIVE |
+| 13 | `6373eb0` | 8 | `useHeroCompute` hook — activates dormant hero TSL infrastructure (HeroAnimation not yet wired; hook is discoverable for future adoption) |
+
+**Metrics:** ~1800 LOC added · 13/13 parity tests passing · tsc clean · Next build compiles. GTAO deferred (requires MRT normals pass — noted in feasibility doc as §10.8-D1).
+
+**Deferred follow-ups tracked in feasibility doc:**
+- §10.8-D1: GTAO MRT normals pass
+- §10.8-D2: Browser-level perf validation on WebGPU hardware
+- §10.8-D3: Vercel COOP/COEP headers (unlocks SAB-backed WebGPU features)
+- §10.8-D4: CI parity snapshots via headless WebGPU (node-webgpu / Dawn)
+
+---
+
+### Phase 5 First 10 — USER SELECTIONS (with reference details for next session)
+
+User has locked in the following selections. Next session Claude Code should use this list as authoritative scope.
+
+#### 1. §10.11 OffscreenCanvas Worker Rendering — **Ultra**
+
+**Scope:** Move R3F rendering off main thread via custom R3F reconciler + synthetic event bridge + SharedArrayBuffer-backed Zustand store mirror + shader precompile manifest + worker-thread FPS telemetry + auto-quality adjustment + progressive hydration from worker.
+
+**Entry points already in place:**
+- `src/lib/3d/offscreenCanvasSupport.ts` — capability detection + UA-safe Safari gate
+- `docs/OFFSCREEN_CANVAS_FEASIBILITY.md` — migration plan
+
+**Risks:** Massive scope (3-5 eng weeks estimate). Telemetry infra needs Sentry/custom backend. Auto-quality thresholds may cause visible "quality pops." Progressive hydration changes app-boot semantics. Safari <16.4 needs UA gate (already exists). **COOP/COEP headers on Vercel are a prerequisite.**
+
+**Benefits:** Industry-leading web 3D perf. Self-tuning on weak hardware. Unlocks AR/VR Canvas embed. 60fps independent of main-thread load. Marketing-grade feature.
+
+---
+
+#### 2. AUTH-ENH Signed Demo Tokens — **Max**
+
+**Scope:** Recommended (Supabase `signInAnonymously()` issuing real scoped JWT) **plus** dedicated `demo` RLS role with read-only sandbox policies across all 9 tables.
+
+**What this replaces:** Closes root cause of AUTH-CRIT-002 (static `'1'` cookie that could be forged). Replaces the custom HMAC approach with Supabase-native anonymous auth + defense-in-depth via RLS.
+
+**Risks:** RLS policies need audit across 9 tables. Demo user seeing "real" content seeds may leak production content strategy. Migration plan needed for current demo users mid-session. Consumes Supabase anonymous user slots (Pro plan MAU limits).
+
+**Benefits:** Uses Supabase-managed rotation/revocation (no custom crypto). `requireAuth()` just works. Native session dashboard + revoke support. Defense-in-depth: even if signing is broken, RLS prevents writes.
+
+**Files likely touched:** `src/app/api/auth/demo/route.ts`, `src/middleware.ts`, `src/stores/authStore.ts`, new RLS migration `sql/019_demo_role.sql`, `src/components/auth/DemoLoginButton.tsx`.
+
+---
+
+#### 3. AUTH-ENH Passkey / WebAuthn — **Ultra**
+
+**Scope:** Max (hardware-key attestation for Forge tier + conditional-UI autofill) **plus** FIDO2 CTAP2 hybrid flow (phone-as-key) + cross-device signin via QR/BLE.
+
+**Libraries to introduce:** `@simplewebauthn/browser` + `@simplewebauthn/server`. Metadata BLOB sync job from `metadata.fidoalliance.org`.
+
+**Risks:** Hybrid flow Safari support incomplete. BLE proximity requires user education. QR-based flow adds ~2s to login. Lockout scenarios — need recovery codes UX. Parent recovery flow impacts child accounts (tied to parent auth).
+
+**Benefits:** Phishing-resistant even against attacker-in-the-middle. Kid-on-laptop + parent-on-phone workflow feels magical. FIDO2 L2 certification-ready. Industry-leading posture for kid-EdTech. Compliance differentiator for schools (COPPA + FERPA).
+
+---
+
+#### 4. AUTH-ENH Session Dashboard — **Min**
+
+**Scope:** List active refresh tokens with "revoke" button. Read from `auth.refresh_tokens` via admin client. **No device fingerprinting, no geolocation, no anomaly detection** — just the basic list + revoke.
+
+**Risks:** Requires admin client access on API route. No device context → users see opaque token IDs (acceptable tradeoff at Min depth).
+
+**Benefits:** Closes COPPA Art. 15 data-transparency gap. Simple UI (~2 files). Fast to ship.
+
+**Files likely touched:** `src/app/api/auth/sessions/route.ts` (GET + DELETE), `src/app/(dashboard)/settings/sessions/page.tsx`.
+
+---
+
+#### 5. DB-ENH PgAudit — **Min**
+
+**Scope:** Enable `pgaudit.log = 'write'` on production. Route output to a dedicated `audit_log` table. **No structured JSON shipping, no hash chaining, no anomaly detection** — just baseline write auditing.
+
+**Prerequisite:** Supabase Pro plan (extension not on Free tier).
+
+**Risks:** ~5% write-path perf hit. Audit table grows unbounded without retention cron (add `sql/020_audit_log_retention.sql` alongside).
+
+**Benefits:** Forensic visibility on writes. Low implementation cost. Foundation for future Recommended/Max tiers.
+
+**Files likely touched:** `sql/020_enable_pgaudit.sql`, `sql/021_audit_log_retention.sql`, update `SETUP_CHECKLIST.md` with operator dashboard action.
+
+---
+
+#### 6. PERF-ENH KTX2 / Basis + Draco — **Ultra**
+
+**Scope:** Max (LOD chains + adaptive by VRAM) **plus** AI-driven per-session asset prioritization + telemetry-fed preload manifest per user.
+
+**Libraries:** `@gltf-transform/core`, `@gltf-transform/functions`, `@loaders.gl/ktx2`, existing Three.js KTX2Loader + DRACOLoader. Custom preload-manifest generator.
+
+**Risks:** Requires user-behavior tracking pipeline. Manifest generation adds backend cron job. Initial cold-start sees no preload benefit. LOD transitions visible if thresholds poorly tuned.
+
+**Benefits:** 20× smaller total 3D payload. Consistent 60fps across device spectrum. Second visit feels instant. Reduces "first-paint → first-interactive" gap by 50%+.
+
+**Files likely touched:** New build step in `next.config.ts` for asset transform. `public/hdri/frost-prismatic.hdr` → `.ktx2`. 10 lab texture atlases converted. Cockpit GLB + pet models Draco-compressed. New `src/lib/3d/assetPreloader.ts` reading per-user manifest. Backend job `src/app/api/jobs/build-preload-manifest/route.ts`.
+
+---
+
+#### 7. UX-ENH Command Palette (⌘K) — **Recommended**
+
+**Scope:** Fuzzy search across games/settings/labs **plus** recent-actions + keyboard-first nav + contextual results (game-aware, lab-aware). **No AI-assisted query** (that's Max/Ultra).
+
+**Libraries:** `cmdk` (the pmndrs-adjacent command-palette lib).
+
+**Risks:** Recent-actions need persistence (another Zustand slice or uiStore extension). Context detection adds coupling to `sceneStore`.
+
+**Benefits:** Smart search that feels AI-grade. Keyboard users get full app in seconds. Parent-friendly power feature.
+
+**Files likely touched:** `src/components/ui/CommandPalette.tsx`, `src/hooks/useCommandPalette.ts`, uiStore extension for `recentActions`, global keydown handler in `AppShell`.
+
+---
+
+#### 8. PAY-ENH Proration Preview — **Recommended**
+
+**Scope:** Stripe `/invoices/upcoming` preview on plan change **plus** full invoice preview with tax + line items. **No "what-if" scenarios, no Stripe Tax** (Max/Ultra).
+
+**Risks:** Upcoming-invoice API has rate limits — needs caching. Edge case: mid-cycle cancel shows "$0 due" confusingly. Tax-line display varies by region — legal review needed.
+
+**Benefits:** Closes top billing-support ticket class. Full transparency → fewer "surprise charge" tickets.
+
+**Files likely touched:** `src/app/api/stripe/invoice-preview/route.ts`, `src/app/(dashboard)/settings/subscription/page.tsx`, `src/components/subscription/ProrationPreview.tsx`.
+
+---
+
+#### 9. API-ENH OpenAPI 3.1 Spec + Auto-Typed Client — **Ultra**
+
+**Scope:** Recommended (Zod → OpenAPI codegen + auto-typed client) **plus** generated mock server for frontend + contract tests vs live API **plus** versioned API (`/api/v1`, `/api/v2`) with auto-generated migration guides + deprecation warnings.
+
+**Libraries:** `zod-to-openapi`, `@hono/zod-openapi` (or equivalent), MSW for mock server, custom route-versioning middleware.
+
+**Risks:** All routes must have Zod schemas (~70% coverage today — gaps need fill-in). Codegen + mock-server adds CI time. Versioning requires route duplication strategy. Migration infra is large (weeks to build).
+
+**Benefits:** Zero spec drift. Frontend gets fully-typed API client free. Contract breakage caught at PR. Frontend can develop fully offline. Long-term API stability guarantee. Enables third-party ecosystem (teachers, parent apps).
+
+**Files likely touched:** All 43 API routes get Zod coverage check. New `src/lib/api/openapi.ts` spec generator. New `src/lib/api/versioning.ts` route-version router. New `scripts/generate-api-client.mjs`. New `/api/docs` route serving Swagger UI.
+
+---
+
+#### 10. STATE-ENH Optimistic Update Primitives — **Max**
+
+**Scope:** Recommended (rollback + conflict-resolution UI) **plus** offline-first read cache via IndexedDB + sync-on-reconnect.
+
+**Libraries:** `@tanstack/query-persist-client` + `@tanstack/query-async-storage-persister` + IndexedDB via `idb-keyval`.
+
+**Risks:** Rollback visible flicker if network roundtrip > 200ms. Conflict UI is complex UX surface. IndexedDB quotas vary by browser. Stale data visible longer during outages.
+
+**Benefits:** Instant-feel game completions. Resilient to partial failures. App works on planes/subways. Reduced API load (cache hits). Kid experience stays positive on flaky home wifi.
+
+**Files likely touched:** `src/hooks/useOptimisticMutation.ts` (helper), `src/components/ui/ConflictResolver.tsx`, extend `src/components/providers/QueryProvider.tsx` with persist client, sync-on-reconnect logic in `AuthProvider`.
+
+---
+
+### Phase 5 — Additional Deliverables at End of 10 Tasks
+
+User has requested these as part of Phase 5:
+
+1. **Systems + cost summary document** — all new third-party services needed (Supabase Pro tier uplift for PgAudit, FIDO metadata service subscription, Stripe Tax opt-in, KTX2 asset pipeline CDN costs, etc.) with estimated monthly cost impact.
+2. **`SETUP_CHECKLIST.md` updates** — new operator dashboard actions (Supabase PgAudit enablement, Vercel COOP/COEP headers, Stripe Tax configuration, etc.).
+3. **`automation-playbook.md` updates** — anything auto-automatable from the operator actions added to the playbook (e.g., scheduled `scripts/disaster-recovery.sh` drills, audit-log retention cron, KTX2 manifest regeneration job).
+4. **Next 10 Phase 5 tasks detailed** — same min/rec/max/ultra format with risks + benefits per option for each.
+
+### Phase 5 — Known Prerequisites Before Starting
+
+Before the next session begins Phase 5 task #1 (§10.11 OffscreenCanvas Ultra), confirm the following are in place or flagged:
+
+1. **Vercel COOP/COEP headers** — required for SharedArrayBuffer (OffscreenCanvas Ultra + future WebGPU features). Already flagged in Phase 4 operator action items; confirm configured.
+2. **Supabase Pro plan active** — PgAudit and other Pro-tier features (PITR, audit log retention cron) assume Pro.
+3. **WebGPU validation browser** — at least one developer machine running Chromium 113+ with WebGPU enabled for live validation of §10.8 work and Phase 5 #1.
+4. **FIDO2 metadata BLOB pipeline** — for Passkey Ultra (Phase 5 #3), research whether Supabase Auth's upcoming WebAuthn support will cover L2 attestation, or whether we need a custom verification path.
+
+### Phase 5 — Architectural Spikes Remaining
+
+Both original Phase 4 architectural spikes are now one-third resolved:
+
+| ID | Phase 4 status | Phase 5 plan |
+|----|---------------|--------------|
+| §10.8 CeremonyFX TSL compute | Scaffold landed | **ACTIVE** (this session — Option A1 + X2) |
+| §10.11 OffscreenCanvas migration | Detection API landed | Phase 5 task #1 — Ultra depth selected |
+
+---
+
+*Phase 5 planning log · April 22, 2026 · Branch `claude/gpu-compute-shader-implementation-LDHcy` · §10.8 ACTIVE · 10 Phase 5 selections locked · Next session resumes at Phase 5 task #1 (§10.11 OffscreenCanvas Ultra).*
