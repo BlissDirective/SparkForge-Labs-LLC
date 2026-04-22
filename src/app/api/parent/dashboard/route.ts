@@ -7,6 +7,7 @@ import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { apiSuccess, apiError, requireAuth } from '@/lib/api-helpers';
 import type { SubscriptionTier } from '@/lib/tier-config';
+import { withSupabaseRpc } from '@/lib/sentry-transactions';
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
@@ -24,8 +25,10 @@ export async function GET(req: NextRequest) {
   if (parentError) return apiError('Failed to fetch parent data', 500);
 
   // Call PG function for all children + aggregated stats in one round-trip
-  const { data: children, error: childrenError } = await supabase
-    .rpc('get_parent_dashboard', { p_parent_id: auth.user.id });
+  const { data: children, error: childrenError } = await withSupabaseRpc(
+    'get_parent_dashboard',
+    () => supabase.rpc('get_parent_dashboard', { p_parent_id: auth.user.id }),
+  );
 
   if (childrenError) {
     console.error('get_parent_dashboard error:', childrenError.message);

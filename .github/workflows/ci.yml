@@ -162,6 +162,10 @@ jobs:
             sql/016_perf_indexes.sql
             sql/017_subscription_events_fk_cleanup.sql
             sql/018_content_slug_enforce.sql
+            sql/022_auth_events.sql
+            sql/023_mfa_backup_codes.sql
+            sql/024_realtime_progress.sql
+            sql/025_dunning.sql
           )
           for f in "${files[@]}"; do
             echo "═══ applying $f ═══"
@@ -170,3 +174,152 @@ jobs:
 
       - name: Run RLS verification gate
         run: psql -v ON_ERROR_STOP=1 -f sql/verify_rls.sql
+
+  # ─── Playwright smoke (DEPLOY-ENH-001 Max) ─────────────────────────
+  e2e-smoke:
+    name: E2E smoke (Playwright)
+    needs: typecheck-test-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Build (prod)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+        run: npm run build
+      - name: Start server + run smoke spec
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+        run: |
+          npm start &
+          SERVER_PID=$!
+          trap "kill $SERVER_PID 2>/dev/null || true" EXIT
+          # Poll the health endpoint until it responds.
+          for i in {1..30}; do
+            if curl -sSf http://localhost:3000/api/health > /dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          npx playwright test tests/e2e/health.spec.ts tests/e2e/a11y-sidebar.spec.ts
+
+  # ─── Lighthouse budget (DEPLOY-ENH-001 Max) ─────────────────────────
+  lighthouse:
+    name: Lighthouse CI
+    needs: typecheck-test-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.14.x
+      - name: Build (prod)
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+        run: npm run build
+      - name: Run Lighthouse CI against local server
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+        run: |
+          npm start &
+          SERVER_PID=$!
+          trap "kill $SERVER_PID 2>/dev/null || true" EXIT
+          for i in {1..30}; do
+            if curl -sSf http://localhost:3000/api/health > /dev/null; then break; fi
+            sleep 2
+          done
+          lhci autorun --config=.lighthouserc.json || true
+      - name: Upload Lighthouse report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lighthouse-report
+          path: .lighthouseci/
+          retention-days: 14
+
+  # ─── Bundle-size regression gate (DEPLOY-ENH-001 Max) ───────────────
+  bundle-size:
+    name: Bundle-size regression
+    needs: typecheck-test-build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '20'
+          cache: 'npm'
+      - run: npm ci
+      - name: Build + collect bundle stats
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+        run: npm run build
+      - name: Compute totals
+        id: sizes
+        run: node scripts/bundle-size.mjs >> $GITHUB_OUTPUT
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '### Bundle-size report',
+              '',
+              `- First Load JS (shared): ${{ steps.sizes.outputs.first_load_kb }} kB`,
+              `- Middleware: ${{ steps.sizes.outputs.middleware_kb }} kB`,
+              `- Static routes: ${{ steps.sizes.outputs.static_count }}`,
+              `- Dynamic routes: ${{ steps.sizes.outputs.dynamic_count }}`,
+              '',
+              'Budget gates:',
+              `- First Load JS ≤ 875 kB: **${{ steps.sizes.outputs.first_load_pass }}**`,
+              `- Middleware ≤ 360 kB: **${{ steps.sizes.outputs.middleware_pass }}**`,
+            ].join('\n');
+            const { data: comments } = await github.rest.issues.listComments({
+              ...context.repo,
+              issue_number: context.issue.number,
+            });
+            const marker = '### Bundle-size report';
+            const prior = comments.find(c => c.body && c.body.startsWith(marker));
+            if (prior) {
+              await github.rest.issues.updateComment({
+                ...context.repo,
+                comment_id: prior.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+      - name: Enforce budgets
+        run: |
+          if [ "${{ steps.sizes.outputs.first_load_pass }}" != "yes" ]; then
+            echo "First Load JS exceeds 875 kB budget — raise in scripts/bundle-size.mjs if intentional"; exit 1
+          fi
+          if [ "${{ steps.sizes.outputs.middleware_pass }}" != "yes" ]; then
+            echo "Middleware exceeds 360 kB budget — raise in scripts/bundle-size.mjs if intentional"; exit 1
+          fi

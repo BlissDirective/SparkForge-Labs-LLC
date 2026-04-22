@@ -58,6 +58,17 @@ interface GuideState {
   guideTurnsToday: number;
   guideTurnsResetDate: string;
 
+  // UX-ENH-006 (Max): Inline context hints. Brief text bubble
+  // rendered near the avatar when the child stalls on a lab / game.
+  // Distinct from the chat panel — lower friction, auto-dismisses.
+  hintVisible: boolean;
+  hintText: string | null;
+  hintAnchor: 'avatar' | 'top-center' | 'bottom-center';
+  hintExpiresAt: number | null;
+  /** Last context/key combination the user actually dismissed, so
+   *  repeat stalls don't re-nudge until context actually changes. */
+  lastDismissedHintKey: string | null;
+
   // Actions
   show: () => void;
   hide: () => void;
@@ -86,6 +97,10 @@ interface GuideState {
   setAutoGreet: (greet: boolean) => void;
   incrementTurns: () => void;
   resetTurnsIfNeeded: () => void;
+  /** UX-ENH-006: show an inline context hint. ttlMs default 8000. */
+  showHint: (text: string, opts?: { ttlMs?: number; anchor?: 'avatar' | 'top-center' | 'bottom-center'; key?: string }) => void;
+  /** UX-ENH-006: dismiss the current hint (user clicked X or clicked avatar). */
+  dismissHint: (key?: string) => void;
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -115,6 +130,13 @@ export const useGuideStore = create<GuideState>()(
       autoGreet: true,
       guideTurnsToday: 0,
       guideTurnsResetDate: today(),
+
+      // UX-ENH-006 defaults
+      hintVisible: false,
+      hintText: null,
+      hintAnchor: 'avatar' as const,
+      hintExpiresAt: null,
+      lastDismissedHintKey: null,
 
       // Actions
       show: () => set({ visible: true, minimized: false }),
@@ -161,6 +183,27 @@ export const useGuideStore = create<GuideState>()(
           set({ guideTurnsToday: 0, guideTurnsResetDate: currentDate });
         }
       },
+
+      showHint: (text, opts) => {
+        const state = get();
+        const key = opts?.key ?? null;
+        // Suppress if the user just dismissed this same context+key.
+        if (key && state.lastDismissedHintKey === key) return;
+        const ttlMs = opts?.ttlMs ?? 8000;
+        set({
+          hintVisible: true,
+          hintText: text,
+          hintAnchor: opts?.anchor ?? 'avatar',
+          hintExpiresAt: Date.now() + ttlMs,
+        });
+      },
+
+      dismissHint: (key) => set({
+        hintVisible: false,
+        hintText: null,
+        hintExpiresAt: null,
+        lastDismissedHintKey: key ?? null,
+      }),
     }),
     {
       name: 'sparkforge-guide',

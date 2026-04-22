@@ -693,3 +693,129 @@ After 90 days running:
 ---
 
 *Automation Playbook v1.0 · April 21, 2026 · Claude-API-native ops architecture for SparkForge.*
+
+---
+
+## 17. Phase 5 First 10 — Automation Additions (April 22, 2026)
+
+Automatable ops hooks added alongside the 10 Phase 5 enhancements.
+
+### 17.1 Cron & scheduled jobs
+
+| Job | File | Cadence | Agent tier | Notes |
+|---|---|---|---|---|
+| `passkey-challenge-cleanup` | `sql/020_passkey_credentials.sql` | every 10 min | **T0 (auto)** — deletes expired rows only | Skipped cleanly when pg_cron absent. |
+| `audit-log-retention` (existing, reaffirmed) | `sql/014_audit_log.sql` | daily 00:15 UTC | T0 | 90-day purge. |
+| **MDS3 refresh (future — Passkey Ultra)** | `src/lib/auth/fido-mds.ts` `refreshMdsBlob()` | daily at 03:00 UTC (recommended) | T1 — needs FIDO root cert verification before auto-enabling | Static AAGUID allow-list is authoritative until full JWT verification lands. |
+| **Preload manifest rebuild (future — Task #6)** | `src/app/api/jobs/preload-manifest/route.ts` GET-per-user (now); future POST rebuild-all endpoint | T1 — proposed daily 04:00 UTC | Low cost, deterministic — good T0 candidate once stable. |
+| **OpenAPI client regen (Task #9)** | `scripts/generate-api-client.mjs` | post-deploy | **T1** — committed output reviewed in PR | Regenerate when `src/lib/api/openapi.ts` changes. |
+| **3D asset optimize (Task #6)** | `scripts/optimize-3d-assets.mjs` | pre-deploy CI | **T0** — deterministic compression | ~15-45s CI overhead; idempotent. |
+
+### 17.2 New DR drills
+
+- `disaster-recovery.sh` should exercise `cleanup_expired_passkey_challenges()` as part of the monthly DR drill. Add:
+  ```
+  psql -c "SELECT public.cleanup_expired_passkey_challenges();"
+  ```
+  to the drill script's SQL phase.
+
+### 17.3 Agent hooks
+
+- **Session revoke incident response (Task #4)**: when a parent's `auth.sessions` count exceeds a threshold (e.g. >20 active sessions), fire a T1 alert so an operator can review for account takeover. Session dashboard already exposes the data; alerting is a separate pipeline.
+- **Failed passkey verification alerting (Task #3)**: Sentry rule on `PASSKEY_VERIFICATION_FAILED` exceeding 5/hour from a single IP ⇒ T1 alert.
+- **PgAudit log volume (Task #5)**: monitor log volume (Supabase log-retention). If daily volume > 5 GB, T1 operator should tighten `pgaudit.log` to `'write'` only.
+- **Offline queue depth (Task #10)**: browsers report queue depth via `wireOfflineReplay`'s `onDrainComplete` callback. Sentry can ingest a breadcrumb; if `queued > 100` at drain time, that's a product incident (server likely rejecting many writes).
+
+### 17.4 Emergent automation opportunities
+
+| Opportunity | Trigger | Playbook |
+|---|---|---|
+| Auto-revoke passkeys with counter regression | Authenticator counter decreased (replay attack signal) | T0 revoke credential + T1 notify user |
+| Auto-rotate demo-role deny policies | Phase 6 adds new tables; drift between 019 and new schema | T1 `IF NOT EXISTS` re-run of 019 |
+| Auto-prune preload manifest cache | Children's recent-7d activity > 3σ from typical | T0 refresh manifest for affected parent |
+| Session dashboard anomaly score | Sessions from >3 countries in <24h | T1 surface to the parent via email |
+
+---
+
+## Phase 5 Next-10 automation (April 22, 2026)
+
+### OAuth (Task 11)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Detect stale linked identity | `supabase.auth.getUserIdentities()` returns the identity but subsequent fetches return 401 — log an `oauth.link_failed` row and auto-unlink after 3 consecutive failures | Per sign-in attempt |
+| `auth_events` anomaly sweep | Admin query: `event_type IN ('oauth.unlinked', 'oauth.link_failed') AND count > 5 per parent in 7d` | Weekly cron candidate |
+| Audit-log retention | pg_cron job `purge_auth_events_180d` at 03:17 UTC | Daily (wired) |
+| Alert on first sign-in from new provider | Email parent "you just signed in with {provider} for the first time" | Per successful sign-in (hook into callback logAuthEvent) |
+
+### MFA (Task 12)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Low-backup-code warning | When `remainingBackupCodes(parentId) <= 2`, email the parent "regenerate your backup codes" | Per-verify hook |
+| Dormant-factor prune | Factors with `status='unverified'` older than 24h auto-unenrolled | Daily cron candidate |
+| `mfa.challenged` failure rate | Admin dashboard: failures per hour per parent — auto-lock account at 10 in 1h | Real-time (rate-limit middleware) |
+
+### Realtime (Task 13)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Publication drift detector | CI job: `SELECT * FROM pg_publication_tables WHERE pubname='supabase_realtime'` vs expected list in `sql/024` | Weekly workflow |
+| Realtime connection count alert | Supabase Dashboard → Realtime metrics → Vercel log drain at >N concurrent subscribers per parent | On-demand |
+
+### Dunning (Task 14)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Daily dunning run | `/api/cron/dunning` at 10:15 UTC, advances stages + sends emails | Daily (wired) |
+| Recovery detection | `invoice.payment_succeeded` webhook auto-clears `dunning_*` + restores `dunning_tier_before` | Real-time |
+| Demoted-parent alert to admin | When `dunning_stage = 3`, write an admin-visible row into `audit_log` via application layer | On-demand |
+| Win-back coupon rotation | 30-day `WELCOME50` expiry; auto-cycle to `COMEBACK2026` via Stripe API | Quarterly cron candidate |
+
+### OpenTelemetry (Task 15)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| P95 latency budget alerts | Sentry alerts on p95 `stripe.webhook`, `progress.write`, `ai.generate.content` breaching thresholds | Real-time |
+| Span sampling tuning | `tracesSampleRate` is 0.1 in prod; auto-tune based on daily trace volume vs Sentry quota | Weekly review |
+| OTLP endpoint health probe | Simple probe: create + immediately close a span at startup; fail deploy if it errors | Per deploy |
+
+### Sparky contextual hints (Task 16)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Hint efficacy analytics | Track `hintVisible`+clicked vs dismissed counters, correlate with lab/game completion; tune `stallMs` per age band | Monthly review |
+| Claude token burn alert | Daily cost export from Anthropic → alert if `/api/ai/guide` guide turns exceed budget | Daily |
+| Hint content safety filter | Post-filter hint text through a regex + LLM content-safety classifier before showing | Per-hint (in-flight) |
+
+### i18n (Task 17)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Translation regeneration | `npm run translate:i18n` on every PR that touches `messages/en.json` | CI job candidate |
+| Translation diff review | Post the before/after translation diff as a PR comment | Per PR |
+| Missing-key detector | CI script: union of all `t('...')` call sites vs en.json keys — fail CI on drift | Per PR |
+
+### BatchedMesh (Task 18)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Visual regression on toggle | Playwright screenshot diff between `BATCHED_COCKPIT=on` vs `off`; fail CI if > 0.01 pixel diff | Per PR (after migration) |
+| Draw-call count regression | R3F devtools export; alert if draw calls grow > 5% between PRs | Per PR |
+| Frame time capture | Dev overlay `showPerfStats` in CI — log median frametime per route | On-demand |
+
+### CI pipeline (Task 19)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Auto-raise Lighthouse budgets | When a PR's perf score is stable over 3 runs and exceeds the budget ceiling, prompt to raise the floor | On request |
+| Stale workflow artifact cleanup | GitHub Actions artifact retention is 14d; extend to 30d for lighthouse-report if SLO review requires it | Operator toggle |
+| Flaky-test detector | Aggregate retry count across Playwright runs; auto-tag `@flaky` on tests retried ≥ 3 times in 7 days | Weekly cron candidate |
+
+### XState (Task 20)
+
+| Automatable | Mechanism | Cadence |
+|---|---|---|
+| Machine test coverage | Every new machine should ship with a `.spec.ts` in `tests/unit/state-machines/` — enforce via CI fail on coverage drop | Per PR |
+| State-history snapshot | Optionally serialize machine context into Sentry scope on errors to replay state at crash | Opt-in per hook |
+| Stately.ai visualization export | `npm run xstate:export` — generate diagram SVGs for each machine into `docs/state-machines/` | Monthly or on machine change |

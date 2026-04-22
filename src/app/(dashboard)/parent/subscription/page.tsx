@@ -22,6 +22,7 @@ import { useSearchParams } from 'next/navigation';
 import { toast } from '@/stores/toastStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { TrialBanner } from '@/components/parent/TrialBanner';
+import { DunningBanner } from '@/components/parent/DunningBanner';
 import { DowngradeConfirmModal } from '@/components/parent/DowngradeConfirmModal';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { UsageDashboard } from '@/components/parent/UsageDashboard';
@@ -341,6 +342,10 @@ function SubscriptionContent() {
           <span className="text-spark-blue font-semibold">{TIER_DISPLAY[tier].name}</span>
         </p>
       </motion.div>
+
+      {/* PAY-ENH-003: Dunning / grace banner. Renders nothing when not
+          in a dunning sequence. */}
+      <DunningBanner />
 
       {/* v3 Gap 2: Active trial countdown (inline variant) */}
       <TrialBanner variant="inline" />

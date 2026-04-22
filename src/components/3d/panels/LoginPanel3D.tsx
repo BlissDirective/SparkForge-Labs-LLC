@@ -52,6 +52,10 @@ interface LoginPanel3DProps {
   onNavigateSignup: () => void;
   onNavigateReset: () => void;
   onDemoStart: () => void;
+  // AUTH-ENH-003 (Max): OAuth sign-in. Provider is one of
+  // 'google' | 'apple' | 'azure' — validated server-side.
+  onOAuthSignIn?: (provider: 'google' | 'apple' | 'azure') => void;
+  oauthLoadingProvider?: 'google' | 'apple' | 'azure' | null;
   loading?: boolean;
   error?: string;
   demoExpired?: boolean;
@@ -334,6 +338,8 @@ export default function LoginPanel3D({
   onNavigateSignup,
   onNavigateReset,
   onDemoStart,
+  onOAuthSignIn,
+  oauthLoadingProvider = null,
   loading = false,
   error,
   demoExpired = false,
@@ -553,8 +559,41 @@ export default function LoginPanel3D({
           disabled={loading || !email || !password}
         />
 
+        {/* AUTH-ENH-003 (Max): OAuth provider row */}
+        {onOAuthSignIn && (
+          <group position={[0, -0.34, 0]}>
+            <ActionButton3D
+              label={oauthLoadingProvider === 'google' ? '...' : 'GOOGLE'}
+              color="#4285F4"
+              position={[-0.42, 0, 0]}
+              onClick={() => onOAuthSignIn('google')}
+              disabled={loading || oauthLoadingProvider !== null}
+              variant="outline"
+              width={0.36}
+            />
+            <ActionButton3D
+              label={oauthLoadingProvider === 'apple' ? '...' : 'APPLE'}
+              color="#CCCCCC"
+              position={[0, 0, 0]}
+              onClick={() => onOAuthSignIn('apple')}
+              disabled={loading || oauthLoadingProvider !== null}
+              variant="outline"
+              width={0.36}
+            />
+            <ActionButton3D
+              label={oauthLoadingProvider === 'azure' ? '...' : 'MICROSOFT'}
+              color="#0078D4"
+              position={[0.42, 0, 0]}
+              onClick={() => onOAuthSignIn('azure')}
+              disabled={loading || oauthLoadingProvider !== null}
+              variant="outline"
+              width={0.36}
+            />
+          </group>
+        )}
+
         {/* Divider */}
-        <group position={[0, -0.36, 0]}>
+        <group position={[0, onOAuthSignIn ? -0.48 : -0.36, 0]}>
           <mesh position={[-0.35, 0, 0]} material={chromeMat}>
             <boxGeometry args={[0.4, 0.001, 0.001]} />
           </mesh>
@@ -578,12 +617,12 @@ export default function LoginPanel3D({
           <ActionButton3D
             label="TRY DEMO (NO ACCOUNT)"
             color="#00FF88"
-            position={[0, -0.48, 0]}
+            position={[0, onOAuthSignIn ? -0.6 : -0.48, 0]}
             onClick={() => setShowDemoConfirm(true)}
             variant="outline"
           />
         ) : (
-          <group position={[0, -0.52, 0]}>
+          <group position={[0, onOAuthSignIn ? -0.64 : -0.52, 0]}>
             {/* Demo info */}
             <Text
               position={[0, 0.1, 0]}
@@ -620,7 +659,7 @@ export default function LoginPanel3D({
         )}
 
         {/* Sign up link */}
-        <group position={[0, showDemoConfirm ? -0.76 : -0.64, 0]}>
+        <group position={[0, onOAuthSignIn ? (showDemoConfirm ? -0.88 : -0.76) : (showDemoConfirm ? -0.76 : -0.64), 0]}>
           <Text
             fontSize={TYPE_SCALE.caption.fontSize}
             color={TEXT_COLORS.dim.hex}

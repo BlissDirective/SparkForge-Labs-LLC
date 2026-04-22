@@ -244,6 +244,36 @@ export async function requireAdmin(
   return auth;
 }
 
+// ═══ AUTH-ENH-007 (Max): DEMO-WRITE GUARD ═══
+
+/**
+ * Like `requireAuth`, but rejects anonymous (demo) sessions for any
+ * state-mutating endpoint. Use in POST/PATCH/DELETE routes that the
+ * Max-tier demo sandbox must not reach.
+ *
+ * Defense-in-depth layer ABOVE the RLS RESTRICTIVE demo_deny_*
+ * policies in sql/019_demo_role_rls.sql. The RLS policies are
+ * authoritative; this helper just turns the failure into a clean 403
+ * BEFORE we pay the DB round-trip.
+ */
+export async function requireWriteAccess(
+  req: NextRequest,
+): Promise<{ success: true; user: AuthenticatedUser } | { success: false; response: NextResponse }> {
+  const auth = await requireAuth(req);
+  if (!auth.success) return auth;
+  if (auth.user.isDemo) {
+    return {
+      success: false,
+      response: apiError(
+        'Demo sessions are read-only. Create an account to save progress.',
+        403,
+        ERROR_CODES.FORBIDDEN,
+      ),
+    };
+  }
+  return auth;
+}
+
 // ═══ RATE LIMITING MIDDLEWARE ═══
 
 // AUTH-HIGH-003: `checkRateLimit` is now async (Upstash-backed), so

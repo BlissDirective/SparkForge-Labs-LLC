@@ -312,10 +312,107 @@ export async function POST(req: NextRequest) {
         );
         break;
       }
+
+      // PAY-ENH-003 (Ultra): Start or continue the dunning sequence.
+      // Grace window is 7 days; subscription_status flips to past_due
+      // immediately but the tier remains valid during grace.
+      const { data: parentRow } = await supabase
+        .from('parents')
+        .select('id, email, full_name, subscription_tier, dunning_stage, dunning_started_at, dunning_tier_before')
+        .eq('stripe_customer_id', invoiceCustomerId)
+        .single();
+
+      const startedAt =
+        parentRow?.dunning_started_at
+          ? new Date(parentRow.dunning_started_at)
+          : new Date();
+      const graceEndsAt = new Date(
+        startedAt.getTime() + 7 * 24 * 60 * 60 * 1000,
+      );
+
+      // Stash the tier-before only on the first transition into dunning.
+      // Repeated invoice.payment_failed events (Stripe Smart Retries fire
+      // one per attempt) must not overwrite the captured "pre-dunning" tier.
+      const tierBefore =
+        parentRow?.dunning_tier_before ??
+        (parentRow?.subscription_tier as 'plus' | 'forge' | 'free' | undefined);
+
       await supabase
         .from('parents')
-        .update({ subscription_status: 'past_due' })
+        .update({
+          subscription_status: 'past_due',
+          dunning_stage: parentRow?.dunning_stage ?? 0,
+          dunning_started_at: parentRow?.dunning_started_at ?? startedAt.toISOString(),
+          dunning_last_sent_at:
+            parentRow?.dunning_stage === undefined ? new Date().toISOString() : null,
+          grace_period_ends_at: graceEndsAt.toISOString(),
+          dunning_tier_before:
+            tierBefore && tierBefore !== 'free' ? tierBefore : null,
+        })
         .eq('stripe_customer_id', invoiceCustomerId);
+
+      // PAY-ENH-003: send the immediate "payment failed" email (stage 0)
+      // exactly once per dunning cycle. The cron handles stages 1-4.
+      if (parentRow && parentRow.dunning_stage === undefined && parentRow.email) {
+        try {
+          const { sendEmail, isEmailConfigured } = await import('@/lib/email');
+          const { renderDunningEmail } = await import('@/lib/email-templates/dunning');
+          if (isEmailConfigured()) {
+            const origin = new URL(req.url).origin;
+            const rendered = renderDunningEmail('payment-failed', {
+              parentName: parentRow.full_name,
+              portalUrl: `${origin}/parent/subscription`,
+              pricingUrl: `${origin}/pricing`,
+              graceEndsAt,
+            });
+            await sendEmail({
+              to: parentRow.email,
+              subject: rendered.subject,
+              html: rendered.html,
+              text: rendered.text,
+              tags: { type: 'dunning', stage: '0' },
+            });
+          }
+        } catch (err) {
+          console.error('[webhook] dunning stage 0 email failed:', err);
+        }
+      }
+      break;
+    }
+
+    case 'invoice.payment_succeeded': {
+      const invoice = event.data.object as Stripe.Invoice;
+      const invoiceCustomerId = getCustomerId(invoice.customer);
+      if (!invoiceCustomerId) break;
+
+      // PAY-ENH-003: Recovery. If the parent was in dunning, clear
+      // all dunning_* + grace_* fields and restore subscription_status.
+      // If they had been demoted to free (stage>=3), reinstate the
+      // pre-dunning tier.
+      const { data: parentRow } = await supabase
+        .from('parents')
+        .select('id, dunning_stage, dunning_tier_before, subscription_tier')
+        .eq('stripe_customer_id', invoiceCustomerId)
+        .single();
+
+      if (parentRow?.dunning_stage !== null && parentRow?.dunning_stage !== undefined) {
+        const restoredTier =
+          parentRow.subscription_tier === 'free' && parentRow.dunning_tier_before
+            ? parentRow.dunning_tier_before
+            : parentRow.subscription_tier;
+        await supabase
+          .from('parents')
+          .update({
+            subscription_status: 'active',
+            subscription_tier: restoredTier,
+            dunning_stage: null,
+            dunning_started_at: null,
+            dunning_last_sent_at: null,
+            dunning_tier_before: null,
+            grace_period_ends_at: null,
+          })
+          .eq('stripe_customer_id', invoiceCustomerId);
+      }
       break;
     }
   }

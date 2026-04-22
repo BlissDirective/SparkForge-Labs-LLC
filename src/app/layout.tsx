@@ -10,11 +10,14 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './globals-a11y.css';
 import QueryProvider from '@/components/providers/QueryProvider';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import { A11yProvider } from '@/components/accessibility/A11yProvider';
 import { BrightnessEffect } from '@/components/accessibility/BrightnessEffect';
 import { LenisProvider } from '@/components/providers/LenisProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { CommandPalette } from '@/components/ui/CommandPalette';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
 
 // ── Fonts ──
@@ -89,14 +92,19 @@ export const viewport: Viewport = {
 
 // ── Root Layout ───────────────────────────────────
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // UX-ENH-010 (Recommended): resolve active locale + message bundle
+  // from the NEXT_LOCALE cookie (see src/i18n/request.ts).
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
     <html
-      lang="en"
+      lang={locale}
       className="dark"
       style={{ colorScheme: 'dark' }}
       suppressHydrationWarning
@@ -122,6 +130,7 @@ export default function RootLayout({
           Skip to main content
         </a>
 
+        <NextIntlClientProvider locale={locale} messages={messages}>
         <A11yProvider>
           <ErrorBoundary>
             <QueryProvider>
@@ -134,10 +143,13 @@ export default function RootLayout({
               <LenisProvider>
                 <OfflineBanner />
                 <main id="main-content">{children}</main>
+                {/* Phase 5 #7 UX-ENH: ⌘K palette. Feature-flag gated. */}
+                <CommandPalette />
               </LenisProvider>
             </QueryProvider>
           </ErrorBoundary>
         </A11yProvider>
+        </NextIntlClientProvider>
 
         {/* Screen reader live region */}
         <div

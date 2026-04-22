@@ -43,6 +43,24 @@ export const ResetPasswordSchema = z.object({
   captchaToken: z.string().max(4096).optional(),
 });
 
+// AUTH-ENH-003 (Max): OAuth provider validation. Mirrors
+// SUPPORTED_OAUTH_PROVIDERS in src/lib/auth/oauth.ts. Kept as a literal
+// union here so Zod can enforce it at the HTTP boundary without
+// cross-importing the auth module into every route.
+export const OAuthProviderSchema = z.enum(['google', 'apple', 'azure']);
+
+export const OAuthInitSchema = z.object({
+  next: z
+    .string()
+    .regex(/^\/[a-zA-Z0-9\-\/]*$/, 'Invalid redirect path')
+    .max(256)
+    .optional(),
+});
+
+export const OAuthIdentityParamSchema = z.object({
+  provider: OAuthProviderSchema,
+});
+
 // AUTH-MED-001: Same complexity rules as SignupSchema for consistency.
 export const UpdatePasswordSchema = z.object({
   password: z

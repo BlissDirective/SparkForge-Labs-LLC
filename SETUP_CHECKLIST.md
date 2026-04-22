@@ -1083,3 +1083,185 @@ Fix: Ensure the same secret is in both your `.env.local` and the `Authorization:
 - [ ] **Post-launch:** backfill script run (if any pre-existing paid users)
 
 Once all checkboxes are green, SparkForge is fully operational with Stripe, Supabase, Vercel, email reminders, admin tooling, and the Gap 1–5 subscription features enabled.
+
+---
+
+# Phase 6 — Phase 5 First 10 Enhancements (April 22, 2026)
+
+Operator actions for enabling the 10 Phase 5 enhancements. Every feature is off by default and gated by a `NEXT_PUBLIC_FF_*` flag — enable incrementally.
+
+## 6.1 Run Phase 5 SQL migrations
+
+In order, in the Supabase SQL Editor:
+
+| Order | File | Task |
+|---|---|---|
+| 26 | `sql/019_demo_role_rls.sql` | #2 Signed Demo Tokens (Max) — demo-deny RESTRICTIVE RLS across 12 tables |
+| 27 | `sql/020_passkey_credentials.sql` | #3 Passkey/WebAuthn (Ultra) — tables + RLS + cleanup cron |
+| 28 | `sql/021_enable_pgaudit.sql` | #5 PgAudit (Min) — **Supabase Pro plan required** |
+
+Verify after each:
+```sql
+SELECT policyname, permissive FROM pg_policies WHERE tablename = 'parents' AND policyname LIKE 'demo_deny_%';  -- expect 1 row
+SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'passkey_credentials'; -- expect 1
+SHOW pgaudit.log;  -- expect 'write, role, ddl'
+```
+
+## 6.2 Vercel COOP/COEP headers (Task #1 prerequisite)
+
+Add to `vercel.json` so OffscreenCanvas + WebGPU features can use SharedArrayBuffer:
+
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
+      ]
+    }
+  ]
+}
+```
+
+Note: This may break third-party embeds (Spline, YouTube) — verify /pricing + /home load cleanly. Alternative: scope headers to `/home/(.*)` + `/labs/(.*)` rather than global.
+
+## 6.3 Feature flags — enable incrementally
+
+Set in Vercel project env (or `.env.local` for dev):
+
+| Flag | Task | Safe to enable when |
+|---|---|---|
+| `NEXT_PUBLIC_FF_OFFSCREEN_RENDER` | #1 | COOP/COEP headers live (6.2) AND desktop-ultra target confirmed |
+| `NEXT_PUBLIC_FF_OFFSCREEN_RENDER_TELEMETRY` | #1 | Any time after #1 |
+| `NEXT_PUBLIC_FF_OFFSCREEN_RENDER_AUTOQUALITY` | #1 | After telemetry has flagged actual low-FPS devices |
+| `NEXT_PUBLIC_FF_SIGNED_DEMO_TOKENS` | #2 | Immediately (flag is defensive only; RLS already blocks writes) |
+| `NEXT_PUBLIC_FF_PASSKEY_AUTH` | #3 | After 6.1 runs sql/020 |
+| `NEXT_PUBLIC_FF_COMMAND_PALETTE` | #7 | Immediately |
+| `NEXT_PUBLIC_FF_PRORATION_PREVIEW` | #8 | After Stripe account confirms `/invoices/upcoming` access (no special API permission needed) |
+| `NEXT_PUBLIC_FF_OPTIMISTIC_OFFLINE_CACHE` | #10 | When IndexedDB-backed offline reads are desired; safe to enable any time |
+
+## 6.4 KTX2 + Draco transcoder payloads (Task #6)
+
+Place the following under `public/`:
+
+| Path | Source |
+|---|---|
+| `public/basis/basis_transcoder.js` | `node_modules/three/examples/jsm/libs/basis/basis_transcoder.js` |
+| `public/basis/basis_transcoder.wasm` | `node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm` |
+| `public/draco/draco_decoder.js` | `node_modules/three/examples/jsm/libs/draco/draco_decoder.js` |
+| `public/draco/draco_decoder.wasm` | `node_modules/three/examples/jsm/libs/draco/draco_decoder.wasm` |
+| `public/draco/draco_wasm_wrapper.js` | `node_modules/three/examples/jsm/libs/draco/draco_wasm_wrapper.js` |
+
+Automate:
+```bash
+mkdir -p public/basis public/draco
+cp node_modules/three/examples/jsm/libs/basis/basis_transcoder.{js,wasm} public/basis/
+cp node_modules/three/examples/jsm/libs/draco/draco_{decoder.js,decoder.wasm,wasm_wrapper.js} public/draco/
+```
+
+Then run `npm run optimize:3d` to produce `*.optimized.glb` siblings for every GLB under `public/models/`.
+
+## 6.5 Stripe proration preview (Task #8)
+
+No Stripe-side config required. Confirm `STRIPE_SECRET_KEY` is present and enable `NEXT_PUBLIC_FF_PRORATION_PREVIEW=1` when ready.
+
+If Stripe Tax is enabled later (Max tier for #8), pass `automatic_tax: { enabled: true }` into `stripe.invoices.createPreview` — a ~1-line change.
+
+## 6.6 Passkey ops (Task #3)
+
+- **Forge-tier attestation allow-list**: edit `src/lib/auth/fido-mds.ts` `FORGE_ATTESTED_AAGUIDS` to add/remove AAGUIDs. This static list is the MVP until MDS3 JWT chain verification lands.
+- **Post-verify session handoff**: `verify-authentication` returns `{verified, parentId}` but does NOT mint the Supabase session. Supabase Auth's native WebAuthn is the authoritative path when released. Until then, wire a magic-link after successful verify.
+- **Recovery codes UX**: not yet shipped — tracked as AUTH-ENH-PASSKEY-RECOVERY.
+
+## 6.7 Admin observability
+
+- `SELECT * FROM audit_log ORDER BY performed_at DESC LIMIT 100;` — works as before.
+- PgAudit output goes to Postgres logs (Supabase Dashboard → Logs → Postgres). Filter on `pgaudit`.
+- Session dashboard at `/settings/sessions` — accessible to all non-demo parents.
+
+---
+
+## 7. Phase 5 Next-10 operator steps (April 22, 2026)
+
+### 7.1 OAuth providers (Task 11, AUTH-ENH-003 Max)
+
+1. **Supabase Dashboard** → Authentication → Providers
+2. Enable **Google**:
+   - Google Cloud Console → APIs & Services → Credentials → OAuth 2.0 Client ID
+   - Authorized redirect URI: `https://<project>.supabase.co/auth/v1/callback`
+   - Paste client ID + secret into Supabase provider settings
+3. Enable **Apple**:
+   - Apple Developer Portal → Services ID + Sign in with Apple capability
+   - Return URL: `https://<project>.supabase.co/auth/v1/callback`
+   - Download the private key .p8, provide Team ID + Key ID + Services ID to Supabase
+4. Enable **Azure (Microsoft)**:
+   - Azure Portal → App Registrations → New registration
+   - Redirect URI: `https://<project>.supabase.co/auth/v1/callback`
+   - Add a client secret; paste Application (client) ID + secret + tenant ID into Supabase
+5. Verify from a clean browser: `/login` → click Google/Apple/Microsoft → lands back on `/home` after consent
+
+### 7.2 MFA (Task 12, AUTH-ENH-006 Recommended)
+
+- Feature-flagged: `NEXT_PUBLIC_FF_MFA_TOTP=true` in Vercel env (preview + production)
+- Supabase Auth **Multi-factor** settings → TOTP is on by default; no dashboard change needed
+- Apply migration `sql/023_mfa_backup_codes.sql` before enabling the flag
+- Verify: `/settings/mfa` → Turn on 2FA → scan QR → enter 6-digit code → see 8 backup codes once
+
+### 7.3 Realtime progress (Task 13, DB-ENH-002 Recommended)
+
+- Apply migration `sql/024_realtime_progress.sql` (adds tables to `supabase_realtime` publication + REPLICA IDENTITY FULL)
+- Supabase Dashboard → Database → Replication — confirm `progress` + `children` are listed
+- No client env changes — `RealtimeChildrenBridge` is mounted automatically in the dashboard layout
+
+### 7.4 Dunning + grace (Task 14, PAY-ENH-003 Ultra)
+
+1. Apply migration `sql/025_dunning.sql`
+2. **Stripe Dashboard** → Revenue → Retry Rules (Smart Retries):
+   - Enable Smart Retries
+   - Set max retry window = **7 days** (aligns with our grace period)
+3. `CRON_SECRET` must be set in Vercel env (reused from Phase 1)
+4. Vercel will auto-schedule `/api/cron/dunning` daily at 10:15 UTC from `vercel.json`
+5. Verify: manually invoke `/api/cron/dunning` with bearer token; confirm `{scanned, advanced, emailsSent, demoted, skipped, failures}` JSON response
+
+### 7.5 OpenTelemetry (Task 15, API-ENH-004 Recommended)
+
+- Already wired to Sentry via existing `SENTRY_DSN`. No new env required.
+- Optional: set `OTEL_EXPORTER_OTLP_ENDPOINT` to route spans to a separate OTel backend (Honeycomb, Grafana, self-hosted)
+- `registerOTel()` skips silently when neither env is set — dev boxes stay quiet
+
+### 7.6 Sparky contextual hints (Task 16, UX-ENH-006 Max)
+
+- Always-on; no flag.
+- Relies on existing `ANTHROPIC_API_KEY` + `/api/ai/guide` endpoint (already in production)
+- Tune stall timer: pass `useContextualHints({ stallMs: 20_000 })` in the dashboard layout if 15s feels too aggressive
+
+### 7.7 i18n (Task 17, UX-ENH-010 Recommended)
+
+- Default locale = English. Cookie `NEXT_LOCALE=es|fr` switches.
+- To re-translate: `ANTHROPIC_API_KEY=sk-... npm run translate:i18n`
+- `--locale es` flag translates only Spanish; `--dry-run` prints without writing
+- Existing `es.json` + `fr.json` ship hand-translated — no API key needed on day 1
+
+### 7.8 BatchedMesh (Task 18, PERF-ENH-001 Ultra)
+
+- Off by default. Flip `NEXT_PUBLIC_FF_BATCHED_COCKPIT=true` in preview first.
+- Visual verification checklist:
+  - Cockpit chrome detailing looks pixel-identical to main
+  - No tint banding on per-instance-colored panels
+  - Frame time in dev tools is ≤ main's baseline
+- Roll out cluster-by-cluster; revert by setting the flag false — no deploy needed
+
+### 7.9 CI pipeline (Task 19, DEPLOY-ENH-001 Max)
+
+- Lighthouse CI reports appear as workflow artifacts (14-day retention)
+- Bundle-size check posts sticky PR comments
+- Budgets in `scripts/bundle-size.mjs` — raise deliberately via PR when a real increase is justified
+- No secrets added — all jobs run on existing placeholder env
+
+### 7.10 XState (Task 20, STATE-ENH-005 Recommended)
+
+- Machines added but not yet consumed. Individual game / checkout / onboarding migrations land in follow-up PRs
+- Each migration should land behind visual + functional verification; no flag needed because machines are opt-in per caller
+

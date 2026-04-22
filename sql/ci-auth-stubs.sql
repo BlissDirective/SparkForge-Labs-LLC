@@ -35,3 +35,22 @@ CREATE OR REPLACE FUNCTION auth.role() RETURNS text
 -- auth.email() is used by a small number of policies.
 CREATE OR REPLACE FUNCTION auth.email() RETURNS text
   LANGUAGE sql STABLE AS $$ SELECT NULL::text $$;
+
+-- ─── Supabase roles (CI stubs) ─────────────────────
+-- Supabase projects have `anon`, `authenticated`, and `service_role`
+-- preinstalled. Vanilla Postgres doesn't, so any migration that uses
+-- GRANT ... TO <role> (e.g. sql/023_mfa_backup_codes.sql,
+-- sql/schema-stage8-dashboard-fn.sql) fails until we create them.
+-- All three are NOLOGIN — they exist purely as grant targets.
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    CREATE ROLE anon NOLOGIN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'authenticated') THEN
+    CREATE ROLE authenticated NOLOGIN;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN
+    CREATE ROLE service_role NOLOGIN BYPASSRLS;
+  END IF;
+END $$;

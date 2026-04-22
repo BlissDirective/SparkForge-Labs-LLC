@@ -26,6 +26,10 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
+  // AUTH-ENH-003 (Max): per-provider loading state for OAuth buttons.
+  const [oauthLoadingProvider, setOauthLoadingProvider] = useState<
+    'google' | 'apple' | 'azure' | null
+  >(null);
 
   const demoExpired = searchParams.get('demo') === 'expired';
 
@@ -60,7 +64,13 @@ export default function LoginPage() {
         return;
       }
 
-      router.push('/home');
+      // AUTH-ENH-006 (Recommended): MFA gate. If a verified TOTP factor
+      // exists the session is at aal1 and must elevate via challenge.
+      if (data?.data?.mfaRequired) {
+        router.push('/mfa-challenge');
+      } else {
+        router.push('/home');
+      }
     } catch {
       setError('Connection error — Please check your internet connection and try again.');
     } finally {
@@ -94,12 +104,39 @@ export default function LoginPage() {
     }
   }, [router]);
 
+  // AUTH-ENH-003 (Max): initiate OAuth sign-in. Server returns the
+  // Supabase-generated provider URL; browser redirects there. After
+  // the provider hand-off the user lands back on /api/auth/callback
+  // which exchanges the code for a session and redirects to /home.
+  const handleOAuthSignIn = useCallback(async (provider: 'google' | 'apple' | 'azure') => {
+    setError('');
+    setOauthLoadingProvider(provider);
+    try {
+      const res = await fetch(`/api/auth/oauth/${provider}?next=/home`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+      });
+      const json = await res.json();
+      if (!res.ok || !json?.data?.url) {
+        setError('OAuth sign-in failed — please try another method.');
+        setOauthLoadingProvider(null);
+        return;
+      }
+      window.location.assign(json.data.url);
+    } catch {
+      setError('Connection error — please check your internet and try again.');
+      setOauthLoadingProvider(null);
+    }
+  }, []);
+
   return (
     <LoginPanel3D
       onLogin={handleLogin}
       onNavigateSignup={() => router.push('/signup')}
       onNavigateReset={() => router.push('/reset-password')}
       onDemoStart={handleDemoStart}
+      onOAuthSignIn={handleOAuthSignIn}
+      oauthLoadingProvider={oauthLoadingProvider}
       loading={loading}
       error={error}
       demoExpired={demoExpired}

@@ -57,6 +57,17 @@ export interface Parent {
   // AUTH-HIGH-004: nullable until user clicks Supabase email-confirm link.
   // Stamped by /api/auth/callback on first successful exchange.
   email_verified_at?: string | null;
+  // AUTH-ENH-003: last OAuth provider used, for settings display.
+  oauth_last_provider?: string | null;
+  oauth_last_used_at?: string | null;
+  // PAY-ENH-003: Dunning sequence state. All NULL when not in dunning.
+  // dunning_stage: 0..4 (see DUNNING_SCHEDULE). grace_period_ends_at
+  // is the moment the tier demotes to free if not paid.
+  grace_period_ends_at?: string | null;
+  dunning_stage?: number | null;
+  dunning_started_at?: string | null;
+  dunning_last_sent_at?: string | null;
+  dunning_tier_before?: 'plus' | 'forge' | null;
   created_at: string;
 }
 
