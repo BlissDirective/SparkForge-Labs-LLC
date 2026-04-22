@@ -693,3 +693,44 @@ After 90 days running:
 ---
 
 *Automation Playbook v1.0 · April 21, 2026 · Claude-API-native ops architecture for SparkForge.*
+
+---
+
+## 17. Phase 5 First 10 — Automation Additions (April 22, 2026)
+
+Automatable ops hooks added alongside the 10 Phase 5 enhancements.
+
+### 17.1 Cron & scheduled jobs
+
+| Job | File | Cadence | Agent tier | Notes |
+|---|---|---|---|---|
+| `passkey-challenge-cleanup` | `sql/020_passkey_credentials.sql` | every 10 min | **T0 (auto)** — deletes expired rows only | Skipped cleanly when pg_cron absent. |
+| `audit-log-retention` (existing, reaffirmed) | `sql/014_audit_log.sql` | daily 00:15 UTC | T0 | 90-day purge. |
+| **MDS3 refresh (future — Passkey Ultra)** | `src/lib/auth/fido-mds.ts` `refreshMdsBlob()` | daily at 03:00 UTC (recommended) | T1 — needs FIDO root cert verification before auto-enabling | Static AAGUID allow-list is authoritative until full JWT verification lands. |
+| **Preload manifest rebuild (future — Task #6)** | `src/app/api/jobs/preload-manifest/route.ts` GET-per-user (now); future POST rebuild-all endpoint | T1 — proposed daily 04:00 UTC | Low cost, deterministic — good T0 candidate once stable. |
+| **OpenAPI client regen (Task #9)** | `scripts/generate-api-client.mjs` | post-deploy | **T1** — committed output reviewed in PR | Regenerate when `src/lib/api/openapi.ts` changes. |
+| **3D asset optimize (Task #6)** | `scripts/optimize-3d-assets.mjs` | pre-deploy CI | **T0** — deterministic compression | ~15-45s CI overhead; idempotent. |
+
+### 17.2 New DR drills
+
+- `disaster-recovery.sh` should exercise `cleanup_expired_passkey_challenges()` as part of the monthly DR drill. Add:
+  ```
+  psql -c "SELECT public.cleanup_expired_passkey_challenges();"
+  ```
+  to the drill script's SQL phase.
+
+### 17.3 Agent hooks
+
+- **Session revoke incident response (Task #4)**: when a parent's `auth.sessions` count exceeds a threshold (e.g. >20 active sessions), fire a T1 alert so an operator can review for account takeover. Session dashboard already exposes the data; alerting is a separate pipeline.
+- **Failed passkey verification alerting (Task #3)**: Sentry rule on `PASSKEY_VERIFICATION_FAILED` exceeding 5/hour from a single IP ⇒ T1 alert.
+- **PgAudit log volume (Task #5)**: monitor log volume (Supabase log-retention). If daily volume > 5 GB, T1 operator should tighten `pgaudit.log` to `'write'` only.
+- **Offline queue depth (Task #10)**: browsers report queue depth via `wireOfflineReplay`'s `onDrainComplete` callback. Sentry can ingest a breadcrumb; if `queued > 100` at drain time, that's a product incident (server likely rejecting many writes).
+
+### 17.4 Emergent automation opportunities
+
+| Opportunity | Trigger | Playbook |
+|---|---|---|
+| Auto-revoke passkeys with counter regression | Authenticator counter decreased (replay attack signal) | T0 revoke credential + T1 notify user |
+| Auto-rotate demo-role deny policies | Phase 6 adds new tables; drift between 019 and new schema | T1 `IF NOT EXISTS` re-run of 019 |
+| Auto-prune preload manifest cache | Children's recent-7d activity > 3σ from typical | T0 refresh manifest for affected parent |
+| Session dashboard anomaly score | Sessions from >3 countries in <24h | T1 surface to the parent via email |

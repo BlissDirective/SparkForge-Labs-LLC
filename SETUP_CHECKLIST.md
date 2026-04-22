@@ -1083,3 +1083,101 @@ Fix: Ensure the same secret is in both your `.env.local` and the `Authorization:
 - [ ] **Post-launch:** backfill script run (if any pre-existing paid users)
 
 Once all checkboxes are green, SparkForge is fully operational with Stripe, Supabase, Vercel, email reminders, admin tooling, and the Gap 1–5 subscription features enabled.
+
+---
+
+# Phase 6 — Phase 5 First 10 Enhancements (April 22, 2026)
+
+Operator actions for enabling the 10 Phase 5 enhancements. Every feature is off by default and gated by a `NEXT_PUBLIC_FF_*` flag — enable incrementally.
+
+## 6.1 Run Phase 5 SQL migrations
+
+In order, in the Supabase SQL Editor:
+
+| Order | File | Task |
+|---|---|---|
+| 26 | `sql/019_demo_role_rls.sql` | #2 Signed Demo Tokens (Max) — demo-deny RESTRICTIVE RLS across 12 tables |
+| 27 | `sql/020_passkey_credentials.sql` | #3 Passkey/WebAuthn (Ultra) — tables + RLS + cleanup cron |
+| 28 | `sql/021_enable_pgaudit.sql` | #5 PgAudit (Min) — **Supabase Pro plan required** |
+
+Verify after each:
+```sql
+SELECT policyname, permissive FROM pg_policies WHERE tablename = 'parents' AND policyname LIKE 'demo_deny_%';  -- expect 1 row
+SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'passkey_credentials'; -- expect 1
+SHOW pgaudit.log;  -- expect 'write, role, ddl'
+```
+
+## 6.2 Vercel COOP/COEP headers (Task #1 prerequisite)
+
+Add to `vercel.json` so OffscreenCanvas + WebGPU features can use SharedArrayBuffer:
+
+```json
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
+      ]
+    }
+  ]
+}
+```
+
+Note: This may break third-party embeds (Spline, YouTube) — verify /pricing + /home load cleanly. Alternative: scope headers to `/home/(.*)` + `/labs/(.*)` rather than global.
+
+## 6.3 Feature flags — enable incrementally
+
+Set in Vercel project env (or `.env.local` for dev):
+
+| Flag | Task | Safe to enable when |
+|---|---|---|
+| `NEXT_PUBLIC_FF_OFFSCREEN_RENDER` | #1 | COOP/COEP headers live (6.2) AND desktop-ultra target confirmed |
+| `NEXT_PUBLIC_FF_OFFSCREEN_RENDER_TELEMETRY` | #1 | Any time after #1 |
+| `NEXT_PUBLIC_FF_OFFSCREEN_RENDER_AUTOQUALITY` | #1 | After telemetry has flagged actual low-FPS devices |
+| `NEXT_PUBLIC_FF_SIGNED_DEMO_TOKENS` | #2 | Immediately (flag is defensive only; RLS already blocks writes) |
+| `NEXT_PUBLIC_FF_PASSKEY_AUTH` | #3 | After 6.1 runs sql/020 |
+| `NEXT_PUBLIC_FF_COMMAND_PALETTE` | #7 | Immediately |
+| `NEXT_PUBLIC_FF_PRORATION_PREVIEW` | #8 | After Stripe account confirms `/invoices/upcoming` access (no special API permission needed) |
+| `NEXT_PUBLIC_FF_OPTIMISTIC_OFFLINE_CACHE` | #10 | When IndexedDB-backed offline reads are desired; safe to enable any time |
+
+## 6.4 KTX2 + Draco transcoder payloads (Task #6)
+
+Place the following under `public/`:
+
+| Path | Source |
+|---|---|
+| `public/basis/basis_transcoder.js` | `node_modules/three/examples/jsm/libs/basis/basis_transcoder.js` |
+| `public/basis/basis_transcoder.wasm` | `node_modules/three/examples/jsm/libs/basis/basis_transcoder.wasm` |
+| `public/draco/draco_decoder.js` | `node_modules/three/examples/jsm/libs/draco/draco_decoder.js` |
+| `public/draco/draco_decoder.wasm` | `node_modules/three/examples/jsm/libs/draco/draco_decoder.wasm` |
+| `public/draco/draco_wasm_wrapper.js` | `node_modules/three/examples/jsm/libs/draco/draco_wasm_wrapper.js` |
+
+Automate:
+```bash
+mkdir -p public/basis public/draco
+cp node_modules/three/examples/jsm/libs/basis/basis_transcoder.{js,wasm} public/basis/
+cp node_modules/three/examples/jsm/libs/draco/draco_{decoder.js,decoder.wasm,wasm_wrapper.js} public/draco/
+```
+
+Then run `npm run optimize:3d` to produce `*.optimized.glb` siblings for every GLB under `public/models/`.
+
+## 6.5 Stripe proration preview (Task #8)
+
+No Stripe-side config required. Confirm `STRIPE_SECRET_KEY` is present and enable `NEXT_PUBLIC_FF_PRORATION_PREVIEW=1` when ready.
+
+If Stripe Tax is enabled later (Max tier for #8), pass `automatic_tax: { enabled: true }` into `stripe.invoices.createPreview` — a ~1-line change.
+
+## 6.6 Passkey ops (Task #3)
+
+- **Forge-tier attestation allow-list**: edit `src/lib/auth/fido-mds.ts` `FORGE_ATTESTED_AAGUIDS` to add/remove AAGUIDs. This static list is the MVP until MDS3 JWT chain verification lands.
+- **Post-verify session handoff**: `verify-authentication` returns `{verified, parentId}` but does NOT mint the Supabase session. Supabase Auth's native WebAuthn is the authoritative path when released. Until then, wire a magic-link after successful verify.
+- **Recovery codes UX**: not yet shipped — tracked as AUTH-ENH-PASSKEY-RECOVERY.
+
+## 6.7 Admin observability
+
+- `SELECT * FROM audit_log ORDER BY performed_at DESC LIMIT 100;` — works as before.
+- PgAudit output goes to Postgres logs (Supabase Dashboard → Logs → Postgres). Filter on `pgaudit`.
+- Session dashboard at `/settings/sessions` — accessible to all non-demo parents.
+
