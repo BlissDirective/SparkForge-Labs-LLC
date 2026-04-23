@@ -116,6 +116,17 @@ export default function PrivacyPage() {
               <li>Contact information from children (email, phone, address)</li>
               <li>Social media accounts or friend lists</li>
             </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              2e. No Conditioning on Unnecessary Disclosure
+            </h3>
+            <p className="text-white/60">
+              Consistent with 16 CFR &sect; 312.7, SparkForge does not condition a child&apos;s participation in any game,
+              lab, activity, or feature on the child disclosing more personal information than is reasonably necessary for
+              that activity. For example, gameplay in any of the 35 labs is available without the child providing free-text
+              input; the Prompt Lab game (which does accept free-text input) is limited to age band C (ages 14&ndash;16) and
+              is never a prerequisite for earning XP, leveling up, or completing any lab.
+            </p>
           </section>
 
           {/* ═══ Section 3: How We Use Information ═══ */}
@@ -374,6 +385,14 @@ export default function PrivacyPage() {
                 </tr>
               </tbody>
             </table>
+            <p className="mt-4 text-sm text-white/60">
+              <strong className="text-white/80">Absolute maximum retention.</strong> Consistent with 16 CFR &sect; 312.10
+              (as amended in 2025), no category of children&apos;s personal information is retained indefinitely. Except
+              where a longer period is required by a specific legal obligation (for example, Stripe invoice records that
+              must be retained for tax-audit purposes), the maximum retention for any child&apos;s personal information is
+              three (3) years from the last active use of the associated account, after which the data is deleted or
+              irreversibly de-identified.
+            </p>
           </section>
 
           {/* ═══ Section 8: Data Security ═══ */}
@@ -401,6 +420,22 @@ export default function PrivacyPage() {
               We require all third-party service providers that receive children&apos;s data to maintain adequate security
               measures consistent with this policy.
             </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              8a. Written Children&apos;s Information Security Program (2025 Amendment)
+            </h3>
+            <p className="text-white/60 mb-3">
+              The 2025 COPPA amendments (16 CFR &sect; 312.8) require operators to establish, implement, and maintain a
+              written children&apos;s personal information security program with safeguards appropriate to the sensitivity
+              of the data, the operator&apos;s size, and its business activities. Our program includes:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+              <li><strong className="text-white/80">Designated responsible party:</strong> the SparkForge LLC Privacy &amp; Security Lead identified in Section 1 holds documented accountability for the program and is the point of contact for all COPPA obligations.</li>
+              <li><strong className="text-white/80">Annual risk assessment:</strong> at least once every twelve (12) months, we review the confidentiality, integrity, and availability risks to children&apos;s personal information and update safeguards accordingly.</li>
+              <li><strong className="text-white/80">Written service-provider agreements:</strong> every third party that processes children&apos;s personal information on our behalf is under a written data-processing addendum (DPA) requiring security and confidentiality safeguards at least as protective as those in this Section 8.</li>
+              <li><strong className="text-white/80">Incident response and breach notification:</strong> we maintain documented incident-response procedures and notify affected parents and applicable regulators within the timeframes required by the strictest applicable federal or state law (see Section 16).</li>
+              <li><strong className="text-white/80">Access control and audit logging:</strong> access to systems holding children&apos;s PI is role-based, least-privilege, and logged; administrative access requires multi-factor authentication.</li>
+            </ul>
           </section>
 
           {/* ═══ Section 9: Cookies & Persistent Identifiers ═══ */}
