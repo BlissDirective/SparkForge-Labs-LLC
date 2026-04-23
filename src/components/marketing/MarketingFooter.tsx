@@ -15,15 +15,19 @@ const FOOTER_SECTIONS = [
     title: 'Legal',
     links: [
       { href: '/privacy', label: 'Privacy Policy' },
+      { href: '/privacy/children', label: "Children's Privacy" },
+      { href: '/privacy/rights', label: 'Parental Rights' },
       { href: '/terms', label: 'Terms of Service' },
+      { href: '/cookies', label: 'Cookie Policy' },
+      { href: '/dmca', label: 'DMCA Policy' },
     ],
   },
   {
     title: 'Contact',
     links: [
-      { href: 'mailto:privacy@sparkforge.app', label: 'Privacy Inquiries' },
-      { href: 'mailto:legal@sparkforge.app', label: 'Legal' },
-      { href: 'mailto:support@sparkforge.app', label: 'Support' },
+      { href: 'mailto:privacy@sparkforge-labs.com', label: 'Privacy Inquiries' },
+      { href: 'mailto:legal@sparkforge-labs.com', label: 'Legal' },
+      { href: 'mailto:support@sparkforge-labs.com', label: 'Support' },
     ],
   },
 ];
@@ -82,7 +86,7 @@ export function MarketingFooter() {
         {/* Bottom bar */}
         <div className="mt-10 pt-6 border-t border-white/[0.04] flex items-center justify-between">
           <p className="text-xs font-body text-white/55">
-            &copy; {new Date().getFullYear()} BlissDirective. All rights reserved.
+            &copy; {new Date().getFullYear()} SparkForge LLC. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs font-body text-white/55">
             <span>COPPA Compliant</span>
