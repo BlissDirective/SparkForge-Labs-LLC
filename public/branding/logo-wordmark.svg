@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 320" role="img" aria-label="SparkForge wordmark">
+  <title>SparkForge</title>
+  <defs>
+    <linearGradient id="wm-electric" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E8FDFF"/>
+      <stop offset="40%" stop-color="#7FE8FF"/>
+      <stop offset="100%" stop-color="#00BBFF"/>
+    </linearGradient>
+    <linearGradient id="wm-holo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00BBFF"/>
+      <stop offset="50%" stop-color="#AA66FF"/>
+      <stop offset="100%" stop-color="#FF66CC"/>
+    </linearGradient>
+    <linearGradient id="wm-mark-electric" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#E8FDFF"/>
+      <stop offset="60%" stop-color="#00BBFF"/>
+      <stop offset="100%" stop-color="#0077CC"/>
+    </linearGradient>
+
+    <filter id="wm-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="b2"/>
+      <feMerge>
+        <feMergeNode in="b2"/>
+        <feMergeNode in="b1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="wm-holo-shift" x="-10%" y="-10%" width="120%" height="120%">
+      <feOffset in="SourceGraphic" dx="-2" dy="0" result="sL"/>
+      <feColorMatrix in="sL" type="matrix" values="0 0 0 0 0  0 0 0 0 0.73  0 0 0 0 1  0 0 0 0.5 0" result="cy"/>
+      <feOffset in="SourceGraphic" dx="2" dy="0" result="sR"/>
+      <feColorMatrix in="sR" type="matrix" values="1 0 0 0 1  0 0 0 0 0.4  0 0 0 0 0.8  0 0 0 0.5 0" result="mg"/>
+      <feMerge>
+        <feMergeNode in="cy"/>
+        <feMergeNode in="mg"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g transform="translate(40, 40)">
+    <g filter="url(#wm-glow)">
+      <path d="M 108 10
+               L 18 10
+               L 14 58
+               L 104 68
+               L 98 108
+               L 16 120
+               L 12 168
+               L 104 182
+               L 100 210
+               L 18 204
+               L 22 186
+               L 92 192
+               L 94 176
+               L 28 162
+               L 34 106
+               L 116 96
+               L 120 58
+               L 32 48
+               L 36 30
+               L 104 34
+               Z"
+            fill="url(#wm-mark-electric)"
+            stroke="#E8FDFF" stroke-width="1.2"/>
+    </g>
+    <g opacity="0.85">
+      <circle cx="108" cy="10" r="2.5" fill="#E8FDFF"/>
+      <circle cx="14" cy="58" r="2" fill="#E8FDFF"/>
+      <circle cx="16" cy="120" r="2" fill="#E8FDFF"/>
+      <circle cx="104" cy="182" r="2" fill="#E8FDFF"/>
+    </g>
+  </g>
+
+  <g transform="translate(220, 80)" font-family="'Inter', 'Space Grotesk', 'Helvetica Neue', sans-serif" font-weight="800" font-size="148" letter-spacing="-4">
+    <text x="0" y="0" fill="url(#wm-electric)" filter="url(#wm-glow)">Spark</text>
+    <text x="0" y="0" fill="none" stroke="#E8FDFF" stroke-width="0.8" stroke-opacity="0.5">Spark</text>
+
+    <g filter="url(#wm-holo-shift)">
+      <text x="468" y="0" fill="url(#wm-holo)">Forge</text>
+    </g>
+    <text x="468" y="0" fill="none" stroke="#ffffff" stroke-opacity="0.25" stroke-width="0.8">Forge</text>
+  </g>
+
+  <g transform="translate(220, 88)" opacity="0.7">
+    <line x1="0" y1="14" x2="1100" y2="14" stroke="url(#wm-holo)" stroke-width="1" stroke-opacity="0.35"/>
+  </g>
+</svg>
