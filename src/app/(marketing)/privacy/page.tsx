@@ -766,6 +766,74 @@ export default function PrivacyPage() {
             </p>
           </section>
 
+          {/* ═══ Section 16: Breach Notification ═══ */}
+          <section id="breach">
+            <h2 className="font-display text-xl font-semibold text-white mb-3">
+              16. Breach Notification
+            </h2>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2">
+              16a. Our Commitment
+            </h3>
+            <p className="text-white/60 mb-3">
+              In the event of a data breach that involves children&apos;s personal information or parent account
+              credentials, SparkForge will investigate the scope of the incident, contain and remediate the vulnerability,
+              and notify affected parents and applicable regulators within the timeframe required by the strictest
+              applicable federal or state law. We will not delay notification beyond what is reasonably necessary for a
+              law-enforcement request or legitimate investigative need.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16b. Timing Standards
+            </h3>
+            <p className="text-white/60 mb-3">
+              All 50 U.S. states (and the District of Columbia and U.S. territories) have breach notification laws. We
+              commit to the following notification windows, measured from the time we determine a breach has occurred:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li><strong className="text-white/80">Affected residents in 30-day states</strong> (including California, Colorado, Florida, New York, Washington): notification within 30 calendar days.</li>
+              <li><strong className="text-white/80">Affected residents in 45-day states</strong> (including AL, AZ, IN, NM, OH, OR, RI, TN, VT, WI): notification within 45 calendar days.</li>
+              <li><strong className="text-white/80">Affected residents in 60-day states</strong> (including CT, DE, LA, SD, TX): notification within 60 calendar days.</li>
+              <li><strong className="text-white/80">Affected residents in other states</strong> with &quot;without unreasonable delay&quot; standards: notification within 60 calendar days, our internal ceiling.</li>
+              <li><strong className="text-white/80">Federal Trade Commission</strong> (when a breach affects more than 500 children&apos;s personal information under the 2025 COPPA amendments): notification within 30 calendar days.</li>
+              <li><strong className="text-white/80">International supervisory authorities</strong> (e.g., EU lead supervisory authority under GDPR Article 33): notification within 72 hours of becoming aware of a personal-data breach where required.</li>
+            </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16c. Contents of the Notice
+            </h3>
+            <p className="text-white/60 mb-3">
+              A breach notification from SparkForge will include, at minimum:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li>A description of what happened and when we became aware of it;</li>
+              <li>The categories of personal information involved;</li>
+              <li>The steps we have taken to contain and remediate the incident;</li>
+              <li>Recommended protective steps the parent can take (for example, changing the account password, monitoring relevant services);</li>
+              <li>A direct contact channel for questions, staffed by our Privacy &amp; Security Lead (see Section 1 for contact information); and</li>
+              <li>Any additional content required by the recipient&apos;s state or national law.</li>
+            </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16d. Method of Notification
+            </h3>
+            <p className="text-white/60 mb-3">
+              We will send the initial notification by email to the address registered on each affected parent account.
+              Where state or national law additionally requires postal notification, substitute notification, or public
+              disclosure (for example, to a state Attorney General, consumer-reporting agencies, or a prominent website
+              notice), we will provide that additional notification in the form prescribed by that law.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16e. Post-Incident Review
+            </h3>
+            <p className="text-white/60">
+              After every confirmed incident, we complete a root-cause analysis, document corrective actions taken, and
+              update our written children&apos;s personal information security program (see Section 8a) as needed. Nothing
+              in this section creates liability in excess of what is imposed by applicable law.
+            </p>
+          </section>
+
           {/* Legal review notice */}
           <div className="mt-12 p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
             <p className="text-xs text-amber-400/70 font-body">
