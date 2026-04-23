@@ -244,6 +244,41 @@ export default function PrivacyPage() {
               If we do not receive verifiable parental consent, we will not collect personal information from the child
               and will delete any parent contact information collected during the consent process within a reasonable time.
             </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              5a. VPC Method Used
+            </h3>
+            <p className="text-white/60 mb-3">
+              SparkForge uses the <strong className="text-white/80">&quot;email-plus&quot;</strong> method of Verifiable
+              Parental Consent permitted under 16 CFR &sect; 312.5(b)(2)(iii). The process is:
+            </p>
+            <ol className="list-decimal list-inside space-y-1.5 text-white/60 mb-3">
+              <li>A parent creates the account and provides their email address.</li>
+              <li>The parent verifies the email by clicking a confirmation link sent to that address.</li>
+              <li>The parent checks a COPPA consent checkbox affirmatively acknowledging this Privacy Policy.</li>
+              <li>A server-side timestamp of the affirmative consent action is recorded and retained for at least three years.</li>
+              <li>Before the child&apos;s first interaction, a confirmation email is sent to the same verified address summarizing the consent granted and explaining how to revoke it at any time.</li>
+            </ol>
+            <p className="text-white/60 mb-3">
+              Under COPPA 16 CFR &sect; 312.5(b)(2), the email-plus method is valid only when a child&apos;s personal
+              information is used <strong className="text-white/80">solely for internal operations</strong> and is not
+              disclosed to third parties other than service providers acting on SparkForge&apos;s behalf under written
+              agreements with equivalent safeguards (see Section 4).
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              5b. Separate Consent for Third-Party Disclosure
+            </h3>
+            <p className="text-white/60">
+              As amended by the FTC in 2025, COPPA requires <strong className="text-white/80">separate verifiable parental
+              consent</strong> before any third-party disclosure of a child&apos;s personal information that is not covered
+              by a service-provider relationship (e.g., targeted advertising, cross-service profiling, disclosure to data
+              brokers). SparkForge does not currently engage in any such disclosures and therefore does not seek separate
+              VPC beyond the email-plus method above. If this ever changes, we will obtain separate affirmative parental
+              consent using a higher-bar VPC method (such as a verified payment-card transaction, government-ID match, or
+              live video-call verification) before the new disclosure begins, and we will update this Privacy Policy and
+              notify existing parents in advance.
+            </p>
           </section>
 
           {/* ═══ Section 6: Parental Rights ═══ */}
