@@ -90,7 +90,7 @@ export default function TermsPage() {
               <li>You are responsible for all activity that occurs under your account, including actions taken by child users on profiles you created.</li>
               <li>Each parent account may create multiple child profiles (1 on Free, 3 on Plus, 5 on Forge tier).</li>
               <li>You must notify us immediately at{' '}
-                <a href="mailto:support@sparkforge.app" className="text-spark-blue hover:underline">support@sparkforge.app</a>{' '}
+                <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a>{' '}
                 if you believe your account has been compromised.
               </li>
               <li>We reserve the right to suspend or terminate accounts that violate these Terms or engage in prohibited activity.</li>
@@ -135,7 +135,7 @@ export default function TermsPage() {
             <h3 className="font-display text-lg font-medium text-white/90 mt-4 mb-2">4d. Refunds</h3>
             <p className="text-white/60">
               Refund requests are evaluated on a case-by-case basis. Contact{' '}
-              <a href="mailto:support@sparkforge.app" className="text-spark-blue hover:underline">support@sparkforge.app</a>{' '}
+              <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a>{' '}
               within 14 days of a charge to request a refund. Refunds are processed through Stripe per their standard policies.
             </p>
           </section>
@@ -240,7 +240,7 @@ export default function TermsPage() {
             <ul className="list-disc list-inside space-y-2 text-white/60">
               <li>
                 All content, design, code, graphics, game mechanics, educational curriculum, 3D assets, and audio on
-                SparkForge are owned by BlissDirective or its licensors and are protected by copyright and other
+                SparkForge are owned by SparkForge LLC or its licensors and are protected by copyright and other
                 intellectual property laws.
               </li>
               <li>
@@ -252,7 +252,7 @@ export default function TermsPage() {
                 the property of the user. We do not claim ownership of user-generated content.
               </li>
               <li>
-                The SparkForge name, logo, and &quot;AI Learning Lab&quot; tagline are trademarks of BlissDirective.
+                The SparkForge name, logo, and &quot;AI Learning Lab&quot; tagline are trademarks of SparkForge LLC.
               </li>
             </ul>
           </section>
@@ -265,7 +265,7 @@ export default function TermsPage() {
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">10a. By You</h3>
             <p className="text-white/60 mb-3">
               You may delete your account and all associated child profiles at any time through the Parent Dashboard
-              or by contacting <a href="mailto:support@sparkforge.app" className="text-spark-blue hover:underline">support@sparkforge.app</a>.
+              or by contacting <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a>.
               Upon account deletion, all associated data is permanently removed in accordance with our{' '}
               <Link href="/privacy#data-retention" className="text-spark-blue hover:underline">Data Retention Policy</Link>.
             </p>
@@ -294,7 +294,7 @@ export default function TermsPage() {
               <li>AI-generated content may contain inaccuracies and should not be relied upon as authoritative.</li>
             </ul>
             <p className="text-white/60">
-              To the maximum extent permitted by applicable law, BlissDirective shall not be liable for any indirect,
+              To the maximum extent permitted by applicable law, SparkForge LLC shall not be liable for any indirect,
               incidental, special, consequential, or punitive damages arising out of or relating to your use of SparkForge.
               Our total aggregate liability shall not exceed the amount paid by you in the 12 months preceding any claim.
             </p>
@@ -306,8 +306,8 @@ export default function TermsPage() {
               12. Dispute Resolution &amp; Governing Law
             </h2>
             <p className="text-white/60 mb-3">
-              These Terms are governed by and construed in accordance with the laws of the State of Delaware, United States,
-              without regard to conflict of law provisions.
+              These Terms are governed by and construed in accordance with the laws of the State of Illinois, United States,
+              without regard to conflict of law provisions. SparkForge LLC is organized as an Illinois limited liability company.
             </p>
             <p className="text-white/60 mb-3">
               Any dispute arising from these Terms or your use of SparkForge shall first be addressed through good-faith
@@ -345,10 +345,12 @@ export default function TermsPage() {
             </h2>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/60">
-                <strong className="text-white/80">BlissDirective</strong><br />
-                General inquiries: <a href="mailto:support@sparkforge.app" className="text-spark-blue hover:underline">support@sparkforge.app</a><br />
-                Privacy &amp; COPPA: <a href="mailto:privacy@sparkforge.app" className="text-spark-blue hover:underline">privacy@sparkforge.app</a><br />
-                Legal: <a href="mailto:legal@sparkforge.app" className="text-spark-blue hover:underline">legal@sparkforge.app</a>
+                <strong className="text-white/80">SparkForge LLC</strong> <span className="text-white/40">(an Illinois limited liability company)</span><br />
+                Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
+                Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
+                General inquiries: <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a><br />
+                Privacy &amp; COPPA: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />
+                Legal: <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>
               </p>
             </div>
           </section>
