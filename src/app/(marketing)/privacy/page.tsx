@@ -39,14 +39,19 @@ export default function PrivacyPage() {
               1. Who We Are (Operator Identification)
             </h2>
             <p>
-              SparkForge is operated by <strong className="text-white/90">BlissDirective</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
+              SparkForge is operated by <strong className="text-white/90">SparkForge LLC</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
               SparkForge is a gamified AI learning platform designed for children ages 7&ndash;16.
             </p>
             <div className="mt-4 p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/50">
-                <strong className="text-white/70">BlissDirective</strong><br />
-                Email: <a href="mailto:privacy@sparkforge.app" className="text-spark-blue hover:underline">privacy@sparkforge.app</a><br />
-                For privacy inquiries, parental rights requests, or COPPA-related questions, contact us at the email above.
+                <strong className="text-white/70">SparkForge LLC</strong> <span className="text-white/40">(an Illinois limited liability company)</span><br />
+                Mailing address: <span className="text-white/70">[MAILING ADDRESS — to be finalized before production launch]</span><br />
+                Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
+                Privacy email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />
+                For privacy inquiries, parental rights requests, or COPPA-related questions, contact us using any method above.
+              </p>
+              <p className="mt-3 text-xs text-white/40">
+                Disclosure pursuant to 16 CFR &sect; 312.4(d)(1) (COPPA operator identification).
               </p>
             </div>
             <p className="mt-4">
@@ -265,7 +270,7 @@ export default function PrivacyPage() {
                 },
                 {
                   right: 'Revoke consent',
-                  how: 'Contact privacy@sparkforge.app or delete the child profile. We will cease all collection and delete existing data.',
+                  how: 'Contact privacy@sparkforge-labs.com or delete the child profile. We will cease all collection and delete existing data.',
                 },
                 {
                   right: 'Manage content filters and time limits',
@@ -467,8 +472,10 @@ export default function PrivacyPage() {
             </p>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/60">
-                <strong className="text-white/80">BlissDirective — Privacy Team</strong><br />
-                Email: <a href="mailto:privacy@sparkforge.app" className="text-spark-blue hover:underline">privacy@sparkforge.app</a><br />
+                <strong className="text-white/80">SparkForge LLC &mdash; Privacy Team</strong><br />
+                Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
+                Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
+                Email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />
                 Subject line: &quot;COPPA Privacy Request&quot; or &quot;Parental Rights Request&quot;
               </p>
               <p className="text-xs text-white/70 mt-3">
