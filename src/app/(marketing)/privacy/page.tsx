@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — SparkForge',
@@ -556,6 +557,128 @@ export default function PrivacyPage() {
                 </a>.
               </p>
             </div>
+          </section>
+
+          {/* ═══ Section 14: State Privacy Law Disclosures ═══ */}
+          <section id="state-laws">
+            <h2 className="font-display text-xl font-semibold text-white mb-3">
+              14. State Privacy Law Disclosures
+            </h2>
+            <p className="mb-4">
+              In addition to the federal protections above, residents of certain U.S. states have additional rights under
+              comprehensive state privacy laws and state-specific children&apos;s/teens&apos; codes. The table below
+              summarizes applicability; the California and Maryland subsections below describe rights in greater detail.
+            </p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/[0.06]">
+                    <th className="text-left py-2 pr-4 font-display text-white/70 font-medium">State</th>
+                    <th className="text-left py-2 pr-4 font-display text-white/70 font-medium">Key Law(s)</th>
+                    <th className="text-left py-2 font-display text-white/70 font-medium">Resident Rights (adults and minors)</th>
+                  </tr>
+                </thead>
+                <tbody className="text-white/60">
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">California</td>
+                    <td className="py-2 pr-4 align-top">CCPA/CPRA; SOPIPA; AB 1584; AB 2273 (AADC)</td>
+                    <td className="py-2 align-top">Know, access, delete, correct, opt-out of sale/share, limit use of sensitive PI, non-discrimination; under-18 design-code protections.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Maryland</td>
+                    <td className="py-2 pr-4 align-top">MODPA; MD AADC (HB 603)</td>
+                    <td className="py-2 align-top">Know, delete, correct, portability; privacy-by-default for users under 18; DPIA required.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Virginia</td>
+                    <td className="py-2 pr-4 align-top">VCDPA</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; COPPA-style VPC for known under-13 data.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Colorado</td>
+                    <td className="py-2 pr-4 align-top">CPA; SB 24-041</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability, opt-out; no targeted ads, profiling, or sale involving users under 18 without proper consent.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Connecticut</td>
+                    <td className="py-2 pr-4 align-top">CTDPA (with minors amendment)</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; duty of care for users 13&ndash;17; ban on targeted ads and sale of teen data regardless of consent.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Oregon</td>
+                    <td className="py-2 pr-4 align-top">OCPA; HB 2008</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; targeted-advertising prohibition for ages 13&ndash;15 under actual-knowledge / willful-disregard.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Texas</td>
+                    <td className="py-2 pr-4 align-top">TDPSA</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; heightened disclosures and opt-ins for known minors.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Utah</td>
+                    <td className="py-2 pr-4 align-top">UCPA</td>
+                    <td className="py-2 align-top">Access, delete, portability, opt-out of sale and targeted advertising.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Delaware</td>
+                    <td className="py-2 pr-4 align-top">DPDPA</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability, opt-out; honors Global Privacy Control.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">New York</td>
+                    <td className="py-2 pr-4 align-top">SHIELD Act; NY Child Data Protection Act (CDPA)</td>
+                    <td className="py-2 align-top">Reasonable-security obligations; restrictions on processing data of users under 18.</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 align-top">Other states</td>
+                    <td className="py-2 pr-4 align-top">IA, NE, NH, NJ, MN, RI, IN, KY, TN, MT, FL</td>
+                    <td className="py-2 align-top">General access/delete/correct/portability/opt-out equivalents; honored for any resident who requests them.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              14a. Notice to California Residents (CCPA/CPRA)
+            </h3>
+            <p className="text-white/60 mb-3">
+              California residents (parent account holders and, where applicable, teens aged 13&ndash;17 via a parent)
+              have the following rights under the California Consumer Privacy Act as amended by the California Privacy
+              Rights Act:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li><strong className="text-white/80">Right to know</strong> what personal information we have collected, the sources, the purposes, and the categories of third parties to whom it was disclosed.</li>
+              <li><strong className="text-white/80">Right to access</strong> a portable copy of the personal information we hold about you.</li>
+              <li><strong className="text-white/80">Right to delete</strong> personal information, subject to a narrow set of statutory exceptions.</li>
+              <li><strong className="text-white/80">Right to correct</strong> inaccurate personal information.</li>
+              <li><strong className="text-white/80">Right to opt-out of sale or sharing</strong> of personal information. <span className="text-white/80">SparkForge does not sell or share personal information as defined under the CCPA/CPRA.</span></li>
+              <li><strong className="text-white/80">Right to limit use of sensitive personal information.</strong> SparkForge does not use sensitive personal information beyond the narrow business purposes permitted by Cal. Code Regs. tit. 11, &sect; 7027(l).</li>
+              <li><strong className="text-white/80">Right to non-discrimination</strong> for exercising any of these rights.</li>
+            </ul>
+            <p className="text-white/60 mb-3">
+              <strong className="text-white/80">Global Privacy Control (GPC):</strong> SparkForge honors the GPC browser
+              signal. Because we do not sell or share personal information, GPC has no additional effect on our primary data
+              flows; however, we treat GPC as an opt-out signal for any future analytics or advertising integrations.
+            </p>
+            <p className="text-white/60">
+              Submit California rights requests by email to{' '}
+              <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a>{' '}
+              or by the Parental Rights page at{' '}
+              <Link href="/privacy/rights" className="text-spark-blue hover:underline">/privacy/rights</Link>. We will verify
+              identity (as described on that page) and respond within 45 days, extendable once by 45 days when reasonably
+              necessary with notice.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              14b. Notice to Maryland Residents (MD AADC)
+            </h3>
+            <p className="text-white/60">
+              Under the Maryland Age-Appropriate Design Code Act (HB 603), SparkForge configures default privacy settings
+              to the highest level of privacy for users under 18, collects only the minimum personal data needed, does not
+              use dark patterns that encourage minors to weaken privacy settings, and maintains a Data Protection Impact
+              Assessment (DPIA) for features reasonably likely to be accessed by minors.
+            </p>
           </section>
 
           {/* Legal review notice */}
