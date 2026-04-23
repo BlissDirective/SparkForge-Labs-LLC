@@ -681,6 +681,91 @@ export default function PrivacyPage() {
             </p>
           </section>
 
+          {/* ═══ Section 15: International Users & Cross-Border Transfers ═══ */}
+          <section id="international">
+            <h2 className="font-display text-xl font-semibold text-white mb-3">
+              15. International Users &amp; Cross-Border Transfers
+            </h2>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2">
+              15a. Primary Audience and Data Location
+            </h3>
+            <p className="text-white/60 mb-3">
+              SparkForge is operated from the United States by an Illinois limited liability company and is primarily
+              intended for users physically located in the United States. Personal information processed by SparkForge is
+              stored in the United States using Supabase-managed infrastructure (AWS US regions). Certain operational
+              telemetry is also processed in the United States by our service providers (see Section 4).
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15b. Use of the Service from Outside the United States
+            </h3>
+            <p className="text-white/60 mb-3">
+              If you access SparkForge from outside the United States, you understand that your personal information will
+              be transferred to and processed in the United States. U.S. data-protection law may differ from the law of
+              your country of residence. By using SparkForge from outside the United States, you consent to this transfer
+              and processing. Where we are required to implement a specific transfer safeguard for your jurisdiction, we
+              rely on the mechanism described below.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15c. Transfer Safeguards (EU/EEA, United Kingdom, Switzerland)
+            </h3>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li><strong className="text-white/80">Standard Contractual Clauses (SCCs).</strong> Where applicable, transfers of personal data from the EU/EEA to the United States rely on the European Commission&apos;s 2021 Standard Contractual Clauses, executed with each service provider that receives such data on our behalf.</li>
+              <li><strong className="text-white/80">UK International Data Transfer Addendum (IDTA).</strong> Transfers from the United Kingdom rely on the ICO-issued IDTA, appended to the SCCs where the relevant service provider supports it.</li>
+              <li><strong className="text-white/80">EU&ndash;U.S. Data Privacy Framework (DPF).</strong> Where a service provider is certified under the DPF, we additionally rely on that certification as an adequate transfer mechanism.</li>
+              <li><strong className="text-white/80">Transfer impact assessments.</strong> For each service provider that processes data of EU/EEA, UK, or Swiss residents, we maintain a transfer-impact assessment (post-<em>Schrems II</em>) that considers U.S. surveillance-law exposure and supplemental measures (end-to-end encryption, jurisdictional data residency where available, and minimum-necessary data sharing).</li>
+            </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15d. Digital Consent Age (GDPR Article 8)
+            </h3>
+            <p className="text-white/60 mb-3">
+              Under Article 8 of the EU General Data Protection Regulation, the age at which a child can provide their own
+              consent to information-society services defaults to 16 and may be lowered by each Member State (typically to
+              13, 14, or 15 depending on jurisdiction). SparkForge is designed so that a parent or legal guardian is the
+              contracting party regardless of the child&apos;s age, which satisfies the parental-authorization prong of
+              GDPR Article 8 where that prong applies. Teens aged 13&ndash;17 in the United Kingdom and EU/EEA retain the
+              data-subject rights described in Section 15f below.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15e. Canada &amp; Australia
+            </h3>
+            <p className="text-white/60 mb-3">
+              Canadian residents are protected by the Personal Information Protection and Electronic Documents Act
+              (PIPEDA), and, in Quebec, Law 25. Australian residents are protected by the Privacy Act 1988. Where these
+              laws apply, we implement equivalent rights of access, correction, and deletion, and we process complaints
+              through the same Parental Rights workflow described in Section 6 and at{' '}
+              <Link href="/privacy/rights" className="text-spark-blue hover:underline">/privacy/rights</Link>.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15f. Data Subject Rights for International Users
+            </h3>
+            <p className="text-white/60 mb-3">
+              Regardless of where you are located, you have the right to access, correct, delete, or port the personal
+              information we hold about you or your child, and to object to or restrict certain processing. You may
+              withdraw consent at any time. These rights are subject to narrow exceptions permitted by applicable law.
+              Submit requests through{' '}
+              <Link href="/privacy/rights" className="text-spark-blue hover:underline">/privacy/rights</Link>{' '}
+              or by email to{' '}
+              <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a>.
+            </p>
+            <p className="text-sm text-white/50">
+              EU/EEA and UK residents have the additional right to lodge a complaint with a supervisory authority. A list
+              of EU/EEA data-protection authorities is available at{' '}
+              <a href="https://edpb.europa.eu/about-edpb/about-edpb/members_en" target="_blank" rel="noopener noreferrer" className="text-spark-blue hover:underline">
+                edpb.europa.eu
+              </a>
+              ; the UK Information Commissioner&apos;s Office is at{' '}
+              <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="text-spark-blue hover:underline">
+                ico.org.uk
+              </a>.
+            </p>
+          </section>
+
           {/* Legal review notice */}
           <div className="mt-12 p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
             <p className="text-xs text-amber-400/70 font-body">
