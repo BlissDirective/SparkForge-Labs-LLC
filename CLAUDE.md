@@ -55,6 +55,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 - Proceed to next part/stage after successful validation
 - Create PROGRESS.md and update it after each part completion
 - **Update stage document `.md` files** with minor-to-moderate code fixes (see Section 3.1 — Stage Document Modification Policy)
+- **Execute Supabase operations via MCP connector** — `execute_sql`, `apply_migration`, `list_tables`, `list_migrations`, `list_extensions`, `get_advisors`, `generate_typescript_types`, `deploy_edge_function`, `get_logs`, etc. User grants full Supabase autonomy **provided the SQL/migration/function payload has been reviewed with the user prior to execution**. Project ref: `gqoaknfboahuqvgpidgw`. Always run `get_advisors` after DDL changes to catch missing RLS policies.
 
 ### SOFT STOPS — Pause, Assess, Auto-Fix, Continue If Resolved
 
@@ -82,7 +83,6 @@ A hard stop means: **STOP ALL WORK. Output a clear status message. Wait for the 
 | HS-4 | Vercel deployment | Before Stage 10 deploy step | "HARD STOP: I need you to create a Vercel account, connect the GitHub repo, and configure environment variables in the Vercel dashboard." |
 | HS-5 | Stage-level visual verification | After completing ALL parts of a stage | "VISUAL CHECKPOINT — Stage N complete. Please run `npm run dev`, open localhost:3000, and verify: [specific checklist]. Reply 'approved' to continue or describe issues." |
 | HS-6 | Build failure after 2 auto-fix attempts | Any time | "HARD STOP: Build is failing and I've exhausted auto-fix attempts. Here's the error: [error]. Here's what I've tried: [attempts]. Please advise." |
-| HS-7 | Supabase SQL execution | Stage 2 Part 1 (DB schema) | "HARD STOP: Please run the following SQL blocks in your Supabase SQL Editor in order. Reply 'done' when complete." |
 | HS-8 | GLB/3D asset creation | Stage 6B (Pet Trainer) | "SOFT NOTE: Pet Trainer will use procedural fallback (orb) until GLB assets are placed in `public/models/pets/`. This is non-blocking — game is fully playable." |
 | HS-9 | Hero-to-Cockpit handoff verification | After Phase 5D (Cockpit Architecture Part 2) | "HARD STOP: Hero Animation + Cockpit Architecture complete. Please verify: (1) 8-phase hero animation plays on first visit, (2) Fast-forward (click/Enter/Space) accelerates to 4x, (3) Skip toggle works in Settings, (4) Hero→cockpit handoff is seamless (no canvas swap, no flash), (5) Cockpit spatial dashboard renders with holographic lab map, (6) Lab entry wormhole transition works. Reply 'approved' to continue to Stage 4." |
 | HS-10 | Login 3D + Demo Login verification | After Phase 5F (Login Enhancement Part B) | "HARD STOP: Login 3D Enhancement complete. Please verify: (1) 3D crystal portal renders behind login card on desktop, (2) Chrome bezel glow pulses on login card, (3) Demo Login button visible with confirmation flow, (4) Demo starts and redirects to /home with hero animation, (5) Demo banner shows countdown timer at top of dashboard, (6) Banner turns red/urgent when <5 min remain, (7) Expired modal appears when timer hits 0:00, (8) ?demo=expired shows amber notification on login page. Reply 'approved' to continue to Stage 4." |
@@ -263,7 +263,7 @@ Always evaluate local and or remote files to assess if new/updated documents hav
 |-------|-------|-----------------|-----|------------|
 | 1 | Stage 1 Part 1 | STAGE1_Foundation_v2_PART1 | No | — |
 | 2 | Stage 1 Part 2 | STAGE1_Foundation_v2_PART2 | No | — |
-| 3 | Stage 2 Parts 1-4 | STAGE2_Database_API_v2_PART1-4 | No | HS-1, HS-7 |
+| 3 | Stage 2 Parts 1-4 | STAGE2_Database_API_v2_PART1-4 | No | HS-1 |
 | 4 | Stage 3 Parts 1-2 | STAGE3_Auth_Layout_Shell_v2_PART1-2 | No | — |
 | 5 | Stage 3 Part 3 | STAGE3_Part3A/B_v3FINAL | YES | — |
 | **5A** | **Hero Animation Part 1** | **HERO_ANIMATION_v3FINAL_PartA** (stores, infrastructure, shaders) | **YES** | — |
@@ -427,7 +427,7 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 | Stage | Source | Parts | Hard Stops | Tag |
 |-------|--------|-------|------------|-----|
 | 1 Foundation | v2 PART1-2 | 2 | — | v0.1.0 |
-| 2 Database/API | v2 PART1-4 | 4 | HS-1, HS-7 | v0.2.0 |
+| 2 Database/API | v2 PART1-4 | 4 | HS-1 | v0.2.0 |
 | 3 Auth/Layout/Frame | v2 P1-2 + v3 P3A/B | 4 | HS-5 | v0.3.0 |
 | **3-Hero** Hero Animation | HERO_ANIMATION_v3FINAL_A/B | 2 | HS-5 | v0.3.1 |
 | **3-Cockpit** Cockpit CPA2 | COCKPIT_CPA2_v3FINAL_A/B | 2 | HS-5, HS-9 | v0.3.2 |
