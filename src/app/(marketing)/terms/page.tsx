@@ -138,6 +138,65 @@ export default function TermsPage() {
               <a href="mailto:support@sparkforge-labs.com" className="text-spark-blue hover:underline">support@sparkforge-labs.com</a>{' '}
               within 14 days of a charge to request a refund. Refunds are processed through Stripe per their standard policies.
             </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mt-6 mb-2">
+              4e. Automatic Renewal Disclosures (ROSCA &amp; California ARL)
+            </h3>
+            <p className="text-white/60 mb-3">
+              This section is provided to satisfy the federal Restore Online Shoppers&apos; Confidence Act (ROSCA,
+              15 U.S.C. &sect; 8403), the California Automatic Renewal Law as amended by AB 2863 effective July 1, 2025
+              (Cal. Bus. &amp; Prof. Code &sect;&sect; 17600&ndash;17606), and substantially similar laws in New York,
+              Oregon, Connecticut, Vermont, North Carolina, Illinois, Virginia, Colorado, and Tennessee.
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-white/60 mb-3">
+              <li>
+                <strong className="text-white/80">Auto-renewal.</strong> Paid subscriptions (Plus and Forge, monthly and yearly) automatically renew at the end of each billing period and continue to renew indefinitely until you cancel. Each renewal charge uses the payment method on file.
+              </li>
+              <li>
+                <strong className="text-white/80">Length and pricing.</strong> The initial term, renewal term, and price you agreed to are shown on the Pricing page, restated on the Stripe-hosted checkout, and re-confirmed in the post-purchase acknowledgment email (see below). Prices may change only with advance notice as described in the &quot;Material changes&quot; item.
+              </li>
+              <li>
+                <strong className="text-white/80">Affirmative consent at checkout.</strong> Before you are charged, you must click a checkbox or equivalent affirmative control acknowledging that your subscription will automatically renew and that you authorize the recurring charge. This is required to be <em>separate</em> from your general acceptance of these Terms; it is presented as a distinct control in the signup flow and at the Stripe checkout step.
+              </li>
+              <li>
+                <strong className="text-white/80">Post-purchase acknowledgment.</strong> Immediately after each initial purchase, tier change, or renewal, we send an email to your registered address containing, in a form that can be retained and reproduced: a summary of the agreement, the renewal terms (cadence and amount), a description of how to cancel, and a link to the Parent Dashboard cancellation control.
+              </li>
+              <li>
+                <strong className="text-white/80">Annual reminder for yearly plans.</strong> For Plus Yearly and Forge Yearly subscriptions, we send a renewal-reminder email between three (3) and twenty-one (21) days before each annual renewal, restating the subscription, the amount that will be charged, and the cancellation control.
+              </li>
+              <li>
+                <strong className="text-white/80">Material changes.</strong> If we materially change the auto-renewal terms (for example, a price increase, a change in billing cadence, or a change in the feature set of the tier you purchased), we will provide notice by email not less than seven (7) days and not more than thirty (30) days before the change takes effect, together with a clear opportunity to cancel before the change applies to you.
+              </li>
+              <li>
+                <strong className="text-white/80">Click-to-quit cancellation.</strong> You may cancel at any time through a one-click online cancellation control in the Parent Dashboard&apos;s Subscription page; no phone call, chat, email, or retention flow is required. If you signed up by phone or another non-online method, you may cancel by the same medium. Cancellation takes effect at the end of the current billing period and will be confirmed by email.
+              </li>
+              <li>
+                <strong className="text-white/80">Record of consent.</strong> We retain proof of each affirmative auto-renewal consent &mdash; including timestamp, IP address, and the specific version of this section in effect at the time &mdash; for at least three (3) years, consistent with Cal. Bus. &amp; Prof. Code &sect; 17602.1(d).
+              </li>
+            </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mt-6 mb-2">
+              4f. Free Trial Terms (Free-to-Pay Conversions)
+            </h3>
+            <p className="text-white/60 mb-3">
+              Plus and Forge tiers may be offered with a seven (7) day free trial on first subscription only. Free trials
+              are subject to the following additional disclosures required by CA ARL AB 2863 for &quot;free-to-pay
+              conversions&quot;:
+            </p>
+            <ul className="list-disc list-inside space-y-2 text-white/60">
+              <li>
+                <strong className="text-white/80">Before the trial begins.</strong> Before we collect your payment method, we clearly and conspicuously disclose (on the Pricing page and again at the Stripe checkout step): the length of the trial, that the trial will convert to a paid subscription at the end, the amount that will be charged at conversion, the billing cadence thereafter, and how to cancel before conversion.
+              </li>
+              <li>
+                <strong className="text-white/80">Mid-trial reminder.</strong> We send a reminder email forty-eight (48) hours before the trial ends, restating the same disclosures and the cancellation control.
+              </li>
+              <li>
+                <strong className="text-white/80">Conversion authorization.</strong> Your initial affirmative checkbox covers both the trial and the automatic conversion to a paid subscription. Your payment method is charged on the day the trial ends unless you have canceled.
+              </li>
+              <li>
+                <strong className="text-white/80">One-trial rule.</strong> A free trial is available to each parent account only once; returning subscribers do not receive a second free trial, and we do not condition continued use on repeat trials.
+              </li>
+            </ul>
           </section>
 
           {/* ═══ Section 5: Demo Mode ═══ */}
