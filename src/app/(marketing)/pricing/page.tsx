@@ -512,6 +512,51 @@ export default function PricingPage() {
         </motion.div>
 
         {/* ═══════════════════════════════════════════════════ */}
+        {/* PRE-CHECKOUT LEGAL DISCLOSURE                      */}
+        {/* Required by CA ARL AB 2863 + ROSCA 15 USC 8403     */}
+        {/* ═══════════════════════════════════════════════════ */}
+        <motion.div variants={safeStaggerItem} className="mb-16">
+          <div className="max-w-3xl mx-auto p-5 rounded-xl bg-spark-amber/5 border border-spark-amber/20">
+            <div className="flex items-start gap-3 mb-3">
+              <div
+                className="shrink-0 w-6 h-6 rounded-md bg-spark-amber/15 border border-spark-amber/30 flex items-center justify-center text-spark-amber font-data text-[10px]"
+                aria-hidden="true"
+              >
+                !
+              </div>
+              <h3 className="font-display text-base font-semibold text-white">
+                Before you subscribe &mdash; what you&apos;re agreeing to
+              </h3>
+            </div>
+            <ul className="space-y-2 text-sm text-white/70 font-body leading-relaxed list-disc list-outside ml-8">
+              <li>
+                <strong className="text-white/90">Automatic renewal.</strong> Paid subscriptions (Plus and Forge, monthly or yearly) renew automatically at the end of each billing period until you cancel. The price and billing cadence shown in the tier card above are the prices and cadence that will be charged on each renewal.
+              </li>
+              <li>
+                <strong className="text-white/90">Free trial conversion.</strong> If you start a 7-day free trial, your payment method is charged on the day the trial ends unless you cancel first. We will send a reminder email 48 hours before the trial ends.
+              </li>
+              <li>
+                <strong className="text-white/90">Cancel any time, one click.</strong> You can cancel from the Parent Dashboard at <Link href="/parent/subscription" className="text-spark-blue hover:underline">Subscription settings</Link> &mdash; no phone call or email required. Cancellation takes effect at the end of the current billing period, and no further renewals will be charged.
+              </li>
+              <li>
+                <strong className="text-white/90">Annual reminder.</strong> For yearly subscriptions, we email a reminder 3&ndash;21 days before each renewal so you can cancel if you no longer want the service.
+              </li>
+              <li>
+                <strong className="text-white/90">Affirmative consent at checkout.</strong> At the Stripe checkout step you will be asked to check a separate box confirming these renewal terms before any charge is made. You may also opt out of binding arbitration within 30 days of signup &mdash; see our Terms of Service for details.
+              </li>
+            </ul>
+            <p className="mt-4 text-xs text-white/50">
+              Full subscription terms are in our{' '}
+              <Link href="/terms#subscriptions" className="text-spark-blue hover:underline">Terms of Service (&sect;&sect; 4e&ndash;4g)</Link>.
+              See also our{' '}
+              <Link href="/privacy" className="text-spark-blue hover:underline">Privacy Policy</Link>
+              {' '}and{' '}
+              <Link href="/privacy/children" className="text-spark-blue hover:underline">Children&apos;s Privacy Notice</Link>.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* ═══════════════════════════════════════════════════ */}
         {/* FEATURE COMPARISON TABLE                           */}
         {/* ═══════════════════════════════════════════════════ */}
         <motion.div variants={safeStaggerItem} className="mb-16">
