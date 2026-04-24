@@ -197,6 +197,33 @@ export default function TermsPage() {
                 <strong className="text-white/80">One-trial rule.</strong> A free trial is available to each parent account only once; returning subscribers do not receive a second free trial, and we do not condition continued use on repeat trials.
               </li>
             </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mt-6 mb-2">
+              4g. Merchant-Initiated Transactions &amp; Continuous Authority
+            </h3>
+            <p className="text-white/60 mb-3">
+              The following provisions apply to the recurring charges authorized in &sect;&sect; 4e and 4f and are required
+              to comply with the Visa Merchant Rules, Mastercard Recurring Billing Framework, and (for European cards) the
+              Strong Customer Authentication requirements of Directive (EU) 2015/2366 (PSD2) and the EBA Regulatory
+              Technical Standards on SCA.
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+              <li>
+                <strong className="text-white/80">Continuous authority.</strong> By providing a payment method and completing the affirmative checkbox at checkout, you grant SparkForge LLC (and our payment processor Stripe) continuous authority to initiate recurring merchant-initiated transactions (MITs) against that payment method on each billing date for as long as your subscription remains active.
+              </li>
+              <li>
+                <strong className="text-white/80">SCA/PSD2 mandate.</strong> Your affirmative checkbox also constitutes the SCA mandate required under PSD2 for subsequent merchant-initiated transactions; initial strong customer authentication is performed through Stripe at the first charge.
+              </li>
+              <li>
+                <strong className="text-white/80">Payment retries.</strong> If a scheduled charge fails (for example, due to insufficient funds or an expired card), you authorize SparkForge to retry the charge up to four (4) times over the following seven (7) days using Stripe&apos;s Smart Retries feature. If all retries fail, your subscription enters the dunning sequence described in our Privacy Policy (Section 7 retention) and in communications sent to your registered email.
+              </li>
+              <li>
+                <strong className="text-white/80">Account Updater.</strong> You authorize SparkForge and Stripe to receive updated card details from the Visa Account Updater, Mastercard Automatic Billing Updater, and equivalent services when your card-issuing bank provides a replacement or updated card number, so that your subscription can continue without interruption.
+              </li>
+              <li>
+                <strong className="text-white/80">Revocation.</strong> You may revoke continuous authority at any time by canceling your subscription through the Parent Dashboard (&sect; 4e click-to-quit) or by removing the payment method through the Stripe Customer Portal linked from that page. Revocation is effective for all charges not yet authorized by Stripe.
+              </li>
+            </ul>
           </section>
 
           {/* ═══ Section 5: Demo Mode ═══ */}
@@ -326,6 +353,10 @@ export default function TermsPage() {
               </li>
               <li>
                 The SparkForge name, logo, and &quot;AI Learning Lab&quot; tagline are trademarks of SparkForge LLC.
+              </li>
+              <li>
+                <strong className="text-white/80">Copyright infringement claims.</strong> If you believe content available through SparkForge infringes a copyright you own or control, please follow the notice procedure in our{' '}
+                <Link href="/dmca" className="text-spark-blue hover:underline">DMCA Policy</Link>, which includes our Designated Copyright Agent&apos;s contact details and the statutory elements required by 17 U.S.C. &sect; 512(c)(3).
               </li>
             </ul>
           </section>
