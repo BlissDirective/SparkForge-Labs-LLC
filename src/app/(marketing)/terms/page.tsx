@@ -520,6 +520,87 @@ export default function TermsPage() {
             </div>
           </section>
 
+          {/* ═══ Section 15: Miscellaneous ═══ */}
+          <section id="miscellaneous">
+            <h2 className="font-display text-xl font-semibold text-white mb-3">
+              15. Miscellaneous
+            </h2>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2">15a. Severability</h3>
+            <p className="text-white/60 mb-3">
+              If any provision of these Terms is held invalid or unenforceable by a court of competent jurisdiction, that
+              provision shall be enforced to the maximum extent permissible and the remaining provisions shall remain in
+              full force and effect. A finding that a particular provision is invalid or unenforceable shall not affect the
+              validity or enforceability of any other provision.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15b. Entire Agreement</h3>
+            <p className="text-white/60 mb-3">
+              These Terms, together with our{' '}
+              <Link href="/privacy" className="text-spark-blue hover:underline">Privacy Policy</Link>,{' '}
+              <Link href="/privacy/children" className="text-spark-blue hover:underline">Children&apos;s Privacy Notice</Link>,{' '}
+              <Link href="/cookies" className="text-spark-blue hover:underline">Cookie Policy</Link>, and{' '}
+              <Link href="/dmca" className="text-spark-blue hover:underline">DMCA Policy</Link>, constitute the entire
+              agreement between you and SparkForge LLC regarding your use of the Platform and supersede all prior or
+              contemporaneous communications, proposals, and representations, whether oral or written.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15c. Assignment</h3>
+            <p className="text-white/60 mb-3">
+              You may not assign or transfer these Terms, by operation of law or otherwise, without our prior written
+              consent; any attempted assignment without consent is void. SparkForge LLC may assign these Terms, in whole
+              or in part, to any affiliate or to any successor in interest by merger, acquisition, reorganization, or sale
+              of substantially all of its assets, upon notice to you at the email address on your account.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15d. Force Majeure</h3>
+            <p className="text-white/60 mb-3">
+              Neither party will be liable for any failure or delay in performance due to causes beyond its reasonable
+              control, including acts of God, natural disasters, epidemics or pandemics, war, terrorism, civil unrest,
+              labor disputes, fire, flood, power or telecommunications failure, the acts or omissions of upstream service
+              providers (including Supabase, Stripe, Anthropic, Vercel, Resend, and Sentry), cyberattack, or governmental
+              action. The affected party shall use commercially reasonable efforts to resume performance as soon as
+              practicable. Obligations to pay amounts already due are not excused.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15e. Export Controls &amp; Sanctions</h3>
+            <p className="text-white/60 mb-3">
+              You represent and warrant that you are not located in, and will not access the Platform from, any country
+              subject to comprehensive U.S. economic sanctions (currently Cuba, Iran, North Korea, Syria, and the
+              Russia-occupied regions of Ukraine (including Crimea, Donetsk, Luhansk, Kherson, and Zaporizhzhia)), and
+              that you are not listed on the U.S. Department of the Treasury Office of Foreign Assets Control
+              (OFAC) Specially Designated Nationals and Blocked Persons List, the U.S. Department of Commerce Denied
+              Persons List, or any equivalent list maintained by the U.S., EU, or UK. You will comply with all applicable
+              U.S. and foreign export-control and sanctions laws in your use of the Platform.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15f. App Store Purchases</h3>
+            <p className="text-white/60 mb-3">
+              SparkForge is currently offered as a web application. If in the future SparkForge is distributed through the
+              Apple App Store or the Google Play Store and you purchase a subscription through one of those channels: (i)
+              the subscription is additionally governed by the Apple Media Services Terms and Conditions or the Google
+              Play Terms of Service, as applicable; (ii) store-channel cancellation and refund rules supplement (and in
+              some cases supersede) the corresponding provisions of these Terms; (iii) the relevant app store is an
+              intended third-party beneficiary of these Terms and may enforce them. Where store-channel rules require
+              additional or different disclosures, those additional disclosures are incorporated here by reference.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15g. Notices</h3>
+            <p className="text-white/60 mb-3">
+              We may give notice to you by email to the address on your account, by an in-app banner, or by posting to
+              the Platform. Notices to SparkForge LLC must be in writing and sent to{' '}
+              <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>{' '}
+              or to the mailing address in &sect; 14. A notice is effective when received (for email, on the date sent
+              unless bounced).
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">15h. No Waiver; Headings</h3>
+            <p className="text-white/60">
+              Our failure to enforce any right or provision of these Terms shall not constitute a waiver of that right or
+              provision. Section headings are provided for convenience only and do not affect interpretation.
+            </p>
+          </section>
+
           {/* Legal review notice */}
           <div className="mt-12 p-4 rounded-lg bg-amber-500/5 border border-amber-500/20">
             <p className="text-xs text-amber-400/70 font-body">
