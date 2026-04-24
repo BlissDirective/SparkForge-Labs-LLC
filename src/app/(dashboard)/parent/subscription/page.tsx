@@ -676,7 +676,7 @@ function SubscriptionContent() {
                 </span>
               </label>
 
-              <p className="text-[11px] text-white/40 mb-5 leading-relaxed">
+              <p className="text-[11px] text-white/60 mb-5 leading-relaxed">
                 Full terms are in our{' '}
                 <Link href="/terms#subscriptions" target="_blank" className="text-spark-blue hover:underline">
                   Terms of Service &sect;&sect; 4e&ndash;4g
