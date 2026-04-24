@@ -230,6 +230,61 @@ export async function POST(req: NextRequest) {
           .from('subscription_events')
           .update({ parent_id: supabaseId })
           .eq('stripe_event_id', event.id);
+
+        // R7: send the CA ARL post-purchase acknowledgment email. Supplements
+        // (does not replace) Stripe's default receipt. Best-effort; any
+        // failure is logged but does not fail the webhook.
+        try {
+          const { sendEmail, isEmailConfigured } = await import('@/lib/email');
+          if (isEmailConfigured() && (tier === 'plus' || tier === 'forge')) {
+            const { renderPostPurchase } = await import('@/lib/email-templates/post-purchase');
+            const { data: parent } = await supabase
+              .from('parents')
+              .select('email, full_name')
+              .eq('id', supabaseId)
+              .maybeSingle();
+            const parentEmail =
+              parent?.email ||
+              session.customer_email ||
+              session.customer_details?.email ||
+              null;
+            if (parentEmail) {
+              // Determine amount and interval from session metadata or
+              // retrieve the subscription line item if present.
+              const intervalRaw = session.metadata?.interval;
+              const interval: 'month' | 'year' = intervalRaw === 'year' ? 'year' : 'month';
+              const amountTotal = session.amount_total ?? 0;
+              const amount = amountTotal > 0 ? amountTotal / 100 : 0;
+              const appUrl =
+                process.env.NEXT_PUBLIC_URL ??
+                process.env.NEXT_PUBLIC_APP_URL ??
+                'https://sparkforge-labs.com';
+              const manageUrl = `${appUrl.replace(/\/$/, '')}/parent/subscription`;
+              const rendered = renderPostPurchase({
+                parentName: parent?.full_name ?? '',
+                parentEmail,
+                tier,
+                interval,
+                amount,
+                nextRenewsAt: periodEnd ? new Date(periodEnd) : null,
+                hasTrial: Boolean(trialEndsAt),
+                manageUrl,
+              });
+              await sendEmail({
+                to: parentEmail,
+                subject: rendered.subject,
+                html: rendered.html,
+                text: rendered.text,
+                tags: { kind: 'post_purchase_ack', tier, interval },
+              });
+            }
+          }
+        } catch (err) {
+          console.error(
+            '[webhook] post-purchase email failed (non-fatal):',
+            err instanceof Error ? err.message : String(err)
+          );
+        }
       }
       break;
     }
