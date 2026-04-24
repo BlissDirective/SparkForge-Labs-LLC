@@ -124,6 +124,7 @@ Reference points the attorney reviewer should verify are current:
 - [ ] Effective-date update (currently 2026-03-30 in both docs) — bump to publication date after attorney review
 - [ ] Email the registered parent list if material changes affect existing child data (per Privacy §12 and ToS §13)
 - [ ] Verify Sentry `instrumentation.ts` PII scrubbing matches disclosures in Privacy §8
+- [ ] **Sentry scrubber drift check (AUDIT 1 G5):** diff the `CHILD_PII_KEYS` array in `instrumentation.ts` against the language in Privacy §4 Sentry entry (currently promises "display names, age bands, XP, badges"). If the array has grown or shrunk since drafting, update either the code or the disclosure to match before launch.
 - [ ] Verify Supabase region = US for Privacy §4 accuracy (or update disclosures if EU region is used)
 - [ ] Confirm Anthropic account is on Commercial Terms (not Consumer) — required for the no-training commitment in Privacy §4 and ToS §7
 
@@ -134,3 +135,4 @@ Reference points the attorney reviewer should verify are current:
 | Date | Change | Author |
 |---|---|---|
 | 2026-04-23 | Initial creation (Phase 1 Subtask 1.4) | Claude Code session |
+| 2026-04-23 | Added Sentry scrubber-drift pre-launch check per AUDIT 1 G5 (subtask 6.1-fix) | Claude Code session |

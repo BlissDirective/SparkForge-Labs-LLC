@@ -82,6 +82,7 @@ export default function PrivacyPage() {
               <li>COPPA consent timestamp (date and time parental consent was given)</li>
               <li>Subscription tier and billing status (Free, Plus, or Forge)</li>
               <li>Stripe customer ID (for paid subscriptions only &mdash; payment details are held by Stripe, not by us)</li>
+              <li>Authentication factors: passkey public keys (WebAuthn credential IDs), MFA backup codes, and account-recovery tokens when you choose to enable them</li>
             </ul>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">
@@ -102,6 +103,7 @@ export default function PrivacyPage() {
               <li>XP (experience points), level, badges earned, and streak data</li>
               <li>Session duration (time spent on platform per session)</li>
               <li>Prompt Lab interactions: text prompts submitted to the AI learning tool (ages 14&ndash;16 only)</li>
+              <li>Security event logs: login timestamps, IP addresses, user-agent strings, MFA challenges, and administrative actions retained for a bounded period for abuse prevention and security monitoring</li>
             </ul>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">
@@ -213,6 +215,18 @@ export default function PrivacyPage() {
                   data: 'Application error data, stack traces, device type',
                   purpose: 'Detect and fix software bugs to maintain platform reliability',
                   security: 'Configured with beforeSend PII scrubbing to strip all child-related fields (display names, age bands, XP, badges) before data leaves the browser. Session replay masks all text and blocks all media.',
+                },
+                {
+                  name: 'Resend (Transactional Email)',
+                  data: 'Parent email address; the contents of each transactional message (trial reminder, dunning notice, breach notification). No child personal information is sent to Resend.',
+                  purpose: 'Deliver account-related transactional emails such as trial reminders, subscription dunning sequences, and security notifications',
+                  security: 'TLS on all connections. DPA available at resend.com/legal/dpa. Delivery logs auto-expire per Resend retention policy.',
+                },
+                {
+                  name: 'Upstash Redis (Rate Limiting)',
+                  data: 'Rate-limit counter keys derived from IP address or authenticated user ID; no other payload',
+                  purpose: 'Abuse prevention and rate limiting on API endpoints under the COPPA 16 CFR § 312.2 "support for internal operations" exception',
+                  security: 'TLS on all connections. Counter keys auto-expire within each rate-limit window (typically 60 seconds to 1 hour). DPA available at upstash.com/trust.',
                 },
               ].map((service) => (
                 <div key={service.name} className="p-4 rounded-lg bg-white/[0.02] border border-white/[0.06]">
