@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/dunning",
       "schedule": "15 10 * * *"
+    },
+    {
+      "path": "/api/cron/annual-reminder",
+      "schedule": "5 10 * * *"
     }
   ]
 }
