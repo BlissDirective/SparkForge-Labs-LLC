@@ -171,7 +171,7 @@ export default function TermsPage() {
                 <strong className="text-white/80">Click-to-quit cancellation.</strong> You may cancel at any time through a one-click online cancellation control in the Parent Dashboard&apos;s Subscription page; no phone call, chat, email, or retention flow is required. If you signed up by phone or another non-online method, you may cancel by the same medium. Cancellation takes effect at the end of the current billing period and will be confirmed by email.
               </li>
               <li>
-                <strong className="text-white/80">Record of consent.</strong> We retain proof of each affirmative auto-renewal consent &mdash; including timestamp, IP address, and the specific version of this section in effect at the time &mdash; for at least three (3) years, consistent with Cal. Bus. &amp; Prof. Code &sect; 17602.1(d).
+                <strong className="text-white/80">Record of consent.</strong> We retain server-side proof of each affirmative auto-renewal consent &mdash; the timestamp and the version of these Terms in effect at the time &mdash; for the life of the account. Additional evidence (including the IP address, user-agent, and payment-authorization metadata associated with each consent action) is retained on our behalf by Stripe for at least seven (7) years, consistent with Cal. Bus. &amp; Prof. Code &sect; 17602.1(d).
               </li>
             </ul>
 
