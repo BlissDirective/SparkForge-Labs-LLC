@@ -274,6 +274,20 @@ export default function TermsPage() {
                 <strong className="text-white/80">Agent-generated content:</strong> Our content agent generates game scenarios,
                 challenges, and educational material. All agent output goes through human (admin) review before publication.
               </li>
+              <li>
+                <strong className="text-white/80">Ownership of prompts and output.</strong> You retain ownership of the
+                prompts you submit to the Prompt Lab. SparkForge LLC processes those prompts via the Anthropic Claude API
+                under Anthropic&apos;s commercial terms, which assign ownership of the model&apos;s output to the API
+                customer (here, SparkForge LLC). SparkForge, in turn, grants you a perpetual, worldwide, royalty-free,
+                non-exclusive license to use the output generated from your own prompts for personal educational purposes.
+                We do not claim any ownership interest in the output generated from your prompts.
+              </li>
+              <li>
+                <strong className="text-white/80">No model training on your content.</strong> Under Anthropic&apos;s
+                commercial API terms, Anthropic does not use SparkForge API traffic &mdash; including user-submitted
+                prompts and AI-generated responses &mdash; to train its foundation models. SparkForge likewise does not
+                use your prompts or AI output to train any third-party model.
+              </li>
             </ul>
           </section>
 
