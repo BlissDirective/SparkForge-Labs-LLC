@@ -364,18 +364,110 @@ export default function TermsPage() {
             <h2 className="font-display text-xl font-semibold text-white mb-3">
               12. Dispute Resolution &amp; Governing Law
             </h2>
+
+            <div className="p-3 rounded-lg bg-spark-amber/5 border border-spark-amber/20 mb-4">
+              <p className="text-sm text-white/80">
+                <strong className="text-white">PLEASE READ THIS SECTION CAREFULLY.</strong> It affects your legal rights,
+                including your right to file a lawsuit in court. This section is governed by the Federal Arbitration Act,
+                9 U.S.C. &sect;&sect; 1&ndash;16. You have a right to opt out of the arbitration agreement within 30 days of
+                first accepting these Terms &mdash; see &sect; 12d.
+              </p>
+            </div>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2">12a. Governing Law</h3>
             <p className="text-white/60 mb-3">
-              These Terms are governed by and construed in accordance with the laws of the State of Illinois, United States,
-              without regard to conflict of law provisions. SparkForge LLC is organized as an Illinois limited liability company.
+              These Terms are governed by and construed in accordance with the laws of the State of Illinois, United
+              States, without regard to conflict-of-law provisions. SparkForge LLC is organized as an Illinois limited
+              liability company. This choice of law does not deprive you of the protection of any provision of the
+              consumer-protection law of the state in which you reside that cannot be derogated from by agreement.
             </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12b. Informal Resolution First</h3>
             <p className="text-white/60 mb-3">
-              Any dispute arising from these Terms or your use of SparkForge shall first be addressed through good-faith
-              negotiation. If negotiation fails, disputes shall be resolved through binding arbitration administered by
-              JAMS under its Streamlined Arbitration Rules, conducted remotely (online or by phone).
+              Before initiating arbitration or a small-claims action, you agree to contact us at{' '}
+              <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>{' '}
+              with a written description of the dispute, your contact information, and the relief sought. We will attempt
+              in good faith to resolve the dispute within sixty (60) days of receipt. Either party may initiate formal
+              proceedings only after this sixty-day window has passed without resolution.
             </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12c. Binding Individual Arbitration</h3>
+            <p className="text-white/60 mb-3">
+              Except as provided in &sect;&sect; 12e (small-claims carve-out) and 12g (McGill exception), any dispute,
+              claim, or controversy arising out of or relating to these Terms or your use of SparkForge &mdash; including
+              the interpretation, formation, performance, breach, or termination of these Terms &mdash; shall be resolved
+              through binding individual arbitration administered by JAMS under its Consumer Minimum Standards and
+              Streamlined Arbitration Rules. The arbitration shall be conducted remotely (online or by phone) unless both
+              parties agree otherwise in writing. Judgment on the award may be entered in any court of competent
+              jurisdiction.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12d. 30-Day Opt-Out</h3>
+            <p className="text-white/60 mb-3">
+              You may opt out of the arbitration agreement in &sect; 12c (and the class-action waiver in &sect; 12f) by
+              emailing{' '}
+              <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>{' '}
+              within thirty (30) days of your first acceptance of these Terms, with the subject line <em>&quot;Arbitration
+              Opt-Out,&quot;</em> your name, the email address associated with your SparkForge account, and a clear
+              statement that you wish to opt out. Opting out does not affect any other provision of these Terms, and we
+              will not retaliate against you for opting out.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12e. Small-Claims Carve-Out</h3>
+            <p className="text-white/60 mb-3">
+              Either party may bring an individual action in small-claims court (or the equivalent in your state) for any
+              dispute that qualifies under that court&apos;s monetary jurisdictional limit, provided the action remains in
+              small-claims court and is not removed or appealed into a court of general jurisdiction.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12f. Class-Action Waiver</h3>
+            <p className="text-white/60 mb-3">
+              You and SparkForge LLC agree that each party may bring claims against the other only in an individual
+              capacity, not as a plaintiff or class member in any purported class, collective, representative, or private
+              attorney general proceeding. No arbitrator has the authority to preside over any form of class, collective,
+              or representative arbitration. If a court of competent jurisdiction finds this class-action waiver
+              unenforceable as to any specific claim, that specific claim shall be severed from arbitration and litigated
+              in court; the remaining claims shall proceed in arbitration.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12g. California Public Injunctive Relief (McGill)</h3>
+            <p className="text-white/60 mb-3">
+              Pursuant to <em>McGill v. Citibank, N.A.</em>, 2 Cal. 5th 945 (2017), if you are a California resident, any
+              claim for public injunctive relief under the California Unfair Competition Law, False Advertising Law, or
+              Consumers Legal Remedies Act that is determined by a court of competent jurisdiction to be non-arbitrable
+              shall be severed from any arbitration proceeding and heard in a California court; all remaining claims shall
+              proceed in arbitration. This severance does not invalidate the remainder of this &sect; 12.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12h. Mass Arbitration Protocol</h3>
+            <p className="text-white/60 mb-3">
+              If twenty-five (25) or more arbitration demands of a substantially similar nature are filed against
+              SparkForge LLC within a sixty-day (60) period by or on behalf of claimants represented by the same or
+              coordinated counsel, the following procedure applies in lieu of simultaneously processing all demands:
+              (i) the parties shall work with JAMS to adopt its Mass Arbitration Procedures (or an equivalent batched
+              protocol); (ii) an initial pool of ten (10) bellwether cases shall be selected (five by each side) and
+              arbitrated to final award; (iii) the parties shall then engage in good-faith mediation on the remaining
+              demands for sixty (60) days; (iv) any demand not resolved through mediation shall proceed in sequential
+              batches of ten. This &sect; 12h does not limit any party&apos;s substantive rights; it allocates procedure
+              so that fee obligations and adjudication can proceed on a manageable schedule.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12i. Carve-Outs for Non-Waivable Rights</h3>
+            <p className="text-white/60 mb-3">
+              Nothing in this &sect; 12 (or in &sect; 11 Limitation of Liability) waives or limits a right that applicable
+              law does not permit to be waived or limited, including &mdash; without limitation &mdash; rights under
+              California Civil Code &sect; 1668 (no pre-dispute waiver of liability for fraud, willful injury, or
+              violation of law), the Illinois Consumer Fraud and Deceptive Business Practices Act (815 ILCS 505), the
+              Magnuson-Moss Warranty Act, or the implied warranties of merchantability and fitness for a particular
+              purpose to the extent they cannot be waived in a consumer transaction under the law of your state.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-5">12j. Regulatory Complaints Preserved</h3>
             <p className="text-sm text-white/70">
-              Nothing in this section limits your right to file a complaint with the Federal Trade Commission or your
-              state&apos;s attorney general regarding COPPA compliance.
+              Nothing in this section limits your right to file a complaint with the Federal Trade Commission (the COPPA
+              enforcement authority), your state&apos;s Attorney General, an EU/EEA supervisory authority, the UK
+              Information Commissioner&apos;s Office, or any other governmental body with jurisdiction over SparkForge.
+              Participation in arbitration does not preclude you from cooperating with a governmental investigation.
             </p>
           </section>
 
