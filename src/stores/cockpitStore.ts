@@ -282,6 +282,10 @@ export const useCockpitStore = create<CockpitState>()(
       miniMapVisible: true,
       heroPhase: 'idle' as HeroPhase,
       cockpitReady: false,
+      _spatialViewTimeout: null,
+      _focusLabTimeout: null,
+      _openConsoleTimeout: null,
+      _returnToOverviewTimeout: null,
 
       // R1: UI-routing slice initial values
       centerContent: 'home' as CenterContentKey,

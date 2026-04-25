@@ -97,6 +97,7 @@ export default function DashboardLayout({
   const stationMode = useStationMode();
   const scene = useCockpitScene();
   const { onModeChange } = useCockpitAudio();
+  const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const prevModeRef = useRef(stationMode.mode);
 
   // Sync center content key from cockpit scene mode
@@ -142,9 +143,16 @@ export default function DashboardLayout({
   useEffect(() => {
     if (stationMode.mode !== prevModeRef.current) {
       onModeChange(stationMode.mode);
+      // INT-4: Route-to-scene mode broadcasting — cockpit reacts to every navigation
+      broadcast({
+        type: 'page-navigate',
+        source: 'route-change',
+        label: stationMode.mode,
+        color: stationMode.ledColor,
+      });
       prevModeRef.current = stationMode.mode;
     }
-  }, [stationMode.mode, onModeChange]);
+  }, [stationMode.mode, onModeChange, broadcast, stationMode.ledColor]);
 
   return (
     <AuthProvider>
