@@ -132,11 +132,38 @@ export default function TermsPage() {
               management interface is accessible only through the authenticated Parent Dashboard.
             </p>
 
-            <h3 className="font-display text-lg font-medium text-white/90 mt-4 mb-2">4d. Refunds</h3>
-            <p className="text-white/60">
-              Refund requests are evaluated on a case-by-case basis. Contact{' '}
+            <h3 className="font-display text-lg font-medium text-white/90 mt-4 mb-2">4d. Refunds &amp; Cancellation</h3>
+            <p className="text-white/60 mb-3">
+              You can cancel any subscription at any time from your parent dashboard.
+              Cancellation stops auto-renewal immediately and your access continues
+              until the end of the current billing period. There are no cancellation fees.
+            </p>
+            <p className="text-white/60 mb-3">
+              <strong className="text-white/80">30-day money-back guarantee.</strong> We refund the first paid period in full
+              (monthly or annual) when requested within 30 days of that initial charge.
+              Email{' '}
               <a href="mailto:support@sparkforge.app" className="text-spark-blue hover:underline">support@sparkforge.app</a>{' '}
-              within 14 days of a charge to request a refund. Refunds are processed through Stripe per their standard policies.
+              from the parent account on file.
+            </p>
+            <p className="text-white/60 mb-3">
+              <strong className="text-white/80">Annual cancellations after the 30-day window.</strong> After 30 days,
+              annual plans are not refundable in cash. If you cancel mid-year, we will credit
+              your SparkForge account for the unused months at the monthly-equivalent rate.
+              The credit applies to any future SparkForge charge on your account and never
+              expires.
+            </p>
+            <p className="text-white/60 mb-3">
+              <strong className="text-white/80">Plan changes.</strong> Switching tiers
+              (e.g. Forge &rarr; Plus) or cadence (monthly &rarr; annual) is pro-rated automatically by Stripe.
+              Unused time on the old plan is credited toward the new one. No refund is issued
+              because the subscription continues.
+            </p>
+            <p className="text-white/60">
+              <strong className="text-white/80">Goodwill exceptions.</strong> We will always refund: (a) duplicate
+              charges, (b) charges that occur after a successful cancellation, (c) charges
+              during a documented platform outage longer than 24 hours, (d) charges to a card
+              you reasonably believe was used without authorization. Other situations are
+              reviewed individually within 5 business days.
             </p>
           </section>
 
