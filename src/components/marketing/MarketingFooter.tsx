@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Zap } from 'lucide-react';
+import { CookiePreferencesButton } from '@/components/marketing/CookiePreferencesButton';
 
 const FOOTER_SECTIONS = [
   {
@@ -81,11 +82,13 @@ export function MarketingFooter() {
         </div>
 
         {/* Bottom bar */}
-        <div className="mt-10 pt-6 border-t border-white/[0.04] flex items-center justify-between">
+        <div className="mt-10 pt-6 border-t border-white/[0.04] flex items-center justify-between flex-wrap gap-3">
           <p className="text-xs font-body text-white/55">
             &copy; {new Date().getFullYear()} BlissDirective. All rights reserved.
           </p>
           <div className="flex items-center gap-4 text-xs font-body text-white/55">
+            <CookiePreferencesButton />
+            <span className="w-px h-3 bg-white/10" aria-hidden="true" />
             <span>COPPA Compliant</span>
             <span className="w-px h-3 bg-white/10" aria-hidden="true" />
             <span>No Ads &middot; No Tracking</span>

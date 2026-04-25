@@ -18,6 +18,7 @@ import { LenisProvider } from '@/components/providers/LenisProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { CommandPalette } from '@/components/ui/CommandPalette';
+import { CookieNotice } from '@/components/ui/CookieNotice';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
 
 // ── Fonts ──
@@ -145,6 +146,10 @@ export default async function RootLayout({
                 <main id="main-content">{children}</main>
                 {/* Phase 5 #7 UX-ENH: ⌘K palette. Feature-flag gated. */}
                 <CommandPalette />
+                {/* COPPA-PRD-G: First-visit cookie notice (informational
+                    only — SparkForge uses essential cookies, no analytics
+                    or trackers per /privacy#cookies). */}
+                <CookieNotice />
               </LenisProvider>
             </QueryProvider>
           </ErrorBoundary>
