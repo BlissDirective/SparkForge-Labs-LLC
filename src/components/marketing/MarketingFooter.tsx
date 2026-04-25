@@ -15,6 +15,7 @@ const FOOTER_SECTIONS = [
     title: 'Legal',
     links: [
       { href: '/privacy', label: 'Privacy Policy' },
+      { href: '/coppa-notice', label: 'COPPA Notice' },
       { href: '/terms', label: 'Terms of Service' },
     ],
   },
