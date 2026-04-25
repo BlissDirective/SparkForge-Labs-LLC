@@ -226,6 +226,12 @@ export const AdminChangeSubscriptionSchema = z.object({
   reason: z.string().max(500).optional(),
 });
 
+// /terms#refunds Option B — annual cancellation with account credit.
+// Requires explicit confirmation so a stray POST cannot end a sub.
+export const CancelAnnualWithCreditSchema = z.object({
+  confirm: z.literal(true),
+});
+
 // ═══ CONTENT AGENT SCHEMAS ═══
 
 export const AgentRunSchema = z.object({
