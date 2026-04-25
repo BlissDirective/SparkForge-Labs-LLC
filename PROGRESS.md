@@ -1,8 +1,53 @@
 # SparkForge Build Progress
 
-## Current Phase: Documentation Drift Fixes
+## Current Phase: Supabase DB Buildout (autonomous MCP session)
 ## Status: COMPLETE
-## Last Updated: 2026-03-30
+## Last Updated: 2026-04-25
+
+---
+
+### Supabase DB Buildout (April 25, 2026)
+
+**Status:** COMPLETE
+**Scope:** Bring live Supabase DB to 100% alignment with `setup-sparkforge-dev` SQL files; remediate advisor findings; verify via build.
+**Baseline:** 35 migrations already recorded in `supabase_migrations.schema_migrations` covering 001–025, 006_cron, pgaudit, pg_cron, and standard_game_ids.
+
+#### Migrations Applied This Session (5 net-new)
+
+1. **`add_content_updated_at_trigger`** — `content.updated_at` was not auto-maintaining. Added `content_updated_at` BEFORE UPDATE trigger calling existing `update_updated_at_column()` fn (same pattern used on `parents`/`children`).
+2. **`fix_subscription_status_default_and_backfill`** (CRIT-004 finalization) — changed `parents.subscription_status` column default from `'active'` → `'none'`; backfilled existing rows where `subscription_status='active' AND stripe_customer_id IS NULL AND stripe_subscription_id IS NULL` (0 rows affected on this DB).
+3. **`dunning_grace_period_pay_enh_003`** — migration 025 was partial (only 2 of 5 dunning columns landed). Added missing `dunning_started_at`, `dunning_last_sent_at`, `dunning_tier_before` columns + CHECK constraints + both dunning scan indexes. Verification `ASSERT` passed.
+4. **`perf_rls_initplan_and_fk_indexes`** — wrapped `auth.uid()` in `(SELECT auth.uid())` across **27 RLS policies** on 14 tables (parents, children, progress, child_badges, content, content_queue, sessions, prompt_history, agent_runs, audit_log, auth_events, passkey_credentials, subscription_events, subscription_events_detail). Added 4 covering indexes for unindexed FKs (`child_badges.badge_id`, `content.reviewed_by`, `content.updated_by`, `content_queue.reviewed_by`). Fixes all 27 `auth_rls_initplan` WARN lints.
+5. **`drop_redundant_parent_read_own_sub_policy`** — removed duplicate `parent_read_own_sub` SELECT policy on `parents` (identical `id = auth.uid()` check to `parents_select`). Eliminates one `multiple_permissive_policies` WARN.
+
+#### Verification (20/20 setup-checklist checks pass)
+
+- `content_updated_at` trigger present
+- `parents.subscription_status` default = `'none'`; 0 rows with stale `'active'`
+- All 5 dunning columns on `parents`; both dunning scan indexes present
+- 27 RLS policies rewritten with `(SELECT auth.uid())`; 4 FK indexes added
+- Post-remediation advisor counts: `auth_rls_initplan` 27→0, `unindexed_foreign_keys` 4→0, `multiple_permissive_policies` 4→3 (3 remaining are intentional admin/self overlap)
+- `supabase_realtime` publication includes `children` + `progress`
+- All expected pg_cron jobs scheduled: `audit-log-retention`, `daily-reset-prompts`, `daily-reset-xp`, `weekly-reset-games`
+- RLS enabled on 0 tables exempted (every public table has RLS)
+
+#### TypeScript + Build Validation
+
+- `mcp__supabase__generate_typescript_types` output matches hand-rolled `src/types/index.ts` — all new columns (dunning_*, grace_period_ends_at, trial_ends_at, subscription_period_end, email_verified_at, xp_awarded_today, stripe_subscription_id) already modeled. **No drift.**
+- `npx tsc --noEmit` — clean (zero errors)
+- `npm run build` — clean; all 30+ API routes + 40+ pages compiled
+
+#### Outstanding Non-Blocking Items
+
+- **Leaked Password Protection** (security advisor WARN) — enable in Supabase Dashboard → Authentication → Password Security. Cannot be toggled via MCP.
+- **Auth DB connection strategy: absolute → percentage** (performance advisor INFO) — Supabase Dashboard setting; tune before scaling.
+- **40 × `unused_index` INFO** — expected pre-launch (no traffic). Re-evaluate post-launch.
+- **3 × `multiple_permissive_policies` WARN** — intentional admin/self overlap on `auth_events`, `content`, `subscription_events`. Retained by design.
+- **20 × "Anonymous Access Policies" WARN** — intentional per migration 019 (`demo_deny_*` RESTRICTIVE policies + read-only demo-mode). Not a vulnerability.
+
+#### Vercel Cron (M6)
+
+Verified pre-existing scaffolding is complete: `vercel.json` wires 4 jobs (`agent/schedule`, `agent/trending`, `cron/trial-reminders`, `cron/dunning`); `verifyCronBearer` helper in `src/lib/cron-auth.ts` enforces `CRON_SECRET` with timing-safe compare; `CRON_SECRET` documented in `.env.example` + DEPLOYMENT.md + SETUP_CHECKLIST.md. pg_cron (DB resets) + Vercel Cron (app-layer emails/AI) are complementary, not redundant.
 
 ---
 
