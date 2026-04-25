@@ -3,6 +3,9 @@
 // the COPPA checkbox in Step 3 of signup. This ensures coppa_consent_at
 // reflects the actual moment of consent, not account creation time.
 // CRIT-002: Secured with auth check — only the authenticated user can set their own consent.
+// COPPA-PRD-H: Gate on parents.email_verified_at so we can't record VPC
+// from a parent who hasn't proven email ownership. Mirrors the existing
+// Stripe-checkout gate (AUTH-HIGH-004 4A).
 import { NextRequest } from 'next/server';
 import { createServerSupabase, createAdminClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError } from '@/lib/api-helpers';
@@ -27,9 +30,33 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = user.id;
+  const adminClient = createAdminClient();
+
+  // COPPA-PRD-H: VPC requires the operator to make a reasonable effort to
+  // verify the consenting party. Email-link confirmation is a recognized
+  // method under the 2025 COPPA Rule Amendments. We refuse to write
+  // coppa_consent_at until the parent has clicked the Supabase email
+  // confirmation link (recorded at /api/auth/callback as
+  // parents.email_verified_at).
+  const { data: parentRow, error: parentReadErr } = await adminClient
+    .from('parents')
+    .select('email_verified_at')
+    .eq('id', userId)
+    .single();
+
+  if (parentReadErr || !parentRow) {
+    return apiError('Account not found.', 404);
+  }
+
+  if (!parentRow.email_verified_at) {
+    return apiError(
+      'Please verify your email before recording parental consent. Check your inbox for the confirmation link from SparkForge.',
+      403,
+      'EMAIL_VERIFICATION_REQUIRED',
+    );
+  }
 
   // Use admin client to update consent, scoped to the authenticated user's ID
-  const adminClient = createAdminClient();
   const { data, error } = await adminClient
     .from('parents')
     .update({ coppa_consent_at: new Date().toISOString() })

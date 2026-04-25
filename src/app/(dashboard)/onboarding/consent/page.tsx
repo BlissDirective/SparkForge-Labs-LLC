@@ -23,8 +23,15 @@ export default function OnboardingConsentPage() {
   const [checked, setChecked] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // COPPA-PRD-H: tracks the EMAIL_VERIFICATION_REQUIRED branch so the
+  // form can switch into a dedicated "verify your email first" state
+  // with a one-click resend, instead of showing a generic error.
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
-  const canSubmit = checked && !submitting && !!parent?.email;
+  const canSubmit =
+    checked && !submitting && !!parent?.email && !needsEmailVerification;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -39,7 +46,15 @@ export default function OnboardingConsentPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        setError(data?.error || 'Unable to record consent. Please try again.');
+        if (data?.code === 'EMAIL_VERIFICATION_REQUIRED') {
+          setNeedsEmailVerification(true);
+          setError(
+            data?.error ||
+              'Please verify your email before recording parental consent.',
+          );
+        } else {
+          setError(data?.error || 'Unable to record consent. Please try again.');
+        }
         setSubmitting(false);
         return;
       }
@@ -47,6 +62,33 @@ export default function OnboardingConsentPage() {
     } catch {
       setError('Connection error. Please check your internet connection.');
       setSubmitting(false);
+    }
+  }
+
+  async function handleResendVerification() {
+    if (resending) return;
+    setResending(true);
+    setResendMessage(null);
+    try {
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+      });
+      if (res.ok) {
+        setResendMessage(
+          'Verification email sent. Check your inbox (and spam folder), then click the link to confirm your email.',
+        );
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setResendMessage(
+          data?.error ||
+            'Unable to resend the verification email right now. Please try again in a minute.',
+        );
+      }
+    } catch {
+      setResendMessage('Connection error. Please check your internet connection.');
+    } finally {
+      setResending(false);
     }
   }
 
@@ -102,6 +144,38 @@ export default function OnboardingConsentPage() {
           >
             {error}
           </p>
+        )}
+
+        {needsEmailVerification && (
+          <div className="mb-4 rounded-xl border border-spark-orange/30 bg-spark-orange/5 p-4">
+            <p className="font-display text-sm font-semibold text-white mb-1">
+              Verify your email first
+            </p>
+            <p className="font-body text-xs text-white/70 leading-relaxed mb-3">
+              COPPA requires us to confirm you actually own this email address
+              before we can record parental consent. Click the link in the
+              SparkForge email we sent to{' '}
+              <strong className="text-white/85">{parent?.email}</strong>, then
+              return here.
+            </p>
+            <button
+              type="button"
+              onClick={handleResendVerification}
+              disabled={resending}
+              className="w-full rounded-lg border border-spark-orange/40 bg-spark-orange/10 py-2 font-display text-sm font-medium text-spark-orange transition hover:bg-spark-orange/15 disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-spark-orange/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card"
+            >
+              {resending ? 'Sending…' : 'Resend verification email'}
+            </button>
+            {resendMessage && (
+              <p
+                role="status"
+                aria-live="polite"
+                className="mt-2 text-xs text-white/70 font-body leading-relaxed"
+              >
+                {resendMessage}
+              </p>
+            )}
+          </div>
         )}
 
         <button
