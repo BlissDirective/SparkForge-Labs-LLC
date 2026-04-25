@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, RotateCcw, ChevronRight, Lightbulb, Zap } from 'lucide-react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useCompleteAndReward } from '@/hooks/useGamification';
 import { WORLDS } from '@/types';
 import type { Content, QuizQuestion } from '@/types';
@@ -30,7 +30,7 @@ const ENCOURAGEMENTS_WRONG = [
 
 export function QuizEngine({ content }: { content: Content }) {
   const router = useRouter();
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const completeAndReward = useCompleteAndReward();
 
   const questions: QuizQuestion[] = useMemo(
@@ -112,7 +112,7 @@ export function QuizEngine({ content }: { content: Content }) {
     return (
       <div className="max-w-lg mx-auto">
         <motion.div
-          className="glass-card rounded-2xl p-8 md:p-10 text-center"
+          className="glass-card-v2 p-8 md:p-10 text-center"
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
         >
@@ -214,7 +214,7 @@ export function QuizEngine({ content }: { content: Content }) {
           )}
 
           <Link href={`/labs/${content.world}`} className="block mt-4">
-            <span className="font-body text-white/30 text-sm hover:text-white/50 transition-colors">
+            <span className="font-body text-white/60 text-sm hover:text-white/50 transition-colors">
               Back to {lab?.title || `Lab ${content.world}`}
             </span>
           </Link>
@@ -267,7 +267,7 @@ export function QuizEngine({ content }: { content: Content }) {
       <AnimatePresence mode="wait">
         <motion.div
           key={currentIndex}
-          className="glass-card rounded-2xl p-6 md:p-8"
+          className="glass-card-v2 p-6 md:p-8"
           initial={{ opacity: 0, x: 30 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -30 }}

@@ -12,7 +12,7 @@ export function Skeleton({ className }: SkeletonProps) {
 
 export function CardSkeleton() {
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-4">
+    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-6 space-y-4">
       <Skeleton className="h-4 w-3/4" />
       <Skeleton className="h-3 w-full" />
       <Skeleton className="h-3 w-5/6" />
@@ -23,7 +23,7 @@ export function CardSkeleton() {
 
 export function LabCardSkeleton() {
   return (
-    <div className="glass-card rounded-2xl p-6 space-y-3">
+    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-6 space-y-3">
       <div className="flex items-center justify-between">
         <Skeleton className="w-14 h-14 rounded-xl" />
         <Skeleton className="w-10 h-6 rounded-full" />
@@ -37,7 +37,7 @@ export function LabCardSkeleton() {
 
 export function StatCardSkeleton() {
   return (
-    <div className="glass-card rounded-2xl p-4 text-center space-y-2">
+    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-4 text-center space-y-2">
       <Skeleton className="h-8 w-16 mx-auto" />
       <Skeleton className="h-3 w-20 mx-auto" />
     </div>
@@ -48,7 +48,7 @@ export function ContentListSkeleton({ count = 5 }: { count?: number }) {
   return (
     <div className="space-y-3">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="glass-card rounded-xl p-4 flex items-center gap-4">
+        <div key={i} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 flex items-center gap-4">
           <Skeleton className="w-10 h-10 rounded-lg flex-shrink-0" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-3/4" />

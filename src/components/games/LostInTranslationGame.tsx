@@ -9,36 +9,18 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { Languages, ArrowDown } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ENH: Compute simple degradation score (how different original vs final are)
 function computeDegradation(original: string, final: string): number {
@@ -56,7 +38,13 @@ const LostInTranslationEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
+
+const LEARN_CARDS = [
+  { title: 'Machine Translation', emoji: '🌐', desc: 'AI translators convert text between languages. They\'re incredibly useful, but they\'re not perfect — especially with tricky phrases!' },
+  { title: 'Why Idioms Are Hard', emoji: '🤔', desc: 'Idioms like "it\'s raining cats and dogs" don\'t translate well word-by-word. AI often struggles with figurative language and cultural expressions.' },
+  { title: 'Lost in the Chain', emoji: '🔗', desc: 'In this game, you\'ll see what happens when text gets translated through multiple languages. Watch how meaning shifts and changes along the way!' },
+];
 
 interface Round {
   original: string;
@@ -124,24 +112,80 @@ const ALL_ROUNDS: Round[] = [
     whyC: 'Transparent metaphors with direct structural analogs across languages preserve meaning through translation chains more reliably.',
     band: 'C',
   },
+  {
+    original: 'Break a leg',
+    steps: ['🇫🇷 Casse-toi une jambe', '🇯🇵 足を折れ', '🇪🇸 Rompe una pierna'],
+    final: 'Break a leg for yourself!',
+    why: 'The good luck wish became a literal command to break a bone!',
+    whyC: 'Performative speech acts that convey opposite literal meaning are systematically mishandled by NMT.',
+    band: 'A',
+  },
+  {
+    original: 'Piece of cake',
+    steps: ['🇩🇪 Stück Kuchen', '🇨🇳 一块蛋糕', '🇮🇹 Un pezzo di torta'],
+    final: 'A piece of cake!',
+    why: 'This one survived! Simple metaphors sometimes make it through because the image is universal.',
+    whyC: 'Transparent metaphors with cross-linguistic equivalents preserve well through translation chains.',
+    band: 'A',
+  },
+  {
+    original: 'Hit the nail on the head',
+    steps: ['🇪🇸 Dar en el clavo', '🇫🇷 Mettre le doigt dessus', '🇩🇪 Den Nagel auf den Kopf treffen'],
+    final: 'Hit the nail on the head!',
+    why: 'Many languages have their own version of this idiom, so it survived the chain!',
+    whyC: 'Cross-linguistic idiom equivalents enable semantic preservation even when surface forms differ entirely.',
+    band: 'B',
+  },
+  {
+    original: 'Burning the midnight oil',
+    steps: ['🇫🇷 Brûler l\'huile de minuit', '🇯🇵 真夜中の油を燃やす', '🇪🇸 Quemar el aceite de medianoche'],
+    final: 'Burn the oil at midnight!',
+    why: 'The idea of working late survived, but it sounds like an arson instruction now!',
+    whyC: 'Temporal metaphors lose their figurative reading when translated literally across multiple language families.',
+    band: 'B',
+  },
+  {
+    original: 'When pigs fly',
+    steps: ['🇩🇪 Wenn Schweine fliegen', '🇨🇳 当猪飞的时候', '🇫🇷 Quand les cochons voleront'],
+    final: 'When the pigs will fly!',
+    why: 'The impossibility idiom kept its meaning because the image is so vivid and absurd!',
+    whyC: 'Impossibility idioms using surreal imagery tend to preserve meaning because the literal absurdity signals figurative intent.',
+    band: 'A',
+  },
+  {
+    original: 'Spill the beans',
+    steps: ['🇮🇹 Versare i fagioli', '🇯🇵 豆をこぼす', '🇪🇸 Derramar los frijoles'],
+    final: 'Spill the beans everywhere!',
+    why: 'Revealing a secret became a cooking disaster! The secret-telling meaning was completely lost.',
+    whyC: 'Opaque idioms where meaning is unrelated to component words are consistently lost in multi-hop translation.',
+    band: 'B',
+  },
+  {
+    original: 'Cost an arm and a leg',
+    steps: ['🇫🇷 Coûter les yeux de la tête', '🇩🇪 Die Augen des Kopfes kosten', '🇨🇳 花费头的眼睛'],
+    final: 'Cost the eyes of the head!',
+    why: 'French uses "cost the eyes from the head" for expensive, and that image stuck through the chain!',
+    whyC: 'When target language has a parallel idiom with different body parts, the translation chain produces chimeric expressions mixing metaphor domains.',
+    band: 'C',
+  },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function LostInTranslationGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('lost-in-translation', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('lost-in-translation', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const rounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const [idx, setIdx] = useState(0);
   const [step, setStep] = useState(-1);
   const animatedScore = useAnimatedCounter(game.score);
-
-  const rounds = useMemo(() => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]), [ageBand]);
 
   const round = rounds[idx];
   const allRevealed = step >= (round?.steps.length ?? 0);
@@ -165,7 +209,7 @@ export function LostInTranslationGame() {
   }
 
   return (
-    <GameShell gameId="lost-in-translation" title="Lost in Translation" worldNumber={8} worldColor="#818CF8" totalRounds={rounds.length}>
+    <GameShell gameId="lost-in-translation" title="Lost in Translation" worldNumber={8} worldColor="#8F96FA" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -173,8 +217,8 @@ export function LostInTranslationGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(99,102,241,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -201,16 +245,16 @@ export function LostInTranslationGame() {
                         className="text-5xl inline-block"
                         role="img"
                         aria-label="globe"
-                        animate={{ rotate: [0, 360] }}
-                        transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                        animate={prefersReducedMotion ? {} : { rotate: [0, 360] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 20, repeat: Infinity, ease: 'linear' }}
                       >
                         {'\u{1F30D}'}
                       </motion.span>
                       <motion.div
                         className="absolute -inset-3 rounded-full"
                         style={{ background: 'radial-gradient(circle, rgba(99,102,241,0.15), transparent)' }}
-                        animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       />
                       {/* ENH: Bouncing flag emojis around the globe */}
                       {['\u{1F1EB}\u{1F1F7}', '\u{1F1EF}\u{1F1F5}', '\u{1F1E9}\u{1F1EA}', '\u{1F1EA}\u{1F1F8}'].map((flag, i) => (
@@ -218,12 +262,12 @@ export function LostInTranslationGame() {
                           key={i}
                           className="absolute text-lg"
                           style={{ top: '50%', left: '50%' }}
-                          animate={{
+                          animate={prefersReducedMotion ? {} : {
                             x: [Math.cos((i * Math.PI) / 2) * 36, Math.cos((i * Math.PI) / 2 + Math.PI) * 36],
                             y: [Math.sin((i * Math.PI) / 2) * 36, Math.sin((i * Math.PI) / 2 + Math.PI) * 36],
                             scale: [1, 1.2, 1],
                           }}
-                          transition={{ duration: 3, repeat: Infinity, delay: i * 0.4 }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, delay: i * 0.4 }}
                         >
                           {flag}
                         </motion.span>
@@ -239,7 +283,7 @@ export function LostInTranslationGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-indigo-500/10 border border-indigo-500/20 font-body text-2xs text-indigo-300">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -248,14 +292,43 @@ export function LostInTranslationGame() {
                   </motion.div>
                 )}
 
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#818CF8]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #818CF8, #6366F1)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* PLAY */}
                 {phase === 'play' && round && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col w-full max-w-md">
-                    <p className="font-body text-xs text-white/20 text-center mb-3">{idx + 1}/{rounds.length}</p>
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={idx + 1} total={rounds.length} labColor="#818CF8" />
+                    </div>
+                    <p className="font-body text-xs text-white/55 text-center mb-3">{idx + 1}/{rounds.length}</p>
 
                     {/* Original */}
                     <div className="rounded-xl p-4 mb-3 border border-indigo-500/20 bg-indigo-500/5 text-center">
-                      <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Original</p>
+                      <p className="font-body text-2xs text-white/60">{'\u{1F1EC}\u{1F1E7}'} Original</p>
                       <p className="font-display text-base font-bold text-white">&ldquo;{round.original}&rdquo;</p>
                     </div>
 
@@ -302,7 +375,7 @@ export function LostInTranslationGame() {
                           transition={{ delay: 0.2 }}
                         >
                           <div className="flex items-center justify-between mb-1">
-                            <span className="font-body text-2xs text-white/30">Meaning degradation</span>
+                            <span className="font-body text-2xs text-white/60">Meaning degradation</span>
                             <span className="font-data text-2xs" style={{ color }}>{deg}%</span>
                           </div>
                           <div className="h-2 rounded-full bg-white/5 overflow-hidden">
@@ -322,7 +395,7 @@ export function LostInTranslationGame() {
                     {allRevealed && (
                       <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
                         className="rounded-xl p-4 text-center border border-amber-500/30 bg-amber-500/5 mb-3">
-                        <p className="font-body text-2xs text-white/30">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
+                        <p className="font-body text-2xs text-white/60">{'\u{1F1EC}\u{1F1E7}'} Back to English:</p>
                         <p className="font-display text-base font-bold text-amber-400">&ldquo;{round.final}&rdquo;</p>
                         {/* ENH: Side-by-side comparison with highlight */}
                         <motion.div
@@ -340,7 +413,7 @@ export function LostInTranslationGame() {
                             <p className="font-body text-xs text-amber-400/80">{round.final}</p>
                           </div>
                         </motion.div>
-                        <p className="font-body text-2xs text-white/30 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
+                        <p className="font-body text-2xs text-white/60 mt-2">{'\u{1F4A1}'} {ageBand === 'C' ? round.whyC : round.why}</p>
                       </motion.div>
                     )}
 
@@ -361,7 +434,7 @@ export function LostInTranslationGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Lost in Translation Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You discovered how meaning gets lost when AI translates through multiple languages — idioms, metaphors, and cultural expressions are still a big challenge for machine translation!</p>
                     {/* ENH: Animated score counter */}
@@ -374,16 +447,16 @@ export function LostInTranslationGame() {
                       <motion.p
                         className="font-data text-2xl"
                         style={{ color: '#818CF8' }}
-                        animate={{ textShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 12px rgba(99,102,241,0.5)', '0 0 0px rgba(99,102,241,0)'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { textShadow: ['0 0 0px rgba(99,102,241,0)', '0 0 12px rgba(99,102,241,0.5)', '0 0 0px rgba(99,102,241,0)'] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Machine translation works word-by-word but misses figurative meaning</li>
                         <li>• Language ambiguity means one phrase can have multiple interpretations</li>
                         <li>• Context is crucial in NLP — without it, AI takes everything literally</li>

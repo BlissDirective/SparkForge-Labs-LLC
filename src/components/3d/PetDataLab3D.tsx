@@ -10,9 +10,9 @@
 // Renders inside CockpitCanvas via sceneStore when data-lab phase.
 // ================================================================
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { Color, Group } from 'three';
+import { Group } from 'three';
 
 interface DataBar {
   label: string;
@@ -133,7 +133,7 @@ export default function PetDataLab3D({
 }
 
 // Pulsing red border when overfitting detected
-function OverfitPulse({ labColor, width }: { labColor: string; width: number }) {
+function OverfitPulse({ labColor: _labColor, width }: { labColor: string; width: number }) {
   const meshRef = useRef<Group>(null);
 
   useFrame(({ clock }) => {

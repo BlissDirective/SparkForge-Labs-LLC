@@ -36,7 +36,10 @@ interface Finding {
 
 interface GeneratedContent {
   title: string;
-  type: 'lesson' | 'quiz' | 'spark_fact' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson';
+  type: 'lesson' | 'quiz' | 'spark_fact' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson'
+    | 'flagship_pet_category' | 'flagship_sort_criterion' | 'flagship_neural_challenge' | 'flagship_agent_mission' | 'flagship_bias_case'
+    | 'fll_data_detective' | 'fll_robot_vacuum' | 'fll_camera_quest' | 'fll_chatbot_builder' | 'fll_emoji_decoder'
+    | 'fll_code_blocks' | 'fll_my_first_ai_app' | 'fll_future_forge' | 'fll_ai_or_not';
   target_age_band: 'A' | 'B' | 'C';
   world: number;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
@@ -120,8 +123,6 @@ function getAnthropicClient() {
   if (!process.env.ANTHROPIC_API_KEY) return null;
 
   if (!_anthropic) {
-    // Dynamic import alternative: use eslint-disable for require
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const Anthropic = require('@anthropic-ai/sdk').default;
     _anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
   }

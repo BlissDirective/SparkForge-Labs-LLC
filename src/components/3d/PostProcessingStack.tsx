@@ -7,8 +7,13 @@
 // are always active. No conditional checks, no device-based
 // degradation. Maximum visual fidelity at all times.
 //
-// Effects (render order):
-//   1. N8AO (SSAO)          — Ambient occlusion for depth
+// Renderer routing (P5 §10.8 Sub 3e):
+//   - WebGLRenderer  → this component's EffectComposer path below.
+//   - WebGPURenderer → delegates to PostProcessingStackWebGPU which
+//                      composes the same effects via TSL RenderPipeline.
+//
+// Effects (render order — both paths):
+//   1. N8AO (SSAO)          — Ambient occlusion for depth [WebGPU: deferred]
 //   2. Bloom                — Luminance-based glow
 //   3. ChromaticAberration  — RGB offset for sci-fi aesthetic
 //   4. DepthOfField         — Subtle tilt-shift focus
@@ -18,7 +23,8 @@
 //   8. Vignette             — Edge darkening
 //   9. BarrelDistortion     — Lens distortion (optional strength)
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, type JSX } from 'react';
+import { useThree } from '@react-three/fiber';
 import {
   EffectComposer,
   Bloom,
@@ -32,8 +38,10 @@ import {
 } from '@react-three/postprocessing';
 import { BlendFunction } from 'postprocessing';
 import { BarrelDistortion } from './BarrelDistortion';
+import { PostProcessingStackWebGPU } from './PostProcessingStackWebGPU';
+import { isWebGPURenderer } from '@/lib/3d/webgpuRenderer';
 import { useSceneStore } from '@/stores/sceneStore';
-import { useCockpitStore } from '@/stores/cockpitStore';
+import { useUIStore } from '@/stores/uiStore';
 import { Vector2 } from 'three';
 
 interface PostProcessingStackProps {
@@ -59,7 +67,36 @@ interface PostProcessingStackProps {
   barrelDistortion?: number;
 }
 
-export function PostProcessingStack({
+/**
+ * PostProcessingStack (P5 §10.8 Sub 3e) — router.
+ * Picks the WebGL or WebGPU postprocessing path based on the renderer
+ * type. Both paths accept the same props so callers don't branch.
+ */
+export function PostProcessingStack(props: PostProcessingStackProps) {
+  const gl = useThree((s) => s.gl);
+  if (isWebGPURenderer(gl)) {
+    return (
+      <PostProcessingStackWebGPU
+        bloomIntensity={props.bloomIntensity}
+        bloomThreshold={props.bloomThreshold}
+        bloomSmoothing={props.bloomSmoothing}
+        vignetteDarkness={props.vignetteDarkness}
+        vignetteOffset={props.vignetteOffset}
+        chromaticOffset={props.chromaticOffset}
+        ssaoIntensity={props.ssaoIntensity}
+        ssaoRadius={props.ssaoRadius}
+        dofFocusDistance={props.dofFocusDistance}
+        dofFocalLength={props.dofFocalLength}
+        dofBokehScale={props.dofBokehScale}
+        noiseOpacity={props.noiseOpacity}
+        barrelDistortion={props.barrelDistortion}
+      />
+    );
+  }
+  return <PostProcessingStackWebGL {...props} />;
+}
+
+function PostProcessingStackWebGL({
   bloomIntensity = 0.4,
   bloomThreshold = 0.6,
   bloomSmoothing = 0.9,
@@ -77,8 +114,16 @@ export function PostProcessingStack({
   const activeScene = useSceneStore((s) => s.activeScene);
   const isTransitioning = useSceneStore((s) => s.isTransitioning);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
-  const ceremonyQueue = useCockpitStore((s) => s.ceremonyQueue);
-  const isCeremonyActive = ceremonyQueue.length > 0;
+  // §3.5 (P2 Apr 21 2026): read celebration state from uiStore —
+  // the single owner. Previously read from cockpitStore.ceremonyQueue
+  // which nothing ever enqueued, so isCeremonyActive was always false.
+  const isCeremonyActive = useUIStore((s) => s.showCelebration);
+  // T15a PERF-MED-003 (Opt A): user-driven performance mode.
+  // When enabled, the two most expensive effects (DepthOfField +
+  // N8AO/SSAO) are skipped entirely. All other effects remain
+  // active — D3D-5 is otherwise honored (CLAUDE.md v6.5 codifies
+  // this relaxation under user override).
+  const performanceMode = useUIStore((s) => s.performanceMode);
 
   // Scene-reactive effect intensity adjustments (extended with vignette + barrel)
   const sceneMultipliers = useMemo(() => {
@@ -152,66 +197,103 @@ export function PostProcessingStack({
   );
   const chromaticOffsetVec = chromaticOffsetRef.current;
 
-  return (
-    <EffectComposer multisampling={4}>
-      {/* 1. SSAO — Screen-space ambient occlusion */}
+  // T15a: build the effect stack as an array so we can omit DOF +
+  // SSAO entirely when performanceMode is on. EffectComposer's
+  // children prop is typed `JSX.Element | JSX.Element[]` — null
+  // children are not accepted, hence the filter pattern below.
+  const effects: JSX.Element[] = [];
+
+  // 1. SSAO — skipped in performance mode (most expensive effect).
+  if (!performanceMode) {
+    effects.push(
       <N8AO
+        key="n8ao"
         intensity={ssaoIntensity * sceneMultipliers.ssao}
         aoRadius={ssaoRadius}
         halfRes
-      />
+      />,
+    );
+  }
 
-      {/* 2. Bloom — Adaptive luminance glow (Item 4: threshold shifts per scene/ceremony) */}
-      <Bloom
-        intensity={bloomIntensity * sceneMultipliers.bloom}
-        luminanceThreshold={adaptiveBloomThreshold}
-        luminanceSmoothing={bloomSmoothing}
-        mipmapBlur
-      />
+  // 2. Bloom — Adaptive luminance glow (always on)
+  effects.push(
+    <Bloom
+      key="bloom"
+      intensity={bloomIntensity * sceneMultipliers.bloom}
+      luminanceThreshold={adaptiveBloomThreshold}
+      luminanceSmoothing={bloomSmoothing}
+      mipmapBlur
+    />,
+  );
 
-      {/* 3. Chromatic Aberration — RGB offset */}
-      <ChromaticAberration
-        offset={chromaticOffsetVec}
-        radialModulation
-        modulationOffset={0.5}
-        blendFunction={BlendFunction.NORMAL}
-      />
+  // 3. Chromatic Aberration — RGB offset
+  effects.push(
+    <ChromaticAberration
+      key="ca"
+      offset={chromaticOffsetVec}
+      radialModulation
+      modulationOffset={0.5}
+      blendFunction={BlendFunction.NORMAL}
+    />,
+  );
 
-      {/* 4. Depth of Field — Subtle focus */}
+  // 4. Depth of Field — skipped in performance mode (second most expensive).
+  if (!performanceMode) {
+    effects.push(
       <DepthOfField
+        key="dof"
         focusDistance={dofFocusDistance}
         focalLength={dofFocalLength * sceneMultipliers.dof}
         bokehScale={dofBokehScale}
-      />
+      />,
+    );
+  }
 
-      {/* 5. Noise — Film grain */}
-      <Noise
-        opacity={noiseOpacity * sceneMultipliers.noise}
-        blendFunction={BlendFunction.OVERLAY}
-      />
-
-      {/* 6. Hue/Saturation — Per-lab color grading (Item 5) */}
-      <HueSaturation
-        hue={labColorGrade.hue}
-        saturation={labColorGrade.saturation}
-        blendFunction={BlendFunction.NORMAL}
-      />
-
-      {/* 7. Brightness/Contrast — Scene-reactive contrast (Item 5) */}
-      <BrightnessContrast
-        brightness={labColorGrade.brightness}
-        contrast={labColorGrade.contrast}
-      />
-
-      {/* 8. Vignette — Scene-reactive edge darkening */}
-      <Vignette
-        darkness={vignetteDarkness * sceneMultipliers.vignette}
-        offset={vignetteOffset}
-        eskil={false}
-      />
-
-      {/* 9. Barrel Distortion — Scene-reactive lens effect */}
-      <BarrelDistortion strength={barrelDist * sceneMultipliers.barrel} />
-    </EffectComposer>
+  // 5. Noise — Film grain
+  effects.push(
+    <Noise
+      key="noise"
+      opacity={noiseOpacity * sceneMultipliers.noise}
+      blendFunction={BlendFunction.OVERLAY}
+    />,
   );
+
+  // 6. Hue/Saturation — Per-lab color grading
+  effects.push(
+    <HueSaturation
+      key="hue-sat"
+      hue={labColorGrade.hue}
+      saturation={labColorGrade.saturation}
+      blendFunction={BlendFunction.NORMAL}
+    />,
+  );
+
+  // 7. Brightness/Contrast — Scene-reactive contrast
+  effects.push(
+    <BrightnessContrast
+      key="brightness-contrast"
+      brightness={labColorGrade.brightness}
+      contrast={labColorGrade.contrast}
+    />,
+  );
+
+  // 8. Vignette — Scene-reactive edge darkening
+  effects.push(
+    <Vignette
+      key="vignette"
+      darkness={vignetteDarkness * sceneMultipliers.vignette}
+      offset={vignetteOffset}
+      eskil={false}
+    />,
+  );
+
+  // 9. Barrel Distortion — Scene-reactive lens effect
+  effects.push(
+    <BarrelDistortion
+      key="barrel"
+      strength={barrelDist * sceneMultipliers.barrel}
+    />,
+  );
+
+  return <EffectComposer multisampling={4}>{effects}</EffectComposer>;
 }

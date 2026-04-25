@@ -10,7 +10,7 @@
 // - Particle background
 // - Welcome phase with concept intro
 // - Age-band explanations (C: softmax confidence, adversarial examples)
-// - 14 items with richer explanations
+// - 28 items with richer explanations
 // - Animated confidence bar with color coding
 // - 4 challenge rounds (up from 3)
 // - Feedback panel with "why AI got confused" explanations
@@ -23,14 +23,18 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { AlertTriangle, CheckCircle2, Target } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const FoolTheAiEnvironment = dynamic(
@@ -38,7 +42,7 @@ const FoolTheAiEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Item {
   emoji: string;
@@ -47,6 +51,8 @@ interface Item {
   isWrong: boolean;
   explanation: string;
   explanationC: string;
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
+  band?: 'A' | 'B' | 'C';
 }
 
 interface Challenge {
@@ -56,6 +62,12 @@ interface Challenge {
   check: (item: Item) => boolean;
   descC: string;
 }
+
+const LEARN_CARDS = [
+  { title: 'How AI Classifies', emoji: '🏷️', desc: 'AI image classifiers look at pictures and try to identify what\'s in them. They assign labels like "dog", "car", or "pizza" with a confidence score.' },
+  { title: 'Confidence Scores', emoji: '📊', desc: 'When AI classifies an image, it gives a confidence percentage. 95% means it\'s very sure. 30% means it\'s just guessing!' },
+  { title: 'When AI Gets Fooled', emoji: '🃏', desc: 'Sometimes AI gets confused by unusual angles, lighting, or objects that look similar. Finding these mistakes helps researchers make AI better!' },
+];
 
 const ITEMS: Item[] = [
   { emoji: '\u{1F34E}', aiLabel: 'Apple', confidence: 95, isWrong: false,
@@ -100,6 +112,49 @@ const ITEMS: Item[] = [
   { emoji: '\u{1F95D}', aiLabel: 'Coconut', confidence: 40, isWrong: true,
     explanation: "It's a kiwi! The fuzzy brown exterior confused the AI.",
     explanationC: 'Texture confusion: both have rough brown exterior. Cross-section would disambiguate but single-view limits accuracy.' },
+  // ── Expansion batch (14 items) ──────────────────────
+  { emoji: '\u{1F98A}', aiLabel: 'Dog', confidence: 68, isWrong: true,
+    explanation: 'AI confused a fox with a dog \u2014 they look similar!',
+    explanationC: 'Foxes share morphological features with canids. The model\'s training data likely has more dog images, biasing classification toward the more common class.' },
+  { emoji: '\u{1F345}', aiLabel: 'Tomato', confidence: 89, isWrong: false,
+    explanation: 'AI got it right! Tomatoes are easy to identify.',
+    explanationC: 'Distinctive color + shape gives high confidence. Round red objects cluster tightly in the model\'s learned feature space.' },
+  { emoji: '\u{1F319}', aiLabel: 'Banana', confidence: 31, isWrong: true,
+    explanation: 'AI thought the moon was a banana because of the crescent shape!',
+    explanationC: 'Shape-based feature matching without context: crescent shapes have high cosine similarity to banana representations in the embedding space.' },
+  { emoji: '\u{1F3B8}', aiLabel: 'Guitar', confidence: 94, isWrong: false,
+    explanation: 'Very confident and correct! The shape is distinctive.',
+    explanationC: 'Musical instruments have unique silhouettes with low inter-class similarity, enabling high-confidence classification.' },
+  { emoji: '\u{1F98E}', aiLabel: 'Snake', confidence: 45, isWrong: true,
+    explanation: 'A lizard isn\'t a snake! The AI missed the legs.',
+    explanationC: 'Reptile subclasses share texture and color features. The model\'s attention mechanism may focus on scales over limb presence.' },
+  { emoji: '\u{1F9CA}', aiLabel: 'Ice Cube', confidence: 82, isWrong: false,
+    explanation: 'Correct! The translucent cube shape is clear.',
+    explanationC: 'Geometric regularity + transparency cues provide strong classification signal for crystalline objects.' },
+  { emoji: '\u{1F3AD}', aiLabel: 'Sunglasses', confidence: 28, isWrong: true,
+    explanation: 'Theater masks aren\'t sunglasses! AI was confused by the face shape.',
+    explanationC: 'Face-adjacent objects trigger facial feature detectors. The model partially activates eyewear classifiers due to the eye-region overlap.' },
+  { emoji: '\u{1F9A2}', aiLabel: 'Swan', confidence: 91, isWrong: false,
+    explanation: 'AI is very confident \u2014 swans have a very unique look!',
+    explanationC: 'Long curved neck + white body create a near-unique feature combination in bird classification with minimal confusion pairs.' },
+  { emoji: '\u{1F33A}', aiLabel: 'Pizza', confidence: 22, isWrong: true,
+    explanation: 'A flower isn\'t pizza! The AI saw the circular shape and got confused.',
+    explanationC: 'Radial symmetry triggers circular object classifiers. Without color/texture discrimination, round objects have higher confusion rates.' },
+  { emoji: '\u{1F3AA}', aiLabel: 'Tent', confidence: 73, isWrong: false,
+    explanation: 'Close enough! A circus tent is still a tent.',
+    explanationC: 'Hierarchical classification: circus tent is a subclass of tent. The model correctly identifies the superclass even if the specific variant isn\'t in training data.' },
+  { emoji: '\u{1F991}', aiLabel: 'Octopus', confidence: 55, isWrong: true,
+    explanation: 'A squid has 10 arms, an octopus has 8 \u2014 AI can\'t count tentacles!',
+    explanationC: 'Fine-grained classification failure: squid and octopus share the cephalopod body plan. Tentacle counting requires spatial reasoning beyond standard CNNs.' },
+  { emoji: '\u{1F3D4}\uFE0F', aiLabel: 'Mountain', confidence: 97, isWrong: false,
+    explanation: 'AI is extremely confident \u2014 mountains are unmistakable!',
+    explanationC: 'Landscape features have high variance but mountains have distinctive triangular profiles that are well-represented in training data.' },
+  { emoji: '\u{1F9F2}', aiLabel: 'Horseshoe', confidence: 41, isWrong: true,
+    explanation: 'A magnet isn\'t a horseshoe! Same shape but very different use.',
+    explanationC: 'U-shaped objects cluster together in feature space. Without material/context cues, shape-based classification produces systematic errors.' },
+  { emoji: '\u{1F99C}', aiLabel: 'Parrot', confidence: 88, isWrong: false,
+    explanation: 'Correct! The colorful feathers make parrots easy to spot.',
+    explanationC: 'Polychromatic plumage creates a distinctive multi-channel feature signature that separates parrots from other bird species with high accuracy.' },
 ];
 
 const CHALLENGES: Challenge[] = [
@@ -118,13 +173,17 @@ const CHALLENGES: Challenge[] = [
 ];
 
 export function FoolTheAiGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('fool-the-ai', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('fool-the-ai', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const items = useFilteredContent(ITEMS, tier, ageBand);
   const [ci, setCi] = useState(0);
   const [found, setFound] = useState<Set<number>>(new Set());
   const [feedback, setFeedback] = useState<{ idx: number; hit: boolean } | null>(null);
@@ -133,9 +192,10 @@ export function FoolTheAiGame() {
   const [fooledCount, setFooledCount] = useState(0);
   // ENH: Track streak for visual streak indicator
   const [streakFlash, setStreakFlash] = useState(false);
+  const { safeTimeout } = useSafeTimeout();
 
   const challenge = CHALLENGES[ci];
-  const matchCount = Array.from(found).filter(idx => challenge.check(ITEMS[idx])).length;
+  const matchCount = Array.from(found).filter(idx => challenge.check(items[idx])).length;
 
   const particles = useMemo(() => Array.from({ length: 14 }, (_, i) => ({
     id: i, x: Math.random() * 100, y: Math.random() * 100, size: Math.random() * 2 + 1,
@@ -149,7 +209,7 @@ export function FoolTheAiGame() {
 
   function tap(idx: number) {
     if (found.has(idx) || feedback) return;
-    const item = ITEMS[idx];
+    const item = items[idx];
     const hit = challenge.check(item);
     setFound(prev => new Set(prev).add(idx));
     setFeedback({ idx, hit });
@@ -161,12 +221,12 @@ export function FoolTheAiGame() {
       // ENH: Increment fooled counter when AI was wrong and player found it
       if (item.isWrong) setFooledCount(c => c + 1);
       // ENH: Flash streak indicator on consecutive hits
-      if (consecutiveHits >= 1) { setStreakFlash(true); setTimeout(() => setStreakFlash(false), 600); }
+      if (consecutiveHits >= 1) { setStreakFlash(true); safeTimeout(() => setStreakFlash(false), 600); }
     } else {
       setConsecutiveHits(0);
     }
 
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
       const newMatch = matchCount + (hit ? 1 : 0);
       if (newMatch >= challenge.target) {
@@ -184,7 +244,7 @@ export function FoolTheAiGame() {
   }
 
   return (
-    <GameShell gameId="fool-the-ai" title="Fool the AI" worldNumber={7} worldColor="#06B6D4" xpReward={20} totalRounds={CHALLENGES.length}>
+    <GameShell gameId="fool-the-ai" title="Fool the AI" worldNumber={7} worldColor="#10BAD2" xpReward={20} totalRounds={CHALLENGES.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -192,8 +252,8 @@ export function FoolTheAiGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(6,182,212,${0.12 + p.size * 0.05}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -207,8 +267,8 @@ export function FoolTheAiGame() {
                 {phase === 'welcome' && (
                   <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4">
-                    <motion.span className="text-6xl block" animate={{ rotate: [0, 5, -5, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}>{'\u{1F916}'}</motion.span>
+                    <motion.span className="text-6xl block" animate={prefersReducedMotion ? {} : { rotate: [0, 5, -5, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F916}'}</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Fool the AI welcome screen">Fool the AI</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       {ageBand === 'C'
@@ -220,7 +280,7 @@ export function FoolTheAiGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-cyan-500/10 border border-cyan-500/20 font-body text-2xs text-cyan-400">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
@@ -230,9 +290,38 @@ export function FoolTheAiGame() {
                   </motion.div>
                 )}
 
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#06B6D4]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #06B6D4, #0891B2)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* PLAY */}
                 {phase === 'play' && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 flex flex-col">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={ci + 1} total={CHALLENGES.length} labColor="#06B6D4" />
+                    </div>
                     {/* Challenge header + ENH: fooled counter */}
                     <div className="rounded-xl p-3 mb-3 text-center" role="status" aria-label={`Challenge: ${challenge.text} Progress: ${matchCount} of ${challenge.target}`}
                       style={{ backgroundColor: 'rgba(6,182,212,0.05)', border: '1px solid rgba(6,182,212,0.15)' }}>
@@ -244,7 +333,7 @@ export function FoolTheAiGame() {
                             animate={{ width: `${(matchCount / challenge.target) * 100}%` }}
                             transition={{ type: 'spring', stiffness: 120, damping: 20 }} />
                         </div>
-                        <span className="font-mono text-2xs text-white/30">{matchCount}/{challenge.target}</span>
+                        <span className="font-mono text-2xs text-white/60">{matchCount}/{challenge.target}</span>
                         <span className="font-body text-2xs text-white/15">Round {ci + 1}/{CHALLENGES.length}</span>
                         {/* ENH: Animated fooled counter */}
                         {fooledCount > 0 && (
@@ -274,7 +363,7 @@ export function FoolTheAiGame() {
 
                     {/* Item grid */}
                     <div className="flex-1 grid grid-cols-3 sm:grid-cols-4 gap-2 content-start">
-                      {ITEMS.map((item, i) => {
+                      {items.map((item, i) => {
                         const tapped = found.has(i);
                         const isFeedback = feedback?.idx === i;
                         const confColor = item.confidence > 80 ? '#10B981' : item.confidence > 50 ? '#F59E0B' : '#EF4444';
@@ -298,7 +387,7 @@ export function FoolTheAiGame() {
                             whileTap={!tapped ? { scale: 0.95 } : {}}
                             aria-label={`${item.emoji} labeled as "${item.aiLabel}" with ${item.confidence}% confidence`}>
                             <span className="text-2xl block">{item.emoji}</span>
-                            <p className="font-body text-2xs text-white/40 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
+                            <p className="font-body text-2xs text-white/70 mt-1 truncate">&quot;{item.aiLabel}&quot;</p>
                             {/* ENH: Confidence bar with spring physics */}
                             <div className="mt-1 h-1.5 rounded-full bg-white/10 overflow-hidden">
                               <motion.div className="h-full rounded-full" style={{ backgroundColor: confColor }}
@@ -322,8 +411,8 @@ export function FoolTheAiGame() {
                               {feedback.hit ? '\u2713 Good catch!' : "\u2717 Not what we're looking for"}
                             </p>
                           </div>
-                          <p className="font-body text-2xs text-white/40">
-                            {ageBand === 'C' ? ITEMS[feedback.idx].explanationC : ITEMS[feedback.idx].explanation}
+                          <p className="font-body text-2xs text-white/70">
+                            {ageBand === 'C' ? items[feedback.idx].explanationC : items[feedback.idx].explanation}
                           </p>
                         </motion.div>
                       )}
@@ -339,16 +428,16 @@ export function FoolTheAiGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Fool the AI game complete">Fool the AI Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored how AI can be tricked and why understanding its weaknesses makes AI systems stronger and more reliable.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Adversarial examples can fool AI by exploiting weaknesses in how models interpret visual features</li>
                         <li>• AI confidence scores don&apos;t always mean the prediction is correct — high confidence can still be wrong</li>
                         <li>• Understanding AI robustness helps researchers build more reliable and trustworthy AI systems</li>

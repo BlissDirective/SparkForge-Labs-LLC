@@ -25,7 +25,6 @@ import {
   Line,
   LineBasicMaterial,
   MathUtils,
-  Matrix4,
   Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
@@ -178,7 +177,7 @@ function PhoneFrame({
       setLaunchOffset(eased * 0.5);
     } else {
       launchStartTime.current = null;
-      if (launchOffset > 0) setLaunchOffset(0);
+      if (launchOffset !== 0) setLaunchOffset(0); // FLL-034: only update when needed
     }
 
     // Gentle floating + launch offset
@@ -389,10 +388,14 @@ function OrbDataStream({
     }
   }, [orbPosition, color]);
 
-  // Respawn when particles die
-  useFrame(() => {
+  // Respawn when particles die — with cooldown to prevent memory churn (FLL-033 fix)
+  const respawnCooldown = useRef(0);
+  useFrame((_, delta) => {
+    respawnCooldown.current -= delta;
+    if (respawnCooldown.current > 0) return;
     const alive = particles.filter(p => p.life > 0);
     if (alive.length === 0 && spawnedRef.current) {
+      respawnCooldown.current = 0.5; // 500ms cooldown
       const origin = new Vector3(orbPosition[0], orbPosition[1], orbPosition[2]);
       const direction = new Vector3(-orbPosition[0], -orbPosition[1], -orbPosition[2] + 0.1).normalize();
       const spawned = spawnParticles('dataStream', origin, {

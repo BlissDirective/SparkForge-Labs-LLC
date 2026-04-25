@@ -11,20 +11,25 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGameActions } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useAgentAudio } from '@/hooks/useAgentAudio';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Play, RotateCcw, Zap,
   GraduationCap, Target, Award, Star,
   Settings2, Code2, CheckCircle2, Cpu,
 } from 'lucide-react';
+import { useAIContent } from '@/hooks/useAIContent';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D pipeline (no SSR)
 import dynamic from 'next/dynamic';
@@ -129,6 +134,22 @@ const ALL_BLOCK_TYPES: BlockType[] = [
   { id: 'human', label: 'Human', emoji: '\ud83d\ude4b', color: '#F43F5E',
     outputs: 2, category: 'advanced', unlockAfter: 6,
     description: 'Ask a human for approval or input', configurable: true },
+  // === NEW BLOCK TYPES (Phase D2 expansion) ===
+  { id: 'filter', label: 'Filter', emoji: '\ud83e\uddea', color: '#14B8A6',
+    outputs: 1, category: 'logic', unlockAfter: 8,
+    description: 'Filter data based on criteria before passing to next block', configurable: true },
+  { id: 'transform', label: 'Transform', emoji: '\u2699\uFE0F', color: '#A78BFA',
+    outputs: 1, category: 'logic', unlockAfter: 9,
+    description: 'Modify data format/structure (text\u2192list, JSON\u2192table)', configurable: true },
+  { id: 'api-call', label: 'API Call', emoji: '\u2601\uFE0F', color: '#38BDF8',
+    outputs: 1, category: 'advanced', unlockAfter: 11,
+    description: 'Make external API request with configurable endpoint', configurable: true },
+  { id: 'validate', label: 'Validate', emoji: '\u2705', color: '#22C55E',
+    outputs: 2, category: 'logic', unlockAfter: 13,
+    description: 'Verify data meets quality/format requirements', configurable: true },
+  { id: 'notify', label: 'Notify', emoji: '\ud83d\udd14', color: '#FB923C',
+    outputs: 1, category: 'advanced', unlockAfter: 15,
+    description: 'Send alert/notification to user or another agent', configurable: true },
 ];
 
 const TOOL_OPTIONS = [
@@ -210,6 +231,100 @@ const MISSIONS: Mission[] = [
       'Test it (Check)', 'Fix bugs (Loop)', 'Get human review'],
     requiredBlockTypes: ['goal', 'tool', 'check', 'loop', 'human', 'done'],
     minBlocks: 8, optimalBlocks: 10 },
+  // === NEW MISSIONS (Phase D2 expansion) ===
+  { id: 'm9', title: 'Recipe Finder', emoji: '\ud83c\udf73',
+    difficulty: 'beginner', bandMin: 'A',
+    description: 'Agent searches for recipes matching user\'s ingredients.',
+    requirements: ['Set ingredient goal', 'Search recipes', 'Filter by ingredients', 'Return results'],
+    requiredBlockTypes: ['goal', 'search', 'filter', 'done'],
+    minBlocks: 4, optimalBlocks: 5 },
+  { id: 'm10', title: 'Daily Briefing', emoji: '\ud83d\udcf0',
+    difficulty: 'beginner', bandMin: 'A',
+    description: 'Agent gathers news + weather + calendar and presents a summary.',
+    requirements: ['Set briefing goal', 'Search 3 sources', 'Transform into summary', 'Present'],
+    requiredBlockTypes: ['goal', 'search', 'transform', 'done'],
+    minBlocks: 5, optimalBlocks: 7 },
+  { id: 'm11', title: 'Smart Shopper', emoji: '\ud83d\uded2',
+    difficulty: 'intermediate', bandMin: 'B',
+    description: 'Agent compares prices across stores, filters by budget, recommends best deal.',
+    requirements: ['Search prices', 'Filter by budget', 'Decide best deal'],
+    requiredBlockTypes: ['goal', 'search', 'filter', 'decide', 'done'],
+    minBlocks: 6, optimalBlocks: 7 },
+  { id: 'm12', title: 'Study Planner', emoji: '\ud83d\udcda',
+    difficulty: 'intermediate', bandMin: 'B',
+    description: 'Agent reviews subjects, transforms into schedule, loops until complete.',
+    requirements: ['List subjects', 'Transform to schedule', 'Loop until all covered', 'Verify'],
+    requiredBlockTypes: ['goal', 'tool', 'transform', 'loop', 'check', 'done'],
+    minBlocks: 7, optimalBlocks: 8 },
+  { id: 'm13', title: 'Bug Hunter', emoji: '\ud83d\udc1b',
+    difficulty: 'intermediate', bandMin: 'B',
+    description: 'Agent reads error log, searches solutions, validates fix works.',
+    requirements: ['Read errors', 'Search solutions', 'Validate fix', 'Report'],
+    requiredBlockTypes: ['goal', 'tool', 'search', 'validate', 'decide', 'done'],
+    minBlocks: 7, optimalBlocks: 8 },
+  { id: 'm14', title: 'Travel Planner', emoji: '\u2708\uFE0F',
+    difficulty: 'advanced', bandMin: 'B',
+    description: 'Agent books flights + hotels + activities in parallel, remembers preferences.',
+    requirements: ['Set destination', 'Parallel search flights/hotels/activities', 'Remember preferences', 'Transform into itinerary'],
+    requiredBlockTypes: ['goal', 'parallel', 'api-call', 'memory', 'transform', 'done'],
+    minBlocks: 8, optimalBlocks: 10 },
+  { id: 'm15', title: 'Content Creator', emoji: '\u270d\uFE0F',
+    difficulty: 'advanced', bandMin: 'B',
+    description: 'Agent researches, drafts, self-reviews, iterates until quality threshold met.',
+    requirements: ['Research topic', 'Draft content', 'Check quality', 'Loop until good', 'Validate format'],
+    requiredBlockTypes: ['goal', 'search', 'tool', 'check', 'loop', 'validate', 'done'],
+    minBlocks: 8, optimalBlocks: 10 },
+  { id: 'm16', title: 'Customer Support', emoji: '\ud83d\udcde',
+    difficulty: 'advanced', bandMin: 'C',
+    description: 'Agent triages request, searches KB, validates answer, escalates to human if unsure.',
+    requirements: ['Triage request', 'Search knowledge base', 'Validate answer', 'Escalate if needed', 'Notify user'],
+    requiredBlockTypes: ['goal', 'decide', 'search', 'validate', 'human', 'notify', 'done'],
+    minBlocks: 9, optimalBlocks: 11 },
+  { id: 'm17', title: 'Error Recovery', emoji: '\u26a0\uFE0F',
+    difficulty: 'advanced', bandMin: 'C',
+    description: 'Agent must handle API failures gracefully \u2014 retry, fallback, alert human.',
+    requirements: ['Make API call', 'Check for error', 'Loop for retry', 'Decide to escalate', 'Human fallback', 'Notify result'],
+    requiredBlockTypes: ['goal', 'api-call', 'check', 'loop', 'decide', 'human', 'notify', 'done'],
+    minBlocks: 10, optimalBlocks: 12 },
+  { id: 'm18', title: 'Autonomous Assistant', emoji: '\ud83e\udd16',
+    difficulty: 'advanced', bandMin: 'C',
+    description: 'Full personal assistant: email triage, calendar, task prioritization, notifications.',
+    requirements: ['Handle multiple inputs', 'Parallel processing', 'Memory for context', 'Validation', 'User notifications'],
+    requiredBlockTypes: ['goal', 'parallel', 'search', 'tool', 'memory', 'decide', 'loop', 'validate', 'notify', 'done'],
+    minBlocks: 12, optimalBlocks: 15 },
+];
+
+// ================================================================
+// Phase D2: Themed Mission Packs + Game Modes
+// ================================================================
+
+type AgentGameMode = 'mission' | 'sandbox' | 'debug' | 'replay';
+
+const _MISSION_PACKS = [
+  { id: 'kitchen', title: 'Kitchen Helper', emoji: '\ud83c\udf73',
+    missions: ['m9'], description: 'Meal planning + cooking agent', concept: 'Sequential reasoning' },
+  { id: 'homework', title: 'Homework Assistant', emoji: '\ud83d\udcda',
+    missions: ['m12'], description: 'Academic support agent', concept: 'Information retrieval' },
+  { id: 'game-designer', title: 'Game Designer', emoji: '\ud83c\udfae',
+    missions: ['m11'], description: 'Simple game creation', concept: 'Logic flows' },
+  { id: 'weather-reporter', title: 'Weather Reporter', emoji: '\u26c5',
+    missions: ['m10'], description: 'Data journalism agent', concept: 'Data pipelines' },
+  { id: 'pet-sitter', title: 'Pet Sitter', emoji: '\ud83d\udc3e',
+    missions: ['m13'], description: 'Virtual pet care agent', concept: 'Event-driven agents' },
+];
+
+// Debug mode: pre-built broken pipelines
+const _DEBUG_CHALLENGES = [
+  { id: 'dbg1', title: 'Missing Connection', description: 'Goal has no output \u2014 the pipeline is broken!', difficulty: 'easy' },
+  { id: 'dbg2', title: 'Infinite Loop', description: 'Loop has no exit condition \u2014 runs forever!', difficulty: 'medium' },
+  { id: 'dbg3', title: 'Wrong Order', description: 'Search comes after Done \u2014 it never executes!', difficulty: 'easy' },
+  { id: 'dbg4', title: 'Dead Branch', description: 'One Decide path leads nowhere.', difficulty: 'medium' },
+  { id: 'dbg5', title: 'Missing Validation', description: 'API result used without checking if it succeeded.', difficulty: 'hard' },
+  { id: 'dbg6', title: 'Memory Leak', description: 'Memory block stores but never reads \u2014 wasted work!', difficulty: 'medium' },
+  { id: 'dbg7', title: 'Parallel Deadlock', description: 'Two parallel paths depend on each other.', difficulty: 'hard' },
+  { id: 'dbg8', title: 'No Error Handling', description: 'API call with no Check/Decide for failures.', difficulty: 'medium' },
+  { id: 'dbg9', title: 'Orphan Blocks', description: 'Three blocks are not connected to anything.', difficulty: 'easy' },
+  { id: 'dbg10', title: 'Wrong Goal', description: 'Goal says one thing but pipeline does another.', difficulty: 'hard' },
 ];
 
 // ================================================================
@@ -366,16 +481,33 @@ function buildNarration(block: PlacedBlock): string {
 // ================================================================
 
 export function AgentArchitectGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  // PERF-HIGH-001 (C): useGameActions subscribes only to stable
+  // action references; avoids re-renders on score/phase/timer ticks.
+  const game = useGameActions();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('agent-architect', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('agent-architect', ageBand);
+  const { safeTimeout } = useSafeTimeout();
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   // Core state
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
   const [activeMissionId, setActiveMissionId] = useState<string | null>(null);
   const [completedMissions, setCompletedMissions] = useState<string[]>([]);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredMissions = useFilteredContent(MISSIONS as any[], tier, ageBand) as typeof MISSIONS;
+
+  // Phase D2: Game mode + sandbox/debug/replay state
+  const [_gameMode, _setGameMode] = useState<AgentGameMode>('mission');
+
+  // Phase F: AI-generated mission
+  const _aiMission = useAIContent('agent-architect', 'agent-mission', ageBand);
+  const [_activeDebugChallenge, _setActiveDebugChallenge] = useState<string | null>(null);
+  const [_replayStep, _setReplayStep] = useState(0);
+  const [_replayPlaying, _setReplayPlaying] = useState(false);
+  const [_sandboxTestInput, _setSandboxTestInput] = useState('');
+  const [_activePack, _setActivePack] = useState<string | null>(null);
 
   // Canvas state
   const [blocks, setBlocks] = useState<PlacedBlock[]>([]);
@@ -424,7 +556,7 @@ export function AgentArchitectGame() {
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   // P2: Audio integration
   const agentAudio = useAgentAudio();
-  const [soundEnabled, setSoundEnabled] = useState(false);
+  const [soundEnabled] = useState(false);
   // P4: CeremonyFX milestones
   const triggerCelebration = useUIStore((s) => s.triggerCelebration);
 
@@ -568,7 +700,7 @@ export function AgentArchitectGame() {
     const err = validate();
     if (err) {
       setValidationMsg(err);
-      setTimeout(() => setValidationMsg(null), 3000);
+      safeTimeout(() => setValidationMsg(null), 3000);
       return;
     }
 
@@ -595,7 +727,7 @@ export function AgentArchitectGame() {
       steps.push({ blockId: current, narration });
       setRunSteps([...steps]);
 
-      await new Promise(r => setTimeout(r, 1800));
+      await new Promise<void>(r => safeTimeout(r, 1800));
 
       visited.add(current);
       const outgoing = arrows.filter(a => a.fromId === current);
@@ -618,7 +750,7 @@ export function AgentArchitectGame() {
 
     setActiveRunBlock(current);
     setRunPath([...path]);
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise<void>(r => safeTimeout(r, 1200));
 
     // Report calculation
     const pathLen = path.length;
@@ -656,7 +788,7 @@ export function AgentArchitectGame() {
     game.completeGame();
     setIsRunning(false);
     setSpotlightPos(null);
-    setTimeout(() => setPhase('report'), 1500);
+    safeTimeout(() => setPhase('report'), 1500);
   }
 
   function resetCanvas() {
@@ -674,7 +806,7 @@ export function AgentArchitectGame() {
 
   return (
     <GameShell gameId="agent-architect" title="Agent Architect"
-      worldNumber={5} worldColor="#10B981" totalRounds={8}>
+      worldNumber={5} worldColor="#00D17A" totalRounds={8}>
       <div className="h-full flex flex-col relative overflow-hidden">
 
         {/* Particle Background */}
@@ -687,8 +819,8 @@ export function AgentArchitectGame() {
                 width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(16,185,129,${0.15 + p.size * 0.06}) 0%, transparent 70%)`,
               }}
-              animate={{ y: [0, -12 - p.size * 4, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12 - p.size * 4, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.duration, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
             />
           ))}
         </div>
@@ -714,8 +846,8 @@ export function AgentArchitectGame() {
                     className="flex-1 flex flex-col items-center justify-center p-6 text-center gap-5">
 
                     <motion.div
-                      animate={{ boxShadow: ['0 0 20px rgba(16,185,129,0.15)', '0 0 40px rgba(16,185,129,0.3)', '0 0 20px rgba(16,185,129,0.15)'] }}
-                      transition={{ duration: 3, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { boxShadow: ['0 0 20px rgba(16,185,129,0.15)', '0 0 40px rgba(16,185,129,0.3)', '0 0 20px rgba(16,185,129,0.15)'] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}
                       className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-emerald-500/20"
                       style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.02))' }}>
                       <Cpu className="w-4 h-4 text-emerald-400" />
@@ -755,7 +887,7 @@ export function AgentArchitectGame() {
 
                     <GraduationCap className="w-6 h-6 text-emerald-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">How AI Agents Work</h3>
-                    <p className="font-body text-xs text-white/40">{learnIdx + 1} of {LEARN_CARDS.length}</p>
+                    <p className="font-body text-xs text-white/70">{learnIdx + 1} of {LEARN_CARDS.length}</p>
 
                     <AnimatePresence mode="wait">
                       <motion.div key={learnIdx} initial={{ opacity: 0, x: 30 }}
@@ -781,7 +913,7 @@ export function AgentArchitectGame() {
                     </motion.button>
 
                     <button onClick={() => setPhase('missions')}
-                      className="font-body text-xs text-white/20 hover:text-white/40">
+                      className="font-body text-xs text-white/55 hover:text-white/70">
                       Skip to missions
                     </button>
                   </motion.div>
@@ -793,10 +925,15 @@ export function AgentArchitectGame() {
                     animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
                     className="p-4 md:p-6 space-y-4">
 
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={completedMissions.length} total={availableMissions.length} labColor="#00FF88" />
+                    </div>
+
                     <div className="text-center">
                       <Target className="w-6 h-6 text-emerald-400 mx-auto mb-2" />
                       <h3 className="font-display text-lg font-bold text-white">Choose Your Mission</h3>
-                      <p className="font-body text-xs text-white/40">
+                      <p className="font-body text-xs text-white/70">
                         {completedMissions.length} of {availableMissions.length} completed
                       </p>
                     </div>
@@ -822,12 +959,12 @@ export function AgentArchitectGame() {
                                   <p className="font-display text-sm font-bold text-white">{m.title}</p>
                                   {isComplete && <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />}
                                   {isLocked && (
-                                    <span className="text-2xs text-white/20">
+                                    <span className="text-2xs text-white/55">
                                       {'\ud83d\udd12'} Complete 4 missions
                                     </span>
                                   )}
                                 </div>
-                                <p className="font-body text-xs text-white/40 mt-0.5">{m.description}</p>
+                                <p className="font-body text-xs text-white/70 mt-0.5">{m.description}</p>
                               </div>
                             </div>
                             <div className="flex items-center gap-2 mt-2">
@@ -838,7 +975,7 @@ export function AgentArchitectGame() {
                               }`}>
                                 {m.difficulty}
                               </span>
-                              <span className="font-body text-2xs text-white/20">
+                              <span className="font-body text-2xs text-white/55">
                                 {m.requirements.length} requirements
                               </span>
                             </div>
@@ -860,10 +997,10 @@ export function AgentArchitectGame() {
                         <span className="text-lg">{mission.emoji}</span>
                         <div className="flex-1">
                           <span className="font-display text-xs font-bold text-emerald-400">{mission.title}</span>
-                          <span className="font-body text-2xs text-white/30 ml-2">{mission.description}</span>
+                          <span className="font-body text-2xs text-white/60 ml-2">{mission.description}</span>
                         </div>
                         <button onClick={() => setPhase('missions')}
-                          className="font-body text-2xs text-white/20 hover:text-white/40">
+                          className="font-body text-2xs text-white/55 hover:text-white/70">
                           Back
                         </button>
                       </div>
@@ -887,7 +1024,7 @@ export function AgentArchitectGame() {
                       {ageBand === 'C' && (
                         <button onClick={() => setShowCode(!showCode)}
                           className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-body text-xs ${
-                            showCode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-white/40'
+                            showCode ? 'bg-emerald-500/20 text-emerald-400' : 'bg-white/5 text-white/70'
                           }`}
                           aria-label="Toggle pseudocode view">
                           <Code2 className="w-3 h-3" /> Code
@@ -902,7 +1039,7 @@ export function AgentArchitectGame() {
                       </motion.button>
 
                       <button onClick={resetCanvas}
-                        className="text-white/20 hover:text-white/40 p-1.5"
+                        className="text-white/55 hover:text-white/70 p-1.5"
                         aria-label="Reset canvas">
                         <RotateCcw className="w-3.5 h-3.5" />
                       </button>
@@ -925,7 +1062,7 @@ export function AgentArchitectGame() {
                         <span className="font-body text-xs text-blue-400">
                           Click a block to connect...{' '}
                           <button onClick={() => setConnecting(null)}
-                            className="ml-2 text-white/30 hover:text-white/50">
+                            className="ml-2 text-white/60 hover:text-white/50">
                             Cancel
                           </button>
                         </span>
@@ -986,7 +1123,7 @@ export function AgentArchitectGame() {
                           className="mx-3 mb-2 overflow-hidden">
                           <div className="rounded-xl p-3" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
                             <div className="flex items-center gap-2 mb-2">
-                              <Settings2 className="w-3.5 h-3.5 text-white/40" />
+                              <Settings2 className="w-3.5 h-3.5 text-white/70" />
                               <span className="font-display text-xs font-bold text-white">
                                 Configure {selectedBlockData.type.label}
                               </span>
@@ -1018,7 +1155,7 @@ export function AgentArchitectGame() {
                                     className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
                                       selectedBlockData.config.tool === tool.id
                                         ? 'border-orange-500/30 bg-orange-500/10 text-orange-400'
-                                        : 'border-white/5 bg-white/[0.02] text-white/40 hover:bg-white/5'
+                                        : 'border-white/5 bg-white/[0.02] text-white/70 hover:bg-white/5'
                                     }`}>
                                     {tool.emoji} {tool.label}
                                   </button>
@@ -1035,7 +1172,7 @@ export function AgentArchitectGame() {
                                     className={`px-2.5 py-1.5 rounded-lg text-xs border transition-colors ${
                                       selectedBlockData.config.searchTarget === target.id
                                         ? 'border-blue-500/30 bg-blue-500/10 text-blue-400'
-                                        : 'border-white/5 bg-white/[0.02] text-white/40 hover:bg-white/5'
+                                        : 'border-white/5 bg-white/[0.02] text-white/70 hover:bg-white/5'
                                     }`}>
                                     {target.emoji} {target.label}
                                   </button>
@@ -1088,7 +1225,7 @@ export function AgentArchitectGame() {
                     <Award className="w-8 h-8 text-emerald-400" />
                     <h3 className="font-display text-xl font-bold text-white">Mission Report</h3>
                     {mission && (
-                      <p className="font-body text-xs text-white/40">{mission.emoji} {mission.title}</p>
+                      <p className="font-body text-xs text-white/70">{mission.emoji} {mission.title}</p>
                     )}
 
                     {/* Stars */}
@@ -1097,7 +1234,7 @@ export function AgentArchitectGame() {
                         <Star key={i} className={`w-8 h-8 ${
                           i <= reportData.stars
                             ? 'text-amber-400 fill-amber-400'
-                            : 'text-white/10'
+                            : 'text-white/50'
                         }`} />
                       ))}
                     </div>
@@ -1106,11 +1243,11 @@ export function AgentArchitectGame() {
                     <div className="flex gap-4 text-center">
                       <div>
                         <p className="font-display text-2xl font-bold text-emerald-400">{reportData.pathLen}</p>
-                        <p className="font-body text-2xs text-white/30">Steps</p>
+                        <p className="font-body text-2xs text-white/60">Steps</p>
                       </div>
                       <div>
                         <p className="font-display text-2xl font-bold text-emerald-400">{blocks.length}</p>
-                        <p className="font-body text-2xs text-white/30">Blocks</p>
+                        <p className="font-body text-2xs text-white/60">Blocks</p>
                       </div>
                       <div>
                         <p className={`font-display text-sm font-bold ${
@@ -1120,7 +1257,7 @@ export function AgentArchitectGame() {
                         }`}>
                           {reportData.efficiency}
                         </p>
-                        <p className="font-body text-2xs text-white/30">Efficiency</p>
+                        <p className="font-body text-2xs text-white/60">Efficiency</p>
                       </div>
                     </div>
 
@@ -1131,7 +1268,7 @@ export function AgentArchitectGame() {
                         return (
                           <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.02]">
                             <span className="text-xs">{b?.type.emoji}</span>
-                            <span className="font-body text-2xs text-white/40 flex-1">{step.narration}</span>
+                            <span className="font-body text-2xs text-white/70 flex-1">{step.narration}</span>
                             {step.decision && (
                               <span className={`text-2xs font-bold ${
                                 step.decision === 'yes' ? 'text-green-400' : 'text-red-400'
@@ -1149,7 +1286,7 @@ export function AgentArchitectGame() {
                       <div className="max-w-sm w-full rounded-xl p-3 border border-amber-500/20 bg-amber-500/5">
                         <p className="font-display text-xs font-bold text-amber-400">{'\ud83d\udca1'} Tips</p>
                         {reportData.tips.map((tip, i) => (
-                          <p key={i} className="font-body text-2xs text-white/40">{'\u2022'} {tip}</p>
+                          <p key={i} className="font-body text-2xs text-white/70">{'\u2022'} {tip}</p>
                         ))}
                       </div>
                     )}

@@ -5,8 +5,13 @@
 
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
-import { createServerSupabase } from '@/lib/supabase/server';
-import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  applyRateLimit,
+  requireAdmin,
+  sanitizeErrorMessage,
+} from '@/lib/api-helpers';
 import { runArchitectPipeline } from '@/lib/agent/architect-pipeline';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
@@ -21,25 +26,16 @@ const ArchitectRequestSchema = z.object({
 
 export async function POST(req: NextRequest) {
   // Rate limit (shares contentAgent limit — 2/hr)
-  const limited = applyRateLimit(req, 'architect-run', undefined, RATE_LIMITS.contentAgent);
+  const limited = await applyRateLimit(req, 'architect-run', undefined, RATE_LIMITS.contentAgent);
   if (limited) return limited;
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return apiError('Architect pipeline not configured. Add ANTHROPIC_API_KEY.', 503, 'AGENT_NOT_CONFIGURED');
   }
 
-  // Admin auth
-  const supabase = await createServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return apiError('Unauthorized', 401, 'AUTH_REQUIRED');
-
-  const { data: parent } = await supabase
-    .from('parents')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-
-  if (!parent?.is_admin) return apiError('Admin access required', 403, 'FORBIDDEN');
+  // API-CRIT-002 (8B): Centralized admin check via requireAdmin().
+  const auth = await requireAdmin(req);
+  if (!auth.success) return auth.response;
 
   // Parse body
   let body: z.infer<typeof ArchitectRequestSchema>;
@@ -63,7 +59,12 @@ export async function POST(req: NextRequest) {
     );
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    return apiError(`Architect pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): sanitize response; log full error server-side.
+    console.error('[agent/architect] pipeline failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Architect pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }

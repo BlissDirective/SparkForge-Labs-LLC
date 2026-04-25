@@ -8,37 +8,20 @@
 
 'use client';
 
-import { useState, useMemo, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Clock } from 'lucide-react';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
 
 // 3D Environment (no SSR)
 const TimeMachineEnvironment = dynamic(
@@ -46,7 +29,7 @@ const TimeMachineEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Milestone {
   id: string;
@@ -55,6 +38,7 @@ interface Milestone {
   desc: string;
   descC: string;
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_MILESTONES: Milestone[] = [
@@ -72,29 +56,52 @@ const ALL_MILESTONES: Milestone[] = [
   { id: 'm12', year: 2017, label: 'Transformer', desc: 'Architecture that powers modern AI', descC: '"Attention Is All You Need" introduces self-attention, replacing recurrence.', band: 'C' },
   { id: 'm13', year: 2023, label: 'GPT-4', desc: 'Multimodal AI sees images and text', descC: 'GPT-4 demonstrates multimodal reasoning across vision and language modalities.', band: 'C' },
   { id: 'm14', year: 2024, label: 'Claude', desc: 'Anthropic\'s helpful and harmless AI', descC: 'Claude demonstrates constitutional AI alignment with RLHF + CAI training.', band: 'C' },
+  { id: 'm15', year: 1943, label: 'McCulloch-Pitts Neurons', desc: 'Scientists created a math model of how brain cells work!', descC: 'Warren McCulloch and Walter Pitts published the first mathematical model of artificial neurons, founding computational neuroscience.', band: 'C' },
+  { id: 'm16', year: 1958, label: 'Perceptron Invented', desc: 'The first machine that could learn from examples!', descC: 'Frank Rosenblatt built the Mark I Perceptron, the first hardware implementation of a learning algorithm for binary classification.', band: 'B' },
+  { id: 'm17', year: 1965, label: 'ELIZA Chatbot', desc: 'A computer program that could chat like a therapist!', descC: 'Joseph Weizenbaum created ELIZA at MIT, demonstrating that simple pattern matching could create the illusion of understanding.', band: 'A' },
+  { id: 'm18', year: 1979, label: 'Stanford Cart', desc: 'A robot that could drive itself across a room!', descC: 'The Stanford Cart navigated a chair-filled room autonomously using stereo vision — taking 5 hours to cross 20 meters.', band: 'B' },
+  { id: 'm19', year: 1986, label: 'Backpropagation', desc: 'A clever way to teach neural networks by working backwards!', descC: 'Rumelhart, Hinton, and Williams popularized backpropagation, enabling efficient training of multi-layer neural networks.', band: 'C' },
+  { id: 'm20', year: 1995, label: 'Support Vector Machines', desc: 'A powerful way to sort things into groups!', descC: 'Vapnik and Cortes introduced SVMs with the kernel trick, dominating ML competitions for the next decade.', band: 'C' },
+  { id: 'm21', year: 2004, label: 'DARPA Grand Challenge', desc: 'Self-driving cars raced through the desert!', descC: 'DARPA Grand Challenge launched autonomous vehicle research. No car finished in 2004, but Stanley won in 2005 covering 132 miles.', band: 'B' },
+  { id: 'm22', year: 2009, label: 'ImageNet Created', desc: 'Scientists collected millions of labeled pictures for AI to learn from!', descC: 'Fei-Fei Li launched ImageNet with 14M+ images in 20K+ categories, creating the benchmark that would spark the deep learning revolution.', band: 'B' },
+  { id: 'm23', year: 2014, label: 'GANs Invented', desc: 'AI learned to create realistic fake images!', descC: 'Ian Goodfellow invented Generative Adversarial Networks — two neural networks competing to generate increasingly realistic synthetic data.', band: 'C' },
+  { id: 'm24', year: 2020, label: 'GPT-3 Released', desc: 'An AI that could write almost like a human!', descC: 'OpenAI released GPT-3 with 175B parameters, demonstrating few-shot learning and sparking the large language model era.', band: 'A' },
+  { id: 'm25', year: 2021, label: 'DALL-E Creates Art', desc: 'AI could now create pictures from text descriptions!', descC: 'OpenAI DALL-E demonstrated text-to-image generation, combining CLIP and diffusion models to create novel images from natural language.', band: 'A' },
+  { id: 'm26', year: 2023, label: 'GPT-4 Multimodal', desc: 'AI could now understand both text AND images together!', descC: 'GPT-4 achieved multimodal reasoning, passing the bar exam and demonstrating visual understanding alongside language capabilities.', band: 'A' },
+  { id: 'm27', year: 2024, label: 'AI Video Generation', desc: 'AI could create realistic videos from just a text description!', descC: 'Sora and other video models demonstrated temporal coherence in AI-generated video, raising both creative and ethical questions.', band: 'B' },
+  { id: 'm28', year: 2026, label: 'AI Agents Era', desc: 'AI assistants that can use tools and complete tasks independently!', descC: 'Autonomous AI agents capable of multi-step reasoning, tool use, and code execution become mainstream in software development and research.', band: 'A' },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
+const LEARN_CARDS = [
+  { title: 'The Story of AI', emoji: '📖', desc: 'Artificial Intelligence has been a dream of scientists for over 70 years! From the first computer programs to today\'s chatbots, AI has come a long way.' },
+  { title: 'Key Moments', emoji: '⭐', desc: 'Some moments changed everything — like when a computer first beat a chess champion, or when deep learning made machines see and speak.' },
+  { title: 'AI Keeps Growing', emoji: '🚀', desc: 'Every year, AI gets smarter and more useful. In this game, you\'ll place important AI milestones on a timeline to see how it all unfolded!' },
+];
 
 export function TimeMachineGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('time-machine', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('time-machine', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [placed, setPlaced] = useState<Map<string, number>>(new Map());
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<{ id: string; correct: boolean } | null>(null);
   const [streak, setStreak] = useState(0);
   const [celebrateSlot, setCelebrateSlot] = useState<number | null>(null);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredMilestones = useFilteredContent(ALL_MILESTONES, tier, ageBand);
+  const { safeTimeout } = useSafeTimeout();
   const animatedScore = useAnimatedCounter(game.score);
 
   const milestones = useMemo(
-    () => ALL_MILESTONES.filter(m => BAND_ORDER[m.band] <= BAND_ORDER[ageBand]).sort((a, b) => a.year - b.year),
-    [ageBand]
+    () => [...filteredMilestones].sort((a, b) => a.year - b.year),
+    [filteredMilestones]
   );
 
   const [trayCards, setTrayCards] = useState<Milestone[]>(() => {
@@ -110,6 +117,7 @@ export function TimeMachineGame() {
 
   useEffect(() => {
     setGameSceneContent(<TimeMachineEnvironment currentYear={slots[placed.size] || 2024} isPlacing={selectedCard !== null} />);
+    return () => setGameSceneContent(null);
   }, [placed.size, selectedCard, slots, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
@@ -132,29 +140,29 @@ export function TimeMachineGame() {
     if (correct) {
       setStreak(s => s + 1);
       setCelebrateSlot(slotYear);
-      setTimeout(() => setCelebrateSlot(null), 800);
+      safeTimeout(() => setCelebrateSlot(null), 800);
       setPlaced(prev => new Map(prev).set(card.id, slotYear));
       setTrayCards(prev => {
         const remaining = prev.filter(c => c.id !== card.id);
         if (remaining.length === 0) {
-          setTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
+          safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
         }
         return remaining;
       });
-      game.updateScore(12);
+      game.updateScore(10);
       game.advanceRound();
     } else {
       setStreak(0);
     }
     setSelectedCard(null);
 
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
     }, 2000);
   }
 
   return (
-    <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#00BBFF" totalRounds={milestones.length}>
+    <GameShell gameId="time-machine" title="Time Machine" worldNumber={1} worldColor="#0FB8FA" totalRounds={milestones.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -169,8 +177,8 @@ export function TimeMachineGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(0,187,255,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
             />
           ))}
         </div>
@@ -203,16 +211,16 @@ export function TimeMachineGame() {
                     >
                       <motion.span
                         className="text-5xl inline-block"
-                        animate={{ rotate: [0, 15, -15, 10, -10, 0] }}
-                        transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+                        animate={prefersReducedMotion ? {} : { rotate: [0, 15, -15, 10, -10, 0] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, repeatDelay: 1 }}
                       >
                         ⏰
                       </motion.span>
                       <motion.div
                         className="absolute -inset-3 rounded-full"
                         style={{ background: 'radial-gradient(circle, rgba(0,187,255,0.15), transparent)' }}
-                        animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       />
                     </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Time Machine welcome phase">Time Machine</h2>
@@ -230,7 +238,7 @@ export function TimeMachineGame() {
                       ))}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('play')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                       whileHover={{ scale: 1.02 }}
@@ -242,6 +250,31 @@ export function TimeMachineGame() {
                   </motion.div>
                 )}
 
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00BBFF]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0088CC)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
+                  </motion.div>
+                )}
+
                 {phase === 'play' && (
                   <motion.div
                     key="play"
@@ -249,10 +282,14 @@ export function TimeMachineGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={placed.size} total={milestones.length} labColor="#00BBFF" />
+                    </div>
                     {/* ENH: Visual progress bar */}
                     <div className="mb-3">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-body text-2xs text-white/30" role="status" aria-label={`${placed.size} of ${milestones.length} milestones placed`}>
+                        <span className="font-body text-2xs text-white/60" role="status" aria-label={`${placed.size} of ${milestones.length} milestones placed`}>
                           {placed.size}/{milestones.length} placed
                         </span>
                         {streak >= 2 && (
@@ -280,7 +317,7 @@ export function TimeMachineGame() {
                         />
                       </div>
                     </div>
-                    <p className="font-body text-xs text-white/30 mb-3 text-center">
+                    <p className="font-body text-xs text-white/60 mb-3 text-center">
                       Select a card, then tap the correct year on the timeline
                     </p>
 
@@ -306,7 +343,7 @@ export function TimeMachineGame() {
                               transition={celebrateSlot === year ? { duration: 0.6 } : undefined}
                               aria-label={`Timeline slot: ${year}`}
                             >
-                              <span className="font-mono text-2xs text-white/30">{year}</span>
+                              <span className="font-mono text-2xs text-white/60">{year}</span>
                               {placedMilestone && (
                                 <motion.div
                                   initial={{ scale: 0 }}
@@ -349,7 +386,7 @@ export function TimeMachineGame() {
                           {feedback.correct && (() => {
                             const m = milestones.find(ml => ml.id === feedback.id);
                             return m ? (
-                              <p className="font-body text-2xs text-white/40 mt-0.5">
+                              <p className="font-body text-2xs text-white/70 mt-0.5">
                                 {ageBand === 'C' ? m.descC : m.desc}
                               </p>
                             ) : null;
@@ -360,7 +397,7 @@ export function TimeMachineGame() {
 
                     {/* Card tray */}
                     <div className="border-t border-white/5 pt-3">
-                      <p className="font-body text-2xs text-white/20 mb-2">Cards to place:</p>
+                      <p className="font-body text-2xs text-white/55 mb-2">Cards to place:</p>
                       <div className="flex flex-wrap gap-2">
                         {trayCards.map(card => (
                           <motion.button
@@ -375,7 +412,7 @@ export function TimeMachineGame() {
                             aria-label={`Milestone card: ${card.label}`}
                           >
                             <p className="font-display text-xs font-bold text-white">{card.label}</p>
-                            <p className="font-body text-2xs text-white/30 mt-0.5">
+                            <p className="font-body text-2xs text-white/60 mt-0.5">
                               {ageBand === 'C' ? card.descC : card.desc}
                             </p>
                           </motion.button>
@@ -392,7 +429,7 @@ export function TimeMachineGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <motion.h2
                       className="font-display text-2xl font-bold text-white"
                       initial={{ opacity: 0, y: 10 }}
@@ -416,16 +453,16 @@ export function TimeMachineGame() {
                     >
                       <motion.p
                         className="font-data text-2xl text-[#00BBFF]"
-                        animate={{ textShadow: ['0 0 0px rgba(0,187,255,0)', '0 0 12px rgba(0,187,255,0.5)', '0 0 0px rgba(0,187,255,0)'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { textShadow: ['0 0 0px rgba(0,187,255,0)', '0 0 12px rgba(0,187,255,0.5)', '0 0 0px rgba(0,187,255,0)'] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI has a rich history spanning over 70 years of breakthroughs and setbacks</li>
                         <li>• Key milestones like the Turing Test, Deep Blue, and AlphaGo shaped how we think about machine intelligence</li>
                         <li>• Modern AI (transformers, large language models) builds on decades of earlier research and innovation</li>

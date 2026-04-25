@@ -7,7 +7,10 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import FocusTrap from 'focus-trap-react';
 import { Trophy, Star, Zap, ArrowRight } from 'lucide-react';
+// Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
+import { ConfettiEngine } from '@/components/shared/ConfettiEngine';
 
 interface CelebrationProps {
   show: boolean;
@@ -22,34 +25,17 @@ interface CelebrationProps {
   onContinue: () => void;
 }
 
-interface Confetto {
-  id: number;
-  x: number;
-  delay: number;
-  rotation: number;
-  color: string;
-  size: number;
-  drift: number;
-}
-
 export function GameCompleteCelebration({
   show, score, totalRounds, roundsCompleted, xpReward,
   worldColor, gameTitle, badge, personalBest, onContinue,
 }: CelebrationProps) {
   const [phase, setPhase] = useState<'burst' | 'stats' | 'badge'>('burst');
 
-  // Generate confetti
-  // TODO: Consider consolidating with CelebrationOverlay confetti system (src/components/shared/CelebrationOverlay.tsx)
-  const confetti = useMemo<Confetto[]>(() =>
-    Array.from({ length: 60 }, (_, i) => ({
-      id: i,
-      x: (i * 37 + 13) % 100,
-      delay: (i * 0.013) % 0.8,
-      rotation: (i * 47 % 720) - 360,
-      color: [worldColor, '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6'][i % 6],
-      size: (i * 3 % 8) + 4,
-      drift: ((i * 17 % 40) - 20),
-    })), [worldColor]
+  // Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
+  // Palette preserves the legacy per-game worldColor + rainbow mix.
+  const confettiColors = useMemo(
+    () => [worldColor, '#F59E0B', '#10B981', '#3B82F6', '#EC4899', '#8B5CF6'],
+    [worldColor]
   );
 
   // Phase progression
@@ -67,10 +53,14 @@ export function GameCompleteCelebration({
 
   return (
     <AnimatePresence>
+      {/* Phase 1 audit fix (Section 8.1): FocusTrap + Escape key dismiss */}
+      <FocusTrap focusTrapOptions={{ escapeDeactivates: true, onDeactivate: onContinue, allowOutsideClick: true }}>
       <motion.div
         className="fixed inset-0 z-[100] flex items-center justify-center"
         role="dialog"
         aria-modal="true"
+        aria-labelledby="game-complete-title"
+        onKeyDown={(e) => { if (e.key === 'Escape') onContinue(); }}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -82,34 +72,13 @@ export function GameCompleteCelebration({
           animate={{ opacity: 1 }}
         />
 
-        {/* Confetti layer */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          {confetti.map(c => (
-            <motion.div
-              key={c.id}
-              className="absolute rounded-sm"
-              style={{
-                left: `${c.x}%`,
-                top: -20,
-                width: c.size,
-                height: c.size * 0.6,
-                backgroundColor: c.color,
-              }}
-              initial={{ y: -20, rotate: 0, opacity: 1 }}
-              animate={{
-                y: 900,
-                rotate: c.rotation,
-                x: c.drift,
-                opacity: [1, 1, 0.8, 0],
-              }}
-              transition={{
-                duration: 3 + (c.id % 3),
-                delay: c.delay,
-                ease: [0.25, 0.1, 0.25, 1],
-              }}
-            />
-          ))}
-        </div>
+        {/* Confetti layer — Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine */}
+        <ConfettiEngine
+          count={60}
+          colors={confettiColors}
+          duration={3000}
+          show={show}
+        />
 
         {/* Content */}
         <motion.div
@@ -146,6 +115,7 @@ export function GameCompleteCelebration({
 
               {/* Title */}
               <motion.h2
+                id="game-complete-title"
                 className="font-display text-2xl font-black text-white mb-1"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -154,7 +124,7 @@ export function GameCompleteCelebration({
                 Game Complete!
               </motion.h2>
               <motion.p
-                className="font-body text-sm text-white/40 mb-4"
+                className="font-body text-sm text-white/70 mb-4"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.9 }}
@@ -177,7 +147,7 @@ export function GameCompleteCelebration({
                     transition={{ type: 'spring', delay: 1.0 + s * 0.2 }}
                   >
                     <Star
-                      className={`w-8 h-8 ${s <= stars ? 'text-amber-400 fill-amber-400' : 'text-white/10'}`}
+                      className={`w-8 h-8 ${s <= stars ? 'text-amber-400 fill-amber-400' : 'text-white/50'}`}
                     />
                   </motion.div>
                 ))}
@@ -193,17 +163,17 @@ export function GameCompleteCelebration({
                 <div className="rounded-xl p-2 bg-white/[0.03] border border-white/5">
                   <Zap className="w-4 h-4 mx-auto mb-1" style={{ color: worldColor }} />
                   <p className="font-display text-lg font-black text-white">{score}</p>
-                  <p className="font-body text-2xs text-white/30">SCORE</p>
+                  <p className="font-body text-2xs text-white/70">SCORE</p>
                 </div>
                 <div className="rounded-xl p-2 bg-white/[0.03] border border-white/5">
                   <Trophy className="w-4 h-4 mx-auto mb-1 text-amber-400" />
                   <p className="font-display text-lg font-black" style={{ color: worldColor }}>{xpReward}</p>
-                  <p className="font-body text-2xs text-white/30">XP EARNED</p>
+                  <p className="font-body text-2xs text-white/70">XP EARNED</p>
                 </div>
                 <div className="rounded-xl p-2 bg-white/[0.03] border border-white/5">
                   <Star className="w-4 h-4 mx-auto mb-1 text-amber-400" />
                   <p className="font-display text-lg font-black text-white">{accuracy}%</p>
-                  <p className="font-body text-2xs text-white/30">ACCURACY</p>
+                  <p className="font-body text-2xs text-white/70">ACCURACY</p>
                 </div>
               </motion.div>
 
@@ -235,7 +205,7 @@ export function GameCompleteCelebration({
                   <p className="font-display text-xs font-bold" style={{ color: worldColor }}>
                     Badge Earned!
                   </p>
-                  <p className="font-body text-xs text-white/40">{badge.title}</p>
+                  <p className="font-body text-xs text-white/70">{badge.title}</p>
                 </motion.div>
               )}
 
@@ -257,6 +227,7 @@ export function GameCompleteCelebration({
           </div>
         </motion.div>
       </motion.div>
+      </FocusTrap>
     </AnimatePresence>
   );
 }

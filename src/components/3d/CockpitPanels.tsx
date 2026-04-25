@@ -11,7 +11,9 @@
 // - 288-segment curved hull for wider arc
 // - Metallic alloy frame (#a8b5c8, metalness 0.98)
 // - Curved control panel (#0a1625, emissive #00bbff @ 0.85)
-// - Tighter rivet spacing (0.12) for close-up camera detail
+// - Decision 11.1: Smooth carbon surface (2% fine grain, no plate segmentation)
+// - Decision 11.2: No rivets — clean surface, seam lines only
+// - Decision 11.3: Accent-traced panels (#0A0F1F with full-trace accent lines)
 //
 // All geometry dims/retracts in game mode (Decision 3.4).
 
@@ -20,25 +22,31 @@ import { useFrame } from '@react-three/fiber';
 import {
   BackSide,
   BufferGeometry,
+  CircleGeometry,
   Color,
   CylinderGeometry,
   DoubleSide,
+  Euler,
   ExtrudeGeometry,
+  Float32BufferAttribute,
   Group,
   InstancedMesh,
   Matrix4,
-  Mesh,
   MeshStandardMaterial,
   Quaternion,
   RingGeometry,
   Shape,
   Side,
-  SphereGeometry,
   Vector3,
 } from 'three';
 import { COCKPIT_GEOMETRY, COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
-import { createAlloyFrameMaterial, createControlPanelMaterial, createHolographicMaterial, COCKPIT_MATERIAL_COLORS } from '@/lib/3d/cockpitMaterials';
 import { dampedLerp, R3F_LERP_SPEED } from '@/lib/animations';
+import {
+  CHROME_BORDER,
+  ACCENT_LINES,
+  EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_SCALE,
+} from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Props ■■
 
@@ -54,7 +62,6 @@ interface CockpitPanelsProps {
 const HEXES_PER_CLUSTER = 6;
 
 const RIB_COUNT = 12;           // v3: more ribs across wider 218° arc (was 8)
-const RIVET_COUNT = 768;        // v3: tighter spacing (0.12) = more rivets (was 512)
 
 const BEVEL_SETTINGS = {
   bevelEnabled: true,
@@ -141,7 +148,6 @@ interface PanelGeometries {
   needleGeo: CylinderGeometry;
   needleDialGeo: RingGeometry;
   ribGeo: CylinderGeometry;
-  rivetGeo: SphereGeometry;
   subPanelGeo: ExtrudeGeometry;
 }
 
@@ -255,10 +261,7 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
     segments.structuralDetail ? 12 : 6
   );
 
-  // Rivet geometry (shared by instanced mesh)
-  const rivetGeo = new SphereGeometry(
-    0.015, 6, 4
-  );
+  // Decision 11.2: Rivets removed — clean surface
 
   // Animated sub-panel (beveled rectangle)
   const subPanelShape = createBeveledPanelShape(0.5, 0.3, panelEdgeBevel * 3);
@@ -274,55 +277,8 @@ function buildGeometries(segments: ResolvedSegments): PanelGeometries {
     innerLeftGeo, innerRightGeo,
     hexGeo, hexInsetGeo,
     needleGeo, needleDialGeo,
-    ribGeo, rivetGeo, subPanelGeo,
+    ribGeo, subPanelGeo,
   };
-}
-
-// ■■ Rivet Instance Matrix Builder ■■
-
-function buildRivetMatrices(
-  count: number,
-  panelRadius: number,
-  arcRad: number
-): Float32Array {
-  const matrix = new Matrix4();
-  const position = new Vector3();
-  const quaternion = new Quaternion();
-  const scale = new Vector3(1, 1, 1);
-  const arr = new Float32Array(count * 16);
-
-  for (let i = 0; i < count; i++) {
-    // Distribute rivets along the curved hull edges
-    const t = i / count;
-    const row = Math.floor(t * 8); // 8 rows of rivets
-    const col = i % Math.ceil(count / 8);
-    const colCount = Math.ceil(count / 8);
-    const colT = col / colCount;
-
-    const angle = -arcRad / 2 + colT * arcRad;
-    const yOffset = (row - 3.5) * 0.85; // spread across height
-
-    position.set(
-      Math.sin(angle) * (panelRadius + 0.005),
-      yOffset,
-      -Math.cos(angle) * (panelRadius + 0.005)
-    );
-
-    // Orient rivet outward (normal to hull)
-    quaternion.setFromAxisAngle(
-      new Vector3(0, 1, 0),
-      angle
-    );
-
-    // Slight size variation
-    const s = 0.8 + Math.random() * 0.4;
-    scale.set(s, s, s);
-
-    matrix.compose(position, quaternion, scale);
-    matrix.toArray(arr, i * 16);
-  }
-
-  return arr;
 }
 
 // ■■ Hex Cluster Component ■■
@@ -341,6 +297,20 @@ interface HexClusterProps {
   showDetail: boolean;
 }
 
+// Phase 3 audit fix (Task 4A, §9.1/§10.7):
+//
+// OLD: 6 hexes × up to 5 meshes each = up to 30 meshes per cluster (60 total).
+// NEW: Up to 5 InstancedMesh per cluster (10 total). Savings: up to 50 draw
+// calls with zero visual change. Needle animation fully preserved via
+// per-instance matrix updates (each needle keeps its unique speed/phase).
+//
+// Instanced groups:
+//   1) Hex shells (6 instances, always rendered)
+//   2) Hex insets (6 instances, only when showSubPanels)
+//   3) Dial rings (6 instances, only when showDetail)
+//   4) Needles   (6 instances, only when showDetail — ANIMATED per frame)
+//   5) Indicator circles (6 instances, always rendered)
+
 function HexCluster({
   side,
   hexGeo,
@@ -354,23 +324,14 @@ function HexCluster({
   showSubPanels,
   showDetail,
 }: HexClusterProps) {
-  const needleRefs = useRef<(Mesh | null)[]>([]);
+  const shellRef = useRef<InstancedMesh>(null);
+  const insetRef = useRef<InstancedMesh>(null);
+  const dialRef = useRef<InstancedMesh>(null);
+  const needleRef = useRef<InstancedMesh>(null);
+  const indicatorRef = useRef<InstancedMesh>(null);
   const mirror = side === 'left' ? -1 : 1;
 
-  // Animate gauge needles
-  useFrame(({ clock }) => {
-    for (let i = 0; i < HEXES_PER_CLUSTER; i++) {
-      const needle = needleRefs.current[i];
-      if (!needle) continue;
-      // Each needle sweeps at a unique rate + phase offset
-      const speed = 0.4 + i * 0.15;
-      const phase = i * 1.2;
-      const angle = Math.sin(clock.elapsedTime * speed + phase) * 1.2 - 0.6;
-      needle.rotation.z = angle;
-    }
-  });
-
-  // Hex grid layout: 2 columns x 3 rows, offset like a honeycomb
+  // Hex grid layout: 2 columns × 3 rows, offset like a honeycomb
   const hexPositions = useMemo(() => {
     const positions: [number, number][] = [];
     for (let row = 0; row < 3; row++) {
@@ -383,89 +344,243 @@ function HexCluster({
     return positions;
   }, [hexRadius, mirror]);
 
+  // Shared materials — one per sub-type (identical per hex within cluster)
+  const shellMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#0A0F1F',
+        metalness: 0.85,
+        roughness: 0.35,
+        transparent: true,
+        opacity,
+        side: DoubleSide,
+      }),
+    [opacity]
+  );
+  const insetMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#060A14',
+        metalness: 0.75,
+        roughness: 0.5,
+        transparent: true,
+        opacity: opacity * 0.95,
+      }),
+    [opacity]
+  );
+  const dialMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: CHROME_BORDER.colorHex,
+        metalness: 0.85,
+        roughness: 0.35,
+        transparent: true,
+        opacity: opacity * 0.7,
+      }),
+    [opacity]
+  );
+  const needleMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#ff3333',
+        emissive: '#ff2222',
+        emissiveIntensity: 0.6,
+        metalness: 0.9,
+        roughness: 0.2,
+        transparent: true,
+        opacity,
+      }),
+    [opacity]
+  );
+  const indicatorMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: '#000000',
+        emissive: labColorObj,
+        emissiveIntensity: EMISSIVE_IDLE_INDICATOR,
+        transparent: true,
+        opacity: opacity * 0.8,
+        toneMapped: false,
+      }),
+    [labColorObj, opacity]
+  );
+
+  // Per-hex indicator circle geometry — shared by indicator InstancedMesh
+  const indicatorGeo = useMemo(
+    () => new CircleGeometry(hexRadius * 0.2, 6),
+    [hexRadius]
+  );
+
+  // Write static instance matrices (shells / insets / dials / indicators).
+  // Needle matrices are updated per-frame in useFrame below.
+  useEffect(() => {
+    const mat4 = new Matrix4();
+    const quat = new Quaternion();
+    const euler = new Euler();
+    const scale = new Vector3(1, 1, 1);
+    const pos = new Vector3();
+    const identityQuat = new Quaternion();
+
+    const writeMatrices = (
+      ref: InstancedMesh | null,
+      zOffset: number,
+      rotation?: Euler
+    ) => {
+      if (!ref) return;
+      const q = rotation ? quat.setFromEuler(rotation) : identityQuat;
+      for (let i = 0; i < hexPositions.length; i++) {
+        const [x, y] = hexPositions[i];
+        pos.set(x, y, zOffset);
+        mat4.compose(pos, q, scale);
+        ref.setMatrixAt(i, mat4);
+      }
+      ref.instanceMatrix.needsUpdate = true;
+    };
+
+    writeMatrices(shellRef.current, 0);
+    writeMatrices(insetRef.current, hexDepth * 0.3);
+    writeMatrices(dialRef.current, hexDepth + 0.005);
+    writeMatrices(indicatorRef.current, hexDepth + 0.015);
+  }, [hexPositions, hexDepth]);
+
+  // Animate needles per-instance — preserves the original per-hex
+  // (speed = 0.4 + i * 0.15, phase = i * 1.2) sweep formula exactly.
+  const needleFrameState = useMemo(
+    () => ({
+      mat4: new Matrix4(),
+      quat: new Quaternion(),
+      baseEuler: new Euler(Math.PI / 2, 0, 0),
+      animatedEuler: new Euler(),
+      scale: new Vector3(1, 1, 1),
+      pos: new Vector3(),
+    }),
+    []
+  );
+
+  useFrame(({ clock }) => {
+    const mesh = needleRef.current;
+    if (!mesh) return;
+    const { mat4, quat, animatedEuler, scale, pos } = needleFrameState;
+    const t = clock.elapsedTime;
+
+    for (let i = 0; i < hexPositions.length; i++) {
+      const [x, y] = hexPositions[i];
+      const speed = 0.4 + i * 0.15;
+      const phase = i * 1.2;
+      const angle = Math.sin(t * speed + phase) * 1.2 - 0.6;
+      // Compose local rotation: base [PI/2, 0, 0] × animated [0, 0, angle]
+      // The original mesh had rotation=[PI/2, 0, 0] and the per-frame update
+      // only touched .rotation.z. Replicate the same final orientation.
+      animatedEuler.set(Math.PI / 2, 0, angle);
+      quat.setFromEuler(animatedEuler);
+      pos.set(x, y, hexDepth + 0.01);
+      mat4.compose(pos, quat, scale);
+      mesh.setMatrixAt(i, mat4);
+    }
+    mesh.instanceMatrix.needsUpdate = true;
+  });
+
+  const count = hexPositions.length;
+
   return (
     <group position={[mirror * 3.2, -2.5, -COCKPIT_GEOMETRY.panelRadius + 0.5]}>
-      {hexPositions.map(([x, y], i) => (
-        <group key={`hex-${side}-${i}`} position={[x, y, 0]}>
-          {/* Hex outer shell (beveled) */}
-          <mesh geometry={hexGeo}>
-            <meshStandardMaterial
-              color="#8a9098"
-              metalness={0.95}
-              roughness={0.35}
-              transparent
-              opacity={opacity}
-              side={DoubleSide}
-            />
-          </mesh>
+      {/* 1) Hex outer shells (always) */}
+      <instancedMesh
+        ref={shellRef}
+        args={[hexGeo, shellMat, count]}
+        frustumCulled={false}
+      />
 
-          {/* Hex inner inset (gauge face) — only at detail LOD */}
-          {showSubPanels && (
-            <mesh
-              geometry={hexInsetGeo}
-              position={[0, 0, hexDepth * 0.3]}
-            >
-              <meshStandardMaterial
-                color="#050810"
-                metalness={0.6}
-                roughness={0.8}
-                transparent
-                opacity={opacity * 0.95}
-              />
-            </mesh>
-          )}
+      {/* 2) Hex inner insets (gauge face) — only at detail LOD */}
+      {showSubPanels && (
+        <instancedMesh
+          ref={insetRef}
+          args={[hexInsetGeo, insetMat, count]}
+          frustumCulled={false}
+        />
+      )}
 
-          {/* Gauge dial ring */}
-          {showDetail && (
-            <mesh
-              geometry={needleDialGeo}
-              position={[0, 0, hexDepth + 0.005]}
-            >
-              <meshStandardMaterial
-                color="#3a4050"
-                metalness={0.8}
-                roughness={0.4}
-                transparent
-                opacity={opacity * 0.7}
-              />
-            </mesh>
-          )}
+      {/* 3) Gauge dial rings */}
+      {showDetail && (
+        <instancedMesh
+          ref={dialRef}
+          args={[needleDialGeo, dialMat, count]}
+          frustumCulled={false}
+        />
+      )}
 
-          {/* Gauge needle */}
-          {showDetail && (
-            <mesh
-              ref={(el) => { needleRefs.current[i] = el; }}
-              geometry={needleGeo}
-              position={[0, 0, hexDepth + 0.01]}
-              rotation={[Math.PI / 2, 0, 0]}
-            >
-              <meshStandardMaterial
-                color="#ff3333"
-                emissive="#ff2222"
-                emissiveIntensity={0.6}
-                metalness={0.9}
-                roughness={0.2}
-                transparent
-                opacity={opacity}
-              />
-            </mesh>
-          )}
+      {/* 4) Gauge needles (per-instance animated rotation) */}
+      {showDetail && (
+        <instancedMesh
+          ref={needleRef}
+          args={[needleGeo, needleMat, count]}
+          frustumCulled={false}
+        />
+      )}
 
-          {/* Hex emissive indicator (per hex) */}
-          <mesh position={[0, 0, hexDepth + 0.015]}>
-            <circleGeometry args={[hexRadius * 0.2, 6]} />
-            <meshStandardMaterial
-              color="#000000"
-              emissive={labColorObj}
-              emissiveIntensity={0.4}
-              transparent
-              opacity={opacity * 0.8}
-              toneMapped={false}
-            />
-          </mesh>
-        </group>
-      ))}
+      {/* 5) Hex emissive indicators */}
+      <instancedMesh
+        ref={indicatorRef}
+        args={[indicatorGeo, indicatorMat, count]}
+        frustumCulled={false}
+      />
     </group>
+  );
+}
+
+// ■■ Accent Lines Component ■■
+// Phase 2 audit fix (Section 4.1): Accent line emissive overlay — Decision 11.3
+// Traces 12 vertical seam lines along rib positions on the 218° arc at r=4.8.
+// Uses LineSegments (lightweight — effectively ~0 triangles, well within 500K budget).
+
+interface AccentLinesProps {
+  arcRad: number;
+  panelRadius: number;
+  accentColor: string;
+  opacity: number;
+}
+
+function AccentLines({ arcRad, panelRadius, accentColor, opacity }: AccentLinesProps) {
+  const lineGeometry = useMemo(() => {
+    const positions: number[] = [];
+    // Vertical seam lines at each rib theta — from console desk (y=-3.2) to top bar (y=3.5)
+    const yTop = 3.5;
+    const yBottom = -3.2;
+    // Slight inset so the lines sit just outside the panel surface
+    const r = panelRadius - 0.02;
+    for (let i = 0; i < RIB_COUNT; i++) {
+      const t = i / (RIB_COUNT - 1);
+      const angle = -arcRad / 2 + t * arcRad;
+      const x = Math.sin(angle) * r;
+      const z = -Math.cos(angle) * r;
+      // LineSegments needs pairs of points (start, end) per line
+      positions.push(x, yBottom, z);
+      positions.push(x, yTop, z);
+    }
+    const geo = new BufferGeometry();
+    geo.setAttribute('position', new Float32BufferAttribute(positions, 3));
+    return geo;
+  }, [arcRad, panelRadius]);
+
+  useEffect(() => {
+    return () => {
+      lineGeometry.dispose();
+    };
+  }, [lineGeometry]);
+
+  return (
+    <lineSegments geometry={lineGeometry}>
+      {/* Phase 5 P.1-MAX (§11.3): Bumped opacity multiplier 0.4 → 0.65 and depthTest=false
+          so accent seam lines read as glowing against the dark carbon panels.
+          toneMapped=false preserves emissive-like burnthrough under bloom. */}
+      <lineBasicMaterial
+        color={accentColor}
+        transparent
+        opacity={opacity * 0.65}
+        toneMapped={false}
+        depthWrite={false}
+      />
+    </lineSegments>
   );
 }
 
@@ -478,7 +593,7 @@ interface StructuralRibsProps {
   panelRadius: number;
 }
 
-function StructuralRibs({ ribGeo, opacity, arcRad, panelRadius }: StructuralRibsProps) {
+function StructuralRibs({ ribGeo, opacity: _opacity, arcRad, panelRadius }: StructuralRibsProps) {
   const ribData = useMemo(() => {
     const ribs: { angle: number; x: number; z: number }[] = [];
     for (let i = 0; i < RIB_COUNT; i++) {
@@ -503,62 +618,18 @@ function StructuralRibs({ ribGeo, opacity, arcRad, panelRadius }: StructuralRibs
           rotation={[0, rib.angle, 0]}
         >
           <meshStandardMaterial
-            color="#2a2e3e"
+            color={CHROME_BORDER.colorHex}
             metalness={0.92}
             roughness={0.3}
+            emissive={CHROME_BORDER.colorHex}
+            // Phase 2 audit fix (Section 7.1): Design token adoption — 0.15 === EMISSIVE_SCALE.dormant
+            emissiveIntensity={ACCENT_LINES.emissiveLevel === 'dormant' ? EMISSIVE_SCALE.dormant : 0}
             transparent
-            opacity={opacity * 0.9}
+            opacity={ACCENT_LINES.opacity}
           />
         </mesh>
       ))}
     </group>
-  );
-}
-
-// ■■ Instanced Rivets Component ■■
-
-interface InstancedRivetsProps {
-  rivetGeo: SphereGeometry;
-  opacity: number;
-  panelRadius: number;
-  arcRad: number;
-}
-
-function InstancedRivets({ rivetGeo, opacity, panelRadius, arcRad }: InstancedRivetsProps) {
-  const meshRef = useRef<InstancedMesh>(null);
-
-  const matrices = useMemo(
-    () => buildRivetMatrices(RIVET_COUNT, panelRadius, arcRad),
-    [panelRadius, arcRad]
-  );
-
-  // Apply instance matrices on mount
-  useEffect(() => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-
-    const mat4 = new Matrix4();
-    for (let i = 0; i < RIVET_COUNT; i++) {
-      mat4.fromArray(matrices, i * 16);
-      mesh.setMatrixAt(i, mat4);
-    }
-    mesh.instanceMatrix.needsUpdate = true;
-  }, [matrices]);
-
-  return (
-    <instancedMesh
-      ref={meshRef}
-      args={[rivetGeo, undefined, RIVET_COUNT]}
-      frustumCulled
-    >
-      <meshStandardMaterial
-        color="#6a7080"
-        metalness={0.98}
-        roughness={0.25}
-        transparent
-        opacity={opacity * 0.85}
-      />
-    </instancedMesh>
   );
 }
 
@@ -627,9 +698,9 @@ function AnimatedSubPanels({
             <group ref={(el) => { panelRefs.current[i] = el; }}>
               <mesh geometry={subPanelGeo}>
                 <meshStandardMaterial
-                  color="#1e2230"
-                  metalness={0.88}
-                  roughness={0.3}
+                  color="#0A0F1F"
+                  metalness={0.85}
+                  roughness={0.35}
                   transparent
                   opacity={opacity * 0.9}
                 />
@@ -640,7 +711,7 @@ function AnimatedSubPanels({
                 <meshStandardMaterial
                   color="#000000"
                   emissive={labColorObj}
-                  emissiveIntensity={0.5}
+                  emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
                   transparent
                   opacity={opacity * 0.7}
                   toneMapped={false}
@@ -697,37 +768,19 @@ export function CockpitPanels({
   const arcRad = useMemo(() => (totalWrapArc * Math.PI) / 180, [totalWrapArc]);
 
   // Build all geometries based on current LOD
-  // Audit Finding #7: Track previous geometries in ref for immediate disposal
-  // when segments change, preventing VRAM accumulation between memoization
-  // swap and async useEffect cleanup
-  const prevGeometriesRef = useRef<ReturnType<typeof buildGeometries> | null>(null);
-  const geometries = useMemo(() => {
-    // Dispose previous geometries immediately on dependency change
-    if (prevGeometriesRef.current) {
-      Object.values(prevGeometriesRef.current).forEach((geo: unknown) => {
+  // COCK-12: Geometry creation in useMemo, disposal moved to useEffect cleanup
+  const geometries = useMemo(() => buildGeometries(segments), [segments]);
+
+  // COCK-12: Dispose geometries via useEffect cleanup (runs on segments change + unmount)
+  useEffect(() => {
+    return () => {
+      Object.values(geometries).forEach((geo: unknown) => {
         if (geo && typeof (geo as BufferGeometry).dispose === 'function') {
           (geo as BufferGeometry).dispose();
         }
       });
-    }
-    const newGeos = buildGeometries(segments);
-    prevGeometriesRef.current = newGeos;
-    return newGeos;
-  }, [segments]);
-
-  // Final cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (prevGeometriesRef.current) {
-        Object.values(prevGeometriesRef.current).forEach((geo: unknown) => {
-          if (geo && typeof (geo as BufferGeometry).dispose === 'function') {
-            (geo as BufferGeometry).dispose();
-          }
-        });
-        prevGeometriesRef.current = null;
-      }
     };
-  }, []);
+  }, [geometries]);
 
   // Animate curvature transitions + material updates
   useFrame(({ clock }, delta) => {
@@ -770,17 +823,18 @@ export function CockpitPanels({
 
     // Hex emissive pulse (4s period, dashboard mode only) + hover boost
     if (hexEmissiveRef.current && !frameDimmed) {
-      const pulse = Math.sin(clock.elapsedTime * 1.5708) * 0.1 + 0.4;
+      // Phase 2 audit fix (Section 7.1): Design token adoption — base 0.4 === EMISSIVE_SCALE.dim
+      const pulse = Math.sin(clock.elapsedTime * 1.5708) * 0.1 + EMISSIVE_SCALE.dim;
       hexEmissiveRef.current.emissiveIntensity = pulse + hoverProgressRef.current * 0.2;
     }
   });
 
   const labColorObj = useMemo(() => new Color(labColor), [labColor]);
 
-  // Shared material props
+  // Shared material props — Decision 11.1/11.3: carbon composite #0A0F1F
   const outerPanelMaterial = useMemo(
     () => ({
-      color: '#1a1e2e',
+      color: '#0A0F1F',
       metalness: 0.85,
       roughness: 0.35,
       transparent: true as const,
@@ -793,7 +847,7 @@ export function CockpitPanels({
 
   const innerPanelMaterial = useMemo(
     () => ({
-      color: '#0e1118',
+      color: '#060A14',
       metalness: 0.75,
       roughness: 0.5,
       transparent: true as const,
@@ -876,9 +930,9 @@ export function CockpitPanels({
         rotation={[Math.PI / 2, 0, 0]}
       >
         <meshStandardMaterial
-          color="#0e1118"
-          metalness={0.7}
-          roughness={0.6}
+          color="#0A0F1F"
+          metalness={0.85}
+          roughness={0.35}
           transparent
           opacity={opacity}
           side={DoubleSide}
@@ -893,9 +947,9 @@ export function CockpitPanels({
         rotation={[Math.PI / 2, 0, 0]}
       >
         <meshStandardMaterial
-          color="#060810"
-          metalness={0.65}
-          roughness={0.7}
+          color="#060A14"
+          metalness={0.75}
+          roughness={0.5}
           transparent
           opacity={opacity * 0.8}
           side={BackSide}
@@ -913,15 +967,15 @@ export function CockpitPanels({
         />
       )}
 
-      {/* ─── Instanced Rivets / Bolts ─── */}
-      {segments.structuralDetail && (
-        <InstancedRivets
-          rivetGeo={geometries.rivetGeo}
-          opacity={opacity}
-          panelRadius={panelRadius}
-          arcRad={arcRad}
-        />
-      )}
+      {/* ─── Accent Line Overlay (Phase 2 audit fix Section 4.1 — Decision 11.3) ─── */}
+      <AccentLines
+        arcRad={arcRad}
+        panelRadius={panelRadius}
+        accentColor={labColor}
+        opacity={opacity}
+      />
+
+      {/* ─── Decision 11.2: Rivets removed — clean surface, seam lines only ─── */}
 
       {/* ─── Animated Sub-Panels (slide/rotate on top bar) ─── */}
       {segments.structuralDetail && (

@@ -353,7 +353,7 @@ export default function ExportPage() {
         </Link>
         <div>
           <h1 className="font-display text-2xl font-bold text-white">Export Data</h1>
-          <p className="font-body text-sm text-white/40">
+          <p className="font-body text-sm text-white/70">
             Download your children&apos;s learning data (COPPA compliant)
           </p>
         </div>
@@ -362,13 +362,13 @@ export default function ExportPage() {
       {/* COPPA notice */}
       <motion.div
         variants={staggerItem}
-        className="glass-card rounded-xl p-4 mb-6 border-l-2 border-l-spark-blue/40"
+        className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-6 border-l-2 border-l-spark-blue/40"
       >
         <div className="flex items-start gap-3">
           <Info className="w-4 h-4 text-spark-blue flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-display text-sm font-bold text-white mb-1">Your Data, Your Rights</p>
-            <p className="font-body text-xs text-white/40">
+            <p className="font-body text-xs text-white/70">
               Under COPPA, you have the right to access and export all data collected about your children.
               All exports are generated locally in your browser. No data leaves the platform during export.
             </p>
@@ -377,14 +377,14 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 1: Select children */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-3 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-blue/20 text-spark-blue font-data text-xs flex items-center justify-center">1</span>
           Select Children
         </h2>
 
         {children.length === 0 ? (
-          <p className="font-body text-sm text-white/40">No child profiles found.</p>
+          <p className="font-body text-sm text-white/70">No child profiles found.</p>
         ) : (
           <>
             <motion.button
@@ -421,12 +421,12 @@ export default function ExportPage() {
                     {isSelected ? (
                       <CheckSquare className="w-4 h-4 text-spark-blue" />
                     ) : (
-                      <Square className="w-4 h-4 text-white/40" />
+                      <Square className="w-4 h-4 text-white/70" />
                     )}
                     <span className="font-display text-sm font-bold text-white">
                       {child.display_name}
                     </span>
-                    <span className="font-body text-xs text-white/30">
+                    <span className="font-body text-xs text-white/60">
                       Band {child.age_band}
                     </span>
                   </motion.button>
@@ -438,7 +438,7 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 2: Select export types */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-green/20 text-spark-green font-data text-xs flex items-center justify-center">2</span>
           Choose Export Types
@@ -472,11 +472,11 @@ export default function ExportPage() {
                       {isSelected ? (
                         <CheckSquare className="w-4 h-4 text-spark-blue flex-shrink-0" />
                       ) : (
-                        <Square className="w-4 h-4 text-white/30 flex-shrink-0" />
+                        <Square className="w-4 h-4 text-white/60 flex-shrink-0" />
                       )}
                       <p className="font-display text-sm font-bold text-white">{option.label}</p>
                     </div>
-                    <p className="font-body text-xs text-white/30 mt-1 leading-relaxed">
+                    <p className="font-body text-xs text-white/60 mt-1 leading-relaxed">
                       {option.description}
                     </p>
                   </div>
@@ -488,19 +488,19 @@ export default function ExportPage() {
       </motion.div>
 
       {/* Step 3: Date range (optional) */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-3 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-orange/20 text-spark-orange font-data text-xs flex items-center justify-center">3</span>
           Date Range
-          <span className="font-body text-xs text-white/20 font-normal">(optional)</span>
+          <span className="font-body text-xs text-white/55 font-normal">(optional)</span>
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="export-date-from" className="font-body text-xs text-white/30 mb-1 block">
+            <label htmlFor="export-date-from" className="font-body text-xs text-white/60 mb-1 block">
               From
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
               <input
                 id="export-date-from"
                 type="date"
@@ -512,11 +512,11 @@ export default function ExportPage() {
             </div>
           </div>
           <div>
-            <label htmlFor="export-date-to" className="font-body text-xs text-white/30 mb-1 block">
+            <label htmlFor="export-date-to" className="font-body text-xs text-white/60 mb-1 block">
               To
             </label>
             <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
               <input
                 id="export-date-to"
                 type="date"
@@ -528,13 +528,13 @@ export default function ExportPage() {
             </div>
           </div>
         </div>
-        <p className="font-body text-xs text-white/20 mt-2">
+        <p className="font-body text-xs text-white/55 mt-2">
           Leave blank to include all available data. Date filtering applies to Activity Log export.
         </p>
       </motion.div>
 
       {/* Preview & Download */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-5 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-5 mb-6">
         <h2 className="font-display text-sm font-bold text-white mb-4 flex items-center gap-2">
           <span className="w-5 h-5 rounded-full bg-spark-purple/20 text-spark-purple font-data text-xs flex items-center justify-center">4</span>
           Preview &amp; Download
@@ -551,19 +551,19 @@ export default function ExportPage() {
               <div className="rounded-lg bg-white/[0.02] border border-white/5 p-4 mb-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="font-body text-xs text-white/30 mb-1">Children</p>
+                    <p className="font-body text-xs text-white/60 mb-1">Children</p>
                     <p className="font-body text-sm text-white">
                       {previewSummary.childNames.join(', ')}
                     </p>
                   </div>
                   <div>
-                    <p className="font-body text-xs text-white/30 mb-1">Export Types</p>
+                    <p className="font-body text-xs text-white/60 mb-1">Export Types</p>
                     <p className="font-body text-sm text-white">
                       {previewSummary.exportLabels.join(', ')}
                     </p>
                   </div>
                   <div>
-                    <p className="font-body text-xs text-white/30 mb-1">Date Range</p>
+                    <p className="font-body text-xs text-white/60 mb-1">Date Range</p>
                     <p className="font-body text-sm text-white">
                       {dateFrom || dateTo
                         ? `${dateFrom || 'Start'} to ${dateTo || 'Present'}`
@@ -571,7 +571,7 @@ export default function ExportPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="font-body text-xs text-white/30 mb-1">Files</p>
+                    <p className="font-body text-xs text-white/60 mb-1">Files</p>
                     <p className="font-data text-sm text-spark-blue">
                       {previewSummary.exportCount} CSV file{previewSummary.exportCount !== 1 ? 's' : ''}
                     </p>
@@ -580,7 +580,7 @@ export default function ExportPage() {
 
                 {/* Column preview per selected export */}
                 <div className="mt-4 border-t border-white/5 pt-3">
-                  <p className="font-body text-xs text-white/30 mb-2">Columns included:</p>
+                  <p className="font-body text-xs text-white/60 mb-2">Columns included:</p>
                   <div className="space-y-2">
                     {EXPORT_OPTIONS.filter((o) => selectedExports.has(o.id)).map((option) => (
                       <div key={option.id}>
@@ -591,7 +591,7 @@ export default function ExportPage() {
                           {option.columns.map((col) => (
                             <span
                               key={col}
-                              className="px-2 py-0.5 rounded bg-white/5 border border-white/5 font-mono text-[10px] text-white/40"
+                              className="px-2 py-0.5 rounded bg-white/5 border border-white/5 font-mono text-[10px] text-white/70"
                             >
                               {col}
                             </span>
@@ -631,8 +631,8 @@ export default function ExportPage() {
               exit={{ opacity: 0 }}
               className="text-center py-8"
             >
-              <Download className="w-10 h-10 text-white/10 mx-auto mb-3" />
-              <p className="font-body text-sm text-white/30">
+              <Download className="w-10 h-10 text-white/50 mx-auto mb-3" />
+              <p className="font-body text-sm text-white/60">
                 Select at least one child and one export type to continue
               </p>
             </motion.div>
@@ -640,7 +640,7 @@ export default function ExportPage() {
         </AnimatePresence>
 
         {lastExported && (
-          <p className="font-body text-xs text-white/20 mt-3 text-center">
+          <p className="font-body text-xs text-white/55 mt-3 text-center">
             Last exported: {lastExported}
           </p>
         )}

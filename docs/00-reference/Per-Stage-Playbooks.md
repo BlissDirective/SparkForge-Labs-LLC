@@ -64,7 +64,7 @@
 **Part 3A (v3-FINAL):** StationFrame, HeroAnimation (replaces CrystalShatter — archived to `_SUPERSEDED/`), Aurora, Particles, LEDRim, HDR, materials.ts — Decisions 1.1-1.7, 2.1-2.5, 7.1, 7.3-4, 8.1
 **Part 3B (v3-FINAL):** Emissive CSS, onboarding crystal, landing page, scanline
 
-**3D files created:** StationFrame.tsx, HeroAnimation.tsx (CrystalShatter.tsx archived to `_SUPERSEDED/`), AuroraBackground.tsx, AmbientParticles.tsx, LEDRimLight.tsx
+**3D files created:** StationFrame.tsx, HeroAnimation.tsx (CrystalShatter.tsx archived to `_SUPERSEDED/`), AuroraBackground.tsx, AmbientParticles.tsx **later REMOVED (Decision 20.0)**, LEDRimLight.tsx
 **Tag:** `git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"`
 
 ---
@@ -104,7 +104,7 @@
 
 **Part A (Canvas + Shell):** CockpitCanvas.tsx (single persistent R3F Canvas, CPA2-1), CameraSystem.tsx (unified camera), CockpitPanels.tsx (2M tris), SidePanels.tsx (1.5M), LEDRim.tsx (200K), HolographicHUD.tsx (500K), StatusBar3D.tsx (500K), CockpitStructuralDetail.tsx (1.5M), CockpitFloor3D.tsx (500K). StationFrame.tsx + SpatialDashboard.tsx refactored to thin wrappers. cockpitStore.ts created.
 
-**Part B (Spatial + Audio):** HolographicLabMap.tsx (1M), LabStructure3D (3M, 300K×10 labs), InteractiveConsole3D (2M, 500K×4), AmbientNPCs (1.5M, 187K×8), DynamicEnvironment (3M), VolumetricFog3D (500K), CeremonyFX (500K), WormholeTransition (300K), MiniMapOverlay3D (250K), CockpitSkinManager, AuroraBackground (50K), AmbientParticles (200K), cockpitAudio.ts + useCockpitAudio.ts.
+**Part B (Spatial + Audio):** HolographicLabMap.tsx (1M), LabStructure3D (3M, 300K×10 labs), InteractiveConsole3D (2M, 500K×4), AmbientNPCs (1.5M, 187K×8), DynamicEnvironment (3M), VolumetricFog3D (500K), CeremonyFX (500K), WormholeTransition (300K), MiniMapOverlay3D (250K), CockpitSkinManager, AuroraBackground (50K), AmbientParticles (200K) **later REMOVED (Decision 20.0)**, cockpitAudio.ts + useCockpitAudio.ts.
 
 **Key Architecture:**
 - Single persistent R3F Canvas at z-index: 0 (CPA2-1) — wraps entire app
@@ -145,6 +145,8 @@
 
 ## Stage 4: Core Pages & Lab Reconfiguration
 
+> **NOTE (April 3, 2026):** Stage 4 dashboard pages have been converted to thin scene descriptors by the 3D UI Migration. Each page calls `useCockpitScene()` and delegates rendering to 3D panel components. The route structure and data hooks described here remain valid.
+
 **Source:** PART1+3 (v2) + Part2A/B (v3-FINAL)
 **Prerequisites:** Stage 3 complete
 **Hard Stops:** HS-5 (visual after all parts)
@@ -160,6 +162,8 @@
 ---
 
 ## Stage 5: Gamification & Visual FX
+
+> **NOTE (April 3, 2026):** XP celebrations and badge displays have been enhanced by the 3D UI Migration (Phase 4) with XPPopup3D, CelebrationPanel3D, and useCelebration3D. The existing gamification architecture described here remains valid.
 
 **Source:** PART1 (v2) + Parts23 A/B/C (v3-FINAL)
 **Prerequisites:** Stage 4 complete
@@ -281,4 +285,4 @@ Each flagship: Part A = 3D component, Part B/C = full game replacement.
 
 ---
 
-*End of Per-Stage Playbooks v1.1 | Extracted from CLAUDE.md v5.9 | March 23, 2026 | Includes Login 3D Enhancement (Phases 5E–5F)*
+*End of Per-Stage Playbooks v1.2 | Updated April 3, 2026 | 3D UI Migration annotations (Decision 20.0, useCockpitScene, celebration enhancements) | Extracted from CLAUDE.md v5.9 | Includes Login 3D Enhancement (Phases 5E–5F)*

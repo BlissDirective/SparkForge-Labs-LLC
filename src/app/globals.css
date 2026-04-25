@@ -1,4 +1,4 @@
-/* Fonts loaded via <link> in layout.tsx — no @import needed */
+/* DES-06: Fonts self-hosted via next/font/google in layout.tsx */
 
 /* AUDIT-G7: Tailwind CSS v4 migration — use @import instead of @tailwind directives */
 @import "tailwindcss";
@@ -11,40 +11,106 @@
    Dark-mode only · Blue-dominant 60/40
    ═══════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════
+   UX-MED-005 (Opt A): Brightness control
+   ─────────────────────────────────────────────
+   Dark-mode enforcement + body-level filter
+   driven by --sf-brightness (set by
+   BrightnessEffect from cockpitStore.brightness,
+   range 0.7 – 1.0). Canvas elements are
+   explicitly untouched so WebGL fill-rate is
+   not impacted — the 3D cockpit reads its
+   brightness through its own PostProcessingStack
+   if needed.
+   ═══════════════════════════════════════════ */
+html,
+body {
+  color-scheme: dark;
+}
+
+body {
+  filter: brightness(var(--sf-brightness, 1));
+  transition: filter 200ms ease;
+  will-change: filter;
+}
+
+body canvas {
+  /* Hard exclusion — cockpit + game + auth portal canvases must
+     render at their authored brightness. filter: none cascades
+     correctly under CSS spec. */
+  filter: none !important;
+}
+
 :root {
   /* ── Font Variables (mapped by Tailwind fontFamily) ── */
-  --font-display: 'Exo 2', system-ui, sans-serif;
-  --font-body: 'Sora', system-ui, sans-serif;
+  /* DES-07: Fallback fonts with metric overrides reduce CLS during font swap */
+  --font-display: 'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif;
+  --font-body: 'Sora', 'Sora Fallback', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --font-data: 'Orbitron', monospace;
 
-  /* ── Neon Accent Variables ── */
-  --neon-blue: #00BBFF;
-  --neon-green: #00FF88;
-  --neon-purple: #AA66FF;
-  --neon-orange: #FF6644;
-  --neon-amber: #FFAA44;
+  /* ── Neon Accent Variables (DES-03: OKLCH — perceptually uniform L=0.75) ── */
+  --neon-blue: oklch(0.75 0.17 225);     /* ≈ #0FB8FA */
+  --neon-green: oklch(0.75 0.19 155);    /* ≈ #00D17A */
+  --neon-purple: oklch(0.75 0.19 295);   /* ≈ #B67BFF */
+  --neon-orange: oklch(0.75 0.20 25);    /* ≈ #FF7050 */
+  --neon-amber: oklch(0.75 0.17 75);     /* ≈ #D9A430 */
 
-  /* ── Surface Variables ── */
-  --surface-base: #0A0E16;
-  --surface-card: #111118;
-  --surface-elevated: #1A1822;
-  --surface-border: rgba(255, 255, 255, 0.06);
+  /* ── Surface Variables (OKLCH — low chroma darks) ── */
+  --surface-base: oklch(0.13 0.02 260);     /* ≈ #0A0E17 */
+  --surface-card: oklch(0.16 0.02 280);     /* ≈ #111119 */
+  --surface-elevated: oklch(0.19 0.02 290); /* ≈ #1A1823 */
+  --surface-border: oklch(1.0 0 0 / 0.06);
 
-  /* ── Text Variables ── */
-  --text-primary: #F0F0F4;
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-muted: rgba(255, 255, 255, 0.3);
-  --text-dim: rgba(255, 255, 255, 0.15);
+  /* ── Text Variables (OKLCH) ── */
+  --text-primary: oklch(0.96 0.005 280);   /* ≈ #F0F0F4 */
+  --text-secondary: oklch(1.0 0 0 / 0.55);
+  --text-muted: oklch(1.0 0 0 / 0.55);
+  --text-dim: oklch(1.0 0 0 / 0.35);
 
-  /* ── Chrome Bezel Variables ── */
-  --chrome-edge: rgba(255, 255, 255, 0.06);
-  --chrome-highlight: rgba(255, 255, 255, 0.12);
-  --chrome-specular: rgba(255, 255, 255, 0.18);
+  /* ── Chrome Bezel Variables (OKLCH) ── */
+  --chrome-edge: oklch(1.0 0 0 / 0.06);
+  --chrome-highlight: oklch(1.0 0 0 / 0.12);
+  --chrome-specular: oklch(1.0 0 0 / 0.18);
 
   /* ── Dynamic Lab Color (set by JS per-lab) ── */
-  --lab-color: #00BBFF;
-  --lab-glow: rgba(0, 187, 255, 0.2);
+  --lab-color: oklch(0.75 0.17 225);
+  --lab-glow: oklch(0.75 0.17 225 / 0.2);
+
+  /* ── Semantic Spacing Scale (DES-08) — based on 4px grid ── */
+  --space-xs: 0.25rem;    /*  4px — tight inner padding */
+  --space-sm: 0.5rem;     /*  8px — compact gaps */
+  --space-md: 1rem;       /* 16px — standard padding */
+  --space-lg: 1.5rem;     /* 24px — section padding */
+  --space-xl: 2rem;       /* 32px — large section gaps */
+  --space-2xl: 3rem;      /* 48px — page-level spacing */
+  --space-section: 4rem;  /* 64px — between major sections */
+
+  /* ── Z-Index Token Scale (DES-13) ── */
+  --z-base: 1;
+  --z-cockpit-indicator: 2;
+  --z-vignette: 4;
+  --z-scanlines: 5;
+  --z-cockpit-viewport: 10;
+  --z-overlay: 50;
+  --z-skip: 100;
+  --z-banner: 200;
+  --z-modal: 300;
+  --z-toast: 500;
+}
+
+/* ═══ Font Fallback Metrics (DES-07) ═══
+   Previously defined manual @font-face fallbacks for Sora/Exo 2.
+   DES-06: next/font/google now auto-generates size-adjusted fallback
+   @font-face rules with precise metric overrides, so manual fallbacks
+   have been removed to avoid duplication. */
+
+/* ═══ Touch Target Utility (DES-14) ═══
+   WCAG 2.5.5 minimum touch target. Apply to interactive elements
+   that may be tapped on tablets accessing SparkForge via browser. */
+.touch-target {
+  min-width: 44px;
+  min-height: 44px;
 }
 
 /* ═══ Skip To Content (v2 accessibility) ═══
@@ -55,21 +121,21 @@
   top: -100%;
   left: 50%;
   transform: translateX(-50%);
-  z-index: 9999;
-  padding: 12px 24px;
+  z-index: var(--z-skip);
+  padding: 0.75rem 1.5rem;
   background: var(--neon-blue);
-  color: #000;
+  color: #0A0E16;
   font-family: 'Sora', sans-serif;
   font-weight: 700;
-  font-size: 14px;
-  border-radius: 0 0 12px 12px;
+  font-size: 0.875rem;
+  border-radius: 0 0 0.75rem 0.75rem;
   text-decoration: none;
   transition: top 0.2s ease;
 }
 
 .skip-to-content:focus {
   top: 0;
-  outline: 3px solid white;
+  outline: 3px solid #F0F0F4;
   outline-offset: 2px;
 }
 
@@ -118,9 +184,14 @@
   overflow: hidden;
 }
 
-/* ═══ Glass Card — Glassmorphism (ENHANCED v2) ═══
+/* ═══ Glass Card — Glassmorphism (LEGACY, Phase 4 §10.15 superseded) ═══
+   DEPRECATED — prefer `.glass-card-v2` (base) or `.glass-card-v2-elevated`
+   (primary modals) which have richer backdrop-filter + per-edge border
+   gradient. This class is retained for backwards-compatibility only —
+   all in-tree usages migrated to -v2 on 2026-04-15.
+
    Semi-transparent card with backdrop blur and subtle borders.
-   v2: Added inner edge highlight for depth perception. */
+   Added inner edge highlight for depth perception. */
 .glass-card {
   background: rgba(17, 17, 24, 0.75);
   backdrop-filter: blur(16px);
@@ -143,6 +214,98 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
+/* ═══ Glassmorphism 2.0 — Phase 4 §10.15 ═══
+   2026 best-practice glass surfaces for auth pages and marketing cards.
+   Key differentiator vs .glass-card: per-edge border opacity variation
+   (top brighter, bottom darker) simulating light catching glass edges.
+   Saturate + brightness boost enriches blurred content.
+
+   Apply to: login card, signup card, reset-password card, pricing cards,
+   feature showcase cards, testimonial cards. Pair with .glow-border for
+   animated gradient accent on the most prominent cards (primary CTA). */
+.glass-card-v2 {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(28, 32, 48, 0.62) 0%,
+    rgba(17, 17, 28, 0.78) 100%
+  );
+  backdrop-filter: blur(10px) saturate(180%) brightness(1.08);
+  -webkit-backdrop-filter: blur(10px) saturate(180%) brightness(1.08);
+  /* Uniform fallback border */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+}
+
+/* Per-edge border opacity — top edge brighter (light catching), bottom
+   darker (shadowed). Overlays the uniform border above using a linear
+   gradient clipped to a 1px inset. */
+.glass-card-v2::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.22) 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.02) 100%
+  );
+  /* Mask technique: only the 1px padding border remains visible */
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Elevated variant for primary CTAs (pricing "Plus" card, hero login) */
+.glass-card-v2-elevated {
+  position: relative;
+  background: linear-gradient(
+    145deg,
+    rgba(35, 40, 60, 0.68) 0%,
+    rgba(20, 20, 32, 0.82) 100%
+  );
+  backdrop-filter: blur(12px) saturate(200%) brightness(1.12);
+  -webkit-backdrop-filter: blur(12px) saturate(200%) brightness(1.12);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow:
+    0 16px 60px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+}
+.glass-card-v2-elevated::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.04) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
 /* ═══ Cockpit Viewport Content Zone ═══
    Constrains HTML content to center viewport area so the 3D cockpit
    panels, LEDs, HUD, and side panels remain visible around the edges.
@@ -150,7 +313,7 @@
    NOT glassmorphic — opaque metallic console aesthetic. */
 .cockpit-viewport-content {
   position: relative;
-  z-index: 10;
+  z-index: var(--z-cockpit-viewport);
   max-width: 960px;
   margin: 72px auto 56px;
   padding: 20px 28px;
@@ -379,11 +542,35 @@
 ::-webkit-scrollbar-thumb:hover { background: rgba(0, 187, 255, 0.4); }
 
 /* ═══ Focus Visible (Accessibility) ═══
-   Only shows focus outlines for keyboard navigation,
-   not mouse clicks. Uses lab color for theming. */
+   UX-CRIT-001 (9C, Phase 1 Task 13): Double-indicator focus ring that
+   survives Tailwind's `focus:outline-none` utility. Many interactive
+   components use `outline-none + border-color change` for a subtle
+   focus treatment — the border change alone fails WCAG 2.4.7 AA in
+   some themes. The box-shadow below is NOT suppressed by `outline-none`
+   so every keyboard-focused element gets a visible ring regardless of
+   component-level overrides.
+
+   Only shows focus outlines for keyboard navigation (not mouse clicks).
+   CSS variables --focus-ring-color and --focus-ring-thickness can be
+   overridden by a parent [data-focus-ring="on"] wrapper (see
+   src/components/shared/FocusRing.tsx). */
 *:focus-visible {
-  outline: 3px solid var(--lab-color, #00BBFF);
+  outline: var(--focus-ring-thickness, 3px) solid
+    var(--focus-ring-color, var(--lab-color, #00BBFF));
   outline-offset: 2px;
+  box-shadow:
+    0 0 0 4px
+      color-mix(
+        in srgb,
+        var(--focus-ring-color, var(--lab-color, #00BBFF)) 30%,
+        transparent
+      ),
+    0 0 12px 2px
+      color-mix(
+        in srgb,
+        var(--focus-ring-color, var(--lab-color, #00BBFF)) 40%,
+        transparent
+      );
   border-radius: 4px;
 }
 
@@ -492,7 +679,7 @@
 .scanline-overlay {
   position: fixed;
   inset: 0;
-  z-index: 5;
+  z-index: var(--z-scanlines);
   pointer-events: none;
   background: repeating-linear-gradient(
     0deg,
@@ -523,7 +710,7 @@ body[data-scanlines="off"] .scanline-overlay {
 .vignette-overlay {
   position: fixed;
   inset: 0;
-  z-index: 4;
+  z-index: var(--z-vignette);
   pointer-events: none;
   background: radial-gradient(
     ellipse at center,
@@ -537,7 +724,7 @@ body[data-scanlines="off"] .scanline-overlay {
 .station-frame-css {
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: var(--z-base);
   pointer-events: none;
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0;
@@ -620,7 +807,7 @@ body[data-scanlines="off"] .scanline-overlay {
   background: linear-gradient(180deg, transparent, var(--glow-color, #00BBFF), transparent);
   opacity: 0.15;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-cockpit-indicator);
 }
 .cockpit-side-indicator.left { left: 0; }
 .cockpit-side-indicator.right { right: 0; }
@@ -635,7 +822,7 @@ body[data-scanlines="off"] .scanline-overlay {
   background: linear-gradient(90deg, transparent 10%, var(--glow-color, #00BBFF) 30%, var(--glow-color, #00BBFF) 70%, transparent 90%);
   opacity: 0.3;
   pointer-events: none;
-  z-index: 2;
+  z-index: var(--z-cockpit-indicator);
 }
 
 /* When R3F vignette is active, hide CSS vignette to avoid double-darkening */
@@ -717,11 +904,129 @@ body[data-scanlines="off"] .scanline-overlay {
 }
 
 /* Respect reduced motion for all moved keyframes */
+/* ═══ Phase 7: Marketing CSS Enhancements ═══ */
+
+/* Discrete LED dot pulse — individual dots glow in sequence */
+.led-dot-pulse {
+  animation: ledDotPulse 2s ease-in-out infinite;
+  opacity: 0.5;
+}
+@keyframes ledDotPulse {
+  0%, 100% { opacity: 0.3; filter: brightness(1); }
+  50% { opacity: 0.9; filter: brightness(1.8); }
+}
+
+/* Chromatic text — subtle color-shifted shadow for data numbers */
+.chromatic-text {
+  text-shadow:
+    -1px 0 0.5px var(--chromatic-color, #00BBFF),
+    1px 0 0.5px var(--chromatic-color, #AA66FF);
+  filter: brightness(1.05);
+}
+
+/* Feature card entrance — fade up on scroll (used by ScrollJourney) */
+.feature-card-enter {
+  animation: featureCardEnter 0.6s ease-out both;
+}
+@keyframes featureCardEnter {
+  from { opacity: 0; transform: translateY(20px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Act transition — fade between ScrollJourney acts */
+.act-transition {
+  animation: actFade 0.4s ease-out both;
+}
+@keyframes actFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .badge-pulse,
   .led-rim-pulse,
+  .led-dot-pulse,
   .holographic-sweep-bg,
-  .scanline-overlay {
+  .scanline-overlay,
+  .feature-card-enter,
+  .act-transition {
     animation: none;
+  }
+  .chromatic-text {
+    text-shadow: none;
+    filter: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
+ * Phase 4 §10.1 — View Transitions API (Next.js 15)
+ *
+ * Styles applied to the native browser view-transition pseudo-elements.
+ * Works alongside MechanicalIris (D3D-B2) for 3D cockpit-to-game
+ * transitions — View Transitions handles 2D route-level morphing only.
+ *
+ * Duration tuned to TRANSITION_DURATIONS.page (400ms) from
+ * src/lib/animations.ts so 2D surface morph matches existing timing.
+ * ─────────────────────────────────────────────────────────────── */
+::view-transition-group(root) {
+  animation-duration: 400ms;
+  animation-timing-function: cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+::view-transition-old(root) {
+  animation-name: sparkforge-view-fade-out;
+}
+
+::view-transition-new(root) {
+  animation-name: sparkforge-view-fade-in;
+}
+
+@keyframes sparkforge-view-fade-out {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.98); }
+}
+
+@keyframes sparkforge-view-fade-in {
+  from { opacity: 0; transform: scale(1.02); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Named transitions for morph targets (lab cards → lab detail, etc.).
+ * Components opt in by setting `view-transition-name: <name>` inline
+ * via style prop — e.g. a lab card sets `view-transition-name: lab-3`
+ * and the lab detail page's hero sets the same name. Browser morphs
+ * automatically between them. */
+.view-transition-target {
+  view-transition-name: var(--vt-name, none);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(root),
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation-duration: 1ms;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
+ * Phase 4 §10.5 — React Bits / Magic UI keyframes
+ * Used by src/components/effects/ShinyText.tsx + GradientText.tsx
+ * ─────────────────────────────────────────────────────────────── */
+@keyframes sparkforge-shiny-sweep {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+@keyframes sparkforge-gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Disable shine + gradient animations for users who prefer reduced motion */
+  [style*="sparkforge-shiny-sweep"],
+  [style*="sparkforge-gradient-shift"] {
+    animation: none !important;
   }
 }

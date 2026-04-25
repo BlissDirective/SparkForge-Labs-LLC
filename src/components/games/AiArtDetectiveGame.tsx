@@ -10,14 +10,18 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Palette, Eye } from 'lucide-react';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment (no SSR)
 const AiArtDetectiveEnvironment = dynamic(
@@ -25,14 +29,16 @@ const AiArtDetectiveEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'tips' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface ArtRound {
   leftGradient: string;
   rightGradient: string;
   aiSide: 'left' | 'right';
+  title?: string;
   clue: string;
   clueC: string;
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
   leftShapes: { x: number; y: number; size: number; type: 'circle' | 'square'; opacity: number }[];
   rightShapes: { x: number; y: number; size: number; type: 'circle' | 'square'; opacity: number }[];
 }
@@ -161,6 +167,96 @@ const ROUNDS: ArtRound[] = [
       { x: 65, y: 65, size: 25, type: 'circle', opacity: 0.2 },
     ],
   },
+  {
+    leftGradient: 'from-emerald-400 via-teal-500 to-cyan-600',
+    rightGradient: 'from-rose-300 via-pink-400 to-fuchsia-500',
+    aiSide: 'right', difficulty: 'medium',
+    clue: 'AI often blends colors in mathematically precise gradients — real art has more variation.',
+    clueC: 'Diffusion models apply learned denoising steps that smooth color transitions beyond what physical pigment mixing produces.',
+    leftShapes: [{ x: 20, y: 60, size: 30, type: 'circle', opacity: 0.22 }, { x: 75, y: 25, size: 18, type: 'square', opacity: 0.15 }],
+    rightShapes: [{ x: 50, y: 50, size: 50, type: 'circle', opacity: 0.1 }, { x: 50, y: 50, size: 35, type: 'circle', opacity: 0.08 }],
+  },
+  {
+    leftGradient: 'from-sky-400 to-blue-600',
+    rightGradient: 'from-violet-400 via-purple-500 to-indigo-700',
+    aiSide: 'left', difficulty: 'medium',
+    clue: 'Look at the shapes — AI art tends to place elements in perfectly centered compositions.',
+    clueC: 'Training data bias toward centered compositions causes generative models to favor bilateral symmetry and centered element placement.',
+    leftShapes: [{ x: 50, y: 50, size: 40, type: 'circle', opacity: 0.15 }, { x: 50, y: 20, size: 20, type: 'square', opacity: 0.1 }],
+    rightShapes: [{ x: 30, y: 70, size: 22, type: 'circle', opacity: 0.25 }, { x: 65, y: 35, size: 28, type: 'square', opacity: 0.18 }],
+  },
+  {
+    leftGradient: 'from-orange-300 via-red-400 to-rose-600',
+    rightGradient: 'from-lime-400 via-green-500 to-emerald-600',
+    aiSide: 'right', difficulty: 'hard',
+    clue: 'AI art can have subtle repetitive patterns — look for elements that repeat too evenly.',
+    clueC: 'Convolutional architecture with fixed kernel sizes can produce periodic artifacts in generated images at specific spatial frequencies.',
+    leftShapes: [{ x: 40, y: 30, size: 25, type: 'square', opacity: 0.2 }, { x: 60, y: 70, size: 20, type: 'circle', opacity: 0.28 }],
+    rightShapes: [{ x: 25, y: 25, size: 22, type: 'circle', opacity: 0.12 }, { x: 50, y: 50, size: 22, type: 'circle', opacity: 0.12 }, { x: 75, y: 75, size: 22, type: 'circle', opacity: 0.12 }],
+  },
+  {
+    leftGradient: 'from-amber-300 to-yellow-500',
+    rightGradient: 'from-blue-400 via-indigo-500 to-purple-600',
+    aiSide: 'left', difficulty: 'hard',
+    clue: 'AI struggles with fine details at edges — look for unusually smooth or blurred boundaries.',
+    clueC: 'GAN-generated images often exhibit spectral artifacts at high frequencies, visible as unnatural edge smoothness compared to real photographs.',
+    leftShapes: [{ x: 50, y: 40, size: 45, type: 'circle', opacity: 0.08 }, { x: 30, y: 60, size: 15, type: 'square', opacity: 0.06 }],
+    rightShapes: [{ x: 45, y: 55, size: 30, type: 'square', opacity: 0.22 }, { x: 20, y: 20, size: 15, type: 'circle', opacity: 0.3 }],
+  },
+  {
+    leftGradient: 'from-pink-300 via-rose-400 to-red-500',
+    rightGradient: 'from-teal-300 via-cyan-500 to-sky-600',
+    aiSide: 'right', difficulty: 'easy',
+    clue: 'The AI side often has colors that are too vibrant and saturated — real art tends to be more muted.',
+    clueC: 'Training on high-engagement images biases generative models toward oversaturated outputs, as higher saturation correlates with engagement metrics in training data.',
+    leftShapes: [{ x: 55, y: 45, size: 28, type: 'circle', opacity: 0.2 }],
+    rightShapes: [{ x: 40, y: 40, size: 38, type: 'circle', opacity: 0.1 }, { x: 60, y: 60, size: 25, type: 'square', opacity: 0.08 }],
+  },
+  {
+    leftGradient: 'from-stone-400 via-zinc-500 to-neutral-600',
+    rightGradient: 'from-fuchsia-400 via-pink-500 to-rose-600',
+    aiSide: 'left', difficulty: 'expert',
+    clue: 'Sometimes AI art looks realistic but has tiny impossible details — look very carefully.',
+    clueC: 'Diffusion models can produce locally coherent but globally inconsistent structures — a hallmark of autoregressive generation without global spatial reasoning.',
+    leftShapes: [{ x: 33, y: 33, size: 20, type: 'square', opacity: 0.15 }, { x: 66, y: 66, size: 20, type: 'square', opacity: 0.15 }],
+    rightShapes: [{ x: 50, y: 30, size: 35, type: 'circle', opacity: 0.18 }],
+  },
+  {
+    leftGradient: 'from-cyan-300 via-blue-400 to-indigo-500',
+    rightGradient: 'from-yellow-400 via-amber-500 to-orange-600',
+    aiSide: 'right', difficulty: 'easy',
+    clue: 'Notice how one side has perfectly smooth shapes? Real hand-drawn shapes have small imperfections.',
+    clueC: 'Geometric primitives generated by neural networks lack the motor noise and tremor artifacts present in human-produced visual elements.',
+    leftShapes: [{ x: 30, y: 50, size: 20, type: 'circle', opacity: 0.3 }, { x: 70, y: 40, size: 25, type: 'square', opacity: 0.22 }],
+    rightShapes: [{ x: 50, y: 50, size: 42, type: 'circle', opacity: 0.12 }, { x: 50, y: 50, size: 28, type: 'square', opacity: 0.08 }],
+  },
+  {
+    leftGradient: 'from-red-500 via-orange-400 to-yellow-300',
+    rightGradient: 'from-slate-500 via-gray-400 to-zinc-300',
+    aiSide: 'left', difficulty: 'medium',
+    clue: 'AI-generated art often has an unnaturally consistent style across the entire image.',
+    clueC: 'Style consistency in AI art reflects the global style vector in StyleGAN-like architectures, lacking the natural variation in human artistic execution.',
+    leftShapes: [{ x: 40, y: 40, size: 30, type: 'circle', opacity: 0.12 }, { x: 60, y: 60, size: 30, type: 'circle', opacity: 0.12 }],
+    rightShapes: [{ x: 25, y: 55, size: 35, type: 'square', opacity: 0.2 }, { x: 70, y: 30, size: 18, type: 'circle', opacity: 0.25 }],
+  },
+  {
+    leftGradient: 'from-purple-300 via-violet-500 to-indigo-700',
+    rightGradient: 'from-green-300 via-emerald-400 to-teal-600',
+    aiSide: 'right', difficulty: 'hard',
+    clue: 'The hardest fakes look almost real — check for tiny repeated patterns or too-perfect symmetry.',
+    clueC: 'Advanced diffusion models produce near-photorealistic output, but frequency domain analysis reveals periodic artifacts from the denoising schedule.',
+    leftShapes: [{ x: 45, y: 35, size: 22, type: 'square', opacity: 0.25 }, { x: 55, y: 70, size: 18, type: 'circle', opacity: 0.2 }],
+    rightShapes: [{ x: 35, y: 35, size: 25, type: 'circle', opacity: 0.1 }, { x: 65, y: 35, size: 25, type: 'circle', opacity: 0.1 }, { x: 50, y: 65, size: 25, type: 'circle', opacity: 0.1 }],
+  },
+  {
+    leftGradient: 'from-teal-400 via-emerald-500 to-green-600',
+    rightGradient: 'from-amber-400 via-yellow-500 to-lime-400',
+    aiSide: 'left', difficulty: 'expert',
+    clue: 'Expert level! Both sides look similar. Focus on which one has more natural imperfections.',
+    clueC: 'At expert level, distinguishing AI from human art requires attending to second-order statistics: variance in stroke width, color quantization artifacts, and spatial coherence at multiple scales.',
+    leftShapes: [{ x: 50, y: 45, size: 32, type: 'circle', opacity: 0.14 }, { x: 30, y: 70, size: 18, type: 'square', opacity: 0.1 }],
+    rightShapes: [{ x: 50, y: 55, size: 28, type: 'circle', opacity: 0.18 }, { x: 65, y: 30, size: 22, type: 'square', opacity: 0.16 }],
+  },
 ];
 
 const DETECTION_TIPS = [
@@ -171,11 +267,12 @@ const DETECTION_TIPS = [
 ];
 
 export function AiArtDetectiveGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('ai-art-detective', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('ai-art-detective', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
   const [showResult, setShowResult] = useState<'correct' | 'wrong' | null>(null);
@@ -184,10 +281,13 @@ export function AiArtDetectiveGame() {
   const [correctCount, setCorrectCount] = useState(0);
   // ENH: Detective badge earned after 3+ correct
   const [showDetectiveBadge, setShowDetectiveBadge] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const rounds = useFilteredContent(ROUNDS, tier, ageBand);
+  const { safeTimeout } = useSafeTimeout();
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
-  const round = ROUNDS[roundIdx];
+  const round = rounds[roundIdx];
   const confidencePct = roundIdx > 0 ? Math.round((correctCount / roundIdx) * 100) : 0;
   const confidenceColor = confidencePct >= 70 ? '#00FF88' : confidencePct >= 40 ? '#FFAA44' : '#FF6644';
 
@@ -210,19 +310,19 @@ export function AiArtDetectiveGame() {
     const correct = side === round.aiSide;
     setShowResult(correct ? 'correct' : 'wrong');
     if (correct) {
-      setStreak(s => s + 1);
+      const newStreak = streak + 1;
+      setStreak(newStreak);
       const newCount = correctCount + 1;
       setCorrectCount(newCount);
-      game.updateScore(12 + streak * 2);
+      game.updateScore(12 + newStreak * 2);
       // ENH: Award detective badge after 3 correct detections
-      if (newCount === 3) { setShowDetectiveBadge(true); setTimeout(() => setShowDetectiveBadge(false), 2500); }
+      if (newCount === 3) { setShowDetectiveBadge(true); safeTimeout(() => setShowDetectiveBadge(false), 2500); }
     } else {
       setStreak(0);
-      game.updateScore(3);
     }
-    setTimeout(() => {
+    safeTimeout(() => {
       setShowResult(null);
-      if (roundIdx < ROUNDS.length - 1) {
+      if (roundIdx < rounds.length - 1) {
         setRoundIdx(i => i + 1);
         game.advanceRound();
       } else {
@@ -233,7 +333,7 @@ export function AiArtDetectiveGame() {
   }
 
   return (
-    <GameShell gameId="ai-art-detective" title="AI Art Detective" worldNumber={4} worldColor="#FFAA44" totalRounds={ROUNDS.length}>
+    <GameShell gameId="ai-art-detective" title="AI Art Detective" worldNumber={4} worldColor="#D9A430" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -247,8 +347,8 @@ export function AiArtDetectiveGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(255,170,68,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -288,21 +388,21 @@ export function AiArtDetectiveGame() {
                       ))}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('tips')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #FFAA44, #DD8822)' }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
-                      aria-label="Learn detection tips before playing"
+                      aria-label="Learn detection tips before playing the game"
                     >
                       Learn Detection Tips! <Eye className="inline w-4 h-4 ml-1" />
                     </motion.button>
                   </motion.div>
                 )}
 
-                {phase === 'tips' && (
+                {phase === 'learn' && (
                   <motion.div
-                    key="tips"
+                    key="learn"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
@@ -310,7 +410,7 @@ export function AiArtDetectiveGame() {
                   >
                     <Palette className="w-6 h-6 text-orange-400 mx-auto" />
                     <h3 className="font-display text-lg font-bold text-white">Detection Tips</h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       {tipIdx + 1} of {DETECTION_TIPS.length}
                     </p>
                     <AnimatePresence mode="wait">
@@ -324,8 +424,8 @@ export function AiArtDetectiveGame() {
                         {/* ENH: Pulsing highlight on tip card */}
                         <motion.div
                           className="absolute inset-0 rounded-xl pointer-events-none"
-                          animate={{ boxShadow: ['inset 0 0 0px rgba(255,170,68,0)', 'inset 0 0 20px rgba(255,170,68,0.15)', 'inset 0 0 0px rgba(255,170,68,0)'] }}
-                          transition={{ duration: 2, repeat: Infinity }}
+                          animate={prefersReducedMotion ? {} : { boxShadow: ['inset 0 0 0px rgba(255,170,68,0)', 'inset 0 0 20px rgba(255,170,68,0.15)', 'inset 0 0 0px rgba(255,170,68,0)'] }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                         />
                         <span className="text-3xl">{DETECTION_TIPS[tipIdx].emoji}</span>
                         <h4 className="font-display text-sm font-bold text-orange-300 mt-2">
@@ -351,10 +451,10 @@ export function AiArtDetectiveGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
-                      aria-label="Skip tips and start playing"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
+                      aria-label="Skip learn cards and start playing"
                     >
-                      Skip tips {'\u2192'}
+                      Skip to game {'\u2192'}
                     </button>
                   </motion.div>
                 )}
@@ -366,11 +466,15 @@ export function AiArtDetectiveGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-lg mx-auto"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={rounds.length} labColor="#FFAA44" />
+                    </div>
                     {/* Confidence meter */}
                     {roundIdx > 0 && (
                       <div className="mb-3 max-w-xs mx-auto" role="status" aria-label={`Detection confidence: ${confidencePct}%`}>
                         <div className="flex justify-between mb-1">
-                          <span className="font-body text-2xs text-white/30">Detection Confidence</span>
+                          <span className="font-body text-2xs text-white/60">Detection Confidence</span>
                           <span className="font-data text-2xs font-bold" style={{ color: confidenceColor }}>{confidencePct}%</span>
                         </div>
                         {/* ENH: Animated confidence slider with spring physics + thumb indicator */}
@@ -392,7 +496,7 @@ export function AiArtDetectiveGame() {
                       </p>
                     )}
                     <p className="font-body text-sm text-white/50 mb-3">
-                      Which one was made by AI? Round {roundIdx + 1}/{ROUNDS.length}
+                      Which one was made by AI? Round {roundIdx + 1}/{rounds.length}
                     </p>
 
                     {/* ENH: Detective badge animation overlay */}
@@ -408,7 +512,7 @@ export function AiArtDetectiveGame() {
                           <div className="bg-black/60 backdrop-blur-sm rounded-2xl px-6 py-4 text-center border border-orange-400/30">
                             <motion.span className="text-4xl block" animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.6, repeat: 2 }}>{'\uD83D\uDD75\uFE0F'}</motion.span>
                             <p className="font-display text-sm font-bold text-orange-300 mt-1">Detective Badge Earned!</p>
-                            <p className="font-body text-2xs text-white/40">3 correct detections</p>
+                            <p className="font-body text-2xs text-white/70">3 correct detections</p>
                           </div>
                         </motion.div>
                       )}
@@ -437,7 +541,7 @@ export function AiArtDetectiveGame() {
                           // ENH: Zoom lens hover effect — scale 1.05 with shadow lift
                           whileHover={!showResult ? { scale: 1.05, boxShadow: '0 8px 30px rgba(0,0,0,0.4)' } : {}}
                           whileTap={!showResult ? { scale: 0.97 } : {}}
-                          aria-label={`Select ${side} artwork as AI-generated, round ${roundIdx + 1} of ${ROUNDS.length}`}
+                          aria-label={`Select ${side} artwork as AI-generated, round ${roundIdx + 1} of ${rounds.length}`}
                         >
                           <div className="absolute inset-0">
                             {(side === 'left' ? round.leftShapes : round.rightShapes).map((s, i) => (
@@ -508,16 +612,16 @@ export function AiArtDetectiveGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="AI Art Detective game complete">AI Art Detective Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You trained your eye to distinguish AI-generated art from human creations — a crucial skill in the age of generative AI.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#FFAA44]/10 border border-[#FFAA44]/20" role="status" aria-label={`Total score: ${game.score} points`}>
                       <p className="font-data text-2xl" style={{ color: '#FFAA44' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI-generated art often has unnaturally smooth gradients and perfect symmetry</li>
                         <li>• Style analysis clues like texture, brushstrokes, and imperfections help identify human art</li>
                         <li>• Verifying art provenance is becoming essential as generative AI improves</li>

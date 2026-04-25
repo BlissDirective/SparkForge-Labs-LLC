@@ -7,6 +7,14 @@
 
 ---
 
+### FL-Lite Content Audit Update (April 9, 2026)
+- Bug fixes: Store API corrected (addScore->updateScore), missing totalRounds prop added, missing game.completeGame() path added to patent card, broken TypeScript (ImpactRadar signature), broken array (impact useMemo interleaved entries), truncated strings (~12 descriptions) and classNames (4+ buttons), orphaned LED div, truncated CSS backgroundImage
+- Content expansion: Future Forge problem set expanded, AI skills catalog deepened, patent visualization enhanced with step-by-step invention flow
+- AI integration: useGameContent() now active, 27 prompt templates, admin pipeline extended
+- New UI components: DifficultySelector, GameProgressTracker, AIContentBadge available
+
+---
+
 ## Overview
 
 | File | Type | Lines | Treatment |

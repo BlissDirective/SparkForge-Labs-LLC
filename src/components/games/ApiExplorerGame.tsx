@@ -22,10 +22,12 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Send,
   Server,
@@ -37,6 +39,9 @@ import {
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const ApiExplorerEnvironment = dynamic(
@@ -246,6 +251,128 @@ const ENDPOINTS: Endpoint[] = [
     teachingNote:
       'Chat APIs use a messages array with roles (user, assistant, system). The system prompt sets the AI personality and behavior constraints.',
   },
+  {
+    path: '/api/v1/summarize',
+    method: 'POST',
+    description: 'Summarize a long text into key points',
+    params: [
+      { name: 'text', type: 'text', placeholder: 'e.g., "Paste a long article here..."', required: true },
+      { name: 'max_length', type: 'number', placeholder: '100', required: false },
+      { name: 'style', type: 'text', placeholder: 'bullets or paragraph', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.text ? 200 : 400,
+      latency: 300 + Math.floor(Math.random() * 200),
+      body: p.text
+        ? {
+            summary: 'Key points extracted from your text. The AI identified the main ideas and condensed them into a shorter form.',
+            key_points: ['Main idea identified', 'Supporting details extracted', 'Conclusion preserved'],
+            compression_ratio: Number((0.15 + Math.random() * 0.2).toFixed(2)),
+            tokens_used: Math.floor(Math.random() * 100) + 30,
+            model: 'summarize-v2',
+          }
+        : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Summarization APIs compress long text while preserving meaning. The compression ratio shows how much shorter the summary is compared to the original.',
+  },
+  {
+    path: '/api/v1/moderate',
+    method: 'POST',
+    description: 'Check text for harmful or inappropriate content',
+    params: [
+      { name: 'text', type: 'text', placeholder: 'e.g., "Check this message for safety"', required: true },
+    ],
+    exampleResponse: (p) => ({
+      status: p.text ? 200 : 400,
+      latency: 50 + Math.floor(Math.random() * 40),
+      body: p.text
+        ? {
+            flagged: false,
+            categories: { hate: false, violence: false, self_harm: false, sexual: false, harassment: false },
+            scores: { hate: Number((Math.random() * 0.05).toFixed(4)), violence: Number((Math.random() * 0.03).toFixed(4)), harassment: Number((Math.random() * 0.04).toFixed(4)) },
+            model: 'moderation-v1',
+          }
+        : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Content moderation APIs scan text for harmful content. They return scores for different harm categories — platforms use these to filter dangerous content automatically.',
+  },
+  {
+    path: '/api/v1/embed',
+    method: 'POST',
+    description: 'Convert text into a numerical vector (embedding)',
+    params: [
+      { name: 'text', type: 'text', placeholder: 'e.g., "artificial intelligence"', required: true },
+      { name: 'model', type: 'text', placeholder: 'embed-v2', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.text ? 200 : 400,
+      latency: 60 + Math.floor(Math.random() * 30),
+      body: p.text
+        ? {
+            embedding: Array.from({ length: 8 }, () => Number((Math.random() * 2 - 1).toFixed(4))),
+            dimensions: 1536,
+            model: p.model || 'embed-v2',
+            tokens_used: Math.floor(Math.random() * 20) + 5,
+            note: 'Showing first 8 of 1536 dimensions',
+          }
+        : { error: 'Missing required parameter: text', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Embedding APIs convert text into numbers that capture meaning. Similar texts produce similar vectors — this powers search, recommendations, and clustering.',
+  },
+  {
+    path: '/api/v1/image-describe',
+    method: 'POST',
+    description: 'Describe what is in an image',
+    params: [
+      { name: 'image_url', type: 'text', placeholder: 'e.g., "https://example.com/photo.jpg"', required: true },
+      { name: 'detail', type: 'text', placeholder: 'brief or detailed', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.image_url ? 200 : 400,
+      latency: 400 + Math.floor(Math.random() * 300),
+      body: p.image_url
+        ? {
+            description: 'A colorful scene showing objects arranged in an interesting composition. The image contains natural and man-made elements.',
+            tags: ['outdoor', 'colorful', 'natural', 'landscape'],
+            objects_detected: [{ label: 'tree', confidence: 0.92 }, { label: 'sky', confidence: 0.98 }],
+            model: 'vision-v3',
+            tokens_used: Math.floor(Math.random() * 100) + 50,
+          }
+        : { error: 'Missing required parameter: image_url', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Vision APIs use multimodal models that understand both text and images. They can describe scenes, detect objects, and answer questions about images.',
+  },
+  {
+    path: '/api/v1/detect-objects',
+    method: 'POST',
+    description: 'Detect and locate objects in an image',
+    params: [
+      { name: 'image_url', type: 'text', placeholder: 'e.g., "https://example.com/photo.jpg"', required: true },
+      { name: 'threshold', type: 'number', placeholder: '0.5', required: false },
+    ],
+    exampleResponse: (p) => ({
+      status: p.image_url ? 200 : 400,
+      latency: 250 + Math.floor(Math.random() * 150),
+      body: p.image_url
+        ? {
+            objects: [
+              { label: 'person', confidence: 0.95, bbox: [120, 80, 280, 420] },
+              { label: 'car', confidence: 0.87, bbox: [350, 200, 580, 380] },
+              { label: 'tree', confidence: 0.72, bbox: [50, 10, 150, 300] },
+            ],
+            total_detected: 3,
+            model: 'detection-v2',
+            processing_time_ms: 180,
+          }
+        : { error: 'Missing required parameter: image_url', code: 'INVALID_REQUEST' },
+    }),
+    teachingNote:
+      'Object detection APIs find objects in images and draw boxes around them (bounding boxes). Each detection includes a label, confidence score, and coordinates.',
+  },
 ];
 
 const STATUS_INFO: Record<number, { label: string; color: string; desc: string }> = {
@@ -278,8 +405,10 @@ const LEARN_CARDS = [
   },
 ];
 
-function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
+function JsonViewer({ data, depth = 0, maxDepth = 5 }: { data: unknown; depth?: number; maxDepth?: number }) {
   const indent = '  '.repeat(depth);
+
+  if (depth > maxDepth) return <span className="text-white/60">...</span>;
 
   if (data === null) return <span className="text-orange-400">null</span>;
   if (typeof data === 'boolean') return <span className="text-orange-400">{String(data)}</span>;
@@ -293,7 +422,7 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
         {'[\n'}
         {data.map((v, i) => (
           <span key={i}>
-            {indent}  <JsonViewer data={v} depth={depth + 1} />
+            {indent}  <JsonViewer data={v} depth={depth + 1} maxDepth={maxDepth} />
             {i < data.length - 1 ? ',\n' : '\n'}
           </span>
         ))}
@@ -311,7 +440,7 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
         {entries.map(([k, v], i) => (
           <span key={k}>
             {indent}  <span className="text-purple-400">&quot;{k}&quot;</span>:{' '}
-            <JsonViewer data={v} depth={depth + 1} />
+            <JsonViewer data={v} depth={depth + 1} maxDepth={maxDepth} />
             {i < entries.length - 1 ? ',\n' : '\n'}
           </span>
         ))}
@@ -325,10 +454,13 @@ function JsonViewer({ data, depth = 0 }: { data: unknown; depth?: number }) {
 }
 
 export function ApiExplorerGame() {
-  const game = useGameStore();
-  const ageBand = 'C' as const;
-  const { data: dynamicContent } = useGameContent('api-explorer', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
+  const { safeTimeout, safeInterval } = useSafeTimeout();
+  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const { data: _dynamicContent } = useGameContent('api-explorer', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -345,6 +477,8 @@ export function ApiExplorerGame() {
   const [typewriterDone, setTypewriterDone] = useState(false);
   // ENH: Track request animation state
   const [requestSent, setRequestSent] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredEndpoints = useFilteredContent(ENDPOINTS as any[], tier, ageBand) as typeof ENDPOINTS;
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
 
@@ -379,7 +513,7 @@ export function ApiExplorerGame() {
     let idx = 0;
     setTypewriterText('');
     setTypewriterDone(false);
-    const interval = setInterval(() => {
+    const interval = safeInterval(() => {
       idx += 3; // 3 chars at a time for speed
       if (idx >= fullText.length) {
         setTypewriterText(fullText);
@@ -390,16 +524,16 @@ export function ApiExplorerGame() {
       }
     }, 12);
     return () => clearInterval(interval);
-  }, [response]);
+  }, [response, safeInterval]);
 
   async function sendRequest() {
     // ENH: Trigger request send animation
     setRequestSent(true);
-    setTimeout(() => setRequestSent(false), 400);
+    safeTimeout(() => setRequestSent(false), 400);
     setSending(true);
     setResponse(null);
 
-    await new Promise((r) => setTimeout(r, 600 + Math.random() * 400));
+    await new Promise<void>((r) => safeTimeout(r, 600 + Math.random() * 400));
 
     // Check for rate limiting: 3+ requests to the same endpoint in rapid succession
     const now = Date.now();
@@ -408,7 +542,7 @@ export function ApiExplorerGame() {
 
     let result: { status: number; body: object; latency: number };
 
-    if (recentSame.length >= 2) {
+    if (recentSame.length >= 4) {
       // Rate limited
       result = {
         status: 429,
@@ -453,7 +587,7 @@ export function ApiExplorerGame() {
 
     const totalUsed = isNew ? endpointsUsed.size + 1 : endpointsUsed.size;
     if (totalUsed >= ENDPOINTS.length) {
-      setTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
+      safeTimeout(() => { setPhase('complete'); game.completeGame(); }, 2000);
     }
   }
 
@@ -470,7 +604,7 @@ export function ApiExplorerGame() {
       gameId="api-explorer"
       title="API Explorer"
       worldNumber={9}
-      worldColor="#F97316"
+      worldColor="#E68E28"
       totalRounds={ENDPOINTS.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
@@ -487,8 +621,8 @@ export function ApiExplorerGame() {
                 height: p.size,
                 background: 'radial-gradient(circle, rgba(249,115,22,0.15), transparent)',
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -517,8 +651,8 @@ export function ApiExplorerGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ y: [0, -8, 0] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { y: [0, -8, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                     >
                       🔌
                     </motion.span>
@@ -580,18 +714,18 @@ export function ApiExplorerGame() {
                     </AnimatePresence>
                     <motion.button
                       onClick={() => {
-                        if (learnIdx < 3) setLearnIdx((i) => i + 1);
+                        if (learnIdx < LEARN_CARDS.length - 1) setLearnIdx((i) => i + 1);
                         else setPhase('explore');
                       }}
                       className="w-full max-w-md py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #F97316, #EA580C)' }}
                       whileTap={{ scale: 0.98 }}
                     >
-                      {learnIdx < 3 ? 'Next →' : 'Start Exploring! 🔌'}
+                      {learnIdx < LEARN_CARDS.length - 1 ? 'Next →' : 'Start Exploring! 🔌'}
                     </motion.button>
                     <button
                       onClick={() => setPhase('explore')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                     >
                       Skip intro →
                     </button>
@@ -606,6 +740,10 @@ export function ApiExplorerGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col space-y-2"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={endpointsUsed.size} total={ENDPOINTS.length} labColor="#F97316" />
+                    </div>
                     {/* Endpoint tabs */}
                     <div className="flex gap-1 mb-2 overflow-x-auto pb-1">
                       {ENDPOINTS.map((ep, i) => (
@@ -617,7 +755,7 @@ export function ApiExplorerGame() {
                               ? 'bg-orange-500/20 border border-orange-500/40 text-orange-300'
                               : endpointsUsed.has(i)
                                 ? 'bg-green-500/10 border border-green-500/20 text-green-400/60'
-                                : 'bg-white/[0.02] border border-white/10 text-white/30'
+                                : 'bg-white/[0.02] border border-white/10 text-white/60'
                           }`}
                           aria-label={`Select endpoint ${ep.path}`}
                         >
@@ -627,7 +765,7 @@ export function ApiExplorerGame() {
                       ))}
                       <button
                         onClick={() => setShowHistory(!showHistory)}
-                        className="flex-shrink-0 px-2 py-1 rounded-lg bg-white/[0.02] border border-white/10 text-white/20 font-mono text-2xs"
+                        className="flex-shrink-0 px-2 py-1 rounded-lg bg-white/[0.02] border border-white/10 text-white/55 font-mono text-2xs"
                         aria-label="Toggle request history"
                       >
                         <History className="inline w-2.5 h-2.5" /> {history.length}
@@ -660,7 +798,7 @@ export function ApiExplorerGame() {
                         </code>
                         <Globe className="w-3 h-3 text-white/15" />
                       </div>
-                      <p className="font-body text-2xs text-white/30 mb-2">
+                      <p className="font-body text-2xs text-white/60 mb-2">
                         {endpoint.description}
                       </p>
 
@@ -668,7 +806,7 @@ export function ApiExplorerGame() {
                       <div className="space-y-1.5">
                         {endpoint.params.map((p) => (
                           <div key={p.name} className="flex items-center gap-2">
-                            <label className="font-mono text-2xs text-white/40 w-24 text-right">
+                            <label className="font-mono text-2xs text-white/70 w-24 text-right">
                               {p.name}
                               {p.required && <span className="text-red-400">*</span>}
                             </label>
@@ -701,8 +839,8 @@ export function ApiExplorerGame() {
                       >
                         {sending ? (
                           <motion.span
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                            animate={prefersReducedMotion ? {} : { rotate: 360 }}
+                            transition={prefersReducedMotion ? { duration: 0 } : { duration: 1, repeat: Infinity, ease: 'linear' }}
                           >
                             <Server className="w-3 h-3" />
                           </motion.span>
@@ -748,7 +886,7 @@ export function ApiExplorerGame() {
                             >
                               {statusInfo.label}
                             </motion.span>
-                            <span className="font-mono text-2xs text-white/20 ml-auto">
+                            <span className="font-mono text-2xs text-white/55 ml-auto">
                               {response.latency}ms
                             </span>
                           </motion.div>
@@ -759,7 +897,7 @@ export function ApiExplorerGame() {
                               {typewriterDone ? (
                                 <JsonViewer data={response.body} />
                               ) : (
-                                <span className="text-green-400/70">{typewriterText}<motion.span animate={{ opacity: [1, 0] }} transition={{ duration: 0.5, repeat: Infinity }} className="text-orange-400">|</motion.span></span>
+                                <span className="text-green-400/70">{typewriterText}<motion.span animate={prefersReducedMotion ? {} : { opacity: [1, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.5, repeat: Infinity }} className="text-orange-400">|</motion.span></span>
                               )}
                             </pre>
                           </div>
@@ -813,16 +951,16 @@ export function ApiExplorerGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">API Explorer Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You explored real AI service endpoints, sent requests with parameters, and read JSON responses — this is exactly how developers integrate AI into their applications!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#F97316]/10 border border-[#F97316]/20">
                       <p className="font-data text-2xl" style={{ color: '#F97316' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• APIs let programs communicate using structured requests and responses</li>
                         <li>• HTTP methods (GET, POST) and status codes (200, 400, 500) form the language of the web</li>
                         <li>• REST patterns and JSON data interchange are the backbone of modern AI services</li>

@@ -7,6 +7,14 @@
     {
       "path": "/api/agent/trending",
       "schedule": "0 8 * * 1"
+    },
+    {
+      "path": "/api/cron/trial-reminders",
+      "schedule": "0 10 * * *"
+    },
+    {
+      "path": "/api/cron/dunning",
+      "schedule": "15 10 * * *"
     }
   ]
 }

@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
 import { ChevronRight, X } from 'lucide-react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { WORLDS } from '@/types';
 
 // ContinueBanner — "Pick up where you left off"
 // v2 [NEW-3D]: Contextual banner showing last activity
 
 export function ContinueBanner() {
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const [dismissed, setDismissed] = useState(false);
 
   // Show banner only if child has some progress data
@@ -31,7 +31,7 @@ export function ContinueBanner() {
         exit={{ opacity: 0, y: -10 }}
         className="mb-4"
       >
-        <div className="glass-card rounded-2xl p-4 flex items-center gap-4">
+        <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-2xl p-4 flex items-center gap-4">
           <div
             className="w-10 h-10 rounded-xl flex items-center justify-center text-xl flex-shrink-0"
             style={{ backgroundColor: `${lastLab.color}20` }}
@@ -54,7 +54,7 @@ export function ContinueBanner() {
           </Link>
           <button
             onClick={() => setDismissed(true)}
-            className="text-white/30 hover:text-white/50 transition-colors"
+            className="text-white/60 hover:text-white/50 transition-colors"
             aria-label="Dismiss continue banner"
           >
             <X className="w-4 h-4" />

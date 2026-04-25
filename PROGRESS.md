@@ -1,53 +1,206 @@
 # SparkForge Build Progress
 
-## Current Phase: Supabase DB Buildout (autonomous MCP session)
-## Status: COMPLETE
-## Last Updated: 2026-04-25
+## Current Phase: Phase 5 — First 10 Enhancements (Final-Audit 04-15)
+## Status: IN PROGRESS — Task #1 complete, #2 next
+## Last Updated: 2026-04-22
 
 ---
 
-### Supabase DB Buildout (April 25, 2026)
+## Phase 5 First 10 Enhancements — April 22, 2026
+
+**Branch:** `claude/phase-5-auth-enhancements-S5N0E` · **Scope:** 10 tier-locked enhancements selected in Final-Audit_04-15-2026.md §"Phase 5 First 10".
+
+### Task 1 — §10.11 OffscreenCanvas Worker Rendering (Ultra) — ✅ COMPLETE
+
+Shipped 7 sub-pieces across 5 commits. All infrastructure live under `src/lib/3d/offscreen/` + `src/workers/renderWorker.ts`. Opt-in behind `NEXT_PUBLIC_FF_OFFSCREEN_RENDER=true`.
+
+| Sub-piece | Files | Commit |
+|---|---|---|
+| 1. SAB store mirror + feature flags | `sabStoreMirror.ts`, `sabStoreBridge.ts`, `feature-flags.ts` | `46e338d` |
+| 2. Shader precompile manifest + precompiler | `shaderManifest.ts`, `shaderPrecompiler.ts` | `5d7dd79` |
+| 3-4. FPS telemetry + auto-quality policy | `fpsTelemetry.ts`, `autoQuality.ts` | `492d77e` |
+| 5. Synthetic event bridge | `eventBridge.ts` | `f38d5c3` |
+| 6-7. Worker protocol + client + host + render worker | `workerProtocol.ts`, `workerClient.ts`, `OffscreenCanvasGate.tsx`, `OffscreenCanvasWorkerHost.tsx`, `workers/renderWorker.ts` | `d72ea72` |
+| Lint fixes (named three imports) | 3 files | `101c2d3` |
+
+**Scope caveat (honest):** full R3F reconciler in worker is 3-5 eng-weeks per the audit. This ships:
+- Full infra suite that a reconciler will plug directly into (no throw-away).
+- A minimal worker render scene (cockpit ring + grid + stars) so the pipeline is live NOW and measurable.
+- Main-thread Canvas untouched — when flag off or browser unsupported, zero regression.
+
+Next: Task #2 — AUTH-ENH Signed Demo Tokens (Max).
+
+---
+
+### Flagship Game Audit — Phase F: Per-Game AI Integration (April 7, 2026)
 
 **Status:** COMPLETE
-**Scope:** Bring live Supabase DB to 100% alignment with `setup-sparkforge-dev` SQL files; remediate advisor findings; verify via build.
-**Baseline:** 35 migrations already recorded in `supabase_migrations.schema_migrations` covering 001–025, 006_cron, pgaudit, pg_cron, and standard_game_ids.
+**Scope:** AI content hooks integrated into all 5 flagship games
 
-#### Migrations Applied This Session (5 net-new)
+- [x] Pet Trainer: `useAIContent` + `SurpriseMeButton` for novel categories
+- [x] Sort Toy Box: `useAIContent` for Round 5 AI-generated criteria
+- [x] Neural Builder: `useAIContent` for random challenge generation
+- [x] Agent Architect: `useAIContent` for sandbox mission generation
+- [x] Bias Detective: `useAIContent` for new case generation
 
-1. **`add_content_updated_at_trigger`** — `content.updated_at` was not auto-maintaining. Added `content_updated_at` BEFORE UPDATE trigger calling existing `update_updated_at_column()` fn (same pattern used on `parents`/`children`).
-2. **`fix_subscription_status_default_and_backfill`** (CRIT-004 finalization) — changed `parents.subscription_status` column default from `'active'` → `'none'`; backfilled existing rows where `subscription_status='active' AND stripe_customer_id IS NULL AND stripe_subscription_id IS NULL` (0 rows affected on this DB).
-3. **`dunning_grace_period_pay_enh_003`** — migration 025 was partial (only 2 of 5 dunning columns landed). Added missing `dunning_started_at`, `dunning_last_sent_at`, `dunning_tier_before` columns + CHECK constraints + both dunning scan indexes. Verification `ASSERT` passed.
-4. **`perf_rls_initplan_and_fk_indexes`** — wrapped `auth.uid()` in `(SELECT auth.uid())` across **27 RLS policies** on 14 tables (parents, children, progress, child_badges, content, content_queue, sessions, prompt_history, agent_runs, audit_log, auth_events, passkey_credentials, subscription_events, subscription_events_detail). Added 4 covering indexes for unindexed FKs (`child_badges.badge_id`, `content.reviewed_by`, `content.updated_by`, `content_queue.reviewed_by`). Fixes all 27 `auth_rls_initplan` WARN lints.
-5. **`drop_redundant_parent_read_own_sub_policy`** — removed duplicate `parent_read_own_sub` SELECT policy on `parents` (identical `id = auth.uid()` check to `parents_select`). Eliminates one `multiple_permissive_policies` WARN.
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
 
-#### Verification (20/20 setup-checklist checks pass)
+---
 
-- `content_updated_at` trigger present
-- `parents.subscription_status` default = `'none'`; 0 rows with stale `'active'`
-- All 5 dunning columns on `parents`; both dunning scan indexes present
-- 27 RLS policies rewritten with `(SELECT auth.uid())`; 4 FK indexes added
-- Post-remediation advisor counts: `auth_rls_initplan` 27→0, `unindexed_foreign_keys` 4→0, `multiple_permissive_policies` 4→3 (3 remaining are intentional admin/self overlap)
-- `supabase_realtime` publication includes `children` + `progress`
-- All expected pg_cron jobs scheduled: `audit-log-retention`, `daily-reset-prompts`, `daily-reset-xp`, `weekly-reset-games`
-- RLS enabled on 0 tables exempted (every public table has RLS)
+### Flagship Game Audit — Phase E: AI Content Generation Infrastructure (April 7, 2026)
 
-#### TypeScript + Build Validation
+**Status:** COMPLETE
+**Scope:** 3 new files — shared utility, API route, client hook
 
-- `mcp__supabase__generate_typescript_types` output matches hand-rolled `src/types/index.ts` — all new columns (dunning_*, grace_period_ends_at, trial_ends_at, subscription_period_end, email_verified_at, xp_awarded_today, stripe_subscription_id) already modeled. **No drift.**
-- `npx tsc --noEmit` — clean (zero errors)
-- `npm run build` — clean; all 30+ API routes + 40+ pages compiled
+- [x] `src/lib/ai-content-generator.ts` — Types, Zod validation, 10 prompt templates, safety filters, rate limiting, caching
+- [x] `src/app/api/ai/generate-content/route.ts` — POST route with auth, Claude API call, JSON parsing, safety check
+- [x] `src/hooks/useAIContent.ts` — Client hook with localStorage cache, rate limiting, concurrent request prevention
 
-#### Outstanding Non-Blocking Items
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
 
-- **Leaked Password Protection** (security advisor WARN) — enable in Supabase Dashboard → Authentication → Password Security. Cannot be toggled via MCP.
-- **Auth DB connection strategy: absolute → percentage** (performance advisor INFO) — Supabase Dashboard setting; tune before scaling.
-- **40 × `unused_index` INFO** — expected pre-launch (no traffic). Re-evaluate post-launch.
-- **3 × `multiple_permissive_policies` WARN** — intentional admin/self overlap on `auth_events`, `content`, `subscription_events`. Retained by design.
-- **20 × "Anonymous Access Policies" WARN** — intentional per migration 019 (`demo_deny_*` RESTRICTIVE policies + read-only demo-mode). Not a vulnerability.
+---
 
-#### Vercel Cron (M6)
+### Flagship Game Audit — Phase D2: Remaining Flagship Expansions (April 7, 2026)
 
-Verified pre-existing scaffolding is complete: `vercel.json` wires 4 jobs (`agent/schedule`, `agent/trending`, `cron/trial-reminders`, `cron/dunning`); `verifyCronBearer` helper in `src/lib/cron-auth.ts` enforces `CRON_SECRET` with timing-safe compare; `CRON_SECRET` documented in `.env.example` + DEPLOYMENT.md + SETUP_CHECKLIST.md. pg_cron (DB resets) + Vercel Cron (app-layer emails/AI) are complementary, not redundant.
+**Status:** COMPLETE
+**Scope:** 4 flagship games expanded with new content, modes, and features
+
+- [x] **Pet Trainer** (1,123→1,343): +3 pets, +6 categories, +4 moods, +2 evolution stages, customization, training modes
+- [x] **Prompt Lab** (2,127→2,323): +7 challenges, +7 templates, 5 scenario packs, battle/history/recipes modes
+- [x] **Agent Architect** (1,217→1,335): +5 blocks, +10 missions, 5 packs, 10 debug challenges, sandbox/debug/replay modes
+- [x] **Bias Detective** (1,623→1,757): +8 cases, +2 evidence types, +3 ranks, 15-entry timeline, test lab/fix tools
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase D: Neural Builder Band A + Content Expansion (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** Band A support + 5 new challenges + 4 arch tests + Band C hyperparameters + competition mode (1,531 → 1,859 lines)
+
+- [x] Band A: 3 simplified challenges (Connect the Dots, Build a Simple Brain, Color Sorter)
+- [x] Band A: Visual-only UI with star ratings, "Feed Your Brain!" button, guided text
+- [x] 5 new B/C challenges: Sound Recognizer, Emotion Detector, Animal Identifier, Text Classifier, Weather Predictor
+- [x] 4 new architecture tests: Overfitter, Underfitter, Speed Demon, Memory Master
+- [x] Band C: Activation function selector (ReLU/Sigmoid/Tanh)
+- [x] Band C: Dropout toggle (off/25%/50%), learning rate slider, batch size selector
+- [x] Competition mode: Beat the Benchmark with bronze/silver/gold tiers
+- [x] Hyperparameters affect training curves (convergence rate, noise level)
+
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase C: Sort Toy Box Major Expansion (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** Major expansion from 652 → 1,117 lines. 4 bugs fixed (ST1-ST4).
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+
+- [x] 5-round progressive system with progression gates (≥60% match to unlock)
+- [x] Expanded shape library: 12 → 30+ shapes across 5 round pools
+- [x] Expanded criteria: 3 → 8 (shape, color, size, pattern, texture, weight, symmetry, edgeCount)
+- [x] 3 game modes: Standard, Challenge (timed), Discovery (free-play with static AI rule matching)
+- [x] Animated 3-phase AI reveal (BUG-ST3): feature extraction → distance → clustering
+- [x] Scoring overhaul (BUG-ST1): 5pts/sort + combo bonus + match accuracy + round bonuses
+- [x] Removed unused useGameContent hook (BUG-ST2)
+- [x] replayCount forces shape regeneration on replay (BUG-ST4)
+
+**Files modified:** `src/components/games/SortToyBoxGame.tsx`
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase B: Neural Builder Critical Fixes (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 8 bugs in NeuralBuilderGame.tsx (2 Critical, 3 High, 3 Medium)
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+
+- [x] BUG-NB1 (CRITICAL): Training accuracy now architecture-dependent (convergence rate, noise, plateau)
+- [x] BUG-NB2 (HIGH): optimalMatch normalized by optimal neuron sum, not totalNeurons
+- [x] BUG-NB3 (HIGH): sparkIntensity uses raw delta before weight clamping
+- [x] BUG-NB4 (CRITICAL): Removed duplicate inline NeuralNetwork3D (kept sceneStore registration)
+- [x] BUG-NB5 (MEDIUM): setTimeout in ref, cleared on unmount
+- [x] BUG-NB6 (MEDIUM): Heartbeat continues during training at 2.7x speed
+- [x] BUG-NB7 (MEDIUM): Audio concurrency limited to 3 (prevents distortion)
+- [x] BUG-NB8 (MEDIUM): Canvas cleared on challenge switch
+
+**Files modified:** `src/components/games/NeuralBuilderGame.tsx`
+**Verification:** `npx tsc --noEmit` — PASS | `npm run build` — PASS
+
+---
+
+### Flagship Game Audit — Phase A: GameStore + GameShell Bug Fixes (April 7, 2026)
+
+**Status:** COMPLETE
+**Scope:** 5 critical/high bugs in shared game infrastructure (affects all 35 games)
+**Branch:** `claude/flagship-game-audit-implementation-cb9TL`
+**Source:** `flagship-game-content-audit(04.06.2026).md` — Section 3 (Bug Audit), Section 8 (Implementation Roadmap)
+
+- [x] BUG-GS1 (CRITICAL): Decoupled `updateScore()` from `maxScore`. Added `setMaxScore()` action. Score and maxScore are now independent.
+- [x] BUG-GS2 (HIGH): Fixed `advanceRound()` off-by-one. Changed `>=` to `>`, advance-then-check pattern.
+- [x] BUG-GS3 (HIGH): `resetGame()` now clears all fields: `currentGame`, `totalRounds`, `hintsRemaining` added to reset.
+- [x] BUG-GS4 (CRITICAL): Kept `maxScore` in HUD using `totalRounds * 10`. Ceremony tier calculation preserved.
+- [x] BUG-GS5 (HIGH): Wrapped `completeAndReward` in try/catch. `hasRewarded.current` resets on failure for auto-retry.
+
+**Files modified:**
+- `src/stores/gameStore.ts` — 3 bug fixes + 1 new action
+- `src/components/game/GameShell.tsx` — 2 bug fixes (reward pipeline + maxScore)
+
+**Verification:** `npx tsc --noEmit` — PASS (zero type errors)
+
+---
+
+### 3D UI Migration (April 3, 2026)
+
+**Status:** COMPLETE — All 7 phases delivered
+**Scope:** Full migration of HTML/CSS dashboard UI to 3D cockpit-embedded panels
+**Total:** 49 components, 150 design decisions
+
+**Phase 1 — Infrastructure (8 files):**
+- [x] cockpitModePresets
+- [x] cockpitDesignTokens
+- [x] cockpitUIStore
+- [x] CockpitUILayer
+- [x] 5 UI primitives (base 3D UI building blocks)
+
+**Phase 2 — Dashboard (9 panels):**
+- [x] 6 HTML pages converted to 3D panel architecture
+- [x] ~861 lines of HTML removed
+
+**Phase 3 — Auth + Forms (4 panels):**
+- [x] LoginPanel3D
+- [x] SignupPanel3D
+- [x] ResetPasswordPanel3D
+- [x] ChatPanel3D
+
+**Phase 4 — Gamification (3 components):**
+- [x] XPPopup3D
+- [x] CelebrationPanel3D
+- [x] useCelebration3D
+
+**Phase 5 — Game UI (3 components):**
+- [x] GameHUD3D
+- [x] GameTimerBar3D
+- [x] GamePhaseOverlay3D
+
+**Phase 6 — Game Templates (6 components):**
+- [x] ChoiceButton3D
+- [x] QuizGameTemplate
+- [x] BuilderGameTemplate
+- [x] ExplorerGameTemplate
+- [x] LabGameTemplate
+- [x] GameLearnCards3D
+
+**Phase 7 — Marketing (1 component):**
+- [x] CockpitPreview3D
+
+**Key Changes:**
+- AmbientParticles.tsx DELETED (Decision 20.0)
+- HolographicHUD REPOSITIONED to peripheral frame (Decision 6.0)
+- Cockpit-Interface-Plan.md ARCHIVED to _SUPERSEDED/
 
 ---
 

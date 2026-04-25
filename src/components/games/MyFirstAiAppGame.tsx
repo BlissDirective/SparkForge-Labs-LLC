@@ -23,18 +23,21 @@
 
 'use client';
 
-import { useState, useMemo, useCallback, useEffect, Suspense } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
+import { useGame } from '@/stores/gameStore';
 import { useSceneStore } from '@/stores/sceneStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import {
   Play, BookOpen, Sparkles, Star, ArrowRight, ArrowLeft,
   Award, Rocket
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import for 3D component — SSR disabled, desktop only
 const MyFirstAiApp3D = dynamic(
@@ -51,6 +54,7 @@ interface AppCategory {
   id: string; title: string; emoji: string;
   description: string; descriptionB: string; descriptionC: string;
   color: string; bandMin: 'A' | 'B' | 'C';
+  isAI?: boolean;
 }
 
 interface AIPower {
@@ -141,6 +145,47 @@ const ALL_CATEGORIES: AppCategory[] = [
     descriptionB: 'An AI business tool for data analysis, customer service automation, or workflow optimization.',
     descriptionC: 'An enterprise AI solution combining analytics dashboards, NLP-powered customer support, and predictive operations.',
     color: '#6366F1', bandMin: 'C' },
+  // ═══════ 5x CONTENT EXPANSION (8 new categories) ═══════
+  { id: 'safety', title: 'Safety App', emoji: '\u{1F6E1}\uFE0F',
+    description: 'An app that keeps people safe from dangers!',
+    descriptionB: 'An AI safety app for emergency detection, danger alerts, or protective monitoring.',
+    descriptionC: 'A safety application using anomaly detection, geofencing, and real-time risk assessment models.',
+    color: '#DC2626', bandMin: 'A' },
+  { id: 'nature', title: 'Nature Explorer', emoji: '\u{1F33F}',
+    description: 'An app that helps you learn about plants, animals, and nature!',
+    descriptionB: 'An AI nature app that identifies species, tracks wildlife, or teaches ecology.',
+    descriptionC: 'A biodiversity application using image classification (iNaturalist models), species distribution modeling, and ecological network analysis.',
+    color: '#16A34A', bandMin: 'A' },
+  { id: 'music', title: 'Music Maker', emoji: '\u{1F3B5}',
+    description: 'An app that creates, mixes, or teaches music with AI!',
+    descriptionB: 'An AI music app for composition, instrument learning, or audio production.',
+    descriptionC: 'A music technology application using neural audio synthesis, MIDI generation, and audio source separation.',
+    color: '#E11D48', bandMin: 'A' },
+  { id: 'pet', title: 'Pet Companion', emoji: '\u{1F436}',
+    description: 'An app that helps take care of your pets!',
+    descriptionB: 'An AI pet care app for health monitoring, training guidance, or behavior analysis.',
+    descriptionC: 'A veterinary AI application using symptom classification, activity pattern analysis, and breed-specific health prediction models.',
+    color: '#B45309', bandMin: 'A' },
+  { id: 'space', title: 'Space Explorer', emoji: '\u{1F680}',
+    description: 'An app that explores space and discovers new things!',
+    descriptionB: 'An AI space app for star identification, mission planning, or astronomical discovery.',
+    descriptionC: 'An astrophysics application using image segmentation for galaxy classification, orbital mechanics simulation, and spectral analysis.',
+    color: '#1E40AF', bandMin: 'B' },
+  { id: 'food', title: 'Food & Cooking', emoji: '\u{1F373}',
+    description: 'An app that helps cook meals and plan what to eat!',
+    descriptionB: 'An AI cooking app for recipe generation, meal planning, or nutrition tracking.',
+    descriptionC: 'A culinary AI application using ingredient recognition, constraint-based recipe generation, and nutritional optimization algorithms.',
+    color: '#CA8A04', bandMin: 'B' },
+  { id: 'sports', title: 'Sports Coach', emoji: '\u26BD',
+    description: 'An app that helps athletes train and improve!',
+    descriptionB: 'An AI sports app for performance analysis, training optimization, or injury prevention.',
+    descriptionC: 'A sports analytics application using pose estimation, biomechanical analysis, and performance prediction models.',
+    color: '#059669', bandMin: 'B' },
+  { id: 'accessibility', title: 'Accessibility Tool', emoji: '\u267F',
+    description: 'An app that helps people with disabilities do more!',
+    descriptionB: 'An AI accessibility app for screen reading, sign language translation, or adaptive interfaces.',
+    descriptionC: 'An assistive technology application using real-time captioning, gesture recognition, and adaptive UI generation.',
+    color: '#7C3AED', bandMin: 'C' },
 ];
 
 // ■■■■ AI Powers ■■■■
@@ -235,12 +280,12 @@ function calcInnovationScore(
 // ■■■■ Component ■■■■
 
 export function MyFirstAiAppGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
   const { data: dynamicContent } = useGameContent('my-first-ai-app', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -252,11 +297,18 @@ export function MyFirstAiAppGame() {
   const [selectedTheme, setSelectedTheme] = useState<string>('neon');
   const [showHowItWorks, setShowHowItWorks] = useState(false);
   const [showCodePeek, setShowCodePeek] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredCategories = useFilteredContent(ALL_CATEGORIES as any[], tier, ageBand) as typeof ALL_CATEGORIES;
 
-  const categories = useMemo(
-    () => ALL_CATEGORIES.filter(c => BAND_ORDER[c.bandMin] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  // Merge hardcoded + dynamic categories
+  const categories = useMemo(() => {
+    const hardcoded = ALL_CATEGORIES.filter(c => BAND_ORDER[c.bandMin] <= BAND_ORDER[ageBand]);
+    if (!dynamicContent?.scenarios?.length) return hardcoded;
+    const dynamic: AppCategory[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as AppCategory; } catch { return null; } })
+      .filter((c): c is AppCategory => c !== null && BAND_ORDER[c.bandMin] <= BAND_ORDER[ageBand]);
+    return [...hardcoded, ...dynamic];
+  }, [ageBand, dynamicContent?.scenarios]);
   const powers = useMemo(
     () => ALL_POWERS.filter(p => BAND_ORDER[p.bandMin] <= BAND_ORDER[ageBand]),
     [ageBand]
@@ -306,11 +358,13 @@ export function MyFirstAiAppGame() {
       if (next) setBuildStep(next);
       game.advanceRound();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [buildStep, stepIdx, innovationScore, game]);
 
   const goBack = useCallback(() => {
     const prev = BUILD_STEPS[stepIdx - 1];
     if (prev) setBuildStep(prev);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stepIdx]);
 
   const pseudoCode = useMemo(() => {
@@ -356,18 +410,19 @@ export function MyFirstAiAppGame() {
     } else {
       setGameSceneContent(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, stepIdx, powerOrbs3D, maxPowers, currentTheme, currentCategory, appName, innovationScore, setGameSceneContent]);
 
   return (
-    <GameShell gameId="my-first-ai-app" title="My First AI App" worldNumber={9} worldColor="#F97316" xpReward={30} totalRounds={BUILD_STEPS.length}>
+    <GameShell gameId="my-first-ai-app" title="My First AI App" worldNumber={9} worldColor="#E68E28" xpReward={30} totalRounds={BUILD_STEPS.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         {particles.map(p => (
           <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
             style={{ width: p.size, height: p.size, left: `${p.x}%`, top: `${p.y}%`,
               background: 'radial-gradient(circle, rgba(249,115,22,0.4), transparent)' }}
-            animate={{ y: [0, -25, 0], opacity: [0.15, 0.5, 0.15] }}
-            transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }} />
+            animate={prefersReducedMotion ? {} : { y: [0, -25, 0], opacity: [0.15, 0.5, 0.15] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }} />
         ))}
 
         {/* Chrome Bezel */}
@@ -382,8 +437,8 @@ export function MyFirstAiAppGame() {
           {phase === 'welcome' && (
             <motion.div key="welcome" className="flex-1 flex flex-col items-center justify-center p-6 gap-2"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F4F1}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F4F1}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">My First AI App</h2>
               <p className="font-body text-sm text-white/60 mb-1">Lab 9 — Build with AI</p>
               <p className="font-body text-sm text-white/50 max-w-sm mb-6">
@@ -413,7 +468,7 @@ export function MyFirstAiAppGame() {
                     border: `1px solid ${CONCEPT_CARDS[learnIdx].color}33` }}
                   initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
                   transition={{ type: 'spring', stiffness: 300, damping: 25 }}>
-                  <motion.span className="text-4xl block mb-3" animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <motion.span className="text-4xl block mb-3" animate={prefersReducedMotion ? {} : { y: [0, -6, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                     {CONCEPT_CARDS[learnIdx].emoji}</motion.span>
                   <h3 className="font-display text-lg font-bold text-white mb-2">{CONCEPT_CARDS[learnIdx].title}</h3>
                   <p className="font-body text-sm text-white/70 leading-relaxed">{getDesc(CONCEPT_CARDS[learnIdx])}</p>
@@ -436,12 +491,16 @@ export function MyFirstAiAppGame() {
           {phase === 'build' && (
             <motion.div key="build" className="flex-1 flex flex-col p-4 overflow-y-auto"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-center gap-3 mb-3 px-4">
+                <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                <GameProgressTracker current={stepIdx + 1} total={5} labColor="#F97316" />
+              </div>
               {/* Step indicator */}
               <div className="flex items-center justify-center gap-1 mb-4">
                 {BUILD_STEPS.map((s, i) => (
                   <div key={s} className="flex items-center">
                     <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                      i < stepIdx ? 'bg-orange-500 text-white' : i === stepIdx ? 'bg-orange-500/30 text-orange-300 ring-1 ring-orange-500/50' : 'bg-white/5 text-white/20'}`}>
+                      i < stepIdx ? 'bg-orange-500 text-white' : i === stepIdx ? 'bg-orange-500/30 text-orange-300 ring-1 ring-orange-500/50' : 'bg-white/5 text-white/55'}`}>
                       {i + 1}</div>
                     {i < BUILD_STEPS.length - 1 && <div className={`w-6 h-0.5 ${i < stepIdx ? 'bg-orange-500' : 'bg-white/10'}`} />}
                   </div>
@@ -453,7 +512,7 @@ export function MyFirstAiAppGame() {
                 {buildStep === 'category' && (
                   <motion.div key="cat" className="flex-1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white text-center mb-1">What kind of app?</h3>
-                    <p className="font-body text-xs text-white/40 text-center mb-4">Pick the type of AI app you want to build!</p>
+                    <p className="font-body text-xs text-white/70 text-center mb-4">Pick the type of AI app you want to build!</p>
                     <div className="grid grid-cols-1 gap-2.5 max-w-sm mx-auto">
                       {categories.map(cat => (
                         <motion.button key={cat.id} onClick={() => setSelectedCategory(cat.id)}
@@ -480,12 +539,12 @@ export function MyFirstAiAppGame() {
                     initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <div className="text-4xl mb-3">{currentCategory?.emoji || '\u{1F4F1}'}</div>
                     <h3 className="font-display text-lg font-bold text-white mb-1">Name your app!</h3>
-                    <p className="font-body text-xs text-white/40 mb-4">Give your {currentCategory?.title?.toLowerCase()} a cool name</p>
+                    <p className="font-body text-xs text-white/70 mb-4">Give your {currentCategory?.title?.toLowerCase()} a cool name</p>
                     <input type="text" value={appName} onChange={e => setAppName(e.target.value)}
                       placeholder="e.g. SuperBrain, ArtMagic, FunBot..." maxLength={24}
                       className="w-full max-w-xs px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-display text-center focus:outline-none focus:border-orange-500/50"
                       aria-label="Enter your app name" autoFocus />
-                    <p className="font-mono text-2xs text-white/20 mt-1">{appName.length}/24</p>
+                    <p className="font-mono text-2xs text-white/55 mt-1">{appName.length}/24</p>
                     {appName.length >= 2 && (
                       <motion.div className="mt-4 px-4 py-2 rounded-xl bg-orange-500/10 border border-orange-500/20"
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
@@ -499,10 +558,10 @@ export function MyFirstAiAppGame() {
                 {buildStep === 'powers' && (
                   <motion.div key="powers" className="flex-1" initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white text-center mb-1">Choose AI Powers!</h3>
-                    <p className="font-body text-xs text-white/40 text-center mb-1">
+                    <p className="font-body text-xs text-white/70 text-center mb-1">
                       Pick up to {maxPowers} powers for <strong className="text-orange-300">{appName || 'your app'}</strong>
                     </p>
-                    <p className="font-mono text-xs text-center text-white/30 mb-3">{selectedPowers.length} / {maxPowers} selected</p>
+                    <p className="font-mono text-xs text-center text-white/60 mb-3">{selectedPowers.length} / {maxPowers} selected</p>
                     <div className="grid grid-cols-2 gap-2 max-w-md mx-auto">
                       {powers.map(pow => {
                         const isSelected = selectedPowers.includes(pow.id);
@@ -511,12 +570,13 @@ export function MyFirstAiAppGame() {
                             className={`text-left p-3 rounded-xl border transition-all duration-200 ${
                               isSelected ? 'border-orange-500/50 bg-orange-500/10' : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'}`}
                             whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
-                            aria-label={`${isSelected ? 'Remove' : 'Add'} ${pow.title} power`}>
+                            aria-label={`${isSelected ? 'Remove' : 'Add'} ${pow.title} power`}
+                            aria-pressed={isSelected}>
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-lg">{pow.emoji}</span>
                               <span className="font-display text-xs font-bold text-white">{pow.title}</span>
                             </div>
-                            <p className="font-body text-2xs text-white/40 leading-snug">{getDesc(pow)}</p>
+                            <p className="font-body text-2xs text-white/70 leading-snug">{getDesc(pow)}</p>
                             {isSelected && (
                               <motion.div className="mt-1 h-0.5 rounded-full bg-gradient-to-r from-orange-500 to-amber-500"
                                 initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} />
@@ -533,7 +593,7 @@ export function MyFirstAiAppGame() {
                   <motion.div key="audience" className="flex-1 flex flex-col items-center justify-center gap-2"
                     initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white mb-1">Who is it for?</h3>
-                    <p className="font-body text-xs text-white/40 mb-4">Who will use <strong className="text-orange-300">{appName}</strong>?</p>
+                    <p className="font-body text-xs text-white/70 mb-4">Who will use <strong className="text-orange-300">{appName}</strong>?</p>
                     <div className="grid grid-cols-2 gap-2 max-w-sm">
                       {AUDIENCES.map(aud => (
                         <motion.button key={aud.id} onClick={() => setSelectedAudience(aud.id)}
@@ -553,7 +613,7 @@ export function MyFirstAiAppGame() {
                   <motion.div key="design" className="flex-1 flex flex-col items-center"
                     initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -30 }}>
                     <h3 className="font-display text-lg font-bold text-white mb-1">Pick a style!</h3>
-                    <p className="font-body text-xs text-white/40 mb-3">Choose the look for <strong className="text-orange-300">{appName}</strong></p>
+                    <p className="font-body text-xs text-white/70 mb-3">Choose the look for <strong className="text-orange-300">{appName}</strong></p>
                     <div className="grid grid-cols-3 gap-2 max-w-sm mb-4">
                       {DESIGN_THEMES.map(theme => (
                         <motion.button key={theme.id} onClick={() => setSelectedTheme(theme.id)}
@@ -610,7 +670,7 @@ export function MyFirstAiAppGame() {
               <motion.div className={`w-full max-w-xs rounded-3xl p-5 bg-gradient-to-br ${currentTheme.bgGradient} border border-white/10`}
                 initial={{ rotateY: 90 }} animate={{ rotateY: 0 }} transition={{ delay: 0.5, type: 'spring' }}>
                 <div className="text-center">
-                  <motion.div className="text-5xl mb-2" animate={{ y: [0, -5, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <motion.div className="text-5xl mb-2" animate={prefersReducedMotion ? {} : { y: [0, -5, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                     {currentCategory?.emoji || '\u{1F4F1}'}</motion.div>
                   <h3 className="font-display text-xl font-bold mb-1" style={{ color: currentTheme.textColor }}>{appName}</h3>
                   <p className="font-body text-xs mb-3" style={{ color: `${currentTheme.textColor}99` }}>
@@ -654,18 +714,18 @@ export function MyFirstAiAppGame() {
                     <p className="font-mono text-2xs text-orange-400 mb-2">DATA FLOW:</p>
                     <div className="flex items-center gap-1 flex-wrap">
                       <span className="px-2 py-1 rounded bg-white/10 font-mono text-2xs text-white/60">Input</span>
-                      <span className="text-white/30">{'\u2192'}</span>
+                      <span className="text-white/60">{'\u2192'}</span>
                       {selectedPowers.map((id, i) => {
                         const p = ALL_POWERS.find(pw => pw.id === id);
                         return (
                           <span key={id} className="contents">
                             <span className="px-2 py-1 rounded font-mono text-2xs" style={{ background: `${p?.color}20`, color: p?.color }}>
                               {p?.techLabel}</span>
-                            {i < selectedPowers.length - 1 && <span className="text-white/30">{'\u2192'}</span>}
+                            {i < selectedPowers.length - 1 && <span className="text-white/60">{'\u2192'}</span>}
                           </span>
                         );
                       })}
-                      <span className="text-white/30">{'\u2192'}</span>
+                      <span className="text-white/60">{'\u2192'}</span>
                       <span className="px-2 py-1 rounded bg-emerald-500/20 font-mono text-2xs text-emerald-400">Output</span>
                     </div>
                   </motion.div>
@@ -702,8 +762,8 @@ export function MyFirstAiAppGame() {
           {phase === 'complete' && (
             <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
-              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F680}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F680}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">App Developer!</h2>
               <p className="font-body text-sm text-white/60 mb-4">You designed your very own AI-powered app!</p>
 
@@ -712,7 +772,7 @@ export function MyFirstAiAppGame() {
                   <span className="text-3xl">{currentCategory?.emoji || '\u{1F4F1}'}</span>
                   <div className="text-left">
                     <p className="font-display text-lg font-bold text-white">{appName}</p>
-                    <p className="font-body text-xs text-white/40">{currentCategory?.title}</p>
+                    <p className="font-body text-xs text-white/70">{currentCategory?.title}</p>
                   </div>
                 </div>
 
@@ -744,7 +804,7 @@ export function MyFirstAiAppGame() {
                 <span className="font-mono text-sm text-amber-300">+{Math.floor(innovationScore * 0.4) + 10} XP earned!</span>
               </div>
 
-              <p className="font-body text-xs text-white/30 max-w-xs">
+              <p className="font-body text-xs text-white/60 max-w-xs">
                 {ageBand === 'C' ? 'Real AI startups follow this exact process: idea \u2192 capabilities \u2192 audience \u2192 design \u2192 build!' :
                  ageBand === 'B' ? 'Companies like Google and OpenAI all start with this same process \u2014 idea, powers, audience, design!' :
                  'You just did what real app builders do \u2014 amazing!'}

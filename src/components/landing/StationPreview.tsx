@@ -1,21 +1,33 @@
 // src/components/landing/StationPreview.tsx
 // ================================================================
-// STATION PREVIEW — Act 4: Dashboard Teaser with CSS Glow
+// STATION PREVIEW — Act 4: Dashboard Teaser with 3D Cockpit Preview
 // ================================================================
-// Decision 8.2: High-quality CSS mockup of the station frame
-// with subtle animation (LED rim glow pulse, parallax shift).
-// Stats counters tick up via GSAP ScrollTrigger (from parent).
+// Phase 7: Upgraded from CSS-only mockup to hybrid CSS + R3F.
+// CockpitPreview3D renders a mini cockpit scene (~50K tris) embedded
+// in the marketing page. CSS chrome bezel, LED rim, and stats remain.
 //
-// Zero 3D overhead — purely CSS.
-//
-// ENHANCEMENTS APPLIED:
-//   1. prefers-reduced-motion — disables LED pulse animation
-//   5. Scanline overlay (2px repeating gradient) on station mockup
+// ENHANCEMENTS (Phase 7):
+//   - CockpitPreview3D replaces static CSS dashboard mockup
+//   - Enhanced LED discrete dots along bezel
+//   - Chromatic aberration text effect on stat numbers
+//   - prefers-reduced-motion respected (3D hidden, CSS fallback shown)
 // ================================================================
 
 'use client';
 
-import { Sparkles, Gamepad2, Award, Zap, Trophy } from 'lucide-react';
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+import { Sparkles, Gamepad2, Award } from 'lucide-react';
+
+// Lazy-load 3D cockpit preview — SSR disabled
+const CockpitPreview3D = dynamic(
+  () => import('@/components/3d/CockpitPreview3D'),
+  { ssr: false }
+);
+const R3FCanvas = dynamic(
+  () => import('@react-three/fiber').then((mod) => mod.Canvas),
+  { ssr: false }
+);
 
 // ---- Stats Data ----
 const STATS = [
@@ -25,7 +37,7 @@ const STATS = [
 ];
 
 // ---- Deterministic mock lab cards (avoid Math.random in render) ----
-const MOCK_LABS = [
+const _MOCK_LABS = [
   { color: '#00BBFF', label: 'Code', progress: 72 },
   { color: '#AA66FF', label: 'Data', progress: 55 },
   { color: '#FF66AA', label: 'Neural', progress: 40 },
@@ -34,7 +46,7 @@ const MOCK_LABS = [
 ];
 
 // ---- Deterministic mini bar heights ----
-const MINI_BARS = [10, 14, 8, 18, 12];
+const _MINI_BARS = [10, 14, 8, 18, 12];
 
 export function StationPreview() {
   return (
@@ -47,7 +59,7 @@ export function StationPreview() {
         <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">
           The Laboratory Control Station
         </h2>
-        <p className="font-body text-base text-white/40 max-w-md mx-auto">
+        <p className="font-body text-base text-white/70 max-w-md mx-auto">
           A beautiful, immersive dashboard where every experiment
           comes to life.
         </p>
@@ -67,97 +79,62 @@ export function StationPreview() {
             aria-hidden="true"
           />
 
-          {/* Inner screen */}
-          <div className="relative rounded-xl overflow-hidden bg-[#0D1117] border border-white/[0.04]">
-            {/* Aurora background simulation */}
-            <div className="absolute inset-0" aria-hidden="true">
-              <div className="absolute top-[10%] left-[20%] w-64 h-32 rounded-full bg-[#00BBFF]/[0.06] blur-[60px]" />
-              <div className="absolute top-[30%] right-[15%] w-48 h-48 rounded-full bg-[#AA66FF]/[0.04] blur-[50px]" />
-              <div className="absolute bottom-[20%] left-[40%] w-56 h-28 rounded-full bg-[#06B6D4]/[0.04] blur-[40px]" />
+          {/* Inner screen — 3D cockpit preview (Phase 7) */}
+          <div className="relative rounded-xl overflow-hidden bg-[#060A12] border border-white/[0.04]">
+            {/* 3D Cockpit Preview Canvas */}
+            <div className="relative min-h-[280px] md:min-h-[360px]">
+              <Suspense fallback={
+                /* CSS fallback while 3D loads (also serves reduced-motion) */
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="absolute inset-0" aria-hidden="true">
+                    <div className="absolute top-[10%] left-[20%] w-64 h-32 rounded-full bg-[#00BBFF]/[0.06] blur-[60px]" />
+                    <div className="absolute top-[30%] right-[15%] w-48 h-48 rounded-full bg-[#AA66FF]/[0.04] blur-[50px]" />
+                    <div className="absolute bottom-[20%] left-[40%] w-56 h-28 rounded-full bg-[#06B6D4]/[0.04] blur-[40px]" />
+                  </div>
+                  <p className="font-display text-lg text-white/55 relative z-10">Loading cockpit...</p>
+                </div>
+              }>
+                <R3FCanvas
+                  camera={{ position: [0, 0.3, 1.8], fov: 50 }}
+                  dpr={[1, 1.5]}
+                  style={{ background: '#060A12' }}
+                  gl={{ alpha: false, antialias: true, powerPreference: 'default' }}
+                >
+                  <CockpitPreview3D />
+                </R3FCanvas>
+              </Suspense>
             </div>
 
-            {/* [Enhancement #5] Scanline overlay — control station screen aesthetic */}
+            {/* Scanline overlay — control station screen aesthetic */}
             <div
               className="absolute inset-0 pointer-events-none z-10 scanline-overlay"
               aria-hidden="true"
             />
 
-            {/* Mock dashboard content */}
-            <div className="relative p-6 md:p-10 min-h-[280px] md:min-h-[360px]">
-              {/* Top bar mockup */}
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00BBFF]/30 to-[#AA66FF]/30" />
-                  <div className="w-20 h-3 rounded bg-white/[0.06]" />
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[#FFAA44]/10">
-                    <Zap className="w-3 h-3 text-[#FFAA44]" />
-                    <span className="font-mono text-xs text-[#FFAA44]">
-                      1,250 XP
-                    </span>
-                  </div>
-                  <div className="w-6 h-6 rounded-full bg-white/[0.08]" />
-                </div>
-              </div>
-
-              {/* Lab cards mockup */}
-              <div className="grid grid-cols-3 md:grid-cols-5 gap-2 md:gap-3 mb-6">
-                {MOCK_LABS.map((lab) => (
+            {/* Bottom LED strip — enhanced with discrete LED dots (Phase 7) */}
+            <div className="relative h-[3px] w-full" aria-hidden="true">
+              <div
+                className="absolute inset-0"
+                style={{
+                  opacity: 0.4,
+                  background:
+                    'linear-gradient(to right, transparent, #00BBFF, #AA66FF, #06B6D4, transparent)',
+                }}
+              />
+              {/* Discrete LED dots */}
+              <div className="absolute inset-0 flex justify-between px-4">
+                {Array.from({ length: 12 }).map((_, i) => (
                   <div
-                    key={lab.label}
-                    className="rounded-xl p-3 border border-white/[0.06]"
-                    style={{ background: `${lab.color}08` }}
-                  >
-                    <div
-                      className="w-6 h-6 rounded-lg mb-2"
-                      style={{ background: `${lab.color}20` }}
-                    />
-                    <div className="w-full h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
-                      <div
-                        className="h-full rounded-full"
-                        style={{
-                          width: `${lab.progress}%`,
-                          background: lab.color,
-                          opacity: 0.5,
-                        }}
-                      />
-                    </div>
-                    <p className="font-mono text-2xs text-white/20 mt-1">
-                      {lab.label}
-                    </p>
-                  </div>
+                    key={i}
+                    className="w-1.5 h-full rounded-full led-dot-pulse"
+                    style={{
+                      background: i % 3 === 0 ? '#00BBFF' : i % 3 === 1 ? '#AA66FF' : '#06B6D4',
+                      animationDelay: `${i * 0.15}s`,
+                    }}
+                  />
                 ))}
               </div>
-
-              {/* Bottom stats mockup */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Trophy className="w-4 h-4 text-[#FFAA44]/40" />
-                  <div className="w-16 h-2 rounded bg-white/[0.04]" />
-                </div>
-                <div className="flex items-center gap-1">
-                  {MINI_BARS.map((h, i) => (
-                    <div
-                      key={i}
-                      className="w-1 rounded-full bg-[#00BBFF]/30"
-                      style={{ height: `${h}px` }}
-                    />
-                  ))}
-                </div>
-              </div>
             </div>
-
-            {/* Bottom LED strip */}
-            <div
-              className="h-[2px] w-full"
-              style={{
-                opacity: 0.3,
-                background:
-                  'linear-gradient(to right, transparent, #00BBFF, #AA66FF, #06B6D4, transparent)',
-              }}
-              aria-hidden="true"
-            />
           </div>
 
           {/* Corner chrome rivets */}
@@ -187,11 +164,12 @@ export function StationPreview() {
                 data-stat-counter
                 data-target={stat.value}
                 data-suffix={stat.suffix}
-                className="font-display text-3xl md:text-4xl font-bold text-white"
+                className="font-display text-3xl md:text-4xl font-bold text-white chromatic-text"
+                style={{ '--chromatic-color': stat.color } as React.CSSProperties}
               >
                 0{stat.suffix}
               </p>
-              <p className="font-body text-xs text-white/30 mt-1">{stat.label}</p>
+              <p className="font-body text-xs text-white/60 mt-1">{stat.label}</p>
             </div>
           );
         })}

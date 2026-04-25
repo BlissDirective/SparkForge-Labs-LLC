@@ -9,14 +9,17 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGameActions, useGameScore } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Eye, CheckCircle2, XCircle } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
 
 // 3D Environment — rendered inside CockpitCanvas via SceneRouter (D3D-B3)
 const AiSpyEnvironment = dynamic(
@@ -24,7 +27,7 @@ const AiSpyEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'reveal' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface SceneItem {
   id: string;
@@ -41,6 +44,7 @@ interface Scene {
   emoji: string;
   items: SceneItem[];
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_SCENES: Scene[] = [
@@ -179,27 +183,127 @@ const ALL_SCENES: Scene[] = [
       { id: 's12e', label: '⚠️ Pedestrian detection warnings', usesAI: true, explanation: 'AI watches the road with cameras and detects people crossing so the car can brake!', explanationC: 'Pedestrian detection uses real-time object detection models (YOLO, SSD) on camera/LIDAR data with temporal tracking for trajectory prediction.' },
     ],
   },
+  // ── Healthcare AI (Band A) ──
+  {
+    id: 's13', title: 'Doctor\'s Office', emoji: '🏥', band: 'A', difficulty: 'easy',
+    description: 'You\'re at the doctor for a checkup. The office has some high-tech equipment!',
+    items: [
+      { id: 's13a', label: '🩺 AI analyzing an X-ray image', usesAI: true, explanation: 'AI can look at X-ray pictures and help doctors find problems like broken bones!', explanationC: 'Medical imaging AI uses CNNs trained on annotated radiographs to detect fractures, tumors, and other pathologies with radiologist-level accuracy.' },
+      { id: 's13b', label: '🌡️ Regular thermometer', usesAI: false, explanation: 'A thermometer just measures temperature with heat-sensitive materials — no AI!', explanationC: 'Thermometers use thermal expansion or infrared sensors with calibrated conversion — deterministic measurement, not inference.' },
+      { id: 's13c', label: '💊 AI suggesting the right medicine', usesAI: true, explanation: 'AI helps doctors choose the best medicine based on your symptoms and health records!', explanationC: 'Clinical decision support systems use knowledge graphs and ML models trained on medical records to suggest diagnoses and treatment options.' },
+      { id: 's13d', label: '🩹 Bandage from the supply cabinet', usesAI: false, explanation: 'Bandages are just cloth and tape — no technology at all!', explanationC: 'Medical supplies are passive physical materials with no computational elements.' },
+    ],
+  },
+  // ── Entertainment AI (Band A) ──
+  {
+    id: 's14', title: 'Gaming Console', emoji: '🎮', band: 'A', difficulty: 'easy',
+    description: 'You\'re playing video games with friends. The console does some amazing things!',
+    items: [
+      { id: 's14a', label: '🏎️ Racing game opponents that learn your moves', usesAI: true, explanation: 'Game AI watches how you play and makes computer racers adapt to challenge you!', explanationC: 'Adaptive game AI uses player modeling with behavioral cloning or reinforcement learning to match difficulty to player skill level.' },
+      { id: 's14b', label: '🔌 Power cord plugged into the wall', usesAI: false, explanation: 'A power cord just carries electricity — no intelligence involved!', explanationC: 'Power cables are passive conductors transferring electrical energy — no processing capability.' },
+      { id: 's14c', label: '🎙️ Voice chat that removes background noise', usesAI: true, explanation: 'AI filters out noise so your friends only hear your voice, not the dog barking!', explanationC: 'Noise suppression uses deep learning models (RNNoise, DTLN) that separate speech from environmental sounds in real-time on the audio waveform.' },
+      { id: 's14d', label: '🕹️ The controller joystick', usesAI: false, explanation: 'The joystick just sends your thumb movements to the console — pure hardware!', explanationC: 'Analog sticks use potentiometers that convert mechanical position to voltage — simple ADC, no ML inference.' },
+      { id: 's14e', label: '🗣️ NPC characters that have conversations', usesAI: true, explanation: 'Modern game characters use AI to talk with you in ways that feel natural!', explanationC: 'NPC dialogue systems use language models fine-tuned on game lore to generate contextually appropriate responses within narrative constraints.' },
+    ],
+  },
+  // ── Home AI (Band A) ──
+  {
+    id: 's15', title: 'Smart Home', emoji: '🏡', band: 'A', difficulty: 'medium',
+    description: 'Your neighbor has a "smart home" with lots of connected devices!',
+    items: [
+      { id: 's15a', label: '🌡️ Thermostat that learns your schedule', usesAI: true, explanation: 'Smart thermostats learn when you\'re home and adjust temperature automatically!', explanationC: 'Smart thermostats use occupancy prediction models and schedule learning via time-series analysis to optimize HVAC energy usage.' },
+      { id: 's15b', label: '🚪 Regular door with a key lock', usesAI: false, explanation: 'A keyed lock is purely mechanical — pins and tumblers, no AI!', explanationC: 'Pin tumbler locks use physical key geometry for authentication — a purely mechanical system with no learning capability.' },
+      { id: 's15c', label: '📹 Security camera with person detection', usesAI: true, explanation: 'AI can tell if there\'s a person, animal, or just a tree moving in the wind!', explanationC: 'Smart security cameras use edge-deployed object detection models to classify motion events, reducing false alarm rates from ~90% to ~5%.' },
+      { id: 's15d', label: '💧 Garden sprinkler on a timer', usesAI: false, explanation: 'A timer sprinkler just runs at set times — it doesn\'t think about the weather!', explanationC: 'Timer-based irrigation uses fixed schedule programming — deterministic time comparison, not weather-adaptive inference.' },
+    ],
+  },
+  // ── Transportation AI (Band B) ──
+  {
+    id: 's16', title: 'Airport', emoji: '✈️', band: 'B', difficulty: 'medium',
+    description: 'You\'re at the airport waiting for a flight. There\'s tech everywhere!',
+    items: [
+      { id: 's16a', label: '🛂 Automated passport scanner', usesAI: true, explanation: 'AI reads your passport and matches your face to your photo in seconds!', explanationC: 'E-gates use OCR for passport MRZ reading and facial recognition with liveness detection to verify traveler identity against biometric templates.' },
+      { id: 's16b', label: '🧳 Baggage carousel', usesAI: false, explanation: 'The carousel just spins bags around on a conveyor belt — mechanical movement!', explanationC: 'Baggage carousels are electromechanical conveyors with no sensing or inference — simple motor-driven belt systems.' },
+      { id: 's16c', label: '📡 Air traffic control radar', usesAI: true, explanation: 'AI helps controllers track hundreds of planes and prevent collisions!', explanationC: 'ATC systems use ML-enhanced radar processing for track correlation, conflict detection, and trajectory prediction across complex airspace sectors.' },
+      { id: 's16d', label: '🪑 Waiting area chairs', usesAI: false, explanation: 'Chairs are just furniture — definitely no AI sitting in them!', explanationC: 'Seating furniture is inert physical infrastructure with no computational elements.' },
+      { id: 's16e', label: '🔎 X-ray baggage scanner with threat detection', usesAI: true, explanation: 'AI helps security identify dangerous items in your luggage automatically!', explanationC: 'CT-based baggage screening uses deep learning for automated threat recognition, trained on synthetic and real datasets of prohibited items.' },
+    ],
+  },
+  // ── Financial AI (Band B) ──
+  {
+    id: 's17', title: 'Shopping Mall', emoji: '🏬', band: 'B', difficulty: 'medium',
+    description: 'You\'re at a busy shopping mall. Retail is getting smarter!',
+    items: [
+      { id: 's17a', label: '🏷️ Dynamic pricing tags that change automatically', usesAI: true, explanation: 'Some stores use AI to change prices based on demand, time of day, and inventory!', explanationC: 'Dynamic pricing uses demand forecasting models and price elasticity estimation to optimize revenue through automated price adjustments.' },
+      { id: 's17b', label: '🚶 People counter at the entrance', usesAI: true, explanation: 'AI counts how many people enter the store without identifying anyone!', explanationC: 'Footfall analytics uses person detection models with privacy-preserving design — counting without identification through anonymized blob detection.' },
+      { id: 's17c', label: '🛗 Escalator moving up and down', usesAI: false, explanation: 'Escalators just move steps in a loop with a motor — no AI!', explanationC: 'Escalators are continuous loop conveyors driven by electric motors with mechanical step chains — deterministic mechanical systems.' },
+      { id: 's17d', label: '🗃️ Store inventory tracking system', usesAI: true, explanation: 'AI predicts which products will sell out and tells the store to reorder!', explanationC: 'Inventory optimization uses time-series forecasting (Prophet, DeepAR) to predict demand and optimize reorder points for just-in-time replenishment.' },
+    ],
+  },
+  // ── Research AI (Band C) ──
+  {
+    id: 's18', title: 'Science Lab', emoji: '🔬', band: 'C', difficulty: 'hard',
+    description: 'You\'re visiting a cutting-edge research laboratory. Scientists are pushing boundaries!',
+    items: [
+      { id: 's18a', label: '🧬 AI predicting protein structures', usesAI: true, explanation: 'AI can predict how proteins fold — something scientists struggled with for 50 years!', explanationC: 'AlphaFold uses attention-based architectures to predict 3D protein structures from amino acid sequences, solving a grand challenge in computational biology.' },
+      { id: 's18b', label: '🔬 Optical microscope', usesAI: false, explanation: 'A basic microscope uses glass lenses to magnify — pure optics!', explanationC: 'Optical microscopes use refractive lens systems for magnification — no computational processing in the optical path itself.' },
+      { id: 's18c', label: '💻 AI designing new drug molecules', usesAI: true, explanation: 'AI can invent new medicine molecules by predicting which chemical shapes might work!', explanationC: 'Generative chemistry uses VAEs and diffusion models in molecular space, optimizing for drug-likeness scores (QED, SA), binding affinity, and ADMET properties.' },
+      { id: 's18d', label: '📓 Researcher\'s paper notebook', usesAI: false, explanation: 'A notebook is just paper — the human brain does the thinking here!', explanationC: 'Physical notebooks are passive recording media — human cognition performs the analysis documented within.' },
+      { id: 's18e', label: '🌌 AI analyzing telescope data for exoplanets', usesAI: true, explanation: 'AI sifts through billions of star measurements to find tiny dips that mean a planet passed by!', explanationC: 'Exoplanet detection uses neural networks trained on Kepler/TESS light curves to identify transit signals with higher sensitivity than traditional box-least-squares methods.' },
+    ],
+  },
+  // ── Industrial AI (Band C) ──
+  {
+    id: 's19', title: 'Smart Factory', emoji: '🏭', band: 'C', difficulty: 'hard',
+    description: 'You\'re touring a modern factory. Machines and AI work together here.',
+    items: [
+      { id: 's19a', label: '🤖 Robot arm assembling electronics', usesAI: true, explanation: 'Factory robots use AI to learn precise movements and adapt when things are slightly different!', explanationC: 'Industrial robots use imitation learning and sim-to-real transfer for dexterous manipulation, with force-torque sensing for compliance control.' },
+      { id: 's19b', label: '⚙️ Conveyor belt moving parts', usesAI: false, explanation: 'A conveyor belt just moves things along at a set speed — simple mechanics!', explanationC: 'Conveyor systems use fixed-speed or variable-frequency drive motors — open-loop control with no adaptive learning.' },
+      { id: 's19c', label: '📊 Predictive maintenance system', usesAI: true, explanation: 'AI listens to machines and predicts when they\'ll break down — before it happens!', explanationC: 'Predictive maintenance uses vibration analysis CNNs and time-series anomaly detection on sensor data to forecast equipment failure with remaining useful life estimation.' },
+      { id: 's19d', label: '🔧 Wrench and screwdriver set', usesAI: false, explanation: 'Hand tools are powered by human muscle, not artificial intelligence!', explanationC: 'Manual tools apply mechanical advantage through levers, wedges, and screws — no computational elements.' },
+      { id: 's19e', label: '👁️ Quality inspection camera', usesAI: true, explanation: 'AI cameras check every product for tiny defects that humans might miss!', explanationC: 'Automated optical inspection uses anomaly detection CNNs trained on defect-free samples, achieving sub-millimeter defect detection at production-line speeds.' },
+    ],
+  },
+  // ── Agriculture AI (Band C) ──
+  {
+    id: 's20', title: 'Smart Farm', emoji: '🌾', band: 'C', difficulty: 'expert',
+    description: 'This farm uses the latest technology to grow food more efficiently.',
+    items: [
+      { id: 's20a', label: '🛰️ Satellite crop health monitoring', usesAI: true, explanation: 'AI analyzes satellite images to spot which parts of a field need more water or have diseases!', explanationC: 'Precision agriculture uses multispectral satellite imagery with CNNs to compute NDVI (Normalized Difference Vegetation Index) maps for crop health assessment.' },
+      { id: 's20b', label: '🚜 Tractor driving in straight rows', usesAI: false, explanation: 'A basic tractor just follows where the farmer steers — no AI in old tractors!', explanationC: 'Conventional tractors use mechanical steering linkages and human-operated controls — no autonomous navigation or inference.' },
+      { id: 's20c', label: '🐝 AI-powered pollination drone', usesAI: true, explanation: 'Tiny drones use AI to find flowers and pollinate them, helping bees who are struggling!', explanationC: 'Agricultural micro-UAVs use computer vision for flower detection and path planning algorithms for efficient pollination coverage in greenhouses.' },
+      { id: 's20d', label: '🌱 AI predicting optimal harvest time', usesAI: true, explanation: 'AI uses weather data, soil sensors, and growth models to tell farmers the perfect day to harvest!', explanationC: 'Harvest optimization combines weather forecasting, soil moisture sensing, and crop growth models (APSIM, DSSAT) with ML to maximize yield and quality metrics.' },
+      { id: 's20e', label: '🧱 Stone wall around the farm', usesAI: false, explanation: 'A stone wall is just rocks stacked together — ancient technology, no AI!', explanationC: 'Dry stone walls use gravity and friction for structural integrity — a construction technique predating even simple machines.' },
+    ],
+  },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
+const LEARN_CARDS = [
+  { title: 'What is AI?', emoji: '🤖', desc: 'AI (Artificial Intelligence) is when computers learn to do things that usually need human thinking — like recognizing faces, understanding speech, or making recommendations.' },
+  { title: 'AI is Everywhere', emoji: '🌍', desc: 'AI helps filter your email, suggests videos you might like, powers voice assistants, and even helps doctors find diseases. It\'s in more places than you think!' },
+  { title: 'Spotting AI in Action', emoji: '🔍', desc: 'In this game, you\'ll explore different scenes and figure out which items use AI and which don\'t. Look for things that learn, predict, or make smart decisions!' },
+];
 
 export function AiSpyGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  // PERF-HIGH-001 (C): narrow selectors. Actions are stable refs so
+  // useGameActions never triggers re-render; useGameScore isolates
+  // the single reactive read this file makes.
+  const game = useGameActions();
+  const score = useGameScore();
+  const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('ai-spy', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
-
-  const scenes = useMemo(
-    () => ALL_SCENES.filter(s => BAND_ORDER[s.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  const { data: _dynamicContent } = useGameContent('ai-spy', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [sceneIdx, setSceneIdx] = useState(0);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [revealed, setRevealed] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const scenes = useFilteredContent(ALL_SCENES, tier, ageBand);
 
   const scene = scenes[sceneIdx];
   const totalAI = scene?.items.filter(i => i.usesAI).length ?? 0;
@@ -209,6 +313,7 @@ export function AiSpyGame() {
     setGameSceneContent(
       <AiSpyEnvironment sceneIndex={sceneIdx} isScanning={!revealed} />
     );
+    return () => setGameSceneContent(null);
   }, [sceneIdx, revealed, setGameSceneContent]);
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
@@ -234,7 +339,7 @@ export function AiSpyGame() {
     if (revealed || !scene) return;
     setRevealed(true);
 
-    // Score: +10 for each correct identification, -5 for each wrong
+    // Score: +10 for each correct identification, no penalty for wrong answers
     let roundScore = 0;
     scene.items.forEach(item => {
       const playerSaidAI = selected.has(item.id);
@@ -267,7 +372,7 @@ export function AiSpyGame() {
   }
 
   return (
-    <GameShell gameId="ai-spy" title="AI Spy" worldNumber={1} worldColor="#00BBFF" totalRounds={scenes.length}>
+    <GameShell gameId="ai-spy" title="AI Spy" worldNumber={1} worldColor="#0FB8FA" totalRounds={scenes.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* 3D Environment renders inside CockpitCanvas via SceneRouter (D3D-B3) */}
 
@@ -284,8 +389,8 @@ export function AiSpyGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(0,187,255,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
             />
           ))}
         </div>
@@ -327,7 +432,7 @@ export function AiSpyGame() {
                       ))}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('play')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{ background: 'linear-gradient(135deg, #00BBFF, #0099DD)' }}
                       whileHover={{ scale: 1.02 }}
@@ -336,6 +441,32 @@ export function AiSpyGame() {
                     >
                       Start Spying! <Eye className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {/* ── Learn Phase ── */}
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00BBFF]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0088CC)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 
@@ -348,13 +479,17 @@ export function AiSpyGame() {
                     exit={{ opacity: 0, y: -20 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={sceneIdx + 1} total={scenes.length} labColor="#00BBFF" />
+                    </div>
                     {/* Round counter + Score */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-mono text-2xs text-white/30">
+                      <span className="font-mono text-2xs text-white/60">
                         Scene {sceneIdx + 1} / {scenes.length}
                       </span>
                       <span className="font-mono text-2xs text-sky-400/60">
-                        Score: {game.score}
+                        Score: {score}
                       </span>
                     </div>
 
@@ -366,7 +501,7 @@ export function AiSpyGame() {
                     >
                       <span className="text-3xl">{scene.emoji}</span>
                       <h3 className="font-display text-base font-bold text-white mt-2">{scene.title}</h3>
-                      <p className="font-body text-xs text-white/40 mt-1">{scene.description}</p>
+                      <p className="font-body text-xs text-white/70 mt-1">{scene.description}</p>
                       {!revealed && (
                         <p className="font-body text-2xs text-sky-400/60 mt-2">
                           Tap items you think use AI ({totalAI} hidden)
@@ -419,7 +554,7 @@ export function AiSpyGame() {
                               <motion.p
                                 initial={{ opacity: 0, height: 0 }}
                                 animate={{ opacity: 1, height: 'auto' }}
-                                className="font-body text-2xs text-white/40 mt-1.5 leading-relaxed"
+                                className="font-body text-2xs text-white/70 mt-1.5 leading-relaxed"
                               >
                                 {item.usesAI && <span className="text-sky-400 font-bold">Uses AI: </span>}
                                 {ageBand === 'C' ? item.explanationC : item.explanation}
@@ -446,7 +581,7 @@ export function AiSpyGame() {
                       <div className="space-y-2">
                         {/* Score summary */}
                         <div className="rounded-xl px-4 py-2 bg-white/[0.03] border border-white/5 text-center">
-                          <p className="font-body text-2xs text-white/30">
+                          <p className="font-body text-2xs text-white/60">
                             {scene.items.filter(i => getItemStatus(i) === 'correct').length} / {scene.items.length} correct
                           </p>
                         </div>
@@ -475,8 +610,8 @@ export function AiSpyGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                     >
                       🏆
                     </motion.span>
@@ -485,8 +620,16 @@ export function AiSpyGame() {
                       Great detective work! You explored {scenes.length} scenes and learned where AI hides in everyday life.
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-sky-400/10 border border-sky-400/20">
-                      <p className="font-data text-2xl text-sky-400">{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-data text-2xl text-sky-400">{score}</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
+                    </div>
+                    <div className="mt-4 space-y-2 text-left max-w-sm">
+                      <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
+                        <li>• AI is all around us — from voice assistants to recommendation systems</li>
+                        <li>• Not everything smart uses AI — some things just follow simple rules</li>
+                        <li>• AI works by learning patterns from data, not by being programmed for every situation</li>
+                      </ul>
                     </div>
                   </motion.div>
                 )}

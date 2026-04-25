@@ -2,7 +2,8 @@
 
 import { motion } from 'motion/react';
 import { getRarityColor, getRarityGlow, getRarityLabel } from '@/lib/gamification';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 import type { BadgeCategory, BadgeRarity } from '@/types';
 
 // ════════════════════════════════════════════════════
@@ -33,7 +34,7 @@ const SIZE_CONFIG = {
 } as const;
 
 export function BadgeDisplay({ badge, size = 'md' }: BadgeDisplayProps) {
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
   const config = SIZE_CONFIG[size];
   const rarityColor = getRarityColor(badge.rarity);
   const rarityGlow = getRarityGlow(badge.rarity);
@@ -94,7 +95,7 @@ export function BadgeDisplay({ badge, size = 'md' }: BadgeDisplayProps) {
       <span
         className={`
           ${config.name} font-display font-semibold text-center leading-tight
-          ${earned ? 'text-white' : 'text-white/40'}
+          ${earned ? 'text-white' : 'text-white/70'}
         `}
         style={{ color: earned ? rarityColor : undefined }}
       >
@@ -114,7 +115,7 @@ export function BadgeDisplay({ badge, size = 'md' }: BadgeDisplayProps) {
 
       {/* Locked label */}
       {!earned && (
-        <span className="text-[10px] font-body text-white/30 uppercase tracking-wider">
+        <span className="text-[10px] font-body text-white/60 uppercase tracking-wider">
           Locked
         </span>
       )}

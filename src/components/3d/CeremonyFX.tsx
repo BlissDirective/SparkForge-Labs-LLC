@@ -12,9 +12,27 @@
 //   labComplete     — confetti + fireworks + HUD rings
 //   streakMilestone — particle shower + HUD rings
 
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect, type RefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import {
+  CHROME_BORDER,
+  CELEBRATION_TIERS,
+  EMISSIVE_LED_MULTIPLIER,
+  getEmissive,
+} from '@/lib/3d/cockpitDesignTokens';
+import type { CelebrationTier } from '@/lib/3d/cockpitDesignTokens';
+import { fireHaptic } from '@/lib/haptic/hapticSim';
+// P5 §10.8 Sub 6: GPU compute dispatch + GPU-rendered sub-components.
+// When the compute system returns non-null (WebGPU renderer), the GPU
+// variants below replace the CPU-driven ones.
+import { useCeremonyCompute } from '@/hooks/useCeremonyCompute';
+import {
+  GpuConfettiBurst,
+  GpuFireworkBursts,
+  GpuTrophyPopup,
+  GpuParticleShower,
+} from './CeremonyFXGpu';
 import {
   Color,
   DoubleSide,
@@ -37,13 +55,7 @@ export interface CeremonyFXProps {
 }
 
 // ■■ Constants ■■
-const CEREMONY_DURATION = 4.0; // seconds
 const GRAVITY = -9.8;
-
-const CONFETTI_COLORS = [
-  '#00BBFF', '#00FF88', '#AA66FF', '#FF6644', '#FFAA44',
-  '#FF66AA', '#06B6D4', '#818CF8', '#F97316', '#D946EF',
-];
 
 // Which sub-effects each ceremony type uses
 const CEREMONY_CONFIG: Record<
@@ -55,6 +67,39 @@ const CEREMONY_CONFIG: Record<
   labComplete:     { confetti: true,  fireworks: true,  trophy: false, hudRings: true,  shower: false },
   streakMilestone: { confetti: false, fireworks: false, trophy: false, hudRings: true,  shower: true  },
 };
+
+// ■■ Map ceremony types to celebration tiers from design tokens ■■
+const CEREMONY_TIER_MAP: Record<CeremonyFXProps['type'], CelebrationTier> = {
+  levelUp:         'epic',
+  badgeEarn:       'major',
+  labComplete:     'epic',
+  streakMilestone: 'minor',
+};
+
+/** Decision 18.3: Pulsing bloom — heartbeat pattern (2-3 peaks) before decay.
+ *  Returns a bloom intensity multiplier [0..1] for the current elapsed time. */
+function getBloomPulse(elapsed: number, duration: number, bloomPeak: number): number {
+  const normalised = elapsed / duration;
+  // Heartbeat zone: 10%–60% of ceremony duration — 3 quick pulses
+  const heartbeatStart = 0.1;
+  const heartbeatEnd = 0.6;
+  // Decay zone: 60%–100% — smooth falloff
+  if (normalised < heartbeatStart) {
+    // Ramp in
+    return bloomPeak * (normalised / heartbeatStart);
+  }
+  if (normalised < heartbeatEnd) {
+    // 3 pulses across the heartbeat zone
+    const hbProgress = (normalised - heartbeatStart) / (heartbeatEnd - heartbeatStart);
+    const pulseFreq = 3; // 3 full beats
+    const pulse = Math.pow(Math.sin(hbProgress * pulseFreq * Math.PI), 2);
+    // Minimum 40% between beats so it never fully disappears
+    return bloomPeak * (0.4 + 0.6 * pulse);
+  }
+  // Decay from heartbeatEnd to 1.0
+  const decayProgress = (normalised - heartbeatEnd) / (1.0 - heartbeatEnd);
+  return bloomPeak * Math.max(0, 1 - decayProgress);
+}
 
 // ■■ Ceremony Label Map ■■
 const CEREMONY_LABELS: Record<CeremonyFXProps['type'], { title: string; subtitle: string }> = {
@@ -84,13 +129,17 @@ interface ConfettiData {
 }
 
 function ConfettiBurst({
-  elapsed,
+  elapsedRef,
   count,
-  labColor,
+  labColor: _labColor,
+  duration,
 }: {
-  elapsed: number;
+  /** Phase 3 Task 5C: elapsed is now passed via ref, not prop, so the
+   *  parent no longer re-renders this subtree every frame. */
+  elapsedRef: RefObject<number>;
   count: number;
   labColor: string;
+  duration: number;
 }) {
   const meshRef = useRef<InstancedMesh>(null);
 
@@ -123,21 +172,22 @@ function ConfettiBurst({
       rotSpeeds[i3 + 1] = (Math.random() - 0.5) * 8;
       rotSpeeds[i3 + 2] = (Math.random() - 0.5) * 8;
 
-      // Mix lab color with confetti palette
-      const palette = i % 3 === 0 ? labColor : CONFETTI_COLORS[i % CONFETTI_COLORS.length];
+      // Decision 18.1: Metallic shards — chrome (#a8b5c8) and gold (#FFD700) alternating
+      const isChrome = i % 2 === 0;
+      const palette = isChrome ? CHROME_BORDER.colorHex : '#FFD700';
       colors.push(new Color(palette));
     }
 
     return { positions, velocities, rotations, rotSpeeds, colors };
-  }, [count, labColor]);
+  }, [count]);
 
   useFrame(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
 
-    const t = elapsed;
-    const fadeStart = CEREMONY_DURATION * 0.7;
-    const opacity = t > fadeStart ? 1 - (t - fadeStart) / (CEREMONY_DURATION - fadeStart) : 1;
+    const t = elapsedRef.current;
+    const fadeStart = duration * 0.7;
+    const opacity = t > fadeStart ? 1 - (t - fadeStart) / (duration - fadeStart) : 1;
 
     for (let i = 0; i < count; i++) {
       const i3 = i * 3;
@@ -166,7 +216,8 @@ function ConfettiBurst({
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, count]} frustumCulled={false}>
       <boxGeometry args={[1, 1, 1]} />
-      <meshStandardMaterial transparent opacity={0.9} roughness={0.4} metalness={0.3} />
+      {/* Decision 18.1: Metallic shards — chrome + gold, reflective, premium */}
+      <meshStandardMaterial transparent opacity={0.95} roughness={0.1} metalness={0.95} />
     </instancedMesh>
   );
 }
@@ -182,11 +233,11 @@ interface BurstData {
 }
 
 function FireworkBursts({
-  elapsed,
+  elapsedRef,
   particlesPerBurst,
   labColor,
 }: {
-  elapsed: number;
+  elapsedRef: RefObject<number>;
   particlesPerBurst: number;
   labColor: string;
 }) {
@@ -223,6 +274,7 @@ function FireworkBursts({
     const mesh = meshRef.current;
     if (!mesh) return;
 
+    const elapsed = elapsedRef.current;
     let idx = 0;
     for (const burst of bursts) {
       const burstT = elapsed - burst.delay;
@@ -260,56 +312,153 @@ function FireworkBursts({
   return (
     <instancedMesh ref={meshRef} args={[undefined, undefined, totalCount]} frustumCulled={false}>
       <sphereGeometry args={[1, 6, 6]} />
-      <meshStandardMaterial emissive="#ffffff" emissiveIntensity={1.5} transparent opacity={0.9} />
+      {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
+      <meshStandardMaterial emissive="#ffffff" emissiveIntensity={getEmissive('bright')} transparent opacity={0.9} />
     </instancedMesh>
   );
 }
 
 // ════════════════════════════════════════════════════
-// Sub-component: Trophy Popup
+// Sub-component: Trophy Popup — Particle Assembly (Decision 18.2)
 // ════════════════════════════════════════════════════
-function TrophyPopup({ elapsed }: { elapsed: number }) {
+// Particles start scattered and converge to form the trophy shape,
+// giving a "3D printed from light" effect. Dramatic + futuristic.
+
+const TROPHY_PARTICLE_COUNT = 200;
+const TROPHY_CONVERGE_TIME = 1.6; // seconds to fully assemble
+
+interface TrophyParticleData {
+  /** Random start positions (scattered sphere) */
+  startPositions: Float32Array;
+  /** Final target positions on trophy surface */
+  targetPositions: Float32Array;
+}
+
+/** Sample target positions on the trophy surface (pedestal + cup + sphere) */
+function sampleTrophyTargets(count: number): Float32Array {
+  const targets = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const i3 = i * 3;
+    const section = i / count;
+    if (section < 0.3) {
+      // Pedestal: cylinder from y=-0.3 to y=-0.1, radius 0.2–0.3
+      const angle = Math.random() * Math.PI * 2;
+      const y = -0.3 + Math.random() * 0.2;
+      const r = 0.2 + (0.3 - 0.2) * ((y + 0.3) / 0.2);
+      targets[i3] = Math.cos(angle) * r;
+      targets[i3 + 1] = y;
+      targets[i3 + 2] = Math.sin(angle) * r;
+    } else if (section < 0.75) {
+      // Cup body: cylinder from y=-0.1 to y=0.4, radius 0.15–0.25
+      const angle = Math.random() * Math.PI * 2;
+      const y = -0.1 + Math.random() * 0.5;
+      const t = (y + 0.1) / 0.5;
+      const r = 0.15 + (0.25 - 0.15) * t;
+      targets[i3] = Math.cos(angle) * r;
+      targets[i3 + 1] = y;
+      targets[i3 + 2] = Math.sin(angle) * r;
+    } else {
+      // Top sphere: at y=0.55, radius 0.15
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 0.15;
+      targets[i3] = Math.sin(phi) * Math.cos(theta) * r;
+      targets[i3 + 1] = 0.55 + Math.sin(phi) * Math.sin(theta) * r;
+      targets[i3 + 2] = Math.cos(phi) * r;
+    }
+  }
+  return targets;
+}
+
+function TrophyPopup({ elapsedRef, duration }: { elapsedRef: RefObject<number>; duration: number }) {
+  const meshRef = useRef<InstancedMesh>(null);
   const groupRef = useRef<Group>(null);
 
+  const data = useMemo<TrophyParticleData>(() => {
+    const startPositions = new Float32Array(TROPHY_PARTICLE_COUNT * 3);
+    for (let i = 0; i < TROPHY_PARTICLE_COUNT; i++) {
+      const i3 = i * 3;
+      // Scattered sphere of radius 2–4
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos(2 * Math.random() - 1);
+      const r = 2 + Math.random() * 2;
+      startPositions[i3] = Math.sin(phi) * Math.cos(theta) * r;
+      startPositions[i3 + 1] = Math.sin(phi) * Math.sin(theta) * r + 1.0;
+      startPositions[i3 + 2] = Math.cos(phi) * r;
+    }
+    const targetPositions = sampleTrophyTargets(TROPHY_PARTICLE_COUNT);
+    return { startPositions, targetPositions };
+  }, []);
+
   useFrame(() => {
+    const mesh = meshRef.current;
     const group = groupRef.current;
-    if (!group) return;
+    if (!mesh || !group) return;
 
-    // Scale up from 0 to 1 over first 0.8s with elastic ease
-    const scaleT = Math.min(elapsed / 0.8, 1);
-    const elastic = scaleT < 1
-      ? 1 - Math.pow(Math.cos(scaleT * Math.PI * 0.5), 3) * Math.cos(scaleT * 10) * (1 - scaleT)
+    const elapsed = elapsedRef.current;
+    // Convergence progress: 0 → 1 over TROPHY_CONVERGE_TIME
+    const convergeT = Math.min(elapsed / TROPHY_CONVERGE_TIME, 1);
+    // Ease-in-out cubic for smooth convergence
+    const eased = convergeT < 0.5
+      ? 4 * convergeT * convergeT * convergeT
+      : 1 - Math.pow(-2 * convergeT + 2, 3) / 2;
+
+    // Fade out in last second of ceremony
+    const fadeOut = elapsed > duration - 1.0
+      ? Math.max(0, 1 - (elapsed - (duration - 1.0)))
       : 1;
-    const s = Math.max(0, elastic);
 
-    // Fade out in last second
-    const fadeT = elapsed > CEREMONY_DURATION - 1.0
-      ? 1 - (elapsed - (CEREMONY_DURATION - 1.0))
-      : 1;
-    const finalScale = s * Math.max(0, fadeT);
+    for (let i = 0; i < TROPHY_PARTICLE_COUNT; i++) {
+      const i3 = i * 3;
+      // Lerp from scattered start to trophy surface target
+      const sx = data.startPositions[i3];
+      const sy = data.startPositions[i3 + 1];
+      const sz = data.startPositions[i3 + 2];
+      const tx = data.targetPositions[i3];
+      const ty = data.targetPositions[i3 + 1];
+      const tz = data.targetPositions[i3 + 2];
 
-    group.scale.setScalar(finalScale);
+      const px = sx + (tx - sx) * eased;
+      const py = sy + (ty - sy) * eased;
+      const pz = sz + (tz - sz) * eased;
+
+      _position.set(px, py, pz);
+      _quaternion.identity();
+      // Particles shrink as they converge (tight packing), scale by fadeOut at end
+      const particleSize = (0.04 - 0.02 * eased) * fadeOut;
+      _scale.set(particleSize, particleSize, particleSize);
+      _matrix.compose(_position, _quaternion, _scale);
+      mesh.setMatrixAt(i, _matrix);
+
+      // Gold color with emissive boost during assembly
+      _color.set('#FFD700');
+      mesh.setColorAt(i, _color);
+    }
+
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+
+    // Rotate whole group slowly once assembled
     group.rotation.y = elapsed * 1.5;
     group.position.y = 1.0 + Math.sin(elapsed * 2) * 0.1;
   });
 
   return (
-    <group ref={groupRef} scale={0}>
-      {/* Pedestal — cylinder */}
-      <mesh position={[0, -0.3, 0]}>
-        <cylinderGeometry args={[0.2, 0.3, 0.4, 12]} />
-        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} metalness={0.8} roughness={0.2} />
-      </mesh>
-      {/* Cup body — cylinder */}
-      <mesh position={[0, 0.15, 0]}>
-        <cylinderGeometry args={[0.25, 0.15, 0.5, 12]} />
-        <meshStandardMaterial color="#FFD700" emissive="#FFD700" emissiveIntensity={0.4} metalness={0.8} roughness={0.2} />
-      </mesh>
-      {/* Top sphere — shiny ball */}
-      <mesh position={[0, 0.55, 0]}>
-        <sphereGeometry args={[0.15, 12, 12]} />
-        <meshStandardMaterial color="#FFD700" emissive="#FFAA44" emissiveIntensity={0.6} metalness={0.9} roughness={0.1} />
-      </mesh>
+    <group ref={groupRef}>
+      <instancedMesh ref={meshRef} args={[undefined, undefined, TROPHY_PARTICLE_COUNT]} frustumCulled={false}>
+        <icosahedronGeometry args={[1, 1]} />
+        {/* Decision 18.2: "3D printed from light" — high emissive gold particles */}
+        <meshStandardMaterial
+          color="#FFD700"
+          emissive="#FFD700"
+          emissiveIntensity={EMISSIVE_LED_MULTIPLIER}
+          metalness={0.95}
+          roughness={0.08}
+          transparent
+          opacity={0.95}
+          toneMapped={false}
+        />
+      </instancedMesh>
     </group>
   );
 }
@@ -317,7 +466,7 @@ function TrophyPopup({ elapsed }: { elapsed: number }) {
 // ════════════════════════════════════════════════════
 // Sub-component: HUD Ring Expansion
 // ════════════════════════════════════════════════════
-function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) {
+function HUDRings({ elapsedRef, labColor }: { elapsedRef: RefObject<number>; labColor: string }) {
   const ringsRef = useRef<Group>(null);
   const ringCount = 3;
 
@@ -341,6 +490,7 @@ function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) 
     const group = ringsRef.current;
     if (!group) return;
 
+    const elapsed = elapsedRef.current;
     for (let i = 0; i < ringCount; i++) {
       const ring = group.children[i] as Mesh;
       if (!ring) continue;
@@ -382,13 +532,15 @@ function HUDRings({ elapsed, labColor }: { elapsed: number; labColor: string }) 
 // Sub-component: Particle Shower
 // ════════════════════════════════════════════════════
 function ParticleShower({
-  elapsed,
+  elapsedRef,
   count,
   labColor,
+  duration,
 }: {
-  elapsed: number;
+  elapsedRef: RefObject<number>;
   count: number;
   labColor: string;
+  duration: number;
 }) {
   const meshRef = useRef<InstancedMesh>(null);
 
@@ -415,8 +567,9 @@ function ParticleShower({
     const mesh = meshRef.current;
     if (!mesh) return;
 
-    const fadeOut = elapsed > CEREMONY_DURATION - 1.0
-      ? 1 - (elapsed - (CEREMONY_DURATION - 1.0))
+    const elapsed = elapsedRef.current;
+    const fadeOut = elapsed > duration - 1.0
+      ? 1 - (elapsed - (duration - 1.0))
       : 1;
 
     for (let i = 0; i < count; i++) {
@@ -463,22 +616,50 @@ export function CeremonyFX({
   labColor = '#00BBFF',
   onComplete,
 }: CeremonyFXProps) {
-  const [elapsed, setElapsed] = useState(0);
+  // Phase 3 Task 5C (§10.8): Replaced `useState(elapsed)` + `useState(bloomIntensity)`
+  // with refs so the parent no longer re-renders the entire ceremony tree every
+  // frame. The previous pattern triggered a full React re-render of 5 particle
+  // sub-components (ConfettiBurst, FireworkBursts, TrophyPopup, HUDRings,
+  // ParticleShower) at 60fps during celebrations. Each sub-component now reads
+  // `elapsedRef.current` directly inside its own useFrame. Zero visual change —
+  // particle physics, bloom pulse, and completion timing are all preserved.
+  const elapsedRef = useRef(0);
   const [completed, setCompleted] = useState(false);
+  const bloomMeshRef = useRef<Mesh>(null);
+  const bloomMatRef = useRef<MeshStandardMaterial>(null);
   const startTimeRef = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
 
+  // Resolve tier-specific config from design tokens
+  const tier = CEREMONY_TIER_MAP[type];
+  const tierConfig = CELEBRATION_TIERS[tier];
+  const duration = tierConfig.durationMs / 1000;
+
   // Reset when active changes
   useEffect(() => {
     if (active) {
-      setElapsed(0);
+      elapsedRef.current = 0;
       setCompleted(false);
+      if (bloomMatRef.current) {
+        bloomMatRef.current.emissiveIntensity = 0;
+        bloomMatRef.current.opacity = 0;
+      }
+      if (bloomMeshRef.current) bloomMeshRef.current.visible = false;
       startTimeRef.current = null;
-    }
-  }, [active]);
 
-  // Drive elapsed timer via useFrame
+      // Phase 4 §10.14 (J-A): Fire impactBurst haptic ONLY for epic-tier
+      // celebrations (levelUp + labComplete — the biggest moments in the
+      // child's journey). Badge earn (major tier) + streak milestone
+      // (minor tier) intentionally skip the camera shake to avoid
+      // over-stimulation on frequent events.
+      if (tier === 'epic') {
+        fireHaptic('impactBurst');
+      }
+    }
+  }, [active, tier]);
+
+  // Drive elapsed timer + bloom pulse via useFrame (NO per-frame setState)
   useFrame((_, delta) => {
     if (!active || completed) return;
 
@@ -487,38 +668,98 @@ export function CeremonyFX({
     }
 
     startTimeRef.current += delta;
-    const newElapsed = startTimeRef.current;
-    setElapsed(newElapsed);
+    elapsedRef.current = startTimeRef.current;
+    const newElapsed = elapsedRef.current;
 
-    if (newElapsed >= CEREMONY_DURATION) {
+    // Decision 18.3: Pulsing bloom — heartbeat pattern before decay.
+    // Direct material mutation (no setState) — changes apply on the NEXT
+    // render pass of Three.js, same visual result, no React re-render cost.
+    const bloom = getBloomPulse(newElapsed, duration, tierConfig.bloomPeak);
+    if (bloomMatRef.current) {
+      bloomMatRef.current.emissiveIntensity = bloom * EMISSIVE_LED_MULTIPLIER * 3;
+      bloomMatRef.current.opacity = bloom * 0.35;
+    }
+    if (bloomMeshRef.current) {
+      bloomMeshRef.current.visible = bloom > 0.01;
+    }
+
+    if (newElapsed >= duration) {
       setCompleted(true);
+      if (bloomMatRef.current) {
+        bloomMatRef.current.emissiveIntensity = 0;
+        bloomMatRef.current.opacity = 0;
+      }
+      if (bloomMeshRef.current) bloomMeshRef.current.visible = false;
       onCompleteRef.current?.();
     }
   });
 
-  if (!active || completed) return null;
-
   const config = CEREMONY_CONFIG[type];
 
-  // Particle counts (desktop-ultra: full quality always)
-  const pMul = 1.0;
-  const confettiCount = Math.round(250 * pMul);
-  const fireworkPerBurst = Math.round(60 * pMul);
-  const showerCount = Math.round(120 * pMul);
+  // Particle counts from CELEBRATION_TIERS (desktop-ultra: full quality always)
+  const confettiCount = tierConfig.confetti ? Math.max(tierConfig.confettiCount, 150) : 250;
+  const fireworkPerBurst = Math.round(60);
+  const showerCount = Math.round(120);
+
+  // P5 §10.8 Sub 6: GPU compute dispatch. Non-null only when renderer
+  // is WebGPU AND ceremony is active — on WebGL2, gpuSystem stays
+  // null and the CPU branch below renders.
+  //
+  // Hook must run unconditionally (rules-of-hooks) — early return was
+  // moved below this call.
+  const gpuSystem = useCeremonyCompute({
+    active,
+    labColor,
+    duration,
+    elapsedRef,
+    archetypes: (['confetti', 'firework', 'trophy', 'shower'] as const).filter((a) => {
+      if (a === 'confetti') return config.confetti;
+      if (a === 'firework') return config.fireworks;
+      if (a === 'trophy') return config.trophy;
+      if (a === 'shower') return config.shower;
+      return false;
+    }) as ('confetti' | 'firework' | 'trophy' | 'shower')[],
+  });
+
+  if (!active || completed) return null;
 
   return (
     <group>
-      {config.confetti && (
-        <ConfettiBurst elapsed={elapsed} count={confettiCount} labColor={labColor} />
+      {/* GPU path — only when renderer is WebGPU. Mounts nothing on WebGL2. */}
+      {gpuSystem && config.confetti && <GpuConfettiBurst system={gpuSystem} />}
+      {gpuSystem && config.fireworks && <GpuFireworkBursts system={gpuSystem} />}
+      {gpuSystem && config.trophy && <GpuTrophyPopup system={gpuSystem} />}
+      {gpuSystem && config.shower && <GpuParticleShower system={gpuSystem} />}
+
+      {/* CPU path — authoritative when renderer is WebGL2 (gpuSystem null) */}
+      {!gpuSystem && config.confetti && (
+        <ConfettiBurst elapsedRef={elapsedRef} count={confettiCount} labColor={labColor} duration={duration} />
       )}
-      {config.fireworks && (
-        <FireworkBursts elapsed={elapsed} particlesPerBurst={fireworkPerBurst} labColor={labColor} />
+      {!gpuSystem && config.fireworks && (
+        <FireworkBursts elapsedRef={elapsedRef} particlesPerBurst={fireworkPerBurst} labColor={labColor} />
       )}
-      {config.trophy && <TrophyPopup elapsed={elapsed} />}
-      {config.hudRings && <HUDRings elapsed={elapsed} labColor={labColor} />}
-      {config.shower && (
-        <ParticleShower elapsed={elapsed} count={showerCount} labColor={labColor} />
+      {!gpuSystem && config.trophy && <TrophyPopup elapsedRef={elapsedRef} duration={duration} />}
+      {!gpuSystem && config.shower && (
+        <ParticleShower elapsedRef={elapsedRef} count={showerCount} labColor={labColor} duration={duration} />
       )}
+
+      {/* HUD rings stay CPU on both paths — only 3 low-cost objects. */}
+      {config.hudRings && <HUDRings elapsedRef={elapsedRef} labColor={labColor} />}
+
+      {/* Decision 18.3: Bloom pulse emitter — a central glow sphere driven by heartbeat rhythm */}
+      <mesh ref={bloomMeshRef} position={[0, 1.0, 0]} visible={false}>
+        <sphereGeometry args={[0.6, 8, 8]} />
+        <meshStandardMaterial
+          ref={bloomMatRef}
+          color={labColor}
+          emissive={labColor}
+          emissiveIntensity={0}
+          transparent
+          opacity={0}
+          depthWrite={false}
+          toneMapped={false}
+        />
+      </mesh>
 
       {/* ── 3D-Anchored Ceremony Label Popup ── */}
       <Html

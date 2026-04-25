@@ -171,7 +171,6 @@ export function VolumetricFog3D({
       uOpacity: { value: layer.baseOpacity * density * opacity },
       uColor: { value: currentColorRef.current.clone() },
     })),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [density, opacity]
   );
 
@@ -186,7 +185,6 @@ export function VolumetricFog3D({
         depthWrite: false,
       })
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [density, opacity]
   );
 
@@ -202,7 +200,6 @@ export function VolumetricFog3D({
         side: DoubleSide,
       })
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [density, opacity]
   );
 

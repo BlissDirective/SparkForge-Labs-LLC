@@ -11,7 +11,8 @@
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Color, InstancedMesh, Object3D } from 'three';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 interface XPVortexProps {
   active: boolean;
@@ -32,7 +33,7 @@ export default function XPVortex({
   const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const [alive, setAlive] = useState(false);
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
 
   // Reset timer when active transitions to true
   useEffect(() => {

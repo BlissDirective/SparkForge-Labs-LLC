@@ -16,7 +16,7 @@
 | Phase | Description | Status |
 |-------|-------------|--------|
 | **Phase 1** — Canvas Unification | `CockpitCanvas.tsx` created; `StationFrame`, `SpatialDashboard`, `HeroAnimation` rewritten as `<group>` wrappers; `CameraSystem.tsx` created | ✅ COMPLETE |
-| **Phase 2** — Component Upgrades | 13 existing components upgraded to 20M budget (CockpitPanels 2M, LEDRim 200K, SidePanels 1.5M, HolographicHUD 500K, StatusBar3D 500K, HolographicLabMap 1M, LabStructure3D 3M, InteractiveConsole3D 2M, AmbientNPCs 1.5M, DynamicEnvironment 3M, AuroraBackground 50K, AmbientParticles 200K, CockpitSkinManager) | ✅ COMPLETE |
+| **Phase 2** — Component Upgrades | 13 existing components upgraded to 20M budget (CockpitPanels 2M, LEDRim 200K, SidePanels 1.5M, HolographicHUD 500K, StatusBar3D 500K, HolographicLabMap 1M, LabStructure3D 3M, InteractiveConsole3D 2M, AmbientNPCs 1.5M, DynamicEnvironment 3M, AuroraBackground 50K, ~~AmbientParticles 200K~~ **(later removed — Decision 20.0)**, CockpitSkinManager) | ✅ COMPLETE |
 | **Phase 3** — New Visual Components | `CockpitStructuralDetail.tsx` (1.5M), `VolumetricFog3D.tsx` (500K), `CockpitFloor3D.tsx` (500K), `CeremonyFX.tsx` (500K), `WormholeTransition.tsx` (300K), `MiniMapOverlay3D.tsx` (250K) | ✅ COMPLETE |
 | **Phase 4** — Audio System | `cockpitAudio.ts` (CockpitAudioEngine + spatial zones), `useCockpitAudio.ts` | ✅ COMPLETE |
 | **Phase 5** — Store & Hook Updates | `deviceStore` 20M profiles + system tier; `cockpitStore` heroPhase; `useLOD` system cap removed; `cockpitConfig.ts` TRIANGLE_BUDGET_V2 | ✅ COMPLETE |
@@ -762,10 +762,10 @@ export class CockpitAudioEngine {
 | **CockpitPanels** | 4,000,000 | — | v3: 288-seg hull, 218° arc, r=4.8, 12 ribs, 768 rivets, alloy #a8b5c8 |
 | **LEDRim** | 500,000 | — | v3: 1,500 LEDs, emissive 3.0, wider arc coverage |
 | **SidePanels** | 3,000,000 | — | v3: at [±2.35, 0.25, -1.65], alloy chrome, radar + terminal |
-| **HolographicHUD** | 1,000,000 | — | v3: 8 concentric rings, data arcs, notification system |
-| **StatusBar3D** | 1,000,000 | — | v3: at [0, -1.25, -1.95], XP speedometer, flame, 10 lab indicators |
+| **HolographicHUD** | 1,000,000 | — | v3: **REPOSITIONED (Decision 6.0)** — moved from overhead [0,2.05,-3.4] to peripheral viewport frame (4 arc segments wrapping viewport edges, corner data readouts for time/XP/mode/child). Budget unchanged at 1M. |
+| **StatusBar3D** | 1,000,000 | — | v3: at [0, -1.25, -1.95], XP arc bar (no needle), pulse ring (no flame), 10 lab indicators (Decisions 8.1-8.2) |
 | **AuroraBackground** | 50,000 | — | Volumetric layers with 3D depth geometry |
-| **AmbientParticles** | 200,000 | — | Higher-fidelity shapes, enhanced trails |
+| **AmbientParticles** | ~~200,000~~ 0 | — | **REMOVED (Decision 20.0)** — ambient particles removed from cockpit entirely |
 | **Shell Subtotal** | **9,750,000** | — | |
 
 #### Spatial Dashboard Components
@@ -1066,16 +1066,16 @@ When `prefers-reduced-motion: reduce` is active OR `accessibilityStore.reducedMo
 | `src/components/3d/SpatialDashboard.tsx` | **REWRITE** — Remove own Canvas; becomes a scene-level `<group>`, not a Canvas wrapper | ✅ IMPLEMENTED |
 | `src/components/3d/CockpitPanels.tsx` | **MAJOR** — 256-seg curved hull, hex gauge data binding, skin material reactivity, animated sub-panels (2M tris) | ✅ IMPLEMENTED |
 | `src/components/3d/HolographicHUD.tsx` | **MAJOR** — 8 data-driven rings, data-display arcs, reticle, volumetric scan beams (500K tris) | ✅ IMPLEMENTED |
-| `src/components/3d/LEDRim.tsx` | **MAJOR** — 1,000+ individual LED capsules, data viz mode, audio-reactive pulse waves (200K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/LEDRim.tsx` | **MAJOR** — 1,000+ individual LED capsules, pure mood lighting (no data mode per Decision 7.5), audio-reactive pulse waves (200K tris) | ✅ IMPLEMENTED |
 | `src/components/3d/SidePanels.tsx` | **MAJOR** — Physical radar dish, 3D data columns, skin-reactive shader uniforms (1.5M tris) | ✅ IMPLEMENTED |
-| `src/components/3d/StatusBar3D.tsx` | **MAJOR** — XP speedometer, volumetric flame sculpture, real-time store subscriptions (500K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/StatusBar3D.tsx` | **MAJOR** — XP arc bar (no needle), pulse ring (no flame) per Decisions 8.1-8.2, real-time store subscriptions (500K tris) | ✅ IMPLEMENTED |
 | `src/components/3d/HolographicLabMap.tsx` | **MAJOR** — Multi-layer geodesic shells, data highway splines, projector pedestal (1M tris) | ✅ IMPLEMENTED |
 | `src/components/3d/LabStructure3D.tsx` | **MAJOR** — 300K/lab: subdivision surfaces, interior mechanisms, diorama scenes (3M tris total) | ✅ IMPLEMENTED |
 | `src/components/3d/InteractiveConsole3D.tsx` | **MAJOR** — 500K/console: multi-part housing, projector base, skin frame styles (2M tris total) | ✅ IMPLEMENTED |
 | `src/components/3d/AmbientNPCs.tsx` | **MAJOR** — 187K/bot: facial animation, 3-finger grippers, dialogue bubble integration (1.5M tris) | ✅ IMPLEMENTED |
 | `src/components/3d/DynamicEnvironment.tsx` | **MAJOR** — Volumetric fog, environmental props, dynamic weather (3M tris) | ✅ IMPLEMENTED |
 | `src/components/3d/AuroraBackground.tsx` | **MINOR** — Volumetric layers for ultra LOD (50K tris) | ✅ IMPLEMENTED |
-| `src/components/3d/AmbientParticles.tsx` | **MINOR** — Higher-fidelity shapes, enhanced trails (200K tris) | ✅ IMPLEMENTED |
+| `src/components/3d/AmbientParticles.tsx` | **REMOVED (Decision 20.0)** — ambient particles removed from cockpit entirely | ~~✅ IMPLEMENTED~~ REMOVED |
 | `src/components/3d/CockpitSkinManager.tsx` | Extended element reactivity, dissolve transitions, updated budgets | ✅ IMPLEMENTED |
 | `src/components/3d/CinematicCamera.tsx` | Transition cinematic sequences — superseded by `CameraSystem.tsx` | ✅ IMPLEMENTED |
 | `src/stores/cockpitStore.ts` | Added `heroPhase` state + `setHeroPhase` action; skin unlock, audio preferences, ceremony queue | ✅ IMPLEMENTED |
@@ -1129,7 +1129,7 @@ When `prefers-reduced-motion: reduce` is active OR `accessibilityStore.reducedMo
 3. ~~Add skin material reactivity to panel components~~ DONE (CockpitSkinManager updated)
 4. ~~Add detail panels to console system~~ DONE (InteractiveConsole3D 2M tri upgrade)
 5. ~~**Validation:** Each change is independently testable, no regressions~~ DONE
-6. Also upgraded: LEDRim (200K), SidePanels (1.5M), StatusBar3D (500K), HolographicLabMap (1M), LabStructure3D (3M), AmbientNPCs (1.5M), DynamicEnvironment (3M), AuroraBackground (50K), AmbientParticles (200K)
+6. Also upgraded: LEDRim (200K), SidePanels (1.5M), StatusBar3D (500K), HolographicLabMap (1M), LabStructure3D (3M), AmbientNPCs (1.5M), DynamicEnvironment (3M), AuroraBackground (50K), ~~AmbientParticles (200K)~~ **(later removed by Decision 20.0)**
 
 ### Phase 3: Add New Features (Additive) — **COMPLETE (March 20, 2026)**
 

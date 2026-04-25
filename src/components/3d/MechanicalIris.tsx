@@ -3,33 +3,27 @@
 // ════════════════════════════════════════════════════
 // MechanicalIris — Camera-Aperture Scene Transition
 // ════════════════════════════════════════════════════
-// TODO (J1 — 3D Geometry Disposal): This component creates geometries and
-// materials via useMemo but never disposes them on unmount. Add a useEffect
-// cleanup that calls .dispose() on bladeGeometry, gearRingGeometry,
-// gearToothGeometry, pistonGeometry, lightRayGeometry, chromeMaterial,
-// bladeMaterial, pistonMaterial, and lightRayMaterial when the component
-// unmounts to prevent GPU memory leaks in long-running sessions.
-// Signature visual transition for cockpit ↔ game scenes.
+// Signature visual transition for cockpit <-> game scenes.
 // Triangle budget: ~100,000 (lightweight transition overlay).
 //
 // Renders a mechanical camera-aperture iris with:
-//   - 8 shutter blades arranged radially
-//   - Outer gear ring with 32 instanced teeth
-//   - 8 small pistons connecting gear ring to blades
-//   - 4 light ray cones from center gap (additive blending)
-//   - Chrome materials with lab-colored emissive tint
+//   - 8 shutter blades arranged radially (carbon composite)
+//   - Outer gear ring with 32 instanced teeth (chrome)
+//   - 8 small pistons connecting gear ring to blades (chrome)
+//   - 4 light ray cones from center gap (additive blending, LED-intensified)
+//   - Staggered spiral opening: blades open one at a time (50ms apart)
 //
-// Animation timeline for iris-open (progress 0→1):
-//   0.0–0.3  Gear ring rotates 45°, pistons extend outward
-//   0.1–0.7  8 shutter blades rotate open (staggered per blade)
-//   0.5–0.9  4 light ray cones grow from center
-//   0.9–1.0  Final snap — blades at max rotation, gear settled
+// Animation timeline for iris-open (progress 0->1):
+//   0.0-0.3  Gear ring rotates 45 deg, pistons extend outward
+//   0.0-0.85 8 shutter blades rotate open (staggered spiral, 50ms apart)
+//   0.5-0.9  4 light ray cones grow from center
+//   0.9-1.0  Final snap — blades at max rotation, gear settled
 //
-// For iris-close: progress 0→1 but animation is reversed.
+// For iris-close: progress 0->1 but animation is reversed.
 //
 // Driven by sceneStore transition.progress.
 
-import { useRef, useMemo, useCallback } from 'react';
+import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   AdditiveBlending,
@@ -55,6 +49,10 @@ import {
   Vector3,
 } from 'three';
 import { useSceneStore } from '@/stores/sceneStore';
+import {
+  CHROME_BORDER,
+  EMISSIVE_LED_MULTIPLIER,
+} from '@/lib/3d/cockpitDesignTokens';
 
 // ■■ Types ■■
 
@@ -73,14 +71,14 @@ interface PistonRef {
 const BLADE_COUNT = 8;
 const BLADE_INNER_RADIUS = 0.3;
 const BLADE_OUTER_RADIUS = 3.5;
-const BLADE_ARC_ANGLE = (Math.PI * 2) / BLADE_COUNT; // ~0.785 rad (45° each → ~30° visible arc)
+const BLADE_ARC_ANGLE = (Math.PI * 2) / BLADE_COUNT; // ~0.785 rad (45 deg each -> ~30 deg visible arc)
 const BLADE_THICKNESS = 0.08;
 const BLADE_MAX_ROTATION = Math.PI * 0.38; // max open rotation per blade
 
 const GEAR_RING_RADIUS = 3.8;
 const GEAR_RING_TUBE = 0.12;
 const GEAR_TOOTH_COUNT = 32;
-const GEAR_MAX_ROTATION = Math.PI / 4; // 45°
+const GEAR_MAX_ROTATION = Math.PI / 4; // 45 deg
 
 const PISTON_RADIUS = 0.03;
 const PISTON_MIN_LENGTH = 0.2;
@@ -93,6 +91,10 @@ const LIGHT_RAY_MAX_RADIUS = 0.4;
 const IRIS_Z_POSITION = 2;
 
 const DEFAULT_LAB_COLOR = '#00BBFF';
+
+// Staggered spiral opening constants
+const BLADE_STAGGER = 0.05; // 50ms apart = 0.05 progress units (assuming ~1s total)
+const BLADE_OPEN_DURATION = 0.45; // each blade takes 45% of total progress to open
 
 // ■■ Easing Helpers ■■
 
@@ -133,7 +135,7 @@ function createBladeShape(): Shape {
     Math.sin(-halfArc) * innerR
   );
 
-  // Outer arc (inner → outer at negative angle)
+  // Outer arc (inner -> outer at negative angle)
   shape.lineTo(
     Math.cos(-halfArc) * outerR,
     Math.sin(-halfArc) * outerR
@@ -230,31 +232,32 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
   }, []);
 
   // ── Materials (memoized) ──
+
+  // Chrome material for gear ring and teeth — uses design token CHROME_BORDER color
   const chromeMaterial = useMemo(() => {
     return new MeshStandardMaterial({
-      color: 0xcccccc,
+      color: CHROME_BORDER.color,
       metalness: 0.9,
       roughness: 0.15,
       envMapIntensity: 1.2,
     });
   }, []);
 
-  const bladeEmissiveColor = useMemo(() => new Color(labColor), [labColor]);
-
+  // Carbon composite blade material — dark #0A0F1F matching cockpit panels
   const bladeMaterial = useMemo(() => {
     return new MeshStandardMaterial({
-      color: 0xaaaaaa,
-      metalness: 0.9,
-      roughness: 0.15,
-      emissive: bladeEmissiveColor,
-      emissiveIntensity: 0.15,
-      envMapIntensity: 1.0,
+      color: new Color('#0A0F1F'),
+      metalness: 0.85,
+      roughness: 0.35,
+      emissive: new Color('#0A0F1F'),
+      emissiveIntensity: 0.05, // very subtle self-illumination
     });
-  }, [bladeEmissiveColor]);
+  }, []);
 
+  // Chrome piston material — uses design token CHROME_BORDER colorHex
   const pistonMaterial = useMemo(() => {
     return new MeshStandardMaterial({
-      color: 0x888888,
+      color: new Color(CHROME_BORDER.colorHex),
       metalness: 0.9,
       roughness: 0.2,
     });
@@ -270,6 +273,22 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
       depthWrite: false,
     });
   }, [labColor]);
+
+  // ── Geometry & Material Disposal on Unmount ──
+  useEffect(() => {
+    return () => {
+      bladeGeometry.dispose();
+      gearRingGeometry.dispose();
+      gearToothGeometry.dispose();
+      pistonGeometry.dispose();
+      lightRayGeometry.dispose();
+      chromeMaterial.dispose();
+      bladeMaterial.dispose();
+      pistonMaterial.dispose();
+      lightRayMaterial.dispose();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // ── Gear Teeth Instance Matrix Setup ──
   const gearTeethMatrices = useMemo(() => {
@@ -364,18 +383,22 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
       gearTeethRef.current.instanceMatrix.needsUpdate = true;
     }
 
-    // ── Shutter Blades ──
+    // ── Shutter Blades (Staggered Spiral Opening) ──
+    // Each blade opens sequentially: blade 0 starts at progress 0.0,
+    // blade 1 at 0.05, blade 2 at 0.10, etc. (50ms apart assuming ~1s total).
+    // Each blade's individual open progress = clamp((overall - delay) / duration, 0, 1).
     for (let i = 0; i < BLADE_COUNT; i++) {
       const bladeRef = bladeRefs.current[i];
       if (!bladeRef) continue;
 
-      const bladeStart = 0.1 + i * 0.02;
-      const bladeEnd = 0.7;
-      const bladeProgress = rangeProgress(progress, bladeStart, bladeEnd);
+      const bladeDelay = i * BLADE_STAGGER;
+      const bladeProgress = Math.max(0, Math.min(1,
+        (progress - bladeDelay) / BLADE_OPEN_DURATION
+      ));
 
-      // Use easeOutBack for the final snap feel
+      // Use easeOutBack for the final snap feel when blade is nearly fully open
       const easedBlade =
-        progress > 0.9 ? easeOutBack(bladeProgress) : easeInOut(bladeProgress);
+        bladeProgress > 0.85 ? easeOutBack(bladeProgress) : easeInOut(bladeProgress);
       const bladeRotation = easedBlade * BLADE_MAX_ROTATION;
 
       bladeRef.pivotGroup.rotation.z = bladeRotation;
@@ -402,9 +425,10 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
       pistonRef.group.rotation.z = bladeAngle - Math.PI / 2;
     }
 
-    // ── Light Rays ──
+    // ── Light Rays (LED-intensified accent color) ──
     const rayProgress = rangeProgress(progress, 0.5, 0.9);
     const easedRay = easeInOut(rayProgress);
+    const rayMaxOpacity = EMISSIVE_LED_MULTIPLIER * 2; // design token intensified
 
     for (let i = 0; i < LIGHT_RAY_COUNT; i++) {
       const ray = lightRayRefs.current[i];
@@ -416,9 +440,9 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
       ray.scale.set(radius, Math.max(height, 0.001), radius);
       ray.position.z = height / 2;
 
-      // Update material opacity
+      // Update material opacity — intensified by EMISSIVE_LED_MULTIPLIER
       const mat = ray.material as MeshBasicMaterial;
-      mat.opacity = easedRay * 0.6;
+      mat.opacity = easedRay * Math.min(rayMaxOpacity, 1.0);
     }
 
     // ── Center Light ──
@@ -427,8 +451,9 @@ export function MechanicalIris({ labColor: labColorProp }: MechanicalIrisProps) 
       centerLightRef.current.intensity = lightIntensity;
     }
 
-    // ── Emissive pulse on blades keyed to progress ──
-    const pulseIntensity = 0.15 + progress * 0.35;
+    // ── Subtle self-illumination pulse on blades keyed to progress ──
+    // Carbon composite blades have very subtle emissive (0.05 base)
+    const pulseIntensity = 0.05 + progress * 0.1;
     bladeMaterial.emissiveIntensity = pulseIntensity;
   });
 

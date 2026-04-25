@@ -8,14 +8,18 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { Shield, Eye, Lock, AlertTriangle } from 'lucide-react';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const DataShieldEnvironment = dynamic(
@@ -23,7 +27,7 @@ const DataShieldEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface DataPoint {
   label: string;
@@ -39,6 +43,12 @@ interface Scenario {
   context: string;
   dataPoints: DataPoint[];
 }
+
+const LEARN_CARDS = [
+  { title: 'Your Data Matters', emoji: '🛡️', desc: 'Every time you use an app or website, you share data. Some data is fine to share, but some is personal and should be protected!' },
+  { title: 'What is Personal Data?', emoji: '🔐', desc: 'Personal data includes your name, address, phone number, photos, and even your location. This information can be used to identify you.' },
+  { title: 'Shield Your Information', emoji: '🏰', desc: 'In this game, you\'ll decide which data to protect and which is safe to share. Think carefully — some requests seem innocent but aren\'t!' },
+];
 
 const SCENARIOS: Scenario[] = [
   {
@@ -95,24 +105,89 @@ const SCENARIOS: Scenario[] = [
       { label: 'Wi-Fi network name', shouldProtect: false, reason: 'Your Wi-Fi name is already visible to nearby devices — it\'s not secret!', reasonC: 'SSIDs are broadcast publicly by design (802.11 beacon frames). While they can approximate geolocation via wardriving databases, they\'re already exposed by the protocol itself.', severity: 'safe' },
     ],
   },
+  {
+    title: 'Online Shopping', emoji: '🛒', context: 'An online store wants:',
+    dataPoints: [
+      { label: 'Delivery address', shouldProtect: true, reason: 'Only share with trusted stores — and always with a parent!', reasonC: 'Physical address for commerce is a necessary disclosure, but should be shared only with verified merchants over encrypted connections with clear data retention policies.', severity: 'warning' },
+      { label: 'Wishlist items', shouldProtect: false, reason: 'What you want to buy is just a preference — safe to share!', reasonC: 'Purchase intent data has low re-identification risk and enables useful personalization. It becomes concerning only when combined with other identifiers.', severity: 'safe' },
+      { label: 'Parent\'s bank details', shouldProtect: true, reason: 'Financial info should only go through secure checkout with parents!', reasonC: 'Financial credentials must only traverse PCI-DSS compliant payment processors. Direct collection by merchants violates payment security standards.', severity: 'danger' },
+      { label: 'Clothing size', shouldProtect: false, reason: 'Size info helps get the right fit — no privacy concern!', reasonC: 'Anthropometric data at category level (S/M/L) has negligible re-identification potential and serves a clear functional purpose.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'Fitness App', emoji: '🏃', context: 'A fitness tracker app requests:',
+    dataPoints: [
+      { label: 'Heart rate data', shouldProtect: true, reason: 'Health data is very personal!', reasonC: 'Biometric health data is classified as sensitive personal data under GDPR Article 9. Heart rate patterns can reveal medical conditions and emotional states.', severity: 'warning' },
+      { label: 'Exercise type', shouldProtect: false, reason: 'What sport you do is fine to share with a fitness app!', reasonC: 'Activity type is low-sensitivity behavioral data that directly serves the app\'s purpose. Minimal privacy risk when not combined with location data.', severity: 'safe' },
+      { label: 'GPS running route', shouldProtect: true, reason: 'Your running route shows where you live and go regularly!', reasonC: 'GPS traces reveal home location, daily patterns, and frequented areas. Strava\'s heat map incident (2018) demonstrated how aggregate fitness data can expose sensitive facilities.', severity: 'danger' },
+      { label: 'Step count goal', shouldProtect: false, reason: 'A fitness goal is just a number — totally safe!', reasonC: 'Numeric fitness targets are non-identifying preference data with clear functional utility and negligible privacy impact.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'School Portal', emoji: '🏫', context: 'Your school\'s online portal asks for:',
+    dataPoints: [
+      { label: 'Student ID number', shouldProtect: true, reason: 'Your student ID is linked to your school records — keep it private!', reasonC: 'Student IDs are persistent institutional identifiers that can be used to access academic records, attendance data, and disciplinary history under FERPA protections.', severity: 'warning' },
+      { label: 'Favorite subject', shouldProtect: false, reason: 'Which subject you like is just an interest — safe!', reasonC: 'Academic preferences are low-sensitivity data that can improve personalized learning experiences without meaningful privacy risk.', severity: 'safe' },
+      { label: 'Parent contact info', shouldProtect: true, reason: 'Only share through official school forms, not random online portals!', reasonC: 'Parental contact details should only be collected through verified institutional channels with clear data governance policies under FERPA and state privacy laws.', severity: 'danger' },
+      { label: 'Class schedule', shouldProtect: true, reason: 'Your schedule shows where you are at specific times!', reasonC: 'Temporal location data for minors creates safety risks. Class schedules enable prediction of a child\'s physical location at any given time.', severity: 'warning' },
+    ],
+  },
+  {
+    title: 'AI Chatbot', emoji: '🤖', context: 'An AI assistant chatbot asks:',
+    dataPoints: [
+      { label: 'Your question/prompt', shouldProtect: false, reason: 'Asking questions is what chatbots are for — that\'s fine!', reasonC: 'Query data serves the primary purpose of the service. Privacy risk depends on query content, but general questions have low sensitivity.', severity: 'safe' },
+      { label: 'Your real name', shouldProtect: true, reason: 'You can chat without giving your real name!', reasonC: 'Name disclosure to AI systems creates training data that may be retained indefinitely. Pseudonymous interaction preserves functionality without PII exposure.', severity: 'warning' },
+      { label: 'Your feelings/emotions', shouldProtect: true, reason: 'Emotional data is very personal. AI companies might use it to target you!', reasonC: 'Affective data is sensitive personal information that can be used for psychological profiling, emotional manipulation, and targeted advertising based on emotional vulnerability.', severity: 'warning' },
+      { label: 'What language you speak', shouldProtect: false, reason: 'Language preference helps the chatbot respond in your language!', reasonC: 'Language preference is a functional setting with low uniqueness. While it narrows demographic segments, it cannot identify individuals alone.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'Photo Sharing App', emoji: '📸', context: 'A photo app wants access to:',
+    dataPoints: [
+      { label: 'All your photos', shouldProtect: true, reason: 'Only share specific photos — not your entire library!', reasonC: 'Blanket photo library access violates least privilege. Photos contain embedded EXIF metadata (GPS, timestamps, device info) creating comprehensive surveillance profiles.', severity: 'danger' },
+      { label: 'Photo filters used', shouldProtect: false, reason: 'Which filters you like is just a preference!', reasonC: 'Filter preference data is non-identifying behavioral metadata with clear product improvement utility and negligible privacy impact.', severity: 'safe' },
+      { label: 'Face recognition data', shouldProtect: true, reason: 'Face data is like a fingerprint — once shared, you can\'t take it back!', reasonC: 'Facial biometrics are irrevocable identifiers regulated under BIPA and GDPR. Template extraction enables persistent cross-platform tracking without consent.', severity: 'danger' },
+      { label: 'Caption text', shouldProtect: false, reason: 'Captions you write are up to you — keep them general and they\'re fine!', reasonC: 'Self-authored captions are voluntary disclosures where the user controls content. Risk scales with specificity of disclosed information.', severity: 'safe' },
+    ],
+  },
+  {
+    title: 'Gaming Platform', emoji: '🎮', context: 'An online gaming platform requests:',
+    dataPoints: [
+      { label: 'Voice chat recordings', shouldProtect: true, reason: 'Voice recordings capture everything you say — keep them off!', reasonC: 'Voice data is biometric (voiceprint) and conversational content may include inadvertent PII disclosure. Persistent recording creates surveillance risks.', severity: 'danger' },
+      { label: 'Game achievements', shouldProtect: false, reason: 'Your gaming stats are just for fun — safe to share!', reasonC: 'In-game achievement data is platform-specific behavioral metadata with clear social utility and minimal cross-platform re-identification risk.', severity: 'safe' },
+      { label: 'Friends\' real names', shouldProtect: true, reason: 'Don\'t share your friends\' info — that\'s their choice!', reasonC: 'Third-party PII disclosure without consent violates fundamental privacy principles. You have no authority to share others\' identifying information.', severity: 'danger' },
+      { label: 'Preferred game genre', shouldProtect: false, reason: 'What games you enjoy is just a preference!', reasonC: 'Entertainment preferences are low-sensitivity categorical data useful for recommendations with negligible re-identification risk.', severity: 'safe' },
+    ],
+  },
 ];
 
 export function DataShieldGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('data-shield', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('data-shield', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [scenarioIdx, setScenarioIdx] = useState(0);
   const [pointIdx, setPointIdx] = useState(0);
   const [privacyScore, setPrivacyScore] = useState(100);
   const [feedback, setFeedback] = useState<{ correct: boolean; reason: string } | null>(null);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const scenarios = useFilteredContent(SCENARIOS as any[], tier, ageBand) as typeof SCENARIOS;
+  const { safeTimeout } = useSafeTimeout();
 
-  const scenario = SCENARIOS[scenarioIdx];
+  const scenario = scenarios[scenarioIdx];
   const point = scenario?.dataPoints[pointIdx];
+  const totalDataPoints = scenarios.reduce((sum, s) => sum + s.dataPoints.length, 0);
   const meterColor = privacyScore > 70 ? '#10B981' : privacyScore > 40 ? '#F59E0B' : '#EF4444';
+
+  // STD-DS2: Set maxScore to total data points * 10 (not scenarios * 10)
+  useEffect(() => {
+    game.setMaxScore(totalDataPoints * 10);
+  }, [totalDataPoints]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const particles = useMemo(() => Array.from({ length: 12 }, (_, i) => ({
     id: i,
@@ -134,20 +209,20 @@ export function DataShieldGame() {
     if (!correct) setPrivacyScore(s => Math.max(0, s - 12));
     if (correct) game.updateScore(10);
     setFeedback({ correct, reason: ageBand === 'C' ? point.reasonC : point.reason });
-    setTimeout(() => {
+    safeTimeout(() => {
       setFeedback(null);
       const next = pointIdx + 1;
       if (next < scenario.dataPoints.length) { setPointIdx(next); }
       else {
         const nextS = scenarioIdx + 1;
-        if (nextS < SCENARIOS.length) { setScenarioIdx(nextS); setPointIdx(0); game.advanceRound(); }
+        if (nextS < scenarios.length) { setScenarioIdx(nextS); setPointIdx(0); game.advanceRound(); }
         else { setPhase('complete'); game.completeGame(); }
       }
     }, 2500);
   }
 
   return (
-    <GameShell gameId="data-shield" title="Data Shield" worldNumber={6} worldColor="#FF6644" totalRounds={SCENARIOS.length}>
+    <GameShell gameId="data-shield" title="Data Shield" worldNumber={6} worldColor="#FF7050" totalRounds={scenarios.length}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         <div className="absolute inset-0 pointer-events-none">
@@ -155,8 +230,8 @@ export function DataShieldGame() {
             <motion.div key={p.id} className="absolute rounded-full"
               style={{ left: `${p.x}%`, top: `${p.y}%`, width: p.size, height: p.size,
                 background: `radial-gradient(circle, rgba(255,102,68,${0.15 + p.size * 0.06}), transparent)` }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }} />
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }} />
           ))}
         </div>
 
@@ -178,7 +253,7 @@ export function DataShieldGame() {
                         <span key={t} className="px-2 py-1 rounded-lg bg-orange-500/10 border border-orange-500/20 text-xs font-body text-orange-400">{t}</span>
                       ))}
                     </div>
-                    <motion.button onClick={() => setPhase('play')}
+                    <motion.button onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-white"
                       style={{ background: 'linear-gradient(135deg, #FF6644, #DD4422)' }}
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
@@ -187,12 +262,41 @@ export function DataShieldGame() {
                   </motion.div>
                 )}
 
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#FF6644]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #FF6644, #CC4422)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
+                  </motion.div>
+                )}
+
                 {phase === 'play' && scenario && point && (
                   <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full max-w-md space-y-2">
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={scenarioIdx + 1} total={scenarios.length} labColor="#FF6644" />
+                    </div>
                     {/* Privacy meter */}
                     <div className="mb-4">
                       <div className="flex justify-between mb-1">
-                        <span className="font-body text-xs text-white/30 flex items-center gap-1"><Lock className="w-3 h-3" /> Privacy Score</span>
+                        <span className="font-body text-xs text-white/60 flex items-center gap-1"><Lock className="w-3 h-3" /> Privacy Score</span>
                         <span className="font-display text-xs font-bold" style={{ color: meterColor }}>{privacyScore}%</span>
                       </div>
                       <div className="h-3 rounded-full bg-white/10 overflow-hidden">
@@ -205,7 +309,7 @@ export function DataShieldGame() {
                     <div className="text-center mb-4">
                       <span className="text-3xl">{scenario.emoji}</span>
                       <h3 className="font-display text-base font-bold text-white mt-1">{scenario.title}</h3>
-                      <p className="font-body text-xs text-white/40">{scenario.context}</p>
+                      <p className="font-body text-xs text-white/70">{scenario.context}</p>
                     </div>
 
                     {/* Data point card */}
@@ -238,7 +342,7 @@ export function DataShieldGame() {
                           <p className="font-display text-xs font-bold" style={{ color: feedback.correct ? '#00FF88' : '#EF4444' }}>
                             {feedback.correct ? '✅ Smart choice!' : '⚠️ Be careful!'}
                           </p>
-                          <p className="font-body text-2xs text-white/40 mt-1">{feedback.reason}</p>
+                          <p className="font-body text-2xs text-white/70 mt-1">{feedback.reason}</p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -252,16 +356,16 @@ export function DataShieldGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Data Shield Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You proved you can protect your personal information from AI misuse and make smart privacy decisions online.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#FF6644]/10 border border-[#FF6644]/20">
                       <p className="font-data text-2xl" style={{ color: '#FF6644' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Personal data like addresses, phone numbers, and photos should be protected from apps and websites</li>
                         <li>• Not all data requests are necessary — always ask why an app needs your information</li>
                         <li>• Data privacy is a right, and understanding what to share keeps you safe from AI-powered misuse</li>

@@ -1,6 +1,9 @@
 export type AgeBand = 'A' | 'B' | 'C';
 export type SubscriptionTier = 'free' | 'plus' | 'forge';
-export type ContentType = 'lesson' | 'quiz' | 'game' | 'spark_fact' | 'activity' | 'sandbox' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson';
+export type ContentType = 'lesson' | 'quiz' | 'game' | 'spark_fact' | 'activity' | 'sandbox' | 'game_scenario' | 'game_challenge' | 'trending_topic' | 'branching_lesson'
+  | 'flagship_pet_category' | 'flagship_sort_criterion' | 'flagship_neural_challenge' | 'flagship_agent_mission' | 'flagship_bias_case'
+  | 'fll_data_detective' | 'fll_robot_vacuum' | 'fll_camera_quest' | 'fll_chatbot_builder' | 'fll_emoji_decoder'
+  | 'fll_code_blocks' | 'fll_my_first_ai_app' | 'fll_future_forge' | 'fll_ai_or_not';
 export type ContentStatus = 'published' | 'pending_review' | 'needs_human_review' | 'rejected' | 'draft';
 export type Difficulty = 'beginner' | 'intermediate' | 'advanced';
 export type BadgeCategory = 'progress' | 'streak' | 'lab' | 'game_master' | 'knowledge' | 'explorer' | 'creator' | 'secret' | 'prestige';
@@ -11,7 +14,9 @@ export type CelebrationType = 'xp' | 'badge' | 'level' | 'streak' | 'confetti';
 export type CockpitSkin = 'default' | 'cyberpunk' | 'space' | 'underwater' | 'crystal';
 export type SpatialView = 'overview' | 'lab-focus' | 'console' | 'orbit';
 export type ConsoleType = 'xp' | 'badges' | 'streak' | 'progress';
-export type CeremonyType = 'xp' | 'badge' | 'levelUp' | 'gameComplete' | 'streakMilestone';
+// Aligned with CelebrationType (Phase 1 audit fix: Section 3.2)
+// Legacy mapping: levelUp→level, gameComplete→confetti, streakMilestone→streak
+export type CeremonyType = CelebrationType;
 export type HUDDataMode = 'minimap' | 'labfocus' | 'hidden' | 'burst' | 'stats' | 'tutorial';
 
 export interface CameraTarget {
@@ -41,12 +46,28 @@ export interface Parent {
   email: string;
   full_name?: string;
   stripe_customer_id?: string;
+  stripe_subscription_id?: string | null;
   subscription_tier: SubscriptionTier;
   subscription_status: string;
-  subscription_period_end?: string;
+  subscription_period_end?: string | null;
+  trial_ends_at?: string | null;
   is_admin: boolean;
   onboarding_complete: boolean;
   coppa_consent_at: string;
+  // AUTH-HIGH-004: nullable until user clicks Supabase email-confirm link.
+  // Stamped by /api/auth/callback on first successful exchange.
+  email_verified_at?: string | null;
+  // AUTH-ENH-003: last OAuth provider used, for settings display.
+  oauth_last_provider?: string | null;
+  oauth_last_used_at?: string | null;
+  // PAY-ENH-003: Dunning sequence state. All NULL when not in dunning.
+  // dunning_stage: 0..4 (see DUNNING_SCHEDULE). grace_period_ends_at
+  // is the moment the tier demotes to free if not paid.
+  grace_period_ends_at?: string | null;
+  dunning_stage?: number | null;
+  dunning_started_at?: string | null;
+  dunning_last_sent_at?: string | null;
+  dunning_tier_before?: 'plus' | 'forge' | null;
   created_at: string;
 }
 
@@ -467,6 +488,11 @@ export const GAME_LIMITS: Record<SubscriptionTier, number> = { free: 3, plus: 99
 export const CONTENT_TYPE_ICONS: Record<ContentType, string> = {
   lesson: '📚', quiz: '❓', game: '🎮', spark_fact: '⚡', activity: '🎯', sandbox: '🏖️',
   game_scenario: '🎲', game_challenge: '🏆', trending_topic: '📡', branching_lesson: '🌳',
+  flagship_pet_category: '🐾', flagship_sort_criterion: '📊', flagship_neural_challenge: '🧠',
+  flagship_agent_mission: '🤖', flagship_bias_case: '⚖️',
+  fll_data_detective: '🔍', fll_robot_vacuum: '🧹', fll_camera_quest: '📷',
+  fll_chatbot_builder: '💬', fll_emoji_decoder: '😀', fll_code_blocks: '🧩',
+  fll_my_first_ai_app: '📱', fll_future_forge: '🔮', fll_ai_or_not: '🤔',
 };
 
 export const RARITY_COLORS: Record<BadgeRarity, string> = {

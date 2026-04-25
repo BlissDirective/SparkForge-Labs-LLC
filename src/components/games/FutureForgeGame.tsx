@@ -11,14 +11,17 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
 import { Rocket, Zap, Eye, MessageSquare, Cpu, Bot, Shield, Sparkles, CheckCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 const FutureForge3D = dynamic(
   () => import('@/components/3d/FutureForge3D'),
@@ -44,6 +47,7 @@ interface Scenario {
   bonusCapability?: string;
   impactText: string;
   impactTextSimple: string;
+  isAI?: boolean;
 }
 
 const CAPABILITIES: Capability[] = [
@@ -128,24 +132,179 @@ const SCENARIOS: Scenario[] = [
     impactText: 'AI-coordinated disaster response could reduce emergency response times by 70%.',
     impactTextSimple: 'Your AI could help rescue people much faster when bad things happen!',
   },
+  // ═══════ 5x CONTENT EXPANSION (16 new scenarios) ═══════
+  {
+    id: 's9', title: 'Clean Water',
+    problem: 'Billions lack access to clean water. Design an AI system to detect contamination and optimize purification.',
+    problemSimple: 'Some people don\'t have clean water. Build an AI that finds dirty water and cleans it!',
+    correctCapabilities: ['vision', 'processing', 'prediction'],
+    bonusCapability: 'robotics',
+    impactText: 'AI water monitoring could provide clean water access to 2 billion more people globally.',
+    impactTextSimple: 'Your AI could help give clean water to billions of people around the world!',
+  },
+  {
+    id: 's10', title: 'Wildlife Guardian',
+    problem: 'Endangered species face extinction. Design an AI system to monitor and protect wildlife populations.',
+    problemSimple: 'Animals are in danger! Build an AI that watches over endangered animals and keeps them safe!',
+    correctCapabilities: ['vision', 'prediction', 'safety'],
+    bonusCapability: 'processing',
+    impactText: 'AI wildlife monitoring could reduce poaching incidents by 80% in protected areas.',
+    impactTextSimple: 'Your AI guardian could protect animals from hunters and help them survive!',
+  },
+  {
+    id: 's11', title: 'Recycling Sorter',
+    problem: 'Only 9% of plastic gets recycled. Design an AI system that automatically sorts recyclable materials.',
+    problemSimple: 'Most trash doesn\'t get recycled. Build an AI that sorts trash into the right bins!',
+    correctCapabilities: ['vision', 'robotics'],
+    bonusCapability: 'processing',
+    impactText: 'AI sorting could triple recycling rates, diverting 500M tons from landfills annually.',
+    impactTextSimple: 'Your AI sorter could recycle three times more stuff than we do now!',
+  },
+  {
+    id: 's12', title: 'Earthquake Alert',
+    problem: 'Earthquakes strike without warning. Design an AI early warning system using seismic sensor networks.',
+    problemSimple: 'Earthquakes surprise people. Build an AI that warns everyone before the shaking starts!',
+    correctCapabilities: ['prediction', 'processing', 'safety'],
+    bonusCapability: 'language',
+    impactText: 'AI seismic analysis could provide 30-60 seconds of early warning, saving thousands of lives.',
+    impactTextSimple: 'Your AI could give people a warning before earthquakes hit!',
+  },
+  {
+    id: 's13', title: 'Fake News Detector',
+    problem: 'Misinformation spreads rapidly online. Design an AI system to identify and flag false information.',
+    problemSimple: 'Some news online is fake! Build an AI that can tell real news from made-up stories!',
+    correctCapabilities: ['language', 'processing'],
+    bonusCapability: 'prediction',
+    impactText: 'AI fact-checking could reduce misinformation spread by 65% on social platforms.',
+    impactTextSimple: 'Your AI could help people know which news stories are real and which are fake!',
+  },
+  {
+    id: 's14', title: 'Accessibility Helper',
+    problem: 'Millions of people with disabilities face daily barriers. Design an AI assistant for universal accessibility.',
+    problemSimple: 'Some people can\'t see, hear, or move easily. Build an AI that helps them do everyday things!',
+    correctCapabilities: ['vision', 'language', 'robotics'],
+    bonusCapability: 'safety',
+    impactText: 'AI accessibility tools could improve independence for 1.3 billion people with disabilities.',
+    impactTextSimple: 'Your AI helper could make the world easier for everyone!',
+  },
+  {
+    id: 's15', title: 'Energy Grid',
+    problem: 'Power grids waste energy and cause blackouts. Design an AI to optimize energy distribution.',
+    problemSimple: 'Sometimes the lights go out! Build an AI that keeps the electricity flowing everywhere!',
+    correctCapabilities: ['prediction', 'processing', 'safety'],
+    bonusCapability: 'vision',
+    impactText: 'AI grid management could reduce energy waste by 20% and prevent 90% of blackouts.',
+    impactTextSimple: 'Your AI could save electricity and stop blackouts from happening!',
+  },
+  {
+    id: 's16', title: 'Food Waste Fighter',
+    problem: '1/3 of all food is wasted. Design an AI to optimize food supply chains and reduce waste.',
+    problemSimple: 'We throw away too much food! Build an AI that helps stores and restaurants waste less!',
+    correctCapabilities: ['prediction', 'processing'],
+    bonusCapability: 'vision',
+    impactText: 'AI supply chain optimization could reduce food waste by 50%, feeding 500M more people.',
+    impactTextSimple: 'Your AI could save enough food to feed half a billion people!',
+  },
+  {
+    id: 's17', title: 'Mental Health Buddy',
+    problem: 'Many young people struggle with mental health. Design an AI wellness companion that provides support.',
+    problemSimple: 'Sometimes kids feel sad or worried. Build a kind AI friend that listens and helps!',
+    correctCapabilities: ['language', 'prediction'],
+    bonusCapability: 'safety',
+    impactText: 'AI wellness tools could provide initial mental health support to 60% of underserved youth.',
+    impactTextSimple: 'Your AI buddy could help lots of kids feel better when they\'re sad or stressed!',
+  },
+  {
+    id: 's18', title: 'Coral Reef Restorer',
+    problem: 'Coral reefs are dying from climate change. Design an AI system to monitor and restore reef ecosystems.',
+    problemSimple: 'Beautiful coral reefs are getting sick. Build an AI that helps coral grow back!',
+    correctCapabilities: ['vision', 'robotics', 'prediction'],
+    bonusCapability: 'processing',
+    impactText: 'AI-guided reef restoration could recover 40% of damaged coral ecosystems within a decade.',
+    impactTextSimple: 'Your AI could help bring colorful coral reefs back to life!',
+  },
+  {
+    id: 's19', title: 'Homework Helper',
+    problem: 'Students struggle with personalized learning. Design an AI tutor that adapts to each student\'s needs.',
+    problemSimple: 'Every kid learns differently. Build an AI teacher that helps each student in their own way!',
+    correctCapabilities: ['language', 'prediction', 'processing'],
+    bonusCapability: 'vision',
+    impactText: 'AI tutoring could improve learning outcomes by 30% through personalized instruction.',
+    impactTextSimple: 'Your AI tutor could help every student learn better and have more fun doing it!',
+  },
+  {
+    id: 's20', title: 'Autonomous Delivery',
+    problem: 'Last-mile delivery is expensive and polluting. Design an AI drone delivery network.',
+    problemSimple: 'Delivery trucks cause pollution. Build an AI drone that delivers packages without pollution!',
+    correctCapabilities: ['vision', 'robotics', 'safety'],
+    bonusCapability: 'prediction',
+    impactText: 'AI drone delivery could reduce last-mile emissions by 80% and delivery costs by 40%.',
+    impactTextSimple: 'Your AI drones could deliver packages faster and without polluting the air!',
+  },
+  {
+    id: 's21', title: 'Music Composer',
+    problem: 'Creating original music is time-intensive. Design an AI that composes music in any style.',
+    problemSimple: 'Making music takes a long time. Build an AI that creates cool songs!',
+    correctCapabilities: ['language', 'processing'],
+    bonusCapability: 'prediction',
+    impactText: 'AI music tools could enable anyone to create professional-quality compositions.',
+    impactTextSimple: 'Your AI could help anyone make amazing music, even if they can\'t play instruments!',
+  },
+  {
+    id: 's22', title: 'Sleep Doctor',
+    problem: 'Sleep disorders affect billions. Design an AI system that monitors and improves sleep quality.',
+    problemSimple: 'Lots of people don\'t sleep well. Build an AI that helps people get better sleep!',
+    correctCapabilities: ['prediction', 'processing'],
+    bonusCapability: 'language',
+    impactText: 'AI sleep optimization could improve sleep quality for 45% of chronic insomnia sufferers.',
+    impactTextSimple: 'Your AI could help people fall asleep faster and wake up feeling great!',
+  },
+  {
+    id: 's23', title: 'City Planner',
+    problem: 'Cities are growing fast and need smart infrastructure. Design an AI urban planning assistant.',
+    problemSimple: 'Cities are getting bigger! Build an AI that helps design better cities for everyone!',
+    correctCapabilities: ['vision', 'prediction', 'processing'],
+    bonusCapability: 'safety',
+    impactText: 'AI urban planning could reduce infrastructure costs by 25% while improving livability.',
+    impactTextSimple: 'Your AI could help build cities that are fun, safe, and good for the planet!',
+  },
+  {
+    id: 's24', title: 'Ancient Language Decoder',
+    problem: 'Many ancient scripts remain undeciphered. Design an AI to decode lost languages from artifacts.',
+    problemSimple: 'Old civilizations wrote in languages we can\'t read. Build an AI that figures out what they said!',
+    correctCapabilities: ['vision', 'language', 'processing'],
+    bonusCapability: 'prediction',
+    impactText: 'AI pattern analysis could decode undeciphered scripts, unlocking thousands of years of history.',
+    impactTextSimple: 'Your AI could read messages from people who lived thousands of years ago!',
+  },
 ];
 
 export default function FutureForgeGame() {
-  const game = useGameStore();
-  const ageBand = useChildStore(s => s.activeChild?.age_band) || 'B';
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const ageBand = useActiveChild()?.age_band || 'B';
   const { data: dynamicContent } = useGameContent('future-forge', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
   const [round, setRound] = useState(1);
   const totalRounds = 8;
 
-  const scenario = useMemo(() => SCENARIOS[(round - 1) % SCENARIOS.length], [round]);
+  // Merge hardcoded + dynamic scenarios
+  const allScenarios = useMemo(() => {
+    if (!dynamicContent?.scenarios?.length) return SCENARIOS;
+    const dynamic: Scenario[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as Scenario; } catch { return null; } })
+      .filter((s): s is Scenario => s !== null);
+    return [...SCENARIOS, ...dynamic];
+  }, [dynamicContent?.scenarios]);
+  const scenario = useMemo(() => allScenarios[(round - 1) % allScenarios.length], [round, allScenarios]);
   const [selected, setSelected] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [roundScore, setRoundScore] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredScenarios = useFilteredContent(SCENARIOS as any[], tier, ageBand) as typeof SCENARIOS;
 
-  // Register 3D scene content into CockpitCanvas via sceneStore (D3D-B3)
+  // Register 3D scene content — only update on round change or submission (FLL-038 fix)
   useEffect(() => {
     if (phase === 'play') {
       setGameSceneContent(
@@ -161,7 +320,9 @@ export default function FutureForgeGame() {
     } else {
       setGameSceneContent(null);
     }
-  }, [phase, round, selected, scenario, roundScore, setGameSceneContent]);
+    return () => setGameSceneContent(null); // FLL-040: cleanup on unmount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, round, roundScore, setGameSceneContent]);
 
   const toggleCapability = useCallback((id: string) => {
     if (submitted) return;
@@ -221,7 +382,7 @@ export default function FutureForgeGame() {
   })), []);
 
   return (
-    <GameShell gameId="future-forge" title="Future Forge" worldNumber={10} worldColor="#D946EF" totalRounds={totalRounds}>
+    <GameShell gameId="future-forge" title="Future Forge" worldNumber={10} worldColor="#DE5AEA" totalRounds={totalRounds}>
       {/* Chrome bezel */}
       <div className="relative rounded-2xl border border-white/[0.06] bg-surface-base overflow-hidden"
         style={{ boxShadow: '0 0 0 1px rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)' }}>
@@ -232,8 +393,8 @@ export default function FutureForgeGame() {
         {particles.map(p => (
           <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
             style={{ left: p.left, top: p.top, width: p.size, height: p.size, backgroundColor: '#D946EF' }}
-            animate={{ opacity: [0.15, 0.5, 0.15], y: [0, -15, 0] }}
-            transition={{ repeat: Infinity, duration: p.duration, delay: p.delay, ease: 'easeInOut' }}
+            animate={prefersReducedMotion ? {} : { opacity: [0.15, 0.5, 0.15], y: [0, -15, 0] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: p.duration, delay: p.delay, ease: 'easeInOut' }}
           />
         ))}
 
@@ -241,7 +402,7 @@ export default function FutureForgeGame() {
         {phase === 'welcome' && (
           <motion.div key="welcome" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
             className="flex flex-col items-center justify-center gap-6 p-8 text-center">
-            <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 2 }}>
+            <motion.div animate={prefersReducedMotion ? {} : { y: [0, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 2 }}>
               <Rocket className="w-16 h-16 text-lab-10" />
             </motion.div>
             <h2 className="font-display text-3xl text-white">Future Forge</h2>
@@ -285,6 +446,10 @@ export default function FutureForgeGame() {
         {phase === 'play' && (
           <motion.div key="play" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="flex flex-col gap-4 p-4 w-full max-w-4xl mx-auto">
+            <div className="flex items-center gap-3 mb-3 px-4">
+              <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+              <GameProgressTracker current={round} total={totalRounds} labColor="#D946EF" />
+            </div>
             {/* Header */}
             <div className="flex items-center justify-between">
               <span className="font-display text-sm text-white/60">Round {round}/{totalRounds}</span>
@@ -303,7 +468,7 @@ export default function FutureForgeGame() {
                     {ageBand === 'A' ? scenario.problemSimple : scenario.problem}
                   </p>
                   {!submitted && (
-                    <p className="font-body text-xs text-white/40 mt-2">Select up to 4 AI capabilities to solve this problem.</p>
+                    <p className="font-body text-xs text-white/70 mt-2">Select up to 4 AI capabilities to solve this problem.</p>
                   )}
                 </motion.div>
 
@@ -329,7 +494,7 @@ export default function FutureForgeGame() {
                         aria-pressed={isSelected}>
                         <Icon className="w-6 h-6" style={{ color: cap.color }} />
                         <span className="font-display text-xs text-white">{cap.name}</span>
-                        <span className="font-body text-2xs text-white/40">{cap.description}</span>
+                        <span className="font-body text-2xs text-white/70">{cap.description}</span>
                         {showBonus && <Star className="w-3 h-3 text-neon-amber absolute -top-1 -right-1" />}
                       </motion.button>
                     );

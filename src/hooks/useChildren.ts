@@ -1,8 +1,14 @@
+import { useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/lib/api';
 import { useChildStore } from '@/stores/childStore';
 import type { Child } from '@/types';
 
+// STATE-MED-001 (B-full): React Query is the source of truth for child
+// data. childStore holds the active-child selection (activeChildId)
+// only. All consumers read child fields (xp, level, age_band, etc.)
+// via useActiveChild() — never via a childStore snapshot, which no
+// longer exists after T5c-C4.
 export function useChildren() {
   return useQuery({
     queryKey: ['children'],
@@ -10,19 +16,49 @@ export function useChildren() {
   });
 }
 
+/**
+ * STATE-MED-001 (B-full): Resolve the active child against the live
+ * React Query cache so reads are always fresh (within `staleTime`)
+ * and reconcile across tabs on window focus.
+ *
+ * Returns `undefined` while children are loading, or when no child is
+ * selected. Consumers should treat `undefined` the same as the prior
+ * `activeChild === null` case.
+ *
+ * Usage:
+ *   const child = useActiveChild();
+ *   const xp = child?.xp ?? 0;
+ */
+export function useActiveChild(): Child | undefined {
+  const { data: children } = useChildren();
+  const activeChildId = useChildStore((s) => s.activeChildId);
+
+  return useMemo(() => {
+    if (!activeChildId || !children) return undefined;
+    return children.find((c) => c.id === activeChildId);
+  }, [activeChildId, children]);
+}
+
 export function useCreateChild() {
   const qc = useQueryClient();
-  const { setChildren, setActiveChild } = useChildStore();
+  const setActiveChildId = useChildStore((s) => s.setActiveChildId);
 
   return useMutation({
     mutationFn: (body: { displayName: string; ageBand: string; birthYear?: number }) =>
       apiFetch<Child>('/api/children', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: (newChild) => {
+      // T5c-C4: React Query cache update + invalidate so useChildren
+      // subscribers see the new child immediately. childStore no
+      // longer tracks the children list — nothing to setChildren().
+      qc.setQueryData<Child[]>(['children'], (prev) =>
+        prev ? [...prev, newChild] : [newChild],
+      );
       qc.invalidateQueries({ queryKey: ['children'] });
-      const current = useChildStore.getState().children;
-      const updated = [...current, newChild];
-      setChildren(updated);
-      if (updated.length === 1) setActiveChild(newChild);
+      // If this is the first child, auto-select it.
+      const currentId = useChildStore.getState().activeChildId;
+      if (!currentId) {
+        setActiveChildId(newChild.id);
+      }
     },
   });
 }

@@ -6,25 +6,16 @@
 // ════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError } from '@/lib/api-helpers';
+import { apiSuccess, apiError, sanitizeErrorMessage } from '@/lib/api-helpers';
 import { runAgentPipeline, type PipelineMode } from '@/lib/agent/pipeline';
+import { verifyCronBearer } from '@/lib/cron-auth';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: NextRequest) {
-  // Verify cron secret (Vercel sends this as Bearer token)
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  // v2 [S9-WARN-003]: Require CRON_SECRET in production
-  if (!cronSecret && process.env.NODE_ENV === 'production') {
-    console.error('CRON_SECRET is not set in production — schedule endpoint blocked');
-    return apiError('CRON_SECRET required in production', 500, 'CONFIG_ERROR');
-  }
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return apiError('Unauthorized', 401, 'AUTH_REQUIRED');
-  }
+  // T17 DEPLOY-MED-003: shared verifyCronBearer helper (timing-safe).
+  const denial = verifyCronBearer(req, { routeName: 'agent-schedule' });
+  if (denial) return denial;
 
   // Skip if API key not configured
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -47,8 +38,12 @@ export async function GET(req: NextRequest) {
     const result = await runAgentPipeline(mode);
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error('Cron agent run failed:', message);
-    return apiError(`Agent pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): log full error server-side; sanitize response.
+    console.error('[agent/schedule] pipeline failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Agent pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }

@@ -11,6 +11,9 @@ export const DURATION = {
 } as const;
 
 // ═══ EASING PRESETS ═══
+// Phase 5 Section O.2-MIN (§5.9): Named easing curve constants. ALL
+// Motion variants in this file consume these instead of inlining hex
+// bezier arrays. Change a curve here and every consumer updates.
 export const EASING = {
   OUT: 'easeOut',
   IN_OUT: 'easeInOut',
@@ -44,20 +47,28 @@ export const fadeIn: Variants = {
 
 export const fadeSlideUp: Variants = {
   initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASING.OUT } },
   exit: { opacity: 0, y: -8, transition: { duration: 0.2 } },
 };
 
 export const fadeSlideDown: Variants = {
   initial: { opacity: 0, y: -12 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASING.OUT } },
   exit: { opacity: 0, y: 8, transition: { duration: 0.2 } },
 };
+
+// ═══ PAGE TRANSITION DURATIONS (Phase 1 audit fix: Section 3.7 — single source of truth) ═══
+// Consumed by PageTransitionProvider and all transition-aware components
+export const TRANSITION_DURATIONS = {
+  page: 400,  // ms — standard page crossfade (was 300 provider / 450 animation — unified to 400)
+  lab: 800,   // ms — lab reconfiguration (matches Decision 3.5)
+  game: 600,  // ms — mechanical iris (matches D3D-B2 IRIS_DURATION)
+} as const;
 
 // ═══ PAGE TRANSITIONS ═══
 export const pageTransition: Variants = {
   initial: { opacity: 0, y: 20, filter: 'blur(4px)' },
-  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: 0.45, ease: [0.25, 0.46, 0.45, 0.94] } },
+  animate: { opacity: 1, y: 0, filter: 'blur(0px)', transition: { duration: TRANSITION_DURATIONS.page / 1000, ease: EASING.SMOOTH } },
   exit: { opacity: 0, y: -12, filter: 'blur(4px)', transition: { duration: 0.25 } },
 };
 
@@ -96,7 +107,7 @@ export const scaleIn: Variants = {
 
 export const popIn: Variants = {
   initial: { scale: 0, opacity: 0 },
-  animate: { scale: [0, 1.15, 1], opacity: 1, transition: { duration: 0.5, ease: [0.34, 1.56, 0.64, 1] } },
+  animate: { scale: [0, 1.15, 1], opacity: 1, transition: { duration: 0.5, ease: EASING.OVERSHOOT } },
 };
 
 // ═══ SLIDE VARIANTS ═══
@@ -155,18 +166,20 @@ export const timerPulse: Variants = {
 
 export const skeletonPulse: Variants = {
   initial: { opacity: 0.4 },
-  animate: { opacity: [0.4, 0.7, 0.4], transition: { duration: 1.5, repeat: Infinity, ease: 'easeInOut' } },
+  animate: { opacity: [0.4, 0.7, 0.4], transition: { duration: 1.5, repeat: Infinity, ease: EASING.IN_OUT } },
 };
 
 // ═══ GAMIFICATION ═══
+// Phase 2 audit fix (Section 5.5): XP float uses deceleration keyframes
+// [0, -40, -58, -70] for natural gravity-curve feel instead of linear rise
 export const xpFloat: Variants = {
   initial: { opacity: 0, y: 0, scale: 0.5 },
-  animate: { opacity: [0, 1, 1, 0], y: [0, -30, -50, -70], scale: [0.5, 1.2, 1, 0.8], transition: { duration: 1.5, times: [0, 0.2, 0.7, 1] } },
+  animate: { opacity: [0, 1, 1, 0], y: [0, -40, -58, -70], scale: [0.5, 1.2, 1, 0.8], transition: { duration: 1.5, times: [0, 0.3, 0.7, 1] } },
 };
 
 export const streakFlame: Variants = {
   initial: { scale: 0.8, opacity: 0 },
-  animate: { scale: [0.8, 1.2, 1], opacity: 1, transition: { duration: 0.6, ease: [0.34, 1.56, 0.64, 1] } },
+  animate: { scale: [0.8, 1.2, 1], opacity: 1, transition: { duration: 0.6, ease: EASING.OVERSHOOT } },
 };
 
 export const xpGain: Variants = {
@@ -176,7 +189,7 @@ export const xpGain: Variants = {
 
 export const badgeUnlock: Variants = {
   initial: { scale: 0, rotate: -180, opacity: 0 },
-  animate: { scale: [0, 1.3, 1], rotate: [0, 10, 0], opacity: 1, transition: { duration: 0.8, ease: [0.34, 1.56, 0.64, 1] } },
+  animate: { scale: [0, 1.3, 1], rotate: [0, 10, 0], opacity: 1, transition: { duration: 0.8, ease: EASING.OVERSHOOT } },
 };
 
 export const levelUp: Variants = {
@@ -202,24 +215,24 @@ export const wrongAnswer: Variants = {
 // ═══ PROGRESS ═══
 export const progressRing = (percent: number): Variants => ({
   initial: { pathLength: 0, opacity: 0 },
-  animate: { pathLength: percent / 100, opacity: 1, transition: { duration: 1.2, ease: 'easeOut' } },
+  animate: { pathLength: percent / 100, opacity: 1, transition: { duration: 1.2, ease: EASING.OUT } },
 });
 
 export const progressFill = (percent: number): Variants => ({
   initial: { width: '0%' },
-  animate: { width: `${percent}%`, transition: { duration: 1, ease: 'easeOut' } },
+  animate: { width: `${percent}%`, transition: { duration: 1, ease: EASING.OUT } },
 });
 
 // ═══ FLOATING & AMBIENT ═══
 export const floatingIsland: Variants = {
   initial: { y: 0 },
-  animate: { y: [0, -8, 0], transition: { duration: 4, repeat: Infinity, ease: 'easeInOut' } },
+  animate: { y: [0, -8, 0], transition: { duration: 4, repeat: Infinity, ease: EASING.IN_OUT } },
 };
 
 // ═══ HERO / LANDING ═══
 export const heroTitle: Variants = {
   initial: { opacity: 0, y: 40, scale: 0.9 },
-  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: [0.25, 0.46, 0.45, 0.94] } },
+  animate: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.8, ease: EASING.SMOOTH } },
 };
 
 export const heroSubtitle: Variants = {
@@ -230,13 +243,13 @@ export const heroSubtitle: Variants = {
 // ═══ LAB / MODULE ═══
 export const moduleTransition: Variants = {
   initial: { opacity: 0, y: 4 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: 'easeOut' } },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASING.OUT } },
   exit: { opacity: 0, y: -4, transition: { duration: 0.15 } },
 };
 
 export const labCardEntrance = (index: number): Variants => ({
   initial: { opacity: 0, scale: 0.7 },
-  animate: { opacity: 1, scale: 1, transition: { duration: 0.4, delay: index * 0.06, ease: [0.34, 1.56, 0.64, 1] } },
+  animate: { opacity: 1, scale: 1, transition: { duration: 0.4, delay: index * 0.06, ease: EASING.OVERSHOOT } },
 });
 
 export const lockShake: Variants = {
@@ -277,7 +290,7 @@ export const tooltipPop: Variants = {
 // ═══ PARTICLE EFFECTS ═══
 export const sparkParticle = (delay: number): Variants => ({
   initial: { opacity: 0, scale: 0 },
-  animate: { opacity: [0, 1, 0], scale: [0, 1, 0], y: [0, -40 - Math.random() * 30], x: [(Math.random() - 0.5) * 60], transition: { duration: 1.5, delay, ease: 'easeOut' } },
+  animate: { opacity: [0, 1, 0], scale: [0, 1, 0], y: [0, -40 - Math.random() * 30], x: [(Math.random() - 0.5) * 60], transition: { duration: 1.5, delay, ease: EASING.OUT } },
 });
 
 // ═══ COUNTUP SPRING ═══

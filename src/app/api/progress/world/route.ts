@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { LabProgressSchema } from '@/lib/validations';
 import { apiSuccess, apiError, parseQuery, requireAuth, verifyChildOwnership } from '@/lib/api-helpers';
+import { withSupabaseRpc } from '@/lib/sentry-transactions';
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
@@ -22,9 +23,12 @@ export async function GET(req: NextRequest) {
 
   if (!child) return apiError('Child not found', 404);
 
-  const { data, error } = await supabase.rpc('get_lab_progress', {
-    p_child_id: childId, p_world: world, p_age_band: child.age_band,
-  });
+  const { data, error } = await withSupabaseRpc('get_lab_progress', () =>
+    supabase.rpc('get_lab_progress', {
+      p_child_id: childId, p_world: world, p_age_band: child.age_band,
+    }),
+    { 'lab.id': world },
+  );
 
   if (error) return apiError('Failed to fetch lab progress', 500);
 

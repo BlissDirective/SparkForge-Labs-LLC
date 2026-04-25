@@ -98,12 +98,16 @@ export default function PromptHistoryPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  // Generate mock data once children load
+  // DASH-11: Generate mock data once (memoized on children identity)
+  const generatedData = useMemo(
+    () => children.length > 0 ? generateMockPrompts(children) : [],
+    [children]
+  );
   useEffect(() => {
-    if (children.length > 0 && mockData.length === 0) {
-      setMockData(generateMockPrompts(children));
+    if (generatedData.length > 0 && mockData.length === 0) {
+      setMockData(generatedData);
     }
-  }, [children, mockData.length]);
+  }, [generatedData, mockData.length]);
 
   // Filtered data
   const filtered = useMemo(() => {
@@ -200,7 +204,7 @@ export default function PromptHistoryPage() {
           </Link>
           <div>
             <h1 className="font-display text-2xl font-bold text-white">Prompt History</h1>
-            <p className="font-body text-sm text-white/40">
+            <p className="font-body text-sm text-white/70">
               Review your children&apos;s AI interactions in Prompt Lab
             </p>
           </div>
@@ -217,7 +221,7 @@ export default function PromptHistoryPage() {
       </motion.div>
 
       {/* Filters */}
-      <motion.div variants={staggerItem} className="glass-card rounded-xl p-4 mb-6">
+      <motion.div variants={staggerItem} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-6">
         <div className="flex items-center gap-2 mb-3">
           <Filter className="w-4 h-4 text-spark-blue" />
           <span className="font-display text-sm font-bold text-white">Filters</span>
@@ -225,7 +229,7 @@ export default function PromptHistoryPage() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           {/* Child filter */}
           <div>
-            <label htmlFor="filter-child" className="font-body text-xs text-white/30 mb-1 block">
+            <label htmlFor="filter-child" className="font-body text-xs text-white/60 mb-1 block">
               Child
             </label>
             <select
@@ -246,18 +250,18 @@ export default function PromptHistoryPage() {
 
           {/* Search */}
           <div>
-            <label htmlFor="filter-search" className="font-body text-xs text-white/30 mb-1 block">
+            <label htmlFor="filter-search" className="font-body text-xs text-white/60 mb-1 block">
               Search
             </label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
               <input
                 id="filter-search"
                 type="text"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
                 placeholder="Search prompts..."
-                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/20 focus:border-spark-blue/50 focus:outline-none"
+                className="w-full pl-9 pr-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/55 focus:border-spark-blue/50 focus:outline-none"
                 aria-label="Search prompt text"
               />
             </div>
@@ -265,7 +269,7 @@ export default function PromptHistoryPage() {
 
           {/* Date from */}
           <div>
-            <label htmlFor="filter-date-from" className="font-body text-xs text-white/30 mb-1 block">
+            <label htmlFor="filter-date-from" className="font-body text-xs text-white/60 mb-1 block">
               From
             </label>
             <input
@@ -280,7 +284,7 @@ export default function PromptHistoryPage() {
 
           {/* Date to */}
           <div>
-            <label htmlFor="filter-date-to" className="font-body text-xs text-white/30 mb-1 block">
+            <label htmlFor="filter-date-to" className="font-body text-xs text-white/60 mb-1 block">
               To
             </label>
             <input
@@ -297,7 +301,7 @@ export default function PromptHistoryPage() {
 
       {/* Results count */}
       <motion.div variants={staggerItem} className="flex items-center justify-between mb-4">
-        <p className="font-body text-sm text-white/40">
+        <p className="font-body text-sm text-white/70">
           <span className="font-data text-spark-blue">{filtered.length}</span> prompt{filtered.length !== 1 ? 's' : ''} found
         </p>
       </motion.div>
@@ -313,9 +317,9 @@ export default function PromptHistoryPage() {
             exit="initial"
             className="text-center py-16"
           >
-            <MessageSquare className="w-12 h-12 text-white/20 mx-auto mb-4" />
+            <MessageSquare className="w-12 h-12 text-white/55 mx-auto mb-4" />
             <h2 className="font-display text-lg font-bold text-white mb-2">No prompts found</h2>
-            <p className="font-body text-sm text-white/40">
+            <p className="font-body text-sm text-white/70">
               {children.length === 0
                 ? 'Add a child profile to start tracking prompt history'
                 : 'Try adjusting your filters or date range'}
@@ -323,13 +327,13 @@ export default function PromptHistoryPage() {
           </motion.div>
         ) : (
           <motion.div key="list" className="space-y-3">
-            {paginated.map((entry, idx) => (
+            {paginated.map((entry, _idx) => (
               <motion.div
                 key={entry.id}
                 variants={staggerItem}
                 initial="initial"
                 animate="animate"
-                className="glass-card rounded-xl overflow-hidden"
+                className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl overflow-hidden"
               >
                 <button
                   onClick={() => setExpandedId(expandedId === entry.id ? null : entry.id)}
@@ -344,8 +348,8 @@ export default function PromptHistoryPage() {
                         <span className="font-body text-xs text-spark-purple font-semibold">
                           {entry.childName}
                         </span>
-                        <span className="font-body text-xs text-white/20">|</span>
-                        <span className="font-body text-xs text-white/30">
+                        <span className="font-body text-xs text-white/55">|</span>
+                        <span className="font-body text-xs text-white/60">
                           {entry.labName}
                         </span>
                       </div>
@@ -354,7 +358,7 @@ export default function PromptHistoryPage() {
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <div className="flex items-center gap-1.5 text-white/30">
+                      <div className="flex items-center gap-1.5 text-white/60">
                         <Clock className="w-3 h-3" />
                         <span className="font-data text-xs">
                           {new Date(entry.timestamp).toLocaleDateString('en-US', {
@@ -363,7 +367,7 @@ export default function PromptHistoryPage() {
                           })}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1.5 text-white/20">
+                      <div className="flex items-center gap-1.5 text-white/55">
                         <FileText className="w-3 h-3" />
                         <span className="font-data text-xs">{entry.wordCount} words</span>
                       </div>
@@ -382,12 +386,12 @@ export default function PromptHistoryPage() {
                     >
                       <div className="px-4 pb-4 pt-0">
                         <div className="border-t border-white/5 pt-3">
-                          <p className="font-body text-xs text-white/30 mb-1.5">AI Response:</p>
+                          <p className="font-body text-xs text-white/60 mb-1.5">AI Response:</p>
                           <p className="font-body text-sm text-white/70 leading-relaxed">
                             {entry.response}
                           </p>
                           <div className="flex items-center gap-4 mt-3">
-                            <span className="font-data text-xs text-white/20">
+                            <span className="font-data text-xs text-white/55">
                               {new Date(entry.timestamp).toLocaleString('en-US', {
                                 month: 'short',
                                 day: 'numeric',
@@ -396,7 +400,7 @@ export default function PromptHistoryPage() {
                                 minute: '2-digit',
                               })}
                             </span>
-                            <span className="font-data text-xs text-white/20">
+                            <span className="font-data text-xs text-white/55">
                               Lab {entry.labId}: {entry.labName}
                             </span>
                           </div>
@@ -440,14 +444,14 @@ export default function PromptHistoryPage() {
                 return (
                   <span key={page} className="flex items-center">
                     {showEllipsis && (
-                      <span className="px-1 text-white/20 font-data text-xs">...</span>
+                      <span className="px-1 text-white/55 font-data text-xs">...</span>
                     )}
                     <button
                       onClick={() => setCurrentPage(page)}
                       className={`w-8 h-8 rounded-lg font-data text-xs transition-all ${
                         currentPage === page
                           ? 'bg-spark-blue/20 border border-spark-blue/30 text-spark-blue font-bold'
-                          : 'bg-white/5 border border-white/10 text-white/40 hover:border-white/20'
+                          : 'bg-white/5 border border-white/10 text-white/70 hover:border-white/20'
                       }`}
                       aria-label={`Page ${page}`}
                       aria-current={currentPage === page ? 'page' : undefined}

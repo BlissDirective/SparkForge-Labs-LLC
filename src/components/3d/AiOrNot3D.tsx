@@ -25,7 +25,6 @@ import {
   InstancedMesh,
   Mesh,
   MeshBasicMaterial,
-  MeshStandardMaterial,
   Object3D,
   Vector3,
 } from 'three';

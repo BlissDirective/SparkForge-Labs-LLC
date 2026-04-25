@@ -11,7 +11,8 @@
 import { useRef, useMemo, useState, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Color, InstancedMesh, Object3D, Vector3 } from 'three';
-import { useA11yStore } from '@/stores/accessibilityStore';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore } from '@/stores/uiStore';
 
 const PARTICLE_COUNT = 200;
 const DURATION = 2.0;
@@ -64,7 +65,7 @@ export default function LevelUpExplosion({
   const meshRef = useRef<InstancedMesh>(null);
   const timeRef = useRef(0);
   const [alive, setAlive] = useState(false);
-  const reduceMotion = useA11yStore((s) => s.reduceMotion);
+  const reduceMotion = useUIStore((s) => s.a11y.reduceMotion);
 
   const particles = useMemo(() => generateExplosion(), []);
   const dummy = useMemo(() => new Object3D(), []);

@@ -9,36 +9,19 @@
 'use client';
 
 import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import { Brain, Zap } from 'lucide-react';
-
-// ENH: Animated score counter hook
-function useAnimatedCounter(target: number, duration = 600) {
-  const [display, setDisplay] = useState(0);
-  useEffect(() => {
-    if (display === target) return;
-    const start = display;
-    const diff = target - start;
-    const startTime = performance.now();
-    let raf: number;
-    const step = (now: number) => {
-      const elapsed = now - startTime;
-      const progress = Math.min(elapsed / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(start + diff * eased));
-      if (progress < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration]); // eslint-disable-line react-hooks/exhaustive-deps
-  return display;
-}
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const WordPredictorEnvironment = dynamic(
@@ -54,6 +37,7 @@ interface Round {
   explanation: string;
   explanationC: string;
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_ROUNDS: Round[] = [
@@ -183,17 +167,138 @@ const ALL_ROUNDS: Round[] = [
     explanationC: 'Speculative contexts produce high-entropy distributions. The model cannot predict the future but reflects training data biases about AI narratives.',
     band: 'B',
   },
+  {
+    sentence: 'The cat sat on the ___',
+    predictions: [
+      { word: 'mat', confidence: 45 },
+      { word: 'chair', confidence: 25 },
+      { word: 'floor', confidence: 18 },
+      { word: 'bed', confidence: 12 },
+    ],
+    explanation: '"The cat sat on the mat" is a classic sentence! AI remembers common phrases.',
+    explanationC: 'Highly frequent n-gram in training data. The idiom "cat sat on the mat" creates strong statistical bias toward "mat" despite other valid completions.',
+    band: 'A',
+  },
+  {
+    sentence: 'Water boils at 100 degrees ___',
+    predictions: [
+      { word: 'Celsius', confidence: 75 },
+      { word: 'Fahrenheit', confidence: 12 },
+      { word: 'centigrade', confidence: 8 },
+      { word: 'hot', confidence: 5 },
+    ],
+    explanation: 'AI knows science facts! Water boils at 100 degrees Celsius.',
+    explanationC: 'Factual grounding produces a peaked distribution. The model has high certainty from encyclopedic knowledge encoded during pre-training.',
+    band: 'A',
+  },
+  {
+    sentence: 'The astronaut floated in ___',
+    predictions: [
+      { word: 'space', confidence: 55 },
+      { word: 'zero', confidence: 20 },
+      { word: 'the', confidence: 15 },
+      { word: 'air', confidence: 10 },
+    ],
+    explanation: 'Astronauts float in space! AI connects "astronaut" and "floating" to space.',
+    explanationC: 'Strong semantic priming from co-occurrence of "astronaut" and "space" in training data creates high conditional probability.',
+    band: 'A',
+  },
+  {
+    sentence: 'The musician played a beautiful ___',
+    predictions: [
+      { word: 'song', confidence: 40 },
+      { word: 'melody', confidence: 30 },
+      { word: 'piece', confidence: 18 },
+      { word: 'tune', confidence: 12 },
+    ],
+    explanation: 'All these words fit! AI spreads probability across musical terms.',
+    explanationC: 'Near-synonyms in the same semantic field create a moderately flat distribution with gradual probability decay.',
+    band: 'A',
+  },
+  {
+    sentence: 'The detective found a clue in the ___',
+    predictions: [
+      { word: 'room', confidence: 28 },
+      { word: 'house', confidence: 22 },
+      { word: 'garden', confidence: 18 },
+      { word: 'library', confidence: 16 },
+      { word: 'basement', confidence: 16 },
+    ],
+    explanation: 'Detectives find clues everywhere! AI considers many locations equally likely.',
+    explanationC: 'Location nouns following "in the" are relatively interchangeable in detective narratives, producing a uniform distribution.',
+    band: 'B',
+  },
+  {
+    sentence: 'Machine learning models need lots of ___',
+    predictions: [
+      { word: 'data', confidence: 65 },
+      { word: 'training', confidence: 18 },
+      { word: 'time', confidence: 10 },
+      { word: 'compute', confidence: 7 },
+    ],
+    explanation: 'Data is the fuel for machine learning! AI knows this from its own training.',
+    explanationC: '"Data" dominates due to the extremely common collocation "lots of data" in ML literature and educational content.',
+    band: 'B',
+  },
+  {
+    sentence: 'The self-driving car uses sensors to ___',
+    predictions: [
+      { word: 'detect', confidence: 35 },
+      { word: 'navigate', confidence: 30 },
+      { word: 'see', confidence: 20 },
+      { word: 'avoid', confidence: 15 },
+    ],
+    explanation: 'Sensors help self-driving cars understand the world around them!',
+    explanationC: 'Multiple valid verb completions create a moderately peaked distribution with "detect" and "navigate" as primary actions in autonomous vehicle literature.',
+    band: 'B',
+  },
+  {
+    sentence: 'GPT stands for Generative Pre-trained ___',
+    predictions: [
+      { word: 'Transformer', confidence: 92 },
+      { word: 'Technology', confidence: 4 },
+      { word: 'Tool', confidence: 3 },
+      { word: 'Text', confidence: 1 },
+    ],
+    explanation: 'Very high confidence! GPT stands for Generative Pre-trained Transformer.',
+    explanationC: 'Near-deterministic distribution. The acronym expansion is a fixed fact with extremely strong co-occurrence in the training corpus.',
+    band: 'C',
+  },
+  {
+    sentence: 'Overfitting occurs when a model memorizes the ___',
+    predictions: [
+      { word: 'training', confidence: 60 },
+      { word: 'data', confidence: 25 },
+      { word: 'noise', confidence: 10 },
+      { word: 'examples', confidence: 5 },
+    ],
+    explanation: 'Overfitting means the AI memorizes training data instead of learning patterns!',
+    explanationC: '"Training data" is the canonical phrase in ML. "Noise" is technically more precise but less frequent in introductory contexts.',
+    band: 'C',
+  },
+  {
+    sentence: 'The attention mechanism allows models to focus on ___',
+    predictions: [
+      { word: 'relevant', confidence: 50 },
+      { word: 'important', confidence: 25 },
+      { word: 'specific', confidence: 15 },
+      { word: 'different', confidence: 10 },
+    ],
+    explanation: 'Attention helps AI focus on the most important parts of the input!',
+    explanationC: '"Relevant" collocates strongly with attention mechanism descriptions. The mechanism computes dynamic weighted averages over input positions.',
+    band: 'C',
+  },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
-
 export function WordPredictorGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('word-predictor', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('word-predictor', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [roundIdx, setRoundIdx] = useState(0);
@@ -203,11 +308,8 @@ export function WordPredictorGame() {
   const [answerFeedback, setAnswerFeedback] = useState<'correct' | 'wrong' | null>(null);
   const [isPredicting, setIsPredicting] = useState(false);
   const animatedScore = useAnimatedCounter(game.score);
-
-  const rounds = useMemo(
-    () => ALL_ROUNDS.filter(r => BAND_ORDER[r.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const rounds = useFilteredContent(ALL_ROUNDS, tier, ageBand);
   const round = rounds[roundIdx];
   const matched = round?.predictions.find(p => p.word.toLowerCase() === guess.trim().toLowerCase());
 
@@ -228,7 +330,7 @@ export function WordPredictorGame() {
     if (!guess.trim()) return;
     // ENH: Brain thinking pulse before reveal
     setIsPredicting(true);
-    setTimeout(() => {
+    safeTimeout(() => {
       setIsPredicting(false);
       setShowResult(true);
       if (matched) {
@@ -240,8 +342,8 @@ export function WordPredictorGame() {
         setAnswerFeedback('wrong');
         game.updateScore(5);
       }
-      setTimeout(() => setAnswerFeedback(null), 1000);
-      setTimeout(() => {
+      safeTimeout(() => setAnswerFeedback(null), 1000);
+      safeTimeout(() => {
         setShowResult(false);
         setGuess('');
         if (roundIdx < rounds.length - 1) {
@@ -256,7 +358,7 @@ export function WordPredictorGame() {
   }
 
   return (
-    <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#FFAA44" totalRounds={rounds.length}>
+    <GameShell gameId="word-predictor" title="Word Predictor" worldNumber={4} worldColor="#D9A430" totalRounds={rounds.length}>
       <div className="h-full flex flex-col relative z-10 overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           {particles.map(p => (
@@ -270,8 +372,8 @@ export function WordPredictorGame() {
                 height: p.size,
                 background: `radial-gradient(circle, rgba(255,170,68,${0.15 + p.size * 0.06}), rgba(0,0,0,0))`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -304,16 +406,16 @@ export function WordPredictorGame() {
                     >
                       <motion.span
                         className="text-5xl inline-block"
-                        animate={{ scale: [1, 1.1, 1] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         🔮
                       </motion.span>
                       <motion.div
                         className="absolute -inset-3 rounded-full"
                         style={{ background: 'radial-gradient(circle, rgba(255,170,68,0.15), transparent)' }}
-                        animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.4, 0, 0.4] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       />
                     </motion.div>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Word Predictor welcome phase">Word Predictor</h2>
@@ -350,6 +452,10 @@ export function WordPredictorGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-md mx-auto space-y-4"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={rounds.length} labColor="#FFAA44" />
+                    </div>
                     {/* ENH: Streak flame that grows with consecutive correct guesses */}
                     {streak >= 2 && (
                       <motion.div
@@ -361,8 +467,8 @@ export function WordPredictorGame() {
                         <motion.span
                           className="inline-block"
                           style={{ fontSize: `${Math.min(12 + streak * 3, 28)}px` }}
-                          animate={{ scale: [1, 1.2, 1], rotate: [0, -5, 5, 0] }}
-                          transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 0.5 }}
+                          animate={prefersReducedMotion ? {} : { scale: [1, 1.2, 1], rotate: [0, -5, 5, 0] }}
+                          transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, repeat: Infinity, repeatDelay: 0.5 }}
                         >
                           {streak >= 5 ? '\uD83D\uDD25\uD83D\uDD25' : '\uD83D\uDD25'}
                         </motion.span>
@@ -377,7 +483,7 @@ export function WordPredictorGame() {
                         </motion.span>
                       </motion.div>
                     )}
-                    <p className="font-body text-white/40 text-xs mb-4" role="status" aria-label={`Round ${roundIdx + 1} of ${rounds.length}`}>What word comes next?</p>
+                    <p className="font-body text-white/70 text-xs mb-4" role="status" aria-label={`Round ${roundIdx + 1} of ${rounds.length}`}>What word comes next?</p>
                     <p className="font-display text-xl font-bold text-white mb-6" aria-label={`Sentence to complete: ${round.sentence}`}>
                       {round.sentence.replace('___', '')}
                       <span className="inline-block w-20 border-b-2 border-orange-400/40 mx-1" />
@@ -393,8 +499,8 @@ export function WordPredictorGame() {
                             animate={{ opacity: 1 }}
                           >
                             <motion.div
-                              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
-                              transition={{ duration: 0.6, repeat: Infinity }}
+                              animate={prefersReducedMotion ? {} : { scale: [1, 1.3, 1], opacity: [0.5, 1, 0.5] }}
+                              transition={prefersReducedMotion ? { duration: 0 } : { duration: 0.6, repeat: Infinity }}
                             >
                               <Brain className="w-6 h-6 text-orange-400" />
                             </motion.div>
@@ -460,7 +566,7 @@ export function WordPredictorGame() {
                         </motion.div>
                         {/* ENH: Spring-animated probability bars */}
                         <div className="space-y-2 max-w-xs mx-auto text-left">
-                          <p className="font-body text-xs text-white/30">AI&apos;s probability distribution:</p>
+                          <p className="font-body text-xs text-white/60">AI&apos;s probability distribution:</p>
                           {round.predictions.map((p, pIdx) => {
                             const isGuessed = p.word.toLowerCase() === guess.trim().toLowerCase();
                             return (
@@ -473,7 +579,7 @@ export function WordPredictorGame() {
                               >
                                 <span
                                   className={`font-body text-xs w-16 text-right ${
-                                    isGuessed ? 'text-orange-400 font-bold' : 'text-white/40'
+                                    isGuessed ? 'text-orange-400 font-bold' : 'text-white/70'
                                   }`}
                                 >
                                   {p.word}
@@ -494,7 +600,7 @@ export function WordPredictorGame() {
                                     transition={{ type: 'spring', stiffness: 80, damping: 15, delay: 0.15 + pIdx * 0.12 }}
                                   />
                                 </div>
-                                <span className="font-mono text-2xs text-white/30 w-8">
+                                <span className="font-mono text-2xs text-white/60 w-8">
                                   {p.confidence}%
                                 </span>
                               </motion.div>
@@ -516,7 +622,7 @@ export function WordPredictorGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white" aria-label="Word Predictor complete phase">Word Predictor Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You explored how language models predict the next word by analyzing context and assigning probabilities to possible completions.
@@ -532,16 +638,16 @@ export function WordPredictorGame() {
                     >
                       <motion.p
                         className="font-data text-2xl text-[#FFAA44]"
-                        animate={{ textShadow: ['0 0 0px rgba(255,170,68,0)', '0 0 12px rgba(255,170,68,0.5)', '0 0 0px rgba(255,170,68,0)'] }}
-                        transition={{ duration: 2, repeat: Infinity }}
+                        animate={prefersReducedMotion ? {} : { textShadow: ['0 0 0px rgba(255,170,68,0)', '0 0 12px rgba(255,170,68,0.5)', '0 0 0px rgba(255,170,68,0)'] }}
+                        transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                       >
                         {animatedScore}
                       </motion.p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </motion.div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Language models predict the next word by calculating probability distributions over possible completions</li>
                         <li>• Context matters — the same word can have very different probabilities depending on the surrounding sentence</li>
                         <li>• High-confidence predictions happen when context strongly implies one answer, while ambiguous contexts spread probability across many words</li>

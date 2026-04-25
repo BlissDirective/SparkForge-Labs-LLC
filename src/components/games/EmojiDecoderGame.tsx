@@ -15,13 +15,14 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 
 // 3D scene content — rendered inside CockpitCanvas via sceneStore (D3D-B3, S7-HIGH-002)
 const EmojiDecoder3D = dynamic(
@@ -32,6 +33,9 @@ import {
   Play, BookOpen, Sparkles, Zap, ArrowRight,
   Brain, Lightbulb, Award, Send
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // ──── Types ────
 type Phase = 'welcome' | 'learn' | 'play' | 'lab' | 'complete';
@@ -48,6 +52,7 @@ interface EmojiRound {
   difficulty: Difficulty;
   category: string;
   bandMin: 'A' | 'B';
+  isAI?: boolean;
 }
 
 interface ConceptCard {
@@ -223,6 +228,42 @@ const ALL_ROUNDS: EmojiRound[] = [
     funFact: '"Time is money" is a saying \u2014 AI needs to learn that some emoji combos represent ideas, not actions!',
     funFactB: 'Proverb detection requires mapping abstract emoji sequences to known aphorisms \u2014 a deep NLP task.',
   },
+  // ═══════ 5x CONTENT EXPANSION (64 new rounds) ═══════
+  // ── EASY (Band A) — 32 new rounds ──
+  { id: 'e9', emojis: '\u{1F3E0} + \u2764\uFE0F + \u{1F46A}', difficulty: 'easy', bandMin: 'A', category: 'Family', correctAnswer: 'Home is where the family is!', wrongAnswers: ['Building a house!', 'Hearts in a building!'], aiInterpretation: 'AI says: "Residential structure + affection + social group = domestic happiness!"', funFact: 'AI knows that house + heart usually means love for home!', funFactB: 'Co-occurrence analysis: house + heart emojis predict "home sweet home" sentiment with 87% accuracy.' },
+  { id: 'e10', emojis: '\u{1F9D1}\u200D\u{1F373} + \u{1F372} + \u{1F60B}', difficulty: 'easy', bandMin: 'A', category: 'Food', correctAnswer: 'A chef cooked a yummy meal!', wrongAnswers: ['Soup is too hot!', 'Cooking is dangerous!'], aiInterpretation: 'AI says: "Culinary professional + hot liquid food = gustatory satisfaction!"', funFact: 'The drooling face \u{1F60B} tells AI the food is REALLY good!', funFactB: 'Emoji sentiment scoring: \u{1F60B} has a "desire" intensity of 0.91 in food contexts.' },
+  { id: 'e11', emojis: '\u{1F3B6} + \u{1F57A} + \u{1F389}', difficulty: 'easy', bandMin: 'A', category: 'Fun', correctAnswer: 'Dancing to music at a party!', wrongAnswers: ['Singing alone!', 'Music is too loud!'], aiInterpretation: 'AI says: "Audio stimulus + kinetic human response + celebration marker = party event!"', funFact: 'AI can tell the difference between a sad song \u{1F3B6}\u{1F622} and a happy one \u{1F3B6}\u{1F389}!', funFactB: 'Context-dependent emoji: \u{1F3B6} sentiment shifts from 0.6 to 0.9 based on adjacent emojis.' },
+  { id: 'e12', emojis: '\u2708\uFE0F + \u{1F30E} + \u{1F4F8}', difficulty: 'easy', bandMin: 'A', category: 'Travel', correctAnswer: 'Flying around the world taking photos!', wrongAnswers: ['Earth is flat!', 'Planes are scary!'], aiInterpretation: 'AI says: "Aviation vehicle + planetary body + camera = global tourism documentation!"', funFact: 'When AI sees \u2708\uFE0F + \u{1F30E} together, it knows you\'re talking about travel!', funFactB: 'Emoji pair analysis: airplane + globe co-occurrence predicts "travel" topic with 94% confidence.' },
+  { id: 'e13', emojis: '\u{1F4F1} + \u{1F50B} + \u{1F622}', difficulty: 'easy', bandMin: 'A', category: 'Tech', correctAnswer: 'Phone battery is dead — so sad!', wrongAnswers: ['Phone is charging!', 'Happy phone!'], aiInterpretation: 'AI says: "Mobile device + depleted power cell + negative emotion = low battery frustration!"', funFact: 'AI has learned that \u{1F50B} + \u{1F622} almost always means a dead battery!', funFactB: 'Causal inference: battery + sad face maps to "low power" in 96% of social media usage.' },
+  { id: 'e14', emojis: '\u{1F9D9} + \u2728 + \u{1F432}', difficulty: 'easy', bandMin: 'A', category: 'Fantasy', correctAnswer: 'A wizard casting a spell on a dragon!', wrongAnswers: ['Stars and lizards!', 'A hat with sparkles!'], aiInterpretation: 'AI says: "Magical humanoid + particle effects + mythical reptile = fantasy combat scenario!"', funFact: 'AI needs to know about fantasy stories to understand wizards and dragons!', funFactB: 'Genre classification: wizard + dragon emojis trigger "fantasy" topic model with 89% confidence.' },
+  { id: 'e15', emojis: '\u{1F4A9} + \u{1F525} + \u{1F6AB}', difficulty: 'easy', bandMin: 'A', category: 'Humor', correctAnswer: 'That\'s a really bad idea — stop!', wrongAnswers: ['Fire extinguisher!', 'Camping fun!'], aiInterpretation: 'AI says: "Waste material + combustion + prohibition sign = hazardous situation warning!"', funFact: 'Even AI knows that poop + fire = a terrible idea! The \u{1F6AB} confirms it!', funFactB: 'Negation emoji (\u{1F6AB}) inverts the sentiment of preceding emojis, signaling disapproval.' },
+  { id: 'e16', emojis: '\u{1F436} + \u{1F431} + \u{1F49B}', difficulty: 'easy', bandMin: 'A', category: 'Animals', correctAnswer: 'A dog and cat are best friends!', wrongAnswers: ['Animals fighting!', 'Pet store!'], aiInterpretation: 'AI says: "Canine + feline + friendship heart = interspecies bond!"', funFact: 'The yellow heart \u{1F49B} means friendship — different hearts mean different things to AI!', funFactB: 'Heart color semantics: \u2764\uFE0F=love, \u{1F49B}=friendship, \u{1F499}=trust, \u{1F49C}=compassion in emoji NLP.' },
+  { id: 'e17', emojis: '\u{1F3C0} + \u{1F938} + \u{1F4AF}', difficulty: 'easy', bandMin: 'A', category: 'Sports', correctAnswer: 'Amazing basketball trick — perfect score!', wrongAnswers: ['100 basketballs!', 'Gymnastics test!'], aiInterpretation: 'AI says: "Spherical sports equipment + acrobatic maneuver + maximum score = athletic excellence!"', funFact: '\u{1F4AF} means "perfect" to AI — it\'s one of the most positive emojis!', funFactB: 'The \u{1F4AF} emoji carries the highest positive sentiment score (0.98) in most NLP models.' },
+  { id: 'e18', emojis: '\u{1F4D6} + \u{1F44D} + \u2B50', difficulty: 'easy', bandMin: 'A', category: 'Reviews', correctAnswer: 'Great book — 5 stars!', wrongAnswers: ['Star-shaped book!', 'Thumbs up poster!'], aiInterpretation: 'AI says: "Reading material + approval gesture + rating symbol = positive media review!"', funFact: 'AI uses \u{1F44D} and \u2B50 together to detect product reviews in text!', funFactB: 'Review detection: thumb + star co-occurrence predicts review content with 91% precision.' },
+  { id: 'e19', emojis: '\u{1F9CA} + \u{1F60E} + \u2600\uFE0F', difficulty: 'easy', bandMin: 'A', category: 'Weather', correctAnswer: 'Staying cool in the hot sun!', wrongAnswers: ['Melting ice!', 'Cold sunburn!'], aiInterpretation: 'AI says: "Frozen water + confident face + solar body = thermal regulation satisfaction!"', funFact: 'The sunglasses emoji \u{1F60E} tells AI someone feels cool and confident!', funFactB: 'Emoji pragmatics: \u{1F60E} signals confidence/composure rather than literal sunglasses in 78% of uses.' },
+  { id: 'e20', emojis: '\u{1F6B2} + \u{1F343} + \u{1F60A}', difficulty: 'easy', bandMin: 'A', category: 'Nature', correctAnswer: 'A happy bike ride through nature!', wrongAnswers: ['Leaf on a wheel!', 'Wind-powered bike!'], aiInterpretation: 'AI says: "Pedal vehicle + botanical element + positive face = eco-friendly recreation!"', funFact: 'AI connects bike + leaves with nature and being eco-friendly!', funFactB: 'Topic modeling: bicycle + nature emojis cluster with sustainability/environment topics.' },
+  // ── MEDIUM (Band A/B) — 16 new rounds ──
+  { id: 'm5', emojis: '\u{1F916} + \u2764\uFE0F + \u{1F468}\u200D\u{1F469}\u200D\u{1F467}', difficulty: 'medium', bandMin: 'A', category: 'Ethics', correctAnswer: 'Can a robot truly love a family?', wrongAnswers: ['Robot babysitter!', 'Family buys a robot!'], aiInterpretation: 'AI says: "Artificial entity + affection marker + familial unit = domestic AI integration query?"', funFact: 'This is a big question! Can AI really feel love? Most scientists say no... yet!', funFactB: 'Affective computing studies whether AI can simulate emotions, but true feelings remain debated.' },
+  { id: 'm6', emojis: '\u{1F4B8} + \u{1F4C8} + \u{1F4B0}', difficulty: 'medium', bandMin: 'A', category: 'Money', correctAnswer: 'Spending money to make more money — investing!', wrongAnswers: ['Losing all your money!', 'Printing money!'], aiInterpretation: 'AI says: "Capital outflow + upward trend + capital accumulation = financial growth strategy!"', funFact: 'AI sees \u{1F4C8} and knows something is going UP — it\'s used in finance and health tracking!', funFactB: 'Chart emojis (\u{1F4C8}\u{1F4C9}) serve as meta-indicators for trend direction in text analysis.' },
+  { id: 'm7', emojis: '\u{1F9EC} + \u{1F52C} + \u{1F4A1}', difficulty: 'medium', bandMin: 'A', category: 'Science', correctAnswer: 'Studying DNA under a microscope led to a discovery!', wrongAnswers: ['DNA is a lightbulb!', 'Microscopes have ideas!'], aiInterpretation: 'AI says: "Genetic material + magnification device + insight indicator = biological research breakthrough!"', funFact: 'AI can\'t look through microscopes, but it helps scientists analyze what they see!', funFactB: 'AI-assisted microscopy uses computer vision to identify cellular structures 10x faster than humans.' },
+  { id: 'm8', emojis: '\u{1F3AD} + \u{1F622} + \u{1F602}', difficulty: 'medium', bandMin: 'A', category: 'Emotions', correctAnswer: 'Theater makes you cry AND laugh!', wrongAnswers: ['Sad clown!', 'Broken masks!'], aiInterpretation: 'AI says: "Performance arts symbol + grief indicator + joy indicator = emotional range entertainment!"', funFact: 'The theater masks \u{1F3AD} show both happy and sad — AI finds this emoji one of the trickiest!', funFactB: 'Mixed sentiment: \u{1F3AD} combined with emotion emojis creates ambiguity NLP models struggle to resolve.' },
+  { id: 'm9', emojis: '\u{1F3DF}\uFE0F + \u{1F4E3} + \u{1F44F}', difficulty: 'medium', bandMin: 'A', category: 'Events', correctAnswer: 'Cheering at a big stadium event!', wrongAnswers: ['Loud building!', 'Clapping at a wall!'], aiInterpretation: 'AI says: "Large venue + amplified audio + applause gesture = mass entertainment event!"', funFact: 'AI can guess events from emojis — stadium + cheering usually means sports or concerts!', funFactB: 'Event detection: venue + crowd emojis predict event type with 82% accuracy in social media.' },
+  { id: 'm10', emojis: '\u{1F9D1}\u200D\u{1F4BB} + \u2615 + \u{1F62B}', difficulty: 'medium', bandMin: 'A', category: 'Work', correctAnswer: 'Working late on a computer — so tired!', wrongAnswers: ['Computer drinks coffee!', 'Tired of coffee!'], aiInterpretation: 'AI says: "Digital worker + caffeinated beverage + exhaustion indicator = overtime productivity struggle!"', funFact: 'AI has learned that computer + coffee + tired face = someone working really hard!', funFactB: 'Lifestyle inference: work emoji + stimulant + fatigue maps to "burnout" topic in workplace analysis.' },
+  { id: 'm11', emojis: '\u{1F3A8} + \u{1F916} + \u2753', difficulty: 'medium', bandMin: 'A', category: 'AI Art', correctAnswer: 'Can a robot create real art?', wrongAnswers: ['Robot painting class!', 'Colorful robot!'], aiInterpretation: 'AI says: "Creative expression + artificial entity + interrogative = AI creativity inquiry!"', funFact: 'This is a hot debate! AI can now make paintings, but is it really ART?', funFactB: 'AI art generation (DALL-E, Midjourney) raises questions about creativity and authorship in NLP analysis.' },
+  { id: 'm12', emojis: '\u{1F30A} + \u{1F4A8} + \u{1F3E0}', difficulty: 'medium', bandMin: 'A', category: 'Disaster', correctAnswer: 'A storm or tsunami threatening homes!', wrongAnswers: ['Ocean house!', 'Windy swimming!'], aiInterpretation: 'AI says: "Aquatic surge + atmospheric force + residential structure = natural disaster threat!"', funFact: 'AI can detect emergency topics from emojis to help with disaster response!', funFactB: 'Crisis informatics: disaster-related emoji patterns help filter emergency reports on social media.' },
+  // ── TRICKY (Band B) — 12 new rounds ──
+  { id: 't5', emojis: '\u{1F3C6} + \u{1F622} + \u{1F3C3}', difficulty: 'tricky', bandMin: 'B', category: 'Idioms', correctAnswer: 'Losing is part of trying — you learn from failure!', wrongAnswers: ['Crying while running!', 'Trophy is heavy!', 'Running from trophies!'], aiInterpretation: 'AI says: "Achievement symbol + grief + locomotion = failed competition aftermath?"', funFact: '"Fall seven times, stand up eight" — AI needs cultural knowledge to understand losing can be positive!', funFactB: 'Sentiment reversal: positive symbol + negative emotion requires pragmatic inference about resilience narratives.' },
+  { id: 't6', emojis: '\u{1F3B2} + \u{1F914} + \u{1F4CA}', difficulty: 'tricky', bandMin: 'B', category: 'Math', correctAnswer: 'Probability — predicting dice outcomes with data!', wrongAnswers: ['Thinking about charts!', 'Gambling homework!', 'Statistics game!'], aiInterpretation: 'AI says: "Randomness generator + cognitive deliberation + statistical visualization = probability analysis!"', funFact: 'AI uses probability CONSTANTLY — every prediction it makes involves calculating chances!', funFactB: 'Probabilistic reasoning underpins all ML inference: softmax outputs, Bayesian priors, Monte Carlo sampling.' },
+  { id: 't7', emojis: '\u{1F5FA}\uFE0F + \u{1F4CC} + \u2753', difficulty: 'tricky', bandMin: 'B', category: 'Geography', correctAnswer: 'Where in the world? — a location mystery!', wrongAnswers: ['Pin on a wall!', 'Lost map!', 'Geography test!'], aiInterpretation: 'AI says: "Cartographic projection + location marker + interrogative = geospatial query!"', funFact: 'AI uses maps and location data to answer "where" questions — it\'s called geospatial AI!', funFactB: 'GeoAI combines NLP with spatial data: entity recognition + geocoding + map rendering.' },
+  { id: 't8', emojis: '\u{1F310} + \u{1F512} + \u{1F440}', difficulty: 'tricky', bandMin: 'B', category: 'Privacy', correctAnswer: 'The internet is watching — protect your privacy!', wrongAnswers: ['Locked website!', 'Eyes on a globe!', 'Internet security!'], aiInterpretation: 'AI says: "Global network + security mechanism + surveillance indication = digital privacy concern!"', funFact: 'AI helps protect your data online, but it also collects a LOT of data about you!', funFactB: 'Privacy-preserving NLP is an active research field: federated learning, differential privacy, on-device processing.' },
+  { id: 't9', emojis: '\u{1F9E0} + \u26A1 + \u{1F4BB}', difficulty: 'tricky', bandMin: 'B', category: 'AI', correctAnswer: 'A brain-powered computer — artificial intelligence!', wrongAnswers: ['Electric brain surgery!', 'Smart plug!', 'Computer headache!'], aiInterpretation: 'AI says: "Cognitive organ + energy + computational device = artificial intelligence concept!"', funFact: 'This emoji combo basically describes AI itself — a computer that thinks like a brain!', funFactB: 'Neural network metaphor: brain + electricity + computer maps directly to deep learning architecture concepts.' },
+  { id: 't10', emojis: '\u{1F30D} + \u{1F525} + \u{1F198}', difficulty: 'tricky', bandMin: 'B', category: 'Climate', correctAnswer: 'Earth is overheating — we need help! Climate change SOS!', wrongAnswers: ['Hot planet sale!', 'Fire department!', 'Burning map!'], aiInterpretation: 'AI says: "Planetary body + thermal event + distress signal = environmental crisis alert!"', funFact: 'AI helps track climate change by analyzing satellite images and weather data!', funFactB: 'Climate NLP: sentiment analysis of environmental discourse helps gauge public awareness and policy impact.' },
+  { id: 't11', emojis: '\u{1F47B} + \u{1F5A5}\uFE0F + \u{1F440}', difficulty: 'tricky', bandMin: 'B', category: 'Cybersecurity', correctAnswer: 'A ghost in the machine — a hacker watching your screen!', wrongAnswers: ['Scary computer!', 'Ghost movie!', 'Computer ghost app!'], aiInterpretation: 'AI says: "Invisible entity + display terminal + surveillance = unauthorized system access!"', funFact: '"Ghost in the machine" is a famous saying about hidden things controlling computers!', funFactB: 'Cybersecurity NLP: threat detection models identify hacking terminology and attack pattern descriptions.' },
+  { id: 't12', emojis: '\u{1F383} + \u{1F3AD} + \u{1F36C}', difficulty: 'tricky', bandMin: 'B', category: 'Culture', correctAnswer: 'Halloween — wearing costumes and getting candy!', wrongAnswers: ['Pumpkin theater!', 'Candy masks!', 'Scary performance!'], aiInterpretation: 'AI says: "Cucurbit ornament + disguise equipment + confectionery = autumnal celebration event!"', funFact: 'AI needs to know about holidays in different cultures to understand seasonal emoji patterns!', funFactB: 'Cultural calendar awareness: holiday-specific emoji spikes help NLP models detect temporal/cultural context.' },
+  { id: 't13', emojis: '\u{1F4F0} + \u{1F916} + \u{1F4DD}', difficulty: 'tricky', bandMin: 'B', category: 'Media', correctAnswer: 'AI is writing the news! Can you trust robot journalists?', wrongAnswers: ['Newspaper robot!', 'Robot reads paper!', 'Writing homework!'], aiInterpretation: 'AI says: "News media + artificial entity + writing implement = automated content generation!"', funFact: 'Some news articles are already written by AI! Can you tell which ones?', funFactB: 'AI-generated text detection is a growing field: GPT detectors analyze perplexity and burstiness patterns.' },
+  { id: 't14', emojis: '\u{1F468}\u200D\u2695\uFE0F + \u{1F916} + \u{1F4AC}', difficulty: 'tricky', bandMin: 'B', category: 'Healthcare', correctAnswer: 'A doctor and an AI chatbot discussing your health!', wrongAnswers: ['Robot doctor!', 'Talking medicine!', 'Chat about robots!'], aiInterpretation: 'AI says: "Medical professional + artificial entity + dialogue = AI-assisted healthcare consultation!"', funFact: 'AI chatbots already help doctors by summarizing symptoms and suggesting tests!', funFactB: 'Medical NLP: clinical note processing + symptom extraction + diagnostic suggestion are active AI applications.' },
+  { id: 't15', emojis: '\u{1F3A4} + \u{1F916} + \u{1F3B5}', difficulty: 'tricky', bandMin: 'B', category: 'Music', correctAnswer: 'AI is making music — a robot singer!', wrongAnswers: ['Karaoke machine!', 'Music robot toy!', 'Robot concert!'], aiInterpretation: 'AI says: "Audio capture device + artificial entity + melodic notation = AI music generation!"', funFact: 'AI can now compose songs, write lyrics, and even clone voices! Music is changing fast!', funFactB: 'Audio generation models (Jukebox, MusicLM, Suno) create original compositions from text prompts.' },
+  { id: 't16', emojis: '\u{1F9D1}\u200D\u{1F52C} + \u{1F4A1} + \u{1F30D}', difficulty: 'tricky', bandMin: 'B', category: 'Innovation', correctAnswer: 'A scientist\'s idea could change the world!', wrongAnswers: ['Lab on Earth!', 'Bright globe!', 'Smart planet!'], aiInterpretation: 'AI says: "Research professional + eureka event + global scope = world-changing scientific discovery!"', funFact: 'The biggest AI breakthroughs started as one person\'s idea — just like this emoji shows!', funFactB: 'Innovation narratives in NLP: discovery emoji patterns correlate with press releases about scientific breakthroughs.' },
 ];
 
 // ──── Emoji Lab Prompts ────
@@ -238,12 +279,13 @@ const DIFF_POINTS: Record<Difficulty, number> = { easy: 10, medium: 15, tricky: 
 
 // ──── Component ────
 export function EmojiDecoderGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const { safeTimeout } = useSafeTimeout();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const ageBand = (activeChild?.age_band || 'A') as 'A' | 'B' | 'C';
   const { data: dynamicContent } = useGameContent('emoji-decoder', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -258,15 +300,21 @@ export function EmojiDecoderGame() {
   const [labSubmitted, setLabSubmitted] = useState(false);
   const [labPromptIdx] = useState(() => Math.floor(Math.random() * LAB_PROMPTS.length));
   const [emojiPulse, setEmojiPulse] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRounds = useFilteredContent(ALL_ROUNDS as any[], tier, ageBand) as typeof ALL_ROUNDS;
+  const timerRef = useRef<number | null>(null);
 
-  // B-10: Clean up timer on unmount to prevent firing on unmounted component
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
-
+  // Merge hardcoded + dynamic rounds, then filter/shuffle/slice
   const rounds = useMemo(() => {
-    const filtered = ALL_ROUNDS.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
+    const pool = [...ALL_ROUNDS];
+    if (dynamicContent?.scenarios?.length) {
+      for (const s of dynamicContent.scenarios) {
+        try { pool.push({ ...JSON.parse(s.content_body), isAI: true } as EmojiRound); } catch { /* skip */ }
+      }
+    }
+    const filtered = pool.filter(r => BAND_ORDER[r.bandMin] <= BAND_ORDER[ageBand]);
     return [...filtered].sort(() => Math.random() - 0.5).slice(0, ageBand === 'A' ? 8 : 10);
-  }, [ageBand]);
+  }, [ageBand, dynamicContent?.scenarios]);
 
   const round = rounds[roundIdx];
   const totalRounds = rounds.length;
@@ -302,10 +350,9 @@ export function EmojiDecoderGame() {
   useEffect(() => {
     if (phase === 'play') {
       setEmojiPulse(true);
-      const t = setTimeout(() => setEmojiPulse(false), 800);
-      return () => clearTimeout(t);
+      safeTimeout(() => setEmojiPulse(false), 800);
     }
-  }, [roundIdx, phase]);
+  }, [roundIdx, phase, safeTimeout]);
 
   const handleAnswer = useCallback((answer: string) => {
     if (showResult || !round) return;
@@ -319,7 +366,7 @@ export function EmojiDecoderGame() {
       setBestStreak(b => Math.max(b, streak + 1));
       setTotalCorrect(c => c + 1);
     } else { setStreak(0); }
-    timerRef.current = setTimeout(() => setShowAI(true), 1200);
+    timerRef.current = safeTimeout(() => setShowAI(true), 1200);
   }, [showResult, round, streak, game]);
 
   const nextRound = useCallback(() => {
@@ -338,15 +385,15 @@ export function EmojiDecoderGame() {
   const finishGame = useCallback(() => { game.completeGame(); setPhase('complete'); }, [game]);
 
   return (
-    <GameShell gameId="emoji-decoder" title="Emoji Decoder" worldNumber={8} worldColor="#6366F1" xpReward={25} totalRounds={totalRounds}>
+    <GameShell gameId="emoji-decoder" title="Emoji Decoder" worldNumber={8} worldColor="#8F96FA" xpReward={25} totalRounds={totalRounds}>
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
         {particles.map(p => (
           <motion.div key={p.id} className="absolute rounded-full pointer-events-none"
             style={{ width: p.size, height: p.size, left: `${p.x}%`, top: `${p.y}%`,
               background: 'radial-gradient(circle, rgba(129,140,248,0.5), transparent)' }}
-            animate={{ y: [0, -30, 0], opacity: [0.2, 0.6, 0.2] }}
-            transition={{ duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
+            animate={prefersReducedMotion ? {} : { y: [0, -30, 0], opacity: [0.2, 0.6, 0.2] }}
+            transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity, ease: 'easeInOut' }}
           />
         ))}
 
@@ -361,8 +408,8 @@ export function EmojiDecoderGame() {
           {phase === 'welcome' && (
             <motion.div key="welcome" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <motion.div className="text-6xl mb-4" animate={{ scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F524}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { scale: [1, 1.15, 1], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity, ease: 'easeInOut' }}>{'\u{1F524}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">Emoji Decoder</h2>
               <p className="font-body text-sm text-white/60 mb-1">Lab 8 — Words & Language</p>
               <p className="font-body text-sm text-white/50 max-w-sm mb-6">
@@ -392,7 +439,7 @@ export function EmojiDecoderGame() {
                     border: `1px solid ${CONCEPT_CARDS[learnIdx].color}30` }}
                   initial={{ opacity: 0, x: 40, rotateY: 15 }} animate={{ opacity: 1, x: 0, rotateY: 0 }}
                   exit={{ opacity: 0, x: -40, rotateY: -15 }} transition={{ type: 'spring', stiffness: 300, damping: 25 }}>
-                  <motion.span className="text-4xl block mb-3" animate={{ y: [0, -6, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+                  <motion.span className="text-4xl block mb-3" animate={prefersReducedMotion ? {} : { y: [0, -6, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>
                     {CONCEPT_CARDS[learnIdx].emoji}
                   </motion.span>
                   <h3 className="font-display text-lg font-bold text-white mb-2">{CONCEPT_CARDS[learnIdx].title}</h3>
@@ -407,7 +454,7 @@ export function EmojiDecoderGame() {
                     i === learnIdx ? 'bg-indigo-400 scale-125' : i < learnIdx ? 'bg-indigo-400/40' : 'bg-white/20'}`} />
                 ))}
               </div>
-              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else { setPhase('play'); game.startGame('emoji-decoder', 25); } }}
+              <motion.button onClick={() => { if (learnIdx < CONCEPT_CARDS.length - 1) setLearnIdx(i => i + 1); else { setPhase('play'); game.startGame('emoji-decoder', totalRounds); /* FLL-023: use actual round count */ } }}
                 className="mt-6 flex items-center gap-2 px-6 py-2.5 rounded-xl bg-indigo-600/70 text-white font-display text-sm font-bold"
                 whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.97 }}>
                 {learnIdx < CONCEPT_CARDS.length - 1 ? <><ArrowRight className="w-4 h-4" /> Next</> : <><Play className="w-4 h-4" /> Start!</>}
@@ -419,9 +466,18 @@ export function EmojiDecoderGame() {
           {phase === 'play' && round && (
             <motion.div key="play" className="flex-1 flex flex-col p-4 overflow-y-auto"
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+              <div className="flex items-center gap-3 mb-3 px-4">
+                <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                <GameProgressTracker current={roundIdx + 1} total={totalRounds} labColor="#818CF8" />
+              </div>
               {/* Header */}
               <div className="flex items-center justify-between mb-3">
-                <span className="font-mono text-xs text-indigo-400/60">ROUND {roundIdx + 1} / {totalRounds}</span>
+                <span className="text-xs text-indigo-400/60">
+                  <span className="font-body">ROUND </span>
+                  <span className="font-data tabular-nums">{roundIdx + 1}</span>
+                  <span className="font-body"> / </span>
+                  <span className="font-data tabular-nums">{totalRounds}</span>
+                </span>
                 <div className="flex items-center gap-3">
                   {streak >= 2 && (
                     <motion.div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-500/20"
@@ -440,7 +496,7 @@ export function EmojiDecoderGame() {
                       </motion.span>
                     )}
                   </AnimatePresence>
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-xs text-white/30">{round.category}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-white/5 font-mono text-xs text-white/60">{round.category}</span>
                 </div>
               </div>
 
@@ -483,7 +539,7 @@ export function EmojiDecoderGame() {
                       initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}
                       whileHover={!showResult ? { scale: 1.02 } : {}} whileTap={!showResult ? { scale: 0.98 } : {}}
                       aria-label={`Answer choice: ${ans}`}>
-                      <span className="mr-2 text-white/30 font-mono text-xs">{String.fromCharCode(65 + i)}.</span>
+                      <span className="mr-2 text-white/60 font-mono text-xs">{String.fromCharCode(65 + i)}.</span>
                       {ans}
                       {showColor && isCorrect && <span className="float-right">{'\u2705'}</span>}
                       {showColor && isSelected && !isCorrect && <span className="float-right">{'\u274C'}</span>}
@@ -530,7 +586,7 @@ export function EmojiDecoderGame() {
 
               {/* Progress */}
               <div className="mt-auto pt-2">
-                <div className="flex items-center justify-between text-xs font-mono text-white/30 mb-1">
+                <div className="flex items-center justify-between text-xs font-mono text-white/60 mb-1">
                   <span>{'\u{1F3AF}'} {totalCorrect} / {roundIdx + (showResult ? 1 : 0)}</span>
                   <span>{'\u{1F525}'} Best streak: {bestStreak}</span>
                 </div>
@@ -547,14 +603,14 @@ export function EmojiDecoderGame() {
           {phase === 'lab' && (
             <motion.div key="lab" className="flex-1 flex flex-col items-center justify-center p-6"
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-              <motion.div className="text-4xl mb-3" animate={{ rotate: [0, 10, -10, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F9EA}'}</motion.div>
+              <motion.div className="text-4xl mb-3" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F9EA}'}</motion.div>
               <h3 className="font-display text-xl font-bold text-white mb-1">Emoji Lab</h3>
               <p className="font-body text-sm text-white/50 mb-4">Bonus Round — Create your own emoji message!</p>
 
               <div className="w-full max-w-sm rounded-2xl p-5 border border-indigo-500/20 bg-indigo-500/[0.03]">
                 <p className="font-body text-sm text-indigo-300 mb-2">{LAB_PROMPTS[labPromptIdx].prompt}</p>
-                <p className="font-mono text-xs text-white/30 mb-3">{'\u{1F4A1}'} {LAB_PROMPTS[labPromptIdx].hint}</p>
+                <p className="font-mono text-xs text-white/60 mb-3">{'\u{1F4A1}'} {LAB_PROMPTS[labPromptIdx].hint}</p>
 
                 {!labSubmitted ? (
                   <>
@@ -562,7 +618,7 @@ export function EmojiDecoderGame() {
                       placeholder="Type your emoji sentence here... \u{1F60A}"
                       className="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm resize-none focus:outline-none focus:border-indigo-500/40 h-20"
                       maxLength={60} aria-label="Type your emoji sentence" />
-                    <p className="font-mono text-2xs text-white/20 mt-1">{labText.length}/60</p>
+                    <p className="font-mono text-2xs text-white/55 mt-1">{labText.length}/60</p>
                     <motion.button onClick={handleLabSubmit} disabled={labText.trim().length < 2}
                       className="mt-3 w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-display text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-30"
                       whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }} aria-label="Submit emoji sentence">
@@ -596,8 +652,8 @@ export function EmojiDecoderGame() {
           {phase === 'complete' && (
             <motion.div key="complete" className="flex-1 flex flex-col items-center justify-center p-6 text-center"
               initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ type: 'spring', stiffness: 200 }}>
-              <motion.div className="text-6xl mb-4" animate={{ y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
-                transition={{ duration: 2, repeat: Infinity }}>{'\u{1F3C6}'}</motion.div>
+              <motion.div className="text-6xl mb-4" animate={prefersReducedMotion ? {} : { y: [0, -10, 0], rotate: [0, 5, -5, 0] }}
+                transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}>{'\u{1F3C6}'}</motion.div>
               <h2 className="font-display text-2xl font-bold text-white mb-2">Emoji Master!</h2>
               <p className="font-body text-sm text-white/60 mb-4">You cracked the emoji code!</p>
 
@@ -626,7 +682,7 @@ export function EmojiDecoderGame() {
                 )}
               </div>
 
-              <p className="font-body text-xs text-white/30 max-w-xs">
+              <p className="font-body text-xs text-white/60 max-w-xs">
                 {ageBand === 'B' || ageBand === 'C'
                   ? 'You\'ve explored how NLP processes emoji sequences \u2014 a core challenge in natural language understanding!'
                   : 'You decoded emojis like a pro and saw how AI reads them differently!'}

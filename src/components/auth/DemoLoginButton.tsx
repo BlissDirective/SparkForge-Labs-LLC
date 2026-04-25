@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { useRouter } from 'next/navigation';
 import { Play, Loader2 } from 'lucide-react';
-import { useAuthStore } from '@/stores/authStore';
+import { createClient } from '@/lib/supabase/client';
 
 export function DemoLoginButton() {
   const router = useRouter();
-  const startDemoSession = useAuthStore((s) => s.startDemoSession);
   const [loading, setLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
 
@@ -16,10 +16,12 @@ export function DemoLoginButton() {
     setLoading(true);
 
     try {
-      // Call demo API to register session server-side
+      // AUTH-CRIT-002 (2B): The API route creates a Supabase anonymous
+      // session. Refresh the client-side session cache so AuthProvider
+      // detects the new anonymous user and hydrates demo state.
       const res = await fetch('/api/auth/demo', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
       });
 
       if (!res.ok) {
@@ -27,10 +29,9 @@ export function DemoLoginButton() {
         return;
       }
 
-      // Start client-side demo session
-      startDemoSession();
+      const supabase = createClient();
+      await supabase.auth.refreshSession();
 
-      // Navigate to dashboard
       router.push('/home');
     } catch {
       setLoading(false);
@@ -67,7 +68,7 @@ export function DemoLoginButton() {
               You&apos;ll get <span className="text-spark-green font-semibold">1 hour</span> to explore
               the full SparkForge experience — Hero Animation, 3D Cockpit, Labs, and Games.
             </p>
-            <p className="font-body text-xs text-white/40 text-center">
+            <p className="font-body text-xs text-white/70 text-center">
               No data is saved. Create an account anytime to keep your progress.
             </p>
             <div className="flex gap-2">

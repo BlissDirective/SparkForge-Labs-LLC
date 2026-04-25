@@ -15,14 +15,18 @@
 'use client';
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { Swords, User, Bot } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 
 // 3D Environment (no SSR)
 const HumanVsMachineEnvironment = dynamic(
@@ -30,7 +34,7 @@ const HumanVsMachineEnvironment = dynamic(
   { ssr: false }
 );
 
-type Phase = 'welcome' | 'play' | 'complete';
+type Phase = 'welcome' | 'learn' | 'play' | 'complete';
 
 interface Challenge {
   title: string;
@@ -44,6 +48,7 @@ interface Challenge {
   humanAdvantageC: string;
   aiAdvantageC: string;
   band: 'A' | 'B' | 'C';
+  difficulty?: 'easy' | 'medium' | 'hard' | 'expert';
 }
 
 const ALL_CHALLENGES: Challenge[] = [
@@ -151,34 +156,143 @@ const ALL_CHALLENGES: Challenge[] = [
     aiAdvantageC: 'Sequence prediction leverages statistical regularities in training data.',
     band: 'C',
   },
+  {
+    title: 'Original Painting',
+    emoji: '🎨',
+    prompt: 'Paint something that expresses the feeling of a rainy Sunday afternoon.',
+    type: 'text',
+    aiAnswer: 'A watercolor scene of a window with raindrops, a steaming mug on the sill, and muted grey-blue tones evoking quiet melancholy.',
+    aiTime: 1400,
+    humanAdvantage: 'Your art comes from real emotions and memories!',
+    aiAdvantage: 'AI generates polished descriptions but has no Sunday afternoons to remember.',
+    humanAdvantageC: 'Human creativity draws on embodied sensory memory and emotional autobiography — art is expression, not generation.',
+    aiAdvantageC: 'AI produces aesthetically coherent compositions by pattern-matching training data but lacks phenomenal experience to ground creative intent.',
+    band: 'A',
+  },
+  {
+    title: 'Spot the Difference',
+    emoji: '🖼️',
+    prompt: 'Find all 7 differences between these two nearly identical pictures (imagine two complex scenes).',
+    type: 'math',
+    aiAnswer: 'Difference 1: cloud shape (top-left), 2: missing bird, 3: fence post color, 4: flower count, 5: shadow angle, 6: window reflection, 7: grass height.',
+    aiTime: 350,
+    humanAdvantage: 'Humans notice differences that feel "off" even before counting them.',
+    aiAdvantage: 'AI compares pixel-by-pixel across millions of data points in milliseconds.',
+    humanAdvantageC: 'Human gestalt perception detects anomalies holistically before analytic decomposition.',
+    aiAdvantageC: 'Computer vision models compute pixel-level diff maps in O(n) time, detecting sub-pixel changes invisible to humans.',
+    band: 'B',
+  },
+  {
+    title: 'Comfort a Friend',
+    emoji: '💝',
+    prompt: 'Your friend just lost their pet. What would you say to comfort them?',
+    type: 'opinion',
+    aiAnswer: 'I\'m so sorry for your loss. Losing a pet is like losing a family member. It\'s okay to grieve, and your pet was lucky to have been loved so much.',
+    aiTime: 1100,
+    humanAdvantage: 'You can feel their pain and give a real hug!',
+    aiAdvantage: 'AI says the right words but cannot share in the grief.',
+    humanAdvantageC: 'Empathy requires theory of mind and shared emotional experience — humans co-regulate emotions through presence and attunement.',
+    aiAdvantageC: 'AI generates empathetic language via sentiment-aligned fine-tuning but has no capacity for emotional co-regulation or genuine compassion.',
+    band: 'A',
+  },
+  {
+    title: 'Speed Reading',
+    emoji: '📖',
+    prompt: 'Read this 500-page textbook and list the 10 most important concepts.',
+    type: 'math',
+    aiAnswer: '1. Central thesis (Ch.1), 2. Core framework (Ch.3), 3. Key experiment (Ch.5), 4. Counter-argument (Ch.8), 5. Statistical model (Ch.11), 6. Case study A (Ch.14), 7. Methodology critique (Ch.17), 8. Synthesis (Ch.20), 9. Future directions (Ch.23), 10. Author\'s conclusion (Ch.25).',
+    aiTime: 250,
+    humanAdvantage: 'Humans understand the deeper meaning behind the words.',
+    aiAdvantage: 'AI can process 500 pages in seconds — no coffee breaks needed!',
+    humanAdvantageC: 'Human reading involves deep comprehension, critical evaluation, and integration with prior knowledge.',
+    aiAdvantageC: 'LLMs with 100K+ context windows process entire books in seconds, extracting key terms via attention weight analysis — but comprehension depth is debated.',
+    band: 'B',
+  },
+  {
+    title: 'Right or Wrong?',
+    emoji: '⚖️',
+    prompt: 'A self-driving car must choose: swerve left (risk 1 passenger) or right (risk 2 pedestrians). What should it do?',
+    type: 'opinion',
+    aiAnswer: 'This is a variant of the trolley problem. Utilitarian ethics suggests minimizing total harm (swerve left), while deontological ethics argues against actively choosing to harm anyone.',
+    aiTime: 1600,
+    humanAdvantage: 'Moral choices need human judgment, values, and accountability.',
+    aiAdvantage: 'AI can analyze ethical frameworks but cannot bear moral responsibility.',
+    humanAdvantageC: 'Moral agency requires consciousness, free will, and the capacity to bear responsibility — qualities absent in AI systems.',
+    aiAdvantageC: 'AI can enumerate ethical frameworks (utilitarian, deontological, virtue ethics) but lacks moral agency and cannot be held accountable for consequences.',
+    band: 'C',
+  },
+  {
+    title: 'Data Crunching',
+    emoji: '📊',
+    prompt: 'Analyze 10 million customer purchases to find buying patterns.',
+    type: 'math',
+    aiAnswer: 'Cluster analysis reveals 5 customer segments: weekend bulk buyers (23%), weekday convenience shoppers (31%), sale hunters (18%), premium brand loyalists (15%), and seasonal purchasers (13%). Cross-sell opportunity: segments 1 and 4 overlap 34% on household items.',
+    aiTime: 200,
+    humanAdvantage: 'Humans can ask "so what?" and turn data into business strategy.',
+    aiAdvantage: 'AI processes millions of records in seconds — a human would need months!',
+    humanAdvantageC: 'Humans contextualize data within business strategy, market dynamics, and stakeholder needs — turning correlation into actionable insight.',
+    aiAdvantageC: 'ML clustering algorithms (k-means, DBSCAN) and association rule mining (Apriori) process millions of transactions in O(n log n), finding patterns invisible to manual analysis.',
+    band: 'B',
+  },
+  {
+    title: 'Stand-Up Comedy',
+    emoji: '🎤',
+    prompt: 'Tell a joke that would make a room full of people laugh.',
+    type: 'text',
+    aiAnswer: 'Why do programmers prefer dark mode? Because light attracts bugs!',
+    aiTime: 900,
+    humanAdvantage: 'You can read the room, adjust timing, and land the punchline!',
+    aiAdvantage: 'AI knows thousands of jokes but cannot feel the crowd\'s energy.',
+    humanAdvantageC: 'Comedy requires real-time social perception, timing calibration, and the shared vulnerability of live performance.',
+    aiAdvantageC: 'AI generates jokes via pattern matching on humor corpora but cannot perceive audience reaction or adapt delivery in real time.',
+    band: 'A',
+  },
+  {
+    title: 'New Situation',
+    emoji: '🌪️',
+    prompt: 'You\'re lost in a foreign city with a dead phone. What do you do?',
+    type: 'opinion',
+    aiAnswer: 'Look for landmarks, find a police station or hotel, ask locals for directions using gestures, locate a map at a transit station, or find a cafe with Wi-Fi to charge your phone.',
+    aiTime: 1300,
+    humanAdvantage: 'Humans adapt to brand-new situations using common sense and street smarts!',
+    aiAdvantage: 'AI can suggest solutions but cannot physically navigate or read social cues.',
+    humanAdvantageC: 'Human adaptability combines spatial reasoning, social intelligence, improvisation, and embodied action in novel environments.',
+    aiAdvantageC: 'AI can generate contingency plans from training data but cannot execute physical actions, read body language, or improvise in truly novel scenarios.',
+    band: 'A',
+  },
 ];
 
-const BAND_ORDER: Record<string, number> = { A: 0, B: 1, C: 2 };
+const LEARN_CARDS = [
+  { title: 'Humans AND Machines', emoji: '🤝', desc: 'Humans and AI are each amazing at different things. The best results often come when they work together!' },
+  { title: 'What Humans Do Best', emoji: '💡', desc: 'Humans excel at creativity, empathy, humor, and understanding context. We can think about things we\'ve never seen before!' },
+  { title: 'What AI Does Best', emoji: '⚡', desc: 'AI is incredible at speed, pattern recognition, processing huge amounts of data, and never getting tired. It can analyze millions of items in seconds!' },
+];
 
 export function HumanVsMachineGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('human-vs-machine', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('human-vs-machine', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [learnIdx, setLearnIdx] = useState(0);
   const [roundIdx, setRoundIdx] = useState(0);
   const [humanAnswer, setHumanAnswer] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [aiRevealed, setAiRevealed] = useState(false);
   const [aiThinking, setAiThinking] = useState(false);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const challenges = useFilteredContent(ALL_CHALLENGES, tier, ageBand);
   // ENH: Track scores for comparison bars and advantage indicator
   const [humanTotal, setHumanTotal] = useState(0);
   const [machineTotal, setMachineTotal] = useState(0);
   // ENH: Verdict reveal animation trigger
   const [verdictType, setVerdictType] = useState<'human' | 'machine' | null>(null);
+  const { safeTimeout } = useSafeTimeout();
 
-  const challenges = useMemo(
-    () => ALL_CHALLENGES.filter((c) => BAND_ORDER[c.band] <= BAND_ORDER[ageBand]),
-    [ageBand]
-  );
   const challenge = challenges[roundIdx];
 
   const particles = useMemo(
@@ -206,7 +320,7 @@ export function HumanVsMachineGame() {
     game.updateScore(10);
     // ENH: Update score comparison bars
     setHumanTotal(h => h + 10);
-    setTimeout(() => {
+    safeTimeout(() => {
       setAiThinking(false);
       setAiRevealed(true);
       // ENH: Determine verdict and update machine score
@@ -214,7 +328,7 @@ export function HumanVsMachineGame() {
       setMachineTotal(m => m + aiScore);
       setVerdictType(challenge.type === 'opinion' ? 'human' : challenge.type === 'math' ? 'machine' : 'human');
     }, challenge.aiTime);
-  }, [humanAnswer, challenge, game]);
+  }, [humanAnswer, challenge, game, safeTimeout]);
 
   function nextRound() {
     setHumanAnswer('');
@@ -235,7 +349,7 @@ export function HumanVsMachineGame() {
       gameId="human-vs-machine"
       title="Human vs Machine"
       worldNumber={1}
-      worldColor="#00BBFF"
+      worldColor="#0FB8FA"
       totalRounds={challenges.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
@@ -253,8 +367,8 @@ export function HumanVsMachineGame() {
                   0.15 + p.size * 0.06
                 }), transparent)`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
-              transition={{
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.35, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.dur,
                 delay: p.delay,
                 repeat: Infinity,
@@ -304,17 +418,43 @@ export function HumanVsMachineGame() {
                       )}
                     </div>
                     <motion.button
-                      onClick={() => setPhase('play')}
+                      onClick={() => setPhase('learn')}
                       className="w-full max-w-xs py-3 rounded-xl font-display font-bold text-sm text-white"
                       style={{
                         background: 'linear-gradient(135deg, #00BBFF, #0099DD)',
                       }}
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
+                      aria-label="Start the Human vs Machine challenge"
                     >
                       Challenge the AI!{' '}
                       <Swords className="inline w-4 h-4 ml-1" />
                     </motion.button>
+                  </motion.div>
+                )}
+
+                {phase === 'learn' && (
+                  <motion.div key="learn" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+                    className="flex-1 flex flex-col items-center justify-center text-center space-y-4 px-4">
+                    <span className="text-4xl">{LEARN_CARDS[learnIdx].emoji}</span>
+                    <h3 className="font-display text-xl font-bold text-white">{LEARN_CARDS[learnIdx].title}</h3>
+                    <p className="font-body text-sm text-white/60 max-w-md">{LEARN_CARDS[learnIdx].desc}</p>
+                    <div className="flex gap-1 mt-2">
+                      {LEARN_CARDS.map((_, i) => (
+                        <div key={i} className={`w-2 h-2 rounded-full ${i === learnIdx ? 'bg-[#00BBFF]' : 'bg-white/20'}`} />
+                      ))}
+                    </div>
+                    <div className="flex gap-3 mt-4">
+                      {learnIdx > 0 && (
+                        <motion.button onClick={() => setLearnIdx(i => i - 1)}
+                          className="px-4 py-2 rounded-lg border border-white/10 font-display text-xs text-white/60 hover:text-white"
+                          whileTap={{ scale: 0.95 }}>Back</motion.button>
+                      )}
+                      <motion.button onClick={() => learnIdx < LEARN_CARDS.length - 1 ? setLearnIdx(i => i + 1) : setPhase('play')}
+                        className="px-6 py-2 rounded-lg font-display text-xs font-bold text-white"
+                        style={{ background: 'linear-gradient(135deg, #00BBFF, #0088CC)' }}
+                        whileTap={{ scale: 0.95 }}>{learnIdx < LEARN_CARDS.length - 1 ? 'Next' : 'Start Playing!'}</motion.button>
+                    </div>
                   </motion.div>
                 )}
 
@@ -325,6 +465,10 @@ export function HumanVsMachineGame() {
                     animate={{ opacity: 1 }}
                     className="w-full max-w-lg space-y-4"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roundIdx + 1} total={challenges.length} labColor="#00BBFF" />
+                    </div>
                     {/* ENH: Animated score comparison bars (human vs machine) */}
                     <div className="flex items-center gap-3 mb-3 max-w-xs mx-auto">
                       <div className="flex-1">
@@ -336,7 +480,7 @@ export function HumanVsMachineGame() {
                           <motion.div className="h-full rounded-full bg-sky-500" animate={{ width: `${Math.min((humanTotal / Math.max(humanTotal + machineTotal, 1)) * 100, 100)}%` }} transition={{ type: 'spring', stiffness: 80, damping: 12 }} />
                         </div>
                       </div>
-                      <span className="font-display text-2xs text-white/20">vs</span>
+                      <span className="font-display text-2xs text-white/55">vs</span>
                       <div className="flex-1">
                         <div className="flex justify-between mb-0.5">
                           <span className="font-body text-2xs text-amber-400">AI</span>
@@ -356,7 +500,7 @@ export function HumanVsMachineGame() {
                       <p className="font-body text-sm text-white/50">
                         {challenge.prompt}
                       </p>
-                      <p className="font-body text-2xs text-white/20 mt-0.5">Round {roundIdx + 1}/{challenges.length}</p>
+                      <p className="font-body text-2xs text-white/55 mt-0.5">Round {roundIdx + 1}/{challenges.length}</p>
                     </div>
 
                     <div className="flex gap-3 mb-4">
@@ -386,7 +530,7 @@ export function HumanVsMachineGame() {
                               placeholder="Your answer..."
                               autoFocus
                               aria-label="Your answer"
-                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/20 focus:outline-none focus:border-sky-500/50"
+                              className="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm font-body placeholder:text-white/55 focus:outline-none focus:border-sky-500/50"
                             />
                           </div>
                         ) : (
@@ -407,14 +551,14 @@ export function HumanVsMachineGame() {
                               <motion.div
                                 key={dot}
                                 className="w-2 h-2 rounded-full bg-amber-400/60"
-                                animate={{ scale: [1, 1.4, 1], opacity: [0.3, 0.9, 0.3] }}
-                                transition={{ repeat: Infinity, duration: 0.8, delay: dot * 0.2 }}
+                                animate={prefersReducedMotion ? {} : { scale: [1, 1.4, 1], opacity: [0.3, 0.9, 0.3] }}
+                                transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 0.8, delay: dot * 0.2 }}
                               />
                             ))}
                             <motion.span
-                              className="font-body text-xs text-white/30 ml-1"
-                              animate={{ opacity: [0.3, 0.8, 0.3] }}
-                              transition={{ repeat: Infinity, duration: 1 }}
+                              className="font-body text-xs text-white/60 ml-1"
+                              animate={prefersReducedMotion ? {} : { opacity: [0.3, 0.8, 0.3] }}
+                              transition={prefersReducedMotion ? { duration: 0 } : { repeat: Infinity, duration: 1 }}
                             >
                               Processing...
                             </motion.span>
@@ -424,7 +568,7 @@ export function HumanVsMachineGame() {
                             {challenge.aiAnswer}
                           </p>
                         ) : (
-                          <p className="font-body text-sm text-white/10">Waiting...</p>
+                          <p className="font-body text-sm text-white/50">Waiting...</p>
                         )}
                       </div>
                     </div>
@@ -519,18 +663,18 @@ export function HumanVsMachineGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Human vs Machine Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">
                       You went head-to-head with AI across multiple challenges, discovering where humans and machines each have unique strengths.
                     </p>
                     <div className="rounded-xl px-6 py-3 bg-[#00BBFF]/10 border border-[#00BBFF]/20">
                       <p className="font-data text-2xl text-[#00BBFF]">{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• AI excels at speed, pattern matching, and processing large amounts of data instantly</li>
                         <li>• Humans have unique strengths in creativity, empathy, moral reasoning, and lived experience</li>
                         <li>• The best outcomes often come from humans and AI working together, combining their complementary abilities</li>

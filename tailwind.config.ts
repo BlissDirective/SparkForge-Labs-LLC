@@ -1,5 +1,10 @@
 import type { Config } from 'tailwindcss';
 import tailwindcssAnimate from 'tailwindcss-animate';
+// Phase 5 P.3-MAX (§7.2): Lab color single source. Tailwind imports the
+// same color table used by runtime JS/3D consumers so the two layers
+// can never drift. Change a lab color in labColors.ts and both Tailwind
+// utilities (bg-lab-3, text-lab-5) AND Three.js materials update together.
+import { buildTailwindLabColors } from './src/config/labColors';
 
 // AUDIT-G7: Tailwind v4 uses @import "tailwindcss" in CSS — darkMode:'class' removed (v4 uses @custom-variant)
 // Content detection is automatic in v4 but kept for compatibility mode
@@ -8,55 +13,55 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ═══ Frost-Prismatic Neon Accents (60% blue / 40% pops) ═══
+        // ═══ Frost-Prismatic Neon Accents — OKLCH L=0.75 (DES-03) ═══
         neon: {
-          blue: { DEFAULT: '#00BBFF', dim: '#00BBFF40', glow: '#00BBFF25' },
-          green: { DEFAULT: '#00FF88', dim: '#00FF8840', glow: '#00FF8825' },
-          purple: { DEFAULT: '#AA66FF', dim: '#AA66FF40', glow: '#AA66FF25' },
-          orange: { DEFAULT: '#FF6644', dim: '#FF664440', glow: '#FF664425' },
-          amber: { DEFAULT: '#FFAA44', dim: '#FFAA4440', glow: '#FFAA4425' },
+          blue: { DEFAULT: 'oklch(0.75 0.17 225)', dim: 'oklch(0.75 0.17 225 / 0.25)', glow: 'oklch(0.75 0.17 225 / 0.15)' },
+          green: { DEFAULT: 'oklch(0.75 0.19 155)', dim: 'oklch(0.75 0.19 155 / 0.25)', glow: 'oklch(0.75 0.19 155 / 0.15)' },
+          purple: { DEFAULT: 'oklch(0.75 0.19 295)', dim: 'oklch(0.75 0.19 295 / 0.25)', glow: 'oklch(0.75 0.19 295 / 0.15)' },
+          orange: { DEFAULT: 'oklch(0.75 0.20 25)', dim: 'oklch(0.75 0.20 25 / 0.25)', glow: 'oklch(0.75 0.20 25 / 0.15)' },
+          amber: { DEFAULT: 'oklch(0.75 0.17 75)', dim: 'oklch(0.75 0.17 75 / 0.25)', glow: 'oklch(0.75 0.17 75 / 0.15)' },
         },
-        // ═══ spark-* ALIASES — backward compatibility ═══
-        // These point to the same values as neon-* so both work.
-        // Code written with spark-blue or neon-blue both compile.
+        // ═══ spark-* ALIASES — OKLCH (backward compatibility) ═══
         spark: {
-          blue: '#00BBFF',
-          purple: '#AA66FF',
-          green: '#00FF88',
-          orange: '#FF6644',
-          coral: '#FF6644',
-          amber: '#FFAA44',
+          blue: 'oklch(0.75 0.17 225)',
+          purple: 'oklch(0.75 0.19 295)',
+          green: 'oklch(0.75 0.19 155)',
+          orange: 'oklch(0.75 0.20 25)',
+          coral: 'oklch(0.75 0.20 25)',
+          amber: 'oklch(0.75 0.17 75)',
         },
-        // ═══ Surface Colors (dark mode) ═══
+        // ═══ Surface Colors — OKLCH (dark mode) ═══
         surface: {
-          base: '#0A0E16',
-          deep: '#0A0E16',
-          card: '#111118',
-          elevated: '#1A1822',
-          border: 'rgba(255, 255, 255, 0.06)',
+          base: 'oklch(0.13 0.02 260)',
+          deep: 'oklch(0.13 0.02 260)',
+          card: 'oklch(0.16 0.02 280)',
+          elevated: 'oklch(0.19 0.02 290)',
+          border: 'oklch(1.0 0 0 / 0.06)',
         },
-        // ═══ Lab Accent Colors (1-10) ═══
-        lab: {
-          1: '#00BBFF',  // What IS AI?
-          2: '#AA66FF',  // Teaching Machines
-          3: '#FF66AA',  // The Brain Inside
-          4: '#FFAA44',  // AI That Creates
-          5: '#00FF88',  // AI Helpers
-          6: '#FF6644',  // AI & Ethics
-          7: '#06B6D4',  // Computer Vision
-          8: '#818CF8',  // Words & Language
-          9: '#F97316',  // Build with AI
-          10: '#D946EF', // AI's Future
-        },
+        // ═══ Lab Accent Colors (1-10) — OKLCH L=0.75 ═══
+        // Phase 5 P.3-MAX: Generated from src/config/labColors.ts — the
+        // single canonical lab color table. Both tailwind utilities AND
+        // runtime JS/3D materials read from that file now.
+        lab: buildTailwindLabColors(),
       },
       fontSize: {
         '2xs': ['0.625rem', { lineHeight: '0.875rem' }], // 10px — minimum sub-scale size
       },
       fontFamily: {
-        display: ['var(--font-display)', 'Exo 2', 'system-ui', 'sans-serif'],
-        body: ['var(--font-body)', 'Sora', 'system-ui', 'sans-serif'],
+        display: ['var(--font-display)', 'Exo 2', 'Exo 2 Fallback', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)', 'Sora', 'Sora Fallback', 'system-ui', 'sans-serif'],
         mono: ['var(--font-mono)', 'JetBrains Mono', 'monospace'],
         data: ['var(--font-data)', 'Orbitron', 'monospace'],
+      },
+      // DES-08: Semantic spacing tokens (maps to CSS --space-* variables)
+      spacing: {
+        'xs': 'var(--space-xs)',       //  4px
+        'sm': 'var(--space-sm)',       //  8px
+        'md': 'var(--space-md)',       // 16px
+        'lg': 'var(--space-lg)',       // 24px
+        'xl': 'var(--space-xl)',       // 32px
+        '2xl': 'var(--space-2xl)',     // 48px
+        'section': 'var(--space-section)', // 64px
       },
       boxShadow: {
         'glow-blue': '0 0 20px rgba(0,187,255,0.25)',
@@ -143,7 +148,7 @@ const config: Config = {
         'chrome-shimmer': 'chrome-shimmer 3s linear infinite',
         'connection-pulse': 'connection-pulse 4s ease-in-out infinite',
         'hex-appear': 'hex-appear 0.4s ease both',
-        'badge-unlock': 'badge-unlock 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
+        'badge-unlock': 'badge-unlock 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards',
         'confetti-fall': 'confetti-fall 3s ease-in forwards',
         'slide-up': 'slide-up-spring 0.5s ease-out forwards',
         'scale-bounce': 'scale-bounce 0.5s ease-out forwards',

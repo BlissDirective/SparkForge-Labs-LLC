@@ -12,7 +12,54 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 import type { CockpitSkin, SpatialView, CeremonyType } from '@/types';
+import type { ThemeId } from '@/lib/3d/cockpitThemes';
+import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
+
+// ════════════════════════════════════════════════════════════════
+// R1 (Phase 3 Part 2): cockpitUIStore merged into cockpitStore.
+// The UI-routing slice (centerContent + centerData + setCenterContent
+// + modeToCenterContent) is now part of this single store so consumers
+// don't have to coordinate two subscriptions for every cockpit panel
+// render. Field names preserved so consumer migration is a 1-line
+// import swap.
+// ════════════════════════════════════════════════════════════════
+
+export type CenterContentKey =
+  | 'home'          // DashboardCenter
+  | 'labs'          // LabsCenter
+  | 'lab_detail'    // LabDetailPanel
+  | 'arcade'        // ArcadePanel
+  | 'profile'       // ProfileCenter
+  | 'settings'      // SettingsPanel
+  | 'parent'        // ParentPanel
+  | 'game'          // Game takeover (no center panel — game scene fills)
+  | 'chat'          // ChatPanel3D (AI Guide chat)
+  | 'celebration'   // CelebrationPanel3D
+  | 'onboarding';   // OnboardingPanel
+
+export interface CenterContentData {
+  labId?: number;
+  labColor?: string;
+  gameSlug?: string;
+  [key: string]: unknown;
+}
+
+export function modeToCenterContent(mode: CockpitMode): CenterContentKey {
+  switch (mode) {
+    case 'dashboard': return 'home';
+    case 'arcade': return 'arcade';
+    case 'labs': return 'labs';
+    case 'lab_detail': return 'lab_detail';
+    case 'game': return 'game';
+    case 'profile': return 'profile';
+    case 'settings': return 'settings';
+    case 'parent': return 'parent';
+    case 'celebration': return 'home';
+    default: return 'home';
+  }
+}
 
 // Re-export types so consumers can import from either @/types or @/stores/cockpitStore
 export type { CockpitSkin, SpatialView, CeremonyType };
@@ -91,11 +138,10 @@ export const SKIN_UNLOCK_CONDITIONS: Record<CockpitSkin, { description: string; 
   crystal:    { description: 'Complete ALL 35 games at least once', badge: 'Crystal Commander' },
 };
 
-interface CeremonyQueueItem {
-  type: CeremonyType;
-  intensity: number;
-  labColor: string;
-}
+// §3.5 (P2 Apr 21 2026): CeremonyQueueItem interface removed — the
+// queue it described was never written to. If a ceremony queue is
+// reintroduced later, it should live in uiStore alongside
+// showCelebration so there's only one celebration-state owner.
 
 interface CockpitState {
   // Spatial navigation
@@ -114,15 +160,36 @@ interface CockpitState {
   unlockedSkins: CockpitSkin[];
   skinPreviewActive: boolean;
 
+  // Phase 5 N.2-MAX (§3.6): User-selectable cockpit theme — independent
+  // of the achievement-gated `cockpitSkin` system. Always-unlocked.
+  cockpitTheme: ThemeId;
+
   // NPC state
   npcsVisible: boolean;
 
-  // CPA v2.0 — Ceremony queue (Decision CPA2-10)
-  ceremonyQueue: CeremonyQueueItem[];
+  // §3.5 (P2 Apr 21 2026): ceremonyQueue removed — was dead code.
+  // Celebration state lives in uiStore.showCelebration only.
 
   // CPA v2.0 — Audio preferences (Decision CPA2-8)
   cockpitAudioEnabled: boolean;
   ambientVolume: number;
+  // UI Design Change — expanded audio controls (6 user settings)
+  spatialAudioVolume: number;
+  eventAudioVolume: number;
+  mechanicalAudioDensity: number;
+  labAudioEnabled: boolean;
+  // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+  // masterSoundEnabled is the global mute flag (replaces uiStore.soundEnabled).
+  // voiceEnabled is the guide TTS flag (replaces guideStore.voiceEnabled).
+  masterSoundEnabled: boolean;
+  voiceEnabled: boolean;
+
+  // UI Design Change — visual control
+  brightness: number;
+
+  // UI Design Change — active cockpit mode
+  activeMode: CockpitMode;
+  previousMode: CockpitMode | null;
 
   // CPA v2.0 — Mini-map
   miniMapVisible: boolean;
@@ -130,6 +197,11 @@ interface CockpitState {
   // Hero-to-cockpit seamless handoff (CPA2-3, 20M upgrade)
   heroPhase: HeroPhase;
   cockpitReady: boolean;        // true once cockpit geometry is fully materialized
+
+  // R1: UI-routing slice (merged from deprecated cockpitUIStore)
+  centerContent: CenterContentKey;
+  centerData: CenterContentData;
+  previousCenter: CenterContentKey | null;
 
   // Internal timeout IDs for transition cleanup (J5 fix)
   _spatialViewTimeout: ReturnType<typeof setTimeout> | null;
@@ -146,17 +218,36 @@ interface CockpitState {
   setCockpitSkin: (skin: CockpitSkin) => void;
   unlockSkin: (skin: CockpitSkin) => void;
   setSkinPreview: (active: boolean) => void;
+
+  // Phase 5 N.2-MAX (§3.6)
+  setCockpitTheme: (theme: ThemeId) => void;
   setTransitioning: (transitioning: boolean) => void;
   setOrbitSpeed: (speed: number) => void;
   toggleNPCs: () => void;
   returnToOverview: () => void;
-  enqueueCeremony: (item: CeremonyQueueItem) => void;
-  dequeueCeremony: () => void;
+  // §3.5 (P2 Apr 21 2026): ceremonyQueue was dead code — nothing
+  // enqueued to it so its only consumer (PostProcessingStack) always
+  // saw an empty array. Celebration state lives in
+  // uiStore.showCelebration; enqueue/dequeue removed.
   setCockpitAudio: (enabled: boolean) => void;
   setAmbientVolume: (volume: number) => void;
+  setSpatialAudioVolume: (volume: number) => void;
+  setEventAudioVolume: (volume: number) => void;
+  setMechanicalAudioDensity: (density: number) => void;
+  setLabAudioEnabled: (enabled: boolean) => void;
+  // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+  setMasterSoundEnabled: (value: boolean) => void;
+  setVoiceEnabled: (value: boolean) => void;
+  muteAll: () => void;
+  unmuteAll: () => void;
+  setBrightness: (brightness: number) => void;
+  setActiveMode: (mode: CockpitMode) => void;
   toggleMiniMap: () => void;
   setHeroPhase: (phase: HeroPhase) => void;
   setCockpitReady: (ready: boolean) => void;
+
+  // R1: UI-routing actions
+  setCenterContent: (key: CenterContentKey, data?: CenterContentData) => void;
 }
 
 export const useCockpitStore = create<CockpitState>()(
@@ -172,13 +263,35 @@ export const useCockpitStore = create<CockpitState>()(
       cockpitSkin: 'default',
       unlockedSkins: ['default'] as CockpitSkin[],
       skinPreviewActive: false,
+
+      // Phase 5 N.2-MAX (§3.6): User-selectable theme
+      cockpitTheme: 'default' as ThemeId,
       npcsVisible: true,
-      ceremonyQueue: [] as CeremonyQueueItem[],
       cockpitAudioEnabled: true,
       ambientVolume: 0.15,
+      spatialAudioVolume: 0.3,
+      eventAudioVolume: 0.5,
+      mechanicalAudioDensity: 0.7,
+      labAudioEnabled: true,
+      // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+      masterSoundEnabled: true,
+      voiceEnabled: true,
+      brightness: 1.0,
+      activeMode: 'dashboard' as CockpitMode,
+      previousMode: null as CockpitMode | null,
       miniMapVisible: true,
       heroPhase: 'idle' as HeroPhase,
       cockpitReady: false,
+      _spatialViewTimeout: null,
+      _focusLabTimeout: null,
+      _openConsoleTimeout: null,
+      _returnToOverviewTimeout: null,
+
+      // R1: UI-routing slice initial values
+      centerContent: 'home' as CenterContentKey,
+      centerData: {} as CenterContentData,
+      previousCenter: null as CenterContentKey | null,
+
       _spatialViewTimeout: null,
       _focusLabTimeout: null,
       _openConsoleTimeout: null,
@@ -253,6 +366,9 @@ export const useCockpitStore = create<CockpitState>()(
         }
       },
 
+      // Phase 5 N.2-MAX (§3.6): No unlock gate — all 4 themes always available
+      setCockpitTheme: (cockpitTheme) => set({ cockpitTheme }),
+
       unlockSkin: (skin) => {
         set((s) => ({
           unlockedSkins: s.unlockedSkins.includes(skin)
@@ -283,32 +399,149 @@ export const useCockpitStore = create<CockpitState>()(
         });
       },
 
-      enqueueCeremony: (item) =>
-        set((s) => ({ ceremonyQueue: [...s.ceremonyQueue, item] })),
-
-      dequeueCeremony: () =>
-        set((s) => ({ ceremonyQueue: s.ceremonyQueue.slice(1) })),
+      // §3.5 (P2 Apr 21 2026): enqueue/dequeueCeremony removed —
+      // celebration state is owned by uiStore.showCelebration.
 
       setCockpitAudio: (cockpitAudioEnabled) => set({ cockpitAudioEnabled }),
 
       setAmbientVolume: (ambientVolume) => set({ ambientVolume }),
 
+      setSpatialAudioVolume: (spatialAudioVolume) => set({ spatialAudioVolume }),
+
+      setEventAudioVolume: (eventAudioVolume) => set({ eventAudioVolume }),
+
+      setMechanicalAudioDensity: (mechanicalAudioDensity) => set({ mechanicalAudioDensity }),
+
+      setLabAudioEnabled: (labAudioEnabled) => set({ labAudioEnabled }),
+
+      // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+      setMasterSoundEnabled: (masterSoundEnabled) => set({ masterSoundEnabled }),
+      setVoiceEnabled: (voiceEnabled) => set({ voiceEnabled }),
+      muteAll: () => set({
+        masterSoundEnabled: false,
+        voiceEnabled: false,
+        cockpitAudioEnabled: false,
+        labAudioEnabled: false,
+      }),
+      unmuteAll: () => set({
+        masterSoundEnabled: true,
+        voiceEnabled: true,
+        cockpitAudioEnabled: true,
+        labAudioEnabled: true,
+      }),
+
+      setBrightness: (brightness) => set({ brightness }),
+
+      setActiveMode: (mode) => set((s) => ({
+        activeMode: mode,
+        previousMode: s.activeMode,
+      })),
+
       toggleMiniMap: () => set((s) => ({ miniMapVisible: !s.miniMapVisible })),
 
       setHeroPhase: (heroPhase) => set({ heroPhase }),
       setCockpitReady: (cockpitReady) => set({ cockpitReady }),
+
+      // R1: UI-routing action (merged from cockpitUIStore)
+      setCenterContent: (key, data = {}) =>
+        set((s) => ({
+          centerContent: key,
+          centerData: data,
+          previousCenter:
+            s.centerContent !== key ? s.centerContent : s.previousCenter,
+        })),
     }),
     {
       name: 'sparkforge-cockpit',
       partialize: (state) => ({
         cockpitSkin: state.cockpitSkin,
         unlockedSkins: state.unlockedSkins,
+        // Phase 5 N.2-MAX (§3.6): Persist theme selection across sessions
+        cockpitTheme: state.cockpitTheme,
         focusedLabId: state.focusedLabId,
         npcsVisible: state.npcsVisible,
         cockpitAudioEnabled: state.cockpitAudioEnabled,
         ambientVolume: state.ambientVolume,
+        spatialAudioVolume: state.spatialAudioVolume,
+        eventAudioVolume: state.eventAudioVolume,
+        mechanicalAudioDensity: state.mechanicalAudioDensity,
+        labAudioEnabled: state.labAudioEnabled,
+        brightness: state.brightness,
         miniMapVisible: state.miniMapVisible,
+        // Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+        masterSoundEnabled: state.masterSoundEnabled,
+        voiceEnabled: state.voiceEnabled,
       }),
     }
   )
 );
+
+// ════════════════════════════════════════════════════════════════
+// Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore
+// Subscribe-bridge: keep deprecated uiStore.soundEnabled and guideStore.voiceEnabled
+// in sync with the canonical cockpitStore values so legacy consumers continue to
+// behave correctly during the deprecation transition.
+// ════════════════════════════════════════════════════════════════
+if (typeof window !== 'undefined') {
+  let prevMasterSound = useCockpitStore.getState().masterSoundEnabled;
+  let prevVoice = useCockpitStore.getState().voiceEnabled;
+
+  useCockpitStore.subscribe((state) => {
+    if (state.masterSoundEnabled !== prevMasterSound) {
+      prevMasterSound = state.masterSoundEnabled;
+      // Lazy import to avoid circular dependency at module init time
+      void import('@/stores/uiStore').then(({ useUIStore }) => {
+        const ui = useUIStore.getState();
+        if (ui.soundEnabled !== state.masterSoundEnabled) {
+          // useUIStore exposes toggleSound, not setSoundEnabled — set directly
+          useUIStore.setState({ soundEnabled: state.masterSoundEnabled });
+        }
+      });
+    }
+    if (state.voiceEnabled !== prevVoice) {
+      prevVoice = state.voiceEnabled;
+      void import('@/stores/guideStore').then(({ useGuideStore }) => {
+        const guide = useGuideStore.getState();
+        if (guide.voiceEnabled !== state.voiceEnabled) {
+          guide.setVoiceEnabled?.(state.voiceEnabled);
+        }
+      });
+    }
+  });
+}
+
+// ═══ SELECTOR HOOKS — P2 §3.6 Reactive Settings Bridge ═══════════
+//
+// `useCockpitSettings()` returns a shallow-stable bundle of every
+// settings field a 3D component or audio hook is likely to react
+// to. Consumers must NOT read these via `useCockpitStore.getState()`
+// snapshots — doing so freezes the value at mount, so a later
+// Settings-page toggle never propagates.
+//
+// ESLint rule `no-restricted-syntax` (see eslint.config.mjs) flags
+// `useCockpitStore.getState()` usage inside src/components/3d/**
+// so future 3D code is reactive-by-default.
+//
+// If you need just one field, prefer a narrow inline selector:
+//   const brightness = useCockpitStore(s => s.brightness);
+// `useCockpitSettings()` is for components that read 3+ settings
+// together (e.g. CockpitUILayer, audio controller bridges).
+export function useCockpitSettings() {
+  return useCockpitStore(
+    useShallow((s) => ({
+      activeMode: s.activeMode,
+      cockpitTheme: s.cockpitTheme,
+      brightness: s.brightness,
+      masterSoundEnabled: s.masterSoundEnabled,
+      cockpitAudioEnabled: s.cockpitAudioEnabled,
+      ambientVolume: s.ambientVolume,
+      spatialAudioVolume: s.spatialAudioVolume,
+      eventAudioVolume: s.eventAudioVolume,
+      mechanicalAudioDensity: s.mechanicalAudioDensity,
+      labAudioEnabled: s.labAudioEnabled,
+      voiceEnabled: s.voiceEnabled,
+      npcsVisible: s.npcsVisible,
+      cockpitSkin: s.cockpitSkin,
+    })),
+  );
+}

@@ -112,7 +112,16 @@ function ProgressRing({
 
   return (
     <div className="relative inline-flex items-center justify-center">
-      <svg width={size} height={size} className="-rotate-90">
+      <svg
+        width={size}
+        height={size}
+        className="-rotate-90"
+        role="progressbar"
+        aria-valuenow={current}
+        aria-valuemin={0}
+        aria-valuemax={max}
+        aria-label={`Usage: ${current} of ${max}`}
+      >
         {/* Background circle */}
         <circle
           cx={size / 2}
@@ -182,13 +191,13 @@ export function PaywallModal({
 
           {/* Content */}
           <motion.div
-            className="relative glass-card rounded-2xl w-full max-w-sm p-6 text-center overflow-hidden"
+            className="relative glass-card-v2-elevated w-full max-w-sm p-6 text-center overflow-hidden"
             variants={modalContent}
           >
             {/* Close button */}
             <button
               onClick={onClose}
-              className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white transition-all"
+              className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition-all"
               aria-label="Close"
             >
               <X className="w-4 h-4" />
@@ -217,7 +226,7 @@ export function PaywallModal({
                       current={currentUsage!}
                       max={maxUsage!}
                     />
-                    <p className="font-body text-xs text-white/30 mt-2">
+                    <p className="font-body text-xs text-white/60 mt-2">
                       {context === 'games' ? 'Games played this week' :
                        context === 'prompts' ? 'Prompts used today' :
                        'Uses this period'}
@@ -262,7 +271,7 @@ export function PaywallModal({
 
                 <button
                   onClick={onClose}
-                  className="mt-3 font-body text-xs text-white/30 hover:text-white/50 transition-colors"
+                  className="mt-3 font-body text-xs text-white/60 hover:text-white/50 transition-colors"
                 >
                   Maybe later
                 </button>

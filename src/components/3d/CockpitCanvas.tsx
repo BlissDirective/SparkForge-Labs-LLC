@@ -21,6 +21,14 @@
 //   Spatial Content Group — visible on dashboard routes
 //   Game Scene Group     — visible during gameplay
 //   Iris Overlay Group   — visible during transitions
+//
+// P2 §10.11 (April 21, 2026): Phase 5 OffscreenCanvas migration entry
+//   point. Current architecture renders on the main thread. When the
+//   Phase 5 spike is authorized, branch on
+//   `isOffscreenRenderSafe(navigator.userAgent)` from
+//   `@/lib/3d/offscreenCanvasSupport` to move the Canvas into a
+//   worker. See `docs/OFFSCREEN_CANVAS_FEASIBILITY.md` for the full
+//   migration plan + risks.
 
 import React, { Suspense, lazy, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
@@ -34,7 +42,7 @@ import { Environment, AdaptiveDpr, Stars } from '@react-three/drei';
 
 // 3D Components — Station Shell
 import { AuroraBackground } from './AuroraBackground';
-import { AmbientParticles } from './AmbientParticles';
+// AmbientParticles REMOVED (Decision 20.0) — structural accent lines + LED rim provide sufficient atmosphere
 import { CockpitPanels } from './CockpitPanels';
 import { LEDRim } from './LEDRim';
 import { SidePanels } from './SidePanels';
@@ -54,6 +62,9 @@ import { NavigationButtonGrid } from './ui/NavigationButtonGrid';
 import { VariableDialCluster } from './ui/VariableDialCluster';
 import { CenterViewportScreen } from './ui/CenterViewportScreen';
 
+// UI Design Change — Master UI Layer (Phase 1: quadrant orchestrator)
+import { CockpitUILayer } from './CockpitUILayer';
+
 // Scene Management (D3D-B5)
 import { SceneRouter } from './SceneRouter';
 import { MechanicalIris } from './MechanicalIris';
@@ -63,8 +74,13 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Hooks (D3D-C4)
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
+// WebGPU async renderer factory (P5 §10.8 Sub 2)
+import { createRenderer } from '@/lib/3d/webgpuRenderer';
 // Frame-time monitoring (Audit Section 4.4, Plan B1: non-invasive, dev-only)
 import { useFrameTimeMonitor } from '@/hooks/useFrameTimeMonitor';
+// Triangle counter overlay (COCK-13: dev-only + admin toggle)
+import { TriangleStatsCollector, PerformanceOverlayHTML } from './PerformanceOverlay';
+import { useUIStore } from '@/stores/uiStore';
 // Note: Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
 // Game registry (Section 4.1-B: per-game camera presets)
@@ -75,7 +91,8 @@ import { useSceneStore } from '@/stores/sceneStore';
 // useDeviceStore available for future per-device tuning
 // import { useDeviceStore } from '@/stores/deviceStore';
 import { useCockpitStore, LAB_POSITIONS, type ConsoleType } from '@/stores/cockpitStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGameStore } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { FROST_PRISMATIC_HDR_PATH } from '@/lib/3d/materials';
 // Module-level asset preloading (Audit Section 4.5)
 import '@/lib/3d/preloadAssets';
@@ -151,8 +168,15 @@ const SpatialDashboardContent = React.memo(function SpatialDashboardContent({
   const openConsole = useCockpitStore((s) => s.openConsole);
   const closeConsole = useCockpitStore((s) => s.closeConsole);
 
-  const child = useChildStore((s) => s.activeChild);
-  const badges = useChildStore((s) => s.badges);
+  // STATE-MED-001 (B-full/T5c-C4): child from React Query cache.
+  // Badges previously read from childStore.badges which was always []
+  // (setBadges was never called). Now a typed empty stub preserves
+  // exact prior rendering (badgeCount: 0, recentBadge: undefined).
+  // Post-T5c follow-up: migrate to useBadges(childId) from
+  // useGamification (different shape — flat BadgeDto[], not
+  // ChildBadge[]) so the HUD actually shows badge data.
+  const child = useActiveChild();
+  const badges: Array<{ badge?: { name?: string } }> = [];
 
   const consoleData = useMemo(
     () => ({
@@ -231,12 +255,18 @@ function FrameTimeMonitorInner() {
 // ════════════════════════════════════════════════════════════════
 // CockpitCanvas — Main Export (D3D-B1: Persistent, never unmounts)
 // ════════════════════════════════════════════════════════════════
+// Audit §9.4 fix (Phase 3 Task 1A): Wrapped in React.memo with default
+// shallow prop comparison. The canvas receives 21+ props from parent and
+// manages a 37.8M-triangle scene — unnecessary re-renders are expensive.
+// Shallow comparison is correct here because all props are primitives,
+// stable references, or memoized React nodes (heroSceneContent /
+// gameSceneContent).
 
-export function CockpitCanvas({
+function CockpitCanvasImpl({
   ledColor = '#00BBFF',
   bgIntensity = 0.15,
   activeLabColor = '#00BBFF',
-  particleIntensity = 'medium',
+  particleIntensity: _particleIntensity = 'medium',
   scanlineEnabled = true,
   spikeEvent = false,
   frameDimmed = false,
@@ -248,8 +278,8 @@ export function CockpitCanvas({
   cameraFov = 56,
   barrelDistortion: barrelDist = 0.02,
   hudOpacity = 0.12,
-  hudRotationSpeed = 0.1,
-  hudPulseIntensity = 0.3,
+  hudRotationSpeed: _hudRotationSpeed = 0.1,
+  hudPulseIntensity: _hudPulseIntensity = 0.3,
   sidePanelOpacity = 0.6,
   sidePanelLeftContent = 'radar' as SidePanelContent,
   sidePanelRightContent = 'stats' as SidePanelContent,
@@ -271,9 +301,16 @@ export function CockpitCanvas({
   const activeScene = useSceneStore((s) => s.activeScene);
   const activeGameId = useSceneStore((s) => s.activeGameId);
   const activeGameLabColor = useSceneStore((s) => s.activeGameLabColor);
+
+  // UX-MED-002 (T10b) Opt C: pause-aware LED rim dim. Narrow
+  // selector — CockpitCanvasImpl re-renders only when isPaused
+  // flips, not on every game state change.
+  const gamePaused = useGameStore((s) => s.isPaused);
   // Game 3D scene content — registered by games via sceneStore (D3D-B3)
   const storeGameSceneContent = useSceneStore((s) => s.gameSceneContent);
   const resolvedGameSceneContent = gameSceneContent ?? storeGameSceneContent;
+  // Game HUD 3D content — registered by GameShell (Phase 5)
+  const gameHUDContent = useSceneStore((s) => s.gameHUDContent);
 
   // Per-game camera preset lookup (Section 4.1-B)
   const gameCameraPreset = useMemo(() => {
@@ -298,6 +335,10 @@ export function CockpitCanvas({
   const parallaxRef = useParallaxMouse({ smoothing: 0.05, intensity: 1.0 });
   // Iris audio is now managed by useIrisTransition hook (Section 4.1-C)
 
+  // Performance overlay (COCK-13): dev always, production admin-toggle
+  const showPerfStats = useUIStore((s) => s.showPerfStats);
+  const perfOverlayEnabled = process.env.NODE_ENV === 'development' || showPerfStats;
+
   // ── Single Persistent R3F Canvas (D3D-B1: NEVER unmounts) ──
   return (
     <div
@@ -314,14 +355,21 @@ export function CockpitCanvas({
           near: 0.1,
           far: 200,
         }}
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance',
-          stencil: false,
-          depth: true,
-          logarithmicDepthBuffer: true,
-        }}
+        // P5 §10.8 Sub 2b: async renderer factory — selects WebGPURenderer
+        // when deviceStore.gpuTier detects WebGPU capability, else falls back
+        // to WebGLRenderer. Downstream postprocessing stack branches on
+        // isWebGPURenderer() at Sub 3f.
+        gl={(props) =>
+          createRenderer({
+            ...props,
+            antialias: true,
+            alpha: true,
+            powerPreference: 'high-performance',
+            stencil: false,
+            depth: true,
+            logarithmicDepthBuffer: true,
+          })
+        }
         style={{ background: 'transparent' }}
       >
         <Suspense fallback={null}>
@@ -335,6 +383,9 @@ export function CockpitCanvas({
             </Suspense>
           )}
           <FrameTimeMonitorInner />
+
+          {/* Triangle counter stats collector (COCK-13) — writes to shared ref */}
+          <TriangleStatsCollector enabled={perfOverlayEnabled} />
 
           {/* Unified Camera System (D3D-C4: parallax, Section 4.1-B: per-game presets) */}
           <CameraSystem
@@ -363,10 +414,7 @@ export function CockpitCanvas({
                   color3="#06B6D4"
                 />
 
-                <AmbientParticles
-                  intensity={particleIntensity}
-                  color={effectiveLabColor}
-                />
+                {/* AmbientParticles REMOVED (Decision 20.0) */}
 
                 <CockpitPanels
                   curvature={panelCurvature}
@@ -375,9 +423,13 @@ export function CockpitCanvas({
                   frameDimmed={frameDimmed}
                 />
 
+                {/* UX-MED-002 (T10b) Opt C: LED rim dims to 40% of
+                    base intensity when the game is paused. Creates a
+                    clear "system is waiting" visual beat without
+                    requiring a full-screen overlay. */}
                 <LEDRim
                   color={ledColor}
-                  intensity={0.5}
+                  intensity={gamePaused ? 0.2 : 0.5}
                   spikeActive={spikeEvent}
                   curved
                 />
@@ -393,8 +445,6 @@ export function CockpitCanvas({
                 <HolographicHUD
                   opacity={hudOpacity}
                   color={effectiveLabColor}
-                  rotationSpeed={hudRotationSpeed}
-                  pulseIntensity={hudPulseIntensity}
                   active={hudOpacity > 0}
                 />
 
@@ -408,10 +458,16 @@ export function CockpitCanvas({
                   opacity={statusBarOpacity}
                 />
 
-                {/* ═══ 3D UI: Navigation Buttons — bottom console (INT-1) ═══ */}
+                {/* ═══ 3D UI: Navigation Buttons — bottom console ═══ */}
+                {/* Fixed instrument panel — renders directly in CockpitCanvas (not
+                    CockpitUILayer) because nav buttons must remain visible and
+                    interactive across all cockpit modes without mode-transition
+                    visibility toggling. Position: below center viewport. */}
                 <NavigationButtonGrid position={[0, -0.6, -1.85]} />
 
-                {/* ═══ 3D UI: Variable Dials — center console (INT-1) ═══ */}
+                {/* ═══ 3D UI: Variable Dials — center console ═══ */}
+                {/* Fixed instrument panel — same rationale as NavigationButtonGrid.
+                    Dials auto-reconfigure per page but never hide. */}
                 <VariableDialCluster position={[0, -0.3, -1.4]} />
 
                 {/* ═══ Ceremony FX — 3D celebration effects (S5-HIGH-007) ═══ */}
@@ -419,6 +475,10 @@ export function CockpitCanvas({
 
                 {/* ═══ Parent Dashboard — 3D stat hologram (Stage 8 Enhancement A1) ═══ */}
                 <ParentDashboardBridge />
+
+                {/* ═══ UI Layer — Quadrant orchestrator (Phase 1 UI Design Change) ═══ */}
+                {/* Phase 2 will populate left/center/right/bottom with panel components */}
+                <CockpitUILayer />
               </>
             }
             spatialContent={
@@ -431,7 +491,13 @@ export function CockpitCanvas({
                 />
               </>
             }
-            gameContent={resolvedGameSceneContent}
+            gameContent={
+              <>
+                {resolvedGameSceneContent}
+                {/* Game HUD renders above game scene (Phase 5) */}
+                {gameHUDContent}
+              </>
+            }
             irisContent={<MechanicalIris labColor={effectiveLabColor} />}
           />
 
@@ -450,6 +516,14 @@ export function CockpitCanvas({
       {/* CSS overlays */}
       {scanlineEnabled && <div className="scanline-overlay" style={{ opacity: 0.03 }} aria-hidden="true" />}
       <div className="vignette-overlay" aria-hidden="true" />
+
+      {/* Performance overlay — DOM layer outside Canvas (COCK-13) */}
+      <PerformanceOverlayHTML enabled={perfOverlayEnabled} />
     </div>
   );
 }
+
+// Memoized export — shallow prop comparison skips re-renders when
+// parents re-render without prop changes.
+export const CockpitCanvas = React.memo(CockpitCanvasImpl);
+CockpitCanvas.displayName = 'CockpitCanvas';

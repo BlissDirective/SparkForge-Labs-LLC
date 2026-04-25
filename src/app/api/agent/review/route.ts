@@ -7,7 +7,7 @@
 import { NextRequest } from 'next/server';
 import { z } from 'zod';
 import { createServerSupabase } from '@/lib/supabase/server';
-import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
+import { apiSuccess, apiError, applyRateLimit, requireAdmin } from '@/lib/api-helpers';
 import { approveContent, rejectContent } from '@/lib/agent/pipeline';
 
 // v2 [S9-HIGH-002]: Zod schema for review POST body
@@ -19,41 +19,16 @@ const ReviewSchema = z.object({
 
 export const runtime = 'nodejs';
 
-// ── Admin auth helper ──────────────────────────────
-async function verifyAdmin() {
-  const supabase = await createServerSupabase();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { user: null, supabase, error: 'Unauthorized' as const };
-  }
-
-  const { data: parent } = await supabase
-    .from('parents')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-
-  if (!parent?.is_admin) {
-    return { user, supabase, error: 'Admin access required' as const };
-  }
-
-  return { user, supabase, error: null };
-}
+// API-CRIT-002 (8B): Admin check is centralized via requireAdmin().
+// createServerSupabase() is still used directly because this route needs
+// the Supabase client to run admin-scoped queries (content_queue, agent_runs)
+// after authentication has succeeded.
 
 // ── GET: Fetch queue items + stats ─────────────────
 export async function GET(req: NextRequest) {
-  const { supabase, error } = await verifyAdmin();
-
-  if (error) {
-    return apiError(
-      error,
-      error === 'Unauthorized' ? 401 : 403,
-      error === 'Unauthorized' ? 'AUTH_REQUIRED' : 'FORBIDDEN'
-    );
-  }
+  const auth = await requireAdmin(req);
+  if (!auth.success) return auth.response;
+  const supabase = await createServerSupabase();
 
   const url = new URL(req.url);
   const status = url.searchParams.get('status') || 'pending_review';
@@ -124,18 +99,12 @@ export async function GET(req: NextRequest) {
 // ── POST: Approve or reject ────────────────────────
 export async function POST(req: NextRequest) {
   // v2 [S9-WARN-002]: Rate limit bulk admin actions (60/min)
-  const limited = applyRateLimit(req, 'admin-review');
+  const limited = await applyRateLimit(req, 'admin-review');
   if (limited) return limited;
 
-  const { user, error } = await verifyAdmin();
-
-  if (error || !user) {
-    return apiError(
-      error || 'Unauthorized',
-      error === 'Unauthorized' ? 401 : 403,
-      error === 'Unauthorized' ? 'AUTH_REQUIRED' : 'FORBIDDEN'
-    );
-  }
+  const auth = await requireAdmin(req);
+  if (!auth.success) return auth.response;
+  const user = auth.user;
 
   // v2 [S9-HIGH-002]: Zod validation replaces manual checks
   let rawBody: unknown;

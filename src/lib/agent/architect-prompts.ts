@@ -24,7 +24,7 @@ TRIANGLE BUDGETS:
 - System (cockpit): 30M triangles
 
 EXISTING REUSABLE COMPONENTS:
-- AuroraBackground, AmbientParticles — background effects
+- AuroraBackground — background aurora effect (AmbientParticles removed per Decision 20.0)
 - StandardEnvironmentBase — base for standard game environments
 - ProceduralEnvironmentGenerator — procedural terrain/sky/fog
 - CeremonyFX — celebration effects
@@ -69,7 +69,7 @@ CODE REQUIREMENTS:
 5. Import from 'three' (only named imports, never import *)
 6. Geometries and materials MUST be in useMemo — never recreate per render
 7. useFrame for animation only — no logic that can run outside render loop
-8. Refs via useRef<THREE.Mesh>(null) pattern
+8. Refs via useRef<Mesh>(null) pattern — Mesh imported by name, never via THREE.Mesh
 9. Dispose geometries/materials in useEffect cleanup
 10. All colors from Frost-Prismatic palette:
     - Neon: #00BBFF (blue), #00FF88 (green), #AA66FF (purple), #FF6644 (orange), #FFAA44 (amber)
@@ -84,7 +84,7 @@ COMPONENT TEMPLATE:
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
-import * as THREE from 'three';
+import { Color, Mesh } from 'three';
 
 interface ComponentNameProps {
   position?: [number, number, number];
@@ -96,8 +96,8 @@ export default function ComponentName({
   position = [0, 0, 0],
   labColor = '#00BBFF',
 }: ComponentNameProps) {
-  const meshRef = useRef<THREE.Mesh>(null);
-  const color = useMemo(() => new THREE.Color(labColor), [labColor]);
+  const meshRef = useRef<Mesh>(null);
+  const color = useMemo(() => new Color(labColor), [labColor]);
 
   useFrame((_, delta) => {
     if (meshRef.current) {

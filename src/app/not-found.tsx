@@ -17,7 +17,7 @@ export default function NotFound() {
         <h1 className="font-display text-3xl font-bold text-white mb-2">
           Lost in Space!
         </h1>
-        <p className="font-body text-base text-white/40 mb-8">
+        <p className="font-body text-base text-white/70 mb-8">
           This page has drifted into a black hole.
           Let&apos;s get you back to Mission Control!
         </p>

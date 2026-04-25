@@ -5,16 +5,22 @@
 // ════════════════════════════════════════════════════
 
 import { NextRequest } from 'next/server';
-import { createServerSupabase } from '@/lib/supabase/server';
-import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  applyRateLimit,
+  requireAdmin,
+  sanitizeErrorMessage,
+} from '@/lib/api-helpers';
 import { runTrendingPipeline } from '@/lib/agent/pipeline';
+import { verifyCronBearer } from '@/lib/cron-auth';
 import { RATE_LIMITS } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
 // POST: Admin-triggered trending research
 export async function POST(req: NextRequest) {
-  const limited = applyRateLimit(req, 'trending-run', undefined, RATE_LIMITS.contentAgent);
+  const limited = await applyRateLimit(req, 'trending-run', undefined, RATE_LIMITS.contentAgent);
   if (limited) return limited;
 
   if (!process.env.ANTHROPIC_API_KEY) {
@@ -25,41 +31,29 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const supabase = await createServerSupabase();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return apiError('Unauthorized', 401, 'AUTH_REQUIRED');
-
-  const { data: parent } = await supabase
-    .from('parents')
-    .select('is_admin')
-    .eq('id', user.id)
-    .single();
-
-  if (!parent?.is_admin) {
-    return apiError('Admin access required', 403, 'FORBIDDEN');
-  }
+  // API-CRIT-002 (8B): Centralized admin check via requireAdmin().
+  const auth = await requireAdmin(req);
+  if (!auth.success) return auth.response;
 
   try {
     const result = await runTrendingPipeline();
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    return apiError(`Trending pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): log full error; sanitize response.
+    console.error('[agent/trending] POST failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Trending pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }
 
 // GET: Cron-triggered trending research (weekly)
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get('authorization');
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret && process.env.NODE_ENV === 'production') {
-    return apiError('CRON_SECRET required in production', 500, 'CONFIG_ERROR');
-  }
-
-  if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-    return apiError('Unauthorized', 401, 'AUTH_REQUIRED');
-  }
+  // T17 DEPLOY-MED-003: shared verifyCronBearer helper (timing-safe).
+  const denial = verifyCronBearer(req, { routeName: 'agent-trending' });
+  if (denial) return denial;
 
   if (!process.env.ANTHROPIC_API_KEY) {
     return apiSuccess({ skipped: true, reason: 'ANTHROPIC_API_KEY not configured' });
@@ -73,8 +67,12 @@ export async function GET(req: NextRequest) {
     const result = await runTrendingPipeline();
     return apiSuccess(result);
   } catch (e: unknown) {
-    const message = e instanceof Error ? e.message : String(e);
-    console.error('Trending cron failed:', message);
-    return apiError(`Trending pipeline failed: ${message}`, 500, 'SERVER_ERROR');
+    // API-MED-002 (B): log full error; sanitize response.
+    console.error('[agent/trending] cron failed:', e);
+    return apiError(
+      sanitizeErrorMessage(e, 'Trending pipeline failed'),
+      500,
+      'SERVER_ERROR',
+    );
   }
 }

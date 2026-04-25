@@ -2,24 +2,28 @@
 // ROOT LAYOUT — SEO, a11y, error boundary, PWA
 // Stage 10 Part 2 — REPLACES Stage 1 layout
 // BUG-10F: Exo 2/Sora/Orbitron — NEVER Fredoka/Nunito
+// DES-06: Fonts via Google Fonts CDN (next/font/google requires
+//         build-time internet, unavailable in some CI environments)
 // ════════════════════════════════════════════════════
 
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import './globals-a11y.css';
 import QueryProvider from '@/components/providers/QueryProvider';
+import { NextIntlClientProvider } from 'next-intl';
+import { getLocale, getMessages } from 'next-intl/server';
 import { A11yProvider } from '@/components/accessibility/A11yProvider';
+import { BrightnessEffect } from '@/components/accessibility/BrightnessEffect';
+import { LenisProvider } from '@/components/providers/LenisProvider';
 import { OfflineBanner } from '@/components/ui/OfflineBanner';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
+import { CommandPalette } from '@/components/ui/CommandPalette';
 // REMOVED (D3D-1): DeviceSelectionModal — desktop-only platform, no device selection
 
 // ── Fonts ──
 // Loaded via Google Fonts CDN with preconnect + display=swap for performance.
-// next/font/google requires build-time internet (not available in all CI envs).
-// FUTURE: Migrate to next/font/local with self-hosted woff2 files in public/fonts/
-// for zero-latency loading and no third-party privacy exposure.
-// CSS variables (--font-display, --font-body, --font-mono, --font-data)
-// are set in globals.css so Tailwind fontFamily can reference them.
+// DES-07 fallback metrics defined in globals.css prevent CLS during font swap.
+// CSS variables (--font-display, --font-body, --font-mono, --font-data) set in :root.
 
 // ── SEO Metadata ──────────────────────────────────
 
@@ -88,15 +92,27 @@ export const viewport: Viewport = {
 
 // ── Root Layout ───────────────────────────────────
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // UX-ENH-010 (Recommended): resolve active locale + message bundle
+  // from the NEXT_LOCALE cookie (see src/i18n/request.ts).
+  const locale = await getLocale();
+  const messages = await getMessages();
+
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html
+      lang={locale}
+      className="dark"
+      style={{ colorScheme: 'dark' }}
+      suppressHydrationWarning
+    >
       <head>
-        {/* Google Fonts — Exo 2, Sora, JetBrains Mono, Orbitron (BUG-10F) */}
+        {/* Google Fonts — CDN with preconnect + display=swap */}
+        {/* DES-06: next/font/google requires build-time internet (unavailable in CI).
+            Using CDN <link> approach. DES-07 fallback metrics in globals.css prevent CLS. */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -114,14 +130,26 @@ export default function RootLayout({
           Skip to main content
         </a>
 
+        <NextIntlClientProvider locale={locale} messages={messages}>
         <A11yProvider>
           <ErrorBoundary>
             <QueryProvider>
-              <OfflineBanner />
-              <main id="main-content">{children}</main>
+              {/* UX-MED-005 (A): mirror cockpitStore.brightness to
+                  --sf-brightness; read by body-level filter rule in
+                  globals.css (canvas elements excluded). */}
+              <BrightnessEffect />
+              {/* Phase 4 §10.4: Lenis smooth scroll provider. Momentum-based
+                  scrolling for all scrollable views. Respects prefers-reduced-motion. */}
+              <LenisProvider>
+                <OfflineBanner />
+                <main id="main-content">{children}</main>
+                {/* Phase 5 #7 UX-ENH: ⌘K palette. Feature-flag gated. */}
+                <CommandPalette />
+              </LenisProvider>
             </QueryProvider>
           </ErrorBoundary>
         </A11yProvider>
+        </NextIntlClientProvider>
 
         {/* Screen reader live region */}
         <div

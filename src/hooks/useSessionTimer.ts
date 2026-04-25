@@ -5,7 +5,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { createClient } from '@/lib/supabase/client';
 
 interface TimerState {
@@ -17,7 +17,11 @@ interface TimerState {
 }
 
 export function useSessionTimer(): TimerState {
-  const activeChild = useChildStore((s) => s.activeChild);
+  // STATE-MED-001 (B-full/T5c-C1): read from React Query cache so a
+  // parent changing the daily_time_limit_minutes in one tab propagates
+  // to this tab after the focus-revalidation refetch (without waiting
+  // for a reload).
+  const activeChild = useActiveChild();
 
   const [state, setState] = useState<TimerState>({
     limitMinutes: null,

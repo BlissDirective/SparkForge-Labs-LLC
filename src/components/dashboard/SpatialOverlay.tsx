@@ -43,7 +43,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
           className="flex items-center gap-3"
         >
           <div className="w-2 h-2 rounded-full bg-neon-blue animate-glow-pulse" />
-          <span className="font-display text-xs tracking-[0.3em] uppercase text-white/40">
+          <span className="font-display text-xs tracking-[0.3em] uppercase text-white/70">
             Command Bridge
           </span>
         </motion.div>
@@ -96,7 +96,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
                   >
                     {focusedLab.title}
                   </h3>
-                  <p className="text-xs text-white/40 font-mono uppercase tracking-wider">
+                  <p className="text-xs text-white/70 font-mono uppercase tracking-wider">
                     {focusedLab.subtitle}
                   </p>
                 </div>
@@ -110,7 +110,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
               {/* Completion bar */}
               <div className="mb-4">
                 <div className="flex justify-between text-xs mb-1">
-                  <span className="text-white/40 font-mono">PROGRESS</span>
+                  <span className="text-white/70 font-mono">PROGRESS</span>
                   <span
                     className="font-data"
                     style={{ color: focusedLab.tint }}
@@ -131,7 +131,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
 
               {/* Games list */}
               <div className="mb-4">
-                <p className="text-xs text-white/30 font-mono uppercase mb-2">
+                <p className="text-xs text-white/60 font-mono uppercase mb-2">
                   {focusedLab.games.length} Games
                 </p>
                 <div className="space-y-1.5">
@@ -148,7 +148,7 @@ export function SpatialOverlay({ labCompletions = {} }: SpatialOverlayProps) {
                     </div>
                   ))}
                   {focusedLab.games.length > 3 && (
-                    <p className="text-xs text-white/20 font-mono">
+                    <p className="text-xs text-white/55 font-mono">
                       +{focusedLab.games.length - 3} more
                     </p>
                   )}

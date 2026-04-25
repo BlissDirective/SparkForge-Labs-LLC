@@ -268,7 +268,7 @@ function VocabTowers() {
     }
     blocksRef.current.instanceMatrix.needsUpdate = true;
     if (blocksRef.current.instanceColor) blocksRef.current.instanceColor.needsUpdate = true;
-  }, [count, 'ultra']);
+  }, [count]);
 
   return (
     <instancedMesh ref={blocksRef} args={[undefined, undefined, count]} castShadow>

@@ -60,7 +60,6 @@ interface AuditResult {
 let _anthropic: ReturnType<typeof createAnthropicClient> | null = null;
 
 function createAnthropicClient() {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const Anthropic = require('@anthropic-ai/sdk');
   return new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY }) as {
     messages: { create: (params: Record<string, unknown>) => Promise<{ content: { type: string; text?: string }[] }> };

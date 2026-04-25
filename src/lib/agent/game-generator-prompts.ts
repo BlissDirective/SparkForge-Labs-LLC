@@ -81,7 +81,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
 import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useGameContent } from '@/hooks/useContent';
 \`\`\`

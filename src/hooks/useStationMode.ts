@@ -3,38 +3,32 @@
 import { useState, useMemo, useCallback } from 'react';
 import { usePathname } from 'next/navigation';
 import { useSceneStore } from '@/stores/sceneStore';
-import {
-  BLOOM_PRESETS,
-  CAMERA_PRESETS,
-  VIGNETTE_PRESETS,
-  HUD_PRESETS,
-  SIDE_PANEL_PRESETS,
-  PANEL_CURVATURE_PRESETS,
-  PANEL_OPACITY_PRESETS,
-  STATUS_BAR_PRESETS,
-} from '@/lib/3d/cockpitConfig';
 import type { SidePanelContent } from '@/lib/3d/cockpitConfig';
+// Phase 5 §6.3 / O.3-MAX: Source CPA fields from the unified
+// COCKPIT_MODE_PRESETS instead of the 8 fragmented preset objects that
+// previously lived in cockpitConfig.ts. Game-mode FOV is now authoritatively
+// 72 (was 52 in the deleted CAMERA_PRESETS, which never matched what the
+// renderer actually used via useCockpitScene).
+import { COCKPIT_MODE_PRESETS } from '@/lib/3d/cockpitModePresets';
+import type { CockpitMode } from '@/lib/3d/cockpitModePresets';
 import { LAB_COLORS, LAB_NAMES, DEFAULT_LED_COLOR } from '@/config/labs';
 
-// useStationMode — Laboratory Control Station Mode Manager
+// useCockpitMode (formerly useStationMode) — Laboratory Control Station Mode Manager
 // Decisions: 2.1 (all pages), 3.4 (dimmed during games)
 // CPA v1.0: Extended with bloom, vignette, FOV, HUD, cockpit fields
 // Drives: LED rim color, aurora bg, particle behavior, frame glow,
 //         cockpit panels, HUD, side panels, status bar, bloom, camera
+//
+// Phase 2 Section 7 (Solution D): Unified on CockpitMode. StationMode is
+// retained as a deprecated alias for backward compatibility.
 
-export type StationMode =
-  | 'dashboard'
-  | 'labmap'
-  | 'lab'
-  | 'game'
-  | 'profile'
-  | 'celebration'
-  | 'onboarding'
-  | 'parent'
-  | 'admin';
+// Re-export CockpitMode for consumers that still import StationMode from here.
+export type { CockpitMode } from '@/lib/3d/cockpitModePresets';
+/** @deprecated Use CockpitMode from @/lib/3d/cockpitModePresets */
+export type StationMode = CockpitMode;
 
 export interface StationModeState {
-  mode: StationMode;
+  mode: CockpitMode;
   ledColor: string;
   bgIntensity: number;
   particleCount: number;
@@ -66,7 +60,7 @@ export interface StationModeState {
 
 // Lab colors, names, and default LED color imported from @/config/labs (single source of truth)
 
-export function useStationMode(): StationModeState & {
+export function useCockpitMode(): StationModeState & {
   setCelebration: (active: boolean) => void;
   setLabId: (id: number | null) => void;
 } {
@@ -78,8 +72,8 @@ export function useStationMode(): StationModeState & {
   const [celebrationActive, setCelebration] = useState(false);
   const [manualLabId, setLabId] = useState<number | null>(null);
 
-  // Derive mode from pathname
-  const derivedMode = useMemo((): StationMode => {
+  // Derive mode from pathname (Phase 2 Section 7: unified on CockpitMode)
+  const derivedMode = useMemo((): CockpitMode => {
     if (celebrationActive) return 'celebration';
     if (gameActive) return 'game';
     if (!pathname) return 'dashboard';
@@ -87,8 +81,10 @@ export function useStationMode(): StationModeState & {
     if (pathname.startsWith('/admin')) return 'admin';
     if (pathname.startsWith('/parent')) return 'parent';
     if (pathname.startsWith('/profile')) return 'profile';
-    if (pathname === '/labs') return 'labmap';
-    if (pathname.startsWith('/labs/')) return 'lab';
+    if (pathname.startsWith('/settings')) return 'settings';
+    if (pathname === '/arcade') return 'arcade';
+    if (pathname === '/labs') return 'labs';
+    if (pathname.startsWith('/labs/')) return 'lab_detail';
     if (pathname.startsWith('/home')) return 'dashboard';
     return 'dashboard';
   }, [pathname, gameActive, celebrationActive]);
@@ -110,34 +106,32 @@ export function useStationMode(): StationModeState & {
     ? LAB_NAMES[activeLabId] || ''
     : '';
 
-  // Helper: build CPA fields from presets for a given mode key
-  const buildCPAFields = useCallback((modeKey: StationMode) => {
-    const bloom = BLOOM_PRESETS[modeKey] || BLOOM_PRESETS.dashboard;
-    const camera = CAMERA_PRESETS[modeKey] || CAMERA_PRESETS.dashboard;
-    const vignette = VIGNETTE_PRESETS[modeKey] || VIGNETTE_PRESETS.dashboard;
-    const hud = HUD_PRESETS[modeKey] || HUD_PRESETS.dashboard;
-    const sidePanel = SIDE_PANEL_PRESETS[modeKey] || SIDE_PANEL_PRESETS.dashboard;
-    const statusBar = STATUS_BAR_PRESETS[modeKey] || STATUS_BAR_PRESETS.dashboard;
-    const panelCurvature = PANEL_CURVATURE_PRESETS[modeKey] ?? PANEL_CURVATURE_PRESETS.dashboard;
-    const panelOpacity = PANEL_OPACITY_PRESETS[modeKey] ?? PANEL_OPACITY_PRESETS.dashboard;
+  // Helper: build CPA fields from the unified COCKPIT_MODE_PRESETS.
+  // Phase 5 §6.3 / O.3-MAX: This replaces 8 separate fragmented preset
+  // objects (BLOOM_PRESETS, CAMERA_PRESETS, etc.) with reads against the
+  // single authoritative preset dictionary. Identical output shape —
+  // every downstream consumer (dashboard layout, cockpit canvas props)
+  // sees the same CPA fields.
+  const buildCPAFields = useCallback((modeKey: CockpitMode) => {
+    const preset = COCKPIT_MODE_PRESETS[modeKey] || COCKPIT_MODE_PRESETS.dashboard;
 
     return {
-      bloomIntensity: bloom.intensity,
-      bloomThreshold: bloom.threshold,
-      bloomSmoothing: bloom.smoothing,
-      vignetteDarkness: vignette.darkness,
-      vignetteOffset: vignette.offset,
-      cameraFov: camera.fov,
-      barrelDistortion: camera.distortion,
-      hudOpacity: hud.opacity,
-      hudRotationSpeed: hud.rotationSpeed,
-      hudPulseIntensity: hud.pulseIntensity,
-      sidePanelOpacity: sidePanel.opacity,
-      sidePanelLeftContent: sidePanel.leftContent as SidePanelContent,
-      sidePanelRightContent: sidePanel.rightContent as SidePanelContent,
-      statusBarOpacity: statusBar.opacity,
-      panelCurvature,
-      panelOpacity,
+      bloomIntensity: preset.bloom.intensity,
+      bloomThreshold: preset.bloom.threshold,
+      bloomSmoothing: preset.bloom.smoothing,
+      vignetteDarkness: preset.vignette.darkness,
+      vignetteOffset: preset.vignette.offset,
+      cameraFov: preset.camera.fov,
+      barrelDistortion: preset.camera.distortion,
+      hudOpacity: preset.hud.opacity,
+      hudRotationSpeed: preset.hud.rotationSpeed,
+      hudPulseIntensity: preset.hud.pulseIntensity,
+      sidePanelOpacity: preset.sidePanels.opacity,
+      sidePanelLeftContent: preset.sidePanels.leftContent as SidePanelContent,
+      sidePanelRightContent: preset.sidePanels.rightContent as SidePanelContent,
+      statusBarOpacity: preset.statusBar.opacity,
+      panelCurvature: preset.panels.curvature,
+      panelOpacity: preset.panels.opacity,
     };
   }, []);
 
@@ -160,9 +154,23 @@ export function useStationMode(): StationModeState & {
           activeLabName: '',
           ...cpa,
         };
-      case 'labmap':
+      case 'arcade':
         return {
-          mode: 'labmap',
+          mode: 'arcade',
+          ledColor: '#88CC44',       // Green-amber blend — game browser energy
+          bgIntensity: 0.2,
+          particleCount: 500,
+          particleSpeed: 0.6,
+          frameGlow: 0.6,
+          frameDimmed: false,
+          activeLabId: null,
+          activeLabColor: '#88CC44',
+          activeLabName: '',
+          ...cpa,
+        };
+      case 'labs':
+        return {
+          mode: 'labs',
           ledColor: DEFAULT_LED_COLOR,
           bgIntensity: 0.25,
           particleCount: 400,
@@ -174,9 +182,9 @@ export function useStationMode(): StationModeState & {
           activeLabName: '',
           ...cpa,
         };
-      case 'lab':
+      case 'lab_detail':
         return {
-          mode: 'lab',
+          mode: 'lab_detail',
           ledColor: activeLabColor,
           bgIntensity: 0.3,
           particleCount: 500,
@@ -217,6 +225,20 @@ export function useStationMode(): StationModeState & {
           activeLabName: '',
           ...cpa,
         };
+      case 'settings':
+        return {
+          mode: 'settings',
+          ledColor: '#FFAA44',
+          bgIntensity: 0.15,
+          particleCount: 250,
+          particleSpeed: 0.3,
+          frameGlow: 0.45,
+          frameDimmed: false,
+          activeLabId: null,
+          activeLabColor: '#FFAA44',
+          activeLabName: '',
+          ...cpa,
+        };
       case 'celebration':
         return {
           mode: 'celebration',
@@ -234,14 +256,14 @@ export function useStationMode(): StationModeState & {
       case 'onboarding':
         return {
           mode: 'onboarding',
-          ledColor: DEFAULT_LED_COLOR,
+          ledColor: '#FFAA44',       // Amber for welcoming onboarding vibe
           bgIntensity: 0.2,
           particleCount: 200,
           particleSpeed: 0.4,
           frameGlow: 0.4,
           frameDimmed: false,
           activeLabId: null,
-          activeLabColor: DEFAULT_LED_COLOR,
+          activeLabColor: '#FFAA44',
           activeLabName: '',
           ...cpa,
         };
@@ -264,14 +286,14 @@ export function useStationMode(): StationModeState & {
         // Stage 9: Admin content review — minimal cockpit, terminal aesthetic
         return {
           mode: 'admin',
-          ledColor: '#00FF88', // Green accent for admin/ops context
+          ledColor: '#FF4444', // Red accent for admin/ops context
           bgIntensity: 0.08,
           particleCount: 100,
           particleSpeed: 0.2,
           frameGlow: 0.25,
           frameDimmed: false,
           activeLabId: null,
-          activeLabColor: '#00FF88',
+          activeLabColor: '#FF4444',
           activeLabName: '',
           ...cpa,
         };
@@ -298,6 +320,10 @@ export function useStationMode(): StationModeState & {
     setLabId,
   };
 }
+
+// Phase 2 Section 7: Backward-compat alias. New code should use useCockpitMode.
+/** @deprecated Use useCockpitMode from the same module. */
+export const useStationMode = useCockpitMode;
 
 // ================================================================
 // v3 Stage 4 P2 Additions — Lab Transition Integration

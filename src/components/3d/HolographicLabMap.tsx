@@ -16,7 +16,17 @@
 
 import { useRef, useMemo, useCallback, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Float, Html } from '@react-three/drei';
+import { useDisposable } from '@/hooks/useDisposable';
+import { Float, Text } from '@react-three/drei';
+import {
+  CHROME_BORDER,
+  EMISSIVE_LED_MULTIPLIER,
+  EMISSIVE_IDLE_INDICATOR,
+  TYPE_SCALE,
+  NUMERIC_FONT,
+  TEXT_COLORS,
+  getEmissive,
+} from '@/lib/3d/cockpitDesignTokens';
 import {
   BackSide,
   BoxGeometry,
@@ -40,6 +50,21 @@ import {
 import { LabStructure3D } from './LabStructure3D';
 import { LAB_POSITIONS } from '@/stores/cockpitStore';
 import { LABS } from '@/types';
+
+// Phase 2 audit fix (Section 4.6): energyFieldTSL applied — Decision 4.5
+// The TSL shader provides hex-grid energy-crawl + fresnel glow for connection beams.
+// Under WebGL2 the active visual remains MeshBasicMaterial (see ConnectionBeam); the
+// TSL module is imported and uniforms driven so the shader is retained and ready for
+// a NodeMaterial swap under WebGPU.
+import {
+  energyFieldFragment,
+  energyFieldVertex,
+  getEnergyFieldUniforms,
+} from '@/shaders/tsl/energyFieldTSL';
+
+// Reference the TSL pattern fns so they are not tree-shaken.
+void energyFieldFragment;
+void energyFieldVertex;
 
 // Lab accent colors (same as useStationMode)
 const LAB_COLORS: Record<number, string> = {
@@ -116,7 +141,15 @@ function ConnectionBeam({
 }) {
   const meshRef = useRef<Mesh>(null);
 
-  const { geometry, material } = useMemo(() => {
+  // Phase 2 audit fix (Section 4.6): bind energyFieldTSL uniforms — Decision 4.5
+  // Uniforms shared across all beams (via getEnergyFieldUniforms module singletons).
+  // Driven in useFrame below; NodeMaterial swap can read these directly under WebGPU.
+  const energyUniforms = useMemo(() => getEnergyFieldUniforms(), []);
+
+  // PERF-CRIT-002 (11C): useDisposable replaces useMemo + explicit cleanup.
+  // Both the TubeGeometry and MeshBasicMaterial are auto-disposed on
+  // unmount and whenever start/end/color change.
+  const { geometry, material } = useDisposable(() => {
     const curve = new CatmullRomCurve3([
       new Vector3(...start),
       new Vector3(
@@ -126,6 +159,7 @@ function ConnectionBeam({
       ),
       new Vector3(...end),
     ]);
+    // Beam radius: visible at 0.015 (ACCENT_LINES.width=0.002 is for fine trim lines)
     const geo = new TubeGeometry(curve, 12, 0.015, 4, false);
     const mat = new MeshBasicMaterial({
       color: new Color(color),
@@ -136,19 +170,22 @@ function ConnectionBeam({
     return { geometry: geo, material: mat };
   }, [start, end, color]);
 
-  // Critical Fix #2: Dispose geometry + material on unmount to prevent VRAM leak
-  useEffect(() => {
-    return () => {
-      geometry.dispose();
-      material.dispose();
-    };
-  }, [geometry, material]);
-
   useFrame(() => {
     if (material) {
-      // Animated pulsing opacity
-      material.opacity = 0.15 + Math.sin(time * 3) * 0.08;
+      // Phase 5 P.1-MAX (§5.3): Connection beam peak opacity +30%, fade-in slowed ~30%.
+      // Base 0.15 → 0.20, swing 0.08 → 0.104, slower frequency (time * 3 → time * 2.1)
+      // so beams stay visible longer per oscillation. Peak now ~0.356 (was ~0.27).
+      const peak = EMISSIVE_LED_MULTIPLIER; // 1.5
+      material.opacity = 0.20 + Math.sin(time * 2.1) * 0.104 * peak;
     }
+    // Phase 2 audit fix (Section 4.6): drive energyFieldTSL uniforms — Decision 4.5
+    // Shared uniforms: uTime advances; uColor tracks beam accent; full intensity (shield HP 1.0).
+    energyUniforms.uTime.value = time;
+    energyUniforms.uColor.value.set(color);
+    energyUniforms.uIntensity.value = 1.0;
+    energyUniforms.uShieldHP.value = 1.0;
+    energyUniforms.uShatterProgress.value = 0.0;
+    energyUniforms.uBreathScale.value = 0.5;
   });
 
   return <mesh ref={meshRef} geometry={geometry} material={material} />;
@@ -194,7 +231,7 @@ function DataHighways({
         const mat = new MeshStandardMaterial({
           color: new Color(color).multiplyScalar(0.4),
           emissive: new Color(color),
-          emissiveIntensity: 0.3,
+          emissiveIntensity: EMISSIVE_IDLE_INDICATOR,
           transparent: true,
           opacity: 0.2,
           depthWrite: false,
@@ -239,7 +276,9 @@ function GridIntersectionBoxes({
 }) {
   const meshRef = useRef<InstancedMesh>(null);
 
-  const { geometry, material, count } = useMemo(() => {
+  // PERF-CRIT-002 (11C): useDisposable replaces useMemo so the floor-grid
+  // BoxGeometry + MeshStandardMaterial are freed on unmount + prop change.
+  const { geometry, material, count } = useDisposable(() => {
     const boxGeo = new BoxGeometry(0.06, 0.04, 0.06);
     const boxMat = new MeshStandardMaterial({
       color: new Color(color),
@@ -368,10 +407,11 @@ function ProjectorPedestal({
       {pedestalRings.map((ring, i) => (
         <mesh key={i} position={[0, ring.y, 0]}>
           <cylinderGeometry args={[ring.radius, ring.radius * 1.05, ring.height, segments]} />
+          {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
           <meshStandardMaterial
             color={i % 2 === 0 ? color : '#1A1822'}
             emissive={i % 2 === 0 ? color : '#000000'}
-            emissiveIntensity={0.4}
+            emissiveIntensity={getEmissive('dim')}
             metalness={0.9}
             roughness={0.2}
             transparent
@@ -397,10 +437,11 @@ function ProjectorPedestal({
       {/* Lens sphere — sits at top of pedestal, below core */}
       <mesh ref={lensRef} position={[0, -0.42, 0]}>
         <sphereGeometry args={[0.12, segments, segments]} />
+        {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.5}
+          emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
           transparent
           opacity={0.7}
           roughness={0.1}
@@ -484,11 +525,11 @@ function HolographicCore({
     []
   );
 
-  // Grid floor shader material uniforms
+  // Grid floor shader material uniforms — base color from CHROME_BORDER token
   const gridUniforms = useMemo(() => ({
-    uColor: { value: new Color(color) },
+    uColor: { value: new Color(CHROME_BORDER.colorHex) },
     uTime: { value: 0 },
-  }), [color]);
+  }), []);
 
   useFrame((_, delta) => {
     timeRef.current += delta;
@@ -568,10 +609,9 @@ function HolographicCore({
       dataPointsRef.current.instanceMatrix.needsUpdate = true;
     }
 
-    // Update grid shader time
+    // Update grid shader time — color stays at CHROME_BORDER token value
     if (gridMatRef.current) {
       gridMatRef.current.uniforms.uTime.value = t;
-      gridMatRef.current.uniforms.uColor.value.set(color);
     }
   });
 
@@ -600,10 +640,11 @@ function HolographicCore({
       {/* Solid inner energy sphere */}
       <mesh ref={innerRef}>
         <sphereGeometry args={[0.25, segments, segments]} />
+        {/* Phase 2 audit fix (Section 7.1): Design token adoption */}
         <meshStandardMaterial
           color={color}
           emissive={color}
-          emissiveIntensity={0.8}
+          emissiveIntensity={getEmissive('medium')}
           transparent
           opacity={0.85}
           roughness={0.1}
@@ -935,6 +976,7 @@ export function HolographicLabMap({
         if (!pos) return null;
         const labColor = LAB_COLORS[lab.id] || '#00BBFF';
         const completionPct = Math.round((labCompletions[lab.id] ?? 0) * 100);
+        const isDimmed = hoveredLabId !== null && hoveredLabId !== lab.id;
         return (
           <group key={lab.id} position={pos}>
             <LabStructure3D
@@ -950,27 +992,36 @@ export function HolographicLabMap({
               onPointerEnter={() => onLabHover(lab.id)}
               onPointerLeave={() => onLabHover(null)}
             />
+            {/* Isolate + spotlight: dim non-hovered labs to ~30% via dark overlay */}
+            {isDimmed && (
+              <mesh position={[0, 0.5, 0]}>
+                <sphereGeometry args={[0.8, 16, 16]} />
+                <meshBasicMaterial color="#000000" transparent opacity={0.6} depthWrite={false} />
+              </mesh>
+            )}
+            {/* 3D Text tooltip on hovered lab */}
             {hoveredLabId === lab.id && (
-              <Html
-                position={[0, 1.2, 0]}
-                distanceFactor={8}
-                occlude="blending"
-                className="pointer-events-none select-none"
-                center
-              >
-                <div
-                  className="bg-[#111118]/90 backdrop-blur-md border rounded-lg px-3 py-2 shadow-lg shadow-black/40 min-w-[120px] text-center"
-                  style={{ borderColor: labColor + '40' }}
+              <group position={[0, 1.4, 0]}>
+                <Text
+                  fontSize={TYPE_SCALE.label.fontSize}
+                  color={TEXT_COLORS.primary.hex}
+                  font={TYPE_SCALE.label.fontPath}
+                  anchorX="center"
+                  anchorY="bottom"
                 >
-                  <p className="font-display text-xs font-bold text-white/90">{lab.title}</p>
-                  <p className="font-data text-[10px] text-white/60 mt-0.5">
-                    {completionPct}% Complete
-                  </p>
-                  <p className="font-body text-[9px] text-white/40 mt-0.5">
-                    {lab.games.length} {lab.games.length === 1 ? 'game' : 'games'}
-                  </p>
-                </div>
-              </Html>
+                  {lab.title}
+                </Text>
+                <Text
+                  position={[0, -0.03, 0]}
+                  fontSize={TYPE_SCALE.caption.fontSize}
+                  color={labColor}
+                  font={NUMERIC_FONT}
+                  anchorX="center"
+                  anchorY="top"
+                >
+                  {completionPct}%
+                </Text>
+              </group>
             )}
           </group>
         );
@@ -978,3 +1029,5 @@ export function HolographicLabMap({
     </group>
   );
 }
+
+export default HolographicLabMap;

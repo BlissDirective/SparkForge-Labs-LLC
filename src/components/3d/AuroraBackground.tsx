@@ -5,12 +5,17 @@
 // ================================================================
 // Decision 2.5: Background behind station frame
 // Decision 4.6: Aurora is the frame's own glow, not separate space
+// Decision 19.1: 3 ribbons — three overlapping at different depths
+// Decision 19.2: Mode-tinted — ribbons shift toward mode LED color
+// Decision 19.3: Gentle flow (0.6) — visible flowing motion
 // 20M UPGRADE: Volumetric aurora layers with 3D depth geometry
 // Triangle budget: ~50,000 (was 2 — single plane)
 //
 // Now renders 6 layered planes at varying depths with individual
 // shader materials, plus 3 volumetric ribbon meshes using
 // TubeGeometry for parallax depth.
+// Color crossfade uses PARTICLE_CROSSFADE_S (1.5s) for smooth
+// transitions. Mode tinting uses SURFACE_TINT_BLEND (0.05).
 
 import { useRef, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
@@ -20,6 +25,7 @@ import {
   Color,
   DoubleSide,
   Group,
+  MathUtils,
   Mesh,
   MeshBasicMaterial,
   TubeGeometry,
@@ -27,6 +33,10 @@ import {
   Vector3,
 } from 'three';
 import { auroraFragmentShader, auroraVertexShader } from '@/shaders/index';
+import {
+  PARTICLE_CROSSFADE_S,
+  SURFACE_TINT_BLEND,
+} from '@/lib/3d/cockpitDesignTokens';
 
 interface AuroraBackgroundProps {
   intensity?: number;
@@ -34,6 +44,8 @@ interface AuroraBackgroundProps {
   color1?: string;
   color2?: string;
   color3?: string;
+  /** Current mode/lab LED color — ribbons subtly tint toward this */
+  modeColor?: string;
 }
 
 // ── Volumetric Ribbon (TubeGeometry aurora band) ─────────────
@@ -48,6 +60,7 @@ function AuroraRibbon({
   color,
   opacity,
   speed,
+  onMaterialReady,
 }: {
   yOffset: number;
   zOffset: number;
@@ -58,6 +71,7 @@ function AuroraRibbon({
   color: Color;
   opacity: number;
   speed: number;
+  onMaterialReady?: (mat: MeshBasicMaterial) => void;
 }) {
   const meshRef = useRef<Mesh>(null);
   const timeRef = useRef(0);
@@ -83,8 +97,9 @@ function AuroraRibbon({
       depthWrite: false,
       blending: AdditiveBlending,
     });
+    onMaterialReady?.(mat);
     return { geometry: geo, material: mat };
-  }, [yOffset, zOffset, amplitude, frequency, tubeRadius, segments, color, opacity]);
+  }, [yOffset, zOffset, amplitude, frequency, tubeRadius, segments, color, opacity, onMaterialReady]);
 
   useFrame(({ clock }) => {
     timeRef.current = clock.elapsedTime;
@@ -102,21 +117,36 @@ function AuroraRibbon({
 
 export function AuroraBackground({
   intensity = 0.15,
-  speed = 1.0,
+  speed = 0.6,
   color1 = '#3B82F6', // Blue
   color2 = '#8B5CF6', // Purple
   color3 = '#06B6D4', // Teal
+  modeColor,
 }: AuroraBackgroundProps) {
   const groupRef = useRef<Group>(null);
   const layerRefs = useRef<Mesh[]>([]);
   const { viewport } = useThree();
 
-  // Parse colors
-  const colors = useMemo(() => ({
-    c1: new Color(color1),
-    c2: new Color(color2),
-    c3: new Color(color3),
-  }), [color1, color2, color3]);
+  // Crossfade targets — smoothly interpolate toward mode-tinted colors
+  const crossfadeRef = useRef({ c1: new Color(color1), c2: new Color(color2), c3: new Color(color3) });
+  const modeColorRef = useRef<Color | null>(modeColor ? new Color(modeColor) : null);
+
+  // Parse base colors, then tint toward modeColor using SURFACE_TINT_BLEND
+  const colors = useMemo(() => {
+    const c1 = new Color(color1);
+    const c2 = new Color(color2);
+    const c3 = new Color(color3);
+    if (modeColor) {
+      const mc = new Color(modeColor);
+      modeColorRef.current = mc;
+      c1.lerp(mc, SURFACE_TINT_BLEND);
+      c2.lerp(mc, SURFACE_TINT_BLEND);
+      c3.lerp(mc, SURFACE_TINT_BLEND);
+    } else {
+      modeColorRef.current = null;
+    }
+    return { c1, c2, c3 };
+  }, [color1, color2, color3, modeColor]);
 
   // Layer definitions: z-depth, opacity multiplier, color index, scale
   const layers = useMemo(() => [
@@ -146,17 +176,35 @@ export function AuroraBackground({
   // Ribbon params for volumetric effect
   const ribbonSegments = Math.max(64 * 2, 32);
 
-  // Update all layer uniforms each frame
-  useFrame(({ clock }) => {
-    const t = clock.elapsedTime;
+  // Ribbon material refs for crossfade tinting
+  const ribbonMaterialRefs = useRef<MeshBasicMaterial[]>([]);
+
+  // Update all layer uniforms each frame + crossfade ribbon colors
+  useFrame((state, delta) => {
+    const t = state.clock.elapsedTime;
+
+    // Smoothly crossfade toward target colors (PARTICLE_CROSSFADE_S duration)
+    const lerpFactor = MathUtils.clamp(delta / PARTICLE_CROSSFADE_S, 0, 1);
+    const cf = crossfadeRef.current;
+    cf.c1.lerp(colors.c1, lerpFactor);
+    cf.c2.lerp(colors.c2, lerpFactor);
+    cf.c3.lerp(colors.c3, lerpFactor);
+
+    // Update ribbon materials with crossfaded colors
+    const ribbonColors = [cf.c1, cf.c2, cf.c3];
+    for (let r = 0; r < ribbonMaterialRefs.current.length; r++) {
+      const mat = ribbonMaterialRefs.current[r];
+      if (mat) mat.color.copy(ribbonColors[r]);
+    }
+
     for (let i = 0; i < layerUniforms.length; i++) {
       const u = layerUniforms[i];
       u.uTime.value = t + i * 0.5; // Phase offset per layer
       u.uIntensity.value = intensity * layers[i].opMult;
       u.uSpeed.value = speed * (1.0 - i * 0.1);
-      u.uColor1.value.set(color1);
-      u.uColor2.value.set(color2);
-      u.uColor3.value.set(color3);
+      u.uColor1.value.copy(cf.c1);
+      u.uColor2.value.copy(cf.c2);
+      u.uColor3.value.copy(cf.c3);
     }
   });
 
@@ -185,7 +233,7 @@ export function AuroraBackground({
         </mesh>
       ))}
 
-      {/* Volumetric aurora ribbons for 3D depth */}
+      {/* Volumetric aurora ribbons for 3D depth (Decision 19.1: exactly 3 ribbons) */}
       {(
         <>
           <AuroraRibbon
@@ -198,6 +246,7 @@ export function AuroraBackground({
             color={colors.c1}
             opacity={intensity * 0.12}
             speed={speed}
+            onMaterialReady={(mat) => { ribbonMaterialRefs.current[0] = mat; }}
           />
           <AuroraRibbon
             yOffset={-1}
@@ -209,6 +258,7 @@ export function AuroraBackground({
             color={colors.c2}
             opacity={intensity * 0.08}
             speed={speed * 0.8}
+            onMaterialReady={(mat) => { ribbonMaterialRefs.current[1] = mat; }}
           />
           <AuroraRibbon
             yOffset={3.5}
@@ -220,6 +270,7 @@ export function AuroraBackground({
             color={colors.c3}
             opacity={intensity * 0.06}
             speed={speed * 0.6}
+            onMaterialReady={(mat) => { ribbonMaterialRefs.current[2] = mat; }}
           />
         </>
       )}

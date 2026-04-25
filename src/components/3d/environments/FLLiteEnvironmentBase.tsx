@@ -65,7 +65,7 @@ export function FLLiteTerrain({
     }
     geo.computeVertexNormals();
     return geo;
-  }, [size, heightScale, 512]);
+  }, [size, heightScale]);
 
   const material = useMemo(() =>
     new MeshStandardMaterial({ color: new Color(color), roughness: 0.85, metalness: 0.1, envMapIntensity: 0.3 }),

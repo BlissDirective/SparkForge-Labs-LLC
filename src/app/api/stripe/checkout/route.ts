@@ -6,10 +6,11 @@
 // ════════════════════════════════════════════════════
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
-import { STRIPE_PRICES } from '@/lib/tier-config';
+import { STRIPE_PRICES, TRIAL_DAYS } from '@/lib/tier-config';
 import { apiSuccess, apiError, requireAuth, parseBody } from '@/lib/api-helpers';
 import { CheckoutSchema } from '@/lib/validations';
 import { getStripe } from '@/lib/stripe';
+import type Stripe from 'stripe';
 
 export const runtime = 'nodejs';
 
@@ -46,9 +47,22 @@ export async function POST(req: NextRequest) {
   const supabase = await createServerSupabase();
   const { data: parent } = await supabase
     .from('parents')
-    .select('stripe_customer_id, email')
+    .select('stripe_customer_id, stripe_subscription_id, email, email_verified_at')
     .eq('id', auth.user.id)
     .single();
+
+  // AUTH-HIGH-004 (4A): Gate only the act of subscribing. Free and paid
+  // features elsewhere remain accessible; we only block the Stripe
+  // checkout until the parent confirms they own the email. This
+  // prevents someone from completing a purchase with an email they
+  // don't actually control.
+  if (!parent?.email_verified_at) {
+    return apiError(
+      'Please verify your email before subscribing. Check your inbox for the confirmation link.',
+      403,
+      'EMAIL_VERIFICATION_REQUIRED',
+    );
+  }
 
   let customerId = parent?.stripe_customer_id;
 
@@ -68,17 +82,38 @@ export async function POST(req: NextRequest) {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000';
 
+  // v3 Gap 2: Only grant trial days to first-time subscribers.
+  // If stripe_subscription_id is already set, this parent has
+  // subscribed before — no trial (prevents trial abuse).
+  const isFirstTimeSubscriber = !parent?.stripe_subscription_id;
+  const trialDays = isFirstTimeSubscriber ? TRIAL_DAYS[tier] ?? 0 : 0;
+
+  const subscriptionData: Stripe.Checkout.SessionCreateParams.SubscriptionData = {
+    metadata: {
+      supabase_id: auth.user.id,
+      tier,
+    },
+  };
+  if (trialDays > 0) {
+    subscriptionData.trial_period_days = trialDays;
+  }
+
   // Create Checkout Session
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/parent/subscription?success=true`,
+    // PAY-HIGH-003 (B): Pass the Stripe checkout session id back on
+    // redirect. The success page calls GET /api/stripe/session-status
+    // to verify the session actually completed + is owned by the
+    // authed user, instead of trusting a forgeable ?success=true flag.
+    success_url: `${appUrl}/parent/subscription?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${appUrl}/parent/subscription?canceled=true`,
     metadata: {
       supabase_id: auth.user.id,
       tier,
     },
+    subscription_data: subscriptionData,
   });
 
   return apiSuccess({ url: session.url });

@@ -17,14 +17,15 @@
 // ════════════════════════════════════════════════════════════════════════
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   BookOpen,
   Database,
@@ -34,6 +35,9 @@ import {
   CheckCircle2,
   XCircle,
 } from 'lucide-react';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const BuildClassifierEnvironment = dynamic(
@@ -55,12 +59,14 @@ interface TestImage {
   correct?: boolean;
 }
 
-const CATEGORIES = ['Animal', 'Food', 'Vehicle'];
+const CATEGORIES = ['Animal', 'Food', 'Vehicle', 'Weather', 'Emotion'];
 
 const CATEGORY_COLORS: Record<string, string> = {
   Animal: '#10B981',
   Food: '#F59E0B',
   Vehicle: '#3B82F6',
+  Weather: '#60A5FA',
+  Emotion: '#F472B6',
 };
 
 const TRAINING_POOL: TrainingImage[] = [
@@ -82,6 +88,18 @@ const TRAINING_POOL: TrainingImage[] = [
   { emoji: '🚲', label: 'Vehicle' },
   { emoji: '🚢', label: 'Vehicle' },
   { emoji: '🚁', label: 'Vehicle' },
+  { emoji: '☀️', label: 'Weather' },
+  { emoji: '🌧️', label: 'Weather' },
+  { emoji: '⛈️', label: 'Weather' },
+  { emoji: '❄️', label: 'Weather' },
+  { emoji: '🌪️', label: 'Weather' },
+  { emoji: '🌈', label: 'Weather' },
+  { emoji: '😊', label: 'Emotion' },
+  { emoji: '😢', label: 'Emotion' },
+  { emoji: '😠', label: 'Emotion' },
+  { emoji: '😮', label: 'Emotion' },
+  { emoji: '😴', label: 'Emotion' },
+  { emoji: '😍', label: 'Emotion' },
 ];
 
 const TEST_IMAGES: TestImage[] = [
@@ -94,12 +112,18 @@ const TEST_IMAGES: TestImage[] = [
   { emoji: '🚂', trueLabel: 'Vehicle' },
   { emoji: '🛵', trueLabel: 'Vehicle' },
   { emoji: '🚤', trueLabel: 'Vehicle' },
+  { emoji: '🌤️', trueLabel: 'Weather' },
+  { emoji: '🌊', trueLabel: 'Weather' },
+  { emoji: '🌫️', trueLabel: 'Weather' },
+  { emoji: '🤔', trueLabel: 'Emotion' },
+  { emoji: '😱', trueLabel: 'Emotion' },
+  { emoji: '🥳', trueLabel: 'Emotion' },
 ];
 
 // Tricky items — ambiguous to simulate classifier errors
 const TRICK_TESTS: TestImage[] = [
   { emoji: '🐴', trueLabel: 'Animal' }, // horse — might confuse with vehicle (horsepower?)
-  { emoji: '🌵', trueLabel: 'Food' }, // cactus — not food but might confuse
+  { emoji: '🧸', trueLabel: 'Animal' }, // teddy bear — looks like animal but isn't
   { emoji: '🛒', trueLabel: 'Vehicle' }, // shopping cart — has wheels but...
 ];
 
@@ -127,13 +151,18 @@ const LEARN_CARDS = [
 ];
 
 export function BuildClassifierGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('build-classifier', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const { data: _dynamicContent } = useGameContent('build-classifier', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const mountedRef = useRef(true);
   const [phase, setPhase] = useState<Phase>('welcome');
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const trainingPool = useFilteredContent(TRAINING_POOL as any[], tier, ageBand) as typeof TRAINING_POOL;
   const [learnIdx, setLearnIdx] = useState(0);
 
   // Collect phase
@@ -168,7 +197,7 @@ export function BuildClassifierGame() {
     []
   );
 
-  const currentImage = TRAINING_POOL[currentPoolIdx];
+  const currentImage = trainingPool[currentPoolIdx];
 
   const dataBalance = CATEGORIES.map((c) => ({
     cat: c,
@@ -180,21 +209,23 @@ export function BuildClassifierGame() {
       ...prev,
       { emoji: currentImage.emoji, assignedLabel: category },
     ]);
-    if (currentPoolIdx < TRAINING_POOL.length - 1) setCurrentPoolIdx((i) => i + 1);
+    if (currentPoolIdx < trainingPool.length - 1) setCurrentPoolIdx((i) => i + 1);
     else setPhase('train');
   }
 
   function skipImage() {
-    if (currentPoolIdx < TRAINING_POOL.length - 1) setCurrentPoolIdx((i) => i + 1);
+    if (currentPoolIdx < trainingPool.length - 1) setCurrentPoolIdx((i) => i + 1);
     else if (labeledData.length >= 9) setPhase('train');
   }
 
   async function startTraining() {
     setIsTraining(true);
     for (let i = 0; i <= 100; i += 5) {
+      if (!mountedRef.current) return; // STD-BC1: abort if unmounted
       setTrainingProgress(i);
-      await new Promise((r) => setTimeout(r, 80));
+      await new Promise<void>((r) => safeTimeout(r, 80));
     }
+    if (!mountedRef.current) return; // STD-BC1: abort if unmounted
     setIsTraining(false);
     setPhase('test');
   }
@@ -206,19 +237,21 @@ export function BuildClassifierGame() {
 
     if (correct) game.updateScore(8);
 
+    // STD-BC2: Track progress internally instead of calling game.advanceRound()
+    // which triggers isComplete prematurely when rounds run out.
     if (testIdx < allTests.length - 1) {
       setTestIdx((i) => i + 1);
-      game.advanceRound();
     } else {
-      setTimeout(() => setPhase('results'), 500);
+      safeTimeout(() => setPhase('results'), 500);
     }
   }
 
   function finishGame() {
+    // STD-BC3: Add bonus score BEFORE completeGame() so reward pipeline sees final score
     const correctCount = testResults.filter((r) => r.correct).length;
     game.updateScore(correctCount >= allTests.length * 0.8 ? 15 : 5);
-    setPhase('complete');
     game.completeGame();
+    setPhase('complete');
   }
 
   // Confusion matrix for results
@@ -248,12 +281,17 @@ export function BuildClassifierGame() {
     return () => setGameSceneContent(null);
   }, [accuracy, testResults.length, setGameSceneContent]);
 
+  // STD-BC1: Cleanup mountedRef on unmount to cancel async training loop
+  useEffect(() => {
+    return () => { mountedRef.current = false; };
+  }, []);
+
   return (
     <GameShell
       gameId="build-classifier"
       title="Build a Classifier"
       worldNumber={7}
-      worldColor="#06B6D4"
+      worldColor="#10BAD2"
       totalRounds={allTests.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
@@ -271,8 +309,8 @@ export function BuildClassifierGame() {
                 background:
                   'radial-gradient(circle, rgba(6,182,212,0.15), transparent)',
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -301,8 +339,8 @@ export function BuildClassifierGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                     >
                       🤖
                     </motion.span>
@@ -375,7 +413,7 @@ export function BuildClassifierGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('collect')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                     >
                       Skip intro →
                     </button>
@@ -398,14 +436,14 @@ export function BuildClassifierGame() {
                             className={`w-5 h-5 rounded-full flex items-center justify-center text-2xs font-bold ${
                               i === 0
                                 ? 'bg-cyan-500/30 text-cyan-300'
-                                : 'bg-white/5 text-white/20'
+                                : 'bg-white/5 text-white/55'
                             }`}
                           >
                             {i + 1}
                           </div>
                           <span
                             className={`font-body text-2xs ${
-                              i === 0 ? 'text-cyan-400' : 'text-white/20'
+                              i === 0 ? 'text-cyan-400' : 'text-white/55'
                             }`}
                           >
                             {s}
@@ -425,7 +463,7 @@ export function BuildClassifierGame() {
                           >
                             {d.count}
                           </p>
-                          <p className="font-body text-2xs text-white/30">{d.cat}</p>
+                          <p className="font-body text-2xs text-white/60">{d.cat}</p>
                         </div>
                       ))}
                     </div>
@@ -440,8 +478,8 @@ export function BuildClassifierGame() {
                       {currentImage.emoji}
                     </motion.div>
 
-                    <p className="font-body text-2xs text-white/30 mb-3">
-                      Image {currentPoolIdx + 1}/{TRAINING_POOL.length}
+                    <p className="font-body text-2xs text-white/60 mb-3">
+                      Image {currentPoolIdx + 1}/{trainingPool.length}
                     </p>
 
                     {/* Category buttons */}
@@ -466,7 +504,7 @@ export function BuildClassifierGame() {
                     <div className="flex items-center gap-3">
                       <button
                         onClick={skipImage}
-                        className="font-body text-2xs text-white/20 hover:text-white/40"
+                        className="font-body text-2xs text-white/55 hover:text-white/70"
                       >
                         Skip →
                       </button>
@@ -499,7 +537,7 @@ export function BuildClassifierGame() {
                     <h3 className="font-display text-lg font-bold text-white">
                       Training Your Classifier
                     </h3>
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       You labeled {labeledData.length} images across {CATEGORIES.length}{' '}
                       categories.
                     </p>
@@ -542,7 +580,7 @@ export function BuildClassifierGame() {
                     )}
 
                     {ageBand === 'C' && (
-                      <p className="font-body text-2xs text-white/20 max-w-sm">
+                      <p className="font-body text-2xs text-white/55 max-w-sm">
                         Training iterates over labeled data, adjusting weights to minimize
                         classification loss. More balanced data reduces overfitting to
                         majority classes.
@@ -559,6 +597,10 @@ export function BuildClassifierGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col items-center justify-center"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={testIdx + 1} total={allTests.length} labColor="#06B6D4" />
+                    </div>
                     {/* Pipeline progress */}
                     <div className="flex items-center gap-1 mb-3">
                       {['Collect', 'Train', 'Test'].map((s, i) => (
@@ -585,7 +627,7 @@ export function BuildClassifierGame() {
                     </div>
 
                     <TestTube className="w-5 h-5 text-cyan-400 mb-2" />
-                    <p className="font-display text-xs font-bold text-white/40 mb-3">
+                    <p className="font-display text-xs font-bold text-white/70 mb-3">
                       Test {testIdx + 1}/{allTests.length}
                     </p>
 
@@ -692,7 +734,7 @@ export function BuildClassifierGame() {
                         <table className="w-full text-center">
                           <thead>
                             <tr>
-                              <th className="font-body text-2xs text-white/20 p-1">
+                              <th className="font-body text-2xs text-white/55 p-1">
                                 True ↓ / Pred →
                               </th>
                               {CATEGORIES.map((c) => (
@@ -734,7 +776,7 @@ export function BuildClassifierGame() {
 
                     {/* Training data insight */}
                     <div className="rounded-xl p-2 border border-white/5 bg-white/[0.02] text-center">
-                      <p className="font-body text-2xs text-white/30">
+                      <p className="font-body text-2xs text-white/60">
                         {accuracy >= 80
                           ? '🎯 Great dataset! Balanced training data leads to better accuracy.'
                           : accuracy >= 60
@@ -765,16 +807,16 @@ export function BuildClassifierGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Build a Classifier Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You experienced the full ML pipeline — from collecting training data to testing your classifier and seeing how data quality impacts accuracy.</p>
                     <div className="rounded-xl px-6 py-3 bg-[#06B6D4]/10 border border-[#06B6D4]/20">
                       <p className="font-data text-2xl" style={{ color: '#06B6D4' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• ML classification requires labeled training data — the more balanced and accurate, the better the model performs</li>
                         <li>• Training data quality directly affects decision boundaries and prediction accuracy</li>
                         <li>• Testing on unseen data reveals whether a model truly learned patterns or just memorized examples</li>

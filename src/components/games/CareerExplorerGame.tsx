@@ -17,14 +17,17 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { BookOpen, Briefcase, CheckCircle2, XCircle, Star } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { useSceneStore } from '@/stores/sceneStore';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // 3D Environment (no SSR)
 const CareerExplorerEnvironment = dynamic(
@@ -59,6 +62,17 @@ const LEARN_CARDS = [
     emoji: '🧩',
     desc: 'Each AI career requires a unique mix of skills. Can you match the right skills to the right job?',
   },
+];
+
+const CAREERS_A: Career[] = [
+  { title: 'AI Artist', emoji: '🎨', description: 'Makes pictures and art using AI tools.', descriptionC: 'Uses generative AI models to create digital artwork.', skills: ['Creativity', 'Drawing', 'Imagination'], distractors: ['Cooking', 'Swimming', 'Driving'] },
+  { title: 'Robot Helper', emoji: '🤖', description: 'Builds and programs friendly robots that help people.', descriptionC: 'Designs and programs robotic systems for human assistance.', skills: ['Building', 'Problem Solving', 'Teamwork'], distractors: ['Singing', 'Dancing', 'Painting'] },
+  { title: 'Data Collector', emoji: '📊', description: 'Gathers information to help AI learn new things.', descriptionC: 'Curates training datasets for machine learning systems.', skills: ['Organizing', 'Attention to Detail', 'Research'], distractors: ['Juggling', 'Skateboarding', 'Fishing'] },
+  { title: 'Smart Toy Designer', emoji: '🧸', description: 'Creates fun toys that use AI to play and learn with kids.', descriptionC: 'Designs AI-powered interactive educational toys.', skills: ['Creativity', 'Fun Ideas', 'Technology'], distractors: ['Gardening', 'Hiking', 'Surfing'] },
+  { title: 'AI Music Maker', emoji: '🎵', description: 'Uses AI to create and mix music.', descriptionC: 'Leverages AI composition tools for music production.', skills: ['Music', 'Creativity', 'Listening'], distractors: ['Carpentry', 'Knitting', 'Archery'] },
+  { title: 'Animal AI Tracker', emoji: '🐾', description: 'Uses AI cameras to watch and protect wild animals.', descriptionC: 'Deploys computer vision systems for wildlife monitoring.', skills: ['Nature', 'Observation', 'Patience'], distractors: ['Racing', 'Boxing', 'Fencing'] },
+  { title: 'Weather AI Helper', emoji: '🌤️', description: 'Uses AI to predict the weather and keep people safe.', descriptionC: 'Applies ML models to meteorological prediction systems.', skills: ['Science', 'Math', 'Curiosity'], distractors: ['Acting', 'Pottery', 'Karate'] },
+  { title: 'Space AI Explorer', emoji: '🚀', description: 'Uses AI to explore space and find new planets.', descriptionC: 'Applies AI to astronomical data analysis and space exploration.', skills: ['Science', 'Exploring', 'Bravery'], distractors: ['Baking', 'Weaving', 'Golf'] },
 ];
 
 const CAREERS_B: Career[] = [
@@ -126,14 +140,47 @@ const CAREERS_B: Career[] = [
     skills: ['Creativity', 'Prompt Engineering', 'Design'],
     distractors: ['Plumbing', 'Farming', 'Mining'],
   },
+  {
+    title: 'Prompt Engineer',
+    emoji: '✍️',
+    description: 'Writes instructions for AI to get the best results.',
+    descriptionC: 'Designs and optimizes prompts for large language models to maximize output quality and reliability.',
+    skills: ['Writing', 'Creativity', 'Testing'],
+    distractors: ['Welding', 'Plumbing', 'Carpentry'],
+  },
+  {
+    title: 'AI Safety Researcher',
+    emoji: '🛡️',
+    description: 'Makes sure AI systems are safe and don\'t cause harm.',
+    descriptionC: 'Studies alignment, robustness, and interpretability to ensure AI systems behave as intended under all conditions.',
+    skills: ['Research', 'Critical Thinking', 'Ethics'],
+    distractors: ['Surfing', 'Skating', 'Climbing'],
+  },
+  {
+    title: 'AI Trainer',
+    emoji: '🏋️',
+    description: 'Teaches AI by labeling data and giving it feedback.',
+    descriptionC: 'Provides RLHF annotations, creates training datasets, and evaluates model outputs for quality and accuracy.',
+    skills: ['Attention to Detail', 'Patience', 'Communication'],
+    distractors: ['Magic', 'Juggling', 'Pottery'],
+  },
+  {
+    title: 'Autonomous Vehicle Engineer',
+    emoji: '🚗',
+    description: 'Builds self-driving cars that use AI to navigate safely.',
+    descriptionC: 'Develops perception, planning, and control systems for autonomous vehicles using sensor fusion and deep learning.',
+    skills: ['Engineering', 'Problem Solving', 'Safety'],
+    distractors: ['Cooking', 'Singing', 'Painting'],
+  },
 ];
 
 export default function CareerExplorerGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
-  const ageBand = (activeChild?.age_band || 'B') as 'B' | 'C';
-  const { data: dynamicContent } = useGameContent('career-explorer', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
+  const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
+  const { data: _dynamicContent } = useGameContent('career-explorer', ageBand);
+  // Phase 2: Dynamic scenarios available via _dynamicContent?.scenarios and _dynamicContent?.challenges
 
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
   const [phase, setPhase] = useState<Phase>('welcome');
@@ -143,8 +190,8 @@ export default function CareerExplorerGame() {
   const [showFeedback, setShowFeedback] = useState(false);
   const [wasCorrect, setWasCorrect] = useState(false);
   const [score, setScore] = useState(0);
-
-  const careers = CAREERS_B;
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const careers = useFilteredContent((ageBand === 'A' ? CAREERS_A : CAREERS_B) as any[], tier, ageBand) as typeof CAREERS_B;
   const currentCareer = careers[round];
   const totalRounds = 8;
 
@@ -156,7 +203,12 @@ export default function CareerExplorerGame() {
   const shuffledOptions = useMemo(() => {
     if (!currentCareer) return [];
     const all = [...currentCareer.skills, ...currentCareer.distractors];
-    return all.sort(() => Math.random() - 0.5);
+    // Fisher-Yates shuffle
+    for (let i = all.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [all[i], all[j]] = [all[j], all[i]];
+    }
+    return all;
   }, [currentCareer]);
 
   const particles = useMemo(
@@ -211,6 +263,7 @@ export default function CareerExplorerGame() {
       setRound((r) => r + 1);
     } else {
       setPhase('complete');
+      game.completeGame();
     }
   }
 
@@ -223,7 +276,7 @@ export default function CareerExplorerGame() {
       gameId="career-explorer"
       title="Career Explorer"
       worldNumber={9}
-      worldColor="#F97316"
+      worldColor="#E68E28"
       totalRounds={totalRounds}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
@@ -240,8 +293,8 @@ export default function CareerExplorerGame() {
                 height: p.size,
                 background: 'radial-gradient(circle, rgba(249,115,22,0.15), transparent)',
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{ duration: p.dur, delay: p.delay, repeat: Infinity }}
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : { duration: p.dur, delay: p.delay, repeat: Infinity }}
             />
           ))}
         </div>
@@ -270,8 +323,8 @@ export default function CareerExplorerGame() {
                   >
                     <motion.span
                       className="text-6xl"
-                      animate={{ scale: [1, 1.1, 1] }}
-                      transition={{ duration: 2, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { scale: [1, 1.1, 1] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 2, repeat: Infinity }}
                     >
                       🚀
                     </motion.span>
@@ -351,7 +404,7 @@ export default function CareerExplorerGame() {
                         game.startGame('career-explorer', totalRounds);
                         setPhase('play');
                       }}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/55 hover:text-white/70"
                     >
                       Skip intro →
                     </button>
@@ -367,6 +420,10 @@ export default function CareerExplorerGame() {
                     exit={{ opacity: 0 }}
                     className="flex-1 flex flex-col items-center justify-center space-y-3"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={round + 1} total={totalRounds} labColor="#F97316" />
+                    </div>
                     {/* Round indicator */}
                     <div className="flex items-center gap-1 mb-1">
                       {Array.from({ length: totalRounds }, (_, i) => (
@@ -383,7 +440,7 @@ export default function CareerExplorerGame() {
                       ))}
                     </div>
 
-                    <p className="font-body text-2xs text-white/30">
+                    <p className="font-body text-2xs text-white/60">
                       Round {round + 1} of {totalRounds}
                     </p>
 
@@ -417,7 +474,7 @@ export default function CareerExplorerGame() {
                     </motion.div>
 
                     {/* Instruction */}
-                    <p className="font-body text-xs text-white/40">
+                    <p className="font-body text-xs text-white/70">
                       Select the <span className="text-orange-400 font-bold">3 skills</span> needed for this career:
                     </p>
 
@@ -530,8 +587,8 @@ export default function CareerExplorerGame() {
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4 max-w-md mx-auto"
                   >
                     <motion.div
-                      animate={{ rotate: [0, 10, -10, 0] }}
-                      transition={{ duration: 1.5, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}
                     >
                       <Star className="w-12 h-12 text-orange-400" />
                     </motion.div>
@@ -553,7 +610,7 @@ export default function CareerExplorerGame() {
                           className="flex flex-col items-center p-2 rounded-lg bg-white/5 border border-white/5"
                         >
                           <span className="text-lg">{c.emoji}</span>
-                          <p className="font-body text-2xs text-white/30 mt-1 leading-tight text-center">
+                          <p className="font-body text-2xs text-white/60 mt-1 leading-tight text-center">
                             {c.title}
                           </p>
                         </motion.div>
@@ -561,7 +618,7 @@ export default function CareerExplorerGame() {
                     </div>
 
                     <div className="rounded-xl p-3 border border-orange-500/15 bg-orange-500/5 w-full">
-                      <p className="font-body text-xs text-white/40">
+                      <p className="font-body text-xs text-white/70">
                         {ageBand === 'C'
                           ? 'AI careers span research, engineering, product, ethics, and creative domains. Each requires a unique blend of technical and soft skills — the field is far broader than just coding!'
                           : 'AI has so many career paths! Whether you love art, science, writing, or building things — there\'s an AI career for you.'}

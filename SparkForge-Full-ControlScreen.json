@@ -1,8 +1,18 @@
 {
   "meta": {
     "name": "SparkForge Full Control Screen",
-    "version": "1.0-DRAFT",
-    "date": "2026-03-31",
+    "version": "2.0",
+    "date": "2026-04-03",
+    "implementation_status": "ALL 7 PHASES COMPLETE — 49 components built. 131 design decisions + 19 implementation decisions locked. Build PASSING. Full 3D UI migration done.",
+    "phase_status": {
+      "phase_1_infrastructure": "COMPLETE — 8 files (mode presets, design tokens, hooks, stores, UI layer, primitives)",
+      "phase_2_dashboard": "COMPLETE — 9 panel components, 6 page descriptors, layout stripped",
+      "phase_3_auth_forms": "COMPLETE — LoginPanel3D, SignupPanel3D, ResetPasswordPanel3D, ChatPanel3D, SearchField3D",
+      "phase_4_gamification": "COMPLETE — XPPopup3D, CelebrationPanel3D, useCelebration3D hook",
+      "phase_5_flagship_games": "COMPLETE — GameHUD3D, GameTimerBar3D, GamePhaseOverlay3D, GameShell integration",
+      "phase_6_standard_games": "COMPLETE — 4 templates (Quiz/Builder/Explorer/Lab), ChoiceButton3D, GameLearnCards3D",
+      "phase_7_marketing": "COMPLETE — CockpitPreview3D, StationPreview 3D upgrade, CSS enhancements"
+    },
     "description": "Master cockpit UI layout specification. Defines every visual element, position, material, and interaction in the 3D panoramic cockpit. Source of truth for the full 3D UI migration.",
     "design_language": "Opaque metallic control panel with high-polish chrome bezels, matte-black carbon composite surfaces, physical 3D dials/buttons/switches. Holographic glow LIMITED to center lab map only.",
     "perspective": "First-person, 1-foot from panel face, 130-degree forward curvature",
@@ -1077,5 +1087,630 @@
     "error_pages": ["404", "500", "offline — must work without WebGL"],
     "admin_panel": "/admin/content (internal tool, no aesthetic requirement)",
     "text_input_proxy": "uikit Input uses hidden HTML <input> for keyboard/paste/autocomplete proxy — not visible but required for browser compatibility"
+  },
+
+  "design_tokens": {
+    "version": "1.0",
+    "description": "System-level design tokens enforced across all cockpit components. Generated as cockpitDesignTokens.ts for code consumption. See DESIGN_DECISIONS_LOG.md for decision rationale.",
+
+    "typography": {
+      "levels": {
+        "display":  { "fontSize": 0.07,  "font": "Exo2-Bold",            "weight": "bold",    "use": "Page titles (Game Arcade, Parent Dashboard)" },
+        "h1":       { "fontSize": 0.05,  "font": "Exo2-Bold",            "weight": "bold",    "use": "Section headers (Trophy Room, Audio Controls)" },
+        "h2":       { "fontSize": 0.038, "font": "Exo2-Bold",            "weight": "bold",    "use": "Sub-headers (Lab 3: The Brain Inside)" },
+        "h3":       { "fontSize": 0.032, "font": "Exo2-Bold",            "weight": "bold",    "use": "Card titles, panel labels" },
+        "body":     { "fontSize": 0.032, "font": "Sora-Regular",          "weight": "regular", "use": "Body text, descriptions, instructions" },
+        "label":    { "fontSize": 0.022, "font": "Sora-Regular",          "weight": "regular", "use": "Input labels, toggle labels, small annotations" },
+        "caption":  { "fontSize": 0.016, "font": "Sora-Regular",          "weight": "regular", "use": "Timestamps, hints, tertiary info" }
+      },
+      "numeric_font": "Orbitron-Bold",
+      "numeric_font_rule": "ALL numeric values (XP, levels, percentages, counts, timers, scores, prices) use Orbitron regardless of text level",
+      "colors": {
+        "primary":   { "hex": "#F0F0F4", "opacity": 1.0,  "use": "Main text, important values" },
+        "secondary": { "hex": "#F0F0F4", "opacity": 0.8,  "use": "Supporting text, descriptions" },
+        "muted":     { "hex": "#F0F0F4", "opacity": 0.5,  "use": "Labels, annotations, non-critical" },
+        "dim":       { "hex": "#F0F0F4", "opacity": 0.25, "use": "Timestamps, placeholders, ghost text" },
+        "accent":    { "hex": "dynamic_mode_color",        "use": "Section headers use current mode accent (amber for settings, purple for profile, etc.)" }
+      }
+    },
+
+    "edges": {
+      "bevel_style": {
+        "structural": { "type": "chamfer",  "width": 0.008, "description": "Hard 45-degree cuts on hull, floor, ribs. Industrial, load-bearing." },
+        "interactive": { "type": "rounded", "radius": 0.004, "description": "Soft rounded edges on buttons, dials, toggles. Inviting to touch." },
+        "display":    { "type": "sharp",    "width": 0,     "description": "No bevel on screens, cards, data readouts. Clean flat surfaces." }
+      },
+      "border_radius": {
+        "small": 4,
+        "medium": 8,
+        "large": 12,
+        "description": "Soft technical scale for uikit containers. Modern, Tesla-like."
+      },
+      "chrome_border": {
+        "width": 2,
+        "color": "#a8b5c8",
+        "glow_intensity": 0.15,
+        "glow_color": "#a8b5c8",
+        "description": "Bold frame — 2px chrome with slight glow. Defining visual feature."
+      },
+      "hover_glow": {
+        "type": "pulse_trace",
+        "pulse_min": 0.6,
+        "pulse_max": 1.0,
+        "pulse_period_s": 1.5,
+        "trace_color": "#00E5FF",
+        "trace_width": 2,
+        "description": "Line traces border AND pulses brightness over 1.5s. Cockpit breathes."
+      }
+    },
+
+    "depth_layers": {
+      "step_size": 0.005,
+      "layers": {
+        "deep_recess": { "z_offset": -0.020, "index": 0, "use": "Deep-set instrument wells, recessed housings" },
+        "recess":      { "z_offset": -0.010, "index": 1, "use": "Screen insets, dial cavities" },
+        "surface":     { "z_offset":  0.000, "index": 2, "use": "Panel face baseline. Reference plane." },
+        "low_raise":   { "z_offset":  0.005, "index": 3, "use": "Toggle mounting plates, card bases" },
+        "high_raise":  { "z_offset":  0.010, "index": 4, "use": "Button caps, dial knobs (tactile protrusion)" },
+        "content":     { "z_offset":  0.015, "index": 5, "use": "Text, labels, icons floating above controls" },
+        "glow":        { "z_offset":  0.020, "index": 6, "use": "Emissive halos, hover glow rings behind elements" },
+        "overlay":     { "z_offset":  0.025, "index": 7, "use": "Tooltips, modals, popups (always on top)" }
+      },
+      "screen_style": "flush",
+      "button_protrusion": "high_raise",
+      "press_depth": 0.03,
+      "description": "8-layer system at 0.005 per step. Screens flush. Buttons tactile (2 layers above surface)."
+    },
+
+    "springs": {
+      "presets": {
+        "snap":     { "stiffness": 600, "damping": 35, "mass": 0.8,  "use": "Toggles, instant detents, boolean snaps" },
+        "crisp":    { "stiffness": 450, "damping": 28, "mass": 1.0,  "use": "Dials, sliders, precise value controls" },
+        "smooth":   { "stiffness": 300, "damping": 25, "mass": 1.0,  "use": "Panel transitions, opacity fades, focus shifts" },
+        "bounce":   { "stiffness": 400, "damping": 18, "mass": 1.0,  "use": "Button press/release, card hover scale, playful elements" },
+        "heavy":    { "stiffness": 200, "damping": 30, "mass": 2.0,  "use": "Panel slide in/out, large element movements" },
+        "dramatic": { "stiffness": 120, "damping": 20, "mass": 3.0,  "use": "Mode transitions, celebration expansions, iris open/close" }
+      },
+      "overall_feel": "mechanical_satisfying",
+      "feel_description": "Moderate overshoot with audible thunk settle. Controls snap into place with physical feel. Sports car switches.",
+      "transition_duration_ms": 400,
+      "transition_easing": "ease-out-cubic"
+    },
+
+    "celebrations": {
+      "tiers": {
+        "minor": {
+          "triggers": ["xp_gain", "streak_tick", "game_progress"],
+          "led_behavior": "single pulse in accent color",
+          "bloom_peak": 0.5,
+          "hud_expansion": 1.05,
+          "confetti": false,
+          "camera_shake": false,
+          "duration_ms": 1500,
+          "description": "Quick acknowledgment. LED pulse + small bloom. Doesn't interrupt flow."
+        },
+        "major": {
+          "triggers": ["badge_earn", "game_complete", "quiz_perfect"],
+          "led_behavior": "gold sweep across 218-degree arc",
+          "bloom_peak": 0.8,
+          "hud_expansion": 1.3,
+          "confetti": true,
+          "confetti_count": 150,
+          "camera_shake": false,
+          "duration_ms": 3000,
+          "description": "Clear reward moment. Gold LEDs + HUD expansion + 3D confetti burst."
+        },
+        "epic": {
+          "triggers": ["level_up", "all_lab_complete", "streak_milestone_30", "all_games_complete"],
+          "led_behavior": "rapid gold flash across all 1500 LEDs",
+          "bloom_peak": 1.0,
+          "hud_expansion": 1.6,
+          "confetti": true,
+          "confetti_count": 500,
+          "camera_shake": true,
+          "shake_preset": "celebration",
+          "trophy_materialize": true,
+          "duration_ms": 4000,
+          "description": "Full spectacle. LEDs flash, HUD explodes outward, camera shakes, 3D trophies materialize, bloom peaks. Maximum dopamine."
+        }
+      }
+    },
+
+    "emissive": {
+      "levels": {
+        "off":      { "intensity": 0.0,  "use": "Truly dark/dead: locked badges, disabled controls" },
+        "dormant":  { "intensity": 0.15, "use": "Background elements: panel seams, structural LED traces" },
+        "dim":      { "intensity": 0.4,  "use": "Inactive indicators, ghost placeholders" },
+        "medium":   { "intensity": 0.8,  "use": "Idle buttons, ready controls, powered-on feel" },
+        "bright":   { "intensity": 1.5,  "use": "Active/hovered elements, focused controls" },
+        "blazing":  { "intensity": 2.5,  "use": "LED peaks, celebration spikes, critical alerts" }
+      },
+      "idle_button": 0.8,
+      "idle_indicator": 0.5,
+      "hover_multiplier": 1.8,
+      "led_multiplier": 1.5,
+      "led_toneMapped": false,
+      "description": "LEDs are 1.5x brighter than controls. Hover boosts by 1.8x. LEDs act as ambient light sources."
+    },
+
+    "mode_atmosphere": {
+      "surface_tint_blend": 0.05,
+      "surface_tint_description": "5% whisper tint. Barely perceptible. Color comes from LEDs and accents only.",
+      "chrome_behavior": "neutral",
+      "chrome_color": "#a8b5c8",
+      "chrome_description": "Silver always. Chrome is a constant visual anchor across all modes.",
+      "fill_light": {
+        "dashboard":   { "color": "#00E5FF", "intensity": 0.3  },
+        "labs":        { "color": "#00E5FF", "intensity": 0.35 },
+        "lab_detail":  { "color": "dynamic_lab_color", "intensity": 0.35 },
+        "game":        { "color": "dynamic_lab_color", "intensity": 0.15 },
+        "profile":     { "color": "#AA66FF", "intensity": 0.3  },
+        "settings":    { "color": "#FFAA44", "intensity": 0.25 },
+        "celebration": { "color": "#FFD700", "intensity": 0.6  },
+        "parent":      { "color": "#FFAA44", "intensity": 0.2  }
+      },
+      "particles": {
+        "color_source": "led_color",
+        "crossfade_duration_s": 1.5,
+        "description": "Particles shift to mode LED color with 1.5s crossfade."
+      }
+    },
+
+    "component_states": {
+      "states": ["idle", "hover", "pressed", "active", "disabled", "loading"],
+      "idle": {
+        "emissive": "medium",
+        "scale": 1.0,
+        "z_offset": "high_raise",
+        "border_glow": 0.0
+      },
+      "hover": {
+        "emissive": "bright",
+        "scale": 1.05,
+        "z_offset": "high_raise",
+        "border_glow": 1.0,
+        "cursor": "pointer",
+        "transition": "bounce"
+      },
+      "pressed": {
+        "emissive": "blazing",
+        "scale": 1.0,
+        "z_offset": "low_raise",
+        "border_glow": 1.0,
+        "press_depth": 0.03,
+        "transition": "snap"
+      },
+      "active": {
+        "emissive": "bright",
+        "scale": 1.0,
+        "z_offset": "low_raise",
+        "border_glow": 0.8,
+        "description": "Glow hold — maintains hover-level brightness permanently."
+      },
+      "disabled": {
+        "emissive": "off",
+        "scale": 1.0,
+        "z_offset": "high_raise",
+        "border_glow": 0.0,
+        "opacity": 0.4,
+        "saturation": 0.0,
+        "hover_response": false,
+        "description": "Desaturated + dim. Grayscale, 40% opacity. Powered off."
+      },
+      "loading": {
+        "emissive": "dim",
+        "scale": 1.0,
+        "z_offset": "high_raise",
+        "border_glow": 0.5,
+        "pulse_speed_s": 0.8,
+        "description": "Pulsing dim glow. Async operation in progress."
+      }
+    },
+
+    "surface_detail": {
+      "panel_seams": {
+        "width_px": 0.5,
+        "opacity": 0.10,
+        "color": "#000000",
+        "description": "Subtle thin dark lines at logical panel break points. Visible on close inspection."
+      },
+      "micro_texture": {
+        "type": "fine_grain",
+        "noise_intensity": 0.02,
+        "description": "2% noise intensity. Brushed metal feel, only visible up close. Unconscious realism."
+      },
+      "wear": "none",
+      "wear_description": "Factory fresh. Pristine materials, no scratches, no wear. Brand-new space station.",
+      "accent_lines": {
+        "coverage": "full_trace",
+        "emissive_level": "dormant",
+        "color_source": "mode_led_color",
+        "opacity": 0.25,
+        "width": 0.002,
+        "description": "Dim accent lines along ALL panel borders, structural ribs, console edges, floor channels. Cockpit skeleton outlined in light."
+      }
+    },
+
+    "focus_zones": {
+      "strategy": "brightness_and_dof",
+      "priority_brightness": 1.0,
+      "non_priority_brightness": 0.7,
+      "dof_blur_non_priority": true,
+      "dof_blur_amount": 0.003,
+      "per_mode_focus": {
+        "dashboard":  { "primary": ["center"], "secondary": ["left", "right"] },
+        "labs":       { "primary": ["center"], "secondary": ["left", "right"] },
+        "lab_detail": { "primary": ["center"], "secondary": ["left", "right"] },
+        "arcade":     { "primary": ["center"], "secondary": ["left", "right"] },
+        "game":       { "primary": ["center"], "secondary": [] },
+        "profile":    { "primary": ["center", "left"], "secondary": ["right"] },
+        "settings":   { "primary": ["center", "right"], "secondary": ["left"] },
+        "parent":     { "primary": ["center"], "secondary": ["left", "right"] }
+      },
+      "first_look": "primary_cta",
+      "first_look_description": "Main action button is brightest element on page load. Action-oriented."
+    },
+
+    "information_density": {
+      "max_visible_items": {
+        "activity_log": 5,
+        "game_grid": 12,
+        "badge_gallery": 9,
+        "trophy_display": 3,
+        "gauges": 4,
+        "description": "Balanced density. Works for full 7-16 age range."
+      },
+      "whitespace_ratio": 0.40,
+      "whitespace_description": "Element gaps = 40% of element size. Comfortable, organized. Car dashboard feel.",
+      "overflow": {
+        "strategy": "paginate",
+        "description": "No scroll. Content splits into pages with next/prev HolographicButton controls. All content on a page is fully visible."
+      },
+      "empty_state": {
+        "style": "ghost_placeholders",
+        "placeholder_opacity": 0.10,
+        "description": "Dim outlines at 10% opacity showing what WILL be there. Motivating — fill these up!"
+      }
+    },
+
+    "feedback_chains": {
+      "chain_speed": {
+        "type": "ripple",
+        "total_duration_ms": 300,
+        "offsets": {
+          "source_element": 0,
+          "led_rim": 50,
+          "status_bar": 100,
+          "hud": 150,
+          "side_panels": 200,
+          "center_content": 300
+        },
+        "description": "Energy propagates outward from click source. Cockpit feels like energy rippling through it."
+      },
+      "chain_completeness": {
+        "type": "sector_response",
+        "always_respond": ["led_rim", "status_bar"],
+        "sector_respond": "clicked element's quadrant only",
+        "description": "Local quadrant responds fully + LED rim + StatusBar always. Other quadrants stay still."
+      },
+      "audio_visual_sync": "simultaneous",
+      "dampening": {
+        "type": "diminishing",
+        "window_ms": 500,
+        "first_click": 1.0,
+        "second_click": 0.6,
+        "third_plus": 0.3,
+        "description": "Prevents visual overload on rapid clicks while staying responsive."
+      }
+    },
+
+    "spatial_audio": {
+      "distance_falloff": "flat",
+      "distance_description": "All zones at defined volume. No distance attenuation. Consistent presence.",
+      "mechanical_density_default": 0.5,
+      "density_thresholds": {
+        "0.0_to_0.3": "Only clicks, toggles, navigation produce sound",
+        "0.3_to_0.5": "Add dial rotation, scroll ticks",
+        "0.5_to_0.7": "Add hover hum on buttons, activity log pings",
+        "0.7_to_1.0": "Add hover on all elements, ambient creaks, breathing sounds"
+      },
+      "priority_system": {
+        "type": "ducking",
+        "duck_volume": 0.4,
+        "priority_order": ["celebration", "navigation", "button_press", "dial_rotate", "hover", "ambient"],
+        "description": "Highest-priority at full volume. Concurrent lower-priority sounds duck to 40%."
+      },
+      "lab_crossfade": {
+        "type": "hard_cut",
+        "description": "Instant switch to new lab soundscape. Clean break. New room feel."
+      }
+    },
+
+    "component_designs": {
+      "version": "1.0",
+      "description": "Per-component visual design specifications. 30 components, 83 detail decisions. See DESIGN_DECISIONS_LOG.md for full rationale.",
+
+      "navigation_button_grid": {
+        "button_shape": "beveled_square",
+        "button_description": "Square with chamfered edges, slightly concave top surface. Military/aerospace switch feel.",
+        "layout": "pentagon_cluster",
+        "layout_description": "ARCADE center, HOME/LABS back-left, SETTINGS/PROFILE back-right. Radial pattern.",
+        "size": [0.12, 0.05],
+        "label_style": "backlit_engraved",
+        "label_description": "Text engraved into button surface, lit from behind by accent color. No icons.",
+        "active_indicator": "depressed_plus_ring",
+        "active_depress_depth": 0.015,
+        "active_ring_color": "accent",
+        "mounting": "shared_console_plate",
+        "mounting_material": "carbon_composite",
+        "mounting_border": "chrome"
+      },
+
+      "holographic_button": {
+        "shape": "chamfered_rectangle",
+        "shape_description": "Rectangular with 45-degree corner cuts. Fighter jet MFD soft key.",
+        "surface": "dual_layer",
+        "surface_gap": 0.003,
+        "surface_description": "Solid carbon base + floating translucent emissive layer. Gap catches light.",
+        "ripple": "ring_expansion",
+        "ripple_duration_s": 0.6,
+        "sizes": {
+          "small": [0.08, 0.035],
+          "medium": [0.12, 0.05],
+          "large": [0.18, 0.06]
+        },
+        "text_style": "inset",
+        "text_recess": 0.001,
+        "text_description": "Engraved into surface, backlit by emissive."
+      },
+
+      "radial_dial_3d": {
+        "knob_shape": "knurled_cylinder",
+        "knob_description": "Cylinder with visible grip ridges. Precision lab instrument dial.",
+        "value_display": "led_ring_plus_label",
+        "led_count": 24,
+        "value_description": "24 LED dots fill proportionally + small label below dial.",
+        "tick_marks": "illuminated_dots",
+        "tick_description": "24 glowing dots. Active=accent, inactive=dim.",
+        "drag_feedback": "smooth_rotation",
+        "gauge_mode": {
+          "read_only": "glass_cover",
+          "glass_description": "Translucent dome over dial face, no knob protrusion. Clearly non-interactive.",
+          "interactive": "exposed_knob"
+        }
+      },
+
+      "toggle_switch_3d": {
+        "style": "paddle_switch",
+        "style_description": "Flat paddle flips up/down on horizontal axis. Aircraft overhead panel.",
+        "indicator": "led_strip",
+        "indicator_description": "Thin accent-colored LED strip along mounting plate edge. Lit=ON, off=OFF.",
+        "snap_feel": "hard_snap",
+        "snap_description": "Instant 45-degree rotation, no overshoot. Quality electrical switch.",
+        "mounting": "grouped_panel",
+        "mounting_description": "Multiple toggles share single recessed section with label header."
+      },
+
+      "holographic_lab_map": {
+        "node_shape": "geodesic_sphere",
+        "node_description": "Multi-shell icosahedron with concentric transparent layers. Holographic data orb.",
+        "connections": "beam_lines",
+        "connection_description": "Thin laser-like lines with pulsing energy flow between adjacent labs.",
+        "completion_viz": "shell_layers",
+        "completion_description": "Inner shells reveal as completion increases. 0%=outer only. 100%=all 4 shells, dense bright core.",
+        "map_base": "grid_floor",
+        "base_description": "Holographic grid plane with raised intersection points. Sci-fi tactical map.",
+        "hover": "isolate_spotlight",
+        "hover_description": "Hovered node brightens, all others dim to 30%. Spotlight centers on hovered lab."
+      },
+
+      "holographic_hud": {
+        "position": "peripheral_frame",
+        "position_note": "REPOSITIONED from overhead [0,2.05,-3.4] to viewport perimeter. Eliminates content distraction.",
+        "style": "segmented_arc_frame",
+        "style_description": "4 arc segments (top/bottom/left/right) frame viewport edges. Instrument bezel.",
+        "data_display": "corner_readouts",
+        "corners": {
+          "top_left": "time",
+          "top_right": "xp",
+          "bottom_left": "mode_name",
+          "bottom_right": "child_name_level"
+        },
+        "motion": "breathing_pulse",
+        "motion_period_s": 4.0,
+        "celebration_reaction": "color_cascade",
+        "cascade_revolutions": { "minor": 1, "major": 2, "epic": 3 },
+        "opacity_range": [0.20, 0.30]
+      },
+
+      "led_rim": {
+        "led_shape": "rectangular_blocks",
+        "led_description": "Small flat rectangles in continuous strip. Airport runway lights.",
+        "pulse_wave": "outward_burst",
+        "pulse_description": "Starts from center, radiates outward both directions (300ms).",
+        "color_transition": "sequential_fill",
+        "fill_description": "New color fills center-outward, LED by LED (400ms).",
+        "brightness": 2.5,
+        "tone_mapped": false,
+        "data_mode": "none",
+        "data_description": "Pure mood lighting. Color and pulse only."
+      },
+
+      "status_bar_3d": {
+        "speedometer": "arc_bar",
+        "speedometer_description": "Colored arc fills proportionally. Digital center readout (Orbitron). No needle.",
+        "streak": "pulse_ring",
+        "streak_description": "Ring pulses with streak intensity. 1-day=slow faint, 30-day=rapid bright.",
+        "lab_indicators": "mini_arcs",
+        "indicator_description": "10 arc segments (~20° each) forming ring. Each fills to lab completion.",
+        "dividers": "chrome_pillars",
+        "profile": "curved_strip",
+        "profile_description": "Follows cockpit hull curvature. Wraps slightly around pilot."
+      },
+
+      "center_viewport_screen": {
+        "shape": "cylindrical_concave",
+        "shape_description": "Curved cylinder section. Wraps horizontally, flat vertically. Widescreen monitor.",
+        "bezel": "segmented_frame",
+        "bezel_description": "Chrome segments with gaps at corners. Matches HUD frame language.",
+        "surface": "scan_lines",
+        "surface_description": "Dark background with subtle horizontal scan line CRT effect.",
+        "transition": "wipe_sweep",
+        "transition_duration_ms": 400,
+        "transition_description": "Bright line sweeps left-to-right revealing new content."
+      },
+
+      "mechanical_iris": {
+        "blade_count": 8,
+        "blade_material": "carbon_composite",
+        "blade_description": "Same #0A0F1F as cockpit panels. Iris IS the cockpit splitting open.",
+        "opening_animation": "staggered_spiral",
+        "stagger_delay_ms": 50,
+        "opening_description": "Blades open one at a time in sequence. Spiral opening pattern.",
+        "light_effect": "light_rays",
+        "light_ray_count": 4,
+        "sound": "servo_whir",
+        "sound_zone": "center_screen"
+      },
+
+      "cockpit_panels": {
+        "surface": "smooth_carbon",
+        "texture_noise": 0.02,
+        "rivets": "none",
+        "hull_color": "#0A0F1F",
+        "accent_treatment": "accent_traced",
+        "accent_description": "Full-trace accent lines along every rib and seam. Hull skeleton glows faintly."
+      },
+
+      "side_panels": {
+        "shape": "curved_wing",
+        "shape_description": "Gently curved following hull curvature. Flows naturally from main hull.",
+        "border": "segmented_chrome",
+        "border_description": "Chrome edge segments with gaps. Matches CenterViewportScreen and HUD frame."
+      },
+
+      "cockpit_floor_3d": {
+        "grating": "hexagonal_grid",
+        "grating_description": "Honeycomb pattern. Futuristic, matches geometric cockpit language.",
+        "sub_floor": "energy_channels",
+        "sub_floor_color": "dynamic_mode_led",
+        "sub_floor_description": "Glowing energy channels in mode LED color. Floor pulses faintly with power.",
+        "extent": "full_semicircle",
+        "extent_description": "Floor across full 218-degree cockpit arc. Complete ground plane."
+      },
+
+      "cockpit_structural_detail": {
+        "cables": "hidden",
+        "cable_description": "Recessed channels with panel covers. Tidy, premium.",
+        "vents": "perforated_circles",
+        "vent_description": "Circular hole patterns. Decorative, aerospace.",
+        "accent_lighting": "key_intersections",
+        "accent_description": "Accent lighting only where structural elements meet. Highlights connections."
+      },
+
+      "variable_dial_cluster": {
+        "housing": "individual_pods",
+        "housing_description": "Each dial has own circular mounting pod. Connected by thin chrome rails. Modular.",
+        "arrangement": "arc_row",
+        "arrangement_description": "3 dials following cockpit hull curvature. Each angled toward camera.",
+        "label_transition": "instant_swap"
+      },
+
+      "holographic_card": {
+        "shape": "chamfered_rectangle",
+        "shape_description": "45-degree corner cuts matching HolographicButton. Angular language consistency.",
+        "surface": "layered",
+        "surface_description": "Solid carbon base + floating translucent accent top edge strip.",
+        "hover": "edge_trace_plus_lift",
+        "hover_lift": 0.01,
+        "hover_description": "Card lifts slightly AND chrome border does pulse trace effect."
+      },
+
+      "holographic_panel": {
+        "style": "raised_platform",
+        "raise_layer": "low_raise",
+        "style_description": "Raised 1 depth layer above surrounding surface. Chrome edge rail.",
+        "section_headers": "chrome_divider_bar",
+        "header_description": "Header text with horizontal chrome bar extending to right edge.",
+        "spacing": "per_density_tokens"
+      },
+
+      "ceremony_fx": {
+        "confetti": "metallic_shards",
+        "confetti_description": "Chrome and gold metallic pieces catching light. Awards show feel.",
+        "trophy": "particle_assembly",
+        "trophy_description": "Trophy assembles from scattered particles converging. 3D printed from light.",
+        "bloom_curve": "pulsing",
+        "bloom_pulses": 3,
+        "bloom_description": "Bloom pulses 2-3 times at peak (heartbeat) before decaying."
+      },
+
+      "aurora_background": {
+        "ribbon_count": 3,
+        "color_behavior": "mode_tinted",
+        "color_description": "Ribbons shift toward mode LED color. Subtle atmospheric change.",
+        "movement_speed": 0.6,
+        "movement_description": "Gentle flow. Visible flowing motion. Natural, atmospheric."
+      },
+
+      "ambient_particles": {
+        "status": "REMOVED",
+        "reason": "No ambient particles in cockpit. Cleaner visual. Accent lines + LED rim provide atmosphere."
+      },
+
+      "wormhole_transition": {
+        "tunnel_shape": "twisted_helix",
+        "tunnel_description": "DNA helix spiral. Complex, unique, mesmerizing.",
+        "wall_treatment": "energy_grid",
+        "wall_color": "destination_lab_color",
+        "wall_description": "Flowing grid pattern in destination lab color.",
+        "duration_ms": 500
+      },
+
+      "panel_layouts": {
+        "dashboard_left": {
+          "avatar_frame": "hexagonal",
+          "gauge_layout": "vertical_stack",
+          "trophy_count": 5
+        },
+        "dashboard_right": {
+          "activity_log": "mini_cards",
+          "quick_actions": "horizontal_row",
+          "settings_cluster": "collapsed_header"
+        },
+        "dashboard_center": {
+          "header_position": "floating_above_lab_map",
+          "stats_display": "none",
+          "stats_note": "Stats shown in left panel gauges only. Zero duplication.",
+          "cta_position": "bottom_of_viewport"
+        },
+        "labs_center": {
+          "lab_info": "floating_info_card",
+          "enter_action": "both_doubleclick_and_button"
+        },
+        "arcade_panel": {
+          "tile_layout": "curved_grid",
+          "filter_position": "integrated_in_hud_frame",
+          "tile_content": "name_tier_completion"
+        },
+        "profile_center": {
+          "trophy_room": "pedestal_grid_3x3",
+          "avatar_size": "expanded_1_5x"
+        },
+        "settings_panel": {
+          "organization": "column_layout",
+          "columns": "audio_left_visual_right_skin_fullwidth",
+          "skin_selector": "preview_cards"
+        },
+        "parent_panel": {
+          "child_cards": "profile_cards",
+          "actions": "side_panel_vertical"
+        },
+        "lab_detail_panel": {
+          "game_display": "radial_fan",
+          "lab_structure": "full_3d_model"
+        }
+      }
+    }
   }
 }

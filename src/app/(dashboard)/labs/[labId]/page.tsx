@@ -18,7 +18,7 @@ import { useEffect, useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { motion } from 'motion/react';
 import Link from 'next/link';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { useLabProgress } from '@/hooks/useProgress';
@@ -33,10 +33,10 @@ const LAB_NAMES = [
   'Computer Vision', 'Words & Language', 'Build Your AI', "AI's Future",
 ] as const;
 
-const LAB_COLORS = [
-  '#00BBFF', '#AA66FF', '#FF66AA', '#FFAA44', '#00FF88',
-  '#FF6644', '#06B6D4', '#818CF8', '#F97316', '#D946EF',
-] as const;
+// P2 §7.2: derived from the canonical LAB_COLORS_TABLE (src/config/labColors.ts)
+// so cosmetic changes stay in one file. 0-indexed — `LAB_COLORS[labId - 1]`.
+import { LAB_COLORS_TABLE } from '@/config/labColors';
+const LAB_COLORS = LAB_COLORS_TABLE.map((l) => l.hex) as readonly string[];
 
 const LAB_DESCRIPTIONS = [
   'Discover what artificial intelligence is and how it shapes our world',
@@ -62,7 +62,7 @@ export default function LabDetailPage() {
   const labIdRaw = Array.isArray(params.labId) ? params.labId[0] : params.labId;
   const labId = parseInt(labIdRaw || '0', 10);
 
-  const { activeChild } = useChildStore();
+  const activeChild = useActiveChild();
   const setLabColor = useUIStore((s) => s.setLabColor);
   const focusLab = useCockpitStore((s) => s.focusLab);
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
@@ -121,7 +121,7 @@ export default function LabDetailPage() {
       <motion.div variants={staggerItem}>
         <Link
           href="/labs"
-          className="inline-flex items-center gap-1.5 font-mono text-xs text-white/40 hover:text-white/70 transition-colors"
+          className="inline-flex items-center gap-1.5 font-mono text-xs text-white/70 hover:text-white/70 transition-colors"
           aria-label="Back to Lab Map"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
@@ -146,7 +146,7 @@ export default function LabDetailPage() {
         >
           {name}
         </h1>
-        <p className="font-body text-white/40 text-sm mt-1">{description}</p>
+        <p className="font-body text-white/70 text-sm mt-1">{description}</p>
 
         {/* Progress bar */}
         <div className="mt-3 flex items-center gap-3">
@@ -167,7 +167,7 @@ export default function LabDetailPage() {
 
       {/* Game List */}
       <motion.div variants={staggerItem}>
-        <h2 className="font-mono text-[10px] text-white/30 uppercase tracking-[0.15em] mb-2">
+        <h2 className="font-mono text-[10px] text-white/60 uppercase tracking-[0.15em] mb-2">
           {games.length} Games
         </h2>
         <div className="space-y-2" role="list" aria-label={`Games in Lab ${labId}`}>

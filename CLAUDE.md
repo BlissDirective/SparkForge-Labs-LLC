@@ -2,10 +2,8 @@
 
 ## Autonomous Development Playbook for Claude Code
 
-**Version:** 6.1 | **Date:** March 30, 2026 | **Vision:** Laboratory Control Station
-**Supersedes:** CLAUDE.md v6.0 (March 24, 2026) — Full Code Audit: 154 issues found and fixed (21C/42H/52M/39L). D3D compliance enforced across source + docs. SQL merged. Tailwind v4 migrated. Security hardened. 2 parent pages created. Lab config centralized. Stage docs updated.
-**Supersedes:** CLAUDE.md v5.9 (March 23, 2026) — D3D Desktop-First Overhaul: Removed mobile/LOD/CSS fallback architecture (D3D-1/2). Added desktop-ultra rendering (50M triangle budget). Added sceneStore, SceneRouter, MechanicalIris, PostProcessingStack. Updated Sections 7, 9, 9.1, 9.2, 9.3, 11, 14. Added 20 D3D decision locks (D3D-1–9, D3D-B1–6, D3D-C1–5). Version footer updated.
-
+**Version:** 6.5 | **Date:** April 21, 2026 | **Vision:** Laboratory Control Station
+**Supersedes:** CLAUDE.md v6.4 (April 9, 2026) — Standard Tier Games Audit complete. T11–T20 Phase 2 completion adds: react-joyride cockpit tutorial (T11), cooperative scheduler + Web Worker (T12), next/image enforcement + OptimizedImage wrapper (T13), lazy game-loader factory (T14), Performance toggle with D3D-5 relaxation (T15a+b), Sentry environment/release tagging + perf transactions (T16), verifyCronBearer shared helper (T17), Supabase PITR runbook + recovery script (T18), text-white/10-40 → /50+ WCAG sweep (T19), 30 non-flagship games migrated to Zustand selectors (
 ---
 
 ## 1. PROJECT IDENTITY
@@ -20,7 +18,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 | Language | TypeScript (strict mode) | Type safety |
 | Styling | Tailwind CSS 4 (Oxide engine) | Utility-first CSS |
 | Database | Supabase (PostgreSQL + Auth + Storage) | All persistent data |
-| State | Zustand (13 stores) + Jotai (3D atoms) | Client state |
+| State | Zustand (15 stores) + Jotai (3D atoms) | Client state |
 | Data Fetching | React Query (@tanstack/react-query) | Server state + caching |
 | Validation | Zod | Schema validation |
 | Payments | Stripe | Subscriptions (Free/Plus/Forge) |
@@ -33,14 +31,7 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 | Testing | Vitest + Playwright + MSW | Unit, integration, E2E tests |
 | Deployment | Vercel | Production hosting |
 
-### Current State
 
-- **Documentation:** COMPLETE — 128 documentation files (80+ active stage docs)
-- **v3-FINAL patches:** 16 documents (38 part files), 64 locked decisions (48 core + 4 OD + 12 CPA2)
-- **Games:** 35 total — 6 Flagship (full 3D, 20M tris), 9 FL-Lite (immersive 3D, 10M tris), 20 Standard (themed 3D, 5M tris)
-- **Code written:** ~70% — Stages 1-7 code-complete, audited
-
----
 
 ## 2. AUTONOMY RULES
 
@@ -96,41 +87,6 @@ A hard stop means: **STOP ALL WORK. Output a clear status message. Wait for the 
 
 ---
 
-## 3. DOCUMENT HIERARCHY
-
-Claude Code should reference these documents in this priority order:
-
-| Priority | Document | Location | Purpose |
-|----------|----------|----------|---------|
-| 1 | **This file (CLAUDE.md)** | Repo root | Architecture, rules, autonomy boundaries |
-| 2 | **Stage document (v3-FINAL or v2)** | `docs/` folder | Complete copy-paste code for current stage |
-| 3 | **Master Directory v1.2** | `docs/00-reference/` | 26-phase flow map, file registry |
-| 4 | **GCUD V10.2** | `docs/00-reference/` | Source of truth for game content + status |
-| 5 | **Master Implementation Guide v3.2** | `docs/00-reference/` | Stage overviews + file lists |
-| 6 | **Decision Lock Checkpoints 1-3** | `docs/01-decisions/` | 64 locked decisions (48 core + 4 OD + 12 CPA2) — decisions embedded in stage docs |
-| 7 | **CPA v2.0 (Cockpit Architecture)** | `docs/00-reference/` | 3D Panoramic Cockpit full spec, CPA2 decisions, triangle budgets (absorbs Visual Enhancement Concept v2) |
-| 7a | **Cockpit CPA2 Stage Docs** | `docs/stage3-auth-layout/` | `COCKPIT_CPA2_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5C–5D |
-| 8 | **Hero Animation v2.0** | `docs/00-reference/` | 8-phase cinematic spec + implementation plan |
-| 8a | **Hero Animation Stage Docs** | `docs/stage3-auth-layout/` | `HERO_ANIMATION_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5A–5B |
-| 8b | **Login 3D Enhancement Stage Docs** | `docs/stage3-auth-layout/` | `LOGIN_3D_v3FINAL_PartA.md` + `PartB.md` — buildable code for Phases 5E–5F (3D login portal, Demo Login feature) |
-| 9 | **Per-Stage Playbooks** | `docs/00-reference/` | Full build playbooks for all stages including Hero + Cockpit + Login 3D (extracted from CLAUDE.md Section 5) |
-| 10 | **3D Component Registry** | `docs/00-reference/` | 60+ component registry with tiers/budgets (extracted from CLAUDE.md Section 9) |
-| 11 | **Known Compat Notes** | `docs/00-reference/` | Version-sensitive package flags |
-| 12 | **Testing Guide** | `TESTING.md` (repo root) | Testing pyramid, API/component/E2E tests, pre-deploy checklist |
-| 13 | **Feature Workflow Guide** | `Feature-Workflow-Test.md` (repo root) | Build-test-integrate cycle, feature sizing, version control per feature |
-| 14 | **Database Patterns Guide** | `database-patterns.md` (repo root) | Supabase/RLS patterns, schema design, validation, seeding, performance |
-| 15 | **SparkForge Agent Playbook** | `SparkForge-agent.md` (repo root) | Autonomous evaluation sweeps, admin approval workflow, apply-test-report cycle |
-| 16 | **Error Handling & Auto-Fix Guide** | `docs/00-reference/` | Build/TS/import error patterns and auto-fix strategies |
-| 17 | **Quick Reference: 35 Games** | `docs/00-reference/` | Full game table (extracted from CLAUDE.md, canonical in GCUD V10.2) |
-| 18 | **Enhancement Blueprint v1.0** | Repo root | 12-section visionary upgrade plan (Enh 1.0–1.2+) |
-
-### Build Strategy: Read File Prior to Usage. Certain v2 documents need to be developed prior to v3, and certain v3 should be developed before their v2 counterparts. 
-
-All docs containing "stage or Stage" should be read and evaluated for development order. Certain stages require v2 docs tk be developed first, while others may require v3 docs to be developed forst. Always read documents prior to development. 
-
-### 3.1 Stage Document Modification Policy
-
-Stage documents in `docs/` are **living documents** — they should always contain the most current, buildable code. Claude Code acts as the **primary code reviewer** during development and is responsible for keeping stage docs accurate. If updates to code and or documentation occur during development, periodically commit updates to ensure all files are up to date. 
 
 #### AUTO-FIX (No Approval Needed)
 
@@ -164,16 +120,6 @@ The following changes to stage documents require explicit approval before modify
 | **3D/shader changes** | New 3D components, changed triangle budgets, different materials | Affects performance + design |
 | **Business logic changes** | Tier limits, pricing, age-band content, game scoring | Affects product behavior |
 
-**When proposing a structural change:**
-```
-STAGE DOC CHANGE REQUEST — [doc name]
-Category: [structural / visual / feature / schema]
-Current: [what the doc says now]
-Proposed: [what it should say]
-Reason: [why the change is needed]
-Impact: [what else this affects]
-Please reply 'approved' or describe concerns.
-```
 
 #### Code Review Role
 
@@ -252,139 +198,6 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 
 ---
 
-## 4. BUILD EXECUTION PLAN
-**Note:** A majority of the code was developed remotely via claude code committing to Github. At time of local terminal development, Claude Code shall dynamically review all local files cloned from Github. Claude code shall audit, enhance, and or fix any files, and or code during stage by stage development. CRITICAL: During local terminal development, claude code is not to re-write any code, unless explicitly directed by user, but rather use all existing code while auditing for errors, and or improvement opportunities.
-**Note:** During local development, when Claude Code is auditing, and or building, any updates tk existing code, or files should be committed to local and remote repositories. Ask user for clarification on where to commit to on Github and locally. 
-### Implementation Order 
-
-Always evaluate local and or remote files to assess if new/updated documents have been added. Development should always be conducted dynamically, reviewing files prior to moving to next applicable stage or section in development.
-
-| Phase | Stage | Source Documents | v3? | Hard Stops |
-|-------|-------|-----------------|-----|------------|
-| 1 | Stage 1 Part 1 | STAGE1_Foundation_v2_PART1 | No | — |
-| 2 | Stage 1 Part 2 | STAGE1_Foundation_v2_PART2 | No | — |
-| 3 | Stage 2 Parts 1-4 | STAGE2_Database_API_v2_PART1-4 | No | HS-1 |
-| 4 | Stage 3 Parts 1-2 | STAGE3_Auth_Layout_Shell_v2_PART1-2 | No | — |
-| 5 | Stage 3 Part 3 | STAGE3_Part3A/B_v3FINAL | YES | — |
-| **5A** | **Hero Animation Part 1** | **HERO_ANIMATION_v3FINAL_PartA** (stores, infrastructure, shaders) | **YES** | — |
-| **5B** | **Hero Animation Part 2** | **HERO_ANIMATION_v3FINAL_PartB** (particle system, audio, orchestrator) | **YES** | HS-5 |
-| **5C** | **Cockpit Architecture Part 1** | **COCKPIT_CPA2_v3FINAL_PartA** (CockpitCanvas, CameraSystem, panel geometry) | **YES** | — |
-| **5D** | **Cockpit Architecture Part 2** | **COCKPIT_CPA2_v3FINAL_PartB** (spatial dashboard, HUD, transitions, audio, polish) | **YES** | HS-5, HS-9 |
-| **5E** | **Login 3D Enhancement Part 1** | **LOGIN_3D_v3FINAL_PartA** (3D portal scene, particles, demo session infra, auth store, auth layout) | **YES** | — |
-| **5F** | **Login 3D Enhancement Part 2** | **LOGIN_3D_v3FINAL_PartB** (enhanced login page, demo guard, demo banner, AuthProvider integration) | **YES** | HS-5, HS-10 |
-| 6 | Stage 4 Parts 1+3 | STAGE4_Core_Pages_v2_PART1+3 | No | — |
-| 7 | Stage 4 Part 2 | STAGE4_Part2_v3FINAL_A/B | YES | — |
-| 8 | Stage 5 Part 1 | STAGE5_Gamification_Profile_PART1 | No | — |
-| 9 | Stage 5 Parts 2-3 | STAGE5_Parts23_v3FINAL_A/B/C | YES | — |
-| 10 | Stage 6B | STAGE6B_v3FINAL_A/B | YES | HS-8 (soft) |
-| 11 | Stage 6C | STAGE6C_v3FINAL_A/B | YES | — |
-| 12 | Stage 6D | STAGE6D_v2 + v3FINAL_A/B | Mixed | — |
-| 13 | Stage 6E | STAGE6E_v3FINAL_A/B/C | YES | — |
-| 14 | Stage 6F | STAGE6F_v3FINAL_A/B/C | YES | — |
-| 15 | Stage 7A (9 games) | STAGE7A_Batch + Parts 2-4 | No | — |
-| 16 | Stage 7B (4 games) | STAGE7B_v3FINAL_A/B/C | YES | — |
-| 17 | Stage 7C (4 games v2) | STAGE7C_Part1 + Part2 | No | — |
-| 18 | Stage 7C (2 games v3) | STAGE7C_v3FINAL_A/B/C | YES | — |
-| 19 | Stage 7D (5 games) | STAGE7D_Part1(v2) + v3FINAL_A/B/C | Mixed | — |
-| 20 | Stage 7E (3 games) | STAGE7E_Part1 + Part2 | No | — |
-| 21 | Stage 7F (3 games) | STAGE7F_v3FINAL_A/B + Part1(v2) + Part2(v2) | Mixed | — |
-| 22 | Stage 7 Shared | STAGE7_Shared_v3FINAL_A + XP_Celebration(v2) | Mixed | — |
-| 23 | Stage 8 Parts 1-2 | STAGE8_Parent_Dashboard_v2_PART1-2 | No | HS-2 |
-| 24 | Stage 8 Part 3 | STAGE8_P3_v3FINAL_A/B/C | YES | — |
-| 25 | Stage 9 Parts 1-3 | STAGE9_Content_Agent_v2_PART1-3 | No | HS-3 |
-| 26 | Stage 10 Parts 1-2 | STAGE10_Polish_Deploy_v2_PART1-2 | No | HS-4 |
-
-#### Phase 5A–5B: Hero Animation (after Stage 3 Part 3)
-
-The Hero Animation replaces `CrystalShatter.tsx` with an 8-phase cinematic sequence. It must be built **immediately after Stage 3 Part 3** because:
-1. Stage 3 Part 3 creates the StationFrame shell and CrystalShatter — Hero Animation replaces CrystalShatter
-2. The unified `CockpitCanvas` (CPA2-1) is established here, which ALL subsequent stages render inside
-3. Stage 4+ pages depend on the cockpit wrapper being in place
-
-**Phase 5A — Hero Animation Part 1: Stores, Infrastructure & Shaders**
-- **Source:** `HERO_ANIMATION_v3FINAL_PartA.md` + `Implementation_Plan_Hero_Page_Animation_v2.0.md` (Phases A–C)
-- **Files created:** `webgpuDetection.ts`, `crystallineLogo.vert`, `crystallineLogo.frag`, `electricVeins.frag`, `voronoiShatter.comp`, `voronoiFracture.ts`, `heroSplines.ts`
-- **Files modified:** `uiStore.ts` (+skipIntroAnimation), `deviceStore.ts` (+gpuTier, +stripeCount)
-- **Packages:** `three-bvh-csg`, `three-mesh-bvh`, `troika-three-text`
-
-**Phase 5B — Hero Animation Part 2: Particles, Audio & Orchestrator**
-- **Source:** `HERO_ANIMATION_v3FINAL_PartB.md` + `Implementation_Plan_Hero_Page_Animation_v2.0.md` (Phases B, D–E)
-- **Files created:** `heroParticleCompute.ts`, `heroParticleRender.ts`, `heroAudio.ts`, `useHeroAnimation.ts`, `HeroAnimation.tsx`
-- **Archives:** `CrystalShatter.tsx` → `src/components/3d/_SUPERSEDED/` (Decision 8.1: CrystalHero.tsx retained)
-- **Hard Stop:** HS-5 — Visual verification of 8-phase hero animation sequence
-
-#### Phase 5C–5D: 3D Panoramic Cockpit Architecture (CPA v2.0)
-
-The Cockpit Architecture transforms the StationFrame shell into a full 3D command bridge. It must follow Hero Animation because:
-1. CPA2-3 (Seamless Handoff) requires hero animation's final frame to transition into the live cockpit
-2. `CockpitCanvas.tsx` (created in 5A/5B) is the single persistent canvas that cockpit geometry renders into
-3. The 20M triangle budget cockpit components need the canvas + camera system in place
-
-**Phase 5C — Cockpit Architecture Part 1: Canvas, Camera & Shell Geometry**
-- **Source:** `COCKPIT_CPA2_v3FINAL_PartA.md` + `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` (Sections 2–4)
-- **Files created/upgraded:** `CockpitCanvas.tsx` (camera [0,0.65,1.1]), `CameraSystem.tsx`, `CockpitPanels.tsx` (4M tris, 218° arc, r=4.8), `SidePanels.tsx` (3M, at [±2.35,0.25,-1.65]), `LEDRim.tsx` (500K, 1500 LEDs, emissive 3.0), `HolographicHUD.tsx` (1M), `StatusBar3D.tsx` (1M, at [0,-1.25,-1.95]), `CockpitStructuralDetail.tsx` (2M), `CockpitFloor3D.tsx` (1M)
-- **Files modified:** `StationFrame.tsx` (→ thin wrapper), `SpatialDashboard.tsx` (→ thin wrapper)
-- **Store updates:** `cockpitStore.ts` (spatial nav, skins, heroPhase), `cockpitConfig.ts` (TRIANGLE_BUDGET_V2)
-
-**Phase 5D — Cockpit Architecture Part 2: Spatial Content, Transitions & Audio**
-- **Source:** `COCKPIT_CPA2_v3FINAL_PartB.md` + `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` (Sections 5–17)
-- **Files created/upgraded:** `HolographicLabMap.tsx` (1M), `InteractiveConsole3D.tsx` (2M), `AmbientNPCs.tsx` (1.5M), `DynamicEnvironment.tsx` (3M), `VolumetricFog3D.tsx` (500K), `CeremonyFX.tsx` (500K), `WormholeTransition.tsx` (300K), `MiniMapOverlay3D.tsx` (250K), `CockpitSkinManager.tsx`, `CockpitAudioEngine.ts`, `useCockpitAudio.ts`
-- **Hard Stop:** HS-9 — Visual verification of full cockpit (hero → cockpit handoff, spatial dashboard, lab transitions)
-- **Hard Stop:** HS-5 — Stage-level visual checkpoint
-
-#### Phase 5E–5F: Login 3D Enhancement + Demo Login (after Cockpit Architecture)
-
-The Login 3D Enhancement transforms the flat login/signup pages into an immersive 3D laboratory entrance with a crystal portal, animated particles, and chrome-bezel UI. It also adds a **Demo Login** feature allowing users to explore the full platform for 1 hour without creating an account. It must follow Cockpit Architecture because:
-1. Demo users are redirected to `/home` which triggers the Hero Animation and Cockpit — these must be in place
-2. The `DemoGuard` component wraps the dashboard layout which depends on `StationFrame` and `CockpitCanvas`
-3. The Demo Login banner sits above the cockpit z-index layer
-
-**Phase 5E — Login 3D Enhancement Part 1: 3D Scene, Demo Infrastructure & Auth Layout**
-- **Source:** `LOGIN_3D_v3FINAL_PartA.md`
-- **Files created:** `src/lib/demo-session.ts`, `src/components/3d/LoginPortal3D.tsx`, `src/components/3d/LoginParticles3D.tsx`, `src/components/auth/DemoLoginButton.tsx`, `src/components/auth/DemoSessionBanner.tsx`, `src/app/api/auth/demo/route.ts`
-- **Files modified:** `src/stores/authStore.ts` (+isDemoMode, +demoSession, +startDemoSession, +endDemoSession, +checkDemoStatus), `src/app/(auth)/layout.tsx` (REPLACE — add 3D canvas layer)
-
-**Phase 5F — Login 3D Enhancement Part 2: Enhanced Login, Demo Guards & Integration**
-- **Source:** `LOGIN_3D_v3FINAL_PartB.md`
-- **Files created:** `src/hooks/useDemoSession.ts`, `src/components/auth/DemoGuard.tsx`, `src/components/auth/LoginFormCard.tsx`
-- **Files modified:** `src/app/(auth)/login/page.tsx` (REPLACE — enhanced with Demo Login button), `src/components/providers/AuthProvider.tsx` (MODIFY — demo session hydration), `src/app/(dashboard)/layout.tsx` (MODIFY — add DemoGuard + DemoSessionBanner)
-- **Hard Stop:** HS-10 — Visual verification of 3D login, demo session flow, expiry modal
-- **Hard Stop:** HS-5 — Stage-level visual checkpoint
-
-### Per-Part Workflow
-
-For EACH part listed above:
-
-```
-1. READ the stage document for the part
-2. CREATE folders specified (mkdir/New-Item commands)
-3. CREATE files in order, copying code exactly
-4. RUN: npm run build
-5. RUN: npx tsc --noEmit (TypeScript check)
-6. CHECK: dev tools console for errors (if dev server running)
-7. IF build passes → git commit (see Commit Strategy)
-8. IF build fails → Soft Stop auto-fix (see Section 10)
-9. UPDATE PROGRESS.md with part status
-10. PROCEED to next part
-```
-
-### Visual Verification (Stage-Level)
-
-After completing ALL parts of a stage, trigger **HS-5**:
-
-```
-VISUAL CHECKPOINT — Stage [N] Complete
-
-Build status: PASS ✓
-TypeScript: PASS ✓
-Console errors: [none / list]
-
-Please verify visually at localhost:3000:
-- [ ] [stage-specific checklist items]
-
-Reply 'approved' to continue to Stage [N+1], or describe issues.
-```
-
 **Stage-specific visual checklists:**
 
 | Stage | What to Verify |
@@ -420,51 +233,8 @@ git tag -a v0.3.0 -m "Stage 3 complete: Auth + Layout + Station Frame"
 
 ---
 
-## 5. PER-STAGE PLAYBOOKS (CRITICAL: Always Evaluate local and or remote documents for potential new additions or modifications.)
 
-**Full playbooks:** `docs/00-reference/Per-Stage-Playbooks.md`
 
-| Stage | Source | Parts | Hard Stops | Tag |
-|-------|--------|-------|------------|-----|
-| 1 Foundation | v2 PART1-2 | 2 | — | v0.1.0 |
-| 2 Database/API | v2 PART1-4 | 4 | HS-1 | v0.2.0 |
-| 3 Auth/Layout/Frame | v2 P1-2 + v3 P3A/B | 4 | HS-5 | v0.3.0 |
-| **3-Hero** Hero Animation | HERO_ANIMATION_v3FINAL_A/B | 2 | HS-5 | v0.3.1 |
-| **3-Cockpit** Cockpit CPA2 | COCKPIT_CPA2_v3FINAL_A/B | 2 | HS-5, HS-9 | v0.3.2 |
-| **3-Login3D** Login 3D + Demo | LOGIN_3D_v3FINAL_A/B | 2 | HS-5, HS-10 | v0.3.3 |
-| 4 Core Pages/Labs | v2 P1+3 + v3 P2A/B | 4 | HS-5 | v0.4.0 |
-| 5 Gamification/FX | v2 P1 + v3 A/B/C | 4 | — | v0.5.0 |
-| 6 Flagship (5 games) | All v3-FINAL | 12 | HS-8, HS-5 | v0.6.0 |
-| 7 Remaining (30 games) | Mixed v2 + v3 | 20+ | — | v0.7.0 |
-| 8 Parent Dashboard | v2 P1-2 + v3 A/B/C | 5 | HS-2, HS-5 | v0.8.0 |
-| 9 Content Agent | v2 PART1-3 | 3 | HS-3 | v0.9.0 |
-| 10 Polish/Deploy | v2 PART1-2 | 2 | HS-4, HS-5 | v0.10.0 |
-
----
-
-## 6. DESIGN SYSTEM — FROST-PRISMATIC
-
-**Mode:** Dark-mode only. **Rule:** Blue-dominant 60/40 (60% blue, 40% accent pops).
-
-### Colors
-
-**Neon Accents:** blue `#00BBFF` (PRIMARY 60%), green `#00FF88`, purple `#AA66FF`, orange `#FF6644`, amber `#FFAA44`
-**Surfaces:** base `#0A0E16`, card `#111118`, elevated `#1A1822`, border `rgba(255,255,255,0.06)`
-**Chrome Bezel:** edge 0.06, highlight 0.12, specular 0.18 (all white alpha)
-**Lab Colors:** L1 `#00BBFF`, L2 `#AA66FF`, L3 `#FF66AA`, L4 `#FFAA44`, L5 `#00FF88`, L6 `#FF6644`, L7 `#06B6D4`, L8 `#818CF8`, L9 `#F97316`, L10 `#D946EF`
-
-### Fonts (AUTHORITATIVE — BUG-10F)
-
-| Role | Font | CSS Class |
-|------|------|-----------|
-| Display/Headers | Exo 2 | `font-display` |
-| Body Text | Sora | `font-body` |
-| Monospace/Code | JetBrains Mono | `font-mono` |
-| Data/Numbers | Orbitron | `font-data` |
-
-**NEVER use Fredoka or Nunito Sans.** These were from the original build prompt and are incorrect.
-
----
 
 ## 7. GAME ARCHITECTURE TEMPLATE
 
@@ -486,7 +256,6 @@ game.completeGame();
 
 ### Required Features (ALL 35 games)
 
-- Chrome bezel + LED rim wrapper
 - 12-15 particles (lab-colored) — R3F for all tiers (D3D-1: desktop-only)
 - Welcome phase with animated entrance
 - Age-band differentiated content (A/B/C)
@@ -523,224 +292,28 @@ const Component3D = dynamic(
 | Hooks | camelCase with `use` prefix | `useGSAPScroll.ts` |
 | Shaders | `src/shaders/labPatternN.glsl` | `labPattern3.glsl` |
 
-### Terminology
-
-| Context | Use |
-|---------|-----|
-| UI text | **Lab** |
-| Database columns | **world** |
-| API params | **world** |
-| Hook names | **Lab** (e.g., useLabContent) |
-| Store properties | **labColor** |
-| Types/constants | **WORLDS** |
 
 ---
 
-## 9. 3D ARCHITECTURE RULES
 
-- **ALL** R3F/Three.js components go in `src/components/3d/`
-- **ALL** must use `dynamic(() => import(...), { ssr: false })`
-- `next.config.ts` externalizes Three.js from server builds via `serverExternalPackages`
-- **Desktop-only rendering (D3D-1)** — no mobile/tablet code paths
-- **All effects always-on (D3D-5)** — no conditional postprocessing
-- **Single persistent Canvas (D3D-B1)** — CockpitCanvas never unmounts
-- **Scene management via sceneStore (D3D-B5)** — centralized visibility control
-- **Mechanical iris transitions (D3D-B2)** — cockpit-to-game via MechanicalIris
-- **Triangle budgets: Flagship 20M, FL-Lite 10M, Standard 5M, System ~37.8M cockpit + ~12M game headroom (D3D-3)**
-- Materials: `MeshToonMaterial` (pets), `MeshStandardMaterial` (chrome), custom GLSL
-- Environment: `frost-prismatic.hdr` in `public/hdri/`
-- 11 PBR presets in `lib/3d/materials.ts`
-- 10 GLSL lab pattern shaders in `src/shaders/`
 
-### 3D Component Registry
 
-**Full registry (~140 components):** `docs/00-reference/3D-Component-Registry.md`
-
-| Category | Count | Key Components |
-|----------|-------|----------------|
-| System/Dashboard | 9 | StationFrame, HeroAnimation, AuroraBackground, SceneRouter, MechanicalIris, PostProcessingStack |
-| Flagship (games + envs) | 12 | Pet3DScene, NeuralNetwork3D, PromptBubble3D, AgentPipeline3D, BiasScales3D, SortScene3D + 6 environments |
-| FL-Lite (games + envs) | 19 | CodeBlocks3D, ChatbotNodes3D, DataDetective3D, RobotVacuum3D, CameraQuest3D, FutureForge3D, MyFirstAiApp3D, EmojiDecoder3D, AiOrNot3D + 10 environments |
-| Standard (environments) | 21 | StandardEnvironmentBase + 20 game-specific environments |
-| Procedural Environment | 7 | ProceduralEnvironmentGenerator, ProceduralTerrain, ProceduralSkyDome, ProceduralFog, ProceduralLighting, ProceduralProps, proceduralConfig |
-| Cockpit/Enhancement | 24 | CockpitCanvas, CameraSystem, SpatialDashboard, HolographicLabMap, CockpitPanels, SidePanels, StatusBar3D, HolographicHUD, LEDRim, CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitSkinManager, CockpitAudioEngine |
-| **3D UI Components (v3.0)** | **8** | **HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard, HolographicPanel, NavigationButtonGrid, VariableDialCluster, CenterViewportScreen** |
-| **3D UI Materials** | **1** | **cockpitMaterials.ts (7 factories: alloyFrame, controlPanel, holographic, button, bezel, console, LED)** |
-| **3D UI Stores** | **1** | **cockpitBroadcastStore.ts (cross-panel event bus, 16 event types, pulse decay)** |
-| Hero Animation | 5 | useHeroAnimation, heroParticleCompute, voronoiFracture, heroSplines, heroAudio |
-| Hooks (D3D) | 2 | useParallaxMouse, useInteractiveSurface |
-| Audio (D3D) | 1 | irisAudioEngine (+ LAB_COLOR_AUDIO_PROFILES for per-lab sound variations) |
-| Stores (D3D) | 1 | sceneStore |
-| TSL Shaders (Section 4.1-A) | 12 | 10 lab pattern TSL ports + shared.ts + index.ts (WebGPU-compatible) |
-| Camera Utilities (Section 4.1) | 2 | cameraShake (triggerCameraShake + SHAKE_PRESETS), interactiveSurfaceConfig (8 cockpit presets) |
-
-### 9.1 Desktop-Ultra Rendering (D3D-1, D3D-2)
-
-LOD system has been removed (D3D-2). All geometry renders at maximum quality always. No DeviceSelectionModal, no tiered budgets, no useLOD hook. `deviceStore` hardcodes desktop-ultra profile with 50M total triangle budget.
-
-Future mobile support will use R3F-native LOD (Three.js LOD object), not CSS fallbacks.
-
-#### Desktop-Ultra Profile
-
-| Property | Value |
-|----------|-------|
-| Target FPS | 60 |
-| Max Triangles | 50,000,000 (~37.8M cockpit + ~12.2M game headroom) |
-| Bloom | Always on |
-| Shadows | Always on |
-| Pixel Ratio | Native (`window.devicePixelRatio`) |
-| SSAO | Always on |
-| Chromatic Aberration | Always on |
-| Depth of Field | Always on |
-
-#### Performance Monitoring (Audit Section 4.4)
-
-**Plan B1 (IMPLEMENTED):** Non-invasive frame-time monitoring via `useFrameTimeMonitor` hook in CockpitCanvas. Dev-only. Logs console warnings when average frame time exceeds 20ms (< 50fps). Does NOT auto-degrade effects — D3D-5 honored.
-
-**Plan B2 (FUTURE — if persistent performance issues detected):** Adaptive effect degradation. Measure initial 60 frames; if avg > 20ms, disable DepthOfField and reduce N8AO to quarter-res. Implement via `performanceStore` dispatching to `PostProcessingStack` props. Only activate if Plan B1 monitoring shows consistent sub-50fps on target hardware.
-
-### 9.2 Game Tier Definitions (3 tiers)
-
-**Note:** Enhanced Standard tier has been **merged into FL-Lite**. There are now 3 game tiers:
-
-| Tier | Description | 3D | Triangle Budget (D3D-3) | Games |
-|------|-------------|-----|------------------------|-------|
-| **Flagship** | Full immersive 3D scenes, all effects | Full R3F | 20M (20,000,000) | 6 |
-| **FL-Lite** | Immersive 3D with themed environments | Full R3F | 10M (10,000,000) | 9 |
-| **Standard** | Immersive 3D environments with themed scenes | Full R3F | 5M (5,000,000) | 20 |
-
-**Total: 6 + 9 + 20 = 35 games.** Flagship includes Sort Toy Box (Full 3D). System (Cockpit) budget: 30M.
-
-### 9.3 3D Panoramic Cockpit Suite (Enhancements 1.0 / 1.1 / 1.2)
-
-The Cockpit Suite transforms SparkForge from a flat dashboard into a **fully immersive 3D command bridge**. It spans three enhancement phases, all documented in dedicated reference docs.
-
-#### Architecture: CPA v2.0 (Single Persistent Canvas)
-
-The **Cockpit Panoramic Architecture v2.0** (`docs/00-reference/3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`) defines the core pattern:
-
-- **Single `<CockpitCanvas>`** wraps the entire app — R3F Canvas persists across all routes (no remount, no canvas swap)
-- **WebGPU primary** renderer via `WebGPURenderer` (async init), **WebGL2 fallback** automatic via TSL compilation
-- **Hero Animation** seamlessly transitions INTO the live cockpit — final animation frame IS the first interactive frame
-- **Dashboard HTML** renders as z-index overlay on top of the live cockpit scene
-- **All cockpit geometry** materializes from shattered logo shards (Phase 6 migration → Phase 7 crystallization)
-
-#### Enhancement Phases
-
-| Phase | Name | Status | Source Document | Scope |
-|-------|------|--------|-----------------|-------|
-| **Enh 1.0** | Cockpit Panoramic Architecture v1 | Superseded by v2 | `COCKPIT_PANORAMIC_ARCHITECTURE_v1.md` | Initial cockpit shell concept |
-| **Enh 1.1** | Spatial Dashboard (CPA v2.0) | IMPLEMENTED | `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md` | Full spatial environment — holographic lab map, 4 consoles, NPCs, dynamic environment |
-| **Enh 1.2** | Cockpit Personalization | PLANNED | `ENHANCEMENT_BLUEPRINT_v1.0.md` §1 | Cockpit skins, custom NPC configurations, user-driven theming |
-
-#### CPA2 Decision Locks (12 decisions)
-
-Decisions CPA2-1 through CPA2-12 govern cockpit architecture. Key decisions:
-
-| ID | Decision | Summary |
-|----|----------|---------|
-| CPA2-1 | Single Canvas | One persistent R3F Canvas for entire app lifecycle |
-| CPA2-2 | WebGPU Primary | WebGPURenderer with WebGL2 auto-fallback via TSL |
-| CPA2-3 | Seamless Handoff | Hero animation → cockpit with zero DOM transitions |
-| CPA2-4 | Scene Groups | SpatialDashboard as `<group>` within CockpitCanvas, not separate Canvas |
-
-Full decision list in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`.
-
-#### D3D-B Decision Locks (Desktop-First Overhaul)
-
-| ID | Decision | Summary |
-|----|----------|---------|
-| D3D-B1 | Persistent Canvas | CockpitCanvas never unmounts — uses SceneRouter for visibility |
-| D3D-B2 | Mechanical Iris | MechanicalIris replaces WormholeTransition for cockpit-to-game transitions |
-| D3D-B3 | Game Scene Groups | Game scenes render as `<group>` inside CockpitCanvas |
-| D3D-B4 | SceneRouter | SceneRouter manages visibility of cockpit/game/hero/spatial scenes |
-| D3D-B5 | sceneStore | Centralized scene state replaces fragmented state management |
-| D3D-B6 | Cockpit Fade | Cockpit fades to 20% opacity during game scenes |
-
-Note: WormholeTransition is retained for lab-to-lab transitions within the spatial dashboard.
-
-#### Cockpit Triangle Budgets (v3.0 — 3D-Embedded UI Upgrade, March 27, 2026)
-
-| Component | Triangles | Notes |
-|-----------|-----------|-------|
-| CockpitPanels | 4,000,000 | 288-seg curved hull (218° arc, r=4.8), 12 ribs, 768 rivets |
-| SidePanels | 3,000,000 | Pulled to [±2.35, 0.25, -1.65], alloy chrome #a8b5c8, radar + terminal |
-| HolographicLabMap | 1,000,000 | Multi-layer geodesic shells, data highways, projector pedestal |
-| LabStructure3D (10 labs) | 3,000,000 | 300K/lab: subdivision surfaces, interior mechanisms, dioramas |
-| InteractiveConsole3D (4) | 3,000,000 | 750K/console: multi-part housing, projector base, instrument cluster |
-| AmbientNPCs (8 bots) | 2,000,000 | 250K/bot: articulated body, facial animation, finger grippers |
-| DynamicEnvironment | 3,000,000 | Volumetric fog, environmental props, weather effects |
-| HolographicHUD | 1,000,000 | 8 concentric rings, data arcs, reticle, volumetric scan beams |
-| StatusBar3D | 1,000,000 | XP speedometer, streak flame, 10 lab indicators (at [0,-1.25,-1.95]) |
-| LEDRim | 500,000 | 1500 LED capsules (was 1000), emissive 3.0, data viz mode |
-| CockpitStructuralDetail | 2,000,000 | 60 cable bundles, 16 vent panels, ribs, LED indicator strips |
-| CockpitFloor3D | 1,000,000 | Grated floor, sub-floor piping, energy conduits, LED channels |
-| VolumetricFog3D | 500,000 | Fog volumes, god ray cones, density layers with FBM noise |
-| CeremonyFX | 500,000 | Instanced confetti, fireworks, 3D trophies, HUD ring expansion |
-| WormholeTransition | 300,000 | Tunnel interior, swirling energy walls, speed lines, portal rings |
-| MiniMapOverlay3D | 250,000 | Miniature lab ring, player indicator, completion color-coding |
-| AuroraBackground | 50,000 | Volumetric aurora layers, 3 ribbon TubeGeometry paths |
-| AmbientParticles | 200,000 | Instanced icosahedron particles with trails and halos |
-| **NEW: 3D UI Components** | 5,000,000 | HolographicButton, RadialDial3D, ToggleSwitch3D, HolographicCard/Panel |
-| **NEW: NavigationButtonGrid** | 1,000,000 | 5 physical cockpit nav buttons (HOME/LABS/ARCADE/SETTINGS/PROFILE) |
-| **NEW: VariableDialCluster** | 1,500,000 | 3 center-console dials, per-page auto-reconfigure |
-| **NEW: CenterViewportScreen** | 3,000,000 | Spherical panoramic screen (r=3.9, 144×72 segs, BackSide) |
-| **Cockpit Total** | **~37,800,000** | System 50M budget with ~12M game headroom |
-
-#### Desktop-Only Rendering (D3D-1)
-
-Mobile/tablet code paths have been removed (D3D-1). The cockpit always renders at full quality. No CSS fallbacks, no `useIsMobile()`, no `GenericGameParticles`. Future mobile support will use R3F-native LOD (Three.js LOD object) rather than CSS substitution.
-
-#### TSL / WebGPU Notes
-
-Since Three.js r183+, custom `ShaderMaterial` and `RawShaderMaterial` are **not supported** in `WebGPURenderer`. All shaders must use **TSL (Three Shader Language)**, which auto-compiles to:
-- **WGSL** for WebGPU path
-- **GLSL** for WebGL2 fallback path
-
-The 10 GLSL lab pattern shaders in `src/shaders/labPatterns/` work under WebGL2. **TSL equivalents are now available** in `src/shaders/labPatterns/tsl/` (Section 4.1-A). Use `getLabPatternTSL(labNumber)` to get the TSL pattern + uniforms for any lab. Hero Animation particle system already uses full TSL compute pipeline.
+| 
 
 ---
 
-## 10. ERROR HANDLING & AUTO-FIX GUIDE
 
-**Full guide:** `docs/00-reference/ERROR_HANDLING_AUTOFIX_GUIDE.md`
 
-**Quick rules:**
-- TypeScript errors → check `types/index.ts`, verify imports, check stage doc for missing files
-- Import errors → `npm install` missing packages, check file paths per Section 8 conventions
-- Build errors → ensure `export default` on pages, check `tailwind.config.ts` for custom classes
-- Runtime errors → ensure `ssr: false` for 3D, check `.env.local` for Supabase/Stripe/Anthropic keys
-- **After 2 failed auto-fix attempts → Escalate to HARD STOP (HS-6)**
+### Standard Tier Content & AI Integration (April 9-10, 2026)
 
----
-
-## 11. KNOWN BUG REGISTRY
-
-These bugs are already documented. Apply the fix when you reach the indicated stage.
-
-| ID | Issue | Fix | Stage |
-|----|-------|-----|-------|
-| BUG-1 | useApi.ts stubs confuse hooks | Stage 4 Part 1 REPLACES useApi.ts entirely | 4 |
-| BUG-3 | 10 parallel progress API calls | Uses single `/api/progress/all-labs` endpoint | 4 |
-| BUG-5 | Lab map shows wrong completion | Fixed in Stage 4 lab map with proper hook | 4 |
-| BUG-7 | subscription_status default | Comment clarification in Stage 2 P1 | 2 |
-| BUG-8A | Duplicate tier config files | APPEND to `tier-config.ts`, no new `tiers.ts` | 8 |
-| BUG-10D | CSP blocks Vercel analytics | `connect-src` includes Vercel domains | 10 |
-| BUG-10F | Font stack conflict | Exo 2/Sora/Orbitron NOT Fredoka/Nunito in root layout | 10 |
-| ENH-8A | Stripe graceful fallback | 503 + setup URL if keys missing | 8 |
-| ENH-9A | Anthropic graceful fallback | 503 if `ANTHROPIC_API_KEY` missing | 9 |
-| IMP-4 | spark-* vs neon-* tokens | Both defined as aliases in `tailwind.config.ts` | 1 |
-| MISSING-7A | AI Spy game has no implementation | **RESOLVED** — `AiSpyGame.tsx` created March 14, 2026 (420 lines, full game) | 7A |
-| FIX-DUAL-CANVAS | Dual WebGL contexts: StationFrame Canvas + game Canvas run simultaneously during gameplay, doubling GPU overhead | **RESOLVED (v2 — March 18, 2026)** — StationFrame.tsx unmounts R3F Canvas when `mode === 'game'`. **Original fix was incomplete:** `setGameActive()` was never called and `useStationMode` used local `useState` instead of global Zustand. **v2 fix:** (1) Added `gameActive`/`setGameActive` to `uiStore` (Zustand global), (2) `useStationMode` reads from `uiStore` instead of local state, (3) `GameShell` calls `setGameActive(true/false)` on mount/unmount. All 35 games now properly trigger Canvas unmount. | 6/7 |
-| FIX-LOD-MISSING | LODWrapper not integrated into any game despite CLAUDE.md Section 9.1 mandate | **RESOLVED (March 18, 2026)** — GameShell now wraps children with `<LODWrapper tier={lodTier} adaptive>`. Tier auto-resolved from `gameRegistry` via `gameId` slug. Mapping: `'fl-lite'` → `'flLite'`. All 35 games now have LOD context available to 3D children via `useLODContext()`. | 7 |
-| FIX-MOBILE-PARTICLES | Mobile devices see blank background when 3D Canvas hidden by `useIsMobile()` | **RESOLVED (March 18, 2026)** — GameShell renders `<GenericGameParticles color={worldColor} />` on mobile as CSS particle fallback. All 35 games automatically get lab-colored ambient particles on mobile. | 7 |
-| FIX-TRIPLE-CANVAS | HeroAnimation, StationFrame, and SpatialDashboard each created separate R3F Canvas instances, violating CPA2-1 (Single Canvas) and preventing CPA2-3 (Seamless Handoff) | **RESOLVED (March 20, 2026)** — Created unified `CockpitCanvas.tsx` with single persistent Canvas. `StationFrame`, `SpatialDashboard`, and `HeroAnimation` rewritten as thin `<group>` wrappers. `CameraSystem.tsx` manages all camera transitions. Hero-to-cockpit handoff is now seamless crossfade within single Canvas. | Enh 1.1 |
-| FIX-SYSTEM-LOD-CAP | `useLOD` hardcoded system tier to 3,000 triangles, preventing cockpit from using full device budget | **RESOLVED (March 20, 2026)** — Removed hardcoded cap; system tier now reads from `deviceStore` triangle budgets (desktop 20M, tablet 10M). Ultra LOD segments increased from 32 to 64. | Enh 1.1 |
-| UPGRADE-20M-COCKPIT | Cockpit used only ~104K of available triangle budget | **RESOLVED (March 20, 2026)** — Full 20M triangle upgrade across 13 upgraded components + 8 new components (CockpitStructuralDetail, VolumetricFog3D, CockpitFloor3D, CeremonyFX, WormholeTransition, MiniMapOverlay3D, CockpitCanvas, CameraSystem) + audio system (CockpitAudioEngine). See `Upgrade-3D-Panoramic-Cockpit-2026-03-20.md`. | Enh 1.1 |
-| D3D-CANVAS-PERSIST | CockpitCanvas unmounted during gameplay (FIX-DUAL-CANVAS) | **SUPERSEDED** by D3D-B1: Canvas now persists. GameShell uses `sceneStore.enterGame`/`exitGame` instead of `setGameActive`. | D3D Part B |
-| D3D-LOD-REMOVED | LOD system (`useLOD`, `LODWrapper`) removed | **RESOLVED** by D3D-2: All geometry at max quality. `deviceStore` hardcoded to desktop-ultra. | D3D Part A |
-| D3D-MOBILE-REMOVED | Mobile detection and CSS fallbacks removed | **RESOLVED** by D3D-1: 401 `isMobile` occurrences removed. Desktop-only rendering. | D3D Part A |
-| D3D-POSTFX-UPGRADE | Only 3 post-processing effects (Bloom, Vignette, BarrelDistortion) | **RESOLVED** by D3D-5/C1: 7 effects always-on with scene-reactive multipliers. | D3D Part C |
+- **Content expansion:** IMPLEMENTED — 20 games receiving ~3x hardcoded content expansion with difficulty tags. Vocabulary expansions (SentimentScanner 30→90 words). Multi-maze system (TreatTrainer 1→6 mazes).
+- **AI prompt templates:** IMPLEMENTED — 60 new content types in `ai-content-generator.ts` (3 per Standard game). 20 new GameIds. Rate limit maintained at 15/game/session.
+- **Admin curation pipeline:** Types and validation extended for Standard tier — +20 GameIds, +60 ContentTypes in Zod schema.
+- **Difficulty tiers:** IMPLEMENTED — `difficulty?: 'easy' | 'medium' | 'hard' | 'expert'` field added to all content interfaces. DifficultySelector available in all 20 games.
+- **Learn phases:** IMPLEMENTED — 12 games received 3 learn cards each (36 total cards). All 20 Standard games now have welcome → learn → play → complete flow.
+- **Scoring normalization:** IMPLEMENTED — TimeMachine and RealOrFake normalized to 10pts/correct. DataShield maxScore fixed (240 not 60). Dead state removed from RealOrFake and PixelInvestigator.
+- **Shared infrastructure:** IMPLEMENTED — `useSafeTimeout` hook applied to 12 games. `useAnimatedCounter` extracted to shared hook (deduplicated from 5 games).
+- **Full audit report:** `StandardTier-game-content-audit(04.09.2026).md` — 8 sections, 76 bugs, 6-phase roadmap.
 
 ### Game Code Agent — COMPLETED
 
@@ -761,51 +334,7 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 ## Status: [IN PROGRESS / BLOCKED / COMPLETE]
 ## Last Updated: [timestamp]
 
-### Completed
-- [ ] Stage 1 Part 1 — Foundation config ✓
-- [ ] Stage 1 Part 2 — Source files ✓
-- [ ] Stage 1 VISUAL APPROVED ✓ (tag: v0.1.0)
-...
 
-### Current Issues
-- [list any soft-stop issues encountered and how they were resolved]
 
-### Blocked On
-- [any active HARD STOP waiting for human input]
-
-### Discrepancies Log
-- [any file path or content mismatches from stage docs, with resolution]
-```
-
----
-
-## 13. QUICK REFERENCE — ALL 35 GAMES
-
-**Full table:** `docs/00-reference/QUICK_REFERENCE_35_GAMES.md` (also in GCUD V10.2)
-
-**Summary:** 6 Flagship (full 3D, 20M budget) + 9 FL-Lite (immersive 3D, 10M budget) + 20 Standard (themed 3D, 5M budget) = **35 games** across 10 Labs. All games support age bands A/B/C (some B/C or C only). Built across Stages 6B–7F.
-
----
-
-## 14. STORES (13 total)
-
-| Store | Stage | Key State |
-|-------|-------|-----------|
-| authStore | 3 | parent, isLoading, isDemoMode, demoSession, setParent/setLoading/clearAuth/startDemoSession/endDemoSession/checkDemoStatus |
-| childStore | 1/4/5 | children[], activeChild, xp, level, badges, avatar, cosmetics |
-| gameStore | 1/6 | currentGame, phase, score, startGame/completeGame/resetGame |
-| toastStore | 1 | toasts[], addToast/removeToast |
-| uiStore | 1 | sidebar, celebration, labColor, particleIntensity, sound, skipIntroAnimation. Note: `gameActive` flag deprecated (D3D-B1) — use `sceneStore.enterGame`/`exitGame` instead. |
-| accessibilityStore | 10 | fontSize, contrast, reducedMotion, screenReader. Exported as `useA11yStore`. |
-| parentStore | 8 | subscription, children, timeLimit, contentFilter |
-| **deviceStore** | — | D3D-1/3: Hardcoded desktop-ultra. 50M total budget. No device selection. gpuTier, stripeCount. |
-| **cockpitStore** | Enh 1.1 / CPA 2.0 | spatialView, focusedLabId, cameraTarget, cockpitSkin, npcsVisible, activeConsole, **heroPhase** (`'idle'`\|`'animating'`\|`'materializing'`\|`'complete'`), cockpitReady, setHeroPhase. Full definition in `3D_PANORAMIC_COCKPIT_ENHANCEMENT_v2.0.md`. |
-| **sceneStore** | D3D Part B | `activeScene`, `activeGameId`, `activeGameLabColor`, `transition`, `isTransitioning`, `cockpitOpacityTarget`. Actions: `enterGame`/`exitGame`/`enterSpatial`/`exitSpatial`/`setHeroActive`/`completeHero`/`updateTransitionProgress`/`completeTransition`. |
-| **cockpitBroadcastStore** | Stage 4 v3.0 | Cross-panel event bus. 16 event types (`dial-rotate`, `button-press`, `page-navigate`, `lab-select`, `xp-change`, etc.). Pulse decay system with per-event intensity mapping. All 3D UI components broadcast here; all cockpit elements subscribe. |
-| **guideStore** | 5/Phase5 | visible, minimized, context, labId, gameId, mood, messages, isStreaming, voiceEnabled, avatarConcept |
-| **cockpitAtoms** | CPA v2.0 | Jotai atoms for fine-grained cockpit 3D reactive state (labHover, panelFocus, etc.) |
-
----
-
-*End of CLAUDE.md v6.0 — SparkForge Autonomous Development Playbook*
-*128 doc files | 409 src files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | ~140 3D components | 13 stores | 84 decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | Tech Stack 8.1 APPLIED | March 30, 2026*
+*End of CLAUDE.md v6.5 — SparkForge Autonomous Development Playbook*
+*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | FL-Lite Game Audit COMPLETE (43 bugs found, 9 games expanded ~11x, 27 AI content types) | Standard Tier Game Audit COMPLETE (76 bugs found, 20 games planned ~11x expansion, 60 AI content types, 6-phase roadmap) | **v6.5 (April 21, 2026): D3D-5 relaxation authorized — user-facing Performance toggle in Settings may omit DepthOfField + N8AO/SSAO (opt-in, persisted).** | April 21, 2026*

@@ -1,33 +1,22 @@
-// SparkForge Lab Configuration — Single Source of Truth
-// Canonical lab colors from CLAUDE.md Section 6 (Frost-Prismatic palette)
+// SparkForge Lab Configuration
+//
+// Phase 5 P.3-MAX (§7.2): LAB_COLORS + LAB_NAMES are now derived from
+// src/config/labColors.ts, the single authoritative source for lab
+// accents. Both runtime JS/3D code and the Tailwind config import from
+// the same table — no more parallel OKLCH-in-Tailwind vs HEX-in-labs
+// drift. See `labColors.ts` for the full table including OKLCH values.
 
-/** Canonical lab accent colors (CLAUDE.md Section 6) */
-export const LAB_COLORS: Record<number, string> = {
-  1: '#00BBFF', // What IS AI? — Blue
-  2: '#AA66FF', // Teaching Machines — Purple
-  3: '#FF66AA', // The Brain Inside — Pink
-  4: '#FFAA44', // AI That Creates — Amber
-  5: '#00FF88', // AI Helpers — Emerald
-  6: '#FF6644', // AI & Ethics — Red
-  7: '#06B6D4', // Computer Vision — Cyan
-  8: '#818CF8', // Words & Language — Violet
-  9: '#F97316', // Build Your AI — Orange
-  10: '#D946EF', // AI Futures — Fuchsia
-};
+import {
+  LAB_COLORS_HEX,
+  LAB_NAMES_MAP,
+  DEFAULT_LED_COLOR_HEX,
+} from './labColors';
 
-/** Canonical lab display names */
-export const LAB_NAMES: Record<number, string> = {
-  1: 'What IS AI?',
-  2: 'Teaching Machines',
-  3: 'The Brain Inside',
-  4: 'AI That Creates',
-  5: 'AI Helpers',
-  6: 'AI & Ethics',
-  7: 'Computer Vision',
-  8: 'Words & Language',
-  9: 'Build Your AI',
-  10: 'AI Futures',
-};
+/** Canonical lab accent colors — HEX for JS/3D consumers. Derived from labColors.ts. */
+export const LAB_COLORS: Record<number, string> = LAB_COLORS_HEX;
+
+/** Canonical lab display names. Derived from labColors.ts. */
+export const LAB_NAMES: Record<number, string> = LAB_NAMES_MAP;
 
 /** Canonical lab icons (emoji) */
 export const LAB_ICONS: Record<number, string> = {
@@ -43,5 +32,6 @@ export const LAB_ICONS: Record<number, string> = {
   10: '\uD83D\uDE80', // 🚀
 };
 
-/** Default LED color (Frost-Prismatic primary blue) */
-export const DEFAULT_LED_COLOR = '#00BBFF';
+/** Default LED color — OKLCH primary blue (HEX for Three.js) */
+/** Default LED color — derived from labColors.ts (matches lab 1). */
+export const DEFAULT_LED_COLOR = DEFAULT_LED_COLOR_HEX;

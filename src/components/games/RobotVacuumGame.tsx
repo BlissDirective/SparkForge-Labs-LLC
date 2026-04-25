@@ -17,16 +17,20 @@
 // ================================================================
 
 import { useState, useCallback, useMemo, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
-import { useGameStore } from '@/stores/gameStore';
-import { useChildStore } from '@/stores/childStore';
+import { useGame } from '@/stores/gameStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import { useGameContent } from '@/hooks/useContent';
 import { useSceneStore } from '@/stores/sceneStore';
+import { useSafeTimeout } from '@/hooks/useSafeTimeout';
 import {
   Play, Plus, Trash2, RotateCcw, BookOpen, Zap,
 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { DifficultySelector, type DifficultyTier } from '@/components/games/DifficultySelector';
+import { useFilteredContent } from '@/hooks/useFilteredContent';
+import { GameProgressTracker } from '@/components/games/GameProgressTracker';
 
 // [v3] Dynamic import — SSR disabled for R3F [ENH-1: loading fallback]
 const RobotVacuum3D = dynamic(
@@ -48,14 +52,18 @@ interface Rule {
   action: string;
 }
 
+type RoomDifficulty = 'easy' | 'medium' | 'hard' | 'expert';
+
 interface Room {
   title: string;
   emoji: string;
+  difficulty: RoomDifficulty;
   walls: [number, number][];
   furniture: { pos: [number, number]; emoji: string }[];
   dirt: [number, number][];
   charger: [number, number];
   optimalSteps: number;
+  isAI?: boolean;
 }
 
 const CONDITIONS = [
@@ -82,6 +90,7 @@ const ROOMS: Room[] = [
   {
     title: 'Living Room',
     emoji: '\u{1F6CB}',
+    difficulty: 'easy',
     walls: [[0, 2], [1, 2], [3, 0], [3, 1]],
     furniture: [
       { pos: [0, 2], emoji: '\u{1F6CB}' },
@@ -96,6 +105,7 @@ const ROOMS: Room[] = [
   {
     title: 'Kitchen',
     emoji: '\u{1F373}',
+    difficulty: 'easy',
     walls: [[1, 1], [1, 3], [3, 3], [4, 1]],
     furniture: [
       { pos: [1, 1], emoji: '\u{1F373}' },
@@ -110,6 +120,7 @@ const ROOMS: Room[] = [
   {
     title: 'Bedroom',
     emoji: '\u{1F6CF}',
+    difficulty: 'medium',
     walls: [[2, 0], [2, 1], [2, 3], [4, 4]],
     furniture: [
       { pos: [2, 0], emoji: '\u{1F6CF}' },
@@ -124,6 +135,7 @@ const ROOMS: Room[] = [
   {
     title: 'Office',
     emoji: '\u{1F4BB}',
+    difficulty: 'medium',
     walls: [[1, 0], [1, 4], [3, 2], [4, 2], [4, 4]],
     furniture: [
       { pos: [1, 0], emoji: '\u{1F4BB}' },
@@ -135,6 +147,272 @@ const ROOMS: Room[] = [
     dirt: [[0, 2], [0, 5], [2, 1], [2, 4], [3, 5], [5, 0], [5, 3]],
     charger: [0, 0],
     optimalSteps: 30,
+  },
+  // ═══════ 5x CONTENT EXPANSION (16 new rooms) ═══════
+  // --- EASY TIER (3 new rooms) ---
+  {
+    title: 'Playroom',
+    emoji: '\u{1F9F8}',
+    difficulty: 'easy',
+    walls: [[2, 0], [2, 1]],
+    furniture: [
+      { pos: [2, 0], emoji: '\u{1F9F8}' },
+      { pos: [2, 1], emoji: '\u{1F3AE}' },
+    ],
+    dirt: [[0, 3], [1, 1], [3, 4], [4, 2]],
+    charger: [0, 0],
+    optimalSteps: 16,
+  },
+  {
+    title: 'Hallway',
+    emoji: '\u{1F6AA}',
+    difficulty: 'easy',
+    walls: [[0, 2], [1, 2], [2, 2], [3, 2], [4, 2]],
+    furniture: [
+      { pos: [0, 2], emoji: '\u{1F5BC}' },
+      { pos: [2, 2], emoji: '\u{1F6AA}' },
+      { pos: [4, 2], emoji: '\u{1F5BC}' },
+    ],
+    dirt: [[0, 0], [2, 0], [4, 0], [1, 4], [3, 5]],
+    charger: [5, 0],
+    optimalSteps: 20,
+  },
+  {
+    title: 'Garage',
+    emoji: '\u{1F697}',
+    difficulty: 'easy',
+    walls: [[0, 0], [0, 1], [5, 4], [5, 5]],
+    furniture: [
+      { pos: [0, 0], emoji: '\u{1F697}' },
+      { pos: [0, 1], emoji: '\u{1F697}' },
+      { pos: [5, 4], emoji: '\u{1F9F0}' },
+      { pos: [5, 5], emoji: '\u{1F9F0}' },
+    ],
+    dirt: [[1, 3], [2, 1], [3, 4], [4, 2]],
+    charger: [5, 0],
+    optimalSteps: 17,
+  },
+  // --- MEDIUM TIER (5 new rooms) ---
+  {
+    title: 'Dining Room',
+    emoji: '\u{1F37D}',
+    difficulty: 'medium',
+    walls: [[1, 1], [1, 2], [1, 3], [1, 4]],
+    furniture: [
+      { pos: [1, 1], emoji: '\u{1FA91}' },
+      { pos: [1, 2], emoji: '\u{1F37D}' },
+      { pos: [1, 3], emoji: '\u{1F37D}' },
+      { pos: [1, 4], emoji: '\u{1FA91}' },
+    ],
+    dirt: [[0, 0], [0, 5], [2, 2], [3, 1], [3, 4], [4, 3]],
+    charger: [5, 5],
+    optimalSteps: 24,
+  },
+  {
+    title: 'Bathroom',
+    emoji: '\u{1F6C1}',
+    difficulty: 'medium',
+    walls: [[0, 3], [0, 4], [0, 5], [3, 0], [3, 1]],
+    furniture: [
+      { pos: [0, 3], emoji: '\u{1F6C1}' },
+      { pos: [0, 4], emoji: '\u{1F6BF}' },
+      { pos: [0, 5], emoji: '\u{1FAA5}' },
+      { pos: [3, 0], emoji: '\u{1FAA5}' },
+      { pos: [3, 1], emoji: '\u{1F9F4}' },
+    ],
+    dirt: [[1, 0], [1, 5], [2, 2], [4, 1], [4, 4], [5, 3]],
+    charger: [5, 5],
+    optimalSteps: 25,
+  },
+  {
+    title: 'Studio',
+    emoji: '\u{1F3A8}',
+    difficulty: 'medium',
+    walls: [[2, 2], [2, 3], [3, 2], [3, 3]],
+    furniture: [
+      { pos: [2, 2], emoji: '\u{1F3A8}' },
+      { pos: [2, 3], emoji: '\u{1F58C}' },
+      { pos: [3, 2], emoji: '\u{1F5BC}' },
+      { pos: [3, 3], emoji: '\u{1F3A8}' },
+    ],
+    dirt: [[0, 0], [0, 5], [1, 3], [4, 1], [4, 5], [5, 2]],
+    charger: [0, 0],
+    optimalSteps: 26,
+  },
+  {
+    title: 'Music Room',
+    emoji: '\u{1F3B5}',
+    difficulty: 'medium',
+    walls: [[0, 3], [1, 3], [4, 1], [4, 2]],
+    furniture: [
+      { pos: [0, 3], emoji: '\u{1F3B9}' },
+      { pos: [1, 3], emoji: '\u{1F3B8}' },
+      { pos: [4, 1], emoji: '\u{1F941}' },
+      { pos: [4, 2], emoji: '\u{1F3B7}' },
+    ],
+    dirt: [[0, 0], [1, 5], [2, 2], [3, 4], [5, 1], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 24,
+  },
+  {
+    title: 'Laundry Room',
+    emoji: '\u{1F9FA}',
+    difficulty: 'medium',
+    walls: [[1, 0], [1, 1], [3, 4], [3, 5]],
+    furniture: [
+      { pos: [1, 0], emoji: '\u{1F9FA}' },
+      { pos: [1, 1], emoji: '\u{1F9FA}' },
+      { pos: [3, 4], emoji: '\u{1F9F9}' },
+      { pos: [3, 5], emoji: '\u{1F9F4}' },
+    ],
+    dirt: [[0, 3], [0, 5], [2, 2], [2, 4], [4, 0], [4, 3], [5, 5]],
+    charger: [5, 0],
+    optimalSteps: 28,
+  },
+  // --- HARD TIER (5 new rooms) ---
+  {
+    title: 'Lab',
+    emoji: '\u{1F52C}',
+    difficulty: 'hard',
+    walls: [[0, 2], [0, 3], [2, 0], [2, 5], [4, 2], [4, 3]],
+    furniture: [
+      { pos: [0, 2], emoji: '\u{1F52C}' },
+      { pos: [0, 3], emoji: '\u{1F9EA}' },
+      { pos: [2, 0], emoji: '\u{1F9EB}' },
+      { pos: [2, 5], emoji: '\u{1F52C}' },
+      { pos: [4, 2], emoji: '\u{1F9EA}' },
+      { pos: [4, 3], emoji: '\u{1F9EB}' },
+    ],
+    dirt: [[1, 1], [1, 4], [3, 1], [3, 4], [5, 0], [5, 2], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 32,
+  },
+  {
+    title: 'Gym',
+    emoji: '\u{1F3CB}',
+    difficulty: 'hard',
+    walls: [[1, 1], [1, 4], [3, 0], [3, 5], [5, 2], [5, 3]],
+    furniture: [
+      { pos: [1, 1], emoji: '\u{1F3CB}' },
+      { pos: [1, 4], emoji: '\u{1F3CB}' },
+      { pos: [3, 0], emoji: '\u{1F6B4}' },
+      { pos: [3, 5], emoji: '\u{1F6B4}' },
+      { pos: [5, 2], emoji: '\u{1F3CB}' },
+      { pos: [5, 3], emoji: '\u{1F3CB}' },
+    ],
+    dirt: [[0, 0], [0, 3], [0, 5], [2, 2], [4, 1], [4, 4], [5, 0], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 35,
+  },
+  {
+    title: 'Library',
+    emoji: '\u{1F4DA}',
+    difficulty: 'hard',
+    walls: [[0, 1], [1, 1], [2, 1], [0, 4], [1, 4], [2, 4]],
+    furniture: [
+      { pos: [0, 1], emoji: '\u{1F4DA}' },
+      { pos: [1, 1], emoji: '\u{1F4DA}' },
+      { pos: [2, 1], emoji: '\u{1F4DA}' },
+      { pos: [0, 4], emoji: '\u{1F4DA}' },
+      { pos: [1, 4], emoji: '\u{1F4DA}' },
+      { pos: [2, 4], emoji: '\u{1F4DA}' },
+    ],
+    dirt: [[0, 0], [0, 5], [3, 0], [3, 3], [3, 5], [4, 2], [5, 1], [5, 4]],
+    charger: [5, 5],
+    optimalSteps: 34,
+  },
+  {
+    title: 'Warehouse',
+    emoji: '\u{1F4E6}',
+    difficulty: 'hard',
+    walls: [[1, 0], [1, 2], [1, 4], [3, 1], [3, 3], [3, 5]],
+    furniture: [
+      { pos: [1, 0], emoji: '\u{1F4E6}' },
+      { pos: [1, 2], emoji: '\u{1F4E6}' },
+      { pos: [1, 4], emoji: '\u{1F4E6}' },
+      { pos: [3, 1], emoji: '\u{1F4E6}' },
+      { pos: [3, 3], emoji: '\u{1F4E6}' },
+      { pos: [3, 5], emoji: '\u{1F4E6}' },
+    ],
+    dirt: [[0, 1], [0, 5], [2, 1], [2, 3], [2, 5], [4, 0], [4, 2], [4, 4], [5, 3]],
+    charger: [0, 0],
+    optimalSteps: 38,
+  },
+  {
+    title: 'Hospital Wing',
+    emoji: '\u{1F3E5}',
+    difficulty: 'hard',
+    walls: [[0, 2], [1, 2], [3, 2], [4, 2], [2, 4], [2, 5]],
+    furniture: [
+      { pos: [0, 2], emoji: '\u{1F6CF}' },
+      { pos: [1, 2], emoji: '\u{1F6CF}' },
+      { pos: [3, 2], emoji: '\u{1F6CF}' },
+      { pos: [4, 2], emoji: '\u{1F6CF}' },
+      { pos: [2, 4], emoji: '\u{1FA7A}' },
+      { pos: [2, 5], emoji: '\u{1FA7A}' },
+    ],
+    dirt: [[0, 0], [0, 4], [1, 5], [3, 0], [3, 5], [4, 4], [5, 1], [5, 3]],
+    charger: [5, 5],
+    optimalSteps: 36,
+  },
+  // --- EXPERT TIER (3 new rooms) ---
+  {
+    title: 'Maze',
+    emoji: '\u{1F9E9}',
+    difficulty: 'expert',
+    walls: [[0, 1], [1, 3], [2, 1], [2, 5], [3, 3], [4, 1], [4, 5], [5, 3]],
+    furniture: [
+      { pos: [0, 1], emoji: '\u{1F9F1}' },
+      { pos: [1, 3], emoji: '\u{1F9F1}' },
+      { pos: [2, 1], emoji: '\u{1F9F1}' },
+      { pos: [2, 5], emoji: '\u{1F9F1}' },
+      { pos: [3, 3], emoji: '\u{1F9F1}' },
+      { pos: [4, 1], emoji: '\u{1F9F1}' },
+      { pos: [4, 5], emoji: '\u{1F9F1}' },
+      { pos: [5, 3], emoji: '\u{1F9F1}' },
+    ],
+    dirt: [[0, 4], [1, 0], [1, 5], [2, 3], [3, 0], [3, 5], [4, 3], [5, 0], [5, 5]],
+    charger: [0, 0],
+    optimalSteps: 42,
+  },
+  {
+    title: 'Server Room',
+    emoji: '\u{1F5A5}',
+    difficulty: 'expert',
+    walls: [[0, 1], [0, 3], [0, 5], [2, 0], [2, 2], [2, 4], [4, 1], [4, 3], [4, 5]],
+    furniture: [
+      { pos: [0, 1], emoji: '\u{1F5A5}' },
+      { pos: [0, 3], emoji: '\u{1F5A5}' },
+      { pos: [0, 5], emoji: '\u{1F5A5}' },
+      { pos: [2, 0], emoji: '\u{1F5A5}' },
+      { pos: [2, 2], emoji: '\u{1F5A5}' },
+      { pos: [2, 4], emoji: '\u{1F5A5}' },
+      { pos: [4, 1], emoji: '\u{1F5A5}' },
+      { pos: [4, 3], emoji: '\u{1F5A5}' },
+      { pos: [4, 5], emoji: '\u{1F5A5}' },
+    ],
+    dirt: [[1, 0], [1, 2], [1, 4], [3, 1], [3, 3], [3, 5], [5, 0], [5, 2], [5, 4]],
+    charger: [0, 0],
+    optimalSteps: 45,
+  },
+  {
+    title: 'Space Station',
+    emoji: '\u{1F680}',
+    difficulty: 'expert',
+    walls: [[0, 0], [0, 5], [2, 2], [2, 3], [3, 2], [3, 3], [5, 0], [5, 5]],
+    furniture: [
+      { pos: [0, 0], emoji: '\u{1F680}' },
+      { pos: [0, 5], emoji: '\u{1F6F0}' },
+      { pos: [2, 2], emoji: '\u{1F52D}' },
+      { pos: [2, 3], emoji: '\u{1F52D}' },
+      { pos: [3, 2], emoji: '\u{1FA90}' },
+      { pos: [3, 3], emoji: '\u{1FA90}' },
+      { pos: [5, 0], emoji: '\u{1F6F0}' },
+      { pos: [5, 5], emoji: '\u{1F680}' },
+    ],
+    dirt: [[0, 2], [0, 3], [1, 0], [1, 5], [4, 0], [4, 5], [5, 2], [5, 3], [1, 3], [4, 2]],
+    charger: [3, 0],
+    optimalSteps: 48,
   },
 ];
 
@@ -169,12 +447,13 @@ const DIR_OFFSETS: [number, number][] = [
 ];
 
 export function RobotVacuumGame() {
-  const game = useGameStore();
-  const { activeChild } = useChildStore();
+  const prefersReducedMotion = useReducedMotion();
+  const game = useGame();
+  const activeChild = useActiveChild();
   const setGameSceneContent = useSceneStore((s) => s.setGameSceneContent);
+  const { safeTimeout } = useSafeTimeout();
   const ageBand = (activeChild?.age_band || 'B') as 'A' | 'B' | 'C';
   const { data: dynamicContent } = useGameContent('robot-vacuum', ageBand);
-  // Phase 2: Dynamic scenarios available via dynamicContent?.scenarios and dynamicContent?.challenges
 
   const [phase, setPhase] = useState<Phase>('welcome');
   const [learnIdx, setLearnIdx] = useState(0);
@@ -183,7 +462,20 @@ export function RobotVacuumGame() {
     { condition: 'Path clear', action: 'Move forward' },
     { condition: 'See wall ahead', action: 'Turn right' },
   ]);
+  // Filter rooms by age band: A=easy, B=easy+medium, C=all tiers — merge dynamic content
+  const rooms = useMemo(() => {
+    const allowed: RoomDifficulty[] = ageBand === 'A' ? ['easy'] : ageBand === 'B' ? ['easy', 'medium'] : ['easy', 'medium', 'hard', 'expert'];
+    const hardcoded = ROOMS.filter(r => allowed.includes(r.difficulty));
+    if (!dynamicContent?.scenarios?.length) return hardcoded;
+    const dynamic: Room[] = dynamicContent.scenarios
+      .map(s => { try { return { ...JSON.parse(s.content_body), isAI: true } as Room; } catch { return null; } })
+      .filter((r): r is Room => r !== null && allowed.includes(r.difficulty));
+    return [...hardcoded, ...dynamic];
+  }, [ageBand, dynamicContent?.scenarios]);
+
   const [roomIdx, setRoomIdx] = useState(0);
+  const [tier, setTier] = useState<DifficultyTier | 'all'>('all');
+  const filteredRooms = useFilteredContent(ROOMS, tier, ageBand);
   const [running, setRunning] = useState(false);
   const [vacPos, setVacPos] = useState<[number, number]>([0, 0]);
   const [vacDir, setVacDir] = useState(0);
@@ -192,7 +484,7 @@ export function RobotVacuumGame() {
   const [showResults, setShowResults] = useState(false);
   const [trail, setTrail] = useState<string[]>([]);
 
-  const room = ROOMS[roomIdx];
+  const room = rooms[roomIdx];
 
   const isWall = (r: number, c: number) =>
     room.walls.some(([wr, wc]) => wr === r && wc === c);
@@ -293,29 +585,43 @@ export function RobotVacuumGame() {
           else if (rule.action === 'Turn around') dir = (dir + 2) % 4;
           else if (rule.action === 'Clean' && onDirt)
             cl.add(`${pos[0]},${pos[1]}`);
+          else if (rule.action === 'Go to charger') {
+            // Move one step toward charger (FLL-005 fix)
+            const dr = Math.sign(room.charger[0] - pos[0]);
+            const dc = Math.sign(room.charger[1] - pos[1]);
+            const nextR = pos[0] + dr;
+            const nextC = pos[1] + dc;
+            if (nextR >= 0 && nextR < GRID && nextC >= 0 && nextC < GRID && !isWall(nextR, nextC)) {
+              pos = [nextR, nextC];
+            }
+          }
           acted = true;
           break;
         }
       }
 
       setCleaned(new Set(cl));
-      await new Promise((r) => setTimeout(r, 200));
+      await new Promise<void>((r) => safeTimeout(r, 200));
       if (cl.size === totalDirt || !acted) break;
     }
 
     setShowResults(true);
-    const pts = cl.size * 4;
+    // FLL-006: Efficiency-based scoring — reward fewer steps
+    const coverageBase = cl.size * 4;
+    const stepsTaken = tr.length || 1;
+    const efficiencyBonus = cl.size === totalDirt ? Math.max(0, Math.round((room.optimalSteps / stepsTaken) * 10)) : 0;
+    const pts = coverageBase + efficiencyBonus;
     game.updateScore(pts);
     setRunning(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rules, room, roomIdx, game, totalDirt]);
 
   function nextRoom() {
-    if (roomIdx < ROOMS.length - 1) {
+    if (roomIdx < rooms.length - 1) {
       const next = roomIdx + 1;
       setRoomIdx(next);
       setCleaned(new Set());
-      setVacPos([ROOMS[next].charger[0], ROOMS[next].charger[1]]);
+      setVacPos([rooms[next].charger[0], rooms[next].charger[1]]);
       setVacDir(0);
       setStepCount(0);
       setShowResults(false);
@@ -351,9 +657,9 @@ export function RobotVacuumGame() {
       gameId="robot-vacuum"
       title="Robot Vacuum"
       worldNumber={5}
-      worldColor="#10B981"
+      worldColor="#00D17A"
       xpReward={25}
-      totalRounds={ROOMS.length}
+      totalRounds={rooms.length}
     >
       <div className="h-full flex flex-col relative overflow-hidden">
         {/* Particles */}
@@ -371,8 +677,8 @@ export function RobotVacuumGame() {
                   0.12 + p.size * 0.05
                 }), transparent)`,
               }}
-              animate={{ y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
-              transition={{
+              animate={prefersReducedMotion ? {} : { y: [0, -12, 0], opacity: [0.1, 0.3, 0.1] }}
+              transition={prefersReducedMotion ? { duration: 0 } : {
                 duration: p.dur,
                 delay: p.delay,
                 repeat: Infinity,
@@ -403,8 +709,8 @@ export function RobotVacuumGame() {
                   >
                     <motion.span
                       className="text-6xl block"
-                      animate={{ x: [0, 8, 0, -8, 0] }}
-                      transition={{ duration: 3, repeat: Infinity }}
+                      animate={prefersReducedMotion ? {} : { x: [0, 8, 0, -8, 0] }}
+                      transition={prefersReducedMotion ? { duration: 0 } : { duration: 3, repeat: Infinity }}
                     >
                       {'\u{1F9F9}'}
                     </motion.span>
@@ -493,7 +799,7 @@ export function RobotVacuumGame() {
                     </motion.button>
                     <button
                       onClick={() => setPhase('play')}
-                      className="font-body text-xs text-white/20 hover:text-white/40"
+                      className="font-body text-xs text-white/50 hover:text-white/70"
                       aria-label="Skip tutorial"
                     >
                       Skip tutorial
@@ -509,14 +815,18 @@ export function RobotVacuumGame() {
                     animate={{ opacity: 1 }}
                     className="flex-1 flex flex-col"
                   >
+                    <div className="flex items-center gap-3 mb-3 px-4">
+                      <DifficultySelector value={tier} onChange={setTier} ageBand={ageBand} />
+                      <GameProgressTracker current={roomIdx + 1} total={rooms.length} labColor="#00FF88" />
+                    </div>
                     {/* Room header */}
                     <div className="flex items-center gap-2 mb-2">
                       <span className="text-lg">{room.emoji}</span>
                       <h3 className="font-display text-sm font-bold text-white flex-1">
                         {room.title}
                       </h3>
-                      <span className="font-mono text-2xs text-white/20">
-                        Room {roomIdx + 1}/{ROOMS.length}
+                      <span className="font-mono text-2xs text-white/50">
+                        Room {roomIdx + 1}/{rooms.length}
                       </span>
                     </div>
 
@@ -598,8 +908,8 @@ export function RobotVacuumGame() {
                               >
                                 {isV && (
                                   <motion.span
-                                    animate={{ rotate: [0, 5, -5, 0] }}
-                                    transition={{
+                                    animate={prefersReducedMotion ? {} : { rotate: [0, 5, -5, 0] }}
+                                    transition={prefersReducedMotion ? { duration: 0 } : {
                                       duration: 0.5,
                                       repeat: Infinity,
                                     }}
@@ -629,14 +939,14 @@ export function RobotVacuumGame() {
                             );
                           })}
                         </div>
-                        <p className="font-mono text-2xs text-white/15 text-center mt-1">
+                        <p className="font-mono text-2xs text-white/50 text-center mt-1">
                           Steps: {stepCount}
                         </p>
                       </div>
 
                       {/* Rules panel */}
                       <div className="flex-1 flex flex-col min-w-0">
-                        <p className="font-display text-2xs font-bold text-white/30 mb-1">
+                        <p className="font-display text-2xs font-bold text-white/60 mb-1">
                           Rules (priority order):
                         </p>
                         <div className="flex-1 overflow-auto space-y-1">
@@ -645,7 +955,7 @@ export function RobotVacuumGame() {
                               key={i}
                               className="flex items-center gap-1 p-1 rounded-lg bg-white/[0.02]"
                             >
-                              <span className="font-mono text-2xs text-white/15 w-3">
+                              <span className="font-mono text-2xs text-white/50 w-3">
                                 {i + 1}
                               </span>
                               <select
@@ -662,7 +972,7 @@ export function RobotVacuumGame() {
                                   </option>
                                 ))}
                               </select>
-                              <span className="font-mono text-2xs text-white/15">
+                              <span className="font-mono text-2xs text-white/50">
                                 {'\u2192'}
                               </span>
                               <select
@@ -682,7 +992,7 @@ export function RobotVacuumGame() {
                               {!running && rules.length > 1 && (
                                 <button
                                   onClick={() => removeRule(i)}
-                                  className="text-white/10 hover:text-red-400"
+                                  className="text-white/60 hover:text-red-400"
                                   aria-label={`Remove rule ${i + 1}`}
                                 >
                                   <Trash2 className="w-2.5 h-2.5" />
@@ -694,7 +1004,7 @@ export function RobotVacuumGame() {
                         {!running && rules.length < 8 && (
                           <button
                             onClick={addRule}
-                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/20 font-body text-2xs flex items-center justify-center gap-1"
+                            className="mt-1 w-full py-1 rounded-lg border border-dashed border-white/10 text-white/50 font-body text-2xs flex items-center justify-center gap-1"
                             aria-label="Add a new rule"
                           >
                             <Plus className="w-2.5 h-2.5" /> Add Rule
@@ -723,7 +1033,7 @@ export function RobotVacuumGame() {
                               >
                                 {coverage}%
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Coverage
                               </p>
                             </div>
@@ -731,7 +1041,7 @@ export function RobotVacuumGame() {
                               <p className="font-display text-lg font-black text-white">
                                 {stepCount}
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Steps
                               </p>
                             </div>
@@ -739,7 +1049,7 @@ export function RobotVacuumGame() {
                               <p className="font-display text-lg font-black text-blue-400">
                                 {room.optimalSteps}
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Optimal
                               </p>
                             </div>
@@ -760,13 +1070,13 @@ export function RobotVacuumGame() {
                                   : 0}
                                 %
                               </p>
-                              <p className="font-body text-2xs text-white/25">
+                              <p className="font-body text-2xs text-white/60">
                                 Efficiency
                               </p>
                             </div>
                           </div>
                           {ageBand === 'C' && (
-                            <p className="font-body text-2xs text-white/25 mt-1 text-center">
+                            <p className="font-body text-2xs text-white/60 mt-1 text-center">
                               Rule evaluation: {rules.length} production rules,
                               first-match semantics. Efficiency = optimal/actual
                               steps.
@@ -796,7 +1106,7 @@ export function RobotVacuumGame() {
                       <button
                         onClick={resetRoom}
                         disabled={running}
-                        className="px-3 py-2 rounded-xl border border-white/10 text-white/25 font-body text-xs flex items-center gap-1 hover:border-white/20"
+                        className="px-3 py-2 rounded-xl border border-white/10 text-white/60 font-body text-xs flex items-center gap-1 hover:border-white/20"
                         aria-label="Reset room"
                       >
                         <RotateCcw className="w-3 h-3" /> Reset
@@ -827,9 +1137,9 @@ export function RobotVacuumGame() {
                               'linear-gradient(135deg, #10B981, #059669)',
                           }}
                           whileTap={{ scale: 0.98 }}
-                          aria-label={roomIdx < ROOMS.length - 1 ? 'Go to next room' : 'Complete the game'}
+                          aria-label={roomIdx < rooms.length - 1 ? 'Go to next room' : 'Complete the game'}
                         >
-                          {roomIdx < ROOMS.length - 1
+                          {roomIdx < rooms.length - 1
                             ? 'Next Room \u2192'
                             : 'Complete! \u{1F389}'}
                         </motion.button>
@@ -845,16 +1155,16 @@ export function RobotVacuumGame() {
                     animate={{ opacity: 1, scale: 1 }}
                     className="flex-1 flex flex-col items-center justify-center text-center space-y-4"
                   >
-                    <motion.span className="text-6xl" animate={{ rotate: [0, 10, -10, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>🏆</motion.span>
+                    <motion.span className="text-6xl" animate={prefersReducedMotion ? {} : { rotate: [0, 10, -10, 0] }} transition={prefersReducedMotion ? { duration: 0 } : { duration: 1.5, repeat: Infinity }}>🏆</motion.span>
                     <h2 className="font-display text-2xl font-bold text-white">Robot Vacuum Complete!</h2>
                     <p className="font-body text-sm text-white/50 max-w-sm">You programmed an intelligent agent using IF/THEN rules to navigate rooms and clean efficiently — just like real robot vacuums use rule-based AI!</p>
                     <div className="rounded-xl px-6 py-3 bg-[#10B981]/10 border border-[#10B981]/20">
                       <p className="font-data text-2xl" style={{ color: '#10B981' }}>{game.score}</p>
-                      <p className="font-body text-2xs text-white/30">Total Points</p>
+                      <p className="font-body text-2xs text-white/60">Total Points</p>
                     </div>
                     <div className="mt-4 space-y-2 text-left max-w-sm">
                       <h3 className="font-display text-sm font-bold text-white/70">What You Learned:</h3>
-                      <ul className="space-y-1 text-2xs font-body text-white/40">
+                      <ul className="space-y-1 text-2xs font-body text-white/70">
                         <li>• Robot pathfinding uses rules to decide where to move next</li>
                         <li>• Rule priority order determines which action fires first</li>
                         <li>• Coverage optimization balances thoroughness with efficiency</li>

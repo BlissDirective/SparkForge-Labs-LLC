@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useUIStore } from '@/stores/uiStore';
-import { useA11yStore } from '@/stores/accessibilityStore';
+import FocusTrap from 'focus-trap-react';
+// R2: a11y state merged into uiStore (was accessibilityStore)
+import { useUIStore, useCelebration } from '@/stores/uiStore';
+// Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
+import { ConfettiEngine } from '@/components/shared/ConfettiEngine';
 
 // CelebrationOverlay — Confetti, Badge Flips, Level-Up Modals, Streak, XP
 // v2: Physics confetti, badge flip, sound hooks, LevelUpCeremony wiring
@@ -49,48 +52,10 @@ const badgeFlip = {
   },
 };
 
-// Physics confetti particle
-interface ConfettiParticle {
-  id: number;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  rotation: number;
-  rotSpeed: number;
-  color: string;
-  size: number;
-  opacity: number;
-  shape: 'rect' | 'circle';
-}
-
-// v3: Station-aesthetic confetti colors (Frost-Prismatic palette)
-const CONFETTI_COLORS = [
-  '#00BBFF', // Primary blue
-  '#8B5CF6', // Purple
-  '#00FF88', // Neon green
-  '#FFD700', // Gold
-  '#FF6B6B', // Coral
-  '#06B6D4', // Cyan
-  '#EC4899', // Pink
-  '#AA66FF', // REO purple
-];
-
-function createConfettiParticle(id: number): ConfettiParticle {
-  return {
-    id,
-    x: Math.random() * 100,
-    y: -10 - Math.random() * 20,
-    vx: (Math.random() - 0.5) * 3,
-    vy: Math.random() * 2 + 1,
-    rotation: Math.random() * 360,
-    rotSpeed: (Math.random() - 0.5) * 15,
-    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
-    size: Math.random() * 8 + 4,
-    opacity: 1,
-    shape: Math.random() > 0.5 ? 'rect' : 'circle',
-  };
-}
+// Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
+// Physics confetti particle system + CONFETTI_COLORS palette moved to
+// src/components/shared/ConfettiEngine.tsx for reuse across all celebration
+// surfaces (GameCompleteCelebration + CelebrationOverlay).
 
 // Streak tier names based on streak count
 function getStreakTier(count: number): string {
@@ -102,11 +67,10 @@ function getStreakTier(count: number): string {
 }
 
 export function CelebrationOverlay() {
-  const { celebrationType, celebrationData, dismissCelebration } = useUIStore();
-  const { reduceMotion } = useA11yStore();
-  const [confetti, setConfetti] = useState<ConfettiParticle[]>([]);
-  const animFrame = useRef<number>(0);
-  const isMounted = useRef<boolean>(true); // S5-WARN-002: unmount guard
+  // PERF-HIGH-001 (Opt C): narrow 3-field subscription via useCelebration().
+  // reduceMotion remains its own selector (unrelated slice).
+  const { celebrationType, celebrationData, dismissCelebration } = useCelebration();
+  const { reduceMotion } = useUIStore((s) => s.a11y);
 
   // v2 [ENH]: Sound event hook points (actual audio in Stage 5)
   const playSound = useCallback((event: string) => {
@@ -117,75 +81,13 @@ export function CelebrationOverlay() {
     }
   }, []);
 
-  // S5-WARN-002: Set isMounted on mount/unmount
+  // Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine
+  // The per-frame physics loop + unmount guard previously lived here has
+  // moved into ConfettiEngine.tsx (Motion-driven fall). Sound is still
+  // triggered on initial celebration kick-off below, preserving behavior.
   useEffect(() => {
-    isMounted.current = true;
-    return () => {
-      isMounted.current = false;
-    };
-  }, []);
-
-  // Physics confetti engine — S5-HIGH-004: skip when reduceMotion, S5-WARN-002: unmount guard
-  useEffect(() => {
-    if (!celebrationType) {
-      setConfetti([]);
-      return;
-    }
-
-    // S5-HIGH-004: Skip confetti physics entirely when reduceMotion is true
-    if (reduceMotion) {
-      return;
-    }
-
-    // Create initial burst
-    const particles = Array.from({ length: 60 }, (_, i) =>
-      createConfettiParticle(i)
-    );
-    setConfetti(particles);
+    if (!celebrationType || reduceMotion) return;
     playSound('celebration');
-
-    // Animate with physics
-    let frameCount = 0;
-    function animate() {
-      frameCount++;
-
-      // S5-WARN-002: Check isMounted before each setConfetti call
-      if (!isMounted.current) return;
-
-      setConfetti((prev) =>
-        prev
-          .map((p) => ({
-            ...p,
-            x: p.x + p.vx * 0.3,
-            y: p.y + p.vy,
-            vy: p.vy + 0.08, // gravity
-            rotation: p.rotation + p.rotSpeed,
-            opacity: Math.max(0, p.opacity - 0.003),
-          }))
-          .filter((p) => p.y < 120 && p.opacity > 0)
-      );
-
-      // Add new particles in waves
-      if (frameCount % 8 === 0 && frameCount < 120) {
-        if (!isMounted.current) return;
-        setConfetti((prev) => [
-          ...prev,
-          ...Array.from({ length: 5 }, (_, i) =>
-            createConfettiParticle(prev.length + i)
-          ),
-        ]);
-      }
-
-      if (frameCount < 300) {
-        animFrame.current = requestAnimationFrame(animate);
-      }
-    }
-
-    animFrame.current = requestAnimationFrame(animate);
-
-    return () => {
-      if (animFrame.current) cancelAnimationFrame(animFrame.current);
-    };
   }, [celebrationType, reduceMotion, playSound]);
 
   // S5-HIGH-003: XP toast auto-dismiss after 3 seconds
@@ -226,103 +128,96 @@ export function CelebrationOverlay() {
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-[100] pointer-events-none">
-        {/* Confetti layer — S5-HIGH-005: aria-hidden on confetti */}
-        {!reduceMotion && (
-          <div aria-hidden="true">
-            {confetti.map((p) => (
-              <div
-                key={p.id}
-                className="absolute"
-                style={{
-                  left: `${p.x}%`,
-                  top: `${p.y}%`,
-                  width: p.size,
-                  height: p.shape === 'rect' ? p.size * 0.6 : p.size,
-                  backgroundColor: p.color,
-                  borderRadius: p.shape === 'circle' ? '50%' : '2px',
-                  transform: `rotate(${p.rotation}deg)`,
-                  opacity: p.opacity,
-                  boxShadow: `0 0 ${p.size}px ${p.color}40`,
-                }}
-              />
-            ))}
-          </div>
-        )}
+        {/* Confetti layer — Phase 2 audit fix (Section 5.6): Consolidated ConfettiEngine */}
+        {/* S5-HIGH-005: aria-hidden applied inside ConfettiEngine */}
+        {/* S5-HIGH-004: reduceMotion short-circuits the engine (show=false) */}
+        <ConfettiEngine
+          count={30}
+          duration={5000}
+          show={!!celebrationType && !reduceMotion}
+        />
 
         {/* Badge Earned Modal — S5-HIGH-005: role="dialog", aria-modal, aria-label */}
+        {/* Phase 1 audit fix (Section 8.1): FocusTrap + Escape key dismiss */}
         {celebrationType === 'badge' && celebrationData && (
-          <motion.div
-            className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
-            variants={modalBackdrop}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            onClick={dismissCelebration}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Badge earned notification"
-          >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <FocusTrap focusTrapOptions={{ escapeDeactivates: true, onDeactivate: dismissCelebration, allowOutsideClick: true }}>
             <motion.div
-              className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
-              variants={activeModalContent}
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={dismissCelebration}
+              onKeyDown={(e) => { if (e.key === 'Escape') dismissCelebration(); }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="badge-celebration-title"
             >
-              {reduceMotion ? (
-                <div className="text-6xl mb-4">
-                  {(celebrationData.icon as string) || '🏅'}
-                </div>
-              ) : (
-                <motion.div
-                  className="text-6xl mb-4"
-                  variants={badgeFlip}
-                  initial="initial"
-                  animate="animate"
-                >
-                  {(celebrationData.icon as string) || '🏅'}
-                </motion.div>
-              )}
-              <h2 className="font-display text-2xl font-bold text-white mb-2">
-                Badge Earned!
-              </h2>
-              <p className="font-display text-lg text-spark-purple font-semibold mb-1">
-                {(celebrationData.name as string) || 'Achievement Unlocked'}
-              </p>
-              <p className="font-body text-white/50 text-sm mb-6">
-                {(celebrationData.description as string) || 'You earned a new badge!'}
-              </p>
-              <button
-                onClick={dismissCelebration}
-                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-spark-purple to-spark-blue text-white font-display font-bold text-sm emissive-glow"
-                style={
-                  { '--glow-color': '#8B5CF6' } as React.CSSProperties
-                }
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+              <motion.div
+                className="relative glass-card-v2-elevated rounded-3xl p-8 max-w-sm mx-4 text-center"
+                variants={activeModalContent}
+                onClick={(e) => e.stopPropagation()}
               >
-                Awesome!
-              </button>
+                {reduceMotion ? (
+                  <div className="text-6xl mb-4">
+                    {(celebrationData.icon as string) || '🏅'}
+                  </div>
+                ) : (
+                  <motion.div
+                    className="text-6xl mb-4"
+                    variants={badgeFlip}
+                    initial="initial"
+                    animate="animate"
+                  >
+                    {(celebrationData.icon as string) || '🏅'}
+                  </motion.div>
+                )}
+                <h2 id="badge-celebration-title" className="font-display text-2xl font-bold text-white mb-2">
+                  Badge Earned!
+                </h2>
+                <p className="font-display text-lg text-spark-purple font-semibold mb-1">
+                  {(celebrationData.name as string) || 'Achievement Unlocked'}
+                </p>
+                <p className="font-body text-white/50 text-sm mb-6">
+                  {(celebrationData.description as string) || 'You earned a new badge!'}
+                </p>
+                <button
+                  onClick={dismissCelebration}
+                  className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-spark-purple to-spark-blue text-white font-display font-bold text-sm emissive-glow"
+                  style={
+                    { '--glow-color': '#8B5CF6' } as React.CSSProperties
+                  }
+                >
+                  Awesome!
+                </button>
+              </motion.div>
             </motion.div>
-          </motion.div>
+          </FocusTrap>
         )}
 
         {/* Level Up Modal — S5-HIGH-005: role="dialog", aria-modal, aria-label */}
+        {/* Phase 1 audit fix (Section 8.1): FocusTrap + Escape key dismiss */}
         {celebrationType === 'level' && (
-          <motion.div
-            className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
-            variants={modalBackdrop}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            onClick={dismissCelebration}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Level up notification"
-          >
-            <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+          <FocusTrap focusTrapOptions={{ escapeDeactivates: true, onDeactivate: dismissCelebration, allowOutsideClick: true }}>
             <motion.div
-              className="relative glass-card rounded-3xl p-8 max-w-sm mx-4 text-center"
-              variants={activeModalContent}
-              onClick={(e) => e.stopPropagation()}
+              className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-auto"
+              variants={modalBackdrop}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              onClick={dismissCelebration}
+              onKeyDown={(e) => { if (e.key === 'Escape') dismissCelebration(); }}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="levelup-celebration-title"
             >
+              <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" />
+              <motion.div
+                className="relative glass-card-v2-elevated rounded-3xl p-8 max-w-sm mx-4 text-center"
+                variants={activeModalContent}
+                onClick={(e) => e.stopPropagation()}
+              >
               {reduceMotion ? (
                 <div className="text-7xl mb-4">⭐</div>
               ) : (
@@ -337,7 +232,7 @@ export function CelebrationOverlay() {
                   ⭐
                 </motion.div>
               )}
-              <h2 className="font-display text-3xl font-bold text-white mb-2">
+              <h2 id="levelup-celebration-title" className="font-display text-3xl font-bold text-white mb-2">
                 Level Up!
               </h2>
               <p className="font-display text-xl text-spark-purple font-semibold mb-1">
@@ -362,6 +257,7 @@ export function CelebrationOverlay() {
               </button>
             </motion.div>
           </motion.div>
+          </FocusTrap>
         )}
 
         {/* XP Gain Toast — S5-HIGH-003: auto-dismiss 3s, S5-HIGH-005: role="status" */}
@@ -374,13 +270,13 @@ export function CelebrationOverlay() {
             role="status"
             aria-live="polite"
           >
-            <div className="glass-card rounded-2xl px-5 py-3 flex items-center gap-3">
+            <div className="glass-card-v2 px-5 py-3 flex items-center gap-3">
               <span className="text-2xl">✨</span>
               <div>
                 <p className="font-display text-lg font-bold text-white">
                   +{(celebrationData?.xp as number) || 0} XP
                 </p>
-                <p className="font-body text-white/40 text-xs">
+                <p className="font-body text-white/70 text-xs">
                   {(celebrationData?.reason as string) || 'Great work!'}
                 </p>
               </div>
@@ -399,7 +295,7 @@ export function CelebrationOverlay() {
             role="status"
             aria-live="polite"
           >
-            <div className="glass-card rounded-2xl px-6 py-4 flex items-center gap-4 border border-orange-500/20">
+            <div className="glass-card-v2 px-6 py-4 flex items-center gap-4 border border-orange-500/20">
               {reduceMotion ? (
                 <span className="text-3xl">🔥</span>
               ) : (
@@ -433,7 +329,7 @@ export function CelebrationOverlay() {
             role="status"
             aria-live="polite"
           >
-            <div className="glass-card rounded-2xl px-5 py-3">
+            <div className="glass-card-v2 px-5 py-3">
               <p className="font-display text-sm font-bold text-white">
                 🎉 Celebration!
               </p>

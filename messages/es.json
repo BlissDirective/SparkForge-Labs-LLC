@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "SparkForge",
+    "tagline": "Aprende IA jugando"
+  },
+  "nav": {
+    "home": "Inicio",
+    "labs": "Laboratorios",
+    "arcade": "Arcade",
+    "profile": "Perfil",
+    "settings": "Ajustes",
+    "parent": "Familia",
+    "signOut": "Cerrar sesión",
+    "signIn": "Iniciar sesión",
+    "signUp": "Crear cuenta"
+  },
+  "common": {
+    "continue": "Continuar",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "loading": "Cargando…",
+    "error": "Algo salió mal",
+    "retry": "Intentar de nuevo",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "done": "Listo",
+    "ok": "Aceptar"
+  },
+  "auth": {
+    "login": {
+      "title": "Bienvenido de nuevo",
+      "emailLabel": "Correo",
+      "passwordLabel": "Contraseña",
+      "submit": "Iniciar sesión",
+      "forgotPassword": "¿Olvidaste la contraseña?",
+      "noAccount": "¿No tienes una cuenta?",
+      "orDivider": "O",
+      "tryDemo": "Probar demo (sin cuenta)"
+    },
+    "signup": {
+      "title": "Crea tu cuenta familiar",
+      "submit": "Crear cuenta"
+    },
+    "oauth": {
+      "continueWith": "Continuar con {provider}",
+      "google": "Google",
+      "apple": "Apple",
+      "microsoft": "Microsoft"
+    },
+    "mfa": {
+      "title": "Verificación de dos factores",
+      "enterCode": "Introduce el código de 6 dígitos de tu aplicación autenticadora.",
+      "useBackup": "Usar un código de respaldo",
+      "verify": "Verificar",
+      "checking": "Comprobando…"
+    }
+  },
+  "game": {
+    "welcome": "Bienvenido",
+    "start": "Empezar",
+    "complete": "¡Buen trabajo!",
+    "nextRound": "Siguiente ronda",
+    "playAgain": "Jugar de nuevo",
+    "score": "Puntuación",
+    "time": "Tiempo",
+    "xpEarned": "{xp} XP ganados"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "language": "Idioma",
+    "audio": "Audio",
+    "visual": "Visual",
+    "linkedAccounts": "Cuentas vinculadas",
+    "twoFactor": "Autenticación de dos factores",
+    "sessions": "Sesiones activas"
+  },
+  "guide": {
+    "askSparky": "Preguntar a Sparky",
+    "dismiss": "Descartar pista",
+    "openChat": "Abrir Sparky para más ayuda"
+  }
+}

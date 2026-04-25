@@ -1,14 +1,42 @@
 // GET /api/content — Fetch published content with filters
+//
+// AUTH SCOPE: requireAuth (authed parent OR demo/anon user). Content
+// listings are intentionally readable by any signed-in user, including
+// free-tier and demo sessions — `isLabAccessible` handles per-tier
+// gating below.
+//
+// API-MED-003 (B): content-read rate limit (100/min per user/IP) caps
+// scrape-by-authed-user behaviour. Legitimate clients issue far fewer
+// requests per minute even when paginating; anything past 100/min is
+// almost certainly automated harvesting.
+//
 // v2 [ENH]: Added Cache-Control: 5 minute cache
 import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { ContentQuerySchema } from '@/lib/validations';
-import { apiSuccess, apiError, parseQuery, requireAuth } from '@/lib/api-helpers';
+import {
+  apiSuccess,
+  apiError,
+  parseQuery,
+  requireAuth,
+  applyRateLimit,
+} from '@/lib/api-helpers';
+import { RATE_LIMITS } from '@/lib/rate-limit';
 import { isLabAccessible } from '@/lib/tier-config';
 
 export async function GET(req: NextRequest) {
   const auth = await requireAuth(req);
   if (!auth.success) return auth.response;
+
+  // API-MED-003 (B): cap content reads at 100/min per user to deter
+  // scraping. Demo users count against the same bucket by user.id.
+  const limited = await applyRateLimit(
+    req,
+    'content-read',
+    auth.user.id,
+    RATE_LIMITS.contentRead,
+  );
+  if (limited) return limited;
 
   const parsed = parseQuery(req, ContentQuerySchema);
   if (!parsed.success) return parsed.response;

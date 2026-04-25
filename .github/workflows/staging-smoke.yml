@@ -1,0 +1,47 @@
+# ════════════════════════════════════════════════════
+# SparkForge Staging Smoke Tests
+# DEPLOY-HIGH-001 (Option C)
+#
+# Runs scripts/staging-smoke-test.sh against every successful Vercel
+# preview deployment. Fires on GitHub's `deployment_status` event,
+# which Vercel's GitHub integration publishes when a preview reaches
+# a terminal state.
+#
+# See STAGING_NOTES.md for the full operator guide + env requirements.
+# ════════════════════════════════════════════════════
+
+name: Staging Smoke
+
+on:
+  deployment_status:
+
+concurrency:
+  group: staging-smoke-${{ github.event.deployment.id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  deployments: read
+
+jobs:
+  smoke:
+    name: Preview smoke test
+    runs-on: ubuntu-latest
+    # Only run on successful Vercel preview deploys (not prod, not failed).
+    # `environment` on Vercel previews is typically 'Preview - sparkforge' or
+    # similar — we match any environment that is NOT 'Production' or 'production'.
+    if: >-
+      github.event.deployment_status.state == 'success' &&
+      github.event.deployment.environment != 'Production' &&
+      github.event.deployment.environment != 'production' &&
+      github.event.deployment_status.target_url != ''
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Smoke tests against preview URL
+        env:
+          BASE_URL: ${{ github.event.deployment_status.target_url }}
+        run: |
+          echo "Running staging smoke tests against: $BASE_URL"
+          bash scripts/staging-smoke-test.sh

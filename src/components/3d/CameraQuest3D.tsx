@@ -411,7 +411,7 @@ function QuestScene({
 // ---- Main Export ----
 
 export default function CameraQuest3D(props: CameraQuest3DProps) {
-  const { found, items, currentIndex } = props;
+  const { found, items: _items, currentIndex: _currentIndex } = props;
 
   // ENH: Spark particles on card flip (when a new card is found)
   const [sparkParticles, setSparkParticles] = useState<Particle[]>([]);

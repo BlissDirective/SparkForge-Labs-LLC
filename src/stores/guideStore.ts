@@ -5,6 +5,7 @@
 
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useShallow } from 'zustand/react/shallow';
 
 export type AvatarConcept = 'orb' | 'fox' | 'drone' | 'spark' | 'nova';
 export type GuideContext = 'cockpit' | 'lab' | 'game' | 'profile' | 'settings';
@@ -38,6 +39,11 @@ interface GuideState {
   conversationId: string | null;
 
   // Voice
+  /**
+   * @deprecated Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+   * Use `cockpitStore.voiceEnabled` instead. This field remains as a backward-compat mirror —
+   * the cockpitStore subscribe-bridge keeps it in sync.
+   */
   voiceEnabled: boolean;
   voiceInputActive: boolean;
   ttsPlaying: boolean;
@@ -51,6 +57,17 @@ interface GuideState {
   // Tier tracking
   guideTurnsToday: number;
   guideTurnsResetDate: string;
+
+  // UX-ENH-006 (Max): Inline context hints. Brief text bubble
+  // rendered near the avatar when the child stalls on a lab / game.
+  // Distinct from the chat panel — lower friction, auto-dismisses.
+  hintVisible: boolean;
+  hintText: string | null;
+  hintAnchor: 'avatar' | 'top-center' | 'bottom-center';
+  hintExpiresAt: number | null;
+  /** Last context/key combination the user actually dismissed, so
+   *  repeat stalls don't re-nudge until context actually changes. */
+  lastDismissedHintKey: string | null;
 
   // Actions
   show: () => void;
@@ -67,6 +84,10 @@ interface GuideState {
   setStreamingContent: (content: string) => void;
   appendStreamingContent: (delta: string) => void;
   setConversationId: (id: string | null) => void;
+  /**
+   * @deprecated Phase 2 audit fix (Section 6.1): Audio settings consolidated into cockpitStore.
+   * Use `cockpitStore.setVoiceEnabled(value)`.
+   */
   setVoiceEnabled: (enabled: boolean) => void;
   setVoiceInputActive: (active: boolean) => void;
   setTtsPlaying: (playing: boolean) => void;
@@ -76,6 +97,10 @@ interface GuideState {
   setAutoGreet: (greet: boolean) => void;
   incrementTurns: () => void;
   resetTurnsIfNeeded: () => void;
+  /** UX-ENH-006: show an inline context hint. ttlMs default 8000. */
+  showHint: (text: string, opts?: { ttlMs?: number; anchor?: 'avatar' | 'top-center' | 'bottom-center'; key?: string }) => void;
+  /** UX-ENH-006: dismiss the current hint (user clicked X or clicked avatar). */
+  dismissHint: (key?: string) => void;
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -105,6 +130,13 @@ export const useGuideStore = create<GuideState>()(
       autoGreet: true,
       guideTurnsToday: 0,
       guideTurnsResetDate: today(),
+
+      // UX-ENH-006 defaults
+      hintVisible: false,
+      hintText: null,
+      hintAnchor: 'avatar' as const,
+      hintExpiresAt: null,
+      lastDismissedHintKey: null,
 
       // Actions
       show: () => set({ visible: true, minimized: false }),
@@ -151,6 +183,27 @@ export const useGuideStore = create<GuideState>()(
           set({ guideTurnsToday: 0, guideTurnsResetDate: currentDate });
         }
       },
+
+      showHint: (text, opts) => {
+        const state = get();
+        const key = opts?.key ?? null;
+        // Suppress if the user just dismissed this same context+key.
+        if (key && state.lastDismissedHintKey === key) return;
+        const ttlMs = opts?.ttlMs ?? 8000;
+        set({
+          hintVisible: true,
+          hintText: text,
+          hintAnchor: opts?.anchor ?? 'avatar',
+          hintExpiresAt: Date.now() + ttlMs,
+        });
+      },
+
+      dismissHint: (key) => set({
+        hintVisible: false,
+        hintText: null,
+        hintExpiresAt: null,
+        lastDismissedHintKey: key ?? null,
+      }),
     }),
     {
       name: 'sparkforge-guide',
@@ -166,3 +219,41 @@ export const useGuideStore = create<GuideState>()(
     }
   )
 );
+
+// ═══ SELECTOR HOOKS (PERF-HIGH-001 Opt C) ═══
+//
+// Named bundle used by GuideChatPanel. Covers exactly the 16 fields
+// the panel renders / calls — anything added outside this bundle
+// won't trigger a panel re-render.
+//
+// NOTE: if a consumer needs a different subset, prefer a narrower
+// inline selector rather than extending this bundle. Keeping it
+// consumer-shaped avoids the "dumping ground" anti-pattern where
+// bundles grow until useShallow defeats its own purpose.
+export function useGuideChat() {
+  return useGuideStore(
+    useShallow((s) => ({
+      visible: s.visible,
+      minimized: s.minimized,
+      messages: s.messages,
+      isStreaming: s.isStreaming,
+      streamingContent: s.streamingContent,
+      voiceEnabled: s.voiceEnabled,
+      conversationId: s.conversationId,
+      context: s.context,
+      labId: s.labId,
+      gameId: s.gameId,
+      show: s.show,
+      hide: s.hide,
+      minimize: s.minimize,
+      toggle: s.toggle,
+      addMessage: s.addMessage,
+      setStreaming: s.setStreaming,
+      setStreamingContent: s.setStreamingContent,
+      appendStreamingContent: s.appendStreamingContent,
+      setConversationId: s.setConversationId,
+      setVisualState: s.setVisualState,
+      incrementTurns: s.incrementTurns,
+    })),
+  );
+}

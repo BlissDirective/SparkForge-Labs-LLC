@@ -43,12 +43,6 @@ const mockChild = {
   created_at: '2026-01-15T00:00:00Z',
 };
 
-const mockSession = {
-  accessToken: 'mock-jwt-token',
-  refreshToken: 'mock-refresh-token',
-  expiresAt: Date.now() + 3600_000,
-};
-
 const mockLabProgress = Array.from({ length: 10 }, (_, i) => ({
   labId: i + 1,
   totalItems: 3 + (i % 2),
@@ -83,9 +77,10 @@ export const handlers = [
   http.post(`${API}/auth/login`, async ({ request }) => {
     const body = (await request.json()) as Record<string, unknown>;
     if (body.email === 'test@sparkforge.dev' && body.password === 'password123') {
+      // AUTH-CRIT-001 (1B): Mock mirrors real API — no token in body.
       return HttpResponse.json({
         user: { id: mockParent.id, email: mockParent.email },
-        session: mockSession,
+        authenticated: true,
       });
     }
     return HttpResponse.json({ error: 'Invalid credentials' }, { status: 401 });
@@ -99,11 +94,16 @@ export const handlers = [
     HttpResponse.json(mockParent),
   ),
 
+  // AUTH-CRIT-002 (2B): Demo endpoint now wraps supabase.auth.signInAnonymously().
+  // In the mock, we return the apiSuccess envelope the real route emits.
   http.post(`${API}/auth/demo`, () =>
     HttpResponse.json({
-      demoId: 'demo-session-001',
-      expiresAt: new Date(Date.now() + 3600_000).toISOString(),
-      message: 'Demo session started',
+      success: true,
+      data: {
+        demoId: 'demo-session-001',
+        expiresAt: Date.now() + 3600_000,
+        message: 'Demo session started',
+      },
     }),
   ),
 
@@ -231,10 +231,21 @@ export const handlers = [
   ),
 
   http.post(`${API}/gamification/xp`, async ({ request }) => {
-    const body = (await request.json()) as Record<string, unknown>;
-    const amount = (body.amount as number) || 10;
+    // API-HIGH-003 (C): Mock mirrors the new server-authoritative flow.
+    // For source='game' we use a fixed mock award since the real
+    // GAME_XP_REWARDS table lives server-side. For non-game sources
+    // we echo the client amount (capped like the real route would).
+    const body = (await request.json()) as {
+      source?: string;
+      gameId?: string;
+      amount?: number;
+    };
+    const xpAwarded =
+      body.source === 'game'
+        ? 30 // mirrors pet-trainer/my-first-ai-app bracket — reasonable test default
+        : Math.min(body.amount ?? 10, 500);
     return HttpResponse.json({
-      xpAwarded: amount,
+      xpAwarded,
       multiplier: 1,
       newXP: 260,
       newLevel: 3,
@@ -242,6 +253,7 @@ export const handlers = [
       levelProgress: 0.6,
       leveledUp: false,
       coinsEarned: 0,
+      capped: false,
     });
   }),
 

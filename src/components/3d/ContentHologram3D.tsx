@@ -6,10 +6,11 @@
 // Positioned near InteractiveConsole3D area
 // ════════════════════════════════════════════════════
 
-import { useRef, useMemo } from 'react';
+import { useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Html, Float } from '@react-three/drei';
-import * as THREE from 'three';
+// PERF-CRIT-001 (10C): use named imports for Three.js tree-shaking.
+import { DoubleSide, type Mesh } from 'three';
 import { useCockpitContentBridge } from '@/hooks/useCockpitContentBridge';
 
 interface ContentHologram3DProps {
@@ -21,8 +22,8 @@ export default function ContentHologram3D({
   position = [0, 1.5, -2.5],
   visible = true,
 }: ContentHologram3DProps) {
-  const ringRef = useRef<THREE.Mesh>(null);
-  const { dailyChallenge, trendingTopics, recommendation, npcTip } = useCockpitContentBridge();
+  const ringRef = useRef<Mesh>(null);
+  const { dailyChallenge, trendingTopics, recommendation, npcTip: _npcTip } = useCockpitContentBridge();
 
   useFrame((_, delta) => {
     if (ringRef.current) {
@@ -56,7 +57,7 @@ export default function ContentHologram3D({
             color="#00BBFF"
             transparent
             opacity={0.03}
-            side={THREE.DoubleSide}
+            side={DoubleSide}
           />
         </mesh>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useChildStore } from '@/stores/childStore';
 
 // useSessionTracker — Automatic Play Session Tracking
@@ -8,7 +9,7 @@ import { useChildStore } from '@/stores/childStore';
 //   ends on unmount. Non-critical — all failures silent.
 
 export function useSessionTracker() {
-  const activeChildId = useChildStore((s) => s.activeChild?.id);
+  const activeChildId = useChildStore((s) => s.activeChildId);
   const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -20,7 +21,7 @@ export function useSessionTracker() {
       try {
         const res = await fetch('/api/sessions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...csrfHeader() },
           body: JSON.stringify({
             action: 'start',
             childId,
@@ -38,7 +39,7 @@ export function useSessionTracker() {
       try {
         await fetch('/api/sessions', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', ...csrfHeader() },
           body: JSON.stringify({
             action: 'end',
             sessionId: sessionIdRef.current,
@@ -66,5 +67,5 @@ export function useSessionTracker() {
       endSession();
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [activeChildId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeChildId]);
 }

@@ -9,7 +9,7 @@
 import { motion, AnimatePresence } from 'motion/react';
 import { TrendingUp, ExternalLink, Gamepad2, Sparkles, ChevronRight } from 'lucide-react';
 import { useTrendingContent } from '@/hooks/useContent';
-import { useChildStore } from '@/stores/childStore';
+import { useActiveChild } from '@/hooks/useChildren';
 import type { Content } from '@/types';
 import Link from 'next/link';
 
@@ -19,7 +19,7 @@ interface TrendingFeedProps {
 }
 
 export default function TrendingFeed({ maxItems = 3, compact = false }: TrendingFeedProps) {
-  const ageBand = useChildStore((s) => s.activeChild?.age_band) || 'B';
+  const ageBand = useActiveChild()?.age_band || 'B';
   const { data, isLoading } = useTrendingContent(ageBand);
 
   const items = ((data as { items?: Content[] })?.items || []).slice(0, maxItems);
@@ -38,7 +38,7 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
     return (
       <div className="rounded-xl bg-white/5 border border-white/10 p-6 text-center">
         <TrendingUp className="w-8 h-8 text-cyan-400/40 mx-auto mb-2" />
-        <p className="text-white/40 font-body text-sm">
+        <p className="text-white/70 font-body text-sm">
           No trending topics yet. Check back soon!
         </p>
       </div>
@@ -99,7 +99,7 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
                   <span className="text-xs text-cyan-400/60 font-data">
                     Lab {item.world}
                   </span>
-                  <span className="text-xs text-white/30">|</span>
+                  <span className="text-xs text-white/60">|</span>
                   <span className="text-xs text-amber-400/60 font-data">
                     +{item.xp_reward} XP
                   </span>
@@ -107,7 +107,7 @@ export default function TrendingFeed({ maxItems = 3, compact = false }: Trending
               </div>
 
               {/* Action arrow */}
-              <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-cyan-400 transition-colors shrink-0 mt-1" />
+              <ChevronRight className="w-4 h-4 text-white/55 group-hover:text-cyan-400 transition-colors shrink-0 mt-1" />
             </div>
           </motion.div>
         ))}

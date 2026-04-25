@@ -73,10 +73,39 @@
 | Welcome/Report 3D | NeuralNet3D brain orb | Removed (NeuralNetwork3D replaces all 3D) |
 | Heartbeat + sparks | Drove SVG node opacity + SVG spark circles | Drive NeuralNetwork3D props (heartbeatPhase, sparkIntensity) |
 | Camera interaction | None (static SVG) | OrbitControls with constrained polar angle, auto-orbit during training |
-| Game logic | 6 phases, 3 challenges, 4 arch challenges | Identical — preserved from v2 |
-| Audio | useNetworkAudio hook | Identical — preserved from v2 |
-| Age bands | B (guided), C (learning rate + loss curve) | Identical — preserved from v2 |
+| Game logic | 6 phases, 3 challenges, 4 arch challenges | **Expanded (April 7 audit):** 8 B/C challenges + 3 Band A challenges + 8 arch tests + Band C hyperparameters + competition mode |
+| Audio | useNetworkAudio hook | Identical — preserved from v2. Audio concurrency limited to 3 events (BUG-NB7 fix). |
+| Age bands | B (guided), C (learning rate + loss curve) | **Expanded:** Now A/B/C. Band A: simplified "brain building" metaphor. Band C: activation function, dropout, learning rate slider, batch size. |
 | Accessibility | ARIA labels on all controls | Identical — preserved from v2 |
+
+---
+
+## Flagship Game Audit Enhancements (April 7, 2026)
+
+### Bug Fixes (8 total)
+
+| ID | Severity | Fix |
+|----|----------|-----|
+| BUG-NB1 | CRITICAL | Training accuracy now architecture-dependent (convergence rate, noise, plateau vary with arch quality) |
+| BUG-NB2 | HIGH | optimalMatch normalized by sum of optimal neurons, not totalNeurons |
+| BUG-NB3 | HIGH | sparkIntensity uses raw delta before weight clamping |
+| BUG-NB4 | CRITICAL | Removed duplicate inline NeuralNetwork3D — kept sceneStore registration only |
+| BUG-NB5 | MEDIUM | setTimeout stored in ref, cleared on unmount |
+| BUG-NB6 | MEDIUM | Heartbeat continues during training at 2.7x speed |
+| BUG-NB7 | MEDIUM | Audio concurrency limited to 3 events with 400ms decay |
+| BUG-NB8 | MEDIUM | Canvas cleared on challenge switch via clearCanvas() |
+
+### Content Expansion
+
+| Feature | Before | After |
+|---------|--------|-------|
+| Challenges (B/C) | 3 (Digit Reader, Color Classifier, Shape Sorter) | 8 (+Sound Recognizer, Emotion Detector, Animal Identifier, Text Classifier, Weather Predictor) |
+| Band A challenges | None | 3 (Connect the Dots, Build a Simple Brain, Color Sorter) |
+| Architecture tests | 4 | 8 (+Overfitter, Underfitter, Speed Demon, Memory Master) |
+| Hyperparameters | 0 | 4 (activation function, dropout, learning rate, batch size) — Band C only |
+| Game modes | 1 (standard) | 2 (+competition: Beat the Benchmark with bronze/silver/gold) |
+| AI integration | None | useAIContent hook for "Random Challenge" generation |
+| File size | ~1,531 lines | ~1,863 lines |
 
 ---
 

@@ -38,6 +38,37 @@ These add schema/data needed by specific stages. Run them **after** all core fil
 |------|---------|
 | `migrate_subscription_status.sql` | Consolidates subscription_status CHECK constraint (CRIT-004). Canonical values: none, active, past_due, canceled, trialing, paused. Default: 'none'. Run if upgrading from older schema. |
 
+## Phase 1 Audit Migrations (Final-Audit_04-15-2026.md)
+
+Run **in order** after the stage-specific files above. These resolve Critical security findings.
+
+| Order | File | Audit Finding | Description |
+|-------|------|---------------|-------------|
+| 13 | `008_subscription_events_processed.sql` | PAY-CRIT-001 (6B) | Adds `processed BOOLEAN` + `processed_at TIMESTAMPTZ` to `subscription_events`. Backfills existing rows as processed. Webhook uses these for replay protection. |
+| 14 | `009_subscription_events_split.sql` | DB-CRIT-001 (4C) | Creates `subscription_events_detail` (admin-only RLS) for raw Stripe payload. Migrates existing `data` column. Drops `data` from metadata table. Adds parent SELECT policy. **Must follow 008.** |
+| 15 | `010_rls_belt_and_suspenders.sql` | DB-CRIT-002 (5C) | Defensive: re-asserts `ENABLE ROW LEVEL SECURITY` on every protected table. Idempotent — safe to re-run. Emits warnings for any unprotected public table. |
+| n/a | `verify_rls.sql` | DB-CRIT-002 (5C) | Verification script (NOT a migration). Run via psql or `supabase db execute -f sql/verify_rls.sql` to confirm RLS coverage. Throws exception if any public table lacks RLS or has no policies. Invoked by CI on every PR. |
+
+## Phase 3 Audit Migrations (Final-Audit_04-15-2026.md)
+
+Run after the Phase 2 migrations (011–015). These resolve Medium-severity findings.
+
+| Order | File | Audit Finding | Description |
+|-------|------|---------------|-------------|
+| 23 | `016_perf_indexes.sql` | DB-MED-001 (B) | Composite performance indexes matching actual query shapes in `tierCheck.ts`: `idx_prompt_history_child_created`, partial `idx_progress_child_completed_at` (WHERE completed=true), `idx_subscription_events_parent_created`. Idempotent. Ends with DO $$ verification block. |
+| 24 | `017_subscription_events_fk_cleanup.sql` | DB-MED-002 (B) | Replaces the implicit `ON DELETE NO ACTION` on `subscription_events.parent_id` with `ON DELETE SET NULL`, unblocking parent deletion (PAY-MED-003 flow) while preserving audit history. Adds `cleanup_orphaned_subscription_events()` SECURITY DEFINER function and a daily pg_cron job (00:20 UTC) that deletes NULL-parent rows older than 90 days. Skips cleanly on Supabase Free (no pg_cron). |
+| 25 | `018_content_slug_enforce.sql` | DB-MED-003 (B) | Backfills NULL/empty slugs via a new `slugify(TEXT)` helper, then `ALTER COLUMN slug SET NOT NULL DEFAULT ''`. Adds a BEFORE INSERT trigger (`trg_content_auto_slug`) that auto-generates `slugify(title)||'-'||<8-hex>` when the caller omits slug. Idempotent. Post-apply DO block verifies 0 null/empty rows + NOT NULL + trigger installed. |
+
+## Phase 5 Audit Migrations (Final-Audit_04-15-2026.md)
+
+Phase 5 First 10 enhancements. Run after Phase 3 migrations (018).
+
+| Order | File | Task | Description |
+|-------|------|------|-------------|
+| 26 | `019_demo_role_rls.sql` | #2 AUTH-ENH Signed Demo Tokens (Max) | Adds RESTRICTIVE `demo_deny_*` RLS policies on all 9 user-facing tables + Stage 8/9 tables (subscription_events, subscription_events_detail, agent_runs, audit_log). Blocks ALL writes from anonymous JWT sessions (`auth.jwt() ->> 'is_anonymous' = 'true'`). Defense-in-depth alongside new `requireWriteAccess()` API helper. Idempotent. Post-apply DO block verifies every required table carries a `demo_deny_*` RESTRICTIVE policy. |
+| 27 | `020_passkey_credentials.sql` | #3 AUTH-ENH Passkey / WebAuthn (Ultra) | Creates `passkey_credentials` + `passkey_challenges` tables for FIDO2/WebAuthn. RLS: SELECT-own for parents, RESTRICTIVE write-deny on both tables (writes done via SECURITY DEFINER server code only). `demo_deny_passkey_credentials` mirrors 019. `cleanup_expired_passkey_challenges()` SECURITY DEFINER function + pg_cron job every 10 min (skipped cleanly when pg_cron absent). |
+| 28 | `021_enable_pgaudit.sql` | #5 DB-ENH PgAudit (Min) | `CREATE EXTENSION IF NOT EXISTS pgaudit;` + `ALTER DATABASE postgres SET pgaudit.log = 'write, role, ddl'`. Output goes to Postgres logs (operator ships to SIEM/log backend). **Requires Supabase Pro plan** — on Free tier the CREATE EXTENSION call fails with permissions error (migration rolls back cleanly). Retention for the existing `audit_log` table is already handled by 014_audit_log.sql (90-day pg_cron purge). |
+
 ## Archived Files (Do NOT Run)
 
 These have been merged into canonical files above. Kept for historical reference only.

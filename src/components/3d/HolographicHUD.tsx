@@ -1,36 +1,27 @@
 'use client';
 
 // ================================================================
-// CPA v2.0 — HolographicHUD: 500K Triangle Concentric Ring System
+// CPA v2.0 — HolographicHUD: Peripheral Viewport Frame
 // ================================================================
-// Decision CPA-4: 10-15% opacity during normal use
-// Decision CPA-5: 8 concentric rings + 24 volumetric scan beams + core sphere
+// REPOSITIONED: Moved from centered concentric ring system [0,0,0.5]
+// to peripheral viewport frame wrapping around content edges.
 //
-// Semi-transparent R3F overlay rendered in front of HTML content.
-// During normal use: 10-15% opacity (barely visible).
-// During celebrations: 80-100% opacity with full animation.
-// During game mode: hidden (0% opacity).
+// Design Decisions:
+//   6.0 Position:    Peripheral frame — instrument bezel around viewport
+//   6.1 Ring Style:  Segmented arc frame — 4 arcs (top/bottom/left/right)
+//   6.2 Data Display: Corner data readouts (time, XP, mode, child)
+//   6.3 Motion:      Breathing pulse — 4-second sine cycle
+//   6.4 Celebration: Gold cascade — chasing light around perimeter
+//   6.5 Visibility:  20-30% opacity — clearly visible architectural element
 //
-// Triangle budget: ~500,000 tris (desktop ultra)
-// Features:
-//   - 8 concentric rings at different z-depths for parallax
-//   - Data-display arc segments on inner rings (ExtrudeGeometry)
-//   - Reticle targeting crosshair (when active)
-//   - 24 volumetric TubeGeometry scan beams
-//   - Corner HUD text readouts at cardinal positions
-//   - Instanced tick marks along each ring
-//   - Multi-layered emissive core sphere
+// Triangle budget: ~500,000 tris (4 arcs + tick marks + text)
 
-import { useRef, useMemo, useCallback } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useRef, useMemo, useState } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
 import {
   BoxGeometry,
-  CatmullRomCurve3,
   Color,
   DoubleSide,
-  ExtrudeGeometry,
-  ExtrudeGeometryOptions,
-  Group,
   InstancedMesh,
   MathUtils,
   Matrix4,
@@ -38,534 +29,523 @@ import {
   MeshStandardMaterial,
   Quaternion,
   RingGeometry,
-  Shape,
-  SphereGeometry,
-  TubeGeometry,
   Vector3,
 } from 'three';
 import { Text } from '@react-three/drei';
-import { COCKPIT_DETAIL } from '@/lib/3d/cockpitConfig';
+import {
+  CHROME_BORDER,
+  EMISSIVE_IDLE_INDICATOR,
+  EMISSIVE_LED_MULTIPLIER,
+  TYPE_SCALE,
+  NUMERIC_FONT,
+  TEXT_COLORS,
+  CELEBRATION_TIERS,
+} from '@/lib/3d/cockpitDesignTokens';
 
-// ■■ Ring configuration ■■
-interface RingDef {
-  innerRadius: number;
-  outerRadius: number;
-  zOffset: number;
-  rotationDir: number; // 1 = CW, -1 = CCW
-  speedMultiplier: number;
-  opacityScale: number;
-  emissiveScale: number;
-}
+// ═══════════════════════════════════════════════════════════════
+// FRAME ARC DEFINITIONS — positioned around viewport edges
+// ═══════════════════════════════════════════════════════════════
 
-const RING_DEFS: RingDef[] = [
-  { innerRadius: 4.8, outerRadius: 5.1, zOffset: -0.12, rotationDir: -1, speedMultiplier: 1.0, opacityScale: 1.0, emissiveScale: 0.9 },
-  { innerRadius: 4.2, outerRadius: 4.45, zOffset: -0.08, rotationDir: 1, speedMultiplier: 0.8, opacityScale: 0.95, emissiveScale: 0.85 },
-  { innerRadius: 3.6, outerRadius: 3.82, zOffset: -0.04, rotationDir: -1, speedMultiplier: 0.65, opacityScale: 0.9, emissiveScale: 0.8 },
-  { innerRadius: 3.0, outerRadius: 3.2, zOffset: 0.0, rotationDir: 1, speedMultiplier: 0.5, opacityScale: 0.85, emissiveScale: 0.75 },
-  { innerRadius: 2.4, outerRadius: 2.58, zOffset: 0.04, rotationDir: -1, speedMultiplier: 0.4, opacityScale: 0.8, emissiveScale: 0.7 },
-  { innerRadius: 1.8, outerRadius: 1.96, zOffset: 0.08, rotationDir: 1, speedMultiplier: 0.3, opacityScale: 0.75, emissiveScale: 0.65 },
-  { innerRadius: 1.2, outerRadius: 1.36, zOffset: 0.12, rotationDir: -1, speedMultiplier: 0.2, opacityScale: 0.7, emissiveScale: 0.6 },
-  { innerRadius: 0.7, outerRadius: 0.84, zOffset: 0.16, rotationDir: 1, speedMultiplier: 0.15, opacityScale: 0.65, emissiveScale: 0.55 },
-];
-
-// ■■ Cardinal labels ■■
-const CARDINAL_LABELS: Array<{ text: string; angle: number }> = [
-  { text: 'SYS:NOMINAL', angle: 0 },
-  { text: 'NET:ACTIVE', angle: Math.PI / 2 },
-  { text: 'AI:ONLINE', angle: Math.PI },
-  { text: 'XP:TRACKING', angle: (3 * Math.PI) / 2 },
-];
-
-// ■■ Data arc configuration (inner rings 4-7 display arcs) ■■
-interface DataArc {
-  ringIndex: number;
+interface FrameArcDef {
+  id: string;
   startAngle: number;
   endAngle: number;
-  thickness: number;
-  dataKey: string;
+  position: readonly [number, number, number];
+  rotation: readonly [number, number, number];
+  tickCount: number;
 }
 
-const DATA_ARCS: DataArc[] = [
-  { ringIndex: 4, startAngle: 0.2, endAngle: 1.2, thickness: 0.06, dataKey: 'progress' },
-  { ringIndex: 4, startAngle: 2.0, endAngle: 3.8, thickness: 0.06, dataKey: 'xp' },
-  { ringIndex: 5, startAngle: 0.5, endAngle: 2.1, thickness: 0.05, dataKey: 'streak' },
-  { ringIndex: 5, startAngle: 3.5, endAngle: 5.5, thickness: 0.05, dataKey: 'level' },
-  { ringIndex: 6, startAngle: 0.0, endAngle: 1.8, thickness: 0.04, dataKey: 'badges' },
-  { ringIndex: 6, startAngle: 2.5, endAngle: 4.8, thickness: 0.04, dataKey: 'games' },
-  { ringIndex: 7, startAngle: 0.3, endAngle: 2.5, thickness: 0.04, dataKey: 'session' },
-  { ringIndex: 7, startAngle: 3.0, endAngle: 5.8, thickness: 0.04, dataKey: 'lab' },
+const FRAME_ARCS: FrameArcDef[] = [
+  {
+    id: 'top',
+    startAngle: -0.8,
+    endAngle: 0.8,
+    position: [0, 1.6, -2.5] as const,
+    rotation: [0, 0, 0] as const,
+    tickCount: 32,
+  },
+  {
+    id: 'bottom',
+    startAngle: -0.8,
+    endAngle: 0.8,
+    position: [0, -1.2, -2.5] as const,
+    rotation: [0, 0, Math.PI] as const,
+    tickCount: 32,
+  },
+  {
+    id: 'left',
+    startAngle: -0.6,
+    endAngle: 0.6,
+    position: [-2.0, 0.2, -2.5] as const,
+    rotation: [0, 0, Math.PI / 2] as const,
+    tickCount: 24,
+  },
+  {
+    id: 'right',
+    startAngle: -0.6,
+    endAngle: 0.6,
+    position: [2.0, 0.2, -2.5] as const,
+    rotation: [0, 0, -Math.PI / 2] as const,
+    tickCount: 24,
+  },
 ];
 
+// Arc ordering for celebration cascade: top → right → bottom → left
+const CASCADE_ORDER = ['top', 'right', 'bottom', 'left'] as const;
+
+// Breathing pulse period in seconds
+const BREATHING_PERIOD_S = 4.0;
+
+// Celebration revolutions per tier
+const CELEBRATION_REVOLUTIONS: Record<string, number> = {
+  minor: 1,
+  major: 2,
+  epic: 3,
+};
+
+// Gold color for celebration cascade
+const GOLD_COLOR = new Color('#FFD700');
+
+// ═══════════════════════════════════════════════════════════════
+// CORNER READOUT POSITIONS
+// ═══════════════════════════════════════════════════════════════
+
+// Base corner layout — scaled by viewport aspect ratio at render time (COCK-02)
+const BASE_CORNER_X = 1.8;
+const CORNER_Y_TOP = 1.5;
+const CORNER_Y_BOTTOM = -1.1;
+const CORNER_Z = -2.45;
+const BASE_ASPECT = 16 / 9; // 1.778 — design reference aspect ratio
+
+// ═══════════════════════════════════════════════════════════════
+// PROPS
+// ═══════════════════════════════════════════════════════════════
+
 interface HolographicHUDProps {
-  opacity: number;           // 0.0-1.0, driven by station mode
-  color: string;             // Lab accent color
-  rotationSpeed: number;     // Outer ring rotation, default 0.1 rad/s
-  pulseIntensity: number;    // Core pulse strength, default 0.5
-  active: boolean;           // false = return null (game mode)
+  // Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+  // Baseline opacity bumped from 0.25 to 0.35 for readability
+  opacity: number;              // 0.0-1.0, driven by station mode (default 0.35)
+  color: string;                // Lab accent color
+  active: boolean;              // false = return null (game mode)
+  modeName?: string;            // Current mode name for bottom-left readout
+  childName?: string;           // Child name for bottom-right readout
+  childLevel?: number;          // Child level for bottom-right readout
+  xp?: number;                  // XP value for top-right readout
+  celebrationActive?: boolean;  // Triggers gold cascade
+  celebrationTier?: 'minor' | 'major' | 'epic'; // Controls cascade revolutions
 }
 
-// ■■ Build a single arc Shape for ExtrudeGeometry ■■
-function createArcShape(
-  innerR: number,
-  outerR: number,
-  startAngle: number,
-  endAngle: number,
-  arcSegments: number,
-): Shape {
-  const shape = new Shape();
-  const angleStep = (endAngle - startAngle) / arcSegments;
+// ═══════════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════════
 
-  // Outer arc (forward)
-  shape.moveTo(
-    Math.cos(startAngle) * outerR,
-    Math.sin(startAngle) * outerR,
-  );
-  for (let i = 1; i <= arcSegments; i++) {
-    const a = startAngle + i * angleStep;
-    shape.lineTo(Math.cos(a) * outerR, Math.sin(a) * outerR);
-  }
-
-  // Inner arc (backward)
-  for (let i = arcSegments; i >= 0; i--) {
-    const a = startAngle + i * angleStep;
-    shape.lineTo(Math.cos(a) * innerR, Math.sin(a) * innerR);
-  }
-
-  shape.closePath();
-  return shape;
+/** Format time as HH:MM */
+function getCurrentTime(): string {
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2, '0');
+  const m = String(now.getMinutes()).padStart(2, '0');
+  return `${h}:${m}`;
 }
 
-// ■■ Build a TubeGeometry scan beam curve ■■
-function createScanBeamCurve(angle: number, innerR: number, outerR: number): CatmullRomCurve3 {
-  const points: Vector3[] = [];
-  const steps = 6;
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps;
-    const r = MathUtils.lerp(innerR, outerR, t);
-    // Slight sinusoidal wobble for visual interest
-    const wobble = Math.sin(t * Math.PI) * 0.04;
-    points.push(new Vector3(
-      Math.cos(angle + wobble) * r,
-      Math.sin(angle + wobble) * r,
-      t * 0.1 - 0.05, // slight z variation
-    ));
+/** Build tick mark matrices for a single arc segment */
+function buildTickMatrices(arc: FrameArcDef): Matrix4[] {
+  const matrices: Matrix4[] = [];
+  const tempMatrix = new Matrix4();
+  const tempPos = new Vector3();
+  const tempQuat = new Quaternion();
+  const tempScale = new Vector3(1, 1, 1);
+  const arcRadius = 1.8; // radius for tick placement along arc
+  const angleSpan = arc.endAngle - arc.startAngle;
+
+  for (let t = 0; t < arc.tickCount; t++) {
+    const frac = t / (arc.tickCount - 1);
+    const angle = arc.startAngle + frac * angleSpan;
+    const isMajor = t % 4 === 0;
+
+    tempPos.set(
+      Math.cos(angle) * arcRadius,
+      Math.sin(angle) * arcRadius,
+      0.01,
+    );
+
+    tempQuat.setFromAxisAngle(new Vector3(0, 0, 1), angle - Math.PI / 2);
+    tempScale.set(
+      isMajor ? 1.0 : 0.6,
+      isMajor ? 1.8 : 1.0,
+      1.0,
+    );
+
+    tempMatrix.compose(tempPos, tempQuat, tempScale);
+    matrices.push(tempMatrix.clone());
   }
-  return new CatmullRomCurve3(points);
+  return matrices;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// COMPONENT
+// ═══════════════════════════════════════════════════════════════
 
 export function HolographicHUD({
   opacity,
   color,
-  rotationSpeed,
-  pulseIntensity,
   active,
+  modeName = 'DASHBOARD',
+  childName,
+  childLevel,
+  xp = 0,
+  celebrationActive = false,
+  celebrationTier = 'minor',
 }: HolographicHUDProps) {
 
-  // AUDIT-A6: D3D-2 — always max quality, no LOD tiers
-  const ringCount = COCKPIT_DETAIL.hudRingCount;
-  const ringSegments = COCKPIT_DETAIL.hudRingSegments;
-  const scanLineCount = COCKPIT_DETAIL.scanLines;
+  // Refs for arc segment meshes (for per-frame material updates)
+  const arcMeshRefs = useRef<(Mesh | null)[]>([]);
+  const tickInstanceRefs = useRef<(InstancedMesh | null)[]>([]);
+  const celebrationStartRef = useRef<number | null>(null);
 
-  // Refs
-  const ringRefs = useRef<(Mesh | null)[]>([]);
-  const coreOuterRef = useRef<Mesh>(null);
-  const coreInnerRef = useRef<Mesh>(null);
-  const coreCenterRef = useRef<Mesh>(null);
-  const scanGroupRef = useRef<Group>(null);
-  const dataArcGroupRef = useRef<Group>(null);
-  const reticleGroupRef = useRef<Group>(null);
-  const tickInstancedRef = useRef<InstancedMesh>(null);
-  const activeScanRef = useRef(0);
+  // Time display — update every frame would be wasteful, update every ~second
+  const [displayTime, setDisplayTime] = useState(getCurrentTime);
+  const lastTimeUpdateRef = useRef(0);
+
+  // COCK-02: Viewport-responsive corner positions — scale X by aspect ratio
+  const { viewport } = useThree();
+  const cornerPositions = useMemo(() => {
+    const aspectScale = Math.min(1, viewport.aspect / BASE_ASPECT);
+    const x = BASE_CORNER_X * aspectScale;
+    return {
+      topLeft: [-x, CORNER_Y_TOP, CORNER_Z] as [number, number, number],
+      topRight: [x, CORNER_Y_TOP, CORNER_Z] as [number, number, number],
+      bottomLeft: [-x, CORNER_Y_BOTTOM, CORNER_Z] as [number, number, number],
+      bottomRight: [x, CORNER_Y_BOTTOM, CORNER_Z] as [number, number, number],
+    };
+  }, [viewport.aspect]);
 
   const hudColor = useMemo(() => new Color(color), [color]);
-  const _hudColorDim = useMemo(() => new Color(color).multiplyScalar(0.5), [color]);
+  const _chromeColor = useMemo(() => new Color(CHROME_BORDER.color), []);
 
-  // Ring geometries (LOD-driven segments)
-  const ringGeometries = useMemo(() => {
-    const activeRings = RING_DEFS.slice(0, ringCount);
-    return activeRings.map((ring) =>
-      new RingGeometry(ring.innerRadius, ring.outerRadius, ringSegments),
-    );
-  }, [ringCount, ringSegments]);
-
-  // Data arc geometries (ExtrudeGeometry on arc Shapes)
-  const dataArcGeometries = useMemo(() => {
-    const arcSegments = Math.max(8, Math.floor(ringSegments / 4));
-    const extrudeSettings: ExtrudeGeometryOptions = {
-      depth: 0.03,
-      bevelEnabled: true,
-      bevelThickness: 0.005,
-      bevelSize: 0.005,
-      bevelSegments: 2,
-      curveSegments: arcSegments,
-    };
-
-    return DATA_ARCS.filter((arc) => arc.ringIndex < ringCount).map((arc) => {
-      const ring = RING_DEFS[arc.ringIndex];
-      const midR = (ring.innerRadius + ring.outerRadius) / 2;
-      const shape = createArcShape(
-        midR - arc.thickness,
-        midR + arc.thickness,
-        arc.startAngle,
-        arc.endAngle,
-        arcSegments,
-      );
-      return {
-        geometry: new ExtrudeGeometry(shape, extrudeSettings),
-        zOffset: ring.zOffset,
-        dataKey: arc.dataKey,
-      };
+  // Arc ring geometries — thin ring arcs
+  const arcGeometries = useMemo(() => {
+    return FRAME_ARCS.map((arc) => {
+      const innerR = 1.7;
+      const outerR = 1.8;
+      const thetaSegments = 64;
+      const phiSegments = 1;
+      const thetaStart = arc.startAngle + Math.PI / 2; // offset to align with arc orientation
+      const thetaLength = arc.endAngle - arc.startAngle;
+      return new RingGeometry(innerR, outerR, thetaSegments, phiSegments, thetaStart, thetaLength);
     });
-  }, [ringCount, ringSegments]);
-
-  // Volumetric scan beam geometries (TubeGeometry)
-  const scanBeamGeometries = useMemo(() => {
-    const beams: TubeGeometry[] = [];
-    const tubularSegs = Math.max(6, Math.floor(64 / 4));
-    for (let i = 0; i < scanLineCount; i++) {
-      const angle = (i / scanLineCount) * Math.PI * 2;
-      const curve = createScanBeamCurve(angle, 0.9, 5.2);
-      beams.push(new TubeGeometry(curve, tubularSegs, 0.015, 6, false));
-    }
-    return beams;
-  }, [scanLineCount, 64]);
-
-  // Reticle crosshair geometries (4 line meshes)
-  const reticleGeo = useMemo(() => {
-    return new BoxGeometry(0.02, 1.4, 0.01);
   }, []);
 
-  // Tick mark instanced geometry + matrix setup
-  const tickGeometry = useMemo(() => new BoxGeometry(0.04, 0.12, 0.01), []);
+  // Tick mark geometry (small box)
+  // Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+  // Scaled up from (0.015, 0.06) → (0.025, 0.08) for readability
+  const tickGeo = useMemo(() => new BoxGeometry(0.025, 0.08, 0.005), []);
 
-  const tickMatrices = useMemo(() => {
-    const matrices: Matrix4[] = [];
-    const activeRings = RING_DEFS.slice(0, ringCount);
-    const ticksPerRing = Math.max(12, Math.floor(ringSegments / 2));
-    const tempMatrix = new Matrix4();
-    const tempPos = new Vector3();
-    const tempQuat = new Quaternion();
-    const tempScale = new Vector3(1, 1, 1);
+  // Per-arc tick matrices
+  const allTickMatrices = useMemo(() => {
+    return FRAME_ARCS.map((arc) => buildTickMatrices(arc));
+  }, []);
 
-    for (let r = 0; r < activeRings.length; r++) {
-      const ring = activeRings[r];
-      const tickR = ring.outerRadius + 0.08;
-      for (let t = 0; t < ticksPerRing; t++) {
-        const angle = (t / ticksPerRing) * Math.PI * 2;
-        tempPos.set(
-          Math.cos(angle) * tickR,
-          Math.sin(angle) * tickR,
-          ring.zOffset,
-        );
-        tempQuat.setFromAxisAngle(new Vector3(0, 0, 1), angle);
-        // Every 4th tick is larger
-        const isMajor = t % 4 === 0;
-        tempScale.set(isMajor ? 1.5 : 1, isMajor ? 1.5 : 1, 1);
-        tempMatrix.compose(tempPos, tempQuat, tempScale);
-        matrices.push(tempMatrix.clone());
-      }
-    }
-    return matrices;
-  }, [ringCount, ringSegments]);
+  // Total tick counts per arc
+  const tickCounts = useMemo(() => allTickMatrices.map((m) => m.length), [allTickMatrices]);
 
-  const tickCount = tickMatrices.length;
+  // Instanced mesh ref callback factories
+  const tickRefCallbacks = useMemo(() => {
+    return FRAME_ARCS.map((_, arcIndex) => {
+      return (mesh: InstancedMesh | null) => {
+        tickInstanceRefs.current[arcIndex] = mesh;
+        if (!mesh) return;
+        const matrices = allTickMatrices[arcIndex];
+        for (let i = 0; i < matrices.length; i++) {
+          mesh.setMatrixAt(i, matrices[i]);
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+      };
+    });
+  }, [allTickMatrices]);
 
-  // Set instanced mesh matrices on first render
-  const tickInstanceCallback = useCallback(
-    (mesh: InstancedMesh | null) => {
-      if (!mesh) return;
-      tickInstancedRef.current = mesh;
-      for (let i = 0; i < tickMatrices.length; i++) {
-        mesh.setMatrixAt(i, tickMatrices[i]);
-      }
-      mesh.instanceMatrix.needsUpdate = true;
-    },
-    [tickMatrices],
-  );
+  // Celebration config
+  const celebrationRevolutions = CELEBRATION_REVOLUTIONS[celebrationTier] ?? 1;
+  const celebrationDurationMs = CELEBRATION_TIERS[celebrationTier]?.durationMs ?? 1500;
 
-  // Core sphere geometries (multi-layered)
-  const coreOuterGeo = useMemo(
-    () => new SphereGeometry(0.4, 64, 64),
-    [64],
-  );
-  const coreInnerGeo = useMemo(
-    () => new SphereGeometry(0.25, 64, 64),
-    [64],
-  );
-  const coreCenterGeo = useMemo(
-    () => new SphereGeometry(0.12, Math.max(8, Math.floor(64 / 2)), Math.max(8, Math.floor(64 / 2))),
-    [64],
-  );
+  // ═══════════════════════════════════════════════════════════════
+  // ANIMATION LOOP
+  // ═══════════════════════════════════════════════════════════════
 
-  // ■■ Animation loop ■■
   useFrame(({ clock }) => {
     if (!active) return;
     const t = clock.elapsedTime;
 
-    // Animate each ring
-    for (let i = 0; i < ringCount; i++) {
-      const mesh = ringRefs.current[i];
-      if (!mesh) continue;
-      const def = RING_DEFS[i];
-      mesh.rotation.z += def.rotationDir * rotationSpeed * def.speedMultiplier * 0.016;
+    // Update time display roughly every second
+    if (t - lastTimeUpdateRef.current > 1.0) {
+      lastTimeUpdateRef.current = t;
+      setDisplayTime(getCurrentTime());
+    }
 
-      // Subtle scale pulse on inner rings
-      if (i >= 4) {
-        const scale = 1.0 + Math.sin(t * (2.0 + i * 0.3)) * 0.015;
-        mesh.scale.set(scale, scale, 1);
+    // ── Breathing pulse (4-second sine cycle) ──
+    const breathPhase = (Math.sin((t * Math.PI * 2) / BREATHING_PERIOD_S) * 0.5 + 0.5);
+    const breathEmissive = MathUtils.lerp(
+      EMISSIVE_IDLE_INDICATOR * 0.6,
+      EMISSIVE_IDLE_INDICATOR * EMISSIVE_LED_MULTIPLIER,
+      breathPhase,
+    );
+
+    // ── Celebration cascade tracking ──
+    let cascadeProgress = -1; // -1 = no cascade
+    if (celebrationActive) {
+      if (celebrationStartRef.current === null) {
+        celebrationStartRef.current = t;
+      }
+      const elapsed = (t - celebrationStartRef.current) * 1000;
+      if (elapsed < celebrationDurationMs) {
+        // Progress: 0 → celebrationRevolutions (each revolution = 1.0 around all 4 segments)
+        cascadeProgress = (elapsed / celebrationDurationMs) * celebrationRevolutions;
+      } else {
+        // Celebration finished
+        celebrationStartRef.current = null;
+      }
+    } else {
+      celebrationStartRef.current = null;
+    }
+
+    // ── Update arc materials ──
+    for (let i = 0; i < FRAME_ARCS.length; i++) {
+      const mesh = arcMeshRefs.current[i];
+      if (!mesh) continue;
+      const mat = mesh.material as MeshStandardMaterial;
+
+      // Determine if this arc segment is currently "lit" by the cascade
+      let cascadeIntensity = 0;
+      if (cascadeProgress >= 0) {
+        const arcId = FRAME_ARCS[i].id;
+        const orderIndex = CASCADE_ORDER.indexOf(arcId as typeof CASCADE_ORDER[number]);
+        if (orderIndex >= 0) {
+          // Each segment occupies 0.25 of one revolution
+          // Fractional revolution position
+          const fractionalPos = cascadeProgress % 1.0;
+          const segStart = orderIndex * 0.25;
+          const segEnd = segStart + 0.25;
+          // Chase light width: 0.15 of revolution
+          const chaseHead = fractionalPos;
+          const chaseTail = fractionalPos - 0.15;
+          // Check overlap
+          if (chaseHead >= segStart && chaseTail < segEnd) {
+            cascadeIntensity = Math.min(1.0, (chaseHead - segStart) / 0.15);
+          }
+        }
+      }
+
+      if (cascadeIntensity > 0) {
+        // Gold cascade color
+        mat.emissive.copy(GOLD_COLOR);
+        mat.emissiveIntensity = MathUtils.lerp(breathEmissive, 3.0, cascadeIntensity);
+      } else {
+        mat.emissive.copy(hudColor);
+        mat.emissiveIntensity = breathEmissive;
       }
     }
 
-    // Core pulsing (multi-layer)
-    if (coreOuterRef.current) {
-      const mat = coreOuterRef.current.material as MeshStandardMaterial;
-      const pulse = Math.sin(t * 4.189) * 0.5 + 0.5;
-      mat.emissiveIntensity = pulse * pulseIntensity * 1.5;
-      coreOuterRef.current.rotation.y += 0.003;
-      coreOuterRef.current.rotation.x += 0.001;
-    }
-    if (coreInnerRef.current) {
-      const mat = coreInnerRef.current.material as MeshStandardMaterial;
-      const pulse = Math.sin(t * 5.5 + 1.0) * 0.5 + 0.5;
-      mat.emissiveIntensity = pulse * pulseIntensity * 2.5;
-      coreInnerRef.current.rotation.y -= 0.005;
-    }
-    if (coreCenterRef.current) {
-      const mat = coreCenterRef.current.material as MeshStandardMaterial;
-      mat.emissiveIntensity = pulseIntensity * 3.0;
-    }
+    // ── Update tick mark materials (same breathing + cascade) ──
+    for (let i = 0; i < FRAME_ARCS.length; i++) {
+      const instancedMesh = tickInstanceRefs.current[i];
+      if (!instancedMesh) continue;
+      const mat = instancedMesh.material as MeshStandardMaterial;
 
-    // Scan beam sweep
-    if (scanGroupRef.current) {
-      activeScanRef.current = (t * 1.5) % (Math.PI * 2);
-      scanGroupRef.current.children.forEach((child, i) => {
-        const lineAngle = (i / scanLineCount) * Math.PI * 2;
-        const diff = Math.abs(lineAngle - activeScanRef.current);
-        const wrappedDiff = Math.min(diff, Math.PI * 2 - diff);
-        const isActive = wrappedDiff < 0.25;
-        const mat = (child as Mesh).material as MeshStandardMaterial;
-        mat.emissiveIntensity = isActive ? 2.0 : 0.25;
-        mat.opacity = opacity * (isActive ? 0.8 : 0.4);
-      });
-    }
+      let cascadeIntensity = 0;
+      if (cascadeProgress >= 0) {
+        const arcId = FRAME_ARCS[i].id;
+        const orderIndex = CASCADE_ORDER.indexOf(arcId as typeof CASCADE_ORDER[number]);
+        if (orderIndex >= 0) {
+          const fractionalPos = cascadeProgress % 1.0;
+          const segStart = orderIndex * 0.25;
+          const segEnd = segStart + 0.25;
+          const chaseHead = fractionalPos;
+          const chaseTail = fractionalPos - 0.15;
+          if (chaseHead >= segStart && chaseTail < segEnd) {
+            cascadeIntensity = Math.min(1.0, (chaseHead - segStart) / 0.15);
+          }
+        }
+      }
 
-    // Data arc breathing
-    if (dataArcGroupRef.current) {
-      dataArcGroupRef.current.children.forEach((child, i) => {
-        const mat = (child as Mesh).material as MeshStandardMaterial;
-        const phase = t * 1.2 + i * 0.7;
-        mat.emissiveIntensity = 0.6 + Math.sin(phase) * 0.3;
-      });
-    }
-
-    // Reticle pulse
-    if (reticleGroupRef.current) {
-      const reticleScale = 1.0 + Math.sin(t * 6.0) * 0.03;
-      reticleGroupRef.current.scale.set(reticleScale, reticleScale, 1);
-      reticleGroupRef.current.rotation.z += 0.002;
+      if (cascadeIntensity > 0) {
+        mat.emissive.copy(GOLD_COLOR);
+        mat.emissiveIntensity = MathUtils.lerp(breathEmissive * 0.8, 2.5, cascadeIntensity);
+      } else {
+        mat.emissive.copy(hudColor);
+        mat.emissiveIntensity = breathEmissive * 0.8;
+      }
     }
   });
 
+  // ═══════════════════════════════════════════════════════════════
+  // EARLY RETURN
+  // ═══════════════════════════════════════════════════════════════
+
   if (!active || opacity <= 0) return null;
 
+  // ═══════════════════════════════════════════════════════════════
+  // RENDER
+  // ═══════════════════════════════════════════════════════════════
+
+  const labelStyle = TYPE_SCALE.label;
+  const captionStyle = TYPE_SCALE.caption;
+  // Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+  // Fill opacity floor raised 0.4 → 0.5 for readability boost
+  const textFill = Math.max(0.5, TEXT_COLORS.secondary.opacity * opacity);
+  const textMutedFill = Math.max(0.5, TEXT_COLORS.muted.opacity * opacity);
+
+  // Format readout strings
+  const xpText = `XP: ${xp.toLocaleString()}`;
+  const modeText = modeName.toUpperCase();
+  const childText = childName
+    ? childLevel != null
+      ? `${childName} / LV.${childLevel}`
+      : childName
+    : '';
+
   return (
-    <group position={[0, 0, 0.5]}>
-      {/* ════════ 8 Concentric Rings (LOD-driven count) ════════ */}
-      {RING_DEFS.slice(0, ringCount).map((ring, i) => (
-        <mesh
-          key={`ring-${i}`}
-          ref={(el) => { ringRefs.current[i] = el; }}
-          position={[0, 0, ring.zOffset]}
+    <group renderOrder={10}>
+      {/* ════════ 4 Arc Segments (Viewport Frame) ════════ */}
+      {FRAME_ARCS.map((arc, i) => (
+        <group
+          key={arc.id}
+          position={arc.position as unknown as [number, number, number]}
+          rotation={arc.rotation as unknown as [number, number, number]}
         >
-          <primitive object={ringGeometries[i]} attach="geometry" />
-          <meshStandardMaterial
-            color="#000000"
-            emissive={hudColor}
-            emissiveIntensity={ring.emissiveScale}
-            transparent
-            opacity={opacity * ring.opacityScale}
-            side={DoubleSide}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
+          {/* Arc ring mesh */}
+          <mesh
+            ref={(el) => { arcMeshRefs.current[i] = el; }}
+          >
+            <primitive object={arcGeometries[i]} attach="geometry" />
+            <meshStandardMaterial
+              color={CHROME_BORDER.color}
+              emissive={hudColor}
+              emissiveIntensity={EMISSIVE_IDLE_INDICATOR}
+              transparent
+              opacity={opacity}
+              side={DoubleSide}
+              depthWrite={false}
+              toneMapped={false}
+              metalness={0.7}
+              roughness={0.3}
+            />
+          </mesh>
+
+          {/* Graduated tick marks along arc (instanced) */}
+          {tickCounts[i] > 0 && (
+            <instancedMesh
+              ref={tickRefCallbacks[i]}
+              args={[tickGeo, undefined, tickCounts[i]]}
+              frustumCulled={false}
+            >
+              <meshStandardMaterial
+                color="#000000"
+                emissive={hudColor}
+                emissiveIntensity={EMISSIVE_IDLE_INDICATOR * 0.8}
+                transparent
+                opacity={opacity * 0.85}
+                depthWrite={false}
+                toneMapped={false}
+              />
+            </instancedMesh>
+          )}
+        </group>
       ))}
 
-      {/* ════════ Data-Display Arc Segments (ExtrudeGeometry) ════════ */}
-      <group ref={dataArcGroupRef}>
-        {dataArcGeometries.map((arc, i) => (
-          <mesh
-            key={`data-arc-${i}`}
-            position={[0, 0, arc.zOffset + 0.02]}
-          >
-            <primitive object={arc.geometry} attach="geometry" />
-            <meshStandardMaterial
-              color="#000000"
-              emissive={hudColor}
-              emissiveIntensity={0.7}
-              transparent
-              opacity={opacity * 0.7}
-              side={DoubleSide}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-        ))}
-      </group>
+      {/* ════════ Corner Data Readouts ════════ */}
+      {/* Phase 2 audit fix (Section 4.2): HUD visibility — Decision 6.5
+          Added background plates, thicker outlines for readability */}
 
-      {/* ════════ Reticle Targeting Crosshair (4 line meshes) ════════ */}
-      <group ref={reticleGroupRef} position={[0, 0, 0.2]}>
-        {/* Vertical bar top */}
-        <mesh position={[0, 0.85, 0]} geometry={reticleGeo}>
-          <meshStandardMaterial
-            color="#000000"
-            emissive={hudColor}
-            emissiveIntensity={1.2}
-            transparent
-            opacity={opacity * 0.9}
-            depthWrite={false}
-            toneMapped={false}
-          />
+      {/* Top-left: Current time (HH:MM) */}
+      <group position={cornerPositions.topLeft}>
+        <mesh position={[0.06, -0.03, -0.001]}>
+          <planeGeometry args={[0.18, 0.09]} />
+          <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
         </mesh>
-        {/* Vertical bar bottom */}
-        <mesh position={[0, -0.85, 0]} geometry={reticleGeo}>
-          <meshStandardMaterial
-            color="#000000"
-            emissive={hudColor}
-            emissiveIntensity={1.2}
-            transparent
-            opacity={opacity * 0.9}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-        {/* Horizontal bar left */}
-        <mesh position={[-0.85, 0, 0]} rotation={[0, 0, Math.PI / 2]} geometry={reticleGeo}>
-          <meshStandardMaterial
-            color="#000000"
-            emissive={hudColor}
-            emissiveIntensity={1.2}
-            transparent
-            opacity={opacity * 0.9}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-        {/* Horizontal bar right */}
-        <mesh position={[0.85, 0, 0]} rotation={[0, 0, Math.PI / 2]} geometry={reticleGeo}>
-          <meshStandardMaterial
-            color="#000000"
-            emissive={hudColor}
-            emissiveIntensity={1.2}
-            transparent
-            opacity={opacity * 0.9}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </mesh>
-      </group>
-
-      {/* ════════ 24 Volumetric Scan Beams (TubeGeometry) ════════ */}
-      <group ref={scanGroupRef}>
-        {scanBeamGeometries.map((geo, i) => (
-          <mesh key={`scan-beam-${i}`}>
-            <primitive object={geo} attach="geometry" />
-            <meshStandardMaterial
-              color="#000000"
-              emissive={hudColor}
-              emissiveIntensity={0.25}
-              transparent
-              opacity={opacity * 0.4}
-              side={DoubleSide}
-              depthWrite={false}
-              toneMapped={false}
-            />
-          </mesh>
-        ))}
-      </group>
-
-      {/* ════════ Corner HUD Text Readouts (4 cardinal positions) ════════ */}
-      {CARDINAL_LABELS.map((label, i) => {
-        const r = 5.6;
-        const x = Math.cos(label.angle) * r;
-        const y = Math.sin(label.angle) * r;
-        return (
-          <Text
-            key={`hud-label-${i}`}
-            position={[x, y, 0.05]}
-            fontSize={0.18}
-            color={color}
-            anchorX="center"
-            anchorY="middle"
-            font="/fonts/JetBrainsMono-Regular.woff"
-            fillOpacity={opacity * 0.8}
-            outlineWidth={0.005}
-            outlineColor="#000000"
-          >
-            {label.text}
-          </Text>
-        );
-      })}
-
-      {/* ════════ Instanced Tick Marks Along Rings ════════ */}
-      {tickCount > 0 && (
-        <instancedMesh
-          ref={tickInstanceCallback}
-          args={[tickGeometry, undefined, tickCount]}
-          frustumCulled={false}
+        <Text
+          fontSize={labelStyle.fontSize}
+          color={TEXT_COLORS.secondary.hex}
+          anchorX="left"
+          anchorY="top"
+          font={NUMERIC_FONT}
+          fillOpacity={textFill}
+          outlineWidth={0.006}
+          outlineColor="#0A0E16"
+          strokeWidth={0.001}
+          strokeColor="#0A0E16"
         >
-          <meshStandardMaterial
-            color="#000000"
-            emissive={hudColor}
-            emissiveIntensity={0.9}
-            transparent
-            opacity={opacity * 0.75}
-            depthWrite={false}
-            toneMapped={false}
-          />
-        </instancedMesh>
-      )}
+          {displayTime}
+        </Text>
+      </group>
 
-      {/* ════════ Enhanced Multi-Layered Core Sphere ════════ */}
-      {/* Outer translucent shell */}
-      <mesh ref={coreOuterRef} position={[0, 0, 0.16]}>
-        <primitive object={coreOuterGeo} attach="geometry" />
-        <meshStandardMaterial
-          color="#000000"
-          emissive={hudColor}
-          emissiveIntensity={1.0}
-          transparent
-          opacity={opacity * 0.4}
-          toneMapped={false}
-          depthWrite={false}
-          wireframe
-        />
-      </mesh>
-      {/* Inner emissive sphere */}
-      <mesh ref={coreInnerRef} position={[0, 0, 0.16]}>
-        <primitive object={coreInnerGeo} attach="geometry" />
-        <meshStandardMaterial
-          color="#000000"
-          emissive={hudColor}
-          emissiveIntensity={2.0}
-          transparent
-          opacity={opacity * 0.6}
-          toneMapped={false}
-          depthWrite={false}
-        />
-      </mesh>
-      {/* Center bright core */}
-      <mesh ref={coreCenterRef} position={[0, 0, 0.16]}>
-        <primitive object={coreCenterGeo} attach="geometry" />
-        <meshStandardMaterial
-          color={hudColor}
-          emissive={hudColor}
-          emissiveIntensity={3.0}
-          transparent
-          opacity={opacity * 0.9}
-          toneMapped={false}
-        />
-      </mesh>
+      {/* Top-right: XP value */}
+      <group position={cornerPositions.topRight}>
+        <mesh position={[-0.15, -0.03, -0.001]}>
+          <planeGeometry args={[0.36, 0.09]} />
+          <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
+        <Text
+          fontSize={labelStyle.fontSize}
+          color={TEXT_COLORS.secondary.hex}
+          anchorX="right"
+          anchorY="top"
+          font={NUMERIC_FONT}
+          fillOpacity={textFill}
+          outlineWidth={0.006}
+          outlineColor="#0A0E16"
+          strokeWidth={0.001}
+          strokeColor="#0A0E16"
+        >
+          {xpText}
+        </Text>
+      </group>
+
+      {/* Bottom-left: Mode name — COCK-03: use secondary opacity for readability */}
+      <group position={cornerPositions.bottomLeft}>
+        <mesh position={[0.12, 0.03, -0.001]}>
+          <planeGeometry args={[0.3, 0.09]} />
+          <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
+        </mesh>
+        <Text
+          fontSize={captionStyle.fontSize}
+          color={color}
+          anchorX="left"
+          anchorY="bottom"
+          font={labelStyle.fontPath}
+          fillOpacity={textFill}
+          outlineWidth={0.008}
+          outlineColor="#0A0E16"
+          strokeWidth={0.001}
+          strokeColor="#0A0E16"
+        >
+          {modeText}
+        </Text>
+      </group>
+
+      {/* Bottom-right: Child name / level — COCK-03: use secondary opacity */}
+      {childText && (
+        <group position={cornerPositions.bottomRight}>
+          <mesh position={[-0.18, 0.03, -0.001]}>
+            <planeGeometry args={[0.42, 0.09]} />
+            <meshBasicMaterial color="#000000" opacity={0.4} transparent depthWrite={false} toneMapped={false} />
+          </mesh>
+          <Text
+            fontSize={captionStyle.fontSize}
+            color={TEXT_COLORS.secondary.hex}
+            anchorX="right"
+            anchorY="bottom"
+            font={labelStyle.fontPath}
+            fillOpacity={textFill}
+            outlineWidth={0.008}
+            outlineColor="#0A0E16"
+            strokeWidth={0.001}
+            strokeColor="#0A0E16"
+          >
+            {childText}
+          </Text>
+        </group>
+      )}
     </group>
   );
 }
+
+export default HolographicHUD;

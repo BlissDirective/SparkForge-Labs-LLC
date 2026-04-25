@@ -1,0 +1,85 @@
+{
+  "app": {
+    "name": "SparkForge",
+    "tagline": "Apprenez l'IA en jouant"
+  },
+  "nav": {
+    "home": "Accueil",
+    "labs": "Labos",
+    "arcade": "Arcade",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "parent": "Famille",
+    "signOut": "Se déconnecter",
+    "signIn": "Se connecter",
+    "signUp": "Créer un compte"
+  },
+  "common": {
+    "continue": "Continuer",
+    "cancel": "Annuler",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "edit": "Modifier",
+    "loading": "Chargement…",
+    "error": "Une erreur s'est produite",
+    "retry": "Réessayer",
+    "close": "Fermer",
+    "back": "Retour",
+    "next": "Suivant",
+    "done": "Terminé",
+    "ok": "OK"
+  },
+  "auth": {
+    "login": {
+      "title": "Bon retour",
+      "emailLabel": "E-mail",
+      "passwordLabel": "Mot de passe",
+      "submit": "Se connecter",
+      "forgotPassword": "Mot de passe oublié ?",
+      "noAccount": "Pas encore de compte ?",
+      "orDivider": "OU",
+      "tryDemo": "Essayer la démo (sans compte)"
+    },
+    "signup": {
+      "title": "Créez votre compte famille",
+      "submit": "Créer le compte"
+    },
+    "oauth": {
+      "continueWith": "Continuer avec {provider}",
+      "google": "Google",
+      "apple": "Apple",
+      "microsoft": "Microsoft"
+    },
+    "mfa": {
+      "title": "Vérification en deux étapes",
+      "enterCode": "Saisissez le code à 6 chiffres de votre application d'authentification.",
+      "useBackup": "Utiliser un code de secours",
+      "verify": "Vérifier",
+      "checking": "Vérification…"
+    }
+  },
+  "game": {
+    "welcome": "Bienvenue",
+    "start": "Commencer",
+    "complete": "Beau travail !",
+    "nextRound": "Manche suivante",
+    "playAgain": "Rejouer",
+    "score": "Score",
+    "time": "Temps",
+    "xpEarned": "{xp} XP gagnés"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "language": "Langue",
+    "audio": "Audio",
+    "visual": "Visuel",
+    "linkedAccounts": "Comptes liés",
+    "twoFactor": "Authentification à deux facteurs",
+    "sessions": "Sessions actives"
+  },
+  "guide": {
+    "askSparky": "Demander à Sparky",
+    "dismiss": "Ignorer l'indice",
+    "openChat": "Ouvrir Sparky pour plus d'aide"
+  }
+}

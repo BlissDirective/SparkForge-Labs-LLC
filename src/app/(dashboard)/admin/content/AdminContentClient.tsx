@@ -8,6 +8,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { csrfHeader } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'motion/react';
 import { staggerContainer, staggerItem } from '@/lib/animations';
@@ -131,8 +132,38 @@ function TypeIcon({ type }: { type: string }) {
       return <TrendingUp className="w-4 h-4 text-cyan-400" />;
     case 'branching_lesson':
       return <GitBranch className="w-4 h-4 text-pink-400" />;
+    // Flagship game AI content types (Phase E+ integration)
+    case 'flagship_pet_category':
+      return <Sparkles className="w-4 h-4 text-purple-400" />;
+    case 'flagship_sort_criterion':
+      return <BarChart3 className="w-4 h-4 text-purple-400" />;
+    case 'flagship_neural_challenge':
+      return <Zap className="w-4 h-4 text-pink-400" />;
+    case 'flagship_agent_mission':
+      return <Gamepad2 className="w-4 h-4 text-emerald-400" />;
+    case 'flagship_bias_case':
+      return <Shield className="w-4 h-4 text-red-400" />;
+    // FL-Lite game AI content types (Phase F+ integration)
+    case 'fll_data_detective':
+      return <Search className="w-4 h-4 text-purple-300" />;
+    case 'fll_robot_vacuum':
+      return <Gamepad2 className="w-4 h-4 text-green-300" />;
+    case 'fll_camera_quest':
+      return <Eye className="w-4 h-4 text-cyan-300" />;
+    case 'fll_chatbot_builder':
+      return <Mail className="w-4 h-4 text-indigo-300" />;
+    case 'fll_emoji_decoder':
+      return <Sparkles className="w-4 h-4 text-indigo-300" />;
+    case 'fll_code_blocks':
+      return <FileText className="w-4 h-4 text-orange-300" />;
+    case 'fll_my_first_ai_app':
+      return <Zap className="w-4 h-4 text-orange-300" />;
+    case 'fll_future_forge':
+      return <TrendingUp className="w-4 h-4 text-fuchsia-300" />;
+    case 'fll_ai_or_not':
+      return <HelpCircle className="w-4 h-4 text-fuchsia-300" />;
     default:
-      return <FileText className="w-4 h-4 text-white/40" />;
+      return <FileText className="w-4 h-4 text-white/70" />;
   }
 }
 
@@ -178,7 +209,7 @@ export default function AdminReviewPage() {
   // Phase 7: Search, type filter, analytics
   const [searchQuery, setSearchQuery] = useState('');
   const [typeFilter, setTypeFilter] = useState<string>('all');
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [_showCreateModal, setShowCreateModal] = useState(false);
 
   const addToast = useToastStore((s) => s.addToast);
   const modalRef = useRef<HTMLDivElement>(null);
@@ -280,7 +311,7 @@ export default function AdminReviewPage() {
     try {
       const res = await fetch('/api/agent/review', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           action,
           ids,
@@ -319,7 +350,7 @@ export default function AdminReviewPage() {
     try {
       const res = await fetch('/api/agent/review', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
         body: JSON.stringify({
           action,
           ids: [id],
@@ -353,7 +384,7 @@ export default function AdminReviewPage() {
   async function triggerAgent() {
     setAgentRunning(true);
     try {
-      const res = await fetch(`/api/agent/run?mode=${pipelineMode}`, { method: 'POST' });
+      const res = await fetch(`/api/agent/run?mode=${pipelineMode}`, { method: 'POST', headers: csrfHeader() });
       const result = await res.json();
 
       if (result.data?.success || result.success) {
@@ -419,7 +450,7 @@ export default function AdminReviewPage() {
         <div className="flex items-center gap-3">
           <Link href="/parent">
             <motion.div
-              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 transition-colors"
+              className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white/60 transition-colors"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
@@ -430,7 +461,7 @@ export default function AdminReviewPage() {
             <h1 className="font-display text-2xl font-bold text-white">
               Content Review
             </h1>
-            <p className="font-body text-xs text-white/30">
+            <p className="font-body text-xs text-white/60">
               Admin-only content management
             </p>
           </div>
@@ -443,7 +474,7 @@ export default function AdminReviewPage() {
               activeTab === 'review' ? loadQueue() : loadRuns()
             }
             disabled={loading}
-            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40 hover:text-white/60 hover:border-white/20 transition-colors disabled:opacity-50"
+            className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/70 hover:text-white/60 hover:border-white/20 transition-colors disabled:opacity-50"
             whileTap={{ scale: 0.95 }}
             aria-label="Refresh data"
           >
@@ -471,7 +502,7 @@ export default function AdminReviewPage() {
               try {
                 const res = await fetch('/api/agent/game-generator', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 'Content-Type': 'application/json', ...csrfHeader() },
                   body: JSON.stringify({}),
                 });
                 const result = await res.json();
@@ -526,7 +557,7 @@ export default function AdminReviewPage() {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-display text-sm transition-all ${
               activeTab === key
                 ? 'bg-spark-blue/20 text-spark-blue border border-spark-blue/30'
-                : 'text-white/30 bg-white/5 border border-white/10 hover:border-white/20'
+                : 'text-white/60 bg-white/5 border border-white/10 hover:border-white/20'
             }`}
             aria-pressed={activeTab === key}
           >
@@ -563,7 +594,7 @@ export default function AdminReviewPage() {
             ].map((s) => (
               <div
                 key={s.label}
-                className="glass-card rounded-xl p-3 text-center"
+                className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-3 text-center"
               >
                 <motion.p
                   className="font-display text-2xl font-bold"
@@ -575,7 +606,7 @@ export default function AdminReviewPage() {
                 >
                   {s.value}
                 </motion.p>
-                <p className="font-body text-xs text-white/30">
+                <p className="font-body text-xs text-white/60">
                   {s.label}
                 </p>
               </div>
@@ -586,7 +617,7 @@ export default function AdminReviewPage() {
           <motion.div variants={staggerItem} className="flex flex-wrap items-center gap-3 mb-4">
             {/* Search */}
             <div className="relative flex-1 min-w-[200px] max-w-[320px]">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/60" />
               <input
                 type="text"
                 value={searchQuery}
@@ -612,6 +643,20 @@ export default function AdminReviewPage() {
               <option value="game_challenge">Game Challenges</option>
               <option value="trending_topic">Trending Topics</option>
               <option value="branching_lesson">Branching Lessons</option>
+              <option value="flagship_pet_category">Flagship: Pet Categories</option>
+              <option value="flagship_sort_criterion">Flagship: Sort Criteria</option>
+              <option value="flagship_neural_challenge">Flagship: Neural Challenges</option>
+              <option value="flagship_agent_mission">Flagship: Agent Missions</option>
+              <option value="flagship_bias_case">Flagship: Bias Cases</option>
+              <option value="fll_data_detective">FL-Lite: Data Detective</option>
+              <option value="fll_robot_vacuum">FL-Lite: Robot Vacuum</option>
+              <option value="fll_camera_quest">FL-Lite: Camera Quest</option>
+              <option value="fll_chatbot_builder">FL-Lite: Chatbot Builder</option>
+              <option value="fll_emoji_decoder">FL-Lite: Emoji Decoder</option>
+              <option value="fll_code_blocks">FL-Lite: Code Blocks</option>
+              <option value="fll_my_first_ai_app">FL-Lite: My First AI App</option>
+              <option value="fll_future_forge">FL-Lite: Future Forge</option>
+              <option value="fll_ai_or_not">FL-Lite: AI or Not?</option>
             </select>
 
             {/* Manual create button */}
@@ -644,7 +689,7 @@ export default function AdminReviewPage() {
                 className={`px-4 py-2 rounded-lg font-body text-xs transition-all ${
                   filter === f.key
                     ? 'bg-spark-blue/20 text-spark-blue border border-spark-blue/30'
-                    : 'text-white/30 bg-white/5 border border-white/10 hover:border-white/20'
+                    : 'text-white/60 bg-white/5 border border-white/10 hover:border-white/20'
                 }`}
                 aria-pressed={filter === f.key}
               >
@@ -662,7 +707,7 @@ export default function AdminReviewPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
               >
-                <span className="font-body text-xs text-white/40">
+                <span className="font-body text-xs text-white/70">
                   {selected.size} selected
                 </span>
                 <button
@@ -681,7 +726,7 @@ export default function AdminReviewPage() {
                 </button>
                 <button
                   onClick={() => setSelected(new Set())}
-                  className="font-body text-xs text-white/20 hover:text-white/40 ml-auto"
+                  className="font-body text-xs text-white/55 hover:text-white/70 ml-auto"
                 >
                   Clear
                 </button>
@@ -702,11 +747,11 @@ export default function AdminReviewPage() {
               </div>
             ) : items.length === 0 ? (
               <div className="text-center py-16">
-                <Mail className="w-10 h-10 text-white/10 mx-auto mb-3" />
-                <p className="font-body text-sm text-white/40">
+                <Mail className="w-10 h-10 text-white/50 mx-auto mb-3" />
+                <p className="font-body text-sm text-white/70">
                   No items in this queue
                 </p>
-                <p className="font-body text-xs text-white/20 mt-1">
+                <p className="font-body text-xs text-white/55 mt-1">
                   {filter === 'pending_review'
                     ? 'Run the agent to generate new content.'
                     : 'Items will appear here as they are processed.'}
@@ -718,7 +763,7 @@ export default function AdminReviewPage() {
                 {isActionableFilter && items.length > 1 && (
                   <button
                     onClick={selectAll}
-                    className="font-body text-xs text-white/20 hover:text-white/40 mb-1"
+                    className="font-body text-xs text-white/55 hover:text-white/70 mb-1"
                     aria-label={
                       selected.size === items.length
                         ? 'Deselect all items'
@@ -734,7 +779,7 @@ export default function AdminReviewPage() {
                 {filteredItems.map((item) => (
                   <motion.div
                     key={item.id}
-                    className={`glass-card rounded-xl p-4 flex items-center gap-3 transition-all ${
+                    className={`bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 flex items-center gap-3 transition-all ${
                       selected.has(item.id)
                         ? 'border-spark-blue/40 bg-spark-blue/5'
                         : ''
@@ -778,10 +823,10 @@ export default function AdminReviewPage() {
                         >
                           Band {item.target_age_band}
                         </span>
-                        <span className="font-body text-xs text-white/30">
+                        <span className="font-body text-xs text-white/60">
                           Lab {item.world}: {LAB_NAMES[item.world]}
                         </span>
-                        <span className="font-body text-xs text-white/20">
+                        <span className="font-body text-xs text-white/55">
                           {item.type} · {item.difficulty}
                         </span>
                         {!item.safety_check?.passed && (
@@ -797,7 +842,7 @@ export default function AdminReviewPage() {
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button
                         onClick={() => setPreview(item)}
-                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 transition-colors"
+                        className="p-2 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white/60 transition-colors"
                         aria-label={`Preview ${item.title}`}
                       >
                         <Eye className="w-4 h-4" />
@@ -853,11 +898,11 @@ export default function AdminReviewPage() {
             </div>
           ) : runs.length === 0 ? (
             <div className="text-center py-16">
-              <History className="w-10 h-10 text-white/10 mx-auto mb-3" />
-              <p className="font-body text-sm text-white/40 mb-3">
+              <History className="w-10 h-10 text-white/50 mx-auto mb-3" />
+              <p className="font-body text-sm text-white/70 mb-3">
                 No agent runs yet
               </p>
-              <p className="font-body text-xs text-white/20">
+              <p className="font-body text-xs text-white/55">
                 Click &quot;Run Agent Now&quot; to trigger the first content
                 generation pipeline.
               </p>
@@ -865,20 +910,20 @@ export default function AdminReviewPage() {
           ) : (
             <div className="space-y-3">
               {runs.map((run) => (
-                <div key={run.id} className="glass-card rounded-xl p-4">
+                <div key={run.id} className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-white/30" />
+                      <Clock className="w-4 h-4 text-white/60" />
                       <p className="font-display text-sm font-bold text-white">
                         {new Date(run.created_at).toLocaleString()}
                       </p>
                       {run.duration_ms && (
-                        <span className="font-body text-xs text-white/20 bg-white/5 px-2 py-0.5 rounded">
+                        <span className="font-body text-xs text-white/55 bg-white/5 px-2 py-0.5 rounded">
                           {formatDuration(run.duration_ms)}
                         </span>
                       )}
                     </div>
-                    <span className="font-body text-xs text-white/20 font-mono">
+                    <span className="font-body text-xs text-white/55 font-mono">
                       {run.run_id}
                     </span>
                   </div>
@@ -918,7 +963,7 @@ export default function AdminReviewPage() {
                         >
                           {s.value}
                         </p>
-                        <p className="font-body text-2xs text-white/30">
+                        <p className="font-body text-2xs text-white/60">
                           {s.label}
                         </p>
                       </div>
@@ -975,7 +1020,7 @@ export default function AdminReviewPage() {
             <motion.div
               ref={modalRef}
               tabIndex={-1}
-              className="relative glass-card rounded-2xl w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 outline-none"
+              className="relative glass-card-v2-elevated w-full max-w-2xl max-h-[80vh] overflow-y-auto p-6 outline-none"
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -983,7 +1028,7 @@ export default function AdminReviewPage() {
               {/* Close button */}
               <button
                 onClick={() => setPreview(null)}
-                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/60 transition-colors"
+                className="absolute top-3 right-3 p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-white/70 hover:text-white/60 transition-colors"
                 aria-label="Close preview"
               >
                 <X className="w-4 h-4" />
@@ -996,7 +1041,7 @@ export default function AdminReviewPage() {
                   <h2 className="font-display text-lg font-bold text-white">
                     {preview.title}
                   </h2>
-                  <p className="font-body text-xs text-white/40">
+                  <p className="font-body text-xs text-white/70">
                     {preview.type} · Band {preview.target_age_band} · Lab{' '}
                     {preview.world}: {LAB_NAMES[preview.world]}
                   </p>
@@ -1045,7 +1090,7 @@ export default function AdminReviewPage() {
                     )}
                   </ul>
                 )}
-                <p className="font-body text-xs text-white/30 mt-1">
+                <p className="font-body text-xs text-white/60 mt-1">
                   Reading level: grade{' '}
                   {preview.safety_check?.flesch_kincaid_grade || '?'} ·{' '}
                   {preview.safety_check?.recommendation || 'unknown'}
@@ -1053,8 +1098,8 @@ export default function AdminReviewPage() {
               </div>
 
               {/* Content body */}
-              <div className="glass-card rounded-xl p-4 mb-4">
-                <h3 className="font-display text-xs font-bold text-white/40 mb-2">
+              <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4">
+                <h3 className="font-display text-xs font-bold text-white/70 mb-2">
                   Content
                 </h3>
                 <div className="font-body text-sm text-white/70 whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
@@ -1065,8 +1110,8 @@ export default function AdminReviewPage() {
               {/* Quiz questions */}
               {preview.content_json?.quiz_questions &&
                 preview.content_json.quiz_questions.length > 0 && (
-                  <div className="glass-card rounded-xl p-4 mb-4">
-                    <h3 className="font-display text-xs font-bold text-white/40 mb-2">
+                  <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 mb-4">
+                    <h3 className="font-display text-xs font-bold text-white/70 mb-2">
                       Quiz Questions (
                       {preview.content_json.quiz_questions.length})
                     </h3>
@@ -1081,7 +1126,7 @@ export default function AdminReviewPage() {
                               ✓ {q.options?.[q.correct_index]}
                             </p>
                             {q.hint && (
-                              <p className="font-body text-xs text-white/20 mt-0.5">
+                              <p className="font-body text-xs text-white/55 mt-0.5">
                                 Hint: {q.hint}
                               </p>
                             )}
@@ -1097,7 +1142,7 @@ export default function AdminReviewPage() {
                 preview.content_json?.estimated_duration_minutes) && (
                 <div className="flex gap-3 mb-4">
                   {preview.content_json?.xp_reward && (
-                    <div className="glass-card rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+                    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
                       <Sparkles className="w-3 h-3 text-spark-orange" />
                       <span className="font-data text-xs text-spark-orange">
                         {preview.content_json.xp_reward} XP
@@ -1105,9 +1150,9 @@ export default function AdminReviewPage() {
                     </div>
                   )}
                   {preview.content_json?.estimated_duration_minutes && (
-                    <div className="glass-card rounded-lg px-3 py-1.5 flex items-center gap-1.5">
-                      <Clock className="w-3 h-3 text-white/40" />
-                      <span className="font-body text-xs text-white/40">
+                    <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+                      <Clock className="w-3 h-3 text-white/70" />
+                      <span className="font-body text-xs text-white/70">
                         ~{preview.content_json.estimated_duration_minutes} min
                       </span>
                     </div>
@@ -1118,7 +1163,7 @@ export default function AdminReviewPage() {
               {/* Source URLs */}
               {preview.source_urls?.length > 0 && (
                 <div className="mb-4">
-                  <h3 className="font-display text-xs font-bold text-white/40 mb-1">
+                  <h3 className="font-display text-xs font-bold text-white/70 mb-1">
                     Sources
                   </h3>
                   {preview.source_urls.map((url: string, i: number) => (
@@ -1176,7 +1221,7 @@ export default function AdminReviewPage() {
                   try {
                     const res = await fetch('/api/agent/architect', {
                       method: 'POST',
-                      headers: { 'Content-Type': 'application/json' },
+                      headers: { 'Content-Type': 'application/json', ...csrfHeader() },
                       body: JSON.stringify({
                         contentId: preview.id,
                         contentType: preview.type,
@@ -1231,7 +1276,7 @@ export default function AdminReviewPage() {
             <motion.div
               ref={rejectDialogRef}
               tabIndex={-1}
-              className="relative glass-card rounded-2xl w-full max-w-sm p-6 outline-none"
+              className="relative glass-card-v2-elevated w-full max-w-sm p-6 outline-none"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
@@ -1245,14 +1290,14 @@ export default function AdminReviewPage() {
                 onChange={(e) => setRejectReason(e.target.value)}
                 placeholder="Rejection reason (optional)..."
                 rows={3}
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/20 focus:border-spark-blue/40 focus:outline-none mb-4 resize-none"
+                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white font-body text-sm placeholder:text-white/55 focus:border-spark-blue/40 focus:outline-none mb-4 resize-none"
                 aria-label="Rejection reason"
               />
 
               <div className="flex gap-3">
                 <button
                   onClick={() => setShowRejectDialog(false)}
-                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/40 font-display text-sm hover:bg-white/10 transition-colors"
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/70 font-display text-sm hover:bg-white/10 transition-colors"
                 >
                   Cancel
                 </button>
@@ -1278,26 +1323,26 @@ export default function AdminReviewPage() {
 
           {/* Summary cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-spark-blue">{analytics.totalItems}</p>
-              <p className="font-body text-xs text-white/30">Total in Queue</p>
+              <p className="font-body text-xs text-white/60">Total in Queue</p>
             </div>
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-green-400">{Object.keys(analytics.byType).length}</p>
-              <p className="font-body text-xs text-white/30">Content Types</p>
+              <p className="font-body text-xs text-white/60">Content Types</p>
             </div>
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-amber-400">{Object.keys(analytics.byWorld).length}</p>
-              <p className="font-body text-xs text-white/30">Labs Covered</p>
+              <p className="font-body text-xs text-white/60">Labs Covered</p>
             </div>
-            <div className="glass-card rounded-xl p-4 text-center">
+            <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4 text-center">
               <p className="font-display text-3xl font-bold text-purple-400">{Object.keys(analytics.byBand).length}</p>
-              <p className="font-body text-xs text-white/30">Age Bands</p>
+              <p className="font-body text-xs text-white/60">Age Bands</p>
             </div>
           </div>
 
           {/* By Type breakdown */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
             <h4 className="font-display text-sm text-white/60 mb-3">By Content Type</h4>
             <div className="space-y-2">
               {Object.entries(analytics.byType).sort((a, b) => b[1] - a[1]).map(([type, count]) => (
@@ -1310,33 +1355,33 @@ export default function AdminReviewPage() {
                       style={{ width: `${(count / analytics.totalItems) * 100}%` }}
                     />
                   </div>
-                  <span className="font-data text-xs text-white/40 w-8 text-right">{count}</span>
+                  <span className="font-data text-xs text-white/70 w-8 text-right">{count}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* By Lab breakdown */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
             <h4 className="font-display text-sm text-white/60 mb-3">By Lab</h4>
             <div className="grid grid-cols-5 gap-2">
               {Array.from({ length: 10 }, (_, i) => i + 1).map(labId => (
                 <div key={labId} className="text-center p-2 rounded-lg bg-white/5">
                   <p className="font-data text-lg text-white/80">{analytics.byWorld[labId] || 0}</p>
-                  <p className="font-body text-[10px] text-white/30">Lab {labId}</p>
+                  <p className="font-body text-[10px] text-white/60">Lab {labId}</p>
                 </div>
               ))}
             </div>
           </div>
 
           {/* By Age Band */}
-          <div className="glass-card rounded-xl p-4">
+          <div className="bg-[var(--surface-card)] border border-[var(--surface-border)] rounded-xl p-4">
             <h4 className="font-display text-sm text-white/60 mb-3">By Age Band</h4>
             <div className="grid grid-cols-3 gap-3">
               {(['A', 'B', 'C'] as const).map(band => (
                 <div key={band} className="text-center p-3 rounded-lg bg-white/5">
                   <p className="font-data text-2xl text-white/80">{analytics.byBand[band] || 0}</p>
-                  <p className="font-body text-xs text-white/30">
+                  <p className="font-body text-xs text-white/60">
                     Band {band} ({band === 'A' ? '7-10' : band === 'B' ? '11-13' : '14-16'})
                   </p>
                 </div>

@@ -5,6 +5,8 @@
 **Prerequisites:** Stage 5 Part 1 complete, Stage 5 Parts 2-3A (reward shaders), Stage 3 Part 3 v3-FINAL (R3F infrastructure)
 **Validation:** `npm run build` PASS, `npx tsc --noEmit` PASS, `npm run lint` PASS
 
+> **NOTE (April 3, 2026):** The 3D reward components (XPVortex, LevelUpExplosion, BadgePedestal3D, HolographicCard3D) described here have been augmented by the 3D UI Migration (Phase 4) with XPPopup3D and CelebrationPanel3D. The existing components remain valid and are used by the new celebration orchestration system via the `useCelebration3D` hook.
+
 ---
 
 ## Overview

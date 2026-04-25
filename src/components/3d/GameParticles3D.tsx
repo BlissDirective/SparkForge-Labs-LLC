@@ -121,7 +121,7 @@ const FLAGSHIP_CONFIGS: Record<string, GameParticleConfig> = {
 };
 
 // ---- Resolve lab number from color string ----
-function labNumberFromColor(color: string): number {
+function _labNumberFromColor(color: string): number {
   const entry = Object.entries(LAB_COLORS).find(
     ([, c]) => c.toLowerCase() === color.toLowerCase()
   );

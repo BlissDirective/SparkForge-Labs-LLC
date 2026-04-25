@@ -113,7 +113,7 @@ export function LabDiscoveryRing() {
         <h2 className="font-display text-3xl md:text-4xl font-bold text-white mb-3">
           10 AI Laboratories
         </h2>
-        <p className="font-body text-base text-white/40 max-w-md mx-auto">
+        <p className="font-body text-base text-white/70 max-w-md mx-auto">
           Each lab unlocks a new area of AI discovery. Complete experiments
           to earn XP, collect badges, and advance through the station.
         </p>
@@ -188,20 +188,20 @@ export function LabDiscoveryRing() {
                       {LAB_NAMES[id]}
                     </h3>
                   </div>
-                  <p className="font-body text-sm text-white/40 leading-relaxed">
+                  <p className="font-body text-sm text-white/70 leading-relaxed">
                     {LAB_DESCS[id]}
                   </p>
                 </div>
 
                 {/* Game count badge */}
                 <div className="flex-shrink-0 hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.06]">
-                  <span className="font-mono text-xs text-white/30">
+                  <span className="font-mono text-xs text-white/60">
                     {gameCount} games
                   </span>
                 </div>
 
                 {/* Arrow indicator for clickable state */}
-                <div className="flex-shrink-0 text-white/20 group-hover:text-white/50 transition-colors" aria-hidden="true">
+                <div className="flex-shrink-0 text-white/55 group-hover:text-white/50 transition-colors" aria-hidden="true">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
