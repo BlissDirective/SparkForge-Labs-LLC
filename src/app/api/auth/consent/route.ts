@@ -6,10 +6,20 @@
 // COPPA-PRD-H: Gate on parents.email_verified_at so we can't record VPC
 // from a parent who hasn't proven email ownership. Mirrors the existing
 // Stripe-checkout gate (AUTH-HIGH-004 4A).
+// COPPA-PRD-B: Optionally accepts an `ageBand` field and persists it to
+// parents.coppa_consent_age_band (sql/026) so the consent record knows
+// which child age band was acknowledged.
 import { NextRequest } from 'next/server';
 import { createServerSupabase, createAdminClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError } from '@/lib/api-helpers';
 import { checkRateLimit, RATE_LIMITS, rateLimitKey } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+// Local minimal schema. Mirrors CoppaConsentSchema in src/lib/validations.ts
+// but kept narrow here so this route only depends on what it actually reads.
+const ConsentBodySchema = z.object({
+  ageBand: z.enum(['A', 'B', 'C', 'mixed']).optional(),
+});
 
 export async function POST(req: NextRequest) {
   // Rate limit: auth tier (5/min)
@@ -56,10 +66,32 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  // COPPA-PRD-B: optional ageBand. Body parsing is lenient — older clients
+  // (pre-migration) that omit this field still get a successful consent
+  // record, just without the band. Schema validation only runs when the
+  // body parses as JSON; non-JSON bodies are tolerated for back-compat.
+  let parsedAgeBand: 'A' | 'B' | 'C' | 'mixed' | undefined;
+  try {
+    const body = await req.json();
+    const result = ConsentBodySchema.safeParse(body);
+    if (result.success) {
+      parsedAgeBand = result.data.ageBand;
+    }
+  } catch {
+    // ignore — body is optional for this endpoint
+  }
+
   // Use admin client to update consent, scoped to the authenticated user's ID
+  const update: { coppa_consent_at: string; coppa_consent_age_band?: string } = {
+    coppa_consent_at: new Date().toISOString(),
+  };
+  if (parsedAgeBand) {
+    update.coppa_consent_age_band = parsedAgeBand;
+  }
+
   const { data, error } = await adminClient
     .from('parents')
-    .update({ coppa_consent_at: new Date().toISOString() })
+    .update(update)
     .eq('id', userId)
     .is('coppa_consent_at', null)
     .select('id')
@@ -69,5 +101,8 @@ export async function POST(req: NextRequest) {
     return apiError('Unable to record consent. Account may not exist or consent already recorded.', 400);
   }
 
-  return apiSuccess({ consentRecorded: true });
+  return apiSuccess({
+    consentRecorded: true,
+    ageBand: parsedAgeBand ?? null,
+  });
 }

@@ -29,9 +29,19 @@ export default function OnboardingConsentPage() {
   const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<string | null>(null);
+  // COPPA-PRD-B: youngest-child age band, persisted to
+  // parents.coppa_consent_age_band so the consent record knows which
+  // band was acknowledged. Required before submit — VPC must be informed.
+  const [ageBand, setAgeBand] = useState<'A' | 'B' | 'C' | 'mixed' | null>(
+    null,
+  );
 
   const canSubmit =
-    checked && !submitting && !!parent?.email && !needsEmailVerification;
+    checked &&
+    !submitting &&
+    !!parent?.email &&
+    !needsEmailVerification &&
+    ageBand !== null;
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -42,7 +52,11 @@ export default function OnboardingConsentPage() {
       const res = await fetch('/api/auth/consent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...csrfHeader() },
-        body: JSON.stringify({ email: parent!.email, coppaConsent: true }),
+        body: JSON.stringify({
+          email: parent!.email,
+          coppaConsent: true,
+          ageBand,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -111,11 +125,59 @@ export default function OnboardingConsentPage() {
           id="consent-desc"
           className="font-body text-sm text-white/70 mb-6 leading-relaxed"
         >
-          SparkForge is designed for children under 13. Before you can create
-          child profiles or let children use the platform, we need your
-          explicit parental consent as required by COPPA (Children&apos;s
-          Online Privacy Protection Act).
+          SparkForge is designed for children ages 7&ndash;16. Before you can
+          create child profiles or let children use the platform, we need
+          your explicit parental consent as required by COPPA
+          (Children&apos;s Online Privacy Protection Act).
         </p>
+
+        {/* COPPA-PRD-B: VPC must be informed about which child age range
+            the parent is consenting for. Choice is persisted to
+            parents.coppa_consent_age_band on submit. */}
+        <fieldset className="mb-6">
+          <legend className="font-body text-sm font-medium text-white/85 mb-2">
+            Which best describes your youngest child?
+          </legend>
+          <div role="radiogroup" className="grid grid-cols-1 gap-2">
+            {[
+              { value: 'A', label: 'Ages 7–9 (under 13)' },
+              { value: 'B', label: 'Ages 10–12 (under 13)' },
+              { value: 'C', label: 'Ages 13–16' },
+              { value: 'mixed', label: 'Multiple children across age groups' },
+            ].map((opt) => {
+              const selected = ageBand === opt.value;
+              return (
+                <label
+                  key={opt.value}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-xl border cursor-pointer transition ${
+                    selected
+                      ? 'border-spark-blue/50 bg-spark-blue/10'
+                      : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    name="ageBand"
+                    value={opt.value}
+                    checked={selected}
+                    onChange={() =>
+                      setAgeBand(opt.value as 'A' | 'B' | 'C' | 'mixed')
+                    }
+                    className="h-4 w-4 text-spark-blue focus-visible:ring-2 focus-visible:ring-spark-blue"
+                  />
+                  <span className="font-body text-sm text-white/85">
+                    {opt.label}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <p className="mt-2 text-xs text-white/55 font-body">
+            Children under 13 receive full COPPA protections. We collect this
+            disclosure so the consent record reflects which age range you
+            acknowledged.
+          </p>
+        </fieldset>
 
         <label className="flex items-start gap-3 mb-6 cursor-pointer">
           <input
@@ -129,11 +191,20 @@ export default function OnboardingConsentPage() {
             id="consent-checkbox-label"
             className="font-body text-sm text-white/85 leading-relaxed"
           >
-            I am the parent or legal guardian of the child(ren) who will use
-            this account, I am 18 or older, and I consent to SparkForge
-            collecting and processing my child&apos;s age band, display name,
-            and learning progress for the purpose of personalized AI-literacy
-            education.
+            I am the parent or legal guardian of the{' '}
+            {ageBand === 'A'
+              ? 'child(ren) ages 7–9'
+              : ageBand === 'B'
+                ? 'child(ren) ages 10–12'
+                : ageBand === 'C'
+                  ? 'child(ren) ages 13–16'
+                  : ageBand === 'mixed'
+                    ? 'children across multiple age groups'
+                    : 'child(ren)'}{' '}
+            who will use this account, I am 18 or older, and I consent to
+            SparkForge collecting and processing my child&apos;s age band,
+            display name, and learning progress for the purpose of
+            personalized AI-literacy education.
           </span>
         </label>
 
