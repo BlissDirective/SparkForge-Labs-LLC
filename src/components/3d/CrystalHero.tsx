@@ -13,6 +13,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { AdditiveBlending, BufferAttribute, Group, Points } from 'three';
+import { useReducedMotion } from 'motion/react';
 
 // ■■ Inner 3D Scene ■■
 function CrystalText() {
@@ -103,9 +104,12 @@ function CrystalText() {
 
 // ■■ Main Component ■■
 export function CrystalHero() {
+  // COPPA-PRD-D2: pause continuous rendering on reduced-motion.
+  const prefersReducedMotion = useReducedMotion();
   return (
     <div className="relative w-full h-[60vh]">
       <Canvas
+        frameloop={prefersReducedMotion ? 'demand' : 'always'}
         camera={{ position: [0, 0, 8], fov: 50 }}
         gl={{ antialias: true, alpha: true }}
         dpr={[1, 2]}

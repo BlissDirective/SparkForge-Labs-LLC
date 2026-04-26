@@ -6,6 +6,13 @@
 // Tracks normalized mouse position (-1 to 1) and provides
 // smooth interpolated values for parallax effects on 3D scenes.
 // Used by CockpitCanvas to add subtle depth movement.
+//
+// COPPA-PRD-D2 (R3F sweep): when the OS reports
+// prefers-reduced-motion, the rAF lerp loop is skipped and the
+// hook returns a frozen zero-vector ref. The Canvas' frameloop
+// switch to "demand" already pauses useFrame consumers, but
+// stopping this rAF loop too saves CPU on every page that calls
+// the hook (cockpit, ReactiveEnvironmentEffects).
 
 import { useRef, useEffect, useCallback } from 'react';
 
@@ -46,6 +53,21 @@ export function useParallaxMouse(options: UseParallaxMouseOptions = {}) {
   // Smooth interpolation loop
   useEffect(() => {
     if (!enabled) return;
+
+    // Honor prefers-reduced-motion: skip the rAF lerp loop entirely.
+    // Mouse listener also stays unbound so the hook is fully inert.
+    // SSR-safe: matchMedia is only called inside this client-only effect.
+    const reducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (reducedMotion) {
+      // Reset to a known-good zero vector so consumers don't see stale values.
+      valuesRef.current.x = 0;
+      valuesRef.current.y = 0;
+      valuesRef.current.smoothX = 0;
+      valuesRef.current.smoothY = 0;
+      return;
+    }
 
     const tick = () => {
       const v = valuesRef.current;

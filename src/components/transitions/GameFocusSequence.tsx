@@ -14,6 +14,7 @@
 import { useRef, useMemo, useCallback, useState, useEffect, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
+import { useReducedMotion } from 'motion/react';
 import {
   BufferGeometry,
   DoubleSide,
@@ -175,10 +176,22 @@ export function GameFocusSequence({
 }: GameFocusSequenceProps) {
   const [visible, setVisible] = useState(true);
   const [fadeOut, setFadeOut] = useState(false);
+  // COPPA-PRD-D2: Reduced-motion users shouldn't sit through a tunnel
+  // animation. Skip the transition entirely — fire onStart immediately,
+  // then onComplete on the next tick so consumers' useEffect chains
+  // still see a real transition boundary.
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     onStart?.();
-  }, [onStart]);
+    if (prefersReducedMotion) {
+      const t = setTimeout(() => {
+        setVisible(false);
+        onComplete?.();
+      }, 0);
+      return () => clearTimeout(t);
+    }
+  }, [onStart, prefersReducedMotion, onComplete]);
 
   const handleComplete = useCallback(() => {
     setFadeOut(true);
