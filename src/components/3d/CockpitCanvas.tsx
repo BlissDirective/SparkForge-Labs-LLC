@@ -32,6 +32,7 @@
 
 import React, { Suspense, lazy, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
+import { useReducedMotion } from 'motion/react';
 
 // Dev-only R3F performance monitor (tree-shaken in production)
 const PerfMonitor =
@@ -339,6 +340,14 @@ function CockpitCanvasImpl({
   const showPerfStats = useUIStore((s) => s.showPerfStats);
   const perfOverlayEnabled = process.env.NODE_ENV === 'development' || showPerfStats;
 
+  // COPPA-PRD-D2: When the OS reports prefers-reduced-motion, switch the
+  // R3F render loop from "always" (continuous animation) to "demand"
+  // (renders only on explicit invalidate() — typically user interaction).
+  // The cockpit stays visible and clickable; ambient animations, camera
+  // bob, and particle drift simply pause. This is the canvas-level
+  // toggle the Apr 2026 audit flagged as P2.
+  const prefersReducedMotion = useReducedMotion();
+
   // ── Single Persistent R3F Canvas (D3D-B1: NEVER unmounts) ──
   return (
     <div
@@ -347,7 +356,7 @@ function CockpitCanvasImpl({
       aria-hidden="true"
     >
       <Canvas
-        frameloop="always"
+        frameloop={prefersReducedMotion ? 'demand' : 'always'}
         dpr={[1, 3]}
         camera={{
           position: [0, 0.65, 1.1],  // v3: tight-focus cockpit seat (was [0, 6.5, 7])
