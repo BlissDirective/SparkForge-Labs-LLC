@@ -93,6 +93,13 @@ jobs:
           SKIP_ENV_VALIDATION: '1'
         run: npm run build
 
+      - name: Sentry source-map pipeline check (CI)
+        # Static check that withSentryConfig() is wired correctly and
+        # instrumentation files are present. Tolerates missing real
+        # Sentry credentials (CI runs without them); a separate prod
+        # invocation in Vercel deploy will fail-fast on missing creds.
+        run: node scripts/verify-sentry-source-maps.mjs --ci
+
   # ─── Row-level security verification (DB-CRIT-002) ─────────────────
   rls-verify:
     name: RLS verification

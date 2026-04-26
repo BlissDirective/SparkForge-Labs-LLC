@@ -14,7 +14,9 @@
     "test:e2e": "playwright test",
     "optimize:3d": "node scripts/optimize-3d-assets.mjs",
     "api:gen": "node scripts/generate-api-client.mjs",
-    "translate:i18n": "tsx scripts/translate-messages.ts"
+    "translate:i18n": "tsx scripts/translate-messages.ts",
+    "verify:sentry": "node scripts/verify-sentry-source-maps.mjs",
+    "verify:sentry:ci": "node scripts/verify-sentry-source-maps.mjs --ci"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
