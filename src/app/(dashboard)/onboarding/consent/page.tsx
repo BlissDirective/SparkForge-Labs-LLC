@@ -16,6 +16,41 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { csrfHeader } from '@/lib/api';
+import { Sparkles, Atom, GraduationCap, Users } from 'lucide-react';
+
+// COPPA-PRD-B: 2×2 icon-grid age-band picker (R3 design). Each card
+// carries a SparkForge-themed label (Explorer/Adventurer/Innovator)
+// matching CLAUDE.md's age-band vocabulary, plus an icon glyph.
+const AGE_BAND_OPTIONS = [
+  {
+    value: 'A' as const,
+    icon: Sparkles,
+    title: 'Explorer',
+    range: 'Ages 7–9',
+    description: 'Under 13 — full COPPA protections',
+  },
+  {
+    value: 'B' as const,
+    icon: Atom,
+    title: 'Adventurer',
+    range: 'Ages 10–12',
+    description: 'Under 13 — full COPPA protections',
+  },
+  {
+    value: 'C' as const,
+    icon: GraduationCap,
+    title: 'Innovator',
+    range: 'Ages 13–16',
+    description: 'COPPA does not require consent at 13+',
+  },
+  {
+    value: 'mixed' as const,
+    icon: Users,
+    title: 'Multiple',
+    range: 'Mixed ages',
+    description: 'Children across more than one band',
+  },
+] as const;
 
 export default function OnboardingConsentPage() {
   const router = useRouter();
@@ -110,7 +145,7 @@ export default function OnboardingConsentPage() {
     <div className="fixed inset-0 z-40 flex items-center justify-center bg-surface-deep/80 backdrop-blur-sm p-4">
       <form
         onSubmit={handleSubmit}
-        className="w-full max-w-md rounded-2xl border border-white/10 bg-surface-card/95 p-8 shadow-2xl shadow-spark-blue/20"
+        className="w-full max-w-lg rounded-2xl border border-white/10 bg-surface-card/95 p-8 shadow-2xl shadow-spark-blue/20"
         role="dialog"
         aria-labelledby="consent-title"
         aria-describedby="consent-desc"
@@ -131,51 +166,83 @@ export default function OnboardingConsentPage() {
           (Children&apos;s Online Privacy Protection Act).
         </p>
 
-        {/* COPPA-PRD-B: VPC must be informed about which child age range
-            the parent is consenting for. Choice is persisted to
-            parents.coppa_consent_age_band on submit. */}
+        {/* COPPA-PRD-B (R3): 2×2 icon-grid age-band picker. Choice is
+            persisted to parents.coppa_consent_age_band on submit. Cards
+            are accessible <button role="radio"> with aria-checked +
+            arrow-key roving tabindex (handled below). */}
         <fieldset className="mb-6">
           <legend className="font-body text-sm font-medium text-white/85 mb-2">
             Which best describes your youngest child?
           </legend>
-          <div role="radiogroup" className="grid grid-cols-1 gap-2">
-            {[
-              { value: 'A', label: 'Ages 7–9 (under 13)' },
-              { value: 'B', label: 'Ages 10–12 (under 13)' },
-              { value: 'C', label: 'Ages 13–16' },
-              { value: 'mixed', label: 'Multiple children across age groups' },
-            ].map((opt) => {
+          <div
+            role="radiogroup"
+            aria-label="Youngest child age band"
+            className="grid grid-cols-2 gap-2"
+          >
+            {AGE_BAND_OPTIONS.map((opt, i) => {
+              const Icon = opt.icon;
               const selected = ageBand === opt.value;
               return (
-                <label
+                <button
                   key={opt.value}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-xl border cursor-pointer transition ${
+                  type="button"
+                  role="radio"
+                  aria-checked={selected}
+                  // Roving tabindex: only the selected card (or the first
+                  // card when nothing is selected yet) is in the tab order.
+                  // Arrow keys (handled below) move focus + selection.
+                  tabIndex={selected || (ageBand === null && i === 0) ? 0 : -1}
+                  onClick={() => setAgeBand(opt.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                      e.preventDefault();
+                      const next = AGE_BAND_OPTIONS[(i + 1) % AGE_BAND_OPTIONS.length];
+                      setAgeBand(next.value);
+                    } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                      e.preventDefault();
+                      const prev =
+                        AGE_BAND_OPTIONS[
+                          (i - 1 + AGE_BAND_OPTIONS.length) %
+                            AGE_BAND_OPTIONS.length
+                        ];
+                      setAgeBand(prev.value);
+                    } else if (e.key === ' ' || e.key === 'Enter') {
+                      e.preventDefault();
+                      setAgeBand(opt.value);
+                    }
+                  }}
+                  className={`group flex flex-col items-start gap-1 rounded-xl border px-3 py-3 text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-spark-blue/60 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-card ${
                     selected
-                      ? 'border-spark-blue/50 bg-spark-blue/10'
-                      : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04]'
+                      ? 'border-spark-blue/50 bg-spark-blue/10 shadow-[0_0_0_1px_rgba(59,130,246,0.25),0_0_24px_-8px_rgba(59,130,246,0.5)]'
+                      : 'border-white/10 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/15'
                   }`}
                 >
-                  <input
-                    type="radio"
-                    name="ageBand"
-                    value={opt.value}
-                    checked={selected}
-                    onChange={() =>
-                      setAgeBand(opt.value as 'A' | 'B' | 'C' | 'mixed')
-                    }
-                    className="h-4 w-4 text-spark-blue focus-visible:ring-2 focus-visible:ring-spark-blue"
+                  <Icon
+                    className={`h-5 w-5 transition ${
+                      selected
+                        ? 'text-spark-blue'
+                        : 'text-white/55 group-hover:text-white/75'
+                    }`}
+                    aria-hidden="true"
                   />
-                  <span className="font-body text-sm text-white/85">
-                    {opt.label}
+                  <span
+                    className={`font-display text-sm font-semibold leading-tight ${
+                      selected ? 'text-white' : 'text-white/85'
+                    }`}
+                  >
+                    {opt.title}
                   </span>
-                </label>
+                  <span className="font-body text-xs text-white/55 leading-tight">
+                    {opt.range}
+                  </span>
+                </button>
               );
             })}
           </div>
-          <p className="mt-2 text-xs text-white/55 font-body">
-            Children under 13 receive full COPPA protections. We collect this
-            disclosure so the consent record reflects which age range you
-            acknowledged.
+          <p className="mt-3 text-xs text-white/55 font-body leading-relaxed">
+            {ageBand
+              ? AGE_BAND_OPTIONS.find((o) => o.value === ageBand)?.description
+              : 'Children under 13 receive full COPPA protections. We record this so the consent reflects which age range you acknowledged.'}
           </p>
         </fieldset>
 
