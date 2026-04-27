@@ -1382,7 +1382,7 @@ export default function AdminReviewPage() {
                 <div key={band} className="text-center p-3 rounded-lg bg-white/5">
                   <p className="font-data text-2xl text-white/80">{analytics.byBand[band] || 0}</p>
                   <p className="font-body text-xs text-white/60">
-                    Band {band} ({band === 'A' ? '7-10' : band === 'B' ? '11-13' : '14-16'})
+                    Band {band} ({band === 'A' ? '7-9' : band === 'B' ? '10-12' : '13-16'})
                   </p>
                 </div>
               ))}

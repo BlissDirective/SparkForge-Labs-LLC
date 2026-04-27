@@ -30,7 +30,7 @@ function countWords(text: string): number {
 /**
  * Compute Flesch-Kincaid Grade Level.
  * Returns approximate US school grade level needed to understand the text.
- * Band A (7-10) → max grade 5, Band B (11-13) → max grade 8, Band C (14-16) → max grade 10.
+ * Band A (7-9) → max grade 5, Band B (10-12) → max grade 8, Band C (13-16) → max grade 10.
  */
 export function fleschKincaidGrade(text: string): number {
   const words = countWords(text);

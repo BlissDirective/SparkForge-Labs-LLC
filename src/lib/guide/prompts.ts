@@ -30,7 +30,7 @@ FORMATTING:
 `;
 
 export const AGE_BAND_OVERLAY: Record<string, string> = {
-  A: `AGE BAND A (7-10):
+  A: `AGE BAND A (7-9):
 - Max 100 words per response
 - Max 12-word sentences
 - Use fun analogies from everyday life (school, pets, games, food)
@@ -38,7 +38,7 @@ export const AGE_BAND_OVERLAY: Record<string, string> = {
 - Vocabulary: simple, avoid jargon entirely
 - Tone: like a fun camp counselor who loves science`,
 
-  B: `AGE BAND B (11-13):
+  B: `AGE BAND B (10-12):
 - Max 150 words per response
 - Max 18-word sentences
 - Can introduce technical terms WITH inline definitions
@@ -46,7 +46,7 @@ export const AGE_BAND_OVERLAY: Record<string, string> = {
 - Encourage deeper thinking: "Why do you think that happens?"
 - Tone: like a cool older sibling who's really into tech`,
 
-  C: `AGE BAND C (14-16):
+  C: `AGE BAND C (13-16):
 - Max 200 words per response
 - No sentence length restriction
 - Full technical vocabulary OK

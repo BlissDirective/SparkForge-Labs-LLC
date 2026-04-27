@@ -13,13 +13,17 @@ import { ArrowLeft, UserPlus } from 'lucide-react';
 import Link from 'next/link';
 import { useParentStore } from '@/stores/parentStore';
 import { getTierLimits, TIER_DISPLAY } from '@/lib/tier-config';
+import { ageToAgeBand } from '@/lib/utils';
 
 const AGE_OPTIONS = Array.from({ length: 10 }, (_, i) => i + 7);
 
+// COPPA-PRD-B (C1): cutoffs aligned to canonical helper in src/lib/utils.ts.
+// Band C label aligned to "Innovator" (matches CLAUDE.md, pricing FAQ,
+// /coppa-notice, and the R3/S3 signup pickers) — was "Pioneer".
 const BAND_INFO: Record<'A' | 'B' | 'C', { label: string; color: string; emoji: string }> = {
-  A: { label: '7–10 (Explorer)', color: '#3B82F6', emoji: '🔭' },
-  B: { label: '11–13 (Adventurer)', color: '#8B5CF6', emoji: '🧭' },
-  C: { label: '14–16 (Pioneer)', color: '#F59E0B', emoji: '🚀' },
+  A: { label: '7–9 (Explorer)', color: '#3B82F6', emoji: '🔭' },
+  B: { label: '10–12 (Adventurer)', color: '#8B5CF6', emoji: '🧭' },
+  C: { label: '13–16 (Innovator)', color: '#F59E0B', emoji: '🚀' },
 };
 
 // ENH #4: Confetti particle config
@@ -57,7 +61,8 @@ export default function AddChildPage() {
   const [showConfetti, setShowConfetti] = useState(false); // ENH #4
   const [confettiParticles] = useState(() => generateConfetti(30)); // ENH #4
 
-  const ageBand: 'A' | 'B' | 'C' = age <= 10 ? 'A' : age <= 13 ? 'B' : 'C';
+  // COPPA-PRD-B (C1): use canonical helper instead of duplicating cutoffs.
+  const ageBand = ageToAgeBand(age);
   const bandInfo = BAND_INFO[ageBand];
   const atLimit = children.length >= limits.maxChildren;
 

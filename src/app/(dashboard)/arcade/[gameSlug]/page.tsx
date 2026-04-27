@@ -68,7 +68,7 @@ export default function GamePage() {
           </h2>
           <p className="font-body text-sm text-white/70 mb-2">
             This game is designed for {gameConfig.ageBands.map(b =>
-              b === 'A' ? 'ages 7-10' : b === 'B' ? 'ages 11-13' : 'ages 14-16'
+              b === 'A' ? 'ages 7-9' : b === 'B' ? 'ages 10-12' : 'ages 13-16'
             ).join(', ')}.
           </p>
           <p className="font-body text-xs text-white/60 mb-6">

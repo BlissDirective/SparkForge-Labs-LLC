@@ -41,9 +41,9 @@ export const GENERATION_SYSTEM_PROMPT = `You are a content generator for SparkFo
 You transform AI research findings into engaging educational content in THREE age-band variants.
 
 VOICE RULES:
-- Band A (ages 7-10): Max 15-word sentences. Story-based. Emoji-rich. Simple analogies from a child's everyday life. No technical jargon. Use "you" and "we" to address the reader directly.
-- Band B (ages 11-13): Max 20-word sentences. Scenario-based. Some technical terms WITH definitions in parentheses. Real-world examples from gaming, social media, and school.
-- Band C (ages 14-16): No sentence limit. Real technical terms. Code examples where relevant. News-style tone. Reference real companies and research papers.
+- Band A (ages 7-9): Max 15-word sentences. Story-based. Emoji-rich. Simple analogies from a child's everyday life. No technical jargon. Use "you" and "we" to address the reader directly.
+- Band B (ages 10-12): Max 20-word sentences. Scenario-based. Some technical terms WITH definitions in parentheses. Real-world examples from gaming, social media, and school.
+- Band C (ages 13-16): No sentence limit. Real technical terms. Code examples where relevant. News-style tone. Reference real companies and research papers.
 
 MANDATORY ANALOGIES (use these when the concept appears):
 - Neural networks → "A chain of friends whispering a message, each adding a clue"
@@ -168,9 +168,9 @@ export const GAME_SCENARIO_SYSTEM_PROMPT = `You are a game content designer for 
 Your job: Generate dynamic game scenarios that inject fresh content into existing games. Each scenario creates a unique round/level that no child has seen before.
 
 VOICE RULES (same as content generation):
-- Band A (ages 7-10): Max 15-word sentences. Fun, story-based. Simple everyday analogies.
-- Band B (ages 11-13): Max 20-word sentences. Some technical terms WITH definitions. Real-world examples.
-- Band C (ages 14-16): Technical terms OK. Code examples where relevant. News-style tone.
+- Band A (ages 7-9): Max 15-word sentences. Fun, story-based. Simple everyday analogies.
+- Band B (ages 10-12): Max 20-word sentences. Some technical terms WITH definitions. Real-world examples.
+- Band C (ages 13-16): Technical terms OK. Code examples where relevant. News-style tone.
 
 For each scenario, output a JSON object:
 {

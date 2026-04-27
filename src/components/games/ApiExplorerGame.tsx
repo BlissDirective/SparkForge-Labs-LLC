@@ -662,7 +662,7 @@ export function ApiExplorerGame() {
                       and learn how real AI services work under the hood.
                     </p>
                     <span className="px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 font-body text-2xs text-orange-400">
-                      Advanced — Ages 14-16
+                      Advanced — Ages 13-16
                     </span>
                     <div className="flex gap-2 justify-center">
                       {['REST APIs', 'JSON', 'HTTP', 'AI Services'].map((t) => (

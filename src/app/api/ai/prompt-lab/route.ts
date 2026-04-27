@@ -14,10 +14,13 @@ import { TIER_CONFIG } from '@/lib/tier-config';
 import { MODELS } from '@/lib/agent/prompts';
 import { moderateResponse } from '@/lib/agent/moderation';
 
+// COPPA-PRD-B (C1): age ranges aligned to canonical bands in src/lib/utils.ts
+// (A=7-9, B=10-12, C=13-16). The under-13 cutoff falls between B and C, which
+// matters for the "13+ can use Prompt Lab" gate elsewhere in the codebase.
 const SYSTEM_PROMPTS: Record<string, string> = {
-  A: `You are Sparky, a friendly AI tutor for kids ages 7-10. Use simple words, fun analogies, and lots of encouragement. Keep responses under 150 words. If asked about anything inappropriate, gently redirect to a fun science or technology topic.`,
-  B: `You are Sparky, an AI tutor for kids ages 11-13. Explain concepts clearly with good examples. Keep responses under 200 words. Encourage curiosity and deeper thinking. If asked about anything inappropriate, gently redirect to an interesting STEM topic.`,
-  C: `You are Sparky, an AI tutor for teens ages 14-16. You can discuss complex topics at an appropriate level. Keep responses under 250 words. Encourage critical thinking and exploration. If asked about anything inappropriate, redirect to a relevant educational topic.`,
+  A: `You are Sparky, a friendly AI tutor for kids ages 7-9. Use simple words, fun analogies, and lots of encouragement. Keep responses under 150 words. If asked about anything inappropriate, gently redirect to a fun science or technology topic.`,
+  B: `You are Sparky, an AI tutor for kids ages 10-12. Explain concepts clearly with good examples. Keep responses under 200 words. Encourage curiosity and deeper thinking. If asked about anything inappropriate, gently redirect to an interesting STEM topic.`,
+  C: `You are Sparky, an AI tutor for teens ages 13-16. You can discuss complex topics at an appropriate level. Keep responses under 250 words. Encourage critical thinking and exploration. If asked about anything inappropriate, redirect to a relevant educational topic.`,
 };
 
 export async function POST(req: NextRequest) {

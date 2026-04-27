@@ -221,7 +221,7 @@ export default function LabDetailPage() {
                           key={band}
                           className="font-mono text-[8px] text-white/25"
                         >
-                          {band === 'A' ? '7-10' : band === 'B' ? '11-13' : '14-16'}
+                          {band === 'A' ? '7-9' : band === 'B' ? '10-12' : '13-16'}
                         </span>
                       ))}
                       {game.has3D && (

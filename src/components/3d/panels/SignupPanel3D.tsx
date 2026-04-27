@@ -44,6 +44,7 @@ import {
   validateForm,
 } from '@/lib/validation/authSchemas';
 import { scorePassword } from '@/lib/validation/passwordStrength';
+import { ageToAgeBand } from '@/lib/utils';
 
 // ═══════════════════════════════════════════════════════════════
 // TYPES
@@ -613,9 +614,12 @@ export default function SignupPanel3D({
     if (!result.success) setError(result.error || 'Failed to create profile');
   }, [displayName, childAge, email, password, onStep4]);
 
-  const ageBand = childAge <= 10 ? 'A' : childAge <= 13 ? 'B' : 'C';
-  const ageBandLabel = childAge <= 10 ? 'Fun & Visual' : childAge <= 13 ? 'Interactive' : 'Deep Dive';
-  const ageBandColor = childAge <= 10 ? '#60A5FA' : childAge <= 13 ? '#A78BFA' : '#FB923C';
+  // COPPA-PRD-B (C1): use canonical helper instead of duplicating cutoffs.
+  // Cutoffs now match src/lib/utils.ts:ageToAgeBand (≤9 → A, ≤12 → B, else C).
+  const ageBand = ageToAgeBand(childAge);
+  const ageBandLabel = ageBand === 'A' ? 'Fun & Visual' : ageBand === 'B' ? 'Interactive' : 'Deep Dive';
+  // Color picks driven by canonical band (matches add-child page palette).
+  const ageBandColor = ageBand === 'A' ? '#60A5FA' : ageBand === 'B' ? '#A78BFA' : '#FB923C';
 
   return (
     <group ref={groupRef} position={[0, 0, 0.5]}>

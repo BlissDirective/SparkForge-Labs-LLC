@@ -14,7 +14,7 @@ SPARKFORGE GAME ARCHITECTURE:
 - Each game lives in a single React component (src/components/games/NameGame.tsx)
 - Games use GameShell wrapper for chrome bezel, LED rim, XP tracking
 - 3D content renders inside the persistent CockpitCanvas via sceneStore
-- Age bands: A (7-10), B (11-13), C (14-16) — content difficulty varies
+- Age bands: A (7-9), B (10-12), C (13-16) — content difficulty varies
 
 GAME TIERS:
 - Flagship: Full immersive 3D (20M triangles), complex mechanics, 15-25 min

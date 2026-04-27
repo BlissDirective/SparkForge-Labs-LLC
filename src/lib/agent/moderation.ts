@@ -58,7 +58,7 @@ export async function checkHaikuModeration(
   anthropic: Anthropic
 ): Promise<ModerationResult> {
   try {
-    const ageRange = ageBand === 'A' ? '7-10' : ageBand === 'B' ? '11-13' : '14-16';
+    const ageRange = ageBand === 'A' ? '7-9' : ageBand === 'B' ? '10-12' : '13-16';
 
     const result = await anthropic.messages.create({
       model: MODELS.moderation,
