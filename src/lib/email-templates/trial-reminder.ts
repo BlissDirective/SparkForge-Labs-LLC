@@ -80,6 +80,15 @@ export function renderTrialReminder(opts: TrialReminderOptions): RenderedEmail {
   const greeting = opts.parentName ? `Hi ${opts.parentName.split(' ')[0]}` : 'Hi there';
   const endsAtFormatted = formatTrialEnd(opts.trialEndsAt);
 
+  // Derive the site origin from manageUrl (falls back to env or prod default)
+  // so legal-footer links (/terms, /privacy, etc.) are absolute and correct.
+  let appOrigin: string;
+  try {
+    appOrigin = new URL(opts.manageUrl).origin;
+  } catch {
+    appOrigin = process.env.NEXT_PUBLIC_APP_URL || 'https://sparkforge-labs.com';
+  }
+
   // Pick a short time-remaining string for the headline
   let remainingLabel: string;
   if (opts.window === 'final') {
@@ -203,19 +212,27 @@ export function renderTrialReminder(opts: TrialReminderOptions): RenderedEmail {
           <!-- Footer -->
           <tr>
             <td style="padding:20px 32px;border-top:1px solid rgba(255,255,255,0.06);background:rgba(0,0,0,0.2);">
-              <p style="margin:0;font-size:12px;line-height:18px;color:rgba(255,255,255,0.4);">
+              <p style="margin:0 0 10px;font-size:12px;line-height:18px;color:rgba(255,255,255,0.4);">
                 You're receiving this because you started a ${escapeHtml(tierLabel)} trial for ${escapeHtml(opts.parentEmail)}.
+                By continuing your subscription after the trial you agree to our Terms of Service, which include the
+                automatic-renewal disclosures in &sect;&sect; 4e&ndash;4g.
                 <br/>
                 <a href="${escapeHtml(opts.manageUrl)}?notifications=off" style="color:rgba(255,255,255,0.5);text-decoration:underline;">
                   Turn off trial reminders
                 </a>
+              </p>
+              <p style="margin:0;font-size:11px;line-height:16px;color:rgba(255,255,255,0.35);">
+                <a href="${escapeHtml(appOrigin)}/parent/subscription" style="color:rgba(255,255,255,0.55);text-decoration:underline;">Manage subscription</a>
+                &middot; <a href="${escapeHtml(appOrigin)}/terms" style="color:rgba(255,255,255,0.55);text-decoration:underline;">Terms of Service</a>
+                &middot; <a href="${escapeHtml(appOrigin)}/privacy" style="color:rgba(255,255,255,0.55);text-decoration:underline;">Privacy Policy</a>
+                &middot; <a href="${escapeHtml(appOrigin)}/privacy/children" style="color:rgba(255,255,255,0.55);text-decoration:underline;">Children's Privacy</a>
               </p>
             </td>
           </tr>
 
         </table>
         <div style="margin-top:16px;font-size:11px;color:rgba(255,255,255,0.3);">
-          SparkForge · AI literacy for kids ages 7–16
+          &copy; ${new Date().getFullYear()} SparkForge LLC &middot; an Illinois limited liability company &middot; AI literacy for kids ages 7&ndash;16
         </div>
       </td>
     </tr>

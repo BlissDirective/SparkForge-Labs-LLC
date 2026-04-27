@@ -69,6 +69,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <a href="/login">Log in</a>
           <a href="/signup">Sign up</a>
           <a href="/reset-password">Reset password</a>
+          <a href="/terms">Terms of Service</a>
+          <a href="/privacy">Privacy Policy</a>
         </div>
 
         {/* Branding overlay — minimal, above 3D */}
@@ -82,9 +84,16 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* Footer */}
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10 pointer-events-none">
-          <p className="text-white/55 text-xs font-body text-center">
-            &copy; 2026 BlissDirective &middot; SparkForge
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10 text-center">
+          <p className="text-white/55 text-xs font-body">
+            &copy; {new Date().getFullYear()} SparkForge LLC &middot;{' '}
+            <a href="/terms" className="text-white/70 hover:text-white underline decoration-dotted decoration-white/40 underline-offset-2">
+              Terms
+            </a>
+            {' '}&middot;{' '}
+            <a href="/privacy" className="text-white/70 hover:text-white underline decoration-dotted decoration-white/40 underline-offset-2">
+              Privacy
+            </a>
           </p>
         </div>
       </div>
