@@ -3,10 +3,23 @@
 // the COPPA checkbox in Step 3 of signup. This ensures coppa_consent_at
 // reflects the actual moment of consent, not account creation time.
 // CRIT-002: Secured with auth check — only the authenticated user can set their own consent.
+// COPPA-PRD-H: Gate on parents.email_verified_at so we can't record VPC
+// from a parent who hasn't proven email ownership. Mirrors the existing
+// Stripe-checkout gate (AUTH-HIGH-004 4A).
+// COPPA-PRD-B: Optionally accepts an `ageBand` field and persists it to
+// parents.coppa_consent_age_band (sql/026) so the consent record knows
+// which child age band was acknowledged.
 import { NextRequest } from 'next/server';
 import { createServerSupabase, createAdminClient } from '@/lib/supabase/server';
 import { apiSuccess, apiError } from '@/lib/api-helpers';
 import { checkRateLimit, RATE_LIMITS, rateLimitKey } from '@/lib/rate-limit';
+import { z } from 'zod';
+
+// Local minimal schema. Mirrors CoppaConsentSchema in src/lib/validations.ts
+// but kept narrow here so this route only depends on what it actually reads.
+const ConsentBodySchema = z.object({
+  ageBand: z.enum(['A', 'B', 'C', 'mixed']).optional(),
+});
 
 export async function POST(req: NextRequest) {
   // Rate limit: auth tier (5/min)
@@ -27,12 +40,58 @@ export async function POST(req: NextRequest) {
   }
 
   const userId = user.id;
+  const adminClient = createAdminClient();
+
+  // COPPA-PRD-H: VPC requires the operator to make a reasonable effort to
+  // verify the consenting party. Email-link confirmation is a recognized
+  // method under the 2025 COPPA Rule Amendments. We refuse to write
+  // coppa_consent_at until the parent has clicked the Supabase email
+  // confirmation link (recorded at /api/auth/callback as
+  // parents.email_verified_at).
+  const { data: parentRow, error: parentReadErr } = await adminClient
+    .from('parents')
+    .select('email_verified_at')
+    .eq('id', userId)
+    .single();
+
+  if (parentReadErr || !parentRow) {
+    return apiError('Account not found.', 404);
+  }
+
+  if (!parentRow.email_verified_at) {
+    return apiError(
+      'Please verify your email before recording parental consent. Check your inbox for the confirmation link from SparkForge.',
+      403,
+      'EMAIL_VERIFICATION_REQUIRED',
+    );
+  }
+
+  // COPPA-PRD-B: optional ageBand. Body parsing is lenient — older clients
+  // (pre-migration) that omit this field still get a successful consent
+  // record, just without the band. Schema validation only runs when the
+  // body parses as JSON; non-JSON bodies are tolerated for back-compat.
+  let parsedAgeBand: 'A' | 'B' | 'C' | 'mixed' | undefined;
+  try {
+    const body = await req.json();
+    const result = ConsentBodySchema.safeParse(body);
+    if (result.success) {
+      parsedAgeBand = result.data.ageBand;
+    }
+  } catch {
+    // ignore — body is optional for this endpoint
+  }
 
   // Use admin client to update consent, scoped to the authenticated user's ID
-  const adminClient = createAdminClient();
+  const update: { coppa_consent_at: string; coppa_consent_age_band?: string } = {
+    coppa_consent_at: new Date().toISOString(),
+  };
+  if (parsedAgeBand) {
+    update.coppa_consent_age_band = parsedAgeBand;
+  }
+
   const { data, error } = await adminClient
     .from('parents')
-    .update({ coppa_consent_at: new Date().toISOString() })
+    .update(update)
     .eq('id', userId)
     .is('coppa_consent_at', null)
     .select('id')
@@ -42,5 +101,8 @@ export async function POST(req: NextRequest) {
     return apiError('Unable to record consent. Account may not exist or consent already recorded.', 400);
   }
 
-  return apiSuccess({ consentRecorded: true });
+  return apiSuccess({
+    consentRecorded: true,
+    ageBand: parsedAgeBand ?? null,
+  });
 }

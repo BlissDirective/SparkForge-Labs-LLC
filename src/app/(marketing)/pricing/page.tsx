@@ -111,8 +111,8 @@ const FAQS = [
     a: 'SparkForge is COPPA 2025 compliant. We collect minimal data (display name, age band, progress). All AI interactions are filtered and monitored. No personal information is ever shared with third parties. Parents have full visibility and control through the parent dashboard.',
   },
   {
-    q: 'Can I cancel anytime?',
-    a: 'Yes. Cancel your subscription at any time from the parent dashboard. You keep access until the end of your billing period. No cancellation fees, no hidden charges. Your child\'s progress and badges are preserved even if you downgrade to the free plan.',
+    q: 'Can I cancel anytime? What about refunds?',
+    a: 'Yes — cancel any time from the parent dashboard, no cancellation fees. Your access continues until the end of the billing period. We offer a 30-day money-back guarantee on your first paid period (monthly or annual). After 30 days, monthly plans aren\'t refunded but you keep access until period end; annual plans get an account credit for unused months at the monthly-equivalent rate, usable on any future SparkForge charge. Full policy: /terms#refunds.',
   },
   {
     q: 'What ages is SparkForge for?',
@@ -404,6 +404,25 @@ export default function PricingPage() {
               Save {animatedSavings}%
             </span>
           </button>
+        </motion.div>
+
+        {/* ═══════════════════════════════════════════════════ */}
+        {/* REFUND POLICY SUMMARY                              */}
+        {/* Stripe-recommended: visible BEFORE checkout. Full   */}
+        {/* policy at /terms#refunds.                           */}
+        {/* ═══════════════════════════════════════════════════ */}
+        <motion.div
+          variants={safeStaggerItem}
+          className="mb-6 flex items-center justify-center"
+        >
+          <p className="text-xs text-white/60 text-center max-w-2xl">
+            <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 mr-2 align-middle" aria-hidden="true" />
+            <strong className="text-white/80">30-day money-back guarantee</strong>
+            {' '}on your first paid period &middot; cancel any time, no fees &middot;{' '}
+            <Link href="/terms#refunds" className="text-spark-blue hover:underline">
+              full refund policy
+            </Link>
+          </p>
         </motion.div>
 
         {/* ═══════════════════════════════════════════════════ */}

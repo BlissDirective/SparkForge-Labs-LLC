@@ -23,11 +23,16 @@ export const SignupSchema = z.object({
 });
 
 // S3-HIGH-001: Separate COPPA consent schema — called in Step 3 AFTER user confirms
+// COPPA-PRD-B: optional ageBand records the youngest-child band the parent
+// acknowledged at consent time. Persisted to parents.coppa_consent_age_band
+// (sql/026). Backward-compatible — legacy callers that omit it still succeed,
+// but the consent record is then "band-unspecified".
 export const CoppaConsentSchema = z.object({
   email: z.string().email(),
   coppaConsent: z.literal(true, {
     errorMap: () => ({ message: 'Parental consent is required' }),
   }),
+  ageBand: z.enum(['A', 'B', 'C', 'mixed']).optional(),
 });
 
 export const LoginSchema = z.object({
@@ -224,6 +229,12 @@ export const AdminChangeSubscriptionSchema = z.object({
   targetTier: z.enum(['free', 'plus', 'forge']),
   interval: z.enum(['month', 'year']).default('month'),
   reason: z.string().max(500).optional(),
+});
+
+// /terms#refunds Option B — annual cancellation with account credit.
+// Requires explicit confirmation so a stray POST cannot end a sub.
+export const CancelAnnualWithCreditSchema = z.object({
+  confirm: z.literal(true),
 });
 
 // ═══ CONTENT AGENT SCHEMAS ═══

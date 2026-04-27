@@ -48,22 +48,37 @@ export default function SignupPage() {
     }
   }, []);
 
-  const handleStep3 = useCallback(async (email: string) => {
-    try {
-      const res = await fetch('/api/auth/consent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', ...csrfHeader() },
-        body: JSON.stringify({ email, coppaConsent: true }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        return { success: false, error: data.error || 'Consent failed — We couldn\'t record your consent. Please try again.' };
+  // COPPA-PRD-B: ageBand threads through from the Step 3 picker so the
+  // /api/auth/consent record reflects which child age range the parent
+  // acknowledged at consent time.
+  const handleStep3 = useCallback(
+    async (email: string, ageBand: 'A' | 'B' | 'C' | 'mixed') => {
+      try {
+        const res = await fetch('/api/auth/consent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...csrfHeader() },
+          body: JSON.stringify({ email, coppaConsent: true, ageBand }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          return {
+            success: false,
+            error:
+              data.error ||
+              "Consent failed — We couldn't record your consent. Please try again.",
+          };
+        }
+        return { success: true };
+      } catch {
+        return {
+          success: false,
+          error:
+            'Connection error — Please check your internet connection and try again.',
+        };
       }
-      return { success: true };
-    } catch {
-      return { success: false, error: 'Connection error — Please check your internet connection and try again.' };
-    }
-  }, []);
+    },
+    [],
+  );
 
   const handleStep4 = useCallback(async (
     email: string,

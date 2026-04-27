@@ -15,6 +15,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Text, Html } from '@react-three/drei';
+import { useReducedMotion } from 'motion/react';
 import {
   Color,
   Group,
@@ -49,14 +50,18 @@ import { scorePassword } from '@/lib/validation/passwordStrength';
 // ═══════════════════════════════════════════════════════════════
 
 type SignupStep = 1 | 2 | 3 | 4;
+// COPPA-PRD-B: youngest-child age band acknowledged at consent.
+type AgeBand = 'A' | 'B' | 'C' | 'mixed';
 
 interface SignupPanel3DProps {
   onNavigateLogin: () => void;
   onComplete: (email: string, password: string, displayName: string, childAge: number, coppaConsent: boolean) => void;
   /** Step 1 submit handler — creates parent account */
   onStep1: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
-  /** Step 3 submit handler — records COPPA consent */
-  onStep3: (email: string) => Promise<{ success: boolean; error?: string }>;
+  /** Step 3 submit handler — records COPPA consent
+   *  ageBand passes through to /api/auth/consent so the consent record
+   *  reflects which child age range the parent acknowledged. */
+  onStep3: (email: string, ageBand: AgeBand) => Promise<{ success: boolean; error?: string }>;
   /** Step 4 submit handler — creates child + redirects */
   onStep4: (email: string, password: string, displayName: string, childAge: number) => Promise<{ success: boolean; error?: string }>;
 }
@@ -277,6 +282,180 @@ function Checkbox3D({
   );
 }
 
+// ═══════════════════════════════════════════════════════════════
+// COPPA-PRD-B (S3): Floating-card age-band picker
+// ═══════════════════════════════════════════════════════════════
+// Four flat cards arranged in a 2×2 grid above the consent checkbox.
+// Selected card lerps forward (z+0.04) and tilts toward camera
+// (rotation.y ±0.08 rad based on column). Hover boosts emissive.
+// Reduced-motion users get an instant snap (no spring physics).
+
+const AGE_CARD_WIDTH = 0.55;
+const AGE_CARD_HEIGHT = 0.12;
+const AGE_CARD_DEPTH = 0.005;
+
+const AGE_BAND_OPTIONS_3D: ReadonlyArray<{
+  value: AgeBand;
+  title: string;
+  range: string;
+  position: [number, number, number];
+  /** +1 = left column (right edge tilts toward camera);
+   *  -1 = right column (left edge tilts toward camera). */
+  tiltDir: 1 | -1;
+}> = [
+  { value: 'A', title: 'Explorer', range: 'Ages 7–9', position: [-0.295, 0.32, 0], tiltDir: 1 },
+  { value: 'B', title: 'Adventurer', range: 'Ages 10–12', position: [0.295, 0.32, 0], tiltDir: -1 },
+  { value: 'C', title: 'Innovator', range: 'Ages 13–16', position: [-0.295, 0.18, 0], tiltDir: 1 },
+  { value: 'mixed', title: 'Multiple', range: 'Mixed ages', position: [0.295, 0.18, 0], tiltDir: -1 },
+];
+
+function FloatingCard3D({
+  title,
+  range,
+  selected,
+  onClick,
+  position,
+  tiltDir,
+  prefersReducedMotion,
+}: {
+  title: string;
+  range: string;
+  selected: boolean;
+  onClick: () => void;
+  position: [number, number, number];
+  tiltDir: 1 | -1;
+  prefersReducedMotion: boolean;
+}) {
+  const groupRef = useRef<Group>(null);
+  const [hovered, setHovered] = useState(false);
+  const zRef = useRef(0);
+  const yRotRef = useRef(0);
+  const zVelRef = useRef(0);
+  const yVelRef = useRef(0);
+
+  const accentC = useMemo(() => new Color(ACCENT_COLOR), []);
+
+  const baseMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: new Color('#0F142A'),
+        metalness: 0.3,
+        roughness: 0.4,
+        emissive: accentC,
+        emissiveIntensity: 0,
+        transparent: true,
+        opacity: 0.95,
+      }),
+    [accentC],
+  );
+
+  const borderMat = useMemo(
+    () =>
+      new MeshStandardMaterial({
+        color: new Color(CHROME_BORDER.colorHex),
+        metalness: 0.95,
+        roughness: 0.1,
+        emissive: accentC,
+        emissiveIntensity: CHROME_BORDER.glowIntensity,
+      }),
+    [accentC],
+  );
+
+  useFrame((_, delta) => {
+    if (!groupRef.current) return;
+    const targetZ = selected ? 0.04 : 0;
+    const targetYRot = selected ? tiltDir * 0.08 : 0;
+
+    if (prefersReducedMotion) {
+      zRef.current = targetZ;
+      yRotRef.current = targetYRot;
+      zVelRef.current = 0;
+      yVelRef.current = 0;
+    } else {
+      const spring = SPRING_PRESETS.snap;
+      const zForce = spring.stiffness * (targetZ - zRef.current);
+      const zDamp = -spring.damping * zVelRef.current;
+      zVelRef.current += ((zForce + zDamp) / spring.mass) * delta;
+      zRef.current += zVelRef.current * delta;
+
+      const yForce = spring.stiffness * (targetYRot - yRotRef.current);
+      const yDamp = -spring.damping * yVelRef.current;
+      yVelRef.current += ((yForce + yDamp) / spring.mass) * delta;
+      yRotRef.current += yVelRef.current * delta;
+    }
+
+    groupRef.current.position.z = position[2] + zRef.current;
+    groupRef.current.rotation.y = yRotRef.current;
+
+    baseMat.emissiveIntensity = selected
+      ? EMISSIVE_IDLE_INDICATOR
+      : hovered
+        ? EMISSIVE_IDLE_BUTTON * EMISSIVE_HOVER_MULTIPLIER * 0.5
+        : 0;
+  });
+
+  return (
+    <group ref={groupRef} position={position}>
+      {/* Border bezel */}
+      <mesh>
+        <boxGeometry
+          args={[
+            AGE_CARD_WIDTH + 0.006,
+            AGE_CARD_HEIGHT + 0.006,
+            AGE_CARD_DEPTH,
+          ]}
+        />
+        <primitive object={borderMat} />
+      </mesh>
+      {/* Surface (clickable) */}
+      <mesh
+        position={[0, 0, 0.001]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onClick();
+        }}
+        onPointerOver={() => {
+          setHovered(true);
+          document.body.style.cursor = 'pointer';
+        }}
+        onPointerOut={() => {
+          setHovered(false);
+          document.body.style.cursor = 'default';
+        }}
+      >
+        <boxGeometry
+          args={[AGE_CARD_WIDTH, AGE_CARD_HEIGHT, AGE_CARD_DEPTH - 0.002]}
+        />
+        <primitive object={baseMat} />
+      </mesh>
+      {/* Title (top half of card) */}
+      <Text
+        position={[0, 0.022, AGE_CARD_DEPTH / 2 + 0.002]}
+        fontSize={TYPE_SCALE.h3.fontSize}
+        color={selected ? '#ffffff' : TEXT_COLORS.primary.hex}
+        anchorX="center"
+        anchorY="middle"
+        font={TYPE_SCALE.h3.fontPath}
+        fillOpacity={selected ? 1 : TEXT_COLORS.primary.opacity}
+      >
+        {title}
+      </Text>
+      {/* Age range (bottom half of card) */}
+      <Text
+        position={[0, -0.022, AGE_CARD_DEPTH / 2 + 0.002]}
+        fontSize={TYPE_SCALE.caption.fontSize}
+        color={selected ? ACCENT_COLOR : TEXT_COLORS.muted.hex}
+        anchorX="center"
+        anchorY="middle"
+        font={TYPE_SCALE.caption.fontPath}
+        fillOpacity={selected ? 1 : TEXT_COLORS.muted.opacity}
+      >
+        {range}
+      </Text>
+    </group>
+  );
+}
+
 /** Step indicator dots */
 function StepIndicator3D({ step, position }: { step: SignupStep; position: [number, number, number] }) {
   return (
@@ -339,6 +518,12 @@ export default function SignupPanel3D({
 
   // Step 3 state
   const [coppaChecked, setCoppaChecked] = useState(false);
+  // COPPA-PRD-B: youngest-child age band acknowledged at consent.
+  // Named selectedBand (not ageBand) because Step 4 declares a local
+  // const ageBand derived from childAge for display.
+  const [selectedBand, setSelectedBand] = useState<AgeBand | null>(null);
+  // Reduced-motion: drives FloatingCard3D snap vs spring lerp
+  const prefersReducedMotion = !!useReducedMotion();
 
   // Step 4 state
   const [displayName, setDisplayName] = useState('');
@@ -402,14 +587,18 @@ export default function SignupPanel3D({
   }, [email, password, onStep1]);
 
   const handleStep3 = useCallback(async () => {
+    if (!selectedBand) {
+      setError('Please choose the option that best describes your youngest child.');
+      return;
+    }
     if (!coppaChecked) { setError('Please confirm you are 18 or older to continue.'); return; }
     setError('');
     setLoading(true);
-    const result = await onStep3(email);
+    const result = await onStep3(email, selectedBand);
     setLoading(false);
     if (result.success) setStep(4);
     else setError(result.error || 'Failed to record consent');
-  }, [coppaChecked, email, onStep3]);
+  }, [selectedBand, coppaChecked, email, onStep3]);
 
   const handleStep4 = useCallback(async () => {
     setError('');
@@ -556,40 +745,79 @@ export default function SignupPanel3D({
           </group>
         )}
 
-        {/* ═══ STEP 3: COPPA Consent ═══ */}
+        {/* ═══ STEP 3: COPPA Consent (S3 layout) ═══
+            Spacing audited 2026-04-26 — see PR description for the
+            y-coordinate budget. Title/subtitle/divider shifted up by
+            ~0.06 each to free room for the 4-card age picker that sits
+            between the divider and the compact privacy reassurance line.
+            See COPPA-PRD-B in CLAUDE.md.                              */}
         {step === 3 && (
           <group>
-            <Text position={[0, 0.58, 0]} fontSize={TYPE_SCALE.h1.fontSize} color={TEXT_COLORS.primary.hex}
+            <Text position={[0, 0.62, 0]} fontSize={TYPE_SCALE.h1.fontSize} color={TEXT_COLORS.primary.hex}
               anchorX="center" anchorY="middle" font={TYPE_SCALE.h1.fontPath}
             >Child Safety Consent</Text>
-            <Text position={[0, 0.5, 0]} fontSize={TYPE_SCALE.caption.fontSize} color={TEXT_COLORS.muted.hex}
+            <Text position={[0, 0.55, 0]} fontSize={TYPE_SCALE.caption.fontSize} color={TEXT_COLORS.muted.hex}
               anchorX="center" anchorY="middle" font={TYPE_SCALE.caption.fontPath} fillOpacity={TEXT_COLORS.muted.opacity}
             >Required by COPPA 2025 for children under 16</Text>
 
-            <mesh position={[0, 0.44, 0]} material={chromeMat}>
+            <mesh position={[0, 0.50, 0]} material={chromeMat}>
               <boxGeometry args={[PANEL_WIDTH * 0.7, 0.002, 0.002]} />
             </mesh>
 
-            {/* Shield info items */}
-            {[
-              'No personal data collected from children',
-              'AI conversations are not stored or used for training',
-              'Full parental controls and content filtering',
-              'You can delete all data at any time',
-            ].map((text, i) => (
-              <group key={i} position={[-INPUT_WIDTH / 2 + 0.04, 0.32 - i * 0.08, 0]}>
-                {/* Shield icon (green dot) */}
-                <mesh position={[0, 0, 0]}>
-                  <circleGeometry args={[0.012, 8]} />
-                  <meshStandardMaterial color={new Color(GREEN_COLOR)} emissive={new Color(GREEN_COLOR)} emissiveIntensity={0.4} />
-                </mesh>
-                <Text position={[0.04, 0, 0]} fontSize={TYPE_SCALE.caption.fontSize}
-                  color={TEXT_COLORS.secondary.hex} anchorX="left" anchorY="middle"
-                  font={TYPE_SCALE.caption.fontPath} fillOpacity={TEXT_COLORS.secondary.opacity}
-                  maxWidth={INPUT_WIDTH - 0.12}
-                >{text}</Text>
-              </group>
+            {/* Section caption above the age-card grid */}
+            <Text
+              position={[0, 0.42, 0]}
+              fontSize={TYPE_SCALE.caption.fontSize}
+              color={TEXT_COLORS.secondary.hex}
+              anchorX="center"
+              anchorY="middle"
+              font={TYPE_SCALE.caption.fontPath}
+              fillOpacity={TEXT_COLORS.secondary.opacity}
+            >
+              Which best describes your youngest child?
+            </Text>
+
+            {/* COPPA-PRD-B (S3): 2×2 floating card stack. Each card lerps
+                forward + tilts toward camera when selected. Reduced-motion
+                users get an instant snap (see FloatingCard3D).            */}
+            {AGE_BAND_OPTIONS_3D.map((opt) => (
+              <FloatingCard3D
+                key={opt.value}
+                title={opt.title}
+                range={opt.range}
+                selected={selectedBand === opt.value}
+                onClick={() => setSelectedBand(opt.value)}
+                position={opt.position}
+                tiltDir={opt.tiltDir}
+                prefersReducedMotion={prefersReducedMotion}
+              />
             ))}
+
+            {/* Compact reassurance line replaces the 4 shield-bullets.
+                The privacy policy + /coppa-notice cover the detailed
+                claims; here we just tell the parent protections are
+                active and where to read more.                            */}
+            <group position={[0, 0.04, 0]}>
+              <mesh position={[-0.34, 0, 0]}>
+                <circleGeometry args={[0.012, 8]} />
+                <meshStandardMaterial
+                  color={new Color(GREEN_COLOR)}
+                  emissive={new Color(GREEN_COLOR)}
+                  emissiveIntensity={0.4}
+                />
+              </mesh>
+              <Text
+                position={[-0.30, 0, 0]}
+                fontSize={TYPE_SCALE.caption.fontSize}
+                color={TEXT_COLORS.secondary.hex}
+                anchorX="left"
+                anchorY="middle"
+                font={TYPE_SCALE.caption.fontPath}
+                fillOpacity={TEXT_COLORS.secondary.opacity}
+              >
+                COPPA protections active &middot; details in our privacy policy
+              </Text>
+            </group>
 
             {/* Consent checkbox */}
             <group position={[-INPUT_WIDTH / 2, -0.1, 0]}>
@@ -601,8 +829,13 @@ export default function SignupPanel3D({
               >I am 18+ and consent to my child using SparkForge</Text>
             </group>
 
-            <ActionButton3D label="I CONSENT — CONTINUE" color={ACCENT_COLOR} position={[0, -0.3, 0]}
-              onClick={handleStep3} disabled={!coppaChecked || loading} />
+            <ActionButton3D
+              label="I CONSENT — CONTINUE"
+              color={ACCENT_COLOR}
+              position={[0, -0.3, 0]}
+              onClick={handleStep3}
+              disabled={!coppaChecked || !selectedBand || loading}
+            />
           </group>
         )}
 

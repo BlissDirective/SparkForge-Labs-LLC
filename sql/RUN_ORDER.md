@@ -69,6 +69,14 @@ Phase 5 First 10 enhancements. Run after Phase 3 migrations (018).
 | 27 | `020_passkey_credentials.sql` | #3 AUTH-ENH Passkey / WebAuthn (Ultra) | Creates `passkey_credentials` + `passkey_challenges` tables for FIDO2/WebAuthn. RLS: SELECT-own for parents, RESTRICTIVE write-deny on both tables (writes done via SECURITY DEFINER server code only). `demo_deny_passkey_credentials` mirrors 019. `cleanup_expired_passkey_challenges()` SECURITY DEFINER function + pg_cron job every 10 min (skipped cleanly when pg_cron absent). |
 | 28 | `021_enable_pgaudit.sql` | #5 DB-ENH PgAudit (Min) | `CREATE EXTENSION IF NOT EXISTS pgaudit;` + `ALTER DATABASE postgres SET pgaudit.log = 'write, role, ddl'`. Output goes to Postgres logs (operator ships to SIEM/log backend). **Requires Supabase Pro plan** — on Free tier the CREATE EXTENSION call fails with permissions error (migration rolls back cleanly). Retention for the existing `audit_log` table is already handled by 014_audit_log.sql (90-day pg_cron purge). |
 
+## COPPA Production Readiness Migrations
+
+Run after Phase 5 migrations. These tighten compliance for the for-sale launch.
+
+| Order | File | Task | Description |
+|-------|------|------|-------------|
+| 29 | `026_parents_coppa_consent_age_band.sql` | COPPA-PRD-B | Adds nullable `parents.coppa_consent_age_band TEXT` with CHECK constraint for `'A' \| 'B' \| 'C' \| 'mixed'`. Records the youngest-child age band the parent acknowledged at consent time. Required by /api/auth/consent for new VPC records. NULL on legacy rows; no backfill (no pre-launch prod accounts). Idempotent — safe to re-run. |
+
 ## Archived Files (Do NOT Run)
 
 These have been merged into canonical files above. Kept for historical reference only.

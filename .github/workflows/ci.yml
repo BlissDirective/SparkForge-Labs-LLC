@@ -87,7 +87,18 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          # COPPA-PRD-E: lib/env.ts hard-fails in production when required
+          # secrets are missing. CI only sets Supabase placeholders, so we
+          # bypass the prod-required check here. The Zod schema still runs.
+          SKIP_ENV_VALIDATION: '1'
         run: npm run build
+
+      - name: Sentry source-map pipeline check (CI)
+        # Static check that withSentryConfig() is wired correctly and
+        # instrumentation files are present. Tolerates missing real
+        # Sentry credentials (CI runs without them); a separate prod
+        # invocation in Vercel deploy will fail-fast on missing creds.
+        run: node scripts/verify-sentry-source-maps.mjs --ci
 
   # ─── Row-level security verification (DB-CRIT-002) ─────────────────
   rls-verify:
@@ -195,6 +206,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          # COPPA-PRD-E: lib/env.ts hard-fails in production when required
+          # secrets are missing. CI only sets Supabase placeholders, so we
+          # bypass the prod-required check here. The Zod schema still runs.
+          SKIP_ENV_VALIDATION: '1'
         run: npm run build
       - name: Start server + run smoke spec
         env:
@@ -233,6 +248,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          # COPPA-PRD-E: lib/env.ts hard-fails in production when required
+          # secrets are missing. CI only sets Supabase placeholders, so we
+          # bypass the prod-required check here. The Zod schema still runs.
+          SKIP_ENV_VALIDATION: '1'
         run: npm run build
       - name: Run Lighthouse CI against local server
         env:
@@ -275,6 +294,10 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: https://ci.placeholder.supabase.co
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder-anon-key
           SUPABASE_SERVICE_ROLE_KEY: ci-placeholder-service-key
+          # COPPA-PRD-E: lib/env.ts hard-fails in production when required
+          # secrets are missing. CI only sets Supabase placeholders, so we
+          # bypass the prod-required check here. The Zod schema still runs.
+          SKIP_ENV_VALIDATION: '1'
         run: npm run build
       - name: Compute totals
         id: sizes

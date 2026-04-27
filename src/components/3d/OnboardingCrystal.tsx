@@ -13,6 +13,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { Float } from '@react-three/drei';
 import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { Mesh, MeshPhysicalMaterial } from 'three';
+import { useReducedMotion } from 'motion/react';
 
 interface CrystalMeshProps {
   step: number; // 0-3
@@ -91,9 +92,12 @@ interface OnboardingCrystalProps {
 }
 
 export function OnboardingCrystal({ currentStep }: OnboardingCrystalProps) {
+  // COPPA-PRD-D2: pause continuous rendering on reduced-motion.
+  const prefersReducedMotion = useReducedMotion();
   return (
     <div className="w-full h-48 pointer-events-none" aria-hidden="true">
       <Canvas
+        frameloop={prefersReducedMotion ? 'demand' : 'always'}
         camera={{ position: [0, 0, 5], fov: 50 }}
         gl={{ antialias: true, alpha: true }}
         dpr={[1, 1.5]}
