@@ -70,6 +70,12 @@ function SubscriptionContent() {
 
   // v3 Gap 3: Downgrade/change modal
   const [downgradeTarget, setDowngradeTarget] = useState<SubscriptionTier | null>(null);
+  // R1 (CA ARL AB 2863): affirmative auto-renewal consent for free->paid flows.
+  // We cannot inject this checkbox into Stripe Hosted Checkout, so we gate the
+  // redirect on it here.
+  const [renewalConsentTier, setRenewalConsentTier] = useState<SubscriptionTier | null>(null);
+  const [renewalConsentChecked, setRenewalConsentChecked] = useState(false);
+  const [renewalConsentLoading, setRenewalConsentLoading] = useState(false);
 
   // UX-MED-006 (A) + PAY-MED-003: Delete account flow state
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
@@ -277,10 +283,20 @@ function SubscriptionContent() {
       return;
     }
 
-    // Free → paid: start a fresh Stripe Checkout session
+    // Free → paid: require affirmative auto-renewal consent BEFORE redirecting
+    // to Stripe (CA ARL AB 2863 + ToS §4e item 3). Actual checkout fetch runs
+    // inside confirmRenewalAndCheckout() once the parent checks the box.
     if (targetTier === 'free') return;
+    setRenewalConsentChecked(false);
+    setRenewalConsentTier(targetTier);
+  }
+
+  async function confirmRenewalAndCheckout() {
+    const targetTier = renewalConsentTier;
+    if (!targetTier || !renewalConsentChecked) return;
 
     const interval = billing === 'monthly' ? 'month' : 'year';
+    setRenewalConsentLoading(true);
 
     try {
       const res = await fetch('/api/stripe/checkout', {
@@ -294,9 +310,11 @@ function SubscriptionContent() {
         window.location.href = data.data.url;
       } else if (data.error) {
         toast.error(data.error);
+        setRenewalConsentLoading(false);
       }
     } catch {
       toast.error('Failed to start checkout. Please try again.');
+      setRenewalConsentLoading(false);
     }
   }
 
@@ -596,6 +614,102 @@ function SubscriptionContent() {
           </button>
         </div>
       </motion.div>
+
+      {/* R1: CA ARL AB 2863 affirmative auto-renewal consent modal (free -> paid) */}
+      {renewalConsentTier && (() => {
+        const target = renewalConsentTier;
+        const interval = billing === 'monthly' ? 'month' : 'year';
+        const price = interval === 'month'
+          ? TIER_DISPLAY[target].monthlyPrice
+          : TIER_DISPLAY[target].yearlyPrice;
+        const tierName = TIER_DISPLAY[target].name;
+        const intervalLabel = interval === 'month' ? 'month' : 'year';
+        return (
+          <div
+            className="fixed inset-0 z-[100] flex items-center justify-center px-4 bg-black/60 backdrop-blur-sm"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="renewal-consent-title"
+          >
+            <div className="w-full max-w-md rounded-2xl bg-surface-card border border-white/[0.08] shadow-2xl p-6">
+              <h2
+                id="renewal-consent-title"
+                className="font-display text-lg font-semibold text-white mb-1"
+              >
+                Confirm your subscription
+              </h2>
+              <p className="text-sm text-white/60 mb-4">
+                Before we send you to Stripe, please confirm the auto-renewal terms below.
+              </p>
+
+              <div className="rounded-lg bg-white/[0.03] border border-white/[0.08] p-4 mb-4">
+                <div className="flex items-baseline justify-between mb-1">
+                  <span className="font-display text-base font-semibold text-white">
+                    Spark {tierName}
+                  </span>
+                  <span className="font-data text-base text-spark-blue">
+                    ${price.toFixed(2)}/{intervalLabel}
+                  </span>
+                </div>
+                <p className="text-xs text-white/55 leading-relaxed">
+                  Renews automatically every {intervalLabel} at ${price.toFixed(2)} until you cancel.
+                  {' '}Cancel any time from this page &mdash; no phone call required.
+                  {interval === 'year' && ' For yearly plans, we email a reminder 3-21 days before each renewal.'}
+                </p>
+              </div>
+
+              <label className="flex items-start gap-3 mb-5 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={renewalConsentChecked}
+                  onChange={(e) => setRenewalConsentChecked(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 shrink-0 rounded border-white/20 bg-white/5 accent-spark-blue focus:ring-2 focus:ring-spark-blue/50"
+                  aria-describedby="renewal-consent-desc"
+                />
+                <span
+                  id="renewal-consent-desc"
+                  className="text-sm text-white/80 leading-relaxed group-hover:text-white transition-colors"
+                >
+                  I understand this subscription will automatically renew at{' '}
+                  <strong className="text-white">${price.toFixed(2)} per {intervalLabel}</strong>{' '}
+                  until I cancel, and I authorize SparkForge LLC and Stripe to charge my payment method on each renewal.
+                </span>
+              </label>
+
+              <p className="text-[11px] text-white/60 mb-5 leading-relaxed">
+                Full terms are in our{' '}
+                <Link href="/terms#subscriptions" target="_blank" className="text-spark-blue hover:underline">
+                  Terms of Service &sect;&sect; 4e&ndash;4g
+                </Link>.
+                {' '}You can opt out of binding arbitration within 30 days of signup.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRenewalConsentTier(null);
+                    setRenewalConsentChecked(false);
+                  }}
+                  disabled={renewalConsentLoading}
+                  className="flex-1 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white/80 font-display text-sm font-medium hover:bg-white/10 transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmRenewalAndCheckout}
+                  disabled={!renewalConsentChecked || renewalConsentLoading}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-spark-blue to-blue-600 text-white font-display text-sm font-bold disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+                  aria-label="Agree and continue to Stripe checkout"
+                >
+                  {renewalConsentLoading ? 'Loading…' : 'Agree & Continue'}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* v3 Gap 3: In-app downgrade/change flow */}
       <DowngradeConfirmModal

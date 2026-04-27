@@ -22,15 +22,28 @@ export interface RenderedEmail {
   text: string;
 }
 
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://sparkforge-labs.com';
+
 const WRAPPER = (body: string) => `
 <!doctype html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#06070e;color:#d4d8e2;padding:32px;margin:0;">
 <div style="max-width:560px;margin:0 auto;background:#0f1424;border:1px solid #1f2a44;border-radius:12px;padding:32px;">
 <h1 style="color:#fff;font-size:20px;margin:0 0 16px;">SparkForge</h1>
 ${body}
-<p style="color:#6b7896;font-size:12px;margin:32px 0 0;">
-You're receiving this because your SparkForge account needs attention.
-<br>Manage preferences at <a href="#" style="color:#60a5fa;">support@sparkforge.ai</a>.
+<div style="border-top:1px solid rgba(255,255,255,0.08);margin:32px 0 0;padding-top:16px;">
+<p style="color:#6b7896;font-size:12px;line-height:18px;margin:0 0 8px;">
+You're receiving this because your SparkForge account needs attention. Questions about billing? Reply to this email or contact
+<a href="mailto:support@sparkforge-labs.com" style="color:#60a5fa;">support@sparkforge-labs.com</a>.
 </p>
+<p style="color:#6b7896;font-size:11px;line-height:16px;margin:8px 0 0;">
+<a href="${APP_URL}/parent/subscription" style="color:#8ea3c9;text-decoration:underline;">Manage subscription</a>
+&middot; <a href="${APP_URL}/terms" style="color:#8ea3c9;text-decoration:underline;">Terms of Service</a>
+&middot; <a href="${APP_URL}/privacy" style="color:#8ea3c9;text-decoration:underline;">Privacy Policy</a>
+&middot; <a href="${APP_URL}/settings/legal" style="color:#8ea3c9;text-decoration:underline;">Legal &amp; Privacy</a>
+</p>
+<p style="color:#4a5a78;font-size:11px;line-height:16px;margin:8px 0 0;">
+&copy; ${new Date().getFullYear()} SparkForge LLC, an Illinois limited liability company. All rights reserved.
+</p>
+</div>
 </div></body></html>
 `.trim();
 

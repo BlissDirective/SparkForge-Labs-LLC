@@ -826,8 +826,45 @@ export default function SignupPanel3D({
                 color={TEXT_COLORS.secondary.hex} anchorX="left" anchorY="middle"
                 font={TYPE_SCALE.caption.fontPath} fillOpacity={TEXT_COLORS.secondary.opacity}
                 maxWidth={INPUT_WIDTH - 0.15} textAlign="left"
-              >I am 18+ and consent to my child using SparkForge</Text>
+              >I am 18+ and agree to the Terms of Service and Privacy Policy on behalf of myself and my child</Text>
             </group>
+
+            {/* Legal document links (DOM overlay inside 3D canvas via drei Html) */}
+            <Html position={[0, -0.2, 0]} center style={{ pointerEvents: 'auto', userSelect: 'none' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  gap: '8px',
+                  alignItems: 'center',
+                  fontSize: '11px',
+                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  color: 'rgba(255,255,255,0.55)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <span>Read:</span>
+                <a
+                  href="/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#44C8FF', textDecoration: 'underline', textDecorationStyle: 'dotted', textDecorationColor: 'rgba(68,200,255,0.5)' }}
+                >Terms of Service</a>
+                <span aria-hidden="true">&middot;</span>
+                <a
+                  href="/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#44C8FF', textDecoration: 'underline', textDecorationStyle: 'dotted', textDecorationColor: 'rgba(68,200,255,0.5)' }}
+                >Privacy Policy</a>
+                <span aria-hidden="true">&middot;</span>
+                <a
+                  href="/privacy/children"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: '#44C8FF', textDecoration: 'underline', textDecorationStyle: 'dotted', textDecorationColor: 'rgba(68,200,255,0.5)' }}
+                >Kids&apos; Privacy</a>
+              </div>
+            </Html>
 
             <ActionButton3D
               label="I CONSENT — CONTINUE"

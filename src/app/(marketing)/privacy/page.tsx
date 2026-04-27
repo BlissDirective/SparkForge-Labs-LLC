@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — SparkForge',
@@ -39,14 +40,19 @@ export default function PrivacyPage() {
               1. Who We Are (Operator Identification)
             </h2>
             <p>
-              SparkForge is operated by <strong className="text-white/90">BlissDirective</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
+              SparkForge is operated by <strong className="text-white/90">SparkForge LLC</strong> (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;).
               SparkForge is a gamified AI learning platform designed for children ages 7&ndash;16.
             </p>
             <div className="mt-4 p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/50">
-                <strong className="text-white/70">BlissDirective</strong><br />
-                Email: <a href="mailto:privacy@sparkforge.app" className="text-spark-blue hover:underline">privacy@sparkforge.app</a><br />
-                For privacy inquiries, parental rights requests, or COPPA-related questions, contact us at the email above.
+                <strong className="text-white/70">SparkForge LLC</strong> <span className="text-white/40">(an Illinois limited liability company)</span><br />
+                Mailing address: <span className="text-white/70">[MAILING ADDRESS — to be finalized before production launch]</span><br />
+                Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
+                Privacy email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />
+                For privacy inquiries, parental rights requests, or COPPA-related questions, contact us using any method above.
+              </p>
+              <p className="mt-3 text-xs text-white/40">
+                Disclosure pursuant to 16 CFR &sect; 312.4(d)(1) (COPPA operator identification).
               </p>
             </div>
             <p className="mt-4">
@@ -76,6 +82,7 @@ export default function PrivacyPage() {
               <li>COPPA consent timestamp (date and time parental consent was given)</li>
               <li>Subscription tier and billing status (Free, Plus, or Forge)</li>
               <li>Stripe customer ID (for paid subscriptions only &mdash; payment details are held by Stripe, not by us)</li>
+              <li>Authentication factors: passkey public keys (WebAuthn credential IDs), MFA backup codes, and account-recovery tokens when you choose to enable them</li>
             </ul>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">
@@ -96,6 +103,7 @@ export default function PrivacyPage() {
               <li>XP (experience points), level, badges earned, and streak data</li>
               <li>Session duration (time spent on platform per session)</li>
               <li>Prompt Lab interactions: text prompts submitted to the AI learning tool (ages 14&ndash;16 only)</li>
+              <li>Security event logs: login timestamps, IP addresses, user-agent strings, MFA challenges, and administrative actions retained for a bounded period for abuse prevention and security monitoring</li>
             </ul>
 
             <h3 className="font-display text-lg font-medium text-white/90 mb-2">
@@ -111,6 +119,17 @@ export default function PrivacyPage() {
               <li>Contact information from children (email, phone, address)</li>
               <li>Social media accounts or friend lists</li>
             </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              2e. No Conditioning on Unnecessary Disclosure
+            </h3>
+            <p className="text-white/60">
+              Consistent with 16 CFR &sect; 312.7, SparkForge does not condition a child&apos;s participation in any game,
+              lab, activity, or feature on the child disclosing more personal information than is reasonably necessary for
+              that activity. For example, gameplay in any of the 35 labs is available without the child providing free-text
+              input; the Prompt Lab game (which does accept free-text input) is limited to age band C (ages 14&ndash;16) and
+              is never a prerequisite for earning XP, leveling up, or completing any lab.
+            </p>
           </section>
 
           {/* ═══ Section 3: How We Use Information ═══ */}
@@ -197,6 +216,18 @@ export default function PrivacyPage() {
                   purpose: 'Detect and fix software bugs to maintain platform reliability',
                   security: 'Configured with beforeSend PII scrubbing to strip all child-related fields (display names, age bands, XP, badges) before data leaves the browser. Session replay masks all text and blocks all media.',
                 },
+                {
+                  name: 'Resend (Transactional Email)',
+                  data: 'Parent email address; the contents of each transactional message (trial reminder, dunning notice, breach notification). No child personal information is sent to Resend.',
+                  purpose: 'Deliver account-related transactional emails such as trial reminders, subscription dunning sequences, and security notifications',
+                  security: 'TLS on all connections. DPA available at resend.com/legal/dpa. Delivery logs auto-expire per Resend retention policy.',
+                },
+                {
+                  name: 'Upstash Redis (Rate Limiting)',
+                  data: 'Rate-limit counter keys derived from IP address or authenticated user ID; no other payload',
+                  purpose: 'Abuse prevention and rate limiting on API endpoints under the COPPA 16 CFR § 312.2 "support for internal operations" exception',
+                  security: 'TLS on all connections. Counter keys auto-expire within each rate-limit window (typically 60 seconds to 1 hour). DPA available at upstash.com/trust.',
+                },
               ].map((service) => (
                 <div key={service.name} className="p-4 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                   <h4 className="font-display text-sm font-semibold text-white/80 mb-2">{service.name}</h4>
@@ -239,6 +270,41 @@ export default function PrivacyPage() {
               If we do not receive verifiable parental consent, we will not collect personal information from the child
               and will delete any parent contact information collected during the consent process within a reasonable time.
             </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              5a. VPC Method Used
+            </h3>
+            <p className="text-white/60 mb-3">
+              SparkForge uses the <strong className="text-white/80">&quot;email-plus&quot;</strong> method of Verifiable
+              Parental Consent permitted under 16 CFR &sect; 312.5(b)(2)(iii). The process is:
+            </p>
+            <ol className="list-decimal list-inside space-y-1.5 text-white/60 mb-3">
+              <li>A parent creates the account and provides their email address.</li>
+              <li>The parent verifies the email by clicking a confirmation link sent to that address.</li>
+              <li>The parent checks a COPPA consent checkbox affirmatively acknowledging this Privacy Policy.</li>
+              <li>A server-side timestamp of the affirmative consent action is recorded and retained for at least three years.</li>
+              <li>Before the child&apos;s first interaction, a confirmation email is sent to the same verified address summarizing the consent granted and explaining how to revoke it at any time.</li>
+            </ol>
+            <p className="text-white/60 mb-3">
+              Under COPPA 16 CFR &sect; 312.5(b)(2), the email-plus method is valid only when a child&apos;s personal
+              information is used <strong className="text-white/80">solely for internal operations</strong> and is not
+              disclosed to third parties other than service providers acting on SparkForge&apos;s behalf under written
+              agreements with equivalent safeguards (see Section 4).
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              5b. Separate Consent for Third-Party Disclosure
+            </h3>
+            <p className="text-white/60">
+              As amended by the FTC in 2025, COPPA requires <strong className="text-white/80">separate verifiable parental
+              consent</strong> before any third-party disclosure of a child&apos;s personal information that is not covered
+              by a service-provider relationship (e.g., targeted advertising, cross-service profiling, disclosure to data
+              brokers). SparkForge does not currently engage in any such disclosures and therefore does not seek separate
+              VPC beyond the email-plus method above. If this ever changes, we will obtain separate affirmative parental
+              consent using a higher-bar VPC method (such as a verified payment-card transaction, government-ID match, or
+              live video-call verification) before the new disclosure begins, and we will update this Privacy Policy and
+              notify existing parents in advance.
+            </p>
           </section>
 
           {/* ═══ Section 6: Parental Rights ═══ */}
@@ -265,7 +331,7 @@ export default function PrivacyPage() {
                 },
                 {
                   right: 'Revoke consent',
-                  how: 'Contact privacy@sparkforge.app or delete the child profile. We will cease all collection and delete existing data.',
+                  how: 'Contact privacy@sparkforge-labs.com or delete the child profile. We will cease all collection and delete existing data.',
                 },
                 {
                   right: 'Manage content filters and time limits',
@@ -334,6 +400,14 @@ export default function PrivacyPage() {
                 </tr>
               </tbody>
             </table>
+            <p className="mt-4 text-sm text-white/60">
+              <strong className="text-white/80">Absolute maximum retention.</strong> Consistent with 16 CFR &sect; 312.10
+              (as amended in 2025), no category of children&apos;s personal information is retained indefinitely. Except
+              where a longer period is required by a specific legal obligation (for example, Stripe invoice records that
+              must be retained for tax-audit purposes), the maximum retention for any child&apos;s personal information is
+              three (3) years from the last active use of the associated account, after which the data is deleted or
+              irreversibly de-identified.
+            </p>
           </section>
 
           {/* ═══ Section 8: Data Security ═══ */}
@@ -361,6 +435,22 @@ export default function PrivacyPage() {
               We require all third-party service providers that receive children&apos;s data to maintain adequate security
               measures consistent with this policy.
             </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              8a. Written Children&apos;s Information Security Program (2025 Amendment)
+            </h3>
+            <p className="text-white/60 mb-3">
+              The 2025 COPPA amendments (16 CFR &sect; 312.8) require operators to establish, implement, and maintain a
+              written children&apos;s personal information security program with safeguards appropriate to the sensitivity
+              of the data, the operator&apos;s size, and its business activities. Our program includes:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60">
+              <li><strong className="text-white/80">Designated responsible party:</strong> the SparkForge LLC Privacy &amp; Security Lead identified in Section 1 holds documented accountability for the program and is the point of contact for all COPPA obligations.</li>
+              <li><strong className="text-white/80">Annual risk assessment:</strong> at least once every twelve (12) months, we review the confidentiality, integrity, and availability risks to children&apos;s personal information and update safeguards accordingly.</li>
+              <li><strong className="text-white/80">Written service-provider agreements:</strong> every third party that processes children&apos;s personal information on our behalf is under a written data-processing addendum (DPA) requiring security and confidentiality safeguards at least as protective as those in this Section 8.</li>
+              <li><strong className="text-white/80">Incident response and breach notification:</strong> we maintain documented incident-response procedures and notify affected parents and applicable regulators within the timeframes required by the strictest applicable federal or state law (see Section 16).</li>
+              <li><strong className="text-white/80">Access control and audit logging:</strong> access to systems holding children&apos;s PI is role-based, least-privilege, and logged; administrative access requires multi-factor authentication.</li>
+            </ul>
           </section>
 
           {/* ═══ Section 9: Cookies & Persistent Identifiers ═══ */}
@@ -467,8 +557,10 @@ export default function PrivacyPage() {
             </p>
             <div className="p-4 rounded-lg bg-white/[0.03] border border-white/[0.06]">
               <p className="text-sm text-white/60">
-                <strong className="text-white/80">BlissDirective — Privacy Team</strong><br />
-                Email: <a href="mailto:privacy@sparkforge.app" className="text-spark-blue hover:underline">privacy@sparkforge.app</a><br />
+                <strong className="text-white/80">SparkForge LLC &mdash; Privacy Team</strong><br />
+                Mailing address: <span className="text-white/70">[MAILING ADDRESS &mdash; to be finalized before production launch]</span><br />
+                Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a><br />
+                Email: <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a><br />
                 Subject line: &quot;COPPA Privacy Request&quot; or &quot;Parental Rights Request&quot;
               </p>
               <p className="text-xs text-white/70 mt-3">
@@ -479,6 +571,281 @@ export default function PrivacyPage() {
                 </a>.
               </p>
             </div>
+          </section>
+
+          {/* ═══ Section 14: State Privacy Law Disclosures ═══ */}
+          <section id="state-laws">
+            <h2 className="font-display text-xl font-semibold text-white mb-3">
+              14. State Privacy Law Disclosures
+            </h2>
+            <p className="mb-4">
+              In addition to the federal protections above, residents of certain U.S. states have additional rights under
+              comprehensive state privacy laws and state-specific children&apos;s/teens&apos; codes. The table below
+              summarizes applicability; the California and Maryland subsections below describe rights in greater detail.
+            </p>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-white/[0.06]">
+                    <th className="text-left py-2 pr-4 font-display text-white/70 font-medium">State</th>
+                    <th className="text-left py-2 pr-4 font-display text-white/70 font-medium">Key Law(s)</th>
+                    <th className="text-left py-2 font-display text-white/70 font-medium">Resident Rights (adults and minors)</th>
+                  </tr>
+                </thead>
+                <tbody className="text-white/60">
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">California</td>
+                    <td className="py-2 pr-4 align-top">CCPA/CPRA; SOPIPA; AB 1584; AB 2273 (AADC)</td>
+                    <td className="py-2 align-top">Know, access, delete, correct, opt-out of sale/share, limit use of sensitive PI, non-discrimination; under-18 design-code protections.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Maryland</td>
+                    <td className="py-2 pr-4 align-top">MODPA; MD AADC (HB 603)</td>
+                    <td className="py-2 align-top">Know, delete, correct, portability; privacy-by-default for users under 18; DPIA required.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Virginia</td>
+                    <td className="py-2 pr-4 align-top">VCDPA</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; COPPA-style VPC for known under-13 data.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Colorado</td>
+                    <td className="py-2 pr-4 align-top">CPA; SB 24-041</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability, opt-out; no targeted ads, profiling, or sale involving users under 18 without proper consent.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Connecticut</td>
+                    <td className="py-2 pr-4 align-top">CTDPA (with minors amendment)</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; duty of care for users 13&ndash;17; ban on targeted ads and sale of teen data regardless of consent.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Oregon</td>
+                    <td className="py-2 pr-4 align-top">OCPA; HB 2008</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; targeted-advertising prohibition for ages 13&ndash;15 under actual-knowledge / willful-disregard.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Texas</td>
+                    <td className="py-2 pr-4 align-top">TDPSA</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability; heightened disclosures and opt-ins for known minors.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Utah</td>
+                    <td className="py-2 pr-4 align-top">UCPA</td>
+                    <td className="py-2 align-top">Access, delete, portability, opt-out of sale and targeted advertising.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">Delaware</td>
+                    <td className="py-2 pr-4 align-top">DPDPA</td>
+                    <td className="py-2 align-top">Access, delete, correct, portability, opt-out; honors Global Privacy Control.</td>
+                  </tr>
+                  <tr className="border-b border-white/[0.04]">
+                    <td className="py-2 pr-4 align-top">New York</td>
+                    <td className="py-2 pr-4 align-top">SHIELD Act; NY Child Data Protection Act (CDPA)</td>
+                    <td className="py-2 align-top">Reasonable-security obligations; restrictions on processing data of users under 18.</td>
+                  </tr>
+                  <tr>
+                    <td className="py-2 pr-4 align-top">Other states</td>
+                    <td className="py-2 pr-4 align-top">IA, NE, NH, NJ, MN, RI, IN, KY, TN, MT, FL</td>
+                    <td className="py-2 align-top">General access/delete/correct/portability/opt-out equivalents; honored for any resident who requests them.</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              14a. Notice to California Residents (CCPA/CPRA)
+            </h3>
+            <p className="text-white/60 mb-3">
+              California residents (parent account holders and, where applicable, teens aged 13&ndash;17 via a parent)
+              have the following rights under the California Consumer Privacy Act as amended by the California Privacy
+              Rights Act:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li><strong className="text-white/80">Right to know</strong> what personal information we have collected, the sources, the purposes, and the categories of third parties to whom it was disclosed.</li>
+              <li><strong className="text-white/80">Right to access</strong> a portable copy of the personal information we hold about you.</li>
+              <li><strong className="text-white/80">Right to delete</strong> personal information, subject to a narrow set of statutory exceptions.</li>
+              <li><strong className="text-white/80">Right to correct</strong> inaccurate personal information.</li>
+              <li><strong className="text-white/80">Right to opt-out of sale or sharing</strong> of personal information. <span className="text-white/80">SparkForge does not sell or share personal information as defined under the CCPA/CPRA.</span></li>
+              <li><strong className="text-white/80">Right to limit use of sensitive personal information.</strong> SparkForge does not use sensitive personal information beyond the narrow business purposes permitted by Cal. Code Regs. tit. 11, &sect; 7027(l).</li>
+              <li><strong className="text-white/80">Right to non-discrimination</strong> for exercising any of these rights.</li>
+            </ul>
+            <p className="text-white/60 mb-3">
+              <strong className="text-white/80">Global Privacy Control (GPC):</strong> SparkForge honors the GPC browser
+              signal. Because we do not sell or share personal information, GPC has no additional effect on our primary data
+              flows; however, we treat GPC as an opt-out signal for any future analytics or advertising integrations.
+            </p>
+            <p className="text-white/60">
+              Submit California rights requests by email to{' '}
+              <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a>{' '}
+              or by the Parental Rights page at{' '}
+              <Link href="/privacy/rights" className="text-spark-blue hover:underline">/privacy/rights</Link>. We will verify
+              identity (as described on that page) and respond within 45 days, extendable once by 45 days when reasonably
+              necessary with notice.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              14b. Notice to Maryland Residents (MD AADC)
+            </h3>
+            <p className="text-white/60">
+              Under the Maryland Age-Appropriate Design Code Act (HB 603), SparkForge configures default privacy settings
+              to the highest level of privacy for users under 18, collects only the minimum personal data needed, does not
+              use dark patterns that encourage minors to weaken privacy settings, and maintains a Data Protection Impact
+              Assessment (DPIA) for features reasonably likely to be accessed by minors.
+            </p>
+          </section>
+
+          {/* ═══ Section 15: International Users & Cross-Border Transfers ═══ */}
+          <section id="international">
+            <h2 className="font-display text-xl font-semibold text-white mb-3">
+              15. International Users &amp; Cross-Border Transfers
+            </h2>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2">
+              15a. Primary Audience and Data Location
+            </h3>
+            <p className="text-white/60 mb-3">
+              SparkForge is operated from the United States by an Illinois limited liability company and is primarily
+              intended for users physically located in the United States. Personal information processed by SparkForge is
+              stored in the United States using Supabase-managed infrastructure (AWS US regions). Certain operational
+              telemetry is also processed in the United States by our service providers (see Section 4).
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15b. Use of the Service from Outside the United States
+            </h3>
+            <p className="text-white/60 mb-3">
+              If you access SparkForge from outside the United States, you understand that your personal information will
+              be transferred to and processed in the United States. U.S. data-protection law may differ from the law of
+              your country of residence. By using SparkForge from outside the United States, you consent to this transfer
+              and processing. Where we are required to implement a specific transfer safeguard for your jurisdiction, we
+              rely on the mechanism described below.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15c. Transfer Safeguards (EU/EEA, United Kingdom, Switzerland)
+            </h3>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li><strong className="text-white/80">Standard Contractual Clauses (SCCs).</strong> Where applicable, transfers of personal data from the EU/EEA to the United States rely on the European Commission&apos;s 2021 Standard Contractual Clauses, executed with each service provider that receives such data on our behalf.</li>
+              <li><strong className="text-white/80">UK International Data Transfer Addendum (IDTA).</strong> Transfers from the United Kingdom rely on the ICO-issued IDTA, appended to the SCCs where the relevant service provider supports it.</li>
+              <li><strong className="text-white/80">EU&ndash;U.S. Data Privacy Framework (DPF).</strong> Where a service provider is certified under the DPF, we additionally rely on that certification as an adequate transfer mechanism.</li>
+              <li><strong className="text-white/80">Transfer impact assessments.</strong> For each service provider that processes data of EU/EEA, UK, or Swiss residents, we maintain a transfer-impact assessment (post-<em>Schrems II</em>) that considers U.S. surveillance-law exposure and supplemental measures (end-to-end encryption, jurisdictional data residency where available, and minimum-necessary data sharing).</li>
+            </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15d. Digital Consent Age (GDPR Article 8)
+            </h3>
+            <p className="text-white/60 mb-3">
+              Under Article 8 of the EU General Data Protection Regulation, the age at which a child can provide their own
+              consent to information-society services defaults to 16 and may be lowered by each Member State (typically to
+              13, 14, or 15 depending on jurisdiction). SparkForge is designed so that a parent or legal guardian is the
+              contracting party regardless of the child&apos;s age, which satisfies the parental-authorization prong of
+              GDPR Article 8 where that prong applies. Teens aged 13&ndash;17 in the United Kingdom and EU/EEA retain the
+              data-subject rights described in Section 15f below.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15e. Canada &amp; Australia
+            </h3>
+            <p className="text-white/60 mb-3">
+              Canadian residents are protected by the Personal Information Protection and Electronic Documents Act
+              (PIPEDA), and, in Quebec, Law 25. Australian residents are protected by the Privacy Act 1988. Where these
+              laws apply, we implement equivalent rights of access, correction, and deletion, and we process complaints
+              through the same Parental Rights workflow described in Section 6 and at{' '}
+              <Link href="/privacy/rights" className="text-spark-blue hover:underline">/privacy/rights</Link>.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              15f. Data Subject Rights for International Users
+            </h3>
+            <p className="text-white/60 mb-3">
+              Regardless of where you are located, you have the right to access, correct, delete, or port the personal
+              information we hold about you or your child, and to object to or restrict certain processing. You may
+              withdraw consent at any time. These rights are subject to narrow exceptions permitted by applicable law.
+              Submit requests through{' '}
+              <Link href="/privacy/rights" className="text-spark-blue hover:underline">/privacy/rights</Link>{' '}
+              or by email to{' '}
+              <a href="mailto:privacy@sparkforge-labs.com" className="text-spark-blue hover:underline">privacy@sparkforge-labs.com</a>.
+            </p>
+            <p className="text-sm text-white/50">
+              EU/EEA and UK residents have the additional right to lodge a complaint with a supervisory authority. A list
+              of EU/EEA data-protection authorities is available at{' '}
+              <a href="https://edpb.europa.eu/about-edpb/about-edpb/members_en" target="_blank" rel="noopener noreferrer" className="text-spark-blue hover:underline">
+                edpb.europa.eu
+              </a>
+              ; the UK Information Commissioner&apos;s Office is at{' '}
+              <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="text-spark-blue hover:underline">
+                ico.org.uk
+              </a>.
+            </p>
+          </section>
+
+          {/* ═══ Section 16: Breach Notification ═══ */}
+          <section id="breach">
+            <h2 className="font-display text-xl font-semibold text-white mb-3">
+              16. Breach Notification
+            </h2>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2">
+              16a. Our Commitment
+            </h3>
+            <p className="text-white/60 mb-3">
+              In the event of a data breach that involves children&apos;s personal information or parent account
+              credentials, SparkForge will investigate the scope of the incident, contain and remediate the vulnerability,
+              and notify affected parents and applicable regulators within the timeframe required by the strictest
+              applicable federal or state law. We will not delay notification beyond what is reasonably necessary for a
+              law-enforcement request or legitimate investigative need.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16b. Timing Standards
+            </h3>
+            <p className="text-white/60 mb-3">
+              All 50 U.S. states (and the District of Columbia and U.S. territories) have breach notification laws. We
+              commit to the following notification windows, measured from the time we determine a breach has occurred:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li><strong className="text-white/80">Affected residents in 30-day states</strong> (including California, Colorado, Florida, New York, Washington): notification within 30 calendar days.</li>
+              <li><strong className="text-white/80">Affected residents in 45-day states</strong> (including AL, AZ, IN, NM, OH, OR, RI, TN, VT, WI): notification within 45 calendar days.</li>
+              <li><strong className="text-white/80">Affected residents in 60-day states</strong> (including CT, DE, LA, SD, TX): notification within 60 calendar days.</li>
+              <li><strong className="text-white/80">Affected residents in other states</strong> with &quot;without unreasonable delay&quot; standards: notification within 60 calendar days, our internal ceiling.</li>
+              <li><strong className="text-white/80">Federal Trade Commission</strong> (when a breach affects more than 500 children&apos;s personal information under the 2025 COPPA amendments): notification within 30 calendar days.</li>
+              <li><strong className="text-white/80">International supervisory authorities</strong> (e.g., EU lead supervisory authority under GDPR Article 33): notification within 72 hours of becoming aware of a personal-data breach where required.</li>
+            </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16c. Contents of the Notice
+            </h3>
+            <p className="text-white/60 mb-3">
+              A breach notification from SparkForge will include, at minimum:
+            </p>
+            <ul className="list-disc list-inside space-y-1.5 text-white/60 mb-3">
+              <li>A description of what happened and when we became aware of it;</li>
+              <li>The categories of personal information involved;</li>
+              <li>The steps we have taken to contain and remediate the incident;</li>
+              <li>Recommended protective steps the parent can take (for example, changing the account password, monitoring relevant services);</li>
+              <li>A direct contact channel for questions, staffed by our Privacy &amp; Security Lead (see Section 1 for contact information); and</li>
+              <li>Any additional content required by the recipient&apos;s state or national law.</li>
+            </ul>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16d. Method of Notification
+            </h3>
+            <p className="text-white/60 mb-3">
+              We will send the initial notification by email to the address registered on each affected parent account.
+              Where state or national law additionally requires postal notification, substitute notification, or public
+              disclosure (for example, to a state Attorney General, consumer-reporting agencies, or a prominent website
+              notice), we will provide that additional notification in the form prescribed by that law.
+            </p>
+
+            <h3 className="font-display text-lg font-medium text-white/90 mb-2 mt-6">
+              16e. Post-Incident Review
+            </h3>
+            <p className="text-white/60">
+              After every confirmed incident, we complete a root-cause analysis, document corrective actions taken, and
+              update our written children&apos;s personal information security program (see Section 8a) as needed. Nothing
+              in this section creates liability in excess of what is imposed by applicable law.
+            </p>
           </section>
 
           {/* Legal review notice */}

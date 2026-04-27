@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="SparkForge SF monogram, transparent background">
+  <title>SparkForge</title>
+  <defs>
+    <linearGradient id="tm-electric" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#E8FDFF"/>
+      <stop offset="35%" stop-color="#7FE8FF"/>
+      <stop offset="70%" stop-color="#00BBFF"/>
+      <stop offset="100%" stop-color="#0077CC"/>
+    </linearGradient>
+    <linearGradient id="tm-holo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#00BBFF"/>
+      <stop offset="50%" stop-color="#AA66FF"/>
+      <stop offset="100%" stop-color="#FF66CC"/>
+    </linearGradient>
+    <filter id="tm-glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="b2"/>
+      <feMerge>
+        <feMergeNode in="b2"/>
+        <feMergeNode in="b1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="tm-holo-shift" x="-20%" y="-20%" width="140%" height="140%">
+      <feOffset in="SourceGraphic" dx="-3" dy="0" result="sL"/>
+      <feColorMatrix in="sL" type="matrix" values="0 0 0 0 0  0 0 0 0 0.73  0 0 0 0 1  0 0 0 0.7 0" result="cy"/>
+      <feOffset in="SourceGraphic" dx="3" dy="0" result="sR"/>
+      <feColorMatrix in="sR" type="matrix" values="1 0 0 0 1  0 0 0 0 0.4  0 0 0 0 0.8  0 0 0 0.7 0" result="mg"/>
+      <feMerge>
+        <feMergeNode in="cy"/>
+        <feMergeNode in="mg"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#tm-glow)">
+    <path d="M 218 96 L 68 96 L 60 176 L 214 198 L 206 268 L 58 288 L 50 372 L 214 396 L 206 430 L 66 420 L 74 388 L 190 398 L 196 372 L 80 350 L 90 252 L 232 236 L 238 168 L 88 150 L 96 120 L 214 126 Z"
+          fill="url(#tm-electric)" stroke="#E8FDFF" stroke-width="2" stroke-linejoin="miter"/>
+  </g>
+
+  <g filter="url(#tm-holo-shift)">
+    <path d="M 282 108 L 462 108 L 462 164 L 338 164 L 338 232 L 440 232 L 440 286 L 338 286 L 338 418 L 282 418 Z"
+          fill="url(#tm-holo)" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1.5"/>
+  </g>
+
+  <g opacity="0.25">
+    <rect x="282" y="108" width="180" height="56" fill="none" stroke="#00BBFF" stroke-width="1"/>
+    <rect x="282" y="232" width="158" height="54" fill="none" stroke="#AA66FF" stroke-width="1"/>
+    <rect x="282" y="286" width="56" height="132" fill="none" stroke="#FF66CC" stroke-width="1"/>
+  </g>
+</svg>
