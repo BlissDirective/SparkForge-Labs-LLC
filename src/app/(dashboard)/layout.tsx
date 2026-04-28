@@ -39,6 +39,7 @@ import { useCelebration3D } from '@/hooks/useCelebration3D';
 // visible" race on fast machines and skip-intro paths.
 import { useAtomicHeroToCockpit } from '@/hooks/useIsFullyReady';
 import { useCockpitStore, modeToCenterContent } from '@/stores/cockpitStore';
+import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { DemoGuard } from '@/components/auth/DemoGuard';

@@ -247,10 +247,15 @@ const PUBLIC_PAGE_PATHS: ReadonlyArray<string> = [
 
 function classify(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // /dev/* routes are visual checkpoints for branding + 3D work. They
+  // are public in non-production only; the page itself returns 404 in
+  // production so even a misconfigured deployment cannot expose them.
+  const isDevRoute =
+    process.env.NODE_ENV !== 'production' && pathname.startsWith('/dev/');
   return {
     pathname,
     isAPI: pathname.startsWith('/api'),
-    isPublicPage: PUBLIC_PAGE_PATHS.includes(pathname),
+    isPublicPage: PUBLIC_PAGE_PATHS.includes(pathname) || isDevRoute,
     isPublicAPI: isPublicAPI(pathname),
     isStatic: pathname.startsWith('/_next'),
     isAsset: /\.(ico|png|jpg|svg|woff2?)$/.test(pathname),

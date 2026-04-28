@@ -1,8 +1,63 @@
 # SparkForge Build Progress
 
-## Current Phase: Phase 5 — First 10 Enhancements (Final-Audit 04-15)
-## Status: IN PROGRESS — Task #1 complete, #2 next
-## Last Updated: 2026-04-22
+## Current Phase: SparkForge Branding 3D — Phase 1 (Material Config + BrandingMaterial)
+## Status: IN PROGRESS — Phase 1 complete; awaiting user visual checkpoint + lensflare decision
+## Last Updated: 2026-04-28
+
+---
+
+## SparkForge Branding 3D — April 28, 2026
+
+**Branch:** `claude/sparkforge-branding-3d-I4Za1` · **Scope:** 7-phase build to extract IMG_4607 (`public/branding/IMG_4607.png`) brand DNA into a single shader + geometry pipeline; replace existing wordmark + hero animation with WebGPU+TSL-rendered SparkForge wordmark; ship offline 4K renders + experimental Sora 2 / Veo 3 prompt pack.
+
+### Locked decisions (chat history)
+
+| ID | Pick | Notes |
+|---|---|---|
+| D1 | A | Hand-trace SF + custom-design `parkorge` glyphs in same idiom |
+| D2 | A | Headless Puppeteer + sharp |
+| D3 | B | WebGPU + TSL primary, fallback per N2 |
+| D4 | C | Full re-choreograph of all 8 hero phases |
+| D5 | order ok | 1→7 phase plan |
+| N1 | a | Live R3F+TSL hero with volumetric god-rays + Voronoi shard upgrades |
+| N2 | c | WebGPU+TSL primary; thin MP4-poster fallback for non-WebGPU (no shader fork) |
+| N3 | a+b+c | three-bvh-csg + Theatre.js (dev) + lensflare (lensflare-effect 404 — awaiting user pick a/b/c) |
+| N4 | 19 s w/ 4× FF | Hero timing locked |
+| N5 | b | SSIM ≥ 0.96 halt threshold per Mythos rule |
+| E1 | yes | Anisotropic prismatic dispersion in TSL |
+| E2 | yes | Procedural palette-locked HDRI |
+| E3 | yes | WebGPU compute Voronoi pre-fracture |
+
+### Phase 1 — COMPLETE (2026-04-28)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| Deps installed | `package.json` | three-bvh-csg@0.0.18, @theatre/core@0.7.2, @theatre/studio@0.7.2 (-D) |
+| Quality mandate | `CLAUDE.md` | New "Tech Quality Mandate" section (v6.6); removed all WebGPU/WebGL2/CSS fallback-chain mentions; HS-9 visual checklist updated |
+| Material config | `src/lib/branding/sf-material.config.ts` | Single source of truth — eye-extracted IMG_4607 params (palette, IOR, transmission, anisotropic dispersion, dichroic film, geometry, lighting rig, lens flares, procedural HDRI seed, halt threshold) |
+| BrandingMaterial | `src/components/3d/branding/BrandingMaterial.tsx` | TSL `MeshPhysicalNodeMaterial` + custom dichroic emissive `Fn` node (per-channel asymmetric color split, Fresnel-boosted, world-space band sweep, warm-bias asymmetry). Exports `createBrandingMaterial()` + `<BrandingMesh>`. |
+| BrandingShowcase | `src/components/3d/branding/BrandingShowcase.tsx` | Canvas wrapper. WebGPU capability gate. Async `WebGPURenderer` init via R3F's async `gl` factory. Procedural HDRI via drei `<Environment frames={1}>` with palette-locked `<Lightformer>` rig (E2). Three-light rig (key/rim/fill). MP4-poster fallback for non-WebGPU devices (uses IMG_4607 poster until Phase 4 ships the loop). |
+| Dev showcase route | `src/app/dev/branding/page.tsx` + `client.tsx` | `/dev/branding` — 4 placeholder geometries (cube/sphere/torus knot/icosahedron), reference toggle, orbit toggle. `notFound()` in production. |
+| Middleware bypass | `src/middleware.ts` | `/dev/*` routes are public **only** in non-production (`NODE_ENV !== 'production'`). |
+
+### Discrepancies Log (Phase 1 auto-fixes — CLAUDE.md §3.1)
+
+| File | Issue | Fix |
+|---|---|---|
+| `src/app/(dashboard)/layout.tsx` | Pre-existing TS error: `useCockpitBroadcast` referenced without import. Found at `@/stores/cockpitBroadcastStore` (already exists; layout was the missing piece). | Added named import. |
+| `src/stores/cockpitStore.ts` | Pre-existing TS1117: `_spatialViewTimeout` / `_focusLabTimeout` / `_openConsoleTimeout` / `_returnToOverviewTimeout` declared twice (merge artifact). | Removed second declaration (the one after the R1 UI-routing slice block). |
+| `src/components/3d/branding/BrandingShowcase.tsx` | ESLint `no-restricted-imports`: namespace import from `three/webgpu` blocked. | Switched to named import `{ WebGPURenderer }`. |
+
+### Build verification
+
+- `npm run build` → ✅ **Compiled successfully in 27.3s** (EXIT=0). Warnings only (all pre-existing in non-Phase-1 files).
+- `npm run dev` → ✅ Ready in 4.8s; `/dev/branding` returns 200 OK (compile time 2.4s).
+- TS check on Phase 1 files only → ✅ zero errors.
+
+### Open items (rolled to Phase 2)
+
+1. **Lensflare resolution** — `@react-three/lensflare-effect` does not exist on npm. User to pick `a` (drei `<Lensflare>`), `b` (postprocessing `LensFlareEffect`), or `c` (custom TSL shader). Not blocking — first surfaces in Phase 5b.
+2. **Visual checkpoint** — User to verify `/dev/branding` renders the dichroic-coated geometries against IMG_4607 reference. SSIM convergence is informal at this stage (no real letter geometry yet); the precise SSIM ≥ 0.96 gate runs at Phase 2 (SF mark) and Phase 3 (full wordmark).
 
 ---
 

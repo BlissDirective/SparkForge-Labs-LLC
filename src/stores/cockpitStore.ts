@@ -292,11 +292,6 @@ export const useCockpitStore = create<CockpitState>()(
       centerData: {} as CenterContentData,
       previousCenter: null as CenterContentKey | null,
 
-      _spatialViewTimeout: null,
-      _focusLabTimeout: null,
-      _openConsoleTimeout: null,
-      _returnToOverviewTimeout: null,
-
       setSpatialView: (spatialView) => {
         const prev = get()._spatialViewTimeout;
         if (prev) clearTimeout(prev);
