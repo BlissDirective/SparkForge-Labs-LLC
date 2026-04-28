@@ -774,4 +774,343 @@ User checkpoint: full app visual sweep on desktop + mobile.
 
 ---
 
-*End of commit 3 of 4. Phase 7 + reusable patterns + alternative video-hero path in commit 4.*
+## 13. Phase 7 — Sora 2 + Veo 3 Prompt Pack (DETAILED)
+
+**Goal:** A documentation-only deliverable. No code. Author a polished prompt pack for the marketing-only Seedance / Sora 2 / Veo 3 video renders. The user generates the videos manually using their model accounts; the prompt pack is the brief.
+
+### Phase 7.1 — Author `docs/marketing/SoraVeo-PromptPack.md`
+
+Structure:
+
+```markdown
+# SparkForge Marketing Video — Prompt Pack
+
+## Anchor frames (provide as image inputs)
+- public/branding/sf-hero.png  — first-frame anchor for SF beats
+- public/branding/sparkforge-hero.png — first-frame anchor for wordmark beats
+
+## Style notes (every prompt prepends)
+- Color palette: deep navy void #02050d, dichroic cyan #7fe8ff, magenta #ff5fc8, warm amber #ffaa55
+- Material: clear glass crystal, IOR 1.55, transmission 0.97, asymmetric prismatic dispersion
+- Lighting: warm key from lower-left, cool rim from upper-right, no overhead light
+- Camera: cinematic dolly + slight handheld float, never aggressive movement
+
+## Beat-by-beat prompts (mirroring Storyboard.md)
+
+### Beat 1 — Void Awakening (0–2.5s, target 3s clip)
+SORA 2 PROMPT: <full prompt>
+VEO 3 PROMPT: <full prompt — Veo prefers shorter prompts>
+SEEDANCE 2.0 PROMPT: <full prompt — Seedance prefers cinematography terms>
+
+### Beat 2-7 ... (same triple-prompt pattern)
+
+### Beat 8 — Last frame anchor
+LAST FRAME: render the cockpit's first mounted frame as PNG, supply as Sora's
+"end_frame" parameter / Veo 3's "last_frame_image" / Seedance's "end_image".
+This locks the handoff.
+```
+
+### Phase 7.2 — Stitching + grading instructions
+
+Add a section detailing:
+
+1. How to stitch the 7 generated clips with FFmpeg (zero-frame `xfade` filter for smooth transitions).
+2. Suggested DaVinci Resolve LUT to lock palette to IMG_4607.
+3. Encoding ladders (4K AV1 + H.265 fallback + 1080p VP9 for Safari ≤16).
+
+### Phase 7.3 — Cost + iteration estimate
+
+Document realistic per-pass costs ($1-10 per take depending on model) and recommend 3-5 takes per beat to find the brand-faithful winner. Total budget: $25-200 for a complete brand-faithful 19-second hero render.
+
+### Phase 7.4 — Commit + push
+
+```bash
+git add docs/marketing/SoraVeo-PromptPack.md
+git commit -m "Phase 7: Sora 2 + Veo 3 + Seedance 2.0 prompt pack"
+git push
+```
+
+This phase ends the build plan.
+
+---
+
+## 14. Reusable Patterns + Conventions
+
+Patterns established by Phases 1-2 that future code should follow without re-inventing:
+
+### TSL imports
+
+```ts
+// CORRECT — named imports only (ESLint blocks namespace imports)
+import { WebGPURenderer, MeshPhysicalNodeMaterial } from 'three/webgpu';
+import { Fn, vec3, uniform, normalView, positionWorld, mix, smoothstep, abs, sin, cos, pow, dot, normalize, fract, step, oneMinus } from 'three/tsl';
+
+// WRONG — will fail eslint no-restricted-imports
+import * as THREE_WEBGPU from 'three/webgpu';
+```
+
+### WebGPU capability detection (client-side only)
+
+See `useWebGPUCapability()` in `BrandingShowcase.tsx`. Reuse it; don't re-implement.
+
+### R3F WebGPU async gl factory
+
+```tsx
+<Canvas
+  gl={async (props) => {
+    const renderer = new WebGPURenderer({
+      ...(props as Record<string, unknown>),
+      antialias: true,
+      alpha: false,
+    });
+    await renderer.init();
+    return renderer as unknown as never;  // R3F type ergonomics
+  }}
+>
+```
+
+### SVG → ExtrudeGeometry pipeline
+
+See `SfMark3D.tsx` for the full pattern:
+- `useLoader(SVGLoader, url)` — handles caching + suspense
+- `SVGLoader.createShapes(path)` — modern API; do NOT use deprecated `path.toShapes()`
+- `new ExtrudeGeometry(shape, settings)` per shape
+- `geom.scale(1, -1, 1)` to flip y (SVG y-down → three y-up)
+- Recenter to box center via `geom.boundingBox.getCenter() + geom.translate()`
+- Group-level recenter via Box3 measurement after mount (handles aggregate)
+
+### BrandingMaterial instantiation
+
+```ts
+const material = useMemo(() => createBrandingMaterial(options), [options]);
+useEffect(() => () => material.dispose(), [material]);
+```
+
+Each mesh gets its OWN material instance (TSL node materials hold GPU pipelines per-instance). Sharing causes uniform interference.
+
+### Italic lean (NOT skew)
+
+Always apply via group rotation, never via skewX. Skew distorts the surface normals and breaks the dispersion fresnel sampling.
+
+```tsx
+<group rotation={[0, italicLean, 0]}>...</group>   // ✓ correct
+// <... transform: skewX(...)>                      // ✗ breaks dispersion
+```
+
+### Dev showcase route convention
+
+- Path: `src/app/dev/<feature>/page.tsx` + `client.tsx`
+- Page: server component, `notFound()` if production AND no `NEXT_PUBLIC_ALLOW_DEV_ROUTES`
+- Client: `'use client'`, all interactivity here
+- Middleware bypass: `/dev/*` already covered
+
+### Pre-existing repo gotchas (auto-fixed during Phase 1, may resurface)
+
+- `src/app/(dashboard)/layout.tsx` references `useCockpitBroadcast` — must be imported from `@/stores/cockpitBroadcastStore` (NOT `@/stores/cockpitStore`).
+- `src/stores/cockpitStore.ts` had duplicate `_*Timeout` properties from a merge artifact. Re-check after pulls.
+- ESLint rule `no-restricted-imports` blocks `import * as X from 'three[/...]`. Always use named imports.
+
+---
+
+## 15. Mythos Halt Rule — How Convergence Works In Practice
+
+**Threshold:** SSIM ≥ 0.96 vs `public/branding/IMG_4607.png` for SF mark, vs the user-approved storyboard for hero beats.
+
+**Loop pattern (apply to every visual checkpoint):**
+
+```
+1. Render current state to PNG (via dev/branding/render route or Phase 4 script)
+2. SSIM(current.png, IMG_4607.png) -> compute via npm pkg `image-ssim` or sharp
+3. If >= 0.96 -> halt, ship, commit
+4. If < 0.96  -> identify worst-deviating channel (color/structure/luminance)
+                    -> tune corresponding sf-material.config.ts param
+                    -> goto 1
+5. After 12 iterations without convergence -> escalate to user with diff visualization
+```
+
+In practice (Phase 1 + 2): the user does the eyeballing. If you (the agent) want to automate it, install `image-ssim` and write a one-shot `scripts/compare-ssim.ts` that the dev showcase can call.
+
+---
+
+## 16. ALTERNATIVE — Video Hero Path (Sora 2 / Veo 3 / Seedance 2.0)
+
+If at any point the user decides the live R3F+TSL hero is taking too long, costing too much engineering, or simply doesn't hit the visual ceiling they want — here is the **complete** transition plan to switch to a video-generated hero. This is a self-contained alternative; reading section 16 alone is enough to execute.
+
+### 16.1 — Tradeoffs (read first)
+
+| Dimension | Live R3F + TSL (default) | Video-generated hero (this section) |
+|---|---|---|
+| Visual ceiling | Excellent, bound by what we can write in TSL | Hollywood-grade out of the box |
+| Per-device consistency | Varies (WebGPU vs MP4-poster) | Pixel-identical everywhere |
+| Bundle weight | ~30 KB shaders | 25-60 MB streamed video |
+| First paint | Canvas init ~600ms | Poster instant (~50 KB JPG) |
+| Cockpit handoff | True single-canvas, zero-flash | Crossfade window — visible if mistimed |
+| Skip / scrub / 4× FF | Native via timeline | Native via `<video>` API |
+| Pointer parallax | Native | **Impossible** |
+| Chromatic dispersion fidelity | Full GPU precision | Crushed by H.264/AV1 codec |
+| Iteration speed | Live shader hot-reload, free | Hours per generation, $1-10/take |
+| Brand updates | Edit shader uniform, ship in minutes | Re-prompt + re-grade + re-encode (days) |
+| Source-of-truth | One shader, both contexts | Diverges (shader for stills, video for hero) |
+| Engineering risk | Medium (TSL bugs, WebGPU edge cases) | Low (just a `<video>` tag) |
+
+**Recommendation if switching:** keep the live offline-render path (Phase 4) as the brand source-of-truth for stills, and use video ONLY for the hero. The shader produces the still frames that ANCHOR the video generation (image-to-video conditioning) — this preserves the single-source-of-truth.
+
+### 16.2 — Model selection (April 2026)
+
+| Model | Max length | Max res | Strength | Caveat |
+|---|---|---|---|---|
+| **Sora 2** (OpenAI) | ~20s | 1080p (4K via upscale) | Best material physics + realism | API gated; high cost per iteration |
+| **Veo 3** (Google) | ~8s | 4K native | Best photographic feel | 8s cap forces stitching |
+| **Seedance 2.0** (ByteDance) | ~10s | 4K | Best cinematic camera moves | Less reliable on tiny letterform detail |
+| **Kling 2.0** (Kuaishou) | ~10s | 1080p | Best character motion | Less cinematic for abstract VFX |
+| **Runway Gen-4** | ~10s multi-shot | 4K | Best multi-shot continuity | Pricing ramps quickly |
+
+**Recommended primary:** **Sora 2** (single 20s take + 4K upscale) → simplest pipeline.
+**Recommended fallback:** **Veo 3 stitched** (8s × 3 clips with FLF2V conditioning) → best photographic quality.
+**Recommended for camera moves:** **Seedance 2.0** if Sora 2 / Veo 3 access isn't available.
+
+### 16.3 — Storyboard for video version (19s)
+
+Same beat structure as the live R3F version (`Storyboard.md`), but each beat is a video clip with explicit anchor frames:
+
+| t | Beat | First-frame anchor | Last-frame anchor |
+|---|---|---|---|
+| 0.0–2.5s | Void Awakening | navy void + 2 light points (rendered or generated) | beat-2 spark mid-coalesce |
+| 2.5–5.0s | Ignition Spark | beat-1 final | beat-3 S-mid-crystallize |
+| 5.0–8.0s | S Crystallization | beat-2 final | **`public/branding/sf-hero.png`** (Phase 4 SF-mark still) |
+| 8.0–11.0s | F Mirror + Shard Burst | beat-3 final (SF mark complete) | beat-5 wordmark-mid-cascade |
+| 11.0–14.0s | Wordmark Cascade | beat-4 final (SF + scattered shards) | **`public/branding/sparkforge-hero.png`** (Phase 4 wordmark still) |
+| 14.0–17.0s | Dichroic Bloom | beat-5 final (wordmark settled) | beat-7 cockpit silhouette starts |
+| 17.0–19.0s | Cockpit Materialization + Handoff | beat-6 final | **render of cockpit's first frame** (NEW: see step 16.4.2) |
+
+### 16.4 — Implementation steps
+
+Same execution model as the live-hero phases, but the per-phase content changes:
+
+#### 16.4.1 — Replace Phase 5b/5c with Phase V (video)
+
+```
+Phase V.1  Stitch + encode pipeline
+  scripts/stitch-hero-video.ts  → ffmpeg concat + xfade + AV1 + H.265 + WebM
+Phase V.2  Build <BrandHeroVideo> component
+  src/components/3d/HeroVideoPlayer.tsx  → <video> with poster + controls + skip + 4x FF
+Phase V.3  Cockpit-arrival anchor frame render
+  scripts/render-cockpit-anchor.ts  → boots cockpit, screenshots first frame at 4K
+Phase V.4  Wire into HomePage / hero mount points
+  Replace HeroAnimation usage with HeroVideoPlayer; preserve sceneStore.heroPhase semantics
+Phase V.5  Crossfade handoff
+  Last 400ms of <video> fades down; cockpit canvas fades up
+Phase V.6  prefers-reduced-motion + accessibility
+  poster-only path; ARIA description; captions for any audio
+```
+
+#### 16.4.2 — How to produce the cockpit-anchor PNG
+
+Critical for landing the handoff frame: the video's last frame must EXACTLY match the cockpit's first rendered frame. Without this, the transition is jarring.
+
+```bash
+npm run dev
+# Navigate to a hidden /dev/cockpit-anchor route that mounts the cockpit
+# at its initial state, no UI overlays, fixed camera.
+# Take a screenshot.
+node scripts/render-cockpit-anchor.ts > public/branding/cockpit-anchor.png
+# Pass cockpit-anchor.png as the "end_frame" / "last_frame_image" parameter
+# to your video-gen model for the final beat.
+```
+
+Then in `HeroVideoPlayer.tsx`:
+```ts
+const handleVideoEnd = () => {
+  // Crossfade the video out as cockpit canvas fades in.
+  // 400ms overlap window. Both render simultaneously during overlap.
+  videoRef.current!.style.opacity = '0';
+  cockpitCanvasRef.current!.style.opacity = '1';
+  setTimeout(() => sceneStore.completeHero(), 400);
+};
+```
+
+#### 16.4.3 — Generate the video clips
+
+For each beat in section 16.3:
+
+1. Open your chosen model's web UI or API.
+2. Provide the **first-frame anchor** as an image input (Sora 2: `image_input`; Veo 3: `first_frame_image`; Seedance: `start_image`).
+3. Provide the **last-frame anchor** as an end-frame conditioning input (Sora 2 + Veo 3 + Seedance all support this).
+4. Use the prompts from `docs/marketing/SoraVeo-PromptPack.md` (created in Phase 7 — author it FIRST even if you're skipping live-hero, because it captures the storyboard).
+5. Generate 3-5 takes. Hand-pick the best.
+6. Save winners to `public/branding/hero-clips/beat-<N>.mp4`.
+
+#### 16.4.4 — Stitch + encode
+
+```bash
+ffmpeg -i beat-1.mp4 -i beat-2.mp4 -i beat-3.mp4 ... \
+  -filter_complex "[0:v][1:v]xfade=transition=fade:duration=0.1:offset=2.4[v01];[v01][2:v]xfade=...[v02];..." \
+  -c:v libsvtav1 -crf 28 -pix_fmt yuv420p \
+  public/branding/sparkforge-hero-4k.mp4
+
+# Encode H.265 fallback for Safari ≤16
+ffmpeg -i public/branding/sparkforge-hero-4k.mp4 -c:v libx265 -crf 26 \
+  public/branding/sparkforge-hero-4k.h265.mp4
+
+# Encode 1080p adaptive ladder for slow connections
+ffmpeg -i public/branding/sparkforge-hero-4k.mp4 -vf scale=1920:1080 -c:v libx264 -crf 22 \
+  public/branding/sparkforge-hero-1080p.mp4
+```
+
+#### 16.4.5 — Adaptive streaming (recommended)
+
+Use Vercel's built-in HLS support: upload all three encodings (4K AV1, 4K H.265, 1080p H.264) and serve via Vercel's edge CDN. The `<video>` tag's `<source>` elements list them in priority order; the browser picks the best supported.
+
+### 16.5 — How to bring this to fruition (decision tree)
+
+If the user reads this section and decides to switch:
+
+1. **Skip Phase 5a/5b/5c entirely.** Replace them with "Phase V" sub-phases above.
+2. **Still execute Phase 7** — the prompt pack IS the storyboard for the video generation. Without Phase 7 there's nothing to prompt.
+3. **Still execute Phase 4** — the offline 4K stills become the I2V/FLF2V anchor frames. Without Phase 4, the videos have nothing to anchor to and will drift off-brand.
+4. **Phase 6 (BrandWordmark)** still applies — non-hero surfaces still use the static PNG.
+5. **Phase 3 (SparkForge wordmark geometry)** can be skipped IF you commit fully to video (the wordmark only renders in static contexts — covered by Phase 4 PNG output). But recommend keeping it for `<BrandWordmark variant="3d-live">` instances if you ever want a live shader anywhere.
+
+**Hybrid approach (RECOMMENDED if going video):** Keep all 7 phases of the live-hero plan (so all non-hero surfaces use the live shader), and ADDITIONALLY do "Phase V" video work for the home-page hero only. This gives you:
+
+- Marketing-grade Hollywood video on the most-viewed surface
+- Live shader fidelity everywhere else
+- Single brand source-of-truth still preserved (shader anchors the video)
+
+### 16.6 — Cost + time estimate
+
+| Item | Time | Cost |
+|---|---|---|
+| Phase 7 prompt pack authoring | 4 hours | $0 |
+| Generate 21 takes (3 per beat × 7 beats) | 8-12 hours wall-clock | $50-300 |
+| Hand-pick winners + first iteration | 2-4 hours | $20-100 (re-rolls) |
+| Stitch + grade + encode | 4-6 hours | $0 |
+| Cockpit anchor frame production | 1 hour | $0 |
+| HeroVideoPlayer component | 4-8 hours engineering | $0 |
+| Crossfade handoff implementation | 2-4 hours | $0 |
+| QA + adaptive ladder verification | 4-6 hours | $0 |
+| **Total** | **2-4 days wall-clock** | **$70-400** |
+
+Compare to live-hero remaining work (Phases 5a-c + 6): ~5-8 days engineering, $0 ongoing.
+
+---
+
+## 17. Final Checklist Before Closing Out
+
+Whether the user picks live-hero or video-hero, the build is "done" when:
+
+- [ ] All 35+ UI occurrences of "SparkForge" use `<BrandWordmark>` (Phase 6)
+- [ ] Hero plays end-to-end at 19s with 4× fast-forward + skip toggle (HS-9)
+- [ ] Hero → cockpit handoff has zero visible flash (HS-9)
+- [ ] `prefers-reduced-motion` skips hero entirely (HS-9)
+- [ ] Login 3D + Demo Login flow still works (HS-10)
+- [ ] WebGPU + non-WebGPU devices both serve a faithful brand experience
+- [ ] `npm run build` passes
+- [ ] `PROGRESS.md` updated with all phase completions
+- [ ] User has signed off visually on each phase
+
+---
+
+*End of commit 4 of 4. Document complete.*
+*Total runtime estimate from this point: 5-8 days for live-hero path, 2-4 days for video-hero path.*
+*Branch ready for handoff at commit `c4939dc` + four `BRAND_HERO_ACTION_PLAN: commit N/4 ...` commits on top.*
