@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SparkForge SF Mark — vector geometry for 3D extrusion.
+
+  Hand-traced from public/branding/IMG_4607.png. Captures the brand DNA:
+    - Wide, geometric, Monument-Extended-style proportions
+    - Subtle italic/forward lean (applied at component-level transform,
+      not in the SVG, so the source remains square for editing)
+    - 'F' and 'S' share cap-height (650u) + baseline (720u)
+
+  Coordinate system: SVG y-down. SfMark3D.tsx mirrors to y-up at load.
+
+  Letter zones (viewBox 0 0 1400 800):
+    S — x ∈ [130..620], y ∈ [70..720]    (cap-height 650, width 490)
+    F — x ∈ [770..1320], y ∈ [70..720]   (cap-height 650, width 550)
+    Stroke thickness: 130u (top/middle/bottom bars)
+    Letter spacing: 150u between right of S and left of F
+
+  Edit-flow (Mythos halt rule, SSIM ≥ 0.96):
+    Replace either path's d-attribute with an Illustrator/Figma trace
+    if you need pixel-accuracy. Keep path IDs (sf-mark-S, sf-mark-F)
+    so SfMark3D.tsx can address them individually for the hero
+    ignition beat (S then F).
+
+  Path winding: clockwise outer outline, no holes. SVGLoader applies
+  default fill-rule="nonzero" — both letters are simply-connected.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 1400 800"
+     fill="#ffffff"
+     fill-rule="nonzero">
+
+  <!--
+    S letter — outline traced clockwise from top-left.
+    Two "indent" jogs:
+      • top-right: bottom of top bar steps left to right-of-stem,
+        down to top-of-middle-bar, then right to the right edge.
+      • bottom-left: top of bottom bar steps right to left-of-right-
+        stem, up to bottom-of-middle-bar, then left to the left edge.
+  -->
+  <path id="sf-mark-S" d="
+    M 130 70
+    L 620 70
+    L 620 200
+    L 280 200
+    L 280 305
+    L 620 305
+    L 620 720
+    L 130 720
+    L 130 590
+    L 470 590
+    L 470 420
+    L 130 420
+    Z
+  " />
+
+  <!--
+    F letter — outline traced clockwise from top-left.
+    One "step" jog at top-bar bottom-right (drops to stem inside
+    edge), one "step" jog at middle-bar pair (drops then rises).
+  -->
+  <path id="sf-mark-F" d="
+    M 770 70
+    L 1320 70
+    L 1320 200
+    L 920 200
+    L 920 305
+    L 1230 305
+    L 1230 420
+    L 920 420
+    L 920 720
+    L 770 720
+    Z
+  " />
+</svg>

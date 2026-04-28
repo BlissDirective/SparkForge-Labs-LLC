@@ -1,12 +1,42 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 1 (Material Config + BrandingMaterial)
-## Status: IN PROGRESS — Phase 1 complete; awaiting user visual checkpoint + lensflare decision
+## Current Phase: SparkForge Branding 3D — Phase 2 (SF Mark Geometry)
+## Status: IN PROGRESS — Phase 2 complete; awaiting user visual checkpoint
 ## Last Updated: 2026-04-28
 
 ---
 
-## SparkForge Branding 3D — April 28, 2026
+## SparkForge Branding 3D — Phase 2 (SF Mark Geometry) — April 28, 2026
+
+**Branch:** `claude/sparkforge-branding-3d-I4Za1`
+
+### Phase 2 — COMPLETE (2026-04-28)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| SF mark vector | `public/branding/sf-geometry.svg` | Single-source hand-trace from IMG_4607. Two paths (`sf-mark-S`, `sf-mark-F`); clockwise outline winding; viewBox 1400×800; chamfered terminals. Editable in Illustrator/Figma — keep path IDs to preserve animation hooks. |
+| SF mark 3D | `src/components/3d/branding/SfMark3D.tsx` | SVGLoader → `SVGLoader.createShapes` → `ExtrudeGeometry` per shape, with bevel/depth from `GEOMETRY` config (depth 32% of cap-height, bevel 7.2% of cap-height, 12 bevel segments, 24 curve segments). Each path mounts as a separate mesh with its own `BrandingMaterial` instance (Phase 5b animates S and F independently). Italic forward-lean (default 0.06 rad ≈ 3.4°) applied at component-level rotation, NOT skew (skew breaks the dispersion fresnel). |
+| Dev showcase upgrade | `src/app/dev/branding/client.tsx` | New default subject "SF mark (Phase 2)"; live-tuning sliders for `dispersionMultiplier`, `dichroicIntensity`, `italicLean`. |
+
+### Build verification
+
+- `npm run build` → ✅ **Compiled successfully in 2.0min** (EXIT=0; longer than Phase 1 due to fresh webpack cache rebuild after dep installs).
+- `npm run dev` → ✅ `/dev/branding` returns 200 OK. SVG asset (`/branding/sf-geometry.svg`) serves. No runtime errors.
+- TS check on Phase 2 files only → ✅ zero errors.
+
+### Halt rule note (Mythos / SSIM ≥ 0.96)
+
+Phase 2's SF mark is a **clean geometric approximation** of IMG_4607's letterforms, not a pixel-perfect trace. The SVG is the single source of truth and is human-editable: if visual diff vs IMG_4607 falls below the 0.96 halt threshold, the user can replace the two `<path d="...">` strings with Illustrator/Figma traces and refresh — no code change needed (path IDs are preserved).
+
+### Open items (rolled to Phase 3)
+
+1. **Visual checkpoint** — User to verify `/dev/branding` (subject = "SF mark") against IMG_4607. If geometry is off, edit SVG; if dispersion/dichroic is off, tune sliders → record values → I'll bake them into `sf-material.config.ts` for Phase 3.
+2. **Lensflare** — locked at `c` (custom TSL shader). Built as Phase 5b prep, not Phase 2.
+3. **Mobile review path** — env-var override pending user clarification (this turn).
+
+---
+
+## SparkForge Branding 3D — Phase 1 (Material Config + BrandingMaterial) — April 28, 2026
 
 **Branch:** `claude/sparkforge-branding-3d-I4Za1` · **Scope:** 7-phase build to extract IMG_4607 (`public/branding/IMG_4607.png`) brand DNA into a single shader + geometry pipeline; replace existing wordmark + hero animation with WebGPU+TSL-rendered SparkForge wordmark; ship offline 4K renders + experimental Sora 2 / Veo 3 prompt pack.
 
