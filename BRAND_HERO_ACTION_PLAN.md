@@ -437,4 +437,341 @@ git push -u origin claude/sparkforge-branding-3d-I4Za1
 
 ---
 
-*End of commit 2 of 4. Phase 5 + 6 in commit 3, Phase 7 + alternative video path in commit 4.*
+## 8. Phase 5a — Storyboard + Hero Audit (DETAILED)
+
+**Goal:** Read the existing 8-phase hero (`src/components/3d/HeroAnimation.tsx`) end-to-end. Document every current beat. Then write the new 19-second beat sheet for the v3 hero — a deliverable the user signs off on BEFORE any code is rebuilt.
+
+This phase ships a markdown deliverable, not code. Do not modify `HeroAnimation.tsx` until Phase 5b.
+
+### Phase 5a.1 — Audit current hero
+
+**Files to read:**
+
+- `src/components/3d/HeroAnimation.tsx` (full read)
+- `src/stores/sceneStore.ts` (heroPhase state machine + setters)
+- `src/hooks/useAtomicHeroToCockpit.ts` (the atomic handoff)
+- `src/components/3d/Cockpit*.tsx` or wherever the cockpit canvas lives (find via `grep -r "cockpit" src/components/3d`)
+- `Cockpit-Interface-Plan.md` (high-level cockpit architecture)
+
+For each of the existing 8 phases, document in the storyboard:
+- Phase name + duration (ms)
+- Camera path (start → end position + lookAt)
+- Active subjects (crystal/text/particles)
+- Key visual events
+- Audio cue points
+- Transition trigger to next phase
+
+### Phase 5a.2 — Author storyboard
+
+**File to create:** `docs/hero-v3/Storyboard.md`
+
+Structure:
+
+```markdown
+# Hero v3 Storyboard
+
+## Total runtime: 19 s @ 1×, 4.75 s @ 4× fast-forward
+## Framework: GSAP timeline + Theatre.js sequencer
+## All beats source from src/lib/branding/sf-material.config.ts
+
+### Beat 1 — Void Awakening (0.0 – 2.5s)
+| Aspect | Detail |
+|---|---|
+| Camera | start (0,0,15), end (0,0,12) — slow dolly-in |
+| Subject | starfield + cyan radial streaks (BACKGROUND.streaks) |
+| Audio | distant low-frequency hum, rises to mid |
+| Lighting | env at 30% intensity, key + rim at 0% |
+| Trigger out | t = 2.5s + dispersion-spark visible |
+
+### Beat 2 — Ignition Spark (2.5 – 5.0s)
+... (full breakdown)
+
+### Beat 3 — S Crystallization (5.0 – 8.0s)
+### Beat 4 — F Mirror + Shard Burst (8.0 – 11.0s)
+### Beat 5 — Wordmark Cascade (11.0 – 14.0s)
+### Beat 6 — Dichroic Bloom (14.0 – 16.5s)
+### Beat 7 — Cockpit Materialization (16.5 – 18.5s)
+### Beat 8 — Atomic Handoff (18.5 – 19.0s)
+```
+
+The exact beat content should mirror the storyboard you described to the user in chat (deep navy void → spark coalesce → S crystallize → F mirror + Voronoi shard burst → parkorge cascade → dichroic bloom → cockpit emerges → atomic handoff). Reproduce that storyboard verbatim in the markdown so the next session has the source.
+
+### Phase 5a.3 — Audio cue map
+
+Pull the existing audio file paths from `useCockpitAudio` and the hero scene. Map cue points to beats in `Storyboard.md`.
+
+### Phase 5a.4 — User sign-off gate
+
+Commit the storyboard. Push. **STOP.** Ask user to approve before starting 5b prep.
+
+```bash
+git add docs/hero-v3/Storyboard.md PROGRESS.md
+git commit -m "Phase 5a: hero v3 storyboard + audit current hero"
+git push
+```
+
+---
+
+## 9. Phase 5b prep — Custom TSL Lensflare Shader (DETAILED)
+
+**Goal:** Build the custom TSL anamorphic lensflare shader (per locked decision N3 lensflare = `c`). This is a self-contained component that any beat can mount; not used in Phase 5a, used by 5b beats 2/4/6.
+
+### Phase 5b prep.1 — Create `src/components/3d/branding/LensflareTSL.tsx`
+
+**Pattern to follow:** Same as `BrandingMaterial.tsx`'s TSL approach — uniforms via `uniform()`, custom `Fn(...)` for the shader body, applied to a `MeshBasicNodeMaterial` on a screen-space plane (or as a postprocessing pass).
+
+**Two-mesh architecture:**
+
+1. **Hot core** — small additive sphere at the flare position with emissive node = radial falloff × color × intensity uniform.
+2. **Anamorphic streak** — wide thin plane oriented to the streak angle, with TSL fragment that draws a streak gradient (high alpha at center, falloff toward ends, slight chromatic tint at the tips).
+
+Use additive blending (`AdditiveBlending`) so flares stack on top of the scene without darkening it.
+
+**Read uniform values from `LENS_FLARES` array in `sf-material.config.ts`** — there are two pre-configured flares (amber-spark lower-left, cyan-halo upper-right) with positions, colors, intensity, streak angle, length, width.
+
+**Component contract:**
+
+```ts
+export interface LensflareTSLProps {
+  /** Index into SF_BRAND.LENS_FLARES, OR a fully custom flare config */
+  flare?: number | LensflareConfig;
+  /** Override intensity multiplier (Phase 5b animates this 0 → 1.8 → 1.2) */
+  intensityMul?: number;
+  /** Override hot-core size (Phase 5b animates this 0 → 1.0 during ignition) */
+  coreScale?: number;
+  /** Override streak length (Phase 5b animates this 0 → 1.4 during ignition) */
+  streakScale?: number;
+}
+export function LensflareTSL(props: LensflareTSLProps): JSX.Element { ... }
+```
+
+### Phase 5b prep.2 — Add to dev showcase
+
+Add a "Lensflare" subject to `/dev/branding` so visual tuning can happen in isolation. Show both flares (amber + cyan) over a dark background with the SF mark behind for scale reference.
+
+### Phase 5b prep.3 — Build + dev verify + commit
+
+```bash
+npm run build
+npm run dev
+# Visual: warm-amber flare lower-left, cool-cyan flare upper-right,
+# anamorphic horizontal streaks visible, additive blend correct (no darkening).
+git add src/components/3d/branding/LensflareTSL.tsx src/app/dev/branding/client.tsx
+git commit -m "Phase 5b prep: custom TSL anamorphic lensflare shader"
+git push
+```
+
+---
+
+## 10. Phase 5b — Hero Phases 1-4 Rebuild (DETAILED)
+
+**Goal:** Replace beats 1-4 of `HeroAnimation.tsx` with the new TSL/three-bvh-csg implementation matching `Storyboard.md`. Beats 5-8 stay on the legacy code path until Phase 5c — the hero will visually break mid-stream during this phase, that's expected.
+
+### Phase 5b.1 — Theatre.js project setup
+
+**File to create:** `src/lib/hero/heroTheatreProject.ts`
+
+```ts
+import { getProject } from '@theatre/core';
+import heroState from './hero-v3.theatre.json';   // exported state file
+
+export const heroProject = getProject('SparkForgeHero', { state: heroState });
+export const heroSheet = heroProject.sheet('Hero v3');
+```
+
+In dev mode, also import `@theatre/studio` and `studio.initialize()` so beats can be live-tuned. Strip `studio` from production via dynamic import gated on `process.env.NODE_ENV !== 'production'`.
+
+### Phase 5b.2 — Voronoi shard pre-fracture (E3 — WebGPU compute)
+
+**File to create:** `src/components/3d/branding/SfShardSet.tsx`
+
+1. Import `three-bvh-csg` (`MeshBVH`, `CSG` operations).
+2. Take the SF mark `ExtrudeGeometry` from Phase 2.
+3. Generate ~150 random Voronoi cell centers inside the geometry's bounding box.
+4. For each cell, intersect with the SF geometry → produces shard meshes.
+5. Each shard gets its own `BrandingMaterial` instance + initial position = its center-of-mass.
+6. Expose `useShardImpulse(impulseMap)` hook to drive shard animation (position + rotation deltas) from the GSAP timeline.
+
+**Optimization (E3 GPU compute):** The repo already has `src/shaders/voronoiShatter.comp`. If it's a TSL-compatible compute kernel, port the cell-center generation to GPU. If it's WebGL2-style GLSL, write a TSL equivalent. Result: shard set generates in <5ms instead of CPU's ~60ms.
+
+### Phase 5b.3 — Beat implementations
+
+For each of beats 1-4, create a sub-component under `src/components/3d/hero/v3/`:
+
+| File | Beat |
+|---|---|
+| `Beat1VoidAwakening.tsx` | starfield + cyan streaks, slow dolly-in |
+| `Beat2IgnitionSpark.tsx` | warm spark forms lower-left, cool glow upper-right, both lensflares mount with `intensityMul` animated 0 → 1 |
+| `Beat3SCrystallization.tsx` | particle convergence to S position, BrandingMaterial fades in (transmission animated 0 → 0.97), dispersion peak |
+| `Beat4FMirrorAndShardBurst.tsx` | F mirrors S's ignition; SfShardSet briefly assembles into the F mark THEN explodes outward + cyan-mag gradient trail |
+
+Each beat exports a hook `useBeatN(timeline)` that wires its animations into the shared GSAP timeline at the correct offset (per `Storyboard.md`).
+
+### Phase 5b.4 — Wire into HeroAnimation.tsx
+
+**File to edit:** `src/components/3d/HeroAnimation.tsx`
+
+Replace the current beat-1-through-4 sub-components with the new v3 imports. Wrap in a phase-flag check (`process.env.NEXT_PUBLIC_HERO_V3_BEATS_1_4 === 'true'`) so legacy fallback is one env-var flip away during development. Remove the flag at end of Phase 5c.
+
+### Phase 5b.5 — Build + dev verify + commit + push
+
+```bash
+npm run build
+npm run dev
+# Visit / (homepage) — hero plays. Beats 1-4 are new, beats 5-8 are legacy
+# (visible discontinuity at t=11s — expected).
+git add ...
+git commit -m "Phase 5b: hero beats 1-4 rebuilt — ignition + shard burst"
+git push
+```
+
+User checkpoint after Phase 5b: visual sign-off on beats 1-4 only.
+
+---
+
+## 11. Phase 5c — Hero Phases 5-8 + Cockpit Handoff (DETAILED)
+
+**Goal:** Replace beats 5-8 with v3 implementations AND make the atomic single-canvas handoff to the cockpit work flawlessly. This is the highest-risk phase — handoff timing is brittle.
+
+### Phase 5c.1 — Beat implementations
+
+| File | Beat |
+|---|---|
+| `Beat5WordmarkCascade.tsx` | parkorge letters flash in around the SF mark with electricity arcs binding them (uses `electricVeins.frag` shader already in repo) |
+| `Beat6DichroicBloom.tsx` | full wordmark settles, dichroic intensity animated 1.0 → 1.6 → 1.0, both lensflares peak |
+| `Beat7CockpitMaterialization.tsx` | camera dolly continues back, wordmark drifts upward, holographic horizon with cockpit silhouette materializes from below (read existing cockpit init from `Cockpit*.tsx`) |
+| `Beat8AtomicHandoff.tsx` | wordmark dissolves into cockpit's central holographic display; sceneStore.completeHero() fires atomically |
+
+### Phase 5c.2 — CPA v2 single-canvas verification
+
+**Critical contract** (CLAUDE.md HS-9):
+
+- The hero canvas IS the cockpit canvas — same `<Canvas>` instance, no swap.
+- The handoff is a camera-and-scene transition within the same canvas, not a canvas remount.
+- `useAtomicHeroToCockpit` (already exists at `src/hooks/useAtomicHeroToCockpit.ts`) wires the atomicity. Read it; do NOT rewrite it; verify it still works after your beat-8 changes.
+
+**Test method:**
+
+1. Open DevTools → Elements panel. Find the `<canvas>` element BEFORE the hero starts. Note its DOM node.
+2. Watch the same node through the entire hero. It must NEVER unmount/remount.
+3. The cockpit appears WITHIN the same canvas after t=18.5s.
+
+If the canvas swaps: the handoff is broken. Likely cause is `<Canvas>` mounted under a `key` that changes, or hero/cockpit are separate `<Canvas>` siblings. Trace the parent JSX tree until you find the swap and merge them.
+
+### Phase 5c.3 — Fast-forward + skip controls
+
+Verify `Settings → Hero animation → Skip` toggle still works. Verify clicking/Enter/Space during the hero accelerates `playbackRate = 4`. Both already wired to `sceneStore` in legacy code — preserve those exact bindings.
+
+### Phase 5c.4 — Build + verify HS-9 checklist
+
+```bash
+npm run build
+npm run dev
+# Visit / fresh (clear localStorage 'skipIntroAnimation' first):
+#   1. 8-phase hero plays for ~19 s
+#   2. Click during hero → 4× speed → ~4.75 s remaining
+#   3. Settings toggle "skip" → next refresh, hero is skipped
+#   4. Hero → cockpit handoff: NO canvas swap, NO white flash
+#   5. Cockpit spatial dashboard renders with holographic lab map
+#   6. Lab entry wormhole transition works
+#   7. prefers-reduced-motion (DevTools rendering panel) → skips to cockpit
+```
+
+### Phase 5c.5 — Commit + push
+
+```bash
+git add ...
+git commit -m "Phase 5c: hero beats 5-8 + atomic cockpit handoff (HS-9 passes)"
+git push
+```
+
+User checkpoint: HS-9 hard-stop verification — full visual checklist above.
+
+---
+
+## 12. Phase 6 — App-Wide SparkForge Wording Audit (DETAILED)
+
+**Goal:** Find every place the literal string `"SparkForge"` (or `<title>SparkForge</title>`, or any visual mark) appears in the UI, and replace it with a single shared `<BrandWordmark>` component that renders consistently across the app.
+
+### Phase 6.1 — Author `src/components/branding/BrandWordmark.tsx`
+
+A small wrapper that picks the right rendition based on context:
+
+```ts
+export interface BrandWordmarkProps {
+  /** Render style. */
+  variant?: '3d-live' | 'svg-static' | 'text-fallback';
+  /** Size token. */
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  /** Color override (only for text-fallback). */
+  color?: string;
+  /** Aria label override. */
+  ariaLabel?: string;
+}
+```
+
+| Variant | Implementation | When to use |
+|---|---|---|
+| `3d-live` | mounts `<SparkForgeWordmark3D>` in a small `<BrandingShowcase>` | hero only (1 instance, expensive) |
+| `svg-static` | `<img src="/branding/sparkforge-hero.png">` (Phase 4 output) | navbar, footer, headers — most app surfaces |
+| `text-fallback` | styled `<span>SparkForge</span>` with branded gradient | screen readers, low-fi contexts |
+
+Default = `svg-static`. The 4K PNG from Phase 4 scales down beautifully for any size token.
+
+### Phase 6.2 — Audit + replace
+
+```bash
+# Find every literal use:
+grep -rn "SparkForge" src/ --include="*.tsx" --include="*.ts" | grep -v "// " | grep -v "/\*" | grep -v "^.*:.*\* " | head -100
+# Categories likely to surface:
+#   - <h1> or <span> with "SparkForge" text in marketing pages
+#   - <title>SparkForge ...</title> in metadata (LEAVE these — they're SEO text)
+#   - alt="SparkForge logo" on existing <img> tags
+#   - logo-wordmark.svg <img> usage (replace with BrandWordmark)
+```
+
+For each VISUAL occurrence, replace with `<BrandWordmark variant="svg-static" size="<appropriate>" />`. SEO/metadata text strings stay as-is — the brand wordmark is for VISUAL surfaces only.
+
+### Phase 6.3 — Update existing wordmark SVG → forwarder
+
+`public/branding/logo-wordmark.svg` (the existing pre-Phase-1 wordmark with Inter text) is no longer the canonical wordmark. Two options:
+
+- **a.** Delete it. Risk: any external link to it 404s.
+- **b.** Replace its file content with a forwarder SVG that loads `sparkforge-hero.png` via `<image>` tag. Maintains URL stability.
+
+Recommend **b**. Replace contents:
+
+```xml
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4096 1024" width="4096" height="1024">
+  <image href="/branding/sparkforge-hero.png" width="4096" height="1024"/>
+</svg>
+```
+
+### Phase 6.4 — Build + visual sweep
+
+```bash
+npm run build
+npm run dev
+# Walk every route once with the visual checklist:
+#   /             /labs       /home       /pricing    /about
+#   /signup       /login      /admin      /dashboard
+# Verify the SparkForge wordmark renders consistently — same letterforms,
+# same dichroic, same size scaling — everywhere.
+```
+
+### Phase 6.5 — Commit + push
+
+```bash
+git add src/components/branding/BrandWordmark.tsx
+git add <every replaced file>
+git add public/branding/logo-wordmark.svg   # if forwarder option
+git add PROGRESS.md
+git commit -m "Phase 6: app-wide BrandWordmark — single source of truth"
+git push
+```
+
+User checkpoint: full app visual sweep on desktop + mobile.
+
+---
+
+*End of commit 3 of 4. Phase 7 + reusable patterns + alternative video-hero path in commit 4.*
