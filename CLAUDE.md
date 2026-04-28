@@ -24,12 +24,27 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 | Payments | Stripe | Subscriptions (Free/Plus/Forge) |
 | AI | Anthropic Claude API | Prompt Lab game + Content Agent |
 | 2D Motion | Motion (ex Framer Motion) + GSAP | Transitions, scroll |
-| 3D Rendering | React Three Fiber v9 + drei + postprocessing | 3D scenes, shaders (Three.js r183+, TSL, WebGPU/WebGL2) |
+| 3D Rendering | React Three Fiber v9 + drei + postprocessing + three-bvh-csg | 3D scenes + WebGPU+TSL shaders (Three.js r183+) |
 | Charts | @nivo/core + @nivo/line + @nivo/bar + @nivo/radar | Data visualization |
 | Audio | Tone.js | Game audio feedback |
 | Monitoring | Sentry (@sentry/nextjs) | Error tracking + performance |
 | Testing | Vitest + Playwright + MSW | Unit, integration, E2E tests |
 | Deployment | Vercel | Production hosting |
+
+### Tech Quality Mandate (v6.6 — April 28, 2026)
+
+**Use the highest-quality tech stack tool available, at all times.** Quality and visual fidelity are the only first-order constraints; workload, build time, generation cost, and bundle size are *informational* and must be reported to the user, but they are **not** restrictions on tool choice. The only valid reasons to refuse a higher-quality tool are:
+
+1. The tool would introduce a *functional conflict* with another locked stack component (e.g. would break the hero→cockpit single-canvas handoff).
+2. The tool is not in a stable release channel.
+3. The user explicitly downgrades the choice in chat.
+
+**Implications already in effect:**
+
+- Live hero animation runs on **WebGPU + TSL only**. There is **no** WebGL2 / CSS fallback chain. Devices without WebGPU receive a thin MP4-poster fallback derived from the same shader (no fork).
+- All branding-surface materials (`BrandingMaterial.tsx`, `<BrandWordmark>`) draw from a single source-of-truth config (`src/lib/branding/sf-material.config.ts`) — eye-extracted from `public/branding/IMG_4607.png`. No duplicate material code paths.
+- Visual checkpoints halt at **SSIM ≥ 0.96** vs reference (Mythos halt rule). Iterate until convergence; never ship below threshold.
+- Optional dependencies that materially raise the visual ceiling (e.g. `three-bvh-csg`, `@theatre/core`) are added without budget review when their use is documented in a phase plan.
 
 
 
@@ -205,7 +220,7 @@ If a v3-FINAL is **additive** (layers on top of v2 rather than replacing it), th
 | 1 | Dev server starts, no errors in console |
 | 2 | API routes respond (test /api/health), Supabase connected |
 | 3 | Signup → Login → Dashboard loads with sidebar. Station frame visible (Part 3). |
-| 3-Hero | 8-phase hero animation plays (19s). Fast-forward works (4x). Skip toggle in Settings. WebGPU/WebGL2/CSS fallback chain. Audio plays (mutable). `prefers-reduced-motion` skips to cockpit. |
+| 3-Hero | 8-phase hero animation plays (19s) on WebGPU+TSL primary path. Fast-forward works (4x). Skip toggle in Settings. Non-WebGPU devices receive thin MP4-poster fallback (no shader fork). Audio plays (mutable). `prefers-reduced-motion` skips to cockpit. |
 | 3-Cockpit | Cockpit renders at ~37.8M tris (desktop-ultra). Hero→cockpit seamless handoff (CPA2-3). Spatial dashboard with holographic lab map. 4 consoles, NPCs, dynamic environment. Wormhole transitions. |
 | 3-Login3D | 3D crystal portal behind login card (desktop). Chrome bezel glow pulses. Demo Login button with confirmation. Demo → /home with hero animation. Timer banner at dashboard top. Urgent mode at <5min. Expiry modal at 0:00. ?demo=expired amber notice. |
 | 4 | Dashboard home, Labs map, Profile page. Lab reconfiguration transitions work. |

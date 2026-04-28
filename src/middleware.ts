@@ -247,10 +247,21 @@ const PUBLIC_PAGE_PATHS: ReadonlyArray<string> = [
 
 function classify(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  // /dev/* routes are visual checkpoints for branding + 3D work.
+  // Public when either:
+  //   • not a production build (local dev), OR
+  //   • the preview-only env var NEXT_PUBLIC_ALLOW_DEV_ROUTES=true is set.
+  // The page itself ALSO returns notFound() when both conditions are
+  // false, so even a misconfigured deployment cannot expose the route.
+  const allowDevRoutes =
+    process.env.NEXT_PUBLIC_ALLOW_DEV_ROUTES === 'true';
+  const isDevRoute =
+    pathname.startsWith('/dev/') &&
+    (process.env.NODE_ENV !== 'production' || allowDevRoutes);
   return {
     pathname,
     isAPI: pathname.startsWith('/api'),
-    isPublicPage: PUBLIC_PAGE_PATHS.includes(pathname),
+    isPublicPage: PUBLIC_PAGE_PATHS.includes(pathname) || isDevRoute,
     isPublicAPI: isPublicAPI(pathname),
     isStatic: pathname.startsWith('/_next'),
     isAsset: /\.(ico|png|jpg|svg|woff2?)$/.test(pathname),
