@@ -21,8 +21,11 @@ export const metadata: Metadata = {
 };
 
 export default function BrandingDevPage() {
-  // Hard-stop the route in production. Dev only.
-  if (process.env.NODE_ENV === 'production') {
+  // Hard-stop the route in production unless the preview override is
+  // explicitly set. Mirrors the middleware check, defence-in-depth.
+  const allowDevRoutes =
+    process.env.NEXT_PUBLIC_ALLOW_DEV_ROUTES === 'true';
+  if (process.env.NODE_ENV === 'production' && !allowDevRoutes) {
     notFound();
   }
   return <BrandingDevClient />;
