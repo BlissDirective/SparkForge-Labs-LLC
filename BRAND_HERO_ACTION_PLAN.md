@@ -2,7 +2,7 @@
 
 **Document version:** 1.0 (commit 1 of 4)
 **Date:** April 28, 2026
-**Branch:** `claude/sparkforge-branding-3d-I4Za1`
+
 **Last commit on branch:** `c4939dc` (Phase 2.6 — env-var override)
 **Reference image:** `public/branding/IMG_4607.png`
 **Source-of-truth config:** `src/lib/branding/sf-material.config.ts`
@@ -16,7 +16,7 @@ This is a complete handoff: a fresh Claude Code session (or a fresh agent) shoul
 Order of operations for a fresh session:
 
 1. Read this document end-to-end.
-2. `git checkout claude/sparkforge-branding-3d-I4Za1` → confirm `git log -1` shows `c4939dc`.
+2. 
 3. Read these three files in full to load the established conventions:
    - `src/lib/branding/sf-material.config.ts` (every brand value)
    - `src/components/3d/branding/BrandingMaterial.tsx` (TSL material pattern)
