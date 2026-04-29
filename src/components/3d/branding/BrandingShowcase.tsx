@@ -70,11 +70,18 @@ function useWebGPUCapability(): CapabilityState {
 // Procedural HDRI — palette-locked Lightformer rig (E2)
 // ─────────────────────────────────────────────────────────────────────
 
-function BrandingEnvironment() {
+function BrandingEnvironment({
+  showSceneBackground = true,
+}: {
+  /** Whether the env-map also sets the visible scene background. */
+  showSceneBackground?: boolean;
+}) {
   return (
     <Environment frames={1} resolution={SF_BRAND.HDRI.cubeSize}>
       {/* Background fill — deep navy void */}
-      <color attach="background" args={[PALETTE.voidNavy]} />
+      {showSceneBackground && (
+        <color attach="background" args={[PALETTE.voidNavy]} />
+      )}
 
       {/* Lower-left warm amber spot (the IMG_4607 key direction) */}
       <Lightformer
@@ -199,12 +206,22 @@ export interface BrandingShowcaseProps {
   enableControls?: boolean;
   /** Vignette opacity overlay (0..1). Default from BACKGROUND.vignetteStrength. */
   vignetteStrength?: number;
-  /** Optional MP4 fallback for non-WebGPU devices (Phase 4 ships this). */
+  /**
+   * MP4 fallback for non-WebGPU devices. Defaults to the Phase-4
+   * `brand-fallback.mp4` loop (slow rotation of SF mark, 2s @ 30fps).
+   * Pass an empty string to disable the video fallback entirely (poster only).
+   */
   fallbackVideoSrc?: string;
   /** Poster fallback. Defaults to IMG_4607.png. */
   fallbackPosterSrc?: string;
   /** Aria label for the canvas. */
   ariaLabel?: string;
+  /**
+   * Render with a transparent background (alpha=true on the WebGPU canvas,
+   * scene.background=null, no vignette overlay). Used by the offline
+   * render route (Phase 4) to produce composable 4K PNGs.
+   */
+  transparent?: boolean;
 }
 
 export function BrandingShowcase({
@@ -212,13 +229,17 @@ export function BrandingShowcase({
   cameraDistance = 5,
   enableControls = false,
   vignetteStrength = BACKGROUND.vignetteStrength,
-  fallbackVideoSrc,
+  fallbackVideoSrc = '/branding/brand-fallback.mp4',
   fallbackPosterSrc = '/branding/IMG_4607.png',
   ariaLabel = 'SparkForge branding canvas',
+  transparent = false,
 }: BrandingShowcaseProps) {
   const capability = useWebGPUCapability();
 
-  const sceneBg = useMemo(() => new Color(PALETTE.voidNavy), []);
+  const sceneBg = useMemo(
+    () => (transparent ? null : new Color(PALETTE.voidNavy)),
+    [transparent],
+  );
 
   if (capability === 'pending') {
     // SSR-safe + first paint: poster only. Swap in <Canvas> once detected.
@@ -253,7 +274,9 @@ export function BrandingShowcase({
   }
 
   return (
-    <div className="relative w-full h-full bg-[#02050d]">
+    <div
+      className={`relative w-full h-full ${transparent ? '' : 'bg-[#02050d]'}`}
+    >
       <Canvas
         flat
         dpr={[1, 2]}
@@ -264,7 +287,7 @@ export function BrandingShowcase({
             // R3F passes canvas + antialias prefs in props
             ...(props as Record<string, unknown>),
             antialias: true,
-            alpha: false,
+            alpha: transparent,
           });
           await renderer.init();
           return renderer as unknown as never;
@@ -272,20 +295,23 @@ export function BrandingShowcase({
         aria-label={ariaLabel}
       >
         <Suspense fallback={null}>
-          <BrandingEnvironment />
+          <BrandingEnvironment showSceneBackground={!transparent} />
           <BrandingLights />
           {children}
           {enableControls && <OrbitControls makeDefault enableDamping />}
         </Suspense>
       </Canvas>
-      {/* Vignette overlay — DOM, not 3D, so it survives canvas swaps */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            `radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,${vignetteStrength}) 100%)`,
-        }}
-      />
+      {/* Vignette overlay — DOM, not 3D, so it survives canvas swaps.
+          Skipped in transparent mode so offline PNGs composite cleanly. */}
+      {!transparent && (
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              `radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,${vignetteStrength}) 100%)`,
+          }}
+        />
+      )}
     </div>
   );
 }

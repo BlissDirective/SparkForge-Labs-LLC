@@ -3,6 +3,10 @@
     "supabase": {
       "type": "http",
       "url": "https://mcp.supabase.com/mcp?project_ref=gqoaknfboahuqvgpidgw&features=functions%2Cdatabase%2Cdebugging%2Cdevelopment"
+    },
+    "token-optimizer": {
+      "command": "npx",
+      "args": ["-y", "@ooples/token-optimizer-mcp"]
     }
   }
 }

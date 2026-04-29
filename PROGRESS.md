@@ -2069,3 +2069,112 @@ auth_is_anonymous() is the canonical Supabase pattern.
 - Leaked-password advisor warning: ⚠ 1 (Dashboard toggle)
 - TypeScript types regenerated: ✅ `src/lib/supabase/database.types.ts`
 - Local migration manifest: ✅ `supabase/migrations/_APPLIED_HISTORY.md`
+
+---
+
+## Phase 3 — SparkForge Wordmark (April 29, 2026)
+
+Branch: `claude/brand-hero-phase-3-e9kYF` (per CLAUDE.md feature-branch rule).
+Foundation: Phase 1+2 merged via PR #136 (commit `a237e9b`).
+
+### Locked design selections (chat 2026-04-29)
+
+| Glyph aspect | Selection | Rationale |
+|---|---|---|
+| `r` top hook | Stepped/angled (rectilinear) | Matches SF mark's bar-and-jog idiom — no curves |
+| `g` descender | Single-storey open tail (Futura/Avenir) | Geometric idiom, simpler subpath count |
+| `e` counter | Single complex outline | Detours around crossbar; one-path simplicity |
+| Bowls (`o`,`p`,`a`,`g`,`e`) | Cubic beziers for true rounded shapes | Genuine typographic curves on the curved letters |
+
+### Files
+
+| Action | File |
+|---|---|
+| Created | `public/branding/sparkforge-geometry.svg` (10 glyphs, viewBox 6400×800, evenodd) |
+| Created | `src/components/3d/branding/_shared.tsx` (`BrandingPart` reusable mesh) |
+| Created | `src/components/3d/branding/SparkForgeWordmark3D.tsx` (revealMask + per-letter ids) |
+| Edited | `src/components/3d/branding/SfMark3D.tsx` (use shared `BrandingPart`) |
+| Edited | `src/app/dev/branding/client.tsx` (sparkforge default, letter-reveal slider, wider camera) |
+
+### Verification
+
+- `xmllint --noout sparkforge-geometry.svg` → parses OK
+- `npm run build` → EXIT=0, `/dev/branding` 457 kB / 691 kB First Load JS
+- `npm run dev` → Ready in 4.1s, no boot errors
+
+### Discrepancies Log
+
+- None for Phase 3 (the SF and F glyph paths in `sparkforge-geometry.svg`
+  are mechanical x-translations of the `sf-geometry.svg` paths — preserves
+  the Phase-2 single-source-of-truth contract).
+
+### Code Review Notes
+
+- `BrandingPart` carries an optional `visible` prop so `revealMask` toggles
+  visibility without unmount/remount — preserves the BrandingMaterial's
+  GPU pipeline across Phase-5b animations (avoids per-frame init cost).
+- Each `<path>` in the wordmark SVG becomes ONE mesh; SVGLoader unifies
+  multi-subpath letters (e.g. `wm-p` outer + counter) under evenodd
+  fill-rule into a single Shape with holes — keeps 10 meshes total
+  for 10 letters, simplifying Phase-5b per-letter targeting.
+
+### User checkpoint pending
+
+Visual sign-off at `/dev/branding` with subject = "SparkForge wordmark":
+- All 10 letters render with consistent dispersion + dichroic
+- Counters in `p`, `a`, `o`, `g`, `e` are HOLLOW (not solid)
+- Italic lean produces depth, not skew distortion
+- Letter-reveal slider hides/shows letters left-to-right (0..10)
+
+---
+
+## Phase 4 — Offline Render Pipeline (April 29, 2026)
+
+Branch: `claude/brand-hero-phase-3-e9kYF` (continued).
+
+### Artefacts produced
+
+| File | Dimensions | Format | Size |
+|---|---|---|---|
+| `public/branding/sf-hero.png` | 4096×4096 | PNG, RGBA | 104 KB |
+| `public/branding/sparkforge-hero.png` | 4096×1024 | PNG, RGBA | 50 KB |
+| `public/branding/brand-fallback.mp4` | 1920×1920 | H.264, yuv420p, 30 fps, 2.00 s loop | 42 KB |
+
+### New files
+
+| Action | File |
+|---|---|
+| Created | `scripts/render-branding.ts` (puppeteer + ffmpeg-static driver) |
+| Created | `src/app/dev/branding/render/page.tsx` (dev-route guard) |
+| Created | `src/app/dev/branding/render/client.tsx` (chrome-free + `__brandingReady` flag + LoopRotator) |
+| Edited | `src/components/3d/branding/BrandingShowcase.tsx` (new `transparent` prop, conditional alpha/scene-bg/vignette) |
+| Edited | `package.json` (added `render:branding` script + `puppeteer`/`ffmpeg-static`/`tsx` -D deps) |
+
+### Verification
+
+- `npm run build` → EXIT=0; `/dev/branding/render` 1.02 kB / 691 kB First Load JS
+- `npm run render:branding` → all three artefacts produced
+- WebGPU works in headless Chromium with flags `--enable-unsafe-webgpu --enable-features=Vulkan,WebGPU --use-vulkan --ignore-gpu-blocklist`
+- Output PNG verified RGBA (PNG IHDR colorType=6); MP4 verified via ffprobe (1920×1920, h264, yuv420p, 2.00s)
+
+### Discrepancies Log (Phase 4)
+
+| Issue | Fix | Status |
+|---|---|---|
+| ESM mode lacks `__dirname` | Replaced with `fileURLToPath(import.meta.url)` pattern | ✅ |
+| `ffmpeg-static` types `string \| null` confused TS narrowing into `spawn` closure | Local `ffBin` const + non-null check before closure | ✅ |
+| Puppeteer's `omitBackground` was overridden by root layout `<body class="bg-surface-base">` | Inline `page.evaluate` strips html/body/canvas-ancestor backgrounds before screenshot | ✅ |
+| `networkidle0` never fired — Next dev HMR websocket stays open | Switched to `domcontentloaded`; `__brandingReady` is the actual readiness gate | ✅ |
+| Scene background was always voidNavy (canvas had `alpha: false`) | Added `transparent` prop to `BrandingShowcase`; render route uses it for stills, off for the loop MP4 | ✅ |
+
+### Code Review Notes (Phase 4)
+
+- The `transparent` prop on `BrandingShowcase` is additive — existing call sites
+  (dev showcase, hero, anywhere using the canvas) get default `false` → no behavioural change.
+- The render route deliberately differentiates `subject !== 'loop'` for the
+  `transparent` flag: the MP4 must bake in the navy background since H.264
+  has no alpha channel. PNGs stay transparent for compositing.
+- `LoopRotator` rotates ±0.2 rad in a sine wave over 2 s — matches the action
+  plan's "slow-rotate" spec. Single full sine cycle per loop, so MP4 loops seamlessly.
+- The `render:branding` script auto-boots a dev server if one isn't running,
+  and shuts it down on exit. Idempotent: re-runs do not double-start.

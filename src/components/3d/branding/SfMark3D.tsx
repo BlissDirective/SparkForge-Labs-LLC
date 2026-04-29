@@ -31,10 +31,8 @@ import {
   Vector3,
   type ExtrudeGeometryOptions,
 } from 'three';
-import {
-  createBrandingMaterial,
-  type BrandingMaterialOptions,
-} from './BrandingMaterial';
+import { type BrandingMaterialOptions } from './BrandingMaterial';
+import { BrandingPart } from './_shared';
 import { GEOMETRY } from '@/lib/branding/sf-material.config';
 
 export interface SfMark3DProps {
@@ -150,46 +148,10 @@ export function SfMark3D({
       >
         <group ref={innerRef}>
           {meshSpecs.map(({ id, geometry }) => (
-            <SfMarkPart key={id} id={id} geometry={geometry} options={materialOptions} />
+            <BrandingPart key={id} id={id} geometry={geometry} options={materialOptions} />
           ))}
         </group>
       </group>
     </group>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────
-// SfMarkPart — one extruded letter with a fresh BrandingMaterial instance
-// ─────────────────────────────────────────────────────────────────────
-
-interface SfMarkPartProps {
-  id: string;
-  geometry: ExtrudeGeometry;
-  options?: BrandingMaterialOptions;
-}
-
-function SfMarkPart({ id, geometry, options }: SfMarkPartProps) {
-  const material = useMemo(
-    () => createBrandingMaterial(options),
-    [options],
-  );
-
-  // Dispose on unmount — node materials hold GPU pipelines.
-  useEffect(() => {
-    return () => {
-      material.dispose();
-      geometry.dispose();
-    };
-  }, [material, geometry]);
-
-  return (
-    <mesh
-      name={id}
-      geometry={geometry}
-      material={material}
-      castShadow
-      receiveShadow
-      userData={{ sfMarkPathId: id }}
-    />
   );
 }

@@ -23,7 +23,10 @@ yarn-error.log*
 # IDEs
 .vscode/
 .idea/
-.claude/
+# .claude/ project config is tracked (settings.json, agents, skills, etc.)
+# Only the per-developer local override is ignored.
+.claude/settings.local.json
+.claude/.cache/
 *.swp
 *.swo
 
