@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SparkForge Wordmark — vector geometry for 3D extrusion (Phase 3.1).
+
+  Authority:  BRAND_HERO_ACTION_PLAN.md §6 (Phase 3) + locked design selections.
+  Source-of-truth shared with: public/branding/sf-geometry.svg
+  Cap-height + baseline + stroke thickness must remain identical.
+
+  ─── Layout (viewBox 0 0 6400 800) ────────────────────────────────────────
+    cap-height  = 650u  (y range 70..720)
+    baseline    = 720u
+    stroke      = 130u  (matches SF mark bars)
+    descender   = +100u (g extends to y=820)
+
+  ─── Letter zones (left-to-right) ─────────────────────────────────────────
+    S       sf-mark-S    x  60..  550   (490u)  (verbatim from sf-geometry.svg, no offset)
+    p       wm-p         x 610.. 1080   (470u)
+    a       wm-a         x1140.. 1610   (470u)
+    r       wm-r         x1670.. 2060   (390u)
+    k       wm-k         x2120.. 2640   (520u)
+    F       sf-mark-F    x2700.. 3250   (550u)  (verbatim from sf-geometry.svg, +1930)
+    o       wm-o         x3310.. 3850   (540u)
+    r2      wm-r2        x3910.. 4300   (390u)
+    g       wm-g         x4360.. 4900   (540u)
+    e       wm-e         x4960.. 5500   (540u)
+
+  ─── Design decisions (locked, see chat 2026-04-29) ───────────────────────
+    'r' hook   : stepped/angled (rectilinear, matches SF idiom)
+    'g'        : single-storey open tail (Futura/Avenir)
+    'e'        : single complex outline (one path traces around crossbar)
+    bowls      : cubic beziers for true rounded shapes on o, p, a, g, e
+
+  ─── Italic lean ──────────────────────────────────────────────────────────
+    Applied at component level via group rotation (NOT skewX) so dispersion
+    fresnel sampling remains correct. Default 0.06 rad (~3.4°), same as SF mark.
+
+  ─── Path-ID contract ─────────────────────────────────────────────────────
+    Every path id is referenced by Phase 5b animation timeline.
+    DO NOT rename ids; replacement traces must keep ids intact.
+
+  ─── Winding ──────────────────────────────────────────────────────────────
+    fill-rule="evenodd" — outer outlines clockwise, inner counters reverse.
+    SVGLoader.createShapes() honours evenodd correctly.
+-->
+<svg xmlns="http://www.w3.org/2000/svg"
+     viewBox="0 0 6400 800"
+     fill="#ffffff"
+     fill-rule="evenodd">
+
+  <!-- ─── S (verbatim copy from sf-geometry.svg, +0 offset) ─── -->
+  <!--
+    Original SF coords were x ∈ [130..620]. To land in our slot
+    x ∈ [60..550] we shift by -70. Path d-string mechanically rewritten:
+    every x literal reduced by 70.
+  -->
+  <path id="sf-mark-S" d="
+    M 60 70
+    L 550 70
+    L 550 200
+    L 210 200
+    L 210 305
+    L 550 305
+    L 550 720
+    L 60 720
+    L 60 590
+    L 400 590
+    L 400 420
+    L 60 420
+    Z
+  " />
+
+  <!-- ─── p (wm-p) — bowl + descender stem ─── -->
+  <!--
+    Bowl: closed counter at y 70..420, outer span x 610..1080.
+    Stem: x 610..760, extends to y 800 (descender).
+    Cubic beziers for genuine bowl curvature.
+    Outer outline clockwise; inner counter reversed (evenodd hole).
+  -->
+  <path id="wm-p" d="
+    M 610 70
+    L 870 70
+    C 990 70 1080 150 1080 245
+    C 1080 340 990 420 870 420
+    L 760 420
+    L 760 800
+    L 610 800
+    Z
+    M 760 200
+    L 850 200
+    C 905 200 940 220 940 245
+    C 940 270 905 290 850 290
+    L 760 290
+    Z
+  " />
+
+  <!-- ─── a (wm-a) — single-storey: round bowl + right vertical stem ─── -->
+  <!--
+    Outer: bowl on left+top, vertical stem on right (x 1460..1610).
+    Cubic beziers form the bowl.
+    Inner counter: small rounded interior, reversed winding.
+  -->
+  <path id="wm-a" d="
+    M 1380 280
+    C 1240 280 1140 340 1140 430
+    L 1280 430
+    C 1280 410 1330 395 1380 395
+    C 1450 395 1470 425 1470 460
+    L 1470 480
+    L 1340 480
+    C 1200 480 1140 540 1140 615
+    C 1140 690 1210 730 1310 730
+    C 1390 730 1450 700 1490 660
+    L 1490 720
+    L 1610 720
+    L 1610 460
+    C 1610 340 1530 280 1380 280
+    Z
+    M 1370 580
+    L 1470 580
+    L 1470 615
+    C 1470 650 1430 670 1370 670
+    C 1320 670 1290 650 1290 620
+    C 1290 595 1320 580 1370 580
+    Z
+  " />
+
+  <!-- ─── r (wm-r) — vertical stem + stepped angled hook ─── -->
+  <!--
+    Stem: x 1670..1820, y 280..720.
+    Hook: stepped/angled — short upward stub then horizontal bar to terminal.
+    Pure rectilinear (no curves) per locked decision.
+  -->
+  <path id="wm-r" d="
+    M 1670 280
+    L 1820 280
+    L 1820 350
+    L 1900 350
+    L 1900 280
+    L 2060 280
+    L 2060 410
+    L 1820 410
+    L 1820 720
+    L 1670 720
+    Z
+  " />
+
+  <!-- ─── k (wm-k) — vertical stem + two diagonals meeting at mid-stem ─── -->
+  <!--
+    Stem: x 2120..2270, y 70..720 (full cap height — ascender).
+    Upper diagonal: from stem-right at y=400 up-right to (2640, 280).
+    Lower diagonal: from same junction down-right to (2640, 720).
+    Wedge between diagonals is solid.
+  -->
+  <path id="wm-k" d="
+    M 2120 70
+    L 2270 70
+    L 2270 400
+    L 2470 280
+    L 2640 280
+    L 2380 460
+    L 2640 720
+    L 2470 720
+    L 2270 510
+    L 2270 720
+    L 2120 720
+    Z
+  " />
+
+  <!-- ─── F (verbatim copy from sf-geometry.svg, +1930 offset) ─── -->
+  <!--
+    Original F coords were x ∈ [770..1320]. Target slot x ∈ [2700..3250]
+    requires +1930 shift. Mechanically rewrite each x literal by +1930.
+  -->
+  <path id="sf-mark-F" d="
+    M 2700 70
+    L 3250 70
+    L 3250 200
+    L 2850 200
+    L 2850 305
+    L 3160 305
+    L 3160 420
+    L 2850 420
+    L 2850 720
+    L 2700 720
+    Z
+  " />
+
+  <!-- ─── o (wm-o) — closed oval, outer + inner subpaths ─── -->
+  <!--
+    Outer oval ~540×440 centred at (3580, 500).
+    Inner counter ~280×220 reversed winding (creates hole via evenodd).
+    Cubic beziers for smooth round form.
+  -->
+  <path id="wm-o" d="
+    M 3580 280
+    C 3730 280 3850 380 3850 500
+    C 3850 620 3730 720 3580 720
+    C 3430 720 3310 620 3310 500
+    C 3310 380 3430 280 3580 280
+    Z
+    M 3580 400
+    C 3505 400 3450 445 3450 500
+    C 3450 555 3505 600 3580 600
+    C 3655 600 3710 555 3710 500
+    C 3710 445 3655 400 3580 400
+    Z
+  " />
+
+  <!-- ─── r (wm-r2) — duplicate of wm-r, +2240 offset ─── -->
+  <!--
+    Identical shape to wm-r. Mechanically translate each x literal by +2240.
+  -->
+  <path id="wm-r2" d="
+    M 3910 280
+    L 4060 280
+    L 4060 350
+    L 4140 350
+    L 4140 280
+    L 4300 280
+    L 4300 410
+    L 4060 410
+    L 4060 720
+    L 3910 720
+    Z
+  " />
+
+  <!-- ─── g (wm-g) — single-storey open-tail ─── -->
+  <!--
+    Bowl: cubic-bezier oval x 4360..4810, y 280..650.
+    Tail: from bowl-right edge, down to y 820, then leftward hook
+          ending at x ≈ 4500 (still y 820), forming open descender.
+    Inner bowl counter: reversed winding hole.
+  -->
+  <path id="wm-g" d="
+    M 4630 280
+    C 4480 280 4360 360 4360 465
+    C 4360 570 4480 650 4630 650
+    C 4710 650 4770 625 4810 590
+    L 4810 720
+    C 4810 790 4760 820 4670 820
+    L 4470 820
+    L 4470 720
+    L 4660 720
+    C 4690 720 4700 710 4700 690
+    L 4700 680
+    C 4660 695 4610 700 4570 700
+    C 4430 700 4360 645 4360 555
+    L 4360 465
+    C 4360 360 4480 280 4630 280
+    Z
+    M 4630 395
+    C 4555 395 4500 425 4500 465
+    C 4500 505 4555 535 4630 535
+    C 4705 535 4760 505 4760 465
+    C 4760 425 4705 395 4630 395
+    Z
+  " />
+
+  <!--
+    NOTE: above 'g' uses single closed shape with inner reversed counter.
+    The descender tail folds into the outer outline rather than as a
+    separate stroke — open tail effect achieved by the path doubling
+    back through y 720→820→720 on the right side. This keeps the glyph
+    as ONE subpath + ONE counter (matches single-storey idiom).
+  -->
+
+  <!-- ─── e (wm-e) — single complex outline traces around crossbar ─── -->
+  <!--
+    Outer outline + crossbar treated as ONE clockwise path that detours
+    inward at the crossbar level, around the bar, back out. The inside
+    of the bowl below the crossbar is a separate reversed subpath
+    (lower counter only). The upper counter (above the crossbar) is
+    formed by the detour itself, so no separate subpath needed.
+
+    Geometry:
+      Outer:  rounded rectangle x 4960..5500, y 280..720
+      Crossbar level: y 480..510
+      Bowl interior:  x 5070..5390 (140u inset from outer)
+  -->
+  <path id="wm-e" d="
+    M 5230 280
+    C 5070 280 4960 380 4960 500
+    C 4960 620 5070 720 5230 720
+    C 5360 720 5450 670 5490 595
+    L 5350 595
+    C 5325 625 5290 645 5230 645
+    C 5160 645 5110 605 5100 540
+    L 5500 540
+    L 5500 480
+    C 5500 370 5400 280 5230 280
+    Z
+    M 5230 360
+    C 5160 360 5110 405 5100 460
+    L 5360 460
+    C 5350 405 5300 360 5230 360
+    Z
+  " />
+
+</svg>

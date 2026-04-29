@@ -2069,3 +2069,59 @@ auth_is_anonymous() is the canonical Supabase pattern.
 - Leaked-password advisor warning: ⚠ 1 (Dashboard toggle)
 - TypeScript types regenerated: ✅ `src/lib/supabase/database.types.ts`
 - Local migration manifest: ✅ `supabase/migrations/_APPLIED_HISTORY.md`
+
+---
+
+## Phase 3 — SparkForge Wordmark (April 29, 2026)
+
+Branch: `claude/brand-hero-phase-3-e9kYF` (per CLAUDE.md feature-branch rule).
+Foundation: Phase 1+2 merged via PR #136 (commit `a237e9b`).
+
+### Locked design selections (chat 2026-04-29)
+
+| Glyph aspect | Selection | Rationale |
+|---|---|---|
+| `r` top hook | Stepped/angled (rectilinear) | Matches SF mark's bar-and-jog idiom — no curves |
+| `g` descender | Single-storey open tail (Futura/Avenir) | Geometric idiom, simpler subpath count |
+| `e` counter | Single complex outline | Detours around crossbar; one-path simplicity |
+| Bowls (`o`,`p`,`a`,`g`,`e`) | Cubic beziers for true rounded shapes | Genuine typographic curves on the curved letters |
+
+### Files
+
+| Action | File |
+|---|---|
+| Created | `public/branding/sparkforge-geometry.svg` (10 glyphs, viewBox 6400×800, evenodd) |
+| Created | `src/components/3d/branding/_shared.tsx` (`BrandingPart` reusable mesh) |
+| Created | `src/components/3d/branding/SparkForgeWordmark3D.tsx` (revealMask + per-letter ids) |
+| Edited | `src/components/3d/branding/SfMark3D.tsx` (use shared `BrandingPart`) |
+| Edited | `src/app/dev/branding/client.tsx` (sparkforge default, letter-reveal slider, wider camera) |
+
+### Verification
+
+- `xmllint --noout sparkforge-geometry.svg` → parses OK
+- `npm run build` → EXIT=0, `/dev/branding` 457 kB / 691 kB First Load JS
+- `npm run dev` → Ready in 4.1s, no boot errors
+
+### Discrepancies Log
+
+- None for Phase 3 (the SF and F glyph paths in `sparkforge-geometry.svg`
+  are mechanical x-translations of the `sf-geometry.svg` paths — preserves
+  the Phase-2 single-source-of-truth contract).
+
+### Code Review Notes
+
+- `BrandingPart` carries an optional `visible` prop so `revealMask` toggles
+  visibility without unmount/remount — preserves the BrandingMaterial's
+  GPU pipeline across Phase-5b animations (avoids per-frame init cost).
+- Each `<path>` in the wordmark SVG becomes ONE mesh; SVGLoader unifies
+  multi-subpath letters (e.g. `wm-p` outer + counter) under evenodd
+  fill-rule into a single Shape with holes — keeps 10 meshes total
+  for 10 letters, simplifying Phase-5b per-letter targeting.
+
+### User checkpoint pending
+
+Visual sign-off at `/dev/branding` with subject = "SparkForge wordmark":
+- All 10 letters render with consistent dispersion + dichroic
+- Counters in `p`, `a`, `o`, `g`, `e` are HOLLOW (not solid)
+- Italic lean produces depth, not skew distortion
+- Letter-reveal slider hides/shows letters left-to-right (0..10)
