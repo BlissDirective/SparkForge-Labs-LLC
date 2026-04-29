@@ -2125,3 +2125,56 @@ Visual sign-off at `/dev/branding` with subject = "SparkForge wordmark":
 - Counters in `p`, `a`, `o`, `g`, `e` are HOLLOW (not solid)
 - Italic lean produces depth, not skew distortion
 - Letter-reveal slider hides/shows letters left-to-right (0..10)
+
+---
+
+## Phase 4 — Offline Render Pipeline (April 29, 2026)
+
+Branch: `claude/brand-hero-phase-3-e9kYF` (continued).
+
+### Artefacts produced
+
+| File | Dimensions | Format | Size |
+|---|---|---|---|
+| `public/branding/sf-hero.png` | 4096×4096 | PNG, RGBA | 104 KB |
+| `public/branding/sparkforge-hero.png` | 4096×1024 | PNG, RGBA | 50 KB |
+| `public/branding/brand-fallback.mp4` | 1920×1920 | H.264, yuv420p, 30 fps, 2.00 s loop | 42 KB |
+
+### New files
+
+| Action | File |
+|---|---|
+| Created | `scripts/render-branding.ts` (puppeteer + ffmpeg-static driver) |
+| Created | `src/app/dev/branding/render/page.tsx` (dev-route guard) |
+| Created | `src/app/dev/branding/render/client.tsx` (chrome-free + `__brandingReady` flag + LoopRotator) |
+| Edited | `src/components/3d/branding/BrandingShowcase.tsx` (new `transparent` prop, conditional alpha/scene-bg/vignette) |
+| Edited | `package.json` (added `render:branding` script + `puppeteer`/`ffmpeg-static`/`tsx` -D deps) |
+
+### Verification
+
+- `npm run build` → EXIT=0; `/dev/branding/render` 1.02 kB / 691 kB First Load JS
+- `npm run render:branding` → all three artefacts produced
+- WebGPU works in headless Chromium with flags `--enable-unsafe-webgpu --enable-features=Vulkan,WebGPU --use-vulkan --ignore-gpu-blocklist`
+- Output PNG verified RGBA (PNG IHDR colorType=6); MP4 verified via ffprobe (1920×1920, h264, yuv420p, 2.00s)
+
+### Discrepancies Log (Phase 4)
+
+| Issue | Fix | Status |
+|---|---|---|
+| ESM mode lacks `__dirname` | Replaced with `fileURLToPath(import.meta.url)` pattern | ✅ |
+| `ffmpeg-static` types `string \| null` confused TS narrowing into `spawn` closure | Local `ffBin` const + non-null check before closure | ✅ |
+| Puppeteer's `omitBackground` was overridden by root layout `<body class="bg-surface-base">` | Inline `page.evaluate` strips html/body/canvas-ancestor backgrounds before screenshot | ✅ |
+| `networkidle0` never fired — Next dev HMR websocket stays open | Switched to `domcontentloaded`; `__brandingReady` is the actual readiness gate | ✅ |
+| Scene background was always voidNavy (canvas had `alpha: false`) | Added `transparent` prop to `BrandingShowcase`; render route uses it for stills, off for the loop MP4 | ✅ |
+
+### Code Review Notes (Phase 4)
+
+- The `transparent` prop on `BrandingShowcase` is additive — existing call sites
+  (dev showcase, hero, anywhere using the canvas) get default `false` → no behavioural change.
+- The render route deliberately differentiates `subject !== 'loop'` for the
+  `transparent` flag: the MP4 must bake in the navy background since H.264
+  has no alpha channel. PNGs stay transparent for compositing.
+- `LoopRotator` rotates ±0.2 rad in a sine wave over 2 s — matches the action
+  plan's "slow-rotate" spec. Single full sine cycle per loop, so MP4 loops seamlessly.
+- The `render:branding` script auto-boots a dev server if one isn't running,
+  and shuts it down on exit. Idempotent: re-runs do not double-start.
