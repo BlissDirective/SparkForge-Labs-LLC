@@ -83,6 +83,10 @@ paths = [
   '''node_modules''',
   '''\.next''',
   '''package-lock\.json$''',
+  # .env.example is a template file with explicitly fake placeholder values.
+  # It must never contain real secrets, and scanning it produces only false
+  # positives (placeholder prefixes like sk_test_, whsec_, sntrys_, etc.).
+  '''\.env\.example$''',
   # Test/mock fixtures may contain obviously-fake credentials
   '''src/mocks/''',
   '''tests/''',
