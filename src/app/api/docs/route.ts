@@ -20,8 +20,11 @@ export async function GET(req: NextRequest) {
   const wantsUi = url.searchParams.get('ui') === '1';
 
   if (wantsUi) {
-    // Minimal Swagger UI wrapper. CDN-served bundle avoids adding the
-    // ~1MB swagger-ui-dist to the Next.js build.
+    // The CDN script tags below are intentionally blocked by the nonce-based
+    // CSP in production (script-src has no jsdelivr allowance). The UI is
+    // only useful in dev/preview where CSP is relaxed ('unsafe-eval' is
+    // present) and can be reached via ?ui=1. For production API clients, use
+    // the JSON spec directly at /api/docs.
     const html = `<!doctype html>
 <html lang="en">
 <head>
