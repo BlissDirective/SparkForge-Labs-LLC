@@ -1,10 +1,37 @@
 # SparkForge Build Progress
 
 ## Current Phase: SparkForge Branding 3D — Phase 5 (Hero Animation Rebuild)
-## Status: IN PROGRESS — Phases 1–4 complete; Phase 5a (Storyboard) authoring underway
+## Status: AWAITING SIGN-OFF — Phase 5a (Storyboard) complete; Phase 5b prep gated on user §13 answers
 ## Last Updated: 2026-04-29
 
 **Branch:** `claude/sparkforge-phase-five-CSSzU` (squash-merges into `setup-SparkForge-dev` on phase completion)
+
+---
+
+## SparkForge Branding 3D — Phase 5a (Hero v3 Storyboard) — April 29, 2026
+
+**Branch:** `claude/sparkforge-phase-five-CSSzU` · **Output:** `docs/hero-v3/Storyboard.md` (350 lines, 14 sections)
+
+### Phase 5a — COMPLETE pending user sign-off (2026-04-29)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| Storyboard document | `docs/hero-v3/Storyboard.md` | 14-section markdown deliverable. Full v2 audit (camera paths, store transitions, audio cues for all 8 phases of `HeroAnimation.tsx`); v3 beat sheet (8 beats × 19s with camera paths, lookAt, subjects, material animation, audio cues, performance budgets, out-triggers, Theatre.js sequence labels); audio cue remap (12 trigger-time edits in `heroAudio.ts:syncToProgress`, all v2 nodes reused, no new audio assets); cockpit handoff contract (CPA v2 single-canvas, store state machine, HS-9 verification protocol, skip/fast-forward semantics preserved verbatim from v2); 10 open questions for user sign-off (§13). |
+
+### Audit findings (v2 → v3)
+
+- v2 `HeroAnimation.tsx` is 700 lines with 8-phase GSAP timeline (`void`/`assembly`/`showcase`/`surge`/`shatter`/`regroup`/`materialize`/`online`) — fully captured in §1 audit table.
+- v2 `useAtomicHeroToCockpit.ts` referenced by the action plan does **NOT exist** — the atomic handoff is implemented via `useHeroAnimation.ts` + `cockpitStore.setHeroPhase/setCockpitReady` + GSAP `onComplete`. Storyboard §12 documents the actual contract.
+- v2 audio (`heroAudio.ts`, 807 lines) is comprehensive and reusable — v3 needs only ~12 trigger-time edits in `syncToProgress`, no new Tone.js nodes.
+
+### Build verification
+
+- `npm run build` → ✅ EXIT=0 (no code changes; only docs added).
+
+### Open items (gated on user)
+
+- §13 Q1–Q10 — 10 sign-off questions. Recommended defaults provided. User picks: "go with defaults on all" / specific per-question changes / restructure / halt.
+- Phase 5b prep (custom TSL anamorphic lensflare shader at `src/components/3d/branding/LensflareTSL.tsx`) does **not** start until §13 is answered.
 
 ---
 
