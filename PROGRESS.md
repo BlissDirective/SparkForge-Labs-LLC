@@ -1,10 +1,30 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 5b prep COMPLETE; ready for Phase 5b
-## Status: IN PROGRESS — Phase 5b prep shipped (commit 7e077c4); Phase 5b proper (hero beats 1-4 rebuild) next
+## Current Phase: SparkForge Branding 3D — Phase 5b proper COMPLETE; ready for Phase 5c
+## Status: IN PROGRESS — Phase 5b shipped (5/5 sub-commits); Phase 5c (Beats 5-8 + cockpit handoff) next
 ## Last Updated: 2026-04-29
 
 **Runtime override (2026-04-29):** Hero total runtime extended **19.0 s → 19.5 s** (Beat 8 0.5 → 1.0 s) for shatter-into-UI breathing room. 4× FF window 4.75 → 4.875 s. N4 lock revised. All downstream docs (storyboard v1.2, action plan §16.3 + N4 row, audio remap §11) updated.
+
+### Phase 5b proper — COMPLETE (2026-04-29)
+
+| # | Sub-piece | Commit | File(s) |
+|---|---|---|---|
+| 5b.1 | Theatre.js project + Hero v3 sheet | `c134288` | `src/lib/hero/heroTheatreProject.ts` (singleton + 4 typed Sheet Objects + ensureHeroStudio() auto-mount per Q8) |
+| 5b.2 | Voronoi shard set component | `aafce73` | `src/components/3d/branding/SfShardSet.tsx` (forwardRef + imperative handle for parent-driven physics) + dev showcase wiring |
+| 5b.3a | Beats 1+2 components | `3bedf32` | `src/components/3d/hero/v3/Beat1VoidAwakening.tsx` + `Beat2IgnitionSpark.tsx` |
+| 5b.3b | Beats 3+4 components | `213ee92` | `Beat3SCrystallization.tsx` + `Beat4FMirrorAndShardBurst.tsx` + `SfMark3D.tsx` revealMask prop |
+| 5b.4 | `/dev/hero-v3` standalone scrubber | (this commit) | `src/app/dev/hero-v3/{page.tsx,client.tsx}` |
+
+### Action plan deviation (intentional)
+
+Action plan §10 5b.4 calls for `process.env.NEXT_PUBLIC_HERO_V3_BEATS_1_4` env-var feature flag to wire v3 beats into the live `HeroAnimation.tsx`. Replaced with a **standalone `/dev/hero-v3` route** per user no-gating mandate — no env flag, live homepage hero stays on v2 until Phase 5c integrates all 8 beats wholesale.
+
+### Build status
+
+- `npm run build` → ✅ EXIT=0
+- `/dev/hero-v3` → 39.6 kB / 726 kB First Load JS (+33 kB delta from `@theatre/studio` + 4 beat components + heroTheatreProject)
+- `/dev/branding` → 3.57 kB / 693 kB (unchanged from 5b prep)
 
 ### Phase 5b prep — COMPLETE (2026-04-29)
 
