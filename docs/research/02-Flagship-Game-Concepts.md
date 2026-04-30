@@ -1229,6 +1229,138 @@ Closes the cross-game loop. **Players see their own past behavior get audited.**
 
 ---
 
+## K. Integration Plan & Migration Impact
+
+This section consolidates every file the 7 concepts collectively touch, so a build phase can be scoped end-to-end.
+
+### K.1 Files Modified
+
+| File | What changes | Concepts that touch it |
+|---|---|---|
+| `src/config/gameRegistry.ts` | +7 `GameRegistryEntry` rows; +7 `CAMERA_PRESETS` entries | All 7 |
+| `src/components/games/index.ts` | +7 component exports | All 7 |
+| `src/lib/ai/ai-content-generator.ts` | +6 `GameId` enums; +42 `ContentType` Zod schema entries (sum across 6 concepts; C5 adds 0) | C1 (6) + C2 (9) + C3 (6) + C4 (6) + C6 (9) + C7 (6) |
+| `src/config/labColors.ts` | **Only if Lab 11 adopted:** +1 entry, family union extended | C1, C6, C7 if Path B |
+| `src/config/labs.ts` | **Only if Lab 11 adopted:** +1 `LAB_ICONS` entry | C1, C6, C7 if Path B |
+| `src/components/3d/environments/HolographicLabMap.tsx` *(or wherever)* | **Only if Lab 11 adopted:** +1 lab node | C1, C6, C7 if Path B |
+| `package.json` | `@mlc-ai/web-llm` dependency added | C5 only |
+
+### K.2 Files Created
+
+**Per-concept components (21 new files):**
+
+| Concept | Game `tsx` | 3D scene `tsx` | Environment `tsx` |
+|---|---|---|---|
+| C1 Agent Atelier | `src/components/games/AgentAtelierGame.tsx` | `src/components/3d/AgentAtelier3D.tsx` | `src/components/3d/environments/AgentAtelierEnvironment.tsx` |
+| C2 Context Architect | `src/components/games/ContextArchitectGame.tsx` | `src/components/3d/ContextShelf3D.tsx` | `src/components/3d/environments/ContextArchitectEnvironment.tsx` |
+| C3 Glass Box Lab | `src/components/games/GlassBoxLabGame.tsx` | `src/components/3d/TrajectoryRail3D.tsx` | `src/components/3d/environments/GlassBoxEnvironment.tsx` |
+| C4 Pixel Witness | `src/components/games/PixelWitnessGame.tsx` | `src/components/3d/PixelWitness3D.tsx` | `src/components/3d/environments/PixelWitnessEnvironment.tsx` |
+| C5 Pocket Brain | `src/components/games/PocketBrainGame.tsx` | `src/components/3d/PocketBrain3D.tsx` | `src/components/3d/environments/PocketBrainEnvironment.tsx` |
+| C6 MCP Lab | `src/components/games/MCPLabGame.tsx` | `src/components/3d/MCPRig3D.tsx` | `src/components/3d/environments/MCPLabEnvironment.tsx` |
+| C7 Harness Forge | `src/components/games/HarnessForgeGame.tsx` | `src/components/3d/HarnessForge3D.tsx` | `src/components/3d/environments/HarnessForgeEnvironment.tsx` |
+
+**Per-concept Zustand stores (6 new files; C4 reuses existing infra):**
+
+`src/stores/agentAtelierStore.ts`, `contextArchitectStore.ts`, `glassBoxStore.ts`, `pocketBrainStore.ts`, `mcpLabStore.ts`, `harnessForgeStore.ts`.
+
+### K.3 Supabase Migrations (4 new)
+
+| Migration | Concept | Table | RLS pattern |
+|---|---|---|---|
+| `2026XXXX_agent_atelier_compositions.sql` | C1 | `agent_compositions` | child rw own + parent r |
+| `2026XXXX_glass_box_eval_grades.sql` | C3 | `eval_grades` | child rw own + parent r |
+| `2026XXXX_mcp_player_cartridges.sql` | C6 | `player_cartridges` | child rw own + parent r |
+| `2026XXXX_harness_forge_player_harnesses.sql` | C7 | `player_harnesses` | child rw own + parent r |
+
+Per CLAUDE.md §2: every DDL change requires a `get_advisors` run after apply to catch missing RLS — codified as a per-migration acceptance step.
+
+C2, C4, C5 require **no new migrations** (state is ephemeral or fits existing `child_progress` / `game_sessions`).
+
+### K.4 Existing Code This Document References
+
+For traceability — every concept above cites at least one existing file:
+
+| Reference | Used in concepts |
+|---|---|
+| `AgentArchitectGame.tsx:48` (Phase union pattern) | C1, C2, C3, C4, C5, C6, C7 |
+| `STAGE6E_v3FINAL_A.md` lines 4–11 (Canvas Coexistence + D3D-B1 inner-Canvas-removal) | C1, C2, C3, C4, C5, C6, C7 |
+| `BiasDetectiveGame.tsx` (multi-mode loop pattern) | C1, C2, C3, C6 |
+| `NeuralBuilderGame.tsx` (3D scene + UI overlay) | C2 |
+| `STAGE6E_v3FINAL_A.md` triangle-budget table | C1, C2, C3, C4, C5, C6, C7 |
+| `gameRegistry.ts:14-30` (`GameRegistryEntry`) | All 7 |
+| `gameRegistry.ts:69` (flagship 20M-tri budget) | All 7 |
+| `gameRegistry.ts:44-62` (`CAMERA_PRESETS`) | All 7 |
+| `labColors.ts:44-55` (`LAB_COLORS_TABLE`) | C1, C6, C7 (Path B only) |
+| `ai-content-generator.ts` (per CLAUDE.md §11 Standard Tier audit completion) | C1, C2, C3, C4, C6, C7 |
+| `useSafeTimeout` hook (per Standard Tier audit) | All 7 |
+| `useAnimatedCounter` shared hook | All 7 |
+
+### K.5 Build Phase Sequencing (Suggested)
+
+If/when these concepts become build phases, a sequencing recommendation:
+
+1. **Phase 1 — C5 Pocket Brain** *(easiest tech, biggest "wow" — adds zero-cost flagship to Lab 1, unblocks no other concept)*
+2. **Phase 2 — C2 Context Architect** *(no migration, single-spec, fills Lab 8 gap)*
+3. **Phase 3 — C4 Pixel Witness** *(no migration, single-spec, fills Lab 7 gap)*
+4. **Phase 4 — Lab-11 decision gate** *(user picks Path A or B; affects 3 concepts ahead)*
+5. **Phase 5 — C1 Agent Atelier** *(introduces `agent_compositions` table referenced by later concepts)*
+6. **Phase 6 — C6 MCP Lab** *(introduces `player_cartridges` table referenced by C7)*
+7. **Phase 7 — C3 Glass Box Lab** *(introduces `eval_grades` table; cross-links to C1 saves)*
+8. **Phase 8 — C7 Harness Forge** *(audits saves from C1, C6, C3 — must come last)*
+
+Cross-game dependencies are minimal except for C7's audit-replay loop.
+
+### K.6 Total Surface Area Summary
+
+| Category | Count |
+|---|---|
+| New `*.tsx` files | 21 (3 per concept × 7) |
+| New Zustand stores | 6 |
+| New Supabase migrations | 4 |
+| New AI ContentTypes (in `ai-content-generator.ts`) | 42 |
+| New `GameId` enum values | 7 (or 6 if C5 skipped — but C5 still gets a registry entry) |
+| Registry entries added | 7 |
+| Camera presets added | 7 |
+| Existing files modified | 3 (or 6 if Lab 11 adopted) |
+| New optional npm dependencies | 2 (`@mlc-ai/web-llm`, `@huggingface/transformers` — fallback) |
+
+---
+
+## L. Closing
+
+This document specifies **7 new flagship game concepts**, each at **≥ 2× the content depth** of current flagship games (12+ phases, 24–48 content units, 2+ replay loops), every concept anchored in a verified trend from `01-AI-Trends-Research.md`.
+
+### L.1 Outstanding Authoritative Decisions
+
+These remain for the user to confirm before any build phase begins:
+
+- [ ] **Lab 11 decision** — adopt new "Agentic AI" lab, or place agentic concepts in Labs 5/9? (Affects C1, C6, C7.)
+- [ ] **Build sequencing approval** — Section K.5 is a recommendation, not a commitment.
+- [ ] **Per-concept go/no-go** — user can drop any of the 7 concepts before build kickoff.
+
+### L.2 Cross-Document Reference Map
+
+| Doc 2 element | Doc 1 anchor |
+|---|---|
+| C1 Agent Atelier — orchestration | §1, §8.1 |
+| C2 Context Architect — context engineering | §4, §8.1 |
+| C3 Glass Box Lab — trajectory eval | §6, §8.1 |
+| C4 Pixel Witness — multimodal VLM | §5 |
+| C5 Pocket Brain — on-device SLM | §7 |
+| C6 MCP Plug-and-Play — MCP standard | §1.2 |
+| C7 Harness Forge — harness engineering | §2, §6 |
+
+Every concept honors **the Tech Quality Mandate** (CLAUDE.md §1.1) — WebGPU+TSL primary path, no fallback fork, MP4-poster fallback only.
+
+### L.3 What Happens Next
+
+1. **User reviews** both documents.
+2. **User decides** Lab-11 question and per-concept go/no-go.
+3. **User approves** sequencing or proposes a different one.
+4. **Build planning** — only at the user's explicit signal — drafts Stage X v3-FINAL build documents per concept (matching the existing `STAGE6E_v3FINAL_A/B.md` pattern).
+5. **Code phase begins.** Per the user's standing instruction: *"Review and acknowledge user finalized selections/feedback prior to building/modifying code."*
+
+End of document.
 
 
 
