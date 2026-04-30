@@ -387,4 +387,118 @@ These targets are codified in Document 2.
 
 ---
 
+## 10. Sources
+
+All sources accessed April 2026 unless otherwise noted. Hyperlinked here so Document 2 references are short.
+
+### 10.1 Agentic AI Engineering
+
+- [Machine Learning Mastery — 7 Agentic AI Trends to Watch in 2026](https://machinelearningmastery.com/7-agentic-ai-trends-to-watch-in-2026/)
+- [CIO — How agentic AI will reshape engineering workflows in 2026](https://www.cio.com/article/4134741/how-agentic-ai-will-reshape-engineering-workflows-in-2026.html)
+- [AceCloud — Agentic AI Trends 2026: From Pilots to Production](https://acecloud.ai/blog/agentic-ai-trends/)
+- [Intuz — Top 5 AI Agent Frameworks 2026](https://www.intuz.com/blog/top-5-ai-agent-frameworks-2025)
+- [IBM — The trends that will shape AI and tech in 2026](https://www.ibm.com/think/news/ai-tech-trends-predictions-2026)
+- [Anthropic Engineering — Equipping agents for the real world with Agent Skills](https://www.anthropic.com/engineering/equipping-agents-for-the-real-world-with-agent-skills)
+- [Claude API Docs — Agent Skills overview](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/overview)
+- [Claude API Docs — Agent SDK overview](https://platform.claude.com/docs/en/agent-sdk/overview)
+- [Wikipedia — Model Context Protocol](https://en.wikipedia.org/wiki/Model_Context_Protocol)
+- [MCP Blog — The 2026 MCP Roadmap](https://blog.modelcontextprotocol.io/posts/2026-mcp-roadmap/)
+- [CIO — Why Model Context Protocol is suddenly on every executive agenda](https://www.cio.com/article/4136548/why-model-context-protocol-is-suddenly-on-every-executive-agenda.html)
+- [Pento — A Year of MCP: From Internal Experiment to Industry Standard](https://www.pento.ai/blog/a-year-of-mcp-2025-review)
+- [Salesmate — AI agent trends for 2026](https://www.salesmate.io/blog/future-of-ai-agents/)
+- [Svitla — Agentic AI Market Trends 2025–2026](https://svitla.com/blog/agentic-ai-market-trends-2026/)
+
+### 10.2 Harness Engineering
+
+- [Martin Fowler — Harness engineering for coding agent users](https://martinfowler.com/articles/harness-engineering.html)
+- [Addy Osmani — Agent Harness Engineering](https://addyosmani.com/blog/agent-harness-engineering/)
+- [thoughts.jock.pl — AI Coding Harness Agents 2026](https://thoughts.jock.pl/p/ai-coding-harness-agents-2026)
+- [NxCode — What Is Harness Engineering? Complete Guide for AI Agent Development (2026)](https://www.nxcode.io/resources/news/what-is-harness-engineering-complete-guide-2026)
+- [GitHub — Chachamaru127/claude-code-harness](https://github.com/Chachamaru127/claude-code-harness)
+- [GitHub — HKUDS/OpenHarness](https://github.com/HKUDS/OpenHarness)
+- [GitHub — harness/harness-skills](https://github.com/harness/harness-skills)
+- [OFox — Claude Code: Hooks, Subagents, and Skills — Complete Guide](https://ofox.ai/blog/claude-code-hooks-subagents-skills-complete-guide-2026/)
+- [Penligent — Inside Claude Code: Architecture Behind Tools, Memory, Hooks, MCP](https://www.penligent.ai/hackinglabs/inside-claude-code-the-architecture-behind-tools-memory-hooks-and-mcp/)
+- [alexop.dev — Understanding Claude Code's Full Stack: MCP, Skills, Subagents, Hooks](https://alexop.dev/posts/understanding-claude-code-full-stack/)
+
+### 10.3 LLM Development
+
+- [Vellum — GPT-5.1 vs Gemini 3 Pro vs Claude Opus 4.5 Breakdown](https://www.vellum.ai/blog/flagship-model-report)
+- [IntuitionLabs — Claude vs ChatGPT vs Copilot vs Gemini: 2026 Enterprise Guide](https://intuitionlabs.ai/articles/claude-vs-chatgpt-vs-copilot-vs-gemini-enterprise-comparison)
+- [AIThority — From GPT-5.5 to DeepSeek V4: Multi-Model Routing in 2026](https://aithority.com/machine-learning/from-gpt-5-5-to-deepseek-v4-how-developers-are-building-smarter-ai-agents-with-multi-model-routing-in-2026/)
+- [IEEE Spectrum — Stanford's AI Index for 2026](https://spectrum.ieee.org/state-of-ai-index-2026)
+- [LM Council — AI Model Benchmarks April 2026](https://lmcouncil.ai/benchmarks)
+- [Teneo — The Best LLM in 2026: Gemini 3 vs. Claude 4.5 vs. GPT 5.1](https://www.teneo.ai/blog/the-best-llm-in-2026-gemini-3-vs-claude-4-5-vs-gpt-5-1)
+- [llm-stats — AI Updates Today (April 2026)](https://llm-stats.com/llm-updates)
+- [SurePrompts — Prompt Caching Guide (2026)](https://sureprompts.com/blog/prompt-caching-guide-2026)
+- [ProjectDiscovery — How We Cut LLM Costs by 59% With Prompt Caching](https://projectdiscovery.io/blog/how-we-cut-llm-cost-with-prompt-caching)
+- [LLM Gateway — Prompt Caching Explained: 30–99% Cost Cuts](https://llmgateway.io/blog/prompt-caching-explained)
+- [arXiv — Don't Break the Cache: Prompt Caching for Long-Horizon Agentic Tasks](https://arxiv.org/abs/2601.06007)
+
+### 10.4 Context Engineering
+
+- [Atlan — Context Architecture for AI Agents: A Complete 2026 Guide](https://atlan.com/know/context-architecture-for-ai-agents/)
+- [Atlan — What Is Context Engineering? Complete 2026 Guide](https://atlan.com/know/what-is-context-engineering/)
+- [Weaviate — Context Engineering: LLM Memory and Retrieval for AI Agents](https://weaviate.io/blog/context-engineering)
+- [LangChain — Context Engineering for Agents](https://www.langchain.com/blog/context-engineering-for-agents)
+- [LlamaIndex — Context Engineering Guide: Techniques for AI Agents](https://www.llamaindex.ai/blog/context-engineering-what-it-is-and-techniques-to-consider)
+- [Towards Data Science — Context Engineering for AI Agents: A Deep Dive](https://towardsdatascience.com/deep-dive-into-context-engineering-for-ai-agents/)
+- [Neo4j — What Is Context Engineering in AI Agents?](https://neo4j.com/blog/agentic-ai/what-is-context-engineering/)
+- [Elastic — What is Context Engineering? Architecting Reliable AI](https://www.elastic.co/what-is/context-engineering)
+- [Chroma — Context Rot: How Increasing Input Tokens Impacts LLM Performance](https://research.trychroma.com/context-rot)
+- [GitHub — booydar/babilong (BABILong long-context benchmark)](https://github.com/booydar/babilong)
+- [OpenLayer — Needle in a Haystack: AI Testing Guide (Jan 2026)](https://www.openlayer.com/blog/post/needle-in-haystack-ai-testing-llm-context-retrieval)
+- [Awesome Agents — Best Models for Long-Context Retrieval (March 2026)](https://awesomeagents.ai/capabilities/long-context-retrieval/)
+
+### 10.5 Multimodal / Vision-Language
+
+- [BentoML — Best Open-Source Vision Language Models in 2026](https://www.bentoml.com/blog/multimodal-ai-a-guide-to-open-source-vision-language-models)
+- [Label Your Data — VLM: How Vision-Language Models Work (2026 Guide)](https://labelyourdata.com/articles/machine-learning/vision-language-models)
+- [DataCamp — Top 10 Vision Language Models in 2026](https://www.datacamp.com/blog/top-vision-language-models)
+- [Dextralabs — Top 10 Vision Language Models in 2026](https://dextralabs.com/blog/top-10-vision-language-models/)
+- [Towards AI — Evolution of Vision Language Models and Multi-Modal Learning](https://towardsai.net/p/machine-learning/evolution-of-vision-language-models-and-multi-modal-learning)
+- [Wikipedia — Sora (text-to-video model)](https://en.wikipedia.org/wiki/Sora_(text-to-video_model))
+- [AI Market Watch — OpenAI Sets April 26, 2026 Discontinuation Date for Sora](https://www.ai-market-watch.com/news/openai-sets-april-26-2026-as-discontinuation-date-for-sora-web-and-app-experienc-diyse6)
+
+### 10.6 AI Safety / Alignment / Evals
+
+- [Anthropic — Alignment Science Blog](https://alignment.anthropic.com/)
+- [TechRxiv — Jailbreaking LLMs: A Survey of Attacks, Defenses and Evaluation (2026)](https://www.techrxiv.org/users/1011181/articles/1373070/master/file/data/Jailbreaking_LLMs_2026/Jailbreaking_LLMs_2026.pdf)
+- [Zylos Research — AI Safety, Alignment, and Interpretability in 2026](https://zylos.ai/research/2026-02-09-ai-safety-alignment-interpretability)
+- [JHU Hub — Efficient, reusable framework to evaluate AI safety (March 2026)](https://hub.jhu.edu/2026/03/11/efficient-ai-safety-testing/)
+- [arXiv — Red Teaming the Mind of the Machine](https://arxiv.org/html/2505.04806v1)
+- [arXiv — A Red Teaming Roadmap Towards System-Level Safety](https://arxiv.org/html/2506.05376v1)
+- [arXiv — A Safe Harbor for AI Evaluation and Red Teaming](https://arxiv.org/abs/2403.04893)
+- [arXiv — Constitutional AI: Harmlessness from AI Feedback](https://arxiv.org/pdf/2212.08073)
+- [Orq — Mastering LLM Guardrails: Complete 2026 Guide](https://orq.ai/blog/llm-guardrails)
+- [Portkey — The complete guide to LLM observability for 2026](https://portkey.ai/blog/the-complete-guide-to-llm-observability/)
+- [Datadog — LLM guardrails: Best practices for deploying LLM apps securely](https://www.datadoghq.com/blog/llm-guardrails-best-practices/)
+- [Andrii Furmanets — AI Agents in 2026: Practical Architecture for Tools, Memory, Evals, Guardrails](https://andriifurmanets.com/blogs/ai-agents-2026-practical-architecture-tools-memory-evals-guardrails)
+
+### 10.7 On-device / Edge AI
+
+- [GitHub — mlc-ai/web-llm](https://github.com/mlc-ai/web-llm)
+- [WebLLM Home](https://webllm.mlc.ai/)
+- [arXiv — WebLLM: A High-Performance In-Browser LLM Inference Engine](https://arxiv.org/html/2412.15803v2)
+- [WebGPU.com — LFM2-MoE: 8.3B Parameter Language Model in Your Browser via WebGPU](https://www.webgpu.com/showcase/lfm2-moe-8b-language-model-browser-webgpu/)
+- [Calmops — Browser AI and WebGPU 2026: Running AI Models Locally in Your Browser](https://calmops.com/ai/browser-ai-webgpu-2026-complete-guide/)
+- [Google AI Edge — LLM Inference guide for Web](https://ai.google.dev/edge/mediapipe/solutions/genai/llm_inference/web_js)
+- [Local AI Master — Best Small AI Models to Run with Ollama (2026)](https://localaimaster.com/blog/small-language-models-guide-2026)
+- [Calmops — Small Language Models (SLMs) Complete Guide 2026](https://calmops.com/ai/small-language-models-slm-complete-guide-2026/)
+- [Intuz — Top 10 Small Language Models in 2026](https://www.intuz.com/blog/best-small-language-models)
+- [DataCamp — Top 15 Small Language Models for 2026](https://www.datacamp.com/blog/top-small-language-models)
+- [Loomery — Apple Intelligence and Small Language Models](https://www.loomery.com/insights/apple-intelligence-shows-the-power-of-small-language-models-but-what-are-they)
+
+---
+
+## 11. Closing
+
+This research foundation supports the design of **5–10 new flagship game concepts** in `02-Flagship-Game-Concepts.md`. The most directly useful research outputs are:
+
+- **Section 8.1 (Five Pillars)** — design backbone for new flagship mechanics.
+- **Section 9.1 (Mechanic Candidates table)** — direct seed list for game concepts.
+- **Section 9.2 (Lab-Mapping Hints)** — pre-positioned lab placements.
+- **Section 9.4 (Content-Length Target)** — concrete 2× target (12+ phases, 3 age-band variants per phase, 24–48 content units, 2+ play loops).
+
+End of document. → Continue with `02-Flagship-Game-Concepts.md`.
 
