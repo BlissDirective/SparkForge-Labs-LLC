@@ -917,6 +917,161 @@ WebGPU is required for the LFM2-MoE primary path (Chrome 113+, Edge 113+, Safari
 
 ---
 
+## I. Concept C6 — MCP Plug-and-Play Lab
+
+> *"MCP is USB-C for AI. Plug in a calculator. Plug in a calendar. Plug in a paint brush. The agent grows."*
+
+### I.1 Headline
+
+In late 2025 / early 2026, **MCP became the dominant agent-tool standard** (Doc 1 §1.2: 10,000+ public servers, 97M monthly SDK downloads, donated to Linux Foundation). MCP Plug-and-Play Lab makes the abstraction physical: agents have **tool ports**, players collect **MCP cartridges** (calculator, calendar, drawing app, dictionary, music maker, weather, timer, map, news…), snap them in, and run missions where the cartridge combination determines what the agent can do. Wrong cartridges produce comic failure. Right cartridges produce surprising capability.
+
+### I.2 Lab Placement (DUAL-SPEC)
+
+| Path | Lab | Lab name | Color | Notes |
+|---|---|---|---|---|
+| **Path A** *(if Lab 11 not adopted)* | **Lab 5** | AI Helpers | `#00D17A` (green) | Joins Pet Trainer + Agent Atelier (Path A). Lab 5 becomes the "agentic" lab by default. |
+| **Path B** *(if Lab 11 adopted)* | **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | Second flagship in Lab 11 — the "Equip" act in the Build → Equip → Constrain arc. |
+
+### I.3 Research Anchors
+
+- **Doc 1 §1.2** — MCP standard, "USB-C for AI"
+- **Doc 1 §9.1** — mechanic: MCP plug-and-play tool ports
+- **Doc 1 §1.4 Pertinent** — "Familiar metaphor, maps cleanly"
+
+### I.4 Phase Structure (12 phases)
+
+```typescript
+type Phase =
+  | 'welcome'
+  | 'learn-usbc'         // Card 1: USB-C metaphor (real photo of USB-C → MCP cartridge analogy)
+  | 'learn-cartridges'   // Card 2: tour of 25 cartridges
+  | 'learn-mission'      // Card 3: how missions work
+  | 'tutorial'           // Guided 1-mission with 3 cartridges
+  | 'cartridge-gallery'  // Browse + collect
+  | 'mission-pick'       // 30 missions
+  | 'load-cartridges'    // Snap 1–5 cartridges into agent
+  | 'run-mission'        // Animated execution, show which cartridge fires
+  | 'debug'              // Mission failed → diagnose missing cartridge
+  | 'build-cartridge'    // Loop 2: design own cartridge spec
+  | 'report';            // Stats + cartridge unlocks
+```
+
+12 phases.
+
+### I.5 Cartridge Library (25)
+
+Each cartridge has a `tool spec` (MCP-shape JSON), an icon, and a port type (yellow/blue/red/green ports correspond to data shape compatibility — kid-friendly form of MCP type discipline):
+
+| # | Cartridge | Port | Spec sample |
+|---|---|---|---|
+| 1 | Calculator | yellow | `{ "tools": ["add", "mul", "div", "sub"] }` |
+| 2 | Calendar | blue | `{ "tools": ["next_event", "schedule"] }` |
+| 3 | Dictionary | yellow | `{ "tools": ["define", "synonyms"] }` |
+| 4 | Drawing | red | `{ "tools": ["draw", "color"] }` |
+| 5 | Timer | yellow | `{ "tools": ["start", "stop", "elapsed"] }` |
+| 6 | Music Maker | red | `{ "tools": ["play_note", "tempo"] }` |
+| 7 | Weather | blue | `{ "tools": ["forecast", "current"] }` |
+| 8 | Map | green | `{ "tools": ["distance", "directions"] }` |
+| 9 | Translator | yellow | `{ "tools": ["translate", "detect_lang"] }` |
+| 10 | Random | yellow | `{ "tools": ["dice", "shuffle", "pick"] }` |
+| 11 | Notes | blue | `{ "tools": ["save_note", "search_notes"] }` |
+| 12 | Counter | yellow | `{ "tools": ["count", "tally"] }` |
+| 13 | Color Picker | red | `{ "tools": ["pick_color", "hex"] }` |
+| 14 | Spelling | yellow | `{ "tools": ["check", "suggest"] }` |
+| 15 | Sorter | green | `{ "tools": ["sort", "filter"] }` |
+| 16 | Quiz | yellow | `{ "tools": ["ask_question", "score"] }` |
+| 17 | Story Tracker | blue | `{ "tools": ["track_chars", "summarize"] }` |
+| 18 | Habit Tracker | blue | `{ "tools": ["log", "streak"] }` |
+| 19 | Recipe | green | `{ "tools": ["scale", "convert"] }` |
+| 20 | Joke Maker | red | `{ "tools": ["pun", "knock_knock"] }` |
+| 21 | Memory | blue | `{ "tools": ["recall", "remember"] }` |
+| 22 | Coin Flip | yellow | `{ "tools": ["flip"] }` |
+| 23 | Stopwatch | yellow | `{ "tools": ["lap", "split"] }` |
+| 24 | Currency | yellow | `{ "tools": ["convert", "rate"] }` |
+| 25 | Compliment | red | `{ "tools": ["nice_thing", "kind_word"] }` |
+
+All cartridges are pre-curated for kid-safe behavior; outputs go through existing content filters before display.
+
+### I.6 Mission Library (30 missions)
+
+30 missions, each requires 1–5 cartridges. Examples:
+
+- **"Plan a 30-min snack break"** — needs Timer + Recipe + Calendar
+- **"Make a kid-safe joke"** — needs Joke Maker + Spelling
+- **"Decide what to wear today"** — needs Weather + Calendar
+- **"Draw a sunset"** — needs Drawing + Color Picker
+- **"Pick a fair turn order"** — needs Random + Sorter
+
+Missions are tagged with required ports (yellow/blue/red/green). Players see the puzzle: "I need 1 yellow + 1 blue. Which combo?"
+
+### I.7 Game Loops (2)
+
+- **Loop 1: Mission Mode** — pick mission, pick cartridges, run, get graded
+- **Loop 2: Build Cartridge** — design a new cartridge spec (name, tools, port type), test on missions
+
+### I.8 3D / Visual
+
+| Asset | File | Purpose |
+|---|---|---|
+| `MCPRig3D.tsx` | `src/components/3d/` | Central agent block with **5 visible USB-C-shaped ports**, glowing port colors. Cartridges fly in and snap with a click. |
+| `MCPLabEnvironment.tsx` | `src/components/3d/environments/` | Tinkerer's workshop — racks of cartridges, soldering iron, oscilloscope, blueprints. |
+
+**Camera preset:**
+```typescript
+'mcp-lab': { position: [0, 2.5, 5.5], lookAt: [0, 0.6, 0], fov: 48 }
+```
+
+### I.9 State Schema
+
+```typescript
+interface MCPLabState {
+  loadedCartridges: Cartridge[];   // 0–5
+  collection: string[];            // unlocked cartridge ids
+  customCartridges: Cartridge[];   // built in Loop 2, max 5
+  mission: Mission | null;
+  trace: ToolCall[];               // which tool fired when
+  grade: MissionGrade | null;
+}
+```
+
+### I.10 Persistence
+
+```sql
+-- supabase/migrations/2026XXXX_mcp_player_cartridges.sql
+create table player_cartridges (
+  id uuid primary key default gen_random_uuid(),
+  child_id uuid references children(id) on delete cascade,
+  name text not null,
+  spec jsonb not null,        -- MCP-shape spec
+  port_type text not null,    -- 'yellow' | 'blue' | 'red' | 'green'
+  created_at timestamptz default now()
+);
+create index player_cartridges_child_idx on player_cartridges(child_id);
+alter table player_cartridges enable row level security;
+-- RLS: child can read/write own; parent can read child's. get_advisors after.
+```
+
+### I.11 AI Content Types (9 new)
+
+| ContentType | Per band | Purpose |
+|---|---|---|
+| `mcp-mission-A/B/C` | each | Generated missions tagged with required ports |
+| `cartridge-flavor-A/B/C` | each | Description + use-case for each cartridge |
+| `failure-banter-A/B/C` | each | Funny failure messages when wrong cartridge combo |
+
+### I.12 Acceptance Criteria
+
+- [ ] 12 phases implemented
+- [ ] 25 cartridges with valid MCP-shape specs + port types
+- [ ] 30 missions tagged with required ports
+- [ ] Loop 2 (Build Cartridge) with editor + test runner
+- [ ] `player_cartridges` migration applied; RLS verified
+- [ ] B/C primary; A 2D fallback (drag complexity)
+- [ ] Registry entry + camera preset
+- [ ] Estimated TSX lines: ~3,200
+
+---
+
 
 
 
