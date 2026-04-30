@@ -778,6 +778,145 @@ The clip Q-A pairs are **pre-recorded** — no live model call needed for primar
 
 ---
 
+## H. Concept C5 — Pocket Brain
+
+> *"There's a real AI living in this browser tab. No internet. No server. No API key. Just you, your laptop, and a tiny brain."*
+
+### H.1 Headline
+
+The most directly SparkForge-relevant trend in the entire research window: **WebGPU + WebAssembly let real LLMs run fully client-side at 30–70 tokens/sec** (Doc 1 §7.1, §7.2). Pocket Brain is the lab anchor for **Lab 1 — What IS AI?** It puts a real, **already-running, in-tab small language model** in front of every kid who plays. They watch a download bar, watch tokens stream out, slide the **quantization dial** between Q4 / Q8 / FP16 and *feel* memory shrinking. Then they peek at the **Mixture-of-Experts switchboard** and watch only the right "specialist" wake up for each question.
+
+### H.2 Lab Placement
+
+**Lab 1 — What IS AI?** (`#0FB8FA`, blue). Single-spec. Lab 1 currently has no flagship; this becomes the front door for new players. Foundational pillar (per Doc 1 §8.1, "what is a model?" is foundational, not one of the five engineering pillars).
+
+### H.3 Research Anchors
+
+- **Doc 1 §7.1–§7.4** — WebLLM, Transformers.js, LFM2-MoE, Phi-4, Gemma 3/4
+- **Doc 1 §9.1** — mechanic: run an SLM in the browser
+- **Doc 1 §7.4** — quantization, MoE, PLE all as teachable concepts
+
+### H.4 Phase Structure (13 phases)
+
+```typescript
+type Phase =
+  | 'welcome'
+  | 'learn-model'        // Card 1: "What's a model?"
+  | 'learn-tokens'       // Card 2: tokens explained with emoji
+  | 'learn-where'        // Card 3: cloud vs in-browser
+  | 'download'           // Real download bar, real model fetched
+  | 'first-run'          // Real prompt, real response stream
+  | 'token-stream-view'  // Slo-mo token view with logit visualization
+  | 'quantization-lab'   // Slider: Q4 / Q8 / FP16. Watch RAM bar move.
+  | 'moe-switchboard'    // Visualize which "specialist" lit up
+  | 'speed-race'         // Loop 2: time-trial — answer N questions vs cloud
+  | 'compare-cloud'      // Side-by-side with Anthropic API answer
+  | 'pocket-mode'        // Free play with the SLM
+  | 'report';            // Stats + cert ("you ran a real LLM today")
+```
+
+13 phases.
+
+### H.5 Browser-side Model Choice
+
+| Model | Total Params | Active Params | Disk Size (Q4) | Why this one? |
+|---|---|---|---|---|
+| **Primary** | LFM2-MoE | 8.3B | 1.5B | Doc 1 §7.2 — proven WebGPU showcase, MoE behavior visualizable |
+| **Fallback Small** | Gemma 4 E2B | ~2B | ~1GB | Doc 1 §7.2 — runs on weaker laptops, multimodal-capable |
+| **Fallback Tiny** | TinyLlama 1.1B | 1.1B | ~600MB | Last-resort for low-VRAM devices |
+
+A device-capability check on first load picks the largest model the device can handle. The chosen model is cached in IndexedDB; subsequent visits skip the download. New optional dependencies: `@mlc-ai/web-llm` (per Doc 1 §7.5 — first-class browser-AI lib).
+
+### H.6 Prompt Library (30 prompts × 4 quantization levels = 120 runs)
+
+30 hardcoded prompts grouped into 5 themes:
+
+| Theme | Examples |
+|---|---|
+| **Story Starters** | "Write 3 sentences about a brave cat" |
+| **Math** | "What is 17 × 4?" (tests reasoning) |
+| **Translation** | "Say 'good morning' in French" |
+| **Common Sense** | "If I drop an egg, what happens?" |
+| **Creative** | "Make up a name for a friendly robot" |
+
+Each prompt runs at all 4 quantization levels (Q4 / Q5 / Q8 / FP16) so kids see the accuracy/speed tradeoff side-by-side.
+
+### H.7 Game Loops (2)
+
+- **Loop 1: Explore Mode** — kids try any of the 30 prompts at any quant level, observe.
+- **Loop 2: Speed Race** — 5-minute timed mode answering as many trivia Qs as possible. The browser SLM is the player's "brain" — they have to choose quant level (faster but dumber, or slower but smarter).
+
+### H.8 3D / Visual
+
+| Asset | File | Purpose |
+|---|---|---|
+| `PocketBrain3D.tsx` | `src/components/3d/` | A glowing miniature brain, with **8 lobes representing MoE experts**. Lobes light up when active. Token stream flows out as glowing pellets. |
+| `PocketBrainEnvironment.tsx` | `src/components/3d/environments/` | Tabletop close-up: laptop on a desk, model files as glowing orbs being downloaded. |
+
+**Camera preset:**
+```typescript
+'pocket-brain': { position: [0, 1.5, 4], lookAt: [0, 0.8, 0], fov: 42 }
+```
+
+### H.9 State Schema
+
+```typescript
+interface PocketBrainState {
+  modelStatus: 'idle' | 'downloading' | 'loading' | 'ready' | 'error';
+  modelChoice: 'lfm2-moe' | 'gemma-e2b' | 'tinyllama-1b';
+  quantization: 'Q4' | 'Q5' | 'Q8' | 'FP16';
+  prompt: string;
+  streamingTokens: string[];
+  activeExperts: number[];      // MoE lobes lit
+  ramUsageBytes: number;
+  tokensPerSec: number;
+}
+```
+
+### H.10 Persistence
+
+**No new migration required.** Run history can be ephemeral; if persistence is added later, hook into existing `child_progress`.
+
+### H.11 No Server-Side Cost
+
+Critical: **Pocket Brain does NOT use the Anthropic API for primary play.** It runs a real LLM client-side. The only cloud call is the optional `compare-cloud` phase — one tightly-bounded comparison against the existing Prompt Lab API path, with kid-safe filtering.
+
+This is the cheapest flagship to operate (zero per-prompt cost) and the most "real" — kids see real AI, not a simulation.
+
+### H.12 New Dependencies
+
+```jsonc
+// package.json additions
+"@mlc-ai/web-llm": "^0.2.x"   // browser-side LLM inference
+// optional, smaller fallback
+"@huggingface/transformers": "^3.0.x"   // for tinyllama path
+```
+
+Per CLAUDE.md tech-quality mandate (§1): "Optional dependencies that materially raise the visual ceiling are added without budget review when their use is documented in a phase plan." Pocket Brain documents the use case — adding these is in scope.
+
+### H.13 Browser Support
+
+WebGPU is required for the LFM2-MoE primary path (Chrome 113+, Edge 113+, Safari 17+, Firefox-with-flag, mobile Chromium). Devices without WebGPU receive a thin **MP4-poster fallback** (matching the broader CLAUDE.md §1 fallback policy for the hero animation), with a "your browser doesn't support pocket models — here's a video" educational clip.
+
+### H.14 AI Content Types
+
+**0 new content types.** Pocket Brain is unique among these 7 concepts — its content is generated *live in the browser* by the SLM. No `ai-content-generator.ts` additions.
+
+### H.15 Acceptance Criteria
+
+- [ ] 13 phases implemented
+- [ ] WebLLM (or fallback) loads, caches in IndexedDB, generates real tokens
+- [ ] 30 prompts × 4 quantization levels (120 runs) supported
+- [ ] MoE switchboard visualization shows active experts
+- [ ] Speed Race loop with quant-level tradeoff scoring
+- [ ] Cross-device fallback chain (LFM2-MoE → Gemma E2B → TinyLlama → MP4-poster)
+- [ ] Compare-cloud phase: 1-shot Anthropic API call with kid-safe filter
+- [ ] All 3 age bands supported (A: pre-loaded model, B: pick prompts, C: full quant control)
+- [ ] WebGPU+TSL primary path
+- [ ] Estimated TSX lines: ~2,800
+
+---
+
 
 
 
