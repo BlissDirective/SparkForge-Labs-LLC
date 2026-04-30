@@ -259,4 +259,132 @@ The **EU AI Act is now in effect** — sector regulations in finance, healthcare
 
 ---
 
+## 7. On-device / Edge AI
+
+### 7.1 Summary
+
+The browser is becoming an AI runtime. **WebGPU + WebAssembly** pipelines now deliver **30–70 tokens/sec** in a vanilla browser tab with up to **80% native performance**. Mixture-of-Experts models like LFM2-MoE (8.3B total / 1.5B active) load and generate **fully client-side**. Phones from Samsung, Google, and Qualcomm in 2026 ship with NPUs supporting **up to 4B-parameter Q4-quantized** local models. This is the most directly SparkForge-relevant trend in the report — it means a **cookie-licked-clean, in-browser, no-server, kids-safe LLM is now feasible** for SparkForge games.
+
+### 7.2 Key Findings & Data
+
+| Tech | Capability |
+|---|---|
+| **WebLLM** (mlc-ai) | OpenAI-compatible JS API. WebGPU + WASM. **30–70 tok/s** on consumer laptops. **80% native perf**. |
+| **Transformers.js** (Hugging Face) | ONNX Runtime Web + WebGPU. Text classification, NER, QA, etc. |
+| **LFM2-MoE** (Liquid AI) | **8.3B total / 1.5B active per token**. Loads, quantizes, generates entirely client-side. |
+| **Phi-4** (14B, Microsoft) | **Beats GPT-4o on MATH and GPQA** (graduate-level science). Outperforms Llama 3.2 3B on every benchmark. |
+| **Gemma 3 / 4** (Google) | Multimodal, **128K context**. Gemma 4 E2B/E4B variants run in **5GB RAM @ Q4** on phones, tablets, edge HW. |
+| **Apple Intelligence** | Personal SLM model used for on-device personalization (e.g., suggest holiday locations from photo metadata). |
+| **Hardware support** | Samsung, Google, Qualcomm phones (2026) support up to 4B-param Q4 models locally. |
+
+### 7.3 Timeline
+
+- **Q4 2025** — Liquid AI ships LFM2-MoE with browser demo.
+- **Q4 2025** — Phi-4 (14B) released; benchmarks beat GPT-4o on MATH and GPQA.
+- **Q1 2026** — WebLLM hits production maturity (OpenAI-compatible API, no server required).
+- **April 2026** — Gemma 4 E2B / E4B variants released.
+
+### 7.4 Pertinent Patterns for SparkForge
+
+- **Browser-side LLM = no API key spend, no PII out, no latency, full kids-safety control.** Directly enables a no-cost agentic flagship game.
+- **Quantization is teachable**: Q4 / Q8 / FP16 = "compression levels" that trade memory for accuracy.
+- **Mixture-of-Experts** is teachable: "we have 8 specialist tutors, but only the right 1 or 2 wake up for each question."
+- **Per-layer embeddings (PLE)** — Gemma's "effective parameters" are a teachable parameter-efficiency idea.
+
+---
+
+## 8. Cross-Cutting Insights
+
+The seven topics interlock. The patterns below recur across multiple research areas and are the most game-design-relevant takeaways for SparkForge.
+
+### 8.1 The "Five Pillars" of Modern AI Engineering
+
+Every flagship product or research paper from the window touches at least three of these. Document 2 will use them as the design backbone for new flagship games:
+
+| Pillar | One-Line Definition | Source Topics |
+|---|---|---|
+| **Orchestration** | Wiring multiple specialized agents together to accomplish complex tasks | 1, 2 |
+| **Harness** | The deterministic scaffolding (rules, hooks, sensors) that makes a probabilistic model reliable | 2, 6 |
+| **Reasoning** | Slow, deliberate, multi-step thinking — vs. fast pattern-matching | 3 |
+| **Context** | Curating *what* the model sees, not just *how much* | 3, 4 |
+| **Trust** | Constitutional rules + evaluations + observability that keep AI honest and safe | 6 |
+
+### 8.2 Recurring Tension: Capability vs. Reliability
+
+Every topic has the same shape: capability is up and to the right, but reliability lags. Long context, large parameter counts, and broad multimodality all create surface area for failure. The dominant 2026 engineering response is **constraint** — harness, context engineering, constitutional classifiers, full-trajectory evals. **Constraint-as-a-game-mechanic** is therefore unusually well-aligned with where the field is.
+
+### 8.3 The Browser-Native Agentic Stack
+
+Combining Topics 1, 4, and 7, a **fully browser-side agentic stack** is now feasible:
+
+```
+[ WebGPU ] → [ WebLLM / Transformers.js (SLM) ] → [ in-tab tools / MCP-shape ] → [ context-budgeted memory ] → [ in-browser eval guardrails ]
+```
+
+This stack maps directly onto SparkForge's locked tech (Next.js 15, WebGPU+TSL, Zustand, Supabase). No new infra category is required to ship a browser-side flagship.
+
+### 8.4 The "AI Literacy Gap" Opportunity
+
+Most consumer media still teaches AI as a **chat product**. The actual industry has moved on: agents, harnesses, context, evals, multi-modal, on-device. **There is no children's curriculum at this depth in 2026.** SparkForge has a clear differentiation lane teaching the *post-chat* AI stack.
+
+---
+
+## 9. Implications for SparkForge Flagship Game Design
+
+This section is the bridge to Document 2. It distills the research into **direct mechanic candidates**, age-band hints, and lab-mapping suggestions.
+
+### 9.1 Mechanic Candidates Discovered in Research
+
+| Mechanic | Source Topic(s) | Age Band | Why It Works for Kids |
+|---|---|---|---|
+| **Wire specialist agents into a pipeline** | 1, 8 | B/C | Concrete, visual, builds intuition for "delegation" |
+| **Write a "constitution," then watch a red-team try to break it** | 6 | C | Two-role play, debate-friendly |
+| **Sort context shelves under a token budget** | 4 | B/C | Tetris-meets-knowledge-management |
+| **Dial reasoning effort up/down per task and see cost vs. accuracy** | 3 | B/C | Live tradeoff visualization |
+| **Hook hands-on: pre-tool, post-tool, and after-output** | 2 | C | Teaches the harness directly |
+| **Run an SLM in the browser and feel the speed cost** | 7 | A/B/C | Tactile, immediate feedback |
+| **Drop video into an agent, ask it questions about the clip** | 5 | A/B/C | Instant "wow" with ground-truth check |
+| **Cache vs. fresh: replay 100 prompts, watch hit rate climb** | 3 | B/C | Numerical literacy + efficiency lesson |
+| **MoE switchboard: route the question to the right specialist** | 7 | B/C | Single visual that captures Mixture-of-Experts |
+| **MCP "USB-C for AI": plug-and-play tool ports** | 1 | B/C | Familiar metaphor, maps cleanly |
+| **Eval scorecard on every step of an agent's trajectory** | 6 | C | Teaches trajectory evaluation, not just outputs |
+
+### 9.2 Lab-Mapping Hints
+
+The research suggests **at least 10 viable concepts**, most of which fit existing labs without forcing structural changes. Document 2 will commit to the final mapping.
+
+| Lab | Likely Theme Match |
+|---|---|
+| **Lab 1 — What IS AI?** | Browser-native SLM demo, "what is a model?" |
+| **Lab 5 — AI Helpers** | Multi-agent orchestration, MCP plug-and-play |
+| **Lab 6 — AI & Ethics** | Constitution-vs-redteam, trajectory eval scorecard |
+| **Lab 7 — Computer Vision** | Video reasoning, multimodal native input |
+| **Lab 8 — Words & Language** | Context budgeting, token shelves |
+| **Lab 9 — Build Your AI** | Reasoning dial, MoE switchboard, harness builder |
+| **Lab 10 — AI Futures** | Sora-style product cancellations, on-device futures, EU AI Act framing |
+| **Possible new lab** | "Agentic AI Lab" — only if 3+ flagship concepts cluster too tightly to fit an existing lab |
+
+### 9.3 Tech-Fit Notes
+
+All candidate mechanics fit SparkForge's locked stack with no new categories:
+
+- **R3F + WebGPU+TSL** handles every visualization (shelves, switchboards, pipelines).
+- **WebLLM / Transformers.js** can be added as a single `dynamic(import())` for browser-side SLM demos — no Anthropic/OpenAI API spend.
+- **Zustand** stores can hold trajectory/eval state without new state shape categories.
+- **Supabase** can persist player constitutions, custom agent pipelines, and trajectory replays.
+- **Existing chrome bezel + lab-color system** absorbs all new flagship visuals.
+
+### 9.4 Content-Length Target
+
+Per the original brief, new flagship games target **≥ 2× content length** of current flagship games. Based on a sampling of `STAGE6B–6F` v3-FINAL documents, current flagships average roughly **6–9 phases each, plus age-band branching, plus 12–24 distinct content units**. Doubling means each new flagship targets:
+
+- **12+ phases** (welcome → multiple learn → multiple play → reflect/judge → complete)
+- **3 age-band variants per phase** (A: 7–9, B: 10–12, C: 13–16)
+- **24–48 distinct content units** (scenes / prompts / scenarios / cards)
+- **≥ 2 distinct play loops** (replay value)
+
+These targets are codified in Document 2.
+
+---
+
 
