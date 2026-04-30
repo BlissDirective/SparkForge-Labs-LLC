@@ -1,6 +1,7 @@
 'use client';
 
 import { Suspense, useMemo, useState } from 'react';
+import Image from 'next/image';
 import { BrandingShowcase } from '@/components/3d/branding/BrandingShowcase';
 import { BrandingMesh } from '@/components/3d/branding/BrandingMaterial';
 import { SfMark3D } from '@/components/3d/branding/SfMark3D';
@@ -197,11 +198,11 @@ export function BrandingDevClient() {
 
           {showRef && (
             <section className="relative aspect-[4/3] overflow-hidden rounded-xl border border-white/10 bg-[#02050d]">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/branding/IMG_4607.png"
                 alt="SparkForge SF reference logo"
-                className="h-full w-full object-contain"
+                fill
+                className="object-contain"
               />
               <div className="pointer-events-none absolute left-3 top-3 rounded bg-black/60 px-2 py-1 text-xs text-white/80">
                 Reference · IMG_4607.png

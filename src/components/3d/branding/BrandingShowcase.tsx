@@ -20,6 +20,7 @@
  */
 
 import { Suspense, useEffect, useState, useMemo } from 'react';
+import Image from 'next/image';
 import { Canvas } from '@react-three/fiber';
 import { Environment, Lightformer, OrbitControls } from '@react-three/drei';
 import { WebGPURenderer } from 'three/webgpu';
@@ -184,11 +185,11 @@ function BrandingFallback({ posterSrc, videoSrc, alt }: FallbackProps) {
     );
   }
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
+    <Image
       className="w-full h-full object-contain"
       src={posterSrc}
       alt={alt}
+      fill
     />
   );
 }
