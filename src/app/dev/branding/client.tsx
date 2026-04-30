@@ -1,16 +1,19 @@
 'use client';
 
 import { Suspense, useMemo, useState } from 'react';
+import { BoxGeometry } from 'three';
 import { BrandingShowcase } from '@/components/3d/branding/BrandingShowcase';
 import { BrandingMesh } from '@/components/3d/branding/BrandingMaterial';
 import { SfMark3D } from '@/components/3d/branding/SfMark3D';
 import { SparkForgeWordmark3D } from '@/components/3d/branding/SparkForgeWordmark3D';
 import { LensflareTSL } from '@/components/3d/branding/LensflareTSL';
+import { SfShardSet } from '@/components/3d/branding/SfShardSet';
 
 type Subject =
   | 'sparkforge'
   | 'sf-mark'
   | 'lensflare'
+  | 'shard-set'
   | 'cube'
   | 'sphere'
   | 'torus'
@@ -20,6 +23,7 @@ const SUBJECTS: ReadonlyArray<{ id: Subject; label: string }> = [
   { id: 'sparkforge', label: 'SparkForge wordmark (Phase 3)' },
   { id: 'sf-mark',    label: 'SF mark (Phase 2)' },
   { id: 'lensflare',  label: 'Lensflare TSL (Phase 5b prep)' },
+  { id: 'shard-set',  label: 'Shard set (Phase 5b.2)' },
   { id: 'cube',       label: 'Cube' },
   { id: 'sphere',     label: 'Sphere' },
   { id: 'torus',      label: 'Torus knot' },
@@ -64,6 +68,17 @@ export function BrandingDevClient() {
   const [flareCoreScale,    setFlareCoreScale]    = useState(1.0);
   const [flareStreakScale,  setFlareStreakScale]  = useState(1.0);
 
+  // Phase-5b.2 specific: Shard-set live tuning. The dev showcase fractures
+  // a placeholder box (cheap CPU Voronoi); Beat 4 wires the real SF mark
+  // F-glyph geometry in 5b.3.
+  const [shardCount, setShardCount] = useState(150);
+  const [shardSeed,  setShardSeed]  = useState(42);
+  const [shardEmissive, setShardEmissive] = useState(0.3);
+
+  const shardSourceGeometry = useMemo(() => {
+    return new BoxGeometry(2.4, 1.0, 0.6, 4, 4, 4);
+  }, []);
+
   const matOptions = useMemo(
     () => ({
       dichroicIntensity,
@@ -84,10 +99,10 @@ export function BrandingDevClient() {
   const cameraDistance =
     subject === 'sparkforge'
       ? 10.0
-      : subject === 'sf-mark'
+      : subject === 'sf-mark' || subject === 'lensflare'
         ? 6.4
-        : subject === 'lensflare'
-          ? 6.4
+        : subject === 'shard-set'
+          ? 5.5
           : 4.4;
 
   return (
@@ -203,6 +218,36 @@ export function BrandingDevClient() {
               />
             </>
           )}
+          {subject === 'shard-set' && (
+            <>
+              <Slider
+                label="Shard count"
+                value={shardCount}
+                min={20}
+                max={500}
+                step={10}
+                onChange={(v) => setShardCount(Math.round(v))}
+                format={(v) => `${Math.round(v)}`}
+              />
+              <Slider
+                label="Seed"
+                value={shardSeed}
+                min={0}
+                max={200}
+                step={1}
+                onChange={(v) => setShardSeed(Math.round(v))}
+                format={(v) => `${Math.round(v)}`}
+              />
+              <Slider
+                label="Shard emissive"
+                value={shardEmissive}
+                min={0}
+                max={2.0}
+                step={0.05}
+                onChange={setShardEmissive}
+              />
+            </>
+          )}
         </div>
 
         <div className={`grid gap-4 ${showRef ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
@@ -248,6 +293,15 @@ export function BrandingDevClient() {
                     streakScale={flareStreakScale}
                   />
                 </Suspense>
+              ) : subject === 'shard-set' ? (
+                <SfShardSet
+                  geometry={shardSourceGeometry}
+                  shardCount={shardCount}
+                  seed={shardSeed}
+                  visible
+                  emissiveIntensity={shardEmissive}
+                  materialOptions={matOptions}
+                />
               ) : (
                 <BrandingMesh
                   geometry={<PrimitiveFor subject={subject} />}
