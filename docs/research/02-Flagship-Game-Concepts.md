@@ -357,4 +357,144 @@ alter table agent_compositions enable row level security;
 
 ---
 
+## E. Concept C2 — Context Architect
+
+> *"The AI's brain has a shelf, and the shelf is small. What you put on it matters more than how big the AI is."*
+
+### E.1 Headline
+
+The AI assistant in Context Architect has a fixed-size **context shelf**. Every turn, the player chooses **what to keep, what to offload, what to retrieve, and what to compress** — the four canonical "moves" of context engineering (Doc 1 §4.1, §4.2, §9.1). As the conversation grows, **Context Rot** sets in: too much on the shelf, accuracy drops. The player must defeat Rot by becoming a careful curator.
+
+### E.2 Lab Placement
+
+**Lab 8 — Words & Language** (`#8F96FA`, violet). Single-spec. Words are about *what gets said*; context engineering is about *what gets remembered*. Natural fit.
+
+### E.3 Research Anchors
+
+- **Doc 1 §4.1–§4.5** — Context engineering definition, four moves, Context Rot
+- **Doc 1 §3.2** — long context windows + caveats
+- **Doc 1 §9.1** — mechanic: sort context shelves under a token budget
+
+### E.4 Phase Structure (12 phases)
+
+```typescript
+type Phase =
+  | 'welcome'
+  | 'learn-shelf'        // Card 1: "What's a context window?"
+  | 'learn-budget'       // Card 2: token budgets visualized
+  | 'learn-moves'        // Card 3: Offload / Retrieve / Isolate / Reduce
+  | 'learn-rot'          // Card 4: Context Rot demonstration
+  | 'tutorial'           // 1 guided round with overlays
+  | 'sort-mode'          // Loop 1: sort knowledge cards onto shelf
+  | 'budget-mode'        // Loop 2: same, but under token budget
+  | 'multi-turn-mode'    // Loop 3: multi-turn conversation, manage history
+  | 'rot-boss'           // Boss round: 50 cards, shrinking budget
+  | 'design-shelf'       // Free play: design own knowledge base
+  | 'report';            // Score breakdown + best/worst decisions
+```
+
+12 phases.
+
+### E.5 Knowledge Card Library (48 cards)
+
+48 hand-built knowledge cards across 6 themes (8 cards each), each with 4 metadata properties used by the budget engine:
+
+| Theme | Examples |
+|---|---|
+| **Animals** | "Cats see UV light", "Octopus has 9 brains", "Honeybees recognize faces"… |
+| **Space** | "Saturn would float in water", "1 Mars day = 24h 39min", "Sun's core: 27M°F"… |
+| **Tech** | "Wi-Fi is radio waves", "QR codes can store URLs", "Phones use 6+ sensors"… |
+| **Body** | "Brain uses 20% of energy", "Bones renew every 10 years"… |
+| **Earth** | "Sahara was a forest 6000 yrs ago", "Lightning hits Earth 100×/sec"… |
+| **Math** | "Zero invented ~600 CE in India", "Prime numbers go on forever"… |
+
+Each card has:
+- `tokens: number` — how much shelf-space it consumes (8, 16, 32, 64)
+- `relevance: 0-1` — to current question
+- `decay: 0-1` — how much value is lost when summarized
+- `freshness: number` — how many turns ago it became known
+
+### E.6 The Four Moves (mechanic core)
+
+Each turn the player can apply one of four moves to a card:
+
+| Move | What it does | Cost |
+|---|---|---|
+| **Offload** | Card moves to "external memory" — costs 1 retrieval to bring back | Free |
+| **Retrieve** | Pull a card back from external memory | Costs 1 turn |
+| **Isolate** | Card hidden from the next agent only | Free |
+| **Reduce** | Summarize: half tokens, but `decay`-loss applied | Free |
+
+### E.7 Game Loops (3)
+
+- **Loop 1: Sort Mode** — questions arrive, place relevant cards on shelf
+- **Loop 2: Budget Mode** — same, but under a strict token budget that shrinks each round
+- **Loop 3: Multi-turn Mode** — full conversation, manage history while staying under budget
+
+### E.8 3D / Visual
+
+| Asset | File | Purpose |
+|---|---|---|
+| `ContextShelf3D.tsx` | `src/components/3d/` | The shelf itself: a glowing 3D bookshelf with cards as floating slabs. Token-bar fills as cards added. Color-coded by relevance. |
+| `ContextArchitectEnvironment.tsx` | `src/components/3d/environments/` | Library setting — towering shelves disappearing into mist, archive ladders. |
+
+**Camera preset:**
+```typescript
+'context-architect': { position: [0, 2, 5], lookAt: [0, 1, 0], fov: 46 }
+```
+
+### E.9 State Schema
+
+```typescript
+interface ContextArchitectState {
+  shelf: ContextCard[];
+  external: ContextCard[];       // offloaded
+  budget: number;                // current token budget
+  used: number;                  // tokens currently on shelf
+  question: Question | null;
+  rotLevel: number;              // 0..1, increases as shelf gets crowded
+  conversationHistory: Turn[];   // for multi-turn mode
+  score: number;
+}
+```
+
+### E.10 Persistence
+
+**No new migration required.** Score and progress hook into existing `child_progress` and `game_sessions` tables.
+
+### E.11 AI Content Types (9 new)
+
+| ContentType | Per band | Purpose |
+|---|---|---|
+| `question-A` | A | Simple yes/no questions ≤ 20 tokens of context needed |
+| `question-B` | B | Standard, 1-2 cards needed |
+| `question-C` | C | Multi-fact questions, 3+ cards |
+| `distractor-A/B/C` | each | "Decoy" cards that look relevant but aren't |
+| `summary-rubric-A/B/C` | each | Eval criteria for player's reduce-move |
+
+### E.12 Integration Points
+
+| Pattern | Reference |
+|---|---|
+| Multi-mode loop pattern | `BiasDetectiveGame.tsx` (cases / investigate / testlab / fix) |
+| 3D shelf vs UI overlay | similar to `NeuralBuilderGame.tsx` build phase |
+| AI content slot | `ai-content-generator.ts` add `'context-architect'` GameId + 9 ContentTypes |
+
+### E.13 Acceptance Criteria
+
+- [ ] 12 phases implemented
+- [ ] 48 hand-built knowledge cards × 4 metadata properties each
+- [ ] Four moves (Offload/Retrieve/Isolate/Reduce) wired to budget engine
+- [ ] 3 game loops (Sort / Budget / Multi-turn)
+- [ ] Boss round with shrinking budget
+- [ ] Context Rot visualization (shelf glows red as Rot rises)
+- [ ] 3 age bands fully supported
+- [ ] `context-architect` registry entry + camera preset
+- [ ] AI content slot with 9 ContentTypes
+- [ ] WCAG sweep + ARIA + chrome bezel
+- [ ] Estimated TSX lines: ~3,200
+
+---
+
+
 
