@@ -1,8 +1,24 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 5b prep (Custom TSL Lensflare Shader)
-## Status: IN PROGRESS — Phase 5a sign-off RECORDED; Phase 5b prep starting
+## Current Phase: SparkForge Branding 3D — Phase 5b prep COMPLETE; ready for Phase 5b
+## Status: IN PROGRESS — Phase 5b prep shipped; Phase 5b (hero beats 1-4 rebuild) next
 ## Last Updated: 2026-04-29
+
+### Phase 5b prep — COMPLETE (2026-04-29)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| Custom TSL lensflare shader | `src/components/3d/branding/LensflareTSL.tsx` | Two-mesh billboard architecture per flare instance: hot-core square plane (radial falloff + center white-shift) + anamorphic streak plane (horizontal gradient, anamorphic vertical narrowing, chromatic tip-tinting). Uses `MeshBasicNodeMaterial` + `AdditiveBlending` + `depthWrite=false` + `toneMapped=false` (standard additive lens-flare pattern). Reads from `SF_BRAND.LENS_FLARES` config (Phase 1). Live-tunable `intensityMul`, `coreScale`, `streakScale` props for Phase 5b/c animation. Per-instance materials with `useMemo` + dispose-on-unmount (TSL node materials hold GPU pipelines per instance — sharing breaks uniform isolation). |
+| Dev showcase wiring | `src/app/dev/branding/client.tsx` | New "Lensflare TSL (Phase 5b prep)" subject; mounts both flares (amber index 0, cyan index 1) plus the SF mark behind for scale; 3 new sliders (Flare intensity ×, Core scale, Streak scale); camera distance 6.4 to match SF mark scale. |
+
+### Build verification
+
+- `npm run build` → ✅ EXIT=0, compiled in 17.2s. `/dev/branding` 3.57 kB / 693 kB First Load JS (was 2.31 / 692 — +1.3 kB for LensflareTSL).
+
+### Notes
+
+- Theatre.js studio auto-mount (Q8) deferred to Phase 5b proper — there's no Theatre sheet to expose yet (lensflare is a standalone tunable component, not a beat).
+- Per Beat 6 user pick Q5, the flare's `intensityMul` slider in dev showcase tops at 2.4 (gives headroom above Beat 6's 2.0 peak).
 
 ### Phase 5a Sign-Off (recorded 2026-04-29)
 
