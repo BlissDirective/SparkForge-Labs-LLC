@@ -648,6 +648,137 @@ This creates a **meta-game loop**: kids learn that *what they did* was itself a 
 
 ---
 
+## G. Concept C4 — Pixel Witness
+
+> *"Watch the clip. Now ask the AI what happened. Then catch the lies."*
+
+### G.1 Headline
+
+The 2025–2026 generation of frontier models train **a single transformer on mixed-modality token streams** — no more separate "vision encoder + text head" (Doc 1 §5.1). Pixel Witness teaches this concept through a video-first puzzle: a short clip plays, the AI describes/answers questions about it, and the player decides what's correct, what's a hallucination, and (in advanced phases) configures **which "senses" the AI gets to use** (text, image-frame, full-video, audio).
+
+### G.2 Lab Placement
+
+**Lab 7 — Computer Vision** (`#10BAD2`, cyan). Single-spec. Lab 7 currently has *no flagship*; this becomes its anchor.
+
+### G.3 Research Anchors
+
+- **Doc 1 §5.1–§5.5** — Native multimodal architectures, Era 3a, Tarsier2 / Eagle 2.5 video reasoning
+- **Doc 1 §9.1** — mechanic: drop video into agent, ask questions about the clip
+- **Doc 1 §5.5** — pertinent: "single shared brain" vs "specialist parts wired together"
+
+### G.4 Phase Structure (12 phases)
+
+```typescript
+type Phase =
+  | 'welcome'
+  | 'learn-modal'        // Card 1: senses → modalities
+  | 'learn-fusion'       // Card 2: bolt-on bridge vs single transformer
+  | 'learn-hallucinate'  // Card 3: what an AI hallucination looks like
+  | 'tutorial'           // 1 guided clip with overlay
+  | 'watch-A'            // 6 simple clips (band A primary)
+  | 'watch-B'            // 9 medium clips
+  | 'watch-C'            // 9 hard / adversarial clips
+  | 'hallucination-hunt' // Boss: AI is confidently wrong, player must spot it
+  | 'sense-builder'      // Loop 2: configure which modalities the AI gets
+  | 'creative-sandbox'   // Optional: prompt an image gen (Imagen/Flux gated)
+  | 'report';            // Score + replay + cert
+```
+
+12 phases.
+
+### G.5 Video Library (24 clips × 4 questions = 96 Q-A pairs)
+
+24 short kid-safe clips, each 5–15 seconds. Each clip ships with **4 questions** (one per difficulty, one designed to elicit hallucination):
+
+| Clip Theme | Examples |
+|---|---|
+| **Everyday** | Cat opening a door, kid blowing bubbles, dog catching a ball |
+| **Nature** | Sunrise time-lapse, leaf falling, ocean wave |
+| **Mechanical** | Clock gears moving, dominos falling, balloon inflating |
+| **Sports** | Soccer goal, swimming dive, gymnastics flip |
+| **Crafts** | Paper-folding origami, cake decorating, plant repotting |
+
+For each clip, 4 Q types:
+1. **Literal** — "What is the cat doing?"
+2. **Inferential** — "Why did the kid duck?"
+3. **Counting** — "How many bubbles formed?"
+4. **Adversarial** — A question whose plausible-but-wrong answer is the *expected hallucination*. Player has to recognize it.
+
+All clips are pre-authored, royalty-free, curated for kid-safe content. **No live AI image gen during these phases** — only the optional creative-sandbox phase uses gated Imagen/Flux/DALL·E with strict prompt filtering.
+
+### G.6 Sense Builder (Loop 2)
+
+In the sense-builder phase the player toggles which modalities the AI receives:
+
+| Sense | Token cost | Effect |
+|---|---|---|
+| **Caption only** | 1× | AI gets a text caption only — easy to lie |
+| **One frame** | 5× | AI gets one still — fixes some lies |
+| **All frames** | 30× | AI gets the full video — hard to lie |
+| **Audio** | 5× | AI gets the audio track |
+
+The player learns: **giving more senses = more accuracy, but more cost.** Maps directly to Doc 1 §3 multi-model routing tradeoffs.
+
+### G.7 Game Loops (2)
+
+- **Loop 1: Watch & Judge** — clip plays, 4 questions, AI answers, player rates each (correct / partial / hallucination)
+- **Loop 2: Sense Builder** — pick which senses, see how AI changes its answer
+
+### G.8 3D / Visual
+
+| Asset | File | Purpose |
+|---|---|---|
+| `PixelWitness3D.tsx` | `src/components/3d/` | Curved cinema screen + the "eye of the AI" — a glowing camera-iris that opens/closes as senses toggle. |
+| `PixelWitnessEnvironment.tsx` | `src/components/3d/environments/` | Edit-bay setting — tape reels, monitors, frame timeline scrolling on a wall. |
+
+**Camera preset:**
+```typescript
+'pixel-witness': { position: [0, 1.8, 4], lookAt: [0, 0.5, 0], fov: 44 }
+```
+
+### G.9 State Schema
+
+```typescript
+interface PixelWitnessState {
+  clip: Clip | null;
+  questions: Question[];         // 4 per clip
+  answers: AIAnswer[];           // generated server-side via Claude API or pre-recorded
+  ratings: PlayerRating[];
+  senses: SenseConfig;           // which modalities enabled
+  totalScore: number;
+}
+```
+
+### G.10 Persistence
+
+**No new migration required.** Score and ratings hook into existing `child_progress`.
+
+### G.11 AI Backend
+
+The clip Q-A pairs are **pre-recorded** — no live model call needed for primary flow. The optional `creative-sandbox` phase calls existing AI infra (Imagen/Flux through Anthropic-hosted gateway or existing Prompt Lab path) under strict kid-safe prompt filtering.
+
+### G.12 AI Content Types (6 new)
+
+| ContentType | Per band | Purpose |
+|---|---|---|
+| `clip-question-A/B/C` | each | Custom question generator per clip |
+| `hallucination-prompt-A/B/C` | each | Adversarial Q generator |
+
+### G.13 Acceptance Criteria
+
+- [ ] 12 phases implemented
+- [ ] 24 clips × 4 Q-A pairs = 96 content units
+- [ ] Sense Builder with 4 modality toggles + cost display
+- [ ] All 3 age bands fully supported
+- [ ] Boss "hallucination hunt" round
+- [ ] Clips kid-safe, royalty-free, curated
+- [ ] Optional creative-sandbox with strict prompt filter
+- [ ] Registry entry + camera preset
+- [ ] Estimated TSX lines: ~3,000
+
+---
+
+
 
 
 
