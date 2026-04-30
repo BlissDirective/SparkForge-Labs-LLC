@@ -1072,6 +1072,163 @@ alter table player_cartridges enable row level security;
 
 ---
 
+## J. Concept C7 — Harness Forge
+
+> *"The model decides. The harness watches. Add a hook here. Add a sensor there. Now you have an AI you can trust."*
+
+### J.1 Headline
+
+Harness Engineering — *"Agent = Model + Harness"* (Doc 1 §2.1) — is the youngest of the seven research themes and the most squarely-engineering-flavored. Harness Forge teaches it as a build-it-yourself sandbox: the player wraps a (simulated) AI agent in **deterministic hooks** that fire pre-tool, post-tool, and after-output. Hooks turn red or green in real-time. Sensors flash. The player iteratively constrains a misbehaving agent until it always does the right thing — not by changing the model, but by changing the *harness around* it.
+
+This concept aligns with the older C-band exclusively (with B-band simplified). Code-style metaphors (hooks, lifecycle, dispatch) are intentionally surfaced.
+
+### J.2 Lab Placement (DUAL-SPEC)
+
+| Path | Lab | Lab name | Color | Notes |
+|---|---|---|---|---|
+| **Path A** *(if Lab 11 not adopted)* | **Lab 9** | Build Your AI | `#E68E28` (orange) | Joins the lab whose flagship slot is empty. Theme alignment: kids "build" their AI's safety wrapper. |
+| **Path B** *(if Lab 11 adopted)* | **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | Third flagship in Lab 11 — the "Constrain" act in Build → Equip → Constrain arc. |
+
+### J.3 Research Anchors
+
+- **Doc 1 §2.1–§2.5** — Guides + Sensors, computational + inferential, hooks/skills/agents/workflows
+- **Doc 1 §6.3** — full-trajectory eval practices
+- **Doc 1 §8.1** — Pillar: Harness
+- **Doc 1 §9.1** — mechanic: hook hands-on (pre-tool, post-tool, after-output)
+
+### J.4 Phase Structure (14 phases)
+
+```typescript
+type Phase =
+  | 'welcome'
+  | 'learn-harness'      // Card 1: Agent = Model + Harness
+  | 'learn-guides'       // Card 2: feedforward (rules)
+  | 'learn-sensors'      // Card 3: feedback (watching)
+  | 'learn-lifecycle'    // Card 4: pre-tool, post-tool, after-output
+  | 'tutorial'           // Guided 1-scenario harness build
+  | 'pre-tool-lab'       // 5 scenarios — block bad tool calls
+  | 'post-tool-lab'      // 5 scenarios — sanitize outputs
+  | 'output-judge-lab'   // 5 scenarios — accept/reject final outputs
+  | 'full-build'         // Boss: complete harness around a tricky agent
+  | 'audit-replay'       // Loop 2: audit a saved run, identify gaps
+  | 'compliance-gate'    // EU AI Act-flavored final exam (10 rules to verify)
+  | 'free-forge'         // Free play
+  | 'report';            // Stats + cert + harness-of-the-day leaderboard
+```
+
+14 phases.
+
+### J.5 Hook Library (player builds these)
+
+The player composes harnesses from primitives, all available as drag-in blocks:
+
+**Pre-Tool Hooks (fire before a tool call):**
+- `block-if-pii(args)` — refuse if argument contains a name/email/etc.
+- `block-domain-allowlist(url, list)` — allow only certain URLs
+- `rate-limit(name, n_per_min)` — soft rate-limit a tool
+- `require-confirmation(reason)` — pause for confirmation
+
+**Post-Tool Hooks (fire after a tool call):**
+- `redact(output, patterns)` — censor matched patterns
+- `truncate(output, max_chars)` — cap long outputs
+- `score-toxicity(output, threshold)` — flag toxic responses
+- `check-fact(output, against)` — flag potentially-false statements
+
+**Output Judge Hooks (fire on final agent output):**
+- `policy-check(text, rules[])` — verify rules from a constitution
+- `length-bounds(text, min, max)` — enforce length
+- `topic-allowlist(text, topics[])` — allow only certain topics
+- `require-citation(text)` — must include "[source: …]"
+
+The `rules[]` arg of `policy-check` lets the player write a kid-style constitution as 5–10 simple rules. (This recovers some Constitution-Court-flavored play even though that concept was dropped.)
+
+### J.6 Scenario Library (30 harness scenarios)
+
+30 hand-built scenarios across difficulty:
+
+- **10 Easy** — single misbehavior, single hook needed
+- **10 Medium** — chained misbehaviors, 2–3 hooks needed
+- **10 Hard** — adversarial agent that probes hook gaps; player must layer 4+ hooks
+- **+EU AI Act-style compliance gate** — final 10 rules from a sample policy doc; player must verify each
+
+### J.7 Game Loops (2)
+
+- **Loop 1: Add Hooks** — scenario presents a misbehaving agent, player adds hooks until trace is clean
+- **Loop 2: Audit Replay** — load a saved run from another SparkForge game (Agent Atelier, MCP Lab), find at least 3 gaps in the harness, propose hooks
+
+### J.8 3D / Visual
+
+| Asset | File | Purpose |
+|---|---|---|
+| `HarnessForge3D.tsx` | `src/components/3d/` | Industrial forge: a glowing blueprint of an agent in the center, hook blocks circling like satellites. Active hooks pulse. Failed hooks turn red. |
+| `HarnessForgeEnvironment.tsx` | `src/components/3d/environments/` | Workshop with anvils, blueprints on walls, a status board with sensor LEDs. |
+
+**Camera preset:**
+```typescript
+'harness-forge': { position: [0, 2.8, 5.5], lookAt: [0, 1, 0], fov: 49 }
+```
+
+### J.9 State Schema
+
+```typescript
+interface HarnessForgeState {
+  scenario: Scenario | null;
+  hooks: Hook[];                 // composed by player
+  trace: HarnessTrace[];         // step-by-step with hook firings
+  passed: boolean;
+  gaps: Gap[];                   // for audit-replay loop
+  savedHarnesses: Harness[];     // unlocked
+}
+```
+
+### J.10 Persistence
+
+```sql
+-- supabase/migrations/2026XXXX_harness_forge_player_harnesses.sql
+create table player_harnesses (
+  id uuid primary key default gen_random_uuid(),
+  child_id uuid references children(id) on delete cascade,
+  name text not null,
+  hooks jsonb not null,         -- Hook[]
+  pass_rate numeric,            -- 0..1 across scenarios
+  created_at timestamptz default now()
+);
+create index player_harnesses_child_idx on player_harnesses(child_id);
+alter table player_harnesses enable row level security;
+-- RLS: child can read/write own; parent can read child's. get_advisors after.
+```
+
+### J.11 Cross-Link Hooks Into Other Games
+
+Audit-Replay loop reads:
+- `agent_compositions` (Agent Atelier, C1) — recent missions
+- `player_cartridges` (MCP Lab, C6) — recent custom cartridges
+- `eval_grades` (Glass Box Lab, C3) — recent player grades
+
+Closes the cross-game loop. **Players see their own past behavior get audited.**
+
+### J.12 AI Content Types (6 new)
+
+| ContentType | Per band | Purpose |
+|---|---|---|
+| `scenario-easy/medium/hard` | each (B/C) | Generated harness scenarios |
+| `compliance-rule-A/B/C` | each | EU-AI-Act-flavored verification rules |
+
+(Band A skipped — concept exclusively B-simplified and C-full.)
+
+### J.13 Acceptance Criteria
+
+- [ ] 14 phases implemented
+- [ ] 12 hook primitives wired to a deterministic harness runner
+- [ ] 30 scenarios + 10 compliance rules
+- [ ] Loop 2 (Audit Replay) cross-links 3+ other games' saves
+- [ ] `player_harnesses` migration applied; RLS verified
+- [ ] B simplified / C full; A skipped (rationale documented)
+- [ ] Registry entry + camera preset
+- [ ] Estimated TSX lines: ~3,500
+
+---
+
 
 
 
