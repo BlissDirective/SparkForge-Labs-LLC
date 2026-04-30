@@ -169,3 +169,94 @@ Larger windows ≠ better performance. **Context Rot** is documented: model perf
 
 ---
 
+## 5. Multimodal / Vision-Language
+
+### 5.1 Summary
+
+The 2025–2026 generation of frontier models drops the historic "vision bridge" — they no longer bolt a vision encoder onto a text model. Instead, they train a **single transformer from scratch on mixed-modality token streams**. This is "Era 3a" (native input, text output): Qwen3.5/3.6, Gemma 4, Gemini 3, GPT-5.4, Phi-4-Reasoning-Vision, Claude Opus 4.6.
+
+The open-source / proprietary gap **narrowed sharply** during the window. Tarsier2 and Eagle 2.5 now outperform GPT-4o and Gemini 2.5 Pro in **video description and long-context video reasoning**. Qwen3-VL-235B-A22B-Instruct rivals Gemini-2.5-Pro and GPT-5 across multimodal benchmarks.
+
+### 5.2 Key Findings & Data
+
+| Capability | Detail |
+|---|---|
+| **Native multimodal architectures** | Single transformer, mixed-modality early-fusion. No more bridge. |
+| **Video understanding** | Tarsier2, Eagle 2.5 outperform GPT-4o, Gemini 2.5 Pro in video description |
+| **2D/3D grounding** | Qwen3-VL competitive with Gemini-2.5-Pro and GPT-5 |
+| **Document comprehension** | OCR + layout reasoning is now flagship-table-stakes |
+| **Open-source closing the gap** | Qwen3-VL-235B-A22B-Instruct rivals top proprietary models |
+
+### 5.3 Image / Video Generation Landscape
+
+| Tool | Status (Apr 2026) |
+|---|---|
+| **OpenAI Sora** | App **shut down April 26, 2026**. API discontinuation set for **Sept 24, 2026**. Rare public cancellation from a frontier lab. |
+| **Google Veo 3.1** | Active, integrated into Gemini and Vertex |
+| **Google Imagen 4** | Active, leads on creative-prompt fidelity benchmarks |
+| **Black Forest Labs Flux** | Active, dominant open-weights image gen |
+| **DALL·E 3** | Still active inside ChatGPT for conversational refinement |
+
+### 5.4 Timeline
+
+- **Q4 2025** — Qwen3-VL-235B released, closes proprietary gap.
+- **Q1 2026** — Tarsier2 / Eagle 2.5 surpass GPT-4o on long-context video reasoning.
+- **April 26, 2026** — Sora app discontinuation.
+- **April 2026** — Gemma 4 ships with vision-capable E2B/E4B variants.
+
+### 5.5 Pertinent Patterns for SparkForge
+
+- **"Single shared brain" vs. "specialist parts wired together"** is a teachable architecture tension.
+- **Video understanding** opens up a kid-level mechanic: "Watch the clip — what just happened?" with multi-step reasoning.
+- **Image/video creative tools** (Veo, Imagen, Flux, DALL·E) are increasingly **safe-for-kids when properly gated** — prompt-aware filters mature in this window.
+- **Sora's discontinuation** is itself a teachable moment about how AI products fail in market — a basis for an "AI Futures" lab game.
+
+---
+
+## 6. AI Safety / Alignment / Evals
+
+### 6.1 Summary
+
+The Anthropic-led "Constitutional Classifiers" approach (a prototype version withstood **3,000+ hours of expert red teaming with no universal jailbreaks found**) became the dominant defense pattern of late 2025. The broader theme of the window: **shift from reactive jailbreak-patching to proactive security-by-design**, combining constitutional principles with formal verification and full-trajectory evaluation.
+
+The **EU AI Act is now in effect** — sector regulations in finance, healthcare, education, and government procurement increasingly require documented safety controls. For SparkForge (children's education, ages 7–16), this trend matters: kids' AI products will face **higher bars** for safety auditing.
+
+### 6.2 Key Findings & Data
+
+| # | Finding | Data |
+|---|---|---|
+| 1 | Anthropic Constitutional Classifiers prototype | **3,000+ hours expert red teaming**, no universal jailbreaks found |
+| 2 | Automated judge agreement | **70–93%** depending on implementation — eval reliability gap |
+| 3 | Defense residual success | Feedback-based attacks retain **>15%** success even against layered protections |
+| 4 | JBDistill benchmark | **81.8%** effectiveness, generalizes across 13 evaluation models |
+| 5 | LLM-judge vulnerability | Misclassify subtly-incorrect-but-harmless responses as successful jailbreaks |
+
+### 6.3 Production Evals Best Practices (Q1 2026 consensus)
+
+- Score **full trajectories**, not just final outputs:
+  - tool-choice correctness
+  - argument validity
+  - step count
+  - time / cost
+  - policy compliance
+- Mix **deterministic rules**, **statistical methods**, **LLM-as-judge**, and **custom evaluators**.
+- Layer guardrails: **input → reasoning → tool-use → output**.
+
+### 6.4 Timeline
+
+- **Q4 2025** — Anthropic publishes Constitutional Classifiers research.
+- **Q1 2026** — JBDistill, U-NIAH benchmarks introduced.
+- **Q1 2026** — Datadog, Galileo, Maxim, Portkey LLM observability platforms reach GA for full-trajectory scoring.
+- **Q1 2026** — EU AI Act enforcement begins for high-risk categories.
+- **Mar 2026** — JHU publishes "efficient, reusable framework to evaluate AI safety."
+
+### 6.5 Pertinent Patterns for SparkForge
+
+- **"Constitution"** — kids can write a list of rules and watch how an agent responds. The metaphor is intuitive (classroom rules, family rules).
+- **Red-team vs. blue-team** is a natural **two-role game** — one player tries to trick, the other tries to defend.
+- **Trajectory scoring** is visualizable as a "scorecard" attached to every step the AI takes.
+- **EU AI Act framing** gives a real-world relevance hook for older age band (C, ages 13–16).
+
+---
+
+
