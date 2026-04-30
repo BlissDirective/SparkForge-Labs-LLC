@@ -496,5 +496,158 @@ interface ContextArchitectState {
 
 ---
 
+## F. Concept C3 — Glass Box Lab
+
+> *"You're not just judging what the AI did. You're judging how it got there. Every step gets a grade."*
+
+### F.1 Headline
+
+The AI used to be a black box: prompt in, answer out. In 2026, every step is on display — what tool it called, what arguments it used, how long it took, what it cost (Doc 1 §6.3). In Glass Box Lab the player becomes the **referee**: a recorded AI trajectory plays back, and the player grades each step on a 5-dimension rubric. Then they design their *own* eval rubric and run it against new trajectories. The "trust" pillar (Doc 1 §8.1) made playable.
+
+### F.2 Lab Placement
+
+**Lab 6 — AI & Ethics** (`#FF7050`, red-orange). Joins Bias Detective. Theme alignment: both games train kids to *judge AI*, not just use it.
+
+### F.3 Research Anchors
+
+- **Doc 1 §6.3** — Production Evals Best Practices (full trajectories: tool choice, argument validity, step count, time/cost, policy compliance)
+- **Doc 1 §6.5** — trajectory scoring as "scorecard"
+- **Doc 1 §8.1** — Pillar: Trust
+- **Doc 1 §6.1** — Constitutional Classifiers (3,000+ hours red-team)
+
+### F.4 Phase Structure (14 phases)
+
+```typescript
+type Phase =
+  | 'welcome'
+  | 'learn-glassbox'     // Card 1: from black box to glass box
+  | 'learn-rubric'       // Card 2: 5 dimensions of a trajectory
+  | 'learn-toolchoice'   // Sub-card: tool choice correctness
+  | 'learn-argvalidity'  // Sub-card: argument validity
+  | 'learn-steps'        // Sub-card: step count
+  | 'learn-timecost'     // Sub-card: time / cost
+  | 'learn-policy'       // Sub-card: policy compliance
+  | 'tutorial'           // Guided 1-trajectory grade
+  | 'grade-easy'         // 10 simple trajectories
+  | 'grade-medium'       // 10 ambiguous trajectories
+  | 'grade-adversarial'  // 10 trick trajectories with hidden flaws
+  | 'design-rubric'      // Loop 2: design own eval, run on samples
+  | 'report';            // Stats + best/worst grades + cert
+```
+
+14 phases.
+
+### F.5 Trajectory Library (40 recordings)
+
+40 hand-built trajectory recordings. Each is a sequence of 4–12 steps, with metadata for each step:
+
+| Step Field | Type | Example |
+|---|---|---|
+| `step` | `number` | `3` |
+| `tool` | `string` | `"calculator"` |
+| `args` | `object` | `{ "expr": "12 * 15" }` |
+| `duration_ms` | `number` | `420` |
+| `cost_tokens` | `number` | `87` |
+| `policy_flags` | `string[]` | `["safe-content"]` |
+| `output` | `string` | `"180"` |
+| `expected_grade` | `1-5 per dimension` | reference answers |
+
+Library breakdown:
+- **10 Easy** — clearly-correct trajectories (band A entry)
+- **10 Medium** — judgment calls (band B/C)
+- **10 Adversarial** — subtle errors hidden inside successful-looking outputs (band C — explicitly inspired by Doc 1 §6.2: "LLM-judge vulnerability")
+- **10 Cross-link** — replays of other SparkForge games that the player previously completed (e.g., a prior Agent Atelier mission), so kids grade their own past AI runs. **(Powerful narrative hook.)**
+
+### F.6 The Rubric (player grades each step on 5 dimensions, 1–5 stars)
+
+| Dimension | What it measures |
+|---|---|
+| **Tool Choice** | Did the AI pick the right tool for this step? |
+| **Argument Validity** | Were the arguments to the tool sensible? |
+| **Step Count** | Was this step necessary, or wasted? |
+| **Time / Cost** | Was the time/token cost reasonable? |
+| **Policy Compliance** | Does the output respect the rules? |
+
+### F.7 Game Loops (2)
+
+- **Loop 1: Grade Mode** — player grades pre-recorded trajectories. Score = how close to expert-grade.
+- **Loop 2: Design Mode** — player designs their own rubric (weights, thresholds), then runs it on the trajectory library. Score = how well their rubric matches expert grades.
+
+### F.8 3D / Visual
+
+| Asset | File | Purpose |
+|---|---|---|
+| `TrajectoryRail3D.tsx` | `src/components/3d/` | A horizontal rail of step-cards, with the active card raised + lit. Hover reveals all 5 rubric dimensions as glowing pillars beside it. |
+| `GlassBoxEnvironment.tsx` | `src/components/3d/environments/` | Courtroom-meets-server-room: wood-grain referee desk, glass walls showing data flowing past, gavel resting under spotlight. |
+
+**Camera preset:**
+```typescript
+'glass-box': { position: [0, 2.2, 5.5], lookAt: [0, 0.8, 0], fov: 47 }
+```
+
+### F.9 State Schema
+
+```typescript
+interface GlassBoxState {
+  trajectory: Trajectory | null;
+  cursor: number;                       // current step
+  grades: StepGrade[];                  // accumulating
+  rubric: Rubric;                       // editable in design mode
+  mode: 'grade' | 'design';
+  expertGrades: ExpertGradeMap | null;  // loaded for scoring
+}
+```
+
+### F.10 Persistence
+
+```sql
+-- supabase/migrations/2026XXXX_glass_box_eval_grades.sql
+create table eval_grades (
+  id uuid primary key default gen_random_uuid(),
+  child_id uuid references children(id) on delete cascade,
+  trajectory_id text not null,
+  grades jsonb not null,           -- StepGrade[]
+  rubric jsonb,                    -- only set in design mode
+  expert_match_score numeric,      -- 0..1 vs expert
+  created_at timestamptz default now()
+);
+create index eval_grades_child_idx on eval_grades(child_id);
+alter table eval_grades enable row level security;
+-- RLS: child read/write own; parent read child's. Run get_advisors after.
+```
+
+### F.11 Cross-Link with Other SparkForge Games
+
+For the 10 "cross-link" trajectories, Glass Box Lab pulls from the player's recent saves in:
+- Agent Atelier (`agent_compositions` table) — replay a past mission
+- Bias Detective (existing) — replay an investigation
+- Prompt Lab (existing) — replay a prompt iteration
+
+This creates a **meta-game loop**: kids learn that *what they did* was itself a trajectory.
+
+### F.12 AI Content Types (6 new)
+
+| ContentType | Per band | Purpose |
+|---|---|---|
+| `trajectory-A` | A | Simplified 4-step recordings |
+| `trajectory-B` | B | 6-step recordings |
+| `trajectory-C` | C | 8–12 step adversarial recordings |
+| `rubric-hint-A/B/C` | each | Tutorial hints based on age |
+
+### F.13 Acceptance Criteria
+
+- [ ] 14 phases implemented
+- [ ] 40 trajectory recordings (10 each: easy / medium / adversarial / cross-link)
+- [ ] 5-dimension rubric with 1–5 star grading
+- [ ] Design mode: editable rubric weights + expert-match scoring
+- [ ] Cross-link with Agent Atelier / Bias Detective / Prompt Lab past saves
+- [ ] `eval_grades` migration applied; RLS verified
+- [ ] B/C primary; A 2D fallback
+- [ ] Registry entry + camera preset
+- [ ] Estimated TSX lines: ~3,400
+
+---
+
+
 
 
