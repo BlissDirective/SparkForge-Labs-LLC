@@ -191,3 +191,170 @@ Full specs for each concept follow in sections D–J. This table summarizes what
 
 ---
 
+## D. Concept C1 — Agent Atelier
+
+> *"Hire a team of AI specialists, wire them together, and run a mission. Every team member knows one thing really well."*
+
+### D.1 Headline
+
+You are the **Atelier Director** of an AI workshop. The world has stopped using single all-purpose AI assistants — modern AI works in teams (Doc 1 §1). Your job is to assemble those teams. Each session, a *mission card* arrives ("plan a birthday party", "fact-check a science article", "design a recyclable lunchbox"). You drag specialist agents (Researcher, Planner, Writer, Critic, Coder, Estimator…) onto a 3D atelier floor, wire their outputs into each other's inputs (MCP-style), then press **Run Mission** and watch the team work — with success, failure, and surprise outcomes traced visually.
+
+### D.2 Lab Placement (DUAL-SPEC)
+
+| Path | Lab | Lab name | Color | Notes |
+|---|---|---|---|---|
+| **Path A** *(if Lab 11 not adopted)* | **Lab 5** | AI Helpers | `#00D17A` (green) | Joins Pet Trainer's lab. Lab 5 narrative becomes "all kinds of helpers, including teams of helpers." |
+| **Path B** *(if Lab 11 adopted)* | **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | First flagship in the new lab. Anchors the "build → equip → constrain" arc. |
+
+Either way: same code. Only `lab` and `labName` fields differ in the registry entry.
+
+### D.3 Research Anchors
+
+- **Doc 1 §1.1–§1.4** — Multi-agent systems, "delegate, review, own"
+- **Doc 1 §1.4 Pertinent Patterns** — specialization, MCP wiring, inter-agent protocols
+- **Doc 1 §8.1** — Pillar: Orchestration
+
+### D.4 Phase Structure (13 phases)
+
+```typescript
+type Phase =
+  | 'welcome'            // Hero overlay + voiceover
+  | 'learn-team'         // Card 1: "Why teams beat solo AIs"
+  | 'learn-roles'        // Card 2: 12 specialists explained
+  | 'learn-wiring'       // Card 3: MCP-style ports + protocols
+  | 'meet-agents'        // Interactive: hover each agent for backstory
+  | 'tutorial-mission'   // Guided 1-mission build
+  | 'pick-mission'       // Mission gallery (8 hand-built + AI-generated)
+  | 'assemble'           // Drag agents onto atelier floor
+  | 'wire'               // Connect output→input ports
+  | 'simulate'           // Watch team execute (animated trace)
+  | 'inspect'            // Step-by-step trajectory log
+  | 'iterate'            // Patch wiring, re-run
+  | 'report';            // Mission grade + agent MVP + replay
+```
+
+13 phases ≈ 2× the 5–7 of current flagships.
+
+### D.5 Specialist Agent Roster (12)
+
+Three tiers: 4 always available (band A entry), 4 unlock at band B, 4 unlock at band C.
+
+| Tier | Agent | Role | Inputs | Outputs |
+|---|---|---|---|---|
+| A | **Researcher** | Looks things up | `topic` | `facts[]` |
+| A | **Writer** | Turns notes into prose | `notes`, `tone` | `text` |
+| A | **Planner** | Breaks goals into steps | `goal` | `steps[]` |
+| A | **Estimator** | Predicts time/cost | `task` | `time`, `cost` |
+| B | **Critic** | Finds flaws in others' work | `artifact` | `issues[]` |
+| B | **Coder** | Writes small programs | `spec` | `code` |
+| B | **Translator** | Switches languages or styles | `text`, `target` | `text` |
+| B | **Summarizer** | Compresses long text | `text`, `budget` | `text` |
+| C | **Router** | Picks which agent runs next | `state` | `next_agent` |
+| C | **Toolsmith** | Wraps an outside tool (calc, calendar) | `request` | `tool_result` |
+| C | **Judge** | Scores final outputs | `artifact`, `rubric` | `grade` |
+| C | **Memory** | Remembers across runs | `key`, `value` | `recall` |
+
+### D.6 Mission Library (8 hardcoded × 3 difficulty = 24 + 12 AI-generated = 36 content units)
+
+Hardcoded missions, each with `easy / medium / hard` variants:
+
+1. **The Birthday Plan** — plan a kid's birthday for a $40 budget
+2. **The Fact Check** — verify three claims from a science article
+3. **Lunchbox Re-Design** — propose a recyclable lunchbox with cost estimate
+4. **The Story Editor** — improve a 3-paragraph story
+5. **Homework Hot Seat** — solve a multi-step word problem
+6. **Travel Trio** — plan a 3-city train trip with constraints
+7. **Pet Schedule** — daily care plan for a hamster + a fish
+8. **Build a Joke** — generate 5 kid-safe jokes about a noun
+
+Plus **12 AI-generated mission cards** per session (rate-limited via existing `ai-content-generator.ts` infra).
+
+### D.7 Game Loops (2)
+
+- **Loop 1: Mission mode** — pick mission, assemble + wire team, run, get graded, retry. Score-tracked.
+- **Loop 2: Free Play** — no mission, no grade. Build any team, throw any prompt, observe.
+
+### D.8 3D / Visual
+
+| Asset | File | Purpose |
+|---|---|---|
+| `AgentAtelier3D.tsx` | `src/components/3d/` | Atelier floor — circular dais, agent slots, glowing wire connections (TubeGeometry along CatmullRomCurve3, mirroring AgentPipeline3D) |
+| `AgentAtelierEnvironment.tsx` | `src/components/3d/environments/` | Workshop-loft setting: pinboards, drafting tables, hanging tools (within 20M tri budget) |
+| Particles | inline | 12 lab-colored sparks (mint-cyan if Lab 11, green if Lab 5) |
+
+**Camera preset (added to `gameRegistry.ts`):**
+```typescript
+'agent-atelier': { position: [0, 4, 8], lookAt: [0, 0.5, 0], fov: 50 }
+```
+
+### D.9 State Schema
+
+New Zustand slice (lives in `src/stores/agentAtelierStore.ts` — follows `STATE_ARCHITECTURE.md` convention):
+
+```typescript
+interface AgentAtelierState {
+  team: PlacedAgent[];          // up to 8 agents on atelier floor
+  wires: Wire[];                // output→input connections
+  mission: Mission | null;
+  trajectory: TrajectoryStep[]; // per-step log built during simulate
+  grade: MissionGrade | null;
+  missionsCompleted: string[];  // for unlock progression
+}
+```
+
+### D.10 Persistence (Supabase migration)
+
+```sql
+-- supabase/migrations/2026XXXX_agent_atelier_compositions.sql
+create table agent_compositions (
+  id uuid primary key default gen_random_uuid(),
+  child_id uuid references children(id) on delete cascade,
+  name text not null,
+  team jsonb not null,    -- PlacedAgent[]
+  wires jsonb not null,   -- Wire[]
+  created_at timestamptz default now()
+);
+create index agent_compositions_child_idx on agent_compositions(child_id);
+alter table agent_compositions enable row level security;
+-- RLS: child can read/write own, parent can read child's.
+-- (advisor check after DDL per CLAUDE.md §2)
+```
+
+### D.11 Integration Points (refer to existing flagship code)
+
+| Pattern | Reference |
+|---|---|
+| Phase machine | `AgentArchitectGame.tsx:48` |
+| 3D Canvas embedding (no inner Canvas) | `STAGE6E_v3FINAL_A.md` lines 4–11, D3D-B1 |
+| Mission gallery pattern | `BiasDetectiveGame.tsx` cases phase |
+| AI content slot | `src/lib/ai/ai-content-generator.ts` — add `'agent-atelier'` GameId, 6 ContentTypes |
+| Triangle budget | 20M (flagship desktop) per `gameRegistry.ts:69` |
+
+### D.12 AI Content Types (6 new — added to `ai-content-generator.ts`)
+
+| ContentType | Per band | Purpose |
+|---|---|---|
+| `mission-card-A` | A | Simplified missions, 1 goal, ≤ 3 steps |
+| `mission-card-B` | B | Standard missions, 2-step goals |
+| `mission-card-C` | C | Multi-objective missions, soft constraints |
+| `agent-bio-A` | A | Picture-card backstory ≤ 30 words |
+| `agent-bio-B` | B | Backstory + tip ≤ 80 words |
+| `agent-bio-C` | C | Full backstory + real-world analog ≤ 200 words |
+
+### D.13 Acceptance Criteria
+
+- [ ] 13 phases implemented with `Phase` union
+- [ ] 12 specialists with valid input/output port shapes
+- [ ] 8 hardcoded + 12 AI-generated missions per session
+- [ ] 3 age bands (A 2D fallback, B/C full 3D)
+- [ ] `agent-atelier` slug + entry in `gameRegistry.ts`
+- [ ] Camera preset added
+- [ ] `agent_compositions` migration applied; RLS verified via `get_advisors`
+- [ ] WebGPU+TSL primary path; MP4-poster fallback per CLAUDE.md §1
+- [ ] All ARIA labels; chrome bezel + LED rim
+- [ ] WCAG sweep: text contrast `/50+` per CLAUDE.md T19
+- [ ] Estimated TSX lines: ~3,000 (≥ 2× current flagship median ~1,650)
+
+---
+
+
