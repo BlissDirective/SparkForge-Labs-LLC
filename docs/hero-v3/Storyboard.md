@@ -4,7 +4,7 @@
 **Date:** 2026-04-29
 **Branch:** `claude/sparkforge-phase-five-CSSzU`
 **Total runtime:** 19.0 s @ 1× / 4.75 s @ 4× fast-forward (locked, decision N4)
-**Framework:** GSAP master timeline + Theatre.js sequencer (dev-tunable, no NODE_ENV gate)
+**Framework:** GSAP master timeline + Theatre.js sequencer with `studio.initialize()` auto-mounted on every environment (user pick Q8 — no gating; `@theatre/studio` adds ~500 KB to the bundle, accepted under Tech Quality Mandate v6.6 since user explicitly chose the always-tunable path)
 **Renderer:** Single-canvas R3F + WebGPU + TSL (decisions D3, N1, N2 — no shader fork)
 **Source-of-truth:** `src/lib/branding/sf-material.config.ts` (every color, IOR, dispersion, dichroic, lighting param eye-extracted from `public/branding/IMG_4607.png`)
 **Halt rule:** SSIM ≥ 0.96 vs IMG_4607 (palette + structure) and against this storyboard's beat anchor stills (decision N5, Mythos rule)
@@ -51,7 +51,7 @@ The existing 8-phase hero ("v2") is implemented as a single `<group>` rendered i
 | 3 | **S Crystallization** | 5.0 → 8.0 | 3.0 | (−1.4, +0.6, 9.2) → (−0.4, +0.2, 7.5) ease-in-out, lookAt SfMark center | `<SfMark3D>` S-glyph fades in (`transmission` 0 → 0.97; `dispersionStrength` peaks at 0.108 then settles to 0.072), italic 3.4° lean already applied | S material fully resolved; F anchor highlights |
 | 4 | **F Mirror + Shard Burst** | 8.0 → 11.0 | 3.0 | (−0.4, +0.2, 7.5) → (+0.4, +0.2, 7.5) lateral dolly + +5° tilt-up | F mirrors S's ignition (same TSL fade-in); `<SfShardSet>` (Phase 5b.2) briefly assembles into F THEN explodes outward at t=10.0 with cyan-magenta gradient trail | Shards mid-burst; wordmark anchors sweep in |
 | 5 | **Wordmark Cascade** | 11.0 → 14.0 | 3.0 | (+0.4, +0.2, 7.5) → (0, +0.4, 9.5) pull-back + center | `<SparkForgeWordmark3D revealMask>` animated `[0,5]` → `[0,1,5]` → `[0,1,2,5]` ... → `[0..9]` left-to-right; electric arcs (`electricVeins.frag`) bind glyphs as they appear | All 10 letters resolved; dichroic intensity ramping |
-| 6 | **Dichroic Bloom** | 14.0 → 16.5 | 2.5 | (0, +0.4, 9.5) → (0, +0.6, 10.5) gentle pull-back, breath-rate float | Wordmark `dichroicIntensity` 1.0 → 1.6 → 1.0; both lensflares peak again (`intensityMul` 1.0 → 1.8); HDRI env intensity 2.4 → 3.0 → 2.4 | Wordmark drifts upward; cockpit silhouette begins |
+| 6 | **Dichroic Bloom** | 14.0 → 16.5 | 2.5 | (0, +0.4, 9.5) → (0, +0.6, 10.5) gentle pull-back, breath-rate float | Wordmark `dichroicIntensity` 1.0 → 1.6 → 1.0; both lensflares peak again (`intensityMul` 1.0 → 2.0); HDRI env intensity 2.4 → 3.0 → 2.4 | Wordmark drifts upward; cockpit silhouette begins |
 | 7 | **Cockpit Materialization** | 16.5 → 18.5 | 2.0 | (0, +0.6, 10.5) → (0, +6.0, 7.5), fov 50 → 58, lookAt (0, +3.0, 0) | Wordmark drifts up + slight scale 1.0 → 0.85; cockpit groups fade in (`cockpitStore.setHeroPhase('materializing')`); holographic horizon emerges from below | Cockpit fully materialized; wordmark dissolving |
 | 8 | **Atomic Handoff** | 18.5 → 19.0 | 0.5 | settle at (0, +6.0, 7.5), no further camera movement | Wordmark dissolves into cockpit's central holographic display (`opacity` 1 → 0, scale 0.85 → 0); GSAP `onComplete` fires → `setHeroPhase('complete')` + `setCockpitReady(true)` | Hero loop ends; cockpit interactivity unlocked |
 
@@ -171,7 +171,7 @@ The existing 8-phase hero ("v2") is implemented as a single `<group>` rendered i
 | **Subjects mounted** | Full `<SparkForgeWordmark3D>` (all 10 letters); lensflares both still mounted; starfield holding at 0.15 opacity (subtle background); shards now fully unmounted/disposed |
 | **Material animation (all 10 letters synchronized)** | • `dichroicIntensity`: 1.0 → 1.6 (peak t=15.2) → 1.0 (settle t=16.5). Animated via shared `MaterialOptions` controller — single TSL uniform broadcast.<br>• `dispersionStrength`: 0.072 → 0.090 (peak t=15.2) → 0.072. Subtle but visible — chromatic edge band widens.<br>• `emissiveIntensity`: 0.3 → 0.55 (peak t=15.0) → 0.3.<br>• `clearcoat` and `transmission` hold steady. |
 | **HDRI env** | Env intensity 2.4 → 3.0 (peak t=15.2) → 2.4. Drei `<Environment>` exposure animated via `intensity` prop. |
-| **Lensflares** | Both flares peak again — `intensityMul` 1.0 → 1.8 → 1.0; `coreScale` 1.0 → 1.3 → 1.0; `streakScale` 1.2 → 1.6 → 1.2. The double-bloom (light-source + material) is the visual signature beat. |
+| **Lensflares** | Both flares peak again — `intensityMul` 1.0 → 2.0 → 1.0; `coreScale` 1.0 → 1.4 → 1.0; `streakScale` 1.2 → 1.7 → 1.2. The double-bloom (light-source + material) is the visual signature beat. (User pick Q5: peak `intensityMul` = 2.0 — between mid-range default 1.8 and "explosive" 2.4. Reads as a strong climax without bloom blowout on bright displays.) |
 | **Volumetric god-rays** | Warm-amber rays from lower-left lensflare pass through the wordmark; opacity 0 → 0.35 → 0.15 over the beat. Gives the bloom physical substance. |
 | **Key visual events** | • t=14.0 → 15.2 dichroic intensity ramps; chromatic edge bloom widens; lensflares grow<br>• t=15.2 **peak bloom** — wordmark looks like it is illuminated from inside; god-rays at fullest, dichroic film at hottest; entire frame near-white in highlights<br>• t=15.2 → 16.5 settle back to baseline; this prepares the eye for the cockpit-emergence color shift in Beat 7 |
 | **Audio cues (existing v2 nodes remapped)** | • Aurora pad `materializeNodes.auroraPad.triggerAttack(['A3','C4','E4','G4'])` — soft swell @ t=14.0 (Am7 — minor with major-7 brightness, foreshadowing cockpit's color)<br>• HUD ring `materializeNodes.hudRing.triggerAttackRelease(['C5','G5','C6'], '8n')` @ t=15.2 (peak bloom — chord coincides with visual peak)<br>• Cockpit hum continues, gain ramp −12 → −6 dB by t=16.5<br>• Migration drone `regroupNodes.migrationDrone.stop()` @ t=16.5 (clean handoff to materialize palette) |
@@ -200,21 +200,26 @@ The existing 8-phase hero ("v2") is implemented as a single `<group>` rendered i
 
 ---
 
-## §10. Beat 8 — Atomic Handoff (18.5 → 19.0 s)
+## §10. Beat 8 — Atomic Handoff via Shatter-Into-UI (18.5 → 19.0 s)
+
+**User pick Q6: shatter-into-UI** — the wordmark "shatters" again at handoff and the shards become the cockpit's UI elements (consoles, lab-map nodes, holographic display, status bar, HUD). Visual reading: "the brand *seeds* the platform."
 
 | Aspect | Detail |
 |---|---|
 | **Camera** | hold at `(0, +6.0, 7.5)`, fov 58, lookAt `(0, +3.0, 0)`. **No further movement.** This is intentional — the cockpit is "yours" now; the camera is a steady observer. |
-| **Wordmark dissolution** | • `position.y` +1.4 → +1.9 (continued upward drift)<br>• `scale` 0.85 → 0 (`power3.in` — accelerates into nothing)<br>• `opacity` 1.0 → 0 (`power2.in` — fades faster than scale)<br>• `dispersionStrength` boosted to 0.140 during dissolve (last visible chromatic flare as the wordmark scatters) |
-| **Cockpit holographic display** | The wordmark's final position/scale matches the cockpit's central holographic-display anchor point. As the wordmark dissolves, the holographic display lights up with its own content (existing cockpit code). Visual reading: "the wordmark *became* the display." |
-| **Final emissive flash** | A brief soft flash at the wordmark's last position: cyan-magenta-amber tri-color burst, opacity 0 → 0.3 → 0 over 0.4 s (t=18.55 → 18.95). Reads as the moment the brand identity dissolves into the platform. |
-| **Hero light** | All hero lights at 0 intensity by t=19.0. Cockpit lights at full. |
-| **Lifecycle events (CRITICAL — atomic handoff)** | • t=18.5 → trigger ramp-out animations<br>• t=18.95 → wordmark scale ≤ 0.05, opacity ≤ 0.05<br>• **t=19.00 — GSAP `tl.onComplete()` fires:**<br>&nbsp;&nbsp;&nbsp;&nbsp;1. `useCockpitStore.getState().setHeroPhase('complete')`<br>&nbsp;&nbsp;&nbsp;&nbsp;2. `useCockpitStore.getState().setCockpitReady(true)`<br>&nbsp;&nbsp;&nbsp;&nbsp;3. `actions.setComplete()` — fires the `onComplete` callback up to `<HeroAnimation>` parent<br>&nbsp;&nbsp;&nbsp;&nbsp;4. Hero `<HeroScene>` returns `null` on next render (state.isComplete short-circuit at line 518 of v2 — preserved verbatim)<br>&nbsp;&nbsp;&nbsp;&nbsp;5. The `<canvas>` DOM node **does not** unmount — cockpit children continue rendering inside it |
-| **CPA v2 single-canvas verification (HS-9 hard stop)** | The handoff is ONE GSAP onComplete callback + a flag flip in cockpitStore. There is no canvas swap, no remount, no key change, no opacity-crossfade between two `<Canvas>` siblings. Devtools verification: same `<canvas>` DOM node from t=0 through t=19+ uninterrupted. |
-| **Audio cues** | • FM sweep power-up `onlineNodes.powerUp.triggerAttackRelease('C5','4n')` @ t=18.5 (climactic system-online tone)<br>• `onlineNodes.cockpitAmbient` start @ t=18.5 — persistent 55 Hz sine at −6 dB. **Not disposed** at hero end — it carries forward into the cockpit's own audio engine (existing v2 behavior preserved verbatim). |
-| **Performance** | Light frame — most hero subjects unmounting. Budget: ≤ 12 ms/frame. |
-| **Out-trigger** | `tl.time() >= 19.0` AND `setCockpitReady(true)` fired |
-| **Theatre.js sequence** | `Beat8_AtomicHandoff` track. Tunable: dissolve-curve-shape, final-flash-duration, final-flash-color-mix (cyan/mag/amber ratios). |
+| **Mini-shatter @ t=18.5** | Same `<SfShardSet>` mechanic as Beat 4 but **smaller, faster, fewer shards**:<br>• Source geometry: full wordmark (`<SparkForgeWordmark3D>`) BVH-fractured into ~80 (WebGPU-ultra) / 60 / 40 / 30 (non-WebGPU) shards<br>• Each shard is **target-assigned** to a specific cockpit UI anchor point — there is no random outward burst here, every shard has a destination<br>• Per-shard trajectory: cubic-bezier from wordmark vertex position → UI anchor world position. Flight duration 0.30 s `power3.inOut`. Shards rotate during flight (random initial angular vel ±4 rad/s, dampens to 0 at arrival).<br>• Shard material: `BrandingMaterial` with `emissiveIntensity` boosted 0.3 → 1.4 during flight (shards are streaks of light, not opaque chunks) |
+| **UI anchor seeding** | Cockpit UI elements (existing geometry mounted by Beat 7 at low opacity ~0.6) **light up on shard arrival**:<br>• Each anchor has 1–4 shards assigned to it (weighted by element importance)<br>• On per-shard arrival: that anchor's `emissiveIntensity` flashes 0.6 → 2.0 → 1.0 over 0.15 s<br>• That anchor's `opacity` snaps 0.6 → 1.0 instantly at arrival<br>• Net effect: cockpit UI lights up as a **rolling cascade** across the 0.5 s window — earliest-arriving shards light up consoles + lab map; latest land on HUD + status bar |
+| **UI anchor list (target distribution, ~80 shards on ultra)** | • Central holographic display: 16 shards (most important — was original Q6-default destination)<br>• 4 consoles (NE/NW/SE/SW): 12 each = 48<br>• Lab map nodes (10 labs): 1 each = 10<br>• Peripheral HUD frame: 4<br>• Status bar segments: 2<br>Total: 80. Lower tiers proportionally fewer per anchor (minimum 1 per anchor on 30-shard tier). |
+| **Wordmark fade** | As shards leave their wordmark vertex positions, the source wordmark's `opacity` decays 1.0 → 0 over 0.30 s `power2.in` (matches first wave of shard flights). By t=18.85 the source wordmark is fully unmounted. |
+| **Hero lights / lensflares** | Hero key/rim/fill ramp 4.0/2.5/0.4 → 0 over 0.5 s. Cockpit's own lights compensate (existing cockpit lighting code reaches full at t=19.0). Lensflares already at 0 from Beat 7. |
+| **Final flash** | NO single big flash (this would compete with the per-anchor lights). Instead, a faint **rolling shimmer** across the cockpit interior: subtle cyan-magenta-amber chromatic film overlay opacity 0 → 0.18 → 0 over t=18.7 → 19.0. Reads as the brand DNA settling into the system. |
+| **Audio cues** | • FM sweep power-up `onlineNodes.powerUp.triggerAttackRelease('C5','4n')` @ t=18.5 (climactic system-online tone — coincides with mini-shatter trigger)<br>• Per-shard arrival "click" — reuse `materializeNodes.gaugeClick` for the first 8 highest-priority arrivals (staggered ~30 ms apart starting t=18.65). Adds the auditory rhythm that sells the shard→UI cascade.<br>• `onlineNodes.cockpitAmbient` start @ t=18.5 — persistent 55 Hz sine at −6 dB. **Not disposed** at hero end — it carries forward into the cockpit's own audio engine (existing v2 behavior preserved verbatim). |
+| **Lifecycle events (CRITICAL — atomic handoff)** | • t=18.50 → trigger mini-shatter; ramp out hero lights; per-anchor flashes scheduled<br>• t=18.50 + 0.30 = 18.80 → first-wave shards arrived at central display + consoles<br>• t=18.80 + 0.20 = 19.00 → last-wave shards arrived at HUD/status bar; source wordmark unmounted<br>• **t=19.00 — GSAP `tl.onComplete()` fires:**<br>&nbsp;&nbsp;&nbsp;&nbsp;1. `useCockpitStore.getState().setHeroPhase('complete')`<br>&nbsp;&nbsp;&nbsp;&nbsp;2. `useCockpitStore.getState().setCockpitReady(true)`<br>&nbsp;&nbsp;&nbsp;&nbsp;3. `actions.setComplete()` — fires the `onComplete` callback up to `<HeroAnimation>` parent<br>&nbsp;&nbsp;&nbsp;&nbsp;4. `<SfShardSet>` for Beat 8 unmounts (all shards have already arrived + dissolved)<br>&nbsp;&nbsp;&nbsp;&nbsp;5. Hero `<HeroScene>` returns `null` on next render (state.isComplete short-circuit at line 518 of v2 — preserved verbatim)<br>&nbsp;&nbsp;&nbsp;&nbsp;6. The `<canvas>` DOM node **does not** unmount — cockpit children continue rendering inside it |
+| **CPA v2 single-canvas verification (HS-9 hard stop)** | Despite the visual complexity of the shatter-into-UI cascade, the handoff is still ONE GSAP onComplete callback + a flag flip in cockpitStore. The shard set is rendered as siblings to the cockpit groups inside the SAME `<Canvas>`. There is no canvas swap, no remount, no key change. Devtools verification: same `<canvas>` DOM node from t=0 through t=19+ uninterrupted. |
+| **Performance** | Highest-density frame in the entire 19s. ~80 shard meshes (each with `BrandingMaterial`) + cockpit interior + per-anchor emissive flashes. Budget: ≤ 18 ms/frame on WebGPU desktop-ultra (matches Beat 7 budget — same total triangle count, redistributed). |
+| **Out-trigger** | `tl.time() >= 19.0` AND all 80 shard arrivals `complete === true` AND `setCockpitReady(true)` fired |
+| **Theatre.js sequence** | `Beat8_ShatterIntoUI` track. Tunable: shard-count-per-tier (ultra/high/mid/low), per-anchor weight-distribution, flight-duration (0.30 s default), arrival-flash-curve, rolling-shimmer-color-mix. |
+| **Runtime note (sub-decision)** | Beat 8 is held at 0.5 s to preserve the N4 19.0-s lock. Compressing the shatter-into-UI from a typical 1.0 s to 0.5 s tightens shard-flight pacing — works because flights are short (0.30 s) and arrivals are punctuated (~30 ms gauge clicks). If user later requests breathing room, Beat 8 can extend to 18.5 → 19.5 s by also extending the total runtime to 19.5 s (4× FF becomes 4.875 s). |
 
 ---
 
@@ -293,35 +298,39 @@ After Phase 5c is complete, manual verification by the user:
 
 Audio progress sync (not transport sync) means fast-forward does NOT pitch-shift audio — cues fire at correct progress points whether at 1× or 4×. This is preserved verbatim from v2 (`heroAudio.ts:setTimeScale`).
 
-### Mobile / non-WebGPU fallback (decision N2)
+### Mobile / non-WebGPU fallback (decision N2 + user pick Q10)
 
-Devices without WebGPU receive `public/branding/brand-fallback.mp4` (Phase 4 output) as a `<video>` poster within `<BrandingShowcase>`. The hero animation does NOT run on these devices — they see a static poster + the wordmark PNG (`public/branding/sparkforge-hero.png`). **No shader fork.** Cockpit remains accessible via direct nav after auth — the hero is decorative on these devices, not a gating route.
+Devices without WebGPU receive a **trimmed 5–8 s Sora/Veo-generated hero video** (Q10, picked over the static-poster-only default) condensing the storyboard into a punchy mobile-friendly intro. Authoring is Phase 7 work (`docs/marketing/SoraVeo-PromptPack.md` + actual model generations). The video is served from `public/branding/sparkforge-hero-mobile.mp4` (encoding ladder: AV1 4K → H.265 → H.264 1080p) inside `<BrandingShowcase>` when `useWebGPUCapability() === false`.
+
+The trimmed video collapses the 19 s storyboard into 5–8 s:
+- 0.0–0.8 s — Beats 1+2 condensed (void → ignition spark, both lensflares appearing)
+- 0.8–2.0 s — Beat 3 (S crystallization)
+- 2.0–3.5 s — Beat 4 (F mirror + mini shard burst)
+- 3.5–5.0 s — Beats 5+6 condensed (wordmark cascade with simultaneous dichroic bloom rather than sequential)
+- 5.0–6.5 s — Beats 7+8 condensed (cockpit silhouette emerges, shatter-into-UI cascade, atomic handoff)
+
+`public/branding/brand-fallback.mp4` (the existing Phase 4 SF-mark slow-rotate loop) **stays as a secondary fallback** for devices that can't even play H.264 1080p (effectively zero modern devices, but it's a safety net).
+
+**No shader fork** in either case. Cockpit remains accessible via direct nav after auth — the mobile hero is decorative.
 
 ---
 
-## §13. Open Questions for User Sign-Off
+## §13. Sign-Off Decisions (RECORDED 2026-04-29)
 
-Phase 5b prep (and 5b, 5c) build on this storyboard. Each question below has a recommended default — answering "go with defaults" unblocks 5b prep immediately.
+User finalized all 10 questions. Recorded picks below — these are now LOCKED. Any change requires explicit user override in chat.
 
-| # | Question | Recommended default | Tradeoff if you change it |
+| # | Question | User pick | Storyboard impact |
 |---|---|---|---|
-| **Q1** | **Beat boundaries** — are the 8 timestamps (2.5/5.0/8.0/11.0/14.0/16.5/18.5/19.0 s) acceptable? | Yes (per N4 lock) | Re-balancing changes pacing perception — for example, extending Beat 4 to 12.0 s shortens Beats 5-8 → cockpit arrival feels rushed |
-| **Q2** | **Camera path style** — do you want the diagonal parallax dolly in Beat 2 (current spec, off-axis pull from `(0,0,12)` to `(−1.4, +0.6, 9.2)`) or a straight z-axis dolly? | Diagonal | Straight is safer / cheaper but reads as standard intro; diagonal telegraphs "cinematic" intent |
-| **Q3** | **Wordmark cascade order** — current spec is left-to-right S→p→a→r→k→F→o→r→g→e (with S+F already visible from Beat 4). Alternative: anchored-pair (S+F first, then everything else fills inward simultaneously, ~0.6 s). | Left-to-right (legibility, builds anticipation) | Anchored-pair is faster/punchier but loses the "spelling out" reveal |
-| **Q4** | **Beat 4 detonation visual** — do shards fly outward in all directions (current spec, biased upward) or directionally (e.g. all toward the camera for a face-burst effect)? | Outward+up bias | Camera-direction burst is dramatic but obscures the wordmark anchor positions for ~0.5 s; outward gives the next beat clean entry |
-| **Q5** | **Lensflare double-bloom (Beat 6)** — `intensityMul` peaks at 1.8. Higher (2.4+) reads as "explosive" climax, lower (1.4) reads as "subtle". | 1.8 (mid-range) | Higher risks bloom blowout on bright displays; lower may not register as a peak beat |
-| **Q6** | **Cockpit handoff visible cue** — the spec has wordmark dissolving into the cockpit's central holographic display. Alternative: wordmark "shatters" again (mini-Beat-4 style) and the shards become the cockpit's UI elements. | Dissolution | Shatter-into-UI is cooler but adds 0.5–1.0 s and risks reading as a second climax (visual fatigue) |
-| **Q7** | **Audio remap acceptance** — §11 changes 12 trigger-times in `heroAudio.ts:syncToProgress`. Approve the remap as documented? | Approve | Rejecting forces v3 visuals to align with v2 audio timing — would re-introduce the v2 boundary mismatches between visual and audio peaks |
-| **Q8** | **Theatre.js studio overlay** — should `studio.initialize()` be auto-mounted on every hero render, or gated behind `?theatre=1` query param? | `?theatre=1` query gate | Auto-mount adds a UI overlay to all visitors (intrusive in production); query-gate keeps it dev-tunable on every environment per the no-NODE_ENV-gate mandate |
-| **Q9** | **SSIM halt strategy** — Mythos rule says SSIM ≥ 0.96 vs IMG_4607. For animated beats there is no single reference frame — should we (a) halt against the locked Phase 4 still anchors at t=2.5/5.0/8.0/11.0/14.0/16.5/18.5/19.0, or (b) halt against motion-frame averages? | (a) Anchor stills | (b) is more robust to subtle motion drift but doubles the rendering cost in `scripts/compare-ssim.ts` |
-| **Q10** | **Mobile / non-WebGPU experience** — current spec serves the static MP4 poster only. Should we ALSO author a 5–8 s "trimmed video" version of this storyboard (Sora/Veo) for mobile so they get a hero, just shorter? | No (static poster only) | Trimmed video is Phase 7 (Sora prompt pack) work — adds budget but improves mobile first-impression |
-
-### How to respond
-
-- **"Go with defaults on all"** — fastest path to Phase 5b prep
-- **"Change Q3 to anchored-pair, rest defaults"** (or any subset) — I'll update the storyboard, re-commit, then proceed to 5b prep
-- **"Restructure Beat N"** — name the beat and the change; I'll redraft only that section
-- **"Halt entirely / re-discuss"** — I'll wait for direction
+| **Q1** | Beat boundaries (2.5/5.0/8.0/11.0/14.0/16.5/18.5/19.0 s) | **Yes (defaults)** | No change — N4 19.0-s runtime preserved |
+| **Q2** | Camera path style (Beat 2 diagonal vs straight dolly) | **Diagonal** | No change — `(0,0,12)` → `(−1.4, +0.6, 9.2)` parallax dolly retained |
+| **Q3** | Wordmark cascade order | **Left-to-right** | No change — sequential S→p→a→r→k→F→o→r→g→e reveal retained |
+| **Q4** | Beat 4 detonation direction | **Outward+up bias** | No change — proven Beat 4 physics constants retained |
+| **Q5** | Lensflare bloom peak | **2.0** (between 1.8 mid-range and 2.4 explosive) | §2 + §8 updated: Beat 6 `intensityMul` 1.0 → 2.0 → 1.0; `coreScale` 1.0 → 1.4 → 1.0; `streakScale` 1.2 → 1.7 → 1.2 |
+| **Q6** | Cockpit handoff visual | **Shatter-into-UI** | §10 fully rewritten: ~80 shards (ultra-tier) target-assigned to cockpit UI anchors (central display × 16, 4 consoles × 12 each, 10 lab-map nodes × 1 each, HUD × 4, status bar × 2). Per-shard cubic-bezier flight 0.30 s `power3.inOut`. Per-anchor emissive flash 0.6 → 2.0 → 1.0 on shard arrival. Audio per-arrival gauge clicks staggered. Total runtime preserved at 19.0 s by tightening flight pacing (no N4 break). |
+| **Q7** | Audio remap (12 trigger-time edits) | **Approve** | §11 remap proceeds as documented |
+| **Q8** | Theatre.js `studio.initialize()` gating | **Auto-mount everywhere** | Header updated. Bundle adds ~500 KB `@theatre/studio` to all environments. User explicitly accepts this to avoid the dev/prod gate-removal-forgetting risk. Tech Quality Mandate v6.6 covers (visual quality > bundle size). |
+| **Q9** | SSIM halt strategy | **(b) motion-frame averages** | `scripts/compare-ssim.ts` (Phase 5b/c work) will sample N≥8 frames per beat and SSIM-average vs reference. Doubles rendering cost during halt-loop iteration but more robust to per-frame motion drift. Phase 4 still anchors stay as supplementary checkpoints. |
+| **Q10** | Mobile / non-WebGPU experience | **Yes — trimmed Sora/Veo video (5–8 s)** | §12 mobile fallback rewritten: trimmed video is the primary mobile hero; existing `brand-fallback.mp4` SF-mark loop becomes secondary fallback for ultra-low-tier devices. Authoring is Phase 7 work (Sora/Veo prompt pack expansion + actual model generations + encoding ladder). |
 
 ---
 
@@ -331,16 +340,26 @@ Reference for your decision: this is what the next phase produces, so you know w
 
 | Sub-phase | Output | Estimated diff |
 |---|---|---|
-| **5b prep** | `src/components/3d/branding/LensflareTSL.tsx` — custom TSL anamorphic lensflare shader (per N3 lensflare = `c`). Two-mesh architecture (hot-core sphere + streak plane), `AdditiveBlending`. Reads from `SF_BRAND.LENS_FLARES` config (already in Phase 1). Mounted at `/dev/branding` as a new "Lensflare" subject for visual tuning. | +1 component (~200 LOC), +1 dev-showcase wiring, no breaking changes |
+| **5b prep** | `src/components/3d/branding/LensflareTSL.tsx` — custom TSL anamorphic lensflare shader (per N3 lensflare = `c`). Two-mesh architecture (hot-core sphere + streak plane), `AdditiveBlending`. Reads from `SF_BRAND.LENS_FLARES` config (already in Phase 1). Peak `intensityMul` capability up to 2.4 (Beat 6 uses 2.0 per Q5; ceiling preserves headroom). Mounted at `/dev/branding` as a new "Lensflare" subject for visual tuning. **Theatre.js `studio.initialize()` auto-mounted** here per Q8 — first place studio appears. | +1 component (~220 LOC), +1 dev-showcase wiring, +1 Theatre.js studio mount, no breaking changes |
 | **5b** | `src/lib/hero/heroTheatreProject.ts` (Theatre.js sheet); `src/components/3d/branding/SfShardSet.tsx` (Voronoi pre-fracture via `three-bvh-csg`); `src/components/3d/hero/v3/Beat{1..4}*.tsx`; modifications to `HeroAnimation.tsx` to mount v3 beats 1-4 instead of v2 phases 1-4 (behind a feature flag for safe rollback during the transition). | +1 Theatre project, +1 shard component, +4 beat components, modifications to `HeroAnimation.tsx`, modifications to `heroAudio.ts` for partial remap (Beats 1-4 audio only) |
 | **5c** | Beats 5-8 components + the rest of the audio remap + HS-9 verification + remove v3 feature flag once all 8 beats are proven. | +4 beat components, modifications to `heroAudio.ts` for full remap, removal of feature flag |
 
 After 5c, the v3 hero replaces v2 in `HeroAnimation.tsx` entirely. The storyboard above becomes the canonical reference for any future tuning.
 
+### Phase 7 expansion (driven by Q10 sign-off)
+
+`docs/marketing/SoraVeo-PromptPack.md` (Phase 7) now has an **additional deliverable**: a trimmed 5–8 s mobile-hero video generation brief (per Q10). It needs:
+- 5-section condensed prompt pack covering Beats 1+2 / 3 / 4 / 5+6 / 7+8 (timings per §12 mobile fallback)
+- Anchor frame inputs from Phase 4 stills (`sf-hero.png`, `sparkforge-hero.png`)
+- Mobile-specific encoding ladder (AV1 4K → H.265 → H.264 1080p) saved to `public/branding/sparkforge-hero-mobile.mp4`
+- `<BrandingShowcase>` updates to choose between the trimmed mobile video (primary) and the existing `brand-fallback.mp4` SF-mark loop (secondary fallback) based on H.264 1080p capability check
+
+This roughly doubles Phase 7 scope. Estimated additional time: +2–4 hours engineering, +$30–80 model-generation cost.
+
 ---
 
-*End of Storyboard v1.0 — Phase 5a deliverable.*
-*Awaiting user sign-off (§13 questions). Phase 5b prep does not start until questions are answered.*
+*End of Storyboard v1.1 — Phase 5a deliverable.*
+*Sign-off RECORDED 2026-04-29. All 10 §13 questions answered. Phase 5b prep authorized to proceed.*
 
 
 

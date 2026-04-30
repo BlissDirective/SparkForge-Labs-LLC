@@ -1,8 +1,23 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 5 (Hero Animation Rebuild)
-## Status: AWAITING SIGN-OFF — Phase 5a (Storyboard) complete; Phase 5b prep gated on user §13 answers
+## Current Phase: SparkForge Branding 3D — Phase 5b prep (Custom TSL Lensflare Shader)
+## Status: IN PROGRESS — Phase 5a sign-off RECORDED; Phase 5b prep starting
 ## Last Updated: 2026-04-29
+
+### Phase 5a Sign-Off (recorded 2026-04-29)
+
+| # | Pick | Note |
+|---|---|---|
+| Q1 Beat boundaries | Yes | N4 19.0-s lock preserved |
+| Q2 Camera | Diagonal | Beat 2 parallax dolly retained |
+| Q3 Cascade order | Left-to-right | Sequential reveal retained |
+| Q4 Detonation | Outward+up bias | Proven Beat 4 physics retained |
+| Q5 Lensflare peak | **2.0** | Beat 6 `intensityMul` updated |
+| Q6 Handoff | **Shatter-into-UI** | Beat 8 fully rewritten — ~80 shards target-assigned to cockpit UI anchors |
+| Q7 Audio remap | Approve | 12 trigger-time edits in `heroAudio.ts:syncToProgress` authorized |
+| Q8 Theatre.js | **Auto-mount everywhere** | `@theatre/studio` adds ~500 KB to bundle on every environment |
+| Q9 SSIM halt | **(b) motion-frame averages** | Doubles `compare-ssim.ts` cost; more robust to motion drift |
+| Q10 Mobile | **Trimmed 5–8 s Sora/Veo video** | Phase 7 scope ~doubled; mobile-hero deliverable added |
 
 **Branch:** `claude/sparkforge-phase-five-CSSzU` (squash-merges into `setup-SparkForge-dev` on phase completion)
 
