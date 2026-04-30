@@ -1,8 +1,10 @@
 # SparkForge Build Progress
 
 ## Current Phase: SparkForge Branding 3D — Phase 5b prep COMPLETE; ready for Phase 5b
-## Status: IN PROGRESS — Phase 5b prep shipped; Phase 5b (hero beats 1-4 rebuild) next
+## Status: IN PROGRESS — Phase 5b prep shipped (commit 7e077c4); Phase 5b proper (hero beats 1-4 rebuild) next
 ## Last Updated: 2026-04-29
+
+**Runtime override (2026-04-29):** Hero total runtime extended **19.0 s → 19.5 s** (Beat 8 0.5 → 1.0 s) for shatter-into-UI breathing room. 4× FF window 4.75 → 4.875 s. N4 lock revised. All downstream docs (storyboard v1.2, action plan §16.3 + N4 row, audio remap §11) updated.
 
 ### Phase 5b prep — COMPLETE (2026-04-29)
 

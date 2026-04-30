@@ -1,9 +1,9 @@
 # Hero v3 Storyboard
 
-**Document version:** 1.0 — Phase 5a deliverable (BRAND_HERO_ACTION_PLAN §8)
+**Document version:** 1.2 — Phase 5a deliverable (BRAND_HERO_ACTION_PLAN §8) — runtime extended to 19.5 s on 2026-04-29
 **Date:** 2026-04-29
 **Branch:** `claude/sparkforge-phase-five-CSSzU`
-**Total runtime:** 19.0 s @ 1× / 4.75 s @ 4× fast-forward (locked, decision N4)
+**Total runtime:** 19.5 s @ 1× / 4.875 s @ 4× fast-forward (user override 2026-04-29 — N4 lock revised from 19.0 → 19.5 s to give Beat 8 shatter-into-UI proper breathing room; the 0.5 s extension is below human perceptual threshold for "long intro" complaints and lets Beat 8 read clearly instead of feeling crammed)
 **Framework:** GSAP master timeline + Theatre.js sequencer with `studio.initialize()` auto-mounted on every environment (user pick Q8 — no gating; `@theatre/studio` adds ~500 KB to the bundle, accepted under Tech Quality Mandate v6.6 since user explicitly chose the always-tunable path)
 **Renderer:** Single-canvas R3F + WebGPU + TSL (decisions D3, N1, N2 — no shader fork)
 **Source-of-truth:** `src/lib/branding/sf-material.config.ts` (every color, IOR, dispersion, dichroic, lighting param eye-extracted from `public/branding/IMG_4607.png`)
@@ -53,17 +53,17 @@ The existing 8-phase hero ("v2") is implemented as a single `<group>` rendered i
 | 5 | **Wordmark Cascade** | 11.0 → 14.0 | 3.0 | (+0.4, +0.2, 7.5) → (0, +0.4, 9.5) pull-back + center | `<SparkForgeWordmark3D revealMask>` animated `[0,5]` → `[0,1,5]` → `[0,1,2,5]` ... → `[0..9]` left-to-right; electric arcs (`electricVeins.frag`) bind glyphs as they appear | All 10 letters resolved; dichroic intensity ramping |
 | 6 | **Dichroic Bloom** | 14.0 → 16.5 | 2.5 | (0, +0.4, 9.5) → (0, +0.6, 10.5) gentle pull-back, breath-rate float | Wordmark `dichroicIntensity` 1.0 → 1.6 → 1.0; both lensflares peak again (`intensityMul` 1.0 → 2.0); HDRI env intensity 2.4 → 3.0 → 2.4 | Wordmark drifts upward; cockpit silhouette begins |
 | 7 | **Cockpit Materialization** | 16.5 → 18.5 | 2.0 | (0, +0.6, 10.5) → (0, +6.0, 7.5), fov 50 → 58, lookAt (0, +3.0, 0) | Wordmark drifts up + slight scale 1.0 → 0.85; cockpit groups fade in (`cockpitStore.setHeroPhase('materializing')`); holographic horizon emerges from below | Cockpit fully materialized; wordmark dissolving |
-| 8 | **Atomic Handoff** | 18.5 → 19.0 | 0.5 | settle at (0, +6.0, 7.5), no further camera movement | Wordmark dissolves into cockpit's central holographic display (`opacity` 1 → 0, scale 0.85 → 0); GSAP `onComplete` fires → `setHeroPhase('complete')` + `setCockpitReady(true)` | Hero loop ends; cockpit interactivity unlocked |
+| 8 | **Atomic Handoff (Shatter-into-UI)** | 18.5 → 19.5 | 1.0 | settle at (0, +6.0, 7.5), no further camera movement | Wordmark mini-shatters; ~80 shards (ultra) target-assigned to cockpit UI anchors; per-anchor emissive flash on shard arrival; GSAP `onComplete` fires at 19.5 → `setHeroPhase('complete')` + `setCockpitReady(true)` | Hero loop ends; cockpit interactivity unlocked |
 
 **Beat-boundary rationale (locked in this storyboard):**
 - 2.5 s for Beat 1 — long enough for void dread + dolly-in to register without being self-indulgent
 - 2.5 s for Beat 2 — flares grow and resolve before the eye anchors on S
 - 3.0 s each for Beats 3, 4, 5 — three "main event" beats sharing equal screen time (S birth, F mirror+burst, full-word arrival)
 - 2.5 s for Beat 6 — dichroic breath, allows audience to register the brand mark before motion resumes
-- 2.0 s for Beat 7 — fast cockpit fade-in keeps perceived runtime under 19 s; longer would feel like a load screen
-- 0.5 s for Beat 8 — atomic handoff is intentionally tight; longer crossfades feel like a transition, not an arrival
+- 2.0 s for Beat 7 — fast cockpit fade-in keeps perceived runtime in check; longer would feel like a load screen
+- 1.0 s for Beat 8 — shatter-into-UI cascade with proper readable pacing (0.5 s shard-flight + 0.3 s arrival cascade + 0.2 s settle); the `+0.5 s` extension over the prior 0.5 s plan is the user's 2026-04-29 override
 
-**Total:** 2.5 + 2.5 + 3.0 + 3.0 + 3.0 + 2.5 + 2.0 + 0.5 = **19.0 s** ✅ matches N4 lock.
+**Total:** 2.5 + 2.5 + 3.0 + 3.0 + 3.0 + 2.5 + 2.0 + 1.0 = **19.5 s** ✅ matches revised N4 lock (19.5 s, user override).
 
 ---
 
@@ -200,26 +200,26 @@ The existing 8-phase hero ("v2") is implemented as a single `<group>` rendered i
 
 ---
 
-## §10. Beat 8 — Atomic Handoff via Shatter-Into-UI (18.5 → 19.0 s)
+## §10. Beat 8 — Atomic Handoff via Shatter-Into-UI (18.5 → 19.5 s)
 
 **User pick Q6: shatter-into-UI** — the wordmark "shatters" again at handoff and the shards become the cockpit's UI elements (consoles, lab-map nodes, holographic display, status bar, HUD). Visual reading: "the brand *seeds* the platform."
 
 | Aspect | Detail |
 |---|---|
 | **Camera** | hold at `(0, +6.0, 7.5)`, fov 58, lookAt `(0, +3.0, 0)`. **No further movement.** This is intentional — the cockpit is "yours" now; the camera is a steady observer. |
-| **Mini-shatter @ t=18.5** | Same `<SfShardSet>` mechanic as Beat 4 but **smaller, faster, fewer shards**:<br>• Source geometry: full wordmark (`<SparkForgeWordmark3D>`) BVH-fractured into ~80 (WebGPU-ultra) / 60 / 40 / 30 (non-WebGPU) shards<br>• Each shard is **target-assigned** to a specific cockpit UI anchor point — there is no random outward burst here, every shard has a destination<br>• Per-shard trajectory: cubic-bezier from wordmark vertex position → UI anchor world position. Flight duration 0.30 s `power3.inOut`. Shards rotate during flight (random initial angular vel ±4 rad/s, dampens to 0 at arrival).<br>• Shard material: `BrandingMaterial` with `emissiveIntensity` boosted 0.3 → 1.4 during flight (shards are streaks of light, not opaque chunks) |
-| **UI anchor seeding** | Cockpit UI elements (existing geometry mounted by Beat 7 at low opacity ~0.6) **light up on shard arrival**:<br>• Each anchor has 1–4 shards assigned to it (weighted by element importance)<br>• On per-shard arrival: that anchor's `emissiveIntensity` flashes 0.6 → 2.0 → 1.0 over 0.15 s<br>• That anchor's `opacity` snaps 0.6 → 1.0 instantly at arrival<br>• Net effect: cockpit UI lights up as a **rolling cascade** across the 0.5 s window — earliest-arriving shards light up consoles + lab map; latest land on HUD + status bar |
+| **Mini-shatter @ t=18.5** | Same `<SfShardSet>` mechanic as Beat 4 but **smaller, target-assigned**:<br>• Source geometry: full wordmark (`<SparkForgeWordmark3D>`) BVH-fractured into ~80 (WebGPU-ultra) / 60 / 40 / 30 (non-WebGPU) shards<br>• Each shard is **target-assigned** to a specific cockpit UI anchor point — there is no random outward burst here, every shard has a destination<br>• Per-shard trajectory: cubic-bezier from wordmark vertex position → UI anchor world position. **Flight duration 0.50 s `power3.inOut`** (relaxed from 0.30 s — gives shard arcs proper readable pacing within the 1.0 s beat). Shards rotate during flight (random initial angular vel ±4 rad/s, dampens to 0 at arrival).<br>• Shard material: `BrandingMaterial` with `emissiveIntensity` boosted 0.3 → 1.4 during flight (shards are streaks of light, not opaque chunks) |
+| **UI anchor seeding** | Cockpit UI elements (existing geometry mounted by Beat 7 at low opacity ~0.6) **light up on shard arrival**:<br>• Each anchor has 1–4 shards assigned to it (weighted by element importance)<br>• On per-shard arrival: that anchor's `emissiveIntensity` flashes 0.6 → 2.0 → 1.0 over 0.20 s (relaxed from 0.15)<br>• That anchor's `opacity` snaps 0.6 → 1.0 instantly at arrival<br>• Net effect: cockpit UI lights up as a **rolling cascade** across the 0.30 s arrival window (t=19.0 → 19.3 — first wave hits central display + consoles, last wave lands on HUD + status bar)<br>• 0.20 s settle phase (t=19.3 → 19.5) — last anchor flashes complete, rolling shimmer (below) finishes |
 | **UI anchor list (target distribution, ~80 shards on ultra)** | • Central holographic display: 16 shards (most important — was original Q6-default destination)<br>• 4 consoles (NE/NW/SE/SW): 12 each = 48<br>• Lab map nodes (10 labs): 1 each = 10<br>• Peripheral HUD frame: 4<br>• Status bar segments: 2<br>Total: 80. Lower tiers proportionally fewer per anchor (minimum 1 per anchor on 30-shard tier). |
-| **Wordmark fade** | As shards leave their wordmark vertex positions, the source wordmark's `opacity` decays 1.0 → 0 over 0.30 s `power2.in` (matches first wave of shard flights). By t=18.85 the source wordmark is fully unmounted. |
-| **Hero lights / lensflares** | Hero key/rim/fill ramp 4.0/2.5/0.4 → 0 over 0.5 s. Cockpit's own lights compensate (existing cockpit lighting code reaches full at t=19.0). Lensflares already at 0 from Beat 7. |
-| **Final flash** | NO single big flash (this would compete with the per-anchor lights). Instead, a faint **rolling shimmer** across the cockpit interior: subtle cyan-magenta-amber chromatic film overlay opacity 0 → 0.18 → 0 over t=18.7 → 19.0. Reads as the brand DNA settling into the system. |
-| **Audio cues** | • FM sweep power-up `onlineNodes.powerUp.triggerAttackRelease('C5','4n')` @ t=18.5 (climactic system-online tone — coincides with mini-shatter trigger)<br>• Per-shard arrival "click" — reuse `materializeNodes.gaugeClick` for the first 8 highest-priority arrivals (staggered ~30 ms apart starting t=18.65). Adds the auditory rhythm that sells the shard→UI cascade.<br>• `onlineNodes.cockpitAmbient` start @ t=18.5 — persistent 55 Hz sine at −6 dB. **Not disposed** at hero end — it carries forward into the cockpit's own audio engine (existing v2 behavior preserved verbatim). |
-| **Lifecycle events (CRITICAL — atomic handoff)** | • t=18.50 → trigger mini-shatter; ramp out hero lights; per-anchor flashes scheduled<br>• t=18.50 + 0.30 = 18.80 → first-wave shards arrived at central display + consoles<br>• t=18.80 + 0.20 = 19.00 → last-wave shards arrived at HUD/status bar; source wordmark unmounted<br>• **t=19.00 — GSAP `tl.onComplete()` fires:**<br>&nbsp;&nbsp;&nbsp;&nbsp;1. `useCockpitStore.getState().setHeroPhase('complete')`<br>&nbsp;&nbsp;&nbsp;&nbsp;2. `useCockpitStore.getState().setCockpitReady(true)`<br>&nbsp;&nbsp;&nbsp;&nbsp;3. `actions.setComplete()` — fires the `onComplete` callback up to `<HeroAnimation>` parent<br>&nbsp;&nbsp;&nbsp;&nbsp;4. `<SfShardSet>` for Beat 8 unmounts (all shards have already arrived + dissolved)<br>&nbsp;&nbsp;&nbsp;&nbsp;5. Hero `<HeroScene>` returns `null` on next render (state.isComplete short-circuit at line 518 of v2 — preserved verbatim)<br>&nbsp;&nbsp;&nbsp;&nbsp;6. The `<canvas>` DOM node **does not** unmount — cockpit children continue rendering inside it |
-| **CPA v2 single-canvas verification (HS-9 hard stop)** | Despite the visual complexity of the shatter-into-UI cascade, the handoff is still ONE GSAP onComplete callback + a flag flip in cockpitStore. The shard set is rendered as siblings to the cockpit groups inside the SAME `<Canvas>`. There is no canvas swap, no remount, no key change. Devtools verification: same `<canvas>` DOM node from t=0 through t=19+ uninterrupted. |
-| **Performance** | Highest-density frame in the entire 19s. ~80 shard meshes (each with `BrandingMaterial`) + cockpit interior + per-anchor emissive flashes. Budget: ≤ 18 ms/frame on WebGPU desktop-ultra (matches Beat 7 budget — same total triangle count, redistributed). |
-| **Out-trigger** | `tl.time() >= 19.0` AND all 80 shard arrivals `complete === true` AND `setCockpitReady(true)` fired |
-| **Theatre.js sequence** | `Beat8_ShatterIntoUI` track. Tunable: shard-count-per-tier (ultra/high/mid/low), per-anchor weight-distribution, flight-duration (0.30 s default), arrival-flash-curve, rolling-shimmer-color-mix. |
-| **Runtime note (sub-decision)** | Beat 8 is held at 0.5 s to preserve the N4 19.0-s lock. Compressing the shatter-into-UI from a typical 1.0 s to 0.5 s tightens shard-flight pacing — works because flights are short (0.30 s) and arrivals are punctuated (~30 ms gauge clicks). If user later requests breathing room, Beat 8 can extend to 18.5 → 19.5 s by also extending the total runtime to 19.5 s (4× FF becomes 4.875 s). |
+| **Wordmark fade** | As shards leave their wordmark vertex positions, the source wordmark's `opacity` decays 1.0 → 0 over 0.50 s `power2.in` (matches first wave of shard flights). By t=19.05 the source wordmark is fully unmounted. |
+| **Hero lights / lensflares** | Hero key/rim/fill ramp 4.0/2.5/0.4 → 0 over 1.0 s (the full beat). Cockpit's own lights compensate (existing cockpit lighting code reaches full at t=19.5). Lensflares already at 0 from Beat 7. |
+| **Final flash** | NO single big flash (this would compete with the per-anchor lights). Instead, a faint **rolling shimmer** across the cockpit interior: subtle cyan-magenta-amber chromatic film overlay opacity 0 → 0.18 → 0 over t=18.9 → 19.5. Reads as the brand DNA settling into the system. |
+| **Audio cues** | • FM sweep power-up `onlineNodes.powerUp.triggerAttackRelease('C5','4n')` @ t=18.5 (climactic system-online tone — coincides with mini-shatter trigger)<br>• Per-shard arrival "click" — reuse `materializeNodes.gaugeClick` for the first 8 highest-priority arrivals (staggered ~40 ms apart starting t=19.0, after first wave lands). Adds the auditory rhythm that sells the shard→UI cascade.<br>• `onlineNodes.cockpitAmbient` start @ t=18.5 — persistent 55 Hz sine at −6 dB. **Not disposed** at hero end — it carries forward into the cockpit's own audio engine (existing v2 behavior preserved verbatim). |
+| **Lifecycle events (CRITICAL — atomic handoff)** | • t=18.50 → trigger mini-shatter; ramp out hero lights; per-anchor flashes scheduled<br>• t=18.50 + 0.50 = 19.00 → first-wave shards arrived at central display + consoles; gauge clicks begin<br>• t=19.00 + 0.30 = 19.30 → last-wave shards arrived at HUD/status bar; source wordmark unmounted (since 19.05); rolling shimmer at peak<br>• t=19.30 → 19.50 → settle phase: last anchor flashes complete, rolling shimmer fades to 0<br>• **t=19.50 — GSAP `tl.onComplete()` fires:**<br>&nbsp;&nbsp;&nbsp;&nbsp;1. `useCockpitStore.getState().setHeroPhase('complete')`<br>&nbsp;&nbsp;&nbsp;&nbsp;2. `useCockpitStore.getState().setCockpitReady(true)`<br>&nbsp;&nbsp;&nbsp;&nbsp;3. `actions.setComplete()` — fires the `onComplete` callback up to `<HeroAnimation>` parent<br>&nbsp;&nbsp;&nbsp;&nbsp;4. `<SfShardSet>` for Beat 8 unmounts (all shards have already arrived + dissolved)<br>&nbsp;&nbsp;&nbsp;&nbsp;5. Hero `<HeroScene>` returns `null` on next render (state.isComplete short-circuit at line 518 of v2 — preserved verbatim)<br>&nbsp;&nbsp;&nbsp;&nbsp;6. The `<canvas>` DOM node **does not** unmount — cockpit children continue rendering inside it |
+| **CPA v2 single-canvas verification (HS-9 hard stop)** | Despite the visual complexity of the shatter-into-UI cascade, the handoff is still ONE GSAP onComplete callback + a flag flip in cockpitStore. The shard set is rendered as siblings to the cockpit groups inside the SAME `<Canvas>`. There is no canvas swap, no remount, no key change. Devtools verification: same `<canvas>` DOM node from t=0 through t=19.5+ uninterrupted. |
+| **Performance** | Highest-density frame in the entire 19.5 s. ~80 shard meshes (each with `BrandingMaterial`) + cockpit interior + per-anchor emissive flashes. Budget: ≤ 18 ms/frame on WebGPU desktop-ultra (matches Beat 7 budget — same total triangle count, redistributed). The relaxed pacing lowers per-frame velocity on shard physics; net cost is unchanged or slightly lower than the prior tight 0.5 s plan. |
+| **Out-trigger** | `tl.time() >= 19.5` AND all 80 shard arrivals `complete === true` AND `setCockpitReady(true)` fired |
+| **Theatre.js sequence** | `Beat8_ShatterIntoUI` track. Tunable: shard-count-per-tier (ultra/high/mid/low), per-anchor weight-distribution, flight-duration (0.50 s default), arrival-flash-curve, rolling-shimmer-color-mix. |
+| **Runtime override (recorded 2026-04-29)** | Beat 8 extended from 0.5 s → 1.0 s, total runtime 19.0 s → 19.5 s, 4× FF window 4.75 s → 4.875 s. User preferred breathing room over strict N4 lock. Effect on perceived runtime: the 0.5 s extension is below typical "long intro" complaint threshold; Beat 8's shatter-into-UI now reads as a deliberate climactic moment instead of feeling crammed. |
 
 ---
 
@@ -254,9 +254,10 @@ The existing `HeroAudioTimeline` class (`src/lib/audio/heroAudio.ts`, 807 lines)
 | `materializeNodes.gaugeClick` (3 hits) | once @ 16.0 | once @ 18.1 | Beat 7 | Moved into Beat 7 |
 | `materializeNodes.cockpitHum` | 14.0 → 17.0 | 16.5 → 18.5 | Beat 7 | Window shifted; not redundant with regroup hum (handoff) |
 | `onlineNodes.powerUp` (FM sweep C5) | once @ 17.0 | once @ 18.5 | Beat 8 | Climactic moment now Beat 8 (was Beat 7→8 v2 boundary) |
-| `onlineNodes.cockpitAmbient` (55 Hz sine, persistent) | 17.0 → ∞ | 18.5 → ∞ | Beat 8+ | Persists into cockpit interactivity (handoff) |
+| `onlineNodes.cockpitAmbient` (55 Hz sine, persistent) | 17.0 → ∞ | 18.5 → ∞ | Beat 8+ | Persists into cockpit interactivity (handoff). Trigger time anchored at Beat 8 start regardless of the Beat 8 length (0.5 s vs 1.0 s) |
+| `materializeNodes.gaugeClick` (8× shard-arrival ticks, ~40 ms stagger) | n/a | 19.0 → 19.32 | Beat 8 | New v3 reuse of an existing v2 node — adds auditory rhythm to shard→UI cascade |
 
-**Net audio change for v3:** ~12 trigger-time edits in `syncToProgress` (one method, no node restructure). New behavior: `clang` triggers 8 times in Beat 5 (one per letter pop). All other changes are timestamp shifts. **Estimated implementation cost:** 1 commit, ~80 LOC diff.
+**Net audio change for v3:** ~13 trigger-time edits in `syncToProgress` (one method, no node restructure). New behavior: `clang` triggers 8 times in Beat 5 (one per letter pop); `gaugeClick` re-triggers 8 times in Beat 8 (one per first-wave shard arrival). All other changes are timestamp shifts. The runtime extension to 19.5 s requires the `total duration` constant in `heroAudio.ts` (currently `19.0 * progress` at line 457) to be updated to `19.5 * progress`. **Estimated implementation cost:** 1 commit, ~90 LOC diff.
 
 ---
 
@@ -270,8 +271,8 @@ The hero canvas IS the cockpit canvas. There is one `<Canvas>` (the existing `<C
 |---|---|---|---|
 | `idle` | Pre-hero (page first mounted, hero not yet started) | Empty void or loading state | Nothing (hero should auto-start) |
 | `animating` | t = 0.0 → 16.5 (Beats 1-6) | Hero subjects only; cockpit groups `visible=false` | Skip / fast-forward / Escape |
-| `materializing` | t = 16.5 → 19.0 (Beats 7-8) | Hero (drifting up) + cockpit (fading in) overlap | Skip still works; clicking accelerates |
-| `complete` | t ≥ 19.0 | Cockpit only; hero unmounted | Full cockpit interactivity |
+| `materializing` | t = 16.5 → 19.5 (Beats 7-8) | Hero (drifting up) + cockpit (fading in) overlap | Skip still works; clicking accelerates |
+| `complete` | t ≥ 19.5 | Cockpit only; hero unmounted | Full cockpit interactivity |
 
 Plus `cockpitReady: boolean` — flips `true` at Beat-8 GSAP `onComplete`. UI components gating on full cockpit interactivity (consoles, lab map clicks) read `cockpitReady` not `heroPhase` (decouples animation lifecycle from interactivity gate).
 
@@ -281,9 +282,9 @@ After Phase 5c is complete, manual verification by the user:
 
 1. Open DevTools → Elements panel
 2. Inspect the `<canvas>` element BEFORE refresh
-3. Watch the same DOM node from `localStorage.removeItem('sparkforge-hero-seen'); location.reload()` through to t=19+
+3. Watch the same DOM node from `localStorage.removeItem('sparkforge-hero-seen'); location.reload()` through to t=19.5+
 4. **The canvas node MUST NOT unmount or remount** at any point
-5. Cockpit interactivity (e.g. clicking a console) becomes available exactly at t=19.0 (when `cockpitReady` flips)
+5. Cockpit interactivity (e.g. clicking a console) becomes available exactly at t=19.5 (when `cockpitReady` flips)
 
 ### Skip / fast-forward preserved verbatim from v2
 
@@ -292,7 +293,7 @@ After Phase 5c is complete, manual verification by the user:
 | First visit, no localStorage `sparkforge-hero-seen` | Always plays | Full 19 s sequence |
 | `prefers-reduced-motion: reduce` | Always skips | `actions.skipToEnd()` immediate |
 | `uiStore.skipIntroAnimation === true` AND not first visit | Skips | `actions.skipToEnd()` immediate |
-| Click anywhere on hero overlay | Fast-forward | `timeScale = 4.0` (4.75 s remaining at peak speed) |
+| Click anywhere on hero overlay | Fast-forward | `timeScale = 4.0` (4.875 s total at peak speed; less if part-way through) |
 | `Enter` or `Space` | Fast-forward | Same as click |
 | `Escape` | Skip | Same as `skipToEnd()` |
 
@@ -321,12 +322,12 @@ User finalized all 10 questions. Recorded picks below — these are now LOCKED. 
 
 | # | Question | User pick | Storyboard impact |
 |---|---|---|---|
-| **Q1** | Beat boundaries (2.5/5.0/8.0/11.0/14.0/16.5/18.5/19.0 s) | **Yes (defaults)** | No change — N4 19.0-s runtime preserved |
+| **Q1** | Beat boundaries (2.5/5.0/8.0/11.0/14.0/16.5/18.5/x s) | **Yes (defaults) — overridden 2026-04-29 to extend Beat 8 → 19.5 s** | Boundaries 2.5/5.0/8.0/11.0/14.0/16.5/18.5/**19.5**. N4 lock revised 19.0 → 19.5 s (4× FF 4.75 → 4.875 s). Drives Beat 8 shatter-into-UI breathing room. Not a rejection of Q1 — an enhancement after seeing Q6 implications. |
 | **Q2** | Camera path style (Beat 2 diagonal vs straight dolly) | **Diagonal** | No change — `(0,0,12)` → `(−1.4, +0.6, 9.2)` parallax dolly retained |
 | **Q3** | Wordmark cascade order | **Left-to-right** | No change — sequential S→p→a→r→k→F→o→r→g→e reveal retained |
 | **Q4** | Beat 4 detonation direction | **Outward+up bias** | No change — proven Beat 4 physics constants retained |
 | **Q5** | Lensflare bloom peak | **2.0** (between 1.8 mid-range and 2.4 explosive) | §2 + §8 updated: Beat 6 `intensityMul` 1.0 → 2.0 → 1.0; `coreScale` 1.0 → 1.4 → 1.0; `streakScale` 1.2 → 1.7 → 1.2 |
-| **Q6** | Cockpit handoff visual | **Shatter-into-UI** | §10 fully rewritten: ~80 shards (ultra-tier) target-assigned to cockpit UI anchors (central display × 16, 4 consoles × 12 each, 10 lab-map nodes × 1 each, HUD × 4, status bar × 2). Per-shard cubic-bezier flight 0.30 s `power3.inOut`. Per-anchor emissive flash 0.6 → 2.0 → 1.0 on shard arrival. Audio per-arrival gauge clicks staggered. Total runtime preserved at 19.0 s by tightening flight pacing (no N4 break). |
+| **Q6** | Cockpit handoff visual | **Shatter-into-UI** | §10 fully rewritten: ~80 shards (ultra-tier) target-assigned to cockpit UI anchors (central display × 16, 4 consoles × 12 each, 10 lab-map nodes × 1 each, HUD × 4, status bar × 2). Per-shard cubic-bezier flight **0.50 s `power3.inOut`** (relaxed 2026-04-29). Per-anchor emissive flash 0.6 → 2.0 → 1.0 on shard arrival. Audio per-arrival gauge clicks staggered ~40 ms. Total runtime extended to 19.5 s per Q1 amendment to give Beat 8 readable pacing. |
 | **Q7** | Audio remap (12 trigger-time edits) | **Approve** | §11 remap proceeds as documented |
 | **Q8** | Theatre.js `studio.initialize()` gating | **Auto-mount everywhere** | Header updated. Bundle adds ~500 KB `@theatre/studio` to all environments. User explicitly accepts this to avoid the dev/prod gate-removal-forgetting risk. Tech Quality Mandate v6.6 covers (visual quality > bundle size). |
 | **Q9** | SSIM halt strategy | **(b) motion-frame averages** | `scripts/compare-ssim.ts` (Phase 5b/c work) will sample N≥8 frames per beat and SSIM-average vs reference. Doubles rendering cost during halt-loop iteration but more robust to per-frame motion drift. Phase 4 still anchors stay as supplementary checkpoints. |
@@ -358,8 +359,9 @@ This roughly doubles Phase 7 scope. Estimated additional time: +2–4 hours engi
 
 ---
 
-*End of Storyboard v1.1 — Phase 5a deliverable.*
-*Sign-off RECORDED 2026-04-29. All 10 §13 questions answered. Phase 5b prep authorized to proceed.*
+*End of Storyboard v1.2 — Phase 5a deliverable.*
+*Sign-off RECORDED 2026-04-29. All 10 §13 questions answered. Total runtime extended 19.0 → 19.5 s on 2026-04-29 (Beat 8 0.5 → 1.0 s).*
+*Phase 5b prep COMPLETE (commit 7e077c4 — `LensflareTSL.tsx`). Phase 5b proper authorized to proceed.*
 
 
 

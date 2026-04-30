@@ -69,7 +69,7 @@ Both fixes are part of commit `b3c6323`.
 | **N2** | WebGPU fallback policy | **c** — WebGPU+TSL primary, thin MP4-poster fallback for non-WebGPU. **No shader fork.** |
 | **N3** | Optional deps for re-choreograph | **a + b + c** — `three-bvh-csg` + Theatre.js (dev) + lensflare (custom TSL per N3=c clarification) |
 | **N3 lensflare** | Specific package | **c — custom TSL anamorphic shader.** `@react-three/lensflare-effect` does not exist on npm. |
-| **N4** | Hero timing | 19 s with 4× fast-forward |
+| **N4** | Hero timing | **19.5 s with 4× fast-forward** (revised 2026-04-29 from original 19.0 s — Beat 8 extended 0.5 → 1.0 s for shatter-into-UI breathing room per Q6 + user override) |
 | **N5** | Halt threshold | **b** — SSIM ≥ 0.96 vs IMG_4607 (Mythos rule, baked into `sf-material.config.ts` HALT) |
 | **E1** | Anisotropic prismatic dispersion in TSL | **YES** — implemented Phase 1 |
 | **E2** | Procedural palette-locked HDRI | **YES** — implemented Phase 1 via drei `<Lightformer>` rig |
@@ -474,7 +474,7 @@ Structure:
 ```markdown
 # Hero v3 Storyboard
 
-## Total runtime: 19 s @ 1×, 4.75 s @ 4× fast-forward
+## Total runtime: 19.5 s @ 1×, 4.875 s @ 4× fast-forward (N4 revised 2026-04-29)
 ## Framework: GSAP timeline + Theatre.js sequencer
 ## All beats source from src/lib/branding/sf-material.config.ts
 
@@ -495,7 +495,7 @@ Structure:
 ### Beat 5 — Wordmark Cascade (11.0 – 14.0s)
 ### Beat 6 — Dichroic Bloom (14.0 – 16.5s)
 ### Beat 7 — Cockpit Materialization (16.5 – 18.5s)
-### Beat 8 — Atomic Handoff (18.5 – 19.0s)
+### Beat 8 — Atomic Handoff via Shatter-Into-UI (18.5 – 19.5s)
 ```
 
 The exact beat content should mirror the storyboard you described to the user in chat (deep navy void → spark coalesce → S crystallize → F mirror + Voronoi shard burst → parkorge cascade → dichroic bloom → cockpit emerges → atomic handoff). Reproduce that storyboard verbatim in the markdown so the next session has the source.
@@ -672,8 +672,8 @@ Verify `Settings → Hero animation → Skip` toggle still works. Verify clickin
 npm run build
 npm run dev
 # Visit / fresh (clear localStorage 'skipIntroAnimation' first):
-#   1. 8-phase hero plays for ~19 s
-#   2. Click during hero → 4× speed → ~4.75 s remaining
+#   1. 8-phase hero plays for ~19.5 s
+#   2. Click during hero → 4× speed → ~4.875 s remaining
 #   3. Settings toggle "skip" → next refresh, hero is skipped
 #   4. Hero → cockpit handoff: NO canvas swap, NO white flash
 #   5. Cockpit spatial dashboard renders with holographic lab map
@@ -973,7 +973,7 @@ If at any point the user decides the live R3F+TSL hero is taking too long, costi
 **Recommended fallback:** **Veo 3 stitched** (8s × 3 clips with FLF2V conditioning) → best photographic quality.
 **Recommended for camera moves:** **Seedance 2.0** if Sora 2 / Veo 3 access isn't available.
 
-### 16.3 — Storyboard for video version (19s)
+### 16.3 — Storyboard for video version (19.5 s)
 
 Same beat structure as the live R3F version (`Storyboard.md`), but each beat is a video clip with explicit anchor frames:
 
@@ -984,8 +984,9 @@ Same beat structure as the live R3F version (`Storyboard.md`), but each beat is 
 | 5.0–8.0s | S Crystallization | beat-2 final | **`public/branding/sf-hero.png`** (Phase 4 SF-mark still) |
 | 8.0–11.0s | F Mirror + Shard Burst | beat-3 final (SF mark complete) | beat-5 wordmark-mid-cascade |
 | 11.0–14.0s | Wordmark Cascade | beat-4 final (SF + scattered shards) | **`public/branding/sparkforge-hero.png`** (Phase 4 wordmark still) |
-| 14.0–17.0s | Dichroic Bloom | beat-5 final (wordmark settled) | beat-7 cockpit silhouette starts |
-| 17.0–19.0s | Cockpit Materialization + Handoff | beat-6 final | **render of cockpit's first frame** (NEW: see step 16.4.2) |
+| 14.0–16.5s | Dichroic Bloom | beat-5 final (wordmark settled) | beat-7 cockpit silhouette starts |
+| 16.5–18.5s | Cockpit Materialization | beat-6 final | beat-8 wordmark hovering above cockpit |
+| 18.5–19.5s | Atomic Handoff (shatter-into-UI) | beat-7 final | **render of cockpit's first frame** (NEW: see step 16.4.2) |
 
 ### 16.4 — Implementation steps
 
@@ -1104,7 +1105,7 @@ Compare to live-hero remaining work (Phases 5a-c + 6): ~5-8 days engineering, $0
 Whether the user picks live-hero or video-hero, the build is "done" when:
 
 - [ ] All 35+ UI occurrences of "SparkForge" use `<BrandWordmark>` (Phase 6)
-- [ ] Hero plays end-to-end at 19s with 4× fast-forward + skip toggle (HS-9)
+- [ ] Hero plays end-to-end at 19.5 s with 4× fast-forward + skip toggle (HS-9)
 - [ ] Hero → cockpit handoff has zero visible flash (HS-9)
 - [ ] `prefers-reduced-motion` skips hero entirely (HS-9)
 - [ ] Login 3D + Demo Login flow still works (HS-10)
