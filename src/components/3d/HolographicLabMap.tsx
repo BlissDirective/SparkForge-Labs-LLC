@@ -1,7 +1,11 @@
 'use client';
 
 // ════════════════════════════════════════════════════
-// HolographicLabMap — 3D Holographic Map of All 11 Labs
+// HolographicLabMap — 3D Holographic Map of All 11 Labs (concentric 6+5 rings)
+// Layout: outer ring (radius 4.4) holds Labs 1-6 (foundation); inner ring
+// (radius 2.8) holds Labs 7-11 (advanced). Connection beams form a closed
+// loop within each ring + 5 tier-bridge cross-beams (1↔7, 2↔8, 3↔9, 4↔10,
+// 5↔11). Lab 6 (Ethics) has no cross-beam by design — it overlays all labs.
 // ════════════════════════════════════════════════════
 // Enhancement 3.0: 20M cockpit upgrade (1,000,000 triangle budget).
 // - 4 concentric geodesic shells (icosahedron detail 0/1/2/3)
@@ -76,12 +80,26 @@ const LAB_COLORS: Record<number, string> = {
   11: '#6FFFE6',
 };
 
-// Adjacency map for connection beams (labs that are neighbors in the ring)
-// Lab 11 inserted between Lab 10 and Lab 1, extending the ring topology.
+// Adjacency map for connection beams between lab nodes.
+// Layout: concentric 6+5 rings (April 30, 2026 — user-approved).
+//   • Outer ring (foundation): 1↔2↔3↔4↔5↔6↔1
+//   • Inner ring (advanced):   7↔8↔9↔10↔11↔7
+//   • Tier-bridge cross-beams: 1↔7, 2↔8, 3↔9, 4↔10, 5↔11
+//     (no cross-beam from L6 — Ethics overlays everything, no single thematic match)
 const LAB_ADJACENCY: Record<number, number[]> = {
-  1: [2, 11], 2: [1, 3], 3: [2, 4], 4: [3, 5], 5: [4, 6],
-  6: [5, 7], 7: [6, 8], 8: [7, 9], 9: [8, 10], 10: [9, 11],
-  11: [10, 1],
+  // Outer ring + cross-beam where present
+  1:  [2, 6, 7],
+  2:  [1, 3, 8],
+  3:  [2, 4, 9],
+  4:  [3, 5, 10],
+  5:  [4, 6, 11],
+  6:  [5, 1],
+  // Inner ring + cross-beam back
+  7:  [8, 11, 1],
+  8:  [7, 9, 2],
+  9:  [8, 10, 3],
+  10: [9, 11, 4],
+  11: [10, 7, 5],
 };
 
 interface HolographicLabMapProps {
@@ -750,7 +768,9 @@ const DRAG_DEAD_ZONE = 0.03; // radians — below this threshold, treat as click
 const DRAG_INERTIA_DECAY = 3.5; // velocity decays by this factor per second
 const DRAG_INERTIA_MIN = 0.001; // stop inertia below this rad/s
 const _DRAG_SNAP_SPEED = 4.0; // lerp speed for snap-to-lab
-const _LAB_ANGLE_STEP_RAD = (2 * Math.PI) / 11;
+// Note: a single LAB_ANGLE_STEP_RAD constant no longer applies — the cockpit
+// uses a two-ring layout (outer 2π/6, inner 2π/5). See LAB_POSITIONS in
+// `cockpitStore.ts` for the canonical positions.
 
 export function HolographicLabMap({
   focusedLabId,
