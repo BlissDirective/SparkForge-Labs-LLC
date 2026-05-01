@@ -2,9 +2,9 @@
 
 **Document role:** Concept design proposals for 5–10 new flagship games derived from `01-AI-Trends-Research.md`.
 **Authored:** April 30, 2026
-**Status:** v0.1 — Concepts ready for user feedback before building
+**Status:** v0.2 — Lab placements finalized (Lab 11 declined; all concepts go on existing labs). Build phase awaits sequencing approval.
 **Concept count:** 7 (down-selected from 10 candidates per user decision)
-**Lab decision policy:** **Dual-specced** for agentic concepts (C1, C6, C7) — both existing-lab and proposed Lab 11 placements documented.
+**Lab decision policy:** **Path A confirmed (April 30, 2026)** — Lab 11 *not* adopted. C1 → Lab 5, C6 → Lab 5, C7 → Lab 9. Section B (Lab 11 proposal) retained for traceability but marked NOT ADOPTED.
 
 > **Reading order:** This document assumes you have read `01-AI-Trends-Research.md`. Section numbers like "§9.1" refer to that document.
 
@@ -18,13 +18,13 @@ Document 1 surfaced **five pillars** of modern AI engineering — Orchestration,
 
 | # | Concept | Primary Pillar | Headline Mechanic | Lab |
 |---|---|---|---|---|
-| **C1** | **Agent Atelier** | Orchestration | Wire specialist agents into a working team | **Lab 5** *or* **new Lab 11** (dual-spec) |
+| **C1** | **Agent Atelier** | Orchestration | Wire specialist agents into a working team | **Lab 5 — AI Helpers** |
 | **C2** | **Context Architect** | Context | Sort knowledge onto a token-budgeted shelf, beat Context Rot | **Lab 8 — Words & Language** |
 | **C3** | **Glass Box Lab** | Trust | Grade every step of an AI's trajectory like a referee | **Lab 6 — AI & Ethics** |
 | **C4** | **Pixel Witness** | Multimodal | Watch a clip, ask the AI questions, catch its hallucinations | **Lab 7 — Computer Vision** |
 | **C5** | **Pocket Brain** | (foundational) | Run a real LLM in your browser, no server. Feel quantization. | **Lab 1 — What IS AI?** |
-| **C6** | **MCP Plug-and-Play Lab** | Orchestration | Snap MCP-shaped tool cartridges into an agent's ports | **Lab 5** *or* **new Lab 11** (dual-spec) |
-| **C7** | **Harness Forge** | Harness | Add hooks (pre-tool, post-tool, judge) and watch them fire | **Lab 9** *or* **new Lab 11** (dual-spec) |
+| **C6** | **MCP Plug-and-Play Lab** | Orchestration | Snap MCP-shaped tool cartridges into an agent's ports | **Lab 5 — AI Helpers** |
+| **C7** | **Harness Forge** | Harness | Add hooks (pre-tool, post-tool, judge) and watch them fire | **Lab 9 — Build Your AI** |
 
 ### Targets (per the brief — "≥ 2× current flagship content")
 
@@ -125,9 +125,11 @@ Most concepts touch the same files. Listing these once here, referenced per-conc
 
 ---
 
-## B. Lab 11 Proposal — *"Agentic AI Lab"* (Optional)
+## B. Lab 11 Proposal — *"Agentic AI Lab"* (NOT ADOPTED)
 
-**Status:** Proposed. User explicitly deferred the lab-mapping decision for agentic concepts (C1, C6, C7), so each of those is dual-specced. This section defines what Lab 11 would look like *if* selected.
+> **DECISION (April 30, 2026):** User declined Lab 11 adoption. All agentic concepts (C1, C6, C7) place into existing labs (Path A). This section is retained **for traceability only** — it documents the option that was considered and rejected. **No code touches `labColors.ts` or `labs.ts` per this decision.** The 10-lab system remains intact.
+
+**Status:** ❌ NOT ADOPTED. Section retained as design-history record. This section defines what Lab 11 would have looked like had it been selected.
 
 ### B.1 Lab 11 Identity
 
@@ -199,14 +201,13 @@ Full specs for each concept follow in sections D–J. This table summarizes what
 
 You are the **Atelier Director** of an AI workshop. The world has stopped using single all-purpose AI assistants — modern AI works in teams (Doc 1 §1). Your job is to assemble those teams. Each session, a *mission card* arrives ("plan a birthday party", "fact-check a science article", "design a recyclable lunchbox"). You drag specialist agents (Researcher, Planner, Writer, Critic, Coder, Estimator…) onto a 3D atelier floor, wire their outputs into each other's inputs (MCP-style), then press **Run Mission** and watch the team work — with success, failure, and surprise outcomes traced visually.
 
-### D.2 Lab Placement (DUAL-SPEC)
+### D.2 Lab Placement — RESOLVED
 
-| Path | Lab | Lab name | Color | Notes |
-|---|---|---|---|---|
-| **Path A** *(if Lab 11 not adopted)* | **Lab 5** | AI Helpers | `#00D17A` (green) | Joins Pet Trainer's lab. Lab 5 narrative becomes "all kinds of helpers, including teams of helpers." |
-| **Path B** *(if Lab 11 adopted)* | **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | First flagship in the new lab. Anchors the "build → equip → constrain" arc. |
+> **Resolved (April 30, 2026):** **Path A — Lab 5 — AI Helpers** (`#00D17A`, green). Joins Pet Trainer. Lab 5's narrative becomes *"all kinds of helpers, including teams of helpers."* Path B (Lab 11) was considered and rejected — see Section B.
 
-Either way: same code. Only `lab` and `labName` fields differ in the registry entry.
+| Lab | Lab name | Color | Notes |
+|---|---|---|---|
+| **Lab 5** | AI Helpers | `#00D17A` (green) | Existing lab; concept placed here per Path A decision |
 
 ### D.3 Research Anchors
 
@@ -925,12 +926,13 @@ WebGPU is required for the LFM2-MoE primary path (Chrome 113+, Edge 113+, Safari
 
 In late 2025 / early 2026, **MCP became the dominant agent-tool standard** (Doc 1 §1.2: 10,000+ public servers, 97M monthly SDK downloads, donated to Linux Foundation). MCP Plug-and-Play Lab makes the abstraction physical: agents have **tool ports**, players collect **MCP cartridges** (calculator, calendar, drawing app, dictionary, music maker, weather, timer, map, news…), snap them in, and run missions where the cartridge combination determines what the agent can do. Wrong cartridges produce comic failure. Right cartridges produce surprising capability.
 
-### I.2 Lab Placement (DUAL-SPEC)
+### I.2 Lab Placement — RESOLVED
 
-| Path | Lab | Lab name | Color | Notes |
-|---|---|---|---|---|
-| **Path A** *(if Lab 11 not adopted)* | **Lab 5** | AI Helpers | `#00D17A` (green) | Joins Pet Trainer + Agent Atelier (Path A). Lab 5 becomes the "agentic" lab by default. |
-| **Path B** *(if Lab 11 adopted)* | **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | Second flagship in Lab 11 — the "Equip" act in the Build → Equip → Constrain arc. |
+> **Resolved (April 30, 2026):** **Path A — Lab 5 — AI Helpers** (`#00D17A`, green). Joins Pet Trainer + Agent Atelier. Lab 5 hosts three flagships and effectively becomes the agentic lab by default. Path B (Lab 11) was considered and rejected — see Section B.
+
+| Lab | Lab name | Color | Notes |
+|---|---|---|---|
+| **Lab 5** | AI Helpers | `#00D17A` (green) | Hosts Pet Trainer + C1 Agent Atelier + C6 MCP Plug-and-Play |
 
 ### I.3 Research Anchors
 
@@ -1082,12 +1084,13 @@ Harness Engineering — *"Agent = Model + Harness"* (Doc 1 §2.1) — is the you
 
 This concept aligns with the older C-band exclusively (with B-band simplified). Code-style metaphors (hooks, lifecycle, dispatch) are intentionally surfaced.
 
-### J.2 Lab Placement (DUAL-SPEC)
+### J.2 Lab Placement — RESOLVED
 
-| Path | Lab | Lab name | Color | Notes |
-|---|---|---|---|---|
-| **Path A** *(if Lab 11 not adopted)* | **Lab 9** | Build Your AI | `#E68E28` (orange) | Joins the lab whose flagship slot is empty. Theme alignment: kids "build" their AI's safety wrapper. |
-| **Path B** *(if Lab 11 adopted)* | **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | Third flagship in Lab 11 — the "Constrain" act in Build → Equip → Constrain arc. |
+> **Resolved (April 30, 2026):** **Path A — Lab 9 — Build Your AI** (`#E68E28`, orange). Theme alignment: kids "build" their AI's safety wrapper. Becomes Lab 9's anchor flagship. Path B (Lab 11) was considered and rejected — see Section B.
+
+| Lab | Lab name | Color | Notes |
+|---|---|---|---|
+| **Lab 9** | Build Your AI | `#E68E28` (orange) | First flagship for Lab 9 — anchors the lab |
 
 ### J.3 Research Anchors
 
