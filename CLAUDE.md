@@ -8,7 +8,22 @@
 
 ## 1. PROJECT IDENTITY
 
-SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **35 interactive games** across **10 themed Labs**. The platform uses a dark-mode-only aesthetic called **Frost-Prismatic** with chrome bezels, neon accents, and glassmorphism. The v3 vision transforms the platform into a **Laboratory Control Station** — a futuristic command console with persistent chrome frames, hero animation arrivals (8-phase cinematic sequence), lab reconfiguration transitions, and themed 3D game elements.
+SparkForge is a gamified AI learning platform for children ages 7–16. It teaches AI concepts through **35 (→ 42 planned) interactive games** across **11 themed Labs** (Lab 11 *Agentic AI* adopted April 30, 2026 — see *Lab-11 Adoption Decision* below). The platform uses a dark-mode-only aesthetic called **Frost-Prismatic** with chrome bezels, neon accents, and glassmorphism. The v3 vision transforms the platform into a **Laboratory Control Station** — a futuristic command console with persistent chrome frames, hero animation arrivals (8-phase cinematic sequence), lab reconfiguration transitions, and themed 3D game elements.
+
+### Lab-11 Adoption Decision (v6.7 — April 30, 2026)
+
+**Decision:** Lab 11 *"Agentic AI"* (`#6FFFE6` Mint-Cyan, OKLCH `oklch(0.85 0.16 175)`, icon 🕸️) added to the canonical lab system. Reasoning: the late 2025–early 2026 industry pivot to multi-agent / harness-engineered systems is the dominant AI-engineering trend (per `docs/research/01-AI-Trends-Research.md` §1, §2, §8), and the new SparkForge flagship cohort (Stage 11A–11G) clusters three concepts (C1 Agent Atelier, C6 MCP Plug-and-Play Lab, C7 Harness Forge) tightly around it — the **Build → Equip → Constrain** narrative arc.
+
+**Files affected (already implemented):**
+
+- `src/config/labColors.ts` — 11th `LabColor` entry; `family` union extended with `'Mint-Cyan'`.
+- `src/config/labs.ts` — `LAB_ICONS[11] = '🕸️'`.
+- `src/stores/cockpitStore.ts` — `LAB_COUNT = 11`, ring math recalculated.
+- `src/components/3d/HolographicLabMap.tsx` — local `LAB_COLORS` + `LAB_ADJACENCY` extended; `_LAB_ANGLE_STEP_RAD = 2π/11`.
+- `src/types/index.ts` — `LABS` array gains 11th entry (games array starts empty; populated as Stages 11D / 11E / 11G ship).
+- `tailwind.config.ts` — auto-generated via `buildTailwindLabColors()`. No manual change.
+
+**Source documents:** `docs/research/02-Flagship-Game-Concepts.md` Section B (the Lab-11 proposal that was adopted), Section K.5 (Stage 11A–G build sequence).
 
 ### Tech Stack
 
@@ -352,4 +367,4 @@ Claude Code maintains a separate **PROGRESS.md** file at the repo root. Update a
 
 
 *End of CLAUDE.md v6.5 — SparkForge Autonomous Development Playbook*
-*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | FL-Lite Game Audit COMPLETE (43 bugs found, 9 games expanded ~11x, 27 AI content types) | Standard Tier Game Audit COMPLETE (76 bugs found, 20 games planned ~11x expansion, 60 AI content types, 6-phase roadmap) | **v6.5 (April 21, 2026): D3D-5 relaxation authorized — user-facing Performance toggle in Settings may omit DepthOfField + N8AO/SSAO (opt-in, persisted).** | April 21, 2026*
+*131+ doc files | 172 3D component files | 35 games (6 Flagship + 9 FL-Lite + 20 Standard) | 15 stores | 150 design decisions (131 design + 19 implementation) + 84 architecture decisions (48 core + 4 OD + 12 CPA2 + 20 D3D) | 20 v3-FINAL documents (14 original + 4 Hero/Cockpit + 2 Login 3D) | 32 build phases | Full 3D UI Migration COMPLETE (7 phases, 49 components, dashboard/auth/game/marketing) | Enhancement 1.1 IMPLEMENTED (37.8M Cockpit Upgrade) | Enhancement 1.2 PLANNED | CPA v2.0 IMPLEMENTED (Single Canvas + Seamless Handoff) | Hero Animation v2.0 IMPLEMENTED | Login 3D Enhancement IMPLEMENTED (3D Portal + Demo Login) | D3D Overhaul IMPLEMENTED (Desktop-First, 50M budget, Mechanical Iris, Scene Routing) | 20 D3D decision locks (9 D3D + 6 D3D-B + 5 D3D-C) | AmbientParticles REMOVED (Decision 20.0) | HolographicHUD REPOSITIONED (Decision 6.0: peripheral frame) | Flagship Game Audit COMPLETE (17 bugs fixed, 6 games expanded 2-3x, AI content infra added) | FL-Lite Game Audit COMPLETE (43 bugs found, 9 games expanded ~11x, 27 AI content types) | Standard Tier Game Audit COMPLETE (76 bugs found, 20 games planned ~11x expansion, 60 AI content types, 6-phase roadmap) | **v6.5 (April 21, 2026): D3D-5 relaxation authorized — user-facing Performance toggle in Settings may omit DepthOfField + N8AO/SSAO (opt-in, persisted).** | **v6.7 (April 30, 2026): Lab 11 *Agentic AI* ADOPTED (Mint-Cyan #6FFFE6); 7 new flagship concepts greenlit as Stage 11A–11G; Build→Equip→Constrain arc seeded in Lab 11.** | April 30, 2026*
