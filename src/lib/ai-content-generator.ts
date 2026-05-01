@@ -24,7 +24,9 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   | 'prediction-market' | 'sentiment-scanner' | 'lost-in-translation'
   | 'career-explorer' | 'api-explorer'
   // ═══ Lab 11 Flagship Cohort (Stage 11D, April 30, 2026) ═══
-  | 'agent-atelier';
+  | 'agent-atelier'
+  // ═══ Lab 11 Stage 11E (May 1, 2026) — Equip step ═══
+  | 'mcp-lab';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -102,7 +104,11 @@ export type ContentType =
   // 3 content types feeding the runtime AI-generated mission slot
   // (12/session) so per-session content tops out at 24 hardcoded + 12
   // AI = 36 units per Doc 2 §A.4 target.
-  | 'atelier-mission' | 'atelier-rubric-criterion' | 'atelier-narrative-frame';
+  | 'atelier-mission' | 'atelier-rubric-criterion' | 'atelier-narrative-frame'
+  // ═══ Lab 11 — MCP Plug-and-Play Lab (Stage 11E) ═══
+  // 3 content types: equipped-mission spec, fresh tool description for
+  // the descriptions tutorial, custom-tool spec for advanced kids.
+  | 'mcp-equipped-mission' | 'mcp-tool-description' | 'mcp-custom-tool-spec';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -134,7 +140,7 @@ export const AIContentRequestSchema = z.object({
     'build-classifier', 'prediction-market', 'sentiment-scanner', 'lost-in-translation',
     'career-explorer', 'api-explorer',
     // Lab 11 cohort
-    'agent-atelier',
+    'agent-atelier', 'mcp-lab',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -175,6 +181,8 @@ export const AIContentRequestSchema = z.object({
     'api-endpoint', 'request-challenge', 'api-concept-card',
     // Lab 11 - Agent Atelier
     'atelier-mission', 'atelier-rubric-criterion', 'atelier-narrative-frame',
+    // Lab 11 - MCP Plug-and-Play Lab
+    'mcp-equipped-mission', 'mcp-tool-description', 'mcp-custom-tool-spec',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -716,6 +724,32 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
     `Write a one-paragraph kid-safe narrative framing for an Agent Atelier mission, situating it ` +
     `in a real-life scenario (school, family, hobby, neighborhood). Should make the kid want to ` +
     `solve it. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "frame": "...", "hook": "..." }`,
+
+  // ─── Lab 11 — MCP Plug-and-Play Lab (Stage 11E) ───────────────
+
+  'mcp-equipped-mission': (ageBand) =>
+    `Create a kid-safe mission for an MCP Plug-and-Play Lab game. The kid will load a starter ` +
+    `team of agents and attach tools (calculator, calendar, dictionary, web-fetch, etc.) to ` +
+    `their input ports. Mission must REQUIRE at least 2 tools to solve well. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "title": "...", "prompt": "...", "difficulty": "easy|medium|hard", ` +
+    `"starterTeam": ["agent_id", ...], "recommendedTools": ["tool_id", ...], ` +
+    `"forbiddenTools": ["tool_id", ...], "parToolCount": 2, ` +
+    `"rubric": [{"criterion": "...", "weight": 1}, ...] }`,
+
+  'mcp-tool-description': (ageBand) =>
+    `Write TWO descriptions for the same kid-safe AI tool — one VAGUE description that would ` +
+    `make an agent use it incorrectly, and one CLEAR description that would make the agent use ` +
+    `it well. Used in the Stage 11E "Descriptions Matter" tutorial. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "toolName": "...", "vague": "...", "clear": "...", "vagueOutcome": "...", "clearOutcome": "..." }`,
+
+  'mcp-custom-tool-spec': (ageBand) =>
+    `Design a brand-new kid-safe agent tool not in the standard catalog. It should be specific, ` +
+    `useful, and have an input + output type. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "id": "...", "name": "...", "blurb": "...", "category": "math|time|language|web|creative|data|utility", ` +
+    `"inputType": "text|list|number|plan|code|tool_request", ` +
+    `"outputType": "text|list|number|plan|code|tool_request", ` +
+    `"description": "...", "sideEffect": "read-only|sandboxed|cached-fetch|network", "emoji": "..." }`,
 };
 
 // ================================================================

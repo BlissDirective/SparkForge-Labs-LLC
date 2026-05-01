@@ -61,6 +61,7 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   'ai-or-not':        { position: [0, 1.5, 4],  lookAt: [0, 0, 0],   fov: 42 },
   // Lab 11 (April 30, 2026): Agentic AI flagship cohort
   'agent-atelier':    { position: [0, 4, 8],    lookAt: [0, 0, 0],   fov: 55 },
+  'mcp-lab':          { position: [0, 4, 8.5],  lookAt: [0, 0, 0],   fov: 55 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -655,9 +656,26 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     ageBands: ['A', 'B', 'C'],
     stage: '11D',
     description: 'Pick specialists, wire them up so each one feeds the next, and run the team on a mission.',
-    icon: '\ud83c\udfad', // \ud83c\udfad
+    icon: '\ud83c\udfad',
     triangleBudget: budget('flagship', true),
     cameraPreset: cameraPreset('agent-atelier'),
+  },
+  // \u2500\u2500 Lab 11 \u2014 Stage 11E (May 1, 2026): Equip step
+  {
+    id: 37,
+    name: 'MCP Plug-and-Play Lab',
+    slug: 'mcp-lab',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'McpLab3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11E',
+    description: 'Plug tools into your team and watch capabilities expand. Same agents, brand new powers.',
+    icon: '\ud83d\udd0c',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('mcp-lab'),
   },
 ] as const;
 

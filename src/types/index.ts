@@ -452,6 +452,7 @@ export const LABS: LabMeta[] = [
     id: 11, title: 'Agentic AI', subtitle: 'Teams of AI Agents', color: '#6FFFE6', tint: '#6FFFE6', icon: '🕸️', description: 'Build teams of AI agents, plug tools into them, and wrap them in safety harnesses',
     games: [
       { slug: 'agent-atelier', title: 'Agent Atelier', emoji: '🎭', description: 'Pick specialists, wire them up, and run the team on a mission', estimatedMinutes: 18, xpReward: 30, ageBands: ['A', 'B', 'C'] },
+      { slug: 'mcp-lab', title: 'MCP Plug-and-Play Lab', emoji: '🔌', description: 'Plug tools into your team and watch capabilities expand', estimatedMinutes: 16, xpReward: 30, ageBands: ['A', 'B', 'C'] },
     ],
   },
 ];
