@@ -2,9 +2,9 @@
 
 **Document role:** Concept design proposals for 5–10 new flagship games derived from `01-AI-Trends-Research.md`.
 **Authored:** April 30, 2026
-**Status:** v0.2 — Lab placements finalized (Lab 11 declined; all concepts go on existing labs). Build phase awaits sequencing approval.
+**Status:** v0.3 — Lab 11 ADOPTED. All authoritative decisions resolved. Build phase greenlit.
 **Concept count:** 7 (down-selected from 10 candidates per user decision)
-**Lab decision policy:** **Path A confirmed (April 30, 2026)** — Lab 11 *not* adopted. C1 → Lab 5, C6 → Lab 5, C7 → Lab 9. Section B (Lab 11 proposal) retained for traceability but marked NOT ADOPTED.
+**Lab decision policy:** **Path B confirmed (April 30, 2026)** — Lab 11 *Agentic AI* adopted. C1 → Lab 11, C6 → Lab 11, C7 → Lab 11. All three agentic concepts cluster in the new lab, forming the **Build → Equip → Constrain** arc.
 
 > **Reading order:** This document assumes you have read `01-AI-Trends-Research.md`. Section numbers like "§9.1" refer to that document.
 
@@ -18,13 +18,13 @@ Document 1 surfaced **five pillars** of modern AI engineering — Orchestration,
 
 | # | Concept | Primary Pillar | Headline Mechanic | Lab |
 |---|---|---|---|---|
-| **C1** | **Agent Atelier** | Orchestration | Wire specialist agents into a working team | **Lab 5 — AI Helpers** |
+| **C1** | **Agent Atelier** | Orchestration | Wire specialist agents into a working team | **Lab 11 — Agentic AI** *(Build act)* |
 | **C2** | **Context Architect** | Context | Sort knowledge onto a token-budgeted shelf, beat Context Rot | **Lab 8 — Words & Language** |
 | **C3** | **Glass Box Lab** | Trust | Grade every step of an AI's trajectory like a referee | **Lab 6 — AI & Ethics** |
 | **C4** | **Pixel Witness** | Multimodal | Watch a clip, ask the AI questions, catch its hallucinations | **Lab 7 — Computer Vision** |
 | **C5** | **Pocket Brain** | (foundational) | Run a real LLM in your browser, no server. Feel quantization. | **Lab 1 — What IS AI?** |
-| **C6** | **MCP Plug-and-Play Lab** | Orchestration | Snap MCP-shaped tool cartridges into an agent's ports | **Lab 5 — AI Helpers** |
-| **C7** | **Harness Forge** | Harness | Add hooks (pre-tool, post-tool, judge) and watch them fire | **Lab 9 — Build Your AI** |
+| **C6** | **MCP Plug-and-Play Lab** | Orchestration | Snap MCP-shaped tool cartridges into an agent's ports | **Lab 11 — Agentic AI** *(Equip act)* |
+| **C7** | **Harness Forge** | Harness | Add hooks (pre-tool, post-tool, judge) and watch them fire | **Lab 11 — Agentic AI** *(Constrain act)* |
 
 ### Targets (per the brief — "≥ 2× current flagship content")
 
@@ -125,11 +125,11 @@ Most concepts touch the same files. Listing these once here, referenced per-conc
 
 ---
 
-## B. Lab 11 Proposal — *"Agentic AI Lab"* (NOT ADOPTED)
+## B. Lab 11 — *"Agentic AI"* (✅ ADOPTED)
 
-> **DECISION (April 30, 2026):** User declined Lab 11 adoption. All agentic concepts (C1, C6, C7) place into existing labs (Path A). This section is retained **for traceability only** — it documents the option that was considered and rejected. **No code touches `labColors.ts` or `labs.ts` per this decision.** The 10-lab system remains intact.
+> **DECISION (April 30, 2026, revised):** Lab 11 ADOPTED. Section B.4 file changes applied via subsequent commits. C1 / C6 / C7 placed in Lab 11 forming the **Build → Equip → Constrain** narrative arc. SparkForge expands from 10 themed labs to 11.
 
-**Status:** ❌ NOT ADOPTED. Section retained as design-history record. This section defines what Lab 11 would have looked like had it been selected.
+**Status:** ✅ ADOPTED. Path B confirmed. Implementation tracked in commits referenced inline below.
 
 ### B.1 Lab 11 Identity
 
@@ -203,11 +203,11 @@ You are the **Atelier Director** of an AI workshop. The world has stopped using 
 
 ### D.2 Lab Placement — RESOLVED
 
-> **Resolved (April 30, 2026):** **Path A — Lab 5 — AI Helpers** (`#00D17A`, green). Joins Pet Trainer. Lab 5's narrative becomes *"all kinds of helpers, including teams of helpers."* Path B (Lab 11) was considered and rejected — see Section B.
+> **Resolved (April 30, 2026, revised):** **Path B — Lab 11 — Agentic AI** (`#6FFFE6`, mint-cyan). **First flagship in the new lab.** Anchors the **Build → Equip → Constrain** narrative arc (C1 builds the team, C6 equips them, C7 constrains them).
 
 | Lab | Lab name | Color | Notes |
 |---|---|---|---|
-| **Lab 5** | AI Helpers | `#00D17A` (green) | Existing lab; concept placed here per Path A decision |
+| **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | New lab; lab-opening flagship — the **"Build"** act |
 
 ### D.3 Research Anchors
 
@@ -928,11 +928,11 @@ In late 2025 / early 2026, **MCP became the dominant agent-tool standard** (Doc 
 
 ### I.2 Lab Placement — RESOLVED
 
-> **Resolved (April 30, 2026):** **Path A — Lab 5 — AI Helpers** (`#00D17A`, green). Joins Pet Trainer + Agent Atelier. Lab 5 hosts three flagships and effectively becomes the agentic lab by default. Path B (Lab 11) was considered and rejected — see Section B.
+> **Resolved (April 30, 2026, revised):** **Path B — Lab 11 — Agentic AI** (`#6FFFE6`, mint-cyan). **Second flagship in Lab 11** — the **"Equip"** act in the Build → Equip → Constrain arc.
 
 | Lab | Lab name | Color | Notes |
 |---|---|---|---|
-| **Lab 5** | AI Helpers | `#00D17A` (green) | Hosts Pet Trainer + C1 Agent Atelier + C6 MCP Plug-and-Play |
+| **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | Joins C1 Agent Atelier in the new lab — the **"Equip"** act |
 
 ### I.3 Research Anchors
 
@@ -1086,11 +1086,11 @@ This concept aligns with the older C-band exclusively (with B-band simplified). 
 
 ### J.2 Lab Placement — RESOLVED
 
-> **Resolved (April 30, 2026):** **Path A — Lab 9 — Build Your AI** (`#E68E28`, orange). Theme alignment: kids "build" their AI's safety wrapper. Becomes Lab 9's anchor flagship. Path B (Lab 11) was considered and rejected — see Section B.
+> **Resolved (April 30, 2026, revised):** **Path B — Lab 11 — Agentic AI** (`#6FFFE6`, mint-cyan). **Third flagship in Lab 11** — the **"Constrain"** act, closing the Build → Equip → Constrain arc.
 
 | Lab | Lab name | Color | Notes |
 |---|---|---|---|
-| **Lab 9** | Build Your AI | `#E68E28` (orange) | First flagship for Lab 9 — anchors the lab |
+| **Lab 11** | Agentic AI | `#6FFFE6` (mint-cyan) | Joins C1 + C6 — the **"Constrain"** act, closes the arc |
 
 ### J.3 Research Anchors
 
@@ -1243,9 +1243,12 @@ This section consolidates every file the 7 concepts collectively touch, so a bui
 | `src/config/gameRegistry.ts` | +7 `GameRegistryEntry` rows; +7 `CAMERA_PRESETS` entries | All 7 |
 | `src/components/games/index.ts` | +7 component exports | All 7 |
 | `src/lib/ai/ai-content-generator.ts` | +6 `GameId` enums; +42 `ContentType` Zod schema entries (sum across 6 concepts; C5 adds 0) | C1 (6) + C2 (9) + C3 (6) + C4 (6) + C6 (9) + C7 (6) |
+| `src/config/labColors.ts` | +1 entry (Lab 11 mint-cyan), `family` union extended | All 7 (Lab 11 must exist before any concept ships); structurally needed by C1/C6/C7 |
+| `src/config/labs.ts` | +1 `LAB_ICONS` entry (`11: '🕸️'`) | All 7; structurally needed by C1/C6/C7 |
+| `src/components/3d/environments/HolographicLabMap.tsx` *(or whichever file renders the lab map)* | +1 lab node + position | All 7 (lab map shows new lab); structurally needed by C1/C6/C7 |
+| `tailwind.config.ts` | Auto-generated via `buildTailwindLabColors()` — no manual change | (auto) |
+| `CLAUDE.md` | New design-decision entry for Lab 11 adoption | (one-time) |
 | `package.json` | `@mlc-ai/web-llm` dependency added | C5 only |
-
-> **Lab-config files NOT modified.** Per the April 30, 2026 Path-A decision (Section B), `src/config/labColors.ts`, `src/config/labs.ts`, and `HolographicLabMap.tsx` (or equivalent) are **not** touched by any of the 7 concepts. The 10-lab system remains intact.
 
 ### K.2 Files Created
 
@@ -1292,23 +1295,26 @@ For traceability — every concept above cites at least one existing file:
 | `gameRegistry.ts:14-30` (`GameRegistryEntry`) | All 7 |
 | `gameRegistry.ts:69` (flagship 20M-tri budget) | All 7 |
 | `gameRegistry.ts:44-62` (`CAMERA_PRESETS`) | All 7 |
+| `labColors.ts:44-55` (`LAB_COLORS_TABLE`) | All 7 (Lab 11 added) |
 | `ai-content-generator.ts` (per CLAUDE.md §11 Standard Tier audit completion) | C1, C2, C3, C4, C6, C7 |
 | `useSafeTimeout` hook (per Standard Tier audit) | All 7 |
 | `useAnimatedCounter` shared hook | All 7 |
 
 ### K.5 Build Phase Sequencing (Suggested)
 
-If/when these concepts become build phases, a sequencing recommendation (revised after Path-A decision — Lab 11 gate removed):
+**Sequencing approved (April 30, 2026).** Final 7-phase order, with Stage codes:
 
-1. **Phase 1 — C5 Pocket Brain** *(easiest tech, biggest "wow" — adds zero-cost flagship to Lab 1, unblocks no other concept)*
-2. **Phase 2 — C2 Context Architect** *(no migration, fills Lab 8 gap)*
-3. **Phase 3 — C4 Pixel Witness** *(no migration, fills Lab 7 gap)*
-4. **Phase 4 — C1 Agent Atelier** *(introduces `agent_compositions` table referenced by later concepts; lands in Lab 5)*
-5. **Phase 5 — C6 MCP Lab** *(introduces `player_cartridges` table referenced by C7; lands in Lab 5)*
-6. **Phase 6 — C3 Glass Box Lab** *(introduces `eval_grades` table; cross-links to C1 saves)*
-7. **Phase 7 — C7 Harness Forge** *(audits saves from C1, C6, C3 — must come last; lands in Lab 9)*
+| Build Phase | Stage | Concept | Lab | Why this position |
+|---|---|---|---|---|
+| **1** | **11A** | C5 Pocket Brain | Lab 1 | Easiest tech, biggest "wow", zero-cost flagship; unblocks nothing |
+| **2** | **11B** | C2 Context Architect | Lab 8 | No migration, fills Lab 8 gap |
+| **3** | **11C** | C4 Pixel Witness | Lab 7 | No migration, fills Lab 7 gap |
+| **4** | **11D** | C1 Agent Atelier | **Lab 11** *(opens new lab)* | Introduces `agent_compositions` table referenced by C7; lab-opener |
+| **5** | **11E** | C6 MCP Plug-and-Play Lab | Lab 11 | Introduces `player_cartridges` table referenced by C7 |
+| **6** | **11F** | C3 Glass Box Lab | Lab 6 | Introduces `eval_grades` table; cross-links to C1 saves |
+| **7** | **11G** | C7 Harness Forge | Lab 11 | Audits saves from C1, C6, C3 — must come last; closes Lab 11 arc |
 
-Cross-game dependencies are minimal except for C7's audit-replay loop. Total: **7 build phases**.
+Cross-game dependencies are minimal except for C7's audit-replay loop. Lab 11 itself must exist (`labColors.ts` + `labs.ts` + `HolographicLabMap.tsx` updated) **before Stage 11D** since that is the first concept that places into it.
 
 ### K.6 Total Surface Area Summary
 
@@ -1321,7 +1327,7 @@ Cross-game dependencies are minimal except for C7's audit-replay loop. Total: **
 | New `GameId` enum values | 7 (or 6 if C5 skipped — but C5 still gets a registry entry) |
 | Registry entries added | 7 |
 | Camera presets added | 7 |
-| Existing files modified | 3 (`gameRegistry.ts`, `games/index.ts`, `ai-content-generator.ts`) — lab-config files **not** touched per Path A |
+| Existing files modified | 6 (`gameRegistry.ts`, `games/index.ts`, `ai-content-generator.ts`, `labColors.ts`, `labs.ts`, `HolographicLabMap.tsx`) + `CLAUDE.md` decision-log + `package.json` — Lab 11 adopted (Path B) |
 | New optional npm dependencies | 2 (`@mlc-ai/web-llm`, `@huggingface/transformers` — fallback) |
 
 ---
@@ -1336,15 +1342,14 @@ This document specifies **7 new flagship game concepts**, each at **≥ 2× the 
 |---|---|---|
 | **Concept count** | ✅ 7 confirmed (down from 10 candidates) | April 30, 2026 |
 | **Concepts dropped** | ✅ Constitution Court, Reasoning Forge, Futures Bazaar | April 30, 2026 |
-| **Lab 11 adoption** | ✅ Declined — Path A confirmed | April 30, 2026 |
+| **Lab 11 adoption** | ✅ **ADOPTED** — Path B confirmed (revised) | April 30, 2026 |
 | **Per-concept go/no-go** | ✅ All 7 confirmed go | April 30, 2026 |
-| **Lab placements** | ✅ C1→L5, C2→L8, C3→L6, C4→L7, C5→L1, C6→L5, C7→L9 | April 30, 2026 |
+| **Lab placements** | ✅ C1→L11, C2→L8, C3→L6, C4→L7, C5→L1, C6→L11, C7→L11 | April 30, 2026 |
+| **Build sequencing** | ✅ Approved — 7-phase order in §K.5 | April 30, 2026 |
+| **Stage numbering** | ✅ Approved — Stage 11A through 11G | April 30, 2026 |
+| **Build kickoff** | ✅ Greenlit — v3-FINAL build docs in flight | April 30, 2026 |
 
-### L.1.b Open Items Before Build Phase
-
-- [ ] **Build sequencing approval** — Section K.5 is a recommendation; user to confirm or revise the 7-phase order.
-- [ ] **Stage numbering** — assign next-available `stage` values (`'11A'`, `'11B'`, etc., or extend the 6-series).
-- [ ] **Build kickoff signal** — explicit user "go" to draft per-concept Stage v3-FINAL build documents matching the existing `STAGE6E_v3FINAL_A/B.md` pattern.
+All authoritative decisions are now closed. Build docs are produced as Stage 11A–11G v3-FINAL files in `docs/stage11-new-flagships/`.
 
 ### L.2 Cross-Document Reference Map
 
@@ -1363,10 +1368,11 @@ Every concept honors **the Tech Quality Mandate** (CLAUDE.md §1.1) — WebGPU+T
 ### L.3 What Happens Next
 
 1. ~~User reviews both documents.~~ ✅ done
-2. ~~User decides Lab-11 question and per-concept go/no-go.~~ ✅ done (Lab 11 declined; all 7 go)
-3. **User approves sequencing** or proposes a different one (Section K.5).
-4. **Build planning** — only at the user's explicit signal — drafts Stage v3-FINAL build documents per concept (matching the existing `STAGE6E_v3FINAL_A/B.md` pattern).
-5. **Code phase begins.** Per the user's standing instruction: *"Review and acknowledge user finalized selections/feedback prior to building/modifying code."*
+2. ~~User decides Lab-11 question and per-concept go/no-go.~~ ✅ done (Lab 11 ADOPTED; all 7 go)
+3. ~~User approves sequencing.~~ ✅ done (April 30, 2026)
+4. ~~User approves stage numbering scheme.~~ ✅ done (Stage 11A–11G)
+5. **Build planning in progress.** Drafting `STAGE11A_v3FINAL.md` through `STAGE11G_v3FINAL.md` in `docs/stage11-new-flagships/`.
+6. **Code phase begins** after each Stage doc is drafted and the underlying Lab 11 plumbing (labColors / labs / lab-map / CLAUDE.md decision log) is in place.
 
 End of document.
 
