@@ -22,7 +22,9 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   | 'tool-picker' | 'data-shield' | 'real-or-fake'
   | 'ethics-courtroom' | 'fool-the-ai' | 'build-classifier'
   | 'prediction-market' | 'sentiment-scanner' | 'lost-in-translation'
-  | 'career-explorer' | 'api-explorer';
+  | 'career-explorer' | 'api-explorer'
+  // ═══ Lab 11 Flagship Cohort (Stage 11D, April 30, 2026) ═══
+  | 'agent-atelier';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -95,7 +97,12 @@ export type ContentType =
   // Career Explorer
   | 'ai-career' | 'skill-matching' | 'career-learn-card'
   // API Explorer
-  | 'api-endpoint' | 'request-challenge' | 'api-concept-card';
+  | 'api-endpoint' | 'request-challenge' | 'api-concept-card'
+  // ═══ Lab 11 — Agent Atelier (Stage 11D, April 30, 2026) ═══
+  // 3 content types feeding the runtime AI-generated mission slot
+  // (12/session) so per-session content tops out at 24 hardcoded + 12
+  // AI = 36 units per Doc 2 §A.4 target.
+  | 'atelier-mission' | 'atelier-rubric-criterion' | 'atelier-narrative-frame';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -126,6 +133,8 @@ export const AIContentRequestSchema = z.object({
     'tool-picker', 'data-shield', 'real-or-fake', 'ethics-courtroom', 'fool-the-ai',
     'build-classifier', 'prediction-market', 'sentiment-scanner', 'lost-in-translation',
     'career-explorer', 'api-explorer',
+    // Lab 11 cohort
+    'agent-atelier',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -164,6 +173,8 @@ export const AIContentRequestSchema = z.object({
     'translation-chain', 'idiom-challenge', 'mt-learn-card',
     'ai-career', 'skill-matching', 'career-learn-card',
     'api-endpoint', 'request-challenge', 'api-concept-card',
+    // Lab 11 - Agent Atelier
+    'atelier-mission', 'atelier-rubric-criterion', 'atelier-narrative-frame',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -680,6 +691,31 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
   'api-concept-card': (ageBand) =>
     `Create a learn card about APIs: REST, HTTP methods, JSON, status codes, authentication, rate limiting. ` +
     `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // ─── Lab 11 — Agent Atelier (Stage 11D) ────────────────────────
+  // Three content types feeding the runtime AI-generated mission
+  // slot: a fresh mission spec, additional rubric criteria, and
+  // narrative framing copy. Hardcoded missions cover 8x3=24; AI
+  // generates up to 12 more per session for variety.
+
+  'atelier-mission': (ageBand) =>
+    `Create a kid-safe mission for an AI-agent-team-builder game. The kid will pick specialists ` +
+    `(Researcher, Writer, Planner, Critic, Coder, Translator, Summarizer, etc.) and wire them up ` +
+    `to solve this mission. The mission must require at least 3 specialists wired together to ` +
+    `solve. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "title": "...", "prompt": "...", "difficulty": "easy|medium|hard", ` +
+    `"expectedOutput": "text|list|number|plan|code", "parAgentCount": 3, ` +
+    `"rubric": [{"criterion": "...", "weight": 1}, ...] }`,
+
+  'atelier-rubric-criterion': (ageBand) =>
+    `Create one short rubric criterion (under 80 chars) that a Critic agent could check on a ` +
+    `kid's atelier-team output. Should be specific and observable, not vague. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "criterion": "...", "weight": 1 }`,
+
+  'atelier-narrative-frame': (ageBand) =>
+    `Write a one-paragraph kid-safe narrative framing for an Agent Atelier mission, situating it ` +
+    `in a real-life scenario (school, family, hobby, neighborhood). Should make the kid want to ` +
+    `solve it. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "frame": "...", "hook": "..." }`,
 };
 
 // ================================================================

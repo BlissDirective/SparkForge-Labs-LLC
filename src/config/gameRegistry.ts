@@ -59,6 +59,8 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   'my-first-ai-app':  { position: [0, 2, 4],    lookAt: [0, 0, 0],   fov: 44 },
   'future-forge':     { position: [0, 2.5, 5.5],lookAt: [0, 0, 0],   fov: 50 },
   'ai-or-not':        { position: [0, 1.5, 4],  lookAt: [0, 0, 0],   fov: 42 },
+  // Lab 11 (April 30, 2026): Agentic AI flagship cohort
+  'agent-atelier':    { position: [0, 4, 8],    lookAt: [0, 0, 0],   fov: 55 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -638,6 +640,24 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     icon: '\u2753',
     triangleBudget: budget('fl-lite', true),
     cameraPreset: cameraPreset('ai-or-not'),
+  },
+  // \u2500\u2500 Lab 11 (Agentic AI) \u2014 Stage 11D first flagship (April 30, 2026)
+  // Build \u2192 Equip \u2192 Constrain narrative arc, Stage 1: Build.
+  {
+    id: 36,
+    name: 'Agent Atelier',
+    slug: 'agent-atelier',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'AgentAtelier3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11D',
+    description: 'Pick specialists, wire them up so each one feeds the next, and run the team on a mission.',
+    icon: '\ud83c\udfad', // \ud83c\udfad
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('agent-atelier'),
   },
 ] as const;
 

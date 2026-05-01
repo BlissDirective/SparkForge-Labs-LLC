@@ -448,9 +448,11 @@ export const LABS: LabMeta[] = [
   {
     // Lab 11 added April 30, 2026 (Doc 2 Section B Path B). Hosts the Build->Equip->Constrain
     // arc: C1 Agent Atelier (Stage 11D), C6 MCP Plug-and-Play Lab (Stage 11E), C7 Harness Forge
-    // (Stage 11G). Games array starts empty; later build phases populate it.
+    // (Stage 11G). Stage 11D shipped May 1, 2026 — Agent Atelier is the first published game.
     id: 11, title: 'Agentic AI', subtitle: 'Teams of AI Agents', color: '#6FFFE6', tint: '#6FFFE6', icon: '🕸️', description: 'Build teams of AI agents, plug tools into them, and wrap them in safety harnesses',
-    games: [],
+    games: [
+      { slug: 'agent-atelier', title: 'Agent Atelier', emoji: '🎭', description: 'Pick specialists, wire them up, and run the team on a mission', estimatedMinutes: 18, xpReward: 30, ageBands: ['A', 'B', 'C'] },
+    ],
   },
 ];
 

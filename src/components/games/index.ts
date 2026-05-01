@@ -51,3 +51,6 @@ export { ApiExplorerGame } from './ApiExplorerGame';
 export { MyFirstAiAppGame } from './MyFirstAiAppGame';
 export { EmojiDecoderGame } from './EmojiDecoderGame';
 export { AiOrNotGame } from './AiOrNotGame';
+
+// Stage 11D — Lab 11 (Agentic AI) flagship: Build → Equip → Constrain
+export { AgentAtelierGame } from './AgentAtelierGame';
