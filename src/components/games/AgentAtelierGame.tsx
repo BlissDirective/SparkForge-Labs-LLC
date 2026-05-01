@@ -978,30 +978,352 @@ function SimulatePhase() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PHASE 9 / 10 / 11 / 12 placeholders — implemented in Sub 11D.7c
+// PHASE 9 — GRADE (rubric breakdown + stars)
 // ═══════════════════════════════════════════════════════════════
 
-function GradePhasePlaceholder() {
+function GradePhase() {
+  const grade = useAgentAtelierStore((s) => s.grade);
+  const trajectory = useAgentAtelierStore((s) => s.trajectory);
   const setPhase = useAgentAtelierStore((s) => s.setPhase);
+  const reset = useAgentAtelierStore((s) => s.reset);
+  const updateScore = useGameStore((s) => s.updateScore);
+  const advanceRound = useGameStore((s) => s.advanceRound);
+  const isComplete = useGameStore((s) => s.isComplete);
+
+  // Award score once when the grade arrives.
+  useEffect(() => {
+    if (!grade) return;
+    const points = grade.stars * 50; // 0/50/100/150
+    updateScore(points);
+  }, [grade, updateScore]);
+
+  if (!grade) {
+    return (
+      <div className="absolute inset-0 grid place-items-center p-8">
+        <Panel className="p-6 text-white/60 font-body text-sm">No grade available.</Panel>
+      </div>
+    );
+  }
+
+  const mvp = grade.mvp ? AGENT_ROSTER.find((a) => a.id === grade.mvp) : null;
+
   return (
-    <div className="absolute inset-0 grid place-items-center p-8">
-      <Panel className="max-w-md p-6 text-center">
-        <p className="font-mono text-xs uppercase mb-2" style={{ color: LAB11_HEX }}>
-          Grade phase (Sub 11D.7c)
+    <motion.div
+      key="grade"
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.35 }}
+      className="absolute inset-0 overflow-y-auto p-6"
+    >
+      <div className="max-w-2xl mx-auto py-6">
+        <Panel className="p-8 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+            Mission complete
+          </p>
+
+          {/* Stars */}
+          <div className="flex justify-center gap-2 mb-4">
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.15 }}
+                className="text-5xl"
+                style={{ color: i < grade.stars ? '#FFD93D' : 'rgba(255,255,255,0.15)' }}
+                aria-hidden="true"
+              >
+                ★
+              </motion.span>
+            ))}
+          </div>
+          <p className="font-display text-3xl font-bold text-white mb-1" aria-live="polite">
+            {grade.stars} / 3 stars
+          </p>
+          <p className="font-mono text-xs text-white/60 mb-6">
+            {Math.round(grade.total * 100)}% · {trajectory.length} agents · {grade.timeMs}ms
+          </p>
+
+          {/* Per-criterion breakdown */}
+          <ul className="text-left space-y-1.5 mb-6">
+            {grade.perCriterion.map((c, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 px-3 py-1.5 rounded bg-black/40 border border-white/10"
+              >
+                <span
+                  className="flex-shrink-0 inline-grid place-items-center w-5 h-5 rounded-full font-bold text-[11px]"
+                  style={{
+                    background: c.matched >= 0.7 ? `${LAB11_HEX}30` : '#FF705030',
+                    color: c.matched >= 0.7 ? LAB11_HEX : '#FF7050',
+                  }}
+                  aria-hidden="true"
+                >
+                  {c.matched >= 0.7 ? '✓' : '~'}
+                </span>
+                <span className="font-body text-xs text-white/85 flex-1">{c.criterion}</span>
+                <span className="font-mono text-[10px] text-white/50">
+                  {Math.round(c.matched * 100)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {/* MVP */}
+          {mvp && (
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded mb-6"
+              style={{ background: `${mvp.accentHex}15`, border: `1px solid ${mvp.accentHex}40` }}
+            >
+              <span
+                className="inline-block w-2 h-2 rounded-full"
+                style={{ background: mvp.accentHex, boxShadow: `0 0 4px ${mvp.accentHex}` }}
+              />
+              <span className="font-mono text-[11px] text-white/85">
+                MVP: <strong>{mvp.name}</strong>
+              </span>
+            </div>
+          )}
+
+          {/* Action row */}
+          <div className="flex flex-wrap gap-2 justify-center">
+            <button
+              type="button"
+              onClick={() => setPhase('save')}
+              className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+              style={{ background: LAB11_HEX, color: '#031416' }}
+              aria-label="Save this composition"
+            >
+              Save composition
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                advanceRound();
+                if (isComplete) {
+                  setPhase('complete');
+                } else {
+                  reset();
+                  setPhase('mission-select');
+                }
+              }}
+              className="px-5 py-2 rounded font-mono text-xs text-white/85 border border-white/30 hover:bg-white/5 hover:text-white"
+              aria-label="Skip save and pick a new mission"
+            >
+              New mission →
+            </button>
+            <button
+              type="button"
+              onClick={() => setPhase('wire')}
+              className="px-5 py-2 rounded font-mono text-xs text-white/70 border border-white/20 hover:text-white"
+              aria-label="Try again with the same team"
+            >
+              Try again
+            </button>
+          </div>
+        </Panel>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 10 — SAVE (name composition + persist)
+// ═══════════════════════════════════════════════════════════════
+
+function SavePhase() {
+  const setPhase = useAgentAtelierStore((s) => s.setPhase);
+  const saveComposition = useAgentAtelierStore((s) => s.saveComposition);
+  const isSaving = useAgentAtelierStore((s) => s.isSaving);
+  const advanceRound = useGameStore((s) => s.advanceRound);
+  const isComplete = useGameStore((s) => s.isComplete);
+  const activeChild = useActiveChild();
+
+  const [name, setName] = useState('');
+  const trimmed = name.trim();
+  const valid = trimmed.length >= 1 && trimmed.length <= 80;
+
+  async function handleSave() {
+    if (!valid || !activeChild) return;
+    const ok = await saveComposition(activeChild.id, trimmed);
+    if (ok) {
+      advanceRound();
+      setPhase(isComplete ? 'complete' : 'review');
+    }
+  }
+
+  return (
+    <motion.div
+      key="save"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-6">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Save composition
         </p>
-        <p className="text-white/70 font-body text-sm mb-4">
-          Grade / save / review / complete phases land in the next sub-task.
-        </p>
-        <button
-          type="button"
-          onClick={() => setPhase('mission-select')}
-          className="px-4 py-2 rounded font-mono text-xs"
-          style={{ background: LAB11_HEX, color: '#031416' }}
-        >
-          ← New mission
-        </button>
+        <h2 className="font-display text-xl font-bold text-white mb-4">Name this team</h2>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={80}
+          placeholder="e.g. Birthday Plan v1"
+          className="w-full px-3 py-2 rounded bg-black/50 border border-white/15 text-white font-body text-sm focus:outline-none focus:border-white/40"
+          aria-label="Composition name"
+        />
+        <p className="mt-1 font-mono text-[10px] text-white/45">{trimmed.length}/80</p>
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            type="button"
+            onClick={() => setPhase('grade')}
+            className="px-4 py-2 rounded font-mono text-xs text-white/70 hover:text-white border border-white/20"
+            disabled={isSaving}
+          >
+            ← back
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!valid || isSaving || !activeChild}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+            style={{ background: LAB11_HEX, color: '#031416' }}
+            aria-label="Save composition"
+          >
+            {isSaving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
       </Panel>
-    </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 11 — REVIEW (saved compositions list)
+// ═══════════════════════════════════════════════════════════════
+
+function ReviewPhase() {
+  const saved = useAgentAtelierStore((s) => s.savedCompositions);
+  const loadCompositions = useAgentAtelierStore((s) => s.loadCompositions);
+  const setPhase = useAgentAtelierStore((s) => s.setPhase);
+  const reset = useAgentAtelierStore((s) => s.reset);
+  const isComplete = useGameStore((s) => s.isComplete);
+  const activeChild = useActiveChild();
+
+  useEffect(() => {
+    if (activeChild?.id) void loadCompositions(activeChild.id);
+  }, [activeChild?.id, loadCompositions]);
+
+  return (
+    <motion.div
+      key="review"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 overflow-y-auto p-6"
+    >
+      <div className="max-w-2xl mx-auto py-6">
+        <Panel className="p-6 mb-4">
+          <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+            Saved Compositions
+          </p>
+          <h2 className="font-display text-xl font-bold text-white mb-1">Your atelier saves</h2>
+          <p className="font-body text-xs text-white/60">
+            These compositions can be re-equipped in the Tool Forge and audit-replayed in the Glass Box.
+          </p>
+        </Panel>
+
+        {saved.length === 0 ? (
+          <Panel className="p-6 text-center">
+            <p className="font-body text-sm text-white/60">No saves yet.</p>
+          </Panel>
+        ) : (
+          <ul className="space-y-2">
+            {saved.map((c) => (
+              <li
+                key={c.id}
+                className="rounded-lg p-3 bg-black/40"
+                style={{ border: `1px solid ${LAB11_HEX}30` }}
+              >
+                <div className="flex items-center gap-2 mb-1">
+                  <h3 className="font-display text-sm font-bold text-white flex-1">{c.name}</h3>
+                  <span className="font-mono text-[10px] text-white/55">
+                    {c.team.length} agent{c.team.length === 1 ? '' : 's'}
+                  </span>
+                </div>
+                <p className="font-mono text-[10px] text-white/45">
+                  {new Date(c.createdAt).toLocaleString()} · {c.wires.length} wires
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="flex justify-center gap-2 mt-6">
+          <button
+            type="button"
+            onClick={() => {
+              if (isComplete) {
+                setPhase('complete');
+              } else {
+                reset();
+                setPhase('mission-select');
+              }
+            }}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+            style={{ background: LAB11_HEX, color: '#031416' }}
+            aria-label="Continue"
+          >
+            {isComplete ? 'Done' : 'New mission →'}
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 12 — COMPLETE (XP / streak / badge auto-flow via GameShell)
+// ═══════════════════════════════════════════════════════════════
+
+function CompletePhase() {
+  const completeGame = useGameStore((s) => s.completeGame);
+
+  // Trigger the standard SparkForge completion flow once on mount.
+  // GameShell's useCompleteAndReward hook handles XP, streak, badges,
+  // and the ceremony FX automatically.
+  useEffect(() => {
+    completeGame();
+  }, [completeGame]);
+
+  return (
+    <motion.div
+      key="complete"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-8 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Atelier session complete
+        </p>
+        <h2 className="font-display text-2xl font-bold text-white mb-3">
+          You&apos;ve built {TOTAL_ROUNDS} teams!
+        </h2>
+        <p className="font-body text-sm text-white/75 leading-relaxed">
+          Your saved compositions are ready for the next labs. Lab 11 unlocks the{' '}
+          <span style={{ color: LAB11_HEX }}>Tool Forge</span> and{' '}
+          <span style={{ color: LAB11_HEX }}>Glass Box</span> next.
+        </p>
+      </Panel>
+    </motion.div>
   );
 }
 
@@ -1057,10 +1379,10 @@ export function AgentAtelierGame() {
         {phase === 'build' && <BuildPhase key="build" ageBand={ageBand} />}
         {phase === 'wire' && <WirePhase key="wire" ageBand={ageBand} />}
         {phase === 'simulate' && <SimulatePhase key="simulate" />}
-        {phase === 'grade' && <GradePhasePlaceholder key="grade" />}
-        {phase === 'save' && <GradePhasePlaceholder key="save" />}
-        {phase === 'review' && <GradePhasePlaceholder key="review" />}
-        {phase === 'complete' && <GradePhasePlaceholder key="complete" />}
+        {phase === 'grade' && <GradePhase key="grade" />}
+        {phase === 'save' && <SavePhase key="save" />}
+        {phase === 'review' && <ReviewPhase key="review" />}
+        {phase === 'complete' && <CompletePhase key="complete" />}
       </AnimatePresence>
     </GameShell>
   );
