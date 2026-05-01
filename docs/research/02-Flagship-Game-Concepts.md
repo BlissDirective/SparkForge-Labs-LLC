@@ -1243,10 +1243,9 @@ This section consolidates every file the 7 concepts collectively touch, so a bui
 | `src/config/gameRegistry.ts` | +7 `GameRegistryEntry` rows; +7 `CAMERA_PRESETS` entries | All 7 |
 | `src/components/games/index.ts` | +7 component exports | All 7 |
 | `src/lib/ai/ai-content-generator.ts` | +6 `GameId` enums; +42 `ContentType` Zod schema entries (sum across 6 concepts; C5 adds 0) | C1 (6) + C2 (9) + C3 (6) + C4 (6) + C6 (9) + C7 (6) |
-| `src/config/labColors.ts` | **Only if Lab 11 adopted:** +1 entry, family union extended | C1, C6, C7 if Path B |
-| `src/config/labs.ts` | **Only if Lab 11 adopted:** +1 `LAB_ICONS` entry | C1, C6, C7 if Path B |
-| `src/components/3d/environments/HolographicLabMap.tsx` *(or wherever)* | **Only if Lab 11 adopted:** +1 lab node | C1, C6, C7 if Path B |
 | `package.json` | `@mlc-ai/web-llm` dependency added | C5 only |
+
+> **Lab-config files NOT modified.** Per the April 30, 2026 Path-A decision (Section B), `src/config/labColors.ts`, `src/config/labs.ts`, and `HolographicLabMap.tsx` (or equivalent) are **not** touched by any of the 7 concepts. The 10-lab system remains intact.
 
 ### K.2 Files Created
 
@@ -1293,25 +1292,23 @@ For traceability — every concept above cites at least one existing file:
 | `gameRegistry.ts:14-30` (`GameRegistryEntry`) | All 7 |
 | `gameRegistry.ts:69` (flagship 20M-tri budget) | All 7 |
 | `gameRegistry.ts:44-62` (`CAMERA_PRESETS`) | All 7 |
-| `labColors.ts:44-55` (`LAB_COLORS_TABLE`) | C1, C6, C7 (Path B only) |
 | `ai-content-generator.ts` (per CLAUDE.md §11 Standard Tier audit completion) | C1, C2, C3, C4, C6, C7 |
 | `useSafeTimeout` hook (per Standard Tier audit) | All 7 |
 | `useAnimatedCounter` shared hook | All 7 |
 
 ### K.5 Build Phase Sequencing (Suggested)
 
-If/when these concepts become build phases, a sequencing recommendation:
+If/when these concepts become build phases, a sequencing recommendation (revised after Path-A decision — Lab 11 gate removed):
 
 1. **Phase 1 — C5 Pocket Brain** *(easiest tech, biggest "wow" — adds zero-cost flagship to Lab 1, unblocks no other concept)*
-2. **Phase 2 — C2 Context Architect** *(no migration, single-spec, fills Lab 8 gap)*
-3. **Phase 3 — C4 Pixel Witness** *(no migration, single-spec, fills Lab 7 gap)*
-4. **Phase 4 — Lab-11 decision gate** *(user picks Path A or B; affects 3 concepts ahead)*
-5. **Phase 5 — C1 Agent Atelier** *(introduces `agent_compositions` table referenced by later concepts)*
-6. **Phase 6 — C6 MCP Lab** *(introduces `player_cartridges` table referenced by C7)*
-7. **Phase 7 — C3 Glass Box Lab** *(introduces `eval_grades` table; cross-links to C1 saves)*
-8. **Phase 8 — C7 Harness Forge** *(audits saves from C1, C6, C3 — must come last)*
+2. **Phase 2 — C2 Context Architect** *(no migration, fills Lab 8 gap)*
+3. **Phase 3 — C4 Pixel Witness** *(no migration, fills Lab 7 gap)*
+4. **Phase 4 — C1 Agent Atelier** *(introduces `agent_compositions` table referenced by later concepts; lands in Lab 5)*
+5. **Phase 5 — C6 MCP Lab** *(introduces `player_cartridges` table referenced by C7; lands in Lab 5)*
+6. **Phase 6 — C3 Glass Box Lab** *(introduces `eval_grades` table; cross-links to C1 saves)*
+7. **Phase 7 — C7 Harness Forge** *(audits saves from C1, C6, C3 — must come last; lands in Lab 9)*
 
-Cross-game dependencies are minimal except for C7's audit-replay loop.
+Cross-game dependencies are minimal except for C7's audit-replay loop. Total: **7 build phases**.
 
 ### K.6 Total Surface Area Summary
 
@@ -1324,7 +1321,7 @@ Cross-game dependencies are minimal except for C7's audit-replay loop.
 | New `GameId` enum values | 7 (or 6 if C5 skipped — but C5 still gets a registry entry) |
 | Registry entries added | 7 |
 | Camera presets added | 7 |
-| Existing files modified | 3 (or 6 if Lab 11 adopted) |
+| Existing files modified | 3 (`gameRegistry.ts`, `games/index.ts`, `ai-content-generator.ts`) — lab-config files **not** touched per Path A |
 | New optional npm dependencies | 2 (`@mlc-ai/web-llm`, `@huggingface/transformers` — fallback) |
 
 ---
@@ -1333,13 +1330,21 @@ Cross-game dependencies are minimal except for C7's audit-replay loop.
 
 This document specifies **7 new flagship game concepts**, each at **≥ 2× the content depth** of current flagship games (12+ phases, 24–48 content units, 2+ replay loops), every concept anchored in a verified trend from `01-AI-Trends-Research.md`.
 
-### L.1 Outstanding Authoritative Decisions
+### L.1 Authoritative Decisions
 
-These remain for the user to confirm before any build phase begins:
+| Decision | Status | Date |
+|---|---|---|
+| **Concept count** | ✅ 7 confirmed (down from 10 candidates) | April 30, 2026 |
+| **Concepts dropped** | ✅ Constitution Court, Reasoning Forge, Futures Bazaar | April 30, 2026 |
+| **Lab 11 adoption** | ✅ Declined — Path A confirmed | April 30, 2026 |
+| **Per-concept go/no-go** | ✅ All 7 confirmed go | April 30, 2026 |
+| **Lab placements** | ✅ C1→L5, C2→L8, C3→L6, C4→L7, C5→L1, C6→L5, C7→L9 | April 30, 2026 |
 
-- [ ] **Lab 11 decision** — adopt new "Agentic AI" lab, or place agentic concepts in Labs 5/9? (Affects C1, C6, C7.)
-- [ ] **Build sequencing approval** — Section K.5 is a recommendation, not a commitment.
-- [ ] **Per-concept go/no-go** — user can drop any of the 7 concepts before build kickoff.
+### L.1.b Open Items Before Build Phase
+
+- [ ] **Build sequencing approval** — Section K.5 is a recommendation; user to confirm or revise the 7-phase order.
+- [ ] **Stage numbering** — assign next-available `stage` values (`'11A'`, `'11B'`, etc., or extend the 6-series).
+- [ ] **Build kickoff signal** — explicit user "go" to draft per-concept Stage v3-FINAL build documents matching the existing `STAGE6E_v3FINAL_A/B.md` pattern.
 
 ### L.2 Cross-Document Reference Map
 
@@ -1357,10 +1362,10 @@ Every concept honors **the Tech Quality Mandate** (CLAUDE.md §1.1) — WebGPU+T
 
 ### L.3 What Happens Next
 
-1. **User reviews** both documents.
-2. **User decides** Lab-11 question and per-concept go/no-go.
-3. **User approves** sequencing or proposes a different one.
-4. **Build planning** — only at the user's explicit signal — drafts Stage X v3-FINAL build documents per concept (matching the existing `STAGE6E_v3FINAL_A/B.md` pattern).
+1. ~~User reviews both documents.~~ ✅ done
+2. ~~User decides Lab-11 question and per-concept go/no-go.~~ ✅ done (Lab 11 declined; all 7 go)
+3. **User approves sequencing** or proposes a different one (Section K.5).
+4. **Build planning** — only at the user's explicit signal — drafts Stage v3-FINAL build documents per concept (matching the existing `STAGE6E_v3FINAL_A/B.md` pattern).
 5. **Code phase begins.** Per the user's standing instruction: *"Review and acknowledge user finalized selections/feedback prior to building/modifying code."*
 
 End of document.
