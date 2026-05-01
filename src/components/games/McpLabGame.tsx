@@ -655,30 +655,567 @@ function LoadTeamPhase() {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PHASES 7-12 — placeholders implemented in Sub 11E.8b
+// PHASE 7 — EQUIP (attach tools to agent input ports)
 // ═══════════════════════════════════════════════════════════════
 
-function EquipPlaceholder() {
+function EquipPhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
+  const team = useMcpLabStore((s) => s.team);
+  const bindings = useMcpLabStore((s) => s.bindings);
+  const lastBindingError = useMcpLabStore((s) => s.lastBindingError);
+  const currentMissionId = useMcpLabStore((s) => s.currentMissionId);
+  const addBinding = useMcpLabStore((s) => s.addBinding);
+  const removeBinding = useMcpLabStore((s) => s.removeBinding);
   const setPhase = useMcpLabStore((s) => s.setPhase);
+  const runTest = useMcpLabStore((s) => s.runTest);
+  const runBaseline = useMcpLabStore((s) => s.runBaseline);
+
+  const mission = currentMissionId ? equipMissionsForBand(ageBand).find((m) => m.id === currentMissionId) : null;
+  const tools = useMemo(() => toolsForBand(ageBand), [ageBand]);
+
+  // Two-pane drag state: which tool is "selected" awaiting a port click.
+  const [pickedToolId, setPickedToolId] = useState<string | null>(null);
+
+  function handlePortClick(agentId: string, inputName: string) {
+    if (!pickedToolId) return;
+    const ok = addBinding({ agentId, inputName, toolId: pickedToolId });
+    if (ok) setPickedToolId(null);
+  }
+
+  function startTest() {
+    runBaseline();
+    runTest();
+  }
+
   return (
-    <div className="absolute inset-0 grid place-items-center p-8">
-      <Panel className="max-w-md p-6 text-center">
-        <p className="font-mono text-xs uppercase mb-2" style={{ color: LAB11_HEX }}>
-          Equip / test / compare / grade / save / complete (Sub 11E.8b)
+    <motion.div
+      key="equip"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid grid-cols-[320px_1fr] gap-3 p-4"
+    >
+      {/* Left: tool catalog drawer */}
+      <Panel className="overflow-y-auto p-3">
+        <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Tool catalog · click a tool, then click a port
         </p>
-        <p className="text-white/70 font-body text-sm mb-4">
-          Remaining phases land in the next sub-task.
-        </p>
-        <button
-          type="button"
-          onClick={() => setPhase('mission-select')}
-          className="px-4 py-2 rounded font-mono text-xs"
-          style={{ background: LAB11_HEX, color: '#031416' }}
-        >
-          ← Mission select
-        </button>
+        <div className="space-y-1.5">
+          {tools.map((t) => {
+            const forbidden = mission?.forbiddenTools.includes(t.id) ?? false;
+            const recommended = mission?.recommendedTools.includes(t.id) ?? false;
+            const picked = pickedToolId === t.id;
+            return (
+              <div
+                key={t.id}
+                className={picked ? 'ring-2 ring-offset-2 ring-offset-black rounded-lg' : ''}
+                style={{ ['--tw-ring-color' as string]: t.accentHex }}
+              >
+                <ToolCard
+                  tool={t}
+                  forbidden={forbidden}
+                  recommended={recommended}
+                  onClick={() => {
+                    if (forbidden) return;
+                    setPickedToolId(picked ? null : t.id);
+                  }}
+                />
+              </div>
+            );
+          })}
+        </div>
       </Panel>
+
+      {/* Right: team + ports + bindings list */}
+      <Panel className="overflow-y-auto p-4 flex flex-col">
+        {mission && (
+          <div className="mb-3 pb-3 border-b border-white/10">
+            <div className="flex items-baseline justify-between gap-2 mb-1">
+              <h2 className="font-display text-base font-bold text-white">{mission.title}</h2>
+              <span
+                className="font-mono text-[10px] uppercase px-1.5 py-0.5 rounded"
+                style={{ background: `${LAB11_HEX}20`, color: LAB11_HEX }}
+              >
+                {mission.difficulty}
+              </span>
+            </div>
+            <p className="font-body text-xs text-white/70 leading-relaxed">{mission.prompt}</p>
+          </div>
+        )}
+
+        {pickedToolId && (
+          <p className="mb-3 font-mono text-[11px]" style={{ color: LAB11_HEX }}>
+            Holding {pickedToolId}. Click an input port to attach, or click the tool again to release.
+          </p>
+        )}
+        {lastBindingError && !pickedToolId && (
+          <p className="mb-3 font-mono text-[11px] text-[#FF7050]">{lastBindingError}</p>
+        )}
+
+        <div className="grid grid-cols-2 gap-2 mb-3">
+          {team.map((p) => {
+            const a = getAgent(p.agentId);
+            if (!a) return null;
+            return (
+              <AgentPortCard
+                key={a.id}
+                agentId={a.id}
+                agentName={a.name}
+                accentHex={a.accentHex}
+                inputs={a.inputs.map((inp) => ({ name: inp.name, type: inp.type }))}
+                bindings={bindings}
+                onPortClick={handlePortClick}
+              />
+            );
+          })}
+        </div>
+
+        {bindings.length > 0 && (
+          <div className="mb-3">
+            <p className="font-mono text-[10px] uppercase tracking-widest mb-1" style={{ color: LAB11_HEX }}>
+              Current attachments
+            </p>
+            <ul className="space-y-1">
+              {bindings.map((b, i) => {
+                const a = AGENT_ROSTER.find((x) => x.id === b.agentId);
+                const t = TOOL_CATALOG.find((x) => x.id === b.toolId);
+                return (
+                  <li
+                    key={i}
+                    className="flex items-center gap-2 text-[11px] font-mono px-2 py-1 rounded bg-black/40"
+                  >
+                    <span className="text-white/85">{t?.emoji} {t?.name}</span>
+                    <span style={{ color: LAB11_HEX }}>→</span>
+                    <span className="text-white/85">{a?.name}:{b.inputName}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeBinding(i)}
+                      className="ml-auto px-1.5 py-0.5 text-white/55 hover:text-white"
+                      aria-label="Detach tool"
+                    >
+                      ✕
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        <div className="mt-auto flex items-center justify-between gap-2 pt-3 border-t border-white/10">
+          <button
+            type="button"
+            onClick={() => setPhase('load-team')}
+            className="px-3 py-1.5 rounded font-mono text-xs text-white/70 hover:text-white border border-white/20"
+          >
+            ← Team
+          </button>
+          <div className="font-mono text-[11px] text-white/55">
+            {bindings.length} tool{bindings.length === 1 ? '' : 's'} attached
+            {mission ? ` · par ${mission.parToolCount}` : ''}
+          </div>
+          <button
+            type="button"
+            onClick={startTest}
+            disabled={bindings.length === 0}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+            style={{ background: LAB11_HEX, color: '#031416' }}
+            aria-label="Run the equipped team on this mission"
+          >
+            Run test ▶
+          </button>
+        </div>
+      </Panel>
+    </motion.div>
+  );
+}
+
+interface AgentPortCardProps {
+  agentId: string;
+  agentName: string;
+  accentHex: string;
+  inputs: Array<{ name: string; type: string }>;
+  bindings: Array<{ agentId: string; inputName: string; toolId: string }>;
+  onPortClick: (agentId: string, inputName: string) => void;
+}
+
+function AgentPortCard({ agentId, agentName, accentHex, inputs, bindings, onPortClick }: AgentPortCardProps) {
+  return (
+    <div
+      className="rounded-lg p-3 bg-black/40"
+      style={{ border: `1px solid ${accentHex}50` }}
+    >
+      <div className="flex items-center gap-2 mb-2">
+        <span
+          className="inline-block w-2 h-2 rounded-full"
+          style={{ background: accentHex, boxShadow: `0 0 4px ${accentHex}` }}
+        />
+        <h3 className="font-display text-sm font-bold text-white">{agentName}</h3>
+      </div>
+      <div className="space-y-1">
+        {inputs.map((p) => {
+          const bound = bindings.find((b) => b.agentId === agentId && b.inputName === p.name);
+          const tool = bound ? TOOL_CATALOG.find((t) => t.id === bound.toolId) : null;
+          return (
+            <button
+              key={p.name}
+              type="button"
+              onClick={() => onPortClick(agentId, p.name)}
+              className="block w-full text-left px-2 py-1.5 rounded font-mono text-[11px] transition-transform hover:scale-[1.02]"
+              style={{
+                background: tool ? `${tool.accentHex}25` : 'rgba(255,255,255,0.04)',
+                border: `1px solid ${tool ? tool.accentHex + '70' : 'rgba(255,255,255,0.1)'}`,
+                color: 'white',
+              }}
+              aria-label={`Input ${p.name} type ${p.type}${tool ? ` — bound to ${tool.name}` : ''}`}
+            >
+              ← {p.name}:{p.type}
+              {tool && (
+                <span className="ml-2 opacity-85">
+                  {tool.emoji} {tool.name}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 8 + 9 — TEST + COMPARE (run + side-by-side)
+// ═══════════════════════════════════════════════════════════════
+// runTest auto-transitions to 'compare', so test phase is brief.
+
+function ComparePhase() {
+  const baselineArtifact = useMcpLabStore((s) => s.baselineArtifact);
+  const equippedArtifact = useMcpLabStore((s) => s.equippedArtifact);
+  const setPhase = useMcpLabStore((s) => s.setPhase);
+
+  return (
+    <motion.div
+      key="compare"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.35 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-3xl w-full p-6">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Compare
+        </p>
+        <h2 className="font-display text-2xl font-bold text-white mb-4">
+          With tools vs without
+        </h2>
+        <div className="grid sm:grid-cols-2 gap-3 mb-5">
+          <div
+            className="rounded-lg p-3 bg-black/45"
+            style={{ border: '1px solid rgba(255,112,80,0.4)' }}
+          >
+            <p className="font-mono text-[10px] uppercase mb-1 text-[#FF7050]">Baseline (no tools)</p>
+            <p className="font-body text-xs text-white/85 leading-relaxed">{baselineArtifact}</p>
+          </div>
+          <div
+            className="rounded-lg p-3 bg-black/45"
+            style={{ border: `1px solid ${LAB11_HEX}40` }}
+          >
+            <p className="font-mono text-[10px] uppercase mb-1" style={{ color: LAB11_HEX }}>
+              Equipped
+            </p>
+            <p className="font-body text-xs text-white/85 leading-relaxed">{equippedArtifact}</p>
+          </div>
+        </div>
+        <p className="font-body text-xs text-white/55 italic mb-4">
+          The equipped run leans on the tools you attached. Notice how the artifact references them.
+        </p>
+        <div className="flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={() => setPhase('equip')}
+            className="px-4 py-2 rounded font-mono text-xs text-white/75 border border-white/20"
+            aria-label="Adjust attachments"
+          >
+            ← Adjust
+          </button>
+          <button
+            type="button"
+            onClick={() => setPhase('grade')}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+            style={{ background: LAB11_HEX, color: '#031416' }}
+            aria-label="See grade"
+          >
+            See grade →
+          </button>
+        </div>
+      </Panel>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 10 — GRADE
+// ═══════════════════════════════════════════════════════════════
+
+function GradePhase() {
+  const grade = useMcpLabStore((s) => s.grade);
+  const setPhase = useMcpLabStore((s) => s.setPhase);
+  const reset = useMcpLabStore((s) => s.reset);
+  const updateScore = useGameStore((s) => s.updateScore);
+  const advanceRound = useGameStore((s) => s.advanceRound);
+  const isComplete = useGameStore((s) => s.isComplete);
+
+  useEffect(() => {
+    if (!grade) return;
+    updateScore(grade.stars * 50);
+  }, [grade, updateScore]);
+
+  if (!grade) {
+    return (
+      <div className="absolute inset-0 grid place-items-center p-8">
+        <Panel className="p-6 text-white/60 font-body text-sm">No grade available.</Panel>
+      </div>
+    );
+  }
+
+  const mvpTool = grade.mvpToolId ? TOOL_CATALOG.find((t) => t.id === grade.mvpToolId) : null;
+
+  return (
+    <motion.div
+      key="grade"
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.35 }}
+      className="absolute inset-0 overflow-y-auto p-6"
+    >
+      <div className="max-w-2xl mx-auto py-6">
+        <Panel className="p-8 text-center">
+          <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+            Equipped run · graded
+          </p>
+          <div className="flex justify-center gap-2 mb-4">
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.15 }}
+                className="text-5xl"
+                style={{ color: i < grade.stars ? '#FFD93D' : 'rgba(255,255,255,0.15)' }}
+                aria-hidden="true"
+              >
+                ★
+              </motion.span>
+            ))}
+          </div>
+          <p className="font-display text-3xl font-bold text-white mb-1" aria-live="polite">
+            {grade.stars} / 3 stars
+          </p>
+          <p className="font-mono text-xs text-white/60 mb-6">
+            {Math.round(grade.total * 100)}% · {grade.timeMs}ms
+          </p>
+
+          <ul className="text-left space-y-1.5 mb-5">
+            {grade.perCriterion.map((c, i) => (
+              <li
+                key={i}
+                className="flex items-start gap-2 px-3 py-1.5 rounded bg-black/40 border border-white/10"
+              >
+                <span
+                  className="flex-shrink-0 inline-grid place-items-center w-5 h-5 rounded-full font-bold text-[11px]"
+                  style={{
+                    background: c.matched >= 0.7 ? `${LAB11_HEX}30` : '#FF705030',
+                    color: c.matched >= 0.7 ? LAB11_HEX : '#FF7050',
+                  }}
+                  aria-hidden="true"
+                >
+                  {c.matched >= 0.7 ? '✓' : '~'}
+                </span>
+                <span className="font-body text-xs text-white/85 flex-1">{c.criterion}</span>
+                <span className="font-mono text-[10px] text-white/50">
+                  {Math.round(c.matched * 100)}%
+                </span>
+              </li>
+            ))}
+          </ul>
+
+          {grade.violations.length > 0 && (
+            <div
+              className="text-left rounded-lg p-3 mb-5"
+              style={{ background: 'rgba(255,112,80,0.1)', border: '1px solid rgba(255,112,80,0.4)' }}
+            >
+              <p className="font-mono text-[10px] uppercase text-[#FF7050] mb-1">Violations</p>
+              <p className="font-body text-xs text-white/85">
+                You attached {grade.violations.length} forbidden tool
+                {grade.violations.length === 1 ? '' : 's'}: {grade.violations.join(', ')}.
+                Each violation cost 15% of the score.
+              </p>
+            </div>
+          )}
+
+          {mvpTool && (
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded mb-6"
+              style={{ background: `${mvpTool.accentHex}15`, border: `1px solid ${mvpTool.accentHex}40` }}
+            >
+              <span aria-hidden="true">{mvpTool.emoji}</span>
+              <span className="font-mono text-[11px] text-white/85">
+                MVP tool: <strong>{mvpTool.name}</strong>
+              </span>
+            </div>
+          )}
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            <button
+              type="button"
+              onClick={() => setPhase('save')}
+              className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+              style={{ background: LAB11_HEX, color: '#031416' }}
+              aria-label="Save equipped composition"
+            >
+              Save composition
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                advanceRound();
+                if (isComplete) {
+                  setPhase('complete');
+                } else {
+                  reset();
+                  setPhase('mission-select');
+                }
+              }}
+              className="px-5 py-2 rounded font-mono text-xs text-white/85 border border-white/30 hover:bg-white/5 hover:text-white"
+              aria-label="Skip save and pick a new mission"
+            >
+              New mission →
+            </button>
+            <button
+              type="button"
+              onClick={() => setPhase('equip')}
+              className="px-5 py-2 rounded font-mono text-xs text-white/70 border border-white/20 hover:text-white"
+              aria-label="Try again with different tools"
+            >
+              Try again
+            </button>
+          </div>
+        </Panel>
+      </div>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 11 — SAVE
+// ═══════════════════════════════════════════════════════════════
+
+function SavePhase() {
+  const setPhase = useMcpLabStore((s) => s.setPhase);
+  const saveEquipped = useMcpLabStore((s) => s.saveEquippedComposition);
+  const isSaving = useMcpLabStore((s) => s.isSaving);
+  const advanceRound = useGameStore((s) => s.advanceRound);
+  const isComplete = useGameStore((s) => s.isComplete);
+  const activeChild = useActiveChild();
+
+  const [name, setName] = useState('');
+  const trimmed = name.trim();
+  const valid = trimmed.length >= 1 && trimmed.length <= 80;
+
+  async function handleSave() {
+    if (!valid || !activeChild) return;
+    const ok = await saveEquipped(activeChild.id, trimmed);
+    if (ok) {
+      advanceRound();
+      setPhase(isComplete ? 'complete' : 'mission-select');
+    }
+  }
+
+  return (
+    <motion.div
+      key="save"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-6">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Save equipped composition
+        </p>
+        <h2 className="font-display text-xl font-bold text-white mb-4">Name this loadout</h2>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          maxLength={80}
+          placeholder="e.g. Travel Trio + tools"
+          className="w-full px-3 py-2 rounded bg-black/50 border border-white/15 text-white font-body text-sm focus:outline-none focus:border-white/40"
+          aria-label="Composition name"
+        />
+        <p className="mt-1 font-mono text-[10px] text-white/45">{trimmed.length}/80</p>
+
+        <div className="flex justify-end gap-2 mt-5">
+          <button
+            type="button"
+            onClick={() => setPhase('grade')}
+            className="px-4 py-2 rounded font-mono text-xs text-white/70 hover:text-white border border-white/20"
+            disabled={isSaving}
+          >
+            ← back
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!valid || isSaving || !activeChild}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105 disabled:opacity-40"
+            style={{ background: LAB11_HEX, color: '#031416' }}
+            aria-label="Save composition"
+          >
+            {isSaving ? 'Saving…' : 'Save'}
+          </button>
+        </div>
+      </Panel>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 12 — COMPLETE
+// ═══════════════════════════════════════════════════════════════
+
+function CompletePhase() {
+  const completeGame = useGameStore((s) => s.completeGame);
+
+  useEffect(() => {
+    completeGame();
+  }, [completeGame]);
+
+  return (
+    <motion.div
+      key="complete"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-8 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          MCP session complete
+        </p>
+        <h2 className="font-display text-2xl font-bold text-white mb-3">
+          You&apos;ve equipped {TOTAL_ROUNDS} teams!
+        </h2>
+        <p className="font-body text-sm text-white/75 leading-relaxed">
+          These equipped saves are ready for the{' '}
+          <span style={{ color: LAB11_HEX }}>Glass Box</span> (audit replay) and{' '}
+          <span style={{ color: LAB11_HEX }}>Harness Forge</span> (safety wraps) labs.
+        </p>
+      </Panel>
+    </motion.div>
   );
 }
 
@@ -722,12 +1259,12 @@ export function McpLabGame() {
         {phase === 'learn-plug-and-play' && <LearnPlugAndPlayPhase key="learn-plug-and-play" />}
         {phase === 'mission-select' && <MissionSelectPhase key="mission-select" ageBand={ageBand} />}
         {phase === 'load-team' && <LoadTeamPhase key="load-team" />}
-        {phase === 'equip' && <EquipPlaceholder key="equip" />}
-        {phase === 'test' && <EquipPlaceholder key="test" />}
-        {phase === 'compare' && <EquipPlaceholder key="compare" />}
-        {phase === 'grade' && <EquipPlaceholder key="grade" />}
-        {phase === 'save' && <EquipPlaceholder key="save" />}
-        {phase === 'complete' && <EquipPlaceholder key="complete" />}
+        {phase === 'equip' && <EquipPhase key="equip" ageBand={ageBand} />}
+        {phase === 'test' && <EquipPhase key="test" ageBand={ageBand} />}
+        {phase === 'compare' && <ComparePhase key="compare" />}
+        {phase === 'grade' && <GradePhase key="grade" />}
+        {phase === 'save' && <SavePhase key="save" />}
+        {phase === 'complete' && <CompletePhase key="complete" />}
       </AnimatePresence>
     </GameShell>
   );
