@@ -62,6 +62,7 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   // Lab 11 (April 30, 2026): Agentic AI flagship cohort
   'agent-atelier':    { position: [0, 4, 8],    lookAt: [0, 0, 0],   fov: 55 },
   'mcp-lab':          { position: [0, 4, 8.5],  lookAt: [0, 0, 0],   fov: 55 },
+  'glass-box':        { position: [0, 3.5, 7],  lookAt: [0, 1, 0],   fov: 50 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -676,6 +677,23 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     icon: '\ud83d\udd0c',
     triangleBudget: budget('flagship', true),
     cameraPreset: cameraPreset('mcp-lab'),
+  },
+  // \u2500\u2500 Lab 11 \u2014 Stage 11F (May 1, 2026): Audit step
+  {
+    id: 38,
+    name: 'Glass Box Lab',
+    slug: 'glass-box',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'GlassBox3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11F',
+    description: 'Open up any team you\'ve built and look inside. Step through its trajectory and find the bugs.',
+    icon: '\ud83d\udd0d',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('glass-box'),
   },
 ] as const;
 

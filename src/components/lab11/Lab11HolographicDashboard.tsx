@@ -471,21 +471,21 @@ const ROADMAP: RoadmapStage[] = [
     stage: '11E',
     title: 'MCP Plug-and-Play Lab',
     arc: 'Equip',
-    status: 'next',
+    status: 'live',
     blurb: 'Plug tools into your agents and watch capabilities expand.',
   },
   {
     stage: '11F',
     title: 'Glass Box Lab',
     arc: 'Audit',
-    status: 'planned',
+    status: 'live',
     blurb: 'Replay any saved run frame-by-frame to see how your team thinks.',
   },
   {
     stage: '11G',
     title: 'Harness Forge',
     arc: 'Constrain',
-    status: 'planned',
+    status: 'next',
     blurb: 'Wrap your team in safety harnesses and see what each layer catches.',
   },
 ];
@@ -567,7 +567,7 @@ function GameList({ games, labColor }: GameListProps) {
         className="font-mono text-[10px] uppercase tracking-widest mb-2"
         style={{ color: labColor }}
       >
-        {games.length} game{games.length === 1 ? '' : 's'} live · 3 planned
+        {games.length} game{games.length === 1 ? '' : 's'} live · 1 planned
       </p>
       <div className="space-y-2">
         {games.map((game, index) => (
@@ -610,7 +610,7 @@ function GameList({ games, labColor }: GameListProps) {
         ))}
 
         {/* Coming-soon tiles for the rest of the cohort */}
-        {(['11E - MCP Plug-and-Play Lab', '11F - Glass Box Lab', '11G - Harness Forge'] as const).map((label, i) => (
+        {(['11G - Harness Forge'] as const).map((label, i) => (
           <div
             key={label}
             className="flex items-center gap-3 rounded-xl p-3 bg-surface-card/20 border border-white/[0.05] opacity-60"

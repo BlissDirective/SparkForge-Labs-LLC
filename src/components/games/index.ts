@@ -56,3 +56,5 @@ export { AiOrNotGame } from './AiOrNotGame';
 export { AgentAtelierGame } from './AgentAtelierGame';
 // Stage 11E — Lab 11 Equip step
 export { McpLabGame } from './McpLabGame';
+// Stage 11F — Lab 11 Audit step
+export { GlassBoxGame } from './GlassBoxGame';

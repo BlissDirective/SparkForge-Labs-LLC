@@ -26,7 +26,9 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   // ═══ Lab 11 Flagship Cohort (Stage 11D, April 30, 2026) ═══
   | 'agent-atelier'
   // ═══ Lab 11 Stage 11E (May 1, 2026) — Equip step ═══
-  | 'mcp-lab';
+  | 'mcp-lab'
+  // ═══ Lab 11 Stage 11F (May 1, 2026) — Audit step ═══
+  | 'glass-box';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -108,7 +110,11 @@ export type ContentType =
   // ═══ Lab 11 — MCP Plug-and-Play Lab (Stage 11E) ═══
   // 3 content types: equipped-mission spec, fresh tool description for
   // the descriptions tutorial, custom-tool spec for advanced kids.
-  | 'mcp-equipped-mission' | 'mcp-tool-description' | 'mcp-custom-tool-spec';
+  | 'mcp-equipped-mission' | 'mcp-tool-description' | 'mcp-custom-tool-spec'
+  // ═══ Lab 11 — Glass Box Lab (Stage 11F) ═══
+  // 3 content types: tutorial-grade synthetic trajectory step example,
+  // an issue-spotting puzzle, and a kid-readable audit report template.
+  | 'glassbox-trajectory-example' | 'glassbox-issue-puzzle' | 'glassbox-audit-summary';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -140,7 +146,7 @@ export const AIContentRequestSchema = z.object({
     'build-classifier', 'prediction-market', 'sentiment-scanner', 'lost-in-translation',
     'career-explorer', 'api-explorer',
     // Lab 11 cohort
-    'agent-atelier', 'mcp-lab',
+    'agent-atelier', 'mcp-lab', 'glass-box',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -183,6 +189,8 @@ export const AIContentRequestSchema = z.object({
     'atelier-mission', 'atelier-rubric-criterion', 'atelier-narrative-frame',
     // Lab 11 - MCP Plug-and-Play Lab
     'mcp-equipped-mission', 'mcp-tool-description', 'mcp-custom-tool-spec',
+    // Lab 11 - Glass Box Lab
+    'glassbox-trajectory-example', 'glassbox-issue-puzzle', 'glassbox-audit-summary',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -750,6 +758,27 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
     `"inputType": "text|list|number|plan|code|tool_request", ` +
     `"outputType": "text|list|number|plan|code|tool_request", ` +
     `"description": "...", "sideEffect": "read-only|sandboxed|cached-fetch|network", "emoji": "..." }`,
+
+  // ─── Lab 11 — Glass Box Lab (Stage 11F) ───────────────────────
+
+  'glassbox-trajectory-example': (ageBand) =>
+    `Write a tutorial-grade kid-safe example of one trajectory step. Show what the agent saw as ` +
+    `inputs, what it produced as outputs, and a one-sentence summary. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "agentName": "...", "summary": "...", "inputs": { "...": "..." }, "outputs": { "...": "..." } }`,
+
+  'glassbox-issue-puzzle': (ageBand) =>
+    `Create a kid-safe audit puzzle: a 4-step trajectory snippet where exactly 1 of the issue ` +
+    `categories applies (missing-input, unused-output, tool-misuse, redundant-step, no-critic, ` +
+    `or short-loop). The kid reads the trajectory and identifies which category. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "trajectory": [{ "step": 1, "agent": "...", "summary": "..." }, ...], ` +
+    `"correctCategory": "missing-input|unused-output|tool-misuse|redundant-step|no-critic|short-loop", ` +
+    `"explanation": "..." }`,
+
+  'glassbox-audit-summary': (ageBand) =>
+    `Write a kid-readable one-paragraph audit summary that explains what was good and what was ` +
+    `weak about a trajectory. Should encourage iteration without being harsh. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "headline": "...", "good": "...", "improve": "...", "encouragement": "..." }`,
 };
 
 // ================================================================
