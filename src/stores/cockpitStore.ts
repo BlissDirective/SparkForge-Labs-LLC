@@ -77,11 +77,14 @@ export interface CameraTarget {
 }
 
 // Pre-calculated lab positions in a circular ring
-const LAB_ANGLE_STEP = (2 * Math.PI) / 10;
+// Lab 11 (Agentic AI, added April 30, 2026) inserted into the ring —
+// step recalculated for 11 evenly-spaced positions.
+const LAB_COUNT = 11;
+const LAB_ANGLE_STEP = (2 * Math.PI) / LAB_COUNT;
 const LAB_RING_RADIUS = 3.8;
 
 export const LAB_POSITIONS: Record<number, [number, number, number]> = {};
-for (let i = 1; i <= 10; i++) {
+for (let i = 1; i <= LAB_COUNT; i++) {
   const angle = (i - 1) * LAB_ANGLE_STEP - Math.PI / 2; // Start from top
   LAB_POSITIONS[i] = [
     Math.cos(angle) * LAB_RING_RADIUS,

@@ -1,7 +1,7 @@
 'use client';
 
 // ════════════════════════════════════════════════════
-// HolographicLabMap — 3D Holographic Map of All 10 Labs
+// HolographicLabMap — 3D Holographic Map of All 11 Labs
 // ════════════════════════════════════════════════════
 // Enhancement 3.0: 20M cockpit upgrade (1,000,000 triangle budget).
 // - 4 concentric geodesic shells (icosahedron detail 0/1/2/3)
@@ -67,15 +67,21 @@ void energyFieldFragment;
 void energyFieldVertex;
 
 // Lab accent colors (same as useStationMode)
+// Lab 11 (Agentic AI) added April 30, 2026 — Mint-Cyan #6FFFE6 from labColors.ts.
+// NOTE: This local table mirrors labColors.ts; future drift-prevention work should
+// derive it via LAB_COLORS_HEX from '@/config/labColors'.
 const LAB_COLORS: Record<number, string> = {
   1: '#00BBFF', 2: '#AA66FF', 3: '#FF66AA', 4: '#FFAA44', 5: '#00FF88',
   6: '#FF6644', 7: '#06B6D4', 8: '#818CF8', 9: '#10B981', 10: '#D946EF',
+  11: '#6FFFE6',
 };
 
 // Adjacency map for connection beams (labs that are neighbors in the ring)
+// Lab 11 inserted between Lab 10 and Lab 1, extending the ring topology.
 const LAB_ADJACENCY: Record<number, number[]> = {
-  1: [2, 10], 2: [1, 3], 3: [2, 4], 4: [3, 5], 5: [4, 6],
-  6: [5, 7], 7: [6, 8], 8: [7, 9], 9: [8, 10], 10: [9, 1],
+  1: [2, 11], 2: [1, 3], 3: [2, 4], 4: [3, 5], 5: [4, 6],
+  6: [5, 7], 7: [6, 8], 8: [7, 9], 9: [8, 10], 10: [9, 11],
+  11: [10, 1],
 };
 
 interface HolographicLabMapProps {
@@ -744,7 +750,7 @@ const DRAG_DEAD_ZONE = 0.03; // radians — below this threshold, treat as click
 const DRAG_INERTIA_DECAY = 3.5; // velocity decays by this factor per second
 const DRAG_INERTIA_MIN = 0.001; // stop inertia below this rad/s
 const _DRAG_SNAP_SPEED = 4.0; // lerp speed for snap-to-lab
-const _LAB_ANGLE_STEP_RAD = (2 * Math.PI) / 10;
+const _LAB_ANGLE_STEP_RAD = (2 * Math.PI) / 11;
 
 export function HolographicLabMap({
   focusedLabId,

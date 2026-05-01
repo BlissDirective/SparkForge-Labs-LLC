@@ -445,6 +445,13 @@ export const LABS: LabMeta[] = [
       { slug: 'ai-or-not', title: 'AI or Not?', emoji: '❓', description: 'Judge whether creative works were made by humans or AI', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B'] },
     ],
   },
+  {
+    // Lab 11 added April 30, 2026 (Doc 2 Section B Path B). Hosts the Build->Equip->Constrain
+    // arc: C1 Agent Atelier (Stage 11D), C6 MCP Plug-and-Play Lab (Stage 11E), C7 Harness Forge
+    // (Stage 11G). Games array starts empty; later build phases populate it.
+    id: 11, title: 'Agentic AI', subtitle: 'Teams of AI Agents', color: '#6FFFE6', tint: '#6FFFE6', icon: '🕸️', description: 'Build teams of AI agents, plug tools into them, and wrap them in safety harnesses',
+    games: [],
+  },
 ];
 
 export const WORLDS = LABS;
