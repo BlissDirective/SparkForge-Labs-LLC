@@ -12,11 +12,17 @@
 //   - cockpitBroadcast 'lab-select' event → cross-panel sync
 //   - Game click → router navigates to /arcade/[gameSlug]
 //
-// Resolves S4-CRIT-003 (missing route) + S3-INFO-3D-001 (setLabColor)
+// REFACTOR (May 1, 2026 — Stage 11A): page now derives names /
+// descriptions / colors from the canonical LABS array (single source
+// of truth, automatically Lab-11-aware). Adds Lab 11 special-case
+// rendering: when labId === 11 the page renders the holographic
+// dashboard component (Lab11HolographicDashboard) instead of the
+// standard game-list template.
 
 import { useEffect, useMemo } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import { motion } from 'motion/react';
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useActiveChild } from '@/hooks/useChildren';
 import { useUIStore } from '@/stores/uiStore';
@@ -25,31 +31,13 @@ import { useLabProgress } from '@/hooks/useProgress';
 import { useCockpitBroadcast } from '@/stores/cockpitBroadcastStore';
 import { staggerContainer, staggerItem } from '@/lib/animations';
 import { getGamesByLab } from '@/config/gameRegistry';
+import { LABS } from '@/types';
 import { ArrowLeft, Play } from 'lucide-react';
 
-const LAB_NAMES = [
-  'What IS AI?', 'Teaching Machines', 'The Brain Inside',
-  'AI That Creates', 'AI Helpers', 'AI & Ethics',
-  'Computer Vision', 'Words & Language', 'Build Your AI', "AI's Future",
-] as const;
-
-// P2 §7.2: derived from the canonical LAB_COLORS_TABLE (src/config/labColors.ts)
-// so cosmetic changes stay in one file. 0-indexed — `LAB_COLORS[labId - 1]`.
-import { LAB_COLORS_TABLE } from '@/config/labColors';
-const LAB_COLORS = LAB_COLORS_TABLE.map((l) => l.hex) as readonly string[];
-
-const LAB_DESCRIPTIONS = [
-  'Discover what artificial intelligence is and how it shapes our world',
-  'Learn how machines learn from data and improve over time',
-  'Explore neural networks and how AI brains process information',
-  'See how AI creates art, music, stories, and more',
-  'Build AI agents that help people solve real problems',
-  'Understand bias, fairness, and responsible AI development',
-  'Teach computers to see and understand images and video',
-  'Explore how AI understands and generates human language',
-  'Build your own AI applications from scratch',
-  'Imagine the future of AI and its impact on society',
-] as const;
+const Lab11HolographicDashboard = dynamic(
+  () => import('@/components/lab11/Lab11HolographicDashboard'),
+  { ssr: false },
+);
 
 const TIER_BADGES: Record<string, { label: string; color: string }> = {
   flagship: { label: 'FLAGSHIP', color: '#FFD700' },
@@ -68,22 +56,24 @@ export default function LabDetailPage() {
   const broadcast = useCockpitBroadcast((s) => s.broadcast);
   const childId = activeChild?.id || '';
 
-  // Validate lab ID — notFound() is called after hooks that are always called unconditionally
-  // (useParams, useChildStore, useUIStore, useCockpitStore, useCockpitBroadcast).
-  // This is safe because none of the hooks above are conditional — React hook order is preserved.
-  if (labId < 1 || labId > 10) {
+  // Resolve lab metadata from the canonical LABS array (Lab-11-aware).
+  // notFound() is called below after all hooks have been registered to
+  // preserve React hook order.
+  const lab = LABS.find((l) => l.id === labId);
+
+  if (!lab) {
     notFound();
   }
 
-  const color = LAB_COLORS[labId - 1];
-  const name = LAB_NAMES[labId - 1];
-  const description = LAB_DESCRIPTIONS[labId - 1];
+  const color = lab.color;
+  const name = lab.title;
+  const description = lab.description;
   const games = useMemo(() => getGamesByLab(labId), [labId]);
 
   const { data: labProgress, isLoading } = useLabProgress(childId, labId);
   const progressPercent = (labProgress as { percent?: number } | undefined)?.percent || 0;
 
-  // 3D Integration: Tint cockpit to lab color + focus 3D map on this lab
+  // 3D Integration: tint cockpit + focus 3D map on this lab.
   useEffect(() => {
     setLabColor(color);
     focusLab(labId);
@@ -96,15 +86,35 @@ export default function LabDetailPage() {
     });
 
     return () => {
-      focusLab(null); // Return to overview on unmount
+      focusLab(null);
     };
   }, [labId, color, name, setLabColor, focusLab, broadcast]);
 
   if (!activeChild) {
     return (
       <div className="text-center py-20" role="status">
-        <div className="w-8 h-8 border-2 border-t-current rounded-full animate-spin mx-auto" style={{ borderColor: `${color}30`, borderTopColor: color }} />
+        <div
+          className="w-8 h-8 border-2 border-t-current rounded-full animate-spin mx-auto"
+          style={{ borderColor: `${color}30`, borderTopColor: color }}
+        />
       </div>
+    );
+  }
+
+  // ── Lab 11 special case: holographic dashboard ─────────────────
+  // Lab 11 (Agentic AI) renders the cockpit-style holographic
+  // dashboard instead of the standard game-list template, surfacing
+  // composition stats, mission progress, and the cohort roadmap.
+  if (labId === 11) {
+    return (
+      <Lab11HolographicDashboard
+        childId={childId}
+        labColor={color}
+        labName={name}
+        labDescription={description}
+        progressPercent={progressPercent}
+        isLoadingProgress={isLoading}
+      />
     );
   }
 
