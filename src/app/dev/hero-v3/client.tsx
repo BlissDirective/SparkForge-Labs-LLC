@@ -25,11 +25,15 @@ import { Beat1VoidAwakening } from '@/components/3d/hero/v3/Beat1VoidAwakening';
 import { Beat2IgnitionSpark } from '@/components/3d/hero/v3/Beat2IgnitionSpark';
 import { Beat3SCrystallization } from '@/components/3d/hero/v3/Beat3SCrystallization';
 import { Beat4FMirrorAndShardBurst } from '@/components/3d/hero/v3/Beat4FMirrorAndShardBurst';
+import { Beat5WordmarkCascade } from '@/components/3d/hero/v3/Beat5WordmarkCascade';
+import { Beat6DichroicBloom } from '@/components/3d/hero/v3/Beat6DichroicBloom';
+import { Beat7CockpitMaterialization } from '@/components/3d/hero/v3/Beat7CockpitMaterialization';
+import { Beat8AtomicHandoff } from '@/components/3d/hero/v3/Beat8AtomicHandoff';
 import { ensureHeroStudio } from '@/lib/hero/heroTheatreProject';
 import { LIGHTING, PALETTE, SF_BRAND } from '@/lib/branding/sf-material.config';
 
 // ─────────────────────────────────────────────────────────────────────
-// Beat boundaries (storyboard §2)
+// Beat boundaries (storyboard §2 + runtime extension)
 // ─────────────────────────────────────────────────────────────────────
 
 const BEAT_BOUNDS = [
@@ -37,9 +41,13 @@ const BEAT_BOUNDS = [
   { id: 2, start: 2.5,  end: 5.0,  label: 'Ignition Spark' },
   { id: 3, start: 5.0,  end: 8.0,  label: 'S Crystallization' },
   { id: 4, start: 8.0,  end: 11.0, label: 'F Mirror + Shard Burst' },
+  { id: 5, start: 11.0, end: 14.0, label: 'Wordmark Cascade' },
+  { id: 6, start: 14.0, end: 16.5, label: 'Dichroic Bloom' },
+  { id: 7, start: 16.5, end: 18.5, label: 'Cockpit Materialization' },
+  { id: 8, start: 18.5, end: 19.5, label: 'Shatter-into-UI' },
 ] as const;
 
-const SCRUB_END = 11.0;
+const SCRUB_END = 19.5;
 
 // ─────────────────────────────────────────────────────────────────────
 // Camera waypoints (storyboard §3-§6)
@@ -60,8 +68,16 @@ const CAMERA_WAYPOINTS: CameraWaypoint[] = [
   { time: 5.0,  pos: [-1.4, 0.6, 9.2], lookAt: [-0.2, 0.1, 0], fov: 38 },
   // Beat 3: pull in to S
   { time: 8.0,  pos: [-0.4, 0.2, 7.5], lookAt: [-0.4, 0.2, 0], fov: 40 },
-  // Beat 4 start: lateral dolly across to F position; tilt up slightly at end
+  // Beat 4 end: lateral dolly across to F position; slight tilt up
   { time: 11.0, pos: [0.4, 0.2, 7.5],  lookAt: [0.4, 0.2, 0],  fov: 40 },
+  // Beat 5 end: pull-back + recenter for full-word framing
+  { time: 14.0, pos: [0, 0.4, 9.5],   lookAt: [0, 0, 0],      fov: 42 },
+  // Beat 6 end: gentle pull-back; breathing float
+  { time: 16.5, pos: [0, 0.6, 10.5],  lookAt: [0, 0, 0],      fov: 44 },
+  // Beat 7 end: strong upward + forward arc; lookAt cockpit horizon
+  { time: 18.5, pos: [0, 6.0, 7.5],   lookAt: [0, 3.0, 0],    fov: 58 },
+  // Beat 8: hold at Beat 7 end pose (no further movement — atomic handoff)
+  { time: 19.5, pos: [0, 6.0, 7.5],   lookAt: [0, 3.0, 0],    fov: 58 },
 ];
 
 function lerpVec3(a: readonly number[], b: readonly number[], t: number): [number, number, number] {
@@ -133,23 +149,22 @@ function HeroV3CameraController({ timeRef }: { timeRef: React.MutableRefObject<n
 // ─────────────────────────────────────────────────────────────────────
 
 function HeroV3Beats({ timeRef }: { timeRef: React.MutableRefObject<number> }) {
-  // Per-frame compute of per-beat progress + active. We don't useState
-  // here (would re-render constantly) — instead we read into refs the
-  // beat components read from. But our beats consume progress via
-  // props, so we DO need state OR direct ref-based mutation. The simpler
-  // approach: do a small useFrame that triggers a re-render via state
-  // only when progress changes meaningfully (>1% delta).
+  // Per-frame compute of per-beat progress + active. Throttled to ~30 Hz
+  // to avoid React re-render storm.
   const [beatState, setBeatState] = useState(() => ({
     beat1: { progress: 0, active: true },
     beat2: { progress: 0, active: false },
     beat3: { progress: 0, active: false },
     beat4: { progress: 0, active: false },
+    beat5: { progress: 0, active: false },
+    beat6: { progress: 0, active: false },
+    beat7: { progress: 0, active: false },
+    beat8: { progress: 0, active: false },
   }));
   const lastUpdateRef = useRef(-1);
 
   useFrame(() => {
     const t = timeRef.current;
-    // Throttle to ~30 Hz to avoid React re-render storm
     if (Math.abs(t - lastUpdateRef.current) < 0.033) return;
     lastUpdateRef.current = t;
 
@@ -166,6 +181,10 @@ function HeroV3Beats({ timeRef }: { timeRef: React.MutableRefObject<number> }) {
       beat2: beats[1],
       beat3: beats[2],
       beat4: beats[3],
+      beat5: beats[4],
+      beat6: beats[5],
+      beat7: beats[6],
+      beat8: beats[7],
     });
   });
 
@@ -175,6 +194,20 @@ function HeroV3Beats({ timeRef }: { timeRef: React.MutableRefObject<number> }) {
       <Beat2IgnitionSpark progress={beatState.beat2.progress} active={beatState.beat2.active} />
       <Beat3SCrystallization progress={beatState.beat3.progress} active={beatState.beat3.active} />
       <Beat4FMirrorAndShardBurst progress={beatState.beat4.progress} active={beatState.beat4.active} />
+      <Beat5WordmarkCascade progress={beatState.beat5.progress} active={beatState.beat5.active} />
+      <Beat6DichroicBloom progress={beatState.beat6.progress} active={beatState.beat6.active} />
+      <Beat7CockpitMaterialization progress={beatState.beat7.progress} active={beatState.beat7.active} />
+      <Beat8AtomicHandoff
+        progress={beatState.beat8.progress}
+        active={beatState.beat8.active}
+        onHandoffComplete={() => {
+          // Dev scrubber log only — HeroAnimation v3 (5c.6) wires this
+          // to cockpitStore.setHeroPhase('complete') + setCockpitReady(true)
+          if (typeof console !== 'undefined') {
+            console.info('[hero v3 dev] Atomic handoff complete @ t=19.5');
+          }
+        }}
+      />
     </>
   );
 }
@@ -339,13 +372,14 @@ export function HeroV3Client() {
             <HeroV3Beats timeRef={timeRef} />
           </Canvas>
           <div className="pointer-events-none absolute left-3 top-3 rounded bg-black/60 px-2 py-1 text-xs text-white/80">
-            Hero v3 · Beats 1-4 ({MathUtils.clamp((time / SCRUB_END) * 100, 0, 100).toFixed(0)}%)
+            Hero v3 · all 8 beats ({MathUtils.clamp((time / SCRUB_END) * 100, 0, 100).toFixed(0)}%)
           </div>
         </section>
 
         <footer className="mt-6 space-y-1 text-xs text-white/40">
-          <p>Storyboard: <code>docs/hero-v3/Storyboard.md</code> v1.2 (19.5 s total). This route covers Beats 1-4 (0 → 11.0 s).</p>
-          <p>Beats 5-8 (Wordmark Cascade → Atomic Handoff Shatter-into-UI) land in Phase 5c. Live homepage hero stays on v2 until 5c integrates v3 wholesale.</p>
+          <p>Storyboard: <code>docs/hero-v3/Storyboard.md</code> v1.2 (19.5 s total). This route covers all 8 beats (0 → 19.5 s) — Phase 5c.</p>
+          <p>Audio: heroAudio.ts:syncToProgress fully remapped per storyboard §11. Theatre.js studio auto-mounted (Q8) — tune any beat's exposed objects in the bottom-right panel.</p>
+          <p>Live homepage hero (/) stays on v2 until 5c.6 wires v3 into HeroAnimation.tsx wholesale (visual sign-off via HS-9 hard stop after 5c.6).</p>
         </footer>
       </div>
     </main>
