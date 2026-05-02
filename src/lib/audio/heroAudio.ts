@@ -21,15 +21,25 @@
 import * as Tone from 'tone';
 
 // ── Phase timing constants (seconds) ────────────────────────────
+// Hero v3 boundaries (storyboard §11 audio remap, runtime extension to 19.5 s).
+// Each PHASE_TIMES key now corresponds to a v3 beat:
+//   void        → Beat 1 (Void Awakening)         0.0  → 2.5
+//   assembly    → Beat 2 (Ignition Spark)         2.5  → 5.0
+//   showcase    → Beat 3 (S Crystallization)      5.0  → 8.0
+//   surge       → Beat 4 first half (F buildup)   8.0  → 10.0
+//   shatter     → Beat 4 second half (detonation) 10.0 → 11.0
+//   regroup     → Beats 5+6 (Cascade + Bloom)     11.0 → 16.5
+//   materialize → Beat 7 (Cockpit Materialization)16.5 → 18.5
+//   online      → Beat 8 (Atomic Handoff)         18.5 → 19.5
 const PHASE_TIMES = {
-  void:        { start: 0.0,  end: 2.0  },
-  assembly:    { start: 2.0,  end: 4.5  },
-  showcase:    { start: 4.5,  end: 7.5  },
-  surge:       { start: 7.5,  end: 10.0 },
-  shatter:     { start: 10.0, end: 11.5 },
-  regroup:     { start: 11.5, end: 14.0 },
-  materialize: { start: 14.0, end: 17.0 },
-  online:      { start: 17.0, end: 19.0 },
+  void:        { start: 0.0,  end: 2.5  },
+  assembly:    { start: 2.5,  end: 5.0  },
+  showcase:    { start: 5.0,  end: 8.0  },
+  surge:       { start: 8.0,  end: 10.0 },
+  shatter:     { start: 10.0, end: 11.0 },
+  regroup:     { start: 11.0, end: 16.5 },
+  materialize: { start: 16.5, end: 18.5 },
+  online:      { start: 18.5, end: 19.5 },
 } as const;
 
 // ── Audio node interfaces ───────────────────────────────────────
@@ -454,7 +464,7 @@ export class HeroAudioTimeline {
   syncToProgress(progress: number): void {
     if (!this.isInitialized || this.isDisposed) return;
 
-    const currentTime = progress * 19.0; // 19s total duration
+    const currentTime = progress * 19.5; // 19.5s total duration (v3 runtime)
 
     // Phase 1: Void (0.0–2.0s)
     this.syncVoid(currentTime);
@@ -511,8 +521,8 @@ export class HeroAudioTimeline {
         rumble.start();
         subBass.start();
       }
-      // Ramp filter 80Hz → 200Hz over 2s
-      const t = (time - PHASE_TIMES.void.start) / 2.0;
+      // Ramp filter 80Hz → 200Hz over 2.5s (v3 extended window)
+      const t = (time - PHASE_TIMES.void.start) / 2.5;
       rumbleFilter.frequency.value = 80 + t * 120;
       // Sub-bass amplitude 0 → 0.3
       subBassGain.gain.value = t * 0.3;
@@ -529,22 +539,25 @@ export class HeroAudioTimeline {
     if (this.isInPhase(time, 'assembly')) {
       if (this.startPhase('assembly')) {
         whoosh.start();
-        // Start grain chimes if loaded (graceful if audio file missing)
-        try { grainChimes.start(); } catch { /* file not loaded */ }
+        // Start grain chimes if loaded (graceful if audio file missing).
+        // v3 grain start delayed to t=3.0 (1st lensflare ignition has just
+        // landed); set up a triggerOnce below.
       }
-      // Sweep whoosh filter 200Hz → 2kHz over 2.5s
+      // Sweep whoosh filter 200Hz → 1200Hz over 2.5s (softened from 2kHz —
+      // v3 storyboard §11 calls for a softer peak that doesn't compete
+      // with the lensflare hot core's spectral brightness)
       const t = (time - PHASE_TIMES.assembly.start) / 2.5;
-      whooshFilter.frequency.value = 200 + t * 1800;
+      whooshFilter.frequency.value = 200 + t * 1000;
 
-      // Impact hit at t=4.0s
-      this.triggerOnce('assembly-impact', () => {
-        if (time >= 3.8) {
-          impact.triggerAttackRelease('C1', '8n');
-          clang.triggerAttackRelease('16n', Tone.now());
-        }
-      });
-      // Re-check for impact timing
-      if (time >= 3.8 && time < 4.2) {
+      // GrainChimes start delayed to t=3.0 (matches v3 storyboard §4)
+      if (time >= 3.0) {
+        this.triggerOnce('assembly-grain-start', () => {
+          try { grainChimes.start(); } catch { /* file not loaded */ }
+        });
+      }
+
+      // Impact + clang hit at t=4.0 (warm-amber lensflare peak)
+      if (time >= 3.95 && time < 4.15) {
         this.triggerOnce('assembly-impact-actual', () => {
           impact.triggerAttackRelease('C1', '8n');
           clang.triggerAttackRelease('16n', Tone.now());
@@ -562,15 +575,16 @@ export class HeroAudioTimeline {
 
     if (this.isInPhase(time, 'showcase')) {
       if (this.startPhase('showcase')) {
-        // Play C4, E4, G4, B4 chord
+        // Cmaj7 chord sustained across Beat 3 (S Crystallization)
         hum.triggerAttack(['C4', 'E4', 'G4', 'B4']);
         whoosh.start();
       }
-      // Panner follows camera orbit (L→R sweep)
+      // Panner follows camera path (slow sweep — Beat 3 is a pull-in,
+      // not an orbit, so the sweep is gentler than v2 orbit)
       const t = (time - PHASE_TIMES.showcase.start) / 3.0;
-      const angle = t * Math.PI * 2;
-      whooshPanner.positionX.value = Math.cos(angle) * 3;
-      whooshPanner.positionZ.value = Math.sin(angle) * 3;
+      const angle = t * Math.PI; // half-revolution instead of full
+      whooshPanner.positionX.value = Math.cos(angle) * 2.4;
+      whooshPanner.positionZ.value = Math.sin(angle) * 2.4;
     } else if (time >= PHASE_TIMES.showcase.end && this.endPhase('showcase')) {
       hum.triggerRelease(['C4', 'E4', 'G4', 'B4']);
       try { whoosh.stop(); } catch { /* already stopped */ }
@@ -590,8 +604,9 @@ export class HeroAudioTimeline {
           crackle.triggerAttackRelease('32n', Tone.now());
         }, 50 + Math.random() * 100);
       }
-      // Tension sweep 100Hz → 800Hz over 2.5s
-      const t = (time - PHASE_TIMES.surge.start) / 2.5;
+      // Tension sweep 100Hz → 800Hz over 2.0s (v3 surge is shorter — Beat 4
+      // first half only; 8.0 → 10.0 = 2.0 s)
+      const t = (time - PHASE_TIMES.surge.start) / 2.0;
       tensionFilter.frequency.value = 100 + t * 700;
       // Thunder amplitude 0 → 0.4
       thunderGain.gain.value = t * 0.4;
@@ -610,14 +625,13 @@ export class HeroAudioTimeline {
     const { subDrop, glassShatter, debris } = this.shatterNodes;
 
     if (this.isInPhase(time, 'shatter')) {
-      // All triggered at t=10.2s (detonation)
+      // All triggered at t=10.0s exact (v3 detonation aligned to frame —
+      // v2 was slightly late at 10.2)
       this.triggerOnce('shatter-detonation', () => {
         subDrop.triggerAttackRelease('C0', '4n');
-        // Play glass shatter sample if loaded
         try {
           if (glassShatter.loaded) glassShatter.start();
         } catch { /* file not loaded */ }
-        // Start debris granular
         try {
           if (debris.loaded) debris.start();
         } catch { /* file not loaded */ }
@@ -632,6 +646,8 @@ export class HeroAudioTimeline {
   private syncRegroup(time: number): void {
     if (!this.regroupNodes) return;
     const { decel, decelFilter, migrationDrone, cockpitHum, cockpitHumGain } = this.regroupNodes;
+    if (!this.assemblyNodes) return;
+    const { clang } = this.assemblyNodes;
 
     if (this.isInPhase(time, 'regroup')) {
       if (this.startPhase('regroup')) {
@@ -639,56 +655,85 @@ export class HeroAudioTimeline {
         migrationDrone.start();
         cockpitHum.start();
       }
-      // Decel filter sweep 4kHz → 200Hz over 1s
+      // Decel filter sweep 4kHz → 200Hz over 1s — masks the shatter ringout
       const t = Math.min((time - PHASE_TIMES.regroup.start) / 1.0, 1.0);
       decelFilter.frequency.value = 4000 - t * 3800;
-      // Cockpit hum rises -20dB → -12dB
-      const humT = (time - PHASE_TIMES.regroup.start) / 2.5;
-      cockpitHumGain.gain.value = Tone.dbToGain(-20 + humT * 8);
+      // Cockpit hum rises -20dB → -6dB across regroup window
+      // (window is now 5.5s long: 11.0 → 16.5; previous v2 was 2.5s ramp to -12)
+      const humT = Math.min((time - PHASE_TIMES.regroup.start) / 5.5, 1.0);
+      cockpitHumGain.gain.value = Tone.dbToGain(-20 + humT * 14);
+
+      // Beat 5 per-letter cascade chimes — re-use clang from assembly nodes
+      // 8 letters pop at storyboard times offset from regroup start (11.0):
+      // p@11.30 a@11.55 r@11.80 k@12.05 o@12.40 r@12.70 g@13.00 e@13.30
+      const cascadeTimes = [11.30, 11.55, 11.80, 12.05, 12.40, 12.70, 13.00, 13.30];
+      cascadeTimes.forEach((triggerTime, i) => {
+        if (time >= triggerTime && time < triggerTime + 0.10) {
+          this.triggerOnce(`cascade-clang-${i}`, () => {
+            try { clang.triggerAttackRelease('32n', Tone.now()); } catch { /* ok */ }
+          });
+        }
+      });
     } else if (time >= PHASE_TIMES.regroup.end && this.endPhase('regroup')) {
       try { migrationDrone.stop(); } catch { /* already stopped */ }
-      // cockpitHum continues into Phase 7
+      // cockpitHum continues into materialize phase (Beat 7)
     }
   }
 
   private syncMaterialize(time: number): void {
     if (!this.materializeNodes) return;
     const {
-      auroraPad, ledBuzz, panelClunk, digitalChirp, hudRing, gaugeClick,
+      auroraPad, ledBuzz, panelClunk, digitalChirp, hudRing,
       cockpitHum,
     } = this.materializeNodes;
+
+    // v3 split: auroraPad + hudRing fire DURING regroup (Beat 6 dichroic
+    // bloom at t=14.0 / 15.2). LED/panel/chirp/gauge stay in materialize
+    // (Beat 7 cockpit booting) at storyboard times. gaugeClick re-purposed
+    // for Beat 8 shard-arrival ticks (handled in syncOnline).
+
+    // ─── Beat 6 cues (in regroup window) — fired BEFORE the materialize
+    // window opens, so they live as triggerOnce checks here ───
+    if (time >= 14.0 && time < 14.1) {
+      this.triggerOnce('beat6-aurora-attack', () => {
+        auroraPad.triggerAttack(['A3', 'C4', 'E4', 'G4']);
+      });
+    }
+    if (time >= 15.2 && time < 15.3) {
+      this.triggerOnce('beat6-hud-ring', () => {
+        hudRing.triggerAttackRelease(['C5', 'G5', 'C6'], '8n');
+      });
+    }
+    // Aurora release at end of Beat 6 (before materialize opens)
+    if (time >= 16.4 && time < 16.5) {
+      this.triggerOnce('beat6-aurora-release', () => {
+        auroraPad.triggerRelease(['A3', 'C4', 'E4', 'G4']);
+      });
+    }
 
     if (this.isInPhase(time, 'materialize')) {
       if (this.startPhase('materialize')) {
         cockpitHum.start();
       }
 
-      // Sequential boot sounds with 400ms stagger
-      const phaseTime = time - PHASE_TIMES.materialize.start;
-
-      // 1. Aurora pad (t+0.0s) — Am7 chord
-      this.triggerOnce('mat-aurora', () => {
-        auroraPad.triggerAttack(['A3', 'C4', 'E4', 'G4']);
-      });
-
-      // 2. LED buzz snap (t+0.4s)
-      if (phaseTime >= 0.4) {
-        this.triggerOnce('mat-led', () => {
+      // Beat 7 boot sequence — staggered cockpit instrument cues per
+      // storyboard §9 audio map.
+      // - LED buzz @ t=16.9 (progress 0.20 within Beat 7)
+      // - Panel clunk @ t=17.3
+      // - Digital chirp arpeggio @ t=17.7
+      if (time >= 16.9 && time < 17.0) {
+        this.triggerOnce('beat7-led', () => {
           ledBuzz.start();
           setTimeout(() => { try { ledBuzz.stop(); } catch { /* ok */ } }, 100);
         });
       }
-
-      // 3. Panel clunk (t+0.8s)
-      if (phaseTime >= 0.8) {
-        this.triggerOnce('mat-panel', () => {
+      if (time >= 17.3 && time < 17.4) {
+        this.triggerOnce('beat7-panel', () => {
           panelClunk.triggerAttackRelease('16n', Tone.now());
         });
       }
-
-      // 4. Digital chirp sequence (t+1.2s) — rapid arpeggio
-      if (phaseTime >= 1.2) {
-        this.triggerOnce('mat-chirp', () => {
+      if (time >= 17.7 && time < 17.8) {
+        this.triggerOnce('beat7-chirp', () => {
           const notes = ['C5', 'E5', 'G5', 'C6'] as const;
           notes.forEach((note, i) => {
             setTimeout(() => {
@@ -697,42 +742,40 @@ export class HeroAudioTimeline {
           });
         });
       }
-
-      // 5. HUD harmonic ring (t+1.6s) — C5-G5-C6
-      if (phaseTime >= 1.6) {
-        this.triggerOnce('mat-hud', () => {
-          hudRing.triggerAttackRelease(['C5', 'G5', 'C6'], '8n');
-        });
-      }
-
-      // 6. StatusBar gauge clicks (t+2.0s) — 3 hits at 100ms intervals
-      if (phaseTime >= 2.0) {
-        this.triggerOnce('mat-gauge', () => {
-          for (let i = 0; i < 3; i++) {
-            setTimeout(() => {
-              try { gaugeClick.triggerAttackRelease('64n', Tone.now()); } catch { /* ok */ }
-            }, i * 100);
-          }
-        });
-      }
     } else if (time >= PHASE_TIMES.materialize.end && this.endPhase('materialize')) {
-      auroraPad.triggerRelease(['A3', 'C4', 'E4', 'G4']);
-      // cockpitHum continues
+      // cockpitHum continues into Beat 8 (online phase)
     }
   }
 
   private syncOnline(time: number): void {
     if (!this.onlineNodes) return;
     const { powerUp, cockpitAmbient } = this.onlineNodes;
+    if (!this.materializeNodes) return;
+    const { gaugeClick } = this.materializeNodes;
 
     if (this.isInPhase(time, 'online')) {
-      // FM sweep power-up C3→C5
+      // FM sweep power-up C5 + start persistent cockpit ambient @ t=18.5
+      // (Beat 8 mini-shatter trigger — climactic system-online tone)
       this.triggerOnce('online-powerup', () => {
         powerUp.triggerAttackRelease('C5', '4n');
         cockpitAmbient.start();
       });
+
+      // Beat 8 per-shard arrival ticks (storyboard §10 + §11):
+      // 8 gauge clicks staggered ~40 ms apart starting t=19.0 (after first
+      // wave of shards lands at central display + consoles).
+      // 19.00, 19.04, 19.08, 19.12, 19.16, 19.20, 19.24, 19.28
+      const arrivalTimes = [19.00, 19.04, 19.08, 19.12, 19.16, 19.20, 19.24, 19.28];
+      arrivalTimes.forEach((triggerTime, i) => {
+        if (time >= triggerTime && time < triggerTime + 0.05) {
+          this.triggerOnce(`beat8-arrival-${i}`, () => {
+            try { gaugeClick.triggerAttackRelease('64n', Tone.now()); } catch { /* ok */ }
+          });
+        }
+      });
     }
-    // Phase 8 cockpit ambient persists — no cleanup
+    // Beat 8 cockpit ambient persists — no cleanup (handed off to cockpit's
+    // own audio engine)
   }
 
   // ── Public API ────────────────────────────────────────────────
