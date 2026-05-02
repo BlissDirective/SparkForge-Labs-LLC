@@ -718,30 +718,336 @@ function TextRule({ label, hint, color, value, onChange, placeholder }: { label:
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PHASES 9-12 — placeholders implemented in Sub 11G.8b
+// PHASE 9 — STRESS TEST (run all band-eligible fixtures)
 // ═══════════════════════════════════════════════════════════════
 
-function StressTestPlaceholder() {
+function StressTestPhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
   const setPhase = useHarnessForgeStore((s) => s.setPhase);
+  const runStressTest = useHarnessForgeStore((s) => s.runStressTest);
+  const results = useHarnessForgeStore((s) => s.results);
+  const fixtures = useMemo(() => fixturesForBand(ageBand), [ageBand]);
+  const hasResults = Object.keys(results).length > 0;
+
   return (
-    <div className="absolute inset-0 grid place-items-center p-8">
-      <Panel className="max-w-md p-6 text-center">
-        <p className="font-mono text-xs uppercase mb-2" style={{ color: LAB11_HEX }}>
-          Stress test / report / save / complete (Sub 11G.8b)
+    <motion.div
+      key="stress-test"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-2xl w-full p-6">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Stress test
         </p>
-        <p className="text-white/70 font-body text-sm mb-4">
-          Remaining phases land in the next sub-task.
+        <h2 className="font-display text-xl font-bold text-white mb-2">
+          Run {fixtures.length} stress fixture{fixtures.length === 1 ? '' : 's'}
+        </h2>
+        <p className="font-body text-sm text-white/65 mb-4">
+          Each fixture is a tricky prompt designed to hit a specific harness layer. Run them through
+          your configured team and see what each layer catches.
         </p>
-        <button
-          type="button"
-          onClick={() => setPhase('configure-monitor')}
-          className="px-4 py-2 rounded font-mono text-xs"
-          style={{ background: LAB11_HEX, color: '#031416' }}
-        >
-          ← Back
-        </button>
+        <ul className="space-y-1 mb-5 max-h-60 overflow-y-auto">
+          {fixtures.map((f) => (
+            <li
+              key={f.id}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded bg-black/45 font-mono text-[11px]"
+              style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <span className="text-white/85 flex-1 truncate">{f.label}</span>
+              <span className="text-white/45">
+                targets: {f.targetLayers.join('/')}
+              </span>
+            </li>
+          ))}
+        </ul>
+        <div className="flex justify-between gap-2">
+          <button
+            type="button"
+            onClick={() => setPhase('configure-monitor')}
+            className="px-4 py-2 rounded font-mono text-xs text-white/85 border border-white/20 hover:text-white"
+          >
+            ← Adjust harness
+          </button>
+          <button
+            type="button"
+            onClick={() => runStressTest(ageBand)}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+            style={{ background: LAB11_HEX, color: '#031416' }}
+            aria-label="Run stress test"
+          >
+            {hasResults ? 'Re-run ▶' : 'Run stress test ▶'}
+          </button>
+        </div>
       </Panel>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 10 — REPORT (per-layer effectiveness + per-fixture catches)
+// ═══════════════════════════════════════════════════════════════
+
+function ReportPhase() {
+  const grade = useHarnessForgeStore((s) => s.grade);
+  const results = useHarnessForgeStore((s) => s.results);
+  const setPhase = useHarnessForgeStore((s) => s.setPhase);
+  const reset = useHarnessForgeStore((s) => s.reset);
+  const updateScore = useGameStore((s) => s.updateScore);
+  const advanceRound = useGameStore((s) => s.advanceRound);
+  const isComplete = useGameStore((s) => s.isComplete);
+
+  useEffect(() => {
+    if (!grade) return;
+    updateScore(grade.stars * 50);
+  }, [grade, updateScore]);
+
+  if (!grade) {
+    return (
+      <div className="absolute inset-0 grid place-items-center p-8">
+        <Panel className="p-4 text-white/60 font-body text-sm">No report yet.</Panel>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      key="report"
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.35 }}
+      className="absolute inset-0 overflow-y-auto p-6"
+    >
+      <div className="max-w-2xl mx-auto py-6">
+        <Panel className="p-8 text-center mb-3">
+          <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+            Stress test report
+          </p>
+          <div className="flex justify-center gap-2 mb-4">
+            {[0, 1, 2].map((i) => (
+              <motion.span
+                key={i}
+                initial={{ scale: 0, rotate: -180 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 + i * 0.15 }}
+                className="text-5xl"
+                style={{ color: i < grade.stars ? '#FFD93D' : 'rgba(255,255,255,0.15)' }}
+                aria-hidden="true"
+              >
+                ★
+              </motion.span>
+            ))}
+          </div>
+          <p className="font-display text-3xl font-bold text-white mb-1" aria-live="polite">
+            {grade.stars} / 3 stars
+          </p>
+          <p className="font-mono text-xs text-white/60 mb-6">
+            Overall: {Math.round(grade.total * 100)}% · {grade.caughtCount}/{grade.totalFixtures} fixtures caught · {grade.preventedCount} prevented
+          </p>
+
+          <div className="grid grid-cols-3 gap-2 mb-5">
+            <LayerScore label="Filter" value={grade.filterEffectiveness} color="#E68E28" />
+            <LayerScore label="Validator" value={grade.validatorEffectiveness} color="#6FFFE6" />
+            <LayerScore label="Monitor" value={grade.monitorEffectiveness} color="#B67BFF" />
+          </div>
+
+          <div className="flex flex-wrap gap-2 justify-center">
+            <button
+              type="button"
+              onClick={() => setPhase('save')}
+              className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+              style={{ background: LAB11_HEX, color: '#031416' }}
+              aria-label="Save harness on this composition"
+            >
+              Save harness
+            </button>
+            <button
+              type="button"
+              onClick={() => setPhase('configure-filter')}
+              className="px-5 py-2 rounded font-mono text-xs text-white/85 border border-white/30 hover:bg-white/5"
+              aria-label="Adjust harness and re-test"
+            >
+              Adjust harness
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                advanceRound();
+                if (isComplete) {
+                  setPhase('complete');
+                } else {
+                  reset();
+                  setPhase('save-select');
+                }
+              }}
+              className="px-5 py-2 rounded font-mono text-xs text-white/70 border border-white/20 hover:text-white"
+              aria-label="Harness another save"
+            >
+              Another save →
+            </button>
+          </div>
+        </Panel>
+
+        {/* Per-fixture details */}
+        <Panel className="p-4">
+          <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+            Per-fixture breakdown
+          </p>
+          <ul className="space-y-1.5">
+            {STRESS_FIXTURES.map((f) => {
+              const r = results[f.id];
+              if (!r) return null;
+              const catchCount = r.catches.length;
+              const tone = r.rejected ? '#FF7050' : catchCount > 0 ? LAB11_HEX : 'rgba(255,255,255,0.5)';
+              return (
+                <li
+                  key={f.id}
+                  className="rounded-md p-2.5 bg-black/40"
+                  style={{ border: `1px solid ${tone}30` }}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-display text-xs font-bold text-white flex-1 truncate">{f.label}</span>
+                    <span
+                      className="font-mono text-[9px] uppercase font-bold px-1.5 py-0.5 rounded flex-shrink-0"
+                      style={{ background: `${tone}20`, color: tone }}
+                    >
+                      {r.rejected ? 'rejected' : catchCount > 0 ? `${catchCount} caught` : 'no catches'}
+                    </span>
+                  </div>
+                  {r.catches.slice(0, 2).map((c, i) => (
+                    <p key={i} className="font-mono text-[10px] text-white/55 leading-snug ml-1">
+                      <span className="text-white/85">{c.layer}/{c.rule}:</span> {c.detail}
+                    </p>
+                  ))}
+                  {r.catches.length > 2 && (
+                    <p className="font-mono text-[10px] text-white/45 ml-1">+{r.catches.length - 2} more</p>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        </Panel>
+      </div>
+    </motion.div>
+  );
+}
+
+function LayerScore({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div
+      className="rounded-lg p-2.5"
+      style={{ background: 'rgba(0,0,0,0.55)', border: `1px solid ${color}40` }}
+    >
+      <p className="font-mono text-[9px] uppercase tracking-widest mb-0.5" style={{ color }}>
+        {label}
+      </p>
+      <p className="font-display text-2xl font-bold text-white tabular-nums">
+        {Math.round(value * 100)}%
+      </p>
     </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 11 — SAVE
+// ═══════════════════════════════════════════════════════════════
+
+function SavePhase() {
+  const setPhase = useHarnessForgeStore((s) => s.setPhase);
+  const saveHarness = useHarnessForgeStore((s) => s.saveHarnessToSelected);
+  const isSaving = useHarnessForgeStore((s) => s.isSaving);
+  const advanceRound = useGameStore((s) => s.advanceRound);
+  const isComplete = useGameStore((s) => s.isComplete);
+
+  async function handleSave() {
+    const ok = await saveHarness();
+    if (ok) {
+      advanceRound();
+      setPhase(isComplete ? 'complete' : 'save-select');
+    }
+  }
+
+  return (
+    <motion.div
+      key="save"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-6 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Save harness
+        </p>
+        <h2 className="font-display text-xl font-bold text-white mb-2">
+          Persist to this composition
+        </h2>
+        <p className="font-body text-sm text-white/65 mb-5 leading-relaxed">
+          The harness configuration will be attached to this saved team. The Glass Box and the dashboard
+          will both surface that this team is harnessed.
+        </p>
+        <div className="flex justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => setPhase('report')}
+            className="px-4 py-2 rounded font-mono text-xs text-white/70 hover:text-white border border-white/20"
+            disabled={isSaving}
+          >
+            ← back
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105 disabled:opacity-40"
+            style={{ background: LAB11_HEX, color: '#031416' }}
+            aria-label="Save harness"
+          >
+            {isSaving ? 'Saving…' : 'Save harness'}
+          </button>
+        </div>
+      </Panel>
+    </motion.div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 12 — COMPLETE
+// ═══════════════════════════════════════════════════════════════
+
+function CompletePhase() {
+  const completeGame = useGameStore((s) => s.completeGame);
+  useEffect(() => {
+    completeGame();
+  }, [completeGame]);
+
+  return (
+    <motion.div
+      key="complete"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-8 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB11_HEX }}>
+          Build → Equip → Audit → Constrain · complete
+        </p>
+        <h2 className="font-display text-2xl font-bold text-white mb-3">
+          You&apos;ve harnessed {TOTAL_ROUNDS} teams!
+        </h2>
+        <p className="font-body text-sm text-white/75 leading-relaxed">
+          That closes the Lab 11 narrative arc. Build your teams in the{' '}
+          <span style={{ color: LAB11_HEX }}>Atelier</span>, equip them in the{' '}
+          <span style={{ color: LAB11_HEX }}>MCP Lab</span>, audit them in the{' '}
+          <span style={{ color: LAB11_HEX }}>Glass Box</span>, and harness them here in the{' '}
+          <span style={{ color: LAB11_HEX }}>Forge</span>.
+        </p>
+      </Panel>
+    </motion.div>
   );
 }
 
@@ -754,6 +1060,8 @@ const TOTAL_ROUNDS = 3;
 export function HarnessForgeGame() {
   const phase = useHarnessForgeStore((s) => s.phase);
   const reset = useHarnessForgeStore((s) => s.reset);
+  const activeChild = useActiveChild();
+  const ageBand = (activeChild?.age_band ?? 'B') as 'A' | 'B' | 'C';
 
   useEffect(() => {
     reset();
@@ -784,10 +1092,10 @@ export function HarnessForgeGame() {
         {phase === 'configure-filter' && <ConfigureFilterPhase key="configure-filter" />}
         {phase === 'configure-validator' && <ConfigureValidatorPhase key="configure-validator" />}
         {phase === 'configure-monitor' && <ConfigureMonitorPhase key="configure-monitor" />}
-        {phase === 'stress-test' && <StressTestPlaceholder key="stress-test" />}
-        {phase === 'report' && <StressTestPlaceholder key="report" />}
-        {phase === 'save' && <StressTestPlaceholder key="save" />}
-        {phase === 'complete' && <StressTestPlaceholder key="complete" />}
+        {phase === 'stress-test' && <StressTestPhase key="stress-test" ageBand={ageBand} />}
+        {phase === 'report' && <ReportPhase key="report" />}
+        {phase === 'save' && <SavePhase key="save" />}
+        {phase === 'complete' && <CompletePhase key="complete" />}
       </AnimatePresence>
     </GameShell>
   );
