@@ -76,11 +76,17 @@ const SVG_CAP_HEIGHT = 650;
 /**
  * Left-to-right letter order in sparkforge-geometry.svg. Used to map
  * `revealMask` indices to path ids. Must stay in sync with the SVG.
+ *
+ * Exported so Phase 5c beat components (Beat 5 cascade pop-in, Beat 6
+ * dichroic bloom, Beat 8 shatter-into-UI) can map mesh userData.sfMarkPathId
+ * back to the corresponding letter index for per-letter material animation.
  */
-const LETTER_ORDER = [
+export const LETTER_ORDER = [
   'sf-mark-S', 'wm-p', 'wm-a', 'wm-r', 'wm-k',
   'sf-mark-F', 'wm-o', 'wm-r2', 'wm-g', 'wm-e',
 ] as const;
+
+export type WordmarkLetterId = typeof LETTER_ORDER[number];
 
 export function SparkForgeWordmark3D({
   url = '/branding/sparkforge-geometry.svg',
