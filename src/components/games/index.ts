@@ -64,3 +64,5 @@ export { HarnessForgeGame } from './HarnessForgeGame';
 export { PocketBrainGame } from './PocketBrainGame';
 // Stage 11B — Lab 8 (Words & Language) C2 Context Architect — context engineering game
 export { ContextArchitectGame } from './ContextArchitectGame';
+// Stage 11C — Lab 7 (Computer Vision) C4 Pixel Witness — VLM judging + sense builder
+export { PixelWitnessGame } from './PixelWitnessGame';

@@ -38,7 +38,9 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   // a consistent set.
   | 'pocket-brain'
   // ═══ Lab 8 Stage 11B (May 1, 2026) — C2 Context Architect ═══
-  | 'context-architect';
+  | 'context-architect'
+  // ═══ Lab 7 Stage 11C (May 1, 2026) — C4 Pixel Witness ═══
+  | 'pixel-witness';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -134,7 +136,12 @@ export type ContentType =
   // variants × 3 bands + 3 summary-rubric variants × 3 bands = 9 total.
   | 'ca-question-A' | 'ca-question-B' | 'ca-question-C'
   | 'ca-distractor-A' | 'ca-distractor-B' | 'ca-distractor-C'
-  | 'ca-summary-rubric-A' | 'ca-summary-rubric-B' | 'ca-summary-rubric-C';
+  | 'ca-summary-rubric-A' | 'ca-summary-rubric-B' | 'ca-summary-rubric-C'
+  // ═══ Lab 7 — Pixel Witness (Stage 11C) ═══
+  // Per Doc 2 §G.12: 3 clip-question variants + 3 hallucination-prompt
+  // variants, each per band = 6 total.
+  | 'pw-clip-question-A' | 'pw-clip-question-B' | 'pw-clip-question-C'
+  | 'pw-hallucination-prompt-A' | 'pw-hallucination-prompt-B' | 'pw-hallucination-prompt-C';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -171,6 +178,8 @@ export const AIContentRequestSchema = z.object({
     'pocket-brain',
     // Lab 8 - C2 Context Architect
     'context-architect',
+    // Lab 7 - C4 Pixel Witness
+    'pixel-witness',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -221,6 +230,9 @@ export const AIContentRequestSchema = z.object({
     'ca-question-A', 'ca-question-B', 'ca-question-C',
     'ca-distractor-A', 'ca-distractor-B', 'ca-distractor-C',
     'ca-summary-rubric-A', 'ca-summary-rubric-B', 'ca-summary-rubric-C',
+    // Lab 7 - Pixel Witness (6 = 2 categories × 3 bands)
+    'pw-clip-question-A', 'pw-clip-question-B', 'pw-clip-question-C',
+    'pw-hallucination-prompt-A', 'pw-hallucination-prompt-B', 'pw-hallucination-prompt-C',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -879,6 +891,41 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
     `cross-theme synthesis, and avoiding hallucinated additions. Hard mode. ` +
     `${AGE_BAND_CONTEXT[ageBand]} ` +
     `Return as JSON: { "criteria": [{"check": "...", "weight": 1}, ...] }`,
+
+  // ─── Lab 7 — Pixel Witness (Stage 11C) ────────────────────────
+
+  'pw-clip-question-A': (ageBand) =>
+    `Create a SIMPLE kid-safe video question (1 of 4 question kinds: literal/inferential/counting/` +
+    `adversarial). For Easy mode: prefer literal or counting. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "kind": "literal|inferential|counting|adversarial", "text": "...", "expectedAnswer": "..." }`,
+
+  'pw-clip-question-B': (ageBand) =>
+    `Create a kid-safe video question with intermediate difficulty - prefer inferential or counting ` +
+    `with subtle details. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "kind": "literal|inferential|counting|adversarial", "text": "...", "expectedAnswer": "..." }`,
+
+  'pw-clip-question-C': (ageBand) =>
+    `Create a HARD kid-safe video question that tests careful observation and reasoning. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "kind": "literal|inferential|counting|adversarial", "text": "...", "expectedAnswer": "..." }`,
+
+  'pw-hallucination-prompt-A': (ageBand) =>
+    `Generate an ADVERSARIAL kid-safe video question whose plausible-but-WRONG answer is the ` +
+    `expected hallucination an AI would confidently produce. For Easy mode: focus on color, count, ` +
+    `or basic identity. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "text": "...", "expectedHallucination": "...", "actualTruth": "..." }`,
+
+  'pw-hallucination-prompt-B': (ageBand) =>
+    `Generate an ADVERSARIAL kid-safe video question for intermediate kids. The AI should confidently ` +
+    `invent a detail not actually visible (number, name, brand, location). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "text": "...", "expectedHallucination": "...", "actualTruth": "..." }`,
+
+  'pw-hallucination-prompt-C': (ageBand) =>
+    `Generate an ADVERSARIAL kid-safe video question for advanced kids. The hallucination should ` +
+    `be subtle - a believable specific number/measurement/identity that no video could actually ` +
+    `verify. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "text": "...", "expectedHallucination": "...", "actualTruth": "..." }`,
 };
 
 // ================================================================

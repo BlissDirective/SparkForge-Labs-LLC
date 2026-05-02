@@ -70,6 +70,9 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   // Lab 8 (May 1, 2026): C2 Context Architect - library reading-lectern
   // framing matches Doc 2 §E.8
   'context-architect': { position: [0, 2, 5],   lookAt: [0, 1, 0],   fov: 46 },
+  // Lab 7 (May 1, 2026): C4 Pixel Witness - cinema/edit-bay framing
+  // matches Doc 2 §G.8
+  'pixel-witness':    { position: [0, 1.8, 4],  lookAt: [0, 0.5, 0], fov: 44 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -757,6 +760,25 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     icon: '\ud83d\udcda',
     triangleBudget: budget('flagship', true),
     cameraPreset: cameraPreset('context-architect'),
+  },
+  // \u2500\u2500 Lab 7 \u2014 Stage 11C (May 1, 2026): C4 Pixel Witness
+  // 'Watch the clip. Now ask the AI what happened. Then catch the lies.'
+  // Closes the canonical Stage 11A-G plan to 7/7.
+  {
+    id: 42,
+    name: 'Pixel Witness',
+    slug: 'pixel-witness',
+    lab: 7,
+    labName: LAB_NAMES[7],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'PixelWitness3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11C',
+    description: 'Watch a video, see the AI\'s answer, catch the lies. Toggle senses to fix the AI.',
+    icon: '\ud83c\udfac',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('pixel-witness'),
   },
 ] as const;
 

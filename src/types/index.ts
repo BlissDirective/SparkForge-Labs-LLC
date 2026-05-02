@@ -415,6 +415,7 @@ export const LABS: LabMeta[] = [
   {
     id: 7, title: 'Computer Vision', subtitle: 'How AI Sees', color: '#06B6D4', tint: '#06B6D4', icon: '👁️', description: 'Teach machines to see and understand images',
     games: [
+      { slug: 'pixel-witness', title: 'Pixel Witness', emoji: '🎬', description: 'Watch a video, judge the AI\'s answer, catch hallucinations', estimatedMinutes: 18, xpReward: 35, ageBands: ['A', 'B', 'C'] },
       { slug: 'camera-quest', title: 'Camera Quest', emoji: '📷', description: 'Find objects with your camera', estimatedMinutes: 15, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'fool-the-ai', title: 'Fool the AI', emoji: '🎩', description: 'Trick an AI image classifier', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'build-classifier', title: 'Build a Classifier', emoji: '🏷️', description: 'Train your own image classifier', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
