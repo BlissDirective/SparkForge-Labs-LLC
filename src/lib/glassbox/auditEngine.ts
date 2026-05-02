@@ -14,7 +14,6 @@ import type { ToolBinding } from '@/types/mcplab';
 import type {
   AuditStep,
   AuditorError,
-  IssueCategory,
   ReplaySource,
 } from '@/types/glassbox';
 import { detectCycle } from '@/lib/agentatelier/wireGraph';

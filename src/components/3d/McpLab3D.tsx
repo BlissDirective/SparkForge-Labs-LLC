@@ -24,7 +24,6 @@ import {
   Color,
   DoubleSide,
   Group,
-  Mesh,
   MeshBasicMaterial,
   TubeGeometry,
   Vector3,

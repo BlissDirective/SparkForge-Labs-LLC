@@ -18,7 +18,7 @@
 // 3 configure phases. Sub 11G.8b: stress-test / report / save / complete.
 // ════════════════════════════════════════════════════════════════
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -31,7 +31,6 @@ import { VALIDATOR_RULE_META } from '@/lib/harness/validatorLayer';
 import { MONITOR_RULE_META } from '@/lib/harness/monitorLayer';
 import { STRESS_FIXTURES, fixturesForBand } from '@/lib/harness/stressTestFixtures';
 import { getAgent } from '@/lib/agentatelier/agentRoster';
-import type { HarnessConfig } from '@/types/harness';
 
 const HarnessForge3D = dynamic(() => import('@/components/3d/HarnessForge3D'), { ssr: false });
 const HarnessForgeEnvironment = dynamic(

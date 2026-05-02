@@ -21,7 +21,6 @@ import {
   Color,
   DoubleSide,
   Group,
-  Mesh,
   MeshBasicMaterial,
   TubeGeometry,
   Vector3,
@@ -187,9 +186,10 @@ export default function GlassBox3D() {
   const savesCache = useGlassBoxStore((s) => s.savesCache);
   const currentSourceId = useGlassBoxStore((s) => s.currentSourceId);
 
+  // Stable references for team + wires so downstream useMemo deps don't churn.
   const composition = currentSourceId ? savesCache[currentSourceId]?.comp : null;
-  const team = composition?.team ?? [];
-  const wires = composition?.wires ?? [];
+  const team = useMemo(() => composition?.team ?? [], [composition]);
+  const wires = useMemo(() => composition?.wires ?? [], [composition]);
 
   const activeStep = steps[scrubIndex];
   const activeAgentId = activeStep?.base.agentId;
