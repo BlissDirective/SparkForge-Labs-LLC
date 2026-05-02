@@ -357,6 +357,8 @@ import type { PixelMode, PlayerRating, SenseConfig } from '@/types/pixelWitness'
 
 // ─── Shared Clip Player atom (poster fallback for missing video) ─
 
+const PLACEHOLDER_SVG = '/videos/pixel-witness/placeholder.svg';
+
 interface ClipPlayerProps {
   src: string;
   poster: string;
@@ -389,17 +391,30 @@ function ClipPlayer({ src, poster, durationSec, themeColor }: ClipPlayerProps) {
           <source src={src} type="video/mp4" />
         </video>
       ) : (
-        <div className="w-full h-full grid place-items-center text-center p-4">
-          <div>
-            <p className="font-mono text-[10px] uppercase mb-1" style={{ color: themeColor }}>
-              clip preview · {durationSec}s
-            </p>
-            <p className="font-body text-sm text-white/85 mb-1">
-              Video asset not yet provisioned.
-            </p>
-            <p className="font-body text-[11px] text-white/55 italic">
-              The Q-A flow still works — judge the AI&apos;s answers based on the description above.
-            </p>
+        // Layered fallback when no MP4 / poster JPG are provisioned:
+        //   1) Background = placeholder.svg as CSS background-image
+        //      (avoids @next/next/no-img-element lint and keeps it
+        //      runtime-cheap — no next/image hydration for a static SVG)
+        //   2) Overlay = caption with theme-tinted duration label
+        <div
+          className="relative w-full h-full"
+          role="img"
+          aria-label="Clip preview placeholder — video pending"
+          style={{
+            backgroundImage: `url(${PLACEHOLDER_SVG})`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }}
+        >
+          <div className="absolute inset-x-0 bottom-0 grid place-items-center p-3 bg-gradient-to-t from-black/85 via-black/55 to-transparent">
+            <div className="text-center">
+              <p className="font-mono text-[10px] uppercase mb-0.5" style={{ color: themeColor }}>
+                clip preview · {durationSec}s · video pending
+              </p>
+              <p className="font-body text-[11px] text-white/65 italic">
+                Q-A flow works without the video file.
+              </p>
+            </div>
           </div>
         </div>
       )}
