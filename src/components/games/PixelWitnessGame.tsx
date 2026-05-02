@@ -347,29 +347,515 @@ function TutorialPhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PHASES 6-12 — placeholders implemented in Sub 11C.7b
+// PHASES 6-10 — Watch & Sense Builder (mode play UI)
 // ═══════════════════════════════════════════════════════════════
 
-function NotYetPhase({ label }: { label: string }) {
-  const setPhase = usePixelWitnessStore((s) => s.setPhase);
+import { useGameStore } from '@/stores/gameStore';
+import { THEME_META } from '@/lib/pixelwitness/clipLibrary';
+import { SENSE_META, senseCost } from '@/lib/pixelwitness/judgeEngine';
+import type { PixelMode, PlayerRating, SenseConfig } from '@/types/pixelWitness';
+
+// ─── Shared Clip Player atom (poster fallback for missing video) ─
+
+interface ClipPlayerProps {
+  src: string;
+  poster: string;
+  durationSec: number;
+  themeColor: string;
+}
+
+function ClipPlayer({ src, poster, durationSec, themeColor }: ClipPlayerProps) {
+  const [hasError, setHasError] = React.useState(false);
+
   return (
-    <div className="absolute inset-0 grid place-items-center p-8">
-      <Panel className="max-w-md p-6 text-center">
-        <p className="font-mono text-xs uppercase mb-2" style={{ color: LAB7_HEX }}>
-          {label} (Sub 11C.7b)
-        </p>
-        <p className="text-white/70 font-body text-sm mb-4">
-          Remaining phases land in the next sub-task.
-        </p>
+    <div
+      className="relative rounded-lg overflow-hidden"
+      style={{
+        background: '#0A1A22',
+        border: `1px solid ${themeColor}50`,
+        aspectRatio: '16 / 9',
+      }}
+    >
+      {!hasError ? (
+        <video
+          key={src}
+          controls
+          loop
+          poster={poster}
+          className="w-full h-full object-contain"
+          onError={() => setHasError(true)}
+          aria-label="Clip video"
+        >
+          <source src={src} type="video/mp4" />
+        </video>
+      ) : (
+        <div className="w-full h-full grid place-items-center text-center p-4">
+          <div>
+            <p className="font-mono text-[10px] uppercase mb-1" style={{ color: themeColor }}>
+              clip preview · {durationSec}s
+            </p>
+            <p className="font-body text-sm text-white/85 mb-1">
+              Video asset not yet provisioned.
+            </p>
+            <p className="font-body text-[11px] text-white/55 italic">
+              The Q-A flow still works — judge the AI&apos;s answers based on the description above.
+            </p>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── WatchModeUI: clip + question + AI answer + 3 rating buttons ─
+
+interface WatchModeUIProps {
+  ageBand: 'A' | 'B' | 'C';
+  mode: PixelMode;
+  modeLabel: string;
+}
+
+function WatchModeUI({ ageBand, mode, modeLabel }: WatchModeUIProps) {
+  const currentClip = usePixelWitnessStore((s) => s.currentClip);
+  const currentQuestion = usePixelWitnessStore((s) => s.currentQuestion);
+  const clipIndex = usePixelWitnessStore((s) => s.clipIndex);
+  const modeClips = usePixelWitnessStore((s) => s.modeClips);
+  const questionIndex = usePixelWitnessStore((s) => s.questionIndex);
+  const currentQuestions = usePixelWitnessStore((s) => s.currentQuestions);
+  const hasRatedCurrent = usePixelWitnessStore((s) => s.hasRatedCurrent);
+  const ratings = usePixelWitnessStore((s) => s.ratings);
+  const startMode = usePixelWitnessStore((s) => s.startMode);
+  const rateAnswer = usePixelWitnessStore((s) => s.rateAnswer);
+  const nextQuestion = usePixelWitnessStore((s) => s.nextQuestion);
+  const getDisplayedAnswer = usePixelWitnessStore((s) => s.getDisplayedAnswer);
+  const setPhase = usePixelWitnessStore((s) => s.setPhase);
+  const updateScore = useGameStore((s) => s.updateScore);
+
+  // Auto-load mode if not yet loaded.
+  useEffect(() => {
+    if (!currentClip || modeClips.length === 0) {
+      startMode(mode, ageBand);
+    }
+  }, [currentClip, modeClips.length, startMode, mode, ageBand]);
+
+  if (!currentClip || !currentQuestion) {
+    return (
+      <div className="absolute inset-0 grid place-items-center p-8">
+        <Panel className="p-6 text-center">
+          <p className="font-body text-sm text-white/65 mb-3">Loading clip…</p>
+        </Panel>
+      </div>
+    );
+  }
+
+  const themeMeta = THEME_META[currentClip.theme];
+  const lastRating = hasRatedCurrent
+    ? ratings.find((r) => r.questionId === currentQuestion.id)
+    : null;
+  const displayedAnswer = getDisplayedAnswer();
+
+  function rateAndScore(rating: PlayerRating['rating']) {
+    if (!currentQuestion) return;
+    const qId = currentQuestion.id;
+    rateAnswer(rating);
+    // Award score = 25 per match, 0 otherwise; checked after the next render
+    // since rateAnswer is async-ish (state).
+    setTimeout(() => {
+      const r = usePixelWitnessStore.getState().ratings.find((rr) => rr.questionId === qId);
+      if (r?.matched) updateScore(25);
+    }, 50);
+  }
+
+  return (
+    <motion.div
+      key={`${mode}-${currentClip.id}-${currentQuestion.id}`}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid grid-rows-[auto_1fr_auto] gap-3 p-4"
+    >
+      {/* Top status */}
+      <Panel className="p-3 flex items-center justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: LAB7_HEX }}>
+            {modeLabel}
+          </p>
+          <p className="font-display text-sm font-bold text-white">
+            Clip {clipIndex + 1} of {modeClips.length} · question {questionIndex + 1}/{currentQuestions.length}
+          </p>
+        </div>
+        <span
+          className="font-mono text-[10px] uppercase px-2 py-0.5 rounded"
+          style={{ background: `${themeMeta.color}25`, color: themeMeta.color }}
+        >
+          {themeMeta.emoji} {themeMeta.label}
+        </span>
+      </Panel>
+
+      {/* Mid: clip player + question + answer + rating */}
+      <Panel className="overflow-y-auto p-4 grid grid-rows-[auto_1fr] gap-3">
+        <div className="grid sm:grid-cols-[1fr_1.2fr] gap-3">
+          {/* Clip */}
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: themeMeta.color }}>
+              {currentClip.emoji} {currentClip.title}
+            </p>
+            <ClipPlayer
+              src={currentClip.videoSrc}
+              poster={currentClip.posterSrc}
+              durationSec={currentClip.durationSec}
+              themeColor={themeMeta.color}
+            />
+          </div>
+
+          {/* Q + A */}
+          <div className="space-y-3">
+            <div
+              className="rounded-lg p-3"
+              style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${LAB7_HEX}40` }}
+            >
+              <p className="font-mono text-[10px] uppercase mb-1" style={{ color: LAB7_HEX }}>
+                Question · {currentQuestion.kind}
+              </p>
+              <p className="font-body text-sm text-white">{currentQuestion.text}</p>
+            </div>
+            <div
+              className="rounded-lg p-3"
+              style={{ background: `${LAB7_HEX}10`, border: `1px solid ${LAB7_HEX}40` }}
+            >
+              <p className="font-mono text-[10px] uppercase mb-1" style={{ color: LAB7_HEX }}>
+                AI&apos;s answer
+              </p>
+              <p className="font-body text-sm text-white/90 leading-relaxed">{displayedAnswer}</p>
+            </div>
+
+            {/* Post-rate explanation */}
+            {hasRatedCurrent && lastRating && (
+              <div
+                className="rounded-lg p-3"
+                style={{
+                  background: lastRating.matched ? 'rgba(0,209,122,0.1)' : 'rgba(255,112,80,0.1)',
+                  border: `1px solid ${lastRating.matched ? '#00D17A' : '#FF7050'}50`,
+                }}
+              >
+                <p className="font-mono text-[10px] uppercase mb-1" style={{ color: lastRating.matched ? '#00D17A' : '#FF7050' }}>
+                  {lastRating.matched ? '✓ Match' : '✗ Mismatch'} · truth: {currentQuestion.truth}
+                </p>
+                <p className="font-body text-xs text-white/85 leading-relaxed">{currentQuestion.explanation}</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </Panel>
+
+      {/* Action bar */}
+      <Panel className="p-3 flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={() => setPhase('tutorial')}
-          className="px-4 py-2 rounded font-mono text-xs"
-          style={{ background: LAB7_HEX, color: '#031416' }}
+          className="px-3 py-1.5 rounded font-mono text-xs text-white/70 border border-white/20 hover:text-white"
         >
           ← Back
         </button>
+        {!hasRatedCurrent ? (
+          <div className="flex gap-2">
+            <RatingButton label="Correct"     emoji="✅" color="#00D17A" onClick={() => rateAndScore('correct')} />
+            <RatingButton label="Partial"     emoji="🤔" color="#D9A430" onClick={() => rateAndScore('partial')} />
+            <RatingButton label="Hallucination" emoji="🚨" color="#FF7050" onClick={() => rateAndScore('hallucination')} />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={nextQuestion}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+            style={{ background: LAB7_HEX, color: '#031416' }}
+          >
+            Next →
+          </button>
+        )}
       </Panel>
+    </motion.div>
+  );
+}
+
+function RatingButton({ label, emoji, color, onClick }: { label: string; emoji: string; color: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="px-4 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+      style={{
+        background: `${color}25`,
+        border: `1px solid ${color}80`,
+        color: 'white',
+      }}
+      aria-label={`Rate as ${label}`}
+    >
+      {emoji} {label}
+    </button>
+  );
+}
+
+// ─── PHASE 9 — SENSE BUILDER ─────────────────────────────────────
+
+function SenseBuilderPhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
+  const senseConfig = usePixelWitnessStore((s) => s.senseConfig);
+  const toggleSense = usePixelWitnessStore((s) => s.toggleSense);
+  const currentClip = usePixelWitnessStore((s) => s.currentClip);
+  const currentQuestion = usePixelWitnessStore((s) => s.currentQuestion);
+  const startMode = usePixelWitnessStore((s) => s.startMode);
+  const getDisplayedAnswer = usePixelWitnessStore((s) => s.getDisplayedAnswer);
+  const nextQuestion = usePixelWitnessStore((s) => s.nextQuestion);
+  const setPhase = usePixelWitnessStore((s) => s.setPhase);
+
+  useEffect(() => {
+    if (!currentClip) startMode('sense-builder', ageBand);
+  }, [currentClip, startMode, ageBand]);
+
+  if (!currentClip || !currentQuestion) {
+    return (
+      <div className="absolute inset-0 grid place-items-center p-8">
+        <Panel className="p-6 text-center">
+          <p className="font-body text-sm text-white/65 mb-3">Loading…</p>
+        </Panel>
+      </div>
+    );
+  }
+
+  const themeMeta = THEME_META[currentClip.theme];
+  const cost = senseCost(senseConfig);
+  const displayedAnswer = getDisplayedAnswer();
+
+  return (
+    <motion.div
+      key="sense-builder"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid grid-rows-[auto_1fr_auto] gap-3 p-4"
+    >
+      <Panel className="p-3 flex items-center justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: LAB7_HEX }}>
+            Sense Builder
+          </p>
+          <p className="font-display text-sm font-bold text-white">
+            Toggle senses. Watch the AI&apos;s answer change.
+          </p>
+        </div>
+        <span
+          className="font-mono text-xs font-bold px-2 py-0.5 rounded tabular-nums"
+          style={{ background: cost > 30 ? '#FF705025' : `${LAB7_HEX}25`, color: cost > 30 ? '#FF7050' : LAB7_HEX }}
+        >
+          Cost: {cost}× tokens
+        </span>
+      </Panel>
+
+      <Panel className="overflow-y-auto p-4 grid grid-rows-[auto_auto_1fr] gap-3">
+        {/* Sense toggles */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {(Object.keys(senseConfig) as Array<keyof SenseConfig>).map((s) => {
+            const meta = SENSE_META[s];
+            const on = senseConfig[s];
+            return (
+              <button
+                key={s}
+                type="button"
+                onClick={() => toggleSense(s)}
+                className="text-left rounded-lg p-3 transition-all hover:scale-[1.02]"
+                style={{
+                  background: on ? `${LAB7_HEX}25` : 'rgba(0,0,0,0.45)',
+                  border: `1px solid ${on ? LAB7_HEX : 'rgba(255,255,255,0.15)'}`,
+                  boxShadow: on ? `0 0 8px ${LAB7_HEX}40` : undefined,
+                }}
+                aria-pressed={on}
+                aria-label={`${meta.label} ${on ? 'on' : 'off'}`}
+              >
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="text-base" aria-hidden="true">{meta.emoji}</span>
+                  <span className="font-display text-sm font-bold text-white flex-1">{meta.label}</span>
+                  <span className="font-mono text-[9px] text-white/55">{meta.costMultiplier}×</span>
+                </div>
+                <p className="font-body text-[10px] text-white/65 leading-snug">{meta.hint}</p>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Clip + AI answer */}
+        <div className="grid sm:grid-cols-[1fr_1.2fr] gap-3">
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: themeMeta.color }}>
+              {currentClip.emoji} {currentClip.title}
+            </p>
+            <ClipPlayer
+              src={currentClip.videoSrc}
+              poster={currentClip.posterSrc}
+              durationSec={currentClip.durationSec}
+              themeColor={themeMeta.color}
+            />
+          </div>
+          <div className="space-y-3">
+            <div className="rounded-lg p-3" style={{ background: 'rgba(0,0,0,0.45)', border: `1px solid ${LAB7_HEX}40` }}>
+              <p className="font-mono text-[10px] uppercase mb-1" style={{ color: LAB7_HEX }}>
+                Question
+              </p>
+              <p className="font-body text-sm text-white">{currentQuestion.text}</p>
+              <p className="font-mono text-[10px] text-white/45 mt-1">
+                Needs at least: {currentQuestion.minimumSense}
+              </p>
+            </div>
+            <div className="rounded-lg p-3" style={{ background: `${LAB7_HEX}10`, border: `1px solid ${LAB7_HEX}40` }}>
+              <p className="font-mono text-[10px] uppercase mb-1" style={{ color: LAB7_HEX }}>
+                AI&apos;s answer with current senses
+              </p>
+              <p className="font-body text-sm text-white/90 leading-relaxed">{displayedAnswer}</p>
+            </div>
+          </div>
+        </div>
+
+        <div />
+      </Panel>
+
+      <Panel className="p-3 flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={() => setPhase('tutorial')}
+          className="px-3 py-1.5 rounded font-mono text-xs text-white/70 border border-white/20"
+        >
+          ← Back
+        </button>
+        <button
+          type="button"
+          onClick={nextQuestion}
+          className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+          style={{ background: LAB7_HEX, color: '#031416' }}
+        >
+          Next ▶
+        </button>
+      </Panel>
+    </motion.div>
+  );
+}
+
+// ─── PHASE 10 — CREATIVE SANDBOX (gated, optional) ───────────────
+
+function CreativeSandboxPhase() {
+  const setPhase = usePixelWitnessStore((s) => s.setPhase);
+  return (
+    <motion.div
+      key="creative-sandbox"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -12 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-6 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB7_HEX }}>
+          Creative sandbox
+        </p>
+        <h2 className="font-display text-xl font-bold text-white mb-2">
+          Image generation — gated
+        </h2>
+        <p className="font-body text-sm text-white/75 mb-5 leading-relaxed">
+          The image-generation sandbox uses external models (Imagen / Flux) with strict kid-safe
+          prompt filtering. Per Doc 2 §G.11 it&apos;s available only when the upstream gateway is
+          configured. For now: skip ahead to the report.
+        </p>
+        <button
+          type="button"
+          onClick={() => setPhase('report')}
+          className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+          style={{ background: LAB7_HEX, color: '#031416' }}
+        >
+          See report →
+        </button>
+      </Panel>
+    </motion.div>
+  );
+}
+
+// ─── PHASE 11 — REPORT ───────────────────────────────────────────
+
+function ReportPhase() {
+  const ratings = usePixelWitnessStore((s) => s.ratings);
+  const getGrade = usePixelWitnessStore((s) => s.getGrade);
+  const setPhase = usePixelWitnessStore((s) => s.setPhase);
+  const reset = usePixelWitnessStore((s) => s.reset);
+  const completeGame = useGameStore((s) => s.completeGame);
+
+  const grade = useMemo(() => getGrade(), [getGrade]);
+
+  useEffect(() => {
+    completeGame();
+  }, [completeGame]);
+
+  return (
+    <motion.div
+      key="report"
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.35 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-8 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB7_HEX }}>
+          Witness report
+        </p>
+        <div className="flex justify-center gap-2 mb-4">
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 + i * 0.15 }}
+              className="text-5xl"
+              style={{ color: i < grade.stars ? '#FFD93D' : 'rgba(255,255,255,0.15)' }}
+              aria-hidden="true"
+            >
+              ★
+            </motion.span>
+          ))}
+        </div>
+        <p className="font-display text-3xl font-bold text-white mb-1" aria-live="polite">
+          {grade.stars} / 3 stars
+        </p>
+        <p className="font-mono text-xs text-white/60 mb-5">
+          Accuracy {Math.round(grade.accuracy * 100)}% · {grade.matched}/{ratings.length} matched
+        </p>
+        <div className="grid grid-cols-3 gap-2 mb-5">
+          <ReportStat label="Caught" value={grade.hallucinationsCaught} color="#00D17A" />
+          <ReportStat label="Missed" value={grade.hallucinationsMissed} color="#FF7050" />
+          <ReportStat label="False alarms" value={grade.falseAlarms} color="#D9A430" />
+        </div>
+        <p className="font-body text-xs text-white/65 mb-5 italic">{grade.summary}</p>
+        <div className="flex justify-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              setPhase('tutorial');
+            }}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+            style={{ background: LAB7_HEX, color: '#031416' }}
+          >
+            Play again
+          </button>
+        </div>
+      </Panel>
+    </motion.div>
+  );
+}
+
+function ReportStat({ label, value, color }: { label: string; value: number; color: string }) {
+  return (
+    <div className="rounded-lg p-2.5" style={{ background: 'rgba(0,0,0,0.55)', border: `1px solid ${color}40` }}>
+      <p className="font-mono text-[9px] uppercase tracking-widest mb-0.5" style={{ color }}>{label}</p>
+      <p className="font-display text-2xl font-bold text-white tabular-nums">{value}</p>
     </div>
   );
 }
@@ -415,13 +901,13 @@ export function PixelWitnessGame() {
         {phase === 'learn-fusion' && <LearnFusionPhase key="learn-fusion" />}
         {phase === 'learn-hallucinate' && <LearnHallucinatePhase key="learn-hallucinate" />}
         {phase === 'tutorial' && <TutorialPhase key="tutorial" ageBand={ageBand} />}
-        {phase === 'watch-A' && <NotYetPhase key="watch-A" label="Watch-A mode" />}
-        {phase === 'watch-B' && <NotYetPhase key="watch-B" label="Watch-B mode" />}
-        {phase === 'watch-C' && <NotYetPhase key="watch-C" label="Watch-C mode" />}
-        {phase === 'hallucination-hunt' && <NotYetPhase key="hallucination-hunt" label="Hallucination Hunt" />}
-        {phase === 'sense-builder' && <NotYetPhase key="sense-builder" label="Sense Builder" />}
-        {phase === 'creative-sandbox' && <NotYetPhase key="creative-sandbox" label="Creative Sandbox" />}
-        {phase === 'report' && <NotYetPhase key="report" label="Report" />}
+        {phase === 'watch-A' && <WatchModeUI key="watch-A" ageBand={ageBand} mode="watch-A" modeLabel="Watch · band A" />}
+        {phase === 'watch-B' && <WatchModeUI key="watch-B" ageBand={ageBand} mode="watch-B" modeLabel="Watch · band B" />}
+        {phase === 'watch-C' && <WatchModeUI key="watch-C" ageBand={ageBand} mode="watch-C" modeLabel="Watch · band C" />}
+        {phase === 'hallucination-hunt' && <WatchModeUI key="hallucination-hunt" ageBand={ageBand} mode="hallucination-hunt" modeLabel="Hallucination Hunt · boss" />}
+        {phase === 'sense-builder' && <SenseBuilderPhase key="sense-builder" ageBand={ageBand} />}
+        {phase === 'creative-sandbox' && <CreativeSandboxPhase key="creative-sandbox" />}
+        {phase === 'report' && <ReportPhase key="report" />}
       </AnimatePresence>
     </GameShell>
   );
