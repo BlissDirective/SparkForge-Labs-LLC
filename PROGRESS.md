@@ -1,8 +1,39 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 5b proper COMPLETE; ready for Phase 5c
-## Status: IN PROGRESS — Phase 5b shipped (5/5 sub-commits); Phase 5c (Beats 5-8 + cockpit handoff) next
+## Current Phase: SparkForge Branding 3D — Phase 5 COMPLETE pending HS-9 sign-off
+## Status: AWAITING HS-9 USER VERIFICATION — all 7 sub-commits of Phase 5c shipped; HeroAnimation.tsx now runs v3 wholesale on the live homepage
 ## Last Updated: 2026-04-29
+
+### Phase 5c proper — COMPLETE (2026-04-29)
+
+| # | Sub-piece | Commit | Notes |
+|---|---|---|---|
+| 5c.1 | Beats 5+6 components | `038d9cb` | Beat5WordmarkCascade (per-letter pop), Beat6DichroicBloom (synchronized bloom + Q5 lensflare 2.0 peak) |
+| 5c.2 | Beat 7 component | `a51103d` | Beat7CockpitMaterialization (wordmark drift + lensflare fade + signalCockpit hook) |
+| 5c.3 | Beat 8 component | `cd79537` | Beat8AtomicHandoff (shatter-into-UI; 17 UI anchors; per-anchor flashes; onHandoffComplete callback) |
+| 5c.4 | Audio remap | `c4a230f` | heroAudio.ts:syncToProgress 13 trigger-time edits + 19.5 s base + Beat 5 cascade chimes + Beat 8 arrival ticks |
+| 5c.5 | Scrubber expansion | `2a7b5eb` | /dev/hero-v3 covers full 19.5 s with all 8 beats |
+| 5c.6 | HeroAnimation.tsx v3 | `88e0096` | Wholesale replacement — v2 phase content removed, v3 beats mounted; live homepage hero now runs v3 |
+| 5c.7 | HS-9 verification doc | (this commit) | docs/hero-v3/HS-9-Verification.md — 7-section checklist for user sign-off |
+
+### HS-9 hard stop — AWAITING USER VERIFICATION
+
+The HeroAnimation v3 is wired into the live homepage (`/`). User must walk through `docs/hero-v3/HS-9-Verification.md` (7 sections, ~50 checkpoints):
+
+1. **Hero v3 plays end-to-end** (11 checks across 8 beats)
+2. **CPA v2 single-canvas verification** — same `<canvas>` DOM node 0 → 19.5 s; no swap; cockpit takes over inside the same canvas
+3. **Skip / fast-forward / accessibility** — Escape / Enter / Space / prefers-reduced-motion / Settings toggle
+4. **Audio synchronization** — all 8 beats' cues fire at correct timestamps
+5. **Performance budget** — ≤ 18 ms/frame on WebGPU desktop-ultra
+6. **Mobile / non-WebGPU fallback** — MP4-poster path serves correctly
+7. **Theatre.js studio** (Q8) — overlay mounts on every environment
+
+### Branch state
+
+- All Phase 5 commits pushed to `claude/sparkforge-phase-five-CSSzU`
+- Build clean: `npm run build` → ✅ EXIT=0
+- Working tree clean
+- Ready for HS-9 sign-off → squash-merge into `setup-SparkForge-dev`
 
 **Runtime override (2026-04-29):** Hero total runtime extended **19.0 s → 19.5 s** (Beat 8 0.5 → 1.0 s) for shatter-into-UI breathing room. 4× FF window 4.75 → 4.875 s. N4 lock revised. All downstream docs (storyboard v1.2, action plan §16.3 + N4 row, audio remap §11) updated.
 
