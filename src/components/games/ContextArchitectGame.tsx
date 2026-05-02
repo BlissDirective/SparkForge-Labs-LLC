@@ -406,30 +406,424 @@ function TutorialPhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// PHASES 7-12 — placeholders implemented in Sub 11B.7b
+// PHASES 7-11 — Mode play UI (shared layout across 5 modes)
 // ═══════════════════════════════════════════════════════════════
 
-function NotYetPhase({ label }: { label: string }) {
+import { useGameStore } from '@/stores/gameStore';
+import { getCard } from '@/lib/contextarch/cardLibrary';
+import type { ContextMode } from '@/types/contextArchitect';
+
+interface PlayModeUIProps {
+  ageBand: 'A' | 'B' | 'C';
+  mode: ContextMode;
+  modeLabel: string;
+  /** Phase to return to via 'change mode' button. */
+  modeChangePhase: 'sort-mode' | 'budget-mode' | 'multi-turn-mode' | 'rot-boss' | 'design-shelf';
+}
+
+function PlayModeUI({ ageBand, mode, modeLabel }: PlayModeUIProps) {
+  const shelf = useContextArchitectStore((s) => s.shelf);
+  const external = useContextArchitectStore((s) => s.external);
+  const used = useContextArchitectStore((s) => s.used);
+  const budget = useContextArchitectStore((s) => s.budget);
+  const rot = useContextArchitectStore((s) => s.rot);
+  const accuracy = useContextArchitectStore((s) => s.accuracy);
+  const turn = useContextArchitectStore((s) => s.turn);
+  const turnsThisSession = useContextArchitectStore((s) => s.turnsThisSession);
+  const currentQuestion = useContextArchitectStore((s) => s.currentQuestion);
+  const lastError = useContextArchitectStore((s) => s.lastError);
+  const placeCard = useContextArchitectStore((s) => s.placeCard);
+  const offloadCard = useContextArchitectStore((s) => s.offloadCard);
+  const retrieveCard = useContextArchitectStore((s) => s.retrieveCard);
+  const isolateCard = useContextArchitectStore((s) => s.isolateCard);
+  const reduceCard = useContextArchitectStore((s) => s.reduceCard);
+  const removeCard = useContextArchitectStore((s) => s.removeCard);
+  const answerCurrentQuestion = useContextArchitectStore((s) => s.answerCurrentQuestion);
+  const nextQuestion = useContextArchitectStore((s) => s.nextQuestion);
   const setPhase = useContextArchitectStore((s) => s.setPhase);
+  const updateScore = useGameStore((s) => s.updateScore);
+  const advanceRound = useGameStore((s) => s.advanceRound);
+
+  const allCards = useMemo(() => cardsForBand(ageBand), [ageBand]);
+  const onShelf = useMemo(() => new Set(shelf.map((p) => p.cardId)), [shelf]);
+  const inExternal = useMemo(() => new Set(external.map((p) => p.cardId)), [external]);
+
+  const overBudget = budget > 0 && used > budget;
+  const enforceBudget = mode === 'budget' || mode === 'multi-turn' || mode === 'rot-boss';
+
+  function answerAndAdvance() {
+    answerCurrentQuestion();
+    updateScore(Math.round(accuracy * 100));
+    advanceRound();
+    // For multi-turn / rot-boss, stay in mode and advance to next question.
+    // For sort/budget, push to report after 3 turns.
+    const shouldReport =
+      (mode === 'sort' && turnsThisSession.length >= 2) ||
+      (mode === 'budget' && turnsThisSession.length >= 2) ||
+      (mode === 'rot-boss' && turnsThisSession.length >= 4);
+    if (shouldReport) {
+      setPhase('report');
+    } else {
+      nextQuestion(ageBand);
+    }
+  }
+
   return (
-    <div className="absolute inset-0 grid place-items-center p-8">
-      <Panel className="max-w-md p-6 text-center">
-        <p className="font-mono text-xs uppercase mb-2" style={{ color: LAB8_HEX }}>
-          {label} (Sub 11B.7b)
-        </p>
-        <p className="text-white/70 font-body text-sm mb-4">
-          Remaining phases land in the next sub-task.
-        </p>
+    <motion.div
+      key={mode}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.3 }}
+      className="absolute inset-0 grid grid-rows-[auto_1fr_auto] gap-3 p-4"
+    >
+      {/* Top status bar */}
+      <Panel className="p-3 grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest" style={{ color: LAB8_HEX }}>
+            {modeLabel} · turn {turn + 1}
+          </p>
+          {currentQuestion && (
+            <p className="font-display text-sm font-bold text-white truncate">
+              {currentQuestion.text}
+            </p>
+          )}
+        </div>
+        <Stat label="Tokens" value={`${used}/${budget}`} color={overBudget ? '#FF7050' : LAB8_HEX} />
+        <Stat label="Rot" value={`${Math.round(rot * 100)}%`} color={rot > 0.5 ? '#FF7050' : '#D9A430'} />
+        <Stat label="Accuracy" value={`${Math.round(accuracy * 100)}%`} color={accuracy >= 0.7 ? '#00D17A' : '#D9A430'} />
+      </Panel>
+
+      {/* Middle: shelf + external + deck */}
+      <Panel className="overflow-y-auto p-4 grid grid-rows-[auto_auto_1fr] gap-3">
+        {lastError && (
+          <p className="font-mono text-[11px] text-[#FF7050]">{lastError}</p>
+        )}
+        {currentQuestion?.hint && shelf.length === 0 && (
+          <p className="font-body text-[11px] text-white/60 italic">💡 Hint: {currentQuestion.hint}</p>
+        )}
+
+        {/* Shelf row */}
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: LAB8_HEX }}>
+            On the shelf · {shelf.length} card{shelf.length === 1 ? '' : 's'}
+          </p>
+          {shelf.length === 0 ? (
+            <p className="font-body text-xs text-white/50 italic">
+              Click cards in the deck below to place them on the shelf.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2">
+              {shelf.map((p) => {
+                const card = getCard(p.cardId);
+                if (!card) return null;
+                const meta = THEME_META[card.theme];
+                const isKey = currentQuestion?.keyCardIds.includes(p.cardId) ?? false;
+                const isDecoy = currentQuestion?.decoyCardIds.includes(p.cardId) ?? false;
+                return (
+                  <ShelfCardChip
+                    key={p.cardId}
+                    title={card.title}
+                    emoji={card.emoji}
+                    color={meta.color}
+                    isKey={isKey}
+                    isDecoy={isDecoy}
+                    isReduced={p.reduced}
+                    isIsolated={p.isolated}
+                    onOffload={() => offloadCard(p.cardId)}
+                    onIsolate={() => isolateCard(p.cardId)}
+                    onReduce={() => reduceCard(p.cardId)}
+                    onRemove={() => removeCard(p.cardId)}
+                  />
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* External memory */}
+        {external.length > 0 && (
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-widest mb-2 text-white/55">
+              External memory · {external.length} offloaded
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {external.map((p) => {
+                const card = getCard(p.cardId);
+                if (!card) return null;
+                const meta = THEME_META[card.theme];
+                return (
+                  <button
+                    key={p.cardId}
+                    type="button"
+                    onClick={() => retrieveCard(p.cardId)}
+                    className="px-2 py-1 rounded font-mono text-[10px] transition-all hover:scale-[1.04]"
+                    style={{ background: `${meta.color}15`, border: `1px dashed ${meta.color}50`, color: 'white' }}
+                    aria-label={`Retrieve ${card.title} (costs 1 turn)`}
+                  >
+                    {card.emoji} {card.title} · retrieve (1 turn)
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Deck */}
+        <div className="overflow-y-auto">
+          <p className="font-mono text-[10px] uppercase tracking-widest mb-2" style={{ color: LAB8_HEX }}>
+            Card deck · click to place
+          </p>
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2">
+            {allCards.map((card) => {
+              const placed = onShelf.has(card.id);
+              const offloaded = inExternal.has(card.id);
+              const meta = THEME_META[card.theme];
+              return (
+                <button
+                  key={card.id}
+                  type="button"
+                  onClick={() => placeCard(card.id)}
+                  disabled={placed || offloaded}
+                  className="text-left rounded-lg p-2.5 transition-all hover:scale-[1.02] disabled:opacity-40 disabled:cursor-not-allowed"
+                  style={{
+                    background: placed ? `${meta.color}10` : 'rgba(0,0,0,0.4)',
+                    border: `1px solid ${meta.color}40`,
+                  }}
+                  aria-label={`Place ${card.title} on shelf (${card.tokens} tokens)`}
+                >
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <span aria-hidden="true">{card.emoji}</span>
+                    <span className="font-display text-xs font-bold text-white flex-1">{card.title}</span>
+                    <span className="font-mono text-[9px]" style={{ color: meta.color }}>{card.tokens}t</span>
+                  </div>
+                  <p className="font-body text-[10px] text-white/60 leading-snug line-clamp-2">{card.text}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </Panel>
+
+      {/* Bottom: action bar */}
+      <Panel className="p-3 flex justify-between items-center gap-2">
         <button
           type="button"
           onClick={() => setPhase('tutorial')}
-          className="px-4 py-2 rounded font-mono text-xs"
-          style={{ background: LAB8_HEX, color: '#031416' }}
+          className="px-3 py-1.5 rounded font-mono text-xs text-white/70 border border-white/20 hover:text-white"
         >
           ← Back
         </button>
+        <p className="font-mono text-[11px] text-white/55">
+          {turnsThisSession.length} turn{turnsThisSession.length === 1 ? '' : 's'} answered
+          {enforceBudget && overBudget && (
+            <span className="ml-2 text-[#FF7050]">· budget exceeded</span>
+          )}
+        </p>
+        <button
+          type="button"
+          onClick={answerAndAdvance}
+          disabled={!currentQuestion || (enforceBudget && overBudget)}
+          className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105 disabled:opacity-40 disabled:hover:scale-100"
+          style={{ background: LAB8_HEX, color: '#031416' }}
+          aria-label="Answer this question with current shelf"
+        >
+          Answer ▶
+        </button>
       </Panel>
+    </motion.div>
+  );
+}
+
+function Stat({ label, value, color }: { label: string; value: string; color: string }) {
+  return (
+    <div
+      className="rounded-lg px-2.5 py-1.5 text-center min-w-[5rem]"
+      style={{ background: 'rgba(0,0,0,0.55)', border: `1px solid ${color}40` }}
+    >
+      <p className="font-mono text-[8px] uppercase tracking-widest mb-0.5" style={{ color }}>
+        {label}
+      </p>
+      <p className="font-display text-sm font-bold text-white tabular-nums">{value}</p>
     </div>
+  );
+}
+
+interface ShelfCardChipProps {
+  title: string;
+  emoji: string;
+  color: string;
+  isKey: boolean;
+  isDecoy: boolean;
+  isReduced: boolean;
+  isIsolated: boolean;
+  onOffload: () => void;
+  onIsolate: () => void;
+  onReduce: () => void;
+  onRemove: () => void;
+}
+
+function ShelfCardChip({
+  title, emoji, color, isKey, isDecoy, isReduced, isIsolated,
+  onOffload, onIsolate, onReduce, onRemove,
+}: ShelfCardChipProps) {
+  const ring = isKey ? color : isDecoy ? '#FF7050' : 'rgba(255,255,255,0.2)';
+  return (
+    <div
+      className="rounded-lg p-2 min-w-[180px]"
+      style={{
+        background: isIsolated ? 'rgba(0,0,0,0.3)' : `${color}15`,
+        border: `1px solid ${ring}`,
+        boxShadow: isKey ? `0 0 8px ${color}40` : undefined,
+        opacity: isIsolated ? 0.5 : 1,
+      }}
+    >
+      <div className="flex items-center gap-1.5 mb-1">
+        <span aria-hidden="true">{emoji}</span>
+        <span className="font-display text-xs font-bold text-white flex-1 truncate">{title}</span>
+        {isReduced && (
+          <span className="font-mono text-[8px] uppercase px-1 rounded" style={{ background: '#D9A430', color: '#031416' }}>
+            ½
+          </span>
+        )}
+        {isIsolated && (
+          <span className="font-mono text-[8px] uppercase px-1 rounded text-white/60 border border-white/20">
+            iso
+          </span>
+        )}
+      </div>
+      <div className="flex gap-1">
+        <button
+          type="button"
+          onClick={onOffload}
+          className="flex-1 px-1 py-0.5 rounded font-mono text-[9px] text-white/85 hover:bg-white/10 border border-white/15"
+          aria-label="Offload card"
+          title={MOVE_META.offload.hint}
+        >
+          {MOVE_META.offload.emoji}
+        </button>
+        <button
+          type="button"
+          onClick={onIsolate}
+          disabled={isIsolated}
+          className="flex-1 px-1 py-0.5 rounded font-mono text-[9px] text-white/85 hover:bg-white/10 border border-white/15 disabled:opacity-40"
+          aria-label="Isolate card"
+          title={MOVE_META.isolate.hint}
+        >
+          {MOVE_META.isolate.emoji}
+        </button>
+        <button
+          type="button"
+          onClick={onReduce}
+          disabled={isReduced}
+          className="flex-1 px-1 py-0.5 rounded font-mono text-[9px] text-white/85 hover:bg-white/10 border border-white/15 disabled:opacity-40"
+          aria-label="Reduce card"
+          title={MOVE_META.reduce.hint}
+        >
+          {MOVE_META.reduce.emoji}
+        </button>
+        <button
+          type="button"
+          onClick={onRemove}
+          className="flex-1 px-1 py-0.5 rounded font-mono text-[9px] text-white/85 hover:bg-white/10 border border-white/15"
+          aria-label="Remove card from shelf"
+          title="Remove from shelf entirely"
+        >
+          ✕
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PHASE 12 — REPORT (session grade)
+// ═══════════════════════════════════════════════════════════════
+
+function ReportPhase() {
+  const turnsThisSession = useContextArchitectStore((s) => s.turnsThisSession);
+  const bestScore = useContextArchitectStore((s) => s.bestScore);
+  const setPhase = useContextArchitectStore((s) => s.setPhase);
+  const reset = useContextArchitectStore((s) => s.reset);
+  const completeGame = useGameStore((s) => s.completeGame);
+
+  // Compute grade locally from turns; computeGrade is in budgetEngine.
+  const grade = useMemo(() => {
+    if (turnsThisSession.length === 0) return null;
+    const correct = turnsThisSession.filter((t) => t.accuracy >= 0.7).length;
+    const meanAcc = turnsThisSession.reduce((s, t) => s + t.accuracy, 0) / turnsThisSession.length;
+    const meanRot = turnsThisSession.reduce((s, t) => s + t.rotAtAnswer, 0) / turnsThisSession.length;
+    const stars: 0 | 1 | 2 | 3 =
+      meanAcc >= 0.85 ? 3 : meanAcc >= 0.65 ? 2 : meanAcc >= 0.4 ? 1 : 0;
+    return { correct, meanAcc, meanRot, stars };
+  }, [turnsThisSession]);
+
+  useEffect(() => {
+    completeGame();
+  }, [completeGame]);
+
+  if (!grade) {
+    return (
+      <div className="absolute inset-0 grid place-items-center p-8">
+        <Panel className="p-4 text-center">
+          <p className="font-body text-sm text-white/60">No turns played yet.</p>
+        </Panel>
+      </div>
+    );
+  }
+
+  return (
+    <motion.div
+      key="report"
+      initial={{ opacity: 0, scale: 0.97 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.97 }}
+      transition={{ duration: 0.35 }}
+      className="absolute inset-0 grid place-items-center p-6"
+    >
+      <Panel className="max-w-md w-full p-8 text-center">
+        <p className="font-mono text-xs uppercase tracking-widest mb-2" style={{ color: LAB8_HEX }}>
+          Session report
+        </p>
+        <div className="flex justify-center gap-2 mb-4">
+          {[0, 1, 2].map((i) => (
+            <motion.span
+              key={i}
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ duration: 0.4, delay: 0.1 + i * 0.15 }}
+              className="text-5xl"
+              style={{ color: i < grade.stars ? '#FFD93D' : 'rgba(255,255,255,0.15)' }}
+              aria-hidden="true"
+            >
+              ★
+            </motion.span>
+          ))}
+        </div>
+        <p className="font-display text-3xl font-bold text-white mb-1" aria-live="polite">
+          {grade.stars} / 3 stars
+        </p>
+        <p className="font-mono text-xs text-white/60 mb-5">
+          Accuracy {Math.round(grade.meanAcc * 100)}% · Rot {Math.round(grade.meanRot * 100)}% · {grade.correct}/{turnsThisSession.length} correct
+        </p>
+        <p className="font-mono text-[11px] text-white/55 mb-5">
+          Personal best: <strong className="text-white">{bestScore}</strong>
+        </p>
+        <div className="flex flex-wrap gap-2 justify-center">
+          <button
+            type="button"
+            onClick={() => {
+              reset();
+              setPhase('tutorial');
+            }}
+            className="px-5 py-2 rounded font-mono text-xs font-bold transition-transform hover:scale-105"
+            style={{ background: LAB8_HEX, color: '#031416' }}
+          >
+            Play again
+          </button>
+        </div>
+      </Panel>
+    </motion.div>
   );
 }
 
@@ -479,12 +873,12 @@ export function ContextArchitectGame() {
         {phase === 'learn-moves' && <LearnMovesPhase key="learn-moves" />}
         {phase === 'learn-rot' && <LearnRotPhase key="learn-rot" />}
         {phase === 'tutorial' && <TutorialPhase key="tutorial" ageBand={ageBand} />}
-        {phase === 'sort-mode' && <NotYetPhase key="sort-mode" label="Sort mode" />}
-        {phase === 'budget-mode' && <NotYetPhase key="budget-mode" label="Budget mode" />}
-        {phase === 'multi-turn-mode' && <NotYetPhase key="multi-turn-mode" label="Multi-turn mode" />}
-        {phase === 'rot-boss' && <NotYetPhase key="rot-boss" label="Rot boss" />}
-        {phase === 'design-shelf' && <NotYetPhase key="design-shelf" label="Design shelf" />}
-        {phase === 'report' && <NotYetPhase key="report" label="Report" />}
+        {phase === 'sort-mode' && <PlayModeUI key="sort-mode" ageBand={ageBand} mode="sort" modeLabel="Sort mode" modeChangePhase="sort-mode" />}
+        {phase === 'budget-mode' && <PlayModeUI key="budget-mode" ageBand={ageBand} mode="budget" modeLabel="Budget mode" modeChangePhase="budget-mode" />}
+        {phase === 'multi-turn-mode' && <PlayModeUI key="multi-turn-mode" ageBand={ageBand} mode="multi-turn" modeLabel="Multi-turn mode" modeChangePhase="multi-turn-mode" />}
+        {phase === 'rot-boss' && <PlayModeUI key="rot-boss" ageBand={ageBand} mode="rot-boss" modeLabel="Rot boss" modeChangePhase="rot-boss" />}
+        {phase === 'design-shelf' && <PlayModeUI key="design-shelf" ageBand={ageBand} mode="design-shelf" modeLabel="Design shelf" modeChangePhase="design-shelf" />}
+        {phase === 'report' && <ReportPhase key="report" />}
       </AnimatePresence>
     </GameShell>
   );
