@@ -41,7 +41,6 @@ import {
 import { FlagshipEnvironmentWrapper } from './FlagshipEnvironmentBase';
 
 const LAB1_HEX = '#0FB8FA';
-const LAB1_DEEP = '#0A2A45';
 const LAB1_SOFT = '#7FD8FF';
 const WARM_AMBER = '#FFB97A';
 

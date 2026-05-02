@@ -68,6 +68,8 @@ export interface PromptRunRecord {
 export interface RaceSession {
   startedAtMs: number;
   durationMs: number;            // total race time budget (e.g. 5 min)
+  /** Age band locked for this race so refills stay age-appropriate. */
+  band: 'A' | 'B' | 'C';
   /** Trivia ids served so far. */
   servedQuestionIds: string[];
   /** Answers attempted so far (parallel to servedQuestionIds). */
@@ -108,6 +110,7 @@ interface PocketBrainTransient {
   // Cloud-compare phase
   cloudCompareOutput: string;
   isCloudComparing: boolean;
+  cloudAbortController: AbortController | null;
 }
 
 type PocketBrainState = PocketBrainPersisted & PocketBrainTransient & {
@@ -158,6 +161,7 @@ const TRANSIENT_INITIAL: PocketBrainTransient = {
   raceTickMs: 0,
   cloudCompareOutput: '',
   isCloudComparing: false,
+  cloudAbortController: null,
 };
 
 const DEFAULT_RACE_DURATION_MS = 5 * 60 * 1000;
@@ -273,8 +277,12 @@ export const usePocketBrainStore = create<PocketBrainState>()(
 
         try {
           let lastTokensPerSec = 0;
+          let lastActiveExperts: number[] = selectActiveExperts(text);
+          let lastText = '';
           for await (const chunk of webllmService.stream({ prompt: text, signal: ac.signal })) {
             lastTokensPerSec = chunk.tokensPerSec;
+            lastActiveExperts = chunk.activeExperts;
+            lastText = chunk.text;
             set({
               streamingText: chunk.text,
               tokensPerSec: chunk.tokensPerSec,
@@ -282,7 +290,6 @@ export const usePocketBrainStore = create<PocketBrainState>()(
             });
           }
           const durationMs = Date.now() - startedAt;
-          const finalText = get().streamingText;
           set((s) => ({
             isStreaming: false,
             abortController: null,
@@ -291,18 +298,21 @@ export const usePocketBrainStore = create<PocketBrainState>()(
               {
                 promptId,
                 quantization,
-                output: finalText,
+                output: lastText,
                 tokensPerSec: lastTokensPerSec,
                 durationMs,
-                activeExperts: s.activeExperts,
+                activeExperts: lastActiveExperts,
                 runAtMs: Date.now(),
               },
             ],
           }));
         } catch (e) {
           set({ isStreaming: false, abortController: null });
-          const msg = e instanceof Error ? e.message : String(e);
-          if (msg !== 'AbortError') {
+          const isAbort = ac.signal.aborted
+            || (e instanceof DOMException && e.name === 'AbortError')
+            || (e instanceof Error && e.name === 'AbortError');
+          if (!isAbort) {
+            const msg = e instanceof Error ? e.message : String(e);
             useToastStore.getState().addToast('error', `Run failed: ${msg}`);
           }
         }
@@ -316,17 +326,22 @@ export const usePocketBrainStore = create<PocketBrainState>()(
 
       // ── Race mode ──────────────────────────────────────────
       startRace: (band, durationMs = DEFAULT_RACE_DURATION_MS) => {
-        const triviaIds = triviaForBand(band).map((t) => t.id);
-        if (triviaIds.length === 0) return;
-        // Shuffle stable per-session.
-        const shuffled = [...triviaIds].sort(() => Math.random() - 0.5);
+        const eligible = triviaForBand(band);
+        if (eligible.length === 0) return;
+        // Fisher-Yates shuffle for unbiased order.
+        const shuffled = [...eligible];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
         set({
           race: {
             startedAtMs: Date.now(),
             durationMs,
-            servedQuestionIds: [shuffled[0]],
+            band,
+            servedQuestionIds: [shuffled[0].id],
             answers: [],
-            currentQuestionId: shuffled[0],
+            currentQuestionId: shuffled[0].id,
           },
           raceTickMs: Date.now(),
         });
@@ -335,25 +350,30 @@ export const usePocketBrainStore = create<PocketBrainState>()(
       raceNextQuestion: () => {
         const { race } = get();
         if (!race) return null;
-        const remainingIds = RACE_TRIVIA
-          .map((t) => t.id)
-          .filter((id) => !race.servedQuestionIds.includes(id));
-        if (remainingIds.length === 0) {
-          // Cycle the deck so a kid who's fast doesn't run out.
-          set({ race: { ...race, servedQuestionIds: race.servedQuestionIds.slice(-1) } });
-          return RACE_TRIVIA.find((t) => t.id !== race.currentQuestionId) ?? RACE_TRIVIA[0];
+        const bandPool = triviaForBand(race.band);
+        const remaining = bandPool.filter((t) => !race.servedQuestionIds.includes(t.id));
+        if (remaining.length === 0) {
+          // Recycle band-eligible deck so a fast kid doesn't run out
+          // and never falls back to age-inappropriate trivia.
+          const recycled = bandPool.find((t) => t.id !== race.currentQuestionId) ?? bandPool[0];
+          set({
+            race: {
+              ...race,
+              servedQuestionIds: [recycled.id],
+              currentQuestionId: recycled.id,
+            },
+          });
+          return recycled;
         }
-        const next = remainingIds[0];
-        const trivia = RACE_TRIVIA.find((t) => t.id === next);
-        if (!trivia) return null;
+        const next = remaining[0];
         set({
           race: {
             ...race,
-            servedQuestionIds: [...race.servedQuestionIds, next],
-            currentQuestionId: next,
+            servedQuestionIds: [...race.servedQuestionIds, next.id],
+            currentQuestionId: next.id,
           },
         });
-        return trivia;
+        return next;
       },
 
       submitRaceAnswer: (questionId, output, tokensPerSec) => {
@@ -386,7 +406,12 @@ export const usePocketBrainStore = create<PocketBrainState>()(
       runCloudCompare: async (prompt) => {
         const text = prompt.trim();
         if (text.length === 0) return;
-        set({ isCloudComparing: true, cloudCompareOutput: '' });
+        // Abort any prior in-flight compare so a re-fire can't race
+        // and overwrite the latest output with a stale response.
+        const prior = get().cloudAbortController;
+        try { prior?.abort(); } catch { /* best-effort */ }
+        const ac = new AbortController();
+        set({ isCloudComparing: true, cloudCompareOutput: '', cloudAbortController: ac });
         try {
           // Re-uses the existing /api/ai/prompt-lab path. Keeps the
           // single Anthropic API surface area, and inherits its
@@ -395,6 +420,7 @@ export const usePocketBrainStore = create<PocketBrainState>()(
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ prompt: text }),
+            signal: ac.signal,
           });
           if (!res.ok) {
             throw new Error(`Cloud comparison failed (${res.status})`);
@@ -402,11 +428,17 @@ export const usePocketBrainStore = create<PocketBrainState>()(
           const data = (await res.json()) as { text?: string; reply?: string };
           set({ cloudCompareOutput: data.text ?? data.reply ?? '(no response)' });
         } catch (e) {
-          const msg = e instanceof Error ? e.message : String(e);
-          useToastStore.getState().addToast('error', `Cloud compare failed: ${msg}`);
-          set({ cloudCompareOutput: '(comparison unavailable)' });
+          const isAbort = ac.signal.aborted
+            || (e instanceof DOMException && e.name === 'AbortError');
+          if (!isAbort) {
+            const msg = e instanceof Error ? e.message : String(e);
+            useToastStore.getState().addToast('error', `Cloud compare failed: ${msg}`);
+            set({ cloudCompareOutput: '(comparison unavailable)' });
+          }
         } finally {
-          set({ isCloudComparing: false });
+          if (get().cloudAbortController === ac) {
+            set({ isCloudComparing: false, cloudAbortController: null });
+          }
         }
       },
     }),
@@ -414,7 +446,9 @@ export const usePocketBrainStore = create<PocketBrainState>()(
       name: 'sparkforge-pocket-brain',
       partialize: (s): PocketBrainPersisted => ({
         tutorialSeen: s.tutorialSeen,
-        lastModelChoice: s.lastModelChoice,
+        // Don't pin a returning kid to the poster fallback if their
+        // device later supports WebGPU — re-probe on next visit.
+        lastModelChoice: s.lastModelChoice === 'mp4-poster' ? null : s.lastModelChoice,
         lastQuantization: s.lastQuantization,
         raceBest: s.raceBest,
       }),

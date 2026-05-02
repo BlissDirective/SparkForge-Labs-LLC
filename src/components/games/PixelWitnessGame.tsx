@@ -23,6 +23,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { GameShell } from '@/components/game/GameShell';
 import { useActiveChild } from '@/hooks/useChildren';
 import { usePixelWitnessStore } from '@/stores/pixelWitnessStore';
+import { evaluateRating } from '@/lib/pixelwitness/judgeEngine';
 
 const PixelWitness3D = dynamic(() => import('@/components/3d/PixelWitness3D'), { ssr: false });
 const PixelWitnessEnvironment = dynamic(
@@ -471,14 +472,12 @@ function WatchModeUI({ ageBand, mode, modeLabel }: WatchModeUIProps) {
 
   function rateAndScore(rating: PlayerRating['rating']) {
     if (!currentQuestion) return;
-    const qId = currentQuestion.id;
+    // Evaluate before mutating store — Zustand `set` is synchronous,
+    // but reading the result inline avoids the prior 50ms timer race
+    // (and the leaked timeout on quick unmount).
+    const matched = evaluateRating(rating, currentQuestion);
     rateAnswer(rating);
-    // Award score = 25 per match, 0 otherwise; checked after the next render
-    // since rateAnswer is async-ish (state).
-    setTimeout(() => {
-      const r = usePixelWitnessStore.getState().ratings.find((rr) => rr.questionId === qId);
-      if (r?.matched) updateScore(25);
-    }, 50);
+    if (matched) updateScore(25);
   }
 
   return (
@@ -564,8 +563,10 @@ function WatchModeUI({ ageBand, mode, modeLabel }: WatchModeUIProps) {
         </div>
       </Panel>
 
-      {/* Action bar */}
-      <Panel className="p-3 flex items-center justify-between gap-2">
+      {/* Action bar — aria-live polite so screen readers hear the
+          rating-recorded transition (rating buttons hide and Next
+          appears, otherwise silent). */}
+      <Panel className="p-3 flex items-center justify-between gap-2" aria-live="polite">
         <button
           type="button"
           onClick={() => setPhase('tutorial')}
@@ -889,7 +890,6 @@ export function PixelWitnessGame() {
 
   useEffect(() => {
     reset();
-    return () => reset();
   }, [reset]);
 
   // No-op memo to silence unused-import lint until 11C.7b consumers land.

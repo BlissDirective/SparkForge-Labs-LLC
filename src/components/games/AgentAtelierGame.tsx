@@ -988,7 +988,8 @@ function GradePhase() {
   const reset = useAgentAtelierStore((s) => s.reset);
   const updateScore = useGameStore((s) => s.updateScore);
   const advanceRound = useGameStore((s) => s.advanceRound);
-  const isComplete = useGameStore((s) => s.isComplete);
+  // isComplete deliberately read fresh post-advanceRound via getState() in
+  // the click handlers below — see commit 14aaf1a for the stale-read fix.
 
   // Award score once when the grade arrives.
   useEffect(() => {
@@ -1139,7 +1140,7 @@ function SavePhase() {
   const saveComposition = useAgentAtelierStore((s) => s.saveComposition);
   const isSaving = useAgentAtelierStore((s) => s.isSaving);
   const advanceRound = useGameStore((s) => s.advanceRound);
-  const isComplete = useGameStore((s) => s.isComplete);
+  // isComplete read fresh post-advanceRound via getState() in handleSave.
   const activeChild = useActiveChild();
 
   const [name, setName] = useState('');
@@ -1343,10 +1344,10 @@ export function AgentAtelierGame() {
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band ?? 'B') as 'A' | 'B' | 'C';
 
-  // On mount: reset transient state. On unmount: same.
+  // Reset on mount only (no cleanup reset to avoid double-fire under
+  // React 19 strict-mode and unwanted abort of in-flight saves).
   useEffect(() => {
     reset();
-    return () => reset();
   }, [reset]);
 
   // Game-store totalRounds bookkeeping (each completed mission = 1 round).

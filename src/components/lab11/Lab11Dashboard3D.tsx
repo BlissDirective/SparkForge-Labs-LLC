@@ -93,6 +93,10 @@ interface ConstellationProps {
 
 function AgentConstellation({ stats }: ConstellationProps) {
   const groupRef = useRef<Group>(null);
+  // Depend only on the slice we read so React Query refetches that
+  // return a referentially-fresh `stats` object don't recompute the
+  // 12-node layout when nothing material changed.
+  const specialistFrequency = stats.specialistFrequency;
 
   // Pre-compute layout: 12 nodes on two stacked rings inside the beam.
   const nodes = useMemo(() => {
@@ -103,7 +107,7 @@ function AgentConstellation({ stats }: ConstellationProps) {
     const y1 = 2.0;
     const y2 = 2.7;
     const placements = (id: string) =>
-      stats.specialistFrequency.find((f) => f.agentId === id)?.placements ?? 0;
+      specialistFrequency.find((f) => f.agentId === id)?.placements ?? 0;
     return [
       ...ring1.map((a, i) => {
         const t = i / ring1.length;
@@ -126,7 +130,7 @@ function AgentConstellation({ stats }: ConstellationProps) {
         };
       }),
     ];
-  }, [stats]);
+  }, [specialistFrequency]);
 
   useFrame(({ clock }) => {
     if (!groupRef.current) return;

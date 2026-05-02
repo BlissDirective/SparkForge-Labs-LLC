@@ -21,7 +21,6 @@ import {
   Color,
   DoubleSide,
   Group,
-  Mesh,
   MeshBasicMaterial,
 } from 'three';
 

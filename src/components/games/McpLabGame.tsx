@@ -964,7 +964,7 @@ function GradePhase() {
   const reset = useMcpLabStore((s) => s.reset);
   const updateScore = useGameStore((s) => s.updateScore);
   const advanceRound = useGameStore((s) => s.advanceRound);
-  const isComplete = useGameStore((s) => s.isComplete);
+  // isComplete read fresh post-advanceRound via getState() in handlers.
 
   useEffect(() => {
     if (!grade) return;
@@ -1119,7 +1119,7 @@ function SavePhase() {
   const saveEquipped = useMcpLabStore((s) => s.saveEquippedComposition);
   const isSaving = useMcpLabStore((s) => s.isSaving);
   const advanceRound = useGameStore((s) => s.advanceRound);
-  const isComplete = useGameStore((s) => s.isComplete);
+  // isComplete read fresh post-advanceRound via getState() in handleSave.
   const activeChild = useActiveChild();
 
   const [name, setName] = useState('');
@@ -1236,7 +1236,6 @@ export function McpLabGame() {
 
   useEffect(() => {
     reset();
-    return () => reset();
   }, [reset]);
 
   return (

@@ -362,7 +362,6 @@ function LearnRotPhase() {
 // ═══════════════════════════════════════════════════════════════
 
 function TutorialPhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
-  const setPhase = useContextArchitectStore((s) => s.setPhase);
   const markSeen = useContextArchitectStore((s) => s.markTutorialSeen);
   const startMode = useContextArchitectStore((s) => s.startMode);
 
@@ -841,7 +840,6 @@ export function ContextArchitectGame() {
 
   useEffect(() => {
     reset();
-    return () => reset();
   }, [reset]);
 
   // Defensive: pre-fetch cards-for-band so the deck doesn't lag on first

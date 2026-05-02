@@ -788,7 +788,7 @@ function ReportPhase() {
   const reset = useGlassBoxStore((s) => s.reset);
   const updateScore = useGameStore((s) => s.updateScore);
   const advanceRound = useGameStore((s) => s.advanceRound);
-  const isComplete = useGameStore((s) => s.isComplete);
+  // isComplete read fresh post-advanceRound via getState() in handler.
 
   useEffect(() => {
     if (!summary) return;
@@ -990,7 +990,6 @@ export function GlassBoxGame() {
 
   useEffect(() => {
     reset();
-    return () => reset();
   }, [reset]);
 
   return (

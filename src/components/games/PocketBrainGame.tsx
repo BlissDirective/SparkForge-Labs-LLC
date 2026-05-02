@@ -619,7 +619,6 @@ function TokenStreamViewPhase() {
   );
 }
 
-import { useState } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import { useActiveChild } from '@/hooks/useChildren';
 import {
@@ -903,19 +902,23 @@ function SpeedRacePhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
   const streamingText = usePocketBrainStore((s) => s.streamingText);
   const quantization = usePocketBrainStore((s) => s.quantization);
 
-  // Race ticker (re-render once per second to update the clock).
+  // Race ticker (re-render once per second to update the clock,
+  // and end the race the moment the timer expires — checking inside
+  // the interval avoids the previous bug where the auto-end effect
+  // only re-ran on `race` changes and missed the deadline).
   useEffect(() => {
     if (!race) return;
-    const id = window.setInterval(() => raceTick(), 1000);
+    const startedAtMs = race.startedAtMs;
+    const durationMs = race.durationMs;
+    const id = window.setInterval(() => {
+      if (Date.now() - startedAtMs >= durationMs) {
+        endRace();
+        return;
+      }
+      raceTick();
+    }, 1000);
     return () => window.clearInterval(id);
-  }, [race, raceTick]);
-
-  // Auto-end race when timer expires.
-  useEffect(() => {
-    if (!race) return;
-    const elapsed = Date.now() - race.startedAtMs;
-    if (elapsed >= race.durationMs) endRace();
-  }, [race, endRace]);
+  }, [race, raceTick, endRace]);
 
   const correct = race?.answers.filter((a) => a.correct).length ?? 0;
   const elapsed = race ? Date.now() - race.startedAtMs : 0;
@@ -1331,9 +1334,11 @@ export function PocketBrainGame() {
   const activeChild = useActiveChild();
   const ageBand = (activeChild?.age_band ?? 'B') as 'A' | 'B' | 'C';
 
+  // Reset on mount only. Returning a cleanup `reset()` here would
+  // fire 4 times under React 19 strict-mode double-invoke and could
+  // abort an in-flight WebLLM `loadModel` mid-stream.
   useEffect(() => {
     reset();
-    return () => reset();
   }, [reset]);
 
   return (

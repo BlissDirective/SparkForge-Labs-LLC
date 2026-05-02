@@ -187,8 +187,12 @@ export const usePixelWitnessStore = create<PixelWitnessState>()(
           return cfg.bandFilter.some((b) => c.band.includes(b));
         });
 
-        // Shuffle deterministically per mode to keep the deck fresh.
-        const shuffled = [...candidates].sort(() => Math.random() - 0.5);
+        // Fisher-Yates shuffle (unbiased, unlike compare-by-random).
+        const shuffled = [...candidates];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
         const modeClips = shuffled.slice(0, cfg.size);
 
         // Hallucination Hunt: boss mode focuses purely on adversarial

@@ -795,7 +795,7 @@ function ReportPhase() {
   const reset = useHarnessForgeStore((s) => s.reset);
   const updateScore = useGameStore((s) => s.updateScore);
   const advanceRound = useGameStore((s) => s.advanceRound);
-  const isComplete = useGameStore((s) => s.isComplete);
+  // isComplete read fresh post-advanceRound via getState() in handler.
 
   useEffect(() => {
     if (!grade) return;
@@ -960,7 +960,7 @@ function SavePhase() {
   const saveHarness = useHarnessForgeStore((s) => s.saveHarnessToSelected);
   const isSaving = useHarnessForgeStore((s) => s.isSaving);
   const advanceRound = useGameStore((s) => s.advanceRound);
-  const isComplete = useGameStore((s) => s.isComplete);
+  // isComplete read fresh post-advanceRound via getState() in handleSave.
 
   async function handleSave() {
     const ok = await saveHarness();
@@ -1066,7 +1066,6 @@ export function HarnessForgeGame() {
 
   useEffect(() => {
     reset();
-    return () => reset();
   }, [reset]);
 
   return (

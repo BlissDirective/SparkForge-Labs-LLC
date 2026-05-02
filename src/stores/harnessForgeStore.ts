@@ -271,8 +271,11 @@ export const useHarnessForgeStore = create<HarnessForgeState>()(
         }
 
         const grade = computeGrade(out, eligible, config);
-        // Persist last-used config.
-        set({ results: out, grade, lastConfig: config, phase: 'report' });
+        // NOTE: lastConfig (persisted slice) is *not* updated here —
+        // we only persist on explicit `saveHarnessToSelected` so an
+        // experimental config the kid bails on doesn't leak into the
+        // next session.
+        set({ results: out, grade, phase: 'report' });
       },
 
       clearResults: () => set({ results: {}, grade: null }),
@@ -291,6 +294,9 @@ export const useHarnessForgeStore = create<HarnessForgeState>()(
           useToastStore.getState().addToast('error', `Couldn't save harness: ${error.message}`);
           return false;
         }
+        // Now that the kid has explicitly committed this config, persist
+        // it so the next session starts pre-filled.
+        set({ lastConfig: config });
         useToastStore.getState().addToast('success', 'Harness saved on this composition.');
         return true;
       },

@@ -15,8 +15,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type {
-  ContextCard,
-  ContextError,
   ContextMode,
   ConversationTurn,
   ExternalPlacement,

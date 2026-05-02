@@ -28,7 +28,6 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   DoubleSide,
-  Group,
   InstancedMesh,
   Matrix4,
   MeshBasicMaterial,
