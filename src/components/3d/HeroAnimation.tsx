@@ -1,34 +1,40 @@
 'use client';
 
 // ================================================================
-// HeroAnimation — 8-Phase Cinematic Hero Sequence
+// HeroAnimation — Hero v3 (8-beat 19.5 s sequence)
 // ================================================================
-// 20M COCKPIT UPGRADE: Now renders inside the unified CockpitCanvas
-// (CPA2-1) instead of creating its own R3F Canvas. The hero scene
-// content is a <group> within the persistent Canvas, enabling
-// seamless handoff to the cockpit (CPA2-3) with zero Canvas swap.
 //
-// Architecture (revised):
-//   - HeroAnimation manages GSAP timeline, UI overlay (skip button, progress)
-//   - HeroScene renders as <group> inside CockpitCanvas
-//   - On Phase 7 (materialize): cockpit groups begin fading in
-//   - On Phase 8 (online): hero group fades out, cockpit takes over
-//   - No Canvas unmount — heroPhase transitions via cockpitStore
+// REWRITTEN for Hero v3 (Phase 5c.6).
 //
-// Spec: SparkForge_Hero_Page_Animation_v2.0.md Sections 3-9
+// Architecture (preserved from v2):
+//   - Outer <HeroAnimation> manages skip/fast-forward UI overlay,
+//     GPU detection, keyboard shortcuts, and lifecycle wiring.
+//   - <HeroScene> renders as a <group> inside CockpitCanvas (CPA v2
+//     single-canvas) — no Canvas swap; cockpit takes over when
+//     setHeroPhase('complete') fires.
+//
+// What changed vs v2:
+//   - Scene content fully replaced with the 8 v3 beat components
+//     (Beat1VoidAwakening → Beat8AtomicHandoff). Each beat owns its
+//     own subjects, materials, and per-frame animation.
+//   - GSAP timeline simplified — drives a single `currentTime` clock
+//     (0 → 19.5 s) and emits onComplete at the end. Per-beat curves
+//     live inside each beat component (driven from progress prop).
+//   - Camera path interpolated from a 9-waypoint table (storyboard
+//     §3-§10), driven per-frame from `tl.time()`.
+//   - Audio remap fully wired in heroAudio.ts:syncToProgress (5c.4)
+//     — same HeroAudioTimeline singleton used.
+//   - Atomic handoff: Beat 8's onHandoffComplete callback fires the
+//     cockpitStore lifecycle transitions (setHeroPhase('complete') +
+//     setCockpitReady(true)) which match v2's behavior at GSAP
+//     onComplete. Both still wired for redundancy.
+//
+// Storyboard authority: docs/hero-v3/Storyboard.md v1.2 (19.5 s).
+// Sign-off Q1-Q10 + runtime override RECORDED 2026-04-29.
 
 import { useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-// EffectComposer, Bloom, ChromaticAberration reserved for future post-processing passes
-import {
-  BoxGeometry,
-  BufferGeometry,
-  Group,
-  Mesh,
-  MeshPhysicalMaterial,
-  PerspectiveCamera,
-  Vector3,
-} from 'three';
+import { Vector3, type PerspectiveCamera } from 'three';
 import gsap from 'gsap';
 
 import {
@@ -40,47 +46,109 @@ import { useDeviceStore } from '@/stores/deviceStore';
 import { useUIStore } from '@/stores/uiStore';
 import { useCockpitStore } from '@/stores/cockpitStore';
 import { detectGPUTier } from '@/lib/webgpuDetection';
-import { generateVoronoiShards, assignShardsToTargets, SHARD_COUNTS } from '@/lib/3d/voronoiFracture';
-import { generateSplineTimings, seededRandom } from '@/lib/3d/heroSplines';
 import { HeroAudioTimeline } from '@/lib/audio/heroAudio';
+
+// V3 beat components
+import { Beat1VoidAwakening } from '@/components/3d/hero/v3/Beat1VoidAwakening';
+import { Beat2IgnitionSpark } from '@/components/3d/hero/v3/Beat2IgnitionSpark';
+import { Beat3SCrystallization } from '@/components/3d/hero/v3/Beat3SCrystallization';
+import { Beat4FMirrorAndShardBurst } from '@/components/3d/hero/v3/Beat4FMirrorAndShardBurst';
+import { Beat5WordmarkCascade } from '@/components/3d/hero/v3/Beat5WordmarkCascade';
+import { Beat6DichroicBloom } from '@/components/3d/hero/v3/Beat6DichroicBloom';
+import { Beat7CockpitMaterialization } from '@/components/3d/hero/v3/Beat7CockpitMaterialization';
+import { Beat8AtomicHandoff } from '@/components/3d/hero/v3/Beat8AtomicHandoff';
 
 // ── Props ────────────────────────────────────────────────────────
 
 interface HeroAnimationProps {
   /** Cockpit handoff — dashboard renders on top */
   onComplete: () => void;
-  /** Optional phase tracking callback */
+  /** Optional phase tracking callback (0..7) */
   onPhaseChange?: (phase: number) => void;
 }
 
-// ── GSAP Timeline Labels ─────────────────────────────────────────
+// ── Beat boundaries (storyboard v1.2 19.5 s) ─────────────────────
 
-const PHASE_LABELS = {
-  void: 0,
-  assembly: 2,
-  showcase: 4.5,
-  surge: 7.5,
-  shatter: 10,
-  regroup: 11.5,
-  materialize: 14,
-  online: 17,
-} as const;
+const BEAT_BOUNDS = [
+  { id: 0, start: 0.0,  end: 2.5  }, // Beat 1: Void Awakening
+  { id: 1, start: 2.5,  end: 5.0  }, // Beat 2: Ignition Spark
+  { id: 2, start: 5.0,  end: 8.0  }, // Beat 3: S Crystallization
+  { id: 3, start: 8.0,  end: 11.0 }, // Beat 4: F Mirror + Shard Burst
+  { id: 4, start: 11.0, end: 14.0 }, // Beat 5: Wordmark Cascade
+  { id: 5, start: 14.0, end: 16.5 }, // Beat 6: Dichroic Bloom
+  { id: 6, start: 16.5, end: 18.5 }, // Beat 7: Cockpit Materialization
+  { id: 7, start: 18.5, end: 19.5 }, // Beat 8: Atomic Handoff
+] as const;
 
-const TOTAL_DURATION = 19.0;
+const TOTAL_DURATION = 19.5;
 
 function timeToPhase(time: number): number {
-  if (time < 2.0) return 0;
-  if (time < 4.5) return 1;
-  if (time < 7.5) return 2;
-  if (time < 10.0) return 3;
-  if (time < 11.5) return 4;
-  if (time < 14.0) return 5;
-  if (time < 17.0) return 6;
-  return 7;
+  for (let i = 0; i < BEAT_BOUNDS.length; i++) {
+    if (time < BEAT_BOUNDS[i].end) return i;
+  }
+  return BEAT_BOUNDS.length - 1;
+}
+
+// ── Camera waypoints (storyboard §3-§10) ─────────────────────────
+
+interface CameraWaypoint {
+  time: number;
+  pos: [number, number, number];
+  lookAt: [number, number, number];
+  fov: number;
+}
+
+const CAMERA_WAYPOINTS: CameraWaypoint[] = [
+  { time: 0.0,  pos: [0, 0, 16],       lookAt: [0, 0, 0],     fov: 35 },
+  { time: 2.5,  pos: [0, 0, 12],       lookAt: [0, 0, 0],     fov: 35 },
+  { time: 5.0,  pos: [-1.4, 0.6, 9.2], lookAt: [-0.2, 0.1, 0], fov: 38 },
+  { time: 8.0,  pos: [-0.4, 0.2, 7.5], lookAt: [-0.4, 0.2, 0], fov: 40 },
+  { time: 11.0, pos: [0.4, 0.2, 7.5],  lookAt: [0.4, 0.2, 0],  fov: 40 },
+  { time: 14.0, pos: [0, 0.4, 9.5],    lookAt: [0, 0, 0],      fov: 42 },
+  { time: 16.5, pos: [0, 0.6, 10.5],   lookAt: [0, 0, 0],      fov: 44 },
+  { time: 18.5, pos: [0, 6.0, 7.5],    lookAt: [0, 3.0, 0],    fov: 58 },
+  { time: 19.5, pos: [0, 6.0, 7.5],    lookAt: [0, 3.0, 0],    fov: 58 },
+];
+
+function lerpVec3(a: readonly number[], b: readonly number[], t: number): [number, number, number] {
+  return [
+    a[0] + (b[0] - a[0]) * t,
+    a[1] + (b[1] - a[1]) * t,
+    a[2] + (b[2] - a[2]) * t,
+  ];
+}
+
+function sampleCamera(time: number) {
+  if (time <= CAMERA_WAYPOINTS[0].time) {
+    return {
+      pos: [...CAMERA_WAYPOINTS[0].pos] as [number, number, number],
+      lookAt: [...CAMERA_WAYPOINTS[0].lookAt] as [number, number, number],
+      fov: CAMERA_WAYPOINTS[0].fov,
+    };
+  }
+  for (let i = 0; i < CAMERA_WAYPOINTS.length - 1; i++) {
+    const a = CAMERA_WAYPOINTS[i];
+    const b = CAMERA_WAYPOINTS[i + 1];
+    if (time >= a.time && time <= b.time) {
+      const t = (time - a.time) / (b.time - a.time);
+      const u = t * t * (3 - 2 * t); // smoothstep
+      return {
+        pos: lerpVec3(a.pos, b.pos, u),
+        lookAt: lerpVec3(a.lookAt, b.lookAt, u),
+        fov: a.fov + (b.fov - a.fov) * u,
+      };
+    }
+  }
+  const last = CAMERA_WAYPOINTS[CAMERA_WAYPOINTS.length - 1];
+  return {
+    pos: [...last.pos] as [number, number, number],
+    lookAt: [...last.lookAt] as [number, number, number],
+    fov: last.fov,
+  };
 }
 
 // ════════════════════════════════════════════════════════════════
-// HeroScene — Renders as <group> inside CockpitCanvas
+// HeroScene — renders v3 beats inside CockpitCanvas
 // ════════════════════════════════════════════════════════════════
 
 interface HeroSceneProps {
@@ -94,53 +162,27 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
   const audioRef = useRef<HeroAudioTimeline | null>(null);
   const setHeroPhase = useCockpitStore((s) => s.setHeroPhase);
   const setCockpitReady = useCockpitStore((s) => s.setCockpitReady);
+  const lookAtVec = useRef(new Vector3());
 
-  const shardGeo = useRef<BufferGeometry[]>([]);
-  const shardMeshRefs = useRef<Mesh[]>([]);
-  const splineTimings = useRef<ReturnType<typeof generateSplineTimings>>([]);
-  const logoGroupRef = useRef<Group>(null);
-  const logoMaterialRef = useRef<MeshPhysicalMaterial | null>(null);
-  const emissiveIntensity = useRef(0);
-  const shakeIntensity = useRef(0);
+  // Per-beat state (throttled re-render to ~30 Hz to avoid storm)
+  const [beatStates, setBeatStates] = useState(() =>
+    BEAT_BOUNDS.map((b) => ({ id: b.id, progress: 0, active: b.id === 0 })),
+  );
+  const lastBeatUpdateRef = useRef(-1);
 
-  // Phase 4 §4.5: Per-shard physics state (parallel to shardGeo.current).
-  // Initialized once per shardData generation. Integrated per-frame during
-  // shatter (10.0-11.5s) + regroup (11.5-14.0s) window — shards burst
-  // outward from origin, tumble with angular velocity, fall under gravity,
-  // and fade to invisible by t=14.0s.
-  const shardPhysics = useRef<
-    { velocity: Vector3; angularVelocity: Vector3 }[]
-  >([]);
-  // Bloom flash emitter at shatter moment (10.0s peak, decays over 1s)
-  const heroBloomFlashRef = useRef<Mesh>(null);
-  const heroBloomMatRef = useRef<MeshPhysicalMaterial | null>(null);
-  // Track last timeline time so we can compute true frame delta within the
-  // GSAP paused timeline (since useFrame delta includes audio latency etc.)
-  const prevTlTime = useRef(0);
-
-  const gpuTier = state.gpuTier;
-  const shardCount = useMemo(() => {
-    const tierMap: Record<string, keyof typeof SHARD_COUNTS> = {
-      'webgpu-high': 'webgpu-high',
-      'webgpu-mid': 'webgpu-mid',
-      'webgpu-low': 'webgl2-desktop',
-      'webgl2': 'webgl2-desktop',
-      'css': 'css',
-    };
-    const key = tierMap[gpuTier] ?? 'webgl2-desktop';
-    return SHARD_COUNTS[key];
-  }, [gpuTier]);
-
-  // ── Initialize GSAP timeline ──
+  // ── Initialize GSAP timeline (single empty 19.5 s clock) ──
   useEffect(() => {
     if (state.shouldSkip) {
       actions.skipToEnd();
       return;
     }
 
-    // Signal hero is animating
     setHeroPhase('animating');
 
+    // Single empty timeline — its only job is to advance time and fire
+    // onComplete at the end. All per-beat animation is driven from
+    // tl.time() inside the per-frame useFrame below + the beat
+    // components themselves.
     const tl = gsap.timeline({
       paused: true,
       onComplete: () => {
@@ -149,156 +191,7 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
         actions.setComplete();
       },
     });
-
-    // Phase labels
-    tl.addLabel('void', PHASE_LABELS.void);
-    tl.addLabel('assembly', PHASE_LABELS.assembly);
-    tl.addLabel('showcase', PHASE_LABELS.showcase);
-    tl.addLabel('surge', PHASE_LABELS.surge);
-    tl.addLabel('shatter', PHASE_LABELS.shatter);
-    tl.addLabel('regroup', PHASE_LABELS.regroup);
-    tl.addLabel('materialize', PHASE_LABELS.materialize);
-    tl.addLabel('online', PHASE_LABELS.online);
-
-    // Phase 1: Void Awakening (0.0 – 2.0s)
-    const camProxy = { x: 0, y: 0, z: 1.5, fov: 35 };
-    tl.to(camProxy, {
-      z: 2.5,
-      duration: 2.0,
-      ease: 'power1.inOut',
-      onUpdate: () => {
-        camera.position.set(camProxy.x, camProxy.y, camProxy.z);
-        if ('fov' in camera) {
-          (camera as PerspectiveCamera).fov = camProxy.fov;
-          (camera as PerspectiveCamera).updateProjectionMatrix();
-        }
-      },
-    }, 0);
-
-    // Phase 2: Assembly (2.0 – 4.5s)
-    tl.to(camProxy, {
-      z: 5.0, fov: 50,
-      duration: 2.5, ease: 'power2.out',
-      onUpdate: () => {
-        camera.position.set(camProxy.x, camProxy.y, camProxy.z);
-        if ('fov' in camera) {
-          (camera as PerspectiveCamera).fov = camProxy.fov;
-          (camera as PerspectiveCamera).updateProjectionMatrix();
-        }
-      },
-    }, 2.0);
-
-    if (logoGroupRef.current) {
-      logoGroupRef.current.scale.set(0, 0, 0);
-      tl.to(logoGroupRef.current.scale, {
-        x: 1.0, y: 1.0, z: 1.0,
-        duration: 2.0, ease: 'back.out(1.7)',
-      }, 2.0);
-    }
-
-    // Phase 3: Showcase (4.5 – 7.5s)
-    const orbitProxy = { angle: 0 };
-    tl.to(orbitProxy, {
-      angle: Math.PI * 2,
-      duration: 3.0, ease: 'none',
-      onUpdate: () => {
-        const r = 3.0;
-        camProxy.x = Math.sin(orbitProxy.angle) * r;
-        camProxy.z = Math.cos(orbitProxy.angle) * r + 2.0;
-        camera.position.set(camProxy.x, camProxy.y, camProxy.z);
-        camera.lookAt(0, 0, 0);
-      },
-    }, 4.5);
-
-    const emissiveProxy = { intensity: 0 };
-    tl.to(emissiveProxy, {
-      intensity: 0.5, duration: 3.0, ease: 'power1.in',
-      onUpdate: () => { emissiveIntensity.current = emissiveProxy.intensity; },
-    }, 4.5);
-
-    // Phase 4: Energy Surge (7.5 – 10.0s)
-    tl.to(emissiveProxy, {
-      intensity: 3.0, duration: 2.5, ease: 'power2.in',
-      onUpdate: () => { emissiveIntensity.current = emissiveProxy.intensity; },
-    }, 7.5);
-
-    const shakeProxy = { intensity: 0 };
-    tl.to(shakeProxy, {
-      intensity: 0.03, duration: 2.5, ease: 'power2.in',
-      onUpdate: () => { shakeIntensity.current = shakeProxy.intensity; },
-    }, 7.5);
-
-    // Phase 5: Shatter (10.0 – 11.5s)
-    tl.to(shakeProxy, { intensity: 0.08, duration: 0.1, ease: 'power4.out' }, 10.0);
-    tl.to(shakeProxy, {
-      intensity: 0.0, duration: 1.4, ease: 'expo.out',
-      onUpdate: () => { shakeIntensity.current = shakeProxy.intensity; },
-    }, 10.1);
-
-    if (logoGroupRef.current) {
-      tl.to(logoGroupRef.current.scale, {
-        x: 0, y: 0, z: 0, duration: 0.3, ease: 'power4.in',
-      }, 10.0);
-    }
-
-    tl.to(camProxy, {
-      fov: 55, duration: 0.3, ease: 'power2.out',
-      onUpdate: () => {
-        if ('fov' in camera) {
-          (camera as PerspectiveCamera).fov = camProxy.fov;
-          (camera as PerspectiveCamera).updateProjectionMatrix();
-        }
-      },
-    }, 10.0);
-    tl.to(camProxy, {
-      fov: 53, duration: 1.2, ease: 'power1.out',
-      onUpdate: () => {
-        if ('fov' in camera) {
-          (camera as PerspectiveCamera).fov = camProxy.fov;
-          (camera as PerspectiveCamera).updateProjectionMatrix();
-        }
-      },
-    }, 10.3);
-
-    // Phase 6: Regroup (11.5 – 14.0s)
-    tl.to(camProxy, {
-      fov: 56, duration: 2.5, ease: 'power1.inOut',
-      onUpdate: () => {
-        if ('fov' in camera) {
-          (camera as PerspectiveCamera).fov = camProxy.fov;
-          (camera as PerspectiveCamera).updateProjectionMatrix();
-        }
-      },
-    }, 11.5);
-
-    tl.to(camProxy, {
-      x: 0, y: 0, z: 5.0,
-      duration: 2.5, ease: 'power2.inOut',
-      onUpdate: () => {
-        camera.position.set(camProxy.x, camProxy.y, camProxy.z);
-        camera.lookAt(0, 0, 0);
-      },
-    }, 11.5);
-
-    // Phase 7: Materialize (14.0 – 17.0s) — cockpit begins fading in
-    tl.to(camProxy, {
-      x: 0, y: 6.5, z: 7, fov: 58,
-      duration: 3.0, ease: 'power2.inOut',
-      onUpdate: () => {
-        camera.position.set(camProxy.x, camProxy.y, camProxy.z);
-        if ('fov' in camera) {
-          (camera as PerspectiveCamera).fov = camProxy.fov;
-          (camera as PerspectiveCamera).updateProjectionMatrix();
-        }
-        camera.lookAt(0, 3, 0);
-      },
-    }, 14.0);
-
-    // At t=14s, signal materialization phase
-    tl.call(() => setHeroPhase('materializing'), [], 14.0);
-
-    // Phase 8: Online (17.0 – 19.0s) — cockpit alive
-    tl.to({}, { duration: 2.0 }, 17.0);
+    tl.to({}, { duration: TOTAL_DURATION });
 
     timelineRef.current = tl;
     tl.play();
@@ -310,7 +203,7 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.shouldSkip]);
 
-  // ── Sync timeScale (OD-2) ──
+  // ── Sync GSAP timeScale (OD-2 fast-forward) ──
   useEffect(() => {
     if (timelineRef.current) {
       timelineRef.current.timeScale(state.timeScale);
@@ -320,34 +213,23 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
     }
   }, [state.timeScale]);
 
-  // ── Audio (OD-1) ──
+  // ── Audio (OD-1) — full v3 remap lives in heroAudio.ts ──
   const soundEnabled = useUIStore((s) => s.soundEnabled);
 
   useEffect(() => {
     if (state.shouldSkip) return;
-
     const audio = new HeroAudioTimeline(soundEnabled);
     audioRef.current = audio;
-
-    const initAudio = async () => {
-      try {
-        await audio.initialize();
-      } catch {
-        // Audio init failed — animation continues silently
-      }
-    };
-    initAudio();
-
+    void audio.initialize().catch(() => { /* graceful — no audio */ });
     return () => {
       audio.dispose();
       audioRef.current = null;
     };
   }, [soundEnabled, state.shouldSkip]);
 
-  // ── Per-frame update ──
+  // ── Per-frame: camera + audio sync + beat state update ──
   useFrame(() => {
     if (state.isComplete || state.shouldSkip) return;
-
     const tl = timelineRef.current;
     if (!tl) return;
 
@@ -362,245 +244,81 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
       audioRef.current.syncToProgress(progress);
     }
 
-    if (shakeIntensity.current > 0.001) {
-      const shake = shakeIntensity.current;
-      camera.position.x += (Math.random() - 0.5) * shake;
-      camera.position.y += (Math.random() - 0.5) * shake;
+    // Camera path interpolation (smoothstep between 9 waypoints)
+    const wp = sampleCamera(currentTime);
+    camera.position.set(wp.pos[0], wp.pos[1], wp.pos[2]);
+    if ('fov' in camera) {
+      const persp = camera as PerspectiveCamera;
+      if (Math.abs(persp.fov - wp.fov) > 0.01) {
+        persp.fov = wp.fov;
+        persp.updateProjectionMatrix();
+      }
     }
+    lookAtVec.current.set(wp.lookAt[0], wp.lookAt[1], wp.lookAt[2]);
+    camera.lookAt(lookAtVec.current);
 
-    if (logoMaterialRef.current) {
-      logoMaterialRef.current.emissiveIntensity = emissiveIntensity.current;
-    }
-
-    // Phase 4 §4.5: Per-shard physics + bloom flash during shatter→regroup.
-    // Shatter starts at 10.0s (PHASE_LABELS.shatter). Shards burst outward
-    // from origin, tumble under angular velocity, fall under light gravity,
-    // and fade opacity to 0 by t=14.0s. Bloom flash sphere spikes at 10.0
-    // and decays over 1s — reads through the existing post-processing
-    // bloom pass as a visible impact burst.
-    const tlTime = currentTime;
-    const dt = Math.max(0, Math.min(0.05, tlTime - prevTlTime.current));
-    prevTlTime.current = tlTime;
-
-    if (tlTime >= 10.0 && tlTime < 14.0) {
-      // Fade: full opacity 10.0-12.0, then linear fade to 0 by 14.0
-      const fadeOut =
-        tlTime > 12.0 ? Math.max(0, 1 - (tlTime - 12.0) / 2.0) : 1;
-      const GRAVITY = -4.5; // gentler than real-world for artistic drift
-      const DAMPING = 0.985;
-      const ANGULAR_DAMPING = 0.99;
-
-      for (let i = 0; i < shardMeshRefs.current.length; i++) {
-        const mesh = shardMeshRefs.current[i];
-        const phys = shardPhysics.current[i];
-        if (!mesh || !phys) continue;
-
-        mesh.visible = true;
-
-        // Physics integration
-        phys.velocity.y += GRAVITY * dt;
-        phys.velocity.multiplyScalar(DAMPING);
-        phys.angularVelocity.multiplyScalar(ANGULAR_DAMPING);
-
-        mesh.position.addScaledVector(phys.velocity, dt);
-        mesh.rotation.x += phys.angularVelocity.x * dt;
-        mesh.rotation.y += phys.angularVelocity.y * dt;
-        mesh.rotation.z += phys.angularVelocity.z * dt;
-
-        // Fade opacity via material
-        const mat = mesh.material as MeshPhysicalMaterial;
-        if (mat) {
-          mat.opacity = fadeOut;
-          // Emissive tracks fade — dimmer shards at end
-          mat.emissiveIntensity = fadeOut * 1.5;
-        }
-      }
-
-      // Bloom flash at shatter moment (10.0-11.0s): spike to 4.0, decay to 0
-      if (heroBloomMatRef.current && heroBloomFlashRef.current) {
-        if (tlTime < 11.0) {
-          const bloomT = (tlTime - 10.0) / 1.0; // 0..1 over 1s
-          const intensity = Math.max(0, (1 - bloomT) * 4.0);
-          heroBloomMatRef.current.emissiveIntensity = intensity;
-          heroBloomMatRef.current.opacity = Math.min(intensity * 0.5, 0.7);
-          heroBloomFlashRef.current.visible = intensity > 0.05;
-          // Brief outward scale pulse during the flash (1.0→1.8)
-          const s = 1.0 + (1 - bloomT) * 0.8;
-          heroBloomFlashRef.current.scale.setScalar(s);
-        } else {
-          heroBloomFlashRef.current.visible = false;
-          heroBloomMatRef.current.emissiveIntensity = 0;
-          heroBloomMatRef.current.opacity = 0;
-        }
-      }
-    } else if (tlTime >= 14.0) {
-      // Ensure shards hidden after regroup ends (bloom flash already off)
-      for (const mesh of shardMeshRefs.current) {
-        if (mesh) mesh.visible = false;
-      }
-      if (heroBloomFlashRef.current) heroBloomFlashRef.current.visible = false;
+    // Throttled beat-state update (~30 Hz)
+    if (Math.abs(currentTime - lastBeatUpdateRef.current) >= 0.033) {
+      lastBeatUpdateRef.current = currentTime;
+      setBeatStates(
+        BEAT_BOUNDS.map((b) => {
+          const active = currentTime >= b.start && currentTime < b.end;
+          const beatProgress = active
+            ? Math.max(0, Math.min(1, (currentTime - b.start) / (b.end - b.start)))
+            : currentTime >= b.end ? 1 : 0;
+          return { id: b.id, progress: beatProgress, active };
+        }),
+      );
     }
   });
 
-  // ── Voronoi shards ──
-  // Audit §9.3 fix (Phase 3 Task 2A): Geometry + spline timings generated
-  // in useMemo instead of useEffect, so unrelated re-renders don't re-run
-  // the expensive CPU-side Voronoi fracture + shard assignment. Memoized
-  // result is keyed to [shardCount, shouldSkip] — exactly the dependencies
-  // that invalidate the shard set.
-  const shardData = useMemo(() => {
-    if (state.shouldSkip) return null;
+  // Beat 7 cockpit-signal callback — fires setHeroPhase('materializing')
+  // exactly once when Beat 7 opens.
+  const onMaterializeStart = useMemo(
+    () => () => setHeroPhase('materializing'),
+    [setHeroPhase],
+  );
 
-    const logoGeometry = new BoxGeometry(6, 1.5, 0.5, 4, 4, 4);
-    const clampedShardCount = Math.min(shardCount, 500);
-    const shards = generateVoronoiShards(logoGeometry, clampedShardCount, 42);
-
-    const targets = [
-      { name: 'panel' as const, positions: [new Vector3(-3, 4, 0), new Vector3(3, 4, 0)], weight: 0.3 },
-      { name: 'sidePanel' as const, positions: [new Vector3(-5, 2, 0), new Vector3(5, 2, 0)], weight: 0.2 },
-      { name: 'hud' as const, positions: [new Vector3(0, 6, -1)], weight: 0.15 },
-      { name: 'statusBar' as const, positions: [new Vector3(0, -2, 0)], weight: 0.15 },
-      { name: 'ledRim' as const, positions: [new Vector3(-4, 0, 0), new Vector3(4, 0, 0)], weight: 0.1 },
-      { name: 'ambient' as const, positions: [new Vector3(0, 3, -3)], weight: 0.1 },
-    ];
-    const assignments = assignShardsToTargets(shards, targets);
-    const timings = generateSplineTimings(assignments.length, 42);
-
-    logoGeometry.dispose();
-    return { shards, timings };
-  }, [shardCount, state.shouldSkip]);
-
-  // Sync memoized shard data into refs + dispose GPU memory on invalidation
-  useEffect(() => {
-    if (!shardData) return;
-    shardGeo.current = shardData.shards;
-    splineTimings.current = shardData.timings;
-
-    // Phase 4 §4.5: Initialize per-shard physics once per shardData cycle.
-    // Each shard gets a random outward velocity (biased upward) + angular
-    // velocity for natural tumbling motion during shatter→regroup window.
-    const rng = seededRandom(42);
-    shardPhysics.current = shardData.shards.map(() => {
-      const speed = 2.5 + rng() * 3.5; // 2.5-6.0 units/sec outward
-      const theta = rng() * Math.PI * 2;
-      const phi = (rng() - 0.35) * Math.PI * 0.9; // slight upward bias
-      return {
-        velocity: new Vector3(
-          Math.sin(theta) * Math.cos(phi) * speed,
-          Math.sin(phi) * speed + 1.5, // upward bias
-          Math.cos(theta) * Math.cos(phi) * speed
-        ),
-        angularVelocity: new Vector3(
-          (rng() - 0.5) * 6,
-          (rng() - 0.5) * 6,
-          (rng() - 0.5) * 6
-        ),
-      };
-    });
-
-    return () => {
-      // Dispose BufferGeometry instances on unmount or shardData change
-      shardData.shards.forEach((g) => g.dispose());
-    };
-  }, [shardData]);
-
-  // ── Ambient particles ──
-  const particlePositions = useMemo(() => {
-    const arr = new Float32Array(200 * 3);
-    for (let i = 0; i < 200; i++) {
-      arr[i * 3] = (Math.random() - 0.5) * 20;
-      arr[i * 3 + 1] = (Math.random() - 0.5) * 20;
-      arr[i * 3 + 2] = (Math.random() - 0.5) * 20;
-    }
-    return arr;
-  }, []);
+  // Beat 8 atomic-handoff callback — fires the cockpit-complete
+  // transitions (mirrors GSAP onComplete; both wired for redundancy
+  // since GSAP onComplete may fire ~1 frame later than Beat 8's
+  // progress >= 0.99 trigger).
+  const onHandoffComplete = useMemo(
+    () => () => {
+      setHeroPhase('complete');
+      setCockpitReady(true);
+    },
+    [setHeroPhase, setCockpitReady],
+  );
 
   if (state.shouldSkip || state.isComplete) return null;
 
   return (
     <>
-      <ambientLight intensity={0.05} color="#00BBFF" />
-      <pointLight position={[0, 2, 4]} intensity={2} color="#00BBFF" distance={15} decay={2} />
-
-      <group ref={logoGroupRef}>
-        <mesh>
-          <boxGeometry args={[6, 1.5, 0.5]} />
-          <meshPhysicalMaterial
-            ref={logoMaterialRef}
-            color="#1a1a2e"
-            emissive="#00BBFF"
-            emissiveIntensity={0}
-            transmission={0.9}
-            thickness={0.5}
-            ior={1.5}
-            clearcoat={1.0}
-            clearcoatRoughness={0.05}
-            roughness={0.05}
-            metalness={0.1}
-            envMapIntensity={1.2}
-            transparent
-          />
-        </mesh>
-      </group>
-
-      {shardGeo.current.map((geo, i) => (
-        <mesh
-          key={i}
-          geometry={geo}
-          ref={(el) => { if (el) shardMeshRefs.current[i] = el; }}
-          visible={false}
-        >
-          <meshPhysicalMaterial
-            color="#1a1a2e"
-            emissive="#00BBFF"
-            emissiveIntensity={1.0}
-            transmission={0.6}
-            thickness={0.3}
-            roughness={0.1}
-            metalness={0.2}
-            transparent
-          />
-        </mesh>
-      ))}
-
-      {/* Phase 4 §4.5: Bloom flash emitter at shatter moment.
-          Hidden by default; spikes to emissiveIntensity 4.0 at t=10.0
-          and decays to 0 by t=11.0. Reads through the cockpit's bloom
-          post-processing pass as a visible impact burst. */}
-      <mesh ref={heroBloomFlashRef} visible={false}>
-        <sphereGeometry args={[0.9, 16, 16]} />
-        <meshPhysicalMaterial
-          ref={heroBloomMatRef}
-          color="#00BBFF"
-          emissive="#00BBFF"
-          emissiveIntensity={0}
-          transparent
-          opacity={0}
-          depthWrite={false}
-          toneMapped={false}
-        />
-      </mesh>
-
-      <points>
-        <bufferGeometry>
-          <bufferAttribute attach="attributes-position" args={[particlePositions, 3]} />
-        </bufferGeometry>
-        <pointsMaterial size={0.03} color="#00BBFF" transparent opacity={0.4} sizeAttenuation />
-      </points>
+      <Beat1VoidAwakening progress={beatStates[0].progress} active={beatStates[0].active} />
+      <Beat2IgnitionSpark progress={beatStates[1].progress} active={beatStates[1].active} />
+      <Beat3SCrystallization progress={beatStates[2].progress} active={beatStates[2].active} />
+      <Beat4FMirrorAndShardBurst progress={beatStates[3].progress} active={beatStates[3].active} />
+      <Beat5WordmarkCascade progress={beatStates[4].progress} active={beatStates[4].active} />
+      <Beat6DichroicBloom progress={beatStates[5].progress} active={beatStates[5].active} />
+      <Beat7CockpitMaterialization
+        progress={beatStates[6].progress}
+        active={beatStates[6].active}
+        signalCockpit
+        onMaterializeStart={onMaterializeStart}
+      />
+      <Beat8AtomicHandoff
+        progress={beatStates[7].progress}
+        active={beatStates[7].active}
+        onHandoffComplete={onHandoffComplete}
+      />
     </>
   );
 }
 
 // ════════════════════════════════════════════════════════════════
-// HeroAnimation — Outer Wrapper (UI Overlay only)
+// HeroAnimation — outer wrapper (UI overlay only — preserved from v2)
 // ════════════════════════════════════════════════════════════════
-// No longer creates its own Canvas. The HeroScene group renders
-// inside CockpitCanvas. This component manages:
-//   - GPU tier detection
-//   - Skip/fast-forward UI
-//   - Progress bar overlay
-//   - Screen reader announcements
-//   - heroPhase lifecycle via cockpitStore
 
 export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimationProps) {
   const [state, actions] = useHeroAnimation(onComplete, onPhaseChange);
@@ -608,19 +326,18 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
   const setHeroPhase = useCockpitStore((s) => s.setHeroPhase);
   const setCockpitReady = useCockpitStore((s) => s.setCockpitReady);
 
-  // GPU detection
+  // GPU detection (shared with cockpit auto-quality)
   useEffect(() => {
     const detect = async () => {
       const result = await detectGPUTier();
-      // P2 §3.6: calling a setter action, not snapshot-reading state.
-      // Safe because we write once after async detect — no reactivity needed.
+      // P2 §3.6: action setter, not snapshot read.
       // eslint-disable-next-line no-restricted-syntax
       useDeviceStore.getState().setGpuTier(result.tier, result.stripeCount);
     };
     detect();
   }, []);
 
-  // Skip button after 2s
+  // Skip button shows after 2s
   useEffect(() => {
     if (state.shouldSkip || state.isComplete) return;
     const timer = setTimeout(() => setSkipVisible(true), 2000);
@@ -630,7 +347,6 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
   // Keyboard shortcuts
   useEffect(() => {
     if (state.shouldSkip || state.isComplete) return;
-
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         actions.skipToEnd();
@@ -641,12 +357,11 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
         }
       }
     };
-
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
   }, [state.shouldSkip, state.isComplete, state.isFastForwarding, actions]);
 
-  // When skip fires, ensure cockpit state is correct
+  // Cockpit state on skip
   useEffect(() => {
     if (state.shouldSkip) {
       setHeroPhase('complete');
@@ -654,25 +369,19 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
     }
   }, [state.shouldSkip, setHeroPhase, setCockpitReady]);
 
-  // Skip: no overlay needed
   if (state.shouldSkip) return null;
-
-  // Complete: remove overlay, cockpit continues in CockpitCanvas
   if (state.isComplete) return null;
 
-  // Hero animation overlay (z-50 background + skip UI)
   return (
     <div
       className="fixed inset-0 z-50 pointer-events-none"
       style={{ background: '#0A0E16' }}
       aria-label="SparkForge hero animation"
     >
-      {/* Screen reader announcements */}
       <div role="status" aria-live="polite" className="sr-only">
         SparkForge is loading your command station...
       </div>
 
-      {/* Skip button (OD-2) */}
       {skipVisible && (
         <button
           onClick={() => actions.fastForward()}
@@ -687,7 +396,6 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
         </button>
       )}
 
-      {/* Phase progress indicator */}
       <div className="fixed bottom-0 left-0 right-0 h-0.5 bg-white/5">
         <div
           className="h-full bg-[#00BBFF]/30 transition-all duration-300"
