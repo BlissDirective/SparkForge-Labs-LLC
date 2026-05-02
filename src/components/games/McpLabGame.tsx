@@ -1081,7 +1081,9 @@ function GradePhase() {
               type="button"
               onClick={() => {
                 advanceRound();
-                if (isComplete) {
+                // Read fresh isComplete: advanceRound may have just flipped it
+                // and the closure-captured `isComplete` would be one render stale.
+                if (useGameStore.getState().isComplete) {
                   setPhase('complete');
                 } else {
                   reset();
@@ -1129,7 +1131,7 @@ function SavePhase() {
     const ok = await saveEquipped(activeChild.id, trimmed);
     if (ok) {
       advanceRound();
-      setPhase(isComplete ? 'complete' : 'mission-select');
+      setPhase(useGameStore.getState().isComplete ? 'complete' : 'mission-select');
     }
   }
 

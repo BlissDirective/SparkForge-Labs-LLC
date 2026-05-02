@@ -94,4 +94,7 @@ export interface ReplaySource {
 export type AuditorError =
   | { kind: 'no-team'; }
   | { kind: 'cycle-in-team'; involvedAgentIds: string[] }
-  | { kind: 'composition-not-found'; compositionId: string };
+  | { kind: 'composition-not-found'; compositionId: string }
+  /** Simulator returned a runtime error that doesn't map cleanly to one of
+   *  the above. Carries the simulator's RunError kind for diagnostic UI. */
+  | { kind: 'simulator-error'; simKind: string };

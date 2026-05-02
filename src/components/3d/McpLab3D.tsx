@@ -17,7 +17,7 @@
 // Reads team + wires + bindings from useMcpLabStore.
 // ════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   CatmullRomCurve3,
@@ -168,6 +168,9 @@ function WireBeam({ wire, team }: WireBeamProps) {
     return { tubeGeo: geo, accent: new Color(fromSpec?.accentHex ?? LAB11_HEX) };
   }, [fromPlaced, toPlaced, fromSpec?.accentHex]);
 
+  // Dispose the prior TubeGeometry when memo replaces it (or on unmount).
+  useEffect(() => () => { tubeGeo?.dispose(); }, [tubeGeo]);
+
   if (!tubeGeo || !fromPlaced || !toPlaced) return null;
 
   return (
@@ -224,6 +227,9 @@ function ToolBeam({ binding, team, index }: ToolBeamProps) {
     return { tubeGeo: geo, accent: new Color(tool.accentHex) };
   }, [tool, placed, index]);
 
+  // Dispose the prior TubeGeometry when memo replaces it (or on unmount).
+  useEffect(() => () => { tubeGeo?.dispose(); }, [tubeGeo]);
+
   if (!tubeGeo || !tool || !placed) return null;
 
   return (
@@ -255,8 +261,13 @@ export default function McpLab3D() {
           hasBindings={agentHasBindings(p.agentId)}
         />
       ))}
-      {wires.map((w, i) => (
-        <WireBeam key={i} wire={w} team={team} />
+      {wires.map((w) => (
+        // Content-keyed so wire-list mutations don't cascade-remount peers.
+        <WireBeam
+          key={`${w.fromAgentId}:${w.fromOutputName}->${w.toAgentId}:${w.toInputName}`}
+          wire={w}
+          team={team}
+        />
       ))}
       {bindings.map((b, i) => (
         <React.Fragment key={`${b.agentId}-${b.inputName}-${b.toolId}-${i}`}>

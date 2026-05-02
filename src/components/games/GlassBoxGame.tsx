@@ -876,7 +876,9 @@ function ReportPhase() {
               type="button"
               onClick={() => {
                 advanceRound();
-                if (isComplete) {
+                // Read fresh isComplete: advanceRound may have just flipped it
+                // and the closure-captured `isComplete` would be one render stale.
+                if (useGameStore.getState().isComplete) {
                   setPhase('complete');
                 } else {
                   reset();

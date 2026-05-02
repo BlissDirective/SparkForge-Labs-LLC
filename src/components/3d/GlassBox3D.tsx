@@ -14,7 +14,7 @@
 // Reads from useGlassBoxStore: steps, scrubIndex, inspectAgentId.
 // ════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   CatmullRomCurve3,
@@ -162,6 +162,9 @@ function WireBeam({ wire, team, active }: WireBeamProps) {
     return { tubeGeo: geo, accent: new Color(fromSpec?.accentHex ?? LAB11_HEX) };
   }, [fromPlaced, toPlaced, fromSpec?.accentHex]);
 
+  // Dispose the prior TubeGeometry when memo replaces it (or on unmount).
+  useEffect(() => () => { tubeGeo?.dispose(); }, [tubeGeo]);
+
   const matRef = useRef<MeshBasicMaterial>(null);
   useFrame(() => {
     if (matRef.current) {
@@ -221,7 +224,14 @@ export default function GlassBox3D() {
         />
       ))}
       {wires.map((w, i) => (
-        <WireBeam key={i} wire={w} team={team} active={activeWireIndices.has(i)} />
+        // Content-keyed so wire-list mutations don't cascade-remount peers.
+        // `active` still indexes by position since activeWireIndices is index-keyed.
+        <WireBeam
+          key={`${w.fromAgentId}:${w.fromOutputName}->${w.toAgentId}:${w.toInputName}`}
+          wire={w}
+          team={team}
+          active={activeWireIndices.has(i)}
+        />
       ))}
       {activeStep && (() => {
         const placed = team.find((p) => p.agentId === activeAgentId);

@@ -763,7 +763,7 @@ function WirePhase({ ageBand }: { ageBand: 'A' | 'B' | 'C' }) {
                 const ta = AGENT_ROSTER.find((a) => a.id === w.toAgentId);
                 return (
                   <li
-                    key={i}
+                    key={`${w.fromAgentId}:${w.fromOutputName}->${w.toAgentId}:${w.toInputName}`}
                     className="flex items-center gap-2 text-[11px] font-mono px-2 py-1 rounded bg-black/30"
                   >
                     <span className="text-white/85">
@@ -1101,7 +1101,9 @@ function GradePhase() {
               type="button"
               onClick={() => {
                 advanceRound();
-                if (isComplete) {
+                // Read fresh isComplete: advanceRound may have just flipped it
+                // and the closure-captured `isComplete` would be one render stale.
+                if (useGameStore.getState().isComplete) {
                   setPhase('complete');
                 } else {
                   reset();
@@ -1149,7 +1151,7 @@ function SavePhase() {
     const ok = await saveComposition(activeChild.id, trimmed);
     if (ok) {
       advanceRound();
-      setPhase(isComplete ? 'complete' : 'review');
+      setPhase(useGameStore.getState().isComplete ? 'complete' : 'review');
     }
   }
 

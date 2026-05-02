@@ -19,7 +19,7 @@
 // Reads team + wires + phase + dragSource from useAgentAtelierStore.
 // ════════════════════════════════════════════════════════════════
 
-import React, { useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import {
   CatmullRomCurve3,
@@ -153,6 +153,14 @@ function WireBeam({ wire, team, index, flowing }: WireBeamProps) {
     };
   }, [fromPlaced, toPlaced, fromSpec?.accentHex]);
 
+  // Dispose the prior TubeGeometry when memo replaces it (or on unmount).
+  // Without this, every team mutation leaks one geometry per wire.
+  useEffect(() => {
+    return () => {
+      tubeGeo?.dispose();
+    };
+  }, [tubeGeo]);
+
   const packetRef = useRef<Mesh>(null);
   useFrame(({ clock }) => {
     if (!flowing || !packetRef.current || !curve) return;
@@ -231,7 +239,16 @@ export default function AgentAtelier3D({ selectedAgentId = null }: AgentAtelier3
         />
       ))}
       {wires.map((w, i) => (
-        <WireBeam key={i} wire={w} team={team} index={i} flowing={flowing} />
+        // Content-keyed so removeWire(i) doesn't shift downstream keys and
+        // remount every WireBeam (which would discard each beam's memoized
+        // TubeGeometry on every wire deletion).
+        <WireBeam
+          key={`${w.fromAgentId}:${w.fromOutputName}->${w.toAgentId}:${w.toInputName}`}
+          wire={w}
+          team={team}
+          index={i}
+          flowing={flowing}
+        />
       ))}
       <DragSourcePulse />
     </group>

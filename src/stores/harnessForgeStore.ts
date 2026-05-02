@@ -188,11 +188,14 @@ export const useHarnessForgeStore = create<HarnessForgeState>()(
         const { availableSaves } = get();
         const entry = availableSaves.find((e) => e.comp.id === compositionId);
         if (!entry) return;
-        // Inherit existing harness if the save already had one, otherwise
-        // start from lastConfig (persisted).
+        // Inherit existing harness if the save already had one. Otherwise
+        // start from DEFAULT_HARNESS_CONFIG (clean slate) - NOT lastConfig.
+        // Reason: lastConfig from a prior unrelated save would silently
+        // override an unconfigured composition; the player would be confused
+        // by toggles already on without an explicit "carrying over" UI.
         set({
           currentSaveId: compositionId,
-          config: entry.harness ?? get().lastConfig,
+          config: entry.harness ?? DEFAULT_HARNESS_CONFIG,
           results: {},
           grade: null,
           phase: 'configure-filter',
@@ -335,12 +338,18 @@ function runOneFixture(
   const monitorOut = applyMonitor({ config: config.monitor, steps: sim.trajectory });
   allCatches.push(...monitorOut.catches);
 
-  // 4. Validator: check the final artifact (or what's available if monitor halted).
+  // 4. Validator: only run when the monitor allowed the team to complete.
+  //    Running the validator against '(halted by monitor)' produced false
+  //    requireKeyword/maxLength failures (the team never had a chance to
+  //    produce an artifact). When halted, skip the validator entirely - the
+  //    monitor's catch already explains the outcome.
   const finalArtifact = monitorOut.haltedAtIndex >= 0
     ? '(halted by monitor)'
     : sim.finalArtifact;
-  const validatorOut = applyValidator({ config: config.validator, artifact: finalArtifact });
-  allCatches.push(...validatorOut.catches);
+  if (monitorOut.haltedAtIndex < 0) {
+    const validatorOut = applyValidator({ config: config.validator, artifact: finalArtifact });
+    allCatches.push(...validatorOut.catches);
+  }
 
   return {
     fixtureId: fixture.id,

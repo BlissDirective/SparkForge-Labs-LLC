@@ -95,14 +95,21 @@ export function auditReplay(input: AuditReplayInput): AuditReplayOutput {
 
   const sim = simulate({ team: comp.team, wires: comp.wires, mission });
   if (sim.error) {
+    // Map simulator RunError shapes to AuditorError. Cycle-in-team has a
+    // matching shape; everything else gets the diagnostic 'simulator-error'
+    // variant carrying the original simKind so the UI can surface a more
+    // useful toast than 'no-team' (which was the wrong default before).
+    let auditorError: AuditorError;
+    if (sim.error.kind === 'cycle-in-team') {
+      auditorError = { kind: 'cycle-in-team', involvedAgentIds: sim.error.involvedAgentIds };
+    } else {
+      auditorError = { kind: 'simulator-error', simKind: sim.error.kind };
+    }
     return {
       steps: [],
       finalArtifact: '',
       totalMs: 0,
-      // Re-classify simulator runtime errors that we don't surface as a
-      // dedicated AuditorError shape — fall back to no-team if the
-      // simulator returned no terminal agent.
-      error: { kind: 'no-team' },
+      error: auditorError,
     };
   }
 
