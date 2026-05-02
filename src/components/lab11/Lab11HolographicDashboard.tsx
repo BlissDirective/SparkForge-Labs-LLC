@@ -485,7 +485,7 @@ const ROADMAP: RoadmapStage[] = [
     stage: '11G',
     title: 'Harness Forge',
     arc: 'Constrain',
-    status: 'next',
+    status: 'live',
     blurb: 'Wrap your team in safety harnesses and see what each layer catches.',
   },
 ];
@@ -567,7 +567,7 @@ function GameList({ games, labColor }: GameListProps) {
         className="font-mono text-[10px] uppercase tracking-widest mb-2"
         style={{ color: labColor }}
       >
-        {games.length} game{games.length === 1 ? '' : 's'} live · 1 planned
+        {games.length} game{games.length === 1 ? '' : 's'} live · cohort complete
       </p>
       <div className="space-y-2">
         {games.map((game, index) => (
@@ -609,28 +609,8 @@ function GameList({ games, labColor }: GameListProps) {
           </Link>
         ))}
 
-        {/* Coming-soon tiles for the rest of the cohort */}
-        {(['11G - Harness Forge'] as const).map((label, i) => (
-          <div
-            key={label}
-            className="flex items-center gap-3 rounded-xl p-3 bg-surface-card/20 border border-white/[0.05] opacity-60"
-            aria-label={`${label} - coming soon`}
-          >
-            <div
-              className="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 font-data text-xs font-bold text-white/30"
-              style={{ background: 'rgba(255,255,255,0.04)', border: '1px dashed rgba(255,255,255,0.1)' }}
-            >
-              {games.length + i + 1}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-display font-bold text-white/55 text-sm">{label}</p>
-              <p className="font-body text-[11px] text-white/35">Coming soon</p>
-            </div>
-            <span className="font-mono text-[9px] uppercase text-white/35 px-2 py-0.5 rounded border border-white/15">
-              planned
-            </span>
-          </div>
-        ))}
+        {/* Cohort complete - no coming-soon tiles. The narrative arc
+            Build → Equip → Audit → Constrain is fully shipped. */}
       </div>
     </div>
   );

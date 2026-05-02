@@ -58,3 +58,5 @@ export { AgentAtelierGame } from './AgentAtelierGame';
 export { McpLabGame } from './McpLabGame';
 // Stage 11F — Lab 11 Audit step
 export { GlassBoxGame } from './GlassBoxGame';
+// Stage 11G — Lab 11 Constrain step (closes the Build→Equip→Audit→Constrain arc)
+export { HarnessForgeGame } from './HarnessForgeGame';

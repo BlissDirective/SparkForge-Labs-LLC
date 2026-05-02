@@ -63,6 +63,7 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   'agent-atelier':    { position: [0, 4, 8],    lookAt: [0, 0, 0],   fov: 55 },
   'mcp-lab':          { position: [0, 4, 8.5],  lookAt: [0, 0, 0],   fov: 55 },
   'glass-box':        { position: [0, 3.5, 7],  lookAt: [0, 1, 0],   fov: 50 },
+  'harness-forge':    { position: [0, 3.5, 8],  lookAt: [0, 0.5, 0], fov: 52 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -694,6 +695,24 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     icon: '\ud83d\udd0d',
     triangleBudget: budget('flagship', true),
     cameraPreset: cameraPreset('glass-box'),
+  },
+  // \u2500\u2500 Lab 11 \u2014 Stage 11G (May 1, 2026): Constrain step
+  // Closes the Build \u2192 Equip \u2192 Audit \u2192 Constrain narrative arc.
+  {
+    id: 39,
+    name: 'Harness Forge',
+    slug: 'harness-forge',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'HarnessForge3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11G',
+    description: 'Wrap any team in three layers of safety harness. Filter inputs, validate outputs, monitor behavior.',
+    icon: '\ud83d\udee1\ufe0f',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('harness-forge'),
   },
 ] as const;
 

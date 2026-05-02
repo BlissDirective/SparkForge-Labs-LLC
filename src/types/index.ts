@@ -454,6 +454,7 @@ export const LABS: LabMeta[] = [
       { slug: 'agent-atelier', title: 'Agent Atelier', emoji: '🎭', description: 'Pick specialists, wire them up, and run the team on a mission', estimatedMinutes: 18, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'mcp-lab', title: 'MCP Plug-and-Play Lab', emoji: '🔌', description: 'Plug tools into your team and watch capabilities expand', estimatedMinutes: 16, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'glass-box', title: 'Glass Box Lab', emoji: '🔍', description: 'Audit any saved team frame-by-frame and find the bugs', estimatedMinutes: 14, xpReward: 25, ageBands: ['A', 'B', 'C'] },
+      { slug: 'harness-forge', title: 'Harness Forge', emoji: '🛡️', description: 'Wrap any team in three safety-harness layers and stress-test it', estimatedMinutes: 16, xpReward: 30, ageBands: ['A', 'B', 'C'] },
     ],
   },
 ];

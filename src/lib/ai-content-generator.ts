@@ -28,7 +28,9 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   // ═══ Lab 11 Stage 11E (May 1, 2026) — Equip step ═══
   | 'mcp-lab'
   // ═══ Lab 11 Stage 11F (May 1, 2026) — Audit step ═══
-  | 'glass-box';
+  | 'glass-box'
+  // ═══ Lab 11 Stage 11G (May 1, 2026) — Constrain step ═══
+  | 'harness-forge';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -114,7 +116,11 @@ export type ContentType =
   // ═══ Lab 11 — Glass Box Lab (Stage 11F) ═══
   // 3 content types: tutorial-grade synthetic trajectory step example,
   // an issue-spotting puzzle, and a kid-readable audit report template.
-  | 'glassbox-trajectory-example' | 'glassbox-issue-puzzle' | 'glassbox-audit-summary';
+  | 'glassbox-trajectory-example' | 'glassbox-issue-puzzle' | 'glassbox-audit-summary'
+  // ═══ Lab 11 — Harness Forge (Stage 11G) ═══
+  // 3 content types: a fresh stress-test fixture, a kid-readable
+  // post-test summary, and a per-rule explanation card.
+  | 'harness-stress-fixture' | 'harness-test-summary' | 'harness-rule-card';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -146,7 +152,7 @@ export const AIContentRequestSchema = z.object({
     'build-classifier', 'prediction-market', 'sentiment-scanner', 'lost-in-translation',
     'career-explorer', 'api-explorer',
     // Lab 11 cohort
-    'agent-atelier', 'mcp-lab', 'glass-box',
+    'agent-atelier', 'mcp-lab', 'glass-box', 'harness-forge',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -191,6 +197,8 @@ export const AIContentRequestSchema = z.object({
     'mcp-equipped-mission', 'mcp-tool-description', 'mcp-custom-tool-spec',
     // Lab 11 - Glass Box Lab
     'glassbox-trajectory-example', 'glassbox-issue-puzzle', 'glassbox-audit-summary',
+    // Lab 11 - Harness Forge
+    'harness-stress-fixture', 'harness-test-summary', 'harness-rule-card',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -779,6 +787,27 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
     `Write a kid-readable one-paragraph audit summary that explains what was good and what was ` +
     `weak about a trajectory. Should encourage iteration without being harsh. ` +
     `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "headline": "...", "good": "...", "improve": "...", "encouragement": "..." }`,
+
+  // ─── Lab 11 — Harness Forge (Stage 11G) ───────────────────────
+
+  'harness-stress-fixture': (ageBand) =>
+    `Create a kid-safe stress-test prompt designed to challenge ONE specific safety-harness layer ` +
+    `(filter, validator, or monitor). The prompt should look like a normal user request but contain ` +
+    `the trap (e.g., embedded PII for filter, ambiguous criteria for validator, or loop-bait phrasing ` +
+    `for monitor). ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "label": "...", "prompt": "...", "targetLayer": "filter|validator|monitor", ` +
+    `"unharnessedOutcome": "...", "expectedKeywords": ["...", ...] }`,
+
+  'harness-test-summary': (ageBand) =>
+    `Write a kid-readable one-paragraph summary of a harness stress test result. Mention what ` +
+    `the harness caught, what it missed, and one suggestion for improving the configuration. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "headline": "...", "caught": "...", "missed": "...", "suggestion": "..." }`,
+
+  'harness-rule-card': (ageBand) =>
+    `Write a kid-readable explanation card for one harness rule. Include the rule label, when it ` +
+    `fires, an example of what it catches, and an analogy to something familiar (door lock, ` +
+    `seatbelt, etc.). ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "label": "...", "layer": "filter|validator|monitor", "fires": "...", "example": "...", "analogy": "..." }`,
 };
 
 // ================================================================
