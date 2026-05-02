@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 720" preserveAspectRatio="xMidYMid meet">
+  <!-- Background gradient: dark cyan-tinted to evoke the edit-bay environment -->
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#062A35" />
+      <stop offset="1" stop-color="#0A1A22" />
+    </linearGradient>
+    <pattern id="grid" x="0" y="0" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#10BAD2" stroke-opacity="0.06" stroke-width="1" />
+    </pattern>
+  </defs>
+  <rect width="1280" height="720" fill="url(#bg)" />
+  <rect width="1280" height="720" fill="url(#grid)" />
+
+  <!-- Frame border -->
+  <rect x="20" y="20" width="1240" height="680" fill="none" stroke="#10BAD2" stroke-opacity="0.4" stroke-width="2" />
+  <rect x="40" y="40" width="1200" height="640" fill="none" stroke="#10BAD2" stroke-opacity="0.18" stroke-width="1" />
+
+  <!-- Corner brackets (cinema framing) -->
+  <g stroke="#10BAD2" stroke-width="3" stroke-linecap="square" fill="none">
+    <path d="M 60 100 L 60 60 L 100 60" />
+    <path d="M 1180 60 L 1220 60 L 1220 100" />
+    <path d="M 1220 620 L 1220 660 L 1180 660" />
+    <path d="M 100 660 L 60 660 L 60 620" />
+  </g>
+
+  <!-- Center icon: clapperboard -->
+  <g transform="translate(640 280)">
+    <rect x="-110" y="-30" width="220" height="120" rx="8" fill="#0E1A22" stroke="#10BAD2" stroke-width="3" />
+    <rect x="-110" y="-50" width="220" height="40" rx="8" fill="#10BAD2" />
+    <g fill="#0A1A22">
+      <rect x="-95" y="-45" width="20" height="30" />
+      <rect x="-65" y="-45" width="20" height="30" />
+      <rect x="-35" y="-45" width="20" height="30" />
+      <rect x="-5" y="-45" width="20" height="30" />
+      <rect x="25" y="-45" width="20" height="30" />
+      <rect x="55" y="-45" width="20" height="30" />
+      <rect x="85" y="-45" width="20" height="30" />
+    </g>
+    <text x="0" y="40" text-anchor="middle" fill="#10BAD2" font-family="ui-monospace,monospace" font-size="16" font-weight="bold" letter-spacing="2">PIXEL WITNESS</text>
+    <text x="0" y="70" text-anchor="middle" fill="#7FE0EE" font-family="ui-monospace,monospace" font-size="13">clip pending</text>
+  </g>
+
+  <!-- Bottom subtitle -->
+  <text x="640" y="490" text-anchor="middle" fill="#FFFFFF" fill-opacity="0.85" font-family="system-ui,-apple-system,sans-serif" font-size="22">
+    Watch the description above, then judge the AI&apos;s answer.
+  </text>
+  <text x="640" y="520" text-anchor="middle" fill="#FFFFFF" fill-opacity="0.55" font-family="system-ui,-apple-system,sans-serif" font-size="16">
+    The Q-A flow works the same with or without the video file.
+  </text>
+
+  <!-- Bottom-right asset hint -->
+  <text x="1220" y="690" text-anchor="end" fill="#7FE0EE" fill-opacity="0.5" font-family="ui-monospace,monospace" font-size="11">
+    /public/videos/pixel-witness/&lt;clipId&gt;.mp4
+  </text>
+</svg>

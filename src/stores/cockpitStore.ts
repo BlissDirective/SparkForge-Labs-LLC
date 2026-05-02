@@ -76,19 +76,39 @@ export interface CameraTarget {
   fov: number;
 }
 
-// Pre-calculated lab positions in a circular ring
-const LAB_ANGLE_STEP = (2 * Math.PI) / 10;
-const LAB_RING_RADIUS = 3.8;
+// Pre-calculated lab positions in two concentric rings.
+// Layout decision (April 30, 2026 — user-approved Concentric 6+5):
+//   • Outer ring (radius 4.4): Labs 1-6 — foundation curriculum
+//   • Inner ring (radius 2.8): Labs 7-11 — advanced curriculum (incl. Lab 11)
+// Each ring starts from the top (-π/2) and lays out clockwise.
+// Pedagogy: foundation labs form the perimeter the player traverses first; the
+// advanced ring sits closer to the central holographic projector pedestal.
+const FOUNDATION_LABS = [1, 2, 3, 4, 5, 6] as const;   // outer
+const ADVANCED_LABS   = [7, 8, 9, 10, 11] as const;     // inner
+const OUTER_RADIUS = 4.4;
+const INNER_RADIUS = 2.8;
+const FOUNDATION_ANGLE_STEP = (2 * Math.PI) / FOUNDATION_LABS.length; // 60°
+const ADVANCED_ANGLE_STEP   = (2 * Math.PI) / ADVANCED_LABS.length;   // 72°
 
 export const LAB_POSITIONS: Record<number, [number, number, number]> = {};
-for (let i = 1; i <= 10; i++) {
-  const angle = (i - 1) * LAB_ANGLE_STEP - Math.PI / 2; // Start from top
-  LAB_POSITIONS[i] = [
-    Math.cos(angle) * LAB_RING_RADIUS,
+
+FOUNDATION_LABS.forEach((labId, i) => {
+  const angle = i * FOUNDATION_ANGLE_STEP - Math.PI / 2; // start from top
+  LAB_POSITIONS[labId] = [
+    Math.cos(angle) * OUTER_RADIUS,
     0,
-    Math.sin(angle) * LAB_RING_RADIUS,
+    Math.sin(angle) * OUTER_RADIUS,
   ];
-}
+});
+
+ADVANCED_LABS.forEach((labId, i) => {
+  const angle = i * ADVANCED_ANGLE_STEP - Math.PI / 2; // start from top
+  LAB_POSITIONS[labId] = [
+    Math.cos(angle) * INNER_RADIUS,
+    0,
+    Math.sin(angle) * INNER_RADIUS,
+  ];
+});
 
 // v3: Tight-focus camera presets — user sits IN the cockpit seat
 // Per cockpit-architecture.json: cameraPosition [0, 0.65, 1.1], FOV 58

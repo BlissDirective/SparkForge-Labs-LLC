@@ -30,6 +30,7 @@ export const LAB_ICONS: Record<number, string> = {
   8: '\uD83D\uDCAC', // 💬
   9: '\uD83D\uDCBB', // 💻
   10: '\uD83D\uDE80', // 🚀
+  11: '\uD83D\uDD78\uFE0F', // 🕸️ (Lab 11 — Agentic AI; web/orchestration motif)
 };
 
 /** Default LED color — OKLCH primary blue (HEX for Three.js) */

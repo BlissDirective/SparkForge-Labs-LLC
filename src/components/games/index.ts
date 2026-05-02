@@ -51,3 +51,18 @@ export { ApiExplorerGame } from './ApiExplorerGame';
 export { MyFirstAiAppGame } from './MyFirstAiAppGame';
 export { EmojiDecoderGame } from './EmojiDecoderGame';
 export { AiOrNotGame } from './AiOrNotGame';
+
+// Stage 11D — Lab 11 (Agentic AI) flagship: Build → Equip → Constrain
+export { AgentAtelierGame } from './AgentAtelierGame';
+// Stage 11E — Lab 11 Equip step
+export { McpLabGame } from './McpLabGame';
+// Stage 11F — Lab 11 Audit step
+export { GlassBoxGame } from './GlassBoxGame';
+// Stage 11G — Lab 11 Constrain step (closes the Build→Equip→Audit→Constrain arc)
+export { HarnessForgeGame } from './HarnessForgeGame';
+// Stage 11A — Lab 1 (What IS AI?) C5 Pocket Brain — runs a real LLM in-browser
+export { PocketBrainGame } from './PocketBrainGame';
+// Stage 11B — Lab 8 (Words & Language) C2 Context Architect — context engineering game
+export { ContextArchitectGame } from './ContextArchitectGame';
+// Stage 11C — Lab 7 (Computer Vision) C4 Pixel Witness — VLM judging + sense builder
+export { PixelWitnessGame } from './PixelWitnessGame';

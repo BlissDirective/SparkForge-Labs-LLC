@@ -363,6 +363,7 @@ export const LABS: LabMeta[] = [
   {
     id: 1, title: 'What IS AI?', subtitle: 'Foundations', color: '#00BBFF', tint: '#00BBFF', icon: '🤖', description: 'Discover how machines learn to think',
     games: [
+      { slug: 'pocket-brain', title: 'Pocket Brain', emoji: '🧠', description: 'Run a real AI in your browser — no internet needed', estimatedMinutes: 22, xpReward: 35, ageBands: ['A', 'B', 'C'] },
       { slug: 'ai-spy', title: 'AI Spy', emoji: '🔍', description: 'Find hidden AI in everyday scenes', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'time-machine', title: 'Time Machine', emoji: '⏰', description: 'Place AI milestones on a timeline', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'human-vs-machine', title: 'Human vs Machine', emoji: '🤝', description: 'Who does it better — you or AI?', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
@@ -414,6 +415,7 @@ export const LABS: LabMeta[] = [
   {
     id: 7, title: 'Computer Vision', subtitle: 'How AI Sees', color: '#06B6D4', tint: '#06B6D4', icon: '👁️', description: 'Teach machines to see and understand images',
     games: [
+      { slug: 'pixel-witness', title: 'Pixel Witness', emoji: '🎬', description: 'Watch a video, judge the AI\'s answer, catch hallucinations', estimatedMinutes: 18, xpReward: 35, ageBands: ['A', 'B', 'C'] },
       { slug: 'camera-quest', title: 'Camera Quest', emoji: '📷', description: 'Find objects with your camera', estimatedMinutes: 15, xpReward: 30, ageBands: ['A', 'B', 'C'] },
       { slug: 'fool-the-ai', title: 'Fool the AI', emoji: '🎩', description: 'Trick an AI image classifier', estimatedMinutes: 10, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'build-classifier', title: 'Build a Classifier', emoji: '🏷️', description: 'Train your own image classifier', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
@@ -423,6 +425,7 @@ export const LABS: LabMeta[] = [
   {
     id: 8, title: 'Words & Language', subtitle: 'NLP', color: '#818CF8', tint: '#818CF8', icon: '💬', description: 'Explore how AI reads, writes, translates, and understands language',
     games: [
+      { slug: 'context-architect', title: 'Context Architect', emoji: '📚', description: 'Curate the AI\'s memory shelf and defeat Context Rot', estimatedMinutes: 20, xpReward: 35, ageBands: ['A', 'B', 'C'] },
       { slug: 'sentiment-scanner', title: 'Sentiment Scanner', emoji: '😊', description: 'See how AI reads emotions in text', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
       { slug: 'chatbot-builder', title: 'Chatbot Builder', emoji: '💬', description: 'Build your own chatbot', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
       { slug: 'lost-in-translation', title: 'Lost in Translation', emoji: '🌍', description: 'Watch sentences change through translation', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
@@ -443,6 +446,18 @@ export const LABS: LabMeta[] = [
     games: [
       { slug: 'future-forge', title: 'Future Forge', emoji: '🔮', description: 'Design your dream AI invention', estimatedMinutes: 15, xpReward: 25, ageBands: ['A', 'B', 'C'] },
       { slug: 'ai-or-not', title: 'AI or Not?', emoji: '❓', description: 'Judge whether creative works were made by humans or AI', estimatedMinutes: 10, xpReward: 20, ageBands: ['A', 'B'] },
+    ],
+  },
+  {
+    // Lab 11 added April 30, 2026 (Doc 2 Section B Path B). Hosts the Build->Equip->Constrain
+    // arc: C1 Agent Atelier (Stage 11D), C6 MCP Plug-and-Play Lab (Stage 11E), C7 Harness Forge
+    // (Stage 11G). Stage 11D shipped May 1, 2026 — Agent Atelier is the first published game.
+    id: 11, title: 'Agentic AI', subtitle: 'Teams of AI Agents', color: '#6FFFE6', tint: '#6FFFE6', icon: '🕸️', description: 'Build teams of AI agents, plug tools into them, and wrap them in safety harnesses',
+    games: [
+      { slug: 'agent-atelier', title: 'Agent Atelier', emoji: '🎭', description: 'Pick specialists, wire them up, and run the team on a mission', estimatedMinutes: 18, xpReward: 30, ageBands: ['A', 'B', 'C'] },
+      { slug: 'mcp-lab', title: 'MCP Plug-and-Play Lab', emoji: '🔌', description: 'Plug tools into your team and watch capabilities expand', estimatedMinutes: 16, xpReward: 30, ageBands: ['A', 'B', 'C'] },
+      { slug: 'glass-box', title: 'Glass Box Lab', emoji: '🔍', description: 'Audit any saved team frame-by-frame and find the bugs', estimatedMinutes: 14, xpReward: 25, ageBands: ['A', 'B', 'C'] },
+      { slug: 'harness-forge', title: 'Harness Forge', emoji: '🛡️', description: 'Wrap any team in three safety-harness layers and stress-test it', estimatedMinutes: 16, xpReward: 30, ageBands: ['A', 'B', 'C'] },
     ],
   },
 ];
