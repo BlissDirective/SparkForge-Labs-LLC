@@ -78,10 +78,10 @@ export default function CoppaNoticePage() {
                 <br />
                 Privacy contact:{' '}
                 <a
-                  href="mailto:privacy@sparkforge.app"
+                  href="mailto:privacy@sparkforge-labs.com"
                   className="text-spark-blue hover:underline"
                 >
-                  privacy@sparkforge.app
+                  privacy@sparkforge-labs.com
                 </a>
                 <br />
                 Use this address for all COPPA inquiries, parental rights requests,
@@ -226,10 +226,10 @@ export default function CoppaNoticePage() {
             <p className="mt-4">
               To exercise any of these rights, email{' '}
               <a
-                href="mailto:privacy@sparkforge.app"
+                href="mailto:privacy@sparkforge-labs.com"
                 className="text-spark-blue hover:underline"
               >
-                privacy@sparkforge.app
+                privacy@sparkforge-labs.com
               </a>{' '}
               from the parent email on file. We respond within 10 business days.
             </p>
@@ -245,10 +245,10 @@ export default function CoppaNoticePage() {
               time to review, correct, or delete their information. Children may
               also contact us through their parent at{' '}
               <a
-                href="mailto:privacy@sparkforge.app"
+                href="mailto:privacy@sparkforge-labs.com"
                 className="text-spark-blue hover:underline"
               >
-                privacy@sparkforge.app
+                privacy@sparkforge-labs.com
               </a>
               . We will work with the parent to honor the request.
             </p>
@@ -281,10 +281,10 @@ export default function CoppaNoticePage() {
                 <strong className="text-white/80">BlissDirective &mdash; SparkForge Privacy</strong>
                 <br />
                 <a
-                  href="mailto:privacy@sparkforge.app"
+                  href="mailto:privacy@sparkforge-labs.com"
                   className="text-spark-blue hover:underline"
                 >
-                  privacy@sparkforge.app
+                  privacy@sparkforge-labs.com
                 </a>
               </p>
             </div>

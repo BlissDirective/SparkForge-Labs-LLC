@@ -66,7 +66,7 @@ export async function sendEmail(opts: EmailOptions): Promise<EmailResult> {
   const from =
     opts.from ??
     process.env.EMAIL_FROM ??
-    'SparkForge <noreply@sparkforge.app>';
+    'SparkForge <noreply@sparkforge-labs.com>';
 
   try {
     const response = await fetch(RESEND_URL, {

@@ -333,10 +333,10 @@ export function generateOpenApiSpec() {
       title: 'SparkForge API',
       description:
         'SparkForge gamified AI learning platform. Schemas auto-generated from Zod validators.',
-      license: { name: 'Proprietary', url: 'https://sparkforge.app' },
+      license: { name: 'Proprietary', url: 'https://sparkforge-labs.com' },
     },
     servers: [
-      { url: '{appUrl}', variables: { appUrl: { default: 'https://sparkforge.app' } } },
+      { url: '{appUrl}', variables: { appUrl: { default: 'https://sparkforge-labs.com' } } },
     ],
     tags: [
       { name: 'auth', description: 'Authentication + passkeys + sessions' },
