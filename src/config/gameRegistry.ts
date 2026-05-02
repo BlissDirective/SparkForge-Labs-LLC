@@ -64,6 +64,9 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   'mcp-lab':          { position: [0, 4, 8.5],  lookAt: [0, 0, 0],   fov: 55 },
   'glass-box':        { position: [0, 3.5, 7],  lookAt: [0, 1, 0],   fov: 50 },
   'harness-forge':    { position: [0, 3.5, 8],  lookAt: [0, 0.5, 0], fov: 52 },
+  // Lab 1 (May 1, 2026): C5 Pocket Brain - tabletop close-up framing
+  // matches Doc 2 §H.8 camera preset
+  'pocket-brain':     { position: [0, 1.5, 4],  lookAt: [0, 0.8, 0], fov: 42 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -713,6 +716,25 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     icon: '\ud83d\udee1\ufe0f',
     triangleBudget: budget('flagship', true),
     cameraPreset: cameraPreset('harness-forge'),
+  },
+  // \u2500\u2500 Lab 1 \u2014 Stage 11A (May 1, 2026): C5 Pocket Brain
+  // 'There's a real AI living in this browser tab.' Headline flagship
+  // for Lab 1 (What IS AI?). Runs a real LLM client-side via WebGPU.
+  {
+    id: 40,
+    name: 'Pocket Brain',
+    slug: 'pocket-brain',
+    lab: 1,
+    labName: LAB_NAMES[1],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'PocketBrain3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11A',
+    description: 'Run a real AI in your browser tab. No internet, no server, no API key \u2014 just you, your laptop, and a tiny brain.',
+    icon: '\ud83e\udde0',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('pocket-brain'),
   },
 ] as const;
 

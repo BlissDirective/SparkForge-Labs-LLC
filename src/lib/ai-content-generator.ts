@@ -30,7 +30,13 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   // ═══ Lab 11 Stage 11F (May 1, 2026) — Audit step ═══
   | 'glass-box'
   // ═══ Lab 11 Stage 11G (May 1, 2026) — Constrain step ═══
-  | 'harness-forge';
+  | 'harness-forge'
+  // ═══ Lab 1 Stage 11A (May 1, 2026) — C5 Pocket Brain ═══
+  // No new ContentType entries: Pocket Brain generates its content
+  // live in-browser via WebLLM (Doc 2 §H.14). The GameId is included
+  // here only so any downstream tooling that enumerates GameIds sees
+  // a consistent set.
+  | 'pocket-brain';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -153,6 +159,8 @@ export const AIContentRequestSchema = z.object({
     'career-explorer', 'api-explorer',
     // Lab 11 cohort
     'agent-atelier', 'mcp-lab', 'glass-box', 'harness-forge',
+    // Lab 1 - C5 Pocket Brain (no ContentTypes; SLM content generated in-browser)
+    'pocket-brain',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',

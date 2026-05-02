@@ -60,3 +60,5 @@ export { McpLabGame } from './McpLabGame';
 export { GlassBoxGame } from './GlassBoxGame';
 // Stage 11G — Lab 11 Constrain step (closes the Build→Equip→Audit→Constrain arc)
 export { HarnessForgeGame } from './HarnessForgeGame';
+// Stage 11A — Lab 1 (What IS AI?) C5 Pocket Brain — runs a real LLM in-browser
+export { PocketBrainGame } from './PocketBrainGame';
