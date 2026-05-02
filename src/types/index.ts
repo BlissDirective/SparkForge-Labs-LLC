@@ -424,6 +424,7 @@ export const LABS: LabMeta[] = [
   {
     id: 8, title: 'Words & Language', subtitle: 'NLP', color: '#818CF8', tint: '#818CF8', icon: '💬', description: 'Explore how AI reads, writes, translates, and understands language',
     games: [
+      { slug: 'context-architect', title: 'Context Architect', emoji: '📚', description: 'Curate the AI\'s memory shelf and defeat Context Rot', estimatedMinutes: 20, xpReward: 35, ageBands: ['A', 'B', 'C'] },
       { slug: 'sentiment-scanner', title: 'Sentiment Scanner', emoji: '😊', description: 'See how AI reads emotions in text', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },
       { slug: 'chatbot-builder', title: 'Chatbot Builder', emoji: '💬', description: 'Build your own chatbot', estimatedMinutes: 20, xpReward: 30, ageBands: ['B', 'C'] },
       { slug: 'lost-in-translation', title: 'Lost in Translation', emoji: '🌍', description: 'Watch sentences change through translation', estimatedMinutes: 8, xpReward: 20, ageBands: ['A', 'B', 'C'] },

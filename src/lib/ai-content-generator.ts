@@ -36,7 +36,9 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   // live in-browser via WebLLM (Doc 2 §H.14). The GameId is included
   // here only so any downstream tooling that enumerates GameIds sees
   // a consistent set.
-  | 'pocket-brain';
+  | 'pocket-brain'
+  // ═══ Lab 8 Stage 11B (May 1, 2026) — C2 Context Architect ═══
+  | 'context-architect';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -126,7 +128,13 @@ export type ContentType =
   // ═══ Lab 11 — Harness Forge (Stage 11G) ═══
   // 3 content types: a fresh stress-test fixture, a kid-readable
   // post-test summary, and a per-rule explanation card.
-  | 'harness-stress-fixture' | 'harness-test-summary' | 'harness-rule-card';
+  | 'harness-stress-fixture' | 'harness-test-summary' | 'harness-rule-card'
+  // ═══ Lab 8 — Context Architect (Stage 11B) ═══
+  // Per Doc 2 §E.11: 3 question variants × 3 bands + 3 distractor
+  // variants × 3 bands + 3 summary-rubric variants × 3 bands = 9 total.
+  | 'ca-question-A' | 'ca-question-B' | 'ca-question-C'
+  | 'ca-distractor-A' | 'ca-distractor-B' | 'ca-distractor-C'
+  | 'ca-summary-rubric-A' | 'ca-summary-rubric-B' | 'ca-summary-rubric-C';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -161,6 +169,8 @@ export const AIContentRequestSchema = z.object({
     'agent-atelier', 'mcp-lab', 'glass-box', 'harness-forge',
     // Lab 1 - C5 Pocket Brain (no ContentTypes; SLM content generated in-browser)
     'pocket-brain',
+    // Lab 8 - C2 Context Architect
+    'context-architect',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -207,6 +217,10 @@ export const AIContentRequestSchema = z.object({
     'glassbox-trajectory-example', 'glassbox-issue-puzzle', 'glassbox-audit-summary',
     // Lab 11 - Harness Forge
     'harness-stress-fixture', 'harness-test-summary', 'harness-rule-card',
+    // Lab 8 - Context Architect (9 = 3 categories × 3 bands)
+    'ca-question-A', 'ca-question-B', 'ca-question-C',
+    'ca-distractor-A', 'ca-distractor-B', 'ca-distractor-C',
+    'ca-summary-rubric-A', 'ca-summary-rubric-B', 'ca-summary-rubric-C',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -816,6 +830,55 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
     `fires, an example of what it catches, and an analogy to something familiar (door lock, ` +
     `seatbelt, etc.). ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
     `{ "label": "...", "layer": "filter|validator|monitor", "fires": "...", "example": "...", "analogy": "..." }`,
+
+  // ─── Lab 8 — Context Architect (Stage 11B) ────────────────────
+
+  'ca-question-A': (ageBand) =>
+    `Create a simple kid-safe question that needs only 1 fact card to answer (a yes/no or single-recall). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "text": "...", "expectedFactKeyword": "...", "hint": "..." }`,
+
+  'ca-question-B': (ageBand) =>
+    `Create a kid-safe 2-card question requiring 2 facts to answer well. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "text": "...", "expectedFactKeywords": ["...", "..."], "hint": "..." }`,
+
+  'ca-question-C': (ageBand) =>
+    `Create a kid-safe multi-fact question requiring 3+ knowledge cards, possibly cross-theme. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "text": "...", "expectedFactKeywords": ["...", "...", "..."], "hint": "..." }`,
+
+  'ca-distractor-A': (ageBand) =>
+    `Create a kid-safe DECOY card - looks related to a topic but doesn't answer the question. ` +
+    `Used to test whether the player can avoid Context Rot. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "text": "...", "tokens": 16, "trapPattern": "..." }`,
+
+  'ca-distractor-B': (ageBand) =>
+    `Create a kid-safe DECOY card with intermediate trickiness - the kid has to read carefully to ` +
+    `realize it doesn't help. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "text": "...", "tokens": 32, "trapPattern": "..." }`,
+
+  'ca-distractor-C': (ageBand) =>
+    `Create a kid-safe DECOY card that is HIGHLY tricky - sounds like it answers the question but ` +
+    `actually has the wrong number, wrong year, or is about the wrong subject. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "text": "...", "tokens": 32, "trapPattern": "..." }`,
+
+  'ca-summary-rubric-A': (ageBand) =>
+    `Write a 2-criterion rubric for grading a kid's REDUCE move (summarizing a card without losing ` +
+    `key info). Easy mode. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "criteria": [{"check": "...", "weight": 1}, ...] }`,
+
+  'ca-summary-rubric-B': (ageBand) =>
+    `Write a 3-criterion rubric for grading a kid's REDUCE move with a focus on accuracy + ` +
+    `compression ratio. Medium mode. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "criteria": [{"check": "...", "weight": 1}, ...] }`,
+
+  'ca-summary-rubric-C': (ageBand) =>
+    `Write a 4-criterion rubric for grading a kid's REDUCE move emphasizing accuracy, compression, ` +
+    `cross-theme synthesis, and avoiding hallucinated additions. Hard mode. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "criteria": [{"check": "...", "weight": 1}, ...] }`,
 };
 
 // ================================================================

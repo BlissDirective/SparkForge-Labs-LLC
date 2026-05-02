@@ -62,3 +62,5 @@ export { GlassBoxGame } from './GlassBoxGame';
 export { HarnessForgeGame } from './HarnessForgeGame';
 // Stage 11A — Lab 1 (What IS AI?) C5 Pocket Brain — runs a real LLM in-browser
 export { PocketBrainGame } from './PocketBrainGame';
+// Stage 11B — Lab 8 (Words & Language) C2 Context Architect — context engineering game
+export { ContextArchitectGame } from './ContextArchitectGame';

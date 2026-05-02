@@ -67,6 +67,9 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   // Lab 1 (May 1, 2026): C5 Pocket Brain - tabletop close-up framing
   // matches Doc 2 §H.8 camera preset
   'pocket-brain':     { position: [0, 1.5, 4],  lookAt: [0, 0.8, 0], fov: 42 },
+  // Lab 8 (May 1, 2026): C2 Context Architect - library reading-lectern
+  // framing matches Doc 2 §E.8
+  'context-architect': { position: [0, 2, 5],   lookAt: [0, 1, 0],   fov: 46 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -735,6 +738,25 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     icon: '\ud83e\udde0',
     triangleBudget: budget('flagship', true),
     cameraPreset: cameraPreset('pocket-brain'),
+  },
+  // \u2500\u2500 Lab 8 \u2014 Stage 11B (May 1, 2026): C2 Context Architect
+  // 'The AI's brain has a shelf, and the shelf is small.' Curate cards,
+  // manage tokens, beat Context Rot via 4 canonical moves.
+  {
+    id: 41,
+    name: 'Context Architect',
+    slug: 'context-architect',
+    lab: 8,
+    labName: LAB_NAMES[8],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'ContextShelf3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11B',
+    description: 'Manage the AI\'s memory shelf. Pick the right cards, defeat Context Rot.',
+    icon: '\ud83d\udcda',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('context-architect'),
   },
 ] as const;
 
