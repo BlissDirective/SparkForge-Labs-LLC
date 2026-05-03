@@ -6,10 +6,14 @@ import { BrandingShowcase } from '@/components/3d/branding/BrandingShowcase';
 import { BrandingMesh } from '@/components/3d/branding/BrandingMaterial';
 import { SfMark3D } from '@/components/3d/branding/SfMark3D';
 import { SparkForgeWordmark3D } from '@/components/3d/branding/SparkForgeWordmark3D';
+import { LensflareTSL } from '@/components/3d/branding/LensflareTSL';
+import { SfShardSet } from '@/components/3d/branding/SfShardSet';
 
 type Subject =
   | 'sparkforge'
   | 'sf-mark'
+  | 'lensflare'
+  | 'shard-set'
   | 'cube'
   | 'sphere'
   | 'torus'
@@ -18,6 +22,8 @@ type Subject =
 const SUBJECTS: ReadonlyArray<{ id: Subject; label: string }> = [
   { id: 'sparkforge', label: 'SparkForge wordmark (Phase 3)' },
   { id: 'sf-mark',    label: 'SF mark (Phase 2)' },
+  { id: 'lensflare',  label: 'Lensflare TSL (Phase 5b prep)' },
+  { id: 'shard-set',  label: 'Shard set (Phase 5b.2)' },
   { id: 'cube',       label: 'Cube' },
   { id: 'sphere',     label: 'Sphere' },
   { id: 'torus',      label: 'Torus knot' },
@@ -56,6 +62,23 @@ export function BrandingDevClient() {
   // Phase-3 specific: letter-reveal count (0..10). 10 = all visible.
   const [revealCount, setRevealCount] = useState<number>(TOTAL_LETTERS);
 
+  // Phase-5b-prep specific: Lensflare live tuning (per storyboard §3-§8 +
+  // user pick Q5 — Beat 6 peak intensityMul = 2.0).
+  const [flareIntensityMul, setFlareIntensityMul] = useState(1.0);
+  const [flareCoreScale,    setFlareCoreScale]    = useState(1.0);
+  const [flareStreakScale,  setFlareStreakScale]  = useState(1.0);
+
+  // Phase-5b.2 specific: Shard-set live tuning. The dev showcase fractures
+  // a placeholder box (cheap CPU Voronoi); Beat 4 wires the real SF mark
+  // F-glyph geometry in 5b.3.
+  const [shardCount, setShardCount] = useState(150);
+  const [shardSeed,  setShardSeed]  = useState(42);
+  const [shardEmissive, setShardEmissive] = useState(0.3);
+
+  const shardSourceGeometry = useMemo(() => {
+    return new BoxGeometry(2.4, 1.0, 0.6, 4, 4, 4);
+  }, []);
+
   const matOptions = useMemo(
     () => ({
       dichroicIntensity,
@@ -71,9 +94,16 @@ export function BrandingDevClient() {
     return Array.from({ length: Math.max(0, revealCount) }, (_, i) => i);
   }, [revealCount]);
 
-  // Camera distance: wider for the wordmark.
+  // Camera distance: wider for the wordmark; lensflare uses the same
+  // distance as the SF mark (~6.4) so the SF mark behind it is in scale.
   const cameraDistance =
-    subject === 'sparkforge' ? 10.0 : subject === 'sf-mark' ? 6.4 : 4.4;
+    subject === 'sparkforge'
+      ? 10.0
+      : subject === 'sf-mark' || subject === 'lensflare'
+        ? 6.4
+        : subject === 'shard-set'
+          ? 5.5
+          : 4.4;
 
   return (
     <main className="min-h-screen bg-[#02050d] text-white/90">
@@ -160,6 +190,64 @@ export function BrandingDevClient() {
               format={(v) => `${Math.round(v)} / ${TOTAL_LETTERS}`}
             />
           )}
+          {subject === 'lensflare' && (
+            <>
+              <Slider
+                label="Flare intensity ×"
+                value={flareIntensityMul}
+                min={0}
+                max={2.4}
+                step={0.05}
+                onChange={setFlareIntensityMul}
+              />
+              <Slider
+                label="Core scale"
+                value={flareCoreScale}
+                min={0}
+                max={2.0}
+                step={0.05}
+                onChange={setFlareCoreScale}
+              />
+              <Slider
+                label="Streak scale"
+                value={flareStreakScale}
+                min={0}
+                max={2.0}
+                step={0.05}
+                onChange={setFlareStreakScale}
+              />
+            </>
+          )}
+          {subject === 'shard-set' && (
+            <>
+              <Slider
+                label="Shard count"
+                value={shardCount}
+                min={20}
+                max={500}
+                step={10}
+                onChange={(v) => setShardCount(Math.round(v))}
+                format={(v) => `${Math.round(v)}`}
+              />
+              <Slider
+                label="Seed"
+                value={shardSeed}
+                min={0}
+                max={200}
+                step={1}
+                onChange={(v) => setShardSeed(Math.round(v))}
+                format={(v) => `${Math.round(v)}`}
+              />
+              <Slider
+                label="Shard emissive"
+                value={shardEmissive}
+                min={0}
+                max={2.0}
+                step={0.05}
+                onChange={setShardEmissive}
+              />
+            </>
+          )}
         </div>
 
         <div className={`grid gap-4 ${showRef ? 'lg:grid-cols-2' : 'grid-cols-1'}`}>
@@ -184,6 +272,36 @@ export function BrandingDevClient() {
                     materialOptions={matOptions}
                   />
                 </Suspense>
+              ) : subject === 'lensflare' ? (
+                <Suspense fallback={null}>
+                  {/* SF mark behind for scale reference */}
+                  <SfMark3D
+                    italicLean={italicLean}
+                    materialOptions={matOptions}
+                  />
+                  {/* Both flares mounted — amber lower-left + cyan upper-right */}
+                  <LensflareTSL
+                    flare={0}
+                    intensityMul={flareIntensityMul}
+                    coreScale={flareCoreScale}
+                    streakScale={flareStreakScale}
+                  />
+                  <LensflareTSL
+                    flare={1}
+                    intensityMul={flareIntensityMul}
+                    coreScale={flareCoreScale}
+                    streakScale={flareStreakScale}
+                  />
+                </Suspense>
+              ) : subject === 'shard-set' ? (
+                <SfShardSet
+                  geometry={shardSourceGeometry}
+                  shardCount={shardCount}
+                  seed={shardSeed}
+                  visible
+                  emissiveIntensity={shardEmissive}
+                  materialOptions={matOptions}
+                />
               ) : (
                 <BrandingMesh
                   geometry={<PrimitiveFor subject={subject} />}

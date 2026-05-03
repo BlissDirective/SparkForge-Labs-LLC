@@ -3,7 +3,8 @@
 **Document version:** 1.0 (commit 1 of 4)
 **Date:** April 28, 2026
 
-**Last commit on branch:** `c4939dc` (Phase 2.6 — env-var override)
+**Active branch:** `claude/sparkforge-phase-five-CSSzU` (squash-merges into `setup-SparkForge-dev` on phase completion)
+**Last commit on branch:** `c308724` (Phase 3 — SparkForge wordmark)
 **Reference image:** `public/branding/IMG_4607.png`
 **Source-of-truth config:** `src/lib/branding/sf-material.config.ts`
 
@@ -35,14 +36,14 @@ This document is split into four commits so individual writes stay small and cra
 
 | | |
 |---|---|
-| **Branch** | `claude/sparkforge-branding-3d-I4Za1` |
+| **Branch** | `claude/sparkforge-phase-five-CSSzU` (squash-merges into `setup-SparkForge-dev`) |
 | **Phase 1 commit** | `b3c6323` — BrandingMaterial WebGPU+TSL primary, MP4-poster fallback |
 | **Phase 2 commit** | `33bbab1` — SF mark geometry + 3D extrusion |
-| **Phase 2.6 commit** | `c4939dc` — `NEXT_PUBLIC_ALLOW_DEV_ROUTES` Vercel-preview override |
+| **Phase 3 commit** | `c308724` — SparkForge wordmark (parkorge glyphs) + Phase 4 offline render artifacts |
 | **Working tree** | clean |
 | **Push status** | all commits pushed to origin |
 | **Build status** | `npm run build` passes, EXIT=0 |
-| **Dev route** | `/dev/branding` returns 200 OK locally |
+| **Branding route** | `/dev/branding` returns 200 OK on every environment |
 
 ### Pre-existing repo issues auto-fixed during Phase 1 (CLAUDE.md §3.1)
 
@@ -68,12 +69,12 @@ Both fixes are part of commit `b3c6323`.
 | **N2** | WebGPU fallback policy | **c** — WebGPU+TSL primary, thin MP4-poster fallback for non-WebGPU. **No shader fork.** |
 | **N3** | Optional deps for re-choreograph | **a + b + c** — `three-bvh-csg` + Theatre.js (dev) + lensflare (custom TSL per N3=c clarification) |
 | **N3 lensflare** | Specific package | **c — custom TSL anamorphic shader.** `@react-three/lensflare-effect` does not exist on npm. |
-| **N4** | Hero timing | 19 s with 4× fast-forward |
+| **N4** | Hero timing | **19.5 s with 4× fast-forward** (revised 2026-04-29 from original 19.0 s — Beat 8 extended 0.5 → 1.0 s for shatter-into-UI breathing room per Q6 + user override) |
 | **N5** | Halt threshold | **b** — SSIM ≥ 0.96 vs IMG_4607 (Mythos rule, baked into `sf-material.config.ts` HALT) |
 | **E1** | Anisotropic prismatic dispersion in TSL | **YES** — implemented Phase 1 |
 | **E2** | Procedural palette-locked HDRI | **YES** — implemented Phase 1 via drei `<Lightformer>` rig |
 | **E3** | WebGPU compute Voronoi pre-fracture | **YES** — to be wired in Phase 5b |
-| **Mobile review** | Vercel preview override | env-var `NEXT_PUBLIC_ALLOW_DEV_ROUTES=true` (set on preview env only) |
+| **Branding routes** | No environment gating | `/dev/*` reachable on local, preview, and production. No env-var or NODE_ENV gate. |
 
 ### Tech Quality Mandate (CLAUDE.md v6.6)
 
@@ -178,7 +179,7 @@ These values are eye-extracted from `public/branding/IMG_4607.png` and live in `
 | `src/lib/branding/sf-material.config.ts` | Single source of truth — eye-extracted IMG_4607 params |
 | `src/components/3d/branding/BrandingMaterial.tsx` | TSL `MeshPhysicalNodeMaterial` + custom dichroic emissive `Fn` node. Exports `createBrandingMaterial()` + `<BrandingMesh>`. |
 | `src/components/3d/branding/BrandingShowcase.tsx` | Canvas wrapper with WebGPU capability gate, async `WebGPURenderer` init via R3F's async `gl` factory, drei `<Environment frames={1}>` + `<Lightformer>` rig (procedural HDRI / E2), three-light rig, MP4-poster fallback. |
-| `src/app/dev/branding/page.tsx` + `client.tsx` | `/dev/branding` visual checkpoint route. 404 in production unless `NEXT_PUBLIC_ALLOW_DEV_ROUTES=true`. |
+| `src/app/dev/branding/page.tsx` + `client.tsx` | `/dev/branding` visual checkpoint route. Reachable on every environment (local, preview, production). |
 | `CLAUDE.md` | New "Tech Quality Mandate" v6.6 section; fallback-chain language removed; HS-9 checklist updated. |
 
 **New deps:** `three-bvh-csg@0.0.18`, `@theatre/core@0.7.2`, `@theatre/studio@0.7.2` (`-D`).
@@ -191,15 +192,20 @@ These values are eye-extracted from `public/branding/IMG_4607.png` and live in `
 | `src/components/3d/branding/SfMark3D.tsx` | `useLoader(SVGLoader)` → `SVGLoader.createShapes` → `ExtrudeGeometry` per shape. Mirrors y (SVG y-down → three y-up), recenters to box center. Italic forward-lean (3.4°) via group rotation, **not** skew. |
 | `src/app/dev/branding/client.tsx` | Default subject is now "SF mark"; live-tuning sliders for `dispersionMultiplier`, `dichroicIntensity`, `italicLean`. |
 
-### Phase 2.6 (commit `c4939dc`) — Vercel-preview env override
+### Phase 3 (commit `c308724`) — SparkForge wordmark + Phase 4 offline renders
 
-| File | Change |
+| File | Purpose |
 |---|---|
-| `src/middleware.ts` | `classify()` honours `NEXT_PUBLIC_ALLOW_DEV_ROUTES=true` — `/dev/*` reachable on preview if set. |
-| `src/app/dev/branding/page.tsx` | Mirrors the same check (defence-in-depth). |
-| `.env.example` | Documents the new var (commented out). |
-
-To enable mobile review on Vercel preview: in Vercel dashboard → Project Settings → Environment Variables → add `NEXT_PUBLIC_ALLOW_DEV_ROUTES=true` scoped to **Preview** only (NOT Production).
+| `public/branding/sparkforge-geometry.svg` | 10-glyph wordmark (S p a r k F o r g e). viewBox 6400×800, cap-height 650u, baseline 720u, stroke 130u. S/F glyphs are mechanical x-translations of `sf-geometry.svg` (preserves Phase-2 single source of truth). evenodd fill-rule; reversed inner counters as holes; path IDs preserved for Phase-5b per-letter animation. |
+| `src/components/3d/branding/_shared.tsx` | `BrandingPart` mesh helper — one extruded letter + per-instance `BrandingMaterial` + visibility prop for revealMask without remount. |
+| `src/components/3d/branding/SparkForgeWordmark3D.tsx` | Wordmark component — `useLoader(SVGLoader)` → `createShapes` → `ExtrudeGeometry` per `<path>`. `LETTER_ORDER` maps revealMask indices to path IDs. Italic lean via group rotation (preserves dispersion fresnel). Auto-recenter via `Box3` measurement after mount. |
+| `src/components/3d/branding/SfMark3D.tsx` | Refactored to use `BrandingPart`. |
+| `src/app/dev/branding/client.tsx` | SparkForge wordmark is the new default subject; letter-reveal slider (0..10); camera distance bumped to 10.0 for the wider scene. |
+| `public/branding/sf-hero.png` | 4K transparent SF mark (Phase 4 offline render). |
+| `public/branding/sparkforge-hero.png` | 4K transparent wordmark (Phase 4 offline render). |
+| `public/branding/brand-fallback.mp4` | SF mark slow-rotate loop (Phase 4 offline render — non-WebGPU MP4 fallback source). |
+| `scripts/render-branding.ts` | Headless puppeteer render pipeline (Phase 4). |
+| `src/app/dev/branding/render/page.tsx` + `client.tsx` | Render-only route consumed by `scripts/render-branding.ts`. |
 
 ---
 
@@ -338,10 +344,10 @@ git add src/components/3d/branding/_shared.tsx   # if extracted
 git add src/app/dev/branding/client.tsx
 git add PROGRESS.md                              # add Phase 3 entry
 git commit -m "Phase 3: SparkForge wordmark — bespoke parkorge glyphs in SF idiom"
-git push -u origin claude/sparkforge-branding-3d-I4Za1
+git push -u origin claude/sparkforge-phase-five-CSSzU
 ```
 
-User checkpoint: visual sign-off at `/dev/branding` (Vercel preview if mobile-only; localhost otherwise).
+User checkpoint: visual sign-off at `/dev/branding` on whichever environment is convenient — local, preview, or production (no gating).
 
 ---
 
@@ -387,9 +393,7 @@ npm install -D puppeteer ffmpeg-static
 
 Strips ALL UI chrome from the showcase (no header, no sliders, no reference panel). Reads `?subject=` and `?t=` query params. Mounts `<BrandingShowcase>` at full viewport with the requested subject. Sets `window.__brandingReady = true` after the first frame renders (via a `useFrame` callback that runs once).
 
-Apply same dev-route guards as `/dev/branding`:
-- `notFound()` in production unless `NEXT_PUBLIC_ALLOW_DEV_ROUTES=true`
-- Add `/dev/branding/render` to the same middleware bypass (already covered by `/dev/*` prefix match — no middleware change needed).
+`/dev/branding/render` is reachable on every environment (no gating) — the middleware allows the entire `/dev/*` prefix uniformly.
 
 ### Phase 4.4 — Wire MP4 fallback
 
@@ -432,7 +436,7 @@ git add public/branding/brand-fallback.mp4
 git add package.json package-lock.json
 git add PROGRESS.md
 git commit -m "Phase 4: offline render pipeline + 4K PNGs + MP4 fallback"
-git push -u origin claude/sparkforge-branding-3d-I4Za1
+git push -u origin claude/sparkforge-phase-five-CSSzU
 ```
 
 ---
@@ -470,7 +474,7 @@ Structure:
 ```markdown
 # Hero v3 Storyboard
 
-## Total runtime: 19 s @ 1×, 4.75 s @ 4× fast-forward
+## Total runtime: 19.5 s @ 1×, 4.875 s @ 4× fast-forward (N4 revised 2026-04-29)
 ## Framework: GSAP timeline + Theatre.js sequencer
 ## All beats source from src/lib/branding/sf-material.config.ts
 
@@ -491,7 +495,7 @@ Structure:
 ### Beat 5 — Wordmark Cascade (11.0 – 14.0s)
 ### Beat 6 — Dichroic Bloom (14.0 – 16.5s)
 ### Beat 7 — Cockpit Materialization (16.5 – 18.5s)
-### Beat 8 — Atomic Handoff (18.5 – 19.0s)
+### Beat 8 — Atomic Handoff via Shatter-Into-UI (18.5 – 19.5s)
 ```
 
 The exact beat content should mirror the storyboard you described to the user in chat (deep navy void → spark coalesce → S crystallize → F mirror + Voronoi shard burst → parkorge cascade → dichroic bloom → cockpit emerges → atomic handoff). Reproduce that storyboard verbatim in the markdown so the next session has the source.
@@ -579,7 +583,7 @@ export const heroProject = getProject('SparkForgeHero', { state: heroState });
 export const heroSheet = heroProject.sheet('Hero v3');
 ```
 
-In dev mode, also import `@theatre/studio` and `studio.initialize()` so beats can be live-tuned. Strip `studio` from production via dynamic import gated on `process.env.NODE_ENV !== 'production'`.
+Also import `@theatre/studio` and call `studio.initialize()` so beats can be live-tuned on every environment. No NODE_ENV gating per the no-gating mandate.
 
 ### Phase 5b.2 — Voronoi shard pre-fracture (E3 — WebGPU compute)
 
@@ -668,8 +672,8 @@ Verify `Settings → Hero animation → Skip` toggle still works. Verify clickin
 npm run build
 npm run dev
 # Visit / fresh (clear localStorage 'skipIntroAnimation' first):
-#   1. 8-phase hero plays for ~19 s
-#   2. Click during hero → 4× speed → ~4.75 s remaining
+#   1. 8-phase hero plays for ~19.5 s
+#   2. Click during hero → 4× speed → ~4.875 s remaining
 #   3. Settings toggle "skip" → next refresh, hero is skipped
 #   4. Hero → cockpit handoff: NO canvas swap, NO white flash
 #   5. Cockpit spatial dashboard renders with holographic lab map
@@ -897,12 +901,12 @@ Always apply via group rotation, never via skewX. Skew distorts the surface norm
 // <... transform: skewX(...)>                      // ✗ breaks dispersion
 ```
 
-### Dev showcase route convention
+### Branding route convention
 
 - Path: `src/app/dev/<feature>/page.tsx` + `client.tsx`
-- Page: server component, `notFound()` if production AND no `NEXT_PUBLIC_ALLOW_DEV_ROUTES`
+- Page: server component, no environment gating — reachable on every environment
 - Client: `'use client'`, all interactivity here
-- Middleware bypass: `/dev/*` already covered
+- Middleware: `/dev/*` is unconditionally treated as a public page (see `classify()` in `src/middleware.ts`)
 
 ### Pre-existing repo gotchas (auto-fixed during Phase 1, may resurface)
 
@@ -969,7 +973,7 @@ If at any point the user decides the live R3F+TSL hero is taking too long, costi
 **Recommended fallback:** **Veo 3 stitched** (8s × 3 clips with FLF2V conditioning) → best photographic quality.
 **Recommended for camera moves:** **Seedance 2.0** if Sora 2 / Veo 3 access isn't available.
 
-### 16.3 — Storyboard for video version (19s)
+### 16.3 — Storyboard for video version (19.5 s)
 
 Same beat structure as the live R3F version (`Storyboard.md`), but each beat is a video clip with explicit anchor frames:
 
@@ -980,8 +984,9 @@ Same beat structure as the live R3F version (`Storyboard.md`), but each beat is 
 | 5.0–8.0s | S Crystallization | beat-2 final | **`public/branding/sf-hero.png`** (Phase 4 SF-mark still) |
 | 8.0–11.0s | F Mirror + Shard Burst | beat-3 final (SF mark complete) | beat-5 wordmark-mid-cascade |
 | 11.0–14.0s | Wordmark Cascade | beat-4 final (SF + scattered shards) | **`public/branding/sparkforge-hero.png`** (Phase 4 wordmark still) |
-| 14.0–17.0s | Dichroic Bloom | beat-5 final (wordmark settled) | beat-7 cockpit silhouette starts |
-| 17.0–19.0s | Cockpit Materialization + Handoff | beat-6 final | **render of cockpit's first frame** (NEW: see step 16.4.2) |
+| 14.0–16.5s | Dichroic Bloom | beat-5 final (wordmark settled) | beat-7 cockpit silhouette starts |
+| 16.5–18.5s | Cockpit Materialization | beat-6 final | beat-8 wordmark hovering above cockpit |
+| 18.5–19.5s | Atomic Handoff (shatter-into-UI) | beat-7 final | **render of cockpit's first frame** (NEW: see step 16.4.2) |
 
 ### 16.4 — Implementation steps
 
@@ -1100,7 +1105,7 @@ Compare to live-hero remaining work (Phases 5a-c + 6): ~5-8 days engineering, $0
 Whether the user picks live-hero or video-hero, the build is "done" when:
 
 - [ ] All 35+ UI occurrences of "SparkForge" use `<BrandWordmark>` (Phase 6)
-- [ ] Hero plays end-to-end at 19s with 4× fast-forward + skip toggle (HS-9)
+- [ ] Hero plays end-to-end at 19.5 s with 4× fast-forward + skip toggle (HS-9)
 - [ ] Hero → cockpit handoff has zero visible flash (HS-9)
 - [ ] `prefers-reduced-motion` skips hero entirely (HS-9)
 - [ ] Login 3D + Demo Login flow still works (HS-10)

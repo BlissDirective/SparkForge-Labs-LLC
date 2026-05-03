@@ -1,14 +1,188 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 2 (SF Mark Geometry)
-## Status: IN PROGRESS — Phase 2 complete; awaiting user visual checkpoint
-## Last Updated: 2026-04-28
+## Current Phase: SparkForge Branding 3D — Phase 5 COMPLETE pending HS-9 sign-off
+## Status: AWAITING HS-9 USER VERIFICATION — all 7 sub-commits of Phase 5c shipped; HeroAnimation.tsx now runs v3 wholesale on the live homepage
+## Last Updated: 2026-04-29
+
+### Phase 5c proper — COMPLETE (2026-04-29)
+
+| # | Sub-piece | Commit | Notes |
+|---|---|---|---|
+| 5c.1 | Beats 5+6 components | `038d9cb` | Beat5WordmarkCascade (per-letter pop), Beat6DichroicBloom (synchronized bloom + Q5 lensflare 2.0 peak) |
+| 5c.2 | Beat 7 component | `a51103d` | Beat7CockpitMaterialization (wordmark drift + lensflare fade + signalCockpit hook) |
+| 5c.3 | Beat 8 component | `cd79537` | Beat8AtomicHandoff (shatter-into-UI; 17 UI anchors; per-anchor flashes; onHandoffComplete callback) |
+| 5c.4 | Audio remap | `c4a230f` | heroAudio.ts:syncToProgress 13 trigger-time edits + 19.5 s base + Beat 5 cascade chimes + Beat 8 arrival ticks |
+| 5c.5 | Scrubber expansion | `2a7b5eb` | /dev/hero-v3 covers full 19.5 s with all 8 beats |
+| 5c.6 | HeroAnimation.tsx v3 | `88e0096` | Wholesale replacement — v2 phase content removed, v3 beats mounted; live homepage hero now runs v3 |
+| 5c.7 | HS-9 verification doc | (this commit) | docs/hero-v3/HS-9-Verification.md — 7-section checklist for user sign-off |
+
+### HS-9 hard stop — AWAITING USER VERIFICATION
+
+The HeroAnimation v3 is wired into the live homepage (`/`). User must walk through `docs/hero-v3/HS-9-Verification.md` (7 sections, ~50 checkpoints):
+
+1. **Hero v3 plays end-to-end** (11 checks across 8 beats)
+2. **CPA v2 single-canvas verification** — same `<canvas>` DOM node 0 → 19.5 s; no swap; cockpit takes over inside the same canvas
+3. **Skip / fast-forward / accessibility** — Escape / Enter / Space / prefers-reduced-motion / Settings toggle
+4. **Audio synchronization** — all 8 beats' cues fire at correct timestamps
+5. **Performance budget** — ≤ 18 ms/frame on WebGPU desktop-ultra
+6. **Mobile / non-WebGPU fallback** — MP4-poster path serves correctly
+7. **Theatre.js studio** (Q8) — overlay mounts on every environment
+
+### Branch state
+
+- All Phase 5 commits pushed to `claude/sparkforge-phase-five-CSSzU`
+- Build clean: `npm run build` → ✅ EXIT=0
+- Working tree clean
+- Ready for HS-9 sign-off → squash-merge into `setup-SparkForge-dev`
+
+**Runtime override (2026-04-29):** Hero total runtime extended **19.0 s → 19.5 s** (Beat 8 0.5 → 1.0 s) for shatter-into-UI breathing room. 4× FF window 4.75 → 4.875 s. N4 lock revised. All downstream docs (storyboard v1.2, action plan §16.3 + N4 row, audio remap §11) updated.
+
+### Phase 5b proper — COMPLETE (2026-04-29)
+
+| # | Sub-piece | Commit | File(s) |
+|---|---|---|---|
+| 5b.1 | Theatre.js project + Hero v3 sheet | `c134288` | `src/lib/hero/heroTheatreProject.ts` (singleton + 4 typed Sheet Objects + ensureHeroStudio() auto-mount per Q8) |
+| 5b.2 | Voronoi shard set component | `aafce73` | `src/components/3d/branding/SfShardSet.tsx` (forwardRef + imperative handle for parent-driven physics) + dev showcase wiring |
+| 5b.3a | Beats 1+2 components | `3bedf32` | `src/components/3d/hero/v3/Beat1VoidAwakening.tsx` + `Beat2IgnitionSpark.tsx` |
+| 5b.3b | Beats 3+4 components | `213ee92` | `Beat3SCrystallization.tsx` + `Beat4FMirrorAndShardBurst.tsx` + `SfMark3D.tsx` revealMask prop |
+| 5b.4 | `/dev/hero-v3` standalone scrubber | (this commit) | `src/app/dev/hero-v3/{page.tsx,client.tsx}` |
+
+### Action plan deviation (intentional)
+
+Action plan §10 5b.4 calls for `process.env.NEXT_PUBLIC_HERO_V3_BEATS_1_4` env-var feature flag to wire v3 beats into the live `HeroAnimation.tsx`. Replaced with a **standalone `/dev/hero-v3` route** per user no-gating mandate — no env flag, live homepage hero stays on v2 until Phase 5c integrates all 8 beats wholesale.
+
+### Build status
+
+- `npm run build` → ✅ EXIT=0
+- `/dev/hero-v3` → 39.6 kB / 726 kB First Load JS (+33 kB delta from `@theatre/studio` + 4 beat components + heroTheatreProject)
+- `/dev/branding` → 3.57 kB / 693 kB (unchanged from 5b prep)
+
+### Phase 5b prep — COMPLETE (2026-04-29)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| Custom TSL lensflare shader | `src/components/3d/branding/LensflareTSL.tsx` | Two-mesh billboard architecture per flare instance: hot-core square plane (radial falloff + center white-shift) + anamorphic streak plane (horizontal gradient, anamorphic vertical narrowing, chromatic tip-tinting). Uses `MeshBasicNodeMaterial` + `AdditiveBlending` + `depthWrite=false` + `toneMapped=false` (standard additive lens-flare pattern). Reads from `SF_BRAND.LENS_FLARES` config (Phase 1). Live-tunable `intensityMul`, `coreScale`, `streakScale` props for Phase 5b/c animation. Per-instance materials with `useMemo` + dispose-on-unmount (TSL node materials hold GPU pipelines per instance — sharing breaks uniform isolation). |
+| Dev showcase wiring | `src/app/dev/branding/client.tsx` | New "Lensflare TSL (Phase 5b prep)" subject; mounts both flares (amber index 0, cyan index 1) plus the SF mark behind for scale; 3 new sliders (Flare intensity ×, Core scale, Streak scale); camera distance 6.4 to match SF mark scale. |
+
+### Build verification
+
+- `npm run build` → ✅ EXIT=0, compiled in 17.2s. `/dev/branding` 3.57 kB / 693 kB First Load JS (was 2.31 / 692 — +1.3 kB for LensflareTSL).
+
+### Notes
+
+- Theatre.js studio auto-mount (Q8) deferred to Phase 5b proper — there's no Theatre sheet to expose yet (lensflare is a standalone tunable component, not a beat).
+- Per Beat 6 user pick Q5, the flare's `intensityMul` slider in dev showcase tops at 2.4 (gives headroom above Beat 6's 2.0 peak).
+
+### Phase 5a Sign-Off (recorded 2026-04-29)
+
+| # | Pick | Note |
+|---|---|---|
+| Q1 Beat boundaries | Yes | N4 19.0-s lock preserved |
+| Q2 Camera | Diagonal | Beat 2 parallax dolly retained |
+| Q3 Cascade order | Left-to-right | Sequential reveal retained |
+| Q4 Detonation | Outward+up bias | Proven Beat 4 physics retained |
+| Q5 Lensflare peak | **2.0** | Beat 6 `intensityMul` updated |
+| Q6 Handoff | **Shatter-into-UI** | Beat 8 fully rewritten — ~80 shards target-assigned to cockpit UI anchors |
+| Q7 Audio remap | Approve | 12 trigger-time edits in `heroAudio.ts:syncToProgress` authorized |
+| Q8 Theatre.js | **Auto-mount everywhere** | `@theatre/studio` adds ~500 KB to bundle on every environment |
+| Q9 SSIM halt | **(b) motion-frame averages** | Doubles `compare-ssim.ts` cost; more robust to motion drift |
+| Q10 Mobile | **Trimmed 5–8 s Sora/Veo video** | Phase 7 scope ~doubled; mobile-hero deliverable added |
+
+**Branch:** `claude/sparkforge-phase-five-CSSzU` (squash-merges into `setup-SparkForge-dev` on phase completion)
+
+---
+
+## SparkForge Branding 3D — Phase 5a (Hero v3 Storyboard) — April 29, 2026
+
+**Branch:** `claude/sparkforge-phase-five-CSSzU` · **Output:** `docs/hero-v3/Storyboard.md` (350 lines, 14 sections)
+
+### Phase 5a — COMPLETE pending user sign-off (2026-04-29)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| Storyboard document | `docs/hero-v3/Storyboard.md` | 14-section markdown deliverable. Full v2 audit (camera paths, store transitions, audio cues for all 8 phases of `HeroAnimation.tsx`); v3 beat sheet (8 beats × 19s with camera paths, lookAt, subjects, material animation, audio cues, performance budgets, out-triggers, Theatre.js sequence labels); audio cue remap (12 trigger-time edits in `heroAudio.ts:syncToProgress`, all v2 nodes reused, no new audio assets); cockpit handoff contract (CPA v2 single-canvas, store state machine, HS-9 verification protocol, skip/fast-forward semantics preserved verbatim from v2); 10 open questions for user sign-off (§13). |
+
+### Audit findings (v2 → v3)
+
+- v2 `HeroAnimation.tsx` is 700 lines with 8-phase GSAP timeline (`void`/`assembly`/`showcase`/`surge`/`shatter`/`regroup`/`materialize`/`online`) — fully captured in §1 audit table.
+- v2 `useAtomicHeroToCockpit.ts` referenced by the action plan does **NOT exist** — the atomic handoff is implemented via `useHeroAnimation.ts` + `cockpitStore.setHeroPhase/setCockpitReady` + GSAP `onComplete`. Storyboard §12 documents the actual contract.
+- v2 audio (`heroAudio.ts`, 807 lines) is comprehensive and reusable — v3 needs only ~12 trigger-time edits in `syncToProgress`, no new Tone.js nodes.
+
+### Build verification
+
+- `npm run build` → ✅ EXIT=0 (no code changes; only docs added).
+
+### Open items (gated on user)
+
+- §13 Q1–Q10 — 10 sign-off questions. Recommended defaults provided. User picks: "go with defaults on all" / specific per-question changes / restructure / halt.
+- Phase 5b prep (custom TSL anamorphic lensflare shader at `src/components/3d/branding/LensflareTSL.tsx`) does **not** start until §13 is answered.
+
+---
+
+## SparkForge Branding 3D — Phase 4 (Offline Render Pipeline) — April 29, 2026
+
+**Branch:** `claude/sparkforge-phase-five-CSSzU` (Phase 4 was bundled into the Phase 3 commit `c308724`)
+
+### Phase 4 — COMPLETE (2026-04-29)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| Render script | `scripts/render-branding.ts` | Headless Puppeteer + ffmpeg-static. Boots Next.js dev server, navigates to `/dev/branding/render`, waits on `window.__brandingReady`, screenshots to PNG / encodes loop to MP4. Outputs to `public/branding/`. |
+| Render-only route | `src/app/dev/branding/render/{page.tsx,client.tsx}` | UI-chrome-free `/dev/branding/render?subject=sf\|sparkforge\|loop&t=<sec>`. Sets `window.__brandingReady = true` after first frame compiles. |
+| 4K SF mark | `public/branding/sf-hero.png` | Transparent 4096×4096 PNG, italic 3.4° canonical pose. Used by `<BrandWordmark>` (Phase 6) and as anchor frame for video-hero alternative. |
+| 4K wordmark | `public/branding/sparkforge-hero.png` | Transparent 4096×1024 PNG, italic 3.4° canonical pose. |
+| MP4 fallback | `public/branding/brand-fallback.mp4` | SF mark slow-rotate ±0.2 rad over 2 s loop, 1920×1920, H.264 yuv420p. Wired into `BrandingShowcase.tsx` `fallbackVideoSrc` for non-WebGPU devices. |
+
+### Build verification
+
+- `npm run build` → ✅ EXIT=0 (passed at PR #137 merge).
+- `npm run dev` → ✅ `/dev/branding/render` returns 200 OK; `window.__brandingReady` fires after shaders compile.
+
+### Notes
+
+- Phase 4 was shipped in the same commit as Phase 3 (`c308724`) because the offline render pipeline depends on the wordmark geometry being committed first.
+- All `/dev/*` routes are public on every environment per the user's no-gating mandate (see "Gating Removal" entry below).
+
+---
+
+## Gating Removal — April 29, 2026
+
+**Scope:** Per user mandate, all dev/prod/Vercel environment gating has been removed from code and documentation. `/dev/*` routes are public on every environment (local, preview, production).
+
+| File | Change |
+|---|---|
+| `src/middleware.ts` | `classify()` no longer checks `NODE_ENV` or `NEXT_PUBLIC_ALLOW_DEV_ROUTES`. `/dev/*` is unconditionally a public page. |
+| `src/app/dev/branding/page.tsx` | Removed `notFound()` + env-var check. |
+| `src/app/dev/branding/render/page.tsx` | Removed `notFound()` + env-var check. |
+| `.env.example` | Removed `NEXT_PUBLIC_ALLOW_DEV_ROUTES` documentation block. |
+| `BRAND_HERO_ACTION_PLAN.md` | Stripped all gating language; updated branch references from `claude/sparkforge-branding-3d-I4Za1` → `claude/sparkforge-phase-five-CSSzU`; Theatre.js studio guidance no longer NODE_ENV-gated. |
+
+---
+
+## SparkForge Branding 3D — Phase 3 (SparkForge Wordmark) — April 29, 2026
+
+**Branch:** `claude/sparkforge-phase-five-CSSzU` · **Commit:** `c308724` (PR #137)
+
+### Phase 3 — COMPLETE (2026-04-29)
+
+| Sub-piece | File | Notes |
+|---|---|---|
+| Wordmark vector | `public/branding/sparkforge-geometry.svg` | 10-glyph wordmark (S p a r k F o r g e). viewBox 6400×800, cap-height 650u, baseline 720u, stroke 130u. S/F glyphs are mechanical x-translations of `sf-geometry.svg` (preserves Phase-2 single-source-of-truth). evenodd fill-rule; reversed inner counters as holes. Path IDs preserved for Phase-5b per-letter animation targeting. |
+| Shared mesh helper | `src/components/3d/branding/_shared.tsx` | Extracted `BrandingPart` — one extruded letter mesh with per-instance `BrandingMaterial` and visibility prop for `revealMask` without remount. |
+| Wordmark component | `src/components/3d/branding/SparkForgeWordmark3D.tsx` | `useLoader(SVGLoader)` → `createShapes` → `ExtrudeGeometry` per `<path>`. `LETTER_ORDER` maps revealMask indices to path IDs. Italic lean via group rotation (preserves dispersion fresnel). Auto-recenter via `Box3` measurement after mount. |
+| SF mark refactor | `src/components/3d/branding/SfMark3D.tsx` | Refactored to use `BrandingPart` from `_shared.tsx`. |
+| Dev showcase upgrade | `src/app/dev/branding/client.tsx` | SparkForge wordmark is the new default subject; letter-reveal slider (0..10); camera distance bumped to 10.0 for the wider scene. |
+
+### Build verification
+
+- `npm run build` → ✅ EXIT=0; `/dev/branding` route 457 kB / 691 kB First Load JS.
+- `npm run dev` → ✅ Ready in 4.1s, no boot errors.
 
 ---
 
 ## SparkForge Branding 3D — Phase 2 (SF Mark Geometry) — April 28, 2026
 
-**Branch:** `claude/sparkforge-branding-3d-I4Za1`
+**Branch:** `claude/sparkforge-phase-five-CSSzU` (originally authored on a feature branch, now squash-merged into `setup-SparkForge-dev`)
 
 ### Phase 2 — COMPLETE (2026-04-28)
 
@@ -38,7 +212,7 @@ Phase 2's SF mark is a **clean geometric approximation** of IMG_4607's letterfor
 
 ## SparkForge Branding 3D — Phase 1 (Material Config + BrandingMaterial) — April 28, 2026
 
-**Branch:** `claude/sparkforge-branding-3d-I4Za1` · **Scope:** 7-phase build to extract IMG_4607 (`public/branding/IMG_4607.png`) brand DNA into a single shader + geometry pipeline; replace existing wordmark + hero animation with WebGPU+TSL-rendered SparkForge wordmark; ship offline 4K renders + experimental Sora 2 / Veo 3 prompt pack.
+**Branch:** `claude/sparkforge-phase-five-CSSzU` · **Scope:** 7-phase build to extract IMG_4607 (`public/branding/IMG_4607.png`) brand DNA into a single shader + geometry pipeline; replace existing wordmark + hero animation with WebGPU+TSL-rendered SparkForge wordmark; ship offline 4K renders + experimental Sora 2 / Veo 3 prompt pack.
 
 ### Locked decisions (chat history)
 

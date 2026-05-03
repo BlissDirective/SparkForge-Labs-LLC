@@ -50,6 +50,15 @@ export interface SfMark3DProps {
   materialOptions?: BrandingMaterialOptions;
   /** Ref to the inner group for animation timelines (Phase 5b). */
   groupRef?: React.MutableRefObject<Group | null>;
+  /**
+   * Restrict visible paths by SVG path ID. `null` / undefined → all paths
+   * visible (default). Array → only paths whose IDs match are visible
+   * (other meshes still mount + compile materials, just hidden).
+   * Matches against the `sf-mark-S` / `sf-mark-F` IDs set in
+   * `public/branding/sf-geometry.svg`. Beat 3 (5b) uses ['sf-mark-S'];
+   * Beat 4 uses ['sf-mark-S', 'sf-mark-F'].
+   */
+  revealMask?: string[] | null;
 }
 
 const SVG_VIEW_WIDTH = 1400;
@@ -69,6 +78,7 @@ export function SfMark3D({
   italicLean = 0.06,
   materialOptions,
   groupRef,
+  revealMask,
 }: SfMark3DProps) {
   const data = useLoader(SVGLoader, url);
   const innerRef = useRef<Group>(null);
@@ -147,9 +157,23 @@ export function SfMark3D({
         rotation={[0, italicLean, 0]}
       >
         <group ref={innerRef}>
-          {meshSpecs.map(({ id, geometry }) => (
-            <BrandingPart key={id} id={id} geometry={geometry} options={materialOptions} />
-          ))}
+          {meshSpecs.map(({ id, geometry }) => {
+            // revealMask matches against the SVG path ID prefix (id is
+            // `<pathId>-<shapeIdx>` from line 110). Allow either exact id
+            // match OR prefix match on the path-id portion.
+            const visible =
+              !revealMask ||
+              revealMask.some((pid) => id === pid || id.startsWith(`${pid}-`));
+            return (
+              <BrandingPart
+                key={id}
+                id={id}
+                geometry={geometry}
+                options={materialOptions}
+                visible={visible}
+              />
+            );
+          })}
         </group>
       </group>
     </group>
