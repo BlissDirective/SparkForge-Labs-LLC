@@ -16,14 +16,14 @@ Copy `.env.example` to `.env.local` and fill in all values:
 cp .env.example .env.local
 ```
 
-**Required variables (17 total):**
+**Required variables — HARD FAIL at boot if missing in production (18 total):**
 
 | Variable | Source | Required For |
 |----------|--------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase Dashboard → Settings → API | Database |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase Dashboard → Settings → API | Client auth |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase Dashboard → Settings → API | Server-side DB |
-| `ANTHROPIC_API_KEY` | Anthropic Console | Content Agent (Stage 9) |
+| `ANTHROPIC_API_KEY` | Anthropic Console | Prompt Lab + Content Agent |
 | `STRIPE_SECRET_KEY` | Stripe Dashboard → Developers → API keys | Payments |
 | `STRIPE_WEBHOOK_SECRET` | Stripe Dashboard → Developers → Webhooks | Payment events |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe Dashboard → Developers → API keys | Client checkout |
@@ -31,10 +31,47 @@ cp .env.example .env.local
 | `STRIPE_PLUS_YEARLY_ID` | Stripe Dashboard → Products | Plus tier pricing |
 | `STRIPE_FORGE_MONTHLY_ID` | Stripe Dashboard → Products | Forge tier pricing |
 | `STRIPE_FORGE_YEARLY_ID` | Stripe Dashboard → Products | Forge tier pricing |
-| `NEXT_PUBLIC_URL` | Your domain | SEO, sitemap, OG |
-| `CRON_SECRET` | Generate random string | Cron auth |
-| `ENABLE_CONTENT_AGENT` | `true` / `false` | Content pipeline |
-| `ENABLE_CAMERA_GAMES` | `true` / `false` | Camera-based games |
+| `NEXT_PUBLIC_SENTRY_DSN` | Sentry Dashboard → Settings → Client Keys | Client error tracking |
+| `SENTRY_DSN` | Sentry Dashboard → Settings → Client Keys | Server error tracking |
+| `NEXT_PUBLIC_URL` | Your production domain | SEO, sitemap, OG tags |
+| `NEXT_PUBLIC_APP_URL` | Your production domain | Internal links |
+| `CSRF_SECRET` | Generate: `openssl rand -hex 32` | CSRF token signing |
+| `CRON_SECRET` | Generate: `openssl rand -hex 16` | Cron job auth |
+| `UPSTASH_REDIS_REST_URL` | Upstash Console → Database → REST URL | Distributed rate limiting |
+| `UPSTASH_REDIS_REST_TOKEN` | Upstash Console → Database → REST Token | Distributed rate limiting |
+
+**Recommended variables — non-blocking, feature degrades gracefully:**
+
+| Variable | Source | Required For |
+|----------|--------|-------------|
+| `SENTRY_AUTH_TOKEN` | Sentry Dashboard → Settings → Auth Tokens | Source map upload (readable stack traces) |
+| `SENTRY_ORG` | Your Sentry org slug | Sentry release tagging |
+| `SENTRY_PROJECT` | Your Sentry project slug | Sentry release tagging |
+| `RESEND_API_KEY` | resend.com → API Keys | Trial reminder + admin emails |
+| `EMAIL_FROM` | Verified domain in Resend | Custom email sender |
+| `NEXT_PUBLIC_CAPTCHA_SITE_KEY` | hCaptcha / Turnstile dashboard | Auth CAPTCHA widget |
+
+**Optional variables — feature-specific or environment overrides:**
+
+| Variable | Default | Notes |
+|----------|---------|-------|
+| `NEXT_PUBLIC_CAPTCHA_PROVIDER` | `hcaptcha` | `hcaptcha` or `turnstile` |
+| `SENTRY_HEALTH_MONITOR_SLUG` | unset | Sentry Cron Monitor slug for `/api/health` |
+| `SENTRY_ENVIRONMENT` | `VERCEL_ENV` → `NODE_ENV` | Override Sentry environment tag |
+| `SENTRY_RELEASE` | `VERCEL_GIT_COMMIT_SHA` | Override Sentry release SHA |
+| `ENABLE_CONTENT_AGENT` | `true` | Enable AI content pipeline |
+| `NEXT_PUBLIC_FF_*` | `false` | Feature flags — see `.env.example` for full list |
+
+**Vercel auto-injected — do NOT set manually:**
+
+| Variable | Injected By |
+|----------|-------------|
+| `VERCEL_ENV` | Vercel (production/preview/development) |
+| `VERCEL_GIT_COMMIT_SHA` | Vercel |
+| `NODE_ENV` | Vercel (always `production` on deployed builds) |
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | Vercel Pro (when OTel is enabled in dashboard) |
+
+> **Note:** `NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA` is NOT auto-exposed. Enable it via: Vercel Dashboard → Project → Settings → Environment Variables → "Expose System Environment Variables".
 
 ## 2. Database Setup
 

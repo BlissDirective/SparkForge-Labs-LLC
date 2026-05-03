@@ -104,7 +104,7 @@ export default function LegalSettingsPage() {
   return (
     <main className="min-h-screen bg-[#06070e] px-6 py-10 text-white/90">
       <div className="max-w-3xl mx-auto">
-        <div className="mb-2 text-xs font-data uppercase tracking-wider text-white/40">
+        <div className="mb-2 text-xs font-data uppercase tracking-wider text-white/50">
           Settings
         </div>
         <h1 className="text-2xl font-semibold mb-1 text-white">Legal &amp; Privacy</h1>
@@ -187,7 +187,7 @@ export default function LegalSettingsPage() {
             Operator
           </h2>
           <p className="text-sm text-white/70">
-            <strong className="text-white">SparkForge LLC</strong> <span className="text-white/40">(an Illinois limited liability company)</span>
+            <strong className="text-white">SparkForge LLC</strong> <span className="text-white/50">(an Illinois limited liability company)</span>
           </p>
           <p className="text-xs text-white/55 mt-1">
             Telephone: <a href="tel:+17736292320" className="text-spark-blue hover:underline">(773) 629-2320</a>
@@ -198,7 +198,7 @@ export default function LegalSettingsPage() {
             {' '}&middot;{' '}
             Legal: <a href="mailto:legal@sparkforge-labs.com" className="text-spark-blue hover:underline">legal@sparkforge-labs.com</a>
           </p>
-          <p className="text-xs text-white/40 mt-2">
+          <p className="text-xs text-white/50 mt-2">
             File federal COPPA complaints at{' '}
             <a href="https://www.ftc.gov/complaint" target="_blank" rel="noopener noreferrer" className="text-spark-blue hover:underline">
               ftc.gov/complaint

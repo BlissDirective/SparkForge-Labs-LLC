@@ -37,7 +37,8 @@ export interface LabColor {
     | 'Cyan'
     | 'Violet'
     | 'Orange'
-    | 'Fuchsia';
+    | 'Fuchsia'
+    | 'Mint-Cyan';
 }
 
 /** The single canonical lab color table. */
@@ -52,6 +53,10 @@ export const LAB_COLORS_TABLE: readonly LabColor[] = [
   { id: 8,  name: 'Words & Language',     hex: '#8F96FA', oklch: 'oklch(0.75 0.15 275)', family: 'Violet' },
   { id: 9,  name: 'Build Your AI',        hex: '#E68E28', oklch: 'oklch(0.75 0.18 50)',  family: 'Orange' },
   { id: 10, name: 'AI Futures',           hex: '#DE5AEA', oklch: 'oklch(0.75 0.19 325)', family: 'Fuchsia' },
+  // Lab 11 (added April 30, 2026 — Doc 2 §B Path B). Mint-Cyan slot fills the
+  // unused gap between Lab 5 green (#00D17A) and Lab 7 cyan (#10BAD2).
+  // Slightly higher OKLCH lightness (0.85 vs 0.75) to signal "newest lab".
+  { id: 11, name: 'Agentic AI',            hex: '#6FFFE6', oklch: 'oklch(0.85 0.16 175)', family: 'Mint-Cyan' },
 ] as const;
 
 // ─── Derived lookups (consumed by existing labs.ts, etc.) ──────────

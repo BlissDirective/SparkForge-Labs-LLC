@@ -28,6 +28,31 @@ function stripChildPII(obj: Record<string, unknown>): Record<string, unknown> {
   return cleaned;
 }
 
+// Explicit type annotation lets TypeScript contextually type the `event`
+// param inside beforeSend without the `Parameters<union>[0] → never` trap
+// that occurs when Sentry.init accepts NodeOptions | EdgeOptions | BrowserOptions.
+const SENTRY_BASE_CONFIG: Parameters<typeof Sentry.init>[0] = {
+  dsn: process.env.SENTRY_DSN,
+  tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
+  // T16 DEPLOY-MED-002 (Opt A): release + env tagging. `release`
+  // falls back to VERCEL_GIT_COMMIT_SHA so every event correlates
+  // to a deploy; `environment` honors VERCEL_ENV (preview/prod).
+  ...sentryReleaseEnv(),
+  enabled: process.env.NODE_ENV === 'production',
+  beforeSend(event) {
+    if (event.contexts) {
+      event.contexts = stripChildPII(event.contexts as Record<string, unknown>) as typeof event.contexts;
+    }
+    if (event.extra) {
+      event.extra = stripChildPII(event.extra as Record<string, unknown>);
+    }
+    if (event.tags) {
+      event.tags = stripChildPII(event.tags as Record<string, unknown>) as typeof event.tags;
+    }
+    return event;
+  },
+};
+
 export async function register() {
   if (process.env.NEXT_RUNTIME === 'nodejs') {
     // API-ENH-004 (Recommended): register OTel BEFORE Sentry so the
@@ -45,55 +70,11 @@ export async function register() {
       });
     }
 
-    // Server-side Sentry initialization (replaces sentry.server.config.ts)
-    Sentry.init({
-      dsn: process.env.SENTRY_DSN,
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      // T16 DEPLOY-MED-002 (Opt A): release + env tagging. `release`
-      // falls back to VERCEL_GIT_COMMIT_SHA so every event correlates
-      // to a deploy; `environment` honors VERCEL_ENV (preview/prod).
-      ...sentryReleaseEnv(),
-      enabled: process.env.NODE_ENV === 'production',
-
-      beforeSend(event) {
-        if (event.contexts) {
-          event.contexts = stripChildPII(event.contexts as Record<string, unknown>) as typeof event.contexts;
-        }
-        if (event.extra) {
-          event.extra = stripChildPII(event.extra as Record<string, unknown>);
-        }
-        if (event.tags) {
-          event.tags = stripChildPII(event.tags as Record<string, unknown>) as typeof event.tags;
-        }
-        return event;
-      },
-    });
+    Sentry.init(SENTRY_BASE_CONFIG);
   }
 
   if (process.env.NEXT_RUNTIME === 'edge') {
-    // Edge runtime Sentry initialization (replaces sentry.edge.config.ts)
-    Sentry.init({
-      dsn: process.env.SENTRY_DSN,
-      tracesSampleRate: process.env.NODE_ENV === 'production' ? 0.1 : 1.0,
-      // T16 DEPLOY-MED-002 (Opt A): release + env tagging. `release`
-      // falls back to VERCEL_GIT_COMMIT_SHA so every event correlates
-      // to a deploy; `environment` honors VERCEL_ENV (preview/prod).
-      ...sentryReleaseEnv(),
-      enabled: process.env.NODE_ENV === 'production',
-
-      beforeSend(event) {
-        if (event.contexts) {
-          event.contexts = stripChildPII(event.contexts as Record<string, unknown>) as typeof event.contexts;
-        }
-        if (event.extra) {
-          event.extra = stripChildPII(event.extra as Record<string, unknown>);
-        }
-        if (event.tags) {
-          event.tags = stripChildPII(event.tags as Record<string, unknown>) as typeof event.tags;
-        }
-        return event;
-      },
-    });
+    Sentry.init(SENTRY_BASE_CONFIG);
   }
 }
 

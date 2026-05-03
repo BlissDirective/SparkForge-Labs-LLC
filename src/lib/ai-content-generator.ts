@@ -22,7 +22,25 @@ export type GameId = 'pet-trainer' | 'sort-toy-box' | 'neural-builder' | 'agent-
   | 'tool-picker' | 'data-shield' | 'real-or-fake'
   | 'ethics-courtroom' | 'fool-the-ai' | 'build-classifier'
   | 'prediction-market' | 'sentiment-scanner' | 'lost-in-translation'
-  | 'career-explorer' | 'api-explorer';
+  | 'career-explorer' | 'api-explorer'
+  // ═══ Lab 11 Flagship Cohort (Stage 11D, April 30, 2026) ═══
+  | 'agent-atelier'
+  // ═══ Lab 11 Stage 11E (May 1, 2026) — Equip step ═══
+  | 'mcp-lab'
+  // ═══ Lab 11 Stage 11F (May 1, 2026) — Audit step ═══
+  | 'glass-box'
+  // ═══ Lab 11 Stage 11G (May 1, 2026) — Constrain step ═══
+  | 'harness-forge'
+  // ═══ Lab 1 Stage 11A (May 1, 2026) — C5 Pocket Brain ═══
+  // No new ContentType entries: Pocket Brain generates its content
+  // live in-browser via WebLLM (Doc 2 §H.14). The GameId is included
+  // here only so any downstream tooling that enumerates GameIds sees
+  // a consistent set.
+  | 'pocket-brain'
+  // ═══ Lab 8 Stage 11B (May 1, 2026) — C2 Context Architect ═══
+  | 'context-architect'
+  // ═══ Lab 7 Stage 11C (May 1, 2026) — C4 Pixel Witness ═══
+  | 'pixel-witness';
 export type AgeBand = 'A' | 'B' | 'C';
 
 export type ContentType =
@@ -95,7 +113,35 @@ export type ContentType =
   // Career Explorer
   | 'ai-career' | 'skill-matching' | 'career-learn-card'
   // API Explorer
-  | 'api-endpoint' | 'request-challenge' | 'api-concept-card';
+  | 'api-endpoint' | 'request-challenge' | 'api-concept-card'
+  // ═══ Lab 11 — Agent Atelier (Stage 11D, April 30, 2026) ═══
+  // 3 content types feeding the runtime AI-generated mission slot
+  // (12/session) so per-session content tops out at 24 hardcoded + 12
+  // AI = 36 units per Doc 2 §A.4 target.
+  | 'atelier-mission' | 'atelier-rubric-criterion' | 'atelier-narrative-frame'
+  // ═══ Lab 11 — MCP Plug-and-Play Lab (Stage 11E) ═══
+  // 3 content types: equipped-mission spec, fresh tool description for
+  // the descriptions tutorial, custom-tool spec for advanced kids.
+  | 'mcp-equipped-mission' | 'mcp-tool-description' | 'mcp-custom-tool-spec'
+  // ═══ Lab 11 — Glass Box Lab (Stage 11F) ═══
+  // 3 content types: tutorial-grade synthetic trajectory step example,
+  // an issue-spotting puzzle, and a kid-readable audit report template.
+  | 'glassbox-trajectory-example' | 'glassbox-issue-puzzle' | 'glassbox-audit-summary'
+  // ═══ Lab 11 — Harness Forge (Stage 11G) ═══
+  // 3 content types: a fresh stress-test fixture, a kid-readable
+  // post-test summary, and a per-rule explanation card.
+  | 'harness-stress-fixture' | 'harness-test-summary' | 'harness-rule-card'
+  // ═══ Lab 8 — Context Architect (Stage 11B) ═══
+  // Per Doc 2 §E.11: 3 question variants × 3 bands + 3 distractor
+  // variants × 3 bands + 3 summary-rubric variants × 3 bands = 9 total.
+  | 'ca-question-A' | 'ca-question-B' | 'ca-question-C'
+  | 'ca-distractor-A' | 'ca-distractor-B' | 'ca-distractor-C'
+  | 'ca-summary-rubric-A' | 'ca-summary-rubric-B' | 'ca-summary-rubric-C'
+  // ═══ Lab 7 — Pixel Witness (Stage 11C) ═══
+  // Per Doc 2 §G.12: 3 clip-question variants + 3 hallucination-prompt
+  // variants, each per band = 6 total.
+  | 'pw-clip-question-A' | 'pw-clip-question-B' | 'pw-clip-question-C'
+  | 'pw-hallucination-prompt-A' | 'pw-hallucination-prompt-B' | 'pw-hallucination-prompt-C';
 
 export interface AIContentRequest {
   gameId: GameId;
@@ -126,6 +172,14 @@ export const AIContentRequestSchema = z.object({
     'tool-picker', 'data-shield', 'real-or-fake', 'ethics-courtroom', 'fool-the-ai',
     'build-classifier', 'prediction-market', 'sentiment-scanner', 'lost-in-translation',
     'career-explorer', 'api-explorer',
+    // Lab 11 cohort
+    'agent-atelier', 'mcp-lab', 'glass-box', 'harness-forge',
+    // Lab 1 - C5 Pocket Brain (no ContentTypes; SLM content generated in-browser)
+    'pocket-brain',
+    // Lab 8 - C2 Context Architect
+    'context-architect',
+    // Lab 7 - C4 Pixel Witness
+    'pixel-witness',
   ]),
   contentType: z.enum([
     'pet-training-category', 'pet-novel-category',
@@ -164,6 +218,21 @@ export const AIContentRequestSchema = z.object({
     'translation-chain', 'idiom-challenge', 'mt-learn-card',
     'ai-career', 'skill-matching', 'career-learn-card',
     'api-endpoint', 'request-challenge', 'api-concept-card',
+    // Lab 11 - Agent Atelier
+    'atelier-mission', 'atelier-rubric-criterion', 'atelier-narrative-frame',
+    // Lab 11 - MCP Plug-and-Play Lab
+    'mcp-equipped-mission', 'mcp-tool-description', 'mcp-custom-tool-spec',
+    // Lab 11 - Glass Box Lab
+    'glassbox-trajectory-example', 'glassbox-issue-puzzle', 'glassbox-audit-summary',
+    // Lab 11 - Harness Forge
+    'harness-stress-fixture', 'harness-test-summary', 'harness-rule-card',
+    // Lab 8 - Context Architect (9 = 3 categories × 3 bands)
+    'ca-question-A', 'ca-question-B', 'ca-question-C',
+    'ca-distractor-A', 'ca-distractor-B', 'ca-distractor-C',
+    'ca-summary-rubric-A', 'ca-summary-rubric-B', 'ca-summary-rubric-C',
+    // Lab 7 - Pixel Witness (6 = 2 categories × 3 bands)
+    'pw-clip-question-A', 'pw-clip-question-B', 'pw-clip-question-C',
+    'pw-hallucination-prompt-A', 'pw-hallucination-prompt-B', 'pw-hallucination-prompt-C',
   ]),
   ageBand: z.enum(['A', 'B', 'C']),
   context: z.record(z.unknown()).optional(),
@@ -680,6 +749,183 @@ const PROMPT_TEMPLATES: Record<string, (ageBand: AgeBand, context?: Record<strin
   'api-concept-card': (ageBand) =>
     `Create a learn card about APIs: REST, HTTP methods, JSON, status codes, authentication, rate limiting. ` +
     `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "title": "...", "emoji": "...", "description": "..." }`,
+
+  // ─── Lab 11 — Agent Atelier (Stage 11D) ────────────────────────
+  // Three content types feeding the runtime AI-generated mission
+  // slot: a fresh mission spec, additional rubric criteria, and
+  // narrative framing copy. Hardcoded missions cover 8x3=24; AI
+  // generates up to 12 more per session for variety.
+
+  'atelier-mission': (ageBand) =>
+    `Create a kid-safe mission for an AI-agent-team-builder game. The kid will pick specialists ` +
+    `(Researcher, Writer, Planner, Critic, Coder, Translator, Summarizer, etc.) and wire them up ` +
+    `to solve this mission. The mission must require at least 3 specialists wired together to ` +
+    `solve. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "title": "...", "prompt": "...", "difficulty": "easy|medium|hard", ` +
+    `"expectedOutput": "text|list|number|plan|code", "parAgentCount": 3, ` +
+    `"rubric": [{"criterion": "...", "weight": 1}, ...] }`,
+
+  'atelier-rubric-criterion': (ageBand) =>
+    `Create one short rubric criterion (under 80 chars) that a Critic agent could check on a ` +
+    `kid's atelier-team output. Should be specific and observable, not vague. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "criterion": "...", "weight": 1 }`,
+
+  'atelier-narrative-frame': (ageBand) =>
+    `Write a one-paragraph kid-safe narrative framing for an Agent Atelier mission, situating it ` +
+    `in a real-life scenario (school, family, hobby, neighborhood). Should make the kid want to ` +
+    `solve it. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "frame": "...", "hook": "..." }`,
+
+  // ─── Lab 11 — MCP Plug-and-Play Lab (Stage 11E) ───────────────
+
+  'mcp-equipped-mission': (ageBand) =>
+    `Create a kid-safe mission for an MCP Plug-and-Play Lab game. The kid will load a starter ` +
+    `team of agents and attach tools (calculator, calendar, dictionary, web-fetch, etc.) to ` +
+    `their input ports. Mission must REQUIRE at least 2 tools to solve well. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "title": "...", "prompt": "...", "difficulty": "easy|medium|hard", ` +
+    `"starterTeam": ["agent_id", ...], "recommendedTools": ["tool_id", ...], ` +
+    `"forbiddenTools": ["tool_id", ...], "parToolCount": 2, ` +
+    `"rubric": [{"criterion": "...", "weight": 1}, ...] }`,
+
+  'mcp-tool-description': (ageBand) =>
+    `Write TWO descriptions for the same kid-safe AI tool — one VAGUE description that would ` +
+    `make an agent use it incorrectly, and one CLEAR description that would make the agent use ` +
+    `it well. Used in the Stage 11E "Descriptions Matter" tutorial. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "toolName": "...", "vague": "...", "clear": "...", "vagueOutcome": "...", "clearOutcome": "..." }`,
+
+  'mcp-custom-tool-spec': (ageBand) =>
+    `Design a brand-new kid-safe agent tool not in the standard catalog. It should be specific, ` +
+    `useful, and have an input + output type. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "id": "...", "name": "...", "blurb": "...", "category": "math|time|language|web|creative|data|utility", ` +
+    `"inputType": "text|list|number|plan|code|tool_request", ` +
+    `"outputType": "text|list|number|plan|code|tool_request", ` +
+    `"description": "...", "sideEffect": "read-only|sandboxed|cached-fetch|network", "emoji": "..." }`,
+
+  // ─── Lab 11 — Glass Box Lab (Stage 11F) ───────────────────────
+
+  'glassbox-trajectory-example': (ageBand) =>
+    `Write a tutorial-grade kid-safe example of one trajectory step. Show what the agent saw as ` +
+    `inputs, what it produced as outputs, and a one-sentence summary. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "agentName": "...", "summary": "...", "inputs": { "...": "..." }, "outputs": { "...": "..." } }`,
+
+  'glassbox-issue-puzzle': (ageBand) =>
+    `Create a kid-safe audit puzzle: a 4-step trajectory snippet where exactly 1 of the issue ` +
+    `categories applies (missing-input, unused-output, tool-misuse, redundant-step, no-critic, ` +
+    `or short-loop). The kid reads the trajectory and identifies which category. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "trajectory": [{ "step": 1, "agent": "...", "summary": "..." }, ...], ` +
+    `"correctCategory": "missing-input|unused-output|tool-misuse|redundant-step|no-critic|short-loop", ` +
+    `"explanation": "..." }`,
+
+  'glassbox-audit-summary': (ageBand) =>
+    `Write a kid-readable one-paragraph audit summary that explains what was good and what was ` +
+    `weak about a trajectory. Should encourage iteration without being harsh. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "headline": "...", "good": "...", "improve": "...", "encouragement": "..." }`,
+
+  // ─── Lab 11 — Harness Forge (Stage 11G) ───────────────────────
+
+  'harness-stress-fixture': (ageBand) =>
+    `Create a kid-safe stress-test prompt designed to challenge ONE specific safety-harness layer ` +
+    `(filter, validator, or monitor). The prompt should look like a normal user request but contain ` +
+    `the trap (e.g., embedded PII for filter, ambiguous criteria for validator, or loop-bait phrasing ` +
+    `for monitor). ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "label": "...", "prompt": "...", "targetLayer": "filter|validator|monitor", ` +
+    `"unharnessedOutcome": "...", "expectedKeywords": ["...", ...] }`,
+
+  'harness-test-summary': (ageBand) =>
+    `Write a kid-readable one-paragraph summary of a harness stress test result. Mention what ` +
+    `the harness caught, what it missed, and one suggestion for improving the configuration. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: { "headline": "...", "caught": "...", "missed": "...", "suggestion": "..." }`,
+
+  'harness-rule-card': (ageBand) =>
+    `Write a kid-readable explanation card for one harness rule. Include the rule label, when it ` +
+    `fires, an example of what it catches, and an analogy to something familiar (door lock, ` +
+    `seatbelt, etc.). ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "label": "...", "layer": "filter|validator|monitor", "fires": "...", "example": "...", "analogy": "..." }`,
+
+  // ─── Lab 8 — Context Architect (Stage 11B) ────────────────────
+
+  'ca-question-A': (ageBand) =>
+    `Create a simple kid-safe question that needs only 1 fact card to answer (a yes/no or single-recall). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "text": "...", "expectedFactKeyword": "...", "hint": "..." }`,
+
+  'ca-question-B': (ageBand) =>
+    `Create a kid-safe 2-card question requiring 2 facts to answer well. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "text": "...", "expectedFactKeywords": ["...", "..."], "hint": "..." }`,
+
+  'ca-question-C': (ageBand) =>
+    `Create a kid-safe multi-fact question requiring 3+ knowledge cards, possibly cross-theme. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "text": "...", "expectedFactKeywords": ["...", "...", "..."], "hint": "..." }`,
+
+  'ca-distractor-A': (ageBand) =>
+    `Create a kid-safe DECOY card - looks related to a topic but doesn't answer the question. ` +
+    `Used to test whether the player can avoid Context Rot. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "text": "...", "tokens": 16, "trapPattern": "..." }`,
+
+  'ca-distractor-B': (ageBand) =>
+    `Create a kid-safe DECOY card with intermediate trickiness - the kid has to read carefully to ` +
+    `realize it doesn't help. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "text": "...", "tokens": 32, "trapPattern": "..." }`,
+
+  'ca-distractor-C': (ageBand) =>
+    `Create a kid-safe DECOY card that is HIGHLY tricky - sounds like it answers the question but ` +
+    `actually has the wrong number, wrong year, or is about the wrong subject. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "title": "...", "text": "...", "tokens": 32, "trapPattern": "..." }`,
+
+  'ca-summary-rubric-A': (ageBand) =>
+    `Write a 2-criterion rubric for grading a kid's REDUCE move (summarizing a card without losing ` +
+    `key info). Easy mode. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "criteria": [{"check": "...", "weight": 1}, ...] }`,
+
+  'ca-summary-rubric-B': (ageBand) =>
+    `Write a 3-criterion rubric for grading a kid's REDUCE move with a focus on accuracy + ` +
+    `compression ratio. Medium mode. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "criteria": [{"check": "...", "weight": 1}, ...] }`,
+
+  'ca-summary-rubric-C': (ageBand) =>
+    `Write a 4-criterion rubric for grading a kid's REDUCE move emphasizing accuracy, compression, ` +
+    `cross-theme synthesis, and avoiding hallucinated additions. Hard mode. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "criteria": [{"check": "...", "weight": 1}, ...] }`,
+
+  // ─── Lab 7 — Pixel Witness (Stage 11C) ────────────────────────
+
+  'pw-clip-question-A': (ageBand) =>
+    `Create a SIMPLE kid-safe video question (1 of 4 question kinds: literal/inferential/counting/` +
+    `adversarial). For Easy mode: prefer literal or counting. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "kind": "literal|inferential|counting|adversarial", "text": "...", "expectedAnswer": "..." }`,
+
+  'pw-clip-question-B': (ageBand) =>
+    `Create a kid-safe video question with intermediate difficulty - prefer inferential or counting ` +
+    `with subtle details. ${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "kind": "literal|inferential|counting|adversarial", "text": "...", "expectedAnswer": "..." }`,
+
+  'pw-clip-question-C': (ageBand) =>
+    `Create a HARD kid-safe video question that tests careful observation and reasoning. ` +
+    `${AGE_BAND_CONTEXT[ageBand]} Return as JSON: ` +
+    `{ "kind": "literal|inferential|counting|adversarial", "text": "...", "expectedAnswer": "..." }`,
+
+  'pw-hallucination-prompt-A': (ageBand) =>
+    `Generate an ADVERSARIAL kid-safe video question whose plausible-but-WRONG answer is the ` +
+    `expected hallucination an AI would confidently produce. For Easy mode: focus on color, count, ` +
+    `or basic identity. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "text": "...", "expectedHallucination": "...", "actualTruth": "..." }`,
+
+  'pw-hallucination-prompt-B': (ageBand) =>
+    `Generate an ADVERSARIAL kid-safe video question for intermediate kids. The AI should confidently ` +
+    `invent a detail not actually visible (number, name, brand, location). ` +
+    `${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "text": "...", "expectedHallucination": "...", "actualTruth": "..." }`,
+
+  'pw-hallucination-prompt-C': (ageBand) =>
+    `Generate an ADVERSARIAL kid-safe video question for advanced kids. The hallucination should ` +
+    `be subtle - a believable specific number/measurement/identity that no video could actually ` +
+    `verify. ${AGE_BAND_CONTEXT[ageBand]} ` +
+    `Return as JSON: { "text": "...", "expectedHallucination": "...", "actualTruth": "..." }`,
 };
 
 // ================================================================

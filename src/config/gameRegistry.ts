@@ -59,6 +59,20 @@ const CAMERA_PRESETS: Record<string, GameCameraPreset> = {
   'my-first-ai-app':  { position: [0, 2, 4],    lookAt: [0, 0, 0],   fov: 44 },
   'future-forge':     { position: [0, 2.5, 5.5],lookAt: [0, 0, 0],   fov: 50 },
   'ai-or-not':        { position: [0, 1.5, 4],  lookAt: [0, 0, 0],   fov: 42 },
+  // Lab 11 (April 30, 2026): Agentic AI flagship cohort
+  'agent-atelier':    { position: [0, 4, 8],    lookAt: [0, 0, 0],   fov: 55 },
+  'mcp-lab':          { position: [0, 4, 8.5],  lookAt: [0, 0, 0],   fov: 55 },
+  'glass-box':        { position: [0, 3.5, 7],  lookAt: [0, 1, 0],   fov: 50 },
+  'harness-forge':    { position: [0, 3.5, 8],  lookAt: [0, 0.5, 0], fov: 52 },
+  // Lab 1 (May 1, 2026): C5 Pocket Brain - tabletop close-up framing
+  // matches Doc 2 §H.8 camera preset
+  'pocket-brain':     { position: [0, 1.5, 4],  lookAt: [0, 0.8, 0], fov: 42 },
+  // Lab 8 (May 1, 2026): C2 Context Architect - library reading-lectern
+  // framing matches Doc 2 §E.8
+  'context-architect': { position: [0, 2, 5],   lookAt: [0, 1, 0],   fov: 46 },
+  // Lab 7 (May 1, 2026): C4 Pixel Witness - cinema/edit-bay framing
+  // matches Doc 2 §G.8
+  'pixel-witness':    { position: [0, 1.8, 4],  lookAt: [0, 0.5, 0], fov: 44 },
 };
 
 function cameraPreset(slug: string): GameCameraPreset | null {
@@ -638,6 +652,133 @@ export const GAME_REGISTRY: readonly GameRegistryEntry[] = [
     icon: '\u2753',
     triangleBudget: budget('fl-lite', true),
     cameraPreset: cameraPreset('ai-or-not'),
+  },
+  // \u2500\u2500 Lab 11 (Agentic AI) \u2014 Stage 11D first flagship (April 30, 2026)
+  // Build \u2192 Equip \u2192 Constrain narrative arc, Stage 1: Build.
+  {
+    id: 36,
+    name: 'Agent Atelier',
+    slug: 'agent-atelier',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'AgentAtelier3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11D',
+    description: 'Pick specialists, wire them up so each one feeds the next, and run the team on a mission.',
+    icon: '\ud83c\udfad',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('agent-atelier'),
+  },
+  // \u2500\u2500 Lab 11 \u2014 Stage 11E (May 1, 2026): Equip step
+  {
+    id: 37,
+    name: 'MCP Plug-and-Play Lab',
+    slug: 'mcp-lab',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'McpLab3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11E',
+    description: 'Plug tools into your team and watch capabilities expand. Same agents, brand new powers.',
+    icon: '\ud83d\udd0c',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('mcp-lab'),
+  },
+  // \u2500\u2500 Lab 11 \u2014 Stage 11F (May 1, 2026): Audit step
+  {
+    id: 38,
+    name: 'Glass Box Lab',
+    slug: 'glass-box',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'GlassBox3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11F',
+    description: 'Open up any team you\'ve built and look inside. Step through its trajectory and find the bugs.',
+    icon: '\ud83d\udd0d',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('glass-box'),
+  },
+  // \u2500\u2500 Lab 11 \u2014 Stage 11G (May 1, 2026): Constrain step
+  // Closes the Build \u2192 Equip \u2192 Audit \u2192 Constrain narrative arc.
+  {
+    id: 39,
+    name: 'Harness Forge',
+    slug: 'harness-forge',
+    lab: 11,
+    labName: LAB_NAMES[11],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'HarnessForge3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11G',
+    description: 'Wrap any team in three layers of safety harness. Filter inputs, validate outputs, monitor behavior.',
+    icon: '\ud83d\udee1\ufe0f',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('harness-forge'),
+  },
+  // \u2500\u2500 Lab 1 \u2014 Stage 11A (May 1, 2026): C5 Pocket Brain
+  // 'There's a real AI living in this browser tab.' Headline flagship
+  // for Lab 1 (What IS AI?). Runs a real LLM client-side via WebGPU.
+  {
+    id: 40,
+    name: 'Pocket Brain',
+    slug: 'pocket-brain',
+    lab: 1,
+    labName: LAB_NAMES[1],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'PocketBrain3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11A',
+    description: 'Run a real AI in your browser tab. No internet, no server, no API key \u2014 just you, your laptop, and a tiny brain.',
+    icon: '\ud83e\udde0',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('pocket-brain'),
+  },
+  // \u2500\u2500 Lab 8 \u2014 Stage 11B (May 1, 2026): C2 Context Architect
+  // 'The AI's brain has a shelf, and the shelf is small.' Curate cards,
+  // manage tokens, beat Context Rot via 4 canonical moves.
+  {
+    id: 41,
+    name: 'Context Architect',
+    slug: 'context-architect',
+    lab: 8,
+    labName: LAB_NAMES[8],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'ContextShelf3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11B',
+    description: 'Manage the AI\'s memory shelf. Pick the right cards, defeat Context Rot.',
+    icon: '\ud83d\udcda',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('context-architect'),
+  },
+  // \u2500\u2500 Lab 7 \u2014 Stage 11C (May 1, 2026): C4 Pixel Witness
+  // 'Watch the clip. Now ask the AI what happened. Then catch the lies.'
+  // Closes the canonical Stage 11A-G plan to 7/7.
+  {
+    id: 42,
+    name: 'Pixel Witness',
+    slug: 'pixel-witness',
+    lab: 7,
+    labName: LAB_NAMES[7],
+    tier: 'flagship',
+    has3D: true,
+    component3D: 'PixelWitness3D',
+    ageBands: ['A', 'B', 'C'],
+    stage: '11C',
+    description: 'Watch a video, see the AI\'s answer, catch the lies. Toggle senses to fix the AI.',
+    icon: '\ud83c\udfac',
+    triangleBudget: budget('flagship', true),
+    cameraPreset: cameraPreset('pixel-witness'),
   },
 ] as const;
 
