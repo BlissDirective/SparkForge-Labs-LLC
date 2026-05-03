@@ -34,10 +34,11 @@
  */
 
 import { useRef, useEffect, useMemo } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useLoader } from '@react-three/fiber';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 import {
   AdditiveBlending,
-  BoxGeometry,
+  BufferGeometry,
   Color,
   Group,
   Mesh,
@@ -55,6 +56,11 @@ import {
 import { SparkForgeWordmark3D } from '@/components/3d/branding/SparkForgeWordmark3D';
 import { heroBeat4 } from '@/lib/hero/heroTheatreProject';
 import { PALETTE } from '@/lib/branding/sf-material.config';
+import { buildShardSourceGeometry } from '@/lib/branding/buildShardSourceGeometry';
+
+// SparkForgeWordmark3D world-space scale: TARGET_SCENE_WIDTH (12.0) /
+// SVG_VIEW_WIDTH (6400)
+const WORDMARK_BASE_SCALE = 12.0 / 6400;
 
 // ─────────────────────────────────────────────────────────────────────
 // UI anchor positions (placeholder layout — real cockpit refs in 5c.6)
@@ -228,11 +234,25 @@ export function Beat8AtomicHandoff({ progress, active, onHandoffComplete }: Beat
   // Pre-compute anchor assignments for this shard count
   const anchorAssignments = useMemo(() => assignShardsToAnchors(shardCount), [shardCount]);
 
-  // Placeholder source geometry (real wordmark ExtrudeGeometry wired in 5c.6)
-  const shardSourceGeometry = useMemo(
-    () => new BoxGeometry(6.0, 1.4, 0.5, 4, 4, 4),
-    [],
-  );
+  // Real full-wordmark source geometry — loaded from sparkforge-geometry.svg
+  // via shared SVGLoader cache (SparkForgeWordmark3D mounted above loads the
+  // same URL). useLoader suspends; beat is wrapped in <Suspense fallback={null}>.
+  const wordmarkSvg = useLoader(SVGLoader, '/branding/sparkforge-geometry.svg');
+  const shardSourceGeometry = useMemo<BufferGeometry>(() => {
+    return buildShardSourceGeometry(
+      wordmarkSvg,
+      () => true, // include all 10 letter paths
+      WORDMARK_BASE_SCALE,
+    );
+  }, [wordmarkSvg]);
+
+  // Dispose the merged geometry on unmount or geometry change
+  useEffect(() => {
+    const g = shardSourceGeometry;
+    return () => {
+      g.dispose();
+    };
+  }, [shardSourceGeometry]);
 
   // Initialize flight states when shard set is ready
   useEffect(() => {

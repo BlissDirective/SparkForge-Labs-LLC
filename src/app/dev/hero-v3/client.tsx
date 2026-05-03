@@ -15,7 +15,7 @@
  * Theatre.js studio auto-mounts at first import per Q8 sign-off.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Environment, Lightformer } from '@react-three/drei';
 import { WebGPURenderer } from 'three/webgpu';
@@ -189,7 +189,7 @@ function HeroV3Beats({ timeRef }: { timeRef: React.MutableRefObject<number> }) {
   });
 
   return (
-    <>
+    <Suspense fallback={null}>
       <Beat1VoidAwakening progress={beatState.beat1.progress} active={beatState.beat1.active} />
       <Beat2IgnitionSpark progress={beatState.beat2.progress} active={beatState.beat2.active} />
       <Beat3SCrystallization progress={beatState.beat3.progress} active={beatState.beat3.active} />
@@ -208,7 +208,7 @@ function HeroV3Beats({ timeRef }: { timeRef: React.MutableRefObject<number> }) {
           }
         }}
       />
-    </>
+    </Suspense>
   );
 }
 

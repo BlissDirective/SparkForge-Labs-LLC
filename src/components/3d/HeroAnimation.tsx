@@ -32,7 +32,7 @@
 // Storyboard authority: docs/hero-v3/Storyboard.md v1.2 (19.5 s).
 // Sign-off Q1-Q10 + runtime override RECORDED 2026-04-29.
 
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { Suspense, useRef, useState, useEffect, useMemo } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { Vector3, type PerspectiveCamera } from 'three';
 import gsap from 'gsap';
@@ -294,7 +294,7 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
   if (state.shouldSkip || state.isComplete) return null;
 
   return (
-    <>
+    <Suspense fallback={null}>
       <Beat1VoidAwakening progress={beatStates[0].progress} active={beatStates[0].active} />
       <Beat2IgnitionSpark progress={beatStates[1].progress} active={beatStates[1].active} />
       <Beat3SCrystallization progress={beatStates[2].progress} active={beatStates[2].active} />
@@ -312,7 +312,7 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
         active={beatStates[7].active}
         onHandoffComplete={onHandoffComplete}
       />
-    </>
+    </Suspense>
   );
 }
 
