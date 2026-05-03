@@ -1,104 +1,14 @@
 # SparkForge Build Progress
 
-## Current Phase: SparkForge Branding 3D — Phase 5 (Hero Animation Rebuild)
-## Status: AWAITING SIGN-OFF — Phase 5a (Storyboard) complete; Phase 5b prep gated on user §13 answers
-## Last Updated: 2026-04-29
-
-**Branch:** `claude/sparkforge-phase-five-CSSzU` (squash-merges into `setup-SparkForge-dev` on phase completion)
-
----
-
-## SparkForge Branding 3D — Phase 5a (Hero v3 Storyboard) — April 29, 2026
-
-**Branch:** `claude/sparkforge-phase-five-CSSzU` · **Output:** `docs/hero-v3/Storyboard.md` (350 lines, 14 sections)
-
-### Phase 5a — COMPLETE pending user sign-off (2026-04-29)
-
-| Sub-piece | File | Notes |
-|---|---|---|
-| Storyboard document | `docs/hero-v3/Storyboard.md` | 14-section markdown deliverable. Full v2 audit (camera paths, store transitions, audio cues for all 8 phases of `HeroAnimation.tsx`); v3 beat sheet (8 beats × 19s with camera paths, lookAt, subjects, material animation, audio cues, performance budgets, out-triggers, Theatre.js sequence labels); audio cue remap (12 trigger-time edits in `heroAudio.ts:syncToProgress`, all v2 nodes reused, no new audio assets); cockpit handoff contract (CPA v2 single-canvas, store state machine, HS-9 verification protocol, skip/fast-forward semantics preserved verbatim from v2); 10 open questions for user sign-off (§13). |
-
-### Audit findings (v2 → v3)
-
-- v2 `HeroAnimation.tsx` is 700 lines with 8-phase GSAP timeline (`void`/`assembly`/`showcase`/`surge`/`shatter`/`regroup`/`materialize`/`online`) — fully captured in §1 audit table.
-- v2 `useAtomicHeroToCockpit.ts` referenced by the action plan does **NOT exist** — the atomic handoff is implemented via `useHeroAnimation.ts` + `cockpitStore.setHeroPhase/setCockpitReady` + GSAP `onComplete`. Storyboard §12 documents the actual contract.
-- v2 audio (`heroAudio.ts`, 807 lines) is comprehensive and reusable — v3 needs only ~12 trigger-time edits in `syncToProgress`, no new Tone.js nodes.
-
-### Build verification
-
-- `npm run build` → ✅ EXIT=0 (no code changes; only docs added).
-
-### Open items (gated on user)
-
-- §13 Q1–Q10 — 10 sign-off questions. Recommended defaults provided. User picks: "go with defaults on all" / specific per-question changes / restructure / halt.
-- Phase 5b prep (custom TSL anamorphic lensflare shader at `src/components/3d/branding/LensflareTSL.tsx`) does **not** start until §13 is answered.
-
----
-
-## SparkForge Branding 3D — Phase 4 (Offline Render Pipeline) — April 29, 2026
-
-**Branch:** `claude/sparkforge-phase-five-CSSzU` (Phase 4 was bundled into the Phase 3 commit `c308724`)
-
-### Phase 4 — COMPLETE (2026-04-29)
-
-| Sub-piece | File | Notes |
-|---|---|---|
-| Render script | `scripts/render-branding.ts` | Headless Puppeteer + ffmpeg-static. Boots Next.js dev server, navigates to `/dev/branding/render`, waits on `window.__brandingReady`, screenshots to PNG / encodes loop to MP4. Outputs to `public/branding/`. |
-| Render-only route | `src/app/dev/branding/render/{page.tsx,client.tsx}` | UI-chrome-free `/dev/branding/render?subject=sf\|sparkforge\|loop&t=<sec>`. Sets `window.__brandingReady = true` after first frame compiles. |
-| 4K SF mark | `public/branding/sf-hero.png` | Transparent 4096×4096 PNG, italic 3.4° canonical pose. Used by `<BrandWordmark>` (Phase 6) and as anchor frame for video-hero alternative. |
-| 4K wordmark | `public/branding/sparkforge-hero.png` | Transparent 4096×1024 PNG, italic 3.4° canonical pose. |
-| MP4 fallback | `public/branding/brand-fallback.mp4` | SF mark slow-rotate ±0.2 rad over 2 s loop, 1920×1920, H.264 yuv420p. Wired into `BrandingShowcase.tsx` `fallbackVideoSrc` for non-WebGPU devices. |
-
-### Build verification
-
-- `npm run build` → ✅ EXIT=0 (passed at PR #137 merge).
-- `npm run dev` → ✅ `/dev/branding/render` returns 200 OK; `window.__brandingReady` fires after shaders compile.
-
-### Notes
-
-- Phase 4 was shipped in the same commit as Phase 3 (`c308724`) because the offline render pipeline depends on the wordmark geometry being committed first.
-- All `/dev/*` routes are public on every environment per the user's no-gating mandate (see "Gating Removal" entry below).
-
----
-
-## Gating Removal — April 29, 2026
-
-**Scope:** Per user mandate, all dev/prod/Vercel environment gating has been removed from code and documentation. `/dev/*` routes are public on every environment (local, preview, production).
-
-| File | Change |
-|---|---|
-| `src/middleware.ts` | `classify()` no longer checks `NODE_ENV` or `NEXT_PUBLIC_ALLOW_DEV_ROUTES`. `/dev/*` is unconditionally a public page. |
-| `src/app/dev/branding/page.tsx` | Removed `notFound()` + env-var check. |
-| `src/app/dev/branding/render/page.tsx` | Removed `notFound()` + env-var check. |
-| `.env.example` | Removed `NEXT_PUBLIC_ALLOW_DEV_ROUTES` documentation block. |
-| `BRAND_HERO_ACTION_PLAN.md` | Stripped all gating language; updated branch references from `claude/sparkforge-branding-3d-I4Za1` → `claude/sparkforge-phase-five-CSSzU`; Theatre.js studio guidance no longer NODE_ENV-gated. |
-
----
-
-## SparkForge Branding 3D — Phase 3 (SparkForge Wordmark) — April 29, 2026
-
-**Branch:** `claude/sparkforge-phase-five-CSSzU` · **Commit:** `c308724` (PR #137)
-
-### Phase 3 — COMPLETE (2026-04-29)
-
-| Sub-piece | File | Notes |
-|---|---|---|
-| Wordmark vector | `public/branding/sparkforge-geometry.svg` | 10-glyph wordmark (S p a r k F o r g e). viewBox 6400×800, cap-height 650u, baseline 720u, stroke 130u. S/F glyphs are mechanical x-translations of `sf-geometry.svg` (preserves Phase-2 single-source-of-truth). evenodd fill-rule; reversed inner counters as holes. Path IDs preserved for Phase-5b per-letter animation targeting. |
-| Shared mesh helper | `src/components/3d/branding/_shared.tsx` | Extracted `BrandingPart` — one extruded letter mesh with per-instance `BrandingMaterial` and visibility prop for `revealMask` without remount. |
-| Wordmark component | `src/components/3d/branding/SparkForgeWordmark3D.tsx` | `useLoader(SVGLoader)` → `createShapes` → `ExtrudeGeometry` per `<path>`. `LETTER_ORDER` maps revealMask indices to path IDs. Italic lean via group rotation (preserves dispersion fresnel). Auto-recenter via `Box3` measurement after mount. |
-| SF mark refactor | `src/components/3d/branding/SfMark3D.tsx` | Refactored to use `BrandingPart` from `_shared.tsx`. |
-| Dev showcase upgrade | `src/app/dev/branding/client.tsx` | SparkForge wordmark is the new default subject; letter-reveal slider (0..10); camera distance bumped to 10.0 for the wider scene. |
-
-### Build verification
-
-- `npm run build` → ✅ EXIT=0; `/dev/branding` route 457 kB / 691 kB First Load JS.
-- `npm run dev` → ✅ Ready in 4.1s, no boot errors.
+## Current Phase: SparkForge Branding 3D — Phase 2 (SF Mark Geometry)
+## Status: IN PROGRESS — Phase 2 complete; awaiting user visual checkpoint
+## Last Updated: 2026-04-28
 
 ---
 
 ## SparkForge Branding 3D — Phase 2 (SF Mark Geometry) — April 28, 2026
 
-**Branch:** `claude/sparkforge-phase-five-CSSzU` (originally authored on a feature branch, now squash-merged into `setup-SparkForge-dev`)
+**Branch:** `claude/sparkforge-branding-3d-I4Za1`
 
 ### Phase 2 — COMPLETE (2026-04-28)
 
@@ -128,7 +38,7 @@ Phase 2's SF mark is a **clean geometric approximation** of IMG_4607's letterfor
 
 ## SparkForge Branding 3D — Phase 1 (Material Config + BrandingMaterial) — April 28, 2026
 
-**Branch:** `claude/sparkforge-phase-five-CSSzU` · **Scope:** 7-phase build to extract IMG_4607 (`public/branding/IMG_4607.png`) brand DNA into a single shader + geometry pipeline; replace existing wordmark + hero animation with WebGPU+TSL-rendered SparkForge wordmark; ship offline 4K renders + experimental Sora 2 / Veo 3 prompt pack.
+**Branch:** `claude/sparkforge-branding-3d-I4Za1` · **Scope:** 7-phase build to extract IMG_4607 (`public/branding/IMG_4607.png`) brand DNA into a single shader + geometry pipeline; replace existing wordmark + hero animation with WebGPU+TSL-rendered SparkForge wordmark; ship offline 4K renders + experimental Sora 2 / Veo 3 prompt pack.
 
 ### Locked decisions (chat history)
 
