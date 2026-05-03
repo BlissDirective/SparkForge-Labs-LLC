@@ -2,6 +2,7 @@
 
 import { Suspense, useMemo, useState } from 'react';
 import Image from 'next/image';
+import { BoxGeometry } from 'three';
 import { BrandingShowcase } from '@/components/3d/branding/BrandingShowcase';
 import { BrandingMesh } from '@/components/3d/branding/BrandingMaterial';
 import { SfMark3D } from '@/components/3d/branding/SfMark3D';

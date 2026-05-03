@@ -32,10 +32,11 @@
  */
 
 import { useRef, useMemo, useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useLoader } from '@react-three/fiber';
+import { SVGLoader } from 'three/examples/jsm/loaders/SVGLoader.js';
 import {
   AdditiveBlending,
-  BoxGeometry,
+  BufferGeometry,
   Color,
   Group,
   Mesh,
@@ -53,6 +54,10 @@ import {
 } from '@/components/3d/branding/SfShardSet';
 import { heroBeat4 } from '@/lib/hero/heroTheatreProject';
 import { PALETTE } from '@/lib/branding/sf-material.config';
+import { buildShardSourceGeometry } from '@/lib/branding/buildShardSourceGeometry';
+
+// SfMark3D world-space scale: TARGET_SCENE_WIDTH (6.4) / SVG_VIEW_WIDTH (1400)
+const SF_MARK_BASE_SCALE = 6.4 / 1400;
 
 // ─────────────────────────────────────────────────────────────────────
 // Curves (mirrors Beat 3)
@@ -160,9 +165,26 @@ export function Beat4FMirrorAndShardBurst({ progress, active }: Beat4Props) {
     };
   }, [active]);
 
-  // Placeholder F-bbox geometry for the shard set (real F-glyph
-  // ExtrudeGeometry wired in 5c integration).
-  const shardSourceGeometry = useMemo(() => new BoxGeometry(1.6, 2.2, 0.5, 4, 4, 4), []);
+  // Real F-glyph source geometry — loaded from sf-geometry.svg via
+  // shared SVGLoader cache (SfMark3D loads the same URL above us).
+  // useLoader suspends; this beat is wrapped in <Suspense fallback={null}>
+  // by HeroAnimation v3 / /dev/hero-v3 client.
+  const sfMarkSvg = useLoader(SVGLoader, '/branding/sf-geometry.svg');
+  const shardSourceGeometry = useMemo<BufferGeometry>(() => {
+    return buildShardSourceGeometry(
+      sfMarkSvg,
+      (id) => id === 'sf-mark-F',
+      SF_MARK_BASE_SCALE,
+    );
+  }, [sfMarkSvg]);
+
+  // Dispose the merged geometry on unmount or geometry change
+  useEffect(() => {
+    const g = shardSourceGeometry;
+    return () => {
+      g.dispose();
+    };
+  }, [shardSourceGeometry]);
 
   // Initialize physics when shard set is ready
   useEffect(() => {
