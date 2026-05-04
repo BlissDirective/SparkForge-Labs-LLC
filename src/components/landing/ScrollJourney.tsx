@@ -491,7 +491,7 @@ export function ScrollJourney() {
         <div className="text-center relative z-10 max-w-2xl">
           <p
             data-hero-tagline
-            className="font-body text-lg md:text-xl text-white/80 mb-8 max-w-xl mx-auto leading-snug"
+            className="font-body text-lg md:text-xl text-white/85 mb-8 max-w-xl mx-auto leading-snug"
           >
             The AI Laboratory where kids discover, experiment, and build
             with artificial intelligence.
