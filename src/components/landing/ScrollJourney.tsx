@@ -34,19 +34,24 @@ import Link from 'next/link';
 import { Rocket, Sparkles, ArrowDown } from 'lucide-react';
 
 // [Enhancement #4] Lazy-load below-fold components
+// Skeleton heights are tuned to the rendered content so the page reserves
+// correct vertical space and lazy-load swap-in does NOT shift the layout.
+//   - Lab Discovery Ring: header (~140px) + 11 tiles × ~92px = ~1150px
+//   - Feature Showcase  : header (~140px) + 4 cards in 2-col grid (~280px) = ~700px
+//   - Station Preview   : header (~140px) + cockpit (~360px) + stats (~80px) = ~580px
 const LabDiscoveryRing = dynamic(
   () => import('@/components/landing/LabDiscoveryRing').then(mod => ({ default: mod.LabDiscoveryRing })),
-  { ssr: true, loading: () => <div className="min-h-[400px]" /> }
+  { ssr: true, loading: () => <div className="min-h-[1150px] md:min-h-[1100px]" aria-hidden="true" /> }
 );
 
 const FeatureShowcase = dynamic(
   () => import('@/components/landing/FeatureShowcase').then(mod => ({ default: mod.FeatureShowcase })),
-  { ssr: true, loading: () => <div className="min-h-[400px]" /> }
+  { ssr: true, loading: () => <div className="min-h-[1400px] md:min-h-[700px]" aria-hidden="true" /> }
 );
 
 const StationPreview = dynamic(
   () => import('@/components/landing/StationPreview').then(mod => ({ default: mod.StationPreview })),
-  { ssr: true, loading: () => <div className="min-h-[400px]" /> }
+  { ssr: true, loading: () => <div className="min-h-[640px] md:min-h-[580px]" aria-hidden="true" /> }
 );
 
 // Option A redesign: BrandHero3D replaces CrystalHero. WebGPU + TSL
@@ -55,11 +60,32 @@ const StationPreview = dynamic(
 // (handled inside BrandingShowcase).
 const BrandHero3D = dynamic(
   () => import('@/components/landing/BrandHero3D').then(mod => ({ default: mod.BrandHero3D })),
-  { ssr: false, loading: () => (
-    <div className="absolute inset-0 flex items-center justify-center">
-      <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#3B82F6]/20 to-[#8B5CF6]/20 blur-2xl animate-pulse" />
-    </div>
-  )}
+  {
+    ssr: false,
+    // Show the brand poster (the eye-extracted reference render) immediately
+    // on first paint so the hero never shows an empty/abstract placeholder
+    // during the WebGPU adapter check. Same poster the BrandingShowcase
+    // fallback uses, so the swap to canvas is visually continuous.
+    loading: () => (
+      <div className="absolute inset-0 bg-[#02050d]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/branding/sparkforge-hero.png"
+          alt=""
+          aria-hidden="true"
+          className="w-full h-full object-contain opacity-90"
+        />
+        <div
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.55) 100%)',
+          }}
+          aria-hidden="true"
+        />
+      </div>
+    ),
+  }
 );
 
 // ---- Parallax Hex Shapes (mid-layer decoration) ----

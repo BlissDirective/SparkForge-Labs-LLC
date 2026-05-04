@@ -45,12 +45,21 @@ export const metadata: Metadata = {
       '10 interactive labs. 35+ hands-on games. Built for ages 7-16. Explore AI through play.',
     type: 'website',
     siteName: 'SparkForge',
+    images: [
+      {
+        url: '/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'SparkForge — AI Learning Lab for kids',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'SparkForge — AI Learning Lab for Kids',
     description:
       '10 interactive labs. 35+ hands-on games. Built for ages 7-16.',
+    images: ['/og-image.png'],
   },
 };
 
