@@ -50,7 +50,12 @@ import {
 interface LoginPanel3DProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onNavigateSignup: () => void;
-  onNavigateReset: () => void;
+  /**
+   * Audit P2/B — receives the email currently typed into the panel so
+   * the reset-password page can prefill it. Empty string when the user
+   * clicks the link before typing anything.
+   */
+  onNavigateReset: (email: string) => void;
   onDemoStart: () => void;
   // AUTH-ENH-003 (Max): OAuth sign-in. Provider is one of
   // 'google' | 'apple' | 'azure' — validated server-side.
@@ -396,6 +401,13 @@ export default function LoginPanel3D({
     }
   });
 
+  // Audit P2/A — concurrent-auth-flow guard. The previous wiring let a
+  // user click TRY DEMO or an OAuth button while a normal login was in
+  // flight (and vice-versa), creating overlapping requests and races
+  // between session writes. A single derived flag gates every action
+  // surface uniformly.
+  const anyAuthInFlight = loading || demoLoading || oauthLoadingProvider !== null;
+
   const handleLogin = useCallback(() => {
     if (!email || !password || loading) return;
     onLogin(email, password);
@@ -489,6 +501,11 @@ export default function LoginPanel3D({
         )}
 
         {/* Error message */}
+        {/* Audit P2/C — banner backing keeps the saturated #FF6644 for the
+            warning recognizability, but the text fill steps up to a
+            lighter coral (#FFB3A8) so the foreground/background contrast
+            on the dark panel reaches WCAG AA (~6.5:1) instead of the
+            ~4.0:1 the original red was hitting. */}
         {error && (
           <group position={[0, demoExpired ? 0.38 : 0.48, 0]}>
             <mesh>
@@ -503,7 +520,7 @@ export default function LoginPanel3D({
             </mesh>
             <Text
               fontSize={TYPE_SCALE.caption.fontSize}
-              color="#FF6644"
+              color="#FFB3A8"
               anchorX="center"
               anchorY="middle"
               font={TYPE_SCALE.caption.fontPath}
@@ -543,7 +560,7 @@ export default function LoginPanel3D({
           anchorX="right"
           anchorY="middle"
           font={TYPE_SCALE.caption.fontPath}
-          onClick={onNavigateReset}
+          onClick={() => onNavigateReset(email)}
           onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
           onPointerOut={() => { document.body.style.cursor = 'default'; }}
         >
@@ -556,7 +573,7 @@ export default function LoginPanel3D({
           color={ACCENT_COLOR}
           position={[0, -0.2, 0]}
           onClick={handleLogin}
-          disabled={loading || !email || !password}
+          disabled={anyAuthInFlight || !email || !password}
         />
 
         {/* AUTH-ENH-003 (Max): OAuth provider row */}
@@ -567,7 +584,7 @@ export default function LoginPanel3D({
               color="#4285F4"
               position={[-0.42, 0, 0]}
               onClick={() => onOAuthSignIn('google')}
-              disabled={loading || oauthLoadingProvider !== null}
+              disabled={anyAuthInFlight}
               variant="outline"
               width={0.36}
             />
@@ -576,7 +593,7 @@ export default function LoginPanel3D({
               color="#CCCCCC"
               position={[0, 0, 0]}
               onClick={() => onOAuthSignIn('apple')}
-              disabled={loading || oauthLoadingProvider !== null}
+              disabled={anyAuthInFlight}
               variant="outline"
               width={0.36}
             />
@@ -585,7 +602,7 @@ export default function LoginPanel3D({
               color="#0078D4"
               position={[0.42, 0, 0]}
               onClick={() => onOAuthSignIn('azure')}
-              disabled={loading || oauthLoadingProvider !== null}
+              disabled={anyAuthInFlight}
               variant="outline"
               width={0.36}
             />
@@ -620,6 +637,7 @@ export default function LoginPanel3D({
             position={[0, onOAuthSignIn ? -0.6 : -0.48, 0]}
             onClick={() => setShowDemoConfirm(true)}
             variant="outline"
+            disabled={anyAuthInFlight}
           />
         ) : (
           <group position={[0, onOAuthSignIn ? -0.64 : -0.52, 0]}>
@@ -645,13 +663,14 @@ export default function LoginPanel3D({
                 onClick={() => setShowDemoConfirm(false)}
                 variant="secondary"
                 width={0.5}
+                disabled={demoLoading}
               />
               <ActionButton3D
                 label="START DEMO"
                 color="#00FF88"
                 position={[0.32, 0, 0]}
                 onClick={onDemoStart}
-                disabled={demoLoading}
+                disabled={anyAuthInFlight}
                 width={0.5}
               />
             </group>

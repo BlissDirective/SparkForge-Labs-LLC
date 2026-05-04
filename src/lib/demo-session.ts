@@ -26,29 +26,30 @@ export interface DemoSession {
 
 /**
  * Derive a DemoSession from a Supabase anonymous user. Returns null if
- * the user isn't anonymous or is missing required metadata.
+ * the user isn't anonymous or has no usable created_at.
  *
- * Handles two cases for `startedAt`:
- *   1. Preferred: user_metadata.demo_started_at (set when /api/auth/demo
- *      runs signInAnonymously with options.data). Locks in the creation
- *      time even if Supabase propagates created_at slowly.
- *   2. Fallback: user.created_at from the auth row.
+ * Audit P2/D — `startedAt` is now derived ONLY from `user.created_at`,
+ * the cryptographically-bound auth-row timestamp. The previous
+ * implementation preferred `user_metadata.demo_started_at` (set at
+ * signInAnonymously() time) so that replication lag wouldn't shift the
+ * timer; that came at the cost of letting a demo user extend their
+ * session by calling `supabase.auth.updateUser({ data: { demo_started_at:
+ * ... } })`. The replication-lag concern is a UX glitch worth a few
+ * seconds of timer drift; the spoofing concern is a privilege boundary.
+ * Server-side `requireAuth()` already trusts `created_at` — this brings
+ * the client display in line with that authoritative clock.
  */
 export function demoSessionFromUser(user: {
   id: string;
   is_anonymous?: boolean;
   created_at?: string;
-  user_metadata?: Record<string, unknown>;
 } | null): DemoSession | null {
   if (!user || !user.is_anonymous) return null;
 
-  const metaStart = user.user_metadata?.demo_started_at;
   const startedAt =
-    typeof metaStart === 'string' && !Number.isNaN(Date.parse(metaStart))
-      ? Date.parse(metaStart)
-      : user.created_at && !Number.isNaN(Date.parse(user.created_at))
-        ? Date.parse(user.created_at)
-        : Date.now();
+    user.created_at && !Number.isNaN(Date.parse(user.created_at))
+      ? Date.parse(user.created_at)
+      : Date.now();
 
   return {
     id: user.id,
