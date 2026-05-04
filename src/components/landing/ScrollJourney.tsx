@@ -49,9 +49,12 @@ const StationPreview = dynamic(
   { ssr: true, loading: () => <div className="min-h-[400px]" /> }
 );
 
-// [v3] Dynamic import for CrystalHero — SSR disabled
-const CrystalHero = dynamic(
-  () => import('@/components/3d/CrystalHero').then(mod => ({ default: mod.CrystalHero })),
+// Option A redesign: BrandHero3D replaces CrystalHero. WebGPU + TSL
+// brand-surface render of the SparkForge wordmark with anamorphic
+// lensflares. Falls back to brand-fallback.mp4 on non-WebGPU devices
+// (handled inside BrandingShowcase).
+const BrandHero3D = dynamic(
+  () => import('@/components/landing/BrandHero3D').then(mod => ({ default: mod.BrandHero3D })),
   { ssr: false, loading: () => (
     <div className="absolute inset-0 flex items-center justify-center">
       <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#3B82F6]/20 to-[#8B5CF6]/20 blur-2xl animate-pulse" />
@@ -174,7 +177,7 @@ export function ScrollJourney() {
       // Still need to reveal elements, just without animation
       if (!containerRef.current) return;
       const hiddenEls = containerRef.current.querySelectorAll<HTMLElement>(
-        '[data-lab-tile], [data-feature-card], [data-station-preview], [data-act="5"], [data-hero-title], [data-hero-tagline], [data-hero-cta]'
+        '[data-lab-tile], [data-feature-card], [data-station-preview], [data-act="5"], [data-hero-tagline], [data-hero-cta]'
       );
       hiddenEls.forEach((el) => {
         el.style.opacity = '1';
@@ -252,29 +255,25 @@ export function ScrollJourney() {
             );
           });
 
-          // ---- Act 1: Hero text fade-in ----
-          gsap.from('[data-act="1"] [data-hero-title]', {
-            opacity: 0,
-            y: 40,
-            duration: 1.2,
-            ease: 'power3.out',
-            delay: 0.3,
-          });
-
+          // ---- Act 1: Hero entrance ----
+          // The 3D wordmark cascade is the visible title and runs its own
+          // per-letter reveal inside <BrandHero3D>. We don't fade in the
+          // canvas wrapper ([data-hero-title]) — that would clash. Tagline +
+          // CTA fade in once the cascade has had a moment to play.
           gsap.from('[data-act="1"] [data-hero-tagline]', {
             opacity: 0,
-            y: 30,
-            duration: 1,
+            y: 24,
+            duration: 0.9,
             ease: 'power3.out',
-            delay: 0.6,
+            delay: 1.4,
           });
 
           gsap.from('[data-act="1"] [data-hero-cta]', {
             opacity: 0,
-            y: 20,
-            duration: 0.8,
+            y: 18,
+            duration: 0.7,
             ease: 'power3.out',
-            delay: 0.9,
+            delay: 1.7,
           });
 
           // ---- Act 2: Lab tiles stagger (ScrollTrigger) ----
@@ -435,32 +434,38 @@ export function ScrollJourney() {
         </div>
       )}
 
-      {/* ---- ACT 1: Crystal Hero (0-20%) ---- */}
+      {/* ---- ACT 1: Brand Hero (0-20%) ---- */}
+      {/*
+        Layout changed from v3-FINAL:
+          - The 3D <SparkForgeWordmark3D> inside BrandHero3D is the visible
+            title. The HTML <h1> drops to sr-only for SEO + accessibility.
+          - Tagline + CTA stack BELOW the canvas (mb-* on tagline + safe
+            bottom inset) so they no longer overlap the wordmark slab —
+            which was the "dark blob behind the title" issue in the
+            pre-redesign screenshot.
+          - Tagline opacity lifted from /50 (sub-WCAG) to /80 to satisfy
+            contrast + the v6.5 T19 sweep target.
+      */}
       <section
         data-act="1"
-        className="min-h-screen flex flex-col items-center justify-center relative px-6"
+        className="min-h-screen flex flex-col items-center justify-end relative px-6 pb-24"
         aria-label="SparkForge hero"
       >
-        {/* Crystal Hero — always R3F (D3D-1: desktop-only platform) */}
-        <div className="absolute inset-0 -z-10">
-          <CrystalHero />
+        {/* SEO + screen-reader title — the 3D wordmark below is the visual H1. */}
+        <h1 className="sr-only">
+          SparkForge — the AI Laboratory for kids ages 7 to 16
+        </h1>
+
+        {/* Brand hero canvas — fills the section, sits behind the tagline + CTA */}
+        <div className="absolute inset-0 -z-10" data-hero-title>
+          <BrandHero3D />
         </div>
 
-        {/* Hero Text */}
+        {/* Tagline + CTAs — bottom-anchored so the wordmark has clean breathing space */}
         <div className="text-center relative z-10 max-w-2xl">
-          <h1
-            data-hero-title
-            className="font-display text-5xl md:text-7xl font-bold text-white mb-4 tracking-tight"
-          >
-            SPARK
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#3B82F6] to-[#8B5CF6]">
-              FORGE
-            </span>
-          </h1>
-
           <p
             data-hero-tagline
-            className="font-body text-lg md:text-xl text-white/50 mb-8 max-w-md mx-auto"
+            className="font-body text-lg md:text-xl text-white/80 mb-8 max-w-xl mx-auto leading-snug"
           >
             The AI Laboratory where kids discover, experiment, and build
             with artificial intelligence.
@@ -469,13 +474,13 @@ export function ScrollJourney() {
           <div data-hero-cta className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/signup"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#6366F1] text-white font-display font-bold hover:brightness-110 transition-all shadow-lg shadow-[#3B82F6]/20"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#6366F1] text-white font-display font-bold hover:brightness-110 transition-all shadow-lg shadow-[#3B82F6]/30"
             >
               <Rocket className="w-5 h-5" /> Start Free
             </Link>
             <Link
               href="/pricing"
-              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-white/10 bg-white/[0.03] text-white/70 font-display font-medium hover:bg-white/[0.06] transition-colors"
+              className="inline-flex items-center justify-center gap-2 px-8 py-3.5 rounded-xl border border-white/15 bg-white/[0.05] text-white/85 font-display font-medium hover:bg-white/[0.10] hover:text-white transition-colors"
             >
               <Sparkles className="w-5 h-5" /> View Plans
             </Link>
@@ -490,7 +495,7 @@ export function ScrollJourney() {
             transition={{ duration: 2, repeat: Infinity }}
             aria-hidden="true"
           >
-            <ArrowDown className="w-5 h-5 text-white/60" />
+            <ArrowDown className="w-5 h-5 text-white/70" />
           </motion.div>
         )}
       </section>
@@ -524,7 +529,7 @@ export function ScrollJourney() {
         <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
           Your Station Awaits
         </h2>
-        <p className="font-body text-base text-white/50 max-w-md mx-auto mb-10">
+        <p className="font-body text-base text-white/80 max-w-md mx-auto mb-10">
           Join thousands of young explorers discovering the future of AI.
           Start your journey today.
         </p>
@@ -532,19 +537,19 @@ export function ScrollJourney() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/signup"
-            className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#6366F1] text-white font-display font-bold text-lg hover:brightness-110 transition-all shadow-lg shadow-[#3B82F6]/20"
+            className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl bg-gradient-to-r from-[#3B82F6] to-[#6366F1] text-white font-display font-bold text-lg hover:brightness-110 transition-all shadow-lg shadow-[#3B82F6]/30"
           >
             <Rocket className="w-5 h-5" /> Start Free
           </Link>
           <Link
             href="/pricing"
-            className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl border border-white/[0.15] bg-white/[0.04] text-white/70 font-display font-medium hover:bg-white/[0.08] transition-colors"
+            className="inline-flex items-center justify-center gap-2 px-10 py-4 rounded-xl border border-white/[0.18] bg-white/[0.05] text-white/85 font-display font-medium hover:bg-white/[0.10] hover:text-white transition-colors"
           >
             View Plans
           </Link>
         </div>
 
-        <p className="font-body text-xs text-white/55 mt-6">
+        <p className="font-body text-xs text-white/70 mt-6">
           No credit card required. Free plan includes Labs 1-3.
         </p>
       </section>
