@@ -3,6 +3,7 @@
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, Sparkles, Ring } from '@react-three/drei';
+import { useReducedMotion } from 'motion/react';
 import { Color, Mesh, PointLight } from 'three';
 
 interface LoginPortal3DProps {
@@ -24,7 +25,14 @@ export default function LoginPortal3D({
   const portalColorObj = useMemo(() => new Color(portalColor), [portalColor]);
   const secondaryColor = useMemo(() => new Color('#00BBFF'), []);
 
+  // Audit P1/L6 — respect prefers-reduced-motion. The portal stays
+  // visible (the rings and sparkles still tell the user this is a
+  // login surface) but rotation, distortion-pulse, and glow-pulse
+  // freeze on motion-sensitive systems.
+  const prefersReducedMotion = useReducedMotion();
+
   useFrame((state) => {
+    if (prefersReducedMotion) return;
     const t = state.clock.elapsedTime;
 
     // Rotate outer ring slowly
@@ -122,7 +130,7 @@ export default function LoginPortal3D({
         count={60}
         scale={5}
         size={2}
-        speed={0.4}
+        speed={prefersReducedMotion ? 0 : 0.4}
         color={portalColor}
         opacity={0.6}
       />
