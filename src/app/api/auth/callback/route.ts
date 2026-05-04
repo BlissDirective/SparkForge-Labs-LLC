@@ -111,6 +111,29 @@ export async function GET(req: NextRequest) {
         req,
       });
 
+      // Audit P1/L3 — MFA gate on OAuth callback. If the parent has a
+      // verified TOTP factor, the freshly-exchanged session is at aal1
+      // and must elevate to aal2 via the same /mfa-challenge route used
+      // by /api/auth/login. Without this, OAuth users with MFA enabled
+      // would bypass their second factor entirely. Mirrors the AAL
+      // detection in src/app/api/auth/login/route.ts:50.
+      try {
+        const aal = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+        const mfaRequired =
+          aal.data?.currentLevel === 'aal1' && aal.data?.nextLevel === 'aal2';
+        if (mfaRequired) {
+          // /mfa-challenge currently routes to /home on success; we don't
+          // pass `next` because the email/password flow doesn't either,
+          // and the OAuth init already constrains `next` to `/home`-ish
+          // paths via sanitizeNextPath. Keeps behaviour consistent.
+          return NextResponse.redirect(`${origin}/mfa-challenge`);
+        }
+      } catch (aalErr) {
+        // Fail-open: AAL lookup glitches shouldn't lock a successfully-
+        // authenticated user out. Same posture as login/route.ts.
+        console.error('[auth/callback] AAL lookup failed:', aalErr);
+      }
+
       return NextResponse.redirect(`${origin}${next}`);
     }
   }
