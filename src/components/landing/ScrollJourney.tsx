@@ -402,10 +402,15 @@ export function ScrollJourney() {
 
   return (
     <div ref={containerRef} className="relative">
-      {/* ---- PARALLAX LAYER 1: Aurora Background (0.3x) ---- */}
+      {/* ---- PARALLAX LAYER 1: Aurora Background (0.3x) ----
+          Audit P3/A — will-change:transform promotes this to its own
+          compositor layer so the blurred radial gradients are
+          rasterized once and translated cheaply on every scrub frame
+          instead of being re-rasterized per scroll tick. */}
       <div
         ref={auroraRef}
         className="fixed inset-0 -z-20 pointer-events-none"
+        style={{ willChange: 'transform' }}
         aria-hidden="true"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-[#0D1117] via-[#0B1628] to-[#0D1117]" />
@@ -418,6 +423,7 @@ export function ScrollJourney() {
       <div
         ref={hexLayerRef}
         className="fixed inset-0 -z-10 pointer-events-none"
+        style={{ willChange: 'transform' }}
         aria-hidden="true"
       >
         {HEX_SHAPES.map((hex, i) => (
