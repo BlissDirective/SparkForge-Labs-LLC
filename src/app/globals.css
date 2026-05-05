@@ -1030,3 +1030,131 @@ body[data-scanlines="off"] .scanline-overlay {
     animation: none !important;
   }
 }
+
+/* ───────────────────────────────────────────────────────────────
+ * v4 Cockpit Homepage — HUD Panel & Gauge Styles
+ * Futuristic cockpit interface elements with lab color accents
+ * ─────────────────────────────────────────────────────────────── */
+
+/* Custom scrollbar for HUD panels */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(127, 232, 255, 0.2);
+  border-radius: 2px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(127, 232, 255, 0.4);
+}
+
+/* HUD corner bracket animation */
+@keyframes hud-bracket-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+.hud-bracket {
+  animation: hud-bracket-pulse 3s ease-in-out infinite;
+}
+
+/* Gauge glow effect */
+.gauge-glow {
+  filter: drop-shadow(0 0 8px var(--glow-color, #00BBFF));
+}
+
+/* Terrain wireframe stroke animation */
+@keyframes terrain-draw {
+  from { stroke-dashoffset: 1000; }
+  to { stroke-dashoffset: 0; }
+}
+.terrain-line {
+  stroke-dasharray: 1000;
+  animation: terrain-draw 2s ease-out forwards;
+}
+
+/* Lab card hover lift */
+.lab-card-hover {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.lab-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Feature highlight icon pulse */
+@keyframes feature-icon-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.feature-icon-animate:hover {
+  animation: feature-icon-pulse 1s ease-in-out infinite;
+}
+
+/* Stat counter number glow */
+.stat-number-glow {
+  text-shadow: 
+    0 0 10px currentColor,
+    0 0 20px currentColor;
+}
+
+/* CTA button glow pulse */
+@keyframes cta-glow-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 
+                0 8px 32px rgba(0, 0, 0, 0.3); 
+  }
+  50% { 
+    box-shadow: 0 0 35px rgba(59, 130, 246, 0.5), 
+                0 8px 32px rgba(0, 0, 0, 0.3); 
+  }
+}
+.cta-glow-animate {
+  animation: cta-glow-pulse 2s ease-in-out infinite;
+}
+
+/* Bar chart grow animation */
+@keyframes bar-grow {
+  from { transform: scaleY(0); }
+  to { transform: scaleY(1); }
+}
+.bar-animate {
+  transform-origin: bottom;
+  animation: bar-grow 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* HUD panel entrance */
+@keyframes hud-panel-enter {
+  from { 
+    opacity: 0; 
+    transform: translateY(20px) scale(0.98); 
+  }
+  to { 
+    opacity: 1; 
+    transform: translateY(0) scale(1); 
+  }
+}
+.hud-panel-animate {
+  animation: hud-panel-enter 0.6s ease-out forwards;
+}
+
+/* Reduced motion overrides for cockpit homepage */
+@media (prefers-reduced-motion: reduce) {
+  .hud-bracket,
+  .feature-icon-animate:hover,
+  .cta-glow-animate,
+  .terrain-line,
+  .bar-animate,
+  .hud-panel-animate {
+    animation: none;
+  }
+  .lab-card-hover:hover {
+    transform: none;
+  }
+  .stat-number-glow {
+    text-shadow: none;
+  }
+}

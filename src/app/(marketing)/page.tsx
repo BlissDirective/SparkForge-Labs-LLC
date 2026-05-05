@@ -1,30 +1,23 @@
 // ════════════════════════════════════════════════════
-// LANDING PAGE — v3-FINAL ScrollJourney Integration
+// LANDING PAGE — v4 Cockpit HUD Experience
 // ════════════════════════════════════════════════════
-// Decision 8.1-8.5: Replaces the v2/v3-draft landing page with
-// the full 5-act scroll-driven station reveal.
+// Hybrid of motion-integrated 3D futuristic cockpit visuals
+// and sleek, modern display elements. Features:
 //
-// v3 CHANGES over v2:
-// [v3] Decision 8.1: Full ScrollJourney with 5-act GSAP scroll
-// [v3] Decision 8.1: CrystalHero R3F (desktop) / CSS gradient (mobile)
-// [v3] Decision 8.2: StationPreview with CSS glow in Act 4
-// [v3] Decision 8.3: CSS holographic FeatureShowcase in Act 3
-// [v3] Decision 8.4: CTA links to /pricing (separate route)
-// [v3] Decision 8.5: Mobile CSS-only (no 3D)
-// [v3] 3-layer parallax depth (aurora 0.3x, hexes 0.6x, content 1x)
+// - BrandHeroSlot: Dichroic SparkForge wordmark (Core/Preserve)
+// - HUD-style panels with animated gauges and infographics
+// - Wireframe terrain visualization
+// - Lab progress cards with lab colors
+// - Feature highlights with interactive elements
+// - Chrome bezels and LED accents throughout
 //
-// v2 FEATURES PRESERVED:
-// [v2] Lab grid (now LabDiscoveryRing in Act 2)
-// [v2] Feature cards (now FeatureShowcase in Act 3)
-// [v2] Hero section with title + tagline + CTA
-// [v2] Footer links (preserved in marketing layout)
-//
-// This file delegates to ScrollJourney.tsx for all content.
-// The marketing layout (layout.tsx) provides the wrapper.
+// Color palette follows sparkforge-tokens.css lab colors.
+// All chrome and UI elements are creatively reimagined
+// around the preserved 3D brand surface.
 // ════════════════════════════════════════════════════
 
 import { Metadata } from 'next';
-import { ScrollJourney } from '@/components/landing/ScrollJourney';
+import { CockpitHomepage } from '@/components/landing/CockpitHomepage';
 
 // Comprehensive metadata with OpenGraph + Twitter cards
 export const metadata: Metadata = {
@@ -101,8 +94,8 @@ export default function LandingPage() {
         </div>
       </noscript>
 
-      {/* v3-FINAL: 5-act GSAP scroll journey with parallax */}
-      <ScrollJourney />
+      {/* v4: Cockpit HUD Experience */}
+      <CockpitHomepage />
     </>
   );
 }
