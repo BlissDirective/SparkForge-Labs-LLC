@@ -17,7 +17,6 @@
 
 import { useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
-import { useSceneStore } from '@/stores/sceneStore';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
@@ -107,14 +106,20 @@ export default function DashboardLayout({
     setCenterContent(modeToCenterContent(scene.mode));
   }, [scene.mode, setCenterContent]);
 
-  // Hero animation initialization — first-time visitors see the 8-phase cinematic
-  const setHeroActive = useSceneStore((s) => s.setHeroActive);
+  // Hero animation initialization — the 8-beat HeroAnimation/HeroScene
+  // component is not yet wired through CockpitCanvas's heroSceneContent
+  // prop. Setting activeScene='hero' without registered hero content
+  // would make SceneRouter hide the cockpit AND render an empty hero
+  // group, leaving a blank screen on every dashboard mount (login
+  // redirect, demo redirect, page refresh). Until the hero scene is
+  // plumbed in, we mark the cockpit ready immediately so consumers of
+  // useAtomicHeroToCockpit / useIsFullyReady don't spin forever. The
+  // sceneStore default activeScene is already 'cockpit', so SceneRouter
+  // shows the cockpit on first paint.
+  const sceneSetCockpitReady = useCockpitStore((s) => s.setCockpitReady);
   useEffect(() => {
-    const skipIntro = typeof window !== 'undefined' && localStorage.getItem('skipIntroAnimation');
-    if (!skipIntro) {
-      setHeroActive();
-    }
-  }, [setHeroActive]);
+    sceneSetCockpitReady(true);
+  }, [sceneSetCockpitReady]);
 
   // Auto-track play sessions
   useSessionTracker();
