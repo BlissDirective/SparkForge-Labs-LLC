@@ -1,8 +1,13 @@
 // Demo session management — 1 hour timed access without account
 // Stores session in localStorage with expiry timestamp
 
+import type { Child } from '@/types';
+import { DEFAULT_PREFERENCES } from '@/types';
+
 const DEMO_SESSION_KEY = 'sparkforge-demo-session';
 const DEMO_DURATION_MS = 60 * 60 * 1000; // 1 hour
+export const DEMO_CHILD_ID = 'demo-child';
+export const DEMO_PARENT_ID = 'demo-parent';
 
 export interface DemoSession {
   id: string;
@@ -67,4 +72,28 @@ export function formatTimeRemaining(ms: number): string {
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+// Synthetic child profile so demo users hit the same dashboard rendering path as
+// authenticated users. Without this, /home stalls forever on the activeChild gate.
+export function createDemoChild(): Child {
+  return {
+    id: DEMO_CHILD_ID,
+    parent_id: DEMO_PARENT_ID,
+    display_name: 'Explorer',
+    age_band: 'B',
+    birth_year: new Date().getFullYear() - 10,
+    xp: 0,
+    level: 1,
+    level_title: 'Spark',
+    spark_coins: 0,
+    streak_count: 0,
+    streak_shields: 0,
+    avatar_config: {},
+    preferences: DEFAULT_PREFERENCES,
+    prompt_lab_enabled: false,
+    prompts_used_today: 0,
+    games_played_this_week: 0,
+    created_at: new Date().toISOString(),
+  };
 }

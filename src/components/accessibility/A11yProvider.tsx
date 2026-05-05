@@ -12,7 +12,6 @@ import { useA11yStore } from '@/stores/accessibilityStore';
 export function A11yProvider({ children }: { children: React.ReactNode }) {
   const { darkMode, fontSize, dyslexiaFont, reduceMotion, highContrast } =
     useA11yStore();
-  const toggleDarkMode = useA11yStore((s) => s.toggleDarkMode);
   const [mounted, setMounted] = useState(false);
 
   // [BUG-10A] Wait for client mount before applying classes
@@ -26,18 +25,13 @@ export function A11yProvider({ children }: { children: React.ReactNode }) {
       });
     }
 
-    // [ENH-10E] On first visit, detect system preferences
+    // SparkForge is dark-mode only by design (Frost-Prismatic, CLAUDE.md §6).
+    // The .light theme is a manual a11y override, NOT something to auto-engage
+    // from `prefers-color-scheme: light` — doing so washes out the 3D scenes
+    // (login portal, cockpit) which are tuned for the dark surface palette.
+    // Only auto-respect prefers-reduced-motion.
     const hasStoredPrefs = localStorage.getItem('sparkforge-a11y');
     if (!hasStoredPrefs) {
-      const prefersDark = window.matchMedia(
-        '(prefers-color-scheme: dark)'
-      ).matches;
-      if (!prefersDark) {
-        // System prefers light but our default is dark — switch
-        toggleDarkMode();
-      }
-
-      // Also respect prefers-reduced-motion on first visit
       const prefersReducedMotion = window.matchMedia(
         '(prefers-reduced-motion: reduce)'
       ).matches;

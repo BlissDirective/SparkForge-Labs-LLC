@@ -11,6 +11,13 @@
    Dark-mode only · Blue-dominant 60/40
    ═══════════════════════════════════════════ */
 
+/* Baseline dark background — applied at the document root so a stale Tailwind
+   build or a v4 config-loading hiccup can't expose white surface to the user. */
+html, body {
+  background-color: #0A0E16;
+  color-scheme: dark;
+}
+
 :root {
   /* ── Font Variables (mapped by Tailwind fontFamily) ── */
   --font-display: 'Exo 2', system-ui, sans-serif;

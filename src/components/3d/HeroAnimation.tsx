@@ -48,9 +48,13 @@ import { HeroAudioTimeline } from '@/lib/audio/heroAudio';
 
 interface HeroAnimationProps {
   /** Cockpit handoff — dashboard renders on top */
-  onComplete: () => void;
+  onComplete?: () => void;
   /** Optional phase tracking callback */
   onPhaseChange?: (phase: number) => void;
+  /** Optional shared hero state (when parent calls useHeroAnimation and renders both Scene + Overlay) */
+  state?: HeroAnimationState;
+  /** Optional shared hero actions */
+  actions?: HeroAnimationActions;
 }
 
 // ── GSAP Timeline Labels ─────────────────────────────────────────
@@ -462,8 +466,19 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
 //   - Screen reader announcements
 //   - heroPhase lifecycle via cockpitStore
 
-export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimationProps) {
-  const [state, actions] = useHeroAnimation(onComplete, onPhaseChange);
+export default function HeroAnimation({
+  onComplete,
+  onPhaseChange,
+  state: providedState,
+  actions: providedActions,
+}: HeroAnimationProps) {
+  // If parent provided shared state/actions, use those; otherwise self-manage via hook.
+  const [internalState, internalActions] = useHeroAnimation(
+    providedState ? undefined : onComplete,
+    providedState ? undefined : onPhaseChange,
+  );
+  const state = providedState ?? internalState;
+  const actions = providedActions ?? internalActions;
   const [skipVisible, setSkipVisible] = useState(false);
   const setHeroPhase = useCockpitStore((s) => s.setHeroPhase);
   const setCockpitReady = useCockpitStore((s) => s.setCockpitReady);

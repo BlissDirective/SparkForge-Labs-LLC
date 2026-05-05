@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { CelebrationOverlay } from '@/components/shared/CelebrationOverlay';
 import { ContinueBanner } from '@/components/shared/ContinueBanner';
@@ -10,6 +10,8 @@ import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
 import { useCockpitAudio } from '@/hooks/useCockpitAudio';
+import { useHeroAnimation } from '@/hooks/useHeroAnimation';
+import { useIrisTransition } from '@/hooks/useIrisTransition';
 import { motion, AnimatePresence } from 'motion/react';
 import dynamic from 'next/dynamic';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
@@ -36,6 +38,17 @@ const StationFrame = dynamic(
   { ssr: false, loading: () => <div className="fixed inset-0 bg-surface-deep" /> }
 );
 
+// HeroScene renders inside CockpitCanvas; HeroAnimation is the HTML overlay (skip + progress).
+// Both are dynamic so R3F + GSAP only load client-side.
+const HeroScene = dynamic(
+  () => import('@/components/3d/HeroAnimation').then((m) => ({ default: m.HeroScene })),
+  { ssr: false }
+);
+const HeroAnimation = dynamic(
+  () => import('@/components/3d/HeroAnimation'),
+  { ssr: false }
+);
+
 export default function DashboardLayout({
   children,
 }: {
@@ -50,12 +63,25 @@ export default function DashboardLayout({
 
   // INT-6: Hero animation initialization — first-time visitors see the 8-phase cinematic
   const setHeroActive = useSceneStore((s) => s.setHeroActive);
+  const completeHero = useSceneStore((s) => s.completeHero);
   useEffect(() => {
     const skipIntro = typeof window !== 'undefined' && localStorage.getItem('skipIntroAnimation');
     if (!skipIntro) {
       setHeroActive();
     }
   }, [setHeroActive]);
+
+  // Single hero state shared between HeroScene (in canvas) and HeroAnimation overlay (DOM).
+  // GSAP timeline lives in HeroScene; on completion the parent fires completeHero() which
+  // starts a hero→cockpit transition that useIrisTransition drives to completion.
+  const [heroState, heroActions] = useHeroAnimation(completeHero);
+  const heroSceneContent = useMemo(
+    () => <HeroScene state={heroState} actions={heroActions} />,
+    [heroState, heroActions]
+  );
+
+  // Drive scene transitions (hero→cockpit, iris-open/close) to completion via rAF.
+  useIrisTransition();
 
   // v2 [NEW-2A]: Auto-track play sessions
   useSessionTracker();
@@ -108,7 +134,12 @@ export default function DashboardLayout({
         statusBarOpacity={stationMode.statusBarOpacity}
         panelCurvature={stationMode.panelCurvature}
         panelOpacity={stationMode.panelOpacity}
+        heroSceneContent={heroSceneContent}
       />
+
+      {/* Hero animation HTML overlay — skip button + progress bar.
+          Auto-returns null when shouldSkip / isComplete. Shares state with HeroScene. */}
+      <HeroAnimation state={heroState} actions={heroActions} />
 
       {/* v3: Scanline overlay (Decision 2.3 — toggleable via accessibility) */}
       <div className="scanline-overlay" aria-hidden="true" />

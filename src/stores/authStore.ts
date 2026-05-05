@@ -1,6 +1,13 @@
 import { create } from 'zustand';
 import type { Parent } from '@/types';
-import { getDemoSession, createDemoSession, clearDemoSession, type DemoSession } from '@/lib/demo-session';
+import {
+  getDemoSession,
+  createDemoSession,
+  clearDemoSession,
+  createDemoChild,
+  type DemoSession,
+} from '@/lib/demo-session';
+import { useChildStore } from '@/stores/childStore';
 
 interface AuthState {
   parent: Parent | null;
@@ -35,12 +42,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   startDemoSession: () => {
     const session = createDemoSession();
+    // Seed a synthetic child so the dashboard renders for demo users, who have
+    // no Supabase row backing them.
+    const demoChild = createDemoChild();
+    useChildStore.getState().setChildren([demoChild]);
+    useChildStore.getState().setActiveChild(demoChild);
     set({ isDemoMode: true, demoSession: session });
     return session;
   },
 
   endDemoSession: () => {
     clearDemoSession();
+    useChildStore.getState().clearChild();
     set({ isDemoMode: false, demoSession: null });
   },
 
