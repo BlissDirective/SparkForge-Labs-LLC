@@ -15,8 +15,11 @@
 //   - GuideChatPanel (HTML overlay for text input — uikit migration Phase 3)
 //   - ARIA live region for screen reader announcements
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
+import { useSceneStore } from '@/stores/sceneStore';
+import { useHeroAnimation } from '@/hooks/useHeroAnimation';
+import { HeroOverlay, HeroScene } from '@/components/3d/HeroAnimation';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
@@ -106,20 +109,53 @@ export default function DashboardLayout({
     setCenterContent(modeToCenterContent(scene.mode));
   }, [scene.mode, setCenterContent]);
 
-  // Hero animation initialization — the 8-beat HeroAnimation/HeroScene
-  // component is not yet wired through CockpitCanvas's heroSceneContent
-  // prop. Setting activeScene='hero' without registered hero content
-  // would make SceneRouter hide the cockpit AND render an empty hero
-  // group, leaving a blank screen on every dashboard mount (login
-  // redirect, demo redirect, page refresh). Until the hero scene is
-  // plumbed in, we mark the cockpit ready immediately so consumers of
-  // useAtomicHeroToCockpit / useIsFullyReady don't spin forever. The
-  // sceneStore default activeScene is already 'cockpit', so SceneRouter
-  // shows the cockpit on first paint.
+  // ── Hero animation wiring ──────────────────────────────────────────
+  // The 8-beat hero sequence (HeroScene + HeroOverlay) plays on every
+  // dashboard mount when shouldSkip is false (first visit, or user has
+  // skipIntroAnimation off). On completion (or skip / fast-forward), the
+  // sequence sets heroPhase='complete' + cockpitReady=true via callbacks
+  // inside HeroScene/HeroOverlay; useAtomicHeroToCockpit then fires
+  // sceneStore.completeHero() to atomically transition activeScene
+  // from 'hero' → 'transitioning' → 'cockpit'.
+  //
+  // We instantiate useHeroAnimation ONCE here so the GSAP timeline
+  // (created inside HeroScene's useEffect) and the HTML overlay (skip
+  // button, progress bar) share a single state instance.
+  const [heroState, heroActions] = useHeroAnimation();
+  const setHeroActive = useSceneStore((s) => s.setHeroActive);
+  const completeHero = useSceneStore((s) => s.completeHero);
   const sceneSetCockpitReady = useCockpitStore((s) => s.setCockpitReady);
+
+  // Activate the hero scene on mount when it should play. shouldSkip
+  // covers prefers-reduced-motion + non-first-visit-with-skip-enabled
+  // and short-circuits to the cockpit immediately. The conditional
+  // setActiveScene avoids overriding 'game' or 'spatial' if the layout
+  // remounts mid-session.
   useEffect(() => {
-    sceneSetCockpitReady(true);
-  }, [sceneSetCockpitReady]);
+    if (heroState.shouldSkip) {
+      // No animation will play — mark cockpit ready immediately so
+      // useIsFullyReady gates resolve and useAtomicHeroToCockpit can
+      // exit any stale 'hero' state from a prior session.
+      sceneSetCockpitReady(true);
+      if (useSceneStore.getState().activeScene === 'hero') {
+        completeHero();
+      }
+      return;
+    }
+    if (useSceneStore.getState().activeScene === 'cockpit') {
+      setHeroActive();
+    }
+    // Only run on shouldSkip flip / mount — not every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heroState.shouldSkip]);
+
+  // Memoized hero 3D content — passed to StationFrame as heroSceneContent
+  // and rendered inside CockpitCanvas's R3F context. Returns null after
+  // completion so the GSAP timeline + audio inside HeroScene unmount.
+  const heroSceneContent = useMemo(() => {
+    if (heroState.shouldSkip || heroState.isComplete) return null;
+    return <HeroScene state={heroState} actions={heroActions} />;
+  }, [heroState, heroActions]);
 
   // Auto-track play sessions
   useSessionTracker();
@@ -197,7 +233,14 @@ export default function DashboardLayout({
           statusBarOpacity={scene.canvasProps.statusBarOpacity}
           panelCurvature={scene.canvasProps.panelCurvature}
           panelOpacity={scene.canvasProps.panelOpacity}
+          heroSceneContent={heroSceneContent}
         />
+
+        {/* Hero animation HTML overlay — skip button, progress bar,
+            keyboard shortcuts. Returns null when the hero shouldn't
+            play (shouldSkip) or has completed. Sibling to StationFrame
+            so the SAME state/actions tuple drives both halves. */}
+        <HeroOverlay state={heroState} actions={heroActions} />
 
         {/* sr-only navigation for WCAG accessibility */}
         <Sidebar />

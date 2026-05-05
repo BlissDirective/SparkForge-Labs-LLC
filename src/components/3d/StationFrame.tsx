@@ -17,6 +17,7 @@
 //   v2: R3F Canvas with curved panels (CPA v1.0)
 //   v3: Thin wrapper → CockpitCanvas (20M upgrade, CPA2-1)
 
+import type { ReactNode } from 'react';
 import { CockpitCanvas } from './CockpitCanvas';
 import type { SidePanelContent, StationModeKey } from '@/lib/3d/cockpitConfig';
 
@@ -55,6 +56,9 @@ interface StationFrameProps {
   streak?: number;
   sessionTime?: number;
   labProgress?: { done: number; total: number };
+  // Hero animation 3D content — rendered inside cockpit canvas while
+  // sceneStore.activeScene === 'hero'. Set by the dashboard layout.
+  heroSceneContent?: ReactNode;
 }
 
 export function StationFrame(props: StationFrameProps) {
@@ -90,6 +94,7 @@ export function StationFrame(props: StationFrameProps) {
       streak={props.streak}
       sessionTime={props.sessionTime}
       labProgress={props.labProgress}
+      heroSceneContent={props.heroSceneContent}
     />
   );
 }
