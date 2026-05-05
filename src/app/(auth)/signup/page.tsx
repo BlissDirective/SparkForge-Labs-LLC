@@ -11,6 +11,7 @@ import { csrfHeader } from '@/lib/api';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { ageToAgeBand } from '@/lib/utils';
+import { AuthPanelCanvas } from '@/components/auth/AuthPanelCanvas';
 
 const SignupPanel3D = dynamic(
   () => import('@/components/3d/panels/SignupPanel3D'),
@@ -121,12 +122,14 @@ export default function SignupPage() {
   }, [router]);
 
   return (
-    <SignupPanel3D
-      onNavigateLogin={() => router.push('/login')}
-      onStep1={handleStep1}
-      onStep3={handleStep3}
-      onStep4={handleStep4}
-      onComplete={() => {}}
-    />
+    <AuthPanelCanvas>
+      <SignupPanel3D
+        onNavigateLogin={() => router.push('/login')}
+        onStep1={handleStep1}
+        onStep3={handleStep3}
+        onStep4={handleStep4}
+        onComplete={() => {}}
+      />
+    </AuthPanelCanvas>
   );
 }

@@ -1,23 +1,19 @@
 'use client';
 
 // ════════════════════════════════════════════════════════════════
-// Login Page — 3D Scene Descriptor (Phase 3)
+// Login Page — HTML form with 3D portal backdrop (per HS-10)
 // ════════════════════════════════════════════════════════════════
-// Thin wrapper that renders LoginPanel3D inside the auth layout Canvas.
-// All visual rendering happens in 3D — this page has zero HTML UI.
+// The 3D crystal portal renders behind the form via the auth
+// layout's fixed Canvas. This page renders <LoginCard/> as
+// standard HTML so the form is interactive on every device,
+// including mobile Safari without WebGL.
 
 import { useState, useCallback } from 'react';
 import { csrfHeader } from '@/lib/api';
 import { useRouter, useSearchParams } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { createClient as createSupabaseClient } from '@/lib/supabase/client';
-// Phase 5 P.8-MAX (§8.10): Zod client-side validation
 import { loginSchema, validateForm } from '@/lib/validation/authSchemas';
-
-const LoginPanel3D = dynamic(
-  () => import('@/components/3d/panels/LoginPanel3D'),
-  { ssr: false }
-);
+import { LoginCard } from '@/components/auth/LoginCard';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -26,7 +22,6 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
-  // AUTH-ENH-003 (Max): per-provider loading state for OAuth buttons.
   const [oauthLoadingProvider, setOauthLoadingProvider] = useState<
     'google' | 'apple' | 'azure' | null
   >(null);
@@ -37,7 +32,6 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    // Phase 5 P.8-MAX: Zod validation with per-field error messaging
     const validation = validateForm(loginSchema, { email, password });
     if (validation) {
       setError(validation.email || validation.password || 'Please check your login details');
@@ -56,7 +50,7 @@ export default function LoginPage() {
       if (!res.ok) {
         const serverError = (data.error || '').toLowerCase();
         if (serverError.includes('invalid') || serverError.includes('credentials') || serverError.includes('password')) {
-          setError('Login failed — The email or password doesn\'t match our records. Double-check both and try again.');
+          setError("Login failed — The email or password doesn't match our records. Double-check both and try again.");
         } else {
           setError('Something went wrong — Please try again in a moment. If this keeps happening, try resetting your password.');
         }
@@ -64,8 +58,7 @@ export default function LoginPage() {
         return;
       }
 
-      // AUTH-ENH-006 (Recommended): MFA gate. If a verified TOTP factor
-      // exists the session is at aal1 and must elevate via challenge.
+      // AUTH-ENH-006: MFA gate.
       if (data?.data?.mfaRequired) {
         router.push('/mfa-challenge');
       } else {
@@ -82,19 +75,12 @@ export default function LoginPage() {
     setError('');
     setDemoLoading(true);
     try {
-      // AUTH-CRIT-002 (2B): Server route calls supabase.auth.signInAnonymously()
-      // and sets the session cookies. After it returns, pull the new session
-      // into the client-side supabase cache so AuthProvider's
-      // onAuthStateChange hydrates demo state before navigation.
       const res = await fetch('/api/auth/demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', ...csrfHeader() },
       });
 
       if (!res.ok) {
-        // Surface the route's error message so a 503 (anonymous sign-ins
-        // disabled) or 429 (rate limited) doesn't leave the user staring
-        // at a silently-disabled button. Audit P1/L1.
         let message =
           'Demo unavailable — please try again in a few minutes, or sign up for free.';
         try {
@@ -122,10 +108,6 @@ export default function LoginPage() {
     }
   }, [router]);
 
-  // AUTH-ENH-003 (Max): initiate OAuth sign-in. Server returns the
-  // Supabase-generated provider URL; browser redirects there. After
-  // the provider hand-off the user lands back on /api/auth/callback
-  // which exchanges the code for a session and redirects to /home.
   const handleOAuthSignIn = useCallback(async (provider: 'google' | 'apple' | 'azure') => {
     setError('');
     setOauthLoadingProvider(provider);
@@ -147,10 +129,7 @@ export default function LoginPage() {
     }
   }, []);
 
-  // Audit P2/B — preserve the email the user typed into LoginPanel3D
-  // so the reset-password page can prefill it. We URL-encode but only
-  // send addresses that actually look like an email; otherwise navigate
-  // bare so we don't ship junk in the query string.
+  // Audit P2/B — preserve typed email so reset-password can prefill.
   const handleNavigateReset = useCallback(
     (typedEmail: string) => {
       const trimmed = typedEmail.trim();
@@ -165,17 +144,16 @@ export default function LoginPage() {
   );
 
   return (
-    <LoginPanel3D
+    <LoginCard
       onLogin={handleLogin}
-      onNavigateSignup={() => router.push('/signup')}
-      onNavigateReset={handleNavigateReset}
       onDemoStart={handleDemoStart}
       onOAuthSignIn={handleOAuthSignIn}
+      onNavigateReset={handleNavigateReset}
       oauthLoadingProvider={oauthLoadingProvider}
       loading={loading}
-      error={error}
-      demoExpired={demoExpired}
       demoLoading={demoLoading}
+      demoExpired={demoExpired}
+      error={error}
     />
   );
 }

@@ -8,6 +8,7 @@ import { useCallback } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
+import { AuthPanelCanvas } from '@/components/auth/AuthPanelCanvas';
 
 const ResetPasswordPanel3D = dynamic(
   () => import('@/components/3d/panels/ResetPasswordPanel3D'),
@@ -54,10 +55,12 @@ export default function ResetPasswordPage() {
   }, []);
 
   return (
-    <ResetPasswordPanel3D
-      onReset={handleReset}
-      onNavigateLogin={() => router.push('/login')}
-      initialEmail={initialEmail}
-    />
+    <AuthPanelCanvas>
+      <ResetPasswordPanel3D
+        onReset={handleReset}
+        onNavigateLogin={() => router.push('/login')}
+        initialEmail={initialEmail}
+      />
+    </AuthPanelCanvas>
   );
 }
