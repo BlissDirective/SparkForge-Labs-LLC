@@ -493,8 +493,16 @@ export function ScrollJourney() {
           <BrandHero3D />
         </div>
 
-        {/* Tagline + CTAs — bottom-anchored so the wordmark has clean breathing space */}
-        <div className="text-center relative z-10 max-w-2xl">
+        {/* Tagline + CTAs — bottom-anchored so the wordmark has clean breathing space.
+            Mobile fix: w-full is required because the parent <section> uses
+            flex-col + items-center. Without an explicit width, this child
+            shrinks to its content's intrinsic width — i.e. the longest word
+            ("Laboratory" / "intelligence.") becomes the column width and
+            every OTHER word wraps to its own line. That was the
+            "column-of-words" bug visible in the post-redesign mobile
+            screenshot. w-full lets the container take 100% width up to
+            max-w-2xl so the tagline wraps normally. */}
+        <div className="text-center relative z-10 w-full max-w-2xl">
           <p
             data-hero-tagline
             className="font-body text-lg md:text-xl text-white/85 mb-8 max-w-xl mx-auto leading-snug"
