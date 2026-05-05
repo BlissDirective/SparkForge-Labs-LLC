@@ -1,0 +1,85 @@
+/* ═══════════════════════════════════════════════════════════════════
+ * SparkForge — Design Tokens (registry/themes)
+ * ═══════════════════════════════════════════════════════════════════
+ *
+ * NOTE — read src/registry/README.md first. These tokens are a
+ * REFERENCE for AI design tools, not a restriction. Brand DNA tokens
+ * are flagged "Core / Preserve". Everything else is "Current / Open to
+ * redesign" — replace freely if a new visual direction is better.
+ *
+ * Lab-color OKLCH values are mirrored from the source of truth at
+ * src/config/labColors.ts. Do not edit them here; edit upstream and
+ * regenerate. Hex equivalents are there too.
+ * ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ─── 🟢 Core / Preserve — eye-extracted from IMG_4607.png ─────────
+   * The brand-surface palette anchors the SF mark dichroic look.
+   * Kept aligned with src/lib/branding/sf-material.config.ts. */
+  --sf-void-navy:        #02050d;
+  --sf-void-navy-lift:   #070a14;
+  --sf-rim-cyan:         #7fe8ff;
+  --sf-cyan-kick:        #bff5ff;
+  --sf-key-amber:        #ffaa55;
+  --sf-amber-core:       #ffd9a8;
+  --sf-dispersion-mag:   #ff5fc8;
+  --sf-dispersion-pink:  #ff9ad6;
+  --sf-hot-white:        #ffffff;
+
+  /* ─── 🟢 Core / Preserve — 11 Lab identity colors ─────────────────
+   * Each lab is signaled by a perceptually-uniform OKLCH color. Use
+   * these semantically: card N for lab N, not arbitrary picks. */
+  --sf-lab-1:  oklch(0.75 0.17 225);  /* What IS AI?         — Blue       #0FB8FA */
+  --sf-lab-2:  oklch(0.75 0.19 295);  /* Teaching Machines   — Purple     #B67BFF */
+  --sf-lab-3:  oklch(0.75 0.19 345);  /* The Brain Inside    — Pink       #FF70AF */
+  --sf-lab-4:  oklch(0.75 0.17 75);   /* AI That Creates     — Amber      #D9A430 */
+  --sf-lab-5:  oklch(0.75 0.19 155);  /* AI Helpers          — Green      #00D17A */
+  --sf-lab-6:  oklch(0.75 0.20 25);   /* AI & Ethics         — Red-Orange #FF7050 */
+  --sf-lab-7:  oklch(0.75 0.14 195);  /* Computer Vision     — Cyan       #10BAD2 */
+  --sf-lab-8:  oklch(0.75 0.15 275);  /* Words & Language    — Violet     #8F96FA */
+  --sf-lab-9:  oklch(0.75 0.18 50);   /* Build Your AI       — Orange     #E68E28 */
+  --sf-lab-10: oklch(0.75 0.19 325);  /* AI Futures          — Fuchsia    #DE5AEA */
+  --sf-lab-11: oklch(0.85 0.16 175);  /* Agentic AI          — Mint-Cyan  #6FFFE6 */
+
+  /* ─── 🟡 Current / Open to redesign — Frost-Prismatic chrome ──────
+   * Today's marketing/cockpit chrome. Replace freely. */
+  --sf-chrome-edge:      #a8b5c8;
+  --sf-glass-fill:       rgba(255, 255, 255, 0.04);
+  --sf-glass-stroke:     rgba(255, 255, 255, 0.08);
+  --sf-led-blue:         #00BBFF;
+  --sf-led-purple:       #AA66FF;
+  --sf-led-green:        #00FF88;
+  --sf-led-amber:        #FFAA44;
+  --sf-spark-blue:       #3B82F6;
+  --sf-spark-purple:     #8B5CF6;
+
+  /* ─── 🟡 Current / Open to redesign — text contrast ramp ──────────
+   * Tuned for dark-mode WCAG AA on the navy field. If a redesign
+   * moves to a lighter mode, regenerate the ramp; don't keep these. */
+  --sf-text-primary:     rgba(255, 255, 255, 0.95);
+  --sf-text-secondary:   rgba(255, 255, 255, 0.85);
+  --sf-text-muted:       rgba(255, 255, 255, 0.70);
+  --sf-text-dim:         rgba(255, 255, 255, 0.50);
+}
+
+/* ─── 🟡 Current / Open to redesign — utility classes ────────────────
+ * Convenience for registry-consuming UIs that want to render a lab
+ * tile or accent in the current visual style. New design directions
+ * may not need any of these — replace the whole block freely. */
+
+.sf-bg-void { background-color: var(--sf-void-navy); }
+
+.sf-glass {
+  background: var(--sf-glass-fill);
+  border: 1px solid var(--sf-glass-stroke);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.sf-chrome-bezel {
+  border: 1px solid var(--sf-chrome-edge);
+  border-radius: 16px;
+  box-shadow:
+    0 0 0 1px rgba(168, 181, 200, 0.10) inset,
+    0 0 24px rgba(0, 187, 255, 0.06);
+}

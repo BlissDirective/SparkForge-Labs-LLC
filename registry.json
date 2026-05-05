@@ -1,0 +1,88 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "sparkforge",
+  "homepage": "https://sparkforge-labs.com",
+  "description": "SparkForge brand reference for AI design tools (v0, Subframe, Onlook). Reference, not restriction — see src/registry/README.md.",
+  "items": [
+    {
+      "name": "design-brief",
+      "type": "registry:file",
+      "title": "SparkForge Design Brief",
+      "description": "Read this first. Three-lane philosophy: Core/Preserve, Current/Open-to-redesign, Reference signals. The brief explicitly invites tools to reimagine anything outside the brand-DNA lane.",
+      "files": [
+        {
+          "path": "src/registry/README.md",
+          "type": "registry:file",
+          "target": "src/registry/README.md"
+        }
+      ]
+    },
+    {
+      "name": "tokens",
+      "type": "registry:theme",
+      "title": "SparkForge Design Tokens",
+      "description": "CSS custom properties for the eye-extracted brand-surface palette and the 11 lab identity colors (OKLCH-balanced). Tokens are reference defaults, not laws — replace freely if a redesign needs a different palette, just keep the lab-color identity mapping intact.",
+      "files": [
+        {
+          "path": "src/registry/themes/sparkforge-tokens.css",
+          "type": "registry:style"
+        }
+      ]
+    },
+    {
+      "name": "brand",
+      "type": "registry:lib",
+      "title": "SparkForge Brand Reference",
+      "description": "Typed re-exports of the canonical lab table, audience signals (kids 7-16, parent-buyer), tier metadata, and the list of irreplaceable WebGPU+TSL 3D primitives that design tools should compose AROUND, not recreate.",
+      "files": [
+        {
+          "path": "src/registry/lib/sparkforge-brand.ts",
+          "type": "registry:lib"
+        }
+      ],
+      "dependencies": []
+    },
+    {
+      "name": "brand-hero-slot",
+      "type": "registry:block",
+      "title": "Brand Hero Slot",
+      "description": "Drop-in for the dichroic SparkForge wordmark hero (WebGPU + TSL with MP4 fallback). Use as the centerpiece of any marketing landing redesign — compose chrome, tagline, CTAs around it; do not try to recreate the 3D in HTML.",
+      "categories": ["hero", "marketing", "3d-slot"],
+      "files": [
+        {
+          "path": "src/registry/blocks/brand-hero-slot.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "registryDependencies": ["design-brief"]
+    },
+    {
+      "name": "cockpit-preview-slot",
+      "type": "registry:block",
+      "title": "Cockpit Preview Slot",
+      "description": "Drop-in mini cockpit dashboard scene (~50K tris) for marketing / pricing pages. Wraps its own R3F Canvas, fills its container. Use to give marketing visitors a taste of the product before signup.",
+      "categories": ["marketing", "preview", "3d-slot"],
+      "files": [
+        {
+          "path": "src/registry/blocks/cockpit-preview-slot.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "registryDependencies": ["design-brief"]
+    },
+    {
+      "name": "login-panel-slot",
+      "type": "registry:block",
+      "title": "Login Panel Slot",
+      "description": "Drop-in for the 3D auth panel. Owns email/password/OAuth/demo flow internally, including the audit-fixed accessibility and password-manager autofill bridges. Compose backgrounds and chrome around it; do not recreate the form.",
+      "categories": ["auth", "3d-slot"],
+      "files": [
+        {
+          "path": "src/registry/blocks/login-panel-slot.tsx",
+          "type": "registry:component"
+        }
+      ],
+      "registryDependencies": ["design-brief"]
+    }
+  ]
+}
