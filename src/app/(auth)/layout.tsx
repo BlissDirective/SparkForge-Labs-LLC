@@ -1,99 +1,153 @@
 'use client';
 
 // ════════════════════════════════════════════════════════════════
-// Auth Layout — 3D Cockpit-Style Auth Experience (Phase 3)
+// Auth Layout — v4 Cosmic Theme (HTML/CSS)
 // ════════════════════════════════════════════════════════════════
-// Renders a full-canvas 3D auth scene with LoginPortal3D backdrop.
-// Auth form panels (LoginPanel3D, SignupPanel3D) render as 3D groups
-// inside the same Canvas. HTML is sr-only for accessibility.
-//
-// Architecture: Own R3F Canvas (not CockpitCanvas — user isn't auth'd).
-// Design tokens from cockpitDesignTokens ensure visual consistency.
+// Modern glass-morphism auth experience replacing 3D panels.
+// Faster load, better accessibility, mobile-first design.
+// Split layout: cosmic illustration left, form right (on desktop).
 
 import { Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import Link from 'next/link';
 import { DemoSessionBanner } from '@/components/auth/DemoSessionBanner';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { SkipLink } from '@/components/shared/SkipLink';
-
-// Dynamic 3D imports — SSR disabled
-const LoginPortal3D = dynamic(
-  () => import('@/components/3d/LoginPortal3D'),
-  { ssr: false }
-);
-
-const LoginParticles3D = dynamic(
-  () => import('@/components/3d/LoginParticles3D'),
-  { ssr: false }
-);
-
-const R3FCanvas = dynamic(
-  () => import('@react-three/fiber').then((mod) => mod.Canvas),
-  { ssr: false }
-);
+import { StarField } from '@/components/ui/star-field';
+import { Sparkles } from 'lucide-react';
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
       <SkipLink targetId="auth-main" />
-      <div className="min-h-screen bg-surface-deep bg-cosmic-dark relative overflow-hidden">
-        {/* UX-HIGH-001: Skip-link target for auth pages. */}
-        <main id="auth-main" tabIndex={-1} className="sr-only">Authentication content</main>
+      <div className="min-h-screen bg-surface-base relative overflow-hidden">
+        {/* Cosmic background */}
+        <StarField starCount={150} showNebula />
+
         {/* Demo session banner — renders only when in demo mode */}
         <DemoSessionBanner />
 
-        {/* Full-screen 3D Canvas — portal backdrop */}
-        <div className="fixed inset-0 z-0">
-          <Suspense fallback={null}>
-            <R3FCanvas
-              camera={{ position: [0, 0, 3.5], fov: 50 }}
-              dpr={[1, 2]}
-              style={{ background: '#0A0E16' }}
-              gl={{ alpha: false, antialias: true, powerPreference: 'high-performance' }}
-            >
-              <ambientLight intensity={0.15} />
-              <directionalLight position={[2, 3, 4]} intensity={0.3} />
-              <LoginPortal3D portalColor="#AA66FF" intensity={1.0} />
-              <LoginParticles3D count={120} color="#AA66FF" spread={6} />
+        {/* Main content */}
+        <div className="relative z-10 min-h-screen flex">
+          {/* Left panel - Cosmic illustration (hidden on mobile) */}
+          <div className="hidden lg:flex lg:w-1/2 xl:w-3/5 relative items-center justify-center p-12">
+            {/* Decorative elements */}
+            <div className="absolute inset-0 flex items-center justify-center">
+              {/* Large gradient orb */}
+              <div
+                className="w-[500px] h-[500px] rounded-full animate-cosmic-float"
+                style={{
+                  background: 'radial-gradient(circle at 30% 30%, rgba(182,123,255,0.3), rgba(0,212,255,0.2), transparent 70%)',
+                  filter: 'blur(40px)',
+                }}
+                aria-hidden="true"
+              />
+            </div>
 
-              {/* Auth form panels render as 3D children */}
-              <Suspense fallback={null}>
+            {/* Floating rings */}
+            <div
+              className="absolute w-72 h-72 rounded-full border border-white/10 animate-cosmic-orbit"
+              style={{ animationDuration: '30s' }}
+              aria-hidden="true"
+            />
+            <div
+              className="absolute w-96 h-96 rounded-full border border-neon-purple/20 animate-cosmic-orbit"
+              style={{ animationDuration: '45s', animationDirection: 'reverse' }}
+              aria-hidden="true"
+            />
+
+            {/* Central content */}
+            <div className="relative z-10 text-center max-w-md">
+              {/* Robot/mascot illustration placeholder */}
+              <div className="relative w-48 h-48 mx-auto mb-8">
+                <div
+                  className="absolute inset-0 rounded-3xl rotate-6"
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(182,123,255,0.3), rgba(0,212,255,0.3))',
+                    filter: 'blur(20px)',
+                  }}
+                  aria-hidden="true"
+                />
+                <div
+                  className="relative w-full h-full rounded-3xl bg-surface-card/50 backdrop-blur-xl border border-white/10 flex items-center justify-center"
+                >
+                  <Sparkles className="w-20 h-20 text-neon-purple" />
+                </div>
+              </div>
+
+              <h2 className="font-display text-3xl font-bold text-text-primary mb-4">
+                Welcome to SparkForge
+              </h2>
+              <p className="text-text-secondary leading-relaxed">
+                The AI Learning Lab where curious minds ages 7-16 explore artificial intelligence 
+                through games, experiments, and hands-on adventures.
+              </p>
+            </div>
+          </div>
+
+          {/* Right panel - Form */}
+          <main
+            id="auth-main"
+            className="flex-1 flex items-center justify-center p-6 md:p-12"
+          >
+            <div className="w-full max-w-md">
+              {/* Mobile logo */}
+              <div className="lg:hidden flex justify-center mb-8">
+                <Link href="/" className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-purple to-neon-blue flex items-center justify-center shadow-lg shadow-neon-purple/25">
+                    <Sparkles className="w-5 h-5 text-white" />
+                  </div>
+                  <span className="font-display text-xl font-bold text-text-primary">
+                    SparkForge
+                  </span>
+                </Link>
+              </div>
+
+              {/* Auth form content */}
+              <Suspense
+                fallback={
+                  <div className="animate-pulse">
+                    <div className="h-8 bg-white/5 rounded-lg w-1/2 mb-4" />
+                    <div className="h-12 bg-white/5 rounded-xl mb-4" />
+                    <div className="h-12 bg-white/5 rounded-xl mb-4" />
+                    <div className="h-12 bg-white/5 rounded-xl" />
+                  </div>
+                }
+              >
                 {children}
               </Suspense>
-            </R3FCanvas>
-          </Suspense>
+            </div>
+          </main>
         </div>
 
-        {/* sr-only accessibility layer — screen readers can navigate */}
-        <div className="sr-only" role="navigation" aria-label="Authentication">
-          <a href="/login">Log in</a>
-          <a href="/signup">Sign up</a>
-          <a href="/reset-password">Reset password</a>
-          <a href="/terms">Terms of Service</a>
-          <a href="/privacy">Privacy Policy</a>
-        </div>
-
-        {/* Branding overlay — minimal, above 3D */}
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-3 pointer-events-none">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-spark-purple to-spark-blue flex items-center justify-center shadow-lg shadow-spark-purple/25">
-            <span className="text-xl">⚡</span>
-          </div>
-          <span className="font-display text-xl font-bold text-white drop-shadow-lg">
-            SparkForge
-          </span>
+        {/* Desktop branding */}
+        <div className="hidden lg:flex fixed top-6 left-8 z-20 items-center gap-3">
+          <Link href="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-neon-purple to-neon-blue flex items-center justify-center shadow-lg shadow-neon-purple/25 transition-transform group-hover:scale-105">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <span className="font-display text-xl font-bold text-text-primary">
+              SparkForge
+            </span>
+          </Link>
         </div>
 
         {/* Footer */}
-        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-10 text-center">
-          <p className="text-white/55 text-xs font-body">
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 z-20 text-center">
+          <p className="text-text-muted text-xs font-body">
             &copy; {new Date().getFullYear()} SparkForge LLC &middot;{' '}
-            <a href="/terms" className="text-white/70 hover:text-white underline decoration-dotted decoration-white/40 underline-offset-2">
+            <Link
+              href="/terms"
+              className="text-text-secondary hover:text-text-primary underline decoration-dotted decoration-white/20 underline-offset-2 transition-colors"
+            >
               Terms
-            </a>
+            </Link>
             {' '}&middot;{' '}
-            <a href="/privacy" className="text-white/70 hover:text-white underline decoration-dotted decoration-white/40 underline-offset-2">
+            <Link
+              href="/privacy"
+              className="text-text-secondary hover:text-text-primary underline decoration-dotted decoration-white/20 underline-offset-2 transition-colors"
+            >
               Privacy
-            </a>
+            </Link>
           </p>
         </div>
       </div>

@@ -1032,6 +1032,124 @@ body[data-scanlines="off"] .scanline-overlay {
 }
 
 /* ───────────────────────────────────────────────────────────────
+ * v4 Cosmic Theme — Keyframes & Variables
+ * SparkForge gamified learning platform design system
+ * ─────────────────────────────────────────────────────────────── */
+
+/* Cosmic Button shine animation */
+@keyframes cosmic-shine {
+  0% { transform: translateX(-100%); }
+  50%, 100% { transform: translateX(100%); }
+}
+
+/* Floating animation for decorative elements */
+@keyframes cosmic-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  25% { transform: translateY(-10px) rotate(1deg); }
+  75% { transform: translateY(10px) rotate(-1deg); }
+}
+
+/* Pulse glow for interactive elements */
+@keyframes cosmic-pulse {
+  0%, 100% { 
+    box-shadow: 0 0 20px rgba(0,212,255,0.3), 0 0 40px rgba(182,123,255,0.2);
+    transform: scale(1);
+  }
+  50% { 
+    box-shadow: 0 0 30px rgba(0,212,255,0.5), 0 0 60px rgba(182,123,255,0.3);
+    transform: scale(1.02);
+  }
+}
+
+/* Orbit animation for floating elements */
+@keyframes cosmic-orbit {
+  0% { transform: rotate(0deg) translateX(20px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(20px) rotate(-360deg); }
+}
+
+/* Utility classes for cosmic theme */
+.cosmic-glow {
+  box-shadow: 
+    0 0 20px rgba(0,212,255,0.2),
+    0 0 40px rgba(182,123,255,0.15),
+    0 0 60px rgba(255,112,175,0.1);
+}
+
+.cosmic-glow-hover:hover {
+  box-shadow: 
+    0 0 30px rgba(0,212,255,0.4),
+    0 0 60px rgba(182,123,255,0.25),
+    0 0 90px rgba(255,112,175,0.15);
+}
+
+.cosmic-border {
+  border: 1px solid transparent;
+  background: 
+    linear-gradient(var(--surface-card), var(--surface-card)) padding-box,
+    linear-gradient(135deg, rgba(0,212,255,0.5), rgba(182,123,255,0.5), rgba(255,112,175,0.5)) border-box;
+}
+
+.cosmic-text {
+  background: linear-gradient(135deg, #00D4FF, #B67BFF, #FF70AF);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.animate-cosmic-float {
+  animation: cosmic-float 6s ease-in-out infinite;
+}
+
+.animate-cosmic-pulse {
+  animation: cosmic-pulse 3s ease-in-out infinite;
+}
+
+.animate-cosmic-orbit {
+  animation: cosmic-orbit 20s linear infinite;
+}
+
+/* Lab card specific styles for homepage */
+.lab-card-cosmic {
+  position: relative;
+  overflow: hidden;
+}
+
+.lab-card-cosmic::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(255,255,255,0.03) 50%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lab-card-cosmic:hover::before {
+  opacity: 1;
+}
+
+/* Ring/orbit decorative elements */
+.cosmic-ring {
+  position: absolute;
+  border: 1px solid rgba(182,123,255,0.2);
+  border-radius: 50%;
+  animation: cosmic-orbit 30s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-cosmic-float,
+  .animate-cosmic-pulse,
+  .animate-cosmic-orbit,
+  .cosmic-ring {
+    animation: none;
+  }
+}
+
+/* ───────────────────────────────────────────────────────────────
  * v4 Cockpit Homepage — HUD Panel & Gauge Styles
  * Futuristic cockpit interface elements with lab color accents
  * ─────────────────────────────────────────────────────────────── */

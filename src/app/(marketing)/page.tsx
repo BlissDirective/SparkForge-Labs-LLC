@@ -1,23 +1,24 @@
 // ════════════════════════════════════════════════════
-// LANDING PAGE — v4 Cockpit HUD Experience
+// LANDING PAGE — v4 Cosmic Theme Redesign
 // ════════════════════════════════════════════════════
-// Hybrid of motion-integrated 3D futuristic cockpit visuals
-// and sleek, modern display elements. Features:
+// A visually striking homepage combining:
+// - Apple-inspired clean, minimal layouts
+// - Colorful futuristic spaceship control panel aesthetics
+// - Cosmic space theme with nebulas and star fields
 //
+// Features:
 // - BrandHeroSlot: Dichroic SparkForge wordmark (Core/Preserve)
-// - HUD-style panels with animated gauges and infographics
-// - Wireframe terrain visualization
-// - Lab progress cards with lab colors
-// - Feature highlights with interactive elements
-// - Chrome bezels and LED accents throughout
+// - Cosmic background with animated star field
+// - Labs discovery grid with glass-morphism cards
+// - Feature highlights with gradient accents
+// - Stats section with animated counters
+// - Final CTA with cosmic styling
 //
 // Color palette follows sparkforge-tokens.css lab colors.
-// All chrome and UI elements are creatively reimagined
-// around the preserved 3D brand surface.
 // ════════════════════════════════════════════════════
 
 import { Metadata } from 'next';
-import { CockpitHomepage } from '@/components/landing/CockpitHomepage';
+import { CosmicHomepage } from '@/components/landing/CosmicHomepage';
 
 // Comprehensive metadata with OpenGraph + Twitter cards
 export const metadata: Metadata = {
@@ -94,8 +95,8 @@ export default function LandingPage() {
         </div>
       </noscript>
 
-      {/* v4: Cockpit HUD Experience */}
-      <CockpitHomepage />
+      {/* v4: Cosmic Theme Homepage */}
+      <CosmicHomepage />
     </>
   );
 }
