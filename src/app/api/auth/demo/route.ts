@@ -35,8 +35,18 @@ export async function POST(req: NextRequest) {
 
   // Reject if caller is already authenticated (prevents a logged-in parent
   // from accidentally creating an anon session and losing their context).
+  // Audit P1/L2: also reject existing demo (anonymous) users — calling
+  // signInAnonymously() while one is active mints a SECOND anon session,
+  // orphaning the first along with any in-progress demo state.
   const { data: { user: existingUser } } = await supabase.auth.getUser();
-  if (existingUser && !existingUser.is_anonymous) {
+  if (existingUser) {
+    if (existingUser.is_anonymous) {
+      return apiError(
+        'A demo session is already active. Continue exploring or sign out to start over.',
+        409,
+        'DEMO_ALREADY_ACTIVE',
+      );
+    }
     return apiError('Already authenticated. Sign out first.', 400, 'ALREADY_AUTHENTICATED');
   }
 

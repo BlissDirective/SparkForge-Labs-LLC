@@ -1,7 +1,8 @@
 'use client';
 
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useReducedMotion } from 'motion/react';
 import { Color, InstancedMesh, Object3D, Vector3 } from 'three';
 
 interface LoginParticles3DProps {
@@ -31,7 +32,28 @@ export default function LoginParticles3D({
     }));
   }, [count, spread]);
 
+  // Audit P1/L6 — prefers-reduced-motion. Particles still render in
+  // their seed positions (so the panel keeps its depth backdrop) but
+  // stop drifting and pulsing for motion-sensitive users.
+  const prefersReducedMotion = useReducedMotion();
+
+  // When motion is disabled, write the static seed positions ONCE so the
+  // particles render without further useFrame churn. Without this, the
+  // InstancedMesh shows up with its identity-matrix default (zero scale)
+  // and looks empty.
+  useEffect(() => {
+    if (!prefersReducedMotion || !meshRef.current) return;
+    particles.forEach((p, i) => {
+      dummy.position.copy(p.position);
+      dummy.scale.setScalar(p.scale);
+      dummy.updateMatrix();
+      meshRef.current!.setMatrixAt(i, dummy.matrix);
+    });
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  }, [prefersReducedMotion, particles, dummy]);
+
   useFrame((state) => {
+    if (prefersReducedMotion) return;
     if (!meshRef.current) return;
     const t = state.clock.elapsedTime;
 

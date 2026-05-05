@@ -205,7 +205,7 @@ export function FeatureShowcase() {
                 <h3 className="font-display text-lg font-bold text-white mb-2">
                   {feature.title}
                 </h3>
-                <p className="font-body text-sm text-white/50 leading-relaxed">
+                <p className="font-body text-sm text-white/75 leading-relaxed">
                   {feature.description}
                 </p>
               </div>

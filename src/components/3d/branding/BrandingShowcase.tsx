@@ -237,6 +237,14 @@ export function BrandingShowcase({
 }: BrandingShowcaseProps) {
   const capability = useWebGPUCapability();
 
+  // Audit P2/C — useWebGPUCapability() only checks adapter availability.
+  // WebGPURenderer.init() can still fail later (driver-level errors,
+  // shader-compilation panics on some integrated GPUs, lost contexts on
+  // sleep/wake). When that happens the gl factory throws, and R3F leaves
+  // a blank canvas. Track the failure so we re-render into the poster
+  // path instead of trapping the user with no hero at all.
+  const [initFailed, setInitFailed] = useState(false);
+
   const sceneBg = useMemo(
     () => (transparent ? null : new Color(PALETTE.voidNavy)),
     [transparent],
@@ -254,7 +262,7 @@ export function BrandingShowcase({
     );
   }
 
-  if (capability === 'fallback') {
+  if (capability === 'fallback' || initFailed) {
     return (
       <div className="relative w-full h-full bg-[#02050d]">
         <BrandingFallback
@@ -284,14 +292,28 @@ export function BrandingShowcase({
         camera={{ position: [0, 0, cameraDistance], fov: 32 }}
         scene={{ background: sceneBg }}
         gl={async (props) => {
-          const renderer = new WebGPURenderer({
-            // R3F passes canvas + antialias prefs in props
-            ...(props as Record<string, unknown>),
-            antialias: true,
-            alpha: transparent,
-          });
-          await renderer.init();
-          return renderer as unknown as never;
+          // Audit P2/C — wrap init in try/catch so a driver-level
+          // failure switches us to the MP4 poster fallback instead of
+          // showing a blank canvas. Re-throw after flipping state so
+          // R3F also bails on this Canvas mount.
+          try {
+            const renderer = new WebGPURenderer({
+              // R3F passes canvas + antialias prefs in props
+              ...(props as Record<string, unknown>),
+              antialias: true,
+              alpha: transparent,
+            });
+            await renderer.init();
+            return renderer as unknown as never;
+          } catch (err) {
+            console.error(
+              '[BrandingShowcase] WebGPURenderer.init() failed; ' +
+                'switching to MP4 fallback:',
+              err,
+            );
+            setInitFailed(true);
+            throw err;
+          }
         }}
         aria-label={ariaLabel}
       >

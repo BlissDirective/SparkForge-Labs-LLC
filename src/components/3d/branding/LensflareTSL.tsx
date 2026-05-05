@@ -244,13 +244,30 @@ export function LensflareTSL({
     streak.uniforms.uIntensity.value = cfg.intensity * intensityMul;
   }, [cfg.intensity, intensityMul, core.uniforms, streak.uniforms]);
 
-  // Dispose materials on unmount — node materials hold GPU pipelines
+  // Dispose materials on unmount — TSL node materials hold per-instance
+  // GPU pipelines that may still be compiling/in-flight when this cleanup
+  // runs. Audit P2/D: dispose synchronously inline can race with the
+  // renderer's compileAsync queue during a Suspense re-render, leaking
+  // pipelines or warning about disposed resources still in the queue.
+  // Defer to the next animation frame (or microtask in non-DOM tests)
+  // so the current render loop's frame finishes before we tear them
+  // down. Materials are still released in the same tick they would
+  // have been; the only difference is one frame of latency, after which
+  // they're no longer in the scene anyway.
   useEffect(() => {
     const c = core.material;
     const s = streak.material;
     return () => {
-      c.dispose();
-      s.dispose();
+      const disposeNow = () => {
+        c.dispose();
+        s.dispose();
+      };
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(disposeNow);
+      } else {
+        // SSR / test fallback — fire on next microtask.
+        Promise.resolve().then(disposeNow);
+      }
     };
   }, [core.material, streak.material]);
 

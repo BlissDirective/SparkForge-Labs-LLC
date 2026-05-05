@@ -74,7 +74,7 @@ export function MarketingFooter() {
                   <li key={link.href}>
                     <Link
                       href={link.href}
-                      className="text-sm font-body text-white/70 hover:text-white/70 transition-colors duration-200"
+                      className="text-sm font-body text-white/70 hover:text-white transition-colors duration-200"
                     >
                       {link.label}
                     </Link>

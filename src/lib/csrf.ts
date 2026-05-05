@@ -44,16 +44,25 @@ const RANDOM_BYTES = 16;
 const RANDOM_HEX_LEN = RANDOM_BYTES * 2;
 const HMAC_HEX_LEN = 64; // SHA-256 → 32 bytes → 64 hex
 
+// Audit P1/L4 — eliminate the SUPABASE_SERVICE_ROLE_KEY fallback. The
+// service-role key is the highest-trust credential in the system; using
+// it as the CSRF HMAC key couples two unrelated secrets and means any
+// log/error/sourcemap that leaks the CSRF secret also leaks RLS bypass.
+// Production must set CSRF_SECRET explicitly. Local dev still has a
+// hard-coded fallback so npm run dev works out of the box.
 function getSecret(): string {
-  // Prefer an explicit CSRF_SECRET. Fall back to the Next-Auth / Supabase
-  // service key if deployed without CSRF_SECRET — this is not ideal but
-  // keeps the token cryptographically bound to the deployment. Final
-  // fallback for local dev.
-  return (
-    process.env.CSRF_SECRET ||
-    process.env.SUPABASE_SERVICE_ROLE_KEY ||
-    'sparkforge-dev-csrf-secret-do-not-use-in-production'
-  );
+  const explicit = process.env.CSRF_SECRET;
+  if (explicit && explicit.length > 0) return explicit;
+
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error(
+      '[csrf] CSRF_SECRET environment variable is required in production. ' +
+        'Set a high-entropy value (>=32 random bytes, hex or base64). ' +
+        'Do NOT reuse SUPABASE_SERVICE_ROLE_KEY or any Supabase key.',
+    );
+  }
+
+  return 'sparkforge-dev-csrf-secret-do-not-use-in-production';
 }
 
 function bytesToHex(buf: Uint8Array): string {

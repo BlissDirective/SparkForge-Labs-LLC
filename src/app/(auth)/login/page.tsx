@@ -79,6 +79,7 @@ export default function LoginPage() {
   }, [router]);
 
   const handleDemoStart = useCallback(async () => {
+    setError('');
     setDemoLoading(true);
     try {
       // AUTH-CRIT-002 (2B): Server route calls supabase.auth.signInAnonymously()
@@ -91,6 +92,22 @@ export default function LoginPage() {
       });
 
       if (!res.ok) {
+        // Surface the route's error message so a 503 (anonymous sign-ins
+        // disabled) or 429 (rate limited) doesn't leave the user staring
+        // at a silently-disabled button. Audit P1/L1.
+        let message =
+          'Demo unavailable — please try again in a few minutes, or sign up for free.';
+        try {
+          const payload = await res.json();
+          if (typeof payload?.error === 'string' && payload.error.length > 0) {
+            message = payload.error;
+          } else if (res.status === 429) {
+            message = 'Too many demo sessions started recently. Please wait a few minutes.';
+          }
+        } catch {
+          // Body wasn't JSON; keep the generic message.
+        }
+        setError(message);
         setDemoLoading(false);
         return;
       }
@@ -100,6 +117,7 @@ export default function LoginPage() {
 
       router.push('/home');
     } catch {
+      setError('Connection error — please check your internet and try again.');
       setDemoLoading(false);
     }
   }, [router]);
@@ -129,11 +147,28 @@ export default function LoginPage() {
     }
   }, []);
 
+  // Audit P2/B — preserve the email the user typed into LoginPanel3D
+  // so the reset-password page can prefill it. We URL-encode but only
+  // send addresses that actually look like an email; otherwise navigate
+  // bare so we don't ship junk in the query string.
+  const handleNavigateReset = useCallback(
+    (typedEmail: string) => {
+      const trimmed = typedEmail.trim();
+      const looksLikeEmail = trimmed.length > 0 && /.+@.+\..+/.test(trimmed);
+      if (looksLikeEmail) {
+        router.push(`/reset-password?email=${encodeURIComponent(trimmed)}`);
+      } else {
+        router.push('/reset-password');
+      }
+    },
+    [router],
+  );
+
   return (
     <LoginPanel3D
       onLogin={handleLogin}
       onNavigateSignup={() => router.push('/signup')}
-      onNavigateReset={() => router.push('/reset-password')}
+      onNavigateReset={handleNavigateReset}
       onDemoStart={handleDemoStart}
       onOAuthSignIn={handleOAuthSignIn}
       oauthLoadingProvider={oauthLoadingProvider}

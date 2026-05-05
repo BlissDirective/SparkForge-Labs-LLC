@@ -37,7 +37,9 @@ const STATS = [
 ];
 
 // ---- Deterministic mock lab cards (avoid Math.random in render) ----
-const _MOCK_LABS = [
+// Audit P2/B — these now drive the Suspense fallback CSS dashboard, so
+// drop the underscore-unused convention.
+const MOCK_LABS = [
   { color: '#00BBFF', label: 'Code', progress: 72 },
   { color: '#AA66FF', label: 'Data', progress: 55 },
   { color: '#FF66AA', label: 'Neural', progress: 40 },
@@ -46,7 +48,7 @@ const _MOCK_LABS = [
 ];
 
 // ---- Deterministic mini bar heights ----
-const _MINI_BARS = [10, 14, 8, 18, 12];
+const MINI_BARS = [10, 14, 8, 18, 12];
 
 export function StationPreview() {
   return (
@@ -84,14 +86,57 @@ export function StationPreview() {
             {/* 3D Cockpit Preview Canvas */}
             <div className="relative min-h-[280px] md:min-h-[360px]">
               <Suspense fallback={
-                /* CSS fallback while 3D loads (also serves reduced-motion) */
-                <div className="absolute inset-0 flex items-center justify-center">
+                /* Audit P2/B — full CSS mockup (lab tiles, mini bars, glow
+                   layers) so the fallback is recognizable as a dashboard,
+                   not a question-mark "Loading…" message. Also serves
+                   prefers-reduced-motion users who never get the canvas. */
+                <div className="absolute inset-0">
+                  {/* Aurora glow layers */}
                   <div className="absolute inset-0" aria-hidden="true">
                     <div className="absolute top-[10%] left-[20%] w-64 h-32 rounded-full bg-[#00BBFF]/[0.06] blur-[60px]" />
                     <div className="absolute top-[30%] right-[15%] w-48 h-48 rounded-full bg-[#AA66FF]/[0.04] blur-[50px]" />
                     <div className="absolute bottom-[20%] left-[40%] w-56 h-28 rounded-full bg-[#06B6D4]/[0.04] blur-[40px]" />
                   </div>
-                  <p className="font-display text-lg text-white/55 relative z-10">Loading cockpit...</p>
+
+                  {/* Mock dashboard layout */}
+                  <div className="relative h-full w-full p-4 md:p-6 flex flex-col gap-3" aria-hidden="true">
+                    {/* Top status bar */}
+                    <div className="flex items-center gap-2">
+                      <div className="h-2 w-2 rounded-full bg-[#00FF88]/60" />
+                      <div className="h-2 w-24 rounded bg-white/[0.08]" />
+                      <div className="ml-auto h-2 w-16 rounded bg-white/[0.05]" />
+                    </div>
+
+                    {/* Lab tile strip */}
+                    <div className="grid grid-cols-5 gap-2">
+                      {MOCK_LABS.map((lab) => (
+                        <div
+                          key={lab.label}
+                          className="rounded-lg border border-white/[0.05] bg-white/[0.02] p-2"
+                          style={{ boxShadow: `inset 0 0 0 1px ${lab.color}10` }}
+                        >
+                          <div className="h-1.5 w-8 rounded mb-1.5" style={{ background: `${lab.color}50` }} />
+                          <div className="h-1 rounded bg-white/[0.08] overflow-hidden">
+                            <div className="h-full rounded" style={{ width: `${lab.progress}%`, background: lab.color, opacity: 0.7 }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Mini bar chart */}
+                    <div className="flex items-end gap-1.5 h-10 mt-auto">
+                      {MINI_BARS.map((h, i) => (
+                        <div
+                          key={i}
+                          className="flex-1 rounded-t bg-gradient-to-t from-[#00BBFF]/20 to-[#AA66FF]/30"
+                          style={{ height: `${h * 4}px` }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Sr-only label so AT users know what's loading */}
+                  <span className="sr-only">Cockpit dashboard preview is loading.</span>
                 </div>
               }>
                 <R3FCanvas

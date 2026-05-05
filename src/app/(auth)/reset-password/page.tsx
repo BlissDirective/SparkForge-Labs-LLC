@@ -5,7 +5,7 @@
 // ════════════════════════════════════════════════════════════════
 
 import { useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 
@@ -16,6 +16,15 @@ const ResetPasswordPanel3D = dynamic(
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Audit P2/B — accept ?email= prefill from the login page's
+  // "Forgot password?" link. We only honour values that look like an
+  // email so a malicious link can't seed an arbitrary string into the
+  // panel.
+  const initialEmailRaw = searchParams.get('email') ?? '';
+  const initialEmail =
+    /.+@.+\..+/.test(initialEmailRaw) ? initialEmailRaw : '';
 
   // AUTH-MED-003 (B): optional captchaToken param. When the Supabase
   // dashboard has CAPTCHA enabled and a widget is rendered client-side
@@ -48,6 +57,7 @@ export default function ResetPasswordPage() {
     <ResetPasswordPanel3D
       onReset={handleReset}
       onNavigateLogin={() => router.push('/login')}
+      initialEmail={initialEmail}
     />
   );
 }

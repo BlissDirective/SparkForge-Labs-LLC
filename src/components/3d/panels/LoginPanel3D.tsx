@@ -50,7 +50,12 @@ import {
 interface LoginPanel3DProps {
   onLogin: (email: string, password: string) => Promise<void>;
   onNavigateSignup: () => void;
-  onNavigateReset: () => void;
+  /**
+   * Audit P2/B — receives the email currently typed into the panel so
+   * the reset-password page can prefill it. Empty string when the user
+   * clicks the link before typing anything.
+   */
+  onNavigateReset: (email: string) => void;
   onDemoStart: () => void;
   // AUTH-ENH-003 (Max): OAuth sign-in. Provider is one of
   // 'google' | 'apple' | 'azure' — validated server-side.
@@ -396,6 +401,13 @@ export default function LoginPanel3D({
     }
   });
 
+  // Audit P2/A — concurrent-auth-flow guard. The previous wiring let a
+  // user click TRY DEMO or an OAuth button while a normal login was in
+  // flight (and vice-versa), creating overlapping requests and races
+  // between session writes. A single derived flag gates every action
+  // surface uniformly.
+  const anyAuthInFlight = loading || demoLoading || oauthLoadingProvider !== null;
+
   const handleLogin = useCallback(() => {
     if (!email || !password || loading) return;
     onLogin(email, password);
@@ -489,6 +501,11 @@ export default function LoginPanel3D({
         )}
 
         {/* Error message */}
+        {/* Audit P2/C — banner backing keeps the saturated #FF6644 for the
+            warning recognizability, but the text fill steps up to a
+            lighter coral (#FFB3A8) so the foreground/background contrast
+            on the dark panel reaches WCAG AA (~6.5:1) instead of the
+            ~4.0:1 the original red was hitting. */}
         {error && (
           <group position={[0, demoExpired ? 0.38 : 0.48, 0]}>
             <mesh>
@@ -503,7 +520,7 @@ export default function LoginPanel3D({
             </mesh>
             <Text
               fontSize={TYPE_SCALE.caption.fontSize}
-              color="#FF6644"
+              color="#FFB3A8"
               anchorX="center"
               anchorY="middle"
               font={TYPE_SCALE.caption.fontPath}
@@ -543,7 +560,7 @@ export default function LoginPanel3D({
           anchorX="right"
           anchorY="middle"
           font={TYPE_SCALE.caption.fontPath}
-          onClick={onNavigateReset}
+          onClick={() => onNavigateReset(email)}
           onPointerOver={() => { document.body.style.cursor = 'pointer'; }}
           onPointerOut={() => { document.body.style.cursor = 'default'; }}
         >
@@ -556,7 +573,7 @@ export default function LoginPanel3D({
           color={ACCENT_COLOR}
           position={[0, -0.2, 0]}
           onClick={handleLogin}
-          disabled={loading || !email || !password}
+          disabled={anyAuthInFlight || !email || !password}
         />
 
         {/* AUTH-ENH-003 (Max): OAuth provider row */}
@@ -567,7 +584,7 @@ export default function LoginPanel3D({
               color="#4285F4"
               position={[-0.42, 0, 0]}
               onClick={() => onOAuthSignIn('google')}
-              disabled={loading || oauthLoadingProvider !== null}
+              disabled={anyAuthInFlight}
               variant="outline"
               width={0.36}
             />
@@ -576,7 +593,7 @@ export default function LoginPanel3D({
               color="#CCCCCC"
               position={[0, 0, 0]}
               onClick={() => onOAuthSignIn('apple')}
-              disabled={loading || oauthLoadingProvider !== null}
+              disabled={anyAuthInFlight}
               variant="outline"
               width={0.36}
             />
@@ -585,7 +602,7 @@ export default function LoginPanel3D({
               color="#0078D4"
               position={[0.42, 0, 0]}
               onClick={() => onOAuthSignIn('azure')}
-              disabled={loading || oauthLoadingProvider !== null}
+              disabled={anyAuthInFlight}
               variant="outline"
               width={0.36}
             />
@@ -620,6 +637,7 @@ export default function LoginPanel3D({
             position={[0, onOAuthSignIn ? -0.6 : -0.48, 0]}
             onClick={() => setShowDemoConfirm(true)}
             variant="outline"
+            disabled={anyAuthInFlight}
           />
         ) : (
           <group position={[0, onOAuthSignIn ? -0.64 : -0.52, 0]}>
@@ -645,13 +663,14 @@ export default function LoginPanel3D({
                 onClick={() => setShowDemoConfirm(false)}
                 variant="secondary"
                 width={0.5}
+                disabled={demoLoading}
               />
               <ActionButton3D
                 label="START DEMO"
                 color="#00FF88"
                 position={[0.32, 0, 0]}
                 onClick={onDemoStart}
-                disabled={demoLoading}
+                disabled={anyAuthInFlight}
                 width={0.5}
               />
             </group>
@@ -689,112 +708,186 @@ export default function LoginPanel3D({
       {/* ═══ Hidden HTML Input Proxies ═══ */}
       {/* These are rendered via drei Html to capture keyboard events */}
       {/* The 3D InputField3D visuals above reflect the state */}
-      <HiddenInputProxy
-        inputRef={emailInputRef}
-        value={email}
-        onChange={setEmail}
-        focused={focusedField === 'email'}
-        type="email"
-        autoComplete="email"
-        ariaLabel="Email address"
-        fieldId="login-email"
-        fieldName="email"
-        errorMessage={error || undefined}
-        onEnter={() => {
-          setFocusedField('password');
-          passwordInputRef.current?.focus();
-        }}
-      />
-      <HiddenInputProxy
-        inputRef={passwordInputRef}
-        value={password}
-        onChange={setPassword}
-        focused={focusedField === 'password'}
-        type="password"
-        autoComplete="current-password"
-        ariaLabel="Password"
-        fieldId="login-password"
-        fieldName="password"
-        errorMessage={error || undefined}
-        onEnter={handleLogin}
+      {/* Audit P1/L5 + P1/L7 — single Html overlay carrying:
+          (a) the panel-level aria-live region mirroring `error`, so screen
+              readers receive the text that 3D <Text> renders visually
+          (b) the proxy <form> with email + password inputs in real DOM, in
+              the standard "visually-hidden but accessible" pattern, so
+              browser password managers (1Password, Bitwarden, browser
+              built-ins) detect the field pair and offer autofill. The
+              previous opacity:0 wrapper was skipped by some PWMs.
+      */}
+      <ProxyInputsAndStatus
+        emailInputRef={emailInputRef}
+        passwordInputRef={passwordInputRef}
+        email={email}
+        password={password}
+        setEmail={setEmail}
+        setPassword={setPassword}
+        focusedField={focusedField}
+        setFocusedField={setFocusedField}
+        handleLogin={handleLogin}
+        error={error}
       />
     </group>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════
-// HIDDEN INPUT PROXY — Bridges browser keyboard to 3D text
+// PROXY INPUTS + STATUS — Bridges browser keyboard / autofill / SR to 3D
 // ═══════════════════════════════════════════════════════════════
+// Audit P1/L5 (aria-live error region) + P1/L7 (autofill detection):
+//
+// The previous HiddenInputProxy wrapped each input in its own <Html>
+// with opacity:0 on both the wrapper and the input. Two problems that
+// shipped together:
+//   1. Several password managers (notably mobile Safari built-in, some
+//      Bitwarden builds, and 1Password's heuristic gate) skip controls
+//      under opacity:0. They couldn't see the email/password pair so
+//      they never offered autofill.
+//   2. The 3D <Text> error message had no DOM equivalent — screen
+//      readers could not perceive panel-level errors at all. The per-
+//      field aria-live="polite" inside each old proxy fired only when
+//      the input itself had `aria-describedby`, missing demo-route /
+//      OAuth / network errors that surface above the inputs.
+//
+// New design:
+//   - One <Html> overlay at the panel root, rendered with the standard
+//     "visually hidden" CSS so PWMs find a real <form> with two named
+//     inputs that match autocomplete tokens.
+//   - The form is offscreen-clipped (clip-path inset(50%)), not opacity:0,
+//     so PWMs treat it as a normal hidden form.
+//   - Inputs are NOT pointerEvents:none any more — focused state still
+//     drives focus via inputRef, but PWMs can click-to-fill freely.
+//   - A single aria-live="assertive" region at the top mirrors the
+//     `error` prop. Field-level aria-invalid still fires on the matching
+//     input.
 
 import { Html } from '@react-three/drei';
 import { useEffect } from 'react';
 
-function HiddenInputProxy({
-  inputRef,
-  value,
-  onChange,
-  focused,
-  type = 'text',
-  autoComplete,
-  onEnter,
-  ariaLabel,
-  fieldId,
-  fieldName,
-  errorMessage,
-}: {
-  inputRef: React.MutableRefObject<HTMLInputElement | null>;
-  value: string;
-  onChange: (v: string) => void;
-  focused: boolean;
-  type?: string;
-  autoComplete?: string;
-  onEnter?: () => void;
-  ariaLabel: string;
-  fieldId: string;
-  fieldName: string;
-  errorMessage?: string;
-}) {
-  useEffect(() => {
-    if (focused && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [focused, inputRef]);
+const VISUALLY_HIDDEN: React.CSSProperties = {
+  position: 'absolute',
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: 'hidden',
+  clip: 'rect(0 0 0 0)',
+  whiteSpace: 'nowrap',
+  border: 0,
+};
 
-  const errorId = `${fieldId}-error`;
+interface ProxyInputsAndStatusProps {
+  emailInputRef: React.MutableRefObject<HTMLInputElement | null>;
+  passwordInputRef: React.MutableRefObject<HTMLInputElement | null>;
+  email: string;
+  password: string;
+  setEmail: (v: string) => void;
+  setPassword: (v: string) => void;
+  focusedField: 'email' | 'password' | null;
+  setFocusedField: (f: 'email' | 'password' | null) => void;
+  handleLogin: () => void;
+  error?: string;
+}
+
+function ProxyInputsAndStatus({
+  emailInputRef,
+  passwordInputRef,
+  email,
+  password,
+  setEmail,
+  setPassword,
+  focusedField,
+  setFocusedField,
+  handleLogin,
+  error,
+}: ProxyInputsAndStatusProps) {
+  // Sync the focusedField → DOM focus exactly as the old proxy did.
+  useEffect(() => {
+    if (focusedField === 'email') emailInputRef.current?.focus();
+    else if (focusedField === 'password') passwordInputRef.current?.focus();
+  }, [focusedField, emailInputRef, passwordInputRef]);
 
   return (
-    <Html position={[0, 0, -10]} style={{ opacity: 0, position: 'absolute', pointerEvents: focused ? 'auto' : 'none' }}>
-      <input
-        ref={inputRef}
-        id={fieldId}
-        name={fieldName}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={autoComplete}
-        aria-label={ariaLabel}
-        aria-describedby={errorMessage ? errorId : undefined}
-        aria-invalid={errorMessage ? true : undefined}
-        style={{
-          position: 'absolute',
-          width: '1px',
-          height: '1px',
-          opacity: 0,
-          pointerEvents: 'none',
+    <Html
+      // Render outside the 3D projection so the form sits in normal DOM
+      // flow rather than at a projected screen point that may be off-canvas.
+      prepend
+      // wrapper styling: visually hidden, but the children inside are
+      // real DOM elements that PWMs and screen readers can find.
+      style={VISUALLY_HIDDEN}
+    >
+      {/* Panel-level error region — assertive so SR announces immediately. */}
+      <div
+        role="status"
+        aria-live="assertive"
+        aria-atomic="true"
+        style={VISUALLY_HIDDEN}
+      >
+        {error || ''}
+      </div>
+
+      {/* The form wrapper helps PWMs cluster the email + password pair. */}
+      <form
+        aria-label="Log in to SparkForge"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleLogin();
         }}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') onEnter?.();
-        }}
-        onBlur={() => {
-          // Keep focus if still targeting this field
-          if (focused) inputRef.current?.focus();
-        }}
-      />
-      {errorMessage && (
-        <div id={errorId} role="alert" aria-live="polite" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
-          {errorMessage}
-        </div>
-      )}
+      >
+        <label htmlFor="login-email" style={VISUALLY_HIDDEN}>
+          Email address
+        </label>
+        <input
+          ref={emailInputRef}
+          id="login-email"
+          name="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          onFocus={() => setFocusedField('email')}
+          autoComplete="username email"
+          aria-invalid={error ? true : undefined}
+          style={VISUALLY_HIDDEN}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              setFocusedField('password');
+              passwordInputRef.current?.focus();
+            }
+          }}
+        />
+
+        <label htmlFor="login-password" style={VISUALLY_HIDDEN}>
+          Password
+        </label>
+        <input
+          ref={passwordInputRef}
+          id="login-password"
+          name="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onFocus={() => setFocusedField('password')}
+          autoComplete="current-password"
+          aria-invalid={error ? true : undefined}
+          style={VISUALLY_HIDDEN}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleLogin();
+            }
+          }}
+        />
+
+        {/* Submit button keeps the form valid for PWM detection but is
+            never visible — the 3D ActionButton3D drives the actual
+            submit via handleLogin. */}
+        <button type="submit" tabIndex={-1} style={VISUALLY_HIDDEN}>
+          Log in
+        </button>
+      </form>
     </Html>
   );
 }

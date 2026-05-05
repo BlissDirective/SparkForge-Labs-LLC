@@ -21,9 +21,16 @@ export default function MarketingLayout({
     <div className="min-h-screen bg-surface-deep relative">
       {/* UX-HIGH-001: WCAG 2.4.1 skip-link. Lands on the <main> below. */}
       <SkipLink targetId="marketing-main" />
-      {/* Aurora background — subtle animated gradient behind all marketing pages */}
+      {/* Aurora background — subtle animated gradient behind all marketing pages.
+          Audit P3/A — promote to its own compositor layer via
+          will-change: transform so the heavy blur filters are rasterized
+          once and translated/composited on subsequent frames instead of
+          being re-rasterized when ScrollJourney's GSAP yPercent updates
+          the aurora ref. The same hint applies inline on the ScrollJourney
+          parallax layers it owns. */}
       <div
         className="fixed inset-0 pointer-events-none z-0"
+        style={{ willChange: 'transform' }}
         aria-hidden="true"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-spark-blue/[0.03] via-transparent to-spark-purple/[0.04]" />

@@ -117,10 +117,7 @@ export function LabDiscoveryRing() {
               key={id}
               href={`/labs/${id}`}
               data-lab-tile
-              className="group relative rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E16]"
-              style={{
-                '--tw-ring-color': color,
-              } as React.CSSProperties & Record<string, string>}
+              className="group relative rounded-2xl overflow-hidden border border-white/[0.06] bg-white/[0.02] hover:bg-white/[0.04] transition-all duration-300 block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0A0E16]"
               aria-label={`${name} — ${gameCount} ${gameCount === 1 ? 'game' : 'games'}. ${desc}`}
             >
               {/* Pattern background */}
@@ -187,7 +184,7 @@ export function LabDiscoveryRing() {
                 </div>
 
                 {/* Arrow indicator for clickable state */}
-                <div className="flex-shrink-0 text-white/55 group-hover:text-white/50 transition-colors" aria-hidden="true">
+                <div className="flex-shrink-0 text-white/65 group-hover:text-white transition-colors" aria-hidden="true">
                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                     <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>

@@ -41,6 +41,12 @@ import {
 interface ResetPasswordPanel3DProps {
   onReset: (email: string) => Promise<{ success: boolean; error?: string }>;
   onNavigateLogin: () => void;
+  /**
+   * Audit P2/B — prefill the email field when the user is forwarded
+   * here from the login page's "Forgot password?" link. Empty string
+   * (default) means no prefill.
+   */
+  initialEmail?: string;
 }
 
 const PANEL_WIDTH = 1.4;
@@ -158,11 +164,15 @@ function ActionButton3D({
 // MAIN COMPONENT
 // ═══════════════════════════════════════════════════════════════
 
-export default function ResetPasswordPanel3D({ onReset, onNavigateLogin }: ResetPasswordPanel3DProps) {
+export default function ResetPasswordPanel3D({
+  onReset,
+  onNavigateLogin,
+  initialEmail = '',
+}: ResetPasswordPanel3DProps) {
   const glowRef = useRef<Mesh>(null);
   const emailRef = useRef<HTMLInputElement>(null);
 
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState(initialEmail);
   const [focused, setFocused] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState('');
