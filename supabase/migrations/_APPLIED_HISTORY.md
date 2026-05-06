@@ -43,6 +43,7 @@ for migrations that don't have a canonical source).
 | 29 | `20260424205152` | `dunning_025` | `sql/025_dunning.sql` |
 | 30 | `20260424211353` | `standard_game_ids_20260410` | `supabase/migrations/20260410_add_standard_game_ids.sql` (+ added `content_queue.game_id` and `content_queue.content_type` prereq columns; CHECK constraints relaxed to allow NULL; partial indexes) |
 | 31 | `20260424211512` | `restrict_policies_to_authenticated_role` | Novel — `supabase/migrations/20260424211512_*.sql` (Option A advisor mitigation) |
+| 32 | `20260506000001` | `promote_cdsteinmeyer_admin` | Novel — `supabase/migrations/20260506000001_*.sql` (idempotent admin seed; flips `is_admin=true` on the existing parents row, or installs a one-shot BEFORE INSERT trigger if the account hasn't signed up yet) |
 
 ## Skipped from canonical sources
 

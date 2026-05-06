@@ -131,8 +131,11 @@ export function SignupCard({
   const ageBandLabel = childAge <= 9 ? 'Fun & Visual' : childAge <= 12 ? 'Interactive' : 'Deep Dive';
 
   return (
+    // NB: arbitrary `max-w-[28rem]` instead of `max-w-md` — see LoginCard
+    // for the same workaround. tailwind.config.ts overrides spacing.md so
+    // `max-w-md` collapses to 16px on this codebase.
     <motion.div
-      className="relative w-full max-w-md rounded-2xl border border-white/10 bg-surface-deep/70 backdrop-blur-xl p-8 shadow-2xl"
+      className="relative w-full max-w-[28rem] rounded-2xl border border-white/10 bg-surface-deep/70 backdrop-blur-xl p-8 shadow-2xl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}

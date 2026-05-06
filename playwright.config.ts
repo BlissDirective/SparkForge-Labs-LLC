@@ -22,5 +22,18 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Forward Supabase env vars to the dev server so the (auth) route group
+    // doesn't crash on module evaluation. Values come from the developer's
+    // .env.local in normal use; the explicit forwarding below is the
+    // belt-and-suspenders for CI / fresh sandboxes where .env.local is
+    // absent. Only NEXT_PUBLIC_* are listed — these are public by design
+    // (anon keys are embedded in the browser bundle).
+    env: {
+      NEXT_PUBLIC_SUPABASE_URL:
+        process.env.NEXT_PUBLIC_SUPABASE_URL ?? 'https://gqoaknfboahuqvgpidgw.supabase.co',
+      NEXT_PUBLIC_SUPABASE_ANON_KEY:
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdxb2FrbmZib2FodXF2Z3BpZGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMjUwNjAsImV4cCI6MjA4NzcwMTA2MH0.DamTvBNYHDSCQuPBDPaejDtkvBtxJWSmmcsf_IO8N-M',
+    },
   },
 });

@@ -62,8 +62,14 @@ export function LoginCard({
   }
 
   return (
+    // NB: arbitrary `max-w-[32rem]` instead of `max-w-lg`. The project's
+    // tailwind.config.ts extends `spacing` with semantic tokens
+    // (`lg: 24px` etc.), and in Tailwind 4 those leak into `max-w-{name}`
+    // utilities — so `max-w-lg` would compute to 24px and collapse the
+    // card. The arbitrary value is bypass-proof.
     <motion.div
-      className="relative w-full max-w-md rounded-2xl border border-white/10 bg-surface-deep/70 backdrop-blur-xl p-8 shadow-2xl"
+      data-testid="login-card"
+      className="relative w-full max-w-[32rem] rounded-2xl border border-white/10 bg-surface-deep/70 backdrop-blur-xl p-8 shadow-2xl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -90,15 +96,6 @@ export function LoginCard({
 
       <div className="relative">
         <div className="text-center mb-6">
-          <motion.div
-            className="text-4xl mb-3"
-            initial={{ scale: 0, rotate: -180 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: 'spring', stiffness: 200, damping: 15, delay: 0.2 }}
-            aria-hidden="true"
-          >
-            👋
-          </motion.div>
           <h1 className="font-display text-2xl font-bold text-white">Welcome Back</h1>
           <p className="font-body text-white/70 text-sm mt-1">
             Log in to continue your adventure
