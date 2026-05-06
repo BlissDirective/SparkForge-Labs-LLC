@@ -12,8 +12,6 @@ import { LoadingScreen } from '@/components/shared/LoadingScreen';
 import type { User } from '@supabase/supabase-js';
 import type { Child } from '@/types';
 
-const supabase = createClient();
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isInitialized, setIsInitialized] = useState(false);
   // PERF-HIGH-001 (Opt B): useShallow keeps the 4-action destructure
@@ -40,6 +38,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Lazy-construct the Supabase client on mount instead of at module
+    // evaluation. The factory in @/lib/supabase/client throws when the
+    // NEXT_PUBLIC_SUPABASE_* env vars are absent (intentional fail-fast
+    // for production safety); a top-level call therefore explodes the
+    // dev server / e2e tests / any environment without env vars even
+    // when this provider never mounts. Moving it inside useEffect keeps
+    // the fail-fast behavior at use-time without breaking module load.
+    const supabase = createClient();
     let mounted = true;
 
     async function initializeAuth() {
