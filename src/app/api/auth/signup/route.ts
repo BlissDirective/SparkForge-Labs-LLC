@@ -39,6 +39,16 @@ export async function POST(req: NextRequest) {
   const supabase = await createServerSupabase();
   const origin = new URL(req.url).origin;
 
+  // If the caller currently holds a Supabase anonymous (demo) session,
+  // sign it out before the email/password signUp so we don't leave an
+  // orphaned anon session in `auth.sessions` lingering until natural
+  // expiry. The follow-up signUp creates a fresh email/password session
+  // that becomes the active one for this device.
+  const { data: pre } = await supabase.auth.getUser();
+  if (pre.user?.is_anonymous) {
+    await supabase.auth.signOut();
+  }
+
   const { data: authData, error: authError } = await supabase.auth.signUp({
     email,
     password,

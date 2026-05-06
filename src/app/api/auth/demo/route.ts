@@ -21,10 +21,11 @@ import { apiSuccess, apiError, applyRateLimit } from '@/lib/api-helpers';
 const DEMO_DURATION_MS = 60 * 60 * 1000; // 1 hour
 
 export async function POST(req: NextRequest) {
-  // Rate limit demo creation (3 per hour per IP). This is best-effort —
-  // the in-memory limiter is ineffective on serverless (AUTH-HIGH-003,
-  // Phase 2 item). Defense in depth: Supabase dashboard also has a
-  // configurable anonymous-sign-in rate limit.
+  // Rate limit demo creation (3 per hour per IP). `applyRateLimit` is
+  // Upstash-backed in production (UPSTASH_REDIS_REST_URL/_TOKEN) and
+  // falls back to an in-memory Map only when those env vars are absent.
+  // Defense in depth: Supabase dashboard also has a configurable
+  // anonymous-sign-in rate limit.
   const limited = await applyRateLimit(req, 'demo-session', undefined, {
     maxRequests: 3,
     windowMs: 3600000,

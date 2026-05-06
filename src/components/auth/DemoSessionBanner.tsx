@@ -103,7 +103,7 @@ export function DemoSessionBanner() {
             role="alert"
             aria-live="assertive"
           >
-            <div className="max-w-xl mx-auto px-4 py-5 text-center">
+            <div className="max-w-[36rem] mx-auto px-4 py-5 text-center">
               <h2 className="font-display text-lg font-bold text-white mb-1">
                 Demo Session Ended
               </h2>

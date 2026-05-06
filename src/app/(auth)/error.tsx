@@ -18,7 +18,7 @@ export default function AuthError({
   return (
     <div className="flex items-center justify-center min-h-screen bg-surface-base px-4">
       <motion.div
-        className="text-center max-w-md"
+        className="text-center max-w-[28rem]"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
       >
