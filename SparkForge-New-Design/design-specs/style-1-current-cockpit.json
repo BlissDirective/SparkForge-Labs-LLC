@@ -1,0 +1,311 @@
+{
+  "$schema": "sparkforge-design-spec/v1",
+  "style": "style-1-current-cockpit",
+  "description": "Exact extraction of the current Frost-Prismatic Laboratory Cockpit design language as coded today. Dark-mode only. Use as the baseline reference for v0/Lovable prompts that should match the existing app.",
+  "brand": {
+    "name": "SparkForge",
+    "audience": "kids 7-16",
+    "mood": [
+      "futuristic laboratory",
+      "command console",
+      "glassmorphic",
+      "chrome bezel",
+      "neon emissive"
+    ]
+  },
+  "palette": {
+    "brand": {
+      "voidNavy": "#02050d",
+      "voidNavyLift": "#070a14",
+      "rimCyan": "#7fe8ff",
+      "cyanKick": "#bff5ff",
+      "keyAmber": "#ffaa55",
+      "amberCore": "#ffd9a8",
+      "dispersionMag": "#ff5fc8",
+      "dispersionPink": "#ff9ad6",
+      "hotWhite": "#ffffff",
+      "attenuationColor": "#9fcfff"
+    },
+    "labs": [
+      {
+        "id": 1,
+        "name": "What IS AI?",
+        "hex": "#0FB8FA",
+        "oklch": "oklch(0.75 0.17 225)",
+        "family": "Blue"
+      },
+      {
+        "id": 2,
+        "name": "Teaching Machines",
+        "hex": "#B67BFF",
+        "oklch": "oklch(0.75 0.19 295)",
+        "family": "Purple"
+      },
+      {
+        "id": 3,
+        "name": "The Brain Inside",
+        "hex": "#FF70AF",
+        "oklch": "oklch(0.75 0.19 345)",
+        "family": "Pink"
+      },
+      {
+        "id": 4,
+        "name": "AI That Creates",
+        "hex": "#D9A430",
+        "oklch": "oklch(0.75 0.17 75)",
+        "family": "Amber"
+      },
+      {
+        "id": 5,
+        "name": "AI Helpers",
+        "hex": "#00D17A",
+        "oklch": "oklch(0.75 0.19 155)",
+        "family": "Green"
+      },
+      {
+        "id": 6,
+        "name": "AI & Ethics",
+        "hex": "#FF7050",
+        "oklch": "oklch(0.75 0.20 25)",
+        "family": "Red-Orange"
+      },
+      {
+        "id": 7,
+        "name": "Computer Vision",
+        "hex": "#10BAD2",
+        "oklch": "oklch(0.75 0.14 195)",
+        "family": "Cyan"
+      },
+      {
+        "id": 8,
+        "name": "Words & Language",
+        "hex": "#8F96FA",
+        "oklch": "oklch(0.75 0.15 275)",
+        "family": "Violet"
+      },
+      {
+        "id": 9,
+        "name": "Build Your AI",
+        "hex": "#E68E28",
+        "oklch": "oklch(0.75 0.18 50)",
+        "family": "Orange"
+      },
+      {
+        "id": 10,
+        "name": "AI Futures",
+        "hex": "#DE5AEA",
+        "oklch": "oklch(0.75 0.19 325)",
+        "family": "Fuchsia"
+      },
+      {
+        "id": 11,
+        "name": "Agentic AI",
+        "hex": "#6FFFE6",
+        "oklch": "oklch(0.85 0.16 175)",
+        "family": "Mint-Cyan"
+      }
+    ],
+    "neon": {
+      "blue": "oklch(0.75 0.17 225)",
+      "green": "oklch(0.75 0.19 155)",
+      "purple": "oklch(0.75 0.19 295)",
+      "orange": "oklch(0.75 0.20 25)",
+      "amber": "oklch(0.75 0.17 75)"
+    },
+    "surface": {
+      "base": "oklch(0.13 0.02 260)",
+      "card": "oklch(0.16 0.02 280)",
+      "elevated": "oklch(0.19 0.02 290)",
+      "border": "oklch(1.0 0 0 / 0.06)",
+      "textPrimary": "oklch(0.96 0.005 280)",
+      "textSecondary": "oklch(1.0 0 0 / 0.55)",
+      "textMuted": "oklch(1.0 0 0 / 0.55)",
+      "chromeEdge": "oklch(1.0 0 0 / 0.06)",
+      "chromeHighlight": "oklch(1.0 0 0 / 0.12)",
+      "chromeSpecular": "oklch(1.0 0 0 / 0.18)"
+    }
+  },
+  "typography": {
+    "fontStacks": {
+      "display": "'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif",
+      "body": "'Sora', 'Sora Fallback', system-ui, sans-serif",
+      "mono": "'JetBrains Mono', monospace",
+      "data": "'Orbitron', monospace"
+    },
+    "families": {
+      "display": "Exo 2",
+      "body": "Sora",
+      "mono": "JetBrains Mono",
+      "data": "Orbitron"
+    },
+    "scale": {
+      "2xs": "0.625rem"
+    },
+    "cdn": "Google Fonts via <link>, display=swap, fallback metrics in globals.css"
+  },
+  "spacing": {
+    "grid": "4px",
+    "tokens": {
+      "xs": "0.25rem",
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "1.5rem",
+      "xl": "2rem",
+      "2xl": "3rem",
+      "section": "4rem"
+    }
+  },
+  "radii": {
+    "tileOuter": "16px",
+    "tileInner": "13px",
+    "screenInner": "11px",
+    "pill": "9999px",
+    "content": "12px",
+    "elevated": "18px",
+    "strategy": "three-layer chrome bezel (outer 16, LED rim 13, screen 11)"
+  },
+  "glass": {
+    "base": {
+      "class": "glass-card-v2",
+      "backdropFilter": "blur(10px) saturate(180%) brightness(1.08)",
+      "background": "linear-gradient(145deg, rgba(28,32,48,0.62) 0%, rgba(17,17,28,0.78) 100%)",
+      "border": "1px solid rgba(255,255,255,0.12)",
+      "boxShadow": "0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)",
+      "borderRadius": "16px",
+      "perEdgeBorder": "top 0.22 → mid 0.08 → bottom 0.02 (light catching glass edge)"
+    },
+    "elevated": {
+      "class": "glass-card-v2-elevated",
+      "backdropFilter": "blur(12px) saturate(200%) brightness(1.12)",
+      "background": "linear-gradient(145deg, rgba(35,40,60,0.68) 0%, rgba(20,20,32,0.82) 100%)",
+      "border": "1px solid rgba(255,255,255,0.16)",
+      "boxShadow": "0 16px 60px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.12)",
+      "borderRadius": "18px"
+    }
+  },
+  "chrome": {
+    "bezel": {
+      "class": "chrome-frame",
+      "layers": 3,
+      "background": "linear-gradient(180deg, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.06) 40%, rgba(0,0,0,0.30) 100%)",
+      "boxShadow": "0 1px 0 rgba(255,255,255,0.06), inset 0 1px 0 rgba(255,255,255,0.12)"
+    },
+    "ledRim": {
+      "class": "led-rim",
+      "background": "linear-gradient(90deg, transparent 0%, var(--lab-color) 50%, transparent 100%)",
+      "opacity": 0.5
+    },
+    "screenInner": {
+      "class": "screen-inner",
+      "background": "var(--surface-card)",
+      "boxShadow": "inset 0 2px 6px rgba(0,0,0,0.4)"
+    }
+  },
+  "materialPhysics": {
+    "ior": 1.55,
+    "transmission": 0.97,
+    "roughness": 0.04,
+    "metalness": 0,
+    "anisotropy": 0.65,
+    "clearcoat": 1,
+    "envMapIntensity": 2.4,
+    "note": "WebGPU/TSL-only physics. Use as a target *vibe* for HTML — replicate via gradient highlights, conic-gradients, and chromatic aberration text-shadows."
+  },
+  "background": {
+    "kind": "cosmic-dark",
+    "class": "bg-cosmic-dark",
+    "stack": [
+      "radial-gradient(ellipse at 20% 50%, rgba(0,187,255,0.03), transparent 60%)",
+      "radial-gradient(ellipse at 80% 20%, rgba(170,102,255,0.02), transparent 50%)",
+      "oklch(0.13 0.02 260) /* surface-base */"
+    ],
+    "overlays": [
+      "scanlines (rgba(0,187,255,0.03), 4px stripe)",
+      "corner-vignette (rgba(0,20,40,0.3))"
+    ]
+  },
+  "curvature": {
+    "uiCurveDeg": 0,
+    "strategy": "No CSS-level page curvature today; cockpit curve is achieved in 3D canvas. Redesign should add `transform: perspective(1200px) rotateX(2deg)` on the bento grid container as the equivalent."
+  },
+  "motion": {
+    "easings": {
+      "spring": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "bezel": "cubic-bezier(0.4, 0.0, 0.2, 1)"
+    },
+    "durations": {
+      "fast": "120ms",
+      "base": "200ms",
+      "medium": "400ms",
+      "long": "600ms"
+    },
+    "keyframes": [
+      "float (3.5s)",
+      "float-slow (6s)",
+      "glow-pulse (3s)",
+      "chrome-shimmer (3s)",
+      "connection-pulse (4s)",
+      "badge-unlock (0.8s)",
+      "confetti-fall (3s)",
+      "slide-up-spring (0.5s)",
+      "scale-bounce (0.5s)",
+      "xp-counter (1.5s)",
+      "subtle-glow (4s)",
+      "skeleton-shimmer (1.8s)",
+      "glow-border-rotate (4s)",
+      "emissivePulse (3s)",
+      "ledRimPulse (3s)",
+      "holographic-sweep (3s)"
+    ],
+    "interactiveHover": {
+      "transform": "translateY(-6px) scale(1.01)",
+      "boxShadow": "0 12px 40px rgba(0,0,0,0.3), 0 0 20px var(--lab-glow)",
+      "duration": "250ms"
+    },
+    "activePress": {
+      "transform": "translateY(-2px) scale(1.0)",
+      "duration": "100ms"
+    },
+    "reducedMotion": "All animations collapse to 0.01ms; chromatic-text + skeleton-shimmer stripped"
+  },
+  "effects": {
+    "neonText": "text-shadow: 0 0 7px var(--lab-color), 0 0 10px var(--lab-color), 0 0 21px var(--lab-color)",
+    "gradientText": "linear-gradient(135deg, #00BBFF, #AA66FF, #FF66AA), -webkit-background-clip: text",
+    "emissiveGlow": "0 0 8px color-mix(in srgb, var(--glow-color) 30%, transparent), 0 0 20px ... 15%, 0 0 40px ... 8%",
+    "chromaticAberration": "text-shadow: -1px 0 0.5px #00BBFF, 1px 0 0.5px #AA66FF",
+    "glowBorder": "animated rotating gradient: blue → purple → amber → blue (4s)",
+    "scanlines": "repeating-linear-gradient(0deg, transparent 2px, rgba(0,187,255,0.03) 2px 4px), mix-blend-mode: overlay",
+    "starfield": "radial gradients on surface-base"
+  },
+  "accessibility": {
+    "colorScheme": "dark",
+    "focusRing": "outline 3px solid var(--lab-color), outline-offset 2px, double box-shadow halo (30%/40%)",
+    "reducedMotion": "respected via prefers-reduced-motion + uiStore.reducedMotion",
+    "dyslexiaFont": "OpenDyslexic toggle",
+    "fontSizePresets": [
+      "100%",
+      "112.5%",
+      "125%"
+    ],
+    "highContrastMode": "available",
+    "brightnessControl": "0.7 - 1.0 user-adjustable, applied as body filter (canvas excluded)"
+  },
+  "bento": {
+    "tileSizing": [
+      "1x1",
+      "1x2",
+      "2x1",
+      "2x2"
+    ],
+    "gap": "var(--space-md) /* 16px */",
+    "gridContainer": "12-col responsive (cols-12 lg, cols-6 md, cols-2 sm)",
+    "tileMinHeight": "120px"
+  },
+  "sourceFiles": {
+    "labColors": "src/config/labColors.ts",
+    "tailwind": "tailwind.config.ts",
+    "globals": "src/app/globals.css",
+    "brandMaterial": "src/lib/branding/sf-material.config.ts",
+    "layout": "src/app/layout.tsx"
+  }
+}
