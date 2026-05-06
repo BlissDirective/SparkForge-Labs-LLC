@@ -1,22 +1,23 @@
 'use client';
 
 // ════════════════════════════════════════════════════════════════
-// Signup Page — 3D Scene Descriptor (Phase 3)
+// Signup Page — HTML form with 3D portal backdrop (per HS-10)
 // ════════════════════════════════════════════════════════════════
-// Thin wrapper that renders SignupPanel3D inside the auth layout Canvas.
-// All logic handlers defined here; visual rendering in 3D panel.
+// The 3D crystal portal renders behind the form via the auth
+// layout's fixed Canvas. This page renders <SignupCard/> as
+// standard HTML so the form is interactive on every device,
+// including mobile Safari without WebGL.
+//
+// Previously rendered SignupPanel3D inside an extra AuthPanelCanvas.
+// When the second canvas's WebGL context failed silently (or when its
+// SDF text font assets stalled), the user was left looking only at
+// the layout's portal "blob" with no form on top of it.
 
 import { useCallback } from 'react';
 import { csrfHeader } from '@/lib/api';
 import { useRouter } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import { ageToAgeBand } from '@/lib/utils';
-import { AuthPanelCanvas } from '@/components/auth/AuthPanelCanvas';
-
-const SignupPanel3D = dynamic(
-  () => import('@/components/3d/panels/SignupPanel3D'),
-  { ssr: false }
-);
+import { SignupCard, type SignupAgeBand } from '@/components/auth/SignupCard';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function SignupPage() {
   // /api/auth/consent record reflects which child age range the parent
   // acknowledged at consent time.
   const handleStep3 = useCallback(
-    async (email: string, ageBand: 'A' | 'B' | 'C' | 'mixed') => {
+    async (email: string, ageBand: SignupAgeBand) => {
       try {
         const res = await fetch('/api/auth/consent', {
           method: 'POST',
@@ -122,14 +123,11 @@ export default function SignupPage() {
   }, [router]);
 
   return (
-    <AuthPanelCanvas>
-      <SignupPanel3D
-        onNavigateLogin={() => router.push('/login')}
-        onStep1={handleStep1}
-        onStep3={handleStep3}
-        onStep4={handleStep4}
-        onComplete={() => {}}
-      />
-    </AuthPanelCanvas>
+    <SignupCard
+      onNavigateLogin={() => router.push('/login')}
+      onStep1={handleStep1}
+      onStep3={handleStep3}
+      onStep4={handleStep4}
+    />
   );
 }

@@ -38,7 +38,19 @@ export default function HomePage() {
     return Math.round(total / 10);
   }, [labsProgress]);
 
-  if (!activeChild) return null;
+  // Demo users sign in anonymously and never have a parent / child profile,
+  // so activeChild is undefined for them. Returning null short-circuited
+  // the hooks above already, but the cockpit canvas still renders via the
+  // dashboard layout. We render an sr-only welcome banner with safe
+  // defaults so screen readers still get a landmark.
+  if (!activeChild) {
+    return (
+      <div className="sr-only" role="main" aria-label="SparkForge Home Dashboard">
+        <h1>Welcome to SparkForge</h1>
+        <p>Demo session — explore the cockpit and labs.</p>
+      </div>
+    );
+  }
 
   // sr-only ARIA content for screen readers
   return (

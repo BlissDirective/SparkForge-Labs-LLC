@@ -317,11 +317,19 @@ export function HeroScene({ state, actions }: HeroSceneProps) {
 }
 
 // ════════════════════════════════════════════════════════════════
-// HeroAnimation — outer wrapper (UI overlay only — preserved from v2)
+// HeroOverlay — HTML overlay (skip button, progress bar, a11y)
 // ════════════════════════════════════════════════════════════════
+// Stateless companion to HeroScene. Takes the SAME state/actions tuple
+// the scene receives so both halves of the hero animation stay in
+// lock-step. The dashboard layout owns the single useHeroAnimation()
+// call and forwards the tuple to both surfaces.
 
-export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimationProps) {
-  const [state, actions] = useHeroAnimation(onComplete, onPhaseChange);
+interface HeroOverlayProps {
+  state: HeroAnimationState;
+  actions: HeroAnimationActions;
+}
+
+export function HeroOverlay({ state, actions }: HeroOverlayProps) {
   const [skipVisible, setSkipVisible] = useState(false);
   const setHeroPhase = useCockpitStore((s) => s.setHeroPhase);
   const setCockpitReady = useCockpitStore((s) => s.setCockpitReady);
@@ -361,7 +369,7 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
     return () => window.removeEventListener('keydown', handleKey);
   }, [state.shouldSkip, state.isComplete, state.isFastForwarding, actions]);
 
-  // Cockpit state on skip
+  // Cockpit state on skip — short-circuits the GSAP timeline path
   useEffect(() => {
     if (state.shouldSkip) {
       setHeroPhase('complete');
@@ -375,7 +383,6 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
   return (
     <div
       className="fixed inset-0 z-50 pointer-events-none"
-      style={{ background: '#0A0E16' }}
       aria-label="SparkForge hero animation"
     >
       <div role="status" aria-live="polite" className="sr-only">
@@ -383,25 +390,51 @@ export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimati
       </div>
 
       {skipVisible && (
-        <button
-          onClick={() => actions.fastForward()}
-          className="pointer-events-auto fixed bottom-6 right-6 px-4 py-2 rounded-full
-            backdrop-blur-md bg-white/5 border border-white/10
-            font-body text-sm text-white/70 hover:text-white/80
-            transition-opacity duration-300 focus:outline-none
-            focus:ring-2 focus:ring-[#00BBFF]/50"
-          aria-label="Skip intro animation"
-        >
-          Skip &gt;
-        </button>
+        <>
+          <button
+            onClick={() => actions.fastForward()}
+            disabled={state.isFastForwarding}
+            className="pointer-events-auto fixed bottom-6 right-32 px-4 py-2 rounded-full
+              backdrop-blur-md bg-white/5 border border-white/10
+              font-body text-sm text-white/70 hover:text-white/80
+              transition-opacity duration-300 focus:outline-none
+              focus:ring-2 focus:ring-[#00BBFF]/50 disabled:opacity-40"
+            aria-label="Fast-forward intro animation"
+          >
+            {state.isFastForwarding ? '4× …' : 'Fast-forward'}
+          </button>
+          <button
+            onClick={() => actions.skipToEnd()}
+            className="pointer-events-auto fixed bottom-6 right-6 px-4 py-2 rounded-full
+              backdrop-blur-md bg-white/5 border border-white/10
+              font-body text-sm text-white/70 hover:text-white/80
+              transition-opacity duration-300 focus:outline-none
+              focus:ring-2 focus:ring-[#00BBFF]/50"
+            aria-label="Skip intro animation"
+          >
+            Skip &gt;
+          </button>
+        </>
       )}
 
       <div className="fixed bottom-0 left-0 right-0 h-0.5 bg-white/5">
         <div
-          className="h-full bg-[#00BBFF]/30 transition-all duration-300"
+          className="h-full bg-[#00BBFF]/60 transition-all duration-200"
           style={{ width: `${state.progress * 100}%` }}
         />
       </div>
     </div>
   );
+}
+
+// ════════════════════════════════════════════════════════════════
+// HeroAnimation — outer wrapper (UI overlay only — preserved from v2)
+// ════════════════════════════════════════════════════════════════
+// Backward-compat default export: self-contained hook + overlay.
+// The dashboard layout doesn't use this — it instantiates the hook
+// itself so both HeroScene (3D) and HeroOverlay (HTML) share state.
+
+export default function HeroAnimation({ onComplete, onPhaseChange }: HeroAnimationProps) {
+  const [state, actions] = useHeroAnimation(onComplete, onPhaseChange);
+  return <HeroOverlay state={state} actions={actions} />;
 }
