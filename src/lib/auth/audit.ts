@@ -27,7 +27,8 @@ export type AuthEventType =
   | 'mfa.disabled'
   | 'password.changed'
   | 'password.reset_requested'
-  | 'email.verified';
+  | 'email.verified'
+  | 'email.resend';
 
 export interface AuthEventInput {
   parentId: string;

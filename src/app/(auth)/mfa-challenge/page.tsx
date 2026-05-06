@@ -85,7 +85,7 @@ export default function MfaChallengePage() {
 
   return (
     <main className="min-h-screen bg-[#06070e] px-6 py-10 text-white/90 flex items-center justify-center">
-      <div className="w-full max-w-sm space-y-5">
+      <div className="w-full max-w-[24rem] space-y-5">
         <h1 className="text-2xl font-semibold text-center">Two-factor check</h1>
         <p className="text-center text-white/60 text-sm">
           {mode === 'totp'

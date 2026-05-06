@@ -5,7 +5,7 @@
 // to pass to navigator.credentials.create(). Caller must be logged in
 // (real parent session, not demo).
 import { NextRequest } from 'next/server';
-import { apiSuccess, apiError, requireWriteAccess } from '@/lib/api-helpers';
+import { apiSuccess, apiError, requireWriteAccess, sanitizeErrorMessage } from '@/lib/api-helpers';
 import { startPasskeyRegistration } from '@/lib/auth/passkey-server';
 import { createAdminClient } from '@/lib/supabase/server';
 import { isFeatureEnabled } from '@/lib/feature-flags';
@@ -37,8 +37,9 @@ export async function POST(req: NextRequest) {
     });
     return apiSuccess({ options });
   } catch (err) {
+    console.error('[passkeys] register-options failed:', err);
     return apiError(
-      err instanceof Error ? err.message : 'Failed to generate registration options',
+      sanitizeErrorMessage(err, 'Failed to generate registration options'),
       500,
       'PASSKEY_REGISTER_OPTIONS_FAILED',
     );
