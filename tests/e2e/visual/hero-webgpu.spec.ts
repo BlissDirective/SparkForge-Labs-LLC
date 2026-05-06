@@ -25,8 +25,8 @@ test.describe('hero animation render path', () => {
     const ctx = await browser.newContext({ ...devices['iPhone 15'] });
     const page = await ctx.newPage();
     try {
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await page.goto('/', { waitUntil: 'load' });
+      await page.getByRole('region', { name: 'SparkForge hero' }).waitFor({ state: 'visible' });
 
       const webgpuStatus = await page.evaluate(async () => {
         if (!('gpu' in navigator)) return 'absent';
@@ -58,8 +58,8 @@ test.describe('hero animation render path', () => {
     const ctx = await browser.newContext({ ...devices['Desktop Chrome HiDPI'] });
     const page = await ctx.newPage();
     try {
-      await page.goto('/');
-      await page.waitForLoadState('networkidle');
+      await page.goto('/', { waitUntil: 'load' });
+      await page.getByRole('region', { name: 'SparkForge hero' }).waitFor({ state: 'visible' });
 
       const gpuInfo = await page.evaluate(async () => {
         if (!('gpu' in navigator)) return { supported: false };
