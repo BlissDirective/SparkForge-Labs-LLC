@@ -44,6 +44,8 @@ for migrations that don't have a canonical source).
 | 30 | `20260424211353` | `standard_game_ids_20260410` | `supabase/migrations/20260410_add_standard_game_ids.sql` (+ added `content_queue.game_id` and `content_queue.content_type` prereq columns; CHECK constraints relaxed to allow NULL; partial indexes) |
 | 31 | `20260424211512` | `restrict_policies_to_authenticated_role` | Novel — `supabase/migrations/20260424211512_*.sql` (Option A advisor mitigation) |
 | 32 | `20260506000001` | `promote_cdsteinmeyer_admin` | Novel — `supabase/migrations/20260506000001_*.sql` (idempotent admin seed; flips `is_admin=true` on the existing parents row, or installs a one-shot BEFORE INSERT trigger if the account hasn't signed up yet) |
+| 33 | `20260506000002` | `revoke_security_definer_rpc_exposure` | Novel — `supabase/migrations/20260506000002_*.sql` (audit follow-up; REVOKE EXECUTE on `mfa_backup_codes_remaining(uuid)` and `audit_trigger()` from PUBLIC/anon/authenticated. Closes info-disclosure on backup-code count for arbitrary parent_id and quiets advisor lints 0028+0029. Server caller uses service_role and is unaffected.) |
+| 34 | `20260506000003` | `auth_events_allow_email_resend` | Novel — `supabase/migrations/20260506000003_*.sql` (widens `auth_events.event_type` CHECK to include `'email.resend'` so the resend-verification route can record admin-trail entries) |
 
 ## Skipped from canonical sources
 

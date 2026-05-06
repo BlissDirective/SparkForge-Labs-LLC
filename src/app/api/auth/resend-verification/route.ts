@@ -19,6 +19,7 @@ import { NextRequest } from 'next/server';
 import { createServerSupabase } from '@/lib/supabase/server';
 import { apiSuccess, apiError, requireAuth, applyRateLimit } from '@/lib/api-helpers';
 import { RATE_LIMITS } from '@/lib/rate-limit';
+import { logAuthEvent } from '@/lib/auth/audit';
 
 export async function POST(req: NextRequest) {
   const limited = await applyRateLimit(req, 'auth-resend-verification', undefined, RATE_LIMITS.auth);
@@ -61,6 +62,16 @@ export async function POST(req: NextRequest) {
     // as a scary error in the banner.
     console.warn('[auth/resend-verification] resend failed:', error.message);
   }
+
+  // Admin trail: record the resend attempt regardless of Supabase outcome.
+  // `success` lets admins differentiate genuine sends from blips that the
+  // client UI hides behind the neutral "sent" response.
+  await logAuthEvent({
+    parentId: auth.user.id,
+    eventType: 'email.resend',
+    metadata: { success: !error },
+    req,
+  });
 
   return apiSuccess({ sent: true });
 }
