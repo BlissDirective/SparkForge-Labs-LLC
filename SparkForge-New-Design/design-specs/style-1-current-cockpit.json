@@ -1,7 +1,7 @@
 {
-  "$schema": "sparkforge-design-spec/v1",
+  "$schema": "sparkforge-design-spec/v2",
   "style": "style-1-current-cockpit",
-  "description": "Exact extraction of the current Frost-Prismatic Laboratory Cockpit design language as coded today. Dark-mode only. Use as the baseline reference for v0/Lovable prompts that should match the existing app.",
+  "description": "Current Frost-Prismatic Laboratory Cockpit, lightly cleaned for HTML translation. Dark-mode only. Architecture mirrors the actual coded CockpitUILayer — 4 fixed zones around a variable center viewport, with peripheral HUD frame and concentric 6+5 lab map.",
   "brand": {
     "name": "SparkForge",
     "audience": "kids 7-16",
@@ -139,7 +139,22 @@
       "data": "Orbitron"
     },
     "scale": {
-      "2xs": "0.625rem"
+      "2xs": "0.625rem",
+      "xs": "0.75rem",
+      "sm": "0.875rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "1.875rem",
+      "4xl": "2.25rem"
+    },
+    "tracking": {
+      "tight": "-0.02em",
+      "normal": "0",
+      "wide": "0.04em",
+      "wider": "0.12em",
+      "widest": "0.20em"
     },
     "cdn": "Google Fonts via <link>, display=swap, fallback metrics in globals.css"
   },
@@ -161,8 +176,7 @@
     "screenInner": "11px",
     "pill": "9999px",
     "content": "12px",
-    "elevated": "18px",
-    "strategy": "three-layer chrome bezel (outer 16, LED rim 13, screen 11)"
+    "elevated": "18px"
   },
   "glass": {
     "base": {
@@ -171,8 +185,7 @@
       "background": "linear-gradient(145deg, rgba(28,32,48,0.62) 0%, rgba(17,17,28,0.78) 100%)",
       "border": "1px solid rgba(255,255,255,0.12)",
       "boxShadow": "0 8px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.08)",
-      "borderRadius": "16px",
-      "perEdgeBorder": "top 0.22 → mid 0.08 → bottom 0.02 (light catching glass edge)"
+      "borderRadius": "16px"
     },
     "elevated": {
       "class": "glass-card-v2-elevated",
@@ -209,7 +222,7 @@
     "anisotropy": 0.65,
     "clearcoat": 1,
     "envMapIntensity": 2.4,
-    "note": "WebGPU/TSL-only physics. Use as a target *vibe* for HTML — replicate via gradient highlights, conic-gradients, and chromatic aberration text-shadows."
+    "note": "WebGPU/TSL-only physics. Replicate the *vibe* in HTML via gradient highlights, conic-gradients, chromatic-aberration text-shadows."
   },
   "background": {
     "kind": "cosmic-dark",
@@ -217,7 +230,7 @@
     "stack": [
       "radial-gradient(ellipse at 20% 50%, rgba(0,187,255,0.03), transparent 60%)",
       "radial-gradient(ellipse at 80% 20%, rgba(170,102,255,0.02), transparent 50%)",
-      "oklch(0.13 0.02 260) /* surface-base */"
+      "oklch(0.13 0.02 260)"
     ],
     "overlays": [
       "scanlines (rgba(0,187,255,0.03), 4px stripe)",
@@ -225,8 +238,8 @@
     ]
   },
   "curvature": {
-    "uiCurveDeg": 0,
-    "strategy": "No CSS-level page curvature today; cockpit curve is achieved in 3D canvas. Redesign should add `transform: perspective(1200px) rotateX(2deg)` on the bento grid container as the equivalent."
+    "uiCurveDeg": 2,
+    "strategy": "Apply `transform: perspective(1200px) rotateX(2deg); transform-style: preserve-3d;` to the cockpit grid wrapper. Disable on prefers-reduced-motion + (pointer:coarse)."
   },
   "motion": {
     "easings": {
@@ -246,7 +259,6 @@
       "chrome-shimmer (3s)",
       "connection-pulse (4s)",
       "badge-unlock (0.8s)",
-      "confetti-fall (3s)",
       "slide-up-spring (0.5s)",
       "scale-bounce (0.5s)",
       "xp-counter (1.5s)",
@@ -266,7 +278,7 @@
       "transform": "translateY(-2px) scale(1.0)",
       "duration": "100ms"
     },
-    "reducedMotion": "All animations collapse to 0.01ms; chromatic-text + skeleton-shimmer stripped"
+    "reducedMotion": "all animations collapse to 0.01ms; chromatic-text + skeleton-shimmer stripped"
   },
   "effects": {
     "neonText": "text-shadow: 0 0 7px var(--lab-color), 0 0 10px var(--lab-color), 0 0 21px var(--lab-color)",
@@ -288,24 +300,492 @@
       "125%"
     ],
     "highContrastMode": "available",
-    "brightnessControl": "0.7 - 1.0 user-adjustable, applied as body filter (canvas excluded)"
+    "brightnessControl": "0.7-1.0 user-adjustable, body filter (canvas excluded)",
+    "semanticLandmarks": "banner / main / aside / nav / contentinfo on each zone"
   },
-  "bento": {
-    "tileSizing": [
-      "1x1",
-      "1x2",
-      "2x1",
-      "2x2"
+  "architecture": {
+    "kind": "4-zone-cockpit",
+    "metaphor": "futuristic spacecraft cockpit cabin",
+    "rationale": "Mirrors the currently-coded CockpitUILayer architecture, lightly cleaned for HTML translation. Four fixed zones surround a variable center viewport that swaps content per route. A peripheral HUD frame wraps the viewport with corner data readouts.",
+    "zoneGrid": {
+      "kind": "css-grid",
+      "template": "\"hud-tl   hud-top   hud-tr   \"  64px\n        \"left     center    right    \"  1fr\n        \"hud-bl   hud-bottom hud-br  \"  56px\n        \"instr    instr     instr    \"  120px\n        / 25%     45%       25%",
+      "zones": {
+        "left": {
+          "id": "player-hub",
+          "widthPct": 25,
+          "fixed": true,
+          "ariaLandmark": "aside",
+          "label": "Pilot identity"
+        },
+        "center": {
+          "id": "viewport",
+          "widthPct": 45,
+          "fixed": false,
+          "ariaLandmark": "main",
+          "label": "Mission viewport"
+        },
+        "right": {
+          "id": "controls",
+          "widthPct": 25,
+          "fixed": true,
+          "ariaLandmark": "aside",
+          "label": "Controls and monitoring"
+        },
+        "bottom": {
+          "id": "instruments",
+          "heightPx": 120,
+          "spansFullWidth": true,
+          "ariaLandmark": "nav",
+          "label": "Navigation and instruments"
+        },
+        "hudFrame": {
+          "id": "hud",
+          "kind": "peripheral-arcs",
+          "position": "absolute"
+        }
+      }
+    },
+    "panels": [
+      {
+        "id": "player-hub",
+        "zone": "left",
+        "title": "Pilot Identity",
+        "elements": [
+          {
+            "kind": "hexagonal-avatar",
+            "size": "96px",
+            "frame": "chrome-bezel-3-layer",
+            "glow": "lab-color"
+          },
+          {
+            "kind": "child-name",
+            "font": "display",
+            "weight": 600,
+            "size": "18px",
+            "tracking": "-0.01em"
+          },
+          {
+            "kind": "level-badge",
+            "font": "data",
+            "size": "11px",
+            "format": "LV.{level}",
+            "bg": "pill chrome"
+          },
+          {
+            "kind": "gauge-stack",
+            "orientation": "vertical",
+            "items": [
+              {
+                "id": "xp",
+                "label": "XP",
+                "valueFont": "data",
+                "kind": "circular-gauge",
+                "radius": 28,
+                "value": "{xp.toLocaleString()}"
+              },
+              {
+                "id": "streak",
+                "label": "STREAK",
+                "icon": "flame",
+                "kind": "numeric",
+                "value": "{streakDays}d"
+              },
+              {
+                "id": "daily",
+                "label": "TODAY",
+                "kind": "progress-ring",
+                "value": "{dailyPct}%"
+              }
+            ]
+          },
+          {
+            "kind": "badge-shelf",
+            "layout": "honeycomb-2x3",
+            "count": 6,
+            "lockedTreatment": "desaturated + lock icon"
+          }
+        ]
+      },
+      {
+        "id": "viewport",
+        "zone": "center",
+        "title": "Mission Viewport",
+        "background": {
+          "kind": "lab-map-hologram",
+          "refer": "architecture.labMap"
+        },
+        "foreground": [
+          {
+            "kind": "floating-header",
+            "position": "top-center",
+            "text": "Welcome back, {displayName}",
+            "font": "display",
+            "size": "28px",
+            "weight": 700
+          },
+          {
+            "kind": "continue-cta",
+            "position": "bottom-center",
+            "label": "Continue Learning",
+            "icon": "arrow-right",
+            "variant": "primary-glow"
+          }
+        ],
+        "slot": "CenterContentRouter swaps based on cockpitStore.centerContent (home | labs | game | profile | arcade)"
+      },
+      {
+        "id": "controls",
+        "zone": "right",
+        "title": "Mission Console",
+        "elements": [
+          {
+            "kind": "collapsible-header",
+            "text": "CONTROLS",
+            "icon": "chevron-down",
+            "font": "data",
+            "size": "11px"
+          },
+          {
+            "kind": "toggle",
+            "id": "audio-master",
+            "label": "Audio",
+            "valueFrom": "cockpitStore.masterSoundEnabled"
+          },
+          {
+            "kind": "slider",
+            "id": "ambient",
+            "label": "Ambient",
+            "min": 0,
+            "max": 1,
+            "step": 0.05,
+            "valueFrom": "cockpitStore.ambientVolume"
+          },
+          {
+            "kind": "slider",
+            "id": "brightness",
+            "label": "Brightness",
+            "min": 0.7,
+            "max": 1,
+            "step": 0.02,
+            "valueFrom": "cockpitStore.brightness"
+          },
+          {
+            "kind": "segmented",
+            "id": "theme",
+            "label": "Theme",
+            "options": [
+              "Default",
+              "Aurora",
+              "Crimson"
+            ],
+            "valueFrom": "cockpitStore.cockpitTheme"
+          },
+          {
+            "kind": "link",
+            "id": "settings-full",
+            "label": "Open all settings",
+            "href": "/settings"
+          }
+        ]
+      },
+      {
+        "id": "instruments",
+        "zone": "bottom",
+        "title": "Navigation Cluster",
+        "elements": [
+          {
+            "kind": "nav-button-grid",
+            "layout": "flex-evenly",
+            "buttons": [
+              {
+                "id": "home",
+                "label": "Home",
+                "icon": "home",
+                "href": "/home"
+              },
+              {
+                "id": "labs",
+                "label": "Labs",
+                "icon": "beaker",
+                "href": "/labs"
+              },
+              {
+                "id": "arcade",
+                "label": "Arcade",
+                "icon": "gamepad",
+                "href": "/arcade"
+              },
+              {
+                "id": "profile",
+                "label": "Profile",
+                "icon": "user",
+                "href": "/profile"
+              },
+              {
+                "id": "settings",
+                "label": "Settings",
+                "icon": "cog",
+                "href": "/settings"
+              }
+            ]
+          },
+          {
+            "kind": "dial-cluster",
+            "dials": [
+              {
+                "id": "mission-status",
+                "label": "STATUS",
+                "kind": "led-indicator"
+              },
+              {
+                "id": "connection",
+                "label": "LINK",
+                "kind": "pulse-bar"
+              }
+            ]
+          },
+          {
+            "kind": "status-bar",
+            "backgroundLine": "lab-color rim, 1px, fades to transparent at edges"
+          }
+        ]
+      }
     ],
-    "gap": "var(--space-md) /* 16px */",
-    "gridContainer": "12-col responsive (cols-12 lg, cols-6 md, cols-2 sm)",
-    "tileMinHeight": "120px"
+    "hud": {
+      "kind": "peripheral-arc-frame",
+      "position": "absolute, wraps viewport at z-index 50",
+      "segments": [
+        {
+          "id": "top",
+          "arcDeg": 92,
+          "ticks": 32,
+          "position": "top-center"
+        },
+        {
+          "id": "bottom",
+          "arcDeg": 92,
+          "ticks": 32,
+          "position": "bottom-center"
+        },
+        {
+          "id": "left",
+          "arcDeg": 70,
+          "ticks": 24,
+          "position": "middle-left"
+        },
+        {
+          "id": "right",
+          "arcDeg": 70,
+          "ticks": 24,
+          "position": "middle-right"
+        }
+      ],
+      "cornerReadouts": {
+        "topLeft": {
+          "kind": "clock",
+          "font": "data",
+          "size": "12px",
+          "format": "HH:MM",
+          "letterSpacing": "0.12em"
+        },
+        "topRight": {
+          "kind": "xp-counter",
+          "font": "data",
+          "size": "12px",
+          "format": "XP {xp.toLocaleString()}",
+          "prefix": "XP "
+        },
+        "bottomLeft": {
+          "kind": "mode-label",
+          "font": "data",
+          "size": "11px",
+          "format": "{MODE}",
+          "letterSpacing": "0.18em"
+        },
+        "bottomRight": {
+          "kind": "child-tag",
+          "font": "data",
+          "size": "11px",
+          "format": "{name} / LV.{level}"
+        }
+      },
+      "animation": "breathing emissive pulse 4s; gold celebration cascade for major events",
+      "baselineOpacity": 0.35,
+      "hoverOpacity": 0.7
+    },
+    "labMap": {
+      "kind": "concentric-rings-2",
+      "rings": [
+        {
+          "id": "outer",
+          "labIds": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "radiusVw": 18,
+          "angleStepDeg": 60,
+          "startAngleDeg": -90,
+          "role": "foundation"
+        },
+        {
+          "id": "inner",
+          "labIds": [
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "radiusVw": 11,
+          "angleStepDeg": 72,
+          "startAngleDeg": -90,
+          "role": "advanced"
+        }
+      ],
+      "adjacency": {
+        "outerLoop": [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "innerLoop": [
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            11,
+            7
+          ]
+        ],
+        "crossBeams": [
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            5,
+            11
+          ]
+        ],
+        "specialOverlay": {
+          "labId": 6,
+          "treatment": "connects to ALL labs visually (Ethics overlay)"
+        }
+      },
+      "nodeTreatment": {
+        "idle": "circular hex-emblem 64px, chrome ring, lab-color emissive at 30%",
+        "hovered": "scale 1.06, emissive 60%, label tooltip appears anchored to node",
+        "focused": "scale 1.12, emissive 90%, ring pulses, neighboring beams brighten",
+        "locked": "desaturated 40%, padlock icon, no hover effect"
+      },
+      "edgeTreatment": {
+        "kind": "animated-energy-line",
+        "baseColor": "rgba(255,255,255,0.06)",
+        "activeColor": "gradient lab-color → adjacent-lab-color",
+        "animation": "connection-pulse 4s ease-in-out (existing keyframe)",
+        "thickness": "1px"
+      },
+      "interaction": {
+        "click": "focus lab + center camera (CSS perspective shift)",
+        "doubleClick": "iris-zoom into lab detail page (View Transitions API)",
+        "hover": "highlight node + tooltip",
+        "keyboard": "arrow keys traverse adjacency graph; Enter focuses; Space enters"
+      }
+    },
+    "transitions": {
+      "heroToCockpit": {
+        "kind": "view-transitions-api",
+        "duration": "600ms",
+        "morphTargets": [
+          "hero-logo → topbar-logo"
+        ]
+      },
+      "labEntry": {
+        "kind": "iris-zoom",
+        "duration": "400ms",
+        "mask": "circle from clicked-lab origin"
+      },
+      "gameEntry": {
+        "kind": "iris-zoom",
+        "duration": "500ms",
+        "plus": "CSS scroll-driven exit on previous content"
+      },
+      "panelExpand": {
+        "kind": "fold-out",
+        "duration": "300ms",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+      }
+    },
+    "responsive": {
+      "strategy": "container-queries (not viewport)",
+      "breakpoints": {
+        "cabin": "@container (min-width: 1280px) — full 4-zone cockpit",
+        "compact": "@container (min-width: 900px)  — left/right narrow to 20%, center 60%",
+        "stacked": "@container (max-width: 899px)  — vertical stack: HUD top, viewport, instruments, controls collapse to bottom-sheet"
+      }
+    }
   },
   "sourceFiles": {
     "labColors": "src/config/labColors.ts",
     "tailwind": "tailwind.config.ts",
     "globals": "src/app/globals.css",
     "brandMaterial": "src/lib/branding/sf-material.config.ts",
-    "layout": "src/app/layout.tsx"
+    "layout": "src/app/layout.tsx",
+    "cockpitUI": "src/components/3d/CockpitUILayer.tsx",
+    "cockpitPanels": "src/components/3d/CockpitPanels.tsx",
+    "labMap": "src/components/3d/HolographicLabMap.tsx",
+    "hud": "src/components/3d/HolographicHUD.tsx",
+    "cockpitStore": "src/stores/cockpitStore.ts"
   }
 }

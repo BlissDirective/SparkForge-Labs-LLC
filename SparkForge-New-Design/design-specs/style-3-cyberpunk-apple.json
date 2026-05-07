@@ -1,16 +1,16 @@
 {
-  "$schema": "sparkforge-design-spec/v1",
+  "$schema": "sparkforge-design-spec/v2",
   "style": "style-3-cyberpunk-apple",
-  "description": "Synthetic design language. Reference vibe: Apple product pages (huge breathing whitespace, hero-only typography, monochrome chrome, cinematic scroll reveals) crossed with cyberpunk holographic HUD (teal/cyan rim glows, magenta/violet vortex hero, low-poly geometric accents, oil-slick iridescence). Reference images informed COLOR + TYPOGRAPHY + STYLE only — text content and product concepts ignored. Motion + bento + slight UI curvature carry over from style-1.",
+  "description": "\"Holo-Deck Dashboard\" — clean-sheet redesign. Apple-style vertical scroll page with cyberpunk holographic accents (iridescent rings, magenta/teal vortex hero, low-poly geometric corners). Discards the 4-zone cockpit metaphor entirely. Light + dark theme variants. Reference image colors sampled. Uses every modern CSS best practice: scroll-snap, @scroll-timeline, View Transitions API, anchor positioning, container queries, OKLCH, color-mix, :has().",
   "brand": {
     "name": "SparkForge",
     "audience": "kids 7-16",
     "mood": [
       "Apple-clean whitespace",
       "cyberpunk holographic",
-      "iridescent oil-slick",
-      "low-poly geometric",
-      "cinematic scroll"
+      "iridescent",
+      "scrollable narrative",
+      "low-poly geometric"
     ]
   },
   "palette": {
@@ -111,7 +111,7 @@
       "aurora": "oklch(0.86 0.20 155)"
     },
     "surface": {
-      "base": "#F7FAFD /* primary, Apple off-white */",
+      "base": "#F7FAFD",
       "card": "#FFFFFF",
       "elevated": "#FFFFFF",
       "border": "rgba(11,15,30,0.08)",
@@ -127,8 +127,8 @@
   },
   "typography": {
     "fontStacks": {
-      "display": "\"Inter Display\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", system-ui, sans-serif",
-      "body": "\"Inter\", \"SF Pro Text\", -apple-system, BlinkMacSystemFont, \"Segoe UI\", system-ui, sans-serif",
+      "display": "\"Inter Display\", \"SF Pro Display\", -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
+      "body": "\"Inter\", \"SF Pro Text\", -apple-system, BlinkMacSystemFont, system-ui, sans-serif",
       "mono": "\"JetBrains Mono\", monospace",
       "data": "\"Orbitron\", monospace"
     },
@@ -139,12 +139,13 @@
       "data": "Orbitron"
     },
     "scale": {
-      "hero": "clamp(3.5rem, 8vw, 8rem)  /* Apple-hero: 56-128px */",
-      "h1": "clamp(2.5rem, 5vw, 4.5rem)",
-      "h2": "clamp(1.75rem, 3vw, 2.5rem)",
-      "h3": "1.5rem",
+      "hero": "clamp(3rem, 7vw, 6.5rem)",
+      "h1": "clamp(2.25rem, 4vw, 3.75rem)",
+      "h2": "clamp(1.5rem, 2.5vw, 2.25rem)",
+      "h3": "1.25rem",
       "body": "1.0625rem",
-      "caption": "0.875rem"
+      "caption": "0.875rem",
+      "eyebrow": "0.75rem"
     },
     "weights": {
       "display": 700,
@@ -154,9 +155,11 @@
     },
     "tracking": {
       "hero": "-0.04em",
-      "body": "-0.011em"
+      "h1": "-0.03em",
+      "body": "-0.011em",
+      "eyebrow": "0.20em"
     },
-    "cdn": "Inter via fonts.googleapis.com (use next/font/google when network-available)"
+    "cdn": "Inter via fonts.googleapis.com (use next/font/google when build-time available)"
   },
   "spacing": {
     "grid": "8px",
@@ -169,7 +172,7 @@
       "2xl": "6rem",
       "section": "8rem"
     },
-    "note": "DOUBLED from style-1 (4px → 8px) — Apple-style breathing room."
+    "note": "DOUBLED from style-1 (4px → 8px) for Apple-style breathing room."
   },
   "radii": {
     "tileOuter": "24px",
@@ -177,7 +180,7 @@
     "pill": "9999px",
     "content": "20px",
     "elevated": "28px",
-    "strategy": "Single-layer pillowy radius (no chrome bezel stack). Larger, softer."
+    "strategy": "single-layer pillowy radii — no chrome bezel stack"
   },
   "glass": {
     "base": {
@@ -187,7 +190,7 @@
       "border": "1px solid rgba(255,255,255,0.55)",
       "boxShadow": "0 16px 48px -12px rgba(11,15,30,0.18), 0 0 0 1px rgba(11,15,30,0.04)",
       "borderRadius": "24px",
-      "iridescentEdge": "conic-gradient(from 220deg, #1FE3D6, #B22CFF, #FF4FC8, #1FE3D6) 1px (animated, 8s rotate)"
+      "iridescentEdge": "conic-gradient(from 220deg, #1FE3D6, #B22CFF, #FF4FC8, #1FE3D6) 1px (animated 8s rotate)"
     },
     "darkVariant": {
       "class": "holo-card-dark",
@@ -202,7 +205,7 @@
     "holoRing": {
       "background": "conic-gradient(from 0deg, #1FE3D6 0%, #7A2DE0 25%, #B22CFF 50%, #FF4FC8 75%, #1FE3D6 100%)",
       "thickness": "1px",
-      "animation": "spin 8s linear infinite",
+      "animation": "iridescent-spin 8s linear infinite",
       "mask": "border-only via padding + mask-composite (same trick as glass-card-v2::before)"
     }
   },
@@ -210,7 +213,6 @@
     "kind": "apple-holographic",
     "lightMode": {
       "stack": [
-        "/* Hero: large blur-rendered vortex, Apple-style */",
         "radial-gradient(circle 60vw at 70% 30%, rgba(178,44,255,0.18) 0%, transparent 50%)",
         "radial-gradient(circle 50vw at 20% 70%, rgba(31,227,214,0.20) 0%, transparent 55%)",
         "linear-gradient(180deg, #F7FAFD 0%, #E8F4FF 100%)"
@@ -218,7 +220,6 @@
     },
     "darkMode": {
       "stack": [
-        "/* Cyberpunk vortex hero */",
         "radial-gradient(circle 70vw at 65% 35%, rgba(178,44,255,0.45) 0%, transparent 55%)",
         "radial-gradient(circle 60vw at 25% 75%, rgba(31,227,214,0.30) 0%, transparent 60%)",
         "radial-gradient(circle 40vw at 50% 50%, rgba(122,45,224,0.25) 0%, transparent 50%)",
@@ -233,9 +234,8 @@
   },
   "curvature": {
     "uiCurveDeg": 3,
-    "strategy": "Bento grid container: `transform: perspective(1400px) rotateX(3deg)`. Container preserves-3d so child tiles inherit subtle bow. Disable on `prefers-reduced-motion` and on touch via @media(pointer:coarse).",
-    "cssVar": "--ui-curve: 3deg",
-    "note": "Slightly stronger curve than style-1 to evoke a holographic display module hovering away from the viewer."
+    "strategy": "transform: perspective(1400px) rotateX(3deg); transform-style: preserve-3d. Apply to .fold-mission bento grid. Disable on prefers-reduced-motion + (pointer:coarse).",
+    "cssVar": "--ui-curve: 3deg"
   },
   "motion": {
     "easings": {
@@ -250,12 +250,12 @@
       "hero": "1200ms"
     },
     "keyframes": [
-      "iridescent-spin (8s linear) — holo border rotation",
-      "breath (4s ease-in-out) — Apple-style scale 1.0 → 1.015 → 1.0",
-      "parallax-tilt — pointer-driven, bento tile follows cursor up to ±6deg",
-      "scroll-reveal — fade + 24px translate-y, IntersectionObserver triggered",
-      "magnetic-hover — tile pulls toward cursor (CSS transform + JS rAF)",
-      "iris-zoom — modal opens via radial scale clip-path (200ms)"
+      "iridescent-spin (8s linear)",
+      "breath (4s ease-in-out)",
+      "parallax-tilt (pointer-driven)",
+      "scroll-reveal (IntersectionObserver, 700ms)",
+      "magnetic-hover (rAF lerp)",
+      "iris-zoom (200ms)"
     ],
     "interactiveHover": {
       "transform": "translateY(-4px) scale(1.02)",
@@ -268,7 +268,7 @@
       "transform": "scale(0.98)",
       "duration": "120ms"
     },
-    "reducedMotion": "iridescent-spin → static 220deg conic; parallax-tilt OFF; magnetic-hover OFF; breath OFF"
+    "reducedMotion": "iridescent-spin → static 220deg conic; parallax/magnetic/breath OFF; scroll-reveal collapsed to instant fade"
   },
   "effects": {
     "iridescentText": "background: conic-gradient(from 0deg, #1FE3D6, #B22CFF, #FF4FC8, #1FE3D6); -webkit-background-clip: text; animation: iridescent-spin 8s linear infinite",
@@ -281,23 +281,536 @@
   },
   "accessibility": {
     "colorScheme": "light + dark (toggleable, defaults to system)",
-    "focusRing": "outline 3px solid #1FE3D6, outline-offset 2px, halo box-shadow 0 0 0 6px rgba(31,227,214,0.30)",
-    "reducedMotion": "iridescent-spin static, parallax/magnetic/breath OFF",
-    "contrast": "WCAG AA on both light (#0B0F1E text on #F7FAFD bg = 17:1) and dark (#F0F4FF on #0B0F1E = 16:1)",
-    "touchTargets": "44x44 min"
+    "focusRing": "outline 3px solid #1FE3D6, outline-offset 2px, halo 0 0 0 6px rgba(31,227,214,0.30)",
+    "reducedMotion": "all decorative animations off",
+    "contrast": "WCAG AA both modes (light: 17:1, dark: 16:1). AAA palette swap available via prefers-contrast: more.",
+    "touchTargets": "44x44 min",
+    "semanticLandmarks": "banner (top-bar) / main (folds) / nav (dock) / contentinfo (footer)"
   },
-  "bento": {
-    "tileSizing": [
-      "1x1",
-      "1x2",
-      "2x1",
-      "2x2",
-      "3x2 hero"
+  "architecture": {
+    "kind": "holo-deck-vertical-scroll",
+    "metaphor": "Apple-style product page meets cyberpunk holographic display module",
+    "rationale": "Clean-sheet redesign. Discards the 4-zone cockpit metaphor. Replaces with a single-column vertical scroll of distinct \"folds\" (Apple convention), each with one focal element and generous whitespace. Lab map reduced to a small floating widget; main attention given to a hero greeting + bento mission grid. Floating bottom dock provides constant nav. Iridescent edge rings + low-poly accents are the only sci-fi flourishes — the overall feel is calm, premium, scrollable. Best-practice additions: scroll-snap, scroll-driven animations (CSS @scroll-timeline), View Transitions API, anchor-positioned menus, container queries, prefers-reduced-motion + prefers-contrast respect, AAA color contrast where possible.",
+    "zoneGrid": {
+      "kind": "single-column-vertical-scroll",
+      "maxWidthPx": 1280,
+      "columns": 12,
+      "gapPx": 24,
+      "scrollSnap": "y mandatory on the page wrapper (optional, can be disabled in Settings)",
+      "folds": [
+        {
+          "id": "fold-hero",
+          "heightVh": 92,
+          "scrollSnapAlign": "start",
+          "label": "Welcome + focal stat"
+        },
+        {
+          "id": "fold-mission",
+          "heightVh": "auto",
+          "minVh": 100,
+          "label": "Mission bento grid (11 labs)"
+        },
+        {
+          "id": "fold-momentum",
+          "heightVh": "auto",
+          "minVh": 60,
+          "label": "Recent activity + Continue CTA"
+        },
+        {
+          "id": "fold-orbit",
+          "heightVh": "auto",
+          "minVh": 70,
+          "label": "Lab map widget (small + interactive)"
+        },
+        {
+          "id": "fold-discover",
+          "heightVh": "auto",
+          "minVh": 60,
+          "label": "Daily challenge + Sparky guide"
+        }
+      ],
+      "persistentLayers": [
+        "top-bar (transparent, blurs on scroll past 64px) — anchored top",
+        "floating-dock (5-button magnetic dock) — anchored bottom-center, 32px from bottom",
+        "background gradient + vortex bloom — fixed, parallax-shifted by scroll position via CSS @scroll-timeline"
+      ]
+    },
+    "panels": [
+      {
+        "id": "top-bar",
+        "kind": "transparent-on-load → glass-on-scroll",
+        "elements": [
+          {
+            "kind": "logo-wordmark",
+            "size": "32px",
+            "href": "/home",
+            "font": "display",
+            "weight": 700
+          },
+          {
+            "kind": "tab-row",
+            "position": "center",
+            "tabs": [
+              "Home",
+              "Labs",
+              "Arcade",
+              "Achievements"
+            ],
+            "font": "body",
+            "size": "14px",
+            "weight": 500
+          },
+          {
+            "kind": "avatar-button",
+            "position": "right",
+            "size": "36px",
+            "menuOnClick": "profile-menu (anchor-positioned)"
+          }
+        ],
+        "scrollBehavior": "transparent at scrollY=0; on scroll past 64px adds backdrop-filter blur(24px) + 1px bottom border"
+      },
+      {
+        "id": "fold-hero",
+        "kind": "fold",
+        "layout": "centered-flex-column",
+        "elements": [
+          {
+            "kind": "eyebrow",
+            "text": "Today, {dayName}",
+            "font": "body",
+            "weight": 500,
+            "size": "14px",
+            "color": "lab-color",
+            "tracking": "0.20em",
+            "uppercase": true
+          },
+          {
+            "kind": "hero-title",
+            "text": "Welcome back,\\n{firstName}.",
+            "font": "display",
+            "weight": 700,
+            "size": "clamp(3rem, 7vw, 6.5rem)",
+            "tracking": "-0.04em",
+            "lineHeight": 0.96
+          },
+          {
+            "kind": "hero-stat",
+            "text": "{streakDays}-day streak",
+            "font": "display",
+            "weight": 600,
+            "size": "clamp(1.5rem, 3vw, 2.25rem)",
+            "treatment": "iridescent-text-clip-conic"
+          },
+          {
+            "kind": "hero-cta-row",
+            "items": [
+              {
+                "variant": "primary",
+                "label": "Continue Mission",
+                "icon": "arrow-right"
+              },
+              {
+                "variant": "secondary",
+                "label": "Browse Labs",
+                "icon": "compass"
+              }
+            ]
+          },
+          {
+            "kind": "low-poly-accent",
+            "position": "bottom-right corner of fold",
+            "sizeVw": 14,
+            "asset": "inline-svg low-poly triangle mesh, stroke teal 0.5px"
+          },
+          {
+            "kind": "radial-gradient blur(60px) opacity 0.6",
+            "position": "behind hero-title",
+            "colors": [
+              "portalMag",
+              "rimTeal",
+              "violetWarp"
+            ]
+          }
+        ],
+        "scrollAnimation": "hero-title scales 1.0 → 0.85 + opacity → 0 between scrollY 0 → 100vh (CSS @scroll-timeline)"
+      },
+      {
+        "id": "fold-mission",
+        "kind": "fold",
+        "layout": "bento-grid",
+        "elements": [
+          {
+            "kind": "fold-eyebrow",
+            "text": "Your Labs",
+            "font": "data",
+            "weight": 500,
+            "size": "12px",
+            "tracking": "0.20em",
+            "uppercase": true
+          },
+          {
+            "kind": "fold-title",
+            "text": "Where curiosity meets AI.",
+            "font": "display",
+            "weight": 700,
+            "size": "clamp(2rem, 4vw, 3.5rem)",
+            "tracking": "-0.03em"
+          },
+          {
+            "kind": "bento-grid",
+            "refer": "architecture.labMap.bento",
+            "columns": 12,
+            "rows": "auto",
+            "gap": "24px",
+            "tiles": [
+              {
+                "labId": "currentOrNext",
+                "size": "6x4",
+                "variant": "hero",
+                "position": "top-left",
+                "shows": "iridescent ring + vortex glow + low-poly accent + lab description"
+              },
+              {
+                "labId": 1,
+                "size": "3x2"
+              },
+              {
+                "labId": 2,
+                "size": "3x2"
+              },
+              {
+                "labId": 3,
+                "size": "3x2"
+              },
+              {
+                "labId": 4,
+                "size": "3x2"
+              },
+              {
+                "labId": 5,
+                "size": "3x2"
+              },
+              {
+                "labId": 6,
+                "size": "3x2"
+              },
+              {
+                "labId": 7,
+                "size": "3x2"
+              },
+              {
+                "labId": 8,
+                "size": "3x2"
+              },
+              {
+                "labId": 9,
+                "size": "3x2"
+              },
+              {
+                "labId": 10,
+                "size": "3x2"
+              },
+              {
+                "labId": 11,
+                "size": "6x2",
+                "variant": "wide",
+                "label": "NEW · Agentic AI"
+              }
+            ]
+          }
+        ],
+        "scrollAnimation": "each tile fades in + translateY(24px) → 0 as it crosses 80% viewport (IntersectionObserver, stagger by 60ms)"
+      },
+      {
+        "id": "fold-momentum",
+        "kind": "fold",
+        "layout": "two-column-asymmetric",
+        "elements": [
+          {
+            "kind": "fold-eyebrow",
+            "text": "Pick up where you left off"
+          },
+          {
+            "kind": "fold-title",
+            "text": "In progress."
+          },
+          {
+            "kind": "continue-card",
+            "primary": true,
+            "size": "8x3-cols",
+            "shows": [
+              "game-thumbnail",
+              "lab-name",
+              "progress-bar",
+              "time-since"
+            ]
+          },
+          {
+            "kind": "vertical list of 3 mini-cards",
+            "secondary": true,
+            "size": "4x3-cols",
+            "items": "{recentActivity[0..2]}"
+          }
+        ]
+      },
+      {
+        "id": "fold-orbit",
+        "kind": "fold",
+        "layout": "centered-widget",
+        "elements": [
+          {
+            "kind": "fold-eyebrow",
+            "text": "Or jump anywhere"
+          },
+          {
+            "kind": "fold-title",
+            "text": "The constellation."
+          },
+          {
+            "kind": "lab-map-widget",
+            "refer": "architecture.labMap.orbit",
+            "sizeVmin": 70,
+            "interaction": "rotate via drag + click to enter"
+          }
+        ]
+      },
+      {
+        "id": "fold-discover",
+        "kind": "fold",
+        "layout": "two-column-equal",
+        "elements": [
+          {
+            "kind": "eyebrow",
+            "text": "Today's spark"
+          },
+          {
+            "kind": "daily-card",
+            "shows": [
+              "challenge-title",
+              "time-estimate",
+              "reward-XP",
+              "cta-Begin"
+            ]
+          },
+          {
+            "kind": "sparky-card",
+            "shows": [
+              "guide-avatar",
+              "invitation: \"Got a question? Ask me about today’s lab.\"",
+              "cta-OpenChat"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "floating-dock",
+        "kind": "persistent-anchored-bottom",
+        "treatment": "Pill-shaped glass dock. Width: clamp(320px, 52vw, 540px). Height: 64px. Border-radius: 9999px. Backdrop-filter: blur(28px) saturate(180%). 1px iridescent ring (animated). Centered horizontally, 32px from viewport bottom. Z-index 80.",
+        "elements": [
+          {
+            "kind": "dock-icon",
+            "id": "home",
+            "icon": "home",
+            "activeOnRoute": "/home"
+          },
+          {
+            "kind": "dock-icon",
+            "id": "labs",
+            "icon": "beaker",
+            "activeOnRoute": "/labs"
+          },
+          {
+            "kind": "dock-fab",
+            "id": "continue",
+            "icon": "play",
+            "primary": true,
+            "label": "Continue",
+            "expandsOnHover": true
+          },
+          {
+            "kind": "dock-icon",
+            "id": "arcade",
+            "icon": "gamepad",
+            "activeOnRoute": "/arcade"
+          },
+          {
+            "kind": "dock-icon",
+            "id": "profile",
+            "icon": "user",
+            "activeOnRoute": "/profile"
+          }
+        ],
+        "magneticHover": "each dock icon scales 1.0 → 1.18 with neighbors 1.0 → 1.06 based on cursor proximity (Apple-dock style)"
+      }
     ],
-    "gap": "var(--space-md) /* 24px — wider gaps than style-1 */",
-    "gridContainer": "CSS subgrid, 12-col responsive",
-    "tileMinHeight": "160px",
-    "tileTreatment": "Apple-product-card: white card on light bg, blur-glass on dark vortex hero"
+    "labMap": {
+      "bento": {
+        "kind": "flat-bento-grid",
+        "rationale": "Apple-style: emphasize browsability over spatial 3D map",
+        "layout": "12-col grid, mixed tile sizes (1×1 / 2×1 / 3×2 / 6×2 hero)",
+        "primaryTile": {
+          "labId": "currentOrNext",
+          "size": "6x4",
+          "position": "top-left"
+        }
+      },
+      "orbit": {
+        "kind": "concentric-rings-3d-css",
+        "rationale": "Decorative interactive widget: shows topology + adjacency, but not the primary entry point",
+        "rings": [
+          {
+            "id": "outer",
+            "labIds": [
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ],
+            "radiusPct": 38,
+            "angleStepDeg": 60,
+            "startAngleDeg": -90
+          },
+          {
+            "id": "inner",
+            "labIds": [
+              7,
+              8,
+              9,
+              10,
+              11
+            ],
+            "radiusPct": 22,
+            "angleStepDeg": 72,
+            "startAngleDeg": -90
+          }
+        ],
+        "adjacency": {
+          "outerLoop": [
+            [
+              1,
+              2
+            ],
+            [
+              2,
+              3
+            ],
+            [
+              3,
+              4
+            ],
+            [
+              4,
+              5
+            ],
+            [
+              5,
+              6
+            ],
+            [
+              6,
+              1
+            ]
+          ],
+          "innerLoop": [
+            [
+              7,
+              8
+            ],
+            [
+              8,
+              9
+            ],
+            [
+              9,
+              10
+            ],
+            [
+              10,
+              11
+            ],
+            [
+              11,
+              7
+            ]
+          ],
+          "crossBeams": [
+            [
+              1,
+              7
+            ],
+            [
+              2,
+              8
+            ],
+            [
+              3,
+              9
+            ],
+            [
+              4,
+              10
+            ],
+            [
+              5,
+              11
+            ]
+          ],
+          "specialOverlay": {
+            "labId": 6,
+            "treatment": "soft halo + dashed connections to all"
+          }
+        },
+        "treatment": "CSS-3D transforms (transform-style: preserve-3d), each lab a 64px disk; ring rotates slowly; user can drag to rotate; click to navigate",
+        "nodeTreatment": {
+          "idle": "glass disk + iridescent rim 1px",
+          "hovered": "scale 1.10 + glow",
+          "focused": "scale 1.18 + iridescent rotate 4s"
+        }
+      }
+    },
+    "transitions": {
+      "heroToHome": {
+        "kind": "view-transitions-api",
+        "duration": "700ms",
+        "morphTargets": [
+          "hero-logo → topbar-logo"
+        ]
+      },
+      "labEntry": {
+        "kind": "iris-zoom",
+        "duration": "500ms",
+        "mask": "circle from clicked-lab origin"
+      },
+      "gameEntry": {
+        "kind": "view-transition-named",
+        "duration": "600ms",
+        "morphTargets": [
+          "game-thumbnail → game-page-hero"
+        ]
+      },
+      "foldScroll": {
+        "kind": "snap + opacity ramp",
+        "duration": "scroll-driven",
+        "usesScrollTimeline": true
+      },
+      "cardLift": {
+        "kind": "magnetic-hover + tilt",
+        "duration": "300ms"
+      }
+    },
+    "responsive": {
+      "strategy": "container-queries on .fold + classic viewport queries on top-bar/dock",
+      "breakpoints": {
+        "wide": "@container (min-width: 1280px) — full 12-col bento, hero 6x4",
+        "medium": "@container (min-width: 768px)  — 8-col, hero 4x3",
+        "narrow": "@container (max-width: 767px)  — 4-col, hero 4x2, lab tiles 2x1, dock simplifies to 4 icons"
+      },
+      "reducedMotion": "scroll-snap off, scroll-driven animations off, magnetic hover off, iridescent ring static",
+      "reducedTransparency": "glass surfaces become solid, blur disabled",
+      "contrastModes": "AAA palette swap available via prefers-contrast: more"
+    }
   },
   "referenceImages": [
     {
@@ -323,11 +836,6 @@
     }
   ],
   "sourceFiles": {
-    "labColors": "src/config/labColors.ts",
-    "tailwind": "tailwind.config.ts",
-    "globals": "src/app/globals.css",
-    "brandMaterial": "src/lib/branding/sf-material.config.ts",
-    "layout": "src/app/layout.tsx",
-    "note": "Style-3 is synthetic — most tokens are NEW, not extracted."
+    "note": "Style-3 is a clean-sheet design — most tokens are NEW, not extracted."
   }
 }
