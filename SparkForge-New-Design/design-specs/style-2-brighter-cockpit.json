@@ -1,0 +1,801 @@
+{
+  "$schema": "sparkforge-design-spec/v2",
+  "style": "style-2-brighter-cockpit",
+  "description": "\"Lab Atrium\" — bright, open cockpit reinterpretation. Same 4-zone topology as style-1 (preserves muscle memory and game integration paths) but reimagined as a glass-walled atrium with cantilevered floating panels. Dark mode REMOVED. Surface is a turquoise → dark-magenta diagonal gradient with aurora bloom. Chrome bezels replaced by luminous edge rails. Hex-gauge instrument cluster replaced with bento-style flat tiles for a curated, less mechanical feel. Augmented with modern best-practices: container queries, anchor positioning, scroll-driven animations, View Transitions, parallax-tilt panels.",
+  "brand": {
+    "name": "SparkForge",
+    "audience": "kids 7-16",
+    "mood": [
+      "lab atrium",
+      "sunlit observatory",
+      "cantilevered glass",
+      "aurora bloom",
+      "curated bento"
+    ]
+  },
+  "palette": {
+    "brand": {
+      "voidNavy": "#02050d",
+      "voidNavyLift": "#070a14",
+      "rimCyan": "#7fe8ff",
+      "cyanKick": "#bff5ff",
+      "keyAmber": "#ffaa55",
+      "amberCore": "#ffd9a8",
+      "dispersionMag": "#ff5fc8",
+      "dispersionPink": "#ff9ad6",
+      "hotWhite": "#ffffff",
+      "attenuationColor": "#9fcfff"
+    },
+    "labs": [
+      {
+        "id": 1,
+        "name": "What IS AI?",
+        "hex": "#0FB8FA",
+        "oklch": "oklch(0.82 0.17 225)",
+        "family": "Blue"
+      },
+      {
+        "id": 2,
+        "name": "Teaching Machines",
+        "hex": "#B67BFF",
+        "oklch": "oklch(0.82 0.19 295)",
+        "family": "Purple"
+      },
+      {
+        "id": 3,
+        "name": "The Brain Inside",
+        "hex": "#FF70AF",
+        "oklch": "oklch(0.82 0.19 345)",
+        "family": "Pink"
+      },
+      {
+        "id": 4,
+        "name": "AI That Creates",
+        "hex": "#D9A430",
+        "oklch": "oklch(0.82 0.17 75)",
+        "family": "Amber"
+      },
+      {
+        "id": 5,
+        "name": "AI Helpers",
+        "hex": "#00D17A",
+        "oklch": "oklch(0.82 0.19 155)",
+        "family": "Green"
+      },
+      {
+        "id": 6,
+        "name": "AI & Ethics",
+        "hex": "#FF7050",
+        "oklch": "oklch(0.82 0.20 25)",
+        "family": "Red-Orange"
+      },
+      {
+        "id": 7,
+        "name": "Computer Vision",
+        "hex": "#10BAD2",
+        "oklch": "oklch(0.82 0.14 195)",
+        "family": "Cyan"
+      },
+      {
+        "id": 8,
+        "name": "Words & Language",
+        "hex": "#8F96FA",
+        "oklch": "oklch(0.82 0.15 275)",
+        "family": "Violet"
+      },
+      {
+        "id": 9,
+        "name": "Build Your AI",
+        "hex": "#E68E28",
+        "oklch": "oklch(0.82 0.18 50)",
+        "family": "Orange"
+      },
+      {
+        "id": 10,
+        "name": "AI Futures",
+        "hex": "#DE5AEA",
+        "oklch": "oklch(0.82 0.19 325)",
+        "family": "Fuchsia"
+      },
+      {
+        "id": 11,
+        "name": "Agentic AI",
+        "hex": "#6FFFE6",
+        "oklch": "oklch(0.92 0.16 175)",
+        "family": "Mint-Cyan"
+      }
+    ],
+    "neon": {
+      "blue": "oklch(0.82 0.16 225)",
+      "green": "oklch(0.82 0.18 155)",
+      "purple": "oklch(0.82 0.18 295)",
+      "orange": "oklch(0.82 0.19 25)",
+      "amber": "oklch(0.82 0.16 75)"
+    },
+    "surface": {
+      "base": "oklch(0.62 0.13 195) /* turquoise primary */",
+      "card": "oklch(0.32 0.14 340) /* dark magenta secondary */",
+      "elevated": "oklch(0.42 0.12 320) /* magenta-violet elevated */",
+      "border": "oklch(1.0 0 0 / 0.18)",
+      "textPrimary": "oklch(0.98 0.005 280)",
+      "textSecondary": "oklch(0.98 0 0 / 0.78)",
+      "textMuted": "oklch(0.98 0 0 / 0.55)",
+      "chromeEdge": "oklch(1.0 0 0 / 0.16)",
+      "chromeHighlight": "oklch(1.0 0 0 / 0.34)",
+      "chromeSpecular": "oklch(1.0 0 0 / 0.52)"
+    }
+  },
+  "typography": {
+    "fontStacks": {
+      "display": "'Exo 2', 'Exo 2 Fallback', system-ui, sans-serif",
+      "body": "'Sora', 'Sora Fallback', system-ui, sans-serif",
+      "mono": "'JetBrains Mono', monospace",
+      "data": "'Orbitron', monospace"
+    },
+    "families": {
+      "display": "Exo 2",
+      "body": "Sora",
+      "mono": "JetBrains Mono",
+      "data": "Orbitron"
+    },
+    "scale": {
+      "2xs": "0.625rem",
+      "xs": "0.75rem",
+      "sm": "0.875rem",
+      "base": "1rem",
+      "lg": "1.125rem",
+      "xl": "1.25rem",
+      "2xl": "1.5rem",
+      "3xl": "1.875rem",
+      "4xl": "2.25rem"
+    },
+    "tracking": {
+      "tight": "-0.02em",
+      "normal": "0",
+      "wide": "0.04em",
+      "wider": "0.12em",
+      "widest": "0.20em"
+    },
+    "cdn": "Google Fonts via <link>, display=swap, fallback metrics in globals.css"
+  },
+  "spacing": {
+    "grid": "4px",
+    "tokens": {
+      "xs": "0.25rem",
+      "sm": "0.5rem",
+      "md": "1rem",
+      "lg": "1.5rem",
+      "xl": "2rem",
+      "2xl": "3rem",
+      "section": "4rem"
+    }
+  },
+  "radii": {
+    "tileOuter": "16px",
+    "tileInner": "13px",
+    "screenInner": "11px",
+    "pill": "9999px",
+    "content": "12px",
+    "elevated": "18px"
+  },
+  "glass": {
+    "base": {
+      "class": "atrium-card",
+      "background": "linear-gradient(145deg, rgba(255,255,255,0.22) 0%, rgba(255,255,255,0.08) 100%)",
+      "backdropFilter": "blur(14px) saturate(170%) brightness(1.05)",
+      "border": "1px solid rgba(255,255,255,0.28)",
+      "boxShadow": "0 8px 40px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.34), 0 24px 56px -32px rgba(0,0,0,0.35) /* cantilever */",
+      "borderRadius": "20px"
+    },
+    "elevated": {
+      "class": "atrium-card-elevated",
+      "background": "linear-gradient(145deg, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0.12) 100%)",
+      "backdropFilter": "blur(18px) saturate(180%) brightness(1.08)",
+      "border": "1px solid rgba(255,255,255,0.36)",
+      "boxShadow": "0 16px 60px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.46), 0 32px 72px -28px rgba(0,0,0,0.45)",
+      "borderRadius": "24px"
+    }
+  },
+  "chrome": {
+    "bezel": {
+      "class": "chrome-frame",
+      "layers": 3,
+      "background": "linear-gradient(180deg, rgba(255,255,255,0.42) 0%, rgba(255,255,255,0.18) 35%, rgba(0,0,0,0.38) 100%)",
+      "boxShadow": "0 1px 0 rgba(255,255,255,0.18), inset 0 1px 0 rgba(255,255,255,0.34), 0 0 0 0.5px rgba(255,255,255,0.10)",
+      "note": "Polished aluminum vs brushed-titanium of style-1. Use as outer rail on cantilevered cards."
+    },
+    "ledRim": {
+      "class": "led-rim",
+      "background": "linear-gradient(90deg, transparent 0%, var(--lab-color) 50%, transparent 100%)",
+      "opacity": 0.5
+    },
+    "screenInner": {
+      "class": "screen-inner",
+      "background": "var(--surface-card)",
+      "boxShadow": "inset 0 2px 6px rgba(0,0,0,0.4)"
+    },
+    "shineSweep": {
+      "keyframe": "chrome-shimmer 3s linear infinite (always-on, ambient)",
+      "background": "linear-gradient(110deg, transparent 0%, rgba(255,255,255,0.30) 50%, transparent 100%)",
+      "size": "200% 100%"
+    }
+  },
+  "materialPhysics": {
+    "ior": 1.55,
+    "transmission": 0.97,
+    "roughness": 0.04,
+    "metalness": 0,
+    "anisotropy": 0.65,
+    "clearcoat": 1,
+    "envMapIntensity": 2.4,
+    "note": "WebGPU/TSL-only physics. Replicate the *vibe* in HTML via gradient highlights, conic-gradients, chromatic-aberration text-shadows."
+  },
+  "background": {
+    "kind": "turquoise-magenta-aurora",
+    "class": "bg-bright-atrium",
+    "stack": [
+      "radial-gradient(ellipse 80% 60% at 25% 30%, oklch(0.78 0.16 195) 0%, transparent 55%)",
+      "radial-gradient(ellipse 70% 70% at 78% 78%, oklch(0.42 0.20 340) 0%, transparent 60%)",
+      "linear-gradient(135deg, oklch(0.66 0.14 200) 0%, oklch(0.34 0.14 330) 100%)"
+    ],
+    "overlays": [
+      "aurora-drift: large blurred radial gradients animated 30s loop",
+      "film-grain (rgba(255,255,255,0.012))",
+      "soft-vignette (rgba(0,0,0,0.18) corners) — much lighter than v1"
+    ],
+    "note": "Dark-mode removed. Surface contrast ensured locally per-panel."
+  },
+  "curvature": {
+    "uiCurveDeg": 2,
+    "strategy": "Apply `transform: perspective(1200px) rotateX(2deg); transform-style: preserve-3d;` to the cockpit grid wrapper. Disable on prefers-reduced-motion + (pointer:coarse)."
+  },
+  "motion": {
+    "easings": {
+      "spring": "cubic-bezier(0.22, 1, 0.36, 1)",
+      "bezel": "cubic-bezier(0.4, 0.0, 0.2, 1)"
+    },
+    "durations": {
+      "fast": "120ms",
+      "base": "200ms",
+      "medium": "400ms",
+      "long": "600ms"
+    },
+    "keyframes": [
+      "float (3.5s)",
+      "float-slow (6s)",
+      "glow-pulse (3s)",
+      "chrome-shimmer (3s)",
+      "connection-pulse (4s)",
+      "badge-unlock (0.8s)",
+      "slide-up-spring (0.5s)",
+      "scale-bounce (0.5s)",
+      "xp-counter (1.5s)",
+      "subtle-glow (4s)",
+      "skeleton-shimmer (1.8s)",
+      "glow-border-rotate (4s)",
+      "emissivePulse (3s)",
+      "ledRimPulse (3s)",
+      "holographic-sweep (3s)"
+    ],
+    "interactiveHover": {
+      "transform": "translateY(-6px) scale(1.01)",
+      "boxShadow": "0 12px 40px rgba(0,0,0,0.3), 0 0 20px var(--lab-glow)",
+      "duration": "250ms"
+    },
+    "activePress": {
+      "transform": "translateY(-2px) scale(1.0)",
+      "duration": "100ms"
+    },
+    "reducedMotion": "all animations collapse to 0.01ms; chromatic-text + skeleton-shimmer stripped",
+    "ambientDefaults": "chrome-shimmer + glow-pulse always-on for bezels (was opt-in in v1)",
+    "parallaxTilt": "cards rotateX/rotateY ±2deg following cursor (lerp 0.15)",
+    "magneticHover": "cards translate ±3px toward cursor on hover",
+    "scrollDriven": "aurora-drift speed scales with scroll velocity (CSS @scroll-timeline)"
+  },
+  "effects": {
+    "neonText": "text-shadow: 0 0 7px var(--lab-color), 0 0 10px var(--lab-color), 0 0 21px var(--lab-color)",
+    "gradientText": "linear-gradient(135deg, #00BBFF, #AA66FF, #FF66AA), -webkit-background-clip: text",
+    "emissiveGlow": "0 0 8px color-mix(in srgb, var(--glow-color) 30%, transparent), 0 0 20px ... 15%, 0 0 40px ... 8%",
+    "chromaticAberration": "text-shadow: -1px 0 0.5px #00BBFF, 1px 0 0.5px #AA66FF",
+    "glowBorder": "animated rotating gradient: blue → purple → amber → blue (4s)",
+    "scanlines": "repeating-linear-gradient(0deg, transparent 2px, rgba(0,187,255,0.03) 2px 4px), mix-blend-mode: overlay",
+    "starfield": "radial gradients on surface-base"
+  },
+  "accessibility": {
+    "colorScheme": "dark",
+    "focusRing": "outline 3px solid var(--lab-color), outline-offset 2px, double box-shadow halo (30%/40%)",
+    "reducedMotion": "respected via prefers-reduced-motion + uiStore.reducedMotion",
+    "dyslexiaFont": "OpenDyslexic toggle",
+    "fontSizePresets": [
+      "100%",
+      "112.5%",
+      "125%"
+    ],
+    "highContrastMode": "available",
+    "brightnessControl": "0.7-1.0 user-adjustable, body filter (canvas excluded)",
+    "semanticLandmarks": "banner / main / aside / nav / contentinfo on each zone"
+  },
+  "architecture": {
+    "kind": "lab-atrium-4-zone",
+    "metaphor": "sunlit spacecraft atrium / observatory deck (vs cramped pilot cockpit)",
+    "rationale": "Same 4-zone topology as style-1 (preserves muscle memory + game integration paths) but reimagined as an open, glass-walled atrium with cantilevered floating panels. Panels lift away from the page with parallax shadow rather than embedding in a chrome wall. Bezels become luminous edge rails that wrap the panel like a museum display. Instrument hex gauges replaced with bento-style flat tiles for a less mechanical, more curated feel. Best-practice additions: container queries, anchor positioning for tooltips, scroll-driven entrance animations, View Transitions.",
+    "zoneGrid": {
+      "kind": "css-grid + subgrid",
+      "template": "\"hud      hud      hud   \"  56px\n        \"pilot    stage    deck  \"  1fr\n        \"instruments instruments instruments\"  140px\n        / 22%     56%      22%",
+      "zones": {
+        "pilot": {
+          "id": "pilot-card",
+          "widthPct": 22,
+          "fixed": true,
+          "ariaLandmark": "aside",
+          "label": "Pilot card"
+        },
+        "stage": {
+          "id": "main-stage",
+          "widthPct": 56,
+          "fixed": false,
+          "ariaLandmark": "main",
+          "label": "Mission stage"
+        },
+        "deck": {
+          "id": "mission-deck",
+          "widthPct": 22,
+          "fixed": true,
+          "ariaLandmark": "aside",
+          "label": "Mission deck"
+        },
+        "instruments": {
+          "id": "navigation-dock",
+          "heightPx": 140,
+          "spansFullWidth": true,
+          "ariaLandmark": "nav",
+          "label": "Navigation dock"
+        },
+        "hud": {
+          "id": "topbar",
+          "heightPx": 56,
+          "spansFullWidth": true,
+          "ariaLandmark": "banner",
+          "label": "Top status bar"
+        }
+      },
+      "ambientLayers": [
+        "page background: turquoise → dark-magenta diagonal gradient",
+        "aurora bloom layer (large blurred radial gradients, 0.4 opacity, animated 30s drift)",
+        "floating particle layer (24 particles, lab-color tinted, opacity 0.15)",
+        "curved accent rail (1px luminous arc) hugging top + bottom of stage zone"
+      ]
+    },
+    "panels": [
+      {
+        "id": "pilot-card",
+        "zone": "pilot",
+        "title": "Pilot Card",
+        "treatment": "cantilevered glass card, 24px radius, 32px outer padding, hovers 8px above page with soft shadow",
+        "elements": [
+          {
+            "kind": "circular-avatar",
+            "size": "120px",
+            "ring": "animated rotating iridescent 8s",
+            "glow": "soft outer "
+          },
+          {
+            "kind": "child-name",
+            "font": "display",
+            "weight": 700,
+            "size": "24px",
+            "align": "center"
+          },
+          {
+            "kind": "level-pill",
+            "font": "data",
+            "size": "12px",
+            "format": "LV {level}",
+            "bg": "glass + lab-color tint"
+          },
+          {
+            "kind": "stat-row",
+            "layout": "flex 3-up",
+            "items": [
+              {
+                "id": "xp",
+                "label": "XP",
+                "value": "{xp.toLocaleString()}",
+                "valueFont": "data",
+                "size": "20px"
+              },
+              {
+                "id": "streak",
+                "label": "STREAK",
+                "value": "{streakDays}d",
+                "icon": "flame",
+                "valueFont": "data",
+                "size": "20px"
+              },
+              {
+                "id": "rank",
+                "label": "RANK",
+                "value": "Cadet III",
+                "valueFont": "data",
+                "size": "20px"
+              }
+            ]
+          },
+          {
+            "kind": "progress-rail",
+            "label": "To Next Level",
+            "valueFrom": "{nextLevelPct}",
+            "height": "8px",
+            "radius": "4px"
+          },
+          {
+            "kind": "badge-shelf",
+            "layout": "horizontal-scroll-snap",
+            "tileSize": "56px",
+            "count": "unlimited",
+            "emptySlots": 5
+          }
+        ]
+      },
+      {
+        "id": "main-stage",
+        "zone": "stage",
+        "title": "Mission Stage",
+        "background": {
+          "kind": "lab-constellation",
+          "refer": "architecture.labMap"
+        },
+        "layout": "CSS grid 12-col 8-row, child elements absolutely positioned via grid-area",
+        "foreground": [
+          {
+            "kind": "hero-greeting",
+            "position": "top-center",
+            "text": "Good {timeOfDay}, {displayName}.",
+            "font": "display",
+            "size": "clamp(2rem, 4vw, 3.25rem)",
+            "weight": 700
+          },
+          {
+            "kind": "sub-greeting",
+            "position": "below hero",
+            "text": "Lab {focusedLabId} is calling — your {pendingMission} mission awaits.",
+            "font": "body",
+            "size": "1.0625rem"
+          },
+          {
+            "kind": "continue-cta",
+            "position": "bottom-center",
+            "label": "Continue Mission",
+            "icon": "arrow-right",
+            "variant": "glass-primary-glow"
+          },
+          {
+            "kind": "nearby-quick-actions",
+            "position": "beside CTA",
+            "items": [
+              "Resume Game",
+              "Daily Challenge",
+              "Ask Guide"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "mission-deck",
+        "zone": "deck",
+        "title": "Mission Deck",
+        "treatment": "same cantilevered glass treatment as pilot card; vertical stack of bento mini-cards",
+        "elements": [
+          {
+            "kind": "mini-card",
+            "id": "next-up",
+            "title": "Next Up",
+            "body": "Lab {n}: {gameName}",
+            "cta": "Begin"
+          },
+          {
+            "kind": "mini-card",
+            "id": "daily-streak",
+            "title": "Daily Streak",
+            "body": "{streakDays}-day streak",
+            "visual": "flame stack"
+          },
+          {
+            "kind": "mini-card",
+            "id": "ai-guide",
+            "title": "Ask Sparky",
+            "body": "Got a question?",
+            "cta": "Open chat",
+            "accent": "iridescent ring"
+          },
+          {
+            "kind": "mini-card",
+            "id": "parent-note",
+            "title": "From Parent",
+            "body": "{parentMessageOrNone}",
+            "cta": "Reply",
+            "conditional": "show only if message exists"
+          },
+          {
+            "kind": "mini-card",
+            "id": "achievements",
+            "title": "New Badges",
+            "body": "{newBadgeCount} unlocked",
+            "cta": "View"
+          }
+        ]
+      },
+      {
+        "id": "navigation-dock",
+        "zone": "instruments",
+        "title": "Navigation Dock",
+        "treatment": "horizontal bento strip, 5 large rounded tiles + 2 smaller status pills, flush-bottom",
+        "elements": [
+          {
+            "kind": "nav-bento",
+            "tiles": [
+              {
+                "id": "home",
+                "label": "Home",
+                "icon": "home",
+                "primary": true
+              },
+              {
+                "id": "labs",
+                "label": "Labs",
+                "icon": "beaker",
+                "badge": "11"
+              },
+              {
+                "id": "arcade",
+                "label": "Arcade",
+                "icon": "gamepad"
+              },
+              {
+                "id": "profile",
+                "label": "Profile",
+                "icon": "user"
+              },
+              {
+                "id": "settings",
+                "label": "Settings",
+                "icon": "cog"
+              }
+            ]
+          },
+          {
+            "kind": "status-pill",
+            "id": "online-state",
+            "label": "ONLINE",
+            "variant": "success"
+          },
+          {
+            "kind": "status-pill",
+            "id": "guide-state",
+            "label": "SPARKY READY",
+            "variant": "info"
+          }
+        ]
+      },
+      {
+        "id": "topbar",
+        "zone": "hud",
+        "title": "Top Status Bar",
+        "treatment": "translucent glass, blur(20px) saturate(180%), no chrome bezel — only a 1px iridescent bottom edge",
+        "elements": [
+          {
+            "kind": "logo",
+            "position": "left",
+            "size": "32px",
+            "href": "/home"
+          },
+          {
+            "kind": "breadcrumb",
+            "position": "left-of-center",
+            "font": "data",
+            "size": "11px",
+            "tracking": "0.16em",
+            "format": "{ZONE} / {SUB}"
+          },
+          {
+            "kind": "clock",
+            "position": "right-3",
+            "font": "data",
+            "size": "12px",
+            "format": "HH:MM"
+          },
+          {
+            "kind": "xp-chip",
+            "position": "right-2",
+            "icon": "spark",
+            "value": "{xp.toLocaleString()}"
+          },
+          {
+            "kind": "avatar-chip",
+            "position": "right-1",
+            "size": "32px",
+            "menuOnClick": "profile-menu"
+          }
+        ]
+      }
+    ],
+    "labMap": {
+      "kind": "concentric-rings-2 + parallax",
+      "rings": [
+        {
+          "id": "outer",
+          "labIds": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "radiusVmin": 22,
+          "angleStepDeg": 60,
+          "startAngleDeg": -90,
+          "role": "foundation",
+          "parallax": "+12px on cursor"
+        },
+        {
+          "id": "inner",
+          "labIds": [
+            7,
+            8,
+            9,
+            10,
+            11
+          ],
+          "radiusVmin": 14,
+          "angleStepDeg": 72,
+          "startAngleDeg": -90,
+          "role": "advanced",
+          "parallax": "+24px on cursor"
+        }
+      ],
+      "adjacency": {
+        "outerLoop": [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "innerLoop": [
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            11,
+            7
+          ]
+        ],
+        "crossBeams": [
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            5,
+            11
+          ]
+        ],
+        "specialOverlay": {
+          "labId": 6,
+          "treatment": "soft glow halo overlays all rings — no hard line connections"
+        }
+      },
+      "nodeTreatment": {
+        "idle": "soft-glass disk 72px, lab-color rim, ambient breathing glow",
+        "hovered": "scale 1.08, rim brightens to lab-color full, anchor-positioned tooltip card appears (CSS anchor)",
+        "focused": "scale 1.16, ring rotates iridescent 4s, neighbors highlight",
+        "locked": "desaturated 50%, padlock icon, no rotation"
+      },
+      "edgeTreatment": {
+        "kind": "gradient-tube",
+        "thickness": "1.5px",
+        "background": "gradient lab-color → adjacent-lab-color, animated dash 6s",
+        "glow": "soft drop-shadow lab-color"
+      },
+      "ambientMotion": "whole constellation slowly orbits ±2deg in 60s loop (CSS keyframe), parallax-tilt on cursor",
+      "interaction": "click → focus + page View Transitions; hover → tooltip; keyboard → arrow-key adjacency traversal; touch → tap focus, double-tap enter"
+    },
+    "transitions": {
+      "heroToHome": {
+        "kind": "view-transitions-api",
+        "duration": "700ms",
+        "morphTargets": [
+          "hero-logo → topbar-logo",
+          "hero-cta → continue-cta"
+        ]
+      },
+      "labEntry": {
+        "kind": "iris-zoom",
+        "duration": "500ms",
+        "mask": "circle from clicked-lab origin",
+        "accent": "iridescent ring expands"
+      },
+      "gameEntry": {
+        "kind": "iris-zoom",
+        "duration": "600ms",
+        "plus": "CSS @scroll-timeline exit fade"
+      },
+      "panelExpand": {
+        "kind": "fold-out",
+        "duration": "350ms",
+        "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+      },
+      "cardLift": {
+        "kind": "magnetic-hover",
+        "duration": "250ms",
+        "cursorTracking": "enabled (desktop only)"
+      }
+    },
+    "responsive": {
+      "strategy": "container-queries on grid wrapper",
+      "breakpoints": {
+        "atrium": "@container (min-width: 1440px) — full 22/56/22 + dock",
+        "observatory": "@container (min-width: 1024px) — 24/52/24 + dock",
+        "compact": "@container (min-width: 768px)  — pilot + stage 2-col, deck collapses to bottom-sheet",
+        "stacked": "@container (max-width: 767px)  — vertical: topbar, hero greeting, lab map, mini-cards stack, nav as bottom bar"
+      }
+    }
+  },
+  "sourceFiles": {
+    "labColors": "src/config/labColors.ts",
+    "tailwind": "tailwind.config.ts",
+    "globals": "src/app/globals.css",
+    "brandMaterial": "src/lib/branding/sf-material.config.ts",
+    "layout": "src/app/layout.tsx",
+    "cockpitUI": "src/components/3d/CockpitUILayer.tsx",
+    "cockpitPanels": "src/components/3d/CockpitPanels.tsx",
+    "labMap": "src/components/3d/HolographicLabMap.tsx",
+    "hud": "src/components/3d/HolographicHUD.tsx",
+    "cockpitStore": "src/stores/cockpitStore.ts"
+  }
+}
