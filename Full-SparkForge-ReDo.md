@@ -56,7 +56,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 | `lib/` subdirectories | 25 | — |
 | Shaders (GLSL + TSL) | 16 + tsl/ subdir | ~3,583 LOC |
 | Root `.md` files | 37 | ~1 MB |
-| `_SUPERSEDED/` folders | 4 | ~14 files |
+| `_SUPERSEDED/` folders | 6 | 22 files |
 
 ### Security debt (must fix before ship)
 
@@ -212,7 +212,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 **Exit gate:** `npm run build` clean. `/login → demo → /home` flow renders HTML on Chrome desktop, Safari mobile, WebGL-disabled Chromium.
 
 1. Create `_archive/{audits,design-plans,agent-docs,strategy}/` with a README manifest. `git mv` all Tier B docs into the appropriate subfolder. ✅ DONE 2026-05-11 (commit pending).
-2. Delete all four `_SUPERSEDED/` folders.
+2. Delete all six `_SUPERSEDED/` folders (root, src/components/auth, src/components/3d, docs/00-reference, docs/stage7-remaining-games/7b-drag-drop, docs/stage7-remaining-games/7c-simulation). ✅ DONE 2026-05-11.
 3. `npm audit fix`; bump `three-mesh-bvh@^0.8.0`; `--force` for `happy-dom`.
 4. Fix TS error in `tests/unit/demo-session.test.ts:32`.
 5. Audit `.env.local`; replace `throw` in `src/lib/supabase/client.ts` with a runtime error UI. Update demo session length 30 → 60 minutes in `src/lib/demo-session.ts`.
