@@ -60,7 +60,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 
 ### Security debt (must fix before ship)
 
-- 1 critical (`happy-dom <=20.8.8` — test dep)
+- 1 critical (`happy-dom <=20.8.8` — test dep) ✅ resolved Week 1 Step 3
 - 9 high (`flatted`, `lodash`, `lodash-es`, `icu-minify`, `mcp-data-vis`, `vite`)
 - 8 moderate, 1 low
 - `three-mesh-bvh@0.7.8` deprecated — bump to `^0.8.0`
@@ -213,7 +213,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 
 1. Create `_archive/{audits,design-plans,agent-docs,strategy}/` with a README manifest. `git mv` all Tier B docs into the appropriate subfolder. ✅ DONE 2026-05-11 (commit pending).
 2. Delete all six `_SUPERSEDED/` folders (root, src/components/auth, src/components/3d, docs/00-reference, docs/stage7-remaining-games/7b-drag-drop, docs/stage7-remaining-games/7c-simulation). ✅ DONE 2026-05-11.
-3. `npm audit fix`; bump `three-mesh-bvh@^0.8.0`; `--force` for `happy-dom`.
+3. `npm audit fix` + targeted `happy-dom@^20.9.0` upgrade. ✅ DONE 2026-05-11. Critical 1→0, High 9→3, Total 19→10. Remaining vulns are all in `@react-three/uikit*` (auto-resolved by Step 12 uninstall) or `@vercel/config` chain (type-only import, deferred). `three-mesh-bvh` at root is already `0.9.9` via `three-bvh-csg`; the `0.7.8` instance is a transitive of `r3f-perf` (dev-only perf overlay) — defer until Step 12.
 4. Fix TS error in `tests/unit/demo-session.test.ts:32`.
 5. Audit `.env.local`; replace `throw` in `src/lib/supabase/client.ts` with a runtime error UI. Update demo session length 30 → 60 minutes in `src/lib/demo-session.ts`.
 6. Rewrite `src/app/(dashboard)/layout.tsx` to a plain HTML shell.
