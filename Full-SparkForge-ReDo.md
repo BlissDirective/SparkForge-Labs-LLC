@@ -106,7 +106,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 - `docs/stage7/.../7b-drag-drop/_SUPERSEDED/`
 - `docs/stage7/.../7c-simulation/_SUPERSEDED/`
 
-### Tier B — Dated docs (move to `_archive/2026-04-audits/`)
+### Tier B — Dated docs (move to `_archive/{audits,design-plans,agent-docs,strategy}/`)
 
 - `AUDIT_REPORT.md`, `AUDIT_REPORT_03.29.2026.md`, `AUDIT_REPORT_3-25-2026.md`
 - `CODE_AUDIT_SUMMARY_MATRIX_20260315.md`
@@ -211,7 +211,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 
 **Exit gate:** `npm run build` clean. `/login → demo → /home` flow renders HTML on Chrome desktop, Safari mobile, WebGL-disabled Chromium.
 
-1. Create `_archive/2026-04-audits/`. `git mv` all Tier B docs into it.
+1. Create `_archive/{audits,design-plans,agent-docs,strategy}/` with a README manifest. `git mv` all Tier B docs into the appropriate subfolder. ✅ DONE 2026-05-11 (commit pending).
 2. Delete all four `_SUPERSEDED/` folders.
 3. `npm audit fix`; bump `three-mesh-bvh@^0.8.0`; `--force` for `happy-dom`.
 4. Fix TS error in `tests/unit/demo-session.test.ts:32`.
