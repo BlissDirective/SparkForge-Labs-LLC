@@ -215,7 +215,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 2. Delete all four `_SUPERSEDED/` folders.
 3. `npm audit fix`; bump `three-mesh-bvh@^0.8.0`; `--force` for `happy-dom`.
 4. Fix TS error in `tests/unit/demo-session.test.ts:32`.
-5. Audit `.env.local`; replace `throw` in `src/lib/supabase/client.ts` with a runtime error UI.
+5. Audit `.env.local`; replace `throw` in `src/lib/supabase/client.ts` with a runtime error UI. Update demo session length 30 → 60 minutes in `src/lib/demo-session.ts`.
 6. Rewrite `src/app/(dashboard)/layout.tsx` to a plain HTML shell.
 7. Delete cockpit subsystem (Tier C → Cockpit row).
 8. Delete hero + brand 3D (Tier C → Hero, Brand rows). Replace landing with placeholder gradient + tagline.
@@ -230,7 +230,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 
 **Exit gate:** Landing, login, /home, /labs, /labs/[id], parent dashboard, 25 games all Bright & Playful. Lighthouse mobile Performance ≥ 80 on landing.
 
-1. Build `PlayfulHero.tsx` (gradient + animated SVG mascot + 3 feature cards + CTA).
+1. Commission/render Sparky asset pack (idle, wave, cheer, think, sleep, win, surprised — 7 poses, exported as 512px + 1024px WebP from a single Three.js render scene at `scripts/render-sparky.ts`). Drop into `public/mascot/sparky/`. Build `PlayfulHero.tsx` (gradient + Sparky waving sprite + 3 feature cards + CTAs from Section 11).
 2. Reskin `LoginCard.tsx`, `SignupCard.tsx`, `ResetPasswordCard.tsx`.
 3. Build `HomeGreeting.tsx`. Wire to `childStore` + progress API.
 4. Build `LabCard.tsx` + `LabGrid.tsx`. Use `labColors.ts` desaturated.
@@ -254,7 +254,7 @@ The build itself succeeds (`npm run build` exits 0, 0 TypeScript errors, 60 lint
 5. Smoke-test each Stage 11 game.
 6. **PocketBrain decision:** if `@mlc-ai/web-llm` model download fails reliably, gate behind "Experimental" flag.
 7. Deep test PromptLab, NeuralBuilder, BiasDetective.
-8. Verify per-lab game lists + locked/unlocked/completed states.
+8. Verify per-lab game lists + locked/unlocked/completed states. Implement Free-tier gating: Labs 1–8 expose first 2 games each (16 unlocked); Labs 9–11 visible but `<LockedLabCard/>` with "Upgrade to Plus" CTA. Wire to subscription tier from `authStore`.
 9. Resolve remaining 28 lint warnings (`no-explicit-any`, `no-unused-vars`).
 10. WCAG sweep on new palette (contrast, tap targets, focus rings).
 
@@ -293,17 +293,17 @@ Stabilization only. No new features.
 
 ---
 
-## 7. Open Decisions (Defaults Assumed)
+## 7. Decisions (Locked In — 2026-05-11)
 
-| # | Decision | Default |
-|---|----------|---------|
-| 1 | Mascot character | Commission/AI-generate "Sparky" — orange spark character, SVG illustrations |
-| 2 | Marketing copy refresh | Defer to Week 2 with placeholder copy |
-| 3 | Lab 11 ship-or-defer | Ship 6 of 7 Stage 11 games; gate PocketBrain |
-| 4 | Tier pricing (Free / Plus / Forge) | Keep as documented — no changes for launch |
-| 5 | Free-tier paywall depth | 5 free games (one per labs 1–5), all 11 labs visible, locked beyond |
-| 6 | Demo session length | 30 minutes, no signup — already implemented |
-| 7 | CLAUDE.md rewrite | Yes — v6.7 vision is no longer the build target |
+| # | Decision | Resolution |
+|---|----------|------------|
+| 1 | Mascot character | **"Sparky"** — spherical chrome robot with glowing amber/orange seams. Pre-rendered 3D artwork (PNG/WebP sprites baked from a Blender/Three.js source render). Used as static images at runtime — no R3F mounted. Asset pack: idle, wave, cheer, think, sleep, win, surprised poses. |
+| 2 | Marketing copy | Locked. See Section 11. |
+| 3 | Lab 11 (Agentic AI) ship | **Ship all 7 Stage 11 games.** PocketBrain stays in-scope; experimental flag only triggers if Week 3 smoke fails on the WebGPU LLM model download. |
+| 4 | Tier pricing (Free / Plus / Forge) | Keep as documented — no changes for launch. |
+| 5 | Free-tier paywall depth | **Labs 1–8: first 2 games per lab unlocked (16 free games total). Labs 9–11: visible but fully locked behind Plus tier.** |
+| 6 | Demo session length | **60 minutes** (1 hour), no signup. Update `src/lib/demo-session.ts` from 30 → 60 in Week 1. |
+| 7 | CLAUDE.md rewrite | **Yes** — Week 4 step 10. Rewrite to reflect post-redo architecture (no cockpit/hero v3/Lab Control Station references). |
 
 ---
 
@@ -358,10 +358,8 @@ Per `CLAUDE.md` Section 2 conventions, the following actions are pre-authorized 
 - Supabase `execute_sql`, `apply_migration` (review payload first per existing rule)
 
 **Ask first (hard stops):**
-- Mascot artwork direction (Sparky vs alternatives)
-- Marketing copy approval
-- PocketBrain experimental flag final decision
-- Free-tier paywall depth (5 games default)
+- Sparky artwork commission/render approval (initial pose set)
+- PocketBrain experimental flag trigger (only if Week 3 smoke fails)
 - Production deploy (Week 4 step 11)
 - `v1.0.0` tag (Week 4 step 12)
 
@@ -373,4 +371,77 @@ Per `CLAUDE.md` Section 2 conventions, the following actions are pre-authorized 
 
 ---
 
-*End of Full-SparkForge-ReDo.md — drafted 2026-05-11 for ship by 2026-06-11.*
+---
+
+## 11. Marketing Copy (Locked In)
+
+### Brand voice
+
+- **Tone:** Curious, energetic, kind. Like a smart older sibling who actually plays the games with you.
+- **Reading level:** 4th grade headlines, 6th grade body — readable by 7-year-olds, respectable to 16-year-olds and parents.
+- **No-go list:** "ChatGPT killer", "AI revolution", "robot uprising", anything fear-based, anything that implies AI replaces thinking.
+
+### Hero (landing page)
+
+**Headline (primary):**
+> Play your way to AI superpowers.
+
+**Subhead:**
+> 42 games that teach kids ages 7–16 how AI really works — wrapped in 11 labs they won't want to put down.
+
+**Primary CTA:** `Start Free — 16 games unlocked`
+**Secondary CTA:** `Try the 1-hour demo`
+
+### Three feature cards (below hero)
+
+| Card | Title | Body |
+|------|-------|------|
+| 1 (Kid POV) | **Learn by playing** | No lectures. No worksheets. Train pet AIs, decode emojis, outsmart chatbots, and build your first neural network. |
+| 2 (Parent POV) | **Built safe, made smart** | Age-appropriate content, no ads, no chat with strangers. Parents see real progress, not just screen time. |
+| 3 (Skills POV) | **Real AI, real skills** | From prompts to neural networks, kids build the same intuitions powering ChatGPT — across 11 themed labs and Sparky's guidance. |
+
+### Section headers (landing page)
+
+- "Meet Sparky, your AI lab buddy."
+- "11 labs. 42 games. One curious mind."
+- "Built for the kids who ask 'why?'"
+- "Loved by kids. Trusted by parents."
+
+### Onboarding microcopy
+
+- First screen: `Hi, I'm Sparky! Ready to make AI your sidekick?`
+- Age-band picker: `How old are you? I'll pick games that fit just right.`
+- Lab unlock moment: `New lab unlocked! 🎉 [Lab name] is ready for you.`
+- First game complete: `You did it! +50 XP. Sparky's proud.`
+
+### Empty states / locked content
+
+- Locked game (Free tier): `Unlock this game with Plus — or play one of 16 free games first.`
+- Locked Labs 9–11: `Coming soon to your tier. Upgrade to Plus to explore Labs 9–11.`
+- Demo expiry warning (<5 min): `5 minutes left in your demo. Sign up to keep your progress!`
+- Demo expired: `Demo's over! Your XP is waiting — sign up to save it.`
+
+### Tier names + one-liners (existing pricing kept)
+
+- **Free** — "16 games. 8 labs. No card needed."
+- **Plus** — "All 42 games. All 11 labs. All of Sparky."
+- **Forge** — "Plus everything, plus the AI Content Lab and family sharing."
+
+### Tagline (alternatives, pick one in Week 2 visual checkpoint)
+
+1. **AI literacy, gamified.** *(boldest, most parent-facing)*
+2. **Where kids meet AI.** *(simplest)*
+3. **Curiosity > screens.** *(values-forward)*
+
+> Recommended: **#1** for landing footer, **#2** for app shell loading state.
+
+### Email subjects (transactional)
+
+- Verify: `One click to start playing, [name]!`
+- Welcome: `Sparky's waiting for you 🤖`
+- Streak reminder: `Don't break your [N]-day streak!`
+- Trial ending: `Your Plus trial ends tomorrow — keep all 42 games?`
+
+---
+
+*End of Full-SparkForge-ReDo.md — drafted 2026-05-11 for ship by 2026-06-11. All open decisions locked.*
