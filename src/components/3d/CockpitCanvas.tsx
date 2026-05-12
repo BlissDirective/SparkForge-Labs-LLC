@@ -543,9 +543,23 @@ function CockpitCanvasImpl({
 // ultrawide tiers (and the pre-hydration SSR pass, which defaults to
 // desktop per useDeviceProfile's SSR_DEFAULT) render the existing
 // CockpitCanvasImpl unchanged.
+// Week 2 — device-tier gate. Mobile and tablet viewports short-circuit
+// to the 2D MobileDashboard before any 3D hook runs, so neither the
+// Canvas nor the 37.8M-triangle scene mounts on phones. Desktop and
+// ultrawide tiers (and the pre-hydration SSR pass, which defaults to
+// desktop per useDeviceProfile's SSR_DEFAULT) render the existing
+// CockpitCanvasImpl unchanged.
+//
+// Pre-hydration: we return null instead of CockpitCanvasImpl so the
+// heavy 3D imports never even attempt to instantiate on mobile during
+// the brief window between SSR and the first device-profile tick.
+// Without this, iOS Safari crashed inside Canvas/WebGPU init before
+// the gate could redirect to MobileDashboard, landing the user on the
+// global error boundary ("Something went wrong" page).
 function CockpitCanvasGate(props: CockpitCanvasProps) {
   const { tier, isHydrated } = useDeviceProfile();
-  if (isHydrated && (tier === 'mobile' || tier === 'tablet')) {
+  if (!isHydrated) return null;
+  if (tier === 'mobile' || tier === 'tablet') {
     return <MobileDashboard />;
   }
   return <CockpitCanvasImpl {...props} />;
