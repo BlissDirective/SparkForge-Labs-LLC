@@ -34,8 +34,8 @@ export default function MarketingLayout({
         aria-hidden="true"
       >
         <div className="absolute inset-0 bg-gradient-to-br from-spark-blue/[0.03] via-transparent to-spark-purple/[0.04]" />
-        <div className="absolute top-0 left-1/4 w-[800px] h-[600px] rounded-full bg-spark-blue/[0.02] blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-[600px] h-[500px] rounded-full bg-spark-purple/[0.03] blur-[100px]" />
+        <div className="absolute top-0 left-1/4 w-[min(800px,90vw)] h-[min(600px,70vw)] rounded-full bg-spark-blue/[0.02] blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-[min(600px,80vw)] h-[min(500px,60vw)] rounded-full bg-spark-purple/[0.03] blur-[100px]" />
       </div>
 
       {/* Fixed header */}

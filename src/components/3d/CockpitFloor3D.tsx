@@ -26,6 +26,7 @@
 
 import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
+import { useReducedMotion } from 'motion/react';
 import {
   BoxGeometry,
   BufferGeometry,
@@ -158,6 +159,11 @@ function buildHatchFrame(cx: number, cz: number, size: number): BufferGeometry {
 // ■■ Component ■■
 
 export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
+
+  // Week 3 Day 4 — honor OS prefers-reduced-motion. When set, the LED
+  // traveling-wave pulse and conduit emissive pulse pause; the floor
+  // still renders, just with steady-state lighting.
+  const reducedMotion = useReducedMotion();
 
   // Refs for animated elements
   const ledInstanceRef = useRef<InstancedMesh>(null);
@@ -394,6 +400,9 @@ export function CockpitFloor3D({ labColor, opacity = 1 }: CockpitFloor3DProps) {
 
   // ── Animation ──
   useFrame(() => {
+    // Honor prefers-reduced-motion: skip the per-frame work entirely
+    // so the floor stays at its initial (steady) lighting state.
+    if (reducedMotion) return;
     const time = performance.now() * 0.001;
     // Pulse frequency derived from design token HOVER_GLOW.pulsePeriodS
     const pulseFreq = (2 * Math.PI) / PULSE_PERIOD_S;

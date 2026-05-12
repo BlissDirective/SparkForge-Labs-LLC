@@ -188,7 +188,7 @@ export function Sidebar() {
       tabIndex={-1}
       onFocus={handleFocus}
       onBlur={handleBlur}
-      className="sr-only focus-within:not-sr-only focus-within:fixed focus-within:left-4 focus-within:top-4 focus-within:z-50 focus-within:w-[260px] focus-within:bg-surface-deep/95 focus-within:backdrop-blur-xl focus-within:rounded-xl focus-within:p-3 focus-within:border focus-within:border-spark-blue/40 focus-within:shadow-[0_0_28px_rgba(0,187,255,0.25)]"
+      className="sr-only focus-within:not-sr-only focus-within:fixed focus-within:left-2 focus-within:top-2 focus-within:right-2 focus-within:z-50 focus-within:w-auto focus-within:max-w-[calc(100vw-1rem)] focus-within:bg-surface-deep/95 focus-within:backdrop-blur-xl focus-within:rounded-xl focus-within:p-3 focus-within:border focus-within:border-spark-blue/40 focus-within:shadow-[0_0_28px_rgba(0,187,255,0.25)] sm:focus-within:left-4 sm:focus-within:top-4 sm:focus-within:right-auto sm:focus-within:w-[260px] sm:focus-within:max-w-none"
       role="navigation"
       aria-label="Main navigation (press Escape to close)"
     >

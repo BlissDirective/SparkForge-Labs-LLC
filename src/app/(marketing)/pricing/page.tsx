@@ -336,9 +336,9 @@ export default function PricingPage() {
       {/* ─── [v3] Aurora background — visual continuity with ScrollJourney ─── */}
       <div className="fixed inset-0 -z-10 pointer-events-none" aria-hidden="true">
         <div className="absolute inset-0 bg-gradient-to-b from-[#0D1117] via-[#0B1628] to-[#0D1117]" />
-        <div className="absolute top-[15%] left-[25%] w-[500px] h-[500px] rounded-full bg-[#3B82F6]/[0.04] blur-[100px]" />
-        <div className="absolute top-[40%] right-[15%] w-[400px] h-[400px] rounded-full bg-[#8B5CF6]/[0.03] blur-[80px]" />
-        <div className="absolute bottom-[20%] left-[35%] w-[350px] h-[350px] rounded-full bg-[#F59E0B]/[0.02] blur-[70px]" />
+        <div className="absolute top-[15%] left-[25%] w-[min(500px,70vw)] h-[min(500px,70vw)] rounded-full bg-[#3B82F6]/[0.04] blur-[100px]" />
+        <div className="absolute top-[40%] right-[15%] w-[min(400px,60vw)] h-[min(400px,60vw)] rounded-full bg-[#8B5CF6]/[0.03] blur-[80px]" />
+        <div className="absolute bottom-[20%] left-[35%] w-[min(350px,55vw)] h-[min(350px,55vw)] rounded-full bg-[#F59E0B]/[0.02] blur-[70px]" />
       </div>
 
       <motion.div
