@@ -75,6 +75,9 @@ import { CameraSystem, type CameraMode } from './CameraSystem';
 
 // Hooks (D3D-C4)
 import { useParallaxMouse } from '@/hooks/useParallaxMouse';
+// Week 2 — device-tier gate (mobile/tablet -> 2D dashboard short-circuit)
+import { useDeviceProfile } from '@/hooks/useDeviceProfile';
+import { MobileDashboard } from '@/components/dashboard/MobileDashboard';
 // WebGPU async renderer factory (P5 §10.8 Sub 2)
 import { createRenderer } from '@/lib/3d/webgpuRenderer';
 // Frame-time monitoring (Audit Section 4.4, Plan B1: non-invasive, dev-only)
@@ -534,5 +537,19 @@ function CockpitCanvasImpl({
 
 // Memoized export — shallow prop comparison skips re-renders when
 // parents re-render without prop changes.
-export const CockpitCanvas = React.memo(CockpitCanvasImpl);
+// Week 2 — device-tier gate. Mobile and tablet viewports short-circuit
+// to the 2D MobileDashboard before any 3D hook runs, so neither the
+// Canvas nor the 37.8M-triangle scene mounts on phones. Desktop and
+// ultrawide tiers (and the pre-hydration SSR pass, which defaults to
+// desktop per useDeviceProfile's SSR_DEFAULT) render the existing
+// CockpitCanvasImpl unchanged.
+function CockpitCanvasGate(props: CockpitCanvasProps) {
+  const { tier, isHydrated } = useDeviceProfile();
+  if (isHydrated && (tier === 'mobile' || tier === 'tablet')) {
+    return <MobileDashboard />;
+  }
+  return <CockpitCanvasImpl {...props} />;
+}
+
+export const CockpitCanvas = React.memo(CockpitCanvasGate);
 CockpitCanvas.displayName = 'CockpitCanvas';
