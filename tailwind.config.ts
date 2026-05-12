@@ -63,6 +63,27 @@ const config: Config = {
         '2xl': 'var(--space-2xl)',     // 48px
         'section': 'var(--space-section)', // 64px
       },
+      // Fix Tailwind 4 spacing-token leak into max-w-* utilities.
+      // The semantic spacing scale above redefines `md`, `lg`, `xl` to
+      // 16/24/32px; without this explicit maxWidth scale, Tailwind 4
+      // resolves max-w-md as max-width:16px and collapses content into
+      // one-word-per-line columns (e.g. the global error page on mobile,
+      // login + signup before the auth-page hardening commit). These
+      // values are the Tailwind 3 defaults, restored explicitly so
+      // every existing max-w-{sm,md,lg,xl,2xl,3xl...} usage works again.
+      maxWidth: {
+        'xs': '20rem',
+        'sm': '24rem',
+        'md': '28rem',
+        'lg': '32rem',
+        'xl': '36rem',
+        '2xl': '42rem',
+        '3xl': '48rem',
+        '4xl': '56rem',
+        '5xl': '64rem',
+        '6xl': '72rem',
+        '7xl': '80rem',
+      },
       boxShadow: {
         'glow-blue': '0 0 20px rgba(0,187,255,0.25)',
         'glow-purple': '0 0 20px rgba(170,102,255,0.25)',
