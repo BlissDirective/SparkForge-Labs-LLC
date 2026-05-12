@@ -69,9 +69,9 @@ export function CookieNotice() {
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: 100, opacity: 0 }}
         transition={{ duration: 0.3, ease: 'easeOut' }}
-        className="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-2xl"
+        className="fixed bottom-4 left-4 right-4 z-50 mx-auto max-w-2xl"
       >
-        <div className="flex items-start gap-3 rounded-xl border border-white/10 bg-surface-card/95 backdrop-blur-md px-4 py-3 shadow-2xl shadow-spark-blue/10">
+        <div className="flex flex-col gap-3 rounded-xl border border-white/10 bg-surface-card/95 backdrop-blur-md px-4 py-3 shadow-2xl shadow-spark-blue/10 sm:flex-row sm:items-start">
           <Cookie
             className="w-5 h-5 mt-0.5 text-spark-blue flex-shrink-0"
             aria-hidden="true"
@@ -89,7 +89,7 @@ export function CookieNotice() {
               </Link>
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
             <button
               type="button"
               onClick={onDismiss}
