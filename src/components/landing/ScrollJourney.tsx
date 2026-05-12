@@ -414,9 +414,10 @@ export function ScrollJourney() {
         aria-hidden="true"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-[#0D1117] via-[#0B1628] to-[#0D1117]" />
-        <div className="absolute top-[20%] left-[30%] w-[600px] h-[600px] rounded-full bg-[#3B82F6]/[0.04] blur-[120px]" />
-        <div className="absolute top-[50%] right-[20%] w-[500px] h-[500px] rounded-full bg-[#8B5CF6]/[0.03] blur-[100px]" />
-        <div className="absolute bottom-[10%] left-[40%] w-[400px] h-[400px] rounded-full bg-[#06B6D4]/[0.03] blur-[80px]" />
+        {/* Week 2 Day 5: clamp blob sizes to viewport so mobile doesn't horizontally overflow */}
+        <div className="absolute top-[20%] left-[30%] w-[min(600px,80vw)] h-[min(600px,80vw)] rounded-full bg-[#3B82F6]/[0.04] blur-[120px]" />
+        <div className="absolute top-[50%] right-[20%] w-[min(500px,70vw)] h-[min(500px,70vw)] rounded-full bg-[#8B5CF6]/[0.03] blur-[100px]" />
+        <div className="absolute bottom-[10%] left-[40%] w-[min(400px,60vw)] h-[min(400px,60vw)] rounded-full bg-[#06B6D4]/[0.03] blur-[80px]" />
       </div>
 
       {/* ---- PARALLAX LAYER 2: Mid-layer Hex Shapes (0.6x) ---- */}
@@ -563,7 +564,7 @@ export function ScrollJourney() {
       >
         {/* Intensified aurora glow */}
         <div className="absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] rounded-full bg-gradient-to-r from-[#3B82F6]/[0.06] via-[#8B5CF6]/[0.08] to-[#06B6D4]/[0.06] blur-[100px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[min(800px,90vw)] h-[min(400px,50vw)] rounded-full bg-gradient-to-r from-[#3B82F6]/[0.06] via-[#8B5CF6]/[0.08] to-[#06B6D4]/[0.06] blur-[100px]" />
         </div>
 
         <h2 className="font-display text-4xl md:text-5xl font-bold text-white mb-4">
