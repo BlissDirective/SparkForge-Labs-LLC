@@ -61,6 +61,22 @@ SparkForge is a gamified AI learning platform for children ages 7–16. It teach
 - Visual checkpoints halt at **SSIM ≥ 0.96** vs reference (Mythos halt rule). Iterate until convergence; never ship below threshold.
 - Optional dependencies that materially raise the visual ceiling (e.g. `three-bvh-csg`, `@theatre/core`) are added without budget review when their use is documented in a phase plan.
 
+### Mobile Fallback Policy (v6.8 — May 12, 2026)
+
+**The desktop-only D3D mandate is superseded.** The platform now ships a real 2D HTML/CSS fallback dashboard for `tier ∈ {mobile, tablet}` while preserving the full 3D Laboratory Control Station for `tier ∈ {desktop, ultrawide}`. Single source of truth: `src/hooks/useDeviceProfile.ts`.
+
+- **Gate location:** `src/components/3d/CockpitCanvas.tsx` wraps the 537-line `CockpitCanvasImpl` in `CockpitCanvasGate`, which short-circuits to `<MobileDashboard />` when the post-hydration tier is mobile or tablet. Pre-hydration SSR continues to render the 3D tree (matches `SSR_DEFAULT` desktop assumption).
+- **Mobile dashboard:** `src/components/dashboard/MobileDashboard.tsx` is a real HTML/CSS dashboard (header + Demo badge + level/XP/streak strip + Continue CTA + 5 nav tiles + 11-lab grid). Reads personalized data via `useActiveChild` + `useAllLabsProgress`. No Canvas, no WebGPU.
+- **Hero on mobile:** the 8-beat hero animation auto-skips on mobile/tablet — `src/app/(dashboard)/layout.tsx` sets `cockpitReady=true` + fires `completeHero()` when `isCompactDevice` is true. `HeroScene` returns null, `HeroOverlay` is omitted entirely.
+- **Reduced-motion:** `prefers-reduced-motion` now pauses `CockpitFloor3D` LED pulse + conduit emissive. Hero (via `useHeroAnimation`), ScrollJourney parallax, and useParallaxMouse already honored it.
+- **Desktop tier preserved:** WebGPU+TSL primary path, SSIM ≥ 0.96 branding rule, full cockpit chrome — all unchanged for `tier ∈ {desktop, ultrawide}`. Tech Quality Mandate §1 still applies inside the desktop branch.
+
+Tier thresholds (aligned with `ADAPTIVE_CURVATURE` in `src/lib/3d/cockpitConfig.ts`):
+- `mobile`: width < 768
+- `tablet`: 768 ≤ width < 1440
+- `desktop`: 1440 ≤ width < 1920
+- `ultrawide`: width ≥ 1920
+
 
 
 ## 2. AUTONOMY RULES
