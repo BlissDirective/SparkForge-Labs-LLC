@@ -20,6 +20,7 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { useSceneStore } from '@/stores/sceneStore';
 import { useHeroAnimation } from '@/hooks/useHeroAnimation';
 import { HeroOverlay, HeroScene } from '@/components/3d/HeroAnimation';
+import { useDeviceProfile } from '@/hooks/useDeviceProfile';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
 import { AuthProvider } from '@/components/providers/AuthProvider';
 import { useStationMode } from '@/hooks/useStationMode';
@@ -126,16 +127,25 @@ export default function DashboardLayout({
   const completeHero = useSceneStore((s) => s.completeHero);
   const sceneSetCockpitReady = useCockpitStore((s) => s.setCockpitReady);
 
+  // Week 2 Day 5 — mobile/tablet tiers never render the 3D Canvas (gated
+  // inside CockpitCanvas), so the hero animation HTML overlay (skip
+  // button, progress bar) is irrelevant and must short-circuit too. We
+  // mark cockpitReady + completeHero so any state-dependent gates resolve.
+  const { tier, isHydrated: deviceHydrated } = useDeviceProfile();
+  const isCompactDevice = deviceHydrated && (tier === 'mobile' || tier === 'tablet');
+
   // Activate the hero scene on mount when it should play. shouldSkip
   // covers prefers-reduced-motion + non-first-visit-with-skip-enabled
   // and short-circuits to the cockpit immediately. The conditional
   // setActiveScene avoids overriding 'game' or 'spatial' if the layout
   // remounts mid-session.
   useEffect(() => {
-    if (heroState.shouldSkip) {
+    if (heroState.shouldSkip || isCompactDevice) {
       // No animation will play — mark cockpit ready immediately so
       // useIsFullyReady gates resolve and useAtomicHeroToCockpit can
-      // exit any stale 'hero' state from a prior session.
+      // exit any stale 'hero' state from a prior session. Mobile +
+      // tablet always take this branch because their Canvas never
+      // mounts (Week 2 gate in CockpitCanvas).
       sceneSetCockpitReady(true);
       if (useSceneStore.getState().activeScene === 'hero') {
         completeHero();
@@ -145,17 +155,17 @@ export default function DashboardLayout({
     if (useSceneStore.getState().activeScene === 'cockpit') {
       setHeroActive();
     }
-    // Only run on shouldSkip flip / mount — not every render.
+    // Only run on shouldSkip flip / device tier change / mount.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [heroState.shouldSkip]);
+  }, [heroState.shouldSkip, isCompactDevice]);
 
   // Memoized hero 3D content — passed to StationFrame as heroSceneContent
   // and rendered inside CockpitCanvas's R3F context. Returns null after
   // completion so the GSAP timeline + audio inside HeroScene unmount.
   const heroSceneContent = useMemo(() => {
-    if (heroState.shouldSkip || heroState.isComplete) return null;
+    if (heroState.shouldSkip || heroState.isComplete || isCompactDevice) return null;
     return <HeroScene state={heroState} actions={heroActions} />;
-  }, [heroState, heroActions]);
+  }, [heroState, heroActions, isCompactDevice]);
 
   // Auto-track play sessions
   useSessionTracker();
@@ -239,8 +249,10 @@ export default function DashboardLayout({
         {/* Hero animation HTML overlay — skip button, progress bar,
             keyboard shortcuts. Returns null when the hero shouldn't
             play (shouldSkip) or has completed. Sibling to StationFrame
-            so the SAME state/actions tuple drives both halves. */}
-        <HeroOverlay state={heroState} actions={heroActions} />
+            so the SAME state/actions tuple drives both halves. Week 2
+            Day 5: also omitted on mobile/tablet because the Canvas is
+            gated off and the overlay would dangle without its scene. */}
+        {!isCompactDevice && <HeroOverlay state={heroState} actions={heroActions} />}
 
         {/* sr-only navigation for WCAG accessibility */}
         <Sidebar />

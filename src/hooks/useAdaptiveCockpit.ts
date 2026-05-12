@@ -1,9 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useMemo } from 'react';
 import { ADAPTIVE_CURVATURE, COCKPIT_GEOMETRY } from '@/lib/3d/cockpitConfig';
+import { useDeviceProfile } from './useDeviceProfile';
 
 // AUDIT-A7: Removed isCSSFallback per D3D-1 (desktop-only, no CSS fallback)
+// Week 1 refactor: thin selector over useDeviceProfile so every viewport
+// decision flows through one source of truth.
 interface AdaptiveCockpitParams {
   arcDegrees: number;
   panelRadius: number;
@@ -11,52 +14,24 @@ interface AdaptiveCockpitParams {
 }
 
 export function useAdaptiveCockpit(): AdaptiveCockpitParams {
-  const [params, setParams] = useState<AdaptiveCockpitParams>({
-    arcDegrees: COCKPIT_GEOMETRY.totalWrapArc,
-    panelRadius: COCKPIT_GEOMETRY.panelRadius,
-    curvature: COCKPIT_GEOMETRY.panelCurvature,
-  });
+  const { tier } = useDeviceProfile();
 
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    function calculate() {
-      const w = window.innerWidth;
-      if (w >= ADAPTIVE_CURVATURE.ultraWide.minWidth) {
-        setParams({
-          arcDegrees: ADAPTIVE_CURVATURE.ultraWide.arc,
-          panelRadius: ADAPTIVE_CURVATURE.ultraWide.radius,
-          curvature: COCKPIT_GEOMETRY.panelCurvature,
-        });
-      } else if (w >= ADAPTIVE_CURVATURE.desktop.minWidth) {
-        setParams({
-          arcDegrees: ADAPTIVE_CURVATURE.desktop.arc,
-          panelRadius: ADAPTIVE_CURVATURE.desktop.radius,
-          curvature: COCKPIT_GEOMETRY.panelCurvature,
-        });
-      } else {
-        // D3D-1: Even on smaller windows, render 3D (desktop-only platform)
-        setParams({
-          arcDegrees: ADAPTIVE_CURVATURE.desktop.arc,
-          panelRadius: ADAPTIVE_CURVATURE.desktop.radius,
-          curvature: COCKPIT_GEOMETRY.panelCurvature,
-        });
-      }
+  return useMemo(() => {
+    if (tier === 'ultrawide') {
+      return {
+        arcDegrees: ADAPTIVE_CURVATURE.ultraWide.arc,
+        panelRadius: ADAPTIVE_CURVATURE.ultraWide.radius,
+        curvature: COCKPIT_GEOMETRY.panelCurvature,
+      };
     }
-
-    calculate();
-
-    function handleResize() {
-      clearTimeout(timeoutId);
-      timeoutId = setTimeout(calculate, 150);
-    }
-
-    window.addEventListener('resize', handleResize);
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      clearTimeout(timeoutId);
+    // desktop, tablet, mobile all return desktop curvature here. mobile +
+    // tablet never actually render the 3D cockpit — the Week 2 gate in
+    // CockpitCanvas short-circuits to the 2D dashboard before these
+    // params are consumed.
+    return {
+      arcDegrees: ADAPTIVE_CURVATURE.desktop.arc,
+      panelRadius: ADAPTIVE_CURVATURE.desktop.radius,
+      curvature: COCKPIT_GEOMETRY.panelCurvature,
     };
-  }, []);
-
-  return params;
+  }, [tier]);
 }
