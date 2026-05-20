@@ -16,6 +16,11 @@
 #                            #   gh auth refresh -s secrets
 #   vercel link              # link this repo to the Vercel project
 #
+# In CI / GitHub Actions, set these secrets first (already done):
+#   VERCEL_TOKEN    — Vercel API token (vcp_...)
+#   VERCEL_ORG_ID   — team_o0aj1OpSptKOTS1cEaPklK4R
+#   VERCEL_PROJECT_ID — prj_SLy2jHcbRT8mR1ElbCvQvIKl9fZ8
+#
 # Usage:
 #   bash scripts/sync-env-to-github-secrets.sh
 #   bash scripts/sync-env-to-github-secrets.sh --repo owner/repo
@@ -110,7 +115,16 @@ require_cmd gh    "Install GitHub CLI: https://cli.github.com, then: gh auth log
 
 if [[ -z "$FROM_FILE" ]]; then
   require_cmd vercel "Install Vercel CLI: npm i -g vercel, then: vercel login && vercel link"
-  [[ -d ".vercel" ]] || die "Repo not linked to Vercel. Run: vercel link"
+  # In CI, auto-create .vercel/project.json from secrets if not already present
+  if [[ ! -d ".vercel" ]]; then
+    if [[ -n "${VERCEL_ORG_ID:-}" && -n "${VERCEL_PROJECT_ID:-}" ]]; then
+      mkdir -p .vercel
+      printf '{"projectId":"%s","orgId":"%s"}' "$VERCEL_PROJECT_ID" "$VERCEL_ORG_ID" > .vercel/project.json
+      echo "    ℹ️  Created .vercel/project.json from VERCEL_ORG_ID / VERCEL_PROJECT_ID"
+    else
+      die "Repo not linked to Vercel. Run: vercel link  (or set VERCEL_ORG_ID + VERCEL_PROJECT_ID env vars)"
+    fi
+  fi
 fi
 
 # Auto-detect GitHub repo from git remote
