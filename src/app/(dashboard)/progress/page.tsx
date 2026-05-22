@@ -193,8 +193,4 @@ export default function ProgressPage() {
   );
 }
 
-const LAB_ICONS: Record<number, string> = {
-  1: '\uD83E\uDD16', 2: '\uD83E\uDDE0', 3: '\uD83E\uDDEC', 4: '\uD83C\uDFA8',
-  5: '\uD83D\uDD27', 6: '\u2696\uFE0F', 7: '\uD83D\uDC41\uFE0F', 8: '\uD83D\uDCAC',
-  9: '\uD83D\uDCDA', 10: '\uD83D\uDD2E', 11: '\uD83C\uDFAD',
-};
+// Lab icons are handled inline

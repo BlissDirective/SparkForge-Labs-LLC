@@ -18,6 +18,8 @@ import { SkipLink } from '@/components/shared/SkipLink';
 import { A11yAnnouncer } from '@/components/shared/A11yAnnouncer';
 import { RealtimeChildrenBridge } from '@/components/providers/RealtimeChildrenBridge';
 import { useSessionTracker } from '@/hooks/useSessionTracker';
+import { AITutorProvider } from '@/components/ai-tutor/AITutorContext';
+import { AITutor } from '@/components/ai-tutor/AITutor';
 
 export default function DashboardLayout({
   children,
@@ -29,45 +31,50 @@ export default function DashboardLayout({
   return (
     <AuthProvider>
       <DemoGuard>
-        <SkipLink />
-        <OfflineBanner />
-        <DemoSessionBanner />
-        <EmailVerifyBanner />
+        <AITutorProvider>
+          <SkipLink />
+          <OfflineBanner />
+          <DemoSessionBanner />
+          <EmailVerifyBanner />
 
-        <div
-          className="min-h-screen flex"
-          style={{
-            backgroundColor: 'rgb(var(--sf-surface-alt) / 1)',
-            color: 'rgb(var(--sf-text-primary) / 1)',
-            fontFamily: 'var(--font-body)',
-          }}
-        >
-          {/* Desktop Sidebar — hidden on mobile */}
-          <div className="hidden lg:block">
-            <Sidebar />
+          <div
+            className="min-h-screen flex"
+            style={{
+              backgroundColor: 'rgb(var(--sf-surface-alt) / 1)',
+              color: 'rgb(var(--sf-text-primary) / 1)',
+              fontFamily: 'var(--font-body)',
+            }}
+          >
+            {/* Desktop Sidebar — hidden on mobile */}
+            <div className="hidden lg:block">
+              <Sidebar />
+            </div>
+
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0">
+              {/* Top Bar */}
+              <TopBar />
+
+              {/* Page Content */}
+              <main
+                id="main-content"
+                className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8"
+                role="main"
+              >
+                {children}
+              </main>
+
+              {/* Mobile Bottom Nav — hidden on desktop */}
+              <BottomNav />
+            </div>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1 flex flex-col min-w-0">
-            {/* Top Bar */}
-            <TopBar />
+          {/* AI Tutor — Floating Avatar + Chat */}
+          <AITutor />
 
-            {/* Page Content */}
-            <main
-              id="main-content"
-              className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8"
-              role="main"
-            >
-              {children}
-            </main>
-
-            {/* Mobile Bottom Nav — hidden on desktop */}
-            <BottomNav />
-          </div>
-        </div>
-
-        <A11yAnnouncer />
-        <RealtimeChildrenBridge />
+          <A11yAnnouncer />
+          <RealtimeChildrenBridge />
+        </AITutorProvider>
       </DemoGuard>
     </AuthProvider>
   );
