@@ -1,0 +1,139 @@
+/* ════════════════════════════════════════════════════════════════
+   SPARKFORGE DESIGN TOKENS v3.0 — Kid-Friendly Colorful Theme
+   ════════════════════════════════════════════════════════════════
+   Replaces the Frost-Prismatic dark theme with a bright, optimistic,
+   kid-friendly palette. All tokens use CSS custom properties for
+   runtime theming (light/dark mode, accessibility overrides).
+
+   Color philosophy:
+   - Primary: Vivid blue (trust, technology)
+   - Secondary: Warm orange (energy, fun)
+   - Accents: Green, purple, pink, yellow (playful variety)
+   - Surfaces: Light, clean backgrounds (not dark/sinister)
+   - Text: High contrast, readable
+   ════════════════════════════════════════════════════════════════ */
+
+@layer base {
+  :root {
+    /* ── Primary Palette ── */
+    --sf-primary: 79 110 247;
+    --sf-primary-light: 139 159 255;
+    --sf-primary-dark: 47 75 192;
+
+    /* ── Secondary Palette ── */
+    --sf-secondary: 255 107 53;
+    --sf-secondary-light: 255 157 110;
+
+    /* ── Accent Colors ── */
+    --sf-accent-green: 46 204 113;
+    --sf-accent-purple: 155 89 182;
+    --sf-accent-pink: 233 69 245;
+    --sf-accent-yellow: 255 217 61;
+    --sf-accent-cyan: 0 210 255;
+    --sf-accent-red: 255 82 82;
+
+    /* ── Surfaces ── */
+    --sf-surface: 255 255 255;
+    --sf-surface-alt: 248 250 255;
+    --sf-surface-elevated: 255 255 255;
+    --sf-surface-muted: 238 242 250;
+    --sf-surface-inverse: 15 17 35;
+
+    /* ── Text ── */
+    --sf-text-primary: 26 29 43;
+    --sf-text-secondary: 82 88 110;
+    --sf-text-muted: 140 148 172;
+    --sf-text-inverse: 248 250 255;
+
+    /* ── Borders ── */
+    --sf-border: 218 224 240;
+    --sf-border-focus: 79 110 247;
+    --sf-border-subtle: 232 238 248;
+
+    /* ── Shadows ── */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.10);
+    --shadow-glow-primary: 0 4px 20px rgba(79, 110, 247, 0.25);
+    --shadow-glow-green: 0 4px 20px rgba(46, 204, 113, 0.25);
+    --shadow-glow-pink: 0 4px 20px rgba(233, 69, 245, 0.25);
+    --shadow-glow-orange: 0 4px 20px rgba(255, 107, 53, 0.25);
+
+    /* ── Border Radius ── */
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-xl: 24px;
+    --radius-full: 9999px;
+
+    /* ── Transitions ── */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* ── Typography Scale ── */
+    --font-display: 'Nunito', 'Nunito Fallback', system-ui, sans-serif;
+    --font-body: 'Inter', 'Inter Fallback', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
+    /* ── Z-Index Scale ── */
+    --z-base: 1;
+    --z-dropdown: 50;
+    --z-sticky: 100;
+    --z-fixed: 200;
+    --z-modal-backdrop: 300;
+    --z-modal: 400;
+    --z-popover: 500;
+    --z-toast: 600;
+    --z-tooltip: 700;
+
+    /* ── Landing Page Hero ── */
+    --hero-gradient-pink: #E945F5;
+    --hero-gradient-blue: #2F4BC0;
+    --hero-bg: #0a0a1a;
+  }
+
+  /* ── Dark Mode Overrides ── */
+  [data-theme="dark"] {
+    --sf-surface: 22 25 40;
+    --sf-surface-alt: 15 17 35;
+    --sf-surface-elevated: 30 33 50;
+    --sf-surface-muted: 40 44 65;
+    --sf-text-primary: 248 250 255;
+    --sf-text-secondary: 180 188 210;
+    --sf-text-muted: 120 130 160;
+    --sf-border: 55 60 85;
+    --sf-border-subtle: 45 50 70;
+  }
+}
+
+/* ── Font Fallback Metrics ── */
+@font-face {
+  font-family: 'Nunito Fallback';
+  src: local('Arial Rounded MT Bold'), local('Arial');
+  size-adjust: 105%;
+  ascent-override: 95%;
+  descent-override: 25%;
+}
+
+@font-face {
+  font-family: 'Inter Fallback';
+  src: local('Segoe UI'), local('Helvetica Neue'), local('Arial');
+  size-adjust: 98%;
+  ascent-override: 95%;
+  descent-override: 25%;
+}
+
+/* ── Reduced Motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
